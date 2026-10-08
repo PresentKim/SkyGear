@@ -1,4 +1,4 @@
-// Command dragonfactory runs a OneBlock x Skyblock farming server on Dragonfly.
+// Command dragonfactory runs the multi game island server (docs/design).
 package main
 
 import (
@@ -6,21 +6,24 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/df-mc/dragonfly/server"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
-	"github.com/presentkim/dragonfactory/internal/game"
-	"github.com/presentkim/dragonfactory/internal/store"
+	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
+	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/platform"
 )
 
 func main() {
 	log := slog.Default()
 	chat.Global.Subscribe(chat.StdoutSubscriber{})
-
 	if err := run(log); err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
@@ -28,44 +31,50 @@ func main() {
 }
 
 func run(log *slog.Logger) error {
-	conf, err := readConfig(log)
+	conf, err := readServerConfig(log)
 	if err != nil {
 		return err
 	}
-	gconf, err := game.LoadConfig("game.toml")
+	pconf, err := platform.LoadConfig("platform.toml")
 	if err != nil {
 		return err
 	}
-	st, err := store.Open(gconf.Data.File)
+	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
+		return err
+	}
+	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
 	if err != nil {
 		return err
 	}
+	defer d.Close()
 
-	// Every dimension is an empty void: islands are built on demand.
+	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
-	conf.RandomTickSpeed = gconf.Farming.RandomTickSpeed
-
+	conf.Entities = entity.DefaultRegistry
 	srv := conf.New()
-	g := game.New(log, srv, gconf, st)
+	lobby := srv.World()
+	lobby.SetSpawn(platform.LobbySpawn)
+	lobby.SetDefaultGameMode(world.GameModeAdventure)
+	lobby.StopTime()
+	<-lobby.Do(platform.BuildLobby).Done()
 
-	stop := make(chan struct{})
-	go func() {
-		t := time.NewTicker(time.Duration(gconf.Data.SaveIntervalSeconds) * time.Second)
-		defer t.Stop()
-		for {
-			select {
-			case <-t.C:
-				g.Save()
-			case <-stop:
-				return
-			}
-		}
-	}()
+	var pf *platform.Platform
+	m := instance.NewManager(log, d, instance.Config{
+		Dir:              filepath.Join(pconf.Data.Dir, "saves"),
+		DayLength:        pconf.DayLength(),
+		LoadRadius:       pconf.Instance.LoadRadius,
+		MaxActive:        pconf.Instance.MaxActive,
+		AutosaveInterval: time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
+		Entities:         conf.Entities,
+	}, platform.Lobby(lobby, &pf))
+	pf = platform.New(log, d, m, dragonfactory.Game{})
+
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		<-c
-		g.Save()
+		// Store every instance before players are disconnected.
+		m.CloseAll()
 		if err := srv.Close(); err != nil {
 			log.Error("close server", "err", err)
 		}
@@ -73,18 +82,19 @@ func run(log *slog.Logger) error {
 
 	srv.Listen()
 	for p := range srv.Accept() {
-		g.Join(p)
+		pf.Join(p)
 	}
-	close(stop)
-	g.Save()
+	m.CloseAll()
 	return nil
 }
 
-// readConfig reads the Dragonfly configuration from config.toml, or creates
-// the file with defaults if it does not yet exist.
-func readConfig(log *slog.Logger) (server.Config, error) {
+// readServerConfig reads the Dragonfly configuration from config.toml, or
+// creates the file with defaults if it does not yet exist. Player data is
+// always stored by the platform per save, so Dragonfly's player provider is
+// disabled.
+func readServerConfig(log *slog.Logger) (server.Config, error) {
 	c := server.DefaultConfig()
-	c.Server.Name = "OneBlock Farm"
+	c.Server.Name = "DragonFactory"
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(c)
 		if err != nil {
@@ -93,14 +103,15 @@ func readConfig(log *slog.Logger) (server.Config, error) {
 		if err := os.WriteFile("config.toml", data, 0o644); err != nil {
 			return server.Config{}, fmt.Errorf("create default config: %w", err)
 		}
-		return c.Config(log)
+	} else {
+		data, err := os.ReadFile("config.toml")
+		if err != nil {
+			return server.Config{}, fmt.Errorf("read config: %w", err)
+		}
+		if err := toml.Unmarshal(data, &c); err != nil {
+			return server.Config{}, fmt.Errorf("decode config: %w", err)
+		}
 	}
-	data, err := os.ReadFile("config.toml")
-	if err != nil {
-		return server.Config{}, fmt.Errorf("read config: %w", err)
-	}
-	if err := toml.Unmarshal(data, &c); err != nil {
-		return server.Config{}, fmt.Errorf("decode config: %w", err)
-	}
+	c.Players.SaveData = false
 	return c.Config(log)
 }

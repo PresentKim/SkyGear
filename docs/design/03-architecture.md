@@ -41,40 +41,51 @@ cheques(id PK, save_id, amount, issued_by, issued_at, redeemed_by, redeemed_at)
 
 - `save_state`는 게임 종류가 자유롭게 쓰는 키-값으로 두어 플랫폼이 게임 내용을 몰라도 되게 한다.
 
-## 3. 패키지 구조(목표)
+## 3. 패키지 구조
 
 ```
 main.go
-internal/platform/      접속 흐름, 로비, 계정, 친구, 초대, 세이브 슬롯 UI
-internal/instance/      인스턴스 로드/언로드, 플레이어 이동, 상태 저장/복원
-internal/db/            SQLite 접근 계층
-internal/games/         게임 종류 인터페이스와 등록
+internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
+internal/playerstate/          세이브별 플레이어 상태 캡처/복원/직렬화
+internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
+internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI (M3: 친구, 초대)
 internal/games/dragonfactory/  드래곤팩토리: core, mission, shop, urgent, cheque, machine …
 ```
 
-게임 종류 인터페이스(초안):
+게임 종류 인터페이스(`internal/instance/game.go`):
 
 ```go
 type Game interface {
-    ID() string                          // "dragonfactory"
-    Name() string                        // "드래곤팩토리"
-    NewSave(tx *world.Tx, s *Save)       // 섬/초기 상태 생성
-    Load(inst *Instance) Session         // 인스턴스 로드 시 게임 로직 시작
+    ID() string                         // "dragonfactory"
+    Name() string                       // "드래곤팩토리"
+    Init(tx *world.Tx, inst *Instance)  // 새 세이브의 월드를 처음 한 번 만든다
+    Start(inst *Instance) Session       // 인스턴스 활성화 시 게임 로직 시작
 }
 
 type Session interface {
-    Join(p *player.Player)               // 플레이어 입장(핸들러 부착 등)
-    Leave(p *player.Player)
-    Close()                              // 언로드 전 상태 저장
+    Spawn() mgl64.Vec3                          // 위치 기록이 없는 플레이어의 시작 위치
+    Join(p *player.Player, first bool)          // 입장 후(상태 복원 뒤). first = 이 세이브 첫 입장
+    Leave(p *player.Player)                     // 퇴장 전(상태 저장 전)
+    Handler(p *player.Player) player.Handler    // 인스턴스 안에서의 게임 이벤트 핸들러
+    NewDay(tx *world.Tx, day int)               // 인스턴스 날짜가 바뀔 때
+    Close(tx *world.Tx)                         // 월드 저장·종료 전
 }
 ```
+
+### 플레이어 이벤트 흐름
+모든 플레이어는 접속 내내 `instance.Handler` 하나를 가진다. 이 핸들러는 플랫폼 공통 규칙(낙하 피해 제거, 사망 시 인벤토리 유지, 보이드 복귀, 접속 종료 시 저장)을 처리하고,
+나머지 이벤트는 현재 위치의 핸들러(로비 핸들러 또는 `Session.Handler`)로 전달한다.
+
+### 인스턴스 수명
+1. 호스트가 입장 → mcdb 월드 열기, 소유 영역을 덮는 NopViewer 로더 생성, 처음이면 `Game.Init`, `Game.Start`, 시계 시작.
+2. 입장/퇴장마다 세이브별 플레이어 상태를 DB에 저장·복원. 자동 저장 주기마다 시계와 접속 중인 플레이어 상태 저장.
+3. 호스트가 로비로 가거나 접속 종료 → 남은 플레이어를 로비로 이동 → `Session.Close` → 시계 저장 → 월드 저장·종료.
+4. 서버 종료 시 모든 인스턴스를 먼저 종료한 뒤 서버를 닫는다.
 
 ## 4. 기존 프로토타입 처리
 
 | 기존 | 처리 |
 |---|---|
-| `internal/oneblock` 단계 테이블 | 코어 블록 테이블의 참고 데이터로 재사용 |
-| `internal/farm` 수확 판정·레벨 | 생명 코어 시대/농사 기계에서 재사용 검토 |
-| `internal/island` 격자 | 인스턴스마다 월드가 따로라 불필요 → 제거 |
-| `internal/store` JSON | SQLite로 대체 |
-| `internal/game` | 플랫폼/게임 구조로 재작성 후 제거 |
+| `internal/oneblock` 단계 테이블 | 남겨 둠. 코어 블록 테이블의 참고 데이터 |
+| `internal/farm` 수확 판정·레벨 | 남겨 둠. 생명 코어 시대/농사 기계에서 재사용 검토 |
+| `internal/island`, `internal/store`, `internal/game` | M1에서 제거 (인스턴스·SQLite·플랫폼으로 대체) |
