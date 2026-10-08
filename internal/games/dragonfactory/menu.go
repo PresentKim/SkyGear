@@ -52,5 +52,9 @@ func itemName(s item.Stack) string {
 		return c.Name()
 	}
 	name, _ := s.Item().EncodeItem()
-	return strings.TrimPrefix(name, "minecraft:")
+	name = strings.TrimPrefix(name, "minecraft:")
+	if ko, ok := koreanNames[name]; ok {
+		return ko
+	}
+	return name
 }
