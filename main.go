@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/chat"
+	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
 	"github.com/presentkim/dragonfactory/internal/db"
@@ -44,6 +45,10 @@ func run(log *slog.Logger) error {
 	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
 		return err
 	}
+	session.EntityContainerOptions.Ride = pconf.ChestUI.Ride
+	session.EntityContainerOptions.WaitLatency = pconf.ChestUI.WaitLatency
+	session.EntityContainerOptions.Retry = pconf.ChestUI.Retry
+	session.EntityContainerOptions.Debug = pconf.ChestUI.Debug
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
 	if err != nil {
 		return err

@@ -36,7 +36,7 @@ var ShopItems = []ShopItem{
 	}, 200, 1, 2, day},
 	{"torch", "횃불 x16", func() item.Stack { return item.NewStack(block.Torch{}, 16) }, 60, 1, 4, day},
 	{"drawer", "서랍", func() item.Stack { return item.NewStack(Drawer{}, 1) }, 400, 1, 4, day},
-	{"upgrade_lock", "서랍 잠금 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeLock}, 1) }, 200, 1, 2, day},
+	{"drawer_key", "서랍 잠금 키 (닳지 않음)", func() item.Stack { return item.NewStack(DrawerKey{}, 1) }, 200, 1, 1, day},
 	{"upgrade_capacity", "서랍 용량 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) }, 800, 2, 2, day},
 	{"upgrade_void", "서랍 공허 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) }, 600, 3, 1, day},
 	{"hopper", "호퍼", func() item.Stack { return item.NewStack(block.NewHopper(), 1) }, 300, 2, 8, day},

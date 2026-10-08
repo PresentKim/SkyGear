@@ -12,9 +12,9 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -45,8 +45,9 @@ var (
 	drawerFrontTexture = drawerFront()
 	drawerSideTexture  = frameTexture(rgb(70, 45, 20), rgb(140, 100, 60), rgb(0, 0, 0), 0)
 	facingNames        = map[cube.Direction]string{cube.North: "north", cube.East: "east", cube.South: "south", cube.West: "west"}
-	// facingRotation turns the model (front = north) to face each direction.
-	facingRotation = map[cube.Direction]int{cube.North: 0, cube.West: 90, cube.South: 180, cube.East: -90}
+	// facingRotation turns the model (front = north) to face each direction,
+	// in 90° steps around Y (Dragonfly's customblock rotation unit).
+	facingRotation = map[cube.Direction]int{cube.North: 0, cube.West: 1, cube.South: 2, cube.East: 3}
 )
 
 func drawerFront() image.Image {
@@ -113,8 +114,13 @@ func (d Drawer) capacity() int64 {
 	return DrawerBaseStacks * per << d.Capacity
 }
 
+// accepts reports whether it may go into the drawer. Items that do not
+// stack (tools, buckets, ...) and drawer tools are never stored.
 func (d Drawer) accepts(it item.Stack) bool {
-	return !it.Empty() && (d.Item.Empty() || d.Item.Comparable(it)) && !isDrawerUpgrade(it)
+	if it.Empty() || it.MaxCount() == 1 || isDrawerUpgrade(it) || isDrawerKey(it) {
+		return false
+	}
+	return d.Item.Empty() || d.Item.Comparable(it)
 }
 
 // insert adds up to n of it and returns how many were taken (void counts).
@@ -156,18 +162,7 @@ func (d Drawer) label() string {
 	if d.Item.Empty() {
 		return ""
 	}
-	stack := int64(d.Item.MaxCount())
-	text := formatInt(d.Count)
-	if stack > 1 && d.Count >= stack {
-		text += fmt.Sprintf(" · %d스택", d.Count/stack)
-		if r := d.Count % stack; r > 0 {
-			text += fmt.Sprintf("+%d", r)
-		}
-	}
-	if d.Locked {
-		text = "§7[잠금] §f" + text
-	}
-	return text
+	return formatInt(d.Count)
 }
 
 const (
@@ -192,7 +187,10 @@ func (d Drawer) toItem() item.Stack {
 		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
 		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(d.Item), formatInt(d.Count)))
 	}
-	lore = append(lore, fmt.Sprintf("§7용량 업그레이드 %d · 잠금 %s · 공허 %s", d.Capacity, onOff(d.Locked), onOff(d.Void)))
+	lore = append(lore, fmt.Sprintf("§7용량 업그레이드 %d · 공허 %s", d.Capacity, onOff(d.Void)))
+	if d.Locked {
+		lore = append(lore, "§e"+lockGlyph+" 잠김")
+	}
 	return st.WithLore(lore...)
 }
 
@@ -273,19 +271,29 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	if face != d.Facing.Face() {
 		return false
 	}
+	if isDrawerKey(held) || isLegacyLockUpgrade(held) {
+		if !s.debounced(p) {
+			s.toggleLock(p, tx, pos, &d, held)
+		}
+		return true
+	}
 	if isDrawerUpgrade(held) {
-		if s.applyUpgrade(p, tx, pos, &d, held) {
+		if !s.debounced(p) && s.applyUpgrade(p, tx, pos, &d, held) {
 			p.SetHeldItems(held.Grow(-1), off)
 			s.setDrawer(tx, pos, d)
 		}
 		return true
 	}
-	double := s.lastUse.pos == pos && s.lastUse.player == p.H() && time.Since(s.lastUse.at) < 500*time.Millisecond
-	s.lastUse = drawerUse{player: p.H(), pos: pos, at: time.Now()}
+	// A second use within 500ms of inserting a held stack inserts every
+	// matching item of the inventory. Only an actual insert starts the
+	// window, so repeated use packets after an upgrade (empty hand) or into
+	// an empty drawer never pull items from the inventory.
+	double := s.lastUse.pos == pos && s.lastUse.player == p.H() && time.Since(s.lastUse.at) < 500*time.Millisecond && !d.Item.Empty()
 	total := 0
 	if n := d.insert(held, held.Count()); n > 0 {
 		p.SetHeldItems(held.Grow(-n), off)
 		total += n
+		s.lastUse = drawerUse{player: p.H(), pos: pos, at: time.Now()}
 	}
 	if double {
 		inv := p.Inventory()
@@ -377,7 +385,8 @@ var upgradeInfo = []struct {
 	tex      image.Image
 }{
 	{"capacity", "서랍 용량 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(120, 200, 255), 6)},
-	{"lock", "서랍 잠금 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(250, 210, 60), 6)},
+	// Kept so old items still load; using one turns it into a drawer key.
+	{"lock", "(구) 서랍 잠금 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(250, 210, 60), 6)},
 	{"void", "서랍 공허 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(150, 60, 200), 6)},
 }
 
@@ -393,6 +402,54 @@ func isDrawerUpgrade(st item.Stack) bool {
 	return ok
 }
 
+func isLegacyLockUpgrade(st item.Stack) bool {
+	u, ok := st.Item().(DrawerUpgrade)
+	return ok && u.Kind == UpgradeLock
+}
+
+// DrawerKey locks and unlocks drawers. It is never used up (§10.4).
+type DrawerKey struct{}
+
+var drawerKeyTexture = keyTexture()
+
+func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
+func (DrawerKey) Name() string                { return "서랍 잠금 키" }
+func (DrawerKey) Texture() image.Image        { return drawerKeyTexture }
+func (DrawerKey) Category() category.Category { return category.Items() }
+func (DrawerKey) MaxCount() int               { return 1 }
+
+func isDrawerKey(st item.Stack) bool {
+	_, ok := st.Item().(DrawerKey)
+	return ok
+}
+
+// toggleLock locks or unlocks a drawer with a key. An old lock upgrade used
+// this way becomes a key.
+func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, held item.Stack) {
+	if isLegacyLockUpgrade(held) {
+		_, off := p.HeldItems()
+		p.SetHeldItems(held.Grow(-1), off)
+		if _, err := p.Inventory().AddItem(item.NewStack(DrawerKey{}, 1)); err != nil {
+			s.dropAt(tx, p.Position(), item.NewStack(DrawerKey{}, 1))
+		}
+		p.Message("§e잠금 업그레이드가 서랍 잠금 키로 바뀌었습니다. 키는 닳지 않고 잠금을 켜고 끕니다.")
+	}
+	if !d.Locked && d.Item.Empty() {
+		p.SendTip("§c빈 서랍은 잠글 수 없습니다. 아이템을 넣은 뒤 잠그세요.")
+		return
+	}
+	d.Locked = !d.Locked
+	if !d.Locked && d.Count == 0 {
+		d.Item = item.Stack{}
+	}
+	s.setDrawer(tx, pos, *d)
+	if d.Locked {
+		p.SendTip("§e" + lockGlyph + " 서랍을 잠갔습니다")
+	} else {
+		p.SendTip("§a서랍 잠금을 풀었습니다")
+	}
+}
+
 func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, held item.Stack) bool {
 	u := held.Item().(DrawerUpgrade)
 	switch u.Kind {
@@ -402,12 +459,6 @@ func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *
 			return false
 		}
 		d.Capacity++
-	case UpgradeLock:
-		if d.Locked {
-			p.SendTip("§c이미 잠겨 있습니다.")
-			return false
-		}
-		d.Locked = true
 	case UpgradeVoid:
 		if d.Void {
 			p.SendTip("§c이미 공허 업그레이드가 있습니다.")
@@ -429,7 +480,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	if !d.Item.Empty() {
 		body = fmt.Sprintf("§f%s §7x%s / %s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))
 	}
-	body += fmt.Sprintf("\n§7용량 업그레이드 %d/%d · 잠금 %s · 공허 %s", d.Capacity, MaxCapacityUpgrades, onOff(d.Locked), onOff(d.Void))
+	body += fmt.Sprintf("\n§7용량 업그레이드 %d/%d · 공허 %s · 잠금 %s(잠금 키로 전환)", d.Capacity, MaxCapacityUpgrades, onOff(d.Void), onOff(d.Locked))
 	var opts []ui.Option
 	remove := func(label string, kind int, ok bool, apply func(*Drawer) bool) {
 		if !ok {
@@ -455,14 +506,20 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 		}
 		return true
 	})
-	remove("잠금 업그레이드 떼기", UpgradeLock, d.Locked, func(d *Drawer) bool {
-		d.Locked = false
-		if d.Count == 0 {
-			d.Item = item.Stack{}
-		}
-		return true
-	})
 	remove("공허 업그레이드 떼기", UpgradeVoid, d.Void, func(d *Drawer) bool { d.Void = false; return true })
+	opts = append(opts, ui.Option{Label: "§c서랍 회수\n§8내용물·업그레이드를 담은 채로 가져오기", Run: func(p *player.Player, tx *world.Tx) {
+		d, ok := tx.Block(pos).(Drawer)
+		if !ok || !s.canBuild(pos) {
+			return
+		}
+		s.removeDisplay(tx, pos)
+		tx.SetBlock(pos, nil, nil)
+		it := d.toItem()
+		if n, _ := p.Inventory().AddItem(it); n < it.Count() {
+			s.dropAt(tx, p.Position(), it)
+		}
+		p.Message("§a서랍을 회수했습니다.")
+	}})
 	ui.Menu(p, "서랍", body, opts...)
 }
 
@@ -480,15 +537,34 @@ type drawerPunch struct {
 	front  bool
 }
 
-// drawerDisplay are the entities showing a drawer's item and count.
+// drawerDisplay shows a drawer's item (a holder entity) and count (a text
+// shape drawn in the air, shapes.go).
 type drawerDisplay struct {
-	item, label *world.EntityHandle
-	shown       item.Stack
+	item  *world.EntityHandle
+	shown item.Stack
 }
 
 func (s *session) ownsDisplay(pos cube.Pos, h *world.EntityHandle) bool {
 	d, ok := s.displays[pos]
-	return ok && (d.item == h || d.label == h)
+	return ok && d.item == h
+}
+
+// showLabel shows (or hides) the count text and the lock mark of a drawer.
+func (s *session) showLabel(tx *world.Tx, pos cube.Pos, d Drawer) {
+	switch old, ok := s.shapes[drawerLabelKey(pos)].(*debug.Text); {
+	case d.label() == "":
+		s.hideShape(tx, drawerLabelKey(pos))
+		s.hideShape(tx, drawerLockKey(pos))
+	case !ok || old.Text != d.label():
+		s.showShape(tx, drawerLabelKey(pos), drawerLabel(pos, d))
+	}
+	_, shown := s.shapes[drawerLockKey(pos)]
+	switch {
+	case d.Locked && !shown:
+		s.showShape(tx, drawerLockKey(pos), drawerLock(pos, d))
+	case !d.Locked && shown:
+		s.hideShape(tx, drawerLockKey(pos))
+	}
 }
 
 // setDrawer stores a changed drawer and refreshes its display.
@@ -499,24 +575,20 @@ func (s *session) setDrawer(tx *world.Tx, pos cube.Pos, d Drawer) {
 
 func (s *session) ensureDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 	if disp, ok := s.displays[pos]; ok {
-		_, itemOK := disp.item.Entity(tx)
-		_, labelOK := disp.label.Entity(tx)
-		if itemOK && labelOK {
+		if _, ok := disp.item.Entity(tx); ok {
 			return
 		}
 		// An entity went missing (e.g. the drawer was replaced): rebuild.
 		s.removeDisplay(tx, pos)
 	}
 	at, yaw := holderPosition(pos, d.Facing, d.Item)
-	labelAt := pos.Vec3Centre().Add(cube.Pos{}.Side(d.Facing.Face()).Vec3().Mul(0.55)).Add(mgl64.Vec3{0, -0.45, 0})
 	disp := &drawerDisplay{
 		item:  world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{item: d.Item, owner: pos}),
-		label: world.EntitySpawnOpts{Position: labelAt, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{owner: pos, label: d.label()}),
 		shown: d.Item,
 	}
 	s.displays[pos] = disp
 	tx.AddEntity(disp.item)
-	tx.AddEntity(disp.label)
+	s.showLabel(tx, pos, d)
 }
 
 func (s *session) refreshDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
@@ -525,9 +597,7 @@ func (s *session) refreshDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 		s.ensureDisplay(tx, pos, d)
 		return
 	}
-	if e, ok := disp.label.Entity(tx); ok {
-		e.(*ItemHolder).setLabel(d.label())
-	}
+	s.showLabel(tx, pos, d)
 	if !disp.shown.Comparable(d.Item) || disp.shown.Empty() != d.Item.Empty() {
 		// The hand (and depth) depends on the item, so re-create the holder.
 		s.removeDisplay(tx, pos)
@@ -541,11 +611,10 @@ func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	delete(s.displays, pos)
-	for _, h := range []*world.EntityHandle{disp.item, disp.label} {
-		if e, ok := h.Entity(tx); ok {
-			_ = e.Close()
-		}
+	if e, ok := disp.item.Entity(tx); ok {
+		_ = e.Close()
 	}
+	s.hideShape(tx, drawerLabelKey(pos))
 }
 
 // removeDisplays removes every display entity before the world is saved.
@@ -570,6 +639,7 @@ func init() {
 		world.RegisterBlock(Drawer{Facing: f})
 	}
 	world.RegisterItem(Drawer{})
+	world.RegisterItem(DrawerKey{})
 	for k := range upgradeInfo {
 		world.RegisterItem(DrawerUpgrade{Kind: k})
 	}

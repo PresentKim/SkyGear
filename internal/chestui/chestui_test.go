@@ -32,22 +32,13 @@ func TestTitle(t *testing.T) {
 	}
 }
 
-type countViewer struct {
-	world.NopViewer
-	slots []int
-}
-
-func (v *countViewer) ViewSlotChange(slot int, _ item.Stack) { v.slots = append(v.slots, slot) }
-
-func TestStorageViewers(t *testing.T) {
+func TestStorageOnChange(t *testing.T) {
 	s := NewStorage(30, "t")
-	v := &countViewer{}
-	s.viewers[v] = nil
 	var changed []int
 	s.OnChange(func(slot int, _, _ item.Stack) { changed = append(changed, slot) })
 	_ = s.Inventory().SetItem(29, item.NewStack(item.Apple{}, 3))
-	if len(v.slots) != 1 || v.slots[0] != 29 || len(changed) != 1 {
-		t.Fatalf("viewer saw %v, onChange %v", v.slots, changed)
+	if len(changed) != 1 || changed[0] != 29 {
+		t.Fatalf("onChange %v", changed)
 	}
 }
 

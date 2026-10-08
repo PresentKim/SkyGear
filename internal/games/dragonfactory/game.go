@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/db"
@@ -113,6 +114,10 @@ type session struct {
 	lastOpen map[*world.EntityHandle]time.Time
 	// boardMinute is the play time minute shown on the sidebars.
 	boardMinute int
+	// shapes are debug shapes shown to everyone in the instance; borders
+	// are the chunk borders shown to single players (shapes.go).
+	shapes  map[any]debug.Shape
+	borders map[*world.EntityHandle]*chunkBorders
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and
@@ -148,6 +153,7 @@ func (s *session) Join(p *player.Player, first bool) {
 		}
 	}
 	removeStaleCores(p.Inventory(), s)
+	s.sendShapes(p)
 	s.purgeLost()
 	s.updateBoard(p)
 }
@@ -162,6 +168,10 @@ func (s *session) Leave(p *player.Player) {
 	s.storeMoney(acc)
 	delete(s.money, acc)
 	delete(s.lastOpen, p.H())
+	delete(s.borders, p.H())
+	// Shapes are client-side: clear them before the player leaves the
+	// instance world.
+	p.RemoveAllDebugShapes()
 	p.RemoveScoreboard()
 }
 

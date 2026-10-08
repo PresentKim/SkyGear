@@ -1,6 +1,9 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
+	"github.com/go-gl/mathgl/mgl64"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -93,9 +96,9 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		if main, _ := e.(*ItemHolder).HeldItems(); main.Empty() {
 			t.Fatal("display does not hold the stored item")
 		}
-		l, _ := disp.label.Entity(tx)
-		if l.(*ItemHolder).NameTag() != "10" {
-			t.Fatalf("label = %q", l.(*ItemHolder).NameTag())
+		l, ok := s.shapes[drawerLabelKey(mid)].(*debug.Text)
+		if !ok || l.Text != "10" {
+			t.Fatalf("count text = %+v", l)
 		}
 		tx.SetBlock(bottom, block.NewHopper(), nil)
 	})
@@ -114,6 +117,9 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 				t.Fatal("display entity outlived its drawer")
 			}
 		}
+		if _, ok := s.shapes[drawerLabelKey(mid)]; ok {
+			t.Fatal("count text outlived its drawer")
+		}
 		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
 	})
 	tick(s, 2)
@@ -124,8 +130,84 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 				n++
 			}
 		}
-		if n != 2 {
-			t.Fatalf("a drawer placed again at the same spot has %d display entities, want 2", n)
+		if n != 1 {
+			t.Fatalf("a drawer placed again at the same spot has %d display entities, want 1", n)
+		}
+	})
+}
+
+// TestUseOnBlockConsumesHeldItems goes through Player.UseItemOnBlock, which
+// once wrote back the stack held before Activate and duplicated items.
+func TestUseOnBlockConsumesHeldItems(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	drawerPos, boxPos := cube.Pos{0, IslandY, 0}, cube.Pos{1, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(drawerPos, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(boxPos, DeliveryBox{}, nil)
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 40), item.Stack{})
+		p.UseItemOnBlock(drawerPos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1})
+		if held, _ := p.HeldItems(); !held.Empty() {
+			t.Fatalf("held after inserting into a drawer = %v", held)
+		}
+		if d := tx.Block(drawerPos).(Drawer); d.Count != 40 {
+			t.Fatalf("drawer count = %d", d.Count)
+		}
+
+		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 70-6), item.Stack{})
+		p.UseItemOnBlock(boxPos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1})
+		// Level 1 needs 64 cobblestone.
+		if held, _ := p.HeldItems(); !held.Empty() {
+			t.Fatalf("held after delivering = %v", held)
+		}
+	})
+}
+
+func TestDrawerToolsUpgradesAndKey(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(pos, Drawer{Facing: cube.South}, nil) })
+	h := spawnPlayer(s)
+	use := func(p *player.Player) { p.UseItemOnBlock(pos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1}) }
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		// Items that do not stack are refused.
+		p.SetHeldItems(item.NewStack(item.Pickaxe{Tier: item.ToolTierWood}, 1), item.Stack{})
+		use(p)
+		if held, _ := p.HeldItems(); held.Empty() {
+			t.Fatal("drawer took a pickaxe")
+		}
+		// An upgrade, then repeated empty-hand uses, must not pull the
+		// first inventory slot into the empty drawer.
+		_ = p.Inventory().SetItem(1, item.NewStack(block.Dirt{}, 10))
+		p.SetHeldItems(item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1), item.Stack{})
+		use(p)
+		use(p)
+		use(p)
+		d := tx.Block(pos).(Drawer)
+		if !d.Void || d.Count != 0 {
+			t.Fatalf("after upgrade and repeats: void=%v count=%d", d.Void, d.Count)
+		}
+		if it, _ := p.Inventory().Item(1); it.Count() != 10 {
+			t.Fatalf("slot 1 = %v, the repeats pulled it into the drawer", it)
+		}
+		// The key toggles the lock and stays in the hand.
+		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
+		use(p) // insert dirt
+		p.SetHeldItems(item.NewStack(DrawerKey{}, 1), item.Stack{})
+		s.lastOpen = nil
+		use(p)
+		if d := tx.Block(pos).(Drawer); !d.Locked {
+			t.Fatalf("not locked by the key: %+v", d)
+		}
+		if _, ok := s.shapes[drawerLockKey(pos)]; !ok {
+			t.Fatal("no lock mark shown")
+		}
+		if held, _ := p.HeldItems(); !isDrawerKey(held) {
+			t.Fatal("key was used up")
 		}
 	})
 }

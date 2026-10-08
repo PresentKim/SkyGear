@@ -18,7 +18,7 @@ func TestChequeRedeemOnce(t *testing.T) {
 		}
 	}
 	var cheque item.Stack
-	withPlayer(s, a, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, a, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 1000
 		if !s.TakeMoney(p, 700) {
 			t.Fatal("take money")
@@ -29,7 +29,7 @@ func TestChequeRedeemOnce(t *testing.T) {
 		}
 	})
 	// The cheque is handed to b, which redeems it; a copy is worthless.
-	withPlayer(s, b, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, b, func(p *player.Player, tx *world.Tx) {
 		p.SetHeldItems(cheque, item.Stack{})
 		s.redeemCheque(p)
 		if s.Money(p) != 700 {
@@ -44,7 +44,7 @@ func TestChequeRedeemOnce(t *testing.T) {
 			t.Fatal("a copied cheque was redeemed twice")
 		}
 	})
-	withPlayer(s, a, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, a, func(p *player.Player, tx *world.Tx) {
 		if s.Money(p) != 300 {
 			t.Fatalf("issuer money = %d", s.Money(p))
 		}

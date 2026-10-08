@@ -1780,6 +1780,10 @@ func (p *Player) UseItemOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec
 				// held block (custom blocks are not known to be activatable).
 				p.resendNearbyBlocks(pos, face)
 				p.SwingArm()
+				// dragonfactory patch: re-read the held items. Activate may have
+				// changed them (e.g. inserting the held stack into a block);
+				// writing back the stack read before would duplicate items.
+				i, left = p.HeldItems()
 				p.SetHeldItems(p.subtractItem(p.damageItem(i, useCtx.Damage), useCtx.CountSub), left)
 				p.addNewItem(useCtx)
 				return
@@ -3428,14 +3432,27 @@ func (p *Player) OpenEntityContainer(inv *inventory.Inventory, title string, onC
 // container window the player has open. Unlike the Player, it may be kept
 // and used outside of the player's transaction, the way block containers
 // keep their viewers. (dragonfactory patch)
-func (p *Player) ContainerViewer() block.ContainerViewer {
-	return p.session()
+func (p *Player) ContainerViewer() session.EntityContainerViewer {
+	return session.EntityContainerViewer{S: p.session()}
 }
 
 // CloseOpenedContainer closes the container window the player has open.
 // (dragonfactory patch)
 func (p *Player) CloseOpenedContainer() {
 	p.session().CloseOpenedContainer(p.tx)
+}
+
+// AfterClientSync runs f once the client has processed everything sent to
+// it so far (a NetworkStackLatency round trip, at most a second), e.g. to
+// show a form after closing a window. f does not run if the player is gone
+// by then. (dragonfactory patch)
+func (p *Player) AfterClientSync(f func(p *Player, tx *world.Tx)) {
+	h := p.H()
+	p.session().AfterClientSync(func(tx *world.Tx) {
+		if e, ok := h.Entity(tx); ok {
+			f(e.(*Player), tx)
+		}
+	})
 }
 
 // session returns the network session of the player. If it has one, it is returned. If not, a no-op session

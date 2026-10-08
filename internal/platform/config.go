@@ -28,6 +28,12 @@ type Config struct {
 		// AutosaveSeconds is how often active instances store their state.
 		AutosaveSeconds int
 	}
+	ChestUI struct {
+		// Ride, WaitLatency and Retry switch on the InvMenu-style steps of
+		// opening entity chests (docs/tech/chestui.md); all off is the plain
+		// open that is known to work. Debug logs the open/close packets.
+		Ride, WaitLatency, Retry, Debug bool
+	}
 	Admin struct {
 		// Operators are player names allowed to use operator tools such as
 		// /dfadmin (testing only).

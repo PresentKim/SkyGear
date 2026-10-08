@@ -13,8 +13,8 @@ import (
 )
 
 // click clicks a menu slot the way a session does and lets the button run.
-func click(s *session, h *world.EntityHandle, m *chestui.Menu, slot int) {
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+func click(t *testing.T, s *session, h *world.EntityHandle, m *chestui.Menu, slot int) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		ctx := event.C(inventory.Holder(p))
 		m.Inventory().Handler().HandleTake(ctx, slot, item.Stack{})
 	})
@@ -29,12 +29,12 @@ func TestLostMenu(t *testing.T) {
 	s.addLost(item.NewStack(item.Apple{}, 100))
 
 	var m *chestui.Menu
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) { m = s.lostMenu(p) })
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { m = s.lostMenu(p) })
 	if got, _ := m.Inventory().Item(0); got.Count() != 64 {
 		t.Fatalf("first entry icon = %v, want 64 apples", got)
 	}
-	click(s, h, m, 0)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	click(t, s, h, m, 0)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		if !p.Inventory().ContainsItem(item.NewStack(item.Apple{}, 100)) {
 			t.Fatal("apples were not taken")
 		}
@@ -52,12 +52,12 @@ func TestShopMenuBuys(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	var m *chestui.Menu
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
 		m = s.shopMenu(p)
 	})
-	click(s, h, m, 0) // delivery box
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	click(t, s, h, m, 0) // delivery box
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		if !p.Inventory().ContainsItem(item.NewStack(DeliveryBox{}, 1)) {
 			t.Fatal("delivery box not bought")
 		}
@@ -71,7 +71,7 @@ func TestExpandMap(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		m := s.expandMenu(p, ChunkPos{0, 0})
 		centre := (mapRows/2)*mapCols + mapCols/2
 		if it, _ := m.Inventory().Item(centre); itemKey(it.Item()) != itemKey(item.Compass{}) {

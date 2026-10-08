@@ -85,6 +85,7 @@ const (
 )
 
 func (s *session) showExpand(p *player.Player) {
+	s.showChunkBorders(p)
 	s.expandMenu(p, chunkOf(cube.PosFromVec3(p.Position()))).Open(p, nil)
 }
 
@@ -125,6 +126,7 @@ func (s *session) expandMenu(p *player.Player, centre ChunkPos) *chestui.Menu {
 			"§7소지금: §6" + formatMoney(s.Money(p)),
 			"§a■ 소유  §e■ 구매 가능  §8■ 구매 불가",
 			"§7섬과 맞닿은 청크만 살 수 있습니다.",
+			"§7월드에도 30초 동안 경계가 표시됩니다.",
 		}
 		m.Set(last+8, chestui.Button{Item: chestui.Lore(item.NewStack(block.Grass{}, 1), "§a섬 정보", info...)})
 	}
@@ -163,6 +165,7 @@ func (s *session) chunkButton(p *player.Player, c, here ChunkPos, buyable bool, 
 					return
 				}
 				s.buyChunk(p, tx, c)
+				s.showChunkBorders(p)
 				s.expandMenu(p, c).Open(p, nil)
 			})
 		}))

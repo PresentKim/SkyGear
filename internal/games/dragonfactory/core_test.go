@@ -28,11 +28,19 @@ func spawnPlayer(s *session) *world.EntityHandle {
 	return h
 }
 
-func withPlayer(s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
+// withPlayer runs f with the player in a transaction. A panic in f fails
+// the test (Dragonfly would only log it).
+func withPlayer(t *testing.T, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
+	t.Helper()
+	finished := false
 	s.world.Do(func(tx *world.Tx) {
 		e, _ := h.Entity(tx)
 		f(e.(*player.Player), tx)
+		finished = true
 	})
+	if !finished {
+		t.Fatal("transaction did not finish (panicked)")
+	}
 }
 
 func tick(s *session, n int) {
@@ -84,7 +92,7 @@ func TestReissueAndPlace(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		// The recorded core is placed: no reissue.
 		tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
 		s.reissueCore(p, tx, "earth")

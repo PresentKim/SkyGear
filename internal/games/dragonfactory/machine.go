@@ -116,6 +116,8 @@ type machineState struct {
 	shownPct int
 	// owner is the account that placed a sell box and gets its money.
 	owner, ownerName string
+	// pos is where the machine stands, set when its window is opened.
+	pos cube.Pos
 }
 
 func newMachine(kind, owner, ownerName string) Machine {
@@ -127,6 +129,7 @@ func newMachine(kind, owner, ownerName string) Machine {
 			_ = inv.SetItem(slot, filler())
 		}
 	}
+	_ = inv.SetItem(pickupSlot, item.NewStack(block.Barrel{}, 1).WithCustomName("§r§c기계 회수").WithLore("§7기계와 안의 아이템을 인벤토리로 가져옵니다."))
 	inv.Handle(machineHandler{st: st})
 	st.showProgress()
 	return Machine{Kind: kind, st: st}
@@ -143,6 +146,10 @@ const (
 	roleInput
 	roleOutput
 )
+
+// pickupSlot is the window slot of the "pick up" button: it removes the
+// machine and gives it, with its contents, to the player.
+const pickupSlot = 26
 
 func (st *machineState) role(slot int) slotRole {
 	for _, s := range st.kind.input {
@@ -185,9 +192,33 @@ func (st *machineState) accepts(it item.Stack) bool {
 type machineHandler struct{ st *machineState }
 
 func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
-	if h.st.role(slot) == roleNone {
-		ctx.Cancel()
+	if h.st.role(slot) != roleNone {
+		return
 	}
+	ctx.Cancel()
+	if p, ok := ctx.Val().(*player.Player); ok && slot == pickupSlot {
+		st := h.st
+		p.H().Do(func(tx *world.Tx, e world.Entity) { pickUpMachine(e.(*player.Player), tx, st) })
+	}
+}
+
+// pickUpMachine removes the machine whose window p used and gives it and
+// its contents to p (custom blocks can also be broken normally).
+func pickUpMachine(p *player.Player, tx *world.Tx, st *machineState) {
+	s, ok := activeGame.sessionOf(tx.World())
+	m, isMachine := tx.Block(st.pos).(Machine)
+	if !ok || !isMachine || m.st != st || !s.canBuild(st.pos) {
+		return
+	}
+	drops := m.BreakInfo().Drops(nil, nil)
+	breakMachine(m)
+	tx.SetBlock(st.pos, nil, nil)
+	for _, it := range drops {
+		if n, _ := p.Inventory().AddItem(it); n < it.Count() {
+			s.dropAt(tx, p.Position(), it.Grow(n-it.Count()))
+		}
+	}
+	p.Messagef("§a%s을(를) 회수했습니다.", m.kind().name)
 }
 
 func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
@@ -402,6 +433,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if !ok || !ok2 || !s.canBuild(pos) || m.st == nil {
 		return false
 	}
+	m.st.pos = pos
 	m.st.storage.Open(p, nil)
 	return true
 }

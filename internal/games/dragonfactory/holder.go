@@ -29,12 +29,10 @@ type holderData struct {
 type holderConfig struct {
 	item  item.Stack
 	owner cube.Pos
-	label string
 }
 
 func (c holderConfig) Apply(data *world.EntityData) {
 	data.Data = &holderData{item: c.item, owner: c.owner}
-	data.Name, data.AlwaysShowNameTag = c.label, c.label != ""
 }
 
 // Display depths in front of the block centre, confirmed on a real client
@@ -67,21 +65,17 @@ func (h *ItemHolder) setItem(it item.Stack) {
 	}
 }
 
-func (h *ItemHolder) setLabel(s string) {
-	if h.data.Name == s {
-		return
-	}
-	h.data.Name = s
-	for _, v := range h.tx.Viewers(h.data.Pos) {
-		v.ViewEntityState(h)
-	}
-}
-
 // Tick removes holders that no longer belong to a drawer display.
 func (h *ItemHolder) Tick(tx *world.Tx, _ int64) {
 	d := h.data.Data.(*holderData)
 	s, ok := activeGame.sessionOf(tx.World())
-	if _, isDrawer := tx.Block(d.owner).(Drawer); ok && isDrawer && s.ownsDisplay(d.owner, h.handle) {
+	_, isDrawer := tx.Block(d.owner).(Drawer)
+	if ok && isDrawer && s.ownsDisplay(d.owner, h.handle) {
+		return
+	}
+	if ok && !isDrawer && s.ownsDisplay(d.owner, h.handle) {
+		// The drawer was removed by other means: drop its count text too.
+		s.removeDisplay(tx, d.owner)
 		return
 	}
 	_ = h.Close()

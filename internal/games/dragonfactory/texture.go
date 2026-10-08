@@ -35,3 +35,27 @@ func shade(c color.RGBA, f float64) color.RGBA {
 }
 
 func rgb(r, g, b uint8) color.RGBA { return color.RGBA{R: r, G: g, B: b, A: 255} }
+
+// keyTexture draws a golden key.
+func keyTexture() image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
+	gold, dark := rgb(240, 200, 60), rgb(150, 110, 20)
+	for x := 3; x <= 7; x++ { // ring
+		for y := 3; y <= 7; y++ {
+			if x == 3 || x == 7 || y == 3 || y == 7 {
+				img.Set(x, y, gold)
+			}
+		}
+	}
+	for i := 0; i < 7; i++ { // blade, diagonal
+		img.Set(7+i, 7+i, gold)
+		img.Set(8+i, 7+i, dark)
+	}
+	img.Set(11, 13, gold) // teeth
+	img.Set(13, 11, gold)
+	return img
+}
+
+// lockGlyph is a padlock drawn by the resource pack font
+// (assets/resourcepack/dragonfactory/font/glyph_E1.png, first cell).
+const lockGlyph = ""

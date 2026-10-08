@@ -12,14 +12,19 @@ type ContainerCloseHandler struct{}
 func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
 	pk := p.(*packet.ContainerClose)
 
-	if s.entityContainerOpening() && pk.WindowID != 0 {
-		// dragonfactory patch: the client closes windows on its own while an
-		// entity container is being opened (e.g. a form closing). Acknowledge
-		// it, but keep the window: it is opened again until acknowledged.
-		if pk.WindowID != 0xff {
-			s.writePacket(&packet.ContainerClose{WindowID: pk.WindowID, ContainerType: pk.ContainerType})
+	if s.entityContainerOpen() {
+		s.ecDebug("client close", "window", pk.WindowID, "type", pk.ContainerType, "opening", s.entityContainerOpening())
+		// dragonfactory patch: the client sends a close of window 0xff when a
+		// window opens while it is busy (e.g. a form closing); it must not
+		// close an entity container. While one is still being opened with
+		// retries, closes of its window are acknowledged but ignored too.
+		if pk.WindowID == 0xff {
+			return nil
 		}
-		return nil
+		if pk.WindowID != 0 && s.entityContainerOpening() {
+			s.writePacket(&packet.ContainerClose{WindowID: pk.WindowID, ContainerType: pk.ContainerType})
+			return nil
+		}
 	}
 	c.MoveItemsToInventory()
 

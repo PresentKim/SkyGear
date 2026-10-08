@@ -22,7 +22,7 @@ func TestShopStockAndRestock(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
 		box := shopItem("delivery_box")
 		if !s.buy(p, tx, box) || !s.buy(p, tx, box) {
@@ -58,7 +58,7 @@ func TestBuybackBudgetAndLimits(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		if n := s.sell(p, item.NewStack(block.Cobblestone{}, 64)); n != 64 {
 			t.Fatalf("sold %d cobblestone", n)
 		}

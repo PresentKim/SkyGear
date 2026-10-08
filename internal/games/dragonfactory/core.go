@@ -119,7 +119,7 @@ func (c Core) Properties() customblock.Properties {
 }
 
 // LightEmissionLevel makes cores glow faintly.
-func (Core) LightEmissionLevel() uint8 { return 7 }
+func (Core) LightEmissionLevel() uint8 { return 10 }
 
 // BreakInfo: mined with a pickaxe, dropping the core item of the same generation.
 func (c Core) BreakInfo() block.BreakInfo {

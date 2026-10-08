@@ -8,7 +8,7 @@ timeout 120 "$BOT" -name Hana \
   'cmd:/dfadmin line' 'expect:생산 라인을 만들었습니다' \
   'cmd:/dfadmin give crusher 1' 'expect:분쇄기 x1' 'cmd:/dfadmin give drawer 2' 'expect:서랍 x2' \
   'cmd:/dfadmin money 5000' 'expect:소지금' \
-  'cmd:/menu' 'chest:드래곤팩토리' 'take:15=reject' 'chest:섬 확장' 'take:23=reject' 'form:"섬 확장"=true' 'expect:청크 (1, 0)를 구매' 'chest:섬 확장' 'close' \
+  'cmd:/df' 'chest:드래곤팩토리' 'close' 'cmd:/menu' 'chest:드래곤팩토리' 'take:15=reject' 'chest:섬 확장' 'take:23=reject' 'form:"섬 확장"=true' 'expect:청크 (1, 0)를 구매' 'chest:섬 확장' 'close' \
   'wait:30' \
   'cmd:/dfadmin status' 'expectre:sold=[1-9][0-9]*$' > host.log 2>&1
 h=$?

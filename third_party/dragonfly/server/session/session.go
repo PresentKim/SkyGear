@@ -78,11 +78,17 @@ type Session struct {
 	openedWindow                   atomic.Pointer[inventory.Inventory]
 	openedPos                      atomic.Pointer[cube.Pos]
 	// entityContainer is the open entity container, if any (dragonfactory patch).
-	entityContainer   atomic.Pointer[entityContainer]
-	swingingArm       atomic.Bool
-	changingSlot      atomic.Bool
-	changingDimension atomic.Bool
-	moving            bool
+	entityContainer atomic.Pointer[entityContainer]
+	// lastContainerClose is when a container window last closed, and
+	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
+	lastContainerClose atomic.Int64
+	clientSyncMu       sync.Mutex
+	clientSyncs        map[int64]func(tx *world.Tx)
+	openToken          atomic.Uint64
+	swingingArm        atomic.Bool
+	changingSlot       atomic.Bool
+	changingDimension  atomic.Bool
+	moving             bool
 
 	lastChunkPos world.ChunkPos
 

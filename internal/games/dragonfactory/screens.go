@@ -35,7 +35,7 @@ func (s *session) then(f func(p *player.Player, tx *world.Tx)) func(p *player.Pl
 }
 
 func (s *session) backButton() chestui.Button {
-	return s.button(chestui.Lore(item.NewStack(item.Arrow{}, 1), "§f뒤로"), s.then(func(p *player.Player, _ *world.Tx) { s.showMenu(p) }))
+	return s.button(chestui.Lore(item.NewStack(item.Arrow{}, 1), "§f뒤로"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 }
 
 func (s *session) moneyInfo(p *player.Player) item.Stack {
@@ -52,12 +52,12 @@ func (s *session) mainMenu(p *player.Player) *chestui.Menu {
 		"§f소지금: §6"+formatMoney(s.Money(p)),
 		fmt.Sprintf("§f코어 강화 포인트: §b%d", s.state.CorePoints))})
 	m.Set(10, s.button(chestui.Lore(item.NewStack(item.Book{}, 1), "§e메인 미션", "§7"+s.missionLine()), s.then(func(p *player.Player, _ *world.Tx) { s.showMission(p) })))
-	m.Set(11, s.button(chestui.Lore(item.NewStack(item.Emerald{}, 1), "§a상점 · 구매"), s.then(func(p *player.Player, _ *world.Tx) { s.showShop(p) })))
-	m.Set(12, s.button(chestui.Lore(item.NewStack(item.GoldIngot{}, 1), "§6상점 · 판매"), s.then(func(p *player.Player, _ *world.Tx) { s.showBuyback(p) })))
+	m.Set(11, s.button(chestui.Lore(item.NewStack(item.Emerald{}, 1), "§a상점 · 구매"), func(p *player.Player, _ *world.Tx) { s.showShop(p) }))
+	m.Set(12, s.button(chestui.Lore(item.NewStack(item.GoldIngot{}, 1), "§6상점 · 판매"), func(p *player.Player, _ *world.Tx) { s.showBuyback(p) }))
 	m.Set(13, s.button(chestui.Lore(item.NewStack(item.Paper{}, 1), "§f수표 발행"), s.then(func(p *player.Player, _ *world.Tx) { s.askIssueCheque(p) })))
 	m.Set(14, s.button(chestui.Lore(item.NewStack(item.Diamond{}, 1), "§b코어 관리"), s.then(func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) })))
-	m.Set(15, s.button(chestui.Lore(item.NewStack(block.Grass{}, 1), "§a섬 확장"), s.then(func(p *player.Player, _ *world.Tx) { s.showExpand(p) })))
-	m.Set(16, s.button(chestui.Lore(item.NewStack(block.NewChest(), 1), "§f분실물 보관함", fmt.Sprintf("§7%d종류", len(s.state.Lost))), s.then(func(p *player.Player, _ *world.Tx) { s.showLost(p) })))
+	m.Set(15, s.button(chestui.Lore(item.NewStack(block.Grass{}, 1), "§a섬 확장"), func(p *player.Player, _ *world.Tx) { s.showExpand(p) }))
+	m.Set(16, s.button(chestui.Lore(item.NewStack(block.NewChest(), 1), "§f분실물 보관함", fmt.Sprintf("§7%d종류", len(s.state.Lost))), func(p *player.Player, _ *world.Tx) { s.showLost(p) }))
 	m.Set(22, s.button(chestui.Lore(menuItem(), "§6메뉴 아이템 받기"), func(p *player.Player, _ *world.Tx) {
 		if !p.Inventory().ContainsItemFunc(1, isMenuItem) {
 			_, _ = p.Inventory().AddItem(menuItem())

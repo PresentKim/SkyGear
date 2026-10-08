@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
@@ -44,14 +44,14 @@ type Storage struct {
 	title string
 
 	mu       sync.Mutex
-	viewers  map[block.ContainerViewer]*world.EntityHandle
+	viewers  map[session.EntityContainerViewer]*world.EntityHandle
 	onChange func(slot int, before, after item.Stack)
 }
 
 // NewStorage returns an empty storage with size slots. size must be at
 // least 1; windows of more than 54 slots scroll.
 func NewStorage(size int, title string) *Storage {
-	s := &Storage{title: title, viewers: map[block.ContainerViewer]*world.EntityHandle{}}
+	s := &Storage{title: title, viewers: map[session.EntityContainerViewer]*world.EntityHandle{}}
 	s.inv = inventory.New(size, s.slotChanged)
 	return s
 }
@@ -120,14 +120,14 @@ func (s *Storage) CloseAll() {
 
 func (s *Storage) slotChanged(slot int, before, after item.Stack) {
 	s.mu.Lock()
-	viewers := make([]block.ContainerViewer, 0, len(s.viewers))
+	viewers := make([]session.EntityContainerViewer, 0, len(s.viewers))
 	for v := range s.viewers {
 		viewers = append(viewers, v)
 	}
 	f := s.onChange
 	s.mu.Unlock()
 	for _, v := range viewers {
-		v.ViewSlotChange(slot, after)
+		v.ViewSlotChange(s.inv, slot, after)
 	}
 	if f != nil {
 		f(slot, before, after)

@@ -1,7 +1,7 @@
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 13:11:31.328917320 +0000
-+++ b/server/player/player.go	2026-10-08 13:11:31.388528449 +0000
-@@ -1776,6 +1776,9 @@
+--- a/server/player/player.go	2026-10-08 16:04:47.845574002 +0000
++++ b/server/player/player.go	2026-10-08 16:04:47.910878856 +0000
+@@ -1776,7 +1776,14 @@
  			// The block was activated: Blocks such as doors must always have precedence over the item being
  			// used.
  			if useCtx := p.useContext(); act.Activate(pos, face, p.tx, p, useCtx) {
@@ -9,9 +9,14 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +				// held block (custom blocks are not known to be activatable).
 +				p.resendNearbyBlocks(pos, face)
  				p.SwingArm()
++				// dragonfactory patch: re-read the held items. Activate may have
++				// changed them (e.g. inserting the held stack into a block);
++				// writing back the stack read before would duplicate items.
++				i, left = p.HeldItems()
  				p.SetHeldItems(p.subtractItem(p.damageItem(i, useCtx.Damage), useCtx.CountSub), left)
  				p.addNewItem(useCtx)
-@@ -3413,6 +3416,28 @@
+ 				return
+@@ -3413,6 +3420,41 @@
  	}
  }
  
@@ -27,8 +32,8 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +// container window the player has open. Unlike the Player, it may be kept
 +// and used outside of the player's transaction, the way block containers
 +// keep their viewers. (dragonfactory patch)
-+func (p *Player) ContainerViewer() block.ContainerViewer {
-+	return p.session()
++func (p *Player) ContainerViewer() session.EntityContainerViewer {
++	return session.EntityContainerViewer{S: p.session()}
 +}
 +
 +// CloseOpenedContainer closes the container window the player has open.
@@ -37,13 +42,26 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +	p.session().CloseOpenedContainer(p.tx)
 +}
 +
++// AfterClientSync runs f once the client has processed everything sent to
++// it so far (a NetworkStackLatency round trip, at most a second), e.g. to
++// show a form after closing a window. f does not run if the player is gone
++// by then. (dragonfactory patch)
++func (p *Player) AfterClientSync(f func(p *Player, tx *world.Tx)) {
++	h := p.H()
++	p.session().AfterClientSync(func(tx *world.Tx) {
++		if e, ok := h.Entity(tx); ok {
++			f(e.(*Player), tx)
++		}
++	})
++}
++
  // session returns the network session of the player. If it has one, it is returned. If not, a no-op session
  // is returned.
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 13:11:31.389969456 +0000
-@@ -0,0 +1,269 @@
++++ b/server/session/entity_container.go	2026-10-08 16:04:47.912444921 +0000
+@@ -0,0 +1,397 @@
 +package session
 +
 +// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md).
@@ -52,19 +70,21 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +// resource pack that reads the size from the window title, the window can
 +// have any number of slots and opens anywhere.
 +//
-+// Opening follows Muqsit/InvMenu (PlayerWindowDispatcher), because the
-+// client often ignores a ContainerOpen sent right after spawning the entity,
-+// or while a form or another window is closing:
++// By default the window opens right after the entity is spawned. The steps
++// of Muqsit/InvMenu (PlayerWindowDispatcher) can be switched on with
++// EntityContainerOptions while they are verified against real clients:
 +//
-+//  1. AddActor (riding the player, so it stays next to them), then a
-+//     NetworkStackLatency request.
-+//  2. When the client answers it, the entity exists client-side: send
-+//     ContainerOpen and the contents.
-+//  3. Until the client acknowledges the window with a PacketViolationWarning
-+//     (type -1, severity warning) caused by the excess opens, resend
-+//     ContainerClose + ContainerOpen every tick (at most entityOpenRetries).
-+//     Meanwhile, client ContainerClose packets are acknowledged but do not
-+//     close the window.
++//   - Ride: the entity rides the player, so it stays next to them.
++//   - WaitLatency: send a NetworkStackLatency request after AddActor and
++//     open the window when the client answers (the entity exists then).
++//   - Retry: until the client acknowledges the window with a
++//     PacketViolationWarning (type -1, severity warning) caused by excess
++//     opens, resend ContainerClose + ContainerOpen every tick (at most
++//     entityOpenRetries). Meanwhile client closes of the window are
++//     acknowledged but do not close it.
++//
++// A client close of window 0xff (sent when a window opens while the client
++// is busy, e.g. a form closing) never closes an entity container.
 +
 +import (
 +	"math/rand/v2"
@@ -72,6 +92,7 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	"time"
 +
 +	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/item"
 +	"github.com/df-mc/dragonfly/server/item/inventory"
 +	"github.com/df-mc/dragonfly/server/world"
 +	"github.com/go-gl/mathgl/mgl64"
@@ -85,14 +106,29 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +const EntityContainerIdentifier = "dragonfly:entity_container"
 +
 +const (
++	// entityTransitionWindow is how soon after a window closed a new one is
++	// treated as a switch of screens.
++	entityTransitionWindow = time.Second
 +	// entityOpenRetries limits the ContainerOpen resends (one per tick).
 +	entityOpenRetries = 20
 +	// entityActorTimeout is how long to wait for the NetworkStackLatency
 +	// answer before opening anyway.
 +	entityActorTimeout = time.Second
-+	// rideEntityContainer links the entity to the player as a rider.
-+	rideEntityContainer = true
 +)
++
++// EntityContainerOptions switches the optional steps of opening entity
++// containers. It is set once at startup.
++var EntityContainerOptions struct {
++	Ride, WaitLatency, Retry bool
++	// Debug logs the opening and closing packets at INFO level.
++	Debug bool
++}
++
++func (s *Session) ecDebug(msg string, args ...any) {
++	if EntityContainerOptions.Debug {
++		s.conf.Log.Info("entity container: "+msg, args...)
++	}
++}
 +
 +type entityContainerState int
 +
@@ -128,7 +164,25 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +		return
 +	}
 +	s.closeCurrentContainer(tx, false)
++	token := s.openToken.Add(1)
++	spawn := func(*world.Tx) {
++		if s.openToken.Load() == token {
++			s.spawnEntityContainer(inv, title, pos, onClose)
++		}
++	}
++	// A window opened right after another one closed (switching screens)
++	// is ignored by the client while it is still closing the old one. Wait
++	// for a NetworkStackLatency round trip first, like InvMenu does.
++	if since := time.Since(time.Unix(0, s.lastContainerClose.Load())); since < entityTransitionWindow {
++		s.ecDebug("switching windows: waiting for the client", "since", since)
++		s.AfterClientSync(spawn)
++		return
++	}
++	spawn(tx)
++}
 +
++// spawnEntityContainer spawns the entity of a container and opens it.
++func (s *Session) spawnEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx)) {
 +	s.entityMutex.Lock()
 +	s.currentEntityRuntimeID++
 +	id := s.currentEntityRuntimeID
@@ -141,7 +195,7 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	m[protocol.EntityDataKeyContainerType] = byte(0xff) // ContainerTypeInventory (-1)
 +	m[protocol.EntityDataKeyContainerSize] = int32(inv.Size())
 +	var links []protocol.EntityLink
-+	if rideEntityContainer {
++	if EntityContainerOptions.Ride {
 +		links = []protocol.EntityLink{{RiddenEntityUniqueID: selfEntityRuntimeID, RiderEntityUniqueID: int64(id), Type: protocol.EntityLinkPassenger, Immediate: true}}
 +	}
 +	s.writePacket(&packet.AddActor{
@@ -156,6 +210,11 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	ec := &entityContainer{runtimeID: id, inv: inv, pos: cube.PosFromVec3(pos), onClose: onClose,
 +		latencyTS: rand.Int64N(1 << 20), stop: make(chan struct{})}
 +	s.entityContainer.Store(ec)
++	s.ecDebug("spawned", "actor", id, "size", inv.Size(), "ride", EntityContainerOptions.Ride)
++	if !EntityContainerOptions.WaitLatency {
++		s.openEntityWindow(ec)
++		return
++	}
 +	s.writePacket(&packet.NetworkStackLatency{Timestamp: ec.latencyTS, NeedsResponse: true})
 +	go s.entityContainerTimeout(ec)
 +}
@@ -167,6 +226,7 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	case <-ec.stop:
 +	case <-s.closeBackground:
 +	case <-time.After(entityActorTimeout):
++		s.ecDebug("no latency answer, opening anyway", "actor", ec.runtimeID)
 +		s.openEntityWindow(ec)
 +	}
 +}
@@ -174,12 +234,14 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +// handleEntityContainerLatency handles a NetworkStackLatency answer. The
 +// client answers with the timestamp multiplied by 1, 1000 or 1000000
 +// depending on the platform.
-+func (s *Session) handleEntityContainerLatency(ts int64) {
++func (s *Session) handleEntityContainerLatency(ts int64, tx *world.Tx) {
++	s.runClientSync(ts, tx)
 +	ec := s.entityContainer.Load()
 +	if ec == nil {
 +		return
 +	}
 +	if t := ec.latencyTS; ts == t || ts == t*1000 || ts == t*1000000 {
++		s.ecDebug("latency answered", "actor", ec.runtimeID)
 +		s.openEntityWindow(ec)
 +	}
 +}
@@ -202,6 +264,11 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	s.openedContainerID.Store(uint32(protocol.ContainerTypeContainer))
 +	s.writePacket(ec.openPacket())
 +	s.sendInv(ec.inv, uint32(ec.windowID))
++	s.ecDebug("opened", "actor", ec.runtimeID, "window", ec.windowID)
++	if !EntityContainerOptions.Retry {
++		s.ackEntityWindow(ec)
++		return
++	}
 +	go s.retryEntityWindow(ec)
 +}
 +
@@ -236,12 +303,14 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +		s.writePacket(ec.openPacket())
 +	}
 +	// Never acknowledged: keep the window as it is.
++	s.ecDebug("never acknowledged", "actor", ec.runtimeID)
 +	s.ackEntityWindow(ec)
 +}
 +
 +// handleEntityContainerViolation handles a PacketViolationWarning, which the
 +// client sends for an excess ContainerOpen once the window is open.
 +func (s *Session) handleEntityContainerViolation(pk *packet.PacketViolationWarning) {
++	s.ecDebug("violation warning", "type", pk.Type, "severity", pk.Severity, "packet", pk.PacketID, "context", pk.ViolationContext)
 +	if pk.Type != -1 || pk.Severity != packet.ViolationSeverityWarning {
 +		return
 +	}
@@ -259,10 +328,13 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	}
 +	ec.state = ecOpen
 +	ec.mu.Unlock()
-+	if s.entityContainer.Load() == ec {
++	if s.entityContainer.Load() == ec && EntityContainerOptions.Retry {
 +		s.sendInv(ec.inv, uint32(ec.windowID))
 +	}
 +}
++
++// entityContainerOpen reports whether an entity container is open or opening.
++func (s *Session) entityContainerOpen() bool { return s.entityContainer.Load() != nil }
 +
 +// entityContainerOpening reports whether an entity container is still
 +// being opened, during which client ContainerClose packets are ignored.
@@ -289,6 +361,7 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +		return false
 +	}
 +	close(ec.stop)
++	s.ecDebug("closed", "actor", ec.runtimeID)
 +	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(ec.runtimeID)})
 +	if ec.onClose != nil {
 +		ec.onClose(tx)
@@ -300,8 +373,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +// entity containers (dragonfactory patch).
 +type NetworkStackLatencyHandler struct{}
 +
-+func (NetworkStackLatencyHandler) Handle(p packet.Packet, s *Session, _ *world.Tx, _ Controllable) error {
-+	s.handleEntityContainerLatency(p.(*packet.NetworkStackLatency).Timestamp)
++func (NetworkStackLatencyHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, _ Controllable) error {
++	s.handleEntityContainerLatency(p.(*packet.NetworkStackLatency).Timestamp, tx)
 +	return nil
 +}
 +
@@ -313,28 +386,106 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	s.handleEntityContainerViolation(p.(*packet.PacketViolationWarning))
 +	return nil
 +}
++
++// AfterClientSync runs f in the player's transaction once the client has
++// processed every packet sent before this call (a NetworkStackLatency round
++// trip), or after a second if it does not answer.
++func (s *Session) AfterClientSync(f func(tx *world.Tx)) {
++	if s == Nop {
++		return
++	}
++	ts := rand.Int64N(1<<20) + 1<<20
++	s.clientSyncMu.Lock()
++	if s.clientSyncs == nil {
++		s.clientSyncs = map[int64]func(tx *world.Tx){}
++	}
++	s.clientSyncs[ts] = f
++	s.clientSyncMu.Unlock()
++	s.writePacket(&packet.NetworkStackLatency{Timestamp: ts, NeedsResponse: true})
++	go func() {
++		select {
++		case <-s.closeBackground:
++		case <-time.After(entityActorTimeout):
++			if f := s.takeClientSync(ts); f != nil && s.ent != nil {
++				s.ent.Do(func(tx *world.Tx, _ world.Entity) { f(tx) })
++			}
++		}
++	}()
++}
++
++func (s *Session) takeClientSync(ts int64) func(tx *world.Tx) {
++	s.clientSyncMu.Lock()
++	defer s.clientSyncMu.Unlock()
++	f := s.clientSyncs[ts]
++	delete(s.clientSyncs, ts)
++	return f
++}
++
++// runClientSync runs the callback of an answered NetworkStackLatency. The
++// client answers with the timestamp multiplied by 1, 1000 or 1000000.
++func (s *Session) runClientSync(ts int64, tx *world.Tx) {
++	for _, t := range []int64{ts, ts / 1000, ts / 1000000} {
++		if f := s.takeClientSync(t); f != nil {
++			f(tx)
++			return
++		}
++	}
++}
++
++// followEntityContainer keeps the entity of an open entity container at
++// the player, so the client does not close the window when the player
++// moves away from it (falling, pushed). Not needed when it rides.
++func (s *Session) followEntityContainer(pos, delta mgl64.Vec3) {
++	ec := s.entityContainer.Load()
++	if ec == nil || EntityContainerOptions.Ride || mgl64.FloatEqual(delta.Len(), 0) {
++		return
++	}
++	s.writePacket(&packet.MoveActorAbsolute{EntityRuntimeID: ec.runtimeID, Position: vec64To32(pos), Flags: packet.MoveFlagTeleport})
++}
++
++// EntityContainerViewer shows slot changes of an inventory to a session if
++// that inventory is its open entity container. It may be kept and used
++// outside of the player's transaction. (dragonfactory patch)
++type EntityContainerViewer struct{ S *Session }
++
++// ViewSlotChange sends a changed slot of inv if inv is the open window.
++func (v EntityContainerViewer) ViewSlotChange(inv *inventory.Inventory, slot int, it item.Stack) {
++	if ec := v.S.entityContainer.Load(); ec != nil && ec.inv == inv {
++		ec.mu.Lock()
++		opened := ec.state != ecWaitingActor
++		ec.mu.Unlock()
++		if opened {
++			v.S.ViewSlotChange(slot, it)
++		}
++	}
++}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 13:11:31.332575421 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 13:11:31.389157774 +0000
-@@ -12,6 +12,15 @@
+--- a/server/session/handler_container_close.go	2026-10-08 16:04:47.847807263 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 16:04:47.911680506 +0000
+@@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
  
-+	if s.entityContainerOpening() && pk.WindowID != 0 {
-+		// dragonfactory patch: the client closes windows on its own while an
-+		// entity container is being opened (e.g. a form closing). Acknowledge
-+		// it, but keep the window: it is opened again until acknowledged.
-+		if pk.WindowID != 0xff {
-+			s.writePacket(&packet.ContainerClose{WindowID: pk.WindowID, ContainerType: pk.ContainerType})
++	if s.entityContainerOpen() {
++		s.ecDebug("client close", "window", pk.WindowID, "type", pk.ContainerType, "opening", s.entityContainerOpening())
++		// dragonfactory patch: the client sends a close of window 0xff when a
++		// window opens while it is busy (e.g. a form closing); it must not
++		// close an entity container. While one is still being opened with
++		// retries, closes of its window are acknowledged but ignored too.
++		if pk.WindowID == 0xff {
++			return nil
 +		}
-+		return nil
++		if pk.WindowID != 0 && s.entityContainerOpening() {
++			s.writePacket(&packet.ContainerClose{WindowID: pk.WindowID, ContainerType: pk.ContainerType})
++			return nil
++		}
 +	}
  	c.MoveItemsToInventory()
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 13:11:31.333660332 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 13:11:31.389502294 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 16:04:47.851069164 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 16:04:47.911974523 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -346,15 +497,29 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	}
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
+diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
+--- a/server/session/handler_player_auth_input.go	2026-10-08 16:04:47.851310457 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 16:04:47.912005181 +0000
+@@ -63,6 +63,7 @@
+ 
+ 	s.moving = true
+ 	c.Move(deltaPos, deltaYaw, deltaPitch)
++	s.followEntityContainer(newPos, deltaPos) // dragonfactory patch
+ 	return nil
+ }
+ 
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 13:11:31.335053996 +0000
-+++ b/server/session/player.go	2026-10-08 13:11:31.389679299 +0000
-@@ -67,10 +67,13 @@
+--- a/server/session/player.go	2026-10-08 16:04:47.852167646 +0000
++++ b/server/session/player.go	2026-10-08 16:04:47.912208367 +0000
+@@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
  func (s *Session) closeCurrentContainer(tx *world.Tx, clientRequested bool) {
 -	if !s.closeWindow(clientRequested) {
 +	closed := s.closeWindow(clientRequested)
++	if closed {
++		s.lastContainerClose.Store(time.Now().UnixNano()) // dragonfactory patch
++	}
 +	if s.closeEntityContainer(tx) { // dragonfactory patch: also closes one still opening
 +		return
 +	}
@@ -366,9 +531,9 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  	b := tx.Block(pos)
  	if container, ok := b.(block.Container); ok {
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 13:11:31.335186248 +0000
-+++ b/server/session/session.go	2026-10-08 13:11:31.389821788 +0000
-@@ -77,10 +77,12 @@
+--- a/server/session/session.go	2026-10-08 16:04:47.852293309 +0000
++++ b/server/session/session.go	2026-10-08 16:04:47.912252650 +0000
+@@ -77,10 +77,18 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
  	openedPos                      atomic.Pointer[cube.Pos]
@@ -377,15 +542,21 @@ diff -ruN a/server/session/session.go b/server/session/session.go
 -	changingDimension              atomic.Bool
 -	moving                         bool
 +	// entityContainer is the open entity container, if any (dragonfactory patch).
-+	entityContainer   atomic.Pointer[entityContainer]
-+	swingingArm       atomic.Bool
-+	changingSlot      atomic.Bool
-+	changingDimension atomic.Bool
-+	moving            bool
++	entityContainer atomic.Pointer[entityContainer]
++	// lastContainerClose is when a container window last closed, and
++	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
++	lastContainerClose atomic.Int64
++	clientSyncMu       sync.Mutex
++	clientSyncs        map[int64]func(tx *world.Tx)
++	openToken          atomic.Uint64
++	swingingArm        atomic.Bool
++	changingSlot       atomic.Bool
++	changingDimension  atomic.Bool
++	moving             bool
  
  	lastChunkPos world.ChunkPos
  
-@@ -418,7 +420,10 @@
+@@ -418,7 +426,10 @@
  			if sessionOwnerStopped(err) {
  				return
  			}
@@ -397,7 +568,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  			return
  		}
  	}
-@@ -591,6 +596,8 @@
+@@ -591,6 +602,8 @@
  		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
  		packet.IDCommandRequest:            &CommandRequestHandler{},
  		packet.IDContainerClose:            &ContainerCloseHandler{},
@@ -406,7 +577,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  		packet.IDEmote:                     &EmoteHandler{},
  		packet.IDEmoteList:                 nil,
  		packet.IDFilterText:                nil,
-@@ -640,6 +647,7 @@
+@@ -640,6 +653,7 @@
  	for _, t := range w.EntityRegistry().Types() {
  		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
  	}

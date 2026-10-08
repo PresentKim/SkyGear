@@ -22,7 +22,10 @@ func isMenuItem(s item.Stack) bool {
 }
 
 func registerCommands(g *Game) {
-	cmd.Register(cmd.New("menu", "드래곤팩토리 메뉴를 엽니다", []string{"df"}, menuCmd{g: g}))
+	cmd.Register(cmd.New("menu", "드래곤팩토리 메뉴를 엽니다", nil, menuCmd{g: g}))
+	// A separate command rather than an alias: clients check typed commands
+	// against the command list, where aliases may not be accepted.
+	cmd.Register(cmd.New("df", "드래곤팩토리 메뉴를 엽니다", nil, menuCmd{g: g}))
 }
 
 type menuCmd struct{ g *Game }

@@ -14,7 +14,7 @@ func TestMissionDeliveryAndLevelUp(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 0
 		_, _ = p.Inventory().AddItem(item.NewStack(block.Cobblestone{}, 50))
 		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 10))

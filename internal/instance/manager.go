@@ -181,7 +181,7 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 	m.location[acc] = inst
 	m.mu.Unlock()
 	inst.World.Do(func(tx *world.Tx) {
-		np := tx.AddEntityAt(h, pos).(*player.Player)
+		np := tx.AddEntityAt(h, SafeSpot(tx, pos)).(*player.Player)
 		if first {
 			playerstate.Reset(np)
 		} else {

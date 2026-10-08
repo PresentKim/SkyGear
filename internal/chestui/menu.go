@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"runtime/debug"
 	"sync"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
@@ -85,17 +84,13 @@ func (h menuHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) 
 func (menuHandler) HandlePlace(ctx *inventory.Context, _ int, _ item.Stack) { ctx.Cancel() }
 func (menuHandler) HandleDrop(ctx *inventory.Context, _ int, _ item.Stack)  { ctx.Cancel() }
 
-// formDelay is how long CloseThen waits after closing a window. A form sent
-// while the client is still closing a container may not be shown.
-const formDelay = 250 * time.Millisecond
-
-// CloseThen closes p's chest window and runs f in p's transaction shortly
-// after, for buttons that continue in a form.
+// CloseThen closes p's chest window and runs f once the client has
+// processed the close, for buttons that continue in a form (a form sent
+// while the client is still closing a window may not be shown). Opening
+// another chest needs no CloseThen: chests wait for the client themselves.
 func CloseThen(p *player.Player, f func(p *player.Player, tx *world.Tx)) {
 	p.CloseOpenedContainer()
-	p.H().DoAfter(formDelay, func(tx *world.Tx, e world.Entity) {
-		f(e.(*player.Player), tx)
-	})
+	p.AfterClientSync(f)
 }
 
 // Lore is a convenience to give a button item a name and lore lines.

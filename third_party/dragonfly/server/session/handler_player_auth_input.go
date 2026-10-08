@@ -63,6 +63,7 @@ func (h PlayerAuthInputHandler) handleMovement(pk *packet.PlayerAuthInput, s *Se
 
 	s.moving = true
 	c.Move(deltaPos, deltaYaw, deltaPitch)
+	s.followEntityContainer(newPos, deltaPos) // dragonfactory patch
 	return nil
 }
 

@@ -7,17 +7,28 @@
 
 1. 보이지 않는 클라이언트 전용 엔티티(`dragonfly:entity_container`)를 `AddActor` 로 보낸다.
    메타데이터: 투명·NoAI, `ContainerType`=INVENTORY(-1), `ContainerSize`=칸 수, 이름=창 제목.
-   엔티티는 플레이어에 탑승 링크로 붙어 따라다닌다. 식별자는 `AvailableActorIdentifiers` 에 등록(엔티티 정의 파일 불필요).
-2. `NetworkStackLatency` 를 보내고, 클라이언트가 응답하면(엔티티가 클라이언트에 생긴 뒤) `ContainerOpen`
-   (`ContainerTypeContainer` + `ContainerEntityUniqueID`)과 내용물을 보낸다. 1초 안에 응답이 없으면 그냥 연다.
-3. 클라이언트는 폼이 닫히는 중이거나 다른 창 전환 중이면 `ContainerOpen` 을 무시하고, 255 창 닫기를 보내기도 한다.
-   그래서 [Muqsit/InvMenu](https://github.com/Muqsit/InvMenu) `PlayerWindowDispatcher` 처럼, 클라이언트가 초과 열기에 대한
-   `PacketViolationWarning`(type -1, warning)으로 창이 열렸음을 알려 줄 때까지 매 틱 닫기+열기를 다시 보낸다(최대 20회).
-   그동안 클라이언트의 닫기는 응답만 하고 창을 닫지 않는다. 같은 인벤토리를 다시 열면 무시한다(블록 연타 대비).
-4. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
+   식별자는 `AvailableActorIdentifiers` 에 등록(엔티티 정의 파일 불필요).
+2. 바로 `ContainerOpen`(`ContainerTypeContainer` + `ContainerEntityUniqueID`)과 내용물을 보낸다. **기본값이며 1차 실기에서 동작한 방식.**
+3. 엔티티 상자가 열려 있는 동안 클라이언트가 보내는 255 창 닫기(폼이 닫히거나 블록 클릭과 겹칠 때)는 무시하고,
+   같은 인벤토리를 다시 열면 무시한다(블록 연타 대비).
+4. **상자 → 상자 전환**: 창이 닫힌 지 1초 안에 새 창을 열면, 클라이언트가 닫기를 처리했는지 `NetworkStackLatency` 왕복으로
+   확인한 뒤 엔티티를 만들고 연다(InvMenu 와 같은 원리. 닫히는 중의 열기는 클라이언트가 무시함).
+5. 열린 동안 플레이어가 움직이면 엔티티도 플레이어 위치로 옮긴다(떨어지거나 밀려 멀어지면 클라이언트가 창을 닫음).
+
+`platform.toml` `[ChestUI]` 로 [Muqsit/InvMenu](https://github.com/Muqsit/InvMenu) `PlayerWindowDispatcher` 의 단계를 하나씩 켤 수 있다.
+2차 실기에서 셋을 모두 켠 상태로 "모든 상자가 바로 닫힘" 이 나와 기본은 꺼 두었다. 어느 것이 원인인지는 실기로 가린다.
+
+| 설정 | 동작 |
+|---|---|
+| `Ride` | 엔티티를 플레이어에 탑승 링크로 붙인다 |
+| `WaitLatency` | `AddActor` 뒤 `NetworkStackLatency` 응답을 받고 연다(최대 1초) |
+| `Retry` | 클라이언트가 초과 열기에 대한 `PacketViolationWarning`(type -1)으로 확인할 때까지 매 틱 닫기+열기 재전송(최대 20회). 그동안 그 창의 닫기는 무시 |
+| `Debug` | 열기·닫기·클라이언트 닫기·위반 경고를 INFO 로그로 남긴다 |
+
+6. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
    제목 앞의 `§{줄 수 1~6}§{스크롤 0/1}` + `§r` 9개를 읽어 창 크기를 정한다.
    54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로.
-5. 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
+7. 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
    창이 닫히면(클라이언트·다른 창 열기·월드 이동·접속 종료) 엔티티를 지우고 닫힘 콜백을 부른다.
 
 테스트 봇(`spike/cmd/platformbot`)은 클라이언트처럼 `NetworkStackLatency` 에 응답하고, 이미 열린 창의 `ContainerOpen` 에
@@ -32,7 +43,7 @@ Dragonfly 에 이 기능이 없어 `third_party/dragonfly` 에 패치했다([thi
 |---|---|
 | `chestui.Storage` | 실제 아이템이 오가는 창고. 여러 명이 같이 봐도 변경이 모두에게 보인다. `Inventory().Handle` 로 이동 검증, `OnChange` 로 변경 반영 |
 | `chestui.Menu` | 버튼 메뉴. 아이템을 집으면(클릭) 이동은 취소되고 버튼 동작이 다음 트랜잭션에서 실행된다. 열린 채로 `Set` 하면 바로 갱신 |
-| `chestui.CloseThen` | 창을 닫고 잠시 뒤(250ms) 폼 등으로 이어간다. 닫히는 중 보낸 폼은 무시될 수 있어서 |
+| `chestui.CloseThen` | 창을 닫고, 클라이언트가 닫기를 처리한 뒤(`NetworkStackLatency` 왕복) 폼으로 이어간다. 닫히는 중 보낸 폼은 무시될 수 있어서. 다른 상자로 넘어갈 때는 필요 없다(아래) |
 
 - 버튼 동작은 플레이어의 현재 월드 트랜잭션에서 실행된다. 게임 세션 상태를 만지는 버튼은
   그 세션 월드인지 확인한다(드래곤팩토리 `session.button`).
