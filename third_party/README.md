@@ -25,6 +25,7 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김. 누른 이동 키(`RawMoveVector`, 움직일 수 없을 때도 옴)를 저장 → `Player.MoveInput` |
 | `server/session/handler_container_close.go` | 엔티티 상자가 열려 있으면 클라이언트의 255 창 닫기는 무시. Retry 로 여는 중에는 그 창의 닫기도 응답만 하고 무시 |
 | `server/session/handler_player_action.go` | `BlockActionDebug` 면 클라이언트가 보낸 블록 부수기 동작(시작·계속·중단·예측 파괴)을 INFO 로그로 |
+| `server/cmd/command.go` | 명령어 `Run` 의 panic 을 잡아 ERROR 로그와 오류 출력으로 바꿈(서버가 죽지 않음) |
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(블록별 캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |
 | `server/session/handler_modal_form_response.go` | 없는 폼 ID 응답(10개 초과로 버려졌거나 두 번 응답)은 킥 대신 무시 |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |

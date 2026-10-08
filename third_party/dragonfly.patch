@@ -1,6 +1,45 @@
+diff -ruN a/server/cmd/command.go b/server/cmd/command.go
+--- a/server/cmd/command.go	2026-10-08 23:10:33.791553048 +0000
++++ b/server/cmd/command.go	2026-10-08 23:10:33.915715140 +0000
+@@ -4,7 +4,9 @@
+ 	"encoding/csv"
+ 	"fmt"
+ 	"go/ast"
++	"log/slog"
+ 	"reflect"
++	"runtime/debug"
+ 	"slices"
+ 	"strings"
+ 
+@@ -281,7 +283,7 @@
+ 		return arguments, arguments.UsageError()
+ 	}
+ 
+-	v.Interface().(Runnable).Run(source, output, tx)
++	runRecovered(v.Interface().(Runnable), source, output, tx)
+ 	return arguments, nil
+ }
+ 
+@@ -356,3 +358,16 @@
+ 	}
+ 	return fields
+ }
++
++// runRecovered runs r, turning a panic into an ERROR log and an error
++// output, so a bug in one command does not take the server down.
++// (dragonfactory patch)
++func runRecovered(r Runnable, source Source, output *Output, tx *world.Tx) {
++	defer func() {
++		if v := recover(); v != nil {
++			slog.Error("command panicked", "command", fmt.Sprintf("%T", r), "panic", v, "stack", string(debug.Stack()))
++			output.Errorf("명령어를 처리하다 오류가 났습니다.")
++		}
++	}()
++	r.Run(source, output, tx)
++}
 diff -ruN a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
---- a/server/internal/iteminternal/components.go	2026-10-08 22:34:09.383466719 +0000
-+++ b/server/internal/iteminternal/components.go	2026-10-08 22:34:09.433372872 +0000
+--- a/server/internal/iteminternal/components.go	2026-10-08 23:10:33.805637963 +0000
++++ b/server/internal/iteminternal/components.go	2026-10-08 23:10:33.918589813 +0000
 @@ -1,9 +1,11 @@
  package iteminternal
  
@@ -43,7 +82,7 @@ diff -ruN a/server/internal/iteminternal/components.go b/server/internal/itemint
  	}
 diff -ruN a/server/item/digger.go b/server/item/digger.go
 --- a/server/item/digger.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/item/digger.go	2026-10-08 22:34:09.433964392 +0000
++++ b/server/item/digger.go	2026-10-08 23:10:33.919320443 +0000
 @@ -0,0 +1,11 @@
 +package item
 +
@@ -57,8 +96,8 @@ diff -ruN a/server/item/digger.go b/server/item/digger.go
 +	DestroySpeeds() map[string]int
 +}
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 22:34:09.393972501 +0000
-+++ b/server/player/player.go	2026-10-08 22:34:09.443921339 +0000
+--- a/server/player/player.go	2026-10-08 23:10:33.851961448 +0000
++++ b/server/player/player.go	2026-10-08 23:10:33.929323706 +0000
 @@ -102,6 +102,10 @@
  	breakingPos       cube.Pos
  	breakingFace      cube.Face
@@ -225,7 +264,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/camera.go b/server/session/camera.go
 --- a/server/session/camera.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/camera.go	2026-10-08 22:34:09.445716989 +0000
++++ b/server/session/camera.go	2026-10-08 23:10:33.931209169 +0000
 @@ -0,0 +1,115 @@
 +package session
 +
@@ -344,7 +383,7 @@ diff -ruN a/server/session/camera.go b/server/session/camera.go
 +}
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 22:34:09.445743831 +0000
++++ b/server/session/entity_container.go	2026-10-08 23:10:33.931229394 +0000
 @@ -0,0 +1,417 @@
 +package session
 +
@@ -764,8 +803,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	})
 +}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 22:34:09.395543835 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 22:34:09.444671639 +0000
+--- a/server/session/handler_container_close.go	2026-10-08 23:10:33.857280359 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 23:10:33.929882870 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -788,8 +827,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 22:34:09.396177980 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 22:34:09.445057431 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 23:10:33.859208310 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 23:10:33.930684657 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -802,8 +841,8 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
 diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
---- a/server/session/handler_player_action.go	2026-10-08 22:34:09.396251197 +0000
-+++ b/server/session/handler_player_action.go	2026-10-08 22:34:09.445106233 +0000
+--- a/server/session/handler_player_action.go	2026-10-08 23:10:33.859472451 +0000
++++ b/server/session/handler_player_action.go	2026-10-08 23:10:33.930736148 +0000
 @@ -9,6 +9,10 @@
  	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
  )
@@ -830,8 +869,8 @@ diff -ruN a/server/session/handler_player_action.go b/server/session/handler_pla
  	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
  		// Don't do anything for these actions.
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-08 22:34:09.396289424 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-08 22:34:09.445128628 +0000
+--- a/server/session/handler_player_auth_input.go	2026-10-08 23:10:33.859601006 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 23:10:33.930756428 +0000
 @@ -26,6 +26,9 @@
  
  // handleMovement handles the movement part of the packet.PlayerAuthInput.
@@ -851,8 +890,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 22:34:09.396744938 +0000
-+++ b/server/session/player.go	2026-10-08 22:34:09.445434129 +0000
+--- a/server/session/player.go	2026-10-08 23:10:33.861218415 +0000
++++ b/server/session/player.go	2026-10-08 23:10:33.931028198 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -883,8 +922,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 22:34:09.396804654 +0000
-+++ b/server/session/session.go	2026-10-08 22:34:09.444101729 +0000
+--- a/server/session/session.go	2026-10-08 23:10:33.861443998 +0000
++++ b/server/session/session.go	2026-10-08 23:10:33.929517358 +0000
 @@ -77,10 +77,20 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
