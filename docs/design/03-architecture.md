@@ -48,8 +48,9 @@ main.go
 internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
 internal/playerstate/          세이브별 플레이어 상태 캡처/복원/직렬화
 internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
-internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI (M3: 친구, 초대)
-internal/games/dragonfactory/  드래곤팩토리: core, mission, shop, urgent, cheque, machine …
+internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴
+internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시
+internal/games/dragonfactory/  드래곤팩토리: core, coreupgrade, mission, urgent, shop, cheque, machine, sieve, hammer, harvester, drawer, expand, achievements, help …
 ```
 
 게임 종류 인터페이스(`internal/instance/game.go`):

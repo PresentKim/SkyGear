@@ -67,8 +67,10 @@ main.go                         서버 부트스트랩, 종료 시 인스턴스 
 internal/db/                    SQLite (계정, 세이브, 참여자, 세이브별 플레이어 상태, 게임 상태)
 internal/playerstate/           플레이어 상태 캡처/복원/직렬화
 internal/instance/              인스턴스 매니저(활성화/종료, 로비↔인스턴스 이동, 시계, 기본 핸들러)
-internal/platform/              로비, 서버 안내, 세이브 선택 UI, 명령어
-internal/games/dragonfactory/   드래곤팩토리 (코어, 미션, 상점, 수표, 섬, 서랍 …)
+internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친구·초대·참여자, 칭호·치장 메뉴, 명령어
+internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
+internal/games/dragonfactory/   드래곤팩토리 (코어·강화, 미션, 긴급 매입, 상점, 수표, 섬 확장, 서랍, 기계, 체·망치, 업적, 도움말 …)
+  textures/                     아이템·블록 텍스처 PNG (코드로 그리지 않음)
 internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여)
