@@ -7,9 +7,11 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -74,26 +76,98 @@ func direction(from mgl64.Vec3, c ChunkPos) string {
 	return ns + ew + "쪽"
 }
 
+// Chunk map (섬 확장): a 9×5 grid of chunks with north up, centred on the
+// player's chunk, plus a control row. Clicking a chunk that can be bought
+// asks to buy it.
+const (
+	mapCols = 9
+	mapRows = 5
+)
+
 func (s *session) showExpand(p *player.Player) {
-	cands := s.purchasableChunks()
-	price := chunkPrice(len(s.state.Chunks))
-	slices.SortFunc(cands, func(a, b ChunkPos) int {
-		da := mgl64.Vec3{float64(a[0])*16 + 8, 0, float64(a[1])*16 + 8}.Sub(p.Position()).Len()
-		db := mgl64.Vec3{float64(b[0])*16 + 8, 0, float64(b[1])*16 + 8}.Sub(p.Position()).Len()
-		return int(da - db)
-	})
-	var opts []ui.Option
-	for _, c := range cands {
-		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("청크 (%d, %d)\n§8%s · %d~%d, %d~%d", c[0], c[1], direction(p.Position(), c), c[0]*16, c[0]*16+15, c[1]*16, c[1]*16+15),
-			Run:   func(p *player.Player, tx *world.Tx) { s.buyChunk(p, tx, c) },
-		})
+	s.expandMenu(p, chunkOf(cube.PosFromVec3(p.Position()))).Open(p, nil)
+}
+
+// expandMenu returns the chunk map centred on centre.
+func (s *session) expandMenu(p *player.Player, centre ChunkPos) *chestui.Menu {
+	m := chestui.NewMenu(mapCols*(mapRows+1), "섬 확장 · 위가 북쪽")
+	var fill func(p *player.Player)
+	fill = func(p *player.Player) {
+		m.Clear()
+		here := chunkOf(cube.PosFromVec3(p.Position()))
+		buyable := s.purchasableChunks()
+		price := chunkPrice(len(s.state.Chunks))
+		for row := range mapRows {
+			for col := range mapCols {
+				c := ChunkPos{centre[0] + int32(col-mapCols/2), centre[1] + int32(row-mapRows/2)}
+				m.Set(row*mapCols+col, s.chunkButton(p, c, here, slices.Contains(buyable, c), price))
+			}
+		}
+		last := mapRows * mapCols
+		pan := func(slot int, name string, d ChunkPos) {
+			m.Set(last+slot, s.button(chestui.Lore(item.NewStack(item.Arrow{}, 1), name), func(p *player.Player, _ *world.Tx) {
+				centre = ChunkPos{centre[0] + d[0], centre[1] + d[1]}
+				fill(p)
+			}))
+		}
+		m.Set(last, s.backButton())
+		pan(2, "§f← 서쪽으로", ChunkPos{-1, 0})
+		pan(3, "§f↑ 북쪽으로", ChunkPos{0, -1})
+		pan(4, "§f↓ 남쪽으로", ChunkPos{0, 1})
+		pan(5, "§f→ 동쪽으로", ChunkPos{1, 0})
+		m.Set(last+6, s.button(chestui.Lore(item.NewStack(item.Compass{}, 1), "§f내 위치로"), func(p *player.Player, _ *world.Tx) {
+			centre = chunkOf(cube.PosFromVec3(p.Position()))
+			fill(p)
+		}))
+		info := []string{
+			fmt.Sprintf("§7소유 청크: §f%d개", len(s.state.Chunks)),
+			"§7다음 청크 가격: §6" + formatMoney(price),
+			"§7소지금: §6" + formatMoney(s.Money(p)),
+			"§a■ 소유  §e■ 구매 가능  §8■ 구매 불가",
+			"§7섬과 맞닿은 청크만 살 수 있습니다.",
+		}
+		m.Set(last+8, chestui.Button{Item: chestui.Lore(item.NewStack(block.Grass{}, 1), "§a섬 정보", info...)})
 	}
-	body := fmt.Sprintf("소유 청크: %d개\n다음 청크 가격: §6%s§r\n소지금: §6%s§r\n\n섬과 맞닿은 청크만 살 수 있습니다.", len(s.state.Chunks), formatMoney(price), formatMoney(s.Money(p)))
-	if len(opts) == 0 {
-		body += "\n§c더 넓힐 수 있는 청크가 없습니다."
+	fill(p)
+	return m
+}
+
+// chunkButton is one chunk of the map.
+func (s *session) chunkButton(p *player.Player, c, here ChunkPos, buyable bool, price int64) chestui.Button {
+	lines := []string{fmt.Sprintf("§7블록 X %d~%d, Z %d~%d", c[0]*16, c[0]*16+15, c[1]*16, c[1]*16+15)}
+	if c == here {
+		lines = append(lines, "§b지금 서 있는 청크")
+	} else {
+		lines = append(lines, "§7"+direction(p.Position(), c))
 	}
-	ui.Menu(p, "섬 확장", body, opts...)
+	name := fmt.Sprintf("청크 (%d, %d)", c[0], c[1])
+	var icon item.Stack
+	switch {
+	case s.owns(c):
+		icon, name = item.NewStack(block.StainedGlassPane{Colour: item.ColourLime()}, 1), "§a"+name+" · 소유"
+	case buyable:
+		icon, name = item.NewStack(block.StainedGlassPane{Colour: item.ColourYellow()}, 1), "§e"+name+" · 구매 가능"
+		lines = append(lines, "§6"+formatMoney(price), "§e클릭해서 구매")
+	default:
+		icon, name = item.NewStack(block.StainedGlassPane{Colour: item.ColourGrey()}, 1), "§8"+name
+	}
+	if c == here {
+		// The player's chunk stands out whatever its state.
+		icon = item.NewStack(item.Compass{}, 1)
+	}
+	b := chestui.Button{Item: chestui.Lore(icon, name, lines...)}
+	if buyable {
+		b = s.button(b.Item, s.then(func(p *player.Player, _ *world.Tx) {
+			ui.Confirm(p, "섬 확장", fmt.Sprintf("청크 (%d, %d)를 %s에 구매할까요?\n%s\n소지금: %s", c[0], c[1], formatMoney(price), direction(p.Position(), c), formatMoney(s.Money(p))), "§a구매", func(p *player.Player, tx *world.Tx) {
+				if tx.World() != s.world {
+					return
+				}
+				s.buyChunk(p, tx, c)
+				s.expandMenu(p, c).Open(p, nil)
+			})
+		}))
+	}
+	return b
 }
 
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {

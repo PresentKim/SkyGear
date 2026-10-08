@@ -111,6 +111,8 @@ type session struct {
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
+	// boardMinute is the play time minute shown on the sidebars.
+	boardMinute int
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and
@@ -171,7 +173,8 @@ func (s *session) NewDay(tx *world.Tx, day int) {
 	s.updateBoards(tx)
 }
 
-func (s *session) Autosave(*world.Tx) {
+func (s *session) Autosave(tx *world.Tx) {
+	s.refreshPlayTime(tx)
 	s.storeState()
 	for acc := range s.money {
 		s.storeMoney(acc)

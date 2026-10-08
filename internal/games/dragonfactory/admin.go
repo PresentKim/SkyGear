@@ -1,9 +1,13 @@
 package dragonfactory
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/instance"
@@ -57,26 +61,52 @@ func (c adminMoney) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
-type machineEnum string
+// giveItems are the items /dfadmin give hands out: every shop product and
+// every machine (the auto miner is not sold).
+func giveItems() map[string]func() item.Stack {
+	out := map[string]func() item.Stack{}
+	for _, it := range ShopItems {
+		out[it.ID] = it.Stack
+	}
+	for _, k := range machineOrder {
+		out[k] = func() item.Stack { return machineItem(k) }
+	}
+	return out
+}
 
-func (machineEnum) Type() string { return "machine" }
-func (machineEnum) Options(cmd.Source) []string {
-	return machineOrder
+type giveEnum string
+
+func (giveEnum) Type() string { return "df_item" }
+func (giveEnum) Options(cmd.Source) []string {
+	ids := slices.Sorted(maps.Keys(giveItems()))
+	return ids
 }
 
 type adminGive struct {
 	adminBase
 	Sub   cmd.SubCommand    `cmd:"give"`
-	Kind  machineEnum       `cmd:"machine"`
+	Item  giveEnum          `cmd:"item"`
 	Count cmd.Optional[int] `cmd:"count"`
 }
 
 func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if p, _, ok := c.session(src, o, tx); ok {
-		n := c.Count.LoadOr(1)
-		_, _ = p.Inventory().AddItem(machineItem(string(c.Kind)).Grow(n - 1))
-		o.Printf("%s x%d", machineKinds[string(c.Kind)].name, n)
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
 	}
+	f, ok := giveItems()[string(c.Item)]
+	if !ok {
+		o.Errorf("알 수 없는 아이템: %s", c.Item)
+		return
+	}
+	n := max(1, c.Count.LoadOr(1))
+	for range n {
+		it := f()
+		if added, _ := p.Inventory().AddItem(it); added < it.Count() {
+			s.dropAt(tx, p.Position(), it.Grow(added-it.Count()))
+		}
+	}
+	o.Printf("%s x%d", itemName(f()), n)
 }
 
 // adminLine builds the sample hands-free line of docs/tech/machines.md on

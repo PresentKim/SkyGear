@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/event"
@@ -64,4 +65,38 @@ func TestShopMenuBuys(t *testing.T) {
 			t.Fatalf("money = %d", s.Money(p))
 		}
 	})
+}
+
+func TestExpandMap(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
+	withPlayer(s, h, func(p *player.Player, tx *world.Tx) {
+		m := s.expandMenu(p, ChunkPos{0, 0})
+		centre := (mapRows/2)*mapCols + mapCols/2
+		if it, _ := m.Inventory().Item(centre); itemKey(it.Item()) != itemKey(item.Compass{}) {
+			t.Fatalf("centre slot = %v, want the compass for the player's chunk", it)
+		}
+		// (1, 0) is east of the starting 2×2 island: buyable.
+		if it, _ := m.Inventory().Item(centre + 1); !strings.Contains(it.CustomName(), "구매 가능") {
+			t.Fatalf("east chunk = %q", it.CustomName())
+		}
+		// (-1, -1) is owned.
+		if it, _ := m.Inventory().Item(centre - mapCols - 1); !strings.Contains(it.CustomName(), "소유") {
+			t.Fatalf("north-west chunk = %q", it.CustomName())
+		}
+		// (3, 0) is not next to the island.
+		if it, _ := m.Inventory().Item(centre + 3); strings.Contains(it.CustomName(), "구매") {
+			t.Fatalf("far chunk = %q", it.CustomName())
+		}
+	})
+}
+
+func TestGiveItems(t *testing.T) {
+	items := giveItems()
+	for _, id := range []string{"drawer", "upgrade_capacity", "delivery_box", KindMiner, KindCrusher} {
+		if f, ok := items[id]; !ok || f().Empty() {
+			t.Errorf("give item %q missing", id)
+		}
+	}
 }
