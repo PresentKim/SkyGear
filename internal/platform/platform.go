@@ -32,8 +32,9 @@ type Platform struct {
 	m   *instance.Manager
 	// game is the only game type offered to players for now; game selection
 	// is hidden until more games exist (docs/design/01-platform.md §1).
-	game   instance.Game
-	online Online
+	game    instance.Game
+	online  Online
+	invites invites
 }
 
 // New creates the platform. The lobby world must already be built.
@@ -147,6 +148,7 @@ func (pf *Platform) showSave(p *player.Player, saveID int64) {
 	body := fmt.Sprintf("§f%s\n§7%d일차 · 플레이 %s\n만든 날: %s", s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
 	ui.Menu(p, s.Name, body,
 		ui.Option{Label: "§a입장", Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
+		ui.Option{Label: "초대 코드", Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
 		ui.Option{Label: "이름 변경", Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
 		ui.Option{Label: "§c삭제", Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
 		ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
@@ -234,6 +236,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("saves", "세이브 선택 화면을 엽니다", nil, savesCmd{pf: pf}))
 	cmd.Register(cmd.New("guide", "서버 안내를 봅니다", nil, guideCmd{pf: pf}))
 	cmd.Register(cmd.New("friends", "친구 목록을 엽니다", []string{"friend"}, friendsCmd{pf: pf}))
+	cmd.Register(cmd.New("invite", "친구를 세이브에 초대합니다", nil, inviteCmd{pf: pf}))
 }
 
 type playerOnly struct{}
@@ -295,6 +298,9 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
 	ui.Menu(p, pf.game.Name(), "원하는 항목을 고르세요.",
 		ui.Option{Label: "내 세이브", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: "참여 중인 세이브", Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+		ui.Option{Label: fmt.Sprintf("받은 초대 §8(%d)", len(pf.invites.list(instance.AccountID(p)))), Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
+		ui.Option{Label: "초대 코드 입력", Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
 		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
 		ui.Option{Label: "서버 안내", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	)
