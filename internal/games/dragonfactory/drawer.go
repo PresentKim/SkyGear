@@ -44,6 +44,7 @@ const facingState = "dragonfactory:facing"
 var (
 	drawerHash         = block.NextHash()
 	drawerFrontTexture = drawerFront()
+	drawerPanelTexture = solidTexture(rgb(160, 115, 70))
 	drawerSideTexture  = frameTexture(rgb(70, 45, 20), rgb(140, 100, 60), rgb(0, 0, 0), 0)
 	facingNames        = map[cube.Direction]string{cube.North: "north", cube.East: "east", cube.South: "south", cube.West: "west"}
 	// facingRotation turns the model (front = north) to face each direction,
@@ -67,16 +68,20 @@ func (d Drawer) Hash() (uint64, uint64)    { return drawerHash, uint64(d.Facing)
 func (Drawer) Model() world.BlockModel     { return model.Solid{} }
 func (Drawer) Name() string                { return "서랍" }
 func (Drawer) Category() category.Category { return category.Items() }
-func (Drawer) Geometry() []byte            { return nil }
+func (Drawer) Geometry() []byte            { return drawerModel }
 func (Drawer) Texture() image.Image        { return drawerFrontTexture }
 func (Drawer) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_drawer_front": drawerFrontTexture, "dragonfactory_drawer_side": drawerSideTexture}
+	return map[string]image.Image{
+		"dragonfactory_drawer_panel":  drawerPanelTexture,
+		"dragonfactory_drawer_side":   drawerSideTexture,
+		"dragonfactory_drawer_handle": drawerHandleTexture,
+	}
 }
 func (Drawer) Properties() customblock.Properties {
-	side := customblock.NewMaterial("dragonfactory_drawer_side", customblock.OpaqueRenderMethod())
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
-		"*":     side,
-		"north": customblock.NewMaterial("dragonfactory_drawer_front", customblock.OpaqueRenderMethod()),
+	return customblock.Properties{Geometry: "geometry.dragonfactory_drawer", Textures: map[string]customblock.Material{
+		"*":      alphaMaterial("dragonfactory_drawer_side"),
+		"front":  alphaMaterial("dragonfactory_drawer_panel"),
+		"handle": alphaMaterial("dragonfactory_drawer_handle"),
 	}}
 }
 

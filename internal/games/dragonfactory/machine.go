@@ -405,14 +405,17 @@ func (m Machine) Geometry() []byte {
 	if isSieve(m.Kind) {
 		return sieveGeometries[m.Kind]
 	}
-	return nil
+	return machineModels[m.Kind]
 }
 func (m Machine) Texture() image.Image { return m.kind().texture }
 func (m Machine) Textures() map[string]image.Image {
 	if isSieve(m.Kind) {
 		return map[string]image.Image{"dragonfactory_" + m.Kind: sieveFrameTextures[m.Kind], "dragonfactory_sieve_mesh": sieveMeshTexture}
 	}
-	return map[string]image.Image{"dragonfactory_" + m.Kind: m.kind().texture}
+	return map[string]image.Image{
+		"dragonfactory_" + m.Kind:             m.kind().texture,
+		"dragonfactory_" + m.Kind + "_accent": machineAccentTexture(m.kind()),
+	}
 }
 
 // States implements block.Permutable: only the sieve has states.
@@ -435,9 +438,7 @@ func (m Machine) Properties() customblock.Properties {
 	if isSieve(m.Kind) {
 		return sieveProperties(m.Kind)
 	}
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
-		"*": customblock.NewMaterial("dragonfactory_"+m.Kind, customblock.OpaqueRenderMethod()),
-	}}
+	return machineProperties(m.Kind)
 }
 
 // BreakInfo drops the machine and its contents.

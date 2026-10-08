@@ -27,14 +27,15 @@ func (DeliveryBox) Hash() (uint64, uint64)                { return deliveryHash,
 func (DeliveryBox) Model() world.BlockModel               { return model.Solid{} }
 func (DeliveryBox) Name() string                          { return "납품함" }
 func (DeliveryBox) Category() category.Category           { return category.Items() }
-func (DeliveryBox) Geometry() []byte                      { return nil }
+func (DeliveryBox) Geometry() []byte                      { return deliveryModel }
 func (DeliveryBox) Texture() image.Image                  { return deliveryTexture }
 func (DeliveryBox) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_delivery_box": deliveryTexture}
+	return map[string]image.Image{"dragonfactory_delivery_box": deliveryTexture, "dragonfactory_delivery_box_lid": deliveryLidTexture}
 }
 func (DeliveryBox) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
-		"*": customblock.NewMaterial("dragonfactory_delivery_box", customblock.OpaqueRenderMethod()),
+	return customblock.Properties{Geometry: "geometry.dragonfactory_delivery_box", Textures: map[string]customblock.Material{
+		"*":   alphaMaterial("dragonfactory_delivery_box"),
+		"lid": alphaMaterial("dragonfactory_delivery_box_lid"),
 	}}
 }
 func (d DeliveryBox) BreakInfo() block.BreakInfo {

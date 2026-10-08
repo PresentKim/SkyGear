@@ -108,14 +108,18 @@ func (c Core) Hash() (uint64, uint64) {
 func (Core) Model() world.BlockModel     { return model.Solid{} }
 func (c Core) Name() string              { return c.ctype().Name }
 func (Core) Category() category.Category { return category.Items() }
-func (Core) Geometry() []byte            { return nil }
+func (Core) Geometry() []byte            { return coreModel }
 func (c Core) Texture() image.Image      { return c.ctype().texture }
 func (c Core) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_core_" + c.Type: c.ctype().texture}
+	return map[string]image.Image{
+		"dragonfactory_core_frame":              coreFrameTexture,
+		"dragonfactory_core_" + c.Type + "_gem": solidTexture(centreColour(c.ctype().texture)),
+	}
 }
 func (c Core) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
-		"*": customblock.NewMaterial("dragonfactory_core_"+c.Type, customblock.OpaqueRenderMethod()),
+	return customblock.Properties{Geometry: "geometry.dragonfactory_core", Textures: map[string]customblock.Material{
+		"*":       alphaMaterial("dragonfactory_core_frame"),
+		"crystal": alphaMaterial("dragonfactory_core_" + c.Type + "_gem"),
 	}}
 }
 

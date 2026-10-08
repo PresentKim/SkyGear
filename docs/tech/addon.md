@@ -88,3 +88,8 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 | Script API 이벤트 | Dragonfly 플레이어/월드 핸들러 |
 | `ui/*.json` | `assets/resourcepack/dragonfactory/ui/` |
 | `sounds`, `particles`, `texts` | `assets/resourcepack/dragonfactory/` |
+
+## 블록 모델
+
+코어·납품함·서랍·기계는 코드로 만든 블록 모델(Bedrock geometry)이다: `internal/games/dragonfactory/model.go`(상자 목록 → geometry JSON), `models.go`, `sieve.go`.
+Dragonfly 가 팩을 만들 때 `models/blocks/<이름>.geo.json` 으로 넣는다. 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
