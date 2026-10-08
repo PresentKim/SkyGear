@@ -17,10 +17,12 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 
 | 파일 | 내용 |
 |---|---|
-| `server/session/entity_container.go` (신규) | `OpenEntityContainer`(Nop 세션은 무시, 투명 엔티티 `AddActor` + `ContainerOpen` 의 `ContainerEntityUniqueID`), `CloseOpenedContainer`, 닫힐 때 엔티티 제거·`onClose` 콜백 |
-| `server/session/session.go` | `entityContainer` 필드, `AvailableActorIdentifiers` 에 `dragonfly:entity_container` 추가 |
-| `server/session/player.go` | `closeCurrentContainer` 가 엔티티 컨테이너면 블록 조회 없이 정리 |
-| `server/player/player.go` | `Player.OpenEntityContainer`, `ContainerViewer`(트랜잭션 밖에서 슬롯 갱신 전송), `CloseOpenedContainer` |
+| `server/session/entity_container.go` (신규) | 엔티티 상자: `OpenEntityContainer`(같은 인벤토리면 무시, Nop 세션 무시), 투명 엔티티 `AddActor`(플레이어에 탑승 링크) → `NetworkStackLatency` 응답 후 `ContainerOpen` → `PacketViolationWarning` 확인까지 매 틱 닫기+열기 재전송(최대 20회). InvMenu `PlayerWindowDispatcher` 방식. `NetworkStackLatency`·`PacketViolationWarning` 핸들러 |
+| `server/session/session.go` | `entityContainer` 필드, `AvailableActorIdentifiers` 에 `dragonfly:entity_container`, 위 핸들러 등록. **패킷 처리 오류로 세션이 끝날 때 ERROR 로그 + 이유를 담은 Disconnect**(원래는 Debug 로그만 남기고 조용히 끊음) |
+| `server/session/player.go` | `closeCurrentContainer` 가 열리는 중인 엔티티 상자도 정리 |
+| `server/session/handler_container_close.go` | 엔티티 상자를 여는 중에 클라이언트가 보내는 닫기(255 포함)는 응답만 하고 무시 |
+| `server/session/handler_modal_form_response.go` | 없는 폼 ID 응답(10개 초과로 버려졌거나 두 번 응답)은 킥 대신 무시 |
+| `server/player/player.go` | `OpenEntityContainer`, `ContainerViewer`, `CloseOpenedContainer`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거) |
 
 아이템 이동은 기존 `invByID` 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
 패치한 곳에는 `dragonfactory patch` 주석을 단다.

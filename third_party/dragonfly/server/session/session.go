@@ -420,7 +420,10 @@ func (s *Session) handlePackets() {
 			if sessionOwnerStopped(err) {
 				return
 			}
-			s.conf.Log.Debug("process packet: " + err.Error())
+			// dragonfactory patch: a packet error ends the session; log it where
+			// operators see it and tell the player why.
+			s.conf.Log.Error("process packet: " + err.Error())
+			s.Disconnect("§c서버 처리 오류로 연결이 끊겼습니다.\n§7" + err.Error())
 			return
 		}
 	}
@@ -593,6 +596,8 @@ func (s *Session) registerHandlers() {
 		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
 		packet.IDCommandRequest:            &CommandRequestHandler{},
 		packet.IDContainerClose:            &ContainerCloseHandler{},
+		packet.IDNetworkStackLatency:       NetworkStackLatencyHandler{},    // dragonfactory patch
+		packet.IDPacketViolationWarning:    PacketViolationWarningHandler{}, // dragonfactory patch
 		packet.IDEmote:                     &EmoteHandler{},
 		packet.IDEmoteList:                 nil,
 		packet.IDFilterText:                nil,

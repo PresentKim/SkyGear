@@ -56,6 +56,9 @@ func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return false
 	}
 	if p.Sneaking() {
+		if s.debounced(p) {
+			return true
+		}
 		if n := s.deliverInventory(p, tx); n > 0 {
 			p.Messagef("§a%d개를 납품했습니다.", n)
 		} else {
@@ -65,7 +68,9 @@ func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	}
 	held, off := p.HeldItems()
 	if held.Empty() {
-		s.showMission(p)
+		if !s.debounced(p) {
+			s.showMission(p)
+		}
 		return true
 	}
 	if n := s.deliver(tx, p, held.Item(), held.Count()); n > 0 {

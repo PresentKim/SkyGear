@@ -130,3 +130,27 @@ func TestReissueAndPlace(t *testing.T) {
 		}
 	})
 }
+
+// TestCoreWaitsFullIntervalAfterMining: time spent with the block above
+// still in place does not count towards the next block.
+func TestCoreWaitsFullIntervalAfterMining(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil) })
+	above := startCorePos.Side(cube.FaceUp)
+	tick(s, 61)
+	tick(s, 200) // the generated block stays for a while
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(above, nil, nil) })
+	tick(s, 10)
+	s.world.Do(func(tx *world.Tx) {
+		if _, air := tx.Block(above).(block.Air); !air {
+			t.Fatal("core regenerated right after the block was mined")
+		}
+	})
+	tick(s, 60)
+	s.world.Do(func(tx *world.Tx) {
+		if _, air := tx.Block(above).(block.Air); air {
+			t.Fatal("core did not regenerate after a full interval")
+		}
+	})
+}

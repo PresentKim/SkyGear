@@ -67,11 +67,11 @@ func (s *Session) StartShowingEntity(e world.Entity) {
 
 // closeCurrentContainer closes the container the player might currently have open.
 func (s *Session) closeCurrentContainer(tx *world.Tx, clientRequested bool) {
-	if !s.closeWindow(clientRequested) {
+	closed := s.closeWindow(clientRequested)
+	if s.closeEntityContainer(tx) { // dragonfactory patch: also closes one still opening
 		return
 	}
-
-	if s.closeEntityContainer(tx) { // dragonfactory patch
+	if !closed {
 		return
 	}
 	pos := *s.openedPos.Load()

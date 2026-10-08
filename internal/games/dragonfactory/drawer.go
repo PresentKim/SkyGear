@@ -265,7 +265,9 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	}
 	held, off := p.HeldItems()
 	if p.Sneaking() && held.Empty() {
-		s.showDrawer(p, pos)
+		if !s.debounced(p) {
+			s.showDrawer(p, pos)
+		}
 		return true
 	}
 	if face != d.Facing.Face() {

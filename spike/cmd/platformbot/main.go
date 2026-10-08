@@ -193,6 +193,7 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 		if err != nil {
 			fail("waiting: %v", err)
 		}
+		clientReact(pk)
 		if _, ok := pk.(*packet.CommandOutput); ok {
 			for _, m := range messages(pk) {
 				fmt.Println("OUTPUT", m)
@@ -276,5 +277,32 @@ func take(slotStr, want string) {
 	fmt.Printf("TAKE slot %d (count %d): ok=%v\n", slot, it.Stack.Count, ok)
 	if ok != (want == "ok") {
 		fail("take slot %d: ok=%v, want %s", slot, ok, want)
+	}
+}
+
+// openWindows are the container windows the bot has open, like a client.
+var openWindows = map[byte]bool{}
+
+// clientReact answers packets the way the Bedrock client does, as far as
+// the server relies on it: NetworkStackLatency requests, and a
+// PacketViolationWarning for a ContainerOpen of a window already open
+// (entity containers use it as the open acknowledgement).
+func clientReact(pk packet.Packet) {
+	switch pk := pk.(type) {
+	case *packet.NetworkStackLatency:
+		if pk.NeedsResponse {
+			_ = conn.WritePacket(&packet.NetworkStackLatency{Timestamp: pk.Timestamp})
+		}
+	case *packet.ContainerOpen:
+		if openWindows[pk.WindowID] {
+			_ = conn.WritePacket(&packet.PacketViolationWarning{Type: -1, Severity: packet.ViolationSeverityWarning, PacketID: int32(pk.ID())})
+		}
+		openWindows[pk.WindowID] = true
+	case *packet.ContainerClose:
+		// A close that is not server side only acknowledges; the server's
+		// open retries pair it with a new open.
+		if pk.ServerSide {
+			delete(openWindows, pk.WindowID)
+		}
 	}
 }

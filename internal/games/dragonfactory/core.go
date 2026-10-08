@@ -156,13 +156,18 @@ func (c Core) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 		tx.SetBlock(pos, nil, nil)
 		return
 	}
-	c.Progress++
-	above := pos.Side(cube.FaceUp)
-	if _, air := tx.Block(above).(block.Air); air && c.Progress >= s.coreInterval(rec) {
-		tx.SetBlock(above, c.ctype().pick(s.rand), nil)
+	// The interval counts only while the space above is free, so a block
+	// appears one full interval after the previous one was taken.
+	before := c.Progress
+	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
+		c.Progress = 0
+	} else if c.Progress++; c.Progress >= s.coreInterval(rec) {
+		tx.SetBlock(pos.Side(cube.FaceUp), c.ctype().pick(s.rand), nil)
 		c.Progress = 0
 	}
-	tx.SetBlockEntity(pos, c)
+	if c.Progress != before {
+		tx.SetBlockEntity(pos, c)
+	}
 }
 
 // coreInterval is the generation interval of a core in ticks.

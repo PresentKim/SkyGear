@@ -36,7 +36,9 @@ func (h *ModalFormResponseHandler) Handle(p packet.Packet, _ *Session, tx *world
 		resp = nil
 	}
 	if !ok {
-		return fmt.Errorf("no form with ID %v currently opened", pk.FormID)
+		// dragonfactory patch: a response to a form that was dropped (more than
+		// 10 open) or answered twice is ignored instead of kicking.
+		return nil
 	}
 	if err := f.SubmitJSON(resp, c, tx); err != nil {
 		return fmt.Errorf("error submitting form data: %w", err)

@@ -108,6 +108,22 @@ type session struct {
 	displays  map[cube.Pos]*drawerDisplay
 	lastUse   drawerUse
 	lastPunch drawerPunch
+	// lastOpen debounces block interactions that open a screen: the client
+	// repeats the use packet while the button is held.
+	lastOpen map[*world.EntityHandle]time.Time
+}
+
+// debounced reports whether p opened a screen less than 500ms ago, and
+// otherwise records this opening.
+func (s *session) debounced(p *player.Player) bool {
+	if s.lastOpen == nil {
+		s.lastOpen = map[*world.EntityHandle]time.Time{}
+	}
+	if t, ok := s.lastOpen[p.H()]; ok && time.Since(t) < 500*time.Millisecond {
+		return true
+	}
+	s.lastOpen[p.H()] = time.Now()
+	return false
 }
 
 func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{0.5, IslandY, 2.5} }
@@ -143,6 +159,7 @@ func (s *session) Leave(p *player.Player) {
 	acc := instance.AccountID(p)
 	s.storeMoney(acc)
 	delete(s.money, acc)
+	delete(s.lastOpen, p.H())
 	p.RemoveScoreboard()
 }
 

@@ -7,14 +7,21 @@
 
 1. 보이지 않는 클라이언트 전용 엔티티(`dragonfly:entity_container`)를 `AddActor` 로 보낸다.
    메타데이터: 투명·NoAI, `ContainerType`=INVENTORY(-1), `ContainerSize`=칸 수, 이름=창 제목.
-   식별자는 `AvailableActorIdentifiers` 에 등록되어 있다(엔티티 정의 파일은 필요 없음).
-2. `ContainerOpen` 을 `ContainerTypeContainer` + `ContainerEntityUniqueID`=그 엔티티로 보낸다.
-   블록이 필요 없어 어디서나 열린다.
-3. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
+   엔티티는 플레이어에 탑승 링크로 붙어 따라다닌다. 식별자는 `AvailableActorIdentifiers` 에 등록(엔티티 정의 파일 불필요).
+2. `NetworkStackLatency` 를 보내고, 클라이언트가 응답하면(엔티티가 클라이언트에 생긴 뒤) `ContainerOpen`
+   (`ContainerTypeContainer` + `ContainerEntityUniqueID`)과 내용물을 보낸다. 1초 안에 응답이 없으면 그냥 연다.
+3. 클라이언트는 폼이 닫히는 중이거나 다른 창 전환 중이면 `ContainerOpen` 을 무시하고, 255 창 닫기를 보내기도 한다.
+   그래서 [Muqsit/InvMenu](https://github.com/Muqsit/InvMenu) `PlayerWindowDispatcher` 처럼, 클라이언트가 초과 열기에 대한
+   `PacketViolationWarning`(type -1, warning)으로 창이 열렸음을 알려 줄 때까지 매 틱 닫기+열기를 다시 보낸다(최대 20회).
+   그동안 클라이언트의 닫기는 응답만 하고 창을 닫지 않는다. 같은 인벤토리를 다시 열면 무시한다(블록 연타 대비).
+4. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
    제목 앞의 `§{줄 수 1~6}§{스크롤 0/1}` + `§r` 9개를 읽어 창 크기를 정한다.
    54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로.
-4. 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
+5. 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
    창이 닫히면(클라이언트·다른 창 열기·월드 이동·접속 종료) 엔티티를 지우고 닫힘 콜백을 부른다.
+
+테스트 봇(`spike/cmd/platformbot`)은 클라이언트처럼 `NetworkStackLatency` 에 응답하고, 이미 열린 창의 `ContainerOpen` 에
+`PacketViolationWarning` 을 보낸다. 실제 클라이언트의 정확한 동작은 실기로 확인한다.
 
 Dragonfly 에 이 기능이 없어 `third_party/dragonfly` 에 패치했다([third_party/README.md](../../third_party/README.md)).
 리소스팩은 필수(`ResourcesRequired`)로 보낸다. 팩이 없으면 27칸 상자로만 보인다.
