@@ -71,7 +71,7 @@ func main() {
 			fmt.Println("ADD ACTOR:", p.EntityType, "runtime", p.EntityRuntimeID, "pos", p.Position, "yaw", p.Yaw)
 		case *packet.MobEquipment:
 			if p.NewItem.Stack.NetworkID != 0 {
-				fmt.Println("EQUIPMENT runtime", p.EntityRuntimeID, "network item id", p.NewItem.Stack.NetworkID)
+				fmt.Println("EQUIPMENT runtime", p.EntityRuntimeID, "window", p.WindowID, "network item id", p.NewItem.Stack.NetworkID)
 			}
 		case *packet.Disconnect:
 			fmt.Println("DISCONNECTED:", p.Message)

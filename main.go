@@ -19,6 +19,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/platform"
+	"github.com/presentkim/dragonfactory/internal/resourcepack"
 )
 
 func main() {
@@ -51,6 +52,11 @@ func run(log *slog.Logger) error {
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
 	conf.Entities = entity.DefaultRegistry
+	pack, err := resourcepack.Load("assets/resourcepack/dragonfactory")
+	if err != nil {
+		return fmt.Errorf("load resource pack: %w", err)
+	}
+	conf.Resources = append(conf.Resources, pack)
 	srv := conf.New()
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)

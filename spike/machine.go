@@ -62,7 +62,13 @@ func texture() image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
 	for x := 0; x < 16; x++ {
 		for y := 0; y < 16; y++ {
-			img.Set(x, y, color.RGBA{R: 200, G: 80, B: 40, A: 255})
+			c := color.RGBA{R: 200, G: 80, B: 40, A: 255}
+			if x == 0 || y == 0 || x == 15 || y == 15 {
+				c = color.RGBA{R: 70, G: 40, B: 30, A: 255}
+			} else if x == 1 || y == 1 || x == 14 || y == 14 {
+				c = color.RGBA{R: 150, G: 60, B: 30, A: 255}
+			}
+			img.Set(x, y, c)
 		}
 	}
 	return img

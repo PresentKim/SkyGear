@@ -41,7 +41,8 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 - RP: 같은 식별자로 **클라이언트 엔티티 정의**(`entity/*.entity.json`), 지오메트리, 텍스처, 애니메이션, 렌더 컨트롤러를 만든다.
 - AI·이동·상호작용은 전부 Go로 구현한다.
 - 엔티티가 `item.Carrier`를 구현하면 들고 있는 아이템이 클라이언트로 전송되고, 지오메트리의 `rightItem` 본에 그려진다.
-- 첫 사례: 서랍 표시용 `dragonfactory:item_holder` ([drawer.md](drawer.md)). 서버측 전송은 확인했고, 화면 표시는 실제 클라이언트로 확인 필요.
+- 첫 사례: 서랍 표시용 `dragonfactory:item_holder` ([drawer.md](drawer.md)). 실제 클라이언트에서 표시 확인 완료.
+- 주의: 지오메트리를 바꿔도 팩 버전이 같으면 클라이언트가 캐시를 쓴다 → `resourcepack.Load`의 자동 버전으로 해결(§6).
 
 ## 5. UI
 
@@ -59,8 +60,9 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 1. **자동 생성 팩**: Dragonfly가 커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성(`Resources.AutoBuildPack`).
 2. **수동 팩**: 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클 등 자동 생성이 다루지 않는 것.
    - 저장소에 원본 폴더로 관리: `assets/resourcepack/dragonfactory/` (manifest.json 포함)
-   - 서버 시작 시 `resource.ReadPath`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
-   - 팩 내용을 바꾸면 manifest 버전을 올린다(클라이언트 캐시 갱신).
+   - 서버 시작 시 `internal/resourcepack.Load`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
+   - **버전은 자동**: 클라이언트는 팩을 UUID+버전으로 캐시하고, 서버는 클라이언트가 이미 가진 UUID+버전의 팩을 보내지 않는다.
+     버전을 안 올리면 바뀐 팩이 전달되지 않으므로, `resourcepack.Load`가 팩 내용 해시로 manifest 버전을 매번 계산해 넣는다. `manifest.json`의 버전은 손대지 않는다.
    - 접속 시 팩 적용을 강제하려면 `Resources.Required = true`.
 
 규칙:
