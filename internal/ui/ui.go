@@ -4,6 +4,10 @@ package ui
 import (
 	"log/slog"
 	"runtime/debug"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
@@ -18,9 +22,50 @@ type Option struct {
 	Run   func(p *player.Player, tx *world.Tx)
 }
 
+// pending remembers the last form sent to each player until it is answered,
+// so a repeated request (the client repeats item use packets while the
+// button is held) does not queue copies that reopen one after another.
+var pending = struct {
+	sync.Mutex
+	m map[uuid.UUID]sentForm
+}{m: map[uuid.UUID]sentForm{}}
+
+type sentForm struct {
+	title string
+	at    time.Time
+}
+
+// duplicateWindow is how long an unanswered form blocks an identical one.
+const duplicateWindow = 3 * time.Second
+
+// send sends f unless a form with the same title was sent to p less than
+// duplicateWindow ago and is not answered yet.
+func send(p *player.Player, title string, f form.Form) {
+	pending.Lock()
+	if last, ok := pending.m[p.UUID()]; ok && last.title == title && time.Since(last.at) < duplicateWindow {
+		pending.Unlock()
+		return
+	}
+	pending.m[p.UUID()] = sentForm{title: title, at: time.Now()}
+	pending.Unlock()
+	p.SendForm(f)
+}
+
+// answered marks the form of the submitter answered (submitted or closed).
+func answered(s form.Submitter) {
+	if p, ok := s.(*player.Player); ok {
+		pending.Lock()
+		delete(pending.m, p.UUID())
+		pending.Unlock()
+	}
+}
+
 type menu struct{ opts []Option }
 
+func (menu) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+
 func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
+	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	for _, o := range m.opts {
@@ -47,7 +92,7 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
-	p.SendForm(f)
+	send(p, title, f)
 }
 
 // CardToken starts the title of a menu shown as a grid of icon-and-text
@@ -65,7 +110,10 @@ type confirm struct {
 	run     func(p *player.Player, tx *world.Tx)
 }
 
+func (confirm) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+
 func (c confirm) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
+	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	if pressed == c.Yes {
@@ -75,7 +123,7 @@ func (c confirm) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 
 // Confirm asks a yes/no question and runs f on yes.
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
-	p.SendForm(form.NewModal(confirm{Yes: form.NewButton(yes, ""), No: form.NewButton("취소", ""), run: f}, title).WithBody(body))
+	send(p, title, form.NewModal(confirm{Yes: form.NewButton(yes, ""), No: form.NewButton("취소", ""), run: f}, title).WithBody(body))
 }
 
 type textInput struct {
@@ -83,7 +131,10 @@ type textInput struct {
 	run   func(p *player.Player, tx *world.Tx, value string)
 }
 
+func (textInput) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
+	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	t.run(p, tx, t.Value.Value())
@@ -91,5 +142,5 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 
 // Input asks for one line of text.
 func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string)) {
-	p.SendForm(form.New(textInput{Value: form.NewInput(label, def, ""), run: f}, title))
+	send(p, title, form.New(textInput{Value: form.NewInput(label, def, ""), run: f}, title))
 }

@@ -65,14 +65,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, _ mgl64.Vec3) {
 	held, _ := ctx.Player().HeldItems()
-	if isMenuItem(held) {
+	if isMenuItem(held) || isCheque(held) {
 		ctx.Cancel()
-		h.s.openMenu(ctx.Player())
-		return
-	}
-	if isCheque(held) {
-		ctx.Cancel()
-		h.s.redeemCheque(ctx.Player())
+		h.useHeldScreen(ctx.Player(), held)
 		return
 	}
 	if !h.deny(ctx, pos) {
@@ -81,13 +76,22 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 }
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, _ := ctx.Player().HeldItems()
-	switch {
-	case isMenuItem(held):
+	if isMenuItem(held) || isCheque(held) {
 		ctx.Cancel()
-		h.s.openMenu(ctx.Player())
-	case isCheque(held):
-		ctx.Cancel()
-		h.s.redeemCheque(ctx.Player())
+		h.useHeldScreen(ctx.Player(), held)
+	}
+}
+
+// useHeldScreen opens the menu or redeems a cheque held by p. The client
+// repeats use packets while the button is held, so repeats are ignored.
+func (h *handler) useHeldScreen(p *player.Player, held item.Stack) {
+	if h.s.debounced(p) {
+		return
+	}
+	if isMenuItem(held) {
+		h.s.openMenu(p)
+	} else {
+		h.s.redeemCheque(p)
 	}
 }
 
