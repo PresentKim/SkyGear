@@ -29,9 +29,14 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 }
 
 func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) { h.deny(ctx, pos) }
-func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, _ *[]item.Stack, _ *int) {
+func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
 	if h.deny(ctx, pos) {
 		return
+	}
+	if held, _ := ctx.Player().HeldItems(); isHammer(held) {
+		if into, ok := crushed(ctx.Player().Tx().Block(pos)); ok {
+			*drops = []item.Stack{item.NewStack(into, 1)}
+		}
 	}
 	switch b := ctx.Player().Tx().Block(pos).(type) {
 	case Core:

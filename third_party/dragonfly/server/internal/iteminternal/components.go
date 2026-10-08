@@ -1,9 +1,11 @@
 package iteminternal
 
 import (
+	"slices"
+	"strings"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"strings"
 )
 
 // Components returns all the components of the given custom item. If the item has no components, a nil map and false
@@ -77,6 +79,26 @@ func Components(it world.CustomItem) map[string]any {
 	}
 	if x, ok := it.(item.Glinted); ok {
 		builder.AddProperty("foil", x.Glinted())
+	}
+	if x, ok := it.(item.Digger); ok {
+		// dragonfactory patch: per-block mining speeds for clients.
+		speeds := x.DestroySpeeds()
+		names := make([]string, 0, len(speeds))
+		for name := range speeds {
+			names = append(names, name)
+		}
+		slices.Sort(names)
+		destroy := make([]any, 0, len(names))
+		for _, name := range names {
+			destroy = append(destroy, map[string]any{
+				"block": map[string]any{"name": name},
+				"speed": int32(speeds[name]),
+			})
+		}
+		builder.AddComponent("minecraft:digger", map[string]any{
+			"use_efficiency": true,
+			"destroy_speeds": destroy,
+		})
 	}
 	if x, ok := it.(item.HandEquipped); ok {
 		builder.AddProperty("hand_equipped", x.HandEquipped())

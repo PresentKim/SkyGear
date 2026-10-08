@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"testing"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -11,38 +10,35 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-func TestHammerCrushesInPlace(t *testing.T) {
+func TestHammerDropsCrushedBlock(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 1}
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(pos, block.Cobblestone{}, nil) })
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		hit := func() *item.UseContext {
-			ctx := &item.UseContext{}
-			if !(Hammer{}).UseOnBlock(pos, cube.FaceUp, [3]float64{}, tx, p, ctx) {
-				t.Fatal("hammer not used")
-			}
-			s.hammering[p.H()].last = time.Time{} // skip the cooldown
-			return ctx
+		mine := func(b world.Block, held item.Stack) []item.Stack {
+			tx.SetBlock(pos, b, nil)
+			p.SetHeldItems(held, item.Stack{})
+			drops := []item.Stack{item.NewStack(b.(world.Item), 1)}
+			(&handler{s: s}).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
+			return drops
 		}
-		for range hammerHits - 1 {
-			if ctx := hit(); ctx.Damage != 0 {
-				t.Fatal("damaged before crushing")
-			}
+		hammer := item.NewStack(Hammer{}, 1)
+		if d := mine(block.Cobblestone{}, hammer); len(d) != 1 || itemKey(d[0].Item()) != itemKey(block.Gravel{}) {
+			t.Fatalf("cobblestone with a hammer drops %v", d)
 		}
-		if _, ok := tx.Block(pos).(block.Cobblestone); !ok {
-			t.Fatalf("crushed early: %T", tx.Block(pos))
+		if d := mine(block.Gravel{}, hammer); len(d) != 1 || itemKey(d[0].Item()) != itemKey(block.Sand{}) {
+			t.Fatalf("gravel with a hammer drops %v", d)
 		}
-		s.hammering[p.H()].last = time.Time{}
-		ctx := &item.UseContext{}
-		(Hammer{}).UseOnBlock(pos, cube.FaceUp, [3]float64{}, tx, p, ctx)
-		if _, ok := tx.Block(pos).(block.Gravel); !ok || ctx.Damage != 1 {
-			t.Fatalf("after %d hits: %T, damage %d", hammerHits, tx.Block(pos), ctx.Damage)
-		}
-		tx.SetBlock(pos, block.Dirt{}, nil)
-		if (Hammer{}).UseOnBlock(pos, cube.FaceUp, [3]float64{}, tx, p, &item.UseContext{}) {
-			t.Fatal("hammer used on dirt")
+		if d := mine(block.Cobblestone{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierStone}, 1)); itemKey(d[0].Item()) != itemKey(block.Cobblestone{}) {
+			t.Fatalf("cobblestone with a pickaxe drops %v", d)
 		}
 	})
+	// Clients get the hammer's mining speeds.
+	if (Hammer{}).DestroySpeeds()["minecraft:cobblestone"] == 0 {
+		t.Fatal("no client speed for cobblestone")
+	}
+	if block.BreakDuration(block.Cobblestone{}, item.NewStack(Hammer{}, 1), block.BreakContext{}) >= block.BreakDuration(block.Cobblestone{}, item.Stack{}, block.BreakContext{}) {
+		t.Fatal("the hammer does not mine cobblestone faster than a hand")
+	}
 }

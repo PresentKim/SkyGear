@@ -1,6 +1,64 @@
+diff -ruN a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
+--- a/server/internal/iteminternal/components.go	2026-10-08 22:30:13.404635784 +0000
++++ b/server/internal/iteminternal/components.go	2026-10-08 22:30:13.615086619 +0000
+@@ -1,9 +1,11 @@
+ package iteminternal
+ 
+ import (
++	"slices"
++	"strings"
++
+ 	"github.com/df-mc/dragonfly/server/item"
+ 	"github.com/df-mc/dragonfly/server/world"
+-	"strings"
+ )
+ 
+ // Components returns all the components of the given custom item. If the item has no components, a nil map and false
+@@ -78,6 +80,26 @@
+ 	if x, ok := it.(item.Glinted); ok {
+ 		builder.AddProperty("foil", x.Glinted())
+ 	}
++	if x, ok := it.(item.Digger); ok {
++		// dragonfactory patch: per-block mining speeds for clients.
++		speeds := x.DestroySpeeds()
++		names := make([]string, 0, len(speeds))
++		for name := range speeds {
++			names = append(names, name)
++		}
++		slices.Sort(names)
++		destroy := make([]any, 0, len(names))
++		for _, name := range names {
++			destroy = append(destroy, map[string]any{
++				"block": map[string]any{"name": name},
++				"speed": int32(speeds[name]),
++			})
++		}
++		builder.AddComponent("minecraft:digger", map[string]any{
++			"use_efficiency": true,
++			"destroy_speeds": destroy,
++		})
++	}
+ 	if x, ok := it.(item.HandEquipped); ok {
+ 		builder.AddProperty("hand_equipped", x.HandEquipped())
+ 	}
+diff -ruN a/server/item/digger.go b/server/item/digger.go
+--- a/server/item/digger.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/item/digger.go	2026-10-08 22:30:13.616019632 +0000
+@@ -0,0 +1,11 @@
++package item
++
++// Digger is a custom item that tells clients how fast it mines certain
++// blocks (the minecraft:digger item component). Without it, clients mine
++// with a custom item at bare-hand speed whatever the server computes.
++// (dragonfactory patch)
++type Digger interface {
++	// DestroySpeeds maps block names (e.g. "minecraft:stone") to the mining
++	// speed of the item on them (a tool tier efficiency, e.g. 4 for stone).
++	DestroySpeeds() map[string]int
++}
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 17:08:04.689328079 +0000
-+++ b/server/player/player.go	2026-10-08 17:08:04.832304882 +0000
+--- a/server/player/player.go	2026-10-08 22:30:13.515250253 +0000
++++ b/server/player/player.go	2026-10-08 22:30:13.627773037 +0000
 @@ -102,6 +102,10 @@
  	breakingPos       cube.Pos
  	breakingFace      cube.Face
@@ -146,7 +204,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/camera.go b/server/session/camera.go
 --- a/server/session/camera.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/camera.go	2026-10-08 17:08:04.841264968 +0000
++++ b/server/session/camera.go	2026-10-08 22:30:13.630214479 +0000
 @@ -0,0 +1,61 @@
 +package session
 +
@@ -211,7 +269,7 @@ diff -ruN a/server/session/camera.go b/server/session/camera.go
 +}
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 17:08:04.841460541 +0000
++++ b/server/session/entity_container.go	2026-10-08 22:30:13.630241753 +0000
 @@ -0,0 +1,417 @@
 +package session
 +
@@ -631,8 +689,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	})
 +}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 17:08:04.694409774 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 17:08:04.835330452 +0000
+--- a/server/session/handler_container_close.go	2026-10-08 22:30:13.520648816 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 22:30:13.628463891 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -655,8 +713,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 17:08:04.695992117 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 17:08:04.837329886 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 22:30:13.522721632 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 22:30:13.629300100 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -669,8 +727,8 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
 diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
---- a/server/session/handler_player_action.go	2026-10-08 17:08:04.696296029 +0000
-+++ b/server/session/handler_player_action.go	2026-10-08 17:08:04.837694087 +0000
+--- a/server/session/handler_player_action.go	2026-10-08 22:30:13.523003055 +0000
++++ b/server/session/handler_player_action.go	2026-10-08 22:30:13.629339399 +0000
 @@ -9,6 +9,10 @@
  	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
  )
@@ -697,8 +755,8 @@ diff -ruN a/server/session/handler_player_action.go b/server/session/handler_pla
  	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
  		// Don't do anything for these actions.
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-08 17:08:04.696445159 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-08 17:08:04.838051370 +0000
+--- a/server/session/handler_player_auth_input.go	2026-10-08 22:30:13.523130767 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 22:30:13.629359694 +0000
 @@ -63,6 +63,7 @@
  
  	s.moving = true
@@ -708,8 +766,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 17:08:04.697947947 +0000
-+++ b/server/session/player.go	2026-10-08 17:08:04.840099017 +0000
+--- a/server/session/player.go	2026-10-08 22:30:13.524971275 +0000
++++ b/server/session/player.go	2026-10-08 22:30:13.629613493 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -740,8 +798,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 17:08:04.698448749 +0000
-+++ b/server/session/session.go	2026-10-08 17:08:04.840392521 +0000
+--- a/server/session/session.go	2026-10-08 22:30:13.525156257 +0000
++++ b/server/session/session.go	2026-10-08 22:30:13.629786165 +0000
 @@ -77,10 +77,18 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
