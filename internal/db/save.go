@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -205,4 +206,55 @@ func (d *DB) SetMoney(saveID int64, accountID string, money int64) error {
 	_, err := d.sql.Exec(`INSERT INTO save_players (save_id, account_id, money) VALUES (?, ?, ?)
 		ON CONFLICT(save_id, account_id) DO UPDATE SET money = excluded.money`, saveID, accountID, money)
 	return err
+}
+
+// ActiveMembers counts the members of a save that have not left.
+func (d *DB) ActiveMembers(saveID int64) (int, error) {
+	var n int
+	err := d.sql.QueryRow(`SELECT COUNT(*) FROM save_members WHERE save_id = ? AND left_at IS NULL`, saveID).Scan(&n)
+	return n, err
+}
+
+// LeaveMember marks a member as gone (kicked or left). Its data is kept.
+func (d *DB) LeaveMember(saveID int64, accountID string) error {
+	_, err := d.sql.Exec(`UPDATE save_members SET left_at = ? WHERE save_id = ? AND account_id = ? AND role != ?`, now(), saveID, accountID, RoleHost)
+	return err
+}
+
+// JoinedSaves returns the saves an account joined as a non-host member.
+func (d *DB) JoinedSaves(accountID string) ([]Save, error) {
+	rows, err := d.sql.Query(`SELECT s.id, s.game_type, s.owner, s.slot, s.name, COALESCE(s.invite_code, ''), s.instance_time, s.day, s.day_time, s.created_at, s.last_played
+		FROM saves s JOIN save_members m ON m.save_id = s.id
+		WHERE m.account_id = ? AND m.left_at IS NULL AND m.role != ? ORDER BY s.last_played DESC`, accountID, RoleHost)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Save
+	for rows.Next() {
+		s, err := scanSave(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	return out, rows.Err()
+}
+
+// SetInviteCode stores the invite code of a save. It returns ErrCodeTaken
+// if another save uses the code.
+func (d *DB) SetInviteCode(saveID int64, code string) error {
+	_, err := d.sql.Exec(`UPDATE saves SET invite_code = ? WHERE id = ?`, code, saveID)
+	if err != nil && strings.Contains(err.Error(), "UNIQUE") {
+		return ErrCodeTaken
+	}
+	return err
+}
+
+// ErrCodeTaken is returned when an invite code is already used.
+var ErrCodeTaken = errors.New("db: invite code taken")
+
+// SaveByInviteCode finds the save with an invite code.
+func (d *DB) SaveByInviteCode(code string) (Save, error) {
+	return scanSave(d.sql.QueryRow(`SELECT `+saveColumns+` FROM saves WHERE invite_code = ?`, code))
 }

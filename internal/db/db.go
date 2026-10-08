@@ -98,6 +98,27 @@ var migrations = []string{
 		redeemed_by TEXT,
 		redeemed_at INTEGER
 	);`,
+	// 3: friends (docs/design/01-platform.md §4). An accepted friendship is
+	// stored as two rows, one per direction.
+	`CREATE TABLE friend_requests (
+		from_id    TEXT NOT NULL REFERENCES accounts(id),
+		to_id      TEXT NOT NULL REFERENCES accounts(id),
+		created_at INTEGER NOT NULL,
+		PRIMARY KEY (from_id, to_id)
+	);
+	CREATE TABLE friends (
+		account_id TEXT NOT NULL REFERENCES accounts(id),
+		friend_id  TEXT NOT NULL REFERENCES accounts(id),
+		since      INTEGER NOT NULL,
+		PRIMARY KEY (account_id, friend_id)
+	);
+	CREATE TABLE blocks (
+		account_id TEXT NOT NULL REFERENCES accounts(id),
+		blocked_id TEXT NOT NULL REFERENCES accounts(id),
+		created_at INTEGER NOT NULL,
+		PRIMARY KEY (account_id, blocked_id)
+	);
+	CREATE INDEX accounts_name ON accounts(name COLLATE NOCASE);`,
 }
 
 func (d *DB) migrate() error {
