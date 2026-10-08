@@ -34,6 +34,11 @@ type Config struct {
 		// open that is known to work. Debug logs the open/close packets.
 		Ride, WaitLatency, Retry, Debug bool
 	}
+	Experimental struct {
+		// VoxelShapes sends a minimal voxel shape registry on spawn
+		// (docs/TODO.md: custom blocks that cannot be broken).
+		VoxelShapes bool
+	}
 	Admin struct {
 		// Operators are player names allowed to use operator tools such as
 		// /dfadmin (testing only).

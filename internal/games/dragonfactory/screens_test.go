@@ -4,21 +4,36 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/df-mc/dragonfly/server/event"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/chestui"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// click clicks a menu slot the way a session does and lets the button run.
-func click(t *testing.T, s *session, h *world.EntityHandle, m *chestui.Menu, slot int) {
+// press runs the option with the given label prefix, as a form submit does.
+func press(t *testing.T, p *player.Player, tx *world.Tx, opts []ui.Option, prefix string) {
+	t.Helper()
+	for _, o := range opts {
+		if strings.HasPrefix(o.Label, prefix) {
+			o.Run(p, tx)
+			return
+		}
+	}
+	t.Fatalf("no option %q", prefix)
+}
+
+func TestMainMenuHasIcons(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		ctx := event.C(inventory.Holder(p))
-		m.Inventory().Handler().HandleTake(ctx, slot, item.Stack{})
+		_, opts := s.mainMenu(p)
+		for _, o := range opts {
+			if o.Icon == "" {
+				t.Errorf("option %q has no icon", o.Label)
+			}
+		}
 	})
-	tick(s, 1)
 }
 
 func TestLostMenu(t *testing.T) {
@@ -27,37 +42,32 @@ func TestLostMenu(t *testing.T) {
 	h := spawnPlayer(s)
 	s.addLost(item.NewStack(item.Diamond{}, 3))
 	s.addLost(item.NewStack(item.Apple{}, 100))
-
-	var m *chestui.Menu
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { m = s.lostMenu(p) })
-	if got, _ := m.Inventory().Item(0); got.Count() != 64 {
-		t.Fatalf("first entry icon = %v, want 64 apples", got)
-	}
-	click(t, s, h, m, 0)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, opts := s.lostMenu()
+		if len(opts) != 3 || !strings.Contains(opts[0].Label, "100") {
+			t.Fatalf("options = %+v", opts)
+		}
+		press(t, p, tx, opts, "apple")
 		if !p.Inventory().ContainsItem(item.NewStack(item.Apple{}, 100)) {
 			t.Fatal("apples were not taken")
 		}
+		if len(s.state.Lost) != 1 {
+			t.Fatalf("lost = %d entries, want 1", len(s.state.Lost))
+		}
 	})
-	if len(s.state.Lost) != 1 {
-		t.Fatalf("lost = %d entries, want 1", len(s.state.Lost))
-	}
-	if got, _ := m.Inventory().Item(0); got.Count() != 3 {
-		t.Fatalf("menu not refreshed: slot 0 = %v", got)
-	}
 }
 
 func TestShopMenuBuys(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	var m *chestui.Menu
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
-		m = s.shopMenu(p)
-	})
-	click(t, s, h, m, 0) // delivery box
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, opts := s.shopMenu(p)
+		if opts[0].Icon != "textures/items/delivery_box" {
+			t.Errorf("delivery box icon = %q", opts[0].Icon)
+		}
+		press(t, p, tx, opts, "납품함")
 		if !p.Inventory().ContainsItem(item.NewStack(DeliveryBox{}, 1)) {
 			t.Fatal("delivery box not bought")
 		}
@@ -72,22 +82,32 @@ func TestExpandMap(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		m := s.expandMenu(p, ChunkPos{0, 0})
+		_, opts := s.expandMenu(p, ChunkPos{0, 0})
+		if len(opts) != mapRows*mapCols+6 || len(opts) > 54 {
+			t.Fatalf("%d options do not fit the 9×6 grid", len(opts))
+		}
 		centre := (mapRows/2)*mapCols + mapCols/2
-		if it, _ := m.Inventory().Item(centre); itemKey(it.Item()) != itemKey(item.Compass{}) {
-			t.Fatalf("centre slot = %v, want the compass for the player's chunk", it)
+		if opts[centre].Icon != iconLobby {
+			t.Fatalf("centre = %+v, want the compass for the player's chunk", opts[centre])
 		}
 		// (1, 0) is east of the starting 2×2 island: buyable.
-		if it, _ := m.Inventory().Item(centre + 1); !strings.Contains(it.CustomName(), "구매 가능") {
-			t.Fatalf("east chunk = %q", it.CustomName())
+		if opts[centre+1].Icon != "textures/blocks/glass_yellow" {
+			t.Fatalf("east chunk = %+v", opts[centre+1])
 		}
 		// (-1, -1) is owned.
-		if it, _ := m.Inventory().Item(centre - mapCols - 1); !strings.Contains(it.CustomName(), "소유") {
-			t.Fatalf("north-west chunk = %q", it.CustomName())
+		if opts[centre-mapCols-1].Icon != "textures/blocks/glass_lime" {
+			t.Fatalf("north-west chunk = %+v", opts[centre-mapCols-1])
 		}
 		// (3, 0) is not next to the island.
-		if it, _ := m.Inventory().Item(centre + 3); strings.Contains(it.CustomName(), "구매") {
-			t.Fatalf("far chunk = %q", it.CustomName())
+		if opts[centre+3].Icon != "textures/blocks/glass_gray" {
+			t.Fatalf("far chunk = %+v", opts[centre+3])
+		}
+		seen := map[string]bool{}
+		for _, o := range opts {
+			if seen[o.Label] {
+				t.Fatalf("label %q twice: form buttons are matched by label", o.Label)
+			}
+			seen[o.Label] = true
 		}
 	})
 }

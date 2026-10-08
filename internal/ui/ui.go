@@ -10,9 +10,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Option is a menu button and the action it runs.
+// Option is a menu button and the action it runs. Icon is an optional
+// texture path shown on the button, e.g. "textures/items/emerald".
 type Option struct {
 	Label string
+	Icon  string
 	Run   func(p *player.Player, tx *world.Tx)
 }
 
@@ -43,9 +45,31 @@ func recoverForm(p *player.Player) {
 func Menu(p *player.Player, title, body string, opts ...Option) {
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(body)
 	for _, o := range opts {
-		f = f.AddButton(form.NewButton(o.Label, ""))
+		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
 	p.SendForm(f)
+}
+
+// GridToken starts the title of a menu that the resource pack shows as a
+// 9×6 icon grid (assets/resourcepack/dragonfactory/ui/server_form.json).
+// The pack hides the token from the visible title.
+const GridToken = "§d§f§g§r"
+
+// CardToken starts the title of a menu shown as a grid of icon-and-text
+// cards, three per row (assets/resourcepack/dragonfactory/ui).
+const CardToken = "§d§f§c§r"
+
+// CardMenu shows a menu as a grid of cards with the icon above the label,
+// so many options fit on one screen. Labels should be short (two lines).
+func CardMenu(p *player.Player, title, body string, opts ...Option) {
+	Menu(p, CardToken+title, body, opts...)
+}
+
+// GridMenu shows a menu as a 9×6 grid of icon buttons, filled row by row,
+// with the body below the grid. Labels are not shown in the grid, but must
+// still be unique.
+func GridMenu(p *player.Player, title, body string, opts ...Option) {
+	Menu(p, GridToken+title, body, opts...)
 }
 
 type confirm struct {

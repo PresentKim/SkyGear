@@ -395,3 +395,23 @@ func (v EntityContainerViewer) ViewSlotChange(inv *inventory.Inventory, slot int
 		}
 	}
 }
+
+// SendBasicVoxelShapes sends a minimal voxel shape registry (minecraft:empty
+// and minecraft:unit_cube) when the player spawns. Dragonfly sends none and
+// 1.26 clients log "Shape registry is full" / "minecraft:unit_cube doesn't
+// exist" for it. Experimental: whether this matters (e.g. for breaking
+// custom blocks) is unverified, so it is off by default. (dragonfactory patch)
+var SendBasicVoxelShapes bool
+
+func (s *Session) sendBasicVoxelShapes() {
+	if !SendBasicVoxelShapes {
+		return
+	}
+	s.writePacket(&packet.VoxelShapes{
+		Shapes: []protocol.VoxelShape{
+			{Cells: protocol.VoxelCells{}, XCoordinates: []float32{0}, YCoordinates: []float32{0}, ZCoordinates: []float32{0}},
+			{Cells: protocol.VoxelCells{XSize: 1, YSize: 1, ZSize: 1, Storage: []uint8{1}}, XCoordinates: []float32{0, 1}, YCoordinates: []float32{0, 1}, ZCoordinates: []float32{0, 1}},
+		},
+		NameMap: []protocol.VoxelShapeNameEntry{{Name: "minecraft:empty", ID: 0}, {Name: "minecraft:unit_cube", ID: 1}},
+	})
+}

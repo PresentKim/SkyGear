@@ -1,6 +1,6 @@
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 16:04:47.845574002 +0000
-+++ b/server/player/player.go	2026-10-08 16:04:47.910878856 +0000
+--- a/server/player/player.go	2026-10-08 16:23:35.280459407 +0000
++++ b/server/player/player.go	2026-10-08 16:23:35.367909994 +0000
 @@ -1776,7 +1776,14 @@
  			// The block was activated: Blocks such as doors must always have precedence over the item being
  			// used.
@@ -60,8 +60,8 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 16:04:47.912444921 +0000
-@@ -0,0 +1,397 @@
++++ b/server/session/entity_container.go	2026-10-08 16:23:35.376785960 +0000
+@@ -0,0 +1,417 @@
 +package session
 +
 +// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md).
@@ -459,9 +459,29 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +		}
 +	}
 +}
++
++// SendBasicVoxelShapes sends a minimal voxel shape registry (minecraft:empty
++// and minecraft:unit_cube) when the player spawns. Dragonfly sends none and
++// 1.26 clients log "Shape registry is full" / "minecraft:unit_cube doesn't
++// exist" for it. Experimental: whether this matters (e.g. for breaking
++// custom blocks) is unverified, so it is off by default. (dragonfactory patch)
++var SendBasicVoxelShapes bool
++
++func (s *Session) sendBasicVoxelShapes() {
++	if !SendBasicVoxelShapes {
++		return
++	}
++	s.writePacket(&packet.VoxelShapes{
++		Shapes: []protocol.VoxelShape{
++			{Cells: protocol.VoxelCells{}, XCoordinates: []float32{0}, YCoordinates: []float32{0}, ZCoordinates: []float32{0}},
++			{Cells: protocol.VoxelCells{XSize: 1, YSize: 1, ZSize: 1, Storage: []uint8{1}}, XCoordinates: []float32{0, 1}, YCoordinates: []float32{0, 1}, ZCoordinates: []float32{0, 1}},
++		},
++		NameMap: []protocol.VoxelShapeNameEntry{{Name: "minecraft:empty", ID: 0}, {Name: "minecraft:unit_cube", ID: 1}},
++	})
++}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 16:04:47.847807263 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 16:04:47.911680506 +0000
+--- a/server/session/handler_container_close.go	2026-10-08 16:23:35.283384506 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 16:23:35.368824615 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -484,8 +504,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 16:04:47.851069164 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 16:04:47.911974523 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 16:23:35.284804982 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 16:23:35.376423843 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -498,8 +518,8 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-08 16:04:47.851310457 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-08 16:04:47.912005181 +0000
+--- a/server/session/handler_player_auth_input.go	2026-10-08 16:23:35.285466113 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 16:23:35.376455243 +0000
 @@ -63,6 +63,7 @@
  
  	s.moving = true
@@ -509,8 +529,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 16:04:47.852167646 +0000
-+++ b/server/session/player.go	2026-10-08 16:04:47.912208367 +0000
+--- a/server/session/player.go	2026-10-08 16:23:35.286612930 +0000
++++ b/server/session/player.go	2026-10-08 16:23:35.376668454 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -530,9 +550,19 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  	pos := *s.openedPos.Load()
  	b := tx.Block(pos)
  	if container, ok := b.(block.Container); ok {
+@@ -471,6 +477,9 @@
+ // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
+ // client submits the form.
+ func (s *Session) SendForm(f form.Form) {
++	if s == Nop { // dragonfactory patch: players without a connection (tests)
++		return
++	}
+ 	b, _ := json.Marshal(f)
+ 
+ 	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 16:04:47.852293309 +0000
-+++ b/server/session/session.go	2026-10-08 16:04:47.912252650 +0000
+--- a/server/session/session.go	2026-10-08 16:23:35.286954488 +0000
++++ b/server/session/session.go	2026-10-08 16:23:35.376698477 +0000
 @@ -77,10 +77,18 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
@@ -556,7 +586,15 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  
  	lastChunkPos world.ChunkPos
  
-@@ -418,7 +426,10 @@
+@@ -269,6 +277,7 @@
+ 	})
+ 
+ 	s.sendAvailableEntities(tx.World())
++	s.sendBasicVoxelShapes() // dragonfactory patch (experimental, off by default)
+ 
+ 	c.SetGameMode(c.GameMode())
+ 	for _, e := range c.Effects() {
+@@ -418,7 +427,10 @@
  			if sessionOwnerStopped(err) {
  				return
  			}
@@ -568,7 +606,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  			return
  		}
  	}
-@@ -591,6 +602,8 @@
+@@ -591,6 +603,8 @@
  		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
  		packet.IDCommandRequest:            &CommandRequestHandler{},
  		packet.IDContainerClose:            &ContainerCloseHandler{},
@@ -577,7 +615,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  		packet.IDEmote:                     &EmoteHandler{},
  		packet.IDEmoteList:                 nil,
  		packet.IDFilterText:                nil,
-@@ -640,6 +653,7 @@
+@@ -640,6 +654,7 @@
  	for _, t := range w.EntityRegistry().Types() {
  		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
  	}

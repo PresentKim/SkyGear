@@ -1,0 +1,446 @@
+// Machine windows (internal/games/dragonfactory/machine.go): the vanilla
+// small chest screen with only the machine's slots, placed per machine.
+// Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
+// Slot 26 is the pick-up button. Generated layout, see docs/tech/machines.md.
+{
+  "namespace": "df_machine",
+  "slot@chest.chest_grid_item": {},
+  "crusher_slots": {
+    "type": "collection_panel",
+    "collection_name": "container_items",
+    "size": [
+      162,
+      54
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "s11@df_machine.slot": {
+          "collection_index": 11,
+          "offset": [
+            36,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s13@df_machine.slot": {
+          "collection_index": 13,
+          "offset": [
+            72,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s15@df_machine.slot": {
+          "collection_index": 15,
+          "offset": [
+            108,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s26@df_machine.slot": {
+          "collection_index": 26,
+          "offset": [
+            144,
+            36
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
+  "sieve_slots": {
+    "type": "collection_panel",
+    "collection_name": "container_items",
+    "size": [
+      162,
+      54
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "s10@df_machine.slot": {
+          "collection_index": 10,
+          "offset": [
+            18,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s12@df_machine.slot": {
+          "collection_index": 12,
+          "offset": [
+            54,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s14@df_machine.slot": {
+          "collection_index": 14,
+          "offset": [
+            90,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s15@df_machine.slot": {
+          "collection_index": 15,
+          "offset": [
+            108,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s16@df_machine.slot": {
+          "collection_index": 16,
+          "offset": [
+            126,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s26@df_machine.slot": {
+          "collection_index": 26,
+          "offset": [
+            144,
+            36
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
+  "miner_slots": {
+    "type": "collection_panel",
+    "collection_name": "container_items",
+    "size": [
+      162,
+      54
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "s10@df_machine.slot": {
+          "collection_index": 10,
+          "offset": [
+            36,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s13@df_machine.slot": {
+          "collection_index": 13,
+          "offset": [
+            72,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s14@df_machine.slot": {
+          "collection_index": 14,
+          "offset": [
+            90,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s15@df_machine.slot": {
+          "collection_index": 15,
+          "offset": [
+            108,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s16@df_machine.slot": {
+          "collection_index": 16,
+          "offset": [
+            126,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s26@df_machine.slot": {
+          "collection_index": 26,
+          "offset": [
+            144,
+            36
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
+  "sell_box_slots": {
+    "type": "collection_panel",
+    "collection_name": "container_items",
+    "size": [
+      162,
+      54
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "s4@df_machine.slot": {
+          "collection_index": 4,
+          "offset": [
+            72,
+            0
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s9@df_machine.slot": {
+          "collection_index": 9,
+          "offset": [
+            0,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s10@df_machine.slot": {
+          "collection_index": 10,
+          "offset": [
+            18,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s11@df_machine.slot": {
+          "collection_index": 11,
+          "offset": [
+            36,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s12@df_machine.slot": {
+          "collection_index": 12,
+          "offset": [
+            54,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s13@df_machine.slot": {
+          "collection_index": 13,
+          "offset": [
+            72,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s14@df_machine.slot": {
+          "collection_index": 14,
+          "offset": [
+            90,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s15@df_machine.slot": {
+          "collection_index": 15,
+          "offset": [
+            108,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s16@df_machine.slot": {
+          "collection_index": 16,
+          "offset": [
+            126,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s17@df_machine.slot": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s26@df_machine.slot": {
+          "collection_index": 26,
+          "offset": [
+            144,
+            36
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
+  "top_half": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "50%"
+    ],
+    "offset": [
+      0,
+      12
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "chest_label@chest.chest_label": {}
+      },
+      {
+        "slots@$df_machine_slots": {
+          "offset": [
+            7,
+            9
+          ]
+        }
+      }
+    ]
+  },
+  "machine_panel": {
+    "type": "panel",
+    "controls": [
+      {
+        "container_gamepad_helpers@common.container_gamepad_helpers": {}
+      },
+      {
+        "selected_item_details_factory@common.selected_item_details_factory": {}
+      },
+      {
+        "item_lock_notification_factory@common.item_lock_notification_factory": {}
+      },
+      {
+        "root_panel@common.root_panel": {
+          "layer": 1,
+          "controls": [
+            {
+              "common_panel@common.common_panel": {}
+            },
+            {
+              "chest_panel": {
+                "type": "panel",
+                "layer": 5,
+                "controls": [
+                  {
+                    "top_half@df_machine.top_half": {}
+                  },
+                  {
+                    "inventory_panel_bottom_half_with_label@common.inventory_panel_bottom_half_with_label": {}
+                  },
+                  {
+                    "hotbar_grid@common.hotbar_grid_template": {}
+                  },
+                  {
+                    "inventory_take_progress_icon_button@common.inventory_take_progress_icon_button": {}
+                  },
+                  {
+                    "flying_item_renderer@common.flying_item_renderer": {
+                      "layer": 15
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "inventory_selected_icon_button@common.inventory_selected_icon_button": {}
+            },
+            {
+              "gamepad_cursor@common.gamepad_cursor_button": {}
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "crusher_panel@df_machine.machine_panel": {
+    "$df_machine_slots": "df_machine.crusher_slots"
+  },
+  "sieve_panel@df_machine.machine_panel": {
+    "$df_machine_slots": "df_machine.sieve_slots"
+  },
+  "miner_panel@df_machine.machine_panel": {
+    "$df_machine_slots": "df_machine.miner_slots"
+  },
+  "sell_box_panel@df_machine.machine_panel": {
+    "$df_machine_slots": "df_machine.sell_box_slots"
+  }
+}

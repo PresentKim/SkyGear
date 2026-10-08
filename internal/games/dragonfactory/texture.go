@@ -59,3 +59,29 @@ func keyTexture() image.Image {
 // lockGlyph is a padlock drawn by the resource pack font
 // (assets/resourcepack/dragonfactory/font/glyph_E1.png, first cell).
 const lockGlyph = ""
+
+// progressArrowTexture draws a right-pointing arrow whose left step/10 is
+// filled (machine progress).
+func progressArrowTexture(step int) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
+	empty, full := rgb(70, 74, 88), rgb(236, 168, 48)
+	fillTo := 1 + step*14/10
+	set := func(x, y int) {
+		c := empty
+		if x < fillTo {
+			c = full
+		}
+		img.Set(x, y, c)
+	}
+	for x := 1; x <= 9; x++ {
+		for y := 6; y <= 9; y++ {
+			set(x, y)
+		}
+	}
+	for i := 0; i <= 5; i++ {
+		for y := 2 + i; y <= 13-i; y++ {
+			set(9+i, y)
+		}
+	}
+	return img
+}

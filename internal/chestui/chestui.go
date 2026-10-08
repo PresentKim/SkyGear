@@ -1,12 +1,11 @@
-// Package chestui shows virtual storages and menus as chest windows of any
+// Package chestui shows virtual storages as chest windows of any
 // size. The windows are backed by an invisible client-only entity (the
 // third_party/dragonfly patch), and the inventoryui resource pack reads the
 // size from a prefix of the window title (like PocketMine's
 // CustomSizedInvMenu).
 //
-// A Storage holds real items that players move in and out. A Menu is a
-// Storage whose items are buttons: clicking one runs its action and nothing
-// moves.
+// A Storage holds real items that players move in and out. Menus where
+// nothing is moved are forms (internal/ui), not chests.
 package chestui
 
 import (

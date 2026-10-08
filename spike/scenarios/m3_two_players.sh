@@ -1,6 +1,6 @@
 #!/bin/bash
 # M3: friend request, invite code join, live InvSee (entity chest), the
-# chest game menu and kick between a host (Hana) and a guest (Gyu).
+# game menu forms and kick between a host (Hana) and a guest (Gyu).
 rm -f "$WORK/code.txt"
 timeout 90 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=하나 섬' 'expect:입장했습니다' \
@@ -8,7 +8,7 @@ timeout 90 "$BOT" -name Hana \
   'expect:친구 요청을 보냈습니다' 'cmd:/friends' 'form:"친구"=1' 'form:"받은 친구 요청"=0' 'form:"친구 요청"=0' 'expect:친구가 되었습니다' \
   'expect:참여했습니다' 'wait:1' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"Gyu"=0' 'chest:Gyu' 'take:27=ok' 'close' \
-  'cmd:/menu' 'chest:드래곤팩토리' 'take:11=reject' 'chest:상점 · 구매' 'take:0=reject' 'expect:돈이 부족' 'close' \
+  'cmd:/menu' 'form:드래곤팩토리"=1' 'form:상점 · 구매"=0' 'expect:돈이 부족' 'form:상점 · 구매"=null' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"Gyu"=1' 'form:"추방"=true' 'expect:추방했습니다' > host.log 2>&1 &
 host=$!
 timeout 90 "$BOT" -name Gyu \

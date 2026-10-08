@@ -194,6 +194,12 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			fail("waiting: %v", err)
 		}
 		clientReact(pk)
+		if os.Getenv("BOT_TRACE") != "" {
+			fmt.Printf("PKT %T\n", pk)
+			if f, ok := pk.(*packet.ModalFormRequest); ok {
+				fmt.Printf("FORMDATA %.300s\n", f.FormData)
+			}
+		}
 		if _, ok := pk.(*packet.CommandOutput); ok {
 			for _, m := range messages(pk) {
 				fmt.Println("OUTPUT", m)

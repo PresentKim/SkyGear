@@ -1,6 +1,6 @@
 # 엔티티 상자 (chestui)
 
-가상 창고·메뉴 화면은 모두 `internal/chestui` 의 **엔티티 상자**로 띄운다.
+아이템이 실제로 오가는 가상 창고는 `internal/chestui` 의 **엔티티 상자**로 띄운다.
 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu) 와 같은 방식이다.
 
 ## 동작
@@ -42,8 +42,6 @@ Dragonfly 에 이 기능이 없어 `third_party/dragonfly` 에 패치했다([thi
 | 타입 | 용도 |
 |---|---|
 | `chestui.Storage` | 실제 아이템이 오가는 창고. 여러 명이 같이 봐도 변경이 모두에게 보인다. `Inventory().Handle` 로 이동 검증, `OnChange` 로 변경 반영 |
-| `chestui.Menu` | 버튼 메뉴. 아이템을 집으면(클릭) 이동은 취소되고 버튼 동작이 다음 트랜잭션에서 실행된다. 열린 채로 `Set` 하면 바로 갱신 |
-| `chestui.CloseThen` | 창을 닫고, 클라이언트가 닫기를 처리한 뒤(`NetworkStackLatency` 왕복) 폼으로 이어간다. 닫히는 중 보낸 폼은 무시될 수 있어서. 다른 상자로 넘어갈 때는 필요 없다(아래) |
 
 - 버튼 동작은 플레이어의 현재 월드 트랜잭션에서 실행된다. 게임 세션 상태를 만지는 버튼은
   그 세션 월드인지 확인한다(드래곤팩토리 `session.button`).
@@ -51,10 +49,13 @@ Dragonfly 에 이 기능이 없어 `third_party/dragonfly` 에 패치했다([thi
 
 ## 적용 화면
 
+메뉴(넣고 빼는 것이 없는 화면)는 상자가 아니라 폼이다([json-ui.md](json-ui.md)). 상자는 실제 아이템이 오가는 곳에만 쓴다.
+
+
 - **인벤토리 보기(InvSee)** — 72칸(8줄, 스크롤): 인벤 27 + 핫바 9 / 갑옷 4 + 보조손 1 / 엔더상자 27.
   같은 세이브 월드에 있는 대상은 실시간(1초마다 + 이동 직전 동기화, 화면과 대상이 다르면 그 이동은 취소),
   그 외에는 저장된 상태를 `LockState` 로 잠그고 바뀔 때마다 DB 에 쓴다. 잠글 수 없으면 읽기 전용.
-- **드래곤팩토리 메뉴**(`/menu`), **상점 구매·판매**, **분실물 보관함**, **기계 창**([machines](machines.md)).
+- **기계 창**([machines](machines.md)): 기계별 레이아웃은 [json-ui.md](json-ui.md).
   수표 발행(입력), 미션·코어·섬 확장(확인 창)은 폼으로 이어진다.
 
 ## 실기 확인 필요

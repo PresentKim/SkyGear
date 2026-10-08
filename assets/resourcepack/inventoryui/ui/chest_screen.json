@@ -133,6 +133,25 @@
 			{
 				"requires": "(not (($container_title_copy - $keyword_pocket) = $container_title_copy)) and $pocket_screen",
 				"$screen_content": "custom_pocket_containers.panel"
+			},
+
+			// dragonfactory: DragonFactory machine windows (assets/resourcepack/dragonfactory/ui/df_machine.json)
+
+			{
+				"requires": "(not (($container_title_copy - '§d§m§1') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.crusher_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§2') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.sieve_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§3') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.miner_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§4') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.sell_box_panel"
 			}
 		]
     }

@@ -1,0 +1,6 @@
+{
+  "ui_defs": [
+    "ui/df_form.json",
+    "ui/df_machine.json"
+  ]
+}

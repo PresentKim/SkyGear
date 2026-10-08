@@ -36,6 +36,9 @@ const (
 // slot (3 row) window; the window inventory is the machine inventory.
 type machineKind struct {
 	name string
+	// marker in the window title selects the machine's layout in the
+	// resource pack (ui/df_machine.json via inventoryui's chest_screen.json).
+	marker string
 	// interval is the ticks one operation takes. Balancing drafts.
 	interval  int
 	input     []int
@@ -48,22 +51,22 @@ type machineKind struct {
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
-		name: "분쇄기", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		name: "분쇄기", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
 		help:    []string{"§7돌 → 조약돌 → 자갈 → 모래", "§7개당 4초"},
 		texture: machineTexture(rgb(90, 90, 95), rgb(200, 120, 40)),
 	},
 	KindSieve: {
-		name: "체", interval: 60, input: []int{10}, output: []int{14, 15, 16}, indicator: 12,
+		name: "체", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{14, 15, 16}, indicator: 12,
 		help:    []string{"§7자갈·모래·흙을 걸러 부산물을 얻습니다", "§7개당 3초 · 결과는 확률"},
 		texture: machineTexture(rgb(120, 85, 50), rgb(230, 220, 170)),
 	},
 	KindMiner: {
-		name: "자동 채굴기", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		name: "자동 채굴기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		help:    []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 		texture: machineTexture(rgb(50, 50, 60), rgb(80, 200, 220)),
 	},
 	KindSellBox: {
-		name: "판매함", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
+		name: "판매함", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		help:    []string{"§7들어온 아이템을 상점 매입 규칙대로 팝니다", "§7돈은 설치한 플레이어에게 들어갑니다"},
 		texture: machineTexture(rgb(70, 45, 20), rgb(240, 200, 60)),
 	},
@@ -122,7 +125,7 @@ type machineState struct {
 
 func newMachine(kind, owner, ownerName string) Machine {
 	k := machineKinds[kind]
-	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.name), owner: owner, ownerName: ownerName, shownPct: -1}
+	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+k.name), owner: owner, ownerName: ownerName, shownPct: -1}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.role(slot) == roleNone {
@@ -318,6 +321,8 @@ func (st *machineState) takeOutput() (item.Stack, bool) {
 }
 
 // showProgress updates the indicator item when the shown percent changes.
+// The indicator is a progress arrow item (ProgressArrow), so the window
+// shows a filling arrow between input and output.
 func (st *machineState) showProgress() {
 	pct := st.progress * 100 / st.kind.interval
 	pct -= pct % 10
@@ -327,21 +332,37 @@ func (st *machineState) showProgress() {
 	st.shownPct = pct
 	lines := append([]string{}, st.kind.help...)
 	name := fmt.Sprintf("§e진행 %d%%", pct)
-	colour := item.ColourYellow()
-	switch {
-	case st.kind == machineKinds[KindSellBox]:
-		name, colour = "§6판매함", item.ColourOrange()
+	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
+	switch st.kind {
+	case machineKinds[KindSellBox]:
+		name, it = "§6판매함", item.NewStack(item.GoldIngot{}, 1)
 		if st.ownerName != "" {
 			lines = append(lines, "§7주인: §f"+st.ownerName)
 		}
-	case st.kind == machineKinds[KindMiner]:
+	case machineKinds[KindMiner]:
 		name = fmt.Sprintf("§b채굴 %d%%", pct)
-		colour = item.ColourLightBlue()
-	case pct == 0:
-		colour = item.ColourGrey()
 	}
-	_ = st.inv().SetItem(st.kind.indicator, item.NewStack(block.StainedGlassPane{Colour: colour}, 1).WithCustomName("§r"+name).WithLore(lines...))
+	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name).WithLore(lines...))
 }
+
+// ProgressArrow is the indicator item of machine windows: an arrow filled
+// in Step tenths. It only ever sits in machine windows.
+type ProgressArrow struct{ Step int }
+
+var progressTextures = func() [11]image.Image {
+	var out [11]image.Image
+	for i := range out {
+		out[i] = progressArrowTexture(i)
+	}
+	return out
+}()
+
+func (a ProgressArrow) EncodeItem() (string, int16) {
+	return fmt.Sprintf("dragonfactory:progress_%d", a.Step), 0
+}
+func (a ProgressArrow) Name() string              { return "진행도" }
+func (a ProgressArrow) Texture() image.Image      { return progressTextures[a.Step] }
+func (ProgressArrow) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
 
@@ -695,6 +716,9 @@ func breakMachine(m Machine) {
 func machineItem(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
 
 func init() {
+	for i := range progressTextures {
+		world.RegisterItem(ProgressArrow{Step: i})
+	}
 	for _, k := range machineOrder {
 		machineKinds[k].hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
