@@ -70,15 +70,16 @@ func (p Potato) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world
 // BreakInfo ...
 func (p Potato) BreakInfo() BreakInfo {
 	return newBreakInfo(0, alwaysHarvestable, nothingEffective, func(t item.Tool, enchantments []item.Enchantment) []item.Stack {
+		// dragonfactory patch: drops are new crops (growth 0).
 		if p.Growth < 7 {
-			return []item.Stack{item.NewStack(p, 1)}
+			return []item.Stack{item.NewStack(Potato{}, 1)}
 		}
 		fortune := fortuneLevel(enchantments)
 		count := rand.IntN(fortune+1) + 1 + fortuneBinomial(3+fortune)
 		if rand.Float64() < 0.02 {
-			return []item.Stack{item.NewStack(p, count), item.NewStack(item.PoisonousPotato{}, 1)}
+			return []item.Stack{item.NewStack(Potato{}, count), item.NewStack(item.PoisonousPotato{}, 1)}
 		}
-		return []item.Stack{item.NewStack(p, count)}
+		return []item.Stack{item.NewStack(Potato{}, count)}
 	})
 }
 
@@ -94,6 +95,9 @@ func (p Potato) EncodeItem() (name string, meta int16) {
 
 // RandomTick ...
 func (p Potato) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
+	if ScheduledCropGrowth {
+		return // dragonfactory patch: the game grows crops on a schedule.
+	}
 	if tx.Light(pos) < 8 {
 		breakBlock(p, pos, tx)
 	} else if p.Growth < 7 && r.Float64() <= p.CalculateGrowthChance(pos, tx) {

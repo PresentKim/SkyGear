@@ -37,6 +37,10 @@ type State struct {
 	// when the next one starts (0: not scheduled yet).
 	Urgent     *UrgentMission `json:"urgent,omitempty"`
 	NextUrgent time.Duration  `json:"next_urgent,omitempty"`
+	// Crops are the planted crops by position ("x,y,z", crops.go);
+	// CropLevel is the crop growth upgrade level.
+	Crops     map[string]*CropRecord `json:"crops,omitempty"`
+	CropLevel int                    `json:"crop_level,omitempty"`
 }
 
 // ChunkPos is a chunk coordinate.

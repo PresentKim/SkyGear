@@ -37,6 +37,9 @@ func (p PumpkinSeeds) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 
 // RandomTick ...
 func (p PumpkinSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
+	if ScheduledCropGrowth {
+		return // dragonfactory patch: the game grows crops on a schedule.
+	}
 	if r.Float64() <= p.CalculateGrowthChance(pos, tx) && tx.Light(pos) >= 8 {
 		if p.Growth < 7 {
 			p.Growth++

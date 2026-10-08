@@ -78,6 +78,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.ensureCores()
+	s.loadCrops()
 	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
 	inst.World.Do(func(tx *world.Tx) {
 		for _, c := range st.Chunks {
@@ -126,6 +127,8 @@ type session struct {
 	boardMinute, urgentMinute int
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
 	shapes map[any]debug.Shape
+	// cropQueue holds the next growth update of every crop (crops.go).
+	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
 }

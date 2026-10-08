@@ -41,3 +41,33 @@ func TestHarvesterHarvestsGrownCrops(t *testing.T) {
 		t.Fatalf("outputs: wheat %d melon %d", outputCount(st, item.Wheat{}), outputCount(st, item.MelonSlice{}))
 	}
 }
+
+// TestHarvestedCropsAreYoung: dropped crops and seeds are new (growth 0),
+// not copies of the grown crop that would be planted grown (Dragonfly
+// patch).
+func TestHarvestedCropsAreYoung(t *testing.T) {
+	for _, b := range []world.Block{block.Carrot{}, block.Potato{}, block.WheatSeeds{}, block.BeetrootSeeds{}} {
+		grown := b
+		switch c := b.(type) {
+		case block.Carrot:
+			c.Growth = 7
+			grown = c
+		case block.Potato:
+			c.Growth = 7
+			grown = c
+		case block.WheatSeeds:
+			c.Growth = 7
+			grown = c
+		case block.BeetrootSeeds:
+			c.Growth = 7
+			grown = c
+		}
+		for range 20 {
+			for _, it := range grown.(block.Breakable).BreakInfo().Drops(item.ToolNone{}, nil) {
+				if c, ok := it.Item().(block.Crop); ok && c.GrowthStage() != 0 {
+					t.Fatalf("%T drops %T with growth %d", b, it.Item(), c.GrowthStage())
+				}
+			}
+		}
+	}
+}

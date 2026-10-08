@@ -47,7 +47,8 @@ func (s WheatSeeds) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *w
 
 // BreakInfo ...
 func (s WheatSeeds) BreakInfo() BreakInfo {
-	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(s, item.Wheat{}, s.Growth))
+	// dragonfactory patch: seeds with growth 0, not copies of the grown crop.
+	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(WheatSeeds{}, item.Wheat{}, s.Growth))
 }
 
 // CompostChance ...
@@ -62,6 +63,9 @@ func (s WheatSeeds) EncodeItem() (name string, meta int16) {
 
 // RandomTick ...
 func (s WheatSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
+	if ScheduledCropGrowth {
+		return // dragonfactory patch: the game grows crops on a schedule.
+	}
 	if tx.Light(pos) < 8 {
 		breakBlock(s, pos, tx)
 	} else if s.Growth < 7 && r.Float64() <= s.CalculateGrowthChance(pos, tx) {

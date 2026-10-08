@@ -342,6 +342,9 @@ func (s *session) showCores(p *player.Player, tx *world.Tx) {
 		body += fmt.Sprintf("\n§f%s §7티어 %d · §e설치 안 됨", t.Name, rec.Tier)
 		opts = append(opts, s.opt(t.Name+" 재발급", iconCores, func(p *player.Player, tx *world.Tx) { s.reissueCore(p, tx, id) }))
 	}
+	if o, ok := s.cropUpgradeOption(); ok {
+		opts = append(opts, o)
+	}
 	ui.Menu(p, "코어 관리", body, append(opts, s.backOption())...)
 }
 

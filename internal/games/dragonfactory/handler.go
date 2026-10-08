@@ -59,6 +59,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	if h.deny(ctx, pos) {
 		return
 	}
+	if kind, _, ok := cropOf(b); ok {
+		h.s.plantCrop(pos, kind)
+	}
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case Machine:

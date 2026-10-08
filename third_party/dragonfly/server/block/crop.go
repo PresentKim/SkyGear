@@ -5,6 +5,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
+// ScheduledCropGrowth turns off the random growth of crops and melon and
+// pumpkin stems: random ticks do nothing to them, so the game can grow them
+// on its own schedule. It is set once at startup. (dragonfactory patch)
+var ScheduledCropGrowth bool
+
 // Crop is an interface for all crops that are grown on farmland. A crop has a random chance to grow during random ticks.
 type Crop interface {
 	// GrowthStage returns the crop's current stage of growth. The max value is 7.

@@ -77,6 +77,7 @@ func urgentPrice(u *UrgentMission) int64 {
 
 // Second runs the urgent mission timer (instance.SecondTicker).
 func (s *session) Second(tx *world.Tx) {
+	s.growCrops(tx)
 	now, _, _ := s.clock.Now()
 	u := s.state.Urgent
 	switch {

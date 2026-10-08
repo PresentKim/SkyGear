@@ -57,6 +57,12 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 		for z := -harvestRadius; z <= harvestRadius; z++ {
 			at := pos.Add(cube.Pos{x, 0, z})
 			b := tx.Block(at)
+			if kind, _, ok := cropOf(b); ok {
+				if _, known := s.state.Crops[cropKey(at)]; !known {
+					// Planted before crops were scheduled: start its timer.
+					s.plantCrop(at, kind)
+				}
+			}
 			after, ok := harvestable(b)
 			if !ok {
 				continue
@@ -69,6 +75,9 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 				return
 			}
 			tx.SetBlock(at, after, nil)
+			if kind, _, ok := cropOf(after); ok {
+				s.plantCrop(at, kind)
+			}
 			tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 			for _, it := range drops {
 				put(st.inv(), st.kind.output, it)
