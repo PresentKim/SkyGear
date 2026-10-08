@@ -8,6 +8,8 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin points 5' 'expect:코어 강화 포인트: 5' \
   'cmd:/menu' 'form:드래곤팩토리"=4' 'form:"코어 관리"=0' 'form:대지 코어 강화"=0' 'expect:티어 2가 되었습니다' 'form:대지 코어 강화"=null' \
   'cmd:/dfadmin status' 'expectre:points=2 tier=2 ' \
+  'cmd:/dfadmin item iron_ore 3' 'expect:철 광석 x3' \
+  'cmd:/dfadmin skip 15' 'expect:인스턴스 시간' \
   'cmd:/dfadmin urgent' 'expect:[긴급 매입]' \
   'cmd:/menu' 'form:드래곤팩토리"=0' 'form:"메인 미션"=1' 'expect:긴급 매입에 낼 아이템이 없습니다' 'form:"메인 미션"=null' > host.log 2>&1
 h=$?

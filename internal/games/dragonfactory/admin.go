@@ -3,6 +3,8 @@ package dragonfactory
 import (
 	"maps"
 	"slices"
+	"strings"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -74,6 +76,68 @@ func (c adminUrgent) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.startUrgent(tx, now)
 		o.Printf("긴급 매입: %s", s.urgentLine())
+	}
+}
+
+type adminItem struct {
+	adminBase
+	Sub   cmd.SubCommand    `cmd:"item"`
+	Name  string            `cmd:"name"`
+	Count cmd.Optional[int] `cmd:"count"`
+}
+
+// Run gives any registered item by name, e.g. minecraft:iron_ore.
+func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	name := c.Name
+	if !strings.Contains(name, ":") {
+		name = "minecraft:" + name
+	}
+	it, ok := world.ItemByName(name, 0)
+	if !ok {
+		o.Errorf("알 수 없는 아이템: %s", name)
+		return
+	}
+	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
+	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
+		s.dropAt(tx, p.Position(), st.Grow(added-st.Count()))
+	}
+	o.Printf("%s x%d", itemName(st), st.Count())
+}
+
+type adminTier struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"tier"`
+	Tier int            `cmd:"tier"`
+}
+
+// Run sets the earth core tier.
+func (c adminTier) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		rec := s.state.Cores["earth"]
+		rec.Tier = max(1, min(c.Tier, len(coreTypes["earth"].Tiers)))
+		o.Printf("대지 코어 티어: %d", rec.Tier)
+	}
+}
+
+type adminSkip struct {
+	adminBase
+	Sub     cmd.SubCommand `cmd:"skip"`
+	Minutes int            `cmd:"minutes"`
+}
+
+// Run advances the instance time (days, urgent missions, lost-and-found).
+func (c adminSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		for _, day := range s.clock.Advance(time.Duration(max(0, c.Minutes)) * time.Minute) {
+			s.NewDay(tx, day)
+		}
+		s.Second(tx)
+		total, day, _ := s.clock.Now()
+		o.Printf("인스턴스 시간 %s · %d일차", formatPlayTime(total), day)
 	}
 }
 
@@ -183,5 +247,5 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
 }
