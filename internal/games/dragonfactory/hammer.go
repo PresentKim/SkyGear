@@ -34,11 +34,9 @@ type hammering struct {
 	last time.Time
 }
 
-var hammerTexture = hammerImage()
-
 func (Hammer) EncodeItem() (string, int16) { return "dragonfactory:hammer", 0 }
 func (Hammer) Name() string                { return "망치" }
-func (Hammer) Texture() image.Image        { return hammerTexture }
+func (Hammer) Texture() image.Image        { return itemTexture("hammer") }
 func (Hammer) Category() category.Category { return category.Equipment() }
 func (Hammer) MaxCount() int               { return 1 }
 func (Hammer) HandEquipped() bool          { return true }
@@ -120,34 +118,6 @@ func hammerTip(hits int) string {
 		out += "■"
 	}
 	return out
-}
-
-// hammerImage draws a hammer: a wooden handle and a stone head.
-func hammerImage() image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	wood, woodDark := rgb(150, 105, 55), rgb(100, 70, 35)
-	stone, stoneLight, stoneDark := rgb(130, 130, 135), rgb(175, 175, 180), rgb(80, 80, 85)
-	for i := 0; i < 9; i++ { // handle, bottom left to the middle
-		img.Set(2+i, 13-i, wood)
-		img.Set(3+i, 13-i, woodDark)
-	}
-	// Head across the top right, turned 45° like the handle.
-	for i := 0; i < 7; i++ {
-		for w := 0; w < 3; w++ {
-			x, y := 7+i+w, 2+i-w+1
-			c := stone
-			switch w {
-			case 0:
-				c = stoneLight
-			case 2:
-				c = stoneDark
-			}
-			if x < 16 && y >= 0 && y < 16 {
-				img.Set(x, y, c)
-			}
-		}
-	}
-	return img
 }
 
 func init() {

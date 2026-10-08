@@ -2,8 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"image"
-	"image/color"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -62,14 +60,7 @@ func sieveContentOf(it item.Stack) int {
 	return 0
 }
 
-var (
-	sieveMeshTexture   = meshTexture()
-	sieveFrameTextures = map[string]image.Image{
-		KindSieve:     woodTexture(rgb(176, 132, 82)),
-		KindAutoSieve: woodTexture(rgb(150, 150, 160)),
-	}
-	sieveGeometries = map[string][]byte{KindSieve: sieveModel(KindSieve), KindAutoSieve: sieveModel(KindAutoSieve)}
-)
+var sieveGeometries = map[string][]byte{KindSieve: sieveModel(KindSieve), KindAutoSieve: sieveModel(KindAutoSieve)}
 
 // sieveModel returns the geometries of a sieve kind:
 // geometry.dragonfactory_<kind>_<n> with the content n pixels high (0 =
@@ -279,37 +270,4 @@ func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress++; st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, true)
 	}
-}
-
-// woodTexture draws planks of colour light for a sieve frame.
-func woodTexture(light color.RGBA) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	mid, dark := shade(light, 0.85), shade(light, 0.62)
-	for y := range 16 {
-		for x := range 16 {
-			c := light
-			if (x+y*3)%7 == 0 {
-				c = mid
-			}
-			if y%4 == 3 {
-				c = dark
-			}
-			img.Set(x, y, c)
-		}
-	}
-	return img
-}
-
-// meshTexture draws a string mesh with transparent holes.
-func meshTexture() image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	str := color.RGBA{R: 225, G: 220, B: 205, A: 255}
-	for y := range 16 {
-		for x := range 16 {
-			if x%3 == 0 || y%3 == 0 {
-				img.Set(x, y, str)
-			}
-		}
-	}
-	return img
 }

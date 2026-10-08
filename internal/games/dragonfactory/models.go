@@ -1,9 +1,6 @@
 package dragonfactory
 
 import (
-	"image"
-	"image/color"
-
 	"github.com/df-mc/dragonfly/server/block/customblock"
 )
 
@@ -13,33 +10,6 @@ import (
 
 func alphaMaterial(texture string) customblock.Material {
 	return customblock.NewMaterial(texture, customblock.AlphaTestRenderMethod())
-}
-
-// solidTexture draws a 16×16 texture of c with a light edge and speckles.
-func solidTexture(c color.RGBA) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
-	for y := range 16 {
-		for x := range 16 {
-			p := c
-			switch {
-			case x == 0 || y == 0:
-				p = shade(c, 1.25)
-			case x == 15 || y == 15:
-				p = shade(c, 0.7)
-			case (x*7+y*3)%11 == 0:
-				p = shade(c, 1.15)
-			}
-			img.Set(x, y, p)
-		}
-	}
-	return img
-}
-
-// centreColour returns the colour at the centre of a texture (the gem of
-// frameTexture).
-func centreColour(img image.Image) color.RGBA {
-	r, g, b, a := img.At(8, 8).RGBA()
-	return color.RGBA{R: uint8(r >> 8), G: uint8(g >> 8), B: uint8(b >> 8), A: uint8(a >> 8)}
 }
 
 func v(x, y, z float64) [3]float64 { return [3]float64{x, y, z} }
@@ -57,16 +27,12 @@ var coreModel = geoFile(geometry("geometry.dragonfactory_core", []box{
 	{from: v(-4, 6, -4), size: v(8, 4, 8), mat: "crystal"},
 }))
 
-var coreFrameTexture = solidTexture(rgb(70, 60, 75))
-
 // deliveryModel: a crate with a gold-banded lid ("lid").
 var deliveryModel = geoFile(geometry("geometry.dragonfactory_delivery_box", []box{
 	{from: v(-7, 0, -7), size: v(14, 11, 14)},
 	{from: v(-8, 11, -8), size: v(16, 3, 16), mat: "lid"},
 	{from: v(-2, 8, -8), size: v(4, 3, 1), mat: "lid"},
 }))
-
-var deliveryLidTexture = solidTexture(rgb(220, 180, 60))
 
 // drawerModel: a wooden case with a recessed front panel ("front") and a
 // handle ("handle") at the top centre, under the lock mark.
@@ -79,8 +45,6 @@ var drawerModel = geoFile(geometry("geometry.dragonfactory_drawer", []box{
 	{from: v(-6, 2, -7.5), size: v(12, 12, 0.5), mat: "front"},
 	{from: v(-2, 12, -8), size: v(4, 1, 0.5), mat: "handle"},
 }))
-
-var drawerHandleTexture = solidTexture(rgb(60, 60, 65))
 
 // machineModels: per kind, a body ("*") and moving parts ("accent").
 var machineModels = map[string][]byte{
@@ -109,8 +73,6 @@ var machineModels = map[string][]byte{
 		{from: v(3, 12, -1), size: v(5, 3, 2), mat: "accent"},
 	})),
 }
-
-func machineAccentTexture(k *machineKind) image.Image { return solidTexture(centreColour(k.texture)) }
 
 func machineProperties(kind string) customblock.Properties {
 	return customblock.Properties{

@@ -42,23 +42,12 @@ const MaxCapacityUpgrades = 3
 const facingState = "dragonfactory:facing"
 
 var (
-	drawerHash         = block.NextHash()
-	drawerFrontTexture = drawerFront()
-	drawerPanelTexture = solidTexture(rgb(160, 115, 70))
-	drawerSideTexture  = frameTexture(rgb(70, 45, 20), rgb(140, 100, 60), rgb(0, 0, 0), 0)
-	facingNames        = map[cube.Direction]string{cube.North: "north", cube.East: "east", cube.South: "south", cube.West: "west"}
+	drawerHash  = block.NextHash()
+	facingNames = map[cube.Direction]string{cube.North: "north", cube.East: "east", cube.South: "south", cube.West: "west"}
 	// facingRotation turns the model (front = north) to face each direction,
 	// in 90° steps around Y (Dragonfly's customblock rotation unit).
 	facingRotation = map[cube.Direction]int{cube.North: 0, cube.West: 1, cube.South: 2, cube.East: 3}
 )
-
-func drawerFront() image.Image {
-	img := frameTexture(rgb(70, 45, 20), rgb(160, 115, 70), rgb(0, 0, 0), 0).(*image.RGBA)
-	for x := 6; x < 10; x++ { // handle
-		img.Set(x, 3, rgb(40, 40, 40))
-	}
-	return img
-}
 
 func (Drawer) EncodeItem() (string, int16) { return "dragonfactory:drawer", 0 }
 func (d Drawer) EncodeBlock() (string, map[string]any) {
@@ -69,12 +58,12 @@ func (Drawer) Model() world.BlockModel     { return model.Solid{} }
 func (Drawer) Name() string                { return "서랍" }
 func (Drawer) Category() category.Category { return category.Items() }
 func (Drawer) Geometry() []byte            { return drawerModel }
-func (Drawer) Texture() image.Image        { return drawerFrontTexture }
+func (Drawer) Texture() image.Image        { return itemTexture("drawer") }
 func (Drawer) Textures() map[string]image.Image {
 	return map[string]image.Image{
-		"dragonfactory_drawer_panel":  drawerPanelTexture,
-		"dragonfactory_drawer_side":   drawerSideTexture,
-		"dragonfactory_drawer_handle": drawerHandleTexture,
+		"dragonfactory_drawer_panel":  blockTexture("drawer_panel"),
+		"dragonfactory_drawer_side":   blockTexture("drawer_side"),
+		"dragonfactory_drawer_handle": blockTexture("drawer_handle"),
 	}
 }
 func (Drawer) Properties() customblock.Properties {
@@ -401,21 +390,20 @@ const (
 	UpgradeVoid
 )
 
-var upgradeInfo = []struct {
-	id, name string
-	tex      image.Image
-}{
-	{"capacity", "서랍 용량 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(120, 200, 255), 6)},
+var upgradeInfo = []struct{ id, name string }{
+	{"capacity", "서랍 용량 업그레이드"},
 	// Kept so old items still load; using one turns it into a drawer key.
-	{"lock", "(구) 서랍 잠금 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(250, 210, 60), 6)},
-	{"void", "서랍 공허 업그레이드", frameTexture(rgb(40, 40, 40), rgb(90, 90, 110), rgb(150, 60, 200), 6)},
+	{"lock", "(구) 서랍 잠금 업그레이드"},
+	{"void", "서랍 공허 업그레이드"},
 }
 
 func (u DrawerUpgrade) EncodeItem() (string, int16) {
 	return "dragonfactory:drawer_upgrade_" + upgradeInfo[u.Kind].id, 0
 }
-func (u DrawerUpgrade) Name() string              { return upgradeInfo[u.Kind].name }
-func (u DrawerUpgrade) Texture() image.Image      { return upgradeInfo[u.Kind].tex }
+func (u DrawerUpgrade) Name() string { return upgradeInfo[u.Kind].name }
+func (u DrawerUpgrade) Texture() image.Image {
+	return itemTexture("drawer_upgrade_" + upgradeInfo[u.Kind].id)
+}
 func (DrawerUpgrade) Category() category.Category { return category.Items() }
 
 func isDrawerUpgrade(st item.Stack) bool {
@@ -431,11 +419,9 @@ func isLegacyLockUpgrade(st item.Stack) bool {
 // DrawerKey locks and unlocks drawers. It is never used up (§10.4).
 type DrawerKey struct{}
 
-var drawerKeyTexture = keyTexture()
-
 func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
 func (DrawerKey) Name() string                { return "서랍 잠금 키" }
-func (DrawerKey) Texture() image.Image        { return drawerKeyTexture }
+func (DrawerKey) Texture() image.Image        { return itemTexture("drawer_key") }
 func (DrawerKey) Category() category.Category { return category.Items() }
 func (DrawerKey) MaxCount() int               { return 1 }
 

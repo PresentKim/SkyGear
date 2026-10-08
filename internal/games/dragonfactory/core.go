@@ -25,8 +25,7 @@ type CoreType struct {
 	// Interval is the generation interval in ticks at tier 1.
 	Interval int
 	// Table lists weighted blocks generated at tier 1.
-	Table   []WeightedBlock
-	texture image.Image
+	Table []WeightedBlock
 }
 
 // WeightedBlock is a generation table entry.
@@ -58,7 +57,6 @@ var coreTypes = map[string]*CoreType{
 			{block.Cobblestone{}, 30}, {block.Dirt{}, 20}, {block.Log{Wood: block.OakWood()}, 18},
 			{block.Stone{}, 10}, {block.Sand{}, 10}, {block.Gravel{}, 8}, {block.CoalOre{}, 4},
 		},
-		texture: frameTexture(rgb(60, 40, 25), rgb(110, 80, 50), rgb(90, 200, 90), 6),
 	},
 }
 
@@ -109,11 +107,11 @@ func (Core) Model() world.BlockModel     { return model.Solid{} }
 func (c Core) Name() string              { return c.ctype().Name }
 func (Core) Category() category.Category { return category.Items() }
 func (Core) Geometry() []byte            { return coreModel }
-func (c Core) Texture() image.Image      { return c.ctype().texture }
+func (c Core) Texture() image.Image      { return itemTexture("core_" + c.Type) }
 func (c Core) Textures() map[string]image.Image {
 	return map[string]image.Image{
-		"dragonfactory_core_frame":              coreFrameTexture,
-		"dragonfactory_core_" + c.Type + "_gem": solidTexture(centreColour(c.ctype().texture)),
+		"dragonfactory_core_frame":              blockTexture("core_frame"),
+		"dragonfactory_core_" + c.Type + "_gem": blockTexture("core_" + c.Type + "_gem"),
 	}
 }
 func (c Core) Properties() customblock.Properties {

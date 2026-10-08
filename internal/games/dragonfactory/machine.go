@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -51,46 +50,36 @@ type machineKind struct {
 	output    []int
 	indicator int
 	help      []string
-	texture   image.Image
 	hash      uint64
 }
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
 		name: "분쇄기", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
-		help:    []string{"§7돌 → 조약돌 → 자갈 → 모래", "§7개당 4초"},
-		texture: machineTexture(rgb(90, 90, 95), rgb(200, 120, 40)),
+		help: []string{"§7돌 → 조약돌 → 자갈 → 모래", "§7개당 4초"},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
 	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
 		name: "체", interval: 60, input: []int{10}, indicator: 12,
-		help:    []string{"§7자갈·모래·흙을 얹고 여러 번 사용해 거릅니다", "§7부산물은 위로 튀어나옵니다"},
-		texture: machineTexture(rgb(120, 85, 50), rgb(230, 220, 170)),
+		help: []string{"§7자갈·모래·흙을 얹고 여러 번 사용해 거릅니다", "§7부산물은 위로 튀어나옵니다"},
 	},
 	KindAutoSieve: {
 		name: "자동 체", interval: 60, input: []int{10}, indicator: 12,
-		help:    []string{"§7자갈·모래·흙을 저절로 거릅니다(개당 3초)", "§7부산물은 옆·아래 상자로, 없으면 위로"},
-		texture: machineTexture(rgb(110, 110, 120), rgb(230, 220, 170)),
+		help: []string{"§7자갈·모래·흙을 저절로 거릅니다(개당 3초)", "§7부산물은 옆·아래 상자로, 없으면 위로"},
 	},
 	KindMiner: {
 		name: "자동 채굴기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
-		help:    []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
-		texture: machineTexture(rgb(50, 50, 60), rgb(80, 200, 220)),
+		help: []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 	},
 	KindSellBox: {
 		name: "판매함", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
-		help:    []string{"§7들어온 아이템을 상점 매입 규칙대로 팝니다", "§7돈은 설치한 플레이어에게 들어갑니다"},
-		texture: machineTexture(rgb(70, 45, 20), rgb(240, 200, 60)),
+		help: []string{"§7들어온 아이템을 상점 매입 규칙대로 팝니다", "§7돈은 설치한 플레이어에게 들어갑니다"},
 	},
 }
 
 // machineOrder is the registration and display order.
 var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox}
-
-func machineTexture(frame, core color.RGBA) image.Image {
-	return frameTexture(frame, shade(frame, 1.3), core, 8)
-}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -371,19 +360,14 @@ func (st *machineState) showProgress() {
 // in Step tenths. It only ever sits in machine windows.
 type ProgressArrow struct{ Step int }
 
-var progressTextures = func() [11]image.Image {
-	var out [11]image.Image
-	for i := range out {
-		out[i] = progressArrowTexture(i)
-	}
-	return out
-}()
+// progressSteps is the number of ProgressArrow steps (0 to 10).
+const progressSteps = 11
 
 func (a ProgressArrow) EncodeItem() (string, int16) {
 	return fmt.Sprintf("dragonfactory:progress_%d", a.Step), 0
 }
 func (a ProgressArrow) Name() string              { return "진행도" }
-func (a ProgressArrow) Texture() image.Image      { return progressTextures[a.Step] }
+func (a ProgressArrow) Texture() image.Image      { return itemTexture(fmt.Sprintf("progress_%d", a.Step)) }
 func (ProgressArrow) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
@@ -407,14 +391,14 @@ func (m Machine) Geometry() []byte {
 	}
 	return machineModels[m.Kind]
 }
-func (m Machine) Texture() image.Image { return m.kind().texture }
+func (m Machine) Texture() image.Image { return itemTexture(m.Kind) }
 func (m Machine) Textures() map[string]image.Image {
 	if isSieve(m.Kind) {
-		return map[string]image.Image{"dragonfactory_" + m.Kind: sieveFrameTextures[m.Kind], "dragonfactory_sieve_mesh": sieveMeshTexture}
+		return map[string]image.Image{"dragonfactory_" + m.Kind: blockTexture(m.Kind), "dragonfactory_sieve_mesh": blockTexture("sieve_mesh")}
 	}
 	return map[string]image.Image{
-		"dragonfactory_" + m.Kind:             m.kind().texture,
-		"dragonfactory_" + m.Kind + "_accent": machineAccentTexture(m.kind()),
+		"dragonfactory_" + m.Kind:             blockTexture(m.Kind),
+		"dragonfactory_" + m.Kind + "_accent": blockTexture(m.Kind + "_accent"),
 	}
 }
 
@@ -821,7 +805,7 @@ func (s *session) breakMachine(tx *world.Tx, pos cube.Pos, m Machine) {
 func machineItem(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
 
 func init() {
-	for i := range progressTextures {
+	for i := range progressSteps {
 		world.RegisterItem(ProgressArrow{Step: i})
 	}
 	for _, k := range machineOrder {

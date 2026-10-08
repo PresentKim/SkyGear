@@ -19,7 +19,6 @@ import (
 type DeliveryBox struct{}
 
 var deliveryHash = block.NextHash()
-var deliveryTexture = frameTexture(rgb(70, 45, 20), rgb(150, 105, 55), rgb(240, 200, 60), 4)
 
 func (DeliveryBox) EncodeItem() (string, int16)           { return "dragonfactory:delivery_box", 0 }
 func (DeliveryBox) EncodeBlock() (string, map[string]any) { return "dragonfactory:delivery_box", nil }
@@ -28,9 +27,9 @@ func (DeliveryBox) Model() world.BlockModel               { return model.Solid{}
 func (DeliveryBox) Name() string                          { return "납품함" }
 func (DeliveryBox) Category() category.Category           { return category.Items() }
 func (DeliveryBox) Geometry() []byte                      { return deliveryModel }
-func (DeliveryBox) Texture() image.Image                  { return deliveryTexture }
+func (DeliveryBox) Texture() image.Image                  { return itemTexture("delivery_box") }
 func (DeliveryBox) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_delivery_box": deliveryTexture, "dragonfactory_delivery_box_lid": deliveryLidTexture}
+	return map[string]image.Image{"dragonfactory_delivery_box": blockTexture("delivery_box"), "dragonfactory_delivery_box_lid": blockTexture("delivery_box_lid")}
 }
 func (DeliveryBox) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_delivery_box", Textures: map[string]customblock.Material{

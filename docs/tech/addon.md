@@ -34,7 +34,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 - `world.CustomItem`(이름, 텍스처, 크리에이티브 분류) 구현 + `world.RegisterItem`.
 - 내구도, 음식, 갑옷, 쿨다운, 투척물 등은 아이템이 해당 인터페이스를 구현하면 자동으로 컴포넌트가 붙는다.
-- 텍스처는 Go 코드의 `image.Image`로 넘기면 자동 리소스팩에 포함된다.
+- 텍스처는 Go 코드의 `image.Image`로 넘기면 자동 리소스팩에 포함된다. 드래곤팩토리는 텍스처를 코드로 그리지 않고 **PNG 파일**로 둔다: `internal/games/dragonfactory/textures/items/<이름>.png`(아이템 아이콘), `textures/blocks/<이름>.png`(블록 모델 재질). 바이너리에 포함(`go:embed`)되며, 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일은 `TestTexturesExist` 가 잡는다.
 
 ## 4. 커스텀 엔티티
 
@@ -68,7 +68,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 규칙:
 - 식별자 네임스페이스는 `dragonfactory:` 로 통일한다.
-- 블록/아이템 텍스처는 가능하면 Go 코드(자동 생성 팩) 쪽에 두고, 수동 팩과 같은 파일 경로를 쓰지 않는다(충돌 방지).
+- 블록/아이템 텍스처는 자동 생성 팩 쪽(위 PNG 폴더)에 두고, 수동 팩과 같은 파일 경로를 쓰지 않는다(충돌 방지).
 
 ## 7. 바닐라 기능 제약
 
