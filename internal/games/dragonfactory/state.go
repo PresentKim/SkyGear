@@ -27,6 +27,10 @@ type State struct {
 	CorePoints int `json:"core_points"`
 	// Cores are the core records by core type.
 	Cores map[string]*CoreRecord `json:"cores"`
+	// Shop is the stock of shop products by product ID.
+	Shop map[string]*ShopStock `json:"shop,omitempty"`
+	// Buyback is today's buyback budget and sold amounts.
+	Buyback *Buyback `json:"buyback,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
 }
