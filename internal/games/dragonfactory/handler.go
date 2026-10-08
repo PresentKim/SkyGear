@@ -46,7 +46,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		h.s.breakCore(b, pos)
 	case Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
-		if lp := h.s.lastPunch; lp.pos == pos && lp.player == ctx.Player().H() && lp.front {
+		if lp, ok := h.s.lastPunch[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
 			ctx.Cancel()
 			return
 		}

@@ -33,6 +33,11 @@ const (
 	expandPoll      = 50 * time.Millisecond
 	// expandCursorEntity is the entity shown as the cursor.
 	expandCursorEntity = "minecraft:allay"
+	// expandReach is how far (in chunks) the cursor may go from the frozen
+	// body: the client only has the chunks around the body. expandFloorReach
+	// is how far around the cursor the glass floor is drawn.
+	expandReach      = 6
+	expandFloorReach = 4
 	// expandKeySign turns the keys into map directions: forward is north
 	// (-z, the top of the screen) and left is west (-x). Flip if the cursor
 	// moves the wrong way on real clients.
@@ -52,6 +57,8 @@ type expansion struct {
 	floor map[cube.Pos]world.Block
 	// cursor is the runtime ID of the cursor entity.
 	cursor uint64
+	// body is the chunk the frozen body stands in.
+	body ChunkPos
 	// lastStep is when the cursor last moved; a key held from before waits
 	// expandStepEvery, a new key press moves at once.
 	lastStep time.Time
@@ -74,7 +81,8 @@ func (s *session) showExpand(p *player.Player) {
 	if s.expanding == nil {
 		s.expanding = map[*world.EntityHandle]*expansion{}
 	}
-	e := &expansion{target: chunkOf(cube.PosFromVec3(p.Position())), floor: map[cube.Pos]world.Block{}, started: time.Now()}
+	at := chunkOf(cube.PosFromVec3(p.Position()))
+	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now()}
 	s.expanding[p.H()] = e
 	p.SetImmobile()
 	s.drawFloor(p, e)
@@ -151,8 +159,15 @@ func keyStep(v float64) int {
 
 // moveCursor moves the cursor to chunk c if it is within the island range.
 func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
-	r := int32(islandRadius)
-	if c[0] < -r || c[0] > r || c[1] < -r || c[1] > r || c == e.target {
+	r, reach := int32(islandRadius), int32(expandReach)
+	switch {
+	case c == e.target:
+		return
+	case c[0] < -r || c[0] > r || c[1] < -r || c[1] > r:
+		p.SendTip("§7섬은 여기까지 넓힐 수 있습니다.")
+		return
+	case abs32(c[0]-e.body[0]) > reach || abs32(c[1]-e.body[1]) > reach:
+		p.SendTip("§7더 멀리 가려면 확장을 끝내고 그쪽으로 걸어간 뒤 다시 여세요.")
 		return
 	}
 	e.target = c
@@ -191,7 +206,12 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 // buyable chunks that is air in the world.
 func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block {
 	want := map[cube.Pos]world.Block{}
+	near := int32(expandFloorReach)
 	add := func(c ChunkPos, b world.Block) {
+		// Only around the cursor: farther chunks may not be loaded or sent.
+		if abs32(c[0]-e.target[0]) > near || abs32(c[1]-e.target[1]) > near {
+			return
+		}
 		for x := range 16 {
 			for z := range 16 {
 				pos := cube.Pos{int(c[0])*16 + x, expandFloorY, int(c[1])*16 + z}
@@ -289,4 +309,11 @@ func (s *session) showExpandActions(p *player.Player) {
 		}),
 	)
 	ui.Menu(p, "섬 확장", body, opts...)
+}
+
+func abs32(v int32) int32 {
+	if v < 0 {
+		return -v
+	}
+	return v
 }

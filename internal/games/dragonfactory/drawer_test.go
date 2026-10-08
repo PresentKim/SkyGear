@@ -282,3 +282,26 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 		}
 	})
 }
+
+// TestDrawerFrontPunchIsPerPlayer: another player's punch elsewhere does not
+// let a player's front punch mine the drawer.
+func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	d1, d2 := cube.Pos{0, IslandY, 0}, cube.Pos{2, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(d1, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(d2, Drawer{Facing: cube.South}, nil)
+	})
+	a, b := spawnPlayer(s), spawnPlayer(s)
+	withPlayer(t, s, a, func(pa *player.Player, tx *world.Tx) {
+		tx.Block(d1).(Drawer).Punch(d1, cube.FaceSouth, tx, pa)
+		e, _ := b.Entity(tx)
+		tx.Block(d2).(Drawer).Punch(d2, cube.FaceSouth, tx, e.(*player.Player))
+		ctx := player.NewEventContext(tx, pa)
+		(&handler{s: s}).HandleBlockBreak(ctx, d1, &[]item.Stack{}, new(int))
+		if !ctx.Cancelled() {
+			t.Fatal("front punch mined the drawer after another player's punch")
+		}
+	})
+}

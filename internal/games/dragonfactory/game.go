@@ -74,7 +74,8 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock,
 		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
-		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
+		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
+		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.ensureCores()
 	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
@@ -113,9 +114,10 @@ type session struct {
 	// money holds the wallets of players currently in the instance.
 	money map[string]int64
 	// displays are the drawer display entities by drawer position.
-	displays  map[cube.Pos]*drawerDisplay
-	lastUse   drawerUse
-	lastPunch drawerPunch
+	displays map[cube.Pos]*drawerDisplay
+	// lastUse and lastPunch are each player's last drawer use and punch.
+	lastUse   map[*world.EntityHandle]drawerUse
+	lastPunch map[*world.EntityHandle]drawerPunch
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
@@ -176,6 +178,8 @@ func (s *session) Leave(p *player.Player) {
 	s.storeMoney(acc)
 	delete(s.money, acc)
 	delete(s.lastOpen, p.H())
+	delete(s.lastUse, p.H())
+	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.

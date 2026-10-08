@@ -296,14 +296,15 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	// inventory, whatever is held (e.g. a locked drawer and another item in
 	// hand). Only a drawer with an item type counts, so repeated use packets
 	// into an empty drawer never pull items from the inventory.
-	double := s.lastUse.pos == pos && s.lastUse.player == p.H() && time.Since(s.lastUse.at) < 500*time.Millisecond && !d.Item.Empty()
+	last := s.lastUse[p.H()]
+	double := last.pos == pos && time.Since(last.at) < 500*time.Millisecond && !d.Item.Empty()
 	total := 0
 	if n := d.insert(held, held.Count()); n > 0 {
 		p.SetHeldItems(held.Grow(-n), off)
 		total += n
 	}
 	if !d.Item.Empty() {
-		s.lastUse = drawerUse{player: p.H(), pos: pos, at: time.Now()}
+		s.lastUse[p.H()] = drawerUse{pos: pos, at: time.Now()}
 	}
 	if double {
 		inv := p.Inventory()
@@ -328,7 +329,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	if !ok || !ok2 || !s.canBuild(pos) {
 		return
 	}
-	s.lastPunch = drawerPunch{player: p.H(), pos: pos, front: face == d.Facing.Face()}
+	s.lastPunch[p.H()] = drawerPunch{pos: pos, front: face == d.Facing.Face()}
 	if face != d.Facing.Face() {
 		return
 	}
@@ -530,18 +531,16 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	ui.Menu(p, "서랍", body, opts...)
 }
 
-// drawerUse and drawerPunch remember the last interactions for double use
-// and for keeping the front face from being mined.
+// drawerUse and drawerPunch remember each player's last interactions for
+// double use and for keeping the front face from being mined.
 type drawerUse struct {
-	player *world.EntityHandle
-	pos    cube.Pos
-	at     time.Time
+	pos cube.Pos
+	at  time.Time
 }
 
 type drawerPunch struct {
-	player *world.EntityHandle
-	pos    cube.Pos
-	front  bool
+	pos   cube.Pos
+	front bool
 }
 
 // drawerDisplay shows a drawer's item (a holder entity) and count (a text

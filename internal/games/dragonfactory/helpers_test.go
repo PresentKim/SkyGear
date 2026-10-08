@@ -36,6 +36,7 @@ func testSession(t *testing.T) *session {
 	s := &session{
 		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute),
 		saveID: save.ID, saveName: save.Name, hostID: "host", state: newState(), money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
+		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}
 	s.ensureCores()

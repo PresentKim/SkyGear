@@ -184,3 +184,26 @@ func TestSellAllQuoteSellsNothing(t *testing.T) {
 		}
 	})
 }
+
+func TestExpansionCursorStaysNearBody(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.showExpand(p)
+		e, _ := s.expansionOf(p)
+		for range expandReach + 3 {
+			s.expandInput(p, e, mgl64.Vec2{})
+			s.expandInput(p, e, mgl64.Vec2{-1, 0}) // east
+		}
+		if e.target[0] != e.body[0]+expandReach {
+			t.Fatalf("cursor at %v, body %v", e.target, e.body)
+		}
+		for pos := range e.floor {
+			if c := chunkOf(pos); abs32(c[0]-e.target[0]) > expandFloorReach {
+				t.Fatalf("floor drawn at chunk %v, far from the cursor %v", c, e.target)
+			}
+		}
+		s.stopExpand(p, tx)
+	})
+}
