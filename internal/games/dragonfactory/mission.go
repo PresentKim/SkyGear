@@ -177,14 +177,24 @@ func (s *session) showMission(p *player.Player) {
 		}
 		fmt.Fprintf(&b, "%s%s  %d/%d\n", mark, itemName(item.NewStack(r.Item, 1)), got, r.Count)
 	}
-	fmt.Fprintf(&b, "\n§7보상: %s, 코어 강화 포인트 %d\n납품함에 넣거나 아래 버튼으로 인벤토리에서 제출하세요.", formatMoney(m.Reward.Money), m.Reward.CorePoints)
-	ui.Menu(p, "메인 미션", b.String(), ui.Option{Label: "인벤토리에서 제출", Run: func(p *player.Player, tx *world.Tx) {
-		if n := s.deliverInventory(p, tx); n > 0 {
-			p.Messagef("§a%d개를 납품했습니다.", n)
-		} else {
-			p.Message("§7납품할 아이템이 없습니다.")
-		}
-	}})
+	fmt.Fprintf(&b, "\n§7보상: %s, 코어 강화 포인트 %d\n제출하기를 누르면 인벤토리에서 필요한 아이템을 냅니다. 호퍼로 납품함에 넣어도 됩니다.", formatMoney(m.Reward.Money), m.Reward.CorePoints)
+	ui.Menu(p, "메인 미션", b.String(), s.missionOptions()...)
+}
+
+// missionOptions are the buttons of the mission form: submit (and show the
+// form again with the new counts or the next mission) and back to the menu.
+func (s *session) missionOptions() []ui.Option {
+	return []ui.Option{
+		s.opt("§a제출하기", iconMission, func(p *player.Player, tx *world.Tx) {
+			if n := s.deliverInventory(p, tx); n > 0 {
+				p.Messagef("§a%d개를 납품했습니다.", n)
+			} else {
+				p.Message("§7납품할 아이템이 없습니다.")
+			}
+			s.showMission(p)
+		}),
+		s.backOption(),
+	}
 }
 
 // missionLine is the sidebar line of the current mission.

@@ -158,11 +158,11 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 			t.Fatalf("drawer count = %d", d.Count)
 		}
 
-		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 70-6), item.Stack{})
+		// The delivery box only opens the mission form: the held stack stays.
+		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 64), item.Stack{})
 		p.UseItemOnBlock(boxPos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1})
-		// Level 1 needs 64 cobblestone.
-		if held, _ := p.HeldItems(); !held.Empty() {
-			t.Fatalf("held after delivering = %v", held)
+		if held, _ := p.HeldItems(); held.Count() != 64 {
+			t.Fatalf("held after using the delivery box = %v", held)
 		}
 	})
 }

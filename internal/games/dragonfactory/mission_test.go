@@ -79,3 +79,22 @@ func TestLevelsAreValid(t *testing.T) {
 		}
 	}
 }
+
+func TestDeliveryBoxOnlyOpensTheForm(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 20), item.Stack{})
+		if !(DeliveryBox{}).Activate(cube.Pos{}, cube.FaceUp, tx, p, nil) {
+			t.Fatal("not handled")
+		}
+		if held, _ := p.HeldItems(); held.Count() != 20 || s.needed(block.Cobblestone{}) != 64 {
+			t.Fatalf("using the box delivered the held stack: held %v", held)
+		}
+		press(t, p, tx, s.missionOptions(), "§a제출하기")
+		if held, _ := p.HeldItems(); !held.Empty() || s.needed(block.Cobblestone{}) != 44 {
+			t.Fatalf("submit: held %v, needed %d", held, s.needed(block.Cobblestone{}))
+		}
+	})
+}

@@ -13,8 +13,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// DeliveryBox takes items for the main mission: from a hopper, from the
-// held stack when used, or the whole inventory when used while sneaking.
+// DeliveryBox takes items for the main mission from a hopper. Using it opens
+// the mission form, whose button submits the needed items from the
+// inventory.
 type DeliveryBox struct{}
 
 var deliveryHash = block.NextHash()
@@ -45,8 +46,8 @@ func (d DeliveryBox) BreakInfo() block.BreakInfo {
 	}
 }
 
-// Activate delivers the held stack, or the inventory when sneaking.
-func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
+// Activate opens the mission form; items are submitted with its button.
+func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	if !ok {
 		return false
@@ -55,29 +56,8 @@ func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if !ok {
 		return false
 	}
-	if p.Sneaking() {
-		if s.debounced(p) {
-			return true
-		}
-		if n := s.deliverInventory(p, tx); n > 0 {
-			p.Messagef("§a%d개를 납품했습니다.", n)
-		} else {
-			p.SendTip("§7납품할 아이템이 없습니다.")
-		}
-		return true
-	}
-	held, off := p.HeldItems()
-	if held.Empty() {
-		if !s.debounced(p) {
-			s.showMission(p)
-		}
-		return true
-	}
-	if n := s.deliver(tx, p, held.Item(), held.Count()); n > 0 {
-		p.SetHeldItems(held.Grow(-n), off)
-		p.SendTip("§a" + itemName(held) + " " + formatInt(int64(n)) + "개 납품")
-	} else {
-		p.SendTip("§7이 아이템은 지금 미션에 필요하지 않습니다.")
+	if !s.debounced(p) {
+		s.showMission(p)
 	}
 	return true
 }
