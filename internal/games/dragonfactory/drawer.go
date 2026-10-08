@@ -303,15 +303,17 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 		}
 		return true
 	}
-	// A second use within 500ms of inserting a held stack inserts every
-	// matching item of the inventory. Only an actual insert starts the
-	// window, so repeated use packets after an upgrade (empty hand) or into
-	// an empty drawer never pull items from the inventory.
+	// A second use within 500ms of a use inserts every matching item of the
+	// inventory, whatever is held (e.g. a locked drawer and another item in
+	// hand). Only a drawer with an item type counts, so repeated use packets
+	// into an empty drawer never pull items from the inventory.
 	double := s.lastUse.pos == pos && s.lastUse.player == p.H() && time.Since(s.lastUse.at) < 500*time.Millisecond && !d.Item.Empty()
 	total := 0
 	if n := d.insert(held, held.Count()); n > 0 {
 		p.SetHeldItems(held.Grow(-n), off)
 		total += n
+	}
+	if !d.Item.Empty() {
 		s.lastUse = drawerUse{player: p.H(), pos: pos, at: time.Now()}
 	}
 	if double {
@@ -330,7 +332,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	return true
 }
 
-// Punch extracts a stack from the front face, or one item when sneaking.
+// Punch extracts one item from the front face, or a stack when sneaking.
 func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
@@ -342,7 +344,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 		return
 	}
 	n := 1
-	if !p.Sneaking() && !d.Item.Empty() {
+	if p.Sneaking() && !d.Item.Empty() {
 		n = d.Item.MaxCount()
 	}
 	out := d.extract(n)

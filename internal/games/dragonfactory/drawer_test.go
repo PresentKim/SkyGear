@@ -242,3 +242,43 @@ func TestDrawerUpgradeMarks(t *testing.T) {
 		}
 	}
 }
+
+// TestDrawerDoubleUseAndPunch: a double use inserts the matching items
+// whatever is held; a punch takes one item, a sneaking punch a stack.
+func TestDrawerDoubleUseAndPunch(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Locked: true}, nil)
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		use := func() { p.UseItemOnBlock(pos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1}) }
+		_ = p.Inventory().SetItem(3, item.NewStack(block.Cobblestone{}, 30))
+		_ = p.Inventory().SetItem(4, item.NewStack(block.Dirt{}, 7))
+		p.SetHeldItems(item.NewStack(block.Dirt{}, 5), item.Stack{})
+		use()
+		use()
+		d := tx.Block(pos).(Drawer)
+		if d.Count != 30 {
+			t.Fatalf("count after a double use = %d, want 30", d.Count)
+		}
+		if held, _ := p.HeldItems(); held.Count() != 5 {
+			t.Fatalf("dirt in hand taken: %v", held)
+		}
+		if it, _ := p.Inventory().Item(4); it.Count() != 7 {
+			t.Fatalf("dirt in inventory taken: %v", it)
+		}
+		p.SetHeldItems(item.Stack{}, item.Stack{})
+		d.Punch(pos, cube.FaceSouth, tx, p)
+		if d := tx.Block(pos).(Drawer); d.Count != 29 {
+			t.Fatalf("punch took %d, want 1", 30-d.Count)
+		}
+		p.StartSneaking()
+		tx.Block(pos).(Drawer).Punch(pos, cube.FaceSouth, tx, p)
+		if d := tx.Block(pos).(Drawer); d.Count != 0 {
+			t.Fatalf("sneaking punch left %d, want a stack (29) taken", d.Count)
+		}
+	})
+}
