@@ -1,10 +1,13 @@
 // Machine windows (internal/games/dragonfactory/machine.go): the vanilla
 // small chest screen with only the machine's slots, placed per machine.
 // Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
-// Slot 26 is the pick-up button. Generated layout, see docs/tech/machines.md.
+// Dark panel and slots (textures/ui/df); the progress indicator slot has
+// no background. Slot 26 is the pick-up button. Generated layout, see docs/tech/machines.md.
 {
   "namespace": "df_machine",
-  "slot@chest.chest_grid_item": {},
+  "slot@chest.chest_grid_item": {
+    "$background_images": "df_machine.slot_bg"
+  },
   "crusher_slots": {
     "type": "collection_panel",
     "collection_name": "container_items",
@@ -27,7 +30,7 @@
         }
       },
       {
-        "s13@df_machine.slot": {
+        "s13@df_machine.indicator": {
           "collection_index": 13,
           "offset": [
             72,
@@ -83,7 +86,7 @@
         }
       },
       {
-        "s12@df_machine.slot": {
+        "s12@df_machine.indicator": {
           "collection_index": 12,
           "offset": [
             54,
@@ -150,7 +153,7 @@
     "anchor_to": "top_left",
     "controls": [
       {
-        "s10@df_machine.slot": {
+        "s10@df_machine.indicator": {
           "collection_index": 10,
           "offset": [
             36,
@@ -228,7 +231,7 @@
     "anchor_to": "top_left",
     "controls": [
       {
-        "s4@df_machine.slot": {
+        "s4@df_machine.indicator": {
           "collection_index": 4,
           "offset": [
             72,
@@ -393,7 +396,9 @@
           "layer": 1,
           "controls": [
             {
-              "common_panel@common.common_panel": {}
+              "common_panel@common.common_panel": {
+                "$dialog_background": "df_machine.dark_bg"
+              }
             },
             {
               "chest_panel": {
@@ -429,6 +434,11 @@
           ]
         }
       }
+    ],
+    "$title_text_color": [
+      0.93,
+      0.66,
+      0.19
     ]
   },
   "crusher_panel@df_machine.machine_panel": {
@@ -442,5 +452,27 @@
   },
   "sell_box_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.sell_box_slots"
+  },
+  "indicator@chest.chest_grid_item": {
+    "$background_images": "df_machine.no_bg"
+  },
+  "slot_bg": {
+    "type": "image",
+    "texture": "textures/ui/df/slot",
+    "size": [
+      18,
+      18
+    ]
+  },
+  "no_bg": {
+    "type": "panel",
+    "size": [
+      18,
+      18
+    ]
+  },
+  "dark_bg": {
+    "type": "image",
+    "texture": "textures/ui/df/panel"
   }
 }
