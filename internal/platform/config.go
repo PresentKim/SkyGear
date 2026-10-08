@@ -29,9 +29,10 @@ type Config struct {
 		AutosaveSeconds int
 	}
 	ChestUI struct {
-		// Ride, WaitLatency and Retry switch on the InvMenu-style steps of
-		// opening entity chests (docs/tech/chestui.md); all off is the plain
-		// open that is known to work. Debug logs the open/close packets.
+		// Ride links the chest entity to the player (on by default, confirmed
+		// on a real client). WaitLatency and Retry switch on further
+		// InvMenu-style steps of opening entity chests (docs/tech/chestui.md).
+		// Debug logs the open/close packets.
 		Ride, WaitLatency, Retry, Debug bool
 	}
 	Experimental struct {
@@ -68,6 +69,8 @@ func DefaultConfig() Config {
 	c.Instance.DayLengthMinutes = 20
 	c.Instance.LoadRadius = 4
 	c.Instance.AutosaveSeconds = 30
+	// Confirmed on a real client: the chest stays open while moving.
+	c.ChestUI.Ride = true
 	return c
 }
 
