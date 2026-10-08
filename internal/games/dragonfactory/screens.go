@@ -48,6 +48,9 @@ func (s *session) showMenu(p *player.Player) {
 func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	_, day, _ := s.clock.Now()
 	body := fmt.Sprintf("§f%s §7· %d일차 · Lv.%d\n§f소지금 §6%s §7· 코어 강화 포인트 §b%d\n§7%s", s.saveName, day, s.state.Level, formatMoney(s.Money(p)), s.state.CorePoints, s.missionLine())
+	if l := s.urgentLine(); l != "" {
+		body += "\n" + l
+	}
 	return body, []ui.Option{
 		s.opt("§e메인 미션", iconMission, func(p *player.Player, _ *world.Tx) { s.showMission(p) }),
 		s.opt("§a상점 · 구매", iconShop, func(p *player.Player, _ *world.Tx) { s.showShop(p) }),
