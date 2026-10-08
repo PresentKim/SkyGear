@@ -1,5 +1,7 @@
 # dragonfactory — 원블럭 팜
 
+> **현재 코드는 프로토타입입니다.** 앞으로의 방향(멀티 게임 플랫폼, 공장 만들기 게임)은 [docs/design](docs/design/README.md)을 참고하세요.
+
 [Dragonfly](https://github.com/df-mc/dragonfly) 기반의 **원블럭 서바이벌 × 스카이블럭** 농사 컨텐츠 서버입니다 (Minecraft Bedrock).
 
 ## 실행
