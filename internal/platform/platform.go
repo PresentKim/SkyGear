@@ -32,12 +32,13 @@ type Platform struct {
 	m   *instance.Manager
 	// game is the only game type offered to players for now; game selection
 	// is hidden until more games exist (docs/design/01-platform.md §1).
-	game instance.Game
+	game   instance.Game
+	online Online
 }
 
 // New creates the platform. The lobby world must already be built.
-func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game) *Platform {
-	pf := &Platform{log: log, db: d, m: m, game: game}
+func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online) *Platform {
+	pf := &Platform{log: log, db: d, m: m, game: game, online: online}
 	m.Register(game)
 	registerCommands(pf)
 	return pf
@@ -80,8 +81,9 @@ func (pf *Platform) Join(p *player.Player) {
 	if acc.GuideVersion < GuideVersion {
 		pf.showGuide(p, true)
 	} else {
-		p.Messagef("§a%s에 오신 것을 환영합니다! §7나침반으로 세이브를 선택하세요.", pf.game.Name())
+		p.Messagef("§a%s에 오신 것을 환영합니다! §7나침반으로 메뉴를 엽니다.", pf.game.Name())
 	}
+	pf.notifyRequests(p)
 }
 
 const lobbyItemKey = "platform_lobby_item"
@@ -89,7 +91,7 @@ const lobbyItemKey = "platform_lobby_item"
 // arriveLobby gives the lobby menu items.
 func (pf *Platform) arriveLobby(p *player.Player) {
 	p.SetGameMode(world.GameModeAdventure)
-	_ = p.Inventory().SetItem(0, item.NewStack(item.Compass{}, 1).WithCustomName("§r§a세이브 선택").WithValue(lobbyItemKey, "saves"))
+	_ = p.Inventory().SetItem(0, item.NewStack(item.Compass{}, 1).WithCustomName("§r§a메뉴").WithValue(lobbyItemKey, "menu"))
 	_ = p.Inventory().SetItem(8, item.NewStack(item.Book{}, 1).WithCustomName("§r§e서버 안내").WithValue(lobbyItemKey, "guide"))
 	_ = p.SetHeldSlot(0)
 }
@@ -98,8 +100,8 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 func (pf *Platform) useLobbyItem(p *player.Player) bool {
 	held, _ := p.HeldItems()
 	switch v, _ := held.Value(lobbyItemKey); v {
-	case "saves":
-		pf.showSaves(p)
+	case "menu", "saves":
+		pf.showLobbyMenu(p)
 	case "guide":
 		pf.showGuide(p, false)
 	default:
@@ -231,6 +233,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("lobby", "로비로 이동합니다", []string{"spawn"}, lobbyCmd{pf: pf}))
 	cmd.Register(cmd.New("saves", "세이브 선택 화면을 엽니다", nil, savesCmd{pf: pf}))
 	cmd.Register(cmd.New("guide", "서버 안내를 봅니다", nil, guideCmd{pf: pf}))
+	cmd.Register(cmd.New("friends", "친구 목록을 엽니다", []string{"friend"}, friendsCmd{pf: pf}))
 }
 
 type playerOnly struct{}
@@ -276,4 +279,23 @@ type guideCmd struct {
 
 func (c guideCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 	c.pf.showGuide(src.(*player.Player), false)
+}
+
+type friendsCmd struct {
+	playerOnly
+	pf *Platform
+}
+
+func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
+	c.pf.showFriends(src.(*player.Player))
+}
+
+// showLobbyMenu is the main menu of the lobby.
+func (pf *Platform) showLobbyMenu(p *player.Player) {
+	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
+	ui.Menu(p, pf.game.Name(), "원하는 항목을 고르세요.",
+		ui.Option{Label: "내 세이브", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: "서버 안내", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
+	)
 }
