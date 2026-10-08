@@ -151,7 +151,7 @@ func keyStep(v float64) int {
 
 // moveCursor moves the cursor to chunk c if it is within the island range.
 func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
-	r := int32(s.radius)
+	r := int32(islandRadius)
 	if c[0] < -r || c[0] > r || c[1] < -r || c[1] > r || c == e.target {
 		return
 	}

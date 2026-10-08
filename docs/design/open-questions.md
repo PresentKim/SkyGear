@@ -16,7 +16,7 @@
 | 레벨 업 시 코어 강화 포인트 지급량, 강화 항목별 비용·효과, 티어 블록 | 지급량 초안: `dragonfactory/mission.go` `Levels`(Lv.8까지 10포인트). 비용·효과 초안: `coreupgrade.go`, 티어: `core.go` `coreTypes` |
 | 미션 품목·수량·보상 | 초안: `dragonfactory/mission.go` `Levels` |
 | 대지 코어 생성 주기·블록 확률 | 초안 3초, `dragonfactory/core.go` `coreTypes` |
-| 섬 확장 단위(청크)와 가격 | UX가 나쁘면 다른 단위 검토. 초안 1,000G부터 ×1.5 (`island.go` `chunkPrice`) |
+| 섬 확장 단위(청크)와 가격, 최대 반경 | UX가 나쁘면 다른 단위 검토. 초안 1,000G부터 ×1.5, 중심에서 12청크까지 (`island.go` `chunkPrice`, `islandRadius`) |
 | 상점 가격·재고·재입고 주기, 매입 예산·품목 한도 | 초안: `shop.go` `ShopItems`, `BuybackItems`, `buybackBudget` |
 | 긴급 미션 발생 간격·제한 시간(10~30분)·매입 배율·수량·품목 | 초안: `urgent.go` (Lv.2부터, 첫 10분, 간격 15~30분, 10~30분, 150~250%, 32~128개) |
 | 보이드 복귀 높이 | 초안: 섬 높이 + 300 |

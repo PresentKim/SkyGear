@@ -25,6 +25,9 @@ type Instance struct {
 	host    string
 	session Session
 	loader  *world.Loader
+	// extra are loaders of single chunks outside the load radius, owned by
+	// the instance world (KeepLoaded).
+	extra map[[2]int32]*world.Loader
 
 	mu      sync.Mutex
 	players map[string]*world.EntityHandle
@@ -120,6 +123,28 @@ func (inst *Instance) autosave() {
 	})
 }
 
+// KeepLoaded keeps the chunk (x, z) loaded and ticking while the instance
+// is active, also outside the load radius (e.g. bought island chunks). It
+// must be called in the instance world.
+func (inst *Instance) KeepLoaded(tx *world.Tx, x, z int32) {
+	// The main loader ticks only chunks within a circle of the radius
+	// (Dragonfly measures squared chunk distance), not the whole square.
+	r := int32(inst.m.conf.LoadRadius)
+	if x*x+z*z <= r*r {
+		return
+	}
+	if inst.extra == nil {
+		inst.extra = map[[2]int32]*world.Loader{}
+	}
+	if _, ok := inst.extra[[2]int32{x, z}]; ok {
+		return
+	}
+	l := world.NewLoader(0, inst.World, world.NopViewer{})
+	l.Move(tx, mgl64.Vec3{float64(x)*16 + 8, 0, float64(z)*16 + 8})
+	l.Load(tx, 1)
+	inst.extra[[2]int32{x, z}] = l
+}
+
 // LoadRadius is the radius in chunks around the island centre that is kept
 // loaded and ticked while the instance is active.
 func (inst *Instance) LoadRadius() int { return inst.m.conf.LoadRadius }
@@ -191,6 +216,9 @@ func (inst *Instance) deactivate() {
 		<-inst.World.Do(func(tx *world.Tx) {
 			inst.session.Close(tx)
 			inst.loader.Close(tx)
+			for _, l := range inst.extra {
+				l.Close(tx)
+			}
 		}).Done()
 		inst.storeClock()
 		if err := inst.World.Close(); err != nil {

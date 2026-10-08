@@ -25,11 +25,19 @@ func TestChunkRules(t *testing.T) {
 	if len(cands) != 8 || !slices.Contains(cands, ChunkPos{1, 0}) || slices.Contains(cands, ChunkPos{1, 1}) {
 		t.Fatalf("purchasable = %v, want the 8 edge neighbours", cands)
 	}
-	s.radius = 1
+	// The island grows up to islandRadius chunks from the centre; bought
+	// chunks are kept loaded.
+	var kept []ChunkPos
+	s.keep = func(_ *world.Tx, c ChunkPos) { kept = append(kept, c) }
+	s.state.Chunks = append(s.state.Chunks, ChunkPos{islandRadius, 0})
 	for _, c := range s.purchasableChunks() {
-		if c[0] < -1 || c[0] > 1 || c[1] < -1 || c[1] > 1 {
-			t.Fatalf("chunk %v outside the load radius is purchasable", c)
+		if c[0] > islandRadius {
+			t.Fatalf("chunk %v outside the island radius is purchasable", c)
 		}
+	}
+	s.keepLoaded(nil, ChunkPos{5, 0})
+	if len(kept) != 1 {
+		t.Fatal("bought chunk not kept loaded")
 	}
 	if chunkPrice(4) != 1000 || chunkPrice(5) != 1500 || chunkPrice(6) <= chunkPrice(5) {
 		t.Fatalf("chunk prices %d %d %d", chunkPrice(4), chunkPrice(5), chunkPrice(6))

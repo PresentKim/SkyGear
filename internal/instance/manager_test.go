@@ -259,3 +259,25 @@ func TestLockStateBlocksEnter(t *testing.T) {
 	})
 	f.m.CloseAll()
 }
+
+func TestKeepLoadedOutsideRadius(t *testing.T) {
+	f := setup(t)
+	host := f.spawn(t, "host")
+	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	in(t, host, func(p *player.Player) { _ = f.m.Enter(p, save.ID) })
+	inst := f.m.Active(save.ID)
+	if inst == nil {
+		t.Fatal("not active")
+	}
+	<-inst.World.Do(func(tx *world.Tx) {
+		inst.KeepLoaded(tx, 1, 1) // inside the radius: nothing to do
+		inst.KeepLoaded(tx, 6, -3)
+		inst.KeepLoaded(tx, 6, -3)
+		inst.KeepLoaded(tx, 2, 2) // in the radius-2 square, outside its circle
+	}).Done()
+	if len(inst.extra) != 2 {
+		t.Fatalf("extra loaders = %d, want 2", len(inst.extra))
+	}
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	waitInactive(t, f.m, save.ID)
+}

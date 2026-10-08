@@ -34,7 +34,7 @@ func testSession(t *testing.T) *session {
 	t.Cleanup(func() { _ = w.Close() })
 	g := &Game{log: slog.Default(), db: d, sessions: map[*world.World]*session{}}
 	s := &session{
-		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute), radius: 4,
+		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute),
 		saveID: save.ID, saveName: save.Name, hostID: "host", state: newState(), money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}

@@ -36,10 +36,15 @@ func chunkPrice(n int) int64 {
 	return int64(math.Round(p/100) * 100)
 }
 
-// purchasableChunks returns the chunks next to the island that are within the
-// instance's load radius (owned chunks must stay loaded and ticked).
+// islandRadius is how far (in chunks from the centre) the island may grow.
+// Owned chunks outside the instance load radius get their own loaders
+// (instance.KeepLoaded). Balancing draft.
+const islandRadius = 12
+
+// purchasableChunks returns the chunks next to the island within
+// islandRadius.
 func (s *session) purchasableChunks() []ChunkPos {
-	r := int32(s.radius)
+	r := int32(islandRadius)
 	var out []ChunkPos
 	for _, c := range s.state.Chunks {
 		for _, d := range []ChunkPos{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
@@ -84,8 +89,17 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)
+	s.keepLoaded(tx, c)
 	s.storeState()
 	s.broadcast(tx, fmt.Sprintf("§a%s 님이 청크 (%d, %d)를 구매했습니다. (소유 %d개)", p.Name(), c[0], c[1], len(s.state.Chunks)))
+}
+
+// keepLoaded keeps an owned chunk loaded and ticking while the instance is
+// active.
+func (s *session) keepLoaded(tx *world.Tx, c ChunkPos) {
+	if s.keep != nil {
+		s.keep(tx, c)
+	}
 }
 
 // returnFromVoid puts p high above the block nearest to where it fell.

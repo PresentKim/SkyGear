@@ -72,11 +72,17 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		st = newState()
 	}
 	s := &session{
-		g: g, world: inst.World, clock: inst.Clock, radius: inst.LoadRadius(),
+		g: g, world: inst.World, clock: inst.Clock,
 		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
 		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.ensureCores()
+	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
+	inst.World.Do(func(tx *world.Tx) {
+		for _, c := range st.Chunks {
+			s.keepLoaded(tx, c)
+		}
+	})
 	inst.World.Handle(&worldHandler{s: s})
 	g.mu.Lock()
 	g.sessions[inst.World] = s
@@ -94,10 +100,11 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 
 // session is one active save. All fields are owned by the instance world.
 type session struct {
-	g        *Game
-	world    *world.World
-	clock    *instance.Clock
-	radius   int
+	g     *Game
+	world *world.World
+	clock *instance.Clock
+	// keep keeps an owned chunk loaded (instance.KeepLoaded); nil in tests.
+	keep     func(tx *world.Tx, c ChunkPos)
 	saveID   int64
 	saveName string
 	hostID   string
