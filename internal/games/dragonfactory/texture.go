@@ -56,9 +56,13 @@ func keyTexture() image.Image {
 	return img
 }
 
-// lockGlyph is a padlock drawn by the resource pack font
-// (assets/resourcepack/dragonfactory/font/glyph_E1.png, first cell).
-const lockGlyph = ""
+// Glyphs drawn by the resource pack font
+// (assets/resourcepack/dragonfactory/font/glyph_E1.png): a padlock in the
+// first cell and the void upgrade's dark orb in the second.
+const (
+	lockGlyph = "\ue100"
+	voidGlyph = "\ue101"
+)
 
 // progressArrowTexture draws a right-pointing arrow whose left step/10 is
 // filled (machine progress).

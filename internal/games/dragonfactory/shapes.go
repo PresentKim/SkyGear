@@ -129,10 +129,12 @@ func (s *session) hideChunkBorders(p *player.Player) {
 	}
 }
 
-// drawerLabelKey and drawerLockKey key the count and lock texts of a drawer.
+// drawerLabelKey, drawerLockKey and drawerUpgradeKey key the count, lock and
+// upgrade texts of a drawer.
 type (
-	drawerLabelKey cube.Pos
-	drawerLockKey  cube.Pos
+	drawerLabelKey   cube.Pos
+	drawerLockKey    cube.Pos
+	drawerUpgradeKey cube.Pos
 )
 
 // textYawOffset turns front-face texts so they read from the front. It is
@@ -140,22 +142,33 @@ type (
 // show mirrored on real clients.
 const textYawOffset = 0
 
-// faceText returns a text fixed flat on a drawer's front face, at height dy
-// from the face centre.
-func faceText(pos cube.Pos, d Drawer, dy float64, text string) *debug.Text {
-	at := pos.Vec3Centre().Add(cube.Pos{}.Side(d.Facing.Face()).Vec3().Mul(0.51)).Add(mgl64.Vec3{0, dy, 0})
+// faceText returns a text fixed flat on a drawer's front face, without a
+// background, at (right, up) from the face centre as the viewer sees it.
+// It sits slightly in front of the face so it does not z-fight with it.
+func faceText(pos cube.Pos, d Drawer, right, up, scale float64, text string) *debug.Text {
+	front := cube.Pos{}.Side(d.Facing.Face()).Vec3()
+	// Looking at the front, the viewer's right is the facing turned left.
+	side := cube.Pos{}.Side(d.Facing.RotateLeft().Face()).Vec3()
+	at := pos.Vec3Centre().Add(front.Mul(0.53)).Add(side.Mul(right)).Add(mgl64.Vec3{0, up, 0})
 	return &debug.Text{
-		Position: at, Text: text, Scale: 0.5,
+		Position: at, Text: text, Scale: scale, HideBackground: true,
 		LockRotation: true, Rotation: mgl64.Vec3{0, yawOf(d.Facing) + textYawOffset, 0},
 	}
 }
 
 // drawerLabel returns the count text of a drawer, at the bottom of its front.
 func drawerLabel(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, -0.32, d.label())
+	return faceText(pos, d, 0, -0.34, 0.4, d.label())
 }
 
-// drawerLock returns the lock mark of a locked drawer, at the top of its front.
+// drawerLock returns the small lock mark of a locked drawer, on the handle
+// at the top centre of its front.
 func drawerLock(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, 0.34, lockGlyph)
+	return faceText(pos, d, 0, 0.34, 0.22, lockGlyph)
+}
+
+// drawerUpgrades returns the upgrade marks of a drawer (capacity multiplier,
+// void), in the top right corner of its front.
+func drawerUpgrades(pos cube.Pos, d Drawer) *debug.Text {
+	return faceText(pos, d, 0.36, 0.4, 0.2, d.upgradeMarks())
 }

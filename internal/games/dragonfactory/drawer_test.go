@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/go-gl/mathgl/mgl64"
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -194,6 +195,9 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if it, _ := p.Inventory().Item(1); it.Count() != 10 {
 			t.Fatalf("slot 1 = %v, the repeats pulled it into the drawer", it)
 		}
+		if m, ok := s.shapes[drawerUpgradeKey(pos)].(*debug.Text); !ok || !strings.Contains(m.Text, voidGlyph) {
+			t.Fatalf("void mark not shown: %v", s.shapes[drawerUpgradeKey(pos)])
+		}
 		// The key toggles the lock and stays in the hand.
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
 		use(p) // insert dirt
@@ -209,5 +213,32 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if held, _ := p.HeldItems(); !isDrawerKey(held) {
 			t.Fatal("key was used up")
 		}
+		// Picking the drawer up removes both texts.
+		s.removeDisplay(tx, pos)
+		if _, ok := s.shapes[drawerLockKey(pos)]; ok {
+			t.Fatal("lock mark left after removal")
+		}
+		if _, ok := s.shapes[drawerLabelKey(pos)]; ok {
+			t.Fatal("count text left after removal")
+		}
+		if _, ok := s.shapes[drawerUpgradeKey(pos)]; ok {
+			t.Fatal("upgrade marks left after removal")
+		}
 	})
+}
+
+func TestDrawerUpgradeMarks(t *testing.T) {
+	for _, c := range []struct {
+		d    Drawer
+		want string
+	}{
+		{Drawer{}, ""},
+		{Drawer{Capacity: 2}, "§b×4"},
+		{Drawer{Void: true}, "§f" + voidGlyph},
+		{Drawer{Capacity: 1, Void: true}, "§b×2 §f" + voidGlyph},
+	} {
+		if got := c.d.upgradeMarks(); got != c.want {
+			t.Errorf("%+v: %q, want %q", c.d, got, c.want)
+		}
+	}
 }

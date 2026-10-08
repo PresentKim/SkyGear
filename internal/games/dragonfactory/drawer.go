@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"image"
+	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -163,6 +164,19 @@ func (d Drawer) label() string {
 		return ""
 	}
 	return formatInt(d.Count)
+}
+
+// upgradeMarks returns the upgrade marks shown on the front: the capacity
+// multiplier and the void orb.
+func (d Drawer) upgradeMarks() string {
+	var marks []string
+	if d.Capacity > 0 {
+		marks = append(marks, fmt.Sprintf("§b×%d", 1<<d.Capacity))
+	}
+	if d.Void {
+		marks = append(marks, "§f"+voidGlyph)
+	}
+	return strings.Join(marks, " ")
 }
 
 const (
@@ -549,21 +563,27 @@ func (s *session) ownsDisplay(pos cube.Pos, h *world.EntityHandle) bool {
 	return ok && d.item == h
 }
 
-// showLabel shows (or hides) the count text and the lock mark of a drawer.
+// showLabel shows (or hides) the count text, the lock mark and the upgrade
+// marks of a drawer.
 func (s *session) showLabel(tx *world.Tx, pos cube.Pos, d Drawer) {
-	switch old, ok := s.shapes[drawerLabelKey(pos)].(*debug.Text); {
-	case d.label() == "":
-		s.hideShape(tx, drawerLabelKey(pos))
-		s.hideShape(tx, drawerLockKey(pos))
-	case !ok || old.Text != d.label():
-		s.showShape(tx, drawerLabelKey(pos), drawerLabel(pos, d))
+	s.showFaceText(tx, drawerLabelKey(pos), d.label(), func() *debug.Text { return drawerLabel(pos, d) })
+	lock := ""
+	if d.Locked {
+		lock = lockGlyph
 	}
-	_, shown := s.shapes[drawerLockKey(pos)]
+	s.showFaceText(tx, drawerLockKey(pos), lock, func() *debug.Text { return drawerLock(pos, d) })
+	s.showFaceText(tx, drawerUpgradeKey(pos), d.upgradeMarks(), func() *debug.Text { return drawerUpgrades(pos, d) })
+}
+
+// showFaceText shows the text made by f under key, hides it if text is
+// empty, and leaves it alone if it already shows text.
+func (s *session) showFaceText(tx *world.Tx, key any, text string, f func() *debug.Text) {
+	old, ok := s.shapes[key].(*debug.Text)
 	switch {
-	case d.Locked && !shown:
-		s.showShape(tx, drawerLockKey(pos), drawerLock(pos, d))
-	case !d.Locked && shown:
-		s.hideShape(tx, drawerLockKey(pos))
+	case text == "":
+		s.hideShape(tx, key)
+	case !ok || old.Text != text:
+		s.showShape(tx, key, f())
 	}
 }
 
@@ -606,6 +626,11 @@ func (s *session) refreshDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 }
 
 func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
+	// The texts are hidden even without a display entity: an empty
+	// drawer has none but can still show its lock.
+	s.hideShape(tx, drawerLabelKey(pos))
+	s.hideShape(tx, drawerLockKey(pos))
+	s.hideShape(tx, drawerUpgradeKey(pos))
 	disp, ok := s.displays[pos]
 	if !ok {
 		return
@@ -614,7 +639,6 @@ func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
 	if e, ok := disp.item.Entity(tx); ok {
 		_ = e.Close()
 	}
-	s.hideShape(tx, drawerLabelKey(pos))
 }
 
 // removeDisplays removes every display entity before the world is saved.
