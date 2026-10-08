@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math/rand/v2"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -299,4 +300,41 @@ func init() {
 		world.RegisterBlock(Core{Type: id})
 		world.RegisterItem(Core{Type: id})
 	}
+}
+
+// Activate shows what the core is and what it generates (empty hand or not:
+// a core is never built against).
+func (c Core) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
+	p, ok := u.(*player.Player)
+	s, ok2 := activeGame.sessionOf(tx.World())
+	if !ok || !ok2 {
+		return false
+	}
+	if !s.debounced(p) {
+		s.showCoreInfo(p, c)
+	}
+	return true
+}
+
+// showCoreInfo describes a core: its type, tier, interval and the chance of
+// each block it generates.
+func (s *session) showCoreInfo(p *player.Player, c Core) {
+	t := c.ctype()
+	tier := 1
+	if rec := s.state.Cores[c.Type]; rec != nil {
+		tier = rec.Tier
+	}
+	total := 0
+	for _, e := range t.Table {
+		total += e.Weight
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "§f%s §7· 티어 %d\n§7위 칸이 비어 있으면 %.1f초마다 블록을 하나 만듭니다.\n\n§f생성 확률\n", t.Name, tier, float64(t.Interval)/20)
+	for _, e := range t.Table {
+		fmt.Fprintf(&b, "§7- §f%s §7%d%%\n", itemName(item.NewStack(e.Block.(world.Item), 1)), e.Weight*100/total)
+	}
+	b.WriteString("\n§7코어는 종류별로 섬에 하나만 둘 수 있습니다. 강화·재발급은 메뉴의 코어 관리에서.")
+	ui.Menu(p, t.Name, b.String(),
+		s.opt("§b코어 관리", iconCores, func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }),
+	)
 }

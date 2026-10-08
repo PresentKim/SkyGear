@@ -162,3 +162,16 @@ func TestCoreWaitsFullIntervalAfterMining(t *testing.T) {
 		}
 	})
 }
+
+func TestCoreActivateShowsInfo(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil) })
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		c := tx.Block(startCorePos).(Core)
+		if !c.Activate(startCorePos, cube.FaceUp, tx, p, nil) {
+			t.Fatal("core activation not handled")
+		}
+	})
+}
