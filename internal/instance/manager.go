@@ -60,6 +60,12 @@ type Lobby struct {
 	Arrive func(p *player.Player)
 	// Handler returns the lobby handler for p's events.
 	Handler func(p *player.Player) player.Handler
+	// ChatName, if set, is the name shown before chat messages everywhere
+	// (lobby and instances), e.g. with a title.
+	ChatName func(p *player.Player) string
+	// Quit, if set, is called when a player leaves the server, wherever it
+	// was, after its state was stored.
+	Quit func(p *player.Player)
 }
 
 // Manager owns all active instances.

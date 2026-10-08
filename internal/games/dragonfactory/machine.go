@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"image"
 	"time"
 
@@ -789,6 +790,7 @@ func (s *session) addMoneyTo(tx *world.Tx, acc string, delta int64) {
 		s.money[acc] += delta
 		for e := range tx.Players() {
 			if p := e.(*player.Player); instance.AccountID(p) == acc {
+				s.checkRich(p)
 				s.updateBoard(p)
 			}
 		}
@@ -802,6 +804,7 @@ func (s *session) addMoneyTo(tx *world.Tx, acc string, delta int64) {
 // placeMachine sets up a placed machine with a fresh state.
 func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
 	m := newMachine(kind, instance.AccountID(p), p.Name())
+	account.Grant(p, achMachine)
 	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 }
 

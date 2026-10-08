@@ -199,3 +199,29 @@ func TestMembersAndInviteCodes(t *testing.T) {
 		t.Fatal("a member that left keeps a role")
 	}
 }
+
+func TestAchievementsAndCosmetics(t *testing.T) {
+	d := open(t)
+	if _, err := d.TouchAccount("a", "", "A"); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := d.GrantAchievement("a", "x"); err != nil || !n {
+		t.Fatalf("first grant: %v %v", n, err)
+	}
+	if n, _ := d.GrantAchievement("a", "x"); n {
+		t.Fatal("second grant reported new")
+	}
+	_, _ = d.GrantAchievement("a", "y")
+	if ids, _ := d.Achievements("a"); len(ids) != 2 {
+		t.Fatalf("achievements %v", ids)
+	}
+	if err := d.SetTitle("a", "x"); err != nil {
+		t.Fatal(err)
+	}
+	if err := d.SetNameColor("a", "gold"); err != nil {
+		t.Fatal(err)
+	}
+	if a, _ := d.Account("a"); a.Title != "x" || a.NameColor != "gold" {
+		t.Fatalf("account %+v", a)
+	}
+}

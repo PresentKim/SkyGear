@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/ui"
@@ -40,6 +41,7 @@ type Platform struct {
 // New creates the platform. The lobby world must already be built.
 func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online) *Platform {
 	pf := &Platform{log: log, db: d, m: m, game: game, online: online}
+	account.Init(d, log)
 	m.Register(game)
 	registerCommands(pf)
 	return pf
@@ -53,7 +55,9 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		Arrive: func(p *player.Player) {
 			(*pf).arriveLobby(p)
 		},
-		Handler: func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
+		Handler:  func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
+		ChatName: account.DisplayName,
+		Quit:     account.Forget,
 	}
 }
 
@@ -79,6 +83,7 @@ func (pf *Platform) Join(p *player.Player) {
 		return
 	}
 	pf.m.Join(p)
+	account.Refresh(p)
 	if acc.GuideVersion < GuideVersion {
 		pf.showGuide(p, true)
 	} else {
@@ -309,6 +314,7 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 		ui.Option{Label: fmt.Sprintf("받은 초대 §8(%d)", len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
 		ui.Option{Label: "초대 코드 입력", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
 		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: "칭호·치장", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
 		ui.Option{Label: "서버 안내", Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	)
 }

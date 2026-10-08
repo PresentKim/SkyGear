@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"slices"
 	"strings"
 
@@ -130,6 +131,7 @@ func (s *session) coreUpgradeMenu(typ string) (string, []ui.Option, bool) {
 			case s.spendPoints(p, next.Points):
 				rec.Tier++
 				s.storeState()
+				account.Grant(p, achCoreTier)
 				p.Messagef("§a%s가 티어 %d가 되었습니다.", t.Name, rec.Tier)
 			}
 			s.showCoreUpgrades(p, typ)

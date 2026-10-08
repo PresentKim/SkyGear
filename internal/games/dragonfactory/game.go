@@ -163,6 +163,7 @@ func (s *session) Join(p *player.Player, first bool) {
 		}
 	}
 	removeStaleCores(p.Inventory(), s)
+	s.levelAchievementsFor(p)
 	s.sendShapes(p)
 	s.purgeLost()
 	s.updateBoard(p)

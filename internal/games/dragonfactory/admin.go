@@ -149,7 +149,9 @@ type adminMoney struct {
 
 func (c adminMoney) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
-		s.AddMoney(p, int64(c.Amount))
+		// Not AddMoney: operator money does not earn achievements.
+		s.money[instance.AccountID(p)] += int64(c.Amount)
+		s.updateBoard(p)
 		o.Printf("소지금: %s", formatMoney(s.Money(p)))
 	}
 }

@@ -116,6 +116,7 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 	}
 	s.state.Level++
 	s.state.Delivered = map[string]int{}
+	s.levelAchievements(tx)
 	s.state.CorePoints += m.Reward.CorePoints
 	if by != nil {
 		s.AddMoney(by, m.Reward.Money)

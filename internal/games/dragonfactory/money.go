@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/account"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/dragonfactory/internal/instance"
@@ -13,7 +14,15 @@ func (s *session) Money(p *player.Player) int64 { return s.money[instance.Accoun
 // AddMoney changes p's wallet by delta and refreshes its sidebar.
 func (s *session) AddMoney(p *player.Player, delta int64) {
 	s.money[instance.AccountID(p)] += delta
+	s.checkRich(p)
 	s.updateBoard(p)
+}
+
+// checkRich grants the money achievement when p's wallet reached it.
+func (s *session) checkRich(p *player.Player) {
+	if s.money[instance.AccountID(p)] >= richMoney {
+		account.Grant(p, achRich)
+	}
 }
 
 // TakeMoney removes amount from p's wallet if it has enough.

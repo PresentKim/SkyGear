@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"math"
 	"slices"
 
@@ -89,6 +90,9 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)
+	if len(s.state.Chunks) >= 10 {
+		account.Grant(p, achChunks)
+	}
 	s.keepLoaded(tx, c)
 	s.storeState()
 	s.broadcast(tx, fmt.Sprintf("§a%s 님이 청크 (%d, %d)를 구매했습니다. (소유 %d개)", p.Name(), c[0], c[1], len(s.state.Chunks)))

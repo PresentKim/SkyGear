@@ -119,6 +119,16 @@ var migrations = []string{
 		PRIMARY KEY (account_id, blocked_id)
 	);
 	CREATE INDEX accounts_name ON accounts(name COLLATE NOCASE);`,
+	// 4: account achievements, the equipped title and the name colour
+	// (docs/design/01-platform.md §5).
+	`ALTER TABLE accounts ADD COLUMN title TEXT NOT NULL DEFAULT '';
+	ALTER TABLE accounts ADD COLUMN name_color TEXT NOT NULL DEFAULT '';
+	CREATE TABLE achievements (
+		account_id TEXT NOT NULL REFERENCES accounts(id),
+		id         TEXT NOT NULL,
+		earned_at  INTEGER NOT NULL,
+		PRIMARY KEY (account_id, id)
+	);`,
 }
 
 func (d *DB) migrate() error {

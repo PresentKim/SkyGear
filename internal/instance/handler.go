@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"fmt"
 	"net"
 	"sync/atomic"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/player/skin"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
@@ -77,6 +79,9 @@ func (h *Handler) HandleQuit(p *player.Player) {
 	if inst := h.instance(); inst != nil {
 		h.m.quit(p, inst)
 	}
+	if h.m.lobby.Quit != nil {
+		h.m.lobby.Quit(p)
+	}
 }
 
 func (h *Handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
@@ -95,7 +100,16 @@ func (h *Handler) HandleToggleSprint(ctx *player.Context, after bool) {
 func (h *Handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	h.in().HandleToggleSneak(ctx, after)
 }
-func (h *Handler) HandleChat(ctx *player.Context, message *string) { h.in().HandleChat(ctx, message) }
+func (h *Handler) HandleChat(ctx *player.Context, message *string) {
+	h.in().HandleChat(ctx, message)
+	if ctx.Cancelled() || h.m.lobby.ChatName == nil {
+		return
+	}
+	// Send the message with the display name instead of Dragonfly's plain
+	// "<name> message".
+	ctx.Cancel()
+	_, _ = fmt.Fprintf(chat.Global, "<%s> %s\n", h.m.lobby.ChatName(ctx.Player()), *message)
+}
 func (h *Handler) HandleFoodLoss(ctx *player.Context, from int, to *int) {
 	h.in().HandleFoodLoss(ctx, from, to)
 }

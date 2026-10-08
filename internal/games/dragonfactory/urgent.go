@@ -135,6 +135,7 @@ func (s *session) endUrgent(tx *world.Tx, now time.Duration) {
 	s.storeState()
 	it, _ := urgentItem(u.Item)
 	if u.Sold >= u.Max {
+		s.grantAll(tx, achUrgent)
 		s.broadcast(tx, fmt.Sprintf("§a[긴급 매입] %s %d개를 모두 납품했습니다!", itemName(item.NewStack(it, 1)), u.Max))
 	} else {
 		s.broadcast(tx, fmt.Sprintf("§7[긴급 매입] 시간이 끝났습니다. %s %d/%d개 납품.", itemName(item.NewStack(it, 1)), u.Sold, u.Max))
