@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
 // ShopItem is a product of the shop (docs/design/02-dragonfactory.md §5.1).
@@ -39,6 +40,9 @@ var ShopItems = []ShopItem{
 	{"upgrade_capacity", "서랍 용량 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) }, 800, 2, 2, day},
 	{"upgrade_void", "서랍 공허 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) }, 600, 3, 1, day},
 	{"hopper", "호퍼", func() item.Stack { return item.NewStack(block.NewHopper(), 1) }, 300, 2, 8, day},
+	{"crusher", "분쇄기", func() item.Stack { return machineItem(KindCrusher) }, 1500, 3, 2, day},
+	{"sieve", "체", func() item.Stack { return machineItem(KindSieve) }, 2000, 4, 2, day},
+	{"sell_box", "판매함", func() item.Stack { return machineItem(KindSellBox) }, 3000, 5, 1, day},
 	{"pioneer_pickaxe", "개척자의 곡괭이 (1회 한정)", func() item.Stack {
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")
 	}, 500, 2, 1, 0},
@@ -112,6 +116,7 @@ var BuybackItems = []BuybackItem{
 	{block.Cobblestone{}, 1, 512}, {block.Dirt{}, 1, 256}, {block.Sand{}, 2, 256}, {block.Gravel{}, 2, 256},
 	{block.Stone{}, 2, 256}, {block.Log{Wood: block.OakWood()}, 4, 128}, {block.Glass{}, 5, 128},
 	{item.Charcoal{}, 6, 64}, {item.Coal{}, 8, 64},
+	{item.Flint{}, 4, 256}, {item.ClayBall{}, 5, 256}, {item.IronNugget{}, 12, 128}, {item.GoldNugget{}, 30, 64},
 }
 
 // buybackBudget is the daily buyback budget at a level.
@@ -152,21 +157,30 @@ func (s *session) sellable(b BuybackItem, n int) int {
 	return max(0, min(n, int(bb.Budget/b.Price)))
 }
 
-// sell sells up to st.Count of a stack and returns the amount sold.
+// sell sells up to st.Count of a stack for p and returns the amount sold.
 func (s *session) sell(p *player.Player, st item.Stack) int {
+	n, earned := s.sellFor(instance.AccountID(p), st)
+	if n > 0 {
+		s.AddMoney(p, earned)
+	}
+	return n
+}
+
+// sellFor takes up to st.Count of a stack into the buyback budget and
+// returns the amount sold and its price. The caller pays acc.
+func (s *session) sellFor(_ string, st item.Stack) (int, int64) {
 	b, ok := buybackFor(st.Item())
 	if !ok || st.Empty() {
-		return 0
+		return 0, 0
 	}
 	n := s.sellable(b, st.Count())
 	if n == 0 {
-		return 0
+		return 0, 0
 	}
 	bb := s.buyback()
 	bb.Sold[itemKey(b.Item)] += n
 	bb.Budget -= int64(n) * b.Price
-	s.AddMoney(p, int64(n)*b.Price)
-	return n
+	return n, int64(n) * b.Price
 }
 
 func (s *session) sellInventory(p *player.Player) (count int, earned int64) {

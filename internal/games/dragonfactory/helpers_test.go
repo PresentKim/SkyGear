@@ -35,7 +35,7 @@ func testSession(t *testing.T) *session {
 	g := &Game{log: slog.Default(), db: d, sessions: map[*world.World]*session{}}
 	s := &session{
 		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute), radius: 4,
-		saveID: save.ID, saveName: save.Name, state: newState(), money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
+		saveID: save.ID, saveName: save.Name, hostID: "host", state: newState(), money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}
 	s.ensureCores()

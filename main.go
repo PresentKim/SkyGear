@@ -12,6 +12,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
@@ -77,7 +78,7 @@ func run(log *slog.Logger) error {
 		AutosaveInterval: time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
 		Entities:         conf.Entities,
 	}, platform.Lobby(lobby, &pf))
-	pf = platform.New(log, d, m, dragonfactory.New(log, d), srv.Player)
+	pf = platform.New(log, d, m, dragonfactory.New(log, d, func(p *player.Player) bool { return pconf.IsOperator(p.Name()) }), srv.Player)
 
 	go func() {
 		c := make(chan os.Signal, 1)

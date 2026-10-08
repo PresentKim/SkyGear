@@ -208,6 +208,14 @@ func (d *DB) SetMoney(saveID int64, accountID string, money int64) error {
 	return err
 }
 
+// AddMoney changes the stored wallet of a player in a save by delta, for
+// players whose wallet is not loaded.
+func (d *DB) AddMoney(saveID int64, accountID string, delta int64) error {
+	_, err := d.sql.Exec(`INSERT INTO save_players (save_id, account_id, money) VALUES (?, ?, ?)
+		ON CONFLICT(save_id, account_id) DO UPDATE SET money = money + excluded.money`, saveID, accountID, delta)
+	return err
+}
+
 // ActiveMembers counts the members of a save that have not left.
 func (d *DB) ActiveMembers(saveID int64) (int, error) {
 	var n int

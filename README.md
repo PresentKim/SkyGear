@@ -17,7 +17,7 @@ go run .
 | 파일 | 내용 |
 |---|---|
 | `config.toml` | Dragonfly 서버 설정(포트, 서버 이름, 인증 등) |
-| `platform.toml` | 플랫폼 설정(데이터 폴더, 인스턴스 하루 길이, 로드 반경, 동시 인스턴스 수, 자동 저장 주기) |
+| `platform.toml` | 플랫폼 설정(데이터 폴더, 인스턴스 하루 길이, 로드 반경, 동시 인스턴스 수, 자동 저장 주기, 운영자 이름 `Admin.Operators`) |
 
 데이터는 `data/` 아래에 저장됩니다: `data/platform.db`(SQLite), `data/saves/<세이브 ID>/world`(세이브별 월드).
 
@@ -47,12 +47,18 @@ go run .
 - 참여 중인 세이브 목록(입장·탈퇴), 호스트가 플레이 중일 때만 입장
 - 호스트의 참여자 관리: 추방, 인벤토리 보기(엔티티 상자, 접속 중이면 실시간·아니면 저장된 인벤토리)
 
+### 자동화 (M4)
+- 동력 없는 첫 시대 기계: **분쇄기**(돌→조약돌→자갈→모래), **체**(확률 부산물), **판매함**(매입 규칙대로 자동 판매), **자동 채굴기**(Lv.5 보상, 아래 블록 채굴 후 이웃으로 전달)
+- 기계 창은 엔티티 상자, 호퍼로 넣고 빼기, 부수면 내용물과 함께 회수
+- 레벨 6~7 미션(분쇄·체 산출물)
+
 ### 명령어
 | 위치 | 명령어 |
 |---|---|
 | 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/df`), `/invite`·`/members`(호스트) |
+| 운영자 | `/dfadmin level·money·give·line·status` (`platform.toml` 의 `Admin.Operators`) |
 
 ## 구조
 
@@ -78,4 +84,5 @@ third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.1
 go test ./...
 # 실제 접속 흐름(서버 빌드·인증 끔 실행·봇 시나리오·종료까지 자동)
 spike/scenarios/run.sh spike/scenarios/m3_two_players.sh
+spike/scenarios/run.sh spike/scenarios/m4_line.sh
 ```

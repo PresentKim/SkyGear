@@ -27,6 +27,9 @@ type Game struct {
 	log *slog.Logger
 	db  *db.DB
 
+	// isOperator reports whether a player may use the operator tools.
+	isOperator func(*player.Player) bool
+
 	mu       sync.Mutex
 	sessions map[*world.World]*session
 }
@@ -36,11 +39,12 @@ type Game struct {
 var activeGame = &Game{sessions: map[*world.World]*session{}}
 
 // New creates the game and registers its commands. There is one game per
-// process.
-func New(log *slog.Logger, d *db.DB) *Game {
-	g := &Game{log: log, db: d, sessions: map[*world.World]*session{}}
+// process. isOperator, if not nil, allows players to use the operator tools.
+func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game {
+	g := &Game{log: log, db: d, isOperator: isOperator, sessions: map[*world.World]*session{}}
 	activeGame = g
 	registerCommands(g)
+	registerAdmin(g)
 	return g
 }
 

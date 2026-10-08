@@ -54,7 +54,8 @@ func main() {
 //	form:<title>=<button index>   wait for a form with title and press a button
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
-//	expect:<text>                wait for a chat message containing text
+//	expect:<text>                wait for a chat message or command output containing text
+//	expectre:<regexp>            wait for a chat message or command output matching regexp
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
 //	wait:<seconds>               sleep
@@ -133,10 +134,25 @@ func run(action string) {
 			return ok && is.WindowID == protocol.WindowIDInventory && int(is.Slot) == slot && is.NewItem.Stack.Count == 0
 		})
 		fmt.Println("OK  slot emptied:", slot)
+	case "expectre":
+		re := regexp.MustCompile(arg)
+		waitFor(func(pk packet.Packet) bool {
+			for _, m := range messages(pk) {
+				if re.MatchString(m) {
+					return true
+				}
+			}
+			return false
+		})
+		fmt.Println("OK  matched:", arg)
 	case "expect":
 		waitFor(func(pk packet.Packet) bool {
-			t, ok := pk.(*packet.Text)
-			return ok && strings.Contains(t.Message, arg)
+			for _, m := range messages(pk) {
+				if strings.Contains(m, arg) {
+					return true
+				}
+			}
+			return false
 		})
 		fmt.Println("OK  saw:", arg)
 	default:
@@ -155,6 +171,21 @@ func expand(s string) string {
 	})
 }
 
+// messages returns the chat or command output text of a packet.
+func messages(pk packet.Packet) []string {
+	switch pk := pk.(type) {
+	case *packet.Text:
+		return []string{pk.Message}
+	case *packet.CommandOutput:
+		var out []string
+		for _, m := range pk.OutputMessages {
+			out = append(out, m.Message)
+		}
+		return out
+	}
+	return nil
+}
+
 func waitFor(match func(packet.Packet) bool) packet.Packet {
 	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	for {
@@ -162,7 +193,11 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 		if err != nil {
 			fail("waiting: %v", err)
 		}
-		if t, ok := pk.(*packet.Text); ok {
+		if _, ok := pk.(*packet.CommandOutput); ok {
+			for _, m := range messages(pk) {
+				fmt.Println("OUTPUT", m)
+			}
+		} else if t, ok := pk.(*packet.Text); ok {
 			fmt.Println("CHAT", t.Message)
 		}
 		if match(pk) {

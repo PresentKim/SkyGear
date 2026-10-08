@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pelletier/go-toml"
@@ -27,6 +28,21 @@ type Config struct {
 		// AutosaveSeconds is how often active instances store their state.
 		AutosaveSeconds int
 	}
+	Admin struct {
+		// Operators are player names allowed to use operator tools such as
+		// /dfadmin (testing only).
+		Operators []string
+	}
+}
+
+// IsOperator reports whether name is an operator.
+func (c Config) IsOperator(name string) bool {
+	for _, op := range c.Admin.Operators {
+		if strings.EqualFold(op, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // DayLength returns the instance day length.

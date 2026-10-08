@@ -45,6 +45,9 @@ func itemName(s item.Stack) string {
 	if n := s.CustomName(); n != "" {
 		return n
 	}
+	if c, ok := s.Item().(world.CustomItem); ok {
+		return c.Name()
+	}
 	name, _ := s.Item().EncodeItem()
 	return strings.TrimPrefix(name, "minecraft:")
 }

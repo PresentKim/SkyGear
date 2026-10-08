@@ -24,6 +24,8 @@ type Requirement struct {
 type Reward struct {
 	Money      int64
 	CorePoints int
+	// Items are given to the player who completed the mission.
+	Items []func() item.Stack
 }
 
 // Level is a level and the main mission that completes it
@@ -41,7 +43,10 @@ var Levels = []Level{
 	{"목재 비축", []Requirement{{block.Log{Wood: block.OakWood()}, 32}, {block.Dirt{}, 64}}, Reward{Money: 500, CorePoints: 1}},
 	{"첫 가공", []Requirement{{block.Stone{}, 64}, {item.Charcoal{}, 16}}, Reward{Money: 800, CorePoints: 1}},
 	{"유리 공방", []Requirement{{block.Glass{}, 32}, {block.Gravel{}, 64}}, Reward{Money: 1200, CorePoints: 1}},
-	{"기초 완성", []Requirement{{block.NewChest(), 4}, {block.NewFurnace(cube.North), 4}, {block.Glass{}, 64}}, Reward{Money: 2000, CorePoints: 2}},
+	{"기초 완성", []Requirement{{block.NewChest(), 4}, {block.NewFurnace(cube.North), 4}, {block.Glass{}, 64}},
+		Reward{Money: 2000, CorePoints: 2, Items: []func() item.Stack{func() item.Stack { return machineItem(KindMiner) }}}},
+	{"분쇄 라인", []Requirement{{block.Sand{}, 256}, {block.Gravel{}, 128}}, Reward{Money: 3000, CorePoints: 2}},
+	{"체질 장인", []Requirement{{item.Flint{}, 64}, {item.ClayBall{}, 64}, {item.IronNugget{}, 32}}, Reward{Money: 4000, CorePoints: 2}},
 }
 
 // itemKey identifies an item type for missions and the shop.
@@ -111,6 +116,17 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 	if by != nil {
 		s.AddMoney(by, m.Reward.Money)
 	}
+	for _, f := range m.Reward.Items {
+		it := f()
+		if by == nil {
+			// Nobody to hand it to: keep it in the lost-and-found box.
+			s.addLost(it)
+			continue
+		}
+		if n, _ := by.Inventory().AddItem(it); n < it.Count() {
+			s.dropAt(tx, by.Position(), it.Grow(n-it.Count()))
+		}
+	}
 	s.storeState()
 	for e := range tx.Players() {
 		p := e.(*player.Player)
@@ -120,6 +136,10 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 	reward := fmt.Sprintf("코어 강화 포인트 +%d", m.Reward.CorePoints)
 	if by != nil && m.Reward.Money > 0 {
 		reward = fmt.Sprintf("%s(%s), %s", formatMoney(m.Reward.Money), by.Name(), reward)
+	}
+	for _, f := range m.Reward.Items {
+		it := f()
+		reward += fmt.Sprintf(", %s x%d", itemName(it), it.Count())
 	}
 	s.broadcast(tx, fmt.Sprintf("§a미션 '%s' 완료! 레벨 %d 달성 · 보상: %s", m.Name, s.state.Level, reward))
 }
