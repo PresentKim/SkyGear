@@ -2,6 +2,8 @@ package dragonfactory
 
 import (
 	"fmt"
+	"maps"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -103,10 +105,7 @@ func (s *session) showBuyback(p *player.Player) {
 func (s *session) buybackMenu(p *player.Player) (string, []ui.Option) {
 	bb := s.buyback()
 	body := fmt.Sprintf("소지금 §6%s§r · 남은 매입 예산 §6%s§r\n§7예산과 품목별 한도는 하루마다 회복됩니다. 누르면 인벤토리의 그 아이템을 모두 팝니다.", formatMoney(s.Money(p)), formatMoney(bb.Budget))
-	opts := []ui.Option{s.opt("§a전체 판매", iconAll, func(p *player.Player, _ *world.Tx) {
-		s.sellAll(p, func(item.Stack) bool { return true })
-		s.showBuyback(p)
-	})}
+	opts := []ui.Option{s.opt("§a전체 판매", iconAll, func(p *player.Player, _ *world.Tx) { s.confirmSellAll(p) })}
 	for _, it := range BuybackItems {
 		left := "한도 없음"
 		if it.Limit > 0 {
@@ -119,6 +118,67 @@ func (s *session) buybackMenu(p *player.Player) (string, []ui.Option) {
 		}))
 	}
 	return body, append(opts, s.backOption())
+}
+
+// confirmSellAll shows what selling everything would sell, and sells on
+// confirmation.
+func (s *session) confirmSellAll(p *player.Player) {
+	lines, total := s.quoteSale(p)
+	if len(lines) == 0 {
+		p.Message("§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
+		s.showBuyback(p)
+		return
+	}
+	body := "§f다음 아이템을 팝니다.\n\n" + strings.Join(lines, "\n") + "\n\n§f합계 §6" + formatMoney(total)
+	ui.Confirm(p, "전체 판매", body, "§a판매", func(p *player.Player, tx *world.Tx) {
+		if tx.World() != s.world {
+			return
+		}
+		s.sellAll(p, func(item.Stack) bool { return true })
+		s.showBuyback(p)
+	})
+}
+
+// quoteSale returns what selling the whole inventory would sell now, one
+// line per item, and the total, without selling.
+func (s *session) quoteSale(p *player.Player) ([]string, int64) {
+	bb := s.buyback()
+	budget, sold := bb.Budget, maps.Clone(bb.Sold)
+	counts := map[string]int{}
+	var order []string
+	names := map[string]string{}
+	var total int64
+	for _, st := range p.Inventory().Slots() {
+		if st.Empty() {
+			continue
+		}
+		b, ok := buybackFor(st.Item())
+		if !ok {
+			continue
+		}
+		k := itemKey(b.Item)
+		n := st.Count()
+		if b.Limit > 0 {
+			n = min(n, b.Limit-sold[k])
+		}
+		n = max(0, min(n, int(budget/b.Price)))
+		if n == 0 {
+			continue
+		}
+		sold[k] += n
+		budget -= int64(n) * b.Price
+		total += int64(n) * b.Price
+		if _, seen := counts[k]; !seen {
+			order = append(order, k)
+			names[k] = itemName(st)
+		}
+		counts[k] += n
+	}
+	lines := make([]string, 0, len(order))
+	for _, k := range order {
+		lines = append(lines, fmt.Sprintf("§7- §f%s §7x%s", names[k], formatInt(int64(counts[k]))))
+	}
+	return lines, total
 }
 
 // sellAll sells the inventory stacks that match and tells p the result.

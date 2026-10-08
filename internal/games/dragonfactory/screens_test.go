@@ -142,3 +142,26 @@ func TestGiveItems(t *testing.T) {
 		}
 	}
 }
+
+func TestSellAllQuoteSellsNothing(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_ = p.Inventory().SetItem(0, item.NewStack(item.Flint{}, 10))
+		_ = p.Inventory().SetItem(1, item.NewStack(item.Flint{}, 5))
+		_ = p.Inventory().SetItem(2, item.NewStack(item.Coal{}, 2))
+		before := s.Money(p)
+		lines, total := s.quoteSale(p)
+		if len(lines) != 2 || total != 15*4+2*8 {
+			t.Fatalf("quote %v total %d", lines, total)
+		}
+		if s.Money(p) != before || !p.Inventory().ContainsItem(item.NewStack(item.Flint{}, 15)) {
+			t.Fatal("quoting sold something")
+		}
+		s.sellAll(p, func(item.Stack) bool { return true })
+		if s.Money(p)-before != total {
+			t.Fatalf("sold for %d, quoted %d", s.Money(p)-before, total)
+		}
+	})
+}
