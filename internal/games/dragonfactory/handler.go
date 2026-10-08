@@ -28,19 +28,30 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, _ *[]item.
 	if h.deny(ctx, pos) {
 		return
 	}
-	if c, ok := ctx.Player().Tx().Block(pos).(Core); ok {
-		h.s.breakCore(c, pos)
+	switch b := ctx.Player().Tx().Block(pos).(type) {
+	case Core:
+		h.s.breakCore(b, pos)
+	case Drawer:
+		// Hitting the front takes items out; it never mines the drawer.
+		if lp := h.s.lastPunch; lp.pos == pos && lp.player == ctx.Player().H() && lp.front {
+			ctx.Cancel()
+			return
+		}
+		h.s.removeDisplay(ctx.Player().Tx(), pos)
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
 	if h.deny(ctx, pos) {
 		return
 	}
-	if _, ok := b.(Core); ok {
-		held, _ := ctx.Player().HeldItems()
+	held, _ := ctx.Player().HeldItems()
+	switch b.(type) {
+	case Core:
 		if !h.s.placeCore(ctx.Player(), ctx.Player().Tx(), pos, held) {
 			ctx.Cancel()
 		}
+	case Drawer:
+		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, _ mgl64.Vec3) {

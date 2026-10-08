@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"log/slog"
 	"math/rand/v2"
 	"path/filepath"
@@ -29,12 +30,12 @@ func testSession(t *testing.T) *session {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()
+	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(EntityTypes())}.New()
 	t.Cleanup(func() { _ = w.Close() })
 	g := &Game{log: slog.Default(), db: d, sessions: map[*world.World]*session{}}
 	s := &session{
 		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute), radius: 4,
-		saveID: save.ID, saveName: save.Name, state: newState(), money: map[string]int64{},
+		saveID: save.ID, saveName: save.Name, state: newState(), money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}
 	s.ensureCores()

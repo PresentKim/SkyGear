@@ -69,7 +69,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock, radius: inst.LoadRadius(),
 		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
-		state: st, money: map[string]int64{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
+		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.ensureCores()
 	inst.World.Handle(&worldHandler{s: s})
@@ -100,6 +100,10 @@ type session struct {
 	rand     *rand.Rand
 	// money holds the wallets of players currently in the instance.
 	money map[string]int64
+	// displays are the drawer display entities by drawer position.
+	displays  map[cube.Pos]*drawerDisplay
+	lastUse   drawerUse
+	lastPunch drawerPunch
 }
 
 func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{0.5, IslandY, 2.5} }
@@ -154,6 +158,7 @@ func (s *session) Autosave(*world.Tx) {
 }
 
 func (s *session) Close(tx *world.Tx) {
+	s.removeDisplays(tx)
 	s.Autosave(tx)
 	s.g.mu.Lock()
 	delete(s.g.sessions, s.world)
