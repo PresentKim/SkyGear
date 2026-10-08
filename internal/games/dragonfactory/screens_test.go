@@ -103,11 +103,32 @@ func TestExpansionMode(t *testing.T) {
 		if b := e.floor[cube.Pos{10, expandFloorY, 10}]; b != world.Block(floorOwned) {
 			t.Fatalf("owned floor = %v", b)
 		}
-		// Walking into (1, 0) targets it.
-		s.expandMove(p, mgl64.Vec3{20.5, 64, 5.5})
+		// The body is frozen; the right key (X -1) moves the cursor east to
+		// (1, 0).
+		if !p.Immobile() {
+			t.Fatal("player can still move")
+		}
+		move := player.NewEventContext(tx, p)
+		(&handler{s: s}).HandleMove(move, mgl64.Vec3{3, 64, 3}, cube.Rotation{})
+		if !move.Cancelled() {
+			t.Fatal("movement not cancelled in expansion mode")
+		}
+		s.expandInput(p, e, mgl64.Vec2{-1, 0})
 		if e.target != (ChunkPos{1, 0}) || e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorTarget) {
 			t.Fatalf("target = %v, floor %v", e.target, e.floor[cube.Pos{20, expandFloorY, 5}])
 		}
+		// A key held on does not move again at once; a new press does.
+		s.expandInput(p, e, mgl64.Vec2{-1, 0})
+		if e.target != (ChunkPos{1, 0}) {
+			t.Fatalf("held key moved at once to %v", e.target)
+		}
+		s.expandInput(p, e, mgl64.Vec2{})
+		s.expandInput(p, e, mgl64.Vec2{0, 1}) // forward: north
+		if e.target != (ChunkPos{1, -1}) {
+			t.Fatalf("forward moved to %v", e.target)
+		}
+		s.expandInput(p, e, mgl64.Vec2{})
+		s.expandInput(p, e, mgl64.Vec2{0, -1})
 		// Building is off.
 		ctx := player.NewEventContext(tx, p)
 		(&handler{s: s}).HandleBlockPlace(ctx, cube.Pos{1, 64, 1}, block.Dirt{})
@@ -122,14 +143,12 @@ func TestExpansionMode(t *testing.T) {
 		if b := e.floor[cube.Pos{36, expandFloorY, 5}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
 		}
-		// Leaving while over the void puts the player back on the island.
-		p.Teleport(mgl64.Vec3{40.5, 64, 5.5})
 		s.stopExpand(p, tx)
 		if _, ok := s.expansionOf(p); ok {
 			t.Fatal("still in expansion mode")
 		}
-		if p.Position() != s.Spawn() {
-			t.Fatalf("player left over the void at %v", p.Position())
+		if p.Immobile() {
+			t.Fatal("player still frozen after leaving")
 		}
 	})
 }

@@ -13,7 +13,7 @@
 | 항목 | 비고 |
 |---|---|
 | 인스턴스 하루의 길이(실제 시간) | 알케미 팩토리·마인크래프트 참고, 인게임 흐름이 잡힌 뒤 조정. 현재 20분(`platform.toml`) |
-| 레벨 업 시 코어 강화 포인트 지급량, 강화 항목별 비용 | 지급량 초안: `dragonfactory/mission.go` `Levels` |
+| 레벨 업 시 코어 강화 포인트 지급량, 강화 항목별 비용·효과, 티어 블록 | 지급량 초안: `dragonfactory/mission.go` `Levels`(Lv.8까지 10포인트). 비용·효과 초안: `coreupgrade.go`, 티어: `core.go` `coreTypes` |
 | 미션 품목·수량·보상 | 초안: `dragonfactory/mission.go` `Levels` |
 | 대지 코어 생성 주기·블록 확률 | 초안 3초, `dragonfactory/core.go` `coreTypes` |
 | 섬 확장 단위(청크)와 가격 | UX가 나쁘면 다른 단위 검토. 초안 1,000G부터 ×1.5 (`island.go` `chunkPrice`) |

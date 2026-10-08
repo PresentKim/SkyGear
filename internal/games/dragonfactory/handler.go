@@ -16,8 +16,11 @@ type handler struct {
 
 func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
-		// No building while looking down in island expansion mode.
+		// No building or clicking in island expansion mode. A click on the
+		// fake glass floor makes the server resend the real blocks, so the
+		// floor is shown again.
 		ctx.Cancel()
+		h.s.restoreFloorNear(ctx.Player(), pos)
 		return true
 	}
 	if h.s.canBuild(pos) {
@@ -100,14 +103,17 @@ func (h *handler) useHeldScreen(p *player.Player, held item.Stack) {
 	}
 }
 
-// HandleMove returns players that fall below the island into the void.
+// HandleMove returns players that fall below the island into the void, and
+// keeps players in island expansion mode in place.
 func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, _ cube.Rotation) {
+	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
+		ctx.Cancel()
+		return
+	}
 	if newPos.Y() < VoidY {
 		ctx.Cancel()
 		h.s.returnFromVoid(ctx.Player(), ctx.Player().Tx())
-		return
 	}
-	h.s.expandMove(ctx.Player(), newPos)
 }
 
 // HandleToggleSneak opens the island expansion actions when sneaking in

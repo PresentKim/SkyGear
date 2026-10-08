@@ -22,40 +22,70 @@ import (
 type CoreType struct {
 	ID   string
 	Name string
-	// Interval is the generation interval in ticks at tier 1.
-	Interval int
-	// Table lists weighted blocks generated at tier 1.
-	Table []WeightedBlock
+	// Tiers are the tiers of the core in order; tier 1 is Tiers[0]. A tier
+	// adds blocks to those of the tiers below and sets the base interval.
+	Tiers []CoreTier
 }
 
-// WeightedBlock is a generation table entry.
+// CoreTier is one tier of a core type.
+type CoreTier struct {
+	// Interval is the base generation interval in ticks.
+	Interval int
+	// Add lists the weighted blocks this tier adds to the table.
+	Add []WeightedBlock
+	// Points and Level are the core points and save level needed to reach
+	// this tier (unused for tier 1).
+	Points, Level int
+}
+
+// WeightedBlock is a generation table entry. Rare entries get more weight
+// from the luck upgrade.
 type WeightedBlock struct {
 	Block  world.Block
 	Weight int
+	Rare   bool
 }
 
-func (t *CoreType) pick(r *rand.Rand) world.Block {
+// table returns the blocks of all tiers up to tier.
+func (t *CoreType) table(tier int) []WeightedBlock {
+	var out []WeightedBlock
+	for i := 0; i < tier && i < len(t.Tiers); i++ {
+		out = append(out, t.Tiers[i].Add...)
+	}
+	return out
+}
+
+// pick picks a block from weighted entries.
+func pick(r *rand.Rand, table []WeightedBlock) world.Block {
 	total := 0
-	for _, e := range t.Table {
+	for _, e := range table {
 		total += e.Weight
 	}
 	n := r.IntN(total)
-	for _, e := range t.Table {
+	for _, e := range table {
 		if n < e.Weight {
 			return e.Block
 		}
 		n -= e.Weight
 	}
-	return t.Table[0].Block
+	return table[0].Block
 }
 
 // coreTypes are all core themes by ID. Only the earth core exists in M2.
 var coreTypes = map[string]*CoreType{
 	"earth": {
-		ID: "earth", Name: "대지 코어", Interval: 60,
-		Table: []WeightedBlock{
-			{block.Cobblestone{}, 30}, {block.Dirt{}, 20}, {block.Log{Wood: block.OakWood()}, 18},
-			{block.Stone{}, 10}, {block.Sand{}, 10}, {block.Gravel{}, 8}, {block.CoalOre{}, 4},
+		ID: "earth", Name: "대지 코어",
+		Tiers: []CoreTier{
+			{Interval: 60, Add: []WeightedBlock{
+				{block.Cobblestone{}, 30, false}, {block.Dirt{}, 20, false}, {block.Log{Wood: block.OakWood()}, 18, false},
+				{block.Stone{}, 10, false}, {block.Sand{}, 10, false}, {block.Gravel{}, 8, false}, {block.CoalOre{}, 4, true},
+			}},
+			{Interval: 50, Points: 3, Level: 4, Add: []WeightedBlock{
+				{block.Clay{}, 6, false}, {block.IronOre{}, 4, true},
+			}},
+			{Interval: 40, Points: 5, Level: 7, Add: []WeightedBlock{
+				{block.Log{Wood: block.BirchWood()}, 8, false}, {block.CopperOre{}, 4, true}, {block.GoldOre{}, 2, true},
+			}},
 		},
 	},
 }
@@ -67,6 +97,12 @@ var coreOrder = []string{"earth"}
 type CoreRecord struct {
 	Type string `json:"type"`
 	Tier int    `json:"tier"`
+	// Upgrades are the upgrade levels by upgrade ID (coreupgrade.go).
+	Upgrades map[string]int `json:"upgrades,omitempty"`
+	// FilterUnlocked enables Excluded; Excluded are the item keys of blocks
+	// the core does not generate.
+	FilterUnlocked bool     `json:"filter_unlocked,omitempty"`
+	Excluded       []string `json:"excluded,omitempty"`
 	// Generation increases on every reissue; older copies are invalid.
 	Generation int32  `json:"generation"`
 	Placed     bool   `json:"placed"`
@@ -165,16 +201,13 @@ func (c Core) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
 		c.Progress = 0
 	} else if c.Progress++; c.Progress >= s.coreInterval(rec) {
-		tx.SetBlock(pos.Side(cube.FaceUp), c.ctype().pick(s.rand), nil)
+		s.generate(tx, pos, rec)
 		c.Progress = 0
 	}
 	if c.Progress != before {
 		tx.SetBlockEntity(pos, c)
 	}
 }
-
-// coreInterval is the generation interval of a core in ticks.
-func (s *session) coreInterval(rec *CoreRecord) int { return coreTypes[rec.Type].Interval }
 
 // coreItem returns the item of a core type for a generation.
 func coreItem(typ string, gen int32) item.Stack {
@@ -263,21 +296,22 @@ func (s *session) verifyCores(tx *world.Tx) {
 func (s *session) showCores(p *player.Player, tx *world.Tx) {
 	s.verifyCores(tx)
 	var opts []ui.Option
-	body := "코어는 종류별로 섬에 하나만 설치할 수 있습니다.\n설치되어 있지 않은 코어는 무상으로 재발급할 수 있고, 재발급하면 이전 코어 아이템은 무효가 됩니다.\n"
+	body := fmt.Sprintf("코어 강화 포인트 §b%d§r\n코어는 종류별로 섬에 하나만 설치할 수 있습니다.\n설치되어 있지 않은 코어는 무상으로 재발급할 수 있고, 재발급하면 이전 코어 아이템은 무효가 됩니다.\n", s.state.CorePoints)
 	for _, id := range coreOrder {
 		rec := s.state.Cores[id]
 		if rec == nil {
 			continue
 		}
 		t := coreTypes[id]
+		opts = append(opts, s.opt(t.Name+" 강화", iconCores, func(p *player.Player, _ *world.Tx) { s.showCoreUpgrades(p, id) }))
 		if rec.Placed {
 			body += fmt.Sprintf("\n§f%s §7티어 %d · 설치됨 (%d, %d, %d)", t.Name, rec.Tier, rec.Pos[0], rec.Pos[1], rec.Pos[2])
 			continue
 		}
 		body += fmt.Sprintf("\n§f%s §7티어 %d · §e설치 안 됨", t.Name, rec.Tier)
-		opts = append(opts, ui.Option{Label: t.Name + " 재발급", Run: func(p *player.Player, tx *world.Tx) { s.reissueCore(p, tx, id) }})
+		opts = append(opts, s.opt(t.Name+" 재발급", iconCores, func(p *player.Player, tx *world.Tx) { s.reissueCore(p, tx, id) }))
 	}
-	ui.Menu(p, "코어 관리", body, opts...)
+	ui.Menu(p, "코어 관리", body, append(opts, s.backOption())...)
 }
 
 func (s *session) reissueCore(p *player.Player, tx *world.Tx, typ string) {
@@ -318,25 +352,33 @@ func (c Core) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *
 	return true
 }
 
-// showCoreInfo describes a core: its type, tier, interval and the chance of
-// each block it generates.
+// showCoreInfo describes a core: its type, tier, upgrades, interval and the
+// chance of each block it generates.
 func (s *session) showCoreInfo(p *player.Player, c Core) {
 	t := c.ctype()
-	tier := 1
-	if rec := s.state.Cores[c.Type]; rec != nil {
-		tier = rec.Tier
+	rec := s.state.Cores[c.Type]
+	if rec == nil {
+		rec = &CoreRecord{Type: c.Type, Tier: 1}
 	}
+	table := coreTable(rec)
 	total := 0
-	for _, e := range t.Table {
+	for _, e := range table {
 		total += e.Weight
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f%s §7· 티어 %d\n§7위 칸이 비어 있으면 %.1f초마다 블록을 하나 만듭니다.\n\n§f생성 확률\n", t.Name, tier, float64(t.Interval)/20)
-	for _, e := range t.Table {
-		fmt.Fprintf(&b, "§7- §f%s §7%d%%\n", itemName(item.NewStack(e.Block.(world.Item), 1)), e.Weight*100/total)
+	fmt.Fprintf(&b, "§f%s §7· 티어 %d\n§7위 칸이 비어 있으면 %.1f초마다 블록을 하나 만듭니다.\n", t.Name, rec.Tier, float64(s.coreInterval(rec))/20)
+	for _, u := range coreUpgrades {
+		if lv := rec.level(u.id); lv > 0 {
+			fmt.Fprintf(&b, "§7%s Lv.%d · ", u.name, lv)
+		}
 	}
-	b.WriteString("\n§7코어는 종류별로 섬에 하나만 둘 수 있습니다. 강화·재발급은 메뉴의 코어 관리에서.")
+	b.WriteString("\n§f생성 확률\n")
+	for _, e := range table {
+		fmt.Fprintf(&b, "§7- §f%s §7%.1f%%\n", itemName(item.NewStack(e.Block.(world.Item), 1)), float64(e.Weight*100)/float64(total))
+	}
+	b.WriteString("\n§7코어는 종류별로 섬에 하나만 둘 수 있습니다.")
 	ui.Menu(p, t.Name, b.String(),
-		s.opt("§b코어 관리", iconCores, func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }),
+		s.opt("§b강화", iconCores, func(p *player.Player, _ *world.Tx) { s.showCoreUpgrades(p, c.Type) }),
+		s.opt("§f코어 관리", iconCores, func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }),
 	)
 }

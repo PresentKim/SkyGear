@@ -59,3 +59,57 @@ func (s *Session) ViewFakeBlock(pos cube.Pos, b world.Block) {
 	}
 	s.ViewBlockUpdate(pos, b, 0)
 }
+
+// MoveInput returns the movement keys the client last held, as sent in
+// PlayerAuthInput before input permissions apply (so also while immobile):
+// Y is forward (+1) and back, X is left (+1) and right.
+func (s *Session) MoveInput() mgl64.Vec2 {
+	if v := s.moveInput.Load(); v != nil {
+		return *v
+	}
+	return mgl64.Vec2{}
+}
+
+// ViewFakeEntity shows an entity of the type identifier (e.g.
+// "minecraft:allay") at pos to this player only, standing still and scaled,
+// and returns its runtime ID for MoveFakeEntity and RemoveFakeEntity.
+func (s *Session) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
+	if s == Nop {
+		return 0
+	}
+	s.entityMutex.Lock()
+	s.currentEntityRuntimeID++
+	id := s.currentEntityRuntimeID
+	s.entityMutex.Unlock()
+
+	m := protocol.NewEntityMetadata()
+	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagNoAI)
+	m[protocol.EntityDataKeyScale] = scale
+	s.writePacket(&packet.AddActor{
+		EntityUniqueID:  int64(id),
+		EntityRuntimeID: id,
+		EntityType:      identifier,
+		EntityMetadata:  m,
+		Position:        vec64To32(pos),
+		Yaw:             float32(yaw),
+		HeadYaw:         float32(yaw),
+		BodyYaw:         float32(yaw),
+	})
+	return id
+}
+
+// MoveFakeEntity moves an entity shown with ViewFakeEntity.
+func (s *Session) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
+	if s == Nop || id == 0 {
+		return
+	}
+	s.writePacket(&packet.MoveActorAbsolute{EntityRuntimeID: id, Position: vec64To32(pos), Rotation: mgl32.Vec3{0, float32(yaw), float32(yaw)}})
+}
+
+// RemoveFakeEntity removes an entity shown with ViewFakeEntity.
+func (s *Session) RemoveFakeEntity(id uint64) {
+	if s == Nop || id == 0 {
+		return
+	}
+	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(id)})
+}

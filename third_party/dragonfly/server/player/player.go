@@ -3493,6 +3493,27 @@ func (p *Player) ViewFakeBlock(pos cube.Pos, b world.Block) {
 	p.session().ViewFakeBlock(pos, b)
 }
 
+// MoveInput returns the movement keys the player holds: Y is forward (+1)
+// and back, X is left (+1) and right. It is read even while the player is
+// immobile. (dragonfactory patch)
+func (p *Player) MoveInput() mgl64.Vec2 { return p.session().MoveInput() }
+
+// ViewFakeEntity shows an entity of the type identifier at pos to this
+// player only and returns its ID for MoveFakeEntity and RemoveFakeEntity.
+// (dragonfactory patch)
+func (p *Player) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
+	return p.session().ViewFakeEntity(identifier, pos, yaw, scale)
+}
+
+// MoveFakeEntity moves an entity shown with ViewFakeEntity. (dragonfactory patch)
+func (p *Player) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
+	p.session().MoveFakeEntity(id, pos, yaw)
+}
+
+// RemoveFakeEntity removes an entity shown with ViewFakeEntity. (dragonfactory
+// patch)
+func (p *Player) RemoveFakeEntity(id uint64) { p.session().RemoveFakeEntity(id) }
+
 // AfterClientSync runs f once the client has processed everything sent to
 // it so far (a NetworkStackLatency round trip, at most a second), e.g. to
 // show a form after closing a window. f does not run if the player is gone

@@ -79,6 +79,8 @@ type Session struct {
 	openedPos                      atomic.Pointer[cube.Pos]
 	// entityContainer is the open entity container, if any (dragonfactory patch).
 	entityContainer atomic.Pointer[entityContainer]
+	// moveInput is the last held movement keys (dragonfactory patch, camera.go).
+	moveInput atomic.Pointer[mgl64.Vec2]
 	// lastContainerClose is when a container window last closed, and
 	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
 	lastContainerClose atomic.Int64

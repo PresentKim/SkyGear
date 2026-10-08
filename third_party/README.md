@@ -21,8 +21,8 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/session/session.go` | `entityContainer` 필드, `AvailableActorIdentifiers` 에 `dragonfly:entity_container`, 위 핸들러 등록. **패킷 처리 오류로 세션이 끝날 때 ERROR 로그 + 이유를 담은 Disconnect**(원래는 Debug 로그만 남기고 조용히 끊음) |
 | `server/session/player.go` | `closeCurrentContainer` 가 열리는 중인 엔티티 상자도 정리 |
 | `server/session/session.go` (추가) | 실험: `SendBasicVoxelShapes` 면 접속 시 최소 `VoxelShapes`(empty, unit_cube) 전송 |
-| `server/session/camera.go` (신규) | 접속 시 카메라 프리셋(`minecraft:free`, 카메라 기준 이동) 전송, `SetCamera`/`ClearCamera`(CameraInstruction), `ViewFakeBlock`(그 플레이어에게만 보이는 블록) |
-| `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김 |
+| `server/session/camera.go` (신규) | 접속 시 카메라 프리셋(`minecraft:free`, 카메라 기준 이동) 전송, `SetCamera`/`ClearCamera`(CameraInstruction), `ViewFakeBlock`(그 플레이어에게만 보이는 블록), `MoveInput`, `ViewFakeEntity`/`MoveFakeEntity`/`RemoveFakeEntity`(그 플레이어에게만 보이는 엔티티) |
+| `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김. 누른 이동 키(`RawMoveVector`, 움직일 수 없을 때도 옴)를 저장 → `Player.MoveInput` |
 | `server/session/handler_container_close.go` | 엔티티 상자가 열려 있으면 클라이언트의 255 창 닫기는 무시. Retry 로 여는 중에는 그 창의 닫기도 응답만 하고 무시 |
 | `server/session/handler_player_action.go` | `BlockActionDebug` 면 클라이언트가 보낸 블록 부수기 동작(시작·계속·중단·예측 파괴)을 INFO 로그로 |
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(블록별 캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |

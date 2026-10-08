@@ -1,6 +1,6 @@
 diff -ruN a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
---- a/server/internal/iteminternal/components.go	2026-10-08 22:30:13.404635784 +0000
-+++ b/server/internal/iteminternal/components.go	2026-10-08 22:30:13.615086619 +0000
+--- a/server/internal/iteminternal/components.go	2026-10-08 22:34:09.383466719 +0000
++++ b/server/internal/iteminternal/components.go	2026-10-08 22:34:09.433372872 +0000
 @@ -1,9 +1,11 @@
  package iteminternal
  
@@ -43,7 +43,7 @@ diff -ruN a/server/internal/iteminternal/components.go b/server/internal/itemint
  	}
 diff -ruN a/server/item/digger.go b/server/item/digger.go
 --- a/server/item/digger.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/item/digger.go	2026-10-08 22:30:13.616019632 +0000
++++ b/server/item/digger.go	2026-10-08 22:34:09.433964392 +0000
 @@ -0,0 +1,11 @@
 +package item
 +
@@ -57,8 +57,8 @@ diff -ruN a/server/item/digger.go b/server/item/digger.go
 +	DestroySpeeds() map[string]int
 +}
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 22:30:13.515250253 +0000
-+++ b/server/player/player.go	2026-10-08 22:30:13.627773037 +0000
+--- a/server/player/player.go	2026-10-08 22:34:09.393972501 +0000
++++ b/server/player/player.go	2026-10-08 22:34:09.443921339 +0000
 @@ -102,6 +102,10 @@
  	breakingPos       cube.Pos
  	breakingFace      cube.Face
@@ -143,7 +143,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  	p.checkBlockCollisions(p.data.Vel)
  	p.onGround = p.checkOnGround(mgl64.Vec3{})
  	p.checkEntitySteppers()
-@@ -3413,6 +3454,58 @@
+@@ -3413,6 +3454,79 @@
  	}
  }
  
@@ -186,6 +186,27 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +	p.session().ViewFakeBlock(pos, b)
 +}
 +
++// MoveInput returns the movement keys the player holds: Y is forward (+1)
++// and back, X is left (+1) and right. It is read even while the player is
++// immobile. (dragonfactory patch)
++func (p *Player) MoveInput() mgl64.Vec2 { return p.session().MoveInput() }
++
++// ViewFakeEntity shows an entity of the type identifier at pos to this
++// player only and returns its ID for MoveFakeEntity and RemoveFakeEntity.
++// (dragonfactory patch)
++func (p *Player) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
++	return p.session().ViewFakeEntity(identifier, pos, yaw, scale)
++}
++
++// MoveFakeEntity moves an entity shown with ViewFakeEntity. (dragonfactory patch)
++func (p *Player) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
++	p.session().MoveFakeEntity(id, pos, yaw)
++}
++
++// RemoveFakeEntity removes an entity shown with ViewFakeEntity. (dragonfactory
++// patch)
++func (p *Player) RemoveFakeEntity(id uint64) { p.session().RemoveFakeEntity(id) }
++
 +// AfterClientSync runs f once the client has processed everything sent to
 +// it so far (a NetworkStackLatency round trip, at most a second), e.g. to
 +// show a form after closing a window. f does not run if the player is gone
@@ -204,8 +225,8 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/camera.go b/server/session/camera.go
 --- a/server/session/camera.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/camera.go	2026-10-08 22:30:13.630214479 +0000
-@@ -0,0 +1,61 @@
++++ b/server/session/camera.go	2026-10-08 22:34:09.445716989 +0000
+@@ -0,0 +1,115 @@
 +package session
 +
 +// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
@@ -267,9 +288,63 @@ diff -ruN a/server/session/camera.go b/server/session/camera.go
 +	}
 +	s.ViewBlockUpdate(pos, b, 0)
 +}
++
++// MoveInput returns the movement keys the client last held, as sent in
++// PlayerAuthInput before input permissions apply (so also while immobile):
++// Y is forward (+1) and back, X is left (+1) and right.
++func (s *Session) MoveInput() mgl64.Vec2 {
++	if v := s.moveInput.Load(); v != nil {
++		return *v
++	}
++	return mgl64.Vec2{}
++}
++
++// ViewFakeEntity shows an entity of the type identifier (e.g.
++// "minecraft:allay") at pos to this player only, standing still and scaled,
++// and returns its runtime ID for MoveFakeEntity and RemoveFakeEntity.
++func (s *Session) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
++	if s == Nop {
++		return 0
++	}
++	s.entityMutex.Lock()
++	s.currentEntityRuntimeID++
++	id := s.currentEntityRuntimeID
++	s.entityMutex.Unlock()
++
++	m := protocol.NewEntityMetadata()
++	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagNoAI)
++	m[protocol.EntityDataKeyScale] = scale
++	s.writePacket(&packet.AddActor{
++		EntityUniqueID:  int64(id),
++		EntityRuntimeID: id,
++		EntityType:      identifier,
++		EntityMetadata:  m,
++		Position:        vec64To32(pos),
++		Yaw:             float32(yaw),
++		HeadYaw:         float32(yaw),
++		BodyYaw:         float32(yaw),
++	})
++	return id
++}
++
++// MoveFakeEntity moves an entity shown with ViewFakeEntity.
++func (s *Session) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
++	if s == Nop || id == 0 {
++		return
++	}
++	s.writePacket(&packet.MoveActorAbsolute{EntityRuntimeID: id, Position: vec64To32(pos), Rotation: mgl32.Vec3{0, float32(yaw), float32(yaw)}})
++}
++
++// RemoveFakeEntity removes an entity shown with ViewFakeEntity.
++func (s *Session) RemoveFakeEntity(id uint64) {
++	if s == Nop || id == 0 {
++		return
++	}
++	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(id)})
++}
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 22:30:13.630241753 +0000
++++ b/server/session/entity_container.go	2026-10-08 22:34:09.445743831 +0000
 @@ -0,0 +1,417 @@
 +package session
 +
@@ -689,8 +764,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	})
 +}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 22:30:13.520648816 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 22:30:13.628463891 +0000
+--- a/server/session/handler_container_close.go	2026-10-08 22:34:09.395543835 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 22:34:09.444671639 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -713,8 +788,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 22:30:13.522721632 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 22:30:13.629300100 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 22:34:09.396177980 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 22:34:09.445057431 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -727,8 +802,8 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
 diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
---- a/server/session/handler_player_action.go	2026-10-08 22:30:13.523003055 +0000
-+++ b/server/session/handler_player_action.go	2026-10-08 22:30:13.629339399 +0000
+--- a/server/session/handler_player_action.go	2026-10-08 22:34:09.396251197 +0000
++++ b/server/session/handler_player_action.go	2026-10-08 22:34:09.445106233 +0000
 @@ -9,6 +9,10 @@
  	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
  )
@@ -755,9 +830,19 @@ diff -ruN a/server/session/handler_player_action.go b/server/session/handler_pla
  	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
  		// Don't do anything for these actions.
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-08 22:30:13.523130767 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-08 22:30:13.629359694 +0000
-@@ -63,6 +63,7 @@
+--- a/server/session/handler_player_auth_input.go	2026-10-08 22:34:09.396289424 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 22:34:09.445128628 +0000
+@@ -26,6 +26,9 @@
+ 
+ // handleMovement handles the movement part of the packet.PlayerAuthInput.
+ func (h PlayerAuthInputHandler) handleMovement(pk *packet.PlayerAuthInput, s *Session, c Controllable) error {
++	// dragonfactory patch: remember the held movement keys (Session.MoveInput).
++	input := mgl64.Vec2{float64(pk.RawMoveVector[0]), float64(pk.RawMoveVector[1])}
++	s.moveInput.Store(&input)
+ 	yaw, pitch := c.Rotation().Elem()
+ 	pos := c.Position()
+ 
+@@ -63,6 +66,7 @@
  
  	s.moving = true
  	c.Move(deltaPos, deltaYaw, deltaPitch)
@@ -766,8 +851,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 22:30:13.524971275 +0000
-+++ b/server/session/player.go	2026-10-08 22:30:13.629613493 +0000
+--- a/server/session/player.go	2026-10-08 22:34:09.396744938 +0000
++++ b/server/session/player.go	2026-10-08 22:34:09.445434129 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -798,9 +883,9 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 22:30:13.525156257 +0000
-+++ b/server/session/session.go	2026-10-08 22:30:13.629786165 +0000
-@@ -77,10 +77,18 @@
+--- a/server/session/session.go	2026-10-08 22:34:09.396804654 +0000
++++ b/server/session/session.go	2026-10-08 22:34:09.444101729 +0000
+@@ -77,10 +77,20 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
  	openedPos                      atomic.Pointer[cube.Pos]
@@ -810,6 +895,8 @@ diff -ruN a/server/session/session.go b/server/session/session.go
 -	moving                         bool
 +	// entityContainer is the open entity container, if any (dragonfactory patch).
 +	entityContainer atomic.Pointer[entityContainer]
++	// moveInput is the last held movement keys (dragonfactory patch, camera.go).
++	moveInput atomic.Pointer[mgl64.Vec2]
 +	// lastContainerClose is when a container window last closed, and
 +	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
 +	lastContainerClose atomic.Int64
@@ -823,7 +910,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  
  	lastChunkPos world.ChunkPos
  
-@@ -269,6 +277,8 @@
+@@ -269,6 +279,8 @@
  	})
  
  	s.sendAvailableEntities(tx.World())
@@ -832,7 +919,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  
  	c.SetGameMode(c.GameMode())
  	for _, e := range c.Effects() {
-@@ -418,7 +428,10 @@
+@@ -418,7 +430,10 @@
  			if sessionOwnerStopped(err) {
  				return
  			}
@@ -844,7 +931,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  			return
  		}
  	}
-@@ -591,6 +604,8 @@
+@@ -591,6 +606,8 @@
  		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
  		packet.IDCommandRequest:            &CommandRequestHandler{},
  		packet.IDContainerClose:            &ContainerCloseHandler{},
@@ -853,7 +940,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  		packet.IDEmote:                     &EmoteHandler{},
  		packet.IDEmoteList:                 nil,
  		packet.IDFilterText:                nil,
-@@ -640,6 +655,7 @@
+@@ -640,6 +657,7 @@
  	for _, t := range w.EntityRegistry().Types() {
  		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
  	}

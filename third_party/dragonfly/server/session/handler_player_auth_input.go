@@ -26,6 +26,9 @@ func (h PlayerAuthInputHandler) Handle(p packet.Packet, s *Session, tx *world.Tx
 
 // handleMovement handles the movement part of the packet.PlayerAuthInput.
 func (h PlayerAuthInputHandler) handleMovement(pk *packet.PlayerAuthInput, s *Session, c Controllable) error {
+	// dragonfactory patch: remember the held movement keys (Session.MoveInput).
+	input := mgl64.Vec2{float64(pk.RawMoveVector[0]), float64(pk.RawMoveVector[1])}
+	s.moveInput.Store(&input)
 	yaw, pitch := c.Rotation().Elem()
 	pos := c.Position()
 

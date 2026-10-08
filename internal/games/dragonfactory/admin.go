@@ -48,6 +48,19 @@ func (c adminLevel) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
+type adminPoints struct {
+	adminBase
+	Sub    cmd.SubCommand `cmd:"points"`
+	Points int            `cmd:"points"`
+}
+
+func (c adminPoints) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		s.state.CorePoints = max(0, c.Points)
+		o.Printf("코어 강화 포인트: %d", s.state.CorePoints)
+	}
+}
+
 type adminMoney struct {
 	adminBase
 	Sub    cmd.SubCommand `cmd:"money"`
@@ -146,12 +159,13 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		for _, n := range bb.Sold {
 			sold += n
 		}
-		o.Printf("level=%d money=%d budget=%d sold=%d", s.state.Level, s.Money(p), bb.Budget, sold)
+		earth := s.state.Cores["earth"]
+		o.Printf("level=%d money=%d points=%d tier=%d budget=%d sold=%d", s.state.Level, s.Money(p), s.state.CorePoints, earth.Tier, bb.Budget, sold)
 	}
 }
 
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
 }
