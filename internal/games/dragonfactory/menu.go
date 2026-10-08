@@ -30,6 +30,7 @@ func (s *session) showMenu(p *player.Player) {
 		ui.Option{Label: "메인 미션", Run: func(p *player.Player, _ *world.Tx) { s.showMission(p) }},
 		ui.Option{Label: "상점 · 구매", Run: func(p *player.Player, _ *world.Tx) { s.showShop(p) }},
 		ui.Option{Label: "상점 · 판매", Run: func(p *player.Player, _ *world.Tx) { s.showBuyback(p) }},
+		ui.Option{Label: "수표 발행", Run: func(p *player.Player, _ *world.Tx) { s.askIssueCheque(p) }},
 		ui.Option{Label: "코어 관리", Run: func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }},
 		ui.Option{Label: "섬 확장", Run: func(p *player.Player, _ *world.Tx) { s.showExpand(p) }},
 		ui.Option{Label: fmt.Sprintf("분실물 보관함 §8(%d)", len(s.state.Lost)), Run: func(p *player.Player, _ *world.Tx) { s.showLost(p) }},

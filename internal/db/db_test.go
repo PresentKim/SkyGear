@@ -90,3 +90,22 @@ func TestMigrationsIdempotent(t *testing.T) {
 		_ = d.Close()
 	}
 }
+
+func TestCheques(t *testing.T) {
+	d := open(t)
+	_, _ = d.TouchAccount("u1", "", "a")
+	s, _ := d.CreateSave("u1", "g", 1, "s")
+	s2, _ := d.CreateSave("u1", "g", 2, "s2")
+	if err := d.IssueCheque("c1", s.ID, 500, "u1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := d.RedeemCheque("c1", s2.ID, "u1"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("cheque redeemed in another save: %v", err)
+	}
+	if amt, err := d.RedeemCheque("c1", s.ID, "u1"); err != nil || amt != 500 {
+		t.Fatalf("redeem = %d, %v", amt, err)
+	}
+	if _, err := d.RedeemCheque("c1", s.ID, "u1"); !errors.Is(err, ErrChequeUsed) {
+		t.Fatalf("second redeem err = %v", err)
+	}
+}

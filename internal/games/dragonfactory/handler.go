@@ -50,15 +50,24 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.s.showMenu(ctx.Player())
 		return
 	}
+	if isCheque(held) {
+		ctx.Cancel()
+		h.s.redeemCheque(ctx.Player())
+		return
+	}
 	if !h.deny(ctx, pos) {
 		h.deny(ctx, pos.Side(face))
 	}
 }
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, _ := ctx.Player().HeldItems()
-	if isMenuItem(held) {
+	switch {
+	case isMenuItem(held):
 		ctx.Cancel()
 		h.s.showMenu(ctx.Player())
+	case isCheque(held):
+		ctx.Cancel()
+		h.s.redeemCheque(ctx.Player())
 	}
 }
 

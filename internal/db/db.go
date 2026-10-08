@@ -88,6 +88,16 @@ var migrations = []string{
 		value   BLOB NOT NULL,
 		PRIMARY KEY (save_id, key)
 	);`,
+	// 2: cheque ledger (docs/design/02-dragonfactory.md §7).
+	`CREATE TABLE cheques (
+		id          TEXT PRIMARY KEY,
+		save_id     INTEGER NOT NULL REFERENCES saves(id) ON DELETE CASCADE,
+		amount      INTEGER NOT NULL,
+		issued_by   TEXT NOT NULL, -- account id, or '' for rewards
+		issued_at   INTEGER NOT NULL,
+		redeemed_by TEXT,
+		redeemed_at INTEGER
+	);`,
 }
 
 func (d *DB) migrate() error {
