@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DragonFactory",
+    "description": "DragonFactory resources",
+    "uuid": "6b1f5c0e-3d0a-4c4e-9a43-8f0d2a7c1e01",
+    "version": [
+      0,
+      0,
+      1
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "0c6e2b7a-5f41-4d7b-b0c2-2f3e9a6d4b02",
+      "version": [
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}
