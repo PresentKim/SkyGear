@@ -386,9 +386,9 @@ func (m Machine) Properties() customblock.Properties {
 // BreakInfo drops the machine and its contents.
 func (m Machine) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
-		Hardness: 3, BlastResistance: 6,
+		Hardness: 1.5, BlastResistance: 6,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   func(t item.Tool) bool { return t.ToolType() == item.TypePickaxe },
+		Effective:   customBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
 			if m.st != nil {
@@ -725,3 +725,9 @@ func init() {
 		world.RegisterItem(Machine{Kind: k})
 	}
 }
+
+// customBlockEffective makes no tool faster on custom blocks. The client
+// takes its break time from the block definition, which only carries the
+// bare-hand time; if the server used a faster tool time, the crack would
+// finish while the client still mines and the block would never break.
+func customBlockEffective(item.Tool) bool { return false }

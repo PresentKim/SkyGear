@@ -124,9 +124,9 @@ func (Core) LightEmissionLevel() uint8 { return 10 }
 // BreakInfo: mined with a pickaxe, dropping the core item of the same generation.
 func (c Core) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
-		Hardness: 3, BlastResistance: 3600,
+		Hardness: 1.5, BlastResistance: 3600,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   func(t item.Tool) bool { return t.ToolType() == item.TypePickaxe },
+		Effective:   customBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			return []item.Stack{coreItem(c.Type, c.Generation)}
 		},

@@ -38,9 +38,9 @@ func (DeliveryBox) Properties() customblock.Properties {
 }
 func (d DeliveryBox) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
-		Hardness: 2, BlastResistance: 2,
+		Hardness: 1, BlastResistance: 2,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   func(t item.Tool) bool { return t.ToolType() == item.TypeAxe },
+		Effective:   customBlockEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{item.NewStack(d, 1)} },
 	}
 }

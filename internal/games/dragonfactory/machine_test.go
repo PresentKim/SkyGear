@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"testing"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -231,5 +232,23 @@ func TestHandsFreeLine(t *testing.T) {
 	})
 	if m, _ := s.g.db.Money(s.saveID, s.hostID); m <= 0 {
 		t.Fatalf("host money = %d", m)
+	}
+}
+
+// TestCustomBlockBreakTimeIgnoresTools: the client breaks custom blocks in
+// the bare-hand time of their definition, so the server must agree.
+func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
+	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
+	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
+	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "earth"}} {
+		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
+		for _, tool := range []item.Stack{pick, axe} {
+			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {
+				t.Errorf("%T: %v with %v, %v by hand", b, d, tool.Item(), hand)
+			}
+		}
+		if hand > 3*time.Second {
+			t.Errorf("%T takes %v to break", b, hand)
+		}
 	}
 }

@@ -98,9 +98,9 @@ func (Drawer) Permutations() []customblock.Permutation {
 
 func (d Drawer) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
-		Hardness: 2.5, BlastResistance: 2.5,
+		Hardness: 1, BlastResistance: 2.5,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   func(t item.Tool) bool { return t.ToolType() == item.TypeAxe },
+		Effective:   customBlockEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{d.toItem()} },
 	}
 }
