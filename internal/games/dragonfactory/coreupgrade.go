@@ -120,8 +120,11 @@ func (s *session) coreUpgradeMenu(typ string) (string, []ui.Option, bool) {
 			adds = append(adds, itemName(item.NewStack(e.Block.(world.Item), 1)))
 		}
 		fmt.Fprintf(&b, "§7다음 티어: 기본 주기 %.1f초, 추가 블록 %s\n", float64(next.Interval)/20, strings.Join(adds, "·"))
+		shown := rec.Tier
 		opts = append(opts, s.opt(label, iconCores, func(p *player.Player, _ *world.Tx) {
+			// The form may be stale: another player may have bought it.
 			switch {
+			case rec.Tier != shown:
 			case s.state.Level < next.Level:
 				p.Messagef("§cLv.%d부터 올릴 수 있습니다.", next.Level)
 			case s.spendPoints(p, next.Points):
@@ -143,7 +146,8 @@ func (s *session) coreUpgradeMenu(typ string) (string, []ui.Option, bool) {
 		}
 		cost := upgradeCost(lv)
 		opts = append(opts, s.opt(fmt.Sprintf("§b%s Lv.%d → %d\n§7%d포인트", u.name, lv, lv+1, cost), iconCores, func(p *player.Player, _ *world.Tx) {
-			if s.spendPoints(p, cost) {
+			// The form may be stale: another player may have bought it.
+			if rec.level(u.id) == lv && s.spendPoints(p, cost) {
 				if rec.Upgrades == nil {
 					rec.Upgrades = map[string]int{}
 				}
@@ -158,7 +162,7 @@ func (s *session) coreUpgradeMenu(typ string) (string, []ui.Option, bool) {
 		opts = append(opts, s.opt("§f생성 필터\n§7만들 블록 고르기", iconMission, func(p *player.Player, _ *world.Tx) { s.showCoreFilter(p, typ) }))
 	} else {
 		opts = append(opts, s.opt(fmt.Sprintf("§f생성 필터 해금\n§7%d포인트", filterCost), iconLocked, func(p *player.Player, _ *world.Tx) {
-			if s.spendPoints(p, filterCost) {
+			if !rec.FilterUnlocked && s.spendPoints(p, filterCost) {
 				rec.FilterUnlocked = true
 				s.storeState()
 				p.Message("§a생성 필터를 해금했습니다.")
@@ -194,7 +198,9 @@ func (s *session) coreFilterMenu(typ string) ([]ui.Option, bool) {
 			label = "§8꺼짐 §7" + itemName(st)
 		}
 		opts = append(opts, s.opt(label, iconOf(st), func(p *player.Player, _ *world.Tx) {
-			if on {
+			if on == slices.Contains(rec.Excluded, key) {
+				// Stale form: someone else toggled it already.
+			} else if on {
 				if len(rec.Excluded)+1 >= len(all) {
 					p.Message("§c블록을 하나 이상은 남겨야 합니다.")
 				} else {

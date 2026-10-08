@@ -109,3 +109,24 @@ func TestCoreFilterKeepsOneBlock(t *testing.T) {
 		}
 	})
 }
+
+// TestCoreUpgradeStaleForm: two players pressing the same button of forms
+// built at the same time buy it once.
+func TestCoreUpgradeStaleForm(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		rec := s.state.Cores["earth"]
+		s.state.CorePoints, s.state.Level = 20, 7
+		_, a, _ := s.coreUpgradeMenu("earth")
+		_, b, _ := s.coreUpgradeMenu("earth")
+		press(t, p, tx, a, "§a티어 2로")
+		press(t, p, tx, b, "§a티어 2로")
+		press(t, p, tx, a, "§b속도 Lv.0")
+		press(t, p, tx, b, "§b속도 Lv.0")
+		if rec.Tier != 2 || rec.level(upgradeSpeed) != 1 || s.state.CorePoints != 20-3-1 {
+			t.Fatalf("tier %d speed %d points %d", rec.Tier, rec.level(upgradeSpeed), s.state.CorePoints)
+		}
+	})
+}
