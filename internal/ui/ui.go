@@ -2,6 +2,9 @@
 package ui
 
 import (
+	"log/slog"
+	"runtime/debug"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/world"
@@ -16,11 +19,22 @@ type Option struct {
 type menu struct{ opts []Option }
 
 func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
+	p := s.(*player.Player)
+	defer recoverForm(p)
 	for _, o := range m.opts {
 		if o.Label == pressed.Text {
-			o.Run(s.(*player.Player), tx)
+			o.Run(p, tx)
 			return
 		}
+	}
+}
+
+// recoverForm keeps a bug in a form callback from crashing the server: the
+// panic is logged and the player is told the action failed.
+func recoverForm(p *player.Player) {
+	if r := recover(); r != nil {
+		slog.Error("form callback panicked", "player", p.Name(), "panic", r, "stack", string(debug.Stack()))
+		p.Message("§c처리 중 오류가 발생했습니다.")
 	}
 }
 
@@ -40,8 +54,10 @@ type confirm struct {
 }
 
 func (c confirm) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
+	p := s.(*player.Player)
+	defer recoverForm(p)
 	if pressed == c.Yes {
-		c.run(s.(*player.Player), tx)
+		c.run(p, tx)
 	}
 }
 
@@ -56,7 +72,9 @@ type textInput struct {
 }
 
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
-	t.run(s.(*player.Player), tx, t.Value.Value())
+	p := s.(*player.Player)
+	defer recoverForm(p)
+	t.run(p, tx, t.Value.Value())
 }
 
 // Input asks for one line of text.

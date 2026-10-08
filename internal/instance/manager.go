@@ -46,6 +46,9 @@ var (
 	ErrTooManyActive = errors.New("instance: too many active instances")
 	// ErrActive is returned when deleting a save that is running.
 	ErrActive = errors.New("instance: save is active")
+	// ErrStateLocked is returned when entering while the host edits the
+	// player's stored state.
+	ErrStateLocked = errors.New("instance: player state is being edited")
 )
 
 // Lobby describes the lobby world players return to.
@@ -71,6 +74,13 @@ type Manager struct {
 	active map[int64]*Instance
 	// location maps account IDs to the instance they are in; absent = lobby.
 	location map[string]*Instance
+	// locked are (save, account) states being edited outside the instance.
+	locked map[stateKey]bool
+}
+
+type stateKey struct {
+	save int64
+	acc  string
 }
 
 // NewManager creates a Manager.
@@ -79,7 +89,7 @@ func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby) *Manager {
 		conf.AutosaveInterval = 30 * time.Second
 	}
 	return &Manager{log: log, db: d, conf: conf, lobby: lobby, games: map[string]Game{},
-		active: map[int64]*Instance{}, location: map[string]*Instance{}}
+		active: map[int64]*Instance{}, location: map[string]*Instance{}, locked: map[stateKey]bool{}}
 }
 
 // Register adds a game type.
@@ -124,6 +134,12 @@ func (m *Manager) worldDir(saveID int64) string {
 // p may do so. It must be called in p's lobby world transaction.
 func (m *Manager) Enter(p *player.Player, saveID int64) error {
 	acc := AccountID(p)
+	m.mu.Lock()
+	locked := m.locked[stateKey{saveID, acc}]
+	m.mu.Unlock()
+	if locked {
+		return ErrStateLocked
+	}
 	role, err := m.db.MemberRole(saveID, acc)
 	if errors.Is(err, db.ErrNotFound) {
 		return ErrNotMember
@@ -233,6 +249,24 @@ func (m *Manager) quit(p *player.Player, inst *Instance) {
 	if inst.host == AccountID(p) {
 		go inst.deactivate()
 	}
+}
+
+// LockState prevents an account from entering a save while its stored
+// state is edited. ok is false if the account is in that save right now (its
+// live state must be edited instead) or the state is already locked.
+func (m *Manager) LockState(saveID int64, accountID string) (unlock func(), ok bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	k := stateKey{saveID, accountID}
+	if inst := m.location[accountID]; (inst != nil && inst.Save.ID == saveID) || m.locked[k] {
+		return nil, false
+	}
+	m.locked[k] = true
+	return func() {
+		m.mu.Lock()
+		delete(m.locked, k)
+		m.mu.Unlock()
+	}, true
 }
 
 // DeleteSave deletes an inactive save and its world folder.

@@ -48,12 +48,17 @@ type invites struct {
 	m  map[string][]invite // invited account -> invites
 }
 
-func (iv *invites) add(to string, in invite) {
-	iv.mu.Lock()
-	defer iv.mu.Unlock()
+// init must be called with mu held.
+func (iv *invites) init() {
 	if iv.m == nil {
 		iv.m = map[string][]invite{}
 	}
+}
+
+func (iv *invites) add(to string, in invite) {
+	iv.mu.Lock()
+	defer iv.mu.Unlock()
+	iv.init()
 	list := iv.m[to][:0]
 	for _, o := range iv.m[to] {
 		if o.saveID != in.saveID && time.Since(o.at) < inviteTTL {
@@ -66,6 +71,7 @@ func (iv *invites) add(to string, in invite) {
 func (iv *invites) list(to string) []invite {
 	iv.mu.Lock()
 	defer iv.mu.Unlock()
+	iv.init()
 	var out []invite
 	for _, o := range iv.m[to] {
 		if time.Since(o.at) < inviteTTL {
@@ -79,6 +85,7 @@ func (iv *invites) list(to string) []invite {
 func (iv *invites) remove(to string, saveID int64) {
 	iv.mu.Lock()
 	defer iv.mu.Unlock()
+	iv.init()
 	list := iv.m[to][:0]
 	for _, o := range iv.m[to] {
 		if o.saveID != saveID {
@@ -131,16 +138,7 @@ func (pf *Platform) showInviteCode(p *player.Player, saveID int64) {
 
 func (pf *Platform) askInviteCode(p *player.Player) {
 	ui.Input(p, "초대 코드 입력", "초대 코드 6자리", "", func(p *player.Player, _ *world.Tx, code string) {
-		code = strings.ToUpper(strings.TrimSpace(code))
-		s, err := pf.db.SaveByInviteCode(code)
-		if errors.Is(err, db.ErrNotFound) || code == "" {
-			p.Message("§c올바르지 않은 초대 코드입니다.")
-			return
-		} else if err != nil {
-			pf.fail(p, "초대 코드 확인", err)
-			return
-		}
-		pf.join(p, s.ID)
+		pf.joinCode(p, code)
 	})
 }
 
@@ -301,4 +299,39 @@ func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.A
 		}
 		fp.Messagef("§e%s 님이 '%s'에 초대했습니다. §7로비 메뉴의 '받은 초대'에서 수락하세요.", p.Name(), inst.Save.Name)
 	})
+}
+
+// joinCmd joins a save with an invite code: /join [code].
+type joinCmd struct {
+	playerOnly
+	pf   *Platform
+	Code cmd.Optional[string] `cmd:"code"`
+}
+
+func (c joinCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
+	p := src.(*player.Player)
+	if c.pf.m.Location(instance.AccountID(p)) != nil {
+		o.Error("로비에서만 사용할 수 있습니다. /lobby 로 이동하세요.")
+		return
+	}
+	code, ok := c.Code.Load()
+	if !ok {
+		c.pf.askInviteCode(p)
+		return
+	}
+	c.pf.joinCode(p, code)
+}
+
+// joinCode joins the save with the given invite code.
+func (pf *Platform) joinCode(p *player.Player, code string) {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	s, err := pf.db.SaveByInviteCode(code)
+	if errors.Is(err, db.ErrNotFound) || code == "" {
+		p.Message("§c올바르지 않은 초대 코드입니다.")
+		return
+	} else if err != nil {
+		pf.fail(p, "초대 코드 확인", err)
+		return
+	}
+	pf.join(p, s.ID)
 }

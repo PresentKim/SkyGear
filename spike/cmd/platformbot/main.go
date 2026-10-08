@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -53,10 +54,40 @@ func main() {
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
 //	expect:<text>                wait for a chat message containing text
+//	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
+//	waitfile:<file>              wait until file exists
+//	wait:<seconds>               sleep
+//
+// "@file" in cmd and input values is replaced by the file's contents.
 func run(action string) {
 	kind, arg, _ := strings.Cut(action, ":")
 	switch kind {
+	case "wait":
+		d, _ := time.ParseDuration(arg + "s")
+		time.Sleep(d)
+	case "waitfile":
+		for i := 0; i < 300; i++ {
+			if _, err := os.Stat(arg); err == nil {
+				return
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		fail("file %s never appeared", arg)
+	case "capture":
+		title, file, _ := strings.Cut(arg, "=")
+		pk := waitFor(func(pk packet.Packet) bool {
+			f, ok := pk.(*packet.ModalFormRequest)
+			return ok && strings.Contains(string(f.FormData), title)
+		}).(*packet.ModalFormRequest)
+		code := regexp.MustCompile(`[A-Z2-9]{6}`).FindString(regexp.MustCompile(`§.`).ReplaceAllString(string(pk.FormData), ""))
+		if code == "" {
+			fail("no code in form %s", pk.FormData)
+		}
+		_ = os.WriteFile(file, []byte(code), 0o644)
+		_ = conn.WritePacket(&packet.ModalFormResponse{FormID: pk.FormID})
+		fmt.Println("CAPTURED", code)
 	case "cmd":
+		arg = expand(arg)
 		_ = conn.WritePacket(&packet.CommandRequest{CommandLine: arg, CommandOrigin: protocol.CommandOrigin{Origin: protocol.CommandOriginPlayer}})
 		fmt.Println("> ", arg)
 	case "form", "input":
@@ -74,6 +105,7 @@ func run(action string) {
 			}
 		}
 		fmt.Println()
+		val = expand(val)
 		resp := []byte(val)
 		if kind == "input" {
 			resp, _ = json.Marshal([]any{val})
@@ -89,6 +121,17 @@ func run(action string) {
 	default:
 		fail("unknown action %q", action)
 	}
+}
+
+// expand replaces "@file" with the file's contents.
+func expand(s string) string {
+	return regexp.MustCompile(`@(\S+)`).ReplaceAllStringFunc(s, func(m string) string {
+		b, err := os.ReadFile(m[1:])
+		if err != nil {
+			fail("read %s: %v", m[1:], err)
+		}
+		return strings.TrimSpace(string(b))
+	})
 }
 
 func waitFor(match func(packet.Packet) bool) packet.Packet {

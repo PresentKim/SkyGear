@@ -34,3 +34,12 @@ func TestInvitesReplaceAndExpire(t *testing.T) {
 		t.Fatal("remove failed")
 	}
 }
+
+// A fresh invites value must work without any add (this crashed the server).
+func TestInvitesZeroValue(t *testing.T) {
+	var iv invites
+	iv.remove("a", 1)
+	if len(iv.list("b")) != 0 {
+		t.Fatal("zero value invites not empty")
+	}
+}

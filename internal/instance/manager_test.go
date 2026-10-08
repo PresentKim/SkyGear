@@ -228,3 +228,34 @@ func TestClockStoredOnDeactivate(t *testing.T) {
 		t.Fatalf("stored instance time %v, want >= 1.5s", s.InstanceTime)
 	}
 }
+
+func TestLockStateBlocksEnter(t *testing.T) {
+	f := setup(t)
+	host := f.spawn(t, "host")
+	acc := host.UUID().String()
+	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	unlock, ok := f.m.LockState(save.ID, acc)
+	if !ok {
+		t.Fatal("lock refused for a player in the lobby")
+	}
+	if _, again := f.m.LockState(save.ID, acc); again {
+		t.Fatal("a state was locked twice")
+	}
+	in(t, host, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); !errors.Is(err, ErrStateLocked) {
+			t.Fatalf("enter while locked err = %v", err)
+		}
+	})
+	unlock()
+	in(t, host, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); err != nil {
+			t.Fatal(err)
+		}
+	})
+	in(t, host, func(p *player.Player) {
+		if _, ok := f.m.LockState(save.ID, acc); ok {
+			t.Fatal("locked the stored state of a player inside the save")
+		}
+	})
+	f.m.CloseAll()
+}

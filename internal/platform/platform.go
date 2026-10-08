@@ -149,6 +149,7 @@ func (pf *Platform) showSave(p *player.Player, saveID int64) {
 	ui.Menu(p, s.Name, body,
 		ui.Option{Label: "§a입장", Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
 		ui.Option{Label: "초대 코드", Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
+		ui.Option{Label: "참여자 관리", Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
 		ui.Option{Label: "이름 변경", Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
 		ui.Option{Label: "§c삭제", Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
 		ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
@@ -163,6 +164,8 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 		switch err {
 		case instance.ErrHostOffline:
 			p.Message("§c호스트가 접속 중일 때만 입장할 수 있습니다.")
+		case instance.ErrStateLocked:
+			p.Message("§c호스트가 인벤토리를 확인하는 중입니다. 잠시 후 다시 시도해 주세요.")
 		case instance.ErrTooManyActive:
 			p.Message("§c서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
 		default:
@@ -237,6 +240,8 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("guide", "서버 안내를 봅니다", nil, guideCmd{pf: pf}))
 	cmd.Register(cmd.New("friends", "친구 목록을 엽니다", []string{"friend"}, friendsCmd{pf: pf}))
 	cmd.Register(cmd.New("invite", "친구를 세이브에 초대합니다", nil, inviteCmd{pf: pf}))
+	cmd.Register(cmd.New("members", "세이브 참여자를 관리합니다", nil, membersCmd{pf: pf}))
+	cmd.Register(cmd.New("join", "초대 코드로 세이브에 참여합니다", nil, joinCmd{pf: pf}))
 }
 
 type playerOnly struct{}
