@@ -28,7 +28,7 @@ func (pf *Platform) showMembers(p *player.Player, saveID int64) {
 		case m.Left:
 			state = "§8탈퇴·추방됨"
 		}
-		opts = append(opts, ui.Option{Label: fmt.Sprintf("%s\n%s", m.Name, state), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: fmt.Sprintf("%s\n%s", m.Name, state), Icon: iconPlayer, Run: func(p *player.Player, _ *world.Tx) {
 			pf.showMember(p, saveID, m)
 		}})
 	}
@@ -37,15 +37,15 @@ func (pf *Platform) showMembers(p *player.Player, saveID int64) {
 }
 
 func (pf *Platform) showMember(p *player.Player, saveID int64, m db.Member) {
-	opts := []ui.Option{{Label: "인벤토리 보기", Run: func(p *player.Player, tx *world.Tx) { pf.showInvSee(p, tx, saveID, m) }}}
+	opts := []ui.Option{{Label: "인벤토리 보기", Icon: iconInvSee, Run: func(p *player.Player, tx *world.Tx) { pf.showInvSee(p, tx, saveID, m) }}}
 	if m.Role != db.RoleHost && !m.Left {
-		opts = append(opts, ui.Option{Label: "§c추방", Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: "§c추방", Icon: iconKick, Run: func(p *player.Player, _ *world.Tx) {
 			ui.Confirm(p, "추방", m.Name+" 님을 이 세이브에서 추방할까요?\n인벤토리와 돈은 세이브에 남습니다.", "§c추방", func(p *player.Player, _ *world.Tx) {
 				pf.kick(p, saveID, m)
 			})
 		}})
 	}
-	opts = append(opts, ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }})
+	opts = append(opts, ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }})
 	ui.Menu(p, m.Name, fmt.Sprintf("%s\n%s", m.Name, pf.status(m.AccountID)), opts...)
 }
 

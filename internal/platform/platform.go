@@ -127,12 +127,14 @@ func (pf *Platform) showSaves(p *player.Player) {
 		if s, ok := bySlot[slot]; ok {
 			opts = append(opts, ui.Option{
 				Label: fmt.Sprintf("§l%d. %s§r\n§8%d일차 · 플레이 %s", slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
+				Icon:  iconSave,
 				Run:   func(p *player.Player, _ *world.Tx) { pf.showSave(p, s.ID) },
 			})
 			continue
 		}
 		opts = append(opts, ui.Option{
 			Label: fmt.Sprintf("§l%d. 새 게임§r\n§8비어 있는 슬롯", slot),
+			Icon:  iconNewSave,
 			Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) },
 		})
 	}
@@ -147,12 +149,12 @@ func (pf *Platform) showSave(p *player.Player, saveID int64) {
 	}
 	body := fmt.Sprintf("§f%s\n§7%d일차 · 플레이 %s\n만든 날: %s", s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
 	ui.Menu(p, s.Name, body,
-		ui.Option{Label: "§a입장", Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
-		ui.Option{Label: "초대 코드", Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
-		ui.Option{Label: "참여자 관리", Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
-		ui.Option{Label: "이름 변경", Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
-		ui.Option{Label: "§c삭제", Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
-		ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: "§a입장", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
+		ui.Option{Label: "초대 코드", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
+		ui.Option{Label: "참여자 관리", Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
+		ui.Option{Label: "이름 변경", Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
+		ui.Option{Label: "§c삭제", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
+		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
 	)
 }
 
@@ -301,12 +303,12 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 // showLobbyMenu is the main menu of the lobby.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
 	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
-	ui.Menu(p, pf.game.Name(), "원하는 항목을 고르세요.",
-		ui.Option{Label: "내 세이브", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
-		ui.Option{Label: "참여 중인 세이브", Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
-		ui.Option{Label: fmt.Sprintf("받은 초대 §8(%d)", len(pf.invites.list(instance.AccountID(p)))), Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
-		ui.Option{Label: "초대 코드 입력", Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
-		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		ui.Option{Label: "서버 안내", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
+	ui.CardMenu(p, pf.game.Name()+" 로비", "원하는 항목을 고르세요.",
+		ui.Option{Label: "내 세이브", Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: "참여 중인 세이브", Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+		ui.Option{Label: fmt.Sprintf("받은 초대 §8(%d)", len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
+		ui.Option{Label: "초대 코드 입력", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
+		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: "서버 안내", Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	)
 }

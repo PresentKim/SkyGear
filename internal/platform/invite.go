@@ -125,7 +125,7 @@ func (pf *Platform) showInviteCode(p *player.Player, saveID int64) {
 	}
 	n, _ := pf.db.ActiveMembers(saveID)
 	ui.Menu(p, "초대 코드", fmt.Sprintf("§f'%s' 초대 코드\n\n§l§e%s§r\n\n§7로비 메뉴의 '초대 코드 입력'에 이 코드를 넣으면 참여자가 됩니다.\n참여자 %d/%d명", s.Name, code, n, MaxMembers),
-		ui.Option{Label: "새 코드 발급 (이전 코드 무효)", Run: func(p *player.Player, _ *world.Tx) {
+		ui.Option{Label: "새 코드 발급 (이전 코드 무효)", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
 			s, _ := pf.db.Save(saveID)
 			if _, err := pf.inviteCode(s, true); err != nil {
 				pf.fail(p, "초대 코드 발급", err)
@@ -196,11 +196,12 @@ func (pf *Platform) showJoined(p *player.Player) {
 		}
 		opts = append(opts, ui.Option{
 			Label: fmt.Sprintf("%s §8(%s)\n%s · %d일차", s.Name, host.Name, state, s.Day),
+			Icon:  iconSave,
 			Run: func(p *player.Player, _ *world.Tx) {
 				ui.Menu(p, s.Name, fmt.Sprintf("§f%s 님의 '%s'\n%s", host.Name, s.Name, state),
-					ui.Option{Label: "§a입장", Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }},
-					ui.Option{Label: "§c탈퇴", Run: func(p *player.Player, _ *world.Tx) { pf.askLeave(p, s, host) }},
-					ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+					ui.Option{Label: "§a입장", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }},
+					ui.Option{Label: "§c탈퇴", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askLeave(p, s, host) }},
+					ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
 				)
 			},
 		})
@@ -230,6 +231,7 @@ func (pf *Platform) showInvites(p *player.Player) {
 	for _, in := range list {
 		opts = append(opts, ui.Option{
 			Label: fmt.Sprintf("%s\n§8%s 님의 초대", in.saveName, in.from),
+			Icon:  iconInvite,
 			Run:   func(p *player.Player, _ *world.Tx) { pf.askAcceptInvite(p, in) },
 		})
 	}
@@ -273,7 +275,7 @@ func (pf *Platform) showInviteMenu(p *player.Player, inst *instance.Instance) {
 		return
 	}
 	saveID := inst.Save.ID
-	opts := []ui.Option{{Label: "초대 코드 보기", Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }}}
+	opts := []ui.Option{{Label: "초대 코드 보기", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }}}
 	for _, f := range friends {
 		if !pf.isOnline(f.ID) {
 			continue
@@ -281,7 +283,7 @@ func (pf *Platform) showInviteMenu(p *player.Player, inst *instance.Instance) {
 		if role, err := pf.db.MemberRole(saveID, f.ID); err == nil && role != "" && pf.m.Location(f.ID) == inst {
 			continue // already here
 		}
-		opts = append(opts, ui.Option{Label: fmt.Sprintf("%s\n%s", f.Name, pf.status(f.ID)), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: fmt.Sprintf("%s\n%s", f.Name, pf.status(f.ID)), Icon: iconPlayer, Run: func(p *player.Player, _ *world.Tx) {
 			pf.sendInvite(p, inst, f)
 		}})
 	}

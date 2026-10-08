@@ -37,7 +37,7 @@ func (pf *Platform) guideText() string {
 // showGuide shows the server guide. With first set, closing it records that
 // the account has seen the current version.
 func (pf *Platform) showGuide(p *player.Player, first bool) {
-	ui.Menu(p, "서버 안내", pf.guideText(), ui.Option{Label: "확인", Run: func(p *player.Player, _ *world.Tx) {
+	ui.Menu(p, "서버 안내", pf.guideText(), ui.Option{Label: "확인", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
 		if first {
 			if err := pf.db.SetGuideVersion(instance.AccountID(p), GuideVersion); err != nil {
 				pf.log.Error("set guide version", "err", err)

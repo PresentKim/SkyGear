@@ -22,8 +22,8 @@ func (pf *Platform) showFriends(p *player.Player) {
 	}
 	reqs, _ := pf.db.FriendRequests(acc)
 	opts := []ui.Option{
-		{Label: "친구 추가", Run: func(p *player.Player, _ *world.Tx) { pf.askAddFriend(p) }},
-		{Label: fmt.Sprintf("받은 친구 요청 §8(%d)", len(reqs)), Run: func(p *player.Player, _ *world.Tx) { pf.showRequests(p) }},
+		{Label: "친구 추가", Icon: iconAdd, Run: func(p *player.Player, _ *world.Tx) { pf.askAddFriend(p) }},
+		{Label: fmt.Sprintf("받은 친구 요청 §8(%d)", len(reqs)), Icon: iconRequests, Run: func(p *player.Player, _ *world.Tx) { pf.showRequests(p) }},
 	}
 	var b strings.Builder
 	if len(friends) == 0 {
@@ -34,16 +34,17 @@ func (pf *Platform) showFriends(p *player.Player) {
 		fmt.Fprintf(&b, "§f%s %s\n", f.Name, st)
 		opts = append(opts, ui.Option{
 			Label: fmt.Sprintf("%s\n%s", f.Name, st),
+			Icon:  iconPlayer,
 			Run:   func(p *player.Player, _ *world.Tx) { pf.showFriend(p, f) },
 		})
 	}
-	opts = append(opts, ui.Option{Label: "차단 목록", Run: func(p *player.Player, _ *world.Tx) { pf.showBlocked(p) }})
+	opts = append(opts, ui.Option{Label: "차단 목록", Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.showBlocked(p) }})
 	ui.Menu(p, "친구", b.String(), opts...)
 }
 
 func (pf *Platform) showFriend(p *player.Player, f db.Account) {
 	ui.Menu(p, f.Name, fmt.Sprintf("%s\n%s", f.Name, pf.status(f.ID)),
-		ui.Option{Label: "친구 삭제", Run: func(p *player.Player, _ *world.Tx) {
+		ui.Option{Label: "친구 삭제", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) {
 			ui.Confirm(p, "친구 삭제", f.Name+" 님을 친구에서 삭제할까요?", "삭제", func(p *player.Player, _ *world.Tx) {
 				if err := pf.db.RemoveFriend(instance.AccountID(p), f.ID); err != nil {
 					pf.fail(p, "친구 삭제", err)
@@ -52,8 +53,8 @@ func (pf *Platform) showFriend(p *player.Player, f db.Account) {
 				p.Messagef("§e%s 님을 친구에서 삭제했습니다.", f.Name)
 			})
 		}},
-		ui.Option{Label: "§c차단", Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, f) }},
-		ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: "§c차단", Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, f) }},
+		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
 	)
 }
 
@@ -100,9 +101,9 @@ func (pf *Platform) showRequests(p *player.Player) {
 	}
 	var opts []ui.Option
 	for _, r := range reqs {
-		opts = append(opts, ui.Option{Label: r.Name, Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: r.Name, Icon: iconPlayer, Run: func(p *player.Player, _ *world.Tx) {
 			ui.Menu(p, "친구 요청", r.Name+" 님의 친구 요청",
-				ui.Option{Label: "§a수락", Run: func(p *player.Player, _ *world.Tx) {
+				ui.Option{Label: "§a수락", Icon: iconAccept, Run: func(p *player.Player, _ *world.Tx) {
 					if err := pf.db.AcceptFriend(instance.AccountID(p), r.ID); err != nil {
 						pf.fail(p, "친구 수락", err)
 						return
@@ -110,11 +111,11 @@ func (pf *Platform) showRequests(p *player.Player) {
 					p.Messagef("§a%s 님과 친구가 되었습니다.", r.Name)
 					pf.tell(r.ID, fmt.Sprintf("§a%s 님이 친구 요청을 수락했습니다.", p.Name()))
 				}},
-				ui.Option{Label: "거절", Run: func(p *player.Player, _ *world.Tx) {
+				ui.Option{Label: "거절", Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
 					_ = pf.db.DeclineFriend(instance.AccountID(p), r.ID)
 					pf.showRequests(p)
 				}},
-				ui.Option{Label: "§c차단", Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, r) }},
+				ui.Option{Label: "§c차단", Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, r) }},
 			)
 		}})
 	}
@@ -143,7 +144,7 @@ func (pf *Platform) showBlocked(p *player.Player) {
 	}
 	var opts []ui.Option
 	for _, a := range list {
-		opts = append(opts, ui.Option{Label: a.Name + "\n§8눌러서 차단 해제", Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: a.Name + "\n§8눌러서 차단 해제", Icon: iconPlayer, Run: func(p *player.Player, _ *world.Tx) {
 			_ = pf.db.Unblock(instance.AccountID(p), a.ID)
 			p.Messagef("§e%s 님의 차단을 해제했습니다.", a.Name)
 		}})
