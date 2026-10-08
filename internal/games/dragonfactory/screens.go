@@ -64,6 +64,7 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 				_, _ = p.Inventory().AddItem(menuItem())
 			}
 		}),
+		s.opt("§f도움말", iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
 		s.opt("§f로비로", iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
 	}
 }
