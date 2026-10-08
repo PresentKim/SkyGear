@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,6 +58,10 @@ func main() {
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
 //	wait:<seconds>               sleep
+//	chest:<title>                wait for an entity chest window whose title contains title
+//	take:<slot>=ok|reject        take a stack of the open chest to the cursor, expect the response
+//	close                        close the open chest
+//	slot:<slot>=empty            wait for the server to empty an own inventory slot
 //
 // "@file" in cmd and input values is replaced by the file's contents.
 func run(action string) {
@@ -112,6 +117,22 @@ func run(action string) {
 		}
 		_ = conn.WritePacket(&packet.ModalFormResponse{FormID: pk.FormID, ResponseData: protocol.Option(resp)})
 		fmt.Println("> answered", string(resp))
+	case "chest":
+		openChest(arg)
+	case "take":
+		slotStr, want, _ := strings.Cut(arg, "=")
+		take(slotStr, want)
+	case "close":
+		_ = conn.WritePacket(&packet.ContainerClose{WindowID: chestWindow})
+		fmt.Println("> closed chest")
+	case "slot":
+		slotStr, _, _ := strings.Cut(arg, "=")
+		slot, _ := strconv.Atoi(slotStr)
+		waitFor(func(pk packet.Packet) bool {
+			is, ok := pk.(*packet.InventorySlot)
+			return ok && is.WindowID == protocol.WindowIDInventory && int(is.Slot) == slot && is.NewItem.Stack.Count == 0
+		})
+		fmt.Println("OK  slot emptied:", slot)
 	case "expect":
 		waitFor(func(pk packet.Packet) bool {
 			t, ok := pk.(*packet.Text)
@@ -153,4 +174,72 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 func fail(f string, a ...any) {
 	fmt.Printf("FAIL "+f+"\n", a...)
 	os.Exit(1)
+}
+
+var (
+	chestWindow byte
+	chestSlots  []protocol.ItemInstance
+	requestID   int32 = -1
+)
+
+// openChest waits for an entity-backed container: the invisible actor, the
+// ContainerOpen pointing at it and the contents.
+func openChest(title string) {
+	var actor int64
+	var size int32
+	waitFor(func(pk packet.Packet) bool {
+		a, ok := pk.(*packet.AddActor)
+		if !ok || a.EntityType != "dragonfly:entity_container" {
+			return false
+		}
+		name, _ := a.EntityMetadata[protocol.EntityDataKeyName].(string)
+		size, _ = a.EntityMetadata[protocol.EntityDataKeyContainerSize].(int32)
+		actor = a.EntityUniqueID
+		return strings.Contains(name, title)
+	})
+	open := waitFor(func(pk packet.Packet) bool {
+		o, ok := pk.(*packet.ContainerOpen)
+		return ok && o.ContainerEntityUniqueID == actor
+	}).(*packet.ContainerOpen)
+	chestWindow = open.WindowID
+	content := waitFor(func(pk packet.Packet) bool {
+		c, ok := pk.(*packet.InventoryContent)
+		return ok && c.WindowID == uint32(open.WindowID)
+	}).(*packet.InventoryContent)
+	chestSlots = content.Content
+	filled := 0
+	for _, it := range chestSlots {
+		if it.Stack.Count > 0 {
+			filled++
+		}
+	}
+	fmt.Printf("CHEST %q window=%d size=%d slots=%d filled=%d\n", title, open.WindowID, size, len(chestSlots), filled)
+	if int(size) != len(chestSlots) {
+		fail("size %d but %d slots sent", size, len(chestSlots))
+	}
+}
+
+// take moves a whole stack of the open chest to the cursor.
+func take(slotStr, want string) {
+	slot, _ := strconv.Atoi(slotStr)
+	if slot >= len(chestSlots) {
+		fail("no chest slot %d", slot)
+	}
+	it := chestSlots[slot]
+	id := requestID
+	requestID -= 2
+	a := &protocol.TakeStackRequestAction{}
+	a.Count = byte(it.Stack.Count)
+	a.Source = protocol.StackRequestSlotInfo{Container: protocol.FullContainerName{ContainerID: protocol.ContainerLevelEntity}, Slot: byte(slot), StackNetworkID: it.StackNetworkID}
+	a.Destination = protocol.StackRequestSlotInfo{Container: protocol.FullContainerName{ContainerID: protocol.ContainerCursor}}
+	_ = conn.WritePacket(&packet.ItemStackRequest{Requests: []protocol.ItemStackRequest{{RequestID: id, Actions: []protocol.StackRequestAction{a}}}})
+	resp := waitFor(func(pk packet.Packet) bool {
+		r, ok := pk.(*packet.ItemStackResponse)
+		return ok && len(r.Responses) > 0 && r.Responses[0].RequestID == id
+	}).(*packet.ItemStackResponse)
+	ok := resp.Responses[0].Status == protocol.ItemStackResponseStatusOK
+	fmt.Printf("TAKE slot %d (count %d): ok=%v\n", slot, it.Stack.Count, ok)
+	if ok != (want == "ok") {
+		fail("take slot %d: ok=%v, want %s", slot, ok, want)
+	}
 }

@@ -2,13 +2,11 @@ package dragonfactory
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/ui"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
@@ -74,26 +72,6 @@ func (s *session) purgeLost() {
 		}
 	}
 	s.state.Lost = keep
-}
-
-func (s *session) showLost(p *player.Player) {
-	s.purgeLost()
-	var opts []ui.Option
-	for _, l := range s.state.Lost {
-		it := decodeItem(l.Item)
-		if it.Empty() {
-			continue
-		}
-		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("%s §8x%s", itemName(it), formatInt(int64(l.Count))),
-			Run:   func(p *player.Player, tx *world.Tx) { s.takeLost(p, l); s.showLost(p) },
-		})
-	}
-	body := "공허로 떨어진 아이템이 모입니다. 마지막으로 들어온 뒤 하루가 지나면 사라집니다."
-	if len(opts) == 0 {
-		body += "\n\n§7비어 있습니다."
-	}
-	ui.Menu(p, "분실물 보관함", body, opts...)
 }
 
 // takeLost moves as much of l as fits into p's inventory.

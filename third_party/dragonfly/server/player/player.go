@@ -3421,10 +3421,12 @@ func (p *Player) OpenEntityContainer(inv *inventory.Inventory, title string, onC
 	p.session().OpenEntityContainer(inv, title, p.Position(), onClose, p.tx)
 }
 
-// ViewOpenedContainerSlot sends a changed slot of the container window the
-// player has open, for changes made by the server. (dragonfactory patch)
-func (p *Player) ViewOpenedContainerSlot(slot int, it item.Stack) {
-	p.session().ViewSlotChange(slot, it)
+// ContainerViewer returns the viewer that shows slot changes of the
+// container window the player has open. Unlike the Player, it may be kept
+// and used outside of the player's transaction, the way block containers
+// keep their viewers. (dragonfactory patch)
+func (p *Player) ContainerViewer() block.ContainerViewer {
+	return p.session()
 }
 
 // CloseOpenedContainer closes the container window the player has open.

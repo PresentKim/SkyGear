@@ -1,7 +1,7 @@
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 11:42:24.351864219 +0000
-+++ b/server/player/player.go	2026-10-08 11:42:24.375908836 +0000
-@@ -3413,6 +3413,26 @@
+--- a/server/player/player.go	2026-10-08 11:52:21.120883422 +0000
++++ b/server/player/player.go	2026-10-08 11:52:21.141695383 +0000
+@@ -3413,6 +3413,28 @@
  	}
  }
  
@@ -13,10 +13,12 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +	p.session().OpenEntityContainer(inv, title, p.Position(), onClose, p.tx)
 +}
 +
-+// ViewOpenedContainerSlot sends a changed slot of the container window the
-+// player has open, for changes made by the server. (dragonfactory patch)
-+func (p *Player) ViewOpenedContainerSlot(slot int, it item.Stack) {
-+	p.session().ViewSlotChange(slot, it)
++// ContainerViewer returns the viewer that shows slot changes of the
++// container window the player has open. Unlike the Player, it may be kept
++// and used outside of the player's transaction, the way block containers
++// keep their viewers. (dragonfactory patch)
++func (p *Player) ContainerViewer() block.ContainerViewer {
++	return p.session()
 +}
 +
 +// CloseOpenedContainer closes the container window the player has open.
@@ -30,8 +32,8 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 11:42:24.377049278 +0000
-@@ -0,0 +1,87 @@
++++ b/server/session/entity_container.go	2026-10-08 11:52:21.143139748 +0000
+@@ -0,0 +1,90 @@
 +package session
 +
 +// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md).
@@ -64,6 +66,9 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +// window title. onClose, if not nil, is called once when the window closes
 +// for any reason (client close, another container opening, disconnect).
 +func (s *Session) OpenEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx), tx *world.Tx) {
++	if s == Nop {
++		return
++	}
 +	s.closeCurrentContainer(tx, false)
 +
 +	s.entityMutex.Lock()
@@ -120,8 +125,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	return true
 +}
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 11:42:24.352914864 +0000
-+++ b/server/session/player.go	2026-10-08 11:42:24.376956128 +0000
+--- a/server/session/player.go	2026-10-08 11:52:21.121892394 +0000
++++ b/server/session/player.go	2026-10-08 11:52:21.142850198 +0000
 @@ -71,6 +71,9 @@
  		return
  	}
@@ -133,8 +138,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  	b := tx.Block(pos)
  	if container, ok := b.(block.Container); ok {
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 11:42:24.352952339 +0000
-+++ b/server/session/session.go	2026-10-08 11:42:24.376980486 +0000
+--- a/server/session/session.go	2026-10-08 11:52:21.121932361 +0000
++++ b/server/session/session.go	2026-10-08 11:52:21.142872361 +0000
 @@ -77,10 +77,12 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]

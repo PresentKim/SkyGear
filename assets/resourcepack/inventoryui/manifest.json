@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Inventory UI",
+    "description": "Custom sized container screens (tedo0627/InventoryUIResourcePack, MIT)",
+    "uuid": "cf7bf1c5-922f-4a64-8a17-9647b6ad99ca",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 0]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "8e8d57dc-eb9a-42d0-9e34-b61c4296dcd9",
+      "version": [0, 0, 1]
+    }
+  ]
+}

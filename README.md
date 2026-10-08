@@ -45,7 +45,7 @@ go run .
 - 친구: 요청(오프라인 대상 포함)·수락·거절·삭제·차단, 접속 상태 표시(오프라인/로비/플레이 중)
 - 초대 코드(6자리, 재발급 가능)와 친구 초대(세이브 안에서), 세이브당 최대 4명
 - 참여 중인 세이브 목록(입장·탈퇴), 호스트가 플레이 중일 때만 입장
-- 호스트의 참여자 관리: 추방, 인벤토리 보기(폼, 접속 중이면 실시간·아니면 저장된 인벤토리)
+- 호스트의 참여자 관리: 추방, 인벤토리 보기(엔티티 상자, 접속 중이면 실시간·아니면 저장된 인벤토리)
 
 ### 명령어
 | 위치 | 명령어 |
@@ -64,10 +64,12 @@ internal/instance/              인스턴스 매니저(활성화/종료, 로비�
 internal/platform/              로비, 서버 안내, 세이브 선택 UI, 명령어
 internal/games/dragonfactory/   드래곤팩토리 (코어, 미션, 상점, 수표, 섬, 서랍 …)
 internal/ui/                    폼 헬퍼
+internal/chestui/               엔티티 상자(크기 자유 상자 창): 창고·버튼 메뉴
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여)
 internal/oneblock, internal/farm  원블럭 프로토타입에서 남긴 참고 데이터(현재 미사용)
 spike/                          기술 검증 코드와 테스트 클라이언트
-assets/resourcepack/            수동 리소스팩 원본
+assets/resourcepack/            수동 리소스팩 원본 (dragonfactory, inventoryui)
+third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
 ```
 
 ## 테스트

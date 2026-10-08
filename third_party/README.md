@@ -17,10 +17,10 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 
 | 파일 | 내용 |
 |---|---|
-| `server/session/entity_container.go` (신규) | `OpenEntityContainer`(투명 엔티티 `AddActor` + `ContainerOpen` 의 `ContainerEntityUniqueID`), `CloseOpenedContainer`, 닫힐 때 엔티티 제거·`onClose` 콜백 |
+| `server/session/entity_container.go` (신규) | `OpenEntityContainer`(Nop 세션은 무시, 투명 엔티티 `AddActor` + `ContainerOpen` 의 `ContainerEntityUniqueID`), `CloseOpenedContainer`, 닫힐 때 엔티티 제거·`onClose` 콜백 |
 | `server/session/session.go` | `entityContainer` 필드, `AvailableActorIdentifiers` 에 `dragonfly:entity_container` 추가 |
 | `server/session/player.go` | `closeCurrentContainer` 가 엔티티 컨테이너면 블록 조회 없이 정리 |
-| `server/player/player.go` | `Player.OpenEntityContainer`, `ViewOpenedContainerSlot`, `CloseOpenedContainer` |
+| `server/player/player.go` | `Player.OpenEntityContainer`, `ContainerViewer`(트랜잭션 밖에서 슬롯 갱신 전송), `CloseOpenedContainer` |
 
 아이템 이동은 기존 `invByID` 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
 패치한 곳에는 `dragonfactory patch` 주석을 단다.

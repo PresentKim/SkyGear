@@ -1,15 +1,12 @@
 package dragonfactory
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // ShopItem is a product of the shop (docs/design/02-dragonfactory.md §5.1).
@@ -78,30 +75,6 @@ func (s *session) stock(it ShopItem) *ShopStock {
 		st.LastRestock += (now - st.LastRestock) / period * period
 	}
 	return st
-}
-
-func (s *session) showShop(p *player.Player) {
-	var opts []ui.Option
-	for _, it := range ShopItems {
-		if it.UnlockLevel > s.state.Level {
-			opts = append(opts, ui.Option{
-				Label: fmt.Sprintf("§8%s\n§8Lv.%d 개방", it.Name, it.UnlockLevel),
-				Run:   func(p *player.Player, _ *world.Tx) { p.Messagef("§cLv.%d에 개방됩니다.", it.UnlockLevel) },
-			})
-			continue
-		}
-		st := s.stock(it)
-		stock := fmt.Sprintf("재고 %d/%d", st.Count, it.MaxStock)
-		if it.Restock == 0 {
-			stock = map[bool]string{true: "판매 완료", false: "1회 한정"}[st.Count == 0]
-		}
-		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("%s\n§6%s §8· %s", it.Name, formatMoney(it.Price), stock),
-			Run:   func(p *player.Player, tx *world.Tx) { s.buy(p, tx, it); s.showShop(p) },
-		})
-	}
-	body := fmt.Sprintf("소지금: §6%s§r\n재고는 하루마다 다시 채워집니다. 1회 한정 상품은 다시 채워지지 않습니다.", formatMoney(s.Money(p)))
-	ui.Menu(p, "상점 · 구매", body, opts...)
 }
 
 func (s *session) buy(p *player.Player, tx *world.Tx, it ShopItem) bool {
@@ -206,38 +179,4 @@ func (s *session) sellInventory(p *player.Player) (count int, earned int64) {
 		}
 	}
 	return count, s.Money(p) - before
-}
-
-func (s *session) showBuyback(p *player.Player) {
-	bb := s.buyback()
-	var b strings.Builder
-	fmt.Fprintf(&b, "오늘 남은 매입 예산: §6%s§r\n예산과 품목별 한도는 하루마다 회복됩니다.\n\n", formatMoney(bb.Budget))
-	for _, it := range BuybackItems {
-		left := "무제한"
-		if it.Limit > 0 {
-			left = fmt.Sprintf("%d개 남음", it.Limit-bb.Sold[itemKey(it.Item)])
-		}
-		fmt.Fprintf(&b, "§f%s §6%s§7 · %s\n", itemName(item.NewStack(it.Item, 1)), formatMoney(it.Price), left)
-	}
-	ui.Menu(p, "상점 · 판매", b.String(),
-		ui.Option{Label: "손에 든 아이템 판매", Run: func(p *player.Player, _ *world.Tx) {
-			held, off := p.HeldItems()
-			before := s.Money(p)
-			n := s.sell(p, held)
-			if n == 0 {
-				p.Message("§c이 아이템은 지금 팔 수 없습니다.")
-				return
-			}
-			p.SetHeldItems(held.Grow(-n), off)
-			p.Messagef("§a%d개를 %s에 판매했습니다.", n, formatMoney(s.Money(p)-before))
-		}},
-		ui.Option{Label: "인벤토리 전체 판매", Run: func(p *player.Player, _ *world.Tx) {
-			n, earned := s.sellInventory(p)
-			if n == 0 {
-				p.Message("§c팔 수 있는 아이템이 없습니다.")
-				return
-			}
-			p.Messagef("§a%d개를 %s에 판매했습니다.", n, formatMoney(earned))
-		}},
-	)
 }

@@ -30,6 +30,9 @@ type entityContainer struct {
 // window title. onClose, if not nil, is called once when the window closes
 // for any reason (client close, another container opening, disconnect).
 func (s *Session) OpenEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx), tx *world.Tx) {
+	if s == Nop {
+		return
+	}
 	s.closeCurrentContainer(tx, false)
 
 	s.entityMutex.Lock()

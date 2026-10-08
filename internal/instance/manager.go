@@ -174,6 +174,7 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 		pos = state.Position()
 	}
 
+	p.CloseOpenedContainer()
 	h := p.Tx().RemoveEntity(p)
 	inst.addPlayer(acc, h)
 	m.mu.Lock()
@@ -212,6 +213,9 @@ func (m *Manager) ToLobby(p *player.Player) {
 // is moved to the lobby, otherwise it is quitting the server.
 func (m *Manager) leave(inst *Instance, p *player.Player, toLobby bool) {
 	acc := AccountID(p)
+	// Close a chest window first so its close callback runs while the
+	// player is still in the instance.
+	p.CloseOpenedContainer()
 	inst.session.Leave(p)
 	inst.storePlayer(p)
 	inst.removePlayer(acc)
