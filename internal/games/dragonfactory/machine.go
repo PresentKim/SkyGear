@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"image"
 	"image/color"
 	"time"
@@ -15,7 +14,10 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
@@ -121,8 +123,11 @@ type machineState struct {
 	shownPct int
 	// owner is the account that placed a sell box and gets its money.
 	owner, ownerName string
-	// pos is where the machine stands, set when its window is opened.
+	// pos is where the machine stands, set when it ticks or its window is
+	// opened.
 	pos cube.Pos
+	// shownText is the text shown above the machine.
+	shownText string
 	// cracking is set while the auto miner shows its target cracking.
 	cracking bool
 }
@@ -218,7 +223,7 @@ func pickUpMachine(p *player.Player, tx *world.Tx, st *machineState) {
 		return
 	}
 	drops := m.BreakInfo().Drops(nil, nil)
-	breakMachine(m)
+	s.breakMachine(tx, st.pos, m)
 	tx.SetBlock(st.pos, nil, nil)
 	for _, it := range drops {
 		if n, _ := p.Inventory().AddItem(it); n < it.Count() {
@@ -539,7 +544,37 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	case KindSellBox:
 		s.runSellBox(st, tx)
 	}
+	st.pos = pos
 	st.showProgress()
+	s.showMachineText(tx, st)
+}
+
+// machineTextKey keys the text shown above a machine.
+type machineTextKey cube.Pos
+
+// text returns the text shown above the machine: its name and progress.
+func (st *machineState) text() string {
+	switch {
+	case st.kind == machineKinds[KindSellBox]:
+		return "§6" + st.kind.name
+	case st.progress == 0:
+		return "§f" + st.kind.name + " §7대기"
+	}
+	return fmt.Sprintf("§f%s §e%d%%", st.kind.name, st.shownPct)
+}
+
+// showMachineText shows the machine's text above it when it changed.
+func (s *session) showMachineText(tx *world.Tx, st *machineState) {
+	text := st.text()
+	if text == st.shownText {
+		return
+	}
+	st.shownText = text
+	s.showShape(tx, machineTextKey(st.pos), &debug.Text{
+		Position: st.pos.Vec3Centre().Add(mgl64.Vec3{0, 0.95, 0}),
+		Text:     text,
+		Scale:    0.6,
+	})
 }
 
 // process advances an input → output operation on accepted inputs.
@@ -729,8 +764,10 @@ func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kin
 	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 }
 
-// breakMachine closes the windows of a machine being broken.
-func breakMachine(m Machine) {
+// breakMachine closes the windows of a machine being broken and removes
+// its text.
+func (s *session) breakMachine(tx *world.Tx, pos cube.Pos, m Machine) {
+	s.hideShape(tx, machineTextKey(pos))
 	if m.st != nil {
 		m.st.storage.CloseAll()
 	}

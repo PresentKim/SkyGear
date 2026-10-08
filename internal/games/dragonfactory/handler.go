@@ -44,7 +44,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, _ *[]item.
 		}
 		h.s.removeDisplay(ctx.Player().Tx(), pos)
 	case Machine:
-		breakMachine(b)
+		h.s.breakMachine(ctx.Player().Tx(), pos, b)
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {

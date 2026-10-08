@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"testing"
 	"time"
 
@@ -250,5 +251,35 @@ func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 		if hand > 3*time.Second {
 			t.Errorf("%T takes %v to break", b, hand)
 		}
+	}
+}
+
+func TestMachineTextAboveBlock(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindCrusher, "")
+	text := func() string {
+		var out string
+		s.world.Do(func(tx *world.Tx) {
+			if sh, ok := s.shapes[machineTextKey(machinePos)].(*debug.Text); ok {
+				out = sh.Text
+			}
+		})
+		return out
+	}
+	tick(s, 2)
+	if got := text(); got != "§f분쇄기 §7대기" {
+		t.Fatalf("idle text = %q", got)
+	}
+	st.insert(item.NewStack(block.Cobblestone{}, 5))
+	tick(s, machineKinds[KindCrusher].interval/2+1)
+	if got := text(); got != "§f분쇄기 §e50%" {
+		t.Fatalf("half-way text = %q", got)
+	}
+	s.world.Do(func(tx *world.Tx) {
+		s.breakMachine(tx, machinePos, tx.Block(machinePos).(Machine))
+	})
+	if got := text(); got != "" {
+		t.Fatalf("text left after breaking: %q", got)
 	}
 }
