@@ -35,6 +35,9 @@ type Session interface {
 	Handler(p *player.Player) player.Handler
 	// NewDay is called in the instance world when the instance day changes.
 	NewDay(tx *world.Tx, day int)
+	// Autosave is called in the instance world on every autosave, after the
+	// clock and player states were stored. Games store their state here.
+	Autosave(tx *world.Tx)
 	// Close is called in the instance world before it is saved and closed.
 	Close(tx *world.Tx)
 }

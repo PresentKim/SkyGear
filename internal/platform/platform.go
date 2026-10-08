@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Slots is the number of save slots per account.
@@ -118,21 +119,21 @@ func (pf *Platform) showSaves(p *player.Player) {
 	for _, s := range saves {
 		bySlot[s.Slot] = s
 	}
-	var opts []option
+	var opts []ui.Option
 	for slot := 1; slot <= Slots; slot++ {
 		if s, ok := bySlot[slot]; ok {
-			opts = append(opts, option{
-				label: fmt.Sprintf("§l%d. %s§r\n§8%d일차 · 플레이 %s", slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
-				run:   func(p *player.Player, _ *world.Tx) { pf.showSave(p, s.ID) },
+			opts = append(opts, ui.Option{
+				Label: fmt.Sprintf("§l%d. %s§r\n§8%d일차 · 플레이 %s", slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
+				Run:   func(p *player.Player, _ *world.Tx) { pf.showSave(p, s.ID) },
 			})
 			continue
 		}
-		opts = append(opts, option{
-			label: fmt.Sprintf("§l%d. 새 게임§r\n§8비어 있는 슬롯", slot),
-			run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) },
+		opts = append(opts, ui.Option{
+			Label: fmt.Sprintf("§l%d. 새 게임§r\n§8비어 있는 슬롯", slot),
+			Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) },
 		})
 	}
-	sendMenu(p, "세이브 선택", pf.game.Name()+" 세이브를 선택하세요.", opts...)
+	ui.Menu(p, "세이브 선택", pf.game.Name()+" 세이브를 선택하세요.", opts...)
 }
 
 func (pf *Platform) showSave(p *player.Player, saveID int64) {
@@ -142,11 +143,11 @@ func (pf *Platform) showSave(p *player.Player, saveID int64) {
 		return
 	}
 	body := fmt.Sprintf("§f%s\n§7%d일차 · 플레이 %s\n만든 날: %s", s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
-	sendMenu(p, s.Name, body,
-		option{label: "§a입장", run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
-		option{label: "이름 변경", run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
-		option{label: "§c삭제", run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
-		option{label: "뒤로", run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+	ui.Menu(p, s.Name, body,
+		ui.Option{Label: "§a입장", Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
+		ui.Option{Label: "이름 변경", Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
+		ui.Option{Label: "§c삭제", Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
+		ui.Option{Label: "뒤로", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
 	)
 }
 
@@ -167,7 +168,7 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 }
 
 func (pf *Platform) askNewSave(p *player.Player, slot int) {
-	sendInput(p, "새 게임", "세이브 이름", fmt.Sprintf("세이브 %d", slot), func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, "새 게임", "세이브 이름", fmt.Sprintf("세이브 %d", slot), func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
 			p.Message("§c이름은 1~20자로 입력해 주세요.")
@@ -183,7 +184,7 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 }
 
 func (pf *Platform) askRename(p *player.Player, s db.Save) {
-	sendInput(p, "이름 변경", "새 이름", s.Name, func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, "이름 변경", "새 이름", s.Name, func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
 			p.Message("§c이름은 1~20자로 입력해 주세요.")
@@ -200,12 +201,12 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 // askDelete confirms twice before deleting a save.
 func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
 	if step == 0 {
-		sendConfirm(p, "세이브 삭제", fmt.Sprintf("'%s' 세이브를 삭제할까요?\n삭제한 세이브는 되돌릴 수 없습니다.", s.Name), "§c삭제", func(p *player.Player, _ *world.Tx) {
+		ui.Confirm(p, "세이브 삭제", fmt.Sprintf("'%s' 세이브를 삭제할까요?\n삭제한 세이브는 되돌릴 수 없습니다.", s.Name), "§c삭제", func(p *player.Player, _ *world.Tx) {
 			pf.askDelete(p, s, 1)
 		})
 		return
 	}
-	sendConfirm(p, "정말 삭제할까요?", fmt.Sprintf("'%s'의 섬과 모든 참여자의 진행 상황이 사라집니다.", s.Name), "§c영구 삭제", func(p *player.Player, _ *world.Tx) {
+	ui.Confirm(p, "정말 삭제할까요?", fmt.Sprintf("'%s'의 섬과 모든 참여자의 진행 상황이 사라집니다.", s.Name), "§c영구 삭제", func(p *player.Player, _ *world.Tx) {
 		if err := pf.m.DeleteSave(s.ID); err != nil {
 			pf.fail(p, "세이브 삭제", err)
 			return

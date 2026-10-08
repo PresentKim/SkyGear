@@ -113,8 +113,13 @@ func (inst *Instance) autosave() {
 				inst.storePlayer(e.(*player.Player))
 			}
 		}
+		inst.session.Autosave(tx)
 	})
 }
+
+// LoadRadius is the radius in chunks around the island centre that is kept
+// loaded and ticked while the instance is active.
+func (inst *Instance) LoadRadius() int { return inst.m.conf.LoadRadius }
 
 func (inst *Instance) storeClock() {
 	total, day, dayTime := inst.Clock.Now()

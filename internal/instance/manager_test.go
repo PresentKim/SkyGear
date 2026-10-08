@@ -40,6 +40,7 @@ func (s *testSession) Join(p *player.Player, first bool) {
 func (*testSession) Leave(*player.Player)                  {}
 func (*testSession) Handler(*player.Player) player.Handler { return nil }
 func (*testSession) NewDay(*world.Tx, int)                 {}
+func (*testSession) Autosave(*world.Tx)                    {}
 func (s *testSession) Close(*world.Tx)                     { s.g.closes++ }
 
 type fixture struct {

@@ -73,7 +73,7 @@ func run(log *slog.Logger) error {
 		AutosaveInterval: time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
 		Entities:         conf.Entities,
 	}, platform.Lobby(lobby, &pf))
-	pf = platform.New(log, d, m, dragonfactory.Game{})
+	pf = platform.New(log, d, m, dragonfactory.New(log, d))
 
 	go func() {
 		c := make(chan os.Signal, 1)

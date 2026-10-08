@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // GuideVersion is increased when the guide changes; players see it again once.
@@ -31,7 +32,7 @@ func (pf *Platform) guideText() string {
 // showGuide shows the server guide. With first set, closing it records that
 // the account has seen the current version.
 func (pf *Platform) showGuide(p *player.Player, first bool) {
-	sendMenu(p, "서버 안내", pf.guideText(), option{label: "확인", run: func(p *player.Player, _ *world.Tx) {
+	ui.Menu(p, "서버 안내", pf.guideText(), ui.Option{Label: "확인", Run: func(p *player.Player, _ *world.Tx) {
 		if first {
 			if err := pf.db.SetGuideVersion(instance.AccountID(p), GuideVersion); err != nil {
 				pf.log.Error("set guide version", "err", err)

@@ -43,3 +43,6 @@ func (c *Clock) Now() (total time.Duration, day int, dayTime time.Duration) {
 	defer c.mu.Unlock()
 	return c.total, c.day, c.dayTime
 }
+
+// DayLength returns the length of an instance day.
+func (c *Clock) DayLength() time.Duration { return c.dayLength }

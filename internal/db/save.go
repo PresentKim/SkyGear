@@ -189,3 +189,20 @@ func (d *DB) AddMember(saveID int64, accountID string, role Role) error {
 		ON CONFLICT(save_id, account_id) DO UPDATE SET role = excluded.role, left_at = NULL`, saveID, accountID, role, now())
 	return err
 }
+
+// Money returns the wallet of a player in a save (0 if none).
+func (d *DB) Money(saveID int64, accountID string) (int64, error) {
+	var m int64
+	err := d.sql.QueryRow(`SELECT money FROM save_players WHERE save_id = ? AND account_id = ?`, saveID, accountID).Scan(&m)
+	if err = notFound(err); errors.Is(err, ErrNotFound) {
+		return 0, nil
+	}
+	return m, err
+}
+
+// SetMoney stores the wallet of a player in a save.
+func (d *DB) SetMoney(saveID int64, accountID string, money int64) error {
+	_, err := d.sql.Exec(`INSERT INTO save_players (save_id, account_id, money) VALUES (?, ?, ?)
+		ON CONFLICT(save_id, account_id) DO UPDATE SET money = excluded.money`, saveID, accountID, money)
+	return err
+}
