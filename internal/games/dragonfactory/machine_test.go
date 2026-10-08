@@ -63,32 +63,39 @@ func TestCrusher(t *testing.T) {
 	}
 }
 
-func TestSieve(t *testing.T) {
+func TestAutoSieveFillsChestBeside(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindSieve, "")
+	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
+	chest := block.NewChest()
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(machinePos.Side(cube.FaceEast), chest, nil) })
 	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 64))
 	tick(s, 64*(st.kind.interval+1))
 	if left, _ := st.inv().Item(st.kind.input[0]); !left.Empty() {
 		t.Fatalf("gravel left: %v", left)
 	}
-	flint := outputCount(st, item.Flint{})
+	flint := 0
+	s.world.Do(func(tx *world.Tx) {
+		inv := tx.Block(machinePos.Side(cube.FaceEast)).(block.Chest).Inventory(tx, machinePos.Side(cube.FaceEast))
+		for _, it := range inv.Slots() {
+			if !it.Empty() && itemKey(it.Item()) == itemKey(item.Flint{}) {
+				flint += it.Count()
+			}
+		}
+	})
 	if flint == 0 || flint == 64 {
-		t.Fatalf("flint from 64 gravel = %d, want some but not all", flint)
+		t.Fatalf("flint in the chest from 64 gravel = %d, want some but not all", flint)
 	}
 }
 
-func TestSieveWaitsWhenFull(t *testing.T) {
+func TestHandSieveDoesNotSiftAlone(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindSieve, "")
-	for _, slot := range st.kind.output {
-		_ = st.inv().SetItem(slot, item.NewStack(item.Flint{}, 64))
-	}
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 3))
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 1))
 	tick(s, 3*(st.kind.interval+1))
-	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 3 {
-		t.Fatalf("sieve worked with full outputs: %v left", left)
+	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 1 {
+		t.Fatalf("hand sieve sifted alone: %v left", left)
 	}
 }
 

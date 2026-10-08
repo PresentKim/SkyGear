@@ -42,7 +42,8 @@ var ShopItems = []ShopItem{
 	{"hammer", "망치 (손 분쇄)", func() item.Stack { return item.NewStack(Hammer{}, 1) }, 600, 2, 1, day},
 	{"hopper", "호퍼", func() item.Stack { return item.NewStack(block.NewHopper(), 1) }, 300, 2, 8, day},
 	{"crusher", "분쇄기", func() item.Stack { return machineItem(KindCrusher) }, 1500, 3, 2, day},
-	{"sieve", "체", func() item.Stack { return machineItem(KindSieve) }, 2000, 4, 2, day},
+	{"sieve", "체 (손으로 거르기)", func() item.Stack { return machineItem(KindSieve) }, 600, 2, 2, day},
+	{"auto_sieve", "자동 체", func() item.Stack { return machineItem(KindAutoSieve) }, 2500, 4, 1, day},
 	{"sell_box", "판매함", func() item.Stack { return machineItem(KindSellBox) }, 3000, 5, 1, day},
 	{"pioneer_pickaxe", "개척자의 곡괭이 (1회 한정)", func() item.Stack {
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")

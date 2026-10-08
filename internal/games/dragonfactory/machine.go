@@ -32,8 +32,10 @@ import (
 const (
 	KindCrusher = "crusher"
 	KindSieve   = "sieve"
-	KindMiner   = "auto_miner"
-	KindSellBox = "sell_box"
+	// KindAutoSieve sifts on its own; KindSieve only by hand (sieve.go).
+	KindAutoSieve = "auto_sieve"
+	KindMiner     = "auto_miner"
+	KindSellBox   = "sell_box"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -59,10 +61,17 @@ var machineKinds = map[string]*machineKind{
 		help:    []string{"§7돌 → 조약돌 → 자갈 → 모래", "§7개당 4초"},
 		texture: machineTexture(rgb(90, 90, 95), rgb(200, 120, 40)),
 	},
+	// Sieves have no window: the input lies on the mesh and the products
+	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
-		name: "체", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{14, 15, 16}, indicator: 12,
-		help:    []string{"§7자갈·모래·흙을 걸러 부산물을 얻습니다", "§7개당 3초 · 결과는 확률"},
+		name: "체", interval: 60, input: []int{10}, indicator: 12,
+		help:    []string{"§7자갈·모래·흙을 얹고 여러 번 사용해 거릅니다", "§7부산물은 위로 튀어나옵니다"},
 		texture: machineTexture(rgb(120, 85, 50), rgb(230, 220, 170)),
+	},
+	KindAutoSieve: {
+		name: "자동 체", interval: 60, input: []int{10}, indicator: 12,
+		help:    []string{"§7자갈·모래·흙을 저절로 거릅니다(개당 3초)", "§7부산물은 옆·아래 상자로, 없으면 위로"},
+		texture: machineTexture(rgb(110, 110, 120), rgb(230, 220, 170)),
 	},
 	KindMiner: {
 		name: "자동 채굴기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
@@ -77,7 +86,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindMiner, KindSellBox}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox}
 
 func machineTexture(frame, core color.RGBA) image.Image {
 	return frameTexture(frame, shade(frame, 1.3), core, 8)
@@ -112,6 +121,8 @@ var minerTool = item.Pickaxe{Tier: item.ToolTierStone}
 type Machine struct {
 	Kind string
 	st   *machineState
+	// content and fill are what a sieve shows on its mesh (sieve.go).
+	content, fill int
 }
 
 // machineState is the inventory and progress of a placed machine. It is
@@ -130,6 +141,8 @@ type machineState struct {
 	shownText string
 	// cracking is set while the auto miner shows its target cracking.
 	cracking bool
+	// lastUse is when a sieve was last sifted by hand.
+	lastUse time.Time
 }
 
 func newMachine(kind, owner, ownerName string) Machine {
@@ -189,7 +202,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindCrusher]:
 		_, ok := crushRecipes[k]
 		return ok
-	case machineKinds[KindSieve]:
+	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		_, ok := sieveRecipes[k]
 		return ok
 	case machineKinds[KindSellBox]:
@@ -375,18 +388,53 @@ func (ProgressArrow) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
 
-func (m Machine) EncodeItem() (string, int16)           { return "dragonfactory:" + m.Kind, 0 }
-func (m Machine) EncodeBlock() (string, map[string]any) { return "dragonfactory:" + m.Kind, nil }
-func (m Machine) Hash() (uint64, uint64)                { return m.kind().hash, 0 }
-func (Machine) Model() world.BlockModel                 { return model.Solid{} }
-func (m Machine) Name() string                          { return m.kind().name }
-func (Machine) Category() category.Category             { return category.Items() }
-func (Machine) Geometry() []byte                        { return nil }
-func (m Machine) Texture() image.Image                  { return m.kind().texture }
+func (m Machine) EncodeItem() (string, int16) { return "dragonfactory:" + m.Kind, 0 }
+func (m Machine) EncodeBlock() (string, map[string]any) {
+	if isSieve(m.Kind) {
+		return "dragonfactory:" + m.Kind, map[string]any{sieveContentState: sieveContents[m.content].name, sieveFillState: fmt.Sprint(m.fill)}
+	}
+	return "dragonfactory:" + m.Kind, nil
+}
+func (m Machine) Hash() (uint64, uint64) {
+	return m.kind().hash, uint64(m.content*(sieveStages+1) + m.fill)
+}
+func (Machine) Model() world.BlockModel     { return model.Solid{} }
+func (m Machine) Name() string              { return m.kind().name }
+func (Machine) Category() category.Category { return category.Items() }
+func (m Machine) Geometry() []byte {
+	if isSieve(m.Kind) {
+		return sieveGeometries[m.Kind]
+	}
+	return nil
+}
+func (m Machine) Texture() image.Image { return m.kind().texture }
 func (m Machine) Textures() map[string]image.Image {
+	if isSieve(m.Kind) {
+		return map[string]image.Image{"dragonfactory_" + m.Kind: sieveFrameTextures[m.Kind], "dragonfactory_sieve_mesh": sieveMeshTexture}
+	}
 	return map[string]image.Image{"dragonfactory_" + m.Kind: m.kind().texture}
 }
+
+// States implements block.Permutable: only the sieve has states.
+func (m Machine) States() map[string][]any {
+	if isSieve(m.Kind) {
+		return sieveStates()
+	}
+	return nil
+}
+
+// Permutations implements block.Permutable.
+func (m Machine) Permutations() []customblock.Permutation {
+	if isSieve(m.Kind) {
+		return sievePermutations(m.Kind)
+	}
+	return nil
+}
+
 func (m Machine) Properties() customblock.Properties {
+	if isSieve(m.Kind) {
+		return sieveProperties(m.Kind)
+	}
 	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
 		"*": customblock.NewMaterial("dragonfactory_"+m.Kind, customblock.OpaqueRenderMethod()),
 	}}
@@ -456,7 +504,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	return n
 }
 
-// Activate opens the machine window.
+// Activate opens the machine window, or uses a sieve.
 func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
@@ -464,13 +512,18 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return false
 	}
 	m.st.pos = pos
+	if isSieve(m.Kind) {
+		s.useSieve(p, tx, pos, m.st)
+		return true
+	}
 	m.st.storage.Open(p, nil)
 	return true
 }
 
 // InsertItem implements block.HopperInsertable: one item per transfer.
 func (m Machine) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if m.st == nil || len(m.st.kind.input) == 0 {
+	if m.st == nil || len(m.st.kind.input) == 0 || m.Kind == KindSieve {
+		// The hand sieve is filled by hand only.
 		return false
 	}
 	inv := h.Inventory(tx, pos.Side(h.Facing.Opposite()))
@@ -519,23 +572,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		st.process(func(in item.Stack) []item.Stack {
 			return []item.Stack{item.NewStack(crushRecipes[itemKey(in.Item())], 1)}
 		}, nil)
-	case KindSieve:
-		drops := func(in item.Stack) []SieveDrop { return sieveRecipes[itemKey(in.Item())] }
-		st.process(func(in item.Stack) []item.Stack {
-			var all []item.Stack
-			for _, d := range drops(in) {
-				all = append(all, d.Item)
-			}
-			return all
-		}, func(in item.Stack) []item.Stack {
-			var out []item.Stack
-			for _, d := range drops(in) {
-				if s.rand.IntN(100) < d.Chance {
-					out = append(out, d.Item)
-				}
-			}
-			return out
-		})
+	case KindAutoSieve:
+		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
 		s.runMiner(st, pos, tx)
 		if currentTick%4 == 0 {
@@ -545,6 +583,11 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runSellBox(st, tx)
 	}
 	st.pos = pos
+	if isSieve(m.Kind) {
+		// The sieve shows its content and progress on the model.
+		showSieve(tx, pos, st)
+		return
+	}
 	st.showProgress()
 	s.showMachineText(tx, st)
 }
@@ -784,6 +827,15 @@ func init() {
 		machineKinds[k].hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
+	}
+	for _, k := range []string{KindSieve, KindAutoSieve} {
+		for c := range sieveContents {
+			for fill := range sieveStages + 1 {
+				if c != 0 || fill != 0 {
+					world.RegisterBlock(Machine{Kind: k, content: c, fill: fill})
+				}
+			}
+		}
 	}
 }
 
