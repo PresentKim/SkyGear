@@ -41,3 +41,10 @@ type Session interface {
 	// Close is called in the instance world before it is saved and closed.
 	Close(tx *world.Tx)
 }
+
+// SecondTicker is an optional Session interface: Second is called in the
+// instance world about once a second while the instance is active, after
+// the clock advanced.
+type SecondTicker interface {
+	Second(tx *world.Tx)
+}

@@ -61,6 +61,22 @@ func (c adminPoints) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
+type adminUrgent struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"urgent"`
+}
+
+func (c adminUrgent) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		now, _, _ := s.clock.Now()
+		if s.state.Urgent != nil {
+			s.endUrgent(tx, now)
+		}
+		s.startUrgent(tx, now)
+		o.Printf("긴급 매입: %s", s.urgentLine())
+	}
+}
+
 type adminMoney struct {
 	adminBase
 	Sub    cmd.SubCommand `cmd:"money"`
@@ -167,5 +183,5 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
 }

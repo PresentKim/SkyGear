@@ -62,7 +62,8 @@ func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	return true
 }
 
-// InsertItem implements block.HopperInsertable: one needed item per transfer.
+// InsertItem implements block.HopperInsertable: one item per transfer, for
+// the main mission or else the running urgent mission (paid to the host).
 func (DeliveryBox) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
 	s, ok := activeGame.sessionOf(tx.World())
 	if !ok {
@@ -73,7 +74,7 @@ func (DeliveryBox) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
 		if st.Empty() {
 			continue
 		}
-		if s.deliver(tx, nil, st.Item(), 1) == 1 {
+		if s.deliver(tx, nil, st.Item(), 1) == 1 || s.deliverUrgent(tx, nil, st.Item(), 1) == 1 {
 			_ = inv.SetItem(slot, st.Grow(-1))
 			return true
 		}

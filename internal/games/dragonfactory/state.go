@@ -33,6 +33,10 @@ type State struct {
 	Buyback *Buyback `json:"buyback,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
+	// Urgent is the running urgent mission; NextUrgent is the instance time
+	// when the next one starts (0: not scheduled yet).
+	Urgent     *UrgentMission `json:"urgent,omitempty"`
+	NextUrgent time.Duration  `json:"next_urgent,omitempty"`
 }
 
 // ChunkPos is a chunk coordinate.

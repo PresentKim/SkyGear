@@ -163,38 +163,44 @@ func (s *session) deliverInventory(p *player.Player, tx *world.Tx) int {
 
 func (s *session) showMission(p *player.Player) {
 	m, ok := s.mission()
-	if !ok {
-		ui.Menu(p, "메인 미션", fmt.Sprintf("§f레벨 %d\n\n§7모든 미션을 완료했습니다. 다음 시대를 기다려 주세요.", s.state.Level))
-		return
-	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f레벨 %d · §e%s§r\n\n", s.state.Level, m.Name)
-	for _, r := range m.Requirements {
-		got := s.state.Delivered[itemKey(r.Item)]
-		mark := "§7"
-		if got >= r.Count {
-			mark = "§a"
+	if !ok {
+		fmt.Fprintf(&b, "§f레벨 %d\n\n§7모든 미션을 완료했습니다. 다음 시대를 기다려 주세요.", s.state.Level)
+	} else {
+		fmt.Fprintf(&b, "§f레벨 %d · §e%s§r\n\n", s.state.Level, m.Name)
+		for _, r := range m.Requirements {
+			got := s.state.Delivered[itemKey(r.Item)]
+			mark := "§7"
+			if got >= r.Count {
+				mark = "§a"
+			}
+			fmt.Fprintf(&b, "%s%s  %d/%d\n", mark, itemName(item.NewStack(r.Item, 1)), got, r.Count)
 		}
-		fmt.Fprintf(&b, "%s%s  %d/%d\n", mark, itemName(item.NewStack(r.Item, 1)), got, r.Count)
+		fmt.Fprintf(&b, "\n§7보상: %s, 코어 강화 포인트 %d\n제출하기를 누르면 인벤토리에서 필요한 아이템을 냅니다. 호퍼로 납품함에 넣어도 됩니다.", formatMoney(m.Reward.Money), m.Reward.CorePoints)
 	}
-	fmt.Fprintf(&b, "\n§7보상: %s, 코어 강화 포인트 %d\n제출하기를 누르면 인벤토리에서 필요한 아이템을 냅니다. 호퍼로 납품함에 넣어도 됩니다.", formatMoney(m.Reward.Money), m.Reward.CorePoints)
+	b.WriteString(s.urgentSection())
 	ui.Menu(p, "메인 미션", b.String(), s.missionOptions()...)
 }
 
 // missionOptions are the buttons of the mission form: submit (and show the
-// form again with the new counts or the next mission) and back to the menu.
+// form again with the new counts or the next mission), the urgent delivery
+// if an urgent mission runs, and back to the menu.
 func (s *session) missionOptions() []ui.Option {
-	return []ui.Option{
-		s.opt("§a제출하기", iconMission, func(p *player.Player, tx *world.Tx) {
+	var opts []ui.Option
+	if _, ok := s.mission(); ok {
+		opts = append(opts, s.opt("§a제출하기", iconMission, func(p *player.Player, tx *world.Tx) {
 			if n := s.deliverInventory(p, tx); n > 0 {
 				p.Messagef("§a%d개를 납품했습니다.", n)
 			} else {
 				p.Message("§7납품할 아이템이 없습니다.")
 			}
 			s.showMission(p)
-		}),
-		s.backOption(),
+		}))
 	}
+	if o, ok := s.urgentOption(); ok {
+		opts = append(opts, o)
+	}
+	return append(opts, s.backOption())
 }
 
 // missionLine is the sidebar line of the current mission.

@@ -96,6 +96,9 @@ func (inst *Instance) run() {
 			for _, day := range inst.Clock.Advance(now.Sub(last)) {
 				inst.World.Do(func(tx *world.Tx) { inst.session.NewDay(tx, day) })
 			}
+			if t, ok := inst.session.(SecondTicker); ok {
+				inst.World.Do(t.Second)
+			}
 			last = now
 			if now.Sub(lastSave) >= inst.m.conf.AutosaveInterval {
 				lastSave = now

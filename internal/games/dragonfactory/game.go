@@ -112,8 +112,9 @@ type session struct {
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
-	// boardMinute is the play time minute shown on the sidebars.
-	boardMinute int
+	// boardMinute is the play time minute shown on the sidebars;
+	// urgentMinute the urgent mission minute.
+	boardMinute, urgentMinute int
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
 	shapes map[any]debug.Shape
 	// expanding are the players in island expansion mode (expand.go).
