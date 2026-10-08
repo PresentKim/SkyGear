@@ -64,6 +64,17 @@ var machineModels = map[string][]byte{
 		{from: v(-5, 2, -5), size: v(10, 2, 10), mat: "accent"},
 		{from: v(-3, 0, -3), size: v(6, 2, 6), mat: "accent"},
 	})),
+	// A body on legs with blades ("accent") around it.
+	KindHarvester: geoFile(geometry("geometry.dragonfactory_harvester", []box{
+		{from: v(-7, 4, -7), size: v(14, 10, 14)},
+		{from: v(-7, 0, -7), size: v(2, 4, 2)},
+		{from: v(5, 0, -7), size: v(2, 4, 2)},
+		{from: v(-7, 0, 5), size: v(2, 4, 2)},
+		{from: v(5, 0, 5), size: v(2, 4, 2)},
+		{from: v(-8, 6, -1), size: v(16, 1, 2), mat: "accent"},
+		{from: v(-1, 7, -8), size: v(2, 1, 16), mat: "accent"},
+		{from: v(-3, 14, -3), size: v(6, 2, 6), mat: "accent"},
+	})),
 	// A chest whose lid ("accent") has a coin slot.
 	KindSellBox: geoFile(geometry("geometry.dragonfactory_sell_box", []box{
 		{from: v(-7, 0, -7), size: v(14, 12, 14)},

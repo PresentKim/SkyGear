@@ -187,6 +187,13 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
+	if typ, ok := shopCores[string(c.Item)]; ok {
+		// A core is recorded in the save, not just handed out.
+		if s.grantCore(p, tx, typ) {
+			o.Printf("%s x1", coreTypes[typ].Name)
+		}
+		return
+	}
 	f, ok := giveItems()[string(c.Item)]
 	if !ok {
 		o.Errorf("알 수 없는 아이템: %s", c.Item)

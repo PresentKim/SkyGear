@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/title"
@@ -40,6 +41,7 @@ var urgentItems = []struct {
 	{block.Cobblestone{}, 1}, {block.Dirt{}, 1}, {block.Log{Wood: block.OakWood()}, 1},
 	{block.Sand{}, 2}, {block.Gravel{}, 2}, {block.Stone{}, 3}, {item.Charcoal{}, 3}, {item.Coal{}, 3},
 	{block.Glass{}, 4}, {item.Flint{}, 6}, {item.ClayBall{}, 7}, {item.IronNugget{}, 7},
+	{block.Pumpkin{}, 8}, {block.Melon{}, 8}, {block.HayBale{Axis: cube.Y}, 9}, {block.DriedKelp{}, 10}, {item.Wheat{}, 9},
 }
 
 const (

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -23,6 +24,10 @@ type ShopItem struct {
 	// product that is never refilled.
 	Restock time.Duration
 }
+
+// shopCores are the products that are a core of a type (a new era): buying
+// one records the core in the save (grantCore) instead of giving Stack.
+var shopCores = map[string]string{"life_core": "life"}
 
 // day is the restock period of daily products. It is resolved against the
 // configured instance day length at runtime.
@@ -48,6 +53,9 @@ var ShopItems = []ShopItem{
 	{"pioneer_pickaxe", "개척자의 곡괭이 (1회 한정)", func() item.Stack {
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")
 	}, 500, 2, 1, 0},
+	{"life_core", "생명 코어 (새 시대 · 1회 한정)", func() item.Stack { return coreItem("life", 1) }, 15000, 8, 1, 0},
+	{"stone_hoe", "돌 괭이", func() item.Stack { return item.NewStack(item.Hoe{Tier: item.ToolTierStone}, 1) }, 150, 8, 2, day},
+	{"harvester", "자동 수확기", func() item.Stack { return machineItem(KindHarvester) }, 4000, 9, 1, day},
 	{"iron_pickaxe", "철 곡괭이", func() item.Stack { return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1) }, 1500, 3, 1, day},
 }
 
@@ -96,6 +104,15 @@ func (s *session) buy(p *player.Player, tx *world.Tx, it ShopItem) bool {
 		p.Message("§c돈이 부족합니다.")
 		return false
 	}
+	if typ, ok := shopCores[it.ID]; ok {
+		if !s.grantCore(p, tx, typ) {
+			s.AddMoney(p, it.Price)
+			return false
+		}
+		st.Count--
+		p.Messagef("§a%s 을(를) 구매했습니다.", it.Name)
+		return true
+	}
 	st.Count--
 	stack := it.Stack()
 	if _, err := p.Inventory().AddItem(stack); err != nil {
@@ -119,6 +136,8 @@ var BuybackItems = []BuybackItem{
 	{block.Stone{}, 2, 256}, {block.Log{Wood: block.OakWood()}, 4, 128}, {block.Glass{}, 5, 128},
 	{item.Charcoal{}, 6, 64}, {item.Coal{}, 8, 64},
 	{item.Flint{}, 4, 256}, {item.ClayBall{}, 5, 256}, {item.IronNugget{}, 12, 128}, {item.GoldNugget{}, 30, 64},
+	{block.Pumpkin{}, 5, 256}, {block.Melon{}, 5, 256}, {block.HayBale{Axis: cube.Y}, 12, 128}, {block.DriedKelp{}, 10, 128}, {block.Mud{}, 4, 128},
+	{item.Wheat{}, 3, 256}, {block.Carrot{}, 3, 256}, {block.Potato{}, 3, 256}, {item.Beetroot{}, 3, 256}, {item.MelonSlice{}, 1, 512},
 }
 
 // buybackBudget is the daily buyback budget at a level.

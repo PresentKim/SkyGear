@@ -35,6 +35,8 @@ const (
 	KindAutoSieve = "auto_sieve"
 	KindMiner     = "auto_miner"
 	KindSellBox   = "sell_box"
+	// KindHarvester harvests grown crops around it (harvester.go).
+	KindHarvester = "harvester"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -72,6 +74,10 @@ var machineKinds = map[string]*machineKind{
 		name: "자동 채굴기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		help: []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 	},
+	KindHarvester: {
+		name: "자동 수확기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		help: []string{"§7같은 높이 9×9 안의 다 자란 작물을 2초마다 하나씩 거둡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
+	},
 	KindSellBox: {
 		name: "판매함", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		help: []string{"§7들어온 아이템을 상점 매입 규칙대로 팝니다", "§7돈은 설치한 플레이어에게 들어갑니다"},
@@ -79,7 +85,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -352,6 +358,8 @@ func (st *machineState) showProgress() {
 		}
 	case machineKinds[KindMiner]:
 		name = fmt.Sprintf("§b채굴 %d%%", pct)
+	case machineKinds[KindHarvester]:
+		name = fmt.Sprintf("§a수확 %d%%", pct)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name).WithLore(lines...))
 }
@@ -566,6 +574,11 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		}
 	case KindSellBox:
 		s.runSellBox(st, tx)
+	case KindHarvester:
+		s.runHarvester(st, pos, tx)
+		if currentTick%4 == 0 {
+			s.pushOutput(st, pos, tx)
+		}
 	}
 	st.pos = pos
 	if isSieve(m.Kind) {

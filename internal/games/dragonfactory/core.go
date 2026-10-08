@@ -88,10 +88,24 @@ var coreTypes = map[string]*CoreType{
 			}},
 		},
 	},
+	// The life core opens the second era (경작, §3.4). It is bought once in
+	// the shop. Only solid blocks: plants would break on top of the core.
+	"life": {
+		ID: "life", Name: "생명 코어",
+		Tiers: []CoreTier{
+			{Interval: 80, Add: []WeightedBlock{
+				{block.Pumpkin{}, 30, false}, {block.Melon{}, 30, false}, {block.Dirt{}, 25, false}, {block.HayBale{Axis: cube.Y}, 15, true},
+			}},
+			{Interval: 60, Points: 3, Level: 9, Add: []WeightedBlock{
+				{block.DriedKelp{}, 10, true}, {block.Mud{}, 10, false},
+			}},
+		},
+	},
 }
 
-// coreOrder is the display order of core types.
-var coreOrder = []string{"earth"}
+// coreOrder is the display order of core types. New types go at the end:
+// the index is part of the block hash.
+var coreOrder = []string{"earth", "life"}
 
 // CoreRecord tracks the single core of a type in a save (§3.3).
 type CoreRecord struct {
@@ -235,6 +249,23 @@ func (s *session) ensureCores() {
 		p := startCorePos
 		s.state.Cores["earth"] = &CoreRecord{Type: "earth", Tier: 1, Generation: 1, Placed: true, Pos: [3]int{p.X(), p.Y(), p.Z()}}
 	}
+}
+
+// grantCore gives p the core of a type the save does not have yet (a new
+// era bought in the shop) and records it. It reports false if the save
+// already has that core.
+func (s *session) grantCore(p *player.Player, tx *world.Tx, typ string) bool {
+	if _, ok := s.state.Cores[typ]; ok {
+		p.Messagef("§c이미 %s를 가지고 있습니다. 잃어버렸다면 코어 관리에서 재발급하세요.", coreTypes[typ].Name)
+		return false
+	}
+	s.state.Cores[typ] = &CoreRecord{Type: typ, Tier: 1, Generation: 1}
+	s.storeState()
+	it := coreItem(typ, 1)
+	if _, err := p.Inventory().AddItem(it); err != nil {
+		s.dropAt(tx, p.Position(), it)
+	}
+	return true
 }
 
 // placeCore validates placing a core item at pos. It returns false if the
