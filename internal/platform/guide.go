@@ -11,7 +11,7 @@ import (
 )
 
 // GuideVersion is increased when the guide changes; players see it again once.
-const GuideVersion = 2
+const GuideVersion = 3
 
 func (pf *Platform) guideText() string {
 	return fmt.Sprintf(`§l%[1]s§r 에 오신 것을 환영합니다!
@@ -28,9 +28,13 @@ func (pf *Platform) guideText() string {
 초대 코드는 §a/join 코드§r 또는 메뉴의 '초대 코드 입력'으로 씁니다. 세이브당 최대 %[3]d명.
 초대받은 세이브는 호스트가 플레이 중일 때 들어갈 수 있습니다.
 
+§e■ 업적과 칭호§r
+플레이하며 업적을 달성하면 칭호를 얻습니다. 로비 메뉴의 §a칭호·치장§r에서 칭호와 이름 색을 고르면 채팅과 이름표에 보입니다.
+
 §e■ 알아두세요§r
 · 게임 시간은 세이브 주인이 플레이하는 동안에만 흐릅니다.
 · 낙하 피해가 없고, 죽어도 아이템을 잃지 않습니다.
+· 세이브 안에서는 §a/menu§r 의 §a도움말§r에서 게임 방법을 볼 수 있습니다.
 · §a/lobby§r 로비로 이동 · §a/saves§r 세이브 선택 · §a/friends§r 친구 · §a/guide§r 이 안내 다시 보기`, pf.game.Name(), Slots, MaxMembers)
 }
 
