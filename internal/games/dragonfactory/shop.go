@@ -39,6 +39,7 @@ var ShopItems = []ShopItem{
 	{"drawer_key", "서랍 잠금 키 (닳지 않음)", func() item.Stack { return item.NewStack(DrawerKey{}, 1) }, 200, 1, 1, day},
 	{"upgrade_capacity", "서랍 용량 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) }, 800, 2, 2, day},
 	{"upgrade_void", "서랍 공허 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) }, 600, 3, 1, day},
+	{"hammer", "망치 (손 분쇄)", func() item.Stack { return item.NewStack(Hammer{}, 1) }, 600, 2, 1, day},
 	{"hopper", "호퍼", func() item.Stack { return item.NewStack(block.NewHopper(), 1) }, 300, 2, 8, day},
 	{"crusher", "분쇄기", func() item.Stack { return machineItem(KindCrusher) }, 1500, 3, 2, day},
 	{"sieve", "체", func() item.Stack { return machineItem(KindSieve) }, 2000, 4, 2, day},

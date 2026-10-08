@@ -109,6 +109,8 @@ type session struct {
 	displays  map[cube.Pos]*drawerDisplay
 	lastUse   drawerUse
 	lastPunch drawerPunch
+	// hammering is the block each player is hitting with a hammer.
+	hammering map[*world.EntityHandle]*hammering
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
@@ -168,6 +170,7 @@ func (s *session) Leave(p *player.Player) {
 	s.storeMoney(acc)
 	delete(s.money, acc)
 	delete(s.lastOpen, p.H())
+	delete(s.hammering, p.H())
 	s.stopExpand(p, p.Tx())
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
