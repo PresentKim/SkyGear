@@ -4,10 +4,13 @@ package dragonfactory
 import (
 	"fmt"
 	"log/slog"
+	"math/rand/v2"
 	"sync"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -28,9 +31,15 @@ type Game struct {
 	sessions map[*world.World]*session
 }
 
-// New creates the game and registers its commands.
+// activeGame is the game used by blocks, whose methods have no other way to
+// reach their session.
+var activeGame = &Game{sessions: map[*world.World]*session{}}
+
+// New creates the game and registers its commands. There is one game per
+// process.
 func New(log *slog.Logger, d *db.DB) *Game {
 	g := &Game{log: log, db: d, sessions: map[*world.World]*session{}}
+	activeGame = g
 	registerCommands(g)
 	return g
 }
@@ -38,7 +47,8 @@ func New(log *slog.Logger, d *db.DB) *Game {
 func (*Game) ID() string   { return "dragonfactory" }
 func (*Game) Name() string { return "드래곤팩토리" }
 
-// Init builds the starting island: a small platform around the origin.
+// Init builds the starting island: a small platform around the origin with
+// the earth core on it (its record is created by ensureCores).
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 	for x := -2; x <= 2; x++ {
 		for z := -2; z <= 2; z++ {
@@ -46,6 +56,7 @@ func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
 		}
 	}
+	tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
 }
 
 // Start begins a session for an activated save.
@@ -58,8 +69,9 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock, radius: inst.LoadRadius(),
 		saveID: inst.Save.ID, saveName: inst.Save.Name,
-		state: st, money: map[string]int64{},
+		state: st, money: map[string]int64{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
+	s.ensureCores()
 	inst.World.Handle(&worldHandler{s: s})
 	g.mu.Lock()
 	g.sessions[inst.World] = s
@@ -84,11 +96,12 @@ type session struct {
 	saveID   int64
 	saveName string
 	state    *State
+	rand     *rand.Rand
 	// money holds the wallets of players currently in the instance.
 	money map[string]int64
 }
 
-func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{0.5, IslandY, 0.5} }
+func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{0.5, IslandY, 2.5} }
 
 func (s *session) Join(p *player.Player, first bool) {
 	acc := instance.AccountID(p)
@@ -104,8 +117,14 @@ func (s *session) Join(p *player.Player, first bool) {
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		_ = p.Inventory().SetItem(8, menuItem())
 	}
+	removeStaleCores(p.Inventory(), s)
 	s.purgeLost()
 	s.updateBoard(p)
+}
+
+// dropAt drops an item stack at pos.
+func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
+	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: pos}, it))
 }
 
 func (s *session) Leave(p *player.Player) {

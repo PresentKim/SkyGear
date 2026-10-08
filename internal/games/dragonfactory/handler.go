@@ -25,10 +25,23 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 
 func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) { h.deny(ctx, pos) }
 func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, _ *[]item.Stack, _ *int) {
-	h.deny(ctx, pos)
+	if h.deny(ctx, pos) {
+		return
+	}
+	if c, ok := ctx.Player().Tx().Block(pos).(Core); ok {
+		h.s.breakCore(c, pos)
+	}
 }
-func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, _ world.Block) {
-	h.deny(ctx, pos)
+func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
+	if h.deny(ctx, pos) {
+		return
+	}
+	if _, ok := b.(Core); ok {
+		held, _ := ctx.Player().HeldItems()
+		if !h.s.placeCore(ctx.Player(), ctx.Player().Tx(), pos, held) {
+			ctx.Cancel()
+		}
+	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, _ mgl64.Vec3) {
 	held, _ := ctx.Player().HeldItems()

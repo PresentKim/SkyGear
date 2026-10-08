@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"log/slog"
+	"math/rand/v2"
 	"path/filepath"
 	"testing"
 	"time"
@@ -34,8 +35,11 @@ func testSession(t *testing.T) *session {
 	s := &session{
 		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute), radius: 4,
 		saveID: save.ID, saveName: save.Name, state: newState(), money: map[string]int64{},
+		rand: rand.New(rand.NewPCG(1, 2)),
 	}
+	s.ensureCores()
 	g.sessions[w] = s
+	activeGame = g
 	w.Handle(&worldHandler{s: s})
 	return s
 }

@@ -19,6 +19,8 @@ type State struct {
 	Version int `json:"version"`
 	// Chunks are the owned island chunks.
 	Chunks []ChunkPos `json:"chunks"`
+	// Cores are the core records by core type.
+	Cores map[string]*CoreRecord `json:"cores"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
 }
