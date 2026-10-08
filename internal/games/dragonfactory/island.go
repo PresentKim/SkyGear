@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // VoidReturnY is the height players are put at above the nearest block when
@@ -72,83 +71,6 @@ func direction(from mgl64.Vec3, c ChunkPos) string {
 		return "현재 위치"
 	}
 	return ns + ew + "쪽"
-}
-
-// Chunk map (섬 확장): a grid form (ui.GridMenu) of 9×5 chunks with north
-// up, centred on the player's chunk, and a row of controls. Pressing a
-// chunk that can be bought asks to buy it.
-const (
-	mapCols = 9
-	mapRows = 5
-)
-
-func (s *session) showExpand(p *player.Player) {
-	s.showChunkBorders(p)
-	s.showExpandAt(p, chunkOf(cube.PosFromVec3(p.Position())))
-}
-
-func (s *session) showExpandAt(p *player.Player, centre ChunkPos) {
-	body, opts := s.expandMenu(p, centre)
-	ui.GridMenu(p, "섬 확장 · 위가 북쪽", body, opts...)
-}
-
-// expandMenu returns the chunk map centred on centre: mapRows×mapCols chunk
-// buttons, then the controls.
-func (s *session) expandMenu(p *player.Player, centre ChunkPos) (string, []ui.Option) {
-	here := chunkOf(cube.PosFromVec3(p.Position()))
-	buyable := s.purchasableChunks()
-	price := chunkPrice(len(s.state.Chunks))
-	var opts []ui.Option
-	for row := range mapRows {
-		for col := range mapCols {
-			c := ChunkPos{centre[0] + int32(col-mapCols/2), centre[1] + int32(row-mapRows/2)}
-			opts = append(opts, s.chunkOption(c, here, slices.Contains(buyable, c), price))
-		}
-	}
-	pan := func(label, icon string, d ChunkPos) ui.Option {
-		return s.opt(label, icon, func(p *player.Player, _ *world.Tx) {
-			s.showExpandAt(p, ChunkPos{centre[0] + d[0], centre[1] + d[1]})
-		})
-	}
-	opts = append(opts,
-		s.backOption(),
-		pan("서쪽으로", "textures/ui/df/arrow_left", ChunkPos{-1, 0}),
-		pan("북쪽으로", "textures/ui/df/arrow_up", ChunkPos{0, -1}),
-		pan("남쪽으로", "textures/ui/df/arrow_down", ChunkPos{0, 1}),
-		pan("동쪽으로", "textures/ui/df/arrow_right", ChunkPos{1, 0}),
-		s.opt("내 위치로", iconLobby, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
-	)
-	body := fmt.Sprintf("§a■ 소유 §e■ 구매 가능 §8■ 불가 §f· 나침반 = 내 위치\n§7소유 %d청크 · 다음 청크 §6%s§7 · 소지금 §6%s\n§7노란 칸을 누르면 구매합니다. 월드에도 30초 동안 경계가 표시됩니다.",
-		len(s.state.Chunks), formatMoney(price), formatMoney(s.Money(p)))
-	return body, opts
-}
-
-// chunkOption is one chunk of the map.
-func (s *session) chunkOption(c, here ChunkPos, buyable bool, price int64) ui.Option {
-	label := fmt.Sprintf("청크 (%d, %d)", c[0], c[1])
-	icon := "textures/blocks/glass_gray"
-	switch {
-	case c == here:
-		icon = iconLobby
-	case s.owns(c):
-		icon = "textures/blocks/glass_lime"
-	case buyable:
-		icon = "textures/blocks/glass_yellow"
-	}
-	return s.opt(label, icon, func(p *player.Player, _ *world.Tx) {
-		if !buyable {
-			s.showExpandAt(p, c)
-			return
-		}
-		ui.Confirm(p, "섬 확장", fmt.Sprintf("청크 (%d, %d)를 %s에 구매할까요?\n%s\n소지금: %s", c[0], c[1], formatMoney(price), direction(p.Position(), c), formatMoney(s.Money(p))), "§a구매", func(p *player.Player, tx *world.Tx) {
-			if tx.World() != s.world {
-				return
-			}
-			s.buyChunk(p, tx, c)
-			s.showChunkBorders(p)
-			s.showExpandAt(p, c)
-		})
-	})
 }
 
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {

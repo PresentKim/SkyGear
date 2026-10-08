@@ -3442,6 +3442,23 @@ func (p *Player) CloseOpenedContainer() {
 	p.session().CloseOpenedContainer(p.tx)
 }
 
+// SetCamera puts the player's camera at pos with the rotation (pitch, yaw in
+// degrees), easing there over ease seconds. Movement keys then move
+// relative to the camera. (dragonfactory patch)
+func (p *Player) SetCamera(pos mgl64.Vec3, pitch, yaw, ease float64) {
+	p.session().SetCamera(pos, pitch, yaw, ease)
+}
+
+// ClearCamera returns the player's camera to normal. (dragonfactory patch)
+func (p *Player) ClearCamera() { p.session().ClearCamera() }
+
+// ViewFakeBlock shows b at pos to this player only, without changing the
+// world. Resend the real block (ViewFakeBlock with tx.Block) to undo it.
+// (dragonfactory patch)
+func (p *Player) ViewFakeBlock(pos cube.Pos, b world.Block) {
+	p.session().ViewFakeBlock(pos, b)
+}
+
 // AfterClientSync runs f once the client has processed everything sent to
 // it so far (a NetworkStackLatency round trip, at most a second), e.g. to
 // show a form after closing a window. f does not run if the player is gone

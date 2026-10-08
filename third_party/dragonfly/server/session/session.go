@@ -278,6 +278,7 @@ func (s *Session) Spawn(c Controllable, tx *world.Tx) {
 
 	s.sendAvailableEntities(tx.World())
 	s.sendBasicVoxelShapes() // dragonfactory patch (experimental, off by default)
+	s.sendCameraPresets()    // dragonfactory patch
 
 	c.SetGameMode(c.GameMode())
 	for _, e := range c.Effects() {

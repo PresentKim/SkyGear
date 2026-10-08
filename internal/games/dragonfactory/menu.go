@@ -40,7 +40,7 @@ func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error("세이브에 입장한 뒤 사용할 수 있습니다.")
 		return
 	}
-	s.showMenu(p)
+	s.openMenu(p)
 }
 
 // itemName returns a readable name of an item stack.

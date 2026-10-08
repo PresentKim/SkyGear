@@ -1,10 +1,6 @@
 package dragonfactory
 
 import (
-	"fmt"
-	"image/color"
-	"time"
-
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
@@ -53,79 +49,6 @@ func (s *session) forPlayers(tx *world.Tx, f func(p *player.Player)) {
 	}
 	for e := range tx.Players() {
 		f(e.(*player.Player))
-	}
-}
-
-// Chunk borders: shown to one player while the chunk map is used, and for
-// a while after, so they can see where the island ends in the world.
-
-const chunkBorderTime = 30 * time.Second
-
-var (
-	ownedColour   = color.RGBA{G: 255, A: 255}
-	buyableColour = color.RGBA{R: 255, G: 255, A: 255}
-)
-
-type chunkBorders struct {
-	shapes []debug.Shape
-	shown  time.Time
-}
-
-// showChunkBorders draws the owned (green) and buyable (yellow) chunks
-// around the island surface for p, replacing earlier borders, and hides
-// them after chunkBorderTime.
-func (s *session) showChunkBorders(p *player.Player) {
-	if s.borders == nil {
-		s.borders = map[*world.EntityHandle]*chunkBorders{}
-	}
-	s.hideChunkBorders(p)
-	b := &chunkBorders{shown: time.Now()}
-	add := func(sh debug.Shape) {
-		b.shapes = append(b.shapes, sh)
-		p.AddDebugShape(sh)
-	}
-	// Two boxes a little apart make the thin debug lines read as a band.
-	box := func(c ChunkPos, col color.RGBA) {
-		for _, inset := range []float64{0, 0.15} {
-			add(&debug.Box{
-				Colour:   col,
-				Position: mgl64.Vec3{float64(c[0])*16 + inset, IslandY - 1, float64(c[1])*16 + inset},
-				Bounds:   mgl64.Vec3{16 - 2*inset, 8, 16 - 2*inset},
-			})
-		}
-	}
-	for _, c := range s.state.Chunks {
-		box(c, ownedColour)
-	}
-	price := formatMoney(chunkPrice(len(s.state.Chunks)))
-	for _, c := range s.purchasableChunks() {
-		box(c, buyableColour)
-		add(&debug.Text{
-			Position: mgl64.Vec3{float64(c[0])*16 + 8, IslandY + 2, float64(c[1])*16 + 8},
-			Text:     fmt.Sprintf("구매 가능 (%d, %d)\n%s", c[0], c[1], price),
-			Colour:   buyableColour,
-		})
-	}
-	s.borders[p.H()] = b
-	shown := b.shown
-	p.H().DoAfter(chunkBorderTime, func(tx *world.Tx, e world.Entity) {
-		if tx.World() != s.world {
-			return
-		}
-		if cur, ok := s.borders[e.H()]; ok && cur.shown == shown {
-			s.hideChunkBorders(e.(*player.Player))
-		}
-	})
-}
-
-func (s *session) hideChunkBorders(p *player.Player) {
-	b, ok := s.borders[p.H()]
-	if !ok {
-		return
-	}
-	delete(s.borders, p.H())
-	for _, sh := range b.shapes {
-		p.RemoveDebugShape(sh)
 	}
 }
 

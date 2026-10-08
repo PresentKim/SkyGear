@@ -15,6 +15,11 @@ type handler struct {
 }
 
 func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
+	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
+		// No building while looking down in island expansion mode.
+		ctx.Cancel()
+		return true
+	}
 	if h.s.canBuild(pos) {
 		return false
 	}
@@ -62,7 +67,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	held, _ := ctx.Player().HeldItems()
 	if isMenuItem(held) {
 		ctx.Cancel()
-		h.s.showMenu(ctx.Player())
+		h.s.openMenu(ctx.Player())
 		return
 	}
 	if isCheque(held) {
@@ -79,7 +84,7 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	switch {
 	case isMenuItem(held):
 		ctx.Cancel()
-		h.s.showMenu(ctx.Player())
+		h.s.openMenu(ctx.Player())
 	case isCheque(held):
 		ctx.Cancel()
 		h.s.redeemCheque(ctx.Player())
@@ -91,5 +96,15 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, _ cube.Rota
 	if newPos.Y() < VoidY {
 		ctx.Cancel()
 		h.s.returnFromVoid(ctx.Player(), ctx.Player().Tx())
+		return
+	}
+	h.s.expandMove(ctx.Player(), newPos)
+}
+
+// HandleToggleSneak opens the island expansion actions when sneaking in
+// expansion mode.
+func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
+	if _, ok := h.s.expansionOf(ctx.Player()); ok && after {
+		h.s.showExpandActions(ctx.Player())
 	}
 }

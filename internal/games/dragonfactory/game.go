@@ -114,10 +114,10 @@ type session struct {
 	lastOpen map[*world.EntityHandle]time.Time
 	// boardMinute is the play time minute shown on the sidebars.
 	boardMinute int
-	// shapes are debug shapes shown to everyone in the instance; borders
-	// are the chunk borders shown to single players (shapes.go).
-	shapes  map[any]debug.Shape
-	borders map[*world.EntityHandle]*chunkBorders
+	// shapes are debug shapes shown to everyone in the instance (shapes.go).
+	shapes map[any]debug.Shape
+	// expanding are the players in island expansion mode (expand.go).
+	expanding map[*world.EntityHandle]*expansion
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and
@@ -168,7 +168,7 @@ func (s *session) Leave(p *player.Player) {
 	s.storeMoney(acc)
 	delete(s.money, acc)
 	delete(s.lastOpen, p.H())
-	delete(s.borders, p.H())
+	s.stopExpand(p, p.Tx())
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
 	p.RemoveAllDebugShapes()

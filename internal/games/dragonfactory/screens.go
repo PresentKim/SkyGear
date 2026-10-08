@@ -28,6 +28,16 @@ func (s *session) backOption() ui.Option {
 	return s.opt("§7← 메뉴", iconBack, func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 }
 
+// openMenu opens the game menu, or the expansion actions in expansion mode
+// (the camera looks down, so the menu item and /menu act on the mode).
+func (s *session) openMenu(p *player.Player) {
+	if _, ok := s.expansionOf(p); ok {
+		s.showExpandActions(p)
+		return
+	}
+	s.showMenu(p)
+}
+
 func (s *session) showMenu(p *player.Player) {
 	body, opts := s.mainMenu(p)
 	ui.CardMenu(p, "드래곤팩토리", body, opts...)

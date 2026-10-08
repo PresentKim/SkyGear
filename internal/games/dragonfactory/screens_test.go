@@ -1,6 +1,9 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/go-gl/mathgl/mgl64"
 	"strings"
 	"testing"
 
@@ -77,37 +80,56 @@ func TestShopMenuBuys(t *testing.T) {
 	})
 }
 
-func TestExpandMap(t *testing.T) {
+func TestExpansionMode(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, opts := s.expandMenu(p, ChunkPos{0, 0})
-		if len(opts) != mapRows*mapCols+6 || len(opts) > 54 {
-			t.Fatalf("%d options do not fit the 9×6 grid", len(opts))
+		tx.SetBlock(cube.Pos{0, expandFloorY, 0}, block.Grass{}, nil)
+		s.money[p.UUID().String()] = 5000
+		s.showExpand(p)
+		e, ok := s.expansionOf(p)
+		if !ok {
+			t.Fatal("not in expansion mode")
 		}
-		centre := (mapRows/2)*mapCols + mapCols/2
-		if opts[centre].Icon != iconLobby {
-			t.Fatalf("centre = %+v, want the compass for the player's chunk", opts[centre])
+		// (1, 0) is next to the island: yellow floor. The island's own air
+		// positions get a green floor; its blocks are left alone.
+		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorBuyable) {
+			t.Fatalf("buyable floor = %v", b)
 		}
-		// (1, 0) is east of the starting 2×2 island: buyable.
-		if opts[centre+1].Icon != "textures/blocks/glass_yellow" {
-			t.Fatalf("east chunk = %+v", opts[centre+1])
+		if _, ok := e.floor[cube.Pos{0, expandFloorY, 0}]; ok {
+			t.Fatal("fake floor over a real island block")
 		}
-		// (-1, -1) is owned.
-		if opts[centre-mapCols-1].Icon != "textures/blocks/glass_lime" {
-			t.Fatalf("north-west chunk = %+v", opts[centre-mapCols-1])
+		if b := e.floor[cube.Pos{10, expandFloorY, 10}]; b != world.Block(floorOwned) {
+			t.Fatalf("owned floor = %v", b)
 		}
-		// (3, 0) is not next to the island.
-		if opts[centre+3].Icon != "textures/blocks/glass_gray" {
-			t.Fatalf("far chunk = %+v", opts[centre+3])
+		// Walking into (1, 0) targets it.
+		s.expandMove(p, mgl64.Vec3{20.5, 64, 5.5})
+		if e.target != (ChunkPos{1, 0}) || e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorTarget) {
+			t.Fatalf("target = %v, floor %v", e.target, e.floor[cube.Pos{20, expandFloorY, 5}])
 		}
-		seen := map[string]bool{}
-		for _, o := range opts {
-			if seen[o.Label] {
-				t.Fatalf("label %q twice: form buttons are matched by label", o.Label)
-			}
-			seen[o.Label] = true
+		// Building is off.
+		ctx := player.NewEventContext(tx, p)
+		(&handler{s: s}).HandleBlockPlace(ctx, cube.Pos{1, 64, 1}, block.Dirt{})
+		if !ctx.Cancelled() {
+			t.Fatal("placed a block in expansion mode")
+		}
+		s.buyChunk(p, tx, ChunkPos{1, 0})
+		s.drawFloor(p, e)
+		if e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorOwned) {
+			t.Fatal("bought chunk not shown as owned")
+		}
+		if b := e.floor[cube.Pos{36, expandFloorY, 5}]; b != world.Block(floorBuyable) {
+			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
+		}
+		// Leaving while over the void puts the player back on the island.
+		p.Teleport(mgl64.Vec3{40.5, 64, 5.5})
+		s.stopExpand(p, tx)
+		if _, ok := s.expansionOf(p); ok {
+			t.Fatal("still in expansion mode")
+		}
+		if p.Position() != s.Spawn() {
+			t.Fatalf("player left over the void at %v", p.Position())
 		}
 	})
 }

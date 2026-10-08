@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global" },
       {
         "binding_type": "view",
-        "source_property_name": "((#title_text - '§d§f§g§r') - '§d§f§c§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -230,78 +230,6 @@
           ]
         }
       }
-    ]
-  },
-
-  // ---- grid (title starts with §d§f§g§r) ----
-
-  "grid_form": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [
-      {
-        "window@df_form.window": {
-          "$df_window_size": [ 254, 236 ],
-          "$df_content": "df_form.grid_content"
-        }
-      }
-    ]
-  },
-
-  "grid_content": {
-    "type": "stack_panel",
-    "size": [ "100%", "100%" ],
-    "orientation": "vertical",
-    "controls": [
-      {
-        "grid": {
-          "type": "grid",
-          "size": [ 234, 156 ],
-          "anchor_from": "top_middle",
-          "anchor_to": "top_middle",
-          "grid_dimensions": [ 9, 6 ],
-          "grid_item_template": "df_form.grid_button",
-          "collection_name": "form_buttons"
-        }
-      },
-      { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
-      {
-        "body": {
-          "type": "panel",
-          "size": [ "100%", "fill" ],
-          "controls": [ { "label@df_form.body_label": {} } ]
-        }
-      }
-    ]
-  },
-
-  "grid_button@common.button": {
-    "$pressed_button_name": "button.form_button_click",
-    "size": [ 26, 26 ],
-    "default_control": "default",
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "bindings": [
-      {
-        "binding_type": "collection_details",
-        "binding_collection_name": "form_buttons"
-      },
-      {
-        "binding_name": "#form_button_text",
-        "binding_type": "collection",
-        "binding_collection_name": "form_buttons"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(not (#form_button_text = ''))",
-        "target_property_name": "#visible"
-      }
-    ],
-    "controls": [
-      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
-      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
-      { "icon@df_form.button_icon": { "$df_icon_size": [ 18, 18 ] } }
     ]
   },
 
