@@ -2,8 +2,10 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/df-mc/dragonfly/server/world/particle"
 	"image"
 	"image/color"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -121,6 +123,8 @@ type machineState struct {
 	owner, ownerName string
 	// pos is where the machine stands, set when its window is opened.
 	pos cube.Pos
+	// cracking is set while the auto miner shows its target cracking.
+	cracking bool
 }
 
 func newMachine(kind, owner, ownerName string) Machine {
@@ -598,8 +602,17 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 	below := pos.Side(cube.FaceDown)
 	info, ok := mineable(tx.Block(below))
 	if !ok {
+		if st.cracking {
+			viewCrack(tx, below, block.StopCrackAction{})
+			st.cracking = false
+		}
 		st.progress = 0
 		return
+	}
+	if !st.cracking {
+		// Players nearby see the block crack as if a player mined it.
+		viewCrack(tx, below, block.StartCrackAction{BreakTime: time.Duration(st.kind.interval-st.progress) * time.Second / 20})
+		st.cracking = true
 	}
 	if st.progress < st.kind.interval {
 		st.progress++
@@ -612,11 +625,22 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if !fits(st.inv(), st.kind.output, drops) {
 		return
 	}
+	viewCrack(tx, below, block.StopCrackAction{})
+	st.cracking = false
+	mined := tx.Block(below)
 	tx.SetBlock(below, nil, nil)
+	tx.AddParticle(below.Vec3Centre(), particle.BlockBreak{Block: mined})
 	for _, it := range drops {
 		put(st.inv(), st.kind.output, it)
 	}
 	st.progress = 0
+}
+
+// viewCrack shows a block crack action to the players viewing pos.
+func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
+	for _, v := range tx.Viewers(pos.Vec3Centre()) {
+		v.ViewBlockAction(pos, a)
+	}
 }
 
 // pushTargets are the sides the auto miner pushes into, in turn.
