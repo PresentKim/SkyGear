@@ -19,6 +19,12 @@ type State struct {
 	Version int `json:"version"`
 	// Chunks are the owned island chunks.
 	Chunks []ChunkPos `json:"chunks"`
+	// Level is the save level, starting at 1.
+	Level int `json:"level"`
+	// Delivered counts items delivered for the current level's mission.
+	Delivered map[string]int `json:"delivered,omitempty"`
+	// CorePoints are unspent core upgrade points.
+	CorePoints int `json:"core_points"`
 	// Cores are the core records by core type.
 	Cores map[string]*CoreRecord `json:"cores"`
 	// Lost is the lost-and-found box, most recent first.
@@ -41,6 +47,7 @@ type LostItem struct {
 func newState() *State {
 	return &State{
 		Version: stateVersion,
+		Level:   1,
 		// The starting island covers the four chunks around the origin.
 		Chunks: []ChunkPos{{-1, -1}, {0, -1}, {-1, 0}, {0, 0}},
 	}
@@ -56,6 +63,10 @@ func loadState(d *db.DB, saveID int64) (*State, error) {
 	s := &State{}
 	if err := json.Unmarshal(b, s); err != nil {
 		return nil, err
+	}
+	// States saved before a field existed get its starting value.
+	if s.Level < 1 {
+		s.Level = 1
 	}
 	return s, nil
 }

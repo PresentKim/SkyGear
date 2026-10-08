@@ -11,9 +11,10 @@ import (
 // updateBoard refreshes p's sidebar (docs/design/02-dragonfactory.md §11).
 func (s *session) updateBoard(p *player.Player) {
 	_, day, _ := s.clock.Now()
-	b := scoreboard.New("§l§6드래곤팩토리")
+	b := scoreboard.New(fmt.Sprintf("§l§6드래곤팩토리 · Lv.%d", s.state.Level))
 	lines := []string{
 		fmt.Sprintf("§f%d일차", day),
+		s.missionLine(),
 		fmt.Sprintf("§f돈: §6%s", formatMoney(s.Money(p))),
 	}
 	lines = append(lines, s.boardLines()...)

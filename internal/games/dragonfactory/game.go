@@ -68,7 +68,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	}
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock, radius: inst.LoadRadius(),
-		saveID: inst.Save.ID, saveName: inst.Save.Name,
+		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
 		state: st, money: map[string]int64{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.ensureCores()
@@ -95,6 +95,7 @@ type session struct {
 	radius   int
 	saveID   int64
 	saveName string
+	hostID   string
 	state    *State
 	rand     *rand.Rand
 	// money holds the wallets of players currently in the instance.
@@ -116,6 +117,9 @@ func (s *session) Join(p *player.Player, first bool) {
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Pickaxe{Tier: item.ToolTierWood}, 1))
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		_ = p.Inventory().SetItem(8, menuItem())
+		if instance.AccountID(p) == s.hostID {
+			_, _ = p.Inventory().AddItem(item.NewStack(DeliveryBox{}, 1))
+		}
 	}
 	removeStaleCores(p.Inventory(), s)
 	s.purgeLost()
