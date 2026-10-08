@@ -1,7 +1,9 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
+	"github.com/go-gl/mathgl/mgl64"
 	"testing"
 	"time"
 
@@ -282,4 +284,34 @@ func TestMachineTextAboveBlock(t *testing.T) {
 	if got := text(); got != "" {
 		t.Fatalf("text left after breaking: %q", got)
 	}
+}
+
+// TestServerFinishesCustomBlockBreak: clients finish the crack of custom
+// blocks without sending the destroy action, so the server breaks the block
+// once its break time has passed while the player still mines it.
+func TestServerFinishesCustomBlockBreak(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, IslandY, 1}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, DeliveryBox{}, nil)
+		tx.SetBlock(cube.Pos{0, IslandY, 2}, block.Stone{}, nil)
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.Teleport(mgl64.Vec3{0.5, IslandY + 1, 2.5}) })
+	tick(s, 2) // land
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
+	tick(s, 2)
+	s.world.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(pos).(DeliveryBox); !ok {
+			t.Fatal("broke before its break time")
+		}
+	})
+	time.Sleep(block.BreakDuration(DeliveryBox{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
+	tick(s, 2)
+	s.world.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(pos).(DeliveryBox); ok {
+			t.Fatal("not broken after its break time")
+		}
+	})
 }

@@ -1,7 +1,18 @@
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-08 16:42:21.747928357 +0000
-+++ b/server/player/player.go	2026-10-08 16:42:21.815091512 +0000
-@@ -1776,7 +1776,14 @@
+--- a/server/player/player.go	2026-10-08 17:08:04.689328079 +0000
++++ b/server/player/player.go	2026-10-08 17:08:04.832304882 +0000
+@@ -102,6 +102,10 @@
+ 	breakingPos       cube.Pos
+ 	breakingFace      cube.Face
+ 	lastBreakDuration time.Duration
++	// breakStarted is when the player started breaking breakingPos. Custom
++	// blocks are finished by the server from it (see tickCustomBreak).
++	// (dragonfactory patch)
++	breakStarted time.Time
+ 
+ 	breakCounter uint32
+ 
+@@ -1776,7 +1780,14 @@
  			// The block was activated: Blocks such as doors must always have precedence over the item being
  			// used.
  			if useCtx := p.useContext(); act.Activate(pos, face, p.tx, p, useCtx) {
@@ -16,7 +27,65 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  				p.SetHeldItems(p.subtractItem(p.damageItem(i, useCtx.Damage), useCtx.CountSub), left)
  				p.addNewItem(useCtx)
  				return
-@@ -3413,6 +3420,58 @@
+@@ -1945,6 +1956,9 @@
+ // immediately and the block will not be broken. StartBreaking will stop the breaking of any block that the
+ // player might be breaking before this method is called.
+ func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
++	// dragonfactory patch: clients repeat the start (ContinueDestroyBlock)
++	// while mining the same block; that keeps the time it started.
++	wasBreaking, prevPos := p.breaking, p.breakingPos
+ 	p.AbortBreaking()
+ 	if _, air := p.tx.Block(pos).(block.Air); air || !p.canReach(pos.Vec3Centre()) {
+ 		// The block was either out of range or air, so it can't be broken by the player.
+@@ -1981,6 +1995,9 @@
+ 	}
+ 
+ 	p.breaking, p.breakingFace = true, face
++	if !wasBreaking || prevPos != pos {
++		p.breakStarted = time.Now()
++	}
+ 	p.SwingArm()
+ 
+ 	if p.GameMode().CreativeInventory() {
+@@ -2033,6 +2050,28 @@
+ 	p.BreakBlock(p.breakingPos)
+ }
+ 
++// customBreakGrace is how long after its break time the server finishes
++// breaking a custom block itself.
++const customBreakGrace = 150 * time.Millisecond
++
++// tickCustomBreak finishes breaking a custom block once its break time has
++// passed. Clients finish the crack of custom blocks but may not send the
++// destroy action, so the block would otherwise never break.
++// (dragonfactory patch)
++func (p *Player) tickCustomBreak() {
++	if !p.breaking || p.GameMode().CreativeInventory() {
++		return
++	}
++	if _, custom := p.tx.Block(p.breakingPos).(world.CustomBlock); !custom {
++		return
++	}
++	// The time is taken now: the player may have landed or left the water
++	// since the start.
++	if time.Since(p.breakStarted) >= p.breakTime(p.breakingPos)+customBreakGrace {
++		p.FinishBreaking()
++	}
++}
++
+ // AbortBreaking makes the player stop breaking the block it is currently breaking, or returns immediately
+ // if the player isn't breaking anything.
+ // Unlike FinishBreaking, AbortBreaking does not stop the animation.
+@@ -2653,6 +2692,8 @@
+ 		}
+ 	}
+ 
++	p.tickCustomBreak() // dragonfactory patch
++
+ 	p.checkBlockCollisions(p.data.Vel)
+ 	p.onGround = p.checkOnGround(mgl64.Vec3{})
+ 	p.checkEntitySteppers()
+@@ -3413,6 +3454,58 @@
  	}
  }
  
@@ -77,7 +146,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/camera.go b/server/session/camera.go
 --- a/server/session/camera.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/camera.go	2026-10-08 16:42:21.817534563 +0000
++++ b/server/session/camera.go	2026-10-08 17:08:04.841264968 +0000
 @@ -0,0 +1,61 @@
 +package session
 +
@@ -142,7 +211,7 @@ diff -ruN a/server/session/camera.go b/server/session/camera.go
 +}
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-08 16:42:21.817565172 +0000
++++ b/server/session/entity_container.go	2026-10-08 17:08:04.841460541 +0000
 @@ -0,0 +1,417 @@
 +package session
 +
@@ -562,8 +631,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	})
 +}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-08 16:42:21.749962923 +0000
-+++ b/server/session/handler_container_close.go	2026-10-08 16:42:21.816219108 +0000
+--- a/server/session/handler_container_close.go	2026-10-08 17:08:04.694409774 +0000
++++ b/server/session/handler_container_close.go	2026-10-08 17:08:04.835330452 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -586,8 +655,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-08 16:42:21.750681394 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-08 16:42:21.816705523 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-08 17:08:04.695992117 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-08 17:08:04.837329886 +0000
 @@ -36,7 +36,9 @@
  		resp = nil
  	}
@@ -599,9 +668,37 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	}
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
+diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
+--- a/server/session/handler_player_action.go	2026-10-08 17:08:04.696296029 +0000
++++ b/server/session/handler_player_action.go	2026-10-08 17:08:04.837694087 +0000
+@@ -9,6 +9,10 @@
+ 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
+ )
+ 
++// BlockActionDebug logs the block breaking actions clients send, at INFO
++// level. It is set once at startup. (dragonfactory patch)
++var BlockActionDebug bool
++
+ // PlayerActionHandler handles the PlayerAction packet.
+ type PlayerActionHandler struct{}
+ 
+@@ -24,6 +28,13 @@
+ 	if entityRuntimeID != selfEntityRuntimeID {
+ 		return errSelfRuntimeID
+ 	}
++	if BlockActionDebug {
++		switch action {
++		case protocol.PlayerActionStartBreak, protocol.PlayerActionContinueDestroyBlock, protocol.PlayerActionAbortBreak,
++			protocol.PlayerActionPredictDestroyBlock, protocol.PlayerActionStopBreak, protocol.PlayerActionCrackBreak:
++			s.conf.Log.Info("block action", "action", action, "pos", pos, "face", face)
++		}
++	}
+ 	switch action {
+ 	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
+ 		// Don't do anything for these actions.
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-08 16:42:21.750892937 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-08 16:42:21.816786324 +0000
+--- a/server/session/handler_player_auth_input.go	2026-10-08 17:08:04.696445159 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-08 17:08:04.838051370 +0000
 @@ -63,6 +63,7 @@
  
  	s.moving = true
@@ -611,8 +708,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-08 16:42:21.751642276 +0000
-+++ b/server/session/player.go	2026-10-08 16:42:21.817147519 +0000
+--- a/server/session/player.go	2026-10-08 17:08:04.697947947 +0000
++++ b/server/session/player.go	2026-10-08 17:08:04.840099017 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -643,8 +740,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-08 16:42:21.751727857 +0000
-+++ b/server/session/session.go	2026-10-08 16:42:21.817196947 +0000
+--- a/server/session/session.go	2026-10-08 17:08:04.698448749 +0000
++++ b/server/session/session.go	2026-10-08 17:08:04.840392521 +0000
 @@ -77,10 +77,18 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]

@@ -39,6 +39,8 @@ type Config struct {
 		// VoxelShapes sends a minimal voxel shape registry on spawn
 		// (docs/TODO.md: custom blocks that cannot be broken).
 		VoxelShapes bool
+		// BlockActions logs the block breaking actions clients send.
+		BlockActions bool
 	}
 	Admin struct {
 		// Operators are player names allowed to use operator tools such as

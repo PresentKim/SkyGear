@@ -9,6 +9,10 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
+// BlockActionDebug logs the block breaking actions clients send, at INFO
+// level. It is set once at startup. (dragonfactory patch)
+var BlockActionDebug bool
+
 // PlayerActionHandler handles the PlayerAction packet.
 type PlayerActionHandler struct{}
 
@@ -23,6 +27,13 @@ func (*PlayerActionHandler) Handle(p packet.Packet, s *Session, _ *world.Tx, c C
 func handlePlayerAction(action int32, face int32, pos protocol.BlockPos, entityRuntimeID uint64, s *Session, c Controllable) error {
 	if entityRuntimeID != selfEntityRuntimeID {
 		return errSelfRuntimeID
+	}
+	if BlockActionDebug {
+		switch action {
+		case protocol.PlayerActionStartBreak, protocol.PlayerActionContinueDestroyBlock, protocol.PlayerActionAbortBreak,
+			protocol.PlayerActionPredictDestroyBlock, protocol.PlayerActionStopBreak, protocol.PlayerActionCrackBreak:
+			s.conf.Log.Info("block action", "action", action, "pos", pos, "face", face)
+		}
 	}
 	switch action {
 	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:

@@ -24,9 +24,10 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/session/camera.go` (신규) | 접속 시 카메라 프리셋(`minecraft:free`, 카메라 기준 이동) 전송, `SetCamera`/`ClearCamera`(CameraInstruction), `ViewFakeBlock`(그 플레이어에게만 보이는 블록) |
 | `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김 |
 | `server/session/handler_container_close.go` | 엔티티 상자가 열려 있으면 클라이언트의 255 창 닫기는 무시. Retry 로 여는 중에는 그 창의 닫기도 응답만 하고 무시 |
+| `server/session/handler_player_action.go` | `BlockActionDebug` 면 클라이언트가 보낸 블록 부수기 동작(시작·계속·중단·예측 파괴)을 INFO 로그로 |
 | `server/session/handler_modal_form_response.go` | 없는 폼 ID 응답(10개 초과로 버려졌거나 두 번 응답)은 킥 대신 무시 |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
-| `server/player/player.go` | `OpenEntityContainer`, `ContainerViewer`, `CloseOpenedContainer`, `AfterClientSync`, `SetCamera`, `ClearCamera`, `ViewFakeBlock`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(원래는 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사됨) |
+| `server/player/player.go` | `OpenEntityContainer`, `ContainerViewer`, `CloseOpenedContainer`, `AfterClientSync`, `SetCamera`, `ClearCamera`, `ViewFakeBlock`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(원래는 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사됨). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트가 금 가기는 끝내도 파괴 동작을 보내지 않아 부서지지 않았음). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
 아이템 이동은 기존 `invByID` 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
 패치한 곳에는 `dragonfactory patch` 주석을 단다.

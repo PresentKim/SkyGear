@@ -102,6 +102,10 @@ type playerData struct {
 	breakingPos       cube.Pos
 	breakingFace      cube.Face
 	lastBreakDuration time.Duration
+	// breakStarted is when the player started breaking breakingPos. Custom
+	// blocks are finished by the server from it (see tickCustomBreak).
+	// (dragonfactory patch)
+	breakStarted time.Time
 
 	breakCounter uint32
 
@@ -1952,6 +1956,9 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 // immediately and the block will not be broken. StartBreaking will stop the breaking of any block that the
 // player might be breaking before this method is called.
 func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
+	// dragonfactory patch: clients repeat the start (ContinueDestroyBlock)
+	// while mining the same block; that keeps the time it started.
+	wasBreaking, prevPos := p.breaking, p.breakingPos
 	p.AbortBreaking()
 	if _, air := p.tx.Block(pos).(block.Air); air || !p.canReach(pos.Vec3Centre()) {
 		// The block was either out of range or air, so it can't be broken by the player.
@@ -1988,6 +1995,9 @@ func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
 	}
 
 	p.breaking, p.breakingFace = true, face
+	if !wasBreaking || prevPos != pos {
+		p.breakStarted = time.Now()
+	}
 	p.SwingArm()
 
 	if p.GameMode().CreativeInventory() {
@@ -2038,6 +2048,28 @@ func (p *Player) FinishBreaking() {
 	}
 	p.AbortBreaking()
 	p.BreakBlock(p.breakingPos)
+}
+
+// customBreakGrace is how long after its break time the server finishes
+// breaking a custom block itself.
+const customBreakGrace = 150 * time.Millisecond
+
+// tickCustomBreak finishes breaking a custom block once its break time has
+// passed. Clients finish the crack of custom blocks but may not send the
+// destroy action, so the block would otherwise never break.
+// (dragonfactory patch)
+func (p *Player) tickCustomBreak() {
+	if !p.breaking || p.GameMode().CreativeInventory() {
+		return
+	}
+	if _, custom := p.tx.Block(p.breakingPos).(world.CustomBlock); !custom {
+		return
+	}
+	// The time is taken now: the player may have landed or left the water
+	// since the start.
+	if time.Since(p.breakStarted) >= p.breakTime(p.breakingPos)+customBreakGrace {
+		p.FinishBreaking()
+	}
 }
 
 // AbortBreaking makes the player stop breaking the block it is currently breaking, or returns immediately
@@ -2659,6 +2691,8 @@ func (p *Player) Tick(tx *world.Tx, current int64) {
 			}
 		}
 	}
+
+	p.tickCustomBreak() // dragonfactory patch
 
 	p.checkBlockCollisions(p.data.Vel)
 	p.onGround = p.checkOnGround(mgl64.Vec3{})
