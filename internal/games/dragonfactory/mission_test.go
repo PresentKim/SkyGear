@@ -54,6 +54,9 @@ func TestDeliveryBoxFromHopper(t *testing.T) {
 	})
 	tick(s, 20*10)
 	s.world.Do(func(tx *world.Tx) {
+		if s.hostPlayer(tx) != nil {
+			t.Fatal("no host is in this test world")
+		}
 		if got := s.state.Delivered[itemKey(block.Cobblestone{})]; got != 5 {
 			t.Fatalf("hopper delivered %d cobblestone, want 5", got)
 		}

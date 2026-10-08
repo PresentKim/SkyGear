@@ -100,6 +100,11 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 			return
 		}
 	}
+	if by == nil {
+		// Automated deliveries (hoppers) pay the host, who is always present
+		// while the instance is active.
+		by = s.hostPlayer(tx)
+	}
 	s.state.Level++
 	s.state.Delivered = map[string]int{}
 	s.state.CorePoints += m.Reward.CorePoints
@@ -174,4 +179,14 @@ func (s *session) missionLine() string {
 		}
 	}
 	return "§f미션: §a완료"
+}
+
+// hostPlayer returns the host if it is in the instance.
+func (s *session) hostPlayer(tx *world.Tx) *player.Player {
+	for e := range tx.Players() {
+		if p := e.(*player.Player); p.UUID().String() == s.hostID {
+			return p
+		}
+	}
+	return nil
 }
