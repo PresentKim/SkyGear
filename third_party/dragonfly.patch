@@ -1,0 +1,162 @@
+diff -ruN a/server/player/player.go b/server/player/player.go
+--- a/server/player/player.go	2026-10-08 11:42:24.351864219 +0000
++++ b/server/player/player.go	2026-10-08 11:42:24.375908836 +0000
+@@ -3413,6 +3413,26 @@
+ 	}
+ }
+ 
++// OpenEntityContainer opens inv for the player in a container window backed
++// by an invisible client-only entity, so it needs no block and can have any
++// size (with a resource pack reading the size from the title). onClose is
++// called once when the window closes. (dragonfactory patch)
++func (p *Player) OpenEntityContainer(inv *inventory.Inventory, title string, onClose func(tx *world.Tx)) {
++	p.session().OpenEntityContainer(inv, title, p.Position(), onClose, p.tx)
++}
++
++// ViewOpenedContainerSlot sends a changed slot of the container window the
++// player has open, for changes made by the server. (dragonfactory patch)
++func (p *Player) ViewOpenedContainerSlot(slot int, it item.Stack) {
++	p.session().ViewSlotChange(slot, it)
++}
++
++// CloseOpenedContainer closes the container window the player has open.
++// (dragonfactory patch)
++func (p *Player) CloseOpenedContainer() {
++	p.session().CloseOpenedContainer(p.tx)
++}
++
+ // session returns the network session of the player. If it has one, it is returned. If not, a no-op session
+ // is returned.
+ func (p *Player) session() *session.Session {
+diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
+--- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/session/entity_container.go	2026-10-08 11:42:24.377049278 +0000
+@@ -0,0 +1,87 @@
++package session
++
++// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md).
++// It adds container windows backed by an invisible, client-only entity
++// instead of a block, like PocketMine's InvMenu actor menus. Combined with a
++// resource pack that reads the size from the window title, the window can
++// have any number of slots and opens anywhere.
++
++import (
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/item/inventory"
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/go-gl/mathgl/mgl64"
++	"github.com/sandertv/gophertunnel/minecraft/protocol"
++	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
++)
++
++// EntityContainerIdentifier is the actor identifier of the invisible entity
++// backing entity containers. It is announced in AvailableActorIdentifiers so
++// clients accept it; no client entity definition is needed.
++const EntityContainerIdentifier = "dragonfly:entity_container"
++
++type entityContainer struct {
++	runtimeID uint64
++	onClose   func(tx *world.Tx)
++}
++
++// OpenEntityContainer opens inv in a container window backed by an
++// invisible entity spawned at pos for this session only. title is the
++// window title. onClose, if not nil, is called once when the window closes
++// for any reason (client close, another container opening, disconnect).
++func (s *Session) OpenEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx), tx *world.Tx) {
++	s.closeCurrentContainer(tx, false)
++
++	s.entityMutex.Lock()
++	s.currentEntityRuntimeID++
++	id := s.currentEntityRuntimeID
++	s.entityMutex.Unlock()
++
++	m := protocol.NewEntityMetadata()
++	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagInvisible)
++	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagNoAI)
++	m[protocol.EntityDataKeyName] = title
++	m[protocol.EntityDataKeyContainerType] = byte(0xff) // ContainerTypeInventory (-1)
++	m[protocol.EntityDataKeyContainerSize] = int32(inv.Size())
++	s.writePacket(&packet.AddActor{
++		EntityUniqueID:  int64(id),
++		EntityRuntimeID: id,
++		EntityType:      EntityContainerIdentifier,
++		EntityMetadata:  m,
++		Position:        vec64To32(pos),
++	})
++
++	blockPos := cube.PosFromVec3(pos)
++	nextID := s.nextWindowID()
++	s.containerOpened.Store(true)
++	s.openedWindow.Store(inv)
++	s.openedPos.Store(&blockPos)
++	s.entityContainer.Store(&entityContainer{runtimeID: id, onClose: onClose})
++	s.openedContainerID.Store(uint32(protocol.ContainerTypeContainer))
++	s.writePacket(&packet.ContainerOpen{
++		WindowID:                nextID,
++		ContainerType:           protocol.ContainerTypeContainer,
++		ContainerPosition:       protocol.BlockPos{int32(blockPos[0]), int32(blockPos[1]), int32(blockPos[2])},
++		ContainerEntityUniqueID: int64(id),
++	})
++	s.sendInv(inv, uint32(nextID))
++}
++
++// CloseOpenedContainer closes the container window the session has open.
++func (s *Session) CloseOpenedContainer(tx *world.Tx) {
++	s.closeCurrentContainer(tx, false)
++}
++
++// closeEntityContainer removes the entity of an open entity container and
++// runs its close callback. It reports if an entity container was open.
++func (s *Session) closeEntityContainer(tx *world.Tx) bool {
++	ec := s.entityContainer.Swap(nil)
++	if ec == nil {
++		return false
++	}
++	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(ec.runtimeID)})
++	if ec.onClose != nil {
++		ec.onClose(tx)
++	}
++	return true
++}
+diff -ruN a/server/session/player.go b/server/session/player.go
+--- a/server/session/player.go	2026-10-08 11:42:24.352914864 +0000
++++ b/server/session/player.go	2026-10-08 11:42:24.376956128 +0000
+@@ -71,6 +71,9 @@
+ 		return
+ 	}
+ 
++	if s.closeEntityContainer(tx) { // dragonfactory patch
++		return
++	}
+ 	pos := *s.openedPos.Load()
+ 	b := tx.Block(pos)
+ 	if container, ok := b.(block.Container); ok {
+diff -ruN a/server/session/session.go b/server/session/session.go
+--- a/server/session/session.go	2026-10-08 11:42:24.352952339 +0000
++++ b/server/session/session.go	2026-10-08 11:42:24.376980486 +0000
+@@ -77,10 +77,12 @@
+ 	openedContainerID              atomic.Uint32
+ 	openedWindow                   atomic.Pointer[inventory.Inventory]
+ 	openedPos                      atomic.Pointer[cube.Pos]
+-	swingingArm                    atomic.Bool
+-	changingSlot                   atomic.Bool
+-	changingDimension              atomic.Bool
+-	moving                         bool
++	// entityContainer is the open entity container, if any (dragonfactory patch).
++	entityContainer   atomic.Pointer[entityContainer]
++	swingingArm       atomic.Bool
++	changingSlot      atomic.Bool
++	changingDimension atomic.Bool
++	moving            bool
+ 
+ 	lastChunkPos world.ChunkPos
+ 
+@@ -640,6 +642,7 @@
+ 	for _, t := range w.EntityRegistry().Types() {
+ 		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
+ 	}
++	identifiers = append(identifiers, actorIdentifier{ID: EntityContainerIdentifier}) // dragonfactory patch
+ 	serialisedEntityData, err := nbt.Marshal(map[string]any{"idlist": identifiers})
+ 	if err != nil {
+ 		panic("should never happen")
