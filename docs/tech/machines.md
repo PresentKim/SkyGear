@@ -44,3 +44,7 @@
 - 단위: `machine_test.go`(분쇄·자동 체·채굴·판매·창 조작 제한·NBT 왕복·부술 때 드롭·무인 라인), `sieve_test.go`, `harvester_test.go`, `hammer_test.go`.
 - 접속: `spike/scenarios/run.sh spike/scenarios/m4_line.sh` — 운영자 `/dfadmin line` 후 30초 동안 판매 수량이 늘어나는지.
 - 실기 확인 항목은 [TODO](../TODO.md).
+
+## 주기형 기계의 링 게이지
+
+자동 수확기(2초)와 판매함(1초)은 한 번 끝나는 작업이 아니라 주기마다 반복하므로, 진행 칸에 화살표 대신 **채워지는 빈 원(링)**(`dragonfactory:cycle_0`~`cycle_10`, `textures/items/cycle_*.png`)을 보인다. 주기는 할 일이 있든 없든 계속 돈다(수확할 작물이 없어도 100%에서 멈추지 않는다, 9차 실기). 진행 칸 아이템은 10% 마다 바뀌어 링이 도는 것처럼 보인다.

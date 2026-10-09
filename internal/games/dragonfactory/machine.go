@@ -348,11 +348,12 @@ func (st *machineState) showProgress() {
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind {
 	case machineKinds[KindSellBox]:
-		name, it = fmt.Sprintf("§6판매 %d%%", pct), item.NewStack(item.GoldIngot{}, 1)
+		// Machines that work in a repeating cycle show a ring that fills.
+		name, it = "§6판매 주기", item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindMiner]:
 		name = fmt.Sprintf("§b채굴 %d%%", pct)
 	case machineKinds[KindHarvester]:
-		name = fmt.Sprintf("§a수확 %d%%", pct)
+		name, it = "§a수확 주기", item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name))
 }
@@ -370,6 +371,18 @@ func (a ProgressArrow) EncodeItem() (string, int16) {
 func (a ProgressArrow) Name() string              { return "진행도" }
 func (a ProgressArrow) Texture() image.Image      { return itemTexture(fmt.Sprintf("progress_%d", a.Step)) }
 func (ProgressArrow) Category() category.Category { return category.Items() }
+
+// CycleGauge is the indicator of machines that work in a repeating cycle
+// (auto harvester, sell box): a hollow ring filled in Step tenths, which
+// turns over and over like a loading circle.
+type CycleGauge struct{ Step int }
+
+func (g CycleGauge) EncodeItem() (string, int16) {
+	return fmt.Sprintf("dragonfactory:cycle_%d", g.Step), 0
+}
+func (g CycleGauge) Name() string              { return "주기" }
+func (g CycleGauge) Texture() image.Image      { return itemTexture(fmt.Sprintf("cycle_%d", g.Step)) }
+func (CycleGauge) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
 
@@ -815,6 +828,7 @@ func machineItem(kind string) item.Stack { return item.NewStack(Machine{Kind: ki
 func init() {
 	for i := range progressSteps {
 		world.RegisterItem(ProgressArrow{Step: i})
+		world.RegisterItem(CycleGauge{Step: i})
 	}
 	world.RegisterItem(MachineInfo{})
 	for _, k := range machineOrder {

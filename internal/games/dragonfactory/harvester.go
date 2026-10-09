@@ -48,11 +48,14 @@ func harvestable(b world.Block) (world.Block, bool) {
 }
 
 // runHarvester harvests one grown crop per interval.
+// The cycle runs on whether or not a crop is ready, so the gauge keeps
+// turning.
 func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress < st.kind.interval {
 		st.progress++
 		return
 	}
+	st.progress = 0
 	for x := -harvestRadius; x <= harvestRadius; x++ {
 		for z := -harvestRadius; z <= harvestRadius; z++ {
 			at := pos.Add(cube.Pos{x, 0, z})
@@ -82,7 +85,6 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			for _, it := range drops {
 				put(st.inv(), st.kind.output, it)
 			}
-			st.progress = 0
 			return
 		}
 	}
