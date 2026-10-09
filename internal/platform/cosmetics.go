@@ -32,7 +32,7 @@ func (pf *Platform) showCosmetics(p *player.Player) {
 		ui.Option{Label: "칭호 고르기", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }},
 		ui.Option{Label: "이름 색", Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.showColors(p) }},
 		ui.Option{Label: "업적 목록", Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }},
-		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.cosmeticsBack(p) }},
+		ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.cosmeticsBack(p) }),
 	)
 }
 
@@ -54,7 +54,7 @@ func (pf *Platform) showTitles(p *player.Player) {
 			opts = append(opts, ui.Option{Label: "§e[" + a.Title + "]\n§8" + a.Name, Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, a.ID) }})
 		}
 	}
-	opts = append(opts, ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }})
+	opts = append(opts, ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
 	body := "업적을 달성하면 칭호를 얻습니다. 장착한 칭호는 채팅과 이름표 앞에 보입니다."
 	if len(opts) == 2 {
 		body += "\n\n§7아직 얻은 칭호가 없습니다."
@@ -98,7 +98,7 @@ func (pf *Platform) showColors(p *player.Player) {
 			pf.showCosmetics(p)
 		}})
 	}
-	opts = append(opts, ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }})
+	opts = append(opts, ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
 	ui.CardMenu(p, "이름 색", fmt.Sprintf("§7업적 %d개 달성. 업적이 늘면 색이 더 열립니다.", n), opts...)
 }
 
@@ -116,5 +116,5 @@ func (pf *Platform) showAchievements(p *player.Player) {
 		}
 		b.WriteString("\n")
 	}
-	ui.Menu(p, "업적 목록", b.String(), ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }})
+	ui.Menu(p, "업적 목록", b.String(), ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
 }

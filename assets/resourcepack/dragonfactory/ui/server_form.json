@@ -1,7 +1,9 @@
 {
   // Overrides the vanilla server form roots with the dark DragonFactory theme
   // (ui/df_form.json). A title starting with §d§f§c§r (Go: ui.CardToken)
-  // shows the buttons as a grid of icon-and-text cards, otherwise a list.
+  // shows the buttons as a grid of icon-and-text cards, §d§f§s§r
+  // (ui.ShopToken) as a compact grid, §d§f§t§r (ui.TableToken) as a table,
+  // otherwise a list.
   "namespace": "server_form",
 
   // The vanilla screen content is a 0×0 panel whose forms have fixed sizes.
@@ -32,7 +34,7 @@
             { "binding_name": "#title_text", "binding_type": "global" },
             {
               "binding_type": "view",
-              "source_property_name": "((#title_text - '§d§f§c§r') = #title_text)",
+              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -45,6 +47,32 @@
             {
               "binding_type": "view",
               "source_property_name": "(not ((#title_text - '§d§f§c§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Compact cards: the shop.
+        "shop@df_form.shop_form": {
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global" },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§d§f§s§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Table: icon, name and number columns, total and actions below.
+        "table@df_form.table_form": {
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global" },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§d§f§t§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]

@@ -95,6 +95,43 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 	send(p, title, f)
 }
 
+// Button markers (valid colour codes, so a client without the theme shows
+// nothing extra) give a button a special place in the themed forms:
+//
+//   - TabToken / TabOnToken: a tab in the tab strip at the top of the
+//     window (TabOnToken is the selected one);
+//   - BackToken: the back button left of the close button;
+//   - ActionToken: a button under a table;
+//   - CellToken / CellNumToken: a non-clickable text or number cell of a
+//     table (TableMenu).
+//
+// The themed lists and grids skip marked buttons. Put marked buttons after
+// the normal ones so grids keep no gaps.
+const (
+	TabToken     = "§0§1§r"
+	TabOnToken   = "§0§2§r"
+	BackToken    = "§0§3§r"
+	ActionToken  = "§0§4§r"
+	CellToken    = "§0§5§r"
+	CellNumToken = "§0§6§r"
+	TotalToken   = "§0§8§r"
+)
+
+// Tab returns a tab button of a themed form.
+func Tab(label, icon string, selected bool, run func(p *player.Player, tx *world.Tx)) Option {
+	token := TabToken
+	if selected {
+		token = TabOnToken
+	}
+	return Option{Label: token + label, Icon: icon, Run: run}
+}
+
+// Back returns the back button of a themed form, drawn left of the close
+// button.
+func Back(label string, run func(p *player.Player, tx *world.Tx)) Option {
+	return Option{Label: BackToken + label, Icon: "textures/ui/arrow_left", Run: run}
+}
+
 // CardToken starts the title of a menu shown as a grid of icon-and-text
 // cards, three per row (assets/resourcepack/dragonfactory/ui).
 const CardToken = "§d§f§c§r"
@@ -105,25 +142,59 @@ func CardMenu(p *player.Player, title, body string, opts ...Option) {
 	Menu(p, CardToken+title, body, opts...)
 }
 
-type confirm struct {
-	Yes, No form.Button
-	run     func(p *player.Player, tx *world.Tx)
+// ShopToken starts the title of a compact card grid: smaller cards, more
+// per row, for long product lists.
+const ShopToken = "§d§f§s§r"
+
+// ShopMenu sends a compact card grid form.
+func ShopMenu(p *player.Player, title, body string, opts ...Option) {
+	Menu(p, ShopToken+title, body, opts...)
 }
 
-func (confirm) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+// TableToken starts the title of a table form (TableMenu).
+const TableToken = "§d§f§t§r"
 
-func (c confirm) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
-	answered(s)
-	p := s.(*player.Player)
-	defer recoverForm(p)
-	if pressed == c.Yes {
-		c.run(p, tx)
+// Cell is one cell of a table row: text, an optional icon, and whether it
+// is a number (drawn right-aligned) or a header.
+type Cell struct {
+	Text, Icon string
+	Num, Head  bool
+}
+
+// TableMenu sends a form that shows rows of cells as a table (columns
+// cells per row, header row first), then total, then the action buttons.
+// Cells are not buttons: only the actions answer.
+func TableMenu(p *player.Player, title, body string, rows [][]Cell, total string, actions ...Option) {
+	var opts []Option
+	for _, row := range rows {
+		for _, c := range row {
+			token, text := CellToken, c.Text
+			if c.Num {
+				token = CellNumToken
+			}
+			if c.Head {
+				text = "§7" + text
+			}
+			opts = append(opts, Option{Label: token + text, Icon: c.Icon, Run: func(*player.Player, *world.Tx) {}})
+		}
 	}
+	if total != "" {
+		opts = append(opts, Option{Label: TotalToken + total, Run: func(*player.Player, *world.Tx) {}})
+	}
+	for _, a := range actions {
+		a.Label = ActionToken + a.Label
+		opts = append(opts, a)
+	}
+	Menu(p, TableToken+title, body, opts...)
 }
 
-// Confirm asks a yes/no question and runs f on yes.
+// Confirm asks a yes/no question as a themed menu (the vanilla modal form
+// is not themed): the yes button runs f, "취소" or closing does nothing.
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
-	send(p, title, form.NewModal(confirm{Yes: form.NewButton(yes, ""), No: form.NewButton("취소", ""), run: f}, title).WithBody(body))
+	Menu(p, title, body,
+		Option{Label: yes, Icon: "textures/ui/confirm", Run: f},
+		Option{Label: "취소", Icon: "textures/ui/cancel", Run: func(*player.Player, *world.Tx) {}},
+	)
 }
 
 type textInput struct {
@@ -143,4 +214,23 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 // Input asks for one line of text.
 func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string)) {
 	send(p, title, form.New(textInput{Value: form.NewInput(label, def, ""), run: f}, title))
+}
+
+type amount struct {
+	Value form.Slider
+	run   func(p *player.Player, tx *world.Tx, n int)
+}
+
+func (amount) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+
+func (a amount) Submit(s form.Submitter, tx *world.Tx) {
+	answered(s)
+	p := s.(*player.Player)
+	defer recoverForm(p)
+	a.run(p, tx, int(a.Value.Value()))
+}
+
+// Amount asks for a number from 1 to max with a slider starting at def.
+func Amount(p *player.Player, title, label string, max, def int, f func(p *player.Player, tx *world.Tx, n int)) {
+	send(p, title, form.New(amount{Value: form.NewSlider(label, 1, float64(max), 1, float64(min(max, def))), run: f}, title))
 }

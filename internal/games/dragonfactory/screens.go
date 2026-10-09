@@ -26,8 +26,11 @@ func (s *session) opt(label, icon string, run func(p *player.Player, tx *world.T
 	}}
 }
 
+// backOption is the back button to the game menu, drawn left of the close
+// button by the theme.
 func (s *session) backOption() ui.Option {
-	return s.opt("§7← 메뉴", iconBack, func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
+	b := ui.Back("메뉴로", func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
+	return s.opt(b.Label, b.Icon, b.Run)
 }
 
 // openMenu opens the game menu, or the expansion actions in expansion mode
@@ -70,18 +73,36 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	}
 }
 
-// shopCategories group the products so one form does not list them all.
+// shopCategories are the shop's tabs.
 var shopCategories = []struct {
 	Name, Icon string
-	Has        func(it ShopItem) bool
 }{
-	{"도구·재료", iconShop, func(it ShopItem) bool { return !isMachineProduct(it) && !isCoreProduct(it) }},
-	{"기계", iconOf(machineItem(KindCrusher)), isMachineProduct},
-	{"코어", iconOf(coreItem(startCore)), isCoreProduct},
+	{"도구", "textures/items/iron_pickaxe"},
+	{"재료", "textures/blocks/cobblestone"},
+	{"설비", iconOf(item.NewStack(Drawer{}, 1))},
+	{"기계", iconOf(machineItem(KindCrusher))},
+	{"코어", iconOf(coreItem(startCore))},
 }
 
-func isCoreProduct(it ShopItem) bool {
-	return strings.HasPrefix(it.ID, "core_") || strings.HasPrefix(it.ID, "base_")
+// productGroups are the tabs of the products that are not machines, cores
+// or materials (mat_*).
+var productGroups = map[string]string{
+	"water": "도구", "drawer_key": "도구", "hammer": "도구", "pioneer_pickaxe": "도구", "stone_hoe": "도구", "iron_pickaxe": "도구",
+	"torch":        "재료",
+	"delivery_box": "설비", "drawer": "설비", "upgrade_capacity": "설비", "upgrade_void": "설비", "hopper": "설비",
+}
+
+// shopGroup returns the tab of a product.
+func shopGroup(it ShopItem) string {
+	switch {
+	case isMachineProduct(it):
+		return "기계"
+	case strings.HasPrefix(it.ID, "core_"):
+		return "코어"
+	case strings.HasPrefix(it.ID, "mat_"):
+		return "재료"
+	}
+	return productGroups[it.ID]
 }
 
 func isMachineProduct(it ShopItem) bool {
@@ -89,57 +110,37 @@ func isMachineProduct(it ShopItem) bool {
 	return ok
 }
 
-// showShop shows the product categories.
-func (s *session) showShop(p *player.Player) {
-	body, opts := s.shopMenu(p)
-	ui.CardMenu(p, "상점 · 구매", body, opts...)
+// showShop shows the shop on its first tab.
+func (s *session) showShop(p *player.Player) { s.showShopTab(p, 0) }
+
+// showShopTab shows the products of a tab in a compact grid, with the tabs
+// on top; pressing a product buys it and shows the tab again.
+func (s *session) showShopTab(p *player.Player, cat int) {
+	body, opts := s.shopMenu(p, cat)
+	ui.ShopMenu(p, "상점 · 구매", body, opts...)
 }
 
-func (s *session) shopMenu(p *player.Player) (string, []ui.Option) {
-	body := fmt.Sprintf("소지금 §6%s§r\n§7재고는 하루마다 채워집니다. 1회 한정 상품은 다시 채워지지 않습니다.", formatMoney(s.Money(p)))
-	var opts []ui.Option
-	for i, c := range shopCategories {
-		open, all := 0, 0
-		for _, it := range ShopItems {
-			if c.Has(it) {
-				all++
-				if it.UnlockLevel <= s.state.Level {
-					open++
-				}
-			}
-		}
-		opts = append(opts, s.opt(fmt.Sprintf("§f%s\n§7%d/%d 개방", c.Name, open, all), c.Icon, func(p *player.Player, _ *world.Tx) {
-			s.showShopCategory(p, i)
-		}))
-	}
-	return body, append(opts, s.backOption())
-}
-
-// showShopCategory shows the products of a category; pressing one buys it
-// and shows the category again.
-func (s *session) showShopCategory(p *player.Player, cat int) {
-	body, opts := s.shopCategoryMenu(p, cat)
-	ui.CardMenu(p, "상점 · "+shopCategories[cat].Name, body, opts...)
-}
-
-func (s *session) shopCategoryMenu(p *player.Player, cat int) (string, []ui.Option) {
-	body := fmt.Sprintf("소지금 §6%s", formatMoney(s.Money(p)))
+func (s *session) shopMenu(p *player.Player, cat int) (string, []ui.Option) {
+	body := fmt.Sprintf("소지금 §6%s §7· 재고는 하루마다 채워집니다", formatMoney(s.Money(p)))
 	var opts []ui.Option
 	for _, it := range ShopItems {
-		if !shopCategories[cat].Has(it) {
+		if shopGroup(it) != shopCategories[cat].Name {
 			continue
 		}
 		if it.UnlockLevel > s.state.Level {
-			opts = append(opts, s.opt(fmt.Sprintf("§8%s\n§8Lv.%d에 개방", it.Name, it.UnlockLevel), iconLocked, func(p *player.Player, _ *world.Tx) {
+			opts = append(opts, s.opt(fmt.Sprintf("§8%s\n§8Lv.%d 개방", it.Name, it.UnlockLevel), iconLocked, func(p *player.Player, _ *world.Tx) {
 				p.Messagef("§cLv.%d에 개방됩니다.", it.UnlockLevel)
-				s.showShopCategory(p, cat)
+				s.showShopTab(p, cat)
 			}))
 			continue
 		}
 		st := s.stock(it)
-		stock := fmt.Sprintf("재고 %d/%d", st.Count, it.MaxStock)
-		if it.Restock == 0 {
-			stock = map[bool]string{true: "§c판매 완료", false: "§d1회 한정"}[st.Count == 0]
+		stock := fmt.Sprintf("재고 %d", st.Count)
+		switch {
+		case st.Count == 0:
+			stock = "§c품절"
+		case it.Restock == 0:
+			stock = "§d1회 한정"
 		}
 		price := formatMoney(it.Price)
 		if it.Price == 0 {
@@ -147,10 +148,14 @@ func (s *session) shopCategoryMenu(p *player.Player, cat int) (string, []ui.Opti
 		}
 		opts = append(opts, s.opt(fmt.Sprintf("%s\n§6%s §7· %s", it.Name, price, stock), iconOf(it.Stack()), func(p *player.Player, tx *world.Tx) {
 			s.buy(p, tx, it)
-			s.showShopCategory(p, cat)
+			s.showShopTab(p, cat)
 		}))
 	}
-	return body, append(opts, s.opt("§7← 상점", iconBack, func(p *player.Player, _ *world.Tx) { s.showShop(p) }))
+	for i, c := range shopCategories {
+		t := ui.Tab(c.Name, c.Icon, i == cat, func(p *player.Player, _ *world.Tx) { s.showShopTab(p, i) })
+		opts = append(opts, s.opt(t.Label, t.Icon, t.Run))
+	}
+	return body, append(opts, s.backOption())
 }
 
 // showBuyback shows what the shop buys; pressing one sells all of it from
@@ -162,7 +167,7 @@ func (s *session) showBuyback(p *player.Player) {
 
 func (s *session) buybackMenu(p *player.Player) (string, []ui.Option) {
 	bb := s.buyback()
-	body := fmt.Sprintf("소지금 §6%s§r · 남은 매입 예산 §6%s§r\n§7예산과 품목별 한도는 하루마다 회복됩니다. 누르면 인벤토리의 그 아이템을 모두 팝니다.", formatMoney(s.Money(p)), formatMoney(bb.Budget))
+	body := fmt.Sprintf("소지금 §6%s§r · 남은 매입 예산 §6%s§r\n§7예산과 품목별 한도는 하루마다 회복됩니다. 품목을 누르면 팔 개수를 고릅니다.", formatMoney(s.Money(p)), formatMoney(bb.Budget))
 	opts := []ui.Option{s.opt("§a전체 판매", iconAll, func(p *player.Player, _ *world.Tx) { s.confirmSellAll(p) })}
 	for _, it := range BuybackItems {
 		left := "한도 없음"
@@ -171,15 +176,65 @@ func (s *session) buybackMenu(p *player.Player) (string, []ui.Option) {
 		}
 		st := item.NewStack(it.Item, 1)
 		opts = append(opts, s.opt(fmt.Sprintf("%s\n§6개당 %s §7· %s", itemName(st), formatMoney(it.Price), left), iconOf(st), func(p *player.Player, _ *world.Tx) {
-			s.sellAll(p, func(st item.Stack) bool { return itemKey(st.Item()) == itemKey(it.Item) })
-			s.showBuyback(p)
+			s.askSellCount(p, it)
 		}))
 	}
 	return body, append(opts, s.backOption())
 }
 
-// confirmSellAll shows what selling everything would sell, and sells on
-// confirmation.
+// askSellCount asks how many of an item to sell (up to what the player has
+// and the shop buys today) and sells that many.
+func (s *session) askSellCount(p *player.Player, b BuybackItem) {
+	key := itemKey(b.Item)
+	have := 0
+	for _, st := range p.Inventory().Slots() {
+		if !st.Empty() && plain(st) && itemKey(st.Item()) == key {
+			have += st.Count()
+		}
+	}
+	most := s.sellable(b, have)
+	name := itemName(item.NewStack(b.Item, 1))
+	if most == 0 {
+		if have == 0 {
+			p.Messagef("§c%s이(가) 없습니다.", name)
+		} else {
+			p.Message("§c오늘 매입 예산이나 이 품목의 한도에 도달했습니다.")
+		}
+		s.showBuyback(p)
+		return
+	}
+	ui.Amount(p, "판매 · "+name, fmt.Sprintf("%s 몇 개를 팔까요? 개당 %s (가진 것 %d개, 팔 수 있는 것 %d개)", name, formatMoney(b.Price), have, most), most, most, func(p *player.Player, tx *world.Tx, n int) {
+		if tx.World() != s.world {
+			return
+		}
+		s.sellCount(p, key, n)
+		s.showBuyback(p)
+	})
+}
+
+// sellCount sells up to n plain items with the key from p's inventory.
+func (s *session) sellCount(p *player.Player, key string, n int) {
+	before := s.Money(p)
+	count := 0
+	inv := p.Inventory()
+	for slot, st := range inv.Slots() {
+		if count >= n || st.Empty() || !plain(st) || itemKey(st.Item()) != key {
+			continue
+		}
+		if sold := s.sell(p, st.Grow(min(st.Count(), n-count)-st.Count())); sold > 0 {
+			count += sold
+			_ = inv.SetItem(slot, st.Grow(-sold))
+		}
+	}
+	if count == 0 {
+		p.Message("§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
+		return
+	}
+	p.Messagef("§a%d개를 %s에 판매했습니다.", count, formatMoney(s.Money(p)-before))
+}
+
+// confirmSellAll shows what selling everything would sell as a table (item,
+// count, price each, total), and sells on confirmation.
 func (s *session) confirmSellAll(p *player.Player) {
 	lines, total := s.quoteSale(p)
 	if len(lines) == 0 {
@@ -187,24 +242,39 @@ func (s *session) confirmSellAll(p *player.Player) {
 		s.showBuyback(p)
 		return
 	}
-	body := "§f다음 아이템을 팝니다.\n\n" + strings.Join(lines, "\n") + "\n\n§f합계 §6" + formatMoney(total)
-	ui.Confirm(p, "전체 판매", body, "§a판매", func(p *player.Player, tx *world.Tx) {
-		if tx.World() != s.world {
-			return
-		}
-		s.sellAll(p, func(item.Stack) bool { return true })
-		s.showBuyback(p)
-	})
+	rows := [][]ui.Cell{{{Text: "품목", Head: true}, {Text: "수량", Head: true, Num: true}, {Text: "개당", Head: true, Num: true}, {Text: "합계", Head: true, Num: true}}}
+	for _, l := range lines {
+		rows = append(rows, []ui.Cell{
+			{Text: l.Name, Icon: l.Icon},
+			{Text: formatInt(int64(l.Count)), Num: true},
+			{Text: formatMoney(l.Price), Num: true},
+			{Text: "§6" + formatMoney(l.Price*int64(l.Count)), Num: true},
+		})
+	}
+	ui.TableMenu(p, "전체 판매", "§7다음 아이템을 팝니다. 매입 예산과 품목별 한도가 반영된 수량입니다.", rows,
+		"합계 §6"+formatMoney(total),
+		s.opt("§a판매", "textures/ui/confirm", func(p *player.Player, tx *world.Tx) {
+			s.sellAll(p, func(item.Stack) bool { return true })
+			s.showBuyback(p)
+		}),
+		s.opt("§7취소", "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showBuyback(p) }),
+	)
+}
+
+// saleLine is one item of a sale quote.
+type saleLine struct {
+	Name, Icon string
+	Count      int
+	Price      int64
 }
 
 // quoteSale returns what selling the whole inventory would sell now, one
 // line per item, and the total, without selling.
-func (s *session) quoteSale(p *player.Player) ([]string, int64) {
+func (s *session) quoteSale(p *player.Player) ([]saleLine, int64) {
 	bb := s.buyback()
 	budget, sold := bb.Budget, maps.Clone(bb.Sold)
-	counts := map[string]int{}
-	var order []string
-	names := map[string]string{}
+	index := map[string]int{}
+	var lines []saleLine
 	var total int64
 	for _, st := range p.Inventory().Slots() {
 		if st.Empty() || !plain(st) {
@@ -226,15 +296,13 @@ func (s *session) quoteSale(p *player.Player) ([]string, int64) {
 		sold[k] += n
 		budget -= int64(n) * b.Price
 		total += int64(n) * b.Price
-		if _, seen := counts[k]; !seen {
-			order = append(order, k)
-			names[k] = itemName(st)
+		i, seen := index[k]
+		if !seen {
+			i = len(lines)
+			index[k] = i
+			lines = append(lines, saleLine{Name: itemName(st), Icon: iconOf(st), Price: b.Price})
 		}
-		counts[k] += n
-	}
-	lines := make([]string, 0, len(order))
-	for _, k := range order {
-		lines = append(lines, fmt.Sprintf("§7- §f%s §7x%s", names[k], formatInt(int64(counts[k]))))
+		lines[i].Count += n
 	}
 	return lines, total
 }

@@ -45,7 +45,7 @@ func (pf *Platform) showMember(p *player.Player, saveID int64, m db.Member) {
 			})
 		}})
 	}
-	opts = append(opts, ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }})
+	opts = append(opts, ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }))
 	ui.Menu(p, m.Name, fmt.Sprintf("%s\n%s", m.Name, pf.status(m.AccountID)), opts...)
 }
 

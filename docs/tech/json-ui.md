@@ -6,7 +6,7 @@
 
 | 파일 | 내용 |
 |---|---|
-| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 `§d§f§c§r`(Go `ui.CardToken`)이면 카드 격자 |
+| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, 없으면 목록 |
 | `assets/resourcepack/dragonfactory/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§4` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
@@ -15,11 +15,29 @@
 ## 폼 (메뉴·확인·입력)
 
 - 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 드래곤팩토리 메뉴, 상점 구매·판매, 분실물 보관함, 섬 확장 지도 등.
-- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 메뉴(3×3)·상점·판매·분실물.
+- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 메뉴(3×4)·판매·분실물. 상점 구매는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 `#form_button_length` → `#maximum_grid_items`, 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다 — 6차 실기).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`, 텍스처 경로) + 글자. 아이콘은 바닐라 텍스처 경로이거나 커스텀 아이템이면
   Dragonfly 가 만든 팩의 `textures/items/<이름>`(`dragonfactory.iconOf`).
-- 확인 폼(`ui.Confirm`)은 목록 폼과 같은 모양으로 보이는 것을 기대(클라이언트가 modal 을 long_form 으로 그리는지 실기 확인 필요).
+- 확인 폼(`ui.Confirm`)은 바닐라 modal 이 테마를 받지 않아(8차 실기: 밝은 기본 창) **목록 폼 두 버튼**(확인·취소)으로 보낸다. 닫기는 취소와 같다.
+- 수량 폼(`ui.Amount`): 입력 폼(custom_form)의 슬라이더 하나.
+
+### 버튼 표식 (탭·뒤로·표)
+
+버튼 글자 앞의 표식(유효한 색 코드라 테마가 없어도 글자에 안 보임)으로 버튼의 자리를 정한다. 표식은 모두 `§0§` 로 시작하고, 목록·격자는 표식 있는 버튼을 숨긴다. 표식 버튼은 일반 버튼 **뒤에** 둔다(격자에서 숨긴 칸이 끝에만 생기게).
+
+| 표식 | Go | 자리 |
+|---|---|---|
+| `§0§1§r` / `§0§2§r` | `ui.Tab(…, selected)` | 창 위쪽 탭 줄(선택된 탭은 밝게) |
+| `§0§3§r` | `ui.Back` | 제목 막대의 닫기 버튼 왼쪽 작은 화살표 버튼 |
+| `§0§4§r` | 표의 동작 버튼 | 표 아래 목록 버튼 |
+| `§0§5§r`·`§0§6§r` | `ui.Cell` | 표의 칸(글자·숫자, 머리 칸은 회색 글자), 버튼이 아니라 눌리지 않음 |
+| `§0§8§r` | 표의 합계 | 표 아래 오른쪽 주황 글자 |
+
+- 탭 줄·뒤로 칸·합계·동작은 `df_form.marked_buttons`: 모든 버튼을 도는 가로/세로 스택 팩토리에서 그 표식 버튼만 보이게 한다(숨긴 컨트롤은 스택에서 자리를 차지하지 않음).
+- 표(`ui.TableMenu`)는 4열(80px) 격자. 첫 열은 아이콘+이름, 숫자 열은 오른쪽 정렬. 전체 판매 확인에 쓴다.
+- 상점(`ui.ShopMenu`)은 360px 창, 56×48px 칸 6열의 인벤토리 같은 작은 카드(아이콘·이름·가격). 격자 폭은 내용 영역(336px)을 넘으면 왼쪽 열이 잘린다.
+- 탭 줄 높이는 `100%cm`(가장 큰 자식). 가로 스택의 `100%c` 는 자식 높이를 모두 더해 탭 아래에 큰 공백이 생겼다.
 - 입력 폼(custom_form): 어두운 창 안에 바닐라 입력 칸 그대로(밝은 카드는 글자가 안 보여 뺐다).
 - 폼 뒤를 어둡게 하는 배경은 화면 일부에만 그려져 뺐다.
 
@@ -30,6 +48,10 @@
 - 26번 칸은 "기계 회수" 버튼.
 - 배경은 폼과 같은 어두운 패널(`textures/ui/df/panel`)과 어두운 칸(`slot`), 제목은 주황 글자. 진행도 칸은 칸 배경 없이 화살표만(6차 실기 반영).
 - 모바일용 기계 레이아웃은 만들지 않는다(사용자 결정, 6차 실기).
+
+## 요령
+
+- 8차 실기 뒤 겪은 오류: 팩토리 `control_ids` 에 변수(`$df_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$df_window_size"`). `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의했다.
 
 ## 실기 확인 전에는 미완료
 

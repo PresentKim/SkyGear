@@ -66,12 +66,19 @@ func TestShopMenuBuys(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
-		if _, cats := s.shopMenu(p); len(cats) != len(shopCategories)+1 {
-			t.Fatalf("%d category options", len(cats))
+		_, opts := s.shopMenu(p, 2) // 설비
+		if opts[0].Icon != "textures/items/delivery_box" || !strings.Contains(opts[0].Label, "재고 2") || strings.Contains(opts[0].Label, "/") {
+			t.Errorf("first product %q icon %q", opts[0].Label, opts[0].Icon)
 		}
-		_, opts := s.shopCategoryMenu(p, 0)
-		if opts[0].Icon != "textures/items/delivery_box" {
-			t.Errorf("delivery box icon = %q", opts[0].Icon)
+		// The tabs and the back button come last, marked for the theme.
+		tabs := 0
+		for _, o := range opts {
+			if strings.HasPrefix(o.Label, ui.TabToken) || strings.HasPrefix(o.Label, ui.TabOnToken) {
+				tabs++
+			}
+		}
+		if tabs != len(shopCategories) || !strings.HasPrefix(opts[len(opts)-1].Label, ui.BackToken) {
+			t.Fatalf("%d tabs, last option %q", tabs, opts[len(opts)-1].Label)
 		}
 		press(t, p, tx, opts, "납품함")
 		if !p.Inventory().ContainsItem(item.NewStack(DeliveryBox{}, 1)) {
@@ -84,19 +91,17 @@ func TestShopMenuBuys(t *testing.T) {
 }
 
 func TestShopCategoriesCoverAllProducts(t *testing.T) {
+	tabs := map[string]bool{}
+	for _, c := range shopCategories {
+		tabs[c.Name] = true
+	}
 	for _, it := range ShopItems {
-		n := 0
-		for _, c := range shopCategories {
-			if c.Has(it) {
-				n++
-			}
-		}
-		if n != 1 {
-			t.Errorf("%s is in %d categories", it.ID, n)
+		if !tabs[shopGroup(it)] {
+			t.Errorf("%s is in no tab (%q)", it.ID, shopGroup(it))
 		}
 	}
-	if !isMachineProduct(shopItem("crusher")) || !isCoreProduct(shopItem("core_t2")) || !isCoreProduct(shopItem("base_cobblestone")) {
-		t.Fatal("crusher or stone core in the wrong category")
+	if shopGroup(shopItem("crusher")) != "기계" || shopGroup(shopItem("core_t2")) != "코어" || shopGroup(shopItem("mat_cobblestone")) != "재료" || shopGroup(shopItem("hammer")) != "도구" {
+		t.Fatal("a product is in the wrong tab")
 	}
 }
 

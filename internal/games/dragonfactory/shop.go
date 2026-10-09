@@ -38,21 +38,30 @@ var ShopItems = append([]ShopItem{
 	}, 200, 1, 2, day},
 	{"torch", "횃불 x16", func() item.Stack { return item.NewStack(block.Torch{}, 16) }, 60, 1, 4, day},
 	{"drawer", "서랍", func() item.Stack { return item.NewStack(Drawer{}, 1) }, 400, 1, 4, day},
-	{"drawer_key", "서랍 잠금 키 (닳지 않음)", func() item.Stack { return item.NewStack(DrawerKey{}, 1) }, 200, 1, 1, day},
+	{"drawer_key", "서랍 잠금 키", func() item.Stack { return item.NewStack(DrawerKey{}, 1) }, 200, 1, 1, day},
 	{"upgrade_capacity", "서랍 용량 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) }, 800, 2, 2, day},
 	{"upgrade_void", "서랍 공허 업그레이드", func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) }, 600, 3, 1, day},
-	{"hammer", "망치 (손 분쇄)", func() item.Stack { return item.NewStack(Hammer{}, 1) }, 600, 2, 1, day},
+	{"hammer", "망치", func() item.Stack { return item.NewStack(Hammer{}, 1) }, 600, 2, 1, day},
 	{"hopper", "호퍼", func() item.Stack { return item.NewStack(block.NewHopper(), 1) }, 300, 2, 8, day},
 	{"crusher", "분쇄기", func() item.Stack { return machineItem(KindCrusher) }, 1500, 3, 2, day},
-	{"sieve", "체 (손으로 거르기)", func() item.Stack { return machineItem(KindSieve) }, 600, 2, 2, day},
+	{"sieve", "체", func() item.Stack { return machineItem(KindSieve) }, 600, 2, 2, day},
 	{"auto_sieve", "자동 체", func() item.Stack { return machineItem(KindAutoSieve) }, 2500, 4, 1, day},
 	{"sell_box", "판매함", func() item.Stack { return machineItem(KindSellBox) }, 3000, 5, 1, day},
-	{"pioneer_pickaxe", "개척자의 곡괭이 (1회 한정)", func() item.Stack {
+	{"pioneer_pickaxe", "개척자의 곡괭이", func() item.Stack {
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")
 	}, 500, 2, 1, 0},
 	{"stone_hoe", "돌 괭이", func() item.Stack { return item.NewStack(item.Hoe{Tier: item.ToolTierStone}, 1) }, 150, 8, 2, day},
 	{"harvester", "자동 수확기", func() item.Stack { return machineItem(KindHarvester) }, 4000, 9, 1, day},
 	{"iron_pickaxe", "철 곡괭이", func() item.Stack { return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1) }, 1500, 3, 1, day},
+	// Materials (재료 tab), also core bases a save cannot make yet.
+	{"mat_cobblestone", "조약돌 x16", func() item.Stack { return item.NewStack(block.Cobblestone{}, 16) }, 40, 2, 4, day},
+	{"mat_dirt", "흙 x16", func() item.Stack { return item.NewStack(block.Dirt{}, 16) }, 40, 2, 4, day},
+	{"mat_sand", "모래 x16", func() item.Stack { return item.NewStack(block.Sand{}, 16) }, 60, 3, 4, day},
+	{"mat_gravel", "자갈 x16", func() item.Stack { return item.NewStack(block.Gravel{}, 16) }, 60, 3, 4, day},
+	{"mat_pumpkin", "호박", func() item.Stack { return item.NewStack(block.Pumpkin{}, 1) }, 200, 8, 1, day},
+	{"mat_melon", "수박 블록", func() item.Stack { return item.NewStack(block.Melon{}, 1) }, 200, 8, 1, day},
+	{"mat_copper", "구리 블록", func() item.Stack { return item.NewStack(block.Copper{}, 1) }, 1500, 9, 1, day},
+	{"mat_dried_kelp", "말린 켈프 블록", func() item.Stack { return item.NewStack(block.DriedKelp{}, 1) }, 300, 10, 2, day},
 }, coreProducts()...)
 
 // coreShop are the tier cores sold in the shop with the level that opens
@@ -69,22 +78,7 @@ var coreShop = []struct {
 	{"core_t2", "t2", 4, 1500, 1}, {"core_t3", "t3", 7, 4000, 1}, {"core_t4", "t4", 10, 8000, 1},
 }
 
-// baseShop are base blocks for cores that cannot be made yet when their
-// recipe opens (docs/design/02-dragonfactory.md §3.2). Drafts.
-var baseShop = []struct {
-	ID    string
-	Block world.Block
-	Level int
-	Price int64
-	Stock int
-}{
-	{"base_cobblestone", block.Cobblestone{}, 2, 10, 4}, {"base_dirt", block.Dirt{}, 2, 10, 4},
-	{"base_sand", block.Sand{}, 3, 15, 4}, {"base_gravel", block.Gravel{}, 3, 15, 4},
-	{"base_pumpkin", block.Pumpkin{}, 8, 200, 1}, {"base_melon", block.Melon{}, 8, 200, 1},
-	{"base_copper", block.Copper{}, 9, 1500, 1}, {"base_dried_kelp", block.DriedKelp{}, 10, 300, 2},
-}
-
-// coreProducts are the shop products of the cores and base blocks.
+// coreProducts are the shop products of the cores.
 func coreProducts() []ShopItem {
 	var out []ShopItem
 	for _, c := range coreShop {
@@ -95,12 +89,6 @@ func coreProducts() []ShopItem {
 		out = append(out, ShopItem{
 			ID: c.ID, Name: name,
 			Stack: func() item.Stack { return coreItem(c.Type) }, Price: c.Price, UnlockLevel: c.Level, MaxStock: c.Stock, Restock: day,
-		})
-	}
-	for _, b := range baseShop {
-		out = append(out, ShopItem{
-			ID: b.ID, Name: "받침용 " + blockName(b.Block),
-			Stack: func() item.Stack { return item.NewStack(b.Block.(world.Item), 1) }, Price: b.Price, UnlockLevel: b.Level, MaxStock: b.Stock, Restock: day,
 		})
 	}
 	return out

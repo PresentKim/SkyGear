@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global" },
       {
         "binding_type": "view",
-        "source_property_name": "(#title_text - '§d§f§c§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -47,6 +47,17 @@
           "layer": 1,
           "controls": [
             { "title@df_form.title_label": {} },
+            {
+              // The back button (ui.Back, marked §0§3§r) sits left of the
+              // close button.
+              "back@df_form.marked_back": {
+                "orientation": "horizontal",
+                "size": [ "100%c", 20 ],
+                "offset": [ -24, 0 ],
+                "anchor_from": "right_middle",
+                "anchor_to": "right_middle"
+              }
+            },
             {
               "close@common.close_button": {
                 "$close_button_offset": [ -1, 0 ],
@@ -81,6 +92,333 @@
     "anchor_to": "top_left"
   },
 
+  // ---- marked buttons (ui.Tab, ui.Back, table actions) ----
+  // Stack panels over all form buttons that show only the buttons of one
+  // kind (one control per kind: a factory's control id cannot be a
+  // variable): the item template hides the others, and hidden controls take no
+  // space in a stack panel. Lists and grids hide every marked button (all
+  // markers start with §0§).
+
+  "marked_back": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.back_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+
+  "marked_tabs": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.tab_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+
+  "marked_total": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.total_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+
+  "marked_actions": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.action_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+
+  // The vis_* templates show their control only for buttons with a marker.
+  // The markers are literal in each expression: variables are not
+  // substituted inside binding expressions (8th playtest: no tabs shown).
+  // vis_back: the back button
+  "vis_back": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§3§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_tab: tabs
+  "vis_tab": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§1§r') = #form_button_text)) or (not ((#form_button_text - '§0§2§r') = #form_button_text)))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_tab_on: the selected tab
+  "vis_tab_on": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§2§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_cell: table cells
+  "vis_cell": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§5§r') = #form_button_text)) or (not ((#form_button_text - '§0§6§r') = #form_button_text)))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_cell_text: text cells
+  "vis_cell_text": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§5§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_cell_num: number cells
+  "vis_cell_num": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§6§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_total: the table total
+  "vis_total": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§8§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // vis_action: table actions
+  "vis_action": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§4§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // unmarked_visible shows its control only for normal buttons.
+  "unmarked_visible": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((#form_button_text - '§0§') = #form_button_text)",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  "back_item@df_form.vis_back": {
+    "type": "panel",
+    "size": [ 22, 20 ],
+    "controls": [ { "button@df_form.icon_button": {} } ]
+  },
+
+  // icon_button is a small square button showing only the icon.
+  "icon_button@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 20, 18 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } }
+    ]
+  },
+
+  // tabs is the strip of tab buttons at the top of the content.
+  // The strip is as high as one tab ("100%cm": the largest child; "100%c"
+  // added up every tab's height, 9th playtest), and 0 high without tabs.
+  "tabs": {
+    "type": "panel",
+    "size": [ "100%", "100%cm" ],
+    "controls": [
+      {
+        "strip@df_form.marked_tabs": {
+          "orientation": "horizontal",
+          "size": [ "100%", "100%cm" ]
+        }
+      }
+    ]
+  },
+
+  "tab_item@df_form.vis_tab": {
+    "type": "panel",
+    "size": [ 64, 24 ],
+    "controls": [ { "button@df_form.tab_button": {} } ]
+  },
+
+  "tab_button@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 62, 22 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      {
+        // The selected tab (§0§2§r) keeps the highlighted look.
+        "selected@df_form.vis_tab_on": {
+          "type": "image",
+          "texture": "textures/ui/df/button_hover",
+          "size": [ "100%", "100%" ],
+          "layer": 2
+        }
+      },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 14, 14 ],
+          "offset": [ 4, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#form_button_text",
+          "color": [ 0.95, 0.95, 0.97 ],
+          "font_scale_factor": 0.8,
+          "size": [ "100% - 22px", "default" ],
+          "offset": [ 20, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
   // ---- list (ActionForm, Modal) ----
 
   "action_form": {
@@ -110,6 +448,7 @@
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
+      { "tabs@df_form.tabs": {} },
       {
         "body": {
           "type": "panel",
@@ -147,7 +486,7 @@
   },
 
   // list_row is one button with a 2px gap below it.
-  "list_row": {
+  "list_row@df_form.unmarked_visible": {
     "type": "panel",
     "size": [ "100%", 32 ],
     "controls": [ { "button@df_form.list_button": {} } ]
@@ -284,6 +623,7 @@
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
+      { "tabs@df_form.tabs": {} },
       {
         "body": {
           "type": "panel",
@@ -323,14 +663,108 @@
   },
 
   // card is one cell: a button with the icon on top and two lines of text.
-  "card": {
+  // Marked buttons (tabs, back) leave an empty cell; they come last.
+  "card@df_form.unmarked_visible": {
     "type": "panel",
     "size": [ 90, 60 ],
     "controls": [ { "button@df_form.card_button": {} } ]
   },
 
+  // ---- compact card grid (title starts with §d§f§s§r): the shop ----
+  // Small cards, six per row in a wider window.
+
+  "shop_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window@df_form.window": {
+          "$df_window_size": [ 360, "90%" ],
+          "$df_content": "df_form.shop_scroll"
+        }
+      }
+    ]
+  },
+
+  "shop_scroll@common.scrolling_panel": {
+    "anchor_to": "top_left",
+    "anchor_from": "top_left",
+    "$show_background": false,
+    "size": [ "100%", "100%" ],
+    "$scrolling_content": "df_form.shop_content",
+    "$scroll_size": [ 4, "100% - 4px" ],
+    "$scrolling_pane_size": [ "100% - 6px", "100%" ],
+    "$scrolling_pane_offset": [ 0, 0 ],
+    "$scroll_bar_right_padding_size": [ 0, 0 ]
+  },
+
+  "shop_content": {
+    "type": "stack_panel",
+    "size": [ "100% - 6px", "100%c" ],
+    "orientation": "vertical",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      { "tabs@df_form.tabs": {} },
+      {
+        "body": {
+          "type": "panel",
+          "size": [ "100%", "100%c" ],
+          "controls": [ { "label@df_form.body_label": {} } ]
+        }
+      },
+      { "gap": { "type": "panel", "size": [ "100%", 6 ] } },
+      {
+        "cards_row": {
+          "type": "panel",
+          "size": [ "100%", "100%c" ],
+          "controls": [
+            {
+              // Six 56px cells (336px) fill the 336px content (360px
+              // window - 12px - 6px scroll bar - 6px); 340px cut off the
+              // left column (9th playtest).
+              "cards": {
+                "type": "grid",
+                "size": [ 336, "100%c" ],
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
+                "grid_rescaling_type": "horizontal",
+                "grid_item_template": "df_form.shop_card",
+                "collection_name": "form_buttons",
+                "bindings": [
+                  {
+                    "binding_name": "#form_button_length",
+                    "binding_name_override": "#maximum_grid_items"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+
+  // shop_card is a small, inventory-like cell: icon, name and price.
+  "shop_card@df_form.unmarked_visible": {
+    "type": "panel",
+    "size": [ 56, 48 ],
+    "controls": [
+      {
+        "button@df_form.card_button": {
+          "size": [ 54, 46 ],
+          "$df_card_icon": [ 16, 16 ],
+          "$df_card_font": 0.6
+        }
+      }
+    ]
+  },
+
   "card_button@common.button": {
     "$pressed_button_name": "button.form_button_click",
+    "$df_card_icon|default": [ 20, 20 ],
+    "$df_card_font|default": 0.8,
     "size": [ 86, 56 ],
     "default_control": "default",
     "hover_control": "hover",
@@ -347,7 +781,7 @@
       { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
       {
         "icon@df_form.button_icon": {
-          "$df_icon_size": [ 20, 20 ],
+          "$df_icon_size": "$df_card_icon",
           "offset": [ 0, 4 ],
           "anchor_from": "top_middle",
           "anchor_to": "top_middle"
@@ -360,7 +794,7 @@
           "text": "#form_button_text",
           "color": [ 0.95, 0.95, 0.97 ],
           "text_alignment": "center",
-          "font_scale_factor": 0.8,
+          "font_scale_factor": "$df_card_font",
           "size": [ "100% - 4px", "default" ],
           "offset": [ 0, -3 ],
           "anchor_from": "bottom_middle",
@@ -375,5 +809,178 @@
         }
       }
     ]
+  },
+
+  // ---- table (title starts with §d§f§t§r, Go ui.TableMenu) ----
+  // Non-clickable cells (§0§5§r text, §0§6§r number, §0§7§r header) four
+  // per row, then the total line (§0§8§r) and the action buttons (§0§4§r).
+
+  "table_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window@df_form.window": {
+          "$df_window_size": [ 340, "80%" ],
+          "$df_content": "df_form.table_scroll"
+        }
+      }
+    ]
+  },
+
+  "table_scroll@common.scrolling_panel": {
+    "anchor_to": "top_left",
+    "anchor_from": "top_left",
+    "$show_background": false,
+    "size": [ "100%", "100%" ],
+    "$scrolling_content": "df_form.table_content",
+    "$scroll_size": [ 4, "100% - 4px" ],
+    "$scrolling_pane_size": [ "100% - 6px", "100%" ],
+    "$scrolling_pane_offset": [ 0, 0 ],
+    "$scroll_bar_right_padding_size": [ 0, 0 ]
+  },
+
+  "table_content": {
+    "type": "stack_panel",
+    "size": [ "100% - 6px", "100%c" ],
+    "orientation": "vertical",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "body": {
+          "type": "panel",
+          "size": [ "100%", "100%c" ],
+          "controls": [ { "label@df_form.body_label": {} } ]
+        }
+      },
+      { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
+      {
+        "cells_row": {
+          "type": "panel",
+          "size": [ "100%", "100%c" ],
+          "controls": [
+            {
+              "cells": {
+                "type": "grid",
+                "size": [ 320, "100%c" ],
+                "anchor_from": "top_middle",
+                "anchor_to": "top_middle",
+                "grid_rescaling_type": "horizontal",
+                "grid_item_template": "df_form.table_cell",
+                "collection_name": "form_buttons",
+                "bindings": [
+                  {
+                    "binding_name": "#form_button_length",
+                    "binding_name_override": "#maximum_grid_items"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      { "gap2": { "type": "panel", "size": [ "100%", 6 ] } },
+      {
+        "total@df_form.marked_total": {
+          "orientation": "vertical",
+          "size": [ "100%", "100%c" ]
+        }
+      },
+      { "gap3": { "type": "panel", "size": [ "100%", 4 ] } },
+      {
+        "actions@df_form.marked_actions": {
+          "orientation": "vertical",
+          "size": [ "100%", "100%c" ]
+        }
+      }
+    ]
+  },
+
+  // table_cell is one 80×20 cell; non-cell buttons (total, actions) come
+  // last and leave empty cells.
+  "table_cell@df_form.vis_cell": {
+    "type": "panel",
+    "size": [ 80, 20 ],
+    "controls": [
+      { "line": { "type": "image", "texture": "textures/ui/df/slot", "size": [ "100%", 1 ], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "alpha": 0.5 } },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 14, 14 ],
+          "offset": [ 2, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        // Text cells: left, after the icon if there is one.
+        "text@df_form.cell_text": {
+          "text_alignment": "left",
+          "offset": [ 18, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        // Number cells: right-aligned.
+        "num@df_form.cell_num": {
+          "text_alignment": "right",
+          "offset": [ -4, 0 ],
+          "anchor_from": "right_middle",
+          "anchor_to": "right_middle"
+        }
+      }
+    ]
+  },
+
+  // cell_text and cell_num are the labels of text and number cells.
+  "cell_text@df_form.vis_cell_text": {
+    "type": "label",
+    "layer": 3,
+    "text": "#form_button_text",
+    "color": [ 0.95, 0.95, 0.97 ],
+    "font_scale_factor": 0.85,
+    "size": [ "100% - 20px", "default" ]
+  },
+
+  "cell_num@df_form.vis_cell_num": {
+    "type": "label",
+    "layer": 3,
+    "text": "#form_button_text",
+    "color": [ 0.95, 0.95, 0.97 ],
+    "font_scale_factor": 0.85,
+    "size": [ "100% - 20px", "default" ]
+  },
+
+  "total_item@df_form.vis_total": {
+    "type": "panel",
+    "size": [ "100%", 18 ],
+    "controls": [
+      {
+        "text": {
+          "type": "label",
+          "text": "#form_button_text",
+          "color": [ 0.93, 0.66, 0.19 ],
+          "text_alignment": "right",
+          "size": [ "100% - 8px", "default" ],
+          "offset": [ -4, 0 ],
+          "anchor_from": "right_middle",
+          "anchor_to": "right_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  "action_item@df_form.vis_action": {
+    "type": "panel",
+    "size": [ "100%", 32 ],
+    "controls": [ { "button@df_form.list_button": {} } ]
   }
 }

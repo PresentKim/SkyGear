@@ -54,7 +54,7 @@ func (pf *Platform) showFriend(p *player.Player, f db.Account) {
 			})
 		}},
 		ui.Option{Label: "§c차단", Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, f) }},
-		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }),
 	)
 }
 

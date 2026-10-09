@@ -201,7 +201,7 @@ func (pf *Platform) showJoined(p *player.Player) {
 				ui.Menu(p, s.Name, fmt.Sprintf("§f%s 님의 '%s'\n%s", host.Name, s.Name, state),
 					ui.Option{Label: "§a입장", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }},
 					ui.Option{Label: "§c탈퇴", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askLeave(p, s, host) }},
-					ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+					ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }),
 				)
 			},
 		})

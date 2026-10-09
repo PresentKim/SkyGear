@@ -117,3 +117,23 @@ func TestLostStartCoreCanBeReplaced(t *testing.T) {
 		}
 	})
 }
+
+// TestSellCountAndQuote: selling a chosen number takes only that many, and
+// the sale quote has a line per item with its price.
+func TestSellCountAndQuote(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Cobblestone{}, 40))
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 5))
+		lines, total := s.quoteSale(p)
+		if len(lines) != 2 || lines[0].Count != 40 || lines[0].Price != 1 || lines[0].Icon == "" || total != 40+5 {
+			t.Fatalf("quote %+v total %d", lines, total)
+		}
+		s.sellCount(p, itemKey(block.Cobblestone{}), 25)
+		if !p.Inventory().ContainsItem(item.NewStack(block.Cobblestone{}, 15)) || p.Inventory().ContainsItem(item.NewStack(block.Cobblestone{}, 16)) {
+			t.Fatal("did not sell exactly 25")
+		}
+	})
+}

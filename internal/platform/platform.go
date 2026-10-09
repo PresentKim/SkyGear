@@ -159,7 +159,7 @@ func (pf *Platform) showSave(p *player.Player, saveID int64) {
 		ui.Option{Label: "참여자 관리", Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
 		ui.Option{Label: "이름 변경", Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
 		ui.Option{Label: "§c삭제", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
-		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }),
 	)
 }
 
