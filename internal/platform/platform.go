@@ -249,6 +249,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("invite", "친구를 세이브에 초대합니다", nil, inviteCmd{pf: pf}))
 	cmd.Register(cmd.New("members", "세이브 참여자를 관리합니다", nil, membersCmd{pf: pf}))
 	cmd.Register(cmd.New("join", "초대 코드로 세이브에 참여합니다", nil, joinCmd{pf: pf}))
+	cmd.Register(cmd.New("title", "칭호·치장을 엽니다", []string{"titles"}, titleCmd{pf: pf}))
 }
 
 type playerOnly struct{}
@@ -256,6 +257,15 @@ type playerOnly struct{}
 func (playerOnly) Allow(src cmd.Source) bool {
 	_, ok := src.(*player.Player)
 	return ok
+}
+
+type titleCmd struct {
+	playerOnly
+	pf *Platform
+}
+
+func (c titleCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
+	c.pf.showCosmetics(src.(*player.Player))
 }
 
 type lobbyCmd struct {

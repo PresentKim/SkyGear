@@ -13,7 +13,7 @@ import (
 )
 
 // Titles, name colours and achievements (docs/design/01-platform.md §5),
-// from the lobby menu.
+// from the lobby menu, /title, or a game's menu (which runs /title).
 
 func (pf *Platform) showCosmetics(p *player.Player) {
 	acc, err := pf.db.Account(instance.AccountID(p))
@@ -32,8 +32,18 @@ func (pf *Platform) showCosmetics(p *player.Player) {
 		ui.Option{Label: "칭호 고르기", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }},
 		ui.Option{Label: "이름 색", Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.showColors(p) }},
 		ui.Option{Label: "업적 목록", Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }},
-		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) }},
+		ui.Option{Label: "뒤로", Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { pf.cosmeticsBack(p) }},
 	)
+}
+
+// cosmeticsBack goes back to the menu the cosmetics came from: the lobby
+// menu in the lobby, the game's menu (/menu) in a save.
+func (pf *Platform) cosmeticsBack(p *player.Player) {
+	if pf.m.Location(instance.AccountID(p)) == nil {
+		pf.showLobbyMenu(p)
+		return
+	}
+	p.ExecuteCommand("/menu")
 }
 
 func (pf *Platform) showTitles(p *player.Player) {

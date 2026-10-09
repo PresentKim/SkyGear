@@ -24,6 +24,7 @@ const (
 	iconBack    = "textures/items/arrow"
 	iconLocked  = "textures/blocks/barrier"
 	iconAll     = "textures/blocks/hopper_top"
+	iconTitle   = "textures/items/name_tag"
 )
 
 // vanillaIcons maps item keys (itemKey) to vanilla texture paths.

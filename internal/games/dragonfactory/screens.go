@@ -65,6 +65,7 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 			}
 		}),
 		s.opt("§f도움말", iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
+		s.opt("§e칭호·치장", iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt("§f로비로", iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
 	}
 }
