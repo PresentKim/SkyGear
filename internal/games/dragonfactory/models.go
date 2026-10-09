@@ -17,10 +17,12 @@ func alphaMaterial(texture string) customblock.Material {
 
 func v(x, y, z float64) [3]float64 { return [3]float64{x, y, z} }
 
-// cubeFaces are the faces of cube blocks (no modelling, one texture per
-// face). The front is north; looking at the front, the viewer's right is
-// west. Textures: textures/blocks/<name>_<face>.png.
+// cubeFaces are the faces of cube blocks (no modelling).
 var cubeFaces = []string{"north", "south", "east", "west", "up", "down"}
+
+// cubeParts are the textures of cube blocks: the four sides share one.
+// Textures: textures/blocks/<name>_<side|up|down>.png.
+var cubeParts = []string{"side", "up", "down"}
 
 // cubeGeometry is one full cube whose faces use the materials named after
 // them.
@@ -43,18 +45,19 @@ func cubeGeometry(id string) []byte {
 // cubeTextures returns the face textures of a cube block named name.
 func cubeTextures(name string) map[string]image.Image {
 	out := map[string]image.Image{}
-	for _, f := range cubeFaces {
-		out["dragonfactory_"+name+"_"+f] = blockTexture(name + "_" + f)
+	for _, part := range cubeParts {
+		out["dragonfactory_"+name+"_"+part] = blockTexture(name + "_" + part)
 	}
 	return out
 }
 
 // cubeProperties returns the properties of a cube block: geometry id and
-// a material per face.
+// the side material on "*", with its own top and bottom.
 func cubeProperties(id, name string) customblock.Properties {
-	textures := map[string]customblock.Material{"*": alphaMaterial("dragonfactory_" + name + "_north")}
-	for _, f := range cubeFaces {
-		textures[f] = alphaMaterial("dragonfactory_" + name + "_" + f)
+	textures := map[string]customblock.Material{
+		"*":    alphaMaterial("dragonfactory_" + name + "_side"),
+		"up":   alphaMaterial("dragonfactory_" + name + "_up"),
+		"down": alphaMaterial("dragonfactory_" + name + "_down"),
 	}
 	return customblock.Properties{Geometry: id, Textures: textures}
 }

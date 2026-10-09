@@ -52,5 +52,5 @@
 ## 정육면체 블록 (모델링 없음)
 
 자동 채굴기·자동 수확기·코어(티어별)는 모델 없이 꽉 찬 정육면체에 면마다 텍스처를 붙인다(`models.go` `cubeGeometry`).
-텍스처는 `textures/blocks/<이름>_<면>.png` 6장: `north`(정면)·`south`(후면)·`east`(정면을 볼 때 왼쪽)·`west`(오른쪽)·`up`·`down`.
+텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
 정면은 항상 북쪽을 본다(놓는 방향으로 돌지 않음).

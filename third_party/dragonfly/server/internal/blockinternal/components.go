@@ -40,6 +40,15 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 			"burn_odds":  int32(info.Flammability),
 		})
 	}
+	if _, ok := b.(block.Activatable); ok {
+		// dragonfactory patch: marks the block as interactable, so the client sends the click to
+		// the server instead of predicting the held block being placed.
+		builder.AddComponent("minecraft:custom_components", map[string]any{
+			"hasPlayerInteract": uint8(1),
+			"hasPlayerPlacing":  uint8(0),
+			"isV1Component":     uint8(1),
+		})
+	}
 	if permutable, ok := b.(block.Permutable); ok {
 		for name, values := range permutable.States() {
 			builder.AddProperty(name, values)
