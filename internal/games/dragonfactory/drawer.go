@@ -62,16 +62,14 @@ func (Drawer) Geometry() []byte            { return drawerModel }
 func (Drawer) Texture() image.Image        { return itemTexture("drawer") }
 func (Drawer) Textures() map[string]image.Image {
 	return map[string]image.Image{
-		"dragonfactory_drawer_panel":  blockTexture("drawer_panel"),
-		"dragonfactory_drawer_side":   blockTexture("drawer_side"),
-		"dragonfactory_drawer_handle": blockTexture("drawer_handle"),
+		"dragonfactory_drawer_front": blockTexture("drawer_front"),
+		"dragonfactory_drawer_side":  blockTexture("drawer_side"),
 	}
 }
 func (Drawer) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_drawer", Textures: map[string]customblock.Material{
-		"*":      alphaMaterial("dragonfactory_drawer_side"),
-		"front":  alphaMaterial("dragonfactory_drawer_panel"),
-		"handle": alphaMaterial("dragonfactory_drawer_handle"),
+		"*":     alphaMaterial("dragonfactory_drawer_side"),
+		"front": alphaMaterial("dragonfactory_drawer_front"),
 	}}
 }
 

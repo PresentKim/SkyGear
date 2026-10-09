@@ -65,14 +65,19 @@ type (
 // show mirrored on real clients.
 const textYawOffset = 0
 
+// faceTextDepth is how far from the block centre the front-face texts
+// sit: just in front of the face (0.5), so they lie on it without
+// z-fighting. 0.53 suited the old recessed front panel and stood out from
+// the flat cube front (9th playtest).
+const faceTextDepth = 0.505
+
 // faceText returns a text fixed flat on a drawer's front face, without a
 // background, at (right, up) from the face centre as the viewer sees it.
-// It sits slightly in front of the face so it does not z-fight with it.
 func faceText(pos cube.Pos, d Drawer, right, up, scale float64, text string) *debug.Text {
 	front := cube.Pos{}.Side(d.Facing.Face()).Vec3()
 	// Looking at the front, the viewer's right is the facing turned left.
 	side := cube.Pos{}.Side(d.Facing.RotateLeft().Face()).Vec3()
-	at := pos.Vec3Centre().Add(front.Mul(0.53)).Add(side.Mul(right)).Add(mgl64.Vec3{0, up, 0})
+	at := pos.Vec3Centre().Add(front.Mul(faceTextDepth)).Add(side.Mul(right)).Add(mgl64.Vec3{0, up, 0})
 	return &debug.Text{
 		Position: at, Text: text, Scale: scale, HideBackground: true,
 		LockRotation: true, Rotation: mgl64.Vec3{0, yawOf(d.Facing) + textYawOffset, 0},
@@ -84,14 +89,19 @@ func drawerLabel(pos cube.Pos, d Drawer) *debug.Text {
 	return faceText(pos, d, 0, -0.34, 0.4, d.label())
 }
 
-// drawerLock returns the small lock mark of a locked drawer, on the handle
-// at the top centre of its front.
+// drawerMarkUp is the height of the lock and upgrade marks above the
+// centre of a drawer front: in the top frame, above the handle (playtest:
+// at 0.34 the lock sat on the handle).
+const drawerMarkUp = 0.43
+
+// drawerLock returns the small lock mark of a locked drawer, at the top
+// centre of its front, level with the upgrade marks.
 func drawerLock(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, 0, 0.34, 0.22, lockGlyph)
+	return faceText(pos, d, 0, drawerMarkUp, 0.16, lockGlyph)
 }
 
 // drawerUpgrades returns the upgrade marks of a drawer (capacity multiplier,
 // void), in the top right corner of its front.
 func drawerUpgrades(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, 0.36, 0.4, 0.2, d.upgradeMarks())
+	return faceText(pos, d, 0.36, drawerMarkUp, 0.2, d.upgradeMarks())
 }

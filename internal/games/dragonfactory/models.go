@@ -34,17 +34,22 @@ var deliveryModel = geoFile(geometry("geometry.dragonfactory_delivery_box", []bo
 	{from: v(-2, 8, -8), size: v(4, 3, 1), mat: "lid"},
 }))
 
-// drawerModel: a wooden case with a recessed front panel ("front") and a
-// handle ("handle") at the top centre, under the lock mark.
-var drawerModel = geoFile(geometry("geometry.dragonfactory_drawer", []box{
-	{from: v(-8, 0, -7), size: v(16, 16, 15)},
-	{from: v(-8, 0, -8), size: v(16, 2, 1)},
-	{from: v(-8, 14, -8), size: v(16, 2, 1)},
-	{from: v(-8, 2, -8), size: v(2, 12, 1)},
-	{from: v(6, 2, -8), size: v(2, 12, 1)},
-	{from: v(-6, 2, -7.5), size: v(12, 12, 0.5), mat: "front"},
-	{from: v(-2, 12, -8), size: v(4, 1, 0.5), mat: "handle"},
-}))
+// drawerModel: a plain full cube; the north face (the front, turned by
+// the facing permutations) is the "front" material, the rest "*".
+var drawerModel = geoFile(map[string]any{
+	"description": map[string]any{
+		"identifier": "geometry.dragonfactory_drawer", "texture_width": 16, "texture_height": 16,
+		"visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": []float64{0, 0.5, 0},
+	},
+	"bones": []any{map[string]any{"name": "root", "pivot": []float64{0, 0, 0}, "cubes": []any{map[string]any{
+		"origin": v(-8, 0, -8), "size": v(16, 16, 16),
+		"uv": map[string]any{
+			"north": faceUV(16, 16, "front"), "south": faceUV(16, 16, ""),
+			"east": faceUV(16, 16, ""), "west": faceUV(16, 16, ""),
+			"up": faceUV(16, 16, ""), "down": faceUV(16, 16, ""),
+		},
+	}}}},
+})
 
 // machineModels: per kind, a body ("*") and moving parts ("accent").
 var machineModels = map[string][]byte{
