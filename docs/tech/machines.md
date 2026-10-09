@@ -53,5 +53,5 @@
 
 자동 채굴기·자동 수확기·코어(티어별)는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`models.go` `cubeProperties`).
 텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
-정면은 항상 북쪽을 본다(놓는 방향으로 돌지 않음).
+놓는 방향으로 돌지 않는다.
 

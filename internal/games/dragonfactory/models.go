@@ -6,8 +6,9 @@ import "github.com/df-mc/dragonfly/server/block/customblock"
 // (textures/terrain_texture.json, item_texture.json) live in the resource
 // pack assets/resourcepack/dragonfactory; the server only names them here:
 // geometry identifiers and material textures (atlas keys
-// "dragonfactory_<file>" for textures/blocks/<file>.png). Front faces look
-// north (-z); drawers are turned per facing. Materials: "*" is the body
+// "dragonfactory_<file>" for textures/blocks/<file>.png). Fronts of the
+// fixed cubes look south, which is in view in the inventory; drawers are
+// turned per facing. Materials: "*" is the body
 // texture, other names are listed per block. TestPackHasBlockAssets checks
 // every name exists in the pack.
 
@@ -28,14 +29,15 @@ func cubeProperties(name string) customblock.Properties {
 
 // frontCubeProperties returns the properties of a plain cube block named
 // name with a front: the vanilla full block geometry with the front on the
-// north face, the back on the south face, the side texture on east and west
+// south face, the back on the north face, the side texture on east and west
 // ("*") and its own top and bottom
-// (textures/blocks/<name>_<front|back|side|up|down>.png).
+// (textures/blocks/<name>_<front|back|side|up|down>.png). The front is south
+// because block items are drawn in the inventory with the south face in view.
 func frontCubeProperties(name string) customblock.Properties {
 	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
 		"*":     alphaMaterial("dragonfactory_" + name + "_side"),
-		"north": alphaMaterial("dragonfactory_" + name + "_front"),
-		"south": alphaMaterial("dragonfactory_" + name + "_back"),
+		"south": alphaMaterial("dragonfactory_" + name + "_front"),
+		"north": alphaMaterial("dragonfactory_" + name + "_back"),
 		"up":    alphaMaterial("dragonfactory_" + name + "_up"),
 		"down":  alphaMaterial("dragonfactory_" + name + "_down"),
 	}}

@@ -64,9 +64,19 @@ func (Drawer) Properties() customblock.Properties {
 	}}
 }
 
+// drawerFacings orders the facing states. The first is the default state,
+// which the client also draws the drawer item with: south, so the front is
+// in view in the inventory. The client numbers a custom block's states in
+// this order, so drawers are registered in it too (init).
+var drawerFacings = []cube.Direction{cube.South, cube.West, cube.North, cube.East}
+
 // States implements block.Permutable.
 func (Drawer) States() map[string][]any {
-	return map[string][]any{facingState: {"north", "east", "south", "west"}}
+	var values []any
+	for _, f := range drawerFacings {
+		values = append(values, facingNames[f])
+	}
+	return map[string][]any{facingState: values}
 }
 
 // Permutations implements block.Permutable: rotate the front per facing.
@@ -647,7 +657,7 @@ func (s *session) placeDrawer(p *player.Player, tx *world.Tx, pos cube.Pos, held
 }
 
 func init() {
-	for _, f := range cube.Directions() {
+	for _, f := range drawerFacings {
 		world.RegisterBlock(Drawer{Facing: f})
 	}
 	world.RegisterItem(Drawer{})

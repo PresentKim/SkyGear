@@ -316,3 +316,24 @@ func TestFaceTextRotation(t *testing.T) {
 		}
 	}
 }
+
+// TestDrawerStatesMatchRuntimeIDs: the client numbers a custom block's states
+// in the order of its state values, so drawer runtime IDs must follow
+// drawerFacings, with south (the default, drawn in the inventory) first.
+func TestDrawerStatesMatchRuntimeIDs(t *testing.T) {
+	if drawerFacings[0] != cube.South {
+		t.Fatalf("default drawer facing %v, want south", drawerFacings[0])
+	}
+	values := Drawer{}.States()[facingState]
+	var last uint32
+	for i, f := range drawerFacings {
+		if values[i] != facingNames[f] {
+			t.Errorf("state %d is %v, want %v", i, values[i], facingNames[f])
+		}
+		rid := world.BlockRuntimeID(Drawer{Facing: f})
+		if i > 0 && rid != last+1 {
+			t.Errorf("%v has runtime ID %d after %d", f, rid, last)
+		}
+		last = rid
+	}
+}
