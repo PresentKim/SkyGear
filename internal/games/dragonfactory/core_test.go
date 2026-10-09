@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"math/rand/v2"
 	"strings"
 	"testing"
 
@@ -131,14 +132,14 @@ func TestCoreRecipesUseSurroundingsAndTier(t *testing.T) {
 func TestCoreWithoutRecipeWaits(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	grass, iron := cube.Pos{2, 64, 2}, cube.Pos{6, 64, 2}
+	bricks, iron := cube.Pos{2, 64, 2}, cube.Pos{6, 64, 2}
 	s.world.Do(func(tx *world.Tx) {
-		placeCore(tx, grass, "t4", block.Grass{})
+		placeCore(tx, bricks, "t4", block.StoneBricks{})
 		placeCore(tx, iron, "t1", block.Iron{})
 	})
 	tick(s, coreTiers[4]+1)
 	s.world.Do(func(tx *world.Tx) {
-		for _, p := range []cube.Pos{grass, iron} {
+		for _, p := range []cube.Pos{bricks, iron} {
 			if _, air := tx.Block(p.Side(cube.FaceUp)).(block.Air); !air {
 				t.Errorf("core at %v made %T without a recipe", p, tx.Block(p.Side(cube.FaceUp)))
 			}
@@ -309,4 +310,44 @@ func TestLegacyCoreInLostAndFound(t *testing.T) {
 	if c, ok := got.Item().(Core); !ok || c.Type != "t2" {
 		t.Fatalf("decoded %v", got)
 	}
+}
+
+// TestGrassBaseCountsAsDirt: a dirt base that turned into grass keeps the
+// core making dirt.
+func TestGrassBaseCountsAsDirt(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) { placeCore(tx, startCorePos, "t1", block.Grass{}) })
+	tick(s, coreTiers[1]+1)
+	s.world.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(startCorePos.Side(cube.FaceUp)).(block.Dirt); !ok {
+			t.Errorf("core on grass made %T, want dirt", tx.Block(startCorePos.Side(cube.FaceUp)))
+		}
+	})
+}
+
+// TestNoGrassUnderCore: grass does not spread to dirt under a core, and
+// grass under a core turns back into dirt (Dragonfly patch).
+func TestNoGrassUnderCore(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	dirtBase, grassBase, source := cube.Pos{2, 64, 2}, cube.Pos{4, 64, 2}, cube.Pos{3, 63, 2}
+	s.world.Do(func(tx *world.Tx) {
+		placeCore(tx, dirtBase, "t1", block.Dirt{})
+		placeCore(tx, grassBase, "t1", block.Grass{})
+		tx.SetBlock(source, block.Grass{}, nil)
+		r := rand.New(rand.NewPCG(1, 2))
+		for range 500 {
+			block.Grass{}.RandomTick(source, tx, r)
+			if g, ok := tx.Block(grassBase.Side(cube.FaceDown)).(block.Grass); ok {
+				g.RandomTick(grassBase.Side(cube.FaceDown), tx, r)
+			}
+		}
+		if _, ok := tx.Block(dirtBase.Side(cube.FaceDown)).(block.Dirt); !ok {
+			t.Errorf("dirt under a core became %T", tx.Block(dirtBase.Side(cube.FaceDown)))
+		}
+		if _, ok := tx.Block(grassBase.Side(cube.FaceDown)).(block.Dirt); !ok {
+			t.Errorf("grass under a core stayed %T", tx.Block(grassBase.Side(cube.FaceDown)))
+		}
+	})
 }

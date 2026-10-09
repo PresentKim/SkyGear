@@ -76,12 +76,17 @@ func blockKey(b world.Block) string {
 	return strings.TrimPrefix(name, "flowing_")
 }
 
-// keyAt is the recipe key of the block at pos; a liquid counts as itself.
+// keyAt is the recipe key of the block at pos; a liquid counts as itself
+// and a grass block as dirt (dirt beside a core may turn into grass).
 func keyAt(tx *world.Tx, pos cube.Pos) string {
 	if l, ok := tx.Liquid(pos); ok {
 		return blockKey(l)
 	}
-	return blockKey(tx.Block(pos))
+	b := tx.Block(pos)
+	if _, ok := b.(block.Grass); ok {
+		b = block.Dirt{}
+	}
+	return blockKey(b)
 }
 
 // blockName is the Korean name of a block for recipe texts.

@@ -4,6 +4,7 @@ import (
 	"math/rand/v2"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
@@ -67,7 +68,10 @@ func (d Dirt) EncodeBlock() (string, map[string]any) {
 // attempt may target.
 func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY int) {
 	aboveLight := tx.Light(pos.Side(cube.FaceUp))
-	if aboveLight < 4 {
+	// dragonfactory patch: like vanilla, grass under a full solid block turns
+	// back into dirt and does not spread under one. The light check alone
+	// misses blocks that let light through, such as custom blocks.
+	if aboveLight < 4 || solidAbove(pos, tx) {
 		tx.SetBlock(pos, Dirt{}, nil)
 		return
 	}
@@ -89,8 +93,18 @@ func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY in
 		if dirt, ok := tx.Block(spreadPos).(Dirt); !ok || dirt.Coarse {
 			continue
 		}
+		if solidAbove(spreadPos, tx) {
+			continue
+		}
 		tx.SetBlock(spreadPos, b, nil)
 	}
+}
+
+// solidAbove reports whether the block above pos is a full solid block.
+// dragonfactory patch.
+func solidAbove(pos cube.Pos, tx *world.Tx) bool {
+	_, ok := tx.Block(pos.Side(cube.FaceUp)).Model().(model.Solid)
+	return ok
 }
 
 // supportsVegetation checks if the vegetation can exist on the block.

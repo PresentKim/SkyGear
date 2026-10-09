@@ -179,7 +179,9 @@ func convertLegacyCoreBlock(tx *world.Tx, pos cube.Pos, old string) {
 	if pos != startCorePos || (old != "wood" && old != "earth") {
 		return
 	}
-	if r, _ := matchRecipe(tx, pos, 4); r == nil {
+	// The floor is grass, which recipes read as dirt; it still gets the log.
+	_, floor := tx.Block(pos.Side(cube.FaceDown)).(block.Grass)
+	if r, _ := matchRecipe(tx, pos, 4); r == nil || floor {
 		tx.SetBlock(pos.Side(cube.FaceDown), oakLog, nil)
 	}
 }

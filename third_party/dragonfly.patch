@@ -1,6 +1,6 @@
 diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
---- a/server/block/beetroot_seeds.go	2026-10-09 15:03:21.856618144 +0000
-+++ b/server/block/beetroot_seeds.go	2026-10-09 15:03:22.001095543 +0000
+--- a/server/block/beetroot_seeds.go	2026-10-09 15:23:09.491511654 +0000
++++ b/server/block/beetroot_seeds.go	2026-10-09 15:23:09.770997491 +0000
 @@ -50,7 +50,8 @@
  
  // BreakInfo ...
@@ -22,8 +22,8 @@ diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
  		breakBlock(b, pos, tx)
  	} else if b.Growth < 7 && r.IntN(3) > 0 && r.Float64() <= b.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/carrot.go b/server/block/carrot.go
---- a/server/block/carrot.go	2026-10-09 15:03:21.859175910 +0000
-+++ b/server/block/carrot.go	2026-10-09 15:03:22.001173601 +0000
+--- a/server/block/carrot.go	2026-10-09 15:23:09.498728147 +0000
++++ b/server/block/carrot.go	2026-10-09 15:23:09.771088240 +0000
 @@ -65,12 +65,14 @@
  // BreakInfo ...
  func (c Carrot) BreakInfo() BreakInfo {
@@ -52,8 +52,8 @@ diff -ruN a/server/block/carrot.go b/server/block/carrot.go
  		breakBlock(c, pos, tx)
  	} else if c.Growth < 7 && r.Float64() <= c.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/crop.go b/server/block/crop.go
---- a/server/block/crop.go	2026-10-09 15:03:21.863724761 +0000
-+++ b/server/block/crop.go	2026-10-09 15:03:22.006815493 +0000
+--- a/server/block/crop.go	2026-10-09 15:23:09.509470872 +0000
++++ b/server/block/crop.go	2026-10-09 15:23:09.779539038 +0000
 @@ -5,6 +5,11 @@
  	"github.com/df-mc/dragonfly/server/world"
  )
@@ -66,9 +66,53 @@ diff -ruN a/server/block/crop.go b/server/block/crop.go
  // Crop is an interface for all crops that are grown on farmland. A crop has a random chance to grow during random ticks.
  type Crop interface {
  	// GrowthStage returns the crop's current stage of growth. The max value is 7.
+diff -ruN a/server/block/dirt.go b/server/block/dirt.go
+--- a/server/block/dirt.go	2026-10-09 15:23:09.519833128 +0000
++++ b/server/block/dirt.go	2026-10-09 15:23:09.776080698 +0000
+@@ -4,6 +4,7 @@
+ 	"math/rand/v2"
+ 
+ 	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/block/model"
+ 	"github.com/df-mc/dragonfly/server/world"
+ )
+ 
+@@ -67,7 +68,10 @@
+ // attempt may target.
+ func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY int) {
+ 	aboveLight := tx.Light(pos.Side(cube.FaceUp))
+-	if aboveLight < 4 {
++	// dragonfactory patch: like vanilla, grass under a full solid block turns
++	// back into dirt and does not spread under one. The light check alone
++	// misses blocks that let light through, such as custom blocks.
++	if aboveLight < 4 || solidAbove(pos, tx) {
+ 		tx.SetBlock(pos, Dirt{}, nil)
+ 		return
+ 	}
+@@ -89,10 +93,20 @@
+ 		if dirt, ok := tx.Block(spreadPos).(Dirt); !ok || dirt.Coarse {
+ 			continue
+ 		}
++		if solidAbove(spreadPos, tx) {
++			continue
++		}
+ 		tx.SetBlock(spreadPos, b, nil)
+ 	}
+ }
+ 
++// solidAbove reports whether the block above pos is a full solid block.
++// dragonfactory patch.
++func solidAbove(pos cube.Pos, tx *world.Tx) bool {
++	_, ok := tx.Block(pos.Side(cube.FaceUp)).Model().(model.Solid)
++	return ok
++}
++
+ // supportsVegetation checks if the vegetation can exist on the block.
+ func supportsVegetation(vegetation, block world.Block) bool {
+ 	soil, ok := block.(Soil)
 diff -ruN a/server/block/melon_seeds.go b/server/block/melon_seeds.go
---- a/server/block/melon_seeds.go	2026-10-09 15:03:21.878406161 +0000
-+++ b/server/block/melon_seeds.go	2026-10-09 15:03:22.014831276 +0000
+--- a/server/block/melon_seeds.go	2026-10-09 15:23:09.544702178 +0000
++++ b/server/block/melon_seeds.go	2026-10-09 15:23:09.788577796 +0000
 @@ -37,6 +37,9 @@
  
  // RandomTick ...
@@ -80,8 +124,8 @@ diff -ruN a/server/block/melon_seeds.go b/server/block/melon_seeds.go
  		if m.Growth < 7 {
  			m.Growth++
 diff -ruN a/server/block/potato.go b/server/block/potato.go
---- a/server/block/potato.go	2026-10-09 15:03:21.886618833 +0000
-+++ b/server/block/potato.go	2026-10-09 15:03:22.001245642 +0000
+--- a/server/block/potato.go	2026-10-09 15:23:09.570323346 +0000
++++ b/server/block/potato.go	2026-10-09 15:23:09.771163206 +0000
 @@ -70,15 +70,16 @@
  // BreakInfo ...
  func (p Potato) BreakInfo() BreakInfo {
@@ -113,8 +157,8 @@ diff -ruN a/server/block/potato.go b/server/block/potato.go
  		breakBlock(p, pos, tx)
  	} else if p.Growth < 7 && r.Float64() <= p.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/pumpkin_seeds.go b/server/block/pumpkin_seeds.go
---- a/server/block/pumpkin_seeds.go	2026-10-09 15:03:21.887148400 +0000
-+++ b/server/block/pumpkin_seeds.go	2026-10-09 15:03:22.021194228 +0000
+--- a/server/block/pumpkin_seeds.go	2026-10-09 15:23:09.571672092 +0000
++++ b/server/block/pumpkin_seeds.go	2026-10-09 15:23:09.797084167 +0000
 @@ -37,6 +37,9 @@
  
  // RandomTick ...
@@ -126,8 +170,8 @@ diff -ruN a/server/block/pumpkin_seeds.go b/server/block/pumpkin_seeds.go
  		if p.Growth < 7 {
  			p.Growth++
 diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
---- a/server/block/wheat_seeds.go	2026-10-09 15:03:21.897302848 +0000
-+++ b/server/block/wheat_seeds.go	2026-10-09 15:03:22.001308088 +0000
+--- a/server/block/wheat_seeds.go	2026-10-09 15:23:09.594780164 +0000
++++ b/server/block/wheat_seeds.go	2026-10-09 15:23:09.771242852 +0000
 @@ -47,7 +47,8 @@
  
  // BreakInfo ...
@@ -149,8 +193,8 @@ diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
  		breakBlock(s, pos, tx)
  	} else if s.Growth < 7 && r.Float64() <= s.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/cmd/command.go b/server/cmd/command.go
---- a/server/cmd/command.go	2026-10-09 15:03:21.898488265 +0000
-+++ b/server/cmd/command.go	2026-10-09 15:03:22.028868577 +0000
+--- a/server/cmd/command.go	2026-10-09 15:23:09.598352869 +0000
++++ b/server/cmd/command.go	2026-10-09 15:23:09.804265162 +0000
 @@ -4,7 +4,9 @@
  	"encoding/csv"
  	"fmt"
@@ -188,8 +232,8 @@ diff -ruN a/server/cmd/command.go b/server/cmd/command.go
 +	r.Run(source, output, tx)
 +}
 diff -ruN a/server/internal/blockinternal/components.go b/server/internal/blockinternal/components.go
---- a/server/internal/blockinternal/components.go	2026-10-09 15:03:21.911588328 +0000
-+++ b/server/internal/blockinternal/components.go	2026-10-09 15:03:22.037089056 +0000
+--- a/server/internal/blockinternal/components.go	2026-10-09 15:23:09.627283619 +0000
++++ b/server/internal/blockinternal/components.go	2026-10-09 15:23:09.813338442 +0000
 @@ -40,6 +40,15 @@
  			"burn_odds":  int32(info.Flammability),
  		})
@@ -207,8 +251,8 @@ diff -ruN a/server/internal/blockinternal/components.go b/server/internal/blocki
  		for name, values := range permutable.States() {
  			builder.AddProperty(name, values)
 diff -ruN a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
---- a/server/internal/iteminternal/components.go	2026-10-09 15:03:21.911930361 +0000
-+++ b/server/internal/iteminternal/components.go	2026-10-09 15:03:22.037408775 +0000
+--- a/server/internal/iteminternal/components.go	2026-10-09 15:23:09.628215278 +0000
++++ b/server/internal/iteminternal/components.go	2026-10-09 15:23:09.813636919 +0000
 @@ -1,9 +1,11 @@
  package iteminternal
  
@@ -250,8 +294,8 @@ diff -ruN a/server/internal/iteminternal/components.go b/server/internal/itemint
  		builder.AddProperty("hand_equipped", x.HandEquipped())
  	}
 diff -ruN a/server/internal/packbuilder/items.go b/server/internal/packbuilder/items.go
---- a/server/internal/packbuilder/items.go	2026-10-09 15:03:21.913184390 +0000
-+++ b/server/internal/packbuilder/items.go	2026-10-09 15:03:22.038609224 +0000
+--- a/server/internal/packbuilder/items.go	2026-10-09 15:23:09.631494629 +0000
++++ b/server/internal/packbuilder/items.go	2026-10-09 15:23:09.814672215 +0000
 @@ -23,7 +23,12 @@
  	}
  
@@ -268,7 +312,7 @@ diff -ruN a/server/internal/packbuilder/items.go b/server/internal/packbuilder/i
  
 diff -ruN a/server/item/digger.go b/server/item/digger.go
 --- a/server/item/digger.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/item/digger.go	2026-10-09 15:03:22.039547701 +0000
++++ b/server/item/digger.go	2026-10-09 15:23:09.815387390 +0000
 @@ -0,0 +1,11 @@
 +package item
 +
@@ -282,8 +326,8 @@ diff -ruN a/server/item/digger.go b/server/item/digger.go
 +	DestroySpeeds() map[string]int
 +}
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-09 15:03:21.947986735 +0000
-+++ b/server/player/player.go	2026-10-09 15:03:22.067158961 +0000
+--- a/server/player/player.go	2026-10-09 15:23:09.687675078 +0000
++++ b/server/player/player.go	2026-10-09 15:23:09.843130548 +0000
 @@ -102,6 +102,10 @@
  	breakingPos       cube.Pos
  	breakingFace      cube.Face
@@ -450,7 +494,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  func (p *Player) session() *session.Session {
 diff -ruN a/server/session/camera.go b/server/session/camera.go
 --- a/server/session/camera.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/camera.go	2026-10-09 15:03:22.070018506 +0000
++++ b/server/session/camera.go	2026-10-09 15:23:09.845852944 +0000
 @@ -0,0 +1,115 @@
 +package session
 +
@@ -569,7 +613,7 @@ diff -ruN a/server/session/camera.go b/server/session/camera.go
 +}
 diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
 --- a/server/session/entity_container.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/session/entity_container.go	2026-10-09 15:03:22.070104292 +0000
++++ b/server/session/entity_container.go	2026-10-09 15:23:09.845887679 +0000
 @@ -0,0 +1,417 @@
 +package session
 +
@@ -989,8 +1033,8 @@ diff -ruN a/server/session/entity_container.go b/server/session/entity_container
 +	})
 +}
 diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-09 15:03:21.952273844 +0000
-+++ b/server/session/handler_container_close.go	2026-10-09 15:03:22.068300242 +0000
+--- a/server/session/handler_container_close.go	2026-10-09 15:23:09.693523946 +0000
++++ b/server/session/handler_container_close.go	2026-10-09 15:23:09.844384989 +0000
 @@ -12,6 +12,20 @@
  func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
  	pk := p.(*packet.ContainerClose)
@@ -1013,8 +1057,8 @@ diff -ruN a/server/session/handler_container_close.go b/server/session/handler_c
  
  	var containerType byte
 diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-09 15:03:21.953481524 +0000
-+++ b/server/session/handler_modal_form_response.go	2026-10-09 15:03:22.068967420 +0000
+--- a/server/session/handler_modal_form_response.go	2026-10-09 15:23:09.695707862 +0000
++++ b/server/session/handler_modal_form_response.go	2026-10-09 15:23:09.844892101 +0000
 @@ -5,6 +5,7 @@
  	"github.com/df-mc/dragonfly/server/player/form"
  	"github.com/df-mc/dragonfly/server/world"
@@ -1043,8 +1087,8 @@ diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handl
  	if err := f.SubmitJSON(resp, c, tx); err != nil {
  		return fmt.Errorf("error submitting form data: %w", err)
 diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
---- a/server/session/handler_player_action.go	2026-10-09 15:03:21.953670680 +0000
-+++ b/server/session/handler_player_action.go	2026-10-09 15:03:22.069054418 +0000
+--- a/server/session/handler_player_action.go	2026-10-09 15:23:09.696081132 +0000
++++ b/server/session/handler_player_action.go	2026-10-09 15:23:09.844963413 +0000
 @@ -9,6 +9,10 @@
  	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
  )
@@ -1071,8 +1115,8 @@ diff -ruN a/server/session/handler_player_action.go b/server/session/handler_pla
  	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
  		// Don't do anything for these actions.
 diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-09 15:03:21.953821245 +0000
-+++ b/server/session/handler_player_auth_input.go	2026-10-09 15:03:22.069140615 +0000
+--- a/server/session/handler_player_auth_input.go	2026-10-09 15:23:09.696250160 +0000
++++ b/server/session/handler_player_auth_input.go	2026-10-09 15:23:09.844996922 +0000
 @@ -26,6 +26,9 @@
  
  // handleMovement handles the movement part of the packet.PlayerAuthInput.
@@ -1092,8 +1136,8 @@ diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler
  }
  
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-09 15:03:21.955213049 +0000
-+++ b/server/session/player.go	2026-10-09 15:03:22.069669059 +0000
+--- a/server/session/player.go	2026-10-09 15:23:09.698542877 +0000
++++ b/server/session/player.go	2026-10-09 15:23:09.845454149 +0000
 @@ -67,10 +67,16 @@
  
  // closeCurrentContainer closes the container the player might currently have open.
@@ -1124,8 +1168,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-09 15:03:21.955378842 +0000
-+++ b/server/session/session.go	2026-10-09 15:03:22.067410347 +0000
+--- a/server/session/session.go	2026-10-09 15:23:09.698779671 +0000
++++ b/server/session/session.go	2026-10-09 15:23:09.843505124 +0000
 @@ -77,10 +77,20 @@
  	openedContainerID              atomic.Uint32
  	openedWindow                   atomic.Pointer[inventory.Inventory]
@@ -1190,8 +1234,8 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  	if err != nil {
  		panic("should never happen")
 diff -ruN a/server/world/item.go b/server/world/item.go
---- a/server/world/item.go	2026-10-09 15:03:21.975566616 +0000
-+++ b/server/world/item.go	2026-10-09 15:03:22.085863807 +0000
+--- a/server/world/item.go	2026-10-09 15:23:09.731753518 +0000
++++ b/server/world/item.go	2026-10-09 15:23:09.857364675 +0000
 @@ -22,12 +22,20 @@
  	Item
  	// Name is the name that will be displayed on the item to all clients.
@@ -1216,8 +1260,8 @@ diff -ruN a/server/world/item.go b/server/world/item.go
  // ID and metadata value using itemByID().
  // If an item with the ID and meta passed already exists, RegisterItem panics.
 diff -ruN a/server/world/tick.go b/server/world/tick.go
---- a/server/world/tick.go	2026-10-09 15:03:21.980609775 +0000
-+++ b/server/world/tick.go	2026-10-09 15:03:22.097441272 +0000
+--- a/server/world/tick.go	2026-10-09 15:23:09.746779013 +0000
++++ b/server/world/tick.go	2026-10-09 15:23:09.861019920 +0000
 @@ -23,8 +23,10 @@
  	defer tc.Stop()
  	for {
@@ -1232,7 +1276,7 @@ diff -ruN a/server/world/tick.go b/server/world/tick.go
  			w.running.Done()
 diff -ruN a/server/world/tick_stats.go b/server/world/tick_stats.go
 --- a/server/world/tick_stats.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/world/tick_stats.go	2026-10-09 15:03:22.070323027 +0000
++++ b/server/world/tick_stats.go	2026-10-09 15:23:09.846313692 +0000
 @@ -0,0 +1,81 @@
 +package world
 +
@@ -1316,8 +1360,8 @@ diff -ruN a/server/world/tick_stats.go b/server/world/tick_stats.go
 +	return out
 +}
 diff -ruN a/server/world/world.go b/server/world/world.go
---- a/server/world/world.go	2026-10-09 15:03:21.982075699 +0000
-+++ b/server/world/world.go	2026-10-09 15:03:22.099790867 +0000
+--- a/server/world/world.go	2026-10-09 15:23:09.750544859 +0000
++++ b/server/world/world.go	2026-10-09 15:23:09.862162228 +0000
 @@ -30,6 +30,9 @@
  	conf Config
  	ra   cube.Range
