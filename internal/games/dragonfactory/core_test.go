@@ -199,14 +199,15 @@ func TestCoreBookHidesUndiscoveredRecipes(t *testing.T) {
 	s := testSession(t)
 	smooth := recipeByID("smooth_stone")
 	body, _ := s.coreBook()
-	if strings.Contains(body, smooth.text()) || !strings.Contains(body, smooth.Hint) {
-		t.Fatalf("undiscovered recipe shown or hint missing:\n%s", body)
-	}
-	if strings.Contains(body, recipeByID("iron_vein").Hint) {
-		t.Fatal("a tier 3 hint is shown before tier 3 opens")
+	if strings.Contains(body, smooth.text()) || strings.Contains(body, smooth.Hint) {
+		t.Fatalf("undiscovered recipe or its hint shown without a research note:\n%s", body)
 	}
 	if !strings.Contains(body, recipeByID("oak_log").text()) {
 		t.Fatal("a public recipe is missing")
+	}
+	s.state.Hinted = map[string]bool{"smooth_stone": true}
+	if body, _ := s.coreBook(); !strings.Contains(body, smooth.Hint) || strings.Contains(body, smooth.text()) {
+		t.Fatal("a hinted recipe must show its hint only")
 	}
 	s.state.Discovered = map[string]bool{"smooth_stone": true}
 	if body, _ := s.coreBook(); !strings.Contains(body, smooth.text()) {

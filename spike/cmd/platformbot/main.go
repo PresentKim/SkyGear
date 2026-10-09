@@ -63,6 +63,7 @@ func main() {
 //	take:<slot>=ok|reject        take a stack of the open chest to the cursor, expect the response
 //	close                        close the open chest
 //	slot:<slot>=empty            wait for the server to empty an own inventory slot
+//	touch:<entity type>          wait for an entity of the type (e.g. minecraft:allay) and use (right-click) it
 //
 // "@file" in cmd and input values is replaced by the file's contents.
 func run(action string) {
@@ -123,6 +124,17 @@ func run(action string) {
 	case "take":
 		slotStr, want, _ := strings.Cut(arg, "=")
 		take(slotStr, want)
+	case "touch":
+		pk := waitFor(func(pk packet.Packet) bool {
+			a, ok := pk.(*packet.AddActor)
+			return ok && a.EntityType == arg
+		}).(*packet.AddActor)
+		_ = conn.WritePacket(&packet.InventoryTransaction{TransactionData: &protocol.UseItemOnEntityTransactionData{
+			TargetEntityRuntimeID: pk.EntityRuntimeID,
+			ActionType:            protocol.UseItemOnEntityActionInteract,
+			Position:              pk.Position,
+		}})
+		fmt.Println("> touched", arg)
 	case "close":
 		_ = conn.WritePacket(&packet.ContainerClose{WindowID: chestWindow})
 		fmt.Println("> closed chest")

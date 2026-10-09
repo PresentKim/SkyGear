@@ -191,6 +191,19 @@ func (c adminTimed) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	o.Printf("기간제로 바꿨습니다: %s 남음", timed.Describe(time.Duration(c.Seconds)*time.Second))
 }
 
+// adminFairy sends the gift fairy to the operator now.
+type adminFairy struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"fairy"`
+}
+
+func (c adminFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if p, s, ok := c.session(src, o, tx); ok {
+		s.spawnFairy(tx, p)
+		o.Printf("요정을 불렀습니다.")
+	}
+}
+
 // giveItems are the items /dfadmin give hands out: every shop product and
 // every machine (the auto miner is not sold).
 func giveItems() map[string]func() item.Stack {
@@ -201,6 +214,7 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range machineOrder {
 		out[k] = func() item.Stack { return machineItem(k) }
 	}
+	out["research_note"] = func() item.Stack { return item.NewStack(ResearchNote{}, 1) }
 	return out
 }
 
@@ -283,5 +297,5 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}))
 }

@@ -29,6 +29,10 @@ type State struct {
 	TierSpeed map[int]int `json:"tier_speed,omitempty"`
 	// Discovered are the hidden core recipes a core in the save has made.
 	Discovered map[string]bool `json:"discovered,omitempty"`
+	// Hinted are the hidden core recipes whose hint a research note revealed.
+	Hinted map[string]bool `json:"hinted,omitempty"`
+	// NextFairy is the instance time of the next gift fairy visit.
+	NextFairy time.Duration `json:"next_fairy,omitempty"`
 	// Shop is the stock of shop products by product ID.
 	Shop map[string]*ShopStock `json:"shop,omitempty"`
 	// Buyback is today's buyback budget and sold amounts.

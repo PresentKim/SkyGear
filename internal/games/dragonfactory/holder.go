@@ -138,5 +138,5 @@ func (holderType) EncodeNBT(*world.EntityData) map[string]any      { return nil 
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(entity.DefaultRegistry.Types(), HolderType)
+	return append(entity.DefaultRegistry.Types(), HolderType, FairyType)
 }

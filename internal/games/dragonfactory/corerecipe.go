@@ -194,7 +194,7 @@ func tierOpenLevel(tier int) int {
 }
 
 // showCoreBook shows every recipe: known ones in full, hidden ones as ???
-// with a hint once their tier is open.
+// with the hint once a research note revealed it.
 func (s *session) showCoreBook(p *player.Player) {
 	body, opts := s.coreBook()
 	ui.Menu(p, "코어 도감", body, opts...)
@@ -222,10 +222,12 @@ func (s *session) coreBook() (string, []ui.Option) {
 				fmt.Fprintf(&b, "\n§d★ §f%s", r.text())
 			case s.known(r):
 				fmt.Fprintf(&b, "\n§f%s", r.text())
-			case s.state.Level >= tierOpenLevel(tier):
+			case s.state.Hinted[r.ID]:
 				fmt.Fprintf(&b, "\n§8??? §7단서: %s", r.Hint)
+			case s.state.Level >= tierOpenLevel(tier):
+				b.WriteString("\n§8??? §7(연구 노트로 단서를 얻을 수 있습니다)")
 			default:
-				fmt.Fprintf(&b, "\n§8??? §7(Lv.%d에 단서 공개)", tierOpenLevel(tier))
+				fmt.Fprintf(&b, "\n§8??? §7(Lv.%d에 %d티어 개방)", tierOpenLevel(tier), tier)
 			}
 		}
 	}

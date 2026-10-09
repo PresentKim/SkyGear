@@ -81,6 +81,24 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.deny(ctx, pos.Side(face))
 	}
 }
+
+// HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting
+// fairy, whichever way the player touches it.
+func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
+	h.touchFairy(ctx, e)
+}
+
+func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
+	h.touchFairy(ctx, e)
+}
+
+func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
+	if f, ok := h.s.fairyOf(e); ok {
+		ctx.Cancel()
+		f.gift(ctx.Player().Tx(), h.s, ctx.Player())
+	}
+}
+
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, _ := ctx.Player().HeldItems()
 	if isMenuItem(held) || isCheque(held) {

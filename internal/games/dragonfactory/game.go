@@ -102,6 +102,8 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 
 // session is one active save. All fields are owned by the instance world.
 type session struct {
+	// fairy is the gift fairy visiting now, or nil.
+	fairy *world.EntityHandle
 	g     *Game
 	world *world.World
 	clock *instance.Clock
