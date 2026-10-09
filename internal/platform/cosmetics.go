@@ -72,7 +72,7 @@ func (pf *Platform) setTitle(p *player.Player, id string) {
 		return
 	}
 	account.Refresh(p)
-	p.Messagef("§a칭호를 바꿨습니다: %s", account.DisplayName(p))
+	ui.Flash(p, "§a칭호를 바꿨습니다: %s", account.DisplayName(p))
 	pf.showCosmetics(p)
 }
 
@@ -86,7 +86,7 @@ func (pf *Platform) showColors(p *player.Player) {
 		}
 		opts = append(opts, ui.Option{Label: label, Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) {
 			if c.Need > len(account.Owned(instance.AccountID(p))) {
-				p.Messagef("§c업적을 %d개 달성하면 열립니다.", c.Need)
+				ui.Notify(p, "§c업적을 %d개 달성하면 열립니다.", c.Need)
 				pf.showColors(p)
 				return
 			}

@@ -156,12 +156,12 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 		return
 	}
 	if blocked, _ := pf.db.Blocked(s.Owner, acc); blocked {
-		p.Message("§c이 세이브에 참여할 수 없습니다.")
+		ui.Notify(p, "§c이 세이브에 참여할 수 없습니다.")
 		return
 	}
 	if _, err := pf.db.MemberRole(saveID, acc); errors.Is(err, db.ErrNotFound) {
 		if n, _ := pf.db.ActiveMembers(saveID); n >= MaxMembers {
-			p.Messagef("§c참여 인원이 가득 찼습니다. (최대 %d명)", MaxMembers)
+			ui.Notify(p, "§c참여 인원이 가득 찼습니다. (최대 %d명)", MaxMembers)
 			return
 		}
 		if err := pf.db.AddMember(saveID, acc, db.RoleGuest); err != nil {
@@ -169,12 +169,12 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 			return
 		}
 		host, _ := pf.db.Account(s.Owner)
-		p.Messagef("§a%s 님의 '%s'에 참여했습니다.", host.Name, s.Name)
+		ui.Flash(p, "§a%s 님의 '%s'에 참여했습니다.", host.Name, s.Name)
 		pf.tell(s.Owner, fmt.Sprintf("§a%s 님이 '%s'에 참여했습니다.", p.Name(), s.Name))
 	}
 	pf.invites.remove(acc, saveID)
 	if pf.m.Active(saveID) == nil {
-		p.Message("§e호스트가 접속하면 '참여 중인 세이브'에서 입장할 수 있습니다.")
+		ui.Flash(p, "§e호스트가 접속하면 '참여 중인 세이브'에서 입장할 수 있습니다.")
 		return
 	}
 	pf.enter(p, saveID)
@@ -219,7 +219,7 @@ func (pf *Platform) askLeave(p *player.Player, s db.Save, host db.Account) {
 			pf.fail(p, "탈퇴", err)
 			return
 		}
-		p.Messagef("§e'%s'에서 탈퇴했습니다.", s.Name)
+		ui.Flash(p, "§e'%s'에서 탈퇴했습니다.", s.Name)
 		pf.tell(s.Owner, fmt.Sprintf("§e%s 님이 '%s'에서 탈퇴했습니다.", p.Name(), s.Name))
 	})
 }
@@ -245,7 +245,7 @@ func (pf *Platform) showInvites(p *player.Player) {
 func (pf *Platform) askAcceptInvite(p *player.Player, in invite) {
 	ui.Confirm(p, "세이브 초대", fmt.Sprintf("%s 님이 '%s'에 초대했습니다.\n참여할까요?", in.from, in.saveName), "§a참여", func(p *player.Player, _ *world.Tx) {
 		if pf.m.Location(instance.AccountID(p)) != nil {
-			p.Message("§e로비에서 수락할 수 있습니다. 로비의 '받은 초대'에서 다시 수락하세요.")
+			ui.Flash(p, "§e로비에서 수락할 수 있습니다. 로비의 '받은 초대'에서 다시 수락하세요.")
 			return
 		}
 		pf.join(p, in.saveID)
@@ -293,7 +293,7 @@ func (pf *Platform) showInviteMenu(p *player.Player, inst *instance.Instance) {
 func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.Account) {
 	in := invite{saveID: inst.Save.ID, saveName: inst.Save.Name, from: p.Name(), at: time.Now()}
 	pf.invites.add(f.ID, in)
-	p.Messagef("§a%s 님에게 초대를 보냈습니다.", f.Name)
+	ui.Flash(p, "§a%s 님에게 초대를 보냈습니다.", f.Name)
 	pf.with(f.ID, func(fp *player.Player) {
 		if pf.m.Location(f.ID) == nil {
 			pf.askAcceptInvite(fp, in)
@@ -329,7 +329,7 @@ func (pf *Platform) joinCode(p *player.Player, code string) {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	s, err := pf.db.SaveByInviteCode(code)
 	if errors.Is(err, db.ErrNotFound) || code == "" {
-		p.Message("§c올바르지 않은 초대 코드입니다.")
+		ui.Notify(p, "§c올바르지 않은 초대 코드입니다.")
 		return
 	} else if err != nil {
 		pf.fail(p, "초대 코드 확인", err)

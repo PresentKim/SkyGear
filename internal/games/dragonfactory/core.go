@@ -240,7 +240,7 @@ func (s *session) coreInterval(tier int) int {
 // spendPoints takes n core points, telling p if there are not enough.
 func (s *session) spendPoints(p *player.Player, n int) bool {
 	if s.state.CorePoints < n {
-		p.Messagef("§c코어 강화 포인트가 부족합니다. (필요 %d, 보유 %d)", n, s.state.CorePoints)
+		ui.Notify(p, "§c코어 강화 포인트가 부족합니다. (필요 %d, 보유 %d)", n, s.state.CorePoints)
 		return false
 	}
 	s.state.CorePoints -= n
@@ -272,7 +272,7 @@ func (s *session) coreMenu() (string, []ui.Option) {
 				}
 				s.state.TierSpeed[tier]++
 				s.storeState()
-				p.Messagef("§a%d티어 코어 속도 Lv.%d", tier, s.state.TierSpeed[tier])
+				ui.Flash(p, "§a%d티어 코어 속도 Lv.%d", tier, s.state.TierSpeed[tier])
 			}
 			s.showCores(p, tx)
 		}))

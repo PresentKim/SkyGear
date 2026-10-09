@@ -54,7 +54,7 @@ func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
 		pf.fail(p, "추방", err)
 		return
 	}
-	p.Messagef("§e%s 님을 추방했습니다.", m.Name)
+	ui.Flash(p, "§e%s 님을 추방했습니다.", m.Name)
 	pf.invites.remove(m.AccountID, saveID)
 	pf.with(m.AccountID, func(tp *player.Player) {
 		if inst := pf.m.Location(m.AccountID); inst != nil && inst.Save.ID == saveID {

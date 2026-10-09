@@ -14,6 +14,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/playerstate"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Inventory viewing (InvSee, docs/design/01-platform.md §4). The host sees a
@@ -298,12 +299,12 @@ func filler(name string) item.Stack {
 
 func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m db.Member) {
 	if m.AccountID == instance.AccountID(p) && pf.m.Location(m.AccountID) != nil {
-		p.Message("§c세이브 안에서는 자기 인벤토리를 이 화면으로 볼 수 없습니다.")
+		ui.Notify(p, "§c세이브 안에서는 자기 인벤토리를 이 화면으로 볼 수 없습니다.")
 		return
 	}
 	src, live, readOnly, unlock, err := pf.targetSource(tx, saveID, m.AccountID)
 	if errors.Is(err, errNeverEntered) {
-		p.Messagef("§e%s 님은 아직 이 세이브에 들어온 적이 없습니다.", m.Name)
+		ui.Notify(p, "§e%s 님은 아직 이 세이브에 들어온 적이 없습니다.", m.Name)
 		return
 	}
 	if err != nil {

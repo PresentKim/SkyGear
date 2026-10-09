@@ -129,7 +129,7 @@ func (s *session) shopMenu(p *player.Player, cat int) (string, []ui.Option) {
 		}
 		if it.UnlockLevel > s.state.Level {
 			opts = append(opts, s.opt(fmt.Sprintf("§8%s\n§8Lv.%d 개방", it.Name, it.UnlockLevel), iconLocked, func(p *player.Player, _ *world.Tx) {
-				p.Messagef("§cLv.%d에 개방됩니다.", it.UnlockLevel)
+				ui.Notify(p, "§cLv.%d에 개방됩니다.", it.UnlockLevel)
 				s.showShopTab(p, cat)
 			}))
 			continue
@@ -196,9 +196,9 @@ func (s *session) askSellCount(p *player.Player, b BuybackItem) {
 	name := itemName(item.NewStack(b.Item, 1))
 	if most == 0 {
 		if have == 0 {
-			p.Messagef("§c%s이(가) 없습니다.", name)
+			ui.Notify(p, "§c%s이(가) 없습니다.", name)
 		} else {
-			p.Message("§c오늘 매입 예산이나 이 품목의 한도에 도달했습니다.")
+			ui.Notify(p, "§c오늘 매입 예산이나 이 품목의 한도에 도달했습니다.")
 		}
 		s.showBuyback(p)
 		return
@@ -227,10 +227,10 @@ func (s *session) sellCount(p *player.Player, key string, n int) {
 		}
 	}
 	if count == 0 {
-		p.Message("§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
+		ui.Notify(p, "§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
 		return
 	}
-	p.Messagef("§a%d개를 %s에 판매했습니다.", count, formatMoney(s.Money(p)-before))
+	ui.Flash(p, "§a%d개를 %s에 판매했습니다.", count, formatMoney(s.Money(p)-before))
 }
 
 // confirmSellAll shows what selling everything would sell as a table (item,
@@ -238,7 +238,7 @@ func (s *session) sellCount(p *player.Player, key string, n int) {
 func (s *session) confirmSellAll(p *player.Player) {
 	lines, total := s.quoteSale(p)
 	if len(lines) == 0 {
-		p.Message("§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
+		ui.Notify(p, "§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
 		s.showBuyback(p)
 		return
 	}
@@ -322,10 +322,10 @@ func (s *session) sellAll(p *player.Player, match func(item.Stack) bool) {
 		}
 	}
 	if count == 0 {
-		p.Message("§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
+		ui.Notify(p, "§c팔 수 있는 아이템이 없거나 오늘 한도에 도달했습니다.")
 		return
 	}
-	p.Messagef("§a%d개를 %s에 판매했습니다.", count, formatMoney(s.Money(p)-before))
+	ui.Flash(p, "§a%d개를 %s에 판매했습니다.", count, formatMoney(s.Money(p)-before))
 }
 
 // showLost shows the lost-and-found box; pressing an entry takes as much of

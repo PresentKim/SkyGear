@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // VoidReturnY is the height players are put at above the nearest block when
@@ -81,12 +82,12 @@ func direction(from mgl64.Vec3, c ChunkPos) string {
 
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if !slices.Contains(s.purchasableChunks(), c) {
-		p.Message("§c이 청크는 살 수 없습니다.")
+		ui.Notify(p, "§c이 청크는 살 수 없습니다.")
 		return
 	}
 	price := chunkPrice(len(s.state.Chunks))
 	if !s.TakeMoney(p, price) {
-		p.Message("§c돈이 부족합니다.")
+		ui.Notify(p, "§c돈이 부족합니다.")
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)

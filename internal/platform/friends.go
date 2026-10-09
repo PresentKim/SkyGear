@@ -50,7 +50,7 @@ func (pf *Platform) showFriend(p *player.Player, f db.Account) {
 					pf.fail(p, "친구 삭제", err)
 					return
 				}
-				p.Messagef("§e%s 님을 친구에서 삭제했습니다.", f.Name)
+				ui.Flash(p, "§e%s 님을 친구에서 삭제했습니다.", f.Name)
 			})
 		}},
 		ui.Option{Label: "§c차단", Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.askBlock(p, f) }},
@@ -68,7 +68,7 @@ func (pf *Platform) askAddFriend(p *player.Player) {
 func (pf *Platform) addFriend(p *player.Player, name string) {
 	target, err := pf.db.AccountByName(name)
 	if errors.Is(err, db.ErrNotFound) {
-		p.Messagef("§c'%s' 님은 이 서버에 접속한 적이 없습니다.", name)
+		ui.Notify(p, "§c'%s' 님은 이 서버에 접속한 적이 없습니다.", name)
 		return
 	} else if err != nil {
 		pf.fail(p, "친구 요청", err)
@@ -77,18 +77,18 @@ func (pf *Platform) addFriend(p *player.Player, name string) {
 	accepted, err := pf.db.SendFriendRequest(instance.AccountID(p), target.ID)
 	switch {
 	case errors.Is(err, db.ErrSelf):
-		p.Message("§c자기 자신에게는 요청할 수 없습니다.")
+		ui.Notify(p, "§c자기 자신에게는 요청할 수 없습니다.")
 	case errors.Is(err, db.ErrAlreadyFriends):
-		p.Messagef("§e%s 님과 이미 친구입니다.", target.Name)
+		ui.Flash(p, "§e%s 님과 이미 친구입니다.", target.Name)
 	case errors.Is(err, db.ErrBlocked):
-		p.Message("§c이 플레이어에게 친구 요청을 보낼 수 없습니다.")
+		ui.Notify(p, "§c이 플레이어에게 친구 요청을 보낼 수 없습니다.")
 	case err != nil:
 		pf.fail(p, "친구 요청", err)
 	case accepted:
-		p.Messagef("§a%s 님과 친구가 되었습니다.", target.Name)
+		ui.Flash(p, "§a%s 님과 친구가 되었습니다.", target.Name)
 		pf.tell(target.ID, fmt.Sprintf("§a%s 님과 친구가 되었습니다.", p.Name()))
 	default:
-		p.Messagef("§a%s 님에게 친구 요청을 보냈습니다.", target.Name)
+		ui.Flash(p, "§a%s 님에게 친구 요청을 보냈습니다.", target.Name)
 		pf.tell(target.ID, fmt.Sprintf("§e%s 님이 친구 요청을 보냈습니다. §7/friends", p.Name()))
 	}
 }
@@ -108,7 +108,7 @@ func (pf *Platform) showRequests(p *player.Player) {
 						pf.fail(p, "친구 수락", err)
 						return
 					}
-					p.Messagef("§a%s 님과 친구가 되었습니다.", r.Name)
+					ui.Flash(p, "§a%s 님과 친구가 되었습니다.", r.Name)
 					pf.tell(r.ID, fmt.Sprintf("§a%s 님이 친구 요청을 수락했습니다.", p.Name()))
 				}},
 				ui.Option{Label: "거절", Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
@@ -132,7 +132,7 @@ func (pf *Platform) askBlock(p *player.Player, target db.Account) {
 			pf.fail(p, "차단", err)
 			return
 		}
-		p.Messagef("§e%s 님을 차단했습니다.", target.Name)
+		ui.Flash(p, "§e%s 님을 차단했습니다.", target.Name)
 	})
 }
 
@@ -146,7 +146,7 @@ func (pf *Platform) showBlocked(p *player.Player) {
 	for _, a := range list {
 		opts = append(opts, ui.Option{Label: a.Name + "\n§8눌러서 차단 해제", Icon: iconPlayer, Run: func(p *player.Player, _ *world.Tx) {
 			_ = pf.db.Unblock(instance.AccountID(p), a.ID)
-			p.Messagef("§e%s 님의 차단을 해제했습니다.", a.Name)
+			ui.Flash(p, "§e%s 님의 차단을 해제했습니다.", a.Name)
 		}})
 	}
 	body := "차단한 플레이어"

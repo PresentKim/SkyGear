@@ -267,9 +267,9 @@ func (s *session) urgentOption() (ui.Option, bool) {
 	}
 	return s.opt("§6긴급 납품", iconSell, func(p *player.Player, tx *world.Tx) {
 		if n, earned := s.deliverUrgentInventory(p, tx); n > 0 {
-			p.Messagef("§6긴급 매입: %d개를 %s에 팔았습니다.", n, formatMoney(earned))
+			ui.Flash(p, "§6긴급 매입: %d개를 %s에 팔았습니다.", n, formatMoney(earned))
 		} else {
-			p.Message("§7긴급 매입에 낼 아이템이 없습니다.")
+			ui.Notify(p, "§7긴급 매입에 낼 아이템이 없습니다.")
 		}
 		s.showMission(p)
 	}), true

@@ -301,7 +301,7 @@ func (s *session) cropUpgradeOption() (ui.Option, bool) {
 			s.state.CropLevel++
 			s.rescheduleCrops(before, s.growTime("wheat"))
 			s.storeState()
-			p.Messagef("§a작물 성장 Lv.%d: 다 자라는 데 %s(밀 기준)", s.state.CropLevel, formatDuration(s.growTime("wheat")))
+			ui.Flash(p, "§a작물 성장 Lv.%d: 다 자라는 데 %s(밀 기준)", s.state.CropLevel, formatDuration(s.growTime("wheat")))
 		}
 		s.showCores(p, tx)
 	}), true

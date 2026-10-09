@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/timed"
+	"github.com/presentkim/dragonfactory/internal/ui"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
@@ -84,7 +85,7 @@ func (s *session) takeLost(p *player.Player, l *LostItem) {
 		added, _ := p.Inventory().AddItem(it.Grow(n - it.Count()))
 		l.Count -= added
 		if added < n {
-			p.Message("§e인벤토리가 가득 찼습니다.")
+			ui.Notify(p, "§e인벤토리가 가득 찼습니다.")
 			break
 		}
 	}

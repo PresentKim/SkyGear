@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // ShopItem is a product of the shop (docs/design/02-dragonfactory.md §5.1).
@@ -132,11 +133,11 @@ func (s *session) buy(p *player.Player, tx *world.Tx, it ShopItem) bool {
 	}
 	st := s.stock(it)
 	if st.Count <= 0 {
-		p.Message("§c재고가 없습니다.")
+		ui.Notify(p, "§c재고가 없습니다.")
 		return false
 	}
 	if !s.TakeMoney(p, it.Price) {
-		p.Message("§c돈이 부족합니다.")
+		ui.Notify(p, "§c돈이 부족합니다.")
 		return false
 	}
 	st.Count--
@@ -144,7 +145,7 @@ func (s *session) buy(p *player.Player, tx *world.Tx, it ShopItem) bool {
 	if _, err := p.Inventory().AddItem(stack); err != nil {
 		s.dropAt(tx, p.Position(), stack)
 	}
-	p.Messagef("§a%s 을(를) 구매했습니다.", it.Name)
+	ui.Flash(p, "§a%s 을(를) 구매했습니다.", it.Name)
 	return true
 }
 

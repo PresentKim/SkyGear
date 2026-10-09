@@ -46,25 +46,25 @@ func (s *session) askIssueCheque(p *player.Player) {
 	ui.Input(p, "수표 발행", fmt.Sprintf("금액 (소지금 %s)", formatMoney(s.Money(p))), "1000", func(p *player.Player, tx *world.Tx, v string) {
 		amount, err := strconv.ParseInt(strings.ReplaceAll(strings.TrimSpace(v), ",", ""), 10, 64)
 		if err != nil || amount <= 0 {
-			p.Message("§c금액을 숫자로 입력해 주세요.")
+			ui.Notify(p, "§c금액을 숫자로 입력해 주세요.")
 			return
 		}
 		if !s.TakeMoney(p, amount) {
-			p.Message("§c돈이 부족합니다.")
+			ui.Notify(p, "§c돈이 부족합니다.")
 			return
 		}
 		c, err := s.newCheque(amount, instance.AccountID(p))
 		if err != nil {
 			s.AddMoney(p, amount)
 			s.g.log.Error("issue cheque", "err", err)
-			p.Message("§c수표 발행에 실패했습니다.")
+			ui.Notify(p, "§c수표 발행에 실패했습니다.")
 			return
 		}
 		if _, err := p.Inventory().AddItem(c); err != nil {
 			s.dropAt(tx, p.Position(), c)
 		}
 		s.storeMoney(instance.AccountID(p))
-		p.Messagef("§a%s 수표를 발행했습니다.", formatMoney(amount))
+		ui.Flash(p, "§a%s 수표를 발행했습니다.", formatMoney(amount))
 	})
 }
 

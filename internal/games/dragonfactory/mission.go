@@ -201,9 +201,9 @@ func (s *session) missionOptions() []ui.Option {
 	if _, ok := s.mission(); ok {
 		opts = append(opts, s.opt("§a제출하기", iconMission, func(p *player.Player, tx *world.Tx) {
 			if n := s.deliverInventory(p, tx); n > 0 {
-				p.Messagef("§a%d개를 납품했습니다.", n)
+				ui.Flash(p, "§a%d개를 납품했습니다.", n)
 			} else {
-				p.Message("§7납품할 아이템이 없습니다.")
+				ui.Notify(p, "§7납품할 아이템이 없습니다.")
 			}
 			s.showMission(p)
 		}))

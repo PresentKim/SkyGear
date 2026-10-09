@@ -170,11 +170,11 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 	if err := pf.m.Enter(p, saveID); err != nil {
 		switch err {
 		case instance.ErrHostOffline:
-			p.Message("§c호스트가 접속 중일 때만 입장할 수 있습니다.")
+			ui.Notify(p, "§c호스트가 접속 중일 때만 입장할 수 있습니다.")
 		case instance.ErrStateLocked:
-			p.Message("§c호스트가 인벤토리를 확인하는 중입니다. 잠시 후 다시 시도해 주세요.")
+			ui.Notify(p, "§c호스트가 인벤토리를 확인하는 중입니다. 잠시 후 다시 시도해 주세요.")
 		case instance.ErrTooManyActive:
-			p.Message("§c서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
+			ui.Notify(p, "§c서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
 		default:
 			pf.fail(p, "입장", err)
 		}
@@ -185,7 +185,7 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 	ui.Input(p, "새 게임", "세이브 이름", fmt.Sprintf("세이브 %d", slot), func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			p.Message("§c이름은 1~20자로 입력해 주세요.")
+			ui.Notify(p, "§c이름은 1~20자로 입력해 주세요.")
 			return
 		}
 		s, err := pf.db.CreateSave(instance.AccountID(p), pf.game.ID(), slot, name)
@@ -201,7 +201,7 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 	ui.Input(p, "이름 변경", "새 이름", s.Name, func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			p.Message("§c이름은 1~20자로 입력해 주세요.")
+			ui.Notify(p, "§c이름은 1~20자로 입력해 주세요.")
 			return
 		}
 		if err := pf.db.RenameSave(s.ID, name); err != nil {
@@ -225,14 +225,14 @@ func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
 			pf.fail(p, "세이브 삭제", err)
 			return
 		}
-		p.Messagef("§e'%s' 세이브를 삭제했습니다.", s.Name)
+		ui.Flash(p, "§e'%s' 세이브를 삭제했습니다.", s.Name)
 		pf.showSaves(p)
 	})
 }
 
 func (pf *Platform) fail(p *player.Player, what string, err error) {
 	pf.log.Error(what, "player", p.Name(), "err", err)
-	p.Messagef("§c%s에 실패했습니다.", what)
+	ui.Notify(p, "§c%s에 실패했습니다.", what)
 }
 
 func cleanName(s string) (string, bool) {

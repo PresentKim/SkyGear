@@ -2,8 +2,10 @@
 package ui
 
 import (
+	"fmt"
 	"log/slog"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -41,6 +43,12 @@ const duplicateWindow = 3 * time.Second
 // send sends f unless a form with the same title was sent to p less than
 // duplicateWindow ago and is not answered yet.
 func send(p *player.Player, title string, f form.Form) {
+	if msgs := takeNotes(p, &notes.notice); len(msgs) > 0 {
+		// An error from the action that led here: show it first, and the
+		// form it would have shown after 확인.
+		showNotice(p, msgs, func(p *player.Player, _ *world.Tx) { send(p, title, f) })
+		return
+	}
 	pending.Lock()
 	if last, ok := pending.m[p.UUID()]; ok && last.title == title && time.Since(last.at) < duplicateWindow {
 		pending.Unlock()
@@ -68,6 +76,7 @@ func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
+	defer startAction(p)()
 	for _, o := range m.opts {
 		if o.Label == pressed.Text {
 			o.Run(p, tx)
@@ -88,11 +97,97 @@ func recoverForm(p *player.Player) {
 // Menu shows a menu form whose buttons run their options. Labels must
 // be unique within a menu.
 func Menu(p *player.Player, title, body string, opts ...Option) {
+	if msgs := takeNotes(p, &notes.flash); len(msgs) > 0 {
+		body = strings.Join(msgs, "\n") + "\n\n" + body
+	}
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(body)
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
 	send(p, title, f)
+}
+
+// Messages from form actions. Chat is hidden while forms are open, so an
+// action that ends in another form reports through the forms: Notify (an
+// error) shows a notice form first and the next form after 확인; Flash (a
+// result) puts a line at the top of the next menu's body. If the action
+// sends no form, the notices are shown on their own when it returns.
+var notes = struct {
+	sync.Mutex
+	notice, flash map[uuid.UUID][]string
+	// acting are the players whose form action is running.
+	acting map[uuid.UUID]int
+}{notice: map[uuid.UUID][]string{}, flash: map[uuid.UUID][]string{}, acting: map[uuid.UUID]int{}}
+
+// Notify reports an error of a form action to p.
+func Notify(p *player.Player, format string, a ...any) {
+	addNote(p, &notes.notice, fmt.Sprintf(format, a...))
+}
+
+// Flash reports the result of a form action to p in the next menu.
+func Flash(p *player.Player, format string, a ...any) {
+	addNote(p, &notes.flash, fmt.Sprintf(format, a...))
+}
+
+// addNote keeps msg for the forms during a form action; otherwise (a
+// command, an item use) it goes to chat at once.
+func addNote(p *player.Player, m *map[uuid.UUID][]string, msg string) {
+	notes.Lock()
+	if notes.acting[p.UUID()] == 0 {
+		notes.Unlock()
+		p.Message(msg)
+		return
+	}
+	defer notes.Unlock()
+	(*m)[p.UUID()] = append((*m)[p.UUID()], msg)
+}
+
+// startAction marks p's form action running; the returned func ends it and
+// shows what no form picked up.
+func startAction(p *player.Player) func() {
+	notes.Lock()
+	notes.acting[p.UUID()]++
+	notes.Unlock()
+	return func() {
+		notes.Lock()
+		if notes.acting[p.UUID()]--; notes.acting[p.UUID()] <= 0 {
+			delete(notes.acting, p.UUID())
+		}
+		notes.Unlock()
+		flushNotes(p)
+	}
+}
+
+func takeNotes(p *player.Player, m *map[uuid.UUID][]string) []string {
+	notes.Lock()
+	defer notes.Unlock()
+	msgs := (*m)[p.UUID()]
+	delete(*m, p.UUID())
+	return msgs
+}
+
+// flushNotes runs after a form action: notices no form picked up are shown
+// on their own, and results no menu showed go to chat.
+func flushNotes(p *player.Player) {
+	if msgs := takeNotes(p, &notes.notice); len(msgs) > 0 {
+		showNotice(p, msgs, func(*player.Player, *world.Tx) {})
+	}
+	for _, msg := range takeNotes(p, &notes.flash) {
+		p.Message(msg)
+	}
+}
+
+// NoticeTitle is the title of notice forms.
+const NoticeTitle = "알림"
+
+// showNotice shows messages with one 확인 button that runs ok.
+func showNotice(p *player.Player, msgs []string, ok func(p *player.Player, tx *world.Tx)) {
+	f := form.NewMenu(menu{opts: []Option{{Label: "확인", Icon: "textures/ui/confirm", Run: ok}}}, NoticeTitle).
+		WithBody(strings.Join(msgs, "\n")).WithButtons(form.NewButton("확인", "textures/ui/confirm"))
+	pending.Lock()
+	pending.m[p.UUID()] = sentForm{title: NoticeTitle, at: time.Now()}
+	pending.Unlock()
+	p.SendForm(f)
 }
 
 // Button markers (valid colour codes, so a client without the theme shows
@@ -208,6 +303,7 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
+	defer startAction(p)()
 	t.run(p, tx, t.Value.Value())
 }
 
@@ -227,6 +323,7 @@ func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
+	defer startAction(p)()
 	a.run(p, tx, int(a.Value.Value()))
 }
 
