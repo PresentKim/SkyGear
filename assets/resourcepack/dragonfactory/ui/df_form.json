@@ -499,11 +499,24 @@
     "layer": 1
   },
 
+  // button_icon is a button's icon. A texture path ("textures/...") shows as
+  // an image; anything else is an item (ui.ItemIcon: runtime ID * 65536)
+  // that the client's item renderer draws like an inventory slot, so items
+  // and blocks need no icon texture (same trick as Chest-UI).
   "button_icon": {
-    "type": "image",
+    "type": "panel",
     "layer": 3,
     "$df_icon_size|default": [ 20, 20 ],
     "size": "$df_icon_size",
+    "controls": [
+      { "image@df_form.button_icon_image": {} },
+      { "item@df_form.button_icon_item": {} }
+    ]
+  },
+
+  "button_icon_image": {
+    "type": "image",
+    "size": [ "100%", "100%" ],
     "bindings": [
       {
         "binding_name": "#form_button_texture",
@@ -519,8 +532,32 @@
       },
       {
         "binding_type": "view",
-        "source_property_name": "(not ((#texture = '') or (#texture = 'loading')))",
+        "source_property_name": "(('%.8s' * #texture) = 'textures')",
         "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  "button_icon_item": {
+    "type": "custom",
+    "renderer": "inventory_item_renderer",
+    "size": [ "100%", "100%" ],
+    "layer": 1,
+    "bindings": [
+      {
+        "binding_name": "#form_button_texture",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_texture = '') or (#form_button_texture = 'loading') or (('%.8s' * #form_button_texture) = 'textures')))",
+        "target_property_name": "#visible"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_texture - (#form_button_texture % 65536))",
+        "target_property_name": "#item_id_aux"
       }
     ]
   },

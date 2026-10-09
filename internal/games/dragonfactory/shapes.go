@@ -60,10 +60,19 @@ type (
 	drawerUpgradeKey cube.Pos
 )
 
-// textYawOffset turns front-face texts so they read from the front. It is
-// added to the entity yaw looking out of the face; flip it by 180 if texts
-// show mirrored on real clients.
-const textYawOffset = 0
+// faceTextYaw is the yaw in degrees that lays a text flat on a face
+// looking to each direction, readable from in front of it. The client reads
+// the rotation in degrees ([pitch, yaw, roll]); a yaw of 0 reads from the
+// north. Found on real clients (10th playtest): entity yaw (S 0, N 180)
+// mirrored south and north texts, and radians laid every text towards the
+// north.
+var faceTextYaw = map[cube.Direction]float64{cube.North: 0, cube.East: -90, cube.South: 180, cube.West: 90}
+
+// faceTextRotation is the shape rotation of a text on a face looking to
+// facing.
+func faceTextRotation(facing cube.Direction) mgl64.Vec3 {
+	return mgl64.Vec3{0, faceTextYaw[facing], 0}
+}
 
 // faceTextDepth is how far from the block centre the front-face texts
 // sit: just in front of the face (0.5), so they lie on it without
@@ -80,7 +89,7 @@ func faceText(pos cube.Pos, d Drawer, right, up, scale float64, text string) *de
 	at := pos.Vec3Centre().Add(front.Mul(faceTextDepth)).Add(side.Mul(right)).Add(mgl64.Vec3{0, up, 0})
 	return &debug.Text{
 		Position: at, Text: text, Scale: scale, HideBackground: true,
-		LockRotation: true, Rotation: mgl64.Vec3{0, yawOf(d.Facing) + textYawOffset, 0},
+		LockRotation: true, Rotation: faceTextRotation(d.Facing),
 	}
 }
 

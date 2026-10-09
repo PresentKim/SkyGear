@@ -39,7 +39,7 @@ type packAtlas struct {
 }
 
 // TestPackHasItemAssets: every custom item has an atlas entry, its PNG, a
-// name line matching Name() and a form icon file.
+// name line matching Name() and a form icon.
 func TestPackHasItemAssets(t *testing.T) {
 	var atlas packAtlas
 	readPackJSON(t, "textures/item_texture.json", &atlas)
@@ -59,8 +59,8 @@ func TestPackHasItemAssets(t *testing.T) {
 		if got := lang["item."+id+".name"]; got != it.Name() {
 			t.Errorf("%s: texts/en_US.lang name %q, want %q", id, got, it.Name())
 		}
-		if icon := iconOf(item.NewStack(it, 1)); !packFileExists(icon + ".png") {
-			t.Errorf("%s: form icon %s.png missing", id, icon)
+		if iconOf(item.NewStack(it, 1)) == "" {
+			t.Errorf("%s: no form icon", id)
 		}
 	}
 }

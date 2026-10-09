@@ -17,8 +17,11 @@
 - 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 드래곤팩토리 메뉴, 상점 구매·판매, 분실물 보관함, 섬 확장 지도 등.
 - 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 메뉴(3×4)·판매·분실물. 상점 구매는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 `#form_button_length` → `#maximum_grid_items`, 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다 — 6차 실기).
-- 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`, 텍스처 경로) + 글자. 아이콘은 바닐라 텍스처 경로이거나 커스텀 아이템이면
-  리소스팩의 `textures/items/<이름>`(`dragonfactory.iconOf`).
+- 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`) + 글자. 아이콘은 두 가지:
+  - `textures/...` 로 시작하는 텍스처 경로: 이미지로 그린다(메뉴 항목 등 아이템이 아닌 것).
+  - **아이템**: `ui.ItemIcon`(`dragonfactory.iconOf`)이 아이템 런타임 ID × 65536 을 숫자 문자열로 넣는다. 테마의 `button_icon_item`(`inventory_item_renderer`)이
+    그 값을 `#item_id_aux` 로 받아 인벤토리 칸처럼 아이템을 직접 그린다. 블록은 블록 모양 그대로, 아이콘 텍스처 경로를 따로 관리할 필요가 없다(빠진 경로 때문에 아이콘이 안 보이던 문제 해결).
+    방식은 Chest-UI 와 같고, `#item_id_aux` = ID × 65536 + 데이터값은 바닐라 `inventory_screen.json`·bedrock-wiki 표와 같다. 데이터값(메타)은 쓰지 않는다.
 - 확인 폼(`ui.Confirm`)은 바닐라 modal 이 테마를 받지 않아(8차 실기: 밝은 기본 창) **목록 폼 두 버튼**(확인·취소)으로 보낸다. 닫기는 취소와 같다.
 - 수량 폼(`ui.Amount`): 입력 폼(custom_form)의 슬라이더 하나.
 

@@ -67,7 +67,7 @@ func TestShopMenuBuys(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
 		_, opts := s.shopMenu(p, 2) // 설비
-		if opts[0].Icon != "textures/items/delivery_box" || !strings.Contains(opts[0].Label, "재고 2") || strings.Contains(opts[0].Label, "/") {
+		if opts[0].Icon != iconOf(item.NewStack(DeliveryBox{}, 1)) || !strings.Contains(opts[0].Label, "재고 2") || strings.Contains(opts[0].Label, "/") {
 			t.Errorf("first product %q icon %q", opts[0].Label, opts[0].Icon)
 		}
 		// The tabs and the back button come last, marked for the theme.

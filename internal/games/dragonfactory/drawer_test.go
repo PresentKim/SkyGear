@@ -305,3 +305,14 @@ func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 		}
 	})
 }
+
+// TestFaceTextRotation: drawer front texts turn in degrees with 0 reading
+// from the north (north 0, east -90, south 180, west 90).
+func TestFaceTextRotation(t *testing.T) {
+	want := map[cube.Direction]float64{cube.North: 0, cube.East: -90, cube.South: 180, cube.West: 90}
+	for f, yaw := range want {
+		if got := faceTextRotation(f); got != (mgl64.Vec3{0, yaw, 0}) {
+			t.Errorf("%v: rotation %v, want yaw %v", f, got, yaw)
+		}
+	}
+}

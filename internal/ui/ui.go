@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -330,4 +331,17 @@ func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 // Amount asks for a number from 1 to max with a slider starting at def.
 func Amount(p *player.Player, title, label string, max, def int, f func(p *player.Player, tx *world.Tx, n int)) {
 	send(p, title, form.New(amount{Value: form.NewSlider(label, 1, float64(max), 1, float64(min(max, def))), run: f}, title))
+}
+
+// ItemIcon returns a button icon that the resource pack theme draws as the
+// item itself, with the client's item renderer, instead of a texture path:
+// the item's runtime ID times 65536 (the renderer's "#item_id_aux"; the
+// metadata is not used). It returns "" for an unregistered item. Blocks
+// show as blocks and no icon texture is needed (docs/tech/json-ui.md).
+func ItemIcon(it world.Item) string {
+	rid, _, ok := world.ItemRuntimeID(it)
+	if !ok {
+		return ""
+	}
+	return strconv.FormatInt(int64(rid)*65536, 10)
 }
