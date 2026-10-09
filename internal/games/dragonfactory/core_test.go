@@ -188,6 +188,8 @@ func TestLegacyCoreBecomesNewCore(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_ = p.Inventory().SetItem(0, item.NewStack(Core{Type: "iron"}, 2))
+		// A chest item is not comparable: converting must not compare it.
+		_ = p.Inventory().SetItem(1, item.NewStack(block.NewChest(), 1))
 		convertLegacyCores(p.Inventory())
 		if st, _ := p.Inventory().Item(0); st.Count() != 2 || st.Item().(Core).Type != "t3" {
 			t.Fatalf("old iron core item became %v", st)

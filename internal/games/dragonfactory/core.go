@@ -206,8 +206,12 @@ func coreItem(typ string) item.Stack {
 // that replace them.
 func convertLegacyCores(inv *inventory.Inventory) {
 	for slot, st := range inv.Slots() {
-		if now := modernCore(st); now.Item() != st.Item() {
-			_ = inv.SetItem(slot, now)
+		// Only cores: comparing items of other types may panic (a chest
+		// item holds an uncomparable inventory).
+		if c, ok := st.Item().(Core); ok {
+			if _, legacy := legacyCores[c.Type]; legacy {
+				_ = inv.SetItem(slot, modernCore(st))
+			}
 		}
 	}
 }
