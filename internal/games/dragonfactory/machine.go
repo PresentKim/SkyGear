@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/account"
 	"image"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
@@ -189,8 +189,9 @@ func (st *machineState) role(slot int) slotRole {
 func (st *machineState) inv() *inventory.Inventory { return st.storage.Inventory() }
 
 // accepts reports whether it may go into the input of the machine.
+// Time-limited items are never processed or sold.
 func (st *machineState) accepts(it item.Stack) bool {
-	if it.Empty() {
+	if it.Empty() || !plain(it) {
 		return false
 	}
 	k := itemKey(it.Item())
@@ -753,7 +754,7 @@ func (s *session) insertInto(tx *world.Tx, pos cube.Pos, one item.Stack) bool {
 		}
 		return false
 	case DeliveryBox:
-		return s.deliver(tx, nil, one.Item(), 1) == 1
+		return plain(one) && s.deliver(tx, nil, one.Item(), 1) == 1
 	case block.Container:
 		_, err := b.Inventory(tx, pos).AddItem(one)
 		return err == nil

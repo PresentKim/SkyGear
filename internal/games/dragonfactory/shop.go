@@ -210,9 +210,10 @@ func (s *session) sell(p *player.Player, st item.Stack) int {
 
 // sellFor takes up to st.Count of a stack into the buyback budget and
 // returns the amount sold and its price. The caller pays acc.
+// Time-limited items are not bought.
 func (s *session) sellFor(_ string, st item.Stack) (int, int64) {
 	b, ok := buybackFor(st.Item())
-	if !ok || st.Empty() {
+	if !ok || st.Empty() || !plain(st) {
 		return 0, 0
 	}
 	n := s.sellable(b, st.Count())

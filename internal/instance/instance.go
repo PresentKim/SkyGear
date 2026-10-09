@@ -11,6 +11,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/playerstate"
+	"github.com/presentkim/dragonfactory/internal/timed"
 )
 
 const initializedKey = "platform.initialized"
@@ -99,6 +100,7 @@ func (inst *Instance) run() {
 			for _, day := range inst.Clock.Advance(now.Sub(last)) {
 				inst.World.Do(func(tx *world.Tx) { inst.session.NewDay(tx, day) })
 			}
+			inst.World.Do(inst.sweepTimed)
 			if t, ok := inst.session.(SecondTicker); ok {
 				inst.World.Do(t.Second)
 			}
@@ -107,6 +109,16 @@ func (inst *Instance) run() {
 				lastSave = now
 				inst.autosave()
 			}
+		}
+	}
+}
+
+// sweepTimed removes the time-limited items whose time is up from the
+// players in the instance (internal/timed).
+func (inst *Instance) sweepTimed(tx *world.Tx) {
+	for _, h := range inst.handles() {
+		if e, ok := h.Entity(tx); ok {
+			timed.SweepPlayer(e.(*player.Player))
 		}
 	}
 }

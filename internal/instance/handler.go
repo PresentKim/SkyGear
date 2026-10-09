@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -16,6 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/timed"
 )
 
 // Handler is the handler every player has for its whole connection. It
@@ -139,31 +141,63 @@ func (h *Handler) HandleFireExtinguish(ctx *player.Context, pos cube.Pos) {
 	h.in().HandleFireExtinguish(ctx, pos)
 }
 func (h *Handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleStartBreak(ctx, pos)
 }
 func (h *Handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, xp *int) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleBlockBreak(ctx, pos, drops, xp)
 }
 func (h *Handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleBlockPlace(ctx, pos, b)
 }
 func (h *Handler) HandleBlockPick(ctx *player.Context, pos cube.Pos, b world.Block) {
 	h.in().HandleBlockPick(ctx, pos, b)
 }
-func (h *Handler) HandleItemUse(ctx *player.Context) { h.in().HandleItemUse(ctx) }
+func (h *Handler) HandleItemUse(ctx *player.Context) {
+	if expiredHeld(ctx) {
+		return
+	}
+	h.in().HandleItemUse(ctx)
+}
 func (h *Handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
+	if expiredHeld(ctx) {
+		return
+	}
+	sweepContainer(ctx, pos)
 	h.in().HandleItemUseOnBlock(ctx, pos, face, clickPos)
 }
 func (h *Handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleItemUseOnEntity(ctx, e)
 }
 func (h *Handler) HandleItemRelease(ctx *player.Context, it item.Stack, dur time.Duration) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleItemRelease(ctx, it, dur)
 }
 func (h *Handler) HandleItemConsume(ctx *player.Context, it item.Stack) {
+	if timed.Expired(it) {
+		ctx.Cancel()
+		timed.SweepPlayer(ctx.Player())
+		return
+	}
 	h.in().HandleItemConsume(ctx, it)
 }
 func (h *Handler) HandleAttackEntity(ctx *player.Context, e world.Entity, force, height *float64, critical *bool) {
+	if expiredHeld(ctx) {
+		return
+	}
 	h.in().HandleAttackEntity(ctx, e, force, height, critical)
 }
 func (h *Handler) HandleExperienceGain(ctx *player.Context, amount *int) {
@@ -183,6 +217,11 @@ func (h *Handler) HandleItemDamage(ctx *player.Context, i item.Stack, damage *in
 	h.in().HandleItemDamage(ctx, i, damage)
 }
 func (h *Handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
+	if timed.Expired(*i) {
+		// The item entity is left to despawn or fall into the void.
+		ctx.Cancel()
+		return
+	}
 	h.in().HandleItemPickup(ctx, i)
 }
 func (h *Handler) HandleHeldSlotChange(ctx *player.Context, from, to int) {
@@ -200,3 +239,25 @@ func (h *Handler) HandleDiagnostics(p *player.Player, d session.Diagnostics) {
 }
 
 var _ player.Handler = (*Handler)(nil)
+
+// expiredHeld cancels an action done with an expired time-limited item in
+// hand and removes the player's expired items. The once-a-second sweep
+// (Instance.sweepTimed) would remove it too; this closes the gap until then.
+func expiredHeld(ctx *player.Context) bool {
+	main, off := ctx.Player().HeldItems()
+	if !timed.Expired(main) && !timed.Expired(off) {
+		return false
+	}
+	ctx.Cancel()
+	timed.SweepPlayer(ctx.Player())
+	return true
+}
+
+// sweepContainer removes expired items from a container a player uses, so
+// items kept in chests expire too.
+func sweepContainer(ctx *player.Context, pos cube.Pos) {
+	tx := ctx.Player().Tx()
+	if c, ok := tx.Block(pos).(block.Container); ok {
+		timed.Sweep(c.Inventory(tx, pos))
+	}
+}

@@ -180,7 +180,7 @@ func (s *session) deliverUrgentInventory(p *player.Player, tx *world.Tx) (int, i
 	total := 0
 	inv := p.Inventory()
 	for slot, st := range inv.Slots() {
-		if st.Empty() {
+		if st.Empty() || !plain(st) {
 			continue
 		}
 		if n := s.deliverUrgent(tx, p, st.Item(), st.Count()); n > 0 {

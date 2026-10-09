@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/timed"
 )
 
 // Operator tools (/dfadmin) for testing. Only players for whom the game's
@@ -163,6 +164,33 @@ func (c adminMoney) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
+// adminTimed makes the held item a time-limited item that expires the given
+// real-time seconds from now (0 removes the period).
+type adminTimed struct {
+	adminBase
+	Sub     cmd.SubCommand `cmd:"timed"`
+	Seconds int            `cmd:"seconds"`
+}
+
+func (c adminTimed) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	main, off := p.HeldItems()
+	if main.Empty() {
+		o.Error("손에 든 아이템이 없습니다.")
+		return
+	}
+	if c.Seconds <= 0 {
+		p.SetHeldItems(timed.Clear(main), off)
+		o.Printf("기간제를 해제했습니다.")
+		return
+	}
+	p.SetHeldItems(timed.For(main, time.Duration(c.Seconds)*time.Second), off)
+	o.Printf("기간제로 바꿨습니다: %s 남음", timed.Describe(time.Duration(c.Seconds)*time.Second))
+}
+
 // giveItems are the items /dfadmin give hands out: every shop product and
 // every machine (the auto miner is not sold).
 func giveItems() map[string]func() item.Stack {
@@ -255,5 +283,5 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}))
 }

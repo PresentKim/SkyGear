@@ -1,5 +1,10 @@
 package dragonfactory
 
+import "github.com/presentkim/dragonfactory/internal/timed"
+
+// Time-limited item messages use the Korean names.
+func init() { timed.Name = itemName }
+
 // koreanNames are the Korean names of the vanilla items the game shows in
 // its own texts (missions, shop, sidebar), by item name without the
 // "minecraft:" prefix. Items without an entry show their identifier.

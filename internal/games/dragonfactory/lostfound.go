@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/timed"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
@@ -44,7 +45,7 @@ func decodeItem(b []byte) item.Stack {
 
 // addLost merges a stack into the lost-and-found box, most recent first.
 func (s *session) addLost(it item.Stack) {
-	if it.Empty() {
+	if it.Empty() || timed.Expired(it) {
 		return
 	}
 	now, _, _ := s.clock.Now()
@@ -62,12 +63,13 @@ func (s *session) addLost(it item.Stack) {
 	s.state.Lost = append([]*LostItem{entry}, s.state.Lost...)
 }
 
-// purgeLost removes entries whose last drop is older than one instance day.
+// purgeLost removes entries whose last drop is older than one instance day
+// and time-limited items whose time is up.
 func (s *session) purgeLost() {
 	now, _, _ := s.clock.Now()
 	keep := s.state.Lost[:0]
 	for _, l := range s.state.Lost {
-		if now-l.LastDropped < s.clock.DayLength() {
+		if now-l.LastDropped < s.clock.DayLength() && !timed.Expired(decodeItem(l.Item)) {
 			keep = append(keep, l)
 		}
 	}

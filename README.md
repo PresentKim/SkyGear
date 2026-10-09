@@ -69,6 +69,7 @@ internal/playerstate/           플레이어 상태 캡처/복원/직렬화
 internal/instance/              인스턴스 매니저(활성화/종료, 로비↔인스턴스 이동, 시계, 기본 핸들러)
 internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친구·초대·참여자, 칭호·치장 메뉴, 명령어
 internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
+internal/timed/                 기간제 아이템(현실 시간 만료, 정리)
 internal/games/dragonfactory/   드래곤팩토리 (코어·강화, 미션, 긴급 매입, 상점, 수표, 섬 확장, 서랍, 기계, 체·망치, 업적, 도움말 …)
   textures/                     아이템·블록 텍스처 PNG (코드로 그리지 않음)
 internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)

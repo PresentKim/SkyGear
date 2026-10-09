@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/internal/timed"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -110,7 +111,9 @@ func (d Drawer) capacity() int64 {
 }
 
 // accepts reports whether it may go into the drawer. Items that do not
-// stack (tools, buckets, ...) and drawer tools are never stored.
+// stack (tools, buckets, ...) and drawer tools are never stored. Items are
+// told apart by their whole NBT (custom name, lore, values such as a
+// time-limited item's expiry), so only identical items share a drawer.
 func (d Drawer) accepts(it item.Stack) bool {
 	if it.Empty() || it.MaxCount() == 1 || isDrawerUpgrade(it) || isDrawerKey(it) {
 		return false
@@ -253,11 +256,19 @@ func (d Drawer) DecodeNBT(data map[string]any) any {
 	return d
 }
 
-// Tick keeps the display of the drawer present.
+// Tick keeps the display of the drawer present and empties a drawer whose
+// time-limited items expired, lock included (the item no longer exists).
 func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		s.ensureDisplay(tx, pos, d)
+	s, ok := activeGame.sessionOf(tx.World())
+	if !ok {
+		return
 	}
+	if timed.Expired(d.Item) {
+		d.Item, d.Count = item.Stack{}, 0
+		s.setDrawer(tx, pos, d)
+		return
+	}
+	s.ensureDisplay(tx, pos, d)
 }
 
 // Activate inserts the held stack (or all matching items on a double use)

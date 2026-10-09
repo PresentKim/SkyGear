@@ -16,6 +16,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/dragonfactory/internal/timed"
 )
 
 type testGame struct{ joins, firsts, closes int }
@@ -280,4 +281,41 @@ func TestKeepLoadedOutsideRadius(t *testing.T) {
 	}
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	waitInactive(t, f.m, save.ID)
+}
+
+// TestTimedItemsExpireInInstance: the instance removes a time-limited item
+// from a player within a second of its real-time expiry.
+func TestTimedItemsExpireInInstance(t *testing.T) {
+	f := setup(t)
+	host := f.spawn(t, "host")
+	save, err := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in(t, host, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); err != nil {
+			t.Fatal(err)
+		}
+	})
+	in(t, host, func(p *player.Player) {
+		_, _ = p.Inventory().AddItem(timed.For(item.NewStack(item.Apple{}, 3), time.Second))
+		_, _ = p.Inventory().AddItem(timed.For(item.NewStack(item.Bread{}, 1), time.Hour))
+	})
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		gone := false
+		in(t, host, func(p *player.Player) {
+			gone = !p.Inventory().ContainsItemFunc(1, func(st item.Stack) bool { _, ok := st.Item().(item.Apple); return ok })
+			if gone && !p.Inventory().ContainsItemFunc(1, func(st item.Stack) bool { _, ok := st.Item().(item.Bread); return ok }) {
+				t.Fatal("the unexpired item was removed too")
+			}
+		})
+		if gone {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("expired item still carried")
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }

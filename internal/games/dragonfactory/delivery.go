@@ -71,7 +71,7 @@ func (DeliveryBox) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
 	}
 	inv := h.Inventory(tx, pos.Side(h.Facing.Opposite()))
 	for slot, st := range inv.Slots() {
-		if st.Empty() {
+		if st.Empty() || !plain(st) {
 			continue
 		}
 		if s.deliver(tx, nil, st.Item(), 1) == 1 || s.deliverUrgent(tx, nil, st.Item(), 1) == 1 {

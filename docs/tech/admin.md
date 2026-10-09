@@ -13,5 +13,6 @@
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/dfadmin urgent` | 긴급 매입을 지금 시작(진행 중이면 끝내고 새로) |
 | `/dfadmin skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·긴급 매입·분실물 만료 확인용) |
+| `/dfadmin timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |
 | `/dfadmin line` | 시작 코어에 샘플 무인 라인(채굴기·분쇄기·호퍼·상자·판매함) 설치 |
-| `/dfadmin status` | `level= money= points= tier= budget= sold=` 출력(시나리오 확인용) |
+| `/dfadmin status` | `level= money= points= speed1= budget= sold=` 출력(시나리오 확인용) |

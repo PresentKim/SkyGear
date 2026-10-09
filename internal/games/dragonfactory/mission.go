@@ -149,13 +149,19 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 	s.broadcast(tx, fmt.Sprintf("§a미션 '%s' 완료! 레벨 %d 달성 · 보상: %s", m.Name, s.state.Level, reward))
 }
 
+// plain reports whether st is the item itself with no extra NBT (custom
+// name, lore, values such as a time-limited item's expiry). Missions,
+// recipes and the shop ask for plain items; anything else is a different
+// item to them.
+func plain(st item.Stack) bool { return st.Comparable(item.NewStack(st.Item(), 1)) }
+
 // deliverInventory delivers every needed item from p's inventory. It stops
 // at a level up so the next mission does not take items unasked.
 func (s *session) deliverInventory(p *player.Player, tx *world.Tx) int {
 	total, level := 0, s.state.Level
 	inv := p.Inventory()
 	for slot, st := range inv.Slots() {
-		if st.Empty() || s.state.Level != level {
+		if st.Empty() || !plain(st) || s.state.Level != level {
 			continue
 		}
 		if n := s.deliver(tx, p, st.Item(), st.Count()); n > 0 {

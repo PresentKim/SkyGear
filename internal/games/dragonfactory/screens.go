@@ -204,7 +204,7 @@ func (s *session) quoteSale(p *player.Player) ([]string, int64) {
 	names := map[string]string{}
 	var total int64
 	for _, st := range p.Inventory().Slots() {
-		if st.Empty() {
+		if st.Empty() || !plain(st) {
 			continue
 		}
 		b, ok := buybackFor(st.Item())
