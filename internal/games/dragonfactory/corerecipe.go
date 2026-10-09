@@ -211,7 +211,7 @@ func (s *session) coreBook() (string, []ui.Option) {
 			}
 		}
 	}
-	fmt.Fprintf(&b, "§7코어 아래 받침 블록(과 그 둘레)이 만들 것을 정합니다. 받침은 닳지 않습니다.\n§7숨은 레시피 발견 §d%d/%d", found, hidden)
+	fmt.Fprintf(&b, "§7코어 아래 코어 기반 블록(과 그 둘레)이 만들 것을 정합니다. 코어 기반은 닳지 않습니다.\n§7숨은 레시피 발견 §d%d/%d", found, hidden)
 	for tier := 1; tier <= len(coreTiers); tier++ {
 		fmt.Fprintf(&b, "\n\n§e[%d티어]", tier)
 		for i := range coreRecipes {

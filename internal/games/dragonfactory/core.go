@@ -199,7 +199,7 @@ func convertLegacyCoreBlock(tx *world.Tx, pos cube.Pos, old string) {
 func coreItem(typ string) item.Stack {
 	t := coreTypes[typ]
 	return item.NewStack(Core{Type: t.ID}, 1).
-		WithLore("§7아래 받침 블록에 따라 만드는 것이 달라집니다.", "§7레시피: 메뉴 → 코어 관리 → 코어 도감")
+		WithLore("§7아래 코어 기반 블록에 따라 만드는 것이 달라집니다.", "§7레시피: 메뉴 → 코어 관리 → 코어 도감")
 }
 
 // convertLegacyCores turns old core items in an inventory into the cores
@@ -255,7 +255,7 @@ func (s *session) showCores(p *player.Player, _ *world.Tx) {
 
 func (s *session) coreMenu() (string, []ui.Option) {
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f코어 강화 포인트 §b%d§r\n§7레벨이 오르면 포인트를 받습니다. 티어 속도를 올리면 그 티어의 모든 코어가 빨라집니다. 코어는 상점에서 사고, 무엇을 만들지는 아래 받침 블록이 정합니다(코어 도감).\n", s.state.CorePoints)
+	fmt.Fprintf(&b, "§f코어 강화 포인트 §b%d§r\n§7레벨이 오르면 포인트를 받습니다. 티어 속도를 올리면 그 티어의 모든 코어가 빨라집니다. 코어는 상점에서 사고, 무엇을 만들지는 아래 코어 기반 블록이 정합니다(코어 도감).\n", s.state.CorePoints)
 	opts := []ui.Option{s.opt("§d코어 도감", iconMission, func(p *player.Player, _ *world.Tx) { s.showCoreBook(p) })}
 	for tier := 1; tier <= len(coreTiers); tier++ {
 		lv := s.state.TierSpeed[tier]
@@ -300,7 +300,7 @@ func (c Core) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *
 func (s *session) showCoreInfo(p *player.Player, tx *world.Tx, pos cube.Pos, c Core) {
 	t := c.ctype()
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f%s §7· %d티어 속도 Lv.%d\n§7받침: §f%s\n", t.Name, t.Tier, s.state.TierSpeed[t.Tier], blockName(tx.Block(pos.Side(cube.FaceDown))))
+	fmt.Fprintf(&b, "§f%s §7· %d티어 속도 Lv.%d\n§7코어 기반: §f%s\n", t.Name, t.Tier, s.state.TierSpeed[t.Tier], blockName(tx.Block(pos.Side(cube.FaceDown))))
 	r, need := matchRecipe(tx, pos, t.Tier)
 	switch {
 	case r != nil && s.known(r):
@@ -309,11 +309,11 @@ func (s *session) showCoreInfo(p *player.Player, tx *world.Tx, pos cube.Pos, c C
 	case r != nil:
 		b.WriteString("§d무언가에 반응하고 있습니다... §7(위 칸을 비워 두세요)")
 	case need > 0:
-		fmt.Fprintf(&b, "§c%d티어 이상 코어가 필요한 받침입니다.", need)
+		fmt.Fprintf(&b, "§c%d티어 이상 코어가 필요한 코어 기반입니다.", need)
 	default:
-		b.WriteString("§c반응 없음 §7— 이 받침(과 둘레)에 맞는 레시피가 없습니다. 코어 도감을 확인하세요.")
+		b.WriteString("§c반응 없음 §7— 이 코어 기반(과 둘레)에 맞는 레시피가 없습니다. 코어 도감을 확인하세요.")
 	}
-	b.WriteString("\n\n§7코어는 여러 개 둘 수 있고, 캐면 아이템으로 돌아옵니다. 받침은 닳지 않습니다.")
+	b.WriteString("\n\n§7코어는 여러 개 둘 수 있고, 캐면 아이템으로 돌아옵니다. 코어 기반은 닳지 않습니다.")
 	ui.Menu(p, t.Name, b.String(),
 		s.opt("§d코어 도감", iconMission, func(p *player.Player, _ *world.Tx) { s.showCoreBook(p) }),
 		s.opt("§b코어 관리", iconCores, func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }))

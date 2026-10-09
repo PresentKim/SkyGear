@@ -14,13 +14,16 @@ import (
 // component, a Dragonfly patch) so they mine as fast as the server expects.
 type Hammer struct{}
 
-// hammerSpeeds are the mining speeds of the hammer per block.
+// hammerSpeeds are the mining speeds of the hammer per block. Stone is
+// three times as hard as gravel, sand and dirt, so those get a third of
+// the speed and every block takes about as long (playtest: soft blocks
+// broke far too fast at the same speed).
 var hammerSpeeds = map[string]int{
 	"minecraft:stone":       6,
 	"minecraft:cobblestone": 6,
-	"minecraft:gravel":      6,
-	"minecraft:sand":        6,
-	"minecraft:dirt":        6,
+	"minecraft:gravel":      2,
+	"minecraft:sand":        2,
+	"minecraft:dirt":        2,
 }
 
 func (Hammer) EncodeItem() (string, int16) { return "dragonfactory:hammer", 0 }

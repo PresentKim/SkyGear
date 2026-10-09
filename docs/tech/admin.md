@@ -9,7 +9,7 @@
 | `/dfadmin points <n>` | 코어 강화 포인트를 n 으로 |
 | `/dfadmin tierspeed <티어> <n>` | 그 티어의 코어 속도 강화 Lv 를 n 으로 |
 | `/dfadmin money <n>` | 내 소지금에 n 더하기 |
-| `/dfadmin give <ID> [개수]` | 상점 상품 ID·기계 종류(`drawer`, `drawer_key`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `sell_box`, 코어 `core_t1`~`core_t4`, 받침 `base_cobblestone`, 연구 노트 `research_note` 등) |
+| `/dfadmin give <ID> [개수]` | 상점 상품 ID·기계 종류(`drawer`, `drawer_key`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `sell_box`, 코어 `core_t1`~`core_t4`, 코어 기반 `base_cobblestone`, 연구 노트 `research_note` 등) |
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/dfadmin urgent` | 긴급 매입을 지금 시작(진행 중이면 끝내고 새로) |
 | `/dfadmin skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·긴급 매입·분실물 만료 확인용) |
