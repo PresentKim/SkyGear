@@ -104,6 +104,10 @@ func iconOf(it item.Stack) string {
 	if it.Empty() {
 		return ""
 	}
+	if c, ok := it.Item().(Core); ok {
+		// Old core types share their tier's icon.
+		return "textures/items/core_" + c.ctype().ID
+	}
 	if c, ok := it.Item().(world.CustomItem); ok {
 		id, _ := c.EncodeItem()
 		return "textures/items/" + id[strings.Index(id, ":")+1:]

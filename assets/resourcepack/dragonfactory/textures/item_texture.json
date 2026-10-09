@@ -1,0 +1,180 @@
+{
+  "resource_pack_name": "vanilla",
+  "texture_data": {
+    "dragonfactory:auto_miner": {
+      "textures": "textures/items/auto_miner"
+    },
+    "dragonfactory:auto_sieve": {
+      "textures": "textures/items/auto_sieve"
+    },
+    "dragonfactory:core_clay": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_coal": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_copper": {
+      "textures": "textures/items/core_t3"
+    },
+    "dragonfactory:core_dirt": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_earth": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_gold": {
+      "textures": "textures/items/core_t4"
+    },
+    "dragonfactory:core_gravel": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_hay": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_iron": {
+      "textures": "textures/items/core_t3"
+    },
+    "dragonfactory:core_kelp": {
+      "textures": "textures/items/core_t3"
+    },
+    "dragonfactory:core_life": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_melon": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_mud": {
+      "textures": "textures/items/core_t3"
+    },
+    "dragonfactory:core_pumpkin": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_sand": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_stone": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_t1": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:core_t2": {
+      "textures": "textures/items/core_t2"
+    },
+    "dragonfactory:core_t3": {
+      "textures": "textures/items/core_t3"
+    },
+    "dragonfactory:core_t4": {
+      "textures": "textures/items/core_t4"
+    },
+    "dragonfactory:core_wood": {
+      "textures": "textures/items/core_t1"
+    },
+    "dragonfactory:crusher": {
+      "textures": "textures/items/crusher"
+    },
+    "dragonfactory:cycle_0": {
+      "textures": "textures/items/cycle_0"
+    },
+    "dragonfactory:cycle_1": {
+      "textures": "textures/items/cycle_1"
+    },
+    "dragonfactory:cycle_10": {
+      "textures": "textures/items/cycle_10"
+    },
+    "dragonfactory:cycle_2": {
+      "textures": "textures/items/cycle_2"
+    },
+    "dragonfactory:cycle_3": {
+      "textures": "textures/items/cycle_3"
+    },
+    "dragonfactory:cycle_4": {
+      "textures": "textures/items/cycle_4"
+    },
+    "dragonfactory:cycle_5": {
+      "textures": "textures/items/cycle_5"
+    },
+    "dragonfactory:cycle_6": {
+      "textures": "textures/items/cycle_6"
+    },
+    "dragonfactory:cycle_7": {
+      "textures": "textures/items/cycle_7"
+    },
+    "dragonfactory:cycle_8": {
+      "textures": "textures/items/cycle_8"
+    },
+    "dragonfactory:cycle_9": {
+      "textures": "textures/items/cycle_9"
+    },
+    "dragonfactory:delivery_box": {
+      "textures": "textures/items/delivery_box"
+    },
+    "dragonfactory:drawer": {
+      "textures": "textures/items/drawer"
+    },
+    "dragonfactory:drawer_key": {
+      "textures": "textures/items/drawer_key"
+    },
+    "dragonfactory:drawer_upgrade_capacity": {
+      "textures": "textures/items/drawer_upgrade_capacity"
+    },
+    "dragonfactory:drawer_upgrade_lock": {
+      "textures": "textures/items/drawer_upgrade_lock"
+    },
+    "dragonfactory:drawer_upgrade_void": {
+      "textures": "textures/items/drawer_upgrade_void"
+    },
+    "dragonfactory:hammer": {
+      "textures": "textures/items/hammer"
+    },
+    "dragonfactory:harvester": {
+      "textures": "textures/items/harvester"
+    },
+    "dragonfactory:machine_info": {
+      "textures": "textures/items/machine_info"
+    },
+    "dragonfactory:progress_0": {
+      "textures": "textures/items/progress_0"
+    },
+    "dragonfactory:progress_1": {
+      "textures": "textures/items/progress_1"
+    },
+    "dragonfactory:progress_10": {
+      "textures": "textures/items/progress_10"
+    },
+    "dragonfactory:progress_2": {
+      "textures": "textures/items/progress_2"
+    },
+    "dragonfactory:progress_3": {
+      "textures": "textures/items/progress_3"
+    },
+    "dragonfactory:progress_4": {
+      "textures": "textures/items/progress_4"
+    },
+    "dragonfactory:progress_5": {
+      "textures": "textures/items/progress_5"
+    },
+    "dragonfactory:progress_6": {
+      "textures": "textures/items/progress_6"
+    },
+    "dragonfactory:progress_7": {
+      "textures": "textures/items/progress_7"
+    },
+    "dragonfactory:progress_8": {
+      "textures": "textures/items/progress_8"
+    },
+    "dragonfactory:progress_9": {
+      "textures": "textures/items/progress_9"
+    },
+    "dragonfactory:research_note": {
+      "textures": "textures/items/research_note"
+    },
+    "dragonfactory:sell_box": {
+      "textures": "textures/items/sell_box"
+    },
+    "dragonfactory:sieve": {
+      "textures": "textures/items/sieve"
+    }
+  },
+  "texture_name": "atlas.items"
+}

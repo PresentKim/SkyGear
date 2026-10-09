@@ -71,13 +71,12 @@ internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친�
 internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
 internal/timed/                 기간제 아이템(현실 시간 만료, 정리)
 internal/games/dragonfactory/   드래곤팩토리 (코어·강화, 미션, 긴급 매입, 상점, 수표, 섬 확장, 서랍, 기계, 체·망치, 업적, 도움말 …)
-  textures/                     아이템·블록 텍스처 PNG (코드로 그리지 않음)
 internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여)
 internal/oneblock, internal/farm  원블럭 프로토타입에서 남긴 참고 데이터(현재 미사용)
 spike/                          기술 검증 코드와 테스트 클라이언트
-assets/resourcepack/            수동 리소스팩 원본 (dragonfactory: 엔티티·JSON UI 테마, inventoryui)
+assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui)
 tools/uitextures/               JSON UI 테마 텍스처 생성기
 third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
 ```

@@ -1,8 +1,6 @@
 package dragonfactory
 
 import (
-	"image"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -26,11 +24,6 @@ func (DeliveryBox) Hash() (uint64, uint64)                { return deliveryHash,
 func (DeliveryBox) Model() world.BlockModel               { return model.Solid{} }
 func (DeliveryBox) Name() string                          { return "납품함" }
 func (DeliveryBox) Category() category.Category           { return category.Items() }
-func (DeliveryBox) Geometry() []byte                      { return deliveryModel }
-func (DeliveryBox) Texture() image.Image                  { return itemTexture("delivery_box") }
-func (DeliveryBox) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_delivery_box": blockTexture("delivery_box"), "dragonfactory_delivery_box_lid": blockTexture("delivery_box_lid")}
-}
 func (DeliveryBox) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_delivery_box", Textures: map[string]customblock.Material{
 		"*":   alphaMaterial("dragonfactory_delivery_box"),

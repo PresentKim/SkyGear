@@ -70,34 +70,6 @@ func sieveContentOf(it item.Stack) int {
 	return 0
 }
 
-var sieveGeometries = map[string][]byte{KindSieve: sieveModel(KindSieve), KindAutoSieve: sieveModel(KindAutoSieve)}
-
-// sieveModel returns the geometries of a sieve kind:
-// geometry.dragonfactory_<kind>_<n> with the content n pixels high (0 =
-// empty).
-func sieveModel(kind string) []byte {
-	frame := []box{
-		{from: [3]float64{-7, 0, -7}, size: [3]float64{2, 10, 2}},
-		{from: [3]float64{5, 0, -7}, size: [3]float64{2, 10, 2}},
-		{from: [3]float64{-7, 0, 5}, size: [3]float64{2, 10, 2}},
-		{from: [3]float64{5, 0, 5}, size: [3]float64{2, 10, 2}},
-		{from: [3]float64{-7, 10, -7}, size: [3]float64{14, 5, 1}},
-		{from: [3]float64{-7, 10, 6}, size: [3]float64{14, 5, 1}},
-		{from: [3]float64{-7, 10, -6}, size: [3]float64{1, 5, 12}},
-		{from: [3]float64{6, 10, -6}, size: [3]float64{1, 5, 12}},
-		{from: [3]float64{-6, 10, -6}, size: [3]float64{12, 1, 12}, mat: "mesh"},
-	}
-	var geos []map[string]any
-	for fill := range sieveStages + 1 {
-		boxes := append([]box{}, frame...)
-		if fill > 0 {
-			boxes = append(boxes, box{from: [3]float64{-6, 11, -6}, size: [3]float64{12, float64(fill) / 2, 12}, mat: "content"})
-		}
-		geos = append(geos, geometry(fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill), boxes))
-	}
-	return geoFile(geos...)
-}
-
 func sieveMaterials(kind string, content int) map[string]customblock.Material {
 	m := map[string]customblock.Material{
 		"*":    customblock.NewMaterial("dragonfactory_"+kind, customblock.AlphaTestRenderMethod()),

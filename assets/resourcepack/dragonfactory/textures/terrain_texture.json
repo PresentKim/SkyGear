@@ -1,0 +1,95 @@
+{
+  "num_mip_levels": 4,
+  "padding": 8,
+  "resource_pack_name": "vanilla",
+  "texture_data": {
+    "dragonfactory_auto_miner_down": {
+      "textures": "textures/blocks/auto_miner_down"
+    },
+    "dragonfactory_auto_miner_side": {
+      "textures": "textures/blocks/auto_miner_side"
+    },
+    "dragonfactory_auto_miner_up": {
+      "textures": "textures/blocks/auto_miner_up"
+    },
+    "dragonfactory_auto_sieve": {
+      "textures": "textures/blocks/auto_sieve"
+    },
+    "dragonfactory_core_t1_down": {
+      "textures": "textures/blocks/core_t1_down"
+    },
+    "dragonfactory_core_t1_side": {
+      "textures": "textures/blocks/core_t1_side"
+    },
+    "dragonfactory_core_t1_up": {
+      "textures": "textures/blocks/core_t1_up"
+    },
+    "dragonfactory_core_t2_down": {
+      "textures": "textures/blocks/core_t2_down"
+    },
+    "dragonfactory_core_t2_side": {
+      "textures": "textures/blocks/core_t2_side"
+    },
+    "dragonfactory_core_t2_up": {
+      "textures": "textures/blocks/core_t2_up"
+    },
+    "dragonfactory_core_t3_down": {
+      "textures": "textures/blocks/core_t3_down"
+    },
+    "dragonfactory_core_t3_side": {
+      "textures": "textures/blocks/core_t3_side"
+    },
+    "dragonfactory_core_t3_up": {
+      "textures": "textures/blocks/core_t3_up"
+    },
+    "dragonfactory_core_t4_down": {
+      "textures": "textures/blocks/core_t4_down"
+    },
+    "dragonfactory_core_t4_side": {
+      "textures": "textures/blocks/core_t4_side"
+    },
+    "dragonfactory_core_t4_up": {
+      "textures": "textures/blocks/core_t4_up"
+    },
+    "dragonfactory_crusher": {
+      "textures": "textures/blocks/crusher"
+    },
+    "dragonfactory_crusher_accent": {
+      "textures": "textures/blocks/crusher_accent"
+    },
+    "dragonfactory_delivery_box": {
+      "textures": "textures/blocks/delivery_box"
+    },
+    "dragonfactory_delivery_box_lid": {
+      "textures": "textures/blocks/delivery_box_lid"
+    },
+    "dragonfactory_drawer_front": {
+      "textures": "textures/blocks/drawer_front"
+    },
+    "dragonfactory_drawer_side": {
+      "textures": "textures/blocks/drawer_side"
+    },
+    "dragonfactory_harvester_down": {
+      "textures": "textures/blocks/harvester_down"
+    },
+    "dragonfactory_harvester_side": {
+      "textures": "textures/blocks/harvester_side"
+    },
+    "dragonfactory_harvester_up": {
+      "textures": "textures/blocks/harvester_up"
+    },
+    "dragonfactory_sell_box": {
+      "textures": "textures/blocks/sell_box"
+    },
+    "dragonfactory_sell_box_accent": {
+      "textures": "textures/blocks/sell_box_accent"
+    },
+    "dragonfactory_sieve": {
+      "textures": "textures/blocks/sieve"
+    },
+    "dragonfactory_sieve_mesh": {
+      "textures": "textures/blocks/sieve_mesh"
+    }
+  },
+  "texture_name": "atlas.terrain"
+}

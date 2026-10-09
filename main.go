@@ -67,7 +67,10 @@ func run(log *slog.Logger) error {
 		}
 		conf.Resources = append(conf.Resources, pack)
 	}
-	// Chest windows and item holders look wrong without the packs.
+	// Textures, models and names of custom blocks and items come from the
+	// packs above; Dragonfly does not build its own.
+	conf.DisableResourceBuilding = true
+	// Chest windows, item holders and custom blocks look wrong without the packs.
 	conf.ResourcesRequired = true
 	srv := conf.New()
 	lobby := srv.World()

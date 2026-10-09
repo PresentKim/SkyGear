@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"image"
 	"slices"
 	"strings"
 	"time"
@@ -103,15 +102,10 @@ func (c Core) Hash() (uint64, uint64) {
 func (Core) Model() world.BlockModel     { return model.Solid{} }
 func (c Core) Name() string              { return c.ctype().Name }
 func (Core) Category() category.Category { return category.Items() }
-func (Core) Geometry() []byte            { return coreModel }
-func (c Core) Texture() image.Image      { return itemTexture("core_" + c.ctype().ID) }
 
-// Textures: each tier has its own face textures (textures/blocks/
-// core_t<n>_<face>.png).
-func (c Core) Textures() map[string]image.Image { return cubeTextures("core_" + c.ctype().ID) }
-func (c Core) Properties() customblock.Properties {
-	return cubeProperties("geometry.dragonfactory_core", "core_"+c.ctype().ID)
-}
+// Properties: each tier is a cube with its own side, top and bottom
+// textures.
+func (c Core) Properties() customblock.Properties { return cubeProperties("core_" + c.ctype().ID) }
 
 // LightEmissionLevel makes cores glow faintly.
 func (Core) LightEmissionLevel() uint8 { return 10 }

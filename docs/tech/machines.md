@@ -5,7 +5,7 @@
 ## 구조
 
 - `Machine{Kind}` 하나의 블록 타입이 종류(`crusher`, `sieve`, `auto_sieve`, `auto_miner`, `sell_box`, `harvester`)마다 따로 등록된다.
-  식별자는 `dragonfactory:<종류>`. 모델은 `models.go`·`sieve.go`, 텍스처는 `textures/` 의 PNG.
+  식별자는 `dragonfactory:<종류>`. 모델·텍스처는 리소스팩 `assets/resourcepack/dragonfactory/`(`models/blocks/`, `textures/`), Go 는 식별자·재질 이름만(`models.go`·`sieve.go`).
 - 체 두 종류는 상태 하나(`dragonfactory:look`, 내용물×높이 번호 `00`~`35`)가 있는 블록이라 내용물·진행(8단계, 반 픽셀씩)이 모델에 보인다(창 없음, [sieve.go](../../internal/games/dragonfactory/sieve.go)). 예전에는 `content`·`fill` 두 상태였는데 클라이언트가 런타임 ID를 다른 순서로 짝지어 손 체가 사용할 때마다 다른 블록을 보였다. 그래서 순서가 모호하지 않은 상태 하나로 합쳤다(예전 상태로 저장된 체 블록은 다시 놓아야 한다).
 - 설치된 기계는 `machineState`(포인터)를 가진다. Dragonfly 상자처럼 블록 값이 상태를 가리키고,
   블록 엔티티 NBT(`Items`, `Progress`, `Owner`, `OwnerName`)로 월드와 함께 저장된다.
@@ -51,6 +51,6 @@
 
 ## 정육면체 블록 (모델링 없음)
 
-자동 채굴기·자동 수확기·코어(티어별)는 모델 없이 꽉 찬 정육면체에 면마다 텍스처를 붙인다(`models.go` `cubeGeometry`).
+자동 채굴기·자동 수확기·코어(티어별)는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`models.go` `cubeProperties`).
 텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
 정면은 항상 북쪽을 본다(놓는 방향으로 돌지 않음).

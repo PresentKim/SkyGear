@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"image"
 	"strings"
 	"time"
 
@@ -58,14 +57,6 @@ func (d Drawer) Hash() (uint64, uint64)    { return drawerHash, uint64(d.Facing)
 func (Drawer) Model() world.BlockModel     { return model.Solid{} }
 func (Drawer) Name() string                { return "서랍" }
 func (Drawer) Category() category.Category { return category.Items() }
-func (Drawer) Geometry() []byte            { return drawerModel }
-func (Drawer) Texture() image.Image        { return itemTexture("drawer") }
-func (Drawer) Textures() map[string]image.Image {
-	return map[string]image.Image{
-		"dragonfactory_drawer_front": blockTexture("drawer_front"),
-		"dragonfactory_drawer_side":  blockTexture("drawer_side"),
-	}
-}
 func (Drawer) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_drawer", Textures: map[string]customblock.Material{
 		"*":     alphaMaterial("dragonfactory_drawer_side"),
@@ -410,10 +401,7 @@ var upgradeInfo = []struct{ id, name string }{
 func (u DrawerUpgrade) EncodeItem() (string, int16) {
 	return "dragonfactory:drawer_upgrade_" + upgradeInfo[u.Kind].id, 0
 }
-func (u DrawerUpgrade) Name() string { return upgradeInfo[u.Kind].name }
-func (u DrawerUpgrade) Texture() image.Image {
-	return itemTexture("drawer_upgrade_" + upgradeInfo[u.Kind].id)
-}
+func (u DrawerUpgrade) Name() string              { return upgradeInfo[u.Kind].name }
 func (DrawerUpgrade) Category() category.Category { return category.Items() }
 
 func isDrawerUpgrade(st item.Stack) bool {
@@ -431,7 +419,6 @@ type DrawerKey struct{}
 
 func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
 func (DrawerKey) Name() string                { return "서랍 잠금 키" }
-func (DrawerKey) Texture() image.Image        { return itemTexture("drawer_key") }
 func (DrawerKey) Category() category.Category { return category.Items() }
 func (DrawerKey) MaxCount() int               { return 1 }
 

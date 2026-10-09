@@ -22,19 +22,19 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 | 기능 | 지원 | 방법 |
 |---|---|---|
 | 텍스처(면별 포함), 렌더 방식 | ✅ | `Properties().Textures` (`customblock.Material`) |
-| 커스텀 모델(geometry) | ✅ | `Properties().Geometry` + `Geometry()`가 `.geo.json` 반환 |
+| 커스텀 모델(geometry) | ✅ | `Properties().Geometry` 에 식별자, `.geo.json` 은 리소스팩 `models/blocks/` |
 | 충돌/선택 박스, 회전·크기·이동 | ✅ | `Properties()` |
 | 상태별 외형(permutation) | ✅ | `States()` / `Permutations()` 구현 |
 | 빛 방출/차단, 채굴 시간, 마찰, 가연성 | ✅ | 블록이 해당 인터페이스(`LightEmitter`, `BreakInfo` 등) 구현 |
 | 블록 엔티티 데이터, 매 틱 로직, 상호작용 | ✅ | `NBTer`, `TickerBlock`, `Activatable` 등 Go 인터페이스 |
 | 위 목록에 없는 BP 블록 컴포넌트 | ⚠️ | Dragonfly 내부 패키지(`internal/blockinternal`)에서 컴포넌트를 만들므로 확장하려면 Dragonfly 수정(포크) 필요 |
-| 클라이언트측 블록 애니메이션 | ❌ | 블록은 애니메이션 미지원. 움직이는 연출은 엔티티로 대체 |
+| 클라이언트측 블록 애니메이션 | ⚠️ | 텍스처 flipbook 만 가능([block-animation.md](block-animation.md)). 모양이 움직이는 연출은 엔티티로 대체 |
 
 ## 3. 커스텀 아이템
 
-- `world.CustomItem`(이름, 텍스처, 크리에이티브 분류) 구현 + `world.RegisterItem`.
+- `world.CustomItem`(이름, 크리에이티브 분류) 구현 + `world.RegisterItem`. 아이콘은 리소스팩 `textures/item_texture.json` 의 아이템 식별자 키로 찾는다(패치로 `Texture()` 를 인터페이스에서 뺐다).
 - 내구도, 음식, 갑옷, 쿨다운, 투척물 등은 아이템이 해당 인터페이스를 구현하면 자동으로 컴포넌트가 붙는다.
-- 텍스처는 Go 코드의 `image.Image`로 넘기면 자동 리소스팩에 포함된다. 드래곤팩토리는 텍스처를 코드로 그리지 않고 **PNG 파일**로 둔다: `internal/games/dragonfactory/textures/items/<이름>.png`(아이템 아이콘), `textures/blocks/<이름>.png`(블록 모델 재질). 바이너리에 포함(`go:embed`)되며, 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일은 `TestTexturesExist` 가 잡는다.
+- 텍스처는 리소스팩의 **PNG 파일**이다: `assets/resourcepack/dragonfactory/textures/items/<이름>.png`(아이템 아이콘, `item_texture.json` 키는 아이템 식별자), `textures/blocks/<이름>.png`(블록 재질, `terrain_texture.json` 키는 `dragonfactory_<이름>`). 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일·키는 `pack_test.go` 가 잡는다.
 
 ## 4. 커스텀 엔티티
 
@@ -56,10 +56,11 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 ## 6. 리소스팩 운영 방식
 
-두 가지 팩을 함께 쓴다.
+Dragonfly 는 **행동팩 역할만** 한다(블록·아이템 정의, 동작). 보이는 것은 전부 손으로 쓰는 리소스팩에 둔다.
+Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `main.go` 에서 끈다(`DisableResourceBuilding`).
+리소스팩만 따로 고쳐 시험하기 쉽고, Blockbench 같은 도구로 모델을 바로 열 수 있다.
 
-1. **자동 생성 팩**: Dragonfly가 커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성(`Resources.AutoBuildPack`).
-2. **수동 팩**: 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클 등 자동 생성이 다루지 않는 것.
+- **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
    - 저장소에 원본 폴더로 관리: `assets/resourcepack/dragonfactory/` (manifest.json 포함)
    - 서버 시작 시 `internal/resourcepack.Load`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
    - **버전은 자동**: 클라이언트는 팩을 UUID+버전으로 캐시하고, 서버는 클라이언트가 이미 가진 UUID+버전의 팩을 보내지 않는다.
@@ -68,7 +69,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 규칙:
 - 식별자 네임스페이스는 `dragonfactory:` 로 통일한다.
-- 블록/아이템 텍스처는 자동 생성 팩 쪽(위 PNG 폴더)에 두고, 수동 팩과 같은 파일 경로를 쓰지 않는다(충돌 방지).
+- Go 가 이름으로 가리키는 것(모델 식별자, 재질 텍스처 키, 아이템 아이콘, 이름 줄)은 `pack_test.go` 가 팩에 있는지 확인한다. 아이템 이름은 Go `Name()` 과 lang 줄이 같아야 한다(아이템 이름은 Go 값이 네트워크로도 간다).
 
 ## 7. 바닐라 기능 제약
 
@@ -91,5 +92,6 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 ## 블록 모델
 
-코어·납품함·서랍·기계는 코드로 만든 블록 모델(Bedrock geometry)이다: `internal/games/dragonfactory/model.go`(상자 목록 → geometry JSON), `models.go`, `sieve.go`.
-Dragonfly 가 팩을 만들 때 `models/blocks/<이름>.geo.json` 으로 넣는다. 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
+납품함·서랍·분쇄기·판매함·체의 모델은 리소스팩 `models/blocks/<이름>.geo.json` 이다(예전에 Go 로 만들던 것을 그대로 옮김). 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
+체는 파일 하나에 채움 단계별 geometry(`geometry.dragonfactory_<종류>_<0..8>`)가 들어 있다. 코어·자동 채굴기·자동 수확기는 바닐라 `minecraft:geometry.full_block` 정육면체라 모델 파일이 없다.
+Go(`models.go`, `sieve.go`)는 식별자와 재질 이름만 적는다.

@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"image"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -188,7 +187,6 @@ type MachineInfo struct{}
 
 func (MachineInfo) EncodeItem() (string, int16) { return "dragonfactory:machine_info", 0 }
 func (MachineInfo) Name() string                { return "기계 정보" }
-func (MachineInfo) Texture() image.Image        { return itemTexture("machine_info") }
 func (MachineInfo) Category() category.Category { return category.Items() }
 
 func (st *machineState) role(slot int) slotRole {
@@ -369,7 +367,6 @@ func (a ProgressArrow) EncodeItem() (string, int16) {
 	return fmt.Sprintf("dragonfactory:progress_%d", a.Step), 0
 }
 func (a ProgressArrow) Name() string              { return "진행도" }
-func (a ProgressArrow) Texture() image.Image      { return itemTexture(fmt.Sprintf("progress_%d", a.Step)) }
 func (ProgressArrow) Category() category.Category { return category.Items() }
 
 // CycleGauge is the indicator of machines that work in a repeating cycle
@@ -381,7 +378,6 @@ func (g CycleGauge) EncodeItem() (string, int16) {
 	return fmt.Sprintf("dragonfactory:cycle_%d", g.Step), 0
 }
 func (g CycleGauge) Name() string              { return "주기" }
-func (g CycleGauge) Texture() image.Image      { return itemTexture(fmt.Sprintf("cycle_%d", g.Step)) }
 func (CycleGauge) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
@@ -400,35 +396,8 @@ func (Machine) Model() world.BlockModel     { return model.Solid{} }
 func (m Machine) Name() string              { return m.kind().name }
 func (Machine) Category() category.Category { return category.Items() }
 
-// cubeMachines are the machines drawn as plain cubes with a texture per
-// face (models.go cubeGeometry).
-var cubeMachines = map[string][]byte{
-	KindMiner:     cubeGeometry("geometry.dragonfactory_" + KindMiner),
-	KindHarvester: cubeGeometry("geometry.dragonfactory_" + KindHarvester),
-}
-
-func (m Machine) Geometry() []byte {
-	if isSieve(m.Kind) {
-		return sieveGeometries[m.Kind]
-	}
-	if g, ok := cubeMachines[m.Kind]; ok {
-		return g
-	}
-	return machineModels[m.Kind]
-}
-func (m Machine) Texture() image.Image { return itemTexture(m.Kind) }
-func (m Machine) Textures() map[string]image.Image {
-	if _, ok := cubeMachines[m.Kind]; ok {
-		return cubeTextures(m.Kind)
-	}
-	if isSieve(m.Kind) {
-		return map[string]image.Image{"dragonfactory_" + m.Kind: blockTexture(m.Kind), "dragonfactory_sieve_mesh": blockTexture("sieve_mesh")}
-	}
-	return map[string]image.Image{
-		"dragonfactory_" + m.Kind:             blockTexture(m.Kind),
-		"dragonfactory_" + m.Kind + "_accent": blockTexture(m.Kind + "_accent"),
-	}
-}
+// cubeMachines are the machines drawn as plain cubes.
+var cubeMachines = map[string]bool{KindMiner: true, KindHarvester: true}
 
 // States implements block.Permutable: only the sieve has states.
 func (m Machine) States() map[string][]any {
@@ -447,8 +416,8 @@ func (m Machine) Permutations() []customblock.Permutation {
 }
 
 func (m Machine) Properties() customblock.Properties {
-	if _, ok := cubeMachines[m.Kind]; ok {
-		return cubeProperties("geometry.dragonfactory_"+m.Kind, m.Kind)
+	if cubeMachines[m.Kind] {
+		return cubeProperties(m.Kind)
 	}
 	if isSieve(m.Kind) {
 		return sieveProperties(m.Kind)

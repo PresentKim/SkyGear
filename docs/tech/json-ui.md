@@ -18,7 +18,7 @@
 - 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 메뉴(3×4)·판매·분실물. 상점 구매는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 `#form_button_length` → `#maximum_grid_items`, 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다 — 6차 실기).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`, 텍스처 경로) + 글자. 아이콘은 바닐라 텍스처 경로이거나 커스텀 아이템이면
-  Dragonfly 가 만든 팩의 `textures/items/<이름>`(`dragonfactory.iconOf`).
+  리소스팩의 `textures/items/<이름>`(`dragonfactory.iconOf`).
 - 확인 폼(`ui.Confirm`)은 바닐라 modal 이 테마를 받지 않아(8차 실기: 밝은 기본 창) **목록 폼 두 버튼**(확인·취소)으로 보낸다. 닫기는 취소와 같다.
 - 수량 폼(`ui.Amount`): 입력 폼(custom_form)의 슬라이더 하나.
 

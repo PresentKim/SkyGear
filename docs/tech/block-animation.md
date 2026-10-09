@@ -11,7 +11,7 @@
 ```json
 [
   {
-    "flipbook_texture": "textures/blocks/dragonfactory_harvester_side_on",
+    "flipbook_texture": "textures/blocks/harvester_side_on",
     "atlas_tile": "dragonfactory_harvester_side_on",
     "ticks_per_frame": 2,
     "blend_frames": false
@@ -44,14 +44,12 @@ flipbook 은 클라이언트가 항상 돌린다. 켜고 끄는 것은 **블록 
 
 ## 구현 방안
 
-텍스처 PNG 는 지금처럼 `internal/games/dragonfactory/textures/blocks/` 에 두고(예: `harvester_side_on.png`, 16×(16×N) 세로 띠), `Machine.Textures()` 가 `dragonfactory_harvester_side_on` 으로 내보낸다. Dragonfly 팩 빌더(`packbuilder/blocks.go`)는 이미지 크기를 따지지 않으므로 띠 이미지도 그대로 들어간다.
+텍스처는 리소스팩에서 관리하므로(addon.md §6) 전부 팩 파일로 한다. Dragonfly 패치는 필요 없다.
 
-flipbook 항목을 어디서 만들지 두 가지:
-
-| 방안 | 내용 | 장단점 |
-|---|---|---|
-| A. 우리 리소스팩 | `assets/resourcepack/textures/flipbook_textures.json` 에 손으로 적는다 | Dragonfly 패치 없음. 대신 타일 이름·프레임 속도가 Go 코드와 따로 논다 |
-| B. Dragonfly 패치 (권장) | `customblock` 에 선택 인터페이스(예: `Flipbooks() map[string]Flipbook{TicksPerFrame, Blend}`)를 두고, `packbuilder` 가 Dragonfly 팩에 `textures/flipbook_textures.json` 을 쓴다 | 텍스처·속도가 블록 코드 한곳에. `dragonfly.patch`·`third_party/README.md` 갱신 필요 |
+1. 띠 이미지 `assets/resourcepack/dragonfactory/textures/blocks/harvester_side_on.png`(16×(16×N)).
+2. `textures/terrain_texture.json` 에 `"dragonfactory_harvester_side_on": {"textures": "textures/blocks/harvester_side_on"}`.
+3. `textures/flipbook_textures.json` 에 위 예시 항목(`flipbook_texture` 는 `textures/blocks/harvester_side_on`, `atlas_tile` 은 `dragonfactory_harvester_side_on`).
+4. Go 는 활성 상태의 permutation 재질 이름만 `dragonfactory_harvester_side_on` 으로 적는다(`pack_test.go` 가 키가 있는지 확인).
 
 실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook 이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 작은 기계 하나(자동 수확기 옆면)로 시험한 뒤 다른 기계로 넓힌다.
 

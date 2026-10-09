@@ -23,7 +23,12 @@ func buildItems(dir string) (count int, lang []string) {
 	}
 
 	textureData := make(map[string]any)
-	for _, item := range world.CustomItems() {
+	for _, custom := range world.CustomItems() {
+		// dragonfactory patch: only items that carry a texture are built.
+		item, ok := custom.(world.CustomItemTextured)
+		if !ok {
+			continue
+		}
 		identifier, _ := item.EncodeItem()
 		lang = append(lang, fmt.Sprintf("item.%s.name=%s", identifier, item.Name()))
 

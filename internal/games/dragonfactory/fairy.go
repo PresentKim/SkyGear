@@ -1,7 +1,6 @@
 package dragonfactory
 
 import (
-	"image"
 	"math"
 	"time"
 
@@ -262,7 +261,6 @@ type ResearchNote struct{}
 
 func (ResearchNote) EncodeItem() (string, int16) { return "dragonfactory:research_note", 0 }
 func (ResearchNote) Name() string                { return "연구 노트" }
-func (ResearchNote) Texture() image.Image        { return itemTexture("research_note") }
 func (ResearchNote) Category() category.Category { return category.Items() }
 
 // Use reveals one hint and uses up the note; with nothing left to reveal
