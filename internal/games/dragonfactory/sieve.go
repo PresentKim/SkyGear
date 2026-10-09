@@ -2,11 +2,13 @@ package dragonfactory
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -243,8 +245,17 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 				continue
 			}
 		}
-		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
+		s.popOut(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
 	}
+}
+
+// popOut drops it at pos with a small random push, so sifted products
+// spring out of the sieve in different directions.
+func (s *session) popOut(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
+	a := s.rand.Float64() * 2 * math.Pi
+	speed := 0.06 + s.rand.Float64()*0.08
+	vel := mgl64.Vec3{speed * math.Cos(a), 0.22 + s.rand.Float64()*0.1, speed * math.Sin(a)}
+	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: pos, Velocity: vel}, it))
 }
 
 // sieveTargets are the sides an auto sieve puts its products into: never
