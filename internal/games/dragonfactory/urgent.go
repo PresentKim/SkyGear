@@ -77,10 +77,12 @@ func urgentPrice(u *UrgentMission) int64 {
 	return max(1, b.Price*int64(u.Percent)/100)
 }
 
-// Second runs the urgent mission timer (instance.SecondTicker).
+// Second runs the urgent mission timer, crops, the fairy and the operators'
+// load lines (instance.SecondTicker).
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
 	s.tickFairy(tx)
+	s.updateLoadBoards(tx)
 	defer s.updateUrgentBars(tx)
 	now, _, _ := s.clock.Now()
 	u := s.state.Urgent

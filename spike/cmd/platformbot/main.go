@@ -54,7 +54,7 @@ func main() {
 //	form:<title>=<button index>   wait for a form with title and press a button
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
-//	expect:<text>                wait for a chat message or command output containing text
+//	expect:<text>                wait for a chat message, command output or sidebar line containing text
 //	expectre:<regexp>            wait for a chat message or command output matching regexp
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
@@ -192,6 +192,15 @@ func messages(pk packet.Packet) []string {
 		var out []string
 		for _, m := range pk.OutputMessages {
 			out = append(out, m.Message)
+		}
+		return out
+	case *packet.SetDisplayObjective:
+		// Sidebar title and lines count as messages too.
+		return []string{pk.DisplayName}
+	case *packet.SetScore:
+		var out []string
+		for _, e := range pk.Entries {
+			out = append(out, e.DisplayName)
 		}
 		return out
 	}

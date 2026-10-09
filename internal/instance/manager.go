@@ -132,6 +132,13 @@ func (m *Manager) Active(saveID int64) *Instance {
 	return m.active[saveID]
 }
 
+// ActiveCount returns the number of active instances.
+func (m *Manager) ActiveCount() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.active)
+}
+
 func (m *Manager) worldDir(saveID int64) string {
 	return filepath.Join(m.conf.Dir, strconv.FormatInt(saveID, 10), "world")
 }

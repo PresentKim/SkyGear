@@ -24,12 +24,7 @@ func (DeliveryBox) Hash() (uint64, uint64)                { return deliveryHash,
 func (DeliveryBox) Model() world.BlockModel               { return model.Solid{} }
 func (DeliveryBox) Name() string                          { return "납품함" }
 func (DeliveryBox) Category() category.Category           { return category.Items() }
-func (DeliveryBox) Properties() customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.dragonfactory_delivery_box", Textures: map[string]customblock.Material{
-		"*":   alphaMaterial("dragonfactory_delivery_box"),
-		"lid": alphaMaterial("dragonfactory_delivery_box_lid"),
-	}}
-}
+func (DeliveryBox) Properties() customblock.Properties    { return frontCubeProperties("delivery_box") }
 func (d DeliveryBox) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1, BlastResistance: 2,

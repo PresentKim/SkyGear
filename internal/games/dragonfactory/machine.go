@@ -396,8 +396,13 @@ func (Machine) Model() world.BlockModel     { return model.Solid{} }
 func (m Machine) Name() string              { return m.kind().name }
 func (Machine) Category() category.Category { return category.Items() }
 
-// cubeMachines are the machines drawn as plain cubes.
-var cubeMachines = map[string]bool{KindMiner: true, KindHarvester: true}
+// cubeMachines are the machines drawn as plain cubes with one side texture;
+// frontMachines have a front (north), back and side textures. The sieves
+// have models.
+var (
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true}
+)
 
 // States implements block.Permutable: only the sieve has states.
 func (m Machine) States() map[string][]any {
@@ -419,10 +424,10 @@ func (m Machine) Properties() customblock.Properties {
 	if cubeMachines[m.Kind] {
 		return cubeProperties(m.Kind)
 	}
-	if isSieve(m.Kind) {
-		return sieveProperties(m.Kind)
+	if frontMachines[m.Kind] {
+		return frontCubeProperties(m.Kind)
 	}
-	return machineProperties(m.Kind)
+	return sieveProperties(m.Kind)
 }
 
 // BreakInfo drops the machine and its contents.

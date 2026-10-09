@@ -20,6 +20,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/perf"
 	"github.com/presentkim/dragonfactory/internal/platform"
 	"github.com/presentkim/dragonfactory/internal/resourcepack"
 )
@@ -88,12 +89,18 @@ func run(log *slog.Logger) error {
 		AutosaveInterval: time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
 		Entities:         conf.Entities,
 	}, platform.Lobby(lobby, &pf))
-	pf = platform.New(log, d, m, dragonfactory.New(log, d, func(p *player.Player) bool { return pconf.IsOperator(p.Name()) }), srv.Player)
+	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name()) }
+	pf = platform.New(log, d, m, dragonfactory.New(log, d, isOperator), srv.Player)
+	// Operators see the server load on their sidebar.
+	perf.Counts = func() (int, int) { return srv.PlayerCount(), m.ActiveCount() }
+	stopLoad := make(chan struct{})
+	go platform.ShowLoad(lobby, isOperator, stopLoad)
 
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		<-c
+		close(stopLoad)
 		// Store every instance before players are disconnected.
 		m.CloseAll()
 		if err := srv.Close(); err != nil {

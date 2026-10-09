@@ -26,15 +26,17 @@ func cubeProperties(name string) customblock.Properties {
 	}}
 }
 
-// machineProperties: per kind, a body ("*") and moving parts ("accent")
-// (crusher: a funnel with two rollers; sell box: a chest whose lid has a
-// coin slot).
-func machineProperties(kind string) customblock.Properties {
-	return customblock.Properties{
-		Geometry: "geometry.dragonfactory_" + kind,
-		Textures: map[string]customblock.Material{
-			"*":      alphaMaterial("dragonfactory_" + kind),
-			"accent": alphaMaterial("dragonfactory_" + kind + "_accent"),
-		},
-	}
+// frontCubeProperties returns the properties of a plain cube block named
+// name with a front: the vanilla full block geometry with the front on the
+// north face, the back on the south face, the side texture on east and west
+// ("*") and its own top and bottom
+// (textures/blocks/<name>_<front|back|side|up|down>.png).
+func frontCubeProperties(name string) customblock.Properties {
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{
+		"*":     alphaMaterial("dragonfactory_" + name + "_side"),
+		"north": alphaMaterial("dragonfactory_" + name + "_front"),
+		"south": alphaMaterial("dragonfactory_" + name + "_back"),
+		"up":    alphaMaterial("dragonfactory_" + name + "_up"),
+		"down":  alphaMaterial("dragonfactory_" + name + "_down"),
+	}}
 }

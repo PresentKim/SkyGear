@@ -51,17 +51,35 @@
     "dragonfactory_core_t4_up": {
       "textures": "textures/blocks/core_t4_up"
     },
-    "dragonfactory_crusher": {
-      "textures": "textures/blocks/crusher"
+    "dragonfactory_crusher_back": {
+      "textures": "textures/blocks/crusher_back"
     },
-    "dragonfactory_crusher_accent": {
-      "textures": "textures/blocks/crusher_accent"
+    "dragonfactory_crusher_down": {
+      "textures": "textures/blocks/crusher_down"
     },
-    "dragonfactory_delivery_box": {
-      "textures": "textures/blocks/delivery_box"
+    "dragonfactory_crusher_front": {
+      "textures": "textures/blocks/crusher_front"
     },
-    "dragonfactory_delivery_box_lid": {
-      "textures": "textures/blocks/delivery_box_lid"
+    "dragonfactory_crusher_side": {
+      "textures": "textures/blocks/crusher_side"
+    },
+    "dragonfactory_crusher_up": {
+      "textures": "textures/blocks/crusher_up"
+    },
+    "dragonfactory_delivery_box_back": {
+      "textures": "textures/blocks/delivery_box_back"
+    },
+    "dragonfactory_delivery_box_down": {
+      "textures": "textures/blocks/delivery_box_down"
+    },
+    "dragonfactory_delivery_box_front": {
+      "textures": "textures/blocks/delivery_box_front"
+    },
+    "dragonfactory_delivery_box_side": {
+      "textures": "textures/blocks/delivery_box_side"
+    },
+    "dragonfactory_delivery_box_up": {
+      "textures": "textures/blocks/delivery_box_up"
     },
     "dragonfactory_drawer_front": {
       "textures": "textures/blocks/drawer_front"
@@ -78,11 +96,20 @@
     "dragonfactory_harvester_up": {
       "textures": "textures/blocks/harvester_up"
     },
-    "dragonfactory_sell_box": {
-      "textures": "textures/blocks/sell_box"
+    "dragonfactory_sell_box_back": {
+      "textures": "textures/blocks/sell_box_back"
     },
-    "dragonfactory_sell_box_accent": {
-      "textures": "textures/blocks/sell_box_accent"
+    "dragonfactory_sell_box_down": {
+      "textures": "textures/blocks/sell_box_down"
+    },
+    "dragonfactory_sell_box_front": {
+      "textures": "textures/blocks/sell_box_front"
+    },
+    "dragonfactory_sell_box_side": {
+      "textures": "textures/blocks/sell_box_side"
+    },
+    "dragonfactory_sell_box_up": {
+      "textures": "textures/blocks/sell_box_up"
     },
     "dragonfactory_sieve": {
       "textures": "textures/blocks/sieve"
