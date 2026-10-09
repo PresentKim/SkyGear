@@ -25,8 +25,8 @@ type State struct {
 	Delivered map[string]int `json:"delivered,omitempty"`
 	// CorePoints are unspent core upgrade points.
 	CorePoints int `json:"core_points"`
-	// Cores are the core records by core type.
-	Cores map[string]*CoreRecord `json:"cores"`
+	// TierSpeed are the core speed upgrade levels by core tier.
+	TierSpeed map[int]int `json:"tier_speed,omitempty"`
 	// Shop is the stock of shop products by product ID.
 	Shop map[string]*ShopStock `json:"shop,omitempty"`
 	// Buyback is today's buyback budget and sold amounts.

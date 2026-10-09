@@ -53,7 +53,7 @@ func (*Game) ID() string   { return "dragonfactory" }
 func (*Game) Name() string { return "드래곤팩토리" }
 
 // Init builds the starting island: a small platform around the origin with
-// the earth core on it (its record is created by ensureCores).
+// the starting core on it.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 	for x := -2; x <= 2; x++ {
 		for z := -2; z <= 2; z++ {
@@ -61,7 +61,7 @@ func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
 		}
 	}
-	tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
+	tx.SetBlock(startCorePos, Core{Type: startCore}, nil)
 }
 
 // Start begins a session for an activated save.
@@ -77,7 +77,6 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
-	s.ensureCores()
 	s.loadCrops()
 	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
 	inst.World.Do(func(tx *world.Tx) {
@@ -165,7 +164,7 @@ func (s *session) Join(p *player.Player, first bool) {
 			_, _ = p.Inventory().AddItem(item.NewStack(DeliveryBox{}, 1))
 		}
 	}
-	removeStaleCores(p.Inventory(), s)
+	convertLegacyCores(p.Inventory())
 	s.levelAchievementsFor(p)
 	s.sendShapes(p)
 	s.purgeLost()

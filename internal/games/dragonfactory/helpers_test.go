@@ -39,7 +39,6 @@ func testSession(t *testing.T) *session {
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}
-	s.ensureCores()
 	g.sessions[w] = s
 	activeGame = g
 	w.Handle(&worldHandler{s: s})

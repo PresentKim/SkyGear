@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -25,16 +26,13 @@ type ShopItem struct {
 	Restock time.Duration
 }
 
-// shopCores are the products that are a core of a type (a new era): buying
-// one records the core in the save (grantCore) instead of giving Stack.
-var shopCores = map[string]string{"life_core": "life"}
-
 // day is the restock period of daily products. It is resolved against the
 // configured instance day length at runtime.
 const day = -1
 
-// ShopItems are all products in display order.
-var ShopItems = []ShopItem{
+// ShopItems are all products in display order; the cores come after them
+// (coreProducts).
+var ShopItems = append([]ShopItem{
 	{"delivery_box", "납품함", func() item.Stack { return item.NewStack(DeliveryBox{}, 1) }, 500, 1, 2, day},
 	{"water", "물 양동이", func() item.Stack {
 		return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
@@ -53,10 +51,40 @@ var ShopItems = []ShopItem{
 	{"pioneer_pickaxe", "개척자의 곡괭이 (1회 한정)", func() item.Stack {
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")
 	}, 500, 2, 1, 0},
-	{"life_core", "생명 코어 (새 시대 · 1회 한정)", func() item.Stack { return coreItem("life", 1) }, 15000, 8, 1, 0},
 	{"stone_hoe", "돌 괭이", func() item.Stack { return item.NewStack(item.Hoe{Tier: item.ToolTierStone}, 1) }, 150, 8, 2, day},
 	{"harvester", "자동 수확기", func() item.Stack { return machineItem(KindHarvester) }, 4000, 9, 1, day},
 	{"iron_pickaxe", "철 곡괭이", func() item.Stack { return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1) }, 1500, 3, 1, day},
+}, coreProducts()...)
+
+// coreShop are the cores sold in the shop with the level that opens them
+// and their price. Drafts. The wood core is free so a save that lost its
+// start core is never stuck (logs are the only way to the first money).
+var coreShop = []struct {
+	Type  string
+	Level int
+	Price int64
+}{
+	{"wood", 1, 0}, {"stone", 2, 400}, {"dirt", 2, 400}, {"sand", 3, 600}, {"gravel", 3, 600},
+	{"coal", 4, 1500}, {"clay", 6, 2000}, {"iron", 7, 4000}, {"pumpkin", 8, 2500}, {"melon", 8, 2500},
+	{"hay", 9, 3000}, {"copper", 9, 4500}, {"kelp", 10, 5000}, {"mud", 10, 4000}, {"gold", 10, 8000},
+}
+
+// coreProducts are the shop products of the cores: a few a day, more of
+// tier 1.
+func coreProducts() []ShopItem {
+	var out []ShopItem
+	for _, c := range coreShop {
+		t := coreTypes[c.Type]
+		stock := 1
+		if t.Tier == 1 && c.Price > 0 {
+			stock = 2
+		}
+		out = append(out, ShopItem{
+			ID: "core_" + c.Type, Name: fmt.Sprintf("[%d티어] %s", t.Tier, t.Name),
+			Stack: func() item.Stack { return coreItem(c.Type) }, Price: c.Price, UnlockLevel: c.Level, MaxStock: stock, Restock: day,
+		})
+	}
+	return out
 }
 
 // ShopStock is the stock state of one product.
@@ -104,15 +132,6 @@ func (s *session) buy(p *player.Player, tx *world.Tx, it ShopItem) bool {
 		p.Message("§c돈이 부족합니다.")
 		return false
 	}
-	if typ, ok := shopCores[it.ID]; ok {
-		if !s.grantCore(p, tx, typ) {
-			s.AddMoney(p, it.Price)
-			return false
-		}
-		st.Count--
-		p.Messagef("§a%s 을(를) 구매했습니다.", it.Name)
-		return true
-	}
 	st.Count--
 	stack := it.Stack()
 	if _, err := p.Inventory().AddItem(stack); err != nil {
@@ -137,6 +156,8 @@ var BuybackItems = []BuybackItem{
 	{item.Charcoal{}, 6, 64}, {item.Coal{}, 8, 64},
 	{item.Flint{}, 4, 256}, {item.ClayBall{}, 5, 256}, {item.IronNugget{}, 12, 128}, {item.GoldNugget{}, 30, 64},
 	{block.Pumpkin{}, 5, 256}, {block.Melon{}, 5, 256}, {block.HayBale{Axis: cube.Y}, 12, 128}, {block.DriedKelp{}, 10, 128}, {block.Mud{}, 4, 128},
+	{block.Clay{}, 18, 128}, {item.RawIron{}, 40, 64}, {item.IronIngot{}, 60, 64}, {item.RawCopper{}, 25, 64}, {item.CopperIngot{}, 35, 64},
+	{item.RawGold{}, 80, 32}, {item.GoldIngot{}, 120, 32},
 	{item.Wheat{}, 3, 256}, {block.Carrot{}, 3, 256}, {block.Potato{}, 3, 256}, {item.Beetroot{}, 3, 256}, {item.MelonSlice{}, 1, 512},
 }
 

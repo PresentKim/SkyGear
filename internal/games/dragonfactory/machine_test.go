@@ -201,7 +201,7 @@ func TestMineable(t *testing.T) {
 		want bool
 	}{
 		{block.Stone{}, true}, {block.Log{Wood: block.OakWood()}, true}, {block.CoalOre{}, true},
-		{block.Air{}, false}, {block.Bedrock{}, false}, {Core{Type: "earth"}, false},
+		{block.Air{}, false}, {block.Bedrock{}, false}, {Core{Type: "wood"}, false},
 		{Machine{Kind: KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
 	} {
 		if _, got := mineable(c.b); got != c.want {
@@ -210,16 +210,20 @@ func TestMineable(t *testing.T) {
 	}
 }
 
-// TestHandsFreeLine runs the M4 goal: core → auto miner → crusher / sell
-// box → hopper → chest, without a player.
+// TestHandsFreeLine runs the M4 goal without a player: core → auto miner →
+// crusher → hopper → chest, and a second core → auto miner → sell box.
 func TestHandsFreeLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	minerPos := startCorePos.Add(cube.Pos{0, 2, 0})
-	crusherPos, sellPos := minerPos.Side(cube.FaceEast), minerPos.Side(cube.FaceWest)
+	crusherPos := minerPos.Side(cube.FaceEast)
+	core2Pos := startCorePos.Add(cube.Pos{-3, 0, 0})
+	miner2Pos := core2Pos.Add(cube.Pos{0, 2, 0})
+	sellPos := miner2Pos.Side(cube.FaceWest)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
 	s.world.Do(func(tx *world.Tx) {
-		tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
+		tx.SetBlock(startCorePos, Core{Type: "stone"}, nil)
+		tx.SetBlock(core2Pos, Core{Type: "stone"}, nil)
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		tx.SetBlock(hopperPos, h, nil)
@@ -227,6 +231,7 @@ func TestHandsFreeLine(t *testing.T) {
 	})
 	placeTestMachine(s, minerPos, KindMiner, "")
 	placeTestMachine(s, crusherPos, KindCrusher, "")
+	placeTestMachine(s, miner2Pos, KindMiner, "")
 	placeTestMachine(s, sellPos, KindSellBox, s.hostID)
 
 	tick(s, 20*60) // one minute
@@ -250,7 +255,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "earth"}} {
+	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "wood"}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {

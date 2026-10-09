@@ -69,7 +69,24 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	}
 }
 
-// showShop shows the products; pressing one buys it and shows the shop again.
+// shopCategories group the products so one form does not list them all.
+var shopCategories = []struct {
+	Name, Icon string
+	Has        func(it ShopItem) bool
+}{
+	{"도구·재료", iconShop, func(it ShopItem) bool { return !isMachineProduct(it) && !isCoreProduct(it) }},
+	{"기계", iconOf(machineItem(KindCrusher)), isMachineProduct},
+	{"코어", iconOf(coreItem(startCore)), isCoreProduct},
+}
+
+func isCoreProduct(it ShopItem) bool { return strings.HasPrefix(it.ID, "core_") }
+
+func isMachineProduct(it ShopItem) bool {
+	_, ok := machineKinds[it.ID]
+	return ok
+}
+
+// showShop shows the product categories.
 func (s *session) showShop(p *player.Player) {
 	body, opts := s.shopMenu(p)
 	ui.CardMenu(p, "상점 · 구매", body, opts...)
@@ -78,11 +95,41 @@ func (s *session) showShop(p *player.Player) {
 func (s *session) shopMenu(p *player.Player) (string, []ui.Option) {
 	body := fmt.Sprintf("소지금 §6%s§r\n§7재고는 하루마다 채워집니다. 1회 한정 상품은 다시 채워지지 않습니다.", formatMoney(s.Money(p)))
 	var opts []ui.Option
+	for i, c := range shopCategories {
+		open, all := 0, 0
+		for _, it := range ShopItems {
+			if c.Has(it) {
+				all++
+				if it.UnlockLevel <= s.state.Level {
+					open++
+				}
+			}
+		}
+		opts = append(opts, s.opt(fmt.Sprintf("§f%s\n§7%d/%d 개방", c.Name, open, all), c.Icon, func(p *player.Player, _ *world.Tx) {
+			s.showShopCategory(p, i)
+		}))
+	}
+	return body, append(opts, s.backOption())
+}
+
+// showShopCategory shows the products of a category; pressing one buys it
+// and shows the category again.
+func (s *session) showShopCategory(p *player.Player, cat int) {
+	body, opts := s.shopCategoryMenu(p, cat)
+	ui.CardMenu(p, "상점 · "+shopCategories[cat].Name, body, opts...)
+}
+
+func (s *session) shopCategoryMenu(p *player.Player, cat int) (string, []ui.Option) {
+	body := fmt.Sprintf("소지금 §6%s", formatMoney(s.Money(p)))
+	var opts []ui.Option
 	for _, it := range ShopItems {
+		if !shopCategories[cat].Has(it) {
+			continue
+		}
 		if it.UnlockLevel > s.state.Level {
 			opts = append(opts, s.opt(fmt.Sprintf("§8%s\n§8Lv.%d에 개방", it.Name, it.UnlockLevel), iconLocked, func(p *player.Player, _ *world.Tx) {
 				p.Messagef("§cLv.%d에 개방됩니다.", it.UnlockLevel)
-				s.showShop(p)
+				s.showShopCategory(p, cat)
 			}))
 			continue
 		}
@@ -91,12 +138,16 @@ func (s *session) shopMenu(p *player.Player) (string, []ui.Option) {
 		if it.Restock == 0 {
 			stock = map[bool]string{true: "§c판매 완료", false: "§d1회 한정"}[st.Count == 0]
 		}
-		opts = append(opts, s.opt(fmt.Sprintf("%s\n§6%s §7· %s", it.Name, formatMoney(it.Price), stock), iconOf(it.Stack()), func(p *player.Player, tx *world.Tx) {
+		price := formatMoney(it.Price)
+		if it.Price == 0 {
+			price = "무료"
+		}
+		opts = append(opts, s.opt(fmt.Sprintf("%s\n§6%s §7· %s", it.Name, price, stock), iconOf(it.Stack()), func(p *player.Player, tx *world.Tx) {
 			s.buy(p, tx, it)
-			s.showShop(p)
+			s.showShopCategory(p, cat)
 		}))
 	}
-	return body, append(opts, s.backOption())
+	return body, append(opts, s.opt("§7← 상점", iconBack, func(p *player.Player, _ *world.Tx) { s.showShop(p) }))
 }
 
 // showBuyback shows what the shop buys; pressing one sells all of it from

@@ -23,8 +23,8 @@ func TestLevelUpGrantsAchievements(t *testing.T) {
 			t.Fatal(err)
 		}
 		s.state.Level = 2
-		_, _ = p.Inventory().AddItem(item.NewStack(block.Log{Wood: block.OakWood()}, 32))
-		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 64))
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Cobblestone{}, 64))
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 32))
 		s.deliverInventory(p, tx)
 		if s.state.Level != 3 {
 			t.Fatalf("level %d", s.state.Level)

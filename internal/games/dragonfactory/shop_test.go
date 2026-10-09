@@ -91,7 +91,7 @@ func TestBuybackBudgetAndLimits(t *testing.T) {
 func TestShopItemsAreValid(t *testing.T) {
 	seen := map[string]bool{}
 	for _, it := range ShopItems {
-		if seen[it.ID] || it.Stack().Empty() || it.Price <= 0 || it.MaxStock <= 0 {
+		if seen[it.ID] || it.Stack().Empty() || it.Price < 0 || (it.Price == 0 && it.ID != "core_wood") || it.MaxStock <= 0 {
 			t.Errorf("invalid shop item %+v", it.ID)
 		}
 		seen[it.ID] = true
@@ -99,4 +99,21 @@ func TestShopItemsAreValid(t *testing.T) {
 			t.Errorf("one-time product %s must have stock 1", it.ID)
 		}
 	}
+}
+
+// TestLostStartCoreCanBeReplaced: the wood core is free in the shop, so a
+// save without money that lost its start core can go on.
+func TestLostStartCoreCanBeReplaced(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.money[p.UUID().String()] = 0
+		if !s.buy(p, tx, shopItem("core_wood")) {
+			t.Fatal("could not take the free wood core")
+		}
+		if !p.Inventory().ContainsItem(coreItem("wood")) {
+			t.Fatal("no wood core in the inventory")
+		}
+	})
 }

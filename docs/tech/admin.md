@@ -7,7 +7,7 @@
 |---|---|
 | `/dfadmin level <n>` | 세이브 레벨을 n 으로(납품 수량 초기화) |
 | `/dfadmin points <n>` | 코어 강화 포인트를 n 으로 |
-| `/dfadmin tier <n>` | 대지 코어 티어를 n 으로 |
+| `/dfadmin tierspeed <티어> <n>` | 그 티어의 코어 속도 강화 Lv 를 n 으로 |
 | `/dfadmin money <n>` | 내 소지금에 n 더하기 |
 | `/dfadmin give <ID> [개수]` | 상점 상품 ID·기계 종류(`drawer`, `drawer_key`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `sell_box` 등) |
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |

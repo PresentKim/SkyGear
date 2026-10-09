@@ -38,10 +38,10 @@ var urgentItems = []struct {
 	Item  world.Item
 	Level int
 }{
-	{block.Cobblestone{}, 1}, {block.Dirt{}, 1}, {block.Log{Wood: block.OakWood()}, 1},
+	{block.Log{Wood: block.OakWood()}, 1}, {block.Cobblestone{}, 2}, {block.Dirt{}, 2},
 	{block.Sand{}, 2}, {block.Gravel{}, 2}, {block.Stone{}, 3}, {item.Charcoal{}, 3}, {item.Coal{}, 3},
-	{block.Glass{}, 4}, {item.Flint{}, 6}, {item.ClayBall{}, 7}, {item.IronNugget{}, 7},
-	{block.Pumpkin{}, 8}, {block.Melon{}, 8}, {block.HayBale{Axis: cube.Y}, 9}, {block.DriedKelp{}, 10}, {item.Wheat{}, 9},
+	{block.Glass{}, 4}, {item.Flint{}, 6}, {item.ClayBall{}, 7}, {item.IronNugget{}, 7}, {item.RawIron{}, 7}, {item.IronIngot{}, 8},
+	{block.Pumpkin{}, 8}, {block.Melon{}, 8}, {block.HayBale{Axis: cube.Y}, 9}, {block.DriedKelp{}, 10}, {item.Wheat{}, 9}, {item.RawCopper{}, 10}, {item.RawGold{}, 10},
 }
 
 const (

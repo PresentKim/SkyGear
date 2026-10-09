@@ -105,3 +105,16 @@ func TestDeliveryBoxHopperFeedsUrgent(t *testing.T) {
 		}
 	})
 }
+
+// TestUrgentItemsHaveBuybackPrices: an urgent mission pays a multiple of the
+// buyback price, so every candidate needs one, plus a name and an icon.
+func TestUrgentItemsHaveBuybackPrices(t *testing.T) {
+	for _, u := range urgentItems {
+		if _, ok := buybackFor(u.Item); !ok {
+			t.Errorf("%s has no buyback price", itemKey(u.Item))
+		}
+		if iconOf(item.NewStack(u.Item, 1)) == "" {
+			t.Errorf("%s has no icon", itemKey(u.Item))
+		}
+	}
+}

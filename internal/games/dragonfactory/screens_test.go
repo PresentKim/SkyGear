@@ -66,7 +66,10 @@ func TestShopMenuBuys(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.money[p.UUID().String()] = 10000
-		_, opts := s.shopMenu(p)
+		if _, cats := s.shopMenu(p); len(cats) != len(shopCategories)+1 {
+			t.Fatalf("%d category options", len(cats))
+		}
+		_, opts := s.shopCategoryMenu(p, 0)
 		if opts[0].Icon != "textures/items/delivery_box" {
 			t.Errorf("delivery box icon = %q", opts[0].Icon)
 		}
@@ -78,6 +81,23 @@ func TestShopMenuBuys(t *testing.T) {
 			t.Fatalf("money = %d", s.Money(p))
 		}
 	})
+}
+
+func TestShopCategoriesCoverAllProducts(t *testing.T) {
+	for _, it := range ShopItems {
+		n := 0
+		for _, c := range shopCategories {
+			if c.Has(it) {
+				n++
+			}
+		}
+		if n != 1 {
+			t.Errorf("%s is in %d categories", it.ID, n)
+		}
+	}
+	if !isMachineProduct(shopItem("crusher")) || !isCoreProduct(shopItem("core_stone")) {
+		t.Fatal("crusher or stone core in the wrong category")
+	}
 }
 
 func TestExpansionMode(t *testing.T) {

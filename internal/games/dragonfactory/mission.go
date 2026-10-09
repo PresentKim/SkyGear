@@ -39,15 +39,15 @@ type Level struct {
 // Levels are the missions of levels 1, 2, ... in order. Reaching
 // len(Levels)+1 means no mission is left yet. Values are balancing drafts.
 var Levels = []Level{
-	{"개척의 시작", []Requirement{{block.Cobblestone{}, 64}}, Reward{Money: 300, CorePoints: 1}},
-	{"목재 비축", []Requirement{{block.Log{Wood: block.OakWood()}, 32}, {block.Dirt{}, 64}}, Reward{Money: 500, CorePoints: 1}},
+	{"개척의 시작", []Requirement{{block.Log{Wood: block.OakWood()}, 32}}, Reward{Money: 300, CorePoints: 1}},
+	{"돌과 흙", []Requirement{{block.Cobblestone{}, 64}, {block.Dirt{}, 32}}, Reward{Money: 500, CorePoints: 1}},
 	{"첫 가공", []Requirement{{block.Stone{}, 64}, {item.Charcoal{}, 16}}, Reward{Money: 800, CorePoints: 1}},
 	{"유리 공방", []Requirement{{block.Glass{}, 32}, {block.Gravel{}, 64}}, Reward{Money: 1200, CorePoints: 1}},
 	{"기초 완성", []Requirement{{block.NewChest(), 4}, {block.NewFurnace(cube.North), 4}, {block.Glass{}, 64}},
 		Reward{Money: 2000, CorePoints: 2, Items: []func() item.Stack{func() item.Stack { return machineItem(KindMiner) }}}},
 	{"분쇄 라인", []Requirement{{block.Sand{}, 256}, {block.Gravel{}, 128}}, Reward{Money: 3000, CorePoints: 2}},
 	{"체질 장인", []Requirement{{item.Flint{}, 64}, {item.ClayBall{}, 64}, {item.IronNugget{}, 32}}, Reward{Money: 4000, CorePoints: 2}},
-	// Second era (경작): the life core is in the shop from Lv.8.
+	// Second era (경작): pumpkin and melon cores are in the shop from Lv.8.
 	{"생명의 싹", []Requirement{{block.Pumpkin{}, 64}, {block.Melon{}, 64}}, Reward{Money: 5000, CorePoints: 2}},
 	{"건초 창고", []Requirement{{block.HayBale{Axis: cube.Y}, 64}, {block.Melon{}, 128}, {item.IronNugget{}, 64}}, Reward{Money: 7000, CorePoints: 2}},
 	{"늪의 기운", []Requirement{{block.DriedKelp{}, 32}, {block.Mud{}, 64}, {item.ClayBall{}, 128}}, Reward{Money: 10000, CorePoints: 3}},

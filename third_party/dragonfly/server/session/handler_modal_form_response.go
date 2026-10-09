@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -31,8 +32,10 @@ func (h *ModalFormResponseHandler) Handle(p packet.Packet, _ *Session, tx *world
 		// by the server. This should patch that.
 		return nil
 	}
-	if !exists || len(resp) == 0 {
+	if !exists || len(resp) == 0 || strings.TrimSpace(string(resp)) == "null" {
 		// The form was cancelled: The cross in the top right corner was clicked.
+		// dragonfactory patch: "null" is a cancel too; json.Unmarshal would leave a
+		// menu's button index at 0 and press the first button.
 		resp = nil
 	}
 	if !ok {

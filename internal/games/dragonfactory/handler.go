@@ -42,8 +42,6 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 	}
 	switch b := ctx.Player().Tx().Block(pos).(type) {
-	case Core:
-		h.s.breakCore(b, pos)
 	case Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
 		if lp, ok := h.s.lastPunch[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
@@ -67,9 +65,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	case Machine:
 		h.s.placeMachine(ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case Core:
-		if !h.s.placeCore(ctx.Player(), ctx.Player().Tx(), pos, held) {
-			ctx.Cancel()
-		}
+		h.s.placeCoreAchievement(ctx.Player(), b)
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	}

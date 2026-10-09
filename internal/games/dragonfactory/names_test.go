@@ -23,11 +23,7 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 		items = append(items, u.Item)
 	}
 	for _, c := range coreTypes {
-		for _, tier := range c.Tiers {
-			for _, e := range tier.Add {
-				items = append(items, e.Block.(world.Item))
-			}
-		}
+		items = append(items, c.Block.(world.Item))
 	}
 	for _, drops := range sieveRecipes {
 		for _, d := range drops {

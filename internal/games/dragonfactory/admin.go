@@ -110,16 +110,23 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 
 type adminTier struct {
 	adminBase
-	Sub  cmd.SubCommand `cmd:"tier"`
-	Tier int            `cmd:"tier"`
+	Sub   cmd.SubCommand `cmd:"tierspeed"`
+	Tier  int            `cmd:"tier"`
+	Level int            `cmd:"level"`
 }
 
-// Run sets the earth core tier.
+// Run sets the speed upgrade level of a core tier.
 func (c adminTier) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		rec := s.state.Cores["earth"]
-		rec.Tier = max(1, min(c.Tier, len(coreTypes["earth"].Tiers)))
-		o.Printf("대지 코어 티어: %d", rec.Tier)
+		if _, known := coreTiers[c.Tier]; !known {
+			o.Errorf("티어는 1~%d", len(coreTiers))
+			return
+		}
+		if s.state.TierSpeed == nil {
+			s.state.TierSpeed = map[int]int{}
+		}
+		s.state.TierSpeed[c.Tier] = max(0, min(c.Level, maxTierSpeed))
+		o.Printf("%d티어 코어 속도 Lv.%d", c.Tier, s.state.TierSpeed[c.Tier])
 	}
 }
 
@@ -189,13 +196,6 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	if typ, ok := shopCores[string(c.Item)]; ok {
-		// A core is recorded in the save, not just handed out.
-		if s.grantCore(p, tx, typ) {
-			o.Printf("%s x1", coreTypes[typ].Name)
-		}
-		return
-	}
 	f, ok := giveItems()[string(c.Item)]
 	if !ok {
 		o.Errorf("알 수 없는 아이템: %s", c.Item)
@@ -248,8 +248,7 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		for _, n := range bb.Sold {
 			sold += n
 		}
-		earth := s.state.Cores["earth"]
-		o.Printf("level=%d money=%d points=%d tier=%d budget=%d sold=%d", s.state.Level, s.Money(p), s.state.CorePoints, earth.Tier, bb.Budget, sold)
+		o.Printf("level=%d money=%d points=%d speed1=%d budget=%d sold=%d", s.state.Level, s.Money(p), s.state.CorePoints, s.state.TierSpeed[1], bb.Budget, sold)
 	}
 }
 

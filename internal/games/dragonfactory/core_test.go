@@ -5,6 +5,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -52,12 +53,12 @@ func tick(s *session, n int) {
 func TestCoreGeneratesAboveItself(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil) })
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "stone"}, nil) })
 	above := startCorePos.Side(cube.FaceUp)
-	tick(s, 61)
+	tick(s, coreTiers[1]+1)
 	s.world.Do(func(tx *world.Tx) {
-		if _, air := tx.Block(above).(block.Air); air {
-			t.Fatal("core did not generate a block after its interval")
+		if _, ok := tx.Block(above).(block.Stone); !ok {
+			t.Fatalf("stone core made %T", tx.Block(above))
 		}
 		tx.SetBlock(above, nil, nil)
 	})
@@ -69,72 +70,79 @@ func TestCoreGeneratesAboveItself(t *testing.T) {
 	})
 }
 
-func TestStaleCoreIsRemoved(t *testing.T) {
+func TestManyCoresAndTierSpeed(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	other := cube.Pos{5, 64, 5}
+	a, b := cube.Pos{2, 64, 2}, cube.Pos{5, 64, 5}
 	s.world.Do(func(tx *world.Tx) {
-		tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
-		tx.SetBlock(other, Core{Type: "earth", Generation: 1}, nil) // a second copy
+		tx.SetBlock(a, Core{Type: "wood"}, nil)
+		tx.SetBlock(b, Core{Type: "wood"}, nil)
 	})
-	tick(s, 2)
+	s.state.TierSpeed = map[int]int{1: maxTierSpeed}
+	fast := s.coreInterval(coreTypes["wood"])
+	if fast >= coreTiers[1] || s.coreInterval(coreTypes["coal"]) != coreTiers[2] {
+		t.Fatalf("tier 1 speed: %d, tier 2: %d", fast, s.coreInterval(coreTypes["coal"]))
+	}
+	tick(s, fast+1)
 	s.world.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(other).(Core); ok {
-			t.Fatal("a second core of the same type was not removed")
-		}
-		if _, ok := tx.Block(startCorePos).(Core); !ok {
-			t.Fatal("the recorded core was removed")
+		for _, p := range []cube.Pos{a, b} {
+			if _, ok := tx.Block(p.Side(cube.FaceUp)).(block.Log); !ok {
+				t.Fatalf("core at %v made %T", p, tx.Block(p.Side(cube.FaceUp)))
+			}
 		}
 	})
 }
 
-func TestReissueAndPlace(t *testing.T) {
+func TestLegacyCoreBecomesNewCore(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth"}, nil) })
+	tick(s, 2)
+	s.world.Do(func(tx *world.Tx) {
+		if c, ok := tx.Block(startCorePos).(Core); !ok || c.Type != "wood" {
+			t.Fatalf("old earth core is %#v", tx.Block(startCorePos))
+		}
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_ = p.Inventory().SetItem(0, item.NewStack(Core{Type: "life"}, 2))
+		convertLegacyCores(p.Inventory())
+		if st, _ := p.Inventory().Item(0); st.Count() != 2 || st.Item().(Core).Type != "melon" {
+			t.Fatalf("old life core item became %v", st)
+		}
+	})
+}
+
+func TestCoreMenuBuysTierSpeed(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		// The recorded core is placed: no reissue.
-		tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil)
-		s.reissueCore(p, tx, "earth")
-		if s.state.Cores["earth"].Generation != 1 {
-			t.Fatal("placed core was reissued")
+		s.state.CorePoints = 2
+		_, a := s.coreMenu()
+		_, b := s.coreMenu() // a second, stale copy
+		press(t, p, tx, a, "§b1티어 코어 속도 Lv.0")
+		press(t, p, tx, b, "§b1티어 코어 속도 Lv.0")
+		if s.state.TierSpeed[1] != 1 || s.state.CorePoints != 1 {
+			t.Fatalf("speed %d points %d", s.state.TierSpeed[1], s.state.CorePoints)
 		}
-		// Mine it: the record becomes unplaced and the item has generation 1.
-		s.breakCore(Core{Type: "earth", Generation: 1}, startCorePos)
-		tx.SetBlock(startCorePos, nil, nil)
-		old := coreItem("earth", 1)
-		_, _ = p.Inventory().AddItem(old)
-
-		s.reissueCore(p, tx, "earth")
-		if s.state.Cores["earth"].Generation != 2 {
-			t.Fatalf("generation = %d, want 2", s.state.Cores["earth"].Generation)
-		}
-		n := 0
-		for _, st := range p.Inventory().Items() {
-			if _, gen, ok := coreItemGeneration(st); ok {
-				n++
-				if gen != 2 {
-					t.Fatalf("stale core item of generation %d kept", gen)
-				}
-			}
-		}
-		if n != 1 {
-			t.Fatalf("player has %d core items, want 1", n)
-		}
-
-		if s.placeCore(p, tx, cube.Pos{3, 64, 3}, old) {
-			t.Fatal("an outdated core item could be placed")
-		}
-		if !s.placeCore(p, tx, cube.Pos{3, 64, 3}, coreItem("earth", 2)) {
-			t.Fatal("the current core item could not be placed")
-		}
-		if s.placeCore(p, tx, cube.Pos{4, 64, 3}, coreItem("earth", 2)) {
-			t.Fatal("a second core of the same type could be placed")
+		_, c := s.coreMenu()
+		press(t, p, tx, c, "§b1티어 코어 속도 Lv.1")
+		if s.state.TierSpeed[1] != 1 {
+			t.Fatal("bought Lv.2 without enough points")
 		}
 	})
-	s.world.Do(func(tx *world.Tx) {
-		if c, ok := tx.Block(cube.Pos{3, 64, 3}).(Core); !ok || c.Generation != 2 {
-			t.Fatalf("placed core = %#v", tx.Block(cube.Pos{3, 64, 3}))
+}
+
+func TestCoreActivateShowsInfo(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "wood"}, nil) })
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		c := tx.Block(startCorePos).(Core)
+		if !c.Activate(startCorePos, cube.FaceUp, tx, p, nil) {
+			t.Fatal("core activation not handled")
 		}
 	})
 }
@@ -144,9 +152,9 @@ func TestReissueAndPlace(t *testing.T) {
 func TestCoreWaitsFullIntervalAfterMining(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil) })
+	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "wood"}, nil) })
 	above := startCorePos.Side(cube.FaceUp)
-	tick(s, 61)
+	tick(s, coreTiers[1]+1)
 	tick(s, 200) // the generated block stays for a while
 	s.world.Do(func(tx *world.Tx) { tx.SetBlock(above, nil, nil) })
 	tick(s, 10)
@@ -155,7 +163,7 @@ func TestCoreWaitsFullIntervalAfterMining(t *testing.T) {
 			t.Fatal("core regenerated right after the block was mined")
 		}
 	})
-	tick(s, 60)
+	tick(s, coreTiers[1])
 	s.world.Do(func(tx *world.Tx) {
 		if _, air := tx.Block(above).(block.Air); air {
 			t.Fatal("core did not regenerate after a full interval")
@@ -163,15 +171,11 @@ func TestCoreWaitsFullIntervalAfterMining(t *testing.T) {
 	})
 }
 
-func TestCoreActivateShowsInfo(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(startCorePos, Core{Type: "earth", Generation: 1}, nil) })
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		c := tx.Block(startCorePos).(Core)
-		if !c.Activate(startCorePos, cube.FaceUp, tx, p, nil) {
-			t.Fatal("core activation not handled")
-		}
-	})
+// TestLegacyCoreInLostAndFound: an old core kept in the lost-and-found box
+// comes back as the core that replaces it.
+func TestLegacyCoreInLostAndFound(t *testing.T) {
+	got := decodeItem(encodeItem(item.NewStack(Core{Type: "life"}, 1)))
+	if c, ok := got.Item().(Core); !ok || c.Type != "melon" {
+		t.Fatalf("decoded %v", got)
+	}
 }
