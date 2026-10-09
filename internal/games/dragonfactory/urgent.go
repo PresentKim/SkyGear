@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/bossbar"
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
@@ -28,8 +29,9 @@ type UrgentMission struct {
 	Max     int    `json:"max"`
 	Sold    int    `json:"sold"`
 	Percent int    `json:"percent"`
-	// Ends is the instance time when the offer ends.
-	Ends time.Duration `json:"ends"`
+	// Starts and Ends are the instance times the offer runs between.
+	Starts time.Duration `json:"starts,omitempty"`
+	Ends   time.Duration `json:"ends"`
 }
 
 // urgentItems are what urgent missions may ask for, with the level from
@@ -79,6 +81,7 @@ func urgentPrice(u *UrgentMission) int64 {
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
 	s.tickFairy(tx)
+	defer s.updateUrgentBars(tx)
 	now, _, _ := s.clock.Now()
 	u := s.state.Urgent
 	switch {
@@ -113,6 +116,7 @@ func (s *session) startUrgent(tx *world.Tx, now time.Duration) {
 		Item:    itemKey(it),
 		Max:     []int{32, 64, 96, 128}[s.rand.IntN(4)],
 		Percent: 150 + 10*s.rand.IntN(11),
+		Starts:  now,
 		Ends:    now + time.Duration(10+s.rand.IntN(21))*time.Minute,
 	}
 	s.state.Urgent = u
@@ -170,6 +174,12 @@ func (s *session) deliverUrgent(tx *world.Tx, by *player.Player, it world.Item, 
 	} else {
 		s.addMoneyTo(tx, s.hostID, earned)
 	}
+	if u.Sold >= u.Max {
+		// Done: end it now rather than on the next second.
+		now, _, _ := s.clock.Now()
+		s.endUrgent(tx, now)
+		return n
+	}
 	s.updateBoards(tx)
 	return n
 }
@@ -201,6 +211,40 @@ func (s *session) urgentLine() string {
 	now, _, _ := s.clock.Now()
 	it, _ := urgentItem(u.Item)
 	return fmt.Sprintf("§6긴급: §f%s %d/%d §7· %d분", itemName(item.NewStack(it, 1)), u.Sold, u.Max, max(0, int((u.Ends-now)/time.Minute))+1)
+}
+
+// urgentBar is the boss bar of the running urgent mission: what is bought
+// and the time left, which the gauge shows too.
+func (s *session) urgentBar() (bossbar.BossBar, bool) {
+	u := s.state.Urgent
+	if u == nil {
+		return bossbar.BossBar{}, false
+	}
+	now, _, _ := s.clock.Now()
+	left := max(0, u.Ends-now)
+	it, _ := urgentItem(u.Item)
+	pct := float64(left) / float64(max(u.Ends-u.Starts, 1))
+	secs := int(left / time.Second)
+	return bossbar.New(fmt.Sprintf("§6긴급 매입 §f%s %d/%d §7· 개당 §6%s §7· 남은 시간 %d:%02d",
+		itemName(item.NewStack(it, 1)), u.Sold, u.Max, formatMoney(urgentPrice(u)), secs/60, secs%60)).
+		WithHealthPercentage(min(1, max(0, pct))).WithColour(bossbar.Yellow()), true
+}
+
+// updateUrgentBars shows the urgent mission boss bar to everyone in the
+// save every second, and removes it once when the mission ends.
+func (s *session) updateUrgentBars(tx *world.Tx) {
+	bar, ok := s.urgentBar()
+	if !ok && !s.urgentBarShown {
+		return
+	}
+	for e := range tx.Players() {
+		if p := e.(*player.Player); ok {
+			p.SendBossBar(bar)
+		} else {
+			p.RemoveBossBar()
+		}
+	}
+	s.urgentBarShown = ok
 }
 
 // urgentSection is the urgent mission part of the mission form, or "".

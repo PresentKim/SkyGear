@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -51,14 +52,13 @@ func TestUrgentMissionLifecycle(t *testing.T) {
 		if s.buyback().Budget != budget {
 			t.Fatal("urgent sale used the buyback budget")
 		}
-		// Selling the rest ends it and schedules the next.
+		// Selling the rest ends it at once and schedules the next.
 		_ = p.Inventory().SetItem(0, item.NewStack(it, 64))
 		_ = p.Inventory().SetItem(1, item.NewStack(it, 64))
 		s.deliverUrgentInventory(p, tx)
 		if u.Sold != u.Max {
 			t.Fatalf("sold %d of %d", u.Sold, u.Max)
 		}
-		s.Second(tx)
 		now, _, _ := s.clock.Now()
 		if s.state.Urgent != nil || s.state.NextUrgent <= now {
 			t.Fatalf("not ended: urgent %v next %v now %v", s.state.Urgent, s.state.NextUrgent, now)
@@ -116,5 +116,19 @@ func TestUrgentItemsHaveBuybackPrices(t *testing.T) {
 		if iconOf(item.NewStack(u.Item, 1)) == "" {
 			t.Errorf("%s has no icon", itemKey(u.Item))
 		}
+	}
+}
+
+// TestUrgentBossBar: the boss bar shows the mission and its gauge falls with
+// the time left.
+func TestUrgentBossBar(t *testing.T) {
+	s := testSession(t)
+	if _, ok := s.urgentBar(); ok {
+		t.Fatal("boss bar without an urgent mission")
+	}
+	s.state.Urgent = &UrgentMission{Item: itemKey(block.Cobblestone{}), Max: 64, Percent: 200, Starts: 0, Ends: 20 * time.Minute}
+	bar, ok := s.urgentBar()
+	if !ok || !strings.Contains(bar.Text(), "0/64") || bar.HealthPercentage() <= 0.9 {
+		t.Fatalf("bar %q at %v", bar.Text(), bar.HealthPercentage())
 	}
 }

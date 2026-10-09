@@ -45,13 +45,9 @@ func (s *session) refreshPlayTime(tx *world.Tx) {
 	}
 }
 
-// boardLines are extra sidebar lines contributed by game systems.
-func (s *session) boardLines() []string {
-	if l := s.urgentLine(); l != "" {
-		return []string{l}
-	}
-	return nil
-}
+// boardLines are extra sidebar lines contributed by game systems. The
+// urgent mission has its own boss bar.
+func (s *session) boardLines() []string { return nil }
 
 func (s *session) updateBoards(tx *world.Tx) {
 	for e := range tx.Players() {

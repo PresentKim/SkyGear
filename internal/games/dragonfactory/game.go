@@ -102,6 +102,8 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 
 // session is one active save. All fields are owned by the instance world.
 type session struct {
+	// urgentBarShown is whether the urgent mission boss bar is up.
+	urgentBarShown bool
 	// fairy is the gift fairy visiting now, or nil.
 	fairy *world.EntityHandle
 	g     *Game
@@ -187,6 +189,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.lastUse, p.H())
 	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
+	p.RemoveBossBar()
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
 	p.RemoveAllDebugShapes()
