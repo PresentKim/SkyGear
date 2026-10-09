@@ -79,7 +79,9 @@ var shopCategories = []struct {
 	{"코어", iconOf(coreItem(startCore)), isCoreProduct},
 }
 
-func isCoreProduct(it ShopItem) bool { return strings.HasPrefix(it.ID, "core_") }
+func isCoreProduct(it ShopItem) bool {
+	return strings.HasPrefix(it.ID, "core_") || strings.HasPrefix(it.ID, "base_")
+}
 
 func isMachineProduct(it ShopItem) bool {
 	_, ok := machineKinds[it.ID]

@@ -53,7 +53,7 @@ func (*Game) ID() string   { return "dragonfactory" }
 func (*Game) Name() string { return "드래곤팩토리" }
 
 // Init builds the starting island: a small platform around the origin with
-// the starting core on it.
+// the starting core on it, standing on an oak log base.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 	for x := -2; x <= 2; x++ {
 		for z := -2; z <= 2; z++ {
@@ -61,6 +61,7 @@ func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
 		}
 	}
+	tx.SetBlock(startCorePos.Side(cube.FaceDown), oakLog, nil)
 	tx.SetBlock(startCorePos, Core{Type: startCore}, nil)
 }
 

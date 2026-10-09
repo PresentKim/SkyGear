@@ -27,6 +27,8 @@ type State struct {
 	CorePoints int `json:"core_points"`
 	// TierSpeed are the core speed upgrade levels by core tier.
 	TierSpeed map[int]int `json:"tier_speed,omitempty"`
+	// Discovered are the hidden core recipes a core in the save has made.
+	Discovered map[string]bool `json:"discovered,omitempty"`
 	// Shop is the stock of shop products by product ID.
 	Shop map[string]*ShopStock `json:"shop,omitempty"`
 	// Buyback is today's buyback budget and sold amounts.

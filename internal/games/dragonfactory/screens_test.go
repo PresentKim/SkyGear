@@ -95,7 +95,7 @@ func TestShopCategoriesCoverAllProducts(t *testing.T) {
 			t.Errorf("%s is in %d categories", it.ID, n)
 		}
 	}
-	if !isMachineProduct(shopItem("crusher")) || !isCoreProduct(shopItem("core_stone")) {
+	if !isMachineProduct(shopItem("crusher")) || !isCoreProduct(shopItem("core_t2")) || !isCoreProduct(shopItem("base_cobblestone")) {
 		t.Fatal("crusher or stone core in the wrong category")
 	}
 }

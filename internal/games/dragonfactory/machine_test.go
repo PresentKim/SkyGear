@@ -201,7 +201,7 @@ func TestMineable(t *testing.T) {
 		want bool
 	}{
 		{block.Stone{}, true}, {block.Log{Wood: block.OakWood()}, true}, {block.CoalOre{}, true},
-		{block.Air{}, false}, {block.Bedrock{}, false}, {Core{Type: "wood"}, false},
+		{block.Air{}, false}, {block.Bedrock{}, false}, {Core{Type: "t1"}, false},
 		{Machine{Kind: KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
 	} {
 		if _, got := mineable(c.b); got != c.want {
@@ -222,8 +222,8 @@ func TestHandsFreeLine(t *testing.T) {
 	sellPos := miner2Pos.Side(cube.FaceWest)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
 	s.world.Do(func(tx *world.Tx) {
-		tx.SetBlock(startCorePos, Core{Type: "stone"}, nil)
-		tx.SetBlock(core2Pos, Core{Type: "stone"}, nil)
+		placeCore(tx, startCorePos, "t1", block.Cobblestone{})
+		placeCore(tx, core2Pos, "t1", block.Cobblestone{})
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		tx.SetBlock(hopperPos, h, nil)
@@ -255,7 +255,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "wood"}} {
+	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "t1"}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {

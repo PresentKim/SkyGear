@@ -1,7 +1,6 @@
 package dragonfactory
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -56,32 +55,52 @@ var ShopItems = append([]ShopItem{
 	{"iron_pickaxe", "철 곡괭이", func() item.Stack { return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1) }, 1500, 3, 1, day},
 }, coreProducts()...)
 
-// coreShop are the cores sold in the shop with the level that opens them
-// and their price. Drafts. The wood core is free so a save that lost its
-// start core is never stuck (logs are the only way to the first money).
+// coreShop are the tier cores sold in the shop with the level that opens
+// them, their price and daily stock. Drafts. One tier 1 core a day is free
+// so a save that lost its start core is never stuck (logs are the only way
+// to the first money).
 var coreShop = []struct {
-	Type  string
-	Level int
-	Price int64
+	ID, Type string
+	Level    int
+	Price    int64
+	Stock    int
 }{
-	{"wood", 1, 0}, {"stone", 2, 400}, {"dirt", 2, 400}, {"sand", 3, 600}, {"gravel", 3, 600},
-	{"coal", 4, 1500}, {"clay", 6, 2000}, {"iron", 7, 4000}, {"pumpkin", 8, 2500}, {"melon", 8, 2500},
-	{"hay", 9, 3000}, {"copper", 9, 4500}, {"kelp", 10, 5000}, {"mud", 10, 4000}, {"gold", 10, 8000},
+	{"core_t1_free", "t1", 1, 0, 1}, {"core_t1", "t1", 2, 300, 2},
+	{"core_t2", "t2", 4, 1500, 1}, {"core_t3", "t3", 7, 4000, 1}, {"core_t4", "t4", 10, 8000, 1},
 }
 
-// coreProducts are the shop products of the cores: a few a day, more of
-// tier 1.
+// baseShop are base blocks for cores that cannot be made yet when their
+// recipe opens (docs/design/02-dragonfactory.md §3.2). Drafts.
+var baseShop = []struct {
+	ID    string
+	Block world.Block
+	Level int
+	Price int64
+	Stock int
+}{
+	{"base_cobblestone", block.Cobblestone{}, 2, 10, 4}, {"base_dirt", block.Dirt{}, 2, 10, 4},
+	{"base_sand", block.Sand{}, 3, 15, 4}, {"base_gravel", block.Gravel{}, 3, 15, 4},
+	{"base_pumpkin", block.Pumpkin{}, 8, 200, 1}, {"base_melon", block.Melon{}, 8, 200, 1},
+	{"base_copper", block.Copper{}, 9, 1500, 1}, {"base_dried_kelp", block.DriedKelp{}, 10, 300, 2},
+}
+
+// coreProducts are the shop products of the cores and base blocks.
 func coreProducts() []ShopItem {
 	var out []ShopItem
 	for _, c := range coreShop {
-		t := coreTypes[c.Type]
-		stock := 1
-		if t.Tier == 1 && c.Price > 0 {
-			stock = 2
+		name := coreTypes[c.Type].Name
+		if c.Price == 0 {
+			name += " (하루 1개 무료)"
 		}
 		out = append(out, ShopItem{
-			ID: "core_" + c.Type, Name: fmt.Sprintf("[%d티어] %s", t.Tier, t.Name),
-			Stack: func() item.Stack { return coreItem(c.Type) }, Price: c.Price, UnlockLevel: c.Level, MaxStock: stock, Restock: day,
+			ID: c.ID, Name: name,
+			Stack: func() item.Stack { return coreItem(c.Type) }, Price: c.Price, UnlockLevel: c.Level, MaxStock: c.Stock, Restock: day,
+		})
+	}
+	for _, b := range baseShop {
+		out = append(out, ShopItem{
+			ID: b.ID, Name: "받침용 " + blockName(b.Block),
+			Stack: func() item.Stack { return item.NewStack(b.Block.(world.Item), 1) }, Price: b.Price, UnlockLevel: b.Level, MaxStock: b.Stock, Restock: day,
 		})
 	}
 	return out
