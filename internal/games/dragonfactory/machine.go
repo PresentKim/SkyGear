@@ -150,7 +150,7 @@ func newMachine(kind, owner, ownerName string) Machine {
 			_ = inv.SetItem(slot, filler())
 		}
 	}
-	_ = inv.SetItem(pickupSlot, item.NewStack(block.Barrel{}, 1).WithCustomName("§r§c기계 회수").WithLore("§7기계와 안의 아이템을 인벤토리로 가져옵니다."))
+	_ = inv.SetItem(infoSlot, st.infoItem())
 	inv.Handle(machineHandler{st: st})
 	st.showProgress()
 	return Machine{Kind: kind, st: st}
@@ -168,9 +168,28 @@ const (
 	roleOutput
 )
 
-// pickupSlot is the window slot of the "pick up" button: it removes the
-// machine and gives it, with its contents, to the player.
-const pickupSlot = 26
+// infoSlot is the window slot of the info icon: its tooltip explains the
+// machine. The theme draws it left of the close button.
+const infoSlot = 26
+
+// infoItem is the info icon of a machine window: the machine's name, what
+// it does and, for the sell box, whose it is.
+func (st *machineState) infoItem() item.Stack {
+	lines := append([]string{}, st.kind.help...)
+	if st.kind == machineKinds[KindSellBox] && st.ownerName != "" {
+		lines = append(lines, "§7주인: §f"+st.ownerName)
+	}
+	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + st.kind.name).WithLore(lines...)
+}
+
+// MachineInfo is the info icon item of machine windows. It only ever sits
+// in machine windows.
+type MachineInfo struct{}
+
+func (MachineInfo) EncodeItem() (string, int16) { return "dragonfactory:machine_info", 0 }
+func (MachineInfo) Name() string                { return "기계 정보" }
+func (MachineInfo) Texture() image.Image        { return itemTexture("machine_info") }
+func (MachineInfo) Category() category.Category { return category.Items() }
 
 func (st *machineState) role(slot int) slotRole {
 	for _, s := range st.kind.input {
@@ -214,33 +233,9 @@ func (st *machineState) accepts(it item.Stack) bool {
 type machineHandler struct{ st *machineState }
 
 func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
-	if h.st.role(slot) != roleNone {
-		return
+	if h.st.role(slot) == roleNone {
+		ctx.Cancel()
 	}
-	ctx.Cancel()
-	if p, ok := ctx.Val().(*player.Player); ok && slot == pickupSlot {
-		st := h.st
-		p.H().Do(func(tx *world.Tx, e world.Entity) { pickUpMachine(e.(*player.Player), tx, st) })
-	}
-}
-
-// pickUpMachine removes the machine whose window p used and gives it and
-// its contents to p (custom blocks can also be broken normally).
-func pickUpMachine(p *player.Player, tx *world.Tx, st *machineState) {
-	s, ok := activeGame.sessionOf(tx.World())
-	m, isMachine := tx.Block(st.pos).(Machine)
-	if !ok || !isMachine || m.st != st || !s.canBuild(st.pos) {
-		return
-	}
-	drops := m.BreakInfo().Drops(nil, nil)
-	s.breakMachine(tx, st.pos, m)
-	tx.SetBlock(st.pos, nil, nil)
-	for _, it := range drops {
-		if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-			s.dropAt(tx, p.Position(), it.Grow(n-it.Count()))
-		}
-	}
-	p.Messagef("§a%s을(를) 회수했습니다.", m.kind().name)
 }
 
 func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
@@ -349,21 +344,17 @@ func (st *machineState) showProgress() {
 		return
 	}
 	st.shownPct = pct
-	lines := append([]string{}, st.kind.help...)
 	name := fmt.Sprintf("§e진행 %d%%", pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind {
 	case machineKinds[KindSellBox]:
-		name, it = "§6판매함", item.NewStack(item.GoldIngot{}, 1)
-		if st.ownerName != "" {
-			lines = append(lines, "§7주인: §f"+st.ownerName)
-		}
+		name, it = fmt.Sprintf("§6판매 %d%%", pct), item.NewStack(item.GoldIngot{}, 1)
 	case machineKinds[KindMiner]:
 		name = fmt.Sprintf("§b채굴 %d%%", pct)
 	case machineKinds[KindHarvester]:
 		name = fmt.Sprintf("§a수확 %d%%", pct)
 	}
-	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name).WithLore(lines...))
+	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name))
 }
 
 // ProgressArrow is the indicator item of machine windows: an arrow filled
@@ -825,6 +816,7 @@ func init() {
 	for i := range progressSteps {
 		world.RegisterItem(ProgressArrow{Step: i})
 	}
+	world.RegisterItem(MachineInfo{})
 	for _, k := range machineOrder {
 		machineKinds[k].hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
