@@ -46,3 +46,20 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 		}
 	}
 }
+
+// TestNamedItemsHaveIcons: every vanilla item the game names also has a form
+// icon (the lost-and-found and sell tables show both), and the menu item too.
+func TestNamedItemsHaveIcons(t *testing.T) {
+	for name := range koreanNames {
+		it, ok := world.ItemByName("minecraft:"+name, 0)
+		if !ok || name == "air" {
+			continue
+		}
+		if iconOf(item.NewStack(it, 1)) == "" {
+			t.Errorf("%s has no icon", itemKey(it))
+		}
+	}
+	if iconOf(menuItem()) == "" {
+		t.Error("menu item has no icon")
+	}
+}
