@@ -77,9 +77,16 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.useHeldScreen(ctx.Player(), held)
 		return
 	}
-	if !h.deny(ctx, pos) {
-		h.deny(ctx, pos.Side(face))
+	if h.deny(ctx, pos) {
+		return
 	}
+	// Using a crop shows its time or harvests it, and places nothing;
+	// sneaking uses it as usual (placing blocks, bone meal).
+	if !ctx.Player().Sneaking() && h.s.useCrop(ctx.Player(), ctx.Player().Tx(), pos) {
+		ctx.Cancel()
+		return
+	}
+	h.deny(ctx, pos.Side(face))
 }
 
 // HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting

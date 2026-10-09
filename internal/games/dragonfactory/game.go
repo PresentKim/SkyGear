@@ -102,6 +102,8 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 
 // session is one active save. All fields are owned by the instance world.
 type session struct {
+	// cropTags are the crop time tags shown, one per player.
+	cropTags map[*world.EntityHandle]*debug.Text
 	// urgentBarShown is whether the urgent mission boss bar is up.
 	urgentBarShown bool
 	// fairy is the gift fairy visiting now, or nil.
@@ -190,6 +192,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
 	p.RemoveBossBar()
+	delete(s.cropTags, p.H())
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
 	p.RemoveAllDebugShapes()
