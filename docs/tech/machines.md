@@ -6,7 +6,7 @@
 
 - `Machine{Kind}` 하나의 블록 타입이 종류(`crusher`, `sieve`, `auto_sieve`, `auto_miner`, `sell_box`, `harvester`)마다 따로 등록된다.
   식별자는 `dragonfactory:<종류>`. 모델은 `models.go`·`sieve.go`, 텍스처는 `textures/` 의 PNG.
-- 체 두 종류는 상태(`content`, `fill`)가 있는 블록이라 내용물·진행이 모델에 보인다(창 없음, [sieve.go](../../internal/games/dragonfactory/sieve.go)).
+- 체 두 종류는 상태 하나(`dragonfactory:look`, 내용물×높이 번호 `00`~`35`)가 있는 블록이라 내용물·진행(8단계, 반 픽셀씩)이 모델에 보인다(창 없음, [sieve.go](../../internal/games/dragonfactory/sieve.go)). 예전에는 `content`·`fill` 두 상태였는데 클라이언트가 런타임 ID를 다른 순서로 짝지어 손 체가 사용할 때마다 다른 블록을 보였다. 그래서 순서가 모호하지 않은 상태 하나로 합쳤다(예전 상태로 저장된 체 블록은 다시 놓아야 한다).
 - 설치된 기계는 `machineState`(포인터)를 가진다. Dragonfly 상자처럼 블록 값이 상태를 가리키고,
   블록 엔티티 NBT(`Items`, `Progress`, `Owner`, `OwnerName`)로 월드와 함께 저장된다.
   설치는 `HandleBlockPlace` → `placeMachine` 이 새 상태로 바꿔 놓는다(설치자 = 판매함 주인).

@@ -28,18 +28,26 @@ import (
 
 func isSieve(kind string) bool { return kind == KindSieve || kind == KindAutoSieve }
 
-// sieveStages is the number of uses that sift one block by hand.
-const sieveStages = 4
+// sieveStages is the number of uses that sift one block by hand, and the
+// heights the content shows (half a pixel each).
+const sieveStages = 8
 
 // sieveCooldown is the least time between counted uses (clients repeat the
 // use packet while the button is held).
 const sieveCooldown = 150 * time.Millisecond
 
-// Block states of the sieve: the content shown on the mesh and its height.
-const (
-	sieveContentState = "dragonfactory:content"
-	sieveFillState    = "dragonfactory:fill"
-)
+// sieveLookState is the one block state of a sieve: the content shown on
+// the mesh and its height, as lookValue(content, fill). One state with
+// values in registration order that also sort alphabetically: with two
+// states (content, fill) the client paired runtime IDs with permutations in
+// another order, and the hand sieve showed a different block at every use.
+const sieveLookState = "dragonfactory:look"
+
+// lookIndex numbers a content and fill; lookValue is its state value.
+func lookIndex(content, fill int) int { return content*(sieveStages+1) + fill }
+func lookValue(content, fill int) string {
+	return fmt.Sprintf("%02d", lookIndex(content, fill))
+}
 
 // sieveContents are the contents a sieve shows, with their vanilla terrain
 // textures (index 0 is empty).
@@ -81,7 +89,7 @@ func sieveModel(kind string) []byte {
 	for fill := range sieveStages + 1 {
 		boxes := append([]box{}, frame...)
 		if fill > 0 {
-			boxes = append(boxes, box{from: [3]float64{-6, 11, -6}, size: [3]float64{12, float64(fill), 12}, mat: "content"})
+			boxes = append(boxes, box{from: [3]float64{-6, 11, -6}, size: [3]float64{12, float64(fill) / 2, 12}, mat: "content"})
 		}
 		geos = append(geos, geometry(fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill), boxes))
 	}
@@ -104,15 +112,13 @@ func sieveProperties(kind string) customblock.Properties {
 }
 
 func sieveStates() map[string][]any {
-	contents := make([]any, len(sieveContents))
-	for i, c := range sieveContents {
-		contents[i] = c.name
+	var values []any
+	for c := range sieveContents {
+		for fill := range sieveStages + 1 {
+			values = append(values, lookValue(c, fill))
+		}
 	}
-	fills := make([]any, sieveStages+1)
-	for i := range fills {
-		fills[i] = fmt.Sprint(i)
-	}
-	return map[string][]any{sieveContentState: contents, sieveFillState: fills}
+	return map[string][]any{sieveLookState: values}
 }
 
 func sievePermutations(kind string) []customblock.Permutation {
@@ -120,7 +126,7 @@ func sievePermutations(kind string) []customblock.Permutation {
 	for c := 1; c < len(sieveContents); c++ {
 		for fill := 1; fill <= sieveStages; fill++ {
 			out = append(out, customblock.Permutation{
-				Condition: fmt.Sprintf("q.block_state('%s') == '%s' && q.block_state('%s') == '%d'", sieveContentState, sieveContents[c].name, sieveFillState, fill),
+				Condition: fmt.Sprintf("q.block_state('%s') == '%s'", sieveLookState, lookValue(c, fill)),
 				Properties: customblock.Properties{
 					Geometry: fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill),
 					Textures: sieveMaterials(kind, c),
@@ -214,7 +220,7 @@ func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in ite
 	if b, ok := in.Item().(world.Block); ok {
 		tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
 	}
-	st.progress += st.kind.interval / sieveStages
+	st.progress += (st.kind.interval + sieveStages - 1) / sieveStages
 	if st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, false)
 	}

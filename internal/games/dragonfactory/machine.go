@@ -385,12 +385,12 @@ func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
 func (m Machine) EncodeItem() (string, int16) { return "dragonfactory:" + m.Kind, 0 }
 func (m Machine) EncodeBlock() (string, map[string]any) {
 	if isSieve(m.Kind) {
-		return "dragonfactory:" + m.Kind, map[string]any{sieveContentState: sieveContents[m.content].name, sieveFillState: fmt.Sprint(m.fill)}
+		return "dragonfactory:" + m.Kind, map[string]any{sieveLookState: lookValue(m.content, m.fill)}
 	}
 	return "dragonfactory:" + m.Kind, nil
 }
 func (m Machine) Hash() (uint64, uint64) {
-	return m.kind().hash, uint64(m.content*(sieveStages+1) + m.fill)
+	return m.kind().hash, uint64(lookIndex(m.content, m.fill))
 }
 func (Machine) Model() world.BlockModel     { return model.Solid{} }
 func (m Machine) Name() string              { return m.kind().name }
