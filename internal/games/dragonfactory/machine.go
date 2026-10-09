@@ -399,14 +399,28 @@ func (m Machine) Hash() (uint64, uint64) {
 func (Machine) Model() world.BlockModel     { return model.Solid{} }
 func (m Machine) Name() string              { return m.kind().name }
 func (Machine) Category() category.Category { return category.Items() }
+
+// cubeMachines are the machines drawn as plain cubes with a texture per
+// face (models.go cubeGeometry).
+var cubeMachines = map[string][]byte{
+	KindMiner:     cubeGeometry("geometry.dragonfactory_" + KindMiner),
+	KindHarvester: cubeGeometry("geometry.dragonfactory_" + KindHarvester),
+}
+
 func (m Machine) Geometry() []byte {
 	if isSieve(m.Kind) {
 		return sieveGeometries[m.Kind]
+	}
+	if g, ok := cubeMachines[m.Kind]; ok {
+		return g
 	}
 	return machineModels[m.Kind]
 }
 func (m Machine) Texture() image.Image { return itemTexture(m.Kind) }
 func (m Machine) Textures() map[string]image.Image {
+	if _, ok := cubeMachines[m.Kind]; ok {
+		return cubeTextures(m.Kind)
+	}
 	if isSieve(m.Kind) {
 		return map[string]image.Image{"dragonfactory_" + m.Kind: blockTexture(m.Kind), "dragonfactory_sieve_mesh": blockTexture("sieve_mesh")}
 	}
@@ -433,6 +447,9 @@ func (m Machine) Permutations() []customblock.Permutation {
 }
 
 func (m Machine) Properties() customblock.Properties {
+	if _, ok := cubeMachines[m.Kind]; ok {
+		return cubeProperties("geometry.dragonfactory_"+m.Kind, m.Kind)
+	}
 	if isSieve(m.Kind) {
 		return sieveProperties(m.Kind)
 	}

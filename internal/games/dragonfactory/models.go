@@ -1,11 +1,14 @@
 package dragonfactory
 
 import (
+	"image"
+
 	"github.com/df-mc/dragonfly/server/block/customblock"
 )
 
 // Block models of the core, delivery box, drawer and machines (the sieve is
-// in sieve.go). Front faces look north (-z); drawers are turned per facing.
+// in sieve.go). Cores, the auto miner and the harvester are plain cubes
+// with a texture per face (cubeGeometry). Front faces look north (-z); drawers are turned per facing.
 // Materials: "*" is the body texture, other names are listed per model.
 
 func alphaMaterial(texture string) customblock.Material {
@@ -14,18 +17,50 @@ func alphaMaterial(texture string) customblock.Material {
 
 func v(x, y, z float64) [3]float64 { return [3]float64{x, y, z} }
 
-// coreModel: a frame of slabs and corner pillars around a glowing crystal
-// ("crystal"). The top stays a full face: the core makes blocks above it.
-var coreModel = geoFile(geometry("geometry.dragonfactory_core", []box{
-	{from: v(-8, 0, -8), size: v(16, 3, 16)},
-	{from: v(-8, 13, -8), size: v(16, 3, 16)},
-	{from: v(-8, 3, -8), size: v(3, 10, 3)},
-	{from: v(5, 3, -8), size: v(3, 10, 3)},
-	{from: v(-8, 3, 5), size: v(3, 10, 3)},
-	{from: v(5, 3, 5), size: v(3, 10, 3)},
-	{from: v(-3, 3, -3), size: v(6, 10, 6), mat: "crystal"},
-	{from: v(-4, 6, -4), size: v(8, 4, 8), mat: "crystal"},
-}))
+// cubeFaces are the faces of cube blocks (no modelling, one texture per
+// face). The front is north; looking at the front, the viewer's right is
+// west. Textures: textures/blocks/<name>_<face>.png.
+var cubeFaces = []string{"north", "south", "east", "west", "up", "down"}
+
+// cubeGeometry is one full cube whose faces use the materials named after
+// them.
+func cubeGeometry(id string) []byte {
+	uv := map[string]any{}
+	for _, f := range cubeFaces {
+		uv[f] = faceUV(16, 16, f)
+	}
+	return geoFile(map[string]any{
+		"description": map[string]any{
+			"identifier": id, "texture_width": 16, "texture_height": 16,
+			"visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": []float64{0, 0.5, 0},
+		},
+		"bones": []any{map[string]any{"name": "root", "pivot": []float64{0, 0, 0}, "cubes": []any{map[string]any{
+			"origin": v(-8, 0, -8), "size": v(16, 16, 16), "uv": uv,
+		}}}},
+	})
+}
+
+// cubeTextures returns the face textures of a cube block named name.
+func cubeTextures(name string) map[string]image.Image {
+	out := map[string]image.Image{}
+	for _, f := range cubeFaces {
+		out["dragonfactory_"+name+"_"+f] = blockTexture(name + "_" + f)
+	}
+	return out
+}
+
+// cubeProperties returns the properties of a cube block: geometry id and
+// a material per face.
+func cubeProperties(id, name string) customblock.Properties {
+	textures := map[string]customblock.Material{"*": alphaMaterial("dragonfactory_" + name + "_north")}
+	for _, f := range cubeFaces {
+		textures[f] = alphaMaterial("dragonfactory_" + name + "_" + f)
+	}
+	return customblock.Properties{Geometry: id, Textures: textures}
+}
+
+// coreModel: all core tiers are cubes with their own face textures.
+var coreModel = cubeGeometry("geometry.dragonfactory_core")
 
 // deliveryModel: a crate with a gold-banded lid ("lid").
 var deliveryModel = geoFile(geometry("geometry.dragonfactory_delivery_box", []box{
@@ -62,23 +97,6 @@ var machineModels = map[string][]byte{
 		{from: v(6, 10, -6), size: v(2, 6, 12)},
 		{from: v(-6, 10, -4), size: v(12, 3, 3), mat: "accent"},
 		{from: v(-6, 10, 1), size: v(12, 3, 3), mat: "accent"},
-	})),
-	// A body with a drill bit under it.
-	KindMiner: geoFile(geometry("geometry.dragonfactory_auto_miner", []box{
-		{from: v(-8, 4, -8), size: v(16, 12, 16)},
-		{from: v(-5, 2, -5), size: v(10, 2, 10), mat: "accent"},
-		{from: v(-3, 0, -3), size: v(6, 2, 6), mat: "accent"},
-	})),
-	// A body on legs with blades ("accent") around it.
-	KindHarvester: geoFile(geometry("geometry.dragonfactory_harvester", []box{
-		{from: v(-7, 4, -7), size: v(14, 10, 14)},
-		{from: v(-7, 0, -7), size: v(2, 4, 2)},
-		{from: v(5, 0, -7), size: v(2, 4, 2)},
-		{from: v(-7, 0, 5), size: v(2, 4, 2)},
-		{from: v(5, 0, 5), size: v(2, 4, 2)},
-		{from: v(-8, 6, -1), size: v(16, 1, 2), mat: "accent"},
-		{from: v(-1, 7, -8), size: v(2, 1, 16), mat: "accent"},
-		{from: v(-3, 14, -3), size: v(6, 2, 6), mat: "accent"},
 	})),
 	// A chest whose lid ("accent") has a coin slot.
 	KindSellBox: geoFile(geometry("geometry.dragonfactory_sell_box", []box{

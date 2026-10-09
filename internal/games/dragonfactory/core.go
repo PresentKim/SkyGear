@@ -31,8 +31,6 @@ import (
 type CoreType struct {
 	ID, Name string
 	Tier     int
-	// Texture is the vanilla terrain texture shown in the core's crystal.
-	Texture string
 }
 
 // coreTiers are the base generation intervals (ticks) by tier. Drafts.
@@ -57,10 +55,10 @@ func buildCoreTypes() (map[string]*CoreType, []string) {
 	types := map[string]*CoreType{}
 	order := []string{"earth", "life", "wood", "stone", "dirt", "sand", "gravel", "coal", "clay", "pumpkin", "melon", "hay", "iron", "copper", "kelp", "mud", "gold"}
 	for _, t := range []*CoreType{
-		{"t1", "[1티어] 코어", 1, "emerald_block"},
-		{"t2", "[2티어] 코어", 2, "lapis_block"},
-		{"t3", "[3티어] 코어", 3, "amethyst_block"},
-		{"t4", "[4티어] 코어", 4, "gold_block"},
+		{"t1", "[1티어] 코어", 1},
+		{"t2", "[2티어] 코어", 2},
+		{"t3", "[3티어] 코어", 3},
+		{"t4", "[4티어] 코어", 4},
 	} {
 		types[t.ID] = t
 		order = append(order, t.ID)
@@ -107,15 +105,12 @@ func (c Core) Name() string              { return c.ctype().Name }
 func (Core) Category() category.Category { return category.Items() }
 func (Core) Geometry() []byte            { return coreModel }
 func (c Core) Texture() image.Image      { return itemTexture("core_" + c.ctype().ID) }
-func (c Core) Textures() map[string]image.Image {
-	return map[string]image.Image{"dragonfactory_core_frame": blockTexture("core_frame")}
-}
+
+// Textures: each tier has its own face textures (textures/blocks/
+// core_t<n>_<face>.png).
+func (c Core) Textures() map[string]image.Image { return cubeTextures("core_" + c.ctype().ID) }
 func (c Core) Properties() customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.dragonfactory_core", Textures: map[string]customblock.Material{
-		"*": alphaMaterial("dragonfactory_core_frame"),
-		// The crystal shows the colour of the tier.
-		"crystal": alphaMaterial(c.ctype().Texture),
-	}}
+	return cubeProperties("geometry.dragonfactory_core", "core_"+c.ctype().ID)
 }
 
 // LightEmissionLevel makes cores glow faintly.
