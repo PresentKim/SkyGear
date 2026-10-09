@@ -105,6 +105,7 @@ func TestExpansionMode(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(cube.Pos{1, expandFloorY, 1}, block.Grass{}, nil)
 		tx.SetBlock(cube.Pos{0, expandFloorY, 0}, block.Grass{}, nil)
 		s.money[p.UUID().String()] = 5000
 		s.showExpand(p)
@@ -112,16 +113,23 @@ func TestExpansionMode(t *testing.T) {
 		if !ok {
 			t.Fatal("not in expansion mode")
 		}
-		// (1, 0) is next to the island: yellow floor. The island's own air
-		// positions get a green floor; its blocks are left alone.
+		// (1, 0) is next to the island: yellow floor. The selected chunk
+		// (0, 0) is owned: light blue on its air positions and over its whole
+		// border; its inner blocks are left alone.
 		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorBuyable) {
 			t.Fatalf("buyable floor = %v", b)
 		}
-		if _, ok := e.floor[cube.Pos{0, expandFloorY, 0}]; ok {
-			t.Fatal("fake floor over a real island block")
+		if _, ok := e.floor[cube.Pos{1, expandFloorY, 1}]; ok {
+			t.Fatal("fake floor over a real island block inside the chunk")
 		}
-		if b := e.floor[cube.Pos{10, expandFloorY, 10}]; b != world.Block(floorOwned) {
-			t.Fatalf("owned floor = %v", b)
+		if b := e.floor[cube.Pos{0, expandFloorY, 0}]; b != world.Block(floorTargetOwned) {
+			t.Fatalf("selected chunk border = %v", b)
+		}
+		if b := e.floor[cube.Pos{10, expandFloorY, 10}]; b != world.Block(floorTargetOwned) {
+			t.Fatalf("selected owned floor = %v", b)
+		}
+		if _, ok := p.GameMode().(viewOnlyMode); !ok {
+			t.Fatalf("game mode %T in expansion mode", p.GameMode())
 		}
 		// The body is frozen; the right key (X -1) moves the cursor east to
 		// (1, 0).
@@ -157,8 +165,16 @@ func TestExpansionMode(t *testing.T) {
 		}
 		s.buyChunk(p, tx, ChunkPos{1, 0})
 		s.drawFloor(p, e)
-		if e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorOwned) {
-			t.Fatal("bought chunk not shown as owned")
+		if e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorTargetOwned) {
+			t.Fatal("bought selected chunk not shown as owned")
+		}
+		s.expandInput(p, e, mgl64.Vec2{})
+		s.expandInput(p, e, mgl64.Vec2{1, 0}) // back west to (0, 0)
+		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorOwnedAlt) {
+			t.Fatalf("owned chunk (1, 0) floor = %v, want the other green of the checkerboard", b)
+		}
+		if b := e.floor[cube.Pos{-10, expandFloorY, -10}]; b != world.Block(floorOwned) {
+			t.Fatalf("owned chunk (-1, -1) floor = %v, want the first green", b)
 		}
 		if b := e.floor[cube.Pos{36, expandFloorY, 5}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
@@ -166,6 +182,9 @@ func TestExpansionMode(t *testing.T) {
 		s.stopExpand(p, tx)
 		if _, ok := s.expansionOf(p); ok {
 			t.Fatal("still in expansion mode")
+		}
+		if _, ok := p.GameMode().(viewOnlyMode); ok {
+			t.Fatal("game mode not restored")
 		}
 		if p.Immobile() {
 			t.Fatal("player still frozen after leaving")

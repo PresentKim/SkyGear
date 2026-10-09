@@ -16,11 +16,14 @@ import (
 
 // Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §8): the
 // player's body stays where it is, frozen, and the camera looks straight
-// down on a cursor: a fake entity only this player sees, standing on the
-// target chunk. The movement keys move the cursor a chunk at a time (read
-// from the client's input, Player.MoveInput). Owned and buyable chunks get a
-// translucent glass floor only this player sees (ViewFakeBlock). Sneaking
-// (or /menu) opens buy and exit. Building and block clicks are off.
+// down on the selected chunk. The movement keys move the selection a chunk
+// at a time (read from the client's input, Player.MoveInput). Chunks get a
+// translucent glass floor only this player sees (ViewFakeBlock): owned ones
+// in a checkerboard of two greens so their borders show, buyable ones
+// yellow, and the selected one in its own colour with its border drawn over
+// any real blocks. Sneaking (or /menu) opens buy and exit. The player is in
+// a view-only game mode meanwhile, so the client neither breaks nor places
+// blocks (and does not predict it on the fake floor).
 
 const (
 	// expandCameraHeight is how far above the island the camera looks down.
@@ -31,8 +34,6 @@ const (
 	// by a chunk; expandPoll is how often the keys are read.
 	expandStepEvery = 350 * time.Millisecond
 	expandPoll      = 50 * time.Millisecond
-	// expandCursorEntity is the entity shown as the cursor.
-	expandCursorEntity = "minecraft:allay"
 	// expandReach is how far (in chunks) the cursor may go from the frozen
 	// body: the client only has the chunks around the body. expandFloorReach
 	// is how far around the cursor the glass floor is drawn.
@@ -45,18 +46,37 @@ const (
 )
 
 var (
-	floorOwned   = block.StainedGlass{Colour: item.ColourLime()}
-	floorBuyable = block.StainedGlass{Colour: item.ColourYellow()}
-	floorTarget  = block.StainedGlass{Colour: item.ColourOrange()}
+	// floorOwned and floorOwnedAlt alternate between owned chunks.
+	floorOwned    = block.StainedGlass{Colour: item.ColourLime()}
+	floorOwnedAlt = block.StainedGlass{Colour: item.ColourGreen()}
+	floorBuyable  = block.StainedGlass{Colour: item.ColourYellow()}
+	// The selected chunk: buyable, owned, or neither.
+	floorTarget      = block.StainedGlass{Colour: item.ColourOrange()}
+	floorTargetOwned = block.StainedGlass{Colour: item.ColourLightBlue()}
+	floorTargetNone  = block.StainedGlass{Colour: item.ColourRed()}
 )
+
+// viewOnlyMode is the game mode of expansion mode: no breaking, placing or
+// interacting, no damage. It has no game mode ID, so a player state saved
+// meanwhile records survival.
+type viewOnlyMode struct{}
+
+func (viewOnlyMode) AllowsEditing() bool       { return false }
+func (viewOnlyMode) AllowsTakingDamage() bool  { return false }
+func (viewOnlyMode) CreativeInventory() bool   { return false }
+func (viewOnlyMode) HasCollision() bool        { return true }
+func (viewOnlyMode) AllowsFlying() bool        { return false }
+func (viewOnlyMode) AllowsInteraction() bool   { return false }
+func (viewOnlyMode) Visible() bool             { return true }
+func (viewOnlyMode) InstantPortalTravel() bool { return false }
 
 // expansion is the expansion mode of one player.
 type expansion struct {
 	target ChunkPos
 	// floor are the fake blocks shown, by position.
 	floor map[cube.Pos]world.Block
-	// cursor is the runtime ID of the cursor entity.
-	cursor uint64
+	// mode is the game mode to restore.
+	mode world.GameMode
 	// body is the chunk the frozen body stands in.
 	body ChunkPos
 	// lastStep is when the cursor last moved; a key held from before waits
@@ -82,11 +102,11 @@ func (s *session) showExpand(p *player.Player) {
 		s.expanding = map[*world.EntityHandle]*expansion{}
 	}
 	at := chunkOf(cube.PosFromVec3(p.Position()))
-	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now()}
+	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now(), mode: p.GameMode()}
 	s.expanding[p.H()] = e
 	p.SetImmobile()
+	p.SetGameMode(viewOnlyMode{})
 	s.drawFloor(p, e)
-	e.cursor = p.ViewFakeEntity(expandCursorEntity, cursorPos(e.target), 180, 3)
 	s.moveExpandCamera(p, e, 0)
 	p.Message("§a섬 확장 모드: 위에서 내려다봅니다. §e이동 키§a로 청크를 고르고, §e웅크리면§a 구매·종료 메뉴가 열립니다.")
 	s.expandTip(p, e)
@@ -105,12 +125,12 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 	for pos := range e.floor {
 		p.ViewFakeBlock(pos, tx.Block(pos))
 	}
-	p.RemoveFakeEntity(e.cursor)
 	p.ClearCamera()
+	p.SetGameMode(e.mode)
 	p.SetMobile()
 }
 
-// cursorPos is where the cursor entity stands on chunk c.
+// cursorPos is the centre of chunk c at the island surface.
 func cursorPos(c ChunkPos) mgl64.Vec3 {
 	return mgl64.Vec3{float64(c[0])*16 + 8, IslandY, float64(c[1])*16 + 8}
 }
@@ -171,8 +191,7 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 		return
 	}
 	e.target = c
-	p.MoveFakeEntity(e.cursor, cursorPos(c), 180)
-	s.moveExpandCamera(p, e, 0.25)
+	s.moveExpandCamera(p, e, 0.2)
 	s.drawFloor(p, e)
 	s.expandTip(p, e)
 }
@@ -202,12 +221,13 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 	})
 }
 
-// floorWant returns the fake floor block for each position of the owned and
-// buyable chunks that is air in the world.
+// floorWant returns the fake floor block for each position: the air
+// positions of owned and buyable chunks, and the selected chunk (its air
+// positions and its whole border).
 func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block {
 	want := map[cube.Pos]world.Block{}
 	near := int32(expandFloorReach)
-	add := func(c ChunkPos, b world.Block) {
+	add := func(c ChunkPos, b world.Block, border bool) {
 		// Only around the cursor: farther chunks may not be loaded or sent.
 		if abs32(c[0]-e.target[0]) > near || abs32(c[1]-e.target[1]) > near {
 			return
@@ -215,22 +235,32 @@ func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block
 		for x := range 16 {
 			for z := range 16 {
 				pos := cube.Pos{int(c[0])*16 + x, expandFloorY, int(c[1])*16 + z}
-				if _, air := tx.Block(pos).(block.Air); air {
+				edge := x == 0 || z == 0 || x == 15 || z == 15
+				if _, air := tx.Block(pos).(block.Air); air || (border && edge) {
 					want[pos] = b
 				}
 			}
 		}
 	}
 	for _, c := range s.state.Chunks {
-		add(c, floorOwned)
-	}
-	for _, c := range s.purchasableChunks() {
-		b := world.Block(floorBuyable)
-		if c == e.target {
-			b = floorTarget
+		b := world.Block(floorOwned)
+		if (c[0]+c[1])%2 != 0 {
+			b = floorOwnedAlt
 		}
-		add(c, b)
+		add(c, b, false)
 	}
+	buyable := s.purchasableChunks()
+	for _, c := range buyable {
+		add(c, floorBuyable, false)
+	}
+	target := world.Block(floorTargetNone)
+	switch {
+	case s.owns(e.target):
+		target = floorTargetOwned
+	case slices.Contains(buyable, e.target):
+		target = floorTarget
+	}
+	add(e.target, target, true)
 	return want
 }
 
@@ -256,11 +286,11 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 	c := e.target
 	switch {
 	case s.owns(c):
-		p.SendTip(fmt.Sprintf("§a청크 (%d, %d) · 소유\n§7웅크리기: 메뉴", c[0], c[1]))
+		p.SendTip(fmt.Sprintf("§b청크 (%d, %d) · 소유\n§7웅크리기: 메뉴", c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
 		p.SendTip(fmt.Sprintf("§e청크 (%d, %d) · 구매 가능 §6%s\n§7웅크리기: 구매 · 소지금 %s", c[0], c[1], formatMoney(chunkPrice(len(s.state.Chunks))), formatMoney(s.Money(p))))
 	default:
-		p.SendTip(fmt.Sprintf("§8청크 (%d, %d) · 구매 불가\n§7이동 키로 소유한 청크와 맞닿은 노란 칸을 고르세요", c[0], c[1]))
+		p.SendTip(fmt.Sprintf("§c청크 (%d, %d) · 구매 불가\n§7이동 키로 소유한 청크와 맞닿은 노란 칸을 고르세요", c[0], c[1]))
 	}
 }
 
