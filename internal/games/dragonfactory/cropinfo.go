@@ -41,12 +41,10 @@ func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		s.harvestByHand(tx, pos, b, after)
 		return true
 	}
-	r, ok := s.state.Crops[cropKey(pos)]
-	if !ok {
+	if _, ok := s.state.Crops[cropKey(pos)]; !ok {
 		s.plantCrop(pos, kind)
-		r = s.state.Crops[cropKey(pos)]
 	}
-	s.showCropTag(p, pos, s.cropText(r, tx, pos))
+	s.showCropTag(p, tx, pos)
 	return true
 }
 
@@ -80,23 +78,66 @@ func (s *session) cropText(r *CropRecord, tx *world.Tx, pos cube.Pos) string {
 	return fmt.Sprintf("§a%s §f다 자람", name)
 }
 
-// showCropTag shows text above the crop at pos to p only, replacing the
-// player's previous crop tag, and removes it after cropTagTime.
-func (s *session) showCropTag(p *player.Player, pos cube.Pos, text string) {
+// cropTag is the crop time tag shown to one player.
+type cropTag struct {
+	text  *debug.Text
+	pos   cube.Pos
+	until time.Time
+}
+
+// showCropTag shows the time left on the crop at pos above it to p only,
+// replacing the player's previous crop tag. refreshCropTags counts it down
+// and removes it after cropTagTime.
+func (s *session) showCropTag(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	if s.cropTags == nil {
-		s.cropTags = map[*world.EntityHandle]*debug.Text{}
+		s.cropTags = map[*world.EntityHandle]*cropTag{}
 	}
 	if old, ok := s.cropTags[p.H()]; ok {
-		p.RemoveDebugShape(old)
+		p.RemoveDebugShape(old.text)
 	}
-	tag := &debug.Text{Position: pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), Text: text, Scale: 0.6}
+	tag := &cropTag{pos: pos, until: time.Now().Add(cropTagTime)}
 	s.cropTags[p.H()] = tag
-	p.AddDebugShape(tag)
-	p.H().DoAfter(cropTagTime, func(tx *world.Tx, e world.Entity) {
-		if tx.World() != s.world || s.cropTags[p.H()] != tag {
+	s.drawCropTag(p, tx, tag)
+}
+
+// drawCropTag shows a tag's current text. Shown shapes are read by the
+// session later, so a changed text is a new shape replacing the old one.
+func (s *session) drawCropTag(p *player.Player, tx *world.Tx, tag *cropTag) {
+	r, ok := s.state.Crops[cropKey(tag.pos)]
+	if !ok {
+		return
+	}
+	text := s.cropText(r, tx, tag.pos)
+	if tag.text != nil {
+		if tag.text.Text == text {
 			return
 		}
-		delete(s.cropTags, p.H())
-		e.(*player.Player).RemoveDebugShape(tag)
-	})
+		p.RemoveDebugShape(tag.text)
+	}
+	tag.text = &debug.Text{Position: tag.pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), Text: text, Scale: 0.6}
+	p.AddDebugShape(tag.text)
+}
+
+// refreshCropTags counts the shown crop tags down every second and removes
+// them when their time is up or the crop is gone.
+func (s *session) refreshCropTags(tx *world.Tx) {
+	if len(s.cropTags) == 0 {
+		return
+	}
+	now := time.Now()
+	for e := range tx.Players() {
+		p := e.(*player.Player)
+		tag, ok := s.cropTags[p.H()]
+		if !ok {
+			continue
+		}
+		if _, crop := s.state.Crops[cropKey(tag.pos)]; !crop || now.After(tag.until) {
+			if tag.text != nil {
+				p.RemoveDebugShape(tag.text)
+			}
+			delete(s.cropTags, p.H())
+			continue
+		}
+		s.drawCropTag(p, tx, tag)
+	}
 }

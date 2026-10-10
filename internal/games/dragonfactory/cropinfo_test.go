@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -31,9 +32,23 @@ func TestUsingCrops(t *testing.T) {
 			t.Fatal("using a crop was not cancelled (a block could be placed on it)")
 		}
 		tag := s.cropTags[p.H()]
-		if tag == nil || !strings.Contains(tag.Text, "다 자라기까지") {
+		if tag == nil || tag.text == nil || !strings.Contains(tag.text.Text, "다 자라기까지") {
 			t.Fatalf("crop tag %v", tag)
 		}
+		// The tag counts down while shown and goes when its time is up.
+		before := tag.text
+		s.clock.Advance(3 * time.Second)
+		s.refreshCropTags(tx)
+		if tag.text == before || tag.text.Text == before.Text {
+			t.Fatalf("tag did not count down: %q", tag.text.Text)
+		}
+		tag.until = time.Now().Add(-time.Second)
+		s.refreshCropTags(tx)
+		if s.cropTags[p.H()] != nil {
+			t.Fatal("expired tag still shown")
+		}
+		s.useCrop(p, tx, young)
+		tag = s.cropTags[p.H()]
 		s.useCrop(p, tx, young)
 		if s.cropTags[p.H()] == tag {
 			t.Fatal("a second use did not replace the tag")
