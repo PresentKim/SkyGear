@@ -392,3 +392,44 @@ func TestLockedEmptyDrawer(t *testing.T) {
 		t.Error("an unlocked empty drawer takes automated items")
 	}
 }
+
+// TestDrawerMenuSlots: an empty upgrade slot fits an upgrade from the
+// inventory, a full one takes it out, and the lock slot needs no key.
+func TestDrawerMenuSlots(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_ = p.Inventory().SetItem(5, item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 2))
+		d := tx.Block(pos).(Drawer)
+		s.fitUpgrade(p, tx, pos, &d, UpgradeCapacity)
+		if d := tx.Block(pos).(Drawer); d.Capacity != 1 {
+			t.Fatalf("capacity %d after fitting, want 1", d.Capacity)
+		}
+		if it, _ := p.Inventory().Item(5); it.Count() != 1 {
+			t.Fatalf("upgrades left %d, want 1", it.Count())
+		}
+		d = tx.Block(pos).(Drawer)
+		s.fitUpgrade(p, tx, pos, &d, UpgradeVoid) // none in the inventory
+		if tx.Block(pos).(Drawer).Void {
+			t.Fatal("void fitted without an upgrade")
+		}
+		d = tx.Block(pos).(Drawer)
+		s.removeUpgrade(p, tx, pos, &d, UpgradeCapacity)
+		if d := tx.Block(pos).(Drawer); d.Capacity != 0 {
+			t.Fatalf("capacity %d after taking out, want 0", d.Capacity)
+		}
+		if it, _ := p.Inventory().Item(5); it.Count() != 2 {
+			t.Fatalf("upgrades %d after taking out, want 2", it.Count())
+		}
+		d = tx.Block(pos).(Drawer)
+		s.setLocked(tx, pos, &d, true)
+		if !tx.Block(pos).(Drawer).Locked {
+			t.Fatal("not locked")
+		}
+	})
+}

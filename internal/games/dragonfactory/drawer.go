@@ -278,23 +278,24 @@ func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 
 // Activate inserts the held stack (or all matching items on a double use)
 // when the front face is used, or applies an upgrade. Sneaking with an empty
-// hand opens the drawer menu. Other faces do nothing.
+// hand opens the drawer menu from any face.
 func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
 	if !ok || !ok2 || !s.canBuild(pos) {
 		return false
 	}
-	// Only the front works, the menu too (11th playtest).
-	if face != d.Facing.Face() {
-		return false
-	}
 	held, off := p.HeldItems()
+	// The menu opens from any face; putting items in and upgrades work only
+	// on the front (11th playtest).
 	if p.Sneaking() && held.Empty() {
 		if !s.debounced(p) {
 			s.showDrawer(p, pos)
 		}
 		return true
+	}
+	if face != d.Facing.Face() {
+		return false
 	}
 	if isDrawerKey(held) || isLegacyLockUpgrade(held) {
 		if !s.debounced(p) {
@@ -457,10 +458,14 @@ func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		}
 		p.Message("§e잠금 업그레이드가 서랍 잠금 키로 바뀌었습니다. 키는 닳지 않고 잠금을 켜고 끕니다.")
 	}
-	// An empty drawer locks too: then hoppers and machines put nothing in
-	// it, and the first item a player puts in by hand becomes its kind
-	// (11th playtest).
-	d.Locked = !d.Locked
+	s.setLocked(tx, pos, d, !d.Locked)
+}
+
+// setLocked locks or unlocks a drawer. An empty drawer locks too: then
+// hoppers and machines put nothing in it, and the first item a player puts
+// in by hand becomes its kind (11th playtest).
+func (s *session) setLocked(tx *world.Tx, pos cube.Pos, d *Drawer, locked bool) {
+	d.Locked = locked
 	if !d.Locked && d.Count == 0 {
 		d.Item = item.Stack{}
 	}
@@ -494,57 +499,102 @@ func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *
 	return true
 }
 
-// showDrawer shows a drawer's contents and lets upgrades be removed.
+// showDrawer shows a drawer as an inventory-like form (ui.SlotMenu): its
+// item and count with the name and count / capacity beside it, then the
+// storage upgrade slots (three capacity) on the left and the utility slots
+// (void, lock) on the right. Pressing an empty upgrade slot fits an upgrade from the
+// inventory, a full one takes it out; the lock slot locks and unlocks
+// without a key (11th playtest).
 func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	d, ok := p.Tx().Block(pos).(Drawer)
 	if !ok {
 		return
 	}
-	body := "§7비어 있음"
+	info := "§7비어있음"
 	if !d.Item.Empty() {
-		body = fmt.Sprintf("§f%s §7x%s / %s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))
+		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))
 	}
-	body += fmt.Sprintf("\n§7용량 업그레이드 %d/%d · 공허 %s · 잠금 %s(잠금 키로 전환)", d.Capacity, MaxCapacityUpgrades, onOff(d.Void), onOff(d.Locked))
-	var opts []ui.Option
-	remove := func(label string, kind int, ok bool, apply func(*Drawer) bool) {
-		if !ok {
+	// act runs f on the drawer at pos and shows the menu again.
+	act := func(f func(p *player.Player, tx *world.Tx, d *Drawer)) func(*player.Player, *world.Tx) {
+		return func(p *player.Player, tx *world.Tx) {
+			if d, ok := tx.Block(pos).(Drawer); ok && s.canBuild(pos) {
+				f(p, tx, &d)
+				s.showDrawer(p, pos)
+			}
+		}
+	}
+	var store ui.Slot
+	if !d.Item.Empty() {
+		store.Icon, store.Text = ui.ItemIcon(d.Item.Item()), formatInt(d.Count)
+	}
+	// A slot's text is its tooltip (hover, or the first tap on touch).
+	slot := func(kind int, filled bool, empty, tip string) ui.Slot {
+		if filled {
+			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + "\n§7누르면 빼서 인벤토리로 돌려줍니다", Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+				s.removeUpgrade(p, tx, pos, d, kind)
+			})}
+		}
+		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf("§7빈 칸\n§7누르면 인벤토리의 %s를 끼웁니다", upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+			s.fitUpgrade(p, tx, pos, d, kind)
+		})}
+	}
+	// Storage upgrades on the left, utilities (void, lock) on the right.
+	var storage []ui.Slot
+	for i := range MaxCapacityUpgrades {
+		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", "§f용량 업그레이드 §7(용량 ×2)"))
+	}
+	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: "§f잠금 꺼짐\n§7누르면 잠급니다: 호퍼·기계가 다른 아이템을 넣지 못하고, 비어도 아이템 종류가 남습니다"}
+	if d.Locked {
+		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", "§f잠김\n§7누르면 잠금을 풉니다"
+	}
+	lock.Run = act(func(_ *player.Player, tx *world.Tx, d *Drawer) { s.setLocked(tx, pos, d, !d.Locked) })
+	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", "§f공허 업그레이드 §7(가득 차면 들어오는 같은 아이템을 없앰)"), lock}
+	ui.SlotMenu(p, "서랍", store, info, storage, utils)
+}
+
+// fitUpgrade fits an upgrade of kind from p's inventory.
+func (s *session) fitUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, kind int) {
+	inv := p.Inventory()
+	for slot, it := range inv.Slots() {
+		if u, ok := it.Item().(DrawerUpgrade); ok && u.Kind == kind {
+			if s.applyUpgrade(p, tx, pos, d, it) {
+				_ = inv.SetItem(slot, it.Grow(-1))
+				s.setDrawer(tx, pos, *d)
+			}
 			return
 		}
-		opts = append(opts, ui.Option{Label: label, Run: func(p *player.Player, tx *world.Tx) {
-			d, ok := tx.Block(pos).(Drawer)
-			if !ok || !apply(&d) {
-				return
-			}
-			s.setDrawer(tx, pos, d)
-			if _, err := p.Inventory().AddItem(item.NewStack(DrawerUpgrade{Kind: kind}, 1)); err != nil {
-				s.dropAt(tx, p.Position(), item.NewStack(DrawerUpgrade{Kind: kind}, 1))
-			}
-		}})
 	}
-	remove("용량 업그레이드 떼기", UpgradeCapacity, d.Capacity > 0, func(d *Drawer) bool {
+	tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
+	ui.Notify(p, "§c인벤토리에 %s가 없습니다.", upgradeInfo[kind].name)
+}
+
+// removeUpgrade takes an upgrade of kind out into p's inventory.
+func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, kind int) {
+	switch kind {
+	case UpgradeCapacity:
+		if d.Capacity == 0 {
+			return
+		}
 		d.Capacity--
 		if d.Count > d.capacity() {
 			d.Capacity++
-			p.Message("§c내용물이 줄어든 용량보다 많아 뗄 수 없습니다.")
-			return false
-		}
-		return true
-	})
-	remove("공허 업그레이드 떼기", UpgradeVoid, d.Void, func(d *Drawer) bool { d.Void = false; return true })
-	opts = append(opts, ui.Option{Label: "§c서랍 회수\n§8내용물·업그레이드를 담은 채로 가져오기", Run: func(p *player.Player, tx *world.Tx) {
-		d, ok := tx.Block(pos).(Drawer)
-		if !ok || !s.canBuild(pos) {
+			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
+			ui.Notify(p, "§c내용물이 줄어든 용량보다 많아 뺄 수 없습니다.")
 			return
 		}
-		s.removeDisplay(tx, pos)
-		tx.SetBlock(pos, nil, nil)
-		it := d.toItem()
-		if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-			s.dropAt(tx, p.Position(), it)
+	case UpgradeVoid:
+		if !d.Void {
+			return
 		}
-		p.Message("§a서랍을 회수했습니다.")
-	}})
-	ui.Menu(p, "서랍", body, opts...)
+		d.Void = false
+	default:
+		return
+	}
+	s.setDrawer(tx, pos, *d)
+	it := item.NewStack(DrawerUpgrade{Kind: kind}, 1)
+	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
+		s.dropAt(tx, p.Position(), it)
+	}
 }
 
 // drawerUse and drawerPunch remember each player's last interactions for

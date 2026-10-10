@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -1016,6 +1016,434 @@
           ]
         }
       }
+    ]
+  },
+
+  // ---- slots (title starts with §d§f§i§r, Go ui.SlotMenu) ----
+  // An inventory-like window (the drawer, 11th playtest): a storage slot
+  // that only shows (§0§9§r: icon, count at the bottom right) with info
+  // text on its right (§0§b§r), then pressable slots in two groups, storage
+  // upgrades on the left (§0§a§r) and utilities on the right (§0§c§r), whose
+  // text is their tooltip, then action buttons (§0§4§r).
+
+  "vis_slot_store": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§9§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vis_slot_info": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§b§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vis_slot_upgrade": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§a§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vis_slot_util": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§c§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "marked_slot_store": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.slot_store_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "marked_slot_info": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.slot_info_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "marked_slot_upgrade": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.slot_upgrade_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "marked_slot_util": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.slot_util_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "slot_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window@df_form.window": {
+          "$df_window_size": [ 220, 136 ],
+          "$df_content": "df_form.slot_content"
+        }
+      }
+    ]
+  },
+
+  "slot_section_label": {
+    "type": "label",
+    "color": [ 0.62, 0.65, 0.72 ],
+    "font_scale_factor": 0.8,
+    "size": [ "default", 10 ]
+  },
+
+  "slot_content": {
+    "type": "stack_panel",
+    "size": [ "100% - 8px", "100%c" ],
+    "offset": [ 4, 2 ],
+    "orientation": "vertical",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "top": {
+          "type": "stack_panel",
+          "orientation": "horizontal",
+          "size": [ "100%", "100%cm" ],
+          "controls": [
+            {
+              "store@df_form.marked_slot_store": {
+                "orientation": "horizontal",
+                "size": [ "100%c", "100%cm" ]
+              }
+            },
+            { "gap": { "type": "panel", "size": [ 6, 1 ] } },
+            {
+              "info@df_form.marked_slot_info": {
+                "orientation": "vertical",
+                "size": [ "fill", "100%cm" ]
+              }
+            }
+          ]
+        }
+      },
+      { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+      {
+        "bottom": {
+          "type": "panel",
+          "size": [ "100%", "100%cm" ],
+          "controls": [
+            {
+              "left": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "size": [ "100%cm", "100%c" ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  { "label@df_form.slot_section_label": { "text": "저장 업그레이드" } },
+                  {
+                    "slots@df_form.marked_slot_upgrade": {
+                      "orientation": "horizontal",
+                      "size": [ "100%c", "100%cm" ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "right": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "size": [ "100%cm", "100%c" ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "controls": [
+                  { "label@df_form.slot_section_label": { "text": "유틸리티" } },
+                  {
+                    "slots@df_form.marked_slot_util": {
+                      "orientation": "horizontal",
+                      "size": [ "100%c", "100%cm" ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      { "gap2": { "type": "panel", "size": [ "100%", 6 ] } },
+      {
+        "actions@df_form.marked_actions": {
+          "orientation": "vertical",
+          "size": [ "100%", "100%c" ]
+        }
+      }
+    ]
+  },
+
+  // slot_store_item only shows: a slot with the icon and the count, no
+  // button.
+  "slot_store_item@df_form.vis_slot_store": {
+    "type": "panel",
+    "size": [ 32, 32 ],
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "textures/ui/df/slot" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 24, 24 ] } },
+      { "count@df_form.slot_count": {} }
+    ]
+  },
+
+  "slot_info_item@df_form.vis_slot_info": {
+    "type": "panel",
+    "size": [ "100%", 32 ],
+    "controls": [
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#form_button_text",
+          "color": [ 0.95, 0.95, 0.97 ],
+          "size": [ "100%", "default" ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  // Upgrade and utility slots: a button that shows its text as a tooltip
+  // while hovered or pressed (mouse), or on touch a toggle: the first tap
+  // selects the slot and shows the tooltip, a tap on the selected slot
+  // presses it (11th playtest).
+  "slot_upgrade_item@df_form.vis_slot_upgrade": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "$df_slot_control|default": "df_form.slot_button",
+    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.slot_toggle" } ],
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
+
+  "slot_util_item@df_form.vis_slot_util": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "$df_slot_control|default": "df_form.slot_button",
+    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.slot_toggle" } ],
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
+
+  // slot_tooltip shows the button text in a box above the slot.
+  "slot_tooltip": {
+    "type": "image",
+    "texture": "textures/ui/df/panel",
+    "layer": 200,
+    "size": [ "100%c + 8px", "100%c + 6px" ],
+    "offset": [ 0, -2 ],
+    "anchor_from": "top_middle",
+    "anchor_to": "bottom_middle",
+    "controls": [
+      {
+        "text": {
+          "type": "label",
+          "layer": 1,
+          "text": "#form_button_text",
+          "color": [ 0.95, 0.95, 0.97 ],
+          "font_scale_factor": 0.8,
+          "size": [ "default", "default" ],
+          "max_size": [ 150, "default" ],
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  // slot_face is a slot's look: the background texture and the icon.
+  "slot_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_slot_texture|default": "textures/ui/df/slot",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_slot_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ] } }
+    ]
+  },
+
+  "slot_face_tip@df_form.slot_face": {
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_slot_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ] } },
+      { "tip@df_form.slot_tooltip": {} }
+    ]
+  },
+
+  // slot_toggle (touch): unselected it only looks like a slot; selected it
+  // is highlighted, shows the tooltip and carries the real button.
+  "slot_toggle@common.toggle": {
+    "size": [ 22, 22 ],
+    "$radio_toggle_group": true,
+    "$toggle_name": "df_form_slot",
+    "$toggle_binding_type": "none",
+    "$toggle_property_bag": { "#toggle_state": false },
+    "$unchecked_control": "df_form.slot_face",
+    "$unchecked_hover_control": "df_form.slot_face",
+    "$unchecked_locked_control": "df_form.slot_face",
+    "$unchecked_locked_hover_control": "df_form.slot_face",
+    "$checked_control": "df_form.slot_selected",
+    "$checked_hover_control": "df_form.slot_selected",
+    "$checked_locked_control": "df_form.slot_face",
+    "$checked_locked_hover_control": "df_form.slot_face"
+  },
+
+  "slot_selected": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      { "press@df_form.slot_press": { "layer": 10 } },
+      { "tip@df_form.slot_tooltip": {} }
+    ]
+  },
+
+  // slot_press is the real button of a selected touch slot.
+  "slot_press@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ "100%", "100%" ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.slot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "hover@df_form.slot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.slot_face": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
+    ]
+  },
+
+  "slot_count": {
+    "type": "label",
+    "layer": 4,
+    "text": "#form_button_text",
+    "color": [ 1, 1, 1 ],
+    "shadow": true,
+    "font_scale_factor": 0.75,
+    "text_alignment": "right",
+    "size": [ "default", "default" ],
+    "offset": [ -1, 0 ],
+    "anchor_from": "bottom_right",
+    "anchor_to": "bottom_right",
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      }
+    ]
+  },
+
+  // slot_button (mouse) looks like an inventory slot; hovering or
+  // pressing it shows its text as a tooltip.
+  "slot_button@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 22, 22 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.slot_face": {} },
+      { "hover@df_form.slot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.slot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
     ]
   },
 

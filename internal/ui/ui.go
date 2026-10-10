@@ -87,14 +87,31 @@ func recoverForm(p *player.Player) {
 	}
 }
 
-// Menu shows a menu form whose buttons run their options. Labels must
-// be unique within a menu.
+// Menu shows a menu form whose buttons run their options. The pressed
+// button is found by its label (the client sends no index), so a label
+// that repeats gets invisible "§r"s added until it is unique (all the empty
+// upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
+	opts = uniqueLabels(opts)
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(body)
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
 	send(p, title, f)
+}
+
+// uniqueLabels returns opts with every label unique.
+func uniqueLabels(opts []Option) []Option {
+	seen := map[string]bool{}
+	out := make([]Option, len(opts))
+	for i, o := range opts {
+		for seen[o.Label] {
+			o.Label += "§r"
+		}
+		seen[o.Label] = true
+		out[i] = o
+	}
+	return out
 }
 
 // Messages from form actions show as toasts: chat is hidden while forms
@@ -197,6 +214,10 @@ const (
 	CellToken    = "§0§5§r"
 	CellNumToken = "§0§6§r"
 	TotalToken   = "§0§8§r"
+	StoreToken   = "§0§9§r"
+	UpgradeToken = "§0§a§r"
+	InfoToken    = "§0§b§r"
+	UtilToken    = "§0§c§r"
 )
 
 // Tab returns a tab button of a themed form.
@@ -268,6 +289,44 @@ func TableMenu(p *player.Player, title, body string, rows [][]Cell, total string
 		opts = append(opts, a)
 	}
 	Menu(p, TableToken+title, body, opts...)
+}
+
+// SlotToken starts the title of a slot form (SlotMenu).
+const SlotToken = "§d§f§i§r"
+
+// Slot is one slot of a SlotMenu: an icon (ItemIcon or a texture path), the
+// text at its bottom right (a count, or empty) and what pressing it does.
+type Slot struct {
+	Icon, Text string
+	Run        func(p *player.Player, tx *world.Tx)
+}
+
+// SlotMenu sends an inventory-like form (df_form.json slot_form): a
+// storage slot that only shows (icon and count) with info text on its
+// right, then two rows of pressable slots: left (e.g. storage upgrades) and
+// right (utilities), then action buttons.
+func SlotMenu(p *player.Player, title string, store Slot, info string, left, right []Slot, actions ...Option) {
+	nop := func(*player.Player, *world.Tx) {}
+	opts := []Option{
+		{Label: StoreToken + store.Text, Icon: store.Icon, Run: nop},
+		{Label: InfoToken + info, Run: nop},
+	}
+	add := func(token string, slots []Slot) {
+		for _, sl := range slots {
+			run := sl.Run
+			if run == nil {
+				run = nop
+			}
+			opts = append(opts, Option{Label: token + sl.Text, Icon: sl.Icon, Run: run})
+		}
+	}
+	add(UpgradeToken, left)
+	add(UtilToken, right)
+	for _, a := range actions {
+		a.Label = ActionToken + a.Label
+		opts = append(opts, a)
+	}
+	Menu(p, SlotToken+title, "", opts...)
 }
 
 // Confirm asks a yes/no question as a themed menu (the vanilla modal form

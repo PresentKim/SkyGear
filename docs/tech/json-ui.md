@@ -6,7 +6,7 @@
 
 | 파일 | 내용 |
 |---|---|
-| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, 없으면 목록 |
+| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자, 터치(`$touch`)는 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
 | `assets/resourcepack/dragonfactory/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
