@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -12,8 +11,8 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// TestUsingCrops: using a growing crop shows its time (one tag per player)
-// and places nothing; using a grown crop harvests and replants it.
+// TestUsingCrops: using a growing crop places nothing (the WAILA panel shows
+// its time); using a grown crop harvests and replants it.
 func TestUsingCrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -31,27 +30,9 @@ func TestUsingCrops(t *testing.T) {
 		if !ctx.Cancelled() {
 			t.Fatal("using a crop was not cancelled (a block could be placed on it)")
 		}
-		tag := s.cropTags[p.H()]
-		if tag == nil || tag.text == nil || !strings.Contains(tag.text.Text, "다 자라기까지") {
-			t.Fatalf("crop tag %v", tag)
-		}
-		// The tag counts down while shown and goes when its time is up.
-		before := tag.text
-		s.clock.Advance(3 * time.Second)
-		s.refreshCropTags(tx)
-		if tag.text == before || tag.text.Text == before.Text {
-			t.Fatalf("tag did not count down: %q", tag.text.Text)
-		}
-		tag.until = time.Now().Add(-time.Second)
-		s.refreshCropTags(tx)
-		if s.cropTags[p.H()] != nil {
-			t.Fatal("expired tag still shown")
-		}
-		s.useCrop(p, tx, young)
-		tag = s.cropTags[p.H()]
-		s.useCrop(p, tx, young)
-		if s.cropTags[p.H()] == tag {
-			t.Fatal("a second use did not replace the tag")
+		// The WAILA panel shows the time left on a growing crop.
+		if info := s.lookInfo(p, tx, young, tx.Block(young)); info.Name != "밀" || len(info.Lines) < 2 || !strings.Contains(info.Lines[1], "남은 시간") {
+			t.Fatalf("crop panel %+v", info)
 		}
 
 		if !s.useCrop(p, tx, grown) {

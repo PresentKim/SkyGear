@@ -1,6 +1,8 @@
 package instance
 
 import (
+	"time"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -47,4 +49,14 @@ type Session interface {
 // the clock advanced.
 type SecondTicker interface {
 	Second(tx *world.Tx)
+}
+
+// FastInterval is how often FastTicker.Fast is called.
+const FastInterval = 200 * time.Millisecond
+
+// FastTicker is an optional Session interface: Fast is called in the
+// instance world every FastInterval while the instance is active, for what
+// players watch change (such as the WAILA panel's gauges).
+type FastTicker interface {
+	Fast(tx *world.Tx)
 }

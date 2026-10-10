@@ -89,6 +89,9 @@ func (inst *Instance) run() {
 	defer close(inst.runDone)
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
+	fast := time.NewTicker(FastInterval)
+	defer fast.Stop()
+	fastTicker, _ := inst.session.(FastTicker)
 	last := time.Now()
 	lastSave := last
 	for {
@@ -96,6 +99,10 @@ func (inst *Instance) run() {
 		case <-inst.stop:
 			inst.Clock.Advance(time.Since(last))
 			return
+		case <-fast.C:
+			if fastTicker != nil {
+				inst.World.Do(fastTicker.Fast)
+			}
 		case now := <-tick.C:
 			for _, day := range inst.Clock.Advance(now.Sub(last)) {
 				inst.World.Do(func(tx *world.Tx) { inst.session.NewDay(tx, day) })

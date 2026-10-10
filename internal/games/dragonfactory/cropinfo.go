@@ -8,19 +8,14 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/go-gl/mathgl/mgl64"
 )
 
-// Crops by hand (docs/design/02-dragonfactory.md §9): using a crop shows its
-// time to the next growth for a few seconds above it, to that player only
-// and one crop at a time; using a grown crop harvests it and replants it
-// (free for now).
-
-// cropTagTime is how long the growth time stays above a crop.
-const cropTagTime = 4 * time.Second
+// Crops by hand (docs/design/02-dragonfactory.md §9): using a grown crop
+// harvests it and replants it (free for now); using a growing one does
+// nothing, so no block is placed on it. The WAILA panel shows the time
+// left (look.go).
 
 // cropNames are the Korean names of the crop kinds.
 var cropNames = map[string]string{
@@ -29,8 +24,8 @@ var cropNames = map[string]string{
 }
 
 // useCrop handles a player using the crop at pos: a grown crop is
-// harvested, a growing one shows its time. It returns true if pos is a crop
-// (the click is then used up: nothing is placed on it).
+// harvested. It returns true if pos is a crop (the click is then used up:
+// nothing is placed on it).
 func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 	b := tx.Block(pos)
 	kind, _, ok := cropOf(b)
@@ -44,7 +39,6 @@ func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 	if _, ok := s.state.Crops[cropKey(pos)]; !ok {
 		s.plantCrop(pos, kind)
 	}
-	s.showCropTag(p, tx, pos)
 	return true
 }
 
@@ -62,91 +56,17 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 	}
 }
 
-// cropText describes the time left on a crop.
-func (s *session) cropText(r *CropRecord, tx *world.Tx, pos cube.Pos) string {
-	lines := s.cropLines(r, tx, pos)
-	text := "§a" + cropNames[r.Kind] + " §f" + lines[0]
-	for _, l := range lines[1:] {
-		text += "\n§7" + l
-	}
-	return text
-}
-
 // cropLines are the growth stage and the time left on a crop.
 func (s *session) cropLines(r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
 	now, _, _ := s.clock.Now()
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := max(0, r.Planted+s.growTime(r.Kind)-now)
-		return []string{fmt.Sprintf("%d/%d단계", stage, maxCropStage), "다 자라기까지 §f" + formatDuration(left.Round(time.Second))}
+		return []string{fmt.Sprintf("%d/%d단계", stage, maxCropStage), "남은 시간 §f" + formatDuration(left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := max(0, r.NextFruit-now)
-		return []string{"다 자람", "다음 열매까지 §f" + formatDuration(left.Round(time.Second))}
+		return []string{"다 자람", "다음 열매 §f" + formatDuration(left.Round(time.Second))}
 	}
 	return []string{"다 자람"}
-}
-
-// cropTag is the crop time tag shown to one player.
-type cropTag struct {
-	text  *debug.Text
-	pos   cube.Pos
-	until time.Time
-}
-
-// showCropTag shows the time left on the crop at pos above it to p only,
-// replacing the player's previous crop tag. refreshCropTags counts it down
-// and removes it after cropTagTime.
-func (s *session) showCropTag(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if s.cropTags == nil {
-		s.cropTags = map[*world.EntityHandle]*cropTag{}
-	}
-	if old, ok := s.cropTags[p.H()]; ok {
-		p.RemoveDebugShape(old.text)
-	}
-	tag := &cropTag{pos: pos, until: time.Now().Add(cropTagTime)}
-	s.cropTags[p.H()] = tag
-	s.drawCropTag(p, tx, tag)
-}
-
-// drawCropTag shows a tag's current text. Shown shapes are read by the
-// session later, so a changed text is a new shape replacing the old one.
-func (s *session) drawCropTag(p *player.Player, tx *world.Tx, tag *cropTag) {
-	r, ok := s.state.Crops[cropKey(tag.pos)]
-	if !ok {
-		return
-	}
-	text := s.cropText(r, tx, tag.pos)
-	if tag.text != nil {
-		if tag.text.Text == text {
-			return
-		}
-		p.RemoveDebugShape(tag.text)
-	}
-	tag.text = &debug.Text{Position: tag.pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), Text: text, Scale: 0.6}
-	p.AddDebugShape(tag.text)
-}
-
-// refreshCropTags counts the shown crop tags down every second and removes
-// them when their time is up or the crop is gone.
-func (s *session) refreshCropTags(tx *world.Tx) {
-	if len(s.cropTags) == 0 {
-		return
-	}
-	now := time.Now()
-	for e := range tx.Players() {
-		p := e.(*player.Player)
-		tag, ok := s.cropTags[p.H()]
-		if !ok {
-			continue
-		}
-		if _, crop := s.state.Crops[cropKey(tag.pos)]; !crop || now.After(tag.until) {
-			if tag.text != nil {
-				p.RemoveDebugShape(tag.text)
-			}
-			delete(s.cropTags, p.H())
-			continue
-		}
-		s.drawCropTag(p, tx, tag)
-	}
 }

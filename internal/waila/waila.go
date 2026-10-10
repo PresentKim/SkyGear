@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Tool is a tool icon of the panel (textures/r4isen1920/waila/icons/tags/
@@ -62,10 +62,36 @@ type Info struct {
 	Name string
 	// Lines are shown under the name.
 	Lines []string
-	// Source is the last, blue line: where the block comes from.
+	// Source is an optional last, blue line: where the block comes from.
 	Source string
 	// Tools are up to two tool icons at the top right.
 	Tools []ToolIcon
+	// Container, if not nil and not empty, shows the contents under the
+	// name.
+	Container *Container
+	// Marks are small marks after the name.
+	Marks Marks
+	// Line, if not nil, is a line under the name with an item icon.
+	Line *ItemLine
+}
+
+// Marks are small marks after the name (a drawer's lock and upgrades).
+type Marks struct {
+	Lock bool
+	// Multiplier is a capacity upgrade: 2, 4 or 8 shows ×2, ×4 or ×8.
+	Multiplier int
+	Void       bool
+}
+
+// ItemLine is a line of an item's name, its icon, then Text (only ASCII is
+// kept), such as "참나무 원목 [icon] x 132/1,024".
+type ItemLine struct {
+	Item item.Stack
+	Name string
+	Text string
+	// Gauge, if ShowGauge, is a ring after the text filled in Gauge tenths.
+	Gauge     int
+	ShowGauge bool
 }
 
 // panelPrefix starts a block panel title ("A": blocks, "B": entities).
@@ -76,8 +102,11 @@ const anchor = "__r4ui:anchor.top_middle__"
 
 // Format returns the title and subtitle that show info. The title is the
 // prefix, a 10-character tool field ("aa,a;zz,z:"), the text, and tokens the
-// pack removes; the subtitle is the icon item's runtime ID × 65536 (the pack
-// draws it like the form item icons) or "0" for no icon.
+// pack removes (also the container layout); the subtitle is
+// "i", the icon item's field (runtime ID × 65536 left padded with 'x' to 11
+// characters; the pack draws it like the form item icons), for a container
+// (or a tail) per panel slot the item's field and the count in 4
+// characters, and the tail of marks and the item line.
 func Format(info Info) (titleText, subtitle string) {
 	tools := [2]ToolIcon{{ToolNone, MarkNone}, {ToolNone, MarkNone}}
 	copy(tools[:], info.Tools)
@@ -104,13 +133,38 @@ func Format(info Info) (titleText, subtitle string) {
 		b.WriteString("\n§9§o" + clean(info.Source) + "§r")
 	}
 	b.WriteString(anchor)
-	subtitle = "0"
+	// The subtitle: "i" (keeps it text: the pack also reads it as a string
+	// for block states, and a bare number broke that, a grey box) and the
+	// icon field; for a container or a tail, each panel slot's item and
+	// count fields; then the tail (tail.go).
+	var sub strings.Builder
+	sub.WriteString("i")
+	var icon item.Stack
 	if info.Item != nil {
-		if icon := ui.ItemIcon(info.Item); icon != "" {
-			subtitle = icon
+		icon = item.NewStack(info.Item, 1)
+	}
+	sub.WriteString(itemField(icon))
+	c := info.Container
+	hasContainer := c != nil && !c.empty()
+	hasTail := info.Marks != (Marks{}) || info.Line != nil
+	if hasContainer || hasTail {
+		var slots [panelSlots]item.Stack
+		if hasContainer {
+			slots = c.slots()
+			b.WriteString(c.token())
+		}
+		for _, it := range slots {
+			sub.WriteString(itemField(it))
+			sub.WriteString(countField(it.Count()))
 		}
 	}
-	return b.String(), subtitle
+	if hasTail {
+		if info.Line != nil {
+			b.WriteString(lineToken)
+		}
+		sub.WriteString(tail(info.Marks, info.Line))
+	}
+	return b.String(), sub.String()
 }
 
 // clean removes what the pack would cut out of the text.

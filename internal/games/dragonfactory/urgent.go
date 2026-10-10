@@ -82,8 +82,6 @@ func urgentPrice(u *UrgentMission) int64 {
 // load lines (instance.SecondTicker).
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
-	s.refreshCropTags(tx)
-	s.updateLooks(tx)
 	s.tickFairy(tx)
 	s.updateLoadBoards(tx)
 	defer s.updateUrgentBars(tx)

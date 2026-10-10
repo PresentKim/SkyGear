@@ -35,9 +35,19 @@ func TestLookedAt(t *testing.T) {
 		if at, b, ok := lookedAt(p, tx, pos, rot); !ok || at != target {
 			t.Fatalf("looked at %v %T, want stone at %v", at, b, target)
 		}
+		// A young crop is low: aim near its bottom.
 		pos, rot = eyeAt(p, crop, 2)
+		pos = pos.Sub(mgl64.Vec3{0, 0.45, 0})
 		if at, _, ok := lookedAt(p, tx, pos, rot); !ok || at != crop {
 			t.Fatalf("looked at %v, want the crop at %v", at, crop)
+		}
+		// Over a young (low) crop the view goes on to the block behind it.
+		behind := crop.Add(cube.Pos{0, 0, 1})
+		tx.SetBlock(behind, block.Stone{}, nil)
+		pos, rot = eyeAt(p, behind, 2)
+		pos = pos.Add(mgl64.Vec3{0, 0.3, 0})
+		if at, _, ok := lookedAt(p, tx, pos, rot); !ok || at != behind {
+			t.Fatalf("over a young crop looked at %v, want the block behind at %v", at, behind)
 		}
 		pos, rot = eyeAt(p, target, lookReach+2)
 		if _, b, ok := lookedAt(p, tx, pos, rot); ok {
@@ -61,25 +71,43 @@ func TestLookInfo(t *testing.T) {
 			title, _ := waila.Format(info)
 			return title
 		}
-		if got := text(machinePos); !strings.Contains(got, "분쇄기") || !strings.Contains(got, "진행") || !strings.Contains(got, "드래곤팩토리") {
+		if got := text(machinePos); !strings.Contains(got, "분쇄기") || !strings.Contains(got, "조약돌") || strings.Contains(got, "드래곤팩토리") {
 			t.Errorf("crusher panel %q", got)
 		}
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
-		if got := text(drawerPos); !strings.Contains(got, "흙") || !strings.Contains(got, "70") || !strings.Contains(got, "잠김") {
-			t.Errorf("drawer panel %q", got)
+		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "70/2,048" || !info.Marks.Lock || info.Container != nil {
+			t.Errorf("drawer panel %+v, want a dirt line 70/2,048 and a lock mark", info)
+		} else if _, ok := info.Item.(Drawer); !ok {
+			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
 		placeCore(tx, corePos, "t1", block.Cobblestone{})
 		if got := text(corePos); !strings.Contains(got, "만드는 것") || !strings.Contains(got, "조약돌") {
 			t.Errorf("core panel %q", got)
 		}
+		if info := s.lookInfo(p, tx, corePos, tx.Block(corePos)); info.Container == nil || len(info.Container.Items) != 1 {
+			t.Errorf("core slots %+v, want its output", info.Container)
+		} else if _, ok := info.Container.Items[0].Item().(block.Cobblestone); !ok {
+			t.Errorf("core slot %v, want cobblestone", info.Container.Items[0])
+		}
 		tx.SetBlock(corePos.Side(cube.FaceDown), block.Iron{}, nil)
 		if got := text(corePos); !strings.Contains(got, "3티어 이상") {
 			t.Errorf("core on iron panel %q", got)
 		}
+		chestPos := cube.Pos{11, IslandY, 3}
+		tx.SetBlock(chestPos, block.NewChest(), nil)
+		if c, ok := tx.Block(chestPos).(block.Chest); ok {
+			_, _ = c.Inventory(tx, chestPos).AddItem(item.NewStack(block.Dirt{}, 20))
+		}
+		if title, _ := waila.Format(s.lookInfo(p, tx, chestPos, tx.Block(chestPos))); !strings.Contains(title, "__r4ui:inv.chest__") {
+			t.Errorf("chest panel %q has no contents", title)
+		}
+		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
+			t.Errorf("crusher panel has slots: %+v", info.Container)
+		}
 		stone := cube.Pos{1, IslandY + 4, 1}
 		tx.SetBlock(stone, block.Stone{}, nil)
 		info := s.lookInfo(p, tx, stone, block.Stone{})
-		if info.Name != "돌" || info.Source != "Minecraft" || len(info.Tools) == 0 || info.Item == nil {
+		if info.Name != "돌" || info.Source != "" || len(info.Tools) == 0 || info.Item == nil {
 			t.Errorf("stone panel %+v", info)
 		}
 	})

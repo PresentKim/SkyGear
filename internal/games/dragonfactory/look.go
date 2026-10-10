@@ -8,15 +8,18 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/cube/trace"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // The WAILA panel (internal/waila, docs/tech/waila.md) shows the block a
 // player looks at: its name, icon, tools and the game's own lines (machine
-// progress, drawer contents, crop time, what a core makes, the mission).
+// progress, drawer contents, crop time, what a core makes, the mission);
+// drawers and cores also show their item or output block in the slots.
 
 // lookReach is how far a player looks for a block, in blocks.
 const lookReach = 6
@@ -25,8 +28,10 @@ const lookReach = 6
 const lookInterval = 100 * time.Millisecond
 
 // lookedAt returns the block a player at pos with rotation rot looks at.
-// Blocks without a collision box (crops, flowers) count when the view
-// passes through them; air and liquids do not.
+// Crops count where the view crosses their height (it grows with the
+// stage; the client targets what is behind the empty space above a low
+// crop, 11th playtest), other blocks without a collision box (flowers)
+// anywhere in their cell; air and liquids do not count.
 func lookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation) (cube.Pos, world.Block, bool) {
 	eye := pos.Add(mgl64.Vec3{0, p.EyeHeight(), 0})
 	end := eye.Add(rot.Vec3().Mul(lookReach))
@@ -42,7 +47,12 @@ func lookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation)
 		if _, liquid := b.(world.Liquid); liquid {
 			return true
 		}
-		if len(b.Model().BBox(pos, tx)) > 0 && !trace.BlockIntersects(pos, tx, b, eye, end) {
+		if _, stage, crop := cropOf(b); crop {
+			h := float64(stage+1) / float64(maxCropStage+1)
+			if !trace.BBoxIntersects(cube.Box(0, 0, 0, 1, h, 1).Translate(pos.Vec3()), eye, end) {
+				return true
+			}
+		} else if len(b.Model().BBox(pos, tx)) > 0 && !trace.BlockIntersects(pos, tx, b, eye, end) {
 			return true
 		}
 		hit, found = pos, b
@@ -75,8 +85,16 @@ func (s *session) updateLook(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 	waila.Show(p, s.lookInfo(p, tx, at, b))
 }
 
-// updateLooks updates every player's panel (every second, for changing
-// lines such as progress and time left).
+// Fast updates every player's panel (instance.FastTicker, every 0.2
+// seconds: gauges and time left change while a player looks; Show sends only
+// what changed).
+func (s *session) Fast(tx *world.Tx) {
+	s.updateLooks(tx)
+}
+
+var _ instance.FastTicker = (*session)(nil)
+
+// updateLooks updates every player's panel.
 func (s *session) updateLooks(tx *world.Tx) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
@@ -87,21 +105,32 @@ func (s *session) updateLooks(tx *world.Tx) {
 // lookInfo is the panel of block b at pos.
 func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world.Block) waila.Info {
 	held, _ := p.HeldItems()
-	info := waila.Info{Name: blockName(b), Source: "Minecraft", Tools: waila.ToolsFor(b, held)}
+	info := waila.Info{Name: blockName(b), Tools: waila.ToolsFor(b, held)}
 	if it, ok := b.(world.Item); ok {
 		info.Item = it
 		info.Name = itemName(item.NewStack(it, 1))
 	}
-	if _, custom := b.(world.CustomBlock); custom {
-		info.Source = "드래곤팩토리"
-	}
+	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
 	case Machine:
 		info.Lines = machineLines(b)
 	case Drawer:
-		info.Lines = drawerLines(b)
+		// The drawer stays the icon; the held item is a line with its own
+		// small icon, and the lock and upgrades are small marks after the
+		// name (11th playtest).
+		info.Marks = waila.Marks{Lock: b.Locked, Void: b.Void}
+		if b.Capacity > 0 {
+			info.Marks.Multiplier = 1 << b.Capacity
+		}
+		if b.Item.Empty() {
+			info.Lines = []string{"§7비어있음"}
+		} else {
+			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item),
+				Text: fmt.Sprintf("%s/%s", formatInt(b.Count), formatInt(b.capacity()))}
+		}
 	case Core:
 		info.Lines = s.coreLines(tx, pos, b)
+		info.Container = coreContainer(tx, pos, b)
 	case DeliveryBox:
 		info.Lines = []string{s.missionLine()}
 	}
@@ -115,70 +144,108 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	return info
 }
 
-// machineLines are a machine's progress and what it works on.
+// containerOf is the contents of a vanilla container block for the panel.
+func containerOf(tx *world.Tx, pos cube.Pos, b world.Block) *waila.Container {
+	c, ok := b.(interface {
+		Inventory(*world.Tx, cube.Pos) *inventory.Inventory
+	})
+	if !ok {
+		return nil
+	}
+	layout := waila.LayoutChest
+	switch b.(type) {
+	case block.Furnace, block.BlastFurnace, block.Smoker:
+		layout = waila.LayoutFurnace
+	case block.Hopper:
+		layout = waila.LayoutHopper
+	case block.BrewingStand:
+		layout = waila.LayoutBrewing
+	case block.Chest, block.Barrel, block.ShulkerBox:
+	default:
+		return nil
+	}
+	inv := c.Inventory(tx, pos)
+	if inv == nil {
+		return nil
+	}
+	return &waila.Container{Layout: layout, Items: inv.Slots()}
+}
+
+// coreContainer shows the block a core makes in the panel's slots.
+func coreContainer(tx *world.Tx, pos cube.Pos, c Core) *waila.Container {
+	ct := c.ctype()
+	if ct == nil {
+		return nil
+	}
+	r, _ := matchRecipe(tx, pos, ct.Tier)
+	if r == nil {
+		return nil
+	}
+	it, ok := r.Output.(world.Item)
+	if !ok {
+		return nil
+	}
+	return &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{item.NewStack(it, 1)}}
+}
+
+// machineLines are what a machine holds and its progress, as a ring gauge
+// (11th playtest: the percent moved in uneven steps). Machines show no
+// slots; an empty one says so in grey.
 func machineLines(m Machine) []string {
 	st := m.st
 	if st == nil {
 		return nil
 	}
-	pct := st.progress * 100 / st.kind.interval
+	gauge := gaugeGlyph(st.progress * 10 / st.kind.interval)
 	var lines []string
-	switch st.kind {
-	case machineKinds[KindSellBox]:
-		lines = append(lines, fmt.Sprintf("판매 주기 §f%d%%", pct))
-	case machineKinds[KindHarvester]:
-		lines = append(lines, fmt.Sprintf("수확 주기 §f%d%%", pct))
+	switch {
+	case st.kind == machineKinds[KindSellBox]:
+		lines = append(lines, "판매 주기 §f"+gauge)
+	case st.kind == machineKinds[KindHarvester]:
+		lines = append(lines, "수확 주기 §f"+gauge)
+	case st.kind == machineKinds[KindMiner]:
+		lines = append(lines, "채굴 §f"+gauge)
 	default:
-		if _, in, ok := st.firstInput(); ok {
-			lines = append(lines, fmt.Sprintf("진행 §f%d%%", pct), fmt.Sprintf("넣은 것 §f%s ×%d", itemName(in), in.Count()))
-		} else if st.kind == machineKinds[KindMiner] {
-			lines = append(lines, fmt.Sprintf("채굴 §f%d%%", pct))
+		if _, it, ok := st.firstInput(); ok {
+			lines = append(lines, stackLine(it)+" §f"+gauge)
 		} else {
-			lines = append(lines, "대기 §7(넣을 것 없음)")
+			lines = append(lines, "§7비어있음")
+		}
+	}
+	for _, slot := range st.kind.output {
+		if it, _ := st.inv().Item(slot); !it.Empty() {
+			lines = append(lines, "§7결과 "+stackLine(it))
 		}
 	}
 	return lines
 }
 
-// drawerLines are a drawer's contents, lock and upgrades.
-func drawerLines(d Drawer) []string {
-	if d.Item.Empty() {
-		return []string{"비어 있음"}
+// stackLine is an item's name with its count when more than one.
+func stackLine(it item.Stack) string {
+	if it.Count() > 1 {
+		return fmt.Sprintf("§f%s §7×%d", itemName(it), it.Count())
 	}
-	lines := []string{fmt.Sprintf("%s §f%s§7/%s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))}
-	if d.Locked {
-		lines = append(lines, "§e잠김")
-	}
-	if d.Capacity > 0 {
-		lines = append(lines, fmt.Sprintf("용량 업그레이드 §f×%d", 1<<d.Capacity))
-	}
-	if d.Void {
-		lines = append(lines, "§d공허 업그레이드")
-	}
-	return lines
+	return "§f" + itemName(it)
 }
 
-// coreLines are what a core makes and when.
+// coreLines are what a core makes and its progress as a ring gauge (the
+// tier is in the name).
 func (s *session) coreLines(tx *world.Tx, pos cube.Pos, c Core) []string {
 	ct := c.ctype()
 	if ct == nil {
 		return nil
 	}
-	lines := []string{fmt.Sprintf("%d티어", ct.Tier)}
 	r, need := matchRecipe(tx, pos, ct.Tier)
 	switch {
 	case r != nil:
-		lines = append(lines, "만드는 것 §f"+blockName(r.Output))
+		line := "만드는 것 §f" + blockName(r.Output)
 		if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
-			lines = append(lines, "§c위 칸이 막혀 멈춤")
-		} else {
-			left := time.Duration(s.coreInterval(ct.Tier)-c.Progress) * time.Second / 20
-			lines = append(lines, fmt.Sprintf("다음까지 §f%.1f초", left.Seconds()))
+			return []string{line, "§c위 칸이 막혀 멈춤"}
 		}
+		return []string{line + " " + gaugeGlyph(c.Progress*10/max(s.coreInterval(ct.Tier), 1))}
 	case need > 0:
-		lines = append(lines, fmt.Sprintf("§c%d티어 이상 코어가 필요", need))
+		return []string{fmt.Sprintf("§c%d티어 이상 코어가 필요", need)}
 	default:
-		lines = append(lines, "§7이 코어 기반으로는 만들 것이 없음")
+		return []string{"§7이 코어 기반으로는 만들 것이 없음"}
 	}
-	return lines
 }

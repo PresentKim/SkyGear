@@ -1,6 +1,9 @@
 package waila
 
 import (
+	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -26,11 +29,11 @@ func TestFormat(t *testing.T) {
 			t.Errorf("title %q misses %q", title, want)
 		}
 	}
-	if sub == "0" || sub == "" {
+	if len(sub) != 1+iconWidth || sub == "i"+empty {
 		t.Errorf("subtitle %q, want an item icon", sub)
 	}
-	if _, sub := Format(Info{Name: "물"}); sub != "0" {
-		t.Errorf("no item: subtitle %q, want 0", sub)
+	if _, sub := Format(Info{Name: "물"}); sub != "i"+empty {
+		t.Errorf("no item: subtitle %q, want i and an empty field", sub)
 	}
 }
 
@@ -48,5 +51,128 @@ func TestToolsFor(t *testing.T) {
 	}
 	if got := ToolsFor(block.DiamondOre{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierStone}, 1)); len(got) == 0 || got[0] != (ToolIcon{PickaxeIron, MarkWrong}) {
 		t.Fatalf("diamond ore with a stone pickaxe: %v", got)
+	}
+}
+
+// TestFormatContainer: a chest adds up stacks of a kind into fixed-width
+// slot fields after the icon and names its layout in the title.
+func TestFormatContainer(t *testing.T) {
+	items := []item.Stack{item.NewStack(block.Dirt{}, 64), {}, item.NewStack(block.Dirt{}, 10), item.NewStack(block.Stone{}, 1)}
+	title, sub := Format(Info{Name: "상자", Item: block.NewChest(), Container: &Container{Layout: LayoutChest, Items: items}})
+	if !strings.Contains(title, "__r4ui:inv.chest__") || strings.Contains(title, "inv.size_") {
+		t.Fatalf("title %q", title)
+	}
+	if want := 1 + iconWidth + panelSlots*(iconWidth+countWidth); len(sub) != want {
+		t.Fatalf("subtitle is %d long, want %d", len(sub), want)
+	}
+	slot := func(i int) (string, string) {
+		start := 1 + iconWidth + i*(iconWidth+countWidth)
+		return sub[start : start+iconWidth], sub[start+iconWidth : start+iconWidth+countWidth]
+	}
+	if it, n := slot(0); it == empty || n != "  74" {
+		t.Errorf("slot 0 = %q %q, want dirt ×74", it, n)
+	}
+	if it, n := slot(1); it == empty || n != "    " {
+		t.Errorf("slot 1 = %q %q, want one stone", it, n)
+	}
+	if it, _ := slot(2); it != empty {
+		t.Errorf("slot 2 = %q, want empty", it)
+	}
+	// More kinds than the row: the rest is left out.
+	var many []item.Stack
+	for i := range 20 {
+		many = append(many, item.NewStack(block.Wool{Colour: item.Colours()[i%16]}, 1).WithCustomName(string(rune('a'+i))))
+	}
+	title, sub = Format(Info{Container: &Container{Layout: LayoutChest, Items: many}})
+	if strings.Contains(title, "inv.size_") {
+		t.Errorf("20 kinds: title %q, want no +n", title)
+	}
+	if it, _ := slot(9); it == empty {
+		t.Errorf("20 kinds: last row slot empty")
+	}
+	if it, _ := slot(10); it != empty {
+		t.Errorf("20 kinds: slot 10 = %q, want empty (one row)", it)
+	}
+}
+
+// empty is the item field of nothing.
+const empty = "xxxxxxxxxx0"
+
+// TestItemField: item fields are the runtime ID × 65536 left padded with
+// 'x' to iconWidth.
+func TestItemField(t *testing.T) {
+	for _, it := range []item.Stack{{}, item.NewStack(block.Stone{}, 1), item.NewStack(item.Diamond{}, 1), item.NewStack(block.NewChest(), 1)} {
+		f := itemField(it)
+		digits := strings.TrimLeft(f, "x")
+		if len(f) != iconWidth || strings.Contains(digits, "x") || (len(digits) > 1 && digits[0] == '0') {
+			t.Errorf("%v: field %q", it, f)
+		}
+		v, err := strconv.Atoi(digits)
+		if err != nil || v%65536 != 0 || (v == 0) != it.Empty() {
+			t.Errorf("%v: field %q is no item", it, f)
+		}
+	}
+}
+
+// TestPackFields: the pack cuts the subtitle where Format puts the fields.
+func TestPackFields(t *testing.T) {
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pack := string(data)
+	const v = "$var_subtitle_text"
+	// A field is width characters from start.
+	cut := func(start, width int) string {
+		return fmt.Sprintf("('%%.%ds' * (%s - ('%%.%ds' * %s)))", width, v, start, v)
+	}
+	wants := []string{cut(1, iconWidth)}
+	for k := range panelSlots {
+		start := 1 + iconWidth + k*(iconWidth+countWidth)
+		wants = append(wants, fmt.Sprintf("($index = %d)", k), cut(start, iconWidth), cut(start+iconWidth, countWidth))
+	}
+	for _, w := range wants {
+		if !strings.Contains(pack, w) {
+			t.Errorf("tile.r4ui misses %s", w)
+		}
+	}
+}
+
+// TestTail: marks and the item line sit at fixed places after the slots.
+func TestTail(t *testing.T) {
+	title, sub := Format(Info{
+		Name: "서랍", Item: block.NewChest(),
+		Marks: Marks{Lock: true, Multiplier: 4},
+		Line:  &ItemLine{Item: item.NewStack(block.Dirt{}, 1), Name: "흙", Text: "x 1,532/4,096", Gauge: 10, ShowGauge: true},
+	})
+	if !strings.Contains(title, lineToken) {
+		t.Errorf("title %q has no line token", title)
+	}
+	if len(sub) < nameStart || sub[nameStart:] != "흙" {
+		t.Fatalf("subtitle %q: name not at %d", sub, nameStart)
+	}
+	if got := sub[flagsStart:textStart]; got != "Lc-k" {
+		t.Errorf("flags %q, want Lc-k", got)
+	}
+	if got := sub[textStart:nameStart]; got != "x 1,532/4,096~~~~~~~~~~~" {
+		t.Errorf("text %q", got)
+	}
+	if got := sub[tailStart:flagsStart]; got == empty {
+		t.Errorf("line icon is empty")
+	}
+	// Only marks: no line token, still the full layout.
+	title, sub = Format(Info{Name: "서랍", Marks: Marks{Void: true}})
+	if strings.Contains(title, lineToken) || len(sub) != nameStart || sub[flagsStart:textStart] != "-aV-" {
+		t.Errorf("marks only: %q %q", title, sub)
+	}
+	// The pack cuts the same places.
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, at := range []int{tailStart, flagsStart, flagsStart + 1, flagsStart + 2, flagsStart + 3, textStart, nameStart} {
+		if w := fmt.Sprintf("('%%.%ds' * $var_subtitle_text)", at); !strings.Contains(string(data), w) {
+			t.Errorf("tile.r4ui does not cut at %d", at)
+		}
 	}
 }
