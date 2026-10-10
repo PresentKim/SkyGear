@@ -28,7 +28,14 @@ const (
 type Container struct {
 	Layout Layout
 	Items  []item.Stack
+	// Progress, if not empty, is drawn in place of the furnace arrow (an
+	// arrow item filled to the progress), at panel slot progressSlot.
+	Progress item.Stack
 }
+
+// progressSlot is the panel slot of Container.Progress (unused by the
+// furnace layout).
+const progressSlot = 17
 
 // panelSlots is how many container slots the panel has (index 8 is kept
 // for the block icon by the pack, as in WAILA).
@@ -59,6 +66,9 @@ func (c Container) slots() (out [panelSlots]item.Stack) {
 			if i < len(indexes) {
 				out[indexes[i]] = it
 			}
+		}
+		if !c.Progress.Empty() {
+			out[progressSlot] = c.Progress
 		}
 		return out
 	}

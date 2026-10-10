@@ -536,10 +536,11 @@
 				"arrow_centerer@common.empty_panel": {
 					"size": [21, "100%"], // 15px + 6px (padding)
 					"controls": [
+						// dragonfactory change: the server's progress arrow item (panel
+						// slot 17), filled to how far the item is cooked.
 						{
-							"arrow@r4isen1920_waila_common.image": {
-								"size": [15, 10],
-								"texture": "textures/r4isen1920/waila/arrow"
+							"arrow@r4isen1920_waila_tile.item_inventory": {
+								"$index": 17
 							}
 						}
 					]

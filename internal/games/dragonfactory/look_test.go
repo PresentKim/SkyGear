@@ -81,13 +81,10 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
 		placeCore(tx, corePos, "t1", block.Cobblestone{})
-		if got := text(corePos); !strings.Contains(got, "만드는 것") || !strings.Contains(got, "조약돌") {
-			t.Errorf("core panel %q", got)
-		}
-		if info := s.lookInfo(p, tx, corePos, tx.Block(corePos)); info.Container == nil || len(info.Container.Items) != 1 {
-			t.Errorf("core slots %+v, want its output", info.Container)
-		} else if _, ok := info.Container.Items[0].Item().(block.Cobblestone); !ok {
-			t.Errorf("core slot %v, want cobblestone", info.Container.Items[0])
+		if info := s.lookInfo(p, tx, corePos, tx.Block(corePos)); info.Line == nil || !strings.Contains(info.Line.Name, "생성물") || !strings.Contains(info.Line.Name, "조약돌") || info.Container != nil {
+			t.Errorf("core panel %+v, want a 생성물 line", info)
+		} else if _, ok := info.Line.Item.Item().(block.Cobblestone); !ok {
+			t.Errorf("core line icon %v, want cobblestone", info.Line.Item)
 		}
 		tx.SetBlock(corePos.Side(cube.FaceDown), block.Iron{}, nil)
 		if got := text(corePos); !strings.Contains(got, "3티어 이상") {
@@ -111,4 +108,15 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("stone panel %+v", info)
 		}
 	})
+}
+
+// TestFurnaceArrow: an unlit furnace shows an empty arrow.
+func TestFurnaceArrow(t *testing.T) {
+	it := furnaceArrow(block.NewFurnace(cube.North))
+	if a, ok := it.Item().(ProgressArrow); !ok || a.Step != 0 {
+		t.Errorf("unlit furnace arrow %v, want an empty progress arrow", it)
+	}
+	if !furnaceArrow(block.Stone{}).Empty() {
+		t.Errorf("stone has a furnace arrow")
+	}
 }

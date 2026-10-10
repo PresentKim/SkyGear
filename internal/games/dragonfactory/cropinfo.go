@@ -1,7 +1,6 @@
 package dragonfactory
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -56,13 +55,14 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 	}
 }
 
-// cropLines are the growth stage and the time left on a crop.
+// cropLines are the time left on a crop (the stage is only how the time
+// shows on the plant, not a number for players; 11th playtest).
 func (s *session) cropLines(r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
 	now, _, _ := s.clock.Now()
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := max(0, r.Planted+s.growTime(r.Kind)-now)
-		return []string{fmt.Sprintf("%d/%d단계", stage, maxCropStage), "남은 시간 §f" + formatDuration(left.Round(time.Second))}
+		return []string{"남은 시간 §f" + formatDuration(left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := max(0, r.NextFruit-now)

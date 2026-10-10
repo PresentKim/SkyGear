@@ -311,3 +311,23 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 		}
 	})
 }
+
+// TestMinerLegacySlots: items saved in the auto miner's old output slots
+// are kept and move into its one output slot.
+func TestMinerLegacySlots(t *testing.T) {
+	old := item.WriteNBT(item.NewStack(block.Cobblestone{}, 5), true)
+	old["Slot"] = byte(14)
+	m := Machine{Kind: KindMiner}.DecodeNBT(map[string]any{"Items": []any{old}}).(Machine)
+	if len(m.st.legacy) != 1 {
+		t.Fatalf("legacy %v, want the slot 14 stack", m.st.legacy)
+	}
+	saved := m.EncodeNBT()["Items"].([]any)
+	again := Machine{Kind: KindMiner}.DecodeNBT(map[string]any{"Items": saved}).(Machine)
+	if len(again.st.legacy) != 1 {
+		t.Fatalf("legacy after a save %v", again.st.legacy)
+	}
+	again.st.drainLegacy()
+	if it, _ := again.st.inv().Item(13); it.Count() != 5 || len(again.st.legacy) != 0 {
+		t.Errorf("output %v legacy %v, want the stack moved into slot 13", it, again.st.legacy)
+	}
+}

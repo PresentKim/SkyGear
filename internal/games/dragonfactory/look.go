@@ -114,6 +114,11 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	switch b := b.(type) {
 	case Machine:
 		info.Lines = machineLines(b)
+		if b.Kind == KindMiner && b.st != nil {
+			// The auto miner's one output slot shows like a container's.
+			it, _ := b.st.inv().Item(b.st.kind.output[0])
+			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{it}}
+		}
 	case Drawer:
 		// The drawer stays the icon; the held item is a line with its own
 		// small icon, and the lock and upgrades are small marks after the
@@ -129,8 +134,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 				Text: fmt.Sprintf("%s/%s", formatInt(b.Count), formatInt(b.capacity()))}
 		}
 	case Core:
-		info.Lines = s.coreLines(tx, pos, b)
-		info.Container = coreContainer(tx, pos, b)
+		info.Lines, info.Line = s.coreLines(tx, pos, b)
 	case DeliveryBox:
 		info.Lines = []string{s.missionLine()}
 	}
@@ -168,24 +172,36 @@ func containerOf(tx *world.Tx, pos cube.Pos, b world.Block) *waila.Container {
 	if inv == nil {
 		return nil
 	}
-	return &waila.Container{Layout: layout, Items: inv.Slots()}
+	return &waila.Container{Layout: layout, Items: inv.Slots(), Progress: furnaceArrow(b)}
 }
 
-// coreContainer shows the block a core makes in the panel's slots.
-func coreContainer(tx *world.Tx, pos cube.Pos, c Core) *waila.Container {
-	ct := c.ctype()
-	if ct == nil {
-		return nil
+// furnaceArrow is the progress arrow of a furnace, blast furnace or smoker:
+// filled to how far the item is cooked while it burns, empty when it does
+// not (11th playtest).
+func furnaceArrow(b world.Block) item.Stack {
+	var (
+		lit         bool
+		cook        time.Duration
+		requirement = 5 * time.Second
+	)
+	switch f := b.(type) {
+	case block.Furnace:
+		lit, requirement = f.Lit, 10*time.Second
+		_, _, cook = f.Durations()
+	case block.BlastFurnace:
+		lit = f.Lit
+		_, _, cook = f.Durations()
+	case block.Smoker:
+		lit = f.Lit
+		_, _, cook = f.Durations()
+	default:
+		return item.Stack{}
 	}
-	r, _ := matchRecipe(tx, pos, ct.Tier)
-	if r == nil {
-		return nil
+	step := 0
+	if lit {
+		step = min(int(cook*10/requirement), 10)
 	}
-	it, ok := r.Output.(world.Item)
-	if !ok {
-		return nil
-	}
-	return &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{item.NewStack(it, 1)}}
+	return item.NewStack(ProgressArrow{Step: step}, 1)
 }
 
 // machineLines are what a machine holds and its progress, as a ring gauge
@@ -212,6 +228,9 @@ func machineLines(m Machine) []string {
 			lines = append(lines, "§7비어있음")
 		}
 	}
+	if st.kind == machineKinds[KindMiner] {
+		return lines // its output shows as a slot
+	}
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
 			lines = append(lines, "§7결과 "+stackLine(it))
@@ -228,24 +247,28 @@ func stackLine(it item.Stack) string {
 	return "§f" + itemName(it)
 }
 
-// coreLines are what a core makes and its progress as a ring gauge (the
-// tier is in the name).
-func (s *session) coreLines(tx *world.Tx, pos cube.Pos, c Core) []string {
+// coreLines are a core's lines and its item line: what it makes, with its
+// icon and a ring gauge ("생성물: 조약돌 [icon] ◔"; the tier is in the name).
+func (s *session) coreLines(tx *world.Tx, pos cube.Pos, c Core) ([]string, *waila.ItemLine) {
 	ct := c.ctype()
 	if ct == nil {
-		return nil
+		return nil, nil
 	}
 	r, need := matchRecipe(tx, pos, ct.Tier)
 	switch {
 	case r != nil:
-		line := "만드는 것 §f" + blockName(r.Output)
-		if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
-			return []string{line, "§c위 칸이 막혀 멈춤"}
+		line := &waila.ItemLine{Name: "생성물: §f" + blockName(r.Output)}
+		if it, ok := r.Output.(world.Item); ok {
+			line.Item = item.NewStack(it, 1)
 		}
-		return []string{line + " " + gaugeGlyph(c.Progress*10/max(s.coreInterval(ct.Tier), 1))}
+		if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
+			return []string{"§c위 칸이 막혀 멈춤"}, line
+		}
+		line.Gauge, line.ShowGauge = c.Progress*10/max(s.coreInterval(ct.Tier), 1), true
+		return nil, line
 	case need > 0:
-		return []string{fmt.Sprintf("§c%d티어 이상 코어가 필요", need)}
+		return []string{fmt.Sprintf("§c%d티어 이상 코어가 필요", need)}, nil
 	default:
-		return []string{"§7이 코어 기반으로는 만들 것이 없음"}
+		return []string{"§7이 코어 기반으로는 만들 것이 없음"}, nil
 	}
 }

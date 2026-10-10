@@ -152,6 +152,10 @@
 			{
 				"requires": "(not (($container_title_copy - '§d§m§4') = $container_title_copy)) and $desktop_screen",
 				"$screen_content": "df_machine.sell_box_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§5') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.miner1_panel"
 			}
 		]
     }

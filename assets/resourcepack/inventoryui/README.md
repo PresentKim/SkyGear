@@ -13,5 +13,5 @@ manifest 의 UUID 는 원본 팩과 캐시가 섞이지 않도록 새로 만들�
 
 ## dragonfactory 수정
 
-- `ui/chest_screen.json` 끝에 드래곤팩토리 기계 창 분기 4개를 추가했다(제목 표식 `§d§m§1`~`§d§m§4`, PC 화면만).
+- `ui/chest_screen.json` 끝에 드래곤팩토리 기계 창 분기 5개를 추가했다(제목 표식 `§d§m§1`~`§d§m§5`, `§d§m§5` 는 결과 1칸 자동 채굴기, PC 화면만).
   기계 창 레이아웃은 `assets/resourcepack/dragonfactory/ui/df_machine.json`.

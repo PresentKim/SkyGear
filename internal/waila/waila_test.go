@@ -176,3 +176,18 @@ func TestTail(t *testing.T) {
 		}
 	}
 }
+
+// TestFurnaceProgress: the progress item goes to the slot the pack draws in
+// place of the arrow.
+func TestFurnaceProgress(t *testing.T) {
+	_, sub := Format(Info{Name: "화로", Container: &Container{Layout: LayoutFurnace,
+		Items: []item.Stack{item.NewStack(block.Dirt{}, 1)}, Progress: item.NewStack(block.Stone{}, 1)}})
+	start := 1 + iconWidth + progressSlot*(iconWidth+countWidth)
+	if got := sub[start : start+iconWidth]; got == empty || got != itemField(item.NewStack(block.Stone{}, 1)) {
+		t.Errorf("progress slot %q", got)
+	}
+	data, _ := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	if !strings.Contains(string(data), fmt.Sprintf(`"$index": %d`, progressSlot)) {
+		t.Errorf("tile.r4ui draws no slot %d", progressSlot)
+	}
+}

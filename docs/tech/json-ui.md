@@ -9,7 +9,7 @@
 | `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, 없으면 목록 |
 | `assets/resourcepack/dragonfactory/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
-| `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§4` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
+| `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
 | `assets/resourcepack/dragonfactory/textures/ui/df/*` | 테마 텍스처. `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽) |
 
 ## 폼 (메뉴·확인·입력)

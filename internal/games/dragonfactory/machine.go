@@ -69,7 +69,8 @@ var machineKinds = map[string]*machineKind{
 		help: []string{"§7자갈·모래·흙을 저절로 거릅니다(개당 3초)", "§7부산물은 옆·아래 상자로, 없으면 위로"},
 	},
 	KindMiner: {
-		name: "자동 채굴기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		// One output slot (11th playtest; it had four, like the harvester).
+		name: "자동 채굴기", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		help: []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 	},
 	KindHarvester: {
@@ -134,6 +135,25 @@ type machineState struct {
 	cracking bool
 	// lastUse is when a sieve was last sifted by hand.
 	lastUse time.Time
+	// legacy are saved items of slots the kind no longer has (the auto
+	// miner had four output slots); they move into the output as it frees
+	// up, and are saved until then.
+	legacy []item.Stack
+}
+
+// legacySlot is the first saved slot number of legacy items (not a window
+// slot).
+const legacySlot = 100
+
+// drainLegacy moves a legacy item into the output when it fits.
+func (st *machineState) drainLegacy() {
+	if len(st.legacy) == 0 || len(st.kind.output) == 0 {
+		return
+	}
+	if it := st.legacy[0]; fits(st.inv(), st.kind.output, []item.Stack{it}) {
+		put(st.inv(), st.kind.output, it)
+		st.legacy = st.legacy[1:]
+	}
 }
 
 func newMachine(kind, owner, ownerName string) Machine {
@@ -463,6 +483,11 @@ func (m Machine) EncodeNBT() map[string]any {
 			}
 		}
 	}
+	for i, it := range m.st.legacy {
+		nbt := item.WriteNBT(it, true)
+		nbt["Slot"] = byte(legacySlot + i)
+		items = append(items, nbt)
+	}
 	data["Items"] = items
 	data["Progress"] = int32(m.st.progress)
 	data["Owner"] = m.st.owner
@@ -481,8 +506,12 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	for _, v := range items {
 		if nbt, ok := v.(map[string]any); ok {
 			slot, _ := nbt["Slot"].(byte)
-			if n.st.role(int(slot)) != roleNone {
-				_ = n.st.inv().SetItem(int(slot), item.ReadNBT(nbt, nil))
+			it := item.ReadNBT(nbt, nil)
+			switch {
+			case n.st.role(int(slot)) != roleNone:
+				_ = n.st.inv().SetItem(int(slot), it)
+			case !it.Empty():
+				n.st.legacy = append(n.st.legacy, it)
 			}
 		}
 	}
@@ -553,6 +582,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st := m.st
+	st.drainLegacy()
 	switch m.Kind {
 	case KindCrusher:
 		st.process(func(in item.Stack) []item.Stack {
