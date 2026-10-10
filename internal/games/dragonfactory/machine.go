@@ -70,11 +70,11 @@ var machineKinds = map[string]*machineKind{
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
-		name: "자동 채굴기", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		name: "자동 자원 채굴기", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		help: []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 	},
 	KindHarvester: {
-		name: "자동 수확기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		name: "자동 농작물 수확기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		help: []string{"§7같은 높이 9×9 안의 다 자란 작물을 2초마다 하나씩 거둡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
 	},
 	KindSellBox: {

@@ -51,7 +51,7 @@ flipbook 은 클라이언트가 항상 돌린다. 켜고 끄는 것은 **블록 
 3. `textures/flipbook_textures.json` 에 위 예시 항목(`flipbook_texture` 는 `textures/blocks/harvester_side_on`, `atlas_tile` 은 `dragonfactory_harvester_side_on`).
 4. Go 는 활성 상태의 permutation 재질 이름만 `dragonfactory_harvester_side_on` 으로 적는다(`pack_test.go` 가 키가 있는지 확인).
 
-실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook 이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 작은 기계 하나(자동 수확기 옆면)로 시험한 뒤 다른 기계로 넓힌다.
+실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook 이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 작은 기계 하나(자동 농작물 수확기 옆면)로 시험한 뒤 다른 기계로 넓힌다.
 
 ## 참고
 

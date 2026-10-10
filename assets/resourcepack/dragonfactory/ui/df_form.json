@@ -944,10 +944,11 @@
       {
         // 16×16 like an inventory slot: the item renderer draws items at
         // that size and a smaller box let them spill over the left edge,
-        // where the scroll view clipped them (10th playtest).
+        // where the scroll view clipped them (10th playtest; still a little
+        // at 4, 11th playtest).
         "icon@df_form.button_icon": {
           "$df_icon_size": [ 16, 16 ],
-          "offset": [ 4, 0 ],
+          "offset": [ 7, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle"
         }
@@ -956,7 +957,7 @@
         // Text cells: left, after the icon if there is one.
         "text@df_form.cell_text": {
           "text_alignment": "left",
-          "offset": [ 23, 0 ],
+          "offset": [ 26, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle"
         }

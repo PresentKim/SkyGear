@@ -77,15 +77,45 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			if !fits(st.inv(), st.kind.output, drops) {
 				return
 			}
+			after, drops = replantSeed(st, after, drops)
 			tx.SetBlock(at, after, nil)
 			if kind, _, ok := cropOf(after); ok {
 				s.plantCrop(at, kind)
 			}
 			tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 			for _, it := range drops {
-				put(st.inv(), st.kind.output, it)
+				if !it.Empty() {
+					put(st.inv(), st.kind.output, it)
+				}
 			}
 			return
 		}
 	}
+}
+
+// replantSeed takes the seed a harvested crop is replanted with: one from
+// its drops, else one from the harvester's output. Without a seed the crop
+// is not replanted (after becomes air). Stems (melon, pumpkin) need none.
+func replantSeed(st *machineState, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
+	if _, _, crop := cropOf(after); !crop {
+		return after, drops
+	}
+	seedItem, ok := after.(world.Item)
+	if !ok {
+		return after, drops
+	}
+	seed := item.NewStack(seedItem, 1)
+	for i, it := range drops {
+		if it.Comparable(seed) && it.Count() > 0 {
+			drops[i] = it.Grow(-1)
+			return after, drops
+		}
+	}
+	for _, slot := range st.kind.output {
+		if it, _ := st.inv().Item(slot); !it.Empty() && it.Comparable(seed) {
+			_ = st.inv().SetItem(slot, it.Grow(-1))
+			return after, drops
+		}
+	}
+	return block.Air{}, drops
 }

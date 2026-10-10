@@ -52,7 +52,7 @@ var ShopItems = append([]ShopItem{
 		return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1).WithCustomName("§r§b개척자의 곡괭이")
 	}, 500, 2, 1, 0},
 	{"stone_hoe", "돌 괭이", func() item.Stack { return item.NewStack(item.Hoe{Tier: item.ToolTierStone}, 1) }, 150, 8, 2, day},
-	{"harvester", "자동 수확기", func() item.Stack { return machineItem(KindHarvester) }, 4000, 9, 1, day},
+	{"harvester", "자동 농작물 수확기", func() item.Stack { return machineItem(KindHarvester) }, 4000, 9, 1, day},
 	{"iron_pickaxe", "철 곡괭이", func() item.Stack { return item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1) }, 1500, 3, 1, day},
 	// Materials (재료 tab), also core bases a save cannot make yet.
 	{"mat_cobblestone", "조약돌 x16", func() item.Stack { return item.NewStack(block.Cobblestone{}, 16) }, 40, 2, 4, day},
