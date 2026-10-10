@@ -18,6 +18,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // Slots is the number of save slots per account.
@@ -57,7 +58,10 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		},
 		Handler:  func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
 		ChatName: account.DisplayName,
-		Quit:     account.Forget,
+		Quit: func(p *player.Player) {
+			account.Forget(p)
+			waila.Forget(p)
+		},
 	}
 }
 

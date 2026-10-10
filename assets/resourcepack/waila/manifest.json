@@ -1,0 +1,37 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "WAILA (DragonFactory)",
+    "description": "WAILA by r4isen1920 (MIT), adapted for DragonFactory",
+    "uuid": "5485ea38-b7e1-4b79-85dd-7e9e3d6e4a60",
+    "pack_scope": "world",
+    "version": [
+      5,
+      1,
+      1
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      100
+    ]
+  },
+  "modules": [
+    {
+      "description": "Resource Pack",
+      "type": "resources",
+      "uuid": "13a8ef0e-fe52-4018-b5ac-1476a9af011b",
+      "version": [
+        5,
+        1,
+        1
+      ]
+    }
+  ],
+  "metadata": {
+    "product_type": "addon",
+    "authors": [
+      "r4isen1920"
+    ]
+  }
+}

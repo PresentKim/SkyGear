@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // Urgent missions (긴급 매입, docs/design/02-dragonfactory.md §5.3): now and
@@ -82,6 +83,7 @@ func urgentPrice(u *UrgentMission) int64 {
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
 	s.refreshCropTags(tx)
+	s.updateLooks(tx)
 	s.tickFairy(tx)
 	s.updateLoadBoards(tx)
 	defer s.updateUrgentBars(tx)
@@ -127,7 +129,7 @@ func (s *session) startUrgent(tx *world.Tx, now time.Duration) {
 	name := itemName(item.NewStack(it, 1))
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		p.SendTitle(title.New("§6긴급 매입").WithSubtitle(fmt.Sprintf("§f%s §7최대 %d개 · 개당 §6%s", name, u.Max, formatMoney(urgentPrice(u)))))
+		waila.SendTitle(p, title.New("§6긴급 매입").WithSubtitle(fmt.Sprintf("§f%s §7최대 %d개 · 개당 §6%s", name, u.Max, formatMoney(urgentPrice(u)))))
 		p.PlaySound(sound.Note{Instrument: sound.Bell(), Pitch: 12})
 	}
 	s.broadcast(tx, fmt.Sprintf("§6[긴급 매입] §f%s §7최대 %d개를 매입가의 %d%%(개당 %s)로 %d분 동안 삽니다. 납품함·메인 미션 폼의 \"긴급 납품\"으로 내세요.",

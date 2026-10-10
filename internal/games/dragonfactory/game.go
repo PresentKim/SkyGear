@@ -18,6 +18,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // IslandY is the Y level of the island surface.
@@ -102,6 +103,8 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 
 // session is one active save. All fields are owned by the instance world.
 type session struct {
+	// lastLook is when each player's WAILA panel was last updated.
+	lastLook map[*world.EntityHandle]time.Time
 	// cropTags are the crop time tags shown, one per player.
 	cropTags map[*world.EntityHandle]*cropTag
 	// urgentBarShown is whether the urgent mission boss bar is up.
@@ -193,6 +196,8 @@ func (s *session) Leave(p *player.Player) {
 	s.stopExpand(p, p.Tx())
 	p.RemoveBossBar()
 	delete(s.cropTags, p.H())
+	delete(s.lastLook, p.H())
+	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
 	p.RemoveAllDebugShapes()

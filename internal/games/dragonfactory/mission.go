@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // Requirement is an item a mission asks for.
@@ -135,7 +136,7 @@ func (s *session) checkMission(tx *world.Tx, by *player.Player) {
 	s.storeState()
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		p.SendTitle(title.New(fmt.Sprintf("§6Lv.%d", s.state.Level)).WithSubtitle("§f미션 완료: " + m.Name))
+		waila.SendTitle(p, title.New(fmt.Sprintf("§6Lv.%d", s.state.Level)).WithSubtitle("§f미션 완료: "+m.Name))
 		p.PlaySound(sound.LevelUp{})
 	}
 	reward := fmt.Sprintf("코어 강화 포인트 +%d", m.Reward.CorePoints)

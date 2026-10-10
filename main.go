@@ -61,7 +61,7 @@ func run(log *slog.Logger) error {
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
 	conf.Entities = entity.DefaultRegistry.Config().New(dragonfactory.EntityTypes())
-	for _, dir := range []string{"assets/resourcepack/dragonfactory", "assets/resourcepack/inventoryui"} {
+	for _, dir := range []string{"assets/resourcepack/dragonfactory", "assets/resourcepack/inventoryui", "assets/resourcepack/waila"} {
 		pack, err := resourcepack.Load(dir)
 		if err != nil {
 			return fmt.Errorf("load resource pack: %w", err)

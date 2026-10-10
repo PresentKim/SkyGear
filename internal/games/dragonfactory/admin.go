@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/timed"
 )
@@ -146,6 +147,28 @@ func (c adminSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		s.Second(tx)
 		total, day, _ := s.clock.Now()
 		o.Printf("인스턴스 시간 %s · %d일차", formatPlayTime(total), day)
+	}
+}
+
+type adminLook struct {
+	adminBase
+	Sub   cmd.SubCommand `cmd:"look"`
+	Yaw   float64        `cmd:"yaw"`
+	Pitch float64        `cmd:"pitch"`
+}
+
+// Run turns the operator's view (yaw 0 = south, pitch 90 = down) and
+// updates the WAILA panel at once (tests the panel without aiming).
+func (c adminLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if p, s, ok := c.session(src, o, tx); ok {
+		r := p.Rotation()
+		p.Move(mgl64.Vec3{}, c.Yaw-r.Yaw(), c.Pitch-r.Pitch())
+		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
+		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+			o.Printf("보는 블록: %s (%d, %d, %d)", blockName(b), at[0], at[1], at[2])
+		} else {
+			o.Printf("보는 블록 없음")
+		}
 	}
 }
 
@@ -297,5 +320,5 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}))
 }

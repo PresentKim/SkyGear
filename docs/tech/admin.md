@@ -16,6 +16,7 @@
 | `/dfadmin timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |
 | `/dfadmin fairy` | 선물 요정을 지금 나에게 부름 |
 | `/dfadmin line` | 시작 코어에 샘플 무인 라인(채굴기·분쇄기·호퍼·상자·판매함) 설치 |
+| `/dfadmin look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신, 보는 블록 출력(시나리오·실기 확인용) |
 | `/dfadmin status` | `level= money= points= speed1= budget= sold=` 출력(시나리오 확인용) |
 
 ## 서버 부하 표시

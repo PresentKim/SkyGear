@@ -129,7 +129,8 @@ func (h *handler) useHeldScreen(p *player.Player, held item.Stack) {
 
 // HandleMove returns players that fall below the island into the void, and
 // keeps players in island expansion mode in place.
-func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, _ cube.Rotation) {
+func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
+	h.s.updateLook(ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
 	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
 		ctx.Cancel()
 		return

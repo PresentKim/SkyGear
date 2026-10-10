@@ -64,18 +64,27 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 
 // cropText describes the time left on a crop.
 func (s *session) cropText(r *CropRecord, tx *world.Tx, pos cube.Pos) string {
+	lines := s.cropLines(r, tx, pos)
+	text := "§a" + cropNames[r.Kind] + " §f" + lines[0]
+	for _, l := range lines[1:] {
+		text += "\n§7" + l
+	}
+	return text
+}
+
+// cropLines are the growth stage and the time left on a crop.
+func (s *session) cropLines(r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
 	now, _, _ := s.clock.Now()
 	_, stage, _ := cropOf(tx.Block(pos))
-	name := cropNames[r.Kind]
 	if stage < maxCropStage {
 		left := max(0, r.Planted+s.growTime(r.Kind)-now)
-		return fmt.Sprintf("§a%s §f%d/%d단계\n§7다 자라기까지 §f%s", name, stage, maxCropStage, formatDuration(left.Round(time.Second)))
+		return []string{fmt.Sprintf("%d/%d단계", stage, maxCropStage), "다 자라기까지 §f" + formatDuration(left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := max(0, r.NextFruit-now)
-		return fmt.Sprintf("§a%s §f다 자람\n§7다음 열매까지 §f%s", name, formatDuration(left.Round(time.Second)))
+		return []string{"다 자람", "다음 열매까지 §f" + formatDuration(left.Round(time.Second))}
 	}
-	return fmt.Sprintf("§a%s §f다 자람", name)
+	return []string{"다 자람"}
 }
 
 // cropTag is the crop time tag shown to one player.

@@ -290,10 +290,13 @@ func (p *Player) FallDistance() float64 {
 func (p *Player) SendTitle(t title.Title) {
 	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
 	if t.Text() != "" || t.Subtitle() != "" {
-		p.session().SendTitle(t.Text())
+		// dragonfactory patch: the subtitle first. The client shows a subtitle
+		// with the next title, so one sent after its title came a title late
+		// (WAILA reads the subtitle when the title arrives).
 		if t.Subtitle() != "" {
 			p.session().SendSubtitle(t.Subtitle())
 		}
+		p.session().SendTitle(t.Text())
 	}
 	if t.ActionText() != "" {
 		p.session().SendActionBarMessage(t.ActionText())

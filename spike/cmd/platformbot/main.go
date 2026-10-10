@@ -54,7 +54,7 @@ func main() {
 //	form:<title>=<button index>   wait for a form with title and press a button
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
-//	expect:<text>                wait for a chat message, command output, toast or sidebar line containing text
+//	expect:<text>                wait for a chat message, command output, title, toast or sidebar line containing text
 //	expectre:<regexp>            wait for a chat message or command output matching regexp
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
@@ -196,6 +196,10 @@ func messages(pk packet.Packet) []string {
 			out = append(out, m.Message)
 		}
 		return out
+	case *packet.SetTitle:
+		if pk.ActionType == packet.TitleActionSetTitle {
+			return []string{pk.Text}
+		}
 	case *packet.ToastRequest:
 		return []string{pk.Title + " " + pk.Message}
 	case *packet.SetDisplayObjective:
