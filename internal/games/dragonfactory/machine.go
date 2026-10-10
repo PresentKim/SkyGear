@@ -740,7 +740,7 @@ func (s *session) insertInto(tx *world.Tx, pos cube.Pos, one item.Stack) bool {
 	case Machine:
 		return b.st != nil && b.st.insert(one)
 	case Drawer:
-		if b.insert(one, 1) == 1 {
+		if b.takesAutomated(one) && b.insert(one, 1) == 1 {
 			s.setDrawer(tx, pos, b)
 			return true
 		}

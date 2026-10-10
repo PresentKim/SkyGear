@@ -9,6 +9,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 )
@@ -335,5 +336,59 @@ func TestDrawerStatesMatchRuntimeIDs(t *testing.T) {
 			t.Errorf("%v has runtime ID %d after %d", f, rid, last)
 		}
 		last = rid
+	}
+}
+
+// TestDrawerPunchFullInventoryDrops: with a full inventory the taken item
+// drops at the player instead of vanishing.
+func TestDrawerPunchFullInventoryDrops(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, IslandY, 0}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}, nil)
+	})
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		inv := p.Inventory()
+		for slot := range inv.Size() {
+			_ = inv.SetItem(slot, item.NewStack(block.Stone{}, 64))
+		}
+		tx.Block(pos).(Drawer).Punch(pos, cube.FaceSouth, tx, p)
+		if d := tx.Block(pos).(Drawer); d.Count != 9 {
+			t.Fatalf("count %d, want 9", d.Count)
+		}
+		dropped := 0
+		for e := range tx.Entities() {
+			if b, ok := e.(*entity.Ent); ok {
+				if ib, ok := b.Behaviour().(*entity.ItemBehaviour); ok && ib.Item().Count() > 0 {
+					if _, cobble := ib.Item().Item().(block.Cobblestone); cobble {
+						dropped += ib.Item().Count()
+					}
+				}
+			}
+		}
+		if dropped != 1 {
+			t.Errorf("dropped %d cobblestone, want 1", dropped)
+		}
+	})
+}
+
+// TestLockedEmptyDrawer: a locked drawer without an item kind takes nothing
+// from hoppers and machines, but a player's item, which becomes its kind.
+func TestLockedEmptyDrawer(t *testing.T) {
+	d := Drawer{Locked: true}
+	dirt := item.NewStack(block.Dirt{}, 1)
+	if d.takesAutomated(dirt) {
+		t.Fatal("locked empty drawer takes automated items")
+	}
+	if d.insert(dirt, 1) != 1 || d.Item.Empty() {
+		t.Fatal("a player cannot put an item into a locked empty drawer")
+	}
+	if !d.takesAutomated(dirt) || d.takesAutomated(item.NewStack(block.Stone{}, 1)) {
+		t.Error("after a player's item, the locked drawer takes that kind only")
+	}
+	if (Drawer{}).takesAutomated(dirt) == false {
+		t.Error("an unlocked empty drawer takes automated items")
 	}
 }

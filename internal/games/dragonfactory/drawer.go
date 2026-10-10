@@ -120,6 +120,12 @@ func (d Drawer) accepts(it item.Stack) bool {
 	return d.Item.Empty() || d.Item.Comparable(it)
 }
 
+// takesAutomated reports whether hoppers and machines may put it in: a
+// locked drawer without an item kind takes only what players put in.
+func (d Drawer) takesAutomated(it item.Stack) bool {
+	return !(d.Locked && d.Item.Empty()) && d.accepts(it)
+}
+
 // insert adds up to n of it and returns how many were taken (void counts).
 func (d *Drawer) insert(it item.Stack, n int) int {
 	if !d.accepts(it) || n <= 0 {
@@ -272,11 +278,15 @@ func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 
 // Activate inserts the held stack (or all matching items on a double use)
 // when the front face is used, or applies an upgrade. Sneaking with an empty
-// hand opens the drawer menu.
+// hand opens the drawer menu. Other faces do nothing.
 func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
 	if !ok || !ok2 || !s.canBuild(pos) {
+		return false
+	}
+	// Only the front works, the menu too (11th playtest).
+	if face != d.Facing.Face() {
 		return false
 	}
 	held, off := p.HeldItems()
@@ -285,9 +295,6 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 			s.showDrawer(p, pos)
 		}
 		return true
-	}
-	if face != d.Facing.Face() {
-		return false
 	}
 	if isDrawerKey(held) || isLegacyLockUpgrade(held) {
 		if !s.debounced(p) {
@@ -352,8 +359,10 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 		return
 	}
 	s.setDrawer(tx, pos, d)
+	// What does not fit drops at the player (it vanished before: the rest
+	// was computed as an empty stack when nothing fit, 11th playtest).
 	if added, _ := p.Inventory().AddItem(out); added < out.Count() {
-		s.dropAt(tx, p.Position(), out.Grow(added-out.Count()))
+		s.dropAt(tx, p.Position(), out.Grow(-added))
 	}
 }
 
@@ -361,7 +370,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 func (d Drawer) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
 	inv := h.Inventory(tx, pos.Side(h.Facing.Opposite()))
 	for slot, st := range inv.Slots() {
-		if d.insert(st, 1) == 1 {
+		if d.takesAutomated(st) && d.insert(st, 1) == 1 {
 			_ = inv.SetItem(slot, st.Grow(-1))
 			if s, ok := activeGame.sessionOf(tx.World()); ok {
 				s.setDrawer(tx, pos, d)
@@ -448,11 +457,9 @@ func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		}
 		p.Message("§e잠금 업그레이드가 서랍 잠금 키로 바뀌었습니다. 키는 닳지 않고 잠금을 켜고 끕니다.")
 	}
-	if !d.Locked && d.Item.Empty() {
-		// An empty drawer cannot be locked.
-		tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-		return
-	}
+	// An empty drawer locks too: then hoppers and machines put nothing in
+	// it, and the first item a player puts in by hand becomes its kind
+	// (11th playtest).
 	d.Locked = !d.Locked
 	if !d.Locked && d.Count == 0 {
 		d.Item = item.Stack{}
