@@ -31,3 +31,7 @@
 | `접속 3명 · 인스턴스 2개 · G 120` | 접속자, 활성 인스턴스, 고루틴 수 |
 
 월드(로비·인스턴스)마다 따로 틱을 돌리므로 TPS·틱은 내가 있는 월드 값이다(Dragonfly 패치 `World.TickStats`).
+
+## 부하 시험
+
+`/dfadmin factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(코어 줄·체 줄·농장과 수확기)을 지어 사이드바 부하를 본다. 결과와 Dragonfly 스레딩은 [performance.md](performance.md).

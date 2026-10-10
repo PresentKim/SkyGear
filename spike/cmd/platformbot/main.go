@@ -56,6 +56,7 @@ func main() {
 //	cmd:/text                    run a command
 //	expect:<text>                wait for a chat message, command output, title, toast or sidebar line containing text
 //	expectre:<regexp>            wait for a chat message or command output matching regexp
+//	show:<regexp>                like expectre, and print the message (e.g. a load line)
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
 //	wait:<seconds>               sleep
@@ -146,6 +147,20 @@ func run(action string) {
 			return ok && is.WindowID == protocol.WindowIDInventory && int(is.Slot) == slot && is.NewItem.Stack.Count == 0
 		})
 		fmt.Println("OK  slot emptied:", slot)
+	case "show":
+		re := regexp.MustCompile(arg)
+		var shown string
+		waitFor(func(pk packet.Packet) bool {
+			holdForm(pk)
+			for _, m := range messages(pk) {
+				if re.MatchString(m) {
+					shown = m
+					return true
+				}
+			}
+			return false
+		})
+		fmt.Println("OK  shown:", shown)
 	case "expectre":
 		re := regexp.MustCompile(arg)
 		waitFor(func(pk packet.Packet) bool {

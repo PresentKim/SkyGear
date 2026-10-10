@@ -79,6 +79,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
+	s.tickReach = inst.LoadRadius() * 16
 	s.loadCrops()
 	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
 	inst.World.Do(func(tx *world.Tx) {
@@ -138,6 +139,9 @@ type session struct {
 	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
+	// tickReach is how far from a viewer blocks tick, in blocks (the load
+	// radius in chunks).
+	tickReach int
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and
