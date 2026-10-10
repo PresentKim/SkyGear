@@ -54,7 +54,7 @@ func main() {
 //	form:<title>=<button index>   wait for a form with title and press a button
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
-//	expect:<text>                wait for a chat message, command output or sidebar line containing text
+//	expect:<text>                wait for a chat message, command output, toast or sidebar line containing text
 //	expectre:<regexp>            wait for a chat message or command output matching regexp
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
 //	waitfile:<file>              wait until file exists
@@ -149,6 +149,7 @@ func run(action string) {
 	case "expectre":
 		re := regexp.MustCompile(arg)
 		waitFor(func(pk packet.Packet) bool {
+			holdForm(pk)
 			for _, m := range messages(pk) {
 				if re.MatchString(m) {
 					return true
@@ -159,6 +160,7 @@ func run(action string) {
 		fmt.Println("OK  matched:", arg)
 	case "expect":
 		waitFor(func(pk packet.Packet) bool {
+			holdForm(pk)
 			for _, m := range messages(pk) {
 				if strings.Contains(m, arg) {
 					return true
@@ -194,6 +196,8 @@ func messages(pk packet.Packet) []string {
 			out = append(out, m.Message)
 		}
 		return out
+	case *packet.ToastRequest:
+		return []string{pk.Title + " " + pk.Message}
 	case *packet.SetDisplayObjective:
 		// Sidebar title and lines count as messages too.
 		return []string{pk.DisplayName}
@@ -207,7 +211,25 @@ func messages(pk packet.Packet) []string {
 	return nil
 }
 
+// heldForms are forms that arrived while an expect step waited for a
+// message: a toast may come after the form that follows it (the server
+// holds quick toasts back), so the next form step still gets the form.
+var heldForms []packet.Packet
+
+// holdForm keeps a form passed by an expect step.
+func holdForm(pk packet.Packet) {
+	if _, ok := pk.(*packet.ModalFormRequest); ok {
+		heldForms = append(heldForms, pk)
+	}
+}
+
 func waitFor(match func(packet.Packet) bool) packet.Packet {
+	for i, pk := range heldForms {
+		if match(pk) {
+			heldForms = append(heldForms[:i:i], heldForms[i+1:]...)
+			return pk
+		}
+	}
 	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	for {
 		pk, err := conn.ReadPacket()

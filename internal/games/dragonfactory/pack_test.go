@@ -38,8 +38,9 @@ type packAtlas struct {
 	} `json:"texture_data"`
 }
 
-// TestPackHasItemAssets: every custom item has an atlas entry, its PNG, a
-// name line matching Name() and a form icon.
+// TestPackHasItemAssets: every custom item that is no block has an atlas
+// entry and its PNG (block items show as their block and have none), and
+// every item has a name line matching Name() and a form icon.
 func TestPackHasItemAssets(t *testing.T) {
 	var atlas packAtlas
 	readPackJSON(t, "textures/item_texture.json", &atlas)
@@ -51,7 +52,12 @@ func TestPackHasItemAssets(t *testing.T) {
 	for _, it := range items {
 		id, _ := it.EncodeItem()
 		e, ok := atlas.TextureData[id]
-		if !ok {
+		if _, block := it.(world.Block); block {
+			// Block items are drawn as their block; an icon is unused.
+			if ok {
+				t.Errorf("%s: block item has an unused icon in item_texture.json", id)
+			}
+		} else if !ok {
 			t.Errorf("%s: not in item_texture.json", id)
 		} else if !packFileExists(e.Textures + ".png") {
 			t.Errorf("%s: missing %s.png", id, e.Textures)

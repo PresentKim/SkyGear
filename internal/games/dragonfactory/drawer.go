@@ -449,7 +449,8 @@ func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		p.Message("§e잠금 업그레이드가 서랍 잠금 키로 바뀌었습니다. 키는 닳지 않고 잠금을 켜고 끕니다.")
 	}
 	if !d.Locked && d.Item.Empty() {
-		p.SendTip("§c빈 서랍은 잠글 수 없습니다. 아이템을 넣은 뒤 잠그세요.")
+		// An empty drawer cannot be locked.
+		tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
 		return
 	}
 	d.Locked = !d.Locked
@@ -457,10 +458,11 @@ func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		d.Item = item.Stack{}
 	}
 	s.setDrawer(tx, pos, *d)
+	// The lock mark on the front shows the state; a sound confirms it.
 	if d.Locked {
-		p.SendTip("§e" + lockGlyph + " 서랍을 잠갔습니다")
+		tx.PlaySound(pos.Vec3Centre(), sound.TrapdoorClose{Block: block.CopperTrapdoor{}})
 	} else {
-		p.SendTip("§a서랍 잠금을 풀었습니다")
+		tx.PlaySound(pos.Vec3Centre(), sound.TrapdoorOpen{Block: block.CopperTrapdoor{}})
 	}
 }
 
@@ -469,18 +471,19 @@ func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *
 	switch u.Kind {
 	case UpgradeCapacity:
 		if d.Capacity >= MaxCapacityUpgrades {
-			p.SendTip("§c용량 업그레이드를 더 장착할 수 없습니다.")
+			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
 			return false
 		}
 		d.Capacity++
 	case UpgradeVoid:
 		if d.Void {
-			p.SendTip("§c이미 공허 업그레이드가 있습니다.")
+			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
 			return false
 		}
 		d.Void = true
 	}
-	p.SendTip("§a" + u.Name() + "를 장착했습니다.")
+	// The mark on the front shows the upgrade; a sound confirms it.
+	tx.PlaySound(pos.Vec3Centre(), sound.EquipItem{Item: item.Helmet{Tier: item.ArmourTierIron{}}})
 	return true
 }
 

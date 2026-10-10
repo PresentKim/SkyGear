@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"runtime/debug"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -44,12 +43,6 @@ const duplicateWindow = 3 * time.Second
 // send sends f unless a form with the same title was sent to p less than
 // duplicateWindow ago and is not answered yet.
 func send(p *player.Player, title string, f form.Form) {
-	if msgs := takeNotes(p, &notes.notice); len(msgs) > 0 {
-		// An error from the action that led here: show it first, and the
-		// form it would have shown after 확인.
-		showNotice(p, msgs, func(p *player.Player, _ *world.Tx) { send(p, title, f) })
-		return
-	}
 	pending.Lock()
 	if last, ok := pending.m[p.UUID()]; ok && last.title == title && time.Since(last.at) < duplicateWindow {
 		pending.Unlock()
@@ -77,7 +70,6 @@ func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
-	defer startAction(p)()
 	for _, o := range m.opts {
 		if o.Label == pressed.Text {
 			o.Run(p, tx)
@@ -98,9 +90,6 @@ func recoverForm(p *player.Player) {
 // Menu shows a menu form whose buttons run their options. Labels must
 // be unique within a menu.
 func Menu(p *player.Player, title, body string, opts ...Option) {
-	if msgs := takeNotes(p, &notes.flash); len(msgs) > 0 {
-		body = strings.Join(msgs, "\n") + "\n\n" + body
-	}
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(body)
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
@@ -108,87 +97,84 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 	send(p, title, f)
 }
 
-// Messages from form actions. Chat is hidden while forms are open, so an
-// action that ends in another form reports through the forms: Notify (an
-// error) shows a notice form first and the next form after 확인; Flash (a
-// result) puts a line at the top of the next menu's body. If the action
-// sends no form, the notices are shown on their own when it returns.
-var notes = struct {
-	sync.Mutex
-	notice, flash map[uuid.UUID][]string
-	// acting are the players whose form action is running.
-	acting map[uuid.UUID]int
-}{notice: map[uuid.UUID][]string{}, flash: map[uuid.UUID][]string{}, acting: map[uuid.UUID]int{}}
+// Messages from form actions show as toasts: chat is hidden while forms
+// are open, and a toast shows over them without interrupting the next form.
 
-// Notify reports an error of a form action to p.
+// Notify tells p about something that failed (not enough money, out of
+// stock, ...): a toast only, as it matters just now.
 func Notify(p *player.Player, format string, a ...any) {
-	addNote(p, &notes.notice, fmt.Sprintf(format, a...))
+	toast(p, "§c§l알림", fmt.Sprintf(format, a...))
 }
 
-// Flash reports the result of a form action to p in the next menu.
+// Flash tells p the result of an action that matters later (a purchase, a
+// sale, ...): a toast and the same line in chat, to read back.
 func Flash(p *player.Player, format string, a ...any) {
-	addNote(p, &notes.flash, fmt.Sprintf(format, a...))
+	msg := fmt.Sprintf(format, a...)
+	toast(p, "§a§l완료", msg)
+	p.Message(msg)
 }
 
-// addNote keeps msg for the forms during a form action; otherwise (a
-// command, an item use) it goes to chat at once.
-func addNote(p *player.Player, m *map[uuid.UUID][]string, msg string) {
-	notes.Lock()
-	if notes.acting[p.UUID()] == 0 {
-		notes.Unlock()
-		p.Message(msg)
+// ToastGap is how long a toast stays on screen, roughly. The client shows
+// toasts one after another, so many quick ones (buying again and again)
+// came minutes late (10th playtest). A player gets at most one toast per
+// ToastGap: what comes in between is merged into the next one, which shows
+// the latest message and how many were folded into it.
+var ToastGap = 3 * time.Second
+
+// toasts are the players' toast states.
+var toasts = struct {
+	sync.Mutex
+	m map[uuid.UUID]*toastState
+}{m: map[uuid.UUID]*toastState{}}
+
+type toastState struct {
+	// next is when the shown toast is gone and another may be sent.
+	next time.Time
+	// title and msg are the latest message held back, folded counts how
+	// many others it stands for.
+	title, msg string
+	folded     int
+	waiting    bool
+}
+
+// toast sends a toast now, or holds it back until the shown one is gone.
+func toast(p *player.Player, title, msg string) {
+	toasts.Lock()
+	defer toasts.Unlock()
+	st := toasts.m[p.UUID()]
+	if st == nil {
+		st = &toastState{}
+		toasts.m[p.UUID()] = st
+	}
+	now := time.Now()
+	if st.waiting && now.After(st.next.Add(ToastGap)) {
+		// The held toast never went out (the player changed worlds before
+		// it was due); start over.
+		st.waiting, st.folded = false, 0
+	}
+	if !st.waiting && !now.Before(st.next) {
+		st.next = now.Add(ToastGap)
+		p.SendToast(title, msg)
 		return
 	}
-	defer notes.Unlock()
-	(*m)[p.UUID()] = append((*m)[p.UUID()], msg)
-}
-
-// startAction marks p's form action running; the returned func ends it and
-// shows what no form picked up.
-func startAction(p *player.Player) func() {
-	notes.Lock()
-	notes.acting[p.UUID()]++
-	notes.Unlock()
-	return func() {
-		notes.Lock()
-		if notes.acting[p.UUID()]--; notes.acting[p.UUID()] <= 0 {
-			delete(notes.acting, p.UUID())
+	if st.waiting {
+		st.folded++
+	}
+	st.title, st.msg = title, msg
+	if st.waiting {
+		return
+	}
+	st.waiting = true
+	p.H().DoAfter(st.next.Sub(now), func(_ *world.Tx, e world.Entity) {
+		toasts.Lock()
+		title, msg, folded := st.title, st.msg, st.folded
+		st.waiting, st.folded, st.next = false, 0, time.Now().Add(ToastGap)
+		toasts.Unlock()
+		if folded > 0 {
+			msg += fmt.Sprintf(" §7(외 %d건)", folded)
 		}
-		notes.Unlock()
-		flushNotes(p)
-	}
-}
-
-func takeNotes(p *player.Player, m *map[uuid.UUID][]string) []string {
-	notes.Lock()
-	defer notes.Unlock()
-	msgs := (*m)[p.UUID()]
-	delete(*m, p.UUID())
-	return msgs
-}
-
-// flushNotes runs after a form action: notices no form picked up are shown
-// on their own, and results no menu showed go to chat.
-func flushNotes(p *player.Player) {
-	if msgs := takeNotes(p, &notes.notice); len(msgs) > 0 {
-		showNotice(p, msgs, func(*player.Player, *world.Tx) {})
-	}
-	for _, msg := range takeNotes(p, &notes.flash) {
-		p.Message(msg)
-	}
-}
-
-// NoticeTitle is the title of notice forms.
-const NoticeTitle = "알림"
-
-// showNotice shows messages with one 확인 button that runs ok.
-func showNotice(p *player.Player, msgs []string, ok func(p *player.Player, tx *world.Tx)) {
-	f := form.NewMenu(menu{opts: []Option{{Label: "확인", Icon: "textures/ui/confirm", Run: ok}}}, NoticeTitle).
-		WithBody(strings.Join(msgs, "\n")).WithButtons(form.NewButton("확인", "textures/ui/confirm"))
-	pending.Lock()
-	pending.m[p.UUID()] = sentForm{title: NoticeTitle, at: time.Now()}
-	pending.Unlock()
-	p.SendForm(f)
+		e.(*player.Player).SendToast(title, msg)
+	})
 }
 
 // Button markers (valid colour codes, so a client without the theme shows
@@ -304,7 +290,6 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
-	defer startAction(p)()
 	t.run(p, tx, t.Value.Value())
 }
 
@@ -324,7 +309,6 @@ func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
 	defer recoverForm(p)
-	defer startAction(p)()
 	a.run(p, tx, int(a.Value.Value()))
 }
 
