@@ -942,9 +942,12 @@
     "controls": [
       { "line": { "type": "image", "texture": "textures/ui/df/slot", "size": [ "100%", 1 ], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "alpha": 0.5 } },
       {
+        // 16×16 like an inventory slot: the item renderer draws items at
+        // that size and a smaller box let them spill over the left edge,
+        // where the scroll view clipped them (10th playtest).
         "icon@df_form.button_icon": {
-          "$df_icon_size": [ 14, 14 ],
-          "offset": [ 2, 0 ],
+          "$df_icon_size": [ 16, 16 ],
+          "offset": [ 4, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle"
         }
@@ -953,7 +956,7 @@
         // Text cells: left, after the icon if there is one.
         "text@df_form.cell_text": {
           "text_alignment": "left",
-          "offset": [ 18, 0 ],
+          "offset": [ 23, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle"
         }
