@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"image/color"
 	"slices"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/ui"
@@ -85,7 +87,26 @@ type expansion struct {
 	held     bool
 	// started tells apart a later expansion from this one in delayed tasks.
 	started time.Time
+	// floorY is the height the floor (or the lines) is drawn at.
+	floorY int
+	// shapes are the debug shapes drawn in the "lines" view.
+	shapes []debug.Shape
 }
+
+// Expansion views (/dfadmin expandview, 11th playtest: the floor at the
+// island surface hides under buildings):
+//   - floor: stained glass in the air at the island surface (the first view)
+//   - sky: the same glass as a sheet just above the highest block in sight,
+//     so buildings show through it
+//   - lines: debug shape outlines of each chunk at that height, no glass
+const (
+	viewFloor = "floor"
+	viewSky   = "sky"
+	viewLines = "lines"
+)
+
+// expandViews are the expansion views.
+var expandViews = []string{viewFloor, viewSky, viewLines}
 
 func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
 	e, ok := s.expanding[p.H()]
@@ -125,6 +146,10 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 	for pos := range e.floor {
 		p.ViewFakeBlock(pos, tx.Block(pos))
 	}
+	for _, sh := range e.shapes {
+		p.RemoveDebugShape(sh)
+	}
+	e.shapes = nil
 	p.ClearCamera()
 	p.SetGameMode(e.mode)
 	p.SetMobile()
@@ -212,7 +237,7 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 		}
 		for x := -1; x <= 1; x++ {
 			for z := -1; z <= 1; z++ {
-				at := cube.Pos{pos[0] + x, expandFloorY, pos[2] + z}
+				at := cube.Pos{pos[0] + x, e.floorY, pos[2] + z}
 				if b, ok := e.floor[at]; ok {
 					p.ViewFakeBlock(at, b)
 				}
@@ -226,6 +251,7 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 // positions and its whole border).
 func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block {
 	want := map[cube.Pos]world.Block{}
+	y := e.floorY
 	near := int32(expandFloorReach)
 	add := func(c ChunkPos, b world.Block, border bool) {
 		// Only around the cursor: farther chunks may not be loaded or sent.
@@ -234,7 +260,7 @@ func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block
 		}
 		for x := range 16 {
 			for z := range 16 {
-				pos := cube.Pos{int(c[0])*16 + x, expandFloorY, int(c[1])*16 + z}
+				pos := cube.Pos{int(c[0])*16 + x, y, int(c[1])*16 + z}
 				edge := x == 0 || z == 0 || x == 15 || z == 15
 				if _, air := tx.Block(pos).(block.Air); air || (border && edge) {
 					want[pos] = b
@@ -264,10 +290,19 @@ func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block
 	return want
 }
 
-// drawFloor brings the player's fake floor up to date, sending only changes.
+// drawFloor brings the player's view of the chunks up to date in the
+// session's expansion view, sending only changes.
 func (s *session) drawFloor(p *player.Player, e *expansion) {
 	tx := p.Tx()
-	want := s.floorWant(tx, e)
+	view := s.expandView
+	e.floorY = expandFloorY
+	if view == viewSky || view == viewLines {
+		e.floorY = s.skyY(tx, e)
+	}
+	want := map[cube.Pos]world.Block{}
+	if view != viewLines {
+		want = s.floorWant(tx, e)
+	}
 	for pos := range e.floor {
 		if _, ok := want[pos]; !ok {
 			p.ViewFakeBlock(pos, tx.Block(pos))
@@ -279,6 +314,63 @@ func (s *session) drawFloor(p *player.Player, e *expansion) {
 		}
 	}
 	e.floor = want
+	for _, sh := range e.shapes {
+		p.RemoveDebugShape(sh)
+	}
+	e.shapes = nil
+	if view == viewLines {
+		s.drawLines(p, e)
+	}
+}
+
+// skyY is the height just above the highest block in the chunks drawn
+// around the cursor, below the camera.
+func (s *session) skyY(tx *world.Tx, e *expansion) int {
+	top := expandFloorY
+	near := int(expandFloorReach)
+	for cx := int(e.target[0]) - near; cx <= int(e.target[0])+near; cx++ {
+		for cz := int(e.target[1]) - near; cz <= int(e.target[1])+near; cz++ {
+			for x := range 16 {
+				for z := range 16 {
+					top = max(top, tx.HighestBlock(cx*16+x, cz*16+z))
+				}
+			}
+		}
+	}
+	return min(top+1, IslandY+expandCameraHeight-4)
+}
+
+// drawLines outlines each owned and buyable chunk near the cursor and the
+// selected chunk with debug shapes at e.floorY.
+func (s *session) drawLines(p *player.Player, e *expansion) {
+	near := int32(expandFloorReach)
+	box := func(c ChunkPos, col color.RGBA, height float64) {
+		if abs32(c[0]-e.target[0]) > near || abs32(c[1]-e.target[1]) > near {
+			return
+		}
+		sh := &debug.Box{Colour: col, Position: mgl64.Vec3{float64(c[0]) * 16, float64(e.floorY), float64(c[1]) * 16}, Bounds: mgl64.Vec3{16, height, 16}}
+		p.AddDebugShape(sh)
+		e.shapes = append(e.shapes, sh)
+	}
+	for _, c := range s.state.Chunks {
+		if c != e.target {
+			box(c, color.RGBA{R: 90, G: 220, B: 90, A: 255}, 0.05)
+		}
+	}
+	buyable := s.purchasableChunks()
+	for _, c := range buyable {
+		if c != e.target {
+			box(c, color.RGBA{R: 240, G: 210, B: 60, A: 255}, 0.05)
+		}
+	}
+	target := color.RGBA{R: 230, G: 60, B: 60, A: 255}
+	switch {
+	case s.owns(e.target):
+		target = color.RGBA{R: 90, G: 190, B: 250, A: 255}
+	case slices.Contains(buyable, e.target):
+		target = color.RGBA{R: 250, G: 140, B: 40, A: 255}
+	}
+	box(e.target, target, 1)
 }
 
 // expandTip shows the target chunk and its price above the hotbar.

@@ -163,3 +163,50 @@ func cropBlock(kind string) world.Block {
 		return block.WheatSeeds{}
 	}
 }
+
+// adminDense builds count compact core cells in a grid centred on the
+// operator: each cell is 2×1 blocks, a 1st tier core on cobblestone, an
+// auto miner above its output, a crusher beside the miner over a hopper
+// into a drawer. Many cores and machines in little room, for load tests
+// in game (docs/tech/performance.md).
+type adminDense struct {
+	adminBase
+	Sub   cmd.SubCommand `cmd:"dense"`
+	Count int            `cmd:"count"`
+}
+
+const maxDense = 4000
+
+func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	n := max(1, min(c.Count, maxDense))
+	// Cells are 2 wide and 1 deep: twice as many rows as columns is square.
+	cols := max(1, int(math.Ceil(math.Sqrt(float64(n)/2))))
+	rows := (n + cols - 1) / cols
+	feet := cube.PosFromVec3(p.Position())
+	origin := feet.Add(cube.Pos{-cols, -1, -rows / 2})
+	owner, name := instance.AccountID(p), p.Name()
+	for i := range n {
+		at := origin.Add(cube.Pos{(i % cols) * 2, 0, i / cols})
+		set := func(dx, dy int, b world.Block) cube.Pos {
+			pos := at.Add(cube.Pos{dx, dy, 0})
+			tx.SetBlock(pos, b, nil)
+			return pos
+		}
+		set(0, 0, block.Stone{})
+		set(1, 0, block.Stone{})
+		set(0, 1, block.Cobblestone{})
+		set(0, 2, Core{Type: "t1"})
+		set(0, 4, newMachine(KindMiner, owner, name))
+		set(1, 4, newMachine(KindCrusher, owner, name))
+		h := block.NewHopper()
+		h.Facing = cube.FaceDown
+		set(1, 3, h)
+		d := Drawer{Facing: cube.South}
+		s.setDrawer(tx, set(1, 2, d), d)
+	}
+	o.Printf("밀집 셀 %d개를 지었습니다(%d×%d 블록): 코어 %d, 기계 %d, 호퍼 %d, 서랍 %d", n, cols*2, rows, n, n*2, n, n)
+}

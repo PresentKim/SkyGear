@@ -139,6 +139,9 @@ type session struct {
 	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
+	// expandView is how expansion mode shows the chunks (expandViews; ""
+	// is the floor), set with /dfadmin expandview.
+	expandView string
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int

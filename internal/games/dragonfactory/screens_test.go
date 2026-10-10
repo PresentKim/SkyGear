@@ -261,3 +261,32 @@ func TestShopTabsHaveIcons(t *testing.T) {
 		}
 	}
 }
+
+// TestExpansionViews: the sky view draws the floor above the highest block
+// near the cursor; the lines view draws debug shapes and no fake blocks.
+func TestExpansionViews(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(cube.Pos{3, expandFloorY + 5, 3}, block.Stone{}, nil)
+		s.expandView = viewSky
+		s.showExpand(p)
+		e, _ := s.expansionOf(p)
+		if e.floorY != expandFloorY+6 {
+			t.Fatalf("sky floor at y %d, want %d", e.floorY, expandFloorY+6)
+		}
+		if b := e.floor[cube.Pos{20, e.floorY, 5}]; b != world.Block(floorBuyable) {
+			t.Fatalf("sky buyable floor = %v", b)
+		}
+		s.expandView = viewLines
+		s.drawFloor(p, e)
+		if len(e.floor) != 0 || len(e.shapes) == 0 {
+			t.Fatalf("lines view: %d fake blocks, %d shapes", len(e.floor), len(e.shapes))
+		}
+		s.stopExpand(p, tx)
+		if len(e.shapes) != 0 {
+			t.Fatal("shapes left after leaving")
+		}
+	})
+}

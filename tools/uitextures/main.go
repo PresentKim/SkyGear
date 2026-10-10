@@ -1,6 +1,6 @@
 // Command uitextures writes the flat textures of the dark JSON UI theme
-// (assets/resourcepack/dragonfactory/textures/ui/df) and the empty upgrade
-// slot silhouettes made from item textures. Run it from the
+// (assets/resourcepack/dragonfactory/textures/ui/df); the empty upgrade slot
+// textures there (slot_empty_*) are drawn by hand. Run it from the
 // repository root after changing the colours: go run ./tools/uitextures
 package main
 
@@ -106,32 +106,4 @@ func main() {
 	write("arrow_down", arrow(1), 0)
 	write("arrow_left", arrow(2), 0)
 	write("arrow_up", arrow(3), 0)
-	// Empty upgrade slots of the drawer window: the upgrade's item texture
-	// as a faint grey silhouette.
-	for _, n := range []string{"capacity", "void", "lock"} {
-		write("slot_empty_"+n, ghost("assets/resourcepack/dragonfactory/textures/items/drawer_upgrade_"+n+".png"), 0)
-	}
-}
-
-// ghost reads a texture and returns it grey and faint.
-func ghost(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	src, err := png.Decode(f)
-	if err != nil {
-		panic(err)
-	}
-	b := src.Bounds()
-	img := image.NewRGBA(b)
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-		for x := b.Min.X; x < b.Max.X; x++ {
-			c := color.NRGBAModel.Convert(src.At(x, y)).(color.NRGBA)
-			l := uint8((299*int(c.R) + 587*int(c.G) + 114*int(c.B)) / 1000)
-			img.Set(x, y, color.NRGBA{l, l, l, uint8(int(c.A) * 30 / 100)})
-		}
-	}
-	return img
 }

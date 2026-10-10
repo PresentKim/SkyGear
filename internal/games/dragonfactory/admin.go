@@ -320,5 +320,32 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}))
+}
+
+// expandViewEnum names an expansion view (expand.go expandViews).
+type expandViewEnum string
+
+func (expandViewEnum) Type() string                { return "df_expand_view" }
+func (expandViewEnum) Options(cmd.Source) []string { return expandViews }
+
+// adminExpandView picks how expansion mode shows the chunks in this save,
+// to compare the views in game.
+type adminExpandView struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"expandview"`
+	View expandViewEnum `cmd:"view"`
+}
+
+func (c adminExpandView) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		s.expandView = string(c.View)
+		for e := range tx.Players() {
+			p := e.(*player.Player)
+			if ex, ok := s.expansionOf(p); ok {
+				s.drawFloor(p, ex)
+			}
+		}
+		o.Printf("섬 확장 보기를 %s(으)로 바꿨습니다.", c.View)
+	}
 }
