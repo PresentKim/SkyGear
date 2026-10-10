@@ -106,6 +106,9 @@ func (s *session) updateLooks(tx *world.Tx) {
 func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world.Block) waila.Info {
 	held, _ := p.HeldItems()
 	info := waila.Info{Name: blockName(b), Tools: waila.ToolsFor(b, held)}
+	if len(info.Tools) == 0 {
+		info.Tools = customTool(b, held)
+	}
 	if it, ok := b.(world.Item); ok {
 		info.Item = it
 		info.Name = itemName(item.NewStack(it, 1))
@@ -113,7 +116,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
 	case Machine:
-		info.Lines = machineLines(b)
+		info.Lines, info.Line = machineLines(b)
 		if b.Kind == KindMiner && b.st != nil {
 			// The auto miner's one output slot shows like a container's.
 			it, _ := b.st.inv().Item(b.st.kind.output[0])
@@ -121,17 +124,12 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	case Drawer:
 		// The drawer stays the icon; the held item is a line with its own
-		// small icon, and the lock and upgrades are small marks after the
-		// name (11th playtest).
-		info.Marks = waila.Marks{Lock: b.Locked, Void: b.Void}
-		if b.Capacity > 0 {
-			info.Marks.Multiplier = 1 << b.Capacity
-		}
+		// small icon. Its count, lock and upgrades show on the drawer's
+		// front, so the panel leaves them out (11th playtest).
 		if b.Item.Empty() {
 			info.Lines = []string{"§7비어있음"}
 		} else {
-			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item),
-				Text: fmt.Sprintf("%s/%s", formatInt(b.Count), formatInt(b.capacity()))}
+			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item)}
 		}
 	case Core:
 		info.Lines, info.Line = s.coreLines(tx, pos, b)
@@ -146,6 +144,29 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	}
 	return info
+}
+
+// customTool is the tool icon of our blocks. No tool mines them faster
+// (customBlockEffective), so ToolsFor finds none; the panel still shows the
+// tool that fits them, marked when it is held (11th playtest).
+func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
+	var (
+		icon waila.Tool
+		typ  item.ToolType
+	)
+	switch b.(type) {
+	case Drawer, DeliveryBox:
+		icon, typ = waila.AxeWood, item.TypeAxe
+	case Machine, Core:
+		icon, typ = waila.PickaxeWood, item.TypePickaxe
+	default:
+		return nil
+	}
+	mark := waila.MarkNone
+	if t, ok := held.Item().(item.Tool); ok && t.ToolType() == typ {
+		mark = waila.MarkRight
+	}
+	return []waila.ToolIcon{{Tool: icon, Mark: mark}}
 }
 
 // containerOf is the contents of a vanilla container block for the panel.
@@ -204,39 +225,44 @@ func furnaceArrow(b world.Block) item.Stack {
 	return item.NewStack(ProgressArrow{Step: step}, 1)
 }
 
-// machineLines are what a machine holds and its progress, as a ring gauge
-// (11th playtest: the percent moved in uneven steps). Machines show no
-// slots; an empty one says so in grey.
-func machineLines(m Machine) []string {
+// machineLines are a machine's lines and item line: what it holds, with
+// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"; 11th playtest),
+// grey "비어있음" when empty, and what waits in its output.
+func machineLines(m Machine) ([]string, *waila.ItemLine) {
 	st := m.st
 	if st == nil {
-		return nil
+		return nil, nil
 	}
-	gauge := gaugeGlyph(st.progress * 10 / st.kind.interval)
-	var lines []string
+	step := st.progress * 10 / st.kind.interval
+	gauge := gaugeGlyph(step)
+	var (
+		lines []string
+		line  *waila.ItemLine
+	)
 	switch {
 	case st.kind == machineKinds[KindSellBox]:
 		lines = append(lines, "판매 주기 §f"+gauge)
 	case st.kind == machineKinds[KindHarvester]:
 		lines = append(lines, "수확 주기 §f"+gauge)
 	case st.kind == machineKinds[KindMiner]:
-		lines = append(lines, "채굴 §f"+gauge)
+		// Its output shows as a slot.
+		return []string{"채굴 §f" + gauge}, nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
-			lines = append(lines, stackLine(it)+" §f"+gauge)
+			line = &waila.ItemLine{Item: it, Name: itemName(it), Gauge: step, ShowGauge: true}
+			if it.Count() > 1 {
+				line.Text = fmt.Sprintf("§f×%d", it.Count())
+			}
 		} else {
 			lines = append(lines, "§7비어있음")
 		}
-	}
-	if st.kind == machineKinds[KindMiner] {
-		return lines // its output shows as a slot
 	}
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
 			lines = append(lines, "§7결과 "+stackLine(it))
 		}
 	}
-	return lines
+	return lines, line
 }
 
 // stackLine is an item's name with its count when more than one.

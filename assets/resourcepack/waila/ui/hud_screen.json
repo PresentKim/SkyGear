@@ -26,7 +26,7 @@
 				"value": [
 					{
 						"binding_type": "view",
-						"source_property_name": "(not ('%.6s' * #text = '_r4ui:'))",
+						"source_property_name": "(not ('%.7s' * #text = '_waila:'))",
 						"target_property_name": "#visible"
 					}
 				]

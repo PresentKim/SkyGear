@@ -139,8 +139,9 @@
 	},
 
 	//* dragonfactory change: container slots come from the subtitle the server
-	//* sends ("i", the 11-character icon field, per slot 11 characters of
-	//* item and 4 of count, then "e"; docs/tech/waila.md) instead of player
+	//* sends ("i", the 11-byte icon field, per slot 11 bytes of item and 8
+	//* of count ("§f12" padded with '~'), then the tail; docs/tech/waila.md)
+	//* instead of player
 	//* inventory slots the script filled, read from $var_subtitle_text like
 	//* the icon. The count's expression is in the label's own variables
 	//* (like the name label's $text). Generated; internal/waila
@@ -160,71 +161,71 @@
 			},
 			{
 				"requires": "($index = 1)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.27s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.31s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 2)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.42s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.50s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 3)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.57s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.69s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 4)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.72s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.88s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 5)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.87s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.107s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 6)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.102s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.126s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 7)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.117s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.145s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 8)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.132s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.164s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 9)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.147s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.183s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 10)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.162s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.202s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 11)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.177s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.221s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 12)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.192s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.240s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 13)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.207s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.259s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 14)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.222s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.278s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 15)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.237s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.297s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 16)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.252s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.316s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 17)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.267s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.335s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			}
 		],
 		"controls": [
@@ -258,75 +259,75 @@
 					"variables": [
 						{
 							"requires": "($index = 0)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.23s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.23s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 1)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.38s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.42s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 2)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.53s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.61s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 3)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.68s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.80s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 4)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.83s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.99s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 5)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.98s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.118s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 6)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.113s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.137s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 7)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.128s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.156s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 8)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.143s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.175s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 9)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.158s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.194s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 10)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.173s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.213s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 11)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.188s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.232s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 12)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.203s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.251s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 13)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.218s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.270s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 14)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.233s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.289s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 15)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.248s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.308s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 16)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.263s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.327s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 17)",
-							"$df_count": "('§r' + ('%.4s' * ($var_subtitle_text - ('%.278s' * $var_subtitle_text))))"
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.346s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						}
 					],
 					"text": "$df_count"
@@ -359,7 +360,7 @@
 					"$df_lock|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.293s' * $var_subtitle_text))) = 'L')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.365s' * $var_subtitle_text))) = 'L')",
 							"$df_lock": "§e"
 						}
 					]
@@ -376,15 +377,15 @@
 					"$df_mult|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.294s' * $var_subtitle_text))) = 'b')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'b')",
 							"$df_mult": "§b×2"
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.294s' * $var_subtitle_text))) = 'c')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'c')",
 							"$df_mult": "§b×4"
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.294s' * $var_subtitle_text))) = 'd')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'd')",
 							"$df_mult": "§b×8"
 						}
 					]
@@ -401,7 +402,7 @@
 					"$df_void|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.295s' * $var_subtitle_text))) = 'V')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.367s' * $var_subtitle_text))) = 'V')",
 							"$df_void": "§f"
 						}
 					]
@@ -425,7 +426,7 @@
 						0.75,
 						0.75
 					],
-					"text": "($var_subtitle_text - ('%.321s' * $var_subtitle_text))"
+					"text": "($var_subtitle_text - ('%.393s' * $var_subtitle_text))"
 				}
 			},
 			{
@@ -441,7 +442,7 @@
 						-1
 					],
 					"layer": "($layer + 1)",
-					"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.282s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
+					"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.354s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
 					"property_bag": {
 						"#item_id_aux": "$df_aux"
 					}
@@ -453,7 +454,7 @@
 						2,
 						0
 					],
-					"text": "(((((('%.24s' * ($var_subtitle_text - ('%.297s' * $var_subtitle_text))) - '~~~~~~~~~~~~~~~~') - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+					"text": "(((((('%.24s' * ($var_subtitle_text - ('%.369s' * $var_subtitle_text))) - '~~~~~~~~~~~~~~~~') - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 				}
 			},
 			{
@@ -466,47 +467,47 @@
 					"$df_gauge|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'a')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'a')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'b')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'b')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'c')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'c')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'd')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'd')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'e')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'e')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'f')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'f')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'g')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'g')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'h')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'h')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'i')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'i')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'j')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'j')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.296s' * $var_subtitle_text))) = 'k')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'k')",
 							"$df_gauge": ""
 						}
 					]
@@ -876,10 +877,10 @@
 		/* デフォルトのプレースホルダーアイコンを設定 */
 		"$texture|default": "pack_icon",
 
-		//* _r4ui:A:zz,t;zz,z: ...
-		//* _r4ui:B:yyyyyyyyyyyyyyyyyyyynnnnnnnnnn:zz,t;zz,z: ...
+		//* _waila:A:zz,t;zz,z: ...
+		//* _waila:B:yyyyyyyyyyyyyyyyyyyynnnnnnnnnn:zz,t;zz,z: ...
 
-		"$tooltip_renderer_type": "('%.2s' * ($var_title_text - ('%.6s' * $var_title_text)))",
+		"$tooltip_renderer_type": "('%.2s' * ($var_title_text - ('%.7s' * $var_title_text)))",
 
 		"controls": [
 			{
@@ -891,11 +892,11 @@
 					"variables": [
 						{
 							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.8s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.9s' * $var_title_text)))) - ':')"
 						},
 						{
 							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.39s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.40s' * $var_title_text)))) - ':')"
 						}
 					],
 
@@ -912,11 +913,11 @@
 								"variables": [
 									{
 										"requires": "($tooltip_renderer_type = 'A:')",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.11s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.12s' * $var_title_text)))) - ':')"
 									},
 									{
 										"requires": "(not ($tooltip_renderer_type = 'A:'))",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.42s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.43s' * $var_title_text)))) - ':')"
 									}
 								]
 							}
@@ -935,11 +936,11 @@
 					"variables": [
 						{
 							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.13s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.14s' * $var_title_text)))) - ':')"
 						},
 						{
 							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.44s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.45s' * $var_title_text)))) - ':')"
 						}
 					],
 
@@ -956,11 +957,11 @@
 								"variables": [
 									{
 										"requires": "($tooltip_renderer_type = 'A:')",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.16s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.17s' * $var_title_text)))) - ':')"
 									},
 									{
 										"requires": "(not ($tooltip_renderer_type = 'A:'))",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.47s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.48s' * $var_title_text)))) - ':')"
 									}
 								]
 							}

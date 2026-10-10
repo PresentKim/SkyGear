@@ -71,12 +71,15 @@ func TestLookInfo(t *testing.T) {
 			title, _ := waila.Format(info)
 			return title
 		}
-		if got := text(machinePos); !strings.Contains(got, "분쇄기") || !strings.Contains(got, "조약돌") || strings.Contains(got, "드래곤팩토리") {
+		if got := text(machinePos); !strings.Contains(got, "분쇄기") || strings.Contains(got, "드래곤팩토리") {
 			t.Errorf("crusher panel %q", got)
 		}
+		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Line == nil || info.Line.Name != "조약돌" || !info.Line.ShowGauge {
+			t.Errorf("crusher line %+v, want the cobblestone with a gauge", info.Line)
+		}
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
-		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "70/2,048" || !info.Marks.Lock || info.Container != nil {
-			t.Errorf("drawer panel %+v, want a dirt line 70/2,048 and a lock mark", info)
+		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "" || info.Marks != (waila.Marks{}) || info.Container != nil {
+			t.Errorf("drawer panel %+v, want a dirt line without count or marks", info)
 		} else if _, ok := info.Item.(Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
@@ -95,7 +98,7 @@ func TestLookInfo(t *testing.T) {
 		if c, ok := tx.Block(chestPos).(block.Chest); ok {
 			_, _ = c.Inventory(tx, chestPos).AddItem(item.NewStack(block.Dirt{}, 20))
 		}
-		if title, _ := waila.Format(s.lookInfo(p, tx, chestPos, tx.Block(chestPos))); !strings.Contains(title, "__r4ui:inv.chest__") {
+		if title, _ := waila.Format(s.lookInfo(p, tx, chestPos, tx.Block(chestPos))); !strings.Contains(title, "__waila:inv.chest__") {
 			t.Errorf("chest panel %q has no contents", title)
 		}
 		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
@@ -118,5 +121,18 @@ func TestFurnaceArrow(t *testing.T) {
 	}
 	if !furnaceArrow(block.Stone{}).Empty() {
 		t.Errorf("stone has a furnace arrow")
+	}
+}
+
+// TestCustomTool: our blocks show a fitting tool, marked when held.
+func TestCustomTool(t *testing.T) {
+	if got := customTool(Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
+		t.Errorf("drawer by hand: %v", got)
+	}
+	if got := customTool(Core{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
+		t.Errorf("core with a pickaxe: %v", got)
+	}
+	if got := customTool(block.Stone{}, item.Stack{}); got != nil {
+		t.Errorf("stone: %v", got)
 	}
 }

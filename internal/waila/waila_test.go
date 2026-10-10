@@ -18,11 +18,11 @@ func TestFormat(t *testing.T) {
 		Item: block.Stone{}, Name: "돌", Lines: []string{"진행 40%"}, Source: "Minecraft",
 		Tools: []ToolIcon{{PickaxeWood, MarkRight}},
 	})
-	if !strings.HasPrefix(title, "_r4ui:A:aa,a;zz,z:") {
+	if !strings.HasPrefix(title, "_waila:A:aa,a;zz,z:") {
 		t.Fatalf("title %q", title)
 	}
-	if len("_r4ui:A:aa,a;zz,z:") != 18 {
-		t.Fatal("header must be 18 characters (the pack cuts the first 18)")
+	if len("_waila:A:aa,a;zz,z:") != 19 {
+		t.Fatal("header must be 19 characters (the pack cuts the first 19)")
 	}
 	for _, want := range []string{"돌", "\n§7진행 40%", "\n§9§oMinecraft", anchor} {
 		if !strings.Contains(title, want) {
@@ -59,7 +59,7 @@ func TestToolsFor(t *testing.T) {
 func TestFormatContainer(t *testing.T) {
 	items := []item.Stack{item.NewStack(block.Dirt{}, 64), {}, item.NewStack(block.Dirt{}, 10), item.NewStack(block.Stone{}, 1)}
 	title, sub := Format(Info{Name: "상자", Item: block.NewChest(), Container: &Container{Layout: LayoutChest, Items: items}})
-	if !strings.Contains(title, "__r4ui:inv.chest__") || strings.Contains(title, "inv.size_") {
+	if !strings.Contains(title, "__waila:inv.chest__") || strings.Contains(title, "inv.size_") {
 		t.Fatalf("title %q", title)
 	}
 	if want := 1 + iconWidth + panelSlots*(iconWidth+countWidth); len(sub) != want {
@@ -69,10 +69,10 @@ func TestFormatContainer(t *testing.T) {
 		start := 1 + iconWidth + i*(iconWidth+countWidth)
 		return sub[start : start+iconWidth], sub[start+iconWidth : start+iconWidth+countWidth]
 	}
-	if it, n := slot(0); it == empty || n != "  74" {
+	if it, n := slot(0); it == empty || n != "§f74~~~" {
 		t.Errorf("slot 0 = %q %q, want dirt ×74", it, n)
 	}
-	if it, n := slot(1); it == empty || n != "    " {
+	if it, n := slot(1); it == empty || n != "~~~~~~~~" {
 		t.Errorf("slot 1 = %q %q, want one stone", it, n)
 	}
 	if it, _ := slot(2); it != empty {

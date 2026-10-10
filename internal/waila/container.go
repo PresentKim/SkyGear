@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
@@ -41,11 +42,11 @@ const progressSlot = 17
 // for the block icon by the pack, as in WAILA).
 const panelSlots = 18
 
-// Field widths of the subtitle: the icon and each slot's item in iconWidth
-// characters, a slot's count in countWidth.
+// Field widths of the subtitle in bytes (the pack's '%.Ns' cuts bytes): the
+// icon and each slot's item in iconWidth, a slot's count in countWidth.
 const (
 	iconWidth  = 11
-	countWidth = 4
+	countWidth = 8
 )
 
 // chestRow is the panel slots of the one chest row (index 8 is the icon's).
@@ -127,20 +128,40 @@ func itemField(it item.Stack) string {
 	return strings.Repeat("x", iconWidth-len(s)) + s
 }
 
-// countField is a slot's count, right aligned in countWidth characters,
-// blank for one or none, in thousands from 10000.
+// countField is a slot's count: "§f" and the number (in thousands from
+// 10000), padded with '~' to countWidth bytes; only '~' for one or none.
+// It starts with "§f": text that looks like a number becomes a number in
+// the pack, and a label shows nothing for a number (the counts did not
+// show, 11th playtest).
 func countField(n int) string {
+	text := ""
 	switch {
 	case n <= 1:
-		return strings.Repeat(" ", countWidth)
 	case n < 10000:
-		return fmt.Sprintf("%*d", countWidth, n)
+		text = fmt.Sprintf("§f%d", n)
 	default:
-		return fmt.Sprintf("%*dk", countWidth-1, min(n/1000, 999))
+		text = fmt.Sprintf("§f%dk", min(n/1000, 999))
 	}
+	return pad(text, countWidth)
+}
+
+// pad cuts s to at most n bytes (whole characters) and fills it with '~'
+// to n bytes.
+func pad(s string, n int) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r == '~' {
+			continue
+		}
+		if b.Len()+utf8.RuneLen(r) > n {
+			break
+		}
+		b.WriteRune(r)
+	}
+	return b.String() + strings.Repeat("~", n-b.Len())
 }
 
 // token is the title token that shows the container panel.
 func (c Container) token() string {
-	return "__r4ui:inv." + string(c.Layout) + "__"
+	return "__waila:inv." + string(c.Layout) + "__"
 }

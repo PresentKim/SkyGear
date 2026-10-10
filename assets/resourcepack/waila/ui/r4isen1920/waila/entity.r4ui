@@ -232,11 +232,11 @@
 
 		"variables": [
 			{
-				"requires": "(($var_title_text - '__r4ui:humanoid.') = $var_title_text)",
+				"requires": "(($var_title_text - '__waila:humanoid.') = $var_title_text)",
 				"$offset": [0, "75%y + 2.5px"]
 			},
 			{
-				"requires": "(not (($var_title_text - '__r4ui:humanoid.') = $var_title_text))",
+				"requires": "(not (($var_title_text - '__waila:humanoid.') = $var_title_text))",
 				"$offset": [0, -2.5]
 			}
 		]
@@ -251,57 +251,57 @@
 		"controls": [
 			{
 				"heart_0@r4isen1920_waila_common.icon_renderer": {
-					"$texture": "('%.1s' * ($var_title_text - ('%.8s' * $var_title_text)))"
-				}
-			},
-			{
-				"heart_1@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.9s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_2@r4isen1920_waila_common.icon_renderer": {
+				"heart_1@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.10s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_3@r4isen1920_waila_common.icon_renderer": {
+				"heart_2@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.11s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_4@r4isen1920_waila_common.icon_renderer": {
+				"heart_3@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.12s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_5@r4isen1920_waila_common.icon_renderer": {
+				"heart_4@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.13s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_6@r4isen1920_waila_common.icon_renderer": {
+				"heart_5@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.14s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_7@r4isen1920_waila_common.icon_renderer": {
+				"heart_6@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.15s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_8@r4isen1920_waila_common.icon_renderer": {
+				"heart_7@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.16s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_9@r4isen1920_waila_common.icon_renderer": {
+				"heart_8@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.17s' * $var_title_text)))"
+				}
+			},
+			{
+				"heart_9@r4isen1920_waila_common.icon_renderer": {
+					"$texture": "('%.1s' * ($var_title_text - ('%.18s' * $var_title_text)))"
 				}
 			}
 		],
 
-		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.8s' * $var_title_text)))) = 'x')"
+		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.9s' * $var_title_text)))) = 'x')"
 	},
 	"health_renderer_1": {
 		"type": "stack_panel",
@@ -312,57 +312,57 @@
 		"controls": [
 			{
 				"heart_10@r4isen1920_waila_common.icon_renderer": {
-					"$texture": "('%.1s' * ($var_title_text - ('%.18s' * $var_title_text)))"
-				}
-			},
-			{
-				"heart_11@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.19s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_12@r4isen1920_waila_common.icon_renderer": {
+				"heart_11@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.20s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_13@r4isen1920_waila_common.icon_renderer": {
+				"heart_12@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.21s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_14@r4isen1920_waila_common.icon_renderer": {
+				"heart_13@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.22s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_15@r4isen1920_waila_common.icon_renderer": {
+				"heart_14@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.23s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_16@r4isen1920_waila_common.icon_renderer": {
+				"heart_15@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.24s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_17@r4isen1920_waila_common.icon_renderer": {
+				"heart_16@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.25s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_18@r4isen1920_waila_common.icon_renderer": {
+				"heart_17@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.26s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_19@r4isen1920_waila_common.icon_renderer": {
+				"heart_18@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.27s' * $var_title_text)))"
+				}
+			},
+			{
+				"heart_19@r4isen1920_waila_common.icon_renderer": {
+					"$texture": "('%.1s' * ($var_title_text - ('%.28s' * $var_title_text)))"
 				}
 			}
 		],
 
-		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.18s' * $var_title_text)))) = 'y')"
+		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.19s' * $var_title_text)))) = 'y')"
 	},
 
 	"armor_renderer": {
@@ -374,67 +374,67 @@
 		"controls": [
 			{
 				"armor_0@r4isen1920_waila_common.icon_renderer": {
-					"$texture": "('%.1s' * ($var_title_text - ('%.28s' * $var_title_text)))"
-				}
-			},
-			{
-				"armor_1@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.29s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_2@r4isen1920_waila_common.icon_renderer": {
+				"armor_1@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.30s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_3@r4isen1920_waila_common.icon_renderer": {
+				"armor_2@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.31s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_4@r4isen1920_waila_common.icon_renderer": {
+				"armor_3@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.32s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_5@r4isen1920_waila_common.icon_renderer": {
+				"armor_4@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.33s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_6@r4isen1920_waila_common.icon_renderer": {
+				"armor_5@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.34s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_7@r4isen1920_waila_common.icon_renderer": {
+				"armor_6@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.35s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_8@r4isen1920_waila_common.icon_renderer": {
+				"armor_7@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.36s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_9@r4isen1920_waila_common.icon_renderer": {
+				"armor_8@r4isen1920_waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.37s' * $var_title_text)))"
+				}
+			},
+			{
+				"armor_9@r4isen1920_waila_common.icon_renderer": {
+					"$texture": "('%.1s' * ($var_title_text - ('%.38s' * $var_title_text)))"
 				}
 			}
 		],
 
-		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.28s' * $var_title_text)))) = 'd')"
+		"ignored": "(('' + ('%.1s' * ($var_title_text - ('%.29s' * $var_title_text)))) = 'd')"
 	},
 
 	"effects_renderer@common.empty_panel": {
-		//* _r4ui:B:yyyyyyyyyyyyyyyyyyyydddddddddd:zz,t;zz,z:d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0e00
+		//* _waila:B:yyyyyyyyyyyyyyyyyyyydddddddddd:zz,t;zz,z:d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0d00:00p0e00
 
 		"size": ["100%c + 3px", "100%c + 1px"],
 
-		"$effects_length": "('%.3s' * ($var_title_text - ('%.321s' * $var_title_text)))",
+		"$effects_length": "('%.3s' * ($var_title_text - ('%.322s' * $var_title_text)))",
 
-		"ignored": "(('%.3s' * ($var_title_text - ('%.321s' * $var_title_text))) = 'e00')",
+		"ignored": "(('%.3s' * ($var_title_text - ('%.322s' * $var_title_text))) = 'e00')",
 
 		"controls": [
 			{
@@ -454,7 +454,7 @@
 								"$data_a": "speed",
 								"$data_b": "potion.moveSpeed",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.49s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.50s' * $var_title_text)))"
 							}
 						},
 						{
@@ -462,7 +462,7 @@
 								"$data_a": "slowness",
 								"$data_b": "potion.moveSlowdown",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.57s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.58s' * $var_title_text)))"
 							}
 						},
 						{
@@ -470,7 +470,7 @@
 								"$data_a": "haste",
 								"$data_b": "potion.digSpeed",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.65s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.66s' * $var_title_text)))"
 							}
 						},
 						{
@@ -478,7 +478,7 @@
 								"$data_a": "mining_fatigue",
 								"$data_b": "potion.digSlowDown",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.73s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.74s' * $var_title_text)))"
 							}
 						},
 						{
@@ -486,7 +486,7 @@
 								"$data_a": "strength",
 								"$data_b": "potion.damageBoost",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.81s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.82s' * $var_title_text)))"
 							}
 						},
 						{
@@ -494,7 +494,7 @@
 								"$data_a": "instant_health",
 								"$data_b": "potion.heal",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.89s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.90s' * $var_title_text)))"
 							}
 						},
 						{
@@ -502,7 +502,7 @@
 								"$data_a": "instant_damage",
 								"$data_b": "potion.harm",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.97s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.98s' * $var_title_text)))"
 							}
 						},
 						{
@@ -510,7 +510,7 @@
 								"$data_a": "jump_boost",
 								"$data_b": "potion.jump",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.105s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.106s' * $var_title_text)))"
 							}
 						},
 						{
@@ -518,7 +518,7 @@
 								"$data_a": "nausea",
 								"$data_b": "potion.confusion",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.113s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.114s' * $var_title_text)))"
 							}
 						},
 						{
@@ -526,7 +526,7 @@
 								"$data_a": "regeneration",
 								"$data_b": "potion.regeneration",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.121s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.122s' * $var_title_text)))"
 							}
 						},
 						{
@@ -534,7 +534,7 @@
 								"$data_a": "resistance",
 								"$data_b": "potion.resistance",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.129s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.130s' * $var_title_text)))"
 							}
 						},
 						{
@@ -542,7 +542,7 @@
 								"$data_a": "fire_resistance",
 								"$data_b": "potion.fireResistance",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.137s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.138s' * $var_title_text)))"
 							}
 						},
 						{
@@ -550,7 +550,7 @@
 								"$data_a": "water_breathing",
 								"$data_b": "potion.waterBreathing",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.145s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.146s' * $var_title_text)))"
 							}
 						},
 						{
@@ -558,7 +558,7 @@
 								"$data_a": "invisibility",
 								"$data_b": "potion.invisibility",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.153s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.154s' * $var_title_text)))"
 							}
 						},
 						{
@@ -566,7 +566,7 @@
 								"$data_a": "blindness",
 								"$data_b": "potion.blindness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.161s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.162s' * $var_title_text)))"
 							}
 						},
 						{
@@ -574,7 +574,7 @@
 								"$data_a": "night_vision",
 								"$data_b": "potion.nightVision",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.169s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.170s' * $var_title_text)))"
 							}
 						},
 						{
@@ -582,7 +582,7 @@
 								"$data_a": "hunger",
 								"$data_b": "potion.hunger",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.177s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.178s' * $var_title_text)))"
 							}
 						},
 						{
@@ -590,7 +590,7 @@
 								"$data_a": "weakness",
 								"$data_b": "potion.weakness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.185s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.186s' * $var_title_text)))"
 							}
 						},
 						{
@@ -598,7 +598,7 @@
 								"$data_a": "poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.193s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.194s' * $var_title_text)))"
 							}
 						},
 						{
@@ -606,7 +606,7 @@
 								"$data_a": "wither",
 								"$data_b": "potion.wither",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.201s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.202s' * $var_title_text)))"
 							}
 						},
 						{
@@ -614,7 +614,7 @@
 								"$data_a": "health_boost",
 								"$data_b": "potion.healthBoost",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.209s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.210s' * $var_title_text)))"
 							}
 						},
 						{
@@ -622,7 +622,7 @@
 								"$data_a": "absorption",
 								"$data_b": "potion.absorption",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.217s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.218s' * $var_title_text)))"
 							}
 						},
 						{
@@ -630,7 +630,7 @@
 								"$data_a": "saturation",
 								"$data_b": "potion.saturation",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.225s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.226s' * $var_title_text)))"
 							}
 						},
 						{
@@ -638,7 +638,7 @@
 								"$data_a": "levitation",
 								"$data_b": "potion.levitation",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.233s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.234s' * $var_title_text)))"
 							}
 						},
 						{
@@ -646,7 +646,7 @@
 								"$data_a": "fatal_poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.241s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.242s' * $var_title_text)))"
 							}
 						},
 						{
@@ -654,7 +654,7 @@
 								"$data_a": "slow_falling",
 								"$data_b": "potion.slowFalling",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.249s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.250s' * $var_title_text)))"
 							}
 						},
 						{
@@ -662,7 +662,7 @@
 								"$data_a": "conduit_power",
 								"$data_b": "potion.conduitPower",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.257s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.258s' * $var_title_text)))"
 							}
 						},
 						{
@@ -670,7 +670,7 @@
 								"$data_a": "bad_omen",
 								"$data_b": "effect.badOmen",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.265s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.266s' * $var_title_text)))"
 							}
 						},
 						{
@@ -678,7 +678,7 @@
 								"$data_a": "village_hero",
 								"$data_b": "effect.villageHero",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.273s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.274s' * $var_title_text)))"
 							}
 						},
 						{
@@ -686,7 +686,7 @@
 								"$data_a": "darkness",
 								"$data_b": "effect.darkness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.281s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.282s' * $var_title_text)))"
 							}
 						},
 						{
@@ -694,7 +694,7 @@
 								"$data_a": "wind_charged",
 								"$data_b": "effect.wind_charged",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.289s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.290s' * $var_title_text)))"
 							}
 						},
 						{
@@ -702,7 +702,7 @@
 								"$data_a": "weaving",
 								"$data_b": "effect.weaving",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.297s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.298s' * $var_title_text)))"
 							}
 						},
 						{
@@ -710,7 +710,7 @@
 								"$data_a": "oozing",
 								"$data_b": "effect.oozing",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.305s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.306s' * $var_title_text)))"
 							}
 						},
 						{
@@ -718,7 +718,7 @@
 								"$data_a": "infested",
 								"$data_b": "effect.infested",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.313s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.314s' * $var_title_text)))"
 							}
 						}
 					]
@@ -741,7 +741,7 @@
 								"$data_a": "speed",
 								"$data_b": "potion.moveSpeed",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.49s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.50s' * $var_title_text)))"
 							}
 						},
 						{
@@ -749,7 +749,7 @@
 								"$data_a": "slowness",
 								"$data_b": "potion.moveSlowdown",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.57s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.58s' * $var_title_text)))"
 							}
 						},
 						{
@@ -757,7 +757,7 @@
 								"$data_a": "haste",
 								"$data_b": "potion.digSpeed",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.65s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.66s' * $var_title_text)))"
 							}
 						},
 						{
@@ -765,7 +765,7 @@
 								"$data_a": "mining_fatigue",
 								"$data_b": "potion.digSlowDown",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.73s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.74s' * $var_title_text)))"
 							}
 						},
 						{
@@ -773,7 +773,7 @@
 								"$data_a": "strength",
 								"$data_b": "potion.damageBoost",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.81s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.82s' * $var_title_text)))"
 							}
 						},
 						{
@@ -781,7 +781,7 @@
 								"$data_a": "instant_health",
 								"$data_b": "potion.heal",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.89s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.90s' * $var_title_text)))"
 							}
 						},
 						{
@@ -789,7 +789,7 @@
 								"$data_a": "instant_damage",
 								"$data_b": "potion.harm",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.97s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.98s' * $var_title_text)))"
 							}
 						},
 						{
@@ -797,7 +797,7 @@
 								"$data_a": "jump_boost",
 								"$data_b": "potion.jump",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.105s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.106s' * $var_title_text)))"
 							}
 						},
 						{
@@ -805,7 +805,7 @@
 								"$data_a": "nausea",
 								"$data_b": "potion.confusion",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.113s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.114s' * $var_title_text)))"
 							}
 						},
 						{
@@ -813,7 +813,7 @@
 								"$data_a": "regeneration",
 								"$data_b": "potion.regeneration",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.121s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.122s' * $var_title_text)))"
 							}
 						},
 						{
@@ -821,7 +821,7 @@
 								"$data_a": "resistance",
 								"$data_b": "potion.resistance",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.129s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.130s' * $var_title_text)))"
 							}
 						},
 						{
@@ -829,7 +829,7 @@
 								"$data_a": "fire_resistance",
 								"$data_b": "potion.fireResistance",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.137s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.138s' * $var_title_text)))"
 							}
 						},
 						{
@@ -837,7 +837,7 @@
 								"$data_a": "water_breathing",
 								"$data_b": "potion.waterBreathing",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.145s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.146s' * $var_title_text)))"
 							}
 						},
 						{
@@ -845,7 +845,7 @@
 								"$data_a": "invisibility",
 								"$data_b": "potion.invisibility",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.153s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.154s' * $var_title_text)))"
 							}
 						},
 						{
@@ -853,7 +853,7 @@
 								"$data_a": "blindness",
 								"$data_b": "potion.blindness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.161s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.162s' * $var_title_text)))"
 							}
 						},
 						{
@@ -861,7 +861,7 @@
 								"$data_a": "night_vision",
 								"$data_b": "potion.nightVision",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.169s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.170s' * $var_title_text)))"
 							}
 						},
 						{
@@ -869,7 +869,7 @@
 								"$data_a": "hunger",
 								"$data_b": "potion.hunger",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.177s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.178s' * $var_title_text)))"
 							}
 						},
 						{
@@ -877,7 +877,7 @@
 								"$data_a": "weakness",
 								"$data_b": "potion.weakness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.185s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.186s' * $var_title_text)))"
 							}
 						},
 						{
@@ -885,7 +885,7 @@
 								"$data_a": "poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.193s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.194s' * $var_title_text)))"
 							}
 						},
 						{
@@ -893,7 +893,7 @@
 								"$data_a": "wither",
 								"$data_b": "potion.wither",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.201s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.202s' * $var_title_text)))"
 							}
 						},
 						{
@@ -901,7 +901,7 @@
 								"$data_a": "health_boost",
 								"$data_b": "potion.healthBoost",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.209s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.210s' * $var_title_text)))"
 							}
 						},
 						{
@@ -909,7 +909,7 @@
 								"$data_a": "absorption",
 								"$data_b": "potion.absorption",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.217s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.218s' * $var_title_text)))"
 							}
 						},
 						{
@@ -917,7 +917,7 @@
 								"$data_a": "saturation",
 								"$data_b": "potion.saturation",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.225s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.226s' * $var_title_text)))"
 							}
 						},
 						{
@@ -925,7 +925,7 @@
 								"$data_a": "levitation",
 								"$data_b": "potion.levitation",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.233s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.234s' * $var_title_text)))"
 							}
 						},
 						{
@@ -933,7 +933,7 @@
 								"$data_a": "fatal_poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.241s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.242s' * $var_title_text)))"
 							}
 						},
 						{
@@ -941,7 +941,7 @@
 								"$data_a": "slow_falling",
 								"$data_b": "potion.slowFalling",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.249s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.250s' * $var_title_text)))"
 							}
 						},
 						{
@@ -949,7 +949,7 @@
 								"$data_a": "conduit_power",
 								"$data_b": "potion.conduitPower",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.257s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.258s' * $var_title_text)))"
 							}
 						},
 						{
@@ -957,7 +957,7 @@
 								"$data_a": "bad_omen",
 								"$data_b": "effect.badOmen",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.265s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.266s' * $var_title_text)))"
 							}
 						},
 						{
@@ -965,7 +965,7 @@
 								"$data_a": "village_hero",
 								"$data_b": "effect.villageHero",
 								"$data_c": false,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.273s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.274s' * $var_title_text)))"
 							}
 						},
 						{
@@ -973,7 +973,7 @@
 								"$data_a": "darkness",
 								"$data_b": "effect.darkness",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.281s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.282s' * $var_title_text)))"
 							}
 						},
 						{
@@ -981,7 +981,7 @@
 								"$data_a": "wind_charged",
 								"$data_b": "effect.wind_charged",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.289s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.290s' * $var_title_text)))"
 							}
 						},
 						{
@@ -989,7 +989,7 @@
 								"$data_a": "weaving",
 								"$data_b": "effect.weaving",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.297s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.298s' * $var_title_text)))"
 							}
 						},
 						{
@@ -997,7 +997,7 @@
 								"$data_a": "oozing",
 								"$data_b": "effect.oozing",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.305s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.306s' * $var_title_text)))"
 							}
 						},
 						{
@@ -1005,7 +1005,7 @@
 								"$data_a": "infested",
 								"$data_b": "effect.infested",
 								"$data_c": true,
-								"$data_d": "('%.8s' * ($var_title_text - ('%.313s' * $var_title_text)))"
+								"$data_d": "('%.8s' * ($var_title_text - ('%.314s' * $var_title_text)))"
 							}
 						},
 						{

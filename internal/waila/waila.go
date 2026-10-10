@@ -83,8 +83,9 @@ type Marks struct {
 	Void       bool
 }
 
-// ItemLine is a line of an item's name, its icon, then Text (only ASCII is
-// kept), such as "참나무 원목 [icon] x 132/1,024".
+// ItemLine is a line of an item's name, its icon, then Text (up to
+// textWidth bytes; start it with a colour code, as text that looks like a
+// number shows nothing), such as "흙 [icon] §f×3".
 type ItemLine struct {
 	Item item.Stack
 	Name string
@@ -95,10 +96,10 @@ type ItemLine struct {
 }
 
 // panelPrefix starts a block panel title ("A": blocks, "B": entities).
-const panelPrefix = "_r4ui:A:"
+const panelPrefix = "_waila:A:"
 
 // anchor places the panel at the top middle of the screen.
-const anchor = "__r4ui:anchor.top_middle__"
+const anchor = "__waila:anchor.top_middle__"
 
 // Format returns the title and subtitle that show info. The title is the
 // prefix, a 10-character tool field ("aa,a;zz,z:"), the text, and tokens the
@@ -169,7 +170,7 @@ func Format(info Info) (titleText, subtitle string) {
 
 // clean removes what the pack would cut out of the text.
 func clean(s string) string {
-	for _, cut := range []string{"tile.", "entity.", ".name", "__r4ui:"} {
+	for _, cut := range []string{"tile.", "entity.", ".name", "__waila:"} {
 		s = strings.ReplaceAll(s, cut, "")
 	}
 	return s
