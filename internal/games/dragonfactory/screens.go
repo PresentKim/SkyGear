@@ -73,15 +73,30 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	}
 }
 
-// shopCategories are the shop's tabs.
-var shopCategories = []struct {
+// shopCategory is a shop tab.
+type shopCategory struct {
 	Name, Icon string
-}{
-	{"도구", "textures/items/iron_pickaxe"},
-	{"재료", "textures/blocks/cobblestone"},
-	{"설비", iconOf(item.NewStack(Drawer{}, 1))},
-	{"기계", iconOf(machineItem(KindCrusher))},
-	{"코어", iconOf(coreItem(startCore))},
+	Item       func() item.Stack
+}
+
+// icon is the tab's button icon.
+func (c shopCategory) icon() string {
+	if c.Item != nil {
+		return iconOf(c.Item())
+	}
+	return c.Icon
+}
+
+// shopCategories are the shop's tabs. Icon is a texture path; tabs with an
+// Item show that item instead. Item icons are made when the tab is shown:
+// runtime IDs do not exist yet while package variables are initialised,
+// before the items are registered (an icon made here stays empty).
+var shopCategories = []shopCategory{
+	{Name: "도구", Icon: "textures/items/iron_pickaxe"},
+	{Name: "재료", Icon: "textures/blocks/cobblestone"},
+	{Name: "설비", Item: func() item.Stack { return item.NewStack(Drawer{}, 1) }},
+	{Name: "기계", Item: func() item.Stack { return machineItem(KindCrusher) }},
+	{Name: "코어", Item: func() item.Stack { return coreItem(startCore) }},
 }
 
 // productGroups are the tabs of the products that are not machines, cores
@@ -152,7 +167,7 @@ func (s *session) shopMenu(p *player.Player, cat int) (string, []ui.Option) {
 		}))
 	}
 	for i, c := range shopCategories {
-		t := ui.Tab(c.Name, c.Icon, i == cat, func(p *player.Player, _ *world.Tx) { s.showShopTab(p, i) })
+		t := ui.Tab(c.Name, c.icon(), i == cat, func(p *player.Player, _ *world.Tx) { s.showShopTab(p, i) })
 		opts = append(opts, s.opt(t.Label, t.Icon, t.Run))
 	}
 	return body, append(opts, s.backOption())

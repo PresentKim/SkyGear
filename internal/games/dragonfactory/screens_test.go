@@ -251,3 +251,13 @@ func TestExpansionCursorStaysNearBody(t *testing.T) {
 		s.stopExpand(p, tx)
 	})
 }
+
+// TestShopTabsHaveIcons: every shop tab has an icon. Item icons made while
+// package variables were initialised were empty (runtime IDs come later).
+func TestShopTabsHaveIcons(t *testing.T) {
+	for _, c := range shopCategories {
+		if c.icon() == "" {
+			t.Errorf("shop tab %s has no icon", c.Name)
+		}
+	}
+}

@@ -17,9 +17,9 @@
     "anchor_to": "left_middle",
     "layer": 2,
     "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global" },
+      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "once",
         "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r')",
         "target_property_name": "#df_title"
       }
@@ -175,11 +175,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§3§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -191,11 +191,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "((not ((#form_button_text - '§0§1§r') = #form_button_text)) or (not ((#form_button_text - '§0§2§r') = #form_button_text)))",
         "target_property_name": "#visible"
       }
@@ -207,11 +207,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§2§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -223,11 +223,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "((not ((#form_button_text - '§0§5§r') = #form_button_text)) or (not ((#form_button_text - '§0§6§r') = #form_button_text)))",
         "target_property_name": "#visible"
       }
@@ -239,11 +239,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§5§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -255,11 +255,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§6§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -271,11 +271,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§8§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -287,11 +287,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_text - '§0§4§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
@@ -303,11 +303,11 @@
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "((#form_button_text - '§0§') = #form_button_text)",
         "target_property_name": "#visible"
       }
@@ -410,7 +410,7 @@
           "bindings": [
             {
               "binding_name": "#form_button_text",
-              "binding_type": "collection",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
               "binding_collection_name": "form_buttons"
             }
           ]
@@ -521,17 +521,17 @@
       {
         "binding_name": "#form_button_texture",
         "binding_name_override": "#texture",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
         "binding_name": "#form_button_texture_file_system",
         "binding_name_override": "#texture_file_system",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(('%.8s' * #texture) = 'textures')",
         "target_property_name": "#visible"
       }
@@ -546,16 +546,16 @@
     "bindings": [
       {
         "binding_name": "#form_button_texture",
-        "binding_type": "collection",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(not ((#form_button_texture = '') or (#form_button_texture = 'loading') or (('%.8s' * #form_button_texture) = 'textures')))",
         "target_property_name": "#visible"
       },
       {
-        "binding_type": "view",
+        "binding_type": "view", "binding_condition": "always_when_visible",
         "source_property_name": "(#form_button_texture - (#form_button_texture % 65536))",
         "target_property_name": "#item_id_aux"
       }
@@ -600,7 +600,7 @@
           "bindings": [
             {
               "binding_name": "#form_button_text",
-              "binding_type": "collection",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
               "binding_collection_name": "form_buttons"
             }
           ]
@@ -839,7 +839,7 @@
           "bindings": [
             {
               "binding_name": "#form_button_text",
-              "binding_type": "collection",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
               "binding_collection_name": "form_buttons"
             }
           ]
@@ -1006,7 +1006,7 @@
           "bindings": [
             {
               "binding_name": "#form_button_text",
-              "binding_type": "collection",
+              "binding_type": "collection", "binding_condition": "always_when_visible",
               "binding_collection_name": "form_buttons"
             }
           ]
