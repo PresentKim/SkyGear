@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/perf"
 	"github.com/presentkim/dragonfactory/internal/timed"
 )
 
@@ -320,7 +321,7 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).
@@ -352,5 +353,27 @@ func (c adminExpandView) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			}
 		}
 		o.Printf("섬 확장 보기를 %s(으)로 바꿨습니다.", c.View)
+	}
+}
+
+// adminTPS turns the server load line at the top left of the operator's
+// HUD on or off (perf.Toggle), in the lobby too. It is kept until the
+// server restarts.
+type adminTPS struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"tps"`
+}
+
+func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p := src.(*player.Player)
+	on := perf.Toggle(p.Name())
+	// In the lobby, platform.ShowLoad shows or clears it within a second.
+	if s, ok := c.g.sessionOf(tx.World()); ok {
+		s.updateBoard(p)
+	}
+	if on {
+		o.Printf("서버 부하 표시를 켰습니다(왼쪽 위).")
+	} else {
+		o.Printf("서버 부하 표시를 껐습니다.")
 	}
 }

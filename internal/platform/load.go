@@ -4,17 +4,20 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/scoreboard"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/hud"
 	"github.com/presentkim/dragonfactory/internal/perf"
 )
 
-// ShowLoad shows operators in the lobby a sidebar with the server load
-// (internal/perf), refreshed every second until stop is closed. Games show
-// the same lines on their own sidebars.
+// ShowLoad shows operators in the lobby who turned it on (/dfadmin tps,
+// perf.Toggle) the server load at the top left of the HUD, refreshed every
+// second until stop is closed. Games show the same line on their own HUD.
 func ShowLoad(lobby *world.World, isOperator func(*player.Player) bool, stop <-chan struct{}) {
 	t := time.NewTicker(time.Second)
 	defer t.Stop()
+	// showing are the players the line was last sent to, to clear it once
+	// when turned off.
+	showing := map[string]bool{}
 	for {
 		select {
 		case <-stop:
@@ -22,19 +25,19 @@ func ShowLoad(lobby *world.World, isOperator func(*player.Player) bool, stop <-c
 		case <-t.C:
 			lobby.Do(func(tx *world.Tx) {
 				for e := range tx.Players() {
-					if p := e.(*player.Player); isOperator(p) {
-						sendLoadBoard(p, lobby)
+					p := e.(*player.Player)
+					on := isOperator(p) && perf.Shown(p.Name())
+					if !on && !showing[p.Name()] {
+						continue
 					}
+					var b hud.Board
+					if on {
+						b.Add(hud.TopLeft, perf.Line(lobby))
+					}
+					b.Send(p)
+					showing[p.Name()] = on
 				}
 			})
 		}
 	}
-}
-
-func sendLoadBoard(p *player.Player, w *world.World) {
-	b := scoreboard.New("§l§6서버 상태")
-	for i, l := range perf.Lines(w) {
-		b.Set(i, l)
-	}
-	p.SendScoreboard(b)
 }

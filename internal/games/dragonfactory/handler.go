@@ -141,6 +141,10 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 	}
 }
 
+// HandleExperienceGain keeps the experience bar for the island's level and
+// mission progress (sidebar.go): experience orbs give nothing.
+func (h *handler) HandleExperienceGain(ctx *player.Context, _ *int) { ctx.Cancel() }
+
 // HandleToggleSneak opens the island expansion actions when sneaking in
 // expansion mode.
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {

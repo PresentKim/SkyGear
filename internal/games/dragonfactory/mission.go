@@ -215,7 +215,7 @@ func (s *session) missionOptions() []ui.Option {
 	return append(opts, s.backOption())
 }
 
-// missionLine is the sidebar line of the current mission.
+// missionLine is a one line summary of the current mission (menu, WAILA).
 func (s *session) missionLine() string {
 	m, ok := s.mission()
 	if !ok {

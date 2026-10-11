@@ -11,10 +11,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Counts returns the number of online players and active instances. main
-// sets it; it is nil in tests.
-var Counts func() (players, instances int)
-
 // Process is the load of the server process.
 type Process struct {
 	// CPU is the CPU time used over the last sample, in percent of one
@@ -70,10 +66,11 @@ func loadColour(load float64) string {
 	}
 }
 
-// Lines returns the sidebar lines of the server load as seen from w: the
-// tick rate and tick time of w, the process CPU and memory, and the player
-// and instance counts.
-func Lines(w *world.World) []string {
+// Line returns the server load as seen from w in one short line for the
+// HUD's top left: the tick rate, the share of the 50ms tick budget used,
+// the average and longest tick time of the last 5 seconds and the memory of
+// live Go objects.
+func Line(w *world.World) string {
 	t := w.TickStats()
 	load := float64(t.MSPT) / float64(time.Second/20)
 	tpsColour := "§a"
@@ -83,22 +80,34 @@ func Lines(w *world.World) []string {
 	if t.TPS < 15 {
 		tpsColour = "§c"
 	}
-	lines := []string{
-		"§8── 서버 상태 ──",
-		fmt.Sprintf("§7TPS %s%.1f §7· 부하 %s%.0f%%", tpsColour, t.TPS, loadColour(load), load*100),
-		fmt.Sprintf("§7틱 %s §7(최대 %s)", ms(t.MSPT), ms(t.MaxMSPT)),
+	return fmt.Sprintf("§7TPS %s%.1f §8· §7부하 %s%.0f%% §8· §7틱 §f%s§7/%s §8· §7메모리 §f%.0fMB",
+		tpsColour, t.TPS, loadColour(load), load*100, ms(t.MSPT), ms(t.MaxMSPT), ProcessStats().HeapMB)
+}
+
+// shown are the players (by name) who turned the load line on
+// (/dfadmin tps).
+var (
+	shownMu sync.Mutex
+	shown   = map[string]bool{}
+)
+
+// Toggle turns the load line on or off for the player of the name and
+// reports whether it is now on.
+func Toggle(name string) bool {
+	shownMu.Lock()
+	defer shownMu.Unlock()
+	shown[name] = !shown[name]
+	if !shown[name] {
+		delete(shown, name)
 	}
-	p := ProcessStats()
-	cpu := "§7CPU -"
-	if p.CPUOK {
-		cpu = fmt.Sprintf("§7CPU %.0f%%", p.CPU)
-	}
-	lines = append(lines, fmt.Sprintf("%s §7· 메모리 %.0fMB", cpu, p.HeapMB))
-	if Counts != nil {
-		players, instances := Counts()
-		lines = append(lines, fmt.Sprintf("§7접속 %d명 · 인스턴스 %d개 · G %d", players, instances, p.Goroutines))
-	}
-	return lines
+	return shown[name]
+}
+
+// Shown reports whether the player of the name turned the load line on.
+func Shown(name string) bool {
+	shownMu.Lock()
+	defer shownMu.Unlock()
+	return shown[name]
 }
 
 func ms(d time.Duration) string {

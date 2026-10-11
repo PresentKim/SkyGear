@@ -206,6 +206,9 @@ func (s *session) Leave(p *player.Player) {
 	// instance world.
 	p.RemoveAllDebugShapes()
 	p.RemoveScoreboard()
+	// The experience bar shows the island's level and mission (sidebar.go).
+	p.SetExperienceLevel(0)
+	p.SetExperienceProgress(0)
 }
 
 func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s} }

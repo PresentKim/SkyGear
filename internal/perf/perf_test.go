@@ -8,9 +8,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// TestLines: a ticking world reports a tick rate near 20 and the lines show
-// it with the process stats and counts.
-func TestLines(t *testing.T) {
+// TestLine: a ticking world reports a tick rate near 20 and the line shows
+// it with the memory.
+func TestLine(t *testing.T) {
 	w := world.Config{Generator: world.NopGenerator{}}.New()
 	defer w.Close()
 	time.Sleep(600 * time.Millisecond)
@@ -21,13 +21,17 @@ func TestLines(t *testing.T) {
 	if st.MSPT <= 0 || st.MaxMSPT < st.MSPT {
 		t.Errorf("MSPT = %v, max %v", st.MSPT, st.MaxMSPT)
 	}
-	Counts = func() (int, int) { return 3, 2 }
-	defer func() { Counts = nil }()
-	text := strings.Join(Lines(w), "\n")
-	for _, want := range []string{"TPS", "부하", "틱", "메모리", "접속 3명", "인스턴스 2개"} {
+	text := Line(w)
+	for _, want := range []string{"TPS", "부하", "틱", "메모리"} {
 		if !strings.Contains(text, want) {
-			t.Errorf("lines miss %q:\n%s", want, text)
+			t.Errorf("line misses %q: %s", want, text)
 		}
+	}
+}
+
+func TestToggle(t *testing.T) {
+	if Shown("a") || !Toggle("a") || !Shown("a") || Toggle("a") || Shown("a") {
+		t.Fatal("toggle")
 	}
 }
 
