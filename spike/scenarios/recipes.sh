@@ -1,12 +1,17 @@
 #!/bin/bash
-# Recipe locking (research spike): the operator locks the island's recipes,
-# the client gets a short recipe list at once, unlocking sticks and opening
-# all send it again.
-timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=레시피 섬' 'expect:입장했습니다' \
-  'cmd:/dfadmin recipes lock' 'expectre:^recipes=[0-9]$' \
-  'cmd:/dfadmin recipes unlock stick' 'expectre:^recipes=1?[0-9]$' \
-  'cmd:/dfadmin recipes all' 'expectre:^recipes=[0-9]{3,}$' > host.log 2>&1
+# Research (research.go): recipes are locked but the base ones. Completing
+# the stick research sends a short recipe list, /dfadmin research free
+# opens every recipe and locks them again; then the chest research is paid
+# with planks from the research form (menu → 연구 → 상자 → 납품하기). The bot
+# counts a recipe list as "recipes=<n>".
+timeout 90 "$BOT" -name Hana \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=연구 섬' 'expect:입장했습니다' \
+  'cmd:/dfadmin research stick' 'expectre:^recipes=[0-9]{1,2}$' \
+  'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{3,}$' \
+  'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{1,2}$' \
+  'cmd:/dfadmin item oak_planks 64' 'expect:x64' \
+  'cmd:/menu' 'form:드래곤팩토리"=11' 'form:"연구"=2' 'form:"연구 · 상자"=0' 'expect:연구 완료' 'form:"연구"=null' \
+  'cmd:/dfadmin status' 'expect:level=' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
 [ $h -eq 0 ]

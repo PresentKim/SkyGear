@@ -18,8 +18,7 @@ import (
 // Gift fairy (docs/design/02-dragonfactory.md §3.5): now and then a fairy
 // (an allay on the client) visits a player in the save and flits about them.
 // Using (or hitting) it throws a gift to the player and it flies away. The gift is
-// some of a block the open core tiers make, or with giftNoteChance a
-// research note. Values are drafts.
+// some of a block the core makes. Values are drafts.
 const (
 	// fairyMinGap and fairyMaxGap bound the instance time between visits:
 	// about three instance days (an hour with 20-minute days).
@@ -27,15 +26,11 @@ const (
 	fairyMaxGap = 4
 	// fairyStay is how long a fairy waits for a player before leaving.
 	fairyStay = 2 * time.Minute
-	// giftNoteChance is the chance in percent that the gift is a research
-	// note.
-	giftNoteChance = 10
+	// giftCount is how many blocks a gift holds.
+	giftCount = 32
 	// fairyLeaveTicks is how long the fly-away lasts.
 	fairyLeaveTicks = 60
 )
-
-// giftCounts are how many blocks a gift of a recipe of each tier holds.
-var giftCounts = map[int]int{1: 32, 2: 16, 3: 8, 4: 4}
 
 // Fairy is the gift fairy entity.
 type Fairy struct {
@@ -171,21 +166,10 @@ func (f *Fairy) leave(tx *world.Tx, p *player.Player, gave bool) {
 	}
 }
 
-// rollGift picks a gift: a research note, or some of the output of a
-// recipe the save knows from an open core tier.
+// rollGift picks a gift: giftCount of a block the core makes.
 func (s *session) rollGift() item.Stack {
-	if s.rand.IntN(100) < giftNoteChance {
-		return item.NewStack(ResearchNote{}, 1)
-	}
-	var pool []*CoreRecipe
-	for i := range coreRecipes {
-		r := &coreRecipes[i]
-		if s.known(r) && s.state.Level >= tierOpenLevel(r.Tier) {
-			pool = append(pool, r)
-		}
-	}
-	r := pool[s.rand.IntN(len(pool))]
-	return item.NewStack(r.Output.(world.Item), giftCounts[r.Tier])
+	r := coreRecipes[s.rand.IntN(len(coreRecipes))]
+	return item.NewStack(r.Output.(world.Item), giftCount)
 }
 
 // FairyType is the world.EntityType of the gift fairy, shown as an allay.
@@ -256,51 +240,20 @@ func (s *session) fairyOf(e world.Entity) (*Fairy, bool) {
 	return f, ok && s.fairy == f.handle
 }
 
-// ResearchNote reveals the hint of a hidden core recipe when used.
+// ResearchNote was a fairy gift that revealed hints of hidden core
+// recipes, which are gone (13th playtest). It stays registered so old
+// inventories load; using it only says so.
 type ResearchNote struct{}
 
 func (ResearchNote) EncodeItem() (string, int16) { return "dragonfactory:research_note", 0 }
 func (ResearchNote) Name() string                { return "연구 노트" }
 func (ResearchNote) Category() category.Category { return category.Items() }
 
-// Use reveals one hint and uses up the note; with nothing left to reveal
-// the note is kept.
-func (ResearchNote) Use(tx *world.Tx, u item.User, ctx *item.UseContext) bool {
-	p, ok := u.(*player.Player)
-	s, ok2 := activeGame.sessionOf(tx.World())
-	if !ok || !ok2 {
-		return false
+func (ResearchNote) Use(_ *world.Tx, u item.User, _ *item.UseContext) bool {
+	if p, ok := u.(*player.Player); ok {
+		p.Message("§7연구 노트는 더 이상 쓰이지 않습니다. 연구는 연구대에서 합니다.")
 	}
-	r := s.revealHint()
-	if r == nil {
-		p.Message("§7지금 열린 티어에서 더 알아낼 단서가 없습니다. 노트는 남겨 둡니다.")
-		return false
-	}
-	ctx.SubtractFromCount(1)
-	p.Messagef("§d연구 노트 §7[%d티어] §f단서: %s §7(코어 도감)", r.Tier, r.Hint)
-	return true
-}
-
-// revealHint marks a random hidden recipe of an open tier that is neither
-// discovered nor hinted yet as hinted, and returns it (nil if none).
-func (s *session) revealHint() *CoreRecipe {
-	var pool []*CoreRecipe
-	for i := range coreRecipes {
-		r := &coreRecipes[i]
-		if r.Hidden && !s.state.Discovered[r.ID] && !s.state.Hinted[r.ID] && s.state.Level >= tierOpenLevel(r.Tier) {
-			pool = append(pool, r)
-		}
-	}
-	if len(pool) == 0 {
-		return nil
-	}
-	r := pool[s.rand.IntN(len(pool))]
-	if s.state.Hinted == nil {
-		s.state.Hinted = map[string]bool{}
-	}
-	s.state.Hinted[r.ID] = true
-	s.storeState()
-	return r
+	return false
 }
 
 func init() {

@@ -90,7 +90,7 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("core line icon %v, want cobblestone", info.Line.Item)
 		}
 		tx.SetBlock(corePos.Side(cube.FaceDown), block.Iron{}, nil)
-		if got := text(corePos); !strings.Contains(got, "3티어 이상") {
+		if got := text(corePos); !strings.Contains(got, "참나무 원목 또는 조약돌") {
 			t.Errorf("core on iron panel %q", got)
 		}
 		chestPos := cube.Pos{11, IslandY, 3}

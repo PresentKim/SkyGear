@@ -51,7 +51,7 @@
 
 ## 정육면체 블록 (모델링 없음)
 
-자동 자원 채굴기·자동 농작물 수확기·코어(티어별)는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`models.go` `cubeProperties`).
+자동 자원 채굴기·자동 농작물 수확기·코어는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`models.go` `cubeProperties`).
 텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
 놓는 방향으로 돌지 않는다.
 

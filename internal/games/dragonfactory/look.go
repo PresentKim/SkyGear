@@ -155,7 +155,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case Drawer, DeliveryBox:
+	case Drawer, DeliveryBox, ResearchTable:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case Machine, Core:
 		icon, typ = waila.PickaxeWood, item.TypePickaxe
@@ -276,25 +276,20 @@ func stackLine(it item.Stack) string {
 // coreLines are a core's lines and its item line: what it makes, with its
 // icon and a ring gauge ("생성물: 조약돌 [icon] ◔"; the tier is in the name).
 func (s *session) coreLines(tx *world.Tx, pos cube.Pos, c Core) ([]string, *waila.ItemLine) {
-	ct := c.ctype()
-	if ct == nil {
+	if c.ctype() == nil {
 		return nil, nil
 	}
-	r, need := matchRecipe(tx, pos, ct.Tier)
-	switch {
-	case r != nil:
-		line := &waila.ItemLine{Name: "생성물: §f" + blockName(r.Output)}
-		if it, ok := r.Output.(world.Item); ok {
-			line.Item = item.NewStack(it, 1)
-		}
-		if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
-			return []string{"§c위 칸이 막혀 멈춤"}, line
-		}
-		line.Gauge, line.ShowGauge = c.Progress*10/max(s.coreInterval(ct.Tier), 1), true
-		return nil, line
-	case need > 0:
-		return []string{fmt.Sprintf("§c%d티어 이상 코어가 필요", need)}, nil
-	default:
-		return []string{"§7이 코어 기반으로는 만들 것이 없음"}, nil
+	r := matchRecipe(tx, pos)
+	if r == nil {
+		return []string{"§7코어 기반: 참나무 원목 또는 조약돌"}, nil
 	}
+	line := &waila.ItemLine{Name: "생성물: §f" + blockName(r.Output)}
+	if it, ok := r.Output.(world.Item); ok {
+		line.Item = item.NewStack(it, 1)
+	}
+	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
+		return []string{"§c위 칸이 막혀 멈춤"}, line
+	}
+	line.Gauge, line.ShowGauge = c.Progress*10/max(s.coreInterval(), 1), true
+	return nil, line
 }

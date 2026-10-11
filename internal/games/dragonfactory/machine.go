@@ -91,6 +91,8 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Stone{}):       block.Cobblestone{},
 	itemKey(block.Cobblestone{}): block.Gravel{},
 	itemKey(block.Gravel{}):      block.Sand{},
+	// Dirt has no core since the 13th playtest: crushed sand gives it.
+	itemKey(block.Sand{}): block.Dirt{},
 }
 
 // SieveDrop is a possible product of sifting an item.
@@ -103,8 +105,9 @@ type SieveDrop struct {
 // sieveRecipes maps an input item key to its drops. Balancing drafts.
 var sieveRecipes = map[string][]SieveDrop{
 	itemKey(block.Gravel{}): {{item.NewStack(item.Flint{}, 1), 25}, {item.NewStack(item.IronNugget{}, 1), 8}, {item.NewStack(item.Coal{}, 1), 5}},
-	itemKey(block.Sand{}):   {{item.NewStack(item.ClayBall{}, 1), 20}, {item.NewStack(item.GoldNugget{}, 1), 3}},
-	itemKey(block.Dirt{}):   {{item.NewStack(block.WheatSeeds{}, 1), 15}, {item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), 5}},
+	itemKey(block.Sand{}):   {{item.NewStack(item.ClayBall{}, 1), 20}, {item.NewStack(item.GoldNugget{}, 1), 3}, {item.NewStack(block.Kelp{}, 1), 3}},
+	itemKey(block.Dirt{}): {{item.NewStack(block.WheatSeeds{}, 1), 15}, {item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), 5},
+		{item.NewStack(block.PumpkinSeeds{}, 1), 4}, {item.NewStack(block.MelonSeeds{}, 1), 4}},
 }
 
 // minerTool is what the auto miner mines with.

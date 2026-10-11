@@ -15,7 +15,7 @@ const (
 	achMachine     = "df_first_machine"
 	achUrgent      = "df_urgent_clear"
 	achChunks      = "df_chunks_10"
-	achCoreTier    = "df_core_tier_2"
+	achResearch    = "df_research_first"
 	achRich        = "df_money_100k"
 )
 
@@ -31,7 +31,7 @@ func init() {
 		account.Achievement{ID: achMachine, Name: "첫 기계", Desc: "기계를 처음 설치", Title: "기술자"},
 		account.Achievement{ID: achUrgent, Name: "긴급 해결사", Desc: "긴급 매입을 끝까지 채움", Title: "해결사"},
 		account.Achievement{ID: achChunks, Name: "땅 부자", Desc: "섬 청크 10개 소유", Title: "지주"},
-		account.Achievement{ID: achCoreTier, Name: "코어 연구", Desc: "2티어 이상 코어 설치", Title: "코어 연구자"},
+		account.Achievement{ID: achResearch, Name: "첫 연구", Desc: "연구대에서 연구 1개 완료", Title: "연구자"},
 		account.Achievement{ID: achRich, Name: "부자", Desc: "소지금 100,000G 달성", Title: "부자"},
 	)
 }

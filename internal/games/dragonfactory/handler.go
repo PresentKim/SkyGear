@@ -64,8 +64,6 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	switch b := b.(type) {
 	case Machine:
 		h.s.placeMachine(ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
-	case Core:
-		h.s.placeCoreAchievement(ctx.Player(), b)
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	}

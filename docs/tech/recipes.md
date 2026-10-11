@@ -8,8 +8,8 @@
 - Dragonfly 는 접속 때 한 번 전체 목록을 보내고, 세션마다 `네트워크 ID → 레시피` 표를 만들어 조합 요청(`CraftRecipe`·`AutoCraftRecipe`·대장장이·석재 절단기)을 그 표로만 받는다. 표에 없는 ID 는 동적 레시피(장식 항아리)로 넘어가고 거기도 없으면 거절.
 - Dragonfly 패치 `Player.SetRecipeFilter(f)`: 필터가 고른 레시피만 보내고 표에 넣는다(네트워크 ID 는 전체 목록 순번 그대로라 바뀌지 않음). 부르면 바로 다시 보낸다. 필터가 있으면 동적 레시피는 막는다.
   - 따라서 잠긴 레시피는 레시피 책·조합 칸에 안 나오고, 패킷을 위조해도 서버가 거절한다.
-- 시나리오 `spike/scenarios/recipes.sh`: 잠그면 클라이언트가 받는 레시피가 한 자리 수로 줄고, 막대기를 열면 다시 오고, 전부 열면 수백 개로 돌아온다(봇이 `CraftingData` 를 `recipes=<n>` 로 셈).
-- 시험 명령(저장 안 함): `/dfadmin recipes lock`(참나무 판자·조합대만), `/dfadmin recipes unlock <아이템>`(그 아이템을 만드는 레시피 모두), `/dfadmin recipes all`. 코드 `dragonfactory/recipes.go`. 열기 단위는 결과 아이템 이름(색·나무 종류 구분 없이 함께 열림).
+- 시나리오 `spike/scenarios/recipes.sh`: 막대기 연구 뒤 받는 레시피가 두 자리 수 이하, `/dfadmin research free` 로 수백 개, 다시 잠그면 줄어듦, 연구 창에서 상자 연구를 판자로 납품해 완료(봇이 `CraftingData` 를 `recipes=<n>` 로 셈).
+- 연구 시스템(13차 뒤, 기획 §3.4)이 이것을 쓴다: 섬에 들어오면 열린 결과(기본 + 완료한 연구)의 레시피만 보내고, 연구가 끝나면 섬의 모두에게 바로 다시 보낸다. 나가면 필터를 푼다. 코드 `dragonfactory/recipes.go`, `research.go`. 열기 단위는 결과 아이템 이름(색·나무 종류 구분 없이 함께 열림).
 
 ## 실기로 볼 것
 - 조합대를 연 채 레시피를 열면 바로 레시피 책·조합 결과에 반영되는지(다시 열어야 하는지).

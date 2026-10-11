@@ -15,55 +15,46 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// Dimension cores (docs/design/02-dragonfactory.md §3): a core is an engine
-// of a tier; the block under it (its base) and the blocks around that base
-// choose what it makes (corerecipe.go). A core makes its block above itself
-// whenever that space is empty, every interval of its tier. Any number of
-// cores can be placed. Tier speed upgrades (core points) speed up all cores
-// of a tier.
+// The dimension core (docs/design/02-dragonfactory.md §3): the block under
+// it (its base) chooses what it makes (corerecipe.go): oak logs or
+// cobblestone. It makes its block above itself whenever that space is
+// empty, every interval. Any number of cores can be placed. The speed
+// upgrade (core points) speeds up all cores.
 
-// CoreType is a kind of core item: a tier.
+// CoreType is a kind of core item. Only "t1" is left (13th playtest); the
+// other types are old ones kept so old worlds load.
 type CoreType struct {
 	ID, Name string
-	Tier     int
 }
 
-// coreTiers are the base generation intervals (ticks) by tier. Drafts.
-var coreTiers = map[int]int{1: 60, 2: 100, 3: 160, 4: 240}
+// coreBaseInterval is the generation interval in ticks. Draft.
+const coreBaseInterval = 60
 
-// coreTypes are all core types by ID (old IDs map to their replacements);
+// coreTypes are all core types by ID (old IDs map to the core);
 // coreOrder is the registration order. New types go at the end: the index
-// is part of the block hash. The types before "t1" are the cores of earlier
-// designs (one resource each), kept so old worlds load; they turn into the
-// tier core that replaces them (legacyCores).
+// is part of the block hash. Every type but "t1" is an old core (one
+// resource each, then tiers 2 to 4), kept so old worlds load; they turn
+// into the core (legacyCores).
 var coreTypes, coreOrder = buildCoreTypes()
 
-// legacyCores maps old core types to the tier cores that replace them.
+// legacyCores maps old core types to the core that replaces them.
 var legacyCores = map[string]string{
-	"earth": "t1", "life": "t2",
+	"earth": "t1", "life": "t1",
 	"wood": "t1", "stone": "t1", "dirt": "t1", "sand": "t1", "gravel": "t1",
-	"coal": "t2", "clay": "t2", "pumpkin": "t2", "melon": "t2", "hay": "t2",
-	"iron": "t3", "copper": "t3", "kelp": "t3", "mud": "t3", "gold": "t4",
+	"coal": "t1", "clay": "t1", "pumpkin": "t1", "melon": "t1", "hay": "t1",
+	"iron": "t1", "copper": "t1", "kelp": "t1", "mud": "t1", "gold": "t1",
+	"t2": "t1", "t3": "t1", "t4": "t1",
 }
 
 func buildCoreTypes() (map[string]*CoreType, []string) {
-	types := map[string]*CoreType{}
-	order := []string{"earth", "life", "wood", "stone", "dirt", "sand", "gravel", "coal", "clay", "pumpkin", "melon", "hay", "iron", "copper", "kelp", "mud", "gold"}
-	for _, t := range []*CoreType{
-		{"t1", "[1티어] 코어", 1},
-		{"t2", "[2티어] 코어", 2},
-		{"t3", "[3티어] 코어", 3},
-		{"t4", "[4티어] 코어", 4},
-	} {
-		types[t.ID] = t
-		order = append(order, t.ID)
-	}
-	for old, now := range legacyCores {
-		types[old] = types[now]
+	core := &CoreType{"t1", "차원의 코어"}
+	types := map[string]*CoreType{core.ID: core}
+	order := []string{"earth", "life", "wood", "stone", "dirt", "sand", "gravel", "coal", "clay", "pumpkin", "melon", "hay", "iron", "copper", "kelp", "mud", "gold", "t1", "t2", "t3", "t4"}
+	for old := range legacyCores {
+		types[old] = core
 	}
 	return types, order
 }
@@ -103,8 +94,8 @@ func (Core) Model() world.BlockModel     { return model.Solid{} }
 func (c Core) Name() string              { return c.ctype().Name }
 func (Core) Category() category.Category { return category.Items() }
 
-// Properties: each tier is a cube with its own side, top and bottom
-// textures.
+// Properties: a cube with its own side, top and bottom textures (old types
+// look like the core until they turn into it).
 func (c Core) Properties() customblock.Properties { return cubeProperties("core_" + c.ctype().ID) }
 
 // LightEmissionLevel makes cores glow faintly.
@@ -151,7 +142,7 @@ func (c Core) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
 		c.Progress = 0
 	} else {
-		r, _ := matchRecipe(tx, pos, c.ctype().Tier)
+		r := matchRecipe(tx, pos)
 		id := ""
 		if r != nil {
 			id = r.ID
@@ -160,10 +151,9 @@ func (c Core) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 			c.Recipe, c.Progress = id, 0
 		}
 		if r != nil {
-			if c.Progress++; c.Progress >= s.coreInterval(c.ctype().Tier) {
+			if c.Progress++; c.Progress >= s.coreInterval() {
 				tx.SetBlock(pos.Side(cube.FaceUp), r.Output, nil)
 				c.Progress = 0
-				s.discover(tx, r)
 			}
 		}
 	}
@@ -179,9 +169,7 @@ func convertLegacyCoreBlock(tx *world.Tx, pos cube.Pos, old string) {
 	if pos != startCorePos || (old != "wood" && old != "earth") {
 		return
 	}
-	// The floor is grass, which recipes read as dirt; it still gets the log.
-	_, floor := tx.Block(pos.Side(cube.FaceDown)).(block.Grass)
-	if r, _ := matchRecipe(tx, pos, 4); r == nil || floor {
+	if matchRecipe(tx, pos) == nil {
 		tx.SetBlock(pos.Side(cube.FaceDown), oakLog, nil)
 	}
 }
@@ -190,7 +178,7 @@ func convertLegacyCoreBlock(tx *world.Tx, pos cube.Pos, old string) {
 func coreItem(typ string) item.Stack {
 	t := coreTypes[typ]
 	return item.NewStack(Core{Type: t.ID}, 1).
-		WithLore("§7아래 코어 기반 블록에 따라 만드는 것이 달라집니다.", "§7레시피: 메뉴 → 코어 관리 → 코어 도감")
+		WithLore("§7아래 코어 기반과 같은 블록을 만듭니다.", "§7코어 기반: 참나무 원목 또는 조약돌")
 }
 
 // convertLegacyCores turns old core items in an inventory into the cores
@@ -217,8 +205,9 @@ func modernCore(st item.Stack) item.Stack {
 	return st
 }
 
-// Tier speed upgrades (core points): each level shortens the interval of
-// every core of the tier. Drafts.
+// The speed upgrade (core points): each level shortens the interval of
+// every core. Drafts. The level is kept as TierSpeed[1] (older saves had a
+// level per tier).
 const (
 	maxTierSpeed     = 3
 	tierSpeedPercent = 12
@@ -227,9 +216,12 @@ const (
 // upgradeCost is the core points the next level of an upgrade costs.
 func upgradeCost(level int) int { return level + 1 }
 
-// coreInterval is the generation interval of a core tier in ticks.
-func (s *session) coreInterval(tier int) int {
-	return coreTiers[tier] * (100 - tierSpeedPercent*s.state.TierSpeed[tier]) / 100
+// coreSpeed is the core speed upgrade level.
+func (s *session) coreSpeed() int { return s.state.TierSpeed[1] }
+
+// coreInterval is the generation interval of the cores in ticks.
+func (s *session) coreInterval() int {
+	return coreBaseInterval * (100 - tierSpeedPercent*s.coreSpeed()) / 100
 }
 
 // spendPoints takes n core points, telling p if there are not enough.
@@ -242,7 +234,7 @@ func (s *session) spendPoints(p *player.Player, n int) bool {
 	return true
 }
 
-// showCores shows the core upgrades: tier speeds and crop growth.
+// showCores shows the core upgrades: core speed and crop growth.
 func (s *session) showCores(p *player.Player, _ *world.Tx) {
 	body, opts := s.coreMenu()
 	ui.Menu(p, "코어 관리", body, opts...)
@@ -250,24 +242,21 @@ func (s *session) showCores(p *player.Player, _ *world.Tx) {
 
 func (s *session) coreMenu() (string, []ui.Option) {
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f코어 강화 포인트 §b%d§r\n§7레벨이 오르면 포인트를 받습니다. 티어 속도를 올리면 그 티어의 모든 코어가 빨라집니다. 코어는 상점에서 사고, 무엇을 만들지는 아래 코어 기반 블록이 정합니다(코어 도감).\n", s.state.CorePoints)
-	opts := []ui.Option{s.opt("§d코어 도감", iconMission, func(p *player.Player, _ *world.Tx) { s.showCoreBook(p) })}
-	for tier := 1; tier <= len(coreTiers); tier++ {
-		lv := s.state.TierSpeed[tier]
-		fmt.Fprintf(&b, "\n§f%d티어 §7%.1f초 · 속도 Lv.%d/%d", tier, float64(s.coreInterval(tier))/20, lv, maxTierSpeed)
-		if lv >= maxTierSpeed {
-			continue
-		}
+	lv := s.coreSpeed()
+	fmt.Fprintf(&b, "§f코어 강화 포인트 §b%d§r\n§7레벨이 오르면 포인트를 받습니다. 코어 속도를 올리면 모든 코어가 빨라집니다. 코어는 아래 코어 기반과 같은 블록을 만듭니다:\n%s\n", s.state.CorePoints, coreRecipeTexts())
+	fmt.Fprintf(&b, "\n§f코어 §7%.1f초 · 속도 Lv.%d/%d", float64(s.coreInterval())/20, lv, maxTierSpeed)
+	var opts []ui.Option
+	if lv < maxTierSpeed {
 		cost := upgradeCost(lv)
-		opts = append(opts, s.opt(fmt.Sprintf("§b%d티어 코어 속도 Lv.%d → %d §7(%d포인트)", tier, lv, lv+1, cost), iconCores, func(p *player.Player, tx *world.Tx) {
+		opts = append(opts, s.opt(fmt.Sprintf("§b코어 속도 Lv.%d → %d §7(%d포인트)", lv, lv+1, cost), iconCores, func(p *player.Player, tx *world.Tx) {
 			// The form may be stale: another player may have bought it.
-			if s.state.TierSpeed[tier] == lv && s.spendPoints(p, cost) {
+			if s.coreSpeed() == lv && s.spendPoints(p, cost) {
 				if s.state.TierSpeed == nil {
 					s.state.TierSpeed = map[int]int{}
 				}
-				s.state.TierSpeed[tier]++
+				s.state.TierSpeed[1]++
 				s.storeState()
-				ui.Flash(p, "§a%d티어 코어 속도 Lv.%d", tier, s.state.TierSpeed[tier])
+				ui.Flash(p, "§a코어 속도 Lv.%d", s.coreSpeed())
 			}
 			s.showCores(p, tx)
 		}))
@@ -291,32 +280,18 @@ func (c Core) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *
 	return true
 }
 
-// showCoreInfo describes a core: its tier, base and what it makes.
+// showCoreInfo describes a core: its base and what it makes.
 func (s *session) showCoreInfo(p *player.Player, tx *world.Tx, pos cube.Pos, c Core) {
 	t := c.ctype()
 	var b strings.Builder
-	fmt.Fprintf(&b, "§f%s §7· %d티어 속도 Lv.%d\n§7코어 기반: §f%s\n", t.Name, t.Tier, s.state.TierSpeed[t.Tier], blockName(tx.Block(pos.Side(cube.FaceDown))))
-	r, need := matchRecipe(tx, pos, t.Tier)
-	switch {
-	case r != nil && s.known(r):
-		interval := time.Duration(s.coreInterval(t.Tier)) * time.Second / 20
+	fmt.Fprintf(&b, "§f%s §7· 속도 Lv.%d\n§7코어 기반: §f%s\n", t.Name, s.coreSpeed(), blockName(tx.Block(pos.Side(cube.FaceDown))))
+	if r := matchRecipe(tx, pos); r != nil {
+		interval := time.Duration(s.coreInterval()) * time.Second / 20
 		fmt.Fprintf(&b, "§a%s §7(%.1f초마다, 위 칸이 비어 있을 때)", r.text(), interval.Seconds())
-	case r != nil:
-		b.WriteString("§d무언가에 반응하고 있습니다... §7(위 칸을 비워 두세요)")
-	case need > 0:
-		fmt.Fprintf(&b, "§c%d티어 이상 코어가 필요한 코어 기반입니다.", need)
-	default:
-		b.WriteString("§c반응 없음 §7— 이 코어 기반(과 둘레)에 맞는 레시피가 없습니다. 코어 도감을 확인하세요.")
+	} else {
+		fmt.Fprintf(&b, "§c반응 없음 §7— 코어 기반은 다음 중 하나여야 합니다:\n%s", coreRecipeTexts())
 	}
-	b.WriteString("\n\n§7코어는 여러 개 둘 수 있고, 캐면 아이템으로 돌아옵니다. 코어 기반은 닳지 않습니다.")
+	b.WriteString("\n\n§7코어는 여러 개 둘 수 있고, 캐면 아이템으로 돌아옵니다. 코어 기반은 닳지 않습니다. 다른 자원은 부수기·체로 얻습니다.")
 	ui.Menu(p, t.Name, b.String(),
-		s.opt("§d코어 도감", iconMission, func(p *player.Player, _ *world.Tx) { s.showCoreBook(p) }),
 		s.opt("§b코어 관리", iconCores, func(p *player.Player, tx *world.Tx) { s.showCores(p, tx) }))
-}
-
-// placeCoreAchievement grants the tier achievement for a placed core.
-func (s *session) placeCoreAchievement(p *player.Player, c Core) {
-	if c.ctype().Tier >= 2 {
-		account.Grant(p, achCoreTier)
-	}
 }

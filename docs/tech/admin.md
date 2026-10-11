@@ -7,9 +7,10 @@
 |---|---|
 | `/dfadmin level <n>` | 세이브 레벨을 n 으로(납품 수량 초기화) |
 | `/dfadmin points <n>` | 코어 강화 포인트를 n 으로 |
-| `/dfadmin tierspeed <티어> <n>` | 그 티어의 코어 속도 강화 Lv 를 n 으로 |
+| `/dfadmin corespeed <n>` | 코어 속도 강화 Lv 를 n 으로 |
+| `/dfadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free` 는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금). 옛 세이브는 연구가 없어 조합법이 잠기므로 필요하면 `all` |
 | `/dfadmin money <n>` | 내 소지금에 n 더하기 |
-| `/dfadmin give <ID> [개수]` | 상점 상품 ID·기계 종류(`drawer`, `drawer_key`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `sell_box`, 코어 `core_t1`~`core_t4`, 코어 기반 `base_cobblestone`, 연구 노트 `research_note` 등) |
+| `/dfadmin give <ID> [개수]` | 상점 상품 ID·기계 종류(`drawer`, `drawer_key`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `sell_box`, 코어 `core_t1`, 코어 기반 `base_cobblestone` 등) |
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/dfadmin urgent` | 긴급 매입을 지금 시작(진행 중이면 끝내고 새로) |
 | `/dfadmin skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·긴급 매입·분실물 만료 확인용) |
@@ -37,6 +38,6 @@
 
 `/dfadmin factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(코어 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/dfadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
 
-`/dfadmin dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(1티어 코어, 그 출력 위 자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 셀 하나에 블록 엔티티 5개(+서랍 표시 엔티티). 코어·기계를 많이 둘 때의 부하를 게임 안에서 잰다(측정은 운영자가 직접, 결과는 [performance.md](performance.md)에 적는다).
+`/dfadmin dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(코어, 그 출력 위 자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 셀 하나에 블록 엔티티 5개(+서랍 표시 엔티티). 코어·기계를 많이 둘 때의 부하를 게임 안에서 잰다(측정은 운영자가 직접, 결과는 [performance.md](performance.md)에 적는다).
 
 `/dfadmin expandview <map|floor>`: 이 섬의 확장 모드 표시 방식을 바꾼다(멀리 보낸 평면 지도(기본) / 섬 높이 유리 바닥). 확장 모드 중인 플레이어는 바로 다시 그려진다. 저장하지 않는다(서버를 다시 켜면 `map`, [기획](../design/02-dragonfactory.md) 섬 확장).

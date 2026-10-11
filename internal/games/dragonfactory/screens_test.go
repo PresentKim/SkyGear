@@ -100,7 +100,7 @@ func TestShopCategoriesCoverAllProducts(t *testing.T) {
 			t.Errorf("%s is in no tab (%q)", it.ID, shopGroup(it))
 		}
 	}
-	if shopGroup(shopItem("crusher")) != "기계" || shopGroup(shopItem("core_t2")) != "코어" || shopGroup(shopItem("mat_cobblestone")) != "재료" || shopGroup(shopItem("hammer")) != "도구" {
+	if shopGroup(shopItem("crusher")) != "기계" || shopGroup(shopItem("core_t1")) != "코어" || shopGroup(shopItem("mat_cobblestone")) != "재료" || shopGroup(shopItem("hammer")) != "도구" {
 		t.Fatal("a product is in the wrong tab")
 	}
 }

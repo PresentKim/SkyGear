@@ -48,10 +48,11 @@ var Levels = []Level{
 		Reward{Money: 2000, CorePoints: 2, Items: []func() item.Stack{func() item.Stack { return machineItem(KindMiner) }}}},
 	{"분쇄 라인", []Requirement{{block.Sand{}, 256}, {block.Gravel{}, 128}}, Reward{Money: 3000, CorePoints: 2}},
 	{"체질 장인", []Requirement{{item.Flint{}, 64}, {item.ClayBall{}, 64}, {item.IronNugget{}, 32}}, Reward{Money: 4000, CorePoints: 2}},
-	// Second era (경작): pumpkin and melon cores are in the shop from Lv.8.
+	// Second era (경작): pumpkins and melons grow from seeds sifted out of
+	// dirt, kelp is sifted out of sand (13th playtest: no more cores).
 	{"생명의 싹", []Requirement{{block.Pumpkin{}, 64}, {block.Melon{}, 64}}, Reward{Money: 5000, CorePoints: 2}},
 	{"건초 창고", []Requirement{{block.HayBale{Axis: cube.Y}, 64}, {block.Melon{}, 128}, {item.IronNugget{}, 64}}, Reward{Money: 7000, CorePoints: 2}},
-	{"늪의 기운", []Requirement{{block.DriedKelp{}, 32}, {block.Mud{}, 64}, {item.ClayBall{}, 128}}, Reward{Money: 10000, CorePoints: 3}},
+	{"늪의 기운", []Requirement{{block.DriedKelp{}, 32}, {item.Brick{}, 64}, {item.ClayBall{}, 128}}, Reward{Money: 10000, CorePoints: 3}},
 }
 
 // itemKey identifies an item type for missions and the shop.

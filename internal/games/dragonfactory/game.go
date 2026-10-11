@@ -139,9 +139,9 @@ type session struct {
 	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
-	// unlocked are the recipe results open while the island's recipes are
-	// locked (recipes.go); nil when every recipe is open.
-	unlocked map[string]bool
+	// recipesFree opens every recipe until the instance closes
+	// (/dfadmin research free, recipes.go).
+	recipesFree bool
 	// expandView is how expansion mode shows the chunks (expandViews; ""
 	// is the floor), set with /dfadmin expandview.
 	expandView string
@@ -186,9 +186,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.levelAchievementsFor(p)
 	s.sendShapes(p)
 	s.purgeLost()
-	if s.unlocked != nil {
-		s.sendRecipesTo(p)
-	}
+	s.sendRecipesTo(p)
 	s.updateBoard(p)
 }
 
@@ -212,10 +210,8 @@ func (s *session) Leave(p *player.Player) {
 	// instance world.
 	p.RemoveAllDebugShapes()
 	p.RemoveScoreboard()
-	if s.unlocked != nil {
-		// Locked recipes belong to this island (recipes.go).
-		p.SetRecipeFilter(nil)
-	}
+	// Locked recipes belong to this island (recipes.go).
+	p.SetRecipeFilter(nil)
 	// The experience bar shows the island's level and mission (sidebar.go).
 	p.SetExperienceLevel(0)
 	p.SetExperienceProgress(0)

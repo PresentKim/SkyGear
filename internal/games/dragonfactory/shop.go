@@ -65,8 +65,8 @@ var ShopItems = append([]ShopItem{
 	{"mat_dried_kelp", "말린 켈프 블록", func() item.Stack { return item.NewStack(block.DriedKelp{}, 1) }, 300, 10, 2, day},
 }, coreProducts()...)
 
-// coreShop are the tier cores sold in the shop with the level that opens
-// them, their price and daily stock. Drafts. One tier 1 core a day is free
+// coreShop are the cores sold in the shop with the level that opens
+// them, their price and daily stock. Drafts. One core a day is free
 // so a save that lost its start core is never stuck (logs are the only way
 // to the first money).
 var coreShop = []struct {
@@ -76,7 +76,6 @@ var coreShop = []struct {
 	Stock    int
 }{
 	{"core_t1_free", "t1", 1, 0, 1}, {"core_t1", "t1", 2, 300, 2},
-	{"core_t2", "t2", 4, 1500, 1}, {"core_t3", "t3", 7, 4000, 1}, {"core_t4", "t4", 10, 8000, 1},
 }
 
 // coreProducts are the shop products of the cores.

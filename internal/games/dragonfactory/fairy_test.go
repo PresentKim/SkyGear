@@ -9,53 +9,33 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// TestResearchNoteRevealsHints: a note reveals the hint of a hidden recipe
-// of an open tier and is used up; with nothing left it is kept.
-func TestResearchNoteRevealsHints(t *testing.T) {
+// TestOldResearchNoteIsKept: an old research note only says it is no
+// longer used.
+func TestOldResearchNoteIsKept(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		// Level 1: only tier 1 is open, whose one hidden recipe is smooth stone.
 		ctx := &item.UseContext{}
-		if !(ResearchNote{}).Use(tx, p, ctx) || ctx.CountSub != 1 || !s.state.Hinted["smooth_stone"] {
-			t.Fatalf("first note: hinted %v, used %d", s.state.Hinted, ctx.CountSub)
-		}
-		ctx = &item.UseContext{}
 		if (ResearchNote{}).Use(tx, p, ctx) || ctx.CountSub != 0 {
-			t.Fatal("a note was used up with nothing left to reveal")
-		}
-		s.state.Level = 10
-		for range 2 {
-			(ResearchNote{}).Use(tx, p, &item.UseContext{})
-		}
-		if len(s.state.Hinted) != 3 {
-			t.Fatalf("hinted %v after opening every tier", s.state.Hinted)
+			t.Fatal("an old research note was used up")
 		}
 	})
 }
 
-// TestGiftsComeFromOpenTiers: a gift is a research note or some of a block
-// a known recipe of an open tier makes.
-func TestGiftsComeFromOpenTiers(t *testing.T) {
+// TestGiftsAreCoreBlocks: a gift is giftCount of oak logs or cobblestone.
+func TestGiftsAreCoreBlocks(t *testing.T) {
 	s := testSession(t)
-	notes, blocks := 0, map[string]bool{}
-	for range 2000 {
+	blocks := map[string]bool{}
+	for range 200 {
 		st := s.rollGift()
-		if _, ok := st.Item().(ResearchNote); ok {
-			notes++
-			continue
-		}
 		blocks[itemKey(st.Item())] = true
-		if st.Count() != giftCounts[1] {
-			t.Fatalf("tier 1 gift of %d", st.Count())
+		if st.Count() != giftCount {
+			t.Fatalf("gift of %d", st.Count())
 		}
 	}
-	if notes < 100 || notes > 320 {
-		t.Errorf("%d notes in 2000 gifts, want about 10%%", notes)
-	}
-	if blocks[itemKey(block.Stone{})] || blocks[itemKey(block.Mud{})] || !blocks[itemKey(oakLog)] {
-		t.Errorf("gifts at level 1 = %v", blocks)
+	if len(blocks) != 2 || !blocks[itemKey(oakLog)] || !blocks[itemKey(block.Cobblestone{})] {
+		t.Errorf("gifts = %v", blocks)
 	}
 }
 

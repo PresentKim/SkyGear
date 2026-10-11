@@ -25,12 +25,13 @@ type State struct {
 	Delivered map[string]int `json:"delivered,omitempty"`
 	// CorePoints are unspent core upgrade points.
 	CorePoints int `json:"core_points"`
-	// TierSpeed are the core speed upgrade levels by core tier.
+	// TierSpeed[1] is the core speed upgrade level (once by core tier).
 	TierSpeed map[int]int `json:"tier_speed,omitempty"`
-	// Discovered are the hidden core recipes a core in the save has made.
-	Discovered map[string]bool `json:"discovered,omitempty"`
-	// Hinted are the hidden core recipes whose hint a research note revealed.
-	Hinted map[string]bool `json:"hinted,omitempty"`
+	// Researched are the done researches (research.go).
+	Researched map[string]bool `json:"researched,omitempty"`
+	// ResearchPaid counts the items delivered for researches not done yet,
+	// by research and item key.
+	ResearchPaid map[string]map[string]int `json:"research_paid,omitempty"`
 	// NextFairy is the instance time of the next gift fairy visit.
 	NextFairy time.Duration `json:"next_fairy,omitempty"`
 	// Shop is the stock of shop products by product ID.

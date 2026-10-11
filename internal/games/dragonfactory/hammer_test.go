@@ -42,3 +42,22 @@ func TestHammerDropsCrushedBlock(t *testing.T) {
 		t.Fatal("the hammer does not mine cobblestone faster than a hand")
 	}
 }
+
+// TestDirtFromCrushedSand: with no dirt core (13th playtest) crushing sand
+// is the way to dirt; dirt and sand sift out the farming and kelp drops.
+func TestDirtFromCrushedSand(t *testing.T) {
+	if out, ok := crushed(block.Sand{}); !ok || itemKey(out) != itemKey(block.Dirt{}) {
+		t.Fatalf("crushed sand = %v", out)
+	}
+	has := func(in world.Item, want world.Item) bool {
+		for _, d := range sieveRecipes[itemKey(in)] {
+			if itemKey(d.Item.Item()) == itemKey(want) {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(block.Dirt{}, block.PumpkinSeeds{}) || !has(block.Dirt{}, block.MelonSeeds{}) || !has(block.Sand{}, block.Kelp{}) {
+		t.Fatal("sieve drops for farming and kelp missing")
+	}
+}

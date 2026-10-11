@@ -113,23 +113,18 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 
 type adminTier struct {
 	adminBase
-	Sub   cmd.SubCommand `cmd:"tierspeed"`
-	Tier  int            `cmd:"tier"`
+	Sub   cmd.SubCommand `cmd:"corespeed"`
 	Level int            `cmd:"level"`
 }
 
-// Run sets the speed upgrade level of a core tier.
+// Run sets the core speed upgrade level.
 func (c adminTier) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		if _, known := coreTiers[c.Tier]; !known {
-			o.Errorf("티어는 1~%d", len(coreTiers))
-			return
-		}
 		if s.state.TierSpeed == nil {
 			s.state.TierSpeed = map[int]int{}
 		}
-		s.state.TierSpeed[c.Tier] = max(0, min(c.Level, maxTierSpeed))
-		o.Printf("%d티어 코어 속도 Lv.%d", c.Tier, s.state.TierSpeed[c.Tier])
+		s.state.TierSpeed[1] = max(0, min(c.Level, maxTierSpeed))
+		o.Printf("코어 속도 Lv.%d", s.coreSpeed())
 	}
 }
 
@@ -238,7 +233,6 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range machineOrder {
 		out[k] = func() item.Stack { return machineItem(k) }
 	}
-	out["research_note"] = func() item.Stack { return item.NewStack(ResearchNote{}, 1) }
 	return out
 }
 
@@ -321,7 +315,7 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminRecipes{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).
@@ -378,53 +372,62 @@ func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
-// recipeActionEnum is an action of /dfadmin recipes.
-type recipeActionEnum string
+// researchEnum names a research of the tree or all, reset, free.
+type researchEnum string
 
-func (recipeActionEnum) Type() string                { return "df_recipe_action" }
-func (recipeActionEnum) Options(cmd.Source) []string { return []string{"lock", "unlock", "all"} }
-
-// adminRecipes tries recipe locking (recipes.go) in game: lock leaves only
-// oak planks and the crafting table, unlock <item> opens the recipes making
-// that item at once, all opens every recipe. Not saved.
-type adminRecipes struct {
-	adminBase
-	Sub    cmd.SubCommand       `cmd:"recipes"`
-	Action recipeActionEnum     `cmd:"action"`
-	Item   cmd.Optional[string] `cmd:"item"`
+func (researchEnum) Type() string { return "df_research" }
+func (researchEnum) Options(cmd.Source) []string {
+	opts := []string{"all", "reset", "free"}
+	for _, r := range researchTree {
+		opts = append(opts, r.ID)
+	}
+	return opts
 }
 
-func (c adminRecipes) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+// adminResearch completes a research (or all), forgets every research
+// (reset), or opens every recipe until the instance closes (free; again to
+// lock).
+type adminResearch struct {
+	adminBase
+	Sub      cmd.SubCommand `cmd:"research"`
+	Research researchEnum   `cmd:"research"`
+}
+
+func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	_, s, ok := c.session(src, o, tx)
 	if !ok {
 		return
 	}
-	switch c.Action {
-	case "lock":
-		s.lockRecipes(tx)
-		o.Printf("레시피를 잠갔습니다(참나무 판자·조합대만 열림).")
+	switch c.Research {
 	case "all":
-		s.openRecipes(tx)
-		o.Printf("모든 레시피를 열었습니다.")
-	case "unlock":
-		name, ok := c.Item.Load()
+		for i := range researchTree {
+			if !s.researched(researchTree[i].ID) {
+				s.completeResearch(tx, &researchTree[i])
+			}
+		}
+		o.Printf("모든 연구를 완료했습니다.")
+	case "reset":
+		s.state.Researched, s.state.ResearchPaid = nil, nil
+		s.storeState()
+		s.sendRecipes(tx)
+		o.Printf("연구를 모두 지웠습니다.")
+	case "free":
+		s.recipesFree = !s.recipesFree
+		s.sendRecipes(tx)
+		if s.recipesFree {
+			o.Printf("모든 조합법을 열었습니다(인스턴스가 닫힐 때까지).")
+		} else {
+			o.Printf("조합법을 다시 연구대로 잠갔습니다.")
+		}
+	default:
+		r, ok := researchByID(string(c.Research))
 		if !ok {
-			o.Error("열 아이템 이름을 적으세요. 예: /dfadmin recipes unlock stick")
+			o.Errorf("알 수 없는 연구: %s", c.Research)
 			return
 		}
-		if !strings.Contains(name, ":") {
-			name = "minecraft:" + name
+		if !s.researched(r.ID) {
+			s.completeResearch(tx, r)
 		}
-		it, ok := world.ItemByName(name, 0)
-		if !ok {
-			o.Errorf("알 수 없는 아이템: %s", name)
-			return
-		}
-		if s.unlocked == nil {
-			o.Error("레시피가 잠겨 있지 않습니다. 먼저 /dfadmin recipes lock")
-			return
-		}
-		s.unlockRecipe(tx, it)
-		o.Printf("%s 레시피를 열었습니다.", itemName(item.NewStack(it, 1)))
+		o.Printf("%s 연구를 완료했습니다.", r.Name)
 	}
 }
