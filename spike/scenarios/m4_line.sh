@@ -1,7 +1,8 @@
 #!/bin/bash
 # M4: an operator builds the sample hands-free line (auto miner on the core,
 # crusher, sell box) and the line sells items; it also enters and leaves
-# island expansion mode. The line sells items without anyone touching it.
+# island expansion mode (the map view). The line sells items without
+# anyone touching it.
 timeout 120 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=라인 섬' 'expect:입장했습니다' \
   'cmd:/dfadmin status' 'expectre:sold=0$' \

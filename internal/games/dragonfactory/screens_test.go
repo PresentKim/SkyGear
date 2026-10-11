@@ -113,6 +113,7 @@ func TestExpansionMode(t *testing.T) {
 		tx.SetBlock(cube.Pos{1, expandFloorY, 1}, block.Grass{}, nil)
 		tx.SetBlock(cube.Pos{0, expandFloorY, 0}, block.Grass{}, nil)
 		s.money[p.UUID().String()] = 5000
+		s.expandView = viewFloor
 		s.showExpand(p)
 		e, ok := s.expansionOf(p)
 		if !ok {
@@ -234,6 +235,7 @@ func TestExpansionCursorStaysNearBody(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.expandView = viewFloor // the map lets the cursor go farther
 		s.showExpand(p)
 		e, _ := s.expansionOf(p)
 		for range expandReach + 3 {
@@ -262,31 +264,55 @@ func TestShopTabsHaveIcons(t *testing.T) {
 	}
 }
 
-// TestExpansionViews: the sky view draws the floor above the highest block
-// near the cursor; the lines view draws debug shapes and no fake blocks.
-func TestExpansionViews(t *testing.T) {
+// TestExpansionMap: the map view sends owned chunks far away with their top
+// blocks flattened under glass, lets the cursor leave the body's reach and
+// takes the map down when expansion ends.
+func TestExpansionMap(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(cube.Pos{3, expandFloorY + 5, 3}, block.Stone{}, nil)
-		s.expandView = viewSky
-		s.showExpand(p)
+		tx.SetBlock(cube.Pos{3, expandFloorY + 7, 3}, block.Stone{}, nil)
+		s.showExpand(p) // the map is the default view
 		e, _ := s.expansionOf(p)
-		if e.floorY != expandFloorY+6 {
-			t.Fatalf("sky floor at y %d, want %d", e.floorY, expandFloorY+6)
+		if e.mapShown[ChunkPos{0, 0}] != world.Block(floorTargetOwned) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) || len(e.floor) != 0 {
+			t.Fatalf("map chunks %v, %d fake blocks", e.mapShown, len(e.floor))
 		}
-		if b := e.floor[cube.Pos{20, e.floorY, 5}]; b != world.Block(floorBuyable) {
-			t.Fatalf("sky buyable floor = %v", b)
+		col := s.mapColumn(tx, ChunkPos{0, 0}, floorTargetOwned)
+		reg := tx.World().BlockRegistry()
+		at := func(x, y, z int) world.Block {
+			b, _ := reg.BlockByRuntimeID(col.Block(uint8(x), int16(y), uint8(z), 0))
+			return b
 		}
-		s.expandView = viewLines
-		s.drawFloor(p, e)
-		if len(e.floor) != 0 || len(e.shapes) == 0 {
-			t.Fatalf("lines view: %d fake blocks, %d shapes", len(e.floor), len(e.shapes))
+		// A full block alone just under the surface, the glass on it.
+		if at(3, expandFloorY-1, 3) != (block.Stone{}) || !isAir(at(3, expandFloorY-2, 3)) {
+			t.Fatalf("map column = %v over %v, want stone alone", at(3, expandFloorY-1, 3), at(3, expandFloorY-2, 3))
+		}
+		if at(3, expandFloorY, 3) != world.Block(floorTargetOwned) {
+			t.Fatalf("map glass = %v", at(3, expandFloorY, 3))
+		}
+		// A torch shows the block it stands on under it.
+		tx.SetBlock(cube.Pos{5, expandFloorY + 3, 5}, block.Planks{}, nil)
+		tx.SetBlock(cube.Pos{5, expandFloorY + 4, 5}, block.Torch{Facing: cube.FaceDown}, nil)
+		col = s.mapColumn(tx, ChunkPos{0, 0}, floorTargetOwned)
+		if _, ok := at(5, expandFloorY-1, 5).(block.Torch); !ok || at(5, expandFloorY-2, 5) != (block.Planks{}) {
+			t.Fatalf("torch column = %v over %v", at(5, expandFloorY-1, 5), at(5, expandFloorY-2, 5))
+		}
+		home := e.home
+		cam := s.expandCamera(e)
+		if cam[0] < mapOffset*16 || p.Position() != cam.Add(mgl64.Vec3{0, mapBodyAbove, 0}) {
+			t.Fatalf("camera %v, body %v: not over the map", cam, p.Position())
+		}
+		for range expandReach + 2 {
+			s.expandInput(p, e, mgl64.Vec2{})
+			s.expandInput(p, e, mgl64.Vec2{-1, 0})
+		}
+		if e.target[0] <= e.body[0]+expandReach {
+			t.Fatalf("cursor stopped at %v on the map", e.target)
 		}
 		s.stopExpand(p, tx)
-		if len(e.shapes) != 0 {
-			t.Fatal("shapes left after leaving")
+		if e.mapShown != nil || p.Position() != home {
+			t.Fatalf("after leaving: map %v, body at %v, want %v", e.mapShown, p.Position(), home)
 		}
 	})
 }

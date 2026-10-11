@@ -33,6 +33,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
@@ -3512,6 +3513,31 @@ func (p *Player) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, 
 func (p *Player) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
 	p.session().MoveFakeEntity(id, pos, yaw)
 }
+
+// ViewFakeChunk shows c in place of the world's chunk at pos to this player
+// only, until ClearFakeChunk; the world's block updates there are not sent
+// meanwhile. (dragonfactory patch)
+func (p *Player) ViewFakeChunk(pos world.ChunkPos, c *chunk.Chunk) {
+	p.session().ViewFakeChunk(pos, p.tx.World().Dimension(), c)
+}
+
+// ClearFakeChunk shows the world's chunk at pos again. (dragonfactory patch)
+func (p *Player) ClearFakeChunk(pos world.ChunkPos) {
+	p.session().ClearFakeChunk(pos, p.tx.World().Dimension())
+}
+
+// ViewChunkCentre makes the client keep the chunks around pos until the
+// player next changes chunk (for fake chunks sent right after a teleport).
+// (dragonfactory patch)
+func (p *Player) ViewChunkCentre(pos mgl64.Vec3) { p.session().ViewChunkCentre(pos) }
+
+// SetCameraFOV sets the field of view of the player's camera in degrees.
+// (dragonfactory patch)
+func (p *Player) SetCameraFOV(fov float64) { p.session().SetCameraFOV(fov) }
+
+// ClearCameraFOV returns the camera's field of view to the player's own
+// setting. (dragonfactory patch)
+func (p *Player) ClearCameraFOV() { p.session().ClearCameraFOV() }
 
 // RemoveFakeEntity removes an entity shown with ViewFakeEntity. (dragonfactory
 // patch)

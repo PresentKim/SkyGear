@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"image/color"
 	"slices"
 	"time"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/ui"
@@ -30,6 +28,12 @@ import (
 const (
 	// expandCameraHeight is how far above the island the camera looks down.
 	expandCameraHeight = 30
+	// Over the map the camera has a narrow field of view from higher up, so
+	// the map looks nearly flat (less perspective at the edges, 13th
+	// playtest) at about the same size: height × tan(fov/2) stays that of
+	// the default 60° at expandCameraHeight.
+	expandMapFOV          = 30
+	expandMapCameraHeight = 65
 	// expandFloorY is the height of the fake glass floor (the island surface).
 	expandFloorY = IslandY - 1
 	// expandStepEvery is how often a held movement key moves the cursor on
@@ -87,26 +91,34 @@ type expansion struct {
 	held     bool
 	// started tells apart a later expansion from this one in delayed tasks.
 	started time.Time
-	// floorY is the height the floor (or the lines) is drawn at.
-	floorY int
-	// shapes are the debug shapes drawn in the "lines" view.
-	shapes []debug.Shape
+	// mapShown is the glass of each map chunk sent in the "map" view
+	// (expandmap.go); home is where the body stood, to go back to.
+	mapShown map[ChunkPos]world.Block
+	home     mgl64.Vec3
 }
 
-// Expansion views (/dfadmin expandview, 11th playtest: the floor at the
-// island surface hides under buildings):
+// Expansion views (/dfadmin expandview). The floor at the island surface
+// hides under buildings (11th playtest); glass above the buildings, debug
+// shape outlines and plate entities did not match the real chunks (12th),
+// so the map is the default:
+//   - map: the island's top blocks flattened under glass, far away
+//     (expandmap.go)
 //   - floor: stained glass in the air at the island surface (the first view)
-//   - sky: the same glass as a sheet just above the highest block in sight,
-//     so buildings show through it
-//   - lines: debug shape outlines of each chunk at that height, no glass
 const (
+	viewMap   = "map"
 	viewFloor = "floor"
-	viewSky   = "sky"
-	viewLines = "lines"
 )
 
 // expandViews are the expansion views.
-var expandViews = []string{viewFloor, viewSky, viewLines}
+var expandViews = []string{viewMap, viewFloor}
+
+// currentExpandView is the session's expansion view.
+func (s *session) currentExpandView() string {
+	if s.expandView == "" {
+		return viewMap
+	}
+	return s.expandView
+}
 
 func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
 	e, ok := s.expanding[p.H()]
@@ -123,7 +135,7 @@ func (s *session) showExpand(p *player.Player) {
 		s.expanding = map[*world.EntityHandle]*expansion{}
 	}
 	at := chunkOf(cube.PosFromVec3(p.Position()))
-	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now(), mode: p.GameMode()}
+	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now(), mode: p.GameMode(), home: p.Position()}
 	s.expanding[p.H()] = e
 	p.SetImmobile()
 	p.SetGameMode(viewOnlyMode{})
@@ -146,11 +158,9 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 	for pos := range e.floor {
 		p.ViewFakeBlock(pos, tx.Block(pos))
 	}
-	for _, sh := range e.shapes {
-		p.RemoveDebugShape(sh)
-	}
-	e.shapes = nil
+	s.drawMap(p, e, false)
 	p.ClearCamera()
+	p.ClearCameraFOV()
 	p.SetGameMode(e.mode)
 	p.SetMobile()
 }
@@ -211,19 +221,34 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	case c[0] < -r || c[0] > r || c[1] < -r || c[1] > r:
 		p.SendTip("§7섬은 여기까지 넓힐 수 있습니다.")
 		return
-	case abs32(c[0]-e.body[0]) > reach || abs32(c[1]-e.body[1]) > reach:
+	case s.currentExpandView() != viewMap && (abs32(c[0]-e.body[0]) > reach || abs32(c[1]-e.body[1]) > reach):
 		p.SendTip("§7더 멀리 가려면 확장을 끝내고 그쪽으로 걸어간 뒤 다시 여세요.")
 		return
 	}
 	e.target = c
-	s.moveExpandCamera(p, e, 0.2)
+	// The drawing first: the camera follows its height.
 	s.drawFloor(p, e)
+	s.moveExpandCamera(p, e, 0.2)
 	s.expandTip(p, e)
 }
 
 func (s *session) moveExpandCamera(p *player.Player, e *expansion, ease float64) {
 	// Pitch 90 looks straight down; yaw 180 puts north at the top.
-	p.SetCamera(cursorPos(e.target).Add(mgl64.Vec3{0, expandCameraHeight, 0}), 90, 180, ease)
+	p.SetCamera(s.expandCamera(e), 90, 180, ease)
+	if s.currentExpandView() == viewMap {
+		p.SetCameraFOV(expandMapFOV)
+	} else {
+		p.ClearCameraFOV()
+	}
+}
+
+// expandCamera is where the camera looks down from: above the selected
+// chunk, on the island or on the map.
+func (s *session) expandCamera(e *expansion) mgl64.Vec3 {
+	if s.currentExpandView() == viewMap {
+		return mapShift(cursorPos(e.target)).Add(mgl64.Vec3{0, expandMapCameraHeight, 0})
+	}
+	return cursorPos(e.target).Add(mgl64.Vec3{0, expandCameraHeight, 0})
 }
 
 // restoreFloorNear shows the fake floor again around pos after the client
@@ -237,7 +262,7 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 		}
 		for x := -1; x <= 1; x++ {
 			for z := -1; z <= 1; z++ {
-				at := cube.Pos{pos[0] + x, e.floorY, pos[2] + z}
+				at := cube.Pos{pos[0] + x, expandFloorY, pos[2] + z}
 				if b, ok := e.floor[at]; ok {
 					p.ViewFakeBlock(at, b)
 				}
@@ -251,7 +276,7 @@ func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
 // positions and its whole border).
 func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block {
 	want := map[cube.Pos]world.Block{}
-	y := e.floorY
+	y := expandFloorY
 	near := int32(expandFloorReach)
 	add := func(c ChunkPos, b world.Block, border bool) {
 		// Only around the cursor: farther chunks may not be loaded or sent.
@@ -294,13 +319,9 @@ func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block
 // session's expansion view, sending only changes.
 func (s *session) drawFloor(p *player.Player, e *expansion) {
 	tx := p.Tx()
-	view := s.expandView
-	e.floorY = expandFloorY
-	if view == viewSky || view == viewLines {
-		e.floorY = s.skyY(tx, e)
-	}
+	view := s.currentExpandView()
 	want := map[cube.Pos]world.Block{}
-	if view != viewLines {
+	if view == viewFloor {
 		want = s.floorWant(tx, e)
 	}
 	for pos := range e.floor {
@@ -314,63 +335,7 @@ func (s *session) drawFloor(p *player.Player, e *expansion) {
 		}
 	}
 	e.floor = want
-	for _, sh := range e.shapes {
-		p.RemoveDebugShape(sh)
-	}
-	e.shapes = nil
-	if view == viewLines {
-		s.drawLines(p, e)
-	}
-}
-
-// skyY is the height just above the highest block in the chunks drawn
-// around the cursor, below the camera.
-func (s *session) skyY(tx *world.Tx, e *expansion) int {
-	top := expandFloorY
-	near := int(expandFloorReach)
-	for cx := int(e.target[0]) - near; cx <= int(e.target[0])+near; cx++ {
-		for cz := int(e.target[1]) - near; cz <= int(e.target[1])+near; cz++ {
-			for x := range 16 {
-				for z := range 16 {
-					top = max(top, tx.HighestBlock(cx*16+x, cz*16+z))
-				}
-			}
-		}
-	}
-	return min(top+1, IslandY+expandCameraHeight-4)
-}
-
-// drawLines outlines each owned and buyable chunk near the cursor and the
-// selected chunk with debug shapes at e.floorY.
-func (s *session) drawLines(p *player.Player, e *expansion) {
-	near := int32(expandFloorReach)
-	box := func(c ChunkPos, col color.RGBA, height float64) {
-		if abs32(c[0]-e.target[0]) > near || abs32(c[1]-e.target[1]) > near {
-			return
-		}
-		sh := &debug.Box{Colour: col, Position: mgl64.Vec3{float64(c[0]) * 16, float64(e.floorY), float64(c[1]) * 16}, Bounds: mgl64.Vec3{16, height, 16}}
-		p.AddDebugShape(sh)
-		e.shapes = append(e.shapes, sh)
-	}
-	for _, c := range s.state.Chunks {
-		if c != e.target {
-			box(c, color.RGBA{R: 90, G: 220, B: 90, A: 255}, 0.05)
-		}
-	}
-	buyable := s.purchasableChunks()
-	for _, c := range buyable {
-		if c != e.target {
-			box(c, color.RGBA{R: 240, G: 210, B: 60, A: 255}, 0.05)
-		}
-	}
-	target := color.RGBA{R: 230, G: 60, B: 60, A: 255}
-	switch {
-	case s.owns(e.target):
-		target = color.RGBA{R: 90, G: 190, B: 250, A: 255}
-	case slices.Contains(buyable, e.target):
-		target = color.RGBA{R: 250, G: 140, B: 40, A: 255}
-	}
-	box(e.target, target, 1)
+	s.drawMap(p, e, view == viewMap)
 }
 
 // expandTip shows the target chunk and its price above the hotbar.

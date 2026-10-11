@@ -51,13 +51,29 @@ func (s *Session) ClearCamera() {
 	s.writePacket(&packet.CameraInstruction{Clear: protocol.Option(true)})
 }
 
+// SetCameraFOV sets the field of view of the player's camera in degrees.
+func (s *Session) SetCameraFOV(fov float64) {
+	if s == Nop {
+		return
+	}
+	s.writePacket(&packet.CameraInstruction{FieldOfView: protocol.Option(protocol.CameraInstructionFieldOfView{FieldOfView: float32(fov)})})
+}
+
+// ClearCameraFOV returns the player's field of view to their own setting.
+func (s *Session) ClearCameraFOV() {
+	if s == Nop {
+		return
+	}
+	s.writePacket(&packet.CameraInstruction{FieldOfView: protocol.Option(protocol.CameraInstructionFieldOfView{Clear: true})})
+}
+
 // ViewFakeBlock shows b at pos to this player only. The world is unchanged;
 // resend the real block to undo it.
 func (s *Session) ViewFakeBlock(pos cube.Pos, b world.Block) {
 	if s == Nop {
 		return
 	}
-	s.ViewBlockUpdate(pos, b, 0)
+	s.viewBlockUpdate(pos, b, 0)
 }
 
 // MoveInput returns the movement keys the client last held, as sent in

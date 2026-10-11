@@ -343,7 +343,12 @@ func (c adminExpandView) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		for e := range tx.Players() {
 			p := e.(*player.Player)
 			if ex, ok := s.expansionOf(p); ok {
+				// Only the map lets the cursor go far from the body.
+				if reach := int32(expandReach); abs32(ex.target[0]-ex.body[0]) > reach || abs32(ex.target[1]-ex.body[1]) > reach {
+					ex.target = ex.body
+				}
 				s.drawFloor(p, ex)
+				s.moveExpandCamera(p, ex, 0)
 			}
 		}
 		o.Printf("섬 확장 보기를 %s(으)로 바꿨습니다.", c.View)

@@ -60,6 +60,10 @@ type Session struct {
 	entities         map[uint64]*world.EntityHandle
 	hiddenEntities   map[uuid.UUID]struct{}
 
+	// fakeChunks are the chunks shown with ViewFakeChunk. (dragonfactory patch)
+	fakeChunkMu sync.Mutex
+	fakeChunks  map[world.ChunkPos]*world.Column
+
 	// heldSlot is the slot in the inventory that the controllable is holding.
 	heldSlot                     *uint32
 	inv, offHand, enderChest, ui *inventory.Inventory
