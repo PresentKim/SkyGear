@@ -21,6 +21,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/enchantment"
 	"github.com/df-mc/dragonfly/server/item/inventory"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player/bossbar"
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/player/debug"
@@ -3530,6 +3531,11 @@ func (p *Player) ClearFakeChunk(pos world.ChunkPos) {
 // player next changes chunk (for fake chunks sent right after a teleport).
 // (dragonfactory patch)
 func (p *Player) ViewChunkCentre(pos mgl64.Vec3) { p.session().ViewChunkCentre(pos) }
+
+// SetRecipeFilter limits the player's recipes to those f keeps (all if f
+// is nil) and sends the new list at once; call it again when f's answers
+// change. (dragonfactory patch)
+func (p *Player) SetRecipeFilter(f func(recipe.Recipe) bool) { p.session().SetRecipeFilter(f) }
 
 // SetCameraFOV sets the field of view of the player's camera in degrees.
 // (dragonfactory patch)

@@ -99,6 +99,9 @@ type Session struct {
 	lastChunkPos world.ChunkPos
 
 	recipes map[uint32]recipe.Recipe
+	// recipeFilter, if set, picks the recipes sent and accepted.
+	// (dragonfactory patch)
+	recipeFilter func(recipe.Recipe) bool
 
 	blobMu                sync.Mutex
 	blobs                 map[uint64][]byte

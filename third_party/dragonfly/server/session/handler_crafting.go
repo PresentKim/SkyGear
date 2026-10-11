@@ -245,6 +245,11 @@ func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, time
 	if timesCrafted < 1 {
 		return fmt.Errorf("times crafted must be at least 1")
 	}
+	// dragonfactory patch: dynamic recipes (the decorated pot) are not in the
+	// recipe list a filter picks from, so a filter turns them off.
+	if s.recipeFilter != nil {
+		return fmt.Errorf("dynamic recipes are locked by the recipe filter")
+	}
 
 	size := s.craftingSize()
 	offset := s.craftingOffset()

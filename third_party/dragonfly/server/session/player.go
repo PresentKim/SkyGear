@@ -129,8 +129,14 @@ func (s *Session) sendRecipes() {
 		potionContainerChange    []protocol.PotionContainerChangeRecipe
 	)
 
+	// dragonfactory patch: only the recipes the filter keeps are sent and
+	// accepted. Network IDs stay the index in the full list.
+	clear(s.recipes)
 	for index, i := range recipe.Recipes() {
 		networkID := uint32(index) + 1
+		if s.recipeFilter != nil && !s.recipeFilter(i) {
+			continue
+		}
 		s.recipes[networkID] = i
 
 		switch i := i.(type) {
@@ -227,6 +233,18 @@ func (s *Session) sendRecipes() {
 		PotionContainerChangeRecipes: potionContainerChange,
 		ClearRecipes:                 true,
 	})
+}
+
+// SetRecipeFilter limits the player's recipes to those f keeps (all if f
+// is nil) and sends the new list at once: the client replaces its recipes
+// (recipe book, crafting grid output), and crafting a recipe left out is
+// refused. Call it again whenever f's answers change. (dragonfactory patch)
+func (s *Session) SetRecipeFilter(f func(recipe.Recipe) bool) {
+	if s == Nop {
+		return
+	}
+	s.recipeFilter = f
+	s.sendRecipes()
 }
 
 // sendArmourTrimData sends the armour trim data.

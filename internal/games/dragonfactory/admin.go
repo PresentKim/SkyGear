@@ -321,7 +321,7 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}))
+		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminRecipes{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).
@@ -375,5 +375,56 @@ func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Printf("서버 부하 표시를 켰습니다(왼쪽 위).")
 	} else {
 		o.Printf("서버 부하 표시를 껐습니다.")
+	}
+}
+
+// recipeActionEnum is an action of /dfadmin recipes.
+type recipeActionEnum string
+
+func (recipeActionEnum) Type() string                { return "df_recipe_action" }
+func (recipeActionEnum) Options(cmd.Source) []string { return []string{"lock", "unlock", "all"} }
+
+// adminRecipes tries recipe locking (recipes.go) in game: lock leaves only
+// oak planks and the crafting table, unlock <item> opens the recipes making
+// that item at once, all opens every recipe. Not saved.
+type adminRecipes struct {
+	adminBase
+	Sub    cmd.SubCommand       `cmd:"recipes"`
+	Action recipeActionEnum     `cmd:"action"`
+	Item   cmd.Optional[string] `cmd:"item"`
+}
+
+func (c adminRecipes) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	_, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	switch c.Action {
+	case "lock":
+		s.lockRecipes(tx)
+		o.Printf("레시피를 잠갔습니다(참나무 판자·조합대만 열림).")
+	case "all":
+		s.openRecipes(tx)
+		o.Printf("모든 레시피를 열었습니다.")
+	case "unlock":
+		name, ok := c.Item.Load()
+		if !ok {
+			o.Error("열 아이템 이름을 적으세요. 예: /dfadmin recipes unlock stick")
+			return
+		}
+		if !strings.Contains(name, ":") {
+			name = "minecraft:" + name
+		}
+		it, ok := world.ItemByName(name, 0)
+		if !ok {
+			o.Errorf("알 수 없는 아이템: %s", name)
+			return
+		}
+		if s.unlocked == nil {
+			o.Error("레시피가 잠겨 있지 않습니다. 먼저 /dfadmin recipes lock")
+			return
+		}
+		s.unlockRecipe(tx, it)
+		o.Printf("%s 레시피를 열었습니다.", itemName(item.NewStack(it, 1)))
 	}
 }

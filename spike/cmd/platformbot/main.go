@@ -55,6 +55,7 @@ func main() {
 //	input:<title>=<text>         wait for a custom form and submit text
 //	cmd:/text                    run a command
 //	expect:<text>                wait for a chat message, command output, title, toast or sidebar line containing text
+//	                             (a recipe list counts as "recipes=<n>")
 //	expectre:<regexp>            wait for a chat message or command output matching regexp
 //	show:<regexp>                like expectre, and print the message (e.g. a load line)
 //	capture:<title>=<file>       wait for a form, write the invite code in it to file, close it
@@ -217,6 +218,11 @@ func messages(pk packet.Packet) []string {
 		}
 	case *packet.ToastRequest:
 		return []string{pk.Title + " " + pk.Message}
+	case *packet.CraftingData:
+		// The recipe list (sent again when recipes are locked or opened).
+		n := len(pk.ShapedRecipes) + len(pk.ShapelessRecipes) + len(pk.MultiRecipes) + len(pk.UserDataShapelessRecipes) +
+			len(pk.SmithingTransformRecipes) + len(pk.SmithingTrimRecipes) + len(pk.PotionRecipes) + len(pk.PotionContainerChangeRecipes)
+		return []string{fmt.Sprintf("recipes=%d", n)}
 	case *packet.SetDisplayObjective:
 		// Sidebar title and lines count as messages too.
 		return []string{pk.DisplayName}
