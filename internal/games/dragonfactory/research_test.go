@@ -90,12 +90,12 @@ func TestResearchOpensRecipes(t *testing.T) {
 	})
 }
 
-// TestResearchTableRecipe: the research table is crafted from a crafting
-// table and four oak planks.
+// TestResearchTableRecipe: the research table is crafted from two crafting
+// tables.
 func TestResearchTableRecipe(t *testing.T) {
 	for _, r := range recipe.Recipes() {
 		for _, out := range r.Output() {
-			if _, ok := out.Item().(ResearchTable); ok && len(r.Input()) == 5 {
+			if _, ok := out.Item().(ResearchTable); ok && len(r.Input()) == 2 {
 				return
 			}
 		}

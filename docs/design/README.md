@@ -18,6 +18,7 @@
 | [02-dragonfactory.md](02-dragonfactory.md) | 드래곤팩토리: 차원의 코어, 레벨·메인 미션, 상점·매입 예산, 긴급 미션, 수표, 섬 영역, 안전 장치 |
 | [03-architecture.md](03-architecture.md) | 기술 설계, Dragonfly 제약, 데이터 저장, 패키지 구조 |
 | [04-roadmap.md](04-roadmap.md) | 개발 단계(마일스톤) |
+| [05-sky-progression.md](05-sky-progression.md) | 스카이블록 진행 개편 컨셉(스카이팩토리 3·ATM10 Sky): 발전과제 안내, 손작업 초반, 체 그물, 발효기, 차원 게이트 몬스터 웨이브 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항 |
 
 ## 용어

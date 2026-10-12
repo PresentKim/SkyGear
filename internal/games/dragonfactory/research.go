@@ -274,8 +274,8 @@ func (s *session) researchNode(r *Research) (string, []ui.Option) {
 	return b.String(), append(opts, s.opt(research.Label, research.Icon, research.Run))
 }
 
-// ResearchTable is the block where research is done. It is crafted from a
-// crafting table and four oak planks (open from the start).
+// ResearchTable is the block where research is done. It is crafted from two
+// crafting tables (open from the start).
 type ResearchTable struct{}
 
 var researchTableHash = block.NextHash()
@@ -317,7 +317,6 @@ func (ResearchTable) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User
 func init() {
 	world.RegisterBlock(ResearchTable{})
 	world.RegisterItem(ResearchTable{})
-	planks := item.NewStack(oakPlanks, 1)
-	recipe.Register(recipe.NewShapeless([]recipe.Item{item.NewStack(block.CraftingTable{}, 1), planks, planks, planks, planks},
-		item.NewStack(ResearchTable{}, 1), "crafting_table"))
+	table := item.NewStack(block.CraftingTable{}, 1)
+	recipe.Register(recipe.NewShapeless([]recipe.Item{table, table}, item.NewStack(ResearchTable{}, 1), "crafting_table"))
 }
