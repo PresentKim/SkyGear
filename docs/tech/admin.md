@@ -7,7 +7,7 @@
 |---|---|
 | `/dfadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free` 는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금). 옛 세이브는 연구가 없어 조합법이 잠기므로 필요하면 `all` |
 | `/dfadmin advance <발전과제 ID\|all\|reset>` | 발전과제 하나(앞 단계 포함)·전부 달성, 모두 지우기 |
-| `/dfadmin give <ID> [개수]` | 게임 아이템·기계(`research_table`, `drawer`, `drawer_key`, `barrel`, `upgrade_capacity`, `upgrade_void`, `hammer`, `water`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`) |
+| `/dfadmin give <ID> [개수]` | 게임 아이템·기계(`research_table`, `drawer`, `drawer_key`, `barrel`, `wood_hopper`, `wood_hopper_reverse`, `iron_hopper_reverse`, `upgrade_capacity`, `upgrade_void`, `hammer`, `water`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`) |
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/dfadmin skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/dfadmin timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |

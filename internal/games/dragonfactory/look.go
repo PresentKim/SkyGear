@@ -137,6 +137,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Lines = s.composterLines(pos, b)
 	case Barrel:
 		info.Lines = s.barrelLines(pos)
+	case FlowHopper:
+		info.Lines = hopperLines(b)
 	}
 	if kind, _, ok := cropOf(b); ok {
 		info.Name = cropNames[kind]
@@ -159,6 +161,12 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 	switch b.(type) {
 	case Drawer, DeliveryBox, ResearchTable, Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
+	case FlowHopper:
+		if h := b.(FlowHopper); h.kind().wood {
+			icon, typ = waila.AxeWood, item.TypeAxe
+		} else {
+			icon, typ = waila.PickaxeWood, item.TypePickaxe
+		}
 	case Machine, Core:
 		icon, typ = waila.PickaxeWood, item.TypePickaxe
 	default:

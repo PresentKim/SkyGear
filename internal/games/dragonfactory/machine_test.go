@@ -293,3 +293,30 @@ func TestMinerLegacySlots(t *testing.T) {
 		t.Errorf("output %v legacy %v, want the stack moved into slot 13", it, again.st.legacy)
 	}
 }
+
+// TestHopperFillsHandSieve: a hopper puts a block into a hand sieve with a
+// mesh, one at a time and only while it is empty; without a mesh it takes
+// nothing.
+func TestHopperFillsHandSieve(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindSieve, "")
+	st.mesh = ""
+	m := Machine{Kind: KindSieve, st: st}
+	gravel := item.NewStack(block.Gravel{}, 5)
+	s.world.Do(func(tx *world.Tx) {
+		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 0 {
+			t.Errorf("a sieve without a mesh took %d", n)
+		}
+		st.mesh = "string"
+		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 1 {
+			t.Errorf("hand sieve took %d, want 1", n)
+		}
+		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 0 {
+			t.Errorf("a full hand sieve took %d", n)
+		}
+		if n := m.InsertItems(tx, machinePos, cube.FaceDown, gravel); n != 0 {
+			t.Errorf("the bottom face took %d", n)
+		}
+	})
+}

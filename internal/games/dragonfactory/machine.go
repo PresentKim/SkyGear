@@ -539,11 +539,19 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 }
 
 // InsertItems implements itemio.Inserter: a machine takes inputs through any
-// face but the bottom, which is its output.
-func (m Machine) InsertItems(_ *world.Tx, _ cube.Pos, face cube.Face, st item.Stack) int {
-	if m.st == nil || len(m.st.kind.input) == 0 || m.Kind == KindSieve || face == cube.FaceDown {
-		// The hand sieve is filled by hand only.
+// face but the bottom, which is its output. The hand sieve holds one block
+// (it needs its mesh), so it takes one only while it is empty, and its look
+// follows.
+func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack) int {
+	if m.st == nil || len(m.st.kind.input) == 0 || face == cube.FaceDown {
 		return 0
+	}
+	if m.Kind == KindSieve {
+		if _, _, filled := m.st.firstInput(); filled || !m.st.accepts(st) || !m.st.insert(st) {
+			return 0
+		}
+		showSieve(tx, pos, m.st)
+		return 1
 	}
 	n := 0
 	for n < st.Count() && m.st.insert(st) {

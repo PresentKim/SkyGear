@@ -52,7 +52,10 @@ var researchTree = []Research{
 	{ID: "wood_tools", Name: "나무 도구", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
 	{ID: "chest", Name: "상자", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 64}}, Unlocks: []string{"chest"}},
-	{ID: "compost", Name: "퇴비통", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter", "oak_slab"}},
+	{ID: "wood_hopper", Name: "나무 호퍼", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 48}},
+		Unlocks: []string{"dragonfactory:wood_hopper", "dragonfactory:wood_hopper_reverse"}},
+	{ID: "slab", Name: "참나무 반 블록", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"oak_slab"}},
+	{ID: "compost", Name: "퇴비통", Needs: []string{"slab"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter"}},
 	{ID: "barrel", Name: "배럴", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"dragonfactory:barrel_oak"}},
 	{ID: "furnace", Name: "화로", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
 	{ID: "stone_tools", Name: "돌 도구", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
@@ -62,12 +65,12 @@ var researchTree = []Research{
 	{ID: "sieve", Name: "체", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve"}},
 	{ID: "torch", Name: "횃불", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 16}, {stick, 16}}, Unlocks: []string{"torch"}},
 	{ID: "woodwork", Name: "목공", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 128}, {stick, 32}},
-		Unlocks: []string{"oak_slab", "oak_stairs", "oak_fence", "fence_gate", "wooden_door", "trapdoor", "ladder", "bowl"}},
+		Unlocks: []string{"oak_stairs", "oak_fence", "fence_gate", "wooden_door", "trapdoor", "ladder", "bowl"}},
 	{ID: "masonry", Name: "석공", Needs: []string{"furnace"}, Cost: []Requirement{{block.Stone{}, 64}, {block.Cobblestone{}, 64}},
 		Unlocks: []string{"cobblestone_slab", "stone_stairs", "cobblestone_wall", "normal_stone_slab", "normal_stone_stairs", "stone_bricks"}},
 	{ID: "glasswork", Name: "유리 공예", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 32}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
 	{ID: "iron", Name: "철 가공", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{item.IronNugget{}, 36}}, Unlocks: []string{"iron_ingot", "iron_block", "iron_nugget"}},
-	{ID: "hopper", Name: "호퍼", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper"}},
+	{ID: "hopper", Name: "호퍼", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse", "dragonfactory:wood_hopper_reverse"}},
 	{ID: "crusher", Name: "분쇄기", Needs: []string{"hammer", "iron"}, Cost: []Requirement{{block.Cobblestone{}, 128}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
 	{ID: "auto_sieve", Name: "자동 체", Needs: []string{"sieve", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 16}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
 	{ID: "iron_tools", Name: "철 도구", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 48}},
@@ -427,6 +430,15 @@ func gameRecipes() {
 	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	add(st(Drawer{}), n(planks, 8), n(block.NewChest(), 1))
 	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
+	// Hoppers: the wood hopper from planks and a chest; each hopper and its
+	// reverse turn into one another when crafted alone.
+	woodHopper, woodReverse := newFlowHopper("wood_hopper", cube.FaceDown), newFlowHopper("wood_hopper_reverse", cube.FaceUp)
+	ironReverse := newFlowHopper("iron_hopper_reverse", cube.FaceUp)
+	add(st(woodHopper), n(planks, 5), n(block.NewChest(), 1))
+	add(st(woodReverse), n(woodHopper, 1))
+	add(st(woodHopper), n(woodReverse, 1))
+	add(st(ironReverse), n(block.NewHopper(), 1))
+	add(st(block.NewHopper()), n(ironReverse, 1))
 	add(st(DrawerKey{}), n(item.IronNugget{}, 4), n(stick, 1))
 	add(st(DrawerUpgrade{Kind: UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
 	add(st(DrawerUpgrade{Kind: UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))

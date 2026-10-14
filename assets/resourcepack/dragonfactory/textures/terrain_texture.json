@@ -110,6 +110,12 @@
     },
     "dragonfactory_barrel_water": {
       "textures": "textures/blocks/barrel_water"
+    },
+    "dragonfactory_wood_hopper": {
+      "textures": "textures/blocks/wood_hopper"
+    },
+    "dragonfactory_iron_hopper": {
+      "textures": "textures/blocks/iron_hopper"
     }
   },
   "texture_name": "atlas.terrain"

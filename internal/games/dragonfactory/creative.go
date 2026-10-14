@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"sync"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
@@ -48,6 +49,9 @@ func registerCreativeItems() {
 			}
 		}
 		add(construction, Dust{})
+		for _, id := range hopperOrder {
+			add(construction, newFlowHopper(id, cube.FaceDown))
+		}
 		add(equipment, Hammer{})
 		add(equipment, DrawerKey{})
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})

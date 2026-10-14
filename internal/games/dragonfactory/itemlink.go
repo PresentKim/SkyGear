@@ -82,20 +82,12 @@ func inventoryFits(inv *inventory.Inventory, st item.Stack) bool {
 	return false
 }
 
-// coolHopper makes a hopper that just got or lost an item wait, so the item
-// does not run through a line of hoppers in one tick.
+// coolHopper makes a vanilla hopper that just got or lost an item wait, so
+// the item does not run through a line of hoppers in one tick (the hoppers
+// of the game move on a fixed beat of their own).
 func coolHopper(tx *world.Tx, pos cube.Pos) {
-	switch b := tx.Block(pos).(type) {
-	case block.Hopper:
-		b.TransferCooldown = hopperCooldown
-		tx.SetBlock(pos, b, nil)
-	case hopperLike:
-		tx.SetBlock(pos, b.cooled(), nil)
+	if h, ok := tx.Block(pos).(block.Hopper); ok {
+		h.TransferCooldown = hopperCooldown
+		tx.SetBlock(pos, h, nil)
 	}
-}
-
-// hopperLike is a hopper of the game: it can be set to wait.
-type hopperLike interface {
-	world.Block
-	cooled() world.Block
 }
