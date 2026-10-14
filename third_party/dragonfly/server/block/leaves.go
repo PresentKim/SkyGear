@@ -97,6 +97,14 @@ func (l Leaves) FlammabilityInfo() FlammabilityInfo {
 	return newFlammabilityInfo(30, 60, true)
 }
 
+// LeavesSaplingChances are the chances of leaves dropping a sapling when
+// broken or decayed, by fortune level 0 to 3 (vanilla values). dragonfactory
+// patch: variables instead of constants.
+var LeavesSaplingChances = []float64{0.05, 0.0625, 0.083333336, 0.1}
+
+// JungleLeavesSaplingChances are LeavesSaplingChances for jungle leaves.
+var JungleLeavesSaplingChances = []float64{0.025, 0.027777778, 0.03125, 0.041666668}
+
 // BreakInfo ...
 func (l Leaves) BreakInfo() BreakInfo {
 	return newBreakInfo(0.2, alwaysHarvestable, func(t item.Tool) bool {
@@ -109,9 +117,10 @@ func (l Leaves) BreakInfo() BreakInfo {
 		var drops []item.Stack
 
 		if sapling, ok := l.Type.Sapling(); ok {
-			chances := []float64{0.05, 0.0625, 0.083333336, 0.1}
+			// dragonfactory patch: the chances are variables the game can raise.
+			chances := LeavesSaplingChances
 			if l.Type == JungleLeaves() {
-				chances = []float64{0.025, 0.027777778, 0.03125, 0.041666668}
+				chances = JungleLeavesSaplingChances
 			}
 			if rand.Float64() < chances[min(fortune, 3)] {
 				drops = append(drops, item.NewStack(Sapling{Type: sapling}, 1))

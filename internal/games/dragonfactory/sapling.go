@@ -25,6 +25,14 @@ const (
 	crouchGrowChance = 30
 )
 
+// Leaves drop saplings far more often than vanilla's 5%: without a sapling
+// the start is stuck, and a sapling grows into a tree whose leaves give
+// more. Fortune raises it a little; jungle leaves drop half as often.
+func init() {
+	block.LeavesSaplingChances = []float64{0.2, 0.22, 0.25, 0.3}
+	block.JungleLeavesSaplingChances = []float64{0.1, 0.11, 0.125, 0.15}
+}
+
 // giveSapling gives p an oak sapling if the cooldown has passed.
 func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) error {
 	if wait := s.state.LastSapling.Add(saplingCooldown).Sub(now); wait > 0 {
