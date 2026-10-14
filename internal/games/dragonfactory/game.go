@@ -47,6 +47,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	g := &Game{log: log, db: d, isOperator: isOperator, sessions: map[*world.World]*session{}}
 	activeGame = g
 	registerCommands(g)
+	registerCreativeItems()
 	registerAdmin(g)
 	return g
 }

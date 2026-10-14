@@ -202,6 +202,9 @@ func expand(s string) string {
 }
 
 // messages returns the chat or command output text of a packet.
+// itemNames are the names of the items of the join by network ID.
+var itemNames = map[int32]string{}
+
 func messages(pk packet.Packet) []string {
 	switch pk := pk.(type) {
 	case *packet.Text:
@@ -274,6 +277,28 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			}
 		} else if t, ok := pk.(*packet.Text); ok {
 			fmt.Println("CHAT", t.Message)
+		} else if r, ok := pk.(*packet.ItemRegistry); ok {
+			for _, e := range r.Items {
+				itemNames[int32(e.RuntimeID)] = e.Name
+			}
+		} else if c, ok := pk.(*packet.CreativeContent); ok {
+			// The game's own items in the creative inventory (the recipe
+			// book lists only recipes whose result is in it).
+			for _, it := range c.Items {
+				if name := itemNames[it.Item.NetworkID]; strings.HasPrefix(name, "dragonfactory:") {
+					fmt.Println("CREATIVE", name)
+				}
+			}
+		} else if c, ok := pk.(*packet.CraftingData); ok {
+			// The results of the game's own recipes, for scenarios that
+			// grep the log ("RECIPE dragonfactory:hammer").
+			for _, r := range c.ShapelessRecipes {
+				for _, o := range r.Output {
+					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "dragonfactory:") {
+						fmt.Println("RECIPE", name)
+					}
+				}
+			}
 		}
 		if match(pk) {
 			return pk
