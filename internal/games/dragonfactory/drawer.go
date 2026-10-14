@@ -367,39 +367,56 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	}
 }
 
-// InsertItem implements block.HopperInsertable.
-func (d Drawer) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
-	inv := h.Inventory(tx, pos.Side(h.Facing.Opposite()))
-	for slot, st := range inv.Slots() {
-		if d.takesAutomated(st) && d.insert(st, 1) == 1 {
-			_ = inv.SetItem(slot, st.Grow(-1))
-			if s, ok := activeGame.sessionOf(tx.World()); ok {
-				s.setDrawer(tx, pos, d)
-			} else {
-				tx.SetBlockEntity(pos, d)
-			}
-			return true
+// InsertItems implements itemio.Inserter: a drawer takes what it holds (or
+// anything when empty and not locked) through any face.
+func (d Drawer) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack) int {
+	if !d.takesAutomated(st) {
+		return 0
+	}
+	n := d.insert(st, st.Count())
+	if n > 0 {
+		s := activeGameSession(tx)
+		if s != nil {
+			s.setDrawer(tx, pos, d)
+		} else {
+			tx.SetBlockEntity(pos, d)
 		}
 	}
-	return false
+	return n
 }
 
-// ExtractItem implements block.HopperExtractable (hopper below the drawer).
-func (d Drawer) ExtractItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if d.Count == 0 {
-		return false
+// PeekItems implements itemio.Extractor: the drawer gives through its
+// bottom face.
+func (d Drawer) PeekItems(_ *world.Tx, _ cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
+	if face != cube.FaceDown || d.Count == 0 || (want != nil && !want(d.Item)) {
+		return item.Stack{}
 	}
-	one := d.Item.Grow(1 - d.Item.Count())
-	if _, err := h.Inventory(tx, pos.Side(cube.FaceDown)).AddItem(one); err != nil {
-		return false
+	return d.Item.Grow(int(min(d.Count, int64(d.Item.MaxCount()))) - d.Item.Count())
+}
+
+// ExtractItems implements itemio.Extractor.
+func (d Drawer) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack, n int) item.Stack {
+	if face != cube.FaceDown || d.Count == 0 || !d.Item.Comparable(st) {
+		return item.Stack{}
 	}
-	d.extract(1)
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
+	out := d.extract(min(n, d.Item.MaxCount()))
+	if out.Empty() {
+		return out
+	}
+	if s := activeGameSession(tx); s != nil {
 		s.setDrawer(tx, pos, d)
 	} else {
 		tx.SetBlockEntity(pos, d)
 	}
-	return true
+	return out
+}
+
+// activeGameSession is the session of the world of tx, nil if it has none.
+func activeGameSession(tx *world.Tx) *session {
+	if s, ok := activeGame.sessionOf(tx.World()); ok {
+		return s
+	}
+	return nil
 }
 
 // DrawerUpgrade is an upgrade item for drawers (§10.4).

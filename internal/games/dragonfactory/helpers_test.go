@@ -44,6 +44,7 @@ func testSession(t *testing.T) *session {
 	}
 	g.sessions[w] = s
 	activeGame = g
+	registerItemIO()
 	w.Handle(&worldHandler{s: s})
 	return s
 }

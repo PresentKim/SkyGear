@@ -13,6 +13,11 @@ import (
 	"sync"
 )
 
+// HopperTransfer, if set, does the item moving of every hopper instead of the vanilla rules: it moves at most one
+// item into the block the hopper faces and at most one from the block above it, and reports what it did
+// (dragonfactory patch: the game routes hoppers through its own item transfer interface).
+var HopperTransfer func(h Hopper, pos cube.Pos, tx *world.Tx) (inserted, extracted bool)
+
 // Hopper is a low-capacity storage block that can be used to collect item entities directly above it, as well as to
 // transfer items into and out of other containers.
 type Hopper struct {
@@ -144,8 +149,12 @@ func (h Hopper) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	}
 
 	if !h.Powered && h.TransferCooldown <= 0 {
-		inserted := h.insertItem(pos, tx)
-		extracted := h.extractItem(pos, tx)
+		var inserted, extracted bool
+		if HopperTransfer != nil {
+			inserted, extracted = HopperTransfer(h, pos, tx)
+		} else {
+			inserted, extracted = h.insertItem(pos, tx), h.extractItem(pos, tx)
+		}
 		if inserted || extracted {
 			h.TransferCooldown = 8
 			tx.SetBlock(pos, h, nil)

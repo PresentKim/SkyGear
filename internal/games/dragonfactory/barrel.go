@@ -190,31 +190,58 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		p.SendTip("§7재료가 물로 바뀌는 중입니다.")
 		return true
 	case plantMatter(held):
-		if rec == nil {
-			rec = &BarrelRecord{}
-			if s.state.Barrels == nil {
-				s.state.Barrels = map[string]*BarrelRecord{}
-			}
-			s.state.Barrels[key] = rec
+		if s.fillBarrel(tx, pos, b, held, 1) == 0 {
+			return false
 		}
-		rec.Count++
 		ctx.SubtractFromCount(1)
-		tx.AddParticle(pos.Vec3Centre().Add([3]float64{0, 0.4, 0}), particle.BoneMeal{})
-		if rec.Count >= matterCapacity {
-			now, _, _ := s.clock.Now()
-			rec.ReadyAt = now + barrelWaterDelay
-			tx.PlaySound(pos.Vec3Centre(), sound.ComposterReady{})
+		if s.barrelAt(pos).Count >= matterCapacity {
 			p.SendTip("§a배럴이 가득 찼습니다. 잠시 뒤 물이 고입니다.")
-		} else if barrelStage(rec) != b.Stage {
-			tx.PlaySound(pos.Vec3Centre(), sound.ComposterFillLayer{})
-		} else {
-			tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
 		}
-		s.showBarrel(tx, pos, b)
-		s.storeState()
 		return true
 	}
 	return false
+}
+
+// fillBarrel puts up to n plant items of st into the barrel at pos (whose
+// block is b) and returns how many it took; a barrel that is full or full of
+// water takes none. A barrel that just filled starts making water.
+func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack, n int) int {
+	rec := s.state.Barrels[cropKey(pos)]
+	if (rec != nil && (rec.Water || rec.Count >= matterCapacity)) || !plantMatter(st) {
+		return 0
+	}
+	if rec == nil {
+		rec = &BarrelRecord{}
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		s.state.Barrels[cropKey(pos)] = rec
+	}
+	n = min(n, matterCapacity-rec.Count)
+	before := barrelStage(rec)
+	rec.Count += n
+	tx.AddParticle(pos.Vec3Centre().Add([3]float64{0, 0.4, 0}), particle.BoneMeal{})
+	switch {
+	case rec.Count >= matterCapacity:
+		now, _, _ := s.clock.Now()
+		rec.ReadyAt = now + barrelWaterDelay
+		tx.PlaySound(pos.Vec3Centre(), sound.ComposterReady{})
+	case barrelStage(rec) != before:
+		tx.PlaySound(pos.Vec3Centre(), sound.ComposterFillLayer{})
+	default:
+		tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
+	}
+	s.showBarrel(tx, pos, b)
+	s.storeState()
+	return n
+}
+
+// InsertItems implements itemio.Inserter: any face takes plant items.
+func (b Barrel) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack) int {
+	if s := activeGameSession(tx); s != nil {
+		return s.fillBarrel(tx, pos, b, st, st.Count())
+	}
+	return 0
 }
 
 // tickBarrels turns the contents of the full barrels whose time is up into

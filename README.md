@@ -71,6 +71,7 @@ internal/timed/                 기간제 아이템(현실 시간 만료, 정리
 internal/games/dragonfactory/   드래곤팩토리 (연구, 섬 확장, 서랍, 기계, 체·망치, 작물, 요정, 업적, 도움말 …)
 internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)
 internal/waila/                 WAILA 패널(바라보는 블록 정보 HUD) 제목 형식·보내기, 도구 아이콘
+internal/itemio/                 아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 앞으로의 파이프가 쓴다
 internal/perf/                  서버 부하(TPS·틱·CPU·메모리) 측정, 운영자 HUD 줄과 켜기·끄기
 internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 창)를 사이드바 줄로 보내기
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고

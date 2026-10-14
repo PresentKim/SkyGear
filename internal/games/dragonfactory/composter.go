@@ -76,37 +76,95 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 	n := s.composterCount(pos, c)
 	switch {
 	case n >= matterCapacity:
-		s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Dirt{}, 1))
-		s.setComposterCount(pos, 0)
-		tx.SetBlock(pos, block.Composter{}, nil)
-		tx.PlaySound(pos.Vec3(), sound.ComposterEmpty{})
-		s.storeState()
+		s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), s.emptyComposter(tx, pos, c))
 		return true
 	case plantMatter(held):
-		n++
-		s.setComposterCount(pos, n)
-		level := composterLevel(n)
-		if level != c.Level {
-			tx.SetBlock(pos, block.Composter{Level: level}, nil)
+		if s.fillComposter(tx, pos, c, held, 1) == 0 {
+			return false
 		}
-		tx.AddParticle(pos.Vec3(), particle.BoneMeal{})
-		switch {
-		case n >= matterCapacity:
-			tx.PlaySound(pos.Vec3(), sound.ComposterReady{})
+		if s.composterCount(pos, c) >= matterCapacity {
 			p.SendTip("§a퇴비가 가득 찼습니다. 우클릭하면 흙이 나옵니다.")
-		case level != c.Level:
-			tx.PlaySound(pos.Vec3(), sound.ComposterFillLayer{})
-		default:
-			tx.PlaySound(pos.Vec3(), sound.ComposterFill{})
 		}
 		if !p.GameMode().CreativeInventory() {
 			_, off := p.HeldItems()
 			p.SetHeldItems(held.Grow(-1), off)
 		}
-		s.storeState()
 		return true
 	}
 	return false
+}
+
+// fillComposter puts up to n plant items of st into the composter at pos
+// (whose block is c) and returns how many it took: it shows the new level
+// and plays the fill sounds.
+func (s *session) fillComposter(tx *world.Tx, pos cube.Pos, c block.Composter, st item.Stack, n int) int {
+	have := s.composterCount(pos, c)
+	n = min(n, matterCapacity-have)
+	if n <= 0 || !plantMatter(st) {
+		return 0
+	}
+	have += n
+	s.setComposterCount(pos, have)
+	level := composterLevel(have)
+	if level != c.Level {
+		tx.SetBlock(pos, block.Composter{Level: level}, nil)
+	}
+	tx.AddParticle(pos.Vec3(), particle.BoneMeal{})
+	switch {
+	case have >= matterCapacity:
+		tx.PlaySound(pos.Vec3(), sound.ComposterReady{})
+	case level != c.Level:
+		tx.PlaySound(pos.Vec3(), sound.ComposterFillLayer{})
+	default:
+		tx.PlaySound(pos.Vec3(), sound.ComposterFill{})
+	}
+	s.storeState()
+	return n
+}
+
+// emptyComposter takes the dirt out of a full composter at pos and empties
+// it; it returns the dirt (empty when the composter is not full).
+func (s *session) emptyComposter(tx *world.Tx, pos cube.Pos, c block.Composter) item.Stack {
+	if s.composterCount(pos, c) < matterCapacity {
+		return item.Stack{}
+	}
+	s.setComposterCount(pos, 0)
+	tx.SetBlock(pos, block.Composter{}, nil)
+	tx.PlaySound(pos.Vec3(), sound.ComposterEmpty{})
+	s.storeState()
+	return item.NewStack(block.Dirt{}, 1)
+}
+
+// composterIO is the itemio side of the composter (the vanilla block has no
+// methods of ours): any face takes plant items, the bottom gives the dirt.
+type composterIO struct{ s *session }
+
+func (c composterIO) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack) int {
+	comp, ok := tx.Block(pos).(block.Composter)
+	if !ok {
+		return 0
+	}
+	return c.s.fillComposter(tx, pos, comp, st, st.Count())
+}
+
+func (c composterIO) PeekItems(tx *world.Tx, pos cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
+	comp, ok := tx.Block(pos).(block.Composter)
+	if !ok || face != cube.FaceDown || c.s.composterCount(pos, comp) < matterCapacity {
+		return item.Stack{}
+	}
+	dirt := item.NewStack(block.Dirt{}, 1)
+	if want != nil && !want(dirt) {
+		return item.Stack{}
+	}
+	return dirt
+}
+
+func (c composterIO) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack, n int) item.Stack {
+	comp, ok := tx.Block(pos).(block.Composter)
+	if !ok || face != cube.FaceDown || n < 1 || !st.Comparable(item.NewStack(block.Dirt{}, 1)) {
+		return item.Stack{}
+	}
+	return c.s.emptyComposter(tx, pos, comp)
 }
 
 // giveItem gives p an item, dropping what does not fit at pos.

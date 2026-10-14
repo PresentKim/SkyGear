@@ -17,6 +17,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
 // Machines are the automation blocks of the first era
@@ -537,39 +538,52 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	return true
 }
 
-// InsertItem implements block.HopperInsertable: one item per transfer.
-func (m Machine) InsertItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if m.st == nil || len(m.st.kind.input) == 0 || m.Kind == KindSieve {
+// InsertItems implements itemio.Inserter: a machine takes inputs through any
+// face but the bottom, which is its output.
+func (m Machine) InsertItems(_ *world.Tx, _ cube.Pos, face cube.Face, st item.Stack) int {
+	if m.st == nil || len(m.st.kind.input) == 0 || m.Kind == KindSieve || face == cube.FaceDown {
 		// The hand sieve is filled by hand only.
-		return false
+		return 0
 	}
-	inv := h.Inventory(tx, pos.Side(h.Facing.Opposite()))
-	for slot, it := range inv.Slots() {
-		if !it.Empty() && m.st.insert(it) {
-			_ = inv.SetItem(slot, it.Grow(-1))
-			return true
-		}
+	n := 0
+	for n < st.Count() && m.st.insert(st) {
+		n++
 	}
-	return false
+	return n
 }
 
-// ExtractItem implements block.HopperExtractable (hopper below).
-func (m Machine) ExtractItem(h block.Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if m.st == nil {
-		return false
+// PeekItems implements itemio.Extractor: the output leaves through the
+// bottom face.
+func (m Machine) PeekItems(_ *world.Tx, _ cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
+	if m.st == nil || face != cube.FaceDown {
+		return item.Stack{}
 	}
 	for _, s := range m.st.kind.output {
+		if it, _ := m.st.inv().Item(s); !it.Empty() && (want == nil || want(it)) {
+			return it
+		}
+	}
+	return item.Stack{}
+}
+
+// ExtractItems implements itemio.Extractor.
+func (m Machine) ExtractItems(_ *world.Tx, _ cube.Pos, face cube.Face, st item.Stack, n int) item.Stack {
+	if m.st == nil || face != cube.FaceDown {
+		return item.Stack{}
+	}
+	got := 0
+	var out item.Stack
+	for _, s := range m.st.kind.output {
 		it, _ := m.st.inv().Item(s)
-		if it.Empty() {
+		if got >= n || it.Empty() || !it.Comparable(st) {
 			continue
 		}
-		if _, err := h.Inventory(tx, pos.Side(cube.FaceDown)).AddItem(it.Grow(1 - it.Count())); err != nil {
-			return false
-		}
-		_ = m.st.inv().SetItem(s, it.Grow(-1))
-		return true
+		take := min(n-got, it.Count())
+		_ = m.st.inv().SetItem(s, it.Grow(-take))
+		got += take
+		out = it.Grow(got - it.Count())
 	}
-	return false
+	return out
 }
 
 // Tick runs the machine.
@@ -717,8 +731,9 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 var pushTargets = []cube.Face{cube.FaceUp, cube.FaceNorth, cube.FaceEast, cube.FaceSouth, cube.FaceWest}
 
 // pushOutput moves one output item into a neighbouring block that takes
-// it. An item no neighbour takes does not hold up the others, so mixed
-// output can be split, e.g. a crusher on one side and a sell box on another.
+// it (itemio: machines, drawers, chests, hoppers). An item no neighbour
+// takes does not hold up the others, so mixed output can be split, e.g. a
+// crusher on one side and a drawer on another.
 func (s *session) pushOutput(st *machineState, pos cube.Pos, tx *world.Tx) {
 	for _, slot := range st.kind.output {
 		it, _ := st.inv().Item(slot)
@@ -726,30 +741,12 @@ func (s *session) pushOutput(st *machineState, pos cube.Pos, tx *world.Tx) {
 			continue
 		}
 		for _, f := range pushTargets {
-			if s.insertInto(tx, pos.Side(f), it.Grow(1-it.Count())) {
+			if itemio.Insert(tx, pos.Side(f), f.Opposite(), it.Grow(1-it.Count())) == 1 {
 				_ = st.inv().SetItem(slot, it.Grow(-1))
 				return
 			}
 		}
 	}
-}
-
-// insertInto puts one item into the block at pos if it takes it.
-func (s *session) insertInto(tx *world.Tx, pos cube.Pos, one item.Stack) bool {
-	switch b := tx.Block(pos).(type) {
-	case Machine:
-		return b.st != nil && b.st.insert(one)
-	case Drawer:
-		if b.takesAutomated(one) && b.insert(one, 1) == 1 {
-			s.setDrawer(tx, pos, b)
-			return true
-		}
-		return false
-	case block.Container:
-		_, err := b.Inventory(tx, pos).AddItem(one)
-		return err == nil
-	}
-	return false
 }
 
 // placeMachine sets up a placed machine with a fresh state.

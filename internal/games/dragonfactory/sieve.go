@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
 // Sieves work like the sieve of the Dorios' Basics add-on: a wooden frame
@@ -224,15 +225,11 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 // up, where the products drop.
 var sieveTargets = []cube.Face{cube.FaceDown, cube.FaceNorth, cube.FaceEast, cube.FaceSouth, cube.FaceWest}
 
-// storeBesideOrBelow puts it into the containers beside or below pos and
-// returns what none of them took.
+// storeBesideOrBelow puts it into the blocks beside or below pos that take
+// items (itemio) and returns what none of them took.
 func (s *session) storeBesideOrBelow(tx *world.Tx, pos cube.Pos, it item.Stack) item.Stack {
 	for _, f := range sieveTargets {
-		c, ok := tx.Block(pos.Side(f)).(block.Container)
-		if !ok {
-			continue
-		}
-		n, _ := c.Inventory(tx, pos.Side(f)).AddItem(it)
+		n := itemio.Insert(tx, pos.Side(f), f.Opposite(), it)
 		if it = it.Grow(-n); it.Empty() {
 			break
 		}

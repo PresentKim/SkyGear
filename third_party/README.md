@@ -33,6 +33,7 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(블록별 캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |
 | `server/internal/blockinternal/components.go` | `block.Activatable` 을 구현한 커스텀 블록에 `minecraft:custom_components`(`hasPlayerInteract`=1)를 보냄. 상자처럼 클라이언트가 그 블록을 클릭할 때 손에 든 블록의 설치를 예측하지 않는다(형식은 PowerNukkitX `CustomBlockDefinition.isPlayerInteractable` 참고) |
 | `server/world/item.go`, `server/internal/packbuilder/items.go` | `world.CustomItem` 에서 `Texture()` 를 빼고 선택 인터페이스 `world.CustomItemTextured` 로 옮김. 텍스처를 리소스팩으로 따로 관리하는 아이템은 이미지가 필요 없다(자동 팩 생성은 텍스처가 있는 아이템만) |
+| `server/block/hopper.go` | `HopperTransfer` 훅(`Tick` 에서 바닐라 이동 규칙 대신 부름). 게임이 모든 호퍼를 자기 아이템 입출력 인터페이스(`internal/itemio`)로 움직이게 함 |
 | `server/block/composter.go` | `ComposterVanillaRules`(기본 켬)를 끄면 퇴비통이 호퍼로 넣고 빼지 않고 우클릭도 하지 않음(게임이 자기 규칙으로 처리: 고정 개수, 흙) |
 | `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 로그를 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
 | `server/world/tick_stats.go` (신규), `tick.go`, `world.go` | 월드 틱마다 걸린 시간(틱 예정 시각부터 끝날 때까지)을 최근 5초만 기록하고 `World.TickStats()`(TPS, 평균·최대 틱 시간)로 돌려줌. 운영자 사이드바의 서버 부하 표시용(`internal/perf`) |
