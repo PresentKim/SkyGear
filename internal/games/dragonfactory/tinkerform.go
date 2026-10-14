@@ -2,10 +2,8 @@ package dragonfactory
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -191,14 +189,15 @@ func (s *session) reinforce(p *player.Player) {
 	}
 }
 
-// tickToolEffects gives the players holding a tool with haste the haste effect.
+// tickToolEffects gives the players their effects every second: haste from a tool
+// they hold, and what their skills give.
 func (s *session) tickToolEffects(tx *world.Tx) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
+		haste := 0
 		if held, ok := toolOf(p); ok {
-			if l := toolMods(held)["haste"]; l > 0 {
-				p.AddEffect(effect.New(effect.Haste, l, 3*time.Second))
-			}
+			haste = toolMods(held)["haste"]
 		}
+		s.rpgEffects(p, haste)
 	}
 }

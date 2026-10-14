@@ -203,6 +203,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.purgeLost()
 	s.sendRecipesTo(p)
 	s.updateBoard(p)
+	s.applyRPG(p)
 }
 
 // dropAt drops an item stack at pos with a small random push, so drops

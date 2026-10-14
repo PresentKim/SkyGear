@@ -168,7 +168,7 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 			p.SetHeldItems(describeTool(held.Damage(2)), off)
 			h.s.reinforce(p)
 		}
-		m.Hurt(p.Tx(), dmg, p)
+		m.Hurt(p.Tx(), dmg*h.s.rpgDamageMul(p), p)
 		return
 	}
 	h.touchFairy(ctx, e)

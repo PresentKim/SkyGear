@@ -127,19 +127,21 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	delete(w.left, m.handle)
 	if p != nil {
 		looting := 0
+		fortune := s.rpgFortune(p)
+		s.gainXP(p, int(monsterTable[m.kind].health))
 		if held, ok := toolOf(p); ok {
-			looting = toolMods(held)["looting"]
+			looting += toolMods(held)["looting"]
 			s.gainToolXP(p, int(monsterTable[m.kind].health/2)+1)
 		}
 		for _, v := range tx.Viewers(pos) {
 			v.ViewEntityAction(m, entity.DeathAction{})
 		}
 		for _, d := range simDrops[m.kind] {
-			if s.rand.IntN(100) < d.Chance+looting*8 {
+			if s.rand.IntN(100) < d.Chance+looting*8+fortune {
 				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 			}
 		}
-		if s.rand.IntN(100) < waveEssenceChance+looting*4 {
+		if s.rand.IntN(100) < waveEssenceChance+looting*4+fortune/2 {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(Essence{Mob: m.kind}, 1))
 		}
 	}
@@ -169,6 +171,9 @@ func (s *session) winWave(tx *world.Tx) {
 	}
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})
 	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "gate.win"), w.level))
+	for e := range tx.Players() {
+		s.gainXP(e.(*player.Player), 15*w.level)
+	}
 }
 
 // failWave ends the wave without a clear: the monsters left vanish.

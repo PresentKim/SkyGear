@@ -61,10 +61,10 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	return body, []ui.Option{
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.2"), iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
+		s.opt(i18n.T(i18n.Of(p), "rpg.menu"), iconMission, func(p *player.Player, _ *world.Tx) { s.showCharacter(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.lobbyOption(),
 	}
 }

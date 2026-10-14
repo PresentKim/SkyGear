@@ -107,3 +107,33 @@ func TestTinkerTable(t *testing.T) {
 		}
 	})
 }
+
+// TestCharacter: experience makes levels and skill points, a point goes into a skill
+// up to its limit, and the skills give health and damage.
+func TestCharacter(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		r := s.rpgOf(p)
+		if r.points() != 0 {
+			t.Fatalf("%d points at the start", r.points())
+		}
+		s.gainXP(p, rpgXPFor(4))
+		if rpgLevel(r.XP) != 4 || r.points() != 4 {
+			t.Fatalf("level %d points %d at %d xp", rpgLevel(r.XP), r.points(), r.XP)
+		}
+		r.Skills["vitality"] = 2
+		r.Skills["strength"] = 2
+		s.applyRPG(p)
+		if p.MaxHealth() != 24 {
+			t.Errorf("max health %v with 2 vitality", p.MaxHealth())
+		}
+		if got := s.rpgDamageMul(p); got < 1.119 || got > 1.121 {
+			t.Errorf("damage multiplier %v", got)
+		}
+		if r.points() != 0 {
+			t.Errorf("%d points left", r.points())
+		}
+	})
+}
