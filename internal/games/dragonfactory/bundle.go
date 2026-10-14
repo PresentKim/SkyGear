@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"strconv"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -183,8 +184,11 @@ func joinsFluid(b world.Block) bool {
 	if o, ok := b.(ConduitBundle); ok {
 		return o.Fluid > 0
 	}
-	_, ok := b.(Barrel)
-	return ok
+	if h, ok := b.(fluidnet.Holder); ok {
+		src, snk := h.FluidRoles()
+		return src || snk
+	}
+	return false
 }
 
 // connections returns the sides the energy, item and fluid conduit connect to.
@@ -233,7 +237,15 @@ func (b ConduitBundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if b.Item > 0 {
 		s.itemGrid().AddConduit(pos)
 	}
+	if b.Fluid > 0 {
+		s.fluidGrid().AddConduit(pos)
+	}
 }
+
+// FluidTier implements fluidnet.Conduit.
+func (b ConduitBundle) FluidTier() int { return b.Fluid }
+
+var _ fluidnet.Conduit = ConduitBundle{}
 
 // Activate opens the settings of the clicked side (sneaking, empty hand: with
 // something in hand the handler does it) if that side has a connector plate
@@ -292,6 +304,13 @@ func (s *session) energyGrid() *energy.Grid {
 		s.grid = energy.NewGrid()
 	}
 	return s.grid
+}
+
+func (s *session) fluidGrid() *fluidnet.Grid {
+	if s.fluids == nil {
+		s.fluids = fluidnet.NewGrid()
+	}
+	return s.fluids
 }
 
 func (s *session) itemGrid() *itemnet.Grid {

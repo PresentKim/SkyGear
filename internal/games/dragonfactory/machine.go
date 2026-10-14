@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
@@ -41,6 +42,11 @@ const (
 	// KindAlloy makes alloys of two ingredients (alloy.go); KindEnergyCell stores
 	// energy (generator.go).
 	KindAlloy = "alloy_smelter"
+	// The fluid machines (fluidmachine.go).
+	KindTank          = "fluid_tank"
+	KindWasher        = "ore_washer"
+	KindCrucible      = "crucible"
+	KindLavaGenerator = "lava_generator"
 	// KindAutoComposter turns plants into dirt (composter.go).
 	KindAutoComposter = "auto_composter"
 	// KindSimulator turns an essence into the drops of a mob (essence.go).
@@ -65,6 +71,12 @@ type machineKind struct {
 	// generates is the RE per tick a generator makes while it burns; energyCap
 	// the RE its buffer holds (docs/design/06-power-and-conduits.md).
 	generates, energyCap int
+	// fluidCap is the mB a tank of the machine holds (0: no tank); fluidSource and
+	// fluidSink say whether fluid conduits take fluid from it and put it in;
+	// fluidOnly restricts it to one fluid (fluidnet.None: any).
+	fluidCap               int
+	fluidSource, fluidSink bool
+	fluidOnly              fluidnet.Kind
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	cell bool
@@ -113,6 +125,29 @@ var machineKinds = map[string]*machineKind{
 		use: 20, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "machine.alloy.help.1"), i18n.T(i18n.Default, "machine.alloy.help.2")},
 	},
+	KindWasher: {
+		name: i18n.T(i18n.Default, "machine.washer.name"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		use: 40, energyCap: consumerBuffer,
+		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Water,
+		help: []string{i18n.T(i18n.Default, "machine.washer.help.1"), i18n.T(i18n.Default, "machine.washer.help.2")},
+	},
+	KindTank: {
+		name: i18n.T(i18n.Default, "machine.tank.name"), interval: 1, indicator: 10,
+		fluidCap: tankCapacity, fluidSource: true, fluidSink: true,
+		help: []string{i18n.T(i18n.Default, "machine.tank.help.1"), i18n.T(i18n.Default, "machine.tank.help.2")},
+	},
+	KindCrucible: {
+		name: i18n.T(i18n.Default, "machine.crucible.name"), interval: 20, input: []int{10}, indicator: 12,
+		use: 30, energyCap: consumerBuffer,
+		fluidCap: 8000, fluidSource: true, fluidOnly: fluidnet.Lava,
+		help: []string{i18n.T(i18n.Default, "machine.crucible.help.1"), i18n.T(i18n.Default, "machine.crucible.help.2")},
+	},
+	KindLavaGenerator: {
+		name: i18n.T(i18n.Default, "machine.lavagen.name"), interval: 1, indicator: 10,
+		generates: lavaGenOutput, energyCap: generatorBuffer,
+		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
+		help: []string{i18n.T(i18n.Default, "machine.lavagen.help.1"), i18n.T(i18n.Default, "machine.lavagen.help.2")},
+	},
 	KindAutoComposter: {
 		name: i18n.T(i18n.Default, "machine.composter.name"), marker: "§d§m§2", interval: 10, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 10, energyCap: consumerBuffer,
@@ -135,7 +170,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -202,6 +237,9 @@ type machineState struct {
 	// miner had four output slots); they move into the output as it frees
 	// up, and are saved until then.
 	legacy []item.Stack
+	// fluid and fluidAmt are what the tank holds (fluidmachine.go).
+	fluid    fluidnet.Kind
+	fluidAmt int
 	// mob and charges are what the mob simulator is charged with (essence.go).
 	mob     string
 	charges int
@@ -310,6 +348,11 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return acceptsEssence(it)
 	case machineKinds[KindAutoComposter]:
 		return plantMatter(it)
+	case machineKinds[KindCrucible]:
+		return k == itemKey(block.Cobblestone{})
+	case machineKinds[KindWasher]:
+		_, ok := it.Item().(OreChunk)
+		return ok
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -442,7 +485,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -532,8 +575,8 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -618,6 +661,8 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["BurnMax"] = int32(m.st.burnMax)
 	data["Mesh"] = m.st.mesh
 	data["Mob"] = m.st.mob
+	data["Fluid"] = int32(m.st.fluid)
+	data["FluidAmt"] = int32(m.st.fluidAmt)
 	data["Charges"] = int32(m.st.charges)
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
@@ -628,6 +673,12 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	owner, _ := data["Owner"].(string)
 	ownerName, _ := data["OwnerName"].(string)
 	n := newMachine(m.Kind, owner, ownerName)
+	if f, ok := data["Fluid"].(int32); ok {
+		n.st.fluid = fluidnet.Kind(f)
+	}
+	if a, ok := data["FluidAmt"].(int32); ok {
+		n.st.fluidAmt = int(a)
+	}
 	if mob, ok := data["Mob"].(string); ok {
 		n.st.mob = mob
 	}
@@ -666,7 +717,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 }
 
 // Activate opens the machine window, or uses a sieve.
-func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
+func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
 	if !ok || !ok2 || !s.canBuild(pos) || m.st == nil {
@@ -676,6 +727,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if isSieve(m.Kind) {
 		s.useSieve(p, tx, pos, m.st)
 		return true
+	}
+	if m.st.kind.fluidCap > 0 {
+		held, _ := p.HeldItems()
+		if s.useFluidMachine(p, tx, pos, m, held, ctx) || m.st.kind.marker == "" {
+			return true
+		}
 	}
 	if m.st.kind.cell {
 		return false
@@ -768,6 +825,12 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runSimulator(st)
 	case KindAutoComposter:
 		st.runAutoComposter()
+	case KindCrucible:
+		st.runCrucible()
+	case KindWasher:
+		st.runWasher()
+	case KindLavaGenerator:
+		s.runLavaGenerator(st, pos)
 	case KindAutoSieve:
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
@@ -776,7 +839,10 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runHarvester(st, pos, tx)
 	}
 	st.pos = pos
-	if m.Kind == KindEnergyCell {
+	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator {
+		if m.Kind == KindEnergyCell && st.energy > 0 {
+			s.energyGrid().AddSource(pos)
+		}
 		return
 	}
 	if currentTick%10 == 0 {

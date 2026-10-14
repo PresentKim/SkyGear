@@ -215,6 +215,54 @@
     },
     "dragonfactory_auto_composter_down": {
       "textures": "textures/blocks/auto_composter_down"
+    },
+    "dragonfactory_fluid_tank_side": {
+      "textures": "textures/blocks/fluid_tank_side"
+    },
+    "dragonfactory_fluid_tank_up": {
+      "textures": "textures/blocks/fluid_tank_up"
+    },
+    "dragonfactory_fluid_tank_down": {
+      "textures": "textures/blocks/fluid_tank_down"
+    },
+    "dragonfactory_lava_generator_side": {
+      "textures": "textures/blocks/lava_generator_side"
+    },
+    "dragonfactory_lava_generator_up": {
+      "textures": "textures/blocks/lava_generator_up"
+    },
+    "dragonfactory_lava_generator_down": {
+      "textures": "textures/blocks/lava_generator_down"
+    },
+    "dragonfactory_crucible_front": {
+      "textures": "textures/blocks/crucible_front"
+    },
+    "dragonfactory_crucible_back": {
+      "textures": "textures/blocks/crucible_back"
+    },
+    "dragonfactory_crucible_side": {
+      "textures": "textures/blocks/crucible_side"
+    },
+    "dragonfactory_crucible_up": {
+      "textures": "textures/blocks/crucible_up"
+    },
+    "dragonfactory_crucible_down": {
+      "textures": "textures/blocks/crucible_down"
+    },
+    "dragonfactory_ore_washer_front": {
+      "textures": "textures/blocks/ore_washer_front"
+    },
+    "dragonfactory_ore_washer_back": {
+      "textures": "textures/blocks/ore_washer_back"
+    },
+    "dragonfactory_ore_washer_side": {
+      "textures": "textures/blocks/ore_washer_side"
+    },
+    "dragonfactory_ore_washer_up": {
+      "textures": "textures/blocks/ore_washer_up"
+    },
+    "dragonfactory_ore_washer_down": {
+      "textures": "textures/blocks/ore_washer_down"
     }
   },
   "texture_name": "atlas.terrain"

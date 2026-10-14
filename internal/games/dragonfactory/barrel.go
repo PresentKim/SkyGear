@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
@@ -451,3 +452,39 @@ func init() {
 		}
 	}
 }
+
+// FluidRoles implements fluidnet.Holder: a barrel full of water (lava) gives a
+// bucket's worth to a fluid conduit; it takes none.
+func (Barrel) FluidRoles() (source, sink bool) { return true, false }
+
+// FillFluid implements fluidnet.Holder.
+func (Barrel) FillFluid(fluidnet.World, cube.Pos, fluidnet.Kind, int, bool) int { return 0 }
+
+// DrainFluid implements fluidnet.Holder: all of the bucket at once, and only
+// when max allows it.
+func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate bool) (fluidnet.Kind, int) {
+	tx, ok := w.(*world.Tx)
+	if !ok || max < bucketMB {
+		return fluidnet.None, 0
+	}
+	s, ok := activeGame.sessionOf(tx.World())
+	if !ok {
+		return fluidnet.None, 0
+	}
+	rec := s.state.Barrels[cropKey(pos)]
+	if rec == nil || !(rec.Water || rec.Lava) {
+		return fluidnet.None, 0
+	}
+	k := fluidnet.Water
+	if rec.Lava {
+		k = fluidnet.Lava
+	}
+	if !simulate {
+		delete(s.state.Barrels, cropKey(pos))
+		s.showBarrel(tx, pos, b)
+		s.storeState()
+	}
+	return k, bucketMB
+}
+
+var _ fluidnet.Holder = Barrel{}

@@ -4,6 +4,7 @@ package dragonfactory
 import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/internal/energy"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"log/slog"
@@ -161,6 +162,8 @@ type session struct {
 	// calls (an item step is every second one, conduit.go).
 	items     *itemnet.Grid
 	fastCount int
+	// fluids moves fluids over the fluid conduits (fluidmachine.go).
+	fluids *fluidnet.Grid
 	// visuals are the display entities of the conduit bundles by position
 	// (conduitvisual.go).
 	visuals map[cube.Pos]*world.EntityHandle

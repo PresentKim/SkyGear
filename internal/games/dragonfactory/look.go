@@ -96,6 +96,7 @@ func (s *session) Fast(tx *world.Tx) {
 	// Items move every itemnet.StepTicks ticks (two Fast calls).
 	if s.fastCount++; s.fastCount%(itemnet.StepTicks/4) == 0 {
 		s.itemGrid().Step(tx)
+		s.fluidGrid().Step(tx)
 	}
 	s.updateLooks(tx)
 }
@@ -267,6 +268,17 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(st), nil
+	case st.kind.fluidCap > 0:
+		lines := fluidLines(st)
+		if _, in, ok := st.firstInput(); ok {
+			lines = append(lines, stackLine(in))
+		}
+		if st.kind.generates > 0 {
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap))
+		} else {
+			lines = append(lines, consumerLines(st)...)
+		}
+		return lines, nil
 	case st.kind.cell:
 		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap)}, nil
 	case st.kind == machineKinds[KindMiner]:

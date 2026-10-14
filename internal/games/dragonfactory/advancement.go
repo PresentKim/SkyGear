@@ -104,6 +104,10 @@ var advancementTree = []Advancement{
 	{ID: "ender_pearl", Name: i18n.T(i18n.Default, "advancement.ender_pearl.name"), Parent: "mob_simulator", Hint: i18n.T(i18n.Default, "advancement.ender_pearl.hint"), Item: "ender_pearl", Icon: "ender_pearl"},
 	{ID: "blaze_rod", Name: i18n.T(i18n.Default, "advancement.blaze_rod.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.blaze_rod.hint"), Item: "blaze_rod", Icon: "blaze_rod"},
 	{ID: "auto_composter", Name: i18n.T(i18n.Default, "advancement.auto_composter.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.auto_composter.hint"), Research: "auto_composter", Icon: "dragonfactory:auto_composter"},
+	{ID: "fluid_tank", Name: i18n.T(i18n.Default, "advancement.fluid_tank.name"), Parent: "fluid_conduit", Hint: i18n.T(i18n.Default, "advancement.fluid_tank.hint"), Research: "fluid_tank", Icon: "dragonfactory:fluid_tank"},
+	{ID: "crucible", Name: i18n.T(i18n.Default, "advancement.crucible.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.crucible.hint"), Research: "crucible", Icon: "dragonfactory:crucible"},
+	{ID: "lava_generator", Name: i18n.T(i18n.Default, "advancement.lava_generator.name"), Parent: "crucible", Hint: i18n.T(i18n.Default, "advancement.lava_generator.hint"), Research: "lava_generator", Icon: "dragonfactory:lava_generator"},
+	{ID: "ore_washer", Name: i18n.T(i18n.Default, "advancement.ore_washer.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.ore_washer.hint"), Research: "ore_washer", Icon: "dragonfactory:ore_washer"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

@@ -113,6 +113,10 @@ var researchTree = []Research{
 	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:conduit_energy_3", "dragonfactory:conduit_item_3", "dragonfactory:conduit_fluid_3"}},
 	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []Requirement{{Ingot{Metal: MetalBronze}, 8}, {Essence{Mob: MobZombie}, 4}, {Essence{Mob: MobSkeleton}, 4}}, Unlocks: []string{"dragonfactory:mob_simulator"}},
 	{ID: "auto_composter", Needs: []string{"compost", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Dirt{}, 16}}, Unlocks: []string{"dragonfactory:auto_composter"}},
+	{ID: "fluid_tank", Needs: []string{"fluid_conduit", "iron"}, Cost: []Requirement{{item.IronIngot{}, 24}, {block.Glass{}, 16}}, Unlocks: []string{"dragonfactory:fluid_tank"}},
+	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 32}, {Ingot{Metal: MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:crucible"}},
+	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}}, Unlocks: []string{"dragonfactory:lava_generator"}},
+	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []Requirement{{item.IronIngot{}, 24}, {Ingot{Metal: MetalBronze}, 4}}, Unlocks: []string{"dragonfactory:ore_washer"}},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 32}}, Unlocks: []string{"dried_kelp_block"}},
@@ -516,6 +520,10 @@ func gameRecipes() {
 	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 4), n(item.RedstoneWire{}, 6), n(iron, 2))
 	add(machineItem(KindAutoComposter), n(iron, 6), n(block.Composter{}, 1), n(block.NewHopper(), 1))
+	add(machineItem(KindTank), n(item.IronIngot{}, 4), n(block.Glass{}, 8))
+	add(machineItem(KindCrucible), n(Ingot{Metal: MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
+	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 4), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 4), n(block.Glass{}, 2))
+	add(machineItem(KindWasher), n(Ingot{Metal: MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
 	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 4), n(block.Glass{}, 4), n(item.RedstoneWire{}, 6))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).

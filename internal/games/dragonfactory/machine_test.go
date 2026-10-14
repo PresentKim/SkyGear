@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/energy"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"strings"
 	"testing"
@@ -529,4 +530,100 @@ func TestAutoComposter(t *testing.T) {
 	if !st.accepts(item.NewStack(item.Wheat{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Error("the auto composter takes the wrong items")
 	}
+}
+
+// TestFluidLine: an electric crucible melts cobblestone into lava, a fluid
+// conduit carries it to a lava generator, which burns it into energy.
+func TestFluidLine(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	crucible := placeTestMachine(s, machinePos, KindCrucible, "")
+	gen := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), KindLavaGenerator, "")
+	gen.unlimited = false
+	_ = crucible.inv().SetItem(crucible.kind.input[0], item.NewStack(block.Cobblestone{}, 4))
+	tick(s, 4*(crucible.kind.interval+1))
+	if crucible.fluid != fluidnet.Lava || crucible.fluidAmt != 4*crucibleLava {
+		t.Fatalf("crucible holds %v %d, want %d lava", crucible.fluid, crucible.fluidAmt, 4*crucibleLava)
+	}
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Fluid: 1}, nil)
+		s.fluidGrid().AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
+		if moved := s.fluidGrid().Step(tx); moved != 4*crucibleLava {
+			t.Errorf("moved %d, want %d", moved, 4*crucibleLava)
+		}
+	})
+	if gen.fluid != fluidnet.Lava || gen.fluidAmt != 4*crucibleLava || crucible.fluidAmt != 0 {
+		t.Fatalf("generator %v %d, crucible %d", gen.fluid, gen.fluidAmt, crucible.fluidAmt)
+	}
+	tick(s, 20)
+	if gen.energy != 20*lavaGenOutput {
+		t.Errorf("energy %d after 20 ticks, want %d", gen.energy, 20*lavaGenOutput)
+	}
+	if gen.fluidAmt != 4*crucibleLava-10 {
+		t.Errorf("lava %d, want %d (one mB every %d ticks)", gen.fluidAmt, 4*crucibleLava-10, lavaGenBurn)
+	}
+	// the generator takes no water, the tank takes both
+	m := Machine{Kind: KindLavaGenerator, st: gen}
+	if m.FillFluid(nil, cube.Pos{}, fluidnet.Water, 100, true) != 0 {
+		t.Error("a lava generator takes water")
+	}
+	tank := Machine{Kind: KindTank, st: placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 2}), KindTank, "")}
+	if tank.FillFluid(nil, cube.Pos{}, fluidnet.Water, 100, false) != 100 || tank.FillFluid(nil, cube.Pos{}, fluidnet.Lava, 100, true) != 0 {
+		t.Error("a tank mixes fluids")
+	}
+}
+
+// TestOreWasher: with water in its tank it washes a chunk into three dusts and
+// uses 250 mB; without water it does nothing.
+func TestOreWasher(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindWasher, "")
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(OreChunk{Ore: OreIron}, 2))
+	tick(s, 2*(st.kind.interval+1))
+	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 0 {
+		t.Fatalf("dust without water = %d", n)
+	}
+	st.fluid, st.fluidAmt = fluidnet.Water, 500
+	tick(s, 2*(st.kind.interval+1))
+	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 6 {
+		t.Errorf("dust from two chunks = %d, want 6", n)
+	}
+	if st.fluidAmt != 0 || st.fluid != fluidnet.None {
+		t.Errorf("tank %v %d", st.fluid, st.fluidAmt)
+	}
+}
+
+// TestTankBuckets: a full bucket pours into a tank (and comes back empty), an empty
+// bucket takes a bucket's worth out, a tank refuses the other fluid.
+func TestTankBuckets(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	st := placeTestMachine(s, machinePos, KindTank, "")
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		m := tx.Block(machinePos).(Machine)
+		use := func(held item.Stack) {
+			p.SetHeldItems(held, item.Stack{})
+			s.useFluidMachine(p, tx, machinePos, m, held, &item.UseContext{})
+		}
+		use(bucketOf(fluidnet.Lava))
+		if st.fluid != fluidnet.Lava || st.fluidAmt != bucketMB {
+			t.Fatalf("tank %v %d after a bucket of lava", st.fluid, st.fluidAmt)
+		}
+		if held, _ := p.HeldItems(); !held.Item().(item.Bucket).Empty() {
+			t.Errorf("the bucket stayed full: %v", held)
+		}
+		use(bucketOf(fluidnet.Water))
+		if st.fluid != fluidnet.Lava || st.fluidAmt != bucketMB {
+			t.Errorf("the tank took water into lava: %v %d", st.fluid, st.fluidAmt)
+		}
+		use(item.NewStack(item.Bucket{}, 1))
+		if st.fluidAmt != 0 {
+			t.Errorf("tank still has %d", st.fluidAmt)
+		}
+		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
+			t.Errorf("did not get a bucket of lava: %v", held)
+		}
+	})
 }

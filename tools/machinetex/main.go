@@ -25,6 +25,10 @@ var variants = []variant{
 	{"alloy_smelter", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{72, 150, 215, 255}},
 	{"mob_simulator", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{160, 80, 200, 255}},
 	{"auto_composter", "generator", []string{"side", "up", "down"}, color.RGBA{110, 170, 60, 255}},
+	{"fluid_tank", "generator", []string{"side", "up", "down"}, color.RGBA{70, 130, 230, 255}},
+	{"lava_generator", "generator", []string{"side", "up", "down"}, color.RGBA{255, 120, 20, 255}},
+	{"crucible", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{255, 70, 30, 255}},
+	{"ore_washer", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{60, 190, 200, 255}},
 	{"energy_cell", "generator", []string{"side", "up", "down"}, color.RGBA{70, 200, 110, 255}},
 }
 
