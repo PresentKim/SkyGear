@@ -24,6 +24,9 @@ const (
 // consumerBuffer is the RE buffer of a machine that uses energy.
 const consumerBuffer = 2000
 
+// cellCapacity is the RE an energy cell holds.
+const cellCapacity = 100000
+
 // consume takes the energy of one tick of work from the buffer and reports
 // whether there was enough; a machine without need (or an unlimited one)
 // always works.
@@ -87,12 +90,12 @@ func (m Machine) EnergyPorts() (source, sink bool) {
 	if m.st == nil {
 		return false, false
 	}
-	return m.st.kind.generates > 0, m.st.kind.use > 0
+	return m.st.kind.generates > 0 || m.st.kind.cell, m.st.kind.use > 0 || m.st.kind.cell
 }
 
 // ExtractEnergy implements energy.Source.
 func (m Machine) ExtractEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int, simulate bool) int {
-	if m.st == nil || m.st.kind.generates == 0 {
+	if m.st == nil || (m.st.kind.generates == 0 && !m.st.kind.cell) {
 		return 0
 	}
 	n := min(max, m.st.energy)
@@ -104,7 +107,7 @@ func (m Machine) ExtractEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int,
 
 // ReceiveEnergy implements energy.Sink.
 func (m Machine) ReceiveEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int, simulate bool) int {
-	if m.st == nil || m.st.kind.use == 0 {
+	if m.st == nil || (m.st.kind.use == 0 && !m.st.kind.cell) {
 		return 0
 	}
 	n := min(max, m.st.kind.energyCap-m.st.energy)

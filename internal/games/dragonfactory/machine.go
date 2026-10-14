@@ -38,6 +38,10 @@ const (
 	KindHarvester = "harvester"
 	// KindGenerator burns fuel into RE (generator.go).
 	KindGenerator = "generator"
+	// KindAlloy makes alloys of two ingredients (alloy.go); KindEnergyCell stores
+	// energy (generator.go).
+	KindAlloy      = "alloy_smelter"
+	KindEnergyCell = "energy_cell"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -57,6 +61,9 @@ type machineKind struct {
 	// generates is the RE per tick a generator makes while it burns; energyCap
 	// the RE its buffer holds (docs/design/06-power-and-conduits.md).
 	generates, energyCap int
+	// cell makes the machine an energy store: it takes energy from the network and
+	// gives it back, without working (energyCap is its capacity).
+	cell bool
 	// use is the RE per tick a machine needs while it works (0: it needs
 	// none).
 	use int
@@ -97,6 +104,16 @@ var machineKinds = map[string]*machineKind{
 		generates: generatorOutput, energyCap: generatorBuffer,
 		help: []string{i18n.T(i18n.Default, "generator.help.1"), i18n.T(i18n.Default, "generator.help.2")},
 	},
+	KindAlloy: {
+		name: i18n.T(i18n.Default, "machine.alloy.name"), marker: "§d§m§6", interval: 100, input: []int{10, 11}, output: []int{15}, indicator: 13,
+		use: 20, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.alloy.help.1"), i18n.T(i18n.Default, "machine.alloy.help.2")},
+	},
+	KindEnergyCell: {
+		name: i18n.T(i18n.Default, "machine.cell.name"), interval: 1, indicator: 10,
+		cell: true, energyCap: cellCapacity,
+		help: []string{i18n.T(i18n.Default, "machine.cell.help.1"), i18n.T(i18n.Default, "machine.cell.help.2")},
+	},
 	KindSellBox: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.17"), i18n.T(i18n.Default, "dragonfactory.machine.init.18")},
@@ -104,7 +121,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -113,6 +130,19 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Gravel{}):      block.Sand{},
 	// Sand crushes into dust (13th playtest, sky progression).
 	itemKey(block.Sand{}): Dust{},
+}
+
+// crusherOutput is what the crusher makes of an item: the blocks of the hammer
+// chain one step down, and an ore chunk into two dusts of its metal (the ore
+// doubling of docs/design/07-progression-expansion.md §3).
+func crusherOutput(in item.Stack) (item.Stack, bool) {
+	if c, ok := in.Item().(OreChunk); ok {
+		return item.NewStack(MetalDust{Metal: c.Ore}, 2), true
+	}
+	if out, ok := crushRecipes[itemKey(in.Item())]; ok {
+		return item.NewStack(out, 1), true
+	}
+	return item.Stack{}, false
 }
 
 // minerTool is what the auto miner mines with.
@@ -253,10 +283,12 @@ func (st *machineState) accepts(it item.Stack) bool {
 	k := itemKey(it.Item())
 	switch st.kind {
 	case machineKinds[KindCrusher]:
-		_, ok := crushRecipes[k]
+		_, ok := crusherOutput(it)
 		return ok
 	case machineKinds[KindGenerator]:
 		return fuelDuration(it) > 0
+	case machineKinds[KindAlloy]:
+		return alloyAccepts(it)
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -479,8 +511,8 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true, KindAlloy: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -616,6 +648,9 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		s.useSieve(p, tx, pos, m.st)
 		return true
 	}
+	if m.st.kind.cell {
+		return false
+	}
 	m.st.storage.Open(p, nil)
 	return true
 }
@@ -693,10 +728,13 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	switch m.Kind {
 	case KindCrusher:
 		st.process(func(in item.Stack) []item.Stack {
-			return []item.Stack{item.NewStack(crushRecipes[itemKey(in.Item())], 1)}
+			out, _ := crusherOutput(in)
+			return []item.Stack{out}
 		}, nil)
 	case KindGenerator:
 		s.runGenerator(st, pos, tx)
+	case KindAlloy:
+		st.runAlloy()
 	case KindAutoSieve:
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
@@ -705,6 +743,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runHarvester(st, pos, tx)
 	}
 	st.pos = pos
+	if m.Kind == KindEnergyCell {
+		return
+	}
 	if currentTick%10 == 0 {
 		st.showEnergy()
 	}

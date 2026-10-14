@@ -167,6 +167,30 @@
     },
     "dragonfactory_conduit_fluid_3": {
       "textures": "textures/blocks/conduit_fluid_3"
+    },
+    "dragonfactory_alloy_smelter_front": {
+      "textures": "textures/blocks/alloy_smelter_front"
+    },
+    "dragonfactory_alloy_smelter_back": {
+      "textures": "textures/blocks/alloy_smelter_back"
+    },
+    "dragonfactory_alloy_smelter_side": {
+      "textures": "textures/blocks/alloy_smelter_side"
+    },
+    "dragonfactory_alloy_smelter_up": {
+      "textures": "textures/blocks/alloy_smelter_up"
+    },
+    "dragonfactory_alloy_smelter_down": {
+      "textures": "textures/blocks/alloy_smelter_down"
+    },
+    "dragonfactory_energy_cell_side": {
+      "textures": "textures/blocks/energy_cell_side"
+    },
+    "dragonfactory_energy_cell_up": {
+      "textures": "textures/blocks/energy_cell_up"
+    },
+    "dragonfactory_energy_cell_down": {
+      "textures": "textures/blocks/energy_cell_down"
     }
   },
   "texture_name": "atlas.terrain"

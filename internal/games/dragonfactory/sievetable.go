@@ -77,6 +77,35 @@ var meshExtra = map[string]map[string][]SieveDrop{
 	},
 }
 
+// metalExtra is what each mesh finds of the new metals (metals.go): tin from the
+// flint mesh, lead from the iron mesh, silver and nickel from the gold mesh,
+// more of each from the better ones.
+var metalExtra = map[string]map[string][]SieveDrop{
+	"flint": {
+		itemKey(block.Gravel{}): {metalDrop(MetalTin, 12)},
+	},
+	"iron": {
+		itemKey(block.Gravel{}): {metalDrop(MetalTin, 18), metalDrop(MetalLead, 10)},
+		itemKey(block.Sand{}):   {metalDrop(MetalLead, 6)},
+	},
+	"gold": {
+		itemKey(block.Gravel{}): {metalDrop(MetalTin, 22), metalDrop(MetalLead, 14), metalDrop(MetalNickel, 10)},
+		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 10), metalDrop(MetalLead, 8)},
+	},
+	"diamond": {
+		itemKey(block.Gravel{}): {metalDrop(MetalTin, 25), metalDrop(MetalLead, 18), metalDrop(MetalNickel, 10), metalDrop(MetalSilver, 8)},
+		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 14), metalDrop(MetalNickel, 10)},
+	},
+	"netherite": {
+		itemKey(block.Gravel{}): {metalDrop(MetalTin, 30), metalDrop(MetalLead, 22), metalDrop(MetalNickel, 14), metalDrop(MetalSilver, 12)},
+		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 20), metalDrop(MetalNickel, 10)},
+	},
+}
+
+func metalDrop(ore string, chance int) SieveDrop {
+	return SieveDrop{item.NewStack(OreChunk{Ore: ore}, 1), chance}
+}
+
 // sieveTables are the drops of every kind of block sifted, by mesh tier: the
 // string table, and for the better meshes its chances multiplied plus the
 // extras.
@@ -93,6 +122,9 @@ func buildSieveTables() map[string]map[string][]SieveDrop {
 			}
 		}
 		for key, drops := range meshExtra[tier] {
+			t[key] = append(t[key], drops...)
+		}
+		for key, drops := range metalExtra[tier] {
 			t[key] = append(t[key], drops...)
 		}
 		out[tier] = t

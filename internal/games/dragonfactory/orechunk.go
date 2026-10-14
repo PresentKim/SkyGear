@@ -22,6 +22,11 @@ var oreKinds = []struct {
 	{OreIron, i18n.T(i18n.Default, "dragonfactory.orechunk.init.1"), block.IronOre{}},
 	{OreGold, i18n.T(i18n.Default, "dragonfactory.orechunk.init.2"), block.GoldOre{}},
 	{OreCopper, i18n.T(i18n.Default, "dragonfactory.orechunk.init.3"), block.CopperOre{}},
+	// New ores have no ore block: their chunks are ground to dust (metals.go).
+	{MetalTin, i18n.T(i18n.Default, "metal.tin"), nil},
+	{MetalLead, i18n.T(i18n.Default, "metal.lead"), nil},
+	{MetalSilver, i18n.T(i18n.Default, "metal.silver"), nil},
+	{MetalNickel, i18n.T(i18n.Default, "metal.nickel"), nil},
 }
 
 func (c OreChunk) EncodeItem() (string, int16) { return "dragonfactory:ore_chunk_" + c.Ore, 0 }
@@ -39,6 +44,9 @@ func (OreChunk) Category() category.Category { return category.Items() }
 // chunks (open with the research of the metal).
 func oreChunkRecipes() {
 	for _, k := range oreKinds {
+		if k.block == nil {
+			continue
+		}
 		c := item.NewStack(OreChunk{Ore: k.ore}, 1)
 		recipe.Register(recipe.NewShapeless([]recipe.Item{c, c, c, c}, item.NewStack(k.block, 1), "crafting_table"))
 	}

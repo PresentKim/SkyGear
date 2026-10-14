@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"strings"
 	"testing"
@@ -408,5 +409,75 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 	tick(s, 16*(st.kind.interval+1))
 	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() == 16 {
 		t.Fatal("the auto sieve never started")
+	}
+}
+
+// TestCrusherDoublesOre: an ore chunk crushes into two dusts of its metal, and a
+// dust smelts into an ingot (docs/design/07 §3).
+func TestCrusherDoublesOre(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindCrusher, "")
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(OreChunk{Ore: MetalTin}, 2))
+	tick(s, 2*(st.kind.interval+1))
+	if n := outputCount(st, MetalDust{Metal: MetalTin}); n != 4 {
+		t.Fatalf("tin dust from two chunks = %d, want 4", n)
+	}
+	for _, m := range dustMetals {
+		d := MetalDust{Metal: m}
+		info := d.SmeltInfo()
+		if info.Product.Empty() || info.Product.Item() != ingotOf(m) {
+			t.Errorf("%s dust smelts into %v", m, info.Product.Item())
+		}
+	}
+}
+
+// TestAlloySmelter: two ingredients in either slot make the alloy; a wrong pair
+// does nothing; the output waits when it is full.
+func TestAlloySmelter(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindAlloy, "")
+	a, b := st.kind.input[0], st.kind.input[1]
+	// copper in the second slot, tin in the first: bronze, whichever way round
+	_ = st.inv().SetItem(a, item.NewStack(Ingot{Metal: MetalTin}, 2))
+	_ = st.inv().SetItem(b, item.NewStack(item.CopperIngot{}, 6))
+	tick(s, 2*(st.kind.interval+1))
+	if n := outputCount(st, Ingot{Metal: MetalBronze}); n != 8 {
+		t.Fatalf("bronze from 6 copper and 2 tin = %d, want 8", n)
+	}
+	// steel: one iron and four coal
+	st2 := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), KindAlloy, "")
+	_ = st2.inv().SetItem(a, item.NewStack(item.IronIngot{}, 1))
+	_ = st2.inv().SetItem(b, item.NewStack(item.Coal{}, 3))
+	tick(s, st2.kind.interval+2)
+	if n := outputCount(st2, Ingot{Metal: MetalSteel}); n != 0 {
+		t.Fatalf("steel from three coal = %d", n)
+	}
+	if !alloyAccepts(item.NewStack(item.Coal{}, 1)) || alloyAccepts(item.NewStack(block.Dirt{}, 1)) {
+		t.Error("the smelter does not take exactly its ingredients")
+	}
+}
+
+// TestEnergyCell: a cell is a source and a sink of energy that keeps what it
+// gets.
+func TestEnergyCell(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindEnergyCell, "")
+	st.unlimited = false
+	m := Machine{Kind: KindEnergyCell, st: st}
+	src, snk := energy.RolesOf(m)
+	if src == nil || snk == nil {
+		t.Fatal("a cell is not both a source and a sink")
+	}
+	if got := m.ReceiveEnergy(nil, cube.Pos{}, cube.FaceUp, 500, false); got != 500 {
+		t.Fatalf("received %d of 500", got)
+	}
+	if got := m.ReceiveEnergy(nil, cube.Pos{}, cube.FaceUp, 1<<30, false); got != cellCapacity-500 {
+		t.Errorf("a cell took %d past its capacity", got)
+	}
+	if got := m.ExtractEnergy(nil, cube.Pos{}, cube.FaceUp, 200, false); got != 200 || st.energy != cellCapacity-200 {
+		t.Errorf("gave %d, holds %d", got, st.energy)
 	}
 }

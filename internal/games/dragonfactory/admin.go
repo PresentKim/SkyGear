@@ -178,6 +178,15 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(FluidConduit{Tier: t}, 1) }
 	}
+	for _, k := range oreKinds {
+		out["ore_chunk_"+k.ore] = func() item.Stack { return item.NewStack(OreChunk{Ore: k.ore}, 1) }
+	}
+	for _, m := range dustMetals {
+		out["metal_dust_"+m] = func() item.Stack { return item.NewStack(MetalDust{Metal: m}, 1) }
+	}
+	for _, m := range ingotMetals {
+		out["ingot_"+m] = func() item.Stack { return item.NewStack(Ingot{Metal: m}, 1) }
+	}
 	return out
 }
 

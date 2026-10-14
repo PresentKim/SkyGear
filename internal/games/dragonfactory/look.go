@@ -267,6 +267,8 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(st), nil
+	case st.kind.cell:
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap)}, nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
 		return append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), nil

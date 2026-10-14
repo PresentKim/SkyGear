@@ -121,12 +121,16 @@ func TestConduitRecipes(t *testing.T) {
 	if count != 8 || join(in) != want {
 		t.Errorf("fluid conduit: %d from %s", count, join(in))
 	}
-	for t2 := 2; t2 <= 3; t2++ {
-		if found, _, _ := cells(EnergyConduit{Tier: t2}); found != "" {
-			t.Errorf("energy conduit tier %d has a recipe", t2)
+	// the better tiers are made from the tier below: electrum for the second,
+	// steel and a diamond for the third
+	for _, kind := range []string{"energy", "item", "fluid"} {
+		_, count, in = cells(conduitOf(kind, 2))
+		if count != 1 || join(in) != "dragonfactory:conduit_"+kind+"_1 dragonfactory:ingot_electrum " {
+			t.Errorf("%s conduit tier 2: %d from %s", kind, count, join(in))
 		}
-		if found, _, _ := cells(ItemConduit{Tier: t2}); found != "" {
-			t.Errorf("item conduit tier %d has a recipe", t2)
+		_, count, in = cells(conduitOf(kind, 3))
+		if count != 1 || join(in) != "dragonfactory:conduit_"+kind+"_2 dragonfactory:ingot_steel minecraft:diamond " {
+			t.Errorf("%s conduit tier 3: %d from %s", kind, count, join(in))
 		}
 	}
 	if info := (ConduitBinderMix{}).SmeltInfo(); info.Product.Item() != (ConduitBinder{}) {

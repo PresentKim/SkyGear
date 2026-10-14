@@ -112,7 +112,7 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 		}
 		return n
 	}
-	first := map[string]string{OreIron: "string", OreCopper: "flint", OreGold: "iron"}
+	first := map[string]string{OreIron: "string", OreCopper: "flint", OreGold: "iron", MetalTin: "flint", MetalLead: "iron", MetalSilver: "gold", MetalNickel: "gold"}
 	for _, k := range oreKinds {
 		for tier := range sieveTables {
 			sum := chance(tier, block.Gravel{}, OreChunk{Ore: k.ore}) + chance(tier, block.Sand{}, OreChunk{Ore: k.ore})
@@ -122,6 +122,9 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 			if tier == first[k.ore] && sum < 10 {
 				t.Errorf("%s chunks are too rare for the %s mesh", k.ore, tier)
 			}
+		}
+		if k.block == nil {
+			continue
 		}
 		found := false
 		for _, r := range recipe.Recipes() {

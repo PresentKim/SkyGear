@@ -103,6 +103,14 @@ var researchTree = []Research{
 	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
 	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
 	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreCopper}, 16}}, Unlocks: []string{"copper_ore"}},
+	{ID: "tin", Needs: []string{"copper"}, Cost: []Requirement{{OreChunk{Ore: MetalTin}, 16}}, Unlocks: []string{"dragonfactory:metal_dust_tin"}},
+	{ID: "lead", Needs: []string{"tin", "iron"}, Cost: []Requirement{{OreChunk{Ore: MetalLead}, 16}}, Unlocks: []string{"dragonfactory:metal_dust_lead"}},
+	{ID: "silver", Needs: []string{"gold"}, Cost: []Requirement{{OreChunk{Ore: MetalSilver}, 16}}, Unlocks: []string{"dragonfactory:metal_dust_silver"}},
+	{ID: "nickel", Needs: []string{"gold"}, Cost: []Requirement{{OreChunk{Ore: MetalNickel}, 16}}, Unlocks: []string{"dragonfactory:metal_dust_nickel"}},
+	{ID: "alloy_smelter", Needs: []string{"generator", "tin", "crusher"}, Cost: []Requirement{{item.IronIngot{}, 32}, {Ingot{Metal: MetalTin}, 8}}, Unlocks: []string{"dragonfactory:alloy_smelter"}},
+	{ID: "energy_cell", Needs: []string{"generator", "lead"}, Cost: []Requirement{{Ingot{Metal: MetalLead}, 8}, {item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:energy_cell"}},
+	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []Requirement{{Ingot{Metal: MetalElectrum}, 8}}, Unlocks: []string{"dragonfactory:conduit_energy_2", "dragonfactory:conduit_item_2", "dragonfactory:conduit_fluid_2"}},
+	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:conduit_energy_3", "dragonfactory:conduit_item_3", "dragonfactory:conduit_fluid_3"}},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 32}}, Unlocks: []string{"dried_kelp_block"}},
@@ -502,6 +510,21 @@ func gameRecipes() {
 		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
+	// The alloy smelter and the energy cell (docs/design/07-progression-expansion.md).
+	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
+	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 4), n(item.RedstoneWire{}, 6), n(iron, 2))
+	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
+	// for the third tier, a steel ingot and a diamond (3).
+	for _, tier := range []int{2, 3} {
+		for _, kind := range []string{"energy", "item", "fluid"} {
+			below := conduitOf(kind, tier-1)
+			if tier == 2 {
+				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(Ingot{Metal: MetalElectrum}, 1))
+			} else {
+				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(Ingot{Metal: MetalSteel}, 1), n(item.Diamond{}, 1))
+			}
+		}
+	}
 	// The sieve is a block with many states (how full it is); the recipe takes it
 	// whatever its state, as the client matches recipe blocks by the meta it is
 	// told (any), not by the one state an empty sieve has.

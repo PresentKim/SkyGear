@@ -171,6 +171,63 @@
     },
     "dragonfactory:plus": {
       "textures": "textures/items/plus"
+    },
+    "dragonfactory:ore_chunk_tin": {
+      "textures": "textures/items/ore_chunk_tin"
+    },
+    "dragonfactory:ore_chunk_lead": {
+      "textures": "textures/items/ore_chunk_lead"
+    },
+    "dragonfactory:ore_chunk_silver": {
+      "textures": "textures/items/ore_chunk_silver"
+    },
+    "dragonfactory:ore_chunk_nickel": {
+      "textures": "textures/items/ore_chunk_nickel"
+    },
+    "dragonfactory:metal_dust_iron": {
+      "textures": "textures/items/metal_dust_iron"
+    },
+    "dragonfactory:metal_dust_gold": {
+      "textures": "textures/items/metal_dust_gold"
+    },
+    "dragonfactory:metal_dust_copper": {
+      "textures": "textures/items/metal_dust_copper"
+    },
+    "dragonfactory:metal_dust_tin": {
+      "textures": "textures/items/metal_dust_tin"
+    },
+    "dragonfactory:metal_dust_lead": {
+      "textures": "textures/items/metal_dust_lead"
+    },
+    "dragonfactory:metal_dust_silver": {
+      "textures": "textures/items/metal_dust_silver"
+    },
+    "dragonfactory:metal_dust_nickel": {
+      "textures": "textures/items/metal_dust_nickel"
+    },
+    "dragonfactory:ingot_tin": {
+      "textures": "textures/items/ingot_tin"
+    },
+    "dragonfactory:ingot_lead": {
+      "textures": "textures/items/ingot_lead"
+    },
+    "dragonfactory:ingot_silver": {
+      "textures": "textures/items/ingot_silver"
+    },
+    "dragonfactory:ingot_nickel": {
+      "textures": "textures/items/ingot_nickel"
+    },
+    "dragonfactory:ingot_bronze": {
+      "textures": "textures/items/ingot_bronze"
+    },
+    "dragonfactory:ingot_electrum": {
+      "textures": "textures/items/ingot_electrum"
+    },
+    "dragonfactory:ingot_invar": {
+      "textures": "textures/items/ingot_invar"
+    },
+    "dragonfactory:ingot_steel": {
+      "textures": "textures/items/ingot_steel"
     }
   },
   "texture_name": "atlas.items"

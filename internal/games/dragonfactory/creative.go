@@ -73,5 +73,11 @@ func registerCreativeItems() {
 		for _, k := range pebbleKinds {
 			add(items, Pebble{Kind: k.kind})
 		}
+		for _, m := range dustMetals {
+			add(items, MetalDust{Metal: m})
+		}
+		for _, m := range ingotMetals {
+			add(items, Ingot{Metal: m})
+		}
 	})
 }
