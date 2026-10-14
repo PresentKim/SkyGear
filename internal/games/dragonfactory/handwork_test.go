@@ -24,8 +24,8 @@ func droppedItems(tx *world.Tx) map[string]int {
 	return out
 }
 
-// TestStickKnocksPebbles: a stick used on grass drops pebbles now and then;
-// on stone it does nothing.
+// TestStickKnocksPebbles: every stick use on grass drops a pebble, pushed
+// in some direction (never dead still); on stone it does nothing.
 func TestStickKnocksPebbles(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -38,15 +38,28 @@ func TestStickKnocksPebbles(t *testing.T) {
 		if s.useStick(p, tx, stone, cube.FaceUp, stickStack) {
 			t.Fatal("a stick on stone was handled")
 		}
-		for range 100 {
-			delete(s.lastOpen, p.H())
+		for range 20 {
+			delete(s.lastStick, p.H())
 			if !s.useStick(p, tx, grass, cube.FaceUp, stickStack) {
 				t.Fatal("a stick on grass was not handled")
 			}
 		}
-		got := droppedItems(tx)
-		if n := got[itemKey(Pebble{Kind: PebbleStone})]; n < 10 || n > 50 {
-			t.Fatalf("%d stone pebbles from 100 uses: %v", n, got)
+		total := 0
+		for _, n := range droppedItems(tx) {
+			total += n
+		}
+		if total != 20 {
+			t.Fatalf("%d pebbles from 20 uses", total)
+		}
+		// A use right after the last one is the client's double click: ignored.
+		s.useStick(p, tx, grass, cube.FaceUp, stickStack)
+		s.useStick(p, tx, grass, cube.FaceUp, stickStack)
+		total2 := 0
+		for _, n := range droppedItems(tx) {
+			total2 += n
+		}
+		if total2 != 20 {
+			t.Errorf("double click gave %d pebbles, want 20 in all", total2)
 		}
 	})
 }
@@ -70,6 +83,29 @@ func TestAxeStripsFiber(t *testing.T) {
 		}
 		if n := droppedItems(tx)[itemKey(BarkFiber{})]; n < 20 {
 			t.Fatalf("%d fibers from 50 stone axe strips", n)
+		}
+	})
+}
+
+// TestDropsHaveMotion: dropAt pushes every drop; none starts dead still.
+func TestDropsHaveMotion(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.world.Do(func(tx *world.Tx) {
+		for range 20 {
+			s.dropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(Pebble{Kind: PebbleStone}, 1))
+		}
+		n := 0
+		for e := range tx.Entities() {
+			if e.H().Type() == entity.ItemType {
+				n++
+				if e.(*entity.Ent).Velocity().Len() == 0 {
+					t.Error("a dropped item has no velocity")
+				}
+			}
+		}
+		if n != 20 {
+			t.Errorf("%d items", n)
 		}
 	})
 }

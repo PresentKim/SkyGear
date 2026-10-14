@@ -4,6 +4,7 @@ package dragonfactory
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"math/rand/v2"
 	"sync"
 	"time"
@@ -129,6 +130,8 @@ type session struct {
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
+	// lastStick is when each player last used a stick on the ground.
+	lastStick map[*world.EntityHandle]time.Time
 	// boardMinute is the play time minute shown on the HUD.
 	boardMinute int
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
@@ -176,9 +179,15 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.updateBoard(p)
 }
 
-// dropAt drops an item stack at pos.
+// dropAt drops an item stack at pos with a small random push, so drops
+// never just fall dead still (docs/design/02-dragonfactory.md §13.1).
+// Every item the game drops goes through here unless it is thrown on
+// purpose (the fairy's gift).
 func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
-	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: pos}, it))
+	a := s.rand.Float64() * 2 * math.Pi
+	speed := 0.06 + s.rand.Float64()*0.08
+	vel := mgl64.Vec3{speed * math.Cos(a), 0.22 + s.rand.Float64()*0.1, speed * math.Sin(a)}
+	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: pos, Velocity: vel}, it))
 }
 
 func (s *session) Leave(p *player.Player) {

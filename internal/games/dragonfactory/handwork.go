@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"time"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -10,19 +12,22 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/df-mc/dragonfly/server/world/sound"
 )
 
 // Hand-made resources of the start (docs/design/02-dragonfactory.md §3.3,
 // 05-sky-progression.md §3). Chances are drafts.
-//   - A stick used on grass or dirt sometimes drops a pebble; four pebbles
+//   - A stick used on grass or dirt always drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").
 //   - Stripping a log with a stone or better axe sometimes drops one or two
 //     bark fibers; four fibers make string (research "string").
 //   - Dust is sand crushed once more, sifted for its own drops.
 
 const (
-	// pebbleChance is the percent chance a stick use drops a pebble.
-	pebbleChance = 40
+	// stickCooldown is the shortest time between two stick uses on the
+	// ground (the client sends one click twice).
+	stickCooldown = 250 * time.Millisecond
 	// fiberChance is the percent chance stripping a log drops fibers.
 	fiberChance = 50
 )
@@ -109,7 +114,20 @@ func (s *session) rollPebble() Pebble {
 	return Pebble{Kind: PebbleStone}
 }
 
-// useStick knocks a pebble out of grass or dirt by chance. It reports
+// stickDebounced reports whether p used a stick less than stickCooldown
+// ago, and otherwise records this use.
+func (s *session) stickDebounced(p *player.Player) bool {
+	if s.lastStick == nil {
+		s.lastStick = map[*world.EntityHandle]time.Time{}
+	}
+	if t, ok := s.lastStick[p.H()]; ok && time.Since(t) < stickCooldown {
+		return true
+	}
+	s.lastStick[p.H()] = time.Now()
+	return false
+}
+
+// useStick knocks a pebble out of grass or dirt. It reports
 // whether the use was a stick on grass or dirt.
 func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) bool {
 	if _, ok := held.Item().(item.Stick); !ok {
@@ -120,12 +138,16 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	default:
 		return false
 	}
-	if s.debounced(p) {
+	if s.stickDebounced(p) {
 		return true
 	}
-	if s.rand.IntN(100) < pebbleChance {
-		s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(s.rollPebble(), 1))
-	}
+	// Every use knocks a pebble out, with dirt chips and the small
+	// breaking sound of the block.
+	b := tx.Block(pos)
+	tx.AddParticle(pos.Side(face).Vec3Centre(), particle.PunchBlock{Block: b, Face: face})
+	tx.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
+	tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
+	s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(s.rollPebble(), 1))
 	return true
 }
 
