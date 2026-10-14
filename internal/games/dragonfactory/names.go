@@ -13,7 +13,7 @@ var koreanNames = map[string]string{
 	"oak_log": "참나무 원목", "birch_log": "자작나무 원목", "spruce_log": "가문비나무 원목", "oak_planks": "참나무 판자",
 	"clay": "점토 블록", "clay_ball": "점토", "glass": "유리",
 	"coal_ore": "석탄 광석", "iron_ore": "철 광석", "copper_ore": "구리 광석", "gold_ore": "금 광석",
-	"coal": "석탄", "charcoal": "숯", "flint": "부싯돌", "iron_nugget": "철 조각", "gold_nugget": "금 조각",
+	"diamond": "다이아몬드", "netherite_scrap": "네더라이트 조각", "netherite_ingot": "네더라이트 주괴", "emerald": "에메랄드", "lapis_lazuli": "청금석", "amethyst_shard": "자수정 조각", "quartz": "네더 석영", "coal": "석탄", "charcoal": "숯", "flint": "부싯돌", "iron_nugget": "철 조각", "gold_nugget": "금 조각",
 	"raw_iron": "철 원석", "raw_copper": "구리 원석", "raw_gold": "금 원석", "iron_ingot": "철 주괴", "copper_ingot": "구리 주괴", "gold_ingot": "금 주괴",
 	"air": "없음", "water": "물", "lava": "용암", "coal_block": "석탄 블록", "iron_block": "철 블록", "copper_block": "구리 블록", "gold_block": "금 블록",
 	"pumpkin": "호박", "melon_block": "수박 블록", "hay_block": "건초 더미", "dried_kelp_block": "말린 켈프 블록", "mud": "진흙", "kelp": "켈프", "dried_kelp": "말린 켈프", "brick": "벽돌",

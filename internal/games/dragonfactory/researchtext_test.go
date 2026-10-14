@@ -27,20 +27,19 @@ func TestEveryResearchIsExplained(t *testing.T) {
 	}
 }
 
-// TestResearchScreenShowsHints: the open research shows its hint in the info
-// button, the done
+// TestResearchScreenShowsHints: the open research shows its hint in the form, the done
 // research what to do next.
 func TestResearchScreenShowsHints(t *testing.T) {
 	s := testSession(t)
 	r, _ := researchByID("stick")
 	d, _, _ := s.researchNode(nil, r)
-	body := d.Info
+	body := d.Body
 	if !strings.Contains(body, researchText("stick").Hint) {
 		t.Errorf("open research without its hint: %q", body)
 	}
 	s.state.Researched = map[string]bool{"stick": true}
 	d, _, _ = s.researchNode(nil, r)
-	body = d.Info
+	body = d.Body
 	if !strings.Contains(body, researchText("stick").After) {
 		t.Errorf("done research without its next step: %q", body)
 	}
@@ -104,8 +103,8 @@ func TestResearchScreen(t *testing.T) {
 	if len(opts) != 2 || !strings.Contains(opts[0].Label, "연구 진행") {
 		t.Fatalf("options %+v", opts)
 	}
-	if strings.Contains(d.Info, "먼저 할 연구") || strings.Contains(d.Info, "납품") {
-		t.Errorf("body mentions prerequisites or delivery: %q", d.Info)
+	if strings.Contains(d.Body, "먼저 할 연구") || strings.Contains(d.Body, "납품") {
+		t.Errorf("body mentions prerequisites or delivery: %q", d.Body)
 	}
 	if len(rows) != 2 || len(rows[0].Slots) != 2 || len(rows[1].Slots) != 5 {
 		t.Fatalf("rows %+v", rows)
@@ -117,16 +116,5 @@ func TestResearchScreen(t *testing.T) {
 	d, _, opts = s.researchNode(nil, r)
 	if len(opts) != 1 || !strings.Contains(d.Status, "연구 완료") {
 		t.Errorf("done research: status %q options %+v", d.Status, opts)
-	}
-}
-
-// TestResearchScreenBodyIsHidden: the description is behind the info button;
-// the form itself has no body text.
-func TestResearchScreenBodyIsHidden(t *testing.T) {
-	s := testSession(t)
-	r, _ := researchByID("stick")
-	d, _, _ := s.researchNode(nil, r)
-	if d.Body != "" || d.Info == "" || d.InfoRun == nil {
-		t.Errorf("body %q info %q", d.Body, d.Info)
 	}
 }

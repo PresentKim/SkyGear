@@ -349,7 +349,6 @@ const (
 	head1Token   = "§0§g§r"
 	head2Token   = "§0§h§r"
 	detailMarker = "§0§i§r"
-	infoMarker   = "§0§j§r"
 
 	// slotCountBytes is the width of the count field of a slot.
 	slotCountBytes = 10
@@ -449,12 +448,9 @@ func actionOptions(actions []Option) []Option {
 
 // Detail is the card of an ItemDetail form: a big item, the name and status
 // text beside it (the action buttons come right under them) and the body
-// text under the card. Info, when not empty, is shown by a small "?" button
-// at the top right as its tooltip.
+// text under the card.
 type Detail struct {
-	Icon, Name, Status, Body, Info string
-	// InfoRun runs when the "?" button is pressed; it shows the form again.
-	InfoRun func(p *player.Player, tx *world.Tx)
+	Icon, Name, Status, Body string
 }
 
 // ItemDetail sends a two column form: on the left the Detail card with the
@@ -469,11 +465,6 @@ func ItemDetail(p *player.Player, title string, d Detail, rows []SlotRow, action
 		name += "\n" + d.Status
 	}
 	opts = append(opts, Option{Label: detailMarker + name, Icon: d.Icon, Run: func(*player.Player, *world.Tx) {}})
-	if d.Info != "" {
-		// Any press answers the form, so the caller's form is shown again by
-		// the Run set below.
-		opts = append(opts, Option{Label: infoMarker + d.Info, Run: d.InfoRun})
-	}
 	kinds := [2][2]string{{head1Token, slotAToken}, {head2Token, slotBToken}}
 	for i, row := range rows {
 		if i >= len(kinds) {

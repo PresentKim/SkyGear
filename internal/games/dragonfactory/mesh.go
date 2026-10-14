@@ -14,11 +14,23 @@ import (
 // Sieve meshes (docs/design/02-dragonfactory.md §6.1). A sieve is made
 // without its mesh: the mesh is made apart and fitted by using it on the
 // sieve, and the tier of the fitted mesh picks the drop table (sievetable.go).
-// Only the string mesh exists so far; better tiers (iron, gold, diamond,
-// netherite) come later as more tiers here and more tables there.
+// The string mesh is made from string; each better tier (flint, iron, gold,
+// diamond, netherite) is the mesh before it with four of its material, and
+// finds more (sievetable.go).
 
-// meshTiers are the mesh tiers in order, with the name of their material.
-var meshTiers = []struct{ tier, name string }{{"string", "실"}}
+// meshTiers are the mesh tiers in order, with the name of their material
+// and what a tier is upgraded with (the first one is made from string).
+var meshTiers = []struct {
+	tier, name string
+	material   world.Item
+}{
+	{"string", "실", nil},
+	{"flint", "부싯돌", item.Flint{}},
+	{"iron", "철", item.IronIngot{}},
+	{"gold", "금", item.GoldIngot{}},
+	{"diamond", "다이아몬드", item.Diamond{}},
+	{"netherite", "네더라이트", item.NetheriteIngot{}},
+}
 
 // meshName is the name of the mesh of a tier.
 func meshName(tier string) string {
@@ -52,6 +64,7 @@ func (s *session) equipMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *ma
 		s.giveItem(p, tx, p.Position(), item.NewStack(Mesh{Tier: old}, 1))
 	}
 	st.mesh = m.Tier
+	showSieve(tx, pos, st)
 	if !p.GameMode().CreativeInventory() {
 		p.SetHeldItems(held.Grow(-1), off)
 	}
@@ -60,11 +73,19 @@ func (s *session) equipMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *ma
 	return true
 }
 
-// meshRecipes registers the recipes of the meshes: four string in a square
-// (open with the sieve research).
+// meshRecipes registers the recipes of the meshes: four string in a square,
+// and every better tier is the mesh before it with four of its material
+// (opened by the researches, researches.go).
 func meshRecipes() {
 	str := item.NewStack(block.String{}, 1)
 	recipe.Register(recipe.NewShaped([]recipe.Item{str, str, str, str}, item.NewStack(Mesh{Tier: "string"}, 1), recipe.NewShape(2, 2), "crafting_table").WithoutMirror())
+	for i := 1; i < len(meshTiers); i++ {
+		in := []recipe.Item{item.NewStack(Mesh{Tier: meshTiers[i-1].tier}, 1)}
+		for range 4 {
+			in = append(in, item.NewStack(meshTiers[i].material, 1))
+		}
+		recipe.Register(recipe.NewShapeless(in, item.NewStack(Mesh{Tier: meshTiers[i].tier}, 1), "crafting_table"))
+	}
 }
 
 func init() {

@@ -114,6 +114,21 @@
     },
     "dragonfactory:mesh_string": {
       "textures": "textures/items/mesh_string"
+    },
+    "dragonfactory:mesh_flint": {
+      "textures": "textures/items/mesh_flint"
+    },
+    "dragonfactory:mesh_iron": {
+      "textures": "textures/items/mesh_iron"
+    },
+    "dragonfactory:mesh_gold": {
+      "textures": "textures/items/mesh_gold"
+    },
+    "dragonfactory:mesh_diamond": {
+      "textures": "textures/items/mesh_diamond"
+    },
+    "dragonfactory:mesh_netherite": {
+      "textures": "textures/items/mesh_netherite"
     }
   },
   "texture_name": "atlas.items"
