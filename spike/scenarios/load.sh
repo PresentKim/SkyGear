@@ -6,7 +6,7 @@
 # board comes before the join message: an advancement sends the quest rows.)
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=부하 섬' 'expect:입장했습니다' \
-  'cmd:/dfadmin advance research_table' 'expect:첫 연구' \
+  'cmd:/dfadmin advance research_table' 'expect:유레카' \
   'cmd:/dfadmin tps' 'expect:서버 부하 표시를 켰습니다' 'expect:부하' \
   'cmd:/lobby' 'expect:TPS' > host.log 2>&1
 h=$?

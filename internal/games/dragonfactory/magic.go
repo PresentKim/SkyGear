@@ -305,6 +305,14 @@ func (s *session) harvestPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), k.seedStack())
 	}
 	s.advance(tx, advBloom)
+	switch k.tier {
+	case 2:
+		s.advance(tx, advOreHarvest)
+	case 3:
+		s.advance(tx, advGemHarvest)
+	case 4:
+		s.advance(tx, advEssHarvest)
+	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
 	now, _, _ := s.clock.Now()
 	if r := s.state.Plants[cropKey(pos)]; r != nil {
@@ -373,6 +381,10 @@ func plantRecipes() {
 	reg := func(seed string, in ...[]recipe.Item) {
 		recipe.Register(recipe.NewShapeless(join(in...), item.NewStack(PlantSeed{Seed: seed}, 1), "crafting_table"))
 	}
+	// dyes: a petal gives two dyes of its colour
+	for _, c := range petalColours {
+		recipe.Register(recipe.NewShapeless(st(Petal{Colour: c}, 1), item.NewStack(item.Dye{Colour: dyeColour(c)}, 2), "crafting_table"))
+	}
 	// ore blooms: a flower seed, a vanilla flower, petals and four dust of the metal
 	ore := []struct {
 		metal  string
@@ -431,4 +443,14 @@ func init() {
 		world.RegisterBlock(MagicPlant{Kind: k.id, Bloom: true})
 	}
 	plantRecipes()
+}
+
+// dyeColour is the dye colour of a petal colour.
+func dyeColour(c string) item.Colour {
+	return map[string]item.Colour{
+		"white": item.ColourWhite(), "orange": item.ColourOrange(), "magenta": item.ColourMagenta(), "light_blue": item.ColourLightBlue(),
+		"yellow": item.ColourYellow(), "lime": item.ColourLime(), "pink": item.ColourPink(), "gray": item.ColourGrey(),
+		"light_gray": item.ColourLightGrey(), "cyan": item.ColourCyan(), "purple": item.ColourPurple(), "blue": item.ColourBlue(),
+		"brown": item.ColourBrown(), "green": item.ColourGreen(), "red": item.ColourRed(), "black": item.ColourBlack(),
+	}[c]
 }

@@ -126,6 +126,7 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	pos := m.data.Pos
 	delete(w.left, m.handle)
 	if p != nil {
+		s.advance(tx, advKill)
 		looting := 0
 		fortune := s.rpgFortune(p)
 		s.gainXP(p, int(monsterTable[m.kind].health))
@@ -168,8 +169,13 @@ func (s *session) winWave(tx *world.Tx) {
 			s.dropAt(tx, w.gate.Vec3Centre().Add(mgl64.Vec3{0, 1.2, 0}), r)
 		}
 		s.advance(tx, advWave1)
-		if w.level >= 5 {
-			s.advance(tx, advWave5)
+		for _, a := range []struct {
+			level int
+			id    string
+		}{{3, advWave3}, {5, advWave5}, {8, advWave8}} {
+			if w.level >= a.level {
+				s.advance(tx, a.id)
+			}
 		}
 	}
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})

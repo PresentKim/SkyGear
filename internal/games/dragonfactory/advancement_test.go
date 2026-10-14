@@ -32,12 +32,8 @@ func TestAdvancementTreeIsValid(t *testing.T) {
 		if _, ok := researchByID(a.Research); a.Research != "" && !ok {
 			t.Errorf("%s: no research %s", a.ID, a.Research)
 		}
-		if a.Item == "" && a.Research == "" {
-			switch a.ID {
-			case advGrowTree, advSift, advMachine, advChunk, advWave1, advWave5, advToolMod, advToolLevel, advBloom:
-			default:
-				t.Errorf("%s: nothing completes it", a.ID)
-			}
+		if a.Item == "" && a.Research == "" && !a.Event {
+			t.Errorf("%s: nothing completes it", a.ID)
 		}
 	}
 }
@@ -81,7 +77,7 @@ func TestAdvancementMenuHidesLocked(t *testing.T) {
 	if len(opts) != len(advancementTree)+1 {
 		t.Fatalf("%d options", len(opts))
 	}
-	want := map[string]string{"wood": "§a✔ 나무 캐기", "planks": "§e판자\n§7원목으로 참나무 판자를 만드세요", "crafting_table": "§8???"}
+	want := map[string]string{"wood": "§a✔ 주먹이 곧 도끼", "planks": "§e판자촌 입주 준비\n§7원목을 조합대(인벤토리)에서 참나무 판자로 바꾸세요", "crafting_table": "§8???"}
 	for i, a := range advancementTree {
 		if w, ok := want[a.ID]; ok && opts[i].Label != w {
 			t.Errorf("%s: %q", a.ID, opts[i].Label)

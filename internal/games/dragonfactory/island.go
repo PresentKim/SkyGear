@@ -137,6 +137,12 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	s.keepLoaded(tx, c)
 	s.storeState()
 	s.advance(tx, advChunk)
+	if len(s.state.Chunks) >= 8 {
+		s.advance(tx, advChunks8)
+	}
+	if len(s.state.Chunks) >= 16 {
+		s.advance(tx, advChunks16)
+	}
 	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.3"), p.Name(), c[0], c[1], len(s.state.Chunks)))
 }
 

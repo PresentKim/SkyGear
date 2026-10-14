@@ -17,12 +17,12 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if title, rows := s.questRows(); !strings.Contains(title, "나무 캐기") || len(rows) != 2 {
+		if title, rows := s.questRows(); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		s.advance(tx, "research_table")
 		title, rows := s.questRows()
-		if !strings.Contains(title, "첫 연구") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
+		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		sticks, _ := researchByID("stick")

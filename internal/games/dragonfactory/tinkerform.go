@@ -97,6 +97,7 @@ func (s *session) makeTool(p *player.Player, tx *world.Tx, pos cube.Pos, kind st
 	takePlain(inv, hd.item, 1)
 	tool := describeTool(item.NewStack(TinkerTool{Kind: kind, Head: head.id, Handle: hd.id}, 1))
 	s.giveItem(p, tx, p.Position(), tool)
+	s.advance(tx, advToolMade)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
 	return true
 }
@@ -172,6 +173,9 @@ func (s *session) gainToolXP(p *player.Player, n int) {
 	p.SetHeldItems(next, off)
 	if up {
 		s.advance(p.Tx(), advToolLevel)
+		if toolLevel(toolXP(next)) >= 5 {
+			s.advance(p.Tx(), advTool5)
+		}
 		p.Messagef(i18n.T(i18n.Of(p), "tinker.levelUp"), itemName(next), toolLevel(toolXP(next)))
 	}
 }

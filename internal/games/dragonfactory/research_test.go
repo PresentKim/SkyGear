@@ -88,11 +88,11 @@ func TestResearchOpensRecipes(t *testing.T) {
 			t.Fatalf("%d planks left, want 2", st.Count())
 		}
 		// The chest research costs more and is also paid whole, at once.
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 63))
+		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 31))
 		if _, done := s.doResearch(p, tx, chest); done {
-			t.Fatal("chest research done with 63 of 64 planks")
+			t.Fatal("chest research done with 31 of 32 planks")
 		}
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 64))
+		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 32))
 		if missing, done := s.doResearch(p, tx, chest); !done || len(missing) != 0 || !s.researched("chest") {
 			t.Fatalf("chest research: done %v missing %v", done, missing)
 		}

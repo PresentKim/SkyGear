@@ -92,6 +92,14 @@ func (s *session) gainXP(p *player.Player, n int) {
 	r.XP += n
 	if now := rpgLevel(r.XP); now > before {
 		p.Messagef(i18n.T(i18n.Of(p), "rpg.levelUp"), now, r.points())
+		for _, a := range []struct {
+			level int
+			id    string
+		}{{5, advChar5}, {15, advChar15}, {30, advChar30}} {
+			if now >= a.level {
+				s.advance(p.Tx(), a.id)
+			}
+		}
 		s.applyRPG(p)
 		s.storeState()
 	}
@@ -142,6 +150,7 @@ func (s *session) showCharacter(p *player.Player) {
 			r := s.rpgOf(p)
 			if r.points() > 0 && r.Skills[sk.id] < sk.max {
 				r.Skills[sk.id]++
+				s.advance(tx, advSkill)
 				s.applyRPG(p)
 				s.storeState()
 			}

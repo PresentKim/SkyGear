@@ -35,6 +35,8 @@ type Advancement struct {
 	// Icon is the item name shown in the advancement screen; Item when
 	// empty.
 	Icon string
+	// Event marks an advancement the game reports itself (advance).
+	Event bool
 }
 
 // Advancements done by events (advance).
@@ -53,6 +55,21 @@ const (
 	advBloom     = "first_bloom"
 	advToolLevel = "tool_level"
 	advWave5     = "wave_5"
+
+	advKill       = "first_kill"
+	advWave3      = "wave_3"
+	advWave8      = "wave_8"
+	advSkill      = "skill_point"
+	advChar5      = "char_5"
+	advChar15     = "char_15"
+	advChar30     = "char_30"
+	advToolMade   = "tool_made"
+	advTool5      = "tool_level_5"
+	advOreHarvest = "ore_harvest"
+	advGemHarvest = "gem_harvest"
+	advEssHarvest = "ess_harvest"
+	advChunks8    = "chunks_8"
+	advChunks16   = "chunks_16"
 )
 
 // advancementTree is every advancement; the quest panel follows this
@@ -65,7 +82,7 @@ var advancementTree = []Advancement{
 	{ID: "first_research", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.9"), Parent: "research_table", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.10"), Research: "stick", Icon: "stick"},
 	{ID: "pebble", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.11"), Parent: "first_research", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.12"), Item: "dragonfactory:pebble_stone"},
 	{ID: "cobble", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.13"), Parent: "pebble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.14"), Item: "cobblestone"},
-	{ID: advGrowTree, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.15"), Parent: "wood", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.16"), Icon: "oak_sapling"},
+	{ID: advGrowTree, Event: true, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.15"), Parent: "wood", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.16"), Icon: "oak_sapling"},
 	{ID: "wood_tools", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.17"), Parent: "first_research", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.18"), Item: "wooden_pickaxe"},
 	{ID: "composter", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.19"), Parent: "wood_tools", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.20"), Item: "composter"},
 	{ID: "barrel", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.21"), Parent: "composter", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.22"), Item: "dragonfactory:barrel_oak"},
@@ -75,11 +92,11 @@ var advancementTree = []Advancement{
 	{ID: "hammer", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.29"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.30"), Item: "dragonfactory:hammer"},
 	{ID: "gravel", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.31"), Parent: "hammer", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.32"), Item: "gravel"},
 	{ID: "sieve", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.33"), Parent: "string", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.34"), Item: "dragonfactory:sieve"},
-	{ID: advSift, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.35"), Parent: "sieve", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.36"), Icon: "gravel"},
+	{ID: advSift, Event: true, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.35"), Parent: "sieve", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.36"), Icon: "gravel"},
 	{ID: "dust", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.37"), Parent: "gravel", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.38"), Item: "dragonfactory:dust"},
 	{ID: "furnace", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.39"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.40"), Item: "furnace"},
 	{ID: "iron", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.41"), Parent: advSift, Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.42"), Item: "iron_ingot"},
-	{ID: advMachine, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.43"), Parent: "iron", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.44"), Icon: "dragonfactory:crusher"},
+	{ID: advMachine, Event: true, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.43"), Parent: "iron", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.44"), Icon: "dragonfactory:crusher"},
 	{ID: "fluid_conduit", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.47"), Parent: advMachine, Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.48"), Research: "fluid_conduit", Icon: "dragonfactory:conduit_fluid_1"},
 	{ID: "ore_dust", Name: i18n.T(i18n.Default, "advancement.ore_dust.name"), Parent: advMachine, Hint: i18n.T(i18n.Default, "advancement.ore_dust.hint"), Item: "dragonfactory:metal_dust_iron"},
 	{ID: "tin_ingot", Name: i18n.T(i18n.Default, "advancement.tin_ingot.name"), Parent: "ore_dust", Hint: i18n.T(i18n.Default, "advancement.tin_ingot.hint"), Item: "dragonfactory:ingot_tin"},
@@ -119,20 +136,64 @@ var advancementTree = []Advancement{
 	{ID: "lava_generator", Name: i18n.T(i18n.Default, "advancement.lava_generator.name"), Parent: "crucible", Hint: i18n.T(i18n.Default, "advancement.lava_generator.hint"), Research: "lava_generator", Icon: "dragonfactory:lava_generator"},
 	{ID: "ore_washer", Name: i18n.T(i18n.Default, "advancement.ore_washer.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.ore_washer.hint"), Research: "ore_washer", Icon: "dragonfactory:ore_washer"},
 	{ID: "dimension_gate", Name: i18n.T(i18n.Default, "advancement.dimension_gate.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.dimension_gate.hint"), Research: "dimension_gate", Icon: "dragonfactory:dimension_gate"},
-	{ID: advWave1, Name: i18n.T(i18n.Default, "advancement.wave_1.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.wave_1.hint"), Icon: "iron_sword"},
-	{ID: advWave5, Name: i18n.T(i18n.Default, "advancement.wave_5.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_5.hint"), Icon: "diamond_sword"},
+	{ID: advWave1, Event: true, Name: i18n.T(i18n.Default, "advancement.wave_1.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.wave_1.hint"), Icon: "iron_sword"},
+	{ID: advWave5, Event: true, Name: i18n.T(i18n.Default, "advancement.wave_5.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_5.hint"), Icon: "diamond_sword"},
 	{ID: "diamond_tools", Name: i18n.T(i18n.Default, "advancement.diamond_tools.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_tools.hint"), Item: "diamond_pickaxe"},
 	{ID: "obsidian", Name: i18n.T(i18n.Default, "advancement.obsidian.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.obsidian.hint"), Item: "obsidian"},
 	{ID: "storage_controller", Name: i18n.T(i18n.Default, "advancement.storage_controller.name"), Parent: "drawer", Hint: i18n.T(i18n.Default, "advancement.storage_controller.hint"), Research: "storage_controller", Icon: "dragonfactory:storage_controller"},
 	{ID: "tinker_table", Name: i18n.T(i18n.Default, "advancement.tinker_table.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.tinker_table.hint"), Research: "tinker_table", Icon: "dragonfactory:tinker_table"},
-	{ID: advToolMod, Name: i18n.T(i18n.Default, "advancement.tool_modifier.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_modifier.hint"), Icon: "redstone"},
-	{ID: advToolLevel, Name: i18n.T(i18n.Default, "advancement.tool_level.name"), Parent: advToolMod, Hint: i18n.T(i18n.Default, "advancement.tool_level.hint"), Icon: "experience_bottle"},
+	{ID: advToolMod, Event: true, Name: i18n.T(i18n.Default, "advancement.tool_modifier.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_modifier.hint"), Icon: "redstone"},
+	{ID: advToolLevel, Event: true, Name: i18n.T(i18n.Default, "advancement.tool_level.name"), Parent: advToolMod, Hint: i18n.T(i18n.Default, "advancement.tool_level.hint"), Icon: "experience_bottle"},
 	{ID: "magic_seed", Name: i18n.T(i18n.Default, "advancement.magic_seed.name"), Parent: advWave1, Hint: i18n.T(i18n.Default, "advancement.magic_seed.hint"), Item: "dragonfactory:seed_flower_red"},
-	{ID: advBloom, Name: i18n.T(i18n.Default, "advancement.first_bloom.name"), Parent: "magic_seed", Hint: i18n.T(i18n.Default, "advancement.first_bloom.hint"), Icon: "dragonfactory:petal_red"},
+	{ID: advBloom, Event: true, Name: i18n.T(i18n.Default, "advancement.first_bloom.name"), Parent: "magic_seed", Hint: i18n.T(i18n.Default, "advancement.first_bloom.hint"), Icon: "dragonfactory:petal_red"},
 	{ID: "ore_bloom", Name: i18n.T(i18n.Default, "advancement.ore_bloom.name"), Parent: advBloom, Hint: i18n.T(i18n.Default, "advancement.ore_bloom.hint"), Item: "dragonfactory:seed_ore_iron"},
 	{ID: "gem_bloom", Name: i18n.T(i18n.Default, "advancement.gem_bloom.name"), Parent: "ore_bloom", Hint: i18n.T(i18n.Default, "advancement.gem_bloom.hint"), Item: "dragonfactory:seed_gem_diamond"},
 	{ID: "essence_bloom", Name: i18n.T(i18n.Default, "advancement.essence_bloom.name"), Parent: "gem_bloom", Hint: i18n.T(i18n.Default, "advancement.essence_bloom.hint"), Item: "dragonfactory:seed_ess_enderman"},
-	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
+	{ID: advChunk, Event: true, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
+	{ID: "chest", Name: i18n.T(i18n.Default, "advancement.chest.name"), Parent: "first_research", Hint: i18n.T(i18n.Default, "advancement.chest.hint"), Item: "chest"},
+	{ID: "torch", Name: i18n.T(i18n.Default, "advancement.torch.name"), Parent: "furnace", Hint: i18n.T(i18n.Default, "advancement.torch.hint"), Item: "torch"},
+	{ID: "glass", Name: i18n.T(i18n.Default, "advancement.glass.name"), Parent: "furnace", Hint: i18n.T(i18n.Default, "advancement.glass.hint"), Item: "glass"},
+	{ID: "bread", Name: i18n.T(i18n.Default, "advancement.bread.name"), Parent: "wood_tools", Hint: i18n.T(i18n.Default, "advancement.bread.hint"), Item: "bread"},
+	{ID: "bucket", Name: i18n.T(i18n.Default, "advancement.bucket.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.bucket.hint"), Item: "bucket"},
+	{ID: "shears", Name: i18n.T(i18n.Default, "advancement.shears.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.shears.hint"), Item: "shears"},
+	{ID: "iron_pickaxe", Name: i18n.T(i18n.Default, "advancement.iron_pickaxe.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.iron_pickaxe.hint"), Item: "iron_pickaxe"},
+	{ID: "iron_armor", Name: i18n.T(i18n.Default, "advancement.iron_armor.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.iron_armor.hint"), Item: "iron_chestplate"},
+	{ID: "lantern", Name: i18n.T(i18n.Default, "advancement.lantern.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.lantern.hint"), Item: "lantern"},
+	{ID: "anvil", Name: i18n.T(i18n.Default, "advancement.anvil.name"), Parent: "lantern", Hint: i18n.T(i18n.Default, "advancement.anvil.hint"), Item: "anvil"},
+	{ID: "workbench", Name: i18n.T(i18n.Default, "advancement.workbench.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.workbench.hint"), Item: "stonecutter_block"},
+	{ID: "blast_furnace", Name: i18n.T(i18n.Default, "advancement.blast_furnace.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.blast_furnace.hint"), Item: "blast_furnace"},
+	{ID: "bow", Name: i18n.T(i18n.Default, "advancement.bow.name"), Parent: "string", Hint: i18n.T(i18n.Default, "advancement.bow.hint"), Item: "bow"},
+	{ID: "copper_gear", Name: i18n.T(i18n.Default, "advancement.copper_gear.name"), Parent: "copper", Hint: i18n.T(i18n.Default, "advancement.copper_gear.hint"), Item: "copper_pickaxe"},
+	{ID: "redstone", Name: i18n.T(i18n.Default, "advancement.redstone.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.redstone.hint"), Item: "lever"},
+	{ID: "compass", Name: i18n.T(i18n.Default, "advancement.compass.name"), Parent: "redstone", Hint: i18n.T(i18n.Default, "advancement.compass.hint"), Item: "compass"},
+	{ID: "golden_carrot", Name: i18n.T(i18n.Default, "advancement.golden_carrot.name"), Parent: "gold", Hint: i18n.T(i18n.Default, "advancement.golden_carrot.hint"), Item: "golden_carrot"},
+	{ID: "diamond_block", Name: i18n.T(i18n.Default, "advancement.diamond_block.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_block.hint"), Item: "diamond_block"},
+	{ID: "sandstone", Name: i18n.T(i18n.Default, "advancement.sandstone.name"), Parent: "furnace", Hint: i18n.T(i18n.Default, "advancement.sandstone.hint"), Item: "sandstone"},
+	{ID: "quartz_block", Name: i18n.T(i18n.Default, "advancement.quartz_block.name"), Parent: "furnace", Hint: i18n.T(i18n.Default, "advancement.quartz_block.hint"), Item: "quartz_block"},
+	{ID: "amethyst_block", Name: i18n.T(i18n.Default, "advancement.amethyst_block.name"), Parent: "glass", Hint: i18n.T(i18n.Default, "advancement.amethyst_block.hint"), Item: "amethyst_block"},
+	{ID: "bone_block", Name: i18n.T(i18n.Default, "advancement.bone_block.name"), Parent: "mob_simulator", Hint: i18n.T(i18n.Default, "advancement.bone_block.hint"), Item: "bone_block"},
+	{ID: "slime_block", Name: i18n.T(i18n.Default, "advancement.slime_block.name"), Parent: "mob_simulator", Hint: i18n.T(i18n.Default, "advancement.slime_block.hint"), Item: "slime"},
+	{ID: "blaze_powder", Name: i18n.T(i18n.Default, "advancement.blaze_powder.name"), Parent: "blaze_rod", Hint: i18n.T(i18n.Default, "advancement.blaze_powder.hint"), Item: "blaze_powder"},
+	{ID: "ender_eye", Name: i18n.T(i18n.Default, "advancement.ender_eye.name"), Parent: "blaze_powder", Hint: i18n.T(i18n.Default, "advancement.ender_eye.hint"), Item: "ender_eye"},
+	{ID: "ender_chest", Name: i18n.T(i18n.Default, "advancement.ender_chest.name"), Parent: "ender_eye", Hint: i18n.T(i18n.Default, "advancement.ender_chest.hint"), Item: "ender_chest"},
+	{ID: "diamond_armor", Name: i18n.T(i18n.Default, "advancement.diamond_armor.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.diamond_armor.hint"), Item: "diamond_chestplate"},
+	{ID: "storage_link", Name: i18n.T(i18n.Default, "advancement.storage_link.name"), Parent: "storage_controller", Hint: i18n.T(i18n.Default, "advancement.storage_link.hint"), Item: "dragonfactory:storage_link"},
+	{ID: "dye", Name: i18n.T(i18n.Default, "advancement.dye.name"), Parent: "first_bloom", Hint: i18n.T(i18n.Default, "advancement.dye.hint"), Item: "red_dye"},
+	{ID: "stained_glass", Name: i18n.T(i18n.Default, "advancement.stained_glass.name"), Parent: "dye", Hint: i18n.T(i18n.Default, "advancement.stained_glass.hint"), Item: "blue_stained_glass"},
+	{ID: "first_kill", Name: i18n.T(i18n.Default, "advancement.first_kill.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.first_kill.hint"), Event: true, Icon: "iron_sword"},
+	{ID: "wave_3", Name: i18n.T(i18n.Default, "advancement.wave_3.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_3.hint"), Event: true, Icon: "iron_sword"},
+	{ID: "wave_8", Name: i18n.T(i18n.Default, "advancement.wave_8.name"), Parent: "wave_5", Hint: i18n.T(i18n.Default, "advancement.wave_8.hint"), Event: true, Icon: "netherite_sword"},
+	{ID: "skill_point", Name: i18n.T(i18n.Default, "advancement.skill_point.name"), Parent: "first_kill", Hint: i18n.T(i18n.Default, "advancement.skill_point.hint"), Event: true, Icon: "experience_bottle"},
+	{ID: "char_5", Name: i18n.T(i18n.Default, "advancement.char_5.name"), Parent: "first_kill", Hint: i18n.T(i18n.Default, "advancement.char_5.hint"), Event: true, Icon: "leather_chestplate"},
+	{ID: "char_15", Name: i18n.T(i18n.Default, "advancement.char_15.name"), Parent: "char_5", Hint: i18n.T(i18n.Default, "advancement.char_15.hint"), Event: true, Icon: "iron_chestplate"},
+	{ID: "char_30", Name: i18n.T(i18n.Default, "advancement.char_30.name"), Parent: "char_15", Hint: i18n.T(i18n.Default, "advancement.char_30.hint"), Event: true, Icon: "diamond_chestplate"},
+	{ID: "tool_made", Name: i18n.T(i18n.Default, "advancement.tool_made.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_made.hint"), Event: true, Icon: "iron_pickaxe"},
+	{ID: "tool_level_5", Name: i18n.T(i18n.Default, "advancement.tool_level_5.name"), Parent: "tool_level", Hint: i18n.T(i18n.Default, "advancement.tool_level_5.hint"), Event: true, Icon: "diamond_pickaxe"},
+	{ID: "ore_harvest", Name: i18n.T(i18n.Default, "advancement.ore_harvest.name"), Parent: "ore_bloom", Hint: i18n.T(i18n.Default, "advancement.ore_harvest.hint"), Event: true, Icon: "iron_ingot"},
+	{ID: "gem_harvest", Name: i18n.T(i18n.Default, "advancement.gem_harvest.name"), Parent: "gem_bloom", Hint: i18n.T(i18n.Default, "advancement.gem_harvest.hint"), Event: true, Icon: "diamond"},
+	{ID: "ess_harvest", Name: i18n.T(i18n.Default, "advancement.ess_harvest.name"), Parent: "essence_bloom", Hint: i18n.T(i18n.Default, "advancement.ess_harvest.hint"), Event: true, Icon: "ender_pearl"},
+	{ID: "chunks_8", Name: i18n.T(i18n.Default, "advancement.chunks_8.name"), Parent: "chunk", Hint: i18n.T(i18n.Default, "advancement.chunks_8.hint"), Event: true, Icon: "grass_block"},
+	{ID: "chunks_16", Name: i18n.T(i18n.Default, "advancement.chunks_16.name"), Parent: "chunks_8", Hint: i18n.T(i18n.Default, "advancement.chunks_16.hint"), Event: true, Icon: "grass_block"},
 }
 
 // advancementByID returns an advancement of the tree.
