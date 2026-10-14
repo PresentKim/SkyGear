@@ -18,7 +18,6 @@ import (
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
 // Machines are the automation blocks of the first era
@@ -84,12 +83,12 @@ var machineKinds = map[string]*machineKind{
 		// One output slot (11th playtest; it had four, like the harvester).
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.10"), marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		use: 20, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.11"), i18n.T(i18n.Default, "dragonfactory.machine.init.12")},
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.11")},
 	},
 	KindHarvester: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.13"), marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 10, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.14"), i18n.T(i18n.Default, "dragonfactory.machine.init.15")},
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.14")},
 	},
 	KindGenerator: {
 		name: i18n.T(i18n.Default, "generator.name"), marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
@@ -593,10 +592,11 @@ func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item
 	return n
 }
 
-// PeekItems implements itemio.Extractor: the output leaves through the
-// bottom face.
-func (m Machine) PeekItems(_ *world.Tx, _ cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
-	if m.st == nil || face != cube.FaceDown {
+// PeekItems implements itemio.Extractor: the output leaves through any face
+// (a hopper under the machine, a conduit anywhere, since machines no longer
+// push their output into their neighbours).
+func (m Machine) PeekItems(_ *world.Tx, _ cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
+	if m.st == nil {
 		return item.Stack{}
 	}
 	for _, s := range m.st.kind.output {
@@ -608,8 +608,8 @@ func (m Machine) PeekItems(_ *world.Tx, _ cube.Pos, face cube.Face, want func(it
 }
 
 // ExtractItems implements itemio.Extractor.
-func (m Machine) ExtractItems(_ *world.Tx, _ cube.Pos, face cube.Face, st item.Stack, n int) item.Stack {
-	if m.st == nil || face != cube.FaceDown {
+func (m Machine) ExtractItems(_ *world.Tx, _ cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
+	if m.st == nil {
 		return item.Stack{}
 	}
 	got := 0
@@ -651,14 +651,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
 		s.runMiner(st, pos, tx)
-		if currentTick%4 == 0 {
-			s.pushOutput(st, pos, tx)
-		}
 	case KindHarvester:
 		s.runHarvester(st, pos, tx)
-		if currentTick%4 == 0 {
-			s.pushOutput(st, pos, tx)
-		}
 	}
 	st.pos = pos
 	if isSieve(m.Kind) {
@@ -771,28 +765,6 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 	for _, v := range tx.Viewers(pos.Vec3Centre()) {
 		v.ViewBlockAction(pos, a)
-	}
-}
-
-// pushTargets are the sides the auto miner pushes into, in turn.
-var pushTargets = []cube.Face{cube.FaceUp, cube.FaceNorth, cube.FaceEast, cube.FaceSouth, cube.FaceWest}
-
-// pushOutput moves one output item into a neighbouring block that takes
-// it (itemio: machines, drawers, chests, hoppers). An item no neighbour
-// takes does not hold up the others, so mixed output can be split, e.g. a
-// crusher on one side and a drawer on another.
-func (s *session) pushOutput(st *machineState, pos cube.Pos, tx *world.Tx) {
-	for _, slot := range st.kind.output {
-		it, _ := st.inv().Item(slot)
-		if it.Empty() {
-			continue
-		}
-		for _, f := range pushTargets {
-			if itemio.Insert(tx, pos.Side(f), f.Opposite(), it.Grow(1-it.Count())) == 1 {
-				_ = st.inv().SetItem(slot, it.Grow(-1))
-				return
-			}
-		}
 	}
 }
 

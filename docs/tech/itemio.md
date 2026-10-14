@@ -42,7 +42,7 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 | 배럴(`barrel.go`) | 모든 면: 식물 아이템 | 없음(물은 양동이) |
 | 나무 호퍼·역방향 호퍼(`hopper.go`) | 호퍼 규칙 | 호퍼 규칙 |
 
-기계의 출력(자동 채굴기·수확기가 옆에 밀어 넣기, 자동 체의 부산물)도 이 길로 이웃 블록에 넣는다(`pushOutput`, `storeBesideOrBelow`).
+**기계는 이웃에 밀어 넣지 않는다**(결과 칸에 쌓이고, 호퍼·아이템 도관이 어느 면에서든 꺼낸다).
 
 ## 호퍼
 

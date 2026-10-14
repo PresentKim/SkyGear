@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -237,13 +238,18 @@ func bundleLines(tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
 	}
 	if b.Item > 0 {
 		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
-			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), itemnet.RateOf(b.Item), float64(itemnet.StepTicks)/20))
+			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), strconv.FormatFloat(itemsPerSecond(b.Item), 'f', -1, 64)))
 		lines = append(lines, itemConduitLines(tx, pos, b)...)
 	}
 	if b.Fluid > 0 {
 		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+" §7"+i18n.T(i18n.Default, "fluidconduit.lines.todo"))
 	}
 	return lines
+}
+
+// itemsPerSecond is how many items an item conduit of a tier moves a second.
+func itemsPerSecond(tier int) float64 {
+	return float64(itemnet.RateOf(tier)) * 20 / itemnet.StepTicks
 }
 
 // itemConduitLines are the item mode lines: the mode of every side that has

@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"testing"
 	"time"
 
@@ -104,7 +105,10 @@ func TestHandSieveDoesNotSiftAlone(t *testing.T) {
 	}
 }
 
-func TestAutoMinerPushesIntoChest(t *testing.T) {
+// TestAutoMinerKeepsItsOutput: the auto miner mines the block under it and
+// keeps the result in its output slot; it pushes nothing into a chest beside
+// or above it (hoppers and conduits carry items away).
+func TestAutoMinerKeepsItsOutput(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	below, above := machinePos.Side(cube.FaceDown), machinePos.Side(cube.FaceUp)
@@ -112,15 +116,18 @@ func TestAutoMinerPushesIntoChest(t *testing.T) {
 		tx.SetBlock(below, block.Stone{}, nil)
 		tx.SetBlock(above, block.NewChest(), nil)
 	})
-	placeTestMachine(s, machinePos, KindMiner, "")
+	st := placeTestMachine(s, machinePos, KindMiner, "")
 	tick(s, machineKinds[KindMiner].interval+10)
 	s.world.Do(func(tx *world.Tx) {
 		if _, air := tx.Block(below).(block.Air); !air {
 			t.Fatalf("stone not mined: %v", tx.Block(below))
 		}
+		if outputCount(st, block.Cobblestone{}) != 1 {
+			t.Fatal("cobblestone not in the output slot")
+		}
 		chest := tx.Block(above).(block.Chest)
-		if !chest.Inventory(tx, above).ContainsItem(item.NewStack(block.Cobblestone{}, 1)) {
-			t.Fatal("cobblestone not pushed into the chest")
+		if len(chest.Inventory(tx, above).Items()) != 0 {
+			t.Fatal("the miner pushed into the chest")
 		}
 		// Special blocks are never mined.
 		tx.SetBlock(below, DeliveryBox{}, nil)
@@ -191,13 +198,15 @@ func TestMineable(t *testing.T) {
 	}
 }
 
-// TestHandsFreeLine: an auto miner mines the block under it into a
-// crusher beside it, whose output goes through a hopper into a chest.
+// TestHandsFreeLine: an auto miner mines the block under it, an item
+// conduit carries the cobblestone into a crusher beside it, and the crusher's
+// output goes through a hopper into a chest.
 func TestHandsFreeLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	minerPos := cube.Pos{0, IslandY + 2, 0}
-	crusherPos := minerPos.Side(cube.FaceEast)
+	conduitPos := minerPos.Side(cube.FaceEast)
+	crusherPos := conduitPos.Side(cube.FaceEast)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
 	s.world.Do(func(tx *world.Tx) {
 		tx.SetBlock(minerPos.Side(cube.FaceDown), block.Cobblestone{}, nil)
@@ -205,10 +214,14 @@ func TestHandsFreeLine(t *testing.T) {
 		h.Facing = cube.FaceDown
 		tx.SetBlock(hopperPos, h, nil)
 		tx.SetBlock(chestPos, block.NewChest(), nil)
+		c := ConduitBundle{Item: 1}
+		c.Modes[cube.FaceWest] = itemnet.Input
+		c.Modes[cube.FaceEast] = itemnet.Output
+		tx.SetBlock(conduitPos, c, nil)
 	})
 	placeTestMachine(s, minerPos, KindMiner, "")
 	placeTestMachine(s, crusherPos, KindCrusher, "")
-	tick(s, 20*20)
+	runSteps(s, 120)
 	s.world.Do(func(tx *world.Tx) {
 		inv := tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos)
 		if !inv.ContainsItem(item.NewStack(block.Gravel{}, 1)) {
