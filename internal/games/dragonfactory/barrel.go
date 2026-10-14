@@ -236,13 +236,20 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	switch {
 	case rec != nil && (rec.Water || rec.Lava):
 		if bucket, ok := held.Item().(item.Bucket); ok && bucket.Empty() {
-			ctx.SubtractFromCount(1)
 			var liquid world.Liquid = block.Water{Depth: 8, Still: true}
 			var fill world.Liquid = block.Water{}
 			if rec.Lava {
 				liquid, fill = block.Lava{Depth: 8, Still: true}, block.Lava{}
 			}
-			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(item.Bucket{Content: item.LiquidBucketContent(liquid)}, 1))
+			filled := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(liquid)}, 1)
+			if held.Count() == 1 {
+				// A single bucket turns into the full one in the hand.
+				_, left := p.HeldItems()
+				p.SetHeldItems(filled, left)
+			} else {
+				ctx.SubtractFromCount(1)
+				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+			}
 			delete(s.state.Barrels, key)
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})

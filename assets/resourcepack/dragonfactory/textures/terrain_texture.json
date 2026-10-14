@@ -123,15 +123,6 @@
     "dragonfactory_barrel_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
-    "dragonfactory_conduit_energy_1": {
-      "textures": "textures/blocks/conduit_energy_1"
-    },
-    "dragonfactory_conduit_energy_2": {
-      "textures": "textures/blocks/conduit_energy_2"
-    },
-    "dragonfactory_conduit_energy_3": {
-      "textures": "textures/blocks/conduit_energy_3"
-    },
     "dragonfactory_generator_side": {
       "textures": "textures/blocks/generator_side"
     },
@@ -140,6 +131,24 @@
     },
     "dragonfactory_generator_down": {
       "textures": "textures/blocks/generator_down"
+    },
+    "dragonfactory_wood_hopper": {
+      "textures": "textures/blocks/wood_hopper"
+    },
+    "dragonfactory_iron_hopper": {
+      "textures": "textures/blocks/iron_hopper"
+    },
+    "dragonfactory_conduit_node": {
+      "textures": "textures/blocks/conduit_node"
+    },
+    "dragonfactory_conduit_energy_1": {
+      "textures": "textures/blocks/conduit_energy_1"
+    },
+    "dragonfactory_conduit_energy_2": {
+      "textures": "textures/blocks/conduit_energy_2"
+    },
+    "dragonfactory_conduit_energy_3": {
+      "textures": "textures/blocks/conduit_energy_3"
     },
     "dragonfactory_conduit_item_1": {
       "textures": "textures/blocks/conduit_item_1"
@@ -150,11 +159,14 @@
     "dragonfactory_conduit_item_3": {
       "textures": "textures/blocks/conduit_item_3"
     },
-    "dragonfactory_wood_hopper": {
-      "textures": "textures/blocks/wood_hopper"
+    "dragonfactory_conduit_fluid_1": {
+      "textures": "textures/blocks/conduit_fluid_1"
     },
-    "dragonfactory_iron_hopper": {
-      "textures": "textures/blocks/iron_hopper"
+    "dragonfactory_conduit_fluid_2": {
+      "textures": "textures/blocks/conduit_fluid_2"
+    },
+    "dragonfactory_conduit_fluid_3": {
+      "textures": "textures/blocks/conduit_fluid_3"
     }
   },
   "texture_name": "atlas.terrain"

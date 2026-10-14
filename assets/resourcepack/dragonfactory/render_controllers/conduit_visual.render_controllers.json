@@ -1,0 +1,143 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.dragonfactory_conduit_energy": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.energy_1",
+            "Texture.energy_2",
+            "Texture.energy_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.energy",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((math.mod(query.variant, 193) - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "math.mod(query.variant, 193) > 0"
+        },
+        {
+          "down": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.dragonfactory_conduit_item": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.item_1",
+            "Texture.item_2",
+            "Texture.item_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.item",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((math.floor(query.variant / 193) - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "math.floor(query.variant / 193) > 0"
+        },
+        {
+          "down": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.dragonfactory_conduit_fluid": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.fluid_1",
+            "Texture.fluid_2",
+            "Texture.fluid_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.fluid",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((query.mark_variant - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "query.mark_variant > 0"
+        },
+        {
+          "down": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    }
+  }
+}

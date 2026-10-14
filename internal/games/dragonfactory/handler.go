@@ -57,6 +57,8 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		h.s.breakComposter(pos, b, drops)
 	case Barrel:
 		h.s.breakBarrel(pos)
+	case ConduitBundle:
+		h.s.removeVisual(ctx.Player().Tx(), pos)
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {

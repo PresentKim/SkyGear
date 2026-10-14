@@ -72,6 +72,16 @@ func TestBarrelMakesWater(t *testing.T) {
 		if s.barrelAt(pos) != nil || tx.Block(pos).(Barrel).Stage != 0 {
 			t.Error("the barrel is not empty after the water was taken")
 		}
+		// A single held bucket turns into the full one in the hand.
+		s.barrelAt(pos)
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Water: true}
+		p.SetHeldItems(bucket, item.Stack{})
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), bucket, &item.UseContext{}) {
+			t.Fatal("the held bucket did not answer")
+		}
+		if h, _ := p.HeldItems(); h.Empty() || h.Item().(item.Bucket).Empty() {
+			t.Errorf("the hand holds %v, want the water bucket", h)
+		}
 		water := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
 		if !p.Inventory().ContainsItem(water) {
 			t.Error("no water bucket was given")

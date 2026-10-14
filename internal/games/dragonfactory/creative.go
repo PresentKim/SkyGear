@@ -46,6 +46,7 @@ func registerCreativeItems() {
 		for t := 1; t <= conduitTiers; t++ {
 			add(construction, EnergyConduit{Tier: t})
 			add(construction, ItemConduit{Tier: t})
+			add(construction, FluidConduit{Tier: t})
 		}
 		for _, k := range machineOrder {
 			if k != KindSellBox {
@@ -61,6 +62,8 @@ func registerCreativeItems() {
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
 		add(items, DrawerUpgrade{Kind: UpgradeVoid})
 		add(items, BarkFiber{})
+		add(items, ConduitBinderMix{})
+		add(items, ConduitBinder{})
 		for _, t := range meshTiers {
 			add(items, Mesh{Tier: t.tier})
 		}

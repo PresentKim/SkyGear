@@ -160,6 +160,9 @@ type session struct {
 	// calls (an item step is every second one, conduit.go).
 	items     *itemnet.Grid
 	fastCount int
+	// visuals are the display entities of the conduit bundles by position
+	// (conduitvisual.go).
+	visuals map[cube.Pos]*world.EntityHandle
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and
@@ -184,6 +187,7 @@ func (s *session) Join(p *player.Player, first bool) {
 		// Bare hands: only the menu item (§2).
 		_ = p.Inventory().SetItem(8, menuItem())
 	}
+	migrateConduitItems(p)
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)
@@ -231,6 +235,7 @@ func (s *session) Autosave(tx *world.Tx) {
 
 func (s *session) Close(tx *world.Tx) {
 	s.removeDisplays(tx)
+	s.removeVisuals(tx)
 	s.Autosave(tx)
 	s.g.mu.Lock()
 	delete(s.g.sessions, s.world)

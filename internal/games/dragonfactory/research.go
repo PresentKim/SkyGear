@@ -85,8 +85,8 @@ var researchTree = []Research{
 	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
 	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse", "dragonfactory:wood_hopper_reverse"}},
 	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:generator"}},
-	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:energy_conduit_1"}},
-	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:item_conduit_1"}},
+	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:conduit_energy_1", "dragonfactory:conduit_binder_mix"}},
+	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:conduit_item_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "crusher", Needs: []string{"hammer", "generator"}, Cost: []Requirement{{block.Cobblestone{}, 128}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
 	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 16}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
 	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 48}},
@@ -101,10 +101,6 @@ var researchTree = []Research{
 	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{OreChunk{Ore: OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
 	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
 	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
-	{ID: "energy_conduit_2", Needs: []string{"energy_conduit", "gold"}, Cost: []Requirement{{item.GoldIngot{}, 32}}, Unlocks: []string{"dragonfactory:energy_conduit_2"}},
-	{ID: "energy_conduit_3", Needs: []string{"energy_conduit_2", "mesh_diamond"}, Cost: []Requirement{{item.Diamond{}, 8}}, Unlocks: []string{"dragonfactory:energy_conduit_3"}},
-	{ID: "item_conduit_2", Needs: []string{"item_conduit", "gold"}, Cost: []Requirement{{item.GoldIngot{}, 32}}, Unlocks: []string{"dragonfactory:item_conduit_2"}},
-	{ID: "item_conduit_3", Needs: []string{"item_conduit_2", "mesh_diamond"}, Cost: []Requirement{{item.Diamond{}, 8}}, Unlocks: []string{"dragonfactory:item_conduit_3"}},
 	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreCopper}, 16}}, Unlocks: []string{"copper_ore"}},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
@@ -480,13 +476,25 @@ func gameRecipes() {
 		stick, nil, stick)
 	// The combustion generator and the first energy conduit.
 	add(machineItem(KindGenerator), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
-	add(item.NewStack(EnergyConduit{Tier: 1}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
-	add(item.NewStack(ItemConduit{Tier: 1}, 4), n(iron, 2), n(block.String{}, 1))
-	// Better conduits: four of the tier before and one ingot of the next.
-	for tier, ingot := range map[int]world.Item{2: item.GoldIngot{}, 3: item.Diamond{}} {
-		add(item.NewStack(EnergyConduit{Tier: tier}, 4), n(EnergyConduit{Tier: tier - 1}, 4), n(ingot, 1))
-		add(item.NewStack(ItemConduit{Tier: tier}, 4), n(ItemConduit{Tier: tier - 1}, 4), n(ingot, 1))
-	}
+	// The conduits (docs/design/06-power-and-conduits.md §3.5): sand and gravel
+	// in a checkerboard make the binder mix, a furnace bakes it into the
+	// binder; the basic conduits are binders above and below a row of
+	// redstone (energy) or an iron nugget, a chest and an iron nugget (item).
+	// The better tiers wait for the ore design.
+	sand, gravel, binder := block.Sand{}, block.Gravel{}, ConduitBinder{}
+	shaped(item.NewStack(ConduitBinderMix{}, 6), 3, 3,
+		sand, gravel, sand,
+		gravel, sand, gravel,
+		sand, gravel, sand)
+	redstone, nugget := item.RedstoneWire{}, item.IronNugget{}
+	shaped(item.NewStack(EnergyConduit{Tier: 1}, 8), 3, 3,
+		binder, binder, binder,
+		redstone, redstone, redstone,
+		binder, binder, binder)
+	shaped(item.NewStack(ItemConduit{Tier: 1}, 8), 3, 3,
+		binder, binder, binder,
+		nugget, block.NewChest(), nugget,
+		binder, binder, binder)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
 	add(machineItem(KindAutoSieve), n(iron, 4), n(Machine{Kind: KindSieve}, 1), n(block.NewHopper(), 1))
 	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))

@@ -59,7 +59,8 @@ func RolesOf(b world.Block) (Source, Sink) {
 	return src, snk
 }
 
-// Conduit is a cable block. EnergyTier is its tier (1 to 3).
+// Conduit is a cable block. EnergyTier is its tier (1 to 3; 0 means the block
+// holds no energy conduit).
 type Conduit interface {
 	EnergyTier() int
 }
@@ -97,7 +98,7 @@ type Network struct {
 // IsConduit reports whether b is an energy conduit and of which tier.
 func IsConduit(b world.Block) (int, bool) {
 	c, ok := b.(Conduit)
-	if !ok {
+	if !ok || c.EnergyTier() <= 0 {
 		return 0, false
 	}
 	return c.EnergyTier(), true

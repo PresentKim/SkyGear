@@ -53,10 +53,14 @@ type Conduit interface {
 	ItemMode(face cube.Face) Mode
 }
 
-// IsConduit returns the conduit b is, if it is one.
+// IsConduit returns the conduit b is, if it is one (tier 0 means the block
+// holds no item conduit).
 func IsConduit(b world.Block) (Conduit, bool) {
 	c, ok := b.(Conduit)
-	return c, ok
+	if !ok || c.ItemTier() <= 0 {
+		return nil, false
+	}
+	return c, true
 }
 
 // Endpoint is a block with items next to a conduit: Face is the face of that

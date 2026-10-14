@@ -144,8 +144,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.2")}
 	case block.Composter:
 		info.Lines = s.composterLines(pos, b)
-	case ItemConduit:
-		info.Lines = itemConduitLines(tx, pos, b)
+	case ConduitBundle:
+		info.Lines = bundleLines(tx, pos, b)
 	case Barrel:
 		info.Lines = s.barrelLines(tx, pos)
 	case FlowHopper:

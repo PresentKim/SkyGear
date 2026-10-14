@@ -1,0 +1,809 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "bones": [
+        {
+          "cubes": [
+            {
+              "origin": [
+                -1.5,
+                6.5,
+                -1.5
+              ],
+              "size": [
+                3,
+                3,
+                3
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "core",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "west",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                1.5,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "east",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "description": {
+        "identifier": "geometry.dragonfactory.conduit_icon_energy",
+        "texture_height": 64,
+        "texture_width": 64,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [
+          0,
+          0.5,
+          0
+        ],
+        "visible_bounds_width": 2
+      }
+    },
+    {
+      "bones": [
+        {
+          "cubes": [
+            {
+              "origin": [
+                -1.5,
+                6.5,
+                -1.5
+              ],
+              "size": [
+                3,
+                3,
+                3
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "core",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "west",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                1.5,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "east",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "description": {
+        "identifier": "geometry.dragonfactory.conduit_icon_item",
+        "texture_height": 64,
+        "texture_width": 64,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [
+          0,
+          0.5,
+          0
+        ],
+        "visible_bounds_width": 2
+      }
+    },
+    {
+      "bones": [
+        {
+          "cubes": [
+            {
+              "origin": [
+                -1.5,
+                6.5,
+                -1.5
+              ],
+              "size": [
+                3,
+                3,
+                3
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "core",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                -8,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "west",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "cubes": [
+            {
+              "origin": [
+                1.5,
+                7,
+                -1
+              ],
+              "size": [
+                6.5,
+                2,
+                2
+              ],
+              "uv": {
+                "down": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "east": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                },
+                "north": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "south": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "up": {
+                  "uv": [
+                    0,
+                    52
+                  ],
+                  "uv_size": [
+                    32,
+                    10
+                  ]
+                },
+                "west": {
+                  "uv": [
+                    16,
+                    0
+                  ],
+                  "uv_size": [
+                    16,
+                    16
+                  ]
+                }
+              }
+            }
+          ],
+          "name": "east",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "description": {
+        "identifier": "geometry.dragonfactory.conduit_icon_fluid",
+        "texture_height": 64,
+        "texture_width": 64,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [
+          0,
+          0.5,
+          0
+        ],
+        "visible_bounds_width": 2
+      }
+    }
+  ]
+}

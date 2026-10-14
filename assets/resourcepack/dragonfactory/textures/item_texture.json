@@ -129,6 +129,12 @@
     },
     "dragonfactory:mesh_netherite": {
       "textures": "textures/items/mesh_netherite"
+    },
+    "dragonfactory:conduit_binder": {
+      "textures": "textures/items/conduit_binder"
+    },
+    "dragonfactory:conduit_binder_mix": {
+      "textures": "textures/items/conduit_binder_mix"
     }
   },
   "texture_name": "atlas.items"

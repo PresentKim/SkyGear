@@ -176,6 +176,7 @@ func giveItems() map[string]func() item.Stack {
 	for t := 1; t <= conduitTiers; t++ {
 		out[fmt.Sprintf("energy_conduit_%d", t)] = func() item.Stack { return item.NewStack(EnergyConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(ItemConduit{Tier: t}, 1) }
+		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(FluidConduit{Tier: t}, 1) }
 	}
 	return out
 }
