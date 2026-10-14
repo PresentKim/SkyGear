@@ -204,6 +204,8 @@ func expand(s string) string {
 // messages returns the chat or command output text of a packet.
 // itemNames are the names of the items of the join by network ID.
 var itemNames = map[int32]string{}
+var creativeIDs = map[int32]bool{}
+var creativeRIDs = map[int32]map[int32]bool{}
 
 func messages(pk packet.Packet) []string {
 	switch pk := pk.(type) {
@@ -282,10 +284,20 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 				itemNames[int32(e.RuntimeID)] = e.Name
 			}
 		} else if c, ok := pk.(*packet.CreativeContent); ok {
+			for _, it := range c.Items {
+				creativeIDs[it.Item.NetworkID] = true
+				if creativeRIDs[it.Item.NetworkID] == nil {
+					creativeRIDs[it.Item.NetworkID] = map[int32]bool{}
+				}
+				creativeRIDs[it.Item.NetworkID][it.Item.BlockRuntimeID] = true
+				if os.Getenv("BOT_DUMP_RECIPES") != "" && (it.Item.NetworkID == 54 || it.Item.NetworkID == -213 || it.Item.NetworkID == 58) {
+					fmt.Printf("CREATIVEDUMP id=%d meta=%d blockrid=%d\n", it.Item.NetworkID, it.Item.MetadataValue, it.Item.BlockRuntimeID)
+				}
+			}
 			// The game's own items in the creative inventory (the recipe
 			// book lists only recipes whose result is in it).
 			for _, it := range c.Items {
-				if name := itemNames[it.Item.NetworkID]; strings.HasPrefix(name, "dragonfactory:") {
+				if name := itemNames[it.Item.NetworkID]; strings.HasPrefix(name, "dragonfactory:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
 					fmt.Println("CREATIVE", name)
 				}
 			}
@@ -294,7 +306,7 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			// grep the log ("RECIPE dragonfactory:hammer").
 			outputs := func(out []protocol.ItemStack) {
 				for _, o := range out {
-					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "dragonfactory:") {
+					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "dragonfactory:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
 						fmt.Println("RECIPE", name)
 					}
 				}
@@ -302,8 +314,43 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			for _, r := range c.ShapelessRecipes {
 				outputs(r.Output)
 			}
+			if os.Getenv("BOT_DUMP_RECIPES") != "" {
+				mism := map[string]bool{}
+				for _, o := range func() (all []protocol.ItemStack) {
+					for _, r := range c.ShapedRecipes {
+						all = append(all, r.Output...)
+					}
+					for _, r := range c.ShapelessRecipes {
+						all = append(all, r.Output...)
+					}
+					return
+				}() {
+					if rids := creativeRIDs[o.NetworkID]; rids != nil && !rids[o.BlockRuntimeID] {
+						mism[fmt.Sprintf("id=%d recipe-rid=%d creative=%v", o.NetworkID, o.BlockRuntimeID, rids)] = true
+					}
+				}
+				for m := range mism {
+					fmt.Println("MISMATCH", m)
+				}
+				for _, r := range c.ShapedRecipes {
+					for _, o := range r.Output {
+						fmt.Printf("RECIPEID shaped %d name=%q creative=%v meta=%d blockrid=%d\n", o.NetworkID, itemNames[o.NetworkID], creativeIDs[o.NetworkID], o.MetadataValue, o.BlockRuntimeID)
+					}
+				}
+				for _, r := range c.ShapelessRecipes {
+					for _, o := range r.Output {
+						fmt.Printf("RECIPEID shapeless %d name=%q creative=%v\n", o.NetworkID, itemNames[o.NetworkID], creativeIDs[o.NetworkID])
+					}
+				}
+			}
 			for _, r := range c.ShapedRecipes {
 				outputs(r.Output)
+				if os.Getenv("BOT_DUMP_RECIPES") != "" && len(r.Output) > 0 && r.Output[0].NetworkID == 54 || r.Output[0].NetworkID == -213 || strings.HasPrefix(itemNames[r.Output[0].NetworkID], "dragonfactory:drawer") {
+					fmt.Printf("SHAPEDDUMP prio=%d sym=%v block=%s\n", r.Priority, r.AssumeSymmetry, r.Block)
+					for _, in := range r.Input {
+						fmt.Printf("  IN count=%d %#v\n", in.Count, in.Descriptor)
+					}
+				}
 			}
 		}
 		if match(pk) {

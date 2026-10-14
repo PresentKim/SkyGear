@@ -132,6 +132,7 @@ func (s *Session) sendRecipes() {
 	// dragonfactory patch: only the recipes the filter keeps are sent and
 	// accepted. Network IDs stay the index in the full list.
 	clear(s.recipes)
+	fit := creativeBlockFitter(s.br)
 	for index, i := range recipe.Recipes() {
 		networkID := uint32(index) + 1
 		if s.recipeFilter != nil && !s.recipeFilter(i) {
@@ -145,7 +146,7 @@ func (s *Session) sendRecipes() {
 				RecipeID:        uuid.New().String(),
 				Priority:        int32(i.Priority()),
 				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          stacksToRecipeStacks(s.br, i.Output()),
+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
 			})
@@ -154,7 +155,7 @@ func (s *Session) sendRecipes() {
 				RecipeID:        uuid.New().String(),
 				Priority:        int32(i.Priority()),
 				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          stacksToRecipeStacks(s.br, i.Output()),
+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
 			}})
@@ -170,7 +171,7 @@ func (s *Session) sendRecipes() {
 				Width:           int32(i.Shape().Width()),
 				Height:          int32(i.Shape().Height()),
 				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          stacksToRecipeStacks(s.br, i.Output()),
+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
 				Block:           i.Block(),
 				AssumeSymmetry:  !i.NoMirror(),
 				RecipeNetworkID: networkID,
@@ -1086,6 +1087,35 @@ func stacksToRecipeStacks(br world.BlockRegistry, inputs []item.Stack) []protoco
 		items = append(items, deleteDamage(stackFromItem(br, i)))
 	}
 	return items
+}
+
+// creativeBlockFitter returns a function that gives the block runtime ID of
+// a recipe result the one of its creative inventory entry when the item has
+// exactly one entry and the recipe's differs (dragonfactory patch). The client
+// lists a recipe in its recipe book only when its result is the creative
+// item; vanilla recipe data names block states (a chest facing another way)
+// that the creative list does not, so such recipes were not listed.
+func creativeBlockFitter(br world.BlockRegistry) func([]protocol.ItemStack) []protocol.ItemStack {
+	rids := map[int32]int32{}
+	multiple := map[int32]bool{}
+	for _, c := range creative.Items() {
+		st := stackFromItem(br, c.Stack)
+		if st.BlockRuntimeID == 0 {
+			continue
+		}
+		if cur, ok := rids[st.NetworkID]; ok && cur != st.BlockRuntimeID {
+			multiple[st.NetworkID] = true
+		}
+		rids[st.NetworkID] = st.BlockRuntimeID
+	}
+	return func(out []protocol.ItemStack) []protocol.ItemStack {
+		for i, o := range out {
+			if rid, ok := rids[o.NetworkID]; ok && !multiple[o.NetworkID] && o.BlockRuntimeID != 0 {
+				out[i].BlockRuntimeID = rid
+			}
+		}
+		return out
+	}
 }
 
 // stacksToIngredientItems converts a list of item.Stacks to recipe ingredient items used over the network.
