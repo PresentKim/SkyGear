@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -28,7 +29,7 @@ import (
 
 // Research is one node of the research tree.
 type Research struct {
-	ID, Name string
+	ID string
 	// Needs are the researches that must be done first.
 	Needs []string
 	// Cost are the items to deliver.
@@ -43,52 +44,63 @@ var (
 	stick     = item.Stick{}
 )
 
+// Title is the name of the research in lang (the catalog, i18n).
+func (r *Research) Title(lang string) string { return i18n.T(lang, "research."+r.ID+".name") }
+
+// langOf is the catalog language of p (the default for a nil p).
+func langOf(p *player.Player) string {
+	if p == nil {
+		return i18n.Default
+	}
+	return i18n.For(p)
+}
+
 // researchTree is every research in menu order; a research's needs come
 // before it.
 var researchTree = []Research{
-	{ID: "stick", Name: "막대기", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
-	{ID: "pebbles", Name: "돌 다지기", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
+	{ID: "stick", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
+	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
 		Unlocks: []string{"cobblestone", "andesite", "diorite", "granite"}},
-	{ID: "wood_tools", Name: "나무 도구", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
+	{ID: "wood_tools", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
-	{ID: "chest", Name: "상자", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 64}}, Unlocks: []string{"chest"}},
-	{ID: "wood_hopper", Name: "나무 호퍼", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 48}},
+	{ID: "chest", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 64}}, Unlocks: []string{"chest"}},
+	{ID: "wood_hopper", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 48}},
 		Unlocks: []string{"dragonfactory:wood_hopper", "dragonfactory:wood_hopper_reverse"}},
-	{ID: "slab", Name: "참나무 반 블록", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"oak_slab"}},
-	{ID: "compost", Name: "퇴비통", Needs: []string{"slab"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter"}},
-	{ID: "barrel", Name: "배럴", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"dragonfactory:barrel_oak"}},
-	{ID: "furnace", Name: "화로", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
-	{ID: "stone_tools", Name: "돌 도구", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
+	{ID: "slab", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"oak_slab"}},
+	{ID: "compost", Needs: []string{"slab"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter"}},
+	{ID: "barrel", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"dragonfactory:barrel_oak"}},
+	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
+	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
-	{ID: "string", Name: "실", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
-	{ID: "hammer", Name: "망치", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 8}}, Unlocks: []string{"dragonfactory:hammer"}},
-	{ID: "sieve", Name: "체", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve", "dragonfactory:mesh_string", "dragonfactory:mesh_flint"}},
-	{ID: "torch", Name: "횃불", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 16}, {stick, 16}}, Unlocks: []string{"torch"}},
-	{ID: "woodwork", Name: "목공", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 128}, {stick, 32}},
+	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
+	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 8}}, Unlocks: []string{"dragonfactory:hammer"}},
+	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve", "dragonfactory:mesh_string", "dragonfactory:mesh_flint"}},
+	{ID: "torch", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 16}, {stick, 16}}, Unlocks: []string{"torch"}},
+	{ID: "woodwork", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 128}, {stick, 32}},
 		Unlocks: []string{"oak_stairs", "oak_fence", "fence_gate", "wooden_door", "trapdoor", "ladder", "bowl"}},
-	{ID: "masonry", Name: "석공", Needs: []string{"furnace"}, Cost: []Requirement{{block.Stone{}, 64}, {block.Cobblestone{}, 64}},
+	{ID: "masonry", Needs: []string{"furnace"}, Cost: []Requirement{{block.Stone{}, 64}, {block.Cobblestone{}, 64}},
 		Unlocks: []string{"cobblestone_slab", "stone_stairs", "cobblestone_wall", "normal_stone_slab", "normal_stone_stairs", "stone_bricks"}},
-	{ID: "glasswork", Name: "유리 공예", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 32}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
-	{ID: "iron", Name: "철 가공", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
-	{ID: "hopper", Name: "호퍼", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse", "dragonfactory:wood_hopper_reverse"}},
-	{ID: "crusher", Name: "분쇄기", Needs: []string{"hammer", "iron"}, Cost: []Requirement{{block.Cobblestone{}, 128}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
-	{ID: "auto_sieve", Name: "자동 체", Needs: []string{"sieve", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 16}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
-	{ID: "iron_tools", Name: "철 도구", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 48}},
+	{ID: "glasswork", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 32}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
+	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
+	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse", "dragonfactory:wood_hopper_reverse"}},
+	{ID: "crusher", Needs: []string{"hammer", "iron"}, Cost: []Requirement{{block.Cobblestone{}, 128}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
+	{ID: "auto_sieve", Needs: []string{"sieve", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 16}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
+	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 48}},
 		Unlocks: []string{"iron_pickaxe", "iron_axe", "iron_shovel", "iron_hoe", "iron_sword", "bucket", "shears"}},
-	{ID: "auto_miner", Name: "자동 자원 채굴기", Needs: []string{"iron_tools", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}, {block.NewHopper(), 2}}, Unlocks: []string{"dragonfactory:auto_miner"}},
-	{ID: "drawer", Name: "서랍", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 64}, {block.NewChest(), 2}}, Unlocks: []string{"dragonfactory:drawer", "dragonfactory:drawer_key"}},
-	{ID: "drawer_upgrades", Name: "서랍 업그레이드", Needs: []string{"drawer", "iron"}, Cost: []Requirement{{item.IronIngot{}, 16}},
+	{ID: "auto_miner", Needs: []string{"iron_tools", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}, {block.NewHopper(), 2}}, Unlocks: []string{"dragonfactory:auto_miner"}},
+	{ID: "drawer", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 64}, {block.NewChest(), 2}}, Unlocks: []string{"dragonfactory:drawer", "dragonfactory:drawer_key"}},
+	{ID: "drawer_upgrades", Needs: []string{"drawer", "iron"}, Cost: []Requirement{{item.IronIngot{}, 16}},
 		Unlocks: []string{"dragonfactory:drawer_upgrade_capacity", "dragonfactory:drawer_upgrade_void"}},
-	{ID: "farming", Name: "농사", Needs: []string{"wood_tools"}, Cost: []Requirement{{item.Wheat{}, 32}}, Unlocks: []string{"bread", "hay_block"}},
-	{ID: "harvester", Name: "자동 농작물 수확기", Needs: []string{"farming", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:harvester"}},
-	{ID: "clay", Name: "점토", Needs: []string{"furnace"}, Cost: []Requirement{{item.ClayBall{}, 32}}, Unlocks: []string{"clay", "brick_block"}},
-	{ID: "gold", Name: "금 가공", Needs: []string{"iron"}, Cost: []Requirement{{OreChunk{Ore: OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
-	{ID: "mesh_diamond", Name: "다이아몬드 메쉬", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
-	{ID: "mesh_netherite", Name: "네더라이트 메쉬", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
-	{ID: "copper", Name: "구리 가공", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreCopper}, 16}}, Unlocks: []string{"copper_ore"}},
-	{ID: "harvest", Name: "수확물", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
+	{ID: "farming", Needs: []string{"wood_tools"}, Cost: []Requirement{{item.Wheat{}, 32}}, Unlocks: []string{"bread", "hay_block"}},
+	{ID: "harvester", Needs: []string{"farming", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:harvester"}},
+	{ID: "clay", Needs: []string{"furnace"}, Cost: []Requirement{{item.ClayBall{}, 32}}, Unlocks: []string{"clay", "brick_block"}},
+	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{OreChunk{Ore: OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
+	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
+	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
+	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreCopper}, 16}}, Unlocks: []string{"copper_ore"}},
+	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
-	{ID: "kelp", Name: "해초", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 32}}, Unlocks: []string{"dried_kelp_block"}},
+	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 32}}, Unlocks: []string{"dried_kelp_block"}},
 }
 
 // baseUnlocks are the results open without research.
@@ -183,10 +195,10 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	s.storeState()
 	s.sendRecipes(tx)
 	s.updateBoards(tx)
-	after := researchText(r.ID).After
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		p.Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Name, s.unlockNames(r))
+		after := researchText(langOf(p), r.ID).After
+		p.Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Title(langOf(p)), s.unlockNames(r))
 		if after != "" {
 			p.Messagef("§e힌트: §f%s", after)
 		}
@@ -227,9 +239,9 @@ func (s *session) showResearchTab(p *player.Player, done bool) {
 
 // researchTip is the hover text of a research in the list: its name in
 // colour and the short description.
-func researchTip(colour string, r *Research) string {
-	tip := colour + r.Name
-	if short := researchText(r.ID).Short; short != "" {
+func researchTip(lang, colour string, r *Research) string {
+	tip := colour + r.Title(lang)
+	if short := researchText(lang, r.ID).Short; short != "" {
 		tip += "\n§7" + short
 	}
 	return tip
@@ -249,7 +261,7 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 		case s.researched(r.ID):
 			doneN++
 			if done {
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip("§7", r), Run: show})
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show})
 			}
 		case s.researchOpen(r):
 			todoN++
@@ -258,7 +270,7 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 				if p != nil && len(s.researchMissing(p, r)) == 0 {
 					colour = "§a"
 				}
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(colour, r), Run: show})
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show})
 			}
 		}
 	}
@@ -293,19 +305,19 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 // name and owned count in the tooltip).
 func (s *session) showResearchNode(p *player.Player, r *Research) {
 	d, rows, opts := s.researchNode(p, r)
-	ui.ItemDetail(p, "연구 · "+r.Name, d, rows, opts...)
+	ui.ItemDetail(p, "연구 · "+r.Title(langOf(p)), d, rows, opts...)
 }
 
 // researchNode builds the screen of a research. p may be nil (the owned
 // counts are then left out).
 func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
-	txt := researchText(r.ID)
+	txt := researchText(langOf(p), r.ID)
 	done := s.researched(r.ID)
 	var b strings.Builder
 	if txt.About != "" {
 		fmt.Fprintf(&b, "§f%s\n", txt.About)
 	}
-	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Name}
+	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Title(langOf(p))}
 	var opts []ui.Option
 	switch {
 	case done:

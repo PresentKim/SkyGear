@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -15,14 +16,21 @@ import (
 // come from).
 func TestEveryResearchIsExplained(t *testing.T) {
 	for _, r := range researchTree {
-		txt := researchText(r.ID)
-		if txt.Short == "" || txt.About == "" || txt.Hint == "" || txt.After == "" {
-			t.Errorf("research %s lacks text: %+v", r.ID, txt)
+		for _, f := range append([]string{"name"}, researchTextFields...) {
+			if !i18n.Has("research." + r.ID + "." + f) {
+				t.Errorf("research %s lacks its %s text", r.ID, f)
+			}
 		}
 	}
-	for id := range researchTexts {
-		if _, ok := researchByID(id); !ok {
-			t.Errorf("text for unknown research %s", id)
+	// No catalog text of an unknown research.
+	for _, l := range i18n.Languages() {
+		for _, key := range i18n.Keys(l) {
+			if id, ok := strings.CutPrefix(key, "research."); ok {
+				id, _, _ = strings.Cut(id, ".")
+				if _, ok := researchByID(id); !ok {
+					t.Errorf("%s: text %s for an unknown research", l, key)
+				}
+			}
 		}
 	}
 }
@@ -34,13 +42,13 @@ func TestResearchScreenShowsHints(t *testing.T) {
 	r, _ := researchByID("stick")
 	d, _, _ := s.researchNode(nil, r)
 	body := d.Body
-	if !strings.Contains(body, researchText("stick").Hint) {
+	if !strings.Contains(body, researchText(i18n.Default, "stick").Hint) {
 		t.Errorf("open research without its hint: %q", body)
 	}
 	s.state.Researched = map[string]bool{"stick": true}
 	d, _, _ = s.researchNode(nil, r)
 	body = d.Body
-	if !strings.Contains(body, researchText("stick").After) {
+	if !strings.Contains(body, researchText(i18n.Default, "stick").After) {
 		t.Errorf("done research without its next step: %q", body)
 	}
 }

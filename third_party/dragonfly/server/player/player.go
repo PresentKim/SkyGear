@@ -305,6 +305,17 @@ func (p *Player) SendTitle(t title.Title) {
 	}
 }
 
+// SendTitleJSON is SendTitle with the title text given as raw JSON text
+// ({"rawtext":[{"text":"…"},{"translate":"tile.stone.name"}]}): the client
+// translates the keys in its own language (dragonfactory patch, WAILA names).
+func (p *Player) SendTitleJSON(t title.Title) {
+	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
+	if t.Subtitle() != "" {
+		p.session().SendSubtitle(t.Subtitle())
+	}
+	p.session().SendTitleJSON(t.Text())
+}
+
 // SendScoreboard sends a scoreboard to the player. The scoreboard will be present indefinitely until removed
 // by the caller.
 // SendScoreboard may be called at any time to change the scoreboard of the player.

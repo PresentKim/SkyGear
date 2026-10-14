@@ -14,12 +14,14 @@ import (
 // Sieve meshes (docs/design/02-dragonfactory.md §6.1). A sieve is made
 // without its mesh: the mesh is made apart and fitted by using it on the
 // sieve, and the tier of the fitted mesh picks the drop table (sievetable.go).
-// The string mesh is made from string; each better tier (flint, iron, gold,
-// diamond, netherite) is the mesh before it with four of its material, and
-// finds more (sievetable.go).
+// The string mesh is made from nine string; each better tier (flint, iron,
+// gold, diamond, netherite) is made from the string mesh and one of its
+// material, or from its material surrounded by string, and finds more
+// (sievetable.go). A mesh is fitted by using it on a sieve and taken out
+// again by using the sieve with an empty hand.
 
 // meshTiers are the mesh tiers in order, with the name of their material
-// and what a tier is upgraded with (the first one is made from string).
+// and what a tier is made with (the first one is made from string).
 var meshTiers = []struct {
 	tier, name string
 	material   world.Item
@@ -57,7 +59,6 @@ func (s *session) equipMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *ma
 		return false
 	}
 	if st.mesh == m.Tier {
-		p.SendTip("§7이 체에는 이미 " + meshName(m.Tier) + "가 끼워져 있습니다.")
 		return true
 	}
 	if old := st.mesh; old != "" {
@@ -69,22 +70,46 @@ func (s *session) equipMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *ma
 		p.SetHeldItems(held.Grow(-1), off)
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
-	p.SendTip("§a" + meshName(m.Tier) + "를 끼웠습니다. 이제 자갈·모래·흙·먼지를 걸러 보세요.")
 	return true
 }
 
-// meshRecipes registers the recipes of the meshes: four string in a square,
-// and every better tier is the mesh before it with four of its material
-// (opened by the researches, researches.go).
+// takeMesh takes the mesh out of an empty sieve into the player's
+// inventory and reports whether there was one. Fitting and taking out give
+// no message.
+func (s *session) takeMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *machineState) bool {
+	if st.mesh == "" {
+		return false
+	}
+	if _, _, filled := st.firstInput(); filled {
+		return false
+	}
+	s.giveItem(p, tx, p.Position(), item.NewStack(Mesh{Tier: st.mesh}, 1))
+	st.mesh = ""
+	showSieve(tx, pos, st)
+	tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+	return true
+}
+
+// meshRecipes registers the recipes of the meshes: nine string in a 3×3 for
+// the string mesh; every better tier has two recipes, the string mesh with
+// one of its material (shapeless) and its material in the middle with string
+// all round (opened by the researches, research.go).
 func meshRecipes() {
 	str := item.NewStack(block.String{}, 1)
-	recipe.Register(recipe.NewShaped([]recipe.Item{str, str, str, str}, item.NewStack(Mesh{Tier: "string"}, 1), recipe.NewShape(2, 2), "crafting_table").WithoutMirror())
-	for i := 1; i < len(meshTiers); i++ {
-		in := []recipe.Item{item.NewStack(Mesh{Tier: meshTiers[i-1].tier}, 1)}
-		for range 4 {
-			in = append(in, item.NewStack(meshTiers[i].material, 1))
+	ring := func(centre recipe.Item) []recipe.Item {
+		in := make([]recipe.Item, 9)
+		for i := range in {
+			in[i] = str
 		}
-		recipe.Register(recipe.NewShapeless(in, item.NewStack(Mesh{Tier: meshTiers[i].tier}, 1), "crafting_table"))
+		in[4] = centre
+		return in
+	}
+	recipe.Register(recipe.NewShaped(ring(str), item.NewStack(Mesh{Tier: "string"}, 1), recipe.NewShape(3, 3), "crafting_table").WithoutMirror())
+	for _, t := range meshTiers[1:] {
+		out := item.NewStack(Mesh{Tier: t.tier}, 1)
+		mat := item.NewStack(t.material, 1)
+		recipe.Register(recipe.NewShapeless([]recipe.Item{item.NewStack(Mesh{Tier: "string"}, 1), mat}, out, "crafting_table"))
+		recipe.Register(recipe.NewShaped(ring(mat), out, recipe.NewShape(3, 3), "crafting_table").WithoutMirror())
 	}
 }
 

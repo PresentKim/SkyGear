@@ -60,7 +60,7 @@ Dragonfly 는 **행동팩 역할만** 한다(블록·아이템 정의, 동작). 
 Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `main.go` 에서 끈다(`DisableResourceBuilding`).
 리소스팩만 따로 고쳐 시험하기 쉽고, Blockbench 같은 도구로 모델을 바로 열 수 있다.
 
-- **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
+- **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/ko_KR.lang`·`en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
    - 저장소에 원본 폴더로 관리: `assets/resourcepack/dragonfactory/` (manifest.json 포함)
    - 서버 시작 시 `internal/resourcepack.Load`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
    - **버전은 자동**: 클라이언트는 팩을 UUID+버전으로 캐시하고, 서버는 클라이언트가 이미 가진 UUID+버전의 팩을 보내지 않는다.

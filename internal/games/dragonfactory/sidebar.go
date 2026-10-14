@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/hud"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/perf"
 )
 
@@ -60,7 +61,7 @@ func (s *session) questRows() (string, []string) {
 	if !ok {
 		return "§a모든 연구 완료", nil
 	}
-	return fmt.Sprintf("§d연구 §f%s", r.Name), s.researchCostRows(r)
+	return fmt.Sprintf("§d연구 §f%s", r.Title(i18n.Default)), s.researchCostRows(r)
 }
 
 // researchCostRows are what a research spends, one row per item.
@@ -78,7 +79,7 @@ func (s *session) nextGoal() string {
 		return "다음 할 일: " + a.Name + " — " + flatHint(a)
 	}
 	if r, ok := s.nextResearch(); ok {
-		return "다음 연구: " + r.Name + " (연구대 또는 메뉴 → 연구)"
+		return "다음 연구: " + r.Title(i18n.Default) + " (연구대 또는 메뉴 → 연구)"
 	}
 	return "모든 연구를 마쳤습니다."
 }

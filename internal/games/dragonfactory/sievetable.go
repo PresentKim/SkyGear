@@ -30,14 +30,10 @@ var stringTable = map[string][]SieveDrop{
 		{item.NewStack(item.Flint{}, 1), 40},
 		{item.NewStack(item.Coal{}, 1), 20},
 		{item.NewStack(OreChunk{Ore: OreIron}, 1), 30},
-		{item.NewStack(OreChunk{Ore: OreCopper}, 1), 20},
-		{item.NewStack(OreChunk{Ore: OreGold}, 1), 10},
 	},
 	itemKey(block.Sand{}): {
 		{item.NewStack(item.ClayBall{}, 1), 35},
 		{item.NewStack(block.Kelp{}, 1), 12},
-		{item.NewStack(OreChunk{Ore: OreGold}, 1), 15},
-		{item.NewStack(OreChunk{Ore: OreCopper}, 1), 10},
 	},
 	itemKey(block.Dirt{}): {
 		{item.NewStack(block.WheatSeeds{}, 1), 50},
@@ -61,22 +57,23 @@ var meshBoost = map[string]int{"flint": 130, "iron": 160, "gold": 200, "diamond"
 
 var meshExtra = map[string]map[string][]SieveDrop{
 	"flint": {
-		itemKey(block.Gravel{}): {{item.NewStack(item.LapisLazuli{}, 1), 10}},
+		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 20}, {item.NewStack(item.LapisLazuli{}, 1), 10}},
+		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 10}},
 	},
 	"iron": {
-		itemKey(block.Gravel{}): {{item.NewStack(item.LapisLazuli{}, 1), 15}, {item.NewStack(item.Diamond{}, 1), 1}},
-		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 3}},
+		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 25}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 10}, {item.NewStack(item.LapisLazuli{}, 1), 15}, {item.NewStack(item.Diamond{}, 1), 1}},
+		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 12}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 15}, {item.NewStack(item.AmethystShard{}, 1), 3}},
 	},
 	"gold": {
-		itemKey(block.Gravel{}): {{item.NewStack(item.LapisLazuli{}, 1), 20}, {item.NewStack(item.Diamond{}, 1), 3}, {item.NewStack(item.Emerald{}, 1), 2}},
-		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 6}, {item.NewStack(item.NetherQuartz{}, 1), 6}},
+		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 30}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 20}, {item.NewStack(item.LapisLazuli{}, 1), 20}, {item.NewStack(item.Diamond{}, 1), 3}, {item.NewStack(item.Emerald{}, 1), 2}},
+		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreGold}, 1), 25}, {item.NewStack(item.AmethystShard{}, 1), 6}, {item.NewStack(item.NetherQuartz{}, 1), 6}},
 	},
 	"diamond": {
-		itemKey(block.Gravel{}): {{item.NewStack(item.LapisLazuli{}, 1), 25}, {item.NewStack(item.Diamond{}, 1), 6}, {item.NewStack(item.Emerald{}, 1), 4}, {item.NewStack(item.NetheriteScrap{}, 1), 1}},
+		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 35}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 25}, {item.NewStack(item.LapisLazuli{}, 1), 25}, {item.NewStack(item.Diamond{}, 1), 6}, {item.NewStack(item.Emerald{}, 1), 4}, {item.NewStack(item.NetheriteScrap{}, 1), 1}},
 		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 10}, {item.NewStack(item.NetherQuartz{}, 1), 10}},
 	},
 	"netherite": {
-		itemKey(block.Gravel{}): {{item.NewStack(item.LapisLazuli{}, 1), 30}, {item.NewStack(item.Diamond{}, 1), 10}, {item.NewStack(item.Emerald{}, 1), 8}, {item.NewStack(item.NetheriteScrap{}, 1), 3}},
+		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 40}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 30}, {item.NewStack(item.LapisLazuli{}, 1), 30}, {item.NewStack(item.Diamond{}, 1), 10}, {item.NewStack(item.Emerald{}, 1), 8}, {item.NewStack(item.NetheriteScrap{}, 1), 3}},
 		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 15}, {item.NewStack(item.NetherQuartz{}, 1), 15}},
 	},
 }

@@ -71,7 +71,7 @@ func TestLookInfo(t *testing.T) {
 			title, _ := waila.Format(info)
 			return title
 		}
-		if got := text(machinePos); !strings.Contains(got, "분쇄기") || strings.Contains(got, "드래곤팩토리") {
+		if got := text(machinePos); !strings.Contains(got, "tile.dragonfactory:crusher.name") || strings.Contains(got, "드래곤팩토리") {
 			t.Errorf("crusher panel %q", got)
 		}
 		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Line == nil || info.Line.Name != "조약돌" || !info.Line.ShowGauge {

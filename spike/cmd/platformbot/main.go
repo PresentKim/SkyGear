@@ -218,7 +218,7 @@ func messages(pk packet.Packet) []string {
 		}
 		return out
 	case *packet.SetTitle:
-		if pk.ActionType == packet.TitleActionSetTitle {
+		if pk.ActionType == packet.TitleActionSetTitle || pk.ActionType == packet.TitleActionTitleTextObject {
 			return []string{pk.Text}
 		}
 	case *packet.ToastRequest:

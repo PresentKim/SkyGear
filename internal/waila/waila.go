@@ -5,6 +5,7 @@
 package waila
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -59,6 +60,10 @@ type Info struct {
 	Item world.Item
 	// Name is the first line.
 	Name string
+	// NameKey, if not empty, is a client translation key ("tile.stone.name")
+	// shown as the first line instead of Name, in the player's own language
+	// (for vanilla blocks and items the game has no name of its own for).
+	NameKey string
 	// Lines are shown under the name.
 	Lines []string
 	// Source is an optional last, blue line: where the block comes from.
@@ -125,7 +130,11 @@ func Format(info Info) (titleText, subtitle string) {
 		}
 		fmt.Fprintf(&b, "%s,%c%c", t.Tool, t.Mark, sep)
 	}
-	b.WriteString("§f" + clean(info.Name) + "§r")
+	if info.NameKey != "" {
+		b.WriteString("§f" + keyMark + info.NameKey + keyMark + "§r")
+	} else {
+		b.WriteString("§f" + clean(info.Name) + "§r")
+	}
 	for _, l := range info.Lines {
 		b.WriteString("\n§7" + clean(l) + "§r")
 	}
@@ -165,6 +174,36 @@ func Format(info Info) (titleText, subtitle string) {
 		sub.WriteString(tail(info.Marks, info.Line))
 	}
 	return b.String(), sub.String()
+}
+
+// keyMark surrounds a translation key in a title text (Format); Show sends
+// such a title as raw JSON so the client translates it.
+const keyMark = "\x01"
+
+// rawText turns a title text with marked translation keys into the JSON the
+// client translates, and reports whether there was any key.
+func rawText(t string) (string, bool) {
+	if !strings.Contains(t, keyMark) {
+		return t, false
+	}
+	type part struct {
+		Text      string `json:"text,omitempty"`
+		Translate string `json:"translate,omitempty"`
+	}
+	var parts []part
+	for i, seg := range strings.Split(t, keyMark) {
+		switch {
+		case seg == "":
+		case i%2 == 1:
+			parts = append(parts, part{Translate: seg})
+		default:
+			parts = append(parts, part{Text: seg})
+		}
+	}
+	data, _ := json.Marshal(struct {
+		Rawtext []part `json:"rawtext"`
+	}{parts})
+	return string(data), true
 }
 
 // clean removes what the pack would cut out of the text.
@@ -217,7 +256,13 @@ func Show(p *player.Player, info Info) {
 	}
 	st.shown, st.sub, st.sentAt = t, sub, now
 	players.Unlock()
-	p.SendTitle(title.New(t).WithSubtitle(sub).WithFadeInDuration(0).WithFadeOutDuration(0).WithDuration(stay))
+	text, isJSON := rawText(t)
+	tt := title.New(text).WithSubtitle(sub).WithFadeInDuration(0).WithFadeOutDuration(0).WithDuration(stay)
+	if isJSON {
+		p.SendTitleJSON(tt)
+		return
+	}
+	p.SendTitle(tt)
 }
 
 // Clear hides the panel of p if it is up.

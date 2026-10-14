@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/perf"
 	"github.com/presentkim/dragonfactory/internal/timed"
 )
@@ -335,7 +336,7 @@ func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if !s.researched(r.ID) {
 			s.completeResearch(tx, r)
 		}
-		o.Printf("%s 연구를 완료했습니다.", r.Name)
+		o.Printf("%s 연구를 완료했습니다.", r.Title(i18n.Default))
 	}
 }
 

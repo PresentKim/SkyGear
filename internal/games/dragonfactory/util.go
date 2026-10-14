@@ -47,6 +47,15 @@ func blockName(b world.Block) string {
 	return k
 }
 
+// blockNameKey is the client translation key of a block's name: the client
+// shows it in its own language, from its vanilla texts or the pack's
+// texts/*.lang for our blocks ("tile.dragonfactory:sieve.name").
+func blockNameKey(b world.Block) string {
+	name, _ := b.EncodeBlock()
+	name = strings.TrimPrefix(name, "minecraft:")
+	return "tile." + strings.TrimPrefix(name, "flowing_") + ".name"
+}
+
 // formatInt formats a number with thousands separators, e.g. 12,400.
 func formatInt(v int64) string {
 	s := fmt.Sprint(v)

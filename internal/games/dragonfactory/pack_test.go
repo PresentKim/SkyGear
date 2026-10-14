@@ -63,7 +63,7 @@ func TestPackHasItemAssets(t *testing.T) {
 			t.Errorf("%s: missing %s.png", id, e.Textures)
 		}
 		if got := lang["item."+id+".name"]; got != it.Name() {
-			t.Errorf("%s: texts/en_US.lang name %q, want %q", id, got, it.Name())
+			t.Errorf("%s: texts/ko_KR.lang name %q, want %q", id, got, it.Name())
 		}
 		if iconOf(item.NewStack(it, 1)) == "" {
 			t.Errorf("%s: no form icon", id)
@@ -122,14 +122,18 @@ func TestPackHasBlockAssets(t *testing.T) {
 			}
 		}
 		if n, ok := b.(interface{ Name() string }); ok && lang["tile."+id+".name"] != n.Name() {
-			t.Errorf("%s: texts/en_US.lang tile name %q, want %q", id, lang["tile."+id+".name"], n.Name())
+			t.Errorf("%s: texts/ko_KR.lang tile name %q, want %q", id, lang["tile."+id+".name"], n.Name())
 		}
 	}
 }
 
-func packLang(t *testing.T) map[string]string {
+// packLang reads the Korean names of the pack (the default language, what
+// Name() says); packLangFile reads any language file of the pack.
+func packLang(t *testing.T) map[string]string { return packLangFile(t, "ko_KR") }
+
+func packLangFile(t *testing.T, name string) map[string]string {
 	t.Helper()
-	b, err := os.ReadFile(filepath.Join(packDir, "texts/en_US.lang"))
+	b, err := os.ReadFile(filepath.Join(packDir, "texts", name+".lang"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,4 +144,26 @@ func packLang(t *testing.T) map[string]string {
 		}
 	}
 	return out
+}
+
+// TestPackLanguagesAgree: the English fallback (en_US, what a client in any
+// other language shows) names exactly what the Korean file does, and both
+// are listed in languages.json.
+func TestPackLanguagesAgree(t *testing.T) {
+	ko, en := packLangFile(t, "ko_KR"), packLangFile(t, "en_US")
+	for k := range ko {
+		if en[k] == "" {
+			t.Errorf("en_US.lang lacks %s", k)
+		}
+	}
+	for k := range en {
+		if _, ok := ko[k]; !ok {
+			t.Errorf("ko_KR.lang lacks %s", k)
+		}
+	}
+	var langs []string
+	readPackJSON(t, "texts/languages.json", &langs)
+	if len(langs) != 2 {
+		t.Errorf("languages.json lists %v", langs)
+	}
 }

@@ -113,6 +113,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Item = it
 		info.Name = itemName(item.NewStack(it, 1))
 	}
+	info.NameKey = blockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
 	case Machine:

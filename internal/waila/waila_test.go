@@ -191,3 +191,20 @@ func TestFurnaceProgress(t *testing.T) {
 		t.Errorf("tile.json draws no slot %d", progressSlot)
 	}
 }
+
+// TestNameKeyIsSentAsRawText: a vanilla block without a name of ours is sent
+// as a translation key the client translates (raw JSON title).
+func TestNameKeyIsSentAsRawText(t *testing.T) {
+	title, _ := Format(Info{Name: "stripped_oak_log", NameKey: "tile.stripped_oak_log.name"})
+	raw, ok := rawText(title)
+	if !ok || !strings.Contains(raw, `{"translate":"tile.stripped_oak_log.name"}`) || !strings.Contains(raw, `"rawtext"`) {
+		t.Fatalf("raw title %q (%v)", raw, ok)
+	}
+	if _, ok := rawText("plain"); ok {
+		t.Error("a title without keys became JSON")
+	}
+	plain, _ := Format(Info{Name: "상자"})
+	if strings.Contains(plain, keyMark) {
+		t.Error("a named block carries a key mark")
+	}
+}

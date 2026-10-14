@@ -198,17 +198,17 @@ func sievesAround(tx *world.Tx, pos cube.Pos, clicked *machineState) []sieveAt {
 
 // useSieve handles using a sieve: fitting a mesh, putting in a block (the
 // hand sieve takes one, the auto sieve the held stack) or sifting a stage.
-// All of it works on every sieve in the 3×3 around the clicked one at once.
+// Putting in and sifting work on every sieve in the 3×3 around the clicked
+// one at once; the mesh only on the clicked one.
 func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *machineState) {
 	held, off := p.HeldItems()
 	group := sievesAround(tx, pos, st)
+	// Fitting and taking out a mesh work on the clicked sieve only.
 	if _, ok := held.Item().(Mesh); ok {
-		for _, sv := range group {
-			if held, off = p.HeldItems(); held.Empty() {
-				break
-			}
-			s.equipMesh(p, tx, sv.pos, sv.st, held, off)
-		}
+		s.equipMesh(p, tx, pos, st, held, off)
+		return
+	}
+	if held.Empty() && p.Sneaking() && s.takeMesh(p, tx, pos, st) {
 		return
 	}
 	if st.mesh == "" && sieveHolds(held) {
