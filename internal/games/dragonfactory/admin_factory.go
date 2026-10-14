@@ -74,7 +74,11 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		return pos
 	}
 	machine := func(dx, dy, dz int, kind string) {
-		set(dx, dy, dz, newMachine(kind, owner, ownerName))
+		m := newMachine(kind, owner, ownerName)
+		if isSieve(kind) {
+			m.st.mesh = "string"
+		}
+		set(dx, dy, dz, m)
 		n.machines++
 	}
 	hopper := func(dx, dy, dz int, facing cube.Face) {

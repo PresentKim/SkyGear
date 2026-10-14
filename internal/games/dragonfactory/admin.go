@@ -154,6 +154,7 @@ func giveItems() map[string]func() item.Stack {
 		"upgrade_capacity": func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) },
 		"upgrade_void":     func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) },
 		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
+		"string_mesh":      func() item.Stack { return item.NewStack(Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
 		"wood_hopper":      func() item.Stack { return item.NewStack(newFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {

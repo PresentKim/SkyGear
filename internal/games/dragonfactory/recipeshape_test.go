@@ -28,6 +28,15 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 		t.Fatalf("no recipe of %s", recipeKey(it))
 		return recipe.Shaped{}
 	}
+	// An empty cell is an empty stack, never a nil input (the recipe list
+	// sent to the client crashed the server on a nil).
+	for _, r := range recipe.Recipes() {
+		for i, in := range r.Input() {
+			if in == nil {
+				t.Fatalf("recipe of %v has a nil input at %d", r.Output(), i)
+			}
+		}
+	}
 	name := func(in recipe.Item) string {
 		st, ok := in.(item.Stack)
 		if !ok || st.Empty() {

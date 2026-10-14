@@ -292,12 +292,18 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 		} else if c, ok := pk.(*packet.CraftingData); ok {
 			// The results of the game's own recipes, for scenarios that
 			// grep the log ("RECIPE dragonfactory:hammer").
-			for _, r := range c.ShapelessRecipes {
-				for _, o := range r.Output {
+			outputs := func(out []protocol.ItemStack) {
+				for _, o := range out {
 					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "dragonfactory:") {
 						fmt.Println("RECIPE", name)
 					}
 				}
+			}
+			for _, r := range c.ShapelessRecipes {
+				outputs(r.Output)
+			}
+			for _, r := range c.ShapedRecipes {
+				outputs(r.Output)
 			}
 		}
 		if match(pk) {

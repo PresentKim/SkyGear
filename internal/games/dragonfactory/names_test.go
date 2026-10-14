@@ -16,7 +16,7 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 			items = append(items, c.Item)
 		}
 	}
-	for _, drops := range sieveRecipes {
+	for _, drops := range sieveTables["string"] {
 		for _, d := range drops {
 			items = append(items, d.Item.Item())
 		}

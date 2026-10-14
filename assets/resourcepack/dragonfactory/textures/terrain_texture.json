@@ -102,6 +102,9 @@
     "dragonfactory_sieve_mesh": {
       "textures": "textures/blocks/sieve_mesh"
     },
+    "dragonfactory_sieve_nomesh": {
+      "textures": "textures/blocks/sieve_nomesh"
+    },
     "dragonfactory_barrel_oak": {
       "textures": "textures/blocks/barrel_oak"
     },

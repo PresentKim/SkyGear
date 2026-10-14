@@ -67,7 +67,7 @@ var advancementTree = []Advancement{
 	{ID: advSift, Name: "체질", Parent: "sieve", Hint: "체에 자갈을 얹고\n우클릭을 반복하세요", Icon: "gravel"},
 	{ID: "dust", Name: "먼지", Parent: "gravel", Hint: "망치로 모래를\n캐세요", Item: "dragonfactory:dust"},
 	{ID: "furnace", Name: "화로", Parent: "cobble", Hint: "화로를 연구해\n만드세요", Item: "furnace"},
-	{ID: "iron", Name: "철", Parent: advSift, Hint: "체로 철 조각을 모아\n연구로 철을 가공하세요", Item: "iron_ingot"},
+	{ID: "iron", Name: "철", Parent: advSift, Hint: "체로 자갈을 걸러 철 원석 조각을\n모으고 연구로 철을 가공하세요", Item: "iron_ingot"},
 	{ID: advMachine, Name: "첫 기계", Parent: "iron", Hint: "연구로 기계를 열어\n처음 하나를 설치하세요", Icon: "dragonfactory:crusher"},
 	{ID: advChunk, Name: "섬 넓히기", Parent: "cobble", Hint: "메뉴 → 섬 확장에서\n청크를 사세요", Icon: "grass_block"},
 }

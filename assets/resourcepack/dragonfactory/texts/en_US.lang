@@ -102,3 +102,7 @@ item.dragonfactory:wood_hopper_reverse.name=나무 역방향 호퍼
 tile.dragonfactory:wood_hopper_reverse.name=나무 역방향 호퍼
 item.dragonfactory:iron_hopper_reverse.name=역방향 호퍼
 tile.dragonfactory:iron_hopper_reverse.name=역방향 호퍼
+item.dragonfactory:ore_chunk_iron.name=철 원석 조각
+item.dragonfactory:ore_chunk_gold.name=금 원석 조각
+item.dragonfactory:ore_chunk_copper.name=구리 원석 조각
+item.dragonfactory:mesh_string.name=실 메쉬

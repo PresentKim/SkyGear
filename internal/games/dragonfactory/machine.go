@@ -96,22 +96,6 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Sand{}): Dust{},
 }
 
-// SieveDrop is a possible product of sifting an item.
-type SieveDrop struct {
-	Item item.Stack
-	// Chance is the percent chance per sifted item.
-	Chance int
-}
-
-// sieveRecipes maps an input item key to its drops. Balancing drafts.
-var sieveRecipes = map[string][]SieveDrop{
-	itemKey(block.Gravel{}): {{item.NewStack(item.Flint{}, 1), 25}, {item.NewStack(item.IronNugget{}, 1), 8}, {item.NewStack(item.Coal{}, 1), 5}},
-	itemKey(block.Sand{}):   {{item.NewStack(item.ClayBall{}, 1), 20}, {item.NewStack(item.GoldNugget{}, 1), 3}, {item.NewStack(block.Kelp{}, 1), 3}},
-	itemKey(block.Dirt{}): {{item.NewStack(block.WheatSeeds{}, 1), 15}, {item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), 5},
-		{item.NewStack(block.PumpkinSeeds{}, 1), 4}, {item.NewStack(block.MelonSeeds{}, 1), 4}},
-	itemKey(Dust{}): {{item.NewStack(item.BoneMeal{}, 1), 10}, {item.NewStack(item.RedstoneWire{}, 1), 5}, {item.NewStack(item.Gunpowder{}, 1), 3}},
-}
-
 // minerTool is what the auto miner mines with.
 var minerTool = item.Pickaxe{Tier: item.ToolTierStone}
 
@@ -140,6 +124,8 @@ type machineState struct {
 	cracking bool
 	// lastUse is when a sieve was last sifted by hand.
 	lastUse time.Time
+	// mesh is the tier of the mesh fitted in a sieve ("" none, mesh.go).
+	mesh string
 	// legacy are saved items of slots the kind no longer has (the auto
 	// miner had four output slots); they move into the output as it frees
 	// up, and are saved until then.
@@ -238,7 +224,8 @@ func (st *machineState) accepts(it item.Stack) bool {
 		_, ok := crushRecipes[k]
 		return ok
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
-		_, ok := sieveRecipes[k]
+		// A sieve sifts only with a mesh fitted.
+		_, ok := sieveTables[st.mesh][k]
 		return ok
 	}
 	// The sell box (no more shop, 13th playtest) takes nothing.
@@ -457,6 +444,9 @@ func (m Machine) BreakInfo() block.BreakInfo {
 		Effective:   customBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
+			if m.st != nil && m.st.mesh != "" {
+				drops = append(drops, item.NewStack(Mesh{Tier: m.st.mesh}, 1))
+			}
 			if m.st != nil {
 				for _, slots := range [][]int{m.st.kind.input, m.st.kind.output} {
 					for _, s := range slots {
@@ -493,6 +483,7 @@ func (m Machine) EncodeNBT() map[string]any {
 	}
 	data["Items"] = items
 	data["Progress"] = int32(m.st.progress)
+	data["Mesh"] = m.st.mesh
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
 	return data
@@ -502,6 +493,9 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	owner, _ := data["Owner"].(string)
 	ownerName, _ := data["OwnerName"].(string)
 	n := newMachine(m.Kind, owner, ownerName)
+	if mesh, ok := data["Mesh"].(string); ok {
+		n.st.mesh = mesh
+	}
 	if p, ok := data["Progress"].(int32); ok {
 		n.st.progress = min(int(p), n.st.kind.interval)
 	}

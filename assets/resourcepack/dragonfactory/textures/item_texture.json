@@ -102,6 +102,18 @@
     },
     "dragonfactory:research_note": {
       "textures": "textures/items/research_note"
+    },
+    "dragonfactory:ore_chunk_iron": {
+      "textures": "textures/items/ore_chunk_iron"
+    },
+    "dragonfactory:ore_chunk_gold": {
+      "textures": "textures/items/ore_chunk_gold"
+    },
+    "dragonfactory:ore_chunk_copper": {
+      "textures": "textures/items/ore_chunk_copper"
+    },
+    "dragonfactory:mesh_string": {
+      "textures": "textures/items/mesh_string"
     }
   },
   "texture_name": "atlas.items"

@@ -19,6 +19,10 @@ var machinePos = cube.Pos{3, IslandY, 3}
 // placeTestMachine places a machine and returns its state.
 func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineState {
 	m := newMachine(kind, owner, owner)
+	if isSieve(kind) {
+		// The tests sift with the string mesh fitted.
+		m.st.mesh = "string"
+	}
 	s.world.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 	return m.st
 }

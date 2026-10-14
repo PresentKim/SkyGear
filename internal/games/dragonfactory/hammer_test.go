@@ -50,7 +50,7 @@ func TestDustFromCrushedSand(t *testing.T) {
 		t.Fatalf("crushed sand = %v", out)
 	}
 	has := func(in world.Item, want world.Item) bool {
-		for _, d := range sieveRecipes[itemKey(in)] {
+		for _, d := range sieveTables["string"][itemKey(in)] {
 			if itemKey(d.Item.Item()) == itemKey(want) {
 				return true
 			}

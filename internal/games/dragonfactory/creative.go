@@ -57,6 +57,12 @@ func registerCreativeItems() {
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
 		add(items, DrawerUpgrade{Kind: UpgradeVoid})
 		add(items, BarkFiber{})
+		for _, t := range meshTiers {
+			add(items, Mesh{Tier: t.tier})
+		}
+		for _, k := range oreKinds {
+			add(items, OreChunk{Ore: k.ore})
+		}
 		for _, k := range pebbleKinds {
 			add(items, Pebble{Kind: k.kind})
 		}
