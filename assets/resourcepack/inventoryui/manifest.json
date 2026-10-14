@@ -1,16 +1,16 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Inventory UI",
-    "description": "Custom sized container screens (tedo0627/InventoryUIResourcePack, MIT)",
-    "uuid": "cf7bf1c5-922f-4a64-8a17-9647b6ad99ca",
+    "name": "DragonFactory-InventoryUI",
+    "description": "InventoryUI for DragonFactory",
+    "uuid": "42f0e388-105d-40b9-96cc-a383d80930b8",
     "version": [0, 0, 1],
-    "min_engine_version": [1, 21, 0]
+    "min_engine_version": [1, 21, 100]
   },
   "modules": [
     {
       "type": "resources",
-      "uuid": "8e8d57dc-eb9a-42d0-9e34-b61c4296dcd9",
+      "uuid": "73013e16-f8e5-4ec4-b855-b5243363adc9",
       "version": [0, 0, 1]
     }
   ]

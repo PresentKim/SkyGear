@@ -1,29 +1,17 @@
 {
   "format_version": 2,
   "header": {
-    "name": "DragonFactory",
+    "name": "DragonFactory-Main",
     "description": "DragonFactory resources",
-    "uuid": "6b1f5c0e-3d0a-4c4e-9a43-8f0d2a7c1e01",
-    "version": [
-      0,
-      0,
-      1
-    ],
-    "min_engine_version": [
-      1,
-      21,
-      0
-    ]
+    "uuid": "c2ffb356-dde2-4fc9-a5d9-5c4fd44fbb7d",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 100]
   },
   "modules": [
     {
       "type": "resources",
-      "uuid": "0c6e2b7a-5f41-4d7b-b0c2-2f3e9a6d4b02",
-      "version": [
-        0,
-        0,
-        1
-      ]
+      "uuid": "82463c93-c616-468c-ab2c-df9ac5802fe5",
+      "version": [0, 0, 1]
     }
   ]
 }

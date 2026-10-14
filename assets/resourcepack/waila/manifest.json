@@ -1,31 +1,17 @@
 {
   "format_version": 2,
   "header": {
-    "name": "WAILA (DragonFactory)",
-    "description": "WAILA adapted for DragonFactory",
-    "uuid": "5485ea38-b7e1-4b79-85dd-7e9e3d6e4a60",
-    "pack_scope": "world",
-    "version": [
-      5,
-      1,
-      1
-    ],
-    "min_engine_version": [
-      1,
-      21,
-      100
-    ]
+    "name": "DragonFactory-WAILA",
+    "description": "WAILA for DragonFactory",
+    "uuid": "6a1c64be-a508-4d74-8aa9-56dcbfbb0877",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 100]
   },
   "modules": [
     {
-      "description": "Resource Pack",
       "type": "resources",
-      "uuid": "13a8ef0e-fe52-4018-b5ac-1476a9af011b",
-      "version": [
-        5,
-        1,
-        1
-      ]
+      "uuid": "c18e70b3-c35e-4e98-bbbb-509d2a0df321",
+      "version": [0, 0, 1]
     }
   ]
 }
