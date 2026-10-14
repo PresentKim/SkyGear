@@ -180,8 +180,13 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	s.storeState()
 	s.sendRecipes(tx)
 	s.updateBoards(tx)
+	after := researchText(r.ID).After
 	for e := range tx.Players() {
-		e.(*player.Player).Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Name, s.unlockNames(r))
+		p := e.(*player.Player)
+		p.Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Name, s.unlockNames(r))
+		if after != "" {
+			p.Messagef("§e힌트: §f%s", after)
+		}
 	}
 }
 
@@ -240,6 +245,10 @@ func (s *session) showResearchNode(p *player.Player, r *Research) {
 
 func (s *session) researchNode(r *Research) (string, []ui.Option) {
 	var b strings.Builder
+	txt := researchText(r.ID)
+	if txt.About != "" {
+		fmt.Fprintf(&b, "§f%s\n\n", txt.About)
+	}
 	fmt.Fprintf(&b, "§f여는 조합법: §e%s\n", s.unlockNames(r))
 	if len(r.Needs) > 0 {
 		var needs []string
@@ -269,7 +278,13 @@ func (s *session) researchNode(r *Research) (string, []ui.Option) {
 	switch {
 	case s.researched(r.ID):
 		b.WriteString("\n§a연구 완료")
+		if txt.After != "" {
+			fmt.Fprintf(&b, "\n\n§e다음 할 일\n§f%s", txt.After)
+		}
 	case s.researchOpen(r):
+		if txt.Hint != "" {
+			fmt.Fprintf(&b, "\n§e힌트\n§f%s\n", txt.Hint)
+		}
 		b.WriteString("\n§7납품하기를 누르면 인벤토리에서 필요한 만큼 냅니다(나눠 내도 됩니다).")
 		opts = append(opts, s.opt("§a납품하기", iconMission, func(p *player.Player, tx *world.Tx) {
 			if n := s.payResearch(p, tx, r); n > 0 {
