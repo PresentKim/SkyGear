@@ -132,6 +132,8 @@ type machineState struct {
 	storage  *chestui.Storage
 	progress int
 	shownPct int
+	// shownEnergy is the buffer the energy gauge shows now (-1: nothing yet).
+	shownEnergy int
 	// owner is the account that placed a sell box and gets its money.
 	owner, ownerName string
 	// pos is where the machine stands, set when it ticks or its window is
@@ -173,7 +175,7 @@ func (st *machineState) drainLegacy() {
 
 func newMachine(kind, owner, ownerName string) Machine {
 	k := machineKinds[kind]
-	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+k.name), owner: owner, ownerName: ownerName, shownPct: -1}
+	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+k.name), owner: owner, ownerName: ownerName, shownPct: -1, shownEnergy: -1}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.role(slot) == roleNone {
@@ -183,6 +185,7 @@ func newMachine(kind, owner, ownerName string) Machine {
 	_ = inv.SetItem(infoSlot, st.infoItem())
 	inv.Handle(machineHandler{st: st})
 	st.showProgress()
+	st.showEnergy()
 	return Machine{Kind: kind, st: st}
 }
 
@@ -378,15 +381,54 @@ func (st *machineState) showProgress() {
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind {
 	case machineKinds[KindSellBox]:
-		// Machines that work in a repeating cycle show a ring that fills.
+		// Machines that work in a repeating cycle, the auto miner and the generator
+		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindMiner]:
-		name = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct)
+		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+	case machineKinds[KindGenerator]:
+		// The ring shows the fuel left in the one burning.
+		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.5"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindHarvester]:
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name))
 }
+
+// energyGaugeSlot is the window slot of the energy gauge, in the column right
+// of the machine's slots (ui/df_machine.json).
+const energyGaugeSlot = 17
+
+// showEnergy updates the energy gauge of a machine with a window that holds
+// energy: a battery filled in tenths, whose name is the energy it holds and the
+// most it can (shown when the player hovers it). A machine that runs without
+// energy (the operator's test factory) shows a full one.
+func (st *machineState) showEnergy() {
+	if st.kind.marker == "" || st.kind.energyCap == 0 {
+		return
+	}
+	have := st.energy
+	if st.unlimited {
+		have = st.kind.energyCap
+	}
+	if have == st.shownEnergy {
+		return
+	}
+	st.shownEnergy = have
+	name := fmt.Sprintf(i18n.T(i18n.Default, "machine.energy.gauge"), have, st.kind.energyCap)
+	it := item.NewStack(EnergyGauge{Step: min(10, have*10/st.kind.energyCap)}, 1)
+	_ = st.inv().SetItem(energyGaugeSlot, it.WithCustomName(name))
+}
+
+// EnergyGauge is the energy indicator of machine windows: a battery filled in
+// Step tenths. It only ever sits in machine windows.
+type EnergyGauge struct{ Step int }
+
+func (g EnergyGauge) EncodeItem() (string, int16) {
+	return fmt.Sprintf("dragonfactory:energy_gauge_%d", g.Step), 0
+}
+func (g EnergyGauge) Name() string              { return i18n.T(i18n.Default, "name.EnergyGauge") }
+func (EnergyGauge) Category() category.Category { return category.Items() }
 
 // ProgressArrow is the indicator item of machine windows: an arrow filled
 // in Step tenths. It only ever sits in machine windows.
@@ -655,6 +697,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runHarvester(st, pos, tx)
 	}
 	st.pos = pos
+	if currentTick%10 == 0 {
+		st.showEnergy()
+	}
 	if isSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
 		showSieve(tx, pos, st)
@@ -792,6 +837,7 @@ func init() {
 	for i := range progressSteps {
 		world.RegisterItem(ProgressArrow{Step: i})
 		world.RegisterItem(CycleGauge{Step: i})
+		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(MachineInfo{})
 	for _, k := range machineOrder {

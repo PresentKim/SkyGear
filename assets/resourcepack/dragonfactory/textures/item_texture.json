@@ -135,6 +135,39 @@
     },
     "dragonfactory:conduit_binder_mix": {
       "textures": "textures/items/conduit_binder_mix"
+    },
+    "dragonfactory:energy_gauge_0": {
+      "textures": "textures/items/energy_gauge_0"
+    },
+    "dragonfactory:energy_gauge_1": {
+      "textures": "textures/items/energy_gauge_1"
+    },
+    "dragonfactory:energy_gauge_2": {
+      "textures": "textures/items/energy_gauge_2"
+    },
+    "dragonfactory:energy_gauge_3": {
+      "textures": "textures/items/energy_gauge_3"
+    },
+    "dragonfactory:energy_gauge_4": {
+      "textures": "textures/items/energy_gauge_4"
+    },
+    "dragonfactory:energy_gauge_5": {
+      "textures": "textures/items/energy_gauge_5"
+    },
+    "dragonfactory:energy_gauge_6": {
+      "textures": "textures/items/energy_gauge_6"
+    },
+    "dragonfactory:energy_gauge_7": {
+      "textures": "textures/items/energy_gauge_7"
+    },
+    "dragonfactory:energy_gauge_8": {
+      "textures": "textures/items/energy_gauge_8"
+    },
+    "dragonfactory:energy_gauge_9": {
+      "textures": "textures/items/energy_gauge_9"
+    },
+    "dragonfactory:energy_gauge_10": {
+      "textures": "textures/items/energy_gauge_10"
     }
   },
   "texture_name": "atlas.items"

@@ -32,8 +32,7 @@ var stringTable = map[string][]SieveDrop{
 		{item.NewStack(OreChunk{Ore: OreIron}, 1), 30},
 	},
 	itemKey(block.Sand{}): {
-		{item.NewStack(item.ClayBall{}, 1), 35},
-		{item.NewStack(block.Kelp{}, 1), 12},
+		{item.NewStack(block.Kelp{}, 1), 47},
 	},
 	itemKey(block.Dirt{}): {
 		{item.NewStack(block.WheatSeeds{}, 1), 50},

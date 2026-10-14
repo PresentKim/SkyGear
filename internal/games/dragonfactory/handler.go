@@ -76,7 +76,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	}
 }
-func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, _ mgl64.Vec3) {
+func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
 	held, _ := ctx.Player().HeldItems()
 	if isMenuItem(held) {
 		ctx.Cancel()
@@ -87,6 +87,16 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
+	// A sneaking player with an empty hand who clicks the face of a block where
+	// a conduit's connector plate sits opens the settings of that side.
+	if p.Sneaking() && held.Empty() {
+		if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok {
+			ctx.Cancel()
+			h.s.showPlateForm(p, tx, at, side)
+			_ = b
+			return
+		}
+	}
 	if h.s.useStick(p, tx, pos, face, held) {
 		ctx.Cancel()
 		return

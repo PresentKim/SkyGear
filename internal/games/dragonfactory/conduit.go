@@ -28,32 +28,16 @@ const conduitTiers = 3
 
 func conduitConnValue(conn int) string { return fmt.Sprintf("%02d", conn) }
 
-// conduitCore is the box of the core in block units: what the client lets
-// the player point at (a little bigger than drawn, so a thin cable can be
-// targeted).
+// conduitCore is the box conduit item blocks are pointed at with.
 var conduitCore = cube.Box(5.0/16, 5.0/16, 5.0/16, 11.0/16, 11.0/16, 11.0/16)
 
-// conduitModel is the shape of a conduit: the core and an arm to each
-// connected side; no side of it is solid.
+// conduitModel is the shape of a conduit block: the space its cores take
+// (bundleSelection); no side of it is solid. conn is unused now that the arms
+// are drawn by the display entity.
 type conduitModel struct{ conn int }
 
-var conduitArmBoxes = [6]cube.BBox{
-	cube.Box(6.0/16, 0, 6.0/16, 10.0/16, 6.0/16, 10.0/16),
-	cube.Box(6.0/16, 10.0/16, 6.0/16, 10.0/16, 1, 10.0/16),
-	cube.Box(6.0/16, 6.0/16, 0, 10.0/16, 10.0/16, 6.0/16),
-	cube.Box(6.0/16, 6.0/16, 10.0/16, 10.0/16, 10.0/16, 1),
-	cube.Box(0, 6.0/16, 6.0/16, 6.0/16, 10.0/16, 10.0/16),
-	cube.Box(10.0/16, 6.0/16, 6.0/16, 1, 10.0/16, 10.0/16),
-}
-
 func (m conduitModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {
-	boxes := []cube.BBox{cube.Box(6.0/16, 6.0/16, 6.0/16, 10.0/16, 10.0/16, 10.0/16)}
-	for i, b := range conduitArmBoxes {
-		if m.conn&(1<<i) != 0 {
-			boxes = append(boxes, b)
-		}
-	}
-	return boxes
+	return []cube.BBox{bundleSelection}
 }
 
 func (conduitModel) FaceSolid(cube.Pos, cube.Face, world.BlockSource) bool { return false }

@@ -11,13 +11,19 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
+
+// fluidRates are the mB a fluid conduit of a tier moves a tick: EnderIO's
+// fluid conduits (200, 1000 and 8000; it moves them every 5 ticks in portions of
+// five times that).
+var fluidRates = [...]int{0, 200, 1000, 8000}
+
+func fluidRate(tier int) int { return fluidRates[max(1, min(tier, conduitTiers))] }
 
 // Conduit bundles (docs/design/06-power-and-conduits.md §3.4): the block every
 // conduit is placed as. It holds at most one conduit of each kind (energy, item,
@@ -35,12 +41,14 @@ import (
 // ConduitBundle is the conduit block. Energy, Item and Fluid are the tiers of
 // the conduits in it (0 for none), EConn, IConn and FConn the sides each of
 // them connects to (bit i is conduitFaces[i]) and Modes the connection mode of
-// each side for the item conduit (indexed by cube.Face). Fluid conduits only
-// connect so far: no network moves fluid yet.
+// each side for the item conduit (indexed by cube.Face).
 type ConduitBundle struct {
 	Energy, Item, Fluid int
 	EConn, IConn, FConn int
 	Modes               [6]itemnet.Mode
+	// Extract and Insert are the channels (0 to 15) of each side of the item
+	// conduit (itemnet.Channels).
+	Extract, Insert [6]int
 }
 
 var bundleHash = block.NextHash()
@@ -52,15 +60,18 @@ func (ConduitBundle) Hash() (uint64, uint64)    { return bundleHash, 0 }
 func (b ConduitBundle) Model() world.BlockModel { return conduitModel{b.EConn | b.IConn | b.FConn} }
 func (ConduitBundle) Name() string              { return i18n.T(i18n.Default, "name.ConduitBundle") }
 
-// bundleSelection is what the client lets the player point at: the cores of
-// every lane, a little bigger than drawn.
-var bundleSelection = cube.Box(3.0/16, 3.0/16, 3.0/16, 13.0/16, 13.0/16, 13.0/16)
+// bundleSelection is the space the conduits take: the cores of the three lanes
+// (shifted 3 pixels either way, 3 pixels across) fit in 9 pixels, 3.5 to
+// 12.5. It is what the client lets the player point at and the shape of the
+// block (conduit_node.geo.json).
+var bundleSelection = cube.Box(3.5/16, 3.5/16, 3.5/16, 12.5/16, 12.5/16, 12.5/16)
 
 func (ConduitBundle) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.dragonfactory_conduit_node",
 		Textures:     map[string]customblock.Material{"*": alphaMaterial("dragonfactory_conduit_node")},
 		SelectionBox: bundleSelection,
+		CollisionBox: bundleSelection,
 	}
 }
 
@@ -92,6 +103,11 @@ func (b ConduitBundle) EnergyTier() int { return b.Energy }
 func (b ConduitBundle) ItemTier() int                     { return b.Item }
 func (b ConduitBundle) ItemMode(f cube.Face) itemnet.Mode { return b.Modes[f] }
 
+// ItemChannels implements itemnet.Conduit.
+func (b ConduitBundle) ItemChannels(f cube.Face) (extract, insert int) {
+	return b.Extract[f], b.Insert[f]
+}
+
 // EncodeNBT and DecodeNBT keep everything the bundle holds (and make it a
 // block entity, which is what gets ticked).
 func (b ConduitBundle) EncodeNBT() map[string]any {
@@ -99,7 +115,15 @@ func (b ConduitBundle) EncodeNBT() map[string]any {
 	for i, m := range b.Modes {
 		modes[i] = '0' + byte(m)
 	}
+	channels := func(c [6]int) string {
+		out := make([]byte, len(c))
+		for i, v := range c {
+			out[i] = "0123456789abcdef"[v&15]
+		}
+		return string(out)
+	}
 	return map[string]any{
+		"Extract": channels(b.Extract), "Insert": channels(b.Insert),
 		"id": "DragonFactoryConduitBundle", "Energy": int32(b.Energy), "Item": int32(b.Item), "Fluid": int32(b.Fluid),
 		"EConn": int32(b.EConn), "IConn": int32(b.IConn), "FConn": int32(b.FConn), "Modes": string(modes),
 	}
@@ -112,6 +136,15 @@ func (b ConduitBundle) DecodeNBT(data map[string]any) any {
 	}
 	b.Energy, b.Item, b.Fluid = min(num("Energy"), conduitTiers), min(num("Item"), conduitTiers), min(num("Fluid"), conduitTiers)
 	b.EConn, b.IConn, b.FConn = num("EConn")&63, num("IConn")&63, num("FConn")&63
+	for key, dst := range map[string]*[6]int{"Extract": &b.Extract, "Insert": &b.Insert} {
+		if v, ok := data[key].(string); ok && len(v) == 6 {
+			for i := range dst {
+				if n, err := strconv.ParseUint(v[i:i+1], 16, 8); err == nil {
+					dst[i] = int(n)
+				}
+			}
+		}
+	}
 	if modes, ok := data["Modes"].(string); ok && len(modes) == len(b.Modes) {
 		for i := range b.Modes {
 			b.Modes[i] = itemnet.Mode(modes[i]-'0') % 4
@@ -202,29 +235,25 @@ func (b ConduitBundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 }
 
-// Activate cycles the item mode of the clicked side (empty hand, sneaking).
+// Activate opens the settings of the clicked side (empty hand, sneaking) if
+// that side has a connector plate (conduitplate.go).
 func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
-	if !ok || !p.Sneaking() || b.Item == 0 {
+	if !ok || !p.Sneaking() {
 		return false
 	}
 	if held, _ := p.HeldItems(); !held.Empty() {
 		return false
 	}
-	at := pos.Side(face)
-	if _, isConduit := itemnet.IsConduit(tx.Block(at)); isConduit {
-		return true
+	s, ok := activeGame.sessionOf(tx.World())
+	if !ok {
+		return false
 	}
-	if in, ex := itemio.IO(tx, at); in == nil && ex == nil && b.Modes[face] == itemnet.Both {
-		return true
+	side := faceIndex(face)
+	if len(plateKinds(tx, pos, b, side)) == 0 {
+		return false
 	}
-	b.Modes[face] = b.Modes[face].Next()
-	b.EConn, b.IConn, b.FConn = b.connections(tx, pos)
-	tx.SetBlock(pos, b, nil)
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		s.showConduit(tx, pos, b)
-	}
-	tx.PlaySound(pos.Vec3Centre(), sound.Click{})
+	s.showPlateForm(p, tx, pos, side)
 	return true
 }
 
@@ -238,18 +267,21 @@ func bundleLines(tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
 	}
 	if b.Item > 0 {
 		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
-			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), strconv.FormatFloat(itemsPerSecond(b.Item), 'f', -1, 64)))
+			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
 		lines = append(lines, itemConduitLines(tx, pos, b)...)
 	}
 	if b.Fluid > 0 {
-		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+" §7"+i18n.T(i18n.Default, "fluidconduit.lines.todo"))
+		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidRate(b.Fluid)))
 	}
 	return lines
 }
 
-// itemsPerSecond is how many items an item conduit of a tier moves a second.
-func itemsPerSecond(tier int) float64 {
-	return float64(itemnet.RateOf(tier)) * 20 / itemnet.StepTicks
+// formatRate writes a rate without trailing zeros.
+func formatRate(r float64) string { return strconv.FormatFloat(r, 'f', -1, 64) }
+
+// itemsPerTick is how many items an item conduit of a tier moves a tick.
+func itemsPerTick(tier int) float64 {
+	return float64(itemnet.RateOf(tier)) / itemnet.StepTicks
 }
 
 // itemConduitLines are the item mode lines: the mode of every side that has

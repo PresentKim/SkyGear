@@ -55,3 +55,7 @@
 텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
 놓는 방향으로 돌지 않는다.
 
+
+## 전기 게이지
+
+전기를 담는 기계(발전기·분쇄기·자동 채굴기·수확기)의 창에는 **전기 게이지**가 있다: 창 오른쪽 열(슬롯 17, `energyGaugeSlot`)에 건전지 그림이 10단계로 차오르고(`EnergyGauge`, `textures/items/energy_gauge_N.png`, 임시 그림), **마우스를 올리면** "전기 보유량/최대량 RE"가 뜬다(`showEnergy`, 0.5초마다 갱신). 레이아웃은 `ui/df_machine.json`의 `s17@df_machine.indicator`. 운영자 시험 공장(`unlimited`)의 기계는 가득 찬 것으로 보인다.

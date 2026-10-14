@@ -1,0 +1,66 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "dragonfactory:conduit_plate",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "plate": "textures/entity/dragonfactory/conduit_plate",
+        "energy_1": "textures/entity/dragonfactory/conduit_energy_1",
+        "energy_2": "textures/entity/dragonfactory/conduit_energy_2",
+        "energy_3": "textures/entity/dragonfactory/conduit_energy_3",
+        "item_1": "textures/entity/dragonfactory/conduit_item_1",
+        "item_2": "textures/entity/dragonfactory/conduit_item_2",
+        "item_3": "textures/entity/dragonfactory/conduit_item_3",
+        "fluid_1": "textures/entity/dragonfactory/conduit_fluid_1",
+        "fluid_2": "textures/entity/dragonfactory/conduit_fluid_2",
+        "fluid_3": "textures/entity/dragonfactory/conduit_fluid_3",
+        "in_0": "textures/entity/dragonfactory/channel_in_0",
+        "out_0": "textures/entity/dragonfactory/channel_out_0",
+        "in_1": "textures/entity/dragonfactory/channel_in_1",
+        "out_1": "textures/entity/dragonfactory/channel_out_1",
+        "in_2": "textures/entity/dragonfactory/channel_in_2",
+        "out_2": "textures/entity/dragonfactory/channel_out_2",
+        "in_3": "textures/entity/dragonfactory/channel_in_3",
+        "out_3": "textures/entity/dragonfactory/channel_out_3",
+        "in_4": "textures/entity/dragonfactory/channel_in_4",
+        "out_4": "textures/entity/dragonfactory/channel_out_4",
+        "in_5": "textures/entity/dragonfactory/channel_in_5",
+        "out_5": "textures/entity/dragonfactory/channel_out_5",
+        "in_6": "textures/entity/dragonfactory/channel_in_6",
+        "out_6": "textures/entity/dragonfactory/channel_out_6",
+        "in_7": "textures/entity/dragonfactory/channel_in_7",
+        "out_7": "textures/entity/dragonfactory/channel_out_7",
+        "in_8": "textures/entity/dragonfactory/channel_in_8",
+        "out_8": "textures/entity/dragonfactory/channel_out_8",
+        "in_9": "textures/entity/dragonfactory/channel_in_9",
+        "out_9": "textures/entity/dragonfactory/channel_out_9",
+        "in_10": "textures/entity/dragonfactory/channel_in_10",
+        "out_10": "textures/entity/dragonfactory/channel_out_10",
+        "in_11": "textures/entity/dragonfactory/channel_in_11",
+        "out_11": "textures/entity/dragonfactory/channel_out_11",
+        "in_12": "textures/entity/dragonfactory/channel_in_12",
+        "out_12": "textures/entity/dragonfactory/channel_out_12",
+        "in_13": "textures/entity/dragonfactory/channel_in_13",
+        "out_13": "textures/entity/dragonfactory/channel_out_13",
+        "in_14": "textures/entity/dragonfactory/channel_in_14",
+        "out_14": "textures/entity/dragonfactory/channel_out_14",
+        "in_15": "textures/entity/dragonfactory/channel_in_15",
+        "out_15": "textures/entity/dragonfactory/channel_out_15"
+      },
+      "geometry": {
+        "default": "geometry.dragonfactory.conduit_plate"
+      },
+      "render_controllers": [
+        "controller.render.dragonfactory_plate_plate",
+        "controller.render.dragonfactory_plate_collar_energy",
+        "controller.render.dragonfactory_plate_collar_item",
+        "controller.render.dragonfactory_plate_collar_fluid",
+        "controller.render.dragonfactory_plate_in",
+        "controller.render.dragonfactory_plate_out"
+      ]
+    }
+  }
+}

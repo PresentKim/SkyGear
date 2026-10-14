@@ -20,6 +20,17 @@
     "anchor_to": "top_left",
     "controls": [
       {
+        "s17@df_machine.indicator": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s11@df_machine.slot": {
           "collection_index": 11,
           "offset": [
@@ -154,6 +165,17 @@
     "anchor_to": "top_left",
     "controls": [
       {
+        "s17@df_machine.indicator": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s10@df_machine.indicator": {
           "collection_index": 10,
           "offset": [
@@ -231,6 +253,17 @@
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
+      {
+        "s17@df_machine.indicator": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
       {
         "s10@df_machine.indicator": {
           "collection_index": 10,

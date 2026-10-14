@@ -1,9 +1,11 @@
 package dragonfactory
 
 import (
+	"fmt"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
+	"strings"
 	"testing"
 	"time"
 
@@ -338,4 +340,46 @@ func TestHopperFillsHandSieve(t *testing.T) {
 			t.Errorf("the bottom face took %d", n)
 		}
 	})
+}
+
+// TestRingGaugesInTheWindows: the generator and the auto miner show their
+// progress as a ring (CycleGauge), like the harvester.
+func TestRingGaugesInTheWindows(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	for _, kind := range []string{KindGenerator, KindMiner, KindHarvester} {
+		st := placeTestMachine(s, machinePos.Add(cube.Pos{3 * len(kind) % 7, 0, 0}), kind, "")
+		st.progress = st.kind.interval / 2
+		st.shownPct = -1
+		st.showProgress()
+		got, _ := st.inv().Item(st.kind.indicator)
+		if _, ok := got.Item().(CycleGauge); !ok {
+			t.Errorf("%s shows %T, want a ring gauge", kind, got.Item())
+		}
+	}
+}
+
+// TestEnergyGauge: machines with a window show a battery in the gauge slot,
+// filled in tenths, whose hover name has the energy held and the most it holds.
+func TestEnergyGauge(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	for _, kind := range []string{KindGenerator, KindCrusher, KindMiner, KindHarvester} {
+		st := placeTestMachine(s, machinePos.Add(cube.Pos{3 * len(kind) % 7, 0, 0}), kind, "")
+		st.unlimited = false
+		st.energy = st.kind.energyCap / 2
+		st.showEnergy()
+		got, _ := st.inv().Item(energyGaugeSlot)
+		g, ok := got.Item().(EnergyGauge)
+		if !ok || g.Step != 5 {
+			t.Fatalf("%s: slot %d holds %v", kind, energyGaugeSlot, got)
+		}
+		want := fmt.Sprintf("%d", st.energy)
+		if name := got.CustomName(); !strings.Contains(name, want) || !strings.Contains(name, fmt.Sprint(st.kind.energyCap)) {
+			t.Errorf("%s: hover name %q lacks %s and %d", kind, name, want, st.kind.energyCap)
+		}
+		if role := st.role(energyGaugeSlot); role != roleNone {
+			t.Errorf("%s: the gauge slot is a %v slot", kind, role)
+		}
+	}
 }

@@ -112,6 +112,7 @@ func (s *session) showConduit(tx *world.Tx, pos cube.Pos, b ConduitBundle) {
 	if s.visuals == nil {
 		s.visuals = map[cube.Pos]*world.EntityHandle{}
 	}
+	s.syncPlates(tx, pos, b)
 	variant, mark := conduitLook(b)
 	if h, ok := s.visuals[pos]; ok {
 		if e, ok := h.Entity(tx); ok {
@@ -130,8 +131,9 @@ func (s *session) showConduit(tx *world.Tx, pos cube.Pos, b ConduitBundle) {
 	tx.AddEntity(h)
 }
 
-// removeVisual removes the display entity of the bundle at pos.
+// removeVisual removes the display entity and the plates of the bundle at pos.
 func (s *session) removeVisual(tx *world.Tx, pos cube.Pos) {
+	s.removePlates(tx, pos)
 	h, ok := s.visuals[pos]
 	if !ok {
 		return
@@ -146,5 +148,8 @@ func (s *session) removeVisual(tx *world.Tx, pos cube.Pos) {
 func (s *session) removeVisuals(tx *world.Tx) {
 	for pos := range s.visuals {
 		s.removeVisual(tx, pos)
+	}
+	for k := range s.plates {
+		s.removePlates(tx, k.pos)
 	}
 }

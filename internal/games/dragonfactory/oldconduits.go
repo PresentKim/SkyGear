@@ -152,6 +152,7 @@ func invisibleProperties() customblock.Properties {
 		Geometry:     "geometry.dragonfactory_conduit_node",
 		Textures:     map[string]customblock.Material{"*": alphaMaterial("dragonfactory_conduit_node")},
 		SelectionBox: bundleSelection,
+		CollisionBox: bundleSelection,
 	}
 }
 

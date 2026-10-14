@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block/customblock"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -197,45 +198,6 @@ func TestItemConduitMovesItems(t *testing.T) {
 		}
 		if c.IConn != 1<<4|1<<5 || c.EConn != 0 {
 			t.Errorf("connections %b %b", c.EConn, c.IConn)
-		}
-	})
-}
-
-// TestItemConduitModeCycles: sneaking with an empty hand cycles the mode of
-// the clicked side; a side without items does nothing; a side that is off
-// shows no arm.
-func TestItemConduitModeCycles(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(machinePos, block.NewChest(), nil)
-		tx.SetBlock(pos, ConduitBundle{Item: 2}, nil)
-		c := tx.Block(pos).(ConduitBundle)
-		p.SetHeldItems(item.Stack{}, item.Stack{})
-		if c.Activate(pos, cube.FaceWest, tx, p, nil) {
-			t.Fatal("a standing player changed a mode")
-		}
-		p.StartSneaking()
-		want := []itemnet.Mode{itemnet.Input, itemnet.Output, itemnet.Off, itemnet.Both}
-		for i, w := range want {
-			c = tx.Block(pos).(ConduitBundle)
-			if !c.Activate(pos, cube.FaceWest, tx, p, nil) {
-				t.Fatalf("click %d was not handled", i)
-			}
-			if got := tx.Block(pos).(ConduitBundle).Modes[cube.FaceWest]; got != w {
-				t.Fatalf("click %d: mode %d, want %d", i, got, w)
-			}
-			if off := tx.Block(pos).(ConduitBundle).IConn&(1<<4) == 0; off != (w == itemnet.Off) {
-				t.Fatalf("click %d: arm hidden = %v for mode %d", i, off, w)
-			}
-		}
-		c = tx.Block(pos).(ConduitBundle)
-		before := c.Modes
-		c.Activate(pos, cube.FaceNorth, tx, p, nil) // nothing there
-		if tx.Block(pos).(ConduitBundle).Modes != before {
-			t.Error("a side without items changed its mode")
 		}
 	})
 }
@@ -445,4 +407,125 @@ func TestConduitPlacementWays(t *testing.T) {
 			t.Error("a second fluid conduit went into the bundle")
 		}
 	})
+}
+
+// TestConduitPlates: an item conduit beside a chest gets a connector plate on
+// that side only (not on the sides with nothing), its look carries the side, the
+// kind and the mode and channels; the plate's square on the block it touches is
+// where a click counts; and the plates go with the bundle.
+func TestConduitPlates(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(machinePos, block.NewChest(), nil)
+		b := ConduitBundle{Item: 1, Energy: 1}
+		b.Modes[cube.FaceWest] = itemnet.Input
+		b.Extract[cube.FaceWest], b.Insert[cube.FaceWest] = 5, 9
+		tx.SetBlock(pos, b, nil)
+		b.refresh(pos, tx)
+		west := plateKey{pos, 4}
+		h, ok := s.plates[west]
+		if !ok || len(s.plates) != 1 {
+			t.Fatalf("plates %v, want one on the west side", s.plates)
+		}
+		e, alive := h.Entity(tx)
+		if !alive {
+			t.Fatal("the plate entity is gone")
+		}
+		plate := e.(*ConduitPlate)
+		want := int32(4 + 6*2 + 48*int(itemnet.Input) + 192*5 + 3072*9)
+		if plate.Variant() != want || plate.MarkVariant() != 1+4*1 {
+			t.Errorf("look %d %d, want %d %d", plate.Variant(), plate.MarkVariant(), want, 5)
+		}
+		if plate.Position().X() != float64(pos[0])+0.5 {
+			t.Errorf("the plate stands at %v", plate.Position())
+		}
+		// a click on the chest's east face in the middle is on the plate, one near the edge is not
+		if _, _, side, ok := plateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.55}); !ok || side != 4 {
+			t.Errorf("a click in the middle missed the plate (side %d, %v)", side, ok)
+		}
+		if _, _, _, ok := plateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.95}); ok {
+			t.Error("a click near the edge hit the plate")
+		}
+		if _, _, _, ok := plateHit(tx, machinePos, cube.FaceNorth, mgl64.Vec3{0.5, 0.5, 0}); ok {
+			t.Error("a click on a face with no conduit hit a plate")
+		}
+		// the settings survive the NBT
+		back := ConduitBundle{}.DecodeNBT(b.EncodeNBT()).(ConduitBundle)
+		if back.Extract[cube.FaceWest] != 5 || back.Insert[cube.FaceWest] != 9 || back.Modes[cube.FaceWest] != itemnet.Input {
+			t.Errorf("after NBT: %v %v %v", back.Extract, back.Insert, back.Modes)
+		}
+		// switching the side off keeps its plate
+		b.Modes[cube.FaceWest] = itemnet.Off
+		tx.SetBlock(pos, b, nil)
+		b.refresh(pos, tx)
+		if _, ok := s.plates[west]; !ok {
+			t.Error("an off side lost its plate")
+		}
+		s.removeVisual(tx, pos)
+		if len(s.plates) != 0 {
+			t.Errorf("plates left after the bundle went: %v", s.plates)
+		}
+	})
+}
+
+// TestExtractAndInsertFlags: the settings form's two switches make the modes.
+func TestExtractAndInsertFlags(t *testing.T) {
+	for _, c := range []struct {
+		extract, insert bool
+		want            itemnet.Mode
+	}{{true, true, itemnet.Both}, {true, false, itemnet.Input}, {false, true, itemnet.Output}, {false, false, itemnet.Off}} {
+		m := itemnet.ModeOf(c.extract, c.insert)
+		if m != c.want || m.Gives() != c.extract || m.Takes() != c.insert {
+			t.Errorf("ModeOf(%v, %v) = %v", c.extract, c.insert, m)
+		}
+	}
+}
+
+// TestPlateFormsOpen: the settings form and the channel picker open for a side
+// with a plate (and nothing happens for a side without).
+func TestPlateFormsOpen(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(machinePos, block.NewChest(), nil)
+		tx.SetBlock(pos, ConduitBundle{Item: 1, Energy: 1}, nil)
+		b := tx.Block(pos).(ConduitBundle)
+		b.refresh(pos, tx)
+		s.showPlateForm(p, tx, pos, 4)
+		s.showChannelPicker(p, tx, pos, 4, true)
+		s.showPlateForm(p, tx, pos, 0) // no plate below
+		// the form's changes are stored as modes and channels
+		b = tx.Block(pos).(ConduitBundle)
+		b.Modes[cube.FaceWest] = itemnet.ModeOf(false, true)
+		b.Insert[cube.FaceWest] = 3
+		s.storeConduitSide(tx, pos, b)
+		got := tx.Block(pos).(ConduitBundle)
+		if got.Modes[cube.FaceWest] != itemnet.Output || got.Insert[cube.FaceWest] != 3 {
+			t.Errorf("stored %v %v", got.Modes, got.Insert)
+		}
+	})
+}
+
+// TestConduitBlockSizes: the conduit block collides, is pointed at and is
+// shaped like the 9 pixels its conduits take, not a full block; fluid conduits
+// move EnderIO's 200, 1000 and 8000 mB a tick.
+func TestConduitBlockSizes(t *testing.T) {
+	for name, props := range map[string]customblock.Properties{"bundle": ConduitBundle{}.Properties(), "old energy": legacyConduit{Kind: 0, Tier: 1}.Properties(), "old bundle": legacyBundle{}.Properties()} {
+		if props.CollisionBox != bundleSelection || props.SelectionBox != bundleSelection {
+			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, bundleSelection)
+		}
+	}
+	box := bundleSelection
+	if w := (box.Max()[0] - box.Min()[0]) * 16; w < 8.99 || w > 9.01 {
+		t.Errorf("the box is %v pixels wide", w)
+	}
+	for tier, want := range map[int]int{1: 200, 2: 1000, 3: 8000} {
+		if fluidRate(tier) != want {
+			t.Errorf("fluid tier %d moves %d mB/t, want %d", tier, fluidRate(tier), want)
+		}
+	}
 }

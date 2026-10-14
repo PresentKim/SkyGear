@@ -163,6 +163,8 @@ type session struct {
 	// visuals are the display entities of the conduit bundles by position
 	// (conduitvisual.go).
 	visuals map[cube.Pos]*world.EntityHandle
+	// plates are the connector plate entities of the bundles (conduitplate.go).
+	plates map[plateKey]*world.EntityHandle
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and

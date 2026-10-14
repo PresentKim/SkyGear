@@ -235,6 +235,13 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	stone := b.Wood == stoneWood
 	switch {
 	case rec != nil && (rec.Water || rec.Lava):
+		if _, ok := held.Item().(Dust); ok && rec.Water {
+			// Dust soaks into the water and makes clay (docs/design/02-dragonfactory.md).
+			ctx.SubtractFromCount(1)
+			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(item.ClayBall{}, 1))
+			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
+			return true
+		}
 		if bucket, ok := held.Item().(item.Bucket); ok && bucket.Empty() {
 			var liquid world.Liquid = block.Water{Depth: 8, Still: true}
 			var fill world.Liquid = block.Water{}

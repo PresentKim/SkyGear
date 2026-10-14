@@ -337,3 +337,83 @@ func TestConduitLanesDifferOnEveryAxis(t *testing.T) {
 		}
 	}
 }
+
+// TestConduitPlatePack: the connector plate entity names an existing geometry
+// and textures, its render controllers show only bones the geometry has, and
+// every bone of the geometry is shown by one of them.
+func TestConduitPlatePack(t *testing.T) {
+	var ent struct {
+		Entity struct {
+			Description struct {
+				Identifier        string            `json:"identifier"`
+				Textures          map[string]string `json:"textures"`
+				Geometry          map[string]string `json:"geometry"`
+				RenderControllers []string          `json:"render_controllers"`
+			} `json:"description"`
+		} `json:"minecraft:client_entity"`
+	}
+	readPackJSON(t, "entity/conduit_plate.entity.json", &ent)
+	d := ent.Entity.Description
+	if d.Identifier != PlateType.EncodeEntity() {
+		t.Errorf("entity identifier %s", d.Identifier)
+	}
+	for key, path := range d.Textures {
+		if _, err := os.Stat(filepath.Join(packDir, path+".png")); err != nil {
+			t.Errorf("texture %s: %v", key, err)
+		}
+	}
+	var geo struct {
+		Geometries []struct {
+			Description struct {
+				Identifier string `json:"identifier"`
+			} `json:"description"`
+			Bones []struct {
+				Name string `json:"name"`
+			} `json:"bones"`
+		} `json:"minecraft:geometry"`
+	}
+	readPackJSON(t, "models/entity/conduit_visual.geo.json", &geo)
+	bones := map[string]bool{}
+	for _, g := range geo.Geometries {
+		if g.Description.Identifier == d.Geometry["default"] {
+			for _, b := range g.Bones {
+				bones[b.Name] = true
+			}
+		}
+	}
+	if len(bones) != 36 {
+		t.Errorf("%d bones, want 6 for each of 6 sides", len(bones))
+	}
+	var rc struct {
+		Controllers map[string]struct {
+			Parts    []map[string]string `json:"part_visibility"`
+			Textures []string            `json:"textures"`
+		} `json:"render_controllers"`
+	}
+	readPackJSON(t, "render_controllers/conduit_visual.render_controllers.json", &rc)
+	shown := map[string]bool{}
+	for _, name := range d.RenderControllers {
+		c, ok := rc.Controllers[name]
+		if !ok {
+			t.Fatalf("render controller %s is missing", name)
+		}
+		for _, part := range c.Parts {
+			for bone := range part {
+				if bone != "*" && !bones[bone] {
+					t.Errorf("%s shows bone %s, which the geometry lacks", name, bone)
+				}
+				shown[bone] = true
+			}
+		}
+		for _, ref := range c.Textures {
+			if !strings.Contains(ref, "Array.") && !strings.HasPrefix(ref, "Texture.") {
+				t.Errorf("%s: texture %s", name, ref)
+			}
+		}
+	}
+	for bone := range bones {
+		if !shown[bone] {
+			t.Errorf("no render controller shows bone %s", bone)
+		}
+	}
+}

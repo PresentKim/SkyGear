@@ -179,3 +179,41 @@ func TestStoneBarrelMakesLava(t *testing.T) {
 		}
 	})
 }
+
+// TestDustMakesClayInWater: a dust used on a barrel with water becomes a clay
+// ball and the water stays; a dry barrel does nothing with it.
+func TestDustMakesClayInWater(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	pos := machinePos
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
+		dust := item.NewStack(Dust{}, 2)
+		ctx := &item.UseContext{}
+		if s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), dust, ctx) && ctx.CountSub != 0 {
+			t.Fatal("a dry barrel took the dust")
+		}
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Water: true}
+		ctx = &item.UseContext{}
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), dust, ctx) || ctx.CountSub != 1 {
+			t.Fatalf("the dust was not used (count sub %d)", ctx.CountSub)
+		}
+		if !p.Inventory().ContainsItem(item.NewStack(item.ClayBall{}, 1)) {
+			t.Error("no clay ball")
+		}
+		if rec := s.barrelAt(pos); rec == nil || !rec.Water {
+			t.Error("the water went")
+		}
+	})
+	for _, drops := range sieveTables["string"] {
+		for _, d := range drops {
+			if _, clay := d.Item.Item().(item.ClayBall); clay {
+				t.Error("a sieve still drops clay")
+			}
+		}
+	}
+}

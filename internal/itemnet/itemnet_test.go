@@ -14,8 +14,10 @@ import (
 // testConduit is a conduit block (a block entity, so the world keeps its
 // fields).
 type testConduit struct {
-	tier  int
-	modes [6]Mode
+	tier    int
+	modes   [6]Mode
+	extract [6]int
+	insert  [6]int
 }
 
 var testHash = block.NextHash()
@@ -28,6 +30,7 @@ func (testConduit) EncodeNBT() map[string]any             { return map[string]an
 func (c testConduit) DecodeNBT(map[string]any) any        { return c }
 func (c testConduit) ItemTier() int                       { return c.tier }
 func (c testConduit) ItemMode(f cube.Face) Mode           { return c.modes[f] }
+func (c testConduit) ItemChannels(f cube.Face) (int, int) { return c.extract[f], c.insert[f] }
 
 func init() {
 	world.RegisterBlock(testConduit{})
@@ -166,6 +169,33 @@ func TestDestinationsTakeTurns(t *testing.T) {
 		}
 		if count(tx, a, stone) != 3 || count(tx, b, stone) != 3 {
 			t.Errorf("the chests got %d and %d, want 3 and 3", count(tx, a, stone), count(tx, b, stone))
+		}
+	})
+}
+
+// TestChannelsKeepLinesApart: items taken on one channel go only to the sides
+// that insert on that channel.
+func TestChannelsKeepLinesApart(t *testing.T) {
+	stone := item.NewStack(block.Stone{}, 1)
+	withWorld(t, func(tx *world.Tx) {
+		src, a, b := cube.Pos{0, 64, 0}, cube.Pos{1, 64, -1}, cube.Pos{1, 64, 1}
+		chestAt(tx, src)
+		chestAt(tx, a)
+		chestAt(tx, b)
+		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 64))
+		c := testConduit{tier: 3}
+		c.modes[cube.FaceWest] = Input
+		c.extract[cube.FaceWest] = 5
+		c.modes[cube.FaceNorth], c.modes[cube.FaceSouth] = Output, Output
+		c.insert[cube.FaceNorth], c.insert[cube.FaceSouth] = 5, 7 // only the north chest listens on channel 5
+		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
+		g := NewGrid()
+		for range 3 {
+			g.AddConduit(cube.Pos{1, 64, 0})
+			g.Step(tx)
+		}
+		if count(tx, a, stone) != 3*RateOf(3) || count(tx, b, stone) != 0 {
+			t.Errorf("channel 5 chest got %d, channel 7 chest got %d", count(tx, a, stone), count(tx, b, stone))
 		}
 	})
 }

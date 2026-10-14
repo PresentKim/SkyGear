@@ -61,3 +61,5 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 
 도관 텍스처(`tools/conduittex/src/` 의 64×64 원본과 거기서 만든 `textures/entity/dragonfactory/conduit_*.png`, `textures/items/conduit_*.png`)와 도관 결합체·결합 반죽 아이콘은 Team-EnderIO/EnderIO
 (Unlicense, 퍼블릭 도메인)의 텍스처(`energy`, `enhanced_energy`, `ender_energy`, `item`의 첫 프레임, `conduit_binder`, `conduit_binder_composite`)에서 가져왔다. 아이템 도관 2·3단은 색조만 바꾼 것이다. 모델 비율(3×3×3 코어, 2×2 팔)도 EnderIO 모델을 따랐다. 배치는 `tools/conduitgeo`·`tools/conduittex` 참고.
+
+연결부 판의 화살표(`tools/conduittex/src/arrow_in.png`, `arrow_out.png`)도 EnderIO(`item_conduit_in`, `item_conduit_out`)의 것이다(채널 색으로 물들여 쓴다).

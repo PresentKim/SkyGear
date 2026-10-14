@@ -81,6 +81,7 @@ func main() {
 			save(filepath.Join(pack, "textures/blocks", name), im)
 		}
 	}
+	plates(src, pack)
 	// the block of a conduit is a speck the display entity draws over; its
 	// texture shows only in the particles of breaking it
 	node := image.NewRGBA(image.Rect(0, 0, 16, 16))
@@ -92,4 +93,49 @@ func main() {
 		}
 	}
 	save(filepath.Join(pack, "textures/blocks/conduit_node.png"), node)
+}
+
+// channelColours are the colours of the 16 channels (dye colours, the order of
+// EnderIO's list: green first, the default channel).
+var channelColours = [16]color.RGBA{
+	{94, 124, 22, 255}, {131, 84, 50, 255}, {60, 68, 170, 255}, {137, 50, 184, 255},
+	{22, 156, 156, 255}, {157, 157, 151, 255}, {71, 79, 82, 255}, {243, 139, 170, 255},
+	{128, 199, 31, 255}, {254, 216, 61, 255}, {58, 179, 218, 255}, {199, 78, 189, 255},
+	{249, 128, 29, 255}, {249, 255, 254, 255}, {29, 29, 33, 255}, {176, 46, 38, 255},
+}
+
+// plates writes the textures of the connector plate entity (conduitplate.go):
+// the plate itself (16×16 at (0, 0)) and, for each channel colour, the input
+// and output arrow (EnderIO's arrows, 24×24 at (0, 0), tinted).
+func plates(src, pack string) {
+	dir := filepath.Join(pack, "textures/entity/dragonfactory")
+	plate := image.NewRGBA(image.Rect(0, 0, 64, 64))
+	for y := 0; y < 16; y++ {
+		for x := 0; x < 16; x++ {
+			c := color.RGBA{44, 45, 46, 255}
+			if x == 0 || y == 0 || x == 15 || y == 15 {
+				c = color.RGBA{30, 31, 32, 255}
+			}
+			plate.Set(x, y, c)
+		}
+	}
+	save(filepath.Join(dir, "conduit_plate.png"), plate)
+	for _, dir2 := range []string{"in", "out"} {
+		arrow := load(filepath.Join(src, "arrow_"+dir2+".png"))
+		for i, col := range channelColours {
+			im := image.NewRGBA(image.Rect(0, 0, 64, 64))
+			for y := 0; y < 24; y++ {
+				for x := 0; x < 24; x++ {
+					r, g, b, a := arrow.At(x, y).RGBA()
+					if a == 0 {
+						continue
+					}
+					im.Set(x, y, color.RGBA{
+						uint8(uint32(col.R) * (r >> 8) / 255), uint8(uint32(col.G) * (g >> 8) / 255), uint8(uint32(col.B) * (b >> 8) / 255), uint8(a >> 8),
+					})
+				}
+			}
+			save(filepath.Join(dir, fmt.Sprintf("channel_%s_%d.png", dir2, i)), im)
+		}
+	}
 }

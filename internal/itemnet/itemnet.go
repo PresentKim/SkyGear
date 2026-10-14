@@ -2,7 +2,7 @@
 // conduits.md §3.3), the way EnderIO's item conduits do: the conduits that
 // touch each other form a network; every block with items next to it is an
 // endpoint whose side of the conduit has a connection mode (both ways, only
-// taken from, only given to, or off). Each step a network moves up to its
+// taken from, only given to, or off) and channels. Each step a network moves up to its
 // tier's rate of items from the endpoints that give to the endpoints that
 // take, in turn so every destination gets some. Items move through
 // internal/itemio, so chests, furnaces, drawers and machines all work.
@@ -28,6 +28,20 @@ const (
 	Off
 )
 
+// ModeOf is the mode that takes items from the block if extract, and gives
+// items to it if insert.
+func ModeOf(extract, insert bool) Mode {
+	switch {
+	case extract && insert:
+		return Both
+	case extract:
+		return Input
+	case insert:
+		return Output
+	}
+	return Off
+}
+
 // Next is the mode after m when cycling through the modes.
 func (m Mode) Next() Mode { return (m + 1) % 4 }
 
@@ -46,11 +60,18 @@ const StepTicks = 8
 // RateOf is the rate of a tier (clamped to the known tiers).
 func RateOf(tier int) int { return Rates[max(1, min(tier, len(Rates)-1))] }
 
-// Conduit is an item conduit block: its tier (1 to 3) and the mode of each
-// side.
+// Channels is the number of channels (colours) an extract or insert side can
+// be set to: items taken from a side go only to the sides that insert on the
+// same channel, as in EnderIO, so one network can carry several lines.
+const Channels = 16
+
+// Conduit is an item conduit block: its tier (1 to 3), the mode of each side
+// and the channels of its extract (the block is a source) and insert (the
+// block is a destination) side.
 type Conduit interface {
 	ItemTier() int
 	ItemMode(face cube.Face) Mode
+	ItemChannels(face cube.Face) (extract, insert int)
 }
 
 // IsConduit returns the conduit b is, if it is one (tier 0 means the block
@@ -69,6 +90,9 @@ type Endpoint struct {
 	Pos  cube.Pos
 	Face cube.Face
 	Mode Mode
+	// Extract and Insert are the channels of taking items from the block and
+	// giving items to it.
+	Extract, Insert int
 }
 
 // Network is a set of touching conduits and the blocks with items next to them.
@@ -115,7 +139,8 @@ func Discover(tx *world.Tx, start cube.Pos, limit int) *Network {
 			if in, ex := itemio.IO(tx, next); in == nil && ex == nil {
 				continue
 			}
-			n.Ends = append(n.Ends, Endpoint{Pos: next, Face: f.Opposite(), Mode: mode})
+			ex, ins := c.ItemChannels(f)
+			n.Ends = append(n.Ends, Endpoint{Pos: next, Face: f.Opposite(), Mode: mode, Extract: ex, Insert: ins})
 		}
 	}
 	return n
@@ -146,7 +171,7 @@ func (n *Network) Step(tx *world.Tx) int {
 				break
 			}
 			dst := dests[(n.turn+j)%len(dests)]
-			if dst.Pos == src.Pos {
+			if dst.Pos == src.Pos || dst.Insert != src.Extract {
 				continue
 			}
 			got := itemio.Transfer(tx, src.Pos, src.Face, dst.Pos, dst.Face, left, nil)
