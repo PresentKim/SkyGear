@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -1752,6 +1752,316 @@
                     "row_b@df_form.marked_gslot_b": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  // The slots of the two column form (ui.ColumnsMenu): each column has full
+  // slots (§0§k§r left, §0§m§r right) and mini buttons without a slot
+  // (§0§l§r left, §0§n§r right).
+  // Full slot of the left column.
+  "vis_cols_a": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§k§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // Mini button of the left column.
+  "vis_cols_am": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§l§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // Full slot of the right column.
+  "vis_cols_b": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§m§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // Mini button of the right column.
+  "vis_cols_bm": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection", "binding_condition": "always_when_visible",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view", "binding_condition": "always_when_visible",
+        "source_property_name": "(not ((#form_button_text - '§0§n§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "marked_cols_a": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.cols_a_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "marked_cols_b": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.cols_b_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "cols_a_full@df_form.vis_cols_a": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "$df_slot_control|default": "df_form.gslot_button",
+    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
+  "cols_a_mini@df_form.vis_cols_am": {
+    "type": "panel",
+    "size": [ 16, 24 ],
+    "controls": [ { "btn@df_form.cols_mini_button": {} } ]
+  },
+  "cols_a_item": {
+    "type": "panel",
+    "size": [ "100%c", "100%c" ],
+    "controls": [
+      { "full@df_form.cols_a_full": {} },
+      { "mini@df_form.cols_a_mini": {} }
+    ]
+  },
+  "cols_b_full@df_form.vis_cols_b": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "$df_slot_control|default": "df_form.gslot_button",
+    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
+  "cols_b_mini@df_form.vis_cols_bm": {
+    "type": "panel",
+    "size": [ 16, 24 ],
+    "controls": [ { "btn@df_form.cols_mini_button": {} } ]
+  },
+  "cols_b_item": {
+    "type": "panel",
+    "size": [ "100%c", "100%c" ],
+    "controls": [
+      { "full@df_form.cols_b_full": {} },
+      { "mini@df_form.cols_b_mini": {} }
+    ]
+  },
+  // A mini button: only the item icon (12px, no slot), a faint highlight and
+  // the tooltip when the mouse is over it.
+  "cols_mini_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } }
+    ]
+  },
+  "cols_mini_face_tip": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      { "bg": { "type": "image", "texture": "textures/ui/df/button_hover", "alpha": 0.5, "layer": 1 } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } },
+      { "tipl@df_form.gslot_tooltip_l": {} },
+      { "tipr@df_form.gslot_tooltip_r": {} }
+    ]
+  },
+  "cols_mini_button@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 14, 14 ],
+    "anchor_from": "left_middle",
+    "anchor_to": "left_middle",
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.cols_mini_face": {} },
+      { "hover@df_form.cols_mini_face_tip": {} },
+      { "pressed@df_form.cols_mini_face_tip": {} }
+    ]
+  },
+
+  // The two column form (ui.ColumnsMenu, the conduit side settings): the body
+  // text in a panel on top, then two panels side by side, the left with the
+  // heading and row of slots of row A and the right with those of row B
+  // (§0§g§r, §0§d§r, §0§h§r, §0§e§r).
+  "gslot_cols_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window@df_form.window": {
+          "$df_window_size": [ 380, "85%" ],
+          "$df_content": "df_form.gslot_cols_scroll"
+        }
+      }
+    ]
+  },
+
+  "gslot_cols_scroll@common.scrolling_panel": {
+    "anchor_to": "top_left",
+    "anchor_from": "top_left",
+    "$show_background": false,
+    "size": [ "100%", "100%" ],
+    "$scrolling_content": "df_form.gslot_cols_content",
+    "$scroll_size": [ 4, "100% - 4px" ],
+    "$scrolling_pane_size": [ "100% - 6px", "100%" ],
+    "$scrolling_pane_offset": [ 0, 0 ],
+    "$scroll_bar_right_padding_size": [ 0, 0 ]
+  },
+
+  "gslot_cols_content": {
+    "type": "stack_panel",
+    "size": [ "100% - 6px", "100%c" ],
+    "orientation": "vertical",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "top": {
+          "type": "image",
+          "texture": "textures/ui/df/panel",
+          "size": [ "100%", "100%c + 12px" ],
+          "controls": [
+            {
+              "inner": {
+                "type": "panel",
+                "size": [ "100% - 12px", "100%c" ],
+                "offset": [ 6, 6 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [ { "label@df_form.body_label": {} } ]
+              }
+            }
+          ]
+        }
+      },
+      { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+      {
+        "columns": {
+          "type": "stack_panel",
+          "orientation": "horizontal",
+          "size": [ "100%", "100%c" ],
+          "controls": [
+            {
+              "left": {
+                "type": "image",
+                "texture": "textures/ui/df/panel",
+                "size": [ "fill", "100%c + 12px" ],
+                "controls": [
+                  {
+                    "inner": {
+                      "type": "stack_panel",
+                      "orientation": "vertical",
+                      "size": [ "100% - 12px", "100%c" ],
+                      "offset": [ 6, 6 ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "head1@df_form.marked_gslot_h1": {
+                            "orientation": "vertical",
+                            "size": [ "100%", "100%c" ]
+                          }
+                        },
+                        {
+                          "row_a@df_form.marked_cols_a": {
+                            "orientation": "horizontal",
+                            "size": [ "100%", "100%cm" ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            { "gap": { "type": "panel", "size": [ 8, 1 ] } },
+            {
+              "right": {
+                "type": "image",
+                "texture": "textures/ui/df/panel",
+                "size": [ "fill", "100%c + 12px" ],
+                "controls": [
+                  {
+                    "inner": {
+                      "type": "stack_panel",
+                      "orientation": "vertical",
+                      "size": [ "100% - 12px", "100%c" ],
+                      "offset": [ 6, 6 ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "head2@df_form.marked_gslot_h2": {
+                            "orientation": "vertical",
+                            "size": [ "100%", "100%c" ]
+                          }
+                        },
+                        {
+                          "row_b@df_form.marked_cols_b": {
+                            "orientation": "horizontal",
+                            "size": [ "100%", "100%cm" ]
+                          }
+                        }
+                      ]
                     }
                   }
                 ]

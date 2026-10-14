@@ -12,6 +12,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // run advances n steps of four ticks, calling Fast (which moves the energy)
@@ -528,4 +529,101 @@ func TestConduitBlockSizes(t *testing.T) {
 			t.Errorf("fluid tier %d moves %d mB/t, want %d", tier, fluidRate(tier), want)
 		}
 	}
+}
+
+// TestPlateClicksWithAnythingInHand: a sneaking player holding a tool opens the
+// settings by clicking the plate's square on the block it touches, or the side
+// of the conduit; one holding a conduit item places instead; standing does
+// nothing.
+func TestPlateClicksWithAnythingInHand(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(machinePos, block.NewChest(), nil)
+		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
+		b := tx.Block(pos).(ConduitBundle)
+		b.refresh(pos, tx)
+		click := func(at cube.Pos, face cube.Face, held item.Stack, sneak bool) bool {
+			p.SetHeldItems(held, item.Stack{})
+			if sneak {
+				p.StartSneaking()
+			} else {
+				p.StopSneaking()
+			}
+			ctx := player.NewEventContext(tx, p)
+			(&handler{s: s}).HandleItemUseOnBlock(ctx, at, face, mgl64.Vec3{1, 0.5, 0.5})
+			return ctx.Cancelled()
+		}
+		pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)
+		if !click(machinePos, cube.FaceEast, pick, true) {
+			t.Error("a pickaxe in hand: the chest face with the plate did not open the settings")
+		}
+		if !click(machinePos, cube.FaceEast, item.Stack{}, true) {
+			t.Error("an empty hand: the chest face did not open the settings")
+		}
+		if !click(pos, cube.FaceWest, pick, true) {
+			t.Error("a pickaxe in hand: the conduit's side with the plate did not open the settings")
+		}
+		if click(machinePos, cube.FaceEast, pick, false) {
+			t.Error("standing: the click was taken")
+		}
+		if click(machinePos, cube.FaceEast, item.NewStack(ItemConduit{Tier: 1}, 1), true) {
+			t.Error("a conduit item in hand did not place")
+		}
+	})
+}
+
+// TestChannelItems: a side state shows glass when off and concrete in the
+// channel's colour when on; every state has an icon.
+func TestChannelItems(t *testing.T) {
+	if _, ok := channelItem(0).(block.Glass); !ok {
+		t.Errorf("off shows %T", channelItem(0))
+	}
+	for c := range itemnet.Channels {
+		got, ok := channelItem(1 + c).(block.Concrete)
+		if !ok || got.Colour != channelColours[c] {
+			t.Errorf("channel %d shows %v", c, channelItem(1+c))
+		}
+		if ui.ItemIcon(channelItem(1+c)) == "" {
+			t.Errorf("channel %d has no icon", c)
+		}
+	}
+}
+
+// TestNextPlateSide: clicking a conduit where no plate sits opens the plates in
+// turn, one per click, and starts over after the last.
+func TestNextPlateSide(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(pos.Side(cube.FaceWest), block.NewChest(), nil)
+		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), nil)
+		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
+		b := tx.Block(pos).(ConduitBundle)
+		b.refresh(pos, tx)
+		b = tx.Block(pos).(ConduitBundle)
+		var got []int
+		for range 3 {
+			side, ok := s.nextPlateSide(p, tx, pos, b)
+			if !ok {
+				t.Fatal("no plate side")
+			}
+			got = append(got, side)
+		}
+		west, east := faceIndex(cube.FaceWest), faceIndex(cube.FaceEast)
+		first, second := min(west, east), max(west, east)
+		if got[0] != first || got[1] != second || got[2] != first {
+			t.Errorf("sides %v, want %d %d %d", got, first, second, first)
+		}
+		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
+		tx.SetBlock(pos.Side(cube.FaceWest), block.Air{}, nil)
+		tx.SetBlock(pos.Side(cube.FaceEast), block.Air{}, nil)
+		if _, ok := s.nextPlateSide(p, tx, pos, ConduitBundle{Item: 1}); ok {
+			t.Error("a side without targets was found")
+		}
+	})
 }

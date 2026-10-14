@@ -104,22 +104,13 @@ var channelColours = [16]color.RGBA{
 	{249, 128, 29, 255}, {249, 255, 254, 255}, {29, 29, 33, 255}, {176, 46, 38, 255},
 }
 
-// plates writes the textures of the connector plate entity (conduitplate.go):
-// the plate itself (16×16 at (0, 0)) and, for each channel colour, the input
-// and output arrow (EnderIO's arrows, 24×24 at (0, 0), tinted).
+// plates writes the textures of the connector entity (conduitplate.go): for each
+// channel colour the input and output arrow (EnderIO's arrows, 24×24, tinted):
+// at (0, 0) as they are (the input points down, the output up) and at (32, 0)
+// turned a quarter counterclockwise (the input points right, the output left),
+// for the faces where an arrow runs along the u axis.
 func plates(src, pack string) {
 	dir := filepath.Join(pack, "textures/entity/dragonfactory")
-	plate := image.NewRGBA(image.Rect(0, 0, 64, 64))
-	for y := 0; y < 16; y++ {
-		for x := 0; x < 16; x++ {
-			c := color.RGBA{44, 45, 46, 255}
-			if x == 0 || y == 0 || x == 15 || y == 15 {
-				c = color.RGBA{30, 31, 32, 255}
-			}
-			plate.Set(x, y, c)
-		}
-	}
-	save(filepath.Join(dir, "conduit_plate.png"), plate)
 	for _, dir2 := range []string{"in", "out"} {
 		arrow := load(filepath.Join(src, "arrow_"+dir2+".png"))
 		for i, col := range channelColours {
@@ -130,9 +121,12 @@ func plates(src, pack string) {
 					if a == 0 {
 						continue
 					}
-					im.Set(x, y, color.RGBA{
+					c := color.RGBA{
 						uint8(uint32(col.R) * (r >> 8) / 255), uint8(uint32(col.G) * (g >> 8) / 255), uint8(uint32(col.B) * (b >> 8) / 255), uint8(a >> 8),
-					})
+					}
+					im.Set(x, y, c)
+					// a quarter turn counterclockwise: (x, y) goes to (y, 23-x)
+					im.Set(32+y, 23-x, c)
 				}
 			}
 			save(filepath.Join(dir, fmt.Sprintf("channel_%s_%d.png", dir2, i)), im)

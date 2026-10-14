@@ -139,40 +139,6 @@
         }
       ]
     },
-    "controller.render.dragonfactory_plate_plate": {
-      "geometry": "Geometry.default",
-      "materials": [
-        {
-          "*": "Material.default"
-        }
-      ],
-      "textures": [
-        "Texture.plate"
-      ],
-      "part_visibility": [
-        {
-          "*": "0"
-        },
-        {
-          "plate_down": "(math.mod(query.variant, 6) == 0) && (1)"
-        },
-        {
-          "plate_up": "(math.mod(query.variant, 6) == 1) && (1)"
-        },
-        {
-          "plate_north": "(math.mod(query.variant, 6) == 2) && (1)"
-        },
-        {
-          "plate_south": "(math.mod(query.variant, 6) == 3) && (1)"
-        },
-        {
-          "plate_west": "(math.mod(query.variant, 6) == 4) && (1)"
-        },
-        {
-          "plate_east": "(math.mod(query.variant, 6) == 5) && (1)"
-        }
-      ]
-    },
     "controller.render.dragonfactory_plate_collar_energy": {
       "geometry": "Geometry.default",
       "materials": [

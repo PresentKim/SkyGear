@@ -7,7 +7,6 @@
         "default": "entity_alphatest"
       },
       "textures": {
-        "plate": "textures/entity/dragonfactory/conduit_plate",
         "energy_1": "textures/entity/dragonfactory/conduit_energy_1",
         "energy_2": "textures/entity/dragonfactory/conduit_energy_2",
         "energy_3": "textures/entity/dragonfactory/conduit_energy_3",
@@ -54,7 +53,6 @@
         "default": "geometry.dragonfactory.conduit_plate"
       },
       "render_controllers": [
-        "controller.render.dragonfactory_plate_plate",
         "controller.render.dragonfactory_plate_collar_energy",
         "controller.render.dragonfactory_plate_collar_item",
         "controller.render.dragonfactory_plate_collar_fluid",

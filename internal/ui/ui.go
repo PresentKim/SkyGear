@@ -343,6 +343,16 @@ const (
 	// WrapToken starts the title of an item slot form in a wrapping grid
 	// (ItemGrid).
 	WrapToken = "§d§f§h§r"
+	// ColumnsToken starts the title of a form with two columns of slots
+	// (ColumnsMenu).
+	ColumnsToken = "§d§f§j§r"
+
+	// colsATok and colsAmTok mark the full slots and mini buttons of the left
+	// column of a ColumnsMenu, colsBTok and colsBmTok those of the right one.
+	colsATok  = "§0§k§r"
+	colsAmTok = "§0§l§r"
+	colsBTok  = "§0§m§r"
+	colsBmTok = "§0§n§r"
 
 	slotAToken   = "§0§d§r"
 	slotBToken   = "§0§e§r"
@@ -371,6 +381,9 @@ const (
 type ItemSlot struct {
 	Icon, Count, Tip string
 	Run              func(p *player.Player, tx *world.Tx)
+	// Mini makes a ColumnsMenu slot a small button without a slot frame, drawn
+	// beside the slot before it.
+	Mini bool
 }
 
 // SlotRow is a heading with a row of slots (at most 8 fit).
@@ -479,6 +492,31 @@ func ItemDetail(p *player.Player, title string, d Detail, rows []SlotRow, action
 		}
 	}
 	Menu(p, DetailToken+title, d.Body, opts...)
+}
+
+// ColumnsMenu sends a form with the body text on top and under it two columns
+// side by side, each a heading with a row of slots (left, right) and, after
+// a slot, small buttons without a frame (ItemSlot.Mini). The tooltips of the left column grow to the right and those
+// of the right column to the left. Any press answers the form: Run must show a
+// form again.
+func ColumnsMenu(p *player.Player, title, body string, left, right SlotRow, actions ...Option) {
+	opts := actionOptions(actions)
+	// full slot and mini button markers of each column
+	kinds := [2][2]string{{colsATok, colsAmTok}, {colsBTok, colsBmTok}}
+	heads := [2]string{head1Token, head2Token}
+	for i, row := range []SlotRow{left, right} {
+		if row.Heading != "" {
+			opts = append(opts, Option{Label: heads[i] + row.Heading, Run: func(*player.Player, *world.Tx) {}})
+		}
+		for _, sl := range row.Slots {
+			marker := kinds[i][0]
+			if sl.Mini {
+				marker = kinds[i][1]
+			}
+			opts = append(opts, slotOption(marker, i == 1, sl))
+		}
+	}
+	Menu(p, ColumnsToken+title, body, opts...)
 }
 
 // ItemGrid sends a form with the body text, then the item slots in a grid

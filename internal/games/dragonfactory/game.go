@@ -20,6 +20,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/waila"
@@ -165,6 +166,9 @@ type session struct {
 	visuals map[cube.Pos]*world.EntityHandle
 	// plates are the connector plate entities of the bundles (conduitplate.go).
 	plates map[plateKey]*world.EntityHandle
+	// plateTurn is the side of the last connector plate form each player was
+	// shown by clicking a conduit where no plate sits (nextPlateSide).
+	plateTurn map[uuid.UUID]int
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and

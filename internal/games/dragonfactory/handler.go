@@ -87,14 +87,25 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
-	// A sneaking player with an empty hand who clicks the face of a block where
-	// a conduit's connector plate sits opens the settings of that side.
-	if p.Sneaking() && held.Empty() {
-		if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok {
+	// A sneaking player who clicks the face of a block where a conduit's
+	// connector plate sits, or the side of a conduit that has one, opens the
+	// settings of that side, whatever they hold (a conduit item in hand places).
+	if p.Sneaking() && !isConduitItem(held) {
+		if at, _, side, ok := plateHit(tx, pos, face, clickPos); ok {
 			ctx.Cancel()
 			h.s.showPlateForm(p, tx, at, side)
-			_ = b
 			return
+		}
+		if b, ok := tx.Block(pos).(ConduitBundle); ok && len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
+			ctx.Cancel()
+			h.s.showPlateForm(p, tx, pos, faceIndex(face))
+			return
+		} else if ok {
+			if side, found := h.s.nextPlateSide(p, tx, pos, b); found {
+				ctx.Cancel()
+				h.s.showPlateForm(p, tx, pos, side)
+				return
+			}
 		}
 	}
 	if h.s.useStick(p, tx, pos, face, held) {

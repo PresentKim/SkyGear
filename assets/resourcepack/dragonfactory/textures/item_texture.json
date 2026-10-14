@@ -168,6 +168,9 @@
     },
     "dragonfactory:energy_gauge_10": {
       "textures": "textures/items/energy_gauge_10"
+    },
+    "dragonfactory:plus": {
+      "textures": "textures/items/plus"
     }
   },
   "texture_name": "atlas.items"

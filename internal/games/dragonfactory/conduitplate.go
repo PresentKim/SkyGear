@@ -2,8 +2,11 @@ package dragonfactory
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
@@ -247,4 +250,34 @@ func sideName(f cube.Face) string {
 	return map[cube.Face]string{
 		cube.FaceUp: "up", cube.FaceDown: "down", cube.FaceNorth: "north", cube.FaceSouth: "south", cube.FaceWest: "west", cube.FaceEast: "east",
 	}[f]
+}
+
+// isConduitItem reports whether the stack is a conduit to place.
+func isConduitItem(st item.Stack) bool {
+	switch st.Item().(type) {
+	case EnergyConduit, ItemConduit, FluidConduit, legacyConduit:
+		return true
+	}
+	return false
+}
+
+// nextPlateSide finds the side with a connector plate that comes after the one
+// the player was last shown by clicking a side without a plate, and remembers
+// it, so clicking a conduit again opens the next target block.
+func (s *session) nextPlateSide(p *player.Player, tx *world.Tx, pos cube.Pos, b ConduitBundle) (int, bool) {
+	last, ok := s.plateTurn[p.UUID()]
+	if !ok {
+		last = -1
+	}
+	for i := 1; i <= 6; i++ {
+		side := (last + i + 6) % 6
+		if len(plateKinds(tx, pos, b, side)) > 0 {
+			if s.plateTurn == nil {
+				s.plateTurn = map[uuid.UUID]int{}
+			}
+			s.plateTurn[p.UUID()] = side
+			return side, true
+		}
+	}
+	return 0, false
 }

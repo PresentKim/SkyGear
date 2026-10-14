@@ -235,8 +235,9 @@ func (b ConduitBundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 }
 
-// Activate opens the settings of the clicked side (empty hand, sneaking) if
-// that side has a connector plate (conduitplate.go).
+// Activate opens the settings of the clicked side (sneaking, empty hand: with
+// something in hand the handler does it) if that side has a connector plate
+// (conduitplate.go).
 func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	if !ok || !p.Sneaking() {
