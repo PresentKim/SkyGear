@@ -1,7 +1,6 @@
 {
-	/* r4isen1920によって作成されました | MITライセンス */
 
-	"namespace": "r4isen1920_waila_tile",
+	"namespace": "waila_tile",
 
 	//* dragonfactory change: the server (Go, no Script API) sends the looked-at
 	//* item's runtime ID × 65536 in the subtitle, after an "i" so the pack
@@ -101,7 +100,7 @@
 						},
 
 						{
-							"item_amount@r4isen1920_waila_common.label": {
+							"item_amount@waila_common.label": {
 								"anchor_from": "bottom_right",
 								"anchor_to": "bottom_right",
 								"offset": [0, 1],
@@ -244,7 +243,7 @@
 				}
 			},
 			{
-				"count@r4isen1920_waila_common.label": {
+				"count@waila_common.label": {
 					"anchor_from": "bottom_right",
 					"anchor_to": "bottom_right",
 					"offset": [
@@ -350,7 +349,7 @@
 		],
 		"controls": [
 			{
-				"lock@r4isen1920_waila_common.label": {
+				"lock@waila_common.label": {
 					"text": "$df_lock",
 					"font_scale_factor": 0.6,
 					"offset": [
@@ -367,7 +366,7 @@
 				}
 			},
 			{
-				"multiplier@r4isen1920_waila_common.label": {
+				"multiplier@waila_common.label": {
 					"text": "$df_mult",
 					"font_scale_factor": 0.6,
 					"offset": [
@@ -392,7 +391,7 @@
 				}
 			},
 			{
-				"void@r4isen1920_waila_common.label": {
+				"void@waila_common.label": {
 					"text": "$df_void",
 					"font_scale_factor": 0.6,
 					"offset": [
@@ -420,7 +419,7 @@
 		],
 		"controls": [
 			{
-				"name@r4isen1920_waila_common.label": {
+				"name@waila_common.label": {
 					"color": [
 						0.75,
 						0.75,
@@ -449,7 +448,7 @@
 				}
 			},
 			{
-				"text@r4isen1920_waila_common.label": {
+				"text@waila_common.label": {
 					"offset": [
 						2,
 						0
@@ -458,7 +457,7 @@
 				}
 			},
 			{
-				"gauge@r4isen1920_waila_common.label": {
+				"gauge@waila_common.label": {
 					"offset": [
 						2,
 						0
@@ -524,12 +523,12 @@
 
 		"controls": [
 			{
-				"input@r4isen1920_waila_tile.item_inventory": {
+				"input@waila_tile.item_inventory": {
 					"$index": 0
 				}
 			},
 			{
-				"fuel@r4isen1920_waila_tile.item_inventory": {
+				"fuel@waila_tile.item_inventory": {
 					"$index": 1
 				}
 			},
@@ -540,7 +539,7 @@
 						// dragonfactory change: the server's progress arrow item (panel
 						// slot 17), filled to how far the item is cooked.
 						{
-							"arrow@r4isen1920_waila_tile.item_inventory": {
+							"arrow@waila_tile.item_inventory": {
 								"$index": 17
 							}
 						}
@@ -548,7 +547,7 @@
 				}
 			},
 			{
-				"output@r4isen1920_waila_tile.item_inventory": {
+				"output@waila_tile.item_inventory": {
 					"$index": 2
 				}
 			}
@@ -571,13 +570,13 @@
 
 					"controls": [
 						{
-							"reagent@r4isen1920_waila_tile.item_inventory": {
+							"reagent@waila_tile.item_inventory": {
 								"$index": 0
 							}
 						},
 						{ "padding@common.empty_panel": { "size": [14, 2] } },
 						{
-							"blaze_powder@r4isen1920_waila_tile.item_inventory": {
+							"blaze_powder@waila_tile.item_inventory": {
 								"$index": 4
 							}
 						}
@@ -589,9 +588,9 @@
 					"size": [18, "100%"], // 12px + 6px (padding)
 					"controls": [
 						{
-							"bubbles@r4isen1920_waila_common.image": {
+							"bubbles@waila_common.image": {
 								"size": [12, 30],
-								"texture": "textures/r4isen1920/waila/bubbles"
+								"texture": "textures/waila/bubbles"
 							}
 						}
 					]
@@ -606,13 +605,13 @@
 
 					"controls": [
 						{
-							"potion_1@r4isen1920_waila_tile.item_inventory": {
+							"potion_1@waila_tile.item_inventory": {
 								"$index": 1
 							}
 						},
 						{ "padding@common.empty_panel": { "size": [14, 2] } },
 						{
-							"potion_3@r4isen1920_waila_tile.item_inventory": {
+							"potion_3@waila_tile.item_inventory": {
 								"$index": 3
 							}
 						}
@@ -625,7 +624,7 @@
 
 					"controls": [
 						{
-							"potion_2@r4isen1920_waila_tile.item_inventory": {
+							"potion_2@waila_tile.item_inventory": {
 								"$index": 2
 							}
 						}
@@ -655,7 +654,7 @@
 
 					"controls": [
 						{
-							"item@r4isen1920_waila_tile.item_inventory": {
+							"item@waila_tile.item_inventory": {
 							}
 						}
 					]
@@ -677,58 +676,58 @@
 
 		"controls": [
 			{
-				"row_0@r4isen1920_waila_tile.generic_container_inventory_row": {
+				"row_0@waila_tile.generic_container_inventory_row": {
 					"controls": [
 						{
-							"item_0@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_0@waila_tile.generic_container_inventory_item": {
 								"$a_index": 0,
 								"$border_type": "top_left"
 							}
 						},
 						{
-							"item_1@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_1@waila_tile.generic_container_inventory_item": {
 								"$a_index": 1,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_2@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_2@waila_tile.generic_container_inventory_item": {
 								"$a_index": 2,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_3@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_3@waila_tile.generic_container_inventory_item": {
 								"$a_index": 3,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_4@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_4@waila_tile.generic_container_inventory_item": {
 								"$a_index": 4,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_5@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_5@waila_tile.generic_container_inventory_item": {
 								"$a_index": 5,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_6@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_6@waila_tile.generic_container_inventory_item": {
 								"$a_index": 6,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_7@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_7@waila_tile.generic_container_inventory_item": {
 								"$a_index": 7,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_8@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_8@waila_tile.generic_container_inventory_item": {
 								"$a_index": 9, //? skipped a_index 8 because it is reserved for block icon
 								"$border_type": "top_right"
 							}
@@ -747,22 +746,22 @@
 
 		"controls": [
 			{
-				"row_0@r4isen1920_waila_tile.generic_container_inventory_row": {
+				"row_0@waila_tile.generic_container_inventory_row": {
 					"controls": [
 						{
-							"item_0@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_0@waila_tile.generic_container_inventory_item": {
 								"$a_index": 0,
 								"$border_type": "top_left"
 							}
 						},
 						{
-							"item_1@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_1@waila_tile.generic_container_inventory_item": {
 								"$a_index": 1,
 								"$border_type": "top_middle"
 							}
 						},
 						{
-							"item_2@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_2@waila_tile.generic_container_inventory_item": {
 								"$a_index": 2,
 								"$border_type": "top_right"
 							}
@@ -771,21 +770,21 @@
 				}
 			},
 			{
-				"row_1@r4isen1920_waila_tile.generic_container_inventory_row": {
+				"row_1@waila_tile.generic_container_inventory_row": {
 					"controls": [
 						{
-							"item_0@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_0@waila_tile.generic_container_inventory_item": {
 								"$a_index": 3,
 								"$border_type": "left_middle"
 							}
 						},
 						{
-							"item_1@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_1@waila_tile.generic_container_inventory_item": {
 								"$a_index": 4
 							}
 						},
 						{
-							"item_2@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_2@waila_tile.generic_container_inventory_item": {
 								"$a_index": 5,
 								"$border_type": "right_middle"
 							}
@@ -794,22 +793,22 @@
 				}
 			},
 			{
-				"row_2@r4isen1920_waila_tile.generic_container_inventory_row": {
+				"row_2@waila_tile.generic_container_inventory_row": {
 					"controls": [
 						{
-							"item_0@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_0@waila_tile.generic_container_inventory_item": {
 								"$a_index": 6,
 								"$border_type": "bottom_left"
 							}
 						},
 						{
-							"item_1@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_1@waila_tile.generic_container_inventory_item": {
 								"$a_index": 7,
 								"$border_type": "bottom_middle"
 							}
 						},
 						{
-							"item_2@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_2@waila_tile.generic_container_inventory_item": {
 								"$a_index": 9, //? skipped a_index 8 because it is reserved for block icon
 								"$border_type": "bottom_right"
 							}
@@ -828,34 +827,34 @@
 
 		"controls": [
 			{
-				"row_0@r4isen1920_waila_tile.generic_container_inventory_row": {
+				"row_0@waila_tile.generic_container_inventory_row": {
 					"controls": [
 						{
-							"item_0@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_0@waila_tile.generic_container_inventory_item": {
 								"$a_index": 0,
 								"$border_type": "leftmost"
 							}
 						},
 						{
-							"item_1@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_1@waila_tile.generic_container_inventory_item": {
 								"$a_index": 1,
 								"$border_type": "middlemost"
 							}
 						},
 						{
-							"item_2@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_2@waila_tile.generic_container_inventory_item": {
 								"$a_index": 2,
 								"$border_type": "middlemost"
 							}
 						},
 						{
-							"item_3@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_3@waila_tile.generic_container_inventory_item": {
 								"$a_index": 3,
 								"$border_type": "middlemost"
 							}
 						},
 						{
-							"item_4@r4isen1920_waila_tile.generic_container_inventory_item": {
+							"item_4@waila_tile.generic_container_inventory_item": {
 								"$a_index": 4,
 								"$border_type": "rightmost"
 							}
@@ -884,7 +883,7 @@
 
 		"controls": [
 			{
-				"icon_0@r4isen1920_waila_common.image": {
+				"icon_0@waila_common.image": {
 					"texture": "$texture",
 					"size": ["100%y", "100%"],
 					"bilinear": true,
@@ -892,17 +891,17 @@
 					"variables": [
 						{
 							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.9s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.9s' * $var_title_text)))) - ':')"
 						},
 						{
 							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.40s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.40s' * $var_title_text)))) - ':')"
 						}
 					],
 
 					"controls": [
 						{
-							"remarks@r4isen1920_waila_common.image": {
+							"remarks@waila_common.image": {
 								"texture": "$texture",
 								"bilinear": true,
 
@@ -913,11 +912,11 @@
 								"variables": [
 									{
 										"requires": "($tooltip_renderer_type = 'A:')",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.12s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.12s' * $var_title_text)))) - ':')"
 									},
 									{
 										"requires": "(not ($tooltip_renderer_type = 'A:'))",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.43s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.43s' * $var_title_text)))) - ':')"
 									}
 								]
 							}
@@ -928,7 +927,7 @@
 				}
 			},
 			{
-				"icon_1@r4isen1920_waila_common.image": {
+				"icon_1@waila_common.image": {
 					"texture": "$texture",
 					"size": ["100%y", "100%"],
 					"bilinear": true,
@@ -936,17 +935,17 @@
 					"variables": [
 						{
 							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.14s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.14s' * $var_title_text)))) - ':')"
 						},
 						{
 							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/r4isen1920/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.45s' * $var_title_text)))) - ':')"
+							"$texture": "(('textures/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.45s' * $var_title_text)))) - ':')"
 						}
 					],
 
 					"controls": [
 						{
-							"remarks@r4isen1920_waila_common.image": {
+							"remarks@waila_common.image": {
 								"texture": "$texture",
 								"bilinear": true,
 
@@ -957,11 +956,11 @@
 								"variables": [
 									{
 										"requires": "($tooltip_renderer_type = 'A:')",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.17s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.17s' * $var_title_text)))) - ':')"
 									},
 									{
 										"requires": "(not ($tooltip_renderer_type = 'A:'))",
-										"$texture": "(('textures/r4isen1920/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.48s' * $var_title_text)))) - ':')"
+										"$texture": "(('textures/waila/icons/tags/' + ('%.1s' * ($var_title_text - ('%.48s' * $var_title_text)))) - ':')"
 									}
 								]
 							}

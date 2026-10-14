@@ -1,7 +1,6 @@
 {
-	/* r4isen1920によって作成されました | MITライセンス */
 
-	"namespace": "r4isen1920_waila_common",
+	"namespace": "waila_common",
 
 	"label": {
 		"type": "label",
@@ -31,7 +30,7 @@
 		"controls": [
 			{
 				"icon@image": {
-					"$texture_path": "('textures/r4isen1920/waila/icons/' + $texture)",
+					"$texture_path": "('textures/waila/icons/' + $texture)",
 					"texture": "$texture_path",
 					"ignored": "(($texture = 'x') or ($texture = 'y'))",
 

@@ -116,7 +116,7 @@ func TestItemField(t *testing.T) {
 
 // TestPackFields: the pack cuts the subtitle where Format puts the fields.
 func TestPackFields(t *testing.T) {
-	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestPackFields(t *testing.T) {
 	}
 	for _, w := range wants {
 		if !strings.Contains(pack, w) {
-			t.Errorf("tile.r4ui misses %s", w)
+			t.Errorf("tile.json misses %s", w)
 		}
 	}
 }
@@ -166,13 +166,13 @@ func TestTail(t *testing.T) {
 		t.Errorf("marks only: %q %q", title, sub)
 	}
 	// The pack cuts the same places.
-	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, at := range []int{tailStart, flagsStart, flagsStart + 1, flagsStart + 2, flagsStart + 3, textStart, nameStart} {
 		if w := fmt.Sprintf("('%%.%ds' * $var_subtitle_text)", at); !strings.Contains(string(data), w) {
-			t.Errorf("tile.r4ui does not cut at %d", at)
+			t.Errorf("tile.json does not cut at %d", at)
 		}
 	}
 }
@@ -186,8 +186,8 @@ func TestFurnaceProgress(t *testing.T) {
 	if got := sub[start : start+iconWidth]; got == empty || got != itemField(item.NewStack(block.Stone{}, 1)) {
 		t.Errorf("progress slot %q", got)
 	}
-	data, _ := os.ReadFile("../../assets/resourcepack/waila/ui/r4isen1920/waila/tile.r4ui")
+	data, _ := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if !strings.Contains(string(data), fmt.Sprintf(`"$index": %d`, progressSlot)) {
-		t.Errorf("tile.r4ui draws no slot %d", progressSlot)
+		t.Errorf("tile.json draws no slot %d", progressSlot)
 	}
 }

@@ -1,5 +1,5 @@
 pack.name=§7[v5.1]§r WAILA [RP]	## WAILA stands for "What Am I Looking At" (pronounced "why-la"). When translating, retain the "WAILA" acronym as is.
-pack.description=Zobacz, na co patrzysz, wyświetlane w HUD. Stworzone przez r4isen1920.
+pack.description=Zobacz, na co patrzysz, wyświetlane w HUD.
 
 waila.settings.title=Ustawienia WAILA
 waila.settings.title_for=Ustawienia WAILA dla %s	## %s is where the player name would be

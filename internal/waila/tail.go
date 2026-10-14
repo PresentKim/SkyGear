@@ -11,7 +11,7 @@ import (
 // field, four flags (lock 'L', capacity upgrades 'a'+n, void 'V', the line's
 // gauge 'a'+tenths; '-' for none), the item line's text in textWidth bytes
 // padded with '~', and the item line's name (the rest). The pack reads it
-// in tile.r4ui df_marks and df_item_line.
+// in tile.json df_marks and df_item_line.
 const (
 	tailStart  = 1 + iconWidth + panelSlots*(iconWidth+countWidth)
 	flagsStart = tailStart + iconWidth

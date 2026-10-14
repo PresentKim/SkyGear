@@ -1,6 +1,5 @@
 // Package waila shows what a player looks at in the WAILA HUD panel. The
-// panel is the WAILA resource pack (assets/resourcepack/waila, MIT, by
-// r4isen1920); this package does what its Script API behaviour pack did:
+// panel is the WAILA resource pack (assets/resourcepack/waila); this package does what its Script API behaviour pack did:
 // it sends the panel's data as a title the pack draws instead of a vanilla
 // title (docs/tech/waila.md). Games find the target and fill an Info.
 package waila
@@ -18,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Tool is a tool icon of the panel (textures/r4isen1920/waila/icons/tags/
+// Tool is a tool icon of the panel (textures/waila/icons/tags/
 // tile/<code>.png).
 type Tool string
 

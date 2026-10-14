@@ -1,5 +1,4 @@
 {
-	/* created by r4isen1920 | MIT License */
 
 	"namespace": "hud",
 
@@ -54,7 +53,7 @@
 							"factory": {
 								"name": "hud_title_text_factory",
 								"control_ids": {
-									"hud_title_text": "disp@r4isen1920_waila_main.centerer"
+									"hud_title_text": "disp@waila_main.centerer"
 								}
 							}
 						}

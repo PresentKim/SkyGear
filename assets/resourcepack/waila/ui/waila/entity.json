@@ -1,7 +1,6 @@
 {
-	/* r4isen1920によって作成されました | MITライセンス */
 
-	"namespace": "r4isen1920_waila_entity",
+	"namespace": "waila_entity",
 
 	"status_effect_renderer@common.empty_panel": {
 		"size": ["100%c", "100%c"],
@@ -44,7 +43,7 @@
 
 								"controls": [
 									{
-										"icon@r4isen1920_waila_common.image": {
+										"icon@waila_common.image": {
 											"$texture": "('textures/ui/' + $data_a + '_effect')",
 											"texture": "$texture",
 											"keep_ratio": true,
@@ -86,7 +85,7 @@
 
 											"controls": [
 												{
-													"name@r4isen1920_waila_common.label": {
+													"name@waila_common.label": {
 														"text": "$data_b",
 														"font_scale_factor": 0.75,
 														"localize": true,
@@ -94,14 +93,14 @@
 													}
 												},
 												{
-													"padding@r4isen1920_waila_common.label": {
+													"padding@waila_common.label": {
 														"text": " ",
 														"font_scale_factor": 0.75,
 														"color": "$color"
 													}
 												},
 												{
-													"amplifier@r4isen1920_waila_common.label": {
+													"amplifier@waila_common.label": {
 														"text": "$text",
 														"font_scale_factor": 0.75,
 														"color": "$color",
@@ -123,7 +122,7 @@
 										}
 									},
 									{
-										"duration@r4isen1920_waila_common.label": {
+										"duration@waila_common.label": {
 											"text": "#text",
 											"font_scale_factor": 0.75,
 											"color": "$7_color_format",
@@ -165,7 +164,7 @@
 
 								"controls": [
 									{
-										"icon@r4isen1920_waila_common.image": {
+										"icon@waila_common.image": {
 											"$texture": "('textures/ui/' + $data_a + '_effect')",
 											"texture": "$texture",
 											"keep_ratio": true,
@@ -176,7 +175,7 @@
 
 											"controls": [
 												{
-													"amplifier@r4isen1920_waila_common.label": {
+													"amplifier@waila_common.label": {
 														"anchor_from": "bottom_right",
 														"anchor_to": "bottom_right",
 														"offset": [0, 1],
@@ -250,52 +249,52 @@
 
 		"controls": [
 			{
-				"heart_0@r4isen1920_waila_common.icon_renderer": {
+				"heart_0@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.9s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_1@r4isen1920_waila_common.icon_renderer": {
+				"heart_1@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.10s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_2@r4isen1920_waila_common.icon_renderer": {
+				"heart_2@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.11s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_3@r4isen1920_waila_common.icon_renderer": {
+				"heart_3@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.12s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_4@r4isen1920_waila_common.icon_renderer": {
+				"heart_4@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.13s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_5@r4isen1920_waila_common.icon_renderer": {
+				"heart_5@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.14s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_6@r4isen1920_waila_common.icon_renderer": {
+				"heart_6@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.15s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_7@r4isen1920_waila_common.icon_renderer": {
+				"heart_7@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.16s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_8@r4isen1920_waila_common.icon_renderer": {
+				"heart_8@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.17s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_9@r4isen1920_waila_common.icon_renderer": {
+				"heart_9@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.18s' * $var_title_text)))"
 				}
 			}
@@ -311,52 +310,52 @@
 
 		"controls": [
 			{
-				"heart_10@r4isen1920_waila_common.icon_renderer": {
+				"heart_10@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.19s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_11@r4isen1920_waila_common.icon_renderer": {
+				"heart_11@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.20s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_12@r4isen1920_waila_common.icon_renderer": {
+				"heart_12@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.21s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_13@r4isen1920_waila_common.icon_renderer": {
+				"heart_13@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.22s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_14@r4isen1920_waila_common.icon_renderer": {
+				"heart_14@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.23s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_15@r4isen1920_waila_common.icon_renderer": {
+				"heart_15@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.24s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_16@r4isen1920_waila_common.icon_renderer": {
+				"heart_16@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.25s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_17@r4isen1920_waila_common.icon_renderer": {
+				"heart_17@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.26s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_18@r4isen1920_waila_common.icon_renderer": {
+				"heart_18@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.27s' * $var_title_text)))"
 				}
 			},
 			{
-				"heart_19@r4isen1920_waila_common.icon_renderer": {
+				"heart_19@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.28s' * $var_title_text)))"
 				}
 			}
@@ -373,52 +372,52 @@
 
 		"controls": [
 			{
-				"armor_0@r4isen1920_waila_common.icon_renderer": {
+				"armor_0@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.29s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_1@r4isen1920_waila_common.icon_renderer": {
+				"armor_1@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.30s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_2@r4isen1920_waila_common.icon_renderer": {
+				"armor_2@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.31s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_3@r4isen1920_waila_common.icon_renderer": {
+				"armor_3@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.32s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_4@r4isen1920_waila_common.icon_renderer": {
+				"armor_4@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.33s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_5@r4isen1920_waila_common.icon_renderer": {
+				"armor_5@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.34s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_6@r4isen1920_waila_common.icon_renderer": {
+				"armor_6@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.35s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_7@r4isen1920_waila_common.icon_renderer": {
+				"armor_7@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.36s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_8@r4isen1920_waila_common.icon_renderer": {
+				"armor_8@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.37s' * $var_title_text)))"
 				}
 			},
 			{
-				"armor_9@r4isen1920_waila_common.icon_renderer": {
+				"armor_9@waila_common.icon_renderer": {
 					"$texture": "('%.1s' * ($var_title_text - ('%.38s' * $var_title_text)))"
 				}
 			}
@@ -450,7 +449,7 @@
 
 					"controls": [
 						{
-							"speed@r4isen1920_waila_entity.status_effect_renderer": {
+							"speed@waila_entity.status_effect_renderer": {
 								"$data_a": "speed",
 								"$data_b": "potion.moveSpeed",
 								"$data_c": false,
@@ -458,7 +457,7 @@
 							}
 						},
 						{
-							"slowness@r4isen1920_waila_entity.status_effect_renderer": {
+							"slowness@waila_entity.status_effect_renderer": {
 								"$data_a": "slowness",
 								"$data_b": "potion.moveSlowdown",
 								"$data_c": true,
@@ -466,7 +465,7 @@
 							}
 						},
 						{
-							"haste@r4isen1920_waila_entity.status_effect_renderer": {
+							"haste@waila_entity.status_effect_renderer": {
 								"$data_a": "haste",
 								"$data_b": "potion.digSpeed",
 								"$data_c": false,
@@ -474,7 +473,7 @@
 							}
 						},
 						{
-							"mining_fatigue@r4isen1920_waila_entity.status_effect_renderer": {
+							"mining_fatigue@waila_entity.status_effect_renderer": {
 								"$data_a": "mining_fatigue",
 								"$data_b": "potion.digSlowDown",
 								"$data_c": true,
@@ -482,7 +481,7 @@
 							}
 						},
 						{
-							"strength@r4isen1920_waila_entity.status_effect_renderer": {
+							"strength@waila_entity.status_effect_renderer": {
 								"$data_a": "strength",
 								"$data_b": "potion.damageBoost",
 								"$data_c": false,
@@ -490,7 +489,7 @@
 							}
 						},
 						{
-							"instant_health@r4isen1920_waila_entity.status_effect_renderer": {
+							"instant_health@waila_entity.status_effect_renderer": {
 								"$data_a": "instant_health",
 								"$data_b": "potion.heal",
 								"$data_c": false,
@@ -498,7 +497,7 @@
 							}
 						},
 						{
-							"instant_damage@r4isen1920_waila_entity.status_effect_renderer": {
+							"instant_damage@waila_entity.status_effect_renderer": {
 								"$data_a": "instant_damage",
 								"$data_b": "potion.harm",
 								"$data_c": true,
@@ -506,7 +505,7 @@
 							}
 						},
 						{
-							"jump_boost@r4isen1920_waila_entity.status_effect_renderer": {
+							"jump_boost@waila_entity.status_effect_renderer": {
 								"$data_a": "jump_boost",
 								"$data_b": "potion.jump",
 								"$data_c": false,
@@ -514,7 +513,7 @@
 							}
 						},
 						{
-							"nausea@r4isen1920_waila_entity.status_effect_renderer": {
+							"nausea@waila_entity.status_effect_renderer": {
 								"$data_a": "nausea",
 								"$data_b": "potion.confusion",
 								"$data_c": true,
@@ -522,7 +521,7 @@
 							}
 						},
 						{
-							"regeneration@r4isen1920_waila_entity.status_effect_renderer": {
+							"regeneration@waila_entity.status_effect_renderer": {
 								"$data_a": "regeneration",
 								"$data_b": "potion.regeneration",
 								"$data_c": false,
@@ -530,7 +529,7 @@
 							}
 						},
 						{
-							"resistance@r4isen1920_waila_entity.status_effect_renderer": {
+							"resistance@waila_entity.status_effect_renderer": {
 								"$data_a": "resistance",
 								"$data_b": "potion.resistance",
 								"$data_c": false,
@@ -538,7 +537,7 @@
 							}
 						},
 						{
-							"fire_resistance@r4isen1920_waila_entity.status_effect_renderer": {
+							"fire_resistance@waila_entity.status_effect_renderer": {
 								"$data_a": "fire_resistance",
 								"$data_b": "potion.fireResistance",
 								"$data_c": false,
@@ -546,7 +545,7 @@
 							}
 						},
 						{
-							"water_breathing@r4isen1920_waila_entity.status_effect_renderer": {
+							"water_breathing@waila_entity.status_effect_renderer": {
 								"$data_a": "water_breathing",
 								"$data_b": "potion.waterBreathing",
 								"$data_c": false,
@@ -554,7 +553,7 @@
 							}
 						},
 						{
-							"invisibility@r4isen1920_waila_entity.status_effect_renderer": {
+							"invisibility@waila_entity.status_effect_renderer": {
 								"$data_a": "invisibility",
 								"$data_b": "potion.invisibility",
 								"$data_c": false,
@@ -562,7 +561,7 @@
 							}
 						},
 						{
-							"blindness@r4isen1920_waila_entity.status_effect_renderer": {
+							"blindness@waila_entity.status_effect_renderer": {
 								"$data_a": "blindness",
 								"$data_b": "potion.blindness",
 								"$data_c": true,
@@ -570,7 +569,7 @@
 							}
 						},
 						{
-							"night_vision@r4isen1920_waila_entity.status_effect_renderer": {
+							"night_vision@waila_entity.status_effect_renderer": {
 								"$data_a": "night_vision",
 								"$data_b": "potion.nightVision",
 								"$data_c": false,
@@ -578,7 +577,7 @@
 							}
 						},
 						{
-							"hunger@r4isen1920_waila_entity.status_effect_renderer": {
+							"hunger@waila_entity.status_effect_renderer": {
 								"$data_a": "hunger",
 								"$data_b": "potion.hunger",
 								"$data_c": true,
@@ -586,7 +585,7 @@
 							}
 						},
 						{
-							"weakness@r4isen1920_waila_entity.status_effect_renderer": {
+							"weakness@waila_entity.status_effect_renderer": {
 								"$data_a": "weakness",
 								"$data_b": "potion.weakness",
 								"$data_c": true,
@@ -594,7 +593,7 @@
 							}
 						},
 						{
-							"poison@r4isen1920_waila_entity.status_effect_renderer": {
+							"poison@waila_entity.status_effect_renderer": {
 								"$data_a": "poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
@@ -602,7 +601,7 @@
 							}
 						},
 						{
-							"wither@r4isen1920_waila_entity.status_effect_renderer": {
+							"wither@waila_entity.status_effect_renderer": {
 								"$data_a": "wither",
 								"$data_b": "potion.wither",
 								"$data_c": true,
@@ -610,7 +609,7 @@
 							}
 						},
 						{
-							"health_boost@r4isen1920_waila_entity.status_effect_renderer": {
+							"health_boost@waila_entity.status_effect_renderer": {
 								"$data_a": "health_boost",
 								"$data_b": "potion.healthBoost",
 								"$data_c": false,
@@ -618,7 +617,7 @@
 							}
 						},
 						{
-							"absorption@r4isen1920_waila_entity.status_effect_renderer": {
+							"absorption@waila_entity.status_effect_renderer": {
 								"$data_a": "absorption",
 								"$data_b": "potion.absorption",
 								"$data_c": false,
@@ -626,7 +625,7 @@
 							}
 						},
 						{
-							"saturation@r4isen1920_waila_entity.status_effect_renderer": {
+							"saturation@waila_entity.status_effect_renderer": {
 								"$data_a": "saturation",
 								"$data_b": "potion.saturation",
 								"$data_c": false,
@@ -634,7 +633,7 @@
 							}
 						},
 						{
-							"levitation@r4isen1920_waila_entity.status_effect_renderer": {
+							"levitation@waila_entity.status_effect_renderer": {
 								"$data_a": "levitation",
 								"$data_b": "potion.levitation",
 								"$data_c": true,
@@ -642,7 +641,7 @@
 							}
 						},
 						{
-							"fatal_poison@r4isen1920_waila_entity.status_effect_renderer": {
+							"fatal_poison@waila_entity.status_effect_renderer": {
 								"$data_a": "fatal_poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
@@ -650,7 +649,7 @@
 							}
 						},
 						{
-							"slow_falling@r4isen1920_waila_entity.status_effect_renderer": {
+							"slow_falling@waila_entity.status_effect_renderer": {
 								"$data_a": "slow_falling",
 								"$data_b": "potion.slowFalling",
 								"$data_c": false,
@@ -658,7 +657,7 @@
 							}
 						},
 						{
-							"conduit_power@r4isen1920_waila_entity.status_effect_renderer": {
+							"conduit_power@waila_entity.status_effect_renderer": {
 								"$data_a": "conduit_power",
 								"$data_b": "potion.conduitPower",
 								"$data_c": false,
@@ -666,7 +665,7 @@
 							}
 						},
 						{
-							"bad_omen@r4isen1920_waila_entity.status_effect_renderer": {
+							"bad_omen@waila_entity.status_effect_renderer": {
 								"$data_a": "bad_omen",
 								"$data_b": "effect.badOmen",
 								"$data_c": true,
@@ -674,7 +673,7 @@
 							}
 						},
 						{
-							"village_hero@r4isen1920_waila_entity.status_effect_renderer": {
+							"village_hero@waila_entity.status_effect_renderer": {
 								"$data_a": "village_hero",
 								"$data_b": "effect.villageHero",
 								"$data_c": false,
@@ -682,7 +681,7 @@
 							}
 						},
 						{
-							"darkness@r4isen1920_waila_entity.status_effect_renderer": {
+							"darkness@waila_entity.status_effect_renderer": {
 								"$data_a": "darkness",
 								"$data_b": "effect.darkness",
 								"$data_c": true,
@@ -690,7 +689,7 @@
 							}
 						},
 						{
-							"wind_charged@r4isen1920_waila_entity.status_effect_renderer": {
+							"wind_charged@waila_entity.status_effect_renderer": {
 								"$data_a": "wind_charged",
 								"$data_b": "effect.wind_charged",
 								"$data_c": true,
@@ -698,7 +697,7 @@
 							}
 						},
 						{
-							"weaving@r4isen1920_waila_entity.status_effect_renderer": {
+							"weaving@waila_entity.status_effect_renderer": {
 								"$data_a": "weaving",
 								"$data_b": "effect.weaving",
 								"$data_c": true,
@@ -706,7 +705,7 @@
 							}
 						},
 						{
-							"oozing@r4isen1920_waila_entity.status_effect_renderer": {
+							"oozing@waila_entity.status_effect_renderer": {
 								"$data_a": "oozing",
 								"$data_b": "effect.oozing",
 								"$data_c": true,
@@ -714,7 +713,7 @@
 							}
 						},
 						{
-							"infested@r4isen1920_waila_entity.status_effect_renderer": {
+							"infested@waila_entity.status_effect_renderer": {
 								"$data_a": "infested",
 								"$data_b": "effect.infested",
 								"$data_c": true,
@@ -737,7 +736,7 @@
 
 					"controls": [
 						{
-							"speed@r4isen1920_waila_entity.status_effect_renderer": {
+							"speed@waila_entity.status_effect_renderer": {
 								"$data_a": "speed",
 								"$data_b": "potion.moveSpeed",
 								"$data_c": false,
@@ -745,7 +744,7 @@
 							}
 						},
 						{
-							"slowness@r4isen1920_waila_entity.status_effect_renderer": {
+							"slowness@waila_entity.status_effect_renderer": {
 								"$data_a": "slowness",
 								"$data_b": "potion.moveSlowdown",
 								"$data_c": true,
@@ -753,7 +752,7 @@
 							}
 						},
 						{
-							"haste@r4isen1920_waila_entity.status_effect_renderer": {
+							"haste@waila_entity.status_effect_renderer": {
 								"$data_a": "haste",
 								"$data_b": "potion.digSpeed",
 								"$data_c": false,
@@ -761,7 +760,7 @@
 							}
 						},
 						{
-							"mining_fatigue@r4isen1920_waila_entity.status_effect_renderer": {
+							"mining_fatigue@waila_entity.status_effect_renderer": {
 								"$data_a": "mining_fatigue",
 								"$data_b": "potion.digSlowDown",
 								"$data_c": true,
@@ -769,7 +768,7 @@
 							}
 						},
 						{
-							"strength@r4isen1920_waila_entity.status_effect_renderer": {
+							"strength@waila_entity.status_effect_renderer": {
 								"$data_a": "strength",
 								"$data_b": "potion.damageBoost",
 								"$data_c": false,
@@ -777,7 +776,7 @@
 							}
 						},
 						{
-							"instant_health@r4isen1920_waila_entity.status_effect_renderer": {
+							"instant_health@waila_entity.status_effect_renderer": {
 								"$data_a": "instant_health",
 								"$data_b": "potion.heal",
 								"$data_c": false,
@@ -785,7 +784,7 @@
 							}
 						},
 						{
-							"instant_damage@r4isen1920_waila_entity.status_effect_renderer": {
+							"instant_damage@waila_entity.status_effect_renderer": {
 								"$data_a": "instant_damage",
 								"$data_b": "potion.harm",
 								"$data_c": true,
@@ -793,7 +792,7 @@
 							}
 						},
 						{
-							"jump_boost@r4isen1920_waila_entity.status_effect_renderer": {
+							"jump_boost@waila_entity.status_effect_renderer": {
 								"$data_a": "jump_boost",
 								"$data_b": "potion.jump",
 								"$data_c": false,
@@ -801,7 +800,7 @@
 							}
 						},
 						{
-							"nausea@r4isen1920_waila_entity.status_effect_renderer": {
+							"nausea@waila_entity.status_effect_renderer": {
 								"$data_a": "nausea",
 								"$data_b": "potion.confusion",
 								"$data_c": true,
@@ -809,7 +808,7 @@
 							}
 						},
 						{
-							"regeneration@r4isen1920_waila_entity.status_effect_renderer": {
+							"regeneration@waila_entity.status_effect_renderer": {
 								"$data_a": "regeneration",
 								"$data_b": "potion.regeneration",
 								"$data_c": false,
@@ -817,7 +816,7 @@
 							}
 						},
 						{
-							"resistance@r4isen1920_waila_entity.status_effect_renderer": {
+							"resistance@waila_entity.status_effect_renderer": {
 								"$data_a": "resistance",
 								"$data_b": "potion.resistance",
 								"$data_c": false,
@@ -825,7 +824,7 @@
 							}
 						},
 						{
-							"fire_resistance@r4isen1920_waila_entity.status_effect_renderer": {
+							"fire_resistance@waila_entity.status_effect_renderer": {
 								"$data_a": "fire_resistance",
 								"$data_b": "potion.fireResistance",
 								"$data_c": false,
@@ -833,7 +832,7 @@
 							}
 						},
 						{
-							"water_breathing@r4isen1920_waila_entity.status_effect_renderer": {
+							"water_breathing@waila_entity.status_effect_renderer": {
 								"$data_a": "water_breathing",
 								"$data_b": "potion.waterBreathing",
 								"$data_c": false,
@@ -841,7 +840,7 @@
 							}
 						},
 						{
-							"invisibility@r4isen1920_waila_entity.status_effect_renderer": {
+							"invisibility@waila_entity.status_effect_renderer": {
 								"$data_a": "invisibility",
 								"$data_b": "potion.invisibility",
 								"$data_c": false,
@@ -849,7 +848,7 @@
 							}
 						},
 						{
-							"blindness@r4isen1920_waila_entity.status_effect_renderer": {
+							"blindness@waila_entity.status_effect_renderer": {
 								"$data_a": "blindness",
 								"$data_b": "potion.blindness",
 								"$data_c": true,
@@ -857,7 +856,7 @@
 							}
 						},
 						{
-							"night_vision@r4isen1920_waila_entity.status_effect_renderer": {
+							"night_vision@waila_entity.status_effect_renderer": {
 								"$data_a": "night_vision",
 								"$data_b": "potion.nightVision",
 								"$data_c": false,
@@ -865,7 +864,7 @@
 							}
 						},
 						{
-							"hunger@r4isen1920_waila_entity.status_effect_renderer": {
+							"hunger@waila_entity.status_effect_renderer": {
 								"$data_a": "hunger",
 								"$data_b": "potion.hunger",
 								"$data_c": true,
@@ -873,7 +872,7 @@
 							}
 						},
 						{
-							"weakness@r4isen1920_waila_entity.status_effect_renderer": {
+							"weakness@waila_entity.status_effect_renderer": {
 								"$data_a": "weakness",
 								"$data_b": "potion.weakness",
 								"$data_c": true,
@@ -881,7 +880,7 @@
 							}
 						},
 						{
-							"poison@r4isen1920_waila_entity.status_effect_renderer": {
+							"poison@waila_entity.status_effect_renderer": {
 								"$data_a": "poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
@@ -889,7 +888,7 @@
 							}
 						},
 						{
-							"wither@r4isen1920_waila_entity.status_effect_renderer": {
+							"wither@waila_entity.status_effect_renderer": {
 								"$data_a": "wither",
 								"$data_b": "potion.wither",
 								"$data_c": true,
@@ -897,7 +896,7 @@
 							}
 						},
 						{
-							"health_boost@r4isen1920_waila_entity.status_effect_renderer": {
+							"health_boost@waila_entity.status_effect_renderer": {
 								"$data_a": "health_boost",
 								"$data_b": "potion.healthBoost",
 								"$data_c": false,
@@ -905,7 +904,7 @@
 							}
 						},
 						{
-							"absorption@r4isen1920_waila_entity.status_effect_renderer": {
+							"absorption@waila_entity.status_effect_renderer": {
 								"$data_a": "absorption",
 								"$data_b": "potion.absorption",
 								"$data_c": false,
@@ -913,7 +912,7 @@
 							}
 						},
 						{
-							"saturation@r4isen1920_waila_entity.status_effect_renderer": {
+							"saturation@waila_entity.status_effect_renderer": {
 								"$data_a": "saturation",
 								"$data_b": "potion.saturation",
 								"$data_c": false,
@@ -921,7 +920,7 @@
 							}
 						},
 						{
-							"levitation@r4isen1920_waila_entity.status_effect_renderer": {
+							"levitation@waila_entity.status_effect_renderer": {
 								"$data_a": "levitation",
 								"$data_b": "potion.levitation",
 								"$data_c": true,
@@ -929,7 +928,7 @@
 							}
 						},
 						{
-							"fatal_poison@r4isen1920_waila_entity.status_effect_renderer": {
+							"fatal_poison@waila_entity.status_effect_renderer": {
 								"$data_a": "fatal_poison",
 								"$data_b": "potion.poison",
 								"$data_c": true,
@@ -937,7 +936,7 @@
 							}
 						},
 						{
-							"slow_falling@r4isen1920_waila_entity.status_effect_renderer": {
+							"slow_falling@waila_entity.status_effect_renderer": {
 								"$data_a": "slow_falling",
 								"$data_b": "potion.slowFalling",
 								"$data_c": false,
@@ -945,7 +944,7 @@
 							}
 						},
 						{
-							"conduit_power@r4isen1920_waila_entity.status_effect_renderer": {
+							"conduit_power@waila_entity.status_effect_renderer": {
 								"$data_a": "conduit_power",
 								"$data_b": "potion.conduitPower",
 								"$data_c": false,
@@ -953,7 +952,7 @@
 							}
 						},
 						{
-							"bad_omen@r4isen1920_waila_entity.status_effect_renderer": {
+							"bad_omen@waila_entity.status_effect_renderer": {
 								"$data_a": "bad_omen",
 								"$data_b": "effect.badOmen",
 								"$data_c": true,
@@ -961,7 +960,7 @@
 							}
 						},
 						{
-							"village_hero@r4isen1920_waila_entity.status_effect_renderer": {
+							"village_hero@waila_entity.status_effect_renderer": {
 								"$data_a": "village_hero",
 								"$data_b": "effect.villageHero",
 								"$data_c": false,
@@ -969,7 +968,7 @@
 							}
 						},
 						{
-							"darkness@r4isen1920_waila_entity.status_effect_renderer": {
+							"darkness@waila_entity.status_effect_renderer": {
 								"$data_a": "darkness",
 								"$data_b": "effect.darkness",
 								"$data_c": true,
@@ -977,7 +976,7 @@
 							}
 						},
 						{
-							"wind_charged@r4isen1920_waila_entity.status_effect_renderer": {
+							"wind_charged@waila_entity.status_effect_renderer": {
 								"$data_a": "wind_charged",
 								"$data_b": "effect.wind_charged",
 								"$data_c": true,
@@ -985,7 +984,7 @@
 							}
 						},
 						{
-							"weaving@r4isen1920_waila_entity.status_effect_renderer": {
+							"weaving@waila_entity.status_effect_renderer": {
 								"$data_a": "weaving",
 								"$data_b": "effect.weaving",
 								"$data_c": true,
@@ -993,7 +992,7 @@
 							}
 						},
 						{
-							"oozing@r4isen1920_waila_entity.status_effect_renderer": {
+							"oozing@waila_entity.status_effect_renderer": {
 								"$data_a": "oozing",
 								"$data_b": "effect.oozing",
 								"$data_c": true,
@@ -1001,7 +1000,7 @@
 							}
 						},
 						{
-							"infested@r4isen1920_waila_entity.status_effect_renderer": {
+							"infested@waila_entity.status_effect_renderer": {
 								"$data_a": "infested",
 								"$data_b": "effect.infested",
 								"$data_c": true,
@@ -1014,7 +1013,7 @@
 
 								"controls": [
 									{
-										"label@r4isen1920_waila_common.label": {
+										"label@waila_common.label": {
 											"text": "..."
 										}
 									}

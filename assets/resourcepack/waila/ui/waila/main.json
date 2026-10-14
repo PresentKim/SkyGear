@@ -1,7 +1,6 @@
 {
-	/* r4isen1920によって作成されました | MITライセンス */
 
-	"namespace": "r4isen1920_waila_main",
+	"namespace": "waila_main",
 
 	"main@common.empty_panel": {
 		"size": ["100%cm", "100%cm"],
@@ -92,14 +91,14 @@
 
 														"controls": [
 															{
-																"block@r4isen1920_waila_tile.df_subtitle_item_renderer": {
+																"block@waila_tile.df_subtitle_item_renderer": {
 																	"size": ["100%", "100%"],
 
 																	"visible": "($tooltip_renderer_type = 'A:')"
 																}
 															},
 															{
-																"entity@r4isen1920_waila_entity.entity_portrait_renderer": {
+																"entity@waila_entity.entity_portrait_renderer": {
 																	"size": ["100% - 5px", "100%x"],
 
 																	"visible": "(not ($tooltip_renderer_type = 'A:'))",
@@ -147,14 +146,14 @@
 															//* _waila:A:zz,t;zz,z: ...
 															{
 																// dragonfactory change: the name with small marks after it, then the
-																// item line (tile.r4ui df_marks, df_item_line).
+																// item line (tile.json df_marks, df_item_line).
 																"df_name_row": {
 																	"type": "stack_panel",
 																	"orientation": "horizontal",
 																	"size": ["100%c", "100%cm"],
 																	"controls": [
 																		{
-																			"hover_name_and_namespace@r4isen1920_waila_common.label": {
+																			"hover_name_and_namespace@waila_common.label": {
 																				"min_size": ["default", 10], // dragonfactory change: was 20 (the icon height); slots and lines sat low (11th playtest)
 			
 																				"text": "$text",
@@ -170,12 +169,12 @@
 																				]
 																			}
 																		},
-																		{ "df_marks@r4isen1920_waila_tile.df_marks": {} }
+																		{ "df_marks@waila_tile.df_marks": {} }
 																	]
 																}
 															},
 															{
-																"df_item_line@r4isen1920_waila_tile.df_item_line": {
+																"df_item_line@waila_tile.df_item_line": {
 																	"ignored": "(($var_title_text - '__waila:df.line__') = $var_title_text)"
 																}
 															},
@@ -185,27 +184,27 @@
 																	"size": ["100%c", "100%cm + 3px"],
 																	"controls": [
 																		{
-																			"furnace_inventory@r4isen1920_waila_tile.furnace_inventory": {
+																			"furnace_inventory@waila_tile.furnace_inventory": {
 																				"ignored": "(($var_title_text - '__waila:inv.furnace__') = $var_title_text)"
 																			}
 																		},
 																		{
-																			"brewing_stand_inventory@r4isen1920_waila_tile.brewing_stand_inventory": {
+																			"brewing_stand_inventory@waila_tile.brewing_stand_inventory": {
 																				"ignored": "(($var_title_text - '__waila:inv.brewstand__') = $var_title_text)"
 																			}
 																		},
 																		{
-																			"chest_inventory@r4isen1920_waila_tile.chest_inventory": {
+																			"chest_inventory@waila_tile.chest_inventory": {
 																				"ignored": "(($var_title_text - '__waila:inv.chest__') = $var_title_text)"
 																			}
 																		},
 																		{
-																			"dropper_inventory@r4isen1920_waila_tile.dropper_inventory": {
+																			"dropper_inventory@waila_tile.dropper_inventory": {
 																				"ignored": "(($var_title_text - '__waila:inv.dropper__') = $var_title_text)"
 																			}
 																		},
 																		{
-																			"hopper_inventory@r4isen1920_waila_tile.hopper_inventory": {
+																			"hopper_inventory@waila_tile.hopper_inventory": {
 																				"ignored": "(($var_title_text - '__waila:inv.hopper__') = $var_title_text)"
 																			}
 																		}
@@ -219,13 +218,13 @@
 																	"size": ["100%cm", "100%cm"],
 																	"controls": [
 																		{
-																			"border@r4isen1920_waila_common.image": {
+																			"border@waila_common.image": {
 																				"size": ["100%c + 4px", "100%c + 4px"],
-																				"texture": "textures/r4isen1920/waila/border_center",
+																				"texture": "textures/waila/border_center",
 
 																				"controls": [
 																					{
-																						"list@r4isen1920_waila_common.label": {
+																						"list@waila_common.label": {
 																							"text": "($var_subtitle_text - '__waila:block_states__')",
 																							"font_scale_factor": 0.75
 																						}
@@ -274,14 +273,14 @@
 																		},
 
 																		{
-																			"health_0@r4isen1920_waila_entity.health_renderer_0": {}
+																			"health_0@waila_entity.health_renderer_0": {}
 																		},
 																		{
-																			"health_1@r4isen1920_waila_entity.health_renderer_1": {}
+																			"health_1@waila_entity.health_renderer_1": {}
 																		},
 
 																		{
-																			"armor@r4isen1920_waila_entity.armor_renderer": {}
+																			"armor@waila_entity.armor_renderer": {}
 																		},
 
 																		{
@@ -299,7 +298,7 @@
 																			}
 																		},
 																		{
-																			"effects@r4isen1920_waila_entity.effects_renderer": {} 
+																			"effects@waila_entity.effects_renderer": {} 
 																		}
 																	]
 																}
@@ -311,7 +310,7 @@
 										}
 									},
 									{
-										"tags_panel@r4isen1920_waila_tile.block_tags": {} 
+										"tags_panel@waila_tile.block_tags": {} 
 									}
 								]
 							}
@@ -374,7 +373,7 @@
 
 		"controls": [
 			{
-				"main@r4isen1920_waila_main.main": {
+				"main@waila_main.main": {
 					"anchor_from": "$s_anchor",
 					"anchor_to": "$s_anchor",
 

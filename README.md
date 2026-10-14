@@ -77,7 +77,7 @@ internal/chestui/               엔티티 상자(크기 자유 상자 창): 아�
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여)
 internal/oneblock, internal/farm  원블럭 프로토타입에서 남긴 참고 데이터(현재 미사용)
 spike/                          기술 검증 코드와 테스트 클라이언트
-assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD, MIT)
+assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)
 tools/uitextures/               JSON UI 테마 텍스처 생성기
 third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
 ```
