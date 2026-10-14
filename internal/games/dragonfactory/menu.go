@@ -26,6 +26,8 @@ func registerCommands(g *Game) {
 	// A separate command rather than an alias: clients check typed commands
 	// against the command list, where aliases may not be accepted.
 	cmd.Register(cmd.New("df", "드래곤팩토리 메뉴를 엽니다", nil, menuCmd{g: g}))
+	cmd.Register(cmd.New("묘목", "참나무 묘목을 받습니다(10분에 한 번)", nil, saplingCmd{g: g}))
+	cmd.Register(cmd.New("sapling", "참나무 묘목을 받습니다(10분에 한 번)", nil, saplingCmd{g: g}))
 }
 
 type menuCmd struct{ g *Game }
