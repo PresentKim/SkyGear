@@ -25,7 +25,7 @@
 
 - `item.WriteNBT(stack, true)` / `item.ReadNBT(m, nil)`(공개 API)로 아이템을 NBT 맵으로 변환할 수 있다.
   이름, 인챈트, 내구도, **커스텀 값(`WithValue`)**, 커스텀 아이템까지 그대로 왕복된다.
-- 수표 ID, 코어의 `(Type, Generation)` 같은 데이터는 `WithValue`로 아이템에 싣는다.
+- 서랍 내용, 도구 경험 같은 데이터는 `WithValue`로 아이템에 싣는다.
 - 저장 형식: 슬롯별 NBT를 리틀엔디언 NBT 바이트로 인코딩해 DB에 저장(Dragonfly `playerdb`와 같은 방식).
 - 플레이어 상태 전체는 `player.Config`(체력, 허기, 경험치, 효과, 갑옷, 보조손, 엔더상자 등)를 기준으로 저장 항목을 정한다.
 

@@ -3,7 +3,7 @@ package dragonfactory
 import "github.com/presentkim/dragonfactory/internal/i18n"
 
 // ResearchText explains a research in its screen (docs/design/02-dragonfactory.md
-// §3.4): what it is for, how to get what it costs, and what to do once it is
+// §9): what it is for, how to get what it costs, and what to do once it is
 // done. A player must never be left without a next step, so every research
 // has all of them. The texts are in the catalog (internal/i18n/locales) under
 // "research.<id>.short|about|hint|after".

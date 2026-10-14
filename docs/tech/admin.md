@@ -5,14 +5,15 @@
 
 | 명령 | 하는 일 |
 |---|---|
-| `/dfadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free` 는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금). 옛 세이브는 연구가 없어 조합법이 잠기므로 필요하면 `all` |
+| `/dfadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free`는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금) |
 | `/dfadmin advance <발전과제 ID\|all\|reset>` | 발전과제 하나(앞 단계 포함)·전부 달성, 모두 지우기 |
-| `/dfadmin give <ID> [개수]` | 게임 아이템·기계(`research_table`, `drawer`, `drawer_key`, `barrel`, `string_mesh`, `wood_hopper`, `wood_hopper_reverse`, `iron_hopper_reverse`, `upgrade_capacity`, `upgrade_void`, `hammer`, `water`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`) |
+| `/dfadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `dimension_gate`, `storage_controller`, `tinker_table`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>` 등. 자동 완성에 전체 목록이 나온다) |
 | `/dfadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/dfadmin skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/dfadmin timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |
 | `/dfadmin fairy` | 선물 요정을 지금 나에게 부름 |
 | `/dfadmin look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신, 보는 블록 출력(시나리오·실기 확인용) |
+| `/dfadmin wave <단계>` | 옆에 차원 게이트를 놓고 그 단계의 웨이브를 바로 시작(아래 단계는 열어 준다) |
 | `/dfadmin status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
 | `/dfadmin tps` | 내 HUD 왼쪽 위 서버 부하 줄 켜기·끄기(아래, 로비에서도) |
 
@@ -31,8 +32,8 @@
 
 ## 부하 시험
 
-`/dfadmin factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(코어 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/dfadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
+`/dfadmin factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(채굴기 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/dfadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
 
-`/dfadmin dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(코어, 그 출력 위 자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 셀 하나에 블록 엔티티 5개(+서랍 표시 엔티티). 코어·기계를 많이 둘 때의 부하를 게임 안에서 잰다(측정은 운영자가 직접, 결과는 [performance.md](performance.md)에 적는다).
+`/dfadmin dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 기계를 많이 둘 때의 부하를 게임 안에서 잰다(측정은 운영자가 직접, 결과는 [performance.md](performance.md)에 적는다).
 
 `/dfadmin expandview <map|floor>`: 이 섬의 확장 모드 표시 방식을 바꾼다(멀리 보낸 평면 지도(기본) / 섬 높이 유리 바닥). 확장 모드 중인 플레이어는 바로 다시 그려진다. 저장하지 않는다(서버를 다시 켜면 `map`, [기획](../design/02-dragonfactory.md) 섬 확장).

@@ -12,7 +12,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// Advancements (docs/design/02-dragonfactory.md §3.5, 05-sky-progression.md
+// Advancements (docs/design/02-dragonfactory.md §10, 05-sky-progression.md
 // §5): Bedrock has no advancements a server can use, so they are ours. An
 // advancement is a step of the progression with a hint of how to do it; the
 // quest panel shows the first one open. They belong to the save and are

@@ -17,7 +17,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Gift fairy (docs/design/02-dragonfactory.md §3.5): now and then a fairy
+// Gift fairy (docs/design/02-dragonfactory.md §2): now and then a fairy
 // (an allay on the client) visits a player in the save and flits about them.
 // Using (or hitting) it throws a gift to the player and it flies away. The gift is
 // a few basic items. Values are drafts.

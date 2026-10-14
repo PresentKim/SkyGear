@@ -14,7 +14,7 @@ import (
 )
 
 // Crops grow on a fixed schedule of instance time (docs/design/02-dragonfactory.md
-// §6.2), not on random ticks (block.ScheduledCropGrowth): a crop planted at
+// §12), not on random ticks (block.ScheduledCropGrowth): a crop planted at
 // instance time t reaches stage n (of 7) at t + n×stageTime, and a grown
 // melon or pumpkin stem grows a fruit every fruitTime. Instance time only
 // runs while the save is active, so crops stop with it. Blocks are only

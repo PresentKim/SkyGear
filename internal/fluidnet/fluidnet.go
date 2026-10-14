@@ -1,5 +1,5 @@
 // Package fluidnet moves fluids over fluid conduits (docs/design/07-
-// progression-expansion.md §7): the conduits that touch each other form a
+// progression-expansion.md §6.1): the conduits that touch each other form a
 // network; every block with a tank next to one takes part as a source (the
 // fluid is taken from it), a sink (it takes fluid in) or both. Each step a
 // network moves up to its tier's rate of mB from the sources to the sinks,

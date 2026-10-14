@@ -14,7 +14,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// The composter (docs/design/02-dragonfactory.md §3.6) is the vanilla block
+// The composter (docs/design/02-dragonfactory.md §4) is the vanilla block
 // with the game's own rules: no chance, no bone meal. Every plant item put
 // in (anything vanilla composts: leaves, saplings, seeds, crops, ... and the
 // bark fiber) counts as one, and the 32nd fills it. The seven fill levels

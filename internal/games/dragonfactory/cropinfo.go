@@ -12,7 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 )
 
-// Crops by hand (docs/design/02-dragonfactory.md §9): using a grown crop
+// Crops by hand (docs/design/02-dragonfactory.md §12): using a grown crop
 // harvests it and replants it (free for now); using a growing one does
 // nothing, so no block is placed on it. The WAILA panel shows the time
 // left (look.go).

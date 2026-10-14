@@ -16,7 +16,8 @@ const (
 )
 
 // CanActivate reports if a member with the role may activate the instance.
-// Co-hosts are planned (docs/design/01-platform.md §3) but not enabled yet.
+// Only hosts activate for now; the co-host role is stored for later
+// (docs/design/01-platform.md §3).
 func (r Role) CanActivate() bool { return r == RoleHost }
 
 // Save is a save slot of an account.

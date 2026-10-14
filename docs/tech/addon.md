@@ -34,7 +34,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 - `world.CustomItem`(이름, 크리에이티브 분류) 구현 + `world.RegisterItem`. 아이콘은 리소스팩 `textures/item_texture.json` 의 아이템 식별자 키로 찾는다(패치로 `Texture()` 를 인터페이스에서 뺐다).
 - 내구도, 음식, 갑옷, 쿨다운, 투척물 등은 아이템이 해당 인터페이스를 구현하면 자동으로 컴포넌트가 붙는다.
-- 텍스처는 리소스팩의 **PNG 파일**이다: `assets/resourcepack/dragonfactory/textures/items/<이름>.png`(아이템 아이콘, `item_texture.json` 키는 아이템 식별자. 블록 아이템(코어·납품함·서랍·기계)은 블록 모양으로 보이므로 아이콘이 없다), `textures/blocks/<이름>.png`(블록 재질, `terrain_texture.json` 키는 `dragonfactory_<이름>`). 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일·키는 `pack_test.go` 가 잡는다.
+- 텍스처는 리소스팩의 **PNG 파일**이다: `assets/resourcepack/dragonfactory/textures/items/<이름>.png`(아이템 아이콘, `item_texture.json` 키는 아이템 식별자. 블록 아이템(서랍·기계)은 블록 모양으로 보이므로 아이콘이 없다), `textures/blocks/<이름>.png`(블록 재질, `terrain_texture.json` 키는 `dragonfactory_<이름>`). 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일·키는 `pack_test.go` 가 잡는다.
 
 ## 4. 커스텀 엔티티
 
@@ -49,10 +49,10 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 | 방식 | 용도 | 비고 |
 |---|---|---|
-| 폼(`form.Menu`, `form.Custom`, `form.Modal`) | 메뉴, 상점, 설정, 세이브 선택 | 기본 수단 |
-| JSON UI로 폼 꾸미기 | 상점·메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적 |
+| 폼(`form.Menu`, `form.Custom`, `form.Modal`) | 메뉴, 설정, 세이브 선택 | 기본 수단 |
+| JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적 |
 | 상자형 인벤토리 UI | InvSee, 분실물 보관함, 기계 인벤토리 | Dragonfly는 실제 컨테이너 블록만 열 수 있음(`OpenBlockContainer`) → 플레이어가 볼 수 없는 위치(섬 아래 등)에 컨테이너 블록을 두고 여는 방식으로 구현 |
-| 사이드바, 보스바, 타이틀, 액션바 | 미션·긴급 미션 표시 | Dragonfly API 지원 |
+| 사이드바, 보스바, 타이틀, 액션바 | 퀘스트 창·HUD 표시 | Dragonfly API 지원 |
 
 ## 6. 리소스팩 운영 방식
 
@@ -92,6 +92,6 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 ## 블록 모델
 
-서랍·체의 모델은 리소스팩 `models/blocks/<이름>.geo.json` 이다(예전에 Go 로 만들던 것을 그대로 옮김). 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
-체는 파일 하나에 채움 단계별 geometry(`geometry.dragonfactory_<종류>_<0..8>`)가 들어 있다. 코어·자동 자원 채굴기·자동 농작물 수확기·납품함·판매함·분쇄기는 바닐라 `minecraft:geometry.full_block` 정육면체라 모델 파일이 없다.
+서랍·체의 모델은 리소스팩 `models/blocks/<이름>.geo.json` 이다. 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
+체는 파일 하나에 채움 단계별 geometry(`geometry.dragonfactory_<종류>_<0..8>`)가 들어 있다. 자동 자원 채굴기·자동 농작물 수확기·분쇄기는 바닐라 `minecraft:geometry.full_block` 정육면체라 모델 파일이 없다.
 Go(`models.go`, `sieve.go`)는 식별자와 재질 이름만 적는다.

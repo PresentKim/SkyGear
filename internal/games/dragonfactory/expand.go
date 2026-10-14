@@ -15,7 +15,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §8): the
+// Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §13): the
 // player's body stays where it is, frozen, and the camera looks straight
 // down on the selected chunk. The movement keys move the selection a chunk
 // at a time (read from the client's input, Player.MoveInput). Chunks get a

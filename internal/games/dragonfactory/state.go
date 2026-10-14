@@ -50,7 +50,7 @@ type State struct {
 // ChunkPos is a chunk coordinate.
 type ChunkPos [2]int32
 
-// LostItem is a stack type in the lost-and-found box (docs/design/02-dragonfactory.md §9.3).
+// LostItem is a stack type in the lost-and-found box (docs/design/02-dragonfactory.md §14.3).
 type LostItem struct {
 	// Item is the little endian NBT of the item with count 1. Drops are
 	// merged when the decoded stacks are Comparable (same item and NBT).

@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strings"
 	"testing"
 
@@ -259,4 +260,20 @@ func TestExpansionMap(t *testing.T) {
 			t.Fatalf("after leaving: map %v, body at %v, want %v", e.mapShown, p.Position(), home)
 		}
 	})
+}
+
+// TestHelpTopicsAreWritten: every help topic has a title and a text, and the
+// help names only things the game has.
+func TestHelpTopicsAreWritten(t *testing.T) {
+	for _, h := range helpTopics {
+		title, text := i18n.T(i18n.Default, "help."+h.id+".title"), i18n.T(i18n.Default, "help."+h.id+".text")
+		if title == "" || text == "" || strings.HasPrefix(title, "help.") {
+			t.Errorf("help %s: title %q text %q", h.id, title, text)
+		}
+		for _, gone := range []string{"코어", "상점", "수표", "납품"} {
+			if strings.Contains(text, gone) {
+				t.Errorf("help %s mentions %q", h.id, gone)
+			}
+		}
+	}
 }

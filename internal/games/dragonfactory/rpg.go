@@ -13,7 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// The character (docs/design/08-storage-gear-magic.md §4): every player of a save
+// The character (docs/design/08-storage-gear-magic.md §3): every player of a save
 // has experience from fighting monsters, a level that grows with its square root,
 // and a skill point per level to put into skills. Tools have levels of their own
 // (tinker.go); this is the player's.

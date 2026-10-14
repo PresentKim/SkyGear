@@ -18,7 +18,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
-// The game's own hoppers (docs/design/02-dragonfactory.md §3.8):
+// The game's own hoppers (docs/design/02-dragonfactory.md §8):
 //   - the wood hopper: one slot and very slow (an item every four seconds),
 //     for the first bulk work before iron;
 //   - reverse hoppers (wood and iron): the same hoppers turned upside down,

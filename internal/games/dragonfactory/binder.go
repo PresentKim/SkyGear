@@ -8,7 +8,7 @@ import (
 )
 
 // The conduit binder (EnderIO's conduit binder, docs/design/06-power-and-conduits.md
-// §3.5): sand and gravel in a checkerboard make the binder mix, which a
+// §5.1): sand and gravel in a checkerboard make the binder mix, which a
 // furnace bakes into the binder, the base every conduit is made of.
 
 // ConduitBinderMix is baked into a ConduitBinder.

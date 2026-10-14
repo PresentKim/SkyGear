@@ -17,7 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 )
 
-// Hand-made resources of the start (docs/design/02-dragonfactory.md §3.3,
+// Hand-made resources of the start (docs/design/02-dragonfactory.md §3,
 // 05-sky-progression.md §3). Chances are drafts.
 //   - A stick used on grass or dirt always drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").

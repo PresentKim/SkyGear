@@ -21,9 +21,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Machines are the automation blocks of the first era
-// (docs/design/02-dragonfactory.md §6). They need no power: each operation
-// takes a fixed time. Items go in and out by hand in the machine window
+// Machines are the automation blocks
+// (docs/design/02-dragonfactory.md §11). Most run on energy (RE) and stop
+// without it; each operation takes a fixed time. Items go in and out by hand in the machine window
 // (an entity chest) or by hoppers: a hopper above or beside a machine
 // inserts into its input, a hopper below extracts from its output.
 

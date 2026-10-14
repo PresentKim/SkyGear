@@ -18,7 +18,7 @@ import (
 )
 
 // VoidReturnY is the height players are put at above the nearest block when
-// they fall into the void (docs/design/02-dragonfactory.md §9.2).
+// they fall into the void (docs/design/02-dragonfactory.md §14.2).
 const VoidReturnY = 300
 
 // VoidY is the height below which a player counts as fallen into the void.

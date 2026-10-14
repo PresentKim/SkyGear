@@ -55,7 +55,7 @@ func (h *Handler) in() player.Handler {
 	return player.NopHandler{}
 }
 
-// HandleHurt removes fall damage everywhere (docs/design/02-dragonfactory.md §9.1)
+// HandleHurt removes fall damage everywhere (docs/design/02-dragonfactory.md §14.1)
 // and returns players that reach the void to a spawn if the location's
 // handler does not handle it.
 func (h *Handler) HandleHurt(ctx *player.Context, damage *float64, immune bool, attackImmunity *time.Duration, src world.DamageSource) {
@@ -122,7 +122,7 @@ func (h *Handler) HandleSetOnFire(ctx *player.Context, duration *time.Duration) 
 	h.in().HandleSetOnFire(ctx, duration)
 }
 func (h *Handler) HandleDeath(p *player.Player, src world.DamageSource, keepInv *bool) {
-	// Inventories are kept on death everywhere (docs/design/02-dragonfactory.md §9.1).
+	// Inventories are kept on death everywhere (docs/design/02-dragonfactory.md §14.1).
 	*keepInv = true
 	h.in().HandleDeath(p, src, keepInv)
 }

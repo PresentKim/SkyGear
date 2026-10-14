@@ -207,7 +207,7 @@ func (s *session) Join(p *player.Player, first bool) {
 }
 
 // dropAt drops an item stack at pos with a small random push, so drops
-// never just fall dead still (docs/design/02-dragonfactory.md §13.1).
+// never just fall dead still (docs/design/02-dragonfactory.md §18.1).
 // Every item the game drops goes through here unless it is thrown on
 // purpose (the fairy's gift).
 func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {

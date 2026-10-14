@@ -18,7 +18,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 )
 
-// Barrels (docs/design/02-dragonfactory.md §3.6) are the family of wooden
+// Barrels (docs/design/02-dragonfactory.md §5) are the family of wooden
 // tubs of the game; the first is the oak barrel. Plant items go in like into
 // the composter, 32 of them, and the barrel shows six fill stages (stage =
 // count * 6 / 32). A full barrel takes barrelWaterDelay to turn the
@@ -44,7 +44,7 @@ const barrelStageState = "dragonfactory:barrel_stage"
 // cobblestone (stoneWood).
 var barrelWoods = []string{"oak", stoneWood}
 
-// The stone barrel (docs/design/02-dragonfactory.md §3.7): eight cobblestone
+// The stone barrel (docs/design/02-dragonfactory.md §5): eight cobblestone
 // go in, and with a heat source right under it they turn into lava, one
 // bucket's worth (a lava stage like the water one). A lit... any candle is the
 // least heat (speed 1×) and takes stoneHeatNeeded; lava (source or flowing)

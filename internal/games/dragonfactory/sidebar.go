@@ -13,7 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/perf"
 )
 
-// updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §11): day
+// updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §16): day
 // and play time at the top left (with the server load under it for an
 // operator who turned it on) and the next thing to do as a quest panel: the
 // first research that can be done now, with its cost. The texts travel as

@@ -12,7 +12,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
-// Sieve meshes (docs/design/02-dragonfactory.md §6.1). A sieve is made
+// Sieve meshes (docs/design/02-dragonfactory.md §6). A sieve is made
 // without its mesh: the mesh is made apart and fitted by using it on the
 // sieve, and the tier of the fitted mesh picks the drop table (sievetable.go).
 // The string mesh is made from nine string; each better tier (flint, iron,

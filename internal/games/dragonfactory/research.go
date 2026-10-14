@@ -20,7 +20,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// Research (docs/design/02-dragonfactory.md §3.4): every crafting recipe is
+// Research (docs/design/02-dragonfactory.md §9): every crafting recipe is
 // locked but oak planks, the crafting table and the research table. A
 // research opens the recipes making its results for everyone on the
 // island at once (recipes.go). Researches form a tree: each needs the ones
@@ -547,7 +547,7 @@ func gameRecipes() {
 		stick, nil, stick)
 	// The combustion generator and the first energy conduit.
 	add(machineItem(KindGenerator), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
-	// The conduits (docs/design/06-power-and-conduits.md §3.5): sand and gravel
+	// The conduits (docs/design/06-power-and-conduits.md §5.1): sand and gravel
 	// in a checkerboard make the binder mix, a furnace bakes it into the
 	// binder; the basic conduits are binders above and below a row of
 	// redstone (energy), an iron nugget, a chest and an iron nugget (item) or

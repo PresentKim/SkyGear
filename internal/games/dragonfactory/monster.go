@@ -13,7 +13,7 @@ import (
 )
 
 // Monsters of the dimension gate (docs/design/05-sky-progression.md §4.1,
-// docs/design/07-progression-expansion.md §9). Dragonfly has no mobs, so they are
+// docs/design/07-progression-expansion.md §7). Dragonfly has no mobs, so they are
 // ours: an entity the client draws as the vanilla mob, which walks towards the
 // nearest player, steps up blocks, falls, hits when close, and takes the damage
 // of the player's weapon. Only the gate's waves spawn them (wave.go); a monster

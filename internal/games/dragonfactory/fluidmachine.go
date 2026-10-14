@@ -13,7 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
-// Machines with a tank (docs/design/07-progression-expansion.md §7): the fluid
+// Machines with a tank (docs/design/07-progression-expansion.md §6.1): the fluid
 // tank, the electric crucible (cobblestone into lava) and the lava generator.
 // They have no window: a bucket fills or empties them by hand, fluid conduits
 // carry the fluid (internal/fluidnet), and their WAILA panel shows the tank.

@@ -21,7 +21,7 @@ import (
 )
 
 // Drawer stores a large amount of a single item type
-// (docs/design/02-dragonfactory.md §10).
+// (docs/design/02-dragonfactory.md §15).
 type Drawer struct {
 	// Facing is the direction the front face looks to.
 	Facing cube.Direction
@@ -190,7 +190,7 @@ const (
 	drawerVoidKey     = "drawer_void"
 )
 
-// toItem keeps the contents and upgrades in the drawer item (§10.6).
+// toItem keeps the contents and upgrades in the drawer item (§15.6).
 func (d Drawer) toItem() item.Stack {
 	st := item.NewStack(Drawer{}, 1)
 	empty := d.Item.Empty() && d.Capacity == 0 && !d.Locked && !d.Void
@@ -422,7 +422,7 @@ func activeGameSession(tx *world.Tx) *session {
 	return nil
 }
 
-// DrawerUpgrade is an upgrade item for drawers (§10.4).
+// DrawerUpgrade is an upgrade item for drawers (§15.4).
 type DrawerUpgrade struct{ Kind int }
 
 const (
@@ -454,7 +454,7 @@ func isLegacyLockUpgrade(st item.Stack) bool {
 	return ok && u.Kind == UpgradeLock
 }
 
-// DrawerKey locks and unlocks drawers. It is never used up (§10.4).
+// DrawerKey locks and unlocks drawers. It is never used up (§15.4).
 type DrawerKey struct{}
 
 func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
