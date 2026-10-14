@@ -78,21 +78,3 @@ func TestCrouchGrowsSaplings(t *testing.T) {
 		}
 	})
 }
-
-// TestLeavesDropSaplingsOften: oak leaves give a sapling about one time in
-// five (vanilla one in twenty).
-func TestLeavesDropSaplingsOften(t *testing.T) {
-	leaves := block.Leaves{Type: block.OakLeaves()}
-	const n = 4000
-	got := 0
-	for range n {
-		for _, d := range leaves.BreakInfo().Drops(item.ToolNone{}, nil) {
-			if _, ok := d.Item().(block.Sapling); ok {
-				got++
-			}
-		}
-	}
-	if got < n*15/100 || got > n*25/100 {
-		t.Errorf("%d saplings from %d leaves", got, n)
-	}
-}

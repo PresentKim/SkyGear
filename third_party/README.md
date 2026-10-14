@@ -33,7 +33,7 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(블록별 캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |
 | `server/internal/blockinternal/components.go` | `block.Activatable` 을 구현한 커스텀 블록에 `minecraft:custom_components`(`hasPlayerInteract`=1)를 보냄. 상자처럼 클라이언트가 그 블록을 클릭할 때 손에 든 블록의 설치를 예측하지 않는다(형식은 PowerNukkitX `CustomBlockDefinition.isPlayerInteractable` 참고) |
 | `server/world/item.go`, `server/internal/packbuilder/items.go` | `world.CustomItem` 에서 `Texture()` 를 빼고 선택 인터페이스 `world.CustomItemTextured` 로 옮김. 텍스처를 리소스팩으로 따로 관리하는 아이템은 이미지가 필요 없다(자동 팩 생성은 텍스처가 있는 아이템만) |
-| `server/block/leaves.go` | 나뭇잎이 묘목을 떨굴 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`)을 상수 대신 바꿀 수 있는 변수로(기본값은 바닐라 그대로, 게임이 올림) |
+| `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 로그를 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
 | `server/world/tick_stats.go` (신규), `tick.go`, `world.go` | 월드 틱마다 걸린 시간(틱 예정 시각부터 끝날 때까지)을 최근 5초만 기록하고 `World.TickStats()`(TPS, 평균·최대 틱 시간)로 돌려줌. 운영자 사이드바의 서버 부하 표시용(`internal/perf`) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 흙으로 퍼지지 않고, 그 아래 잔디는 흙으로 돌아감(바닐라와 같게). 원래는 빛만 봐서 빛을 막지 않는 커스텀 블록(코어 등) 아래 흙이 잔디가 됨 |
 | `server/player/player.go` (`SendTitle`) | 부제목을 제목보다 먼저 보냄. 클라이언트는 부제목을 다음 제목과 함께 보여서, 제목 뒤에 보내면 한 제목 늦게 나왔다(WAILA 패널이 부제목의 아이콘 값을 읽음) |

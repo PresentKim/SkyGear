@@ -2,6 +2,7 @@ package block
 
 import (
 	"math/rand/v2"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -62,25 +63,48 @@ func findLog(pos cube.Pos, tx *world.Tx) bool {
 	return false
 }
 
+// LeavesDecayDelay is the time the game gives leaves that lost their log to
+// decay, as a minimum and a random extra, via a scheduled tick (dragonfactory
+// patch). Both zero keeps vanilla: decay waits for a random tick.
+var (
+	LeavesDecayDelayMin    time.Duration
+	LeavesDecayDelayJitter time.Duration
+)
+
+// decay removes the leaves at pos if no log is near, dropping what leaves
+// drop; with a log near they stay (dragonfactory patch: shared by the random
+// tick and the scheduled tick).
+func (l Leaves) decay(pos cube.Pos, tx *world.Tx) {
+	if l.Persistent || !l.ShouldUpdate {
+		return
+	}
+	if findLog(pos, tx) {
+		l.ShouldUpdate = false
+		tx.SetBlock(pos, l, nil)
+		return
+	}
+	ctx := tx.Event()
+	if tx.World().Handler().HandleLeavesDecay(ctx, pos); ctx.Cancelled() {
+		// Prevent immediate re-updating.
+		l.ShouldUpdate = false
+		tx.SetBlock(pos, l, nil)
+		return
+	}
+	tx.SetBlock(pos, nil, nil)
+	for _, drop := range l.BreakInfo().Drops(item.ToolNone{}, nil) {
+		dropItem(tx, drop, pos.Vec3Centre())
+	}
+}
+
 // RandomTick ...
 func (l Leaves) RandomTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
-	if !l.Persistent && l.ShouldUpdate {
-		if findLog(pos, tx) {
-			l.ShouldUpdate = false
-			tx.SetBlock(pos, l, nil)
-			return
-		}
-		ctx := tx.Event()
-		if tx.World().Handler().HandleLeavesDecay(ctx, pos); ctx.Cancelled() {
-			// Prevent immediate re-updating.
-			l.ShouldUpdate = false
-			tx.SetBlock(pos, l, nil)
-			return
-		}
-		tx.SetBlock(pos, nil, nil)
-		for _, drop := range l.BreakInfo().Drops(item.ToolNone{}, nil) {
-			dropItem(tx, drop, pos.Vec3Centre())
-		}
+	l.decay(pos, tx)
+}
+
+// ScheduledTick decays leaves whose log is gone (dragonfactory patch).
+func (l Leaves) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
+	if cur, ok := tx.Block(pos).(Leaves); ok {
+		cur.decay(pos, tx)
 	}
 }
 
@@ -89,6 +113,13 @@ func (l Leaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 	if !l.Persistent && !l.ShouldUpdate {
 		l.ShouldUpdate = true
 		tx.SetBlock(pos, l, nil)
+		if LeavesDecayDelayMin > 0 || LeavesDecayDelayJitter > 0 {
+			delay := LeavesDecayDelayMin
+			if LeavesDecayDelayJitter > 0 {
+				delay += time.Duration(rand.Int64N(int64(LeavesDecayDelayJitter)))
+			}
+			tx.ScheduleBlockUpdate(pos, l, delay)
+		}
 	}
 }
 
@@ -101,6 +132,10 @@ func (l Leaves) FlammabilityInfo() FlammabilityInfo {
 // broken or decayed, by fortune level 0 to 3 (vanilla values). dragonfactory
 // patch: variables instead of constants.
 var LeavesSaplingChances = []float64{0.05, 0.0625, 0.083333336, 0.1}
+
+// LeavesStickChances are the chances of leaves dropping sticks, by fortune
+// level 0 to 3 (vanilla values; dragonfactory patch: a variable).
+var LeavesStickChances = []float64{0.02, 0.022222222, 0.025, 0.033333333}
 
 // JungleLeavesSaplingChances are LeavesSaplingChances for jungle leaves.
 var JungleLeavesSaplingChances = []float64{0.025, 0.027777778, 0.03125, 0.041666668}
@@ -126,8 +161,7 @@ func (l Leaves) BreakInfo() BreakInfo {
 				drops = append(drops, item.NewStack(Sapling{Type: sapling}, 1))
 			}
 		}
-		stickChances := []float64{0.02, 0.022222222, 0.025, 0.033333333}
-		if rand.Float64() < stickChances[min(fortune, 3)] {
+		if rand.Float64() < LeavesStickChances[min(fortune, 3)] {
 			drops = append(drops, item.NewStack(item.Stick{}, rand.IntN(2)+1))
 		}
 		if wood, ok := l.Type.Wood(); ok && (wood == OakWood() || wood == DarkOakWood()) {
