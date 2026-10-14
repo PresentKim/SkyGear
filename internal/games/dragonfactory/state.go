@@ -19,14 +19,6 @@ type State struct {
 	Version int `json:"version"`
 	// Chunks are the owned island chunks.
 	Chunks []ChunkPos `json:"chunks"`
-	// Level is the save level, starting at 1.
-	Level int `json:"level"`
-	// Delivered counts items delivered for the current level's mission.
-	Delivered map[string]int `json:"delivered,omitempty"`
-	// CorePoints are unspent core upgrade points.
-	CorePoints int `json:"core_points"`
-	// TierSpeed[1] is the core speed upgrade level (once by core tier).
-	TierSpeed map[int]int `json:"tier_speed,omitempty"`
 	// Researched are the done researches (research.go).
 	Researched map[string]bool `json:"researched,omitempty"`
 	// ResearchPaid counts the items delivered for researches not done yet,
@@ -34,20 +26,12 @@ type State struct {
 	ResearchPaid map[string]map[string]int `json:"research_paid,omitempty"`
 	// NextFairy is the instance time of the next gift fairy visit.
 	NextFairy time.Duration `json:"next_fairy,omitempty"`
-	// Shop is the stock of shop products by product ID.
-	Shop map[string]*ShopStock `json:"shop,omitempty"`
-	// Buyback is today's buyback budget and sold amounts.
-	Buyback *Buyback `json:"buyback,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
-	// Urgent is the running urgent mission; NextUrgent is the instance time
-	// when the next one starts (0: not scheduled yet).
-	Urgent     *UrgentMission `json:"urgent,omitempty"`
-	NextUrgent time.Duration  `json:"next_urgent,omitempty"`
-	// Crops are the planted crops by position ("x,y,z", crops.go);
-	// CropLevel is the crop growth upgrade level.
-	Crops     map[string]*CropRecord `json:"crops,omitempty"`
-	CropLevel int                    `json:"crop_level,omitempty"`
+	// Crops are the planted crops by position ("x,y,z", crops.go).
+	Crops map[string]*CropRecord `json:"crops,omitempty"`
+	// LastSapling is when /묘목 last gave a sapling (real time).
+	LastSapling time.Time `json:"last_sapling,omitempty"`
 }
 
 // ChunkPos is a chunk coordinate.
@@ -66,7 +50,6 @@ type LostItem struct {
 func newState() *State {
 	return &State{
 		Version: stateVersion,
-		Level:   1,
 		// The starting island covers the four chunks around the origin.
 		Chunks: []ChunkPos{{-1, -1}, {0, -1}, {-1, 0}, {0, 0}},
 	}
@@ -82,10 +65,6 @@ func loadState(d *db.DB, saveID int64) (*State, error) {
 	s := &State{}
 	if err := json.Unmarshal(b, s); err != nil {
 		return nil, err
-	}
-	// States saved before a field existed get its starting value.
-	if s.Level < 1 {
-		s.Level = 1
 	}
 	return s, nil
 }

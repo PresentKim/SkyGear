@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
@@ -18,7 +19,7 @@ import (
 // Gift fairy (docs/design/02-dragonfactory.md §3.5): now and then a fairy
 // (an allay on the client) visits a player in the save and flits about them.
 // Using (or hitting) it throws a gift to the player and it flies away. The gift is
-// some of a block the core makes. Values are drafts.
+// a few basic items. Values are drafts.
 const (
 	// fairyMinGap and fairyMaxGap bound the instance time between visits:
 	// about three instance days (an hour with 20-minute days).
@@ -26,8 +27,6 @@ const (
 	fairyMaxGap = 4
 	// fairyStay is how long a fairy waits for a player before leaving.
 	fairyStay = 2 * time.Minute
-	// giftCount is how many blocks a gift holds.
-	giftCount = 32
 	// fairyLeaveTicks is how long the fly-away lasts.
 	fairyLeaveTicks = 60
 )
@@ -166,10 +165,13 @@ func (f *Fairy) leave(tx *world.Tx, p *player.Player, gave bool) {
 	}
 }
 
-// rollGift picks a gift: giftCount of a block the core makes.
+// rollGift picks a gift: oak logs, oak saplings or pebbles. Draft.
 func (s *session) rollGift() item.Stack {
-	r := coreRecipes[s.rand.IntN(len(coreRecipes))]
-	return item.NewStack(r.Output.(world.Item), giftCount)
+	gifts := []item.Stack{
+		item.NewStack(oakLog, 16),
+		item.NewStack(block.Sapling{Type: block.OakSapling()}, 2),
+	}
+	return gifts[s.rand.IntN(len(gifts))]
 }
 
 // FairyType is the world.EntityType of the gift fairy, shown as an allay.

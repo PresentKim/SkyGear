@@ -131,10 +131,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		} else {
 			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item)}
 		}
-	case Core:
-		info.Lines, info.Line = s.coreLines(tx, pos, b)
-	case DeliveryBox:
-		info.Lines = []string{s.missionLine()}
+	case Core, DeliveryBox:
+		info.Lines = []string{"§7더 이상 쓰이지 않음"}
 	}
 	if kind, _, ok := cropOf(b); ok {
 		info.Name = cropNames[kind]
@@ -271,25 +269,4 @@ func stackLine(it item.Stack) string {
 		return fmt.Sprintf("§f%s §7×%d", itemName(it), it.Count())
 	}
 	return "§f" + itemName(it)
-}
-
-// coreLines are a core's lines and its item line: what it makes, with its
-// icon and a ring gauge ("생성물: 조약돌 [icon] ◔"; the tier is in the name).
-func (s *session) coreLines(tx *world.Tx, pos cube.Pos, c Core) ([]string, *waila.ItemLine) {
-	if c.ctype() == nil {
-		return nil, nil
-	}
-	r := matchRecipe(tx, pos)
-	if r == nil {
-		return []string{"§7코어 기반: 참나무 원목 또는 조약돌"}, nil
-	}
-	line := &waila.ItemLine{Name: "생성물: §f" + blockName(r.Output)}
-	if it, ok := r.Output.(world.Item); ok {
-		line.Item = item.NewStack(it, 1)
-	}
-	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
-		return []string{"§c위 칸이 막혀 멈춤"}, line
-	}
-	line.Gauge, line.ShowGauge = c.Progress*10/max(s.coreInterval(), 1), true
-	return nil, line
 }

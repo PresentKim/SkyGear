@@ -143,6 +143,7 @@ func (s *session) payResearch(p *player.Player, tx *world.Tx, r *Research) int {
 	}
 	if taken > 0 {
 		s.storeState()
+		s.updateBoards(tx)
 	}
 	for _, c := range r.Cost {
 		if s.researchPaid(r, c.Item) < c.Count {
@@ -164,6 +165,7 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	delete(s.state.ResearchPaid, r.ID)
 	s.storeState()
 	s.sendRecipes(tx)
+	s.updateBoards(tx)
 	for e := range tx.Players() {
 		e.(*player.Player).Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Name, s.unlockNames(r))
 	}

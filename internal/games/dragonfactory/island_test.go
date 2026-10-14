@@ -39,8 +39,8 @@ func TestChunkRules(t *testing.T) {
 	if len(kept) != 1 {
 		t.Fatal("bought chunk not kept loaded")
 	}
-	if chunkPrice(4) != 1000 || chunkPrice(5) != 1500 || chunkPrice(6) <= chunkPrice(5) {
-		t.Fatalf("chunk prices %d %d %d", chunkPrice(4), chunkPrice(5), chunkPrice(6))
+	if chunkCost(4).Count != 64 || chunkCost(5).Count != 128 {
+		t.Fatalf("chunk costs %v %v", chunkCost(4), chunkCost(5))
 	}
 }
 

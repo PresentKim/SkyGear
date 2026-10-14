@@ -60,51 +60,6 @@ func TestLostMenu(t *testing.T) {
 	})
 }
 
-func TestShopMenuBuys(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.money[p.UUID().String()] = 10000
-		_, opts := s.shopMenu(p, 2) // 설비
-		if opts[0].Icon != iconOf(item.NewStack(DeliveryBox{}, 1)) || !strings.Contains(opts[0].Label, "재고 2") || strings.Contains(opts[0].Label, "/") {
-			t.Errorf("first product %q icon %q", opts[0].Label, opts[0].Icon)
-		}
-		// The tabs and the back button come last, marked for the theme.
-		tabs := 0
-		for _, o := range opts {
-			if strings.HasPrefix(o.Label, ui.TabToken) || strings.HasPrefix(o.Label, ui.TabOnToken) {
-				tabs++
-			}
-		}
-		if tabs != len(shopCategories) || !strings.HasPrefix(opts[len(opts)-1].Label, ui.BackToken) {
-			t.Fatalf("%d tabs, last option %q", tabs, opts[len(opts)-1].Label)
-		}
-		press(t, p, tx, opts, "납품함")
-		if !p.Inventory().ContainsItem(item.NewStack(DeliveryBox{}, 1)) {
-			t.Fatal("delivery box not bought")
-		}
-		if s.Money(p) != 10000-shopItem("delivery_box").Price {
-			t.Fatalf("money = %d", s.Money(p))
-		}
-	})
-}
-
-func TestShopCategoriesCoverAllProducts(t *testing.T) {
-	tabs := map[string]bool{}
-	for _, c := range shopCategories {
-		tabs[c.Name] = true
-	}
-	for _, it := range ShopItems {
-		if !tabs[shopGroup(it)] {
-			t.Errorf("%s is in no tab (%q)", it.ID, shopGroup(it))
-		}
-	}
-	if shopGroup(shopItem("crusher")) != "기계" || shopGroup(shopItem("core_t1")) != "코어" || shopGroup(shopItem("mat_cobblestone")) != "재료" || shopGroup(shopItem("hammer")) != "도구" {
-		t.Fatal("a product is in the wrong tab")
-	}
-}
-
 func TestExpansionMode(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -112,7 +67,7 @@ func TestExpansionMode(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(cube.Pos{1, expandFloorY, 1}, block.Grass{}, nil)
 		tx.SetBlock(cube.Pos{0, expandFloorY, 0}, block.Grass{}, nil)
-		s.money[p.UUID().String()] = 5000
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Cobblestone{}, 64))
 		s.expandView = viewFloor
 		s.showExpand(p)
 		e, ok := s.expansionOf(p)
@@ -200,34 +155,11 @@ func TestExpansionMode(t *testing.T) {
 
 func TestGiveItems(t *testing.T) {
 	items := giveItems()
-	for _, id := range []string{"drawer", "upgrade_capacity", "delivery_box", KindMiner, KindCrusher} {
+	for _, id := range []string{"drawer", "upgrade_capacity", "research_table", KindMiner, KindCrusher} {
 		if f, ok := items[id]; !ok || f().Empty() {
 			t.Errorf("give item %q missing", id)
 		}
 	}
-}
-
-func TestSellAllQuoteSellsNothing(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_ = p.Inventory().SetItem(0, item.NewStack(item.Flint{}, 10))
-		_ = p.Inventory().SetItem(1, item.NewStack(item.Flint{}, 5))
-		_ = p.Inventory().SetItem(2, item.NewStack(item.Coal{}, 2))
-		before := s.Money(p)
-		lines, total := s.quoteSale(p)
-		if len(lines) != 2 || total != 15*4+2*8 {
-			t.Fatalf("quote %v total %d", lines, total)
-		}
-		if s.Money(p) != before || !p.Inventory().ContainsItem(item.NewStack(item.Flint{}, 15)) {
-			t.Fatal("quoting sold something")
-		}
-		s.sellAll(p, func(item.Stack) bool { return true })
-		if s.Money(p)-before != total {
-			t.Fatalf("sold for %d, quoted %d", s.Money(p)-before, total)
-		}
-	})
 }
 
 func TestExpansionCursorStaysNearBody(t *testing.T) {
@@ -252,16 +184,6 @@ func TestExpansionCursorStaysNearBody(t *testing.T) {
 		}
 		s.stopExpand(p, tx)
 	})
-}
-
-// TestShopTabsHaveIcons: every shop tab has an icon. Item icons made while
-// package variables were initialised were empty (runtime IDs come later).
-func TestShopTabsHaveIcons(t *testing.T) {
-	for _, c := range shopCategories {
-		if c.icon() == "" {
-			t.Errorf("shop tab %s has no icon", c.Name)
-		}
-	}
 }
 
 // TestExpansionMap: the map view sends owned chunks far away with their top

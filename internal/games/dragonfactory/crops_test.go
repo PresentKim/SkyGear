@@ -131,25 +131,6 @@ func TestStemGrowsFruit(t *testing.T) {
 	}
 }
 
-func TestCropUpgradeKeepsProgress(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	plantAt(s, cropPos, block.WheatSeeds{})
-	advance(s, s.growTime("wheat")/2)
-	before := stageOf(t, s, cropPos)
-	old := s.growTime("wheat")
-	s.state.CropLevel = 3
-	s.rescheduleCrops(old, s.growTime("wheat"))
-	advance(s, 0)
-	if g := stageOf(t, s, cropPos); g != before {
-		t.Fatalf("stage %d after the upgrade, was %d", g, before)
-	}
-	advance(s, s.growTime("wheat"))
-	if g := stageOf(t, s, cropPos); g != maxCropStage {
-		t.Fatalf("stage %d after the faster growth time", g)
-	}
-}
-
 func TestCropsLoadFromState(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)

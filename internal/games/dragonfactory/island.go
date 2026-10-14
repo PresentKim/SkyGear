@@ -2,15 +2,17 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/account"
 	"math"
 	"slices"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -31,11 +33,48 @@ func (s *session) owns(c ChunkPos) bool { return slices.Contains(s.state.Chunks,
 // canBuild reports if blocks at pos may be changed.
 func (s *session) canBuild(pos cube.Pos) bool { return s.owns(chunkOf(pos)) }
 
-// chunkPrice is the price of the next chunk when n chunks are owned.
-func chunkPrice(n int) int64 {
-	// 4 chunks to start: 1,000G for the fifth, then ×1.5 each.
-	p := 1000 * math.Pow(1.5, float64(n-4))
-	return int64(math.Round(p/100) * 100)
+// chunkCost is what the next chunk costs when n chunks are owned: items
+// from the buyer's inventory (13th playtest: no money). 4 chunks to start:
+// 64 cobblestone for the fifth, 64 more for each after. Draft.
+func chunkCost(n int) Requirement {
+	return Requirement{block.Cobblestone{}, 64 * max(1, n-3)}
+}
+
+// costText describes a cost, e.g. "조약돌 128개".
+func costText(r Requirement) string {
+	return fmt.Sprintf("%s %s개", itemName(item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
+}
+
+// countPlain counts the plain items of it in an inventory.
+func countPlain(inv *inventory.Inventory, it world.Item) int {
+	n, key := 0, itemKey(it)
+	for _, st := range inv.Slots() {
+		if !st.Empty() && plain(st) && itemKey(st.Item()) == key {
+			n += st.Count()
+		}
+	}
+	return n
+}
+
+// takePlain takes count plain items of it from an inventory if it holds
+// that many.
+func takePlain(inv *inventory.Inventory, it world.Item, count int) bool {
+	if countPlain(inv, it) < count {
+		return false
+	}
+	key := itemKey(it)
+	for slot, st := range inv.Slots() {
+		if count == 0 {
+			break
+		}
+		if st.Empty() || !plain(st) || itemKey(st.Item()) != key {
+			continue
+		}
+		n := min(count, st.Count())
+		_ = inv.SetItem(slot, st.Grow(-n))
+		count -= n
+	}
+	return true
 }
 
 // islandRadius is how far (in chunks from the centre) the island may grow.
@@ -85,9 +124,9 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		ui.Notify(p, "§c이 청크는 살 수 없습니다.")
 		return
 	}
-	price := chunkPrice(len(s.state.Chunks))
-	if !s.TakeMoney(p, price) {
-		ui.Notify(p, "§c돈이 부족합니다.")
+	cost := chunkCost(len(s.state.Chunks))
+	if !takePlain(p.Inventory(), cost.Item, cost.Count) {
+		ui.Notify(p, "§c%s이(가) 필요합니다.", costText(cost))
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)

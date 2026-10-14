@@ -24,14 +24,11 @@ func TestAdminDense(t *testing.T) {
 		feet := cube.PosFromVec3(p.Position())
 		cols, rows := 2, 4
 		at := feet.Add(cube.Pos{-cols, -1, -rows / 2})
-		if _, ok := tx.Block(at.Add(cube.Pos{0, 2, 0})).(Core); !ok {
-			t.Errorf("no core at the first cell: %T", tx.Block(at.Add(cube.Pos{0, 2, 0})))
-		}
 		if m, ok := tx.Block(at.Add(cube.Pos{0, 4, 0})).(Machine); !ok || m.Kind != KindMiner {
-			t.Errorf("no miner above the core's output")
+			t.Errorf("no miner in the first cell")
 		}
 		if _, ok := tx.Block(at.Add(cube.Pos{1, 2, 0})).(Drawer); !ok {
-			t.Errorf("no drawer beside the core")
+			t.Errorf("no drawer in the first cell")
 		}
 	})
 }

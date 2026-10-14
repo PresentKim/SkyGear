@@ -1,12 +1,12 @@
 #!/bin/bash
-# HUD rows (internal/hud) and the server load: the island HUD has the day,
-# money and mission rows; the operator turns the load line on with
+# HUD rows (internal/hud) and the server load: the island HUD has the day
+# and the next research (quest panel); the operator turns the load line on with
 # /dfadmin tps and sees it on the island and in the lobby. (An expect step
 # takes a whole board, later boards only carry changed rows, and the first
-# board comes before the join message: a level change sends the quest rows.)
+# board comes before the join message: a research sends the quest rows.)
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=부하 섬' 'expect:입장했습니다' \
-  'cmd:/dfadmin level 2' 'expect:돌과 흙' \
+  'cmd:/dfadmin research stick' 'expect:나무 도구' \
   'cmd:/dfadmin tps' 'expect:서버 부하 표시를 켰습니다' 'expect:부하' \
   'cmd:/lobby' 'expect:TPS' > host.log 2>&1
 h=$?

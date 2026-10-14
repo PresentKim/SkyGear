@@ -70,7 +70,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, _ mgl64.Vec3) {
 	held, _ := ctx.Player().HeldItems()
-	if isMenuItem(held) || isCheque(held) {
+	if isMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 		return
@@ -106,23 +106,19 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, _ := ctx.Player().HeldItems()
-	if isMenuItem(held) || isCheque(held) {
+	if isMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 	}
 }
 
-// useHeldScreen opens the menu or redeems a cheque held by p. The client
-// repeats use packets while the button is held, so repeats are ignored.
-func (h *handler) useHeldScreen(p *player.Player, held item.Stack) {
+// useHeldScreen opens the menu held by p. The client repeats use packets
+// while the button is held, so repeats are ignored.
+func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 	if h.s.debounced(p) {
 		return
 	}
-	if isMenuItem(held) {
-		h.s.openMenu(p)
-	} else {
-		h.s.redeemCheque(p)
-	}
+	h.s.openMenu(p)
 }
 
 // HandleMove returns players that fall below the island into the void, and
@@ -138,10 +134,6 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		h.s.returnFromVoid(ctx.Player(), ctx.Player().Tx())
 	}
 }
-
-// HandleExperienceGain keeps the experience bar for the island's level and
-// mission progress (sidebar.go): experience orbs give nothing.
-func (h *handler) HandleExperienceGain(ctx *player.Context, _ *int) { ctx.Cancel() }
 
 // HandleToggleSneak opens the island expansion actions when sneaking in
 // expansion mode.

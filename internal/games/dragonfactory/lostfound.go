@@ -41,7 +41,7 @@ func decodeItem(b []byte) item.Stack {
 	if err := nbt.NewDecoderWithEncoding(bytes.NewReader(b), nbt.LittleEndian).Decode(&m); err != nil {
 		return item.Stack{}
 	}
-	return modernCore(item.ReadNBT(m, nil))
+	return item.ReadNBT(m, nil)
 }
 
 // addLost merges a stack into the lost-and-found box, most recent first.

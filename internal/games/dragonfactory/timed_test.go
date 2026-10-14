@@ -14,14 +14,13 @@ import (
 
 // TestStorageTellsItemsApartByNBT: drawers keep only identical items
 // together (a time-limited item never merges with a plain one or another
-// expiry); recipes, missions and the shop take plain items only.
+// expiry); machines and research take plain items only.
 func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	plainLog := item.NewStack(block.Log{Wood: block.OakWood()}, 32)
 	log := timed.For(plainLog, time.Hour)
-	named := plainLog.WithCustomName("특별한 원목")
 
 	d := Drawer{}
 	if d.insert(log, 32) != 32 {
@@ -33,24 +32,16 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	if (Drawer{Item: plainLog.Grow(-31), Count: 1}).accepts(log) {
 		t.Error("a drawer of plain logs takes timed logs")
 	}
-	sellBox := newMachine(KindSellBox, "", "").st
-	if sellBox.insert(log) || sellBox.insert(named) {
-		t.Error("a sell box takes an item with extra NBT")
-	}
-	if !sellBox.insert(plainLog) {
-		t.Error("a sell box refuses a plain log")
+	crusher := newMachine(KindCrusher, "", "").st
+	cobble := item.NewStack(block.Cobblestone{}, 1)
+	if crusher.insert(timed.For(cobble, time.Hour)) || !crusher.insert(cobble) {
+		t.Error("a crusher takes an item with extra NBT or refuses a plain one")
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, _ = p.Inventory().AddItem(log)
-		_, _ = p.Inventory().AddItem(named)
-		if n := s.deliverInventory(p, tx); n != 0 {
-			t.Errorf("delivered %d logs with extra NBT", n)
-		}
-		if n := s.sell(p, log); n != 0 {
-			t.Errorf("sold %d timed logs", n)
-		}
-		if lines, _ := s.quoteSale(p); len(lines) != 0 {
-			t.Errorf("sale quote lists items with extra NBT: %v", lines)
+		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16).WithLore("x"))
+		sticks, _ := researchByID("stick")
+		if n := s.payResearch(p, tx, sticks); n != 0 {
+			t.Errorf("paid a research with %d planks with extra NBT", n)
 		}
 	})
 }

@@ -23,19 +23,15 @@ func TestOldResearchNoteIsKept(t *testing.T) {
 	})
 }
 
-// TestGiftsAreCoreBlocks: a gift is giftCount of oak logs or cobblestone.
-func TestGiftsAreCoreBlocks(t *testing.T) {
+// TestGiftsAreBasics: a gift is oak logs or oak saplings.
+func TestGiftsAreBasics(t *testing.T) {
 	s := testSession(t)
-	blocks := map[string]bool{}
+	kinds := map[string]bool{}
 	for range 200 {
-		st := s.rollGift()
-		blocks[itemKey(st.Item())] = true
-		if st.Count() != giftCount {
-			t.Fatalf("gift of %d", st.Count())
-		}
+		kinds[itemKey(s.rollGift().Item())] = true
 	}
-	if len(blocks) != 2 || !blocks[itemKey(oakLog)] || !blocks[itemKey(block.Cobblestone{})] {
-		t.Errorf("gifts = %v", blocks)
+	if len(kinds) != 2 || !kinds[itemKey(oakLog)] || !kinds[itemKey(block.Sapling{Type: block.OakSapling()})] {
+		t.Errorf("gifts = %v", kinds)
 	}
 }
 

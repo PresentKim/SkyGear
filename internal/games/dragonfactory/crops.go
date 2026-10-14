@@ -9,9 +9,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Crops grow on a fixed schedule of instance time (docs/design/02-dragonfactory.md
@@ -98,15 +96,11 @@ func withGrowth(b world.Block, g int) world.Block {
 	return b
 }
 
-// growTime is the full growth time of a crop kind with the farm upgrade.
-func (s *session) growTime(kind string) time.Duration {
-	return cropKinds[kind].grow * time.Duration(100-15*s.state.CropLevel) / 100
-}
+// growTime is the full growth time of a crop kind.
+func (s *session) growTime(kind string) time.Duration { return cropKinds[kind].grow }
 
 // stemFruitTime is the time between fruits of a grown stem.
-func (s *session) stemFruitTime() time.Duration {
-	return fruitTime * time.Duration(100-15*s.state.CropLevel) / 100
-}
+func (s *session) stemFruitTime() time.Duration { return fruitTime }
 
 // stageAt returns the stage a crop planted at planted has at now.
 func (s *session) stageAt(kind string, planted, now time.Duration) int {
@@ -281,50 +275,6 @@ func (q *cropQueue) Pop() any {
 
 func init() {
 	block.ScheduledCropGrowth = true
-}
-
-// maxCropLevel is the highest crop growth upgrade level; each level takes
-// 15% off growth and fruit times and costs upgradeCost(level) core points.
-const maxCropLevel = 3
-
-// cropUpgradeOption is the core management button that buys the crop
-// growth upgrade, or false at the maximum level.
-func (s *session) cropUpgradeOption() (ui.Option, bool) {
-	lv := s.state.CropLevel
-	if lv >= maxCropLevel {
-		return ui.Option{}, false
-	}
-	cost := upgradeCost(lv)
-	return s.opt(fmt.Sprintf("§a작물 성장 Lv.%d → %d §7(%d포인트, 성장 -15%%)", lv, lv+1, cost), iconIsland, func(p *player.Player, tx *world.Tx) {
-		if s.state.CropLevel == lv && s.spendPoints(p, cost) {
-			before := s.growTime("wheat")
-			s.state.CropLevel++
-			s.rescheduleCrops(before, s.growTime("wheat"))
-			s.storeState()
-			ui.Flash(p, "§a작물 성장 Lv.%d: 다 자라는 데 %s(밀 기준)", s.state.CropLevel, formatDuration(s.growTime("wheat")))
-		}
-		s.showCores(p, tx)
-	}), true
-}
-
-// rescheduleCrops recomputes every crop's timing after the growth times
-// changed from old to new (all kinds scale alike). Each crop keeps how far
-// it has grown: its planting time is moved so the share of the growth time
-// that has passed stays the same, and its stem fruit timer is scaled too.
-func (s *session) rescheduleCrops(old, new time.Duration) {
-	now, _, _ := s.clock.Now()
-	s.cropQueue = s.cropQueue[:0]
-	for k, r := range s.state.Crops {
-		pos, ok := parseCropKey(k)
-		if !ok {
-			continue
-		}
-		r.Planted = now - (now-r.Planted)*new/old
-		if r.NextFruit > now {
-			r.NextFruit = now + (r.NextFruit-now)*new/old
-		}
-		heap.Push(&s.cropQueue, cropDue{at: now, pos: pos, rec: r})
-	}
 }
 
 // formatDuration formats a duration in minutes and seconds.

@@ -83,15 +83,9 @@ func TestLookInfo(t *testing.T) {
 		} else if _, ok := info.Item.(Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
-		placeCore(tx, corePos, "t1", block.Cobblestone{})
-		if info := s.lookInfo(p, tx, corePos, tx.Block(corePos)); info.Line == nil || !strings.Contains(info.Line.Name, "생성물") || !strings.Contains(info.Line.Name, "조약돌") || info.Container != nil {
-			t.Errorf("core panel %+v, want a 생성물 line", info)
-		} else if _, ok := info.Line.Item.Item().(block.Cobblestone); !ok {
-			t.Errorf("core line icon %v, want cobblestone", info.Line.Item)
-		}
-		tx.SetBlock(corePos.Side(cube.FaceDown), block.Iron{}, nil)
-		if got := text(corePos); !strings.Contains(got, "참나무 원목 또는 조약돌") {
-			t.Errorf("core on iron panel %q", got)
+		tx.SetBlock(corePos, Core{Type: "t1"}, nil)
+		if got := text(corePos); !strings.Contains(got, "더 이상 쓰이지 않음") {
+			t.Errorf("old core panel %q", got)
 		}
 		chestPos := cube.Pos{11, IslandY, 3}
 		tx.SetBlock(chestPos, block.NewChest(), nil)

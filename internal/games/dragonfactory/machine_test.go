@@ -127,30 +127,6 @@ func TestAutoMinerPushesIntoChest(t *testing.T) {
 	})
 }
 
-func TestSellBoxPaysOfflineOwner(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	if _, err := s.g.db.TouchAccount("g", "", "g"); err != nil {
-		t.Fatal(err)
-	}
-	_ = s.g.db.SetMoney(s.saveID, "g", 100)
-	st := placeTestMachine(s, machinePos, KindSellBox, "g")
-	if st.insert(item.NewStack(block.Dirt{}, 1)) == false {
-		t.Fatal("sell box refused dirt")
-	}
-	if st.insert(item.NewStack(item.Apple{}, 1)) {
-		t.Fatal("sell box took an item the shop does not buy")
-	}
-	_ = st.inv().SetItem(st.kind.input[1], item.NewStack(block.Cobblestone{}, 10))
-	tick(s, st.kind.interval+2)
-	if m, _ := s.g.db.Money(s.saveID, "g"); m != 100+1+10 {
-		t.Fatalf("owner money = %d, want 111", m)
-	}
-	if _, _, ok := st.firstInput(); ok {
-		t.Fatal("sold items left in the box")
-	}
-}
-
 func TestMachineWindowAndNBT(t *testing.T) {
 	m := newMachine(KindCrusher, "a", "A")
 	st := m.st
@@ -209,20 +185,16 @@ func TestMineable(t *testing.T) {
 	}
 }
 
-// TestHandsFreeLine runs the M4 goal without a player: core → auto miner →
-// crusher → hopper → chest, and a second core → auto miner → sell box.
+// TestHandsFreeLine: an auto miner mines the block under it into a
+// crusher beside it, whose output goes through a hopper into a chest.
 func TestHandsFreeLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	minerPos := startCorePos.Add(cube.Pos{0, 2, 0})
+	minerPos := cube.Pos{0, IslandY + 2, 0}
 	crusherPos := minerPos.Side(cube.FaceEast)
-	core2Pos := startCorePos.Add(cube.Pos{-3, 0, 0})
-	miner2Pos := core2Pos.Add(cube.Pos{0, 2, 0})
-	sellPos := miner2Pos.Side(cube.FaceWest)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
 	s.world.Do(func(tx *world.Tx) {
-		placeCore(tx, startCorePos, "t1", block.Cobblestone{})
-		placeCore(tx, core2Pos, "t1", block.Cobblestone{})
+		tx.SetBlock(minerPos.Side(cube.FaceDown), block.Cobblestone{}, nil)
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		tx.SetBlock(hopperPos, h, nil)
@@ -230,23 +202,13 @@ func TestHandsFreeLine(t *testing.T) {
 	})
 	placeTestMachine(s, minerPos, KindMiner, "")
 	placeTestMachine(s, crusherPos, KindCrusher, "")
-	placeTestMachine(s, miner2Pos, KindMiner, "")
-	placeTestMachine(s, sellPos, KindSellBox, s.hostID)
-
-	tick(s, 20*60) // one minute
-	bb := s.buyback()
-	if bb.Budget == buybackBudget(s.state.Level) {
-		t.Fatal("sell box sold nothing")
-	}
+	tick(s, 20*20)
 	s.world.Do(func(tx *world.Tx) {
 		inv := tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos)
-		if inv.Empty() {
-			t.Fatal("crusher output never reached the chest")
+		if !inv.ContainsItem(item.NewStack(block.Gravel{}, 1)) {
+			t.Fatalf("crusher output never reached the chest: %v", inv.Items())
 		}
 	})
-	if m, _ := s.g.db.Money(s.saveID, s.hostID); m <= 0 {
-		t.Fatalf("host money = %d", m)
-	}
 }
 
 // TestCustomBlockBreakTimeIgnoresTools: the client breaks custom blocks in

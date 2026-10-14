@@ -11,19 +11,10 @@ import (
 // texts has a Korean name.
 func TestGameItemsHaveKoreanNames(t *testing.T) {
 	var items []world.Item
-	for _, l := range Levels {
-		for _, r := range l.Requirements {
-			items = append(items, r.Item)
+	for _, r := range researchTree {
+		for _, c := range r.Cost {
+			items = append(items, c.Item)
 		}
-	}
-	for _, b := range BuybackItems {
-		items = append(items, b.Item)
-	}
-	for _, u := range urgentItems {
-		items = append(items, u.Item)
-	}
-	for _, r := range coreRecipes {
-		items = append(items, r.Output.(world.Item))
 	}
 	for _, drops := range sieveRecipes {
 		for _, d := range drops {
@@ -33,8 +24,8 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 	for _, out := range crushRecipes {
 		items = append(items, out)
 	}
-	for _, it := range ShopItems {
-		items = append(items, it.Stack().Item())
+	for _, f := range giveItems() {
+		items = append(items, f().Item())
 	}
 	for _, it := range items {
 		if _, custom := it.(world.CustomItem); custom {

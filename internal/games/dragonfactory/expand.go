@@ -345,7 +345,8 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 	case s.owns(c):
 		p.SendTip(fmt.Sprintf("§b청크 (%d, %d) · 소유\n§7웅크리기: 메뉴", c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
-		p.SendTip(fmt.Sprintf("§e청크 (%d, %d) · 구매 가능 §6%s\n§7웅크리기: 구매 · 소지금 %s", c[0], c[1], formatMoney(chunkPrice(len(s.state.Chunks))), formatMoney(s.Money(p))))
+		cost := chunkCost(len(s.state.Chunks))
+		p.SendTip(fmt.Sprintf("§e청크 (%d, %d) · 구매 가능 §6%s\n§7웅크리기: 구매 · 가진 것 %s개", c[0], c[1], costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
 		p.SendTip(fmt.Sprintf("§c청크 (%d, %d) · 구매 불가\n§7이동 키로 소유한 청크와 맞닿은 노란 칸을 고르세요", c[0], c[1]))
 	}
@@ -373,12 +374,12 @@ func (s *session) showExpandActions(p *player.Player) {
 		return
 	}
 	c := e.target
-	price := chunkPrice(len(s.state.Chunks))
+	cost := chunkCost(len(s.state.Chunks))
 	var opts []ui.Option
-	body := fmt.Sprintf("청크 (%d, %d)\n소유 %d청크 · 소지금 §6%s", c[0], c[1], len(s.state.Chunks), formatMoney(s.Money(p)))
+	body := fmt.Sprintf("청크 (%d, %d)\n소유 %d청크", c[0], c[1], len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf("\n§f이 청크 가격: §6%s", formatMoney(price))
-		opts = append(opts, s.opt(fmt.Sprintf("§a구매 (%s)", formatMoney(price)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		body += fmt.Sprintf("\n§f이 청크 비용: §6%s §7(가진 것 %s개)", costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
+		opts = append(opts, s.opt(fmt.Sprintf("§a구매 (%s)", costText(cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawFloor(p, e)

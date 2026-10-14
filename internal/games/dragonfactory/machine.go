@@ -79,7 +79,7 @@ var machineKinds = map[string]*machineKind{
 	},
 	KindSellBox: {
 		name: "판매함", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
-		help: []string{"§7들어온 아이템을 상점 매입 규칙대로 팝니다", "§7돈은 설치한 플레이어에게 들어갑니다"},
+		help: []string{"§7더 이상 쓰이지 않습니다(상점이 없어졌습니다)", "§7안에 남은 아이템은 꺼낼 수 있습니다"},
 	},
 }
 
@@ -238,10 +238,8 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		_, ok := sieveRecipes[k]
 		return ok
-	case machineKinds[KindSellBox]:
-		_, ok := buybackFor(it.Item())
-		return ok
 	}
+	// The sell box (no more shop, 13th playtest) takes nothing.
 	return false
 }
 
@@ -598,8 +596,6 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		if currentTick%4 == 0 {
 			s.pushOutput(st, pos, tx)
 		}
-	case KindSellBox:
-		s.runSellBox(st, tx)
 	case KindHarvester:
 		s.runHarvester(st, pos, tx)
 		if currentTick%4 == 0 {
@@ -748,53 +744,11 @@ func (s *session) insertInto(tx *world.Tx, pos cube.Pos, one item.Stack) bool {
 			return true
 		}
 		return false
-	case DeliveryBox:
-		return plain(one) && s.deliver(tx, nil, one.Item(), 1) == 1
 	case block.Container:
 		_, err := b.Inventory(tx, pos).AddItem(one)
 		return err == nil
 	}
 	return false
-}
-
-// runSellBox sells the input every interval for the owner.
-func (s *session) runSellBox(st *machineState, tx *world.Tx) {
-	if st.progress < st.kind.interval {
-		st.progress++
-		return
-	}
-	st.progress = 0
-	owner := st.owner
-	if owner == "" {
-		owner = s.hostID
-	}
-	for _, slot := range st.kind.input {
-		it, _ := st.inv().Item(slot)
-		if it.Empty() {
-			continue
-		}
-		if n, earned := s.sellFor(owner, it); n > 0 {
-			_ = st.inv().SetItem(slot, it.Grow(-n))
-			s.addMoneyTo(tx, owner, earned)
-		}
-	}
-}
-
-// addMoneyTo adds to the wallet of an account, online or not.
-func (s *session) addMoneyTo(tx *world.Tx, acc string, delta int64) {
-	if _, ok := s.money[acc]; ok {
-		s.money[acc] += delta
-		for e := range tx.Players() {
-			if p := e.(*player.Player); instance.AccountID(p) == acc {
-				s.checkRich(p)
-				s.updateBoard(p)
-			}
-		}
-		return
-	}
-	if err := s.g.db.AddMoney(s.saveID, acc, delta); err != nil {
-		s.g.log.Error("add money", "save", s.saveID, "account", acc, "err", err)
-	}
 }
 
 // placeMachine sets up a placed machine with a fresh state.

@@ -53,17 +53,18 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 func (*Game) ID() string   { return "dragonfactory" }
 func (*Game) Name() string { return "드래곤팩토리" }
 
-// Init builds the starting island: a small platform around the origin with
-// the starting core on it, standing on an oak log base.
+// Init builds the starting island (docs/design/02-dragonfactory.md §2): a
+// 3×3×3 sky island, bedrock at the bottom, dirt, grass on top, with an oak
+// tree in the middle.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
-	for x := -2; x <= 2; x++ {
-		for z := -2; z <= 2; z++ {
-			tx.SetBlock(cube.Pos{x, IslandY - 1, z}, block.Grass{}, nil)
+	for x := -1; x <= 1; x++ {
+		for z := -1; z <= 1; z++ {
+			tx.SetBlock(cube.Pos{x, IslandY - 3, z}, block.Bedrock{}, nil)
 			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
+			tx.SetBlock(cube.Pos{x, IslandY - 1, z}, block.Grass{}, nil)
 		}
 	}
-	tx.SetBlock(startCorePos.Side(cube.FaceDown), oakLog, nil)
-	tx.SetBlock(startCorePos, Core{Type: startCore}, nil)
+	growTreeAt(tx, cube.Pos{0, IslandY, 0})
 }
 
 // Start begins a session for an activated save.
@@ -76,7 +77,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock,
 		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
-		state: st, money: map[string]int64{}, displays: map[cube.Pos]*drawerDisplay{},
+		state: st, displays: map[cube.Pos]*drawerDisplay{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.tickReach = inst.LoadRadius() * 16
@@ -120,8 +121,6 @@ type session struct {
 	hostID   string
 	state    *State
 	rand     *rand.Rand
-	// money holds the wallets of players currently in the instance.
-	money map[string]int64
 	// displays are the drawer display entities by drawer position.
 	displays map[cube.Pos]*drawerDisplay
 	// lastUse and lastPunch are each player's last drawer use and punch.
@@ -130,9 +129,8 @@ type session struct {
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
-	// boardMinute is the play time minute shown on the sidebars;
-	// urgentMinute the urgent mission minute.
-	boardMinute, urgentMinute int
+	// boardMinute is the play time minute shown on the HUD.
+	boardMinute int
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
 	shapes map[any]debug.Shape
 	// cropQueue holds the next growth update of every crop (crops.go).
@@ -163,27 +161,15 @@ func (s *session) debounced(p *player.Player) bool {
 	return false
 }
 
-func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{0.5, IslandY, 2.5} }
+func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{1.5, IslandY, 1.5} }
 
 func (s *session) Join(p *player.Player, first bool) {
-	acc := instance.AccountID(p)
-	m, err := s.g.db.Money(s.saveID, acc)
-	if err != nil {
-		s.g.log.Error("load money", "player", p.Name(), "err", err)
-	}
-	s.money[acc] = m
 	_, day, _ := s.clock.Now()
 	p.Messagef("§a'%s'에 입장했습니다. §7%d일차 · /menu 로 메뉴를 엽니다.", s.saveName, day)
 	if first {
-		_, _ = p.Inventory().AddItem(item.NewStack(item.Pickaxe{Tier: item.ToolTierWood}, 1))
-		_, _ = p.Inventory().AddItem(item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
+		// Bare hands: only the menu item (§2).
 		_ = p.Inventory().SetItem(8, menuItem())
-		if instance.AccountID(p) == s.hostID {
-			_, _ = p.Inventory().AddItem(item.NewStack(DeliveryBox{}, 1))
-		}
 	}
-	convertLegacyCores(p.Inventory())
-	s.levelAchievementsFor(p)
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)
@@ -196,14 +182,10 @@ func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
 }
 
 func (s *session) Leave(p *player.Player) {
-	acc := instance.AccountID(p)
-	s.storeMoney(acc)
-	delete(s.money, acc)
 	delete(s.lastOpen, p.H())
 	delete(s.lastUse, p.H())
 	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
-	p.RemoveBossBar()
 	delete(s.lastLook, p.H())
 	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
@@ -212,9 +194,6 @@ func (s *session) Leave(p *player.Player) {
 	p.RemoveScoreboard()
 	// Locked recipes belong to this island (recipes.go).
 	p.SetRecipeFilter(nil)
-	// The experience bar shows the island's level and mission (sidebar.go).
-	p.SetExperienceLevel(0)
-	p.SetExperienceProgress(0)
 }
 
 func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s} }
@@ -228,9 +207,6 @@ func (s *session) NewDay(tx *world.Tx, day int) {
 func (s *session) Autosave(tx *world.Tx) {
 	s.refreshPlayTime(tx)
 	s.storeState()
-	for acc := range s.money {
-		s.storeMoney(acc)
-	}
 }
 
 func (s *session) Close(tx *world.Tx) {
@@ -244,12 +220,6 @@ func (s *session) Close(tx *world.Tx) {
 func (s *session) storeState() {
 	if err := s.state.save(s.g.db, s.saveID); err != nil {
 		s.g.log.Error("store dragonfactory state", "save", s.saveID, "err", err)
-	}
-}
-
-func (s *session) storeMoney(acc string) {
-	if err := s.g.db.SetMoney(s.saveID, acc, s.money[acc]); err != nil {
-		s.g.log.Error("store money", "save", s.saveID, "err", err)
 	}
 }
 

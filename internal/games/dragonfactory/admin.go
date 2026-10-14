@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/perf"
 	"github.com/presentkim/dragonfactory/internal/timed"
 )
@@ -36,50 +34,6 @@ func (a adminBase) session(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player
 		o.Error("세이브 안에서 사용하세요.")
 	}
 	return p, s, ok
-}
-
-type adminLevel struct {
-	adminBase
-	Sub   cmd.SubCommand `cmd:"level"`
-	Level int            `cmd:"level"`
-}
-
-func (c adminLevel) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if _, s, ok := c.session(src, o, tx); ok {
-		s.state.Level = max(1, min(c.Level, len(Levels)+1))
-		s.state.Delivered = map[string]int{}
-		s.updateBoards(tx)
-		o.Printf("레벨을 %d(으)로 바꿨습니다.", s.state.Level)
-	}
-}
-
-type adminPoints struct {
-	adminBase
-	Sub    cmd.SubCommand `cmd:"points"`
-	Points int            `cmd:"points"`
-}
-
-func (c adminPoints) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if _, s, ok := c.session(src, o, tx); ok {
-		s.state.CorePoints = max(0, c.Points)
-		o.Printf("코어 강화 포인트: %d", s.state.CorePoints)
-	}
-}
-
-type adminUrgent struct {
-	adminBase
-	Sub cmd.SubCommand `cmd:"urgent"`
-}
-
-func (c adminUrgent) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if _, s, ok := c.session(src, o, tx); ok {
-		now, _, _ := s.clock.Now()
-		if s.state.Urgent != nil {
-			s.endUrgent(tx, now)
-		}
-		s.startUrgent(tx, now)
-		o.Printf("긴급 매입: %s", s.urgentLine())
-	}
 }
 
 type adminItem struct {
@@ -111,30 +65,13 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	o.Printf("%s x%d", itemName(st), st.Count())
 }
 
-type adminTier struct {
-	adminBase
-	Sub   cmd.SubCommand `cmd:"corespeed"`
-	Level int            `cmd:"level"`
-}
-
-// Run sets the core speed upgrade level.
-func (c adminTier) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if _, s, ok := c.session(src, o, tx); ok {
-		if s.state.TierSpeed == nil {
-			s.state.TierSpeed = map[int]int{}
-		}
-		s.state.TierSpeed[1] = max(0, min(c.Level, maxTierSpeed))
-		o.Printf("코어 속도 Lv.%d", s.coreSpeed())
-	}
-}
-
 type adminSkip struct {
 	adminBase
 	Sub     cmd.SubCommand `cmd:"skip"`
 	Minutes int            `cmd:"minutes"`
 }
 
-// Run advances the instance time (days, urgent missions, lost-and-found).
+// Run advances the instance time (days, crops, lost-and-found).
 func (c adminSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
 		for _, day := range s.clock.Advance(time.Duration(max(0, c.Minutes)) * time.Minute) {
@@ -168,23 +105,6 @@ func (c adminLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
-type adminMoney struct {
-	adminBase
-	Sub    cmd.SubCommand `cmd:"money"`
-	Amount int            `cmd:"amount"`
-}
-
-func (c adminMoney) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if p, s, ok := c.session(src, o, tx); ok {
-		// Not AddMoney: operator money does not earn achievements.
-		s.money[instance.AccountID(p)] += int64(c.Amount)
-		s.updateBoard(p)
-		o.Printf("소지금: %s", formatMoney(s.Money(p)))
-	}
-}
-
-// adminTimed makes the held item a time-limited item that expires the given
-// real-time seconds from now (0 removes the period).
 type adminTimed struct {
 	adminBase
 	Sub     cmd.SubCommand `cmd:"timed"`
@@ -223,12 +143,19 @@ func (c adminFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
-// giveItems are the items /dfadmin give hands out: every shop product and
-// every machine (the auto miner is not sold).
+// giveItems are the items /dfadmin give hands out: the game's own items
+// and every machine, plus a water bucket.
 func giveItems() map[string]func() item.Stack {
-	out := map[string]func() item.Stack{}
-	for _, it := range ShopItems {
-		out[it.ID] = it.Stack
+	out := map[string]func() item.Stack{
+		"research_table":   func() item.Stack { return item.NewStack(ResearchTable{}, 1) },
+		"drawer":           func() item.Stack { return item.NewStack(Drawer{}, 1) },
+		"drawer_key":       func() item.Stack { return item.NewStack(DrawerKey{}, 1) },
+		"upgrade_capacity": func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) },
+		"upgrade_void":     func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) },
+		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
+		"water": func() item.Stack {
+			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
+		},
 	}
 	for _, k := range machineOrder {
 		out[k] = func() item.Stack { return machineItem(k) }
@@ -271,51 +198,21 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	o.Printf("%s x%d", itemName(f()), n)
 }
 
-// adminLine builds the sample hands-free line of docs/tech/machines.md on
-// the start core: auto miner above the core's output, crusher east of it
-// with a hopper into a chest below, sell box west of it.
-type adminLine struct {
-	adminBase
-	Sub cmd.SubCommand `cmd:"line"`
-}
-
-func (c adminLine) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, _, ok := c.session(src, o, tx)
-	if !ok {
-		return
-	}
-	minerPos := startCorePos.Add(cube.Pos{0, 2, 0})
-	crusherPos, sellPos := minerPos.Side(cube.FaceEast), minerPos.Side(cube.FaceWest)
-	h := block.NewHopper()
-	h.Facing = cube.FaceDown
-	tx.SetBlock(crusherPos.Side(cube.FaceDown), h, nil)
-	tx.SetBlock(crusherPos.Add(cube.Pos{0, -2, 0}), block.NewChest(), nil)
-	tx.SetBlock(minerPos, newMachine(KindMiner, "", ""), nil)
-	tx.SetBlock(crusherPos, newMachine(KindCrusher, "", ""), nil)
-	tx.SetBlock(sellPos, newMachine(KindSellBox, instance.AccountID(p), p.Name()), nil)
-	o.Printf("생산 라인을 만들었습니다.")
-}
-
 type adminStatus struct {
 	adminBase
 	Sub cmd.SubCommand `cmd:"status"`
 }
 
 func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if p, s, ok := c.session(src, o, tx); ok {
-		bb := s.buyback()
-		sold := 0
-		for _, n := range bb.Sold {
-			sold += n
-		}
-		o.Printf("level=%d money=%d points=%d speed1=%d budget=%d sold=%d", s.state.Level, s.Money(p), s.state.CorePoints, s.state.TierSpeed[1], bb.Budget, sold)
+	if _, s, ok := c.session(src, o, tx); ok {
+		o.Printf("researched=%d chunks=%d", len(s.state.Researched), len(s.state.Chunks))
 	}
 }
 
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminLevel{adminBase: b}, adminPoints{adminBase: b}, adminUrgent{adminBase: b}, adminItem{adminBase: b}, adminTier{adminBase: b}, adminSkip{adminBase: b}, adminMoney{adminBase: b}, adminGive{adminBase: b}, adminLine{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}))
+		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).

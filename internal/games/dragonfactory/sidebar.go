@@ -13,10 +13,9 @@ import (
 
 // updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §11): day
 // and play time at the top left (with the server load under it for an
-// operator who turned it on), money at the top right, the mission as a
-// quest panel, and the level as the experience level with the mission's
-// progress on the experience bar. The texts travel as sidebar rows
-// (internal/hud).
+// operator who turned it on) and the next thing to do as a quest panel: the
+// first research that can be done now, with its cost. The texts travel as
+// sidebar rows (internal/hud).
 func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
 	var b hud.Board
@@ -24,52 +23,48 @@ func (s *session) updateBoard(p *player.Player) {
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
-	b.Add(hud.TopRight, fmt.Sprintf("§6%s", formatMoney(s.Money(p))))
 	title, rows := s.questRows()
 	b.Add(hud.QuestTitle, title)
 	for _, r := range rows {
 		b.Add(hud.Quest, r)
 	}
 	b.Send(p)
-	p.SetExperienceLevel(s.state.Level)
-	p.SetExperienceProgress(s.missionProgress())
 }
 
-// questRows are the quest panel of the current mission: its title and a
-// row per item to deliver.
-func (s *session) questRows() (string, []string) {
-	m, ok := s.mission()
-	if !ok {
-		return "§a모든 미션 완료", nil
-	}
-	var rows []string
-	for _, r := range m.Requirements {
-		name := itemName(item.NewStack(r.Item, 1))
-		if got := min(s.state.Delivered[itemKey(r.Item)], r.Count); got < r.Count {
-			rows = append(rows, fmt.Sprintf("§f%s §e%d§7/%d", name, got, r.Count))
-		} else {
-			rows = append(rows, fmt.Sprintf("§a%s %d/%d", name, r.Count, r.Count))
+// nextResearch is the first research in tree order that can be done now.
+func (s *session) nextResearch() (*Research, bool) {
+	for i := range researchTree {
+		if r := &researchTree[i]; s.researchOpen(r) {
+			return r, true
 		}
 	}
-	return fmt.Sprintf("§e미션 §f%s", m.Name), rows
+	return nil, false
 }
 
-// missionProgress is the share of the current mission's items delivered,
-// 0 to 1 (1 when every mission is done).
-func (s *session) missionProgress() float64 {
-	m, ok := s.mission()
+// questRows are the quest panel: the next research and its cost.
+func (s *session) questRows() (string, []string) {
+	r, ok := s.nextResearch()
 	if !ok {
-		return 1
+		return "§a모든 연구 완료", nil
 	}
-	var got, need int
-	for _, r := range m.Requirements {
-		got += min(s.state.Delivered[itemKey(r.Item)], r.Count)
-		need += r.Count
+	var rows []string
+	for _, c := range r.Cost {
+		name := itemName(item.NewStack(c.Item, 1))
+		if got := min(s.researchPaid(r, c.Item), c.Count); got < c.Count {
+			rows = append(rows, fmt.Sprintf("§f%s §e%d§7/%d", name, got, c.Count))
+		} else {
+			rows = append(rows, fmt.Sprintf("§a%s %d/%d", name, c.Count, c.Count))
+		}
 	}
-	if need == 0 {
-		return 1
+	return fmt.Sprintf("§d연구 §f%s", r.Name), rows
+}
+
+// nextGoal is a one line summary of the next thing to do (menu).
+func (s *session) nextGoal() string {
+	if r, ok := s.nextResearch(); ok {
+		return "다음 연구: " + r.Name + " (연구대 또는 메뉴 → 연구)"
 	}
-	return float64(got) / float64(need)
+	return "모든 연구를 마쳤습니다."
 }
 
 // formatPlayTime formats the total instance time in whole minutes.

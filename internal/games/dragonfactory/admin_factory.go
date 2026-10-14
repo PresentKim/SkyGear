@@ -14,7 +14,7 @@ import (
 )
 
 // adminFactory builds a large test factory on the island: count modules in
-// a grid centred on the operator, each a core line (core, auto miner, crusher,
+// a grid centred on the operator, each a machine line (cobblestone, auto miner, crusher,
 // hopper into a drawer, sell box), an auto sieve line fed by a chest of
 // gravel, and a 9×9 farm with an auto harvester. It is a load test for
 // letting players build freely (docs/tech/performance.md); watch the load
@@ -56,12 +56,12 @@ func (c adminFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.buildFactoryModule(tx, at, instance.AccountID(p), p.Name(), &built)
 	}
-	o.Printf("공장 모듈 %d개를 지었습니다: 코어 %d, 기계 %d, 서랍 %d, 호퍼 %d, 작물 %d, 블록 %d (틱 범위 밖에 걸친 모듈 %d)", n, built.cores, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
+	o.Printf("공장 모듈 %d개를 지었습니다: 기계 %d, 서랍 %d, 호퍼 %d, 작물 %d, 블록 %d (틱 범위 밖에 걸친 모듈 %d)", n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
 }
 
 // factoryCount counts what a factory build placed.
 type factoryCount struct {
-	cores, machines, drawers, hoppers, crops, blocks int
+	machines, drawers, hoppers, crops, blocks int
 }
 
 // buildFactoryModule builds one module whose platform's north-west corner
@@ -89,15 +89,13 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		}
 	}
 
-	// Core line (docs/tech/machines.md, /dfadmin line): the auto miner
-	// mines what the core makes and hands it to the crusher (into a hopper
-	// and a drawer below) and the sell box.
+	// Machine line (docs/tech/machines.md): the auto miner mines the
+	// cobblestone under it once and hands it to the crusher (into a hopper
+	// and a drawer below).
 	set(1, 1, 2, block.Cobblestone{})
-	set(1, 2, 2, Core{Type: "t1"})
-	n.cores++
+	set(1, 2, 2, block.Cobblestone{})
 	machine(1, 4, 2, KindMiner)
 	machine(2, 4, 2, KindCrusher)
-	machine(0, 4, 2, KindSellBox)
 	hopper(2, 3, 2, cube.FaceDown)
 	drawerPos := set(2, 2, 2, Drawer{Facing: cube.South})
 	s.setDrawer(tx, drawerPos, Drawer{Facing: cube.South})
@@ -164,10 +162,10 @@ func cropBlock(kind string) world.Block {
 	}
 }
 
-// adminDense builds count compact core cells in a grid centred on the
-// operator: each cell is 2×1 blocks, a 1st tier core on cobblestone, an
+// adminDense builds count compact machine cells in a grid centred on the
+// operator: each cell is 2×1 blocks, cobblestone, an
 // auto miner above its output, a crusher beside the miner over a hopper
-// into a drawer. Many cores and machines in little room, for load tests
+// into a drawer. Many machines in little room, for load tests
 // in game (docs/tech/performance.md).
 type adminDense struct {
 	adminBase
@@ -199,7 +197,7 @@ func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		set(0, 0, block.Stone{})
 		set(1, 0, block.Stone{})
 		set(0, 1, block.Cobblestone{})
-		set(0, 2, Core{Type: "t1"})
+		set(0, 2, block.Cobblestone{})
 		set(0, 4, newMachine(KindMiner, owner, name))
 		set(1, 4, newMachine(KindCrusher, owner, name))
 		h := block.NewHopper()
@@ -208,5 +206,5 @@ func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		d := Drawer{Facing: cube.South}
 		s.setDrawer(tx, set(1, 2, d), d)
 	}
-	o.Printf("밀집 셀 %d개를 지었습니다(%d×%d 블록): 코어 %d, 기계 %d, 호퍼 %d, 서랍 %d", n, cols*2, rows, n, n*2, n, n)
+	o.Printf("밀집 셀 %d개를 지었습니다(%d×%d 블록): 기계 %d, 호퍼 %d, 서랍 %d", n, cols*2, rows, n*2, n, n)
 }
