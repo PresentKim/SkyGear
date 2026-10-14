@@ -315,6 +315,13 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 		b := tx.Block(pos).(ConduitBundle)
 		b.refresh(pos, tx)
 		b = tx.Block(pos).(ConduitBundle)
+		if b.Modes[cube.FaceEast] != itemnet.Off || b.IConn != 0 {
+			t.Fatalf("a new item conduit reaches the chest: mode %v, connections %b", b.Modes[cube.FaceEast], b.IConn)
+		}
+		b.Modes[cube.FaceEast] = itemnet.Both
+		tx.SetBlock(pos, b, nil)
+		b.refresh(pos, tx)
+		b = tx.Block(pos).(ConduitBundle)
 		if b.EConn != 0 || b.IConn != 1<<5 {
 			t.Fatalf("connections energy %b item %b, want only the item conduit towards the chest", b.EConn, b.IConn)
 		}

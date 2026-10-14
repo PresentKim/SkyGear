@@ -388,18 +388,18 @@ func (d Drawer) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Sta
 	return n
 }
 
-// PeekItems implements itemio.Extractor: the drawer gives through its
-// bottom face.
-func (d Drawer) PeekItems(_ *world.Tx, _ cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
-	if face != cube.FaceDown || d.Count == 0 || (want != nil && !want(d.Item)) {
+// PeekItems implements itemio.Extractor: the drawer gives through any face (a
+// hopper under it, a conduit anywhere).
+func (d Drawer) PeekItems(_ *world.Tx, _ cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
+	if d.Count == 0 || (want != nil && !want(d.Item)) {
 		return item.Stack{}
 	}
 	return d.Item.Grow(int(min(d.Count, int64(d.Item.MaxCount()))) - d.Item.Count())
 }
 
 // ExtractItems implements itemio.Extractor.
-func (d Drawer) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack, n int) item.Stack {
-	if face != cube.FaceDown || d.Count == 0 || !d.Item.Comparable(st) {
+func (d Drawer) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
+	if d.Count == 0 || !d.Item.Comparable(st) {
 		return item.Stack{}
 	}
 	out := d.extract(min(n, d.Item.MaxCount()))

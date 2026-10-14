@@ -274,7 +274,7 @@
  "dragonfactory.machine.init.6": "§7부산물은 위로 튀어나옵니다",
  "dragonfactory.machine.init.7": "자동 체",
  "dragonfactory.machine.init.8": "§7자갈·모래·흙을 저절로 거릅니다(개당 3초)",
- "dragonfactory.machine.init.9": "§7부산물은 옆·아래 상자로, 없으면 위로",
+ "dragonfactory.machine.init.9": "§7부산물은 칸 4개에 쌓이고, 가득 차면 멈춥니다",
  "dragonfactory.machine.showProgress.1": "§e진행 %d%%",
  "dragonfactory.machine.showProgress.2": "§6판매 주기",
  "dragonfactory.machine.showProgress.3": "§b채굴 %d%%",

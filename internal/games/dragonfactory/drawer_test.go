@@ -433,3 +433,14 @@ func TestDrawerMenuSlots(t *testing.T) {
 		}
 	})
 }
+
+// TestDrawerGivesThroughAnyFace: a conduit beside a drawer takes its items, not
+// only a hopper under it.
+func TestDrawerGivesThroughAnyFace(t *testing.T) {
+	d := Drawer{Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}
+	for _, f := range cube.Faces() {
+		if got := d.PeekItems(nil, cube.Pos{}, f, nil); got.Empty() {
+			t.Errorf("a drawer gives nothing through %v", f)
+		}
+	}
+}

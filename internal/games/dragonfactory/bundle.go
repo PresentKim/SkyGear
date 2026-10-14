@@ -254,7 +254,9 @@ func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u it
 	if len(plateKinds(tx, pos, b, side)) == 0 {
 		return false
 	}
-	s.showPlateForm(p, tx, pos, side)
+	if !s.debounced(p) {
+		s.showPlateForm(p, tx, pos, side)
+	}
 	return true
 }
 
@@ -389,6 +391,10 @@ func (c ItemConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *
 			return false
 		}
 		b.Item = c.Tier
+		// a new item conduit moves nothing until a side is switched on in its form
+		for i := range b.Modes {
+			b.Modes[i] = itemnet.Off
+		}
 		return true
 	})
 }

@@ -163,22 +163,22 @@
           "*": "0"
         },
         {
-          "collar_item_down": "(math.mod(query.variant, 6) == 0) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_down": "(math.mod(query.variant, 6) == 0) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         },
         {
-          "collar_item_up": "(math.mod(query.variant, 6) == 1) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_up": "(math.mod(query.variant, 6) == 1) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         },
         {
-          "collar_item_north": "(math.mod(query.variant, 6) == 2) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_north": "(math.mod(query.variant, 6) == 2) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         },
         {
-          "collar_item_south": "(math.mod(query.variant, 6) == 3) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_south": "(math.mod(query.variant, 6) == 3) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         },
         {
-          "collar_item_west": "(math.mod(query.variant, 6) == 4) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_west": "(math.mod(query.variant, 6) == 4) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         },
         {
-          "collar_item_east": "(math.mod(query.variant, 6) == 5) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1))"
+          "collar_item_east": "(math.mod(query.variant, 6) == 5) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
         }
       ]
     },

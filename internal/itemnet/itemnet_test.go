@@ -199,3 +199,26 @@ func TestChannelsKeepLinesApart(t *testing.T) {
 		}
 	})
 }
+
+// TestRoundRobinWithinAStep: a fast network (16 items a step) hands out one item
+// at a time to each destination in turn, not a whole step's worth to the first.
+func TestRoundRobinWithinAStep(t *testing.T) {
+	stone := item.NewStack(block.Stone{}, 1)
+	withWorld(t, func(tx *world.Tx) {
+		src, a, b := cube.Pos{0, 64, 0}, cube.Pos{1, 64, -1}, cube.Pos{1, 64, 1}
+		chestAt(tx, src)
+		chestAt(tx, a)
+		chestAt(tx, b)
+		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 64))
+		c := testConduit{tier: 3}
+		c.modes[cube.FaceWest] = Input
+		c.modes[cube.FaceNorth], c.modes[cube.FaceSouth] = Output, Output
+		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
+		if got := Discover(tx, cube.Pos{1, 64, 0}, 10).Step(tx); got != 16 {
+			t.Fatalf("moved %d, want 16", got)
+		}
+		if count(tx, a, stone) != 8 || count(tx, b, stone) != 8 {
+			t.Errorf("the chests got %d and %d, want 8 and 8", count(tx, a, stone), count(tx, b, stone))
+		}
+	})
+}

@@ -109,6 +109,28 @@
         }
       },
       {
+        "s13@df_machine.slot": {
+          "collection_index": 13,
+          "offset": [
+            72,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s17@df_machine.indicator": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s14@df_machine.slot": {
           "collection_index": 14,
           "offset": [

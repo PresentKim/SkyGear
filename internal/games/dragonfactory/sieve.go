@@ -13,7 +13,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
 // Sieves work like the sieve of the Dorios' Basics add-on: a wooden frame
@@ -228,8 +227,16 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 			return
 		}
 	}
+	if st.kind == machineKinds[KindAutoSieve] {
+		// it sifts on its own, a click only opens its window
+		st.storage.Open(p, nil)
+		return
+	}
 	swung := false
 	for _, sv := range group {
+		if sv.st.kind == machineKinds[KindAutoSieve] {
+			continue
+		}
 		if _, in, ok := sv.st.firstInput(); ok && time.Since(sv.st.lastUse) >= sieveCooldown {
 			if !swung {
 				p.SwingArm()
@@ -280,9 +287,9 @@ func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in ite
 }
 
 // finishSifting uses up one input block and gives its products: dropped on
-// top, or for the auto sieve sifting on its own (toContainers) put into the
-// containers beside or below it first.
-func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, toContainers bool) {
+// top of a hand sieve, or into the output slots of an auto sieve (toOutput),
+// what does not fit waits in pending.
+func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, toOutput bool) {
 	st.progress = 0
 	slot, in, ok := st.firstInput()
 	if !ok {
@@ -291,35 +298,41 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	_ = st.inv().SetItem(slot, in.Grow(-1))
 	s.advance(tx, advSift)
 	for _, it := range s.sieveDrops(in, st.mesh) {
-		if toContainers {
-			if it = s.storeBesideOrBelow(tx, pos, it); it.Empty() {
-				continue
-			}
+		if !toOutput {
+			s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
+		} else if fits(st.inv(), st.kind.output, []item.Stack{it}) {
+			put(st.inv(), st.kind.output, it)
+		} else {
+			st.pending = append(st.pending, it)
 		}
-		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
 	}
 }
 
-// sieveTargets are the sides an auto sieve puts its products into: never
-// up, where the products drop.
-var sieveTargets = []cube.Face{cube.FaceDown, cube.FaceNorth, cube.FaceEast, cube.FaceSouth, cube.FaceWest}
-
-// storeBesideOrBelow puts it into the blocks beside or below pos that take
-// items (itemio) and returns what none of them took.
-func (s *session) storeBesideOrBelow(tx *world.Tx, pos cube.Pos, it item.Stack) item.Stack {
-	for _, f := range sieveTargets {
-		n := itemio.Insert(tx, pos.Side(f), f.Opposite(), it)
-		if it = it.Grow(-n); it.Empty() {
-			break
+// outputHasRoom reports whether an output slot is empty or not yet full.
+func outputHasRoom(st *machineState) bool {
+	for _, slot := range st.kind.output {
+		if it, _ := st.inv().Item(slot); it.Empty() || it.Count() < it.MaxCount() {
+			return true
 		}
 	}
-	return it
+	return false
 }
 
 // runAutoSieve sifts the input of an auto sieve on its own.
 func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
+	// products that did not fit go first; while any is left the sieve waits
+	for len(st.pending) > 0 {
+		if !fits(st.inv(), st.kind.output, st.pending[:1]) {
+			return
+		}
+		put(st.inv(), st.kind.output, st.pending[0])
+		st.pending = st.pending[1:]
+	}
 	if _, _, ok := st.firstInput(); !ok {
 		st.progress = 0
+		return
+	}
+	if !outputHasRoom(st) {
 		return
 	}
 	if !st.consume() {

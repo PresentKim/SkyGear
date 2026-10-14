@@ -151,3 +151,24 @@ func TestFluidConduitRecipe(t *testing.T) {
 		t.Errorf("fluid conduit advancement: %+v", a)
 	}
 }
+
+// TestAutoSieveRecipeTakesAnySieve: the auto sieve's recipe names the sieve with
+// the wildcard meta (the sieve has many block states), and a plain sieve matches.
+func TestAutoSieveRecipeTakesAnySieve(t *testing.T) {
+	var found bool
+	for _, r := range recipe.Recipes() {
+		out := r.Output()
+		if len(out) != 1 || out[0].Item() != (Machine{Kind: KindAutoSieve}) {
+			continue
+		}
+		for _, in := range r.Input() {
+			if s, ok := in.(item.Stack); ok && s.Item() == (Machine{Kind: KindSieve}) {
+				_, any := s.Value("variants")
+				found = any
+			}
+		}
+	}
+	if !found {
+		t.Error("the auto sieve recipe does not take the sieve with the wildcard meta")
+	}
+}

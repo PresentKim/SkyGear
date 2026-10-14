@@ -104,6 +104,9 @@ type Network struct {
 	// turn is where the next step starts handing out, so every destination
 	// and source gets its turn.
 	turn int
+	// next is, for each source, where its round robin goes on among the
+	// destinations.
+	next map[endKey]int
 }
 
 // Discover finds the network of the conduit at start, over at most limit
@@ -146,9 +149,11 @@ func Discover(tx *world.Tx, start cube.Pos, limit int) *Network {
 	return n
 }
 
-// Step moves up to the network's rate of items and returns how many moved:
-// from each endpoint that gives, in turn, to the endpoints that take, in
-// turn.
+// Step moves up to the network's rate of items and returns how many moved,
+// one item at a time and round robin: every source in turn hands its next item
+// to the next destination after the one it served last, so the destinations
+// share what the sources give evenly (the default mode of EnderIO's item
+// conduit, the only one here).
 func (n *Network) Step(tx *world.Tx) int {
 	var sources, dests []Endpoint
 	for _, e := range n.Ends {
@@ -159,28 +164,55 @@ func (n *Network) Step(tx *world.Tx) int {
 			dests = append(dests, e)
 		}
 	}
-	left := RateOf(n.Tier)
-	moved := 0
 	if len(sources) == 0 || len(dests) == 0 {
 		return 0
 	}
-	for i := range sources {
-		src := sources[(n.turn+i)%len(sources)]
-		for j := range dests {
+	if n.next == nil {
+		n.next = map[endKey]int{}
+	}
+	left := RateOf(n.Tier)
+	moved := 0
+	// a block that got items this step does not give them on in the same step
+	received := map[cube.Pos]bool{}
+	for left > 0 {
+		progressed := false
+		for i := range sources {
 			if left <= 0 {
 				break
 			}
-			dst := dests[(n.turn+j)%len(dests)]
-			if dst.Pos == src.Pos || dst.Insert != src.Extract {
+			src := sources[(n.turn+i)%len(sources)]
+			if received[src.Pos] {
 				continue
 			}
-			got := itemio.Transfer(tx, src.Pos, src.Face, dst.Pos, dst.Face, left, nil)
-			moved += got
-			left -= got
+			key := endKey{src.Pos, src.Face}
+			for j := range dests {
+				idx := (n.next[key] + j) % len(dests)
+				dst := dests[idx]
+				if dst.Pos == src.Pos || dst.Insert != src.Extract {
+					continue
+				}
+				if itemio.Transfer(tx, src.Pos, src.Face, dst.Pos, dst.Face, 1, nil) > 0 {
+					n.next[key] = idx + 1
+					received[dst.Pos] = true
+					left--
+					moved++
+					progressed = true
+					break
+				}
+			}
+		}
+		if !progressed {
+			break
 		}
 	}
 	n.turn++
 	return moved
+}
+
+// endKey identifies a source: the face of a block a conduit takes items from.
+type endKey struct {
+	pos  cube.Pos
+	face cube.Face
 }
 
 // registrationTTL is how many steps a conduit stays in the grid without
@@ -236,7 +268,7 @@ func (g *Grid) Step(tx *world.Tx) int {
 		// Keep the turn of a network between steps (keyed by its lowest
 		// conduit).
 		if old, ok := g.nets[low]; ok {
-			n.turn = old.turn
+			n.turn, n.next = old.turn, old.next
 		}
 		keep[low] = n
 		moved += n.Step(tx)

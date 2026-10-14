@@ -502,7 +502,11 @@ func gameRecipes() {
 		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
-	add(machineItem(KindAutoSieve), n(iron, 4), n(Machine{Kind: KindSieve}, 1), n(block.NewHopper(), 1))
+	// The sieve is a block with many states (how full it is); the recipe takes it
+	// whatever its state, as the client matches recipe blocks by the meta it is
+	// told (any), not by the one state an empty sieve has.
+	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
+	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
 	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))
 	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	// The drawer: a ring of planks round a chest.

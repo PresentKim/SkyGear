@@ -281,3 +281,13 @@ func (s *session) nextPlateSide(p *player.Player, tx *world.Tx, pos cube.Pos, b 
 	}
 	return 0, false
 }
+
+// bundleHasPlate reports whether any side of the bundle has a connector plate.
+func bundleHasPlate(tx *world.Tx, pos cube.Pos, b ConduitBundle) bool {
+	for side := range conduitFaces {
+		if len(plateKinds(tx, pos, b, side)) > 0 {
+			return true
+		}
+	}
+	return false
+}

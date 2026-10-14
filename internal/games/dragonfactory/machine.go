@@ -75,7 +75,9 @@ var machineKinds = map[string]*machineKind{
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.5"), i18n.T(i18n.Default, "dragonfactory.machine.init.6")},
 	},
 	KindAutoSieve: {
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), interval: 60, input: []int{10}, indicator: 12,
+		// The window shows the input (fed by hand, a hopper or a conduit), the ring
+		// and the four slots the products go into (ui/df_machine.json sieve_slots).
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 10, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.8"), i18n.T(i18n.Default, "dragonfactory.machine.init.9")},
 	},
@@ -156,6 +158,9 @@ type machineState struct {
 	// miner had four output slots); they move into the output as it frees
 	// up, and are saved until then.
 	legacy []item.Stack
+	// pending are the products of an auto sieve that did not fit its output slots
+	// yet: it waits until they do.
+	pending []item.Stack
 }
 
 // legacySlot is the first saved slot number of legacy items (not a window
@@ -384,7 +389,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -512,6 +517,9 @@ func (m Machine) BreakInfo() block.BreakInfo {
 		Effective:   customBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
+			if m.st != nil {
+				drops = append(drops, m.st.pending...)
+			}
 			if m.st != nil && m.st.mesh != "" {
 				drops = append(drops, item.NewStack(Mesh{Tier: m.st.mesh}, 1))
 			}
@@ -703,6 +711,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if isSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
 		showSieve(tx, pos, st)
+		if m.Kind == KindAutoSieve {
+			st.showProgress()
+		}
 		return
 	}
 	st.showProgress()

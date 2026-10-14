@@ -91,19 +91,29 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	// connector plate sits, or the side of a conduit that has one, opens the
 	// settings of that side, whatever they hold (a conduit item in hand places).
 	if p.Sneaking() && !isConduitItem(held) {
+		// One click sends several use events; only the first opens a form.
 		if at, _, side, ok := plateHit(tx, pos, face, clickPos); ok {
 			ctx.Cancel()
-			h.s.showPlateForm(p, tx, at, side)
+			if !h.s.debounced(p) {
+				h.s.showPlateForm(p, tx, at, side)
+			}
 			return
 		}
-		if b, ok := tx.Block(pos).(ConduitBundle); ok && len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
-			ctx.Cancel()
-			h.s.showPlateForm(p, tx, pos, faceIndex(face))
-			return
-		} else if ok {
-			if side, found := h.s.nextPlateSide(p, tx, pos, b); found {
+		if b, ok := tx.Block(pos).(ConduitBundle); ok {
+			if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
 				ctx.Cancel()
-				h.s.showPlateForm(p, tx, pos, side)
+				if !h.s.debounced(p) {
+					h.s.showPlateForm(p, tx, pos, faceIndex(face))
+				}
+				return
+			}
+			if bundleHasPlate(tx, pos, b) {
+				ctx.Cancel()
+				if !h.s.debounced(p) {
+					if side, found := h.s.nextPlateSide(p, tx, pos, b); found {
+						h.s.showPlateForm(p, tx, pos, side)
+					}
+				}
 				return
 			}
 		}

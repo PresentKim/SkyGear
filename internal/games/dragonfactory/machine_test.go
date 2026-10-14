@@ -71,28 +71,33 @@ func TestCrusher(t *testing.T) {
 	}
 }
 
-func TestAutoSieveFillsChestBeside(t *testing.T) {
+// TestAutoSieveKeepsProductsAndStopsWhenFull: the auto sieve puts its products
+// into its four output slots, a hopper or conduit can take them out, and it stops
+// (keeps its input) when they have no room.
+func TestAutoSieveKeepsProductsAndStopsWhenFull(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
-	chest := block.NewChest()
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(machinePos.Side(cube.FaceEast), chest, nil) })
+	if len(st.kind.output) != 4 {
+		t.Fatalf("%d output slots, want 4", len(st.kind.output))
+	}
 	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 64))
 	tick(s, 64*(st.kind.interval+1))
 	if left, _ := st.inv().Item(st.kind.input[0]); !left.Empty() {
 		t.Fatalf("gravel left: %v", left)
 	}
-	flint := 0
-	s.world.Do(func(tx *world.Tx) {
-		inv := tx.Block(machinePos.Side(cube.FaceEast)).(block.Chest).Inventory(tx, machinePos.Side(cube.FaceEast))
-		for _, it := range inv.Slots() {
-			if !it.Empty() && itemKey(it.Item()) == itemKey(item.Flint{}) {
-				flint += it.Count()
-			}
-		}
-	})
+	flint := outputCount(st, item.Flint{})
 	if flint == 0 || flint == 64 {
-		t.Fatalf("flint in the chest from 64 gravel = %d, want some but not all", flint)
+		t.Fatalf("flint from 64 gravel = %d, want some but not all", flint)
+	}
+	// every output slot full of something it cannot stack with: it stops
+	for i, slot := range st.kind.output {
+		_ = st.inv().SetItem(slot, item.NewStack(block.Dirt{}, 64).WithValue("fill", i))
+	}
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 5))
+	tick(s, 5*(st.kind.interval+1))
+	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 5 {
+		t.Fatalf("a full auto sieve sifted: %v left", left)
 	}
 }
 
@@ -381,5 +386,27 @@ func TestEnergyGauge(t *testing.T) {
 		if role := st.role(energyGaugeSlot); role != roleNone {
 			t.Errorf("%s: the gauge slot is a %v slot", kind, role)
 		}
+	}
+}
+
+// TestAutoSieveWithManyPossibleDrops: a mesh whose table has more kinds of
+// products than the four output slots still sifts (it only waits when the slots
+// have no room for what it actually gave).
+func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
+	st.mesh = "iron"
+	kinds := map[string]bool{}
+	for _, d := range sieveTables[st.mesh][itemKey(block.Gravel{})] {
+		kinds[itemKey(d.Item.Item())] = true
+	}
+	if len(kinds) <= len(st.kind.output) {
+		t.Skipf("only %d kinds of products", len(kinds))
+	}
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 16))
+	tick(s, 16*(st.kind.interval+1))
+	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() == 16 {
+		t.Fatal("the auto sieve never started")
 	}
 }
