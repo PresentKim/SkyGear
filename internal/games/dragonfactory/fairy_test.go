@@ -23,14 +23,14 @@ func TestOldResearchNoteIsKept(t *testing.T) {
 	})
 }
 
-// TestGiftsAreBasics: a gift is oak logs or oak saplings.
+// TestGiftsAreBasics: a gift is oak logs, oak saplings or stone pebbles.
 func TestGiftsAreBasics(t *testing.T) {
 	s := testSession(t)
 	kinds := map[string]bool{}
 	for range 200 {
 		kinds[itemKey(s.rollGift().Item())] = true
 	}
-	if len(kinds) != 2 || !kinds[itemKey(oakLog)] || !kinds[itemKey(block.Sapling{Type: block.OakSapling()})] {
+	if len(kinds) != 3 || !kinds[itemKey(oakLog)] || !kinds[itemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[itemKey(Pebble{Kind: PebbleStone})] {
 		t.Errorf("gifts = %v", kinds)
 	}
 }

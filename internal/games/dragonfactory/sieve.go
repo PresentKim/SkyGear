@@ -56,7 +56,7 @@ func lookValue(content, fill int) string {
 var sieveContents = []struct {
 	name string
 	item world.Item
-}{{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}}
+}{{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}, {"dragonfactory_dust", Dust{}}}
 
 func sieveContentOf(it item.Stack) int {
 	if it.Empty() {

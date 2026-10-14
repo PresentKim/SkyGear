@@ -25,5 +25,6 @@ var koreanNames = map[string]string{
 	"stick": "막대기", "wooden_sword": "나무 검", "stone_sword": "돌 검", "iron_axe": "철 도끼", "iron_shovel": "철 삽", "iron_hoe": "철 괭이", "iron_sword": "철 검", "shears": "가위",
 	"oak_slab": "참나무 반 블록", "oak_stairs": "참나무 계단", "oak_fence": "참나무 울타리", "fence_gate": "참나무 울타리 문", "wooden_door": "참나무 문", "trapdoor": "참나무 다락문", "ladder": "사다리", "bowl": "그릇",
 	"cobblestone_slab": "조약돌 반 블록", "stone_stairs": "조약돌 계단", "cobblestone_wall": "조약돌 담장", "normal_stone_slab": "돌 반 블록", "normal_stone_stairs": "돌 계단", "stone_bricks": "석재 벽돌",
+	"andesite": "안산암", "diorite": "섬록암", "granite": "화강암", "string": "실", "bone_meal": "뼛가루", "redstone": "레드스톤 가루", "gunpowder": "화약",
 	"glass_pane": "유리판", "glass_bottle": "유리병", "bread": "빵", "brick_block": "벽돌 블록", "pumpkin_pie": "호박 파이",
 }

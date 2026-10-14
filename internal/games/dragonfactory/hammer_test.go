@@ -43,10 +43,10 @@ func TestHammerDropsCrushedBlock(t *testing.T) {
 	}
 }
 
-// TestDirtFromCrushedSand: with no dirt core (13th playtest) crushing sand
-// is the way to dirt; dirt and sand sift out the farming and kelp drops.
-func TestDirtFromCrushedSand(t *testing.T) {
-	if out, ok := crushed(block.Sand{}); !ok || itemKey(out) != itemKey(block.Dirt{}) {
+// TestDustFromCrushedSand: sand crushes into dust (sky progression); dirt
+// and sand sift out the farming and kelp drops.
+func TestDustFromCrushedSand(t *testing.T) {
+	if out, ok := crushed(block.Sand{}); !ok || itemKey(out) != itemKey(Dust{}) {
 		t.Fatalf("crushed sand = %v", out)
 	}
 	has := func(in world.Item, want world.Item) bool {

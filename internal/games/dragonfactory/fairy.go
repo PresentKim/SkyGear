@@ -170,6 +170,7 @@ func (s *session) rollGift() item.Stack {
 	gifts := []item.Stack{
 		item.NewStack(oakLog, 16),
 		item.NewStack(block.Sapling{Type: block.OakSapling()}, 2),
+		item.NewStack(Pebble{Kind: PebbleStone}, 16),
 	}
 	return gifts[s.rand.IntN(len(gifts))]
 }

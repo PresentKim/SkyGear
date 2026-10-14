@@ -60,6 +60,9 @@
     "dragonfactory_drawer_side": {
       "textures": "textures/blocks/drawer_side"
     },
+    "dragonfactory_dust": {
+      "textures": "textures/blocks/dust"
+    },
     "dragonfactory_harvester_down": {
       "textures": "textures/blocks/harvester_down"
     },

@@ -91,8 +91,8 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Stone{}):       block.Cobblestone{},
 	itemKey(block.Cobblestone{}): block.Gravel{},
 	itemKey(block.Gravel{}):      block.Sand{},
-	// Dirt has no core since the 13th playtest: crushed sand gives it.
-	itemKey(block.Sand{}): block.Dirt{},
+	// Sand crushes into dust (13th playtest, sky progression).
+	itemKey(block.Sand{}): Dust{},
 }
 
 // SieveDrop is a possible product of sifting an item.
@@ -108,6 +108,7 @@ var sieveRecipes = map[string][]SieveDrop{
 	itemKey(block.Sand{}):   {{item.NewStack(item.ClayBall{}, 1), 20}, {item.NewStack(item.GoldNugget{}, 1), 3}, {item.NewStack(block.Kelp{}, 1), 3}},
 	itemKey(block.Dirt{}): {{item.NewStack(block.WheatSeeds{}, 1), 15}, {item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), 5},
 		{item.NewStack(block.PumpkinSeeds{}, 1), 4}, {item.NewStack(block.MelonSeeds{}, 1), 4}},
+	itemKey(Dust{}): {{item.NewStack(item.BoneMeal{}, 1), 10}, {item.NewStack(item.RedstoneWire{}, 1), 5}, {item.NewStack(item.Gunpowder{}, 1), 3}},
 }
 
 // minerTool is what the auto miner mines with.

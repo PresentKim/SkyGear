@@ -23,7 +23,7 @@ func TestHUDQuestIsNextResearch(t *testing.T) {
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
 		s.payResearch(p, tx, sticks)
-		if title, _ := s.questRows(); !strings.Contains(title, "나무 도구") {
+		if title, _ := s.questRows(); !strings.Contains(title, "돌 다지기") {
 			t.Fatalf("quest after sticks %q", title)
 		}
 	})

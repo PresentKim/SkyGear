@@ -1,6 +1,9 @@
 {
   "resource_pack_name": "vanilla",
   "texture_data": {
+    "dragonfactory:bark_fibre": {
+      "textures": "textures/items/bark_fibre"
+    },
     "dragonfactory:cycle_0": {
       "textures": "textures/items/cycle_0"
     },
@@ -51,6 +54,18 @@
     },
     "dragonfactory:machine_info": {
       "textures": "textures/items/machine_info"
+    },
+    "dragonfactory:pebble_andesite": {
+      "textures": "textures/items/pebble_andesite"
+    },
+    "dragonfactory:pebble_diorite": {
+      "textures": "textures/items/pebble_diorite"
+    },
+    "dragonfactory:pebble_granite": {
+      "textures": "textures/items/pebble_granite"
+    },
+    "dragonfactory:pebble_stone": {
+      "textures": "textures/items/pebble_stone"
     },
     "dragonfactory:progress_0": {
       "textures": "textures/items/progress_0"
