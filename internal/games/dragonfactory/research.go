@@ -223,6 +223,16 @@ func (s *session) showResearchTab(p *player.Player, done bool) {
 	ui.ItemGrid(p, "연구", body, slots, actions...)
 }
 
+// researchTip is the hover text of a research in the list: its name in
+// colour and the short description.
+func researchTip(colour string, r *Research) string {
+	tip := colour + r.Name
+	if short := researchText(r.ID).Short; short != "" {
+		tip += "\n§7" + short
+	}
+	return tip
+}
+
 // researchList builds the research list of a tab. A research is hidden until
 // everything before it is done, so the tree is found step by step. The
 // tooltip of a research to do is its name in yellow, in green when p has
@@ -237,20 +247,20 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 		case s.researched(r.ID):
 			doneN++
 			if done {
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: "§7" + r.Name + "\n§a연구 완료\n§7누르면 자세히 봅니다", Run: show})
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip("§7", r), Run: show})
 			}
 		case s.researchOpen(r):
 			todoN++
 			if !done {
-				title, line := "§e"+r.Name, "§7재료가 모자랍니다"
+				colour := "§e"
 				if p != nil && len(s.researchMissing(p, r)) == 0 {
-					title, line = "§a"+r.Name, "§a재료가 모두 있습니다: 지금 연구할 수 있습니다"
+					colour = "§a"
 				}
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: title + "\n" + line + "\n§7누르면 자세히 봅니다", Run: show})
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(colour, r), Run: show})
 			}
 		}
 	}
-	body := "§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다. 아이템에 마우스를 올리면 이름이 보입니다(노랑: 할 연구, 초록: 지금 할 수 있는 연구)."
+	body := "§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다. 아이템에 마우스를 올리면 이름과 짧은 설명이 보입니다(노랑: 아직 못 하는 연구, 초록: 지금 할 수 있는 연구)."
 	if len(slots) == 0 {
 		if done {
 			body += "\n\n§7아직 마친 연구가 없습니다."
@@ -293,7 +303,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 	if txt.About != "" {
 		fmt.Fprintf(&b, "§f%s\n", txt.About)
 	}
-	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Name}
+	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Name, InfoRun: func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }}
 	var opts []ui.Option
 	switch {
 	case done:
@@ -322,7 +332,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 			s.showResearchNode(p, r)
 		}))
 	}
-	d.Body = b.String()
+	d.Info = strings.TrimSpace(b.String())
 	again := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
 	// The materials: the count shown is what the research spends (green
 	// once p has enough, or the research is done); the tooltip says what
