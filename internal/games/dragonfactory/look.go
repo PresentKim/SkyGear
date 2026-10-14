@@ -127,6 +127,9 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	switch b := b.(type) {
 	case Machine:
 		info.Lines, info.Line = machineLines(b)
+		if b.st != nil && b.st.kind.controller {
+			info.Lines = storageLines(tx, pos)
+		}
 		if b.Kind == KindMiner && b.st != nil {
 			// The auto miner's one output slot shows like a container's.
 			it, _ := b.st.inv().Item(b.st.kind.output[0])
@@ -268,7 +271,9 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(st), nil
-	case st.kind.gate:
+	case st.kind.gate, m.Kind == KindStorageLink:
+		return nil, nil
+	case st.kind.controller:
 		return nil, nil
 	case st.kind.fluidCap > 0:
 		lines := fluidLines(st)

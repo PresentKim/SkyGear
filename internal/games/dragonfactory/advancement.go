@@ -117,6 +117,7 @@ var advancementTree = []Advancement{
 	{ID: advWave5, Name: i18n.T(i18n.Default, "advancement.wave_5.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_5.hint"), Icon: "diamond_sword"},
 	{ID: "diamond_tools", Name: i18n.T(i18n.Default, "advancement.diamond_tools.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_tools.hint"), Item: "diamond_pickaxe"},
 	{ID: "obsidian", Name: i18n.T(i18n.Default, "advancement.obsidian.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.obsidian.hint"), Item: "obsidian"},
+	{ID: "storage_controller", Name: i18n.T(i18n.Default, "advancement.storage_controller.name"), Parent: "drawer", Hint: i18n.T(i18n.Default, "advancement.storage_controller.hint"), Research: "storage_controller", Icon: "dragonfactory:storage_controller"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

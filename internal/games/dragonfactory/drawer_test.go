@@ -444,3 +444,61 @@ func TestDrawerGivesThroughAnyFace(t *testing.T) {
 		}
 	}
 }
+
+// TestStorageController: drawers that touch the controller or each other, or are
+// joined by links, are one storage within 16 blocks; items go into the drawer
+// that holds them, come out of any, and a drawer that is out of reach is not part.
+func TestStorageController(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	s.world.Do(func(tx *world.Tx) {
+		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
+		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
+		// a link joins a drawer that does not touch
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), newMachine(KindStorageLink, "", ""), nil)
+		c := ctl.Add(cube.Pos{0, 0, 2})
+		tx.SetBlock(c, Drawer{Facing: cube.South}, nil)
+		// out of reach and unconnected
+		far := ctl.Add(cube.Pos{0, 3, 0})
+		tx.SetBlock(far, Drawer{Facing: cube.South}, nil)
+		if n := len(storageNetwork(tx, ctl)); n != 3 {
+			t.Fatalf("%d drawers, want 3", n)
+		}
+		cobble := item.NewStack(block.Cobblestone{}, 100)
+		if n := controllerInsert(tx, ctl, cobble); n != 100 {
+			t.Fatalf("took %d of 100", n)
+		}
+		// the same kind goes to the drawer that holds it
+		if n := controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 28)); n != 28 {
+			t.Fatalf("took %d of 28", n)
+		}
+		held := 0
+		for _, sd := range storageNetwork(tx, ctl) {
+			if sd.d.Count > 0 {
+				held++
+			}
+		}
+		if held != 1 {
+			t.Errorf("the cobblestone is in %d drawers, want 1", held)
+		}
+		if got := controllerPeek(tx, ctl, nil); got.Empty() || itemKey(got.Item()) != itemKey(block.Cobblestone{}) {
+			t.Errorf("peek %v", got)
+		}
+		out := controllerExtract(tx, ctl, cobble, 50)
+		if out.Count() != 50 {
+			t.Errorf("took out %d of 50", out.Count())
+		}
+		list, drawers := storageContents(tx, ctl)
+		if drawers != 3 || len(list) != 1 || list[0].count != 78 {
+			t.Errorf("contents %v in %d drawers", list, drawers)
+		}
+		// through the Machine itemio methods too
+		m := tx.Block(ctl).(Machine)
+		if n := m.InsertItems(tx, ctl, cube.FaceUp, item.NewStack(block.Cobblestone{}, 2)); n != 2 {
+			t.Errorf("hopper insert took %d", n)
+		}
+	})
+}

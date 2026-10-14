@@ -21,6 +21,7 @@
 | [05-sky-progression.md](05-sky-progression.md) | 스카이블록 진행 개편 컨셉(스카이팩토리 3·ATM10 Sky): 발전과제 안내, 손작업 초반, 체 그물, 발효기, 차원 게이트 몬스터 웨이브 |
 | [06-power-and-conduits.md](06-power-and-conduits.md) | 에너지(RE)·발전기·도관(에너지/아이템, EnderIO 참고)·기계의 에너지 사용 |
 | [07-progression-expansion.md](07-progression-expansion.md) | 진행 확장: 금속·합금로·에너지 셀·몬스터 시뮬레이터·액체 네트워크·세척기·차원 게이트 |
+| [08-storage-gear-magic.md](08-storage-gear-magic.md) | 스토리지 컨트롤러·장비 제작(팅커스풍)·마법 식물·성장 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항 |
 
 ## 용어

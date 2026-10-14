@@ -205,3 +205,7 @@ item.dragonfactory:ore_washer.name=Ore Washer
 tile.dragonfactory:ore_washer.name=Ore Washer
 item.dragonfactory:dimension_gate.name=Dimension Gate
 tile.dragonfactory:dimension_gate.name=Dimension Gate
+item.dragonfactory:storage_controller.name=Storage Controller
+tile.dragonfactory:storage_controller.name=Storage Controller
+item.dragonfactory:storage_link.name=Storage Link
+tile.dragonfactory:storage_link.name=Storage Link

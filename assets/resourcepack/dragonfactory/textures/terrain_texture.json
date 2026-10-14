@@ -272,6 +272,24 @@
     },
     "dragonfactory_dimension_gate_down": {
       "textures": "textures/blocks/dimension_gate_down"
+    },
+    "dragonfactory_storage_controller_side": {
+      "textures": "textures/blocks/storage_controller_side"
+    },
+    "dragonfactory_storage_controller_up": {
+      "textures": "textures/blocks/storage_controller_up"
+    },
+    "dragonfactory_storage_controller_down": {
+      "textures": "textures/blocks/storage_controller_down"
+    },
+    "dragonfactory_storage_link_side": {
+      "textures": "textures/blocks/storage_link_side"
+    },
+    "dragonfactory_storage_link_up": {
+      "textures": "textures/blocks/storage_link_up"
+    },
+    "dragonfactory_storage_link_down": {
+      "textures": "textures/blocks/storage_link_down"
     }
   },
   "texture_name": "atlas.terrain"
