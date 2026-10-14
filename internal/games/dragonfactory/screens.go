@@ -31,6 +31,14 @@ func (s *session) backOption() ui.Option {
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
+// lobbyOption is the exit button of the game menu: where the other menus
+// have their back button, left of the close button, it goes to the lobby.
+func (s *session) lobbyOption() ui.Option {
+	b := ui.Back("로비로", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") })
+	b.Icon = iconLobby
+	return s.opt(b.Label, b.Icon, b.Run)
+}
+
 // openMenu opens the game menu, or the expansion actions in expansion mode
 // (the camera looks down, so the menu item and /menu act on the mode).
 func (s *session) openMenu(p *player.Player) {
@@ -54,41 +62,44 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 		s.opt("§e발전과제", iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt("§a섬 확장", iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
 		s.opt(fmt.Sprintf("§f분실물 §7(%d)", len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt("§f메뉴 아이템", iconMenu, func(p *player.Player, _ *world.Tx) {
-			if !p.Inventory().ContainsItemFunc(1, isMenuItem) {
-				_, _ = p.Inventory().AddItem(menuItem())
-			}
-		}),
 		s.opt("§f도움말", iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
 		s.opt("§e칭호·치장", iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
-		s.opt("§f로비로", iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
+		s.lobbyOption(),
 	}
 }
 
-// showLost shows the lost-and-found box; pressing an entry takes as much of
-// it as fits.
+// showLost shows the lost-and-found box as item slots (ui.ItemGrid): each
+// entry is its item with the count at the bottom right, the name and what
+// pressing does in the tooltip; pressing takes as much of it as fits.
 func (s *session) showLost(p *player.Player) {
-	body, opts := s.lostMenu()
-	ui.CardMenu(p, "분실물 보관함", body, opts...)
+	body, slots, back := s.lostMenu()
+	ui.ItemGrid(p, "분실물 보관함", body, slots, back)
 }
 
-func (s *session) lostMenu() (string, []ui.Option) {
+func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
 	s.purgeLost()
-	body := "§7공허로 떨어진 아이템이 모입니다. 마지막으로 들어온 뒤 하루가 지나면 사라집니다. 누르면 들어가는 만큼 가져옵니다."
+	body := "§7공허로 떨어진 아이템이 모입니다. 마지막으로 들어온 뒤 하루가 지나면 사라집니다. 아이템에 마우스를 올리면 이름이 보이고, 누르면 들어가는 만큼 가져옵니다."
 	if len(s.state.Lost) == 0 {
 		body += "\n\n§7비어 있습니다."
 	}
-	var opts []ui.Option
-	for i, l := range s.state.Lost {
+	var slots []ui.ItemSlot
+	for _, l := range s.state.Lost {
 		it := decodeItem(l.Item)
 		if it.Empty() {
 			continue
 		}
-		// The index keeps labels unique when two entries share a name.
-		opts = append(opts, s.opt(fmt.Sprintf("%s §8#%d\n§7%s개", itemName(it), i+1, formatInt(int64(l.Count))), iconOf(it), func(p *player.Player, _ *world.Tx) {
-			s.takeLost(p, l)
-			s.showLost(p)
-		}))
+		slots = append(slots, ui.ItemSlot{
+			Icon:  iconOf(it),
+			Count: ui.CountText(l.Count),
+			Tip:   fmt.Sprintf("§f%s\n§7%s개\n§7누르면 들어가는 만큼 가져옵니다", itemName(it), formatInt(int64(l.Count))),
+			Run: func(p *player.Player, tx *world.Tx) {
+				if tx.World() != s.world {
+					return
+				}
+				s.takeLost(p, l)
+				s.showLost(p)
+			},
+		})
 	}
-	return body, append(opts, s.backOption())
+	return body, slots, s.backOption()
 }

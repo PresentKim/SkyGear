@@ -40,8 +40,8 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16).WithLore("x"))
 		sticks, _ := researchByID("stick")
-		if n := s.payResearch(p, tx, sticks); n != 0 {
-			t.Errorf("paid a research with %d planks with extra NBT", n)
+		if _, done := s.doResearch(p, tx, sticks); done {
+			t.Error("a research was done with planks that have extra NBT")
 		}
 	})
 }

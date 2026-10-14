@@ -3,7 +3,9 @@
   // (ui/df_form.json). A title starting with §d§f§c§r (Go: ui.CardToken)
   // shows the buttons as a grid of icon-and-text cards, §d§f§s§r
   // (ui.ShopToken) as a compact grid, §d§f§t§r (ui.TableToken) as a table,
-  // §d§f§i§r (ui.SlotToken) as inventory-like slots, otherwise a list.
+  // §d§f§i§r (ui.SlotToken) as inventory-like slots, §d§f§g§r / §d§f§h§r
+  // (ui.DetailToken, ui.WrapToken) as item slots with counts and tooltips,
+  // otherwise a list.
   "namespace": "server_form",
 
   // The vanilla screen content is a 0×0 panel whose forms have fixed sizes.
@@ -34,7 +36,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text))",
+              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -86,6 +88,32 @@
             {
               "binding_type": "view", "binding_condition": "once",
               "source_property_name": "(not ((#title_text - '§d§f§i§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in the two-column detail form (ui.ItemDetail): the research screen.
+        "gslot_detail@df_form.gslot_detail_form": {
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "(not ((#title_text - '§d§f§g§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in a wrapping grid (ui.ItemGrid): the lost-and-found box.
+        "gslot_wrap@df_form.gslot_wrap_form": {
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "(not ((#title_text - '§d§f§h§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]

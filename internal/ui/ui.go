@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 
@@ -327,6 +329,165 @@ func SlotMenu(p *player.Player, title string, store Slot, info string, left, rig
 		opts = append(opts, a)
 	}
 	Menu(p, SlotToken+title, "", opts...)
+}
+
+// Item slot forms (ItemDetail, ItemGrid). A slot is a button whose text holds
+// a 9 byte marker, one byte saying which side its tooltip grows to, its
+// count in 10 bytes (starts with a colour code, padded with '~') and then
+// its tooltip; the pack cuts them apart
+// (assets/resourcepack/dragonfactory/ui/df_form.json, docs/tech/json-ui.md).
+const (
+	// DetailToken starts the title of an item detail form (ItemDetail).
+	DetailToken = "§d§f§g§r"
+	// WrapToken starts the title of an item slot form in a wrapping grid
+	// (ItemGrid).
+	WrapToken = "§d§f§h§r"
+
+	slotAToken   = "§0§d§r"
+	slotBToken   = "§0§e§r"
+	slotWToken   = "§0§f§r"
+	head1Token   = "§0§g§r"
+	head2Token   = "§0§h§r"
+	detailMarker = "§0§i§r"
+
+	// slotCountBytes is the width of the count field of a slot.
+	slotCountBytes = 10
+	// tipLeftSlots is how many slots from the left of a row have their
+	// tooltip grow to the right; the later ones grow to the left (the pane
+	// clips a tooltip at its edges).
+	tipLeftSlots = 5
+	// gridColumns is how many slots a wrapping grid holds per row, and
+	// gridTipLeft how many of them from the left grow their tooltip right.
+	gridColumns = 11
+	gridTipLeft = 6
+)
+
+// ItemSlot is one slot of an item slot form: an icon (ItemIcon or a texture
+// path), the count at its bottom right (starts with a colour code, at most
+// slotCountBytes bytes), the tooltip shown on hover (or the first tap on
+// touch) and what pressing it does. Run must show a form again: any press
+// answers the form.
+type ItemSlot struct {
+	Icon, Count, Tip string
+	Run              func(p *player.Player, tx *world.Tx)
+}
+
+// SlotRow is a heading with a row of slots (at most 8 fit).
+type SlotRow struct {
+	Heading string
+	Slots   []ItemSlot
+}
+
+// padSlotCount cuts s to at most n bytes (whole characters) and fills it
+// with '~' up to n bytes; '~' in s is dropped.
+func padSlotCount(s string, n int) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r == '~' {
+			continue
+		}
+		if b.Len()+utf8.RuneLen(r) > n {
+			break
+		}
+		b.WriteRune(r)
+	}
+	return b.String() + strings.Repeat("~", n-b.Len())
+}
+
+// CountText formats an item count for a slot's bottom right: whole up to
+// 9999, then in thousands ("12k") or millions ("3m").
+func CountText(n int) string {
+	switch {
+	case n < 10000:
+		return strconv.Itoa(n)
+	case n < 1000000:
+		return strconv.Itoa(n/1000) + "k"
+	}
+	return strconv.Itoa(min(n/1000000, 999)) + "m"
+}
+
+// slotLabel is the button text of a slot of the kind marker; tipRight says
+// the tooltip grows to the left (a slot on the right side). A count is kept
+// a text for the pack: it starts with a colour code ("§f" if it has none).
+func slotLabel(marker string, tipRight bool, sl ItemSlot) string {
+	count := sl.Count
+	if count != "" && !strings.HasPrefix(count, "§") {
+		count = "§f" + count
+	}
+	align := "l"
+	if tipRight {
+		align = "r"
+	}
+	return marker + align + padSlotCount(count, slotCountBytes) + sl.Tip
+}
+
+// slotOption is the option of a slot (nil Run does nothing).
+func slotOption(marker string, tipRight bool, sl ItemSlot) Option {
+	run := sl.Run
+	if run == nil {
+		run = func(*player.Player, *world.Tx) {}
+	}
+	return Option{Label: slotLabel(marker, tipRight, sl), Icon: sl.Icon, Run: run}
+}
+
+// marked reports whether a label starts with one of the button markers.
+func marked(label string) bool { return strings.HasPrefix(label, "§0§") }
+
+// actionOptions marks the buttons under the slots (a Back button already
+// carries its marker).
+func actionOptions(actions []Option) []Option {
+	out := make([]Option, len(actions))
+	for i, a := range actions {
+		if !marked(a.Label) {
+			a.Label = ActionToken + a.Label
+		}
+		out[i] = a
+	}
+	return out
+}
+
+// Detail is the card of an ItemDetail form: a big item, the name and status
+// text beside it (the action buttons come right under them) and the body
+// text under the card.
+type Detail struct {
+	Icon, Name, Status, Body string
+}
+
+// ItemDetail sends a two column form: on the left the Detail card with the
+// action buttons under its name and the body text under the card, on the
+// right up to two headed rows of item slots (rows[0] above rows[1]). The
+// actions come first among the buttons, so their indexes do not depend on
+// the slots.
+func ItemDetail(p *player.Player, title string, d Detail, rows []SlotRow, actions ...Option) {
+	opts := actionOptions(actions)
+	name := d.Name
+	if d.Status != "" {
+		name += "\n" + d.Status
+	}
+	opts = append(opts, Option{Label: detailMarker + name, Icon: d.Icon, Run: func(*player.Player, *world.Tx) {}})
+	kinds := [2][2]string{{head1Token, slotAToken}, {head2Token, slotBToken}}
+	for i, row := range rows {
+		if i >= len(kinds) {
+			break
+		}
+		if row.Heading != "" {
+			opts = append(opts, Option{Label: kinds[i][0] + row.Heading, Run: func(*player.Player, *world.Tx) {}})
+		}
+		for j, sl := range row.Slots {
+			opts = append(opts, slotOption(kinds[i][1], j >= tipLeftSlots, sl))
+		}
+	}
+	Menu(p, DetailToken+title, d.Body, opts...)
+}
+
+// ItemGrid sends a form with the body text, then the item slots in a grid
+// that wraps (11 per row, scrolling) and the action buttons.
+func ItemGrid(p *player.Player, title, body string, slots []ItemSlot, actions ...Option) {
+	opts := actionOptions(actions)
+	for i, sl := range slots {
+		opts = append(opts, slotOption(slotWToken, i%gridColumns >= gridTipLeft, sl))
+	}
+	Menu(p, WrapToken+title, body, opts...)
 }
 
 // Confirm asks a yes/no question as a themed menu (the vanilla modal form

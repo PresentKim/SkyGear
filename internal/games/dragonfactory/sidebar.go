@@ -63,16 +63,11 @@ func (s *session) questRows() (string, []string) {
 	return fmt.Sprintf("§d연구 §f%s", r.Name), s.researchCostRows(r)
 }
 
-// researchCostRows are a research's cost with what is delivered.
+// researchCostRows are what a research spends, one row per item.
 func (s *session) researchCostRows(r *Research) []string {
 	var rows []string
 	for _, c := range r.Cost {
-		name := itemName(item.NewStack(c.Item, 1))
-		if got := min(s.researchPaid(r, c.Item), c.Count); got < c.Count {
-			rows = append(rows, fmt.Sprintf("§f%s §e%d§7/%d", name, got, c.Count))
-		} else {
-			rows = append(rows, fmt.Sprintf("§a%s %d/%d", name, c.Count, c.Count))
-		}
+		rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(item.NewStack(c.Item, 1)), s.researchNeed(r, c)))
 	}
 	return rows
 }

@@ -4,7 +4,8 @@
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=시작 섬' 'expect:입장했습니다' \
   'cmd:/묘목' 'expect:참나무 묘목을 받았습니다' \
-  'cmd:/sapling' 'expect:10분에 한 번' > host.log 2>&1
+  'cmd:/sapling' 'expect:10분에 한 번' \
+  'cmd:/메뉴발급' 'expect:이미 메뉴 아이템' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
 [ $h -eq 0 ]

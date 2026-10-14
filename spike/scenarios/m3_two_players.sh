@@ -8,7 +8,7 @@ timeout 90 "$BOT" -name Hana \
   'expect:친구 요청을 보냈습니다' 'cmd:/friends' 'form:"친구"=1' 'form:"받은 친구 요청"=0' 'form:"친구 요청"=0' 'expect:친구가 되었습니다' \
   'expect:참여했습니다' 'wait:1' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"Gyu"=0' 'chest:Gyu' 'take:35=ok' 'close' \
-  'cmd:/menu' 'form:드래곤팩토리"=0' 'form:"연구"=null' \
+  'cmd:/menu' 'form:드래곤팩토리"=0' 'form:연구"=null' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"Gyu"=1' 'form:"추방"=0' 'expect:추방했습니다' > host.log 2>&1 &
 host=$!
 timeout 90 "$BOT" -name Gyu \

@@ -27,6 +27,8 @@ func registerCommands(g *Game) {
 	// against the command list, where aliases may not be accepted.
 	cmd.Register(cmd.New("df", "드래곤팩토리 메뉴를 엽니다", nil, menuCmd{g: g}))
 	cmd.Register(cmd.New("묘목", "참나무 묘목을 받습니다(10분에 한 번)", nil, saplingCmd{g: g}))
+	cmd.Register(cmd.New("메뉴발급", "잃어버린 드래곤팩토리 메뉴 아이템을 다시 받습니다", nil, menuItemCmd{g: g}))
+	cmd.Register(cmd.New("menuitem", "잃어버린 드래곤팩토리 메뉴 아이템을 다시 받습니다", nil, menuItemCmd{g: g}))
 	cmd.Register(cmd.New("sapling", "참나무 묘목을 받습니다(10분에 한 번)", nil, saplingCmd{g: g}))
 }
 
@@ -43,6 +45,30 @@ func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	s.openMenu(p)
+}
+
+// menuItemCmd is /메뉴발급 (and /menuitem): a new menu item for a player who
+// lost theirs.
+type menuItemCmd struct{ g *Game }
+
+func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, ok := src.(*player.Player)
+	if !ok || tx == nil {
+		return
+	}
+	if _, ok := c.g.sessionOf(tx.World()); !ok {
+		o.Error("세이브에 입장한 뒤 사용할 수 있습니다.")
+		return
+	}
+	if p.Inventory().ContainsItemFunc(1, isMenuItem) {
+		o.Error("이미 메뉴 아이템을 가지고 있습니다.")
+		return
+	}
+	if _, err := p.Inventory().AddItem(menuItem()); err != nil {
+		o.Error("인벤토리가 가득 찼습니다.")
+		return
+	}
+	o.Printf("메뉴 아이템을 받았습니다.")
 }
 
 // itemName returns a readable name of an item stack.

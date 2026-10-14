@@ -22,12 +22,12 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		}
 		s.advance(tx, "research_table")
 		title, rows := s.questRows()
-		if !strings.Contains(title, "첫 연구") || len(rows) != 3 || !strings.Contains(rows[2], "0§7/4") {
+		if !strings.Contains(title, "첫 연구") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
-		s.payResearch(p, tx, sticks)
+		s.doResearch(p, tx, sticks)
 		s.checkAdvancements(tx)
 		if title, _ := s.questRows(); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)

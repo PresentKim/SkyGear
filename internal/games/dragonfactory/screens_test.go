@@ -39,6 +39,28 @@ func TestMainMenuHasIcons(t *testing.T) {
 	})
 }
 
+// TestMainMenuLayout: six cards (no menu item card: /메뉴발급 gives it) and
+// the lobby exit in the back button's place.
+func TestMainMenuLayout(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, opts := s.mainMenu(p)
+		if len(opts) != 7 {
+			t.Fatalf("%d options, want 6 cards and the lobby exit", len(opts))
+		}
+		for _, o := range opts[:6] {
+			if strings.HasPrefix(o.Label, "§0§") || strings.Contains(o.Label, "메뉴 아이템") {
+				t.Errorf("card %q", o.Label)
+			}
+		}
+		if last := opts[6]; !strings.HasPrefix(last.Label, ui.BackToken) || !strings.Contains(last.Label, "로비로") {
+			t.Errorf("last option %q is not the lobby exit", last.Label)
+		}
+	})
+}
+
 func TestLostMenu(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -46,11 +68,11 @@ func TestLostMenu(t *testing.T) {
 	s.addLost(item.NewStack(item.Diamond{}, 3))
 	s.addLost(item.NewStack(item.Apple{}, 100))
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, opts := s.lostMenu()
-		if len(opts) != 3 || !strings.Contains(opts[0].Label, "100") {
-			t.Fatalf("options = %+v", opts)
+		_, slots, _ := s.lostMenu()
+		if len(slots) != 2 || slots[0].Count != "100" || !strings.Contains(slots[0].Tip, "100") {
+			t.Fatalf("slots = %+v", slots)
 		}
-		press(t, p, tx, opts, "apple")
+		slots[0].Run(p, tx)
 		if !p.Inventory().ContainsItem(item.NewStack(item.Apple{}, 100)) {
 			t.Fatal("apples were not taken")
 		}

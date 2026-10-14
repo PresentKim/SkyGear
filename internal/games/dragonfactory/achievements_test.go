@@ -25,7 +25,7 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 		}
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
-		s.payResearch(p, tx, sticks)
+		s.doResearch(p, tx, sticks)
 		if got := account.Owned(p.UUID().String()); !slices.Contains(got, achResearch) {
 			t.Fatalf("achievements %v", got)
 		}

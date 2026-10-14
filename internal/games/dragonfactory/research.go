@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -120,53 +121,47 @@ func (s *session) researchOpen(r *Research) bool {
 	return true
 }
 
-// researchPaid is how many of an item of a research's cost are delivered.
+// researchPaid is how many of an item of a research's cost an older save
+// had already delivered in parts (partial delivery is gone: a research is
+// paid whole, at once; the count only keeps what older saves gave).
 func (s *session) researchPaid(r *Research, it world.Item) int {
 	return s.state.ResearchPaid[r.ID][itemKey(it)]
 }
 
-// payResearch delivers what p has of the research's cost and completes it
-// once everything is paid. It returns how many items were taken.
-func (s *session) payResearch(p *player.Player, tx *world.Tx, r *Research) int {
+// researchNeed is how many of an item of a research's cost are still to be
+// spent.
+func (s *session) researchNeed(r *Research, c Requirement) int {
+	return max(0, c.Count-s.researchPaid(r, c.Item))
+}
+
+// researchMissing lists what p lacks to do a research now: the cost items
+// with how many more they need.
+func (s *session) researchMissing(p *player.Player, r *Research) []Requirement {
+	var missing []Requirement
+	for _, c := range r.Cost {
+		if short := s.researchNeed(r, c) - countPlain(p.Inventory(), c.Item); short > 0 {
+			missing = append(missing, Requirement{c.Item, short})
+		}
+	}
+	return missing
+}
+
+// doResearch spends the whole cost from p's inventory and completes the
+// research. A research is never paid in parts: when p lacks anything it
+// takes nothing and returns what is missing.
+func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missing []Requirement, done bool) {
 	if !s.researchOpen(r) {
-		return 0
+		return nil, false
 	}
-	taken := 0
-	inv := p.Inventory()
-	for _, c := range r.Cost {
-		key := itemKey(c.Item)
-		for slot, st := range inv.Slots() {
-			need := c.Count - s.researchPaid(r, c.Item)
-			if need <= 0 {
-				break
-			}
-			if st.Empty() || !plain(st) || itemKey(st.Item()) != key {
-				continue
-			}
-			n := min(need, st.Count())
-			_ = inv.SetItem(slot, st.Grow(-n))
-			if s.state.ResearchPaid == nil {
-				s.state.ResearchPaid = map[string]map[string]int{}
-			}
-			if s.state.ResearchPaid[r.ID] == nil {
-				s.state.ResearchPaid[r.ID] = map[string]int{}
-			}
-			s.state.ResearchPaid[r.ID][key] += n
-			taken += n
-		}
-	}
-	if taken > 0 {
-		s.storeState()
-		s.updateBoards(tx)
+	if missing = s.researchMissing(p, r); len(missing) > 0 {
+		return missing, false
 	}
 	for _, c := range r.Cost {
-		if s.researchPaid(r, c.Item) < c.Count {
-			return taken
-		}
+		takePlain(p.Inventory(), c.Item, s.researchNeed(r, c))
 	}
 	s.completeResearch(tx, r)
 	account.Grant(p, achResearch)
-	return taken
+	return nil, true
 }
 
 // completeResearch marks a research done and opens its recipes for
@@ -211,102 +206,152 @@ func researchIcon(r *Research) string {
 	return iconMission
 }
 
-// showResearch shows the research tree.
-func (s *session) showResearch(p *player.Player) {
-	body, opts := s.researchMenu()
-	ui.Menu(p, "연구", body, opts...)
+// showResearch shows the research list on the tab of researches still to do.
+func (s *session) showResearch(p *player.Player) { s.showResearchTab(p, false) }
+
+// showResearchTab shows the research list as a grid of item slots (the
+// representative item of each research) under two tabs, the researches
+// still to do and the done ones.
+func (s *session) showResearchTab(p *player.Player, done bool) {
+	body, slots, actions := s.researchList(p, done)
+	ui.ItemGrid(p, "연구", body, slots, actions...)
 }
 
-func (s *session) researchMenu() (string, []ui.Option) {
-	done := 0
-	var opts []ui.Option
+// researchList builds the research list of a tab. A research is hidden until
+// everything before it is done, so the tree is found step by step. The
+// tooltip of a research to do is its name in yellow, in green when p has
+// all it spends and can do it now. p may be nil.
+func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSlot, []ui.Option) {
+	var slots []ui.ItemSlot
+	todoN, doneN := 0, 0
 	for i := range researchTree {
 		r := &researchTree[i]
-		// A research is hidden until everything before it is done, so the
-		// tree is found step by step.
-		var label string
+		show := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
 		switch {
 		case s.researched(r.ID):
-			done++
-			label = "§a" + r.Name + " §7(완료)"
-		case s.researchOpen(r):
-			label = "§e" + r.Name
-		default:
-			continue
-		}
-		opts = append(opts, s.opt(label, researchIcon(r), func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }))
-	}
-	body := fmt.Sprintf("§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다.\n§f연구 완료 §d%d개", done)
-	return body, append(opts, s.backOption())
-}
-
-// showResearchNode shows one research: what it opens, what it needs and
-// its cost, with the delivery button.
-func (s *session) showResearchNode(p *player.Player, r *Research) {
-	body, opts := s.researchNode(r)
-	ui.Menu(p, "연구 · "+r.Name, body, opts...)
-}
-
-func (s *session) researchNode(r *Research) (string, []ui.Option) {
-	var b strings.Builder
-	txt := researchText(r.ID)
-	if txt.About != "" {
-		fmt.Fprintf(&b, "§f%s\n\n", txt.About)
-	}
-	fmt.Fprintf(&b, "§f여는 조합법: §e%s\n", s.unlockNames(r))
-	if len(r.Needs) > 0 {
-		var needs []string
-		for _, id := range r.Needs {
-			n, _ := researchByID(id)
-			mark := "§c"
-			if s.researched(id) {
-				mark = "§a"
+			doneN++
+			if done {
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: "§7" + r.Name + "\n§a연구 완료\n§7누르면 자세히 봅니다", Run: show})
 			}
-			needs = append(needs, mark+n.Name)
+		case s.researchOpen(r):
+			todoN++
+			if !done {
+				title, line := "§e"+r.Name, "§7재료가 모자랍니다"
+				if p != nil && len(s.researchMissing(p, r)) == 0 {
+					title, line = "§a"+r.Name, "§a재료가 모두 있습니다: 지금 연구할 수 있습니다"
+				}
+				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: title + "\n" + line + "\n§7누르면 자세히 봅니다", Run: show})
+			}
 		}
-		fmt.Fprintf(&b, "§f먼저 할 연구: %s\n", strings.Join(needs, "§7, "))
 	}
-	b.WriteString("\n§f비용(아이템 납품)\n")
-	for _, c := range r.Cost {
-		paid := c.Count
-		if !s.researched(r.ID) {
-			paid = s.researchPaid(r, c.Item)
+	body := "§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다. 아이템에 마우스를 올리면 이름이 보입니다(노랑: 할 연구, 초록: 지금 할 수 있는 연구)."
+	if len(slots) == 0 {
+		if done {
+			body += "\n\n§7아직 마친 연구가 없습니다."
+		} else {
+			body += "\n\n§a할 수 있는 연구를 모두 마쳤습니다."
 		}
-		mark := "§7"
-		if paid >= c.Count {
-			mark = "§a"
-		}
-		fmt.Fprintf(&b, "%s%s  %d/%d\n", mark, itemName(item.NewStack(c.Item, 1)), paid, c.Count)
 	}
+	tabs := []ui.Option{
+		ui.Tab(fmt.Sprintf("연구 필요 %d", todoN), "", !done, func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.showResearchTab(p, false)
+			}
+		}),
+		ui.Tab(fmt.Sprintf("연구 완료 %d", doneN), "", done, func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.showResearchTab(p, true)
+			}
+		}),
+		s.backOption(),
+	}
+	return body, slots, tabs
+}
+
+// showResearchNode shows one research as an item detail form
+// (ui.ItemDetail): on the left its big item, name, the research button (or
+// "연구 완료") and what it is for; on the right the materials it spends and
+// the recipes it opens as item slots (the count at the bottom right, the
+// name and owned count in the tooltip).
+func (s *session) showResearchNode(p *player.Player, r *Research) {
+	d, rows, opts := s.researchNode(p, r)
+	ui.ItemDetail(p, "연구 · "+r.Name, d, rows, opts...)
+}
+
+// researchNode builds the screen of a research. p may be nil (the owned
+// counts are then left out).
+func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
+	txt := researchText(r.ID)
+	done := s.researched(r.ID)
+	var b strings.Builder
+	if txt.About != "" {
+		fmt.Fprintf(&b, "§f%s\n", txt.About)
+	}
+	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Name}
 	var opts []ui.Option
 	switch {
-	case s.researched(r.ID):
-		b.WriteString("\n§a연구 완료")
+	case done:
+		d.Status = "§a✔ 연구 완료"
 		if txt.After != "" {
-			fmt.Fprintf(&b, "\n\n§e다음 할 일\n§f%s", txt.After)
+			fmt.Fprintf(&b, "\n§e다음 할 일\n§f%s", txt.After)
 		}
 	case s.researchOpen(r):
 		if txt.Hint != "" {
 			fmt.Fprintf(&b, "\n§e힌트\n§f%s\n", txt.Hint)
 		}
-		b.WriteString("\n§7납품하기를 누르면 인벤토리에서 필요한 만큼 냅니다(나눠 내도 됩니다).")
-		opts = append(opts, s.opt("§a납품하기", iconMission, func(p *player.Player, tx *world.Tx) {
-			if n := s.payResearch(p, tx, r); n > 0 {
-				ui.Flash(p, "§a%d개를 납품했습니다.", n)
-			} else {
-				ui.Notify(p, "§7납품할 아이템이 없습니다.")
-			}
-			if s.researched(r.ID) {
+		opts = append(opts, s.opt("§a연구 진행", iconMission, func(p *player.Player, tx *world.Tx) {
+			missing, ok := s.doResearch(p, tx, r)
+			switch {
+			case ok:
+				ui.Flash(p, "§a연구를 마쳤습니다.")
 				s.showResearch(p)
 				return
+			case len(missing) > 0:
+				var names []string
+				for _, m := range missing {
+					names = append(names, costText(m))
+				}
+				ui.Notify(p, "§c재료가 모자랍니다: %s 더 필요", strings.Join(names, ", "))
 			}
 			s.showResearchNode(p, r)
 		}))
-	default:
-		b.WriteString("\n§c먼저 할 연구를 마쳐야 합니다.")
 	}
-	research := ui.Back("연구 목록", func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
-	return b.String(), append(opts, s.opt(research.Label, research.Icon, research.Run))
+	d.Body = b.String()
+	again := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
+	// The materials: the count shown is what the research spends (green
+	// once p has enough, or the research is done); the tooltip says what
+	// p has.
+	var cost []ui.ItemSlot
+	for _, c := range r.Cost {
+		need := s.researchNeed(r, c)
+		st := item.NewStack(c.Item, 1)
+		mark, tip := "§f", fmt.Sprintf("§f%s\n§7필요 %d개", itemName(st), need)
+		switch {
+		case done:
+			mark, tip = "§a", fmt.Sprintf("§f%s\n§a%d개 사용", itemName(st), c.Count)
+			need = c.Count
+		case p != nil:
+			have := countPlain(p.Inventory(), c.Item)
+			if have >= need {
+				mark = "§a"
+			}
+			tip += fmt.Sprintf("\n%s보유 %d개", mark, have)
+		}
+		cost = append(cost, ui.ItemSlot{Icon: iconOf(st), Count: mark + strconv.Itoa(need), Tip: tip, Run: again})
+	}
+	// The recipes it opens.
+	var opens []ui.ItemSlot
+	for _, n := range r.Unlocks {
+		it, ok := world.ItemByName(unlockName(n), 0)
+		if !ok {
+			continue
+		}
+		st := item.NewStack(it, 1)
+		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: "§f" + itemName(st) + "\n§7조합법이 열립니다", Run: again})
+	}
+	rows := []ui.SlotRow{{Heading: "필요한 재료", Slots: cost}, {Heading: "보상 레시피", Slots: opens}}
+	back := ui.Back("연구 목록", func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
+	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
 }
 
 // ResearchTable is the block where research is done. It is crafted from two
