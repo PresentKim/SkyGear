@@ -191,6 +191,21 @@
     },
     "dragonfactory_energy_cell_down": {
       "textures": "textures/blocks/energy_cell_down"
+    },
+    "dragonfactory_mob_simulator_front": {
+      "textures": "textures/blocks/mob_simulator_front"
+    },
+    "dragonfactory_mob_simulator_back": {
+      "textures": "textures/blocks/mob_simulator_back"
+    },
+    "dragonfactory_mob_simulator_side": {
+      "textures": "textures/blocks/mob_simulator_side"
+    },
+    "dragonfactory_mob_simulator_up": {
+      "textures": "textures/blocks/mob_simulator_up"
+    },
+    "dragonfactory_mob_simulator_down": {
+      "textures": "textures/blocks/mob_simulator_down"
     }
   },
   "texture_name": "atlas.terrain"

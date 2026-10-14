@@ -228,6 +228,27 @@
     },
     "dragonfactory:ingot_steel": {
       "textures": "textures/items/ingot_steel"
+    },
+    "dragonfactory:essence_zombie": {
+      "textures": "textures/items/essence_zombie"
+    },
+    "dragonfactory:essence_skeleton": {
+      "textures": "textures/items/essence_skeleton"
+    },
+    "dragonfactory:essence_creeper": {
+      "textures": "textures/items/essence_creeper"
+    },
+    "dragonfactory:essence_spider": {
+      "textures": "textures/items/essence_spider"
+    },
+    "dragonfactory:essence_slime": {
+      "textures": "textures/items/essence_slime"
+    },
+    "dragonfactory:essence_enderman": {
+      "textures": "textures/items/essence_enderman"
+    },
+    "dragonfactory:essence_blaze": {
+      "textures": "textures/items/essence_blaze"
     }
   },
   "texture_name": "atlas.items"

@@ -99,6 +99,10 @@ var advancementTree = []Advancement{
 	{ID: "stone_barrel", Name: i18n.T(i18n.Default, "advancement.stone_barrel.name"), Parent: "barrel", Hint: i18n.T(i18n.Default, "advancement.stone_barrel.hint"), Item: "dragonfactory:barrel_stone", Icon: "dragonfactory:barrel_stone"},
 	{ID: "lava", Name: i18n.T(i18n.Default, "advancement.lava.name"), Parent: "stone_barrel", Hint: i18n.T(i18n.Default, "advancement.lava.hint"), Item: "lava_bucket", Icon: "lava_bucket"},
 	{ID: "clay", Name: i18n.T(i18n.Default, "advancement.clay.name"), Parent: "barrel", Hint: i18n.T(i18n.Default, "advancement.clay.hint"), Item: "clay_ball", Icon: "clay_ball"},
+	{ID: "essence", Name: i18n.T(i18n.Default, "advancement.essence.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.essence.hint"), Item: "dragonfactory:essence_zombie", Icon: "dragonfactory:essence_zombie"},
+	{ID: "mob_simulator", Name: i18n.T(i18n.Default, "advancement.mob_simulator.name"), Parent: "essence", Hint: i18n.T(i18n.Default, "advancement.mob_simulator.hint"), Item: "dragonfactory:mob_simulator", Icon: "dragonfactory:mob_simulator"},
+	{ID: "ender_pearl", Name: i18n.T(i18n.Default, "advancement.ender_pearl.name"), Parent: "mob_simulator", Hint: i18n.T(i18n.Default, "advancement.ender_pearl.hint"), Item: "ender_pearl", Icon: "ender_pearl"},
+	{ID: "blaze_rod", Name: i18n.T(i18n.Default, "advancement.blaze_rod.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.blaze_rod.hint"), Item: "blaze_rod", Icon: "blaze_rod"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

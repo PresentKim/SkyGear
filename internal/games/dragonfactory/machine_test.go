@@ -481,3 +481,36 @@ func TestEnergyCell(t *testing.T) {
 		t.Errorf("gave %d, holds %d", got, st.energy)
 	}
 }
+
+// TestMobSimulator: an essence charges the simulator for simCharges runs; each run
+// rolls the drops of the mob into the output; the machine remembers its charge
+// in its NBT.
+func TestMobSimulator(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindSimulator, "")
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(Essence{Mob: MobZombie}, 2))
+	tick(s, (st.kind.interval+1)*3)
+	if st.mob != MobZombie || st.charges != simCharges-3 {
+		t.Fatalf("mob %q charges %d after three runs", st.mob, st.charges)
+	}
+	if n := outputCount(st, item.RottenFlesh{}); n < 3 {
+		t.Errorf("rotten flesh after three runs = %d", n)
+	}
+	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 1 {
+		t.Errorf("essence left: %v", left)
+	}
+	m := Machine{Kind: KindSimulator, st: st}
+	back := m.DecodeNBT(m.EncodeNBT()).(Machine)
+	if back.st.mob != MobZombie || back.st.charges != st.charges {
+		t.Errorf("NBT round trip: %q %d", back.st.mob, back.st.charges)
+	}
+	for _, mob := range mobKinds {
+		if len(simDrops[mob]) == 0 {
+			t.Errorf("%s drops nothing", mob)
+		}
+	}
+	if acceptsEssence(item.NewStack(block.Dirt{}, 1)) {
+		t.Error("the simulator takes dirt")
+	}
+}

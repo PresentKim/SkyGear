@@ -181,6 +181,9 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range oreKinds {
 		out["ore_chunk_"+k.ore] = func() item.Stack { return item.NewStack(OreChunk{Ore: k.ore}, 1) }
 	}
+	for _, m := range mobKinds {
+		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
+	}
 	for _, m := range dustMetals {
 		out["metal_dust_"+m] = func() item.Stack { return item.NewStack(MetalDust{Metal: m}, 1) }
 	}

@@ -127,6 +127,9 @@ func buildSieveTables() map[string]map[string][]SieveDrop {
 		for key, drops := range metalExtra[tier] {
 			t[key] = append(t[key], drops...)
 		}
+		for key, drops := range essenceExtra[tier] {
+			t[key] = append(t[key], drops...)
+		}
 		out[tier] = t
 	}
 	return out

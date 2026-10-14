@@ -40,7 +40,9 @@ const (
 	KindGenerator = "generator"
 	// KindAlloy makes alloys of two ingredients (alloy.go); KindEnergyCell stores
 	// energy (generator.go).
-	KindAlloy      = "alloy_smelter"
+	KindAlloy = "alloy_smelter"
+	// KindSimulator turns an essence into the drops of a mob (essence.go).
+	KindSimulator  = "mob_simulator"
 	KindEnergyCell = "energy_cell"
 )
 
@@ -109,6 +111,11 @@ var machineKinds = map[string]*machineKind{
 		use: 20, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "machine.alloy.help.1"), i18n.T(i18n.Default, "machine.alloy.help.2")},
 	},
+	KindSimulator: {
+		name: i18n.T(i18n.Default, "machine.simulator.name"), marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		use: 40, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.simulator.help.1"), i18n.T(i18n.Default, "machine.simulator.help.2")},
+	},
 	KindEnergyCell: {
 		name: i18n.T(i18n.Default, "machine.cell.name"), interval: 1, indicator: 10,
 		cell: true, energyCap: cellCapacity,
@@ -121,7 +128,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -188,6 +195,9 @@ type machineState struct {
 	// miner had four output slots); they move into the output as it frees
 	// up, and are saved until then.
 	legacy []item.Stack
+	// mob and charges are what the mob simulator is charged with (essence.go).
+	mob     string
+	charges int
 	// pending are the products of an auto sieve that did not fit its output slots
 	// yet: it waits until they do.
 	pending []item.Stack
@@ -289,6 +299,8 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return fuelDuration(it) > 0
 	case machineKinds[KindAlloy]:
 		return alloyAccepts(it)
+	case machineKinds[KindSimulator]:
+		return acceptsEssence(it)
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -421,7 +433,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -512,7 +524,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // have models.
 var (
 	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true, KindAlloy: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -596,6 +608,8 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["Burn"] = int32(m.st.burn)
 	data["BurnMax"] = int32(m.st.burnMax)
 	data["Mesh"] = m.st.mesh
+	data["Mob"] = m.st.mob
+	data["Charges"] = int32(m.st.charges)
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
 	return data
@@ -605,6 +619,12 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	owner, _ := data["Owner"].(string)
 	ownerName, _ := data["OwnerName"].(string)
 	n := newMachine(m.Kind, owner, ownerName)
+	if mob, ok := data["Mob"].(string); ok {
+		n.st.mob = mob
+	}
+	if c, ok := data["Charges"].(int32); ok {
+		n.st.charges = int(c)
+	}
 	if mesh, ok := data["Mesh"].(string); ok {
 		n.st.mesh = mesh
 	}
@@ -735,6 +755,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runGenerator(st, pos, tx)
 	case KindAlloy:
 		st.runAlloy()
+	case KindSimulator:
+		s.runSimulator(st)
 	case KindAutoSieve:
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
