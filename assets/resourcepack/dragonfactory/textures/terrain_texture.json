@@ -114,6 +114,15 @@
     "dragonfactory_barrel_water": {
       "textures": "textures/blocks/barrel_water"
     },
+    "dragonfactory_barrel_stone": {
+      "textures": "textures/blocks/barrel_stone"
+    },
+    "dragonfactory_barrel_cobble": {
+      "textures": "textures/blocks/barrel_cobble"
+    },
+    "dragonfactory_barrel_lava": {
+      "textures": "textures/blocks/barrel_lava"
+    },
     "dragonfactory_wood_hopper": {
       "textures": "textures/blocks/wood_hopper"
     },

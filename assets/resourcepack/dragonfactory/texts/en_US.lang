@@ -111,3 +111,5 @@ item.dragonfactory:mesh_iron.name=Iron Mesh
 item.dragonfactory:mesh_gold.name=Gold Mesh
 item.dragonfactory:mesh_diamond.name=Diamond Mesh
 item.dragonfactory:mesh_netherite.name=Netherite Mesh
+item.dragonfactory:barrel_stone.name=Stone Barrel
+tile.dragonfactory:barrel_stone.name=Stone Barrel

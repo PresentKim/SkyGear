@@ -138,7 +138,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	case block.Composter:
 		info.Lines = s.composterLines(pos, b)
 	case Barrel:
-		info.Lines = s.barrelLines(pos)
+		info.Lines = s.barrelLines(tx, pos)
 	case FlowHopper:
 		info.Lines = hopperLines(b)
 	}

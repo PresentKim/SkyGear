@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"testing"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -90,6 +91,81 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 		s.tickBarrels(tx)
 		if len(s.state.Barrels) != 0 {
 			t.Error("the record of a missing barrel stayed")
+		}
+	})
+}
+
+// TestStoneBarrelMakesLava: eight cobblestone fill a stone barrel; heat
+// under it turns them into lava after 2 minutes with a candle (1×), 30
+// seconds over lava (4×) and 15 over a magma block (8×); no heat, no lava; a
+// bucket takes the lava.
+func TestStoneBarrelMakesLava(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	cobble := item.NewStack(block.Cobblestone{}, 1)
+	for _, c := range []struct {
+		name  string
+		below world.Block
+		after time.Duration
+	}{
+		{"candle", block.Candle{}, 2 * time.Minute},
+		{"lava", block.Lava{Still: true, Depth: 8}, 30 * time.Second},
+		{"magma", block.Magma{}, 15 * time.Second},
+	} {
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			pos := cube.Pos{4, IslandY + 3, 4}
+			barrel := Barrel{Wood: stoneWood}
+			tx.SetBlock(pos.Side(cube.FaceDown), c.below, nil)
+			tx.SetBlock(pos, barrel, nil)
+			var ctx item.UseContext
+			if s.useBarrel(p, tx, pos, barrel, item.NewStack(item.Stick{}, 1), &ctx) {
+				t.Fatal("a stick was put in a stone barrel")
+			}
+			for i := 1; i <= stoneBarrelCapacity; i++ {
+				if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx) {
+					t.Fatalf("%s: cobblestone %d was not taken", c.name, i)
+				}
+			}
+			rec := s.barrelAt(pos)
+			if rec.Count != stoneBarrelCapacity {
+				t.Fatalf("%s: %d cobblestone", c.name, rec.Count)
+			}
+			// Just short of the time: still cobblestone.
+			rec.HeatAt -= c.after - time.Second
+			s.tickBarrels(tx)
+			if s.barrelAt(pos).Lava {
+				t.Fatalf("%s: lava a second too early", c.name)
+			}
+			rec.HeatAt -= time.Second
+			s.tickBarrels(tx)
+			if !s.barrelAt(pos).Lava || tx.Block(pos).(Barrel).Stage != barrelWater {
+				t.Fatalf("%s: no lava after %s", c.name, c.after)
+			}
+			var bucketCtx item.UseContext
+			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &bucketCtx) {
+				t.Fatalf("%s: the bucket did not answer", c.name)
+			}
+			lava := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1)
+			if !p.Inventory().ContainsItem(lava) || s.barrelAt(pos) != nil {
+				t.Errorf("%s: no lava bucket or the barrel is not empty", c.name)
+			}
+			_ = p.Inventory().RemoveItem(lava)
+		})
+	}
+	// Without a heat source nothing happens, however long it waits.
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		pos := cube.Pos{8, IslandY + 3, 8}
+		barrel := Barrel{Wood: stoneWood}
+		tx.SetBlock(pos, barrel, nil)
+		var ctx item.UseContext
+		for range stoneBarrelCapacity {
+			s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx)
+		}
+		s.barrelAt(pos).HeatAt -= time.Hour
+		s.tickBarrels(tx)
+		if s.barrelAt(pos).Lava {
+			t.Error("lava without a heat source")
 		}
 	})
 }

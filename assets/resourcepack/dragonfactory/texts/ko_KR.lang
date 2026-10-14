@@ -111,3 +111,5 @@ item.dragonfactory:mesh_iron.name=철 메쉬
 item.dragonfactory:mesh_gold.name=금 메쉬
 item.dragonfactory:mesh_diamond.name=다이아몬드 메쉬
 item.dragonfactory:mesh_netherite.name=네더라이트 메쉬
+item.dragonfactory:barrel_stone.name=돌 배럴
+tile.dragonfactory:barrel_stone.name=돌 배럴

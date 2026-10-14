@@ -70,6 +70,7 @@ var researchTree = []Research{
 	{ID: "compost", Needs: []string{"slab"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter"}},
 	{ID: "barrel", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"dragonfactory:barrel_oak"}},
 	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
+	{ID: "stone_barrel", Needs: []string{"barrel", "furnace"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"dragonfactory:barrel_stone", "candle"}},
 	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
 	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
@@ -480,6 +481,10 @@ func gameRecipes() {
 		planks, block.NewChest(), planks,
 		planks, planks, planks)
 	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
+	// The stone barrel; a candle (the least heat for it) is a string and a
+	// charcoal, since honeycomb does not exist on the island.
+	add(st(Barrel{Wood: stoneWood}), n(block.Stone{}, 6), n(stick, 2))
+	add(st(block.Candle{}), n(block.String{}, 1), n(item.Charcoal{}, 1))
 	// Hoppers: the wood hopper from planks and a chest; each hopper and its
 	// reverse turn into one another when crafted alone.
 	woodHopper, woodReverse := newFlowHopper("wood_hopper", cube.FaceDown), newFlowHopper("wood_hopper_reverse", cube.FaceUp)

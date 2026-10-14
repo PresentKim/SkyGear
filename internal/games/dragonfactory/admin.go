@@ -157,6 +157,7 @@ func giveItems() map[string]func() item.Stack {
 		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
 		"string_mesh":      func() item.Stack { return item.NewStack(Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
+		"stone_barrel":     func() item.Stack { return item.NewStack(Barrel{Wood: stoneWood}, 1) },
 		"wood_hopper":      func() item.Stack { return item.NewStack(newFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {
 			return item.NewStack(newFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
