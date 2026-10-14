@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -51,6 +52,10 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		h.s.removeDisplay(ctx.Player().Tx(), pos)
 	case Machine:
 		h.s.breakMachine(ctx.Player().Tx(), pos, b)
+	case block.Composter:
+		h.s.breakComposter(pos, b, drops)
+	case Barrel:
+		h.s.breakBarrel(pos)
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
@@ -80,6 +85,10 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
 	if h.s.useStick(p, tx, pos, face, held) {
+		ctx.Cancel()
+		return
+	}
+	if !p.Sneaking() && h.s.useComposter(p, tx, pos, held) {
 		ctx.Cancel()
 		return
 	}

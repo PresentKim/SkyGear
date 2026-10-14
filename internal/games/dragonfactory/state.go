@@ -32,6 +32,11 @@ type State struct {
 	Crops map[string]*CropRecord `json:"crops,omitempty"`
 	// Advancements are the done advancements (advancement.go).
 	Advancements map[string]bool `json:"advancements,omitempty"`
+	// Composters are the plant items in each composter by position
+	// ("x,y,z", composter.go).
+	Composters map[string]int `json:"composters,omitempty"`
+	// Barrels are the barrels' contents by position (barrel.go).
+	Barrels map[string]*BarrelRecord `json:"barrels,omitempty"`
 	// LastSapling is when /묘목 last gave a sapling (real time).
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }

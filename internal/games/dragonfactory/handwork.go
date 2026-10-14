@@ -75,6 +75,10 @@ func (BarkFiber) EncodeItem() (string, int16) { return "dragonfactory:bark_fiber
 func (BarkFiber) Name() string                { return "나무껍질 섬유" }
 func (BarkFiber) Category() category.Category { return category.Items() }
 
+// CompostChance makes a fiber plant matter for the composter and the barrel
+// (composter.go; the chance itself is not used, only that it is above 0).
+func (BarkFiber) CompostChance() float64 { return 0.3 }
+
 // Dust is sand crushed once more (hammer, crusher), sifted for its drops.
 type Dust struct{}
 

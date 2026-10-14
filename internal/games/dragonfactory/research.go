@@ -52,6 +52,8 @@ var researchTree = []Research{
 	{ID: "wood_tools", Name: "나무 도구", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
 	{ID: "chest", Name: "상자", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 64}}, Unlocks: []string{"chest"}},
+	{ID: "compost", Name: "퇴비통", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter", "oak_slab"}},
+	{ID: "barrel", Name: "배럴", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"dragonfactory:barrel_oak"}},
 	{ID: "furnace", Name: "화로", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
 	{ID: "stone_tools", Name: "돌 도구", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
@@ -424,6 +426,7 @@ func gameRecipes() {
 	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))
 	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	add(st(Drawer{}), n(planks, 8), n(block.NewChest(), 1))
+	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
 	add(st(DrawerKey{}), n(item.IronNugget{}, 4), n(stick, 1))
 	add(st(DrawerUpgrade{Kind: UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
 	add(st(DrawerUpgrade{Kind: UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))

@@ -94,3 +94,5 @@ tile.dragonfactory:drawer.name=서랍
 tile.dragonfactory:harvester.name=자동 농작물 수확기
 tile.dragonfactory:sell_box.name=판매함
 tile.dragonfactory:sieve.name=체
+item.dragonfactory:barrel_oak.name=참나무 배럴
+tile.dragonfactory:barrel_oak.name=참나무 배럴

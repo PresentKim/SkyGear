@@ -56,6 +56,8 @@ var advancementTree = []Advancement{
 	{ID: "cobble", Name: "조약돌", Parent: "pebble", Hint: "돌 다지기를 연구하고\n돌멩이 4개로 만드세요", Item: "cobblestone"},
 	{ID: advGrowTree, Name: "나무 키우기", Parent: "wood", Hint: "묘목을 심고 옆에서\n웅크리기를 반복하세요", Icon: "oak_sapling"},
 	{ID: "wood_tools", Name: "나무 곡괭이", Parent: "first_research", Hint: "나무 도구를 연구해\n나무 곡괭이를 만드세요", Item: "wooden_pickaxe"},
+	{ID: "composter", Name: "퇴비통", Parent: "wood_tools", Hint: "연구로 퇴비통을 열어\n잎·묘목으로 흙을 만드세요", Item: "composter"},
+	{ID: "barrel", Name: "배럴", Parent: "composter", Hint: "연구로 배럴을 열어\n식물로 물을 만드세요", Item: "dragonfactory:barrel_oak"},
 	{ID: "stone_axe", Name: "돌 도끼", Parent: "cobble", Hint: "연구로 돌 도끼 조합법을\n열어 만드세요", Item: "stone_axe"},
 	{ID: "fiber", Name: "나무껍질 섬유", Parent: "stone_axe", Hint: "돌 도끼로 원목을\n우클릭해 벗기세요", Item: "dragonfactory:bark_fiber"},
 	{ID: "string", Name: "실", Parent: "fiber", Hint: "실을 연구하고 조합대에\n섬유 3개를 한 줄로 놓으세요", Item: "string"},

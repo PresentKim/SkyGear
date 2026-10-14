@@ -153,6 +153,7 @@ func giveItems() map[string]func() item.Stack {
 		"upgrade_capacity": func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) },
 		"upgrade_void":     func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) },
 		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
+		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
 		"water": func() item.Stack {
 			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
 		},

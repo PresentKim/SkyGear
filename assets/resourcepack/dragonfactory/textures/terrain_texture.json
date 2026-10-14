@@ -101,6 +101,15 @@
     },
     "dragonfactory_sieve_mesh": {
       "textures": "textures/blocks/sieve_mesh"
+    },
+    "dragonfactory_barrel_oak": {
+      "textures": "textures/blocks/barrel_oak"
+    },
+    "dragonfactory_barrel_compost": {
+      "textures": "textures/blocks/barrel_compost"
+    },
+    "dragonfactory_barrel_water": {
+      "textures": "textures/blocks/barrel_water"
     }
   },
   "texture_name": "atlas.terrain"

@@ -133,6 +133,10 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	case Core, DeliveryBox:
 		info.Lines = []string{"§7더 이상 쓰이지 않음"}
+	case block.Composter:
+		info.Lines = s.composterLines(pos, b)
+	case Barrel:
+		info.Lines = s.barrelLines(pos)
 	}
 	if kind, _, ok := cropOf(b); ok {
 		info.Name = cropNames[kind]
@@ -153,7 +157,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case Drawer, DeliveryBox, ResearchTable:
+	case Drawer, DeliveryBox, ResearchTable, Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case Machine, Core:
 		icon, typ = waila.PickaxeWood, item.TypePickaxe

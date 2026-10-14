@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+// ComposterVanillaRules says whether composters follow the vanilla rules: filled by chance, with hoppers, and
+// emptied into bone meal. A game that runs its own composter rules sets it to false and handles clicks itself
+// (dragonfactory patch).
+var ComposterVanillaRules = true
+
 // Composter is a block that can turn biological matter in to compost which can then produce bone meal. It is also the
 // work station for a farming villager.
 type Composter struct {
@@ -24,7 +29,7 @@ type Composter struct {
 
 // InsertItem ...
 func (c Composter) InsertItem(h Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if c.Level >= 7 || h.Facing != cube.FaceDown {
+	if !ComposterVanillaRules || c.Level >= 7 || h.Facing != cube.FaceDown {
 		return false
 	}
 
@@ -44,7 +49,7 @@ func (c Composter) InsertItem(h Hopper, pos cube.Pos, tx *world.Tx) bool {
 
 // ExtractItem ...
 func (c Composter) ExtractItem(h Hopper, pos cube.Pos, tx *world.Tx) bool {
-	if c.Level == 8 {
+	if ComposterVanillaRules && c.Level == 8 {
 		_, err := h.inventory.AddItem(item.NewStack(item.BoneMeal{}, 1))
 		if err != nil {
 			// The hopper is full.
@@ -91,6 +96,9 @@ func (c Composter) BreakInfo() BreakInfo {
 
 // Activate ...
 func (c Composter) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
+	if !ComposterVanillaRules {
+		return false
+	}
 	if c.Level >= 7 {
 		if c.Level == 8 {
 			c.Level = 0
