@@ -172,7 +172,7 @@ func (s *Session) sendRecipes() {
 				Input:           stacksToIngredientItems(s.br, i.Input()),
 				Output:          stacksToRecipeStacks(s.br, i.Output()),
 				Block:           i.Block(),
-				AssumeSymmetry:  true,
+				AssumeSymmetry:  !i.NoMirror(),
 				RecipeNetworkID: networkID,
 			})
 		case recipe.SmithingTransform:

@@ -421,14 +421,38 @@ func gameRecipes() {
 	add := func(out item.Stack, in ...[]recipe.Item) {
 		recipe.Register(recipe.NewShapeless(slices.Concat(in...), out, "crafting_table"))
 	}
-	cobble, planks, iron, str := block.Cobblestone{}, oakPlanks, item.IronIngot{}, block.String{}
-	add(st(Hammer{}), n(cobble, 3), n(stick, 2))
-	add(machineItem(KindSieve), n(planks, 3), n(stick, 2), n(str, 4))
+	// shaped adds a recipe that crafts only as arranged (cells row by row,
+	// nil is an empty cell), not mirrored either.
+	shaped := func(out item.Stack, w, h int, cells ...world.Item) {
+		in := make([]recipe.Item, len(cells))
+		for i, c := range cells {
+			if c != nil {
+				in[i] = st(c)
+			}
+		}
+		recipe.Register(recipe.NewShaped(in, out, recipe.NewShape(w, h), "crafting_table").WithoutMirror())
+	}
+	cobble, planks, iron := block.Cobblestone{}, oakPlanks, item.IronIngot{}
+	// The hammer (and its later tiers, with another stone): two stones and
+	// two sticks in a diagonal pattern.
+	shaped(st(Hammer{}), 3, 3,
+		nil, cobble, nil,
+		nil, stick, cobble,
+		stick, nil, nil)
+	// The sieve: a row of planks on two stick legs. The mesh is made and
+	// fitted separately (sieve.go).
+	shaped(machineItem(KindSieve), 3, 2,
+		planks, planks, planks,
+		stick, nil, stick)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
-	add(machineItem(KindAutoSieve), n(iron, 4), n(str, 4), n(block.NewHopper(), 1))
+	add(machineItem(KindAutoSieve), n(iron, 4), n(Machine{Kind: KindSieve}, 1), n(block.NewHopper(), 1))
 	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))
 	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
-	add(st(Drawer{}), n(planks, 8), n(block.NewChest(), 1))
+	// The drawer: a ring of planks round a chest.
+	shaped(st(Drawer{}), 3, 3,
+		planks, planks, planks,
+		planks, block.NewChest(), planks,
+		planks, planks, planks)
 	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
 	// Hoppers: the wood hopper from planks and a chest; each hopper and its
 	// reverse turn into one another when crafted alone.

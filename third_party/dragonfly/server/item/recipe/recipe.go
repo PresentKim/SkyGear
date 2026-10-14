@@ -145,6 +145,9 @@ type Shaped struct {
 	recipe
 	// shape contains the width and height of the shaped recipe.
 	shape Shape
+	// noMirror is set when the recipe must be crafted exactly as arranged, not also mirrored left to right
+	// (dragonfactory patch).
+	noMirror bool
 }
 
 // NewShaped creates a new shaped recipe and returns it. The recipe can only be crafted on the block passed in the
@@ -165,6 +168,18 @@ func NewShaped(input []Item, output item.Stack, shape Shape, block string) Shape
 // Shape returns the shape of the recipe.
 func (r Shaped) Shape() Shape {
 	return r.shape
+}
+
+// WithoutMirror returns the recipe that only crafts as arranged: the mirrored arrangement does not craft it
+// (dragonfactory patch).
+func (r Shaped) WithoutMirror() Shaped {
+	r.noMirror = true
+	return r
+}
+
+// NoMirror reports whether the mirrored arrangement does not craft the recipe.
+func (r Shaped) NoMirror() bool {
+	return r.noMirror
 }
 
 // recipe implements the Recipe interface. Structs in this package may embed it to gets its functionality

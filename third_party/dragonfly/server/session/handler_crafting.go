@@ -35,6 +35,21 @@ func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackReques
 
 	size := s.craftingSize()
 	offset := s.craftingOffset()
+	if sh, ok := craft.(recipe.Shaped); ok {
+		// dragonfactory patch: a shaped recipe is only crafted in its arrangement (the client matches shapes, but
+		// the server used to take the items from any slots).
+		cells := make([]item.Stack, size)
+		for i := range cells {
+			cells[i], _ = s.ui.Item(int(offset) + i)
+		}
+		cols := 3
+		if size == craftingGridSizeSmall {
+			cols = 2
+		}
+		if !shapedArrangementOK(cells, cols, sh) {
+			return fmt.Errorf("recipe %v: the items are not arranged in the shape of the recipe", a.RecipeNetworkID)
+		}
+	}
 	consumed := make([]bool, size)
 	for _, expected := range craft.Input() {
 		var processed bool
@@ -314,4 +329,43 @@ func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, time
 	}
 
 	return fmt.Errorf("no matching recipe found for crafting grid")
+}
+
+// shapedArrangementOK reports whether the crafting grid cells (cols per row) hold the items of the shaped
+// recipe in its shape, anywhere in the grid, and mirrored left to right only if the recipe allows it
+// (dragonfactory patch).
+func shapedArrangementOK(cells []item.Stack, cols int, r recipe.Shaped) bool {
+	rows := len(cells) / cols
+	minR, maxR, minC, maxC := rows, -1, cols, -1
+	for i, c := range cells {
+		if c.Empty() {
+			continue
+		}
+		minR, maxR = min(minR, i/cols), max(maxR, i/cols)
+		minC, maxC = min(minC, i%cols), max(maxC, i%cols)
+	}
+	if maxR < 0 {
+		return false
+	}
+	w, h := maxC-minC+1, maxR-minR+1
+	if w != r.Shape().Width() || h != r.Shape().Height() {
+		return false
+	}
+	input := r.Input()
+	match := func(mirror bool) bool {
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				cx := x
+				if mirror {
+					cx = w - 1 - x
+				}
+				has, want := cells[(minR+y)*cols+minC+cx], input[y*w+x]
+				if has.Empty() != want.Empty() || (!want.Empty() && !matchingStacks(has, want)) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	return match(false) || (!r.NoMirror() && match(true))
 }
