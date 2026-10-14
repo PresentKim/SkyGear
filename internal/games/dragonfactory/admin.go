@@ -190,6 +190,12 @@ func giveItems() map[string]func() item.Stack {
 			}
 		}
 	}
+	for _, c := range petalColours {
+		out["petal_"+c] = func() item.Stack { return item.NewStack(Petal{Colour: c}, 1) }
+	}
+	for _, sd := range plantSeeds {
+		out["seed_"+sd] = func() item.Stack { return item.NewStack(PlantSeed{Seed: sd}, 1) }
+	}
 	for _, m := range mobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
 	}

@@ -37,6 +37,8 @@ type State struct {
 	Composters map[string]int `json:"composters,omitempty"`
 	// Barrels are the barrels' contents by position (barrel.go).
 	Barrels map[string]*BarrelRecord `json:"barrels,omitempty"`
+	// Plants are the magic plants by position (magic.go).
+	Plants map[string]*PlantRecord `json:"plants,omitempty"`
 	// RPG are the characters of the players by account (rpg.go).
 	RPG map[string]*RPGRecord `json:"rpg,omitempty"`
 	// GateTier is the highest level of the dimension gate cleared (wave.go).

@@ -39,7 +39,7 @@ type waveDef struct {
 // waveLevels are the levels of the gate, easiest first.
 var waveLevels = []waveDef{
 	{[]waveGroup{{MobZombie, 4}}, 90, []item.Stack{item.NewStack(Essence{Mob: MobZombie}, 3)}},
-	{[]waveGroup{{MobZombie, 4}, {MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(Essence{Mob: MobSkeleton}, 3), item.NewStack(Essence{Mob: MobCreeper}, 1)}},
+	{[]waveGroup{{MobZombie, 4}, {MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(Essence{Mob: MobSkeleton}, 3), item.NewStack(Essence{Mob: MobCreeper}, 1), item.NewStack(PlantSeed{Seed: "flower_red"}, 1)}},
 	{[]waveGroup{{MobSpider, 4}, {MobCreeper, 3}, {MobZombie, 3}}, 120, []item.Stack{item.NewStack(Essence{Mob: MobSpider}, 3), item.NewStack(Essence{Mob: MobCreeper}, 3)}},
 	{[]waveGroup{{MobSlime, 6}, {MobSkeleton, 4}, {MobZombie, 4}}, 120, []item.Stack{item.NewStack(Essence{Mob: MobSlime}, 4)}},
 	{[]waveGroup{{MobEnder, 2}, {MobZombie, 6}, {MobSkeleton, 4}}, 150, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 3)}},
@@ -140,6 +140,9 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 			if s.rand.IntN(100) < d.Chance+looting*8+fortune {
 				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 			}
+		}
+		if w.level >= 2 && s.rand.IntN(100) < 4+fortune/3 {
+			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + petalColours[s.rand.IntN(len(petalColours))]}, 1))
 		}
 		if s.rand.IntN(100) < waveEssenceChance+looting*4+fortune/2 {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(Essence{Mob: m.kind}, 1))

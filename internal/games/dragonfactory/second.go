@@ -14,6 +14,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickFairy(tx)
 	s.tickWave(tx)
 	s.tickToolEffects(tx)
+	s.tickPlants(tx)
 	s.updateLoadBoards(tx)
 }
 

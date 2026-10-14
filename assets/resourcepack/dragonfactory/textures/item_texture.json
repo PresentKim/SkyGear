@@ -501,6 +501,162 @@
     },
     "dragonfactory:tool_shovel_diamond_blaze": {
       "textures": "textures/items/tool_shovel_diamond_blaze"
+    },
+    "dragonfactory:petal_white": {
+      "textures": "textures/items/petal_white"
+    },
+    "dragonfactory:petal_orange": {
+      "textures": "textures/items/petal_orange"
+    },
+    "dragonfactory:petal_magenta": {
+      "textures": "textures/items/petal_magenta"
+    },
+    "dragonfactory:petal_light_blue": {
+      "textures": "textures/items/petal_light_blue"
+    },
+    "dragonfactory:petal_yellow": {
+      "textures": "textures/items/petal_yellow"
+    },
+    "dragonfactory:petal_lime": {
+      "textures": "textures/items/petal_lime"
+    },
+    "dragonfactory:petal_pink": {
+      "textures": "textures/items/petal_pink"
+    },
+    "dragonfactory:petal_gray": {
+      "textures": "textures/items/petal_gray"
+    },
+    "dragonfactory:petal_light_gray": {
+      "textures": "textures/items/petal_light_gray"
+    },
+    "dragonfactory:petal_cyan": {
+      "textures": "textures/items/petal_cyan"
+    },
+    "dragonfactory:petal_purple": {
+      "textures": "textures/items/petal_purple"
+    },
+    "dragonfactory:petal_blue": {
+      "textures": "textures/items/petal_blue"
+    },
+    "dragonfactory:petal_brown": {
+      "textures": "textures/items/petal_brown"
+    },
+    "dragonfactory:petal_green": {
+      "textures": "textures/items/petal_green"
+    },
+    "dragonfactory:petal_red": {
+      "textures": "textures/items/petal_red"
+    },
+    "dragonfactory:petal_black": {
+      "textures": "textures/items/petal_black"
+    },
+    "dragonfactory:seed_ore_iron": {
+      "textures": "textures/items/seed_ore_iron"
+    },
+    "dragonfactory:seed_ore_gold": {
+      "textures": "textures/items/seed_ore_gold"
+    },
+    "dragonfactory:seed_ore_copper": {
+      "textures": "textures/items/seed_ore_copper"
+    },
+    "dragonfactory:seed_ore_tin": {
+      "textures": "textures/items/seed_ore_tin"
+    },
+    "dragonfactory:seed_ore_lead": {
+      "textures": "textures/items/seed_ore_lead"
+    },
+    "dragonfactory:seed_ore_silver": {
+      "textures": "textures/items/seed_ore_silver"
+    },
+    "dragonfactory:seed_ore_nickel": {
+      "textures": "textures/items/seed_ore_nickel"
+    },
+    "dragonfactory:seed_gem_lapis": {
+      "textures": "textures/items/seed_gem_lapis"
+    },
+    "dragonfactory:seed_gem_redstone": {
+      "textures": "textures/items/seed_gem_redstone"
+    },
+    "dragonfactory:seed_gem_quartz": {
+      "textures": "textures/items/seed_gem_quartz"
+    },
+    "dragonfactory:seed_gem_coal": {
+      "textures": "textures/items/seed_gem_coal"
+    },
+    "dragonfactory:seed_gem_diamond": {
+      "textures": "textures/items/seed_gem_diamond"
+    },
+    "dragonfactory:seed_gem_emerald": {
+      "textures": "textures/items/seed_gem_emerald"
+    },
+    "dragonfactory:seed_ess_zombie": {
+      "textures": "textures/items/seed_ess_zombie"
+    },
+    "dragonfactory:seed_ess_skeleton": {
+      "textures": "textures/items/seed_ess_skeleton"
+    },
+    "dragonfactory:seed_ess_creeper": {
+      "textures": "textures/items/seed_ess_creeper"
+    },
+    "dragonfactory:seed_ess_spider": {
+      "textures": "textures/items/seed_ess_spider"
+    },
+    "dragonfactory:seed_ess_slime": {
+      "textures": "textures/items/seed_ess_slime"
+    },
+    "dragonfactory:seed_ess_enderman": {
+      "textures": "textures/items/seed_ess_enderman"
+    },
+    "dragonfactory:seed_ess_blaze": {
+      "textures": "textures/items/seed_ess_blaze"
+    },
+    "dragonfactory:seed_flower_white": {
+      "textures": "textures/items/seed_flower_white"
+    },
+    "dragonfactory:seed_flower_orange": {
+      "textures": "textures/items/seed_flower_orange"
+    },
+    "dragonfactory:seed_flower_magenta": {
+      "textures": "textures/items/seed_flower_magenta"
+    },
+    "dragonfactory:seed_flower_light_blue": {
+      "textures": "textures/items/seed_flower_light_blue"
+    },
+    "dragonfactory:seed_flower_yellow": {
+      "textures": "textures/items/seed_flower_yellow"
+    },
+    "dragonfactory:seed_flower_lime": {
+      "textures": "textures/items/seed_flower_lime"
+    },
+    "dragonfactory:seed_flower_pink": {
+      "textures": "textures/items/seed_flower_pink"
+    },
+    "dragonfactory:seed_flower_gray": {
+      "textures": "textures/items/seed_flower_gray"
+    },
+    "dragonfactory:seed_flower_light_gray": {
+      "textures": "textures/items/seed_flower_light_gray"
+    },
+    "dragonfactory:seed_flower_cyan": {
+      "textures": "textures/items/seed_flower_cyan"
+    },
+    "dragonfactory:seed_flower_purple": {
+      "textures": "textures/items/seed_flower_purple"
+    },
+    "dragonfactory:seed_flower_blue": {
+      "textures": "textures/items/seed_flower_blue"
+    },
+    "dragonfactory:seed_flower_brown": {
+      "textures": "textures/items/seed_flower_brown"
+    },
+    "dragonfactory:seed_flower_green": {
+      "textures": "textures/items/seed_flower_green"
+    },
+    "dragonfactory:seed_flower_red": {
+      "textures": "textures/items/seed_flower_red"
+    },
+    "dragonfactory:seed_flower_black": {
+      "textures": "textures/items/seed_flower_black"
     }
   },
   "texture_name": "atlas.items"

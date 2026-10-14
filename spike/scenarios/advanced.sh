@@ -18,6 +18,8 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give tinker_table 1' 'expect:장비 제작대 x1' \
   'cmd:/dfadmin give tool_pickaxe_steel_bone 1' 'expect:강철 곡괭이' \
   'cmd:/dfadmin give storage_controller 1' 'expect:스토리지 컨트롤러 x1' \
+  'cmd:/dfadmin give seed_flower_red 2' 'expect:x2' \
+  'cmd:/dfadmin give petal_red 2' 'expect:x2' \
   'cmd:/dfadmin give ingot_bronze 4' 'expect:청동 주괴 x4' \
   'cmd:/dfadmin give metal_dust_tin 4' 'expect:주석 가루 x4' \
   'cmd:/dfadmin give essence_blaze 2' 'expect:블레이즈 정수 x2' \

@@ -48,7 +48,9 @@ const (
 	advWave1 = "wave_1"
 	// advToolMod and advToolLevel are done by putting a modifier on a tool and
 	// by a tool reaching level 1 (tinkerform.go).
-	advToolMod   = "tool_modifier"
+	advToolMod = "tool_modifier"
+	// advBloom is done by harvesting a magic plant (magic.go).
+	advBloom     = "first_bloom"
 	advToolLevel = "tool_level"
 	advWave5     = "wave_5"
 )
@@ -125,6 +127,11 @@ var advancementTree = []Advancement{
 	{ID: "tinker_table", Name: i18n.T(i18n.Default, "advancement.tinker_table.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.tinker_table.hint"), Research: "tinker_table", Icon: "dragonfactory:tinker_table"},
 	{ID: advToolMod, Name: i18n.T(i18n.Default, "advancement.tool_modifier.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_modifier.hint"), Icon: "redstone"},
 	{ID: advToolLevel, Name: i18n.T(i18n.Default, "advancement.tool_level.name"), Parent: advToolMod, Hint: i18n.T(i18n.Default, "advancement.tool_level.hint"), Icon: "experience_bottle"},
+	{ID: "magic_seed", Name: i18n.T(i18n.Default, "advancement.magic_seed.name"), Parent: advWave1, Hint: i18n.T(i18n.Default, "advancement.magic_seed.hint"), Item: "dragonfactory:seed_flower_red"},
+	{ID: advBloom, Name: i18n.T(i18n.Default, "advancement.first_bloom.name"), Parent: "magic_seed", Hint: i18n.T(i18n.Default, "advancement.first_bloom.hint"), Icon: "dragonfactory:petal_red"},
+	{ID: "ore_bloom", Name: i18n.T(i18n.Default, "advancement.ore_bloom.name"), Parent: advBloom, Hint: i18n.T(i18n.Default, "advancement.ore_bloom.hint"), Item: "dragonfactory:seed_ore_iron"},
+	{ID: "gem_bloom", Name: i18n.T(i18n.Default, "advancement.gem_bloom.name"), Parent: "ore_bloom", Hint: i18n.T(i18n.Default, "advancement.gem_bloom.hint"), Item: "dragonfactory:seed_gem_diamond"},
+	{ID: "essence_bloom", Name: i18n.T(i18n.Default, "advancement.essence_bloom.name"), Parent: "gem_bloom", Hint: i18n.T(i18n.Default, "advancement.essence_bloom.hint"), Item: "dragonfactory:seed_ess_enderman"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

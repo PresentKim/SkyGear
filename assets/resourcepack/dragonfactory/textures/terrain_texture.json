@@ -299,6 +299,222 @@
     },
     "dragonfactory_tinker_table_down": {
       "textures": "textures/blocks/tinker_table_down"
+    },
+    "dragonfactory_plant_flower_white_0": {
+      "textures": "textures/blocks/plant_flower_white_0"
+    },
+    "dragonfactory_plant_flower_white_1": {
+      "textures": "textures/blocks/plant_flower_white_1"
+    },
+    "dragonfactory_plant_flower_orange_0": {
+      "textures": "textures/blocks/plant_flower_orange_0"
+    },
+    "dragonfactory_plant_flower_orange_1": {
+      "textures": "textures/blocks/plant_flower_orange_1"
+    },
+    "dragonfactory_plant_flower_magenta_0": {
+      "textures": "textures/blocks/plant_flower_magenta_0"
+    },
+    "dragonfactory_plant_flower_magenta_1": {
+      "textures": "textures/blocks/plant_flower_magenta_1"
+    },
+    "dragonfactory_plant_flower_light_blue_0": {
+      "textures": "textures/blocks/plant_flower_light_blue_0"
+    },
+    "dragonfactory_plant_flower_light_blue_1": {
+      "textures": "textures/blocks/plant_flower_light_blue_1"
+    },
+    "dragonfactory_plant_flower_yellow_0": {
+      "textures": "textures/blocks/plant_flower_yellow_0"
+    },
+    "dragonfactory_plant_flower_yellow_1": {
+      "textures": "textures/blocks/plant_flower_yellow_1"
+    },
+    "dragonfactory_plant_flower_lime_0": {
+      "textures": "textures/blocks/plant_flower_lime_0"
+    },
+    "dragonfactory_plant_flower_lime_1": {
+      "textures": "textures/blocks/plant_flower_lime_1"
+    },
+    "dragonfactory_plant_flower_pink_0": {
+      "textures": "textures/blocks/plant_flower_pink_0"
+    },
+    "dragonfactory_plant_flower_pink_1": {
+      "textures": "textures/blocks/plant_flower_pink_1"
+    },
+    "dragonfactory_plant_flower_gray_0": {
+      "textures": "textures/blocks/plant_flower_gray_0"
+    },
+    "dragonfactory_plant_flower_gray_1": {
+      "textures": "textures/blocks/plant_flower_gray_1"
+    },
+    "dragonfactory_plant_flower_light_gray_0": {
+      "textures": "textures/blocks/plant_flower_light_gray_0"
+    },
+    "dragonfactory_plant_flower_light_gray_1": {
+      "textures": "textures/blocks/plant_flower_light_gray_1"
+    },
+    "dragonfactory_plant_flower_cyan_0": {
+      "textures": "textures/blocks/plant_flower_cyan_0"
+    },
+    "dragonfactory_plant_flower_cyan_1": {
+      "textures": "textures/blocks/plant_flower_cyan_1"
+    },
+    "dragonfactory_plant_flower_purple_0": {
+      "textures": "textures/blocks/plant_flower_purple_0"
+    },
+    "dragonfactory_plant_flower_purple_1": {
+      "textures": "textures/blocks/plant_flower_purple_1"
+    },
+    "dragonfactory_plant_flower_blue_0": {
+      "textures": "textures/blocks/plant_flower_blue_0"
+    },
+    "dragonfactory_plant_flower_blue_1": {
+      "textures": "textures/blocks/plant_flower_blue_1"
+    },
+    "dragonfactory_plant_flower_brown_0": {
+      "textures": "textures/blocks/plant_flower_brown_0"
+    },
+    "dragonfactory_plant_flower_brown_1": {
+      "textures": "textures/blocks/plant_flower_brown_1"
+    },
+    "dragonfactory_plant_flower_green_0": {
+      "textures": "textures/blocks/plant_flower_green_0"
+    },
+    "dragonfactory_plant_flower_green_1": {
+      "textures": "textures/blocks/plant_flower_green_1"
+    },
+    "dragonfactory_plant_flower_red_0": {
+      "textures": "textures/blocks/plant_flower_red_0"
+    },
+    "dragonfactory_plant_flower_red_1": {
+      "textures": "textures/blocks/plant_flower_red_1"
+    },
+    "dragonfactory_plant_flower_black_0": {
+      "textures": "textures/blocks/plant_flower_black_0"
+    },
+    "dragonfactory_plant_flower_black_1": {
+      "textures": "textures/blocks/plant_flower_black_1"
+    },
+    "dragonfactory_plant_ore_iron_0": {
+      "textures": "textures/blocks/plant_ore_iron_0"
+    },
+    "dragonfactory_plant_ore_iron_1": {
+      "textures": "textures/blocks/plant_ore_iron_1"
+    },
+    "dragonfactory_plant_ore_gold_0": {
+      "textures": "textures/blocks/plant_ore_gold_0"
+    },
+    "dragonfactory_plant_ore_gold_1": {
+      "textures": "textures/blocks/plant_ore_gold_1"
+    },
+    "dragonfactory_plant_ore_copper_0": {
+      "textures": "textures/blocks/plant_ore_copper_0"
+    },
+    "dragonfactory_plant_ore_copper_1": {
+      "textures": "textures/blocks/plant_ore_copper_1"
+    },
+    "dragonfactory_plant_ore_tin_0": {
+      "textures": "textures/blocks/plant_ore_tin_0"
+    },
+    "dragonfactory_plant_ore_tin_1": {
+      "textures": "textures/blocks/plant_ore_tin_1"
+    },
+    "dragonfactory_plant_ore_lead_0": {
+      "textures": "textures/blocks/plant_ore_lead_0"
+    },
+    "dragonfactory_plant_ore_lead_1": {
+      "textures": "textures/blocks/plant_ore_lead_1"
+    },
+    "dragonfactory_plant_ore_silver_0": {
+      "textures": "textures/blocks/plant_ore_silver_0"
+    },
+    "dragonfactory_plant_ore_silver_1": {
+      "textures": "textures/blocks/plant_ore_silver_1"
+    },
+    "dragonfactory_plant_ore_nickel_0": {
+      "textures": "textures/blocks/plant_ore_nickel_0"
+    },
+    "dragonfactory_plant_ore_nickel_1": {
+      "textures": "textures/blocks/plant_ore_nickel_1"
+    },
+    "dragonfactory_plant_gem_lapis_0": {
+      "textures": "textures/blocks/plant_gem_lapis_0"
+    },
+    "dragonfactory_plant_gem_lapis_1": {
+      "textures": "textures/blocks/plant_gem_lapis_1"
+    },
+    "dragonfactory_plant_gem_redstone_0": {
+      "textures": "textures/blocks/plant_gem_redstone_0"
+    },
+    "dragonfactory_plant_gem_redstone_1": {
+      "textures": "textures/blocks/plant_gem_redstone_1"
+    },
+    "dragonfactory_plant_gem_quartz_0": {
+      "textures": "textures/blocks/plant_gem_quartz_0"
+    },
+    "dragonfactory_plant_gem_quartz_1": {
+      "textures": "textures/blocks/plant_gem_quartz_1"
+    },
+    "dragonfactory_plant_gem_coal_0": {
+      "textures": "textures/blocks/plant_gem_coal_0"
+    },
+    "dragonfactory_plant_gem_coal_1": {
+      "textures": "textures/blocks/plant_gem_coal_1"
+    },
+    "dragonfactory_plant_gem_diamond_0": {
+      "textures": "textures/blocks/plant_gem_diamond_0"
+    },
+    "dragonfactory_plant_gem_diamond_1": {
+      "textures": "textures/blocks/plant_gem_diamond_1"
+    },
+    "dragonfactory_plant_gem_emerald_0": {
+      "textures": "textures/blocks/plant_gem_emerald_0"
+    },
+    "dragonfactory_plant_gem_emerald_1": {
+      "textures": "textures/blocks/plant_gem_emerald_1"
+    },
+    "dragonfactory_plant_ess_zombie_0": {
+      "textures": "textures/blocks/plant_ess_zombie_0"
+    },
+    "dragonfactory_plant_ess_zombie_1": {
+      "textures": "textures/blocks/plant_ess_zombie_1"
+    },
+    "dragonfactory_plant_ess_skeleton_0": {
+      "textures": "textures/blocks/plant_ess_skeleton_0"
+    },
+    "dragonfactory_plant_ess_skeleton_1": {
+      "textures": "textures/blocks/plant_ess_skeleton_1"
+    },
+    "dragonfactory_plant_ess_creeper_0": {
+      "textures": "textures/blocks/plant_ess_creeper_0"
+    },
+    "dragonfactory_plant_ess_creeper_1": {
+      "textures": "textures/blocks/plant_ess_creeper_1"
+    },
+    "dragonfactory_plant_ess_spider_0": {
+      "textures": "textures/blocks/plant_ess_spider_0"
+    },
+    "dragonfactory_plant_ess_spider_1": {
+      "textures": "textures/blocks/plant_ess_spider_1"
+    },
+    "dragonfactory_plant_ess_slime_0": {
+      "textures": "textures/blocks/plant_ess_slime_0"
+    },
+    "dragonfactory_plant_ess_slime_1": {
+      "textures": "textures/blocks/plant_ess_slime_1"
+    },
+    "dragonfactory_plant_ess_enderman_0": {
+      "textures": "textures/blocks/plant_ess_enderman_0"
+    },
+    "dragonfactory_plant_ess_enderman_1": {
+      "textures": "textures/blocks/plant_ess_enderman_1"
+    },
+    "dragonfactory_plant_ess_blaze_0": {
+      "textures": "textures/blocks/plant_ess_blaze_0"
+    },
+    "dragonfactory_plant_ess_blaze_1": {
+      "textures": "textures/blocks/plant_ess_blaze_1"
     }
   },
   "texture_name": "atlas.terrain"

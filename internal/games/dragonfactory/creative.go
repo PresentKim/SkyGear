@@ -73,6 +73,12 @@ func registerCreativeItems() {
 		for _, k := range pebbleKinds {
 			add(items, Pebble{Kind: k.kind})
 		}
+		for _, c := range petalColours {
+			add(items, Petal{Colour: c})
+		}
+		for _, sd := range plantSeeds {
+			add(items, PlantSeed{Seed: sd})
+		}
 		for _, m := range mobKinds {
 			add(items, Essence{Mob: m})
 		}
