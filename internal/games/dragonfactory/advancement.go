@@ -46,7 +46,11 @@ const (
 	// advWave1 and advWave5 are done by clearing levels 1 and 5 of the gate
 	// (wave.go).
 	advWave1 = "wave_1"
-	advWave5 = "wave_5"
+	// advToolMod and advToolLevel are done by putting a modifier on a tool and
+	// by a tool reaching level 1 (tinkerform.go).
+	advToolMod   = "tool_modifier"
+	advToolLevel = "tool_level"
+	advWave5     = "wave_5"
 )
 
 // advancementTree is every advancement; the quest panel follows this
@@ -118,6 +122,9 @@ var advancementTree = []Advancement{
 	{ID: "diamond_tools", Name: i18n.T(i18n.Default, "advancement.diamond_tools.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_tools.hint"), Item: "diamond_pickaxe"},
 	{ID: "obsidian", Name: i18n.T(i18n.Default, "advancement.obsidian.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.obsidian.hint"), Item: "obsidian"},
 	{ID: "storage_controller", Name: i18n.T(i18n.Default, "advancement.storage_controller.name"), Parent: "drawer", Hint: i18n.T(i18n.Default, "advancement.storage_controller.hint"), Research: "storage_controller", Icon: "dragonfactory:storage_controller"},
+	{ID: "tinker_table", Name: i18n.T(i18n.Default, "advancement.tinker_table.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.tinker_table.hint"), Research: "tinker_table", Icon: "dragonfactory:tinker_table"},
+	{ID: advToolMod, Name: i18n.T(i18n.Default, "advancement.tool_modifier.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_modifier.hint"), Icon: "redstone"},
+	{ID: advToolLevel, Name: i18n.T(i18n.Default, "advancement.tool_level.name"), Parent: advToolMod, Hint: i18n.T(i18n.Default, "advancement.tool_level.hint"), Icon: "experience_bottle"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

@@ -290,6 +290,15 @@
     },
     "dragonfactory_storage_link_down": {
       "textures": "textures/blocks/storage_link_down"
+    },
+    "dragonfactory_tinker_table_side": {
+      "textures": "textures/blocks/tinker_table_side"
+    },
+    "dragonfactory_tinker_table_up": {
+      "textures": "textures/blocks/tinker_table_up"
+    },
+    "dragonfactory_tinker_table_down": {
+      "textures": "textures/blocks/tinker_table_down"
     }
   },
   "texture_name": "atlas.terrain"

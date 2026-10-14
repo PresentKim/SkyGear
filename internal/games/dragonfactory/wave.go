@@ -126,15 +126,20 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	pos := m.data.Pos
 	delete(w.left, m.handle)
 	if p != nil {
+		looting := 0
+		if held, ok := toolOf(p); ok {
+			looting = toolMods(held)["looting"]
+			s.gainToolXP(p, int(monsterTable[m.kind].health/2)+1)
+		}
 		for _, v := range tx.Viewers(pos) {
 			v.ViewEntityAction(m, entity.DeathAction{})
 		}
 		for _, d := range simDrops[m.kind] {
-			if s.rand.IntN(100) < d.Chance {
+			if s.rand.IntN(100) < d.Chance+looting*8 {
 				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 			}
 		}
-		if s.rand.IntN(100) < waveEssenceChance {
+		if s.rand.IntN(100) < waveEssenceChance+looting*4 {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(Essence{Mob: m.kind}, 1))
 		}
 	}

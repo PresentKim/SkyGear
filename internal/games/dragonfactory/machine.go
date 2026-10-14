@@ -49,6 +49,8 @@ const (
 	// (storage.go).
 	KindStorageController = "storage_controller"
 	KindStorageLink       = "storage_link"
+	// KindTinker is the tinker table (tinkerform.go).
+	KindTinker = "tinker_table"
 	// KindGate is the dimension gate (wave.go).
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
@@ -143,6 +145,10 @@ var machineKinds = map[string]*machineKind{
 		name: i18n.T(i18n.Default, "machine.link.name"), interval: 1, indicator: 10,
 		help: []string{i18n.T(i18n.Default, "machine.link.help.1")},
 	},
+	KindTinker: {
+		name: i18n.T(i18n.Default, "machine.tinker.name"), interval: 1, indicator: 10,
+		help: []string{i18n.T(i18n.Default, "machine.tinker.help.1"), i18n.T(i18n.Default, "machine.tinker.help.2")},
+	},
 	KindGate: {
 		name: i18n.T(i18n.Default, "machine.gate.name"), interval: 1, indicator: 10, gate: true,
 		help: []string{i18n.T(i18n.Default, "machine.gate.help.1"), i18n.T(i18n.Default, "machine.gate.help.2")},
@@ -192,7 +198,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -597,7 +603,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true}
 )
 
@@ -760,6 +766,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.Kind == KindStorageLink {
 		return true
 	}
+	if m.Kind == KindTinker {
+		if !s.debounced(p) {
+			s.showTinker(p, tx, pos)
+		}
+		return true
+	}
 	if m.st.kind.gate {
 		if !s.debounced(p) {
 			s.showGateForm(p, tx, pos)
@@ -886,7 +898,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runHarvester(st, pos, tx)
 	}
 	st.pos = pos
-	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink {
+	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
 		if m.Kind == KindEnergyCell && st.energy > 0 {
 			s.energyGrid().AddSource(pos)
 		}

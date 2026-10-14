@@ -32,6 +32,7 @@ var variants = []variant{
 	{"dimension_gate", "generator", []string{"side", "up", "down"}, color.RGBA{150, 60, 190, 255}},
 	{"storage_controller", "generator", []string{"side", "up", "down"}, color.RGBA{240, 200, 60, 255}},
 	{"storage_link", "generator", []string{"side", "up", "down"}, color.RGBA{150, 160, 180, 255}},
+	{"tinker_table", "generator", []string{"side", "up", "down"}, color.RGBA{200, 120, 60, 255}},
 	{"energy_cell", "generator", []string{"side", "up", "down"}, color.RGBA{70, 200, 110, 255}},
 }
 

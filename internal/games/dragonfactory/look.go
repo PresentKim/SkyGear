@@ -271,7 +271,7 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(st), nil
-	case st.kind.gate, m.Kind == KindStorageLink:
+	case st.kind.gate, m.Kind == KindStorageLink, m.Kind == KindTinker:
 		return nil, nil
 	case st.kind.controller:
 		return nil, nil

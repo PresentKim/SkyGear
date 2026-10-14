@@ -181,6 +181,15 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range oreKinds {
 		out["ore_chunk_"+k.ore] = func() item.Stack { return item.NewStack(OreChunk{Ore: k.ore}, 1) }
 	}
+	for _, k := range toolKinds {
+		for _, h := range headMaterials {
+			for _, hd := range handleMaterials {
+				out[fmt.Sprintf("tool_%s_%s_%s", k, h.id, hd.id)] = func() item.Stack {
+					return describeTool(item.NewStack(TinkerTool{Kind: k, Head: h.id, Handle: hd.id}, 1))
+				}
+			}
+		}
+	}
 	for _, m := range mobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
 	}

@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -37,6 +38,10 @@ func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) { h.deny(c
 func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
 	if h.deny(ctx, pos) {
 		return
+	}
+	if _, ok := toolOf(ctx.Player()); ok {
+		h.s.gainToolXP(ctx.Player(), 1)
+		h.s.reinforce(ctx.Player())
 	}
 	if held, _ := ctx.Player().HeldItems(); isHammer(held) {
 		if into, ok := crushed(ctx.Player().Tx().Block(pos)); ok {
@@ -151,6 +156,17 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 		dmg := 2.0
 		if w, ok := held.Item().(item.Weapon); ok {
 			dmg = w.AttackDamage()
+		}
+		if td, ok := tinkerDamage(held); ok {
+			dmg = td
+			mods := toolMods(held)
+			if v := mods["vampiric"]; v > 0 {
+				p.Heal(0.5*float64(v), entity.FoodHealingSource{})
+			}
+			// a use costs the tool durability and gives it experience
+			_, off := p.HeldItems()
+			p.SetHeldItems(describeTool(held.Damage(2)), off)
+			h.s.reinforce(p)
 		}
 		m.Hurt(p.Tx(), dmg, p)
 		return

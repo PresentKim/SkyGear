@@ -249,6 +249,258 @@
     },
     "dragonfactory:essence_blaze": {
       "textures": "textures/items/essence_blaze"
+    },
+    "dragonfactory:tool_sword_flint_wood": {
+      "textures": "textures/items/tool_sword_flint_wood"
+    },
+    "dragonfactory:tool_sword_flint_bone": {
+      "textures": "textures/items/tool_sword_flint_bone"
+    },
+    "dragonfactory:tool_sword_flint_blaze": {
+      "textures": "textures/items/tool_sword_flint_blaze"
+    },
+    "dragonfactory:tool_sword_iron_wood": {
+      "textures": "textures/items/tool_sword_iron_wood"
+    },
+    "dragonfactory:tool_sword_iron_bone": {
+      "textures": "textures/items/tool_sword_iron_bone"
+    },
+    "dragonfactory:tool_sword_iron_blaze": {
+      "textures": "textures/items/tool_sword_iron_blaze"
+    },
+    "dragonfactory:tool_sword_bronze_wood": {
+      "textures": "textures/items/tool_sword_bronze_wood"
+    },
+    "dragonfactory:tool_sword_bronze_bone": {
+      "textures": "textures/items/tool_sword_bronze_bone"
+    },
+    "dragonfactory:tool_sword_bronze_blaze": {
+      "textures": "textures/items/tool_sword_bronze_blaze"
+    },
+    "dragonfactory:tool_sword_electrum_wood": {
+      "textures": "textures/items/tool_sword_electrum_wood"
+    },
+    "dragonfactory:tool_sword_electrum_bone": {
+      "textures": "textures/items/tool_sword_electrum_bone"
+    },
+    "dragonfactory:tool_sword_electrum_blaze": {
+      "textures": "textures/items/tool_sword_electrum_blaze"
+    },
+    "dragonfactory:tool_sword_invar_wood": {
+      "textures": "textures/items/tool_sword_invar_wood"
+    },
+    "dragonfactory:tool_sword_invar_bone": {
+      "textures": "textures/items/tool_sword_invar_bone"
+    },
+    "dragonfactory:tool_sword_invar_blaze": {
+      "textures": "textures/items/tool_sword_invar_blaze"
+    },
+    "dragonfactory:tool_sword_steel_wood": {
+      "textures": "textures/items/tool_sword_steel_wood"
+    },
+    "dragonfactory:tool_sword_steel_bone": {
+      "textures": "textures/items/tool_sword_steel_bone"
+    },
+    "dragonfactory:tool_sword_steel_blaze": {
+      "textures": "textures/items/tool_sword_steel_blaze"
+    },
+    "dragonfactory:tool_sword_diamond_wood": {
+      "textures": "textures/items/tool_sword_diamond_wood"
+    },
+    "dragonfactory:tool_sword_diamond_bone": {
+      "textures": "textures/items/tool_sword_diamond_bone"
+    },
+    "dragonfactory:tool_sword_diamond_blaze": {
+      "textures": "textures/items/tool_sword_diamond_blaze"
+    },
+    "dragonfactory:tool_pickaxe_flint_wood": {
+      "textures": "textures/items/tool_pickaxe_flint_wood"
+    },
+    "dragonfactory:tool_pickaxe_flint_bone": {
+      "textures": "textures/items/tool_pickaxe_flint_bone"
+    },
+    "dragonfactory:tool_pickaxe_flint_blaze": {
+      "textures": "textures/items/tool_pickaxe_flint_blaze"
+    },
+    "dragonfactory:tool_pickaxe_iron_wood": {
+      "textures": "textures/items/tool_pickaxe_iron_wood"
+    },
+    "dragonfactory:tool_pickaxe_iron_bone": {
+      "textures": "textures/items/tool_pickaxe_iron_bone"
+    },
+    "dragonfactory:tool_pickaxe_iron_blaze": {
+      "textures": "textures/items/tool_pickaxe_iron_blaze"
+    },
+    "dragonfactory:tool_pickaxe_bronze_wood": {
+      "textures": "textures/items/tool_pickaxe_bronze_wood"
+    },
+    "dragonfactory:tool_pickaxe_bronze_bone": {
+      "textures": "textures/items/tool_pickaxe_bronze_bone"
+    },
+    "dragonfactory:tool_pickaxe_bronze_blaze": {
+      "textures": "textures/items/tool_pickaxe_bronze_blaze"
+    },
+    "dragonfactory:tool_pickaxe_electrum_wood": {
+      "textures": "textures/items/tool_pickaxe_electrum_wood"
+    },
+    "dragonfactory:tool_pickaxe_electrum_bone": {
+      "textures": "textures/items/tool_pickaxe_electrum_bone"
+    },
+    "dragonfactory:tool_pickaxe_electrum_blaze": {
+      "textures": "textures/items/tool_pickaxe_electrum_blaze"
+    },
+    "dragonfactory:tool_pickaxe_invar_wood": {
+      "textures": "textures/items/tool_pickaxe_invar_wood"
+    },
+    "dragonfactory:tool_pickaxe_invar_bone": {
+      "textures": "textures/items/tool_pickaxe_invar_bone"
+    },
+    "dragonfactory:tool_pickaxe_invar_blaze": {
+      "textures": "textures/items/tool_pickaxe_invar_blaze"
+    },
+    "dragonfactory:tool_pickaxe_steel_wood": {
+      "textures": "textures/items/tool_pickaxe_steel_wood"
+    },
+    "dragonfactory:tool_pickaxe_steel_bone": {
+      "textures": "textures/items/tool_pickaxe_steel_bone"
+    },
+    "dragonfactory:tool_pickaxe_steel_blaze": {
+      "textures": "textures/items/tool_pickaxe_steel_blaze"
+    },
+    "dragonfactory:tool_pickaxe_diamond_wood": {
+      "textures": "textures/items/tool_pickaxe_diamond_wood"
+    },
+    "dragonfactory:tool_pickaxe_diamond_bone": {
+      "textures": "textures/items/tool_pickaxe_diamond_bone"
+    },
+    "dragonfactory:tool_pickaxe_diamond_blaze": {
+      "textures": "textures/items/tool_pickaxe_diamond_blaze"
+    },
+    "dragonfactory:tool_axe_flint_wood": {
+      "textures": "textures/items/tool_axe_flint_wood"
+    },
+    "dragonfactory:tool_axe_flint_bone": {
+      "textures": "textures/items/tool_axe_flint_bone"
+    },
+    "dragonfactory:tool_axe_flint_blaze": {
+      "textures": "textures/items/tool_axe_flint_blaze"
+    },
+    "dragonfactory:tool_axe_iron_wood": {
+      "textures": "textures/items/tool_axe_iron_wood"
+    },
+    "dragonfactory:tool_axe_iron_bone": {
+      "textures": "textures/items/tool_axe_iron_bone"
+    },
+    "dragonfactory:tool_axe_iron_blaze": {
+      "textures": "textures/items/tool_axe_iron_blaze"
+    },
+    "dragonfactory:tool_axe_bronze_wood": {
+      "textures": "textures/items/tool_axe_bronze_wood"
+    },
+    "dragonfactory:tool_axe_bronze_bone": {
+      "textures": "textures/items/tool_axe_bronze_bone"
+    },
+    "dragonfactory:tool_axe_bronze_blaze": {
+      "textures": "textures/items/tool_axe_bronze_blaze"
+    },
+    "dragonfactory:tool_axe_electrum_wood": {
+      "textures": "textures/items/tool_axe_electrum_wood"
+    },
+    "dragonfactory:tool_axe_electrum_bone": {
+      "textures": "textures/items/tool_axe_electrum_bone"
+    },
+    "dragonfactory:tool_axe_electrum_blaze": {
+      "textures": "textures/items/tool_axe_electrum_blaze"
+    },
+    "dragonfactory:tool_axe_invar_wood": {
+      "textures": "textures/items/tool_axe_invar_wood"
+    },
+    "dragonfactory:tool_axe_invar_bone": {
+      "textures": "textures/items/tool_axe_invar_bone"
+    },
+    "dragonfactory:tool_axe_invar_blaze": {
+      "textures": "textures/items/tool_axe_invar_blaze"
+    },
+    "dragonfactory:tool_axe_steel_wood": {
+      "textures": "textures/items/tool_axe_steel_wood"
+    },
+    "dragonfactory:tool_axe_steel_bone": {
+      "textures": "textures/items/tool_axe_steel_bone"
+    },
+    "dragonfactory:tool_axe_steel_blaze": {
+      "textures": "textures/items/tool_axe_steel_blaze"
+    },
+    "dragonfactory:tool_axe_diamond_wood": {
+      "textures": "textures/items/tool_axe_diamond_wood"
+    },
+    "dragonfactory:tool_axe_diamond_bone": {
+      "textures": "textures/items/tool_axe_diamond_bone"
+    },
+    "dragonfactory:tool_axe_diamond_blaze": {
+      "textures": "textures/items/tool_axe_diamond_blaze"
+    },
+    "dragonfactory:tool_shovel_flint_wood": {
+      "textures": "textures/items/tool_shovel_flint_wood"
+    },
+    "dragonfactory:tool_shovel_flint_bone": {
+      "textures": "textures/items/tool_shovel_flint_bone"
+    },
+    "dragonfactory:tool_shovel_flint_blaze": {
+      "textures": "textures/items/tool_shovel_flint_blaze"
+    },
+    "dragonfactory:tool_shovel_iron_wood": {
+      "textures": "textures/items/tool_shovel_iron_wood"
+    },
+    "dragonfactory:tool_shovel_iron_bone": {
+      "textures": "textures/items/tool_shovel_iron_bone"
+    },
+    "dragonfactory:tool_shovel_iron_blaze": {
+      "textures": "textures/items/tool_shovel_iron_blaze"
+    },
+    "dragonfactory:tool_shovel_bronze_wood": {
+      "textures": "textures/items/tool_shovel_bronze_wood"
+    },
+    "dragonfactory:tool_shovel_bronze_bone": {
+      "textures": "textures/items/tool_shovel_bronze_bone"
+    },
+    "dragonfactory:tool_shovel_bronze_blaze": {
+      "textures": "textures/items/tool_shovel_bronze_blaze"
+    },
+    "dragonfactory:tool_shovel_electrum_wood": {
+      "textures": "textures/items/tool_shovel_electrum_wood"
+    },
+    "dragonfactory:tool_shovel_electrum_bone": {
+      "textures": "textures/items/tool_shovel_electrum_bone"
+    },
+    "dragonfactory:tool_shovel_electrum_blaze": {
+      "textures": "textures/items/tool_shovel_electrum_blaze"
+    },
+    "dragonfactory:tool_shovel_invar_wood": {
+      "textures": "textures/items/tool_shovel_invar_wood"
+    },
+    "dragonfactory:tool_shovel_invar_bone": {
+      "textures": "textures/items/tool_shovel_invar_bone"
+    },
+    "dragonfactory:tool_shovel_invar_blaze": {
+      "textures": "textures/items/tool_shovel_invar_blaze"
+    },
+    "dragonfactory:tool_shovel_steel_wood": {
+      "textures": "textures/items/tool_shovel_steel_wood"
+    },
+    "dragonfactory:tool_shovel_steel_bone": {
+      "textures": "textures/items/tool_shovel_steel_bone"
+    },
+    "dragonfactory:tool_shovel_steel_blaze": {
+      "textures": "textures/items/tool_shovel_steel_blaze"
+    },
+    "dragonfactory:tool_shovel_diamond_wood": {
+      "textures": "textures/items/tool_shovel_diamond_wood"
+    },
+    "dragonfactory:tool_shovel_diamond_bone": {
+      "textures": "textures/items/tool_shovel_diamond_bone"
+    },
+    "dragonfactory:tool_shovel_diamond_blaze": {
+      "textures": "textures/items/tool_shovel_diamond_blaze"
     }
   },
   "texture_name": "atlas.items"
