@@ -75,7 +75,7 @@ internal/itemio/                 아이템 입출력 인터페이스(Inserter·E
 internal/perf/                  서버 부하(TPS·틱·CPU·메모리) 측정, 운영자 HUD 줄과 켜기·끄기
 internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 창)를 사이드바 줄로 보내기
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
-internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여)
+internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여, JSON minify, 암호화: docs/tech/resourcepack.md)
 internal/oneblock, internal/farm  원블럭 프로토타입에서 남긴 참고 데이터(현재 미사용)
 spike/                          기술 검증 코드와 테스트 클라이언트
 assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)

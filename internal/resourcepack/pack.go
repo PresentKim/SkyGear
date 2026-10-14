@@ -22,10 +22,19 @@ import (
 // already have, so a pack that changed without a version bump would keep
 // showing the old content. Deriving the version from the content makes every
 // change reach clients without editing manifest.json by hand.
-func Load(dir string) (*resource.Pack, error) {
+func Load(dir string) (*resource.Pack, error) { return LoadWith(dir, Options{}) }
+
+// LoadWith is Load with the pack minified and/or encrypted (Options).
+func LoadWith(dir string, opt Options) (*resource.Pack, error) {
+	if opt.Encrypt && len(opt.Secret) == 0 {
+		return nil, fmt.Errorf("resource pack %s: encryption needs a secret", dir)
+	}
 	sum, err := hashDir(dir)
 	if err != nil {
 		return nil, err
+	}
+	if opt.Encrypt {
+		sum = sha256.Sum256(append(sum[:], opt.Secret...))
 	}
 	version := Version(sum)
 
@@ -40,7 +49,37 @@ func Load(dir string) (*resource.Pack, error) {
 	if err := setManifestVersion(filepath.Join(tmp, "manifest.json"), version); err != nil {
 		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
 	}
-	return resource.ReadPath(tmp)
+	if opt.Minify {
+		if err := minifyDir(tmp); err != nil {
+			return nil, fmt.Errorf("resource pack %s: %w", dir, err)
+		}
+	}
+	var key string
+	if opt.Encrypt {
+		if key, err = encryptDir(tmp, packUUID(tmp), opt.Secret); err != nil {
+			return nil, fmt.Errorf("encrypt resource pack %s: %w", dir, err)
+		}
+	}
+	pack, err := resource.ReadPath(tmp)
+	if err != nil {
+		return nil, err
+	}
+	if key != "" {
+		pack = pack.WithContentKey(key)
+	}
+	return pack, nil
+}
+
+// packUUID reads the header UUID of the manifest in dir.
+func packUUID(dir string) string {
+	b, _ := os.ReadFile(filepath.Join(dir, "manifest.json"))
+	var m struct {
+		Header struct {
+			UUID string `json:"uuid"`
+		} `json:"header"`
+	}
+	_ = json.Unmarshal(b, &m)
+	return m.Header.UUID
 }
 
 // Version maps a content hash to a manifest version [1, a, b].

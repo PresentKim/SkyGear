@@ -28,6 +28,12 @@ type Config struct {
 		// AutosaveSeconds is how often active instances store their state.
 		AutosaveSeconds int
 	}
+	ResourcePack struct {
+		// Minify strips comments and white space from the packs' JSON, and
+		// Encrypt encrypts the packs (docs/tech/resourcepack.md). Both are on
+		// by default; turn them off to read what the client receives.
+		Minify, Encrypt bool
+	}
 	ChestUI struct {
 		// Ride links the chest entity to the player (on by default, confirmed
 		// on a real client). WaitLatency and Retry switch on further
@@ -73,6 +79,8 @@ func DefaultConfig() Config {
 	c.Instance.AutosaveSeconds = 30
 	// Confirmed on a real client: the chest stays open while moving.
 	c.ChestUI.Ride = true
+	c.ResourcePack.Minify = true
+	c.ResourcePack.Encrypt = true
 	return c
 }
 
