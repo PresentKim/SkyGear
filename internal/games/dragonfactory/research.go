@@ -54,7 +54,7 @@ var researchTree = []Research{
 	{ID: "furnace", Name: "화로", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
 	{ID: "stone_tools", Name: "돌 도구", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 16}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
-	{ID: "string", Name: "실", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFibre{}, 8}}, Unlocks: []string{"string"}},
+	{ID: "string", Name: "실", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
 	{ID: "hammer", Name: "망치", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}, {stick, 8}}, Unlocks: []string{"dragonfactory:hammer"}},
 	{ID: "sieve", Name: "체", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve"}},
 	{ID: "torch", Name: "횃불", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 16}, {stick, 16}}, Unlocks: []string{"torch"}},

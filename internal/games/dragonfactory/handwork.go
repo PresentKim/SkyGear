@@ -17,14 +17,14 @@ import (
 //   - A stick used on grass or dirt sometimes drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").
 //   - Stripping a log with a stone or better axe sometimes drops one or two
-//     bark fibres; four fibres make string (research "string").
+//     bark fibers; four fibers make string (research "string").
 //   - Dust is sand crushed once more, sifted for its own drops.
 
 const (
 	// pebbleChance is the percent chance a stick use drops a pebble.
 	pebbleChance = 40
-	// fibreChance is the percent chance stripping a log drops fibres.
-	fibreChance = 50
+	// fiberChance is the percent chance stripping a log drops fibers.
+	fiberChance = 50
 )
 
 // Pebble kinds.
@@ -63,12 +63,12 @@ func (p Pebble) Name() string {
 }
 func (Pebble) Category() category.Category { return category.Items() }
 
-// BarkFibre is stripped from logs; four make string.
-type BarkFibre struct{}
+// BarkFiber is stripped from logs; four make string.
+type BarkFiber struct{}
 
-func (BarkFibre) EncodeItem() (string, int16) { return "dragonfactory:bark_fibre", 0 }
-func (BarkFibre) Name() string                { return "나무껍질 섬유" }
-func (BarkFibre) Category() category.Category { return category.Items() }
+func (BarkFiber) EncodeItem() (string, int16) { return "dragonfactory:bark_fiber", 0 }
+func (BarkFiber) Name() string                { return "나무껍질 섬유" }
+func (BarkFiber) Category() category.Category { return category.Items() }
 
 // Dust is sand crushed once more (hammer, crusher), sifted for its drops.
 type Dust struct{}
@@ -129,9 +129,9 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	return true
 }
 
-// stripFibre drops bark fibres by chance when a stone or better axe strips
+// stripFiber drops bark fibers by chance when a stone or better axe strips
 // a log (Dragonfly strips it after this).
-func (s *session) stripFibre(tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
+func (s *session) stripFiber(tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
 	axe, ok := held.Item().(item.Axe)
 	if !ok || axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
 		return
@@ -139,8 +139,8 @@ func (s *session) stripFibre(tx *world.Tx, pos cube.Pos, face cube.Face, held it
 	if l, ok := tx.Block(pos).(block.Log); !ok || l.Stripped {
 		return
 	}
-	if s.rand.IntN(100) < fibreChance {
-		s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(BarkFibre{}, 1+s.rand.IntN(2)))
+	if s.rand.IntN(100) < fiberChance {
+		s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(BarkFiber{}, 1+s.rand.IntN(2)))
 	}
 }
 
@@ -151,7 +151,7 @@ func handworkRecipes() {
 		p := item.NewStack(Pebble{Kind: k.kind}, 1)
 		recipe.Register(recipe.NewShapeless([]recipe.Item{p, p, p, p}, item.NewStack(k.block, 1), "crafting_table"))
 	}
-	f := item.NewStack(BarkFibre{}, 1)
+	f := item.NewStack(BarkFiber{}, 1)
 	recipe.Register(recipe.NewShapeless([]recipe.Item{f, f, f, f}, item.NewStack(block.String{}, 1), "crafting_table"))
 }
 
@@ -159,7 +159,7 @@ func init() {
 	for _, k := range pebbleKinds {
 		world.RegisterItem(Pebble{Kind: k.kind})
 	}
-	world.RegisterItem(BarkFibre{})
+	world.RegisterItem(BarkFiber{})
 	world.RegisterBlock(Dust{})
 	world.RegisterItem(Dust{})
 	handworkRecipes()

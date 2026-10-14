@@ -5,7 +5,7 @@
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=손작업 섬' 'expect:입장했습니다' \
   'cmd:/dfadmin item dragonfactory:pebble_stone 4' 'expect:x4' \
-  'cmd:/dfadmin item dragonfactory:bark_fibre 4' 'expect:x4' \
+  'cmd:/dfadmin item dragonfactory:bark_fiber 4' 'expect:x4' \
   'cmd:/dfadmin item dragonfactory:dust 1' 'expect:x1' \
   'cmd:/dfadmin research stick' 'expectre:^recipes=[0-9]{1,2}$' \
   'cmd:/dfadmin research pebbles' 'expect:돌 다지기' \

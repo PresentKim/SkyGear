@@ -83,7 +83,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	h.s.stripFibre(tx, pos, face, held)
+	h.s.stripFiber(tx, pos, face, held)
 	// Using a crop shows its time or harvests it, and places nothing;
 	// sneaking uses it as usual (placing blocks, bone meal).
 	if !ctx.Player().Sneaking() && h.s.useCrop(ctx.Player(), ctx.Player().Tx(), pos) {

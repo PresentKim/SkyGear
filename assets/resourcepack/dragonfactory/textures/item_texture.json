@@ -1,8 +1,8 @@
 {
   "resource_pack_name": "vanilla",
   "texture_data": {
-    "dragonfactory:bark_fibre": {
-      "textures": "textures/items/bark_fibre"
+    "dragonfactory:bark_fiber": {
+      "textures": "textures/items/bark_fiber"
     },
     "dragonfactory:cycle_0": {
       "textures": "textures/items/cycle_0"

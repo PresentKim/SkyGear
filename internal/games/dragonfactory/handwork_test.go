@@ -51,25 +51,25 @@ func TestStickKnocksPebbles(t *testing.T) {
 	})
 }
 
-// TestAxeStripsFibre: stripping a log with a stone axe drops fibres now and
+// TestAxeStripsFiber: stripping a log with a stone axe drops fibers now and
 // then; a wooden axe drops none.
-func TestAxeStripsFibre(t *testing.T) {
+func TestAxeStripsFiber(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.world.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, IslandY, 1}
 		tx.SetBlock(pos, oakLog, nil)
 		for range 50 {
-			s.stripFibre(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
+			s.stripFiber(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		}
-		if droppedItems(tx)[itemKey(BarkFibre{})] != 0 {
-			t.Fatal("a wooden axe stripped fibres")
+		if droppedItems(tx)[itemKey(BarkFiber{})] != 0 {
+			t.Fatal("a wooden axe stripped fibers")
 		}
 		for range 50 {
-			s.stripFibre(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
+			s.stripFiber(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
 		}
-		if n := droppedItems(tx)[itemKey(BarkFibre{})]; n < 20 {
-			t.Fatalf("%d fibres from 50 stone axe strips", n)
+		if n := droppedItems(tx)[itemKey(BarkFiber{})]; n < 20 {
+			t.Fatalf("%d fibers from 50 stone axe strips", n)
 		}
 	})
 }
