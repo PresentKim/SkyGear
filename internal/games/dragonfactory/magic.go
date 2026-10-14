@@ -292,18 +292,35 @@ func (b MagicPlant) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, _ item.Use
 
 // harvestPlant gives a bloom's yield and sets the plant back to a bud.
 func (s *session) harvestPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
-	i := plantKindIndex(b.Kind)
-	if i < 0 {
+	drops, ok := s.plantDrops(b)
+	if !ok {
 		return
 	}
-	k := plantKinds[i]
-	for _, st := range s.rollPlantYield(k) {
+	for _, st := range drops {
 		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), st)
 	}
-	// a seed now and then
-	if s.rand.IntN(100) < 6 {
-		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), k.seedStack())
+	s.resetPlant(tx, pos, b)
+}
+
+// plantDrops rolls what harvesting a bloom gives: its yield, and a seed now
+// and then.
+func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
+	i := plantKindIndex(b.Kind)
+	if i < 0 {
+		return nil, false
 	}
+	k := plantKinds[i]
+	out := s.rollPlantYield(k)
+	if s.rand.IntN(100) < 6 {
+		out = append(out, k.seedStack())
+	}
+	return out, true
+}
+
+// resetPlant sets a harvested plant back to a bud, starts its next growth
+// and reports the harvest to the advancements.
+func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
+	k := plantKinds[plantKindIndex(b.Kind)]
 	s.advance(tx, advBloom)
 	switch k.tier {
 	case 2:

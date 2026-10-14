@@ -11,7 +11,8 @@ import (
 // The auto harvester (second era, draft) harvests the grown crops around it
 // on its own level, harvestRadius blocks each way: wheat, carrots, potatoes
 // and beetroots are picked and left as young plants, and melons and pumpkins
-// grown from stems are cut. The products go to its output slots, from where
+// grown from stems are cut; blooming magic plants are picked and go back to
+// buds. The products go to its output slots, from where
 // it pushes them into neighbouring containers like the auto miner.
 
 // harvestRadius is how far the harvester reaches in x and z.
@@ -68,6 +69,12 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 					s.plantCrop(at, kind)
 				}
 			}
+			if mp, isPlant := b.(MagicPlant); isPlant && mp.Bloom {
+				if s.harvestMagicPlant(st, tx, at, mp) {
+					return
+				}
+				continue
+			}
 			after, ok := harvestable(b)
 			if !ok {
 				continue
@@ -93,6 +100,23 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			return
 		}
 	}
+}
+
+// harvestMagicPlant picks a blooming magic plant: the yield goes to the
+// harvester's output and the plant goes back to a bud. A plant whose yield
+// does not fit is left for the next cycle.
+func (s *session) harvestMagicPlant(st *machineState, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
+	drops, ok := s.plantDrops(mp)
+	if !ok || !fits(st.inv(), st.kind.output, drops) {
+		return false
+	}
+	for _, it := range drops {
+		if !it.Empty() {
+			put(st.inv(), st.kind.output, it)
+		}
+	}
+	s.resetPlant(tx, at, mp)
+	return true
 }
 
 // replantSeed takes the seed a harvested crop is replanted with: one from

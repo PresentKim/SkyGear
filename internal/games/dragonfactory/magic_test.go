@@ -102,3 +102,28 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 		}
 	}
 }
+
+// TestHarvesterPicksBloomingPlants: the auto harvester picks a blooming
+// magic plant into its output and leaves a bud; a bud is left alone.
+func TestHarvesterPicksBloomingPlants(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindHarvester, "")
+	bloom, bud := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 0})
+	s.world.Do(func(tx *world.Tx) {
+		for _, at := range []cube.Pos{bloom, bud} {
+			tx.SetBlock(at.Side(cube.FaceDown), block.Dirt{}, nil)
+		}
+		tx.SetBlock(bloom, MagicPlant{Kind: "ore_iron", Bloom: true}, nil)
+		tx.SetBlock(bud, MagicPlant{Kind: "ore_iron"}, nil)
+	})
+	tick(s, 2*(machineKinds[KindHarvester].interval+1))
+	s.world.Do(func(tx *world.Tx) {
+		if mp, ok := tx.Block(bloom).(MagicPlant); !ok || mp.Bloom {
+			t.Fatalf("the bloom was not picked: %#v", tx.Block(bloom))
+		}
+	})
+	if outputCount(st, OreChunk{Ore: OreIron}) == 0 && outputCount(st, PlantSeed{Seed: "ore_iron"}) == 0 {
+		t.Error("the harvester has no yield of the plant")
+	}
+}
