@@ -68,7 +68,7 @@ func (p Pebble) Name() string {
 }
 func (Pebble) Category() category.Category { return category.Items() }
 
-// BarkFiber is stripped from logs; four make string.
+// BarkFiber is stripped from logs; three in a row make three string.
 type BarkFiber struct{}
 
 func (BarkFiber) EncodeItem() (string, int16) { return "dragonfactory:bark_fiber", 0 }
@@ -173,8 +173,10 @@ func handworkRecipes() {
 		p := item.NewStack(Pebble{Kind: k.kind}, 1)
 		recipe.Register(recipe.NewShapeless([]recipe.Item{p, p, p, p}, item.NewStack(k.block, 1), "crafting_table"))
 	}
+	// Three fibers in a row make three string. Three wide, it does not fit
+	// the 2x2 grid of the inventory: only a crafting table makes string.
 	f := item.NewStack(BarkFiber{}, 1)
-	recipe.Register(recipe.NewShapeless([]recipe.Item{f, f, f, f}, item.NewStack(block.String{}, 1), "crafting_table"))
+	recipe.Register(recipe.NewShaped([]recipe.Item{f, f, f}, item.NewStack(block.String{}, 3), recipe.NewShape(3, 1), "crafting_table"))
 }
 
 func init() {

@@ -58,7 +58,7 @@ var advancementTree = []Advancement{
 	{ID: "wood_tools", Name: "나무 곡괭이", Parent: "first_research", Hint: "나무 도구를 연구해\n나무 곡괭이를 만드세요", Item: "wooden_pickaxe"},
 	{ID: "stone_axe", Name: "돌 도끼", Parent: "cobble", Hint: "연구로 돌 도끼 조합법을\n열어 만드세요", Item: "stone_axe"},
 	{ID: "fiber", Name: "나무껍질 섬유", Parent: "stone_axe", Hint: "돌 도끼로 원목을\n우클릭해 벗기세요", Item: "dragonfactory:bark_fiber"},
-	{ID: "string", Name: "실", Parent: "fiber", Hint: "실을 연구하고\n섬유 4개로 만드세요", Item: "string"},
+	{ID: "string", Name: "실", Parent: "fiber", Hint: "실을 연구하고 조합대에\n섬유 3개를 한 줄로 놓으세요", Item: "string"},
 	{ID: "hammer", Name: "망치", Parent: "cobble", Hint: "망치를 연구해\n만드세요", Item: "dragonfactory:hammer"},
 	{ID: "gravel", Name: "자갈", Parent: "hammer", Hint: "망치로 조약돌을\n캐세요", Item: "gravel"},
 	{ID: "sieve", Name: "체", Parent: "string", Hint: "연구로 체 조합법을\n열어 만드세요", Item: "dragonfactory:sieve"},

@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 )
@@ -108,4 +109,22 @@ func TestDropsHaveMotion(t *testing.T) {
 			t.Errorf("%d items", n)
 		}
 	})
+}
+
+// TestStringRecipe: three fibers in a row make three string, and the
+// recipe is three wide, so the 2x2 inventory grid cannot make it.
+func TestStringRecipe(t *testing.T) {
+	for _, r := range recipe.Recipes() {
+		for _, out := range r.Output() {
+			if _, ok := out.Item().(block.String); !ok {
+				continue
+			}
+			sh, ok := r.(recipe.Shaped)
+			if !ok || sh.Shape() != recipe.NewShape(3, 1) || out.Count() != 3 || len(sh.Input()) != 3 {
+				t.Fatalf("string recipe %#v", r)
+			}
+			return
+		}
+	}
+	t.Fatal("no string recipe")
 }
