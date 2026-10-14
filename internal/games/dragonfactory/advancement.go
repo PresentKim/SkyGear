@@ -70,6 +70,7 @@ var advancementTree = []Advancement{
 	{ID: "furnace", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.39"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.40"), Item: "furnace"},
 	{ID: "iron", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.41"), Parent: advSift, Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.42"), Item: "iron_ingot"},
 	{ID: advMachine, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.43"), Parent: "iron", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.44"), Icon: "dragonfactory:crusher"},
+	{ID: "fluid_conduit", Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.47"), Parent: advMachine, Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.48"), Research: "fluid_conduit", Icon: "dragonfactory:conduit_fluid_1"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

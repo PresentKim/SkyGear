@@ -269,7 +269,6 @@ func bundleLines(tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
 	if b.Item > 0 {
 		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
 			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
-		lines = append(lines, itemConduitLines(tx, pos, b)...)
 	}
 	if b.Fluid > 0 {
 		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidRate(b.Fluid)))
@@ -283,30 +282,6 @@ func formatRate(r float64) string { return strconv.FormatFloat(r, 'f', -1, 64) }
 // itemsPerTick is how many items an item conduit of a tier moves a tick.
 func itemsPerTick(tier int) float64 {
 	return float64(itemnet.RateOf(tier)) / itemnet.StepTicks
-}
-
-// itemConduitLines are the item mode lines: the mode of every side that has
-// a block with items.
-func itemConduitLines(tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
-	names := map[cube.Face]string{
-		cube.FaceUp: "up", cube.FaceDown: "down", cube.FaceNorth: "north", cube.FaceSouth: "south", cube.FaceWest: "west", cube.FaceEast: "east",
-	}
-	var lines []string
-	for _, f := range conduitFaces {
-		at := pos.Side(f)
-		if _, isConduit := itemnet.IsConduit(tx.Block(at)); isConduit {
-			continue
-		}
-		in, ex := itemio.IO(tx, at)
-		if in == nil && ex == nil && b.Modes[f] == itemnet.Both {
-			continue
-		}
-		lines = append(lines, i18n.T(i18n.Default, "itemconduit.side."+names[f])+" §f"+i18n.T(i18n.Default, fmt.Sprintf("itemconduit.mode.%d", b.Modes[f])))
-	}
-	if len(lines) == 0 {
-		lines = []string{i18n.T(i18n.Default, "itemconduit.lines.none")}
-	}
-	return append(lines, i18n.T(i18n.Default, "itemconduit.lines.hint"))
 }
 
 // energyGrid and itemGrid are the grids of the island, made when first used.
@@ -520,3 +495,7 @@ func init() {
 		world.RegisterItem(FluidConduit{Tier: t})
 	}
 }
+
+// LightDiffusionLevel makes a bundle transparent to light: a chest under it
+// opens only if the block above diffuses little light (block.Chest.Activate).
+func (ConduitBundle) LightDiffusionLevel() uint8 { return 0 }

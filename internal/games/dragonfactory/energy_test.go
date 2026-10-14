@@ -627,3 +627,12 @@ func TestNextPlateSide(t *testing.T) {
 		}
 	})
 }
+
+// TestChestOpensUnderConduit: a chest with a conduit bundle above it opens (the
+// block above must diffuse little light).
+func TestChestOpensUnderConduit(t *testing.T) {
+	var _ block.LightDiffuser = ConduitBundle{}
+	if (ConduitBundle{}).LightDiffusionLevel() > 2 {
+		t.Error("a bundle blocks light")
+	}
+}

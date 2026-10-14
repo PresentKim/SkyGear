@@ -53,9 +53,7 @@
         "default": "geometry.dragonfactory.conduit_plate"
       },
       "render_controllers": [
-        "controller.render.dragonfactory_plate_collar_energy",
         "controller.render.dragonfactory_plate_collar_item",
-        "controller.render.dragonfactory_plate_collar_fluid",
         "controller.render.dragonfactory_plate_in",
         "controller.render.dragonfactory_plate_out"
       ]

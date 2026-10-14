@@ -87,6 +87,7 @@ var researchTree = []Research{
 	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:generator"}},
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:conduit_energy_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 32}}, Unlocks: []string{"dragonfactory:conduit_item_1", "dragonfactory:conduit_binder_mix"}},
+	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 32}, {block.Glass{}, 16}}, Unlocks: []string{"dragonfactory:conduit_fluid_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "crusher", Needs: []string{"hammer", "generator"}, Cost: []Requirement{{block.Cobblestone{}, 128}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
 	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 16}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
 	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 48}},
@@ -479,7 +480,8 @@ func gameRecipes() {
 	// The conduits (docs/design/06-power-and-conduits.md §3.5): sand and gravel
 	// in a checkerboard make the binder mix, a furnace bakes it into the
 	// binder; the basic conduits are binders above and below a row of
-	// redstone (energy) or an iron nugget, a chest and an iron nugget (item).
+	// redstone (energy), an iron nugget, a chest and an iron nugget (item) or
+	// glass (fluid).
 	// The better tiers wait for the ore design.
 	sand, gravel, binder := block.Sand{}, block.Gravel{}, ConduitBinder{}
 	shaped(item.NewStack(ConduitBinderMix{}, 6), 3, 3,
@@ -494,6 +496,10 @@ func gameRecipes() {
 	shaped(item.NewStack(ItemConduit{Tier: 1}, 8), 3, 3,
 		binder, binder, binder,
 		nugget, block.NewChest(), nugget,
+		binder, binder, binder)
+	shaped(item.NewStack(FluidConduit{Tier: 1}, 8), 3, 3,
+		binder, binder, binder,
+		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
 	add(machineItem(KindAutoSieve), n(iron, 4), n(Machine{Kind: KindSieve}, 1), n(block.NewHopper(), 1))

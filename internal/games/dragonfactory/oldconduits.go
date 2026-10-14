@@ -196,3 +196,7 @@ func init() {
 		world.RegisterItem(legacyConduit{Kind: 1, Tier: t})
 	}
 }
+
+// LightDiffusionLevel: the old conduit blocks are as transparent as a bundle.
+func (legacyConduit) LightDiffusionLevel() uint8 { return 0 }
+func (legacyBundle) LightDiffusionLevel() uint8  { return 0 }

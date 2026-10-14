@@ -179,20 +179,18 @@ func geometry(name string, shift [3]float64, icon bool) map[string]any {
 }
 
 // plateGeometry makes the model of the connector entity (conduitplate.go),
-// drawn like EnderIO's connector: where the conduits meet a chest or a machine,
-// behind the end of the arms a 3×3 collar for each kind of conduit in the
-// kind's lane, two pixels deep (the item collar is 4×4 and three deep, to carry
-// the arrows), and on the item collar the extract arrow (taking from the block)
-// and the insert arrow (giving to it), flat on its sides. There is no plate at
-// the block's edge: it would share its plane with the face of the block there
-// and flicker. Each part is a bone per side (collar_energy_<side>,
-// collar_item_<side>, collar_fluid_<side>, in_<side>, out_<side>) that the
-// render controllers show.
+// drawn like EnderIO's item conduit connector: where an item conduit meets a
+// chest or a machine, a 4×4 collar three pixels deep behind the end of the arm,
+// and on all four of its side faces the extract arrow (taking from the block) and
+// the insert arrow (giving to it), flat on the collar, so the state shows from
+// every direction. Energy and fluid conduits have no connector. Each part is a
+// bone per side (collar_item_<side>, in_<side>, out_<side>) that the render
+// controllers show.
 //
 // An arrow is the 24×24 arrow of the texture at (0, 0), or the same turned on
-// its side at (32, 0) where it has to run along the u axis of a face (an arm
-// along x or z). The "in" arrows sit on the +x/+z (and for an arm along y, both)
-// sides of the collar, the "out" arrows on the opposite ones.
+// its side at (32, 0) where it has to run along the u axis of a face. On a face
+// the two arrows lie side by side, the "in" arrow on one half and the "out" arrow
+// on the other.
 func plateGeometry() map[string]any {
 	var bones []any
 	// the two cross axes (u, v) of a side by its axis: where u and v point
@@ -218,27 +216,15 @@ func plateGeometry() map[string]any {
 			b.max[1] += 8
 			return b
 		}
-		for _, k := range kinds {
-			lu, lv := k.shift[axes[0]], k.shift[axes[1]]
-			half, t0, t1 := 1.5, 5.0, 7.0
-			if k.name == "item" {
-				half, t0, t1 = 2.0, 4.5, 7.5
-			}
-			bones = append(bones, map[string]any{
-				"name": "collar_" + k.name + "_" + d.name, "pivot": []float64{0, 0, 0},
-				"cubes": []any{cube(box(t0, t1, lu-half, lu+half, lv-half, lv+half), coreFaces(), true)},
-			})
-		}
-		// the arrows: a flat quad on a lateral face of the item collar. The model is
-		// z mirrored, so a world +z face is the model's "north" one.
+		bones = append(bones, map[string]any{
+			"name": "collar_item_" + d.name, "pivot": []float64{0, 0, 0},
+			"cubes": []any{cube(box(4.5, 7.5, -2, 2, -2, 2), coreFaces(), true)},
+		})
+		collar := box(4.5, 7.5, -2, 2, -2, 2)
 		var in, out []any
 		for _, lat := range lateralFaces(d.axis) {
-			cubes := arrowQuad(d.axis, sign, lat, box)
-			if lat.positive {
-				in = append(in, cubes)
-			} else {
-				out = append(out, cubes)
-			}
+			in = append(in, arrowQuad(d.axis, sign, lat, true, collar))
+			out = append(out, arrowQuad(d.axis, sign, lat, false, collar))
 		}
 		for _, a := range []struct {
 			name  string
@@ -256,25 +242,23 @@ func plateGeometry() map[string]any {
 	}
 }
 
-// lateral is a side face of a collar that carries an arrow: the axis its normal
-// runs along (0 x, 1 y, 2 z) and whether it points the positive way, which
-// is the face of the "in" arrow.
+// lateral is a side face of a collar that carries arrows: the axis its normal
+// runs along (0 x, 1 y, 2 z) and whether it points the positive way.
 type lateral struct {
 	axis     int
 	positive bool
 }
 
-// lateralFaces are the faces of the collar of an arm along axis that carry
-// arrows: the two sides perpendicular to the other horizontal axis (arms along x
-// and z), or every side face (arms along y), positive ones first.
+// lateralFaces are the four faces of the collar of an arm along axis that are
+// not its ends.
 func lateralFaces(axis int) []lateral {
-	switch axis {
-	case 0:
-		return []lateral{{2, true}, {2, false}}
-	case 2:
-		return []lateral{{0, true}, {0, false}}
+	var out []lateral
+	for a := range 3 {
+		if a != axis {
+			out = append(out, lateral{a, true}, lateral{a, false})
+		}
 	}
-	return []lateral{{0, true}, {2, true}, {0, false}, {2, false}}
+	return out
 }
 
 // faceName is the model face name of the face of a world axis: the model is
@@ -285,61 +269,89 @@ func faceName(axis int, positive bool) string {
 		return "east"
 	case axis == 0:
 		return "west"
+	case axis == 1 && positive:
+		return "up"
+	case axis == 1:
+		return "down"
 	case axis == 2 && positive:
 		return "north"
 	}
 	return "south"
 }
 
-// arrowQuad makes the cube of an arrow on face lat of the item collar of an arm
-// along axis towards sign; box is the collar's world box maker. The in arrows
-// point towards the block, the out arrows away from it.
-func arrowQuad(axis int, sign float64, lat lateral, box func(t0, t1, u0, u1, v0, v1 float64) bounds) map[string]any {
-	// the collar's box and the flat quad 0.05 outside the face of its centre
-	c := box(4.5, 7.5, -2, 2, -2, 2)
-	q := c
-	mid := (c.min[axis] + c.max[axis]) / 2
-	q.min[axis], q.max[axis] = mid-1.5, mid+1.5
-	// the quad covers 3 along the arm; across it (the other lateral axis) 3 too
-	for a := range 3 {
-		if a != axis && a != lat.axis {
-			m := (c.min[a] + c.max[a]) / 2
-			q.min[a], q.max[a] = m-1.5, m+1.5
-		}
+// faceAxes are the world axes and signs the u and v of a face's texture run
+// along (u to the right, v down as the texture is read): on the side faces v
+// runs down and u along -x (north), +x (south), +z (east) or -z (west); on the up
+// and down faces u runs along +x and v along the model's +z (up) or -z (down),
+// which is the world's -z or +z.
+func faceAxes(name string) (uAxis int, uSign float64, vAxis int, vSign float64) {
+	switch name {
+	case "north":
+		return 0, -1, 1, -1
+	case "south":
+		return 0, 1, 1, -1
+	case "east":
+		return 2, 1, 1, -1
+	case "west":
+		return 2, -1, 1, -1
+	case "up":
+		return 0, 1, 2, -1
 	}
+	return 0, 1, 2, 1
+}
+
+// arrowQuad makes the cube of one arrow on face lat of the collar (a box in world
+// pixels) of an arm along axis towards sign: the in arrow (pointing towards the
+// block) on the lower half of the face, the out arrow (away from it) on the
+// other.
+func arrowQuad(axis int, sign float64, lat lateral, in bool, collar bounds) map[string]any {
+	const (
+		proud = 0.08 // how far the quad stands off the collar
+		half  = 0.9  // half of the width of an arrow
+	)
+	// the other lateral axis, along which the two arrows sit side by side
+	across := 3 - axis - lat.axis
+	mid := func(a int) float64 { return (collar.min[a] + collar.max[a]) / 2 }
+	q := collar
+	q.min[axis], q.max[axis] = mid(axis)-1.5, mid(axis)+1.5
+	side := -1.0
+	if !in {
+		side = 1
+	}
+	q.min[across], q.max[across] = mid(across)+side*1.0-half, mid(across)+side*1.0+half
+	// the quad is a thin box sunk into the collar, so that its inner face is
+	// hidden inside it instead of sharing the collar's plane
+	const sunk = 0.5
 	if lat.positive {
-		q.min[lat.axis], q.max[lat.axis] = c.max[lat.axis], c.max[lat.axis]+0.05
+		q.min[lat.axis], q.max[lat.axis] = collar.max[lat.axis]-sunk, collar.max[lat.axis]+proud
 	} else {
-		q.min[lat.axis], q.max[lat.axis] = c.min[lat.axis]-0.05, c.min[lat.axis]
+		q.min[lat.axis], q.max[lat.axis] = collar.min[lat.axis]-proud, collar.min[lat.axis]+sunk
 	}
-	// which way the arrow has to point along the arm: in towards the block
-	want := sign
-	if !lat.positive {
-		want = -sign
+	name := faceName(lat.axis, lat.positive)
+	uAxis, uSign, vAxis, vSign := faceAxes(name)
+	// the arrow has to point towards the block (in) or away from it (out)
+	// (a real client showed every arrow the wrong way round with the face
+	// directions of faceAxes, so the wanted direction is turned over here)
+	want := -sign
+	if !in {
+		want = sign
+	}
+	// the arrow at (0, 0) points along +v if it is the in arrow, -v if out; the
+	// turned one along +u, -u
+	dir := 1.0
+	if !in {
+		dir = -1
 	}
 	var face map[string]any
-	if axis == 1 {
-		// the texture's top is up; the in arrow points down, the out arrow up
-		point := -1.0
-		if !lat.positive {
-			point = 1
-		}
-		face = arrowUV(false, point != want)
-	} else {
-		// the turned arrow points along u; u runs along -x on a model north face, +x
-		// on a south face, +z (world) on an east face and -z on a west face
-		uDir := 1.0
-		switch faceName(lat.axis, lat.positive) {
-		case "north", "west":
-			uDir = -1
-		}
-		point := uDir // the turned in arrow points along +u, the out arrow along -u
-		if !lat.positive {
-			point = -uDir
-		}
-		face = arrowUV(true, point != want)
+	if axis == vAxis {
+		face = arrowUV(false, dir*vSign != want)
+	} else if axis == uAxis {
+		face = arrowUV(true, dir*uSign != want)
 	}
-	return cube(q, map[string]any{faceName(lat.axis, lat.positive): face}, true)
+	// both faces along the normal carry the arrow: if the client's mirroring in z
+	// swaps which of the two a face name lands on, the outer one still shows it
+	opposite := faceName(lat.axis, !lat.positive)
+	return cube(q, map[string]any{name: face, opposite: face}, true)
 }
 
 // arrowUV is the uv of an arrow: at (0, 0), or the turned one at (32, 0), mirrored

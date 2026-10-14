@@ -116,6 +116,11 @@ func TestConduitRecipes(t *testing.T) {
 	if count != 8 || join(in) != want {
 		t.Errorf("item conduit: %d from %s", count, join(in))
 	}
+	_, count, in = cells(FluidConduit{Tier: 1})
+	want = b + " " + b + " " + b + " minecraft:glass minecraft:glass minecraft:glass " + b + " " + b + " " + b + " "
+	if count != 8 || join(in) != want {
+		t.Errorf("fluid conduit: %d from %s", count, join(in))
+	}
 	for t2 := 2; t2 <= 3; t2++ {
 		if found, _, _ := cells(EnergyConduit{Tier: t2}); found != "" {
 			t.Errorf("energy conduit tier %d has a recipe", t2)
@@ -126,5 +131,23 @@ func TestConduitRecipes(t *testing.T) {
 	}
 	if info := (ConduitBinderMix{}).SmeltInfo(); info.Product.Item() != (ConduitBinder{}) {
 		t.Errorf("the mix bakes into %v", info.Product.Item())
+	}
+}
+
+// TestFluidConduitRecipe: binders above and below a row of glass make eight
+// basic fluid conduits; the research that unlocks it opens after the item conduit
+// and glasswork researches.
+func TestFluidConduitRecipe(t *testing.T) {
+	var r *Research
+	for i := range researchTree {
+		if researchTree[i].ID == "fluid_conduit" {
+			r = &researchTree[i]
+		}
+	}
+	if r == nil || len(r.Unlocks) == 0 || r.Unlocks[0] != "dragonfactory:conduit_fluid_1" {
+		t.Fatalf("fluid conduit research: %+v", r)
+	}
+	if a, ok := advancementByID("fluid_conduit"); !ok || a.Research != "fluid_conduit" {
+		t.Errorf("fluid conduit advancement: %+v", a)
 	}
 }

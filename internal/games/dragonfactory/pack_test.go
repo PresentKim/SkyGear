@@ -381,7 +381,7 @@ func TestConduitPlatePack(t *testing.T) {
 			}
 		}
 	}
-	if len(bones) != 30 {
+	if len(bones) != 18 {
 		t.Errorf("%d bones, want 6 for each of 6 sides", len(bones))
 	}
 	var rc struct {
