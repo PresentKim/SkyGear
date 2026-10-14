@@ -73,19 +73,24 @@ func TestResearchOpensRecipes(t *testing.T) {
 			t.Fatal("paid for a research whose needs are not done")
 		}
 		sticks, _ := researchByID("stick")
+		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 4))
+		if n := s.payResearch(p, tx, sticks); n != 4 || !s.researched("stick") {
+			t.Fatalf("stick research: took %d, done %v", n, s.researched("stick"))
+		}
+		// The chest research costs more and is paid in parts.
 		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 10))
-		if n := s.payResearch(p, tx, sticks); n != 10 || s.researched("stick") {
-			t.Fatalf("first part: took %d, done %v", n, s.researched("stick"))
+		if n := s.payResearch(p, tx, chest); n != 10 || s.researched("chest") {
+			t.Fatalf("first part: took %d, done %v", n, s.researched("chest"))
 		}
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 20))
-		if n := s.payResearch(p, tx, sticks); n != 6 || !s.researched("stick") {
-			t.Fatalf("second part: took %d, done %v", n, s.researched("stick"))
+		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 64))
+		if n := s.payResearch(p, tx, chest); n != 54 || !s.researched("chest") {
+			t.Fatalf("second part: took %d, done %v", n, s.researched("chest"))
 		}
-		if st, _ := p.Inventory().Item(0); st.Count() != 14 {
-			t.Fatalf("%d planks left, want 14", st.Count())
+		if st, _ := p.Inventory().Item(0); st.Count() != 10 {
+			t.Fatalf("%d planks left, want 10", st.Count())
 		}
-		if !s.recipeFilter()(recipeFor(stick)) || !s.researchOpen(chest) {
-			t.Fatal("stick research did not open sticks and the chest research")
+		if !s.recipeFilter()(recipeFor(stick)) || !s.recipeFilter()(recipeFor(block.NewChest())) {
+			t.Fatal("researches did not open sticks and the chest")
 		}
 	})
 }

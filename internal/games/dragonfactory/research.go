@@ -45,10 +45,10 @@ var (
 // researchTree is every research in menu order; a research's needs come
 // before it.
 var researchTree = []Research{
-	{ID: "stick", Name: "막대기", Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"stick"}},
-	{ID: "pebbles", Name: "돌 다지기", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 8}},
+	{ID: "stick", Name: "막대기", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
+	{ID: "pebbles", Name: "돌 다지기", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
 		Unlocks: []string{"cobblestone", "andesite", "diorite", "granite"}},
-	{ID: "wood_tools", Name: "나무 도구", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 16}},
+	{ID: "wood_tools", Name: "나무 도구", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
 	{ID: "chest", Name: "상자", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 64}}, Unlocks: []string{"chest"}},
 	{ID: "furnace", Name: "화로", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 32}}, Unlocks: []string{"furnace"}},
@@ -222,17 +222,21 @@ func (s *session) researchMenu() (string, []ui.Option) {
 	var opts []ui.Option
 	for i := range researchTree {
 		r := &researchTree[i]
-		label := "§8" + r.Name
+		// A research is hidden until everything before it is done, so the
+		// tree is found step by step.
+		var label string
 		switch {
 		case s.researched(r.ID):
 			done++
 			label = "§a" + r.Name + " §7(완료)"
 		case s.researchOpen(r):
 			label = "§e" + r.Name
+		default:
+			continue
 		}
 		opts = append(opts, s.opt(label, researchIcon(r), func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }))
 	}
-	body := fmt.Sprintf("§7조합법은 연구로 하나씩 열립니다. 노란 연구를 할 수 있고, 회색은 먼저 해야 할 연구가 있습니다.\n§f연구 완료 §d%d/%d", done, len(researchTree))
+	body := fmt.Sprintf("§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다.\n§f연구 완료 §d%d개", done)
 	return body, append(opts, s.backOption())
 }
 

@@ -37,3 +37,20 @@ func TestResearchScreenShowsHints(t *testing.T) {
 		t.Errorf("done research without its next step: %q", body)
 	}
 }
+
+// TestResearchListHidesLockedResearches: a research shows up only when
+// everything before it is done.
+func TestResearchListHidesLockedResearches(t *testing.T) {
+	s := testSession(t)
+	_, opts := s.researchMenu()
+	if len(opts) != 2 { // stick and the back button
+		t.Fatalf("%d entries at the start", len(opts))
+	}
+	r, _ := researchByID("stick")
+	s.state.Researched = map[string]bool{r.ID: true}
+	_, opts = s.researchMenu()
+	// stick (done), pebbles, wood tools, chest, back
+	if len(opts) != 5 {
+		t.Fatalf("%d entries after the stick research", len(opts))
+	}
+}
