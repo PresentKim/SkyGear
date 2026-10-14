@@ -143,6 +143,18 @@ func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
+	if m, ok := e.(*Monster); ok {
+		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
+		ctx.Cancel()
+		p := ctx.Player()
+		held, _ := p.HeldItems()
+		dmg := 2.0
+		if w, ok := held.Item().(item.Weapon); ok {
+			dmg = w.AttackDamage()
+		}
+		m.Hurt(p.Tx(), dmg, p)
+		return
+	}
 	h.touchFairy(ctx, e)
 }
 

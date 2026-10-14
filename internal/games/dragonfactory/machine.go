@@ -43,8 +43,10 @@ const (
 	// energy (generator.go).
 	KindAlloy = "alloy_smelter"
 	// The fluid machines (fluidmachine.go).
-	KindTank          = "fluid_tank"
-	KindWasher        = "ore_washer"
+	KindTank   = "fluid_tank"
+	KindWasher = "ore_washer"
+	// KindGate is the dimension gate (wave.go).
+	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
 	// KindAutoComposter turns plants into dirt (composter.go).
@@ -77,6 +79,8 @@ type machineKind struct {
 	fluidCap               int
 	fluidSource, fluidSink bool
 	fluidOnly              fluidnet.Kind
+	// gate marks the dimension gate (wave.go): using it opens its form.
+	gate bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	cell bool
@@ -125,6 +129,10 @@ var machineKinds = map[string]*machineKind{
 		use: 20, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "machine.alloy.help.1"), i18n.T(i18n.Default, "machine.alloy.help.2")},
 	},
+	KindGate: {
+		name: i18n.T(i18n.Default, "machine.gate.name"), interval: 1, indicator: 10, gate: true,
+		help: []string{i18n.T(i18n.Default, "machine.gate.help.1"), i18n.T(i18n.Default, "machine.gate.help.2")},
+	},
 	KindWasher: {
 		name: i18n.T(i18n.Default, "machine.washer.name"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
@@ -170,7 +178,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -575,7 +583,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true, KindGate: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true}
 )
 
@@ -728,6 +736,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		s.useSieve(p, tx, pos, m.st)
 		return true
 	}
+	if m.st.kind.gate {
+		if !s.debounced(p) {
+			s.showGateForm(p, tx, pos)
+		}
+		return true
+	}
 	if m.st.kind.fluidCap > 0 {
 		held, _ := p.HeldItems()
 		if s.useFluidMachine(p, tx, pos, m, held, ctx) || m.st.kind.marker == "" {
@@ -839,7 +853,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runHarvester(st, pos, tx)
 	}
 	st.pos = pos
-	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator {
+	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate {
 		if m.Kind == KindEnergyCell && st.energy > 0 {
 			s.energyGrid().AddSource(pos)
 		}

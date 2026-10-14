@@ -43,6 +43,10 @@ const (
 	advSift     = "sift"
 	advMachine  = "machine"
 	advChunk    = "chunk"
+	// advWave1 and advWave5 are done by clearing levels 1 and 5 of the gate
+	// (wave.go).
+	advWave1 = "wave_1"
+	advWave5 = "wave_5"
 )
 
 // advancementTree is every advancement; the quest panel follows this
@@ -108,6 +112,11 @@ var advancementTree = []Advancement{
 	{ID: "crucible", Name: i18n.T(i18n.Default, "advancement.crucible.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.crucible.hint"), Research: "crucible", Icon: "dragonfactory:crucible"},
 	{ID: "lava_generator", Name: i18n.T(i18n.Default, "advancement.lava_generator.name"), Parent: "crucible", Hint: i18n.T(i18n.Default, "advancement.lava_generator.hint"), Research: "lava_generator", Icon: "dragonfactory:lava_generator"},
 	{ID: "ore_washer", Name: i18n.T(i18n.Default, "advancement.ore_washer.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.ore_washer.hint"), Research: "ore_washer", Icon: "dragonfactory:ore_washer"},
+	{ID: "dimension_gate", Name: i18n.T(i18n.Default, "advancement.dimension_gate.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.dimension_gate.hint"), Research: "dimension_gate", Icon: "dragonfactory:dimension_gate"},
+	{ID: advWave1, Name: i18n.T(i18n.Default, "advancement.wave_1.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.wave_1.hint"), Icon: "iron_sword"},
+	{ID: advWave5, Name: i18n.T(i18n.Default, "advancement.wave_5.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_5.hint"), Icon: "diamond_sword"},
+	{ID: "diamond_tools", Name: i18n.T(i18n.Default, "advancement.diamond_tools.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_tools.hint"), Item: "diamond_pickaxe"},
+	{ID: "obsidian", Name: i18n.T(i18n.Default, "advancement.obsidian.name"), Parent: "diamond_tools", Hint: i18n.T(i18n.Default, "advancement.obsidian.hint"), Item: "obsidian"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

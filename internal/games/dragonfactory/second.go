@@ -12,6 +12,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.checkAdvancements(tx)
 	s.tickBarrels(tx)
 	s.tickFairy(tx)
+	s.tickWave(tx)
 	s.updateLoadBoards(tx)
 }
 

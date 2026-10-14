@@ -29,6 +29,7 @@ var variants = []variant{
 	{"lava_generator", "generator", []string{"side", "up", "down"}, color.RGBA{255, 120, 20, 255}},
 	{"crucible", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{255, 70, 30, 255}},
 	{"ore_washer", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{60, 190, 200, 255}},
+	{"dimension_gate", "generator", []string{"side", "up", "down"}, color.RGBA{150, 60, 190, 255}},
 	{"energy_cell", "generator", []string{"side", "up", "down"}, color.RGBA{70, 200, 110, 255}},
 }
 

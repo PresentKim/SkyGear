@@ -34,7 +34,7 @@ func TestAdvancementTreeIsValid(t *testing.T) {
 		}
 		if a.Item == "" && a.Research == "" {
 			switch a.ID {
-			case advGrowTree, advSift, advMachine, advChunk:
+			case advGrowTree, advSift, advMachine, advChunk, advWave1, advWave5:
 			default:
 				t.Errorf("%s: nothing completes it", a.ID)
 			}

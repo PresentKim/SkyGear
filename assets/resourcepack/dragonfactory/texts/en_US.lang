@@ -203,3 +203,5 @@ item.dragonfactory:lava_generator.name=Lava Generator
 tile.dragonfactory:lava_generator.name=Lava Generator
 item.dragonfactory:ore_washer.name=Ore Washer
 tile.dragonfactory:ore_washer.name=Ore Washer
+item.dragonfactory:dimension_gate.name=Dimension Gate
+tile.dragonfactory:dimension_gate.name=Dimension Gate

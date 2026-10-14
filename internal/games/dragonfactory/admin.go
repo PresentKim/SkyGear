@@ -239,10 +239,39 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
+// adminWave places a dimension gate beside the operator and starts a level of
+// it, opening the levels below (for testing the waves).
+type adminWave struct {
+	adminBase
+	Sub   cmd.SubCommand `cmd:"wave"`
+	Level int            `cmd:"level"`
+}
+
+func (c adminWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	if c.Level < 1 || c.Level > len(waveLevels) {
+		o.Errorf("level 1-%d", len(waveLevels))
+		return
+	}
+	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
+	if _, isGate := tx.Block(pos).(Machine); !isGate {
+		tx.SetBlock(pos, newMachine(KindGate, "", ""), nil)
+	}
+	s.state.GateTier = max(s.state.GateTier, c.Level-1)
+	if !s.startWave(tx, pos, c.Level) {
+		o.Error("a wave is already going on")
+		return
+	}
+	o.Printf("wave %d started with %d monsters", c.Level, len(s.wave.left))
+}
+
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.registerAdmin.1"), nil,
-		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
+		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}, adminWave{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).

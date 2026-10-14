@@ -162,6 +162,8 @@ type session struct {
 	// calls (an item step is every second one, conduit.go).
 	items     *itemnet.Grid
 	fastCount int
+	// wave is the wave of the dimension gate being fought (wave.go).
+	wave *waveState
 	// fluids moves fluids over the fluid conduits (fluidmachine.go).
 	fluids *fluidnet.Grid
 	// visuals are the display entities of the conduit bundles by position

@@ -117,6 +117,9 @@ var researchTree = []Research{
 	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 32}, {Ingot{Metal: MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:crucible"}},
 	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}}, Unlocks: []string{"dragonfactory:lava_generator"}},
 	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []Requirement{{item.IronIngot{}, 24}, {Ingot{Metal: MetalBronze}, 4}}, Unlocks: []string{"dragonfactory:ore_washer"}},
+	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {Essence{Mob: MobZombie}, 8}, {Essence{Mob: MobSkeleton}, 8}}, Unlocks: []string{"dragonfactory:dimension_gate"}},
+	{ID: "diamond_tools", Needs: []string{"iron_tools", "mesh_diamond"}, Cost: []Requirement{{item.Diamond{}, 8}},
+		Unlocks: []string{"diamond_pickaxe", "diamond_axe", "diamond_shovel", "diamond_hoe", "diamond_sword"}},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 32}, {block.Pumpkin{}, 8}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 32}}, Unlocks: []string{"dried_kelp_block"}},
@@ -524,6 +527,7 @@ func gameRecipes() {
 	add(machineItem(KindCrucible), n(Ingot{Metal: MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 4), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 4), n(block.Glass{}, 2))
 	add(machineItem(KindWasher), n(Ingot{Metal: MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
+	add(machineItem(KindGate), n(Ingot{Metal: MetalSteel}, 6), n(block.Obsidian{}, 4), n(item.EnderPearl{}, 2))
 	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 4), n(block.Glass{}, 4), n(item.RedstoneWire{}, 6))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).

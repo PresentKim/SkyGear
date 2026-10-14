@@ -263,6 +263,15 @@
     },
     "dragonfactory_ore_washer_down": {
       "textures": "textures/blocks/ore_washer_down"
+    },
+    "dragonfactory_dimension_gate_side": {
+      "textures": "textures/blocks/dimension_gate_side"
+    },
+    "dragonfactory_dimension_gate_up": {
+      "textures": "textures/blocks/dimension_gate_up"
+    },
+    "dragonfactory_dimension_gate_down": {
+      "textures": "textures/blocks/dimension_gate_down"
     }
   },
   "texture_name": "atlas.terrain"

@@ -268,6 +268,8 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(st), nil
+	case st.kind.gate:
+		return nil, nil
 	case st.kind.fluidCap > 0:
 		lines := fluidLines(st)
 		if _, in, ok := st.firstInput(); ok {
