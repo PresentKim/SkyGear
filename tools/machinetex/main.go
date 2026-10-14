@@ -24,6 +24,7 @@ type variant struct {
 var variants = []variant{
 	{"alloy_smelter", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{72, 150, 215, 255}},
 	{"mob_simulator", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{160, 80, 200, 255}},
+	{"auto_composter", "generator", []string{"side", "up", "down"}, color.RGBA{110, 170, 60, 255}},
 	{"energy_cell", "generator", []string{"side", "up", "down"}, color.RGBA{70, 200, 110, 255}},
 }
 

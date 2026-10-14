@@ -193,3 +193,5 @@ item.dragonfactory:essence_spider.name=거미 정수
 item.dragonfactory:essence_slime.name=슬라임 정수
 item.dragonfactory:essence_enderman.name=엔더맨 정수
 item.dragonfactory:essence_blaze.name=블레이즈 정수
+item.dragonfactory:auto_composter.name=자동 퇴비통
+tile.dragonfactory:auto_composter.name=자동 퇴비통

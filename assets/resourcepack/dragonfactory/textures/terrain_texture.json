@@ -206,6 +206,15 @@
     },
     "dragonfactory_mob_simulator_down": {
       "textures": "textures/blocks/mob_simulator_down"
+    },
+    "dragonfactory_auto_composter_side": {
+      "textures": "textures/blocks/auto_composter_side"
+    },
+    "dragonfactory_auto_composter_up": {
+      "textures": "textures/blocks/auto_composter_up"
+    },
+    "dragonfactory_auto_composter_down": {
+      "textures": "textures/blocks/auto_composter_down"
     }
   },
   "texture_name": "atlas.terrain"

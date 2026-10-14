@@ -514,3 +514,19 @@ func TestMobSimulator(t *testing.T) {
 		t.Error("the simulator takes dirt")
 	}
 }
+
+// TestAutoComposter: 32 plants make a dirt, as the composter does; it keeps
+// them waiting when the output has no room.
+func TestAutoComposter(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindAutoComposter, "")
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(item.Wheat{}, 40))
+	tick(s, 33*(st.kind.interval+1))
+	if n := outputCount(st, block.Dirt{}); n != 1 {
+		t.Fatalf("dirt from 33 plants = %d, want 1", n)
+	}
+	if !st.accepts(item.NewStack(item.Wheat{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
+		t.Error("the auto composter takes the wrong items")
+	}
+}

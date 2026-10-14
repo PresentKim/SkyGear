@@ -103,6 +103,7 @@ var advancementTree = []Advancement{
 	{ID: "mob_simulator", Name: i18n.T(i18n.Default, "advancement.mob_simulator.name"), Parent: "essence", Hint: i18n.T(i18n.Default, "advancement.mob_simulator.hint"), Item: "dragonfactory:mob_simulator", Icon: "dragonfactory:mob_simulator"},
 	{ID: "ender_pearl", Name: i18n.T(i18n.Default, "advancement.ender_pearl.name"), Parent: "mob_simulator", Hint: i18n.T(i18n.Default, "advancement.ender_pearl.hint"), Item: "ender_pearl", Icon: "ender_pearl"},
 	{ID: "blaze_rod", Name: i18n.T(i18n.Default, "advancement.blaze_rod.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.blaze_rod.hint"), Item: "blaze_rod", Icon: "blaze_rod"},
+	{ID: "auto_composter", Name: i18n.T(i18n.Default, "advancement.auto_composter.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.auto_composter.hint"), Research: "auto_composter", Icon: "dragonfactory:auto_composter"},
 	{ID: advChunk, Name: i18n.T(i18n.Default, "dragonfactory.advancement.init.45"), Parent: "cobble", Hint: i18n.T(i18n.Default, "dragonfactory.advancement.init.46"), Icon: "grass_block"},
 }
 

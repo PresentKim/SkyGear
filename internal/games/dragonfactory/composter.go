@@ -191,3 +191,32 @@ func (s *session) breakComposter(pos cube.Pos, c block.Composter, drops *[]item.
 	}
 	s.setComposterCount(pos, 0)
 }
+
+// runAutoComposter composts the plants in its input: one item an interval, and
+// when matterCapacity items are in (st.charges) one dirt comes out, like the
+// composter block. It waits while the output has no room for the dirt.
+func (st *machineState) runAutoComposter() {
+	if st.charges >= matterCapacity {
+		dirt := item.NewStack(block.Dirt{}, 1)
+		if !fits(st.inv(), st.kind.output, []item.Stack{dirt}) {
+			return
+		}
+		put(st.inv(), st.kind.output, dirt)
+		st.charges -= matterCapacity
+		return
+	}
+	slot, in, ok := st.firstInput()
+	if !ok || !st.accepts(in) {
+		st.progress = 0
+		return
+	}
+	if st.progress < st.kind.interval {
+		if st.consume() {
+			st.progress++
+		}
+		return
+	}
+	_ = st.inv().SetItem(slot, in.Grow(-1))
+	st.charges++
+	st.progress = 0
+}
