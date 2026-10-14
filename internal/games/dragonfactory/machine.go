@@ -756,6 +756,9 @@ func (s *session) insertInto(tx *world.Tx, pos cube.Pos, one item.Stack) bool {
 func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
 	m := newMachine(kind, instance.AccountID(p), p.Name())
 	account.Grant(p, achMachine)
+	if m.Kind != KindSieve {
+		s.advance(tx, advMachine)
+	}
 	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 }
 

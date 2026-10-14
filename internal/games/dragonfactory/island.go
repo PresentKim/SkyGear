@@ -135,6 +135,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	}
 	s.keepLoaded(tx, c)
 	s.storeState()
+	s.advance(tx, advChunk)
 	s.broadcast(tx, fmt.Sprintf("§a%s 님이 청크 (%d, %d)를 구매했습니다. (소유 %d개)", p.Name(), c[0], c[1], len(s.state.Chunks)))
 }
 

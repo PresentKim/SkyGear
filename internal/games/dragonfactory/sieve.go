@@ -211,6 +211,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
+	s.advance(tx, advSift)
 	for _, it := range s.sieveDrops(in) {
 		if toContainers {
 			if it = s.storeBesideOrBelow(tx, pos, it); it.Empty() {

@@ -5,10 +5,11 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Second runs the crops, the fairy and the operators' load lines
-// (instance.SecondTicker).
+// Second runs the crops, the fairy, the advancements and the operators'
+// load lines (instance.SecondTicker).
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
+	s.checkAdvancements(tx)
 	s.tickFairy(tx)
 	s.updateLoadBoards(tx)
 }

@@ -205,14 +205,14 @@ type adminStatus struct {
 
 func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		o.Printf("researched=%d chunks=%d", len(s.state.Researched), len(s.state.Chunks))
+		o.Printf("researched=%d chunks=%d advanced=%d", len(s.state.Researched), len(s.state.Chunks), len(s.state.Advancements))
 	}
 }
 
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
-		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}))
+		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).
@@ -326,5 +326,58 @@ func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			s.completeResearch(tx, r)
 		}
 		o.Printf("%s 연구를 완료했습니다.", r.Name)
+	}
+}
+
+// advanceEnum names an advancement of the tree or all, reset.
+type advanceEnum string
+
+func (advanceEnum) Type() string { return "df_advancement" }
+func (advanceEnum) Options(cmd.Source) []string {
+	opts := []string{"all", "reset"}
+	for _, a := range advancementTree {
+		opts = append(opts, a.ID)
+	}
+	return opts
+}
+
+// adminAdvance completes an advancement (with the ones before it, or all)
+// or forgets every advancement (reset).
+type adminAdvance struct {
+	adminBase
+	Sub         cmd.SubCommand `cmd:"advance"`
+	Advancement advanceEnum    `cmd:"advancement"`
+}
+
+func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	_, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	switch c.Advancement {
+	case "all":
+		var as []*Advancement
+		for i := range advancementTree {
+			if !s.advanced(advancementTree[i].ID) {
+				as = append(as, &advancementTree[i])
+			}
+		}
+		if len(as) > 0 {
+			s.completeAdvancements(tx, as)
+		}
+		o.Printf("모든 발전과제를 달성했습니다.")
+	case "reset":
+		s.state.Advancements = nil
+		s.storeState()
+		s.updateBoards(tx)
+		o.Printf("발전과제를 모두 지웠습니다.")
+	default:
+		a, ok := advancementByID(string(c.Advancement))
+		if !ok {
+			o.Errorf("알 수 없는 발전과제: %s", c.Advancement)
+			return
+		}
+		s.advance(tx, a.ID)
+		o.Printf("%s 발전과제를 달성했습니다.", a.Name)
 	}
 }

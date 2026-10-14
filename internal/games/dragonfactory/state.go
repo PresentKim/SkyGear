@@ -30,6 +30,8 @@ type State struct {
 	Lost []*LostItem `json:"lost,omitempty"`
 	// Crops are the planted crops by position ("x,y,z", crops.go).
 	Crops map[string]*CropRecord `json:"crops,omitempty"`
+	// Advancements are the done advancements (advancement.go).
+	Advancements map[string]bool `json:"advancements,omitempty"`
 	// LastSapling is when /묘목 last gave a sapling (real time).
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }

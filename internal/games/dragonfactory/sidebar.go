@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -41,12 +42,29 @@ func (s *session) nextResearch() (*Research, bool) {
 	return nil, false
 }
 
-// questRows are the quest panel: the next research and its cost.
+// questRows are the quest panel: the next advancement and its hint (with
+// the research cost for a research advancement), then once every
+// advancement is done the next research and its cost.
 func (s *session) questRows() (string, []string) {
+	if a, ok := s.nextAdvancement(); ok {
+		rows := strings.Split(a.Hint, "\n")
+		for i := range rows {
+			rows[i] = "§f" + rows[i]
+		}
+		if r, ok := researchByID(a.Research); ok && s.researchOpen(r) {
+			rows = append(rows, s.researchCostRows(r)...)
+		}
+		return "§e발전과제 §f" + a.Name, rows
+	}
 	r, ok := s.nextResearch()
 	if !ok {
 		return "§a모든 연구 완료", nil
 	}
+	return fmt.Sprintf("§d연구 §f%s", r.Name), s.researchCostRows(r)
+}
+
+// researchCostRows are a research's cost with what is delivered.
+func (s *session) researchCostRows(r *Research) []string {
 	var rows []string
 	for _, c := range r.Cost {
 		name := itemName(item.NewStack(c.Item, 1))
@@ -56,11 +74,14 @@ func (s *session) questRows() (string, []string) {
 			rows = append(rows, fmt.Sprintf("§a%s %d/%d", name, c.Count, c.Count))
 		}
 	}
-	return fmt.Sprintf("§d연구 §f%s", r.Name), rows
+	return rows
 }
 
 // nextGoal is a one line summary of the next thing to do (menu).
 func (s *session) nextGoal() string {
+	if a, ok := s.nextAdvancement(); ok {
+		return "다음 할 일: " + a.Name + " — " + flatHint(a)
+	}
 	if r, ok := s.nextResearch(); ok {
 		return "다음 연구: " + r.Name + " (연구대 또는 메뉴 → 연구)"
 	}

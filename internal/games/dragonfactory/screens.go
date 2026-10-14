@@ -51,6 +51,7 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	body := fmt.Sprintf("§f%s §7· %d일차\n§7%s", s.saveName, day, s.nextGoal())
 	return body, []ui.Option{
 		s.opt("§d연구", iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
+		s.opt("§e발전과제", iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt("§a섬 확장", iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
 		s.opt(fmt.Sprintf("§f분실물 §7(%d)", len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
 		s.opt("§f메뉴 아이템", iconMenu, func(p *player.Player, _ *world.Tx) {

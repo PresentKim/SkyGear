@@ -53,6 +53,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				}
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
+				s.advance(tx, advGrowTree)
 			}
 		}
 	}
