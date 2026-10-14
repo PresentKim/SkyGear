@@ -19,6 +19,8 @@ var machinePos = cube.Pos{3, IslandY, 3}
 // placeTestMachine places a machine and returns its state.
 func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineState {
 	m := newMachine(kind, owner, owner)
+	// These tests are about the work itself, not about energy (energy_test.go).
+	m.st.unlimited = true
 	if isSieve(kind) {
 		// The tests sift with the string mesh fitted.
 		m.st.mesh = "string"

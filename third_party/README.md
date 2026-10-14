@@ -56,3 +56,9 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` — 충돌은 손으로 고친다.
 4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...`, 시나리오 실행.
 5. 원본과 다시 비교해 `dragonfly.patch` 를 갱신한다(`diff -ruN a b`, a=원본, b=패치본).
+
+## EnderIO 리소스 (도관 텍스처)
+
+`assets/resourcepack/dragonfactory/textures/blocks/conduit_{energy,item}_N.png` 는 Team-EnderIO/EnderIO
+(Unlicense, 퍼블릭 도메인)의 도관 텍스처(`energy`, `enhanced_energy`, `ender_energy`, `item`의 첫 프레임)에서
+가져왔다. 아이템 도관 2·3단은 색조만 바꾼 것이다. UV 배치는 `tools/conduitgeo` 참고.

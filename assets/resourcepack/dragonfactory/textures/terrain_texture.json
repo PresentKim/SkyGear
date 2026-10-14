@@ -123,6 +123,33 @@
     "dragonfactory_barrel_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
+    "dragonfactory_conduit_energy_1": {
+      "textures": "textures/blocks/conduit_energy_1"
+    },
+    "dragonfactory_conduit_energy_2": {
+      "textures": "textures/blocks/conduit_energy_2"
+    },
+    "dragonfactory_conduit_energy_3": {
+      "textures": "textures/blocks/conduit_energy_3"
+    },
+    "dragonfactory_generator_side": {
+      "textures": "textures/blocks/generator_side"
+    },
+    "dragonfactory_generator_up": {
+      "textures": "textures/blocks/generator_up"
+    },
+    "dragonfactory_generator_down": {
+      "textures": "textures/blocks/generator_down"
+    },
+    "dragonfactory_conduit_item_1": {
+      "textures": "textures/blocks/conduit_item_1"
+    },
+    "dragonfactory_conduit_item_2": {
+      "textures": "textures/blocks/conduit_item_2"
+    },
+    "dragonfactory_conduit_item_3": {
+      "textures": "textures/blocks/conduit_item_3"
+    },
     "dragonfactory_wood_hopper": {
       "textures": "textures/blocks/wood_hopper"
     },

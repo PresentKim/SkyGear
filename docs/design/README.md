@@ -19,6 +19,7 @@
 | [03-architecture.md](03-architecture.md) | 기술 설계, Dragonfly 제약, 데이터 저장, 패키지 구조 |
 | [04-roadmap.md](04-roadmap.md) | 개발 단계(마일스톤) |
 | [05-sky-progression.md](05-sky-progression.md) | 스카이블록 진행 개편 컨셉(스카이팩토리 3·ATM10 Sky): 발전과제 안내, 손작업 초반, 체 그물, 발효기, 차원 게이트 몬스터 웨이브 |
+| [06-power-and-conduits.md](06-power-and-conduits.md) | 전기(RE)·발전기·도관(전기/아이템, EnderIO 참고)·기계의 전기 사용 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항 |
 
 ## 용어

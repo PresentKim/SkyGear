@@ -322,6 +322,9 @@ func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.progress = 0
 		return
 	}
+	if !st.consume() {
+		return
+	}
 	if st.progress++; st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, true)
 	}

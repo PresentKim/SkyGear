@@ -37,6 +37,8 @@ const (
 	KindSellBox   = "sell_box"
 	// KindHarvester harvests grown crops around it (harvester.go).
 	KindHarvester = "harvester"
+	// KindGenerator burns fuel into RE (generator.go).
+	KindGenerator = "generator"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -53,11 +55,18 @@ type machineKind struct {
 	indicator int
 	help      []string
 	hash      uint64
+	// generates is the RE per tick a generator makes while it burns; energyCap
+	// the RE its buffer holds (docs/design/06-power-and-conduits.md).
+	generates, energyCap int
+	// use is the RE per tick a machine needs while it works (0: it needs
+	// none).
+	use int
 }
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.1"), marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		use: 20, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.2"), i18n.T(i18n.Default, "dragonfactory.machine.init.3")},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
@@ -68,16 +77,24 @@ var machineKinds = map[string]*machineKind{
 	},
 	KindAutoSieve: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), interval: 60, input: []int{10}, indicator: 12,
+		use: 10, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.8"), i18n.T(i18n.Default, "dragonfactory.machine.init.9")},
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.10"), marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		use: 20, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.11"), i18n.T(i18n.Default, "dragonfactory.machine.init.12")},
 	},
 	KindHarvester: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.13"), marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		use: 10, energyCap: consumerBuffer,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.14"), i18n.T(i18n.Default, "dragonfactory.machine.init.15")},
+	},
+	KindGenerator: {
+		name: i18n.T(i18n.Default, "generator.name"), marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
+		generates: generatorOutput, energyCap: generatorBuffer,
+		help: []string{i18n.T(i18n.Default, "generator.help.1"), i18n.T(i18n.Default, "generator.help.2")},
 	},
 	KindSellBox: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
@@ -86,7 +103,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -127,6 +144,13 @@ type machineState struct {
 	lastUse time.Time
 	// mesh is the tier of the mesh fitted in a sieve ("" none, mesh.go).
 	mesh string
+	// unlimited makes the machine run without energy (the operator's load
+	// test factories); stalled is set while a machine that works has no
+	// energy for a tick.
+	unlimited, stalled bool
+	// energy is the RE in the buffer; burn the ticks the fuel in a generator
+	// burns still, burnMax the ticks it burned for in all (generator.go).
+	energy, burn, burnMax int
 	// legacy are saved items of slots the kind no longer has (the auto
 	// miner had four output slots); they move into the output as it frees
 	// up, and are saved until then.
@@ -224,6 +248,8 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindCrusher]:
 		_, ok := crushRecipes[k]
 		return ok
+	case machineKinds[KindGenerator]:
+		return fuelDuration(it) > 0
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -407,7 +433,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindSellBox: true}
 )
 
@@ -484,6 +510,10 @@ func (m Machine) EncodeNBT() map[string]any {
 	}
 	data["Items"] = items
 	data["Progress"] = int32(m.st.progress)
+	data["Energy"] = int32(m.st.energy)
+	data["Unlimited"] = m.st.unlimited
+	data["Burn"] = int32(m.st.burn)
+	data["BurnMax"] = int32(m.st.burnMax)
 	data["Mesh"] = m.st.mesh
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
@@ -499,6 +529,14 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	}
 	if p, ok := data["Progress"].(int32); ok {
 		n.st.progress = min(int(p), n.st.kind.interval)
+	}
+	if v, ok := data["Unlimited"].(bool); ok {
+		n.st.unlimited = v
+	}
+	for key, dst := range map[string]*int{"Energy": &n.st.energy, "Burn": &n.st.burn, "BurnMax": &n.st.burnMax} {
+		if v, ok := data[key].(int32); ok {
+			*dst = int(v)
+		}
 	}
 	items, _ := data["Items"].([]any)
 	for _, v := range items {
@@ -607,6 +645,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		st.process(func(in item.Stack) []item.Stack {
 			return []item.Stack{item.NewStack(crushRecipes[itemKey(in.Item())], 1)}
 		}, nil)
+	case KindGenerator:
+		s.runGenerator(st, pos, tx)
 	case KindAutoSieve:
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
@@ -640,7 +680,9 @@ func (st *machineState) process(possible, roll func(in item.Stack) []item.Stack)
 		return
 	}
 	if st.progress < st.kind.interval {
-		st.progress++
+		if st.consume() {
+			st.progress++
+		}
 		return
 	}
 	out := possible(in)
@@ -702,7 +744,9 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.cracking = true
 	}
 	if st.progress < st.kind.interval {
-		st.progress++
+		if st.consume() {
+			st.progress++
+		}
 		return
 	}
 	var drops []item.Stack

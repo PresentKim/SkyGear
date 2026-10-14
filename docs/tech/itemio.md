@@ -55,3 +55,7 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 2. 면 규칙을 정한다(어느 면이 입력이고 어느 면이 출력인가). 이웃 블록이 누구든 상관없이 동작해야 한다.
 3. 상태가 세이브에 있어야 하면 값 갱신 뒤 블록 표시도 갱신한다(서랍 `setDrawer`, 배럴 `showBarrel`).
 4. 테스트: 호퍼 위·아래에 두고 틱을 돌려 확인한다(`TestHoppersFeedComposterAndBarrel`, `TestHandsFreeLine`).
+
+## 아이템 도관
+
+도관(`internal/itemnet`, 기획 [06](../design/06-power-and-conduits.md) §3.3)도 같은 길을 쓴다: 이웃 블록의 `itemio.IO` 가 비어 있지 않으면 끝점이 되고, `itemio.Transfer` 로 꺼내는 면에서 넣는 면으로 옮긴다.

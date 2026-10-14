@@ -43,6 +43,10 @@ func registerCreativeItems() {
 		for _, w := range barrelWoods {
 			add(construction, Barrel{Wood: w})
 		}
+		for t := 1; t <= conduitTiers; t++ {
+			add(construction, EnergyConduit{Tier: t})
+			add(construction, ItemConduit{Tier: t})
+		}
 		for _, k := range machineOrder {
 			if k != KindSellBox {
 				add(construction, Machine{Kind: k})

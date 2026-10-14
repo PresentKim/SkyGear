@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -90,6 +91,12 @@ func (s *session) updateLook(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 // seconds: gauges and time left change while a player looks; Show sends only
 // what changed).
 func (s *session) Fast(tx *world.Tx) {
+	// Energy moves every FastInterval (four ticks) over the conduits.
+	s.energyGrid().Step(tx, 4)
+	// Items move every itemnet.StepTicks ticks (two Fast calls).
+	if s.fastCount++; s.fastCount%(itemnet.StepTicks/4) == 0 {
+		s.itemGrid().Step(tx)
+	}
 	s.updateLooks(tx)
 }
 
@@ -137,6 +144,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.2")}
 	case block.Composter:
 		info.Lines = s.composterLines(pos, b)
+	case ItemConduit:
+		info.Lines = itemConduitLines(tx, pos, b)
 	case Barrel:
 		info.Lines = s.barrelLines(tx, pos)
 	case FlowHopper:
@@ -256,9 +265,11 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.1")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
+	case st.kind == machineKinds[KindGenerator]:
+		return generatorLines(st), nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
-		return []string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, nil
+		return append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
 			line = &waila.ItemLine{Item: it, Name: itemName(it), Gauge: step, ShowGauge: true}
@@ -269,6 +280,7 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.4"))
 		}
 	}
+	lines = append(lines, consumerLines(st)...)
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
 			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.5")+stackLine(it))

@@ -52,7 +52,9 @@ func harvestable(b world.Block) (world.Block, bool) {
 // turning.
 func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress < st.kind.interval {
-		st.progress++
+		if st.consume() {
+			st.progress++
+		}
 		return
 	}
 	st.progress = 0

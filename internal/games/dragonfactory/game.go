@@ -3,7 +3,9 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"log/slog"
 	"math"
 	"math/rand/v2"
@@ -152,6 +154,12 @@ type session struct {
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
+	// grid shares out the energy of the island's conduits (conduit.go).
+	grid *energy.Grid
+	// items moves items over the item conduits; fastCount counts the Fast
+	// calls (an item step is every second one, conduit.go).
+	items     *itemnet.Grid
+	fastCount int
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and

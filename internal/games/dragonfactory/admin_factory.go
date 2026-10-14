@@ -76,6 +76,8 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 	}
 	machine := func(dx, dy, dz int, kind string) {
 		m := newMachine(kind, owner, ownerName)
+		// Test factories run without energy.
+		m.st.unlimited = true
 		if isSieve(kind) {
 			m.st.mesh = "string"
 		}
@@ -203,8 +205,10 @@ func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		set(1, 0, block.Stone{})
 		set(0, 1, block.Cobblestone{})
 		set(0, 2, block.Cobblestone{})
-		set(0, 4, newMachine(KindMiner, owner, name))
-		set(1, 4, newMachine(KindCrusher, owner, name))
+		miner, crusher := newMachine(KindMiner, owner, name), newMachine(KindCrusher, owner, name)
+		miner.st.unlimited, crusher.st.unlimited = true, true
+		set(0, 4, miner)
+		set(1, 4, crusher)
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		set(1, 3, h)
