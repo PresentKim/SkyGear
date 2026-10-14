@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"slices"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -35,7 +36,7 @@ func (c Core) Hash() (uint64, uint64) {
 	return coreHash, uint64(slices.Index(coreOrder, c.Type))
 }
 func (Core) Model() world.BlockModel            { return model.Solid{} }
-func (Core) Name() string                       { return "차원의 코어" }
+func (Core) Name() string                       { return i18n.T(i18n.Default, "name.Core") }
 func (Core) Category() category.Category        { return category.Items() }
 func (Core) Properties() customblock.Properties { return cubeProperties("core_t1") }
 func (Core) LightEmissionLevel() uint8          { return 10 }
@@ -43,7 +44,7 @@ func (Core) EncodeNBT() map[string]any          { return map[string]any{"id": "D
 func (c Core) DecodeNBT(map[string]any) any     { return c }
 func (c Core) BreakInfo() block.BreakInfo       { return legacyBreakInfo(c) }
 func (Core) Activate(_ cube.Pos, _ cube.Face, _ *world.Tx, u item.User, _ *item.UseContext) bool {
-	return legacyMessage(u, "§7차원의 코어는 더 이상 쓰이지 않습니다. 캐서 치워도 됩니다.")
+	return legacyMessage(u, i18n.T(i18n.Default, "dragonfactory.legacy.Activate.1"))
 }
 
 // DeliveryBox is the old main mission's delivery box.
@@ -55,12 +56,12 @@ func (DeliveryBox) EncodeItem() (string, int16)           { return "dragonfactor
 func (DeliveryBox) EncodeBlock() (string, map[string]any) { return "dragonfactory:delivery_box", nil }
 func (DeliveryBox) Hash() (uint64, uint64)                { return deliveryHash, 0 }
 func (DeliveryBox) Model() world.BlockModel               { return model.Solid{} }
-func (DeliveryBox) Name() string                          { return "납품함" }
+func (DeliveryBox) Name() string                          { return i18n.T(i18n.Default, "name.DeliveryBox") }
 func (DeliveryBox) Category() category.Category           { return category.Items() }
 func (DeliveryBox) Properties() customblock.Properties    { return frontCubeProperties("delivery_box") }
 func (d DeliveryBox) BreakInfo() block.BreakInfo          { return legacyBreakInfo(d) }
 func (DeliveryBox) Activate(_ cube.Pos, _ cube.Face, _ *world.Tx, u item.User, _ *item.UseContext) bool {
-	return legacyMessage(u, "§7납품함은 더 이상 쓰이지 않습니다(미션이 없어졌습니다). 캐서 치워도 됩니다.")
+	return legacyMessage(u, i18n.T(i18n.Default, "dragonfactory.legacy.Activate.2"))
 }
 
 func legacyBreakInfo(it world.Item) block.BreakInfo {

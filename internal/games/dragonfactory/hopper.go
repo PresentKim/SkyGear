@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -42,9 +43,9 @@ type hopperKind struct {
 }
 
 var hopperKinds = map[string]*hopperKind{
-	"wood_hopper":         {id: "wood_hopper", name: "나무 호퍼", slots: 1, interval: 80, texture: "wood_hopper", wood: true},
-	"wood_hopper_reverse": {id: "wood_hopper_reverse", name: "나무 역방향 호퍼", slots: 1, interval: 80, reverse: true, texture: "wood_hopper", wood: true},
-	"iron_hopper_reverse": {id: "iron_hopper_reverse", name: "역방향 호퍼", slots: 5, interval: 8, reverse: true, texture: "iron_hopper"},
+	"wood_hopper":         {id: "wood_hopper", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.1"), slots: 1, interval: 80, texture: "wood_hopper", wood: true},
+	"wood_hopper_reverse": {id: "wood_hopper_reverse", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.2"), slots: 1, interval: 80, reverse: true, texture: "wood_hopper", wood: true},
+	"iron_hopper_reverse": {id: "iron_hopper_reverse", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.3"), slots: 5, interval: 8, reverse: true, texture: "iron_hopper"},
 }
 
 // hopperOrder is the registration and display order.
@@ -322,7 +323,7 @@ func (h FlowHopper) contentsText() string {
 		}
 	}
 	if len(parts) == 0 {
-		return "§7" + h.Name() + ": 비어있음"
+		return "§7" + h.Name() + i18n.T(i18n.Default, "dragonfactory.hopper.contentsText.1")
 	}
 	return "§f" + h.Name() + ": §e" + strings.Join(parts, "§7, §e")
 }
@@ -339,9 +340,9 @@ func hopperLines(h FlowHopper) []string {
 		}
 	}
 	if len(lines) == 0 {
-		lines = []string{"§7비어있음"}
+		lines = []string{i18n.T(i18n.Default, "dragonfactory.hopper.hopperLines.1")}
 	}
-	return append(lines, fmt.Sprintf("§7%.1f초에 1개", float64(h.kind().interval)/20))
+	return append(lines, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.hopper.hopperLines.2"), float64(h.kind().interval)/20))
 }
 
 var _ itemio.Inserter = FlowHopper{}

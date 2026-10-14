@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -56,31 +57,31 @@ type machineKind struct {
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
-		name: "분쇄기", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
-		help: []string{"§7돌 → 조약돌 → 자갈 → 모래", "§7개당 4초"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.1"), marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.2"), i18n.T(i18n.Default, "dragonfactory.machine.init.3")},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
 	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
-		name: "체", interval: 60, input: []int{10}, indicator: 12,
-		help: []string{"§7자갈·모래·흙을 얹고 여러 번 사용해 거릅니다", "§7부산물은 위로 튀어나옵니다"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.4"), interval: 60, input: []int{10}, indicator: 12,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.5"), i18n.T(i18n.Default, "dragonfactory.machine.init.6")},
 	},
 	KindAutoSieve: {
-		name: "자동 체", interval: 60, input: []int{10}, indicator: 12,
-		help: []string{"§7자갈·모래·흙을 저절로 거릅니다(개당 3초)", "§7부산물은 옆·아래 상자로, 없으면 위로"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), interval: 60, input: []int{10}, indicator: 12,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.8"), i18n.T(i18n.Default, "dragonfactory.machine.init.9")},
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
-		name: "자동 자원 채굴기", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
-		help: []string{"§7바로 아래 블록을 2초마다 캡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.10"), marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.11"), i18n.T(i18n.Default, "dragonfactory.machine.init.12")},
 	},
 	KindHarvester: {
-		name: "자동 농작물 수확기", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
-		help: []string{"§7같은 높이 9×9 안의 다 자란 작물을 2초마다 하나씩 거둡니다", "§7결과는 옆·위의 상자·호퍼·서랍·기계로 보냅니다"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.13"), marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.14"), i18n.T(i18n.Default, "dragonfactory.machine.init.15")},
 	},
 	KindSellBox: {
-		name: "판매함", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
-		help: []string{"§7더 이상 쓰이지 않습니다(상점이 없어졌습니다)", "§7안에 남은 아이템은 꺼낼 수 있습니다"},
+		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
+		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.17"), i18n.T(i18n.Default, "dragonfactory.machine.init.18")},
 	},
 }
 
@@ -183,7 +184,7 @@ const infoSlot = 26
 func (st *machineState) infoItem() item.Stack {
 	lines := append([]string{}, st.kind.help...)
 	if st.kind == machineKinds[KindSellBox] && st.ownerName != "" {
-		lines = append(lines, "§7주인: §f"+st.ownerName)
+		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.machine.infoItem.1")+st.ownerName)
 	}
 	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + st.kind.name).WithLore(lines...)
 }
@@ -193,7 +194,7 @@ func (st *machineState) infoItem() item.Stack {
 type MachineInfo struct{}
 
 func (MachineInfo) EncodeItem() (string, int16) { return "dragonfactory:machine_info", 0 }
-func (MachineInfo) Name() string                { return "기계 정보" }
+func (MachineInfo) Name() string                { return i18n.T(i18n.Default, "name.MachineInfo") }
 func (MachineInfo) Category() category.Category { return category.Items() }
 
 func (st *machineState) role(slot int) slotRole {
@@ -348,16 +349,16 @@ func (st *machineState) showProgress() {
 		return
 	}
 	st.shownPct = pct
-	name := fmt.Sprintf("§e진행 %d%%", pct)
+	name := fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.1"), pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind {
 	case machineKinds[KindSellBox]:
 		// Machines that work in a repeating cycle show a ring that fills.
-		name, it = "§6판매 주기", item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindMiner]:
-		name = fmt.Sprintf("§b채굴 %d%%", pct)
+		name = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct)
 	case machineKinds[KindHarvester]:
-		name, it = "§a수확 주기", item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name))
 }
@@ -372,7 +373,7 @@ const progressSteps = 11
 func (a ProgressArrow) EncodeItem() (string, int16) {
 	return fmt.Sprintf("dragonfactory:progress_%d", a.Step), 0
 }
-func (a ProgressArrow) Name() string              { return "진행도" }
+func (a ProgressArrow) Name() string              { return i18n.T(i18n.Default, "name.ProgressArrow") }
 func (ProgressArrow) Category() category.Category { return category.Items() }
 
 // CycleGauge is the indicator of machines that work in a repeating cycle
@@ -383,7 +384,7 @@ type CycleGauge struct{ Step int }
 func (g CycleGauge) EncodeItem() (string, int16) {
 	return fmt.Sprintf("dragonfactory:cycle_%d", g.Step), 0
 }
-func (g CycleGauge) Name() string              { return "주기" }
+func (g CycleGauge) Name() string              { return i18n.T(i18n.Default, "name.CycleGauge") }
 func (CycleGauge) Category() category.Category { return category.Items() }
 
 func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }

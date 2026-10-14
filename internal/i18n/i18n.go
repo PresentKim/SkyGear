@@ -13,6 +13,7 @@ import (
 	"io/fs"
 	"strings"
 
+	"github.com/df-mc/dragonfly/server/player"
 	"golang.org/x/text/language"
 )
 
@@ -37,11 +38,20 @@ func load() map[string]map[string]string {
 		if err != nil {
 			panic(err)
 		}
+		// "ko.json" and "ko.vanilla.json" are both Korean: a language is the
+		// part of the name before the first dot, and its files are merged
+		// (the generated vanilla names after the hand-written texts).
+		lang, _, _ := strings.Cut(e.Name(), ".")
 		c := map[string]string{}
 		if err := json.Unmarshal(data, &c); err != nil {
 			panic(fmt.Sprintf("i18n: %s: %v", e.Name(), err))
 		}
-		out[strings.TrimSuffix(e.Name(), ".json")] = c
+		if out[lang] == nil {
+			out[lang] = map[string]string{}
+		}
+		for k, v := range c {
+			out[lang][k] = v
+		}
 	}
 	return out
 }
@@ -74,6 +84,14 @@ func For(p Locale) string {
 		return Default
 	}
 	return Lang(p.Locale())
+}
+
+// Of is For for a *player.Player that may be nil.
+func Of(p *player.Player) string {
+	if p == nil {
+		return Default
+	}
+	return For(p)
 }
 
 // Has reports whether a key exists in the default catalog.

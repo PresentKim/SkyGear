@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -83,12 +84,12 @@ func (b Barrel) EncodeBlock() (string, map[string]any) {
 }
 func (b Barrel) Hash() (uint64, uint64) { return barrelHashes[b.Wood], uint64(b.Stage) }
 func (Barrel) Model() world.BlockModel  { return model.Solid{} }
-func (b Barrel) Name() string           { return woodNames[b.Wood] + " 배럴" }
+func (b Barrel) Name() string           { return woodNames[b.Wood] + i18n.T(i18n.Default, "name.Barrel.suffix") }
 func (Barrel) Category() category.Category {
 	return category.Construction()
 }
 
-var woodNames = map[string]string{"oak": "참나무"}
+var woodNames = map[string]string{"oak": i18n.T(i18n.Default, "dragonfactory.barrel.init.1")}
 
 // barrelMaterials are the textures of a barrel: the wood ("*") and what
 // fills it ("content": compost, or water at the last stage).
@@ -184,10 +185,10 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			s.storeState()
 			return true
 		}
-		p.SendTip("§b물이 가득 찼습니다. 빈 양동이로 퍼 가세요.")
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.1"))
 		return true
 	case rec != nil && rec.Count >= matterCapacity:
-		p.SendTip("§7재료가 물로 바뀌는 중입니다.")
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.2"))
 		return true
 	case plantMatter(held):
 		if s.fillBarrel(tx, pos, b, held, 1) == 0 {
@@ -195,7 +196,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		}
 		ctx.SubtractFromCount(1)
 		if s.barrelAt(pos).Count >= matterCapacity {
-			p.SendTip("§a배럴이 가득 찼습니다. 잠시 뒤 물이 고입니다.")
+			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.3"))
 		}
 		return true
 	}
@@ -287,15 +288,15 @@ func (s *session) barrelLines(pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
 	case rec == nil || rec.Count == 0:
-		return []string{"§7비어있음", "§7풀·잎·묘목·씨앗·작물을 넣으세요"}
+		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1"), i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.2")}
 	case rec.Water:
-		return []string{"§b물이 가득 참", "§7빈 양동이로 우클릭해 퍼 가세요"}
+		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3"), i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.4")}
 	case rec.Count >= matterCapacity:
 		now, _, _ := s.clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
-		return []string{fmt.Sprintf("§b물이 되는 중 §f%d:%02d", int(left.Minutes()), int(left.Seconds())%60)}
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.5"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
-	return []string{fmt.Sprintf("§f식물 §e%d§7/%d", rec.Count, matterCapacity)}
+	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.6"), rec.Count, matterCapacity)}
 }
 
 func init() {

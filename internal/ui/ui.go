@@ -3,6 +3,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"runtime/debug"
 	"strconv"
@@ -85,7 +86,7 @@ func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 func recoverForm(p *player.Player) {
 	if r := recover(); r != nil {
 		slog.Error("form callback panicked", "player", p.Name(), "panic", r, "stack", string(debug.Stack()))
-		p.Message("§c처리 중 오류가 발생했습니다.")
+		p.Message(i18n.T(i18n.Of(p), "ui.ui.recoverForm.1"))
 	}
 }
 
@@ -122,14 +123,14 @@ func uniqueLabels(opts []Option) []Option {
 // Notify tells p about something that failed (not enough money, out of
 // stock, ...): a toast only, as it matters just now.
 func Notify(p *player.Player, format string, a ...any) {
-	toast(p, "§c§l알림", fmt.Sprintf(format, a...))
+	toast(p, i18n.T(i18n.Of(p), "ui.ui.Notify.1"), fmt.Sprintf(format, a...))
 }
 
 // Flash tells p the result of an action that matters later (a purchase, a
 // sale, ...): a toast and the same line in chat, to read back.
 func Flash(p *player.Player, format string, a ...any) {
 	msg := fmt.Sprintf(format, a...)
-	toast(p, "§a§l완료", msg)
+	toast(p, i18n.T(i18n.Of(p), "ui.ui.Flash.1"), msg)
 	p.Message(msg)
 }
 
@@ -190,7 +191,7 @@ func toast(p *player.Player, title, msg string) {
 		st.waiting, st.folded, st.next = false, 0, time.Now().Add(ToastGap)
 		toasts.Unlock()
 		if folded > 0 {
-			msg += fmt.Sprintf(" §7(외 %d건)", folded)
+			msg += fmt.Sprintf(i18n.T(i18n.Of(p), "ui.ui.toast.1"), folded)
 		}
 		e.(*player.Player).SendToast(title, msg)
 	})
@@ -498,7 +499,7 @@ func ItemGrid(p *player.Player, title, body string, slots []ItemSlot, actions ..
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
 	Menu(p, title, body,
 		Option{Label: yes, Icon: "textures/ui/confirm", Run: f},
-		Option{Label: "취소", Icon: "textures/ui/cancel", Run: func(*player.Player, *world.Tx) {}},
+		Option{Label: i18n.T(i18n.Of(p), "ui.ui.Confirm.1"), Icon: "textures/ui/cancel", Run: func(*player.Player, *world.Tx) {}},
 	)
 }
 

@@ -3,6 +3,7 @@
 package oneblock
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"math/rand/v2"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -92,7 +93,7 @@ var (
 // the void or pops off.
 var Phases = []Phase{
 	{
-		Name:  "초원",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.1"),
 		Start: 0,
 		Blocks: []BlockEntry{
 			{block.Grass{}, 40}, {block.Dirt{}, 25},
@@ -107,7 +108,7 @@ var Phases = []Phase{
 		Reward: []item.Stack{s(block.WheatSeeds{}, 4), s(block.Sapling{Type: block.OakSapling()}, 1)},
 	},
 	{
-		Name:  "밭",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.2"),
 		Start: 100,
 		Blocks: []BlockEntry{
 			{block.Grass{}, 25}, {block.Dirt{}, 20}, {block.Log{Wood: block.OakWood()}, 15},
@@ -126,7 +127,7 @@ var Phases = []Phase{
 		Reward: []item.Stack{s(waterBucket, 1), s(item.Hoe{Tier: item.ToolTierWood}, 1)},
 	},
 	{
-		Name:  "숲",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.3"),
 		Start: 300,
 		Blocks: []BlockEntry{
 			{block.Log{Wood: block.OakWood()}, 20}, {block.Log{Wood: block.BirchWood()}, 15},
@@ -142,7 +143,7 @@ var Phases = []Phase{
 		},
 	},
 	{
-		Name:  "동굴",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.4"),
 		Start: 650,
 		Blocks: []BlockEntry{
 			{block.Stone{}, 40}, {block.Cobblestone{}, 20}, {block.CoalOre{}, 15},
@@ -155,7 +156,7 @@ var Phases = []Phase{
 		Reward: []item.Stack{s(item.Pickaxe{Tier: item.ToolTierStone}, 1)},
 	},
 	{
-		Name:  "습지",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.5"),
 		Start: 1100,
 		Blocks: []BlockEntry{
 			{block.Mud{}, 25}, {block.Clay{}, 20}, {block.Grass{}, 20}, {block.Dirt{}, 15},
@@ -169,7 +170,7 @@ var Phases = []Phase{
 		},
 	},
 	{
-		Name:  "네더 정원",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.6"),
 		Start: 1700,
 		Blocks: []BlockEntry{
 			{block.Netherrack{}, 35}, {block.SoulSand{}, 20}, {block.NetherWartBlock{}, 15},
@@ -182,7 +183,7 @@ var Phases = []Phase{
 		Reward: []item.Stack{s(block.NetherWart{}, 4)},
 	},
 	{
-		Name:  "풍요의 대지",
+		Name:  i18n.T(i18n.Default, "oneblock.phase.init.7"),
 		Start: 2500,
 		Blocks: []BlockEntry{
 			{block.HayBale{}, 20}, {block.Pumpkin{}, 15}, {block.Melon{}, 15}, {block.Grass{}, 15},

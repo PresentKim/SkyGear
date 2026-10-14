@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -212,7 +213,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 		return
 	}
 	if st.mesh == "" && sieveHolds(held) {
-		p.SendTip("§e체에 메쉬를 끼워야 합니다. 실 메쉬를 들고 체를 우클릭하세요.")
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.sieve.useSieve.1"))
 		return
 	}
 	if sieveHolds(held) {

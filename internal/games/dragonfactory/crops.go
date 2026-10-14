@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"container/heap"
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strconv"
 	"strings"
 	"time"
@@ -281,7 +282,7 @@ func init() {
 func formatDuration(d time.Duration) string {
 	m, sec := int(d/time.Minute), int(d%time.Minute/time.Second)
 	if sec == 0 {
-		return fmt.Sprintf("%d분", m)
+		return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.crops.formatDuration.1"), m)
 	}
-	return fmt.Sprintf("%d분 %d초", m, sec)
+	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.crops.formatDuration.2"), m, sec)
 }

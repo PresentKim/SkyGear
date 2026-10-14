@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"math"
 	"slices"
 
@@ -42,7 +43,7 @@ func chunkCost(n int) Requirement {
 
 // costText describes a cost, e.g. "조약돌 128개".
 func costText(r Requirement) string {
-	return fmt.Sprintf("%s %s개", itemName(item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
+	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.island.costText.1"), itemName(item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
 }
 
 // countPlain counts the plain items of it in an inventory.
@@ -104,29 +105,29 @@ func direction(from mgl64.Vec3, c ChunkPos) string {
 	dz := float64(c[1])*16 + 8 - from.Z()
 	var ns, ew string
 	if dz < -8 {
-		ns = "북"
+		ns = i18n.T(i18n.Default, "dragonfactory.island.direction.1")
 	} else if dz > 8 {
-		ns = "남"
+		ns = i18n.T(i18n.Default, "dragonfactory.island.direction.2")
 	}
 	if dx < -8 {
-		ew = "서"
+		ew = i18n.T(i18n.Default, "dragonfactory.island.direction.3")
 	} else if dx > 8 {
-		ew = "동"
+		ew = i18n.T(i18n.Default, "dragonfactory.island.direction.4")
 	}
 	if ns+ew == "" {
-		return "현재 위치"
+		return i18n.T(i18n.Default, "dragonfactory.island.direction.5")
 	}
-	return ns + ew + "쪽"
+	return ns + ew + i18n.T(i18n.Default, "dragonfactory.island.direction.6")
 }
 
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if !slices.Contains(s.purchasableChunks(), c) {
-		ui.Notify(p, "§c이 청크는 살 수 없습니다.")
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.1"))
 		return
 	}
 	cost := chunkCost(len(s.state.Chunks))
 	if !takePlain(p.Inventory(), cost.Item, cost.Count) {
-		ui.Notify(p, "§c%s이(가) 필요합니다.", costText(cost))
+		ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.2"), costText(cost))
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)
@@ -136,7 +137,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	s.keepLoaded(tx, c)
 	s.storeState()
 	s.advance(tx, advChunk)
-	s.broadcast(tx, fmt.Sprintf("§a%s 님이 청크 (%d, %d)를 구매했습니다. (소유 %d개)", p.Name(), c[0], c[1], len(s.state.Chunks)))
+	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.3"), p.Name(), c[0], c[1], len(s.state.Chunks)))
 }
 
 // keepLoaded keeps an owned chunk loaded and ticking while the instance is
@@ -156,7 +157,7 @@ func (s *session) returnFromVoid(p *player.Player, tx *world.Tx) {
 		return
 	}
 	p.Teleport(mgl64.Vec3{float64(x) + 0.5, VoidReturnY, float64(z) + 0.5})
-	p.SendTip("§e공허에서 돌아왔습니다.")
+	p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.island.returnFromVoid.1"))
 }
 
 // nearestBlockColumn searches outwards from (x, z) for a column with a block.

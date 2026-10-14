@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -27,14 +28,14 @@ func (s *session) opt(label, icon string, run func(p *player.Player, tx *world.T
 // backOption is the back button to the game menu, drawn left of the close
 // button by the theme.
 func (s *session) backOption() ui.Option {
-	b := ui.Back("메뉴로", func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
+	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.backOption.1"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
 // lobbyOption is the exit button of the game menu: where the other menus
 // have their back button, left of the close button, it goes to the lobby.
 func (s *session) lobbyOption() ui.Option {
-	b := ui.Back("로비로", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") })
+	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.lobbyOption.1"), func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") })
 	b.Icon = iconLobby
 	return s.opt(b.Label, b.Icon, b.Run)
 }
@@ -51,19 +52,19 @@ func (s *session) openMenu(p *player.Player) {
 
 func (s *session) showMenu(p *player.Player) {
 	body, opts := s.mainMenu(p)
-	ui.CardMenu(p, "드래곤팩토리", body, opts...)
+	ui.CardMenu(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showMenu.1"), body, opts...)
 }
 
 func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	_, day, _ := s.clock.Now()
-	body := fmt.Sprintf("§f%s §7· %d일차\n§7%s", s.saveName, day, s.nextGoal())
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.1"), s.saveName, day, s.nextGoal())
 	return body, []ui.Option{
-		s.opt("§d연구", iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
-		s.opt("§e발전과제", iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
-		s.opt("§a섬 확장", iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
-		s.opt(fmt.Sprintf("§f분실물 §7(%d)", len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt("§f도움말", iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
-		s.opt("§e칭호·치장", iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.2"), iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
+		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.lobbyOption(),
 	}
 }
@@ -73,14 +74,14 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 // pressing does in the tooltip; pressing takes as much of it as fits.
 func (s *session) showLost(p *player.Player) {
 	body, slots, back := s.lostMenu()
-	ui.ItemGrid(p, "분실물 보관함", body, slots, back)
+	ui.ItemGrid(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showLost.1"), body, slots, back)
 }
 
 func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
 	s.purgeLost()
-	body := "§7공허로 떨어진 아이템이 모입니다. 마지막으로 들어온 뒤 하루가 지나면 사라집니다. 아이템에 마우스를 올리면 이름이 보이고, 누르면 들어가는 만큼 가져옵니다."
+	body := i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.1")
 	if len(s.state.Lost) == 0 {
-		body += "\n\n§7비어 있습니다."
+		body += i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.2")
 	}
 	var slots []ui.ItemSlot
 	for _, l := range s.state.Lost {
@@ -91,7 +92,7 @@ func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  iconOf(it),
 			Count: ui.CountText(l.Count),
-			Tip:   fmt.Sprintf("§f%s\n§7%s개\n§7누르면 들어가는 만큼 가져옵니다", itemName(it), formatInt(int64(l.Count))),
+			Tip:   fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.3"), itemName(it), formatInt(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

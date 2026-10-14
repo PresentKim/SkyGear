@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -128,12 +129,12 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		// small icon. Its count, lock and upgrades show on the drawer's
 		// front, so the panel leaves them out (11th playtest).
 		if b.Item.Empty() {
-			info.Lines = []string{"§7비어있음"}
+			info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.1")}
 		} else {
 			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item)}
 		}
 	case Core, DeliveryBox:
-		info.Lines = []string{"§7더 이상 쓰이지 않음"}
+		info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.2")}
 	case block.Composter:
 		info.Lines = s.composterLines(pos, b)
 	case Barrel:
@@ -252,12 +253,12 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 	)
 	switch {
 	case st.kind == machineKinds[KindSellBox]:
-		lines = append(lines, "판매 주기 §f"+gauge)
+		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.1")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
-		lines = append(lines, "수확 주기 §f"+gauge)
+		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
-		return []string{"채굴 §f" + gauge}, nil
+		return []string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
 			line = &waila.ItemLine{Item: it, Name: itemName(it), Gauge: step, ShowGauge: true}
@@ -265,12 +266,12 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 				line.Text = fmt.Sprintf("§f×%d", it.Count())
 			}
 		} else {
-			lines = append(lines, "§7비어있음")
+			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.4"))
 		}
 	}
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
-			lines = append(lines, "§7결과 "+stackLine(it))
+			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.5")+stackLine(it))
 		}
 	}
 	return lines, line

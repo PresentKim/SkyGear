@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // handler handles a player's events inside a dragonfactory instance.
@@ -28,7 +29,7 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		return false
 	}
 	ctx.Cancel()
-	ctx.Player().SendTip("§c섬 밖입니다. /menu 의 섬 확장으로 청크를 구매하세요.")
+	ctx.Player().SendTip(i18n.T(i18n.Default, "dragonfactory.handler.deny.1"))
 	return true
 }
 

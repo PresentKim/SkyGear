@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -18,8 +19,8 @@ import (
 
 // cropNames are the Korean names of the crop kinds.
 var cropNames = map[string]string{
-	"wheat": "밀", "carrot": "당근", "potato": "감자", "beetroot": "비트",
-	"melon": "수박 줄기", "pumpkin": "호박 줄기",
+	"wheat": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.1"), "carrot": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.2"), "potato": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.3"), "beetroot": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.4"),
+	"melon": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.5"), "pumpkin": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.6"),
 }
 
 // useCrop handles a player using the crop at pos: a grown crop is
@@ -62,11 +63,11 @@ func (s *session) cropLines(r *CropRecord, tx *world.Tx, pos cube.Pos) []string 
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := max(0, r.Planted+s.growTime(r.Kind)-now)
-		return []string{"남은 시간 §f" + formatDuration(left.Round(time.Second))}
+		return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.1") + formatDuration(left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := max(0, r.NextFruit-now)
-		return []string{"다 자람", "다음 열매 §f" + formatDuration(left.Round(time.Second))}
+		return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.2"), i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.3") + formatDuration(left.Round(time.Second))}
 	}
-	return []string{"다 자람"}
+	return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.4")}
 }

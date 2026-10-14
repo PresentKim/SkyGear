@@ -5,6 +5,7 @@
 package account
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"sync"
 
@@ -29,8 +30,8 @@ type Color struct {
 // Colors are the name colours in display order; the first is the default.
 // Unlock counts are balancing drafts.
 var Colors = []Color{
-	{"", "기본(흰색)", "§f", 0}, {"yellow", "노랑", "§e", 0}, {"aqua", "하늘", "§b", 0}, {"green", "초록", "§a", 0},
-	{"gold", "금색", "§6", 3}, {"pink", "분홍", "§d", 3}, {"red", "빨강", "§c", 6}, {"blue", "파랑", "§9", 6},
+	{"", i18n.T(i18n.Default, "account.account.init.1"), "§f", 0}, {"yellow", i18n.T(i18n.Default, "account.account.init.2"), "§e", 0}, {"aqua", i18n.T(i18n.Default, "account.account.init.3"), "§b", 0}, {"green", i18n.T(i18n.Default, "account.account.init.4"), "§a", 0},
+	{"gold", i18n.T(i18n.Default, "account.account.init.5"), "§6", 3}, {"pink", i18n.T(i18n.Default, "account.account.init.6"), "§d", 3}, {"red", i18n.T(i18n.Default, "account.account.init.7"), "§c", 6}, {"blue", i18n.T(i18n.Default, "account.account.init.8"), "§9", 6},
 }
 
 var (
@@ -99,9 +100,9 @@ func Grant(p *player.Player, id string) {
 	if !isNew {
 		return
 	}
-	p.Messagef("§6업적 달성: §f%s §7- %s", a.Name, a.Desc)
+	p.Messagef(i18n.T(i18n.Of(p), "account.account.Grant.1"), a.Name, a.Desc)
 	if a.Title != "" {
-		p.Messagef("§7칭호 §e[%s]§7 획득 · 로비 메뉴의 칭호·치장에서 장착할 수 있습니다.", a.Title)
+		p.Messagef(i18n.T(i18n.Of(p), "account.account.Grant.2"), a.Title)
 	}
 	p.PlaySound(sound.LevelUp{})
 }

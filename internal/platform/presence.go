@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // Online looks up the entity handle of an online player by UUID (the
@@ -44,10 +45,10 @@ func (pf *Platform) with(accountID string, f func(p *player.Player)) bool {
 // status describes where an account is: offline, lobby or a save.
 func (pf *Platform) status(accountID string) string {
 	if !pf.isOnline(accountID) {
-		return "§7● 오프라인"
+		return i18n.T(i18n.Default, "platform.presence.status.1")
 	}
 	if inst := pf.m.Location(accountID); inst != nil {
-		return "§a● '" + inst.Save.Name + "' 플레이 중"
+		return "§a● '" + inst.Save.Name + i18n.T(i18n.Default, "platform.presence.status.2")
 	}
-	return "§a● 로비"
+	return i18n.T(i18n.Default, "platform.presence.status.3")
 }

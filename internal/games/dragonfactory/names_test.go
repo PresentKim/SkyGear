@@ -1,10 +1,12 @@
 package dragonfactory
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // TestGameItemsHaveKoreanNames: every vanilla item the game names in its
@@ -41,7 +43,11 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 // TestNamedItemsHaveIcons: every vanilla item the game names also has a form
 // icon (the lost-and-found and sell tables show both), and the menu item too.
 func TestNamedItemsHaveIcons(t *testing.T) {
-	for name := range koreanNames {
+	for _, key := range i18n.Keys(i18n.Default) {
+		name, ok0 := strings.CutPrefix(key, "vanilla.")
+		if !ok0 {
+			continue
+		}
 		it, ok := world.ItemByName("minecraft:"+name, 0)
 		if !ok || name == "air" {
 			continue

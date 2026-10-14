@@ -2,6 +2,7 @@ package instance
 
 import (
 	"errors"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"sync"
 	"time"
 
@@ -225,7 +226,7 @@ func (inst *Instance) deactivate() {
 			for _, h := range inst.handles() {
 				if e, ok := h.Entity(tx); ok {
 					p := e.(*player.Player)
-					p.Message("§e호스트가 게임을 종료해 로비로 이동합니다.")
+					p.Message(i18n.T(i18n.Of(p), "instance.instance.deactivate.1"))
 					inst.m.leave(inst, p, true)
 				}
 			}

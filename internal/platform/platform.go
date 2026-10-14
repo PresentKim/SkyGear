@@ -4,6 +4,7 @@ package platform
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"strings"
 	"unicode/utf8"
@@ -83,7 +84,7 @@ func (pf *Platform) Join(p *player.Player) {
 	acc, err := pf.db.TouchAccount(instance.AccountID(p), p.XUID(), p.Name())
 	if err != nil {
 		pf.log.Error("touch account", "player", p.Name(), "err", err)
-		p.Disconnect("계정 정보를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.")
+		p.Disconnect(i18n.T(i18n.Of(p), "platform.platform.Join.1"))
 		return
 	}
 	pf.m.Join(p)
@@ -91,7 +92,7 @@ func (pf *Platform) Join(p *player.Player) {
 	if acc.GuideVersion < GuideVersion {
 		pf.showGuide(p, true)
 	} else {
-		p.Messagef("§a%s에 오신 것을 환영합니다! §7나침반으로 메뉴를 엽니다.", pf.game.Name())
+		p.Messagef(i18n.T(i18n.Of(p), "platform.platform.Join.2"), pf.game.Name())
 	}
 	pf.notifyRequests(p)
 }
@@ -101,8 +102,8 @@ const lobbyItemKey = "platform_lobby_item"
 // arriveLobby gives the lobby menu items.
 func (pf *Platform) arriveLobby(p *player.Player) {
 	p.SetGameMode(world.GameModeAdventure)
-	_ = p.Inventory().SetItem(0, item.NewStack(item.Compass{}, 1).WithCustomName("§r§a메뉴").WithValue(lobbyItemKey, "menu"))
-	_ = p.Inventory().SetItem(8, item.NewStack(item.Book{}, 1).WithCustomName("§r§e서버 안내").WithValue(lobbyItemKey, "guide"))
+	_ = p.Inventory().SetItem(0, item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.1")).WithValue(lobbyItemKey, "menu"))
+	_ = p.Inventory().SetItem(8, item.NewStack(item.Book{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.2")).WithValue(lobbyItemKey, "guide"))
 	_ = p.SetHeldSlot(0)
 }
 
@@ -124,7 +125,7 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 func (pf *Platform) showSaves(p *player.Player) {
 	saves, err := pf.db.SavesOf(instance.AccountID(p), pf.game.ID())
 	if err != nil {
-		pf.fail(p, "세이브 목록 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.1"), err)
 		return
 	}
 	bySlot := map[int]db.Save{}
@@ -135,35 +136,35 @@ func (pf *Platform) showSaves(p *player.Player) {
 	for slot := 1; slot <= Slots; slot++ {
 		if s, ok := bySlot[slot]; ok {
 			opts = append(opts, ui.Option{
-				Label: fmt.Sprintf("§l%d. %s§r\n§8%d일차 · 플레이 %s", slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
+				Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSaves.2"), slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
 				Icon:  iconSave,
 				Run:   func(p *player.Player, _ *world.Tx) { pf.showSave(p, s.ID) },
 			})
 			continue
 		}
 		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("§l%d. 새 게임§r\n§8비어 있는 슬롯", slot),
+			Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSaves.3"), slot),
 			Icon:  iconNewSave,
 			Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) },
 		})
 	}
-	ui.Menu(p, "세이브 선택", pf.game.Name()+" 세이브를 선택하세요.", opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.4"), pf.game.Name()+i18n.T(i18n.Of(p), "platform.platform.showSaves.5"), opts...)
 }
 
 func (pf *Platform) showSave(p *player.Player, saveID int64) {
 	s, err := pf.db.Save(saveID)
 	if err != nil {
-		pf.fail(p, "세이브 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSave.1"), err)
 		return
 	}
-	body := fmt.Sprintf("§f%s\n§7%d일차 · 플레이 %s\n만든 날: %s", s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSave.2"), s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
 	ui.Menu(p, s.Name, body,
-		ui.Option{Label: "§a입장", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
-		ui.Option{Label: "초대 코드", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
-		ui.Option{Label: "참여자 관리", Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
-		ui.Option{Label: "이름 변경", Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
-		ui.Option{Label: "§c삭제", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
-		ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }),
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.3"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.4"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.5"), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.6"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.7"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
+		ui.Back(i18n.T(i18n.Of(p), "platform.platform.showSave.8"), func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }),
 	)
 }
 
@@ -174,27 +175,27 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 	if err := pf.m.Enter(p, saveID); err != nil {
 		switch err {
 		case instance.ErrHostOffline:
-			ui.Notify(p, "§c호스트가 접속 중일 때만 입장할 수 있습니다.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.1"))
 		case instance.ErrStateLocked:
-			ui.Notify(p, "§c호스트가 인벤토리를 확인하는 중입니다. 잠시 후 다시 시도해 주세요.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.2"))
 		case instance.ErrTooManyActive:
-			ui.Notify(p, "§c서버가 혼잡합니다. 잠시 후 다시 시도해 주세요.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.3"))
 		default:
-			pf.fail(p, "입장", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.enter.4"), err)
 		}
 	}
 }
 
 func (pf *Platform) askNewSave(p *player.Player, slot int) {
-	ui.Input(p, "새 게임", "세이브 이름", fmt.Sprintf("세이브 %d", slot), func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, i18n.T(i18n.Of(p), "platform.platform.askNewSave.1"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.2"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askNewSave.3"), slot), func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			ui.Notify(p, "§c이름은 1~20자로 입력해 주세요.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.askNewSave.4"))
 			return
 		}
 		s, err := pf.db.CreateSave(instance.AccountID(p), pf.game.ID(), slot, name)
 		if err != nil {
-			pf.fail(p, "세이브 만들기", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askNewSave.5"), err)
 			return
 		}
 		pf.enter(p, s.ID)
@@ -202,14 +203,14 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 }
 
 func (pf *Platform) askRename(p *player.Player, s db.Save) {
-	ui.Input(p, "이름 변경", "새 이름", s.Name, func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, i18n.T(i18n.Of(p), "platform.platform.askRename.1"), i18n.T(i18n.Of(p), "platform.platform.askRename.2"), s.Name, func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			ui.Notify(p, "§c이름은 1~20자로 입력해 주세요.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.askRename.3"))
 			return
 		}
 		if err := pf.db.RenameSave(s.ID, name); err != nil {
-			pf.fail(p, "이름 변경", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askRename.4"), err)
 			return
 		}
 		pf.showSave(p, s.ID)
@@ -219,24 +220,24 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 // askDelete confirms twice before deleting a save.
 func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
 	if step == 0 {
-		ui.Confirm(p, "세이브 삭제", fmt.Sprintf("'%s' 세이브를 삭제할까요?\n삭제한 세이브는 되돌릴 수 없습니다.", s.Name), "§c삭제", func(p *player.Player, _ *world.Tx) {
+		ui.Confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.2"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.3"), func(p *player.Player, _ *world.Tx) {
 			pf.askDelete(p, s, 1)
 		})
 		return
 	}
-	ui.Confirm(p, "정말 삭제할까요?", fmt.Sprintf("'%s'의 섬과 모든 참여자의 진행 상황이 사라집니다.", s.Name), "§c영구 삭제", func(p *player.Player, _ *world.Tx) {
+	ui.Confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.4"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.5"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.6"), func(p *player.Player, _ *world.Tx) {
 		if err := pf.m.DeleteSave(s.ID); err != nil {
-			pf.fail(p, "세이브 삭제", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.7"), err)
 			return
 		}
-		ui.Flash(p, "§e'%s' 세이브를 삭제했습니다.", s.Name)
+		ui.Flash(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.8"), s.Name)
 		pf.showSaves(p)
 	})
 }
 
 func (pf *Platform) fail(p *player.Player, what string, err error) {
 	pf.log.Error(what, "player", p.Name(), "err", err)
-	ui.Notify(p, "§c%s에 실패했습니다.", what)
+	ui.Notify(p, i18n.T(i18n.Of(p), "platform.platform.fail.1"), what)
 }
 
 func cleanName(s string) (string, bool) {
@@ -246,14 +247,14 @@ func cleanName(s string) (string, bool) {
 }
 
 func registerCommands(pf *Platform) {
-	cmd.Register(cmd.New("lobby", "로비로 이동합니다", []string{"spawn"}, lobbyCmd{pf: pf}))
-	cmd.Register(cmd.New("saves", "세이브 선택 화면을 엽니다", nil, savesCmd{pf: pf}))
-	cmd.Register(cmd.New("guide", "서버 안내를 봅니다", nil, guideCmd{pf: pf}))
-	cmd.Register(cmd.New("friends", "친구 목록을 엽니다", []string{"friend"}, friendsCmd{pf: pf}))
-	cmd.Register(cmd.New("invite", "친구를 세이브에 초대합니다", nil, inviteCmd{pf: pf}))
-	cmd.Register(cmd.New("members", "세이브 참여자를 관리합니다", nil, membersCmd{pf: pf}))
-	cmd.Register(cmd.New("join", "초대 코드로 세이브에 참여합니다", nil, joinCmd{pf: pf}))
-	cmd.Register(cmd.New("title", "칭호·치장을 엽니다", []string{"titles"}, titleCmd{pf: pf}))
+	cmd.Register(cmd.New("lobby", i18n.T(i18n.Default, "platform.platform.registerCommands.1"), []string{"spawn"}, lobbyCmd{pf: pf}))
+	cmd.Register(cmd.New("saves", i18n.T(i18n.Default, "platform.platform.registerCommands.2"), nil, savesCmd{pf: pf}))
+	cmd.Register(cmd.New("guide", i18n.T(i18n.Default, "platform.platform.registerCommands.3"), nil, guideCmd{pf: pf}))
+	cmd.Register(cmd.New("friends", i18n.T(i18n.Default, "platform.platform.registerCommands.4"), []string{"friend"}, friendsCmd{pf: pf}))
+	cmd.Register(cmd.New("invite", i18n.T(i18n.Default, "platform.platform.registerCommands.5"), nil, inviteCmd{pf: pf}))
+	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.platform.registerCommands.6"), nil, membersCmd{pf: pf}))
+	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.platform.registerCommands.7"), nil, joinCmd{pf: pf}))
+	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.platform.registerCommands.8"), []string{"titles"}, titleCmd{pf: pf}))
 }
 
 type playerOnly struct{}
@@ -283,7 +284,7 @@ func (c lobbyCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 		p.Teleport(LobbySpawn.Vec3Middle())
 		return
 	}
-	p.Message("§e로비로 이동합니다.")
+	p.Message(i18n.T(i18n.Of(p), "platform.platform.Run.1"))
 	c.pf.m.ToLobby(p)
 }
 
@@ -295,7 +296,7 @@ type savesCmd struct {
 func (c savesCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	if c.pf.m.Location(instance.AccountID(p)) != nil {
-		o.Error("로비에서만 사용할 수 있습니다. /lobby 로 이동하세요.")
+		o.Error(i18n.T(i18n.Of(p), "platform.platform.Run.2"))
 		return
 	}
 	c.pf.showSaves(p)
@@ -322,13 +323,13 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 // showLobbyMenu is the main menu of the lobby.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
 	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
-	ui.CardMenu(p, pf.game.Name()+" 로비", "원하는 항목을 고르세요.",
-		ui.Option{Label: "내 세이브", Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
-		ui.Option{Label: "참여 중인 세이브", Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
-		ui.Option{Label: fmt.Sprintf("받은 초대 §8(%d)", len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
-		ui.Option{Label: "초대 코드 입력", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
-		ui.Option{Label: fmt.Sprintf("친구 §8(요청 %d)", len(reqs)), Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		ui.Option{Label: "칭호·치장", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		ui.Option{Label: "서버 안내", Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
+	ui.CardMenu(p, pf.game.Name()+i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.1"), i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.2"),
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+		ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.5"), len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.6"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
+		ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.7"), len(reqs)), Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.9"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	)
 }

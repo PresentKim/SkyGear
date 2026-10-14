@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -28,7 +29,7 @@ const (
 // giveSapling gives p an oak sapling if the cooldown has passed.
 func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) error {
 	if wait := s.state.LastSapling.Add(saplingCooldown).Sub(now); wait > 0 {
-		return fmt.Errorf("%d분 %d초 뒤에 다시 받을 수 있습니다", int(wait.Minutes()), int(wait.Seconds())%60)
+		return fmt.Errorf(i18n.T(i18n.Of(p), "dragonfactory.sapling.giveSapling.1"), int(wait.Minutes()), int(wait.Seconds())%60)
 	}
 	s.state.LastSapling = now
 	s.storeState()
@@ -69,12 +70,12 @@ func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	s, ok := c.g.sessionOf(tx.World())
 	if !ok {
-		o.Error("섬 안에서 사용하세요.")
+		o.Error(i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.1"))
 		return
 	}
 	if err := s.giveSapling(p, tx, time.Now()); err != nil {
-		o.Errorf("묘목은 10분에 한 번 받을 수 있습니다. %s.", err.Error())
+		o.Errorf(i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.2"), err.Error())
 		return
 	}
-	o.Printf("참나무 묘목을 받았습니다. 흙이나 잔디에 심고, 옆에서 웅크리기를 반복하면 빨리 자랍니다.")
+	o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.3"))
 }

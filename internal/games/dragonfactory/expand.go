@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"slices"
 	"time"
 
@@ -141,7 +142,7 @@ func (s *session) showExpand(p *player.Player) {
 	p.SetGameMode(viewOnlyMode{})
 	s.drawFloor(p, e)
 	s.moveExpandCamera(p, e, 0)
-	p.Message("§a섬 확장 모드: 위에서 내려다봅니다. §e이동 키§a로 청크를 고르고, §e웅크리면§a 구매·종료 메뉴가 열립니다.")
+	p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpand.1"))
 	s.expandTip(p, e)
 	s.repeatExpandTip(p, e)
 	s.pollExpand(p, e)
@@ -219,10 +220,10 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	case c == e.target:
 		return
 	case c[0] < -r || c[0] > r || c[1] < -r || c[1] > r:
-		p.SendTip("§7섬은 여기까지 넓힐 수 있습니다.")
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.expand.moveCursor.1"))
 		return
 	case s.currentExpandView() != viewMap && (abs32(c[0]-e.body[0]) > reach || abs32(c[1]-e.body[1]) > reach):
-		p.SendTip("§7더 멀리 가려면 확장을 끝내고 그쪽으로 걸어간 뒤 다시 여세요.")
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.expand.moveCursor.2"))
 		return
 	}
 	e.target = c
@@ -343,12 +344,12 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 	c := e.target
 	switch {
 	case s.owns(c):
-		p.SendTip(fmt.Sprintf("§b청크 (%d, %d) · 소유\n§7웅크리기: 메뉴", c[0], c[1]))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.1"), c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
 		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf("§e청크 (%d, %d) · 구매 가능 §6%s\n§7웅크리기: 구매 · 가진 것 %s개", c[0], c[1], costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.2"), c[0], c[1], costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
-		p.SendTip(fmt.Sprintf("§c청크 (%d, %d) · 구매 불가\n§7이동 키로 소유한 청크와 맞닿은 노란 칸을 고르세요", c[0], c[1]))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.3"), c[0], c[1]))
 	}
 }
 
@@ -376,10 +377,10 @@ func (s *session) showExpandActions(p *player.Player) {
 	c := e.target
 	cost := chunkCost(len(s.state.Chunks))
 	var opts []ui.Option
-	body := fmt.Sprintf("청크 (%d, %d)\n소유 %d청크", c[0], c[1], len(s.state.Chunks))
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.1"), c[0], c[1], len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf("\n§f이 청크 비용: §6%s §7(가진 것 %s개)", costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		opts = append(opts, s.opt(fmt.Sprintf("§a구매 (%s)", costText(cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		body += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.2"), costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
+		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.3"), costText(cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawFloor(p, e)
@@ -387,16 +388,16 @@ func (s *session) showExpandActions(p *player.Player) {
 			}
 		}))
 	} else {
-		body += "\n§7이 청크는 살 수 없습니다. 이동 키로 소유한 청크와 맞닿은 노란 칸을 고르세요."
+		body += i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.4")
 	}
 	opts = append(opts,
-		s.opt("§f계속 둘러보기", iconLobby, func(*player.Player, *world.Tx) {}),
-		s.opt("§c확장 끝내기", iconBack, func(p *player.Player, tx *world.Tx) {
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.5"), iconLobby, func(*player.Player, *world.Tx) {}),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.6"), iconBack, func(p *player.Player, tx *world.Tx) {
 			s.stopExpand(p, tx)
-			p.Message("§7섬 확장 모드를 끝냈습니다.")
+			p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.7"))
 		}),
 	)
-	ui.Menu(p, "섬 확장", body, opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.8"), body, opts...)
 }
 
 func abs32(v int32) int32 {

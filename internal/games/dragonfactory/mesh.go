@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // Sieve meshes (docs/design/02-dragonfactory.md §6.1). A sieve is made
@@ -26,22 +27,22 @@ var meshTiers = []struct {
 	tier, name string
 	material   world.Item
 }{
-	{"string", "실", nil},
-	{"flint", "부싯돌", item.Flint{}},
-	{"iron", "철", item.IronIngot{}},
-	{"gold", "금", item.GoldIngot{}},
-	{"diamond", "다이아몬드", item.Diamond{}},
-	{"netherite", "네더라이트", item.NetheriteIngot{}},
+	{"string", i18n.T(i18n.Default, "dragonfactory.mesh.init.1"), nil},
+	{"flint", i18n.T(i18n.Default, "dragonfactory.mesh.init.2"), item.Flint{}},
+	{"iron", i18n.T(i18n.Default, "dragonfactory.mesh.init.3"), item.IronIngot{}},
+	{"gold", i18n.T(i18n.Default, "dragonfactory.mesh.init.4"), item.GoldIngot{}},
+	{"diamond", i18n.T(i18n.Default, "dragonfactory.mesh.init.5"), item.Diamond{}},
+	{"netherite", i18n.T(i18n.Default, "dragonfactory.mesh.init.6"), item.NetheriteIngot{}},
 }
 
 // meshName is the name of the mesh of a tier.
 func meshName(tier string) string {
 	for _, t := range meshTiers {
 		if t.tier == tier {
-			return t.name + " 메쉬"
+			return t.name + i18n.T(i18n.Default, "dragonfactory.mesh.meshName.1")
 		}
 	}
-	return "메쉬"
+	return i18n.T(i18n.Default, "dragonfactory.mesh.meshName.2")
 }
 
 // Mesh is the mesh item of a tier.

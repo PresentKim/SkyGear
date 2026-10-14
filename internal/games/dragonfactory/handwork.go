@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -48,10 +49,10 @@ var pebbleKinds = []struct {
 	weight int
 	block  world.Item
 }{
-	{PebbleStone, "돌 돌멩이", 70, block.Cobblestone{}},
-	{PebbleAndesite, "안산암 돌멩이", 10, block.Andesite{}},
-	{PebbleDiorite, "섬록암 돌멩이", 10, block.Diorite{}},
-	{PebbleGranite, "화강암 돌멩이", 10, block.Granite{}},
+	{PebbleStone, i18n.T(i18n.Default, "dragonfactory.handwork.init.1"), 70, block.Cobblestone{}},
+	{PebbleAndesite, i18n.T(i18n.Default, "dragonfactory.handwork.init.2"), 10, block.Andesite{}},
+	{PebbleDiorite, i18n.T(i18n.Default, "dragonfactory.handwork.init.3"), 10, block.Diorite{}},
+	{PebbleGranite, i18n.T(i18n.Default, "dragonfactory.handwork.init.4"), 10, block.Granite{}},
 }
 
 // Pebble is a small stone a stick knocks out of grass and dirt.
@@ -64,7 +65,7 @@ func (p Pebble) Name() string {
 			return k.name
 		}
 	}
-	return "돌멩이"
+	return i18n.T(i18n.Default, "name.Pebble")
 }
 func (Pebble) Category() category.Category { return category.Items() }
 
@@ -72,7 +73,7 @@ func (Pebble) Category() category.Category { return category.Items() }
 type BarkFiber struct{}
 
 func (BarkFiber) EncodeItem() (string, int16) { return "dragonfactory:bark_fiber", 0 }
-func (BarkFiber) Name() string                { return "나무껍질 섬유" }
+func (BarkFiber) Name() string                { return i18n.T(i18n.Default, "name.BarkFiber") }
 func (BarkFiber) Category() category.Category { return category.Items() }
 
 // CompostChance makes a fiber plant matter for the composter and the barrel
@@ -88,7 +89,7 @@ func (Dust) EncodeItem() (string, int16)           { return "dragonfactory:dust"
 func (Dust) EncodeBlock() (string, map[string]any) { return "dragonfactory:dust", nil }
 func (Dust) Hash() (uint64, uint64)                { return dustHash, 0 }
 func (Dust) Model() world.BlockModel               { return model.Solid{} }
-func (Dust) Name() string                          { return "먼지" }
+func (Dust) Name() string                          { return i18n.T(i18n.Default, "name.Dust") }
 func (Dust) Category() category.Category           { return category.Construction() }
 func (Dust) Properties() customblock.Properties {
 	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": alphaMaterial("dragonfactory_dust")}}

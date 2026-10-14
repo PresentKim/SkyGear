@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -83,7 +84,7 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 			return false
 		}
 		if s.composterCount(pos, c) >= matterCapacity {
-			p.SendTip("§a퇴비가 가득 찼습니다. 우클릭하면 흙이 나옵니다.")
+			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.composter.useComposter.1"))
 		}
 		if !p.GameMode().CreativeInventory() {
 			_, off := p.HeldItems()
@@ -178,9 +179,9 @@ func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it it
 func (s *session) composterLines(pos cube.Pos, c block.Composter) []string {
 	n := s.composterCount(pos, c)
 	if n >= matterCapacity {
-		return []string{"§a가득 참: 우클릭하면 흙"}
+		return []string{i18n.T(i18n.Default, "dragonfactory.composter.composterLines.1")}
 	}
-	return []string{fmt.Sprintf("§f식물 §e%d§7/%d", n, matterCapacity), "§7풀·잎·묘목·씨앗·작물을 넣으세요"}
+	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.composter.composterLines.2"), n, matterCapacity), i18n.T(i18n.Default, "dragonfactory.composter.composterLines.3")}
 }
 
 // breakComposter forgets a composter that is broken; a full one drops dirt.

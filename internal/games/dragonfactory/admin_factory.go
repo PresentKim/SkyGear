@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"container/heap"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"math"
 	"time"
 
@@ -56,7 +57,7 @@ func (c adminFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.buildFactoryModule(tx, at, instance.AccountID(p), p.Name(), &built)
 	}
-	o.Printf("공장 모듈 %d개를 지었습니다: 기계 %d, 서랍 %d, 호퍼 %d, 작물 %d, 블록 %d (틱 범위 밖에 걸친 모듈 %d)", n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin_factory.Run.1"), n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
 }
 
 // factoryCount counts what a factory build placed.
@@ -210,5 +211,5 @@ func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		d := Drawer{Facing: cube.South}
 		s.setDrawer(tx, set(1, 2, d), d)
 	}
-	o.Printf("밀집 셀 %d개를 지었습니다(%d×%d 블록): 기계 %d, 호퍼 %d, 서랍 %d", n, cols*2, rows, n*2, n, n)
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin_factory.Run.2"), n, cols*2, rows, n*2, n, n)
 }

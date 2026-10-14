@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -41,19 +43,37 @@ func blockKey(b world.Block) string {
 // blockName is the Korean name of a block.
 func blockName(b world.Block) string {
 	k := blockKey(b)
-	if n, ok := koreanNames[k]; ok {
+	if n, ok := koreanName(k); ok {
 		return n
 	}
 	return k
 }
+
+//go:embed vanillakeys.json
+var vanillaKeysJSON []byte
+
+// vanillaKeys name the vanilla blocks whose key is not "tile.<id>.name": the
+// client names modern IDs such as oak_planks by legacy keys
+// ("tile.planks.oak.name"). Generated from the official texts by
+// tools/vanillakeys (docs/tech/i18n.md).
+var vanillaKeys = func() map[string]string {
+	m := map[string]string{}
+	if err := json.Unmarshal(vanillaKeysJSON, &m); err != nil {
+		panic(err)
+	}
+	return m
+}()
 
 // blockNameKey is the client translation key of a block's name: the client
 // shows it in its own language, from its vanilla texts or the pack's
 // texts/*.lang for our blocks ("tile.dragonfactory:sieve.name").
 func blockNameKey(b world.Block) string {
 	name, _ := b.EncodeBlock()
-	name = strings.TrimPrefix(name, "minecraft:")
-	return "tile." + strings.TrimPrefix(name, "flowing_") + ".name"
+	name = strings.TrimPrefix(strings.TrimPrefix(name, "minecraft:"), "flowing_")
+	if key, ok := vanillaKeys[name]; ok {
+		return key
+	}
+	return "tile." + name + ".name"
 }
 
 // formatInt formats a number with thousands separators, e.g. 12,400.

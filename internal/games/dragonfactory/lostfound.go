@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"bytes"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
@@ -85,7 +86,7 @@ func (s *session) takeLost(p *player.Player, l *LostItem) {
 		added, _ := p.Inventory().AddItem(it.Grow(n - it.Count()))
 		l.Count -= added
 		if added < n {
-			ui.Notify(p, "§e인벤토리가 가득 찼습니다.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.lostfound.takeLost.1"))
 			break
 		}
 	}

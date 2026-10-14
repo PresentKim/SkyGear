@@ -3,6 +3,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"math"
 	"math/rand/v2"
@@ -54,7 +55,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 }
 
 func (*Game) ID() string   { return "dragonfactory" }
-func (*Game) Name() string { return "드래곤팩토리" }
+func (*Game) Name() string { return i18n.T(i18n.Default, "name.Game") }
 
 // Init builds the starting island (docs/design/02-dragonfactory.md §2): a
 // 3×3×3 sky island, bedrock at the bottom, dirt, grass on top, with an oak
@@ -170,7 +171,7 @@ func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{1.5, IslandY, 1.5} }
 
 func (s *session) Join(p *player.Player, first bool) {
 	_, day, _ := s.clock.Now()
-	p.Messagef("§a'%s'에 입장했습니다. §7%d일차 · /menu 로 메뉴를 엽니다.", s.saveName, day)
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.game.Join.1"), s.saveName, day)
 	if first {
 		// Bare hands: only the menu item (§2).
 		_ = p.Inventory().SetItem(8, menuItem())
@@ -211,7 +212,7 @@ func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s}
 
 func (s *session) NewDay(tx *world.Tx, day int) {
 	s.purgeLost()
-	s.broadcast(tx, fmt.Sprintf("§e%d일차가 시작되었습니다.", day))
+	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.game.NewDay.1"), day))
 	s.updateBoards(tx)
 }
 

@@ -2,6 +2,7 @@ package platform
 
 import (
 	"errors"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"time"
 
@@ -240,7 +241,7 @@ func (v *invSee) check(ctx *inventory.Context, slot int) {
 	if cur, _ := v.st.Inventory().Item(slot); !ok || !sameStack(cur, it) {
 		ctx.Cancel()
 		if !v.sync(tx) {
-			p.Message("§c대상이 세이브를 떠났습니다.")
+			p.Message(i18n.T(i18n.Of(p), "platform.invsee.check.1"))
 			p.CloseOpenedContainer()
 		}
 	}
@@ -299,25 +300,25 @@ func filler(name string) item.Stack {
 
 func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m db.Member) {
 	if m.AccountID == instance.AccountID(p) && pf.m.Location(m.AccountID) != nil {
-		ui.Notify(p, "§c세이브 안에서는 자기 인벤토리를 이 화면으로 볼 수 없습니다.")
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invsee.showInvSee.1"))
 		return
 	}
 	src, live, readOnly, unlock, err := pf.targetSource(tx, saveID, m.AccountID)
 	if errors.Is(err, errNeverEntered) {
-		ui.Notify(p, "§e%s 님은 아직 이 세이브에 들어온 적이 없습니다.", m.Name)
+		ui.Notify(p, i18n.T(i18n.Of(p), "platform.invsee.showInvSee.2"), m.Name)
 		return
 	}
 	if err != nil {
-		pf.fail(p, "인벤토리 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invsee.showInvSee.3"), err)
 		return
 	}
-	title := m.Name + " §8· 저장됨"
+	title := m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.4")
 	switch {
 	case live:
-		title = m.Name + " §a· 실시간"
+		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.5")
 	case readOnly:
-		title = m.Name + " §c· 읽기 전용"
-		p.Message("§e그 플레이어가 지금 세이브 안에 있어 읽기 전용으로 엽니다. 같은 세이브 안에서 열면 실시간으로 편집할 수 있습니다.")
+		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.6")
+		p.Message(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.7"))
 	}
 	v := &invSee{st: chestui.NewStorage(invSeeSize, title), src: src, readOnly: readOnly}
 	inv := v.st.Inventory()
@@ -326,8 +327,8 @@ func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m d
 			_ = inv.SetItem(slot, filler(" "))
 		}
 	}
-	_ = inv.SetItem(invSeeOffHand+1, filler("§7← 갑옷 4칸 · 보조손"))
-	_ = inv.SetItem(invSeeEnder-1, filler("§7아래 3줄: 엔더 상자"))
+	_ = inv.SetItem(invSeeOffHand+1, filler(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.8")))
+	_ = inv.SetItem(invSeeEnder-1, filler(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.9")))
 	v.sync(tx)
 	inv.Handle(v)
 	v.st.OnChange(v.changed)
@@ -351,7 +352,7 @@ func (pf *Platform) refreshInvSee(h *world.EntityHandle, v *invSee) {
 		}
 		if !v.sync(tx) {
 			p := e.(*player.Player)
-			p.Message("§c대상이 세이브를 떠나 인벤토리 보기를 닫습니다.")
+			p.Message(i18n.T(i18n.Of(p), "platform.invsee.refreshInvSee.1"))
 			p.CloseOpenedContainer()
 			return
 		}

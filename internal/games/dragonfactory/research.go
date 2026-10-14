@@ -198,9 +198,9 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
 		after := researchText(langOf(p), r.ID).After
-		p.Messagef("§d연구 완료: §f%s §7— 이제 %s 을(를) 만들 수 있습니다.", r.Title(langOf(p)), s.unlockNames(r))
+		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(r))
 		if after != "" {
-			p.Messagef("§e힌트: §f%s", after)
+			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), after)
 		}
 	}
 }
@@ -234,7 +234,7 @@ func (s *session) showResearch(p *player.Player) { s.showResearchTab(p, false) }
 // still to do and the done ones.
 func (s *session) showResearchTab(p *player.Player, done bool) {
 	body, slots, actions := s.researchList(p, done)
-	ui.ItemGrid(p, "연구", body, slots, actions...)
+	ui.ItemGrid(p, i18n.T(i18n.Of(p), "dragonfactory.research.showResearchTab.1"), body, slots, actions...)
 }
 
 // researchTip is the hover text of a research in the list: its name in
@@ -274,21 +274,21 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 			}
 		}
 	}
-	body := "§7조합법은 연구로 하나씩 열립니다. 연구를 마치면 다음 연구가 나타납니다. 아이템에 마우스를 올리면 이름과 짧은 설명이 보입니다(노랑: 아직 못 하는 연구, 초록: 지금 할 수 있는 연구)."
+	body := i18n.T(i18n.Of(p), "dragonfactory.research.researchList.1")
 	if len(slots) == 0 {
 		if done {
-			body += "\n\n§7아직 마친 연구가 없습니다."
+			body += i18n.T(i18n.Of(p), "dragonfactory.research.researchList.2")
 		} else {
-			body += "\n\n§a할 수 있는 연구를 모두 마쳤습니다."
+			body += i18n.T(i18n.Of(p), "dragonfactory.research.researchList.3")
 		}
 	}
 	tabs := []ui.Option{
-		ui.Tab(fmt.Sprintf("연구 필요 %d", todoN), "", !done, func(p *player.Player, tx *world.Tx) {
+		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.4"), todoN), "", !done, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.showResearchTab(p, false)
 			}
 		}),
-		ui.Tab(fmt.Sprintf("연구 완료 %d", doneN), "", done, func(p *player.Player, tx *world.Tx) {
+		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.5"), doneN), "", done, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.showResearchTab(p, true)
 			}
@@ -305,7 +305,7 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 // name and owned count in the tooltip).
 func (s *session) showResearchNode(p *player.Player, r *Research) {
 	d, rows, opts := s.researchNode(p, r)
-	ui.ItemDetail(p, "연구 · "+r.Title(langOf(p)), d, rows, opts...)
+	ui.ItemDetail(p, i18n.T(i18n.Of(p), "dragonfactory.research.showResearchNode.1")+r.Title(langOf(p)), d, rows, opts...)
 }
 
 // researchNode builds the screen of a research. p may be nil (the owned
@@ -321,19 +321,19 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 	var opts []ui.Option
 	switch {
 	case done:
-		d.Status = "§a✔ 연구 완료"
+		d.Status = i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.1")
 		if txt.After != "" {
-			fmt.Fprintf(&b, "\n§e다음 할 일\n§f%s", txt.After)
+			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.2"), txt.After)
 		}
 	case s.researchOpen(r):
 		if txt.Hint != "" {
-			fmt.Fprintf(&b, "\n§e힌트\n§f%s\n", txt.Hint)
+			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.3"), txt.Hint)
 		}
-		opts = append(opts, s.opt("§a연구 진행", iconMission, func(p *player.Player, tx *world.Tx) {
+		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.4"), iconMission, func(p *player.Player, tx *world.Tx) {
 			missing, ok := s.doResearch(p, tx, r)
 			switch {
 			case ok:
-				ui.Flash(p, "§a연구를 마쳤습니다.")
+				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.5"))
 				s.showResearch(p)
 				return
 			case len(missing) > 0:
@@ -341,7 +341,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 				for _, m := range missing {
 					names = append(names, costText(m))
 				}
-				ui.Notify(p, "§c재료가 모자랍니다: %s 더 필요", strings.Join(names, ", "))
+				ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.6"), strings.Join(names, ", "))
 			}
 			s.showResearchNode(p, r)
 		}))
@@ -355,17 +355,17 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 	for _, c := range r.Cost {
 		need := s.researchNeed(r, c)
 		st := item.NewStack(c.Item, 1)
-		mark, tip := "§f", fmt.Sprintf("§f%s\n§7필요 %d개", itemName(st), need)
+		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.7"), itemName(st), need)
 		switch {
 		case done:
-			mark, tip = "§a", fmt.Sprintf("§f%s\n§a%d개 사용", itemName(st), c.Count)
+			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.8"), itemName(st), c.Count)
 			need = c.Count
 		case p != nil:
 			have := countPlain(p.Inventory(), c.Item)
 			if have >= need {
 				mark = "§a"
 			}
-			tip += fmt.Sprintf("\n%s보유 %d개", mark, have)
+			tip += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.9"), mark, have)
 		}
 		cost = append(cost, ui.ItemSlot{Icon: iconOf(st), Count: mark + strconv.Itoa(need), Tip: tip, Run: again})
 	}
@@ -377,10 +377,10 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 			continue
 		}
 		st := item.NewStack(it, 1)
-		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: "§f" + itemName(st) + "\n§7조합법이 열립니다", Run: again})
+		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: "§f" + itemName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10"), Run: again})
 	}
-	rows := []ui.SlotRow{{Heading: "필요한 재료", Slots: cost}, {Heading: "보상 레시피", Slots: opens}}
-	back := ui.Back("연구 목록", func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
+	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
+	back := ui.Back(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.13"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
 	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
 }
 
@@ -396,7 +396,7 @@ func (ResearchTable) EncodeBlock() (string, map[string]any) {
 }
 func (ResearchTable) Hash() (uint64, uint64)             { return researchTableHash, 0 }
 func (ResearchTable) Model() world.BlockModel            { return model.Solid{} }
-func (ResearchTable) Name() string                       { return "연구대" }
+func (ResearchTable) Name() string                       { return i18n.T(i18n.Default, "name.ResearchTable") }
 func (ResearchTable) Category() category.Category        { return category.Items() }
 func (ResearchTable) Properties() customblock.Properties { return cubeProperties("research_table") }
 func (t ResearchTable) BreakInfo() block.BreakInfo {

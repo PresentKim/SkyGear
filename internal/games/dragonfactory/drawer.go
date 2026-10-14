@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strings"
 	"time"
 
@@ -55,7 +56,7 @@ func (d Drawer) EncodeBlock() (string, map[string]any) {
 }
 func (d Drawer) Hash() (uint64, uint64)    { return drawerHash, uint64(d.Facing) }
 func (Drawer) Model() world.BlockModel     { return model.Solid{} }
-func (Drawer) Name() string                { return "서랍" }
+func (Drawer) Name() string                { return i18n.T(i18n.Default, "name.Drawer") }
 func (Drawer) Category() category.Category { return category.Items() }
 func (Drawer) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_drawer", Textures: map[string]customblock.Material{
@@ -203,9 +204,9 @@ func (d Drawer) toItem() item.Stack {
 		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
 		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(d.Item), formatInt(d.Count)))
 	}
-	lore = append(lore, fmt.Sprintf("§7용량 업그레이드 %d · 공허 %s", d.Capacity, onOff(d.Void)))
+	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.drawer.toItem.1"), d.Capacity, onOff(d.Void)))
 	if d.Locked {
-		lore = append(lore, "§e"+lockGlyph+" 잠김")
+		lore = append(lore, "§e"+lockGlyph+i18n.T(i18n.Default, "dragonfactory.drawer.toItem.2"))
 	}
 	return st.WithLore(lore...)
 }
@@ -238,7 +239,9 @@ func boolByte(b bool) byte {
 
 func byteBool(v any, _ bool) bool { b, _ := v.(byte); return b == 1 }
 
-func onOff(b bool) string { return map[bool]string{true: "켜짐", false: "꺼짐"}[b] }
+func onOff(b bool) string {
+	return map[bool]string{true: i18n.T(i18n.Default, "dragonfactory.drawer.onOff.1"), false: i18n.T(i18n.Default, "dragonfactory.drawer.onOff.2")}[b]
+}
 
 func (d Drawer) EncodeNBT() map[string]any {
 	m := map[string]any{"id": "DragonFactoryDrawer", "Count": d.Count, "Capacity": int32(d.Capacity),
@@ -429,10 +432,10 @@ const (
 )
 
 var upgradeInfo = []struct{ id, name string }{
-	{"capacity", "서랍 용량 업그레이드"},
+	{"capacity", i18n.T(i18n.Default, "dragonfactory.drawer.init.1")},
 	// Kept so old items still load; using one turns it into a drawer key.
-	{"lock", "(구) 서랍 잠금 업그레이드"},
-	{"void", "서랍 공허 업그레이드"},
+	{"lock", i18n.T(i18n.Default, "dragonfactory.drawer.init.2")},
+	{"void", i18n.T(i18n.Default, "dragonfactory.drawer.init.3")},
 }
 
 func (u DrawerUpgrade) EncodeItem() (string, int16) {
@@ -455,7 +458,7 @@ func isLegacyLockUpgrade(st item.Stack) bool {
 type DrawerKey struct{}
 
 func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
-func (DrawerKey) Name() string                { return "서랍 잠금 키" }
+func (DrawerKey) Name() string                { return i18n.T(i18n.Default, "name.DrawerKey") }
 func (DrawerKey) Category() category.Category { return category.Items() }
 func (DrawerKey) MaxCount() int               { return 1 }
 
@@ -473,7 +476,7 @@ func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		if _, err := p.Inventory().AddItem(item.NewStack(DrawerKey{}, 1)); err != nil {
 			s.dropAt(tx, p.Position(), item.NewStack(DrawerKey{}, 1))
 		}
-		p.Message("§e잠금 업그레이드가 서랍 잠금 키로 바뀌었습니다. 키는 닳지 않고 잠금을 켜고 끕니다.")
+		p.Message(i18n.T(i18n.Of(p), "dragonfactory.drawer.toggleLock.1"))
 	}
 	s.setLocked(tx, pos, d, !d.Locked)
 }
@@ -527,7 +530,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	if !ok {
 		return
 	}
-	info := "§7비어있음"
+	info := i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.1")
 	if !d.Item.Empty() {
 		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))
 	}
@@ -547,26 +550,26 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	// A slot's text is its tooltip (hover, or the first tap on touch).
 	slot := func(kind int, filled bool, empty, tip string) ui.Slot {
 		if filled {
-			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + "\n§7누르면 빼서 인벤토리로 돌려줍니다", Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.2"), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 				s.removeUpgrade(p, tx, pos, d, kind)
 			})}
 		}
-		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf("§7빈 칸\n§7누르면 인벤토리의 %s를 끼웁니다", upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.3"), upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 			s.fitUpgrade(p, tx, pos, d, kind)
 		})}
 	}
 	// Storage upgrades on the left, utilities (void, lock) on the right.
 	var storage []ui.Slot
 	for i := range MaxCapacityUpgrades {
-		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", "§f용량 업그레이드 §7(용량 ×2)"))
+		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.4")))
 	}
-	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: "§f잠금 꺼짐\n§7누르면 잠급니다: 호퍼·기계가 다른 아이템을 넣지 못하고, 비어도 아이템 종류가 남습니다"}
+	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.5")}
 	if d.Locked {
-		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", "§f잠김\n§7누르면 잠금을 풉니다"
+		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.6")
 	}
 	lock.Run = act(func(_ *player.Player, tx *world.Tx, d *Drawer) { s.setLocked(tx, pos, d, !d.Locked) })
-	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", "§f공허 업그레이드 §7(가득 차면 들어오는 같은 아이템을 없앰)"), lock}
-	ui.SlotMenu(p, "서랍", store, info, storage, utils)
+	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.7")), lock}
+	ui.SlotMenu(p, i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.8"), store, info, storage, utils)
 }
 
 // fitUpgrade fits an upgrade of kind from p's inventory.
@@ -582,7 +585,7 @@ func (s *session) fitUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		}
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-	ui.Notify(p, "§c인벤토리에 %s가 없습니다.", upgradeInfo[kind].name)
+	ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.drawer.fitUpgrade.1"), upgradeInfo[kind].name)
 }
 
 // removeUpgrade takes an upgrade of kind out into p's inventory.
@@ -596,7 +599,7 @@ func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d 
 		if d.Count > d.capacity() {
 			d.Capacity++
 			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-			ui.Notify(p, "§c내용물이 줄어든 용량보다 많아 뺄 수 없습니다.")
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.drawer.removeUpgrade.1"))
 			return
 		}
 	case UpgradeVoid:

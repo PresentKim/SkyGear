@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // Hammer crushes blocks by hand: a block it mines drops what the crusher
@@ -25,7 +26,7 @@ var hammerSpeeds = map[string]int{
 }
 
 func (Hammer) EncodeItem() (string, int16) { return "dragonfactory:hammer", 0 }
-func (Hammer) Name() string                { return "망치" }
+func (Hammer) Name() string                { return i18n.T(i18n.Default, "name.Hammer") }
 func (Hammer) Category() category.Category { return category.Equipment() }
 func (Hammer) MaxCount() int               { return 1 }
 func (Hammer) HandEquipped() bool          { return true }

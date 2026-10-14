@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // OreChunk is a piece of ore, found by sieving gravel and sand (sievetable.go).
@@ -18,19 +19,19 @@ var oreKinds = []struct {
 	ore, name string
 	block     world.Item
 }{
-	{OreIron, "철", block.IronOre{}},
-	{OreGold, "금", block.GoldOre{}},
-	{OreCopper, "구리", block.CopperOre{}},
+	{OreIron, i18n.T(i18n.Default, "dragonfactory.orechunk.init.1"), block.IronOre{}},
+	{OreGold, i18n.T(i18n.Default, "dragonfactory.orechunk.init.2"), block.GoldOre{}},
+	{OreCopper, i18n.T(i18n.Default, "dragonfactory.orechunk.init.3"), block.CopperOre{}},
 }
 
 func (c OreChunk) EncodeItem() (string, int16) { return "dragonfactory:ore_chunk_" + c.Ore, 0 }
 func (c OreChunk) Name() string {
 	for _, k := range oreKinds {
 		if k.ore == c.Ore {
-			return k.name + " 원석 조각"
+			return k.name + i18n.T(i18n.Default, "name.OreChunk.suffix")
 		}
 	}
-	return "원석 조각"
+	return i18n.T(i18n.Default, "name.OreChunk")
 }
 func (OreChunk) Category() category.Category { return category.Items() }
 

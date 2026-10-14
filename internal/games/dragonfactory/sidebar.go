@@ -21,7 +21,7 @@ import (
 func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
 	var b hud.Board
-	b.Add(hud.TopLeft, fmt.Sprintf("§f%d일차 §7· 플레이 %s", day, formatPlayTime(total)))
+	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.sidebar.updateBoard.1"), day, formatPlayTime(total)))
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
@@ -55,13 +55,13 @@ func (s *session) questRows() (string, []string) {
 		if r, ok := researchByID(a.Research); ok && s.researchOpen(r) {
 			rows = append(rows, s.researchCostRows(r)...)
 		}
-		return "§e발전과제 §f" + a.Name, rows
+		return i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.1") + a.Name, rows
 	}
 	r, ok := s.nextResearch()
 	if !ok {
-		return "§a모든 연구 완료", nil
+		return i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.2"), nil
 	}
-	return fmt.Sprintf("§d연구 §f%s", r.Title(i18n.Default)), s.researchCostRows(r)
+	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.3"), r.Title(i18n.Default)), s.researchCostRows(r)
 }
 
 // researchCostRows are what a research spends, one row per item.
@@ -76,21 +76,21 @@ func (s *session) researchCostRows(r *Research) []string {
 // nextGoal is a one line summary of the next thing to do (menu).
 func (s *session) nextGoal() string {
 	if a, ok := s.nextAdvancement(); ok {
-		return "다음 할 일: " + a.Name + " — " + flatHint(a)
+		return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.1") + a.Name + " — " + flatHint(a)
 	}
 	if r, ok := s.nextResearch(); ok {
-		return "다음 연구: " + r.Title(i18n.Default) + " (연구대 또는 메뉴 → 연구)"
+		return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.2") + r.Title(i18n.Default) + i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.3")
 	}
-	return "모든 연구를 마쳤습니다."
+	return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.4")
 }
 
 // formatPlayTime formats the total instance time in whole minutes.
 func formatPlayTime(d time.Duration) string {
 	m := int(d / time.Minute)
 	if m < 60 {
-		return fmt.Sprintf("%d분", m)
+		return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.sidebar.formatPlayTime.1"), m)
 	}
-	return fmt.Sprintf("%d시간 %d분", m/60, m%60)
+	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.sidebar.formatPlayTime.2"), m/60, m%60)
 }
 
 // refreshPlayTime updates the HUDs when the shown play time minute

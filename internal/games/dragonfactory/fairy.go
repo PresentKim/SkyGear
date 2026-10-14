@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"math"
 	"time"
 
@@ -149,7 +150,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	vel := mgl64.Vec3{to[0] * 0.09, 0.2 + max(0, to[1])*0.05, to[2] * 0.09}
 	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef("§d요정이 선물을 주고 날아갑니다: §f%s §7x%d", itemName(st), st.Count())
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), itemName(st), st.Count())
 	f.leave(tx, p, true)
 	return true
 }
@@ -161,7 +162,7 @@ func (f *Fairy) leave(tx *world.Tx, p *player.Player, gave bool) {
 	}
 	d.leaving = 1
 	if !gave && p != nil {
-		p.Message("§7요정이 기다리다 날아가 버렸습니다.")
+		p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.leave.1"))
 	}
 }
 
@@ -234,7 +235,7 @@ func (s *session) spawnFairy(tx *world.Tx, p *player.Player) {
 	s.fairy = h
 	tx.AddEntity(h)
 	tx.PlaySound(pos, sound.Experience{})
-	p.Message("§d요정이 선물을 들고 찾아왔습니다! §7(요정을 사용하면 선물을 받습니다)")
+	p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.spawnFairy.1"))
 }
 
 // fairyOf returns e as this session's fairy.
@@ -249,12 +250,12 @@ func (s *session) fairyOf(e world.Entity) (*Fairy, bool) {
 type ResearchNote struct{}
 
 func (ResearchNote) EncodeItem() (string, int16) { return "dragonfactory:research_note", 0 }
-func (ResearchNote) Name() string                { return "연구 노트" }
+func (ResearchNote) Name() string                { return i18n.T(i18n.Default, "name.ResearchNote") }
 func (ResearchNote) Category() category.Category { return category.Items() }
 
 func (ResearchNote) Use(_ *world.Tx, u item.User, _ *item.UseContext) bool {
 	if p, ok := u.(*player.Player); ok {
-		p.Message("§7연구 노트는 더 이상 쓰이지 않습니다. 연구는 연구대에서 합니다.")
+		p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.Use.1"))
 	}
 	return false
 }

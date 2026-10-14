@@ -4,6 +4,7 @@ package perf
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"runtime"
 	"sync"
 	"time"
@@ -80,7 +81,7 @@ func Line(w *world.World) string {
 	if t.TPS < 15 {
 		tpsColour = "§c"
 	}
-	return fmt.Sprintf("§7TPS %s%.1f §8· §7부하 %s%.0f%% §8· §7틱 §f%s§7/%s §8· §7메모리 §f%.0fMB",
+	return fmt.Sprintf(i18n.T(i18n.Default, "perf.perf.Line.1"),
 		tpsColour, t.TPS, loadColour(load), load*100, ms(t.MSPT), ms(t.MaxMSPT), ProcessStats().HeapMB)
 }
 

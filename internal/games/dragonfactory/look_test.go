@@ -130,3 +130,25 @@ func TestCustomTool(t *testing.T) {
 		t.Errorf("stone: %v", got)
 	}
 }
+
+// TestBlockNameKeys: the client names vanilla blocks by the official keys,
+// modern IDs by their legacy ones (the oak sapling, leaves, log and planks
+// were shown by their identifier).
+func TestBlockNameKeys(t *testing.T) {
+	for b, want := range map[world.Block]string{
+		block.Planks{Wood: block.OakWood()}:              "tile.planks.oak.name",
+		block.Leaves{Type: block.OakLeaves()}:            "tile.leaves.oak.name",
+		block.Sapling{Type: block.OakSapling()}:          "tile.sapling.oak.name",
+		block.Log{Wood: block.OakWood()}:                 "tile.log.oak.name",
+		block.Log{Wood: block.OakWood(), Stripped: true}: "tile.stripped_oak_log.name",
+		block.CraftingTable{}:                            "tile.crafting_table.name",
+		block.Grass{}:                                    "tile.grass.name",
+		block.Water{Still: true, Depth: 8}:               "tile.water.name",
+		block.Lava{Still: true, Depth: 8}:                "tile.lava.name",
+		Machine{Kind: KindSieve}:                         "tile.dragonfactory:sieve.name",
+	} {
+		if got := blockNameKey(b); got != want {
+			t.Errorf("%T: %s, want %s", b, got, want)
+		}
+	}
+}

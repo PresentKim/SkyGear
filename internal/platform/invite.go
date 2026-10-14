@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strings"
 	"sync"
 	"time"
@@ -115,20 +116,20 @@ func (pf *Platform) inviteCode(s db.Save, renew bool) (string, error) {
 func (pf *Platform) showInviteCode(p *player.Player, saveID int64) {
 	s, err := pf.db.Save(saveID)
 	if err != nil {
-		pf.fail(p, "세이브 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.showInviteCode.1"), err)
 		return
 	}
 	code, err := pf.inviteCode(s, false)
 	if err != nil {
-		pf.fail(p, "초대 코드 만들기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.showInviteCode.2"), err)
 		return
 	}
 	n, _ := pf.db.ActiveMembers(saveID)
-	ui.Menu(p, "초대 코드", fmt.Sprintf("§f'%s' 초대 코드\n\n§l§e%s§r\n\n§7로비 메뉴의 '초대 코드 입력'에 이 코드를 넣으면 참여자가 됩니다.\n참여자 %d/%d명", s.Name, code, n, MaxMembers),
-		ui.Option{Label: "새 코드 발급 (이전 코드 무효)", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showInviteCode.3"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.showInviteCode.4"), s.Name, code, n, MaxMembers),
+		ui.Option{Label: i18n.T(i18n.Of(p), "platform.invite.showInviteCode.5"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
 			s, _ := pf.db.Save(saveID)
 			if _, err := pf.inviteCode(s, true); err != nil {
-				pf.fail(p, "초대 코드 발급", err)
+				pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.showInviteCode.6"), err)
 				return
 			}
 			pf.showInviteCode(p, saveID)
@@ -137,7 +138,7 @@ func (pf *Platform) showInviteCode(p *player.Player, saveID int64) {
 }
 
 func (pf *Platform) askInviteCode(p *player.Player) {
-	ui.Input(p, "초대 코드 입력", "초대 코드 6자리", "", func(p *player.Player, _ *world.Tx, code string) {
+	ui.Input(p, i18n.T(i18n.Of(p), "platform.invite.askInviteCode.1"), i18n.T(i18n.Of(p), "platform.invite.askInviteCode.2"), "", func(p *player.Player, _ *world.Tx, code string) {
 		pf.joinCode(p, code)
 	})
 }
@@ -148,7 +149,7 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 	acc := instance.AccountID(p)
 	s, err := pf.db.Save(saveID)
 	if err != nil {
-		pf.fail(p, "세이브 참여", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.join.1"), err)
 		return
 	}
 	if s.Owner == acc {
@@ -156,25 +157,25 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 		return
 	}
 	if blocked, _ := pf.db.Blocked(s.Owner, acc); blocked {
-		ui.Notify(p, "§c이 세이브에 참여할 수 없습니다.")
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.join.2"))
 		return
 	}
 	if _, err := pf.db.MemberRole(saveID, acc); errors.Is(err, db.ErrNotFound) {
 		if n, _ := pf.db.ActiveMembers(saveID); n >= MaxMembers {
-			ui.Notify(p, "§c참여 인원이 가득 찼습니다. (최대 %d명)", MaxMembers)
+			ui.Notify(p, i18n.T(i18n.Of(p), "platform.invite.join.3"), MaxMembers)
 			return
 		}
 		if err := pf.db.AddMember(saveID, acc, db.RoleGuest); err != nil {
-			pf.fail(p, "세이브 참여", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.join.4"), err)
 			return
 		}
 		host, _ := pf.db.Account(s.Owner)
-		ui.Flash(p, "§a%s 님의 '%s'에 참여했습니다.", host.Name, s.Name)
-		pf.tell(s.Owner, fmt.Sprintf("§a%s 님이 '%s'에 참여했습니다.", p.Name(), s.Name))
+		ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.join.5"), host.Name, s.Name)
+		pf.tell(s.Owner, fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.join.6"), p.Name(), s.Name))
 	}
 	pf.invites.remove(acc, saveID)
 	if pf.m.Active(saveID) == nil {
-		ui.Flash(p, "§e호스트가 접속하면 '참여 중인 세이브'에서 입장할 수 있습니다.")
+		ui.Flash(p, "%s", i18n.T(i18n.Of(p), "platform.invite.join.7"))
 		return
 	}
 	pf.enter(p, saveID)
@@ -184,43 +185,43 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 func (pf *Platform) showJoined(p *player.Player) {
 	saves, err := pf.db.JoinedSaves(instance.AccountID(p))
 	if err != nil {
-		pf.fail(p, "참여 중인 세이브 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.showJoined.1"), err)
 		return
 	}
 	var opts []ui.Option
 	for _, s := range saves {
 		host, _ := pf.db.Account(s.Owner)
-		state := "§7호스트 오프라인"
+		state := i18n.T(i18n.Of(p), "platform.invite.showJoined.2")
 		if pf.m.Active(s.ID) != nil {
-			state = "§a입장 가능"
+			state = i18n.T(i18n.Of(p), "platform.invite.showJoined.3")
 		}
 		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("%s §8(%s)\n%s · %d일차", s.Name, host.Name, state, s.Day),
+			Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.showJoined.4"), s.Name, host.Name, state, s.Day),
 			Icon:  iconSave,
 			Run: func(p *player.Player, _ *world.Tx) {
-				ui.Menu(p, s.Name, fmt.Sprintf("§f%s 님의 '%s'\n%s", host.Name, s.Name, state),
-					ui.Option{Label: "§a입장", Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }},
-					ui.Option{Label: "§c탈퇴", Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askLeave(p, s, host) }},
-					ui.Back("뒤로", func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }),
+				ui.Menu(p, s.Name, fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.showJoined.5"), host.Name, s.Name, state),
+					ui.Option{Label: i18n.T(i18n.Of(p), "platform.invite.showJoined.6"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }},
+					ui.Option{Label: i18n.T(i18n.Of(p), "platform.invite.showJoined.7"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askLeave(p, s, host) }},
+					ui.Back(i18n.T(i18n.Of(p), "platform.invite.showJoined.8"), func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }),
 				)
 			},
 		})
 	}
-	body := "초대받아 참여한 세이브입니다. 호스트가 플레이 중일 때만 입장할 수 있습니다."
+	body := i18n.T(i18n.Of(p), "platform.invite.showJoined.9")
 	if len(opts) == 0 {
-		body = "§7참여 중인 세이브가 없습니다. 초대 코드를 입력하거나 친구의 초대를 받아 보세요."
+		body = i18n.T(i18n.Of(p), "platform.invite.showJoined.10")
 	}
-	ui.Menu(p, "참여 중인 세이브", body, opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showJoined.11"), body, opts...)
 }
 
 func (pf *Platform) askLeave(p *player.Player, s db.Save, host db.Account) {
-	ui.Confirm(p, "세이브 탈퇴", fmt.Sprintf("%s 님의 '%s'에서 탈퇴할까요?\n이 세이브의 인벤토리와 돈은 세이브에 남아 호스트가 관리합니다.", host.Name, s.Name), "§c탈퇴", func(p *player.Player, _ *world.Tx) {
+	ui.Confirm(p, i18n.T(i18n.Of(p), "platform.invite.askLeave.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.askLeave.2"), host.Name, s.Name), i18n.T(i18n.Of(p), "platform.invite.askLeave.3"), func(p *player.Player, _ *world.Tx) {
 		if err := pf.db.LeaveMember(s.ID, instance.AccountID(p)); err != nil {
-			pf.fail(p, "탈퇴", err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.askLeave.4"), err)
 			return
 		}
-		ui.Flash(p, "§e'%s'에서 탈퇴했습니다.", s.Name)
-		pf.tell(s.Owner, fmt.Sprintf("§e%s 님이 '%s'에서 탈퇴했습니다.", p.Name(), s.Name))
+		ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.askLeave.5"), s.Name)
+		pf.tell(s.Owner, fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.askLeave.6"), p.Name(), s.Name))
 	})
 }
 
@@ -230,22 +231,22 @@ func (pf *Platform) showInvites(p *player.Player) {
 	var opts []ui.Option
 	for _, in := range list {
 		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf("%s\n§8%s 님의 초대", in.saveName, in.from),
+			Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.showInvites.1"), in.saveName, in.from),
 			Icon:  iconInvite,
 			Run:   func(p *player.Player, _ *world.Tx) { pf.askAcceptInvite(p, in) },
 		})
 	}
-	body := "친구에게 받은 초대입니다. 10분 동안 유효합니다."
+	body := i18n.T(i18n.Of(p), "platform.invite.showInvites.2")
 	if len(opts) == 0 {
-		body = "§7받은 초대가 없습니다."
+		body = i18n.T(i18n.Of(p), "platform.invite.showInvites.3")
 	}
-	ui.Menu(p, "받은 초대", body, opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showInvites.4"), body, opts...)
 }
 
 func (pf *Platform) askAcceptInvite(p *player.Player, in invite) {
-	ui.Confirm(p, "세이브 초대", fmt.Sprintf("%s 님이 '%s'에 초대했습니다.\n참여할까요?", in.from, in.saveName), "§a참여", func(p *player.Player, _ *world.Tx) {
+	ui.Confirm(p, i18n.T(i18n.Of(p), "platform.invite.askAcceptInvite.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.askAcceptInvite.2"), in.from, in.saveName), i18n.T(i18n.Of(p), "platform.invite.askAcceptInvite.3"), func(p *player.Player, _ *world.Tx) {
 		if pf.m.Location(instance.AccountID(p)) != nil {
-			ui.Flash(p, "§e로비에서 수락할 수 있습니다. 로비의 '받은 초대'에서 다시 수락하세요.")
+			ui.Flash(p, "%s", i18n.T(i18n.Of(p), "platform.invite.askAcceptInvite.4"))
 			return
 		}
 		pf.join(p, in.saveID)
@@ -262,7 +263,7 @@ func (c inviteCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	inst := c.pf.m.Location(instance.AccountID(p))
 	if inst == nil || inst.Host() != instance.AccountID(p) {
-		o.Error("자신의 세이브 안에서 호스트만 초대할 수 있습니다.")
+		o.Error(i18n.T(i18n.Of(p), "platform.invite.Run.1"))
 		return
 	}
 	c.pf.showInviteMenu(p, inst)
@@ -271,11 +272,11 @@ func (c inviteCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 func (pf *Platform) showInviteMenu(p *player.Player, inst *instance.Instance) {
 	friends, err := pf.db.Friends(instance.AccountID(p))
 	if err != nil {
-		pf.fail(p, "친구 목록 불러오기", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.showInviteMenu.1"), err)
 		return
 	}
 	saveID := inst.Save.ID
-	opts := []ui.Option{{Label: "초대 코드 보기", Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }}}
+	opts := []ui.Option{{Label: i18n.T(i18n.Of(p), "platform.invite.showInviteMenu.2"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }}}
 	for _, f := range friends {
 		if !pf.isOnline(f.ID) {
 			continue
@@ -287,19 +288,19 @@ func (pf *Platform) showInviteMenu(p *player.Player, inst *instance.Instance) {
 			pf.sendInvite(p, inst, f)
 		}})
 	}
-	ui.Menu(p, "초대하기", "초대할 온라인 친구를 고르세요.", opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showInviteMenu.3"), i18n.T(i18n.Of(p), "platform.invite.showInviteMenu.4"), opts...)
 }
 
 func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.Account) {
 	in := invite{saveID: inst.Save.ID, saveName: inst.Save.Name, from: p.Name(), at: time.Now()}
 	pf.invites.add(f.ID, in)
-	ui.Flash(p, "§a%s 님에게 초대를 보냈습니다.", f.Name)
+	ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.sendInvite.1"), f.Name)
 	pf.with(f.ID, func(fp *player.Player) {
 		if pf.m.Location(f.ID) == nil {
 			pf.askAcceptInvite(fp, in)
 			return
 		}
-		fp.Messagef("§e%s 님이 '%s'에 초대했습니다. §7로비 메뉴의 '받은 초대'에서 수락하세요.", p.Name(), inst.Save.Name)
+		fp.Messagef(i18n.T(i18n.Of(fp), "platform.invite.sendInvite.2"), p.Name(), inst.Save.Name)
 	})
 }
 
@@ -313,7 +314,7 @@ type joinCmd struct {
 func (c joinCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	if c.pf.m.Location(instance.AccountID(p)) != nil {
-		o.Error("로비에서만 사용할 수 있습니다. /lobby 로 이동하세요.")
+		o.Error(i18n.T(i18n.Of(p), "platform.invite.Run.2"))
 		return
 	}
 	code, ok := c.Code.Load()
@@ -329,10 +330,10 @@ func (pf *Platform) joinCode(p *player.Player, code string) {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	s, err := pf.db.SaveByInviteCode(code)
 	if errors.Is(err, db.ErrNotFound) || code == "" {
-		ui.Notify(p, "§c올바르지 않은 초대 코드입니다.")
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.joinCode.1"))
 		return
 	} else if err != nil {
-		pf.fail(p, "초대 코드 확인", err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.joinCode.2"), err)
 		return
 	}
 	pf.join(p, s.ID)

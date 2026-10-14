@@ -33,7 +33,7 @@ func (a adminBase) session(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player
 	p := src.(*player.Player)
 	s, ok := a.g.sessionOf(tx.World())
 	if !ok {
-		o.Error("세이브 안에서 사용하세요.")
+		o.Error(i18n.T(i18n.Of(p), "dragonfactory.admin.session.1"))
 	}
 	return p, s, ok
 }
@@ -57,7 +57,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	it, ok := world.ItemByName(name, 0)
 	if !ok {
-		o.Errorf("알 수 없는 아이템: %s", name)
+		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.1"), name)
 		return
 	}
 	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
@@ -81,7 +81,7 @@ func (c adminSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.Second(tx)
 		total, day, _ := s.clock.Now()
-		o.Printf("인스턴스 시간 %s · %d일차", formatPlayTime(total), day)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.2"), formatPlayTime(total), day)
 	}
 }
 
@@ -100,9 +100,9 @@ func (c adminLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		p.Move(mgl64.Vec3{}, c.Yaw-r.Yaw(), c.Pitch-r.Pitch())
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
 		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
-			o.Printf("보는 블록: %s (%d, %d, %d)", blockName(b), at[0], at[1], at[2])
+			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.3"), blockName(b), at[0], at[1], at[2])
 		} else {
-			o.Printf("보는 블록 없음")
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.4"))
 		}
 	}
 }
@@ -120,16 +120,16 @@ func (c adminTimed) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	main, off := p.HeldItems()
 	if main.Empty() {
-		o.Error("손에 든 아이템이 없습니다.")
+		o.Error(i18n.T(i18n.Default, "dragonfactory.admin.Run.5"))
 		return
 	}
 	if c.Seconds <= 0 {
 		p.SetHeldItems(timed.Clear(main), off)
-		o.Printf("기간제를 해제했습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.6"))
 		return
 	}
 	p.SetHeldItems(timed.For(main, time.Duration(c.Seconds)*time.Second), off)
-	o.Printf("기간제로 바꿨습니다: %s 남음", timed.Describe(time.Duration(c.Seconds)*time.Second))
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.7"), timed.Describe(time.Duration(c.Seconds)*time.Second))
 }
 
 // adminFairy sends the gift fairy to the operator now.
@@ -141,7 +141,7 @@ type adminFairy struct {
 func (c adminFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
 		s.spawnFairy(tx, p)
-		o.Printf("요정을 불렀습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.8"))
 	}
 }
 
@@ -196,7 +196,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	f, ok := giveItems()[string(c.Item)]
 	if !ok {
-		o.Errorf("알 수 없는 아이템: %s", c.Item)
+		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.9"), c.Item)
 		return
 	}
 	n := max(1, c.Count.LoadOr(1))
@@ -222,7 +222,7 @@ func (c adminStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
-	cmd.Register(cmd.New("dfadmin", "드래곤팩토리 운영자 도구", nil,
+	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.registerAdmin.1"), nil,
 		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
 }
 
@@ -254,7 +254,7 @@ func (c adminExpandView) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 				s.moveExpandCamera(p, ex, 0)
 			}
 		}
-		o.Printf("섬 확장 보기를 %s(으)로 바꿨습니다.", c.View)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.10"), c.View)
 	}
 }
 
@@ -274,9 +274,9 @@ func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		s.updateBoard(p)
 	}
 	if on {
-		o.Printf("서버 부하 표시를 켰습니다(왼쪽 위).")
+		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.Run.11"))
 	} else {
-		o.Printf("서버 부하 표시를 껐습니다.")
+		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.Run.12"))
 	}
 }
 
@@ -313,30 +313,30 @@ func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 				s.completeResearch(tx, &researchTree[i])
 			}
 		}
-		o.Printf("모든 연구를 완료했습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.13"))
 	case "reset":
 		s.state.Researched, s.state.ResearchPaid = nil, nil
 		s.storeState()
 		s.sendRecipes(tx)
-		o.Printf("연구를 모두 지웠습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.14"))
 	case "free":
 		s.recipesFree = !s.recipesFree
 		s.sendRecipes(tx)
 		if s.recipesFree {
-			o.Printf("모든 조합법을 열었습니다(인스턴스가 닫힐 때까지).")
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.15"))
 		} else {
-			o.Printf("조합법을 다시 연구대로 잠갔습니다.")
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.16"))
 		}
 	default:
 		r, ok := researchByID(string(c.Research))
 		if !ok {
-			o.Errorf("알 수 없는 연구: %s", c.Research)
+			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.17"), c.Research)
 			return
 		}
 		if !s.researched(r.ID) {
 			s.completeResearch(tx, r)
 		}
-		o.Printf("%s 연구를 완료했습니다.", r.Title(i18n.Default))
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.18"), r.Title(i18n.Default))
 	}
 }
 
@@ -376,19 +376,19 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if len(as) > 0 {
 			s.completeAdvancements(tx, as)
 		}
-		o.Printf("모든 발전과제를 달성했습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.19"))
 	case "reset":
 		s.state.Advancements = nil
 		s.storeState()
 		s.updateBoards(tx)
-		o.Printf("발전과제를 모두 지웠습니다.")
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.20"))
 	default:
 		a, ok := advancementByID(string(c.Advancement))
 		if !ok {
-			o.Errorf("알 수 없는 발전과제: %s", c.Advancement)
+			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.21"), c.Advancement)
 			return
 		}
 		s.advance(tx, a.ID)
-		o.Printf("%s 발전과제를 달성했습니다.", a.Name)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.22"), a.Name)
 	}
 }
