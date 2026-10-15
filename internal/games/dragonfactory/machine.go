@@ -387,6 +387,8 @@ type machineState struct {
 	// tier is the machine's tier (tier.go); worked counts the ticks of work
 	// done, to tell whether a run did anything.
 	tier, worked int
+	// stallTicks counts the ticks in a row the machine had no energy.
+	stallTicks int
 	// seenWorked and lastWorkTick tell when the machine last worked (animate.go).
 	seenWorked   int
 	lastWorkTick int64

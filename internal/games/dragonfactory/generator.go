@@ -27,6 +27,10 @@ const consumerBuffer = 2000
 // cellCapacity is the RE an energy cell holds.
 const cellCapacity = 100000
 
+// stallShow is how many ticks in a row a machine has no energy before it shows
+// as stopped (2 seconds).
+const stallShow = 40
+
 // consume takes the energy of one tick of work from the buffer and reports
 // whether there was enough; a machine without need (or an unlimited one)
 // always works.
@@ -36,11 +40,15 @@ func (st *machineState) consume() bool {
 		return true
 	}
 	if st.energy < u {
-		st.stalled, st.stuck = true, stuckPower
+		// a stop shows after stallShow ticks in a row: a machine that gets
+		// energy as it uses it does not flicker "stopped"
+		if st.stallTicks++; st.stallTicks >= stallShow {
+			st.stalled, st.stuck = true, stuckPower
+		}
 		return false
 	}
 	st.energy -= u
-	st.stalled = false
+	st.stalled, st.stallTicks = false, 0
 	if st.sess != nil {
 		st.sess.stats.buckets[st.sess.stats.head].use += u
 	}

@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -127,7 +128,7 @@ func (st *machineState) reason(lang string) string {
 func (s *session) stalledCount() int {
 	n := 0
 	for _, st := range s.machines {
-		if st.mon.status.alerts() || st.mon.status == statusStarved {
+		if st.mon.status.alerts() {
 			n++
 		}
 	}
@@ -274,7 +275,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 	}
 	var list []*machineState
 	for _, st := range s.machines {
-		if st.mon.status.alerts() || st.mon.status == statusStarved {
+		if st.mon.status.alerts() {
 			list = append(list, st)
 		}
 	}
@@ -334,7 +335,9 @@ func (s *session) goToMachine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		if !s.owns(ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {
 			continue
 		}
-		p.Teleport(mgl64.Vec3{float64(at.X()) + 0.5, float64(at.Y()), float64(at.Z()) + 0.5})
+		from := mgl64.Vec3{float64(at.X()) + 0.5, float64(at.Y()), float64(at.Z()) + 0.5}
+		p.Teleport(from)
+		faceTowards(p, from.Add(mgl64.Vec3{0, 1.62, 0}), pos.Vec3Centre())
 		return
 	}
 }
@@ -353,4 +356,13 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	s.showStats(p, statsItems)
+}
+
+// faceTowards turns p, standing at from (its eyes), to look at target.
+func faceTowards(p *player.Player, eyes, target mgl64.Vec3) {
+	d := target.Sub(eyes)
+	yaw := -math.Atan2(d[0], d[2]) * 180 / math.Pi
+	pitch := -math.Atan2(d[1], math.Hypot(d[0], d[2])) * 180 / math.Pi
+	cur := p.Rotation()
+	p.Move(mgl64.Vec3{}, yaw-cur.Yaw(), pitch-cur.Pitch())
 }
