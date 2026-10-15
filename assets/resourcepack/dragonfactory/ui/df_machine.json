@@ -66,9 +66,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -144,9 +145,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -343,9 +345,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -443,9 +446,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -554,9 +558,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -643,9 +648,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -699,9 +705,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -832,9 +839,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -925,9 +933,9 @@
       }
     ],
     "$title_text_color": [
-      0.93,
-      0.66,
-      0.19
+      1,
+      1,
+      1
     ]
   },
   "crusher_panel@df_machine.machine_panel": {
@@ -1120,9 +1128,10 @@
       {
         "s26@df_machine.indicator": {
           "collection_index": 26,
+          "size": [12, 12],
           "offset": [
-            132,
-            -15
+            138,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"

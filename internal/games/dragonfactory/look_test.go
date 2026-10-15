@@ -78,11 +78,16 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("crusher line %+v, want the cobblestone with a gauge", info.Line)
 		}
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
-		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "" || info.Marks != (waila.Marks{}) || info.Container != nil {
-			t.Errorf("drawer panel %+v, want a dirt line without count or marks", info)
+		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "§f×70" || info.Marks != (waila.Marks{}) || info.Container != nil {
+			t.Errorf("drawer panel %+v, want a dirt line with its count and no marks", info)
 		} else if _, ok := info.Item.(Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
+		p.StartSneaking()
+		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); len(info.Lines) < 2 || !strings.Contains(info.Lines[len(info.Lines)-1], "잠김") {
+			t.Errorf("sneaking drawer lines %q, want the upgrades and the lock", info.Lines)
+		}
+		p.StopSneaking()
 		tx.SetBlock(corePos, Core{Type: "t1"}, nil)
 		if got := text(corePos); !strings.Contains(got, "더 이상 쓰이지 않음") {
 			t.Errorf("old core panel %q", got)

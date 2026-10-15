@@ -141,12 +141,15 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	case Drawer:
 		// The drawer stays the icon; the held item is a line with its own
-		// small icon. Its count, lock and upgrades show on the drawer's
-		// front, so the panel leaves them out (11th playtest).
+		// small icon and its count; the lock and upgrades show on the
+		// drawer's front and, while sneaking, in the panel.
 		if b.Item.Empty() {
 			info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.1")}
 		} else {
-			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item)}
+			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item), Text: fmt.Sprintf("§f×%s", formatInt(b.Count))}
+		}
+		if p.Sneaking() {
+			info.Lines = append(info.Lines, drawerDetail(b)...)
 		}
 	case Core, DeliveryBox:
 		info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.2")}
@@ -323,21 +326,15 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 }
 
 // detailLines are the figures the panel adds while its viewer sneaks: the
-// length of a work cycle with the time left, and the energy per second.
+// length of a work cycle with the ticks left (the energy is in the lines).
 func detailLines(st *machineState) []string {
 	var lines []string
 	if cycle := st.cycleLen(); cycle > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter {
 		if st.progress > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), float64(cycle)/20, float64(max(0, cycle-st.progress))/20))
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), cycle, max(0, cycle-st.progress)))
 		} else {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), float64(cycle)/20))
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), cycle))
 		}
-	}
-	switch {
-	case st.kind.generates > 0:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.makes"), st.genRate()*20))
-	case st.kind.use > 0 && !st.unlimited:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.uses"), st.useTotal()*20))
 	}
 	return lines
 }
@@ -391,4 +388,17 @@ func crafterMissing(st *machineState) string {
 		}
 	}
 	return strings.Join(missing, ", ")
+}
+
+// drawerDetail are the lines a sneaking viewer gets of a drawer: its upgrades
+// and lock.
+func drawerDetail(d Drawer) []string {
+	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "look.drawer.capacity"), d.Capacity, MaxCapacityUpgrades, formatInt(d.capacity()))}
+	if d.Void {
+		lines = append(lines, i18n.T(i18n.Default, "look.drawer.void"))
+	}
+	if d.Locked {
+		lines = append(lines, i18n.T(i18n.Default, "look.drawer.locked"))
+	}
+	return lines
 }

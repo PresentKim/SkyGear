@@ -353,7 +353,7 @@ func heldItemNames(tx *world.Tx) map[string]bool {
 
 // completeAdvancements marks advancements done, with the ones before them
 // (an item used up within a second would otherwise leave a gap), and tells
-// everyone on the island what they did and what comes next.
+// everyone on the island what they did .
 func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 	if s.state.Advancements == nil {
 		s.state.Advancements = map[string]bool{}
@@ -376,9 +376,6 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 	s.storeState()
 	s.updateBoards(tx)
 	msg := i18n.T(i18n.Default, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", ")
-	if next, ok := s.nextAdvancement(); ok {
-		msg += fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.advancement.completeAdvancements.2"), next.Name, flatHint(next))
-	}
 	for e := range tx.Players() {
 		p := e.(*player.Player)
 		p.SendToast(i18n.T(i18n.Of(p), "dragonfactory.advancement.completeAdvancements.3"), strings.Join(names, ", "))

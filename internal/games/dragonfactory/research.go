@@ -388,14 +388,14 @@ func researchIcon(r *Research) string {
 // showResearch shows the research list on the tab of researches still to do.
 func (s *session) showResearch(p *player.Player) {
 	count(p, "research_open", 1)
-	s.showResearchTab(p, false)
+	s.showResearchTab(p, false, 0)
 }
 
 // showResearchTab shows the research list as a grid of item slots (the
 // representative item of each research) under two tabs, the researches
 // still to do and the done ones.
-func (s *session) showResearchTab(p *player.Player, done bool) {
-	body, slots, actions := s.researchList(p, done)
+func (s *session) showResearchTab(p *player.Player, done bool, page int) {
+	body, slots, actions := s.researchListPage(p, done, page)
 	ui.ItemGrid(p, i18n.T(i18n.Of(p), "dragonfactory.research.showResearchTab.1"), body, slots, actions...)
 }
 
@@ -414,6 +414,15 @@ func researchTip(lang, colour string, r *Research) string {
 // tooltip of a research to do is its name in yellow, in green when p has
 // all it spends and can do it now. p may be nil.
 func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSlot, []ui.Option) {
+	return s.researchListPage(p, done, 0)
+}
+
+// researchPageSize is how many researches a page of the list holds: the form
+// is slow to open with many buttons, so a long list is split into pages.
+const researchPageSize = 33
+
+// researchListPage is one page of the research list of a tab.
+func (s *session) researchListPage(p *player.Player, done bool, page int) (string, []ui.ItemSlot, []ui.Option) {
 	var slots, previews []ui.ItemSlot
 	todoN, doneN := 0, 0
 	for i := range researchTree {
@@ -450,19 +459,37 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 			body += i18n.T(i18n.Of(p), "dragonfactory.research.researchList.3")
 		}
 	}
+	pages := max(1, (len(slots)+researchPageSize-1)/researchPageSize)
+	page = min(max(page, 0), pages-1)
+	slots = slots[min(page*researchPageSize, len(slots)):min((page+1)*researchPageSize, len(slots))]
 	tabs := []ui.Option{
 		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.4"), todoN), "", !done, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
-				s.showResearchTab(p, false)
+				s.showResearchTab(p, false, 0)
 			}
 		}),
 		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.5"), doneN), "", done, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
-				s.showResearchTab(p, true)
+				s.showResearchTab(p, true, 0)
 			}
 		}),
-		s.backOption(),
 	}
+	if pages > 1 {
+		turn := func(label string, to int) ui.Option {
+			return ui.Tab(label, "", false, func(p *player.Player, tx *world.Tx) {
+				if tx.World() == s.world {
+					s.showResearchTab(p, done, to)
+				}
+			})
+		}
+		if page > 0 {
+			tabs = append(tabs, turn(fmt.Sprintf(i18n.T(i18n.Of(p), "researchpage.prev"), page, pages), page-1))
+		}
+		if page < pages-1 {
+			tabs = append(tabs, turn(fmt.Sprintf(i18n.T(i18n.Of(p), "researchpage.next"), page+2, pages), page+1))
+		}
+	}
+	tabs = append(tabs, s.backOption())
 	return body, slots, tabs
 }
 

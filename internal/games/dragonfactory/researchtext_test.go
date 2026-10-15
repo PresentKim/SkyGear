@@ -104,7 +104,7 @@ func TestResearchPreviewButton(t *testing.T) {
 	_, _, opts := s.researchNode(nil, r)
 	var found bool
 	for _, o := range opts {
-		if strings.Contains(o.Label, need.Title(i18n.Default)) && strings.Contains(o.Label, "먼저 필요") {
+		if strings.Contains(o.Label, need.Title(i18n.Default)) && strings.Contains(o.Label, "선행 연구") {
 			found = true
 		}
 		if strings.Contains(o.Label, "연구 진행") {
@@ -174,5 +174,32 @@ func TestResearchScreen(t *testing.T) {
 	d, _, opts = s.researchNode(nil, r)
 	if len(opts) != 1 || !strings.Contains(d.Status, "연구 완료") {
 		t.Errorf("done research: status %q options %+v", d.Status, opts)
+	}
+}
+
+// TestResearchListPages: a long list is split into pages with turn buttons.
+func TestResearchListPages(t *testing.T) {
+	s := testSession(t)
+	s.state.Researched = map[string]bool{}
+	for i := range researchTree {
+		s.state.Researched[researchTree[i].ID] = true
+	}
+	_, first, tabs := s.researchListPage(nil, true, 0)
+	if len(first) != researchPageSize {
+		t.Fatalf("first page holds %d, want %d", len(first), researchPageSize)
+	}
+	if len(tabs) != 4 { // the two tabs, next page, back
+		t.Fatalf("%d buttons on the first page", len(tabs))
+	}
+	total := len(first)
+	for page := 1; page < (len(researchTree)+researchPageSize-1)/researchPageSize; page++ {
+		_, more, _ := s.researchListPage(nil, true, page)
+		total += len(more)
+	}
+	if total != len(researchTree) {
+		t.Fatalf("pages hold %d researches, want %d", total, len(researchTree))
+	}
+	if _, last, _ := s.researchListPage(nil, true, 99); len(last) == 0 {
+		t.Fatal("a page past the end is empty")
 	}
 }
