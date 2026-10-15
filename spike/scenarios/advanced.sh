@@ -20,6 +20,10 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give storage_controller 1' 'expect:스토리지 컨트롤러 x1' \
   'cmd:/dfadmin give seed_flower_red 2' 'expect:x2' \
   'cmd:/dfadmin give petal_red 2' 'expect:x2' \
+  'cmd:/dfadmin give electric_furnace 1' 'expect:전기 화로 x1' \
+  'cmd:/dfadmin give item_vacuum 1' 'expect:아이템 흡수기 x1' \
+  'cmd:/dfadmin give tree_feller 1' 'expect:자동 벌목기 x1' \
+  'cmd:/dfadmin give auto_crafter 1' 'expect:자동 제작기 x1' \
   'cmd:/dfadmin give ingot_bronze 4' 'expect:청동 주괴 x4' \
   'cmd:/dfadmin give metal_dust_tin 4' 'expect:주석 가루 x4' \
   'cmd:/dfadmin give essence_blaze 2' 'expect:블레이즈 정수 x2' \

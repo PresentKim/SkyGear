@@ -194,6 +194,10 @@ var advancementTree = []Advancement{
 	{ID: "ess_harvest", Name: i18n.T(i18n.Default, "advancement.ess_harvest.name"), Parent: "essence_bloom", Hint: i18n.T(i18n.Default, "advancement.ess_harvest.hint"), Event: true, Icon: "ender_pearl"},
 	{ID: "chunks_8", Name: i18n.T(i18n.Default, "advancement.chunks_8.name"), Parent: "chunk", Hint: i18n.T(i18n.Default, "advancement.chunks_8.hint"), Event: true, Icon: "grass_block"},
 	{ID: "chunks_16", Name: i18n.T(i18n.Default, "advancement.chunks_16.name"), Parent: "chunks_8", Hint: i18n.T(i18n.Default, "advancement.chunks_16.hint"), Event: true, Icon: "grass_block"},
+	{ID: "electric_furnace", Name: i18n.T(i18n.Default, "advancement.electric_furnace.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.electric_furnace.hint"), Item: "dragonfactory:electric_furnace"},
+	{ID: "item_vacuum", Name: i18n.T(i18n.Default, "advancement.item_vacuum.name"), Parent: "hopper", Hint: i18n.T(i18n.Default, "advancement.item_vacuum.hint"), Item: "dragonfactory:item_vacuum"},
+	{ID: "tree_feller", Name: i18n.T(i18n.Default, "advancement.tree_feller.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.tree_feller.hint"), Item: "dragonfactory:tree_feller"},
+	{ID: "auto_crafter", Name: i18n.T(i18n.Default, "advancement.auto_crafter.name"), Parent: "redstone", Hint: i18n.T(i18n.Default, "advancement.auto_crafter.hint"), Item: "dragonfactory:auto_crafter"},
 }
 
 // advancementByID returns an advancement of the tree.

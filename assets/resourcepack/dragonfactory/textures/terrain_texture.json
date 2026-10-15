@@ -515,6 +515,54 @@
     },
     "dragonfactory_plant_ess_blaze_1": {
       "textures": "textures/blocks/plant_ess_blaze_1"
+    },
+    "dragonfactory_electric_furnace_front": {
+      "textures": "textures/blocks/electric_furnace_front"
+    },
+    "dragonfactory_electric_furnace_back": {
+      "textures": "textures/blocks/electric_furnace_back"
+    },
+    "dragonfactory_electric_furnace_side": {
+      "textures": "textures/blocks/electric_furnace_side"
+    },
+    "dragonfactory_electric_furnace_up": {
+      "textures": "textures/blocks/electric_furnace_up"
+    },
+    "dragonfactory_electric_furnace_down": {
+      "textures": "textures/blocks/electric_furnace_down"
+    },
+    "dragonfactory_auto_crafter_front": {
+      "textures": "textures/blocks/auto_crafter_front"
+    },
+    "dragonfactory_auto_crafter_back": {
+      "textures": "textures/blocks/auto_crafter_back"
+    },
+    "dragonfactory_auto_crafter_side": {
+      "textures": "textures/blocks/auto_crafter_side"
+    },
+    "dragonfactory_auto_crafter_up": {
+      "textures": "textures/blocks/auto_crafter_up"
+    },
+    "dragonfactory_auto_crafter_down": {
+      "textures": "textures/blocks/auto_crafter_down"
+    },
+    "dragonfactory_item_vacuum_side": {
+      "textures": "textures/blocks/item_vacuum_side"
+    },
+    "dragonfactory_item_vacuum_up": {
+      "textures": "textures/blocks/item_vacuum_up"
+    },
+    "dragonfactory_item_vacuum_down": {
+      "textures": "textures/blocks/item_vacuum_down"
+    },
+    "dragonfactory_tree_feller_side": {
+      "textures": "textures/blocks/tree_feller_side"
+    },
+    "dragonfactory_tree_feller_up": {
+      "textures": "textures/blocks/tree_feller_up"
+    },
+    "dragonfactory_tree_feller_down": {
+      "textures": "textures/blocks/tree_feller_down"
     }
   },
   "texture_name": "atlas.terrain"

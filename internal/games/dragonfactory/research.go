@@ -166,6 +166,14 @@ var researchTree = []Research{
 		Unlocks: []string{"blaze_powder", "magma_cream", "magma", "ender_eye", "fire_charge"}},
 	{ID: "ender_chest", Needs: []string{"blaze_craft", "diamond_tools"}, Cost: []Requirement{{item.EnderPearl{}, 4}, {block.Obsidian{}, 4}},
 		Unlocks: []string{"ender_chest"}},
+	{ID: "electric_furnace", Needs: []string{"generator", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+		Unlocks: []string{"dragonfactory:electric_furnace"}},
+	{ID: "item_vacuum", Needs: []string{"generator", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+		Unlocks: []string{"dragonfactory:item_vacuum"}},
+	{ID: "tree_feller", Needs: []string{"generator", "iron_tools"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+		Unlocks: []string{"dragonfactory:tree_feller"}},
+	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []Requirement{{item.IronIngot{}, 16}, {item.RedstoneWire{}, 8}},
+		Unlocks: []string{"dragonfactory:auto_crafter"}},
 	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []Requirement{{PlantSeed{Seed: "flower_red"}, 1}, {PlantSeed{Seed: "flower_yellow"}, 1}, {PlantSeed{Seed: "flower_blue"}, 1}}, Unlocks: []string{"dragonfactory:seed_ore_iron", "dragonfactory:seed_ore_gold", "dragonfactory:seed_ore_copper", "dragonfactory:seed_ore_tin", "dragonfactory:seed_ore_lead", "dragonfactory:seed_ore_silver", "dragonfactory:seed_ore_nickel"}},
 	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []Requirement{{PlantSeed{Seed: "ore_gold"}, 2}}, Unlocks: []string{"dragonfactory:seed_gem_lapis", "dragonfactory:seed_gem_redstone", "dragonfactory:seed_gem_quartz", "dragonfactory:seed_gem_coal", "dragonfactory:seed_gem_diamond", "dragonfactory:seed_gem_emerald"}},
 	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []Requirement{{PlantSeed{Seed: "gem_redstone"}, 2}}, Unlocks: []string{"dragonfactory:seed_ess_zombie", "dragonfactory:seed_ess_skeleton", "dragonfactory:seed_ess_creeper", "dragonfactory:seed_ess_spider", "dragonfactory:seed_ess_slime", "dragonfactory:seed_ess_enderman", "dragonfactory:seed_ess_blaze"}},
@@ -585,6 +593,11 @@ func gameRecipes() {
 	add(item.NewStack(Machine{Kind: KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(Ingot{Metal: MetalBronze}, 2), n(block.CraftingTable{}, 1))
 	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 4), n(block.Glass{}, 4), n(item.RedstoneWire{}, 6))
+	// The automation equipment (docs/design/09-automation-equipment.md).
+	add(machineItem(KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
+	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(machineItem(KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
+	add(machineItem(KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 4), n(item.RedstoneWire{}, 4))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).
 	for _, tier := range []int{2, 3} {

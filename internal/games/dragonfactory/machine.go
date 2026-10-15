@@ -60,6 +60,11 @@ const (
 	// KindSimulator turns an essence into the drops of a mob (essence.go).
 	KindSimulator  = "mob_simulator"
 	KindEnergyCell = "energy_cell"
+	// The automation equipment (autoequip.go, autocraft.go).
+	KindFurnace = "electric_furnace"
+	KindVacuum  = "item_vacuum"
+	KindFeller  = "tree_feller"
+	KindCrafter = "auto_crafter"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -95,6 +100,8 @@ type machineKind struct {
 	// use is the RE per tick a machine needs while it works (0: it needs
 	// none).
 	use int
+	// crafter marks the auto crafter, whose window has a recipe slot.
+	crafter bool
 }
 
 var machineKinds = map[string]*machineKind{
@@ -191,6 +198,27 @@ var machineKinds = map[string]*machineKind{
 		cell: true, energyCap: cellCapacity,
 		help: []string{i18n.T(i18n.Default, "machine.cell.help.1"), i18n.T(i18n.Default, "machine.cell.help.2")},
 	},
+	KindFurnace: {
+		name: i18n.T(i18n.Default, "machine.furnace.name"), marker: "§d§m§1", interval: 100, input: []int{11}, output: []int{15}, indicator: 13,
+		use: 30, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.furnace.help.1"), i18n.T(i18n.Default, "machine.furnace.help.2")},
+	},
+	KindVacuum: {
+		name: i18n.T(i18n.Default, "machine.vacuum.name"), marker: "§d§m§3", interval: 10, output: []int{13, 14, 15, 16}, indicator: 10,
+		use: 5, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.vacuum.help.1"), i18n.T(i18n.Default, "machine.vacuum.help.2")},
+	},
+	KindFeller: {
+		name: i18n.T(i18n.Default, "machine.feller.name"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		use: 15, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.feller.help.1"), i18n.T(i18n.Default, "machine.feller.help.2")},
+	},
+	KindCrafter: {
+		// The store is the 3×3 on the left, the recipe slot above the ring.
+		name: i18n.T(i18n.Default, "machine.crafter.name"), marker: "§d§m§7", interval: 40, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		use: 25, energyCap: consumerBuffer, crafter: true,
+		help: []string{i18n.T(i18n.Default, "machine.crafter.help.1"), i18n.T(i18n.Default, "machine.crafter.help.2"), i18n.T(i18n.Default, "machine.crafter.help.3")},
+	},
 	KindSellBox: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.17"), i18n.T(i18n.Default, "dragonfactory.machine.init.18")},
@@ -198,7 +226,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -271,6 +299,14 @@ type machineState struct {
 	// mob and charges are what the mob simulator is charged with (essence.go).
 	mob     string
 	charges int
+	// recipe is the recipe an auto crafter makes (recipeID is how it is saved);
+	// shownRecipe is the one the recipe slot shows; sample is an item put on
+	// the recipe slot to choose by, dropRecipe a request to clear it.
+	recipe      *crafterRecipe
+	recipeID    string
+	shownRecipe string
+	sample      item.Stack
+	dropRecipe  bool
 	// pending are the products of an auto sieve that did not fit its output slots
 	// yet: it waits until they do.
 	pending []item.Stack
@@ -302,6 +338,10 @@ func newMachine(kind, owner, ownerName string) Machine {
 	}
 	_ = inv.SetItem(infoSlot, st.infoItem())
 	inv.Handle(machineHandler{st: st})
+	st.shownRecipe = "\x00"
+	if k.crafter {
+		st.showRecipe()
+	}
 	st.showProgress()
 	st.showEnergy()
 	return Machine{Kind: kind, st: st}
@@ -317,6 +357,8 @@ const (
 	roleNone slotRole = iota
 	roleInput
 	roleOutput
+	// roleRecipe is the recipe slot of the auto crafter: it takes nothing.
+	roleRecipe
 )
 
 // infoSlot is the window slot of the info icon: its tooltip explains the
@@ -342,6 +384,9 @@ func (MachineInfo) Name() string                { return i18n.T(i18n.Default, "n
 func (MachineInfo) Category() category.Category { return category.Items() }
 
 func (st *machineState) role(slot int) slotRole {
+	if st.kind.crafter && slot == crafterRecipeSlot {
+		return roleRecipe
+	}
 	for _, s := range st.kind.input {
 		if s == slot {
 			return roleInput
@@ -381,6 +426,14 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindWasher]:
 		_, ok := it.Item().(OreChunk)
 		return ok
+	case machineKinds[KindFurnace]:
+		_, ok := smeltOf(it)
+		return ok
+	case machineKinds[KindFeller]:
+		_, ok := it.Item().(block.Sapling)
+		return ok
+	case machineKinds[KindCrafter]:
+		return st.recipe != nil && st.recipe.wants(it)
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -395,19 +448,32 @@ func (st *machineState) accepts(it item.Stack) bool {
 type machineHandler struct{ st *machineState }
 
 func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
+	if h.st.role(slot) == roleRecipe {
+		// Taking the recipe off the slot clears it.
+		ctx.Cancel()
+		h.st.dropRecipe = true
+		return
+	}
 	if h.st.role(slot) == roleNone {
 		ctx.Cancel()
 	}
 }
 
 func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.Stack) {
+	if h.st.role(slot) == roleRecipe {
+		// An item put on the recipe slot chooses the recipe that makes it
+		// and goes back to the player.
+		ctx.Cancel()
+		h.st.sample = it
+		return
+	}
 	if h.st.role(slot) != roleInput || !h.st.accepts(it) {
 		ctx.Cancel()
 	}
 }
 
 func (h machineHandler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) {
-	if h.st.role(slot) == roleNone {
+	if h.st.role(slot) == roleNone || h.st.role(slot) == roleRecipe {
 		ctx.Cancel()
 	}
 }
@@ -513,7 +579,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -603,8 +669,8 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -692,6 +758,7 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["Fluid"] = int32(m.st.fluid)
 	data["FluidAmt"] = int32(m.st.fluidAmt)
 	data["Charges"] = int32(m.st.charges)
+	data["Recipe"] = m.st.recipeID
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
 	return data
@@ -712,6 +779,9 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	}
 	if c, ok := data["Charges"].(int32); ok {
 		n.st.charges = int(c)
+	}
+	if id, ok := data["Recipe"].(string); ok {
+		n.st.recipeID = id
 	}
 	if mesh, ok := data["Mesh"].(string); ok {
 		n.st.mesh = mesh
@@ -775,6 +845,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.st.kind.gate {
 		if !s.debounced(p) {
 			s.showGateForm(p, tx, pos)
+		}
+		return true
+	}
+	if m.st.kind.crafter && p.Sneaking() {
+		if !s.debounced(p) {
+			s.showCrafterRecipes(p, tx, pos, m.st, 0)
 		}
 		return true
 	}
@@ -896,6 +972,14 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runMiner(st, pos, tx)
 	case KindHarvester:
 		s.runHarvester(st, pos, tx)
+	case KindFurnace:
+		st.runFurnace()
+	case KindVacuum:
+		s.runVacuum(st, pos, tx)
+	case KindFeller:
+		s.runFeller(st, pos, tx)
+	case KindCrafter:
+		s.runCrafter(st)
 	}
 	st.pos = pos
 	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
