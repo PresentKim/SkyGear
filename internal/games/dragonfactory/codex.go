@@ -43,7 +43,7 @@ func (s *session) showCodex(p *player.Player) {
 		s.opt(i18n.T(lang, "codex.sieve"), iconOf(machineItem(KindSieve)), func(p *player.Player, _ *world.Tx) { s.showCodexSieve(p) }),
 		s.opt(i18n.T(lang, "codex.process"), iconOf(machineItem(KindAlloy)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.process", s.codexProcessLines(lang)) }),
 		s.opt(i18n.T(lang, "codex.mobs"), iconOf(machineItem(KindGate)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.mobs", s.codexMobLines(lang)) }),
-		s.opt(i18n.T(lang, "codex.plants"), iconOf(item.NewStack(Petal{Colour: "red"}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexPlants(p) }),
+		s.opt(i18n.T(lang, "codex.plants"), iconOf(item.NewStack(Petal{Colour: "red"}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexPlants(p, 0) }),
 		s.opt(i18n.T(lang, "codex.gear"), iconOf(machineItem(KindTinker)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.gear", codexGearLines(lang)) }),
 		s.opt(i18n.T(lang, "codex.hand"), iconOf(item.NewStack(item.Book{}, 1)), func(p *player.Player, _ *world.Tx) {
 			if held, _ := p.HeldItems(); !held.Empty() {
@@ -196,7 +196,7 @@ func formatPermille(p int) string {
 func n1(w world.Item) string { return itemName(item.NewStack(w, 1)) }
 
 // showCodexPlants lists the magic plants.
-func (s *session) showCodexPlants(p *player.Player) {
+func (s *session) showCodexPlants(p *player.Player, page int) {
 	lang := i18n.Of(p)
 	var slots []ui.ItemSlot
 	for _, k := range plantKinds {
@@ -216,8 +216,9 @@ func (s *session) showCodexPlants(p *player.Player) {
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, seed) },
 		})
 	}
+	slots, turns := s.slotPage(p, slots, page, s.showCodexPlants)
 	ui.ItemGrid(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.plants"), i18n.T(lang, "codex.plants.body"), slots,
-		s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))
+		append(turns, s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))...)
 }
 
 // codexGearLines are the head and handle materials and the modifiers of tools.
