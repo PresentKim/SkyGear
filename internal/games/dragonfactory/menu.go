@@ -30,6 +30,8 @@ func registerCommands(g *Game) {
 	cmd.Register(cmd.New("묘목", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.3"), nil, saplingCmd{g: g}))
 	cmd.Register(cmd.New("메뉴발급", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.4"), nil, menuItemCmd{g: g}))
 	cmd.Register(cmd.New("menuitem", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.5"), nil, menuItemCmd{g: g}))
+	cmd.Register(cmd.New("도감", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.7"), nil, codexCmd{g: g}))
+	cmd.Register(cmd.New("codex", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.8"), nil, codexCmd{g: g}))
 	cmd.Register(cmd.New("sapling", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.6"), nil, saplingCmd{g: g}))
 }
 
