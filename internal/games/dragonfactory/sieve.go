@@ -46,10 +46,39 @@ const sieveCooldown = 150 * time.Millisecond
 // another order, and the hand sieve showed a different block at every use.
 const sieveLookState = "dragonfactory:look"
 
-// lookIndex numbers a content and fill; lookValue is its state value.
-func lookIndex(content, fill int) int { return content*(sieveStages+1) + fill }
-func lookValue(content, fill int) string {
-	return fmt.Sprintf("%02d", lookIndex(content, fill))
+// lookIndex numbers the look of a sieve: the mesh fitted (0 none, 1 to
+// len(meshTiers) the tier), the content and the fill; lookValue is its state
+// value.
+func lookIndex(mesh, content, fill int) int {
+	return (mesh*len(sieveContents)+content)*(sieveStages+1) + fill
+}
+func lookValue(mesh, content, fill int) string {
+	return fmt.Sprintf("%03d", lookIndex(mesh, content, fill))
+}
+
+// meshLookOf is the look number of the mesh tier fitted (0: none).
+func meshLookOf(tier string) int {
+	for i, t := range meshTiers {
+		if t.tier == tier {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// sieveLooks are the looks a sieve can have besides the bare one: each mesh
+// with nothing on it (fill 1) and with each content at each fill.
+func sieveLooks() [][3]int {
+	var out [][3]int
+	for mesh := 1; mesh <= len(meshTiers); mesh++ {
+		out = append(out, [3]int{mesh, 0, 1})
+		for c := 1; c < len(sieveContents); c++ {
+			for fill := 1; fill <= sieveStages; fill++ {
+				out = append(out, [3]int{mesh, c, fill})
+			}
+		}
+	}
+	return out
 }
 
 // sieveContents are the contents a sieve shows, with their vanilla terrain
@@ -73,14 +102,14 @@ func sieveContentOf(it item.Stack) int {
 
 // sieveMaterials are the materials of a sieve look; without a mesh fitted
 // the mesh is a transparent texture, so the sieve looks empty.
-func sieveMaterials(kind string, content int, meshed bool) map[string]customblock.Material {
-	mesh := "dragonfactory_sieve_nomesh"
-	if meshed {
-		mesh = "dragonfactory_sieve_mesh"
+func sieveMaterials(kind string, content, mesh int) map[string]customblock.Material {
+	meshTexture := "dragonfactory_sieve_nomesh"
+	if mesh > 0 {
+		meshTexture = "dragonfactory_sieve_mesh_" + meshTiers[mesh-1].tier
 	}
 	m := map[string]customblock.Material{
 		"*":    customblock.NewMaterial("dragonfactory_"+kind, customblock.AlphaTestRenderMethod()),
-		"mesh": customblock.NewMaterial(mesh, customblock.AlphaTestRenderMethod()),
+		"mesh": customblock.NewMaterial(meshTexture, customblock.AlphaTestRenderMethod()),
 	}
 	if content > 0 {
 		m["content"] = customblock.NewMaterial(sieveContents[content].name, customblock.AlphaTestRenderMethod())
@@ -89,54 +118,47 @@ func sieveMaterials(kind string, content int, meshed bool) map[string]custombloc
 }
 
 func sieveProperties(kind string) customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.dragonfactory_" + kind + "_0", Textures: sieveMaterials(kind, 0, false)}
+	return customblock.Properties{Geometry: "geometry.dragonfactory_" + kind + "_0", Textures: sieveMaterials(kind, 0, 0)}
 }
 
 func sieveStates() map[string][]any {
-	var values []any
-	for c := range sieveContents {
-		for fill := range sieveStages + 1 {
-			values = append(values, lookValue(c, fill))
-		}
+	values := []any{lookValue(0, 0, 0)}
+	for _, l := range sieveLooks() {
+		values = append(values, lookValue(l[0], l[1], l[2]))
 	}
 	return map[string][]any{sieveLookState: values}
 }
 
 func sievePermutations(kind string) []customblock.Permutation {
-	// Look (0, 1): a mesh fitted and nothing on it.
-	out := []customblock.Permutation{{
-		Condition:  fmt.Sprintf("q.block_state('%s') == '%s'", sieveLookState, lookValue(0, 1)),
-		Properties: customblock.Properties{Geometry: "geometry.dragonfactory_" + kind + "_0", Textures: sieveMaterials(kind, 0, true)},
-	}}
-	for c := 1; c < len(sieveContents); c++ {
-		for fill := 1; fill <= sieveStages; fill++ {
-			out = append(out, customblock.Permutation{
-				Condition: fmt.Sprintf("q.block_state('%s') == '%s'", sieveLookState, lookValue(c, fill)),
-				Properties: customblock.Properties{
-					Geometry: fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill),
-					Textures: sieveMaterials(kind, c, true),
-				},
-			})
-		}
+	var out []customblock.Permutation
+	for _, l := range sieveLooks() {
+		mesh, c, fill := l[0], l[1], l[2]
+		out = append(out, customblock.Permutation{
+			Condition: fmt.Sprintf("q.block_state('%s') == '%s'", sieveLookState, lookValue(mesh, c, fill)),
+			Properties: customblock.Properties{
+				Geometry: fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill*min(c, 1)),
+				Textures: sieveMaterials(kind, c, mesh),
+			},
+		})
 	}
 	return out
 }
 
-// sieveLook returns the content and fill a sieve shows for its state: no
-// mesh (0, 0), a mesh and nothing on it (0, 1).
-func sieveLook(st *machineState) (content, fill int) {
-	if st.mesh == "" {
-		return 0, 0
+// sieveLook returns the mesh, content and fill a sieve shows for its state:
+// no mesh (0, 0, 0), a mesh and nothing on it (mesh, 0, 1).
+func sieveLook(st *machineState) (mesh, content, fill int) {
+	if mesh = meshLookOf(st.mesh); mesh == 0 {
+		return 0, 0, 0
 	}
 	_, in, ok := st.firstInput()
 	if !ok {
-		return 0, 1
+		return mesh, 0, 1
 	}
 	if content = sieveContentOf(in); content == 0 {
-		return 0, 1
+		return mesh, 0, 1
 	}
 	fill = sieveStages - st.progress*sieveStages/st.kind.interval
-	return content, max(1, min(sieveStages, fill))
+	return mesh, content, max(1, min(sieveStages, fill))
 }
 
 // showSieve sets the sieve block to show its content when it changed.
@@ -145,11 +167,11 @@ func showSieve(tx *world.Tx, pos cube.Pos, st *machineState) {
 	if !ok || m.st != st {
 		return
 	}
-	content, fill := sieveLook(st)
-	if m.content == content && m.fill == fill {
+	mesh, content, fill := sieveLook(st)
+	if m.meshLook == mesh && m.content == content && m.fill == fill {
 		return
 	}
-	m.content, m.fill = content, fill
+	m.meshLook, m.content, m.fill = mesh, content, fill
 	tx.SetBlock(pos, m, nil)
 }
 

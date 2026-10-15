@@ -229,3 +229,36 @@ func TestEmptyHandTakesTheMeshOut(t *testing.T) {
 		}
 	})
 }
+
+// TestSieveShowsItsMesh: each mesh tier has its own look, so a sieve shows the
+// mesh it has fitted; the looks are numbered without gaps or repeats.
+func TestSieveShowsItsMesh(t *testing.T) {
+	seen := map[string]bool{lookValue(0, 0, 0): true}
+	for _, l := range sieveLooks() {
+		v := lookValue(l[0], l[1], l[2])
+		if seen[v] {
+			t.Fatalf("look %v repeats the state value %s", l, v)
+		}
+		seen[v] = true
+	}
+	if len(seen) != 1+len(meshTiers)*(1+(len(sieveContents)-1)*sieveStages) {
+		t.Fatalf("%d looks", len(seen))
+	}
+	for i, tier := range meshTiers {
+		st := newMachine(KindSieve, "", "").st
+		st.mesh = tier.tier
+		if mesh, content, fill := sieveLook(st); mesh != i+1 || content != 0 || fill != 1 {
+			t.Fatalf("%s mesh look %d/%d/%d", tier.tier, mesh, content, fill)
+		}
+	}
+	if mesh, _, _ := sieveLook(newMachine(KindSieve, "", "").st); mesh != 0 {
+		t.Fatal("a sieve without a mesh shows one")
+	}
+	// the state values sort in the order of the looks
+	vals := sieveStates()[sieveLookState]
+	for i := 1; i < len(vals); i++ {
+		if vals[i-1].(string) >= vals[i].(string) {
+			t.Fatalf("state values %v and %v are not in order", vals[i-1], vals[i])
+		}
+	}
+}

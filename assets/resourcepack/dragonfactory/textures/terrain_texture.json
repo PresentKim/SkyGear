@@ -1,6 +1,5 @@
 {
   "num_mip_levels": 4,
-  "texture_name": "atlas.terrain",
   "padding": 8,
   "resource_pack_name": "vanilla",
   "texture_data": {
@@ -583,6 +582,24 @@
     "dragonfactory_sieve_mesh": {
       "textures": "textures/blocks/sieve_mesh"
     },
+    "dragonfactory_sieve_mesh_diamond": {
+      "textures": "textures/blocks/sieve_mesh_diamond"
+    },
+    "dragonfactory_sieve_mesh_flint": {
+      "textures": "textures/blocks/sieve_mesh_flint"
+    },
+    "dragonfactory_sieve_mesh_gold": {
+      "textures": "textures/blocks/sieve_mesh_gold"
+    },
+    "dragonfactory_sieve_mesh_iron": {
+      "textures": "textures/blocks/sieve_mesh_iron"
+    },
+    "dragonfactory_sieve_mesh_netherite": {
+      "textures": "textures/blocks/sieve_mesh_netherite"
+    },
+    "dragonfactory_sieve_mesh_string": {
+      "textures": "textures/blocks/sieve_mesh_string"
+    },
     "dragonfactory_sieve_nomesh": {
       "textures": "textures/blocks/sieve_nomesh"
     },
@@ -628,5 +645,6 @@
     "dragonfactory_wood_hopper": {
       "textures": "textures/blocks/wood_hopper"
     }
-  }
+  },
+  "texture_name": "atlas.terrain"
 }

@@ -315,7 +315,7 @@ type Machine struct {
 	Kind string
 	st   *machineState
 	// content and fill are what a sieve shows on its mesh (sieve.go).
-	content, fill int
+	content, fill, meshLook int
 	// active is the working look of an animated machine (animate.go).
 	active bool
 }
@@ -779,7 +779,7 @@ func (m Machine) kind() *machineKind { return machineKinds[m.Kind] }
 func (m Machine) EncodeItem() (string, int16) { return "dragonfactory:" + m.Kind, 0 }
 func (m Machine) EncodeBlock() (string, map[string]any) {
 	if isSieve(m.Kind) {
-		return "dragonfactory:" + m.Kind, map[string]any{sieveLookState: lookValue(m.content, m.fill)}
+		return "dragonfactory:" + m.Kind, map[string]any{sieveLookState: lookValue(m.meshLook, m.content, m.fill)}
 	}
 	if animatedMachines[m.Kind] {
 		return "dragonfactory:" + m.Kind, map[string]any{activeState: activeValue(m.active)}
@@ -790,7 +790,7 @@ func (m Machine) Hash() (uint64, uint64) {
 	if m.active {
 		return m.kind().hash, 1
 	}
-	return m.kind().hash, uint64(lookIndex(m.content, m.fill))
+	return m.kind().hash, uint64(lookIndex(m.meshLook, m.content, m.fill))
 }
 func (Machine) Model() world.BlockModel { return model.Solid{} }
 func (m Machine) Name() string {
@@ -1333,12 +1333,8 @@ func init() {
 		world.RegisterBlock(Machine{Kind: k, active: true})
 	}
 	for _, k := range []string{KindSieve, KindAutoSieve, KindMagicSieve} {
-		for c := range sieveContents {
-			for fill := range sieveStages + 1 {
-				if c != 0 || fill != 0 {
-					world.RegisterBlock(Machine{Kind: k, content: c, fill: fill})
-				}
-			}
+		for _, l := range sieveLooks() {
+			world.RegisterBlock(Machine{Kind: k, meshLook: l[0], content: l[1], fill: l[2]})
 		}
 	}
 }
