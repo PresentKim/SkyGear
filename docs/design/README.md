@@ -21,6 +21,7 @@
 | [07-progression-expansion.md](07-progression-expansion.md) | 금속·합금로·에너지 셀·몬스터 시뮬레이터·액체 네트워크·차원 게이트, 연구·발전과제 구성 |
 | [08-storage-gear-magic.md](08-storage-gear-magic.md) | 스토리지 컨트롤러·장비 제작(팅커스풍)·캐릭터 성장·마법 식물 |
 | [09-automation-equipment.md](09-automation-equipment.md) | 자동화 설비 확장: 전기 화로·자동 제작기·아이템 흡수기·자동 벌목기 |
+| [10-user-flow.md](10-user-flow.md) | 유저 플로우 분석: 대상 유저, 단계별 흐름, 정체 구간, 도감·프로젝트·상태 표시 보강 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항과 밸런싱 수치 표 |
 
 ## 용어

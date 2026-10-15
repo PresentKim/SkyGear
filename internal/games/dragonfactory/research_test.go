@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -15,7 +16,7 @@ import (
 func TestResearchTreeIsValid(t *testing.T) {
 	seen := map[string]bool{}
 	for _, r := range researchTree {
-		if seen[r.ID] || len(r.Cost) == 0 || len(r.Unlocks) == 0 {
+		if seen[r.ID] || len(r.Cost) == 0 || (len(r.Unlocks) == 0 && !strings.HasPrefix(r.ID, "project_")) {
 			t.Errorf("research %q is invalid", r.ID)
 		}
 		for _, n := range r.Needs {

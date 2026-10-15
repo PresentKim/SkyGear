@@ -70,6 +70,8 @@ const (
 	advEssHarvest = "ess_harvest"
 	advChunks8    = "chunks_8"
 	advChunks16   = "chunks_16"
+	// advDragon is done by placing the dragon egg (project.go).
+	advDragon = "dragon_egg"
 )
 
 // advancementTree is every advancement; the quest panel follows this
@@ -198,6 +200,11 @@ var advancementTree = []Advancement{
 	{ID: "item_vacuum", Name: i18n.T(i18n.Default, "advancement.item_vacuum.name"), Parent: "hopper", Hint: i18n.T(i18n.Default, "advancement.item_vacuum.hint"), Item: "dragonfactory:item_vacuum"},
 	{ID: "tree_feller", Name: i18n.T(i18n.Default, "advancement.tree_feller.name"), Parent: "iron_pickaxe", Hint: i18n.T(i18n.Default, "advancement.tree_feller.hint"), Item: "dragonfactory:tree_feller"},
 	{ID: "auto_crafter", Name: i18n.T(i18n.Default, "advancement.auto_crafter.name"), Parent: "redstone", Hint: i18n.T(i18n.Default, "advancement.auto_crafter.hint"), Item: "dragonfactory:auto_crafter"},
+	{ID: "project_industry", Name: i18n.T(i18n.Default, "advancement.project_industry.name"), Parent: "conduit_upgrade_3", Hint: i18n.T(i18n.Default, "advancement.project_industry.hint"), Research: "project_industry", Icon: "dragonfactory:storage_controller"},
+	{ID: "project_hunter", Name: i18n.T(i18n.Default, "advancement.project_hunter.name"), Parent: "project_industry", Hint: i18n.T(i18n.Default, "advancement.project_hunter.hint"), Research: "project_hunter", Icon: "diamond_sword"},
+	{ID: "project_botanist", Name: i18n.T(i18n.Default, "advancement.project_botanist.name"), Parent: "project_hunter", Hint: i18n.T(i18n.Default, "advancement.project_botanist.hint"), Research: "project_botanist", Icon: "dragonfactory:petal_red"},
+	{ID: "project_dragon", Name: i18n.T(i18n.Default, "advancement.project_dragon.name"), Parent: "project_botanist", Hint: i18n.T(i18n.Default, "advancement.project_dragon.hint"), Research: "project_dragon", Icon: "ender_eye"},
+	{ID: advDragon, Name: i18n.T(i18n.Default, "advancement.dragon_egg.name"), Parent: "project_dragon", Hint: i18n.T(i18n.Default, "advancement.dragon_egg.hint"), Event: true, Icon: "dragon_egg"},
 }
 
 // advancementByID returns an advancement of the tree.
@@ -285,13 +292,15 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 	if s.state.Advancements == nil {
 		s.state.Advancements = map[string]bool{}
 	}
-	var names []string
+	var names, newly []string
 	for _, a := range as {
 		for cur, ok := a, true; ok && !s.advanced(cur.ID); cur, ok = advancementByID(cur.Parent) {
 			s.state.Advancements[cur.ID] = true
+			newly = append(newly, cur.ID)
 		}
 		names = append(names, a.Name)
 	}
+	s.grantAdvancementAchievements(tx, newly)
 	s.storeState()
 	s.updateBoards(tx)
 	msg := i18n.T(i18n.Default, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", ")

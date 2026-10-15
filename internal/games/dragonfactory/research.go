@@ -37,6 +37,9 @@ type Research struct {
 	// Unlocks are the item names (without "minecraft:") whose recipes the
 	// research opens; every variant of a name opens together.
 	Unlocks []string
+	// Icon is the item shown for a research that opens no recipe (a project,
+	// project.go).
+	Icon string
 }
 
 var (
@@ -183,6 +186,15 @@ var researchTree = []Research{
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
 	{ID: "golden_food", Needs: []string{"gold", "harvest"}, Cost: []Requirement{{item.GoldIngot{}, 8}, {block.Carrot{}, 4}},
 		Unlocks: []string{"golden_apple", "golden_carrot", "glistering_melon_slice"}},
+	{ID: "project_industry", Icon: "dragonfactory:storage_controller", Needs: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"},
+		Cost: []Requirement{{Ingot{Metal: MetalSteel}, 32}, {Ingot{Metal: MetalElectrum}, 32}, {Ingot{Metal: MetalInvar}, 32}, {Ingot{Metal: MetalBronze}, 32}, {item.Diamond{}, 16}}},
+	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension_gate", "tinker_table", "diamond_armor", "blaze_craft"},
+		Cost: []Requirement{{item.BlazeRod{}, 16}, {item.EnderPearl{}, 16}, {item.Slimeball{}, 16}, {item.SpiderEye{}, 16}, {item.Bone{}, 32}}},
+	{ID: "project_botanist", Icon: "dragonfactory:petal_red", Needs: []string{"magic_essence", "dyeing"},
+		Cost: []Requirement{{PlantSeed{Seed: "ess_enderman"}, 2}, {PlantSeed{Seed: "ess_blaze"}, 2}, {PlantSeed{Seed: "gem_diamond"}, 2}, {PlantSeed{Seed: "gem_emerald"}, 2}, {Essence{Mob: MobEnder}, 8}, {Essence{Mob: MobBlaze}, 8}}},
+	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
+		Cost:    []Requirement{{item.Diamond{}, 32}, {item.Emerald{}, 32}, {item.NetheriteIngot{}, 4}, {Ingot{Metal: MetalSteel}, 32}},
+		Unlocks: []string{"dragon_egg"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 16}}, Unlocks: []string{"dried_kelp_block"}},
 }
 
@@ -303,6 +315,12 @@ func (s *session) unlockNames(r *Research) string {
 
 // researchIcon is a research's form icon: its first result.
 func researchIcon(r *Research) string {
+	if len(r.Unlocks) == 0 {
+		if it, ok := world.ItemByName(unlockName(r.Icon), 0); ok {
+			return iconOf(item.NewStack(it, 1))
+		}
+		return iconMission
+	}
 	if it, ok := world.ItemByName(unlockName(r.Unlocks[0]), 0); ok {
 		return iconOf(item.NewStack(it, 1))
 	}
@@ -593,6 +611,8 @@ func gameRecipes() {
 	add(item.NewStack(Machine{Kind: KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(Ingot{Metal: MetalBronze}, 2), n(block.CraftingTable{}, 1))
 	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 4), n(block.Glass{}, 4), n(item.RedstoneWire{}, 6))
+	// The dragon egg, the last project's prize (project.go).
+	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
 	// The automation equipment (docs/design/09-automation-equipment.md).
 	add(machineItem(KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))

@@ -179,3 +179,23 @@ func TestAutoCrafterOnlyMakesResearchedRecipes(t *testing.T) {
 		t.Fatal("did not choose the researched recipe")
 	}
 }
+
+// TestMachineStatusLines: the panel says why a machine does not go on.
+func TestMachineStatusLines(t *testing.T) {
+	s := testSession(t)
+	s.recipesFree = true
+	loadAround(s)
+	crusher := placeTestMachine(s, machinePos, KindCrusher, "")
+	crusher.progress = crusher.kind.interval
+	if lines, _ := machineLines(Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "가득 차") {
+		t.Errorf("a blocked crusher says %q", lines)
+	}
+	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrafter, "")
+	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법을 정하세요") {
+		t.Errorf("a crafter without a recipe says %q", lines)
+	}
+	crafter.setRecipe(s.crafterCandidates(machineItem(KindCrusher))[0])
+	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "재료 부족") {
+		t.Errorf("a crafter without ingredients says %q", lines)
+	}
+}

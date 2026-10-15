@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -16,6 +17,7 @@ var helpTopics = []struct {
 	icon func() string
 }{
 	{"start", func() string { return iconMission }},
+	{"goal", func() string { return iconOf(item.NewStack(block.DragonEgg{}, 1)) }},
 	{"handwork", func() string { return iconOf(item.NewStack(Pebble{Kind: PebbleStone}, 1)) }},
 	{"sieve", func() string { return iconOf(machineItem(KindSieve)) }},
 	{"water", func() string { return iconOf(item.NewStack(item.Bucket{}, 1)) }},
@@ -28,6 +30,7 @@ var helpTopics = []struct {
 	{"wave", func() string { return iconOf(machineItem(KindGate)) }},
 	{"gear", func() string { return iconOf(machineItem(KindTinker)) }},
 	{"magic", func() string { return iconOf(item.NewStack(Petal{Colour: "red"}, 1)) }},
+	{"lines", func() string { return iconOf(machineItem(KindMiner)) }},
 	{"island", func() string { return iconIsland }},
 }
 

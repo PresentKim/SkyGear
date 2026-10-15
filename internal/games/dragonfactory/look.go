@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
+	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -265,6 +266,8 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		line  *waila.ItemLine
 	)
 	switch {
+	case st.kind.crafter:
+		return crafterLines(st), nil
 	case st.kind == machineKinds[KindSellBox]:
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.1")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
@@ -290,7 +293,7 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap)}, nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
-		return append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), nil
+		return append(append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), blockedLines(st)...), nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
 			line = &waila.ItemLine{Item: it, Name: itemName(it), Gauge: step, ShowGauge: true}
@@ -302,6 +305,7 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		}
 	}
 	lines = append(lines, consumerLines(st)...)
+	lines = append(lines, blockedLines(st)...)
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
 			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.5")+stackLine(it))
@@ -316,4 +320,41 @@ func stackLine(it item.Stack) string {
 		return fmt.Sprintf("§f%s §7×%d", itemName(it), it.Count())
 	}
 	return "§f" + itemName(it)
+}
+
+// blockedLines say why a machine that finished does not go on: its output has
+// no room for the product.
+func blockedLines(st *machineState) []string {
+	if len(st.kind.output) > 0 && st.progress >= st.kind.interval {
+		return []string{i18n.T(i18n.Default, "look.blocked")}
+	}
+	return nil
+}
+
+// crafterLines say what the auto crafter does: its recipe, what it lacks.
+func crafterLines(st *machineState) []string {
+	if st.recipe == nil {
+		return []string{i18n.T(i18n.Default, "crafter.status.none")}
+	}
+	lines := []string{"§f" + itemName(st.recipe.out)}
+	if _, ok := st.crafterPlan(st.recipe); !ok {
+		var missing []string
+		for _, req := range st.recipe.reqs {
+			have := 0
+			for _, slot := range st.kind.input {
+				if it, _ := st.inv().Item(slot); matchReq(it, req) {
+					have += it.Count()
+				}
+			}
+			if have < req.count {
+				missing = append(missing, fmt.Sprintf("%s ×%d", reqName(i18n.Default, req), req.count-have))
+			}
+		}
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), strings.Join(missing, ", ")))
+	} else if !fits(st.inv(), st.kind.output, []item.Stack{st.recipe.out}) {
+		lines = append(lines, i18n.T(i18n.Default, "look.blocked"))
+	} else {
+		lines = append(lines, i18n.T(i18n.Default, "crafter.status.working"))
+	}
+	return append(lines, consumerLines(st)...)
 }

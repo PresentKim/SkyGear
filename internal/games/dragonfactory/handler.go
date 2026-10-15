@@ -79,6 +79,8 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		h.s.placeMachine(ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
+	case block.DragonEgg:
+		h.s.completeDragon(ctx.Player(), ctx.Player().Tx(), pos)
 	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
