@@ -295,6 +295,9 @@
     "dragonfactory:kit_3": {
       "textures": "textures/items/kit_3"
     },
+    "dragonfactory:config_copier": {
+      "textures": "textures/items/config_copier"
+    },
     "dragonfactory:essence_drowned": {
       "textures": "textures/items/essence_drowned"
     },

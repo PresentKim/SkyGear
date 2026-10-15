@@ -214,6 +214,7 @@ item.dragonfactory:circuit_4.name=제어 회로 IV
 item.dragonfactory:kit_1.name=고급 키트
 item.dragonfactory:kit_2.name=정밀 키트
 item.dragonfactory:kit_3.name=궁극 키트
+item.dragonfactory:config_copier.name=설정 복사기
 item.dragonfactory:auto_composter.name=자동 퇴비통
 tile.dragonfactory:auto_composter.name=자동 퇴비통
 item.dragonfactory:fluid_tank.name=유체 탱크

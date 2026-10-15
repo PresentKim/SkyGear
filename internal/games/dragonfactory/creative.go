@@ -97,5 +97,6 @@ func registerCreativeItems() {
 		for l := 1; l <= maxTier; l++ {
 			add(items, TierKit{Level: l})
 		}
+		add(equipment, ConfigCopier{})
 	})
 }

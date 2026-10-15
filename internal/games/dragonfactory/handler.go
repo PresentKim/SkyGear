@@ -103,6 +103,13 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
+	// The configuration copier copies and pastes settings and does nothing else.
+	if _, ok := held.Item().(ConfigCopier); ok {
+		ctx.Cancel()
+		_, off := p.HeldItems()
+		h.s.useCopier(p, tx, pos, face, clickPos, held, off)
+		return
+	}
 	// A sneaking player who clicks the face of a block where a conduit's
 	// connector plate sits, or the side of a conduit that has one, opens the
 	// settings of that side, whatever they hold (a conduit item in hand places).
@@ -194,10 +201,13 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 }
 
 func (h *handler) HandleItemUse(ctx *player.Context) {
-	held, _ := ctx.Player().HeldItems()
+	held, off := ctx.Player().HeldItems()
 	if isMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
+	}
+	if _, ok := held.Item().(ConfigCopier); ok {
+		h.s.clearCopier(ctx.Player(), held, off)
 	}
 }
 

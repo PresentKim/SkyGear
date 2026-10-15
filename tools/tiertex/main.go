@@ -1,5 +1,6 @@
 // tiertex writes the item textures of the machine tiers (tier.go): the three
-// alloys (ingots), the four control circuits and the three tier kits. They
+// alloys (ingots), the four control circuits, the three tier kits and the
+// configuration copier. They
 // are temporary pictures drawn from a colour for each item.
 //
 //	go run ./tools/tiertex assets/resourcepack/dragonfactory
@@ -113,6 +114,27 @@ var kitShape = []string{
 	"................",
 }
 
+// copierShape: 'o' outline, 'b' body, 's' screen, 'l' lit part of the screen,
+// 'k' button, 'a' antenna.
+var copierShape = []string{
+	"..............a.",
+	".............aa.",
+	"....ooooooo.oa..",
+	"...obbbbbbbooo..",
+	"...obsssssbbbo..",
+	"...obslllsbbbo..",
+	"...obslllsbbbo..",
+	"...obsssssbbbo..",
+	"...obbbbbbbbbo..",
+	"...obbkbbkbbbo..",
+	"...obbbbbbbbbo..",
+	"...obbkbbkbbbo..",
+	"...obbbbbbbbbo..",
+	"...ooooooooooo..",
+	"................",
+	"................",
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: tiertex pack-dir")
@@ -138,6 +160,10 @@ func main() {
 		})
 		save(filepath.Join(dir, fmt.Sprintf("circuit_%d.png", i+1)), im)
 	}
+	save(filepath.Join(dir, "config_copier.png"), draw(copierShape, map[byte]color.RGBA{
+		'o': {30, 36, 40, 255}, 'b': {150, 156, 164, 255}, 's': {40, 70, 60, 255}, 'l': {110, 230, 160, 255},
+		'k': {220, 170, 60, 255}, 'a': {200, 200, 210, 255},
+	}))
 	kits := []color.RGBA{{80, 150, 220, 255}, {236, 190, 60, 255}, {160, 80, 220, 255}}
 	for i, col := range kits {
 		im := draw(kitShape, map[byte]color.RGBA{

@@ -187,6 +187,9 @@ var counterCatalog = []counterDef{
 	{"tier_up_1", "factory", []int64{1, 10, 40}},
 	{"tier_up_2", "factory", []int64{1, 5, 20}},
 	{"tier_up_3", "factory", []int64{1, 3, 10}},
+	{"copier_copy", "factory", []int64{1, 25, 250}},
+	{"copier_paste", "factory", []int64{1, 50, 500, 5000}},
+	{"copier_conduit_all", "factory", []int64{1, 20, 100}},
 }
 
 // haveCatalog are the items whose first possession is an achievement
@@ -248,4 +251,5 @@ var haveCatalog = []haveDef{
 	{"dragonfactory:kit_1", "kit_1"},
 	{"dragonfactory:kit_2", "kit_2"},
 	{"dragonfactory:kit_3", "kit_3"},
+	{"dragonfactory:config_copier", "config_copier"},
 }

@@ -214,6 +214,7 @@ item.dragonfactory:circuit_4.name=Control Circuit IV
 item.dragonfactory:kit_1.name=Advanced Kit
 item.dragonfactory:kit_2.name=Precision Kit
 item.dragonfactory:kit_3.name=Ultimate Kit
+item.dragonfactory:config_copier.name=Config Copier
 item.dragonfactory:auto_composter.name=Auto Composter
 tile.dragonfactory:auto_composter.name=Auto Composter
 item.dragonfactory:fluid_tank.name=Fluid Tank

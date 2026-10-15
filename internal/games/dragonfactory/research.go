@@ -195,6 +195,8 @@ var baseResearchTree = []Research{
 		Unlocks: []string{"dragonfactory:circuit_3", "dragonfactory:kit_2"}},
 	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []Requirement{{item.NetheriteIngot{}, 2}},
 		Unlocks: []string{"dragonfactory:circuit_4", "dragonfactory:kit_3"}},
+	{ID: "config_copier", Needs: []string{"machine_tier_1", "item_conduit", "auto_crafter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.LapisLazuli{}, 8}},
+		Unlocks: []string{"dragonfactory:config_copier"}},
 	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{Petal{Colour: "red"}, 4}, {Petal{Colour: "yellow"}, 4}, {Petal{Colour: "blue"}, 4}},
 		Unlocks: dyeUnlocks()},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 16}, {block.Pumpkin{}, 4}},
@@ -691,6 +693,10 @@ func gameRecipes() {
 		item.NetheriteIngot{}, c4, atomic,
 		atomic, TierKit{Level: 2}, atomic,
 		ResearchEssence{Kind: EssenceAlchemy}, c4, ResearchEssence{Kind: EssenceFarming})
+	shaped(st(ConfigCopier{}), 3, 3,
+		steel, c2, steel,
+		infused, item.LapisLazuli{}, infused,
+		nil, item.Stick{}, nil)
 	// The magic sieve: an auto sieve (in any state) with eyes of ender, diamonds
 	// and amethyst.
 	add(machineItem(KindMagicSieve), []recipe.Item{st(Machine{Kind: KindAutoSieve}).WithValue("variants", true)}, n(item.EnderEye{}, 2), n(item.Diamond{}, 2), n(item.AmethystShard{}, 4))

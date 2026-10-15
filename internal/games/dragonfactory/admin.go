@@ -199,6 +199,7 @@ func giveItems() map[string]func() item.Stack {
 	for _, m := range mobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
 	}
+	out["config_copier"] = func() item.Stack { return item.NewStack(ConfigCopier{}, 1) }
 	for _, a := range tierAlloys {
 		out["alloy_"+a] = func() item.Stack { return item.NewStack(TierAlloy{Kind: a}, 1) }
 	}
