@@ -217,12 +217,14 @@ func (st *machineState) runWasher() {
 		st.tickWork()
 		return
 	}
-	out := item.NewStack(MetalDust{Metal: in.Item().(OreChunk).Ore}, 3)
+	out, chance, _ := oreDust(in, washerDust)
 	if !st.roomFor([]item.Stack{out}) {
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
-	st.emit(out)
+	if st.sess == nil || st.sess.rand.IntN(100) < chance {
+		st.emit(out)
+	}
 	if st.fluidAmt -= washerWater; st.fluidAmt == 0 {
 		st.fluid = fluidnet.None
 	}

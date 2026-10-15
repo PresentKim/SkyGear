@@ -258,12 +258,47 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Sand{}): Dust{},
 }
 
+// oreInput tells what an ore item is: its metal and how many of the ore's
+// four chunks it is worth (an ore block is the four; docs/design/07-progression-expansion.md §3).
+func oreInput(it world.Item) (metal string, chunks int, ok bool) {
+	if c, isChunk := it.(OreChunk); isChunk {
+		return c.Ore, 1, true
+	}
+	for _, k := range oreKinds {
+		if k.block != nil && itemKey(k.block) == itemKey(it) {
+			return k.ore, 4, true
+		}
+	}
+	return "", 0, false
+}
+
+// Dust an ore (four chunks) gives: the crusher doubles it, the ore washer
+// triples it. A single chunk gives a share of that, as a chance of one dust.
+const (
+	crusherDust = 2
+	washerDust  = 3
+)
+
+// oreDust is the most dust an ore item gives with a machine that makes perOre
+// dust of an ore, and the chance (percent) that it gives it: an ore block
+// always gives its dust, a chunk one dust with a quarter of that chance.
+func oreDust(in item.Stack, perOre int) (item.Stack, int, bool) {
+	metal, chunks, ok := oreInput(in.Item())
+	if !ok {
+		return item.Stack{}, 0, false
+	}
+	if chunks == 4 {
+		return item.NewStack(MetalDust{Metal: metal}, perOre), 100, true
+	}
+	return item.NewStack(MetalDust{Metal: metal}, 1), perOre * 100 / 4, true
+}
+
 // crusherOutput is what the crusher makes of an item: the blocks of the hammer
-// chain one step down, and an ore chunk into two dusts of its metal (the ore
-// doubling of docs/design/07-progression-expansion.md §3).
+// chain one step down, an ore block into two dusts of its metal and a chunk
+// into one dust half of the time.
 func crusherOutput(in item.Stack) (item.Stack, bool) {
-	if c, ok := in.Item().(OreChunk); ok {
-		return item.NewStack(MetalDust{Metal: c.Ore}, 2), true
+	if out, _, ok := oreDust(in, crusherDust); ok {
+		return out, true
 	}
 	if out, ok := crushRecipes[itemKey(in.Item())]; ok {
 		return item.NewStack(out, 1), true
@@ -488,7 +523,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindCrucible]:
 		return k == itemKey(block.Cobblestone{})
 	case machineKinds[KindWasher]:
-		_, ok := it.Item().(OreChunk)
+		_, _, ok := oreInput(it.Item())
 		return ok
 	case machineKinds[KindFurnace]:
 		_, ok := smeltOf(it)
@@ -1115,7 +1150,13 @@ func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *wo
 		st.process(func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
 			return []item.Stack{out}
-		}, nil)
+		}, func(in item.Stack) []item.Stack {
+			out, _ := crusherOutput(in)
+			if _, chance, ok := oreDust(in, crusherDust); ok && s.rand.IntN(100) >= chance {
+				return nil
+			}
+			return []item.Stack{out}
+		})
 	case KindGenerator:
 		s.runGenerator(st, pos, tx)
 	case KindAlloy:

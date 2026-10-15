@@ -413,16 +413,29 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 	}
 }
 
-// TestCrusherDoublesOre: an ore chunk crushes into two dusts of its metal, and a
-// dust smelts into an ingot (docs/design/07 §3).
+// TestCrusherDoublesOre: an ore block crushes into two dusts of its metal, a
+// chunk (a quarter of an ore) into one dust half of the time, and a dust smelts
+// into an ingot (docs/design/07 §3).
 func TestCrusherDoublesOre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(OreChunk{Ore: MetalTin}, 2))
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 2))
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: MetalTin}); n != 4 {
-		t.Fatalf("tin dust from two chunks = %d, want 4", n)
+	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 4 {
+		t.Fatalf("iron dust from two ore blocks = %d, want 4", n)
+	}
+	// chunks: over many, half of them give a dust (an ore's four chunks give two)
+	crusherChunks := 0
+	for range 400 {
+		out := []item.Stack{}
+		if _, chance, _ := oreDust(item.NewStack(OreChunk{Ore: MetalTin}, 1), crusherDust); s.rand.IntN(100) < chance {
+			out = append(out, item.NewStack(MetalDust{Metal: MetalTin}, 1))
+		}
+		crusherChunks += len(out)
+	}
+	if crusherChunks < 160 || crusherChunks > 240 {
+		t.Fatalf("400 chunks gave %d dusts, want about 200", crusherChunks)
 	}
 	for _, m := range dustMetals {
 		d := MetalDust{Metal: m}
@@ -573,13 +586,14 @@ func TestFluidLine(t *testing.T) {
 	}
 }
 
-// TestOreWasher: with water in its tank it washes a chunk into three dusts and
-// uses 250 mB; without water it does nothing.
+// TestOreWasher: with water in its tank it washes an ore block into three dusts
+// (a chunk into one dust three quarters of the time) and uses 250 mB; without
+// water it does nothing.
 func TestOreWasher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindWasher, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(OreChunk{Ore: OreIron}, 2))
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 2))
 	tick(s, 2*(st.kind.interval+1))
 	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 0 {
 		t.Fatalf("dust without water = %d", n)
@@ -587,7 +601,7 @@ func TestOreWasher(t *testing.T) {
 	st.fluid, st.fluidAmt = fluidnet.Water, 500
 	tick(s, 2*(st.kind.interval+1))
 	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 6 {
-		t.Errorf("dust from two chunks = %d, want 6", n)
+		t.Errorf("dust from two ore blocks = %d, want 6", n)
 	}
 	if st.fluidAmt != 0 || st.fluid != fluidnet.None {
 		t.Errorf("tank %v %d", st.fluid, st.fluidAmt)

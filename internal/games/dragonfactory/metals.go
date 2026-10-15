@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
-	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 )
@@ -75,12 +74,5 @@ func init() {
 	}
 	for _, m := range ingotMetals {
 		world.RegisterItem(Ingot{Metal: m})
-	}
-	// By hand a chunk of a new ore gives one dust (the crusher two).
-	for _, k := range oreKinds {
-		if k.block == nil {
-			c := item.NewStack(OreChunk{Ore: k.ore}, 1)
-			recipe.Register(recipe.NewShapeless([]recipe.Item{c}, item.NewStack(MetalDust{Metal: k.ore}, 1), "crafting_table"))
-		}
 	}
 }
