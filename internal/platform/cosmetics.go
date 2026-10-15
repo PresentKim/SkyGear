@@ -47,20 +47,83 @@ func (pf *Platform) cosmeticsBack(p *player.Player) {
 	p.ExecuteCommand("/menu")
 }
 
+// pageSize is how many buttons a page of titles has.
+const pageSize = 24
+
+// groupOf is the group an achievement is listed under.
+func groupOf(p *player.Player, a account.Achievement) string {
+	if a.Group == "" {
+		return i18n.T(i18n.Of(p), "platform.cosmetics.group.other")
+	}
+	return a.Group
+}
+
+// groupsOf lists the groups of the achievements in order, with how many
+// achievements each has and how many of them the account owns.
+func groupsOf(p *player.Player, owned []string) (names []string, total, have map[string]int) {
+	total, have = map[string]int{}, map[string]int{}
+	for _, g := range account.Groups() {
+		if g == "" {
+			g = i18n.T(i18n.Of(p), "platform.cosmetics.group.other")
+		}
+		names = append(names, g)
+	}
+	for _, a := range account.All() {
+		g := groupOf(p, a)
+		total[g]++
+		if slices.Contains(owned, a.ID) {
+			have[g]++
+		}
+	}
+	return names, total, have
+}
+
 func (pf *Platform) showTitles(p *player.Player) {
 	acc := instance.AccountID(p)
+	owned := account.Owned(acc)
 	opts := []ui.Option{{Label: i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.1"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, "") }}}
-	for _, id := range account.Owned(acc) {
-		if a, ok := account.Get(id); ok && a.Title != "" {
-			opts = append(opts, ui.Option{Label: "§e[" + a.Title + "]\n§8" + a.Name, Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, a.ID) }})
+	names, _, _ := groupsOf(p, owned)
+	titles := map[string]int{}
+	for _, a := range account.All() {
+		if a.Title != "" && slices.Contains(owned, a.ID) {
+			titles[groupOf(p, a)]++
+		}
+	}
+	for _, g := range names {
+		if titles[g] > 0 {
+			opts = append(opts, ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.groupLabel"), g, titles[g]), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, g, 0) }})
 		}
 	}
 	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
 	body := i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
-	if len(opts) == 2 {
+	if len(titles) == 0 {
 		body += i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.4")
 	}
 	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.5"), body, opts...)
+}
+
+// showTitleGroup lists the titles of a group, a page at a time.
+func (pf *Platform) showTitleGroup(p *player.Player, group string, page int) {
+	owned := account.Owned(instance.AccountID(p))
+	var list []account.Achievement
+	for _, a := range account.All() {
+		if a.Title != "" && groupOf(p, a) == group && slices.Contains(owned, a.ID) {
+			list = append(list, a)
+		}
+	}
+	page = max(0, min(page, (len(list)-1)/pageSize))
+	var opts []ui.Option
+	for _, a := range list[page*pageSize : min(len(list), (page+1)*pageSize)] {
+		opts = append(opts, ui.Option{Label: "§e[" + a.Title + "]\n§8" + a.Name, Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, a.ID) }})
+	}
+	if page > 0 {
+		opts = append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.page.prev"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, group, page-1) }})
+	}
+	if (page+1)*pageSize < len(list) {
+		opts = append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.page.next"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, group, page+1) }})
+	}
+	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }))
+	ui.Menu(p, group, i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3"), opts...)
 }
 
 func (pf *Platform) setTitle(p *player.Player, id string) {
@@ -105,17 +168,48 @@ func (pf *Platform) showColors(p *player.Player) {
 
 func (pf *Platform) showAchievements(p *player.Player) {
 	owned := account.Owned(instance.AccountID(p))
+	names, total, have := groupsOf(p, owned)
+	var opts []ui.Option
+	for _, g := range names {
+		label := fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achGroupLabel"), g, have[g], total[g])
+		opts = append(opts, ui.Option{Label: label, Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievementGroup(p, g) }})
+	}
+	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.2"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achTotal"), len(owned), len(account.All())), opts...)
+}
+
+// showAchievementGroup lists the achievements of a group: the ones earned
+// with their titles, the others with how far the counter is.
+func (pf *Platform) showAchievementGroup(p *player.Player, group string) {
+	acc := instance.AccountID(p)
+	owned := account.Owned(acc)
 	var b strings.Builder
 	for _, a := range account.All() {
+		if groupOf(p, a) != group {
+			continue
+		}
 		mark := "§8□ §7"
 		if slices.Contains(owned, a.ID) {
 			mark = "§a■ §f"
 		}
 		fmt.Fprintf(&b, "%s%s §8- %s", mark, a.Name, a.Desc)
-		if a.Title != "" {
-			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.1"), a.Title)
+		if slices.Contains(owned, a.ID) {
+			if a.Title != "" {
+				fmt.Fprintf(&b, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.1"), a.Title)
+			}
+		} else if have, need, ok := account.Progress(acc, a.ID); ok {
+			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "platform.cosmetics.progress"), commas(have), commas(need))
 		}
 		b.WriteString("\n")
 	}
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.2"), b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
+	ui.Menu(p, group, b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }))
+}
+
+// commas writes n with thousands separators.
+func commas(n int64) string {
+	s := fmt.Sprint(n)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return s
 }

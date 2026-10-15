@@ -91,6 +91,7 @@ func (s *session) gainXP(p *player.Player, n int) {
 	before := rpgLevel(r.XP)
 	r.XP += n
 	if now := rpgLevel(r.XP); now > before {
+		count(p, "rpg_level", int64(now-before))
 		p.Messagef(i18n.T(i18n.Of(p), "rpg.levelUp"), now, r.points())
 		for _, a := range []struct {
 			level int
@@ -150,6 +151,7 @@ func (s *session) showCharacter(p *player.Player) {
 			r := s.rpgOf(p)
 			if r.points() > 0 && r.Skills[sk.id] < sk.max {
 				r.Skills[sk.id]++
+				count(p, "skill_spend", 1)
 				s.advance(tx, advSkill)
 				s.applyRPG(p)
 				s.storeState()

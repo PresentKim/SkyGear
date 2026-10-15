@@ -141,10 +141,18 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	switch tx.Block(pos).(type) {
 	case block.Grass, block.Dirt:
 	default:
+		if !s.stickDebounced(p) {
+			count(p, "stick_other", 1)
+		}
 		return false
 	}
 	if s.stickDebounced(p) {
 		return true
+	}
+	if _, dirt := tx.Block(pos).(block.Dirt); dirt {
+		count(p, "stick_dirt", 1)
+	} else {
+		count(p, "stick_grass", 1)
 	}
 	// Every use knocks a pebble out, with dirt chips and the small
 	// breaking sound of the block.
@@ -152,18 +160,24 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	tx.AddParticle(pos.Side(face).Vec3Centre(), particle.PunchBlock{Block: b, Face: face})
 	tx.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
 	tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
-	s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(s.rollPebble(), 1))
+	pebble := s.rollPebble()
+	count(p, "pebble_"+pebble.Kind, 1)
+	s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(pebble, 1))
 	return true
 }
 
 // stripFiber drops bark fibers by chance when a stone or better axe strips
 // a log (Dragonfly strips it after this).
-func (s *session) stripFiber(tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
+func (s *session) stripFiber(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
 	axe, ok := held.Item().(item.Axe)
-	if !ok || axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
+	if !ok {
 		return
 	}
 	if l, ok := tx.Block(pos).(block.Log); !ok || l.Stripped {
+		return
+	}
+	count(p, "strip_log", 1)
+	if axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
 		return
 	}
 	if s.rand.IntN(100) < fiberChance {

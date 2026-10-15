@@ -131,6 +131,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)
+	count(p, "chunk_buy", 1)
 	if len(s.state.Chunks) >= 10 {
 		account.Grant(p, achChunks)
 	}
@@ -156,6 +157,7 @@ func (s *session) keepLoaded(tx *world.Tx, c ChunkPos) {
 
 // returnFromVoid puts p high above the block nearest to where it fell.
 func (s *session) returnFromVoid(p *player.Player, tx *world.Tx) {
+	count(p, "void_return", 1)
 	pos := p.Position()
 	x, z, ok := s.nearestBlockColumn(tx, int(math.Floor(pos.X())), int(math.Floor(pos.Z())))
 	if !ok {

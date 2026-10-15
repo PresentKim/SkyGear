@@ -42,13 +42,14 @@ var advAchievements = map[string]string{
 }
 
 func init() {
-	ach := func(id string) account.Achievement {
+	ach := func(id, group string) account.Achievement {
 		return account.Achievement{
 			ID: id, Name: i18n.T(i18n.Default, "achievement."+id+".name"),
 			Desc: i18n.T(i18n.Default, "achievement."+id+".desc"), Title: i18n.T(i18n.Default, "achievement."+id+".title"),
+			Group: achievementGroup(group),
 		}
 	}
-	account.Register(ach(achWave1), ach(achWave8), ach(achTinker), ach(achBloom), ach(achDragon))
+	account.Register(ach(achWave1, "combat"), ach(achWave8, "combat"), ach(achTinker, "gear"), ach(achBloom, "farm"), ach(achDragon, "progress"))
 }
 
 // grantAdvancementAchievements gives the achievements of advancements just done.

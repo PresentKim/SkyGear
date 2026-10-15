@@ -28,6 +28,7 @@ func codexSieveInputs() []world.Item {
 
 // openCodex opens the codex, or the page of the item p holds.
 func (s *session) openCodex(p *player.Player) {
+	count(p, "codex_open", 1)
 	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
 		s.showCodexItem(p, held)
 		return

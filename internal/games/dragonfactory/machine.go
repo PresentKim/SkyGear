@@ -310,6 +310,9 @@ type machineState struct {
 	// pending are the products of an auto sieve that did not fit its output slots
 	// yet: it waits until they do.
 	pending []item.Stack
+	// done counts the work cycles finished and made the RE generated since
+	// they were last counted for the players' achievements (counter.go).
+	done, made int
 }
 
 // legacySlot is the first saved slot number of legacy items (not a window
@@ -946,6 +949,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st := m.st
 	st.drainLegacy()
+	full := st.kind.interval > 1 && st.progress >= st.kind.interval
 	switch m.Kind {
 	case KindCrusher:
 		st.process(func(in item.Stack) []item.Stack {
@@ -981,6 +985,10 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	case KindCrafter:
 		s.runCrafter(st)
 	}
+	if full && st.progress == 0 && cycleOnReset[m.Kind] {
+		st.done++
+	}
+	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
 	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
 		if m.Kind == KindEnergyCell && st.energy > 0 {
@@ -1098,6 +1106,7 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 		put(st.inv(), st.kind.output, it)
 	}
 	st.progress = 0
+	st.done++
 }
 
 // viewCrack shows a block crack action to the players viewing pos.
@@ -1111,6 +1120,8 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
 	m := newMachine(kind, instance.AccountID(p), p.Name())
 	account.Grant(p, achMachine)
+	count(p, "machine_place", 1)
+	count(p, "place_"+kind, 1)
 	if m.Kind != KindSieve {
 		s.advance(tx, advMachine)
 	}

@@ -64,6 +64,7 @@ func (s *session) runVacuum(st *machineState, pos cube.Pos, tx *world.Tx) {
 			continue
 		}
 		put(st.inv(), st.kind.output, stack)
+		st.done++
 		tx.AddParticle(ent.Position(), particle.EndermanTeleport{})
 		_ = ent.Close()
 		return
@@ -117,6 +118,7 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 			}
 		}
 		st.progress = 0
+		st.done++
 		return
 	}
 	st.progress = 0

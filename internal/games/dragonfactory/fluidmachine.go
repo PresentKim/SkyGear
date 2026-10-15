@@ -195,6 +195,7 @@ func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
 			}
 		}
 		st.energy += k.generates
+		st.made += k.generates
 	}
 	s.energyGrid().AddSource(pos)
 }

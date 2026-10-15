@@ -86,3 +86,38 @@ func (d *DB) Achievements(account string) ([]string, error) {
 	}
 	return out, rows.Err()
 }
+
+// AddCounters adds to the counters of an account, creating them as needed.
+func (d *DB) AddCounters(account string, delta map[string]int64) error {
+	tx, err := d.sql.Begin()
+	if err != nil {
+		return err
+	}
+	for key, n := range delta {
+		if _, err := tx.Exec(`INSERT INTO counters (account_id, key, value) VALUES (?, ?, ?)
+			ON CONFLICT(account_id, key) DO UPDATE SET value = value + excluded.value`, account, key, n); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// Counters returns the counters of an account by key.
+func (d *DB) Counters(account string) (map[string]int64, error) {
+	rows, err := d.sql.Query(`SELECT key, value FROM counters WHERE account_id = ?`, account)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]int64{}
+	for rows.Next() {
+		var key string
+		var v int64
+		if err := rows.Scan(&key, &v); err != nil {
+			return nil, err
+		}
+		out[key] = v
+	}
+	return out, rows.Err()
+}

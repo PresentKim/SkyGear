@@ -322,13 +322,17 @@ func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
 func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 	k := plantKinds[plantKindIndex(b.Kind)]
 	s.advance(tx, advBloom)
+	countAll(tx, "bloom_total", 1)
 	switch k.tier {
 	case 2:
 		s.advance(tx, advOreHarvest)
+		countAll(tx, "bloom_ore", 1)
 	case 3:
 		s.advance(tx, advGemHarvest)
+		countAll(tx, "bloom_gem", 1)
 	case 4:
 		s.advance(tx, advEssHarvest)
+		countAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
 	now, _, _ := s.clock.Now()

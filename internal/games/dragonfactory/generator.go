@@ -75,6 +75,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 	}
 	if st.burn > 0 && st.energy+k.generates <= k.energyCap {
 		st.energy += k.generates
+		st.made += k.generates
 		st.burn--
 	}
 	st.progress = 0

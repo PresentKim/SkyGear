@@ -139,6 +139,9 @@ type session struct {
 	lastOpen map[*world.EntityHandle]time.Time
 	// lastStick is when each player last used a stick on the ground.
 	lastStick map[*world.EntityHandle]time.Time
+	// walked is the part of a block each player walked since the last whole
+	// block was counted (counter.go).
+	walked map[*world.EntityHandle]float64
 	// boardMinute is the play time minute shown on the HUD.
 	boardMinute int
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).

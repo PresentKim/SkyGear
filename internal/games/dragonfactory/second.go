@@ -16,6 +16,8 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickToolEffects(tx)
 	s.tickPlants(tx)
 	s.updateLoadBoards(tx)
+	countAll(tx, "play_seconds", 1)
+	grantCollection(tx)
 }
 
 var _ instance.SecondTicker = (*session)(nil)

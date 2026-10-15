@@ -74,13 +74,13 @@ func TestAxeStripsFiber(t *testing.T) {
 		pos := cube.Pos{1, IslandY, 1}
 		tx.SetBlock(pos, oakLog, nil)
 		for range 50 {
-			s.stripFiber(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
+			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		}
 		if droppedItems(tx)[itemKey(BarkFiber{})] != 0 {
 			t.Fatal("a wooden axe stripped fibers")
 		}
 		for range 50 {
-			s.stripFiber(tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
+			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
 		}
 		if n := droppedItems(tx)[itemKey(BarkFiber{})]; n < 20 {
 			t.Fatalf("%d fibers from 50 stone axe strips", n)

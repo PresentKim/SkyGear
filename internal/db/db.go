@@ -129,6 +129,13 @@ var migrations = []string{
 		earned_at  INTEGER NOT NULL,
 		PRIMARY KEY (account_id, id)
 	);`,
+	// 5: the counters of account achievements (docs/design/01-platform.md §5).
+	`CREATE TABLE counters (
+		account_id TEXT NOT NULL REFERENCES accounts(id),
+		key        TEXT NOT NULL,
+		value      INTEGER NOT NULL,
+		PRIMARY KEY (account_id, key)
+	);`,
 }
 
 func (d *DB) migrate() error {

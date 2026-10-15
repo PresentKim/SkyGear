@@ -88,6 +88,7 @@ func (pf *Platform) Join(p *player.Player) {
 		return
 	}
 	pf.m.Join(p)
+	account.Count(p, "login", 1)
 	account.Refresh(p)
 	if acc.GuideVersion < GuideVersion {
 		pf.showGuide(p, true)

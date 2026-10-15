@@ -16,8 +16,8 @@ const (
 
 func init() {
 	account.Register(
-		account.Achievement{ID: achMachine, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.1"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.2"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.3")},
-		account.Achievement{ID: achChunks, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.4"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.5"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.6")},
-		account.Achievement{ID: achResearch, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.7"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.8"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.9")},
+		account.Achievement{ID: achMachine, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.1"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.2"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.3"), Group: achievementGroup("factory")},
+		account.Achievement{ID: achChunks, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.4"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.5"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.6"), Group: achievementGroup("island")},
+		account.Achievement{ID: achResearch, Name: i18n.T(i18n.Default, "dragonfactory.achievements.init.7"), Desc: i18n.T(i18n.Default, "dragonfactory.achievements.init.8"), Title: i18n.T(i18n.Default, "dragonfactory.achievements.init.9"), Group: achievementGroup("progress")},
 	)
 }

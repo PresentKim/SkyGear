@@ -98,6 +98,7 @@ func (s *session) makeTool(p *player.Player, tx *world.Tx, pos cube.Pos, kind st
 	tool := describeTool(item.NewStack(TinkerTool{Kind: kind, Head: head.id, Handle: hd.id}, 1))
 	s.giveItem(p, tx, p.Position(), tool)
 	s.advance(tx, advToolMade)
+	count(p, "tool_made", 1)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
 	return true
 }
@@ -151,6 +152,7 @@ func (s *session) applyModifier(p *player.Player, tx *world.Tx, pos cube.Pos, m 
 	mods[m.id]++
 	p.SetHeldItems(describeTool(withToolMods(held, mods)), off)
 	s.advance(tx, advToolMod)
+	count(p, "tool_mod", 1)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
 	return true
 }
@@ -172,6 +174,7 @@ func (s *session) gainToolXP(p *player.Player, n int) {
 	_, off := p.HeldItems()
 	p.SetHeldItems(next, off)
 	if up {
+		count(p, "tool_levelup", 1)
 		s.advance(p.Tx(), advToolLevel)
 		if toolLevel(toolXP(next)) >= 5 {
 			s.advance(p.Tx(), advTool5)

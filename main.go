@@ -17,6 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
 	"github.com/presentkim/dragonfactory/internal/instance"
@@ -107,6 +108,7 @@ func run(log *slog.Logger) error {
 		close(stopLoad)
 		// Store every instance before players are disconnected.
 		m.CloseAll()
+		account.Flush()
 		if err := srv.Close(); err != nil {
 			log.Error("close server", "err", err)
 		}
@@ -117,6 +119,7 @@ func run(log *slog.Logger) error {
 		pf.Join(p)
 	}
 	m.CloseAll()
+	account.Flush()
 	return nil
 }
 

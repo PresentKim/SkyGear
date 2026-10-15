@@ -71,6 +71,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			}
 			if mp, isPlant := b.(MagicPlant); isPlant && mp.Bloom {
 				if s.harvestMagicPlant(st, tx, at, mp) {
+					st.done++
 					return
 				}
 				continue
@@ -97,6 +98,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 					put(st.inv(), st.kind.output, it)
 				}
 			}
+			st.done++
 			return
 		}
 	}

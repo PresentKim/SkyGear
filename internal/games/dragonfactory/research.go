@@ -286,6 +286,15 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 		s.state.Researched = map[string]bool{}
 	}
 	s.state.Researched[r.ID] = true
+	countAll(tx, "research_done", 1)
+	if strings.HasPrefix(r.ID, "project_") && r.ID != "project_dragon" {
+		countAll(tx, "project_done", 1)
+	}
+	if len(s.state.Researched) >= len(researchTree) {
+		for e := range tx.Players() {
+			account.Grant(e.(*player.Player), achAllResearch)
+		}
+	}
 	delete(s.state.ResearchPaid, r.ID)
 	s.storeState()
 	s.sendRecipes(tx)
@@ -328,7 +337,10 @@ func researchIcon(r *Research) string {
 }
 
 // showResearch shows the research list on the tab of researches still to do.
-func (s *session) showResearch(p *player.Player) { s.showResearchTab(p, false) }
+func (s *session) showResearch(p *player.Player) {
+	count(p, "research_open", 1)
+	s.showResearchTab(p, false)
+}
 
 // showResearchTab shows the research list as a grid of item slots (the
 // representative item of each research) under two tabs, the researches

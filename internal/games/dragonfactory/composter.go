@@ -78,11 +78,13 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 	switch {
 	case n >= matterCapacity:
 		s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), s.emptyComposter(tx, pos, c))
+		count(p, "compost_dirt", 1)
 		return true
 	case plantMatter(held):
 		if s.fillComposter(tx, pos, c, held, 1) == 0 {
 			return false
 		}
+		count(p, "compost_fill", 1)
 		if s.composterCount(pos, c) >= matterCapacity {
 			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.composter.useComposter.1"))
 		}

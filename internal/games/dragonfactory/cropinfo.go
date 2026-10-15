@@ -33,6 +33,8 @@ func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		return false
 	}
 	if after, ok := harvestable(b); ok {
+		count(p, "crop_harvest", 1)
+		count(p, "crop_"+kind, 1)
 		s.harvestByHand(tx, pos, b, after)
 		return true
 	}

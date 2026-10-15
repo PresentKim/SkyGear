@@ -127,6 +127,8 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	delete(w.left, m.handle)
 	if p != nil {
 		s.advance(tx, advKill)
+		count(p, "kill_total", 1)
+		count(p, "kill_"+m.kind, 1)
 		looting := 0
 		fortune := s.rpgFortune(p)
 		s.gainXP(p, int(monsterTable[m.kind].health))
@@ -179,6 +181,8 @@ func (s *session) winWave(tx *world.Tx) {
 		}
 	}
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})
+	countAll(tx, "wave_win", 1)
+	countAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
 	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "gate.win"), w.level))
 	for e := range tx.Players() {
 		s.gainXP(e.(*player.Player), 15*w.level)
@@ -192,6 +196,7 @@ func (s *session) failWave(tx *world.Tx, key string) {
 		return
 	}
 	s.wave = nil
+	countAll(tx, "wave_fail", 1)
 	for h := range w.left {
 		if e, ok := h.Entity(tx); ok {
 			_ = e.Close()

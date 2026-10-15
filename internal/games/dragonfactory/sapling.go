@@ -32,6 +32,7 @@ func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) err
 		return fmt.Errorf(i18n.T(i18n.Of(p), "dragonfactory.sapling.giveSapling.1"), int(wait.Minutes()), int(wait.Seconds())%60)
 	}
 	s.state.LastSapling = now
+	count(p, "sapling_cmd", 1)
 	s.storeState()
 	st := item.NewStack(block.Sapling{Type: block.OakSapling()}, 1)
 	if added, _ := p.Inventory().AddItem(st); added < 1 {
@@ -54,6 +55,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				}
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
+				count(p, "sapling_grow", 1)
 				s.advance(tx, advGrowTree)
 			}
 		}

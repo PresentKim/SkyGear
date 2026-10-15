@@ -242,7 +242,9 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 				p.SwingArm()
 				swung = true
 			}
-			s.siftStage(tx, sv.pos, sv.st, in)
+			if s.siftStage(tx, sv.pos, sv.st, in) {
+				count(p, "sift_hand", 1)
+			}
 		}
 	}
 }
@@ -274,7 +276,7 @@ func (s *session) putIntoSieve(p *player.Player, tx *world.Tx, sv sieveAt, held,
 
 // siftStage sifts one stage of in by hand. The last stage drops the
 // products on top of the sieve.
-func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in item.Stack) {
+func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in item.Stack) (finished bool) {
 	st.lastUse = time.Now()
 	if b, ok := in.Item().(world.Block); ok {
 		tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
@@ -282,8 +284,10 @@ func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in ite
 	st.progress += (st.kind.interval + sieveStages - 1) / sieveStages
 	if st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, false)
+		finished = true
 	}
 	showSieve(tx, pos, st)
+	return finished
 }
 
 // finishSifting uses up one input block and gives its products: dropped on
@@ -297,6 +301,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
 	s.advance(tx, advSift)
+	countAll(tx, "sift_mesh_"+st.mesh, 1)
 	for _, it := range s.sieveDrops(in, st.mesh) {
 		if !toOutput {
 			s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
@@ -340,5 +345,6 @@ func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
 	}
 	if st.progress++; st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, true)
+		st.done++
 	}
 }

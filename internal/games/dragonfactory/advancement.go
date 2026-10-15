@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -355,6 +356,12 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 		names = append(names, a.Name)
 	}
 	s.grantAdvancementAchievements(tx, newly)
+	countAll(tx, "adv_done", int64(len(newly)))
+	if len(s.state.Advancements) >= len(advancementTree) {
+		for e := range tx.Players() {
+			account.Grant(e.(*player.Player), achAllAdv)
+		}
+	}
 	s.storeState()
 	s.updateBoards(tx)
 	msg := i18n.T(i18n.Default, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", ")
@@ -401,6 +408,7 @@ func advancementStack(a *Advancement) (item.Stack, bool) {
 // showAdvancements shows the advancement tree: done ones in green, open
 // ones with their hint, the rest hidden.
 func (s *session) showAdvancements(p *player.Player) {
+	count(p, "adv_view", 1)
 	body, opts := s.advancementMenu()
 	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancements.1"), body, opts...)
 }
@@ -445,6 +453,9 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 			label = i18n.T(i18n.Of(p), "advancement.node.untrack")
 		}
 		opts = append(opts, s.opt(label, iconMission, func(p *player.Player, tx *world.Tx) {
+			if s.state.Tracked != a.ID {
+				count(p, "adv_track", 1)
+			}
 			s.track(tx, a)
 			s.showAdvancementNode(p, a)
 		}))
