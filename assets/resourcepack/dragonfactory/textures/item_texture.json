@@ -265,6 +265,18 @@
     "dragonfactory:essence_blaze": {
       "textures": "textures/items/essence_blaze"
     },
+    "dragonfactory:essence_drowned": {
+      "textures": "textures/items/essence_drowned"
+    },
+    "dragonfactory:essence_witch": {
+      "textures": "textures/items/essence_witch"
+    },
+    "dragonfactory:essence_piglin": {
+      "textures": "textures/items/essence_piglin"
+    },
+    "dragonfactory:essence_wither_skeleton": {
+      "textures": "textures/items/essence_wither_skeleton"
+    },
     "dragonfactory:tool_sword_flint_wood": {
       "textures": "textures/items/tool_sword_flint_wood"
     },

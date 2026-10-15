@@ -1,4 +1,8 @@
 {
+ "mob.drowned": "익사자",
+ "mob.witch": "마녀",
+ "mob.piglin": "피글린",
+ "mob.wither_skeleton": "위더 스켈레톤",
  "monitor.span.sec": "%d초",
  "monitor.span.min": "%d분",
  "monitor.span.hour": "%d시간 %d분",

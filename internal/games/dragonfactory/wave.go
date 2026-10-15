@@ -40,12 +40,12 @@ type waveDef struct {
 var waveLevels = []waveDef{
 	{[]waveGroup{{MobZombie, 4}}, 90, []item.Stack{item.NewStack(Essence{Mob: MobZombie}, 3)}},
 	{[]waveGroup{{MobZombie, 4}, {MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(Essence{Mob: MobSkeleton}, 3), item.NewStack(Essence{Mob: MobCreeper}, 1), item.NewStack(PlantSeed{Seed: "flower_red"}, 1)}},
-	{[]waveGroup{{MobSpider, 4}, {MobCreeper, 3}, {MobZombie, 3}}, 120, []item.Stack{item.NewStack(Essence{Mob: MobSpider}, 3), item.NewStack(Essence{Mob: MobCreeper}, 3)}},
-	{[]waveGroup{{MobSlime, 6}, {MobSkeleton, 4}, {MobZombie, 4}}, 120, []item.Stack{item.NewStack(Essence{Mob: MobSlime}, 4)}},
+	{[]waveGroup{{MobSpider, 4}, {MobCreeper, 3}, {MobZombie, 3}, {MobWitch, 2}}, 130, []item.Stack{item.NewStack(Essence{Mob: MobSpider}, 3), item.NewStack(Essence{Mob: MobCreeper}, 3), item.NewStack(Essence{Mob: MobWitch}, 2)}},
+	{[]waveGroup{{MobSlime, 6}, {MobSkeleton, 4}, {MobZombie, 4}, {MobDrowned, 3}}, 130, []item.Stack{item.NewStack(Essence{Mob: MobSlime}, 4), item.NewStack(Essence{Mob: MobDrowned}, 3)}},
 	{[]waveGroup{{MobEnder, 2}, {MobZombie, 6}, {MobSkeleton, 4}}, 150, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 3)}},
-	{[]waveGroup{{MobBlaze, 2}, {MobCreeper, 6}, {MobSpider, 6}}, 150, []item.Stack{item.NewStack(Essence{Mob: MobBlaze}, 3)}},
-	{[]waveGroup{{MobEnder, 3}, {MobBlaze, 3}, {MobZombie, 8}}, 180, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 4), item.NewStack(Essence{Mob: MobBlaze}, 4)}},
-	{[]waveGroup{{MobEnder, 4}, {MobBlaze, 4}, {MobZombie, 6}, {MobSkeleton, 6}}, 240, []item.Stack{item.NewStack(Ingot{Metal: MetalSteel}, 8), item.NewStack(item.Diamond{}, 4)}},
+	{[]waveGroup{{MobBlaze, 2}, {MobCreeper, 6}, {MobSpider, 6}, {MobPiglin, 3}}, 160, []item.Stack{item.NewStack(Essence{Mob: MobBlaze}, 3), item.NewStack(Essence{Mob: MobPiglin}, 3)}},
+	{[]waveGroup{{MobEnder, 3}, {MobBlaze, 3}, {MobZombie, 8}, {MobPiglin, 3}}, 190, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 4), item.NewStack(Essence{Mob: MobBlaze}, 4), item.NewStack(Essence{Mob: MobPiglin}, 2)}},
+	{[]waveGroup{{MobEnder, 4}, {MobBlaze, 4}, {MobZombie, 6}, {MobSkeleton, 6}, {MobWither, 3}}, 260, []item.Stack{item.NewStack(Ingot{Metal: MetalSteel}, 8), item.NewStack(item.Diamond{}, 4), item.NewStack(Essence{Mob: MobWither}, 3)}},
 }
 
 // waveEssenceChance is the percent chance a killed monster drops its essence.

@@ -118,6 +118,7 @@ var dustShape = []string{
 var essences = map[string]color.RGBA{
 	"zombie": {90, 160, 90, 255}, "skeleton": {225, 225, 215, 255}, "creeper": {80, 200, 70, 255},
 	"spider": {120, 50, 60, 255}, "slime": {110, 210, 100, 255}, "enderman": {150, 60, 190, 255}, "blaze": {255, 170, 40, 255},
+	"drowned": {60, 170, 170, 255}, "witch": {60, 50, 120, 255}, "piglin": {232, 150, 110, 255}, "wither_skeleton": {70, 70, 80, 255},
 }
 
 // essenceShape is an orb: 'o' outline, 'b' body, 'h' highlight.

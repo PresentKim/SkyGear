@@ -14,20 +14,6 @@ import (
 // charges the simulator for simCharges runs, each run (an interval of energy)
 // gives the drops of the mob, rolled.
 
-// Mob kinds of the essences.
-const (
-	MobZombie   = "zombie"
-	MobSkeleton = "skeleton"
-	MobCreeper  = "creeper"
-	MobSpider   = "spider"
-	MobSlime    = "slime"
-	MobEnder    = "enderman"
-	MobBlaze    = "blaze"
-)
-
-// mobKinds are the mobs in menu order.
-var mobKinds = []string{MobZombie, MobSkeleton, MobCreeper, MobSpider, MobSlime, MobEnder, MobBlaze}
-
 // simCharges is how many runs one essence gives.
 const simCharges = 8
 
@@ -45,8 +31,12 @@ var simDrops = map[string][]SimDrop{
 	MobCreeper:  {{item.Gunpowder{}, 1, 2, 100}},
 	MobSpider:   {{block.String{}, 1, 2, 100}, {item.SpiderEye{}, 1, 1, 30}},
 	MobSlime:    {{item.Slimeball{}, 1, 2, 100}},
+	MobDrowned:  {{item.RottenFlesh{}, 1, 2, 100}, {item.CopperIngot{}, 1, 1, 30}, {item.NautilusShell{}, 1, 1, 6}},
+	MobWitch:    {{item.Sugar{}, 1, 2, 60}, {item.Stick{}, 1, 2, 60}, {item.RedstoneWire{}, 1, 2, 60}, {item.GlowstoneDust{}, 1, 2, 40}, {item.SpiderEye{}, 1, 1, 30}, {item.GlassBottle{}, 1, 1, 30}},
+	MobPiglin:   {{item.GoldNugget{}, 1, 3, 100}, {item.GoldIngot{}, 1, 1, 25}, {item.Porkchop{}, 1, 1, 40}},
 	MobEnder:    {{item.EnderPearl{}, 1, 1, 40}},
 	MobBlaze:    {{item.BlazeRod{}, 1, 1, 40}},
+	MobWither:   {{item.Bone{}, 1, 2, 100}, {item.Coal{}, 1, 2, 80}, {block.Skull{Type: block.WitherSkeletonSkull()}, 1, 1, 4}},
 }
 
 // Essence is the essence of a mob.
@@ -71,8 +61,8 @@ func essenceDrop(mob string, chance int) SieveDrop {
 var essenceExtra = map[string]map[string][]SieveDrop{
 	"iron":      {itemKey(Dust{}): {essenceDrop(MobZombie, 4), essenceDrop(MobSkeleton, 4), essenceDrop(MobSpider, 3), essenceDrop(MobCreeper, 3)}},
 	"gold":      {itemKey(Dust{}): {essenceDrop(MobZombie, 5), essenceDrop(MobSkeleton, 5), essenceDrop(MobSpider, 4), essenceDrop(MobCreeper, 4), essenceDrop(MobSlime, 3)}},
-	"diamond":   {itemKey(Dust{}): {essenceDrop(MobZombie, 5), essenceDrop(MobSkeleton, 5), essenceDrop(MobSpider, 5), essenceDrop(MobCreeper, 5), essenceDrop(MobSlime, 5), essenceDrop(MobEnder, 3)}},
-	"netherite": {itemKey(Dust{}): {essenceDrop(MobSkeleton, 6), essenceDrop(MobCreeper, 6), essenceDrop(MobSlime, 6), essenceDrop(MobEnder, 5), essenceDrop(MobBlaze, 4)}},
+	"diamond":   {itemKey(Dust{}): {essenceDrop(MobZombie, 5), essenceDrop(MobSkeleton, 5), essenceDrop(MobSpider, 5), essenceDrop(MobCreeper, 5), essenceDrop(MobSlime, 5), essenceDrop(MobEnder, 3), essenceDrop(MobDrowned, 3), essenceDrop(MobWitch, 3), essenceDrop(MobPiglin, 2)}},
+	"netherite": {itemKey(Dust{}): {essenceDrop(MobSkeleton, 6), essenceDrop(MobCreeper, 6), essenceDrop(MobSlime, 6), essenceDrop(MobEnder, 5), essenceDrop(MobBlaze, 4), essenceDrop(MobDrowned, 5), essenceDrop(MobWitch, 5), essenceDrop(MobPiglin, 4), essenceDrop(MobWither, 3)}},
 }
 
 // acceptsEssence reports whether the simulator takes it.

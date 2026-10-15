@@ -38,6 +38,10 @@ var monsterTable = map[string]monsterStats{
 	MobCreeper:  {network: "minecraft:creeper", health: 10, damage: 3, speed: 0.16, width: 0.6, height: 1.7},
 	MobSpider:   {network: "minecraft:spider", health: 12, damage: 2, speed: 0.21, width: 1.4, height: 0.9},
 	MobSlime:    {network: "minecraft:slime", health: 8, damage: 2, speed: 0.12, width: 0.52, height: 0.52},
+	MobDrowned:  {network: "minecraft:drowned", health: 14, damage: 3, speed: 0.15, width: 0.6, height: 1.95},
+	MobWitch:    {network: "minecraft:witch", health: 16, damage: 2, speed: 0.15, width: 0.6, height: 1.95, ranged: 3, holdRange: 6, shootRange: 12, shootEvery: 70},
+	MobPiglin:   {network: "minecraft:piglin", health: 18, damage: 4, speed: 0.18, width: 0.6, height: 1.95},
+	MobWither:   {network: "minecraft:wither_skeleton", health: 26, damage: 5, speed: 0.17, width: 0.7, height: 2.4},
 	MobEnder:    {network: "minecraft:enderman", health: 30, damage: 4, speed: 0.19, width: 0.6, height: 2.9},
 	MobBlaze:    {network: "minecraft:blaze", health: 20, damage: 3, speed: 0.15, width: 0.6, height: 1.8, ranged: 3, holdRange: 5, shootRange: 12, shootEvery: 60},
 }

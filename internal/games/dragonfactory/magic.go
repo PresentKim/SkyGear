@@ -80,7 +80,7 @@ func init() {
 	for _, g := range gems {
 		plantKinds = append(plantKinds, plantKind{id: "gem_" + g.id, tier: 3, seed: "gem_" + g.id, grow: 300 * time.Second, yield: []plantYield{{g.it, g.min, g.max}}})
 	}
-	for _, mob := range mobKinds {
+	for _, mob := range flowerMobKinds {
 		plantKinds = append(plantKinds, plantKind{id: "ess_" + mob, tier: 4, seed: "ess_" + mob, grow: 480 * time.Second, yield: []plantYield{{Essence{Mob: mob}, 1, 1}}})
 	}
 	seen := map[string]bool{}
@@ -446,7 +446,7 @@ func plantRecipes() {
 		MobZombie: {item.RottenFlesh{}, "green"}, MobSkeleton: {item.Bone{}, "white"}, MobCreeper: {item.Gunpowder{}, "lime"},
 		MobSpider: {item.SpiderEye{}, "red"}, MobSlime: {item.Slimeball{}, "lime"}, MobEnder: {item.EnderPearl{}, "purple"}, MobBlaze: {item.BlazePowder{}, "orange"},
 	}
-	for _, m := range mobKinds {
+	for _, m := range flowerMobKinds {
 		d := mob[m]
 		reg("ess_"+m, st(PlantSeed{Seed: "gem_redstone"}, 1), st(Essence{Mob: m}, 3), st(Petal{Colour: d.colour}, 2), st(d.it, 1))
 	}
