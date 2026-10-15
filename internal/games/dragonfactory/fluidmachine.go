@@ -174,9 +174,7 @@ func (st *machineState) runCrucible() {
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
@@ -196,6 +194,9 @@ func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
 		}
 		st.energy += k.generates
 		st.made += k.generates
+		st.didWork = true
+	} else if st.fluidAmt == 0 {
+		st.stuck = stuckFuel
 	}
 	s.energyGrid().AddSource(pos)
 }
@@ -213,17 +214,15 @@ func (st *machineState) runWasher() {
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	out := item.NewStack(MetalDust{Metal: in.Item().(OreChunk).Ore}, 3)
-	if !fits(st.inv(), st.kind.output, []item.Stack{out}) {
+	if !st.roomFor([]item.Stack{out}) {
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
-	put(st.inv(), st.kind.output, out)
+	st.emit(out)
 	if st.fluidAmt -= washerWater; st.fluidAmt == 0 {
 		st.fluid = fluidnet.None
 	}

@@ -327,6 +327,13 @@ type machineState struct {
 	tallyCounts map[string]int64
 	lab         *LabRecipe
 	period      int
+	// sess is the session the machine ticks in; stuck why the last tick
+	// could not work, didWork whether a tick worked since the last second,
+	// mon what the stall alerts know of it (monitor.go).
+	sess    *session
+	stuck   stuckKind
+	didWork bool
+	mon     monitor
 }
 
 // cycleLen is the ticks of the cycle the machine is on.
@@ -975,6 +982,10 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st := m.st
+	s.initMonitor()
+	st.sess, st.pos, st.stuck = s, pos, stuckNone
+	st.mon.seen, s.lastTick = currentTick, currentTick
+	s.machines[pos] = st
 	st.drainLegacy()
 	full := st.kind.interval > 1 && st.progress >= st.kind.interval
 	switch m.Kind {
@@ -1050,13 +1061,11 @@ func (st *machineState) process(possible, roll func(in item.Stack) []item.Stack)
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	out := possible(in)
-	if !fits(st.inv(), st.kind.output, out) {
+	if !st.roomFor(out) {
 		return
 	}
 	if roll != nil {
@@ -1064,7 +1073,7 @@ func (st *machineState) process(possible, roll func(in item.Stack) []item.Stack)
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
 	for _, it := range out {
-		put(st.inv(), st.kind.output, it)
+		st.emit(it)
 	}
 	st.progress = 0
 }
@@ -1114,16 +1123,14 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.cracking = true
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	var drops []item.Stack
 	if info.Drops != nil {
 		drops = info.Drops(minerTool, nil)
 	}
-	if !fits(st.inv(), st.kind.output, drops) {
+	if !st.roomFor(drops) {
 		return
 	}
 	viewCrack(tx, below, block.StopCrackAction{})
@@ -1132,7 +1139,7 @@ func (s *session) runMiner(st *machineState, pos cube.Pos, tx *world.Tx) {
 	tx.SetBlock(below, nil, nil)
 	tx.AddParticle(below.Vec3Centre(), particle.BlockBreak{Block: mined})
 	for _, it := range drops {
-		put(st.inv(), st.kind.output, it)
+		st.emit(it)
 	}
 	st.progress = 0
 	st.done++
@@ -1159,6 +1166,7 @@ func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kin
 
 // breakMachine closes the windows of a machine being broken.
 func (s *session) breakMachine(tx *world.Tx, pos cube.Pos, m Machine) {
+	delete(s.machines, pos)
 	if m.st != nil {
 		m.st.storage.CloseAll()
 	}

@@ -96,9 +96,7 @@ func (s *session) runSimulator(st *machineState) {
 		st.mob, st.charges = e.Mob, simCharges
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	var drops []item.Stack
@@ -109,11 +107,11 @@ func (s *session) runSimulator(st *machineState) {
 			drops = append(drops, item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 		}
 	}
-	if !fits(st.inv(), st.kind.output, all) {
+	if !st.roomFor(all) {
 		return
 	}
 	for _, d := range drops {
-		put(st.inv(), st.kind.output, d)
+		st.emit(d)
 	}
 	st.progress = 0
 	if st.charges--; st.charges == 0 {

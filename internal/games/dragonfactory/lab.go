@@ -155,9 +155,7 @@ func (st *machineState) runLab() {
 	// Mid-cycle the ingredients are looked at once every labCheckEvery ticks,
 	// not every tick: finding the recipe counts the input slots.
 	if r := st.lab; r != nil && st.progress%labCheckEvery != 0 && st.progress < r.Ticks {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	r := st.labPlan()
@@ -171,13 +169,11 @@ func (st *machineState) runLab() {
 	}
 	st.period = r.Ticks
 	if st.progress < r.Ticks {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	out := item.NewStack(r.Out, r.OutCount)
-	if !fits(st.inv(), st.kind.output, []item.Stack{out}) {
+	if !st.roomFor([]item.Stack{out}) {
 		return
 	}
 	for _, in := range r.In {
@@ -195,7 +191,7 @@ func (st *machineState) runLab() {
 			left -= take
 		}
 	}
-	put(st.inv(), st.kind.output, out)
+	st.emit(out)
 	st.progress = 0
 	st.done++
 	st.tally("lab_"+r.Out.Kind, int64(r.OutCount))

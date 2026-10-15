@@ -363,23 +363,29 @@ func crafterLines(st *machineState) []string {
 	}
 	lines := []string{"§f" + itemName(st.recipe.out)}
 	if _, ok := st.crafterPlan(st.recipe); !ok {
-		var missing []string
-		for _, req := range st.recipe.reqs {
-			have := 0
-			for _, slot := range st.kind.input {
-				if it, _ := st.inv().Item(slot); matchReq(it, req) {
-					have += it.Count()
-				}
-			}
-			if have < req.count {
-				missing = append(missing, fmt.Sprintf("%s ×%d", reqName(i18n.Default, req), req.count-have))
-			}
-		}
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), strings.Join(missing, ", ")))
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), crafterMissing(st)))
 	} else if !fits(st.inv(), st.kind.output, []item.Stack{st.recipe.out}) {
 		lines = append(lines, i18n.T(i18n.Default, "look.blocked"))
 	} else {
 		lines = append(lines, i18n.T(i18n.Default, "crafter.status.working"))
 	}
 	return append(lines, consumerLines(st)...)
+}
+
+// crafterMissing lists the ingredients an auto crafter lacks for its recipe
+// ("화약 ×2, 막대기 ×1").
+func crafterMissing(st *machineState) string {
+	var missing []string
+	for _, req := range st.recipe.reqs {
+		have := 0
+		for _, slot := range st.kind.input {
+			if it, _ := st.inv().Item(slot); matchReq(it, req) {
+				have += it.Count()
+			}
+		}
+		if have < req.count {
+			missing = append(missing, fmt.Sprintf("%s ×%d", reqName(i18n.Default, req), req.count-have))
+		}
+	}
+	return strings.Join(missing, ", ")
 }

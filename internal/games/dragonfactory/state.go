@@ -46,6 +46,12 @@ type State struct {
 	RPG map[string]*RPGRecord `json:"rpg,omitempty"`
 	// GateTier is the highest level of the dimension gate cleared (wave.go).
 	GateTier int `json:"gate_tier,omitempty"`
+	// Produced counts the items the machines made, by item key
+	// (stats.go).
+	Produced map[string]int64 `json:"produced,omitempty"`
+	// AlertsOff are the accounts that turned the stall alerts off
+	// (monitor.go).
+	AlertsOff map[string]bool `json:"alerts_off,omitempty"`
 	// LastSapling is when /묘목 last gave a sapling (real time).
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }

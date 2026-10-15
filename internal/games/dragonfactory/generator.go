@@ -36,11 +36,14 @@ func (st *machineState) consume() bool {
 		return true
 	}
 	if st.energy < u {
-		st.stalled = true
+		st.stalled, st.stuck = true, stuckPower
 		return false
 	}
 	st.energy -= u
 	st.stalled = false
+	if st.sess != nil {
+		st.sess.stats.buckets[st.sess.stats.head].use += u
+	}
 	return true
 }
 
@@ -60,6 +63,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 		slot, fuel, ok := st.firstInput()
 		if !ok {
 			st.progress = 0
+			st.stuck = stuckFuel
 			return
 		}
 		if d := fuelDuration(fuel); d > 0 {
@@ -77,6 +81,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.energy += k.generates
 		st.made += k.generates
 		st.burn--
+		st.didWork = true
 	}
 	st.progress = 0
 	if st.burnMax > 0 {

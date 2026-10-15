@@ -283,20 +283,18 @@ func (s *session) runCrafter(st *machineState) {
 		st.progress = 0
 		return
 	}
-	if !fits(st.inv(), st.kind.output, []item.Stack{cr.out}) {
+	if !st.roomFor([]item.Stack{cr.out}) {
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	for _, p := range plan {
 		it, _ := st.inv().Item(p[0])
 		_ = st.inv().SetItem(p[0], it.Grow(-p[1]))
 	}
-	put(st.inv(), st.kind.output, cr.out)
+	st.emit(cr.out)
 	st.progress = 0
 }
 

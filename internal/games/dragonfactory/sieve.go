@@ -304,9 +304,10 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	countAll(tx, "sift_mesh_"+st.mesh, 1)
 	for _, it := range s.sieveDrops(in, st.mesh) {
 		if !toOutput {
+			s.recordMade(it)
 			s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
-		} else if fits(st.inv(), st.kind.output, []item.Stack{it}) {
-			put(st.inv(), st.kind.output, it)
+		} else if st.roomFor([]item.Stack{it}) {
+			st.emit(it)
 		} else {
 			st.pending = append(st.pending, it)
 		}
@@ -327,10 +328,10 @@ func outputHasRoom(st *machineState) bool {
 func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
 	// products that did not fit go first; while any is left the sieve waits
 	for len(st.pending) > 0 {
-		if !fits(st.inv(), st.kind.output, st.pending[:1]) {
+		if !st.roomFor(st.pending[:1]) {
 			return
 		}
-		put(st.inv(), st.kind.output, st.pending[0])
+		st.emit(st.pending[0])
 		st.pending = st.pending[1:]
 	}
 	if _, _, ok := st.firstInput(); !ok {

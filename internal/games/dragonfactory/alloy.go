@@ -60,13 +60,11 @@ func (st *machineState) runAlloy() {
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	out := item.NewStack(r.Out, r.OutCount)
-	if !fits(st.inv(), st.kind.output, []item.Stack{out}) {
+	if !st.roomFor([]item.Stack{out}) {
 		return
 	}
 	// take the ingredients out of the slot that holds each
@@ -81,6 +79,6 @@ func (st *machineState) runAlloy() {
 	}
 	take(r.A, r.CountA)
 	take(r.B, r.CountB)
-	put(st.inv(), st.kind.output, out)
+	st.emit(out)
 	st.progress = 0
 }

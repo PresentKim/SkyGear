@@ -66,6 +66,7 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
+		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, _ *world.Tx) { s.showStats(p, statsItems) }),
 		s.lobbyOption(),
 	}
 }

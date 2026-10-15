@@ -53,9 +53,7 @@ func harvestable(b world.Block) (world.Block, bool) {
 // turning.
 func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	st.progress = 0
@@ -84,7 +82,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			if br, ok := b.(block.Breakable); ok && br.BreakInfo().Drops != nil {
 				drops = br.BreakInfo().Drops(item.ToolNone{}, nil)
 			}
-			if !fits(st.inv(), st.kind.output, drops) {
+			if !st.roomFor(drops) {
 				return
 			}
 			after, drops = replantSeed(st, after, drops)
@@ -95,7 +93,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 			for _, it := range drops {
 				if !it.Empty() {
-					put(st.inv(), st.kind.output, it)
+					st.emit(it)
 				}
 			}
 			st.done++
@@ -109,12 +107,12 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 // does not fit is left for the next cycle.
 func (s *session) harvestMagicPlant(st *machineState, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
 	drops, ok := s.plantDrops(mp)
-	if !ok || !fits(st.inv(), st.kind.output, drops) {
+	if !ok || !st.roomFor(drops) {
 		return false
 	}
 	for _, it := range drops {
 		if !it.Empty() {
-			put(st.inv(), st.kind.output, it)
+			st.emit(it)
 		}
 	}
 	s.resetPlant(tx, at, mp)

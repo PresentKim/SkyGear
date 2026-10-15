@@ -200,10 +200,10 @@ func (s *session) breakComposter(pos cube.Pos, c block.Composter, drops *[]item.
 func (st *machineState) runAutoComposter() {
 	if st.charges >= matterCapacity {
 		dirt := item.NewStack(block.Dirt{}, 1)
-		if !fits(st.inv(), st.kind.output, []item.Stack{dirt}) {
+		if !st.roomFor([]item.Stack{dirt}) {
 			return
 		}
-		put(st.inv(), st.kind.output, dirt)
+		st.emit(dirt)
 		st.charges -= matterCapacity
 		return
 	}
@@ -213,9 +213,7 @@ func (st *machineState) runAutoComposter() {
 		return
 	}
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))

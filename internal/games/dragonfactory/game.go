@@ -85,7 +85,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	s := &session{
 		g: g, world: inst.World, clock: inst.Clock,
 		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
-		state: st, displays: map[cube.Pos]*drawerDisplay{},
+		state: st, displays: map[cube.Pos]*drawerDisplay{}, stats: newProdStats(), machines: map[cube.Pos]*machineState{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
 	}
 	s.tickReach = inst.LoadRadius() * 16
@@ -177,6 +177,15 @@ type session struct {
 	// plateTurn is the side of the last connector plate form each player was
 	// shown by clicking a conduit where no plate sits (nextPlateSide).
 	plateTurn map[uuid.UUID]int
+	// stats is the production record, machines the machines that tick by
+	// position; now the seconds the island ran, lastTick the last machine
+	// tick seen and uptime the seconds without a stall (stats.go,
+	// monitor.go).
+	stats    *prodStats
+	machines map[cube.Pos]*machineState
+	now      int
+	lastTick int64
+	uptime   int
 }
 
 // debounced reports whether p opened a screen less than 500ms ago, and

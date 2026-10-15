@@ -42,9 +42,7 @@ const (
 // interval. A stack that does not fit the output is left lying.
 func (s *session) runVacuum(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	st.progress = 0
@@ -84,9 +82,7 @@ const (
 // it plants a sapling from its input.
 func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.progress < st.kind.interval {
-		if st.consume() {
-			st.progress++
-		}
+		st.tickWork()
 		return
 	}
 	var logAt cube.Pos
@@ -107,14 +103,14 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 		if br, ok := b.(block.Breakable); ok && br.BreakInfo().Drops != nil {
 			drops = br.BreakInfo().Drops(item.ToolNone{}, nil)
 		}
-		if !fits(st.inv(), st.kind.output, drops) {
+		if !st.roomFor(drops) {
 			return
 		}
 		tx.SetBlock(logAt, block.Air{}, nil)
 		tx.AddParticle(logAt.Vec3Centre(), particle.BlockBreak{Block: b})
 		for _, it := range drops {
 			if !it.Empty() {
-				put(st.inv(), st.kind.output, it)
+				st.emit(it)
 			}
 		}
 		st.progress = 0
