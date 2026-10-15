@@ -53,22 +53,72 @@ func TestResearchScreenShowsHints(t *testing.T) {
 	}
 }
 
-// TestResearchListHidesLockedResearches: a research shows up only when
-// everything before it is done.
+// TestResearchListHidesLockedResearches: a research shows up to do only when
+// everything before it is done; one that is a step from open shows in grey
+// after them, and nothing further is shown.
 func TestResearchListHidesLockedResearches(t *testing.T) {
 	s := testSession(t)
-	_, slots, _ := s.researchList(nil, false)
-	if len(slots) != 1 { // the stick research
-		t.Fatalf("%d researches at the start", len(slots))
+	split := func() (open, grey int) {
+		_, slots, _ := s.researchList(nil, false)
+		for _, sl := range slots {
+			if strings.HasPrefix(sl.Tip, "§8") {
+				grey++
+			} else {
+				open++
+			}
+		}
+		return open, grey
+	}
+	open, grey := split()
+	if open != 1 || grey != 3 { // the stick research; pebbles, wood tools, chest a step away
+		t.Fatalf("at the start: %d open, %d grey", open, grey)
 	}
 	s.state.Researched = map[string]bool{"stick": true}
-	_, slots, _ = s.researchList(nil, false)
-	// pebbles, wood tools, chest
-	if len(slots) != 3 {
-		t.Fatalf("%d researches after the stick research", len(slots))
+	open, grey = split()
+	if open != 3 { // pebbles, wood tools, chest
+		t.Fatalf("%d researches after the stick research", open)
+	}
+	if grey == 0 {
+		t.Fatal("nothing is shown a step ahead")
+	}
+	_, slots, _ := s.researchList(nil, false)
+	for i, sl := range slots {
+		if i < open && strings.HasPrefix(sl.Tip, "§8") || i >= open && !strings.HasPrefix(sl.Tip, "§8") {
+			t.Fatalf("grey ones do not come last: slot %d %q", i, sl.Tip)
+		}
 	}
 	if _, done, _ := s.researchList(nil, true); len(done) != 1 {
 		t.Fatalf("%d done researches", len(done))
+	}
+}
+
+// TestResearchPreviewButton: the screen of a research that is not open has no
+// research button but one that goes to the research it needs first.
+func TestResearchPreviewButton(t *testing.T) {
+	s := testSession(t)
+	r, _ := researchByID("wood_tools")
+	need, ok := s.researchBlocker(r)
+	if !ok || need.ID != "stick" {
+		t.Fatalf("blocker %v %v", need, ok)
+	}
+	_, _, opts := s.researchNode(nil, r)
+	var found bool
+	for _, o := range opts {
+		if strings.Contains(o.Label, need.Title(i18n.Default)) && strings.Contains(o.Label, "먼저 필요") {
+			found = true
+		}
+		if strings.Contains(o.Label, "연구 진행") {
+			t.Fatal("a research that is not open can be done")
+		}
+	}
+	if !found {
+		t.Fatalf("no button to the research needed first: %+v", opts)
+	}
+	// a research two steps away is not a preview
+	far, _ := researchByID("pebbles")
+	_ = far
+	if _, ok := s.researchBlocker(&Research{ID: "x", Needs: []string{"wood_tools"}}); ok {
+		t.Fatal("a research behind one that is not open is a preview")
 	}
 }
 

@@ -253,6 +253,33 @@ func (s *session) researchOpen(r *Research) bool {
 	return true
 }
 
+// researchBlocker returns the one research that is still to do before r
+// when r is only one step from open: that research is open itself, and it is
+// the only one r needs that is not done.
+func (s *session) researchBlocker(r *Research) (*Research, bool) {
+	if s.researched(r.ID) {
+		return nil, false
+	}
+	var left *Research
+	for _, n := range r.Needs {
+		if s.researched(n) {
+			continue
+		}
+		if left != nil {
+			return nil, false
+		}
+		need, ok := researchByID(n)
+		if !ok {
+			return nil, false
+		}
+		left = need
+	}
+	if left == nil || !s.researchOpen(left) {
+		return nil, false
+	}
+	return left, true
+}
+
 // researchPaid is how many of an item of a research's cost an older save
 // had already delivered in parts (partial delivery is gone: a research is
 // paid whole, at once; the count only keeps what older saves gave).
@@ -387,7 +414,7 @@ func researchTip(lang, colour string, r *Research) string {
 // tooltip of a research to do is its name in yellow, in green when p has
 // all it spends and can do it now. p may be nil.
 func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSlot, []ui.Option) {
-	var slots []ui.ItemSlot
+	var slots, previews []ui.ItemSlot
 	todoN, doneN := 0, 0
 	for i := range researchTree {
 		r := &researchTree[i]
@@ -407,8 +434,14 @@ func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSl
 				}
 				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show})
 			}
+		default:
+			// one step from open: shown in grey after the ones to do
+			if _, ok := s.researchBlocker(r); ok && !done {
+				previews = append(previews, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§8", r), Run: show})
+			}
 		}
 	}
+	slots = append(slots, previews...)
 	body := i18n.T(i18n.Of(p), "dragonfactory.research.researchList.1")
 	if len(slots) == 0 {
 		if done {
@@ -480,6 +513,12 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 			}
 			s.showResearchNode(p, r)
 		}))
+	}
+	// What is still to do before it: a button that goes to that research.
+	for _, n := range r.Needs {
+		if need, ok := researchByID(n); ok && !done && !s.researched(n) {
+			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(langOf(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, need) }))
+		}
 	}
 	d.Body = b.String()
 	again := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
