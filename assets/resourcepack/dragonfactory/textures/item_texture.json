@@ -265,6 +265,36 @@
     "dragonfactory:essence_blaze": {
       "textures": "textures/items/essence_blaze"
     },
+    "dragonfactory:alloy_infused": {
+      "textures": "textures/items/alloy_infused"
+    },
+    "dragonfactory:alloy_reinforced": {
+      "textures": "textures/items/alloy_reinforced"
+    },
+    "dragonfactory:alloy_atomic": {
+      "textures": "textures/items/alloy_atomic"
+    },
+    "dragonfactory:circuit_1": {
+      "textures": "textures/items/circuit_1"
+    },
+    "dragonfactory:circuit_2": {
+      "textures": "textures/items/circuit_2"
+    },
+    "dragonfactory:circuit_3": {
+      "textures": "textures/items/circuit_3"
+    },
+    "dragonfactory:circuit_4": {
+      "textures": "textures/items/circuit_4"
+    },
+    "dragonfactory:kit_1": {
+      "textures": "textures/items/kit_1"
+    },
+    "dragonfactory:kit_2": {
+      "textures": "textures/items/kit_2"
+    },
+    "dragonfactory:kit_3": {
+      "textures": "textures/items/kit_3"
+    },
     "dragonfactory:essence_drowned": {
       "textures": "textures/items/essence_drowned"
     },

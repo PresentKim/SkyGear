@@ -183,6 +183,10 @@ var counterCatalog = []counterDef{
 	{"kill_witch", "combat", []int64{1, 100, 1000}},
 	{"kill_piglin", "combat", []int64{1, 100, 1000}},
 	{"kill_wither_skeleton", "combat", []int64{1, 100, 1000}},
+	{"tier_up", "factory", []int64{1, 5, 20, 60}},
+	{"tier_up_1", "factory", []int64{1, 10, 40}},
+	{"tier_up_2", "factory", []int64{1, 5, 20}},
+	{"tier_up_3", "factory", []int64{1, 3, 10}},
 }
 
 // haveCatalog are the items whose first possession is an achievement
@@ -237,4 +241,11 @@ var haveCatalog = []haveDef{
 	{"minecraft:end_crystal", "end_crystal"},
 	{"minecraft:tnt", "tnt"},
 	{"minecraft:popped_chorus_fruit", "popped_chorus_fruit"},
+	{"dragonfactory:alloy_infused", "alloy_infused"},
+	{"dragonfactory:alloy_reinforced", "alloy_reinforced"},
+	{"dragonfactory:alloy_atomic", "alloy_atomic"},
+	{"dragonfactory:circuit_4", "circuit_4"},
+	{"dragonfactory:kit_1", "kit_1"},
+	{"dragonfactory:kit_2", "kit_2"},
+	{"dragonfactory:kit_3", "kit_3"},
 }

@@ -31,7 +31,7 @@ const cellCapacity = 100000
 // whether there was enough; a machine without need (or an unlimited one)
 // always works.
 func (st *machineState) consume() bool {
-	u := st.kind.use
+	u := st.useCost()
 	if u == 0 || st.unlimited {
 		return true
 	}
@@ -58,8 +58,8 @@ func fuelDuration(st item.Stack) int {
 
 // runGenerator burns fuel and fills the buffer; it runs every tick.
 func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
-	k := st.kind
-	if st.burn == 0 && st.energy+k.generates <= k.energyCap {
+	gen, energyCap := st.genRate(), st.energyCap()
+	if st.burn == 0 && st.energy+gen <= energyCap {
 		slot, fuel, ok := st.firstInput()
 		if !ok {
 			st.progress = 0
@@ -77,15 +77,15 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 			st.burn, st.burnMax = d, d
 		}
 	}
-	if st.burn > 0 && st.energy+k.generates <= k.energyCap {
-		st.energy += k.generates
-		st.made += k.generates
-		st.burn--
+	if st.burn > 0 && st.energy+gen <= energyCap {
+		st.energy += gen
+		st.made += gen
+		st.burn = max(0, st.burn-st.burnRate())
 		st.didWork = true
 	}
 	st.progress = 0
 	if st.burnMax > 0 {
-		st.progress = st.burn * k.interval / st.burnMax
+		st.progress = st.burn * st.kind.interval / st.burnMax
 	}
 	s.energyGrid().AddSource(pos)
 }
@@ -116,7 +116,7 @@ func (m Machine) ReceiveEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int,
 	if m.st == nil || (m.st.kind.use == 0 && !m.st.kind.cell) {
 		return 0
 	}
-	n := min(max, m.st.kind.energyCap-m.st.energy)
+	n := min(max, m.st.energyCap()-m.st.energy)
 	if !simulate && n > 0 {
 		m.st.energy += n
 	}
@@ -133,11 +133,11 @@ var (
 
 // generatorLines are the lines of a generator's WAILA panel.
 func generatorLines(st *machineState) []string {
-	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap)}
+	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap())}
 	switch {
 	case st.burn > 0:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.burning"), st.kind.generates))
-	case st.energy+st.kind.generates > st.kind.energyCap:
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.burning"), st.genRate()))
+	case st.energy+st.genRate() > st.energyCap():
 		lines = append(lines, i18n.T(i18n.Default, "generator.lines.full"))
 	default:
 		lines = append(lines, i18n.T(i18n.Default, "generator.lines.noFuel"))
@@ -150,7 +150,7 @@ func consumerLines(st *machineState) []string {
 	if st.kind.use == 0 || st.unlimited {
 		return nil
 	}
-	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.consumer"), st.energy, st.kind.energyCap, st.kind.use)}
+	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.consumer"), st.energy, st.energyCap(), st.useTotal())}
 	if st.stalled {
 		lines = append(lines, i18n.T(i18n.Default, "generator.lines.stalled"))
 	}

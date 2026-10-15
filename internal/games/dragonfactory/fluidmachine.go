@@ -184,16 +184,16 @@ func (st *machineState) runCrucible() {
 
 // runLavaGenerator burns the lava in its tank into energy while the buffer has room.
 func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
-	k := st.kind
-	if st.fluidAmt > 0 && st.energy+k.generates <= k.energyCap {
-		if st.progress++; st.progress >= lavaGenBurn {
+	gen := st.genRate()
+	if st.fluidAmt > 0 && st.energy+gen <= st.energyCap() {
+		if st.progress += st.burnRate(); st.progress >= lavaGenBurn {
 			st.progress = 0
 			if st.fluidAmt--; st.fluidAmt == 0 {
 				st.fluid = fluidnet.None
 			}
 		}
-		st.energy += k.generates
-		st.made += k.generates
+		st.energy += gen
+		st.made += gen
 		st.didWork = true
 	} else if st.fluidAmt == 0 {
 		st.stuck = stuckFuel

@@ -347,6 +347,9 @@ type machineState struct {
 	stuck   stuckKind
 	didWork bool
 	mon     monitor
+	// tier is the machine's tier (tier.go); worked counts the ticks of work
+	// done, to tell whether a run did anything.
+	tier, worked int
 }
 
 // cycleLen is the ticks of the cycle the machine is on.
@@ -419,7 +422,11 @@ func (st *machineState) infoItem() item.Stack {
 	if st.kind == machineKinds[KindSellBox] && st.ownerName != "" {
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.machine.infoItem.1")+st.ownerName)
 	}
-	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + st.kind.name).WithLore(lines...)
+	if st.tier > 0 {
+		spec := st.spec()
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "tier.info"), tierName(i18n.Default, st.tier), spec.speed, float64(spec.use10)/10))
+	}
+	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + tierTitle(st.kind.name, st.tier)).WithLore(lines...)
 }
 
 // MachineInfo is the info icon item of machine windows. It only ever sits
@@ -677,16 +684,17 @@ func (st *machineState) showEnergy() {
 	if st.kind.marker == "" || st.kind.energyCap == 0 {
 		return
 	}
+	capacity := st.energyCap()
 	have := st.energy
 	if st.unlimited {
-		have = st.kind.energyCap
+		have = capacity
 	}
 	if have == st.shownEnergy {
 		return
 	}
 	st.shownEnergy = have
-	name := fmt.Sprintf(i18n.T(i18n.Default, "machine.energy.gauge"), have, st.kind.energyCap)
-	it := item.NewStack(EnergyGauge{Step: min(10, have*10/st.kind.energyCap)}, 1)
+	name := fmt.Sprintf(i18n.T(i18n.Default, "machine.energy.gauge"), have, capacity)
+	it := item.NewStack(EnergyGauge{Step: min(10, have*10/capacity)}, 1)
 	_ = st.inv().SetItem(energyGaugeSlot, it.WithCustomName(name))
 }
 
@@ -736,8 +744,13 @@ func (m Machine) EncodeBlock() (string, map[string]any) {
 func (m Machine) Hash() (uint64, uint64) {
 	return m.kind().hash, uint64(lookIndex(m.content, m.fill))
 }
-func (Machine) Model() world.BlockModel     { return model.Solid{} }
-func (m Machine) Name() string              { return m.kind().name }
+func (Machine) Model() world.BlockModel { return model.Solid{} }
+func (m Machine) Name() string {
+	if m.st != nil {
+		return tierTitle(m.kind().name, m.st.tier)
+	}
+	return m.kind().name
+}
 func (Machine) Category() category.Category { return category.Items() }
 
 // cubeMachines are the machines drawn as plain cubes with one side texture;
@@ -789,6 +802,12 @@ func (m Machine) BreakInfo() block.BreakInfo {
 				drops = append(drops, item.NewStack(Mesh{Tier: m.st.mesh}, 1))
 			}
 			if m.st != nil {
+				// the kits it was raised with come back
+				for l := 1; l <= m.st.tier; l++ {
+					drops = append(drops, item.NewStack(TierKit{Level: l}, 1))
+				}
+			}
+			if m.st != nil {
 				for _, slots := range [][]int{m.st.kind.input, m.st.kind.output, m.st.kind.charge} {
 					for _, s := range slots {
 						if it, _ := m.st.inv().Item(s); !it.Empty() {
@@ -829,6 +848,7 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["Burn"] = int32(m.st.burn)
 	data["BurnMax"] = int32(m.st.burnMax)
 	data["Mesh"] = m.st.mesh
+	data["Tier"] = int32(m.st.tier)
 	data["Mob"] = m.st.mob
 	data["Fluid"] = int32(m.st.fluid)
 	data["FluidAmt"] = int32(m.st.fluidAmt)
@@ -860,6 +880,9 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	}
 	if mesh, ok := data["Mesh"].(string); ok {
 		n.st.mesh = mesh
+	}
+	if t, ok := data["Tier"].(int32); ok && tierable(m.Kind) {
+		n.st.tier = max(0, min(int(t), maxTier))
 	}
 	if p, ok := data["Progress"].(int32); ok {
 		n.st.progress = min(int(p), n.st.kind.interval)
@@ -897,6 +920,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return false
 	}
 	m.st.pos = pos
+	if held, off := p.HeldItems(); !held.Empty() {
+		if kit, ok := held.Item().(TierKit); ok {
+			s.useKit(p, tx, pos, m, kit, held, off)
+			return true
+		}
+	}
 	if isSieve(m.Kind) {
 		s.useSieve(p, tx, pos, m.st)
 		return true
@@ -1025,8 +1054,43 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.mon.seen, s.lastTick = currentTick, currentTick
 	s.machines[pos] = st
 	st.drainLegacy()
-	full := st.kind.interval > 1 && st.progress >= st.kind.interval
-	switch m.Kind {
+	for range st.reps() {
+		full := st.kind.interval > 1 && st.progress >= st.kind.interval
+		before, at := st.worked, st.progress
+		s.runMachine(m.Kind, st, pos, tx)
+		if full && st.progress == 0 && cycleOnReset[m.Kind] {
+			st.done++
+		}
+		// a machine that is stuck or did nothing has nothing to repeat
+		if st.stuck != stuckNone || (st.worked == before && st.progress == at) {
+			break
+		}
+	}
+	st.countWork(tx, m.Kind, currentTick)
+	st.pos = pos
+	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
+		if m.Kind == KindEnergyCell && st.energy > 0 {
+			s.energyGrid().AddSource(pos)
+		}
+		return
+	}
+	if currentTick%10 == 0 {
+		st.showEnergy()
+	}
+	if isSieve(m.Kind) {
+		// The sieve shows its content and progress on the model.
+		showSieve(tx, pos, st)
+		if st.kind.autoSieve {
+			st.showProgress()
+		}
+		return
+	}
+	st.showProgress()
+}
+
+// runMachine runs the work of a machine of a kind once.
+func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *world.Tx) {
+	switch kind {
 	case KindCrusher:
 		st.process(func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
@@ -1063,29 +1127,6 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	case KindLab:
 		st.runLab()
 	}
-	if full && st.progress == 0 && cycleOnReset[m.Kind] {
-		st.done++
-	}
-	st.countWork(tx, m.Kind, currentTick)
-	st.pos = pos
-	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
-		if m.Kind == KindEnergyCell && st.energy > 0 {
-			s.energyGrid().AddSource(pos)
-		}
-		return
-	}
-	if currentTick%10 == 0 {
-		st.showEnergy()
-	}
-	if isSieve(m.Kind) {
-		// The sieve shows its content and progress on the model.
-		showSieve(tx, pos, st)
-		if st.kind.autoSieve {
-			st.showProgress()
-		}
-		return
-	}
-	st.showProgress()
 }
 
 // process advances an input → output operation on accepted inputs.

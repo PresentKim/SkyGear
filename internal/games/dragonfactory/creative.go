@@ -88,5 +88,14 @@ func registerCreativeItems() {
 		for _, m := range ingotMetals {
 			add(items, Ingot{Metal: m})
 		}
+		for _, a := range tierAlloys {
+			add(items, TierAlloy{Kind: a})
+		}
+		for l := 1; l <= 4; l++ {
+			add(items, Circuit{Level: l})
+		}
+		for l := 1; l <= maxTier; l++ {
+			add(items, TierKit{Level: l})
+		}
 	})
 }

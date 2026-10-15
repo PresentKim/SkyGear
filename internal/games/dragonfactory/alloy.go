@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 )
@@ -23,6 +24,10 @@ var alloyRecipes = []AlloyRecipe{
 	{A: item.GoldIngot{}, CountA: 1, B: Ingot{Metal: MetalSilver}, CountB: 1, Out: Ingot{Metal: MetalElectrum}, OutCount: 2},
 	{A: item.IronIngot{}, CountA: 2, B: Ingot{Metal: MetalNickel}, CountB: 1, Out: Ingot{Metal: MetalInvar}, OutCount: 3},
 	{A: item.IronIngot{}, CountA: 1, B: item.Coal{}, CountB: 4, Out: Ingot{Metal: MetalSteel}, OutCount: 1},
+	// the alloys of the machine tiers (tier.go)
+	{A: item.IronIngot{}, CountA: 1, B: item.RedstoneWire{}, CountB: 4, Out: TierAlloy{Kind: "infused"}, OutCount: 2},
+	{A: TierAlloy{Kind: "infused"}, CountA: 2, B: item.Diamond{}, CountB: 1, Out: TierAlloy{Kind: "reinforced"}, OutCount: 2},
+	{A: TierAlloy{Kind: "reinforced"}, CountA: 2, B: block.Obsidian{}, CountB: 2, Out: TierAlloy{Kind: "atomic"}, OutCount: 2},
 }
 
 // alloyAccepts reports whether an item is an ingredient of some recipe.

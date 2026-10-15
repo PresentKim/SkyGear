@@ -47,7 +47,8 @@ func (s *session) runVacuum(st *machineState, pos cube.Pos, tx *world.Tx) {
 	}
 	st.progress = 0
 	x, y, z := float64(pos.X()), float64(pos.Y()), float64(pos.Z())
-	box := cube.Box(x-vacuumReach, y-vacuumDown, z-vacuumReach, x+vacuumReach+1, y+vacuumUp+1, z+vacuumReach+1)
+	reach := float64(st.reach(KindVacuum))
+	box := cube.Box(x-reach, y-vacuumDown, z-reach, x+reach+1, y+vacuumUp+1, z+reach+1)
 	for e := range tx.EntitiesWithin(box) {
 		ent, ok := e.(*entity.Ent)
 		if !ok {
@@ -87,9 +88,10 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 	}
 	var logAt cube.Pos
 	found := false
+	reach := st.reach(KindFeller)
 	for dy := fellerUp; dy >= -fellerDown && !found; dy-- {
-		for dx := -fellerReach; dx <= fellerReach && !found; dx++ {
-			for dz := -fellerReach; dz <= fellerReach && !found; dz++ {
+		for dx := -reach; dx <= reach && !found; dx++ {
+			for dz := -reach; dz <= reach && !found; dz++ {
 				at := pos.Add(cube.Pos{dx, dy, dz})
 				if _, ok := tx.Block(at).(block.Log); ok {
 					logAt, found = at, true
@@ -126,8 +128,8 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	for dx := -fellerReach / plantStep * plantStep; dx <= fellerReach; dx += plantStep {
-		for dz := -fellerReach / plantStep * plantStep; dz <= fellerReach; dz += plantStep {
+	for dx := -reach / plantStep * plantStep; dx <= reach; dx += plantStep {
+		for dz := -reach / plantStep * plantStep; dz <= reach; dz += plantStep {
 			if dx == 0 && dz == 0 {
 				continue
 			}

@@ -160,13 +160,11 @@ func (st *machineState) tickWork() bool {
 	if !st.consume() {
 		return false
 	}
-	st.progress = min(st.progress+st.speed(), st.cycleLen())
+	st.progress = min(st.progress+1, st.cycleLen())
 	st.didWork = true
+	st.worked++
 	return true
 }
-
-// speed is how much a tick of work adds to the progress.
-func (st *machineState) speed() int { return 1 }
 
 // recordMade records items a player's work made, such as the hand sieve's
 // (the island's production counts what the sieve gives too).
@@ -312,7 +310,7 @@ func (s *session) powerText(lang string) string {
 		switch {
 		case st.kind.cell:
 			stored += st.energy
-			capacity += st.kind.energyCap
+			capacity += st.energyCap()
 		case st.kind.generates > 0:
 			generators++
 			if st.mon.status == statusWorking {

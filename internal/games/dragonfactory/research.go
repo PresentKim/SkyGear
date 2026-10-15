@@ -189,6 +189,12 @@ var baseResearchTree = []Research{
 	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []Requirement{{PlantSeed{Seed: "gem_redstone"}, 2}}, Unlocks: []string{"dragonfactory:seed_ess_zombie", "dragonfactory:seed_ess_skeleton", "dragonfactory:seed_ess_creeper", "dragonfactory:seed_ess_spider", "dragonfactory:seed_ess_slime", "dragonfactory:seed_ess_enderman", "dragonfactory:seed_ess_blaze"}},
 	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []Requirement{{item.Diamond{}, 8}, {item.EnderPearl{}, 8}},
 		Unlocks: []string{"dragonfactory:magic_sieve"}},
+	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 16}, {Ingot{Metal: MetalElectrum}, 16}, {item.Diamond{}, 4}},
+		Unlocks: []string{"dragonfactory:circuit_1", "dragonfactory:circuit_2", "dragonfactory:kit_1"}},
+	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []Requirement{{item.Diamond{}, 16}, {Ingot{Metal: MetalInvar}, 16}},
+		Unlocks: []string{"dragonfactory:circuit_3", "dragonfactory:kit_2"}},
+	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []Requirement{{item.NetheriteIngot{}, 2}},
+		Unlocks: []string{"dragonfactory:circuit_4", "dragonfactory:kit_3"}},
 	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{Petal{Colour: "red"}, 4}, {Petal{Colour: "yellow"}, 4}, {Petal{Colour: "blue"}, 4}},
 		Unlocks: dyeUnlocks()},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 16}, {block.Pumpkin{}, 4}},
@@ -662,6 +668,29 @@ func gameRecipes() {
 	// told (any), not by the one state an empty sieve has.
 	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
 	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
+	// The machine tiers' circuits and kits (docs/design/13-machine-tiers.md §3).
+	steel, electrum := Ingot{Metal: MetalSteel}, Ingot{Metal: MetalElectrum}
+	infused, reinforced, atomic := TierAlloy{Kind: "infused"}, TierAlloy{Kind: "reinforced"}, TierAlloy{Kind: "atomic"}
+	c1, c2, c3, c4 := Circuit{Level: 1}, Circuit{Level: 2}, Circuit{Level: 3}, Circuit{Level: 4}
+	shaped(st(c1), 3, 1, redstone, infused, redstone)
+	shaped(st(c2), 3, 1, reinforced, c1, reinforced)
+	shaped(st(c3), 3, 1, atomic, c2, atomic)
+	shaped(st(c4), 3, 3,
+		atomic, item.NetheriteScrap{}, atomic,
+		ResearchEssence{Kind: EssenceHunting}, c3, ResearchEssence{Kind: EssenceMagic},
+		atomic, nil, atomic)
+	shaped(st(TierKit{Level: 1}), 3, 3,
+		steel, c2, steel,
+		electrum, Machine{Kind: KindEnergyCell}, electrum,
+		steel, c2, steel)
+	shaped(st(TierKit{Level: 2}), 3, 3,
+		item.Diamond{}, c3, item.Diamond{},
+		reinforced, TierKit{Level: 1}, reinforced,
+		item.Diamond{}, c3, item.Diamond{})
+	shaped(st(TierKit{Level: 3}), 3, 3,
+		item.NetheriteIngot{}, c4, atomic,
+		atomic, TierKit{Level: 2}, atomic,
+		ResearchEssence{Kind: EssenceAlchemy}, c4, ResearchEssence{Kind: EssenceFarming})
 	// The magic sieve: an auto sieve (in any state) with eyes of ender, diamonds
 	// and amethyst.
 	add(machineItem(KindMagicSieve), []recipe.Item{st(Machine{Kind: KindAutoSieve}).WithValue("variants", true)}, n(item.EnderEye{}, 2), n(item.Diamond{}, 2), n(item.AmethystShard{}, 4))

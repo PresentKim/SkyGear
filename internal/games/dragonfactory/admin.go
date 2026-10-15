@@ -199,6 +199,15 @@ func giveItems() map[string]func() item.Stack {
 	for _, m := range mobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
 	}
+	for _, a := range tierAlloys {
+		out["alloy_"+a] = func() item.Stack { return item.NewStack(TierAlloy{Kind: a}, 1) }
+	}
+	for l := 1; l <= 4; l++ {
+		out[fmt.Sprintf("circuit_%d", l)] = func() item.Stack { return item.NewStack(Circuit{Level: l}, 1) }
+	}
+	for l := 1; l <= maxTier; l++ {
+		out[fmt.Sprintf("kit_%d", l)] = func() item.Stack { return item.NewStack(TierKit{Level: l}, 1) }
+	}
 	for _, k := range researchEssenceKinds {
 		out["research_essence_"+k] = func() item.Stack { return item.NewStack(ResearchEssence{Kind: k}, 1) }
 	}

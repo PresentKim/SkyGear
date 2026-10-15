@@ -74,6 +74,10 @@ var researchEssenceCosts = map[string]map[string]int{
 	"magic_gems":    {EssenceAlchemy: 6, EssenceHunting: 4, EssenceMagic: 4},
 	"magic_essence": {EssenceAlchemy: 6, EssenceHunting: 6, EssenceMagic: 6},
 	"magic_sieve":   {EssenceEngineering: 8, EssenceAlchemy: 8, EssenceHunting: 6, EssenceMagic: 6},
+	// machine tiers
+	"machine_tier_1": {EssenceEngineering: 8, EssenceAlchemy: 8},
+	"machine_tier_2": {EssenceEngineering: 16, EssenceAlchemy: 16, EssenceHunting: 8},
+	"machine_tier_3": {EssenceEngineering: 24, EssenceAlchemy: 24, EssenceFarming: 16, EssenceHunting: 16, EssenceMagic: 16},
 	// the projects
 	"project_industry": {EssenceEngineering: 16, EssenceAlchemy: 16},
 	"project_hunter":   {EssenceEngineering: 8, EssenceAlchemy: 8, EssenceHunting: 16},

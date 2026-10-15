@@ -289,13 +289,13 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 			lines = append(lines, stackLine(in))
 		}
 		if st.kind.generates > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap))
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap()))
 		} else {
 			lines = append(lines, consumerLines(st)...)
 		}
 		return lines, nil
 	case st.kind.cell:
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.kind.energyCap)}, nil
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap())}, nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
 		return append(append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), blockedLines(st)...), nil
@@ -335,9 +335,9 @@ func detailLines(st *machineState) []string {
 	}
 	switch {
 	case st.kind.generates > 0:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.makes"), st.kind.generates*20))
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.makes"), st.genRate()*20))
 	case st.kind.use > 0 && !st.unlimited:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.uses"), st.kind.use*20))
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.uses"), st.useTotal()*20))
 	}
 	return lines
 }
