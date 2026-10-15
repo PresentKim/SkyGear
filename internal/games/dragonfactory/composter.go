@@ -181,7 +181,7 @@ func (s *session) composterLines(pos cube.Pos, c block.Composter) []string {
 	if n >= matterCapacity {
 		return []string{i18n.T(i18n.Default, "dragonfactory.composter.composterLines.1")}
 	}
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.composter.composterLines.2"), n, matterCapacity), i18n.T(i18n.Default, "dragonfactory.composter.composterLines.3")}
+	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.composter.composterLines.2"), n, matterCapacity)}
 }
 
 // breakComposter forgets a composter that is broken; a full one drops dirt.

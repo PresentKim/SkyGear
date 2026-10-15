@@ -411,9 +411,9 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
 	case rec == nil || rec.Count == 0:
-		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1"), i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.2")}
+		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1")}
 	case rec.Water:
-		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3"), i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.4")}
+		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3")}
 	case rec.Count >= matterCapacity:
 		now, _, _ := s.clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
@@ -429,7 +429,7 @@ func (s *session) stoneBarrelLines(tx *world.Tx, pos cube.Pos) []string {
 	case rec != nil && rec.Lava:
 		return []string{i18n.T(i18n.Default, "barrel.stone.lines.lava")}
 	case rec == nil || rec.Count == 0:
-		return []string{i18n.T(i18n.Default, "barrel.stone.lines.empty"), i18n.T(i18n.Default, "barrel.stone.lines.heatHint")}
+		return []string{i18n.T(i18n.Default, "barrel.stone.lines.empty")}
 	case rec.Count < stoneBarrelCapacity:
 		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.stone.lines.count"), rec.Count, stoneBarrelCapacity)}
 	}

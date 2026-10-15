@@ -187,11 +187,11 @@ func TestMachineStatusLines(t *testing.T) {
 	loadAround(s)
 	crusher := placeTestMachine(s, machinePos, KindCrusher, "")
 	crusher.progress = crusher.kind.interval
-	if lines, _ := machineLines(Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "가득 차") {
+	if lines, _ := machineLines(Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "출력 슬롯 부족") {
 		t.Errorf("a blocked crusher says %q", lines)
 	}
 	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrafter, "")
-	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법을 정하세요") {
+	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법 미설정") {
 		t.Errorf("a crafter without a recipe says %q", lines)
 	}
 	crafter.setRecipe(s.crafterCandidates(machineItem(KindCrusher))[0])
