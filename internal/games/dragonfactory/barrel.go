@@ -46,9 +46,9 @@ var barrelWoods = []string{"oak", stoneWood}
 
 // The stone barrel (docs/design/02-dragonfactory.md §5): eight cobblestone
 // go in, and with a heat source right under it they turn into lava, one
-// bucket's worth (a lava stage like the water one). A lit... any candle is the
-// least heat (speed 1×) and takes stoneHeatNeeded; lava (source or flowing)
-// is 4×, a magma block 8×.
+// bucket's worth (a lava stage like the water one). A torch is the least
+// heat (speed 1×) and takes stoneHeatNeeded; lava (source or flowing) is 4×,
+// a magma block 8×.
 const (
 	stoneWood           = "stone"
 	stoneBarrelCapacity = 8
@@ -59,7 +59,7 @@ const (
 // (0: no heat source).
 func heatMultiplier(b world.Block) int {
 	switch b.(type) {
-	case block.Candle:
+	case block.Torch:
 		return 1
 	case block.Lava:
 		return 4

@@ -87,7 +87,7 @@ var researchTree = []Research{
 	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
 	{ID: "bucket", Needs: []string{"iron", "barrel"}, Cost: []Requirement{{item.IronIngot{}, 6}}, Unlocks: []string{"bucket"}},
 	{ID: "shears", Needs: []string{"iron", "wood_tools"}, Cost: []Requirement{{item.IronIngot{}, 4}}, Unlocks: []string{"shears"}},
-	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"dragonfactory:barrel_stone", "candle"}},
+	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket", "torch"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"dragonfactory:barrel_stone"}},
 	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse"}},
 	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:generator"}},
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:conduit_energy_1", "dragonfactory:conduit_binder_mix"}},
@@ -643,10 +643,8 @@ func gameRecipes() {
 		planks, block.NewChest(), planks,
 		planks, planks, planks)
 	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
-	// The stone barrel; a candle (the least heat for it) is a string and a
-	// charcoal, since honeycomb does not exist on the island.
+	// The stone barrel; a torch under it is the least heat for it.
 	add(st(Barrel{Wood: stoneWood}), n(block.Stone{}, 6), n(stick, 2))
-	add(st(block.Candle{}), n(block.String{}, 1), n(item.Charcoal{}, 1))
 	// Hoppers: the wood hopper from planks and a chest; each hopper and its
 	// reverse turn into one another when crafted alone.
 	woodHopper, woodReverse := newFlowHopper("wood_hopper", cube.FaceDown), newFlowHopper("wood_hopper_reverse", cube.FaceUp)

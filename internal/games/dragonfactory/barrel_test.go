@@ -106,7 +106,7 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 }
 
 // TestStoneBarrelMakesLava: eight cobblestone fill a stone barrel; heat
-// under it turns them into lava after 2 minutes with a candle (1×), 30
+// under it turns them into lava after 2 minutes with a torch (1×), 30
 // seconds over lava (4×) and 15 over a magma block (8×); no heat, no lava; a
 // bucket takes the lava.
 func TestStoneBarrelMakesLava(t *testing.T) {
@@ -119,7 +119,7 @@ func TestStoneBarrelMakesLava(t *testing.T) {
 		below world.Block
 		after time.Duration
 	}{
-		{"candle", block.Candle{}, 2 * time.Minute},
+		{"torch", block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, 2 * time.Minute},
 		{"lava", block.Lava{Still: true, Depth: 8}, 30 * time.Second},
 		{"magma", block.Magma{}, 15 * time.Second},
 	} {
