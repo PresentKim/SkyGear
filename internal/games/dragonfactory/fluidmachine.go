@@ -194,7 +194,7 @@ func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
 		}
 		st.energy += gen
 		st.made += gen
-		st.didWork = true
+		st.markWorked()
 	} else if st.fluidAmt == 0 {
 		st.stuck = stuckFuel
 	}

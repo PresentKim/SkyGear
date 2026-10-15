@@ -281,6 +281,8 @@ type Machine struct {
 	st   *machineState
 	// content and fill are what a sieve shows on its mesh (sieve.go).
 	content, fill int
+	// active is the working look of an animated machine (animate.go).
+	active bool
 }
 
 // machineState is the inventory and progress of a placed machine. It is
@@ -350,6 +352,9 @@ type machineState struct {
 	// tier is the machine's tier (tier.go); worked counts the ticks of work
 	// done, to tell whether a run did anything.
 	tier, worked int
+	// seenWorked and lastWorkTick tell when the machine last worked (animate.go).
+	seenWorked   int
+	lastWorkTick int64
 }
 
 // cycleLen is the ticks of the cycle the machine is on.
@@ -739,9 +744,15 @@ func (m Machine) EncodeBlock() (string, map[string]any) {
 	if isSieve(m.Kind) {
 		return "dragonfactory:" + m.Kind, map[string]any{sieveLookState: lookValue(m.content, m.fill)}
 	}
+	if animatedMachines[m.Kind] {
+		return "dragonfactory:" + m.Kind, map[string]any{activeState: activeValue(m.active)}
+	}
 	return "dragonfactory:" + m.Kind, nil
 }
 func (m Machine) Hash() (uint64, uint64) {
+	if m.active {
+		return m.kind().hash, 1
+	}
 	return m.kind().hash, uint64(lookIndex(m.content, m.fill))
 }
 func (Machine) Model() world.BlockModel { return model.Solid{} }
@@ -766,6 +777,9 @@ func (m Machine) States() map[string][]any {
 	if isSieve(m.Kind) {
 		return sieveStates()
 	}
+	if animatedMachines[m.Kind] {
+		return activeStates()
+	}
 	return nil
 }
 
@@ -773,6 +787,9 @@ func (m Machine) States() map[string][]any {
 func (m Machine) Permutations() []customblock.Permutation {
 	if isSieve(m.Kind) {
 		return sievePermutations(m.Kind)
+	}
+	if animatedMachines[m.Kind] {
+		return activePermutations(m.Kind)
 	}
 	return nil
 }
@@ -1068,6 +1085,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
+	if animatedMachines[m.Kind] {
+		showActive(tx, pos, st, currentTick)
+	}
 	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
 		if m.Kind == KindEnergyCell && st.energy > 0 {
 			s.energyGrid().AddSource(pos)
@@ -1265,6 +1285,9 @@ func init() {
 		machineKinds[k].hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
+	}
+	for k := range animatedMachines {
+		world.RegisterBlock(Machine{Kind: k, active: true})
 	}
 	for _, k := range []string{KindSieve, KindAutoSieve, KindMagicSieve} {
 		for c := range sieveContents {

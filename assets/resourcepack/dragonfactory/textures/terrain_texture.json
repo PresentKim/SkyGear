@@ -1,13 +1,65 @@
 {
   "num_mip_levels": 4,
+  "texture_name": "atlas.terrain",
   "padding": 8,
   "resource_pack_name": "vanilla",
   "texture_data": {
+    "dragonfactory_alloy_smelter_back": {
+      "textures": "textures/blocks/alloy_smelter_back"
+    },
+    "dragonfactory_alloy_smelter_down": {
+      "textures": "textures/blocks/alloy_smelter_down"
+    },
+    "dragonfactory_alloy_smelter_front": {
+      "textures": "textures/blocks/alloy_smelter_front"
+    },
+    "dragonfactory_alloy_smelter_front_on": {
+      "textures": "textures/blocks/alloy_smelter_front_on"
+    },
+    "dragonfactory_alloy_smelter_side": {
+      "textures": "textures/blocks/alloy_smelter_side"
+    },
+    "dragonfactory_alloy_smelter_up": {
+      "textures": "textures/blocks/alloy_smelter_up"
+    },
+    "dragonfactory_auto_composter_down": {
+      "textures": "textures/blocks/auto_composter_down"
+    },
+    "dragonfactory_auto_composter_side": {
+      "textures": "textures/blocks/auto_composter_side"
+    },
+    "dragonfactory_auto_composter_side_on": {
+      "textures": "textures/blocks/auto_composter_side_on"
+    },
+    "dragonfactory_auto_composter_up": {
+      "textures": "textures/blocks/auto_composter_up"
+    },
+    "dragonfactory_auto_crafter_back": {
+      "textures": "textures/blocks/auto_crafter_back"
+    },
+    "dragonfactory_auto_crafter_down": {
+      "textures": "textures/blocks/auto_crafter_down"
+    },
+    "dragonfactory_auto_crafter_front": {
+      "textures": "textures/blocks/auto_crafter_front"
+    },
+    "dragonfactory_auto_crafter_front_on": {
+      "textures": "textures/blocks/auto_crafter_front_on"
+    },
+    "dragonfactory_auto_crafter_side": {
+      "textures": "textures/blocks/auto_crafter_side"
+    },
+    "dragonfactory_auto_crafter_up": {
+      "textures": "textures/blocks/auto_crafter_up"
+    },
     "dragonfactory_auto_miner_down": {
       "textures": "textures/blocks/auto_miner_down"
     },
     "dragonfactory_auto_miner_side": {
       "textures": "textures/blocks/auto_miner_side"
+    },
+    "dragonfactory_auto_miner_side_on": {
+      "textures": "textures/blocks/auto_miner_side_on"
     },
     "dragonfactory_auto_miner_up": {
       "textures": "textures/blocks/auto_miner_up"
@@ -15,8 +67,53 @@
     "dragonfactory_auto_sieve": {
       "textures": "textures/blocks/auto_sieve"
     },
-    "dragonfactory_magic_sieve": {
-      "textures": "textures/blocks/magic_sieve"
+    "dragonfactory_barrel_cobble": {
+      "textures": "textures/blocks/barrel_cobble"
+    },
+    "dragonfactory_barrel_compost": {
+      "textures": "textures/blocks/barrel_compost"
+    },
+    "dragonfactory_barrel_lava": {
+      "textures": "textures/blocks/barrel_lava"
+    },
+    "dragonfactory_barrel_oak": {
+      "textures": "textures/blocks/barrel_oak"
+    },
+    "dragonfactory_barrel_stone": {
+      "textures": "textures/blocks/barrel_stone"
+    },
+    "dragonfactory_barrel_water": {
+      "textures": "textures/blocks/barrel_water"
+    },
+    "dragonfactory_conduit_energy_1": {
+      "textures": "textures/blocks/conduit_energy_1"
+    },
+    "dragonfactory_conduit_energy_2": {
+      "textures": "textures/blocks/conduit_energy_2"
+    },
+    "dragonfactory_conduit_energy_3": {
+      "textures": "textures/blocks/conduit_energy_3"
+    },
+    "dragonfactory_conduit_fluid_1": {
+      "textures": "textures/blocks/conduit_fluid_1"
+    },
+    "dragonfactory_conduit_fluid_2": {
+      "textures": "textures/blocks/conduit_fluid_2"
+    },
+    "dragonfactory_conduit_fluid_3": {
+      "textures": "textures/blocks/conduit_fluid_3"
+    },
+    "dragonfactory_conduit_item_1": {
+      "textures": "textures/blocks/conduit_item_1"
+    },
+    "dragonfactory_conduit_item_2": {
+      "textures": "textures/blocks/conduit_item_2"
+    },
+    "dragonfactory_conduit_item_3": {
+      "textures": "textures/blocks/conduit_item_3"
+    },
+    "dragonfactory_conduit_node": {
+      "textures": "textures/blocks/conduit_node"
     },
     "dragonfactory_core_t1_down": {
       "textures": "textures/blocks/core_t1_down"
@@ -27,6 +124,24 @@
     "dragonfactory_core_t1_up": {
       "textures": "textures/blocks/core_t1_up"
     },
+    "dragonfactory_crucible_back": {
+      "textures": "textures/blocks/crucible_back"
+    },
+    "dragonfactory_crucible_down": {
+      "textures": "textures/blocks/crucible_down"
+    },
+    "dragonfactory_crucible_front": {
+      "textures": "textures/blocks/crucible_front"
+    },
+    "dragonfactory_crucible_front_on": {
+      "textures": "textures/blocks/crucible_front_on"
+    },
+    "dragonfactory_crucible_side": {
+      "textures": "textures/blocks/crucible_side"
+    },
+    "dragonfactory_crucible_up": {
+      "textures": "textures/blocks/crucible_up"
+    },
     "dragonfactory_crusher_back": {
       "textures": "textures/blocks/crusher_back"
     },
@@ -35,6 +150,9 @@
     },
     "dragonfactory_crusher_front": {
       "textures": "textures/blocks/crusher_front"
+    },
+    "dragonfactory_crusher_front_on": {
+      "textures": "textures/blocks/crusher_front_on"
     },
     "dragonfactory_crusher_side": {
       "textures": "textures/blocks/crusher_side"
@@ -57,6 +175,15 @@
     "dragonfactory_delivery_box_up": {
       "textures": "textures/blocks/delivery_box_up"
     },
+    "dragonfactory_dimension_gate_down": {
+      "textures": "textures/blocks/dimension_gate_down"
+    },
+    "dragonfactory_dimension_gate_side": {
+      "textures": "textures/blocks/dimension_gate_side"
+    },
+    "dragonfactory_dimension_gate_up": {
+      "textures": "textures/blocks/dimension_gate_up"
+    },
     "dragonfactory_drawer_front": {
       "textures": "textures/blocks/drawer_front"
     },
@@ -66,14 +193,365 @@
     "dragonfactory_dust": {
       "textures": "textures/blocks/dust"
     },
+    "dragonfactory_electric_furnace_back": {
+      "textures": "textures/blocks/electric_furnace_back"
+    },
+    "dragonfactory_electric_furnace_down": {
+      "textures": "textures/blocks/electric_furnace_down"
+    },
+    "dragonfactory_electric_furnace_front": {
+      "textures": "textures/blocks/electric_furnace_front"
+    },
+    "dragonfactory_electric_furnace_front_on": {
+      "textures": "textures/blocks/electric_furnace_front_on"
+    },
+    "dragonfactory_electric_furnace_side": {
+      "textures": "textures/blocks/electric_furnace_side"
+    },
+    "dragonfactory_electric_furnace_up": {
+      "textures": "textures/blocks/electric_furnace_up"
+    },
+    "dragonfactory_energy_cell_down": {
+      "textures": "textures/blocks/energy_cell_down"
+    },
+    "dragonfactory_energy_cell_side": {
+      "textures": "textures/blocks/energy_cell_side"
+    },
+    "dragonfactory_energy_cell_up": {
+      "textures": "textures/blocks/energy_cell_up"
+    },
+    "dragonfactory_fluid_tank_down": {
+      "textures": "textures/blocks/fluid_tank_down"
+    },
+    "dragonfactory_fluid_tank_side": {
+      "textures": "textures/blocks/fluid_tank_side"
+    },
+    "dragonfactory_fluid_tank_up": {
+      "textures": "textures/blocks/fluid_tank_up"
+    },
+    "dragonfactory_generator_down": {
+      "textures": "textures/blocks/generator_down"
+    },
+    "dragonfactory_generator_side": {
+      "textures": "textures/blocks/generator_side"
+    },
+    "dragonfactory_generator_side_on": {
+      "textures": "textures/blocks/generator_side_on"
+    },
+    "dragonfactory_generator_up": {
+      "textures": "textures/blocks/generator_up"
+    },
     "dragonfactory_harvester_down": {
       "textures": "textures/blocks/harvester_down"
     },
     "dragonfactory_harvester_side": {
       "textures": "textures/blocks/harvester_side"
     },
+    "dragonfactory_harvester_side_on": {
+      "textures": "textures/blocks/harvester_side_on"
+    },
     "dragonfactory_harvester_up": {
       "textures": "textures/blocks/harvester_up"
+    },
+    "dragonfactory_iron_hopper": {
+      "textures": "textures/blocks/iron_hopper"
+    },
+    "dragonfactory_item_vacuum_down": {
+      "textures": "textures/blocks/item_vacuum_down"
+    },
+    "dragonfactory_item_vacuum_side": {
+      "textures": "textures/blocks/item_vacuum_side"
+    },
+    "dragonfactory_item_vacuum_side_on": {
+      "textures": "textures/blocks/item_vacuum_side_on"
+    },
+    "dragonfactory_item_vacuum_up": {
+      "textures": "textures/blocks/item_vacuum_up"
+    },
+    "dragonfactory_laboratory_back": {
+      "textures": "textures/blocks/laboratory_back"
+    },
+    "dragonfactory_laboratory_down": {
+      "textures": "textures/blocks/laboratory_down"
+    },
+    "dragonfactory_laboratory_front": {
+      "textures": "textures/blocks/laboratory_front"
+    },
+    "dragonfactory_laboratory_front_on": {
+      "textures": "textures/blocks/laboratory_front_on"
+    },
+    "dragonfactory_laboratory_side": {
+      "textures": "textures/blocks/laboratory_side"
+    },
+    "dragonfactory_laboratory_up": {
+      "textures": "textures/blocks/laboratory_up"
+    },
+    "dragonfactory_lava_generator_down": {
+      "textures": "textures/blocks/lava_generator_down"
+    },
+    "dragonfactory_lava_generator_side": {
+      "textures": "textures/blocks/lava_generator_side"
+    },
+    "dragonfactory_lava_generator_side_on": {
+      "textures": "textures/blocks/lava_generator_side_on"
+    },
+    "dragonfactory_lava_generator_up": {
+      "textures": "textures/blocks/lava_generator_up"
+    },
+    "dragonfactory_magic_sieve": {
+      "textures": "textures/blocks/magic_sieve"
+    },
+    "dragonfactory_mob_simulator_back": {
+      "textures": "textures/blocks/mob_simulator_back"
+    },
+    "dragonfactory_mob_simulator_down": {
+      "textures": "textures/blocks/mob_simulator_down"
+    },
+    "dragonfactory_mob_simulator_front": {
+      "textures": "textures/blocks/mob_simulator_front"
+    },
+    "dragonfactory_mob_simulator_front_on": {
+      "textures": "textures/blocks/mob_simulator_front_on"
+    },
+    "dragonfactory_mob_simulator_side": {
+      "textures": "textures/blocks/mob_simulator_side"
+    },
+    "dragonfactory_mob_simulator_up": {
+      "textures": "textures/blocks/mob_simulator_up"
+    },
+    "dragonfactory_ore_washer_back": {
+      "textures": "textures/blocks/ore_washer_back"
+    },
+    "dragonfactory_ore_washer_down": {
+      "textures": "textures/blocks/ore_washer_down"
+    },
+    "dragonfactory_ore_washer_front": {
+      "textures": "textures/blocks/ore_washer_front"
+    },
+    "dragonfactory_ore_washer_front_on": {
+      "textures": "textures/blocks/ore_washer_front_on"
+    },
+    "dragonfactory_ore_washer_side": {
+      "textures": "textures/blocks/ore_washer_side"
+    },
+    "dragonfactory_ore_washer_up": {
+      "textures": "textures/blocks/ore_washer_up"
+    },
+    "dragonfactory_plant_ess_blaze_0": {
+      "textures": "textures/blocks/plant_ess_blaze_0"
+    },
+    "dragonfactory_plant_ess_blaze_1": {
+      "textures": "textures/blocks/plant_ess_blaze_1"
+    },
+    "dragonfactory_plant_ess_creeper_0": {
+      "textures": "textures/blocks/plant_ess_creeper_0"
+    },
+    "dragonfactory_plant_ess_creeper_1": {
+      "textures": "textures/blocks/plant_ess_creeper_1"
+    },
+    "dragonfactory_plant_ess_enderman_0": {
+      "textures": "textures/blocks/plant_ess_enderman_0"
+    },
+    "dragonfactory_plant_ess_enderman_1": {
+      "textures": "textures/blocks/plant_ess_enderman_1"
+    },
+    "dragonfactory_plant_ess_skeleton_0": {
+      "textures": "textures/blocks/plant_ess_skeleton_0"
+    },
+    "dragonfactory_plant_ess_skeleton_1": {
+      "textures": "textures/blocks/plant_ess_skeleton_1"
+    },
+    "dragonfactory_plant_ess_slime_0": {
+      "textures": "textures/blocks/plant_ess_slime_0"
+    },
+    "dragonfactory_plant_ess_slime_1": {
+      "textures": "textures/blocks/plant_ess_slime_1"
+    },
+    "dragonfactory_plant_ess_spider_0": {
+      "textures": "textures/blocks/plant_ess_spider_0"
+    },
+    "dragonfactory_plant_ess_spider_1": {
+      "textures": "textures/blocks/plant_ess_spider_1"
+    },
+    "dragonfactory_plant_ess_zombie_0": {
+      "textures": "textures/blocks/plant_ess_zombie_0"
+    },
+    "dragonfactory_plant_ess_zombie_1": {
+      "textures": "textures/blocks/plant_ess_zombie_1"
+    },
+    "dragonfactory_plant_flower_black_0": {
+      "textures": "textures/blocks/plant_flower_black_0"
+    },
+    "dragonfactory_plant_flower_black_1": {
+      "textures": "textures/blocks/plant_flower_black_1"
+    },
+    "dragonfactory_plant_flower_blue_0": {
+      "textures": "textures/blocks/plant_flower_blue_0"
+    },
+    "dragonfactory_plant_flower_blue_1": {
+      "textures": "textures/blocks/plant_flower_blue_1"
+    },
+    "dragonfactory_plant_flower_brown_0": {
+      "textures": "textures/blocks/plant_flower_brown_0"
+    },
+    "dragonfactory_plant_flower_brown_1": {
+      "textures": "textures/blocks/plant_flower_brown_1"
+    },
+    "dragonfactory_plant_flower_cyan_0": {
+      "textures": "textures/blocks/plant_flower_cyan_0"
+    },
+    "dragonfactory_plant_flower_cyan_1": {
+      "textures": "textures/blocks/plant_flower_cyan_1"
+    },
+    "dragonfactory_plant_flower_gray_0": {
+      "textures": "textures/blocks/plant_flower_gray_0"
+    },
+    "dragonfactory_plant_flower_gray_1": {
+      "textures": "textures/blocks/plant_flower_gray_1"
+    },
+    "dragonfactory_plant_flower_green_0": {
+      "textures": "textures/blocks/plant_flower_green_0"
+    },
+    "dragonfactory_plant_flower_green_1": {
+      "textures": "textures/blocks/plant_flower_green_1"
+    },
+    "dragonfactory_plant_flower_light_blue_0": {
+      "textures": "textures/blocks/plant_flower_light_blue_0"
+    },
+    "dragonfactory_plant_flower_light_blue_1": {
+      "textures": "textures/blocks/plant_flower_light_blue_1"
+    },
+    "dragonfactory_plant_flower_light_gray_0": {
+      "textures": "textures/blocks/plant_flower_light_gray_0"
+    },
+    "dragonfactory_plant_flower_light_gray_1": {
+      "textures": "textures/blocks/plant_flower_light_gray_1"
+    },
+    "dragonfactory_plant_flower_lime_0": {
+      "textures": "textures/blocks/plant_flower_lime_0"
+    },
+    "dragonfactory_plant_flower_lime_1": {
+      "textures": "textures/blocks/plant_flower_lime_1"
+    },
+    "dragonfactory_plant_flower_magenta_0": {
+      "textures": "textures/blocks/plant_flower_magenta_0"
+    },
+    "dragonfactory_plant_flower_magenta_1": {
+      "textures": "textures/blocks/plant_flower_magenta_1"
+    },
+    "dragonfactory_plant_flower_orange_0": {
+      "textures": "textures/blocks/plant_flower_orange_0"
+    },
+    "dragonfactory_plant_flower_orange_1": {
+      "textures": "textures/blocks/plant_flower_orange_1"
+    },
+    "dragonfactory_plant_flower_pink_0": {
+      "textures": "textures/blocks/plant_flower_pink_0"
+    },
+    "dragonfactory_plant_flower_pink_1": {
+      "textures": "textures/blocks/plant_flower_pink_1"
+    },
+    "dragonfactory_plant_flower_purple_0": {
+      "textures": "textures/blocks/plant_flower_purple_0"
+    },
+    "dragonfactory_plant_flower_purple_1": {
+      "textures": "textures/blocks/plant_flower_purple_1"
+    },
+    "dragonfactory_plant_flower_red_0": {
+      "textures": "textures/blocks/plant_flower_red_0"
+    },
+    "dragonfactory_plant_flower_red_1": {
+      "textures": "textures/blocks/plant_flower_red_1"
+    },
+    "dragonfactory_plant_flower_white_0": {
+      "textures": "textures/blocks/plant_flower_white_0"
+    },
+    "dragonfactory_plant_flower_white_1": {
+      "textures": "textures/blocks/plant_flower_white_1"
+    },
+    "dragonfactory_plant_flower_yellow_0": {
+      "textures": "textures/blocks/plant_flower_yellow_0"
+    },
+    "dragonfactory_plant_flower_yellow_1": {
+      "textures": "textures/blocks/plant_flower_yellow_1"
+    },
+    "dragonfactory_plant_gem_coal_0": {
+      "textures": "textures/blocks/plant_gem_coal_0"
+    },
+    "dragonfactory_plant_gem_coal_1": {
+      "textures": "textures/blocks/plant_gem_coal_1"
+    },
+    "dragonfactory_plant_gem_diamond_0": {
+      "textures": "textures/blocks/plant_gem_diamond_0"
+    },
+    "dragonfactory_plant_gem_diamond_1": {
+      "textures": "textures/blocks/plant_gem_diamond_1"
+    },
+    "dragonfactory_plant_gem_emerald_0": {
+      "textures": "textures/blocks/plant_gem_emerald_0"
+    },
+    "dragonfactory_plant_gem_emerald_1": {
+      "textures": "textures/blocks/plant_gem_emerald_1"
+    },
+    "dragonfactory_plant_gem_lapis_0": {
+      "textures": "textures/blocks/plant_gem_lapis_0"
+    },
+    "dragonfactory_plant_gem_lapis_1": {
+      "textures": "textures/blocks/plant_gem_lapis_1"
+    },
+    "dragonfactory_plant_gem_quartz_0": {
+      "textures": "textures/blocks/plant_gem_quartz_0"
+    },
+    "dragonfactory_plant_gem_quartz_1": {
+      "textures": "textures/blocks/plant_gem_quartz_1"
+    },
+    "dragonfactory_plant_gem_redstone_0": {
+      "textures": "textures/blocks/plant_gem_redstone_0"
+    },
+    "dragonfactory_plant_gem_redstone_1": {
+      "textures": "textures/blocks/plant_gem_redstone_1"
+    },
+    "dragonfactory_plant_ore_copper_0": {
+      "textures": "textures/blocks/plant_ore_copper_0"
+    },
+    "dragonfactory_plant_ore_copper_1": {
+      "textures": "textures/blocks/plant_ore_copper_1"
+    },
+    "dragonfactory_plant_ore_gold_0": {
+      "textures": "textures/blocks/plant_ore_gold_0"
+    },
+    "dragonfactory_plant_ore_gold_1": {
+      "textures": "textures/blocks/plant_ore_gold_1"
+    },
+    "dragonfactory_plant_ore_iron_0": {
+      "textures": "textures/blocks/plant_ore_iron_0"
+    },
+    "dragonfactory_plant_ore_iron_1": {
+      "textures": "textures/blocks/plant_ore_iron_1"
+    },
+    "dragonfactory_plant_ore_lead_0": {
+      "textures": "textures/blocks/plant_ore_lead_0"
+    },
+    "dragonfactory_plant_ore_lead_1": {
+      "textures": "textures/blocks/plant_ore_lead_1"
+    },
+    "dragonfactory_plant_ore_nickel_0": {
+      "textures": "textures/blocks/plant_ore_nickel_0"
+    },
+    "dragonfactory_plant_ore_nickel_1": {
+      "textures": "textures/blocks/plant_ore_nickel_1"
+    },
+    "dragonfactory_plant_ore_silver_0": {
+      "textures": "textures/blocks/plant_ore_silver_0"
+    },
+    "dragonfactory_plant_ore_silver_1": {
+      "textures": "textures/blocks/plant_ore_silver_1"
+    },
+    "dragonfactory_plant_ore_tin_0": {
+      "textures": "textures/blocks/plant_ore_tin_0"
+    },
+    "dragonfactory_plant_ore_tin_1": {
+      "textures": "textures/blocks/plant_ore_tin_1"
     },
     "dragonfactory_research_table_down": {
       "textures": "textures/blocks/research_table_down"
@@ -108,173 +586,8 @@
     "dragonfactory_sieve_nomesh": {
       "textures": "textures/blocks/sieve_nomesh"
     },
-    "dragonfactory_barrel_oak": {
-      "textures": "textures/blocks/barrel_oak"
-    },
-    "dragonfactory_barrel_compost": {
-      "textures": "textures/blocks/barrel_compost"
-    },
-    "dragonfactory_barrel_water": {
-      "textures": "textures/blocks/barrel_water"
-    },
-    "dragonfactory_barrel_stone": {
-      "textures": "textures/blocks/barrel_stone"
-    },
-    "dragonfactory_barrel_cobble": {
-      "textures": "textures/blocks/barrel_cobble"
-    },
-    "dragonfactory_barrel_lava": {
-      "textures": "textures/blocks/barrel_lava"
-    },
-    "dragonfactory_generator_side": {
-      "textures": "textures/blocks/generator_side"
-    },
-    "dragonfactory_generator_up": {
-      "textures": "textures/blocks/generator_up"
-    },
-    "dragonfactory_generator_down": {
-      "textures": "textures/blocks/generator_down"
-    },
-    "dragonfactory_wood_hopper": {
-      "textures": "textures/blocks/wood_hopper"
-    },
-    "dragonfactory_iron_hopper": {
-      "textures": "textures/blocks/iron_hopper"
-    },
-    "dragonfactory_conduit_node": {
-      "textures": "textures/blocks/conduit_node"
-    },
-    "dragonfactory_conduit_energy_1": {
-      "textures": "textures/blocks/conduit_energy_1"
-    },
-    "dragonfactory_conduit_energy_2": {
-      "textures": "textures/blocks/conduit_energy_2"
-    },
-    "dragonfactory_conduit_energy_3": {
-      "textures": "textures/blocks/conduit_energy_3"
-    },
-    "dragonfactory_conduit_item_1": {
-      "textures": "textures/blocks/conduit_item_1"
-    },
-    "dragonfactory_conduit_item_2": {
-      "textures": "textures/blocks/conduit_item_2"
-    },
-    "dragonfactory_conduit_item_3": {
-      "textures": "textures/blocks/conduit_item_3"
-    },
-    "dragonfactory_conduit_fluid_1": {
-      "textures": "textures/blocks/conduit_fluid_1"
-    },
-    "dragonfactory_conduit_fluid_2": {
-      "textures": "textures/blocks/conduit_fluid_2"
-    },
-    "dragonfactory_conduit_fluid_3": {
-      "textures": "textures/blocks/conduit_fluid_3"
-    },
-    "dragonfactory_alloy_smelter_front": {
-      "textures": "textures/blocks/alloy_smelter_front"
-    },
-    "dragonfactory_alloy_smelter_back": {
-      "textures": "textures/blocks/alloy_smelter_back"
-    },
-    "dragonfactory_alloy_smelter_side": {
-      "textures": "textures/blocks/alloy_smelter_side"
-    },
-    "dragonfactory_alloy_smelter_up": {
-      "textures": "textures/blocks/alloy_smelter_up"
-    },
-    "dragonfactory_alloy_smelter_down": {
-      "textures": "textures/blocks/alloy_smelter_down"
-    },
-    "dragonfactory_energy_cell_side": {
-      "textures": "textures/blocks/energy_cell_side"
-    },
-    "dragonfactory_energy_cell_up": {
-      "textures": "textures/blocks/energy_cell_up"
-    },
-    "dragonfactory_energy_cell_down": {
-      "textures": "textures/blocks/energy_cell_down"
-    },
-    "dragonfactory_mob_simulator_front": {
-      "textures": "textures/blocks/mob_simulator_front"
-    },
-    "dragonfactory_mob_simulator_back": {
-      "textures": "textures/blocks/mob_simulator_back"
-    },
-    "dragonfactory_mob_simulator_side": {
-      "textures": "textures/blocks/mob_simulator_side"
-    },
-    "dragonfactory_mob_simulator_up": {
-      "textures": "textures/blocks/mob_simulator_up"
-    },
-    "dragonfactory_mob_simulator_down": {
-      "textures": "textures/blocks/mob_simulator_down"
-    },
-    "dragonfactory_auto_composter_side": {
-      "textures": "textures/blocks/auto_composter_side"
-    },
-    "dragonfactory_auto_composter_up": {
-      "textures": "textures/blocks/auto_composter_up"
-    },
-    "dragonfactory_auto_composter_down": {
-      "textures": "textures/blocks/auto_composter_down"
-    },
-    "dragonfactory_fluid_tank_side": {
-      "textures": "textures/blocks/fluid_tank_side"
-    },
-    "dragonfactory_fluid_tank_up": {
-      "textures": "textures/blocks/fluid_tank_up"
-    },
-    "dragonfactory_fluid_tank_down": {
-      "textures": "textures/blocks/fluid_tank_down"
-    },
-    "dragonfactory_lava_generator_side": {
-      "textures": "textures/blocks/lava_generator_side"
-    },
-    "dragonfactory_lava_generator_up": {
-      "textures": "textures/blocks/lava_generator_up"
-    },
-    "dragonfactory_lava_generator_down": {
-      "textures": "textures/blocks/lava_generator_down"
-    },
-    "dragonfactory_crucible_front": {
-      "textures": "textures/blocks/crucible_front"
-    },
-    "dragonfactory_crucible_back": {
-      "textures": "textures/blocks/crucible_back"
-    },
-    "dragonfactory_crucible_side": {
-      "textures": "textures/blocks/crucible_side"
-    },
-    "dragonfactory_crucible_up": {
-      "textures": "textures/blocks/crucible_up"
-    },
-    "dragonfactory_crucible_down": {
-      "textures": "textures/blocks/crucible_down"
-    },
-    "dragonfactory_ore_washer_front": {
-      "textures": "textures/blocks/ore_washer_front"
-    },
-    "dragonfactory_ore_washer_back": {
-      "textures": "textures/blocks/ore_washer_back"
-    },
-    "dragonfactory_ore_washer_side": {
-      "textures": "textures/blocks/ore_washer_side"
-    },
-    "dragonfactory_ore_washer_up": {
-      "textures": "textures/blocks/ore_washer_up"
-    },
-    "dragonfactory_ore_washer_down": {
-      "textures": "textures/blocks/ore_washer_down"
-    },
-    "dragonfactory_dimension_gate_side": {
-      "textures": "textures/blocks/dimension_gate_side"
-    },
-    "dragonfactory_dimension_gate_up": {
-      "textures": "textures/blocks/dimension_gate_up"
-    },
-    "dragonfactory_dimension_gate_down": {
-      "textures": "textures/blocks/dimension_gate_down"
+    "dragonfactory_storage_controller_down": {
+      "textures": "textures/blocks/storage_controller_down"
     },
     "dragonfactory_storage_controller_side": {
       "textures": "textures/blocks/storage_controller_side"
@@ -282,8 +595,8 @@
     "dragonfactory_storage_controller_up": {
       "textures": "textures/blocks/storage_controller_up"
     },
-    "dragonfactory_storage_controller_down": {
-      "textures": "textures/blocks/storage_controller_down"
+    "dragonfactory_storage_link_down": {
+      "textures": "textures/blocks/storage_link_down"
     },
     "dragonfactory_storage_link_side": {
       "textures": "textures/blocks/storage_link_side"
@@ -291,8 +604,8 @@
     "dragonfactory_storage_link_up": {
       "textures": "textures/blocks/storage_link_up"
     },
-    "dragonfactory_storage_link_down": {
-      "textures": "textures/blocks/storage_link_down"
+    "dragonfactory_tinker_table_down": {
+      "textures": "textures/blocks/tinker_table_down"
     },
     "dragonfactory_tinker_table_side": {
       "textures": "textures/blocks/tinker_table_side"
@@ -300,288 +613,20 @@
     "dragonfactory_tinker_table_up": {
       "textures": "textures/blocks/tinker_table_up"
     },
-    "dragonfactory_tinker_table_down": {
-      "textures": "textures/blocks/tinker_table_down"
-    },
-    "dragonfactory_plant_flower_white_0": {
-      "textures": "textures/blocks/plant_flower_white_0"
-    },
-    "dragonfactory_plant_flower_white_1": {
-      "textures": "textures/blocks/plant_flower_white_1"
-    },
-    "dragonfactory_plant_flower_orange_0": {
-      "textures": "textures/blocks/plant_flower_orange_0"
-    },
-    "dragonfactory_plant_flower_orange_1": {
-      "textures": "textures/blocks/plant_flower_orange_1"
-    },
-    "dragonfactory_plant_flower_magenta_0": {
-      "textures": "textures/blocks/plant_flower_magenta_0"
-    },
-    "dragonfactory_plant_flower_magenta_1": {
-      "textures": "textures/blocks/plant_flower_magenta_1"
-    },
-    "dragonfactory_plant_flower_light_blue_0": {
-      "textures": "textures/blocks/plant_flower_light_blue_0"
-    },
-    "dragonfactory_plant_flower_light_blue_1": {
-      "textures": "textures/blocks/plant_flower_light_blue_1"
-    },
-    "dragonfactory_plant_flower_yellow_0": {
-      "textures": "textures/blocks/plant_flower_yellow_0"
-    },
-    "dragonfactory_plant_flower_yellow_1": {
-      "textures": "textures/blocks/plant_flower_yellow_1"
-    },
-    "dragonfactory_plant_flower_lime_0": {
-      "textures": "textures/blocks/plant_flower_lime_0"
-    },
-    "dragonfactory_plant_flower_lime_1": {
-      "textures": "textures/blocks/plant_flower_lime_1"
-    },
-    "dragonfactory_plant_flower_pink_0": {
-      "textures": "textures/blocks/plant_flower_pink_0"
-    },
-    "dragonfactory_plant_flower_pink_1": {
-      "textures": "textures/blocks/plant_flower_pink_1"
-    },
-    "dragonfactory_plant_flower_gray_0": {
-      "textures": "textures/blocks/plant_flower_gray_0"
-    },
-    "dragonfactory_plant_flower_gray_1": {
-      "textures": "textures/blocks/plant_flower_gray_1"
-    },
-    "dragonfactory_plant_flower_light_gray_0": {
-      "textures": "textures/blocks/plant_flower_light_gray_0"
-    },
-    "dragonfactory_plant_flower_light_gray_1": {
-      "textures": "textures/blocks/plant_flower_light_gray_1"
-    },
-    "dragonfactory_plant_flower_cyan_0": {
-      "textures": "textures/blocks/plant_flower_cyan_0"
-    },
-    "dragonfactory_plant_flower_cyan_1": {
-      "textures": "textures/blocks/plant_flower_cyan_1"
-    },
-    "dragonfactory_plant_flower_purple_0": {
-      "textures": "textures/blocks/plant_flower_purple_0"
-    },
-    "dragonfactory_plant_flower_purple_1": {
-      "textures": "textures/blocks/plant_flower_purple_1"
-    },
-    "dragonfactory_plant_flower_blue_0": {
-      "textures": "textures/blocks/plant_flower_blue_0"
-    },
-    "dragonfactory_plant_flower_blue_1": {
-      "textures": "textures/blocks/plant_flower_blue_1"
-    },
-    "dragonfactory_plant_flower_brown_0": {
-      "textures": "textures/blocks/plant_flower_brown_0"
-    },
-    "dragonfactory_plant_flower_brown_1": {
-      "textures": "textures/blocks/plant_flower_brown_1"
-    },
-    "dragonfactory_plant_flower_green_0": {
-      "textures": "textures/blocks/plant_flower_green_0"
-    },
-    "dragonfactory_plant_flower_green_1": {
-      "textures": "textures/blocks/plant_flower_green_1"
-    },
-    "dragonfactory_plant_flower_red_0": {
-      "textures": "textures/blocks/plant_flower_red_0"
-    },
-    "dragonfactory_plant_flower_red_1": {
-      "textures": "textures/blocks/plant_flower_red_1"
-    },
-    "dragonfactory_plant_flower_black_0": {
-      "textures": "textures/blocks/plant_flower_black_0"
-    },
-    "dragonfactory_plant_flower_black_1": {
-      "textures": "textures/blocks/plant_flower_black_1"
-    },
-    "dragonfactory_plant_ore_iron_0": {
-      "textures": "textures/blocks/plant_ore_iron_0"
-    },
-    "dragonfactory_plant_ore_iron_1": {
-      "textures": "textures/blocks/plant_ore_iron_1"
-    },
-    "dragonfactory_plant_ore_gold_0": {
-      "textures": "textures/blocks/plant_ore_gold_0"
-    },
-    "dragonfactory_plant_ore_gold_1": {
-      "textures": "textures/blocks/plant_ore_gold_1"
-    },
-    "dragonfactory_plant_ore_copper_0": {
-      "textures": "textures/blocks/plant_ore_copper_0"
-    },
-    "dragonfactory_plant_ore_copper_1": {
-      "textures": "textures/blocks/plant_ore_copper_1"
-    },
-    "dragonfactory_plant_ore_tin_0": {
-      "textures": "textures/blocks/plant_ore_tin_0"
-    },
-    "dragonfactory_plant_ore_tin_1": {
-      "textures": "textures/blocks/plant_ore_tin_1"
-    },
-    "dragonfactory_plant_ore_lead_0": {
-      "textures": "textures/blocks/plant_ore_lead_0"
-    },
-    "dragonfactory_plant_ore_lead_1": {
-      "textures": "textures/blocks/plant_ore_lead_1"
-    },
-    "dragonfactory_plant_ore_silver_0": {
-      "textures": "textures/blocks/plant_ore_silver_0"
-    },
-    "dragonfactory_plant_ore_silver_1": {
-      "textures": "textures/blocks/plant_ore_silver_1"
-    },
-    "dragonfactory_plant_ore_nickel_0": {
-      "textures": "textures/blocks/plant_ore_nickel_0"
-    },
-    "dragonfactory_plant_ore_nickel_1": {
-      "textures": "textures/blocks/plant_ore_nickel_1"
-    },
-    "dragonfactory_plant_gem_lapis_0": {
-      "textures": "textures/blocks/plant_gem_lapis_0"
-    },
-    "dragonfactory_plant_gem_lapis_1": {
-      "textures": "textures/blocks/plant_gem_lapis_1"
-    },
-    "dragonfactory_plant_gem_redstone_0": {
-      "textures": "textures/blocks/plant_gem_redstone_0"
-    },
-    "dragonfactory_plant_gem_redstone_1": {
-      "textures": "textures/blocks/plant_gem_redstone_1"
-    },
-    "dragonfactory_plant_gem_quartz_0": {
-      "textures": "textures/blocks/plant_gem_quartz_0"
-    },
-    "dragonfactory_plant_gem_quartz_1": {
-      "textures": "textures/blocks/plant_gem_quartz_1"
-    },
-    "dragonfactory_plant_gem_coal_0": {
-      "textures": "textures/blocks/plant_gem_coal_0"
-    },
-    "dragonfactory_plant_gem_coal_1": {
-      "textures": "textures/blocks/plant_gem_coal_1"
-    },
-    "dragonfactory_plant_gem_diamond_0": {
-      "textures": "textures/blocks/plant_gem_diamond_0"
-    },
-    "dragonfactory_plant_gem_diamond_1": {
-      "textures": "textures/blocks/plant_gem_diamond_1"
-    },
-    "dragonfactory_plant_gem_emerald_0": {
-      "textures": "textures/blocks/plant_gem_emerald_0"
-    },
-    "dragonfactory_plant_gem_emerald_1": {
-      "textures": "textures/blocks/plant_gem_emerald_1"
-    },
-    "dragonfactory_plant_ess_zombie_0": {
-      "textures": "textures/blocks/plant_ess_zombie_0"
-    },
-    "dragonfactory_plant_ess_zombie_1": {
-      "textures": "textures/blocks/plant_ess_zombie_1"
-    },
-    "dragonfactory_plant_ess_skeleton_0": {
-      "textures": "textures/blocks/plant_ess_skeleton_0"
-    },
-    "dragonfactory_plant_ess_skeleton_1": {
-      "textures": "textures/blocks/plant_ess_skeleton_1"
-    },
-    "dragonfactory_plant_ess_creeper_0": {
-      "textures": "textures/blocks/plant_ess_creeper_0"
-    },
-    "dragonfactory_plant_ess_creeper_1": {
-      "textures": "textures/blocks/plant_ess_creeper_1"
-    },
-    "dragonfactory_plant_ess_spider_0": {
-      "textures": "textures/blocks/plant_ess_spider_0"
-    },
-    "dragonfactory_plant_ess_spider_1": {
-      "textures": "textures/blocks/plant_ess_spider_1"
-    },
-    "dragonfactory_plant_ess_slime_0": {
-      "textures": "textures/blocks/plant_ess_slime_0"
-    },
-    "dragonfactory_plant_ess_slime_1": {
-      "textures": "textures/blocks/plant_ess_slime_1"
-    },
-    "dragonfactory_plant_ess_enderman_0": {
-      "textures": "textures/blocks/plant_ess_enderman_0"
-    },
-    "dragonfactory_plant_ess_enderman_1": {
-      "textures": "textures/blocks/plant_ess_enderman_1"
-    },
-    "dragonfactory_plant_ess_blaze_0": {
-      "textures": "textures/blocks/plant_ess_blaze_0"
-    },
-    "dragonfactory_plant_ess_blaze_1": {
-      "textures": "textures/blocks/plant_ess_blaze_1"
-    },
-    "dragonfactory_electric_furnace_front": {
-      "textures": "textures/blocks/electric_furnace_front"
-    },
-    "dragonfactory_electric_furnace_back": {
-      "textures": "textures/blocks/electric_furnace_back"
-    },
-    "dragonfactory_electric_furnace_side": {
-      "textures": "textures/blocks/electric_furnace_side"
-    },
-    "dragonfactory_electric_furnace_up": {
-      "textures": "textures/blocks/electric_furnace_up"
-    },
-    "dragonfactory_electric_furnace_down": {
-      "textures": "textures/blocks/electric_furnace_down"
-    },
-    "dragonfactory_laboratory_front": {
-      "textures": "textures/blocks/laboratory_front"
-    },
-    "dragonfactory_laboratory_back": {
-      "textures": "textures/blocks/laboratory_back"
-    },
-    "dragonfactory_laboratory_side": {
-      "textures": "textures/blocks/laboratory_side"
-    },
-    "dragonfactory_laboratory_up": {
-      "textures": "textures/blocks/laboratory_up"
-    },
-    "dragonfactory_laboratory_down": {
-      "textures": "textures/blocks/laboratory_down"
-    },
-    "dragonfactory_auto_crafter_front": {
-      "textures": "textures/blocks/auto_crafter_front"
-    },
-    "dragonfactory_auto_crafter_back": {
-      "textures": "textures/blocks/auto_crafter_back"
-    },
-    "dragonfactory_auto_crafter_side": {
-      "textures": "textures/blocks/auto_crafter_side"
-    },
-    "dragonfactory_auto_crafter_up": {
-      "textures": "textures/blocks/auto_crafter_up"
-    },
-    "dragonfactory_auto_crafter_down": {
-      "textures": "textures/blocks/auto_crafter_down"
-    },
-    "dragonfactory_item_vacuum_side": {
-      "textures": "textures/blocks/item_vacuum_side"
-    },
-    "dragonfactory_item_vacuum_up": {
-      "textures": "textures/blocks/item_vacuum_up"
-    },
-    "dragonfactory_item_vacuum_down": {
-      "textures": "textures/blocks/item_vacuum_down"
+    "dragonfactory_tree_feller_down": {
+      "textures": "textures/blocks/tree_feller_down"
     },
     "dragonfactory_tree_feller_side": {
       "textures": "textures/blocks/tree_feller_side"
     },
+    "dragonfactory_tree_feller_side_on": {
+      "textures": "textures/blocks/tree_feller_side_on"
+    },
     "dragonfactory_tree_feller_up": {
       "textures": "textures/blocks/tree_feller_up"
     },
-    "dragonfactory_tree_feller_down": {
-      "textures": "textures/blocks/tree_feller_down"
+    "dragonfactory_wood_hopper": {
+      "textures": "textures/blocks/wood_hopper"
     }
-  },
-  "texture_name": "atlas.terrain"
+  }
 }

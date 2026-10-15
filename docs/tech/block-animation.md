@@ -1,6 +1,6 @@
 # 블록 애니메이션 텍스처 (조사)
 
-목표: 기계가 동작 중(활성)일 때만 움직이는 텍스처를 보여 준다. 아직 구현하지 않았고 실기 확인 전이다.
+목표: 기계가 동작 중(활성)일 때만 움직이는 텍스처를 보여 준다. 정면이 있는 기계와 정육면체 기계 전부에 적용했다(`animate.go`). 모델이 있는 체(자동 체·마법 체·손 체)는 제외한다.
 
 ## Bedrock 의 방법: flipbook 텍스처
 
@@ -42,16 +42,15 @@ flipbook 은 클라이언트가 항상 돌린다. 켜고 끄는 것은 **블록 
 - 텍스처만 움직인다. 부품이 실제로 도는 모습이 필요하면 블록 대신 엔티티(애니메이션 모델)를 겹쳐 띄워야 해서 훨씬 무겁다.
 - 아이템 아이콘(인벤토리)에서는 flipbook 이 버전에 따라 동작하지 않는다. 아이콘은 정지 이미지로 둔다.
 
-## 구현 방안
+## 구현
 
-텍스처는 리소스팩에서 관리하므로(addon.md §6) 전부 팩 파일로 한다. Dragonfly 패치는 필요 없다.
+- 대상(`animatedMachines`): 전기 화로·분쇄기·광석 세척기·합금로·몬스터 시뮬레이터·전기 도가니·자동 제작기·연구소(정면 `<이름>_front_on`)와 자동 자원 채굴기·수확기·연소 발전기·용암 발전기·자동 퇴비통·아이템 흡수기·자동 벌목기(옆면 `<이름>_side_on`, 정육면체의 "*" 재질).
+- 팩: 띠 PNG(16×64, 4프레임)와 `terrain_texture.json`·`flipbook_textures.json`(프레임당 4틱, 섞지 않음) 항목. 전기 화로의 톱니바퀴 띠는 따로 그렸고 나머지는 `go run ./tools/animtex assets/resourcepack/dragonfactory`가 기계 자신의 텍스처에서 만든다(강조 색 띠가 흐르고, 발전기·도가니는 깜빡임). 임시 그림이므로 교체본이 오면 PNG만 바꾼다. `pack_test.go`의 `TestFlipbooksMatchTheAtlas`가 띠 규격과 타일 이름을 확인한다.
+- 코드(`animate.go`): 블록 상태 `dragonfactory:active`(`off`/`on`). `on`일 때 위 재질로 바뀐다(`activePermutations`). 서버는 `Tick` 끝의 `showActive`가 판정해 바뀔 때만 `SetBlock`한다. 일했다는 표시는 `markWorked`(`tickWork`와 발전기)가 하고, 마지막 작업 뒤 40틱(`activeHold`)은 켜진 채로 둔다(깜빡임 방지).
+- 블록 해시는 켜진 모습이 따로이고(`Machine.active`), 저장은 하지 않는다(다음 틱에 다시 판정).
+- 새 기계를 더하려면 `animatedMachines`에 종류를 더하고 띠(`tools/animtex`의 `specs`)를 만든다.
 
-1. 띠 이미지 `assets/resourcepack/dragonfactory/textures/blocks/harvester_side_on.png`(16×(16×N)).
-2. `textures/terrain_texture.json` 에 `"dragonfactory_harvester_side_on": {"textures": "textures/blocks/harvester_side_on"}`.
-3. `textures/flipbook_textures.json` 에 위 예시 항목(`flipbook_texture` 는 `textures/blocks/harvester_side_on`, `atlas_tile` 은 `dragonfactory_harvester_side_on`).
-4. Go 는 활성 상태의 permutation 재질 이름만 `dragonfactory_harvester_side_on` 으로 적는다(`pack_test.go` 가 키가 있는지 확인).
-
-실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook 이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 작은 기계 하나(자동 농작물 수확기 옆면)로 시험한 뒤 다른 기계로 넓힌다.
+실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 안 되면 `blend_frames`·재질 렌더 방식을 바꿔 본다.
 
 ## 참고
 

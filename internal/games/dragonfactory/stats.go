@@ -164,8 +164,7 @@ func (st *machineState) tickWork() bool {
 		return false
 	}
 	st.progress = min(st.progress+1, st.cycleLen())
-	st.didWork = true
-	st.worked++
+	st.markWorked()
 	return true
 }
 
@@ -327,4 +326,10 @@ func (s *session) powerText(lang string) string {
 		text += "\n" + i18n.T(lang, "monitor.power.low")
 	}
 	return text
+}
+
+// markWorked notes that the machine did its work this tick.
+func (st *machineState) markWorked() {
+	st.didWork = true
+	st.worked++
 }

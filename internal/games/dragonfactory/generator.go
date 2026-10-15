@@ -81,7 +81,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.energy += gen
 		st.made += gen
 		st.burn = max(0, st.burn-st.burnRate())
-		st.didWork = true
+		st.markWorked()
 	}
 	st.progress = 0
 	if st.burnMax > 0 {

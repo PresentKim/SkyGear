@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"encoding/json"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
@@ -415,5 +416,37 @@ func TestConduitPlatePack(t *testing.T) {
 		if !shown[bone] {
 			t.Errorf("no render controller shows bone %s", bone)
 		}
+	}
+}
+
+// TestFlipbooksMatchTheAtlas: every animated texture is a vertical strip of
+// 16-pixel frames named by an atlas tile of the pack.
+func TestFlipbooksMatchTheAtlas(t *testing.T) {
+	var atlas packAtlas
+	readPackJSON(t, "textures/terrain_texture.json", &atlas)
+	var flips []struct {
+		Texture string `json:"flipbook_texture"`
+		Tile    string `json:"atlas_tile"`
+	}
+	readPackJSON(t, "textures/flipbook_textures.json", &flips)
+	for _, f := range flips {
+		e, ok := atlas.TextureData[f.Tile]
+		if !ok || e.Textures != f.Texture {
+			t.Errorf("flipbook %s: atlas tile %s points at %q", f.Texture, f.Tile, e.Textures)
+			continue
+		}
+		file, err := os.Open(filepath.Join(packDir, f.Texture+".png"))
+		if err != nil {
+			t.Errorf("flipbook %s: %v", f.Texture, err)
+			continue
+		}
+		cfg, err := png.DecodeConfig(file)
+		_ = file.Close()
+		if err != nil || cfg.Width != 16 || cfg.Height%16 != 0 || cfg.Height < 32 {
+			t.Errorf("flipbook %s is %dx%d, want 16 wide and a strip of at least two 16 pixel frames (%v)", f.Texture, cfg.Width, cfg.Height, err)
+		}
+	}
+	if len(flips) == 0 {
+		t.Fatal("no flipbooks")
 	}
 }
