@@ -38,6 +38,10 @@ var helpTopics = []struct {
 	{"gear", func() string { return iconOf(machineItem(KindTinker)) }, nil},
 	{"magic", func() string { return iconOf(item.NewStack(Petal{Colour: "red"}, 1)) }, nil},
 	{"lines", func() string { return iconOf(machineItem(KindMiner)) }, nil},
+	{"monitor", func() string { return iconOf(machineItem(KindCrusher)) }, nil},
+	{"tier", func() string { return iconOf(item.NewStack(TierKit{Level: 1}, 1)) }, nil},
+	{"copier", func() string { return iconOf(item.NewStack(ConfigCopier{}, 1)) }, nil},
+	{"magicsieve", func() string { return iconOf(machineItem(KindMagicSieve)) }, nil},
 	{"island", func() string { return iconIsland }, nil},
 }
 

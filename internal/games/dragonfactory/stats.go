@@ -72,7 +72,7 @@ func madeCategory(it world.Item) string {
 }
 
 // add records n items made.
-func (p *prodStats) add(state *State, st item.Stack, n int) {
+func (p *prodStats) add(state *State, st item.Stack, n int, counted bool) {
 	if n <= 0 || st.Empty() {
 		return
 	}
@@ -87,6 +87,9 @@ func (p *prodStats) add(state *State, st item.Stack, n int) {
 		state.Produced = map[string]int64{}
 	}
 	state.Produced[key] += int64(n)
+	if !counted {
+		return
+	}
 	p.fresh["made_items"] += int64(n)
 	if c := madeCategory(st.Item()); c != "" {
 		p.fresh[c] += int64(n)
@@ -150,7 +153,7 @@ func (st *machineState) roomFor(stacks []item.Stack) bool {
 func (st *machineState) emit(it item.Stack) {
 	put(st.inv(), st.kind.output, it)
 	if st.sess != nil {
-		st.sess.stats.add(st.sess.state, it, it.Count())
+		st.sess.stats.add(st.sess.state, it, it.Count(), true)
 	}
 }
 
@@ -166,11 +169,12 @@ func (st *machineState) tickWork() bool {
 	return true
 }
 
-// recordMade records items a player's work made, such as the hand sieve's
-// (the island's production counts what the sieve gives too).
+// recordMade records items a player's work made, such as the hand sieve's:
+// the statistics show them, the achievements for what machines make do not
+// count them.
 func (s *session) recordMade(it item.Stack) {
 	s.initMonitor()
-	s.stats.add(s.state, it, it.Count())
+	s.stats.add(s.state, it, it.Count(), false)
 }
 
 // keyStack returns a stack of a saved item key.

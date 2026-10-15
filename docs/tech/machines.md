@@ -50,6 +50,13 @@
   4틱마다 위 → 북 → 동 → 남 → 서 순서로 받을 수 있는 이웃(기계 입력, 서랍, 상자·호퍼 등 컨테이너)에 1개 보낸다.
   어떤 이웃도 받지 않는 아이템은 건너뛰고 다음 아이템을 보낸다.
 
+## 기계의 한 틱과 강화 단계
+
+- `Machine.Tick`이 상태를 `session.machines`에 올리고 `st.stuck`을 지운 뒤, `st.reps()`번 `runMachine`(종류별 동작)을 돌린다. 막히거나(`stuck`) 아무 진전이 없는 반복은 멈춘다. 에너지는 `tickWork()`가 `consume()`으로 쓴다.
+- 강화 단계(`machineState.tier`, NBT `Tier`)는 `tier.go`의 `tierSpecs`가 정한다: 반복 횟수(속도), 작업당 에너지(`useCost`), 버퍼(`energyCap`), 발전량·연료 속도, 범위(`reach`). 발전기·에너지 셀은 반복하지 않는다.
+- 출력은 `emit`·`roomFor`를 쓴다([monitor.md](monitor.md)).
+- 마법 체는 자동 체 코드(`runAutoSieve`)를 같이 쓴다.
+
 ## 검증
 
 - 단위: `machine_test.go`(분쇄·자동 체·채굴·창 조작 제한·NBT 왕복·부술 때 드롭·무인 라인), `sieve_test.go`, `harvester_test.go`, `hammer_test.go`.

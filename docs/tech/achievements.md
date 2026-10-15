@@ -24,7 +24,7 @@
 ## 카운터를 더하는 법
 
 1. 행동이 일어나는 곳에서 `count(p, "키", n)`(그 플레이어) 또는 `countAll(tx, "키", n)`(기계·식물이 스스로 한 일: 섬에 접속한 모든 플레이어)을 부른다. 기계 안에서는 `st.done++`(주기 하나), `st.made += re`(발전), `st.tally("키", n)`을 쓰면 `Tick` 끝에서 한꺼번에 센다(`machinecount.go`).
-2. `achcatalog.go`에 `{"키", "분류", []int64{횟수…}}`를 더한다. 종류별로 같은 규칙인 키(`place_<기계>`, `cycle_<기계>`, `kill_<몹>`, `crop_<작물>`, `sift_mesh_<메쉬>`, `pebble_<돌>`, `lab_<정수>`, `wave_level_<단계>`)는 접두사로 센다.
+2. `achcatalog.go`에 `{"키", "분류", []int64{횟수…}}`를 더한다. 종류별로 같은 규칙인 키(`place_<기계>`, `cycle_<기계>`, `kill_<몹>`, `crop_<작물>`, `sift_mesh_<메쉬>`, `pebble_<돌>`, `lab_<정수>`, `wave_level_<단계>`, `magic_sift_<몹>`, `tier_up_<단계>`, `rate_<N>`, `power_<N>`, `uptime_<분>`)는 접두사로 센다.
 3. `ko.json`에 단계마다 `achievement.df_<키>_<횟수>.name|desc|title`을 쓴다.
 4. 검사가 막아 준다: 모든 글이 있는지·칭호가 겹치지 않는지(`TestCounterCatalog`), 키가 코드 어딘가에서 세어지는지·종류 이름이 실제로 있는지(`counterhooks_test.go`).
 
@@ -46,6 +46,12 @@
 | `sift_hand`·`sift_mesh_*` | `sieve.go` |
 | `machine_place`·`place_<기계>`·`drawer_place` | `machine.go` `placeMachine`, `drawer.go` |
 | `cycle_total`·`cycle_<기계>`·`energy_made`·`lab_<정수>` | `machinecount.go`와 각 기계의 `done`·`made`·`tally` |
+| `made_items`·`made_ingot`·`made_dust`·`made_gem`·`made_wood`·`made_block` | `stats.go` `prodStats.add`(기계가 출력에 넣을 때 모아 `tickMonitor`가 1초마다 센다) |
+| `alerts_seen`·`stall_fixed`·`stats_open` | `monitor.go` 알림·복구, `stats.go` 화면 |
+| `rate_<N>`·`power_<N>`·`uptime_<분>`(단계 하나, 직접) | `monitor.go` `minuteRecords`(한 분이 끝날 때 넘으면)·`tickRecords`(알림 없이 가동) |
+| `magic_sift`·`magic_sift_<몹>`·`rare_find` | `magicsieve.go` `siftDrops`(`tally`) |
+| `tier_up`·`tier_up_<단계>` | `tier.go` `useKit` |
+| `copier_copy`·`copier_paste`·`copier_conduit_all` | `copier.go` |
 | `tool_made`·`tool_mod`·`tool_levelup` | `tinkerform.go` |
 | `kill_total`·`kill_<몹>`·`wave_win`·`wave_fail`·`wave_level_N` | `wave.go` |
 | `rpg_level`·`skill_spend` | `rpg.go` |
@@ -62,5 +68,5 @@
 ## 성능
 
 - `Count`는 전역 잠금 안에서 맵 두 번만 만지고, 단계를 넘을 때만 DB를 건드린다. 걷기는 한 블록을 넘을 때만 부른다.
-- 기계의 집계(`countWork`)는 끝난 주기가 있을 때만 플레이어를 돈다. 발전량은 1초에 한 번 모은다.
+- 기계의 집계(`countWork`)는 끝난 주기가 있을 때만 플레이어를 돈다. 발전량은 1초에 한 번 모은다. 생산 통계의 카운터는 기계마다 계정 잠금을 잡지 않고 1초마다 증가분을 한꺼번에 넘긴다.
 - 수집 업적은 플레이어당 1초에 한 번 인벤토리를 본다.

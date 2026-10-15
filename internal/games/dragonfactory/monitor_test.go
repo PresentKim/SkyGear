@@ -46,12 +46,12 @@ func TestProductionRecorded(t *testing.T) {
 func TestMinuteWindows(t *testing.T) {
 	p := newProdStats()
 	state := newState()
-	p.add(state, item.NewStack(block.Cobblestone{}, 1), 60)
+	p.add(state, item.NewStack(block.Cobblestone{}, 1), 60, true)
 	for range 60 {
 		p.secs++
 	}
 	p.rotate()
-	p.add(state, item.NewStack(block.Cobblestone{}, 1), 30)
+	p.add(state, item.NewStack(block.Cobblestone{}, 1), 30, true)
 	p.secs = 30
 	items, minutes := p.window(5)
 	key := itemKey(block.Cobblestone{})
