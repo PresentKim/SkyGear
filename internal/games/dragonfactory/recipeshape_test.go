@@ -176,3 +176,17 @@ func TestAutoSieveRecipeTakesAnySieve(t *testing.T) {
 		t.Error("the auto sieve recipe does not take the sieve with the wildcard meta")
 	}
 }
+
+// TestShapelessRecipesFitTheGrid: a shapeless recipe puts one item in each
+// cell of the 3×3 grid, so it cannot have more than nine ingredients.
+func TestShapelessRecipesFitTheGrid(t *testing.T) {
+	for _, r := range recipe.Recipes() {
+		if _, ok := r.(recipe.Shapeless); !ok {
+			continue
+		}
+		if n := len(r.Input()); n > 9 {
+			name, _ := r.Output()[0].Item().EncodeItem()
+			t.Errorf("shapeless recipe for %s has %d ingredients", name, n)
+		}
+	}
+}

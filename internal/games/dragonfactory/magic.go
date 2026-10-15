@@ -428,9 +428,9 @@ func plantRecipes() {
 		mat      world.Item
 		mn       int
 	}{
-		{"coal", "ore_" + OreCopper, item.Wheat{}, "black", 2, item.Coal{}, 8},
+		{"coal", "ore_" + OreCopper, item.Wheat{}, "black", 2, item.Coal{}, 4},
 		{"lapis", "ore_" + MetalTin, item.Beetroot{}, "blue", 3, item.LapisLazuli{}, 4},
-		{"redstone", "ore_" + OreIron, block.Carrot{}, "red", 3, item.RedstoneWire{}, 8},
+		{"redstone", "ore_" + OreIron, block.Carrot{}, "red", 3, item.RedstoneWire{}, 4},
 		{"quartz", "ore_" + MetalSilver, block.Potato{}, "white", 3, item.NetherQuartz{}, 4},
 		{"diamond", "ore_" + OreGold, block.MelonSeeds{}, "light_blue", 4, item.Diamond{}, 2},
 		{"emerald", "ore_" + MetalNickel, block.PumpkinSeeds{}, "green", 4, item.Emerald{}, 2},

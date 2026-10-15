@@ -700,25 +700,25 @@ func gameRecipes() {
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
 	// The alloy smelter and the energy cell (docs/design/07-progression-expansion.md).
 	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 4), n(item.RedstoneWire{}, 6), n(iron, 2))
+	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
 	add(machineItem(KindAutoComposter), n(iron, 6), n(block.Composter{}, 1), n(block.NewHopper(), 1))
-	add(machineItem(KindTank), n(item.IronIngot{}, 4), n(block.Glass{}, 8))
+	add(machineItem(KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
 	add(machineItem(KindCrucible), n(Ingot{Metal: MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 4), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 4), n(block.Glass{}, 2))
+	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
 	add(machineItem(KindWasher), n(Ingot{Metal: MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
-	add(machineItem(KindGate), n(Ingot{Metal: MetalSteel}, 6), n(block.Obsidian{}, 4), n(item.EnderPearl{}, 2))
+	add(machineItem(KindGate), n(Ingot{Metal: MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
 	add(machineItem(KindStorageController), n(Ingot{Metal: MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(item.NewStack(Machine{Kind: KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(Ingot{Metal: MetalBronze}, 2), n(block.CraftingTable{}, 1))
-	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 4), n(block.Glass{}, 4), n(item.RedstoneWire{}, 6))
+	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// The dragon egg, the last project's prize (project.go).
 	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
 	// The automation equipment (docs/design/09-automation-equipment.md).
 	add(machineItem(KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
-	add(machineItem(KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 4), n(item.RedstoneWire{}, 4))
-	add(machineItem(KindLab), n(iron, 6), n(block.Glass{}, 6), n(item.RedstoneWire{}, 4))
+	add(machineItem(KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 3), n(item.RedstoneWire{}, 3))
+	add(machineItem(KindLab), n(iron, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).
 	for _, tier := range []int{2, 3} {
