@@ -84,3 +84,48 @@ func TestAdvancementMenuHidesLocked(t *testing.T) {
 		}
 	}
 }
+
+// TestAdvancementStack: an advancement points at its item, else its icon.
+func TestAdvancementStack(t *testing.T) {
+	a, _ := advancementByID("hammer")
+	if it, ok := advancementStack(a); !ok || itemName(it) != "망치" {
+		t.Fatalf("hammer stack %v %v", it, ok)
+	}
+	b, _ := advancementByID("first_research")
+	if _, ok := advancementStack(b); !ok {
+		t.Fatal("first_research has an icon")
+	}
+	if _, ok := advancementStack(&Advancement{}); ok {
+		t.Fatal("empty advancement has no item")
+	}
+}
+
+// TestTrackedAdvancement: the quest panel follows the tracked advancement
+// while it is open and goes back to the tree order when it is done or
+// tracked again.
+func TestTrackedAdvancement(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.advance(tx, "research_table")
+		chest, _ := advancementByID("chest")
+		s.state.Advancements["first_research"] = true
+		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+			t.Fatal("chest is not first in the tree order")
+		}
+		s.track(tx, chest)
+		if next, _ := s.nextAdvancement(); next.ID != "chest" {
+			t.Fatalf("tracked chest, panel follows %q", next.ID)
+		}
+		s.track(tx, chest)
+		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+			t.Fatal("untracked chest must go back to the tree order")
+		}
+		s.track(tx, chest)
+		s.state.Advancements["chest"] = true
+		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+			t.Fatal("a done advancement is not followed")
+		}
+	})
+}

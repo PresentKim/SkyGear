@@ -226,11 +226,65 @@ func (s *session) advancementOpen(a *Advancement) bool {
 	return !s.advanced(a.ID) && (a.Parent == "" || s.advanced(a.Parent))
 }
 
-// nextAdvancement is the first open advancement in tree order.
+// nextAdvancement is the tracked advancement while it is open, else the
+// first open one in tree order.
 func (s *session) nextAdvancement() (*Advancement, bool) {
+	if a, ok := advancementByID(s.state.Tracked); ok && s.advancementOpen(a) {
+		return a, true
+	}
 	for i := range advancementTree {
 		if a := &advancementTree[i]; s.advancementOpen(a) {
 			return a, true
+		}
+	}
+	return nil, false
+}
+
+// track makes the quest panel follow an open advancement; tracking the one
+// followed already goes back to the tree order.
+func (s *session) track(tx *world.Tx, a *Advancement) {
+	if s.state.Tracked == a.ID {
+		s.state.Tracked = ""
+	} else {
+		s.state.Tracked = a.ID
+	}
+	s.storeState()
+	s.updateBoards(tx)
+}
+
+// goalResearch is the research an advancement waits on: the one it asks
+// for, or the one that unlocks the recipe of the item it asks for.
+func goalResearch(a *Advancement) (*Research, bool) {
+	if a.Research != "" {
+		return researchByID(a.Research)
+	}
+	if a.Item == "" {
+		return nil, false
+	}
+	for i := range researchTree {
+		for _, u := range researchTree[i].Unlocks {
+			if unlockName(u) == unlockName(a.Item) {
+				return &researchTree[i], true
+			}
+		}
+	}
+	return nil, false
+}
+
+// researchStep is the research to do now on the way to r: r itself when it
+// is open, else the first open research among what it needs.
+func (s *session) researchStep(r *Research) (*Research, bool) {
+	if s.researched(r.ID) {
+		return nil, false
+	}
+	if s.researchOpen(r) {
+		return r, true
+	}
+	for _, n := range r.Needs {
+		if need, ok := researchByID(n); ok {
+			if step, ok := s.researchStep(need); ok {
+				return step, true
+			}
 		}
 	}
 	return nil, false
@@ -330,6 +384,20 @@ func advancementIcon(a *Advancement) string {
 	return iconMission
 }
 
+// advancementStack is the item an advancement is about: the one it asks
+// for, else its icon.
+func advancementStack(a *Advancement) (item.Stack, bool) {
+	for _, name := range []string{a.Item, a.Icon} {
+		if name == "" {
+			continue
+		}
+		if it, ok := world.ItemByName(unlockName(name), 0); ok {
+			return item.NewStack(it, 1), true
+		}
+	}
+	return item.Stack{}, false
+}
+
 // showAdvancements shows the advancement tree: done ones in green, open
 // ones with their hint, the rest hidden.
 func (s *session) showAdvancements(p *player.Player) {
@@ -370,5 +438,19 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 	default:
 		title, body = "???", i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.3")
 	}
-	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.4")+title, body, ui.Option{Label: i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.5"), Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }})
+	var opts []ui.Option
+	if s.advancementOpen(a) {
+		label := i18n.T(i18n.Of(p), "advancement.node.track")
+		if s.state.Tracked == a.ID {
+			label = i18n.T(i18n.Of(p), "advancement.node.untrack")
+		}
+		opts = append(opts, s.opt(label, iconMission, func(p *player.Player, tx *world.Tx) {
+			s.track(tx, a)
+			s.showAdvancementNode(p, a)
+		}))
+	}
+	if it, ok := advancementStack(a); ok && (s.advanced(a.ID) || s.advancementOpen(a)) {
+		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "advancement.node.codex"), iconOf(it), func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, it) }))
+	}
+	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.4")+title, body, append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.5"), Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }})...)
 }

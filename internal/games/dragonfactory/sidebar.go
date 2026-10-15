@@ -52,8 +52,13 @@ func (s *session) questRows() (string, []string) {
 		for i := range rows {
 			rows[i] = "§f" + rows[i]
 		}
-		if r, ok := researchByID(a.Research); ok && s.researchOpen(r) {
-			rows = append(rows, s.researchCostRows(r)...)
+		if g, ok := goalResearch(a); ok {
+			if r, ok := s.researchStep(g); ok {
+				if r != g || a.Research == "" {
+					rows = append(rows, fmt.Sprintf(i18n.T(i18n.Default, "sidebar.quest.research"), r.Title(i18n.Default)))
+				}
+				rows = append(rows, s.researchCostRows(r)...)
+			}
 		}
 		return i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.1") + a.Name, rows
 	}

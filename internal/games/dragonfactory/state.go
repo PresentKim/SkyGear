@@ -32,6 +32,9 @@ type State struct {
 	Crops map[string]*CropRecord `json:"crops,omitempty"`
 	// Advancements are the done advancements (advancement.go).
 	Advancements map[string]bool `json:"advancements,omitempty"`
+	// Tracked is the advancement the quest panel follows instead of the
+	// first open one (advancement.go).
+	Tracked string `json:"tracked,omitempty"`
 	// Composters are the plant items in each composter by position
 	// ("x,y,z", composter.go).
 	Composters map[string]int `json:"composters,omitempty"`

@@ -136,6 +136,9 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			it, _ := b.st.inv().Item(b.st.kind.output[0])
 			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{it}}
 		}
+		if p.Sneaking() && b.st != nil {
+			info.Lines = append(info.Lines, detailLines(b.st)...)
+		}
 	case Drawer:
 		// The drawer stays the icon; the held item is a line with its own
 		// small icon. Its count, lock and upgrades show on the drawer's
@@ -312,6 +315,25 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 		}
 	}
 	return lines, line
+}
+
+// detailLines are the figures the panel adds while its viewer sneaks: the
+// length of a work cycle with the time left, and the energy per second.
+func detailLines(st *machineState) []string {
+	var lines []string
+	if st.kind.interval > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter && st.progress > 0 {
+		left := float64(st.kind.interval-st.progress) / 20
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), float64(st.kind.interval)/20, left))
+	} else if st.kind.interval > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter {
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), float64(st.kind.interval)/20))
+	}
+	switch {
+	case st.kind.generates > 0:
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.makes"), st.kind.generates*20))
+	case st.kind.use > 0 && !st.unlimited:
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.uses"), st.kind.use*20))
+	}
+	return lines
 }
 
 // stackLine is an item's name with its count when more than one.

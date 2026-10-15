@@ -152,3 +152,23 @@ func TestBlockNameKeys(t *testing.T) {
 		}
 	}
 }
+
+// TestLookDetailWhileSneaking: a sneaking viewer gets the cycle and energy
+// figures under a machine's lines.
+func TestLookDetailWhileSneaking(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	st := placeTestMachine(s, machinePos, KindCrusher, "")
+	st.insert(item.NewStack(block.Cobblestone{}, 5))
+	tick(s, machineKinds[KindCrusher].interval/2+1)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		plain := len(s.lookInfo(p, tx, machinePos, tx.Block(machinePos)).Lines)
+		p.StartSneaking()
+		defer p.StopSneaking()
+		info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos))
+		if len(info.Lines) <= plain || !strings.Contains(strings.Join(info.Lines, "\n"), "주기") {
+			t.Errorf("sneaking lines %q, plain %d", info.Lines, plain)
+		}
+	})
+}

@@ -1,4 +1,12 @@
 {
+ "advancement.node.track": "추적",
+ "advancement.node.untrack": "추적 해제",
+ "advancement.node.codex": "도감",
+ "look.detail.cycle": "주기 §f%.1f초 §7· 남은 §f%.1f초",
+ "look.detail.cycleOnly": "주기 §f%.1f초",
+ "look.detail.makes": "초당 §c+%d RE",
+ "look.detail.uses": "초당 §e-%d RE",
+ "sidebar.quest.research": "§7연구 §f%s",
  "account.account.Grant.1": "§6업적 달성: §f%s §7- %s",
  "account.account.Grant.2": "§7칭호 §e[%s]§7 획득 · 로비 메뉴의 칭호·치장에서 장착할 수 있습니다.",
  "account.account.init.1": "기본(흰색)",
