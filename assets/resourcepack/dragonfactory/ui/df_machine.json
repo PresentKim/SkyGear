@@ -453,6 +453,117 @@
       }
     ]
   },
+  "magicsieve_slots": {
+    "type": "collection_panel",
+    "collection_name": "container_items",
+    "size": [
+      162,
+      54
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "s10@df_machine.slot": {
+          "collection_index": 10,
+          "offset": [
+            18,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s11@df_machine.slot": {
+          "collection_index": 11,
+          "offset": [
+            36,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s12@df_machine.indicator": {
+          "collection_index": 12,
+          "offset": [
+            54,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s13@df_machine.slot": {
+          "collection_index": 13,
+          "offset": [
+            72,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s17@df_machine.indicator": {
+          "collection_index": 17,
+          "offset": [
+            144,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s14@df_machine.slot": {
+          "collection_index": 14,
+          "offset": [
+            90,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s15@df_machine.slot": {
+          "collection_index": 15,
+          "offset": [
+            108,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s16@df_machine.slot": {
+          "collection_index": 16,
+          "offset": [
+            126,
+            18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s26@df_machine.indicator": {
+          "collection_index": 26,
+          "offset": [
+            132,
+            -15
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
   "miner_slots": {
     "type": "collection_panel",
     "collection_name": "container_items",
@@ -824,6 +935,9 @@
   },
   "sieve_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.sieve_slots"
+  },
+  "magicsieve_panel@df_machine.machine_panel": {
+    "$df_machine_slots": "df_machine.magicsieve_slots"
   },
   "miner_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.miner_slots"

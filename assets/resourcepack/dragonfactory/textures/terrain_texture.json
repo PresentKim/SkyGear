@@ -15,6 +15,9 @@
     "dragonfactory_auto_sieve": {
       "textures": "textures/blocks/auto_sieve"
     },
+    "dragonfactory_magic_sieve": {
+      "textures": "textures/blocks/magic_sieve"
+    },
     "dragonfactory_core_t1_down": {
       "textures": "textures/blocks/core_t1_down"
     },

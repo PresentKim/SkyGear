@@ -187,6 +187,8 @@ var baseResearchTree = []Research{
 	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []Requirement{{PlantSeed{Seed: "flower_red"}, 1}, {PlantSeed{Seed: "flower_yellow"}, 1}, {PlantSeed{Seed: "flower_blue"}, 1}}, Unlocks: []string{"dragonfactory:seed_ore_iron", "dragonfactory:seed_ore_gold", "dragonfactory:seed_ore_copper", "dragonfactory:seed_ore_tin", "dragonfactory:seed_ore_lead", "dragonfactory:seed_ore_silver", "dragonfactory:seed_ore_nickel"}},
 	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []Requirement{{PlantSeed{Seed: "ore_gold"}, 2}}, Unlocks: []string{"dragonfactory:seed_gem_lapis", "dragonfactory:seed_gem_redstone", "dragonfactory:seed_gem_quartz", "dragonfactory:seed_gem_coal", "dragonfactory:seed_gem_diamond", "dragonfactory:seed_gem_emerald"}},
 	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []Requirement{{PlantSeed{Seed: "gem_redstone"}, 2}}, Unlocks: []string{"dragonfactory:seed_ess_zombie", "dragonfactory:seed_ess_skeleton", "dragonfactory:seed_ess_creeper", "dragonfactory:seed_ess_spider", "dragonfactory:seed_ess_slime", "dragonfactory:seed_ess_enderman", "dragonfactory:seed_ess_blaze"}},
+	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []Requirement{{item.Diamond{}, 8}, {item.EnderPearl{}, 8}},
+		Unlocks: []string{"dragonfactory:magic_sieve"}},
 	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{Petal{Colour: "red"}, 4}, {Petal{Colour: "yellow"}, 4}, {Petal{Colour: "blue"}, 4}},
 		Unlocks: dyeUnlocks()},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 16}, {block.Pumpkin{}, 4}},
@@ -660,6 +662,9 @@ func gameRecipes() {
 	// told (any), not by the one state an empty sieve has.
 	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
 	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
+	// The magic sieve: an auto sieve (in any state) with eyes of ender, diamonds
+	// and amethyst.
+	add(machineItem(KindMagicSieve), []recipe.Item{st(Machine{Kind: KindAutoSieve}).WithValue("variants", true)}, n(item.EnderEye{}, 2), n(item.Diamond{}, 2), n(item.AmethystShard{}, 4))
 	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))
 	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	// The drawer: a ring of planks round a chest.

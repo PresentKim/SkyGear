@@ -149,6 +149,7 @@ var advancementTree = []Advancement{
 	{ID: "lava_generator", Name: i18n.T(i18n.Default, "advancement.lava_generator.name"), Parent: "crucible", Hint: i18n.T(i18n.Default, "advancement.lava_generator.hint"), Research: "lava_generator", Icon: "dragonfactory:lava_generator"},
 	{ID: "ore_washer", Name: i18n.T(i18n.Default, "advancement.ore_washer.name"), Parent: "fluid_tank", Hint: i18n.T(i18n.Default, "advancement.ore_washer.hint"), Research: "ore_washer", Icon: "dragonfactory:ore_washer"},
 	{ID: "dimension_gate", Name: i18n.T(i18n.Default, "advancement.dimension_gate.name"), Parent: "ender_pearl", Hint: i18n.T(i18n.Default, "advancement.dimension_gate.hint"), Research: "dimension_gate", Icon: "dragonfactory:dimension_gate"},
+	{ID: "magic_sieve", Name: i18n.T(i18n.Default, "advancement.magic_sieve.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.magic_sieve.hint"), Research: "magic_sieve", Icon: "dragonfactory:magic_sieve"},
 	{ID: advWave1, Event: true, Name: i18n.T(i18n.Default, "advancement.wave_1.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.wave_1.hint"), Icon: "iron_sword"},
 	{ID: advWave5, Event: true, Name: i18n.T(i18n.Default, "advancement.wave_5.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_5.hint"), Icon: "diamond_sword"},
 	{ID: "diamond_tools", Name: i18n.T(i18n.Default, "advancement.diamond_tools.name"), Parent: "mesh_diamond", Hint: i18n.T(i18n.Default, "advancement.diamond_tools.hint"), Item: "diamond_pickaxe"},

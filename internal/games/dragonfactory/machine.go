@@ -33,8 +33,10 @@ const (
 	KindSieve   = "sieve"
 	// KindAutoSieve sifts on its own; KindSieve only by hand (sieve.go).
 	KindAutoSieve = "auto_sieve"
-	KindMiner     = "auto_miner"
-	KindSellBox   = "sell_box"
+	// KindMagicSieve is the auto sieve with an essence slot (magicsieve.go).
+	KindMagicSieve = "magic_sieve"
+	KindMiner      = "auto_miner"
+	KindSellBox    = "sell_box"
 	// KindHarvester harvests grown crops around it (harvester.go).
 	KindHarvester = "harvester"
 	// KindGenerator burns fuel into RE (generator.go).
@@ -103,6 +105,10 @@ type machineKind struct {
 	use int
 	// crafter marks the auto crafter, whose window has a recipe slot.
 	crafter bool
+	// charge are the slots that take the essence of a magic sieve; autoSieve
+	// marks the sieves that sift on their own (sieve.go).
+	charge    []int
+	autoSieve bool
 }
 
 var machineKinds = map[string]*machineKind{
@@ -121,8 +127,15 @@ var machineKinds = map[string]*machineKind{
 		// The window shows the input (fed by hand, a hopper or a conduit), the ring
 		// and the four slots the products go into (ui/df_machine.json sieve_slots).
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
-		use: 10, energyCap: consumerBuffer,
+		use: 10, energyCap: consumerBuffer, autoSieve: true,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.8"), i18n.T(i18n.Default, "dragonfactory.machine.init.9")},
+	},
+	KindMagicSieve: {
+		// Like the auto sieve, with the essence slot between the input and the ring
+		// (ui/df_machine.json magicsieve_slots).
+		name: i18n.T(i18n.Default, "machine.magicsieve.name"), marker: "§d§m§9", interval: 90, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
+		use: 40, energyCap: consumerBuffer, autoSieve: true,
+		help: []string{i18n.T(i18n.Default, "machine.magicsieve.help.1"), i18n.T(i18n.Default, "machine.magicsieve.help.2"), i18n.T(i18n.Default, "machine.magicsieve.help.3")},
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
@@ -234,7 +247,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -391,6 +404,8 @@ const (
 	roleOutput
 	// roleRecipe is the recipe slot of the auto crafter: it takes nothing.
 	roleRecipe
+	// roleCharge is the essence slot of a magic sieve.
+	roleCharge
 )
 
 // infoSlot is the window slot of the info icon: its tooltip explains the
@@ -427,6 +442,11 @@ func (st *machineState) role(slot int) slotRole {
 	for _, s := range st.kind.output {
 		if s == slot {
 			return roleOutput
+		}
+	}
+	for _, s := range st.kind.charge {
+		if s == slot {
+			return roleCharge
 		}
 	}
 	return roleNone
@@ -468,12 +488,26 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return st.recipe != nil && st.recipe.wants(it)
 	case machineKinds[KindLab]:
 		return labAccepts(it)
-	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
-		// A sieve sifts only with a mesh fitted.
+	case machineKinds[KindSieve], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve]:
+		// A sieve sifts only with a mesh fitted; the magic sieve also takes essences
+		// (into its essence slot).
 		_, ok := sieveTables[st.mesh][k]
-		return ok
+		return ok || (len(st.kind.charge) > 0 && acceptsEssence(it))
 	}
 	// The sell box (no more shop, 13th playtest) takes nothing.
+	return false
+}
+
+// slotAccepts reports whether the item may be put on a slot of the machine:
+// an input slot takes what the machine works on (the essence only into the
+// essence slot of a magic sieve).
+func (st *machineState) slotAccepts(slot int, it item.Stack) bool {
+	switch st.role(slot) {
+	case roleInput:
+		return st.accepts(it) && !(len(st.kind.charge) > 0 && acceptsEssence(it))
+	case roleCharge:
+		return acceptsEssence(it)
+	}
 	return false
 }
 
@@ -501,7 +535,7 @@ func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.St
 		h.st.sample = it
 		return
 	}
-	if h.st.role(slot) != roleInput || !h.st.accepts(it) {
+	if !h.st.slotAccepts(slot, it) {
 		ctx.Cancel()
 	}
 }
@@ -578,13 +612,17 @@ func (st *machineState) firstInput() (int, item.Stack, bool) {
 // insert puts one of it into the input, reporting success.
 func (st *machineState) insert(it item.Stack) bool {
 	one := it.Grow(1 - it.Count())
-	if !st.accepts(one) || !fits(st.inv(), st.kind.input, []item.Stack{one}) {
+	slots := st.kind.input
+	if len(st.kind.charge) > 0 && acceptsEssence(one) {
+		slots = st.kind.charge
+	}
+	if !st.accepts(one) || !fits(st.inv(), slots, []item.Stack{one}) {
 		return false
 	}
 	if st.kind == machineKinds[KindLab] && st.labHave()[itemKey(one.Item())] >= labFeedCap(one) {
 		return false
 	}
-	put(st.inv(), st.kind.input, one)
+	put(st.inv(), slots, one)
 	return true
 }
 
@@ -616,7 +654,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -751,7 +789,7 @@ func (m Machine) BreakInfo() block.BreakInfo {
 				drops = append(drops, item.NewStack(Mesh{Tier: m.st.mesh}, 1))
 			}
 			if m.st != nil {
-				for _, slots := range [][]int{m.st.kind.input, m.st.kind.output} {
+				for _, slots := range [][]int{m.st.kind.input, m.st.kind.output, m.st.kind.charge} {
 					for _, s := range slots {
 						if it, _ := m.st.inv().Item(s); !it.Empty() {
 							drops = append(drops, it)
@@ -770,7 +808,7 @@ func (m Machine) EncodeNBT() map[string]any {
 		return data
 	}
 	var items []any
-	for _, slots := range [][]int{m.st.kind.input, m.st.kind.output} {
+	for _, slots := range [][]int{m.st.kind.input, m.st.kind.output, m.st.kind.charge} {
 		for _, s := range slots {
 			if it, _ := m.st.inv().Item(s); !it.Empty() {
 				nbt := item.WriteNBT(it, true)
@@ -1008,7 +1046,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		st.runWasher()
 	case KindLavaGenerator:
 		s.runLavaGenerator(st, pos)
-	case KindAutoSieve:
+	case KindAutoSieve, KindMagicSieve:
 		s.runAutoSieve(st, pos, tx)
 	case KindMiner:
 		s.runMiner(st, pos, tx)
@@ -1042,7 +1080,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if isSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
 		showSieve(tx, pos, st)
-		if m.Kind == KindAutoSieve {
+		if st.kind.autoSieve {
 			st.showProgress()
 		}
 		return
@@ -1187,7 +1225,7 @@ func init() {
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
 	}
-	for _, k := range []string{KindSieve, KindAutoSieve} {
+	for _, k := range []string{KindSieve, KindAutoSieve, KindMagicSieve} {
 		for c := range sieveContents {
 			for fill := range sieveStages + 1 {
 				if c != 0 || fill != 0 {

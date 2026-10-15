@@ -309,6 +309,9 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.4"))
 		}
 	}
+	if len(st.kind.charge) > 0 && st.charges > 0 {
+		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "magicsieve.lines.charged"), mobName(st.mob), st.charges))
+	}
 	lines = append(lines, consumerLines(st)...)
 	lines = append(lines, blockedLines(st)...)
 	for _, slot := range st.kind.output {

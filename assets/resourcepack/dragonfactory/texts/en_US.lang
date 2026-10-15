@@ -1,5 +1,6 @@
 item.dragonfactory:auto_miner.name=Auto Miner
 item.dragonfactory:auto_sieve.name=Auto Sieve
+item.dragonfactory:magic_sieve.name=Magic Sieve
 item.dragonfactory:core_clay.name=Dimension Core
 item.dragonfactory:core_coal.name=Dimension Core
 item.dragonfactory:core_copper.name=Dimension Core
@@ -65,6 +66,7 @@ item.dragonfactory:sell_box.name=Sell Box
 item.dragonfactory:sieve.name=Sieve
 tile.dragonfactory:auto_miner.name=Auto Miner
 tile.dragonfactory:auto_sieve.name=Auto Sieve
+tile.dragonfactory:magic_sieve.name=Magic Sieve
 tile.dragonfactory:core_clay.name=Dimension Core
 tile.dragonfactory:core_coal.name=Dimension Core
 tile.dragonfactory:core_copper.name=Dimension Core

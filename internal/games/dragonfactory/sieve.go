@@ -27,7 +27,9 @@ import (
 // hand, sifts on its own, and puts its products into containers beside or
 // below it, dropping them on top when none takes them.
 
-func isSieve(kind string) bool { return kind == KindSieve || kind == KindAutoSieve }
+func isSieve(kind string) bool {
+	return kind == KindSieve || kind == KindAutoSieve || kind == KindMagicSieve
+}
 
 // sieveStages is the number of uses that sift one block by hand, and the
 // heights the content shows (half a pixel each).
@@ -227,14 +229,14 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 			return
 		}
 	}
-	if st.kind == machineKinds[KindAutoSieve] {
+	if st.kind.autoSieve {
 		// it sifts on its own, a click only opens its window
 		st.storage.Open(p, nil)
 		return
 	}
 	swung := false
 	for _, sv := range group {
-		if sv.st.kind == machineKinds[KindAutoSieve] {
+		if sv.st.kind.autoSieve {
 			continue
 		}
 		if _, in, ok := sv.st.firstInput(); ok && time.Since(sv.st.lastUse) >= sieveCooldown {
@@ -255,11 +257,11 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 func (s *session) putIntoSieve(p *player.Player, tx *world.Tx, sv sieveAt, held, off item.Stack) int {
 	st := sv.st
 	_, _, filled := st.firstInput()
-	if !st.accepts(held) || (filled && st.kind != machineKinds[KindAutoSieve]) {
+	if !st.accepts(held) || (filled && !st.kind.autoSieve) {
 		return 0
 	}
 	n := 1
-	if st.kind == machineKinds[KindAutoSieve] {
+	if st.kind.autoSieve {
 		n = held.Count()
 	}
 	put := 0
@@ -302,7 +304,8 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	_ = st.inv().SetItem(slot, in.Grow(-1))
 	s.advance(tx, advSift)
 	countAll(tx, "sift_mesh_"+st.mesh, 1)
-	for _, it := range s.sieveDrops(in, st.mesh) {
+	drops := s.siftDrops(st, in)
+	for _, it := range drops {
 		if !toOutput {
 			s.recordMade(it)
 			s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
@@ -339,12 +342,14 @@ func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	if !outputHasRoom(st) {
+		st.stuck = stuckOutput
 		return
 	}
-	if !st.consume() {
+	s.chargeSieve(st)
+	if !st.tickWork() {
 		return
 	}
-	if st.progress++; st.progress >= st.kind.interval {
+	if st.progress >= st.kind.interval {
 		s.finishSifting(tx, pos, st, true)
 		st.done++
 	}

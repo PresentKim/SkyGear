@@ -139,6 +139,8 @@ func (s *session) codexMobLines(lang string) []string {
 		}
 		lines = append(lines, fmt.Sprintf("§f%s §7: %s", mobName(mob), strings.Join(parts, ", ")))
 	}
+	lines = append(lines, "", "§e"+i18n.T(lang, "codex.mobs.magic"))
+	lines = append(lines, codexThemeLines(lang)...)
 	lines = append(lines, "", "§e"+i18n.T(lang, "codex.mobs.waves"))
 	for i, w := range waveLevels {
 		var groups, rewards []string
@@ -151,6 +153,44 @@ func (s *session) codexMobLines(lang string) []string {
 		lines = append(lines, fmt.Sprintf("§f%d §7%s (%ds) → §f%s", i+1, strings.Join(groups, ", "), w.Seconds, strings.Join(rewards, ", ")))
 	}
 	return lines
+}
+
+// codexThemeLines are the themes of the magic sieve: for each mob's essence,
+// what each block gives (the rare drops starred).
+func codexThemeLines(lang string) []string {
+	var lines []string
+	for _, mob := range mobKinds {
+		th := magicThemes[mob]
+		lines = append(lines, fmt.Sprintf("§f%s §7(%s)", itemName(item.NewStack(Essence{Mob: mob}, 1)), fmt.Sprintf(i18n.T(lang, "codex.mobs.difficulty"), mobDifficulty[mob])))
+		for _, in := range codexSieveInputs() {
+			drops := th.Adds[itemKey(in)]
+			if len(drops) == 0 {
+				continue
+			}
+			var parts []string
+			for _, d := range drops {
+				star := ""
+				if d.Rare {
+					star = "★"
+				}
+				parts = append(parts, fmt.Sprintf("%s %s%%%s", itemName(d.Item), formatPermille(d.Permille), star))
+			}
+			head := n1(in)
+			if th.Replace[itemKey(in)] {
+				head += i18n.T(lang, "codex.mobs.replace")
+			}
+			lines = append(lines, fmt.Sprintf("  §7%s: %s", head, strings.Join(parts, ", ")))
+		}
+	}
+	return lines
+}
+
+// formatPermille writes a per mille chance as a percent ("1.2", "40").
+func formatPermille(p int) string {
+	if p%10 == 0 {
+		return fmt.Sprint(p / 10)
+	}
+	return fmt.Sprintf("%.1f", float64(p)/10)
 }
 
 func n1(w world.Item) string { return itemName(item.NewStack(w, 1)) }
@@ -240,6 +280,15 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 		for _, d := range simDrops[mob] {
 			if itemKey(d.Item) == k {
 				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), mobName(mob), d.Chance))
+			}
+		}
+	}
+	for _, mob := range mobKinds {
+		for _, in := range codexSieveInputs() {
+			for _, d := range magicThemes[mob].Adds[itemKey(in)] {
+				if itemKey(d.Item.Item()) == k {
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), mobName(mob), n1(in), formatPermille(d.Permille)))
+				}
 			}
 		}
 	}

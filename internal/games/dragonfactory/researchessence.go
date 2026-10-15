@@ -73,6 +73,7 @@ var researchEssenceCosts = map[string]map[string]int{
 	"magic_botany": {EssenceAlchemy: 6, EssenceHunting: 4, EssenceFarming: 4}, "dyeing": {EssenceMagic: 4},
 	"magic_gems":    {EssenceAlchemy: 6, EssenceHunting: 4, EssenceMagic: 4},
 	"magic_essence": {EssenceAlchemy: 6, EssenceHunting: 6, EssenceMagic: 6},
+	"magic_sieve":   {EssenceEngineering: 8, EssenceAlchemy: 8, EssenceHunting: 6, EssenceMagic: 6},
 	// the projects
 	"project_industry": {EssenceEngineering: 16, EssenceAlchemy: 16},
 	"project_hunter":   {EssenceEngineering: 8, EssenceAlchemy: 8, EssenceHunting: 16},
