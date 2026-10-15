@@ -69,6 +69,7 @@ var counterCatalog = []counterDef{
 	{"place_item_vacuum", "factory", []int64{1, 10}},
 	{"place_tree_feller", "factory", []int64{1, 10}},
 	{"place_auto_crafter", "factory", []int64{1, 10}},
+	{"place_laboratory", "factory", []int64{1, 10}},
 	{"drawer_place", "factory", []int64{1, 10, 50, 200}},
 	{"conduit_place", "factory", []int64{1, 50, 500, 5000}},
 	{"cycle_total", "factory", []int64{1, 100, 1000, 10000, 100000, 1000000}},
@@ -85,6 +86,7 @@ var counterCatalog = []counterDef{
 	{"cycle_harvester", "factory", []int64{1, 100, 1000, 10000}},
 	{"cycle_item_vacuum", "factory", []int64{1, 100, 1000, 10000}},
 	{"cycle_tree_feller", "factory", []int64{1, 100, 1000, 10000}},
+	{"cycle_laboratory", "factory", []int64{1, 100, 1000, 10000}},
 	{"energy_made", "energy", []int64{1, 10000, 1000000, 100000000}},
 	{"tool_made", "gear", []int64{1, 10, 50, 200}},
 	{"tool_mod", "gear", []int64{1, 10, 50, 200}},
@@ -135,6 +137,12 @@ var counterCatalog = []counterDef{
 	{"sift_mesh_diamond", "sift", []int64{1, 500, 5000}},
 	{"sift_mesh_netherite", "sift", []int64{1, 500, 5000}},
 	{"stick_other", "hand", []int64{1, 100, 1000}},
+	{"lab_engineering", "progress", []int64{1, 100, 500, 2000}},
+	{"lab_alchemy", "progress", []int64{1, 50, 200, 1000}},
+	{"lab_farming", "progress", []int64{1, 50, 200, 1000}},
+	{"lab_hunting", "progress", []int64{1, 50, 200, 1000}},
+	{"lab_magic", "progress", []int64{1, 50, 200, 1000}},
+	{"essence_spent", "progress", []int64{1, 50, 500, 2500}},
 }
 
 // haveCatalog are the items whose first possession is an achievement

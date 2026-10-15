@@ -36,6 +36,7 @@ var variants = []variant{
 	{"energy_cell", "generator", []string{"side", "up", "down"}, color.RGBA{70, 200, 110, 255}},
 	{"electric_furnace", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{255, 140, 40, 255}},
 	{"auto_crafter", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{210, 170, 90, 255}},
+	{"laboratory", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{96, 200, 184, 255}},
 	{"item_vacuum", "generator", []string{"side", "up", "down"}, color.RGBA{90, 200, 230, 255}},
 	{"tree_feller", "generator", []string{"side", "up", "down"}, color.RGBA{140, 110, 50, 255}},
 }

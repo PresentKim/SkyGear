@@ -22,6 +22,7 @@
 | [08-storage-gear-magic.md](08-storage-gear-magic.md) | 스토리지 컨트롤러·장비 제작(팅커스풍)·캐릭터 성장·마법 식물 |
 | [09-automation-equipment.md](09-automation-equipment.md) | 자동화 설비 확장: 전기 화로·자동 제작기·아이템 흡수기·자동 벌목기 |
 | [10-user-flow.md](10-user-flow.md) | 유저 플로우 분석: 대상 유저, 단계별 흐름, 정체 구간, 도감·프로젝트·상태 표시 보강 |
+| [11-research-essences.md](11-research-essences.md) | 연구 정수(연구팩의 마인크래프트식 재해석, "~의 정수")와 연구소: 정수 5종, 만드는 법, 연구별 요구, 순서 점검, 예산 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항과 밸런싱 수치 표 |
 
 ## 용어

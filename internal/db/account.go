@@ -94,8 +94,8 @@ func (d *DB) AddCounters(account string, delta map[string]int64) error {
 		return err
 	}
 	for key, n := range delta {
-		if _, err := tx.Exec(`INSERT INTO counters (account_id, key, value) VALUES (?, ?, ?)
-			ON CONFLICT(account_id, key) DO UPDATE SET value = value + excluded.value`, account, key, n); err != nil {
+		if _, err := tx.Exec(`INSERT INTO counters (account_id, key, value) SELECT id, ?, ? FROM accounts WHERE id = ?
+			ON CONFLICT(account_id, key) DO UPDATE SET value = value + excluded.value`, key, n, account); err != nil {
 			_ = tx.Rollback()
 			return err
 		}

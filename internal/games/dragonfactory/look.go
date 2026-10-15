@@ -262,7 +262,7 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 	if st == nil {
 		return nil, nil
 	}
-	step := st.progress * 10 / st.kind.interval
+	step := min(10, st.progress*10/st.cycleLen())
 	gauge := gaugeGlyph(step)
 	var (
 		lines []string
@@ -271,6 +271,8 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 	switch {
 	case st.kind.crafter:
 		return crafterLines(st), nil
+	case st.kind == machineKinds[KindLab]:
+		return labLines(st), nil
 	case st.kind == machineKinds[KindSellBox]:
 		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.1")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
@@ -321,11 +323,12 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 // length of a work cycle with the time left, and the energy per second.
 func detailLines(st *machineState) []string {
 	var lines []string
-	if st.kind.interval > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter && st.progress > 0 {
-		left := float64(st.kind.interval-st.progress) / 20
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), float64(st.kind.interval)/20, left))
-	} else if st.kind.interval > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter {
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), float64(st.kind.interval)/20))
+	if cycle := st.cycleLen(); cycle > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter {
+		if st.progress > 0 {
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), float64(cycle)/20, float64(max(0, cycle-st.progress))/20))
+		} else {
+			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), float64(cycle)/20))
+		}
 	}
 	switch {
 	case st.kind.generates > 0:
@@ -347,7 +350,7 @@ func stackLine(it item.Stack) string {
 // blockedLines say why a machine that finished does not go on: its output has
 // no room for the product.
 func blockedLines(st *machineState) []string {
-	if len(st.kind.output) > 0 && st.progress >= st.kind.interval {
+	if len(st.kind.output) > 0 && st.progress >= st.cycleLen() {
 		return []string{i18n.T(i18n.Default, "look.blocked")}
 	}
 	return nil

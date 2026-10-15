@@ -531,6 +531,21 @@
     "dragonfactory_electric_furnace_down": {
       "textures": "textures/blocks/electric_furnace_down"
     },
+    "dragonfactory_laboratory_front": {
+      "textures": "textures/blocks/laboratory_front"
+    },
+    "dragonfactory_laboratory_back": {
+      "textures": "textures/blocks/laboratory_back"
+    },
+    "dragonfactory_laboratory_side": {
+      "textures": "textures/blocks/laboratory_side"
+    },
+    "dragonfactory_laboratory_up": {
+      "textures": "textures/blocks/laboratory_up"
+    },
+    "dragonfactory_laboratory_down": {
+      "textures": "textures/blocks/laboratory_down"
+    },
     "dragonfactory_auto_crafter_front": {
       "textures": "textures/blocks/auto_crafter_front"
     },

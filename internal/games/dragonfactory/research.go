@@ -60,7 +60,12 @@ func langOf(p *player.Player) string {
 
 // researchTree is every research in menu order; a research's needs come
 // before it.
-var researchTree = []Research{
+// researchTree is the research tree: the researches below with the research
+// essences of researchEssenceCosts added (researchessence.go).
+var researchTree = withEssenceCosts(baseResearchTree)
+
+// baseResearchTree are the researches with their material costs.
+var baseResearchTree = []Research{
 	{ID: "stick", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
 	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
 		Unlocks: []string{"cobblestone", "andesite", "diorite", "granite"}},
@@ -90,6 +95,8 @@ var researchTree = []Research{
 	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket", "torch"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"dragonfactory:barrel_stone"}},
 	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "dragonfactory:iron_hopper_reverse"}},
 	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:generator"}},
+	{ID: "laboratory", Needs: []string{"generator", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}, {item.RedstoneWire{}, 8}},
+		Unlocks: []string{"dragonfactory:laboratory"}},
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:conduit_energy_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:conduit_item_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"dragonfactory:conduit_fluid_1", "dragonfactory:conduit_binder_mix"}},
@@ -274,6 +281,7 @@ func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missi
 	for _, c := range r.Cost {
 		takePlain(p.Inventory(), c.Item, s.researchNeed(r, c))
 	}
+	pourEssences(tx, p, r.Cost)
 	s.completeResearch(tx, r)
 	account.Grant(p, achResearch)
 	return nil, true
@@ -287,6 +295,10 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	}
 	s.state.Researched[r.ID] = true
 	countAll(tx, "research_done", 1)
+	if spent := essencesIn(r.Cost); spent > 0 {
+		s.advance(tx, advEssenceResearch)
+		countAll(tx, "essence_spent", int64(spent))
+	}
 	if strings.HasPrefix(r.ID, "project_") && r.ID != "project_dragon" {
 		countAll(tx, "project_done", 1)
 	}
@@ -630,6 +642,7 @@ func gameRecipes() {
 	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
 	add(machineItem(KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 4), n(item.RedstoneWire{}, 4))
+	add(machineItem(KindLab), n(iron, 6), n(block.Glass{}, 6), n(item.RedstoneWire{}, 4))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).
 	for _, tier := range []int{2, 3} {

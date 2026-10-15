@@ -26,7 +26,7 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give auto_crafter 1' 'expect:자동 제작기 x1' \
   'cmd:/dfadmin give ingot_bronze 4' 'expect:청동 주괴 x4' \
   'cmd:/dfadmin give metal_dust_tin 4' 'expect:주석 가루 x4' \
-  'cmd:/dfadmin give essence_blaze 2' 'expect:블레이즈 정수 x2' \
+  'cmd:/dfadmin give essence_blaze 2' 'expect:블레이즈 에센스 x2' \
   'cmd:/dfadmin wave 3' 'expect:wave 3 started' 'wait:4' \
   'cmd:/dfadmin status' 'expect:researched=' > host.log 2>&1
 h=$?

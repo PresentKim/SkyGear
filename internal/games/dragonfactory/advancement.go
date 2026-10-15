@@ -71,6 +71,9 @@ const (
 	advEssHarvest = "ess_harvest"
 	advChunks8    = "chunks_8"
 	advChunks16   = "chunks_16"
+	// advEssenceResearch is done by a research that cost research essences
+	// (research.go).
+	advEssenceResearch = "essence_research"
 	// advDragon is done by placing the dragon egg (project.go).
 	advDragon = "dragon_egg"
 )
@@ -116,6 +119,13 @@ var advancementTree = []Advancement{
 	{ID: "conduit_upgrade_3", Name: i18n.T(i18n.Default, "advancement.conduit_upgrade_3.name"), Parent: "steel_ingot", Hint: i18n.T(i18n.Default, "advancement.conduit_upgrade_3.hint"), Item: "dragonfactory:conduit_energy_3"},
 	{ID: "hopper", Name: i18n.T(i18n.Default, "advancement.hopper.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.hopper.hint"), Research: "hopper", Icon: "hopper"},
 	{ID: "generator", Name: i18n.T(i18n.Default, "advancement.generator.name"), Parent: "iron", Hint: i18n.T(i18n.Default, "advancement.generator.hint"), Research: "generator", Icon: "dragonfactory:generator"},
+	{ID: "laboratory", Name: i18n.T(i18n.Default, "advancement.laboratory.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.laboratory.hint"), Item: "dragonfactory:laboratory"},
+	{ID: "lab_engineering", Name: i18n.T(i18n.Default, "advancement.lab_engineering.name"), Parent: "laboratory", Hint: i18n.T(i18n.Default, "advancement.lab_engineering.hint"), Item: "dragonfactory:research_essence_engineering"},
+	{ID: advEssenceResearch, Event: true, Name: i18n.T(i18n.Default, "advancement.essence_research.name"), Parent: "lab_engineering", Hint: i18n.T(i18n.Default, "advancement.essence_research.hint"), Icon: "dragonfactory:research_essence_engineering"},
+	{ID: "lab_alchemy", Name: i18n.T(i18n.Default, "advancement.lab_alchemy.name"), Parent: "lab_engineering", Hint: i18n.T(i18n.Default, "advancement.lab_alchemy.hint"), Item: "dragonfactory:research_essence_alchemy"},
+	{ID: "lab_farming", Name: i18n.T(i18n.Default, "advancement.lab_farming.name"), Parent: "lab_engineering", Hint: i18n.T(i18n.Default, "advancement.lab_farming.hint"), Item: "dragonfactory:research_essence_farming"},
+	{ID: "lab_hunting", Name: i18n.T(i18n.Default, "advancement.lab_hunting.name"), Parent: "lab_alchemy", Hint: i18n.T(i18n.Default, "advancement.lab_hunting.hint"), Item: "dragonfactory:research_essence_hunting"},
+	{ID: "lab_magic", Name: i18n.T(i18n.Default, "advancement.lab_magic.name"), Parent: "lab_alchemy", Hint: i18n.T(i18n.Default, "advancement.lab_magic.hint"), Item: "dragonfactory:research_essence_magic"},
 	{ID: "energy_conduit", Name: i18n.T(i18n.Default, "advancement.energy_conduit.name"), Parent: "generator", Hint: i18n.T(i18n.Default, "advancement.energy_conduit.hint"), Research: "energy_conduit", Icon: "dragonfactory:conduit_energy_1"},
 	{ID: "item_conduit", Name: i18n.T(i18n.Default, "advancement.item_conduit.name"), Parent: "hopper", Hint: i18n.T(i18n.Default, "advancement.item_conduit.hint"), Research: "item_conduit", Icon: "dragonfactory:conduit_item_1"},
 	{ID: "drawer", Name: i18n.T(i18n.Default, "advancement.drawer.name"), Parent: "wood_tools", Hint: i18n.T(i18n.Default, "advancement.drawer.hint"), Research: "drawer", Icon: "dragonfactory:drawer"},

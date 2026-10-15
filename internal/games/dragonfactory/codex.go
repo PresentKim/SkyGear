@@ -116,6 +116,11 @@ func (s *session) codexProcessLines(lang string) []string {
 	for _, r := range alloyRecipes {
 		lines = append(lines, fmt.Sprintf("§f%s ×%d §7←§f %s ×%d + %s ×%d", n(r.Out), r.OutCount, n(r.A), r.CountA, n(r.B), r.CountB))
 	}
+	lines = append(lines, "", "§e"+i18n.T(lang, "codex.process.lab"))
+	for i := range labRecipes {
+		r := &labRecipes[i]
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "codex.process.labRecipe"), n(r.Out), r.OutCount, labIngredientsText(r), r.Ticks/20))
+	}
 	return lines
 }
 
@@ -226,6 +231,11 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.alloy"), fmt.Sprintf("%s ×%d + %s ×%d", n1(r.A), r.CountA, n1(r.B), r.CountB)))
 		}
 	}
+	for i := range labRecipes {
+		if r := &labRecipes[i]; itemKey(r.Out) == k {
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.lab"), labIngredientsText(r)))
+		}
+	}
 	for _, mob := range mobKinds {
 		for _, d := range simDrops[mob] {
 			if itemKey(d.Item) == k {
@@ -302,6 +312,13 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	for _, r := range alloyRecipes {
 		if itemKey(r.A) == k || itemKey(r.B) == k {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.alloy"), n1(r.Out)))
+		}
+	}
+	for i := range labRecipes {
+		for _, in := range labRecipes[i].In {
+			if itemKey(in.Item) == k {
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.lab"), n1(labRecipes[i].Out)))
+			}
 		}
 	}
 	if got, ok := crusherOutput(it); ok {

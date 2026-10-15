@@ -65,6 +65,7 @@ const (
 	KindVacuum  = "item_vacuum"
 	KindFeller  = "tree_feller"
 	KindCrafter = "auto_crafter"
+	KindLab     = "laboratory"
 )
 
 // machineKind describes a kind of machine. Slots are window slots of a 27
@@ -219,6 +220,13 @@ var machineKinds = map[string]*machineKind{
 		use: 25, energyCap: consumerBuffer, crafter: true,
 		help: []string{i18n.T(i18n.Default, "machine.crafter.help.1"), i18n.T(i18n.Default, "machine.crafter.help.2"), i18n.T(i18n.Default, "machine.crafter.help.3")},
 	},
+	KindLab: {
+		// The materials are the 3×3 on the left, the essences go to the four
+		// slots on the right.
+		name: i18n.T(i18n.Default, "machine.lab.name"), marker: "§d§m§8", interval: 320, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		use: 40, energyCap: consumerBuffer,
+		help: []string{i18n.T(i18n.Default, "machine.lab.help.1"), i18n.T(i18n.Default, "machine.lab.help.2"), i18n.T(i18n.Default, "machine.lab.help.3")},
+	},
 	KindSellBox: {
 		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.17"), i18n.T(i18n.Default, "dragonfactory.machine.init.18")},
@@ -226,7 +234,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -313,6 +321,20 @@ type machineState struct {
 	// done counts the work cycles finished and made the RE generated since
 	// they were last counted for the players' achievements (counter.go).
 	done, made int
+	// tally are the counts to pass to the players' counters at the next
+	// tick (counter.go); lab is the recipe the laboratory works on, period
+	// the length of the cycle it is on (0: the kind's interval).
+	tallyCounts map[string]int64
+	lab         *LabRecipe
+	period      int
+}
+
+// cycleLen is the ticks of the cycle the machine is on.
+func (st *machineState) cycleLen() int {
+	if st.period > 0 {
+		return st.period
+	}
+	return st.kind.interval
 }
 
 // legacySlot is the first saved slot number of legacy items (not a window
@@ -437,6 +459,8 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return ok
 	case machineKinds[KindCrafter]:
 		return st.recipe != nil && st.recipe.wants(it)
+	case machineKinds[KindLab]:
+		return labAccepts(it)
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve]:
 		// A sieve sifts only with a mesh fitted.
 		_, ok := sieveTables[st.mesh][k]
@@ -550,6 +574,9 @@ func (st *machineState) insert(it item.Stack) bool {
 	if !st.accepts(one) || !fits(st.inv(), st.kind.input, []item.Stack{one}) {
 		return false
 	}
+	if st.kind == machineKinds[KindLab] && st.labHave()[itemKey(one.Item())] >= labFeedCap(one) {
+		return false
+	}
 	put(st.inv(), st.kind.input, one)
 	return true
 }
@@ -569,7 +596,7 @@ func (st *machineState) takeOutput() (item.Stack, bool) {
 // The indicator is a progress arrow item (ProgressArrow), so the window
 // shows a filling arrow between input and output.
 func (st *machineState) showProgress() {
-	pct := st.progress * 100 / st.kind.interval
+	pct := min(100, st.progress*100/st.cycleLen())
 	pct -= pct % 10
 	if pct == st.shownPct {
 		return
@@ -582,7 +609,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -673,7 +700,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // have models.
 var (
 	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -984,6 +1011,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		s.runFeller(st, pos, tx)
 	case KindCrafter:
 		s.runCrafter(st)
+	case KindLab:
+		st.runLab()
 	}
 	if full && st.progress == 0 && cycleOnReset[m.Kind] {
 		st.done++

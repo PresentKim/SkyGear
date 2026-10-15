@@ -229,6 +229,21 @@
     "dragonfactory:ingot_steel": {
       "textures": "textures/items/ingot_steel"
     },
+    "dragonfactory:research_essence_engineering": {
+      "textures": "textures/items/research_essence_engineering"
+    },
+    "dragonfactory:research_essence_alchemy": {
+      "textures": "textures/items/research_essence_alchemy"
+    },
+    "dragonfactory:research_essence_farming": {
+      "textures": "textures/items/research_essence_farming"
+    },
+    "dragonfactory:research_essence_hunting": {
+      "textures": "textures/items/research_essence_hunting"
+    },
+    "dragonfactory:research_essence_magic": {
+      "textures": "textures/items/research_essence_magic"
+    },
     "dragonfactory:essence_zombie": {
       "textures": "textures/items/essence_zombie"
     },

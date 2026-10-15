@@ -164,6 +164,10 @@
 			{
 				"requires": "(not (($container_title_copy - '§d§m§7') = $container_title_copy)) and $desktop_screen",
 				"$screen_content": "df_machine.crafter_panel"
+			},
+			{
+				"requires": "(not (($container_title_copy - '§d§m§8') = $container_title_copy)) and $desktop_screen",
+				"$screen_content": "df_machine.lab_panel"
 			}
 		]
     }

@@ -199,6 +199,9 @@ func giveItems() map[string]func() item.Stack {
 	for _, m := range mobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
 	}
+	for _, k := range researchEssenceKinds {
+		out["research_essence_"+k] = func() item.Stack { return item.NewStack(ResearchEssence{Kind: k}, 1) }
+	}
 	for _, m := range dustMetals {
 		out["metal_dust_"+m] = func() item.Stack { return item.NewStack(MetalDust{Metal: m}, 1) }
 	}

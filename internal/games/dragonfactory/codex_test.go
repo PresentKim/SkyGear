@@ -72,3 +72,19 @@ func TestCodexPagesAreWritten(t *testing.T) {
 		}
 	}
 }
+
+// TestCodexKnowsTheLab: the codex lists where an essence is made, what the
+// ingredients are for and the recipes with the process tables.
+func TestCodexKnowsTheLab(t *testing.T) {
+	s := testSession(t)
+	essence := item.NewStack(ResearchEssence{EssenceHunting}, 1)
+	if src := strings.Join(s.codexSources(i18n.Default, essence), "\n"); !strings.Contains(src, "연구소") || !strings.Contains(src, "화약 ×2") {
+		t.Errorf("sources %q", src)
+	}
+	if uses := strings.Join(s.codexUses(i18n.Default, item.NewStack(item.SpiderEye{}, 1)), "\n"); !strings.Contains(uses, "사냥의 정수") {
+		t.Errorf("uses %q", uses)
+	}
+	if lines := strings.Join(s.codexProcessLines(i18n.Default), "\n"); !strings.Contains(lines, "마법의 정수 ×1") {
+		t.Errorf("process %q", lines)
+	}
+}
