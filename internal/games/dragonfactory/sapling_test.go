@@ -18,20 +18,20 @@ func TestStartIsland(t *testing.T) {
 	loadAround(s)
 	s.world.Do(func(tx *world.Tx) {
 		(&Game{}).Init(tx, nil)
-		for x := -1; x <= 1; x++ {
-			for z := -1; z <= 1; z++ {
+		for x := islandCentre - 1; x <= islandCentre+1; x++ {
+			for z := islandCentre - 1; z <= islandCentre+1; z++ {
 				if _, ok := tx.Block(cube.Pos{x, IslandY - 3, z}).(block.Bedrock); !ok {
 					t.Fatalf("no bedrock at %d,%d", x, z)
 				}
-				if _, ok := tx.Block(cube.Pos{x, IslandY - 1, z}).(block.Grass); !ok && (x != 0 || z != 0) {
+				if _, ok := tx.Block(cube.Pos{x, IslandY - 1, z}).(block.Grass); !ok && (x != islandCentre || z != islandCentre) {
 					t.Fatalf("no grass at %d,%d", x, z)
 				}
 			}
 		}
-		if _, ok := tx.Block(cube.Pos{0, IslandY, 0}).(block.Log); !ok {
-			t.Fatalf("no tree in the middle: %T", tx.Block(cube.Pos{0, IslandY, 0}))
+		if _, ok := tx.Block(cube.Pos{islandCentre, IslandY, islandCentre}).(block.Log); !ok {
+			t.Fatalf("no tree in the middle: %T", tx.Block(cube.Pos{islandCentre, IslandY, islandCentre}))
 		}
-		if _, ok := tx.Block(cube.Pos{2, IslandY - 1, 0}).(block.Air); !ok {
+		if _, ok := tx.Block(cube.Pos{islandCentre + 2, IslandY - 1, islandCentre}).(block.Air); !ok {
 			t.Fatal("the island is wider than 3")
 		}
 	})

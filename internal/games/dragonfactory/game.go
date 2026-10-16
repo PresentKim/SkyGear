@@ -61,18 +61,22 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 func (*Game) ID() string   { return "dragonfactory" }
 func (*Game) Name() string { return i18n.T(i18n.Default, "name.Game") }
 
+// islandCentre is the block (x and z) at the middle of the starting chunk,
+// where the starting island is built.
+const islandCentre = 8
+
 // Init builds the starting island (docs/design/02-dragonfactory.md §2): a
-// 3×3×3 sky island, bedrock at the bottom, dirt, grass on top, with an oak
-// tree in the middle.
+// 3×3×3 sky island in the middle of the first chunk, bedrock at the bottom,
+// dirt, grass on top, with an oak tree in the middle.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
-	for x := -1; x <= 1; x++ {
-		for z := -1; z <= 1; z++ {
+	for x := islandCentre - 1; x <= islandCentre+1; x++ {
+		for z := islandCentre - 1; z <= islandCentre+1; z++ {
 			tx.SetBlock(cube.Pos{x, IslandY - 3, z}, block.Bedrock{}, nil)
 			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
 			tx.SetBlock(cube.Pos{x, IslandY - 1, z}, block.Grass{}, nil)
 		}
 	}
-	growTreeAt(tx, cube.Pos{0, IslandY, 0})
+	growTreeAt(tx, cube.Pos{islandCentre, IslandY, islandCentre})
 }
 
 // Start begins a session for an activated save.
@@ -201,7 +205,15 @@ func (s *session) debounced(p *player.Player) bool {
 	return false
 }
 
-func (*session) Spawn() mgl64.Vec3 { return mgl64.Vec3{1.5, IslandY, 1.5} }
+// Spawn is next to the tree of the starting island. A save made before the
+// island moved to the middle of its chunk has no Home and keeps its old
+// island around the origin.
+func (s *session) Spawn() mgl64.Vec3 {
+	if s.state != nil && s.state.Home != ([2]float64{}) {
+		return mgl64.Vec3{s.state.Home[0], IslandY, s.state.Home[1]}
+	}
+	return mgl64.Vec3{1.5, IslandY, 1.5}
+}
 
 func (s *session) Join(p *player.Player, first bool) {
 	_, day, _ := s.clock.Now()

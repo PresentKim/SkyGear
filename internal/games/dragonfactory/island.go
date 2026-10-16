@@ -35,8 +35,8 @@ func (s *session) owns(c ChunkPos) bool { return slices.Contains(s.state.Chunks,
 func (s *session) canBuild(pos cube.Pos) bool { return s.owns(chunkOf(pos)) }
 
 // chunkCost is what the next chunk costs when n chunks are owned: items
-// from the buyer's inventory (13th playtest: no money). 4 chunks to start:
-// 64 cobblestone for the fifth, 64 more for each after. Draft.
+// from the buyer's inventory (13th playtest: no money). 1 chunk to start:
+// 64 cobblestone for each of the next four, 64 more for each after. Draft.
 func chunkCost(n int) Requirement {
 	return Requirement{block.Cobblestone{}, 64 * max(1, n-3)}
 }

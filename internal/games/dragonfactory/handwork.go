@@ -33,12 +33,10 @@ const (
 	fiberChance = 50
 )
 
-// Pebble kinds.
+// Pebble kinds. Other stones (andesite, diorite, granite) are added here
+// when something uses them.
 const (
-	PebbleStone    = "stone"
-	PebbleAndesite = "andesite"
-	PebbleDiorite  = "diorite"
-	PebbleGranite  = "granite"
+	PebbleStone = "stone"
 )
 
 // pebbleKinds are the pebble kinds with the drop weight of each and the
@@ -49,10 +47,7 @@ var pebbleKinds = []struct {
 	weight int
 	block  world.Item
 }{
-	{PebbleStone, i18n.T(i18n.Default, "dragonfactory.handwork.init.1"), 70, block.Cobblestone{}},
-	{PebbleAndesite, i18n.T(i18n.Default, "dragonfactory.handwork.init.2"), 10, block.Andesite{}},
-	{PebbleDiorite, i18n.T(i18n.Default, "dragonfactory.handwork.init.3"), 10, block.Diorite{}},
-	{PebbleGranite, i18n.T(i18n.Default, "dragonfactory.handwork.init.4"), 10, block.Granite{}},
+	{PebbleStone, i18n.T(i18n.Default, "dragonfactory.handwork.init.1"), 1, block.Cobblestone{}},
 }
 
 // Pebble is a small stone a stick knocks out of grass and dirt.

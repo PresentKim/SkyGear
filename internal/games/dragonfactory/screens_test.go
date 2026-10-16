@@ -157,9 +157,6 @@ func TestExpansionMode(t *testing.T) {
 		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorOwnedAlt) {
 			t.Fatalf("owned chunk (1, 0) floor = %v, want the other green of the checkerboard", b)
 		}
-		if b := e.floor[cube.Pos{-10, expandFloorY, -10}]; b != world.Block(floorOwned) {
-			t.Fatalf("owned chunk (-1, -1) floor = %v, want the first green", b)
-		}
 		if b := e.floor[cube.Pos{36, expandFloorY, 5}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
 		}

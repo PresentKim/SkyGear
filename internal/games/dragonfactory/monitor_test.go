@@ -158,7 +158,7 @@ func TestStatsScreens(t *testing.T) {
 			t.Fatal("empty stall page")
 		}
 		opts[0].Run(p, tx)
-		if !s.state.AlertsOff[instance.AccountID(p)] {
+		if !s.state.AlertsOn[instance.AccountID(p)] {
 			t.Fatal("the alert switch was not saved")
 		}
 	})

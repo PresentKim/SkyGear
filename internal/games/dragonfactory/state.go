@@ -19,6 +19,9 @@ type State struct {
 	Version int `json:"version"`
 	// Chunks are the owned island chunks.
 	Chunks []ChunkPos `json:"chunks"`
+	// Home is where the island's players start (x, z); zero for a save made
+	// when the island was around the origin.
+	Home [2]float64 `json:"home,omitempty"`
 	// Researched are the done researches (research.go).
 	Researched map[string]bool `json:"researched,omitempty"`
 	// ResearchPaid counts the items delivered for researches not done yet,
@@ -49,9 +52,9 @@ type State struct {
 	// Produced counts the items the machines made, by item key
 	// (stats.go).
 	Produced map[string]int64 `json:"produced,omitempty"`
-	// AlertsOff are the accounts that turned the stall alerts off
-	// (monitor.go).
-	AlertsOff map[string]bool `json:"alerts_off,omitempty"`
+	// AlertsOn are the accounts that turned the stall alerts on; they are
+	// off until then (monitor.go).
+	AlertsOn map[string]bool `json:"alerts_on,omitempty"`
 	// LastSapling is when /묘목 last gave a sapling (real time).
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }
@@ -72,8 +75,10 @@ type LostItem struct {
 func newState() *State {
 	return &State{
 		Version: stateVersion,
-		// The starting island covers the four chunks around the origin.
-		Chunks: []ChunkPos{{-1, -1}, {0, -1}, {-1, 0}, {0, 0}},
+		// The starting island covers one chunk, with the 3×3×3 island in its
+		// centre.
+		Chunks: []ChunkPos{{0, 0}},
+		Home:   [2]float64{islandCentre + 0.5, islandCentre + 0.5},
 	}
 }
 

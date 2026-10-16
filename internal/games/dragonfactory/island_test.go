@@ -15,15 +15,15 @@ import (
 
 func TestChunkRules(t *testing.T) {
 	s := testSession(t)
-	if !s.canBuild(cube.Pos{-16, 64, -16}) || !s.canBuild(cube.Pos{15, 64, 15}) {
-		t.Fatal("starting island must cover the 2x2 chunks around the origin")
+	if !s.canBuild(cube.Pos{0, 64, 0}) || !s.canBuild(cube.Pos{15, 64, 15}) {
+		t.Fatal("starting island must cover the first chunk")
 	}
-	if s.canBuild(cube.Pos{16, 64, 0}) || s.canBuild(cube.Pos{-17, 64, 0}) {
+	if s.canBuild(cube.Pos{16, 64, 0}) || s.canBuild(cube.Pos{-1, 64, 0}) {
 		t.Fatal("blocks outside owned chunks must be protected")
 	}
 	cands := s.purchasableChunks()
-	if len(cands) != 8 || !slices.Contains(cands, ChunkPos{1, 0}) || slices.Contains(cands, ChunkPos{1, 1}) {
-		t.Fatalf("purchasable = %v, want the 8 edge neighbours", cands)
+	if len(cands) != 4 || !slices.Contains(cands, ChunkPos{1, 0}) || slices.Contains(cands, ChunkPos{1, 1}) {
+		t.Fatalf("purchasable = %v, want the 4 edge neighbours", cands)
 	}
 	// The island grows up to islandRadius chunks from the centre; bought
 	// chunks are kept loaded.

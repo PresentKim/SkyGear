@@ -209,7 +209,7 @@ func (s *session) sendAlerts(tx *world.Tx, alerts []*alertLine) {
 	sort.Slice(alerts, func(i, j int) bool { return alerts[i].st.mon.since < alerts[j].st.mon.since })
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		if s.state.AlertsOff[instance.AccountID(p)] {
+		if !s.state.AlertsOn[instance.AccountID(p)] {
 			continue
 		}
 		lang := i18n.Of(p)
@@ -269,9 +269,9 @@ func (s *session) minuteRecords(tx *world.Tx, b statBucket) {
 func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 	lang := i18n.Of(p)
 	id := instance.AccountID(p)
-	state := "monitor.alerts.on"
-	if s.state.AlertsOff[id] {
-		state = "monitor.alerts.off"
+	state := "monitor.alerts.off"
+	if s.state.AlertsOn[id] {
+		state = "monitor.alerts.on"
 	}
 	var list []*machineState
 	for _, st := range s.machines {
@@ -290,13 +290,13 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		body += "\n" + i18n.T(lang, "monitor.stalls.none")
 	}
 	opts := []ui.Option{s.opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/bell_icon", func(p *player.Player, _ *world.Tx) {
-		if s.state.AlertsOff == nil {
-			s.state.AlertsOff = map[string]bool{}
+		if s.state.AlertsOn == nil {
+			s.state.AlertsOn = map[string]bool{}
 		}
-		if s.state.AlertsOff[id] {
-			delete(s.state.AlertsOff, id)
+		if s.state.AlertsOn[id] {
+			delete(s.state.AlertsOn, id)
 		} else {
-			s.state.AlertsOff[id] = true
+			s.state.AlertsOn[id] = true
 		}
 		s.storeState()
 		s.showStatsPage(p, statsStalls)

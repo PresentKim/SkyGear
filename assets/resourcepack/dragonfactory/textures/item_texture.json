@@ -55,15 +55,6 @@
     "dragonfactory:machine_info": {
       "textures": "textures/items/machine_info"
     },
-    "dragonfactory:pebble_andesite": {
-      "textures": "textures/items/pebble_andesite"
-    },
-    "dragonfactory:pebble_diorite": {
-      "textures": "textures/items/pebble_diorite"
-    },
-    "dragonfactory:pebble_granite": {
-      "textures": "textures/items/pebble_granite"
-    },
     "dragonfactory:pebble_stone": {
       "textures": "textures/items/pebble_stone"
     },
