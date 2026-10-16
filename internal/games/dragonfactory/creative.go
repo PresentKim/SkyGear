@@ -58,6 +58,8 @@ func registerCreativeItems() {
 			add(construction, newFlowHopper(id, cube.FaceDown))
 		}
 		add(equipment, Hammer{})
+		add(items, WoodenBucket{})
+		add(items, WoodenBucket{Water: true})
 		add(equipment, DrawerKey{})
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
 		add(items, DrawerUpgrade{Kind: UpgradeVoid})

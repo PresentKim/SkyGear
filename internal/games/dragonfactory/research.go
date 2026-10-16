@@ -90,6 +90,7 @@ var baseResearchTree = []Research{
 		Unlocks: []string{"cobblestone_slab", "stone_stairs", "cobblestone_wall", "normal_stone_slab", "normal_stone_stairs", "stone_bricks"}},
 	{ID: "glasswork", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 16}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
 	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
+	{ID: "wooden_bucket", Needs: []string{"barrel"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"dragonfactory:wooden_bucket"}},
 	{ID: "bucket", Needs: []string{"iron", "barrel"}, Cost: []Requirement{{item.IronIngot{}, 6}}, Unlocks: []string{"bucket"}},
 	{ID: "shears", Needs: []string{"iron", "wood_tools"}, Cost: []Requirement{{item.IronIngot{}, 4}}, Unlocks: []string{"shears"}},
 	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket", "torch"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"dragonfactory:barrel_stone"}},
@@ -110,7 +111,7 @@ var baseResearchTree = []Research{
 		Unlocks: []string{"dragonfactory:drawer_upgrade_capacity", "dragonfactory:drawer_upgrade_void"}},
 	{ID: "farming", Needs: []string{"wood_tools"}, Cost: []Requirement{{item.Wheat{}, 16}}, Unlocks: []string{"bread", "hay_block"}},
 	{ID: "harvester", Needs: []string{"farming", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:harvester"}},
-	{ID: "clay", Needs: []string{"furnace", "barrel"}, Cost: []Requirement{{item.ClayBall{}, 16}}, Unlocks: []string{"clay", "brick_block"}},
+	{ID: "clay", Needs: []string{"furnace", "barrel"}, Cost: []Requirement{{block.Clay{}, 4}}, Unlocks: []string{"clay", "brick_block"}},
 	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{OreChunk{Ore: OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
 	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
 	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
@@ -666,6 +667,10 @@ func gameRecipes() {
 		nil, cobble, nil,
 		nil, stick, cobble,
 		stick, nil, nil)
+	// The wooden bucket: three planks in a V, like the iron bucket.
+	shaped(st(WoodenBucket{}), 3, 2,
+		planks, nil, planks,
+		nil, planks, nil)
 	// The sieve: a row of planks on two stick legs. The mesh is made and
 	// fitted separately (sieve.go).
 	shaped(machineItem(KindSieve), 3, 2,

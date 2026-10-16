@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/itemio"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -33,7 +34,10 @@ const (
 	barrelWater = 7
 	// barrelWaterDelay is how long (instance time) a full barrel needs to
 	// make water. Draft.
-	barrelWaterDelay = 2 * time.Minute
+	barrelWaterDelay = time.Minute
+	// barrelClayBuffer is how many clay blocks a barrel of water holds for
+	// a hopper or conduit to take.
+	barrelClayBuffer = 16
 )
 
 // barrelStageState is the one block state of a barrel: its stage 0 to 7.
@@ -52,7 +56,7 @@ var barrelWoods = []string{"oak", stoneWood}
 const (
 	stoneWood           = "stone"
 	stoneBarrelCapacity = 8
-	stoneHeatNeeded     = 2 * time.Minute
+	stoneHeatNeeded     = time.Minute
 )
 
 // heatMultiplier is the speed the block under a stone barrel heats it with
@@ -106,6 +110,9 @@ type BarrelRecord struct {
 	Count int `json:"count,omitempty"`
 	// Water is set once the contents turned into water.
 	Water bool `json:"water,omitempty"`
+	// Clay is the clay blocks dust made in the water that nobody has taken
+	// yet (dust put in by a hopper or conduit).
+	Clay int `json:"clay,omitempty"`
 	// ReadyAt is the instance time the contents turn into water (a full
 	// barrel only).
 	ReadyAt time.Duration `json:"ready_at,omitempty"`
@@ -237,19 +244,13 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	switch {
 	case rec != nil && (rec.Water || rec.Lava):
 		if _, ok := held.Item().(Dust); ok && rec.Water {
-			// Dust soaks into the water and makes clay (docs/design/02-dragonfactory.md).
+			// Dust soaks into the water and makes a clay block (docs/design/02-dragonfactory.md).
 			ctx.SubtractFromCount(1)
-			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(item.ClayBall{}, 1))
+			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 			return true
 		}
-		if bucket, ok := held.Item().(item.Bucket); ok && bucket.Empty() {
-			var liquid world.Liquid = block.Water{Depth: 8, Still: true}
-			var fill world.Liquid = block.Water{}
-			if rec.Lava {
-				liquid, fill = block.Lava{Depth: 8, Still: true}, block.Lava{}
-			}
-			filled := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(liquid)}, 1)
+		if filled, fill, ok := emptyBucketFill(held, rec.Lava); ok {
 			if held.Count() == 1 {
 				// A single bucket turns into the full one in the hand.
 				_, left := p.HeldItems()
@@ -262,6 +263,10 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})
 			s.storeState()
+			return true
+		}
+		if wb, ok := held.Item().(WoodenBucket); ok && !wb.Water && rec.Lava {
+			p.SendTip(i18n.T(i18n.Of(p), "barrel.woodenNoLava"))
 			return true
 		}
 		if rec.Lava {
@@ -294,11 +299,36 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	return false
 }
 
+// emptyBucketFill is what an empty bucket in the hand of a player becomes
+// when it takes the water (lava) of a barrel, and the liquid sound; ok is
+// false for anything else. A wooden bucket holds no lava.
+func emptyBucketFill(held item.Stack, lava bool) (filled item.Stack, fill world.Liquid, ok bool) {
+	switch b := held.Item().(type) {
+	case item.Bucket:
+		if !b.Empty() {
+			return item.Stack{}, nil, false
+		}
+		if lava {
+			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1), block.Lava{}, true
+		}
+		return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1), block.Water{}, true
+	case WoodenBucket:
+		if b.Water || lava {
+			return item.Stack{}, nil, false
+		}
+		return item.NewStack(WoodenBucket{Water: true}, 1), block.Water{}, true
+	}
+	return item.Stack{}, nil, false
+}
+
 // fillBarrel puts up to n plant items of st into the barrel at pos (whose
 // block is b) and returns how many it took; a barrel that is full or full of
 // water takes none. A barrel that just filled starts making water.
 func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack, n int) int {
 	rec := s.state.Barrels[cropKey(pos)]
+	if _, dust := st.Item().(Dust); dust && b.Wood != stoneWood {
+		return s.soakDust(tx, pos, rec, st, n)
+	}
 	capacity := barrelCapacity(b.Wood)
 	if (rec != nil && (rec.Water || rec.Lava || rec.Count >= capacity)) || !barrelAccepts(b.Wood, st) {
 		return 0
@@ -330,8 +360,60 @@ func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack
 	return n
 }
 
+// soakDust soaks up to n dust of st in the water of the barrel at pos: each
+// makes a clay block, kept in the barrel until something takes it. It
+// returns how many dust it took (none when the barrel holds no water or its
+// clay is full).
+func (s *session) soakDust(tx *world.Tx, pos cube.Pos, rec *BarrelRecord, st item.Stack, n int) int {
+	if rec == nil || !rec.Water {
+		return 0
+	}
+	n = min(n, barrelClayBuffer-rec.Clay)
+	if n <= 0 {
+		return 0
+	}
+	rec.Clay += n
+	tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
+	s.storeState()
+	return n
+}
+
+// PeekItems implements itemio.Extractor: the clay blocks dust made, through
+// any face.
+func (b Barrel) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
+	s := activeGameSession(tx)
+	if s == nil {
+		return item.Stack{}
+	}
+	rec := s.barrelAt(pos)
+	if rec == nil || rec.Clay == 0 {
+		return item.Stack{}
+	}
+	clay := item.NewStack(block.Clay{}, rec.Clay)
+	if want != nil && !want(clay) {
+		return item.Stack{}
+	}
+	return clay
+}
+
+// ExtractItems implements itemio.Extractor.
+func (b Barrel) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
+	s := activeGameSession(tx)
+	if s == nil || n < 1 || !st.Comparable(item.NewStack(block.Clay{}, 1)) {
+		return item.Stack{}
+	}
+	rec := s.barrelAt(pos)
+	if rec == nil || rec.Clay == 0 {
+		return item.Stack{}
+	}
+	n = min(n, rec.Clay)
+	rec.Clay -= n
+	s.storeState()
+	return item.NewStack(block.Clay{}, n)
+}
+
 // InsertItems implements itemio.Inserter: any face takes plant items (cobblestone
-// in a stone barrel).
+// in a stone barrel) and, in a barrel of water, dust.
 func (b Barrel) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack) int {
 	if s := activeGameSession(tx); s != nil {
 		return s.fillBarrel(tx, pos, b, st, st.Count())
@@ -400,8 +482,11 @@ func (s *session) heatBarrel(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRe
 	return true
 }
 
-// breakBarrel forgets what a broken barrel held.
-func (s *session) breakBarrel(pos cube.Pos) {
+// breakBarrel forgets what a broken barrel held; the clay it had made drops.
+func (s *session) breakBarrel(pos cube.Pos, drops *[]item.Stack) {
+	if rec := s.barrelAt(pos); rec != nil && rec.Clay > 0 {
+		*drops = append(*drops, item.NewStack(block.Clay{}, rec.Clay))
+	}
 	delete(s.state.Barrels, cropKey(pos))
 }
 
@@ -414,6 +499,8 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	switch {
 	case rec == nil || rec.Count == 0:
 		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1")}
+	case rec.Water && rec.Clay > 0:
+		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3"), fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.clay"), rec.Clay)}
 	case rec.Water:
 		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3")}
 	case rec.Count >= matterCapacity:
@@ -490,3 +577,4 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 }
 
 var _ fluidnet.Holder = Barrel{}
+var _ itemio.Extractor = Barrel{}

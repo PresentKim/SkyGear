@@ -9,6 +9,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
 // TestBarrelStages: six fill stages at fixed counts, water on top.
@@ -106,8 +108,8 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 }
 
 // TestStoneBarrelMakesLava: eight cobblestone fill a stone barrel; heat
-// under it turns them into lava after 2 minutes with a torch (1×), 30
-// seconds over lava (4×) and 15 over a magma block (8×); no heat, no lava; a
+// under it turns them into lava after 1 minute with a torch (1×), 15
+// seconds over lava (4×) and 7.5 over a magma block (8×); no heat, no lava; a
 // bucket takes the lava.
 func TestStoneBarrelMakesLava(t *testing.T) {
 	s := testSession(t)
@@ -119,9 +121,9 @@ func TestStoneBarrelMakesLava(t *testing.T) {
 		below world.Block
 		after time.Duration
 	}{
-		{"torch", block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, 2 * time.Minute},
-		{"lava", block.Lava{Still: true, Depth: 8}, 30 * time.Second},
-		{"magma", block.Magma{}, 15 * time.Second},
+		{"torch", block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, time.Minute},
+		{"lava", block.Lava{Still: true, Depth: 8}, 15 * time.Second},
+		{"magma", block.Magma{}, 7500 * time.Millisecond},
 	} {
 		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 			pos := cube.Pos{4, IslandY + 3, 4}
@@ -202,8 +204,8 @@ func TestDustMakesClayInWater(t *testing.T) {
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), dust, ctx) || ctx.CountSub != 1 {
 			t.Fatalf("the dust was not used (count sub %d)", ctx.CountSub)
 		}
-		if !p.Inventory().ContainsItem(item.NewStack(item.ClayBall{}, 1)) {
-			t.Error("no clay ball")
+		if !p.Inventory().ContainsItem(item.NewStack(block.Clay{}, 1)) {
+			t.Error("no clay block")
 		}
 		if rec := s.barrelAt(pos); rec == nil || !rec.Water {
 			t.Error("the water went")
@@ -216,4 +218,107 @@ func TestDustMakesClayInWater(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestBarrelClayByHopper: dust put into a barrel of water by an item
+// transfer makes clay blocks the barrel keeps until they are taken out; a dry
+// barrel takes no dust, the buffer is limited and breaking the barrel drops
+// the clay.
+func TestBarrelClayByHopper(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		pos := cube.Pos{4, IslandY + 3, 4}
+		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
+		dust := item.NewStack(Dust{}, 40)
+		if n := itemio.Insert(tx, pos, cube.FaceUp, dust); n != 0 {
+			t.Fatalf("a dry barrel took %d dust", n)
+		}
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Water: true}
+		if n := itemio.Insert(tx, pos, cube.FaceUp, dust); n != barrelClayBuffer {
+			t.Fatalf("took %d dust, want %d (the clay buffer)", n, barrelClayBuffer)
+		}
+		if n := itemio.Insert(tx, pos, cube.FaceUp, dust); n != 0 {
+			t.Fatalf("a full clay buffer took %d more dust", n)
+		}
+		_, ex := itemio.IO(tx, pos)
+		peek := ex.PeekItems(tx, pos, cube.FaceDown, nil)
+		if _, ok := peek.Item().(block.Clay); !ok || peek.Count() != barrelClayBuffer {
+			t.Fatalf("peek = %v", peek)
+		}
+		got := ex.ExtractItems(tx, pos, cube.FaceDown, peek, 4)
+		if got.Count() != 4 || s.barrelAt(pos).Clay != barrelClayBuffer-4 {
+			t.Fatalf("extracted %v, clay left %d", got, s.barrelAt(pos).Clay)
+		}
+		if !s.barrelAt(pos).Water {
+			t.Fatal("the water went")
+		}
+		var drops []item.Stack
+		s.breakBarrel(pos, &drops)
+		if len(drops) != 1 || drops[0].Count() != barrelClayBuffer-4 {
+			t.Fatalf("broken barrel drops %v", drops)
+		}
+	})
+}
+
+// TestWoodenBucket: the wooden bucket takes the water of a barrel and of a
+// water source and pours it again, but never takes lava.
+func TestWoodenBucket(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		pos := cube.Pos{4, IslandY + 3, 4}
+		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		empty := item.NewStack(WoodenBucket{}, 1)
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Water: true}
+		p.SetHeldItems(empty, item.Stack{})
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), empty, &item.UseContext{}) {
+			t.Fatal("the water of the barrel was not used")
+		}
+		if held, _ := p.HeldItems(); !isWaterBucket(held) || held.Item().(WoodenBucket).Water != true {
+			t.Fatalf("held %v, want a wooden bucket of water", held)
+		}
+		if s.barrelAt(pos) != nil {
+			t.Fatal("the barrel kept its water")
+		}
+		// Lava stays in the barrel.
+		stone := cube.Pos{6, IslandY + 3, 4}
+		tx.SetBlock(stone, Barrel{Wood: stoneWood}, nil)
+		s.state.Barrels[cropKey(stone)] = &BarrelRecord{Count: stoneBarrelCapacity, Lava: true}
+		p.SetHeldItems(empty, item.Stack{})
+		if !s.useBarrel(p, tx, stone, tx.Block(stone).(Barrel), empty, &item.UseContext{}) {
+			t.Fatal("the click on the lava barrel was not used")
+		}
+		if held, _ := p.HeldItems(); !held.Comparable(empty) {
+			t.Fatalf("a wooden bucket took lava: %v", held)
+		}
+		if rec := s.barrelAt(stone); rec == nil || !rec.Lava {
+			t.Fatal("the lava went")
+		}
+		// A water source fills the bucket and the full bucket pours it out.
+		src := cube.Pos{8, IslandY + 3, 8}
+		tx.SetLiquid(src, block.Water{Depth: 8, Still: true})
+		var ctx item.UseContext
+		if !(WoodenBucket{}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) || ctx.NewItem.Empty() {
+			t.Fatal("the bucket did not take the water source")
+		}
+		if _, ok := tx.Liquid(src); ok {
+			t.Fatal("the source stayed")
+		}
+		ctx = item.UseContext{}
+		if !(WoodenBucket{Water: true}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) {
+			t.Fatal("the full bucket did not pour")
+		}
+		if _, ok := tx.Liquid(src); !ok {
+			t.Fatal("no water poured")
+		}
+	})
 }

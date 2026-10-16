@@ -113,6 +113,23 @@ var _ fluidnet.Holder = Machine{}
 // crucible takes its cobblestone. It returns whether the click was used.
 func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
 	st := m.st
+	if wb, ok := held.Item().(WoodenBucket); ok {
+		// A wooden bucket carries water only.
+		switch {
+		case wb.Water:
+			if m.FillFluid(tx, pos, fluidnet.Water, bucketMB, true) < bucketMB {
+				return true
+			}
+			m.FillFluid(tx, pos, fluidnet.Water, bucketMB, false)
+			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(WoodenBucket{}, 1))
+			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
+		case st.kind.fluidSource && st.fluid == fluidnet.Water && st.fluidAmt >= bucketMB:
+			m.DrainFluid(tx, pos, bucketMB, false)
+			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(WoodenBucket{Water: true}, 1))
+			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
+		}
+		return true
+	}
 	if b, ok := held.Item().(item.Bucket); ok {
 		if k := fluidOfBucket(b); k != fluidnet.None {
 			if m.FillFluid(tx, pos, k, bucketMB, true) < bucketMB {
@@ -155,6 +172,18 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 		return true
 	}
 	return false
+}
+
+// swapBucket replaces one bucket of the held stack with other: in the hand if
+// it was the only one, else the rest stays and other goes to the inventory.
+func (s *session) swapBucket(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack, ctx *item.UseContext, other item.Stack) {
+	if held.Count() == 1 {
+		_, off := p.HeldItems()
+		p.SetHeldItems(other, off)
+		return
+	}
+	ctx.SubtractFromCount(1)
+	s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), other)
 }
 
 // fluidLines are the WAILA lines of a machine with a tank.

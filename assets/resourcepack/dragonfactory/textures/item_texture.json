@@ -49,6 +49,12 @@
     "dragonfactory:drawer_upgrade_void": {
       "textures": "textures/items/drawer_upgrade_void"
     },
+    "dragonfactory:wooden_bucket": {
+      "textures": "textures/items/wooden_bucket"
+    },
+    "dragonfactory:wooden_water_bucket": {
+      "textures": "textures/items/wooden_water_bucket"
+    },
     "dragonfactory:hammer": {
       "textures": "textures/items/hammer"
     },
