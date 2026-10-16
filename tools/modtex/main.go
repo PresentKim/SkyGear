@@ -80,9 +80,13 @@ var entries = func() []entry {
 			entry{dst: "blocks/" + name + "_up", src: "eio:block/machine_top"},
 			entry{dst: "blocks/" + name + "_down", src: "eio:block/machine_bottom"})
 	}
-	cube("generator", "block/stirling_generator_front")
-	cube("lava_generator", "block/soul_engine_front")
-	cube("item_vacuum", "block/impulse_hopper_front")
+	add(entry{dst: "blocks/generator_side", src: "eio:block/enhanced_machine_side"},
+		entry{dst: "blocks/generator_up", src: "eio:block/enhanced_machine_top"},
+		entry{dst: "blocks/generator_down", src: "eio:block/enhanced_machine_bottom"},
+		entry{dst: "blocks/lava_generator_side", src: "eio:block/soul_machine_side"},
+		entry{dst: "blocks/lava_generator_up", src: "eio:block/soul_machine_top"},
+		entry{dst: "blocks/lava_generator_down", src: "eio:block/soul_machine_bottom"})
+	cube("item_vacuum", "block/vat_back")
 	cube("tree_feller", "block/farming_station_side")
 	// Mekanism machines (their own faces).
 	mekFaces := func(dir string, side string) map[string]string {
