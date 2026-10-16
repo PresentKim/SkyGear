@@ -33,11 +33,12 @@
     "controls": [
       {
         "list@df_form.action_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text))",
+              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -45,6 +46,7 @@
       },
       {
         "cards@df_form.card_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -58,6 +60,7 @@
       {
         // Compact cards: the shop.
         "shop@df_form.shop_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -71,6 +74,7 @@
       {
         // Table: icon, name and number columns, total and actions below.
         "table@df_form.table_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -84,6 +88,7 @@
       {
         // Slots: the drawer menu.
         "slots@df_form.slot_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -97,6 +102,7 @@
       {
         // Item slots in the two-column detail form (ui.ItemDetail): the research screen.
         "gslot_detail@df_form.gslot_detail_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -110,6 +116,7 @@
       {
         // Two columns of item slots under the body text (ui.ColumnsMenu): the conduit side settings.
         "gslot_cols@df_form.gslot_cols_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
@@ -121,8 +128,21 @@
         }
       },
       {
+        "probe@df_form.probe_form": {
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "(not ((#title_text - '§d§f§x§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
         // Item slots in a wrapping grid (ui.ItemGrid): the lost-and-found box.
         "gslot_wrap@df_form.gslot_wrap_form": {
+          "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {

@@ -34,6 +34,7 @@ func registerCommands(g *Game) {
 	cmd.Register(cmd.New("codex", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.8"), nil, codexCmd{g: g}))
 	cmd.Register(cmd.New("통계", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
 	cmd.Register(cmd.New("stats", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
+	cmd.Register(cmd.New("formprobe", "form binding probe", nil, probeCmd{}))
 	cmd.Register(cmd.New("sapling", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.6"), nil, saplingCmd{g: g}))
 }
 
