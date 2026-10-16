@@ -48,6 +48,17 @@
           "controls": [
             { "title@df_form.title_label": {} },
             {
+              // The help button (ui.Help, marked §0§p§r) sits left of the
+              // back button.
+              "help@df_form.marked_help": {
+                "orientation": "horizontal",
+                "size": [ "100%c", 20 ],
+                "offset": [ -48, 0 ],
+                "anchor_from": "right_middle",
+                "anchor_to": "right_middle"
+              }
+            },
+            {
               // The back button (ui.Back, marked §0§3§r) sits left of the
               // close button.
               "back@df_form.marked_back": {
@@ -106,6 +117,24 @@
     "factory": {
       "name": "buttons",
       "control_ids": { "button": "df_form.back_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+
+  "marked_help": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.help_item" }
     },
     "collection_name": "form_buttons",
     "bindings": [
@@ -185,6 +214,21 @@
       {
         "binding_type": "view", 
         "source_property_name": "(not ((#form_button_text - '§0§3§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  "vis_help": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§p§r') = #form_button_text))",
         "target_property_name": "#visible"
       }
     ]
@@ -315,6 +359,78 @@
         "source_property_name": "((#form_button_text - '§0§') = #form_button_text)",
         "target_property_name": "#visible"
       }
+    ]
+  },
+
+  "help_item@df_form.vis_help": {
+    "type": "panel",
+    "size": [ 22, 20 ],
+    "controls": [ { "button@df_form.help_button": {} } ]
+  },
+
+  // help_button is the "?" button; hovering (or pressing) it shows the text
+  // of the button after the marker as an engine tooltip.
+  "help_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - '§0§p§r')",
+        "target_property_name": "#hover_text"
+      }
+    ]
+  },
+
+  "help_mark": {
+    "type": "label",
+    "text": "?",
+    "layer": 3,
+    "color": [ 1, 1, 1 ],
+    "shadow": true,
+    "anchor_from": "center",
+    "anchor_to": "center"
+  },
+
+  "help_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_help_texture|default": "textures/ui/df/button",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_help_texture" } },
+      { "mark@df_form.help_mark": {} }
+    ]
+  },
+
+  "help_face_tip@df_form.help_face": {
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_help_texture" } },
+      { "mark@df_form.help_mark": {} },
+      { "tip@df_form.help_tip": {} }
+    ]
+  },
+
+  "help_button@common.button": {
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 20, 18 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.help_face": {} },
+      { "hover@df_form.help_face_tip": { "$df_help_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.help_face_tip": { "$df_help_texture": "textures/ui/df/button_pressed" } }
     ]
   },
 
@@ -2212,7 +2328,7 @@
                 "anchor_from": "top_middle",
                 "anchor_to": "top_middle",
                 "grid_rescaling_type": "horizontal",
-                "grid_item_template": "df_form.gslot_w_item",
+                "grid_item_template": "df_form.gslot_cell",
                 "collection_name": "form_buttons",
                 "bindings": [
                   {
@@ -2231,6 +2347,48 @@
         "actions@df_form.marked_actions": {
           "orientation": "vertical",
           "size": [ "100%", "100%c" ]
+        }
+      }
+    ]
+  },
+
+  // A cell of the wrapping grid: a slot, or the heading of a section (§0§g§r,
+  // its text runs over the empty cells after it), or nothing (pad cells).
+  "gslot_cell": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [
+      { "slot@df_form.gslot_w_item": {} },
+      { "head@df_form.gslot_grid_head": {} }
+    ]
+  },
+
+  "gslot_grid_head@df_form.vis_gslot_h1": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#df_head",
+          "color": [ 0.85, 0.87, 0.9 ],
+          "size": [ "default", "default" ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "offset": [ 2, 4 ],
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#form_button_text - '§0§g§r')",
+              "target_property_name": "#df_head"
+            }
+          ]
         }
       }
     ]

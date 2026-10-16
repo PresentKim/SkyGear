@@ -385,18 +385,33 @@ func researchIcon(r *Research) string {
 	return iconMission
 }
 
-// showResearch shows the research list on the tab of researches still to do.
+// showResearch shows the research list.
 func (s *session) showResearch(p *player.Player) {
 	count(p, "research_open", 1)
-	s.showResearchTab(p, false, 0)
+	s.showResearchList(p, false)
 }
 
-// showResearchTab shows the research list as a grid of item slots (the
-// representative item of each research) under two tabs, the researches
-// still to do and the done ones.
-func (s *session) showResearchTab(p *player.Player, done bool, page int) {
-	body, slots, actions := s.researchListPage(p, done, page)
-	ui.ItemGrid(p, i18n.T(i18n.Of(p), "dragonfactory.research.showResearchTab.1"), body, slots, actions...)
+// showResearchList shows the research list as a grid of item slots (the
+// representative item of each research) in two headed sections, the
+// researches still to do and the done ones. The explanation is the tooltip
+// of the "?" button in the title bar; pressing it (touch) shows it as the
+// body text of the form.
+func (s *session) showResearchList(p *player.Player, help bool) {
+	lang := i18n.Of(p)
+	todo, done, todoN, doneN := s.researchSlots(p)
+	tip := i18n.T(lang, "dragonfactory.research.researchList.1")
+	body := ""
+	if help {
+		body = tip
+	}
+	ui.ItemGridSections(p, i18n.T(lang, "dragonfactory.research.showResearchTab.1"), body, []ui.GridSection{
+		{Heading: fmt.Sprintf(i18n.T(lang, "dragonfactory.research.researchList.4"), todoN), Slots: todo},
+		{Heading: fmt.Sprintf(i18n.T(lang, "dragonfactory.research.researchList.5"), doneN), Slots: done},
+	}, ui.Help(tip, func(p *player.Player, tx *world.Tx) {
+		if tx.World() == s.world {
+			s.showResearchList(p, !help)
+		}
+	}), s.backOption())
 }
 
 // researchTip is the hover text of a research in the list: its name in
@@ -409,88 +424,35 @@ func researchTip(lang, colour string, r *Research) string {
 	return tip
 }
 
-// researchList builds the research list of a tab. A research is hidden until
-// everything before it is done, so the tree is found step by step. The
-// tooltip of a research to do is its name in yellow, in green when p has
-// all it spends and can do it now. p may be nil.
-func (s *session) researchList(p *player.Player, done bool) (string, []ui.ItemSlot, []ui.Option) {
-	return s.researchListPage(p, done, 0)
-}
-
-// researchPageSize is how many researches a page of the list holds: the form
-// is slow to open with many buttons, so a long list is split into pages.
-const researchPageSize = 33
-
-// researchListPage is one page of the research list of a tab.
-func (s *session) researchListPage(p *player.Player, done bool, page int) (string, []ui.ItemSlot, []ui.Option) {
-	var slots, previews []ui.ItemSlot
-	todoN, doneN := 0, 0
+// researchSlots builds the two sections of the research list. A research is
+// hidden until everything before it is done, so the tree is found step by
+// step; the ones a step from open follow the open ones in grey. The tooltip
+// of a research to do is its name in yellow, in green when p has all it
+// spends and can do it now. p may be nil. The counts are the researches to
+// do (without the grey ones) and the done ones.
+func (s *session) researchSlots(p *player.Player) (todo, done []ui.ItemSlot, todoN, doneN int) {
+	var previews []ui.ItemSlot
 	for i := range researchTree {
 		r := &researchTree[i]
 		show := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
 		switch {
 		case s.researched(r.ID):
 			doneN++
-			if done {
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show})
-			}
+			done = append(done, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show})
 		case s.researchOpen(r):
 			todoN++
-			if !done {
-				colour := "§e"
-				if p != nil && len(s.researchMissing(p, r)) == 0 {
-					colour = "§a"
-				}
-				slots = append(slots, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show})
+			colour := "§e"
+			if p != nil && len(s.researchMissing(p, r)) == 0 {
+				colour = "§a"
 			}
+			todo = append(todo, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show})
 		default:
-			// one step from open: shown in grey after the ones to do
-			if _, ok := s.researchBlocker(r); ok && !done {
+			if _, ok := s.researchBlocker(r); ok {
 				previews = append(previews, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§8", r), Run: show})
 			}
 		}
 	}
-	slots = append(slots, previews...)
-	body := i18n.T(i18n.Of(p), "dragonfactory.research.researchList.1")
-	if len(slots) == 0 {
-		if done {
-			body += i18n.T(i18n.Of(p), "dragonfactory.research.researchList.2")
-		} else {
-			body += i18n.T(i18n.Of(p), "dragonfactory.research.researchList.3")
-		}
-	}
-	pages := max(1, (len(slots)+researchPageSize-1)/researchPageSize)
-	page = min(max(page, 0), pages-1)
-	slots = slots[min(page*researchPageSize, len(slots)):min((page+1)*researchPageSize, len(slots))]
-	tabs := []ui.Option{
-		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.4"), todoN), "", !done, func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
-				s.showResearchTab(p, false, 0)
-			}
-		}),
-		ui.Tab(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchList.5"), doneN), "", done, func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
-				s.showResearchTab(p, true, 0)
-			}
-		}),
-	}
-	if pages > 1 {
-		turn := func(label string, to int) ui.Option {
-			return ui.Tab(label, "", false, func(p *player.Player, tx *world.Tx) {
-				if tx.World() == s.world {
-					s.showResearchTab(p, done, to)
-				}
-			})
-		}
-		if page > 0 {
-			tabs = append(tabs, turn(fmt.Sprintf(i18n.T(i18n.Of(p), "researchpage.prev"), page, pages), page-1))
-		}
-		if page < pages-1 {
-			tabs = append(tabs, turn(fmt.Sprintf(i18n.T(i18n.Of(p), "researchpage.next"), page+2, pages), page+1))
-		}
-	}
-	tabs = append(tabs, s.backOption())
-	return body, slots, tabs
+	return append(todo, previews...), done, todoN, doneN
 }
 
 // showResearchNode shows one research as an item detail form

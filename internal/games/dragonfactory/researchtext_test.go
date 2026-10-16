@@ -8,7 +8,6 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // TestEveryResearchIsExplained: a research with no text leaves the player
@@ -59,7 +58,7 @@ func TestResearchScreenShowsHints(t *testing.T) {
 func TestResearchListHidesLockedResearches(t *testing.T) {
 	s := testSession(t)
 	split := func() (open, grey int) {
-		_, slots, _ := s.researchList(nil, false)
+		slots, _, _, _ := s.researchSlots(nil)
 		for _, sl := range slots {
 			if strings.HasPrefix(sl.Tip, "§8") {
 				grey++
@@ -81,13 +80,13 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 	if grey == 0 {
 		t.Fatal("nothing is shown a step ahead")
 	}
-	_, slots, _ := s.researchList(nil, false)
+	slots, _, _, _ := s.researchSlots(nil)
 	for i, sl := range slots {
 		if i < open && strings.HasPrefix(sl.Tip, "§8") || i >= open && !strings.HasPrefix(sl.Tip, "§8") {
 			t.Fatalf("grey ones do not come last: slot %d %q", i, sl.Tip)
 		}
 	}
-	if _, done, _ := s.researchList(nil, true); len(done) != 1 {
+	if _, done, _, _ := s.researchSlots(nil); len(done) != 1 {
 		t.Fatalf("%d done researches", len(done))
 	}
 }
@@ -122,30 +121,26 @@ func TestResearchPreviewButton(t *testing.T) {
 	}
 }
 
-// TestResearchListTabs: the researches to do and the done ones are on
-// separate tabs, the tooltip title is yellow and green when p has all the
-// materials.
-func TestResearchListTabs(t *testing.T) {
+// TestResearchListSections: the researches to do and the done ones are in
+// two sections of one list, the tooltip title is yellow and green when p has
+// all the materials.
+func TestResearchListSections(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	s.state.Researched = map[string]bool{"stick": true}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, todo, tabs := s.researchList(p, false)
-		if len(tabs) != 3 || !strings.HasPrefix(tabs[0].Label, ui.TabOnToken) || !strings.HasPrefix(tabs[1].Label, ui.TabToken) {
-			t.Fatalf("tabs %+v", tabs)
+		todo, done, todoN, doneN := s.researchSlots(p)
+		if todoN != 3 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
+			t.Fatalf("%d to do (%d slots), %d done (%d slots)", todoN, len(todo), doneN, len(done))
 		}
 		if !strings.HasPrefix(todo[0].Tip, "§e돌 다지기\n§7") || strings.Contains(todo[0].Tip, "모자랍니다") {
 			t.Errorf("tooltip %q is not the yellow name and the short text", todo[0].Tip)
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(Pebble{Kind: PebbleStone}, 4))
-		_, todo, _ = s.researchList(p, false)
+		todo, _, _, _ = s.researchSlots(p)
 		if !strings.HasPrefix(todo[0].Tip, "§a돌 다지기") || strings.HasPrefix(todo[1].Tip, "§a") {
 			t.Errorf("tooltips %q %q: only the one with all materials is green", todo[0].Tip, todo[1].Tip)
-		}
-		_, done, tabs := s.researchList(p, true)
-		if len(done) != 1 || !strings.HasPrefix(tabs[1].Label, ui.TabOnToken) {
-			t.Errorf("done tab: %d slots, tabs %+v", len(done), tabs)
 		}
 	})
 }
@@ -174,32 +169,5 @@ func TestResearchScreen(t *testing.T) {
 	d, _, opts = s.researchNode(nil, r)
 	if len(opts) != 1 || !strings.Contains(d.Status, "연구 완료") {
 		t.Errorf("done research: status %q options %+v", d.Status, opts)
-	}
-}
-
-// TestResearchListPages: a long list is split into pages with turn buttons.
-func TestResearchListPages(t *testing.T) {
-	s := testSession(t)
-	s.state.Researched = map[string]bool{}
-	for i := range researchTree {
-		s.state.Researched[researchTree[i].ID] = true
-	}
-	_, first, tabs := s.researchListPage(nil, true, 0)
-	if len(first) != researchPageSize {
-		t.Fatalf("first page holds %d, want %d", len(first), researchPageSize)
-	}
-	if len(tabs) != 4 { // the two tabs, next page, back
-		t.Fatalf("%d buttons on the first page", len(tabs))
-	}
-	total := len(first)
-	for page := 1; page < (len(researchTree)+researchPageSize-1)/researchPageSize; page++ {
-		_, more, _ := s.researchListPage(nil, true, page)
-		total += len(more)
-	}
-	if total != len(researchTree) {
-		t.Fatalf("pages hold %d researches, want %d", total, len(researchTree))
-	}
-	if _, last, _ := s.researchListPage(nil, true, 99); len(last) == 0 {
-		t.Fatal("a page past the end is empty")
 	}
 }

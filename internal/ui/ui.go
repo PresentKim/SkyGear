@@ -354,11 +354,15 @@ const (
 	colsBTok  = "§0§m§r"
 	colsBmTok = "§0§n§r"
 
-	slotAToken   = "§0§d§r"
-	slotBToken   = "§0§e§r"
-	slotWToken   = "§0§f§r"
-	head1Token   = "§0§g§r"
-	head2Token   = "§0§h§r"
+	slotAToken = "§0§d§r"
+	slotBToken = "§0§e§r"
+	slotWToken = "§0§f§r"
+	head1Token = "§0§g§r"
+	head2Token = "§0§h§r"
+	// HelpToken marks the "?" button in the title bar (Help); padToken marks
+	// an empty cell that fills a row of a sectioned grid.
+	HelpToken    = "§0§p§r"
+	padToken     = "§0§q§r"
 	detailMarker = "§0§i§r"
 
 	// slotCountBytes is the width of the count field of a slot.
@@ -530,6 +534,48 @@ func ItemGrid(p *player.Player, title, body string, slots []ItemSlot, actions ..
 	}
 	opts = append(opts, actionOptions(actions)...)
 	Menu(p, WrapToken+title, body, opts...)
+}
+
+// Help is the "?" button left of the back button in the title bar: the tip
+// shows when the mouse is over it, pressing it runs run (which shows the
+// form again with the text open, for touch).
+func Help(tip string, run func(p *player.Player, tx *world.Tx)) Option {
+	return Option{Label: HelpToken + tip, Run: run}
+}
+
+// GridSection is a headed part of ItemGridSections.
+type GridSection struct {
+	Heading string
+	Slots   []ItemSlot
+}
+
+// ItemGridSections is ItemGrid with headed sections one after the other:
+// every section starts on a new row with its heading in the first cell, and
+// its slots wrap in rows after it. Empty cells (pad buttons) bring the
+// section to a whole number of rows, so Go decides where the rows break.
+func ItemGridSections(p *player.Player, title, body string, sections []GridSection, actions ...Option) {
+	opts := sectionOptions(sections)
+	opts = append(opts, actionOptions(actions)...)
+	Menu(p, WrapToken+title, body, opts...)
+}
+
+// sectionOptions is the buttons of the sections: heading, pads, slots, pads.
+func sectionOptions(sections []GridSection) []Option {
+	var opts []Option
+	pad := func(n int) {
+		for range n {
+			opts = append(opts, Option{Label: padToken})
+		}
+	}
+	for _, sec := range sections {
+		opts = append(opts, Option{Label: head1Token + sec.Heading})
+		pad(gridColumns - 1)
+		for _, sl := range sec.Slots {
+			opts = append(opts, slotOption(slotWToken, false, sl))
+		}
+		pad((gridColumns - len(sec.Slots)%gridColumns) % gridColumns)
+	}
+	return opts
 }
 
 // Confirm asks a yes/no question as a themed menu (the vanilla modal form

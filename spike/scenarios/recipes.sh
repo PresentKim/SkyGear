@@ -10,7 +10,7 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{3,}$' \
   'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{1,2}$' \
   'cmd:/dfadmin item oak_planks 64' 'expect:x64' \
-  'cmd:/menu' 'form:드래곤팩토리"=0' 'form:연구"=2' 'form:연구 · 상자"=0' 'expect:연구 완료' 'form:연구"=null' \
+  'cmd:/menu' 'form:드래곤팩토리"=0' 'form:연구"=13' 'form:연구 · 상자"=0' 'expect:연구 완료' 'form:연구"=null' \
   'cmd:/dfadmin status' 'expect:researched=2' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
