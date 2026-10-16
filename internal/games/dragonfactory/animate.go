@@ -44,17 +44,9 @@ func activeStates() map[string][]any {
 // "<name>_front_on" on the front of a machine with a front, "<name>_side_on" on
 // the sides of a plain cube.
 func activePermutations(kind string) []customblock.Permutation {
-	var props customblock.Properties
-	if cubeMachines[kind] {
-		props = cubeProperties(kind)
-		props.Textures["*"] = alphaMaterial("dragonfactory_" + kind + "_side_on")
-	} else {
-		props = frontCubeProperties(kind)
-		props.Textures["south"] = alphaMaterial("dragonfactory_" + kind + "_front_on")
-	}
 	return []customblock.Permutation{{
 		Condition:  fmt.Sprintf("q.block_state('%s') == '%s'", activeState, activeValue(true)),
-		Properties: props,
+		Properties: lookProperties(kind, 0, true),
 	}}
 }
 

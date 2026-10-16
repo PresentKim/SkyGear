@@ -1,13 +1,32 @@
 {
   "num_mip_levels": 4,
+  "texture_name": "atlas.terrain",
   "padding": 8,
   "resource_pack_name": "vanilla",
   "texture_data": {
     "dragonfactory_alloy_smelter_back": {
       "textures": "textures/blocks/alloy_smelter_back"
     },
+    "dragonfactory_alloy_smelter_back_t1": {
+      "textures": "textures/blocks/alloy_smelter_back_t1"
+    },
+    "dragonfactory_alloy_smelter_back_t2": {
+      "textures": "textures/blocks/alloy_smelter_back_t2"
+    },
+    "dragonfactory_alloy_smelter_back_t3": {
+      "textures": "textures/blocks/alloy_smelter_back_t3"
+    },
     "dragonfactory_alloy_smelter_down": {
       "textures": "textures/blocks/alloy_smelter_down"
+    },
+    "dragonfactory_alloy_smelter_down_t1": {
+      "textures": "textures/blocks/alloy_smelter_down_t1"
+    },
+    "dragonfactory_alloy_smelter_down_t2": {
+      "textures": "textures/blocks/alloy_smelter_down_t2"
+    },
+    "dragonfactory_alloy_smelter_down_t3": {
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "dragonfactory_alloy_smelter_front": {
       "textures": "textures/blocks/alloy_smelter_front"
@@ -15,17 +34,71 @@
     "dragonfactory_alloy_smelter_front_on": {
       "textures": "textures/blocks/alloy_smelter_front_on"
     },
+    "dragonfactory_alloy_smelter_front_on_t1": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t1"
+    },
+    "dragonfactory_alloy_smelter_front_on_t2": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t2"
+    },
+    "dragonfactory_alloy_smelter_front_on_t3": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t3"
+    },
+    "dragonfactory_alloy_smelter_front_t1": {
+      "textures": "textures/blocks/alloy_smelter_front_t1"
+    },
+    "dragonfactory_alloy_smelter_front_t2": {
+      "textures": "textures/blocks/alloy_smelter_front_t2"
+    },
+    "dragonfactory_alloy_smelter_front_t3": {
+      "textures": "textures/blocks/alloy_smelter_front_t3"
+    },
     "dragonfactory_alloy_smelter_side": {
       "textures": "textures/blocks/alloy_smelter_side"
+    },
+    "dragonfactory_alloy_smelter_side_t1": {
+      "textures": "textures/blocks/alloy_smelter_side_t1"
+    },
+    "dragonfactory_alloy_smelter_side_t2": {
+      "textures": "textures/blocks/alloy_smelter_side_t2"
+    },
+    "dragonfactory_alloy_smelter_side_t3": {
+      "textures": "textures/blocks/alloy_smelter_side_t3"
     },
     "dragonfactory_alloy_smelter_up": {
       "textures": "textures/blocks/alloy_smelter_up"
     },
+    "dragonfactory_alloy_smelter_up_t1": {
+      "textures": "textures/blocks/alloy_smelter_up_t1"
+    },
+    "dragonfactory_alloy_smelter_up_t2": {
+      "textures": "textures/blocks/alloy_smelter_up_t2"
+    },
+    "dragonfactory_alloy_smelter_up_t3": {
+      "textures": "textures/blocks/alloy_smelter_up_t3"
+    },
     "dragonfactory_auto_crafter_back": {
       "textures": "textures/blocks/auto_crafter_back"
     },
+    "dragonfactory_auto_crafter_back_t1": {
+      "textures": "textures/blocks/auto_crafter_back_t1"
+    },
+    "dragonfactory_auto_crafter_back_t2": {
+      "textures": "textures/blocks/auto_crafter_back_t2"
+    },
+    "dragonfactory_auto_crafter_back_t3": {
+      "textures": "textures/blocks/auto_crafter_back_t3"
+    },
     "dragonfactory_auto_crafter_down": {
       "textures": "textures/blocks/auto_crafter_down"
+    },
+    "dragonfactory_auto_crafter_down_t1": {
+      "textures": "textures/blocks/auto_crafter_down_t1"
+    },
+    "dragonfactory_auto_crafter_down_t2": {
+      "textures": "textures/blocks/auto_crafter_down_t2"
+    },
+    "dragonfactory_auto_crafter_down_t3": {
+      "textures": "textures/blocks/auto_crafter_down_t3"
     },
     "dragonfactory_auto_crafter_front": {
       "textures": "textures/blocks/auto_crafter_front"
@@ -33,14 +106,59 @@
     "dragonfactory_auto_crafter_front_on": {
       "textures": "textures/blocks/auto_crafter_front_on"
     },
+    "dragonfactory_auto_crafter_front_on_t1": {
+      "textures": "textures/blocks/auto_crafter_front_on_t1"
+    },
+    "dragonfactory_auto_crafter_front_on_t2": {
+      "textures": "textures/blocks/auto_crafter_front_on_t2"
+    },
+    "dragonfactory_auto_crafter_front_on_t3": {
+      "textures": "textures/blocks/auto_crafter_front_on_t3"
+    },
+    "dragonfactory_auto_crafter_front_t1": {
+      "textures": "textures/blocks/auto_crafter_front_t1"
+    },
+    "dragonfactory_auto_crafter_front_t2": {
+      "textures": "textures/blocks/auto_crafter_front_t2"
+    },
+    "dragonfactory_auto_crafter_front_t3": {
+      "textures": "textures/blocks/auto_crafter_front_t3"
+    },
     "dragonfactory_auto_crafter_side": {
       "textures": "textures/blocks/auto_crafter_side"
+    },
+    "dragonfactory_auto_crafter_side_t1": {
+      "textures": "textures/blocks/auto_crafter_side_t1"
+    },
+    "dragonfactory_auto_crafter_side_t2": {
+      "textures": "textures/blocks/auto_crafter_side_t2"
+    },
+    "dragonfactory_auto_crafter_side_t3": {
+      "textures": "textures/blocks/auto_crafter_side_t3"
     },
     "dragonfactory_auto_crafter_up": {
       "textures": "textures/blocks/auto_crafter_up"
     },
+    "dragonfactory_auto_crafter_up_t1": {
+      "textures": "textures/blocks/auto_crafter_up_t1"
+    },
+    "dragonfactory_auto_crafter_up_t2": {
+      "textures": "textures/blocks/auto_crafter_up_t2"
+    },
+    "dragonfactory_auto_crafter_up_t3": {
+      "textures": "textures/blocks/auto_crafter_up_t3"
+    },
     "dragonfactory_auto_miner_down": {
       "textures": "textures/blocks/auto_miner_down"
+    },
+    "dragonfactory_auto_miner_down_t1": {
+      "textures": "textures/blocks/auto_miner_down_t1"
+    },
+    "dragonfactory_auto_miner_down_t2": {
+      "textures": "textures/blocks/auto_miner_down_t2"
+    },
+    "dragonfactory_auto_miner_down_t3": {
+      "textures": "textures/blocks/auto_miner_down_t3"
     },
     "dragonfactory_auto_miner_side": {
       "textures": "textures/blocks/auto_miner_side"
@@ -48,8 +166,35 @@
     "dragonfactory_auto_miner_side_on": {
       "textures": "textures/blocks/auto_miner_side_on"
     },
+    "dragonfactory_auto_miner_side_on_t1": {
+      "textures": "textures/blocks/auto_miner_side_on_t1"
+    },
+    "dragonfactory_auto_miner_side_on_t2": {
+      "textures": "textures/blocks/auto_miner_side_on_t2"
+    },
+    "dragonfactory_auto_miner_side_on_t3": {
+      "textures": "textures/blocks/auto_miner_side_on_t3"
+    },
+    "dragonfactory_auto_miner_side_t1": {
+      "textures": "textures/blocks/auto_miner_side_t1"
+    },
+    "dragonfactory_auto_miner_side_t2": {
+      "textures": "textures/blocks/auto_miner_side_t2"
+    },
+    "dragonfactory_auto_miner_side_t3": {
+      "textures": "textures/blocks/auto_miner_side_t3"
+    },
     "dragonfactory_auto_miner_up": {
       "textures": "textures/blocks/auto_miner_up"
+    },
+    "dragonfactory_auto_miner_up_t1": {
+      "textures": "textures/blocks/auto_miner_up_t1"
+    },
+    "dragonfactory_auto_miner_up_t2": {
+      "textures": "textures/blocks/auto_miner_up_t2"
+    },
+    "dragonfactory_auto_miner_up_t3": {
+      "textures": "textures/blocks/auto_miner_up_t3"
     },
     "dragonfactory_auto_sieve": {
       "textures": "textures/blocks/auto_sieve"
@@ -114,8 +259,26 @@
     "dragonfactory_crucible_back": {
       "textures": "textures/blocks/crucible_back"
     },
+    "dragonfactory_crucible_back_t1": {
+      "textures": "textures/blocks/crucible_back_t1"
+    },
+    "dragonfactory_crucible_back_t2": {
+      "textures": "textures/blocks/crucible_back_t2"
+    },
+    "dragonfactory_crucible_back_t3": {
+      "textures": "textures/blocks/crucible_back_t3"
+    },
     "dragonfactory_crucible_down": {
       "textures": "textures/blocks/crucible_down"
+    },
+    "dragonfactory_crucible_down_t1": {
+      "textures": "textures/blocks/crucible_down_t1"
+    },
+    "dragonfactory_crucible_down_t2": {
+      "textures": "textures/blocks/crucible_down_t2"
+    },
+    "dragonfactory_crucible_down_t3": {
+      "textures": "textures/blocks/crucible_down_t3"
     },
     "dragonfactory_crucible_front": {
       "textures": "textures/blocks/crucible_front"
@@ -123,17 +286,71 @@
     "dragonfactory_crucible_front_on": {
       "textures": "textures/blocks/crucible_front_on"
     },
+    "dragonfactory_crucible_front_on_t1": {
+      "textures": "textures/blocks/crucible_front_on_t1"
+    },
+    "dragonfactory_crucible_front_on_t2": {
+      "textures": "textures/blocks/crucible_front_on_t2"
+    },
+    "dragonfactory_crucible_front_on_t3": {
+      "textures": "textures/blocks/crucible_front_on_t3"
+    },
+    "dragonfactory_crucible_front_t1": {
+      "textures": "textures/blocks/crucible_front_t1"
+    },
+    "dragonfactory_crucible_front_t2": {
+      "textures": "textures/blocks/crucible_front_t2"
+    },
+    "dragonfactory_crucible_front_t3": {
+      "textures": "textures/blocks/crucible_front_t3"
+    },
     "dragonfactory_crucible_side": {
       "textures": "textures/blocks/crucible_side"
+    },
+    "dragonfactory_crucible_side_t1": {
+      "textures": "textures/blocks/crucible_side_t1"
+    },
+    "dragonfactory_crucible_side_t2": {
+      "textures": "textures/blocks/crucible_side_t2"
+    },
+    "dragonfactory_crucible_side_t3": {
+      "textures": "textures/blocks/crucible_side_t3"
     },
     "dragonfactory_crucible_up": {
       "textures": "textures/blocks/crucible_up"
     },
+    "dragonfactory_crucible_up_t1": {
+      "textures": "textures/blocks/crucible_up_t1"
+    },
+    "dragonfactory_crucible_up_t2": {
+      "textures": "textures/blocks/crucible_up_t2"
+    },
+    "dragonfactory_crucible_up_t3": {
+      "textures": "textures/blocks/crucible_up_t3"
+    },
     "dragonfactory_crusher_back": {
       "textures": "textures/blocks/crusher_back"
     },
+    "dragonfactory_crusher_back_t1": {
+      "textures": "textures/blocks/crusher_back_t1"
+    },
+    "dragonfactory_crusher_back_t2": {
+      "textures": "textures/blocks/crusher_back_t2"
+    },
+    "dragonfactory_crusher_back_t3": {
+      "textures": "textures/blocks/crusher_back_t3"
+    },
     "dragonfactory_crusher_down": {
       "textures": "textures/blocks/crusher_down"
+    },
+    "dragonfactory_crusher_down_t1": {
+      "textures": "textures/blocks/crusher_down_t1"
+    },
+    "dragonfactory_crusher_down_t2": {
+      "textures": "textures/blocks/crusher_down_t2"
+    },
+    "dragonfactory_crusher_down_t3": {
+      "textures": "textures/blocks/crusher_down_t3"
     },
     "dragonfactory_crusher_front": {
       "textures": "textures/blocks/crusher_front"
@@ -141,11 +358,47 @@
     "dragonfactory_crusher_front_on": {
       "textures": "textures/blocks/crusher_front_on"
     },
+    "dragonfactory_crusher_front_on_t1": {
+      "textures": "textures/blocks/crusher_front_on_t1"
+    },
+    "dragonfactory_crusher_front_on_t2": {
+      "textures": "textures/blocks/crusher_front_on_t2"
+    },
+    "dragonfactory_crusher_front_on_t3": {
+      "textures": "textures/blocks/crusher_front_on_t3"
+    },
+    "dragonfactory_crusher_front_t1": {
+      "textures": "textures/blocks/crusher_front_t1"
+    },
+    "dragonfactory_crusher_front_t2": {
+      "textures": "textures/blocks/crusher_front_t2"
+    },
+    "dragonfactory_crusher_front_t3": {
+      "textures": "textures/blocks/crusher_front_t3"
+    },
     "dragonfactory_crusher_side": {
       "textures": "textures/blocks/crusher_side"
     },
+    "dragonfactory_crusher_side_t1": {
+      "textures": "textures/blocks/crusher_side_t1"
+    },
+    "dragonfactory_crusher_side_t2": {
+      "textures": "textures/blocks/crusher_side_t2"
+    },
+    "dragonfactory_crusher_side_t3": {
+      "textures": "textures/blocks/crusher_side_t3"
+    },
     "dragonfactory_crusher_up": {
       "textures": "textures/blocks/crusher_up"
+    },
+    "dragonfactory_crusher_up_t1": {
+      "textures": "textures/blocks/crusher_up_t1"
+    },
+    "dragonfactory_crusher_up_t2": {
+      "textures": "textures/blocks/crusher_up_t2"
+    },
+    "dragonfactory_crusher_up_t3": {
+      "textures": "textures/blocks/crusher_up_t3"
     },
     "dragonfactory_delivery_box_back": {
       "textures": "textures/blocks/delivery_box_back"
@@ -183,8 +436,26 @@
     "dragonfactory_electric_furnace_back": {
       "textures": "textures/blocks/electric_furnace_back"
     },
+    "dragonfactory_electric_furnace_back_t1": {
+      "textures": "textures/blocks/electric_furnace_back_t1"
+    },
+    "dragonfactory_electric_furnace_back_t2": {
+      "textures": "textures/blocks/electric_furnace_back_t2"
+    },
+    "dragonfactory_electric_furnace_back_t3": {
+      "textures": "textures/blocks/electric_furnace_back_t3"
+    },
     "dragonfactory_electric_furnace_down": {
       "textures": "textures/blocks/electric_furnace_down"
+    },
+    "dragonfactory_electric_furnace_down_t1": {
+      "textures": "textures/blocks/electric_furnace_down_t1"
+    },
+    "dragonfactory_electric_furnace_down_t2": {
+      "textures": "textures/blocks/electric_furnace_down_t2"
+    },
+    "dragonfactory_electric_furnace_down_t3": {
+      "textures": "textures/blocks/electric_furnace_down_t3"
     },
     "dragonfactory_electric_furnace_front": {
       "textures": "textures/blocks/electric_furnace_front"
@@ -192,20 +463,83 @@
     "dragonfactory_electric_furnace_front_on": {
       "textures": "textures/blocks/electric_furnace_front_on"
     },
+    "dragonfactory_electric_furnace_front_on_t1": {
+      "textures": "textures/blocks/electric_furnace_front_on_t1"
+    },
+    "dragonfactory_electric_furnace_front_on_t2": {
+      "textures": "textures/blocks/electric_furnace_front_on_t2"
+    },
+    "dragonfactory_electric_furnace_front_on_t3": {
+      "textures": "textures/blocks/electric_furnace_front_on_t3"
+    },
+    "dragonfactory_electric_furnace_front_t1": {
+      "textures": "textures/blocks/electric_furnace_front_t1"
+    },
+    "dragonfactory_electric_furnace_front_t2": {
+      "textures": "textures/blocks/electric_furnace_front_t2"
+    },
+    "dragonfactory_electric_furnace_front_t3": {
+      "textures": "textures/blocks/electric_furnace_front_t3"
+    },
     "dragonfactory_electric_furnace_side": {
       "textures": "textures/blocks/electric_furnace_side"
+    },
+    "dragonfactory_electric_furnace_side_t1": {
+      "textures": "textures/blocks/electric_furnace_side_t1"
+    },
+    "dragonfactory_electric_furnace_side_t2": {
+      "textures": "textures/blocks/electric_furnace_side_t2"
+    },
+    "dragonfactory_electric_furnace_side_t3": {
+      "textures": "textures/blocks/electric_furnace_side_t3"
     },
     "dragonfactory_electric_furnace_up": {
       "textures": "textures/blocks/electric_furnace_up"
     },
+    "dragonfactory_electric_furnace_up_t1": {
+      "textures": "textures/blocks/electric_furnace_up_t1"
+    },
+    "dragonfactory_electric_furnace_up_t2": {
+      "textures": "textures/blocks/electric_furnace_up_t2"
+    },
+    "dragonfactory_electric_furnace_up_t3": {
+      "textures": "textures/blocks/electric_furnace_up_t3"
+    },
     "dragonfactory_energy_cell_down": {
       "textures": "textures/blocks/energy_cell_down"
+    },
+    "dragonfactory_energy_cell_down_t1": {
+      "textures": "textures/blocks/energy_cell_down_t1"
+    },
+    "dragonfactory_energy_cell_down_t2": {
+      "textures": "textures/blocks/energy_cell_down_t2"
+    },
+    "dragonfactory_energy_cell_down_t3": {
+      "textures": "textures/blocks/energy_cell_down_t3"
     },
     "dragonfactory_energy_cell_side": {
       "textures": "textures/blocks/energy_cell_side"
     },
+    "dragonfactory_energy_cell_side_t1": {
+      "textures": "textures/blocks/energy_cell_side_t1"
+    },
+    "dragonfactory_energy_cell_side_t2": {
+      "textures": "textures/blocks/energy_cell_side_t2"
+    },
+    "dragonfactory_energy_cell_side_t3": {
+      "textures": "textures/blocks/energy_cell_side_t3"
+    },
     "dragonfactory_energy_cell_up": {
       "textures": "textures/blocks/energy_cell_up"
+    },
+    "dragonfactory_energy_cell_up_t1": {
+      "textures": "textures/blocks/energy_cell_up_t1"
+    },
+    "dragonfactory_energy_cell_up_t2": {
+      "textures": "textures/blocks/energy_cell_up_t2"
+    },
+    "dragonfactory_energy_cell_up_t3": {
+      "textures": "textures/blocks/energy_cell_up_t3"
     },
     "dragonfactory_fluid_tank_down": {
       "textures": "textures/blocks/fluid_tank_down"
@@ -219,17 +553,62 @@
     "dragonfactory_generator_down": {
       "textures": "textures/blocks/generator_down"
     },
+    "dragonfactory_generator_down_t1": {
+      "textures": "textures/blocks/generator_down_t1"
+    },
+    "dragonfactory_generator_down_t2": {
+      "textures": "textures/blocks/generator_down_t2"
+    },
+    "dragonfactory_generator_down_t3": {
+      "textures": "textures/blocks/generator_down_t3"
+    },
     "dragonfactory_generator_side": {
       "textures": "textures/blocks/generator_side"
     },
     "dragonfactory_generator_side_on": {
       "textures": "textures/blocks/generator_side_on"
     },
+    "dragonfactory_generator_side_on_t1": {
+      "textures": "textures/blocks/generator_side_on_t1"
+    },
+    "dragonfactory_generator_side_on_t2": {
+      "textures": "textures/blocks/generator_side_on_t2"
+    },
+    "dragonfactory_generator_side_on_t3": {
+      "textures": "textures/blocks/generator_side_on_t3"
+    },
+    "dragonfactory_generator_side_t1": {
+      "textures": "textures/blocks/generator_side_t1"
+    },
+    "dragonfactory_generator_side_t2": {
+      "textures": "textures/blocks/generator_side_t2"
+    },
+    "dragonfactory_generator_side_t3": {
+      "textures": "textures/blocks/generator_side_t3"
+    },
     "dragonfactory_generator_up": {
       "textures": "textures/blocks/generator_up"
     },
+    "dragonfactory_generator_up_t1": {
+      "textures": "textures/blocks/generator_up_t1"
+    },
+    "dragonfactory_generator_up_t2": {
+      "textures": "textures/blocks/generator_up_t2"
+    },
+    "dragonfactory_generator_up_t3": {
+      "textures": "textures/blocks/generator_up_t3"
+    },
     "dragonfactory_harvester_down": {
       "textures": "textures/blocks/harvester_down"
+    },
+    "dragonfactory_harvester_down_t1": {
+      "textures": "textures/blocks/harvester_down_t1"
+    },
+    "dragonfactory_harvester_down_t2": {
+      "textures": "textures/blocks/harvester_down_t2"
+    },
+    "dragonfactory_harvester_down_t3": {
+      "textures": "textures/blocks/harvester_down_t3"
     },
     "dragonfactory_harvester_side": {
       "textures": "textures/blocks/harvester_side"
@@ -237,8 +616,35 @@
     "dragonfactory_harvester_side_on": {
       "textures": "textures/blocks/harvester_side_on"
     },
+    "dragonfactory_harvester_side_on_t1": {
+      "textures": "textures/blocks/harvester_side_on_t1"
+    },
+    "dragonfactory_harvester_side_on_t2": {
+      "textures": "textures/blocks/harvester_side_on_t2"
+    },
+    "dragonfactory_harvester_side_on_t3": {
+      "textures": "textures/blocks/harvester_side_on_t3"
+    },
+    "dragonfactory_harvester_side_t1": {
+      "textures": "textures/blocks/harvester_side_t1"
+    },
+    "dragonfactory_harvester_side_t2": {
+      "textures": "textures/blocks/harvester_side_t2"
+    },
+    "dragonfactory_harvester_side_t3": {
+      "textures": "textures/blocks/harvester_side_t3"
+    },
     "dragonfactory_harvester_up": {
       "textures": "textures/blocks/harvester_up"
+    },
+    "dragonfactory_harvester_up_t1": {
+      "textures": "textures/blocks/harvester_up_t1"
+    },
+    "dragonfactory_harvester_up_t2": {
+      "textures": "textures/blocks/harvester_up_t2"
+    },
+    "dragonfactory_harvester_up_t3": {
+      "textures": "textures/blocks/harvester_up_t3"
     },
     "dragonfactory_iron_hopper": {
       "textures": "textures/blocks/iron_hopper"
@@ -246,20 +652,74 @@
     "dragonfactory_item_vacuum_down": {
       "textures": "textures/blocks/item_vacuum_down"
     },
+    "dragonfactory_item_vacuum_down_t1": {
+      "textures": "textures/blocks/item_vacuum_down_t1"
+    },
+    "dragonfactory_item_vacuum_down_t2": {
+      "textures": "textures/blocks/item_vacuum_down_t2"
+    },
+    "dragonfactory_item_vacuum_down_t3": {
+      "textures": "textures/blocks/item_vacuum_down_t3"
+    },
     "dragonfactory_item_vacuum_side": {
       "textures": "textures/blocks/item_vacuum_side"
     },
     "dragonfactory_item_vacuum_side_on": {
       "textures": "textures/blocks/item_vacuum_side_on"
     },
+    "dragonfactory_item_vacuum_side_on_t1": {
+      "textures": "textures/blocks/item_vacuum_side_on_t1"
+    },
+    "dragonfactory_item_vacuum_side_on_t2": {
+      "textures": "textures/blocks/item_vacuum_side_on_t2"
+    },
+    "dragonfactory_item_vacuum_side_on_t3": {
+      "textures": "textures/blocks/item_vacuum_side_on_t3"
+    },
+    "dragonfactory_item_vacuum_side_t1": {
+      "textures": "textures/blocks/item_vacuum_side_t1"
+    },
+    "dragonfactory_item_vacuum_side_t2": {
+      "textures": "textures/blocks/item_vacuum_side_t2"
+    },
+    "dragonfactory_item_vacuum_side_t3": {
+      "textures": "textures/blocks/item_vacuum_side_t3"
+    },
     "dragonfactory_item_vacuum_up": {
       "textures": "textures/blocks/item_vacuum_up"
+    },
+    "dragonfactory_item_vacuum_up_t1": {
+      "textures": "textures/blocks/item_vacuum_up_t1"
+    },
+    "dragonfactory_item_vacuum_up_t2": {
+      "textures": "textures/blocks/item_vacuum_up_t2"
+    },
+    "dragonfactory_item_vacuum_up_t3": {
+      "textures": "textures/blocks/item_vacuum_up_t3"
     },
     "dragonfactory_laboratory_back": {
       "textures": "textures/blocks/laboratory_back"
     },
+    "dragonfactory_laboratory_back_t1": {
+      "textures": "textures/blocks/laboratory_back_t1"
+    },
+    "dragonfactory_laboratory_back_t2": {
+      "textures": "textures/blocks/laboratory_back_t2"
+    },
+    "dragonfactory_laboratory_back_t3": {
+      "textures": "textures/blocks/laboratory_back_t3"
+    },
     "dragonfactory_laboratory_down": {
       "textures": "textures/blocks/laboratory_down"
+    },
+    "dragonfactory_laboratory_down_t1": {
+      "textures": "textures/blocks/laboratory_down_t1"
+    },
+    "dragonfactory_laboratory_down_t2": {
+      "textures": "textures/blocks/laboratory_down_t2"
+    },
+    "dragonfactory_laboratory_down_t3": {
+      "textures": "textures/blocks/laboratory_down_t3"
     },
     "dragonfactory_laboratory_front": {
       "textures": "textures/blocks/laboratory_front"
@@ -267,14 +727,59 @@
     "dragonfactory_laboratory_front_on": {
       "textures": "textures/blocks/laboratory_front_on"
     },
+    "dragonfactory_laboratory_front_on_t1": {
+      "textures": "textures/blocks/laboratory_front_on_t1"
+    },
+    "dragonfactory_laboratory_front_on_t2": {
+      "textures": "textures/blocks/laboratory_front_on_t2"
+    },
+    "dragonfactory_laboratory_front_on_t3": {
+      "textures": "textures/blocks/laboratory_front_on_t3"
+    },
+    "dragonfactory_laboratory_front_t1": {
+      "textures": "textures/blocks/laboratory_front_t1"
+    },
+    "dragonfactory_laboratory_front_t2": {
+      "textures": "textures/blocks/laboratory_front_t2"
+    },
+    "dragonfactory_laboratory_front_t3": {
+      "textures": "textures/blocks/laboratory_front_t3"
+    },
     "dragonfactory_laboratory_side": {
       "textures": "textures/blocks/laboratory_side"
+    },
+    "dragonfactory_laboratory_side_t1": {
+      "textures": "textures/blocks/laboratory_side_t1"
+    },
+    "dragonfactory_laboratory_side_t2": {
+      "textures": "textures/blocks/laboratory_side_t2"
+    },
+    "dragonfactory_laboratory_side_t3": {
+      "textures": "textures/blocks/laboratory_side_t3"
     },
     "dragonfactory_laboratory_up": {
       "textures": "textures/blocks/laboratory_up"
     },
+    "dragonfactory_laboratory_up_t1": {
+      "textures": "textures/blocks/laboratory_up_t1"
+    },
+    "dragonfactory_laboratory_up_t2": {
+      "textures": "textures/blocks/laboratory_up_t2"
+    },
+    "dragonfactory_laboratory_up_t3": {
+      "textures": "textures/blocks/laboratory_up_t3"
+    },
     "dragonfactory_lava_generator_down": {
       "textures": "textures/blocks/lava_generator_down"
+    },
+    "dragonfactory_lava_generator_down_t1": {
+      "textures": "textures/blocks/lava_generator_down_t1"
+    },
+    "dragonfactory_lava_generator_down_t2": {
+      "textures": "textures/blocks/lava_generator_down_t2"
+    },
+    "dragonfactory_lava_generator_down_t3": {
+      "textures": "textures/blocks/lava_generator_down_t3"
     },
     "dragonfactory_lava_generator_side": {
       "textures": "textures/blocks/lava_generator_side"
@@ -282,8 +787,35 @@
     "dragonfactory_lava_generator_side_on": {
       "textures": "textures/blocks/lava_generator_side_on"
     },
+    "dragonfactory_lava_generator_side_on_t1": {
+      "textures": "textures/blocks/lava_generator_side_on_t1"
+    },
+    "dragonfactory_lava_generator_side_on_t2": {
+      "textures": "textures/blocks/lava_generator_side_on_t2"
+    },
+    "dragonfactory_lava_generator_side_on_t3": {
+      "textures": "textures/blocks/lava_generator_side_on_t3"
+    },
+    "dragonfactory_lava_generator_side_t1": {
+      "textures": "textures/blocks/lava_generator_side_t1"
+    },
+    "dragonfactory_lava_generator_side_t2": {
+      "textures": "textures/blocks/lava_generator_side_t2"
+    },
+    "dragonfactory_lava_generator_side_t3": {
+      "textures": "textures/blocks/lava_generator_side_t3"
+    },
     "dragonfactory_lava_generator_up": {
       "textures": "textures/blocks/lava_generator_up"
+    },
+    "dragonfactory_lava_generator_up_t1": {
+      "textures": "textures/blocks/lava_generator_up_t1"
+    },
+    "dragonfactory_lava_generator_up_t2": {
+      "textures": "textures/blocks/lava_generator_up_t2"
+    },
+    "dragonfactory_lava_generator_up_t3": {
+      "textures": "textures/blocks/lava_generator_up_t3"
     },
     "dragonfactory_magic_sieve": {
       "textures": "textures/blocks/magic_sieve"
@@ -291,8 +823,26 @@
     "dragonfactory_mob_simulator_back": {
       "textures": "textures/blocks/mob_simulator_back"
     },
+    "dragonfactory_mob_simulator_back_t1": {
+      "textures": "textures/blocks/mob_simulator_back_t1"
+    },
+    "dragonfactory_mob_simulator_back_t2": {
+      "textures": "textures/blocks/mob_simulator_back_t2"
+    },
+    "dragonfactory_mob_simulator_back_t3": {
+      "textures": "textures/blocks/mob_simulator_back_t3"
+    },
     "dragonfactory_mob_simulator_down": {
       "textures": "textures/blocks/mob_simulator_down"
+    },
+    "dragonfactory_mob_simulator_down_t1": {
+      "textures": "textures/blocks/mob_simulator_down_t1"
+    },
+    "dragonfactory_mob_simulator_down_t2": {
+      "textures": "textures/blocks/mob_simulator_down_t2"
+    },
+    "dragonfactory_mob_simulator_down_t3": {
+      "textures": "textures/blocks/mob_simulator_down_t3"
     },
     "dragonfactory_mob_simulator_front": {
       "textures": "textures/blocks/mob_simulator_front"
@@ -300,17 +850,71 @@
     "dragonfactory_mob_simulator_front_on": {
       "textures": "textures/blocks/mob_simulator_front_on"
     },
+    "dragonfactory_mob_simulator_front_on_t1": {
+      "textures": "textures/blocks/mob_simulator_front_on_t1"
+    },
+    "dragonfactory_mob_simulator_front_on_t2": {
+      "textures": "textures/blocks/mob_simulator_front_on_t2"
+    },
+    "dragonfactory_mob_simulator_front_on_t3": {
+      "textures": "textures/blocks/mob_simulator_front_on_t3"
+    },
+    "dragonfactory_mob_simulator_front_t1": {
+      "textures": "textures/blocks/mob_simulator_front_t1"
+    },
+    "dragonfactory_mob_simulator_front_t2": {
+      "textures": "textures/blocks/mob_simulator_front_t2"
+    },
+    "dragonfactory_mob_simulator_front_t3": {
+      "textures": "textures/blocks/mob_simulator_front_t3"
+    },
     "dragonfactory_mob_simulator_side": {
       "textures": "textures/blocks/mob_simulator_side"
+    },
+    "dragonfactory_mob_simulator_side_t1": {
+      "textures": "textures/blocks/mob_simulator_side_t1"
+    },
+    "dragonfactory_mob_simulator_side_t2": {
+      "textures": "textures/blocks/mob_simulator_side_t2"
+    },
+    "dragonfactory_mob_simulator_side_t3": {
+      "textures": "textures/blocks/mob_simulator_side_t3"
     },
     "dragonfactory_mob_simulator_up": {
       "textures": "textures/blocks/mob_simulator_up"
     },
+    "dragonfactory_mob_simulator_up_t1": {
+      "textures": "textures/blocks/mob_simulator_up_t1"
+    },
+    "dragonfactory_mob_simulator_up_t2": {
+      "textures": "textures/blocks/mob_simulator_up_t2"
+    },
+    "dragonfactory_mob_simulator_up_t3": {
+      "textures": "textures/blocks/mob_simulator_up_t3"
+    },
     "dragonfactory_ore_washer_back": {
       "textures": "textures/blocks/ore_washer_back"
     },
+    "dragonfactory_ore_washer_back_t1": {
+      "textures": "textures/blocks/ore_washer_back_t1"
+    },
+    "dragonfactory_ore_washer_back_t2": {
+      "textures": "textures/blocks/ore_washer_back_t2"
+    },
+    "dragonfactory_ore_washer_back_t3": {
+      "textures": "textures/blocks/ore_washer_back_t3"
+    },
     "dragonfactory_ore_washer_down": {
       "textures": "textures/blocks/ore_washer_down"
+    },
+    "dragonfactory_ore_washer_down_t1": {
+      "textures": "textures/blocks/ore_washer_down_t1"
+    },
+    "dragonfactory_ore_washer_down_t2": {
+      "textures": "textures/blocks/ore_washer_down_t2"
+    },
+    "dragonfactory_ore_washer_down_t3": {
+      "textures": "textures/blocks/ore_washer_down_t3"
     },
     "dragonfactory_ore_washer_front": {
       "textures": "textures/blocks/ore_washer_front"
@@ -318,11 +922,47 @@
     "dragonfactory_ore_washer_front_on": {
       "textures": "textures/blocks/ore_washer_front_on"
     },
+    "dragonfactory_ore_washer_front_on_t1": {
+      "textures": "textures/blocks/ore_washer_front_on_t1"
+    },
+    "dragonfactory_ore_washer_front_on_t2": {
+      "textures": "textures/blocks/ore_washer_front_on_t2"
+    },
+    "dragonfactory_ore_washer_front_on_t3": {
+      "textures": "textures/blocks/ore_washer_front_on_t3"
+    },
+    "dragonfactory_ore_washer_front_t1": {
+      "textures": "textures/blocks/ore_washer_front_t1"
+    },
+    "dragonfactory_ore_washer_front_t2": {
+      "textures": "textures/blocks/ore_washer_front_t2"
+    },
+    "dragonfactory_ore_washer_front_t3": {
+      "textures": "textures/blocks/ore_washer_front_t3"
+    },
     "dragonfactory_ore_washer_side": {
       "textures": "textures/blocks/ore_washer_side"
     },
+    "dragonfactory_ore_washer_side_t1": {
+      "textures": "textures/blocks/ore_washer_side_t1"
+    },
+    "dragonfactory_ore_washer_side_t2": {
+      "textures": "textures/blocks/ore_washer_side_t2"
+    },
+    "dragonfactory_ore_washer_side_t3": {
+      "textures": "textures/blocks/ore_washer_side_t3"
+    },
     "dragonfactory_ore_washer_up": {
       "textures": "textures/blocks/ore_washer_up"
+    },
+    "dragonfactory_ore_washer_up_t1": {
+      "textures": "textures/blocks/ore_washer_up_t1"
+    },
+    "dragonfactory_ore_washer_up_t2": {
+      "textures": "textures/blocks/ore_washer_up_t2"
+    },
+    "dragonfactory_ore_washer_up_t3": {
+      "textures": "textures/blocks/ore_washer_up_t3"
     },
     "dragonfactory_plant_ess_blaze_0": {
       "textures": "textures/blocks/plant_ess_blaze_0"
@@ -621,18 +1261,53 @@
     "dragonfactory_tree_feller_down": {
       "textures": "textures/blocks/tree_feller_down"
     },
+    "dragonfactory_tree_feller_down_t1": {
+      "textures": "textures/blocks/tree_feller_down_t1"
+    },
+    "dragonfactory_tree_feller_down_t2": {
+      "textures": "textures/blocks/tree_feller_down_t2"
+    },
+    "dragonfactory_tree_feller_down_t3": {
+      "textures": "textures/blocks/tree_feller_down_t3"
+    },
     "dragonfactory_tree_feller_side": {
       "textures": "textures/blocks/tree_feller_side"
     },
     "dragonfactory_tree_feller_side_on": {
       "textures": "textures/blocks/tree_feller_side_on"
     },
+    "dragonfactory_tree_feller_side_on_t1": {
+      "textures": "textures/blocks/tree_feller_side_on_t1"
+    },
+    "dragonfactory_tree_feller_side_on_t2": {
+      "textures": "textures/blocks/tree_feller_side_on_t2"
+    },
+    "dragonfactory_tree_feller_side_on_t3": {
+      "textures": "textures/blocks/tree_feller_side_on_t3"
+    },
+    "dragonfactory_tree_feller_side_t1": {
+      "textures": "textures/blocks/tree_feller_side_t1"
+    },
+    "dragonfactory_tree_feller_side_t2": {
+      "textures": "textures/blocks/tree_feller_side_t2"
+    },
+    "dragonfactory_tree_feller_side_t3": {
+      "textures": "textures/blocks/tree_feller_side_t3"
+    },
     "dragonfactory_tree_feller_up": {
       "textures": "textures/blocks/tree_feller_up"
+    },
+    "dragonfactory_tree_feller_up_t1": {
+      "textures": "textures/blocks/tree_feller_up_t1"
+    },
+    "dragonfactory_tree_feller_up_t2": {
+      "textures": "textures/blocks/tree_feller_up_t2"
+    },
+    "dragonfactory_tree_feller_up_t3": {
+      "textures": "textures/blocks/tree_feller_up_t3"
     },
     "dragonfactory_wood_hopper": {
       "textures": "textures/blocks/wood_hopper"
     }
-  },
-  "texture_name": "atlas.terrain"
+  }
 }

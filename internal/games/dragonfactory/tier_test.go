@@ -103,6 +103,9 @@ func TestUseKit(t *testing.T) {
 			if st.tier != l {
 				t.Fatalf("kit %d: tier %d", l, st.tier)
 			}
+			if got := tx.Block(machinePos).(Machine); got.tier != l {
+				t.Fatalf("kit %d: the block shows tier %d", l, got.tier)
+			}
 		}
 		held, off = kit(3)
 		s.useKit(p, tx, machinePos, m, TierKit{Level: 3}, held, off)
@@ -181,5 +184,50 @@ func TestTierAlloyRecipes(t *testing.T) {
 		if !ok || r.Out.(TierAlloy).Kind != c.want || r.OutCount != 2 {
 			t.Errorf("%s: %v %v", c.want, r, ok)
 		}
+	}
+}
+
+// TestTierLooks: the machines that show a tier have a block state for every
+// tier (and working look), with a hash of its own, and the other machines have
+// none.
+func TestTierLooks(t *testing.T) {
+	for _, kind := range machineOrder {
+		if !tierLook(kind) {
+			if _, ok := (Machine{Kind: kind}).States()[tierState]; ok {
+				t.Errorf("%s has tier states", kind)
+			}
+			continue
+		}
+		want := maxTier + 1
+		if animatedMachines[kind] {
+			want *= 2
+		}
+		vals := Machine{Kind: kind}.States()[tierState]
+		if len(vals) != want {
+			t.Errorf("%s: %d state values, want %d", kind, len(vals), want)
+		}
+		seen := map[uint64]bool{}
+		for tier := 0; tier <= maxTier; tier++ {
+			for _, on := range []bool{false, true} {
+				if on && !animatedMachines[kind] {
+					continue
+				}
+				m := Machine{Kind: kind, tier: tier, active: on}
+				_, h := m.Hash()
+				if seen[h] {
+					t.Errorf("%s: tier %d on %v repeats a hash", kind, tier, on)
+				}
+				seen[h] = true
+				if _, props := m.EncodeBlock(); props[tierState] != tierValue(kind, tier, on) {
+					t.Errorf("%s: encoded %v", kind, props)
+				}
+			}
+		}
+		if len(Machine{Kind: kind}.Permutations()) != want-1 {
+			t.Errorf("%s: %d permutations", kind, len(Machine{Kind: kind}.Permutations()))
+		}
+	}
+	if !tierLook(KindCrusher) || tierLook(KindAutoSieve) || tierLook(KindTank) {
+		t.Fatal("wrong machines show tiers")
 	}
 }

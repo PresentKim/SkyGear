@@ -168,6 +168,7 @@ func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine
 		st.tier++
 		st.shownEnergy = -1
 		st.showEnergy()
+		showTier(tx, pos, st)
 		if !p.GameMode().CreativeInventory() {
 			p.SetHeldItems(held.Grow(-1), off)
 		}

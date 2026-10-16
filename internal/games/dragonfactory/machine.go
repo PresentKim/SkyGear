@@ -311,6 +311,8 @@ type Machine struct {
 	content, fill, meshLook int
 	// active is the working look of an animated machine (animate.go).
 	active bool
+	// tier is the tier look of the block (tierlook.go).
+	tier int
 }
 
 // machineState is the inventory and progress of a placed machine. It is
@@ -772,14 +774,17 @@ func (m Machine) EncodeBlock() (string, map[string]any) {
 	if isSieve(m.Kind) {
 		return "dragonfactory:" + m.Kind, map[string]any{sieveLookState: lookValue(m.meshLook, m.content, m.fill)}
 	}
+	if tierLook(m.Kind) {
+		return "dragonfactory:" + m.Kind, map[string]any{tierState: tierValue(m.Kind, m.tier, m.active)}
+	}
 	if animatedMachines[m.Kind] {
 		return "dragonfactory:" + m.Kind, map[string]any{activeState: activeValue(m.active)}
 	}
 	return "dragonfactory:" + m.Kind, nil
 }
 func (m Machine) Hash() (uint64, uint64) {
-	if m.active {
-		return m.kind().hash, 1
+	if m.active || m.tier > 0 {
+		return m.kind().hash, uint64(tierLookIndex(m.Kind, m.tier, m.active))
 	}
 	return m.kind().hash, uint64(lookIndex(m.meshLook, m.content, m.fill))
 }
@@ -805,6 +810,9 @@ func (m Machine) States() map[string][]any {
 	if isSieve(m.Kind) {
 		return sieveStates()
 	}
+	if tierLook(m.Kind) {
+		return tierStates(m.Kind)
+	}
 	if animatedMachines[m.Kind] {
 		return activeStates()
 	}
@@ -815,6 +823,9 @@ func (m Machine) States() map[string][]any {
 func (m Machine) Permutations() []customblock.Permutation {
 	if isSieve(m.Kind) {
 		return sievePermutations(m.Kind)
+	}
+	if tierLook(m.Kind) {
+		return tierPermutations(m.Kind)
 	}
 	if animatedMachines[m.Kind] {
 		return activePermutations(m.Kind)
@@ -928,6 +939,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	}
 	if t, ok := data["Tier"].(int32); ok && tierable(m.Kind) {
 		n.st.tier = max(0, min(int(t), maxTier))
+		n.tier = n.st.tier
 	}
 	if p, ok := data["Progress"].(int32); ok {
 		n.st.progress = min(int(p), n.st.kind.interval)
@@ -1318,8 +1330,15 @@ func init() {
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
 	}
-	for k := range animatedMachines {
-		world.RegisterBlock(Machine{Kind: k, active: true})
+	for _, k := range machineOrder {
+		for t := 0; t <= maxTier; t++ {
+			for _, on := range []bool{false, true} {
+				if (t == 0 && !on) || (t > 0 && !tierLook(k)) || (on && !animatedMachines[k]) {
+					continue
+				}
+				world.RegisterBlock(Machine{Kind: k, active: on, tier: t})
+			}
+		}
 	}
 	for _, k := range []string{KindSieve, KindAutoSieve, KindMagicSieve} {
 		for _, l := range sieveLooks() {

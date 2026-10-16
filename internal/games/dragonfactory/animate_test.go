@@ -42,7 +42,7 @@ func TestActiveLook(t *testing.T) {
 			t.Fatal("both looks have the same block hash")
 		}
 	}
-	if _, props := b.EncodeBlock(); props[activeState] != "on" {
+	if _, props := b.EncodeBlock(); props[tierState] != "1" {
 		t.Fatalf("encoded state %v", props)
 	}
 }
