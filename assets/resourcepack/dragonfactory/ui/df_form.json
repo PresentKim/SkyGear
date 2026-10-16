@@ -1315,48 +1315,24 @@
   "slot_util_item@df_form.vis_slot_util": {
     "type": "panel",
     "size": [ 24, 24 ],
-    "$df_tip_from": "left_middle",
-    "$df_tip_to": "right_middle",
-    "$df_tip_offset": [ -6, 0 ],
     "$df_slot_control|default": "df_form.slot_button",
     "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.slot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
 
-  // slot_tooltip shows the button text in a box beside the slot, centred on
-  // it (a box above or below is cut off by the pane at its top and bottom
-  // rows). Upgrade slots grow it to the right, utility slots to the left
-  // ($df_tip_from/$df_tip_to/$df_tip_offset, set by the slot item).
-  "slot_tooltip": {
-    "type": "image",
-    "texture": "textures/ui/df/panel",
-    "color": [ 0.72, 0.55, 1.0 ],
+  // slot_tooltip is the engine's own tooltip (hover_text_renderer, the one
+  // inventory items use), drawn at the pointer over every pane, so a pane
+  // cannot clip it. It shows the whole button text; it only exists inside
+  // the hovered or selected state of a slot.
+  "slot_tooltip@common.hover_text": {
+    "$hover_text_max_width": 0,
     "layer": 200,
-    "size": [ "100%c + 8px", "100%c + 6px" ],
-    "$df_tip_from|default": "right_middle",
-    "$df_tip_to|default": "left_middle",
-    "$df_tip_offset|default": [ 6, 0 ],
-    "offset": "$df_tip_offset",
-    "anchor_from": "$df_tip_from",
-    "anchor_to": "$df_tip_to",
-    "controls": [
+    "bindings": [
       {
-        "text": {
-          "type": "label",
-          "layer": 1,
-          "text": "#form_button_text",
-          "color": [ 0.95, 0.95, 0.97 ],
-          "font_scale_factor": 0.8,
-          "size": [ "default", "default" ],
-          "max_size": [ 150, "default" ],
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection", 
-              "binding_collection_name": "form_buttons"
-            }
-          ]
-        }
+        "binding_name": "#form_button_text",
+        "binding_name_override": "#hover_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
       }
     ]
   },
@@ -1383,6 +1359,8 @@
   // slot_toggle (touch): unselected it only looks like a slot; selected it
   // is highlighted, shows the tooltip and carries the real button.
   "slot_toggle@common.toggle": {
+    "$toggle_group_default_selected": -1,
+    "$toggle_focus_enabled": false,
     "size": [ 22, 22 ],
     "$radio_toggle_group": true,
     "$toggle_name": "df_form_slot",
@@ -1451,6 +1429,7 @@
   // slot_button (mouse) looks like an inventory slot; hovering or
   // pressing it shows its text as a tooltip.
   "slot_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 22, 22 ],
     "default_control": "default",
@@ -1931,11 +1910,11 @@
     "controls": [
       { "bg": { "type": "image", "texture": "textures/ui/df/button_hover", "alpha": 0.5, "layer": 1 } },
       { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } },
-      { "tipl@df_form.gslot_tooltip_l": {} },
-      { "tipr@df_form.gslot_tooltip_r": {} }
+      { "tip@df_form.gslot_hover_tip": {} }
     ]
   },
   "cols_mini_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 14, 14 ],
     "anchor_from": "left_middle",
@@ -2370,78 +2349,22 @@
     ]
   },
 
-  // The tooltip is the text from byte 20 on, in a box beside the slot,
-  // centred on it (above or below it the pane cuts it off in the first and
-  // last rows). The pane clips it at its sides too, so Go says in byte 10
-  // (the "align" field, 'l' or 'r') which side it grows to: 'l' to the
-  // right of the slot (slots on the left), 'r' to the left. Its width is at
-  // most 128px so it fits from the slots Go counts as left or right.
-  "gslot_tooltip_text": {
-    "type": "label",
-    "layer": 1,
-    "text": "#df_tip",
-    "color": [ 0.95, 0.95, 0.97 ],
-    "font_scale_factor": 0.8,
-    "size": [ "default", "default" ],
-    "max_size": [ 120, "default" ],
+  // The tooltip is the text from byte 20 on, drawn by the engine at the
+  // pointer (hover_text_renderer) so no pane clips it and no side has to be
+  // chosen; the side byte (10) of the button text is not used any more.
+  "gslot_hover_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection", 
+        "binding_type": "collection",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view", 
+        "binding_type": "view",
         "source_property_name": "(#form_button_text - ('%.20s' * #form_button_text))",
-        "target_property_name": "#df_tip"
-      }
-    ]
-  },
-
-  "gslot_tooltip_l": {
-    "type": "image",
-    "texture": "textures/ui/df/panel",
-    "color": [ 0.72, 0.55, 1.0 ],
-    "layer": 200,
-    "size": [ "100%c + 8px", "100%c + 6px" ],
-    "offset": [ 6, 0 ],
-    "anchor_from": "right_middle",
-    "anchor_to": "left_middle",
-    "controls": [ { "text@df_form.gslot_tooltip_text": {} } ],
-    "bindings": [
-      {
-        "binding_name": "#form_button_text",
-        "binding_type": "collection", 
-        "binding_collection_name": "form_buttons"
-      },
-      {
-        "binding_type": "view", 
-        "source_property_name": "(('%.1s' * (#form_button_text - ('%.9s' * #form_button_text))) = 'l')",
-        "target_property_name": "#visible"
-      }
-    ]
-  },
-
-  "gslot_tooltip_r": {
-    "type": "image",
-    "texture": "textures/ui/df/panel",
-    "color": [ 0.72, 0.55, 1.0 ],
-    "layer": 200,
-    "size": [ "100%c + 8px", "100%c + 6px" ],
-    "offset": [ -6, 0 ],
-    "anchor_from": "left_middle",
-    "anchor_to": "right_middle",
-    "controls": [ { "text@df_form.gslot_tooltip_text": {} } ],
-    "bindings": [
-      {
-        "binding_name": "#form_button_text",
-        "binding_type": "collection", 
-        "binding_collection_name": "form_buttons"
-      },
-      {
-        "binding_type": "view", 
-        "source_property_name": "(('%.1s' * (#form_button_text - ('%.9s' * #form_button_text))) = 'r')",
-        "target_property_name": "#visible"
+        "target_property_name": "#hover_text"
       }
     ]
   },
@@ -2462,13 +2385,13 @@
       { "bg@df_form.state_image": { "$df_state_texture": "$df_slot_texture" } },
       { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ] } },
       { "count@df_form.gslot_count": {} },
-      { "tipl@df_form.gslot_tooltip_l": {} },
-      { "tipr@df_form.gslot_tooltip_r": {} }
+      { "tip@df_form.gslot_hover_tip": {} }
     ]
   },
 
   // gslot_button (mouse): hovering or pressing shows the tooltip.
   "gslot_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 22, 22 ],
     "default_control": "default",
@@ -2490,6 +2413,8 @@
   // gslot_toggle (touch): the first tap selects the slot and shows the
   // tooltip, a tap on the selected slot presses it.
   "gslot_toggle@common.toggle": {
+    "$toggle_group_default_selected": -1,
+    "$toggle_focus_enabled": false,
     "size": [ 22, 22 ],
     "$radio_toggle_group": true,
     "$toggle_name": "df_form_gslot",
@@ -2510,8 +2435,7 @@
     "size": [ "100%", "100%" ],
     "controls": [
       { "press@df_form.gslot_press": { "layer": 10 } },
-      { "tipl@df_form.gslot_tooltip_l": {} },
-      { "tipr@df_form.gslot_tooltip_r": {} }
+      { "tip@df_form.gslot_hover_tip": {} }
     ]
   },
 
