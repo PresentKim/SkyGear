@@ -63,3 +63,7 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 (Unlicense, 퍼블릭 도메인)의 텍스처(`energy`, `enhanced_energy`, `ender_energy`, `item`의 첫 프레임, `conduit_binder`, `conduit_binder_composite`)에서 가져왔다. 아이템 도관 2·3단은 색조만 바꾼 것이다. 모델 비율(3×3×3 코어, 2×2 팔)도 EnderIO 모델을 따랐다. 배치는 `tools/conduitgeo`·`tools/conduittex` 참고.
 
 연결부 판의 화살표(`tools/conduittex/src/arrow_in.png`, `arrow_out.png`)도 EnderIO(`item_conduit_in`, `item_conduit_out`)의 것이다(채널 색으로 물들여 쓴다).
+
+## licenses
+
+`licenses/` 는 리소스팩 텍스처를 가져온 모드의 라이선스 전문이다(Mekanism, Tinkers' Construct, Storage Drawers, Refined Storage 2 는 MIT, Ender IO 는 Unlicense). 출처와 쓴 곳은 [docs/tech/asset-credits.md](../docs/tech/asset-credits.md).
