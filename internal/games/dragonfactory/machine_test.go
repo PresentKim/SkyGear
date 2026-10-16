@@ -529,22 +529,6 @@ func TestMobSimulator(t *testing.T) {
 	}
 }
 
-// TestAutoComposter: 32 plants make a dirt, as the composter does; it keeps
-// them waiting when the output has no room.
-func TestAutoComposter(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindAutoComposter, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(item.Wheat{}, 40))
-	tick(s, 33*(st.kind.interval+1))
-	if n := outputCount(st, block.Dirt{}); n != 1 {
-		t.Fatalf("dirt from 33 plants = %d, want 1", n)
-	}
-	if !st.accepts(item.NewStack(item.Wheat{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
-		t.Error("the auto composter takes the wrong items")
-	}
-}
-
 // TestFluidLine: an electric crucible melts cobblestone into lava, a fluid
 // conduit carries it to a lava generator, which burns it into energy.
 func TestFluidLine(t *testing.T) {

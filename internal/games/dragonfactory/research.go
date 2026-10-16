@@ -125,7 +125,6 @@ var baseResearchTree = []Research{
 	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []Requirement{{Ingot{Metal: MetalElectrum}, 8}}, Unlocks: []string{"dragonfactory:conduit_energy_2", "dragonfactory:conduit_item_2", "dragonfactory:conduit_fluid_2"}},
 	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:conduit_energy_3", "dragonfactory:conduit_item_3", "dragonfactory:conduit_fluid_3"}},
 	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []Requirement{{Ingot{Metal: MetalBronze}, 8}, {Essence{Mob: MobZombie}, 4}, {Essence{Mob: MobSkeleton}, 4}}, Unlocks: []string{"dragonfactory:mob_simulator"}},
-	{ID: "auto_composter", Needs: []string{"compost", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Dirt{}, 16}}, Unlocks: []string{"dragonfactory:auto_composter"}},
 	{ID: "fluid_tank", Needs: []string{"fluid_conduit", "bucket"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"dragonfactory:fluid_tank"}},
 	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {Ingot{Metal: MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:crucible"}},
 	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}}, Unlocks: []string{"dragonfactory:lava_generator"}},
@@ -706,7 +705,6 @@ func gameRecipes() {
 	// The alloy smelter and the energy cell (docs/design/07-progression-expansion.md).
 	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
-	add(machineItem(KindAutoComposter), n(iron, 6), n(block.Composter{}, 1), n(block.NewHopper(), 1))
 	add(machineItem(KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
 	add(machineItem(KindCrucible), n(Ingot{Metal: MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))

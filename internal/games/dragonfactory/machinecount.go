@@ -11,7 +11,7 @@ import (
 // cycles where they finish them (machineState.done).
 var cycleOnReset = map[string]bool{
 	KindCrusher: true, KindFurnace: true, KindAlloy: true, KindWasher: true, KindCrucible: true,
-	KindCrafter: true, KindSimulator: true, KindAutoComposter: true,
+	KindCrafter: true, KindSimulator: true,
 }
 
 // countWork passes the work a machine did to the players' counters: its

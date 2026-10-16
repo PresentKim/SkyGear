@@ -39,7 +39,6 @@ var specs = []spec{
 	{"harvester", "side", color.RGBA{140, 230, 90, 255}, false},
 	{"generator", "side", color.RGBA{255, 140, 40, 255}, true},
 	{"lava_generator", "side", color.RGBA{255, 100, 20, 255}, true},
-	{"auto_composter", "side", color.RGBA{150, 200, 80, 255}, false},
 	{"item_vacuum", "side", color.RGBA{120, 200, 240, 255}, false},
 	{"tree_feller", "side", color.RGBA{200, 160, 90, 255}, false},
 }

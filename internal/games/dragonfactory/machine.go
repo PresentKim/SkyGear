@@ -57,8 +57,6 @@ const (
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
-	// KindAutoComposter turns plants into dirt (composter.go).
-	KindAutoComposter = "auto_composter"
 	// KindSimulator turns an essence into the drops of a mob (essence.go).
 	KindSimulator  = "mob_simulator"
 	KindEnergyCell = "energy_cell"
@@ -197,11 +195,6 @@ var machineKinds = map[string]*machineKind{
 		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		help: []string{i18n.T(i18n.Default, "machine.lavagen.help.1"), i18n.T(i18n.Default, "machine.lavagen.help.2")},
 	},
-	KindAutoComposter: {
-		name: i18n.T(i18n.Default, "machine.composter.name"), marker: "§d§m§2", interval: 10, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
-		use: 10, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.composter.help.1"), i18n.T(i18n.Default, "machine.composter.help.2")},
-	},
 	KindSimulator: {
 		name: i18n.T(i18n.Default, "machine.simulator.name"), marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
@@ -247,7 +240,7 @@ var machineKinds = map[string]*machineKind{
 }
 
 // machineOrder is the registration and display order.
-var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindAutoComposter, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
+var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
 
 // crushRecipes maps an input item key to its output.
 var crushRecipes = map[string]world.Item{
@@ -520,8 +513,6 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return alloyAccepts(it)
 	case machineKinds[KindSimulator]:
 		return acceptsEssence(it)
-	case machineKinds[KindAutoComposter]:
-		return plantMatter(it)
 	case machineKinds[KindCrucible]:
 		return k == itemKey(block.Cobblestone{})
 	case machineKinds[KindWasher]:
@@ -703,7 +694,7 @@ func (st *machineState) showProgress() {
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve], machineKinds[KindSimulator], machineKinds[KindAutoComposter], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
+	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve], machineKinds[KindSimulator], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
 		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
@@ -805,7 +796,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindAutoComposter: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true}
 )
 
@@ -1165,8 +1156,6 @@ func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *wo
 		st.runAlloy()
 	case KindSimulator:
 		s.runSimulator(st)
-	case KindAutoComposter:
-		st.runAutoComposter()
 	case KindCrucible:
 		st.runCrucible()
 	case KindWasher:

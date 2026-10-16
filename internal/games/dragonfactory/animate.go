@@ -18,7 +18,7 @@ var animatedMachines = map[string]bool{
 	KindFurnace: true, KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true,
 	KindCrucible: true, KindCrafter: true, KindLab: true,
 	KindMiner: true, KindHarvester: true, KindGenerator: true, KindLavaGenerator: true,
-	KindAutoComposter: true, KindVacuum: true, KindFeller: true,
+	KindVacuum: true, KindFeller: true,
 }
 
 // activeState is the block state of an animated machine.

@@ -21,18 +21,6 @@
     "dragonfactory_alloy_smelter_up": {
       "textures": "textures/blocks/alloy_smelter_up"
     },
-    "dragonfactory_auto_composter_down": {
-      "textures": "textures/blocks/auto_composter_down"
-    },
-    "dragonfactory_auto_composter_side": {
-      "textures": "textures/blocks/auto_composter_side"
-    },
-    "dragonfactory_auto_composter_side_on": {
-      "textures": "textures/blocks/auto_composter_side_on"
-    },
-    "dragonfactory_auto_composter_up": {
-      "textures": "textures/blocks/auto_composter_up"
-    },
     "dragonfactory_auto_crafter_back": {
       "textures": "textures/blocks/auto_crafter_back"
     },

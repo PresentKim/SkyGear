@@ -1,6 +1,6 @@
 #!/bin/bash
 # Progression expansion (docs/design/07-progression-expansion.md): the metals,
-# alloy smelter, energy cell, simulator, composter, fluid machines and washer
+# alloy smelter, energy cell, simulator, fluid machines and washer
 # register without server errors, an operator can be given them, and their
 # recipes and creative entries reach the client.
 timeout 90 "$BOT" -name Hana \
@@ -9,7 +9,6 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give alloy_smelter 1' 'expect:합금로 x1' \
   'cmd:/dfadmin give energy_cell 1' 'expect:에너지 셀 x1' \
   'cmd:/dfadmin give mob_simulator 1' 'expect:몬스터 시뮬레이터 x1' \
-  'cmd:/dfadmin give auto_composter 1' 'expect:자동 퇴비통 x1' \
   'cmd:/dfadmin give fluid_tank 1' 'expect:유체 탱크 x1' \
   'cmd:/dfadmin give crucible 1' 'expect:전기 도가니 x1' \
   'cmd:/dfadmin give lava_generator 1' 'expect:용암 발전기 x1' \

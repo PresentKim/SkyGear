@@ -59,7 +59,7 @@ var researchEssenceCosts = map[string]map[string]int{
 	"auto_crafter": {EssenceEngineering: 6}, "fluid_conduit": {EssenceEngineering: 6}, "fluid_tank": {EssenceEngineering: 6},
 	"alloy_smelter": {EssenceEngineering: 6}, "storage_controller": {EssenceEngineering: 6},
 	// crops
-	"auto_composter": {EssenceEngineering: 2, EssenceFarming: 2}, "harvester": {EssenceEngineering: 4, EssenceFarming: 4},
+	"harvester": {EssenceEngineering: 4, EssenceFarming: 4},
 	// alloys and fluids
 	"conduit_upgrade_2": {EssenceEngineering: 4, EssenceAlchemy: 4}, "conduit_upgrade_3": {EssenceEngineering: 6, EssenceAlchemy: 8},
 	"crucible": {EssenceEngineering: 6, EssenceAlchemy: 4}, "ore_washer": {EssenceEngineering: 6, EssenceAlchemy: 4},

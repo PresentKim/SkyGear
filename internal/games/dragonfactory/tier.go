@@ -39,7 +39,7 @@ var tierSpecs = [maxTier + 1]tierSpec{
 // tierKinds are the machines that take kits.
 var tierKinds = map[string]bool{
 	KindCrusher: true, KindFurnace: true, KindWasher: true, KindCrucible: true, KindAlloy: true,
-	KindAutoComposter: true, KindSimulator: true, KindLab: true, KindCrafter: true,
+	KindSimulator: true, KindLab: true, KindCrafter: true,
 	KindAutoSieve: true, KindMagicSieve: true, KindMiner: true,
 	KindHarvester: true, KindVacuum: true, KindFeller: true,
 	KindGenerator: true, KindLavaGenerator: true, KindEnergyCell: true,
