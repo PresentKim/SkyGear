@@ -100,14 +100,14 @@ func TestSieveNeedsAMesh(t *testing.T) {
 
 // TestSieveTablesGiveOreChunks: the string mesh gives iron chunks only
 // (copper from the flint mesh, gold from the iron mesh), with chances high
-// enough to see them, and four chunks of an ore make the ore block (recipes
-// registered).
+// enough to see them (at least 4 %), and four chunks of an ore make the ore
+// block (recipes registered).
 func TestSieveTablesGiveOreChunks(t *testing.T) {
 	chance := func(tier string, in world.Item, want world.Item) int {
 		n := 0
 		for _, d := range sieveTables[tier][itemKey(in)] {
 			if itemKey(d.Item.Item()) == itemKey(want) {
-				n += d.Chance
+				n += d.Permille
 			}
 		}
 		return n
@@ -119,7 +119,7 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 			if (tier == "string" || tier == "flint" && k.ore == OreGold) && k.ore != OreIron && sum != 0 {
 				t.Errorf("the %s mesh gives %s chunks", tier, k.ore)
 			}
-			if tier == first[k.ore] && sum < 10 {
+			if tier == first[k.ore] && sum < 40 {
 				t.Errorf("%s chunks are too rare for the %s mesh", k.ore, tier)
 			}
 		}
@@ -139,10 +139,10 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 	for in, drops := range sieveTables["string"] {
 		total := 0
 		for _, d := range drops {
-			total += d.Chance
+			total += d.Permille
 		}
-		if total < 45 {
-			t.Errorf("%s: the drops add up to %d%%, a sift should usually give something", in, total)
+		if total < 150 {
+			t.Errorf("%s: the drops add up to %d per mille, a sift should often give something", in, total)
 		}
 	}
 }

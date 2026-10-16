@@ -19,6 +19,10 @@ const themeCap = 950
 // easiest, +0.2 a step.
 func rareBoost(mob string) float64 { return 1 + 0.2*float64(mobDifficulty[mob]-1) }
 
+// meshBoost is how much a better mesh multiplies the chances of the theme
+// drops of the magic sieve (percent).
+var meshBoost = map[string]int{"flint": 130, "iron": 160, "gold": 200, "diamond": 250, "netherite": 300}
+
 // themeChance is the chance, per mille, of a theme drop with a mesh fitted.
 func themeChance(d ThemeDrop, mesh, mob string) float64 {
 	boost := 1.0

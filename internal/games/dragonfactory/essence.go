@@ -51,11 +51,6 @@ func (Essence) Category() category.Category { return category.Items() }
 // maxStackSize keeps essences in stacks of 16.
 func (Essence) MaxCount() int { return 16 }
 
-// essenceDrop makes a sieve drop of an essence.
-func essenceDrop(mob string, chance int) SieveDrop {
-	return SieveDrop{item.NewStack(Essence{Mob: mob}, 1), chance}
-}
-
 // essenceExtra is what the meshes find in dust: the essences of weak mobs from
 // the iron mesh on, of the rarer ones from the better meshes.
 var essenceExtra = map[string]map[string][]SieveDrop{

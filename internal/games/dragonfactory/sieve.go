@@ -179,7 +179,7 @@ func showSieve(tx *world.Tx, pos cube.Pos, st *machineState) {
 func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
 	var out []item.Stack
 	for _, d := range sieveTables[mesh][itemKey(in.Item())] {
-		if s.rand.IntN(100) < d.Chance {
+		if s.rand.IntN(1000) < d.Permille {
 			out = append(out, d.Item)
 		}
 	}

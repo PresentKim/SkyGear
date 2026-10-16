@@ -3,134 +3,140 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/world"
 )
 
 // SieveDrop is a possible product of sifting a block.
 type SieveDrop struct {
 	Item item.Stack
-	// Chance is the percent chance per sifted block; every drop of the
-	// block rolls on its own, so one block can give several.
-	Chance int
+	// Permille is the chance per sifted block in per mille (1 = 0.1 %);
+	// every drop of the block rolls on its own, so one block can give
+	// several.
+	Permille int
 }
 
 // Ore chunks are the pieces of ore a sieve finds. Four of one kind make an
 // ore block, which a furnace smelts (the recipes open with the researches of
-// the metal). Better meshes will find more kinds and more of them.
+// the metal).
 const (
 	OreIron   = "iron"
 	OreGold   = "gold"
 	OreCopper = "copper"
 )
 
-// stringTable is the drop table of the string mesh. The numbers follow the
-// spirit of Ex Nihilo (generous, since the sieve is the only source of
-// nearly everything in the sky) and are drafts.
-var stringTable = map[string][]SieveDrop{
-	itemKey(block.Gravel{}): {
-		{item.NewStack(item.Flint{}, 1), 40},
-		{item.NewStack(item.Coal{}, 1), 20},
-		{item.NewStack(OreChunk{Ore: OreIron}, 1), 30},
-	},
-	itemKey(block.Sand{}): {
-		{item.NewStack(block.Kelp{}, 1), 47},
-	},
-	itemKey(block.Dirt{}): {
-		{item.NewStack(block.WheatSeeds{}, 1), 50},
-		{item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), 20},
-		{item.NewStack(block.BeetrootSeeds{}, 1), 12},
-		{item.NewStack(block.PumpkinSeeds{}, 1), 12},
-		{item.NewStack(block.MelonSeeds{}, 1), 12},
-		{item.NewStack(block.Carrot{}, 1), 8},
-		{item.NewStack(block.Potato{}, 1), 8},
-	},
-	itemKey(Dust{}): {
-		{item.NewStack(item.BoneMeal{}, 1), 30},
-		{item.NewStack(item.RedstoneWire{}, 1), 20},
-		{item.NewStack(item.Gunpowder{}, 1), 12},
-	},
+// The drop tables follow the Ex Nihilo of SkyFactory 3 (Ex Nihilo Creatio,
+// recipes/defaults/ExNihilo.kt): common things (seeds, flint, bone meal)
+// come in tens of percent, ores in single percents that grow with the mesh,
+// and the gems in fractions of a percent. Every mesh of the game has its own
+// column; a row lists the chance per mille of its drop for each mesh from
+// string to netherite, 0 for none. Chances are drafts.
+//
+// Each mesh finds the common things like the lowest mesh does and the ores
+// from the mesh the row says on, so a better mesh is never worse. Our own
+// additions to the Ex Nihilo lists (kelp, amethyst, quartz, the metals of
+// metals.go) are marked in the rows.
+
+// sieveRow is one drop of one sifted block with its chance per mesh tier
+// (meshTiers order: string, flint, iron, gold, diamond, netherite).
+type sieveRow struct {
+	in   world.Item
+	drop item.Stack
+	per  [6]int
 }
 
-// meshBoost is how much a better mesh multiplies the chances of the string
-// table (percent, up to 95), and meshExtra what it finds on top.
-var meshBoost = map[string]int{"flint": 130, "iron": 160, "gold": 200, "diamond": 250, "netherite": 300}
+// same is a chance the same on every mesh.
+func same(n int) [6]int { return [6]int{n, n, n, n, n, n} }
 
-var meshExtra = map[string]map[string][]SieveDrop{
-	"flint": {
-		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 20}, {item.NewStack(item.LapisLazuli{}, 1), 10}},
-		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 10}},
-	},
-	"iron": {
-		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 25}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 10}, {item.NewStack(item.LapisLazuli{}, 1), 15}, {item.NewStack(item.Diamond{}, 1), 1}},
-		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 12}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 15}, {item.NewStack(item.AmethystShard{}, 1), 3}},
-	},
-	"gold": {
-		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 30}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 20}, {item.NewStack(item.LapisLazuli{}, 1), 20}, {item.NewStack(item.Diamond{}, 1), 3}, {item.NewStack(item.Emerald{}, 1), 2}},
-		itemKey(block.Sand{}):   {{item.NewStack(OreChunk{Ore: OreGold}, 1), 25}, {item.NewStack(item.AmethystShard{}, 1), 6}, {item.NewStack(item.NetherQuartz{}, 1), 6}},
-	},
-	"diamond": {
-		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 35}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 25}, {item.NewStack(item.LapisLazuli{}, 1), 25}, {item.NewStack(item.Diamond{}, 1), 6}, {item.NewStack(item.Emerald{}, 1), 4}, {item.NewStack(item.NetheriteScrap{}, 1), 1}},
-		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 10}, {item.NewStack(item.NetherQuartz{}, 1), 10}},
-	},
-	"netherite": {
-		itemKey(block.Gravel{}): {{item.NewStack(OreChunk{Ore: OreCopper}, 1), 40}, {item.NewStack(OreChunk{Ore: OreGold}, 1), 30}, {item.NewStack(item.LapisLazuli{}, 1), 30}, {item.NewStack(item.Diamond{}, 1), 10}, {item.NewStack(item.Emerald{}, 1), 8}, {item.NewStack(item.NetheriteScrap{}, 1), 3}},
-		itemKey(block.Sand{}):   {{item.NewStack(item.AmethystShard{}, 1), 15}, {item.NewStack(item.NetherQuartz{}, 1), 15}},
-	},
+// from is a chance that starts at a mesh tier (index into meshTiers) with
+// the chances of the meshes from there on.
+func from(tier int, chances ...int) [6]int {
+	var out [6]int
+	copy(out[tier:], chances)
+	return out
 }
 
-// metalExtra is what each mesh finds of the new metals (metals.go): tin from the
-// flint mesh, lead from the iron mesh, silver and nickel from the gold mesh,
-// more of each from the better ones.
-var metalExtra = map[string]map[string][]SieveDrop{
-	"flint": {
-		itemKey(block.Gravel{}): {metalDrop(MetalTin, 12)},
-	},
-	"iron": {
-		itemKey(block.Gravel{}): {metalDrop(MetalTin, 18), metalDrop(MetalLead, 10)},
-		itemKey(block.Sand{}):   {metalDrop(MetalLead, 6)},
-	},
-	"gold": {
-		itemKey(block.Gravel{}): {metalDrop(MetalTin, 22), metalDrop(MetalLead, 14), metalDrop(MetalNickel, 10)},
-		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 10), metalDrop(MetalLead, 8)},
-	},
-	"diamond": {
-		itemKey(block.Gravel{}): {metalDrop(MetalTin, 25), metalDrop(MetalLead, 18), metalDrop(MetalNickel, 10), metalDrop(MetalSilver, 8)},
-		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 14), metalDrop(MetalNickel, 10)},
-	},
-	"netherite": {
-		itemKey(block.Gravel{}): {metalDrop(MetalTin, 30), metalDrop(MetalLead, 22), metalDrop(MetalNickel, 14), metalDrop(MetalSilver, 12)},
-		itemKey(block.Sand{}):   {metalDrop(MetalSilver, 20), metalDrop(MetalNickel, 10)},
-	},
+func stack(it world.Item) item.Stack { return item.NewStack(it, 1) }
+
+var sieveRows = []sieveRow{
+	// Dirt: seeds on every mesh (Ex Nihilo: wheat 70 %, melon and pumpkin
+	// 35 %, other seeds 5 %).
+	{block.Dirt{}, stack(block.WheatSeeds{}), same(700)},
+	{block.Dirt{}, stack(block.MelonSeeds{}), same(350)},
+	{block.Dirt{}, stack(block.PumpkinSeeds{}), same(350)},
+	{block.Dirt{}, stack(block.BeetrootSeeds{}), same(350)},
+	{block.Dirt{}, stack(block.Carrot{}), same(50)},
+	{block.Dirt{}, stack(block.Potato{}), same(50)},
+	{block.Dirt{}, stack(block.Sapling{Type: block.OakSapling()}), same(50)},
+
+	// Gravel: flint 25 %, coal and lapis from the flint mesh (Ex Nihilo:
+	// coal 12.5 %, lapis 5 %), diamond and emerald from the iron mesh
+	// (0.8 %, double with the diamond mesh).
+	{block.Gravel{}, stack(item.Flint{}), same(250)},
+	{block.Gravel{}, stack(item.Coal{}), [6]int{60, 125, 125, 125, 125, 125}},
+	{block.Gravel{}, stack(item.LapisLazuli{}), from(1, 50, 70, 90, 110, 130)},
+	{block.Gravel{}, stack(item.Diamond{}), from(2, 8, 12, 16, 24)},
+	{block.Gravel{}, stack(item.Emerald{}), from(2, 8, 12, 16, 24)},
+	{block.Gravel{}, stack(item.NetheriteScrap{}), from(4, 10, 25)},
+	// Ex Nihilo ores in gravel: iron 10/15/25 %, gold 5/7.5/15 %, copper
+	// 5/7.5 % on the flint, iron and diamond meshes. The string mesh finds
+	// iron too so the first ore comes without a better mesh; the metals
+	// first found by a mesh are what the researches ask for.
+	{block.Gravel{}, stack(OreChunk{Ore: OreIron}), [6]int{100, 100, 150, 200, 250, 300}},
+	{block.Gravel{}, stack(OreChunk{Ore: OreGold}), from(2, 75, 110, 150, 200)},
+	{block.Gravel{}, stack(OreChunk{Ore: OreCopper}), from(1, 80, 100, 120, 150, 180)},
+	{block.Gravel{}, stack(OreChunk{Ore: MetalLead}), from(2, 60, 80, 100, 120)},
+	{block.Gravel{}, stack(OreChunk{Ore: MetalNickel}), from(3, 50, 80, 100)},
+
+	// Sand: kelp is ours. Ex Nihilo has tin (5 / 7.5 %) and silver (15 %
+	// with the diamond mesh) in sand.
+	{block.Sand{}, stack(block.Kelp{}), same(200)},
+	{block.Sand{}, stack(item.AmethystShard{}), from(2, 20, 40, 60, 80)},
+	{block.Sand{}, stack(item.NetherQuartz{}), from(3, 40, 60, 80)},
+	{block.Sand{}, stack(OreChunk{Ore: MetalTin}), from(1, 50, 75, 100, 150, 200)},
+	{block.Sand{}, stack(OreChunk{Ore: MetalLead}), from(2, 40, 60, 80, 100)},
+	{block.Sand{}, stack(OreChunk{Ore: MetalSilver}), from(3, 100, 150, 200)},
+	{block.Sand{}, stack(OreChunk{Ore: MetalNickel}), from(4, 80, 120)},
+
+	// Dust: bone meal 20 % and gunpowder 7 % like Ex Nihilo; redstone 12.5 %
+	// with the iron mesh, 25 % with the diamond mesh (ours: from the string
+	// mesh on, the first machines need it).
+	{Dust{}, stack(item.BoneMeal{}), same(200)},
+	{Dust{}, stack(item.Gunpowder{}), same(70)},
+	{Dust{}, stack(item.RedstoneWire{}), [6]int{100, 120, 125, 180, 250, 300}},
 }
 
-func metalDrop(ore string, chance int) SieveDrop {
-	return SieveDrop{item.NewStack(OreChunk{Ore: ore}, 1), chance}
+// meshIndex is the index of a mesh tier in meshTiers.
+func meshIndex(tier string) int {
+	for i, t := range meshTiers {
+		if t.tier == tier {
+			return i
+		}
+	}
+	return -1
 }
 
-// sieveTables are the drops of every kind of block sifted, by mesh tier: the
-// string table, and for the better meshes its chances multiplied plus the
-// extras.
+// essenceDrop makes a sieve drop of an essence; chance is a percent.
+func essenceDrop(mob string, chance int) SieveDrop {
+	return SieveDrop{item.NewStack(Essence{Mob: mob}, 1), chance * 10}
+}
+
+// sieveTables are the drops of every kind of block sifted, by mesh tier.
 var sieveTables = buildSieveTables()
 
 func buildSieveTables() map[string]map[string][]SieveDrop {
-	out := map[string]map[string][]SieveDrop{"string": stringTable}
-	for tier, boost := range meshBoost {
-		t := map[string][]SieveDrop{}
-		for key, drops := range stringTable {
-			for _, d := range drops {
-				d.Chance = min(95, d.Chance*boost/100)
-				t[key] = append(t[key], d)
+	out := map[string]map[string][]SieveDrop{}
+	for i, t := range meshTiers {
+		table := map[string][]SieveDrop{}
+		for _, r := range sieveRows {
+			if r.per[i] > 0 {
+				key := itemKey(r.in)
+				table[key] = append(table[key], SieveDrop{r.drop, r.per[i]})
 			}
 		}
-		for key, drops := range meshExtra[tier] {
-			t[key] = append(t[key], drops...)
+		for key, drops := range essenceExtra[t.tier] {
+			table[key] = append(table[key], drops...)
 		}
-		for key, drops := range metalExtra[tier] {
-			t[key] = append(t[key], drops...)
-		}
-		for key, drops := range essenceExtra[tier] {
-			t[key] = append(t[key], drops...)
-		}
-		out[tier] = t
+		out[t.tier] = table
 	}
 	return out
 }

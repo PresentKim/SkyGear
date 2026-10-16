@@ -89,12 +89,12 @@ func (s *session) showCodexMesh(p *player.Player, in world.Item) {
 func (s *session) showCodexDrops(p *player.Player, in world.Item, tier string) {
 	lang := i18n.Of(p)
 	drops := append([]SieveDrop(nil), sieveTables[tier][itemKey(in)]...)
-	sort.SliceStable(drops, func(i, j int) bool { return drops[i].Chance > drops[j].Chance })
+	sort.SliceStable(drops, func(i, j int) bool { return drops[i].Permille > drops[j].Permille })
 	var slots []ui.ItemSlot
 	for _, d := range drops {
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(d.Item), Count: fmt.Sprintf("%d%%", d.Chance),
-			Tip: fmt.Sprintf("§f%s\n§7%s", itemName(d.Item), fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), d.Chance)),
+			Icon: iconOf(d.Item), Count: formatPermille(d.Permille) + "%",
+			Tip: fmt.Sprintf("§f%s\n§7%s", itemName(d.Item), fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(d.Permille))),
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, d.Item) },
 		})
 	}
@@ -249,7 +249,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			found := false
 			for _, d := range sieveTables[t.tier][itemKey(in)] {
 				if itemKey(d.Item.Item()) == k {
-					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sieve"), meshName(t.tier), n1(in), d.Chance))
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sieve"), meshName(t.tier), n1(in), formatPermille(d.Permille)))
 					found = true
 					break
 				}
