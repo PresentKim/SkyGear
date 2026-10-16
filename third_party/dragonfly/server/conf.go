@@ -76,6 +76,10 @@ type Config struct {
 	// joining or quitting.
 	// ShutdownMessage is set to chat.MessageServerDisconnect if empty.
 	JoinMessage, QuitMessage, ShutdownMessage chat.Translation
+	// ShutdownKick, if set, gives the text of the disconnect screen of a player
+	// kicked when the server shuts down (the default message is a translation
+	// key that the disconnect screen does not translate).
+	ShutdownKick func(p *player.Player) string
 	// StatusProvider provides the server status shown to players in the server
 	// list. By default, StatusProvider will show the server name from the Name
 	// field and the current player count and maximum players.

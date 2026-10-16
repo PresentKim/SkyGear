@@ -2823,6 +2823,7 @@
  "platform.members.showMembers.3": "§8탈퇴·추방됨",
  "platform.members.showMembers.4": "참여자 관리",
  "platform.members.showMembers.5": "참여자 %d/%d명\n탈퇴·추방된 플레이어의 인벤토리와 돈도 세이브에 남아 있습니다.",
+ "main.shutdown": "서버가 종료되었습니다.\n잠시 후 다시 접속해 주세요.",
  "platform.platform.Join.1": "계정 정보를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.",
  "platform.platform.Join.2": "§a%s에 오신 것을 환영합니다! §7나침반으로 메뉴를 엽니다.",
  "platform.platform.Run.1": "§e로비로 이동합니다.",

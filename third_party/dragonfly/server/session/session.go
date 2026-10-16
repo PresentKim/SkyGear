@@ -440,7 +440,7 @@ func (s *Session) handlePackets() {
 			// dragonfactory patch: a packet error ends the session; log it where
 			// operators see it and tell the player why.
 			s.conf.Log.Error("process packet: " + err.Error())
-			s.Disconnect("§c서버 처리 오류로 연결이 끊겼습니다.\n§7" + err.Error())
+			s.Disconnect("서버 처리 오류로 연결이 끊겼습니다.\n" + err.Error())
 			return
 		}
 	}

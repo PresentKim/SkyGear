@@ -20,6 +20,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/presentkim/dragonfactory/internal/platform"
 	"github.com/presentkim/dragonfactory/internal/resourcepack"
@@ -60,6 +61,9 @@ func run(log *slog.Logger) error {
 
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
+	// The disconnect screen shows text as it is (no translation keys, no
+	// colour codes), so the shutdown message is written out in plain text.
+	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "main.shutdown") }
 	conf.Entities = entity.DefaultRegistry.Config().New(dragonfactory.EntityTypes())
 	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: pconf.ResourcePack.Encrypt}
 	if packOpt.Encrypt {

@@ -25,6 +25,7 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/session/player.go`(`sendRecipes`, `SetRecipeFilter`), `session.go`, `handler_crafting.go` | 플레이어별 레시피 필터: 필터가 고른 레시피만 `CraftingData` 로 보내고 받아들임(네트워크 ID 는 전체 목록 순번 그대로). `SetRecipeFilter` 는 바로 다시 보낸다(레시피 연구·잠금). 필터가 있으면 동적 레시피(장식 항아리)는 막음 |
 | `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답), `ViewChunkCentre`(텔레포트 직후 보낸 가짜 청크를 클라이언트가 버리지 않게 청크 중심을 바로 알림). 섬 확장 `map` 보기용 |
 | `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김. 누른 이동 키(`RawMoveVector`, 움직일 수 없을 때도 옴)를 저장 → `Player.MoveInput` |
+| `server/conf.go`, `server/server.go` | `Config.ShutdownKick`: 서버가 꺼질 때 플레이어를 내보내는 화면의 글을 정한다(기본값은 번역 키 `%disconnect.disconnected` 라 연결 끊김 화면에 키가 그대로 보였다) |
 | `server/session/handler_container_close.go` | 엔티티 상자가 열려 있으면 클라이언트의 255 창 닫기는 무시. Retry 로 여는 중에는 그 창의 닫기도 응답만 하고 무시 |
 | `server/session/handler_player_action.go` | `BlockActionDebug` 면 클라이언트가 보낸 블록 부수기 동작(시작·계속·중단·예측 파괴)을 INFO 로그로 |
 | `server/block/crop.go` 외 작물·줄기 6종 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
