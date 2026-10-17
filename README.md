@@ -83,7 +83,6 @@ internal/perf/                  서버 부하(TPS·틱·CPU·메모리) 측정, 
 internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 창)를 사이드바 줄로 보내기
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여, JSON minify, 암호화: docs/tech/resourcepack.md)
-internal/oneblock, internal/farm  원블럭 프로토타입의 참고 데이터
 spike/                          기술 검증 코드와 테스트 클라이언트
 assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)
 tools/uitextures/               JSON UI 테마 텍스처 생성기
