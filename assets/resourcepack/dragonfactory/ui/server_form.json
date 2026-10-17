@@ -6,7 +6,8 @@
   // §d§f§i§r (ui.SlotToken) as inventory-like slots, §d§f§g§r / §d§f§h§r
   // (ui.DetailToken, ui.WrapToken) as item slots with counts and tooltips,
   // §d§f§j§r (ui.ColumnsToken) as two columns of them, §d§f§y§r (ui.SplitToken)
-  // as a grid with the detail of the chosen slot beside it,
+  // as a grid with the detail of the chosen slot beside it, §d§f§z§r
+  // (ui.TreeToken) as a window onto a tree with the detail of a node,
   // otherwise a list.
   "namespace": "server_form",
 
@@ -39,7 +40,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text))",
+              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -137,6 +138,19 @@
             {
               "binding_type": "view", "binding_condition": "once",
               "source_property_name": "(not ((#title_text - '§d§f§y§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "tree@df_form.tree_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "(not ((#title_text - '§d§f§z§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]

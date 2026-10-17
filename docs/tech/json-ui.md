@@ -126,3 +126,5 @@
 - 팩: `dragonfactory/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(예전 사이드바에서 `%` 가 사라졌다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다고 보고 짰다(실기 확인 필요).
 - 경험치 바는 바닐라 그대로다.
+- 분할·트리 폼의 왼쪽/오른쪽 판은 `panel` 안에 왼쪽 위 기준(오른쪽은 `offset` 220)으로 둔다. 가로 스택은 `100%c` 가 높이를 더하고 `100%cm` 은 오른쪽 상세를 접어 버려, 높이가 큰 쪽을 따르는 `panel` 의 `100%c`(자식 범위)를 쓴다.
+- 글자 비교로 보이기를 정할 때는 먼저 글자를 `#변수`에 담고 `(not (#변수 = 'z'))` 로 비교한다. `(not ((A - B) = 'z'))` 처럼 식 안에서 바로 비교하면 실기에서 참·거짓이 뒤집혔다(발전과제 트리: 노드가 있는 칸이 숨고 빈 칸이 보였다).

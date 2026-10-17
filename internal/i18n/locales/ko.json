@@ -2265,7 +2265,6 @@
  "conduitplate.colour.13": "흰색",
  "conduitplate.colour.14": "검정",
  "conduitplate.colour.15": "빨강",
- "dragonfactory.advancement.advancementMenu.1": "§7섬의 모두가 함께 진행합니다. §f%d§7/%d 달성",
  "dragonfactory.advancement.completeAdvancements.1": "§a발전과제 달성: §f",
  "dragonfactory.advancement.completeAdvancements.3": "§a발전과제 달성",
  "dragonfactory.advancement.init.1": "주먹이 곧 도끼",
@@ -2319,8 +2318,6 @@
  "dragonfactory.advancement.showAdvancementNode.1": "§a달성했습니다.\n\n§7",
  "dragonfactory.advancement.showAdvancementNode.2": "§e진행 중\n\n§f",
  "dragonfactory.advancement.showAdvancementNode.3": "§8아직 보이지 않습니다. 앞의 발전과제를 먼저 달성하세요.",
- "dragonfactory.advancement.showAdvancementNode.4": "발전과제 · ",
- "dragonfactory.advancement.showAdvancementNode.5": "§f뒤로",
  "dragonfactory.advancement.showAdvancements.1": "발전과제",
  "dragonfactory.barrel.barrelLines.1": "§7비어있음",
  "dragonfactory.barrel.barrelLines.3": "§b물이 가득 참",
@@ -3500,5 +3497,12 @@
  "researchtab.todo": "연구 필요 %d",
  "researchtab.done": "연구 완료 %d",
  "dragonfactory.admin.researchRandom": "연구 %d/%d개를 임의로 완료했습니다(%d%%).",
- "dragonfactory.admin.researchLoad": "연구 시험 복사본 %d개를 만들었습니다(저장 안 됨)."
+ "dragonfactory.admin.researchLoad": "연구 시험 복사본 %d개를 만들었습니다(저장 안 됨).",
+ "advancement.tab.basic": "기초",
+ "advancement.tab.resource": "자원",
+ "advancement.tab.factory": "공장",
+ "advancement.tab.combat": "전투",
+ "advancement.tab.garden": "정원",
+ "advancement.progress": "%s 달성 %d/%d",
+ "dragonfactory.advancement.showAdvancementNode.4": "발전과제 · "
 }

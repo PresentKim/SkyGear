@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r' - '§d§f§z§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -2838,9 +2838,8 @@
   },
 
   "split_content": {
-    "type": "stack_panel",
-    "size": [ "100% - 6px", "100%cm" ],
-    "orientation": "horizontal",
+    "type": "panel",
+    "size": [ "100% - 6px", "100%c" ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
@@ -2848,6 +2847,8 @@
         "left": {
           "type": "image",
           "texture": "textures/ui/df/panel",
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
           "size": [ 212, "100%c + 12px" ],
           "controls": [
             {
@@ -2886,12 +2887,14 @@
           ]
         }
       },
-      { "gap": { "type": "panel", "size": [ 8, 1 ] } },
       {
         "right": {
           "type": "image",
           "texture": "textures/ui/df/panel",
-          "size": [ "fill", "100%c + 12px" ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "offset": [ 220, 0 ],
+          "size": [ "100% - 220px", "100%c + 12px" ],
           "controls": [
             {
               "inner": {
@@ -2978,6 +2981,349 @@
               }
             }
           ]
+        }
+      }
+    ]
+  },
+
+  // ---- tree form (title starts with §d§f§z§r, Go ui.TreeMenu) ----
+  // The advancement tree, drawn like a Java advancements screen: a light window
+  // with its tabs above it, the tree on a tiled background in an inset. The tree
+  // is a grid of cells in the order of the buttons (rows of 11): a cell is
+  // 32×27, a 6×27 strip of connector lines and a 26×26 node. The button text of
+  // a cell is read by byte position (ui/tree.go treeLabel): 9 marker, 9 strip
+  // letter, 10 node letter ('z' none), tooltip from 20; each letter becomes the
+  // end of a texture name (docs/tech/advancement-tree.md).
+  "tree_strip": {
+    "type": "image",
+    "layer": 2,
+    "size": [ 6, 27 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "texture": "#texture",
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))",
+        "target_property_name": "#df_strip"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "('textures/ui/df/tree_strip_' + #df_strip)",
+        "target_property_name": "#texture"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not (#df_strip = 'a'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
+  // The node of a cell exists unless its node letter is 'z' (the letter is
+  // put in a variable first: an inline comparison came out inverted).
+  "vis_tree_node": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(('%.11s' * #form_button_text) - ('%.10s' * #form_button_text))",
+        "target_property_name": "#df_vnode"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not (#df_vnode = 'z'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "tree_frame": {
+    "type": "image",
+    "layer": 2,
+    "size": [ 26, 26 ],
+    "texture": "#texture",
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(('%.11s' * #form_button_text) - ('%.10s' * #form_button_text))",
+        "target_property_name": "#df_node"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "('textures/ui/df/tree_node_' + #df_node)",
+        "target_property_name": "#texture"
+      }
+    ]
+  },
+  // The picture of a node (frame, icon) is drawn once under the button; the
+  // button only adds the highlight and tooltip of its hover and press states.
+  "tree_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 26, 26 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default": { "type": "panel", "size": [ 0, 0 ] } },
+      { "hover@df_form.tree_lit": {} },
+      { "pressed@df_form.tree_lit": {} }
+    ]
+  },
+  "tree_lit": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      { "light": { "type": "image", "layer": 6, "size": [ 26, 26 ], "texture": "textures/ui/df/tree_hl" } },
+      { "tip@df_form.gslot_hover_tip": {} }
+    ]
+  },
+  "tree_node@df_form.vis_tree_node": {
+    "type": "panel",
+    "size": [ 26, 26 ],
+    "offset": [ 6, 0 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      { "frame@df_form.tree_frame": {} },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ] } },
+      { "button@df_form.tree_button": {} }
+    ]
+  },
+  "tree_cell": {
+    "type": "panel",
+    "size": [ 32, 27 ],
+    "controls": [
+      { "strip@df_form.tree_strip": {} },
+      { "node@df_form.tree_node": {} }
+    ]
+  },
+
+  // Tabs above the window: 28×32 squares with the icon; the chosen one is
+  // lighter and reaches over the window's top edge.
+  "vis_tree_tab_off": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§1§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "tree_tab_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - '§0§1§r' - '§0§2§r')",
+        "target_property_name": "#hover_text"
+      }
+    ]
+  },
+  "tree_tab_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 28, 32 ], "layer": 1 } },
+      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 28, 36 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } }
+    ]
+  },
+  "tree_tab_face_tip@df_form.tree_tab_face": {
+    "controls": [
+      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 28, 32 ], "layer": 1 } },
+      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 28, 36 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } },
+      { "light": { "type": "image", "layer": 6, "size": [ 28, 32 ], "texture": "textures/ui/df/tree_hl" } },
+      { "tip@df_form.tree_tab_tip": {} }
+    ]
+  },
+  "tree_tab_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 28, 32 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.tree_tab_face": {} },
+      { "hover@df_form.tree_tab_face_tip": {} },
+      { "pressed@df_form.tree_tab_face_tip": {} }
+    ]
+  },
+  "tree_tab_item@df_form.vis_tab": {
+    "type": "panel",
+    "size": [ 30, 32 ],
+    "controls": [ { "button@df_form.tree_tab_button": {} } ]
+  },
+  "marked_tree_tabs": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.tree_tab_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+
+  "tree_title": {
+    "type": "label",
+    "text": "#df_title",
+    "color": [ 0.25, 0.25, 0.25 ],
+    "size": [ "default", 10 ],
+    "offset": [ 8, 9 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "layer": 5,
+    "bindings": [
+      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+      {
+        "binding_type": "view", "binding_condition": "once",
+        "source_property_name": "(#title_text - '§d§f§z§r')",
+        "target_property_name": "#df_title"
+      }
+    ]
+  },
+  "tree_progress": {
+    "type": "label",
+    "text": "#form_text",
+    "color": [ 0.25, 0.25, 0.25 ],
+    "size": [ "default", 10 ],
+    "offset": [ -28, 9 ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "layer": 5
+  },
+
+  "tree_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window": {
+          "type": "panel",
+          "size": [ 404, "100% - 72px" ],
+          "max_size": [ 404, 330 ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "offset": [ 0, 18 ],
+          "controls": [
+            { "frame": { "type": "image", "texture": "textures/ui/df/tree_window", "size": [ "100%", "100%" ], "layer": 2 } },
+            { "title@df_form.tree_title": {} },
+            { "progress@df_form.tree_progress": {} },
+            {
+              "close@common.close_button": {
+                "$close_button_offset": [ -4, 4 ],
+                "size": [ 17, 17 ],
+                "anchor_from": "top_right",
+                "anchor_to": "top_right",
+                "layer": 6
+              }
+            },
+            { "inset": { "type": "image", "texture": "textures/ui/df/tree_inset", "size": [ "100% - 16px", "100% - 31px" ], "offset": [ 8, 23 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 3 } },
+            {
+              "viewport": {
+                "type": "panel",
+                "size": [ "100% - 18px", "100% - 33px" ],
+                "offset": [ 9, 24 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "clips_children": true,
+                "layer": 4,
+                "controls": [
+                  { "bg": { "type": "image", "texture": "textures/blocks/dirt", "tiled": true, "keep_ratio": false, "size": [ "100%", "100%" ], "layer": 0 } },
+                  { "scroll@df_form.tree_scroll": {} }
+                ]
+              }
+            },
+            {
+              "tabs@df_form.marked_tree_tabs": {
+                "orientation": "horizontal",
+                "size": [ "100%c", 32 ],
+                "offset": [ 6, -28 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 6
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "tree_scroll@common.scrolling_panel": {
+    "anchor_to": "top_left",
+    "anchor_from": "top_left",
+    "$show_background": false,
+    "size": [ "100%", "100%" ],
+    "$scrolling_content": "df_form.tree_content",
+    "$scroll_size": [ 6, "100%" ],
+    "$scrolling_pane_size": [ "100% - 8px", "100%" ],
+    "$scrolling_pane_offset": [ 0, 0 ],
+    "$scroll_bar_right_padding_size": [ 0, 0 ]
+  },
+  "tree_content": {
+    "type": "panel",
+    "size": [ "100%", 591 ],
+    "controls": [
+      {
+        "grid": {
+          "type": "grid",
+          "size": [ 352, 567 ],
+          "offset": [ 8, 12 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "grid_dimensions": [ 11, 21 ],
+          "maximum_grid_items": 231,
+          "grid_item_template": "df_form.tree_cell",
+          "collection_name": "form_buttons"
         }
       }
     ]

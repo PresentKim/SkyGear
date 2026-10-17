@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // TestAdvancementTreeIsValid: ids are unique, parents come before their
@@ -68,19 +69,58 @@ func TestAdvancementsFromItems(t *testing.T) {
 	})
 }
 
-// TestAdvancementMenuHidesLocked: done ones are green, open ones show
-// their hint and the rest are hidden.
-func TestAdvancementMenuHidesLocked(t *testing.T) {
+// TestAdvancementTreeShowsNearNodes: the tree shows done and open nodes and
+// the locked one right behind an open node; a child sits one column right of
+// its parent with connector lines between them; every advancement is in one
+// tab.
+func TestAdvancementTreeShowsNearNodes(t *testing.T) {
 	s := testSession(t)
 	s.state.Advancements = map[string]bool{"wood": true}
-	_, opts := s.advancementMenu()
-	if len(opts) != len(advancementTree)+1 {
-		t.Fatalf("%d options", len(opts))
+	l := s.advancementLayout(advTabBasic)
+	for id, shown := range map[string]bool{"wood": true, "planks": true, "grow_tree": true, "crafting_table": true, "research_table": false} {
+		if _, ok := l.pos[id]; ok != shown {
+			t.Errorf("%s shown=%v, want %v", id, ok, shown)
+		}
 	}
-	want := map[string]string{"wood": "§a✔ 주먹이 곧 도끼", "planks": "§e판자촌 입주 준비\n§7원목을 조합대(인벤토리)에서 참나무 판자로 바꾸세요", "crafting_table": "§8???"}
-	for i, a := range advancementTree {
-		if w, ok := want[a.ID]; ok && opts[i].Label != w {
-			t.Errorf("%s: %q", a.ID, opts[i].Label)
+	wood, planks := l.pos["wood"], l.pos["planks"]
+	if planks.x != wood.x+1 {
+		t.Errorf("planks at column %d beside wood at %d", planks.x, wood.x)
+	}
+	if l.strips[planks]&ui.StripRight == 0 || l.strips[advPos{planks.x, wood.y}]&ui.StripLeft == 0 {
+		t.Errorf("no connector between wood and planks: %v", l.strips)
+	}
+	seen := map[advPos]string{}
+	for id, ps := range l.pos {
+		if o, dup := seen[ps]; dup {
+			t.Errorf("%s and %s share %v", id, o, ps)
+		}
+		seen[ps] = id
+	}
+	total := 0
+	for tab := advTab(0); tab < advTabCount; tab++ {
+		n := len(advancementsIn(tab))
+		if n == 0 {
+			t.Errorf("tab %d is empty", tab)
+		}
+		total += n
+	}
+	if total != len(advancementTree) {
+		t.Errorf("tabs list %d of %d", total, len(advancementTree))
+	}
+}
+
+// TestAdvancementTreeFits: with everything done every tab's tree fits the
+// grid of the form.
+func TestAdvancementTreeFits(t *testing.T) {
+	s := testSession(t)
+	s.state.Advancements = map[string]bool{}
+	for _, a := range advancementTree {
+		s.state.Advancements[a.ID] = true
+	}
+	for tab := advTab(0); tab < advTabCount; tab++ {
+		l := s.advancementLayout(tab)
+		if l.w > ui.TreeCols || l.h > ui.TreeRows {
+			t.Errorf("tab %s is %d×%d, the grid %d×%d", advTabKeys[tab], l.w, l.h, ui.TreeCols, ui.TreeRows)
 		}
 	}
 }

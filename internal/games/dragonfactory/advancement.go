@@ -1,7 +1,6 @@
 package dragonfactory
 
 import (
-	"fmt"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"strings"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Advancements (docs/design/02-dragonfactory.md §10, 05-sky-progression.md
@@ -411,65 +409,4 @@ func advancementStack(a *Advancement) (item.Stack, bool) {
 		}
 	}
 	return item.Stack{}, false
-}
-
-// showAdvancements shows the advancement tree: done ones in green, open
-// ones with their hint, the rest hidden.
-func (s *session) showAdvancements(p *player.Player) {
-	count(p, "adv_view", 1)
-	body, opts := s.advancementMenu()
-	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancements.1"), body, opts...)
-}
-
-func (s *session) advancementMenu() (string, []ui.Option) {
-	done := 0
-	var opts []ui.Option
-	for i := range advancementTree {
-		a := &advancementTree[i]
-		var label, icon string
-		switch {
-		case s.advanced(a.ID):
-			done++
-			label, icon = "§a✔ "+a.Name, advancementIcon(a)
-		case s.advancementOpen(a):
-			label, icon = "§e"+a.Name+"\n§7"+flatHint(a), advancementIcon(a)
-		default:
-			label, icon = "§8???", iconLocked
-		}
-		opts = append(opts, s.opt(label, icon, func(p *player.Player, _ *world.Tx) { s.showAdvancementNode(p, a) }))
-	}
-	body := fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.advancement.advancementMenu.1"), done, len(advancementTree))
-	return body, append(opts, s.backOption())
-}
-
-// showAdvancementNode shows one advancement; a hidden one shows only what
-// comes before it.
-func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
-	title, body := a.Name, ""
-	switch {
-	case s.advanced(a.ID):
-		body = i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.1") + flatHint(a)
-	case s.advancementOpen(a):
-		body = i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.2") + flatHint(a)
-	default:
-		title, body = "???", i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.3")
-	}
-	var opts []ui.Option
-	if s.advancementOpen(a) {
-		label := i18n.T(i18n.Of(p), "advancement.node.track")
-		if s.state.Tracked == a.ID {
-			label = i18n.T(i18n.Of(p), "advancement.node.untrack")
-		}
-		opts = append(opts, s.opt(label, iconMission, func(p *player.Player, tx *world.Tx) {
-			if s.state.Tracked != a.ID {
-				count(p, "adv_track", 1)
-			}
-			s.track(tx, a)
-			s.showAdvancementNode(p, a)
-		}))
-	}
-	if it, ok := advancementStack(a); ok && (s.advanced(a.ID) || s.advancementOpen(a)) {
-		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "advancement.node.codex"), iconOf(it), func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, it) }))
-	}
-	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.4")+title, body, append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancementNode.5"), Icon: iconBack, Run: func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }})...)
 }
