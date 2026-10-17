@@ -1,4 +1,4 @@
-// Command uitextures writes the flat textures of the dark JSON UI theme
+// Command uitextures writes the flat textures of the grey JSON UI theme
 // (assets/resourcepack/dragonfactory/textures/ui/df); the empty upgrade slot
 // textures there (slot_empty_*) are drawn by hand. Run it from the
 // repository root after changing the colours: go run ./tools/uitextures
@@ -16,29 +16,42 @@ import (
 
 const dir = "assets/resourcepack/dragonfactory/textures/ui/df"
 
+// The theme is the grey look of the game's own screens: a light grey window
+// with a white edge at the top left and a dark one at the bottom right, mid
+// grey buttons, dark inset item slots.
 var (
-	panelFill   = color.RGBA{22, 24, 30, 240}
-	panelBorder = color.RGBA{64, 70, 86, 255}
-	titleFill   = color.RGBA{34, 37, 46, 255}
-	accent      = color.RGBA{236, 168, 48, 255}
-	buttonFill  = color.RGBA{40, 44, 55, 255}
-	buttonEdge  = color.RGBA{68, 74, 92, 255}
-	hoverFill   = color.RGBA{56, 62, 78, 255}
-	pressedFill = color.RGBA{30, 33, 41, 255}
-	tabFill     = color.RGBA{27, 29, 37, 255}
-	tabOnFill   = color.RGBA{48, 53, 69, 255}
-	slotFill    = color.RGBA{14, 15, 19, 255}
+	black       = color.RGBA{16, 16, 16, 255}
+	white       = color.RGBA{255, 255, 255, 255}
+	panelFill   = color.RGBA{198, 198, 198, 255}
+	panelShade  = color.RGBA{85, 85, 85, 255}
+	titleFill   = color.RGBA{178, 178, 178, 255}
+	titleLine   = color.RGBA{110, 110, 110, 255}
+	buttonFill  = color.RGBA{66, 66, 66, 255}
+	buttonHi    = color.RGBA{92, 92, 92, 255}
+	buttonLo    = color.RGBA{40, 40, 40, 255}
+	hoverFill   = color.RGBA{84, 84, 128, 255}
+	hoverLo     = color.RGBA{56, 56, 92, 255}
+	pressedFill = color.RGBA{48, 48, 48, 255}
+	slotFill    = color.RGBA{139, 139, 139, 255}
+	slotDark    = color.RGBA{55, 55, 55, 255}
+	arrowColor  = color.RGBA{245, 245, 245, 255}
 	dim         = color.RGBA{0, 0, 0, 140}
 )
 
-// box draws a size×size square with a 1px border.
-func box(size int, fill, border color.RGBA) image.Image {
+// bevelBox draws a size×size square with a black edge, a light line inside
+// it along the top and left and a dark one along the bottom and right.
+func bevelBox(size int, fill, hi, lo color.RGBA) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 	for x := range size {
 		for y := range size {
 			c := fill
-			if x == 0 || y == 0 || x == size-1 || y == size-1 {
-				c = border
+			switch {
+			case x == 0 || y == 0 || x == size-1 || y == size-1:
+				c = black
+			case x == 1 || y == 1:
+				c = hi
+			case x == size-2 || y == size-2:
+				c = lo
 			}
 			img.Set(x, y, c)
 		}
@@ -46,48 +59,53 @@ func box(size int, fill, border color.RGBA) image.Image {
 	return img
 }
 
-// accentBox is a button whose bottom edge is the accent colour.
-func accentBox(size int, fill, border, bottom color.RGBA) image.Image {
-	img := box(size, fill, border).(*image.RGBA)
-	for x := 1; x < size-1; x++ {
-		img.Set(x, size-2, bottom)
+// roundCorners makes the corners of img (a bevelBox) round the way the game's
+// windows are: three pixels cleared and the step between the edges black.
+// top and bottom choose which corners.
+func roundCorners(img image.Image, top, bottom bool) image.Image {
+	out := img.(*image.RGBA)
+	n := out.Bounds().Dx()
+	m := out.Bounds().Dy()
+	clear := color.RGBA{}
+	cut := func(x, y, sx, sy int) {
+		for _, p := range [][2]int{{0, 0}, {1, 0}, {0, 1}} {
+			out.Set(x+sx*p[0], y+sy*p[1], clear)
+		}
+		out.Set(x+sx, y+sy, black)
+	}
+	if top {
+		cut(0, 0, 1, 1)
+		cut(n-1, 0, -1, 1)
+	}
+	if bottom {
+		cut(0, m-1, 1, -1)
+		cut(n-1, m-1, -1, -1)
+	}
+	return out
+}
+
+// insetBox is an item slot: dark along the top and left, white along the
+// bottom and right, so it looks pressed in.
+func insetBox(size int, fill color.RGBA) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+	for x := range size {
+		for y := range size {
+			c := fill
+			switch {
+			case x == size-1 || y == size-1:
+				c = white
+			case x == 0 || y == 0:
+				c = slotDark
+			}
+			img.Set(x, y, c)
+		}
 	}
 	return img
 }
 
-// tabBox is a tab: a box with a bar of the accent colour barH pixels high at
-// the top (the selected tab) or none (barH 0). A tab with a bar has no edge
-// at the bottom: it is open towards the content, which it belongs to.
-func tabBox(size int, fill, border, bar color.RGBA, barH int) image.Image {
-	img := box(size, fill, border).(*image.RGBA)
-	if barH > 0 {
-		for x := 1; x < size-1; x++ {
-			img.Set(x, size-1, fill)
-		}
-	}
-	for y := 0; y < barH; y++ {
-		for x := 0; x < size; x++ {
-			img.Set(x, y, bar)
-		}
-	}
-	return img
-}
-
-// bevel is a window's inner edge: a light line along the top and left, a dark
-// one along the bottom and right, one pixel inside the border, so the panel
-// looks raised. The middle is clear.
-func bevel() image.Image {
-	const n = 16
-	img := image.NewNRGBA(image.Rect(0, 0, n, n))
-	light, shade := color.NRGBA{255, 255, 255, 28}, color.NRGBA{0, 0, 0, 90}
-	for i := 2; i < n-2; i++ {
-		img.SetNRGBA(i, 2, light)
-		img.SetNRGBA(2, i, light)
-		img.SetNRGBA(i, n-3, shade)
-		img.SetNRGBA(n-3, i, shade)
-	}
-	return img
-}
+// bevel is the window's inner edge layer; the window picture draws its own
+// bevel, so it is clear.
+func bevel() image.Image { return image.NewNRGBA(image.Rect(0, 0, 16, 16)) }
 
 // arrow draws a 16×16 arrow pointing right, rotated by quarter turns.
 func arrow(turns int) image.Image {
@@ -96,7 +114,7 @@ func arrow(turns int) image.Image {
 		for range turns { // rotate 90° clockwise per turn
 			x, y = 15-y, x
 		}
-		img.Set(x, y, accent)
+		img.Set(x, y, arrowColor)
 	}
 	for x := 2; x <= 9; x++ { // shaft
 		for y := 6; y <= 9; y++ {
@@ -106,6 +124,31 @@ func arrow(turns int) image.Image {
 	for i := 0; i <= 5; i++ { // head
 		for y := 2 + i; y <= 13-i; y++ {
 			set(9+i, y)
+		}
+	}
+	return img
+}
+
+// chevron draws the "<" of the back button in pixels, two pixels thick.
+func chevron() image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 16, 16))
+	set := func(x, y int) {
+		img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, 255})
+		img.SetNRGBA(x+1, y, color.NRGBA{255, 255, 255, 255})
+	}
+	for i := range 6 {
+		set(10-i, 2+i)
+		set(5+i, 8+i)
+	}
+	return img
+}
+
+// flat is a plain square, the highlight behind the small buttons of the control bar.
+func flat(v uint8) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 4, 4))
+	for x := range 4 {
+		for y := range 4 {
+			img.SetNRGBA(x, y, color.NRGBA{v, v, v, 255})
 		}
 	}
 	return img
@@ -139,19 +182,27 @@ func main() {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		panic(err)
 	}
-	write("panel", box(16, panelFill, panelBorder), 2)
-	write("title", accentBox(16, titleFill, titleFill, accent), 2)
-	write("button", box(16, buttonFill, buttonEdge), 2)
-	write("button_hover", accentBox(16, hoverFill, accent, accent), 2)
-	write("button_pressed", box(16, pressedFill, accent), 2)
-	// tabs: dark and low, lighter under the pointer, the selected one raised
-	// with an accent bar on top
-	write("tab", box(16, tabFill, buttonEdge), 3)
-	write("tab_hover", tabBox(16, hoverFill, accent, accent, 0), 3)
-	write("tab_on", tabBox(16, tabOnFill, accent, accent, 3), 3)
+	write("panel", roundCorners(bevelBox(16, panelFill, white, panelShade), true, true), 4)
+	// the window has no title bar of its own: the picture is clear
+	write("title", bevel(), 2)
+	write("clear", bevel(), 0)
+	write("button", bevelBox(16, buttonFill, buttonHi, buttonLo), 3)
+	write("button_hover", bevelBox(16, hoverFill, white, hoverLo), 3)
+	write("button_pressed", bevelBox(16, pressedFill, buttonLo, buttonFill), 3)
 	write("panel_bevel", bevel(), 5)
-	write("slot", box(18, slotFill, panelBorder), 1)
-	write("dim", box(4, dim, dim), 0)
+	write("slot", insetBox(18, slotFill), 1)
+	// the dark field the game's own input forms are drawn in
+	write("inset", insetBox(8, color.RGBA{60, 60, 60, 255}), 1)
+	dimImg := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	for x := range 4 {
+		for y := range 4 {
+			dimImg.Set(x, y, dim)
+		}
+	}
+	write("dim", dimImg, 0)
+	write("chevron_left", chevron(), 0)
+	write("hover_flat", flat(150), 0)
+	write("press_flat", flat(112), 0)
 	write("arrow_right", arrow(0), 0)
 	write("arrow_down", arrow(1), 0)
 	write("arrow_left", arrow(2), 0)

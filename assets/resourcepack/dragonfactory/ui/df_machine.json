@@ -1376,7 +1376,7 @@
   },
   "slot_bg": {
     "type": "image",
-    "texture": "textures/ui/df/slot",
+    "texture": "textures/ui/cell_image",
     "size": [
       18,
       18
@@ -1391,6 +1391,6 @@
   },
   "dark_bg": {
     "type": "image",
-    "texture": "textures/ui/df/panel"
+    "texture": "textures/ui/dialog_background_opaque"
   }
 }

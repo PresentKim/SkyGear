@@ -86,7 +86,7 @@ func run(action string) {
 		title, file, _ := strings.Cut(arg, "=")
 		pk := waitFor(func(pk packet.Packet) bool {
 			f, ok := pk.(*packet.ModalFormRequest)
-			return ok && strings.Contains(string(f.FormData), title)
+			return ok && strings.Contains(strings.ReplaceAll(string(f.FormData), "§d§f§n§r", ""), title)
 		}).(*packet.ModalFormRequest)
 		code := regexp.MustCompile(`[A-Z2-9]{6}`).FindString(regexp.MustCompile(`§.`).ReplaceAllString(string(pk.FormData), ""))
 		if code == "" {
@@ -103,7 +103,7 @@ func run(action string) {
 		title, val, _ := strings.Cut(arg, "=")
 		pk := waitFor(func(pk packet.Packet) bool {
 			f, ok := pk.(*packet.ModalFormRequest)
-			return ok && strings.Contains(string(f.FormData), title)
+			return ok && strings.Contains(strings.ReplaceAll(string(f.FormData), "§d§f§n§r", ""), title)
 		}).(*packet.ModalFormRequest)
 		var data map[string]any
 		_ = json.Unmarshal(pk.FormData, &data)

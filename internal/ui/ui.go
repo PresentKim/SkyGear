@@ -72,6 +72,7 @@ func (menu) Close(s form.Submitter, _ *world.Tx) { answered(s) }
 func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
+	submitted(p)
 	defer recoverForm(p)
 	for _, o := range m.opts {
 		if o.Label == pressed.Text {
@@ -93,17 +94,67 @@ func recoverForm(p *player.Player) {
 	}
 }
 
+// NoAnimToken in a form's title makes the pack show the window at once
+// instead of sliding it up. A form that answers a press of another form (a
+// tab, a page, a back button) is a form sent again, and the window staying
+// still looks better than rising on every press; a form opened by a command or
+// from a block is the first one and slides up.
+const NoAnimToken = "§d§f§n§r"
+
+// resendWindow is how soon after a button press the next form still counts as
+// the same screen sent again.
+const resendWindow = 400 * time.Millisecond
+
+var lastSubmit = struct {
+	sync.Mutex
+	m map[uuid.UUID]time.Time
+}{m: map[uuid.UUID]time.Time{}}
+
+// submitted notes that p has just pressed a button of a form.
+func submitted(p *player.Player) { submittedAt(p.UUID(), time.Now()) }
+
+func submittedAt(id uuid.UUID, t time.Time) {
+	lastSubmit.Lock()
+	lastSubmit.m[id] = t
+	lastSubmit.Unlock()
+}
+
+// resent reports whether a form sent to p now answers a button press.
+func resent(p *player.Player) bool { return resentAt(p.UUID(), time.Now()) }
+
+func resentAt(id uuid.UUID, now time.Time) bool {
+	lastSubmit.Lock()
+	defer lastSubmit.Unlock()
+	t, ok := lastSubmit.m[id]
+	delete(lastSubmit.m, id)
+	return ok && now.Sub(t) < resendWindow
+}
+
 // Menu shows a menu form whose buttons run their options. The pressed
 // button is found by its label (the client sends no index), so a label
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
-	opts = uniqueLabels(opts)
-	f := form.NewMenu(menu{opts: opts}, title).WithBody(body)
+	if resent(p) {
+		title = NoAnimToken + title
+	}
+	opts = uniqueLabels(onPanelOptions(opts))
+	f := form.NewMenu(menu{opts: opts}, title).WithBody(OnPanel(body))
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
 	send(p, title, f)
+}
+
+// onPanelOptions returns opts with the text drawn on the window made readable
+// on it (OnPanel).
+func onPanelOptions(opts []Option) []Option {
+	out := make([]Option, len(opts))
+	for i, o := range opts {
+		o.Label = onPanelLabel(o.Label)
+		out[i] = o
+	}
+	return out
 }
 
 // uniqueLabels returns opts with every label unique.
@@ -261,7 +312,7 @@ func Pager(p *player.Player, page, pages int, show func(p *player.Player, tx *wo
 // Back returns the back button of a themed form, drawn left of the close
 // button.
 func Back(label string, run func(p *player.Player, tx *world.Tx)) Option {
-	return Option{Label: BackToken + label, Icon: "textures/ui/arrow_left", Run: run}
+	return Option{Label: BackToken + label, Icon: "textures/ui/df/chevron_left", Run: run}
 }
 
 // CardToken starts the title of a menu shown as a grid of icon-and-text

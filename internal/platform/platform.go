@@ -324,13 +324,17 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 // showLobbyMenu is the main menu of the lobby.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
 	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
-	ui.CardMenu(p, pf.game.Name()+i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.1"), i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.2"),
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
-		ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.5"), len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.6"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
-		ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.7"), len(reqs)), Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showLobbyMenu.9"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
+	lang := i18n.Of(p)
+	friends := i18n.T(lang, "platform.platform.showLobbyMenu.10")
+	if len(reqs) > 0 {
+		friends = fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.7"), len(reqs))
+	}
+	ui.CardMenu(p, pf.game.Name()+i18n.T(lang, "platform.platform.showLobbyMenu.1"), "",
+		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
+		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
+		ui.Option{Label: friends, Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.6"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
+		ui.Option{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.5"), len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
 	)
 }

@@ -7,8 +7,8 @@
   // (ui.DetailToken, ui.WrapToken) as item slots with counts and tooltips,
   // §d§f§j§r (ui.ColumnsToken) as two columns of them, §d§f§y§r (ui.SplitToken)
   // as a grid with the detail of the chosen slot beside it, §d§f§z§r
-  // (ui.TreeToken) as a window onto a tree with the detail of a node,
-  // otherwise a list.
+  // (ui.TreeToken) as the advancement tree, otherwise a list. A title with
+  // §d§f§n§r (ui.NoAnimToken) shows the window at once; the others slide it up.
   "namespace": "server_form",
 
   // The vanilla screen content is a 0×0 panel whose forms have fixed sizes.
@@ -40,7 +40,21 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text))",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "list_s@df_form.action_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -53,7 +67,21 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§c§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "cards_s@df_form.card_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -67,7 +95,22 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§s§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§s§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Compact cards: the shop. (the window is shown at once)
+        "shop_s@df_form.shop_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§s§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -81,7 +124,22 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§t§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§t§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Table: icon, name and number columns, total and actions below. (the window is shown at once)
+        "table_s@df_form.table_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§t§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -95,21 +153,51 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§i§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§i§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
         }
       },
       {
-        // Item slots in the two-column detail form (ui.ItemDetail): the research screen.
+        // Slots: the drawer menu. (the window is shown at once)
+        "slots_s@df_form.slot_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§i§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in the two-column detail form (ui.ItemDetail).
         "gslot_detail@df_form.gslot_detail_form": {
           "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§g§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§g§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in the two-column detail form (ui.ItemDetail). (the window is shown at once)
+        "gslot_detail_s@df_form.gslot_detail_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§g§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -123,7 +211,22 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§j§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§j§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Two columns of item slots under the body text (ui.ColumnsMenu): the conduit side settings. (the window is shown at once)
+        "gslot_cols_s@df_form.gslot_cols_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§j§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -137,32 +240,64 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§y§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§y§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
         }
       },
       {
+        // A grid of slots with the detail of the chosen one beside it (ui.SplitMenu): the research screen. (the window is shown at once)
+        "split_s@df_form.split_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§y§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // The advancement tree (ui.TreeMenu).
         "tree@df_form.tree_form": {
           "visible": false,
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§z§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§z§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
         }
       },
       {
+        // The advancement tree (ui.TreeMenu). (the window is shown at once)
+        "tree_s@df_form.tree_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§z§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Form binding probe.
         "probe@df_form.probe_form": {
           "bindings": [
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§x§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§x§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -176,7 +311,22 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "(not ((#title_text - '§d§f§h§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in a wrapping grid (ui.ItemGrid): the lost-and-found box. (the window is shown at once)
+        "gslot_wrap_s@df_form.gslot_wrap_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
