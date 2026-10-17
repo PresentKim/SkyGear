@@ -416,6 +416,7 @@
   },
 
   "help_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 20, 18 ],
     "default_control": "default",
@@ -442,6 +443,7 @@
 
   // icon_button is a small square button showing only the icon.
   "icon_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 20, 18 ],
     "default_control": "default",
@@ -487,6 +489,7 @@
   // selected one (§0§2§r) is raised, with an accent bar on top and an
   // accent label. Both labels are bound; one shows.
   "tab_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 64, 22 ],
     "anchor_from": "bottom_left",
@@ -720,6 +723,7 @@
   },
 
   "list_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ "100%", 30 ],
     "anchor_from": "top_left",
@@ -958,6 +962,7 @@
   },
 
   "card_button@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "$df_card_icon|default": [ 20, 20 ],
     "$df_card_font|default": 0.8,
@@ -1539,6 +1544,7 @@
 
   // slot_press is the real button of a selected touch slot.
   "slot_press@common.button": {
+    "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ "100%", "100%" ],
     "default_control": "default",
@@ -2011,7 +2017,6 @@
     "type": "panel",
     "size": [ 24, 24 ],
     "$df_slot_control|default": "df_form.gslot_button",
-    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "cols_a_mini@df_form.vis_cols_am": {
@@ -2031,7 +2036,6 @@
     "type": "panel",
     "size": [ 24, 24 ],
     "$df_slot_control|default": "df_form.gslot_button",
-    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "cols_b_mini@df_form.vis_cols_bm": {
@@ -2435,21 +2439,18 @@
     "type": "panel",
     "size": [ 24, 24 ],
     "$df_slot_control|default": "df_form.gslot_button",
-    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "gslot_b_item@df_form.vis_gslot_b": {
     "type": "panel",
     "size": [ 24, 24 ],
     "$df_slot_control|default": "df_form.gslot_button",
-    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "gslot_w_item@df_form.vis_gslot_w": {
     "type": "panel",
     "size": [ 24, 24 ],
     "$df_slot_control|default": "df_form.gslot_button",
-    "variables": [ { "requires": "$touch", "$df_slot_control": "df_form.gslot_toggle" } ],
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
 
@@ -2583,7 +2584,9 @@
     ]
   },
 
-  // gslot_button (mouse): hovering or pressing shows the tooltip.
+  // gslot_button (mouse and touch): hovering, or holding a finger down, shows
+  // the tooltip; a tap or click presses it. No toggle: radio toggles cannot
+  // be exclusive across grid cells, so several tooltips opened at once.
   "gslot_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
@@ -2601,54 +2604,6 @@
       { "default@df_form.gslot_face": {} },
       { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
       { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
-    ]
-  },
-
-  // gslot_toggle (touch): the first tap selects the slot and shows the
-  // tooltip, a tap on the selected slot presses it.
-  "gslot_toggle@common.toggle": {
-    "$toggle_group_default_selected": -1,
-    "$toggle_focus_enabled": false,
-    "size": [ 22, 22 ],
-    "$radio_toggle_group": true,
-    "$toggle_name": "df_form_gslot",
-    "$toggle_binding_type": "none",
-    "$toggle_property_bag": { "#toggle_state": false },
-    "$unchecked_control": "df_form.gslot_face",
-    "$unchecked_hover_control": "df_form.gslot_face",
-    "$unchecked_locked_control": "df_form.gslot_face",
-    "$unchecked_locked_hover_control": "df_form.gslot_face",
-    "$checked_control": "df_form.gslot_selected",
-    "$checked_hover_control": "df_form.gslot_selected",
-    "$checked_locked_control": "df_form.gslot_face",
-    "$checked_locked_hover_control": "df_form.gslot_face"
-  },
-
-  "gslot_selected": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [
-      { "press@df_form.gslot_press": { "layer": 10 } },
-      { "tip@df_form.gslot_hover_tip": {} }
-    ]
-  },
-
-  "gslot_press@common.button": {
-    "$pressed_button_name": "button.form_button_click",
-    "size": [ "100%", "100%" ],
-    "default_control": "default",
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "bindings": [
-      {
-        "binding_type": "collection_details",
-        "binding_collection_name": "form_buttons"
-      }
-    ],
-    "controls": [
-      { "default@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
-      { "hover@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
     ]
   },
 

@@ -6,7 +6,7 @@
 
 | 파일 | 내용 |
 |---|---|
-| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자, 터치(`$touch`)는 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
+| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
 | `assets/resourcepack/dragonfactory/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
@@ -47,7 +47,7 @@
 
 ### 아이템 슬롯 폼 (연구, 분실물)
 
-폼 버튼으로 **인벤토리 칸 같은 경험**을 준다: 칸마다 아이템 그림, 오른쪽 아래에 작은 개수, 마우스를 올리면(터치는 첫 탭) 이름·설명 상자. (서랍 창 `ui.SlotMenu` 의 칸을 일반화한 것.) 첫 실기에서 칸·개수·호버가 잘 나옴을 확인했고, 상자가 폼 밖으로 잘리던 문제는 아래 "호버 상자 쪽"으로 고쳤다(TODO 6번에서 다시 확인).
+폼 버튼으로 **인벤토리 칸 같은 경험**을 준다: 칸마다 아이템 그림, 오른쪽 아래에 작은 개수, 마우스를 올리면(터치는 누르고 있는 동안) 이름·설명 상자. (서랍 창 `ui.SlotMenu` 의 칸을 일반화한 것.) 첫 실기에서 칸·개수·호버가 잘 나옴을 확인했고, 상자가 폼 밖으로 잘리던 문제는 아래 "호버 상자 쪽"으로 고쳤다(TODO 6번에서 다시 확인).
 
 | Go | 제목 표식 | 쓰는 곳 |
 |---|---|---|
@@ -62,11 +62,12 @@
 
 - **호버 상자는 엔진 툴팁이다**: 칸 옆에 직접 그린 상자는 칸 줄을 감싼 스크롤 창에 잘리고 방향(`l`/`r`)을 따로 정해야 했다. 지금은 바닐라 `common.hover_text`(`hover_text_renderer`, 인벤토리 아이템 툴팁과 같은 렌더러)를 호버·선택 상태의 자식으로 두고 `#hover_text` 에 버튼 글(칸은 20바이트 뒤, 서랍 창 칸은 전부)을 넣는다(`gslot_hover_tip`, `slot_tooltip`). 엔진이 포인터 옆에 그리므로 창에 잘리지 않고 방향이 없다. 버튼 글의 호버 쪽 1바이트(`l`/`r`)는 자리만 남아 있고 쓰지 않는다. 줄바꿈은 글에 넣은 `\n` 에서만 한다(`$hover_text_max_width` 0; 150 으로 두면 한글이 5자쯤에서 꺾였다).
 - **줄바꿈 격자의 버튼 순서**: 격자는 숨겨진 버튼도 칸을 차지하므로 탭·뒤로가기 같은 표식 버튼은 **칸 뒤에** 둔다(`ui.ItemGrid`). 앞에 두면 칸이 오른쪽으로 밀려 시작하고(15차 실기) 칸 번호(`i%11`)로 정하는 호버 방향도 어긋난다.
-- **열 때 호버 상자가 켜져 있던 문제**: 바닐라 `common.toggle` 은 라디오 그룹에서 `$toggle_group_default_selected` 가 0 이라 첫 칸이 처음부터 선택돼(터치) 그 칸의 상자가 떴고, `common.button`·`common.toggle` 은 `focus_enabled` 가 켜져 있어 처음 포커스가 간 칸이 호버 상태로 그려질 수 있다(키보드·컨트롤러 포커스). 호버 상자를 쓰는 칸은 `$toggle_group_default_selected: -1`, `$toggle_focus_enabled: false`, `$focus_enabled: false` 로 둔다(`slot_*`, `gslot_*`, `cols_mini_button`). 이 칸들은 컨트롤러 포커스 이동을 받지 않는다.
+- **열 때 호버 상자가 켜져 있던 문제**: 바닐라 `common.toggle` 은 라디오 그룹에서 `$toggle_group_default_selected` 가 0 이라 첫 칸이 처음부터 선택돼(터치) 그 칸의 상자가 떴고, `common.button`·`common.toggle` 은 `focus_enabled` 가 켜져 있어 처음 포커스가 간 칸이 호버 상태로 그려질 수 있다(키보드·컨트롤러 포커스). 폼의 모든 버튼(도움말·뒤로·탭·목록·카드·칸·눌림)은 `$focus_enabled: false`, 라디오 토글은 `$toggle_group_default_selected: -1`, `$toggle_focus_enabled: false` 로 둔다. 안 그러면 모바일에서 폼을 열 때 첫 버튼(제목 막대의 "?")에 포커스가 가 호버 상자가 떠 있었다. 이 버튼들은 컨트롤러 포커스 이동을 받지 않는다.
+- **터치에서 상자가 겹치던 문제**: 라디오 토글은 형제 컨트롤끼리만 한 그룹이고, 격자 칸은 칸마다 따로 부모가 있어 배타적이지 않았다(칸을 누르는 대로 상자가 쌓였다). 격자 칸(`gslot_*`, `cols_*`)은 터치에서도 일반 버튼이라, 손가락을 누르고 있는 동안 상자가 뜨고 떼면 실행된다. 라디오 토글은 형제인 서랍 창 칸에만 남았다.
 - **호버 상자 모양**: 엔진 툴팁의 바닐라 모양(어두운 보라 테두리)을 그대로 쓴다. 글 색은 버튼 글의 `§` 코드가 정한다.
 - 연구 창의 왼쪽 카드는 표식 `§0§i§r` 버튼 하나다(`ui.Detail`): 아이콘은 `gdetail_icon_item`, 이름·상태 글자는 `gdetail_name_item`, 그 사이 동작 버튼은 기존 `marked_actions`. 줄 제목은 `§0§g§r`(줄 A), `§0§h§r`(줄 B) 표식 버튼이다.
 - 동작 버튼(`§0§4§r`, 뒤로 `§0§3§r`)은 칸보다 **앞에** 보내 버튼 번호가 칸 수에 상관없게 한다(시나리오가 `연구 진행` 을 0번으로 누른다).
-- 마우스: `gslot_button` 의 hover/pressed 상태가 `gslot_face_tip`(호버 상자 포함). 터치: `gslot_toggle`(첫 탭 선택 + 상자, 선택된 칸을 다시 탭하면 누름). 서랍 창과 같은 규칙이다.
+- 마우스: `gslot_button` 의 hover/pressed 상태가 `gslot_face_tip`(호버 상자 포함). 터치: 같은 버튼(누르고 있는 동안 상자, 떼면 실행).
 - 줄바꿈 격자는 **동작·뒤로 버튼도 격자 칸 하나씩 차지해** 마지막에 빈 칸이 생긴다(표 폼과 같음). 줄 A·B 스택은 숨은 컨트롤이 자리를 차지하지 않는다.
 - 새 칸 종류를 만들면 표식을 쓰는 곳(`vis_gslot_*`, 제목 표식 제거, `server_form.json` 분기)을 모두 맞춘다.
 
