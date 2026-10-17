@@ -40,6 +40,7 @@ func (s *session) openCodex(p *player.Player) {
 func (s *session) showCodex(p *player.Player) {
 	lang := i18n.Of(p)
 	opts := []ui.Option{
+		s.opt(i18n.T(lang, "codex.search"), iconOf(item.NewStack(item.Compass{}, 1)), func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, "") }),
 		s.opt(i18n.T(lang, "codex.sieve"), iconOf(machineItem(KindSieve)), func(p *player.Player, _ *world.Tx) { s.showCodexSieve(p) }),
 		s.opt(i18n.T(lang, "codex.process"), iconOf(machineItem(KindAlloy)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.process", s.codexProcessLines(lang)) }),
 		s.opt(i18n.T(lang, "codex.mobs"), iconOf(machineItem(KindGate)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.mobs", s.codexMobLines(lang)) }),
@@ -425,8 +426,22 @@ func (s *session) showCodexItem(p *player.Player, it item.Stack) {
 		return out
 	}
 	body := strings.Join(append(section(i18n.T(lang, "codex.item.sources"), sources), append([]string{""}, section(i18n.T(lang, "codex.item.uses"), uses)...)...), "\n")
-	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+itemName(it), body,
-		s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))
+	title := i18n.T(lang, "codex.title") + " · " + itemName(it)
+	back := s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) })
+	search := s.opt(i18n.T(lang, "codex.search"), "", func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, "") })
+	from, into := codexLinks(it)
+	var sections []ui.GridSection
+	if len(from) > 0 {
+		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeFrom"), Slots: s.codexLinkSlots(from)})
+	}
+	if len(into) > 0 {
+		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeInto"), Slots: s.codexLinkSlots(into)})
+	}
+	if len(sections) == 0 {
+		ui.Menu(p, title, body, search, back)
+		return
+	}
+	ui.ItemGridSections(p, title, body, sections, search, back)
 }
 
 // codexCmd is /도감 (and /codex).

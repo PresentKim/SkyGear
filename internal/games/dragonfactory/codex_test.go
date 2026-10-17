@@ -6,6 +6,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
@@ -86,5 +87,51 @@ func TestCodexKnowsTheLab(t *testing.T) {
 	}
 	if lines := strings.Join(s.codexProcessLines(i18n.Default), "\n"); !strings.Contains(lines, "마법의 정수 ×1") {
 		t.Errorf("process %q", lines)
+	}
+}
+
+// TestCodexSearchAndLinks: the index holds the items the codex can explain,
+// search finds them by name (initials too), and an item links to what it is
+// made from and made into.
+func TestCodexSearchAndLinks(t *testing.T) {
+	testSession(t)
+	registerCreativeItems()
+	steel := Ingot{Metal: MetalSteel}
+	steelName := itemName(item.NewStack(steel, 1))
+	found := false
+	for _, e := range codexFind(steelName) {
+		found = found || itemKey(e.stack.Item()) == itemKey(steel)
+	}
+	if !found {
+		t.Fatalf("searching %q does not find the steel ingot (%d entries in the index)", steelName, len(codexIndex()))
+	}
+	if n := len(codexFind("")); n < 50 {
+		t.Errorf("an empty search lists %d items, want the whole index", n)
+	}
+	if n := len(codexFind("ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
+		t.Errorf("a nonsense search found %d", n)
+	}
+	from, into := codexLinks(item.NewStack(steel, 1))
+	has := func(list []codexLink, w world.Item) bool {
+		for _, l := range list {
+			if itemKey(l.stack.Item()) == itemKey(w) {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(from, item.IronIngot{}) || !has(from, item.Coal{}) {
+		t.Errorf("steel is made from iron and coal, links: %v", from)
+	}
+	for _, l := range from {
+		if itemKey(l.stack.Item()) == itemKey(item.Coal{}) && l.count != 4 {
+			t.Errorf("steel takes 4 coal, the link says %d", l.count)
+		}
+	}
+	if has(from, steel) || has(into, steel) {
+		t.Error("an item links to itself")
+	}
+	if _, i := codexLinks(item.NewStack(block.Cobblestone{}, 1)); !has(i, block.Gravel{}) {
+		t.Errorf("cobblestone is crushed into gravel, links: %v", i)
 	}
 }
