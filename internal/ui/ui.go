@@ -75,7 +75,10 @@ func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
 	defer recoverForm(p)
 	for _, o := range m.opts {
 		if o.Label == pressed.Text {
-			o.Run(p, tx)
+			// Headings and pads of grids have nothing to run.
+			if o.Run != nil {
+				o.Run(p, tx)
+			}
 			return
 		}
 	}
