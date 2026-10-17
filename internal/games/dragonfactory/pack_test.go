@@ -452,3 +452,41 @@ func TestFlipbooksMatchTheAtlas(t *testing.T) {
 		t.Fatal("no flipbooks")
 	}
 }
+
+// TestFormDecoMatchesMarks: the form slot decoration looks for exactly the
+// marks of internal/slotdeco and every picture it can pick exists; tipName
+// puts the marks of an item's rarity and badge in front and after its name.
+func TestFormDecoMatchesMarks(t *testing.T) {
+	b, err := os.ReadFile(filepath.Join(packDir, "ui/df_form.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ui := string(b)
+	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
+		if !strings.Contains(ui, "'"+r.Mark()+"'") {
+			t.Errorf("df_form.json does not look for the mark of rarity %d", r)
+		}
+	}
+	for n := 1; n <= slotdeco.MaxFront; n++ {
+		if !strings.Contains(ui, "'"+slotdeco.TierMark(n)+"'") {
+			t.Errorf("df_form.json does not look for the mark of front image %d", n)
+		}
+	}
+	for r := 0; r <= int(slotdeco.Legendary); r++ {
+		for n := 0; n <= slotdeco.MaxFront; n++ {
+			if r == 0 && n == 0 {
+				continue
+			}
+			if !packFileExists("textures/ui/df/deco_" + string(rune('0'+r)) + "_" + string(rune('0'+n)) + ".png") {
+				t.Errorf("missing form deco picture %d_%d", r, n)
+			}
+		}
+	}
+	kit := item.NewStack(TierKit{Level: 2}, 1)
+	if r, tier := slotdeco.Of(tipName(kit)); r != slotdeco.Rare || tier != 2 {
+		t.Errorf("tipName of a kit marks %v, %d", r, tier)
+	}
+	if r, tier := slotdeco.Of(tipName(item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
+		t.Errorf("tipName of a stick marks %v, %d", r, tier)
+	}
+}

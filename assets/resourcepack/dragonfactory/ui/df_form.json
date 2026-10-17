@@ -481,7 +481,7 @@
 
   "tab_item@df_form.vis_tab": {
     "type": "panel",
-    "size": [ 68, 24 ],
+    "size": [ 54, 24 ],
     "controls": [ { "button@df_form.tab_button": {} } ]
   },
 
@@ -491,7 +491,7 @@
   "tab_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 64, 22 ],
+    "size": [ 52, 22 ],
     "anchor_from": "bottom_left",
     "anchor_to": "bottom_left",
     "default_control": "default",
@@ -519,8 +519,8 @@
       },
       {
         "icon@df_form.button_icon": {
-          "$df_icon_size": [ 14, 14 ],
-          "offset": [ 4, 0 ],
+          "$df_icon_size": [ 12, 12 ],
+          "offset": [ 3, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle"
         }
@@ -532,8 +532,8 @@
           "text": "#form_button_text",
           "color": [ 0.7, 0.72, 0.78 ],
           "font_scale_factor": 0.8,
-          "size": [ "100% - 22px", "default" ],
-          "offset": [ 20, 0 ],
+          "size": [ "100% - 18px", "default" ],
+          "offset": [ 17, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle",
           "bindings": [
@@ -557,8 +557,8 @@
           "text": "#form_button_text",
           "color": [ 1, 0.86, 0.5 ],
           "font_scale_factor": 0.8,
-          "size": [ "100% - 22px", "default" ],
-          "offset": [ 20, 0 ],
+          "size": [ "100% - 18px", "default" ],
+          "offset": [ 17, 0 ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle",
           "bindings": [

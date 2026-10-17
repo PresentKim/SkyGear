@@ -135,3 +135,56 @@ func TestCodexSearchAndLinks(t *testing.T) {
 		t.Errorf("cobblestone is crushed into gravel, links: %v", i)
 	}
 }
+
+// TestCodexRawAndGoals: the raw materials of an item follow the recipes down
+// (counting how many crafts a recipe needs), goals are kept to goalMax and the
+// quest panel shows their raw needs; the codex tabs have names.
+func TestCodexRawAndGoals(t *testing.T) {
+	s := testSession(t)
+	registerCreativeItems()
+	steel := item.NewStack(Ingot{Metal: MetalSteel}, 1)
+	counts := map[string]int{}
+	for _, l := range codexRaw(steel, 3) {
+		counts[itemKey(l.stack.Item())] = l.count
+	}
+	if counts[itemKey(item.IronIngot{})] != 3 || counts[itemKey(item.Coal{})] != 12 {
+		t.Errorf("3 steel need %v, want 3 iron and 12 coal", counts)
+	}
+	// an item no recipe makes is its own raw material
+	if raw := codexRaw(item.NewStack(item.Coal{}, 1), 5); len(raw) != 1 || raw[0].count != 5 {
+		t.Errorf("coal is raw: %v", raw)
+	}
+	s.world.Do(func(tx *world.Tx) {
+		for _, w := range []world.Item{Ingot{Metal: MetalSteel}, Ingot{Metal: MetalBronze}, Ingot{Metal: MetalInvar}, Ingot{Metal: MetalElectrum}} {
+			s.toggleGoal(tx, item.NewStack(w, 1))
+		}
+	})
+	if n := len(s.state.Goals); n != goalMax {
+		t.Fatalf("%d goals kept, want %d", n, goalMax)
+	}
+	if s.isGoal(steel) {
+		t.Error("the oldest goal was not pushed out")
+	}
+	rows := strings.Join(s.goalRows(), "\n")
+	if !strings.Contains(rows, itemName(item.NewStack(Ingot{Metal: MetalBronze}, 1))) {
+		t.Errorf("the quest rows lack the goal: %q", rows)
+	}
+	for tab := codexTab(0); tab < codexTabCount; tab++ {
+		if !i18n.Has(codexTabKeys[tab]) {
+			t.Errorf("codex tab %d has no name", tab)
+		}
+	}
+}
+
+// TestCodexMakers: the machine that makes an item is named on its page.
+func TestCodexMakers(t *testing.T) {
+	testSession(t)
+	registerCreativeItems()
+	found := false
+	for _, l := range codexMakers(item.NewStack(Ingot{Metal: MetalSteel}, 1)) {
+		found = found || itemKey(l.stack.Item()) == itemKey(Machine{Kind: KindAlloy})
+	}
+	if !found {
+		t.Error("steel is made in the alloy smelter")
+	}
+}

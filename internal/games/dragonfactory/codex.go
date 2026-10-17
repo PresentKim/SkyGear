@@ -26,42 +26,35 @@ func codexSieveInputs() []world.Item {
 	return []world.Item{block.Gravel{}, block.Sand{}, block.Dirt{}, Dust{}}
 }
 
-// openCodex opens the codex, or the page of the item p holds.
+// openCodex opens the codex: the page of the item p holds, else the page of
+// the block p looks at (the one the WAILA panel shows), else the first page.
 func (s *session) openCodex(p *player.Player) {
 	count(p, "codex_open", 1)
 	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
 		s.showCodexItem(p, held)
 		return
 	}
+	if tx := p.Tx(); tx != nil {
+		if _, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+			if it, isItem := b.(world.Item); isItem {
+				if e, found := codexItemByKey(itemKey(it)); found {
+					s.showCodexItem(p, e)
+					return
+				}
+			}
+		}
+	}
 	s.showCodex(p)
 }
 
-// showCodex is the front page of the codex.
-func (s *session) showCodex(p *player.Player) {
-	lang := i18n.Of(p)
-	opts := []ui.Option{
-		s.opt(i18n.T(lang, "codex.search"), iconOf(item.NewStack(item.Compass{}, 1)), func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, "") }),
-		s.opt(i18n.T(lang, "codex.sieve"), iconOf(machineItem(KindSieve)), func(p *player.Player, _ *world.Tx) { s.showCodexSieve(p) }),
-		s.opt(i18n.T(lang, "codex.process"), iconOf(machineItem(KindAlloy)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.process", s.codexProcessLines(lang)) }),
-		s.opt(i18n.T(lang, "codex.mobs"), iconOf(machineItem(KindGate)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.mobs", s.codexMobLines(lang)) }),
-		s.opt(i18n.T(lang, "codex.plants"), iconOf(item.NewStack(Petal{Colour: "red"}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexPlants(p, 0) }),
-		s.opt(i18n.T(lang, "codex.gear"), iconOf(machineItem(KindTinker)), func(p *player.Player, _ *world.Tx) { s.showCodexText(p, "codex.gear", codexGearLines(lang)) }),
-		s.opt(i18n.T(lang, "codex.hand"), iconOf(item.NewStack(item.Book{}, 1)), func(p *player.Player, _ *world.Tx) {
-			if held, _ := p.HeldItems(); !held.Empty() {
-				s.showCodexItem(p, held)
-				return
-			}
-			s.showCodexText(p, "codex.hand", []string{i18n.T(lang, "codex.hand.none")})
-		}),
-	}
-	ui.CardMenu(p, i18n.T(lang, "codex.title"), i18n.T(lang, "codex.body"), append(opts, s.backOption())...)
-}
+// showCodex is the front page of the codex: the search tab.
+func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "", 0) }
 
-// showCodexText shows lines under a title key with a way back to the codex.
-func (s *session) showCodexText(p *player.Player, key string, lines []string) {
+// showCodexText shows lines under a title key on a tab.
+func (s *session) showCodexText(p *player.Player, tab codexTab, key string, lines []string) {
 	lang := i18n.Of(p)
-	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, key), strings.Join(lines, "\n"),
-		s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))
+	opts := append(s.codexTabs(p, tab), s.backOption())
+	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, key), strings.Join(lines, "\n"), opts...)
 }
 
 // showCodexSieve asks which block to sift.
@@ -71,7 +64,8 @@ func (s *session) showCodexSieve(p *player.Player) {
 	for _, in := range codexSieveInputs() {
 		opts = append(opts, s.opt("§f"+itemName(item.NewStack(in, 1)), iconOf(item.NewStack(in, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexMesh(p, in) }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))
+	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
+	opts = append(opts, s.backOption())
 	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.sieve"), i18n.T(lang, "codex.sieve.pick"), opts...)
 }
 
@@ -82,13 +76,15 @@ func (s *session) showCodexMesh(p *player.Player, in world.Item) {
 	for _, t := range meshTiers {
 		opts = append(opts, s.opt("§f"+meshName(t.tier), iconOf(item.NewStack(Mesh{Tier: t.tier}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexDrops(p, in, t.tier) }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodexSieve(p) }))
+	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
+	opts = append(opts, s.codexBackTo(p, s.showCodexSieve))
 	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+itemName(item.NewStack(in, 1)), i18n.T(lang, "codex.mesh.pick"), opts...)
 }
 
 // showCodexDrops lists what a mesh finds in a block.
 func (s *session) showCodexDrops(p *player.Player, in world.Item, tier string) {
 	lang := i18n.Of(p)
+	s.codexRemember(p, func(p *player.Player) { s.showCodexDrops(p, in, tier) })
 	drops := append([]SieveDrop(nil), sieveTables[tier][itemKey(in)]...)
 	sort.SliceStable(drops, func(i, j int) bool { return drops[i].Permille > drops[j].Permille })
 	var slots []ui.ItemSlot
@@ -101,7 +97,7 @@ func (s *session) showCodexDrops(p *player.Player, in world.Item, tier string) {
 	}
 	title := fmt.Sprintf(i18n.T(lang, "codex.sieve.list"), itemName(item.NewStack(in, 1)), meshName(tier))
 	ui.ItemGrid(p, title, i18n.T(lang, "codex.sieve.listBody"), slots,
-		s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodexMesh(p, in) }))
+		append(s.codexTabs(p, codexSieveTab), s.codexBackTo(p, func(p *player.Player) { s.showCodexMesh(p, in) }))...)
 }
 
 // codexProcessLines are the crusher chain, the ore doubling and the alloys.
@@ -217,9 +213,10 @@ func (s *session) showCodexPlants(p *player.Player, page int) {
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, seed) },
 		})
 	}
+	s.codexRemember(p, func(p *player.Player) { s.showCodexPlants(p, page) })
 	slots, turns := s.slotPage(p, slots, page, s.showCodexPlants)
 	ui.ItemGrid(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.plants"), i18n.T(lang, "codex.plants.body"), slots,
-		append(turns, s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))...)
+		append(append(turns, s.codexTabs(p, codexPlantsTab)...), s.backOption())...)
 }
 
 // codexGearLines are the head and handle materials and the modifiers of tools.
@@ -425,12 +422,23 @@ func (s *session) showCodexItem(p *player.Player, it item.Stack) {
 		}
 		return out
 	}
-	body := strings.Join(append(section(i18n.T(lang, "codex.item.sources"), sources), append([]string{""}, section(i18n.T(lang, "codex.item.uses"), uses)...)...), "\n")
+	parts := append(section(i18n.T(lang, "codex.item.sources"), sources), append([]string{""}, section(i18n.T(lang, "codex.item.uses"), uses)...)...)
+	if raw := s.codexRawLines(p, lang, it); len(raw) > 0 {
+		parts = append(append(parts, ""), append([]string{"§e" + i18n.T(lang, "codex.item.raw")}, raw...)...)
+	}
+	body := strings.Join(parts, "\n")
 	title := i18n.T(lang, "codex.title") + " · " + itemName(it)
-	back := s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) })
-	search := s.opt(i18n.T(lang, "codex.search"), "", func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, "") })
+	s.codexSeen(p, it)
+	var chrome []ui.Option
+	if g, ok := s.goalOption(p, it); ok {
+		chrome = append(chrome, g)
+	}
+	chrome = append(append(chrome, s.codexTabs(p, codexNoTab)...), s.codexBack(p))
 	from, into := codexLinks(it)
 	var sections []ui.GridSection
+	if makers := codexMakers(it); len(makers) > 0 {
+		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeIn"), Slots: s.codexLinkSlots(makers)})
+	}
 	if len(from) > 0 {
 		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeFrom"), Slots: s.codexLinkSlots(from)})
 	}
@@ -438,10 +446,10 @@ func (s *session) showCodexItem(p *player.Player, it item.Stack) {
 		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeInto"), Slots: s.codexLinkSlots(into)})
 	}
 	if len(sections) == 0 {
-		ui.Menu(p, title, body, search, back)
+		ui.Menu(p, title, body, chrome...)
 		return
 	}
-	ui.ItemGridSections(p, title, body, sections, search, back)
+	ui.ItemGridSections(p, title, body, sections, chrome...)
 }
 
 // codexCmd is /도감 (and /codex).

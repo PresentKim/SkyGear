@@ -55,6 +55,9 @@ type State struct {
 	// AlertsOn are the accounts that turned the stall alerts on; they are
 	// off until then (monitor.go).
 	AlertsOn map[string]bool `json:"alerts_on,omitempty"`
+	// Goals are the item keys the players chose to make; the quest panel
+	// shows what they take (codexgoal.go).
+	Goals []string `json:"goals,omitempty"`
 	// LastSapling is when /묘목 last gave a sapling (real time).
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }

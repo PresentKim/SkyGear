@@ -45,6 +45,6 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 
 ## 이 방식의 한계와 확장
 
-- 칸 컬렉션이 있는 화면에서만 된다. 서버 폼의 칸(연구·분실물·스토리지 목록)은 버튼이라 템플릿이 다르다. 폼에 넣으려면 칸 버튼의 글에 같은 표식을 넣고 `gslot_button` 에 같은 식의 컨트롤을 하나 두면 되지만, 칸마다 컨트롤이 늘어 렉이 날 수 있어 [codex-jei.md](codex-jei.md) 의 규칙대로 재 본 뒤에 넣는다.
+- 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 서버 폼의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 버튼이라 따로 한다: 칸의 호버 글 첫 줄에 같은 표식을 넣고(`tipName`), 테마의 `gslot_button` 이 칸마다 컨트롤 하나(`gslot_deco`)로 테두리와 배지를 한 그림(`textures/ui/df/deco_<등급>_<전면>.png`, 22×22 34장)으로 고른다. 이 그림은 `slotdeco` 팩이 아니라 `dragonfactory` 팩에 있어 `SlotDeco` 설정과 상관없다. 그림은 `go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/dragonfactory` 가 만든다.
 - 한 칸에 컨트롤 둘이 늘어 칸 수에 비례해 비용이 든다. 인벤토리 보기(72칸)처럼 칸이 많은 창은 실기에서 열릴 때 지연을 본다.
 - 새 값(배지)을 늘리려면 `slotdeco` 의 번호와 `front_N.png`, 팩의 식 두 곳을 같이 늘린다.

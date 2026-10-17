@@ -30,6 +30,7 @@ func (s *session) updateBoard(p *player.Player) {
 	for _, r := range rows {
 		b.Add(hud.Quest, r)
 	}
+	s.addGoalRows(&b)
 	b.Send(p)
 }
 
