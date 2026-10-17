@@ -20,7 +20,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -2662,6 +2662,325 @@
     "type": "panel",
     "size": [ "100%", 32 ],
     "controls": [ { "button@df_form.list_button": {} } ]
+  },
+
+  // ---- split form (title starts with §d§f§y§r, Go ui.SplitMenu) ----
+  // Left: tabs, a grid of 40 cells (8×5: slots, the chosen slot, empty
+  // frames), page buttons. Right: the detail of the chosen slot (card,
+  // actions, text, two rows of slots). The grid is the first 40 buttons.
+  // The chosen slot of the split grid.
+  "vis_gslot_sel": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§s§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // An empty frame of the split grid.
+  "vis_gslot_empty": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§t§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // A page button under the split grid.
+  "vis_pager": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§u§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "marked_pager": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.pager_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+
+  // Wider tabs for the split form (two of them fit over its grid).
+  "split_tab_button@df_form.tab_button": {
+    "size": [ 96, 22 ]
+  },
+  "split_tab_item@df_form.vis_tab": {
+    "type": "panel",
+    "size": [ 98, 24 ],
+    "controls": [ { "button@df_form.split_tab_button": {} } ]
+  },
+  "marked_split_tabs": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.split_tab_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+  "split_tabs": {
+    "type": "panel",
+    "size": [ "100%", "100%cm" ],
+    "controls": [
+      {
+        "strip@df_form.marked_split_tabs": {
+          "orientation": "horizontal",
+          "size": [ "100%", "100%cm" ]
+        }
+      }
+    ]
+  },
+
+  "gslot_sel_button@df_form.gslot_button": {
+    "controls": [
+      { "default@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } },
+      { "deco@df_form.gslot_deco": {} }
+    ]
+  },
+
+  "split_cell": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [
+      { "slot@df_form.split_slot": {} },
+      { "chosen@df_form.split_chosen": {} },
+      { "empty@df_form.split_empty": {} }
+    ]
+  },
+  "split_slot@df_form.vis_gslot_w": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [ { "slot@df_form.gslot_button": {} } ]
+  },
+  "split_chosen@df_form.vis_gslot_sel": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [ { "slot@df_form.gslot_sel_button": {} } ]
+  },
+  "split_empty@df_form.vis_gslot_empty": {
+    "type": "panel",
+    "size": [ 24, 24 ],
+    "controls": [
+      { "bg": { "type": "image", "texture": "textures/ui/df/slot", "size": [ 22, 22 ] } }
+    ]
+  },
+
+  "pager_item@df_form.vis_pager": {
+    "type": "panel",
+    "size": [ 96, 22 ],
+    "controls": [ { "button@df_form.list_button": { "size": [ "100%", "100%" ] } } ]
+  },
+
+  "split_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "window@df_form.window": {
+          "$df_window_size": [ 500, "88%" ],
+          "$df_content": "df_form.split_scroll"
+        }
+      }
+    ]
+  },
+
+  "split_scroll@common.scrolling_panel": {
+    "anchor_to": "top_left",
+    "anchor_from": "top_left",
+    "$show_background": false,
+    "size": [ "100%", "100%" ],
+    "$scrolling_content": "df_form.split_content",
+    "$scroll_size": [ 4, "100% - 4px" ],
+    "$scrolling_pane_size": [ "100% - 6px", "100%" ],
+    "$scrolling_pane_offset": [ 0, 0 ],
+    "$scroll_bar_right_padding_size": [ 0, 0 ]
+  },
+
+  "split_content": {
+    "type": "stack_panel",
+    "size": [ "100% - 6px", "100%cm" ],
+    "orientation": "horizontal",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "left": {
+          "type": "image",
+          "texture": "textures/ui/df/panel",
+          "size": [ 212, "100%c + 12px" ],
+          "controls": [
+            {
+              "inner": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "size": [ "100% - 12px", "100%c" ],
+                "offset": [ 6, 6 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  { "tabs@df_form.split_tabs": {} },
+                  { "tabgap": { "type": "panel", "size": [ "100%", 6 ] } },
+                  {
+                    "grid": {
+                      "type": "grid",
+                      "size": [ 192, 120 ],
+                      "anchor_from": "top_middle",
+                      "anchor_to": "top_middle",
+                      "grid_dimensions": [ 8, 5 ],
+                      "maximum_grid_items": 40,
+                      "grid_item_template": "df_form.split_cell",
+                      "collection_name": "form_buttons"
+                    }
+                  },
+                  { "gap": { "type": "panel", "size": [ "100%", 6 ] } },
+                  {
+                    "pager@df_form.marked_pager": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%c" ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      { "gap": { "type": "panel", "size": [ 8, 1 ] } },
+      {
+        "right": {
+          "type": "image",
+          "texture": "textures/ui/df/panel",
+          "size": [ "fill", "100%c + 12px" ],
+          "controls": [
+            {
+              "inner": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "size": [ "100% - 12px", "100%c" ],
+                "offset": [ 6, 6 ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "controls": [
+                  {
+                    "card": {
+                      "type": "stack_panel",
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ],
+                      "controls": [
+                        {
+                          "icon@df_form.marked_gdetail_icon": {
+                            "orientation": "horizontal",
+                            "size": [ "100%c", "100%cm" ]
+                          }
+                        },
+                        { "gap": { "type": "panel", "size": [ 6, 1 ] } },
+                        {
+                          "info": {
+                            "type": "stack_panel",
+                            "orientation": "vertical",
+                            "size": [ "fill", "100%c" ],
+                            "controls": [
+                              {
+                                "name@df_form.marked_gdetail_name": {
+                                  "orientation": "vertical",
+                                  "size": [ "100%", "100%c" ]
+                                }
+                              },
+                              { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
+                              {
+                                "actions@df_form.marked_actions": {
+                                  "orientation": "vertical",
+                                  "size": [ "100%", "100%c" ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+                  {
+                    "body": {
+                      "type": "panel",
+                      "size": [ "100%", "100%c" ],
+                      "controls": [ { "label@df_form.body_label": {} } ]
+                    }
+                  },
+                  { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+                  {
+                    "head1@df_form.marked_gslot_h1": {
+                      "orientation": "vertical",
+                      "size": [ "100%", "100%c" ]
+                    }
+                  },
+                  {
+                    "row_a@df_form.marked_gslot_a": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  },
+                  { "gap": { "type": "panel", "size": [ "100%", 10 ] } },
+                  {
+                    "head2@df_form.marked_gslot_h2": {
+                      "orientation": "vertical",
+                      "size": [ "100%", "100%c" ]
+                    }
+                  },
+                  {
+                    "row_b@df_form.marked_gslot_b": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
   },
 
   // ---- probe (title starts with §d§f§x§r, command /formprobe) ----

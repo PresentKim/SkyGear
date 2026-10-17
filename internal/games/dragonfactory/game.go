@@ -122,7 +122,11 @@ type session struct {
 	lastLook map[*world.EntityHandle]time.Time
 	// codexLast is the list page of the codex each player came from, and
 	// codexRecent the items they looked at last (codextabs.go).
-	codexLast   map[*world.EntityHandle]func(*player.Player)
+	codexLast map[*world.EntityHandle]func(*player.Player)
+	// copies are test copies of researches for the research screen and
+	// copiesDone the ones marked done (research.go isCopy).
+	copies      []*Research
+	copiesDone  map[string]bool
 	codexRecent map[*world.EntityHandle][]item.Stack
 	// urgentBarShown is whether the urgent mission boss bar is up.
 	urgentBarShown bool

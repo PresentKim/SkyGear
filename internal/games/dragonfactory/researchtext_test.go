@@ -10,9 +10,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
-// TestEveryResearchIsExplained: a research with no text leaves the player
-// without a next step (the stick research once gave no hint where pebbles
-// come from).
+// TestEveryResearchIsExplained: every research has its texts.
 func TestEveryResearchIsExplained(t *testing.T) {
 	for _, r := range researchTree {
 		for _, f := range append([]string{"name"}, researchTextFields...) {
@@ -34,21 +32,14 @@ func TestEveryResearchIsExplained(t *testing.T) {
 	}
 }
 
-// TestResearchScreenShowsHints: the open research shows its hint in the form, the done
-// research what to do next.
-func TestResearchScreenShowsHints(t *testing.T) {
+// TestResearchScreenHasNoHints: the research screen explains what a research
+// is, not what to do next (the advancements say that).
+func TestResearchScreenHasNoHints(t *testing.T) {
 	s := testSession(t)
 	r, _ := researchByID("stick")
 	d, _, _ := s.researchNode(nil, r)
-	body := d.Body
-	if !strings.Contains(body, researchText(i18n.Default, "stick").Hint) {
-		t.Errorf("open research without its hint: %q", body)
-	}
-	s.state.Researched = map[string]bool{"stick": true}
-	d, _, _ = s.researchNode(nil, r)
-	body = d.Body
-	if !strings.Contains(body, researchText(i18n.Default, "stick").After) {
-		t.Errorf("done research without its next step: %q", body)
+	if d.Body != "§f"+researchText(i18n.Default, "stick").About+"\n" {
+		t.Errorf("body %q", d.Body)
 	}
 }
 

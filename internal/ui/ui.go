@@ -373,6 +373,15 @@ const (
 	// (ColumnsMenu).
 	ColumnsToken = "§d§f§j§r"
 
+	// SplitToken starts the title of a form with a grid of slots on the left
+	// and the detail of the chosen one on the right (SplitMenu).
+	SplitToken = "§d§f§y§r"
+	// slotSelToken marks the chosen slot of a SplitMenu, slotEmptyToken an
+	// empty frame that fills the grid, pagerToken a page button under it.
+	slotSelToken   = "§0§s§r"
+	slotEmptyToken = "§0§t§r"
+	pagerToken     = "§0§u§r"
+
 	// colsATok and colsAmTok mark the full slots and mini buttons of the left
 	// column of a ColumnsMenu, colsBTok and colsBmTok those of the right one.
 	colsATok  = "§0§k§r"
@@ -411,9 +420,78 @@ const (
 type ItemSlot struct {
 	Icon, Count, Tip string
 	Run              func(p *player.Player, tx *world.Tx)
+	// Selected draws the slot of a SplitMenu as the chosen one.
+	Selected bool
 	// Mini makes a ColumnsMenu slot a small button without a slot frame, drawn
 	// beside the slot before it.
 	Mini bool
+}
+
+// SplitCells is how many cells the grid of a SplitMenu has (8 columns, 5 rows).
+const SplitCells = 40
+
+// splitColumns is the number of columns of the grid.
+const splitColumns = 8
+
+// Split is the content of a SplitMenu.
+type Split struct {
+	// Tabs are the tab buttons over the grid (Tab).
+	Tabs []Option
+	// Slots are the cells of the grid, at most SplitCells; the rest of the
+	// grid shows empty frames. One may be Selected.
+	Slots []ItemSlot
+	// Pager are the page buttons under the grid (Pager).
+	Pager []Option
+	// Detail, Rows and Actions are what ItemDetail shows for the chosen slot:
+	// the card with the body text under it, two headed rows of slots and the
+	// action buttons.
+	Detail  Detail
+	Rows    []SlotRow
+	Actions []Option
+}
+
+// SplitMenu sends a form with the grid of Slots and the tabs and page buttons
+// of the grid on the left and the Detail of the chosen slot on the right. The
+// cells of the grid come first among the buttons, so the grid is the first
+// SplitCells buttons; any press answers the form: Run must show a form again.
+func SplitMenu(p *player.Player, title string, sp Split) {
+	nop := func(*player.Player, *world.Tx) {}
+	opts := make([]Option, 0, SplitCells+len(sp.Actions)+16)
+	for i := range SplitCells {
+		if i >= len(sp.Slots) {
+			opts = append(opts, Option{Label: slotEmptyToken, Run: nop})
+			continue
+		}
+		marker := slotWToken
+		if sp.Slots[i].Selected {
+			marker = slotSelToken
+		}
+		opts = append(opts, slotOption(marker, false, sp.Slots[i]))
+	}
+	opts = append(opts, actionOptions(sp.Actions)...)
+	name := sp.Detail.Name
+	if sp.Detail.Status != "" {
+		name += "\n" + sp.Detail.Status
+	}
+	opts = append(opts, Option{Label: detailMarker + name, Icon: sp.Detail.Icon, Run: nop})
+	kinds := [2][2]string{{head1Token, slotAToken}, {head2Token, slotBToken}}
+	for i, row := range sp.Rows {
+		if i >= len(kinds) {
+			break
+		}
+		if row.Heading != "" {
+			opts = append(opts, Option{Label: kinds[i][0] + row.Heading, Run: nop})
+		}
+		for j, sl := range row.Slots {
+			opts = append(opts, slotOption(kinds[i][1], j >= tipLeftSlots, sl))
+		}
+	}
+	opts = append(opts, sp.Tabs...)
+	for _, o := range sp.Pager {
+		o.Label = pagerToken + o.Label
+		opts = append(opts, o)
+	}
+	Menu(p, SplitToken+title, sp.Detail.Body, opts...)
 }
 
 // SlotRow is a heading with a row of slots (at most 8 fit).

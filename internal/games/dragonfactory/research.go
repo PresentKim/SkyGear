@@ -47,8 +47,22 @@ var (
 	stick     = item.Stick{}
 )
 
-// Title is the name of the research in lang (the catalog, i18n).
-func (r *Research) Title(lang string) string { return i18n.T(lang, "research."+r.ID+".name") }
+// Title is the name of the research in lang (the catalog, i18n). A test copy
+// (copyOf) has its original's name and its number.
+func (r *Research) Title(lang string) string {
+	id, n, copied := strings.Cut(r.ID, "#")
+	name := i18n.T(lang, "research."+id+".name")
+	if copied {
+		name += " #" + n
+	}
+	return name
+}
+
+// isCopy reports whether the research is a test copy of another one: the
+// operator's /dfadmin research load makes hundreds of them to try the research
+// screen with a long list. They live in the session only, are never saved and
+// cost nothing.
+func (r *Research) isCopy() bool { return strings.Contains(r.ID, "#") }
 
 // langOf is the catalog language of p (the default for a nil p).
 func langOf(p *player.Player) string {
@@ -237,7 +251,12 @@ func unlockName(n string) string {
 }
 
 // researched reports whether the save has done a research.
-func (s *session) researched(id string) bool { return s.state.Researched[id] }
+func (s *session) researched(id string) bool {
+	if strings.Contains(id, "#") {
+		return s.copiesDone[id]
+	}
+	return s.state.Researched[id]
+}
 
 // researchOpen reports whether a research can be done: not done yet and
 // everything it needs is done.
@@ -350,11 +369,7 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	s.updateBoards(tx)
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		after := researchText(langOf(p), r.ID).After
 		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(r))
-		if after != "" {
-			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), after)
-		}
 	}
 }
 
@@ -385,33 +400,183 @@ func researchIcon(r *Research) string {
 	return iconMission
 }
 
-// showResearch shows the research list.
+// showResearch shows the research screen.
 func (s *session) showResearch(p *player.Player) {
 	count(p, "research_open", 1)
-	s.showResearchList(p, false)
+	s.showResearchSplit(p, researchView{})
 }
 
-// showResearchList shows the research list as a grid of item slots (the
-// representative item of each research) in two headed sections, the
-// researches still to do and the done ones. The explanation is the tooltip
-// of the "?" button in the title bar; pressing it (touch) shows it as the
-// body text of the form.
-func (s *session) showResearchList(p *player.Player, help bool) {
-	lang := i18n.Of(p)
-	todo, done, todoN, doneN := s.researchSlots(p)
-	tip := i18n.T(lang, "dragonfactory.research.researchList.1")
-	body := ""
-	if help {
-		body = tip
+// researchView is what the research screen shows: the tab (0 to do, 1 done),
+// the page of the grid and the chosen research ("" the first of the tab);
+// help shows the explanation as the text of the form.
+type researchView struct {
+	tab, page int
+	sel       string
+	help      bool
+}
+
+// researchKind is how a research stands.
+type researchKind int
+
+const (
+	researchTodo researchKind = iota
+	researchPreview
+	researchDone
+)
+
+// researchEntry is a research with how it stands.
+type researchEntry struct {
+	r    *Research
+	kind researchKind
+}
+
+// researchEntries are the researches of the tabs: the ones to do (those that
+// can be done now first, then the grey ones a step from open) and the done
+// ones. A research is hidden until everything before it is done, so the tree
+// is found step by step. openN is how many are to do without the grey ones.
+func (s *session) researchEntries() (todo, done []researchEntry, openN int) {
+	var previews []researchEntry
+	for i := range researchTree {
+		r := &researchTree[i]
+		switch {
+		case s.researched(r.ID):
+			done = append(done, researchEntry{r, researchDone})
+		case s.researchOpen(r):
+			openN++
+			todo = append(todo, researchEntry{r, researchTodo})
+		default:
+			if _, ok := s.researchBlocker(r); ok {
+				previews = append(previews, researchEntry{r, researchPreview})
+			}
+		}
 	}
-	ui.ItemGridSections(p, i18n.T(lang, "dragonfactory.research.showResearchTab.1"), body, []ui.GridSection{
-		{Heading: fmt.Sprintf(i18n.T(lang, "dragonfactory.research.researchList.4"), todoN), Slots: todo},
-		{Heading: fmt.Sprintf(i18n.T(lang, "dragonfactory.research.researchList.5"), doneN), Slots: done},
-	}, ui.Help(tip, func(p *player.Player, tx *world.Tx) {
+	for _, r := range s.copies {
+		if s.researched(r.ID) {
+			done = append(done, researchEntry{r, researchDone})
+		} else {
+			openN++
+			todo = append(todo, researchEntry{r, researchTodo})
+		}
+	}
+	return append(todo, previews...), done, openN
+}
+
+// researchSlot is the grid slot of a research. The tooltip of a research to
+// do is its name in yellow, in green when p has all it spends and can do it
+// now. p may be nil.
+func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *player.Player, tx *world.Tx)) ui.ItemSlot {
+	r := e.r
+	switch e.kind {
+	case researchDone:
+		return ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show}
+	case researchTodo:
+		colour := "§e"
+		if p != nil && len(s.researchMissing(p, r)) == 0 {
+			colour = "§a"
+		}
+		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show}
+	}
+	return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§8", r), Run: show}
+}
+
+// showResearchSplit shows the research screen (ui.SplitMenu): on the left
+// the tabs, the grid of researches and the page buttons, on the right the
+// research chosen. Choosing a research, a tab or a page shows the screen
+// again.
+func (s *session) showResearchSplit(p *player.Player, v researchView) {
+	lang := i18n.Of(p)
+	todo, done, openN := s.researchEntries()
+	list := todo
+	if v.tab == 1 {
+		list = done
+	}
+	idx := -1
+	for i, e := range list {
+		if e.r.ID == v.sel {
+			idx = i
+		}
+	}
+	pages := max(1, (len(list)+ui.SplitCells-1)/ui.SplitCells)
+	switch {
+	case idx >= 0:
+		v.page = idx / ui.SplitCells
+	case len(list) > 0:
+		v.page = max(0, min(v.page, pages-1))
+		idx = v.page * ui.SplitCells
+		v.sel = list[idx].r.ID
+	default:
+		v.sel = ""
+	}
+	pick := func(tab, page int, sel string) func(p *player.Player, _ *world.Tx) {
+		return func(p *player.Player, _ *world.Tx) {
+			s.showResearchSplit(p, researchView{tab: tab, page: page, sel: sel})
+		}
+	}
+	var slots []ui.ItemSlot
+	for i := v.page * ui.SplitCells; i < min(len(list), (v.page+1)*ui.SplitCells); i++ {
+		e := list[i]
+		sl := s.researchSlot(p, e, pick(v.tab, v.page, e.r.ID))
+		sl.Selected = e.r.ID == v.sel
+		slots = append(slots, sl)
+	}
+	tab := func(key string, n int, icon string, t int) ui.Option {
+		o := ui.Tab(fmt.Sprintf(i18n.T(lang, key), n), icon, v.tab == t, pick(t, 0, ""))
+		return s.opt(o.Label, o.Icon, o.Run)
+	}
+	sp := ui.Split{
+		Tabs: []ui.Option{
+			tab("researchtab.todo", openN, iconMission, 0),
+			tab("researchtab.done", len(done), iconDone, 1),
+		},
+		Slots: slots,
+		Pager: s.guard(ui.Pager(p, v.page, pages, func(p *player.Player, tx *world.Tx, to int) {
+			s.showResearchSplit(p, researchView{tab: v.tab, page: to})
+		})),
+	}
+	tip := i18n.T(lang, "dragonfactory.research.researchList.1")
+	if idx >= 0 {
+		again := func(p *player.Player) { s.showResearchSplit(p, v) }
+		finished := func(p *player.Player) { s.showResearchSplit(p, researchView{tab: v.tab, page: v.page}) }
+		goTo := func(p *player.Player, r *Research) { s.showResearchAt(p, r) }
+		d, rows, opts := s.researchNodeWith(p, list[idx].r, again, finished, goTo)
+		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
+	}
+	if v.help {
+		sp.Detail.Body = tip
+	}
+	sp.Actions = append(sp.Actions, ui.Help(tip, func(p *player.Player, tx *world.Tx) {
 		if tx.World() == s.world {
-			s.showResearchList(p, !help)
+			v.help = !v.help
+			s.showResearchSplit(p, v)
 		}
 	}), s.backOption())
+	ui.SplitMenu(p, i18n.T(lang, "dragonfactory.research.showResearchTab.1"), sp)
+}
+
+// showResearchAt shows the research screen with a research chosen, on the tab
+// it belongs to.
+func (s *session) showResearchAt(p *player.Player, r *Research) {
+	v := researchView{sel: r.ID}
+	if s.researched(r.ID) {
+		v.tab = 1
+	}
+	s.showResearchSplit(p, v)
+}
+
+// researchSlots builds the two sections of the research list: the slots of the
+// researches to do and of the done ones, with how many are to do (without the
+// grey ones) and done. p may be nil.
+func (s *session) researchSlots(p *player.Player) (todo, done []ui.ItemSlot, todoN, doneN int) {
+	todoE, doneE, openN := s.researchEntries()
+	for _, e := range todoE {
+		r := e.r
+		todo = append(todo, s.researchSlot(p, e, func(p *player.Player, _ *world.Tx) { s.showResearchAt(p, r) }))
+	}
+	for _, e := range doneE {
+		r := e.r
+		done = append(done, s.researchSlot(p, e, func(p *player.Player, _ *world.Tx) { s.showResearchAt(p, r) }))
+	}
+	return todo, done, openN, len(doneE)
 }
 
 // researchTip is the hover text of a research in the list: its name in
@@ -424,50 +589,25 @@ func researchTip(lang, colour string, r *Research) string {
 	return tip
 }
 
-// researchSlots builds the two sections of the research list. A research is
-// hidden until everything before it is done, so the tree is found step by
-// step; the ones a step from open follow the open ones in grey. The tooltip
-// of a research to do is its name in yellow, in green when p has all it
-// spends and can do it now. p may be nil. The counts are the researches to
-// do (without the grey ones) and the done ones.
-func (s *session) researchSlots(p *player.Player) (todo, done []ui.ItemSlot, todoN, doneN int) {
-	var previews []ui.ItemSlot
-	for i := range researchTree {
-		r := &researchTree[i]
-		show := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
-		switch {
-		case s.researched(r.ID):
-			doneN++
-			done = append(done, ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show})
-		case s.researchOpen(r):
-			todoN++
-			colour := "§e"
-			if p != nil && len(s.researchMissing(p, r)) == 0 {
-				colour = "§a"
-			}
-			todo = append(todo, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show})
-		default:
-			if _, ok := s.researchBlocker(r); ok {
-				previews = append(previews, ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§8", r), Run: show})
-			}
-		}
-	}
-	return append(todo, previews...), done, todoN, doneN
-}
+// showResearchNode shows one research on the research screen.
+func (s *session) showResearchNode(p *player.Player, r *Research) { s.showResearchAt(p, r) }
 
-// showResearchNode shows one research as an item detail form
-// (ui.ItemDetail): on the left its big item, name, the research button (or
-// "연구 완료") and what it is for; on the right the materials it spends and
-// the recipes it opens as item slots (the count at the bottom right, the
-// name and owned count in the tooltip).
-func (s *session) showResearchNode(p *player.Player, r *Research) {
-	d, rows, opts := s.researchNode(p, r)
-	ui.ItemDetail(p, i18n.T(i18n.Of(p), "dragonfactory.research.showResearchNode.1")+r.Title(langOf(p)), d, rows, opts...)
-}
-
-// researchNode builds the screen of a research. p may be nil (the owned
-// counts are then left out).
+// researchNode builds the screen of a research with a way back to the
+// research screen. p may be nil (the owned counts are then left out).
 func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
+	d, rows, opts := s.researchNodeWith(p, r,
+		func(p *player.Player) { s.showResearchAt(p, r) },
+		func(p *player.Player) { s.showResearch(p) },
+		func(p *player.Player, n *Research) { s.showResearchAt(p, n) })
+	back := ui.Back(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.13"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
+	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
+}
+
+// researchNodeWith builds the detail of a research: the card, the text, the
+// materials and the recipes it opens, and the buttons to do it and to go to
+// what it needs. redo shows the screen again, finished shows it after the
+// research was done, goTo shows another research. p may be nil.
+func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	txt := researchText(langOf(p), r.ID)
 	done := s.researched(r.ID)
 	var b strings.Builder
@@ -479,19 +619,18 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 	switch {
 	case done:
 		d.Status = i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.1")
-		if txt.After != "" {
-			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.2"), txt.After)
-		}
 	case s.researchOpen(r):
-		if txt.Hint != "" {
-			fmt.Fprintf(&b, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.3"), txt.Hint)
-		}
 		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.4"), iconMission, func(p *player.Player, tx *world.Tx) {
+			if r.isCopy() {
+				s.copiesDone[r.ID] = true
+				finished(p)
+				return
+			}
 			missing, ok := s.doResearch(p, tx, r)
 			switch {
 			case ok:
 				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.5"))
-				s.showResearch(p)
+				finished(p)
 				return
 			case len(missing) > 0:
 				var names []string
@@ -500,17 +639,17 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 				}
 				ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.6"), strings.Join(names, ", "))
 			}
-			s.showResearchNode(p, r)
+			redo(p)
 		}))
 	}
 	// What is still to do before it: a button that goes to that research.
 	for _, n := range r.Needs {
 		if need, ok := researchByID(n); ok && !done && !s.researched(n) {
-			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(langOf(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, need) }))
+			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(langOf(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
 		}
 	}
 	d.Body = b.String()
-	again := func(p *player.Player, _ *world.Tx) { s.showResearchNode(p, r) }
+	again := func(p *player.Player, _ *world.Tx) { redo(p) }
 	// The materials: the count shown is what the research spends (green
 	// once p has enough, or the research is done); the tooltip says what
 	// p has.
@@ -543,8 +682,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: tipName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10"), Run: again})
 	}
 	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
-	back := ui.Back(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.13"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
-	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
+	return d, rows, opts
 }
 
 // ResearchTable is the block where research is done. It is crafted from two

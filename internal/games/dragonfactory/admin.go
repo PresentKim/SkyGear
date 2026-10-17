@@ -299,7 +299,7 @@ func (c adminWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.registerAdmin.1"), nil,
-		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}, adminWave{adminBase: b}))
+		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminResearchRandom{adminBase: b}, adminResearchLoad{adminBase: b}, adminAdvance{adminBase: b}, adminWave{adminBase: b}))
 }
 
 // expandViewEnum names an expansion view (expand.go expandViews).
@@ -366,6 +366,65 @@ func (researchEnum) Options(cmd.Source) []string {
 		opts = append(opts, r.ID)
 	}
 	return opts
+}
+
+// adminResearchRandom marks a share of the researches done, picked at random
+// (percent, 50 by default; the order of the tree is ignored), to fill both
+// tabs of the research screen with a mix.
+type adminResearchRandom struct {
+	adminBase
+	Sub     cmd.SubCommand    `cmd:"research"`
+	Random  cmd.SubCommand    `cmd:"random"`
+	Percent cmd.Optional[int] `cmd:"percent"`
+}
+
+func (c adminResearchRandom) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	_, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	pct := max(0, min(100, c.Percent.LoadOr(50)))
+	s.state.Researched, s.state.ResearchPaid = nil, nil
+	n := 0
+	for i := range researchTree {
+		if s.rand.IntN(100) < pct {
+			s.completeResearch(tx, &researchTree[i])
+			n++
+		}
+	}
+	for _, r := range s.copies {
+		s.copiesDone[r.ID] = s.rand.IntN(100) < pct
+	}
+	s.storeState()
+	s.sendRecipes(tx)
+	s.updateBoards(tx)
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.researchRandom"), n, len(researchTree), pct)
+}
+
+// adminResearchLoad makes count test copies of the researches (0 removes them)
+// for trying the research screen with a long list; each is done or not at
+// random. The copies are not saved and cost nothing.
+type adminResearchLoad struct {
+	adminBase
+	Sub   cmd.SubCommand `cmd:"research"`
+	Load  cmd.SubCommand `cmd:"load"`
+	Count int            `cmd:"count"`
+}
+
+func (c adminResearchLoad) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	_, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	s.copies, s.copiesDone = nil, map[string]bool{}
+	for i := range max(0, min(c.Count, 2000)) {
+		r := researchTree[i%len(researchTree)]
+		r.ID = fmt.Sprintf("%s#%d", r.ID, i+1)
+		r.Needs = nil
+		s.copies = append(s.copies, &r)
+		s.copiesDone[r.ID] = s.rand.IntN(2) == 0
+	}
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.researchLoad"), len(s.copies))
 }
 
 // adminResearch completes a research (or all), forgets every research

@@ -10,6 +10,7 @@ import (
 
 const (
 	iconMission = "textures/items/book_normal"
+	iconDone    = "textures/ui/check"
 	iconIsland  = "textures/blocks/grass_side_carried"
 	iconLost    = "textures/blocks/chest_front"
 	iconMenu    = "textures/items/nether_star"
