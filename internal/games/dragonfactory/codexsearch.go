@@ -113,7 +113,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	var slots []ui.ItemSlot
 	for _, e := range found[page*codexPage : min(len(found), (page+1)*codexPage)] {
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(e.stack), Tip: "§f" + e.name + "\n§7" + i18n.T(lang, "codex.search.tip"),
+			Icon: iconOf(e.stack), Tip: tipName(e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, e.stack) },
 		})
 	}
@@ -247,7 +247,7 @@ func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
 			count = "§f" + ui.CountText(l.count)
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(st), Count: count, Tip: "§f" + itemName(st),
+			Icon: iconOf(st), Count: count, Tip: tipName(st),
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, st) },
 		})
 	}

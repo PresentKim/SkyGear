@@ -540,7 +540,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 			continue
 		}
 		st := item.NewStack(it, 1)
-		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: "§f" + itemName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10"), Run: again})
+		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: tipName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10"), Run: again})
 	}
 	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
 	back := ui.Back(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.13"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })

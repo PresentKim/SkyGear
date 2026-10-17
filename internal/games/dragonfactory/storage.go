@@ -253,7 +253,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(e.item.Item()),
 			Count: "§f" + ui.CountText(int(e.count)),
-			Tip:   "§f" + itemName(e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
+			Tip:   tipName(e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
 			Run: func(p *player.Player, tx *world.Tx) {
 				got := controllerExtract(tx, pos, e.item, e.item.MaxCount())
 				if !got.Empty() {

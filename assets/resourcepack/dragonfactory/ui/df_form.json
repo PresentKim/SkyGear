@@ -2584,6 +2584,47 @@
     ]
   },
 
+  // gslot_deco: the frame and badge of an item slot, chosen by the marks in
+  // the first line of its tooltip (decor.go tipName, docs/tech/slotdeco.md).
+  // One picture per slot (textures/ui/df/deco_<rarity>_<front>.png), one
+  // control, so a grid of slots stays cheap.
+  "gslot_deco": {
+    "type": "image",
+    "layer": 6,
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "texture": "#texture",
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§k§r§a') = #form_button_text)) * 1 + (not ((#form_button_text - '§k§r§b') = #form_button_text)) * 2 + (not ((#form_button_text - '§k§r§d') = #form_button_text)) * 3 + (not ((#form_button_text - '§k§r§6') = #form_button_text)) * 4)",
+        "target_property_name": "#df_rarity"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§k§l§r§1§r') = #form_button_text)) * 1 + (not ((#form_button_text - '§k§l§r§2§r') = #form_button_text)) * 2 + (not ((#form_button_text - '§k§l§r§3§r') = #form_button_text)) * 3 + (not ((#form_button_text - '§k§l§r§4§r') = #form_button_text)) * 4 + (not ((#form_button_text - '§k§l§r§5§r') = #form_button_text)) * 5 + (not ((#form_button_text - '§k§l§r§6§r') = #form_button_text)) * 6)",
+        "target_property_name": "#df_front"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "('textures/ui/df/deco_' + #df_rarity + '_' + #df_front)",
+        "target_property_name": "#texture"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((#df_rarity > 0) or (#df_front > 0))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+
   // gslot_button (mouse and touch): hovering, or holding a finger down, shows
   // the tooltip; a tap or click presses it. No toggle: radio toggles cannot
   // be exclusive across grid cells, so several tooltips opened at once.
@@ -2603,7 +2644,8 @@
     "controls": [
       { "default@df_form.gslot_face": {} },
       { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
+      { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } },
+      { "deco@df_form.gslot_deco": {} }
     ]
   },
 

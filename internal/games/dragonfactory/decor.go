@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/slotdeco"
 )
@@ -84,4 +85,15 @@ func rarityColour(r slotdeco.Rarity) string {
 		return "§6"
 	}
 	return "§f"
+}
+
+// tipName is the name of a stack for the first line of a form slot's
+// tooltip: the slot marks in front and after (the pack draws a frame and
+// badge from them, df_form.json gslot_deco), the name in the rarity colour.
+func tipName(st item.Stack) string {
+	if n := st.CustomName(); n != "" {
+		return n // stacks with a name of their own carry their marks already
+	}
+	r, tier := ItemDecor(st.Item())
+	return slotdeco.Decorate(r, tier, rarityColour(r)+itemName(st))
 }

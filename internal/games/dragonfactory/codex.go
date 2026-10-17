@@ -91,7 +91,7 @@ func (s *session) showCodexDrops(p *player.Player, in world.Item, tier string) {
 	for _, d := range drops {
 		slots = append(slots, ui.ItemSlot{
 			Icon: iconOf(d.Item), Count: formatPermille(d.Permille) + "%",
-			Tip: fmt.Sprintf("§f%s\n§7%s", itemName(d.Item), fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(d.Permille))),
+			Tip: fmt.Sprintf("%s\n§7%s", tipName(d.Item), fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(d.Permille))),
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, d.Item) },
 		})
 	}

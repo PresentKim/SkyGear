@@ -321,7 +321,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 			count = fmt.Sprint(cr.out.Count())
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(cr.out), Count: count, Tip: "§f" + itemName(cr.out) + "\n" + strings.Join(cr.tip(lang), "\n"),
+			Icon: iconOf(cr.out), Count: count, Tip: tipName(cr.out) + "\n" + strings.Join(cr.tip(lang), "\n"),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

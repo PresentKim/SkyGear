@@ -4,7 +4,11 @@
 // rarity frames of the selected-item bubble (tip_1..4). They are flat
 // temporary pictures; the PNGs can be replaced by hand.
 //
-//	go run ./tools/slotdecotex assets/resourcepack/slotdeco
+//	go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/dragonfactory
+//
+// The second pack (optional) gets the pictures of the form slots
+// (textures/ui/df/deco_<rarity>_<front>.png, 22×22: a frame and a badge in one
+// picture, so a form slot needs one control, df_form.json gslot_deco).
 package main
 
 import (
@@ -162,10 +166,63 @@ func write(dir, name string, img image.Image, nineslice int) {
 	}
 }
 
+// frontImage is the front image n (0: none): tier pips 1 to 4, the warning 5
+// and the lock 6, each 16×16 at the top left or right of a larger picture.
+func frontImage(n int) image.Image {
+	switch {
+	case n >= 1 && n <= 4:
+		return pips(n)
+	case n == 5:
+		return warnBadge()
+	case n == 6:
+		return lockBadge()
+	}
+	return image.NewNRGBA(image.Rect(0, 0, 16, 16))
+}
+
+// formDeco is a 22×22 form slot picture: the frame of the rarity (0: none)
+// and the front image n over it.
+func formDeco(r, n int) image.Image {
+	const size = 22
+	img := image.NewNRGBA(image.Rect(0, 0, size, size))
+	if r > 0 {
+		c := rarityColours[r-1]
+		for x := range size {
+			for y := range size {
+				switch min(x, y, size-1-x, size-1-y) {
+				case 0:
+					img.SetNRGBA(x, y, withAlpha(c, 255))
+				case 1:
+					img.SetNRGBA(x, y, withAlpha(c, 90))
+				}
+			}
+		}
+	}
+	front := frontImage(n)
+	for x := range 16 {
+		for y := range 16 {
+			if c := front.At(x, y).(color.NRGBA); c.A > 0 {
+				img.SetNRGBA(x+3, y+2, c)
+			}
+		}
+	}
+	return img
+}
+
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: slotdecotex <pack dir>")
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		fmt.Fprintln(os.Stderr, "usage: slotdecotex <slotdeco pack dir> [<dragonfactory pack dir>]")
 		os.Exit(2)
+	}
+	if len(os.Args) == 3 {
+		formDir := filepath.Join(os.Args[2], "textures", "ui", "df")
+		for r := 0; r <= 4; r++ {
+			for n := 0; n <= 6; n++ {
+				if r > 0 || n > 0 {
+					write(formDir, fmt.Sprintf("deco_%d_%d", r, n), formDeco(r, n), 0)
+				}
+			}
+		}
 	}
 	dir := filepath.Join(os.Args[1], "textures", "ui", "df")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
