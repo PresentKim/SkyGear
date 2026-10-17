@@ -479,13 +479,18 @@
 
   "tab_item@df_form.vis_tab": {
     "type": "panel",
-    "size": [ 64, 24 ],
+    "size": [ 68, 24 ],
     "controls": [ { "button@df_form.tab_button": {} } ]
   },
 
+  // A tab (textures/ui/df/tab*): dark and low; the pointer lights it; the
+  // selected one (§0§2§r) is raised, with an accent bar on top and an
+  // accent label. Both labels are bound; one shows.
   "tab_button@common.button": {
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 62, 22 ],
+    "size": [ 64, 22 ],
+    "anchor_from": "bottom_left",
+    "anchor_to": "bottom_left",
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -496,15 +501,16 @@
       }
     ],
     "controls": [
-      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
-      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/tab" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/tab_hover" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/tab_hover" } },
       {
-        // The selected tab (§0§2§r) keeps the highlighted look.
         "selected@df_form.vis_tab_on": {
           "type": "image",
-          "texture": "textures/ui/df/button_hover",
-          "size": [ "100%", "100%" ],
+          "texture": "textures/ui/df/tab_on",
+          "size": [ "100%", "100% + 2px" ],
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
           "layer": 2
         }
       },
@@ -521,7 +527,7 @@
           "type": "label",
           "layer": 3,
           "text": "#form_button_text",
-          "color": [ 0.95, 0.95, 0.97 ],
+          "color": [ 0.7, 0.72, 0.78 ],
           "font_scale_factor": 0.8,
           "size": [ "100% - 22px", "default" ],
           "offset": [ 20, 0 ],
@@ -530,8 +536,38 @@
           "bindings": [
             {
               "binding_name": "#form_button_text",
-              "binding_type": "collection", 
+              "binding_type": "collection",
               "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text - '§0§2§r') = #form_button_text)",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "text_on": {
+          "type": "label",
+          "layer": 3,
+          "text": "#form_button_text",
+          "color": [ 1, 0.86, 0.5 ],
+          "font_scale_factor": 0.8,
+          "size": [ "100% - 22px", "default" ],
+          "offset": [ 20, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#form_button_text - '§0§2§r') = #form_button_text))",
+              "target_property_name": "#visible"
             }
           ]
         }

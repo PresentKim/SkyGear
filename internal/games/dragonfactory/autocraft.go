@@ -330,17 +330,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 			},
 		})
 	}
-	var actions []ui.Option
-	if page > 0 {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "crafter.prev"), Run: func(p *player.Player, tx *world.Tx) {
-			s.showCrafterRecipes(p, tx, pos, st, page-1)
-		}})
-	}
-	if page < pages-1 {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "crafter.next"), Run: func(p *player.Player, tx *world.Tx) {
-			s.showCrafterRecipes(p, tx, pos, st, page+1)
-		}})
-	}
+	actions := ui.Pager(p, page, pages, func(p *player.Player, tx *world.Tx, to int) { s.showCrafterRecipes(p, tx, pos, st, to) })
 	actions = append(actions, ui.Option{Label: i18n.T(lang, "crafter.clear"), Run: func(p *player.Player, tx *world.Tx) {
 		if tx.World() == s.world {
 			st.clearRecipe()

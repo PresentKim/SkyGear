@@ -263,13 +263,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 			},
 		})
 	}
-	var actions []ui.Option
-	if page+1 < pages {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.next"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page+1, query) }})
-	}
-	if page > 0 {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.prev"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page-1, query) }})
-	}
+	actions := ui.Pager(p, page, pages, func(p *player.Player, tx *world.Tx, to int) { s.showStorage(p, tx, pos, to, query) })
 	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.search"), Run: func(p *player.Player, tx *world.Tx) {
 		ui.Input(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, func(p *player.Player, tx *world.Tx, value string) {
 			s.showStorage(p, tx, pos, 0, strings.TrimSpace(value))

@@ -235,6 +235,25 @@ func Tab(label, icon string, selected bool, run func(p *player.Player, tx *world
 	return Option{Label: token + label, Icon: icon, Run: run}
 }
 
+// Pager returns the buttons that turn pages of a list shown page of pages (both
+// from 0 and 1 respectively: page is the index): "previous" when there is an
+// earlier page and "next" when there is a later one, each naming the page it
+// goes to. show shows that page again. Every paged list of the game uses it,
+// so they read and sit the same (docs/tech/ui-style.md).
+func Pager(p *player.Player, page, pages int, show func(p *player.Player, tx *world.Tx, page int)) []Option {
+	lang := i18n.Of(p)
+	var out []Option
+	if page > 0 {
+		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.prev"), page, pages), Icon: "textures/ui/df/arrow_left",
+			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page-1) }})
+	}
+	if page < pages-1 {
+		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.next"), page+2, pages), Icon: "textures/ui/df/arrow_right",
+			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page+1) }})
+	}
+	return out
+}
+
 // Back returns the back button of a themed form, drawn left of the close
 // button.
 func Back(label string, run func(p *player.Player, tx *world.Tx)) Option {

@@ -25,6 +25,15 @@ func (s *session) opt(label, icon string, run func(p *player.Player, tx *world.T
 	}}
 }
 
+// guard makes the options run only in this session's world, as opt does.
+func (s *session) guard(opts []ui.Option) []ui.Option {
+	out := make([]ui.Option, len(opts))
+	for i, o := range opts {
+		out[i] = s.opt(o.Label, o.Icon, o.Run)
+	}
+	return out
+}
+
 // backOption is the back button to the game menu, drawn left of the close
 // button by the theme.
 func (s *session) backOption() ui.Option {

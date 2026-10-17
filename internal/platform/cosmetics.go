@@ -116,12 +116,7 @@ func (pf *Platform) showTitleGroup(p *player.Player, group string, page int) {
 	for _, a := range list[page*pageSize : min(len(list), (page+1)*pageSize)] {
 		opts = append(opts, ui.Option{Label: "§e[" + a.Title + "]\n§8" + a.Name, Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, a.ID) }})
 	}
-	if page > 0 {
-		opts = append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.page.prev"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, group, page-1) }})
-	}
-	if (page+1)*pageSize < len(list) {
-		opts = append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.page.next"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, group, page+1) }})
-	}
+	opts = append(opts, ui.Pager(p, page, max(1, (len(list)+pageSize-1)/pageSize), func(p *player.Player, _ *world.Tx, to int) { pf.showTitleGroup(p, group, to) })...)
 	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }))
 	ui.Menu(p, group, i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3"), opts...)
 }

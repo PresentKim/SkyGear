@@ -215,8 +215,15 @@ func (s *session) showStats(p *player.Player, tab statsTab) {
 
 func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
 	lang := i18n.Of(p)
+	// Tabs carry an icon: the tab strip reads at a glance, like the tabs of
+	// the creative inventory (docs/tech/ui-style.md).
+	icons := map[statsTab]string{
+		statsItems:  iconOf(machineItem(KindCrusher)),
+		statsPower:  iconOf(machineItem(KindGenerator)),
+		statsStalls: iconLocked,
+	}
 	mk := func(label string, t statsTab) ui.Option {
-		return ui.Tab(label, "", tab == t, func(p *player.Player, tx *world.Tx) {
+		return ui.Tab(label, icons[t], tab == t, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.showStatsPage(p, t)
 			}

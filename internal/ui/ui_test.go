@@ -3,6 +3,9 @@ package ui
 import (
 	"strings"
 	"testing"
+
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/world"
 )
 
 // TestUniqueLabels: repeated labels get "§r"s so each button is found.
@@ -63,5 +66,35 @@ func TestActionOptionsKeepBack(t *testing.T) {
 	out := actionOptions([]Option{{Label: "납품"}, Back("뒤로", nil)})
 	if !strings.HasPrefix(out[0].Label, ActionToken) || !strings.HasPrefix(out[1].Label, BackToken) {
 		t.Errorf("labels %q %q", out[0].Label, out[1].Label)
+	}
+}
+
+// TestPager: a list on its first page has only "next", in the middle both, on
+// the last only "previous"; the labels name the page they go to.
+func TestPager(t *testing.T) {
+	var went []int
+	show := func(_ *player.Player, _ *world.Tx, page int) { went = append(went, page) }
+	for _, tc := range []struct {
+		page, pages int
+		labels      []string
+	}{
+		{0, 1, nil},
+		{0, 3, []string{"다음 쪽 (2/3)"}},
+		{1, 3, []string{"이전 쪽 (1/3)", "다음 쪽 (3/3)"}},
+		{2, 3, []string{"이전 쪽 (2/3)"}},
+	} {
+		opts := Pager(nil, tc.page, tc.pages, show)
+		if len(opts) != len(tc.labels) {
+			t.Fatalf("page %d/%d: %d buttons, want %d", tc.page, tc.pages, len(opts), len(tc.labels))
+		}
+		for i, o := range opts {
+			if o.Label != tc.labels[i] {
+				t.Errorf("page %d/%d button %d = %q, want %q", tc.page, tc.pages, i, o.Label, tc.labels[i])
+			}
+			o.Run(nil, nil)
+		}
+	}
+	if len(went) != 4 || went[0] != 1 || went[1] != 0 || went[2] != 2 || went[3] != 1 {
+		t.Errorf("the buttons went to pages %v", went)
 	}
 }

@@ -114,13 +114,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, e.stack) },
 		})
 	}
-	var actions []ui.Option
-	if page+1 < pages {
-		actions = append(actions, s.opt(i18n.T(lang, "storage.next"), "", func(p *player.Player, _ *world.Tx) { s.showCodexSearch(p, query, page+1) }))
-	}
-	if page > 0 {
-		actions = append(actions, s.opt(i18n.T(lang, "storage.prev"), "", func(p *player.Player, _ *world.Tx) { s.showCodexSearch(p, query, page-1) }))
-	}
+	actions := s.guard(ui.Pager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showCodexSearch(p, query, to) }))
 	actions = append(actions,
 		s.opt(i18n.T(lang, "codex.search.again"), "", func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, query) }),
 		s.opt(i18n.T(lang, "codex.back"), iconBack, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }))
