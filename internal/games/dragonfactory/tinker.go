@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/slotdeco"
 )
 
 // Tinkered tools (docs/design/08-storage-gear-magic.md §2), after Tinkers'
@@ -284,7 +285,8 @@ func describeTool(st item.Stack) item.Stack {
 			lore = append(lore, fmt.Sprintf("§b%s %s", i18n.T(lang, "tmod."+m.id), strings.Repeat("I", l)))
 		}
 	}
-	return st.WithCustomName("§r§f" + t.Name() + fmt.Sprintf(" §7Lv.%d", lvl)).WithLore(lore...)
+	r := toolRarity(lvl)
+	return st.WithCustomName(slotdeco.Decorate(r, 0, "§r"+rarityColour(r)+t.Name()+fmt.Sprintf(" §7Lv.%d", lvl))).WithLore(lore...)
 }
 
 // withToolXP adds xp to a tool stack and returns it, with whether it leveled up.

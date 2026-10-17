@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/slotdeco"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -375,10 +376,13 @@ type machineState struct {
 	// sess is the session the machine ticks in; stuck why the last tick
 	// could not work, didWork whether a tick worked since the last second,
 	// mon what the stall alerts know of it (monitor.go).
-	sess    *session
-	stuck   stuckKind
-	didWork bool
-	mon     monitor
+	sess  *session
+	stuck stuckKind
+	// shownStuck is whether the info icon of the window shows the warning
+	// badge (a stalled machine).
+	shownStuck bool
+	didWork    bool
+	mon        monitor
 	// tier is the machine's tier (tier.go); worked counts the ticks of work
 	// done, to tell whether a run did anything.
 	tier, worked int
@@ -481,7 +485,12 @@ func (st *machineState) infoItem() item.Stack {
 		spec := st.spec()
 		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "tier.info"), tierName(i18n.Default, st.tier), spec.speed, float64(spec.use10)/10))
 	}
-	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + tierTitle(st.kind.name, st.tier)).WithLore(lines...)
+	badge := 0
+	if st.stuck != stuckNone {
+		badge = slotdeco.BadgeWarn
+	}
+	st.shownStuck = badge != 0
+	return item.NewStack(MachineInfo{}, 1).WithCustomName(slotdeco.Decorate(slotdeco.Common, badge, "§r§f"+tierTitle(st.kind.name, st.tier))).WithLore(lines...)
 }
 
 // MachineTakeAll and MachinePutAll are the button items of machine windows
@@ -1240,6 +1249,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	if currentTick%10 == 0 {
 		st.showEnergy()
+		if (st.stuck != stuckNone) != st.shownStuck {
+			_ = st.inv().SetItem(infoSlot, st.infoItem())
+		}
 	}
 	if isSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.

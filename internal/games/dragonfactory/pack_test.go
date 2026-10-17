@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/slotdeco"
 )
 
 // packDir is the resource pack that draws the custom blocks and items.
@@ -63,8 +64,9 @@ func TestPackHasItemAssets(t *testing.T) {
 		} else if !packFileExists(e.Textures + ".png") {
 			t.Errorf("%s: missing %s.png", id, e.Textures)
 		}
-		if got := lang["item."+id+".name"]; got != it.Name() {
-			t.Errorf("%s: texts/ko_KR.lang name %q, want %q", id, got, it.Name())
+		r, tier := ItemDecor(it)
+		if got, want := lang["item."+id+".name"], slotdeco.Decorate(r, tier, it.Name()); got != want {
+			t.Errorf("%s: texts/ko_KR.lang name %q, want %q (go run ./tools/slotmarks assets/resourcepack/dragonfactory writes the marks)", id, got, want)
 		}
 		if iconOf(item.NewStack(it, 1)) == "" {
 			t.Errorf("%s: no form icon", id)

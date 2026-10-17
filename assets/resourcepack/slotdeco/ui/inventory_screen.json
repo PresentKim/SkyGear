@@ -1,0 +1,15 @@
+// The slots of the player's inventory (and crafting grids) have their own
+// item template, which the container_item change does not reach.
+{
+  "inventory_container_item": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": {
+          "df_deco@df_slot.deco": {}
+        }
+      }
+    ]
+  }
+}

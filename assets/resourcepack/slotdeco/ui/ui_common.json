@@ -1,0 +1,26 @@
+// Adds the slot decoration to every container slot (chests, machines,
+// InvSee) and the rarity frame to the selected-item bubble.
+{
+  "container_item": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": {
+          "df_deco@df_slot.deco": {}
+        }
+      }
+    ]
+  },
+  "item_panel_image": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": {
+          "df_tip@df_slot.tip": {}
+        }
+      }
+    ]
+  }
+}

@@ -47,6 +47,11 @@ type Config struct {
 		// Encrypt encrypts the packs (docs/tech/resourcepack.md). Both are on
 		// by default; turn them off to read what the client receives.
 		Minify, Encrypt bool
+		// SlotDeco adds the slotdeco pack: slot backgrounds by item rarity
+		// and tier badges (docs/tech/slotdeco.md). It changes the vanilla
+		// item slot template of every container screen; turn it off if the
+		// screens look wrong.
+		SlotDeco bool
 	}
 	ChestUI struct {
 		// Ride links the chest entity to the player (on by default, confirmed
@@ -127,6 +132,7 @@ func DefaultConfig() Config {
 	c.ChestUI.Ride = true
 	c.ResourcePack.Minify = true
 	c.ResourcePack.Encrypt = true
+	c.ResourcePack.SlotDeco = true
 	return c
 }
 

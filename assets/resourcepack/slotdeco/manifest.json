@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DragonFactory-SlotDeco",
+    "description": "Slot backgrounds by item rarity and tier badges for DragonFactory",
+    "uuid": "8de6c229-e5f9-48e9-b98f-3259bebc7dc8",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 100]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "b5e65c53-836f-4491-96f2-d4836b885b65",
+      "version": [0, 0, 1]
+    }
+  ]
+}

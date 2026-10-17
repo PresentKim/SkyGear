@@ -72,7 +72,11 @@ func run(log *slog.Logger) error {
 			return fmt.Errorf("resource pack secret: %w", err)
 		}
 	}
-	for _, dir := range []string{"assets/resourcepack/dragonfactory", "assets/resourcepack/inventoryui", "assets/resourcepack/waila"} {
+	packs := []string{"assets/resourcepack/dragonfactory", "assets/resourcepack/inventoryui", "assets/resourcepack/waila"}
+	if pconf.ResourcePack.SlotDeco {
+		packs = append(packs, "assets/resourcepack/slotdeco")
+	}
+	for _, dir := range packs {
 		pack, err := resourcepack.LoadWith(dir, packOpt)
 		if err != nil {
 			return fmt.Errorf("load resource pack: %w", err)

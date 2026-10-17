@@ -7,6 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
+	"github.com/presentkim/dragonfactory/internal/slotdeco"
 	"strings"
 	"testing"
 	"time"
@@ -715,4 +716,20 @@ func TestMachineWindowButtonClick(t *testing.T) {
 			t.Error("the gravel did not reach the player")
 		}
 	})
+}
+
+// TestMachineInfoWarnsWhenStalled: the info icon of a machine window carries
+// the warning badge mark while the machine is stuck, and not otherwise.
+func TestMachineInfoWarnsWhenStalled(t *testing.T) {
+	st := newMachine(KindCrusher, "", "").st
+	if _, tier := slotdeco.Of(st.infoItem().CustomName()); tier != 0 {
+		t.Errorf("a working machine shows badge %d", tier)
+	}
+	st.stuck = stuckOutput
+	if _, tier := slotdeco.Of(st.infoItem().CustomName()); tier != slotdeco.BadgeWarn {
+		t.Errorf("a stuck machine shows badge %d, want the warning", tier)
+	}
+	if !st.shownStuck {
+		t.Error("the window state was not recorded")
+	}
 }

@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/slotdeco"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -80,7 +81,8 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 // itemName returns a readable name of an item stack.
 func itemName(s item.Stack) string {
 	if n := s.CustomName(); n != "" {
-		return n
+		// The slot marks are for the slot only (docs/tech/slotdeco.md).
+		return slotdeco.Strip(n)
 	}
 	if c, ok := s.Item().(world.CustomItem); ok {
 		return c.Name()
