@@ -379,3 +379,4 @@ item.dragonfactory:item_vacuum.name=아이템 흡수기
 tile.dragonfactory:item_vacuum.name=아이템 흡수기
 item.dragonfactory:tree_feller.name=자동 벌목기
 tile.dragonfactory:tree_feller.name=자동 벌목기
+df.search.placeholder=검색

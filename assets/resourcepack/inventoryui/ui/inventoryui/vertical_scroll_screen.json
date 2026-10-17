@@ -2,7 +2,49 @@
     "namespace": "vertical_scroll_screen",
 
     "grid@common.container_grid": {
-        "$item_collection_name": "container_items"
+        "$item_collection_name": "container_items",
+        "$grid_item_template": "vertical_scroll_screen.search_cell" // add
+    },
+
+    // add: a slot with a dark veil that shows while something is typed in the
+    // search box and the item's hover text (name and lore) does not contain
+    // it (docs/tech/slotdeco.md, same idea as the search of Bedrock UI+).
+    "search_cell": {
+        "type": "panel",
+        "size": [ 18, 18 ],
+        "controls": [
+            { "slot@common.container_item": {} },
+            {
+                "veil": {
+                    "type": "image",
+                    "texture": "textures/ui/Black",
+                    "alpha": 0.66,
+                    "layer": 25,
+                    "size": [ "100%", "100%" ],
+                    "bindings": [
+                        { "binding_name": "#hover_text", "binding_type": "collection", "binding_collection_name": "container_items" },
+                        { "binding_type": "view", "source_control_name": "df_search", "source_property_name": "#item_name", "target_property_name": "#df_search" },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(((#hover_text - #df_search) = #hover_text) and (not ((#df_search - ' ') = '')))",
+                            "target_property_name": "#visible"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+
+    // add: the search box in the title row of the window
+    "search_box@common.text_edit_box": {
+        "$text_box_name": "df_search",
+        "$place_holder_text": "df.search.placeholder",
+        "max_length": 24,
+        "size": [ 70, 11 ],
+        "anchor_from": "top_right",
+        "anchor_to": "top_right",
+        "offset": [ -2, -11 ],
+        "layer": 30
     },
 
     "scrolling_panel@common.container_scroll_panel": {
@@ -29,6 +71,7 @@
         "anchor_to": "top_left",
         "controls": [
             { "chest_label@chest.chest_label": {} },
+            { "df_search@vertical_scroll_screen.search_box": {} }, // add
             // {
             //     "small_chest_grid@chest.small_chest_grid": {
             //         "offset": [ 7, 9 ]
