@@ -73,6 +73,22 @@ func tabBox(size int, fill, border, bar color.RGBA, barH int) image.Image {
 	return img
 }
 
+// bevel is a window's inner edge: a light line along the top and left, a dark
+// one along the bottom and right, one pixel inside the border, so the panel
+// looks raised. The middle is clear.
+func bevel() image.Image {
+	const n = 16
+	img := image.NewNRGBA(image.Rect(0, 0, n, n))
+	light, shade := color.NRGBA{255, 255, 255, 28}, color.NRGBA{0, 0, 0, 90}
+	for i := 2; i < n-2; i++ {
+		img.SetNRGBA(i, 2, light)
+		img.SetNRGBA(2, i, light)
+		img.SetNRGBA(i, n-3, shade)
+		img.SetNRGBA(n-3, i, shade)
+	}
+	return img
+}
+
 // arrow draws a 16×16 arrow pointing right, rotated by quarter turns.
 func arrow(turns int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, 16, 16))
@@ -133,6 +149,7 @@ func main() {
 	write("tab", box(16, tabFill, buttonEdge), 3)
 	write("tab_hover", tabBox(16, hoverFill, accent, accent, 0), 3)
 	write("tab_on", tabBox(16, tabOnFill, accent, accent, 3), 3)
+	write("panel_bevel", bevel(), 5)
 	write("slot", box(18, slotFill, panelBorder), 1)
 	write("dim", box(4, dim, dim), 0)
 	write("arrow_right", arrow(0), 0)

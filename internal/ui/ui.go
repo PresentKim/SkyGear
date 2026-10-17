@@ -235,6 +235,10 @@ func Tab(label, icon string, selected bool, run func(p *player.Player, tx *world
 	return Option{Label: token + label, Icon: icon, Run: run}
 }
 
+// SubTitle is the title of a screen below another one: "parent · sub". Every
+// screen that goes deeper than its menu names its parent this way.
+func SubTitle(parent, sub string) string { return parent + " · " + sub }
+
 // Pager returns the buttons that turn pages of a list shown page of pages (both
 // from 0 and 1 respectively: page is the index): "previous" when there is an
 // earlier page and "next" when there is a later one, each naming the page it

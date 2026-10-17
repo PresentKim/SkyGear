@@ -34,7 +34,7 @@ func (s *session) showToolKinds(p *player.Player, tx *world.Tx, pos cube.Pos) {
 			Run:  func(p *player.Player, tx *world.Tx) { s.showToolHeads(p, tx, pos, k) },
 		})
 	}
-	ui.ItemGrid(p, i18n.T(lang, "tinker.make"), i18n.T(lang, "tinker.pickKind"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showTinker(p, tx, pos) }))
+	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "tinker.title"), i18n.T(lang, "tinker.make")), i18n.T(lang, "tinker.pickKind"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showTinker(p, tx, pos) }))
 }
 
 // showToolHeads lists the head metals open to the save.
@@ -59,7 +59,7 @@ func (s *session) showToolHeads(p *player.Player, tx *world.Tx, pos cube.Pos, ki
 			Run: func(p *player.Player, tx *world.Tx) { s.showToolHandles(p, tx, pos, kind, h) },
 		})
 	}
-	ui.ItemGrid(p, i18n.T(lang, "tool."+kind), i18n.T(lang, "tinker.pickHead"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showToolKinds(p, tx, pos) }))
+	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "tinker.title"), i18n.T(lang, "tool."+kind)), i18n.T(lang, "tinker.pickHead"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showToolKinds(p, tx, pos) }))
 }
 
 // showToolHandles lists the handles and makes the tool on a pick.
@@ -82,7 +82,7 @@ func (s *session) showToolHandles(p *player.Player, tx *world.Tx, pos cube.Pos, 
 			},
 		})
 	}
-	ui.ItemGrid(p, i18n.T(lang, "tmat."+head.id)+" "+i18n.T(lang, "tool."+kind), i18n.T(lang, "tinker.pickHandle"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showToolHeads(p, tx, pos, kind) }))
+	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "tinker.title"), i18n.T(lang, "tmat."+head.id)+" "+i18n.T(lang, "tool."+kind)), i18n.T(lang, "tinker.pickHandle"), slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showToolHeads(p, tx, pos, kind) }))
 }
 
 // makeTool takes the materials and gives the tool; it does nothing when they are
@@ -109,7 +109,7 @@ func (s *session) showModifiers(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	held, _ := p.HeldItems()
 	t, ok := held.Item().(TinkerTool)
 	if !ok {
-		ui.Menu(p, i18n.T(lang, "tinker.modify"), i18n.T(lang, "tinker.holdTool"),
+		ui.Menu(p, ui.SubTitle(i18n.T(lang, "tinker.title"), i18n.T(lang, "tinker.modify")), i18n.T(lang, "tinker.holdTool"),
 			ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showTinker(p, tx, pos) }))
 		return
 	}
@@ -134,7 +134,7 @@ func (s *session) showModifiers(p *player.Player, tx *world.Tx, pos cube.Pos) {
 			},
 		})
 	}
-	ui.ItemGrid(p, t.Name()+fmt.Sprintf(" Lv.%d", lvl), fmt.Sprintf(i18n.T(lang, "tinker.slots"), modsUsed(mods), toolSlots(lvl)), slots,
+	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "tinker.title"), t.Name()+fmt.Sprintf(" Lv.%d", lvl)), fmt.Sprintf(i18n.T(lang, "tinker.slots"), modsUsed(mods), toolSlots(lvl)), slots,
 		ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) { s.showTinker(p, tx, pos) }))
 }
 

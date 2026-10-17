@@ -97,7 +97,7 @@ const codexPage = 44
 // askCodexSearch asks for the words to search for.
 func (s *session) askCodexSearch(p *player.Player, query string) {
 	lang := i18n.Of(p)
-	ui.Input(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.search"), i18n.T(lang, "codex.search.label"), query,
+	ui.Input(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search")), i18n.T(lang, "codex.search.label"), query,
 		func(p *player.Player, _ *world.Tx, value string) { s.showCodexSearch(p, strings.TrimSpace(value), 0) })
 }
 

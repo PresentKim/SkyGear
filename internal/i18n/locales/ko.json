@@ -3694,5 +3694,8 @@
  "goal.set": "목표로 지정",
  "goal.unset": "목표 해제",
  "codex.item.raw": "필요한 원재료 (사슬 끝까지, 괄호는 가진 수)",
- "codex.search.goals": "목표"
+ "codex.search.goals": "목표",
+ "platform.cosmetics.tab.titles": "칭호",
+ "platform.cosmetics.tab.colors": "이름 색",
+ "platform.cosmetics.tab.achievements": "업적"
 }

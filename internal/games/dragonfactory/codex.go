@@ -54,7 +54,7 @@ func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "", 0) }
 func (s *session) showCodexText(p *player.Player, tab codexTab, key string, lines []string) {
 	lang := i18n.Of(p)
 	opts := append(s.codexTabs(p, tab), s.backOption())
-	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, key), strings.Join(lines, "\n"), opts...)
+	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, key)), strings.Join(lines, "\n"), opts...)
 }
 
 // showCodexSieve asks which block to sift.
@@ -66,7 +66,7 @@ func (s *session) showCodexSieve(p *player.Player) {
 	}
 	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
 	opts = append(opts, s.backOption())
-	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.sieve"), i18n.T(lang, "codex.sieve.pick"), opts...)
+	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.sieve")), i18n.T(lang, "codex.sieve.pick"), opts...)
 }
 
 // showCodexMesh asks which mesh sifts the block.
@@ -78,7 +78,7 @@ func (s *session) showCodexMesh(p *player.Player, in world.Item) {
 	}
 	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
 	opts = append(opts, s.codexBackTo(p, s.showCodexSieve))
-	ui.Menu(p, i18n.T(lang, "codex.title")+" · "+itemName(item.NewStack(in, 1)), i18n.T(lang, "codex.mesh.pick"), opts...)
+	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), itemName(item.NewStack(in, 1))), i18n.T(lang, "codex.mesh.pick"), opts...)
 }
 
 // showCodexDrops lists what a mesh finds in a block.
@@ -215,7 +215,7 @@ func (s *session) showCodexPlants(p *player.Player, page int) {
 	}
 	s.codexRemember(p, func(p *player.Player) { s.showCodexPlants(p, page) })
 	slots, turns := s.slotPage(p, slots, page, s.showCodexPlants)
-	ui.ItemGrid(p, i18n.T(lang, "codex.title")+" · "+i18n.T(lang, "codex.plants"), i18n.T(lang, "codex.plants.body"), slots,
+	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.plants")), i18n.T(lang, "codex.plants.body"), slots,
 		append(append(turns, s.codexTabs(p, codexPlantsTab)...), s.backOption())...)
 }
 
@@ -427,7 +427,7 @@ func (s *session) showCodexItem(p *player.Player, it item.Stack) {
 		parts = append(append(parts, ""), append([]string{"§e" + i18n.T(lang, "codex.item.raw")}, raw...)...)
 	}
 	body := strings.Join(parts, "\n")
-	title := i18n.T(lang, "codex.title") + " · " + itemName(it)
+	title := ui.SubTitle(i18n.T(lang, "codex.title"), itemName(it))
 	s.codexSeen(p, it)
 	var chrome []ui.Option
 	if g, ok := s.goalOption(p, it); ok {

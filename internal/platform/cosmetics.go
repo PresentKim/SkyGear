@@ -16,25 +16,44 @@ import (
 // Titles, name colours and achievements (docs/design/01-platform.md §5),
 // from the lobby menu, /title, or a game's menu (which runs /title).
 
-func (pf *Platform) showCosmetics(p *player.Player) {
+// The cosmetics are one window with three tabs: titles, name colours and
+// achievements (docs/tech/ui-style.md).
+const (
+	cosmeticTitles = iota
+	cosmeticColors
+	cosmeticAchievements
+)
+
+// cosmeticTabs is the tab strip with cur selected.
+func (pf *Platform) cosmeticTabs(p *player.Player, cur int) []ui.Option {
+	lang := i18n.Of(p)
+	tab := func(key, icon string, t int, show func(p *player.Player)) ui.Option {
+		return ui.Tab(i18n.T(lang, key), icon, t == cur, func(p *player.Player, _ *world.Tx) { show(p) })
+	}
+	return []ui.Option{
+		tab("platform.cosmetics.tab.titles", iconCode, cosmeticTitles, pf.showTitles),
+		tab("platform.cosmetics.tab.colors", iconRename, cosmeticColors, pf.showColors),
+		tab("platform.cosmetics.tab.achievements", iconGuide, cosmeticAchievements, pf.showAchievements),
+		ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.cosmeticsBack(p) }),
+	}
+}
+
+// showCosmetics opens the cosmetics window on its first tab.
+func (pf *Platform) showCosmetics(p *player.Player) { pf.showTitles(p) }
+
+// cosmeticsStatus is the line above the first tab: the display name, how many
+// achievements are owned, the title and the name colour now.
+func (pf *Platform) cosmeticsStatus(p *player.Player) string {
 	acc, err := pf.db.Account(instance.AccountID(p))
 	if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.1"), err)
-		return
+		return ""
 	}
-	owned := account.Owned(acc.ID)
 	title := i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.2")
 	if a, ok := account.Get(acc.Title); ok {
 		title = a.Title
 	}
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.3"),
-		account.DisplayName(p), len(owned), len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name)
-	ui.CardMenu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.4"), body,
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.5"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.6"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.showColors(p) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.7"), Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }},
-		ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.cosmeticsBack(p) }),
-	)
+	return fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.3"),
+		account.DisplayName(p), len(account.Owned(acc.ID)), len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name)
 }
 
 // cosmeticsBack goes back to the menu the cosmetics came from: the lobby
@@ -94,8 +113,8 @@ func (pf *Platform) showTitles(p *player.Player) {
 			opts = append(opts, ui.Option{Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.groupLabel"), g, titles[g]), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showTitleGroup(p, g, 0) }})
 		}
 	}
-	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
-	body := i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
+	opts = append(opts, pf.cosmeticTabs(p, cosmeticTitles)...)
+	body := pf.cosmeticsStatus(p) + "\n\n" + i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
 	if len(titles) == 0 {
 		body += i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.4")
 	}
@@ -118,7 +137,7 @@ func (pf *Platform) showTitleGroup(p *player.Player, group string, page int) {
 	}
 	opts = append(opts, ui.Pager(p, page, max(1, (len(list)+pageSize-1)/pageSize), func(p *player.Player, _ *world.Tx, to int) { pf.showTitleGroup(p, group, to) })...)
 	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }))
-	ui.Menu(p, group, i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3"), opts...)
+	ui.Menu(p, ui.SubTitle(i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.4"), group), i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3"), opts...)
 }
 
 func (pf *Platform) setTitle(p *player.Player, id string) {
@@ -157,7 +176,7 @@ func (pf *Platform) showColors(p *player.Player) {
 			pf.showCosmetics(p)
 		}})
 	}
-	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showColors.4"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
+	opts = append(opts, pf.cosmeticTabs(p, cosmeticColors)...)
 	ui.CardMenu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showColors.5"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.showColors.6"), n), opts...)
 }
 
@@ -169,7 +188,7 @@ func (pf *Platform) showAchievements(p *player.Player) {
 		label := fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achGroupLabel"), g, have[g], total[g])
 		opts = append(opts, ui.Option{Label: label, Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievementGroup(p, g) }})
 	}
-	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }))
+	opts = append(opts, pf.cosmeticTabs(p, cosmeticAchievements)...)
 	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.2"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achTotal"), len(owned), len(account.All())), opts...)
 }
 
@@ -197,7 +216,7 @@ func (pf *Platform) showAchievementGroup(p *player.Player, group string) {
 		}
 		b.WriteString("\n")
 	}
-	ui.Menu(p, group, b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }))
+	ui.Menu(p, ui.SubTitle(i18n.T(i18n.Of(p), "platform.cosmetics.showCosmetics.4"), group), b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }))
 }
 
 // commas writes n with thousands separators.
