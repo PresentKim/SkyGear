@@ -3,6 +3,7 @@
 // Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
 // Dark panel and slots (textures/ui/df); the progress indicator slot has
 // no background. Slot 26 is the info icon (its tooltip explains the machine),
+// slots 24 and 25 are the take-all and put-all buttons left of it,
 // on the title row left of the close button. See docs/tech/machines.md.
 {
   "namespace": "df_machine",
@@ -58,6 +59,30 @@
           "offset": [
             108,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -137,6 +162,30 @@
           "offset": [
             108,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -343,6 +392,30 @@
         }
       },
       {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s26@df_machine.indicator": {
           "collection_index": 26,
           "size": [12, 12],
@@ -438,6 +511,30 @@
           "offset": [
             126,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -556,6 +653,30 @@
         }
       },
       {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s26@df_machine.indicator": {
           "collection_index": 26,
           "size": [12, 12],
@@ -646,6 +767,30 @@
         }
       },
       {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
         "s26@df_machine.indicator": {
           "collection_index": 26,
           "size": [12, 12],
@@ -697,6 +842,30 @@
           "offset": [
             72,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -831,6 +1000,30 @@
           "offset": [
             144,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -1120,6 +1313,30 @@
           "offset": [
             144,
             18
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s25@df_machine.indicator": {
+          "collection_index": 25,
+          "size": [12, 12],
+          "offset": [
+            124,
+            -12
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "s24@df_machine.indicator": {
+          "collection_index": 24,
+          "size": [12, 12],
+          "offset": [
+            110,
+            -12
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"

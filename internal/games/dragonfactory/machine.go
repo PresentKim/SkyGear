@@ -422,6 +422,15 @@ func newMachine(kind, owner, ownerName string) Machine {
 		}
 	}
 	_ = inv.SetItem(infoSlot, st.infoItem())
+	// A button is only there when the machine has the slots it moves.
+	_ = inv.SetItem(takeAllSlot, item.Stack{})
+	_ = inv.SetItem(putAllSlot, item.Stack{})
+	if len(k.output) > 0 {
+		_ = inv.SetItem(takeAllSlot, item.NewStack(MachineTakeAll{}, 1).WithCustomName("§r§f"+i18n.T(i18n.Default, "machine.takeAll")))
+	}
+	if len(k.input)+len(k.charge) > 0 {
+		_ = inv.SetItem(putAllSlot, item.NewStack(MachinePutAll{}, 1).WithCustomName("§r§f"+i18n.T(i18n.Default, "machine.putAll")))
+	}
 	inv.Handle(machineHandler{st: st})
 	st.shownRecipe = "\x00"
 	if k.crafter {
@@ -448,6 +457,15 @@ const (
 	roleCharge
 )
 
+// takeAllSlot and putAllSlot are the window slots of the two buttons left of
+// the info icon: "take everything out" moves the output slots into the
+// player's inventory, "put everything in" fills the input slots from it.
+// Pressing one only runs the move; the slot never changes hands.
+const (
+	takeAllSlot = 24
+	putAllSlot  = 25
+)
+
 // infoSlot is the window slot of the info icon: its tooltip explains the
 // machine. The theme draws it left of the close button.
 const infoSlot = 26
@@ -465,6 +483,20 @@ func (st *machineState) infoItem() item.Stack {
 	}
 	return item.NewStack(MachineInfo{}, 1).WithCustomName("§r§f" + tierTitle(st.kind.name, st.tier)).WithLore(lines...)
 }
+
+// MachineTakeAll and MachinePutAll are the button items of machine windows
+// (takeAllSlot, putAllSlot). They only ever sit in machine windows.
+type MachineTakeAll struct{}
+
+func (MachineTakeAll) EncodeItem() (string, int16) { return "dragonfactory:machine_take_all", 0 }
+func (MachineTakeAll) Name() string                { return i18n.T(i18n.Default, "name.MachineTakeAll") }
+func (MachineTakeAll) Category() category.Category { return category.Items() }
+
+type MachinePutAll struct{}
+
+func (MachinePutAll) EncodeItem() (string, int16) { return "dragonfactory:machine_put_all", 0 }
+func (MachinePutAll) Name() string                { return i18n.T(i18n.Default, "name.MachinePutAll") }
+func (MachinePutAll) Category() category.Category { return category.Items() }
 
 // MachineInfo is the info icon item of machine windows. It only ever sits
 // in machine windows.
@@ -558,6 +590,23 @@ func (st *machineState) slotAccepts(slot int, it item.Stack) bool {
 type machineHandler struct{ st *machineState }
 
 func (h machineHandler) HandleTake(ctx *inventory.Context, slot int, _ item.Stack) {
+	if slot == takeAllSlot || slot == putAllSlot {
+		// A button: nothing moves by hand. The move runs after this click
+		// is answered, so the client's view is fixed first and the changes
+		// follow it.
+		ctx.Cancel()
+		if p, ok := ctx.Val().(*player.Player); ok {
+			put := slot == putAllSlot
+			p.H().Do(func(_ *world.Tx, e world.Entity) {
+				if put {
+					h.st.putAll(e.(*player.Player))
+				} else {
+					h.st.takeAll(e.(*player.Player))
+				}
+			})
+		}
+		return
+	}
 	if h.st.role(slot) == roleRecipe {
 		// Taking the recipe off the slot clears it.
 		ctx.Cancel()
@@ -585,6 +634,61 @@ func (h machineHandler) HandlePlace(ctx *inventory.Context, slot int, it item.St
 func (h machineHandler) HandleDrop(ctx *inventory.Context, slot int, _ item.Stack) {
 	if h.st.role(slot) == roleNone || h.st.role(slot) == roleRecipe {
 		ctx.Cancel()
+	}
+}
+
+// takeAll moves the output slots into p's inventory as far as it fits; what
+// does not fit stays in the machine.
+func (st *machineState) takeAll(p *player.Player) {
+	inv := st.inv()
+	for _, slot := range st.kind.output {
+		it, _ := inv.Item(slot)
+		if it.Empty() {
+			continue
+		}
+		if n, _ := p.Inventory().AddItem(it); n > 0 {
+			_ = inv.SetItem(slot, it.Grow(-n))
+		}
+	}
+}
+
+// putAll moves what the machine takes from p's inventory into its input
+// slots: onto a stack of the same kind first; a kind that no input slot holds
+// yet goes into one empty slot. Items the machine does not take stay.
+func (st *machineState) putAll(p *player.Player) {
+	inv := st.inv()
+	slots := append(append([]int{}, st.kind.input...), st.kind.charge...)
+	for pslot, it := range p.Inventory().Slots() {
+		if it.Empty() {
+			continue
+		}
+		left, held := it.Count(), false
+		for _, s := range slots {
+			cur, _ := inv.Item(s)
+			if cur.Empty() || !cur.Comparable(it) || !st.slotAccepts(s, it) {
+				continue
+			}
+			held = true
+			n := min(left, cur.MaxCount()-cur.Count())
+			if n > 0 {
+				_ = inv.SetItem(s, cur.Grow(n))
+				left -= n
+			}
+		}
+		for _, s := range slots {
+			if left == 0 || held {
+				break
+			}
+			if cur, _ := inv.Item(s); cur.Empty() && st.slotAccepts(s, it) {
+				n := min(left, it.MaxCount())
+				_ = inv.SetItem(s, it.Grow(n-it.Count()))
+				left -= n
+				break
+			}
+		}
+		if left < it.Count() {
+			_ = p.Inventory().SetItem(pslot, it.Grow(left-it.Count()))
+		}
 	}
 }
 
@@ -1325,6 +1429,8 @@ func init() {
 		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(MachineInfo{})
+	world.RegisterItem(MachineTakeAll{})
+	world.RegisterItem(MachinePutAll{})
 	for _, k := range machineOrder {
 		machineKinds[k].hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})

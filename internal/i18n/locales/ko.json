@@ -3690,5 +3690,9 @@
  "codex.search.found": "§7검색 §f%s§7: §f%d§7개",
  "codex.search.all": "§7도감에 있는 아이템 §f%d§7개",
  "codex.item.madeFrom": "만드는 재료",
- "codex.item.madeInto": "이것으로 만드는 것"
+ "codex.item.madeInto": "이것으로 만드는 것",
+ "machine.takeAll": "모두 꺼내기",
+ "machine.putAll": "모두 넣기",
+ "name.MachineTakeAll": "모두 꺼내기",
+ "name.MachinePutAll": "모두 넣기"
 }
