@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -10,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/textsearch"
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
@@ -84,9 +86,19 @@ func storeDrawer(tx *world.Tx, pos cube.Pos, d Drawer) {
 // controllerInsert puts st into the network: first into drawers that already hold
 // that item, then into empty ones that take it; it returns how many it took.
 func controllerInsert(tx *world.Tx, pos cube.Pos, st item.Stack) int {
+	return controllerInsertPasses(tx, pos, st, 2)
+}
+
+// controllerInsertHeld is controllerInsert into the drawers that already hold
+// the kind of item only: it never fills an empty drawer with a new kind.
+func controllerInsertHeld(tx *world.Tx, pos cube.Pos, st item.Stack) int {
+	return controllerInsertPasses(tx, pos, st, 1)
+}
+
+func controllerInsertPasses(tx *world.Tx, pos cube.Pos, st item.Stack, passes int) int {
 	net := storageNetwork(tx, pos)
 	taken := 0
-	for pass := 0; pass < 2 && taken < st.Count(); pass++ {
+	for pass := 0; pass < passes && taken < st.Count(); pass++ {
 		for _, sd := range net {
 			if taken >= st.Count() {
 				break
@@ -187,19 +199,52 @@ func (s *session) useController(p *player.Player, tx *world.Tx, pos cube.Pos, he
 		}
 		return
 	}
-	s.showStorage(p, tx, pos, 0)
+	s.showStorage(p, tx, pos, 0, "")
+}
+
+// depositAll puts everything of p's inventory that the network already holds
+// a kind of into it, and returns how many items went in.
+func depositAll(tx *world.Tx, pos cube.Pos, p *player.Player) int {
+	inv := p.Inventory()
+	total := 0
+	for slot, st := range inv.Slots() {
+		if st.Empty() {
+			continue
+		}
+		if n := controllerInsertHeld(tx, pos, st); n > 0 {
+			_ = inv.SetItem(slot, st.Grow(-n))
+			total += n
+		}
+	}
+	return total
+}
+
+// filterStorage keeps the entries whose name matches query.
+func filterStorage(list []storageEntry, query string) []storageEntry {
+	if query == "" {
+		return list
+	}
+	var out []storageEntry
+	for _, e := range list {
+		if textsearch.Match(query, itemName(e.item)) {
+			out = append(out, e)
+		}
+	}
+	return out
 }
 
 // storagePage is how many entries a page of the list shows.
 const storagePage = 44
 
-// showStorage lists the items of the network; pressing one takes a stack.
-func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page int) {
+// showStorage lists the items of the network whose name matches query (all
+// when it is empty); pressing one takes a stack.
+func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page int, query string) {
 	lang := i18n.Of(p)
-	list, drawers := storageContents(tx, pos)
+	all, drawers := storageContents(tx, pos)
 	if drawers == 0 {
 		return
 	}
+	list := filterStorage(all, query)
 	pages := max(1, (len(list)+storagePage-1)/storagePage)
 	page = max(0, min(page, pages-1))
 	var slots []ui.ItemSlot
@@ -214,18 +259,36 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 				if !got.Empty() {
 					s.giveItem(p, tx, p.Position(), got)
 				}
-				s.showStorage(p, tx, pos, page)
+				s.showStorage(p, tx, pos, page, query)
 			},
 		})
 	}
 	var actions []ui.Option
 	if page+1 < pages {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.next"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page+1) }})
+		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.next"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page+1, query) }})
 	}
 	if page > 0 {
-		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.prev"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page-1) }})
+		actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.prev"), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page-1, query) }})
 	}
-	ui.ItemGrid(p, i18n.T(lang, "storage.title"), fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(list), totalOf(list)), slots, actions...)
+	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.search"), Run: func(p *player.Player, tx *world.Tx) {
+		ui.Input(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, func(p *player.Player, tx *world.Tx, value string) {
+			s.showStorage(p, tx, pos, 0, strings.TrimSpace(value))
+		})
+	}})
+	if query != "" {
+		actions = append(actions, ui.Option{Label: fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, 0, "") }})
+	}
+	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.depositAll"), Run: func(p *player.Player, tx *world.Tx) {
+		if depositAll(tx, pos, p) > 0 {
+			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+		}
+		s.showStorage(p, tx, pos, page, query)
+	}})
+	body := fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(all), totalOf(all))
+	if query != "" {
+		body += "\n" + fmt.Sprintf(i18n.T(lang, "storage.search.found"), query, len(list))
+	}
+	ui.ItemGrid(p, i18n.T(lang, "storage.title"), body, slots, actions...)
 }
 
 func totalOf(list []storageEntry) int64 {

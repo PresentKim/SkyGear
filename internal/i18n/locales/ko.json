@@ -3677,5 +3677,10 @@
  "look.blocked": "§e출력 슬롯 부족으로 중단",
  "crafter.status.none": "§7조합법 미설정",
  "crafter.status.missing": "§c재료 부족: %s",
- "crafter.status.working": "§a제작 중"
+ "crafter.status.working": "§a제작 중",
+ "storage.search": "검색",
+ "storage.search.label": "이름 (초성도 됩니다. 예: ㅊㅈㄱ)",
+ "storage.search.clear": "검색 해제 (%s)",
+ "storage.search.found": "§7검색 §f%s§7: §f%d§7종",
+ "storage.depositAll": "인벤토리 모두 넣기"
 }

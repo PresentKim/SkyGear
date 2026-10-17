@@ -502,3 +502,38 @@ func TestStorageController(t *testing.T) {
 		}
 	})
 }
+
+// TestStorageSearchAndDeposit: the list can be narrowed by name (initials
+// too), and "put everything in" only adds to drawers that already hold the
+// kind, never filling an empty drawer with something new.
+func TestStorageSearchAndDeposit(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	s.world.Do(func(tx *world.Tx) {
+		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
+		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
+		if n := controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 10)); n != 10 {
+			t.Fatalf("took %d of 10", n)
+		}
+		// a kind the network does not hold is not taken, a held one is
+		if n := controllerInsertHeld(tx, ctl, item.NewStack(block.Sand{}, 5)); n != 0 {
+			t.Errorf("a new kind went in: %d", n)
+		}
+		if n := controllerInsertHeld(tx, ctl, item.NewStack(block.Cobblestone{}, 5)); n != 5 {
+			t.Errorf("a held kind took %d of 5", n)
+		}
+		list, _ := storageContents(tx, ctl)
+		if got := filterStorage(list, ""); len(got) != 1 {
+			t.Errorf("no query keeps %d entries", len(got))
+		}
+		if got := filterStorage(list, "ㅈㅇㅈㅇ"); len(got) != 0 {
+			t.Errorf("a query that matches nothing keeps %d", len(got))
+		}
+		if got := filterStorage(list, itemName(item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
+			t.Errorf("the item's own name keeps %d", len(got))
+		}
+	})
+}
