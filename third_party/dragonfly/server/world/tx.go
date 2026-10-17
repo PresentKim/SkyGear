@@ -2,6 +2,7 @@ package world
 
 import (
 	"iter"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -408,10 +409,22 @@ type normalTransaction struct {
 // ntx.c.
 func (ntx normalTransaction) Run(w *World) {
 	tx := newTx(w)
-	ntx.f(tx)
+	runRecovered(w, func() { ntx.f(tx) })
 	tx.close()
 	tx.runDeferred()
 	close(ntx.c)
+}
+
+// runRecovered runs f and logs a panic instead of letting it end the process.
+// dragonfactory patch: a panic in a block tick, an event handler or a packet
+// handler would otherwise bring down every island on the server.
+func runRecovered(w *World, f func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			w.conf.Log.Error("world transaction panicked", "panic", r, "stack", string(debug.Stack()))
+		}
+	}()
+	f()
 }
 
 // weakTransaction is a transaction that may be cancelled by its validity
@@ -430,7 +443,7 @@ func (wtx weakTransaction) Run(w *World) {
 	valid := wtx.valid == nil || wtx.valid()
 	if valid {
 		tx := newTx(w)
-		wtx.f(tx)
+		runRecovered(w, func() { wtx.f(tx) })
 		tx.close()
 		tx.runDeferred()
 	}

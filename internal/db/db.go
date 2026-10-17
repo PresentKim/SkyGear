@@ -171,3 +171,12 @@ func notFound(err error) error {
 	}
 	return err
 }
+
+// Backup writes a consistent copy of the database to path (which must not
+// exist yet) while the database stays in use.
+func (d *DB) Backup(path string) error {
+	if _, err := d.sql.Exec(`VACUUM INTO ?`, path); err != nil {
+		return fmt.Errorf("backup db: %w", err)
+	}
+	return nil
+}

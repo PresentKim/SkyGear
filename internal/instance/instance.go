@@ -51,6 +51,9 @@ func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, erro
 		Provider:  prov,
 		Generator: world.NopGenerator{},
 		Entities:  m.conf.Entities,
+		// Blocks and block entities (drawers, machines) live only in the
+		// world files, while the game state is stored every autosave.
+		SaveInterval: m.conf.WorldSaveInterval,
 	}.New()
 	inst := &Instance{
 		m: m, Save: save, World: w, Game: g, host: host,
@@ -243,6 +246,9 @@ func (inst *Instance) deactivate() {
 		inst.storeClock()
 		if err := inst.World.Close(); err != nil {
 			inst.m.log.Error("close instance world", "save", inst.Save.ID, "err", err)
+		}
+		if f := inst.m.conf.AfterClose; f != nil {
+			f(inst.Save.ID, inst.m.worldDir(inst.Save.ID))
 		}
 		inst.m.mu.Lock()
 		delete(inst.m.active, inst.Save.ID)

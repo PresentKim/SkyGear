@@ -5,6 +5,7 @@
 
 - 기획: [docs/design](docs/design/README.md)
 - 기술 검증·애드온 운용: [docs/tech](docs/tech)
+- 백업과 되돌리기: [docs/tech/backup.md](docs/tech/backup.md)
 
 ## 실행
 
@@ -17,7 +18,7 @@ go run .
 | 파일 | 내용 |
 |---|---|
 | `config.toml` | Dragonfly 서버 설정(포트, 서버 이름, 인증 등) |
-| `platform.toml` | 플랫폼 설정(데이터 폴더, 인스턴스 하루 길이, 로드 반경, 동시 인스턴스 수, 자동 저장 주기, 운영자 이름 `Admin.Operators`) |
+| `platform.toml` | 플랫폼 설정(데이터 폴더, 인스턴스 하루 길이, 로드 반경, 동시 인스턴스 수, 자동 저장 주기 `AutosaveSeconds`, 월드 저장 주기 `WorldSaveSeconds`, 운영자 XUID `Admin.Operators`) |
 
 데이터는 `data/` 아래에 저장됩니다: `data/platform.db`(SQLite), `data/saves/<세이브 ID>/world`(세이브별 월드).
 
@@ -77,6 +78,7 @@ internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)
 internal/waila/                 WAILA 패널(바라보는 블록 정보 HUD) 제목 형식·보내기, 도구 아이콘
 internal/itemio/                아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 도관이 쓴다
 internal/energy, itemnet, fluidnet/  에너지·아이템·액체 연결망
+internal/backup/                DB·세이브 월드 백업
 internal/perf/                  서버 부하(TPS·틱·CPU·메모리) 측정, 운영자 HUD 줄과 켜기·끄기
 internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 창)를 사이드바 줄로 보내기
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고

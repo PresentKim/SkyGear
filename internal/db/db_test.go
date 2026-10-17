@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -223,5 +224,16 @@ func TestAchievementsAndCosmetics(t *testing.T) {
 	}
 	if a, _ := d.Account("a"); a.Title != "x" || a.NameColor != "gold" {
 		t.Fatalf("account %+v", a)
+	}
+}
+
+func TestBackupCopiesData(t *testing.T) {
+	d := open(t)
+	path := filepath.Join(t.TempDir(), "copy.sqlite")
+	if err := d.Backup(path); err != nil {
+		t.Fatal(err)
+	}
+	if fi, err := os.Stat(path); err != nil || fi.Size() == 0 {
+		t.Fatalf("backup file: %v %v", fi, err)
 	}
 }

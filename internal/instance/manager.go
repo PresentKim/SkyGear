@@ -33,6 +33,15 @@ type Config struct {
 	MaxActive int
 	// AutosaveInterval is how often the clock and player states are stored.
 	AutosaveInterval time.Duration
+	// WorldSaveInterval is how often an instance world writes its modified
+	// chunks to disk. It is short so that a crash rolls back the blocks about
+	// as little as it does the database state (Dragonfly's default is 10
+	// minutes).
+	WorldSaveInterval time.Duration
+	// AfterClose, if set, is called with a save's id and world folder once
+	// the instance world is closed and before the save can be activated
+	// again; the folder does not change during the call.
+	AfterClose func(saveID int64, worldDir string)
 	// Entities is the entity registry used by instance worlds.
 	Entities world.EntityRegistry
 }
@@ -93,6 +102,9 @@ type stateKey struct {
 func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby) *Manager {
 	if conf.AutosaveInterval <= 0 {
 		conf.AutosaveInterval = 30 * time.Second
+	}
+	if conf.WorldSaveInterval <= 0 {
+		conf.WorldSaveInterval = time.Minute
 	}
 	return &Manager{log: log, db: d, conf: conf, lobby: lobby, games: map[string]Game{},
 		active: map[int64]*Instance{}, location: map[string]*Instance{}, locked: map[stateKey]bool{}}

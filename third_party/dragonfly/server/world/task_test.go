@@ -392,3 +392,16 @@ func testContext(t *testing.T) context.Context {
 	t.Cleanup(cancel)
 	return ctx
 }
+
+// TestPanicInTransactionIsRecovered checks the dragonfactory patch: a panic in an
+// Exec transaction (as a tick or handler runs) is logged and the world goes on.
+func TestPanicInTransactionIsRecovered(t *testing.T) {
+	w := Config{Log: slog.New(slog.NewTextHandler(io.Discard, nil))}.New()
+	defer w.Close()
+	<-w.exec(func(tx *Tx) { panic("boom") })
+	ran := false
+	<-w.exec(func(tx *Tx) { ran = true })
+	if !ran {
+		t.Fatal("the world stopped after a panic")
+	}
+}

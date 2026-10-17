@@ -38,18 +38,20 @@ type Game struct {
 	// isOperator reports whether a player may use the operator tools.
 	isOperator func(*player.Player) bool
 
-	mu       sync.Mutex
-	sessions map[*world.World]*session
+	// sessions maps each active instance world to its session. It is read
+	// by every block tick and written only when an instance starts or stops,
+	// so reads take no lock.
+	sessions sync.Map // *world.World -> *session
 }
 
 // activeGame is the game used by blocks, whose methods have no other way to
 // reach their session.
-var activeGame = &Game{sessions: map[*world.World]*session{}}
+var activeGame = &Game{}
 
 // New creates the game and registers its commands. There is one game per
 // process. isOperator, if not nil, allows players to use the operator tools.
 func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game {
-	g := &Game{log: log, db: d, isOperator: isOperator, sessions: map[*world.World]*session{}}
+	g := &Game{log: log, db: d, isOperator: isOperator}
 	activeGame = g
 	registerCommands(g)
 	registerCreativeItems()
@@ -101,18 +103,17 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		}
 	})
 	inst.World.Handle(&worldHandler{s: s})
-	g.mu.Lock()
-	g.sessions[inst.World] = s
-	g.mu.Unlock()
+	g.sessions.Store(inst.World, s)
 	return s
 }
 
 // sessionOf returns the session running in w.
 func (g *Game) sessionOf(w *world.World) (*session, bool) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	s, ok := g.sessions[w]
-	return s, ok
+	v, ok := g.sessions.Load(w)
+	if !ok {
+		return nil, false
+	}
+	return v.(*session), true
 }
 
 // session is one active save. All fields are owned by the instance world.
@@ -273,9 +274,7 @@ func (s *session) Close(tx *world.Tx) {
 	s.removeDisplays(tx)
 	s.removeVisuals(tx)
 	s.Autosave(tx)
-	s.g.mu.Lock()
-	delete(s.g.sessions, s.world)
-	s.g.mu.Unlock()
+	s.g.sessions.Delete(s.world)
 }
 
 func (s *session) storeState() {

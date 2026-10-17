@@ -1,6 +1,6 @@
 # 운영자 도구 (`/dfadmin`)
 
-테스트용. `platform.toml` 의 `[Admin] Operators` 에 있는 플레이어 이름만 보고 쓸 수 있다. 세이브 안에서 쓴다.
+테스트용. `platform.toml` 의 `[Admin] Operators` 에 있는 플레이어(XUID, 숫자)만 보고 쓸 수 있다. 이름을 적어도 되지만 Xbox 닉네임은 다른 사람에게 넘어갈 수 있어, 이름으로만 운영자가 된 플레이어가 접속하면 서버 로그에 XUID 와 함께 경고가 남는다. 인증을 끈 시험 서버에서는 XUID 가 비어 있어 이름으로만 판별한다. 세이브 안에서 쓴다.
 코드: `internal/games/dragonfactory/admin.go`.
 
 | 명령 | 하는 일 |

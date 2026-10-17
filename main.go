@@ -18,6 +18,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/backup"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
 	"github.com/presentkim/dragonfactory/internal/i18n"
@@ -90,16 +91,31 @@ func run(log *slog.Logger) error {
 	lobby.StopTime()
 	<-lobby.Do(platform.BuildLobby).Done()
 
+	var afterClose func(int64, string)
+	stopBackup := make(chan struct{})
+	if b := pconf.Backup; b.Enabled {
+		go backup.RunDatabase(log, d, b.Dir, time.Duration(b.DatabaseMinutes)*time.Minute, b.DatabaseKeep, stopBackup)
+		afterClose = func(id int64, dir string) {
+			if p, err := backup.Directory(dir, b.Dir, backup.WorldPrefix(id), b.WorldKeep, time.Now()); err != nil {
+				log.Error("world backup", "save", id, "err", err)
+			} else {
+				log.Info("world backup", "file", p)
+			}
+		}
+	}
+
 	var pf *platform.Platform
 	m := instance.NewManager(log, d, instance.Config{
-		Dir:              filepath.Join(pconf.Data.Dir, "saves"),
-		DayLength:        pconf.DayLength(),
-		LoadRadius:       pconf.Instance.LoadRadius,
-		MaxActive:        pconf.Instance.MaxActive,
-		AutosaveInterval: time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
-		Entities:         conf.Entities,
+		AfterClose:        afterClose,
+		Dir:               filepath.Join(pconf.Data.Dir, "saves"),
+		DayLength:         pconf.DayLength(),
+		LoadRadius:        pconf.Instance.LoadRadius,
+		MaxActive:         pconf.Instance.MaxActive,
+		AutosaveInterval:  time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
+		WorldSaveInterval: time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
+		Entities:          conf.Entities,
 	}, platform.Lobby(lobby, &pf))
-	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name()) }
+	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
 	pf = platform.New(log, d, m, dragonfactory.New(log, d, isOperator), srv.Player)
 	// Operators who turn it on (/dfadmin tps) see the server load.
 	stopLoad := make(chan struct{})
@@ -113,6 +129,7 @@ func run(log *slog.Logger) error {
 		// Store every instance before players are disconnected.
 		m.CloseAll()
 		account.Flush()
+		close(stopBackup)
 		if err := srv.Close(); err != nil {
 			log.Error("close server", "err", err)
 		}
@@ -120,10 +137,18 @@ func run(log *slog.Logger) error {
 
 	srv.Listen()
 	for p := range srv.Accept() {
+		if pconf.OperatorByNameOnly(p.Name(), p.XUID()) {
+			log.Warn("operator listed by name; list the XUID in Admin.Operators", "name", p.Name(), "xuid", p.XUID())
+		}
 		pf.Join(p)
 	}
 	m.CloseAll()
 	account.Flush()
+	if b := pconf.Backup; b.Enabled {
+		if _, err := backup.Database(d, b.Dir, b.DatabaseKeep, time.Now()); err != nil {
+			log.Error("database backup", "err", err)
+		}
+	}
 	return nil
 }
 

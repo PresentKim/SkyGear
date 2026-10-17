@@ -35,14 +35,14 @@ func testSession(t *testing.T) *session {
 	}
 	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(EntityTypes())}.New()
 	t.Cleanup(func() { _ = w.Close() })
-	g := &Game{log: slog.Default(), db: d, sessions: map[*world.World]*session{}}
+	g := &Game{log: slog.Default(), db: d}
 	s := &session{
 		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute),
 		saveID: save.ID, saveName: save.Name, hostID: "host", state: newState(), displays: map[cube.Pos]*drawerDisplay{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 		rand: rand.New(rand.NewPCG(1, 2)),
 	}
-	g.sessions[w] = s
+	g.sessions.Store(w, s)
 	activeGame = g
 	registerItemIO()
 	w.Handle(&worldHandler{s: s})
