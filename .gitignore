@@ -9,3 +9,7 @@
 /keys/
 /dragonfactory
 *.tmp
+
+# IDE
+/.vscode/
+/.idea/
