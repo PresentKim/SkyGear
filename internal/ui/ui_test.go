@@ -69,6 +69,60 @@ func TestActionOptionsKeepBack(t *testing.T) {
 	}
 }
 
+// TestListSplitOptions: the rows come first (the chosen one last), then the
+// actions, the first of them marked as the full width one and the rest
+// alternating left and right.
+func TestListSplitOptions(t *testing.T) {
+	runs := 0
+	run := func(*player.Player, *world.Tx) { runs++ }
+	opts := listSplitOptions(ListSplit{
+		Rows: []ListRow{
+			{Label: "첫째", Run: run},
+			{Label: "둘째", Selected: true, Run: run},
+		},
+		Actions: []Option{{Label: "입장", Run: run}, {Label: "초대 코드", Run: run}, {Label: "참여자 관리", Run: run}},
+	})
+	var labels []string
+	for _, o := range opts {
+		labels = append(labels, o.Label)
+	}
+	if len(labels) != 5 {
+		t.Fatalf("labels %q", labels)
+	}
+	want := []string{listRowToken, listRowOnToken, listPrimaryToken, listColAToken, listColBToken}
+	for i, m := range want {
+		if !strings.HasPrefix(labels[i], m) {
+			t.Errorf("button %d = %q, want the mark %q", i, labels[i], m)
+		}
+	}
+	for _, o := range opts {
+		if o.Run != nil {
+			o.Run(nil, nil)
+		}
+	}
+	if runs != 4 {
+		t.Errorf("%d runs, want the unchosen row and the three actions", runs)
+	}
+	if !strings.HasPrefix(ListSplitToken+"x", "§d§f§l") {
+		t.Errorf("title marker %q", ListSplitToken)
+	}
+}
+
+// TestListRowText: the name is padded to a fixed width with invisible codes
+// and the information follows where the pack starts drawing the small line.
+func TestListRowText(t *testing.T) {
+	label := ListRowText("세이브 1", "§7오늘")
+	if len(label) <= listNameBytes || !strings.HasSuffix(label, "§7오늘") {
+		t.Fatalf("label %q", label)
+	}
+	if name := label[:listNameBytes]; !strings.HasPrefix(name, "세이브 1§r") || strings.Trim(strings.TrimSuffix(name[len("세이브 1"):], " "), "§r") != "" {
+		t.Errorf("name field %q", name)
+	}
+	if got := ListRowText(strings.Repeat("가", 40), "x"); len(got) != listNameBytes+1 {
+		t.Errorf("a long name is %d bytes, want the field and the info", len(got))
+	}
+}
+
 // TestPager: a list on its first page has only "next", in the middle both, on
 // the last only "previous"; the labels name the page they go to.
 func TestPager(t *testing.T) {

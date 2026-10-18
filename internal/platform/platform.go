@@ -122,51 +122,82 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 	return true
 }
 
-// showSaves shows the save slots of p.
-func (pf *Platform) showSaves(p *player.Player) {
+// showSaves shows the save slots of p and the actions of the chosen one
+// (ui.ListSplitMenu). Pressing a row chooses it. With 0 the first save is
+// chosen, or the first empty slot when there is no save yet.
+func (pf *Platform) showSaves(p *player.Player, sel int64) {
+	pf.showSavesAt(p, sel, 0)
+}
+
+// showSavesSlot chooses the empty slot slot.
+func (pf *Platform) showSavesSlot(p *player.Player, slot int) {
+	pf.showSavesAt(p, 0, slot)
+}
+
+// showSavesAt shows the screen with the save sel or the empty slot slot
+// chosen (sel 0 for a slot).
+func (pf *Platform) showSavesAt(p *player.Player, sel int64, slot int) {
 	saves, err := pf.db.SavesOf(instance.AccountID(p), pf.game.ID())
 	if err != nil {
 		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.1"), err)
 		return
 	}
+	lang := i18n.Of(p)
+	var chosen db.Save
 	bySlot := map[int]db.Save{}
 	for _, s := range saves {
 		bySlot[s.Slot] = s
+		if s.ID == sel {
+			chosen = s
+		}
 	}
-	var opts []ui.Option
-	for slot := 1; slot <= Slots; slot++ {
-		if s, ok := bySlot[slot]; ok {
-			opts = append(opts, ui.Option{
-				Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSaves.2"), slot, s.Name, s.Day, formatDuration(s.InstanceTime)),
-				Icon:  iconSave,
-				Run:   func(p *player.Player, _ *world.Tx) { pf.showSave(p, s.ID) },
+	if sel == 0 && slot == 0 {
+		if len(saves) > 0 {
+			chosen = saves[0]
+		} else {
+			slot = 1
+		}
+	}
+	if s, ok := bySlot[slot]; ok {
+		// The slot was filled since the screen was sent: choose that save.
+		chosen, slot = s, 0
+	}
+	var rows []ui.ListRow
+	for n := 1; n <= Slots; n++ {
+		s, ok := bySlot[n]
+		if !ok {
+			rows = append(rows, ui.ListRow{
+				Label:    ui.ListRowText(i18n.T(lang, "platform.platform.showSaves.2"), ""),
+				Icon:     iconNewSave,
+				Selected: n == slot,
+				Run:      func(p *player.Player, _ *world.Tx) { pf.showSavesSlot(p, n) },
 			})
 			continue
 		}
-		opts = append(opts, ui.Option{
-			Label: fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSaves.3"), slot),
-			Icon:  iconNewSave,
-			Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) },
+		info := fmt.Sprintf(i18n.T(lang, "platform.platform.showSaves.3"), s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
+		rows = append(rows, ui.ListRow{
+			Label:    ui.ListRowText(s.Name, info),
+			Icon:     iconSave,
+			Selected: s.ID == chosen.ID,
+			Run:      func(p *player.Player, _ *world.Tx) { pf.showSaves(p, s.ID) },
 		})
 	}
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.4"), pf.game.Name()+i18n.T(i18n.Of(p), "platform.platform.showSaves.5"), opts...)
-}
-
-func (pf *Platform) showSave(p *player.Player, saveID int64) {
-	s, err := pf.db.Save(saveID)
-	if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSave.1"), err)
-		return
+	sp := ui.ListSplit{Rows: rows}
+	switch {
+	case chosen.ID != 0:
+		sp.Actions = []ui.Option{
+			{Label: i18n.T(lang, "platform.platform.showSave.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, chosen.ID) }},
+			{Label: i18n.T(lang, "platform.platform.showSave.3"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, chosen.ID) }},
+			{Label: i18n.T(lang, "platform.platform.showSave.4"), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
+			{Label: i18n.T(lang, "platform.platform.showSave.5"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, chosen) }},
+			{Label: i18n.T(lang, "platform.platform.showSave.6"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, chosen, 0) }},
+		}
+	case slot != 0:
+		sp.Actions = []ui.Option{
+			{Label: i18n.T(lang, "platform.platform.showSaves.5"), Icon: iconNewSave, Run: func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) }},
+		}
 	}
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.showSave.2"), s.Name, s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
-	ui.Menu(p, s.Name, body,
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.3"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, saveID) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.4"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, saveID) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.5"), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, saveID) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.6"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, s) }},
-		ui.Option{Label: i18n.T(i18n.Of(p), "platform.platform.showSave.7"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, s, 0) }},
-		ui.Back(i18n.T(i18n.Of(p), "platform.platform.showSave.8"), func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }),
-	)
+	ui.ListSplitMenu(p, i18n.T(lang, "platform.platform.showSaves.4"), sp)
 }
 
 func (pf *Platform) enter(p *player.Player, saveID int64) {
@@ -188,7 +219,7 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 }
 
 func (pf *Platform) askNewSave(p *player.Player, slot int) {
-	ui.Input(p, i18n.T(i18n.Of(p), "platform.platform.askNewSave.1"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.2"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askNewSave.3"), slot), func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, ui.CreateToken+i18n.T(i18n.Of(p), "platform.platform.askNewSave.1"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.2"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.3"), func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
 			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.askNewSave.4"))
@@ -199,7 +230,7 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askNewSave.5"), err)
 			return
 		}
-		pf.enter(p, s.ID)
+		pf.showSaves(p, s.ID)
 	})
 }
 
@@ -214,7 +245,7 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askRename.4"), err)
 			return
 		}
-		pf.showSave(p, s.ID)
+		pf.showSaves(p, s.ID)
 	})
 }
 
@@ -232,7 +263,7 @@ func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
 			return
 		}
 		ui.Flash(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.8"), s.Name)
-		pf.showSaves(p)
+		pf.showSaves(p, 0)
 	})
 }
 
@@ -300,7 +331,7 @@ func (c savesCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "platform.platform.Run.2"))
 		return
 	}
-	c.pf.showSaves(p)
+	c.pf.showSaves(p, 0)
 }
 
 type guideCmd struct {
@@ -330,7 +361,7 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 		friends = fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.7"), len(reqs))
 	}
 	ui.CardMenu(p, pf.game.Name()+i18n.T(lang, "platform.platform.showLobbyMenu.1"), "",
-		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p) }},
+		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
 		ui.Option{Label: friends, Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},

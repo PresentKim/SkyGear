@@ -6,8 +6,9 @@
   // §d§f§i§r (ui.SlotToken) as inventory-like slots, §d§f§g§r / §d§f§h§r
   // (ui.DetailToken, ui.WrapToken) as item slots with counts and tooltips,
   // §d§f§j§r (ui.ColumnsToken) as two columns of them, §d§f§y§r (ui.SplitToken)
-  // as a grid with the detail of the chosen slot beside it, §d§f§z§r
-  // (ui.TreeToken) as the advancement tree, otherwise a list. A title with
+  // as a grid with the detail of the chosen slot beside it, §d§f§l§r
+  // (ui.ListSplitToken) as a list with the detail of the chosen row beside it,
+  // §d§f§z§r (ui.TreeToken) as the advancement tree, otherwise a list. A title with
   // §d§f§n§r (ui.NoAnimToken) shows the window at once; the others slide it up.
   "namespace": "server_form",
 
@@ -40,7 +41,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -54,7 +55,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -256,6 +257,35 @@
             {
               "binding_type": "view", "binding_condition": "once",
               "source_property_name": "((not ((#title_text - '§d§f§y§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // A list of rows with the detail of the chosen one beside it (ui.ListSplitMenu): the save screen.
+        "list_split@df_form.list_split_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§l§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // A list of rows with the detail of the chosen one beside it (ui.ListSplitMenu): the save screen. (the window is shown at once)
+        "list_split_s@df_form.list_split_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§l§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]

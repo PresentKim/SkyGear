@@ -756,7 +756,12 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	t.run(p, tx, t.Value.Value())
 }
 
-// Input asks for one line of text.
+// CreateToken in an Input title makes the pack label its submit button
+// "생성하기" instead of the game's own word: a save slot is created there.
+const CreateToken = "§d§f§e§r"
+
+// Input asks for one line of text. label is the field's group label; pass ""
+// to ask under the title alone.
 func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string)) {
 	send(p, title, form.New(textInput{Value: form.NewInput(label, def, ""), run: f}, title))
 }

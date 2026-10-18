@@ -5,7 +5,7 @@
 # with planks from the research form (menu → 연구 → 상자 → 연구 진행). The bot
 # counts a recipe list as "recipes=<n>".
 timeout 90 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임"=연구 섬' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임"=연구 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research stick' 'expectre:^recipes=[0-9]{1,2}$' \
   'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{3,}$' \
   'cmd:/dfadmin research free' 'expectre:^recipes=[0-9]{1,2}$' \

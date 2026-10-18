@@ -26,7 +26,7 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 			if err := pf.db.SetGuideVersion(instance.AccountID(p), GuideVersion); err != nil {
 				pf.log.Error("set guide version", "err", err)
 			}
-			pf.showSaves(p)
+			pf.showSaves(p, 0)
 		}
 	}})
 }

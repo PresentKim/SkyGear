@@ -30,6 +30,7 @@
 | 표 | `ui.TableMenu` | 열이 있는 숫자 |
 | 칸 격자 | `ui.ItemGrid`, `ui.ItemGridSections` | 아이템이 주인공(스토리지, 도감 검색, 연구) |
 | 상세 | `ui.ItemDetail`, `ui.ColumnsMenu` | 아이템 하나·두 판 |
+| 분할 | `ui.SplitMenu`, `ui.ListSplitMenu` | 목록에서 고른 항목의 동작을 같은 창 오른쪽에(연구, 세이브 선택) |
 | 트리 | `ui.TreeMenu` | 선후 관계가 있는 노드(발전과제). 노드 글은 호버, 누르면 상세 폼([advancement-tree.md](advancement-tree.md)) |
 | 탭 | `ui.Tab` | 같은 창의 서로 다른 **보기**를 오가는 화면: 생산 통계(생산·에너지·정지), 도감(검색·체·가공·몬스터·식물), 칭호·치장(칭호·이름 색·업적). 탭은 위쪽 줄에 모든 쪽에 보이고 아이콘 12px + 3글자 안팎의 글이다(탭 폭 52px, 창 폭 280px 에 다섯 개) |
 | 쪽 넘김 | `ui.Pager` | 긴 목록을 나눌 때. 모든 쪽 넘김이 같은 글("이전 쪽 (1/3)")·같은 아이콘·같은 자리(아래 동작 줄) |
@@ -71,7 +72,7 @@
 
 - 창과 탭의 모서리는 둥글다: 모서리 세 픽셀을 비우고 계단 모양으로 검은 선을 잇는다(`tools/uitextures` 의 `roundCorners`). 창은 아홉 조각(모서리 4px)이다.
 - 제목은 막대 없이 창 위 가운데에 쓴다. 도움말(?)·뒤로·닫기는 창 오른쪽 위 모서리 위에 붙은 어두운 둥근 막대(바닐라 `toolbar_background`)에 바닐라 닫기·도움말 그림과 흰 화살표로 둔다. 틀은 없고 포인터가 올라오면 칸이 밝아진다(`icon_button`, `help_button` 의 기본 그림이 `clear`).
-- 탭은 창 위 왼쪽 가장자리에 붙는다(`df_form.window` 의 `tabs_top`, 폼마다 안쪽에 두지 않는다). 연구 분할 화면은 왼쪽 판 안에 자기 탭을 두므로 `$df_tabs: df_form.no_tabs` 로 끈다.
+- 탭은 창 위 왼쪽 가장자리에 붙는다(`df_form.window` 의 `tabs_top`, 폼마다 안쪽에 두지 않는다). 연구 분할 화면은 왼쪽 판 안에 자기 탭을 두므로, 세이브 선택은 탭이 없으므로 `$df_tabs: df_form.no_tabs` 로 끈다.
 
 - 카드(`card_button`)의 아이콘은 30px 이고 카드 가운데에 놓인다(이름은 아래).
 - 뒤로 버튼은 픽셀 꺾쇠 그림(`chevron_left`)이고, 호버·누름은 닫기 버튼처럼 테두리 없는 회색 정사각형(`hover_flat`, `press_flat`)이다.
