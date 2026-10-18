@@ -111,7 +111,7 @@
   "window": {
     "type": "image",
     "texture": "textures/ui/dialog_background_opaque",
-    "$df_window_size|default": [ 270, "70%" ],
+    "$df_window_size|default": [ 270, 200 ],
     "$df_tabs|default": "df_form.marked_tabs",
     "$df_anims|default": [ "@df_form.window_slide_in", "@df_form.window_fade_in" ],
     // "$df_title|default": true hides the title bar (the input form draws no
@@ -910,7 +910,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 290, "70%" ],
+          "$df_window_size": [ 290, 178 ],
           "$df_content": "df_form.card_scroll"
         }
       }
@@ -996,7 +996,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 360, "70%" ],
+          "$df_window_size": [ 360, 220 ],
           "$df_content": "df_form.shop_scroll"
         }
       }
@@ -1143,7 +1143,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 320, "65%" ],
+          "$df_window_size": [ 320, 220 ],
           "$df_content": "df_form.table_scroll"
         }
       }
@@ -1894,7 +1894,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 420, "72%" ],
+          "$df_window_size": [ 420, 300 ],
           "$df_content": "df_form.gslot_detail_scroll"
         }
       }
@@ -2222,7 +2222,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 340, "72%" ],
+          "$df_window_size": [ 340, 240 ],
           "$df_content": "df_form.gslot_cols_scroll"
         }
       }
@@ -2439,7 +2439,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 280, "68%" ],
+          "$df_window_size": [ 280, 240 ],
           "$df_content": "df_form.gslot_wrap_scroll"
         }
       }
@@ -2933,7 +2933,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 460, "80%" ],
+          "$df_window_size": [ 460, 264 ],
           "$df_tabs": "df_form.no_tabs",
           "$df_content": "df_form.split_body"
         }
@@ -4060,7 +4060,7 @@
   "probe_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
-    "controls": [ { "window@df_form.window": { "$df_window_size": [ 340, "65%" ], "$df_content": "df_form.probe_content" } } ]
+    "controls": [ { "window@df_form.window": { "$df_window_size": [ 340, 300 ], "$df_content": "df_form.probe_content" } } ]
   },
 
   "probe_content": {

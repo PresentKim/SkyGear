@@ -1043,12 +1043,12 @@
       }
     ]
   },
+  // The machine's slots fill the rows its layout uses, so the window is as
+  // tall as a vanilla chest of that many rows (1 row 130, 2 rows 148, 3 rows
+  // 166): the shared inventory below keeps its vanilla place.
   "top_half": {
     "type": "panel",
-    "size": [
-      "100%",
-      "50%"
-    ],
+    "size": "$df_machine_top_size",
     "offset": [
       0,
       12
@@ -1071,6 +1071,8 @@
   },
   "machine_panel": {
     "type": "panel",
+    "$df_machine_root_size|default": [ 176, 130 ],
+    "$df_machine_top_size|default": [ "100%", 42 ],
     "controls": [
       {
         "container_gamepad_helpers@common.container_gamepad_helpers": {}
@@ -1084,6 +1086,7 @@
       {
         "root_panel@common.root_panel": {
           "layer": 1,
+          "size": "$df_machine_root_size",
           "controls": [
             {
               "common_panel@common.common_panel": {
@@ -1357,10 +1360,14 @@
     ]
   },
   "lab_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.lab_slots"
+    "$df_machine_slots": "df_machine.lab_slots",
+    "$df_machine_root_size": [ 176, 166 ],
+    "$df_machine_top_size": [ "100%", 78 ]
   },
   "crafter_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.crafter_slots"
+    "$df_machine_slots": "df_machine.crafter_slots",
+    "$df_machine_root_size": [ 176, 166 ],
+    "$df_machine_top_size": [ "100%", 78 ]
   },
   "alloy_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.alloy_slots"
