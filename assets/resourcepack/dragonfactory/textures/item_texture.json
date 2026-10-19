@@ -43,9 +43,6 @@
     "dragonfactory:drawer_upgrade_capacity": {
       "textures": "textures/items/drawer_upgrade_capacity"
     },
-    "dragonfactory:drawer_upgrade_lock": {
-      "textures": "textures/items/drawer_upgrade_lock"
-    },
     "dragonfactory:drawer_upgrade_void": {
       "textures": "textures/items/drawer_upgrade_void"
     },

@@ -1351,10 +1351,6 @@ func mineable(b world.Block) (block.BreakInfo, bool) {
 	if _, ok := b.(world.Liquid); ok {
 		return block.BreakInfo{}, false
 	}
-	switch b.(type) {
-	case Core, DeliveryBox:
-		return block.BreakInfo{}, false
-	}
 	br, ok := b.(block.Breakable)
 	if !ok {
 		return block.BreakInfo{}, false

@@ -247,15 +247,6 @@
     "dragonfactory_conduit_node": {
       "textures": "textures/blocks/conduit_node"
     },
-    "dragonfactory_core_t1_down": {
-      "textures": "textures/blocks/core_t1_down"
-    },
-    "dragonfactory_core_t1_side": {
-      "textures": "textures/blocks/core_t1_side"
-    },
-    "dragonfactory_core_t1_up": {
-      "textures": "textures/blocks/core_t1_up"
-    },
     "dragonfactory_crucible_back": {
       "textures": "textures/blocks/crucible_back"
     },
@@ -399,21 +390,6 @@
     },
     "dragonfactory_crusher_up_t3": {
       "textures": "textures/blocks/crusher_up_t3"
-    },
-    "dragonfactory_delivery_box_back": {
-      "textures": "textures/blocks/delivery_box_back"
-    },
-    "dragonfactory_delivery_box_down": {
-      "textures": "textures/blocks/delivery_box_down"
-    },
-    "dragonfactory_delivery_box_front": {
-      "textures": "textures/blocks/delivery_box_front"
-    },
-    "dragonfactory_delivery_box_side": {
-      "textures": "textures/blocks/delivery_box_side"
-    },
-    "dragonfactory_delivery_box_up": {
-      "textures": "textures/blocks/delivery_box_up"
     },
     "dragonfactory_dimension_gate_down": {
       "textures": "textures/blocks/dimension_gate_down"

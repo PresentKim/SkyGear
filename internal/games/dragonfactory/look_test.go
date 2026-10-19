@@ -64,7 +64,7 @@ func TestLookInfo(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
 	st.insert(item.NewStack(block.Cobblestone{}, 5))
 	tick(s, machineKinds[KindCrusher].interval/2+1)
-	drawerPos, corePos := cube.Pos{6, IslandY, 3}, cube.Pos{9, IslandY + 2, 9}
+	drawerPos := cube.Pos{6, IslandY, 3}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		text := func(pos cube.Pos) string {
 			info := s.lookInfo(p, tx, pos, tx.Block(pos))
@@ -88,10 +88,6 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("sneaking drawer lines %q, want the upgrades and the lock", info.Lines)
 		}
 		p.StopSneaking()
-		tx.SetBlock(corePos, Core{Type: "t1"}, nil)
-		if got := text(corePos); !strings.Contains(got, "더 이상 쓰이지 않음") {
-			t.Errorf("old core panel %q", got)
-		}
 		chestPos := cube.Pos{11, IslandY, 3}
 		tx.SetBlock(chestPos, block.NewChest(), nil)
 		if c, ok := tx.Block(chestPos).(block.Chest); ok {
@@ -128,8 +124,8 @@ func TestCustomTool(t *testing.T) {
 	if got := customTool(Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
 		t.Errorf("drawer by hand: %v", got)
 	}
-	if got := customTool(Core{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
-		t.Errorf("core with a pickaxe: %v", got)
+	if got := customTool(Machine{Kind: KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
+		t.Errorf("machine with a pickaxe: %v", got)
 	}
 	if got := customTool(block.Stone{}, item.Stack{}); got != nil {
 		t.Errorf("stone: %v", got)

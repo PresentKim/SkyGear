@@ -151,8 +151,6 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		if p.Sneaking() {
 			info.Lines = append(info.Lines, drawerDetail(b)...)
 		}
-	case Core, DeliveryBox:
-		info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.2")}
 	case block.Composter:
 		info.Lines = s.composterLines(pos, b)
 	case ConduitBundle:
@@ -181,7 +179,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case Drawer, DeliveryBox, ResearchTable, Barrel:
+	case Drawer, ResearchTable, Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case FlowHopper:
 		if h := b.(FlowHopper); h.kind().wood {
@@ -189,7 +187,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		} else {
 			icon, typ = waila.PickaxeWood, item.TypePickaxe
 		}
-	case Machine, Core:
+	case Machine:
 		icon, typ = waila.PickaxeWood, item.TypePickaxe
 	default:
 		return nil

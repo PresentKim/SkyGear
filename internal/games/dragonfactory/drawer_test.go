@@ -143,10 +143,9 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	drawerPos, boxPos := cube.Pos{0, IslandY, 0}, cube.Pos{1, IslandY, 0}
+	drawerPos := cube.Pos{0, IslandY, 0}
 	s.world.Do(func(tx *world.Tx) {
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(boxPos, DeliveryBox{}, nil)
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -159,12 +158,6 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 			t.Fatalf("drawer count = %d", d.Count)
 		}
 
-		// The delivery box only opens the mission form: the held stack stays.
-		p.SetHeldItems(item.NewStack(block.Cobblestone{}, 64), item.Stack{})
-		p.UseItemOnBlock(boxPos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1})
-		if held, _ := p.HeldItems(); held.Count() != 64 {
-			t.Fatalf("held after using the delivery box = %v", held)
-		}
 	})
 }
 

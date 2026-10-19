@@ -254,29 +254,6 @@ func TestConduitsShareABundle(t *testing.T) {
 	})
 }
 
-// TestOldConduitsBecomeBundles: a conduit block of the earlier versions (one
-// block per conduit) turns into a bundle of its kind and keeps its item modes.
-func TestOldConduitsBecomeBundles(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	e, i := machinePos.Add(cube.Pos{1, 0, 0}), machinePos.Add(cube.Pos{3, 0, 0})
-	old := legacyConduit{Kind: 1, Tier: 2, Conn: 1 << 4}
-	old.Modes[cube.FaceWest] = itemnet.Input
-	s.world.Do(func(tx *world.Tx) {
-		tx.SetBlock(e, legacyConduit{Kind: 0, Tier: 3, Conn: 1 << 5}, nil)
-		tx.SetBlock(i, old, nil)
-	})
-	runSteps(s, 10)
-	s.world.Do(func(tx *world.Tx) {
-		if b, ok := tx.Block(e).(ConduitBundle); !ok || b.Energy != 3 || b.Item != 0 {
-			t.Errorf("old energy conduit is %#v", tx.Block(e))
-		}
-		if b, ok := tx.Block(i).(ConduitBundle); !ok || b.Item != 2 || b.Energy != 0 || b.Modes[cube.FaceWest] != itemnet.Input {
-			t.Errorf("old item conduit is %#v", tx.Block(i))
-		}
-	})
-}
-
 // TestConduitVisualFollowsTheBundle: a placed conduit gets a display entity
 // that carries its look; putting another conduit into the bundle or
 // connecting it changes the look; the entity goes with the bundle.
@@ -331,32 +308,6 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 		s.removeVisual(tx, pos)
 		if _, ok := look(tx); ok {
 			t.Error("the entity stayed after the bundle was removed")
-		}
-	})
-}
-
-// TestOldConduitItemsWork: an old conduit item in an inventory is turned into
-// the new item when the player joins, and still places its conduit if used.
-func TestOldConduitItemsWork(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_ = p.Inventory().SetItem(0, item.NewStack(legacyConduit{Kind: 0, Tier: 1}, 3))
-		_ = p.Inventory().SetItem(1, item.NewStack(legacyConduit{Kind: 1, Tier: 1}, 2))
-		migrateConduitItems(p)
-		if st, _ := p.Inventory().Item(0); st.Item() != (EnergyConduit{Tier: 1}) || st.Count() != 3 {
-			t.Errorf("slot 0 holds %v", st)
-		}
-		if st, _ := p.Inventory().Item(1); st.Item() != (ItemConduit{Tier: 1}) || st.Count() != 2 {
-			t.Errorf("slot 1 holds %v", st)
-		}
-		old := legacyConduit{Kind: 0, Tier: 1}
-		p.SetHeldItems(item.NewStack(old, 2), item.Stack{})
-		old.UseOnBlock(pos.Side(cube.FaceWest), cube.FaceEast, mgl64.Vec3{}, tx, p, &item.UseContext{})
-		if b, ok := tx.Block(pos).(ConduitBundle); !ok || b.Energy != 1 {
-			t.Errorf("an old item placed %#v", tx.Block(pos))
 		}
 	})
 }
@@ -522,7 +473,7 @@ func TestPlateFormsOpen(t *testing.T) {
 // shaped like the 9 pixels its conduits take, not a full block; fluid conduits
 // move EnderIO's 200, 1000 and 8000 mB a tick.
 func TestConduitBlockSizes(t *testing.T) {
-	for name, props := range map[string]customblock.Properties{"bundle": ConduitBundle{}.Properties(), "old energy": legacyConduit{Kind: 0, Tier: 1}.Properties(), "old bundle": legacyBundle{}.Properties()} {
+	for name, props := range map[string]customblock.Properties{"bundle": ConduitBundle{}.Properties()} {
 		if props.CollisionBox != bundleSelection || props.SelectionBox != bundleSelection {
 			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, bundleSelection)
 		}

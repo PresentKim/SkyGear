@@ -300,9 +300,9 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	if face != d.Facing.Face() {
 		return false
 	}
-	if isDrawerKey(held) || isLegacyLockUpgrade(held) {
+	if isDrawerKey(held) {
 		if !s.debounced(p) {
-			s.toggleLock(p, tx, pos, &d, held)
+			s.toggleLock(tx, pos, &d)
 		}
 		return true
 	}
@@ -427,14 +427,11 @@ type DrawerUpgrade struct{ Kind int }
 
 const (
 	UpgradeCapacity = iota
-	UpgradeLock
 	UpgradeVoid
 )
 
 var upgradeInfo = []struct{ id, name string }{
 	{"capacity", i18n.T(i18n.Default, "dragonfactory.drawer.init.1")},
-	// Kept so old items still load; using one turns it into a drawer key.
-	{"lock", i18n.T(i18n.Default, "dragonfactory.drawer.init.2")},
 	{"void", i18n.T(i18n.Default, "dragonfactory.drawer.init.3")},
 }
 
@@ -447,11 +444,6 @@ func (DrawerUpgrade) Category() category.Category { return category.Items() }
 func isDrawerUpgrade(st item.Stack) bool {
 	_, ok := st.Item().(DrawerUpgrade)
 	return ok
-}
-
-func isLegacyLockUpgrade(st item.Stack) bool {
-	u, ok := st.Item().(DrawerUpgrade)
-	return ok && u.Kind == UpgradeLock
 }
 
 // DrawerKey locks and unlocks drawers. It is never used up (§15.4).
@@ -467,17 +459,8 @@ func isDrawerKey(st item.Stack) bool {
 	return ok
 }
 
-// toggleLock locks or unlocks a drawer with a key. An old lock upgrade used
-// this way becomes a key.
-func (s *session) toggleLock(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, held item.Stack) {
-	if isLegacyLockUpgrade(held) {
-		_, off := p.HeldItems()
-		p.SetHeldItems(held.Grow(-1), off)
-		if _, err := p.Inventory().AddItem(item.NewStack(DrawerKey{}, 1)); err != nil {
-			s.dropAt(tx, p.Position(), item.NewStack(DrawerKey{}, 1))
-		}
-		p.Message(i18n.T(i18n.Of(p), "dragonfactory.drawer.toggleLock.1"))
-	}
+// toggleLock locks or unlocks a drawer with a key.
+func (s *session) toggleLock(tx *world.Tx, pos cube.Pos, d *Drawer) {
 	s.setLocked(tx, pos, d, !d.Locked)
 }
 

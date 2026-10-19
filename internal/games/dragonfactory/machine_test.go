@@ -140,12 +140,12 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 			t.Fatal("the miner pushed into the chest")
 		}
 		// Special blocks are never mined.
-		tx.SetBlock(below, DeliveryBox{}, nil)
+		tx.SetBlock(below, Drawer{Facing: cube.South}, nil)
 	})
 	tick(s, 2*machineKinds[KindMiner].interval)
 	s.world.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(below).(DeliveryBox); !ok {
-			t.Fatal("auto miner mined a delivery box")
+		if _, ok := tx.Block(below).(Drawer); !ok {
+			t.Fatal("auto miner mined a drawer")
 		}
 	})
 }
@@ -199,7 +199,7 @@ func TestMineable(t *testing.T) {
 		want bool
 	}{
 		{block.Stone{}, true}, {block.Log{Wood: block.OakWood()}, true}, {block.CoalOre{}, true},
-		{block.Air{}, false}, {block.Bedrock{}, false}, {Core{Type: "t1"}, false},
+		{block.Air{}, false}, {block.Bedrock{}, false},
 		{Machine{Kind: KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
 	} {
 		if _, got := mineable(c.b); got != c.want {
@@ -245,7 +245,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{Machine{Kind: KindCrusher}, DeliveryBox{}, Drawer{}, Core{Type: "t1"}} {
+	for _, b := range []world.Block{Machine{Kind: KindCrusher}, Drawer{}, Barrel{}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {
@@ -281,7 +281,7 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 1}
 	s.world.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos, DeliveryBox{}, nil)
+		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(cube.Pos{0, IslandY, 2}, block.Stone{}, nil)
 	})
 	h := spawnPlayer(s)
@@ -290,14 +290,14 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
 	tick(s, 2)
 	s.world.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(pos).(DeliveryBox); !ok {
+		if _, ok := tx.Block(pos).(Drawer); !ok {
 			t.Fatal("broke before its break time")
 		}
 	})
-	time.Sleep(block.BreakDuration(DeliveryBox{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
+	time.Sleep(block.BreakDuration(Drawer{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
 	tick(s, 2)
 	s.world.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(pos).(DeliveryBox); ok {
+		if _, ok := tx.Block(pos).(Drawer); ok {
 			t.Fatal("not broken after its break time")
 		}
 	})

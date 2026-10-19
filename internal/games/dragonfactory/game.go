@@ -231,7 +231,6 @@ func (s *session) Join(p *player.Player, first bool) {
 		// Bare hands: only the menu item (§2).
 		_ = p.Inventory().SetItem(8, menuItem())
 	}
-	migrateConduitItems(p)
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)

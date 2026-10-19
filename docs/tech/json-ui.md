@@ -15,7 +15,7 @@
 ## 폼 (메뉴·확인·입력)
 
 - 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 드래곤팩토리 메뉴, 분실물 보관함, 섬 확장 지도 등.
-- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 메뉴(3×4)·판매·분실물. 상점 구매는 촘촘한 격자(`ui.ShopMenu`).
+- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 3개(90px 칸, 격자 폭 270px 고정·가운데), 버튼 수만큼 줄이 늘어난다(스크롤). 드래곤팩토리 메뉴·도움말·로비 메뉴·이름 색. 더 작은 칸이 많을 때는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 `#form_button_length` → `#maximum_grid_items`, 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다 — 6차 실기).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`) + 글자. 아이콘은 두 가지:
   - `textures/...` 로 시작하는 텍스처 경로: 이미지로 그린다(메뉴 항목 등 아이템이 아닌 것).
@@ -44,12 +44,12 @@
 - 표(`ui.TableMenu`)는 4열(80px) 격자. 첫 열은 아이콘+이름, 숫자 열은 오른쪽 정렬이다.
 - 상점(`ui.ShopMenu`)은 360px 창, 56×48px 칸 6열의 인벤토리 같은 작은 카드(아이콘·이름·가격). 격자 폭은 내용 영역(336px)을 넘으면 왼쪽 열이 잘린다.
 - 탭 줄 높이는 `100%cm`(가장 큰 자식). 가로 스택의 `100%c` 는 자식 높이를 모두 더해 탭 아래에 큰 공백이 생겼다.
-- 입력 폼(custom_form): 어두운 창 안에 바닐라 입력 칸 그대로(밝은 카드는 글자가 안 보여 뺐다).
-- 폼 뒤를 어둡게 하는 배경은 화면 일부에만 그려져 뺐다.
+- 입력 폼(custom_form): 어두운 창 안에 바닐라 입력 칸 그대로(밝은 카드 위에서는 입력 글자가 안 보인다).
+- 폼 뒤를 어둡게 하는 배경은 두지 않는다(화면 일부에만 그려진다).
 
 ### 아이템 슬롯 폼 (연구, 분실물)
 
-폼 버튼으로 **인벤토리 칸 같은 경험**을 준다: 칸마다 아이템 그림, 오른쪽 아래에 작은 개수, 마우스를 올리면(터치는 누르고 있는 동안) 이름·설명 상자. (서랍 창 `ui.SlotMenu` 의 칸을 일반화한 것.) 첫 실기에서 칸·개수·호버가 잘 나옴을 확인했고, 상자가 폼 밖으로 잘리던 문제는 아래 "호버 상자 쪽"으로 고쳤다(TODO 6번에서 다시 확인).
+폼 버튼으로 **인벤토리 칸 같은 경험**을 준다: 칸마다 아이템 그림, 오른쪽 아래에 작은 개수, 마우스를 올리면(터치는 누르고 있는 동안) 이름·설명 상자. (서랍 창 `ui.SlotMenu` 의 칸을 일반화한 것.) 칸·개수·호버는 실기에서 확인했다. 호버 상자는 아래처럼 엔진 툴팁으로 그려 폼 밖으로 잘리지 않는다.
 
 | Go | 제목 표식 | 쓰는 곳 |
 |---|---|---|
@@ -105,7 +105,7 @@
 
 ## 요령
 
-- 8차 실기 뒤 겪은 오류: 팩토리 `control_ids` 에 변수(`$df_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$df_window_size"`). `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의했다.
+- 겪은 오류: 팩토리 `control_ids` 에 변수(`$df_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$df_window_size"`). `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의했다.
 
 ## 실기 확인 전에는 미완료
 
@@ -133,7 +133,7 @@
 왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`internal/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
 
 - 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
-- 팩: `dragonfactory/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(예전 사이드바에서 `%` 가 사라졌다).
+- 팩: `dragonfactory/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다고 보고 짰다(실기 확인 필요).
 - 경험치 바는 바닐라 그대로다.
 - 분할·트리 폼의 왼쪽/오른쪽 판은 `panel` 안에 왼쪽 위 기준(오른쪽은 `offset` 220)으로 둔다. 가로 스택은 `100%c` 가 높이를 더하고 `100%cm` 은 오른쪽 상세를 접어 버려, 높이가 큰 쪽을 따르는 `panel` 의 `100%c`(자식 범위)를 쓴다.

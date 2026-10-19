@@ -32,7 +32,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 ## 3. 커스텀 아이템
 
-- `world.CustomItem`(이름, 크리에이티브 분류) 구현 + `world.RegisterItem`. 아이콘은 리소스팩 `textures/item_texture.json` 의 아이템 식별자 키로 찾는다(패치로 `Texture()` 를 인터페이스에서 뺐다).
+- `world.CustomItem`(이름, 크리에이티브 분류) 구현 + `world.RegisterItem`. 아이콘은 리소스팩 `textures/item_texture.json` 의 아이템 식별자 키로 찾는다(패치된 인터페이스에는 `Texture()` 가 없다).
 - 내구도, 음식, 갑옷, 쿨다운, 투척물 등은 아이템이 해당 인터페이스를 구현하면 자동으로 컴포넌트가 붙는다.
 - 텍스처는 리소스팩의 **PNG 파일**이다: `assets/resourcepack/dragonfactory/textures/items/<이름>.png`(아이템 아이콘, `item_texture.json` 키는 아이템 식별자. 블록 아이템(서랍·기계)은 블록 모양으로 보이므로 아이콘이 없다), `textures/blocks/<이름>.png`(블록 재질, `terrain_texture.json` 키는 `dragonfactory_<이름>`). 파일만 바꾸면 텍스처가 바뀐다. 빠진 파일·키는 `pack_test.go` 가 잡는다.
 

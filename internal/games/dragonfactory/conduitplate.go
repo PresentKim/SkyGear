@@ -255,7 +255,7 @@ func sideName(f cube.Face) string {
 // isConduitItem reports whether the stack is a conduit to place.
 func isConduitItem(st item.Stack) bool {
 	switch st.Item().(type) {
-	case EnergyConduit, ItemConduit, FluidConduit, legacyConduit:
+	case EnergyConduit, ItemConduit, FluidConduit:
 		return true
 	}
 	return false
