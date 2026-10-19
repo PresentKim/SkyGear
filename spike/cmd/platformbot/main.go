@@ -29,7 +29,7 @@ func main() {
 	var err error
 	// A stable identity per name, so reconnecting is the same account.
 	id := uuid.NewSHA1(uuid.NameSpaceOID, []byte(*name)).String()
-	conn, err = minecraft.Dialer{IdentityData: login.IdentityData{DisplayName: *name, Identity: id}}.Dial("raknet", "127.0.0.1:19132")
+	conn, err = minecraft.Dialer{IdentityData: login.IdentityData{DisplayName: *name, Identity: id}}.Dial("raknet", serverAddr())
 	if err != nil {
 		fail("dial: %v", err)
 	}
@@ -472,4 +472,13 @@ func clientReact(pk packet.Packet) {
 			delete(openWindows, pk.WindowID)
 		}
 	}
+}
+
+// serverAddr is the server to join: BOT_ADDR (set by run.sh) or the
+// default port.
+func serverAddr() string {
+	if a := os.Getenv("BOT_ADDR"); a != "" {
+		return a
+	}
+	return "127.0.0.1:19132"
 }

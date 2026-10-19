@@ -1,6 +1,6 @@
 #!/bin/bash
 # Runs an end-to-end scenario against a freshly built server with
-# authentication off. Usage: spike/scenarios/run.sh <scenario.sh> [workdir]
+# authentication off. Usage: [PORT=n] spike/scenarios/run.sh <scenario.sh> [workdir]
 # The scenario script gets $BOT (platformbot binary), $WORK (work dir) and
 # runs bots; this script builds, starts and stops the server.
 set -u
@@ -31,6 +31,10 @@ if [ ! -f config.toml ]; then
   # The host bot may use the operator tools.
   sed -i 's/^\(\s*\)Operators = \[\]/\1Operators = ["Hana"]/' platform.toml
 fi
+# PORT runs the server and the bots on another port (another server on 19132).
+port=${PORT:-19132}
+sed -i "s/^\(\s*Address = \"\):[0-9]*\"/\1:$port\"/" config.toml
+export BOT_ADDR=127.0.0.1:$port
 "$server" > srv.log 2>&1 & pid=$!
 for _ in $(seq 1 100); do grep -q "server started" srv.log && break; sleep 0.2; done
 bash "$scenario"; status=$?
