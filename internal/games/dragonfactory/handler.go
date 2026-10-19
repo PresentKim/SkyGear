@@ -23,10 +23,10 @@ type handler struct {
 func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
 		// No building or clicking in island expansion mode. A click on the
-		// fake glass floor makes the server resend the real blocks, so the
-		// floor is shown again.
+		// map makes the server resend the real blocks, so the map chunk is
+		// shown again.
 		ctx.Cancel()
-		h.s.restoreFloorNear(ctx.Player(), pos)
+		h.s.restoreMapNear(ctx.Player(), pos)
 		return true
 	}
 	if h.s.canBuild(pos) {

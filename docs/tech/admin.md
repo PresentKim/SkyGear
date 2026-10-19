@@ -36,5 +36,3 @@
 `/dfadmin factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(채굴기 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/dfadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
 
 `/dfadmin dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 기계를 많이 둘 때의 부하를 게임 안에서 잰다(측정은 운영자가 직접, 결과는 [performance.md](performance.md)에 적는다).
-
-`/dfadmin expandview <map|floor>`: 이 섬의 확장 모드 표시 방식을 바꾼다(멀리 보낸 평면 지도(기본) / 섬 높이 유리 바닥). 확장 모드 중인 플레이어는 바로 다시 그려진다. 저장하지 않는다(서버를 다시 켜면 `map`, [기획](../design/02-dragonfactory.md) 섬 확장).

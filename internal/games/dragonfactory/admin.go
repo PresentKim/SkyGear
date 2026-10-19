@@ -299,39 +299,7 @@ func (c adminWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.registerAdmin.1"), nil,
-		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminExpandView{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminResearchRandom{adminBase: b}, adminResearchLoad{adminBase: b}, adminAdvance{adminBase: b}, adminWave{adminBase: b}, adminUI{adminBase: b}))
-}
-
-// expandViewEnum names an expansion view (expand.go expandViews).
-type expandViewEnum string
-
-func (expandViewEnum) Type() string                { return "df_expand_view" }
-func (expandViewEnum) Options(cmd.Source) []string { return expandViews }
-
-// adminExpandView picks how expansion mode shows the chunks in this save,
-// to compare the views in game.
-type adminExpandView struct {
-	adminBase
-	Sub  cmd.SubCommand `cmd:"expandview"`
-	View expandViewEnum `cmd:"view"`
-}
-
-func (c adminExpandView) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	if _, s, ok := c.session(src, o, tx); ok {
-		s.expandView = string(c.View)
-		for e := range tx.Players() {
-			p := e.(*player.Player)
-			if ex, ok := s.expansionOf(p); ok {
-				// Only the map lets the cursor go far from the body.
-				if reach := int32(expandReach); abs32(ex.target[0]-ex.body[0]) > reach || abs32(ex.target[1]-ex.body[1]) > reach {
-					ex.target = ex.body
-				}
-				s.drawFloor(p, ex)
-				s.moveExpandCamera(p, ex, 0)
-			}
-		}
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.10"), c.View)
-	}
+		adminItem{adminBase: b}, adminSkip{adminBase: b}, adminGive{adminBase: b}, adminStatus{adminBase: b}, adminTimed{adminBase: b}, adminFairy{adminBase: b}, adminLook{adminBase: b}, adminFactory{adminBase: b}, adminDense{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminResearchRandom{adminBase: b}, adminResearchLoad{adminBase: b}, adminAdvance{adminBase: b}, adminWave{adminBase: b}, adminUI{adminBase: b}))
 }
 
 // adminTPS turns the server load line at the top left of the operator's

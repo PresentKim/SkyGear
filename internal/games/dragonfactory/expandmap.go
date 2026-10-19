@@ -12,7 +12,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// The "map" expansion view (12th playtest): the island is shown as a map
+// The expansion map (12th playtest): the island is shown as a map
 // far away from it, where nothing else is. Each chunk near the cursor is
 // sent to the player (Player.ViewFakeChunk) at the island chunk moved by
 // mapOffset, holding only the top block of every column (and the one below
@@ -47,7 +47,7 @@ func mapShift(v mgl64.Vec3) mgl64.Vec3 {
 // own colour.
 func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
 	want := map[ChunkPos]world.Block{}
-	near := int32(expandFloorReach)
+	near := int32(expandMapReach)
 	add := func(c ChunkPos, b world.Block) {
 		if abs32(c[0]-e.target[0]) <= near && abs32(c[1]-e.target[1]) <= near {
 			want[c] = b
@@ -109,8 +109,7 @@ func (s *session) drawMap(p *player.Player, e *expansion, on bool) {
 }
 
 // mapColumn builds the map chunk of island chunk c: the top block of each
-// column just under the island surface, glass on the surface (where the
-// floor view has it). A top block light passes through (torch, crop, slab,
+// column just under the island surface, glass on the surface. A top block light passes through (torch, crop, slab,
 // glass, our own models) gets the next block below it underneath, so the
 // map has no holes (12th playtest). Only owned chunks are read (others are
 // empty void and may not be loaded).

@@ -19,7 +19,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -4028,103 +4028,6 @@
           "collection_name": "form_buttons"
         }
       }
-    ]
-  },
-
-  // ---- probe (title starts with §d§f§x§r, command /formprobe) ----
-  // A layout that starts hidden and is shown by the title: does a factory
-  // inside it bind its buttons on the first frame, with a length that is
-  // only evaluated while visible?
-
-  "probe_dot": {
-    "type": "label", "text": "#form_button_text", "size": [ 16, 10 ], "color": [ 0.3, 1, 0.4 ],
-    "bindings": [ { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" } ]
-  },
-  "probe_a0": {
-    "type": "stack_panel", "orientation": "horizontal", "size": [ 80, 10 ],
-    "factory": { "name": "buttons", "control_ids": { "button": "df_form.probe_dot" } },
-    "collection_name": "form_buttons",
-    "bindings": [ { "binding_name": "#form_button_contents", "binding_name_override": "#collection_length" } ]
-  },
-  "probe_v1": {
-    "type": "panel", "size": [ 80, 10 ], "visible": false,
-    "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
-      { "binding_type": "view", "binding_condition": "once", "source_property_name": "(not ((#title_text - '§d§f§x§r') = #title_text))", "target_property_name": "#visible" }
-    ],
-    "controls": [ { "f": {
-      "type": "stack_panel", "orientation": "horizontal", "size": [ 80, 10 ],
-      "factory": { "name": "buttons", "control_ids": { "button": "df_form.probe_dot" } },
-      "collection_name": "form_buttons",
-      "bindings": [ { "binding_name": "#form_button_contents", "binding_name_override": "#collection_length", "binding_condition": "always_when_visible" } ]
-    } } ]
-  },
-  "probe_v2": {
-    "type": "panel", "size": [ 80, 10 ], "visible": false,
-    "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
-      { "binding_type": "view", "binding_condition": "once", "source_property_name": "(not ((#title_text - '§d§f§x§r') = #title_text))", "target_property_name": "#visible" }
-    ],
-    "controls": [ { "f": {
-      "type": "stack_panel", "orientation": "horizontal", "size": [ 80, 10 ],
-      "factory": { "name": "buttons", "control_ids": { "button": "df_form.probe_dot" } },
-      "collection_name": "form_buttons",
-      "bindings": [ { "binding_name": "#form_button_contents", "binding_name_override": "#collection_length", "binding_condition": "visible" } ]
-    } } ]
-  },
-  "probe_v3": {
-    "type": "panel", "size": [ 80, 10 ], "visible": false,
-    "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
-      { "binding_type": "view", "binding_condition": "once", "source_property_name": "((#title_text - '§d§f§x§r') = #title_text)", "target_property_name": "#visible" }
-    ],
-    "controls": [ { "f": {
-      "type": "stack_panel", "orientation": "horizontal", "size": [ 80, 10 ],
-      "factory": { "name": "buttons", "control_ids": { "button": "df_form.probe_dot" } },
-      "collection_name": "form_buttons",
-      "bindings": [ { "binding_name": "#form_button_contents", "binding_name_override": "#collection_length", "binding_condition": "always_when_visible" } ]
-    } } ]
-  },
-  "probe_v4": {
-    "type": "panel", "size": [ 80, 10 ], "visible": false,
-    "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
-      { "binding_type": "view", "binding_condition": "once", "source_property_name": "(not ((#title_text - '§d§f§x§r') = #title_text))", "target_property_name": "#visible" }
-    ],
-    "controls": [ { "f": {
-      "type": "stack_panel", "orientation": "horizontal", "size": [ 80, 10 ],
-      "factory": { "name": "buttons", "control_ids": { "button": "df_form.probe_dot" } },
-      "collection_name": "form_buttons",
-      "bindings": [ { "binding_name": "#form_button_contents", "binding_name_override": "#collection_length", "binding_condition": "always" } ]
-    } } ]
-  },
-
-  "probe_form": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [ { "window@df_form.window": { "$df_window_size": [ 340, 300 ], "$df_content": "df_form.probe_content" } } ]
-  },
-
-  "probe_content": {
-    "type": "stack_panel",
-    "size": [ "100%", "100%c" ],
-    "orientation": "vertical",
-    "controls": [
-      { "row_A": { "type": "stack_panel", "orientation": "horizontal", "size": [ "100%", 12 ], "controls": [
-        { "lab": { "type": "label", "text": "A plain factory (b1-b5)", "size": [ 230, 10 ], "color": [ 1, 1, 1 ] } },
-        { "x@df_form.probe_a0": {} } ] } },
-      { "row_V1": { "type": "stack_panel", "orientation": "horizontal", "size": [ "100%", 12 ], "controls": [
-        { "lab": { "type": "label", "text": "V1 starts hidden, shown by title, always_when_visible (b1-b5)", "size": [ 230, 10 ], "color": [ 1, 1, 1 ] } },
-        { "x@df_form.probe_v1": {} } ] } },
-      { "row_V2": { "type": "stack_panel", "orientation": "horizontal", "size": [ "100%", 12 ], "controls": [
-        { "lab": { "type": "label", "text": "V2 starts hidden, shown by title, visible (b1-b5)", "size": [ 230, 10 ], "color": [ 1, 1, 1 ] } },
-        { "x@df_form.probe_v2": {} } ] } },
-      { "row_V3": { "type": "stack_panel", "orientation": "horizontal", "size": [ "100%", 12 ], "controls": [
-        { "lab": { "type": "label", "text": "V3 starts hidden, title mismatch (none)", "size": [ 230, 10 ], "color": [ 1, 1, 1 ] } },
-        { "x@df_form.probe_v3": {} } ] } },
-      { "row_V4": { "type": "stack_panel", "orientation": "horizontal", "size": [ "100%", 12 ], "controls": [
-        { "lab": { "type": "label", "text": "V4 starts hidden, shown by title, always (b1-b5)", "size": [ 230, 10 ], "color": [ 1, 1, 1 ] } },
-        { "x@df_form.probe_v4": {} } ] } }
     ]
   }
 }

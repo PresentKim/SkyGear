@@ -18,34 +18,28 @@ import (
 // Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §13): the
 // player's body stays where it is, frozen, and the camera looks straight
 // down on the selected chunk. The movement keys move the selection a chunk
-// at a time (read from the client's input, Player.MoveInput). Chunks get a
-// translucent glass floor only this player sees (ViewFakeBlock): owned ones
+// at a time (read from the client's input, Player.MoveInput). The chunks
+// are shown on a map far away (expandmap.go) under stained glass: owned ones
 // in a checkerboard of two greens so their borders show, buyable ones
-// yellow, and the selected one in its own colour with its border drawn over
-// any real blocks. Sneaking (or /menu) opens buy and exit. The player is in
-// a view-only game mode meanwhile, so the client neither breaks nor places
-// blocks (and does not predict it on the fake floor).
+// yellow, and the selected one in its own colour. Sneaking (or /menu) opens
+// buy and exit. The player is in a view-only game mode meanwhile, so the
+// client neither breaks nor places blocks.
 
 const (
-	// expandCameraHeight is how far above the island the camera looks down.
-	expandCameraHeight = 30
-	// Over the map the camera has a narrow field of view from higher up, so
-	// the map looks nearly flat (less perspective at the edges, 13th
-	// playtest) at about the same size: height × tan(fov/2) stays that of
-	// the default 60° at expandCameraHeight.
+	// The camera looks down on the map with a narrow field of view from high
+	// up, so the map looks nearly flat (less perspective at the edges, 13th
+	// playtest).
 	expandMapFOV          = 30
 	expandMapCameraHeight = 65
-	// expandFloorY is the height of the fake glass floor (the island surface).
+	// expandFloorY is the height of the map's glass (the island surface).
 	expandFloorY = IslandY - 1
 	// expandStepEvery is how often a held movement key moves the cursor on
 	// by a chunk; expandPoll is how often the keys are read.
 	expandStepEvery = 350 * time.Millisecond
 	expandPoll      = 50 * time.Millisecond
-	// expandReach is how far (in chunks) the cursor may go from the frozen
-	// body: the client only has the chunks around the body. expandFloorReach
-	// is how far around the cursor the glass floor is drawn.
-	expandReach      = 6
-	expandFloorReach = 4
+	// expandMapReach is how far around the cursor (in chunks) the map is
+	// drawn.
+	expandMapReach = 4
 	// expandKeySign turns the keys into map directions: forward is north
 	// (-z, the top of the screen) and left is west (-x). Flip if the cursor
 	// moves the wrong way on real clients.
@@ -80,8 +74,6 @@ func (viewOnlyMode) InstantPortalTravel() bool { return false }
 // expansion is the expansion mode of one player.
 type expansion struct {
 	target ChunkPos
-	// floor are the fake blocks shown, by position.
-	floor map[cube.Pos]world.Block
 	// mode is the game mode to restore.
 	mode world.GameMode
 	// body is the chunk the frozen body stands in.
@@ -96,29 +88,6 @@ type expansion struct {
 	// (expandmap.go); home is where the body stood, to go back to.
 	mapShown map[ChunkPos]world.Block
 	home     mgl64.Vec3
-}
-
-// Expansion views (/dfadmin expandview). The floor at the island surface
-// hides under buildings (11th playtest); glass above the buildings, debug
-// shape outlines and plate entities did not match the real chunks (12th),
-// so the map is the default:
-//   - map: the island's top blocks flattened under glass, far away
-//     (expandmap.go)
-//   - floor: stained glass in the air at the island surface (the first view)
-const (
-	viewMap   = "map"
-	viewFloor = "floor"
-)
-
-// expandViews are the expansion views.
-var expandViews = []string{viewMap, viewFloor}
-
-// currentExpandView is the session's expansion view.
-func (s *session) currentExpandView() string {
-	if s.expandView == "" {
-		return viewMap
-	}
-	return s.expandView
 }
 
 func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
@@ -136,11 +105,11 @@ func (s *session) showExpand(p *player.Player) {
 		s.expanding = map[*world.EntityHandle]*expansion{}
 	}
 	at := chunkOf(cube.PosFromVec3(p.Position()))
-	e := &expansion{target: at, body: at, floor: map[cube.Pos]world.Block{}, started: time.Now(), mode: p.GameMode(), home: p.Position()}
+	e := &expansion{target: at, body: at, started: time.Now(), mode: p.GameMode(), home: p.Position()}
 	s.expanding[p.H()] = e
 	p.SetImmobile()
 	p.SetGameMode(viewOnlyMode{})
-	s.drawFloor(p, e)
+	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0)
 	p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpand.1"))
 	s.expandTip(p, e)
@@ -156,9 +125,6 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 		return
 	}
 	delete(s.expanding, p.H())
-	for pos := range e.floor {
-		p.ViewFakeBlock(pos, tx.Block(pos))
-	}
 	s.drawMap(p, e, false)
 	p.ClearCamera()
 	p.ClearCameraFOV()
@@ -215,20 +181,17 @@ func keyStep(v float64) int {
 
 // moveCursor moves the cursor to chunk c if it is within the island range.
 func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
-	r, reach := int32(islandRadius), int32(expandReach)
+	r := int32(islandRadius)
 	switch {
 	case c == e.target:
 		return
 	case c[0] < -r || c[0] > r || c[1] < -r || c[1] > r:
 		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.expand.moveCursor.1"))
 		return
-	case s.currentExpandView() != viewMap && (abs32(c[0]-e.body[0]) > reach || abs32(c[1]-e.body[1]) > reach):
-		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.expand.moveCursor.2"))
-		return
 	}
 	e.target = c
-	// The drawing first: the camera follows its height.
-	s.drawFloor(p, e)
+	// The map first: the body moves over the cursor with it.
+	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0.2)
 	s.expandTip(p, e)
 }
@@ -236,107 +199,30 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 func (s *session) moveExpandCamera(p *player.Player, e *expansion, ease float64) {
 	// Pitch 90 looks straight down; yaw 180 puts north at the top.
 	p.SetCamera(s.expandCamera(e), 90, 180, ease)
-	if s.currentExpandView() == viewMap {
-		p.SetCameraFOV(expandMapFOV)
-	} else {
-		p.ClearCameraFOV()
-	}
+	p.SetCameraFOV(expandMapFOV)
 }
 
 // expandCamera is where the camera looks down from: above the selected
-// chunk, on the island or on the map.
+// chunk on the map.
 func (s *session) expandCamera(e *expansion) mgl64.Vec3 {
-	if s.currentExpandView() == viewMap {
-		return mapShift(cursorPos(e.target)).Add(mgl64.Vec3{0, expandMapCameraHeight, 0})
-	}
-	return cursorPos(e.target).Add(mgl64.Vec3{0, expandCameraHeight, 0})
+	return mapShift(cursorPos(e.target)).Add(mgl64.Vec3{0, expandMapCameraHeight, 0})
 }
 
-// restoreFloorNear shows the fake floor again around pos after the client
-// clicked it: the click made the server resend the real (air) blocks.
-func (s *session) restoreFloorNear(p *player.Player, pos cube.Pos) {
+// restoreMapNear shows the map chunk at pos again after the client clicked
+// it: the click made the server resend the real (empty) blocks there.
+func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
 	p.H().DoAfter(expandPoll, func(tx *world.Tx, ent world.Entity) {
 		p := ent.(*player.Player)
 		e, ok := s.expansionOf(p)
 		if !ok || tx.World() != s.world {
 			return
 		}
-		for x := -1; x <= 1; x++ {
-			for z := -1; z <= 1; z++ {
-				at := cube.Pos{pos[0] + x, expandFloorY, pos[2] + z}
-				if b, ok := e.floor[at]; ok {
-					p.ViewFakeBlock(at, b)
-				}
-			}
+		c := chunkOf(pos)
+		c = ChunkPos{c[0] - mapOffset, c[1] - mapOffset}
+		if glass, ok := e.mapShown[c]; ok {
+			p.ViewFakeChunk(mapChunk(c), s.mapColumn(tx, c, glass))
 		}
 	})
-}
-
-// floorWant returns the fake floor block for each position: the air
-// positions of owned and buyable chunks, and the selected chunk (its air
-// positions and its whole border).
-func (s *session) floorWant(tx *world.Tx, e *expansion) map[cube.Pos]world.Block {
-	want := map[cube.Pos]world.Block{}
-	y := expandFloorY
-	near := int32(expandFloorReach)
-	add := func(c ChunkPos, b world.Block, border bool) {
-		// Only around the cursor: farther chunks may not be loaded or sent.
-		if abs32(c[0]-e.target[0]) > near || abs32(c[1]-e.target[1]) > near {
-			return
-		}
-		for x := range 16 {
-			for z := range 16 {
-				pos := cube.Pos{int(c[0])*16 + x, y, int(c[1])*16 + z}
-				edge := x == 0 || z == 0 || x == 15 || z == 15
-				if _, air := tx.Block(pos).(block.Air); air || (border && edge) {
-					want[pos] = b
-				}
-			}
-		}
-	}
-	for _, c := range s.state.Chunks {
-		b := world.Block(floorOwned)
-		if (c[0]+c[1])%2 != 0 {
-			b = floorOwnedAlt
-		}
-		add(c, b, false)
-	}
-	buyable := s.purchasableChunks()
-	for _, c := range buyable {
-		add(c, floorBuyable, false)
-	}
-	target := world.Block(floorTargetNone)
-	switch {
-	case s.owns(e.target):
-		target = floorTargetOwned
-	case slices.Contains(buyable, e.target):
-		target = floorTarget
-	}
-	add(e.target, target, true)
-	return want
-}
-
-// drawFloor brings the player's view of the chunks up to date in the
-// session's expansion view, sending only changes.
-func (s *session) drawFloor(p *player.Player, e *expansion) {
-	tx := p.Tx()
-	view := s.currentExpandView()
-	want := map[cube.Pos]world.Block{}
-	if view == viewFloor {
-		want = s.floorWant(tx, e)
-	}
-	for pos := range e.floor {
-		if _, ok := want[pos]; !ok {
-			p.ViewFakeBlock(pos, tx.Block(pos))
-		}
-	}
-	for pos, b := range want {
-		if e.floor[pos] != b {
-			p.ViewFakeBlock(pos, b)
-		}
-	}
-	e.floor = want
-	s.drawMap(p, e, view == viewMap)
 }
 
 // expandTip shows the target chunk and its price above the hotbar.
@@ -383,7 +269,7 @@ func (s *session) showExpandActions(p *player.Player) {
 		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.3"), costText(cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
-				s.drawFloor(p, e)
+				s.drawMap(p, e, true)
 				s.expandTip(p, e)
 			}
 		}))

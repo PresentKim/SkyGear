@@ -88,29 +88,19 @@ func TestExpansionMode(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s) // at (0.5, 64, 2.5): chunk (0, 0)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(cube.Pos{1, expandFloorY, 1}, block.Grass{}, nil)
-		tx.SetBlock(cube.Pos{0, expandFloorY, 0}, block.Grass{}, nil)
 		_, _ = p.Inventory().AddItem(item.NewStack(block.Cobblestone{}, 64))
-		s.expandView = viewFloor
 		s.showExpand(p)
 		e, ok := s.expansionOf(p)
 		if !ok {
 			t.Fatal("not in expansion mode")
 		}
-		// (1, 0) is next to the island: yellow floor. The selected chunk
-		// (0, 0) is owned: light blue on its air positions and over its whole
-		// border; its inner blocks are left alone.
-		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorBuyable) {
-			t.Fatalf("buyable floor = %v", b)
+		// (1, 0) is next to the island: yellow glass. The selected chunk
+		// (0, 0) is owned: light blue.
+		if b := e.mapShown[ChunkPos{1, 0}]; b != world.Block(floorBuyable) {
+			t.Fatalf("buyable chunk = %v", b)
 		}
-		if _, ok := e.floor[cube.Pos{1, expandFloorY, 1}]; ok {
-			t.Fatal("fake floor over a real island block inside the chunk")
-		}
-		if b := e.floor[cube.Pos{0, expandFloorY, 0}]; b != world.Block(floorTargetOwned) {
-			t.Fatalf("selected chunk border = %v", b)
-		}
-		if b := e.floor[cube.Pos{10, expandFloorY, 10}]; b != world.Block(floorTargetOwned) {
-			t.Fatalf("selected owned floor = %v", b)
+		if b := e.mapShown[ChunkPos{0, 0}]; b != world.Block(floorTargetOwned) {
+			t.Fatalf("selected owned chunk = %v", b)
 		}
 		if _, ok := p.GameMode().(viewOnlyMode); !ok {
 			t.Fatalf("game mode %T in expansion mode", p.GameMode())
@@ -126,8 +116,8 @@ func TestExpansionMode(t *testing.T) {
 			t.Fatal("movement not cancelled in expansion mode")
 		}
 		s.expandInput(p, e, mgl64.Vec2{-1, 0})
-		if e.target != (ChunkPos{1, 0}) || e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorTarget) {
-			t.Fatalf("target = %v, floor %v", e.target, e.floor[cube.Pos{20, expandFloorY, 5}])
+		if e.target != (ChunkPos{1, 0}) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorTarget) {
+			t.Fatalf("target = %v, glass %v", e.target, e.mapShown[ChunkPos{1, 0}])
 		}
 		// A key held on does not move again at once; a new press does.
 		s.expandInput(p, e, mgl64.Vec2{-1, 0})
@@ -148,16 +138,16 @@ func TestExpansionMode(t *testing.T) {
 			t.Fatal("placed a block in expansion mode")
 		}
 		s.buyChunk(p, tx, ChunkPos{1, 0})
-		s.drawFloor(p, e)
-		if e.floor[cube.Pos{20, expandFloorY, 5}] != world.Block(floorTargetOwned) {
+		s.drawMap(p, e, true)
+		if e.mapShown[ChunkPos{1, 0}] != world.Block(floorTargetOwned) {
 			t.Fatal("bought selected chunk not shown as owned")
 		}
 		s.expandInput(p, e, mgl64.Vec2{})
 		s.expandInput(p, e, mgl64.Vec2{1, 0}) // back west to (0, 0)
-		if b := e.floor[cube.Pos{20, expandFloorY, 5}]; b != world.Block(floorOwnedAlt) {
+		if b := e.mapShown[ChunkPos{1, 0}]; b != world.Block(floorOwnedAlt) {
 			t.Fatalf("owned chunk (1, 0) floor = %v, want the other green of the checkerboard", b)
 		}
-		if b := e.floor[cube.Pos{36, expandFloorY, 5}]; b != world.Block(floorBuyable) {
+		if b := e.mapShown[ChunkPos{2, 0}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
 		}
 		s.stopExpand(p, tx)
@@ -182,43 +172,19 @@ func TestGiveItems(t *testing.T) {
 	}
 }
 
-func TestExpansionCursorStaysNearBody(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.expandView = viewFloor // the map lets the cursor go farther
-		s.showExpand(p)
-		e, _ := s.expansionOf(p)
-		for range expandReach + 3 {
-			s.expandInput(p, e, mgl64.Vec2{})
-			s.expandInput(p, e, mgl64.Vec2{-1, 0}) // east
-		}
-		if e.target[0] != e.body[0]+expandReach {
-			t.Fatalf("cursor at %v, body %v", e.target, e.body)
-		}
-		for pos := range e.floor {
-			if c := chunkOf(pos); abs32(c[0]-e.target[0]) > expandFloorReach {
-				t.Fatalf("floor drawn at chunk %v, far from the cursor %v", c, e.target)
-			}
-		}
-		s.stopExpand(p, tx)
-	})
-}
-
-// TestExpansionMap: the map view sends owned chunks far away with their top
-// blocks flattened under glass, lets the cursor leave the body's reach and
-// takes the map down when expansion ends.
+// TestExpansionMap: the map sends owned chunks far away with their top
+// blocks flattened under glass, the body follows the cursor over the map,
+// and the map comes down when expansion ends.
 func TestExpansionMap(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(cube.Pos{3, expandFloorY + 7, 3}, block.Stone{}, nil)
-		s.showExpand(p) // the map is the default view
+		s.showExpand(p)
 		e, _ := s.expansionOf(p)
-		if e.mapShown[ChunkPos{0, 0}] != world.Block(floorTargetOwned) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) || len(e.floor) != 0 {
-			t.Fatalf("map chunks %v, %d fake blocks", e.mapShown, len(e.floor))
+		if e.mapShown[ChunkPos{0, 0}] != world.Block(floorTargetOwned) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) {
+			t.Fatalf("map chunks %v", e.mapShown)
 		}
 		col := s.mapColumn(tx, ChunkPos{0, 0}, floorTargetOwned)
 		reg := tx.World().BlockRegistry()
@@ -245,12 +211,15 @@ func TestExpansionMap(t *testing.T) {
 		if cam[0] < mapOffset*16 || p.Position() != cam.Add(mgl64.Vec3{0, mapBodyAbove, 0}) {
 			t.Fatalf("camera %v, body %v: not over the map", cam, p.Position())
 		}
-		for range expandReach + 2 {
+		for range expandMapReach + 4 {
 			s.expandInput(p, e, mgl64.Vec2{})
 			s.expandInput(p, e, mgl64.Vec2{-1, 0})
 		}
-		if e.target[0] <= e.body[0]+expandReach {
+		if e.target[0] < e.body[0]+expandMapReach+4 {
 			t.Fatalf("cursor stopped at %v on the map", e.target)
+		}
+		if want := s.expandCamera(e).Add(mgl64.Vec3{0, mapBodyAbove, 0}); p.Position() != want {
+			t.Fatalf("body at %v, want over the cursor %v", p.Position(), want)
 		}
 		s.stopExpand(p, tx)
 		if e.mapShown != nil || p.Position() != home {

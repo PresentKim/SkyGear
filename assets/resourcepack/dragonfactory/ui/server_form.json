@@ -41,7 +41,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -55,7 +55,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§x§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "source_property_name": "((((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]
@@ -315,19 +315,6 @@
             {
               "binding_type": "view", "binding_condition": "once",
               "source_property_name": "((not ((#title_text - '§d§f§z§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        // Form binding probe.
-        "probe@df_form.probe_form": {
-          "bindings": [
-            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
-            {
-              "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((not ((#title_text - '§d§f§x§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]

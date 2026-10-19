@@ -166,9 +166,6 @@ type session struct {
 	// recipesFree opens every recipe until the instance closes
 	// (/dfadmin research free, recipes.go).
 	recipesFree bool
-	// expandView is how expansion mode shows the chunks (expandViews; ""
-	// is the floor), set with /dfadmin expandview.
-	expandView string
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
