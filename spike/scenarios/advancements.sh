@@ -4,7 +4,7 @@
 # next one; the advancement tree opens from the menu, a node opens its detail; an operator
 # completes one with /dfadmin advance.
 timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임"=발전 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=발전 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin item crafting_table 1' 'expect:발전과제 달성' \
   'cmd:/dfadmin status' 'expect:advanced=3' \
   'cmd:/menu' 'form:드래곤팩토리"=1' 'form:발전과제"=0' 'form:발전과제 · =null' \

@@ -5,11 +5,11 @@
 # with saves the first one is chosen, a row press chooses another, and an
 # empty slot's 생성하기 opens the name form.
 timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임"=저장 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=저장 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/lobby' 'expect:로비로 이동합니다' \
   'cmd:/saves' 'form:"세이브 선택"=null' \
   'cmd:/saves' 'form:"세이브 선택"=6' 'input:"이름 변경"=null' \
-  'cmd:/saves' 'form:"세이브 선택"=3' 'input:"새 게임"=null' > host.log 2>&1
+  'cmd:/saves' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=null' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log | cut -c1-160
 [ $h -eq 0 ]

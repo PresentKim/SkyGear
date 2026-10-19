@@ -4,7 +4,7 @@
 # and their recipe and creative entries reach the client. The brewing itself
 # and the essence costs of the researches are covered by unit tests.
 timeout 90 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임"=연구소 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=연구소 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research free' \
   'cmd:/dfadmin give laboratory 1' 'expect:연구소 x1' \
   'cmd:/dfadmin give research_essence_engineering 4' 'expect:공학의 정수 x4' \

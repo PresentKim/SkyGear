@@ -86,7 +86,7 @@ func run(action string) {
 		title, file, _ := strings.Cut(arg, "=")
 		pk := waitFor(func(pk packet.Packet) bool {
 			f, ok := pk.(*packet.ModalFormRequest)
-			return ok && strings.Contains(strings.ReplaceAll(string(f.FormData), "§d§f§n§r", ""), title)
+			return ok && strings.Contains(formMarkers.ReplaceAllString(string(f.FormData), ""), title)
 		}).(*packet.ModalFormRequest)
 		code := regexp.MustCompile(`[A-Z2-9]{6}`).FindString(regexp.MustCompile(`§.`).ReplaceAllString(string(pk.FormData), ""))
 		if code == "" {
@@ -103,14 +103,22 @@ func run(action string) {
 		title, val, _ := strings.Cut(arg, "=")
 		pk := waitFor(func(pk packet.Packet) bool {
 			f, ok := pk.(*packet.ModalFormRequest)
-			return ok && strings.Contains(strings.ReplaceAll(string(f.FormData), "§d§f§n§r", ""), title)
+			return ok && strings.Contains(formMarkers.ReplaceAllString(string(f.FormData), ""), title)
 		}).(*packet.ModalFormRequest)
 		var data map[string]any
 		_ = json.Unmarshal(pk.FormData, &data)
 		fmt.Printf("FORM %q", data["title"])
-		if b, ok := data["buttons"].([]any); ok {
-			for i, btn := range b {
-				fmt.Printf(" [%d]%q", i, btn.(map[string]any)["text"])
+		// Menus list their buttons in "buttons", or in "elements" next to
+		// headers and labels (only buttons count for the answer).
+		b, _ := data["buttons"].([]any)
+		if b == nil {
+			b, _ = data["elements"].([]any)
+		}
+		i := 0
+		for _, e := range b {
+			if e, ok := e.(map[string]any); ok && (e["type"] == nil || e["type"] == "button") {
+				fmt.Printf(" [%d]%q", i, e["text"])
+				i++
 			}
 		}
 		fmt.Println()
@@ -189,6 +197,11 @@ func run(action string) {
 		fail("unknown action %q", action)
 	}
 }
+
+// formMarkers are the pack's form title markers ("§d§f<x>§r": no animation,
+// list split, tree, create, back, ...). They come before the title, so a
+// scenario matching `"title` from its first letter skips them.
+var formMarkers = regexp.MustCompile(`§d§f§.§r`)
 
 // expand replaces "@file" with the file's contents.
 func expand(s string) string {

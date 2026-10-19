@@ -4,7 +4,7 @@
 # barrel (the block with its seven stages registers without server errors);
 # the stone barrel (lava) too.
 timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임"=배럴 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=배럴 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research compost' 'cmd:/dfadmin research barrel' \
   'cmd:/dfadmin give barrel 1' 'expect:참나무 배럴 x1' \
   'cmd:/dfadmin research furnace' 'cmd:/dfadmin research stone_barrel' \
