@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 // placed over air, and both the server and the client drop it: the server
 // teleports it again every placeEvery (which also clears the fall distance),
 // and the client only starts its own physics once it has the chunk data
-// (AfterClientSync). It must be called in p's transaction.
+// (dfhook.AfterClientSync). It must be called in p's transaction.
 func PlaceAt(p *player.Player, want, fallback mgl64.Vec3) {
 	p.SetImmobile()
 	h, w := p.H(), p.Tx().World()
@@ -65,7 +66,7 @@ func placeAt(h *world.EntityHandle, w *world.World, want, fallback mgl64.Vec3, n
 		}
 		// The client has everything sent so far, the position and chunks
 		// included: put it on the ground once more, then let it move.
-		p.AfterClientSync(func(p *player.Player, tx *world.Tx) {
+		dfhook.AfterClientSync(p, func(p *player.Player, tx *world.Tx) {
 			if tx.World() != w {
 				return
 			}

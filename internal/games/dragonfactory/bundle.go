@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"strconv"
 
@@ -476,7 +477,7 @@ func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ct
 		// The client predicted a block: show what is there.
 		if p, ok := user.(*player.Player); ok {
 			side := pos.Side(face)
-			p.ViewFakeBlock(side, tx.Block(side))
+			dfhook.ViewFakeBlock(p, side, tx.Block(side))
 		}
 		return false
 	}
@@ -495,7 +496,7 @@ func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ct
 	if side := pos.Side(face); target != side {
 		// The client may have predicted a block on the clicked side.
 		if p, ok := user.(*player.Player); ok {
-			p.ViewFakeBlock(side, tx.Block(side))
+			dfhook.ViewFakeBlock(p, side, tx.Block(side))
 		}
 	}
 	return ctx.CountSub > 0

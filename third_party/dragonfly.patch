@@ -1,6 +1,6 @@
 diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
---- a/server/block/beetroot_seeds.go	2026-10-19 22:30:35.845098700 +0900
-+++ b/server/block/beetroot_seeds.go	2026-10-19 22:30:37.707277000 +0900
+--- a/server/block/beetroot_seeds.go	2026-10-19 23:28:03.196190200 +0900
++++ b/server/block/beetroot_seeds.go	2026-10-19 23:28:06.379381700 +0900
 @@ -50,7 +50,8 @@
  
  // BreakInfo ...
@@ -22,8 +22,8 @@ diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
  		breakBlock(b, pos, tx)
  	} else if b.Growth < 7 && r.IntN(3) > 0 && r.Float64() <= b.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/carrot.go b/server/block/carrot.go
---- a/server/block/carrot.go	2026-10-19 22:30:35.877182600 +0900
-+++ b/server/block/carrot.go	2026-10-19 22:30:37.708788900 +0900
+--- a/server/block/carrot.go	2026-10-19 23:28:03.241722900 +0900
++++ b/server/block/carrot.go	2026-10-19 23:28:06.381479000 +0900
 @@ -65,12 +65,14 @@
  // BreakInfo ...
  func (c Carrot) BreakInfo() BreakInfo {
@@ -52,8 +52,8 @@ diff -ruN a/server/block/carrot.go b/server/block/carrot.go
  		breakBlock(c, pos, tx)
  	} else if c.Growth < 7 && r.Float64() <= c.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/composter.go b/server/block/composter.go
---- a/server/block/composter.go	2026-10-19 22:30:35.890229600 +0900
-+++ b/server/block/composter.go	2026-10-19 22:30:37.721337800 +0900
+--- a/server/block/composter.go	2026-10-19 23:28:03.258530700 +0900
++++ b/server/block/composter.go	2026-10-19 23:28:06.392943400 +0900
 @@ -11,6 +11,11 @@
  	"time"
  )
@@ -95,8 +95,8 @@ diff -ruN a/server/block/composter.go b/server/block/composter.go
  		if c.Level == 8 {
  			c.Level = 0
 diff -ruN a/server/block/crop.go b/server/block/crop.go
---- a/server/block/crop.go	2026-10-19 22:30:35.922221500 +0900
-+++ b/server/block/crop.go	2026-10-19 22:30:37.709800600 +0900
+--- a/server/block/crop.go	2026-10-19 23:28:03.301352900 +0900
++++ b/server/block/crop.go	2026-10-19 23:28:06.384061400 +0900
 @@ -5,6 +5,11 @@
  	"github.com/df-mc/dragonfly/server/world"
  )
@@ -110,8 +110,8 @@ diff -ruN a/server/block/crop.go b/server/block/crop.go
  type Crop interface {
  	// GrowthStage returns the crop's current stage of growth. The max value is 7.
 diff -ruN a/server/block/dirt.go b/server/block/dirt.go
---- a/server/block/dirt.go	2026-10-19 22:30:35.970922800 +0900
-+++ b/server/block/dirt.go	2026-10-19 22:30:37.720339800 +0900
+--- a/server/block/dirt.go	2026-10-19 23:28:03.363938200 +0900
++++ b/server/block/dirt.go	2026-10-19 23:28:06.391077700 +0900
 @@ -4,6 +4,7 @@
  	"math/rand/v2"
  
@@ -154,8 +154,8 @@ diff -ruN a/server/block/dirt.go b/server/block/dirt.go
  func supportsVegetation(vegetation, block world.Block) bool {
  	soil, ok := block.(Soil)
 diff -ruN a/server/block/hopper.go b/server/block/hopper.go
---- a/server/block/hopper.go	2026-10-19 22:30:36.024627400 +0900
-+++ b/server/block/hopper.go	2026-10-19 22:30:37.723770300 +0900
+--- a/server/block/hopper.go	2026-10-19 23:28:03.454482500 +0900
++++ b/server/block/hopper.go	2026-10-19 23:28:06.394900700 +0900
 @@ -13,6 +13,11 @@
  	"sync"
  )
@@ -184,8 +184,8 @@ diff -ruN a/server/block/hopper.go b/server/block/hopper.go
  			h.TransferCooldown = 8
  			tx.SetBlock(pos, h, nil)
 diff -ruN a/server/block/leaves.go b/server/block/leaves.go
---- a/server/block/leaves.go	2026-10-19 22:30:36.046749700 +0900
-+++ b/server/block/leaves.go	2026-10-19 22:30:37.726886100 +0900
+--- a/server/block/leaves.go	2026-10-19 23:28:03.498528900 +0900
++++ b/server/block/leaves.go	2026-10-19 23:28:06.396564300 +0900
 @@ -2,6 +2,7 @@
  
  import (
@@ -315,8 +315,8 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
  		}
  		if wood, ok := l.Type.Wood(); ok && (wood == OakWood() || wood == DarkOakWood()) {
 diff -ruN a/server/block/melon_seeds.go b/server/block/melon_seeds.go
---- a/server/block/melon_seeds.go	2026-10-19 22:30:36.064344300 +0900
-+++ b/server/block/melon_seeds.go	2026-10-19 22:30:37.710811800 +0900
+--- a/server/block/melon_seeds.go	2026-10-19 23:28:03.526183700 +0900
++++ b/server/block/melon_seeds.go	2026-10-19 23:28:06.385067500 +0900
 @@ -37,6 +37,9 @@
  
  // RandomTick ...
@@ -328,8 +328,8 @@ diff -ruN a/server/block/melon_seeds.go b/server/block/melon_seeds.go
  		if m.Growth < 7 {
  			m.Growth++
 diff -ruN a/server/block/potato.go b/server/block/potato.go
---- a/server/block/potato.go	2026-10-19 22:30:36.168398400 +0900
-+++ b/server/block/potato.go	2026-10-19 22:30:37.711811800 +0900
+--- a/server/block/potato.go	2026-10-19 23:28:03.687967700 +0900
++++ b/server/block/potato.go	2026-10-19 23:28:06.386073600 +0900
 @@ -70,15 +70,16 @@
  // BreakInfo ...
  func (p Potato) BreakInfo() BreakInfo {
@@ -361,8 +361,8 @@ diff -ruN a/server/block/potato.go b/server/block/potato.go
  		breakBlock(p, pos, tx)
  	} else if p.Growth < 7 && r.Float64() <= p.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/block/pumpkin_seeds.go b/server/block/pumpkin_seeds.go
---- a/server/block/pumpkin_seeds.go	2026-10-19 22:30:36.173330200 +0900
-+++ b/server/block/pumpkin_seeds.go	2026-10-19 22:30:37.714811700 +0900
+--- a/server/block/pumpkin_seeds.go	2026-10-19 23:28:03.697469800 +0900
++++ b/server/block/pumpkin_seeds.go	2026-10-19 23:28:06.388077400 +0900
 @@ -37,6 +37,9 @@
  
  // RandomTick ...
@@ -374,8 +374,8 @@ diff -ruN a/server/block/pumpkin_seeds.go b/server/block/pumpkin_seeds.go
  		if p.Growth < 7 {
  			p.Growth++
 diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
---- a/server/block/wheat_seeds.go	2026-10-19 22:30:36.283275400 +0900
-+++ b/server/block/wheat_seeds.go	2026-10-19 22:30:37.715810800 +0900
+--- a/server/block/wheat_seeds.go	2026-10-19 23:28:03.879581300 +0900
++++ b/server/block/wheat_seeds.go	2026-10-19 23:28:06.389077500 +0900
 @@ -47,7 +47,8 @@
  
  // BreakInfo ...
@@ -397,8 +397,8 @@ diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
  		breakBlock(s, pos, tx)
  	} else if s.Growth < 7 && r.Float64() <= s.CalculateGrowthChance(pos, tx) {
 diff -ruN a/server/cmd/command.go b/server/cmd/command.go
---- a/server/cmd/command.go	2026-10-19 22:30:36.307368400 +0900
-+++ b/server/cmd/command.go	2026-10-19 22:30:37.738934300 +0900
+--- a/server/cmd/command.go	2026-10-19 23:28:03.913172600 +0900
++++ b/server/cmd/command.go	2026-10-19 23:28:06.413781000 +0900
 @@ -4,7 +4,9 @@
  	"encoding/csv"
  	"fmt"
@@ -436,8 +436,8 @@ diff -ruN a/server/cmd/command.go b/server/cmd/command.go
 +	r.Run(source, output, tx)
 +}
 diff -ruN a/server/conf.go b/server/conf.go
---- a/server/conf.go	2026-10-19 22:30:36.318925400 +0900
-+++ b/server/conf.go	2026-10-19 22:30:38.359797200 +0900
+--- a/server/conf.go	2026-10-19 23:28:03.931898100 +0900
++++ b/server/conf.go	2026-10-19 23:28:07.590029000 +0900
 @@ -76,6 +76,10 @@
  	// joining or quitting.
  	// ShutdownMessage is set to chat.MessageServerDisconnect if empty.
@@ -450,8 +450,8 @@ diff -ruN a/server/conf.go b/server/conf.go
  	// list. By default, StatusProvider will show the server name from the Name
  	// field and the current player count and maximum players.
 diff -ruN a/server/internal/blockinternal/components.go b/server/internal/blockinternal/components.go
---- a/server/internal/blockinternal/components.go	2026-10-19 22:30:36.472354000 +0900
-+++ b/server/internal/blockinternal/components.go	2026-10-19 22:30:37.828847100 +0900
+--- a/server/internal/blockinternal/components.go	2026-10-19 23:28:04.099989500 +0900
++++ b/server/internal/blockinternal/components.go	2026-10-19 23:28:06.544019800 +0900
 @@ -40,6 +40,15 @@
  			"burn_odds":  int32(info.Flammability),
  		})
@@ -469,8 +469,8 @@ diff -ruN a/server/internal/blockinternal/components.go b/server/internal/blocki
  		for name, values := range permutable.States() {
  			builder.AddProperty(name, values)
 diff -ruN a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
---- a/server/internal/iteminternal/components.go	2026-10-19 22:30:36.476353200 +0900
-+++ b/server/internal/iteminternal/components.go	2026-10-19 22:30:37.830871600 +0900
+--- a/server/internal/iteminternal/components.go	2026-10-19 23:28:04.105511400 +0900
++++ b/server/internal/iteminternal/components.go	2026-10-19 23:28:06.548544100 +0900
 @@ -1,9 +1,11 @@
  package iteminternal
  
@@ -512,8 +512,8 @@ diff -ruN a/server/internal/iteminternal/components.go b/server/internal/itemint
  		builder.AddProperty("hand_equipped", x.HandEquipped())
  	}
 diff -ruN a/server/internal/packbuilder/items.go b/server/internal/packbuilder/items.go
---- a/server/internal/packbuilder/items.go	2026-10-19 22:30:36.496484100 +0900
-+++ b/server/internal/packbuilder/items.go	2026-10-19 22:30:37.846933800 +0900
+--- a/server/internal/packbuilder/items.go	2026-10-19 23:28:04.126688400 +0900
++++ b/server/internal/packbuilder/items.go	2026-10-19 23:28:06.572742300 +0900
 @@ -23,7 +23,12 @@
  	}
  
@@ -530,7 +530,7 @@ diff -ruN a/server/internal/packbuilder/items.go b/server/internal/packbuilder/i
  
 diff -ruN a/server/item/digger.go b/server/item/digger.go
 --- a/server/item/digger.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/item/digger.go	2026-10-19 22:30:38.077266000 +0900
++++ b/server/item/digger.go	2026-10-19 23:28:06.942827900 +0900
 @@ -0,0 +1,11 @@
 +package item
 +
@@ -544,8 +544,8 @@ diff -ruN a/server/item/digger.go b/server/item/digger.go
 +	DestroySpeeds() map[string]int
 +}
 diff -ruN a/server/item/recipe/recipe.go b/server/item/recipe/recipe.go
---- a/server/item/recipe/recipe.go	2026-10-19 22:30:36.777127000 +0900
-+++ b/server/item/recipe/recipe.go	2026-10-19 22:30:37.920742000 +0900
+--- a/server/item/recipe/recipe.go	2026-10-19 23:28:04.493489900 +0900
++++ b/server/item/recipe/recipe.go	2026-10-19 23:28:06.663756800 +0900
 @@ -145,6 +145,9 @@
  	recipe
  	// shape contains the width and height of the shaped recipe.
@@ -576,8 +576,8 @@ diff -ruN a/server/item/recipe/recipe.go b/server/item/recipe/recipe.go
  // out of the box.
  type recipe struct {
 diff -ruN a/server/player/player.go b/server/player/player.go
---- a/server/player/player.go	2026-10-19 22:30:36.882578200 +0900
-+++ b/server/player/player.go	2026-10-19 22:30:38.126127400 +0900
+--- a/server/player/player.go	2026-10-19 23:28:04.643079900 +0900
++++ b/server/player/player.go	2026-10-19 23:28:07.029284900 +0900
 @@ -21,6 +21,7 @@
  	"github.com/df-mc/dragonfly/server/item"
  	"github.com/df-mc/dragonfly/server/item/enchantment"
@@ -605,39 +605,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  
  	breakCounter uint32
  
-@@ -286,16 +292,30 @@
- func (p *Player) SendTitle(t title.Title) {
- 	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
- 	if t.Text() != "" || t.Subtitle() != "" {
--		p.session().SendTitle(t.Text())
-+		// dragonfactory patch: the subtitle first. The client shows a subtitle
-+		// with the next title, so one sent after its title came a title late
-+		// (WAILA reads the subtitle when the title arrives).
- 		if t.Subtitle() != "" {
- 			p.session().SendSubtitle(t.Subtitle())
- 		}
-+		p.session().SendTitle(t.Text())
- 	}
- 	if t.ActionText() != "" {
- 		p.session().SendActionBarMessage(t.ActionText())
- 	}
- }
- 
-+// SendTitleJSON is SendTitle with the title text given as raw JSON text
-+// ({"rawtext":[{"text":"…"},{"translate":"tile.stone.name"}]}): the client
-+// translates the keys in its own language (dragonfactory patch, WAILA names).
-+func (p *Player) SendTitleJSON(t title.Title) {
-+	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
-+	if t.Subtitle() != "" {
-+		p.session().SendSubtitle(t.Subtitle())
-+	}
-+	p.session().SendTitleJSON(t.Text())
-+}
-+
- // SendScoreboard sends a scoreboard to the player. The scoreboard will be present indefinitely until removed
- // by the caller.
- // SendScoreboard may be called at any time to change the scoreboard of the player.
-@@ -1776,7 +1796,14 @@
+@@ -1776,7 +1782,14 @@
  			// The block was activated: Blocks such as doors must always have precedence over the item being
  			// used.
  			if useCtx := p.useContext(); act.Activate(pos, face, p.tx, p, useCtx) {
@@ -652,7 +620,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  				p.SetHeldItems(p.subtractItem(p.damageItem(i, useCtx.Damage), useCtx.CountSub), left)
  				p.addNewItem(useCtx)
  				return
-@@ -1945,6 +1972,9 @@
+@@ -1945,6 +1958,9 @@
  // immediately and the block will not be broken. StartBreaking will stop the breaking of any block that the
  // player might be breaking before this method is called.
  func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
@@ -662,7 +630,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  	p.AbortBreaking()
  	if _, air := p.tx.Block(pos).(block.Air); air || !p.canReach(pos.Vec3Centre()) {
  		// The block was either out of range or air, so it can't be broken by the player.
-@@ -1981,6 +2011,9 @@
+@@ -1981,6 +1997,9 @@
  	}
  
  	p.breaking, p.breakingFace = true, face
@@ -672,7 +640,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  	p.SwingArm()
  
  	if p.GameMode().CreativeInventory() {
-@@ -2033,6 +2066,28 @@
+@@ -2033,6 +2052,28 @@
  	p.BreakBlock(p.breakingPos)
  }
  
@@ -701,7 +669,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  // AbortBreaking makes the player stop breaking the block it is currently breaking, or returns immediately
  // if the player isn't breaking anything.
  // Unlike FinishBreaking, AbortBreaking does not stop the animation.
-@@ -2653,6 +2708,8 @@
+@@ -2653,6 +2694,8 @@
  		}
  	}
  
@@ -710,78 +678,10 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  	p.checkBlockCollisions(p.data.Vel)
  	p.onGround = p.checkOnGround(mgl64.Vec3{})
  	p.checkEntitySteppers()
-@@ -3413,6 +3470,121 @@
+@@ -3413,6 +3456,23 @@
  	}
  }
  
-+// OpenEntityContainer opens inv for the player in a container window backed
-+// by an invisible client-only entity, so it needs no block and can have any
-+// size (with a resource pack reading the size from the title). onClose is
-+// called once when the window closes. (dragonfactory patch)
-+func (p *Player) OpenEntityContainer(inv *inventory.Inventory, title string, onClose func(tx *world.Tx)) {
-+	p.session().OpenEntityContainer(inv, title, p.Position(), onClose, p.tx)
-+}
-+
-+// ContainerViewer returns the viewer that shows slot changes of the
-+// container window the player has open. Unlike the Player, it may be kept
-+// and used outside of the player's transaction, the way block containers
-+// keep their viewers. (dragonfactory patch)
-+func (p *Player) ContainerViewer() session.EntityContainerViewer {
-+	return session.EntityContainerViewer{S: p.session()}
-+}
-+
-+// CloseOpenedContainer closes the container window the player has open.
-+// (dragonfactory patch)
-+func (p *Player) CloseOpenedContainer() {
-+	p.session().CloseOpenedContainer(p.tx)
-+}
-+
-+// SetCamera puts the player's camera at pos with the rotation (pitch, yaw in
-+// degrees), easing there over ease seconds. Movement keys then move
-+// relative to the camera. (dragonfactory patch)
-+func (p *Player) SetCamera(pos mgl64.Vec3, pitch, yaw, ease float64) {
-+	p.session().SetCamera(pos, pitch, yaw, ease)
-+}
-+
-+// ClearCamera returns the player's camera to normal. (dragonfactory patch)
-+func (p *Player) ClearCamera() { p.session().ClearCamera() }
-+
-+// HideHUD hides every vanilla HUD element of the player's client, or shows
-+// them again. (dragonfactory patch)
-+func (p *Player) HideHUD(hide bool) { p.session().HideHUD(hide) }
-+
-+// LockInputs locks the client inputs in locks (packet.ClientInputLock*
-+// flags); 0 unlocks them. (dragonfactory patch)
-+func (p *Player) LockInputs(locks uint32) { p.session().LockInputs(locks) }
-+
-+// ForgetHiddenEntities shows every entity hidden with HideEntity again from
-+// then on, for a player about to change worlds. (dragonfactory patch)
-+func (p *Player) ForgetHiddenEntities() { p.session().ForgetHiddenEntities() }
-+
-+// ViewFakeBlock shows b at pos to this player only, without changing the
-+// world. Resend the real block (ViewFakeBlock with tx.Block) to undo it.
-+// (dragonfactory patch)
-+func (p *Player) ViewFakeBlock(pos cube.Pos, b world.Block) {
-+	p.session().ViewFakeBlock(pos, b)
-+}
-+
-+// MoveInput returns the movement keys the player holds: Y is forward (+1)
-+// and back, X is left (+1) and right. It is read even while the player is
-+// immobile. (dragonfactory patch)
-+func (p *Player) MoveInput() mgl64.Vec2 { return p.session().MoveInput() }
-+
-+// ViewFakeEntity shows an entity of the type identifier at pos to this
-+// player only and returns its ID for MoveFakeEntity and RemoveFakeEntity.
-+// (dragonfactory patch)
-+func (p *Player) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
-+	return p.session().ViewFakeEntity(identifier, pos, yaw, scale)
-+}
-+
-+// MoveFakeEntity moves an entity shown with ViewFakeEntity. (dragonfactory patch)
-+func (p *Player) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
-+	p.session().MoveFakeEntity(id, pos, yaw)
-+}
-+
 +// ViewFakeChunk shows c in place of the world's chunk at pos to this player
 +// only, until ClearFakeChunk; the world's block updates there are not sent
 +// meanwhile. (dragonfactory patch)
@@ -794,47 +694,17 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +	p.session().ClearFakeChunk(pos, p.tx.World().Dimension())
 +}
 +
-+// ViewChunkCentre makes the client keep the chunks around pos until the
-+// player next changes chunk (for fake chunks sent right after a teleport).
-+// (dragonfactory patch)
-+func (p *Player) ViewChunkCentre(pos mgl64.Vec3) { p.session().ViewChunkCentre(pos) }
-+
 +// SetRecipeFilter limits the player's recipes to those f keeps (all if f
 +// is nil) and sends the new list at once; call it again when f's answers
 +// change. (dragonfactory patch)
 +func (p *Player) SetRecipeFilter(f func(recipe.Recipe) bool) { p.session().SetRecipeFilter(f) }
 +
-+// SetCameraFOV sets the field of view of the player's camera in degrees.
-+// (dragonfactory patch)
-+func (p *Player) SetCameraFOV(fov float64) { p.session().SetCameraFOV(fov) }
-+
-+// ClearCameraFOV returns the camera's field of view to the player's own
-+// setting. (dragonfactory patch)
-+func (p *Player) ClearCameraFOV() { p.session().ClearCameraFOV() }
-+
-+// RemoveFakeEntity removes an entity shown with ViewFakeEntity. (dragonfactory
-+// patch)
-+func (p *Player) RemoveFakeEntity(id uint64) { p.session().RemoveFakeEntity(id) }
-+
-+// AfterClientSync runs f once the client has processed everything sent to
-+// it so far (a NetworkStackLatency round trip, at most a second), e.g. to
-+// show a form after closing a window. f does not run if the player is gone
-+// by then. (dragonfactory patch)
-+func (p *Player) AfterClientSync(f func(p *Player, tx *world.Tx)) {
-+	h := p.H()
-+	p.session().AfterClientSync(func(tx *world.Tx) {
-+		if e, ok := h.Entity(tx); ok {
-+			f(e.(*Player), tx)
-+		}
-+	})
-+}
-+
  // session returns the network session of the player. If it has one, it is returned. If not, a no-op session
  // is returned.
  func (p *Player) session() *session.Session {
 diff -ruN a/server/server.go b/server/server.go
---- a/server/server.go	2026-10-19 22:30:36.907658000 +0900
-+++ b/server/server.go	2026-10-19 22:30:38.361811400 +0900
+--- a/server/server.go	2026-10-19 23:28:04.678564200 +0900
++++ b/server/server.go	2026-10-19 23:28:07.591534900 +0900
 @@ -324,7 +324,11 @@
  
  	srv.conf.Log.Debug("Disconnecting players...")
@@ -848,144 +718,9 @@ diff -ruN a/server/server.go b/server/server.go
  	}
  	srv.pwg.Wait()
  
-diff -ruN a/server/session/camera.go b/server/session/camera.go
---- a/server/session/camera.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/session/camera.go	2026-10-19 22:30:38.167359400 +0900
-@@ -0,0 +1,131 @@
-+package session
-+
-+// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
-+// custom camera control and client-only block views.
-+
-+import (
-+	"github.com/df-mc/dragonfly/server/block/cube"
-+	"github.com/df-mc/dragonfly/server/world"
-+	"github.com/go-gl/mathgl/mgl32"
-+	"github.com/go-gl/mathgl/mgl64"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-+)
-+
-+// cameraPresetFree is the index of the free camera preset sent on spawn.
-+const cameraPresetFree = 0
-+
-+// sendCameraPresets sends the camera presets custom cameras use. Dragonfly
-+// sends none, and camera instructions refer to presets by index. Movement in
-+// the free camera is relative to the camera, so with a top-down camera the
-+// movement keys move across the screen.
-+func (s *Session) sendCameraPresets() {
-+	s.writePacket(&packet.CameraPresets{Presets: []protocol.CameraPreset{{
-+		Name:          "minecraft:free",
-+		ControlScheme: protocol.Option(byte(packet.ControlSchemeCameraRelativeStrafe)),
-+	}}})
-+}
-+
-+// SetCamera puts the player's camera at pos looking at the rotation (pitch,
-+// yaw in degrees), moving there over ease seconds.
-+func (s *Session) SetCamera(pos mgl64.Vec3, pitch, yaw float64, ease float64) {
-+	if s == Nop {
-+		return
-+	}
-+	set := protocol.CameraInstructionSet{
-+		Preset:   cameraPresetFree,
-+		Position: protocol.Option(vec64To32(pos)),
-+		Rotation: protocol.Option(mgl32.Vec2{float32(pitch), float32(yaw)}),
-+	}
-+	if ease > 0 {
-+		set.Ease = protocol.Option(protocol.CameraEase{Type: protocol.EasingTypeLinear, Duration: float32(ease)})
-+	}
-+	s.writePacket(&packet.CameraInstruction{Set: protocol.Option(set)})
-+}
-+
-+// ClearCamera returns the player's camera to normal.
-+func (s *Session) ClearCamera() {
-+	if s == Nop {
-+		return
-+	}
-+	s.writePacket(&packet.CameraInstruction{Clear: protocol.Option(true)})
-+}
-+
-+// SetCameraFOV sets the field of view of the player's camera in degrees.
-+func (s *Session) SetCameraFOV(fov float64) {
-+	if s == Nop {
-+		return
-+	}
-+	s.writePacket(&packet.CameraInstruction{FieldOfView: protocol.Option(protocol.CameraInstructionFieldOfView{FieldOfView: float32(fov)})})
-+}
-+
-+// ClearCameraFOV returns the player's field of view to their own setting.
-+func (s *Session) ClearCameraFOV() {
-+	if s == Nop {
-+		return
-+	}
-+	s.writePacket(&packet.CameraInstruction{FieldOfView: protocol.Option(protocol.CameraInstructionFieldOfView{Clear: true})})
-+}
-+
-+// ViewFakeBlock shows b at pos to this player only. The world is unchanged;
-+// resend the real block to undo it.
-+func (s *Session) ViewFakeBlock(pos cube.Pos, b world.Block) {
-+	if s == Nop {
-+		return
-+	}
-+	s.viewBlockUpdate(pos, b, 0)
-+}
-+
-+// MoveInput returns the movement keys the client last held, as sent in
-+// PlayerAuthInput before input permissions apply (so also while immobile):
-+// Y is forward (+1) and back, X is left (+1) and right.
-+func (s *Session) MoveInput() mgl64.Vec2 {
-+	if v := s.moveInput.Load(); v != nil {
-+		return *v
-+	}
-+	return mgl64.Vec2{}
-+}
-+
-+// ViewFakeEntity shows an entity of the type identifier (e.g.
-+// "minecraft:allay") at pos to this player only, standing still and scaled,
-+// and returns its runtime ID for MoveFakeEntity and RemoveFakeEntity.
-+func (s *Session) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
-+	if s == Nop {
-+		return 0
-+	}
-+	s.entityMutex.Lock()
-+	s.currentEntityRuntimeID++
-+	id := s.currentEntityRuntimeID
-+	s.entityMutex.Unlock()
-+
-+	m := protocol.NewEntityMetadata()
-+	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagNoAI)
-+	m[protocol.EntityDataKeyScale] = scale
-+	s.writePacket(&packet.AddActor{
-+		EntityUniqueID:  int64(id),
-+		EntityRuntimeID: id,
-+		EntityType:      identifier,
-+		EntityMetadata:  m,
-+		Position:        vec64To32(pos),
-+		Yaw:             float32(yaw),
-+		HeadYaw:         float32(yaw),
-+		BodyYaw:         float32(yaw),
-+	})
-+	return id
-+}
-+
-+// MoveFakeEntity moves an entity shown with ViewFakeEntity.
-+func (s *Session) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
-+	if s == Nop || id == 0 {
-+		return
-+	}
-+	s.writePacket(&packet.MoveActorAbsolute{EntityRuntimeID: id, Position: vec64To32(pos), Rotation: mgl32.Vec3{0, float32(yaw), float32(yaw)}})
-+}
-+
-+// RemoveFakeEntity removes an entity shown with ViewFakeEntity.
-+func (s *Session) RemoveFakeEntity(id uint64) {
-+	if s == Nop || id == 0 {
-+		return
-+	}
-+	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(id)})
-+}
 diff -ruN a/server/session/chunk.go b/server/session/chunk.go
---- a/server/session/chunk.go	2026-10-19 22:30:36.910180500 +0900
-+++ b/server/session/chunk.go	2026-10-19 22:30:38.168356900 +0900
+--- a/server/session/chunk.go	2026-10-19 23:28:04.685690900 +0900
++++ b/server/session/chunk.go	2026-10-19 23:28:07.128244900 +0900
 @@ -18,6 +18,10 @@
  
  // ViewChunk ...
@@ -1008,431 +743,10 @@ diff -ruN a/server/session/chunk.go b/server/session/chunk.go
  		if !ok {
  			entries = append(entries, protocol.SubChunkEntry{Result: protocol.SubChunkResultChunkNotFound, Offset: offset})
  			continue
-diff -ruN a/server/session/entity_container.go b/server/session/entity_container.go
---- a/server/session/entity_container.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/session/entity_container.go	2026-10-19 22:30:38.163346200 +0900
-@@ -0,0 +1,417 @@
-+package session
-+
-+// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md).
-+// It adds container windows backed by an invisible, client-only entity
-+// instead of a block, like PocketMine's InvMenu actor menus. Combined with a
-+// resource pack that reads the size from the window title, the window can
-+// have any number of slots and opens anywhere.
-+//
-+// By default the window opens right after the entity is spawned. The steps
-+// of Muqsit/InvMenu (PlayerWindowDispatcher) can be switched on with
-+// EntityContainerOptions while they are verified against real clients:
-+//
-+//   - Ride: the entity rides the player, so it stays next to them.
-+//   - WaitLatency: send a NetworkStackLatency request after AddActor and
-+//     open the window when the client answers (the entity exists then).
-+//   - Retry: until the client acknowledges the window with a
-+//     PacketViolationWarning (type -1, severity warning) caused by excess
-+//     opens, resend ContainerClose + ContainerOpen every tick (at most
-+//     entityOpenRetries). Meanwhile client closes of the window are
-+//     acknowledged but do not close it.
-+//
-+// A client close of window 0xff (sent when a window opens while the client
-+// is busy, e.g. a form closing) never closes an entity container.
-+
-+import (
-+	"math/rand/v2"
-+	"sync"
-+	"time"
-+
-+	"github.com/df-mc/dragonfly/server/block/cube"
-+	"github.com/df-mc/dragonfly/server/item"
-+	"github.com/df-mc/dragonfly/server/item/inventory"
-+	"github.com/df-mc/dragonfly/server/world"
-+	"github.com/go-gl/mathgl/mgl64"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-+)
-+
-+// EntityContainerIdentifier is the actor identifier of the invisible entity
-+// backing entity containers. It is announced in AvailableActorIdentifiers so
-+// clients accept it; no client entity definition is needed.
-+const EntityContainerIdentifier = "dragonfly:entity_container"
-+
-+const (
-+	// entityTransitionWindow is how soon after a window closed a new one is
-+	// treated as a switch of screens.
-+	entityTransitionWindow = time.Second
-+	// entityOpenRetries limits the ContainerOpen resends (one per tick).
-+	entityOpenRetries = 20
-+	// entityActorTimeout is how long to wait for the NetworkStackLatency
-+	// answer before opening anyway.
-+	entityActorTimeout = time.Second
-+)
-+
-+// EntityContainerOptions switches the optional steps of opening entity
-+// containers. It is set once at startup.
-+var EntityContainerOptions struct {
-+	Ride, WaitLatency, Retry bool
-+	// Debug logs the opening and closing packets at INFO level.
-+	Debug bool
-+}
-+
-+func (s *Session) ecDebug(msg string, args ...any) {
-+	if EntityContainerOptions.Debug {
-+		s.conf.Log.Info("entity container: "+msg, args...)
-+	}
-+}
-+
-+type entityContainerState int
-+
-+const (
-+	ecWaitingActor entityContainerState = iota
-+	ecOpening
-+	ecOpen
-+)
-+
-+type entityContainer struct {
-+	runtimeID uint64
-+	inv       *inventory.Inventory
-+	pos       cube.Pos
-+	onClose   func(tx *world.Tx)
-+
-+	mu        sync.Mutex
-+	state     entityContainerState
-+	latencyTS int64
-+	windowID  byte
-+	stop      chan struct{}
-+}
-+
-+// OpenEntityContainer opens inv in a container window backed by an
-+// invisible entity spawned at pos for this session only. title is the
-+// window title. onClose, if not nil, is called once when the window closes
-+// for any reason (client close, another container opening, disconnect).
-+// Opening inv while it is already open or opening does nothing.
-+func (s *Session) OpenEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx), tx *world.Tx) {
-+	if s == Nop {
-+		return
-+	}
-+	if ec := s.entityContainer.Load(); ec != nil && ec.inv == inv {
-+		return
-+	}
-+	s.closeCurrentContainer(tx, false)
-+	token := s.openToken.Add(1)
-+	spawn := func(*world.Tx) {
-+		if s.openToken.Load() == token {
-+			s.spawnEntityContainer(inv, title, pos, onClose)
-+		}
-+	}
-+	// A window opened right after another one closed (switching screens)
-+	// is ignored by the client while it is still closing the old one. Wait
-+	// for a NetworkStackLatency round trip first, like InvMenu does.
-+	if since := time.Since(time.Unix(0, s.lastContainerClose.Load())); since < entityTransitionWindow {
-+		s.ecDebug("switching windows: waiting for the client", "since", since)
-+		s.AfterClientSync(spawn)
-+		return
-+	}
-+	spawn(tx)
-+}
-+
-+// spawnEntityContainer spawns the entity of a container and opens it.
-+func (s *Session) spawnEntityContainer(inv *inventory.Inventory, title string, pos mgl64.Vec3, onClose func(tx *world.Tx)) {
-+	s.entityMutex.Lock()
-+	s.currentEntityRuntimeID++
-+	id := s.currentEntityRuntimeID
-+	s.entityMutex.Unlock()
-+
-+	m := protocol.NewEntityMetadata()
-+	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagInvisible)
-+	m.SetFlag(protocol.EntityDataKeyFlags, protocol.EntityDataFlagNoAI)
-+	m[protocol.EntityDataKeyName] = title
-+	m[protocol.EntityDataKeyContainerType] = byte(0xff) // ContainerTypeInventory (-1)
-+	m[protocol.EntityDataKeyContainerSize] = int32(inv.Size())
-+	var links []protocol.EntityLink
-+	if EntityContainerOptions.Ride {
-+		links = []protocol.EntityLink{{RiddenEntityUniqueID: selfEntityRuntimeID, RiderEntityUniqueID: int64(id), Type: protocol.EntityLinkPassenger, Immediate: true}}
-+	}
-+	s.writePacket(&packet.AddActor{
-+		EntityUniqueID:  int64(id),
-+		EntityRuntimeID: id,
-+		EntityType:      EntityContainerIdentifier,
-+		EntityMetadata:  m,
-+		Position:        vec64To32(pos),
-+		EntityLinks:     links,
-+	})
-+
-+	ec := &entityContainer{runtimeID: id, inv: inv, pos: cube.PosFromVec3(pos), onClose: onClose,
-+		latencyTS: rand.Int64N(1 << 20), stop: make(chan struct{})}
-+	s.entityContainer.Store(ec)
-+	s.ecDebug("spawned", "actor", id, "size", inv.Size(), "ride", EntityContainerOptions.Ride)
-+	if !EntityContainerOptions.WaitLatency {
-+		s.openEntityWindow(ec)
-+		return
-+	}
-+	s.writePacket(&packet.NetworkStackLatency{Timestamp: ec.latencyTS, NeedsResponse: true})
-+	go s.entityContainerTimeout(ec)
-+}
-+
-+// entityContainerTimeout opens the window if the client never answers the
-+// NetworkStackLatency request.
-+func (s *Session) entityContainerTimeout(ec *entityContainer) {
-+	select {
-+	case <-ec.stop:
-+	case <-s.closeBackground:
-+	case <-time.After(entityActorTimeout):
-+		s.ecDebug("no latency answer, opening anyway", "actor", ec.runtimeID)
-+		s.openEntityWindow(ec)
-+	}
-+}
-+
-+// handleEntityContainerLatency handles a NetworkStackLatency answer. The
-+// client answers with the timestamp multiplied by 1, 1000 or 1000000
-+// depending on the platform.
-+func (s *Session) handleEntityContainerLatency(ts int64, tx *world.Tx) {
-+	s.runClientSync(ts, tx)
-+	ec := s.entityContainer.Load()
-+	if ec == nil {
-+		return
-+	}
-+	if t := ec.latencyTS; ts == t || ts == t*1000 || ts == t*1000000 {
-+		s.ecDebug("latency answered", "actor", ec.runtimeID)
-+		s.openEntityWindow(ec)
-+	}
-+}
-+
-+// openEntityWindow sends the ContainerOpen of a waiting entity container
-+// and starts resending it until the client acknowledges it.
-+func (s *Session) openEntityWindow(ec *entityContainer) {
-+	ec.mu.Lock()
-+	if ec.state != ecWaitingActor || s.entityContainer.Load() != ec {
-+		ec.mu.Unlock()
-+		return
-+	}
-+	ec.state = ecOpening
-+	ec.windowID = s.nextWindowID()
-+	ec.mu.Unlock()
-+
-+	s.containerOpened.Store(true)
-+	s.openedWindow.Store(ec.inv)
-+	s.openedPos.Store(&ec.pos)
-+	s.openedContainerID.Store(uint32(protocol.ContainerTypeContainer))
-+	s.writePacket(ec.openPacket())
-+	s.sendInv(ec.inv, uint32(ec.windowID))
-+	s.ecDebug("opened", "actor", ec.runtimeID, "window", ec.windowID)
-+	if !EntityContainerOptions.Retry {
-+		s.ackEntityWindow(ec)
-+		return
-+	}
-+	go s.retryEntityWindow(ec)
-+}
-+
-+func (ec *entityContainer) openPacket() *packet.ContainerOpen {
-+	return &packet.ContainerOpen{
-+		WindowID:                ec.windowID,
-+		ContainerType:           protocol.ContainerTypeContainer,
-+		ContainerPosition:       protocol.BlockPos{int32(ec.pos[0]), int32(ec.pos[1]), int32(ec.pos[2])},
-+		ContainerEntityUniqueID: int64(ec.runtimeID),
-+	}
-+}
-+
-+// retryEntityWindow resends the window every tick until it is acknowledged.
-+func (s *Session) retryEntityWindow(ec *entityContainer) {
-+	t := time.NewTicker(time.Second / 20)
-+	defer t.Stop()
-+	for range entityOpenRetries {
-+		select {
-+		case <-ec.stop:
-+			return
-+		case <-s.closeBackground:
-+			return
-+		case <-t.C:
-+		}
-+		ec.mu.Lock()
-+		opening := ec.state == ecOpening && s.entityContainer.Load() == ec
-+		ec.mu.Unlock()
-+		if !opening {
-+			return
-+		}
-+		s.writePacket(&packet.ContainerClose{WindowID: ec.windowID, ContainerType: protocol.ContainerTypeContainer})
-+		s.writePacket(ec.openPacket())
-+	}
-+	// Never acknowledged: keep the window as it is.
-+	s.ecDebug("never acknowledged", "actor", ec.runtimeID)
-+	s.ackEntityWindow(ec)
-+}
-+
-+// handleEntityContainerViolation handles a PacketViolationWarning, which the
-+// client sends for an excess ContainerOpen once the window is open.
-+func (s *Session) handleEntityContainerViolation(pk *packet.PacketViolationWarning) {
-+	s.ecDebug("violation warning", "type", pk.Type, "severity", pk.Severity, "packet", pk.PacketID, "context", pk.ViolationContext)
-+	if pk.Type != -1 || pk.Severity != packet.ViolationSeverityWarning {
-+		return
-+	}
-+	if ec := s.entityContainer.Load(); ec != nil {
-+		s.ackEntityWindow(ec)
-+	}
-+}
-+
-+// ackEntityWindow marks the window open and sends its contents again.
-+func (s *Session) ackEntityWindow(ec *entityContainer) {
-+	ec.mu.Lock()
-+	if ec.state != ecOpening {
-+		ec.mu.Unlock()
-+		return
-+	}
-+	ec.state = ecOpen
-+	ec.mu.Unlock()
-+	if s.entityContainer.Load() == ec && EntityContainerOptions.Retry {
-+		s.sendInv(ec.inv, uint32(ec.windowID))
-+	}
-+}
-+
-+// entityContainerOpen reports whether an entity container is open or opening.
-+func (s *Session) entityContainerOpen() bool { return s.entityContainer.Load() != nil }
-+
-+// entityContainerOpening reports whether an entity container is still
-+// being opened, during which client ContainerClose packets are ignored.
-+func (s *Session) entityContainerOpening() bool {
-+	ec := s.entityContainer.Load()
-+	if ec == nil {
-+		return false
-+	}
-+	ec.mu.Lock()
-+	defer ec.mu.Unlock()
-+	return ec.state != ecOpen
-+}
-+
-+// CloseOpenedContainer closes the container window the session has open.
-+func (s *Session) CloseOpenedContainer(tx *world.Tx) {
-+	s.closeCurrentContainer(tx, false)
-+}
-+
-+// closeEntityContainer removes the entity of an open (or opening) entity
-+// container and runs its close callback. It reports if one was open.
-+func (s *Session) closeEntityContainer(tx *world.Tx) bool {
-+	ec := s.entityContainer.Swap(nil)
-+	if ec == nil {
-+		return false
-+	}
-+	close(ec.stop)
-+	s.ecDebug("closed", "actor", ec.runtimeID)
-+	s.writePacket(&packet.RemoveActor{EntityUniqueID: int64(ec.runtimeID)})
-+	if ec.onClose != nil {
-+		ec.onClose(tx)
-+	}
-+	return true
-+}
-+
-+// NetworkStackLatencyHandler handles NetworkStackLatency answers for
-+// entity containers (dragonfactory patch).
-+type NetworkStackLatencyHandler struct{}
-+
-+func (NetworkStackLatencyHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, _ Controllable) error {
-+	s.handleEntityContainerLatency(p.(*packet.NetworkStackLatency).Timestamp, tx)
-+	return nil
-+}
-+
-+// PacketViolationWarningHandler handles the client's violation warnings
-+// (dragonfactory patch): they acknowledge entity container windows.
-+type PacketViolationWarningHandler struct{}
-+
-+func (PacketViolationWarningHandler) Handle(p packet.Packet, s *Session, _ *world.Tx, _ Controllable) error {
-+	s.handleEntityContainerViolation(p.(*packet.PacketViolationWarning))
-+	return nil
-+}
-+
-+// AfterClientSync runs f in the player's transaction once the client has
-+// processed every packet sent before this call (a NetworkStackLatency round
-+// trip), or after a second if it does not answer.
-+func (s *Session) AfterClientSync(f func(tx *world.Tx)) {
-+	if s == Nop {
-+		return
-+	}
-+	ts := rand.Int64N(1<<20) + 1<<20
-+	s.clientSyncMu.Lock()
-+	if s.clientSyncs == nil {
-+		s.clientSyncs = map[int64]func(tx *world.Tx){}
-+	}
-+	s.clientSyncs[ts] = f
-+	s.clientSyncMu.Unlock()
-+	s.writePacket(&packet.NetworkStackLatency{Timestamp: ts, NeedsResponse: true})
-+	go func() {
-+		select {
-+		case <-s.closeBackground:
-+		case <-time.After(entityActorTimeout):
-+			if f := s.takeClientSync(ts); f != nil && s.ent != nil {
-+				s.ent.Do(func(tx *world.Tx, _ world.Entity) { f(tx) })
-+			}
-+		}
-+	}()
-+}
-+
-+func (s *Session) takeClientSync(ts int64) func(tx *world.Tx) {
-+	s.clientSyncMu.Lock()
-+	defer s.clientSyncMu.Unlock()
-+	f := s.clientSyncs[ts]
-+	delete(s.clientSyncs, ts)
-+	return f
-+}
-+
-+// runClientSync runs the callback of an answered NetworkStackLatency. The
-+// client answers with the timestamp multiplied by 1, 1000 or 1000000.
-+func (s *Session) runClientSync(ts int64, tx *world.Tx) {
-+	for _, t := range []int64{ts, ts / 1000, ts / 1000000} {
-+		if f := s.takeClientSync(t); f != nil {
-+			f(tx)
-+			return
-+		}
-+	}
-+}
-+
-+// followEntityContainer keeps the entity of an open entity container at
-+// the player, so the client does not close the window when the player
-+// moves away from it (falling, pushed). Not needed when it rides.
-+func (s *Session) followEntityContainer(pos, delta mgl64.Vec3) {
-+	ec := s.entityContainer.Load()
-+	if ec == nil || EntityContainerOptions.Ride || mgl64.FloatEqual(delta.Len(), 0) {
-+		return
-+	}
-+	s.writePacket(&packet.MoveActorAbsolute{EntityRuntimeID: ec.runtimeID, Position: vec64To32(pos), Flags: packet.MoveFlagTeleport})
-+}
-+
-+// EntityContainerViewer shows slot changes of an inventory to a session if
-+// that inventory is its open entity container. It may be kept and used
-+// outside of the player's transaction. (dragonfactory patch)
-+type EntityContainerViewer struct{ S *Session }
-+
-+// ViewSlotChange sends a changed slot of inv if inv is the open window.
-+func (v EntityContainerViewer) ViewSlotChange(inv *inventory.Inventory, slot int, it item.Stack) {
-+	if ec := v.S.entityContainer.Load(); ec != nil && ec.inv == inv {
-+		ec.mu.Lock()
-+		opened := ec.state != ecWaitingActor
-+		ec.mu.Unlock()
-+		if opened {
-+			v.S.ViewSlotChange(slot, it)
-+		}
-+	}
-+}
-+
-+// SendBasicVoxelShapes sends a minimal voxel shape registry (minecraft:empty
-+// and minecraft:unit_cube) when the player spawns. Dragonfly sends none and
-+// 1.26 clients log "Shape registry is full" / "minecraft:unit_cube doesn't
-+// exist" for it. Experimental: whether this matters (e.g. for breaking
-+// custom blocks) is unverified, so it is off by default. (dragonfactory patch)
-+var SendBasicVoxelShapes bool
-+
-+func (s *Session) sendBasicVoxelShapes() {
-+	if !SendBasicVoxelShapes {
-+		return
-+	}
-+	s.writePacket(&packet.VoxelShapes{
-+		Shapes: []protocol.VoxelShape{
-+			{Cells: protocol.VoxelCells{}, XCoordinates: []float32{0}, YCoordinates: []float32{0}, ZCoordinates: []float32{0}},
-+			{Cells: protocol.VoxelCells{XSize: 1, YSize: 1, ZSize: 1, Storage: []uint8{1}}, XCoordinates: []float32{0, 1}, YCoordinates: []float32{0, 1}, ZCoordinates: []float32{0, 1}},
-+		},
-+		NameMap: []protocol.VoxelShapeNameEntry{{Name: "minecraft:empty", ID: 0}, {Name: "minecraft:unit_cube", ID: 1}},
-+	})
-+}
 diff -ruN a/server/session/fake_chunk.go b/server/session/fake_chunk.go
 --- a/server/session/fake_chunk.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/session/fake_chunk.go	2026-10-19 22:30:38.168866000 +0900
-@@ -0,0 +1,76 @@
++++ b/server/session/fake_chunk.go	2026-10-19 23:28:07.130745900 +0900
+@@ -0,0 +1,59 @@
 +package session
 +
 +// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
@@ -1442,9 +756,6 @@ diff -ruN a/server/session/fake_chunk.go b/server/session/fake_chunk.go
 +	"github.com/df-mc/dragonfly/server/block/cube"
 +	"github.com/df-mc/dragonfly/server/world"
 +	"github.com/df-mc/dragonfly/server/world/chunk"
-+	"github.com/go-gl/mathgl/mgl64"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol"
-+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 +)
 +
 +// ViewFakeChunk shows c in place of the world's chunk at pos to this player
@@ -1495,47 +806,9 @@ diff -ruN a/server/session/fake_chunk.go b/server/session/fake_chunk.go
 +	_, ok := s.fakeChunk(world.ChunkPos{int32(pos[0] >> 4), int32(pos[2] >> 4)})
 +	return ok
 +}
-+
-+// ViewChunkCentre makes the client keep and draw the chunks around pos
-+// instead of around the player until the player next moves to another
-+// chunk, for chunks shown with ViewFakeChunk right after a teleport (they
-+// are dropped if outside the client's chunk centre).
-+func (s *Session) ViewChunkCentre(pos mgl64.Vec3) {
-+	if s == Nop {
-+		return
-+	}
-+	s.writePacket(&packet.NetworkChunkPublisherUpdate{
-+		Position: protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
-+		Radius:   uint32(s.chunkRadius) << 4,
-+	})
-+}
-diff -ruN a/server/session/handler_container_close.go b/server/session/handler_container_close.go
---- a/server/session/handler_container_close.go	2026-10-19 22:30:36.926756300 +0900
-+++ b/server/session/handler_container_close.go	2026-10-19 22:30:38.156783400 +0900
-@@ -12,6 +12,20 @@
- func (h *ContainerCloseHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
- 	pk := p.(*packet.ContainerClose)
- 
-+	if s.entityContainerOpen() {
-+		s.ecDebug("client close", "window", pk.WindowID, "type", pk.ContainerType, "opening", s.entityContainerOpening())
-+		// dragonfactory patch: the client sends a close of window 0xff when a
-+		// window opens while it is busy (e.g. a form closing); it must not
-+		// close an entity container. While one is still being opened with
-+		// retries, closes of its window are acknowledged but ignored too.
-+		if pk.WindowID == 0xff {
-+			return nil
-+		}
-+		if pk.WindowID != 0 && s.entityContainerOpening() {
-+			s.writePacket(&packet.ContainerClose{WindowID: pk.WindowID, ContainerType: pk.ContainerType})
-+			return nil
-+		}
-+	}
- 	c.MoveItemsToInventory()
- 
- 	var containerType byte
 diff -ruN a/server/session/handler_crafting.go b/server/session/handler_crafting.go
---- a/server/session/handler_crafting.go	2026-10-19 22:30:36.931289600 +0900
-+++ b/server/session/handler_crafting.go	2026-10-19 22:30:38.169881300 +0900
+--- a/server/session/handler_crafting.go	2026-10-19 23:28:04.717664400 +0900
++++ b/server/session/handler_crafting.go	2026-10-19 23:28:07.134360200 +0900
 @@ -35,6 +35,21 @@
  
  	size := s.craftingSize()
@@ -1613,160 +886,10 @@ diff -ruN a/server/session/handler_crafting.go b/server/session/handler_crafting
 +	}
 +	return match(false) || (!r.NoMirror() && match(true))
 +}
-diff -ruN a/server/session/handler_modal_form_response.go b/server/session/handler_modal_form_response.go
---- a/server/session/handler_modal_form_response.go	2026-10-19 22:30:36.942820700 +0900
-+++ b/server/session/handler_modal_form_response.go	2026-10-19 22:30:38.165356900 +0900
-@@ -5,6 +5,7 @@
- 	"github.com/df-mc/dragonfly/server/player/form"
- 	"github.com/df-mc/dragonfly/server/world"
- 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-+	"strings"
- 	"sync"
- 	"sync/atomic"
- )
-@@ -31,12 +32,16 @@
- 		// by the server. This should patch that.
- 		return nil
- 	}
--	if !exists || len(resp) == 0 {
-+	if !exists || len(resp) == 0 || strings.TrimSpace(string(resp)) == "null" {
- 		// The form was cancelled: The cross in the top right corner was clicked.
-+		// dragonfactory patch: "null" is a cancel too; json.Unmarshal would leave a
-+		// menu's button index at 0 and press the first button.
- 		resp = nil
- 	}
- 	if !ok {
--		return fmt.Errorf("no form with ID %v currently opened", pk.FormID)
-+		// dragonfactory patch: a response to a form that was dropped (more than
-+		// 10 open) or answered twice is ignored instead of kicking.
-+		return nil
- 	}
- 	if err := f.SubmitJSON(resp, c, tx); err != nil {
- 		return fmt.Errorf("error submitting form data: %w", err)
-diff -ruN a/server/session/handler_player_action.go b/server/session/handler_player_action.go
---- a/server/session/handler_player_action.go	2026-10-19 22:30:36.945819100 +0900
-+++ b/server/session/handler_player_action.go	2026-10-19 22:30:38.164359700 +0900
-@@ -9,6 +9,10 @@
- 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
- )
- 
-+// BlockActionDebug logs the block breaking actions clients send, at INFO
-+// level. It is set once at startup. (dragonfactory patch)
-+var BlockActionDebug bool
-+
- // PlayerActionHandler handles the PlayerAction packet.
- type PlayerActionHandler struct{}
- 
-@@ -24,6 +28,13 @@
- 	if entityRuntimeID != selfEntityRuntimeID {
- 		return errSelfRuntimeID
- 	}
-+	if BlockActionDebug {
-+		switch action {
-+		case protocol.PlayerActionStartBreak, protocol.PlayerActionContinueDestroyBlock, protocol.PlayerActionAbortBreak,
-+			protocol.PlayerActionPredictDestroyBlock, protocol.PlayerActionStopBreak, protocol.PlayerActionCrackBreak:
-+			s.conf.Log.Info("block action", "action", action, "pos", pos, "face", face)
-+		}
-+	}
- 	switch action {
- 	case protocol.PlayerActionStartSleeping, protocol.PlayerActionRespawn, protocol.PlayerActionDimensionChangeDone:
- 		// Don't do anything for these actions.
-diff -ruN a/server/session/handler_player_auth_input.go b/server/session/handler_player_auth_input.go
---- a/server/session/handler_player_auth_input.go	2026-10-19 22:30:36.946819100 +0900
-+++ b/server/session/handler_player_auth_input.go	2026-10-19 22:30:38.166356400 +0900
-@@ -26,6 +26,9 @@
- 
- // handleMovement handles the movement part of the packet.PlayerAuthInput.
- func (h PlayerAuthInputHandler) handleMovement(pk *packet.PlayerAuthInput, s *Session, c Controllable) error {
-+	// dragonfactory patch: remember the held movement keys (Session.MoveInput).
-+	input := mgl64.Vec2{float64(pk.RawMoveVector[0]), float64(pk.RawMoveVector[1])}
-+	s.moveInput.Store(&input)
- 	yaw, pitch := c.Rotation().Elem()
- 	pos := c.Position()
- 
-@@ -63,6 +66,7 @@
- 
- 	s.moving = true
- 	c.Move(deltaPos, deltaYaw, deltaPitch)
-+	s.followEntityContainer(newPos, deltaPos) // dragonfactory patch
- 	return nil
- }
- 
-diff -ruN a/server/session/hud.go b/server/session/hud.go
---- a/server/session/hud.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/session/hud.go	2026-10-19 22:30:38.173894800 +0900
-@@ -0,0 +1,48 @@
-+package session
-+
-+// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
-+// hiding HUD elements, locking client inputs and forgetting hidden entities.
-+
-+import "github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-+
-+// HUD elements of SetHud (packet.HudElement*), all of them.
-+var hudElements = []int32{
-+	packet.HudElementPaperDoll, packet.HudElementArmour, packet.HudElementToolTips,
-+	packet.HudElementTouchControls, packet.HudElementCrosshair, packet.HudElementHotBar,
-+	packet.HudElementHealth, packet.HudElementProgressBar, packet.HudElementHunger,
-+	packet.HudElementAirBubbles, packet.HudElementHorseHealth, packet.HudElementStatusEffects,
-+	packet.HudElementItemText,
-+}
-+
-+// HideHUD hides every vanilla HUD element of the client (hotbar, health,
-+// crosshair, ...), or shows them all again when hide is false. Resource pack
-+// HUD parts (the sidebar) are not vanilla elements and stay.
-+func (s *Session) HideHUD(hide bool) {
-+	if s == Nop {
-+		return
-+	}
-+	v := int32(packet.HudVisibilityReset)
-+	if hide {
-+		v = packet.HudVisibilityHide
-+	}
-+	s.writePacket(&packet.SetHud{Elements: hudElements, Visibility: v})
-+}
-+
-+// LockInputs locks the client inputs in locks (packet.ClientInputLock*
-+// flags); 0 unlocks them all.
-+func (s *Session) LockInputs(locks uint32) {
-+	if s == Nop {
-+		return
-+	}
-+	s.writePacket(&packet.UpdateClientInputLocks{Locks: locks})
-+}
-+
-+// ForgetHiddenEntities makes every entity hidden with StopShowingEntity
-+// visible again from then on, without spawning them now: the player is about
-+// to leave the world where they were hidden (the new world shows its
-+// entities as its chunks arrive).
-+func (s *Session) ForgetHiddenEntities() {
-+	s.entityMutex.Lock()
-+	clear(s.hiddenEntities)
-+	s.entityMutex.Unlock()
-+}
 diff -ruN a/server/session/player.go b/server/session/player.go
---- a/server/session/player.go	2026-10-19 22:30:36.961508100 +0900
-+++ b/server/session/player.go	2026-10-19 22:30:38.170893600 +0900
-@@ -67,10 +67,16 @@
- 
- // closeCurrentContainer closes the container the player might currently have open.
- func (s *Session) closeCurrentContainer(tx *world.Tx, clientRequested bool) {
--	if !s.closeWindow(clientRequested) {
-+	closed := s.closeWindow(clientRequested)
-+	if closed {
-+		s.lastContainerClose.Store(time.Now().UnixNano()) // dragonfactory patch
-+	}
-+	if s.closeEntityContainer(tx) { // dragonfactory patch: also closes one still opening
-+		return
-+	}
-+	if !closed {
- 		return
- 	}
--
- 	pos := *s.openedPos.Load()
- 	b := tx.Block(pos)
- 	if container, ok := b.(block.Container); ok {
-@@ -123,8 +129,15 @@
+--- a/server/session/player.go	2026-10-19 23:28:04.773399000 +0900
++++ b/server/session/player.go	2026-10-19 23:28:07.142892100 +0900
+@@ -123,8 +123,15 @@
  		potionContainerChange    []protocol.PotionContainerChangeRecipe
  	)
  
@@ -1782,7 +905,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  		s.recipes[networkID] = i
  
  		switch i := i.(type) {
-@@ -133,7 +146,7 @@
+@@ -133,7 +140,7 @@
  				RecipeID:        uuid.New().String(),
  				Priority:        int32(i.Priority()),
  				Input:           stacksToIngredientItems(s.br, i.Input()),
@@ -1791,7 +914,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  				Block:           i.Block(),
  				RecipeNetworkID: networkID,
  			})
-@@ -142,7 +155,7 @@
+@@ -142,7 +149,7 @@
  				RecipeID:        uuid.New().String(),
  				Priority:        int32(i.Priority()),
  				Input:           stacksToIngredientItems(s.br, i.Input()),
@@ -1800,7 +923,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  				Block:           i.Block(),
  				RecipeNetworkID: networkID,
  			}})
-@@ -158,9 +171,9 @@
+@@ -158,9 +165,9 @@
  				Width:           int32(i.Shape().Width()),
  				Height:          int32(i.Shape().Height()),
  				Input:           stacksToIngredientItems(s.br, i.Input()),
@@ -1812,7 +935,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  				RecipeNetworkID: networkID,
  			})
  		case recipe.SmithingTransform:
-@@ -223,6 +236,18 @@
+@@ -223,6 +230,18 @@
  	})
  }
  
@@ -1831,7 +954,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  // sendArmourTrimData sends the armour trim data.
  func (s *Session) sendArmourTrimData() {
  	var trimPatterns []protocol.TrimPattern
-@@ -471,6 +496,9 @@
+@@ -471,6 +490,9 @@
  // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
  // client submits the form.
  func (s *Session) SendForm(f form.Form) {
@@ -1841,7 +964,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  	b, _ := json.Marshal(f)
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
-@@ -1061,6 +1089,35 @@
+@@ -1061,6 +1083,35 @@
  	return items
  }
  
@@ -1878,8 +1001,8 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  func stacksToIngredientItems(_ world.BlockRegistry, inputs []recipe.Item) []protocol.ItemDescriptorCount {
  	items := make([]protocol.ItemDescriptorCount, 0, len(inputs))
 diff -ruN a/server/session/session.go b/server/session/session.go
---- a/server/session/session.go	2026-10-19 22:30:36.965507300 +0900
-+++ b/server/session/session.go	2026-10-19 22:30:38.173894800 +0900
+--- a/server/session/session.go	2026-10-19 23:28:04.775664000 +0900
++++ b/server/session/session.go	2026-10-19 23:28:07.147936300 +0900
 @@ -60,6 +60,10 @@
  	entities         map[uint64]*world.EntityHandle
  	hiddenEntities   map[uuid.UUID]struct{}
@@ -1891,29 +1014,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  	// heldSlot is the slot in the inventory that the controllable is holding.
  	heldSlot                     *uint32
  	inv, offHand, enderChest, ui *inventory.Inventory
-@@ -77,14 +81,27 @@
- 	openedContainerID              atomic.Uint32
- 	openedWindow                   atomic.Pointer[inventory.Inventory]
- 	openedPos                      atomic.Pointer[cube.Pos]
--	swingingArm                    atomic.Bool
--	changingSlot                   atomic.Bool
--	changingDimension              atomic.Bool
--	moving                         bool
-+	// entityContainer is the open entity container, if any (dragonfactory patch).
-+	entityContainer atomic.Pointer[entityContainer]
-+	// moveInput is the last held movement keys (dragonfactory patch, camera.go).
-+	moveInput atomic.Pointer[mgl64.Vec2]
-+	// lastContainerClose is when a container window last closed, and
-+	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
-+	lastContainerClose atomic.Int64
-+	clientSyncMu       sync.Mutex
-+	clientSyncs        map[int64]func(tx *world.Tx)
-+	openToken          atomic.Uint64
-+	swingingArm        atomic.Bool
-+	changingSlot       atomic.Bool
-+	changingDimension  atomic.Bool
-+	moving             bool
- 
+@@ -85,6 +89,9 @@
  	lastChunkPos world.ChunkPos
  
  	recipes map[uint32]recipe.Recipe
@@ -1923,16 +1024,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  
  	blobMu                sync.Mutex
  	blobs                 map[uint64][]byte
-@@ -269,6 +286,8 @@
- 	})
- 
- 	s.sendAvailableEntities(tx.World())
-+	s.sendBasicVoxelShapes() // dragonfactory patch (experimental, off by default)
-+	s.sendCameraPresets()    // dragonfactory patch
- 
- 	c.SetGameMode(c.GameMode())
- 	for _, e := range c.Effects() {
-@@ -418,7 +437,10 @@
+@@ -418,7 +425,10 @@
  			if sessionOwnerStopped(err) {
  				return
  			}
@@ -1944,26 +1036,9 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  			return
  		}
  	}
-@@ -591,6 +613,8 @@
- 		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
- 		packet.IDCommandRequest:            &CommandRequestHandler{},
- 		packet.IDContainerClose:            &ContainerCloseHandler{},
-+		packet.IDNetworkStackLatency:       NetworkStackLatencyHandler{},    // dragonfactory patch
-+		packet.IDPacketViolationWarning:    PacketViolationWarningHandler{}, // dragonfactory patch
- 		packet.IDEmote:                     &EmoteHandler{},
- 		packet.IDEmoteList:                 nil,
- 		packet.IDFilterText:                nil,
-@@ -640,6 +664,7 @@
- 	for _, t := range w.EntityRegistry().Types() {
- 		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
- 	}
-+	identifiers = append(identifiers, actorIdentifier{ID: EntityContainerIdentifier}) // dragonfactory patch
- 	serialisedEntityData, err := nbt.Marshal(map[string]any{"idlist": identifiers})
- 	if err != nil {
- 		panic("should never happen")
 diff -ruN a/server/session/shaped_arrangement_test.go b/server/session/shaped_arrangement_test.go
 --- a/server/session/shaped_arrangement_test.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/session/shaped_arrangement_test.go	2026-10-19 22:30:38.170893600 +0900
++++ b/server/session/shaped_arrangement_test.go	2026-10-19 23:28:07.136374100 +0900
 @@ -0,0 +1,37 @@
 +package session
 +
@@ -2002,25 +1077,9 @@ diff -ruN a/server/session/shaped_arrangement_test.go b/server/session/shaped_ar
 +		t.Error("a row does not craft anywhere in the grid")
 +	}
 +}
-diff -ruN a/server/session/text.go b/server/session/text.go
---- a/server/session/text.go	2026-10-19 22:30:36.967508100 +0900
-+++ b/server/session/text.go	2026-10-19 22:30:38.171894800 +0900
-@@ -176,6 +176,12 @@
- 	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionSetTitle, Text: text})
- }
- 
-+// SendTitleJSON sends a title given as raw JSON text ({"rawtext":[{"translate":
-+// "tile.stone.name"}]}) that the client translates itself (dragonfactory patch).
-+func (s *Session) SendTitleJSON(text string) {
-+	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionTitleTextObject, Text: text})
-+}
-+
- // SendSubtitle ...
- func (s *Session) SendSubtitle(text string) {
- 	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionSetSubtitle, Text: text})
 diff -ruN a/server/session/world.go b/server/session/world.go
---- a/server/session/world.go	2026-10-19 22:30:36.969016800 +0900
-+++ b/server/session/world.go	2026-10-19 22:30:38.172891900 +0900
+--- a/server/session/world.go	2026-10-19 23:28:04.784196100 +0900
++++ b/server/session/world.go	2026-10-19 23:28:07.140881500 +0900
 @@ -1003,6 +1003,16 @@
  
  // ViewBlockUpdate ...
@@ -2039,8 +1098,8 @@ diff -ruN a/server/session/world.go b/server/session/world.go
  	s.writePacket(&packet.UpdateBlock{
  		Position:          blockPos,
 diff -ruN a/server/world/item.go b/server/world/item.go
---- a/server/world/item.go	2026-10-19 22:30:37.031782800 +0900
-+++ b/server/world/item.go	2026-10-19 22:30:38.348227400 +0900
+--- a/server/world/item.go	2026-10-19 23:28:04.888667300 +0900
++++ b/server/world/item.go	2026-10-19 23:28:07.568364700 +0900
 @@ -22,12 +22,20 @@
  	Item
  	// Name is the name that will be displayed on the item to all clients.
@@ -2065,8 +1124,8 @@ diff -ruN a/server/world/item.go b/server/world/item.go
  // ID and metadata value using itemByID().
  // If an item with the ID and meta passed already exists, RegisterItem panics.
 diff -ruN a/server/world/task_test.go b/server/world/task_test.go
---- a/server/world/task_test.go	2026-10-19 22:30:37.086025600 +0900
-+++ b/server/world/task_test.go	2026-10-19 22:30:38.353762200 +0900
+--- a/server/world/task_test.go	2026-10-19 23:28:04.991142200 +0900
++++ b/server/world/task_test.go	2026-10-19 23:28:07.578414400 +0900
 @@ -392,3 +392,16 @@
  	t.Cleanup(cancel)
  	return ctx
@@ -2085,8 +1144,8 @@ diff -ruN a/server/world/task_test.go b/server/world/task_test.go
 +	}
 +}
 diff -ruN a/server/world/tick.go b/server/world/tick.go
---- a/server/world/tick.go	2026-10-19 22:30:37.087026000 +0900
-+++ b/server/world/tick.go	2026-10-19 22:30:38.349749900 +0900
+--- a/server/world/tick.go	2026-10-19 23:28:04.992660500 +0900
++++ b/server/world/tick.go	2026-10-19 23:28:07.570878300 +0900
 @@ -23,8 +23,10 @@
  	defer tc.Stop()
  	for {
@@ -2101,7 +1160,7 @@ diff -ruN a/server/world/tick.go b/server/world/tick.go
  			w.running.Done()
 diff -ruN a/server/world/tick_stats.go b/server/world/tick_stats.go
 --- a/server/world/tick_stats.go	1970-01-01 09:00:00.000000000 +0900
-+++ b/server/world/tick_stats.go	2026-10-19 22:30:38.350759600 +0900
++++ b/server/world/tick_stats.go	2026-10-19 23:28:07.571886700 +0900
 @@ -0,0 +1,81 @@
 +package world
 +
@@ -2185,8 +1244,8 @@ diff -ruN a/server/world/tick_stats.go b/server/world/tick_stats.go
 +	return out
 +}
 diff -ruN a/server/world/tx.go b/server/world/tx.go
---- a/server/world/tx.go	2026-10-19 22:30:37.088535800 +0900
-+++ b/server/world/tx.go	2026-10-19 22:30:38.353762200 +0900
+--- a/server/world/tx.go	2026-10-19 23:28:04.994670500 +0900
++++ b/server/world/tx.go	2026-10-19 23:28:07.579413100 +0900
 @@ -2,6 +2,7 @@
  
  import (
@@ -2231,8 +1290,8 @@ diff -ruN a/server/world/tx.go b/server/world/tx.go
  		tx.runDeferred()
  	}
 diff -ruN a/server/world/world.go b/server/world/world.go
---- a/server/world/world.go	2026-10-19 22:30:37.097584800 +0900
-+++ b/server/world/world.go	2026-10-19 22:30:38.351760200 +0900
+--- a/server/world/world.go	2026-10-19 23:28:05.012756100 +0900
++++ b/server/world/world.go	2026-10-19 23:28:07.574411700 +0900
 @@ -30,6 +30,9 @@
  	conf Config
  	ra   cube.Range

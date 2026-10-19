@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
 func TestTitle(t *testing.T) {
@@ -33,5 +34,20 @@ func TestStorageOnChange(t *testing.T) {
 	_ = s.Inventory().SetItem(29, item.NewStack(item.Apple{}, 3))
 	if len(changed) != 1 || changed[0] != 29 {
 		t.Fatalf("onChange %v", changed)
+	}
+}
+
+func TestAddIdentifier(t *testing.T) {
+	in, _ := nbt.Marshal(map[string]any{"idlist": []any{map[string]any{"id": "minecraft:pig"}}})
+	var out struct {
+		IDList []struct {
+			ID string `nbt:"id"`
+		} `nbt:"idlist"`
+	}
+	if err := nbt.Unmarshal(addIdentifier(in), &out); err != nil {
+		t.Fatal(err)
+	}
+	if len(out.IDList) != 2 || out.IDList[0].ID != "minecraft:pig" || out.IDList[1].ID != EntityIdentifier {
+		t.Fatalf("idlist %+v", out.IDList)
 	}
 }

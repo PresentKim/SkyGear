@@ -292,28 +292,14 @@ func (p *Player) FallDistance() float64 {
 func (p *Player) SendTitle(t title.Title) {
 	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
 	if t.Text() != "" || t.Subtitle() != "" {
-		// dragonfactory patch: the subtitle first. The client shows a subtitle
-		// with the next title, so one sent after its title came a title late
-		// (WAILA reads the subtitle when the title arrives).
+		p.session().SendTitle(t.Text())
 		if t.Subtitle() != "" {
 			p.session().SendSubtitle(t.Subtitle())
 		}
-		p.session().SendTitle(t.Text())
 	}
 	if t.ActionText() != "" {
 		p.session().SendActionBarMessage(t.ActionText())
 	}
-}
-
-// SendTitleJSON is SendTitle with the title text given as raw JSON text
-// ({"rawtext":[{"text":"…"},{"translate":"tile.stone.name"}]}): the client
-// translates the keys in its own language (dragonfactory patch, WAILA names).
-func (p *Player) SendTitleJSON(t title.Title) {
-	p.session().SetTitleDurations(t.FadeInDuration(), t.Duration(), t.FadeOutDuration())
-	if t.Subtitle() != "" {
-		p.session().SendSubtitle(t.Subtitle())
-	}
-	p.session().SendTitleJSON(t.Text())
 }
 
 // SendScoreboard sends a scoreboard to the player. The scoreboard will be present indefinitely until removed
@@ -3470,74 +3456,6 @@ func (p *Player) Data() Config {
 	}
 }
 
-// OpenEntityContainer opens inv for the player in a container window backed
-// by an invisible client-only entity, so it needs no block and can have any
-// size (with a resource pack reading the size from the title). onClose is
-// called once when the window closes. (dragonfactory patch)
-func (p *Player) OpenEntityContainer(inv *inventory.Inventory, title string, onClose func(tx *world.Tx)) {
-	p.session().OpenEntityContainer(inv, title, p.Position(), onClose, p.tx)
-}
-
-// ContainerViewer returns the viewer that shows slot changes of the
-// container window the player has open. Unlike the Player, it may be kept
-// and used outside of the player's transaction, the way block containers
-// keep their viewers. (dragonfactory patch)
-func (p *Player) ContainerViewer() session.EntityContainerViewer {
-	return session.EntityContainerViewer{S: p.session()}
-}
-
-// CloseOpenedContainer closes the container window the player has open.
-// (dragonfactory patch)
-func (p *Player) CloseOpenedContainer() {
-	p.session().CloseOpenedContainer(p.tx)
-}
-
-// SetCamera puts the player's camera at pos with the rotation (pitch, yaw in
-// degrees), easing there over ease seconds. Movement keys then move
-// relative to the camera. (dragonfactory patch)
-func (p *Player) SetCamera(pos mgl64.Vec3, pitch, yaw, ease float64) {
-	p.session().SetCamera(pos, pitch, yaw, ease)
-}
-
-// ClearCamera returns the player's camera to normal. (dragonfactory patch)
-func (p *Player) ClearCamera() { p.session().ClearCamera() }
-
-// HideHUD hides every vanilla HUD element of the player's client, or shows
-// them again. (dragonfactory patch)
-func (p *Player) HideHUD(hide bool) { p.session().HideHUD(hide) }
-
-// LockInputs locks the client inputs in locks (packet.ClientInputLock*
-// flags); 0 unlocks them. (dragonfactory patch)
-func (p *Player) LockInputs(locks uint32) { p.session().LockInputs(locks) }
-
-// ForgetHiddenEntities shows every entity hidden with HideEntity again from
-// then on, for a player about to change worlds. (dragonfactory patch)
-func (p *Player) ForgetHiddenEntities() { p.session().ForgetHiddenEntities() }
-
-// ViewFakeBlock shows b at pos to this player only, without changing the
-// world. Resend the real block (ViewFakeBlock with tx.Block) to undo it.
-// (dragonfactory patch)
-func (p *Player) ViewFakeBlock(pos cube.Pos, b world.Block) {
-	p.session().ViewFakeBlock(pos, b)
-}
-
-// MoveInput returns the movement keys the player holds: Y is forward (+1)
-// and back, X is left (+1) and right. It is read even while the player is
-// immobile. (dragonfactory patch)
-func (p *Player) MoveInput() mgl64.Vec2 { return p.session().MoveInput() }
-
-// ViewFakeEntity shows an entity of the type identifier at pos to this
-// player only and returns its ID for MoveFakeEntity and RemoveFakeEntity.
-// (dragonfactory patch)
-func (p *Player) ViewFakeEntity(identifier string, pos mgl64.Vec3, yaw float64, scale float32) uint64 {
-	return p.session().ViewFakeEntity(identifier, pos, yaw, scale)
-}
-
-// MoveFakeEntity moves an entity shown with ViewFakeEntity. (dragonfactory patch)
-func (p *Player) MoveFakeEntity(id uint64, pos mgl64.Vec3, yaw float64) {
-	p.session().MoveFakeEntity(id, pos, yaw)
-}
-
 // ViewFakeChunk shows c in place of the world's chunk at pos to this player
 // only, until ClearFakeChunk; the world's block updates there are not sent
 // meanwhile. (dragonfactory patch)
@@ -3550,40 +3468,10 @@ func (p *Player) ClearFakeChunk(pos world.ChunkPos) {
 	p.session().ClearFakeChunk(pos, p.tx.World().Dimension())
 }
 
-// ViewChunkCentre makes the client keep the chunks around pos until the
-// player next changes chunk (for fake chunks sent right after a teleport).
-// (dragonfactory patch)
-func (p *Player) ViewChunkCentre(pos mgl64.Vec3) { p.session().ViewChunkCentre(pos) }
-
 // SetRecipeFilter limits the player's recipes to those f keeps (all if f
 // is nil) and sends the new list at once; call it again when f's answers
 // change. (dragonfactory patch)
 func (p *Player) SetRecipeFilter(f func(recipe.Recipe) bool) { p.session().SetRecipeFilter(f) }
-
-// SetCameraFOV sets the field of view of the player's camera in degrees.
-// (dragonfactory patch)
-func (p *Player) SetCameraFOV(fov float64) { p.session().SetCameraFOV(fov) }
-
-// ClearCameraFOV returns the camera's field of view to the player's own
-// setting. (dragonfactory patch)
-func (p *Player) ClearCameraFOV() { p.session().ClearCameraFOV() }
-
-// RemoveFakeEntity removes an entity shown with ViewFakeEntity. (dragonfactory
-// patch)
-func (p *Player) RemoveFakeEntity(id uint64) { p.session().RemoveFakeEntity(id) }
-
-// AfterClientSync runs f once the client has processed everything sent to
-// it so far (a NetworkStackLatency round trip, at most a second), e.g. to
-// show a form after closing a window. f does not run if the player is gone
-// by then. (dragonfactory patch)
-func (p *Player) AfterClientSync(f func(p *Player, tx *world.Tx)) {
-	h := p.H()
-	p.session().AfterClientSync(func(tx *world.Tx) {
-		if e, ok := h.Entity(tx); ok {
-			f(e.(*Player), tx)
-		}
-	})
-}
 
 // session returns the network session of the player. If it has one, it is returned. If not, a no-op session
 // is returned.

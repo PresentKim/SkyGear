@@ -8,27 +8,23 @@
 
 ### 왜 포크하는가
 
-Dragonfly 에는 블록 없이 임의 크기의 창고 창을 여는 API 가 없다.
-PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu) 처럼
-보이지 않는 클라이언트 전용 엔티티를 컨테이너로 쓰려면 세션 내부(`openedWindow`, 창 ID,
-패킷 전송)를 건드려야 해서 공개 API 만으로는 불가능하다.
+Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바꿔야 하는 곳만 패치한다.
+패킷을 가로채거나 세션 내부를 읽고 쓰기만 하면 되는 일은 패치하지 않고 `internal/dfhook` 으로 한다
+([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 방식: 리스너를 감싼 연결에서 패킷 훅,
+`go:linkname` 으로 세션의 비공개 메서드, 리플렉션으로 비공개 필드). 엔티티 상자(`internal/chestui`)와
+한 플레이어에게만 보내는 화면 조작(`dfhook.SetCamera`·`SetCameraFOV`·`HideHUD`·`LockInputs`·`ViewFakeBlock`·`ViewChunkCentre`·`SendTitle`,
+접속 시 카메라 프리셋), 클라이언트가 보낸 이동 키(`dfhook.MoveInput`), `ForgetHiddenEntities`, 실험 설정(`SendBasicVoxelShapes`, `BlockActionDebug`),
+폼 응답 정리(없는 폼 ID 응답은 킥 대신 버림, 응답 `null` 은 닫기)가 이렇게 동작한다. 세션이 필요한 훅을 위해 접속한 플레이어마다 `dfhook.Attach` 를 부른다(`main.go`).
+`dfhook` 이 이름으로 기대는 내부는 `TestInternals` 가 검사한다(업그레이드 후 깨지면 여기서 보인다).
 
 ### 패치 목록 (`dragonfly.patch`)
 
 | 파일 | 내용 |
 |---|---|
-| `server/session/entity_container.go` (신규) | 엔티티 상자: `OpenEntityContainer`(같은 인벤토리면 무시, Nop 세션 무시), 투명 엔티티 `AddActor` 후 바로 `ContainerOpen`. `EntityContainerOptions`(Ride·WaitLatency·Retry·Debug)로 InvMenu `PlayerWindowDispatcher` 단계(탑승 링크, `NetworkStackLatency` 응답 대기, `PacketViolationWarning` 확인까지 매 틱 재전송)를 켤 수 있다. 창이 닫힌 지 1초 안의 열기는 `AfterClientSync`(NetworkStackLatency 왕복) 뒤에 연다. `EntityContainerViewer`(그 인벤토리가 열린 창일 때만 슬롯 갱신 전송), `AfterClientSync`, 엔티티 따라가기. 관련 핸들러 |
-| `server/session/session.go` | `entityContainer` 필드, `AvailableActorIdentifiers` 에 `dragonfly:entity_container`, 위 핸들러 등록. **패킷 처리 오류로 세션이 끝날 때 ERROR 로그 + 이유를 담은 Disconnect**(원래는 Debug 로그만 남기고 조용히 끊음) |
-| `server/session/player.go` | `closeCurrentContainer` 가 열리는 중인 엔티티 상자도 정리 |
-| `server/session/session.go` (추가) | 실험: `SendBasicVoxelShapes` 면 접속 시 최소 `VoxelShapes`(empty, unit_cube) 전송 |
-| `server/session/camera.go` (신규) | 접속 시 카메라 프리셋(`minecraft:free`, 카메라 기준 이동) 전송, `SetCamera`/`ClearCamera`(CameraInstruction), `SetCameraFOV`/`ClearCameraFOV`(시야각), `ViewFakeBlock`(그 플레이어에게만 보이는 블록), `MoveInput`, `ViewFakeEntity`/`MoveFakeEntity`/`RemoveFakeEntity`(그 플레이어에게만 보이는 엔티티) |
+| `server/session/session.go` | **패킷 처리 오류로 세션이 끝날 때 ERROR 로그 + 이유를 담은 Disconnect**(원래는 Debug 로그만 남기고 조용히 끊음) |
 | `server/session/player.go`(`sendRecipes`, `SetRecipeFilter`), `session.go`, `handler_crafting.go` | 플레이어별 레시피 필터: 필터가 고른 레시피만 `CraftingData` 로 보내고 받아들임(네트워크 ID 는 전체 목록 순번 그대로). `SetRecipeFilter` 는 바로 다시 보낸다(레시피 연구·잠금). 필터가 있으면 동적 레시피(장식 항아리)는 막음 |
-| `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답), `ViewChunkCentre`(텔레포트 직후 보낸 가짜 청크를 클라이언트가 버리지 않게 청크 중심을 바로 알림). 섬 확장 `map` 보기용 |
-| `server/session/handler_player_auth_input.go` | 이동할 때 열린 엔티티 상자의 엔티티를 플레이어 위치로 옮김. 누른 이동 키(`RawMoveVector`, 움직일 수 없을 때도 옴)를 저장 → `Player.MoveInput` |
-| `server/session/hud.go` (신규), `server/player/player.go` | `HideHUD`(SetHud 로 바닐라 HUD 요소 전부 숨기기·되돌리기), `LockInputs`(UpdateClientInputLocks 로 이동·카메라 등 입력 잠금), `ForgetHiddenEntities`(`HideEntity` 로 숨긴 엔티티 목록 비우기, 월드를 옮기기 전에). 로비 입장기 화면용 |
+| `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답). 섬 확장 `map` 보기용 |
 | `server/conf.go`, `server/server.go` | `Config.ShutdownKick`: 서버가 꺼질 때 플레이어를 내보내는 화면의 글을 정한다(기본값은 번역 키 `%disconnect.disconnected` 라 연결 끊김 화면에 키가 그대로 보였다) |
-| `server/session/handler_container_close.go` | 엔티티 상자가 열려 있으면 클라이언트의 255 창 닫기는 무시. Retry 로 여는 중에는 그 창의 닫기도 응답만 하고 무시 |
-| `server/session/handler_player_action.go` | `BlockActionDebug` 면 클라이언트가 보낸 블록 부수기 동작(시작·계속·중단·예측 파괴)을 INFO 로그로 |
 | `server/block/crop.go` 외 작물·줄기 6종 `RandomTick` | `block.ScheduledCropGrowth` 가 켜져 있으면 작물·수박/호박 줄기가 무작위 틱으로 자라지 않음(게임이 인스턴스 시간 일정으로 키움) |
 | `server/block/carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go` | 다 자란 작물을 캘 때 떨어지는 작물·씨앗을 성장 0의 새 아이템으로(원래는 다 자란 상태를 복사해 심으면 바로 다 자란 작물이 됨) |
 | `server/cmd/command.go` | 명령어 `Run` 의 panic 을 잡아 ERROR 로그와 오류 출력으로 바꿈(서버가 죽지 않음) |
@@ -37,19 +33,15 @@ PocketMine 의 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu
 | `server/world/item.go`, `server/internal/packbuilder/items.go` | `world.CustomItem` 에서 `Texture()` 를 빼고 선택 인터페이스 `world.CustomItemTextured` 로 옮김. 텍스처를 리소스팩으로 따로 관리하는 아이템은 이미지가 필요 없다(자동 팩 생성은 텍스처가 있는 아이템만) |
 | `server/item/recipe/recipe.go`, `server/session/player.go`, `server/session/handler_crafting.go`, `server/session/shaped_arrangement_test.go` (신규) | 정해진 모양으로만 만들어지는 레시피: `Shaped.WithoutMirror()`(좌우 대칭 배치도 안 됨, 클라이언트에 `AssumeSymmetry=false`). **서버도 모양을 검사**한다(원래는 클라이언트가 고른 레시피의 재료를 칸 위치와 상관없이 가져갔다): 제작 칸의 아이템이 레시피 모양(격자 안 어디든, 대칭은 허용할 때만)이 아니면 거절 |
 | `server/session/player.go` (`creativeBlockFitter`) | 레시피 결과의 블록 런타임 ID 를 그 아이템의 창작 인벤토리 항목(항목이 하나뿐일 때)과 같게 보냄. 클라이언트 레시피 책은 결과가 창작 항목과 같을 때만 레시피를 나열하는데, 바닐라 레시피 데이터의 블록 상태(상자 방향 등)가 창작 목록과 달라 상자 같은 바닐라 블록 레시피가 안 보였다 |
-| `server/player/player.go` (`SendTitleJSON`), `server/session/text.go` | 제목 글을 raw JSON(`{"rawtext":[{"translate":"tile.stone.name"}]}`)으로 보내는 `SendTitleJSON`(`SetTitle` 의 `TitleTextObject`). 클라이언트가 번역 키를 자기 언어로 바꿔 준다(WAILA 패널의 바닐라 블록 이름) |
 | `server/world/tx.go`, `server/world/task_test.go` | 월드 트랜잭션(블록 틱, 이벤트·패킷 핸들러)의 panic 을 잡아 ERROR 로그(스택 포함)로 남기고 월드는 계속 돈다(원래는 프로세스가 죽어 모든 섬이 멈췄다). `Do`/`DoAfter` 작업은 원래도 잡는다 |
 | `server/block/hopper.go` | `HopperTransfer` 훅(`Tick` 에서 바닐라 이동 규칙 대신 부름). 게임이 모든 호퍼를 자기 아이템 입출력 인터페이스(`internal/itemio`)로 움직이게 함 |
 | `server/block/composter.go` | `ComposterVanillaRules`(기본 켬)를 끄면 퇴비통이 호퍼로 넣고 빼지 않고 우클릭도 하지 않음(게임이 자기 규칙으로 처리: 고정 개수, 흙) |
 | `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 로그를 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
 | `server/world/tick_stats.go` (신규), `tick.go`, `world.go` | 월드 틱마다 걸린 시간(틱 예정 시각부터 끝날 때까지)을 최근 5초만 기록하고 `World.TickStats()`(TPS, 평균·최대 틱 시간)로 돌려줌. 운영자 사이드바의 서버 부하 표시용(`internal/perf`) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 흙으로 퍼지지 않고, 그 아래 잔디는 흙으로 돌아감(바닐라와 같게). 원래는 빛만 봐서 빛을 막지 않는 커스텀 블록(코어 등) 아래 흙이 잔디가 됨 |
-| `server/player/player.go` (`SendTitle`) | 부제목을 제목보다 먼저 보냄. 클라이언트는 부제목을 다음 제목과 함께 보여서, 제목 뒤에 보내면 한 제목 늦게 나왔다(WAILA 패널이 부제목의 아이콘 값을 읽음) |
-| `server/session/handler_modal_form_response.go` | 없는 폼 ID 응답(10개 초과로 버려졌거나 두 번 응답)은 킥 대신 무시. 응답 데이터가 `null` 이면 닫기로 처리(원래는 메뉴 폼에서 0번 버튼이 눌림) |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
-| `server/player/player.go` | `OpenEntityContainer`, `ContainerViewer`, `CloseOpenedContainer`, `AfterClientSync`, `SetCamera`, `ClearCamera`, `SetCameraFOV`, `ClearCameraFOV`, `SetRecipeFilter`, `ViewFakeBlock`, `ViewFakeChunk`, `ClearFakeChunk`, `ViewChunkCentre`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(원래는 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사됨). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트가 금 가기는 끝내도 파괴 동작을 보내지 않아 부서지지 않았음). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
+| `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(원래는 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사됨). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트가 금 가기는 끝내도 파괴 동작을 보내지 않아 부서지지 않았음). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
-아이템 이동은 기존 `invByID` 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
 패치한 곳에는 `dragonfactory patch` 주석을 단다.
 
 ### 업그레이드 절차

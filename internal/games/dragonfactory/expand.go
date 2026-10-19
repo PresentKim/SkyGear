@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"slices"
 	"time"
@@ -126,8 +127,8 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 	}
 	delete(s.expanding, p.H())
 	s.drawMap(p, e, false)
-	p.ClearCamera()
-	p.ClearCameraFOV()
+	dfhook.ClearCamera(p)
+	dfhook.ClearCameraFOV(p)
 	p.SetGameMode(e.mode)
 	p.SetMobile()
 }
@@ -148,7 +149,7 @@ func (s *session) pollExpand(p *player.Player, e *expansion) {
 		if cur, ok := s.expansionOf(p); !ok || cur.started != e.started {
 			return
 		}
-		s.expandInput(p, e, p.MoveInput())
+		s.expandInput(p, e, dfhook.MoveInput(p))
 		s.pollExpand(p, e)
 	})
 }
@@ -198,8 +199,8 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 
 func (s *session) moveExpandCamera(p *player.Player, e *expansion, ease float64) {
 	// Pitch 90 looks straight down; yaw 180 puts north at the top.
-	p.SetCamera(s.expandCamera(e), 90, 180, ease)
-	p.SetCameraFOV(expandMapFOV)
+	dfhook.SetCamera(p, s.expandCamera(e), 90, 180, ease)
+	dfhook.SetCameraFOV(p, expandMapFOV)
 }
 
 // expandCamera is where the camera looks down from: above the selected

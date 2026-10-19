@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/playerstate"
@@ -200,7 +201,7 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 		pos = state.Position()
 	}
 
-	p.CloseOpenedContainer()
+	chestui.Close(p)
 	h := p.Tx().RemoveEntity(p)
 	inst.addPlayer(acc, h)
 	m.mu.Lock()
@@ -255,7 +256,7 @@ func (m *Manager) leave(inst *Instance, p *player.Player, toLobby bool) {
 	acc := AccountID(p)
 	// Close a chest window first so its close callback runs while the
 	// player is still in the instance.
-	p.CloseOpenedContainer()
+	chestui.Close(p)
 	tellOthers(p.Tx(), p, "instance.left")
 	inst.session.Leave(p)
 	inst.storePlayer(p)

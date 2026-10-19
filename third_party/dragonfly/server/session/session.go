@@ -81,20 +81,10 @@ type Session struct {
 	openedContainerID              atomic.Uint32
 	openedWindow                   atomic.Pointer[inventory.Inventory]
 	openedPos                      atomic.Pointer[cube.Pos]
-	// entityContainer is the open entity container, if any (dragonfactory patch).
-	entityContainer atomic.Pointer[entityContainer]
-	// moveInput is the last held movement keys (dragonfactory patch, camera.go).
-	moveInput atomic.Pointer[mgl64.Vec2]
-	// lastContainerClose is when a container window last closed, and
-	// clientSyncs are pending NetworkStackLatency callbacks (dragonfactory patch).
-	lastContainerClose atomic.Int64
-	clientSyncMu       sync.Mutex
-	clientSyncs        map[int64]func(tx *world.Tx)
-	openToken          atomic.Uint64
-	swingingArm        atomic.Bool
-	changingSlot       atomic.Bool
-	changingDimension  atomic.Bool
-	moving             bool
+	swingingArm                    atomic.Bool
+	changingSlot                   atomic.Bool
+	changingDimension              atomic.Bool
+	moving                         bool
 
 	lastChunkPos world.ChunkPos
 
@@ -286,8 +276,6 @@ func (s *Session) Spawn(c Controllable, tx *world.Tx) {
 	})
 
 	s.sendAvailableEntities(tx.World())
-	s.sendBasicVoxelShapes() // dragonfactory patch (experimental, off by default)
-	s.sendCameraPresets()    // dragonfactory patch
 
 	c.SetGameMode(c.GameMode())
 	for _, e := range c.Effects() {
@@ -613,8 +601,6 @@ func (s *Session) registerHandlers() {
 		packet.IDClientCacheBlobStatus:     &ClientCacheBlobStatusHandler{},
 		packet.IDCommandRequest:            &CommandRequestHandler{},
 		packet.IDContainerClose:            &ContainerCloseHandler{},
-		packet.IDNetworkStackLatency:       NetworkStackLatencyHandler{},    // dragonfactory patch
-		packet.IDPacketViolationWarning:    PacketViolationWarningHandler{}, // dragonfactory patch
 		packet.IDEmote:                     &EmoteHandler{},
 		packet.IDEmoteList:                 nil,
 		packet.IDFilterText:                nil,
@@ -664,7 +650,6 @@ func (s *Session) sendAvailableEntities(w *world.World) {
 	for _, t := range w.EntityRegistry().Types() {
 		identifiers = append(identifiers, actorIdentifier{ID: t.EncodeEntity()})
 	}
-	identifiers = append(identifiers, actorIdentifier{ID: EntityContainerIdentifier}) // dragonfactory patch
 	serialisedEntityData, err := nbt.Marshal(map[string]any{"idlist": identifiers})
 	if err != nil {
 		panic("should never happen")

@@ -176,12 +176,6 @@ func (s *Session) SendTitle(text string) {
 	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionSetTitle, Text: text})
 }
 
-// SendTitleJSON sends a title given as raw JSON text ({"rawtext":[{"translate":
-// "tile.stone.name"}]}) that the client translates itself (dragonfactory patch).
-func (s *Session) SendTitleJSON(text string) {
-	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionTitleTextObject, Text: text})
-}
-
 // SendSubtitle ...
 func (s *Session) SendSubtitle(text string) {
 	s.writePacket(&packet.SetTitle{ActionType: packet.TitleActionSetSubtitle, Text: text})

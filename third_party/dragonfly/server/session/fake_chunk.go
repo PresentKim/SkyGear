@@ -7,9 +7,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/chunk"
-	"github.com/go-gl/mathgl/mgl64"
-	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // ViewFakeChunk shows c in place of the world's chunk at pos to this player
@@ -59,18 +56,4 @@ func (s *Session) fakeChunk(pos world.ChunkPos) (*world.Column, bool) {
 func (s *Session) inFakeChunk(pos cube.Pos) bool {
 	_, ok := s.fakeChunk(world.ChunkPos{int32(pos[0] >> 4), int32(pos[2] >> 4)})
 	return ok
-}
-
-// ViewChunkCentre makes the client keep and draw the chunks around pos
-// instead of around the player until the player next moves to another
-// chunk, for chunks shown with ViewFakeChunk right after a teleport (they
-// are dropped if outside the client's chunk centre).
-func (s *Session) ViewChunkCentre(pos mgl64.Vec3) {
-	if s == Nop {
-		return
-	}
-	s.writePacket(&packet.NetworkChunkPublisherUpdate{
-		Position: protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
-		Radius:   uint32(s.chunkRadius) << 4,
-	})
 }

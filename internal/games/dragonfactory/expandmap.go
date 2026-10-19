@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 )
 
 // The expansion map (12th playtest): the island is shown as a map
@@ -98,7 +99,7 @@ func (s *session) drawMap(p *player.Player, e *expansion, on bool) {
 	// send).
 	body := s.expandCamera(e).Add(mgl64.Vec3{0, mapBodyAbove, 0})
 	p.Teleport(body)
-	p.ViewChunkCentre(body)
+	dfhook.ViewChunkCentre(p, body)
 	for c, glass := range s.mapKinds(e) {
 		if b, ok := e.mapShown[c]; ok && b == glass {
 			continue

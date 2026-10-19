@@ -1,6 +1,6 @@
 // Package chestui shows virtual storages as chest windows of any
-// size. The windows are backed by an invisible client-only entity (the
-// third_party/dragonfly patch), and the inventoryui resource pack reads the
+// size. The windows are backed by an invisible client-only entity
+// (window.go, through internal/dfhook), and the inventoryui resource pack reads the
 // size from a prefix of the window title (like PocketMine's
 // CustomSizedInvMenu).
 //
@@ -15,7 +15,6 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
@@ -43,14 +42,14 @@ type Storage struct {
 	title string
 
 	mu       sync.Mutex
-	viewers  map[session.EntityContainerViewer]*world.EntityHandle
+	viewers  map[viewer]*world.EntityHandle
 	onChange func(slot int, before, after item.Stack)
 }
 
 // NewStorage returns an empty storage with size slots. size must be at
 // least 1; windows of more than 54 slots scroll.
 func NewStorage(size int, title string) *Storage {
-	s := &Storage{title: title, viewers: map[session.EntityContainerViewer]*world.EntityHandle{}}
+	s := &Storage{title: title, viewers: map[viewer]*world.EntityHandle{}}
 	s.inv = inventory.New(size, s.slotChanged)
 	return s
 }
@@ -74,21 +73,22 @@ func (s *Storage) SetTitle(title string) {
 }
 
 // Open shows the storage to p. onClose, if not nil, is called in p's
-// transaction when the window closes for any reason.
+// transaction when the window closes for any reason; p and tx are nil if
+// the player disconnected. It must run in p's transaction.
 func (s *Storage) Open(p *player.Player, onClose func(p *player.Player, tx *world.Tx)) {
-	v, h := p.ContainerViewer(), p.H()
+	v, h := viewer{clientOf(p)}, p.H()
+	if v.cl == nil {
+		return
+	}
 	s.mu.Lock()
 	title := s.title
 	s.mu.Unlock()
-	p.OpenEntityContainer(s.inv, Title(s.inv.Size(), title), func(tx *world.Tx) {
+	openWindow(p, s.inv, Title(s.inv.Size(), title), func(p *player.Player, tx *world.Tx) {
 		s.mu.Lock()
 		delete(s.viewers, v)
 		s.mu.Unlock()
-		if onClose == nil {
-			return
-		}
-		if e, ok := h.Entity(tx); ok {
-			onClose(e.(*player.Player), tx)
+		if onClose != nil {
+			onClose(p, tx)
 		}
 	})
 	s.mu.Lock()
@@ -112,21 +112,21 @@ func (s *Storage) Viewers() []*world.EntityHandle {
 func (s *Storage) CloseAll() {
 	for _, h := range s.Viewers() {
 		h.Do(func(tx *world.Tx, e world.Entity) {
-			e.(*player.Player).CloseOpenedContainer()
+			Close(e.(*player.Player))
 		})
 	}
 }
 
 func (s *Storage) slotChanged(slot int, before, after item.Stack) {
 	s.mu.Lock()
-	viewers := make([]session.EntityContainerViewer, 0, len(s.viewers))
+	viewers := make([]viewer, 0, len(s.viewers))
 	for v := range s.viewers {
 		viewers = append(viewers, v)
 	}
 	f := s.onChange
 	s.mu.Unlock()
 	for _, v := range viewers {
-		v.ViewSlotChange(s.inv, slot, after)
+		v.viewSlotChange(s.inv, slot, after)
 	}
 	if f != nil {
 		f(slot, before, after)

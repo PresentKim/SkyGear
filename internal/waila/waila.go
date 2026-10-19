@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 )
 
 // Tool is a tool icon of the panel (textures/waila/icons/tags/
@@ -258,11 +259,8 @@ func Show(p *player.Player, info Info) {
 	players.Unlock()
 	text, isJSON := rawText(t)
 	tt := title.New(text).WithSubtitle(sub).WithFadeInDuration(0).WithFadeOutDuration(0).WithDuration(stay)
-	if isJSON {
-		p.SendTitleJSON(tt)
-		return
-	}
-	p.SendTitle(tt)
+	// The subtitle (the panel's icons) must arrive with its own title.
+	dfhook.SendTitle(p, tt, isJSON)
 }
 
 // Clear hides the panel of p if it is up.
@@ -287,7 +285,7 @@ func SendTitle(p *player.Player, t title.Title) {
 	st.pausedUntil = time.Now().Add(t.FadeInDuration() + t.Duration() + t.FadeOutDuration())
 	st.shown, st.sub = "", ""
 	players.Unlock()
-	p.SendTitle(t)
+	dfhook.SendTitle(p, t, false)
 }
 
 // Forget drops what is kept about p (on quit).

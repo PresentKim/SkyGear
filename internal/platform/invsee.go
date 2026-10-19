@@ -242,7 +242,7 @@ func (v *invSee) check(ctx *inventory.Context, slot int) {
 		ctx.Cancel()
 		if !v.sync(tx) {
 			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.check.1"))
-			p.CloseOpenedContainer()
+			chestui.Close(p)
 		}
 	}
 }
@@ -353,7 +353,7 @@ func (pf *Platform) refreshInvSee(h *world.EntityHandle, v *invSee) {
 		if !v.sync(tx) {
 			p := e.(*player.Player)
 			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.refreshInvSee.1"))
-			p.CloseOpenedContainer()
+			chestui.Close(p)
 			return
 		}
 		pf.refreshInvSee(h, v)

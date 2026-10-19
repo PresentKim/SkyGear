@@ -15,12 +15,13 @@ import (
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/chat"
-	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/backup"
+	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/dragonfactory/internal/dfhook"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/instance"
@@ -49,12 +50,12 @@ func run(log *slog.Logger) error {
 	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
 		return err
 	}
-	session.EntityContainerOptions.Ride = pconf.ChestUI.Ride
-	session.EntityContainerOptions.WaitLatency = pconf.ChestUI.WaitLatency
-	session.EntityContainerOptions.Retry = pconf.ChestUI.Retry
-	session.EntityContainerOptions.Debug = pconf.ChestUI.Debug
-	session.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
-	session.BlockActionDebug = pconf.Experimental.BlockActions
+	chestui.Options.Ride = pconf.ChestUI.Ride
+	chestui.Options.WaitLatency = pconf.ChestUI.WaitLatency
+	chestui.Options.Retry = pconf.ChestUI.Retry
+	chestui.Options.Debug = pconf.ChestUI.Debug
+	dfhook.SendBasicVoxelShapes = pconf.Experimental.VoxelShapes
+	dfhook.BlockActionDebug = pconf.Experimental.BlockActions
 	d, err := db.Open(filepath.Join(pconf.Data.Dir, "platform.db"))
 	if err != nil {
 		return err
@@ -96,6 +97,8 @@ func run(log *slog.Logger) error {
 	conf.DisableResourceBuilding = true
 	// Chest windows, item holders and custom blocks look wrong without the packs.
 	conf.ResourcesRequired = true
+	// Chest windows reach the sessions through hooked connections.
+	dfhook.Wrap(&conf)
 	srv := conf.New()
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)
@@ -149,6 +152,7 @@ func run(log *slog.Logger) error {
 
 	srv.Listen()
 	for p := range srv.Accept() {
+		dfhook.Attach(p)
 		if pconf.OperatorByNameOnly(p.Name(), p.XUID()) {
 			log.Warn("operator listed by name; list the XUID in Admin.Operators", "name", p.Name(), "xuid", p.XUID())
 		}
