@@ -83,3 +83,36 @@ func TestQuitRestoresPosition(t *testing.T) {
 	})
 	f.m.CloseAll()
 }
+
+// TestGrounded: a free position above a floor is a landing spot, one over
+// air (the void) is not.
+func TestGrounded(t *testing.T) {
+	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()
+	defer w.Close()
+	w.Do(func(tx *world.Tx) {
+		tx.SetBlock(cube.Pos{0, 63, 0}, block.Stone{}, nil)
+		if !grounded(tx, cube.Pos{0, 64, 0}) {
+			t.Error("above the floor")
+		}
+		if grounded(tx, cube.Pos{0, 70, 0}) && !solid(tx, cube.Pos{0, 66, 0}) {
+			t.Error("the floor is 4 blocks down at most")
+		}
+		if grounded(tx, cube.Pos{5, 64, 5}) {
+			t.Error("over air")
+		}
+	})
+}
+
+// TestLandingSpotFallsBack: a saved position over the void lands at the
+// fallback when that has ground.
+func TestLandingSpotFallsBack(t *testing.T) {
+	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()
+	defer w.Close()
+	w.Do(func(tx *world.Tx) {
+		tx.SetBlock(cube.Pos{0, 63, 0}, block.Stone{}, nil)
+		got := LandingSpot(tx, mgl64.Vec3{20.5, 64, 20.5}, mgl64.Vec3{0.5, 64, 0.5})
+		if got.Y() != 64 || got.X() != 0.5 {
+			t.Errorf("landing spot %v, want the fallback", got)
+		}
+	})
+}

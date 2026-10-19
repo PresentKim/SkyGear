@@ -215,6 +215,9 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 		if bh, ok := np.Handler().(*Handler); ok {
 			bh.set(inst, inst.session.Handler(np))
 		}
+		// The instance's chunks load in the background: hold the player on
+		// the ground until they are there, or it falls through the air.
+		PlaceAt(np, pos, inst.session.Spawn())
 		inst.session.Join(np, first)
 	})
 	return nil
@@ -255,6 +258,9 @@ func (m *Manager) leave(inst *Instance, p *player.Player, toLobby bool) {
 	m.lobby.World.Do(func(tx *world.Tx) {
 		np := tx.AddEntityAt(h, m.lobby.Spawn).(*player.Player)
 		m.arriveLobby(np, bh)
+		// The lobby is rebuilt at start but may still be loading for the
+		// client: hold the player on the platform until it has the chunks.
+		PlaceAt(np, m.lobby.Spawn, m.lobby.Spawn)
 	})
 }
 

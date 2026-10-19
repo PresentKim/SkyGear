@@ -54,6 +54,40 @@ func SafeSpot(tx *world.Tx, pos mgl64.Vec3) mgl64.Vec3 {
 	return pos
 }
 
+// groundBelow is how far below the feet solid ground still counts as landing
+// there (a jump or a step down), rather than falling into the void.
+const groundBelow = 4
+
+// grounded reports whether a player with its feet in pos has solid ground
+// below, near enough to land on instead of falling.
+func grounded(tx *world.Tx, pos cube.Pos) bool {
+	for dy := 1; dy <= groundBelow; dy++ {
+		if pos.Y()-dy < tx.Range()[0] {
+			break
+		}
+		if solid(tx, pos.Add(cube.Pos{0, -dy, 0})) {
+			return true
+		}
+	}
+	return false
+}
+
+// LandingSpot is SafeSpot for a position restored from storage: a saved
+// position that is free but floats in the void (the player left while falling
+// or in the void) is not used, because the client would drop the player into
+// nothing. pos is kept when a player would land there; otherwise the nearest
+// safe spot is used, and fallback when even that has no ground.
+func LandingSpot(tx *world.Tx, pos, fallback mgl64.Vec3) mgl64.Vec3 {
+	if spot := SafeSpot(tx, pos); grounded(tx, cube.PosFromVec3(spot)) {
+		return spot
+	}
+	spot := SafeSpot(tx, fallback)
+	if grounded(tx, cube.PosFromVec3(spot)) {
+		return spot
+	}
+	return fallback
+}
+
 func abs(v int) int {
 	if v < 0 {
 		return -v
