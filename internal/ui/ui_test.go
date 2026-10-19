@@ -71,7 +71,8 @@ func TestActionOptionsKeepBack(t *testing.T) {
 
 // TestListSplitOptions: the rows come first (the chosen one last), then the
 // actions, the first of them marked as the full width one and the rest
-// alternating left and right.
+// alternating left and right. Every row runs, the chosen one included: it
+// shows the screen again so pressing it does not close the window.
 func TestListSplitOptions(t *testing.T) {
 	runs := 0
 	run := func(*player.Player, *world.Tx) { runs++ }
@@ -100,8 +101,8 @@ func TestListSplitOptions(t *testing.T) {
 			o.Run(nil, nil)
 		}
 	}
-	if runs != 4 {
-		t.Errorf("%d runs, want the unchosen row and the three actions", runs)
+	if runs != 5 {
+		t.Errorf("%d runs, want both rows and the three actions", runs)
 	}
 	if !strings.HasPrefix(ListSplitToken+"x", "§d§f§l") {
 		t.Errorf("title marker %q", ListSplitToken)

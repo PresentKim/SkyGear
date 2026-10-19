@@ -69,13 +69,14 @@ type menu struct{ opts []Option }
 
 func (menu) Close(s form.Submitter, _ *world.Tx) { answered(s) }
 
-func (m menu) Submit(s form.Submitter, pressed form.Button, tx *world.Tx) {
+func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
-	submitted(p)
+	enterPress(s)
+	defer leavePress(s)
 	defer recoverForm(p)
 	for _, o := range m.opts {
-		if o.Label == pressed.Text {
+		if o.Label == pressedButton.Text {
 			// Headings and pads of grids have nothing to run.
 			if o.Run != nil {
 				o.Run(p, tx)
@@ -95,39 +96,68 @@ func recoverForm(p *player.Player) {
 }
 
 // NoAnimToken in a form's title makes the pack show the window at once
-// instead of sliding it up. A form that answers a press of another form (a
-// tab, a page, a back button) is a form sent again, and the window staying
-// still looks better than rising on every press; a form opened by a command or
-// from a block is the first one and slides up.
+// instead of sliding it up. A form sent while a button of a form is being
+// handled (a tab, a page, a row, an action, a back button) is a form sent
+// again: the window stays still, because the player only moved a choice inside
+// the same screen. A form opened by a command or from a block is the first one
+// and slides up.
 const NoAnimToken = "§d§f§n§r"
 
-// resendWindow is how soon after a button press the next form still counts as
-// the same screen sent again.
-const resendWindow = 400 * time.Millisecond
+// InputBackToken in an input form's title makes the pack draw a back button
+// left of the close button. The client sends no data for either button, so
+// both go back.
+const InputBackToken = "§d§f§b§r"
 
-var lastSubmit = struct {
+// handling are the players whose form button callback is running now. A form
+// sent meanwhile is a form sent again: it must not slide in. A press handled
+// on the world owner may run after a form was already sent from another hook,
+// so this is a counter, not a timestamp (a slow server could take longer than
+// any window to reach the callback).
+var handling = struct {
 	sync.Mutex
-	m map[uuid.UUID]time.Time
-}{m: map[uuid.UUID]time.Time{}}
+	m map[uuid.UUID]int
+}{m: map[uuid.UUID]int{}}
 
-// submitted notes that p has just pressed a button of a form.
-func submitted(p *player.Player) { submittedAt(p.UUID(), time.Now()) }
-
-func submittedAt(id uuid.UUID, t time.Time) {
-	lastSubmit.Lock()
-	lastSubmit.m[id] = t
-	lastSubmit.Unlock()
+// enterPress notes that a form button of s is being handled.
+func enterPress(s form.Submitter) {
+	if p, ok := s.(*player.Player); ok {
+		enterPressOf(p.UUID())
+	}
 }
 
-// resent reports whether a form sent to p now answers a button press.
-func resent(p *player.Player) bool { return resentAt(p.UUID(), time.Now()) }
+// leavePress notes that the button handling of s finished.
+func leavePress(s form.Submitter) {
+	if p, ok := s.(*player.Player); ok {
+		leavePressOf(p.UUID())
+	}
+}
 
-func resentAt(id uuid.UUID, now time.Time) bool {
-	lastSubmit.Lock()
-	defer lastSubmit.Unlock()
-	t, ok := lastSubmit.m[id]
-	delete(lastSubmit.m, id)
-	return ok && now.Sub(t) < resendWindow
+// enterPressOf notes that a form button of id is being handled.
+func enterPressOf(id uuid.UUID) {
+	handling.Lock()
+	handling.m[id]++
+	handling.Unlock()
+}
+
+// leavePressOf notes that the button handling of id finished.
+func leavePressOf(id uuid.UUID) {
+	handling.Lock()
+	if n := handling.m[id] - 1; n > 0 {
+		handling.m[id] = n
+	} else {
+		delete(handling.m, id)
+	}
+	handling.Unlock()
+}
+
+// resending reports whether a form sent to p now answers a press of another
+// form: the button callback is running right now.
+func resending(p *player.Player) bool { return resendingOf(p.UUID()) }
+
+func resendingOf(id uuid.UUID) bool {
+	handling.Lock()
+	defer handling.Unlock()
+	return handling.m[id] > 0
 }
 
 // Menu shows a menu form whose buttons run their options. The pressed
@@ -135,7 +165,7 @@ func resentAt(id uuid.UUID, now time.Time) bool {
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
-	if resent(p) {
+	if resending(p) {
 		title = NoAnimToken + title
 	}
 	opts = uniqueLabels(onPanelOptions(opts))
@@ -745,13 +775,29 @@ func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player,
 type textInput struct {
 	Value form.Input
 	run   func(p *player.Player, tx *world.Tx, value string)
+	// back, if set, shows the screen the form was opened from when the
+	// player closes it or presses its back button (both send no data).
+	back func(p *player.Player, tx *world.Tx)
 }
 
-func (textInput) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+func (t textInput) Close(s form.Submitter, tx *world.Tx) {
+	answered(s)
+	p, ok := s.(*player.Player)
+	if !ok || t.back == nil {
+		return
+	}
+	// The screen behind is sent again from here, so it must not slide in.
+	enterPressOf(p.UUID())
+	defer leavePressOf(p.UUID())
+	defer recoverForm(p)
+	t.back(p, tx)
+}
 
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
+	enterPressOf(p.UUID())
+	defer leavePressOf(p.UUID())
 	defer recoverForm(p)
 	t.run(p, tx, t.Value.Value())
 }
@@ -761,9 +807,17 @@ func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 const CreateToken = "§d§f§e§r"
 
 // Input asks for one line of text. label is the field's group label; pass ""
-// to ask under the title alone.
-func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string)) {
-	send(p, title, form.New(textInput{Value: form.NewInput(label, def, ""), run: f}, title))
+// to ask under the title alone. back, if not nil, is the form shown again when
+// the player presses the back button left of the close button or closes the
+// form (both send no data): the pack draws that button when the title starts
+// with InputBackToken, which Input adds for a non-nil back.
+func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string), back ...func(p *player.Player, tx *world.Tx)) {
+	in := textInput{Value: form.NewInput(label, def, ""), run: f}
+	if len(back) > 0 && back[0] != nil {
+		in.back = back[0]
+		title = InputBackToken + title
+	}
+	send(p, title, form.New(in, title))
 }
 
 type amount struct {
@@ -776,6 +830,8 @@ func (amount) Close(s form.Submitter, _ *world.Tx) { answered(s) }
 func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
+	enterPressOf(p.UUID())
+	defer leavePressOf(p.UUID())
 	defer recoverForm(p)
 	a.run(p, tx, int(a.Value.Value()))
 }

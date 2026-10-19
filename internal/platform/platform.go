@@ -197,6 +197,9 @@ func (pf *Platform) showSavesAt(p *player.Player, sel int64, slot int) {
 			{Label: i18n.T(lang, "platform.platform.showSaves.5"), Icon: iconNewSave, Run: func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) }},
 		}
 	}
+	// The back button sits in the control box left of the close button, like
+	// every other screen's.
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.platform.showSaves.6"), func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) }))
 	ui.ListSplitMenu(p, i18n.T(lang, "platform.platform.showSaves.4"), sp)
 }
 
@@ -231,6 +234,8 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 			return
 		}
 		pf.showSaves(p, s.ID)
+	}, func(p *player.Player, _ *world.Tx) {
+		pf.showSavesSlot(p, slot)
 	})
 }
 
@@ -245,6 +250,8 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askRename.4"), err)
 			return
 		}
+		pf.showSaves(p, s.ID)
+	}, func(p *player.Player, _ *world.Tx) {
 		pf.showSaves(p, s.ID)
 	})
 }

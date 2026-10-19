@@ -2,7 +2,6 @@ package ui
 
 import (
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -35,24 +34,29 @@ func TestOnPanelLabel(t *testing.T) {
 	}
 }
 
-// TestResent: a form sent right after a button press is a form sent again
-// (the window does not slide); one sent later, or one with no press before it,
-// is a first form and slides up.
-func TestResent(t *testing.T) {
+// TestResending: a form sent while a button callback of another form runs is a
+// form sent again (the window does not slide); one sent outside a callback, or
+// after it returned, is a new screen and slides up.
+func TestResending(t *testing.T) {
 	id := uuid.New()
-	now := time.Now()
-	if resentAt(id, now) {
+	if resendingOf(id) {
 		t.Error("no press before it")
 	}
-	submittedAt(id, now)
-	if !resentAt(id, now.Add(50*time.Millisecond)) {
-		t.Error("sent right after a press")
+	enterPressOf(id)
+	if !resendingOf(id) {
+		t.Error("sent during the callback")
 	}
-	if resentAt(id, now.Add(60*time.Millisecond)) {
-		t.Error("a press counts for one form")
+	enterPressOf(id)
+	leavePressOf(id)
+	if !resendingOf(id) {
+		t.Error("the outer callback still runs")
 	}
-	submittedAt(id, now)
-	if resentAt(id, now.Add(2*time.Second)) {
-		t.Error("sent long after the press")
+	leavePressOf(id)
+	if resendingOf(id) {
+		t.Error("the callback finished")
+	}
+	leavePressOf(id) // an extra leave must not go negative
+	if resendingOf(id) {
+		t.Error("left behind by an extra leave")
 	}
 }

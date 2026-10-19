@@ -19,7 +19,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§x§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -56,6 +56,14 @@
                     // The back button (ui.Back, marked §0§3§r) sits left of
                     // the close button.
                     "back@df_form.marked_back": {
+                      "orientation": "horizontal",
+                      "size": [ "100%c", 22 ]
+                    }
+                  },
+                  {
+                    // An input form's back button (ui.Input with a back
+                    // callback, title marked §d§f§b§r).
+                    "input_back@df_form.marked_input_back": {
                       "orientation": "horizontal",
                       "size": [ "100%c", 22 ]
                     }
@@ -222,6 +230,40 @@
         "binding_name_override": "#collection_length",
         "binding_condition": "visible"
       }
+    ]
+  },
+
+  // An input form's back button: input forms have no button collection, so
+  // this is one plain button, shown when the title has ui.InputBackToken. A
+  // custom form sends no data for the back or the close button, so both reach
+  // the form's Close callback and go back.
+  "marked_input_back": {
+    "type": "panel",
+    "size": [ 22, 22 ],
+    "visible": false,
+    "bindings": [
+      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+      {
+        "binding_type": "view", "binding_condition": "once",
+        "source_property_name": "(not ((#title_text - '§d§f§b§r') = #title_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [ { "button@df_form.input_back_button": {} } ]
+  },
+
+  "input_back_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.menu_exit",
+    "size": [ 15, 15 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "controls": [
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/clear" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/hover_flat" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/press_flat" } },
+      { "icon": { "type": "image", "texture": "textures/ui/df/chevron_left", "size": [ 9, 12 ], "layer": 3 } }
     ]
   },
 

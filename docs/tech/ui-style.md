@@ -86,4 +86,6 @@
 
 ## 폼 열림 애니메이션
 
-처음 여는 폼은 창이 아래에서 올라오며 나타나고(`window_slide_in` 36px + `window_fade_in`, 0.18초), 버튼을 눌러 다시 보내는 폼(탭·쪽 넘김·뒤로 등)은 바로 나타난다. 제목 앞 `ui.NoAnimToken`(`§d§f§n§r`) 이 있으면 `server_form.json` 이 같은 폼의 정지 판(`$df_anims: []`)을 보여 준다. `ui.Menu` 가 버튼 누름 직후(400ms 안)의 폼에 이 표식을 붙인다(`resent`). 발전과제 트리 창은 `tree_slide_in`(최종 위치 오프셋 18)을 쓴다. 입력 폼(`custom_form`)은 기본 애니메이션이 그대로다. 애니메이션 모양은 `window_slide_in` 등 세 정의만 고치면 된다.
+처음 여는 폼은 창이 아래에서 올라오며 나타나고(`window_slide_in` 36px + `window_fade_in`, 0.18초), 이미 열린 폼에서 선택만 옮기는 모든 경우(탭·쪽 넘김·목록 줄·동작·뒤로)는 바로 나타난다. 폼 버튼 콜백이 도는 동안 보낸 폼이 "다시 보낸 폼"이다: `ui.Menu` 는 `ui.resending` 이 참이면 제목 앞에 `ui.NoAnimToken`(`§d§f§n§r`)을 붙이고, `server_form.json` 이 그 표식이 있는 폼의 정지 판(`$df_anims: []`)을 보여 준다. 시각으로 재지 않고 콜백 실행 여부로 판정하므로, 콜백이 아닌 곳(블록·명령·예약 작업)에서 연 폼은 언제나 올라온다. 발전과제 트리 창은 `tree_slide_in`(최종 위치 오프셋 18)을 쓴다. 애니메이션 모양은 `window_slide_in` 등 세 정의만 고치면 된다.
+
+입력 폼(`custom_form`)도 입력을 제출했을 때와 뒤로 갈 때 모두 다음 화면이 바로 나타난다. 뒤로 버튼은 `ui.Input` 에 back 콜백을 주면 제목 앞에 `ui.InputBackToken`(`§d§f§b§r`)이 붙어 컨트롤 막대에 그려지고, 뒤로·닫기 모두 데이터가 없으므로 `textInput.Close` 가 그 콜백을 실행한다.

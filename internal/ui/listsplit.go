@@ -68,8 +68,10 @@ type ListSplit struct {
 }
 
 // ListSplitMenu shows a list on the left and the actions of the chosen row on
-// the right. Pressing a row answers the form, so Run must show the form again
-// with that row chosen.
+// the right. Pressing any row answers the form, so Run must show the form
+// again with that row chosen, the chosen one included: with nothing sent back
+// the client closes the window, so pressing the chosen row used to close the
+// screen instead of keeping it.
 func ListSplitMenu(p *player.Player, title string, sp ListSplit) {
 	Menu(p, ListSplitToken+title, sp.Body, listSplitOptions(sp)...)
 }
@@ -85,8 +87,8 @@ func listSplitOptions(sp ListSplit) []Option {
 			marker = listRowOnToken
 		}
 		run := r.Run
-		if run == nil || r.Selected {
-			run = nop // the chosen row is already shown
+		if run == nil {
+			run = nop
 		}
 		opts = append(opts, Option{Label: marker + r.Label, Icon: r.Icon, Run: run})
 	}
