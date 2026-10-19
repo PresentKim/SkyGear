@@ -241,7 +241,7 @@ func (v *invSee) check(ctx *inventory.Context, slot int) {
 	if cur, _ := v.st.Inventory().Item(slot); !ok || !sameStack(cur, it) {
 		ctx.Cancel()
 		if !v.sync(tx) {
-			p.Message(i18n.T(i18n.Of(p), "platform.invsee.check.1"))
+			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.check.1"))
 			p.CloseOpenedContainer()
 		}
 	}
@@ -318,7 +318,7 @@ func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m d
 		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.5")
 	case readOnly:
 		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.6")
-		p.Message(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.7"))
+		ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.showInvSee.7"))
 	}
 	v := &invSee{st: chestui.NewStorage(invSeeSize, title), src: src, readOnly: readOnly}
 	inv := v.st.Inventory()
@@ -352,7 +352,7 @@ func (pf *Platform) refreshInvSee(h *world.EntityHandle, v *invSee) {
 		}
 		if !v.sync(tx) {
 			p := e.(*player.Player)
-			p.Message(i18n.T(i18n.Of(p), "platform.invsee.refreshInvSee.1"))
+			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.refreshInvSee.1"))
 			p.CloseOpenedContainer()
 			return
 		}

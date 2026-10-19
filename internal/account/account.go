@@ -5,6 +5,7 @@
 package account
 
 import (
+	"fmt"
 	"github.com/presentkim/dragonfactory/internal/i18n"
 	"log/slog"
 	"slices"
@@ -14,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Achievement is something a player can earn once per account. Title is the
@@ -145,9 +147,10 @@ func Grant(p *player.Player, id string) {
 	if !isNew {
 		return
 	}
-	p.Messagef(i18n.T(i18n.Of(p), "account.account.Grant.1"), a.Name, a.Desc)
+	lang := i18n.Of(p)
+	ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name, a.Desc))
 	if a.Title != "" {
-		p.Messagef(i18n.T(i18n.Of(p), "account.account.Grant.2"), a.Title)
+		ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), a.Title))
 	}
 	p.PlaySound(sound.LevelUp{})
 }

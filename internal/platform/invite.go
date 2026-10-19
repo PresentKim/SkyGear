@@ -300,7 +300,7 @@ func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.A
 			pf.askAcceptInvite(fp, in)
 			return
 		}
-		fp.Messagef(i18n.T(i18n.Of(fp), "platform.invite.sendInvite.2"), p.Name(), inst.Save.Name)
+		ui.Tell(fp, "", fmt.Sprintf(i18n.T(i18n.Of(fp), "platform.invite.sendInvite.2"), p.Name(), inst.Save.Name))
 	})
 }
 

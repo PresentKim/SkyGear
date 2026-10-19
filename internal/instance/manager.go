@@ -17,6 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/playerstate"
 )
 
@@ -218,9 +219,20 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 		// The instance's chunks load in the background: hold the player on
 		// the ground until they are there, or it falls through the air.
 		PlaceAt(np, pos, inst.session.Spawn())
+		tellOthers(tx, np, "instance.joined")
 		inst.session.Join(np, first)
 	})
 	return nil
+}
+
+// tellOthers tells the other players of p's world (the save) that p came or
+// went: join and leave notices stay within a save, like chat.
+func tellOthers(tx *world.Tx, p *player.Player, key string) {
+	for e := range tx.Players() {
+		if o := e.(*player.Player); o.H() != p.H() {
+			o.Message(fmt.Sprintf(i18n.T(i18n.Of(o), key), p.Name()))
+		}
+	}
 }
 
 // ToLobby moves p from its instance to the lobby, storing its state. It must
@@ -244,6 +256,7 @@ func (m *Manager) leave(inst *Instance, p *player.Player, toLobby bool) {
 	// Close a chest window first so its close callback runs while the
 	// player is still in the instance.
 	p.CloseOpenedContainer()
+	tellOthers(p.Tx(), p, "instance.left")
 	inst.session.Leave(p)
 	inst.storePlayer(p)
 	inst.removePlayer(acc)

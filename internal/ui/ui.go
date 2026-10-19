@@ -91,7 +91,7 @@ func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) 
 func recoverForm(p *player.Player) {
 	if r := recover(); r != nil {
 		slog.Error("form callback panicked", "player", p.Name(), "panic", r, "stack", string(debug.Stack()))
-		p.Message(i18n.T(i18n.Of(p), "ui.ui.recoverForm.1"))
+		Tell(p, "", i18n.T(i18n.Of(p), "ui.ui.recoverForm.1"))
 	}
 }
 
@@ -235,10 +235,26 @@ func Notify(p *player.Player, format string, a ...any) {
 }
 
 // Flash tells p the result of an action that matters later (a purchase, a
-// sale, ...): a toast and the same line in chat, to read back.
+// sale, ...): a toast and the same line in chat, to read back (no chat in the
+// lobby).
 func Flash(p *player.Player, format string, a ...any) {
 	msg := fmt.Sprintf(format, a...)
 	toast(p, i18n.T(i18n.Of(p), "ui.ui.Flash.1"), msg)
+	if InLobby == nil || !InLobby(p) {
+		p.Message(msg)
+	}
+}
+
+// Tell writes msg in p's chat. The lobby has no chat (docs/design/01-platform.md
+// §1): there it is a toast titled title (ui.ui.Tell.1 when empty) instead.
+func Tell(p *player.Player, title, msg string) {
+	if InLobby != nil && InLobby(p) {
+		if title == "" {
+			title = i18n.T(i18n.Of(p), "ui.ui.Tell.1")
+		}
+		toast(p, title, msg)
+		return
+	}
 	p.Message(msg)
 }
 

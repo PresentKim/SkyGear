@@ -66,6 +66,9 @@ func run(log *slog.Logger) error {
 	// The disconnect screen shows text as it is (no translation keys, no
 	// colour codes), so the shutdown message is written out in plain text.
 	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "main.shutdown") }
+	// No server-wide join and quit lines: the lobby has no chat, and a save's
+	// players hear of each other only (instance.Manager).
+	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}
 	conf.Entities = entity.DefaultRegistry.Config().New(dragonfactory.EntityTypes())
 	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: pconf.ResourcePack.Encrypt}
 	if packOpt.Encrypt {

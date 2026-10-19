@@ -59,11 +59,11 @@ func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
 	pf.invites.remove(m.AccountID, saveID)
 	pf.with(m.AccountID, func(tp *player.Player) {
 		if inst := pf.m.Location(m.AccountID); inst != nil && inst.Save.ID == saveID {
-			tp.Message(i18n.T(i18n.Of(tp), "platform.members.kick.3"))
+			ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kick.3"))
 			pf.m.ToLobby(tp)
 			return
 		}
-		tp.Message(i18n.T(i18n.Of(tp), "platform.members.kick.4"))
+		ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kick.4"))
 	})
 }
 

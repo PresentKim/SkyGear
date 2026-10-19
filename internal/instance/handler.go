@@ -102,15 +102,30 @@ func (h *Handler) HandleToggleSprint(ctx *player.Context, after bool) {
 func (h *Handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	h.in().HandleToggleSneak(ctx, after)
 }
+
+// HandleChat keeps chat within a save: a message reaches the players of the
+// same instance only, with the display name (ChatName) instead of
+// Dragonfly's plain "<name> message". The lobby has no chat
+// (docs/design/01-platform.md §1). The server console gets every message.
 func (h *Handler) HandleChat(ctx *player.Context, message *string) {
 	h.in().HandleChat(ctx, message)
-	if ctx.Cancelled() || h.m.lobby.ChatName == nil {
+	if ctx.Cancelled() {
 		return
 	}
-	// Send the message with the display name instead of Dragonfly's plain
-	// "<name> message".
 	ctx.Cancel()
-	_, _ = fmt.Fprintf(chat.Global, "<%s> %s\n", h.m.lobby.ChatName(ctx.Player()), *message)
+	if h.instance() == nil {
+		return
+	}
+	p := ctx.Player()
+	name := p.Name()
+	if h.m.lobby.ChatName != nil {
+		name = h.m.lobby.ChatName(p)
+	}
+	line := fmt.Sprintf("<%s> %s", name, *message)
+	for e := range p.Tx().Players() {
+		e.(*player.Player).Message(line)
+	}
+	chat.StdoutSubscriber{}.Message(line)
 }
 func (h *Handler) HandleFoodLoss(ctx *player.Context, from int, to *int) {
 	h.in().HandleFoodLoss(ctx, from, to)

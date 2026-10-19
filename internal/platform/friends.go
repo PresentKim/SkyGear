@@ -160,6 +160,6 @@ func (pf *Platform) showBlocked(p *player.Player) {
 // notifyRequests tells p about pending friend requests on join.
 func (pf *Platform) notifyRequests(p *player.Player) {
 	if reqs, err := pf.db.FriendRequests(instance.AccountID(p)); err == nil && len(reqs) > 0 {
-		p.Messagef(i18n.T(i18n.Of(p), "platform.friends.notifyRequests.1"), len(reqs))
+		ui.Tell(p, "", fmt.Sprintf(i18n.T(i18n.Of(p), "platform.friends.notifyRequests.1"), len(reqs)))
 	}
 }

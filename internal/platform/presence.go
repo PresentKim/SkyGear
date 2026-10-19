@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Online looks up the entity handle of an online player by UUID (the
@@ -26,10 +27,11 @@ func (pf *Platform) isOnline(accountID string) bool {
 	return ok
 }
 
-// tell sends a chat message to an account if it is online.
+// tell sends a message to an account if it is online (ui.Tell: chat, or a
+// toast in the lobby).
 func (pf *Platform) tell(accountID, msg string) {
 	if h, ok := pf.onlineHandle(accountID); ok {
-		h.Do(func(_ *world.Tx, e world.Entity) { e.(*player.Player).Message(msg) })
+		h.Do(func(_ *world.Tx, e world.Entity) { ui.Tell(e.(*player.Player), "", msg) })
 	}
 }
 

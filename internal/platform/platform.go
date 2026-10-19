@@ -85,8 +85,6 @@ func (pf *Platform) Join(p *player.Player) {
 	account.Refresh(p)
 	if acc.GuideVersion < GuideVersion {
 		pf.showGuide(p, true)
-	} else {
-		p.Messagef(i18n.T(i18n.Of(p), "platform.platform.Join.2"), pf.game.Name())
 	}
 	pf.notifyRequests(p)
 }
