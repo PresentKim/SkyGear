@@ -8,7 +8,13 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 scenario=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 WORK=${2:-$(mktemp -d)}
 mkdir -p "$WORK/bin"
-(cd "$root" && go build -o "$WORK/bin/dragonfactory" . && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
+# Native Windows bots get paths inside their arguments unconverted: give
+# them a C:/... path.
+command -v cygpath > /dev/null && WORK=$(cygpath -m "$WORK")
+# The server is built at one fixed path (the repo's own build output), so a
+# firewall rule allowing it keeps working for every work dir.
+server=$root/dragonfactory$(go env GOEXE)
+(cd "$root" && go build -o "$server" . && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
 # stop interrupts the server so it saves, and kills it if it is still
 # running after 15s (Git Bash on Windows cannot interrupt a native process).
 stop() {
@@ -19,14 +25,13 @@ stop() {
 }
 export BOT=$WORK/bin/platformbot WORK
 cd "$WORK" || exit 1
-cp -r "$root/assets" . 2>/dev/null
 if [ ! -f config.toml ]; then
-  "$WORK/bin/dragonfactory" > /dev/null 2>&1 & p=$!; sleep 2; stop $p
+  "$server" > /dev/null 2>&1 & p=$!; sleep 2; stop $p
   sed -i 's/AuthEnabled = true/AuthEnabled = false/' config.toml
   # The host bot may use the operator tools.
   sed -i 's/^\(\s*\)Operators = \[\]/\1Operators = ["Hana"]/' platform.toml
 fi
-"$WORK/bin/dragonfactory" > srv.log 2>&1 & pid=$!
+"$server" > srv.log 2>&1 & pid=$!
 for _ in $(seq 1 100); do grep -q "server started" srv.log && break; sleep 0.2; done
 bash "$scenario"; status=$?
 stop $pid

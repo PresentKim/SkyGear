@@ -8,6 +8,7 @@
 /data/
 /keys/
 /dragonfactory
+/dragonfactory.exe
 *.tmp
 
 # IDE

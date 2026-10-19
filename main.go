@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -72,12 +73,16 @@ func run(log *slog.Logger) error {
 			return fmt.Errorf("resource pack secret: %w", err)
 		}
 	}
-	packs := []string{"assets/resourcepack/dragonfactory", "assets/resourcepack/inventoryui", "assets/resourcepack/waila"}
+	packs := []string{"dragonfactory", "inventoryui", "waila"}
 	if pconf.ResourcePack.SlotDeco {
-		packs = append(packs, "assets/resourcepack/slotdeco")
+		packs = append(packs, "slotdeco")
 	}
-	for _, dir := range packs {
-		pack, err := resourcepack.LoadWith(dir, packOpt)
+	for _, name := range packs {
+		dir, err := fs.Sub(packFS, "assets/resourcepack/"+name)
+		if err != nil {
+			return fmt.Errorf("resource pack %s: %w", name, err)
+		}
+		pack, err := resourcepack.LoadFS(dir, name, packOpt)
 		if err != nil {
 			return fmt.Errorf("load resource pack: %w", err)
 		}

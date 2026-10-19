@@ -84,7 +84,7 @@ internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 
 internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
 internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여, JSON minify, 암호화: docs/tech/resourcepack.md)
 spike/                          기술 검증 코드와 테스트 클라이언트
-assets/resourcepack/            리소스팩 원본 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)
+assets/resourcepack/            리소스팩 원본, 빌드할 때 실행 파일에 들어간다 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)
 tools/uitextures/               JSON UI 테마 텍스처 생성기
 third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
 ```

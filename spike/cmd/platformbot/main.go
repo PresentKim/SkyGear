@@ -52,7 +52,7 @@ func main() {
 // run executes one script action:
 //
 //	form:<title>=<button index>   wait for a form with title and press a button
-//	input:<title>=<text>         wait for a custom form and submit text
+//	input:<title>=<text>         wait for a custom form and submit text (null closes it)
 //	cmd:/text                    run a command
 //	expect:<text>                wait for a chat message, command output, title, toast or sidebar line containing text
 //	                             (a recipe list counts as "recipes=<n>")
@@ -92,7 +92,9 @@ func run(action string) {
 		if code == "" {
 			fail("no code in form %s", pk.FormData)
 		}
-		_ = os.WriteFile(file, []byte(code), 0o644)
+		if err := os.WriteFile(file, []byte(code), 0o644); err != nil {
+			fail("write code: %v", err)
+		}
 		_ = conn.WritePacket(&packet.ModalFormResponse{FormID: pk.FormID})
 		fmt.Println("CAPTURED", code)
 	case "cmd":
@@ -124,7 +126,7 @@ func run(action string) {
 		fmt.Println()
 		val = expand(val)
 		resp := []byte(val)
-		if kind == "input" {
+		if kind == "input" && val != "null" {
 			resp, _ = json.Marshal([]any{val})
 		}
 		_ = conn.WritePacket(&packet.ModalFormResponse{FormID: pk.FormID, ResponseData: protocol.Option(resp)})

@@ -1,5 +1,5 @@
 // Package resourcepack loads the hand-made resource packs kept in the
-// repository (assets/resourcepack/...).
+// repository (assets/resourcepack/...), embedded in the server binary.
 package resourcepack
 
 import (
@@ -26,10 +26,16 @@ func Load(dir string) (*resource.Pack, error) { return LoadWith(dir, Options{}) 
 
 // LoadWith is Load with the pack minified and/or encrypted (Options).
 func LoadWith(dir string, opt Options) (*resource.Pack, error) {
+	return LoadFS(os.DirFS(dir), dir, opt)
+}
+
+// LoadFS is LoadWith for a pack whose files are the root of fsys (an
+// embedded pack); dir names the pack in errors.
+func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 	if opt.Encrypt && len(opt.Secret) == 0 {
 		return nil, fmt.Errorf("resource pack %s: encryption needs a secret", dir)
 	}
-	sum, err := hashDir(dir)
+	sum, err := hashFS(fsys)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +49,7 @@ func LoadWith(dir string, opt Options) (*resource.Pack, error) {
 		return nil, err
 	}
 	defer os.RemoveAll(tmp)
-	if err := os.CopyFS(tmp, os.DirFS(dir)); err != nil {
+	if err := os.CopyFS(tmp, fsys); err != nil {
 		return nil, fmt.Errorf("copy resource pack %s: %w", dir, err)
 	}
 	if err := setManifestVersion(filepath.Join(tmp, "manifest.json"), version); err != nil {
@@ -87,9 +93,10 @@ func Version(sum [32]byte) [3]int {
 	return [3]int{1, int(binary.BigEndian.Uint16(sum[0:2])), int(binary.BigEndian.Uint16(sum[2:4]))}
 }
 
-func hashDir(dir string) ([32]byte, error) {
+// hashFS hashes every file of fsys with its slash path, in path order.
+func hashFS(fsys fs.FS) ([32]byte, error) {
 	var paths []string
-	err := filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -104,12 +111,11 @@ func hashDir(dir string) ([32]byte, error) {
 	sort.Strings(paths)
 	h := sha256.New()
 	for _, p := range paths {
-		b, err := os.ReadFile(p)
+		b, err := fs.ReadFile(fsys, p)
 		if err != nil {
 			return [32]byte{}, err
 		}
-		rel, _ := filepath.Rel(dir, p)
-		fmt.Fprintf(h, "%s\x00%d\x00", filepath.ToSlash(rel), len(b))
+		fmt.Fprintf(h, "%s\x00%d\x00", p, len(b))
 		h.Write(b)
 	}
 	var sum [32]byte
