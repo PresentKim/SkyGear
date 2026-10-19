@@ -1,6 +1,9 @@
 package hud
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestRowsUnique(t *testing.T) {
 	var b Board
@@ -23,5 +26,18 @@ func TestRowsLimit(t *testing.T) {
 	}
 	if len(b.Rows()) != maxRows {
 		t.Fatalf("%d rows", len(b.Rows()))
+	}
+}
+
+// TestFrameBoard: a frame board is told apart by its key even with no rows,
+// and the same rows with and without the frame differ.
+func TestFrameBoard(t *testing.T) {
+	var plain, frame Board
+	frame.Frame = true
+	if !strings.HasPrefix(frame.Key(), FrameTitle) || plain.Key() == frame.Key() {
+		t.Fatalf("keys %q and %q", plain.Key(), frame.Key())
+	}
+	if !strings.HasPrefix(FrameTitle, Title) {
+		t.Fatal("the frame title must still start the HUD")
 	}
 }

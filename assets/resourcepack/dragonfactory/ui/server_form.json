@@ -12,6 +12,15 @@
   // §d§f§n§r (ui.NoAnimToken) shows the window at once; the others slide it up.
   "namespace": "server_form",
 
+  // The screen's background (outside the safe zone, never slid by the screen
+  // animations) holds the lobby's launcher frame for forms shown in the lobby
+  // (ui.LobbyToken, ui/df_lobby.json): the HUD frame is hidden while a form
+  // is open. No fade either, so the frame stays put between lobby forms.
+  "third_party_server_screen": {
+    "$screen_bg_content": "df_lobby.form_frame",
+    "$background_animations": []
+  },
+
   // The vanilla screen content is a 0×0 panel whose forms have fixed sizes.
   // Make it fill the screen so the theme can size and dim relative to it.
   "main_screen_content": {
@@ -68,7 +77,7 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text) and ((#title_text - '§d§f§u§r') = #title_text))",
               "target_property_name": "#visible"
             }
           ]
@@ -82,7 +91,43 @@
             { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
             {
               "binding_type": "view", "binding_condition": "once",
-              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)))",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)) and ((#title_text - '§d§f§u§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Untitled cards (ui.UntitledToken): the lobby menu.
+        "cards_u@df_form.card_form": {
+          "visible": false,
+          "$df_card_size": [ 290, 143 ],
+          "$df_card_title": false,
+          "$df_card_offset": [ 0, 10 ],
+          "$df_card_content": [ "100% - 12px", "100% - 16px" ],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and ((#title_text - '§d§f§n§r') = #title_text) and (not ((#title_text - '§d§f§u§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "cards_us@df_form.card_form": {
+          "visible": false,
+          "$df_anims": [], "$df_anims_tree": [],
+          "$df_card_size": [ 290, 143 ],
+          "$df_card_title": false,
+          "$df_card_offset": [ 0, 10 ],
+          "$df_card_content": [ "100% - 12px", "100% - 16px" ],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and (not ((#title_text - '§d§f§n§r') = #title_text)) and (not ((#title_text - '§d§f§u§r') = #title_text)))",
               "target_property_name": "#visible"
             }
           ]

@@ -1,0 +1,93 @@
+// The lobby's launcher frame (docs/design/01-platform.md §1): a dark title
+// bar with the game's name and a band at the bottom over the whole screen,
+// the lobby island showing between them. The HUD draws it (sidebar objective
+// with §d§l§b, hud.FrameTitle, in scoreboards.json) and, as the HUD is hidden
+// while a form is open, so does the form screen's background for lobby forms
+// (title marker §d§f§w§r, ui.LobbyToken, form_frame in server_form.json):
+// it is on screen with a form open or closed. Lobby forms do not darken the
+// screen.
+{
+  "namespace": "df_lobby",
+  "form_frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "frame@df_lobby.frame": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global" },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§d§f§w§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "top": {
+          "type": "image",
+          "texture": "textures/ui/Black",
+          "alpha": 0.6,
+          "size": [ "100%", 34 ],
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle",
+          "controls": [
+            {
+              "title": {
+                "type": "label",
+                "layer": 1,
+                "text": "df.lobby.title",
+                "font_type": "MinecraftTen",
+                "font_scale_factor": 1.6,
+                "color": [ 1, 1, 1 ],
+                "shadow": true,
+                "anchor_from": "center",
+                "anchor_to": "center"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "top_line": {
+          "type": "image",
+          "texture": "textures/ui/white",
+          "color": [ 0.95, 0.7, 0.2 ],
+          "size": [ "100%", 1 ],
+          "offset": [ 0, 34 ],
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle"
+        }
+      },
+      {
+        "bottom": {
+          "type": "image",
+          "texture": "textures/ui/Black",
+          "alpha": 0.6,
+          "size": [ "100%", 16 ],
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle"
+        }
+      },
+      {
+        "bottom_line": {
+          "type": "image",
+          "texture": "textures/ui/white",
+          "color": [ 0.95, 0.7, 0.2 ],
+          "size": [ "100%", 1 ],
+          "offset": [ 0, -16 ],
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle"
+        }
+      }
+    ]
+  }
+}

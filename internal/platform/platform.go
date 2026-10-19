@@ -9,7 +9,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
@@ -43,6 +42,8 @@ type Platform struct {
 // New creates the platform. The lobby world must already be built.
 func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online) *Platform {
 	pf := &Platform{log: log, db: d, m: m, game: game, online: online}
+	// Every form shown in the lobby gets the launcher frame.
+	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	account.Init(d, log)
 	m.Register(game)
 	registerCommands(pf)
@@ -62,22 +63,14 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		Quit: func(p *player.Player) {
 			account.Forget(p)
 			waila.Forget(p)
+			forgetLobbyHUD(p)
 		},
 	}
 }
 
-// BuildLobby places the lobby platform. It runs in the lobby world.
-func BuildLobby(tx *world.Tx) {
-	for x := -7; x <= 7; x++ {
-		for z := -7; z <= 7; z++ {
-			var b world.Block = block.Grass{}
-			if x == -7 || x == 7 || z == -7 || z == 7 {
-				b = block.StoneBricks{}
-			}
-			tx.SetBlock(LobbySpawn.Add(cube.Pos{x, -1, z}), b, nil)
-		}
-	}
-}
+// BuildLobby builds the lobby island (buildLobbyIsland). It runs in the
+// lobby world.
+func BuildLobby(tx *world.Tx) { buildLobbyIsland(tx) }
 
 // Join handles a player connecting. It runs in the lobby world.
 func (pf *Platform) Join(p *player.Player) {
@@ -100,11 +93,23 @@ func (pf *Platform) Join(p *player.Player) {
 
 const lobbyItemKey = "platform_lobby_item"
 
-// arriveLobby gives the lobby menu items.
+// arriveLobby gives the lobby menu items and shows the lobby scene and frame.
 func (pf *Platform) arriveLobby(p *player.Player) {
 	p.SetGameMode(world.GameModeAdventure)
-	_ = p.Inventory().SetItem(0, item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.1")).WithValue(lobbyItemKey, "menu"))
-	_ = p.Inventory().SetItem(8, item.NewStack(item.Book{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.2")).WithValue(lobbyItemKey, "guide"))
+	showLobbyScene(p, p.Tx())
+	forgetLobbyHUD(p)
+	sendLobbyHUD(p, "")
+	// The hotbar is hidden: every slot holds the menu or the guide, in turn,
+	// so the use key opens one of them whichever slot is held.
+	menu := item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.1")).WithValue(lobbyItemKey, "menu")
+	guide := item.NewStack(item.Book{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.2")).WithValue(lobbyItemKey, "guide")
+	for slot := range 9 {
+		st := menu
+		if slot%2 == 1 {
+			st = guide
+		}
+		_ = p.Inventory().SetItem(slot, st)
+	}
 	_ = p.SetHeldSlot(0)
 }
 
@@ -207,17 +212,23 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 	if pf.m.Location(instance.AccountID(p)) != nil {
 		return
 	}
-	if err := pf.m.Enter(p, saveID); err != nil {
-		switch err {
-		case instance.ErrHostOffline:
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.1"))
-		case instance.ErrStateLocked:
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.2"))
-		case instance.ErrTooManyActive:
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.3"))
-		default:
-			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.enter.4"), err)
-		}
+	err := pf.m.Enter(p, saveID)
+	if err == nil {
+		// The save has its own view; the lobby's camera, HUD, locks and
+		// frame go.
+		leaveLobbyScene(p)
+		forgetLobbyHUD(p)
+		return
+	}
+	switch err {
+	case instance.ErrHostOffline:
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.1"))
+	case instance.ErrStateLocked:
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.2"))
+	case instance.ErrTooManyActive:
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.3"))
+	default:
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.enter.4"), err)
 	}
 }
 
@@ -367,7 +378,8 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 	if len(reqs) > 0 {
 		friends = fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.7"), len(reqs))
 	}
-	ui.CardMenu(p, pf.game.Name()+i18n.T(lang, "platform.platform.showLobbyMenu.1"), "",
+	// The lobby frame above names the game: the menu has no title of its own.
+	ui.CardMenu(p, "", "",
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},

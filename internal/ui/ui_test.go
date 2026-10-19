@@ -153,3 +153,17 @@ func TestPager(t *testing.T) {
 		t.Errorf("the buttons went to pages %v", went)
 	}
 }
+
+// TestFramedTitle: forms for players in the lobby get the lobby frame
+// marker, others do not.
+func TestFramedTitle(t *testing.T) {
+	defer func(f func(*player.Player) bool) { InLobby = f }(InLobby)
+	InLobby = func(*player.Player) bool { return true }
+	if got := framed(nil, "x"); got != LobbyToken+"x" {
+		t.Errorf("in the lobby: %q", got)
+	}
+	InLobby = func(*player.Player) bool { return false }
+	if got := framed(nil, "x"); got != "x" {
+		t.Errorf("in a save: %q", got)
+	}
+}

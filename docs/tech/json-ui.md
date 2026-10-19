@@ -103,6 +103,14 @@
 - 모양은 바닐라 화로 화면과 같다: 밝은 회색 창(`textures/ui/dialog_background_opaque`), 바닐라 칸(`textures/ui/cell_image`), 진한 회색 제목(바닐라 `$title_text_color` 그대로)은 화로 화면(`furnace_label`)처럼 창 위 가운데 4px 아래. 제목 표식 `§d§m§<n>` 의 마지막 코드는 색 코드라 Go 가 표식 뒤에 `§r` 을 붙인다. 출력이 하나인 기계(분쇄기·전기 화로·합금로)의 출력 칸은 화로 결과 칸처럼 26×26. 진행도 칸은 칸 배경 없이 그림만이고, 화살표·링·배터리의 빈 부분은 바닐라 화로 화살표(`arrow_inactive`)와 같은 밝은 회색, 찬 부분은 흰색·주황이다. 모두 꺼내기·모두 넣기·정보 아이콘은 창 오른쪽 위 어두운 컨트롤 막대에 흰 그림으로 있다.
 - 모바일용 기계 레이아웃은 만들지 않는다(사용자 결정, 6차 실기).
 
+## 로비 입장기 틀
+
+로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/df_lobby.json` 의 `df_lobby.frame`): 위쪽 34px 어두운 띠에 게임 이름(`df.lobby.title`, MinecraftTen 글꼴), 아래쪽 16px 어두운 띠, 띠 경계의 금색 1px 선. 가운데는 비워 고정 카메라로 비춘 로비 섬이 보인다(`platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(Dragonfly 패치 `Player.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
+
+- HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.
+- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `df_lobby.form_frame` 으로 바꿔 그 표식이 있으면 틀을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`df_form.window` 의 `dim`).
+- 제목 없는 카드 폼(`ui.CardMenu` 에 빈 제목 → `§d§f§u§r`, `ui.UntitledToken`): 제목 막대 없이 내용이 창 위 10px 에서 시작하고 창이 그만큼 낮다(`cards_u`·`cards_us`, 290×143). 로비 메뉴가 쓴다.
+
 ## 요령
 
 - 겪은 오류: 팩토리 `control_ids` 에 변수(`$df_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$df_window_size"`). `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의했다.

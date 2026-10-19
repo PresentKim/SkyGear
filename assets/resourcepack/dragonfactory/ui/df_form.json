@@ -19,7 +19,7 @@
       { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
       {
         "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r' - '§d§f§w§r' - '§d§f§u§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -63,10 +63,7 @@
                   {
                     // An input form's back button (ui.Input with a back
                     // callback, title marked §d§f§b§r).
-                    "input_back@df_form.marked_input_back": {
-                      "orientation": "horizontal",
-                      "size": [ "100%c", 22 ]
-                    }
+                    "input_back@df_form.marked_input_back": {}
                   },
                   {
                     "close_slot": {
@@ -133,7 +130,9 @@
     "max_size": [ "100% - 8px", "100% - 8px" ],
     "layer": 2,
     "controls": [
-      // The screen around the window is darkened like the game's own screens.
+      // The screen around the window is darkened like the game's own screens,
+      // but not in the lobby (ui.LobbyToken): there the lobby island and its
+      // launcher frame stay bright around the window.
       {
         "dim": {
           "type": "image",
@@ -143,7 +142,15 @@
           "size": [ 4000, 4000 ],
           "anchor_from": "center",
           "anchor_to": "center",
-          "layer": -8
+          "layer": -8,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            {
+              "binding_type": "view", "binding_condition": "once",
+              "source_property_name": "((#title_text - '§d§f§w§r') = #title_text)",
+              "target_property_name": "#visible"
+            }
+          ]
         }
       },
       // The tabs sit on the window's top edge like the game's own tabs.
@@ -946,13 +953,22 @@
   // ---- card grid (title starts with §d§f§c§r): menu and shop ----
   // Buttons as icon-and-text cards, three per row, as many rows as needed.
 
+  // An untitled card form (ui.UntitledToken: the lobby menu, whose name is in
+  // the lobby frame) has no title bar, and the window is as much shorter.
   "card_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
+    "$df_card_size|default": [ 290, 178 ],
+    "$df_card_title|default": true,
+    "$df_card_offset|default": [ 0, 45 ],
+    "$df_card_content|default": [ "100% - 12px", "100% - 51px" ],
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 290, 178 ],
+          "$df_window_size": "$df_card_size",
+          "$df_title": "$df_card_title",
+          "$df_content_offset": "$df_card_offset",
+          "$df_content_size": "$df_card_content",
           "$df_content": "df_form.card_scroll"
         }
       }

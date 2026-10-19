@@ -10,6 +10,22 @@
     "anchor_to": "center",
     "controls": [
       {
+        // The lobby's launcher frame (ui/df_lobby.json, hud.FrameTitle).
+        "lobby_frame@df_lobby.frame": {
+          "bindings": [
+            {
+              "binding_name": "#objective_sidebar_name",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
         "df_plain@scoreboard.df_plain_sidebar": {
           "bindings": [
             {
@@ -69,6 +85,18 @@
           "offset": [
             -4,
             -10
+          ],
+          // The lobby has no quest: no empty panel at the right edge.
+          "bindings": [
+            {
+              "binding_name": "#objective_sidebar_name",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name)",
+              "target_property_name": "#visible"
+            }
           ]
         }
       }

@@ -3502,6 +3502,18 @@ func (p *Player) SetCamera(pos mgl64.Vec3, pitch, yaw, ease float64) {
 // ClearCamera returns the player's camera to normal. (dragonfactory patch)
 func (p *Player) ClearCamera() { p.session().ClearCamera() }
 
+// HideHUD hides every vanilla HUD element of the player's client, or shows
+// them again. (dragonfactory patch)
+func (p *Player) HideHUD(hide bool) { p.session().HideHUD(hide) }
+
+// LockInputs locks the client inputs in locks (packet.ClientInputLock*
+// flags); 0 unlocks them. (dragonfactory patch)
+func (p *Player) LockInputs(locks uint32) { p.session().LockInputs(locks) }
+
+// ForgetHiddenEntities shows every entity hidden with HideEntity again from
+// then on, for a player about to change worlds. (dragonfactory patch)
+func (p *Player) ForgetHiddenEntities() { p.session().ForgetHiddenEntities() }
+
 // ViewFakeBlock shows b at pos to this player only, without changing the
 // world. Resend the real block (ViewFakeBlock with tx.Block) to undo it.
 // (dragonfactory patch)

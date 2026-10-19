@@ -16,6 +16,15 @@ import (
 // Title is the objective name that tells the pack to draw the HUD parts.
 const Title = "§d§h§u§d"
 
+// FrameTitle is Title with the lobby frame marker: the pack also draws the
+// lobby's launcher frame over the whole screen (ui/df_lobby.json), the same
+// one it draws behind lobby forms.
+const FrameTitle = Title + "§d§l§b"
+
+// blankRow is a row of no part: a board that shows only the frame still
+// needs one row, or the client shows no sidebar at all.
+const blankRow = "§d§0"
+
 // Part markers: each row starts with one.
 const (
 	TopLeft    = "§d§1"
@@ -27,8 +36,11 @@ const (
 // maxRows is the most rows a sidebar shows.
 const maxRows = 15
 
-// Board collects the rows of one player's HUD.
-type Board struct{ rows []string }
+// Board collects the rows of one player's HUD. Frame draws the lobby frame.
+type Board struct {
+	rows  []string
+	Frame bool
+}
 
 // Add adds a row of text to a part (TopLeft, TopRight, QuestTitle, Quest).
 // Rows past the sidebar's 15 are dropped.
@@ -55,16 +67,32 @@ func (b *Board) Rows() []string {
 
 // Send shows the board to p, or removes p's sidebar if the board is empty.
 func (b *Board) Send(p *player.Player) {
-	if len(b.rows) == 0 {
+	if len(b.rows) == 0 && !b.Frame {
 		p.RemoveScoreboard()
 		return
 	}
-	sb := scoreboard.New(Title)
+	title, rows := Title, b.Rows()
+	if b.Frame {
+		title = FrameTitle
+	}
+	if len(rows) == 0 {
+		rows = []string{blankRow}
+	}
+	sb := scoreboard.New(title)
 	sb.RemovePadding()
-	for i, r := range b.Rows() {
+	for i, r := range rows {
 		sb.Set(i, r)
 	}
 	p.SendScoreboard(sb)
+}
+
+// Key is what the board would show, to tell whether it changed.
+func (b *Board) Key() string {
+	k := strings.Join(b.Rows(), "\n")
+	if b.Frame {
+		k = FrameTitle + k
+	}
+	return k
 }
 
 // Strip returns a row as the pack shows it: without its part marker.

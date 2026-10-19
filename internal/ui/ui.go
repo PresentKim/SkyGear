@@ -103,6 +103,29 @@ func recoverForm(p *player.Player) {
 // and slides up.
 const NoAnimToken = "§d§f§n§r"
 
+// UntitledToken is the title of a card form with no title of its own: the
+// pack draws it without a title bar and as much shorter (the lobby menu,
+// whose name is the lobby frame's).
+const UntitledToken = "§d§f§u§r"
+
+// LobbyToken in a form's title makes the pack draw the lobby's launcher
+// frame behind the window (ui/df_lobby.json; the HUD's frame is hidden while
+// a form is open) and not darken the screen, so the forms of the lobby fill
+// the screen like a game launcher over the island. It is added to every form
+// shown to a player in the lobby (InLobby).
+const LobbyToken = "§d§f§w§r"
+
+// InLobby reports whether p is in the lobby. The platform sets it.
+var InLobby func(p *player.Player) bool
+
+// framed adds LobbyToken to the title of a form for p in the lobby.
+func framed(p *player.Player, title string) string {
+	if InLobby != nil && InLobby(p) {
+		return LobbyToken + title
+	}
+	return title
+}
+
 // InputBackToken in an input form's title makes the pack draw a back button
 // left of the close button. The client sends no data for either button, so
 // both go back.
@@ -168,6 +191,7 @@ func Menu(p *player.Player, title, body string, opts ...Option) {
 	if resending(p) {
 		title = NoAnimToken + title
 	}
+	title = framed(p, title)
 	opts = uniqueLabels(onPanelOptions(opts))
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(OnPanel(body))
 	for _, o := range opts {
@@ -352,6 +376,9 @@ const CardToken = "§d§f§c§r"
 // CardMenu shows a menu as a grid of cards with the icon above the label,
 // so many options fit on one screen. Labels should be short (two lines).
 func CardMenu(p *player.Player, title, body string, opts ...Option) {
+	if title == "" {
+		title = UntitledToken
+	}
 	Menu(p, CardToken+title, body, opts...)
 }
 
@@ -817,6 +844,7 @@ func Input(p *player.Player, title, label, def string, f func(p *player.Player, 
 		in.back = back[0]
 		title = InputBackToken + title
 	}
+	title = framed(p, title)
 	send(p, title, form.New(in, title))
 }
 
@@ -838,6 +866,7 @@ func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 
 // Amount asks for a number from 1 to max with a slider starting at def.
 func Amount(p *player.Player, title, label string, max, def int, f func(p *player.Player, tx *world.Tx, n int)) {
+	title = framed(p, title)
 	send(p, title, form.New(amount{Value: form.NewSlider(label, 1, float64(max), 1, float64(min(max, def))), run: f}, title))
 }
 

@@ -336,3 +336,4 @@ item.dragonfactory:tree_feller.name=자동 벌목기
 tile.dragonfactory:tree_feller.name=자동 벌목기
 df.search.placeholder=검색
 df.submit=생성하기
+df.lobby.title=드래곤팩토리
