@@ -289,7 +289,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 	if len(list) == 0 {
 		body += "\n" + i18n.T(lang, "monitor.stalls.none")
 	}
-	opts := []ui.Option{s.opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/bell_icon", func(p *player.Player, _ *world.Tx) {
+	opts := []ui.Option{s.opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/icon_bell", func(p *player.Player, _ *world.Tx) {
 		if s.state.AlertsOn == nil {
 			s.state.AlertsOn = map[string]bool{}
 		}

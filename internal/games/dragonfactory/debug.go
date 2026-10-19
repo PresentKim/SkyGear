@@ -2,10 +2,13 @@ package dragonfactory
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/i18n"
@@ -19,7 +22,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfdebug", i18n.T(i18n.Default, "dragonfactory.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}))
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}))
 }
 
 type debugSkip struct {
@@ -53,6 +56,9 @@ func (c debugLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
 		r := p.Rotation()
 		p.Move(mgl64.Vec3{}, c.Yaw-r.Yaw(), c.Pitch-r.Pitch())
+		// Move does not turn the client's own camera; a teleport to the same
+		// spot sends it the rotation.
+		p.Teleport(p.Position())
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
 		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
 			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.3"), blockName(b), at[0], at[1], at[2])
@@ -197,4 +203,80 @@ func (c debugResearchLoad) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		s.copiesDone[r.ID] = s.rand.IntN(2) == 0
 	}
 	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.researchLoad"), len(s.copies))
+}
+
+// debugPlace places a block dx, dy, dz from the operator's feet as the
+// operator would by hand: holding the item (a /dfadmin give id, or any
+// vanilla item name), it clicks the top of the block below that spot, so
+// the game's own placing runs (machine state, facing, handlers). It lets
+// playtests build without aiming the camera.
+type debugPlace struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"place"`
+	Item string         `cmd:"item"`
+	DX   int            `cmd:"dx"`
+	DY   int            `cmd:"dy"`
+	DZ   int            `cmd:"dz"`
+}
+
+func (c debugPlace) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	var st item.Stack
+	if f, ok := giveItems()[c.Item]; ok {
+		st = f()
+	} else {
+		name := c.Item
+		if !strings.Contains(name, ":") {
+			name = "minecraft:" + name
+		}
+		it, ok := world.ItemByName(name, 0)
+		if !ok {
+			o.Errorf("unknown item %s", c.Item)
+			return
+		}
+		st = item.NewStack(it, 1)
+	}
+	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{c.DX, c.DY, c.DZ})
+	below := pos.Side(cube.FaceDown)
+	if _, air := tx.Block(below).(block.Air); air {
+		o.Errorf("nothing to place on at %v", below)
+		return
+	}
+	held, off := p.HeldItems()
+	p.SetHeldItems(st, off)
+	p.UseItemOnBlock(below, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
+	p.SetHeldItems(held, off)
+	o.Printf("%s at %d %d %d", blockName(tx.Block(pos)), pos[0], pos[1], pos[2])
+}
+
+// debugFloor lays stone around the operator at the height of the block under
+// its feet, radius blocks out, without replacing what is there: a place to
+// build on in a playtest (the island is small and the rest is void).
+type debugFloor struct {
+	adminBase
+	Sub    cmd.SubCommand `cmd:"floor"`
+	Radius int            `cmd:"radius"`
+}
+
+func (c debugFloor) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	r := max(1, min(c.Radius, 16))
+	under := cube.PosFromVec3(p.Position()).Side(cube.FaceDown)
+	n := 0
+	for x := -r; x <= r; x++ {
+		for z := -r; z <= r; z++ {
+			pos := under.Add(cube.Pos{x, 0, z})
+			if _, air := tx.Block(pos).(block.Air); air {
+				tx.SetBlock(pos, block.Stone{}, nil)
+				n++
+			}
+		}
+	}
+	o.Printf("stone x%d at y %d", n, under[1])
 }
