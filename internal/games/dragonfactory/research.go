@@ -369,6 +369,11 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	s.updateBoards(tx)
 	for e := range tx.Players() {
 		p := e.(*player.Player)
+		if len(r.Unlocks) == 0 {
+			// a project: it opens no recipe of its own
+			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), r.Title(langOf(p)))
+			continue
+		}
 		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(r))
 	}
 }

@@ -34,6 +34,15 @@ func TestStartIsland(t *testing.T) {
 		if _, ok := tx.Block(cube.Pos{islandCentre + 2, IslandY - 1, islandCentre}).(block.Air); !ok {
 			t.Fatal("the island is wider than 3")
 		}
+		// A new save spawns on the grass beside the trunk, not inside it.
+		s.state = newState()
+		at := cube.PosFromVec3(s.Spawn())
+		if _, ok := tx.Block(at.Side(cube.FaceDown)).(block.Grass); !ok {
+			t.Fatalf("spawn %v stands on %T", at, tx.Block(at.Side(cube.FaceDown)))
+		}
+		if _, ok := tx.Block(at).(block.Air); !ok {
+			t.Fatalf("spawn %v is inside %T", at, tx.Block(at))
+		}
 	})
 }
 

@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"log/slog"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -30,4 +31,16 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 			t.Fatalf("achievements %v", got)
 		}
 	})
+}
+
+// TestAchievementsAreWritten: every registered achievement has its name,
+// description and title in the catalog (a missing one shows its key).
+func TestAchievementsAreWritten(t *testing.T) {
+	for _, a := range account.All() {
+		for _, s := range []string{a.Name, a.Desc, a.Title} {
+			if s == "" || strings.HasPrefix(s, "achievement.") {
+				t.Errorf("achievement %s: %q", a.ID, s)
+			}
+		}
+	}
 }

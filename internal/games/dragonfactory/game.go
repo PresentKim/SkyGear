@@ -212,14 +212,16 @@ func (s *session) debounced(p *player.Player) bool {
 	return false
 }
 
-// Spawn is next to the tree of the starting island. A save made before the
-// island moved to the middle of its chunk has no Home and keeps its old
-// island around the origin.
+// Spawn is next to the tree of the starting island: Home is the island's
+// centre, where the trunk grows, so the spawn is one block east of it. A save
+// made before the island moved to the middle of its chunk has no Home and
+// keeps its old island around the origin.
 func (s *session) Spawn() mgl64.Vec3 {
+	home := [2]float64{1.5, 1.5}
 	if s.state != nil && s.state.Home != ([2]float64{}) {
-		return mgl64.Vec3{s.state.Home[0], IslandY, s.state.Home[1]}
+		home = s.state.Home
 	}
-	return mgl64.Vec3{1.5, IslandY, 1.5}
+	return mgl64.Vec3{home[0] + 1, IslandY, home[1]}
 }
 
 func (s *session) Join(p *player.Player, first bool) {
