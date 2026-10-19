@@ -9,7 +9,7 @@ timeout 60 "$BOT" -name Hana \
   'cmd:/dfadmin give barrel 1' 'expect:참나무 배럴 x1' \
   'cmd:/dfadmin research furnace' 'cmd:/dfadmin research stone_barrel' \
   'cmd:/dfadmin give stone_barrel 1' 'expect:돌 배럴 x1' \
-  'cmd:/dfadmin status' 'expect:researched=' > host.log 2>&1
+  'cmd:/dfdebug status' 'expect:researched=' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT|RECIPE|CREATIVE" host.log | grep -v "^RECIPE dragonfactory:\(drawer\|hammer\|sieve\|crusher\|auto\|harvester\|research\)" 
 [ $h -eq 0 ] && grep -q "^RECIPE dragonfactory:barrel_oak" host.log && grep -q "^CREATIVE dragonfactory:barrel_oak" host.log && grep -q "^RECIPE dragonfactory:barrel_stone" host.log && grep -q "^CREATIVE dragonfactory:barrel_stone" host.log

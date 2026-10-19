@@ -9,7 +9,7 @@ timeout 60 "$BOT" -name Hana \
   'cmd:/dfadmin item dragonfactory:dust 1' 'expect:x1' \
   'cmd:/dfadmin research stick' 'expectre:^recipes=[0-9]{1,2}$' \
   'cmd:/dfadmin research pebbles' 'expect:돌 다지기' \
-  'cmd:/dfadmin status' 'expect:researched=2' > host.log 2>&1
+  'cmd:/dfdebug status' 'expect:researched=2' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
 [ $h -eq 0 ]

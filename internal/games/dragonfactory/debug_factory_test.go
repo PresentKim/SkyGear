@@ -17,7 +17,7 @@ func TestAdminDense(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		var o cmd.Output
-		adminDense{adminBase: adminBase{g: s.g}, Count: 8}.Run(p, &o, tx)
+		debugDense{adminBase: adminBase{g: s.g}, Count: 8}.Run(p, &o, tx)
 		if len(o.Errors()) > 0 {
 			t.Fatal(o.Errors())
 		}

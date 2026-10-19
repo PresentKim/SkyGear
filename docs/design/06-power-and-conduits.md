@@ -97,7 +97,7 @@ EnderIO처럼 **한 블록에 에너지·아이템·액체 도관을 함께** �
 - 코드: `internal/energy`(`Grid`, `Network`, 인터페이스 `Source`·`Sink`·`Conduit`·`Ports`), 도관 `conduit.go`, 발전기·에너지 소비 `generator.go`. 기계 종류는 `machineKind`의 `generates`·`use`·`energyCap`으로 정한다.
 - 도관은 **블록 엔티티**(NBT 없는 내용)다. Dragonfly는 NBT가 있는 블록에만 틱을 주기 때문이다. 틱마다 자기를 격자에 등록하고(10번 안 등록되면 빠진다), 0.2초(`Fast`)마다 격자가 연결망을 새로 찾아 에너지를 나눈다.
 - 모양은 표시 엔티티(`conduitvisual.go`, [conduits.md](../tech/conduits.md))가 그린다.
-- 운영자 시험 공장(`/dfadmin factory`·`dense`)의 기계는 에너지 없이 돈다(`unlimited`).
+- 운영자 시험 공장(`/dfdebug factory`·`dense`)의 기계는 에너지 없이 돈다(`unlimited`).
 
 ## 7. EnderIO 포팅 (Unlicense, Team-EnderIO/EnderIO)
 

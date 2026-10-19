@@ -11,7 +11,7 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give essence_piglin 2' 'expect:피글린 에센스 x2' \
   'cmd:/dfadmin give essence_wither_skeleton 2' 'expect:위더 스켈레톤 에센스 x2' \
   'cmd:/통계' 'form:통계=0' \
-  'cmd:/dfadmin status' 'expect:researched=' > host.log 2>&1
+  'cmd:/dfdebug status' 'expect:researched=' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
 [ $h -eq 0 ] && grep -q "^RECIPE dragonfactory:magic_sieve" host.log && grep -q "^CREATIVE dragonfactory:magic_sieve" host.log && grep -q "^CREATIVE dragonfactory:essence_piglin" host.log

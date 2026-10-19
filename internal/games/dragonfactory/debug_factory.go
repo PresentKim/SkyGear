@@ -14,13 +14,13 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// adminFactory builds a large test factory on the island: count modules in
+// debugFactory builds a large test factory on the island: count modules in
 // a grid centred on the operator, each a machine line (cobblestone, auto miner, crusher,
 // hopper into a drawer, sell box), an auto sieve line fed by a chest of
 // gravel, and a 9×9 farm with an auto harvester. It is a load test for
 // letting players build freely (docs/tech/performance.md); watch the load
 // lines on the sidebar.
-type adminFactory struct {
+type debugFactory struct {
 	adminBase
 	Sub   cmd.SubCommand `cmd:"factory"`
 	Count int            `cmd:"count"`
@@ -33,7 +33,7 @@ const (
 	maxFactory     = 100
 )
 
-func (c adminFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+func (c debugFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, s, ok := c.session(src, o, tx)
 	if !ok {
 		return
@@ -169,12 +169,12 @@ func cropBlock(kind string) world.Block {
 	}
 }
 
-// adminDense builds count compact machine cells in a grid centred on the
+// debugDense builds count compact machine cells in a grid centred on the
 // operator: each cell is 2×1 blocks, cobblestone, an
 // auto miner above its output, a crusher beside the miner over a hopper
 // into a drawer. Many machines in little room, for load tests
 // in game (docs/tech/performance.md).
-type adminDense struct {
+type debugDense struct {
 	adminBase
 	Sub   cmd.SubCommand `cmd:"dense"`
 	Count int            `cmd:"count"`
@@ -182,7 +182,7 @@ type adminDense struct {
 
 const maxDense = 4000
 
-func (c adminDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, s, ok := c.session(src, o, tx)
 	if !ok {
 		return

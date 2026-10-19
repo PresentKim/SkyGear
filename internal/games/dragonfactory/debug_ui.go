@@ -13,7 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
-// windowKindEnum names a machine kind that has a window (/dfadmin ui).
+// windowKindEnum names a machine kind that has a window (/dfdebug ui).
 type windowKindEnum string
 
 func (windowKindEnum) Type() string                { return "df_window" }
@@ -30,16 +30,16 @@ func windowKinds() []string {
 	return out
 }
 
-// adminUI opens a machine window without placing the machine, filled with
+// debugUI opens a machine window without placing the machine, filled with
 // sample items, a half-done progress and a half-full energy gauge, so every
 // window layout can be checked in the client in a row.
-type adminUI struct {
+type debugUI struct {
 	adminBase
 	Sub  cmd.SubCommand               `cmd:"ui"`
 	Kind cmd.Optional[windowKindEnum] `cmd:"kind"`
 }
 
-func (c adminUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+func (c debugUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, _, ok := c.session(src, o, tx)
 	if !ok {
 		return
@@ -63,7 +63,7 @@ func showWindowPicker(p *player.Player) {
 			previewLater(p, k)
 		}})
 	}
-	ui.Menu(p, "/dfadmin ui", "", opts...)
+	ui.Menu(p, "/dfdebug ui", "", opts...)
 }
 
 // previewDelay is how long the preview waits before opening: the client

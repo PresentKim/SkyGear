@@ -47,4 +47,4 @@
 ## 확인
 
 - 단위 테스트: `internal/timed`(만료·설명 줄·NBT 왕복·정리·겹침), `instance`(`TestTimedItemsExpireInInstance`), 드래곤팩토리(`timed_test.go`: NBT 구분, 서랍 만료, 분실물).
-- 시나리오: `spike/scenarios/run.sh spike/scenarios/timed.sh` — `/dfadmin timed 2` 로 든 아이템을 2초 기간제로 만들고 사라지는지.
+- 시나리오: `spike/scenarios/run.sh spike/scenarios/timed.sh`: `/dfdebug timed 2` 로 든 아이템을 2초 기간제로 만들고 사라지는지.

@@ -57,6 +57,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	registerCreativeItems()
 	registerItemIO()
 	registerAdmin(g)
+	registerDebug(g)
 	return g
 }
 

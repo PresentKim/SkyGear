@@ -26,8 +26,8 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give ingot_bronze 4' 'expect:청동 주괴 x4' \
   'cmd:/dfadmin give metal_dust_tin 4' 'expect:주석 가루 x4' \
   'cmd:/dfadmin give essence_blaze 2' 'expect:블레이즈 에센스 x2' \
-  'cmd:/dfadmin wave 3' 'expect:wave 3 started' 'wait:4' \
-  'cmd:/dfadmin status' 'expect:researched=' > host.log 2>&1
+  'cmd:/dfdebug wave 3' 'expect:wave 3 started' 'wait:4' \
+  'cmd:/dfdebug status' 'expect:researched=' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log
 [ $h -eq 0 ] && grep -q "^RECIPE dragonfactory:alloy_smelter" host.log && grep -q "^RECIPE dragonfactory:mob_simulator" host.log && grep -q "^RECIPE dragonfactory:conduit_item_2" host.log && grep -q "^CREATIVE dragonfactory:ore_washer" host.log && grep -q "^CREATIVE dragonfactory:ingot_steel" host.log

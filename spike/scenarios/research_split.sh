@@ -6,11 +6,11 @@
 # slot, goes to the done tab, turns the page and closes.
 timeout 120 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=연구 분배 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
-  'cmd:/dfadmin research random 40' 'expect:임의로 완료' \
-  'cmd:/dfadmin research load 300' 'expect:시험 복사본 300개' \
+  'cmd:/dfdebug research random 40' 'expect:임의로 완료' \
+  'cmd:/dfdebug research load 300' 'expect:시험 복사본 300개' \
   'cmd:/menu' 'form:드래곤팩토리"=0' 'form:연구"=5' 'form:연구"=7' 'form:연구"=null' \
-  'cmd:/dfadmin research load 0' 'expect:시험 복사본 0개' \
-  'cmd:/dfadmin research reset' 'cmd:/dfadmin status' 'expect:researched=0' > host.log 2>&1
+  'cmd:/dfdebug research load 0' 'expect:시험 복사본 0개' \
+  'cmd:/dfadmin research reset' 'cmd:/dfdebug status' 'expect:researched=0' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log | cut -c1-140
 [ $h -eq 0 ]

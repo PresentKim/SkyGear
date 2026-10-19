@@ -60,7 +60,7 @@ go run .
 | 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/df`), `/invite`·`/members`(호스트) |
-| 운영자 | `/dfadmin give·research·advance·wave·factory·ui·status …` ([docs/tech/admin.md](docs/tech/admin.md), `platform.toml`의 `Admin.Operators`) |
+| 운영자 | 관리 `/dfadmin give·item·research·advance·tps`, 디버그 `/dfdebug ui·look·status·wave·factory …` ([docs/tech/admin.md](docs/tech/admin.md), `platform.toml`의 `Admin.Operators`) |
 
 ## 구조
 

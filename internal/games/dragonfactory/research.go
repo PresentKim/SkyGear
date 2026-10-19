@@ -59,7 +59,7 @@ func (r *Research) Title(lang string) string {
 }
 
 // isCopy reports whether the research is a test copy of another one: the
-// operator's /dfadmin research load makes hundreds of them to try the research
+// operator's /dfdebug research load makes hundreds of them to try the research
 // screen with a long list. They live in the session only, are never saved and
 // cost nothing.
 func (r *Research) isCopy() bool { return strings.Contains(r.ID, "#") }
