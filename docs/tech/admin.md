@@ -14,6 +14,7 @@
 | `/dfadmin fairy` | 선물 요정을 지금 나에게 부름 |
 | `/dfadmin look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신, 보는 블록 출력(시나리오·실기 확인용) |
 | `/dfadmin wave <단계>` | 옆에 차원 게이트를 놓고 그 단계의 웨이브를 바로 시작(아래 단계는 열어 준다) |
+| `/dfadmin ui [기계]` | 기계를 놓지 않고 그 기계 창을 연다(입력·출력 칸에 예시 아이템, 진행도·에너지 절반). 기계 없이 쓰면 창이 있는 기계 목록 폼이 열리고 버튼으로 차례로 본다. 창 모양 실기 확인용(시나리오 `window_preview.sh`) |
 | `/dfadmin status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
 | `/dfadmin tps` | 내 HUD 왼쪽 위 서버 부하 줄 켜기·끄기(아래, 로비에서도) |
 

@@ -1,10 +1,10 @@
 // Machine windows (internal/games/dragonfactory/machine.go): the vanilla
 // small chest screen with only the machine's slots, placed per machine.
 // Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
-// Dark panel and slots (textures/ui/df); the progress indicator slot has
-// no background. Slot 26 is the info icon (its tooltip explains the machine),
-// slots 24 and 25 are the take-all and put-all buttons left of it,
-// on the title row left of the close button. See docs/tech/machines.md.
+// The vanilla window and slot pictures with the vanilla dark grey title, as
+// on the furnace screen; the progress indicator slot has no background.
+// Slots 24, 25 and 26 (take all, put all, info) sit in the dark control bar
+// above the window's top right corner. See docs/tech/machines.md.
 {
   "namespace": "df_machine",
   "slot@chest.chest_grid_item": {
@@ -25,7 +25,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -35,8 +35,8 @@
         "s11@df_machine.slot": {
           "collection_index": 11,
           "offset": [
-            36,
-            18
+            43,
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -47,54 +47,18 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
       },
       {
-        "s15@df_machine.slot": {
+        "s15@df_machine.output_slot": {
           "collection_index": 15,
           "offset": [
-            108,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            102,
+            -4
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -117,7 +81,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -127,8 +91,8 @@
         "s10@df_machine.slot": {
           "collection_index": 10,
           "offset": [
-            18,
-            18
+            25,
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -138,8 +102,8 @@
         "s11@df_machine.slot": {
           "collection_index": 11,
           "offset": [
-            36,
-            18
+            43,
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -150,54 +114,18 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
       },
       {
-        "s15@df_machine.slot": {
+        "s15@df_machine.output_slot": {
           "collection_index": 15,
           "offset": [
-            108,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            102,
+            -4
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -390,42 +318,6 @@
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
       }
     ]
   },
@@ -444,7 +336,7 @@
           "collection_index": 10,
           "offset": [
             18,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -455,7 +347,7 @@
           "collection_index": 12,
           "offset": [
             54,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -466,7 +358,7 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -477,7 +369,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -488,7 +380,7 @@
           "collection_index": 14,
           "offset": [
             90,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -499,7 +391,7 @@
           "collection_index": 15,
           "offset": [
             108,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -510,43 +402,7 @@
           "collection_index": 16,
           "offset": [
             126,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -569,7 +425,7 @@
           "collection_index": 10,
           "offset": [
             18,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -580,7 +436,7 @@
           "collection_index": 11,
           "offset": [
             36,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -591,7 +447,7 @@
           "collection_index": 12,
           "offset": [
             54,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -602,7 +458,7 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -613,7 +469,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -624,7 +480,7 @@
           "collection_index": 14,
           "offset": [
             90,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -635,7 +491,7 @@
           "collection_index": 15,
           "offset": [
             108,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -646,43 +502,7 @@
           "collection_index": 16,
           "offset": [
             126,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -705,7 +525,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -716,7 +536,7 @@
           "collection_index": 10,
           "offset": [
             36,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -727,7 +547,7 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -738,7 +558,7 @@
           "collection_index": 14,
           "offset": [
             90,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -749,7 +569,7 @@
           "collection_index": 15,
           "offset": [
             108,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -760,43 +580,7 @@
           "collection_index": 16,
           "offset": [
             126,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -819,7 +603,7 @@
           "collection_index": 17,
           "offset": [
             144,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -830,7 +614,7 @@
           "collection_index": 10,
           "offset": [
             36,
-            18
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -841,43 +625,7 @@
           "collection_index": 13,
           "offset": [
             72,
-            18
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
+            0
           ],
           "anchor_from": "top_left",
           "anchor_to": "top_left"
@@ -1004,42 +752,6 @@
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
       }
     ]
   },
@@ -1057,7 +769,7 @@
     "anchor_to": "top_left",
     "controls": [
       {
-        "chest_label@chest.chest_label": {}
+        "title@df_machine.title": {}
       },
       {
         "slots@$df_machine_slots": {
@@ -1067,6 +779,98 @@
           ]
         }
       }
+    ]
+  },
+  // The window title as on the vanilla furnace (furnace_label): centred at
+  // the top of the window, 4px down (top_half sits 12px down).
+  "title": {
+    "type": "label",
+    "layer": 2,
+    "offset": [ 0, -8 ],
+    "anchor_from": "top_middle",
+    "anchor_to": "top_middle",
+    "text": "$container_title",
+    "color": "$title_text_color",
+    "localize": "$localize_title",
+    "enable_profanity_filter": true
+  },
+  // The dark rounded bar above the window's top right corner holds the three
+  // window buttons (take everything out, put everything in, info) left of the
+  // close button, like the forms' bar (df_form.control_bar). The three are
+  // window slots of the machine (24, 25, 26 in machine.go) drawn here instead
+  // of in a slot layout, so every machine window has them in the same place.
+  "control_bar": {
+    "type": "image",
+    "texture": "textures/ui/toolbar_background",
+    "size": [ "100%c + 18px", 25 ],
+    "offset": [ 0, -22 ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "layer": 3,
+    "controls": [
+      {
+        "row": {
+          "type": "stack_panel",
+          "orientation": "horizontal",
+          "size": [ "100%c", 22 ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "controls": [
+            {
+              "bar_slots": {
+                "type": "stack_panel",
+                "orientation": "horizontal",
+                "collection_name": "container_items",
+                "size": [ "100%c", 18 ],
+                "anchor_from": "center",
+                "anchor_to": "center",
+                "controls": [
+                  { "s24@df_machine.bar_button": { "collection_index": 24 } },
+                  { "s25@df_machine.bar_button": { "collection_index": 25 } },
+                  { "s26@df_machine.bar_button": { "collection_index": 26 } }
+                ]
+              }
+            },
+            {
+              "close_slot": {
+                "type": "panel",
+                "size": [ 22, 22 ],
+                "controls": [
+                  {
+                    "close@common.light_close_button": {
+                      "$close_button_offset": [ 0, 0 ],
+                      "anchor_from": "center",
+                      "anchor_to": "center"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  // A window button slot of the control bar. A machine with no output or no
+  // input leaves the take or put slot empty (machine.go); the empty slot is
+  // hidden so the stack folds it and the buttons stay next to the info icon.
+  "bar_button": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "bindings": [
+      {
+        "binding_name": "#hover_text",
+        "binding_type": "collection",
+        "binding_collection_name": "container_items"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not (#hover_text = ''))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      { "slot@df_machine.indicator": { "size": [ 18, 18 ] } }
     ]
   },
   "machine_panel": {
@@ -1090,7 +894,9 @@
           "controls": [
             {
               "common_panel@common.common_panel": {
-                "$dialog_background": "df_machine.dark_bg"
+                "$dialog_background": "df_machine.dark_bg",
+                // The bar above the window has its own close button.
+                "$show_close_button": false
               }
             },
             {
@@ -1118,6 +924,7 @@
                 ]
               }
             },
+            { "chrome@df_machine.control_bar": {} },
             {
               "inventory_selected_icon_button@common.inventory_selected_icon_button": {}
             },
@@ -1127,11 +934,6 @@
           ]
         }
       }
-    ],
-    "$title_text_color": [
-      1,
-      1,
-      1
     ]
   },
   "crusher_panel@df_machine.machine_panel": {
@@ -1320,42 +1122,6 @@
           "anchor_from": "top_left",
           "anchor_to": "top_left"
         }
-      },
-      {
-        "s25@df_machine.indicator": {
-          "collection_index": 25,
-          "size": [12, 12],
-          "offset": [
-            124,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s24@df_machine.indicator": {
-          "collection_index": 24,
-          "size": [12, 12],
-          "offset": [
-            110,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
-      },
-      {
-        "s26@df_machine.indicator": {
-          "collection_index": 26,
-          "size": [12, 12],
-          "offset": [
-            138,
-            -12
-          ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left"
-        }
       }
     ]
   },
@@ -1376,7 +1142,22 @@
     "$df_machine_slots": "df_machine.miner1_slots"
   },
   "sell_box_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.sell_box_slots"
+    "$df_machine_slots": "df_machine.sell_box_slots",
+    "$df_machine_root_size": [ 176, 148 ],
+    "$df_machine_top_size": [ "100%", 60 ]
+  },
+  "output_slot@chest.chest_grid_item": {
+    "size": [26, 26],
+    "$cell_image_size": [26, 26],
+    "$background_images": "df_machine.output_slot_bg"
+  },
+  "output_slot_bg": {
+    "type": "image",
+    "texture": "textures/ui/cell_image",
+    "size": [
+      26,
+      26
+    ]
   },
   "indicator@chest.chest_grid_item": {
     "$background_images": "df_machine.no_bg"

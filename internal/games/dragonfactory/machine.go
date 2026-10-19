@@ -418,7 +418,9 @@ func (st *machineState) drainLegacy() {
 
 func newMachine(kind, owner, ownerName string) Machine {
 	k := machineKinds[kind]
-	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+k.name), owner: owner, ownerName: ownerName, shownPct: -1, shownEnergy: -1}
+	// The marker's last code is a colour (§1 dark blue ...): §r gives the
+	// name the window's own title colour back.
+	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+"§r"+k.name), owner: owner, ownerName: ownerName, shownPct: -1, shownEnergy: -1}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.role(slot) == roleNone {
