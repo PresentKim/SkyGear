@@ -130,8 +130,6 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 		count(p, "kill_total", 1)
 		count(p, "kill_"+m.kind, 1)
 		looting := 0
-		fortune := s.rpgFortune(p)
-		s.gainXP(p, int(monsterTable[m.kind].health))
 		if held, ok := toolOf(p); ok {
 			looting += toolMods(held)["looting"]
 			s.gainToolXP(p, int(monsterTable[m.kind].health/2)+1)
@@ -140,14 +138,14 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 			v.ViewEntityAction(m, entity.DeathAction{})
 		}
 		for _, d := range simDrops[m.kind] {
-			if s.rand.IntN(100) < d.Chance+looting*8+fortune {
+			if s.rand.IntN(100) < d.Chance+looting*8 {
 				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 			}
 		}
-		if w.level >= 2 && s.rand.IntN(100) < 4+fortune/3 {
+		if w.level >= 2 && s.rand.IntN(100) < 4 {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + petalColours[s.rand.IntN(len(petalColours))]}, 1))
 		}
-		if s.rand.IntN(100) < waveEssenceChance+looting*4+fortune/2 {
+		if s.rand.IntN(100) < waveEssenceChance+looting*4 {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(Essence{Mob: m.kind}, 1))
 		}
 	}
@@ -184,9 +182,6 @@ func (s *session) winWave(tx *world.Tx) {
 	countAll(tx, "wave_win", 1)
 	countAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
 	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "gate.win"), w.level))
-	for e := range tx.Players() {
-		s.gainXP(e.(*player.Player), 15*w.level)
-	}
 }
 
 // failWave ends the wave without a clear: the monsters left vanish.

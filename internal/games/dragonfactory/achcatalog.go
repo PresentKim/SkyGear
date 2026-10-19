@@ -107,8 +107,6 @@ var counterCatalog = []counterDef{
 	{"wave_level_6", "combat", []int64{1}},
 	{"wave_level_7", "combat", []int64{1}},
 	{"wave_level_8", "combat", []int64{1}},
-	{"rpg_level", "combat", []int64{1, 10, 40, 80, 160}},
-	{"skill_spend", "combat", []int64{1, 10, 30, 60}},
 	{"research_done", "progress", []int64{1, 10, 25, 50, 75}},
 	{"adv_done", "progress", []int64{1, 10, 25, 50, 75, 100}},
 	{"project_done", "progress", []int64{1, 2, 3}},

@@ -58,10 +58,6 @@ const (
 	advKill       = "first_kill"
 	advWave3      = "wave_3"
 	advWave8      = "wave_8"
-	advSkill      = "skill_point"
-	advChar5      = "char_5"
-	advChar15     = "char_15"
-	advChar30     = "char_30"
 	advToolMade   = "tool_made"
 	advTool5      = "tool_level_5"
 	advOreHarvest = "ore_harvest"
@@ -195,10 +191,6 @@ var advancementTree = []Advancement{
 	{ID: "first_kill", Name: i18n.T(i18n.Default, "advancement.first_kill.name"), Parent: "dimension_gate", Hint: i18n.T(i18n.Default, "advancement.first_kill.hint"), Event: true, Icon: "iron_sword"},
 	{ID: "wave_3", Name: i18n.T(i18n.Default, "advancement.wave_3.name"), Parent: "wave_1", Hint: i18n.T(i18n.Default, "advancement.wave_3.hint"), Event: true, Icon: "iron_sword"},
 	{ID: "wave_8", Name: i18n.T(i18n.Default, "advancement.wave_8.name"), Parent: "wave_5", Hint: i18n.T(i18n.Default, "advancement.wave_8.hint"), Event: true, Icon: "netherite_sword"},
-	{ID: "skill_point", Name: i18n.T(i18n.Default, "advancement.skill_point.name"), Parent: "first_kill", Hint: i18n.T(i18n.Default, "advancement.skill_point.hint"), Event: true, Icon: "experience_bottle"},
-	{ID: "char_5", Name: i18n.T(i18n.Default, "advancement.char_5.name"), Parent: "first_kill", Hint: i18n.T(i18n.Default, "advancement.char_5.hint"), Event: true, Icon: "leather_chestplate"},
-	{ID: "char_15", Name: i18n.T(i18n.Default, "advancement.char_15.name"), Parent: "char_5", Hint: i18n.T(i18n.Default, "advancement.char_15.hint"), Event: true, Icon: "iron_chestplate"},
-	{ID: "char_30", Name: i18n.T(i18n.Default, "advancement.char_30.name"), Parent: "char_15", Hint: i18n.T(i18n.Default, "advancement.char_30.hint"), Event: true, Icon: "diamond_chestplate"},
 	{ID: "tool_made", Name: i18n.T(i18n.Default, "advancement.tool_made.name"), Parent: "tinker_table", Hint: i18n.T(i18n.Default, "advancement.tool_made.hint"), Event: true, Icon: "iron_pickaxe"},
 	{ID: "tool_level_5", Name: i18n.T(i18n.Default, "advancement.tool_level_5.name"), Parent: "tool_level", Hint: i18n.T(i18n.Default, "advancement.tool_level_5.hint"), Event: true, Icon: "diamond_pickaxe"},
 	{ID: "ore_harvest", Name: i18n.T(i18n.Default, "advancement.ore_harvest.name"), Parent: "ore_bloom", Hint: i18n.T(i18n.Default, "advancement.ore_harvest.hint"), Event: true, Icon: "iron_ingot"},

@@ -54,7 +54,6 @@
 | `copier_copy`·`copier_paste`·`copier_conduit_all` | `copier.go` |
 | `tool_made`·`tool_mod`·`tool_levelup` | `tinkerform.go` |
 | `kill_total`·`kill_<몹>`·`wave_win`·`wave_fail`·`wave_level_N` | `wave.go` |
-| `rpg_level`·`skill_spend` | `rpg.go` |
 | `research_done`·`project_done`·`essence_spent`·`adv_done` | `research.go`, `advancement.go` |
 | `research_open`·`adv_view`·`adv_track`·`codex_open`·`menu_open` | 각 화면 |
 | `chunk_buy`·`void_return` | `island.go` |

@@ -187,7 +187,7 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 			h.s.reinforce(p)
 		}
 		count(p, "hit_monster", 1)
-		m.Hurt(p.Tx(), dmg*h.s.rpgDamageMul(p), p)
+		m.Hurt(p.Tx(), dmg, p)
 		return
 	}
 	h.touchFairy(ctx, e)

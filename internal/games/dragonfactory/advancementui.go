@@ -156,7 +156,7 @@ func (s *session) advancementLayout(tab advTab) advLayout {
 // advChallenges are the big milestones, drawn with the challenge frame; the
 // advancements of a research get the goal frame, the rest the task frame.
 var advChallenges = map[string]bool{
-	advDragon: true, advWave8: true, "chunks_16": true, "char_30": true,
+	advDragon: true, advWave8: true, "chunks_16": true,
 	advTool5: true, "project_dragon": true, "ess_harvest": true, "gem_harvest": true,
 }
 

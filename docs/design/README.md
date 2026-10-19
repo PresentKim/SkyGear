@@ -19,7 +19,7 @@
 | [05-sky-progression.md](05-sky-progression.md) | 스카이블록 진행 설계(스카이팩토리 3·ATM10 Sky): 손작업 초반, 체 그물, 발전과제 안내, 차원 게이트 웨이브 |
 | [06-power-and-conduits.md](06-power-and-conduits.md) | 에너지(RE)·발전기·도관(에너지/아이템/액체, EnderIO 참고) |
 | [07-progression-expansion.md](07-progression-expansion.md) | 금속·합금로·에너지 셀·몬스터 시뮬레이터·액체 네트워크·차원 게이트, 연구·발전과제 구성 |
-| [08-storage-gear-magic.md](08-storage-gear-magic.md) | 스토리지 컨트롤러·장비 제작(팅커스풍)·캐릭터 성장·마법 식물 |
+| [08-storage-gear-magic.md](08-storage-gear-magic.md) | 스토리지 컨트롤러·장비 제작(팅커스풍)·마법 식물 |
 | [09-automation-equipment.md](09-automation-equipment.md) | 자동화 설비 확장: 전기 화로·자동 제작기·아이템 흡수기·자동 벌목기 |
 | [10-user-flow.md](10-user-flow.md) | 유저 플로우 분석: 대상 유저, 단계별 흐름, 정체 구간, 도감·프로젝트·상태 표시 보강 |
 | [11-research-essences.md](11-research-essences.md) | 연구 정수(연구팩의 마인크래프트식 재해석, "~의 정수")와 연구소: 정수 5종, 만드는 법, 연구별 요구, 순서 점검, 예산 |
