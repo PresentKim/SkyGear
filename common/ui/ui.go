@@ -72,8 +72,6 @@ func (menu) Close(s form.Submitter, _ *world.Tx) { answered(s) }
 func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
-	enterPress(s)
-	defer leavePress(s)
 	defer recoverForm(p)
 	for _, o := range m.opts {
 		if o.Label == pressedButton.Text {
@@ -94,14 +92,6 @@ func recoverForm(p *player.Player) {
 		Tell(p, "", i18n.T(i18n.Of(p), "ui.ui.recoverForm.1"))
 	}
 }
-
-// NoAnimToken in a form's title makes the pack show the window at once
-// instead of sliding it up. A form sent while a button of a form is being
-// handled (a tab, a page, a row, an action, a back button) is a form sent
-// again: the window stays still, because the player only moved a choice inside
-// the same screen. A form opened by a command or from a block is the first one
-// and slides up.
-const NoAnimToken = "§d§f§n§r"
 
 // UntitledToken is the title of a card form with no title of its own: the
 // pack draws it without a title bar and as much shorter (the lobby menu,
@@ -131,66 +121,11 @@ func framed(p *player.Player, title string) string {
 // both go back.
 const InputBackToken = "§d§f§b§r"
 
-// handling are the players whose form button callback is running now. A form
-// sent meanwhile is a form sent again: it must not slide in. A press handled
-// on the world owner may run after a form was already sent from another hook,
-// so this is a counter, not a timestamp (a slow server could take longer than
-// any window to reach the callback).
-var handling = struct {
-	sync.Mutex
-	m map[uuid.UUID]int
-}{m: map[uuid.UUID]int{}}
-
-// enterPress notes that a form button of s is being handled.
-func enterPress(s form.Submitter) {
-	if p, ok := s.(*player.Player); ok {
-		enterPressOf(p.UUID())
-	}
-}
-
-// leavePress notes that the button handling of s finished.
-func leavePress(s form.Submitter) {
-	if p, ok := s.(*player.Player); ok {
-		leavePressOf(p.UUID())
-	}
-}
-
-// enterPressOf notes that a form button of id is being handled.
-func enterPressOf(id uuid.UUID) {
-	handling.Lock()
-	handling.m[id]++
-	handling.Unlock()
-}
-
-// leavePressOf notes that the button handling of id finished.
-func leavePressOf(id uuid.UUID) {
-	handling.Lock()
-	if n := handling.m[id] - 1; n > 0 {
-		handling.m[id] = n
-	} else {
-		delete(handling.m, id)
-	}
-	handling.Unlock()
-}
-
-// resending reports whether a form sent to p now answers a press of another
-// form: the button callback is running right now.
-func resending(p *player.Player) bool { return resendingOf(p.UUID()) }
-
-func resendingOf(id uuid.UUID) bool {
-	handling.Lock()
-	defer handling.Unlock()
-	return handling.m[id] > 0
-}
-
 // Menu shows a menu form whose buttons run their options. The pressed
 // button is found by its label (the client sends no index), so a label
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
-	if resending(p) {
-		title = NoAnimToken + title
-	}
 	title = framed(p, title)
 	opts = uniqueLabels(onPanelOptions(opts))
 	f := form.NewMenu(menu{opts: opts}, title).WithBody(OnPanel(body))
@@ -829,9 +764,6 @@ func (t textInput) Close(s form.Submitter, tx *world.Tx) {
 	if !ok || t.back == nil {
 		return
 	}
-	// The screen behind is sent again from here, so it must not slide in.
-	enterPressOf(p.UUID())
-	defer leavePressOf(p.UUID())
 	defer recoverForm(p)
 	t.back(p, tx)
 }
@@ -839,8 +771,6 @@ func (t textInput) Close(s form.Submitter, tx *world.Tx) {
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
-	enterPressOf(p.UUID())
-	defer leavePressOf(p.UUID())
 	defer recoverForm(p)
 	t.run(p, tx, t.Value.Value())
 }
@@ -874,8 +804,6 @@ func (amount) Close(s form.Submitter, _ *world.Tx) { answered(s) }
 func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p := s.(*player.Player)
-	enterPressOf(p.UUID())
-	defer leavePressOf(p.UUID())
 	defer recoverForm(p)
 	a.run(p, tx, int(a.Value.Value()))
 }

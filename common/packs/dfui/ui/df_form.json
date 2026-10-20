@@ -9,17 +9,17 @@
   "title_label": {
     "type": "label",
     "text": "#df_title",
-    "color": [ 0.2, 0.2, 0.2 ],
-    "size": [ "100% - 110px", "default" ],
+    "color": [ 0.25, 0.25, 0.25 ],
+    "size": [ "100%", "default" ],
     "text_alignment": "center",
     "anchor_from": "center",
     "anchor_to": "center",
     "layer": 2,
     "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+      { "binding_name": "#title_text", "binding_type": "global" },
       {
-        "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§n§r' - '§d§f§b§r' - '§d§f§w§r' - '§d§f§u§r')",
+        "binding_type": "view",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§b§r' - '§d§f§w§r' - '§d§f§u§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -86,46 +86,22 @@
           ]
         },
 
-  // The window slides up and fades in when a form is opened (the title has
-  // no ui.NoAnimToken); a form sent again as the answer to a button press
-  // shows it at once ($df_anims is empty).
-  "window_slide_in": {
-    "anim_type": "offset",
-    "easing": "out_cubic",
-    "duration": 0.18,
-    "from": [ 0, 36 ],
-    "to": [ 0, 0 ]
-  },
-  "window_fade_in": {
-    "anim_type": "alpha",
-    "easing": "out_cubic",
-    "duration": 0.14,
-    "from": 0,
-    "to": 1
-  },
-  "tree_slide_in": {
-    "anim_type": "offset",
-    "easing": "out_cubic",
-    "duration": 0.18,
-    "from": [ 0, 54 ],
-    "to": [ 0, 18 ]
-  },
-
   // window draws the panel, the title bar and the close button around
   // $df_content.
   "window": {
     "type": "image",
     "texture": "textures/ui/dialog_background_opaque",
-    "$df_window_size|default": [ 270, 200 ],
+    // No window is larger than the game's inventory screen (326×166, with
+    // the tabs and the control bar above it like the inventory's toolbar):
+    // the touch layout scales the interface up, and only a window that size
+    // fits a phone's screen.
+    "$df_window_size|default": [ 230, 166 ],
     "$df_tabs|default": "df_form.marked_tabs",
-    "$df_anims|default": [ "@df_form.window_slide_in", "@df_form.window_fade_in" ],
-    // "$df_title|default": true hides the title bar (the input form draws no
+    // "$df_title|default": false hides the title (the input form draws no
     // title: its field's label names the question).
     "$df_title|default": true,
-    "$df_content_offset|default": [ 0, 45 ],
-    "$df_content_size|default": [ "100% - 12px", "100% - 51px" ],
-    "anims": "$df_anims",
-    "propagate_alpha": true,
+    "$df_content_offset|default": [ 0, 18 ],
+    "$df_content_size|default": [ "100% - 12px", "100% - 24px" ],
     "size": "$df_window_size",
     "max_size": [ "100% - 8px", "100% - 8px" ],
     "layer": 2,
@@ -144,9 +120,9 @@
           "anchor_to": "center",
           "layer": -8,
           "bindings": [
-            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+            { "binding_name": "#title_text", "binding_type": "global" },
             {
-              "binding_type": "view", "binding_condition": "once",
+              "binding_type": "view",
               "source_property_name": "((#title_text - '§d§f§w§r') = #title_text)",
               "target_property_name": "#visible"
             }
@@ -176,12 +152,13 @@
           "layer": 0
         }
       },
+      // The title is a line of text at the top of the window, like the
+      // game's own container titles.
       {
         "title_bar": {
-          "type": "image",
-          "texture": "textures/ui/df/title",
-          "size": [ "100% - 4px", 22 ],
-          "offset": [ 0, 2 ],
+          "type": "panel",
+          "size": [ "100% - 8px", 10 ],
+          "offset": [ 0, 6 ],
           "anchor_from": "top_middle",
           "anchor_to": "top_middle",
           "layer": 1,
@@ -249,9 +226,9 @@
     "size": [ 22, 22 ],
     "visible": false,
     "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+      { "binding_name": "#title_text", "binding_type": "global" },
       {
-        "binding_type": "view", "binding_condition": "once",
+        "binding_type": "view",
         "source_property_name": "(not ((#title_text - '§d§f§b§r') = #title_text))",
         "target_property_name": "#visible"
       }
@@ -602,17 +579,70 @@
 
   "tab_item@df_form.vis_tab": {
     "type": "panel",
-    "size": [ 54, 24 ],
+    "size": [ 26, 24 ],
     "controls": [ { "button@df_form.tab_button": {} } ]
   },
 
-  // A tab (textures/ui/df/tab*): dark and low; the pointer lights it; the
-  // selected one (§0§2§r) is raised, with an accent bar on top and an
-  // accent label. Both labels are bound; one shows.
+  // A tab is a square with its icon, like the creative inventory's tabs: its
+  // label shows as the tooltip while the pointer is on it (or a finger holds
+  // it), so any number of tabs fits over an inventory-sized window. The
+  // selected one (§0§2§r) is raised.
+  "tab_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - '§0§1§r' - '§0§2§r')",
+        "target_property_name": "#hover_text"
+      }
+    ]
+  },
+  "tab_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_tab_texture|default": "textures/ui/TabTopBack",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      {
+        "selected@df_form.vis_tab_on": {
+          "type": "image",
+          "texture": "textures/ui/TabTopFront",
+          "size": [ "100%", "100% + 2px" ],
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
+          "layer": 2
+        }
+      },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 14, 14 ] } }
+    ]
+  },
+  "tab_face_tip@df_form.tab_face": {
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      {
+        "selected@df_form.vis_tab_on": {
+          "type": "image",
+          "texture": "textures/ui/TabTopFront",
+          "size": [ "100%", "100% + 2px" ],
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
+          "layer": 2
+        }
+      },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 14, 14 ] } },
+      { "tip@df_form.tab_tip": {} }
+    ]
+  },
   "tab_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 52, 22 ],
+    "size": [ 24, 22 ],
     "anchor_from": "bottom_left",
     "anchor_to": "bottom_left",
     "default_control": "default",
@@ -625,77 +655,9 @@
       }
     ],
     "controls": [
-      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/TabTopBack" } },
-      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/TabTopBackHover" } },
-      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/TabTopBackHover" } },
-      {
-        "selected@df_form.vis_tab_on": {
-          "type": "image",
-          "texture": "textures/ui/TabTopFront",
-          "size": [ "100%", "100% + 2px" ],
-          "anchor_from": "bottom_left",
-          "anchor_to": "bottom_left",
-          "layer": 2
-        }
-      },
-      {
-        "icon@df_form.button_icon": {
-          "$df_icon_size": [ 12, 12 ],
-          "offset": [ 3, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle"
-        }
-      },
-      {
-        "text": {
-          "type": "label",
-          "layer": 3,
-          "text": "#form_button_text",
-          "color": [ 0.95, 0.95, 0.95 ],
-          "font_scale_factor": 0.8,
-          "size": [ "100% - 18px", "default" ],
-          "offset": [ 17, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "((#form_button_text - '§0§2§r') = #form_button_text)",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        "text_on": {
-          "type": "label",
-          "layer": 3,
-          "text": "#form_button_text",
-          "color": [ 0.2, 0.2, 0.2 ],
-          "font_scale_factor": 0.8,
-          "size": [ "100% - 18px", "default" ],
-          "offset": [ 17, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '§0§2§r') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      }
+      { "default@df_form.tab_face": {} },
+      { "hover@df_form.tab_face_tip": { "$df_tab_texture": "textures/ui/TabTopBackHover" } },
+      { "pressed@df_form.tab_face_tip": { "$df_tab_texture": "textures/ui/TabTopBackHover" } }
     ]
   },
 
@@ -917,19 +879,37 @@
     "anchor_to": "top_left",
     "controls": [
       { "generated_form@server_form.generated_contents": {} },
-      { "submit@df_form.custom_submit": {} }
+      { "submit@df_form.custom_submit": {} },
+      { "create@df_form.custom_create": {} }
     ]
   },
 
+  // The submit button reads "확인", or "생성하기" when the title has
+  // ui.CreateToken (§d§f§e§r: a new save slot is created).
   "custom_submit@common_buttons.light_text_button": {
     "$pressed_button_name": "button.submit_custom_form",
-    "size": [ "100%", 32 ],
-    "$button_text": "df.submit",
+    "size": [ "100%", 30 ],
+    "$button_text": "dfui.submit",
     "$button_text_binding_type": "none",
     "bindings": [
+      { "binding_name": "#submit_button_visible" },
+      { "binding_name": "#title_text", "binding_type": "global" },
       {
-        "binding_name": "#submit_button_visible",
-        "binding_name_override": "#visible"
+        "binding_type": "view",
+        "source_property_name": "(#submit_button_visible and ((#title_text - '§d§f§e§r') = #title_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "custom_create@df_form.custom_submit": {
+    "$button_text": "dfui.create",
+    "bindings": [
+      { "binding_name": "#submit_button_visible" },
+      { "binding_name": "#title_text", "binding_type": "global" },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#submit_button_visible and (not ((#title_text - '§d§f§e§r') = #title_text)))",
+        "target_property_name": "#visible"
       }
     ]
   },
@@ -958,10 +938,10 @@
   "card_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
-    "$df_card_size|default": [ 290, 178 ],
+    "$df_card_size|default": [ 296, 166 ],
     "$df_card_title|default": true,
-    "$df_card_offset|default": [ 0, 45 ],
-    "$df_card_content|default": [ "100% - 12px", "100% - 51px" ],
+    "$df_card_offset|default": [ 0, 18 ],
+    "$df_card_content|default": [ "100% - 12px", "100% - 24px" ],
     "controls": [
       {
         "window@df_form.window": {
@@ -1041,7 +1021,7 @@
   // Marked buttons (tabs, back) leave an empty cell; they come last.
   "card@df_form.unmarked_visible": {
     "type": "panel",
-    "size": [ 90, 60 ],
+    "size": [ 90, 50 ],
     "controls": [ { "button@df_form.card_button": {} } ]
   },
 
@@ -1054,7 +1034,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 360, 220 ],
+          "$df_window_size": [ 318, 166 ],
           "$df_content": "df_form.shop_scroll"
         }
       }
@@ -1103,7 +1083,7 @@
               // left column (9th playtest).
               "cards": {
                 "type": "grid",
-                "size": [ 336, "100%c" ],
+                "size": [ 300, "100%c" ],
                 "anchor_from": "top_middle",
                 "anchor_to": "top_middle",
                 "grid_rescaling_type": "horizontal",
@@ -1128,11 +1108,11 @@
   // shop_card is a small, inventory-like cell: icon, name and price.
   "shop_card@df_form.unmarked_visible": {
     "type": "panel",
-    "size": [ 56, 48 ],
+    "size": [ 50, 46 ],
     "controls": [
       {
         "button@df_form.card_button": {
-          "size": [ 54, 46 ],
+          "size": [ 48, 44 ],
           "$df_card_icon": [ 16, 16 ],
           "$df_card_font": 0.6
         }
@@ -1143,9 +1123,9 @@
   "card_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "$df_card_icon|default": [ 30, 30 ],
+    "$df_card_icon|default": [ 22, 22 ],
     "$df_card_font|default": 0.8,
-    "size": [ 86, 56 ],
+    "size": [ 86, 46 ],
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -1201,7 +1181,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 320, 220 ],
+          "$df_window_size": [ 322, 166 ],
           "$df_content": "df_form.table_scroll"
         }
       }
@@ -1243,7 +1223,7 @@
             {
               "cells": {
                 "type": "grid",
-                "size": [ 320, "100%c" ],
+                "size": [ 304, "100%c" ],
                 "anchor_from": "top_middle",
                 "anchor_to": "top_middle",
                 "grid_rescaling_type": "horizontal",
@@ -1282,7 +1262,7 @@
   // last and leave empty cells.
   "table_cell@df_form.vis_cell": {
     "type": "panel",
-    "size": [ 80, 20 ],
+    "size": [ 76, 20 ],
     "controls": [
       { "line": { "type": "image", "texture": "textures/ui/df/slot", "size": [ "100%", 1 ], "anchor_from": "bottom_middle", "anchor_to": "bottom_middle", "alpha": 0.5 } },
       {
@@ -1952,7 +1932,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 420, 300 ],
+          "$df_window_size": [ 326, 166 ],
           "$df_content": "df_form.gslot_detail_scroll"
         }
       }
@@ -1982,7 +1962,7 @@
         "left": {
           "type": "image",
           "texture": "textures/ui/df/panel",
-          "size": [ 190, "100%c + 12px" ],
+          "size": [ 150, "100%c + 12px" ],
           "controls": [
             {
               "inner": {
@@ -2194,13 +2174,13 @@
   },
   "cols_a_full@df_form.vis_cols_a": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "cols_a_mini@df_form.vis_cols_am": {
     "type": "panel",
-    "size": [ 16, 24 ],
+    "size": [ 14, 18 ],
     "controls": [ { "btn@df_form.cols_mini_button": {} } ]
   },
   "cols_a_item": {
@@ -2213,13 +2193,13 @@
   },
   "cols_b_full@df_form.vis_cols_b": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "cols_b_mini@df_form.vis_cols_bm": {
     "type": "panel",
-    "size": [ 16, 24 ],
+    "size": [ 14, 18 ],
     "controls": [ { "btn@df_form.cols_mini_button": {} } ]
   },
   "cols_b_item": {
@@ -2251,7 +2231,7 @@
   "cols_mini_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 14, 14 ],
+    "size": [ 13, 13 ],
     "anchor_from": "left_middle",
     "anchor_to": "left_middle",
     "default_control": "default",
@@ -2280,7 +2260,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 340, 240 ],
+          "$df_window_size": [ 326, 166 ],
           "$df_content": "df_form.gslot_cols_scroll"
         }
       }
@@ -2457,10 +2437,10 @@
   },
   "gdetail_icon_item@df_form.vis_gdetail": {
     "type": "panel",
-    "size": [ 44, 44 ],
+    "size": [ 36, 36 ],
     "controls": [
       { "bg@df_form.state_image": { "$df_state_texture": "textures/ui/cell_image" } },
-      { "icon@df_form.button_icon": { "$df_icon_size": [ 32, 32 ], "anchor_from": "center", "anchor_to": "center" } }
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 28, 28 ], "anchor_from": "center", "anchor_to": "center" } }
     ]
   },
   "gdetail_name_item@df_form.vis_gdetail": {
@@ -2497,7 +2477,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 280, 240 ],
+          "$df_window_size": [ 224, 166 ],
           "$df_content": "df_form.gslot_wrap_scroll"
         }
       }
@@ -2516,7 +2496,7 @@
     "$scroll_bar_right_padding_size": [ 0, 0 ]
   },
 
-  // The wrapping grid holds 11 slots (24px) per row; the buttons that are
+  // The wrapping grid holds 11 slots (18px, like the inventory) per row; the buttons that are
   // not slots (back, actions) come last and leave empty cells.
   "gslot_wrap_content": {
     "type": "stack_panel",
@@ -2525,7 +2505,7 @@
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
-      { "tabgap": { "type": "panel", "size": [ "100%", 6 ] } },
+      { "tabgap": { "type": "panel", "size": [ "100%", 2 ] } },
       {
         "body": {
           "type": "panel",
@@ -2546,7 +2526,7 @@
             {
               "slots": {
                 "type": "grid",
-                "size": [ 264, "100%c" ],
+                "size": [ 198, "100%c" ],
                 "anchor_from": "top_middle",
                 "anchor_to": "top_middle",
                 "grid_rescaling_type": "horizontal",
@@ -2578,7 +2558,7 @@
   // its text runs over the empty cells after it), or nothing (pad cells).
   "gslot_cell": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [
       { "slot@df_form.gslot_w_item": {} },
       { "head@df_form.gslot_grid_head": {} }
@@ -2587,7 +2567,7 @@
 
   "gslot_grid_head@df_form.vis_gslot_h1": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [
       {
         "text": {
@@ -2619,19 +2599,19 @@
   // The three slot kinds differ only in the marker they show for.
   "gslot_a_item@df_form.vis_gslot_a": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "gslot_b_item@df_form.vis_gslot_b": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
   "gslot_w_item@df_form.vis_gslot_w": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
@@ -2813,7 +2793,7 @@
   "gslot_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 22, 22 ],
+    "size": [ 18, 18 ],
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -2904,9 +2884,108 @@
     ]
   },
 
-  // Wider tabs for the split form (two of them fit over its grid).
+  // The research screen's two tabs are wide enough for their label and count
+  // (two of them fit over its window).
+  "split_tab_label": {
+    "type": "label",
+    "layer": 3,
+    "text": "#df_tab_label",
+    "color": "$df_tab_color",
+    "font_scale_factor": 0.8,
+    "size": [ "100% - 18px", "default" ],
+    "offset": [ 17, 0 ],
+    "anchor_from": "left_middle",
+    "anchor_to": "left_middle",
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - '§0§1§r' - '§0§2§r')",
+        "target_property_name": "#df_tab_label"
+      }
+    ]
+  },
+  "split_tab_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_tab_texture|default": "textures/ui/TabTopBack",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      {
+        "selected@df_form.vis_tab_on": {
+          "type": "image",
+          "texture": "textures/ui/TabTopFront",
+          "size": [ "100%", "100% + 2px" ],
+          "anchor_from": "bottom_left",
+          "anchor_to": "bottom_left",
+          "layer": 2
+        }
+      },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 12, 12 ],
+          "offset": [ 3, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        "text@df_form.split_tab_label": {
+          "$df_tab_color": [ 0.95, 0.95, 0.95 ],
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#form_button_text - '§0§1§r' - '§0§2§r')",
+              "target_property_name": "#df_tab_label"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#form_button_text - '§0§2§r') = #form_button_text)",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "text_on@df_form.split_tab_label": {
+          "$df_tab_color": [ 0.2, 0.2, 0.2 ],
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#form_button_text - '§0§1§r' - '§0§2§r')",
+              "target_property_name": "#df_tab_label"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#form_button_text - '§0§2§r') = #form_button_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
   "split_tab_button@df_form.tab_button": {
-    "size": [ 96, 22 ]
+    "size": [ 96, 22 ],
+    "controls": [
+      { "default@df_form.split_tab_face": {} },
+      { "hover@df_form.split_tab_face": { "$df_tab_texture": "textures/ui/TabTopBackHover" } },
+      { "pressed@df_form.split_tab_face": { "$df_tab_texture": "textures/ui/TabTopBackHover" } }
+    ]
   },
   "split_tab_item@df_form.vis_tab": {
     "type": "panel",
@@ -2930,18 +3009,6 @@
       }
     ]
   },
-  "split_tabs": {
-    "type": "panel",
-    "size": [ "100%", "100%cm" ],
-    "controls": [
-      {
-        "strip@df_form.marked_split_tabs": {
-          "orientation": "horizontal",
-          "size": [ "100%", "100%cm" ]
-        }
-      }
-    ]
-  },
 
   "gslot_sel_button@df_form.gslot_button": {
     "controls": [
@@ -2954,7 +3021,7 @@
 
   "split_cell": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [
       { "slot@df_form.split_slot": {} },
       { "chosen@df_form.split_chosen": {} },
@@ -2963,36 +3030,77 @@
   },
   "split_slot@df_form.vis_gslot_w": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [ { "slot@df_form.gslot_button": {} } ]
   },
   "split_chosen@df_form.vis_gslot_sel": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [ { "slot@df_form.gslot_sel_button": {} } ]
   },
   "split_empty@df_form.vis_gslot_empty": {
     "type": "panel",
-    "size": [ 24, 24 ],
+    "size": [ 18, 18 ],
     "controls": [
-      { "bg": { "type": "image", "texture": "textures/ui/cell_image", "size": [ 22, 22 ] } }
+      { "bg": { "type": "image", "texture": "textures/ui/cell_image", "size": [ 18, 18 ] } }
     ]
   },
 
+  // A page button under the split grid: half the grid's width, a small arrow
+  // and small text.
   "pager_item@df_form.vis_pager": {
     "type": "panel",
-    "size": [ 96, 22 ],
-    "controls": [ { "button@df_form.list_button": { "size": [ "100%", "100%" ] } } ]
+    "size": [ 72, 16 ],
+    "controls": [ { "button@df_form.pager_button": {} } ]
+  },
+  "pager_button@df_form.list_button": {
+    "size": [ 71, 16 ],
+    "controls": [
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 10, 10 ],
+          "offset": [ 3, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#form_button_text",
+          "color": [ 0.95, 0.95, 0.97 ],
+          "font_scale_factor": 0.7,
+          "size": [ "100% - 15px", "default" ],
+          "offset": [ 14, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
   },
 
+  // The split form fills the inventory-sized window: its tabs sit on the
+  // window's top edge like the other forms' tabs, the grid of 18px slots on
+  // the left and the detail on the right.
   "split_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 460, 264 ],
-          "$df_tabs": "df_form.no_tabs",
+          "$df_window_size": [ 326, 166 ],
+          "$df_tabs": "df_form.marked_split_tabs",
           "$df_content": "df_form.split_body"
         }
       }
@@ -3013,23 +3121,21 @@
           "texture": "textures/ui/df/panel",
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "size": [ 212, "100%c + 12px" ],
+          "size": [ 152, "100%c + 8px" ],
           "controls": [
             {
               "inner": {
                 "type": "stack_panel",
                 "orientation": "vertical",
-                "size": [ "100% - 12px", "100%c" ],
-                "offset": [ 6, 6 ],
+                "size": [ "100% - 8px", "100%c" ],
+                "offset": [ 4, 4 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
-                  { "tabs@df_form.split_tabs": {} },
-                  { "tabgap": { "type": "panel", "size": [ "100%", 6 ] } },
                   {
                     "grid": {
                       "type": "grid",
-                      "size": [ 192, 120 ],
+                      "size": [ 144, 90 ],
                       "anchor_from": "top_middle",
                       "anchor_to": "top_middle",
                       "grid_dimensions": [ 8, 5 ],
@@ -3038,7 +3144,7 @@
                       "collection_name": "form_buttons"
                     }
                   },
-                  { "gap": { "type": "panel", "size": [ "100%", 6 ] } },
+                  { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
                   {
                     "pager@df_form.marked_pager": {
                       "orientation": "horizontal",
@@ -3060,9 +3166,9 @@
   "split_right_scroll@common.scrolling_panel": {
     "anchor_to": "top_left",
     "anchor_from": "top_left",
-    "offset": [ 220, 0 ],
+    "offset": [ 156, 0 ],
     "$show_background": false,
-    "size": [ "100% - 220px", "100%" ],
+    "size": [ "100% - 156px", "100%" ],
     "$scrolling_content": "df_form.split_right",
     "$scroll_size": [ 4, "100% - 4px" ],
     "$scrolling_pane_size": [ "100% - 6px", "100%" ],
@@ -3078,14 +3184,14 @@
         "split_right_body": {
           "type": "image",
           "texture": "textures/ui/df/panel",
-          "size": [ "100% - 4px", "100%c + 12px" ],
+          "size": [ "100%", "100%c + 8px" ],
           "controls": [
             {
               "inner": {
                 "type": "stack_panel",
                 "orientation": "vertical",
-                "size": [ "100% - 12px", "100%c" ],
-                "offset": [ 6, 6 ],
+                "size": [ "100% - 8px", "100%c" ],
+                "offset": [ 4, 4 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
@@ -3301,7 +3407,7 @@
   },
   "list_row_item@df_form.vis_list_any_row": {
     "type": "panel",
-    "size": [ "100%", 34 ],
+    "size": [ "100%", 30 ],
     "controls": [
       { "plain@df_form.list_row_plain": {} },
       { "chosen@df_form.list_row_chosen": {} }
@@ -3309,19 +3415,19 @@
   },
   "list_row_plain@df_form.vis_list_row": {
     "type": "panel",
-    "size": [ "100%", 34 ],
+    "size": [ "100%", 30 ],
     "controls": [ { "button@df_form.list_row_button": {} } ]
   },
   "list_row_chosen@df_form.vis_list_row_on": {
     "type": "panel",
-    "size": [ "100%", 34 ],
+    "size": [ "100%", 30 ],
     "controls": [ { "button@df_form.list_row_button_on": {} } ]
   },
 
   "list_row_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ "100%", 34 ],
+    "size": [ "100%", 30 ],
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -3350,7 +3456,7 @@
           "text": "#df_name",
           "color": [ 0.95, 0.95, 0.97 ],
           "size": [ "100% - 36px", "default" ],
-          "offset": [ 32, 4 ],
+          "offset": [ 30, 3 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
           "bindings": [
@@ -3377,7 +3483,7 @@
           "color": [ 0.8, 0.8, 0.82 ],
           "font_scale_factor": 0.7,
           "size": [ "100% - 34px", "default" ],
-          "offset": [ 32, 20 ],
+          "offset": [ 30, 17 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
           "bindings": [
@@ -3416,7 +3522,7 @@
           "text": "#df_name",
           "color": [ 1, 1, 1 ],
           "size": [ "100% - 36px", "default" ],
-          "offset": [ 32, 4 ],
+          "offset": [ 30, 3 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
           "bindings": [
@@ -3441,7 +3547,7 @@
           "color": [ 0.85, 0.85, 0.88 ],
           "font_scale_factor": 0.7,
           "size": [ "100% - 34px", "default" ],
-          "offset": [ 32, 20 ],
+          "offset": [ 30, 17 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
           "bindings": [
@@ -3467,7 +3573,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 396, 172 ],
+          "$df_window_size": [ 326, 126 ],
           "$df_tabs": "df_form.no_tabs",
           "$df_content": "df_form.list_split_body"
         }
@@ -3485,14 +3591,14 @@
           "texture": "textures/ui/df/panel",
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "size": [ 190, "100%c + 12px" ],
+          "size": [ 156, "100%c + 8px" ],
           "controls": [
             {
               "inner": {
                 "type": "stack_panel",
                 "orientation": "vertical",
-                "size": [ "100% - 12px", "100%c" ],
-                "offset": [ 6, 6 ],
+                "size": [ "100% - 8px", "100%c" ],
+                "offset": [ 4, 4 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
@@ -3507,9 +3613,9 @@
         "right_scroll@common.scrolling_panel": {
           "anchor_to": "top_left",
           "anchor_from": "top_left",
-          "offset": [ 198, 0 ],
+          "offset": [ 160, 0 ],
           "$show_background": false,
-          "size": [ "100% - 198px", "100%" ],
+          "size": [ "100% - 160px", "100%" ],
           "$scrolling_content": "df_form.list_split_right",
           "$scroll_size": [ 4, "100% - 4px" ],
           "$scrolling_pane_size": [ "100% - 6px", "100%" ],
@@ -3530,7 +3636,6 @@
           "orientation": "vertical",
           "size": [ "100%", "100%c" ],
           "controls": [
-            { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
             {
               "body": {
                 "type": "panel",
@@ -3542,7 +3647,7 @@
                 "controls": [ { "label@df_form.body_label": {} } ]
               }
             },
-            { "gap2": { "type": "panel", "size": [ "100%", 8 ] } },
+            { "gap2": { "type": "panel", "size": [ "100%", 4 ] } },
             { "actions@df_form.list_split_actions": {} }
           ]
         }
@@ -3556,7 +3661,7 @@
   // so a column marker (ui.ListSplitMenu) puts each button in its cell.
   "list_split_actions": {
     "type": "panel",
-    "size": [ "100%", 104 ],
+    "size": [ "100%", 94 ],
     "controls": [
       {
         "primary@df_form.marked_list_primary": {
@@ -3571,15 +3676,15 @@
           "type": "panel",
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "offset": [ 0, 36 ],
-          "size": [ "100%", 68 ],
+          "offset": [ 0, 32 ],
+          "size": [ "100%", 62 ],
           "controls": [
             {
               "col_a@df_form.marked_list_col_a": {
                 "orientation": "vertical",
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
-                "size": [ 86, 68 ]
+                "size": [ "50% - 2px", 62 ]
               }
             },
             {
@@ -3587,7 +3692,7 @@
                 "orientation": "vertical",
                 "anchor_from": "top_right",
                 "anchor_to": "top_right",
-                "size": [ 86, 68 ]
+                "size": [ "50% - 2px", 62 ]
               }
             }
           ]
@@ -3694,17 +3799,17 @@
   // does not show), as tall as a row.
   "list_primary_item@df_form.vis_list_primary": {
     "type": "panel",
-    "size": [ "100%", 32 ],
+    "size": [ "100%", 31 ],
     "controls": [ { "button@df_form.list_button": {} } ]
   },
   "list_col_a_item@df_form.vis_list_col_a": {
     "type": "panel",
-    "size": [ "100%", 32 ],
+    "size": [ "100%", 31 ],
     "controls": [ { "button@df_form.list_button": {} } ]
   },
   "list_col_b_item@df_form.vis_list_col_b": {
     "type": "panel",
-    "size": [ "100%", 32 ],
+    "size": [ "100%", 31 ],
     "controls": [ { "button@df_form.list_button": {} } ]
   },
 
@@ -3719,7 +3824,7 @@
   "tree_strip": {
     "type": "image",
     "layer": 2,
-    "size": [ 6, 27 ],
+    "size": [ 5, 23 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "texture": "#texture",
@@ -3771,7 +3876,7 @@
   "tree_frame": {
     "type": "image",
     "layer": 2,
-    "size": [ 26, 26 ],
+    "size": [ 22, 22 ],
     "texture": "#texture",
     "bindings": [
       {
@@ -3796,7 +3901,7 @@
   "tree_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 26, 26 ],
+    "size": [ 22, 22 ],
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -3816,14 +3921,14 @@
     "type": "panel",
     "size": [ "100%", "100%" ],
     "controls": [
-      { "light": { "type": "image", "layer": 6, "size": [ 26, 26 ], "texture": "textures/ui/df/tree_hl" } },
+      { "light": { "type": "image", "layer": 6, "size": [ 22, 22 ], "texture": "textures/ui/df/tree_hl" } },
       { "tip@df_form.gslot_hover_tip": {} }
     ]
   },
   "tree_node@df_form.vis_tree_node": {
     "type": "panel",
-    "size": [ 26, 26 ],
-    "offset": [ 6, 0 ],
+    "size": [ 22, 22 ],
+    "offset": [ 5, 0 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
@@ -3834,7 +3939,7 @@
   },
   "tree_cell": {
     "type": "panel",
-    "size": [ 32, 27 ],
+    "size": [ 27, 23 ],
     "controls": [
       { "strip@df_form.tree_strip": {} },
       { "node@df_form.tree_node": {} }
@@ -3877,24 +3982,24 @@
     "type": "panel",
     "size": [ "100%", "100%" ],
     "controls": [
-      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 28, 32 ], "layer": 1 } },
-      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 28, 36 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
+      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 24, 26 ], "layer": 1 } },
+      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 24, 29 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
       { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } }
     ]
   },
   "tree_tab_face_tip@df_form.tree_tab_face": {
     "controls": [
-      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 28, 32 ], "layer": 1 } },
-      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 28, 36 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
+      { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 24, 26 ], "layer": 1 } },
+      { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 24, 29 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
       { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } },
-      { "light": { "type": "image", "layer": 6, "size": [ 28, 32 ], "texture": "textures/ui/df/tree_hl" } },
+      { "light": { "type": "image", "layer": 6, "size": [ 24, 26 ], "texture": "textures/ui/df/tree_hl" } },
       { "tip@df_form.tree_tab_tip": {} }
     ]
   },
   "tree_tab_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 28, 32 ],
+    "size": [ 24, 26 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "default_control": "default",
@@ -3914,7 +4019,7 @@
   },
   "tree_tab_item@df_form.vis_tab": {
     "type": "panel",
-    "size": [ 30, 32 ],
+    "size": [ 26, 26 ],
     "controls": [ { "button@df_form.tree_tab_button": {} } ]
   },
   "marked_tree_tabs": {
@@ -3940,15 +4045,15 @@
     "text": "#df_title",
     "color": [ 0.25, 0.25, 0.25 ],
     "size": [ "default", 10 ],
-    "offset": [ 0, 9 ],
+    "offset": [ 0, 6 ],
     "anchor_from": "top_middle",
     "anchor_to": "top_middle",
     "layer": 5,
     "bindings": [
-      { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "once" },
+      { "binding_name": "#title_text", "binding_type": "global" },
       {
-        "binding_type": "view", "binding_condition": "once",
-        "source_property_name": "(#title_text - '§d§f§z§r' - '§d§f§n§r')",
+        "binding_type": "view",
+        "source_property_name": "(#title_text - '§d§f§z§r')",
         "target_property_name": "#df_title"
       }
     ]
@@ -3958,7 +4063,7 @@
     "text": "#form_text",
     "color": [ 0.25, 0.25, 0.25 ],
     "size": [ "default", 10 ],
-    "offset": [ -8, 9 ],
+    "offset": [ -8, 6 ],
     "anchor_from": "top_right",
     "anchor_to": "top_right",
     "layer": 5
@@ -3971,26 +4076,22 @@
       {
         "window": {
           "type": "panel",
-          "$df_anims_tree|default": [ "@df_form.tree_slide_in", "@df_form.window_fade_in" ],
-          "anims": "$df_anims_tree",
-          "propagate_alpha": true,
-          "size": [ 404, "100% - 72px" ],
-          "max_size": [ 404, 330 ],
+          "size": [ 326, 166 ],
           "anchor_from": "center",
           "anchor_to": "center",
-          "offset": [ 0, 18 ],
+          "offset": [ 0, 12 ],
           "controls": [
             { "dim": { "type": "image", "texture": "textures/ui/Black", "alpha": 0.5, "keep_ratio": false, "size": [ 4000, 4000 ], "anchor_from": "center", "anchor_to": "center", "layer": -8 } },
             { "frame": { "type": "image", "texture": "textures/ui/df/tree_window", "size": [ "100%", "100%" ], "layer": 2 } },
             { "title@df_form.tree_title": {} },
             { "progress@df_form.tree_progress": {} },
             { "chrome@df_form.control_bar": {} },
-            { "inset": { "type": "image", "texture": "textures/ui/df/tree_inset", "size": [ "100% - 16px", "100% - 31px" ], "offset": [ 8, 23 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 3 } },
+            { "inset": { "type": "image", "texture": "textures/ui/df/tree_inset", "size": [ "100% - 12px", "100% - 24px" ], "offset": [ 6, 18 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 3 } },
             {
               "viewport": {
                 "type": "panel",
-                "size": [ "100% - 18px", "100% - 33px" ],
-                "offset": [ 9, 24 ],
+                "size": [ "100% - 14px", "100% - 26px" ],
+                "offset": [ 7, 19 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "clips_children": true,
@@ -4004,8 +4105,8 @@
             {
               "tabs@df_form.marked_tree_tabs": {
                 "orientation": "horizontal",
-                "size": [ "100%c", 32 ],
-                "offset": [ 6, -28 ],
+                "size": [ "100%c", 26 ],
+                "offset": [ 6, -23 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "layer": 6
@@ -4029,13 +4130,13 @@
   },
   "tree_content": {
     "type": "panel",
-    "size": [ "100%", 591 ],
+    "size": [ "100%", 491 ],
     "controls": [
       {
         "grid": {
           "type": "grid",
-          "size": [ 352, 567 ],
-          "offset": [ 8, 12 ],
+          "size": [ 297, 483 ],
+          "offset": [ 4, 4 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
           "grid_dimensions": [ 11, 21 ],

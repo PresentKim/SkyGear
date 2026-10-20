@@ -2,8 +2,6 @@ package ui
 
 import (
 	"testing"
-
-	"github.com/google/uuid"
 )
 
 func TestOnPanel(t *testing.T) {
@@ -31,32 +29,5 @@ func TestOnPanelLabel(t *testing.T) {
 		if got := onPanelLabel(label); got != label {
 			t.Errorf("%q changed to %q", label, got)
 		}
-	}
-}
-
-// TestResending: a form sent while a button callback of another form runs is a
-// form sent again (the window does not slide); one sent outside a callback, or
-// after it returned, is a new screen and slides up.
-func TestResending(t *testing.T) {
-	id := uuid.New()
-	if resendingOf(id) {
-		t.Error("no press before it")
-	}
-	enterPressOf(id)
-	if !resendingOf(id) {
-		t.Error("sent during the callback")
-	}
-	enterPressOf(id)
-	leavePressOf(id)
-	if !resendingOf(id) {
-		t.Error("the outer callback still runs")
-	}
-	leavePressOf(id)
-	if resendingOf(id) {
-		t.Error("the callback finished")
-	}
-	leavePressOf(id) // an extra leave must not go negative
-	if resendingOf(id) {
-		t.Error("left behind by an extra leave")
 	}
 }

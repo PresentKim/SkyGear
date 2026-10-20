@@ -335,5 +335,4 @@ tile.dragonfactory:item_vacuum.name=Item Vacuum
 item.dragonfactory:tree_feller.name=Tree Feller
 tile.dragonfactory:tree_feller.name=Tree Feller
 df.search.placeholder=검색
-df.submit=Create
 df.lobby.title=DragonFactory
