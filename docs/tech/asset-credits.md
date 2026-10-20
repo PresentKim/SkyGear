@@ -28,7 +28,11 @@
 | Botania, Immersive Engineering | 에셋 조건이 단순 허용형이 아니어서 쓰지 않음 |
 | Industrial Foregoing | 저장소는 MIT 이지만 그림이 외부 텍스처 팩(Unity)의 것이라 그 팩의 허락이 확인되지 않음 |
 
-그래서 체·메쉬·통(배럴)·마법 식물·꽃잎·정수·나무 양동이처럼 그런 모드의 요소를 따온 텍스처는 가져오지 않았고, 기존 그림 그대로다.
+그래서 체·메쉬·통(배럴)처럼 그런 모드의 요소를 따온 텍스처는 가져오지 않았고, 기존 그림 그대로다.
+
+## 생성한 그림
+
+몹 정수(`essence_*`), 꽃잎(`petal_*`), 씨앗(`seed_*`), 장비 제작대 도구(`tool_*`), 나무 양동이(`wooden_*bucket`), 마법 식물(`blocks/plant_*`), 가루 블록(`blocks/dust`)은 deep-pixels.com 의 픽셀아트 모델로 만든 16×16 그림이다(아이템·식물은 `ultimate-extreme-turbo-lv2-opiniated-item-16px-v1`, 가루는 `ultimate-extreme-mc-block-hq-16-v1`). 모델이 한 요청에 내는 네 안 중 하나를 골라 배경을 지우고, 식물은 블록 바닥에 닿게 가운데 맞췄다. PNG 가 원본이므로 바꿀 때는 그림을 직접 갈아 끼운다.
 
 ## 손대지 않은 그림
 
