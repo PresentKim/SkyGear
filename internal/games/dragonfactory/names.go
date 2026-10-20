@@ -1,8 +1,8 @@
 package dragonfactory
 
 import (
-	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/timed"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/timed"
 )
 
 // Time-limited item messages use the Korean names.

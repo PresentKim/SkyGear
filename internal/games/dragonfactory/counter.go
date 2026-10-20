@@ -5,8 +5,8 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // The counter achievements of the game (docs/design/01-platform.md §5,

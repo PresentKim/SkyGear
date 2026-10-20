@@ -35,7 +35,7 @@
 
 ## 서버 부하 표시
 
-운영자가 `/dfadmin tps` 로 켜고 끈다(플레이어마다, 서버를 다시 켜면 꺼짐; 로비에서도 됨). 켜면 HUD 왼쪽 위(일차 줄 아래)에 1초마다 한 줄로 보인다(로비에서는 그 줄만). 코드: `internal/perf`(`Line`, `Toggle`), `platform/load.go`, `dragonfactory/sidebar.go`.
+운영자가 `/dfadmin tps` 로 켜고 끈다(플레이어마다, 서버를 다시 켜면 꺼짐; 로비에서도 됨). 켜면 HUD 왼쪽 위(일차 줄 아래)에 1초마다 한 줄로 보인다(로비에서는 그 줄만). 코드: `common/perf`(`Line`, `Toggle`), `platform/load.go`, `dragonfactory/sidebar.go`.
 
 `TPS 20.0 · 부하 12% · 틱 6.1ms/9.7ms · 메모리 76MB`
 

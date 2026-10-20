@@ -7,7 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // TestAdvancementTreeIsValid: ids are unique, parents come before their

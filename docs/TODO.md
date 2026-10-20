@@ -171,7 +171,7 @@
 
 ### 발전과제 트리 화면 ([advancement-tree.md](tech/advancement-tree.md))
 - 실기 확인: 노드 틀 3종·상태 색, 연결선 이음, 고른 노드 테두리, 호버 글, 화살표 창 이동, 탭 5개, 모바일 터치, 칸 48개 열림 시간.
-- 텍스처는 `tools/treetex` 자리표시 그림이다. 직접 그린 그림으로 교체한다.
+- 텍스처는 common `tools/treetex` 자리표시 그림이다(`packs/dfui`). 직접 그린 그림으로 교체한다.
 - 달성 토스트를 BedrockAdvancements 식 HUD 제목 표식으로 그릴지(지금은 엔진 토스트).
 
 ### 회색 테마 ([ui-style.md](tech/ui-style.md))

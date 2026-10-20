@@ -1,5 +1,5 @@
 // vanillakeys builds, from the official texts, the vanilla names of the game:
-// internal/i18n/locales/{en,ko}.vanilla.json (names of every vanilla block
+// internal/locales/{en,ko}.vanilla.json (names of every vanilla block
 // and item, "vanilla.<id>") and internal/games/dragonfactory/vanillakeys.json: for every
 // vanilla block whose name the client does not find under "tile.<id>.name"
 // (modern block IDs like oak_planks are named by legacy keys such as
@@ -7,7 +7,7 @@
 // official English texts (Mojang/bedrock-samples, resource_pack/texts/en_US.lang):
 // the block's English name in Dragonfly is looked up among the values.
 //
-//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/dragonfactory/vanillakeys.json internal/i18n/locales
+//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/dragonfactory/vanillakeys.json internal/locales
 package main
 
 import (

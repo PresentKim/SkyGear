@@ -11,9 +11,9 @@ import (
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/textsearch"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/textsearch"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // The codex as a recipe viewer (docs/tech/codex-jei.md): an index of every

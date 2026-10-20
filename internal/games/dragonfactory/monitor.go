@@ -11,9 +11,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // The machine list and the stall alerts (docs/design/12-production-monitor.md

@@ -1,8 +1,9 @@
 package platform
 
 import (
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 )
 
 // The achievements of the account itself, not of a game: coming back.

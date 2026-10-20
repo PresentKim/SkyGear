@@ -10,8 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // The tinker table: a click opens a menu to make a tool (kind, head metal,

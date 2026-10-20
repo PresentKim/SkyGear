@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // Form button icons of menu entries that are no item: vanilla texture paths

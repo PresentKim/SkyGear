@@ -3,7 +3,7 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // slotPageSize is how many item slots a page of a grid holds: a form with many

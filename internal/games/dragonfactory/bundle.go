@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/dfhook"
+	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"strconv"
 
@@ -14,8 +14,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )

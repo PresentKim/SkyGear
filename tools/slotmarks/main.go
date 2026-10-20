@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
-	"github.com/presentkim/dragonfactory/internal/slotdeco"
 )
 
 func main() {

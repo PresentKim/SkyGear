@@ -7,7 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
 // The laboratory (docs/design/11-research-essences.md): it brews a research

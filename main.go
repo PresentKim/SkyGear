@@ -17,16 +17,18 @@ import (
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
+	"github.com/presentkim/dragonfactory/common/backup"
+	"github.com/presentkim/dragonfactory/common/chestui"
+	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/packs"
+	"github.com/presentkim/dragonfactory/common/resourcepack"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/backup"
-	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/db"
-	"github.com/presentkim/dragonfactory/internal/dfhook"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 	"github.com/presentkim/dragonfactory/internal/platform"
-	"github.com/presentkim/dragonfactory/internal/resourcepack"
 )
 
 func main() {
@@ -77,14 +79,24 @@ func run(log *slog.Logger) error {
 			return fmt.Errorf("resource pack secret: %w", err)
 		}
 	}
-	packs := []string{"dragonfactory", "inventoryui", "waila"}
-	if pconf.ResourcePack.SlotDeco {
-		packs = append(packs, "slotdeco")
+	// This server's pack, then the common packs (form and HUD theme,
+	// chest windows, WAILA, slot decorations). The first pack is the top of
+	// the stack: this server's pack fills the hooks of the dfui theme.
+	dfPack, err := fs.Sub(packFS, "assets/resourcepack/dragonfactory")
+	if err != nil {
+		return fmt.Errorf("resource pack dragonfactory: %w", err)
 	}
-	for _, name := range packs {
-		dir, err := fs.Sub(packFS, "assets/resourcepack/"+name)
-		if err != nil {
-			return fmt.Errorf("resource pack %s: %w", name, err)
+	packDirs := map[string]fs.FS{"dragonfactory": dfPack}
+	packNames := []string{"dragonfactory", "dfui", "inventoryui", "waila"}
+	if pconf.ResourcePack.SlotDeco {
+		packNames = append(packNames, "slotdeco")
+	}
+	for _, name := range packNames {
+		dir, ok := packDirs[name]
+		if !ok {
+			if dir, err = packs.Sub(name); err != nil {
+				return fmt.Errorf("resource pack %s: %w", name, err)
+			}
 		}
 		pack, err := resourcepack.LoadFS(dir, name, packOpt)
 		if err != nil {

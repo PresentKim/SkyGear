@@ -7,8 +7,8 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // The combustion generator (docs/design/06-power-and-conduits.md §2): it

@@ -9,8 +9,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 )
 
 // Machines with a tank (docs/design/07-progression-expansion.md §6.1): the fluid

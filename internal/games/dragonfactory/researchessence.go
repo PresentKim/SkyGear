@@ -10,7 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
 // Research essences (docs/design/11-research-essences.md): a research of a

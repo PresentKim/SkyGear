@@ -6,7 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
 // OreChunk is a piece of ore, found by sieving gravel and sand (sievetable.go).

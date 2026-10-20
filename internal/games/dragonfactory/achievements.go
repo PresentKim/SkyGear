@@ -1,8 +1,9 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 )
 
 // Achievements of the game (docs/design/01-platform.md §5). Drafts. The

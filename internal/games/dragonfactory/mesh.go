@@ -9,7 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
 // Sieve meshes (docs/design/02-dragonfactory.md §6). A sieve is made

@@ -2,9 +2,9 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/slotdeco"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -17,8 +17,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/dragonfactory/common/chestui"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/chestui"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 

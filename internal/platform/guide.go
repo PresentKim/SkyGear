@@ -2,13 +2,13 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // GuideVersion is increased when the guide changes; players see it again once.

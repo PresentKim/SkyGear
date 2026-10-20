@@ -1,16 +1,19 @@
 # JSON UI (드래곤팩토리 테마)
 
 폼과 기계 창의 모양은 리소스팩 JSON UI 로 바꾼다. 서버는 폼 내용만 보내고, 모양은 클라이언트가 팩으로 그린다.
+폼·HUD 테마는 게임과 상관없어 common `packs/dfui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `dragonfactory` 팩에 있다. `main.go` 가 `dragonfactory` 를 `dfui` 보다 먼저(스택 위에) 싣는다.
 
 ## 파일
 
 | 파일 | 내용 |
 |---|---|
-| `assets/resourcepack/dragonfactory/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
-| `assets/resourcepack/dragonfactory/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼 |
+| `common/packs/dfui/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
+| `common/packs/dfui/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼. 글자는 팩 번역 키(`dfui.*`, `texts/*.lang`) |
+| `common/packs/dfui/ui/dfui_hooks.json` | 테마가 그리지만 서버 팩이 채우는 자리(`dfui_hooks` 네임스페이스): `lobby_frame`(로비 틀, 테마에서는 비어 있다)과 그것을 폼 배경에 표식으로 띄우는 `form_frame`. 서버 팩은 같은 경로의 파일에서 같은 이름을 다시 정의한다 |
+| `assets/resourcepack/dragonfactory/ui/dfui_hooks.json` | `dfui_hooks.lobby_frame` 을 `df_lobby.frame` 으로 채운다 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
-| `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
-| `assets/resourcepack/dragonfactory/textures/ui/df/*` | 테마 텍스처. `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽) |
+| `common/packs/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
+| `common/packs/dfui/textures/ui/df/*` | 테마 텍스처. common 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `dragonfactory` 팩에 있다 |
 
 ## 폼 (메뉴·확인·입력)
 
@@ -105,10 +108,10 @@
 
 ## 로비 입장기 틀
 
-로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/df_lobby.json` 의 `df_lobby.frame`): 위쪽 34px 어두운 띠에 게임 이름(`df.lobby.title`, MinecraftTen 글꼴), 아래쪽 16px 어두운 띠, 띠 경계의 금색 1px 선. 가운데는 비워 고정 카메라로 비춘 로비 섬이 보인다(`platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(Dragonfly 패치 `Player.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
+로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/df_lobby.json` 의 `df_lobby.frame`, 테마의 `dfui_hooks.lobby_frame` 을 채운다): 위쪽 34px 어두운 띠에 게임 이름(`df.lobby.title`, MinecraftTen 글꼴), 아래쪽 16px 어두운 띠, 띠 경계의 금색 1px 선. 가운데는 비워 고정 카메라로 비춘 로비 섬이 보인다(`platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(Dragonfly 패치 `Player.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
 
 - HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.
-- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `df_lobby.form_frame` 으로 바꿔 그 표식이 있으면 틀을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`df_form.window` 의 `dim`).
+- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `dfui_hooks.form_frame` 으로 바꿔 그 표식이 있으면 틀(`dfui_hooks.lobby_frame`)을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`df_form.window` 의 `dim`).
 - 제목 없는 카드 폼(`ui.CardMenu` 에 빈 제목 → `§d§f§u§r`, `ui.UntitledToken`): 제목 막대 없이 내용이 창 위 10px 에서 시작하고 창이 그만큼 낮다(`cards_u`·`cards_us`, 290×143). 로비 메뉴가 쓴다.
 
 ## 요령
@@ -121,7 +124,7 @@
 
 ## 폼 동작의 알림
 
-폼이 열려 있으면 채팅이 보이지 않으므로 알림은 **토스트**(화면 위 알림창)로 보낸다. 폼 위에도 보이고 다음 폼을 막지 않는다(`internal/ui`).
+폼이 열려 있으면 채팅이 보이지 않으므로 알림은 **토스트**(화면 위 알림창)로 보낸다. 폼 위에도 보이고 다음 폼을 막지 않는다(`common/ui`).
 
 - `ui.Notify`(실패 등 지금만 필요한 알림: 재료 부족 …): 토스트만. 제목 `알림`(빨강).
 - `ui.Flash`(결과가 중요한 알림): 토스트 + 같은 줄을 채팅에도(나중에 다시 읽기). 제목 `완료`(초록).
@@ -134,15 +137,15 @@
 ## 같은 폼 반복 방지
 
 클라이언트는 아이템 사용 버튼을 누르고 있는 동안 사용 패킷을 반복해서 보낸다. 그대로 폼을 보내면 같은 폼이 여러 개 쌓여, 하나를 닫을 때마다 다음 것이 다시 뜬다.
-- `internal/ui` 는 답하지 않은 같은 제목의 폼이 3초 안에 있으면 새로 보내지 않는다(제출·닫기 때 해제).
+- `common/ui` 는 답하지 않은 같은 제목의 폼이 3초 안에 있으면 새로 보내지 않는다(제출·닫기 때 해제).
 - 메뉴 아이템 사용은 0.5초 디바운스.
 
 ## HUD(사이드바 줄을 나눠 그리기)
 
-왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`internal/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
+왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`common/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
 
 - 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
-- 팩: `dragonfactory/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
+- 팩: common `dfui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다고 보고 짰다(실기 확인 필요).
 - 경험치 바는 바닐라 그대로다.
 - 분할·트리 폼의 왼쪽/오른쪽 판은 `panel` 안에 왼쪽 위 기준(오른쪽은 `offset` 220)으로 둔다. 가로 스택은 `100%c` 가 높이를 더하고 `100%cm` 은 오른쪽 상세를 접어 버려, 높이가 큰 쪽을 따르는 `panel` 의 `100%c`(자식 범위)를 쓴다.

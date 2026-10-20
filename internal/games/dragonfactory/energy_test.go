@@ -10,9 +10,9 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // run advances n steps of four ticks, calling Fast (which moves the energy)

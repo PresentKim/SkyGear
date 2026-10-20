@@ -16,7 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/resourcepack"
+	"github.com/presentkim/dragonfactory/common/resourcepack"
 	"github.com/presentkim/dragonfactory/spike"
 )
 

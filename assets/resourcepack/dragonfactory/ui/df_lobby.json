@@ -1,32 +1,13 @@
 // The lobby's launcher frame (docs/design/01-platform.md §1): a dark title
 // bar with the game's name and a band at the bottom over the whole screen,
-// the lobby island showing between them. The HUD draws it (sidebar objective
-// with §d§l§b, hud.FrameTitle, in scoreboards.json) and, as the HUD is hidden
-// while a form is open, so does the form screen's background for lobby forms
-// (title marker §d§f§w§r, ui.LobbyToken, form_frame in server_form.json):
-// it is on screen with a form open or closed. Lobby forms do not darken the
-// screen.
+// the lobby island showing between them. It fills the dfui theme's
+// lobby_frame hook (ui/dfui_hooks.json), which the theme draws in the HUD
+// (sidebar objective with §d§l§b, hud.FrameTitle) and, as the HUD is hidden
+// while a form is open, behind lobby forms (title marker §d§f§w§r,
+// ui.LobbyToken): it is on screen with a form open or closed. Lobby forms do
+// not darken the screen.
 {
   "namespace": "df_lobby",
-  "form_frame": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [
-      {
-        "frame@df_lobby.frame": {
-          "visible": false,
-          "bindings": [
-            { "binding_name": "#title_text", "binding_type": "global" },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#title_text - '§d§f§w§r') = #title_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      }
-    ]
-  },
   "frame": {
     "type": "panel",
     "size": [ "100%", "100%" ],

@@ -1,0 +1,12 @@
+// Fills the hooks of the common dfui theme (its ui/dfui_hooks.json); this
+// pack is loaded above dfui, so these definitions win.
+{
+  "namespace": "dfui_hooks",
+
+  // The lobby's launcher frame (ui/df_lobby.json).
+  "lobby_frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [ { "frame@df_lobby.frame": {} } ]
+  }
+}

@@ -62,7 +62,7 @@ Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/
 
 - **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/ko_KR.lang`·`en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
    - 저장소에 원본 폴더로 관리: `assets/resourcepack/dragonfactory/` (manifest.json 포함)
-   - 서버 시작 시 `internal/resourcepack.Load`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
+   - 서버 시작 시 `common/resourcepack.Load`로 읽어 `Config.Resources`에 추가한다(`resources/`는 실행 시 생성되는 폴더라 git에서 제외됨).
    - **버전은 자동**: 클라이언트는 팩을 UUID+버전으로 캐시하고, 서버는 클라이언트가 이미 가진 UUID+버전의 팩을 보내지 않는다.
      버전을 안 올리면 바뀐 팩이 전달되지 않으므로, `resourcepack.Load`가 팩 내용 해시로 manifest 버전을 매번 계산해 넣는다. `manifest.json`의 버전은 손대지 않는다.
    - 접속 시 팩 적용을 강제하려면 `Resources.Required = true`.

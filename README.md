@@ -67,27 +67,19 @@ go run .
 ```
 main.go                         서버 부트스트랩, 종료 시 인스턴스 저장
 internal/db/                    SQLite (계정, 세이브, 참여자, 세이브별 플레이어 상태, 게임 상태)
-internal/playerstate/           플레이어 상태 캡처/복원/직렬화
 internal/instance/              인스턴스 매니저(활성화/종료, 로비↔인스턴스 이동, 시계, 기본 핸들러)
 internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친구·초대·참여자, 칭호·치장 메뉴, 명령어
 internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
-internal/timed/                 기간제 아이템(현실 시간 만료, 정리)
+internal/locales/               이 서버의 문구 카탈로그(ko/en, 바닐라 이름). 불러오면 common i18n 에 더해진다
 internal/games/dragonfactory/   드래곤팩토리 (연구, 발전과제, 섬 확장, 서랍, 기계, 도관, 웨이브, 장비, 마법 식물, 도움말 …)
-internal/i18n/                  문구 카탈로그
-internal/ui/                    폼 헬퍼(버튼 아이콘, 격자 폼)
-internal/waila/                 WAILA 패널(바라보는 블록 정보 HUD) 제목 형식·보내기, 도구 아이콘
 internal/itemio/                아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 도관이 쓴다
 internal/energy, itemnet, fluidnet/  에너지·아이템·액체 연결망
-internal/backup/                DB·세이브 월드 백업
-internal/perf/                  서버 부하(TPS·틱·CPU·메모리) 측정, 운영자 HUD 줄과 켜기·끄기
-internal/hud/                   HUD 글자(왼쪽 위·오른쪽 위·퀘스트 창)를 사이드바 줄로 보내기
-internal/chestui/               엔티티 상자(크기 자유 상자 창): 아이템이 오가는 창고
-internal/resourcepack/          수동 리소스팩 로더(내용 해시로 버전 자동 부여, JSON minify, 암호화: docs/tech/resourcepack.md)
 spike/                          기술 검증 코드와 테스트 클라이언트
-assets/resourcepack/            리소스팩 원본, 빌드할 때 실행 파일에 들어간다 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, JSON UI 테마 / inventoryui / waila: WAILA HUD)
-tools/uitextures/               JSON UI 테마 텍스처 생성기
-third_party/dragonfly/          엔티티 상자 패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
+assets/resourcepack/            리소스팩 원본, 빌드할 때 실행 파일에 들어간다 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, 로비 틀·기계 창 JSON UI). 폼·HUD 테마(dfui)·inventoryui·waila·slotdeco 팩은 common packs
+third_party/dragonfly/          패치를 얹은 Dragonfly v0.11.5 (third_party/README.md, common 과 같은 사본)
 ```
+
+폼·엔티티 상자·WAILA·HUD·i18n·기간제 아이템·플레이어 상태·리소스팩 로더·백업 같은 공통 패키지는 [common](https://github.com/PresentKim/common)(`github.com/presentkim/dragonfactory/common`)에 있다. 비공개 레포라 받으려면 `GOPRIVATE=github.com/presentkim/*` 가 필요하다.
 
 ## 테스트
 

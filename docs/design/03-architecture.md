@@ -9,12 +9,12 @@
 | 인스턴스별 인벤토리·상태 | 기본 `playerdb`는 플레이어당 1벌이라 사용하지 않음. 이동 시 직접 직렬화/복원 |
 | 기계 | `world.CustomBlock` + `NBTer`(블록 엔티티) + `TickerBlock`. 모양·텍스처·이름은 리소스팩 파일(`assets/resourcepack/dragonfactory/`), Go는 모델 식별자와 재질 키만 적는다 |
 | 아이템 값 | `item.Stack` 값(`WithValue`)에 서랍 내용, 도구 경험·강화 같은 값을 저장 |
-| 메뉴 | 폼(`internal/ui`, 리소스팩 JSON UI 테마), 아이템이 오가는 창은 엔티티 상자(`internal/chestui`) |
+| 메뉴 | 폼(`common/ui`, 리소스팩 JSON UI 테마), 아이템이 오가는 창은 엔티티 상자(`common/chestui`) |
 | 시간 기반 이벤트 | 인스턴스 시간(활성 누적 시간) 기준 스케줄러. 비활성화 시 멈춤 |
 | 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정 ([M0 결과](../tech/m0-verification.md) §4) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
 | 낙하 피해 제거 | 플레이어 핸들러 `HandleHurt`에서 `entity.FallDamageSource` 취소 |
-| 인벤토리 열람(InvSee) | 엔티티 상자(`internal/chestui`, Dragonfly 패치)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
+| 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, Dragonfly 패치)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
 
 **검증 결과**: [docs/tech/m0-verification.md](../tech/m0-verification.md). 애드온(리소스팩) 운용: [docs/tech/addon.md](../tech/addon.md).
 부하 시험: [performance.md](../tech/performance.md).
@@ -45,16 +45,15 @@
 ```
 main.go
 internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
-internal/playerstate/          세이브별 플레이어 상태 캡처/복원/직렬화
 internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
 internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴
+internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 common `i18n` 에 더해진다
 internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시
 internal/games/dragonfactory/  드래곤팩토리: research, advancement, machine, sieve, hammer, drawer, bundle(도관), storage, tinker, wave, monster, magic, expand, achievements, help …
 internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
-internal/chestui, ui, waila, hud/  엔티티 상자, 폼 헬퍼, 바라보기 패널, HUD
-internal/i18n/                 문구 카탈로그(`locales/ko.json`)
-internal/resourcepack/         리소스팩 로드(내용 해시로 버전 부여)
 ```
+
+공통 패키지(`playerstate`, `timed`, `chestui`, `ui`, `waila`, `hud`, `i18n`, `resourcepack`, `dfhook`, `perf`, `backup` …)는 별도 모듈 [common](https://github.com/PresentKim/common)에 있다. 다른 Dragonfly 서버(마인팜)와 함께 쓰며, 게임·플랫폼 규칙은 넣지 않는다.
 
 게임 종류 인터페이스(`internal/instance/game.go`):
 

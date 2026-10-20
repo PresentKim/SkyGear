@@ -3,13 +3,13 @@ package dragonfactory
 import (
 	"strings"
 
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
 // ResearchText explains a research in its screen (docs/design/02-dragonfactory.md
 // §9): what it is for. Where to get what it costs and what to do next is the
 // advancements' job (§10). The texts are in the catalog
-// (internal/i18n/locales) under "research.<id>.short|about".
+// (internal/locales) under "research.<id>.short|about".
 type ResearchText struct {
 	// Short is one line shown under the name in the hover text of the list.
 	Short string

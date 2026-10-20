@@ -10,7 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // windowKindEnum names a machine kind that has a window (/dfdebug ui).

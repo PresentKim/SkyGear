@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"strings"
 	"time"
@@ -15,8 +15,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // The WAILA panel (internal/waila, docs/tech/waila.md) shows the block a

@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"math"
 	"slices"
 
@@ -13,8 +13,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // VoidReturnY is the height players are put at above the nearest block when

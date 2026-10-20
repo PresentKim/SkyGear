@@ -2,8 +2,8 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/dfhook"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"slices"
 	"time"
 
@@ -13,7 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §13): the

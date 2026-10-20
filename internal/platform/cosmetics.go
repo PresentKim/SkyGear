@@ -2,15 +2,15 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"slices"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Titles, name colours and achievements (docs/design/01-platform.md §5),

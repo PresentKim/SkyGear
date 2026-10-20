@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"

@@ -3,9 +3,9 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"log/slog"
 	"math"
@@ -22,9 +22,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
+	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // IslandY is the Y level of the island surface.

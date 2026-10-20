@@ -1,8 +1,8 @@
 package dragonfactory
 
 import (
-	"github.com/presentkim/dragonfactory/internal/i18n"
-	"github.com/presentkim/dragonfactory/internal/slotdeco"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/cmd"

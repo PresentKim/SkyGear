@@ -4,7 +4,7 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"log/slog"
 	"strings"
 	"unicode/utf8"
@@ -14,11 +14,11 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/ui"
-	"github.com/presentkim/dragonfactory/internal/waila"
 )
 
 // Slots is the number of save slots per account.

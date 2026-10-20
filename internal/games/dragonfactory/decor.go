@@ -3,7 +3,7 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/slotdeco"
+	"github.com/presentkim/dragonfactory/common/slotdeco"
 )
 
 // Slot decoration (docs/tech/slotdeco.md): the rarity and the tier of an item

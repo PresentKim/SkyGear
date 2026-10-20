@@ -10,7 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/waila"
+	"github.com/presentkim/dragonfactory/common/waila"
 )
 
 // eyeAt returns a player position whose eyes are dist blocks north of the

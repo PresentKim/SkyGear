@@ -2,7 +2,7 @@ package platform
 
 import (
 	"errors"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"log/slog"
 	"time"
 
@@ -11,11 +11,11 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/chestui"
+	"github.com/presentkim/dragonfactory/common/chestui"
+	"github.com/presentkim/dragonfactory/common/playerstate"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/playerstate"
-	"github.com/presentkim/dragonfactory/internal/ui"
 )
 
 // Inventory viewing (InvSee, docs/design/01-platform.md §4). The host sees a

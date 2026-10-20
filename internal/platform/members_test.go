@@ -11,10 +11,10 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/chestui"
+	"github.com/presentkim/dragonfactory/common/chestui"
+	"github.com/presentkim/dragonfactory/common/playerstate"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"github.com/presentkim/dragonfactory/internal/playerstate"
 )
 
 func TestInvSeeSlots(t *testing.T) {

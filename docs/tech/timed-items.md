@@ -1,6 +1,6 @@
 # 기간제 아이템
 
-코드: `internal/timed` (플랫폼 공용), 적용: `internal/instance`(정리·사용 차단), 각 게임(보관 규칙).
+코드: `common/timed` (플랫폼 공용), 적용: `internal/instance`(정리·사용 차단), 각 게임(보관 규칙).
 
 ## 원칙
 
@@ -15,7 +15,7 @@
 - 아이템 설명(lore) 마지막 줄에 `기간제 · 2026-10-09 21:00까지` 를 한국 시간(Asia/Seoul)으로 보여 준다(확정).
 - 만료 시각이 다른 아이템끼리는 겹쳐지지 않는다(스택 값이 다르면 Dragonfly 가 다른 아이템으로 본다). 같은 시각이면 겹쳐진다.
 
-## API (`internal/timed`)
+## API (`common/timed`)
 
 | 함수 | 하는 일 |
 |---|---|
@@ -46,5 +46,5 @@
 
 ## 확인
 
-- 단위 테스트: `internal/timed`(만료·설명 줄·NBT 왕복·정리·겹침), `instance`(`TestTimedItemsExpireInInstance`), 드래곤팩토리(`timed_test.go`: NBT 구분, 서랍 만료, 분실물).
+- 단위 테스트: `common/timed`(만료·설명 줄·NBT 왕복·정리·겹침), `instance`(`TestTimedItemsExpireInInstance`), 드래곤팩토리(`timed_test.go`: NBT 구분, 서랍 만료, 분실물).
 - 시나리오: `spike/scenarios/run.sh spike/scenarios/timed.sh`: `/dfdebug timed 2` 로 든 아이템을 2초 기간제로 만들고 사라지는지.

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // TestResearchCopiesFillTheTabs: test copies of the researches make the lists

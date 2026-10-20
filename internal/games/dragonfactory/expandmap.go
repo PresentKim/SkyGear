@@ -10,7 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/internal/dfhook"
+	"github.com/presentkim/dragonfactory/common/dfhook"
 )
 
 // The expansion map (12th playtest): the island is shown as a map

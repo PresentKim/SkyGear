@@ -2,7 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/internal/i18n"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"strings"
 	"time"
 
@@ -16,8 +16,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/dragonfactory/internal/timed"
-	"github.com/presentkim/dragonfactory/internal/ui"
+	"github.com/presentkim/dragonfactory/common/timed"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // Drawer stores a large amount of a single item type

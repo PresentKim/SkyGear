@@ -2,8 +2,8 @@ package dragonfactory
 
 import (
 	"fmt"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"github.com/presentkim/dragonfactory/internal/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"time"
 

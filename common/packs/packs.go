@@ -1,0 +1,25 @@
+// Package packs holds the resource packs the common packages draw with,
+// embedded so a server loads them without the files next to it:
+//
+//   - inventoryui: chest windows (chestui)
+//   - waila: the looking-at panel (waila)
+//   - slotdeco: slot decorations (slotdeco)
+//   - dfui: the form and HUD theme (ui, hud). A server pack loaded above it
+//     fills its hooks (ui/dfui_hooks.json), such as the lobby frame.
+//
+// A server loads each with resourcepack.LoadFS(packs.Sub(name), name, opt).
+package packs
+
+import (
+	"embed"
+	"io/fs"
+)
+
+//go:embed all:inventoryui all:waila all:slotdeco all:dfui
+var files embed.FS
+
+// Names are the packs in this package.
+var Names = []string{"inventoryui", "waila", "slotdeco", "dfui"}
+
+// Sub returns the files of the pack name, rooted at the pack folder.
+func Sub(name string) (fs.FS, error) { return fs.Sub(files, name) }

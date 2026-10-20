@@ -9,7 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/timed"
+	"github.com/presentkim/dragonfactory/common/timed"
 )
 
 // TestStorageTellsItemsApartByNBT: drawers keep only identical items

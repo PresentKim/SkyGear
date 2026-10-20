@@ -6,8 +6,8 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/internal/hud"
-	"github.com/presentkim/dragonfactory/internal/perf"
+	"github.com/presentkim/dragonfactory/common/hud"
+	"github.com/presentkim/dragonfactory/common/perf"
 )
 
 // lobbyHUD is what each lobby player's HUD was last sent, by name, so a

@@ -1,8 +1,8 @@
 # 엔티티 상자 (chestui)
 
-아이템이 실제로 오가는 가상 창고는 `internal/chestui` 의 **엔티티 상자**로 띄운다.
+아이템이 실제로 오가는 가상 창고는 `common/chestui` 의 **엔티티 상자**로 띄운다.
 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu) 와 같은 방식이다.
-Dragonfly 를 패치하지 않고 `internal/dfhook` 으로 세션에 닿는다([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 의 `entityinv` 와 같은 기술):
+Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 의 `entityinv` 와 같은 기술):
 
 - `dfhook.Wrap` 이 서버 리스너를 감싸, 연결마다 클라이언트→서버·서버→클라이언트 패킷이 훅을 먼저 지난다(바꾸기·버리기 가능). 연결이 끊기면 닫힘 훅이 돈다.
 - 세션의 비공개 메서드(`writePacket`, `sendInv`, `nextWindowID`, `closeCurrentContainer`)는 `go:linkname`, 비공개 필드(`openedWindow` 등)는 리플렉션으로 쓴다. 이름이 바뀌면 `dfhook` 의 `TestInternals` 가 깨진다.
@@ -29,7 +29,7 @@ Dragonfly 를 패치하지 않고 `internal/dfhook` 으로 세션에 닿는다([
 | `Retry` | 클라이언트가 초과 열기에 대한 `PacketViolationWarning`(type -1)으로 확인할 때까지 매 틱 닫기+열기 재전송(최대 20회). 그동안 그 창의 닫기는 무시 |
 | `Debug` | 열기·닫기·클라이언트 닫기·위반 경고를 INFO 로그로 남긴다 |
 
-6. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
+6. 리소스팩 `common/packs/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
    제목 앞의 `§{줄 수 1~6}§{스크롤 0/1}` + `§r` 9개를 읽어 창 크기를 정한다.
    54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로.
 7. 세션의 열린 창(`openedWindow`)을 그 인벤토리로 두므로 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
