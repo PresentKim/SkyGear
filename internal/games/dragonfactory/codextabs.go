@@ -61,15 +61,13 @@ func (s *session) codexTabs(p *player.Player, cur codexTab) []ui.Option {
 
 // showCodexTab shows the first page of a tab.
 func (s *session) showCodexTab(p *player.Player, t codexTab) {
-	lang := i18n.Of(p)
 	switch t {
 	case codexSieveTab:
 		s.showCodexSieve(p)
 	case codexProcessTab:
-		lines := append(s.codexProcessLines(lang), "", "§e"+i18n.T(lang, "codex.gear"))
-		s.showCodexText(p, codexProcessTab, "codex.process", append(lines, codexGearLines(lang)...))
+		s.showCodexProcess(p, 0)
 	case codexMobsTab:
-		s.showCodexText(p, codexMobsTab, "codex.mobs", s.codexMobLines(lang))
+		s.showCodexMobs(p, 0)
 	case codexPlantsTab:
 		s.showCodexPlants(p, 0)
 	default:

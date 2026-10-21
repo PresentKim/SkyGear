@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/player"
@@ -156,86 +155,6 @@ type codexLink struct {
 	count int
 }
 
-// codexLinks are the items an item is made from (from) and the items made
-// from it (into), read from the same tables as the codex's text.
-func codexLinks(it item.Stack) (from, into []codexLink) {
-	k := itemKey(it.Item())
-	seenFrom, seenInto := map[string]bool{k: true}, map[string]bool{k: true}
-	add := func(list *[]codexLink, seen map[string]bool, w world.Item, count int) {
-		if w == nil || seen[itemKey(w)] {
-			return
-		}
-		seen[itemKey(w)] = true
-		*list = append(*list, codexLink{item.NewStack(w, 1), count})
-	}
-	addStack := func(list *[]codexLink, seen map[string]bool, st item.Stack, count int) {
-		if !st.Empty() {
-			add(list, seen, st.Item(), count)
-		}
-	}
-	for _, cr := range crafterRecipes() {
-		if itemKey(cr.out.Item()) == k {
-			for _, req := range cr.reqs {
-				if st, ok := req.need.(item.Stack); ok {
-					addStack(&from, seenFrom, st, req.count)
-				}
-			}
-		}
-		if cr.wants(it) {
-			addStack(&into, seenInto, cr.out, cr.out.Count())
-		}
-	}
-	for _, r := range alloyRecipes {
-		if itemKey(r.Out) == k {
-			add(&from, seenFrom, r.A, r.CountA)
-			add(&from, seenFrom, r.B, r.CountB)
-		}
-		if itemKey(r.A) == k || itemKey(r.B) == k {
-			add(&into, seenInto, r.Out, r.OutCount)
-		}
-	}
-	for i := range labRecipes {
-		if itemKey(labRecipes[i].Out) == k {
-			for _, in := range labRecipes[i].In {
-				add(&from, seenFrom, in.Item, in.Count)
-			}
-		}
-		for _, in := range labRecipes[i].In {
-			if itemKey(in.Item) == k {
-				add(&into, seenInto, labRecipes[i].Out, labRecipes[i].OutCount)
-			}
-		}
-	}
-	for _, in := range append([]world.Item{block.Stone{}, block.Cobblestone{}, block.Gravel{}, block.Sand{}}, chunkItems()...) {
-		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && itemKey(got.Item()) == k {
-			add(&from, seenFrom, in, 0)
-		}
-	}
-	if got, ok := crusherOutput(it); ok {
-		addStack(&into, seenInto, got, 0)
-	}
-	if got, ok := smeltOf(it); ok {
-		addStack(&into, seenInto, got, 0)
-	}
-	for _, in := range codexSieveInputs() {
-		for _, t := range meshTiers {
-			for _, d := range sieveTables[t.tier][itemKey(in)] {
-				if itemKey(d.Item.Item()) == k {
-					add(&from, seenFrom, in, 0)
-				}
-			}
-		}
-	}
-	for _, pk := range plantKinds {
-		for _, y := range pk.yield {
-			if itemKey(y.item) == k {
-				add(&from, seenFrom, PlantSeed{Seed: pk.seed}, 0)
-			}
-		}
-	}
-	return from, into
-}
-
 // codexLinkSlots are slots that open the codex page of each linked item. A
 // recipe count shows on the slot like a stack size.
 func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
@@ -252,69 +171,4 @@ func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
 		})
 	}
 	return slots
-}
-
-// codexMakers are the machines that make an item, read from the same tables
-// as the codex's text (the machine that is the catalyst of the recipe in a
-// recipe viewer).
-func codexMakers(it item.Stack) []codexLink {
-	k := itemKey(it.Item())
-	var out []codexLink
-	seen := map[string]bool{}
-	add := func(kind string) {
-		if seen[kind] {
-			return
-		}
-		seen[kind] = true
-		out = append(out, codexLink{stack: machineItem(kind)})
-	}
-	for _, r := range alloyRecipes {
-		if itemKey(r.Out) == k {
-			add(KindAlloy)
-		}
-	}
-	for i := range labRecipes {
-		if itemKey(labRecipes[i].Out) == k {
-			add(KindLab)
-		}
-	}
-	for _, in := range append([]world.Item{block.Stone{}, block.Cobblestone{}, block.Gravel{}, block.Sand{}}, chunkItems()...) {
-		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && itemKey(got.Item()) == k {
-			add(KindCrusher)
-		}
-	}
-	if _, ok := it.Item().(MetalDust); ok {
-		add(KindWasher)
-	}
-	for _, in := range codexSieveInputs() {
-		for _, t := range meshTiers {
-			for _, d := range sieveTables[t.tier][itemKey(in)] {
-				if itemKey(d.Item.Item()) == k {
-					add(KindSieve)
-					add(KindAutoSieve)
-				}
-			}
-		}
-	}
-	for _, mob := range mobKinds {
-		for _, d := range simDrops[mob] {
-			if itemKey(d.Item) == k {
-				add(KindSimulator)
-			}
-		}
-		for _, in := range codexSieveInputs() {
-			for _, d := range magicThemes[mob].Adds[itemKey(in)] {
-				if itemKey(d.Item.Item()) == k {
-					add(KindMagicSieve)
-				}
-			}
-		}
-	}
-	for _, cr := range crafterRecipes() {
-		if itemKey(cr.out.Item()) == k {
-			add(KindCrafter)
-			break
-		}
-	}
-	return out
 }

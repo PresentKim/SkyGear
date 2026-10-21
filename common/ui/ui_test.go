@@ -34,7 +34,7 @@ func TestSlotLabelFields(t *testing.T) {
 		{"§e123456789", "§e1234567"},
 	} {
 		for _, right := range []bool{false, true} {
-			l := slotLabel(slotAToken, right, ItemSlot{Count: tc.count, Tip: "§f이름\n§7줄"})
+			l := slotLabel(slotAToken, right, ItemSlot{Count: tc.count, Tip: "§f이름\n§7줄", Run: func(*player.Player, *world.Tx) {}})
 			side := map[bool]string{false: "l", true: "r"}[right]
 			if got := l[9:10]; got != side {
 				t.Errorf("tooltip side %q, want %q", got, side)
@@ -165,5 +165,16 @@ func TestFramedTitle(t *testing.T) {
 	InLobby = func(*player.Player) bool { return false }
 	if got := framed(nil, "x"); got != "x" {
 		t.Errorf("in a save: %q", got)
+	}
+}
+
+// TestRowSlotsWrap: the ninth slot of a headed row and later go on the
+// row's second line.
+func TestRowSlotsWrap(t *testing.T) {
+	if l := rowSlotOption(slotAToken, RowSlots-1, ItemSlot{}).Label; l[9:10] == "2" {
+		t.Errorf("slot %d is on the second line", RowSlots-1)
+	}
+	if l := rowSlotOption(slotAToken, RowSlots, ItemSlot{Tip: "x"}).Label; l[9:10] != "2" || !strings.HasSuffix(l, "x") {
+		t.Errorf("slot %d label %q", RowSlots, l)
 	}
 }

@@ -2,9 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -12,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // The codex (docs/design/10-user-flow.md §4): what the game's tables say,
@@ -50,138 +47,6 @@ func (s *session) openCodex(p *player.Player) {
 // showCodex is the front page of the codex: the search tab.
 func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "", 0) }
 
-// showCodexText shows lines under a title key on a tab.
-func (s *session) showCodexText(p *player.Player, tab codexTab, key string, lines []string) {
-	lang := i18n.Of(p)
-	opts := append(s.codexTabs(p, tab), s.backOption())
-	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, key)), strings.Join(lines, "\n"), opts...)
-}
-
-// showCodexSieve asks which block to sift.
-func (s *session) showCodexSieve(p *player.Player) {
-	lang := i18n.Of(p)
-	var opts []ui.Option
-	for _, in := range codexSieveInputs() {
-		opts = append(opts, s.opt("§f"+itemName(item.NewStack(in, 1)), iconOf(item.NewStack(in, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexMesh(p, in) }))
-	}
-	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
-	opts = append(opts, s.backOption())
-	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.sieve")), i18n.T(lang, "codex.sieve.pick"), opts...)
-}
-
-// showCodexMesh asks which mesh sifts the block.
-func (s *session) showCodexMesh(p *player.Player, in world.Item) {
-	lang := i18n.Of(p)
-	var opts []ui.Option
-	for _, t := range meshTiers {
-		opts = append(opts, s.opt("§f"+meshName(t.tier), iconOf(item.NewStack(Mesh{Tier: t.tier}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodexDrops(p, in, t.tier) }))
-	}
-	opts = append(opts, s.codexTabs(p, codexSieveTab)...)
-	opts = append(opts, s.codexBackTo(p, s.showCodexSieve))
-	ui.Menu(p, ui.SubTitle(i18n.T(lang, "codex.title"), itemName(item.NewStack(in, 1))), i18n.T(lang, "codex.mesh.pick"), opts...)
-}
-
-// showCodexDrops lists what a mesh finds in a block.
-func (s *session) showCodexDrops(p *player.Player, in world.Item, tier string) {
-	lang := i18n.Of(p)
-	s.codexRemember(p, func(p *player.Player) { s.showCodexDrops(p, in, tier) })
-	drops := append([]SieveDrop(nil), sieveTables[tier][itemKey(in)]...)
-	sort.SliceStable(drops, func(i, j int) bool { return drops[i].Permille > drops[j].Permille })
-	var slots []ui.ItemSlot
-	for _, d := range drops {
-		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(d.Item), Count: formatPermille(d.Permille) + "%",
-			Tip: fmt.Sprintf("%s\n§7%s", tipName(d.Item), fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(d.Permille))),
-			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, d.Item) },
-		})
-	}
-	title := fmt.Sprintf(i18n.T(lang, "codex.sieve.list"), itemName(item.NewStack(in, 1)), meshName(tier))
-	ui.ItemGrid(p, title, i18n.T(lang, "codex.sieve.listBody"), slots,
-		append(s.codexTabs(p, codexSieveTab), s.codexBackTo(p, func(p *player.Player) { s.showCodexMesh(p, in) }))...)
-}
-
-// codexProcessLines are the crusher chain, the ore doubling and the alloys.
-func (s *session) codexProcessLines(lang string) []string {
-	n := func(w world.Item) string { return itemName(item.NewStack(w, 1)) }
-	lines := []string{
-		"§e" + i18n.T(lang, "codex.process.crusher"),
-		"§f" + strings.Join([]string{n(block.Stone{}), n(block.Cobblestone{}), n(block.Gravel{}), n(block.Sand{}), n(Dust{})}, " → "),
-		"§7" + i18n.T(lang, "codex.process.doubling"),
-		"",
-		"§e" + i18n.T(lang, "codex.process.alloy"),
-	}
-	for _, r := range alloyRecipes {
-		lines = append(lines, fmt.Sprintf("§f%s ×%d §7←§f %s ×%d + %s ×%d", n(r.Out), r.OutCount, n(r.A), r.CountA, n(r.B), r.CountB))
-	}
-	lines = append(lines, "", "§e"+i18n.T(lang, "codex.process.lab"))
-	for i := range labRecipes {
-		r := &labRecipes[i]
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "codex.process.labRecipe"), n(r.Out), r.OutCount, labIngredientsText(r), r.Ticks/20))
-	}
-	return lines
-}
-
-// codexMobLines are the drops of each mob in the simulator and the levels of the
-// gate.
-func (s *session) codexMobLines(lang string) []string {
-	lines := []string{"§e" + i18n.T(lang, "codex.mobs.sim")}
-	for _, mob := range mobKinds {
-		var parts []string
-		for _, d := range simDrops[mob] {
-			amount := fmt.Sprint(d.Min)
-			if d.Max > d.Min {
-				amount = fmt.Sprintf("%d~%d", d.Min, d.Max)
-			}
-			parts = append(parts, fmt.Sprintf("%s ×%s (%d%%)", n1(d.Item), amount, d.Chance))
-		}
-		lines = append(lines, fmt.Sprintf("§f%s §7: %s", mobName(mob), strings.Join(parts, ", ")))
-	}
-	lines = append(lines, "", "§e"+i18n.T(lang, "codex.mobs.magic"))
-	lines = append(lines, codexThemeLines(lang)...)
-	lines = append(lines, "", "§e"+i18n.T(lang, "codex.mobs.waves"))
-	for i, w := range waveLevels {
-		var groups, rewards []string
-		for _, g := range w.Groups {
-			groups = append(groups, fmt.Sprintf("%s ×%d", mobName(g.Mob), g.N))
-		}
-		for _, r := range w.Reward {
-			rewards = append(rewards, fmt.Sprintf("%s ×%d", itemName(r), r.Count()))
-		}
-		lines = append(lines, fmt.Sprintf("§f%d §7%s (%ds) → §f%s", i+1, strings.Join(groups, ", "), w.Seconds, strings.Join(rewards, ", ")))
-	}
-	return lines
-}
-
-// codexThemeLines are the themes of the magic sieve: for each mob's essence,
-// what each block gives (the rare drops starred).
-func codexThemeLines(lang string) []string {
-	var lines []string
-	for _, mob := range mobKinds {
-		th := magicThemes[mob]
-		lines = append(lines, fmt.Sprintf("§f%s §7(%s)", itemName(item.NewStack(Essence{Mob: mob}, 1)), fmt.Sprintf(i18n.T(lang, "codex.mobs.difficulty"), mobDifficulty[mob])))
-		for _, in := range codexSieveInputs() {
-			drops := th.Adds[itemKey(in)]
-			if len(drops) == 0 {
-				continue
-			}
-			var parts []string
-			for _, d := range drops {
-				star := ""
-				if d.Rare {
-					star = "★"
-				}
-				parts = append(parts, fmt.Sprintf("%s %s%%%s", itemName(d.Item), formatPermille(d.Permille), star))
-			}
-			head := n1(in)
-			if th.Replace[itemKey(in)] {
-				head += i18n.T(lang, "codex.mobs.replace")
-			}
-			lines = append(lines, fmt.Sprintf("  §7%s: %s", head, strings.Join(parts, ", ")))
-		}
-	}
-	return lines
-}
-
 // formatPermille writes a per mille chance as a percent ("1.2", "40").
 func formatPermille(p int) string {
 	if p%10 == 0 {
@@ -191,50 +56,6 @@ func formatPermille(p int) string {
 }
 
 func n1(w world.Item) string { return itemName(item.NewStack(w, 1)) }
-
-// showCodexPlants lists the magic plants.
-func (s *session) showCodexPlants(p *player.Player, page int) {
-	lang := i18n.Of(p)
-	var slots []ui.ItemSlot
-	for _, k := range plantKinds {
-		var yields []string
-		for _, y := range k.yield {
-			amount := fmt.Sprint(y.min)
-			if y.max > y.min {
-				amount = fmt.Sprintf("%d~%d", y.min, y.max)
-			}
-			yields = append(yields, fmt.Sprintf("%s ×%s", n1(y.item), amount))
-		}
-		seed := item.NewStack(PlantSeed{Seed: k.seed}, 1)
-		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(item.NewStack(k.yield[0].item, 1)),
-			Tip: fmt.Sprintf("§f%s\n§7%s: %s\n§7%s: %s", itemName(seed), i18n.T(lang, "codex.plants.yield"), strings.Join(yields, ", "),
-				i18n.T(lang, "codex.plants.grow"), (k.grow / time.Second * time.Second).String()),
-			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, seed) },
-		})
-	}
-	s.codexRemember(p, func(p *player.Player) { s.showCodexPlants(p, page) })
-	slots, turns := s.slotPage(p, slots, page, s.showCodexPlants)
-	ui.ItemGrid(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.plants")), i18n.T(lang, "codex.plants.body"), slots,
-		append(append(turns, s.codexTabs(p, codexPlantsTab)...), s.backOption())...)
-}
-
-// codexGearLines are the head and handle materials and the modifiers of tools.
-func codexGearLines(lang string) []string {
-	lines := []string{"§e" + i18n.T(lang, "codex.gear.heads")}
-	for _, h := range headMaterials {
-		lines = append(lines, fmt.Sprintf("§f%s §7(%s) %s", i18n.T(lang, "tmat."+h.id), n1(h.item), fmt.Sprintf(i18n.T(lang, "tinker.headStats"), h.dur, h.eff, h.attack)))
-	}
-	lines = append(lines, "", "§e"+i18n.T(lang, "codex.gear.handles"))
-	for _, h := range handleMaterials {
-		lines = append(lines, fmt.Sprintf("§f%s §7(%s)", i18n.T(lang, "thandle."+h.id), n1(h.item)))
-	}
-	lines = append(lines, "", "§e"+i18n.T(lang, "codex.gear.mods"))
-	for _, m := range toolModifiers {
-		lines = append(lines, fmt.Sprintf("§f%s §7: %s ×%d (%s)", i18n.T(lang, "tmod."+m.id), n1(m.item), m.cost, i18n.T(lang, "tmodinfo."+m.id)))
-	}
-	return lines
-}
 
 // codexSources lists where an item comes from, read from the tables of the
 // game.
@@ -405,51 +226,6 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 		}
 	}
 	return out
-}
-
-// showCodexItem shows where an item comes from and what it is for.
-func (s *session) showCodexItem(p *player.Player, it item.Stack) {
-	lang := i18n.Of(p)
-	it = it.Grow(1 - it.Count())
-	sources, uses := s.codexSources(lang, it), s.codexUses(lang, it)
-	section := func(head string, lines []string) []string {
-		out := []string{"§e" + head}
-		if len(lines) == 0 {
-			return append(out, "§7"+i18n.T(lang, "codex.item.nothing"))
-		}
-		for _, l := range lines {
-			out = append(out, "§f- "+l)
-		}
-		return out
-	}
-	parts := append(section(i18n.T(lang, "codex.item.sources"), sources), append([]string{""}, section(i18n.T(lang, "codex.item.uses"), uses)...)...)
-	if raw := s.codexRawLines(p, lang, it); len(raw) > 0 {
-		parts = append(append(parts, ""), append([]string{"§e" + i18n.T(lang, "codex.item.raw")}, raw...)...)
-	}
-	body := strings.Join(parts, "\n")
-	title := ui.SubTitle(i18n.T(lang, "codex.title"), itemName(it))
-	s.codexSeen(p, it)
-	var chrome []ui.Option
-	if g, ok := s.goalOption(p, it); ok {
-		chrome = append(chrome, g)
-	}
-	chrome = append(append(chrome, s.codexTabs(p, codexNoTab)...), s.codexBack(p))
-	from, into := codexLinks(it)
-	var sections []ui.GridSection
-	if makers := codexMakers(it); len(makers) > 0 {
-		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeIn"), Slots: s.codexLinkSlots(makers)})
-	}
-	if len(from) > 0 {
-		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeFrom"), Slots: s.codexLinkSlots(from)})
-	}
-	if len(into) > 0 {
-		sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.item.madeInto"), Slots: s.codexLinkSlots(into)})
-	}
-	if len(sections) == 0 {
-		ui.Menu(p, title, body, chrome...)
-		return
-	}
-	ui.ItemGridSections(p, title, body, sections, chrome...)
 }
 
 // codexCmd is /도감 (and /codex).

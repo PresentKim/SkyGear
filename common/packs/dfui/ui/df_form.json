@@ -45,6 +45,14 @@
                 "anchor_to": "center",
                 "controls": [
                   {
+                    // The page arrows (ui.BarPager, marked §0§j§r) sit left
+                    // of the help button.
+                    "pager@df_form.marked_bar_pager": {
+                      "orientation": "horizontal",
+                      "size": [ "100%c", 22 ]
+                    }
+                  },
+                  {
                     // The help button (ui.Help, marked §0§p§r) sits left of
                     // the back button.
                     "help@df_form.marked_help": {
@@ -580,13 +588,20 @@
   "tab_item@df_form.vis_tab": {
     "type": "panel",
     "size": [ 26, 24 ],
-    "controls": [ { "button@df_form.tab_button": {} } ]
+    "controls": [
+      { "off@df_form.vis_tree_tab_off": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.tab_button": {} } ] } },
+      { "on@df_form.vis_tab_on": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.tab_button_on": {} } ] } }
+    ]
   },
+  // The selected tab does not answer the form when pressed: it is the page
+  // already shown.
+  "tab_button_on@df_form.tab_button": { "$pressed_button_name": "button.df_noop" },
 
   // A tab is a square with its icon, like the creative inventory's tabs: its
   // label shows as the tooltip while the pointer is on it (or a finger holds
   // it), so any number of tabs fits over an inventory-sized window. The
-  // selected one (§0§2§r) is raised.
+  // selected one (§0§2§r) is raised. An unselected tab runs on under the
+  // window like the game's, so its bottom edge does not float above it.
   "tab_tip@common.hover_text": {
     "$hover_text_max_width": 0,
     "layer": 200,
@@ -608,7 +623,7 @@
     "size": [ "100%", "100%" ],
     "$df_tab_texture|default": "textures/ui/TabTopBack",
     "controls": [
-      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      { "bg": { "type": "image", "texture": "$df_tab_texture", "size": [ "100%", "100% + 6px" ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": -6 } },
       {
         "selected@df_form.vis_tab_on": {
           "type": "image",
@@ -624,7 +639,7 @@
   },
   "tab_face_tip@df_form.tab_face": {
     "controls": [
-      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      { "bg": { "type": "image", "texture": "$df_tab_texture", "size": [ "100%", "100% + 6px" ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": -6 } },
       {
         "selected@df_form.vis_tab_on": {
           "type": "image",
@@ -1777,32 +1792,82 @@
   // (a digits-only text would turn into a number and not show, so the colour
   // code stays). §0§g§r and §0§h§r are the headings of rows A and B.
 
-  // Slot of row A.
+  // A slot of row A: its first line, or (byte 10 '2', from the ninth slot on)
+  // its second line, so a row of more than eight slots wraps.
   "vis_gslot_a": {
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection", 
+        "binding_type": "collection",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view", 
-        "source_property_name": "(not ((#form_button_text - '§0§d§r') = #form_button_text))",
+        "binding_type": "view",
+        "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))",
+        "target_property_name": "#df_side"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§d§r') = #form_button_text)) and (not (#df_side = '2')))",
         "target_property_name": "#visible"
       }
     ]
   },
-  // Slot of row B.
+  "vis_gslot_a2": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))",
+        "target_property_name": "#df_side"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§d§r') = #form_button_text)) and (#df_side = '2'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  // A slot of row B: its first line, or (byte 10 '2', from the ninth slot on)
+  // its second line, so a row of more than eight slots wraps.
   "vis_gslot_b": {
     "bindings": [
       {
         "binding_name": "#form_button_text",
-        "binding_type": "collection", 
+        "binding_type": "collection",
         "binding_collection_name": "form_buttons"
       },
       {
-        "binding_type": "view", 
-        "source_property_name": "(not ((#form_button_text - '§0§e§r') = #form_button_text))",
+        "binding_type": "view",
+        "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))",
+        "target_property_name": "#df_side"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§e§r') = #form_button_text)) and (not (#df_side = '2')))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vis_gslot_b2": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))",
+        "target_property_name": "#df_side"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((not ((#form_button_text - '§0§e§r') = #form_button_text)) and (#df_side = '2'))",
         "target_property_name": "#visible"
       }
     ]
@@ -1869,6 +1934,23 @@
       }
     ]
   },
+  "marked_gslot_a2": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.gslot_a2_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
   "marked_gslot_b": {
     "type": "stack_panel",
     "anchor_from": "top_left",
@@ -1876,6 +1958,23 @@
     "factory": {
       "name": "buttons",
       "control_ids": { "button": "df_form.gslot_b_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+  "marked_gslot_b2": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.gslot_b2_item" }
     },
     "collection_name": "form_buttons",
     "bindings": [
@@ -2053,6 +2152,12 @@
                       "size": [ "100%", "100%cm" ]
                     }
                   },
+                  {
+                    "row_a2@df_form.marked_gslot_a2": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  },
                   { "gap": { "type": "panel", "size": [ "100%", 10 ] } },
                   {
                     "head2@df_form.marked_gslot_h2": {
@@ -2062,6 +2167,12 @@
                   },
                   {
                     "row_b@df_form.marked_gslot_b": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  },
+                  {
+                    "row_b2@df_form.marked_gslot_b2": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
@@ -2554,14 +2665,146 @@
     ]
   },
 
-  // A cell of the wrapping grid: a slot, or the heading of a section (§0§g§r,
-  // its text runs over the empty cells after it), or nothing (pad cells).
+  // ---- board (ui.ItemBoard): rows of 11 cells drawn like recipe viewers ----
+  // A cell of a wrapping grid is a slot (§0§f§r), the chosen slot (§0§s§r), an
+  // empty slot frame (§0§t§r, the empty places of a crafting grid), an arrow
+  // (§0§w§r, from the ingredients to the result), a heading whose text runs
+  // over the empty cells after it (§0§g§r) or nothing (§0§q§r).
+  "vis_board_arrow": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§w§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "board_arrow@df_form.vis_board_arrow": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      { "arrow": { "type": "image", "texture": "textures/ui/arrow_large", "size": [ 22, 15 ], "layer": 2 } }
+    ]
+  },
+  "board_frame@df_form.vis_gslot_empty": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      { "bg": { "type": "image", "texture": "textures/ui/cell_image", "size": [ 18, 18 ] } }
+    ]
+  },
+  "board_chosen@df_form.vis_gslot_sel": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "slot@df_form.gslot_sel_button": {} } ]
+  },
+
+  // ---- page arrows in the control bar (ui.BarPager, §0§j§r) ----
+  // Small arrows left of the help button, their tooltip saying which page
+  // they go to: paging takes no room in the window.
+  "vis_bar_pager": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '§0§j§r') = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "bar_page_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - '§0§j§r')",
+        "target_property_name": "#hover_text"
+      }
+    ]
+  },
+  "bar_page_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_bar_texture|default": "textures/ui/df/clear",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_bar_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ], "$df_icon_color": [ 1, 1, 1 ] } }
+    ]
+  },
+  "bar_page_face_tip@df_form.bar_page_face": {
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_bar_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ], "$df_icon_color": [ 1, 1, 1 ] } },
+      { "tip@df_form.bar_page_tip": {} }
+    ]
+  },
+  "bar_page_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 15, 15 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.bar_page_face": {} },
+      { "hover@df_form.bar_page_face_tip": { "$df_bar_texture": "textures/ui/df/hover_flat" } },
+      { "pressed@df_form.bar_page_face_tip": { "$df_bar_texture": "textures/ui/df/press_flat" } }
+    ]
+  },
+  "bar_pager_item@df_form.vis_bar_pager": {
+    "type": "panel",
+    "size": [ 20, 22 ],
+    "controls": [ { "button@df_form.bar_page_button": {} } ]
+  },
+  "marked_bar_pager": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.bar_pager_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+
+  // A cell of the wrapping grid (see the board above).
   "gslot_cell": {
     "type": "panel",
     "size": [ 18, 18 ],
     "controls": [
       { "slot@df_form.gslot_w_item": {} },
-      { "head@df_form.gslot_grid_head": {} }
+      { "head@df_form.gslot_grid_head": {} },
+      { "chosen@df_form.board_chosen": {} },
+      { "frame@df_form.board_frame": {} },
+      { "arrow@df_form.board_arrow": {} }
     ]
   },
 
@@ -2574,11 +2817,12 @@
           "type": "label",
           "layer": 3,
           "text": "#df_head",
-          "color": [ 0.2, 0.2, 0.2 ],
+          "color": [ 0.25, 0.25, 0.25 ],
           "size": [ "default", "default" ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle",
-          "offset": [ 2, 4 ],
+          "offset": [ 1, 1 ],
+          "font_scale_factor": 0.8,
           "bindings": [
             {
               "binding_name": "#form_button_text",
@@ -2603,7 +2847,19 @@
     "$df_slot_control|default": "df_form.gslot_button",
     "controls": [ { "slot@$df_slot_control": {} } ]
   },
+  "gslot_a2_item@df_form.vis_gslot_a2": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "$df_slot_control|default": "df_form.gslot_button",
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
   "gslot_b_item@df_form.vis_gslot_b": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "$df_slot_control|default": "df_form.gslot_button",
+    "controls": [ { "slot@$df_slot_control": {} } ]
+  },
+  "gslot_b2_item@df_form.vis_gslot_b2": {
     "type": "panel",
     "size": [ 18, 18 ],
     "$df_slot_control|default": "df_form.gslot_button",
@@ -2619,7 +2875,7 @@
   // A heading is a small grey text; its button text minus the marker.
   "gslot_h1_item@df_form.vis_gslot_h1": {
     "type": "panel",
-    "size": [ "100%", 12 ],
+    "size": [ "100%", 10 ],
     "controls": [
       {
         "text": {
@@ -2627,7 +2883,7 @@
           "layer": 3,
           "text": "#df_head",
           "color": [ 0.3, 0.3, 0.3 ],
-          "font_scale_factor": 0.8,
+          "font_scale_factor": 0.7,
           "size": [ "100%", "default" ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle",
@@ -2649,7 +2905,7 @@
   },
   "gslot_h2_item@df_form.vis_gslot_h2": {
     "type": "panel",
-    "size": [ "100%", 12 ],
+    "size": [ "100%", 10 ],
     "controls": [
       {
         "text": {
@@ -2657,7 +2913,7 @@
           "layer": 3,
           "text": "#df_head",
           "color": [ 0.3, 0.3, 0.3 ],
-          "font_scale_factor": 0.8,
+          "font_scale_factor": 0.7,
           "size": [ "100%", "default" ],
           "anchor_from": "left_middle",
           "anchor_to": "left_middle",
@@ -2682,7 +2938,7 @@
   // the button text without the '~' padding.
   "gslot_count": {
     "type": "label",
-    "layer": 4,
+    "layer": 31,
     "text": "#df_count",
     "color": [ 1, 1, 1 ],
     "shadow": true,
@@ -2752,7 +3008,7 @@
   // control, so a grid of slots stays cheap.
   "gslot_deco": {
     "type": "image",
-    "layer": 6,
+    "layer": 30,
     "size": [
       "100%",
       "100%"
@@ -2790,7 +3046,7 @@
   // gslot_button (mouse and touch): hovering, or holding a finger down, shows
   // the tooltip; a tap or click presses it. No toggle: radio toggles cannot
   // be exclusive across grid cells, so several tooltips opened at once.
-  "gslot_button@common.button": {
+  "gslot_live_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
     "size": [ 18, 18 ],
@@ -2851,38 +3107,6 @@
       }
     ]
   },
-  // A page button under the split grid.
-  "vis_pager": {
-    "bindings": [
-      {
-        "binding_name": "#form_button_text",
-        "binding_type": "collection",
-        "binding_collection_name": "form_buttons"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(not ((#form_button_text - '§0§u§r') = #form_button_text))",
-        "target_property_name": "#visible"
-      }
-    ]
-  },
-  "marked_pager": {
-    "type": "stack_panel",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "factory": {
-      "name": "buttons",
-      "control_ids": { "button": "df_form.pager_item" }
-    },
-    "collection_name": "form_buttons",
-    "bindings": [
-      {
-        "binding_name": "#form_button_contents",
-        "binding_name_override": "#collection_length",
-        "binding_condition": "visible"
-      }
-    ]
-  },
 
   // The research screen's two tabs are wide enough for their label and count
   // (two of them fit over its window).
@@ -2914,7 +3138,7 @@
     "size": [ "100%", "100%" ],
     "$df_tab_texture|default": "textures/ui/TabTopBack",
     "controls": [
-      { "bg@df_form.state_image": { "$df_state_texture": "$df_tab_texture" } },
+      { "bg": { "type": "image", "texture": "$df_tab_texture", "size": [ "100%", "100% + 6px" ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": -6 } },
       {
         "selected@df_form.vis_tab_on": {
           "type": "image",
@@ -2990,8 +3214,12 @@
   "split_tab_item@df_form.vis_tab": {
     "type": "panel",
     "size": [ 98, 24 ],
-    "controls": [ { "button@df_form.split_tab_button": {} } ]
+    "controls": [
+      { "off@df_form.vis_tree_tab_off": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.split_tab_button": {} } ] } },
+      { "on@df_form.vis_tab_on": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.split_tab_button_on": {} } ] } }
+    ]
   },
+  "split_tab_button_on@df_form.split_tab_button": { "$pressed_button_name": "button.df_noop" },
   "marked_split_tabs": {
     "type": "stack_panel",
     "anchor_from": "top_left",
@@ -3010,12 +3238,117 @@
     ]
   },
 
-  "gslot_sel_button@df_form.gslot_button": {
+  "gslot_sel_live@df_form.gslot_live_button": {
     "controls": [
       { "default@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
       { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
       { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } },
       { "deco@df_form.gslot_deco": {} }
+    ]
+  },
+
+  // The chosen slot (§0§s§r: the research or view already shown) does not
+  // answer the form when pressed: pressing it would only show the same page.
+  // Its tooltip still shows. One button per cell keeps a grid of slots cheap.
+  "gslot_sel_button@df_form.gslot_sel_live": { "$pressed_button_name": "button.df_noop" },
+  "gslot_button@df_form.gslot_live_button": {},
+
+  // The page arrows in the corners of the split grid's last row: an arrow
+  // with a page to go to is a button (pagerToken + a/b), one without is a
+  // dimmed picture (pagerToken + c/d) that cannot be pressed, so the row
+  // looks the same on every page.
+  "vis_pager_on": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((('%.10s' * #form_button_text) = '§0§u§ra') or (('%.10s' * #form_button_text) = '§0§u§rb'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "vis_pager_off": {
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "((('%.10s' * #form_button_text) = '§0§u§rc') or (('%.10s' * #form_button_text) = '§0§u§rd'))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "pager_cell_tip@common.hover_text": {
+    "$hover_text_max_width": 0,
+    "layer": 200,
+    "bindings": [
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#form_button_text - ('%.10s' * #form_button_text))",
+        "target_property_name": "#hover_text"
+      }
+    ]
+  },
+  "pager_cell_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_slot_texture|default": "textures/ui/df/button",
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_slot_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } }
+    ]
+  },
+  "pager_cell_face_tip@df_form.pager_cell_face": {
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "$df_slot_texture" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } },
+      { "tip@df_form.pager_cell_tip": {} }
+    ]
+  },
+  "pager_cell_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 18, 18 ],
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.pager_cell_face": {} },
+      { "hover@df_form.pager_cell_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.pager_cell_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } }
+    ]
+  },
+  "split_pager_on@df_form.vis_pager_on": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "button@df_form.pager_cell_button": {} } ]
+  },
+  "split_pager_off@df_form.vis_pager_off": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "alpha": 0.35,
+    "propagate_alpha": true,
+    "controls": [
+      { "bg": { "type": "image", "texture": "textures/ui/df/button", "size": [ 18, 18 ] } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 12, 12 ] } }
     ]
   },
 
@@ -3025,7 +3358,9 @@
     "controls": [
       { "slot@df_form.split_slot": {} },
       { "chosen@df_form.split_chosen": {} },
-      { "empty@df_form.split_empty": {} }
+      { "empty@df_form.split_empty": {} },
+      { "pager_on@df_form.split_pager_on": {} },
+      { "pager_off@df_form.split_pager_off": {} }
     ]
   },
   "split_slot@df_form.vis_gslot_w": {
@@ -3043,50 +3378,6 @@
     "size": [ 18, 18 ],
     "controls": [
       { "bg": { "type": "image", "texture": "textures/ui/cell_image", "size": [ 18, 18 ] } }
-    ]
-  },
-
-  // A page button under the split grid: half the grid's width, a small arrow
-  // and small text.
-  "pager_item@df_form.vis_pager": {
-    "type": "panel",
-    "size": [ 72, 16 ],
-    "controls": [ { "button@df_form.pager_button": {} } ]
-  },
-  "pager_button@df_form.list_button": {
-    "size": [ 71, 16 ],
-    "controls": [
-      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
-      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
-      {
-        "icon@df_form.button_icon": {
-          "$df_icon_size": [ 10, 10 ],
-          "offset": [ 3, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle"
-        }
-      },
-      {
-        "text": {
-          "type": "label",
-          "layer": 3,
-          "text": "#form_button_text",
-          "color": [ 0.95, 0.95, 0.97 ],
-          "font_scale_factor": 0.7,
-          "size": [ "100% - 15px", "default" ],
-          "offset": [ 14, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            }
-          ]
-        }
-      }
     ]
   },
 
@@ -3135,20 +3426,13 @@
                   {
                     "grid": {
                       "type": "grid",
-                      "size": [ 144, 90 ],
+                      "size": [ 144, 126 ],
                       "anchor_from": "top_middle",
                       "anchor_to": "top_middle",
-                      "grid_dimensions": [ 8, 5 ],
-                      "maximum_grid_items": 40,
+                      "grid_dimensions": [ 8, 7 ],
+                      "maximum_grid_items": 56,
                       "grid_item_template": "df_form.split_cell",
                       "collection_name": "form_buttons"
-                    }
-                  },
-                  { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
-                  {
-                    "pager@df_form.marked_pager": {
-                      "orientation": "horizontal",
-                      "size": [ "100%", "100%c" ]
                     }
                   }
                 ]
@@ -3176,6 +3460,141 @@
     "$scroll_bar_right_padding_size": [ 0, 0 ]
   },
 
+  // The research screen's detail is compact so the whole of it fits the
+  // inventory-sized window without scrolling: a 28px icon, the name in a
+  // smaller font, 18px action buttons and small text.
+  "split_action_button@df_form.list_button": {
+    "size": [ "100%", 17 ],
+    "controls": [
+      { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button" } },
+      { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 12, 12 ],
+          "offset": [ 3, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#form_button_text",
+          "color": [ 0.95, 0.95, 0.97 ],
+          "font_scale_factor": 0.8,
+          "size": [ "100% - 19px", "default" ],
+          "offset": [ 18, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle",
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "split_action_item@df_form.vis_action": {
+    "type": "panel",
+    "size": [ "100%", 18 ],
+    "controls": [ { "button@df_form.split_action_button": {} } ]
+  },
+  "marked_split_actions": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.split_action_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+  "split_icon_item@df_form.vis_gdetail": {
+    "type": "panel",
+    "size": [ 28, 28 ],
+    "controls": [
+      { "bg@df_form.state_image": { "$df_state_texture": "textures/ui/cell_image" } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 22, 22 ], "anchor_from": "center", "anchor_to": "center" } }
+    ]
+  },
+  "marked_split_icon": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.split_icon_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+  "split_name_item@df_form.gdetail_name_item": {
+    "controls": [
+      {
+        "text": {
+          "type": "label",
+          "layer": 3,
+          "text": "#df_name",
+          "color": [ 0.2, 0.2, 0.2 ],
+          "font_scale_factor": 0.8,
+          "size": [ "100%", "default" ],
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#form_button_text - '§0§i§r')",
+              "target_property_name": "#df_name"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "marked_split_name": {
+    "type": "stack_panel",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "factory": {
+      "name": "buttons",
+      "control_ids": { "button": "df_form.split_name_item" }
+    },
+    "collection_name": "form_buttons",
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length",
+        "binding_condition": "visible"
+      }
+    ]
+  },
+  "split_body_label@df_form.body_label": {
+    "font_scale_factor": 0.8,
+    "size": [ "100%", "default" ],
+    "offset": [ 0, 0 ]
+  },
+
   "split_right": {
     "type": "panel",
     "size": [ "100%", "100%c" ],
@@ -3184,14 +3603,14 @@
         "split_right_body": {
           "type": "image",
           "texture": "textures/ui/df/panel",
-          "size": [ "100%", "100%c + 8px" ],
+          "size": [ "100%", "100%c + 6px" ],
           "controls": [
             {
               "inner": {
                 "type": "stack_panel",
                 "orientation": "vertical",
-                "size": [ "100% - 8px", "100%c" ],
-                "offset": [ 4, 4 ],
+                "size": [ "100% - 6px", "100%c" ],
+                "offset": [ 3, 3 ],
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "controls": [
@@ -3202,12 +3621,12 @@
                       "size": [ "100%", "100%cm" ],
                       "controls": [
                         {
-                          "icon@df_form.marked_gdetail_icon": {
+                          "icon@df_form.marked_split_icon": {
                             "orientation": "horizontal",
                             "size": [ "100%c", "100%cm" ]
                           }
                         },
-                        { "gap": { "type": "panel", "size": [ 6, 1 ] } },
+                        { "gap": { "type": "panel", "size": [ 4, 1 ] } },
                         {
                           "info": {
                             "type": "stack_panel",
@@ -3215,14 +3634,14 @@
                             "size": [ "fill", "100%c" ],
                             "controls": [
                               {
-                                "name@df_form.marked_gdetail_name": {
+                                "name@df_form.marked_split_name": {
                                   "orientation": "vertical",
                                   "size": [ "100%", "100%c" ]
                                 }
                               },
-                              { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
+                              { "gap": { "type": "panel", "size": [ "100%", 2 ] } },
                               {
-                                "actions@df_form.marked_actions": {
+                                "actions@df_form.marked_split_actions": {
                                   "orientation": "vertical",
                                   "size": [ "100%", "100%c" ]
                                 }
@@ -3233,15 +3652,15 @@
                       ]
                     }
                   },
-                  { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+                  { "gap": { "type": "panel", "size": [ "100%", 3 ] } },
                   {
                     "body": {
                       "type": "panel",
                       "size": [ "100%", "100%c" ],
-                      "controls": [ { "label@df_form.body_label": {} } ]
+                      "controls": [ { "label@df_form.split_body_label": {} } ]
                     }
                   },
-                  { "gap": { "type": "panel", "size": [ "100%", 8 ] } },
+                  { "gap": { "type": "panel", "size": [ "100%", 3 ] } },
                   {
                     "head1@df_form.marked_gslot_h1": {
                       "orientation": "vertical",
@@ -3254,7 +3673,13 @@
                       "size": [ "100%", "100%cm" ]
                     }
                   },
-                  { "gap": { "type": "panel", "size": [ "100%", 10 ] } },
+                  {
+                    "row_a2@df_form.marked_gslot_a2": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  },
+                  { "gap": { "type": "panel", "size": [ "100%", 3 ] } },
                   {
                     "head2@df_form.marked_gslot_h2": {
                       "orientation": "vertical",
@@ -3263,6 +3688,12 @@
                   },
                   {
                     "row_b@df_form.marked_gslot_b": {
+                      "orientation": "horizontal",
+                      "size": [ "100%", "100%cm" ]
+                    }
+                  },
+                  {
+                    "row_b2@df_form.marked_gslot_b2": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
@@ -3502,12 +3933,14 @@
       }
     ]
   },
-  // The chosen row is already lit; hovering and pressing it brighten it.
+  // The chosen row is already lit and stays so: pressing it would only show
+  // the same screen, so its press does not answer the form.
   "list_row_button_on@df_form.list_row_button": {
+    "$pressed_button_name": "button.df_noop",
     "controls": [
       { "default@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
       { "hover@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_pressed" } },
+      { "pressed@df_form.state_image": { "$df_state_texture": "textures/ui/df/button_hover" } },
       {
         "icon@df_form.button_icon": {
           "offset": [ 6, 0 ],
@@ -4020,8 +4453,12 @@
   "tree_tab_item@df_form.vis_tab": {
     "type": "panel",
     "size": [ 26, 26 ],
-    "controls": [ { "button@df_form.tree_tab_button": {} } ]
+    "controls": [
+      { "off@df_form.vis_tree_tab_off": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.tree_tab_button": {} } ] } },
+      { "on@df_form.vis_tab_on": { "type": "panel", "size": [ "100%", "100%" ], "controls": [ { "button@df_form.tree_tab_button_on": {} } ] } }
+    ]
   },
+  "tree_tab_button_on@df_form.tree_tab_button": { "$pressed_button_name": "button.df_noop" },
   "marked_tree_tabs": {
     "type": "stack_panel",
     "anchor_from": "top_left",

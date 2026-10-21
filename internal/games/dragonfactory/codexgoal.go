@@ -5,7 +5,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
-	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/i18n"
@@ -176,39 +175,6 @@ func (s *session) addGoalRows(b *hud.Board) {
 	for _, r := range s.goalRows() {
 		b.Add(hud.Quest, r)
 	}
-}
-
-// codexRawLines are the raw materials an item takes for p's page: what is
-// needed and how many of it p holds.
-func (s *session) codexRawLines(p *player.Player, lang string, it item.Stack) []string {
-	if _, ok := codexRecipeOf(it); !ok {
-		return nil
-	}
-	var lines []string
-	for _, l := range codexRaw(it, 1) {
-		have := countPlain(p.Inventory(), l.stack.Item())
-		colour := "§c"
-		if have >= max(1, l.count) {
-			colour = "§a"
-		}
-		lines = append(lines, fmt.Sprintf("§f- %s §e×%d §8(%s%d§8)", itemName(l.stack), max(1, l.count), colour, have))
-	}
-	return lines
-}
-
-// goalOption is the button that makes the item a goal or drops it.
-func (s *session) goalOption(p *player.Player, it item.Stack) (ui.Option, bool) {
-	if _, ok := codexRecipeOf(it); !ok {
-		return ui.Option{}, false
-	}
-	key := "goal.set"
-	if s.isGoal(it) {
-		key = "goal.unset"
-	}
-	return s.opt(i18n.T(i18n.Of(p), key), "", func(p *player.Player, tx *world.Tx) {
-		s.toggleGoal(tx, it)
-		s.showCodexItem(p, it)
-	}), true
 }
 
 // goalSlots are the goals as slots that open their pages.

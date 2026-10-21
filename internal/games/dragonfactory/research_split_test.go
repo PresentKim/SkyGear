@@ -36,7 +36,7 @@ func TestResearchCopiesFillTheTabs(t *testing.T) {
 	if len(done) != 1 || len(s.state.Researched) != 0 {
 		t.Errorf("a done copy: %d done, %d saved", len(done), len(s.state.Researched))
 	}
-	if pages := (len(todo) + ui.SplitCells - 1) / ui.SplitCells; pages < 4 {
+	if pages := (len(todo) + ui.SplitCells - 1) / ui.SplitCells; pages < 3 {
 		t.Errorf("%d pages for %d researches", pages, len(todo))
 	}
 }

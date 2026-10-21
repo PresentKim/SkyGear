@@ -6,6 +6,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
@@ -51,19 +52,36 @@ func TestCodexSourcesAndUses(t *testing.T) {
 	}
 }
 
-// TestCodexPagesAreWritten: the sieve and gear pages have lines for every
-// table entry.
+// cardsHave reports whether a slot of the cards shows the item with the count
+// label (any count when count is "-").
+func cardsHave(cards []codexCard, w world.Item, count string) bool {
+	icon := iconOf(item.NewStack(w, 1))
+	for _, c := range cards {
+		for _, row := range c.rows {
+			for _, cell := range row {
+				if sl, ok := cell.SlotOf(); ok && sl.Icon == icon && (count == "-" || sl.Count == count) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// TestCodexPagesAreWritten: the tabs have a card for every table entry.
 func TestCodexPagesAreWritten(t *testing.T) {
 	s := testSession(t)
 	lang := i18n.Default
-	if lines := s.codexProcessLines(lang); len(lines) < len(alloyRecipes)+4 {
-		t.Errorf("process page: %d lines", len(lines))
+	if cards := s.codexProcessCards(lang); len(cards) < len(alloyRecipes)+len(labRecipes)+len(headMaterials) {
+		t.Errorf("process tab: %d cards", len(cards))
 	}
-	if lines := s.codexMobLines(lang); len(lines) < len(mobKinds)+len(waveLevels) {
-		t.Errorf("mob page: %d lines", len(lines))
+	if cards := s.codexMobCards(lang); len(cards) < len(mobKinds)+len(waveLevels) {
+		t.Errorf("mobs tab: %d cards", len(cards))
 	}
-	if lines := codexGearLines(lang); !hasLine(lines, "날카로움") || !hasLine(lines, "청동") {
-		t.Errorf("gear page: %q", lines)
+	for _, in := range codexSieveInputs() {
+		if cards := s.codexSieveCards(lang, in); len(cards) != len(meshTiers) {
+			t.Errorf("%s: %d mesh cards", itemKey(in), len(cards))
+		}
 	}
 	for _, in := range codexSieveInputs() {
 		for _, tier := range meshTiers {
@@ -85,8 +103,59 @@ func TestCodexKnowsTheLab(t *testing.T) {
 	if uses := strings.Join(s.codexUses(i18n.Default, item.NewStack(item.SpiderEye{}, 1)), "\n"); !strings.Contains(uses, "사냥의 정수") {
 		t.Errorf("uses %q", uses)
 	}
-	if lines := strings.Join(s.codexProcessLines(i18n.Default), "\n"); !strings.Contains(lines, "마법의 정수 ×1") {
-		t.Errorf("process %q", lines)
+	if !cardsHave(s.codexSourceCards(i18n.Default, essence), item.Gunpowder{}, "§f2") {
+		t.Error("the lab card of the hunting essence lacks 2 gunpowder")
+	}
+}
+
+// TestCodexCraftCard: a crafting recipe is drawn as its grid: a 3×1 recipe is
+// one row of three ingredients, then the arrow and the result with its count.
+func TestCodexCraftCard(t *testing.T) {
+	s := testSession(t)
+	var c codexCard
+	found := false
+	for _, cr := range crafterRecipes() {
+		if itemKey(cr.out.Item()) == itemKey(block.String{}) {
+			if sh, ok := cr.r.(interface{ Input() []recipe.Item }); ok && len(sh.Input()) == 3 {
+				c, found = s.craftCard(i18n.Default, cr), true
+			}
+		}
+	}
+	if !found {
+		t.Fatal("no 3-fibre string recipe")
+	}
+	if len(c.rows) != 1 {
+		t.Fatalf("a 3×1 recipe takes %d rows", len(c.rows))
+	}
+	for x := range 3 {
+		if _, ok := c.rows[0][x].SlotOf(); !ok {
+			t.Errorf("cell %d of the grid is not an ingredient", x)
+		}
+	}
+	if !c.rows[0][cardArrow].IsArrow() {
+		t.Error("no arrow before the result")
+	}
+	if sl, ok := c.rows[0][cardOutCol].SlotOf(); !ok || sl.Count != "§f3" {
+		t.Errorf("the result slot is %+v, want 3 string", sl)
+	}
+}
+
+// TestCodexBoardPages: no page is longer than its budget unless one card is,
+// and a page starts with the header of its machine.
+func TestCodexBoardPages(t *testing.T) {
+	s := testSession(t)
+	cards := s.codexMobCards(i18n.Default)
+	pages := s.codexBoardPages(cards, codexBoardRows)
+	if len(pages) < 2 {
+		t.Fatalf("%d pages for %d cards", len(pages), len(cards))
+	}
+	for i, pg := range pages {
+		if len(pg) > codexBoardRows {
+			t.Errorf("page %d has %d rows", i, len(pg))
+		}
+		if _, ok := pg[0][0].SlotOf(); !ok {
+			t.Errorf("page %d does not start with a machine header", i)
+		}
 	}
 }
 
@@ -94,7 +163,7 @@ func TestCodexKnowsTheLab(t *testing.T) {
 // search finds them by name (initials too), and an item links to what it is
 // made from and made into.
 func TestCodexSearchAndLinks(t *testing.T) {
-	testSession(t)
+	s := testSession(t)
 	registerCreativeItems()
 	steel := Ingot{Metal: MetalSteel}
 	steelName := itemName(item.NewStack(steel, 1))
@@ -111,28 +180,12 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	if n := len(codexFind("ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
 		t.Errorf("a nonsense search found %d", n)
 	}
-	from, into := codexLinks(item.NewStack(steel, 1))
-	has := func(list []codexLink, w world.Item) bool {
-		for _, l := range list {
-			if itemKey(l.stack.Item()) == itemKey(w) {
-				return true
-			}
-		}
-		return false
+	from := s.codexSourceCards(i18n.Default, item.NewStack(steel, 1))
+	if !cardsHave(from, item.IronIngot{}, "-") || !cardsHave(from, item.Coal{}, "§f4") {
+		t.Error("steel is made from iron and 4 coal")
 	}
-	if !has(from, item.IronIngot{}) || !has(from, item.Coal{}) {
-		t.Errorf("steel is made from iron and coal, links: %v", from)
-	}
-	for _, l := range from {
-		if itemKey(l.stack.Item()) == itemKey(item.Coal{}) && l.count != 4 {
-			t.Errorf("steel takes 4 coal, the link says %d", l.count)
-		}
-	}
-	if has(from, steel) || has(into, steel) {
-		t.Error("an item links to itself")
-	}
-	if _, i := codexLinks(item.NewStack(block.Cobblestone{}, 1)); !has(i, block.Gravel{}) {
-		t.Errorf("cobblestone is crushed into gravel, links: %v", i)
+	if !cardsHave(s.codexUseCards(i18n.Default, item.NewStack(block.Cobblestone{}, 1)), block.Gravel{}, "-") {
+		t.Error("cobblestone is crushed into gravel")
 	}
 }
 
@@ -173,18 +226,5 @@ func TestCodexRawAndGoals(t *testing.T) {
 		if !i18n.Has(codexTabKeys[tab]) {
 			t.Errorf("codex tab %d has no name", tab)
 		}
-	}
-}
-
-// TestCodexMakers: the machine that makes an item is named on its page.
-func TestCodexMakers(t *testing.T) {
-	testSession(t)
-	registerCreativeItems()
-	found := false
-	for _, l := range codexMakers(item.NewStack(Ingot{Metal: MetalSteel}, 1)) {
-		found = found || itemKey(l.stack.Item()) == itemKey(Machine{Kind: KindAlloy})
-	}
-	if !found {
-		t.Error("steel is made in the alloy smelter")
 	}
 }

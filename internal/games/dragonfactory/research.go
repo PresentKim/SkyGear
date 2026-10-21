@@ -521,7 +521,9 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	for i := v.page * ui.SplitCells; i < min(len(list), (v.page+1)*ui.SplitCells); i++ {
 		e := list[i]
 		sl := s.researchSlot(p, e, pick(v.tab, v.page, e.r.ID))
-		sl.Selected = e.r.ID == v.sel
+		if e.r.ID == v.sel {
+			sl.Selected, sl.Run = true, nil
+		}
 		slots = append(slots, sl)
 	}
 	tab := func(key string, n int, icon string, t int) ui.Option {
@@ -534,9 +536,12 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 			tab("researchtab.done", len(done), iconDone, 1),
 		},
 		Slots: slots,
-		Pager: s.guard(ui.Pager(p, v.page, pages, func(p *player.Player, tx *world.Tx, to int) {
-			s.showResearchSplit(p, researchView{tab: v.tab, page: to})
-		})),
+		Page:  v.page, Pages: pages,
+		Turn: func(p *player.Player, tx *world.Tx, to int) {
+			if tx.World() == s.world {
+				s.showResearchSplit(p, researchView{tab: v.tab, page: to})
+			}
+		},
 	}
 	tip := i18n.T(lang, "dragonfactory.research.researchList.1")
 	if idx >= 0 {
