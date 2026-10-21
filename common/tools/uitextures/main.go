@@ -153,6 +153,52 @@ func flat(v uint8) image.Image {
 	return img
 }
 
+// launcherBox is a button of the lobby's launcher menu: a translucent dark
+// fill with a thin light edge and rounded corners (two pixels cut).
+func launcherBox(fill, edge color.NRGBA, thick int) image.Image {
+	const n = 16
+	img := image.NewNRGBA(image.Rect(0, 0, n, n))
+	for x := range n {
+		for y := range n {
+			d := min(x, y, n-1-x, n-1-y)
+			corner := min(x, n-1-x)+min(y, n-1-y) < 2
+			switch {
+			case corner:
+			case d < thick:
+				img.SetNRGBA(x, y, edge)
+			default:
+				img.SetNRGBA(x, y, fill)
+			}
+		}
+	}
+	return img
+}
+
+// glyph draws a 16×16 white icon from rows of '#'.
+func glyph(rows ...string) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 16, 16))
+	for y, row := range rows {
+		for x, c := range row {
+			if c == '#' {
+				img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, 255})
+			}
+		}
+	}
+	return img
+}
+
+// mirror flips an icon left to right.
+func mirror(src image.Image) image.Image {
+	b := src.Bounds()
+	img := image.NewNRGBA(b)
+	for x := range b.Dx() {
+		for y := range b.Dy() {
+			img.Set(b.Dx()-1-x, y, src.At(x, y))
+		}
+	}
+	return img
+}
+
 func write(name string, img image.Image, nineslice int) {
 	// What is there stays (the pictures may have been changed by hand);
 	// run with -f to write everything again.
@@ -206,4 +252,87 @@ func main() {
 	write("arrow_down", arrow(1), 0)
 	write("arrow_left", arrow(2), 0)
 	write("arrow_up", arrow(3), 0)
+	write("chevron_right", mirror(chevron()), 0)
+
+	// the lobby's launcher menu (ui.LauncherMenu)
+	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1), 4)
+	write("launcher_button_hover", launcherBox(color.NRGBA{34, 60, 98, 220}, color.NRGBA{150, 210, 255, 255}, 2), 4)
+	write("launcher_button_pressed", launcherBox(color.NRGBA{14, 22, 38, 235}, color.NRGBA{120, 170, 220, 255}, 2), 4)
+	write("icon_cube", glyph(
+		".......##.......",
+		".....##..##.....",
+		"...##......##...",
+		".##..........##.",
+		".#.##......##.#.",
+		".#...##..##...#.",
+		".#.....##.....#.",
+		".#.....##.....#.",
+		".#.....##.....#.",
+		".#.....##.....#.",
+		".#.....##.....#.",
+		".##....##....##.",
+		"...##..##..##...",
+		".....##..##.....",
+		".......##.......",
+	), 0)
+	write("icon_people", glyph(
+		"................",
+		"................",
+		"...####.........",
+		"..#....#..###...",
+		"..#....#.#...#..",
+		"..#....#.#...#..",
+		"...####...###...",
+		"................",
+		".########.####..",
+		"#........#....#.",
+		"#........#....#.",
+		"#........#....#.",
+		"##########....#.",
+		".........######.",
+	), 0)
+	write("icon_person", glyph(
+		"................",
+		"......####......",
+		".....#....#.....",
+		".....#....#.....",
+		".....#....#.....",
+		"......####......",
+		"................",
+		"....########....",
+		"...#........#...",
+		"..#..........#..",
+		"..#..........#..",
+		"..############..",
+	), 0)
+	write("icon_crown", glyph(
+		"................",
+		"................",
+		"..#....##....#..",
+		"..##..#..#..##..",
+		"..#.#.#..#.#.#..",
+		"..#..#....#..#..",
+		"..#..........#..",
+		"..#..........#..",
+		"..#..........#..",
+		"..############..",
+		"................",
+		"..############..",
+	), 0)
+	write("icon_help", glyph(
+		"................",
+		".....######.....",
+		"...##......##...",
+		"..#....##....#..",
+		"..#...#..#...#..",
+		".#.......#....#.",
+		".#......#.....#.",
+		".#.....#......#.",
+		".#.....#......#.",
+		".#............#.",
+		"..#....#.....#..",
+		"..#..........#..",
+		"...##......##...",
+		".....######.....",
+	), 0)
 }

@@ -40,6 +40,7 @@ func (pf *Platform) showFriends(p *player.Player) {
 		})
 	}
 	opts = append(opts, ui.Option{Label: i18n.T(i18n.Of(p), "platform.friends.showFriends.5"), Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) { pf.showBlocked(p) }})
+	opts = append(opts, pf.lobbyBacks(p)...)
 	ui.Menu(p, i18n.T(i18n.Of(p), "platform.friends.showFriends.6"), b.String(), opts...)
 }
 

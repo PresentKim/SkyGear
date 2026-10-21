@@ -140,7 +140,7 @@ func (pf *Platform) showInviteCode(p *player.Player, saveID int64) {
 func (pf *Platform) askInviteCode(p *player.Player) {
 	ui.Input(p, i18n.T(i18n.Of(p), "platform.invite.askInviteCode.1"), i18n.T(i18n.Of(p), "platform.invite.askInviteCode.2"), "", func(p *player.Player, _ *world.Tx, code string) {
 		pf.joinCode(p, code)
-	})
+	}, func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) })
 }
 
 // join makes p a member of a save and enters it if its host is playing.
@@ -211,6 +211,7 @@ func (pf *Platform) showJoined(p *player.Player) {
 	if len(opts) == 0 {
 		body = i18n.T(i18n.Of(p), "platform.invite.showJoined.10")
 	}
+	opts = append(opts, pf.lobbyBack(p, pf.showMultiplayer))
 	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showJoined.11"), body, opts...)
 }
 
@@ -240,6 +241,7 @@ func (pf *Platform) showInvites(p *player.Player) {
 	if len(opts) == 0 {
 		body = i18n.T(i18n.Of(p), "platform.invite.showInvites.3")
 	}
+	opts = append(opts, pf.lobbyBack(p, pf.showMultiplayer))
 	ui.Menu(p, i18n.T(i18n.Of(p), "platform.invite.showInvites.4"), body, opts...)
 }
 

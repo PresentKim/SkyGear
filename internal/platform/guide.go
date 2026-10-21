@@ -21,14 +21,19 @@ func (pf *Platform) guideText() string {
 // showGuide shows the server guide. With first set, closing it records that
 // the account has seen the current version.
 func (pf *Platform) showGuide(p *player.Player, first bool) {
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.guide.showGuide.1"), pf.guideText(), ui.Option{Label: i18n.T(i18n.Of(p), "platform.guide.showGuide.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
+	ok := ui.Option{Label: i18n.T(i18n.Of(p), "platform.guide.showGuide.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
 		if first {
 			if err := pf.db.SetGuideVersion(instance.AccountID(p), GuideVersion); err != nil {
 				pf.log.Error("set guide version", "err", err)
 			}
 			pf.showSaves(p, 0)
+			return
 		}
-	}})
+		if pf.m.Location(instance.AccountID(p)) == nil {
+			pf.showLobbyMenu(p)
+		}
+	}}
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.guide.showGuide.1"), pf.guideText(), ok)
 }
 
 func formatDuration(d time.Duration) string {

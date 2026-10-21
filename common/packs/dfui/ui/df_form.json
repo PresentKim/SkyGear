@@ -4246,6 +4246,159 @@
     "controls": [ { "button@df_form.list_button": {} } ]
   },
 
+
+  // ---- launcher menu (title starts with §d§f§n§r, Go ui.LauncherMenu) ----
+  // The lobby's main menu: no window, a column of large buttons at the top
+  // left of the screen under the lobby frame's title, each with a white icon,
+  // its label and a chevron. The HUD draws the same column with pictures
+  // (launcher_static, filled by the server pack in dfui_hooks.lobby_menu), so
+  // closing and opening the menu form does not show. Labels are pack
+  // language keys: the form's button text is the key and the label
+  // localizes it, so the form and the HUD read the same words.
+  "launcher_column": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ 150, "100%c" ],
+    "offset": [ 16, 54 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left"
+  },
+  "launcher_bg": {
+    "type": "image",
+    "size": [ "100%", "100%" ],
+    "texture": "$df_launcher_bg",
+    "layer": 1
+  },
+  "launcher_chevron": {
+    "type": "image",
+    "texture": "textures/ui/df/chevron_right",
+    "size": [ 8, 8 ],
+    "offset": [ -8, 0 ],
+    "anchor_from": "right_middle",
+    "anchor_to": "right_middle",
+    "layer": 3
+  },
+  "launcher_label": {
+    "type": "label",
+    "layer": 3,
+    "color": [ 1, 1, 1 ],
+    "shadow": true,
+    "size": [ "100% - 48px", "default" ],
+    "offset": [ 30, 0 ],
+    "anchor_from": "left_middle",
+    "anchor_to": "left_middle"
+  },
+  // A button drawn as a picture (the HUD's copy of the menu).
+  "launcher_static": {
+    "type": "panel",
+    "size": [ 150, 28 ],
+    "$df_launcher_icon|default": "textures/ui/df/icon_cube",
+    "$df_launcher_label|default": "",
+    "controls": [
+      {
+        "face": {
+          "type": "panel",
+          "size": [ 150, 24 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            { "bg@df_form.launcher_bg": { "$df_launcher_bg": "textures/ui/df/launcher_button" } },
+            {
+              "icon": {
+                "type": "image",
+                "texture": "$df_launcher_icon",
+                "size": [ 14, 14 ],
+                "offset": [ 9, 0 ],
+                "anchor_from": "left_middle",
+                "anchor_to": "left_middle",
+                "layer": 3
+              }
+            },
+            { "label@df_form.launcher_label": { "text": "$df_launcher_label" } },
+            { "chevron@df_form.launcher_chevron": {} }
+          ]
+        }
+      }
+    ]
+  },
+  "launcher_face": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "$df_launcher_bg|default": "textures/ui/df/launcher_button",
+    "controls": [
+      { "bg@df_form.launcher_bg": {} },
+      {
+        "icon@df_form.button_icon": {
+          "$df_icon_size": [ 14, 14 ],
+          "offset": [ 9, 0 ],
+          "anchor_from": "left_middle",
+          "anchor_to": "left_middle"
+        }
+      },
+      {
+        "label@df_form.launcher_label": {
+          "text": "#form_button_text",
+          "localize": true,
+          "bindings": [
+            {
+              "binding_name": "#form_button_text",
+              "binding_type": "collection",
+              "binding_collection_name": "form_buttons"
+            }
+          ]
+        }
+      },
+      { "chevron@df_form.launcher_chevron": {} }
+    ]
+  },
+  "launcher_button@common.button": {
+    "$focus_enabled": false,
+    "$pressed_button_name": "button.form_button_click",
+    "size": [ 150, 24 ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
+      { "default@df_form.launcher_face": {} },
+      { "hover@df_form.launcher_face": { "$df_launcher_bg": "textures/ui/df/launcher_button_hover" } },
+      { "pressed@df_form.launcher_face": { "$df_launcher_bg": "textures/ui/df/launcher_button_pressed" } }
+    ]
+  },
+  "launcher_item@df_form.unmarked_visible": {
+    "type": "panel",
+    "size": [ 150, 28 ],
+    "controls": [ { "button@df_form.launcher_button": {} } ]
+  },
+  "launcher_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "column@df_form.launcher_column": {
+          "factory": {
+            "name": "buttons",
+            "control_ids": { "button": "df_form.launcher_item" }
+          },
+          "collection_name": "form_buttons",
+          "bindings": [
+            {
+              "binding_name": "#form_button_contents",
+              "binding_name_override": "#collection_length",
+              "binding_condition": "visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
   // ---- tree form (title starts with §d§f§z§r, Go ui.TreeMenu) ----
   // The advancement tree, drawn like a Java advancements screen: a light window
   // with its tabs above it, the tree on a tiled background in an inset. The tree

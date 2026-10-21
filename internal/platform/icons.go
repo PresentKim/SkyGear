@@ -2,11 +2,9 @@ package platform
 
 // Form button icons: vanilla texture paths the client already has.
 const (
-	iconSaves    = "textures/items/book_writable"
 	iconJoined   = "textures/items/map_filled"
 	iconInvite   = "textures/items/paper"
 	iconCode     = "textures/items/name_tag"
-	iconFriends  = "textures/items/totem"
 	iconGuide    = "textures/items/book_normal"
 	iconEnter    = "textures/items/ender_pearl"
 	iconMembers  = "textures/items/armor_stand"

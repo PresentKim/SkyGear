@@ -19,7 +19,14 @@ type lobbyHandler struct {
 	pf *Platform
 }
 
-func (lobbyHandler) HandleStartBreak(ctx *player.Context, _ cube.Pos) { ctx.Cancel() }
+// HandleStartBreak and HandlePunchAir open the main menu: when the menu form is
+// closed, the HUD still draws it (ui/df_lobby.json), so a click or tap on the
+// screen brings the form back.
+func (h lobbyHandler) HandleStartBreak(ctx *player.Context, _ cube.Pos) {
+	ctx.Cancel()
+	h.pf.showLobbyMenu(ctx.Player())
+}
+func (h lobbyHandler) HandlePunchAir(ctx *player.Context) { h.pf.showLobbyMenu(ctx.Player()) }
 func (lobbyHandler) HandleBlockBreak(ctx *player.Context, _ cube.Pos, _ *[]item.Stack, _ *int) {
 	ctx.Cancel()
 }

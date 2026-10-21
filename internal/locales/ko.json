@@ -2786,7 +2786,6 @@
  "platform.platform.Run.1": "§e로비로 이동합니다.",
  "platform.platform.Run.2": "로비에서만 사용할 수 있습니다. /lobby 로 이동하세요.",
  "platform.platform.arriveLobby.1": "§r§a메뉴",
- "platform.platform.arriveLobby.2": "§r§e서버 안내",
  "platform.platform.askDelete.1": "세이브 삭제",
  "platform.platform.askDelete.2": "'%s' 세이브를 삭제할까요?\n삭제한 세이브는 되돌릴 수 없습니다.",
  "platform.platform.askDelete.3": "§c삭제",
@@ -2817,12 +2816,10 @@
  "platform.platform.registerCommands.6": "세이브 참여자를 관리합니다",
  "platform.platform.registerCommands.7": "초대 코드로 세이브에 참여합니다",
  "platform.platform.registerCommands.8": "칭호·치장을 엽니다",
- "platform.platform.showLobbyMenu.3": "내 세이브",
+ "platform.platform.showMultiplayer.1": "멀티 플레이",
  "platform.platform.showLobbyMenu.4": "참여 중인 세이브",
  "platform.platform.showLobbyMenu.5": "받은 초대 (%d)",
  "platform.platform.showLobbyMenu.6": "초대 코드 입력",
- "platform.platform.showLobbyMenu.7": "친구 (요청 %d)",
- "platform.platform.showLobbyMenu.8": "칭호·치장",
  "platform.platform.showSave.2": "§a입장",
  "platform.platform.showSave.3": "초대 코드",
  "platform.platform.showSave.4": "참여자 관리",
@@ -3437,6 +3434,5 @@
  "advancement.tab.combat": "전투",
  "advancement.tab.garden": "정원",
  "advancement.progress": "%s 달성 %d/%d",
- "dragonfactory.advancement.showAdvancementNode.4": "발전과제 · ",
- "platform.platform.showLobbyMenu.10": "친구"
+ "dragonfactory.advancement.showAdvancementNode.4": "발전과제 · "
 }

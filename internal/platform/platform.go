@@ -97,28 +97,26 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	showLobbyScene(p, p.Tx())
 	forgetLobbyHUD(p)
 	sendLobbyHUD(p, "")
-	// The hotbar is hidden: every slot holds the menu or the guide, in turn,
-	// so the use key opens one of them whichever slot is held.
+	// The hotbar is hidden: every slot holds the menu, so the use key opens
+	// it whichever slot is held.
 	menu := item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.1")).WithValue(lobbyItemKey, "menu")
-	guide := item.NewStack(item.Book{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.2")).WithValue(lobbyItemKey, "guide")
 	for slot := range 9 {
-		st := menu
-		if slot%2 == 1 {
-			st = guide
-		}
-		_ = p.Inventory().SetItem(slot, st)
+		_ = p.Inventory().SetItem(slot, menu)
 	}
 	_ = p.SetHeldSlot(0)
+	// The main menu is open on arrival (the guide comes first the first time:
+	// Join shows it).
+	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
+		pf.showLobbyMenu(p)
+	}
 }
 
 // useLobbyItem runs the action of a lobby item held by p.
 func (pf *Platform) useLobbyItem(p *player.Player) bool {
 	held, _ := p.HeldItems()
 	switch v, _ := held.Value(lobbyItemKey); v {
-	case "menu", "saves":
+	case "menu", "saves", "guide":
 		pf.showLobbyMenu(p)
-	case "guide":
-		pf.showGuide(p, false)
 	default:
 		return false
 	}
@@ -368,21 +366,50 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 	c.pf.showFriends(src.(*player.Player))
 }
 
-// showLobbyMenu is the main menu of the lobby.
+// showLobbyMenu is the lobby's main menu (docs/design/01-platform.md §1): five
+// large buttons at the top left under the game's name, the same as the
+// picture of it the pack draws on the HUD (ui/df_lobby.json menu), so the menu
+// form can close and open again without the screen changing. The labels are
+// the pack's language keys, which both draw.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
-	reqs, _ := pf.db.FriendRequests(instance.AccountID(p))
-	lang := i18n.Of(p)
-	friends := i18n.T(lang, "platform.platform.showLobbyMenu.10")
-	if len(reqs) > 0 {
-		friends = fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.7"), len(reqs))
+	ui.LauncherMenu(p, pf.lobbyMenu()...)
+}
+
+// lobbyMenu are the buttons of the main menu, in the order the pack draws
+// them.
+func (pf *Platform) lobbyMenu() []ui.Option {
+	return []ui.Option{
+		{Label: "df.lobby.single", Icon: "textures/ui/df/icon_cube", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
+		{Label: "df.lobby.multi", Icon: "textures/ui/df/icon_people", Run: func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) }},
+		{Label: "df.lobby.friends", Icon: "textures/ui/df/icon_person", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		{Label: "df.lobby.cosmetics", Icon: "textures/ui/df/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
+		{Label: "df.lobby.help", Icon: "textures/ui/df/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	}
-	// The lobby frame above names the game: the menu has no title of its own.
-	ui.CardMenu(p, "", "",
-		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.3"), Icon: iconSaves, Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
+}
+
+// showMultiplayer is the lobby's multiplayer menu: the saves p joined, the
+// invite code and the invites p received.
+func (pf *Platform) showMultiplayer(p *player.Player) {
+	lang := i18n.Of(p)
+	ui.Menu(p, i18n.T(lang, "platform.platform.showMultiplayer.1"), "",
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.8"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		ui.Option{Label: friends, Icon: iconFriends, Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
 		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.6"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
 		ui.Option{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.5"), len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
+		pf.lobbyBack(p, pf.showLobbyMenu),
 	)
+}
+
+// lobbyBack is the back button of a lobby screen: it shows back. The screens
+// that also open in a save (friends, help) leave it out there (lobbyBacks).
+func (pf *Platform) lobbyBack(p *player.Player, back func(p *player.Player)) ui.Option {
+	return ui.Back(i18n.T(i18n.Of(p), "platform.platform.showSaves.6"), func(p *player.Player, _ *world.Tx) { back(p) })
+}
+
+// lobbyBacks is the back button to the lobby's main menu for a screen that
+// also opens in a save: none there.
+func (pf *Platform) lobbyBacks(p *player.Player) []ui.Option {
+	if pf.m.Location(instance.AccountID(p)) != nil {
+		return nil
+	}
+	return []ui.Option{pf.lobbyBack(p, pf.showLobbyMenu)}
 }

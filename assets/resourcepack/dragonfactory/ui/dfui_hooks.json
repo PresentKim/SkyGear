@@ -8,5 +8,12 @@
     "type": "panel",
     "size": [ "100%", "100%" ],
     "controls": [ { "frame@df_lobby.frame": {} } ]
+  },
+
+  // The lobby's main menu as pictures (ui/df_lobby.json).
+  "lobby_menu": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [ { "menu@df_lobby.menu": {} } ]
   }
 }

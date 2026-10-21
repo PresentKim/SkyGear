@@ -27,6 +27,22 @@
         }
       },
       {
+        // The lobby's main menu as pictures, under the menu form.
+        "lobby_menu@dfui_hooks.lobby_menu": {
+          "bindings": [
+            {
+              "binding_name": "#objective_sidebar_name",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
         "df_plain@scoreboard.df_plain_sidebar": {
           "bindings": [
             {

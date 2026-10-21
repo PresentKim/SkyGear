@@ -14,6 +14,15 @@
     "size": [ "100%", "100%" ]
   },
 
+  // The lobby's main menu drawn as pictures on the HUD (no form open): the
+  // server pack draws the buttons of its launcher menu (ui.LauncherMenu) in
+  // df_form.launcher_column with df_form.launcher_static, so the screen does
+  // not change when the menu form closes. Not drawn behind forms. Empty here.
+  "lobby_menu": {
+    "type": "panel",
+    "size": [ "100%", "100%" ]
+  },
+
   // The form screen's background (server_form.json): the lobby frame for
   // forms shown in the lobby.
   "form_frame": {
