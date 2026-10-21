@@ -496,7 +496,8 @@ const (
 // slotCountBytes bytes), the tooltip shown on hover (or the first tap on
 // touch) and what pressing it does. Run must show a form again: any press
 // answers the form. A Selected slot cannot be pressed (its tooltip still shows):
-// it is the one already shown.
+// it is the one already shown. In the rows of a SplitMenu a slot without Run
+// cannot be pressed either.
 type ItemSlot struct {
 	Icon, Count, Tip string
 	Run              func(p *player.Player, tx *world.Tx)
@@ -508,11 +509,8 @@ type ItemSlot struct {
 }
 
 // SplitCells is how many slots a page of a SplitMenu grid holds (8 columns,
-// 6 rows); the grid has a seventh row with the page arrows in its corners.
+// 6 rows); the page arrows sit in the corners under it.
 const SplitCells = 48
-
-// splitColumns is the number of columns of the grid.
-const splitColumns = 8
 
 // Split is the content of a SplitMenu.
 type Split struct {
@@ -533,48 +531,6 @@ type Split struct {
 	Detail  Detail
 	Rows    []SlotRow
 	Actions []Option
-}
-
-// SplitMenu sends a form with the grid of Slots and the tabs and page buttons
-// of the grid on the left and the Detail of the chosen slot on the right. The
-// cells of the grid come first among the buttons, so the grid is the first
-// SplitCells buttons and the row of page arrows; any press answers the form:
-// Run must show a form again.
-func SplitMenu(p *player.Player, title string, sp Split) {
-	nop := func(*player.Player, *world.Tx) {}
-	opts := make([]Option, 0, SplitCells+len(sp.Actions)+16)
-	for i := range SplitCells {
-		if i >= len(sp.Slots) {
-			opts = append(opts, Option{Label: slotEmptyToken, Run: nop})
-			continue
-		}
-		marker := slotWToken
-		if sp.Slots[i].Selected {
-			marker = slotSelToken
-		}
-		opts = append(opts, slotOption(marker, false, sp.Slots[i]))
-	}
-	opts = append(opts, splitPagerRow(p, sp)...)
-	opts = append(opts, actionOptions(sp.Actions)...)
-	name := sp.Detail.Name
-	if sp.Detail.Status != "" {
-		name += "\n" + sp.Detail.Status
-	}
-	opts = append(opts, Option{Label: detailMarker + name, Icon: sp.Detail.Icon, Run: nop})
-	kinds := [2][2]string{{head1Token, slotAToken}, {head2Token, slotBToken}}
-	for i, row := range sp.Rows {
-		if i >= len(kinds) {
-			break
-		}
-		if row.Heading != "" {
-			opts = append(opts, Option{Label: kinds[i][0] + row.Heading, Run: nop})
-		}
-		for j, sl := range row.Slots {
-			opts = append(opts, rowSlotOption(kinds[i][1], j, sl))
-		}
-	}
-	opts = append(opts, sp.Tabs...)
-	Menu(p, SplitToken+title, sp.Detail.Body, opts...)
 }
 
 // SlotRow is a heading with a row of slots: RowSlots to a line, then a
@@ -623,6 +579,11 @@ func slotLabel(marker string, tipRight bool, sl ItemSlot) string {
 	align := "l"
 	if tipRight {
 		align = "r"
+	}
+	if sl.Run == nil {
+		// nothing to do: the split form's rows draw a button that does not
+		// answer the form
+		align = viewOnly
 	}
 	return marker + align + padSlotCount(count, slotCountBytes) + sl.Tip
 }
@@ -859,11 +820,12 @@ func ItemIcon(it world.Item) string {
 // no page to go to, drawn dimmed and not pressable), then the tooltip.
 const (
 	pagerPrev, pagerNext, pagerPrevOff, pagerNextOff = "a", "b", "c", "d"
+	// viewOnly in byte 10 of a slot's text marks a slot with nothing to do.
+	viewOnly = "v"
 )
 
-// splitPagerRow is the last row of the grid: the arrow to the page before
-// in the left corner, the arrow to the page after in the right corner and
-// blank cells between them.
+// splitPagerRow is the two page arrows under the grid: to the page before
+// and to the page after.
 func splitPagerRow(p *player.Player, sp Split) []Option {
 	lang := i18n.Of(p)
 	pages := max(1, sp.Pages)
@@ -875,11 +837,10 @@ func splitPagerRow(p *player.Player, sp Split) []Option {
 		return Option{Label: pagerToken + kindOn + fmt.Sprintf(i18n.T(lang, key), to+1, pages), Icon: icon,
 			Run: func(p *player.Player, tx *world.Tx) { sp.Turn(p, tx, to) }}
 	}
-	row := []Option{arrow(page > 0, pagerPrev, pagerPrevOff, "textures/ui/df/arrow_left", "ui.page.prev", page-1)}
-	for range splitColumns - 2 {
-		row = append(row, Option{Label: padToken})
+	return []Option{
+		arrow(page > 0, pagerPrev, pagerPrevOff, "textures/ui/df/arrow_left", "ui.page.prev", page-1),
+		arrow(page < pages-1, pagerNext, pagerNextOff, "textures/ui/df/arrow_right", "ui.page.next", page+1),
 	}
-	return append(row, arrow(page < pages-1, pagerNext, pagerNextOff, "textures/ui/df/arrow_right", "ui.page.next", page+1))
 }
 
 // RowSlots is how many slots one line of a headed row holds; a row wraps to
@@ -894,4 +855,89 @@ func rowSlotOption(marker string, j int, sl ItemSlot) Option {
 		o.Label = o.Label[:len(marker)] + "2" + o.Label[len(marker)+1:]
 	}
 	return o
+}
+
+// The buttons of a SplitMenu sit at fixed indexes, so the pack draws every
+// part from its own index (collection_index) instead of a stack per part
+// that walks all the buttons: a factory over a hundred buttons, each with a
+// full slot, made the screen take seconds to open. Unused places are pads.
+const (
+	splitPrevAt    = SplitCells     // the page arrows
+	splitTabsAt    = SplitCells + 2 // two tabs
+	splitHelpAt    = SplitCells + 4
+	splitBackAt    = SplitCells + 5
+	splitDetailAt  = SplitCells + 6
+	splitActionsAt = SplitCells + 7 // SplitActions action buttons
+	// SplitActions is how many action buttons a SplitMenu shows.
+	SplitActions = 4
+	splitHead1At = splitActionsAt + SplitActions
+	splitRowAAt  = splitHead1At + 1 // 2×RowSlots slots of row A
+	splitHead2At = splitRowAAt + 2*RowSlots
+	splitRowBAt  = splitHead2At + 1
+	splitButtons = splitRowBAt + 2*RowSlots
+)
+
+// SplitMenu sends a form with the grid of Slots on the left, the Detail of
+// the chosen slot on the right, its tabs above the window and the page arrows
+// in the corners under the grid. Any press answers the form: Run must show a
+// form again. Help and Back options among the actions go to the control bar.
+func SplitMenu(p *player.Player, title string, sp Split) {
+	nop := func(*player.Player, *world.Tx) {}
+	opts := make([]Option, splitButtons)
+	for i := range opts {
+		opts[i] = Option{Label: padToken}
+	}
+	for i := range SplitCells {
+		switch {
+		case i >= len(sp.Slots):
+			opts[i] = Option{Label: slotEmptyToken, Run: nop}
+		case sp.Slots[i].Selected:
+			opts[i] = slotOption(slotSelToken, false, sp.Slots[i])
+		default:
+			opts[i] = slotOption(slotWToken, false, sp.Slots[i])
+		}
+	}
+	pager := splitPagerRow(p, sp)
+	opts[splitPrevAt], opts[splitPrevAt+1] = pager[0], pager[len(pager)-1]
+	for i, t := range sp.Tabs {
+		if i < 2 {
+			opts[splitTabsAt+i] = t
+		}
+	}
+	n := 0
+	for _, a := range sp.Actions {
+		switch {
+		case strings.HasPrefix(a.Label, HelpToken):
+			opts[splitHelpAt] = a
+		case strings.HasPrefix(a.Label, BackToken):
+			opts[splitBackAt] = a
+		case n < SplitActions:
+			opts[splitActionsAt+n] = actionOptions([]Option{a})[0]
+			n++
+		}
+	}
+	name := sp.Detail.Name
+	if sp.Detail.Status != "" {
+		name += "\n" + sp.Detail.Status
+	}
+	opts[splitDetailAt] = Option{Label: detailMarker + name, Icon: sp.Detail.Icon, Run: nop}
+	rows := [2]struct {
+		head, slots int
+		headTok     string
+		slotTok     string
+	}{{splitHead1At, splitRowAAt, head1Token, slotAToken}, {splitHead2At, splitRowBAt, head2Token, slotBToken}}
+	for i, row := range sp.Rows {
+		if i >= len(rows) {
+			break
+		}
+		if row.Heading != "" {
+			opts[rows[i].head] = Option{Label: rows[i].headTok + row.Heading, Run: nop}
+		}
+		for j, sl := range row.Slots {
+			if j < 2*RowSlots {
+				opts[rows[i].slots+j] = slotOption(rows[i].slotTok, j >= tipLeftSlots, sl)
+			}
+		}
+	}
+	Menu(p, SplitToken+title, sp.Detail.Body, opts...)
 }

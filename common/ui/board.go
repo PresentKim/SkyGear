@@ -16,6 +16,9 @@ const (
 	arrowToken = "§0§w§r"
 	// barPagerToken marks a page arrow of the control bar.
 	barPagerToken = "§0§j§r"
+	// miniToken marks a small icon without a slot frame (the header of a group
+	// of recipes: the machine they are made in).
+	miniToken = "§0§7§r"
 )
 
 // cellKind is what a BoardCell draws.
@@ -27,6 +30,7 @@ const (
 	cellFrame
 	cellArrow
 	cellText
+	cellMini
 )
 
 // BoardCell is one cell of an ItemBoard row.
@@ -47,6 +51,9 @@ func Frame() BoardCell { return BoardCell{kind: cellFrame} }
 
 // Arrow is the arrow from the ingredients to the result.
 func Arrow() BoardCell { return BoardCell{kind: cellArrow} }
+
+// MiniCell is a small icon without a slot frame, with its tooltip and Run.
+func MiniCell(sl ItemSlot) BoardCell { return BoardCell{kind: cellMini, slot: sl} }
 
 // TextCell is a line of small text that runs over the blank cells after it.
 func TextCell(s string) BoardCell { return BoardCell{kind: cellText, text: s} }
@@ -83,6 +90,8 @@ func boardOptions(rows [][]BoardCell) []Option {
 				opts = append(opts, Option{Label: slotEmptyToken, Run: nop})
 			case cellArrow:
 				opts = append(opts, Option{Label: arrowToken, Run: nop})
+			case cellMini:
+				opts = append(opts, slotOption(miniToken, i >= gridTipLeft, c.slot))
 			case cellText:
 				opts = append(opts, Option{Label: head1Token + c.text, Run: nop})
 			default:
@@ -116,3 +125,7 @@ func (c BoardCell) SlotOf() (ItemSlot, bool) { return c.slot, c.kind == cellSlot
 
 // IsArrow reports whether the cell is an arrow.
 func (c BoardCell) IsArrow() bool { return c.kind == cellArrow }
+
+// IsHeader reports whether the cell starts a header row: a small icon or a
+// line of text.
+func (c BoardCell) IsHeader() bool { return c.kind == cellMini || c.kind == cellText }

@@ -30,7 +30,7 @@
   "control_bar": {
           "type": "image",
           "texture": "textures/ui/toolbar_background",
-          "size": [ "100%c + 18px", 25 ],
+          "size": [ "100%c + 6px", 25 ],
           "offset": [ 0, -22 ],
           "anchor_from": "top_right",
           "anchor_to": "top_right",
@@ -76,7 +76,7 @@
                   {
                     "close_slot": {
                       "type": "panel",
-                      "size": [ 22, 22 ],
+                      "size": [ 17, 22 ],
                       "controls": [
                         {
                           "close@common.light_close_button": {
@@ -105,6 +105,7 @@
     // fits a phone's screen.
     "$df_window_size|default": [ 230, 166 ],
     "$df_tabs|default": "df_form.marked_tabs",
+    "$df_chrome|default": "df_form.control_bar",
     // "$df_title|default": false hides the title (the input form draws no
     // title: its field's label names the question).
     "$df_title|default": true,
@@ -150,7 +151,7 @@
       },
       // The help, back and close buttons sit in a dark rounded bar of their
       // own above the window's top right corner, like the game's own screens.
-      { "chrome@df_form.control_bar": {} },
+      { "chrome@$df_chrome": {} },
       // The inner edge of the panel (light top left, dark bottom right).
       {
         "bevel": {
@@ -231,7 +232,7 @@
   // the form's Close callback and go back.
   "marked_input_back": {
     "type": "panel",
-    "size": [ 22, 22 ],
+    "size": [ 17, 22 ],
     "visible": false,
     "bindings": [
       { "binding_name": "#title_text", "binding_type": "global" },
@@ -495,7 +496,7 @@
 
   "help_item@df_form.vis_help": {
     "type": "panel",
-    "size": [ 22, 20 ],
+    "size": [ 17, 22 ],
     "controls": [ { "button@df_form.help_button": {} } ]
   },
 
@@ -537,7 +538,9 @@
   "help_button@common.button": {
     "$focus_enabled": false,
     "$pressed_button_name": "button.form_button_click",
-    "size": [ 20, 18 ],
+    "size": [ 15, 15 ],
+    "anchor_from": "center",
+    "anchor_to": "center",
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",
@@ -556,7 +559,7 @@
 
   "back_item@df_form.vis_back": {
     "type": "panel",
-    "size": [ 22, 22 ],
+    "size": [ 17, 22 ],
     "controls": [ { "button@df_form.icon_button": {} } ]
   },
 
@@ -2588,7 +2591,7 @@
     "controls": [
       {
         "window@df_form.window": {
-          "$df_window_size": [ 224, 166 ],
+          "$df_window_size": [ 236, 166 ],
           "$df_content": "df_form.gslot_wrap_scroll"
         }
       }
@@ -2688,8 +2691,21 @@
     "type": "panel",
     "size": [ 18, 18 ],
     "controls": [
-      { "arrow": { "type": "image", "texture": "textures/ui/arrow_large", "size": [ 22, 15 ], "layer": 2 } }
+      { "arrow": { "type": "image", "texture": "textures/ui/arrow_large", "size": [ 15, 10 ], "layer": 2 } }
     ]
+  },
+  // A header icon of the board (ui.MiniCell, §0§7§r): the machine of a group of
+  // recipes as a small icon without a slot frame, with its tooltip.
+  "vis_board_mini": {
+    "bindings": [
+      { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+      { "binding_type": "view", "source_property_name": "(not ((#form_button_text - '§0§7§r') = #form_button_text))", "target_property_name": "#visible" }
+    ]
+  },
+  "board_mini@df_form.vis_board_mini": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "btn@df_form.cols_mini_button": { "anchor_from": "center", "anchor_to": "center" } } ]
   },
   "board_frame@df_form.vis_gslot_empty": {
     "type": "panel",
@@ -2774,7 +2790,7 @@
   },
   "bar_pager_item@df_form.vis_bar_pager": {
     "type": "panel",
-    "size": [ 20, 22 ],
+    "size": [ 17, 22 ],
     "controls": [ { "button@df_form.bar_page_button": {} } ]
   },
   "marked_bar_pager": {
@@ -2804,7 +2820,8 @@
       { "head@df_form.gslot_grid_head": {} },
       { "chosen@df_form.board_chosen": {} },
       { "frame@df_form.board_frame": {} },
-      { "arrow@df_form.board_arrow": {} }
+      { "arrow@df_form.board_arrow": {} },
+      { "mini@df_form.board_mini": {} }
     ]
   },
 
@@ -3220,23 +3237,6 @@
     ]
   },
   "split_tab_button_on@df_form.split_tab_button": { "$pressed_button_name": "button.df_noop" },
-  "marked_split_tabs": {
-    "type": "stack_panel",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "factory": {
-      "name": "buttons",
-      "control_ids": { "button": "df_form.split_tab_item" }
-    },
-    "collection_name": "form_buttons",
-    "bindings": [
-      {
-        "binding_name": "#form_button_contents",
-        "binding_name_override": "#collection_length",
-        "binding_condition": "visible"
-      }
-    ]
-  },
 
   "gslot_sel_live@df_form.gslot_live_button": {
     "controls": [
@@ -3358,9 +3358,7 @@
     "controls": [
       { "slot@df_form.split_slot": {} },
       { "chosen@df_form.split_chosen": {} },
-      { "empty@df_form.split_empty": {} },
-      { "pager_on@df_form.split_pager_on": {} },
-      { "pager_off@df_form.split_pager_off": {} }
+      { "empty@df_form.split_empty": {} }
     ]
   },
   "split_slot@df_form.vis_gslot_w": {
@@ -3384,6 +3382,213 @@
   // The split form fills the inventory-sized window: its tabs sit on the
   // window's top edge like the other forms' tabs, the grid of 18px slots on
   // the left and the detail on the right.
+  // ---- the split form's parts by fixed index (ui.SplitMenu) ----
+  // Every part reads its own button (collection_index), so the form makes no
+  // stack that walks all its buttons: one such stack per row of slots made a
+  // control for every button and the screen took seconds to open.
+  "split_fixed_tabs": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%c", 24 ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "tab0@df_form.split_tab_item": { "collection_index": 50 } },
+          { "tab1@df_form.split_tab_item": { "collection_index": 51 } }
+    ]
+  },
+  "split_control_bar@df_form.control_bar": {
+    "controls": [
+      {
+        "row": {
+          "type": "stack_panel",
+          "orientation": "horizontal",
+          "size": [ "100%c", 22 ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "collection_name": "form_buttons",
+          "controls": [
+            { "help@df_form.help_item": { "collection_index": 52 } },
+            { "back@df_form.back_item": { "collection_index": 53 } },
+            {
+              "close_slot": {
+                "type": "panel",
+                "size": [ 17, 22 ],
+                "controls": [ { "close@common.light_close_button": { "$close_button_offset": [ 0, 0 ], "anchor_from": "center", "anchor_to": "center" } } ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "split_pager_cell": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      { "on@df_form.split_pager_on": {} },
+      { "off@df_form.split_pager_off": {} }
+    ]
+  },
+  "split_pager_row": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%", 18 ],
+    "collection_name": "form_buttons",
+    "controls": [
+      { "prev@df_form.split_pager_cell": { "collection_index": 48 } },
+      { "gap": { "type": "panel", "size": [ "fill", 18 ] } },
+      { "next@df_form.split_pager_cell": { "collection_index": 49 } }
+    ]
+  },
+  "split_fixed_icon": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%c", "100%cm" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "icon@df_form.split_icon_item": { "collection_index": 54 } }
+    ]
+  },
+  "split_fixed_name": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "name@df_form.split_name_item": { "collection_index": 54 } }
+    ]
+  },
+  "split_fixed_actions": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "a0@df_form.split_action_item": { "collection_index": 55 } },
+          { "a1@df_form.split_action_item": { "collection_index": 56 } },
+          { "a2@df_form.split_action_item": { "collection_index": 57 } },
+          { "a3@df_form.split_action_item": { "collection_index": 58 } }
+    ]
+  },
+  "split_fixed_head1": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "h@df_form.gslot_h1_item": { "collection_index": 59 } }
+    ]
+  },
+  "split_fixed_head2": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "h@df_form.gslot_h2_item": { "collection_index": 76 } }
+    ]
+  },
+  // A slot of the split form's rows: a button, or (byte 10 'v', a slot
+  // without Run: ui.ItemSlot) a button whose press does not answer the form,
+  // its tooltip still showing. Only these fixed slots have both kinds, so a
+  // grid of slots keeps one button per cell.
+  "vis_row_live": {
+    "bindings": [
+      { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+      { "binding_type": "view", "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))", "target_property_name": "#df_side" },
+      { "binding_type": "view", "source_property_name": "(not (#df_side = 'v'))", "target_property_name": "#visible" }
+    ]
+  },
+  "vis_row_view": {
+    "bindings": [
+      { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+      { "binding_type": "view", "source_property_name": "(('%.10s' * #form_button_text) - ('%.9s' * #form_button_text))", "target_property_name": "#df_side" },
+      { "binding_type": "view", "source_property_name": "(#df_side = 'v')", "target_property_name": "#visible" }
+    ]
+  },
+  "gslot_view_button@df_form.gslot_live_button": { "$pressed_button_name": "button.df_noop" },
+  "row_live@df_form.vis_row_live": { "type": "panel", "size": [ 18, 18 ], "controls": [ { "b@df_form.gslot_live_button": {} } ] },
+  "row_view@df_form.vis_row_view": { "type": "panel", "size": [ 18, 18 ], "controls": [ { "b@df_form.gslot_view_button": {} } ] },
+  "split_row_slot": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "live@df_form.row_live": {} }, { "view@df_form.row_view": {} } ]
+  },
+  "split_row_a@df_form.vis_gslot_a": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "slot@df_form.split_row_slot": {} } ]
+  },
+  "split_row_b@df_form.vis_gslot_b": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [ { "slot@df_form.split_row_slot": {} } ]
+  },
+  "split_fixed_a1": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%", "100%cm" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "s0@df_form.split_row_a": { "collection_index": 60 } },
+          { "s1@df_form.split_row_a": { "collection_index": 61 } },
+          { "s2@df_form.split_row_a": { "collection_index": 62 } },
+          { "s3@df_form.split_row_a": { "collection_index": 63 } },
+          { "s4@df_form.split_row_a": { "collection_index": 64 } },
+          { "s5@df_form.split_row_a": { "collection_index": 65 } },
+          { "s6@df_form.split_row_a": { "collection_index": 66 } },
+          { "s7@df_form.split_row_a": { "collection_index": 67 } }
+    ]
+  },
+  "split_fixed_a2": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%", "100%cm" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "s0@df_form.split_row_a": { "collection_index": 68 } },
+          { "s1@df_form.split_row_a": { "collection_index": 69 } },
+          { "s2@df_form.split_row_a": { "collection_index": 70 } },
+          { "s3@df_form.split_row_a": { "collection_index": 71 } },
+          { "s4@df_form.split_row_a": { "collection_index": 72 } },
+          { "s5@df_form.split_row_a": { "collection_index": 73 } },
+          { "s6@df_form.split_row_a": { "collection_index": 74 } },
+          { "s7@df_form.split_row_a": { "collection_index": 75 } }
+    ]
+  },
+  "split_fixed_b1": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%", "100%cm" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "s0@df_form.split_row_b": { "collection_index": 77 } },
+          { "s1@df_form.split_row_b": { "collection_index": 78 } },
+          { "s2@df_form.split_row_b": { "collection_index": 79 } },
+          { "s3@df_form.split_row_b": { "collection_index": 80 } },
+          { "s4@df_form.split_row_b": { "collection_index": 81 } },
+          { "s5@df_form.split_row_b": { "collection_index": 82 } },
+          { "s6@df_form.split_row_b": { "collection_index": 83 } },
+          { "s7@df_form.split_row_b": { "collection_index": 84 } }
+    ]
+  },
+  "split_fixed_b2": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": [ "100%", "100%cm" ],
+    "collection_name": "form_buttons",
+    "controls": [
+          { "s0@df_form.split_row_b": { "collection_index": 85 } },
+          { "s1@df_form.split_row_b": { "collection_index": 86 } },
+          { "s2@df_form.split_row_b": { "collection_index": 87 } },
+          { "s3@df_form.split_row_b": { "collection_index": 88 } },
+          { "s4@df_form.split_row_b": { "collection_index": 89 } },
+          { "s5@df_form.split_row_b": { "collection_index": 90 } },
+          { "s6@df_form.split_row_b": { "collection_index": 91 } },
+          { "s7@df_form.split_row_b": { "collection_index": 92 } }
+    ]
+  },
+
   "split_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
@@ -3391,7 +3596,8 @@
       {
         "window@df_form.window": {
           "$df_window_size": [ 326, 166 ],
-          "$df_tabs": "df_form.marked_split_tabs",
+          "$df_tabs": "df_form.split_fixed_tabs",
+          "$df_chrome": "df_form.split_control_bar",
           "$df_content": "df_form.split_body"
         }
       }
@@ -3426,15 +3632,17 @@
                   {
                     "grid": {
                       "type": "grid",
-                      "size": [ 144, 126 ],
+                      "size": [ 144, 108 ],
                       "anchor_from": "top_middle",
                       "anchor_to": "top_middle",
-                      "grid_dimensions": [ 8, 7 ],
-                      "maximum_grid_items": 56,
+                      "grid_dimensions": [ 8, 6 ],
+                      "maximum_grid_items": 48,
                       "grid_item_template": "df_form.split_cell",
                       "collection_name": "form_buttons"
                     }
-                  }
+                  },
+                  { "pager_gap": { "type": "panel", "size": [ "100%", 2 ] } },
+                  { "pager@df_form.split_pager_row": {} }
                 ]
               }
             }
@@ -3504,46 +3712,12 @@
     "size": [ "100%", 18 ],
     "controls": [ { "button@df_form.split_action_button": {} } ]
   },
-  "marked_split_actions": {
-    "type": "stack_panel",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "factory": {
-      "name": "buttons",
-      "control_ids": { "button": "df_form.split_action_item" }
-    },
-    "collection_name": "form_buttons",
-    "bindings": [
-      {
-        "binding_name": "#form_button_contents",
-        "binding_name_override": "#collection_length",
-        "binding_condition": "visible"
-      }
-    ]
-  },
   "split_icon_item@df_form.vis_gdetail": {
     "type": "panel",
     "size": [ 28, 28 ],
     "controls": [
       { "bg@df_form.state_image": { "$df_state_texture": "textures/ui/cell_image" } },
       { "icon@df_form.button_icon": { "$df_icon_size": [ 22, 22 ], "anchor_from": "center", "anchor_to": "center" } }
-    ]
-  },
-  "marked_split_icon": {
-    "type": "stack_panel",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "factory": {
-      "name": "buttons",
-      "control_ids": { "button": "df_form.split_icon_item" }
-    },
-    "collection_name": "form_buttons",
-    "bindings": [
-      {
-        "binding_name": "#form_button_contents",
-        "binding_name_override": "#collection_length",
-        "binding_condition": "visible"
-      }
     ]
   },
   "split_name_item@df_form.gdetail_name_item": {
@@ -3569,23 +3743,6 @@
             }
           ]
         }
-      }
-    ]
-  },
-  "marked_split_name": {
-    "type": "stack_panel",
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "factory": {
-      "name": "buttons",
-      "control_ids": { "button": "df_form.split_name_item" }
-    },
-    "collection_name": "form_buttons",
-    "bindings": [
-      {
-        "binding_name": "#form_button_contents",
-        "binding_name_override": "#collection_length",
-        "binding_condition": "visible"
       }
     ]
   },
@@ -3621,7 +3778,7 @@
                       "size": [ "100%", "100%cm" ],
                       "controls": [
                         {
-                          "icon@df_form.marked_split_icon": {
+                          "icon@df_form.split_fixed_icon": {
                             "orientation": "horizontal",
                             "size": [ "100%c", "100%cm" ]
                           }
@@ -3634,14 +3791,14 @@
                             "size": [ "fill", "100%c" ],
                             "controls": [
                               {
-                                "name@df_form.marked_split_name": {
+                                "name@df_form.split_fixed_name": {
                                   "orientation": "vertical",
                                   "size": [ "100%", "100%c" ]
                                 }
                               },
                               { "gap": { "type": "panel", "size": [ "100%", 2 ] } },
                               {
-                                "actions@df_form.marked_split_actions": {
+                                "actions@df_form.split_fixed_actions": {
                                   "orientation": "vertical",
                                   "size": [ "100%", "100%c" ]
                                 }
@@ -3662,38 +3819,38 @@
                   },
                   { "gap": { "type": "panel", "size": [ "100%", 3 ] } },
                   {
-                    "head1@df_form.marked_gslot_h1": {
+                    "head1@df_form.split_fixed_head1": {
                       "orientation": "vertical",
                       "size": [ "100%", "100%c" ]
                     }
                   },
                   {
-                    "row_a@df_form.marked_gslot_a": {
+                    "row_a@df_form.split_fixed_a1": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
                   },
                   {
-                    "row_a2@df_form.marked_gslot_a2": {
+                    "row_a2@df_form.split_fixed_a2": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
                   },
                   { "gap": { "type": "panel", "size": [ "100%", 3 ] } },
                   {
-                    "head2@df_form.marked_gslot_h2": {
+                    "head2@df_form.split_fixed_head2": {
                       "orientation": "vertical",
                       "size": [ "100%", "100%c" ]
                     }
                   },
                   {
-                    "row_b@df_form.marked_gslot_b": {
+                    "row_b@df_form.split_fixed_b1": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
                   },
                   {
-                    "row_b2@df_form.marked_gslot_b2": {
+                    "row_b2@df_form.split_fixed_b2": {
                       "orientation": "horizontal",
                       "size": [ "100%", "100%cm" ]
                     }
@@ -4410,7 +4567,7 @@
   "tree_strip": {
     "type": "image",
     "layer": 2,
-    "size": [ 5, 23 ],
+    "size": [ 4, 23 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "texture": "#texture",
@@ -4514,7 +4671,7 @@
   "tree_node@df_form.vis_tree_node": {
     "type": "panel",
     "size": [ 22, 22 ],
-    "offset": [ 5, 0 ],
+    "offset": [ 4, 0 ],
     "anchor_from": "top_left",
     "anchor_to": "top_left",
     "controls": [
@@ -4525,7 +4682,7 @@
   },
   "tree_cell": {
     "type": "panel",
-    "size": [ 27, 23 ],
+    "size": [ 26, 23 ],
     "controls": [
       { "strip@df_form.tree_strip": {} },
       { "node@df_form.tree_node": {} }
@@ -4570,14 +4727,14 @@
     "controls": [
       { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 24, 26 ], "layer": 1 } },
       { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 24, 29 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
-      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } }
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, 1 ] } }
     ]
   },
   "tree_tab_face_tip@df_form.tree_tab_face": {
     "controls": [
       { "off@df_form.vis_tree_tab_off": { "type": "image", "texture": "textures/ui/df/tree_tab_off", "size": [ 24, 26 ], "layer": 1 } },
       { "on@df_form.vis_tab_on": { "type": "image", "texture": "textures/ui/df/tree_tab_on", "size": [ 24, 29 ], "anchor_from": "top_left", "anchor_to": "top_left", "layer": 2 } },
-      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, -2 ] } },
+      { "icon@df_form.button_icon": { "$df_icon_size": [ 16, 16 ], "offset": [ 0, 1 ] } },
       { "light": { "type": "image", "layer": 6, "size": [ 24, 26 ], "texture": "textures/ui/df/tree_hl" } },
       { "tip@df_form.tree_tab_tip": {} }
     ]
@@ -4725,7 +4882,7 @@
       {
         "grid": {
           "type": "grid",
-          "size": [ 297, 483 ],
+          "size": [ 286, 483 ],
           "offset": [ 4, 4 ],
           "anchor_from": "top_left",
           "anchor_to": "top_left",

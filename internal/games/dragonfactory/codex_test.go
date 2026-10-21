@@ -132,10 +132,10 @@ func TestCodexCraftCard(t *testing.T) {
 			t.Errorf("cell %d of the grid is not an ingredient", x)
 		}
 	}
-	if !c.rows[0][cardArrow].IsArrow() {
+	if !c.rows[0][craftArrow].IsArrow() {
 		t.Error("no arrow before the result")
 	}
-	if sl, ok := c.rows[0][cardOutCol].SlotOf(); !ok || sl.Count != "§f3" {
+	if sl, ok := c.rows[0][craftArrow+1].SlotOf(); !ok || sl.Count != "§f3" {
 		t.Errorf("the result slot is %+v, want 3 string", sl)
 	}
 }
@@ -153,8 +153,8 @@ func TestCodexBoardPages(t *testing.T) {
 		if len(pg) > codexBoardRows {
 			t.Errorf("page %d has %d rows", i, len(pg))
 		}
-		if _, ok := pg[0][0].SlotOf(); !ok {
-			t.Errorf("page %d does not start with a machine header", i)
+		if !pg[0][0].IsHeader() {
+			t.Errorf("page %d does not start with a header", i)
 		}
 	}
 }
@@ -225,6 +225,27 @@ func TestCodexRawAndGoals(t *testing.T) {
 	for tab := codexTab(0); tab < codexTabCount; tab++ {
 		if !i18n.Has(codexTabKeys[tab]) {
 			t.Errorf("codex tab %d has no name", tab)
+		}
+	}
+}
+
+// TestCodexRawPicksTheUsualRecipe: a diamond pickaxe takes 3 diamonds and
+// planks for its sticks, not a block of diamonds turned back into nine
+// diamonds or bamboo sticks.
+func TestCodexRawPicksTheUsualRecipe(t *testing.T) {
+	testSession(t)
+	registerCreativeItems()
+	registerVanillaRecipes()
+	counts := map[string]int{}
+	for _, l := range codexRaw(item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1), 1) {
+		counts[itemKey(l.stack.Item())] = l.count
+	}
+	if counts[itemKey(item.Diamond{})] != 3 {
+		t.Errorf("a diamond pickaxe takes %d diamonds: %v", counts[itemKey(item.Diamond{})], counts)
+	}
+	for k := range counts {
+		if strings.Contains(k, "bamboo") {
+			t.Errorf("a diamond pickaxe takes bamboo: %v", counts)
 		}
 	}
 }

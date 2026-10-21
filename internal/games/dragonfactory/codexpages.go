@@ -43,9 +43,10 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode, page in
 	lang := i18n.Of(p)
 	it = item.NewStack(it.Item(), 1)
 	s.codexSeen(p, it)
+	s.codexAt(p, func(p *player.Player) { s.showCodexItemAt(p, it, mode, page) })
 	head := blankRow()
 	head[0] = ui.SlotCell(ui.ItemSlot{Icon: iconOf(it), Tip: tipName(it), Selected: true})
-	head[1] = ui.TextCell(itemName(it))
+	head[1] = ui.TextCell("§l" + itemName(it))
 	modeSlot := func(m int, icon item.Stack, key string) ui.BoardCell {
 		sl := ui.ItemSlot{Icon: iconOf(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
 		if m != mode {
@@ -120,7 +121,7 @@ func (s *session) showCodexSieveAt(p *player.Player, which, page int) {
 	lang := i18n.Of(p)
 	ins := codexSieveInputs()
 	which = max(0, min(which, len(ins)-1))
-	s.codexRemember(p, func(p *player.Player) { s.showCodexSieveAt(p, which, page) })
+	s.codexAt(p, func(p *player.Player) { s.showCodexSieveAt(p, which, page) })
 	top := blankRow()
 	for i, in := range ins {
 		st := item.NewStack(in, 1)
@@ -130,7 +131,7 @@ func (s *session) showCodexSieveAt(p *player.Player, which, page int) {
 		}
 		top[i] = ui.SlotCell(sl)
 	}
-	chrome := append(s.codexTabs(p, codexSieveTab), s.backOption())
+	chrome := append(s.codexTabs(p, codexSieveTab), s.codexBack(p))
 	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.sieve")), [][]ui.BoardCell{top},
 		s.codexSieveCards(lang, ins[which]), page, func(p *player.Player, page int) { s.showCodexSieveAt(p, which, page) }, chrome)
 }
@@ -139,8 +140,8 @@ func (s *session) showCodexSieveAt(p *player.Player, which, page int) {
 // the tinker table's materials.
 func (s *session) showCodexProcess(p *player.Player, page int) {
 	lang := i18n.Of(p)
-	s.codexRemember(p, func(p *player.Player) { s.showCodexProcess(p, page) })
-	chrome := append(s.codexTabs(p, codexProcessTab), s.backOption())
+	s.codexAt(p, func(p *player.Player) { s.showCodexProcess(p, page) })
+	chrome := append(s.codexTabs(p, codexProcessTab), s.codexBack(p))
 	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.process")), nil,
 		s.codexProcessCards(lang), page, s.showCodexProcess, chrome)
 }
@@ -149,8 +150,8 @@ func (s *session) showCodexProcess(p *player.Player, page int) {
 // the gate's levels.
 func (s *session) showCodexMobs(p *player.Player, page int) {
 	lang := i18n.Of(p)
-	s.codexRemember(p, func(p *player.Player) { s.showCodexMobs(p, page) })
-	chrome := append(s.codexTabs(p, codexMobsTab), s.backOption())
+	s.codexAt(p, func(p *player.Player) { s.showCodexMobs(p, page) })
+	chrome := append(s.codexTabs(p, codexMobsTab), s.codexBack(p))
 	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.mobs")), nil,
 		s.codexMobCards(lang), page, s.showCodexMobs, chrome)
 }
@@ -158,11 +159,11 @@ func (s *session) showCodexMobs(p *player.Player, page int) {
 // showCodexPlants is the plants tab: each seed and what it yields.
 func (s *session) showCodexPlants(p *player.Player, page int) {
 	lang := i18n.Of(p)
-	s.codexRemember(p, func(p *player.Player) { s.showCodexPlants(p, page) })
+	s.codexAt(p, func(p *player.Player) { s.showCodexPlants(p, page) })
 	var cards []codexCard
 	for _, pk := range plantKinds {
 		cards = append(cards, s.plantCard(pk))
 	}
-	chrome := append(s.codexTabs(p, codexPlantsTab), s.backOption())
+	chrome := append(s.codexTabs(p, codexPlantsTab), s.codexBack(p))
 	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.plants")), nil, cards, page, s.showCodexPlants, chrome)
 }

@@ -22,12 +22,12 @@ import (
 // machine sit under one header row with the machine's slot and name. The
 // details are in the tooltips of the slots.
 
-// Columns of a card: inputs from the left, the arrow, then the outputs.
+// Columns of a card: inputs from the left (at most cardInCols to a row), the
+// arrow right after them, then the outputs to the end of the row. A crafting
+// card's grid is three wide: its arrow is at craftArrow.
 const (
-	cardInCols  = 4
-	cardArrow   = 4
-	cardOutCol  = 5
-	cardOutCols = ui.BoardColumns - cardOutCol
+	cardInCols = 4
+	craftArrow = 3
 )
 
 // codexCard is one recipe: the machine it is made in (the header) and its
@@ -68,7 +68,7 @@ func (s *session) codexCell(st item.Stack, count string, extra ...string) ui.Boa
 	for _, e := range extra {
 		tip += "\n§7" + e
 	}
-	return ui.SlotCell(ui.ItemSlot{Icon: iconOf(st), Count: count, Tip: tip, Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, st) }})
+	return ui.SlotCell(ui.ItemSlot{Icon: iconOf(st), Count: count, Tip: tip, Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) }})
 }
 
 var tagStacks sync.Map
@@ -140,8 +140,8 @@ func (s *session) craftCard(lang string, cr *crafterRecipe) codexCard {
 		rows[i/w][i%w] = s.ingredientCell(lang, in)
 	}
 	mid := (h - 1) / 2
-	rows[mid][cardArrow] = ui.Arrow()
-	rows[mid][cardOutCol] = s.codexCell(cr.out, countLabel(cr.out.Count()))
+	rows[mid][craftArrow] = ui.Arrow()
+	rows[mid][craftArrow+1] = s.codexCell(cr.out, countLabel(cr.out.Count()))
 	table := item.NewStack(block.CraftingTable{}, 1)
 	return codexCard{head: table, name: itemName(table), rows: rows}
 }
@@ -149,17 +149,20 @@ func (s *session) craftCard(lang string, cr *crafterRecipe) codexCard {
 // machineCard is a machine recipe: inputs (four to a row), the arrow and the
 // outputs (six to a row).
 func machineCard(head item.Stack, ins, outs []ui.BoardCell) codexCard {
-	h := max(1, (len(ins)+cardInCols-1)/cardInCols, (len(outs)+cardOutCols-1)/cardOutCols)
+	inCols := max(1, min(len(ins), cardInCols))
+	arrow, outCol := inCols, inCols+1
+	outCols := ui.BoardColumns - outCol
+	h := max(1, (len(ins)+inCols-1)/inCols, (len(outs)+outCols-1)/outCols)
 	rows := make([][]ui.BoardCell, h)
 	for y := range rows {
 		rows[y] = blankRow()
 	}
 	for i, c := range ins {
-		rows[i/cardInCols][i%cardInCols] = c
+		rows[i/inCols][i%inCols] = c
 	}
-	rows[0][cardArrow] = ui.Arrow()
+	rows[0][arrow] = ui.Arrow()
 	for i, c := range outs {
-		rows[i/cardOutCols][cardOutCol+i%cardOutCols] = c
+		rows[i/outCols][outCol+i%outCols] = c
 	}
 	return codexCard{head: head, name: itemName(head), rows: rows}
 }
@@ -176,7 +179,10 @@ func noteCard(head item.Stack, text string) codexCard {
 func (s *session) codexHeadRow(c codexCard) []ui.BoardCell {
 	row := blankRow()
 	if !c.head.Empty() {
-		row[0] = s.codexCell(c.head, "")
+		// the machine is a small icon without a slot frame, so it does not read
+		// as a slot of the recipes under it
+		sl, _ := s.codexCell(c.head, "").SlotOf()
+		row[0] = ui.MiniCell(sl)
 		row[1] = ui.TextCell(c.name)
 	} else {
 		row[0] = ui.TextCell(c.name)
@@ -550,7 +556,8 @@ func (s *session) codexMobCards(lang string) []codexCard {
 	return cards
 }
 
-// codexSieveCards are the drops of every mesh for a block.
+// codexSieveCards are the drops of every mesh for a block: the mesh, the
+// arrow and the drops (the block is the one chosen above them).
 func (s *session) codexSieveCards(lang string, in world.Item) []codexCard {
 	var cards []codexCard
 	for _, t := range meshTiers {
@@ -561,7 +568,7 @@ func (s *session) codexSieveCards(lang string, in world.Item) []codexCard {
 			outs = append(outs, s.chanceCell(lang, d.Item, d.Permille))
 		}
 		cards = append(cards, machineCard(machineItem(KindSieve),
-			[]ui.BoardCell{s.codexCell(item.NewStack(in, 1), ""), s.codexCell(item.NewStack(Mesh{Tier: t.tier}, 1), "")}, outs))
+			[]ui.BoardCell{s.codexCell(item.NewStack(Mesh{Tier: t.tier}, 1), "")}, outs))
 	}
 	return cards
 }

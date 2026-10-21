@@ -28,27 +28,44 @@ type recipeStep struct {
 }
 
 // codexRecipeOf returns the recipe that makes an item: a crafting table
-// recipe whose ingredients are plain items, an alloy or a lab recipe.
+// recipe (an ingredient that takes any item of a tag counts as one of them),
+// an alloy or a lab recipe. Of the crafting recipes, one whose ingredient is
+// itself made from the item (a block of diamonds back into diamonds) is left
+// out, and the one that makes the most per ingredient is taken (sticks from
+// planks before sticks from bamboo).
 func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 	k := itemKey(it.Item())
+	best, bestRate := recipeStep{}, 0.0
 	for _, cr := range crafterRecipes() {
 		if itemKey(cr.out.Item()) != k {
 			continue
 		}
 		step := recipeStep{out: max(1, cr.out.Count())}
-		ok := true
+		ins := 0
 		for _, req := range cr.reqs {
-			if _, isTag := req.need.(recipe.ItemTag); isTag {
-				ok = false
+			var st item.Stack
+			switch need := req.need.(type) {
+			case item.Stack:
+				st = need
+			case recipe.ItemTag:
+				st = tagStack(need)
+			}
+			if st.Empty() {
+				step.ins = nil
 				break
 			}
-			if st, isStack := req.need.(item.Stack); isStack {
-				step.ins = append(step.ins, codexLink{stack: item.NewStack(st.Item(), 1), count: req.count})
-			}
+			step.ins = append(step.ins, codexLink{stack: item.NewStack(st.Item(), 1), count: req.count})
+			ins += req.count
 		}
-		if ok && len(step.ins) > 0 {
-			return step, true
+		if len(step.ins) == 0 || codexReverses(step, k) {
+			continue
 		}
+		if rate := float64(step.out) / float64(max(1, ins)); rate > bestRate {
+			best, bestRate = step, rate
+		}
+	}
+	if bestRate > 0 {
+		return best, true
 	}
 	for _, r := range alloyRecipes {
 		if itemKey(r.Out) == k {
@@ -184,4 +201,22 @@ func (s *session) goalSlots() []ui.ItemSlot {
 		links = append(links, codexLink{stack: it})
 	}
 	return s.codexLinkSlots(links)
+}
+
+// codexReverses reports whether a recipe takes an ingredient that a crafting
+// recipe makes from the item key alone (the recipe undoes another: diamonds
+// from a block of diamonds, which is made of diamonds).
+func codexReverses(step recipeStep, key string) bool {
+	for _, in := range step.ins {
+		ik := itemKey(in.stack.Item())
+		for _, cr := range crafterRecipes() {
+			if itemKey(cr.out.Item()) != ik || len(cr.reqs) != 1 {
+				continue
+			}
+			if st, ok := cr.reqs[0].need.(item.Stack); ok && itemKey(st.Item()) == key {
+				return true
+			}
+		}
+	}
+	return false
 }

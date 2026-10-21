@@ -473,7 +473,8 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 	r := e.r
 	switch e.kind {
 	case researchDone:
-		return ui.ItemSlot{Icon: researchIcon(r), Count: "§a✔", Tip: researchTip(langOf(p), "§7", r), Run: show}
+		// The done tab holds only done researches: no mark.
+		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§7", r), Run: show}
 	case researchTodo:
 		colour := "§e"
 		if p != nil && len(s.researchMissing(p, r)) == 0 {
@@ -659,7 +660,19 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 		}
 	}
 	d.Body = b.String()
-	again := func(p *player.Player, _ *world.Tx) { redo(p) }
+	// A material or recipe slot opens the item's codex page, whose back
+	// button comes back here; an item the codex does not know cannot be
+	// pressed.
+	toCodex := func(st item.Stack, tip string) ui.ItemSlot {
+		if _, ok := codexItemByKey(itemKey(st.Item())); !ok {
+			return ui.ItemSlot{Icon: iconOf(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.none")}
+		}
+		return ui.ItemSlot{Icon: iconOf(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.codexFrom(p, redo, st)
+			}
+		}}
+	}
 	// The materials: the count shown is what the research spends (green
 	// once p has enough, or the research is done); the tooltip says what
 	// p has.
@@ -679,7 +692,9 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			}
 			tip += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.9"), mark, have)
 		}
-		cost = append(cost, ui.ItemSlot{Icon: iconOf(st), Count: mark + strconv.Itoa(need), Tip: tip, Run: again})
+		sl := toCodex(st, tip)
+		sl.Count = mark + strconv.Itoa(need)
+		cost = append(cost, sl)
 	}
 	// The recipes it opens.
 	var opens []ui.ItemSlot
@@ -689,7 +704,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			continue
 		}
 		st := item.NewStack(it, 1)
-		opens = append(opens, ui.ItemSlot{Icon: iconOf(st), Tip: tipName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10"), Run: again})
+		opens = append(opens, toCodex(st, tipName(st)+i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")))
 	}
 	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
 	return d, rows, opts

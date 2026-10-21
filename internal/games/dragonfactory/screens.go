@@ -80,20 +80,43 @@ func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	}
 }
 
-// showLost shows the lost-and-found box as item slots (ui.ItemGrid): each
-// entry is its item with the count at the bottom right, the name and what
-// pressing does in the tooltip; pressing takes as much of it as fits.
-func (s *session) showLost(p *player.Player) {
+// lostRows and lostPage are the rows of the lost-and-found box and how many
+// slots a page of it holds.
+const (
+	lostRows = 7
+	lostPage = lostRows * ui.BoardColumns
+)
+
+// showLost shows the lost-and-found box like an inventory: rows of slots, the
+// empty ones as frames. Each entry is its item with the count at the bottom
+// right and the name and what pressing does in the tooltip; pressing takes
+// as much of it as fits. What the box is for is the help button's tooltip.
+func (s *session) showLost(p *player.Player) { s.showLostPage(p, 0) }
+
+func (s *session) showLostPage(p *player.Player, page int) {
 	body, slots, back := s.lostMenu()
-	ui.ItemGrid(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showLost.1"), body, slots, back)
+	pages := max(1, (len(slots)+lostPage-1)/lostPage)
+	page = max(0, min(page, pages-1))
+	slots = slots[min(len(slots), page*lostPage):min(len(slots), (page+1)*lostPage)]
+	rows := make([][]ui.BoardCell, lostRows)
+	for i := range lostPage {
+		if rows[i/ui.BoardColumns] == nil {
+			rows[i/ui.BoardColumns] = make([]ui.BoardCell, ui.BoardColumns)
+		}
+		cell := ui.Frame()
+		if i < len(slots) {
+			cell = ui.SlotCell(slots[i])
+		}
+		rows[i/ui.BoardColumns][i%ui.BoardColumns] = cell
+	}
+	actions := s.guard(ui.BarPager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showLostPage(p, to) }))
+	actions = append(actions, s.opt(ui.Help(body, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showLostPage(p, page) }), back)
+	ui.ItemBoard(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showLost.1"), "", rows, actions...)
 }
 
 func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
 	s.purgeLost()
 	body := i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.1")
-	if len(s.state.Lost) == 0 {
-		body += i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.2")
-	}
 	var slots []ui.ItemSlot
 	for _, l := range s.state.Lost {
 		it := decodeItem(l.Item)

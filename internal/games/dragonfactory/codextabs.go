@@ -61,6 +61,7 @@ func (s *session) codexTabs(p *player.Player, cur codexTab) []ui.Option {
 
 // showCodexTab shows the first page of a tab.
 func (s *session) showCodexTab(p *player.Player, t codexTab) {
+	s.codexStart(p)
 	switch t {
 	case codexSieveTab:
 		s.showCodexSieve(p)
@@ -75,31 +76,79 @@ func (s *session) showCodexTab(p *player.Player, t codexTab) {
 	}
 }
 
-// codexRemember records the page to come back to from the pages that go
-// deeper (an item), and returns it.
-func (s *session) codexRemember(p *player.Player, show func(p *player.Player)) {
-	if s.codexLast == nil {
-		s.codexLast = map[*world.EntityHandle]func(*player.Player){}
-	}
-	s.codexLast[p.H()] = show
+// The codex keeps where each player came from like a browser's history: a
+// page reached by pressing a slot (an item of a recipe, a research's
+// material) can go back to the page it was reached from, and back again. A
+// tab or /도감 starts over. The research screen goes into the codex with
+// itself as the page to go back to (codexFrom).
+type codexNav struct {
+	cur  func(*player.Player)
+	hist []func(*player.Player)
 }
 
-// codexBack is the back button of a page that goes deeper: it returns to the
-// list page the player came from, or to the codex's first page.
+// codexHistMax is how many pages back a player can go.
+const codexHistMax = 32
+
+func (s *session) codexNavOf(p *player.Player) *codexNav {
+	if s.codexNav == nil {
+		s.codexNav = map[*world.EntityHandle]*codexNav{}
+	}
+	n := s.codexNav[p.H()]
+	if n == nil {
+		n = &codexNav{}
+		s.codexNav[p.H()] = n
+	}
+	return n
+}
+
+// codexAt records the page p is shown now.
+func (s *session) codexAt(p *player.Player, show func(p *player.Player)) {
+	s.codexNavOf(p).cur = show
+}
+
+// codexGo shows next and keeps the page p is on to go back to.
+func (s *session) codexGo(p *player.Player, next func(p *player.Player)) {
+	n := s.codexNavOf(p)
+	if n.cur != nil {
+		n.hist = append(n.hist, n.cur)
+		if len(n.hist) > codexHistMax {
+			n.hist = n.hist[1:]
+		}
+	}
+	next(p)
+}
+
+// codexStart forgets where p came from: a tab or /도감 starts over.
+func (s *session) codexStart(p *player.Player) {
+	n := s.codexNavOf(p)
+	n.cur, n.hist = nil, nil
+}
+
+// codexFrom shows an item's page with back as the page to go back to (the
+// research screen).
+func (s *session) codexFrom(p *player.Player, back func(p *player.Player), it item.Stack) {
+	n := s.codexNavOf(p)
+	n.cur, n.hist = nil, []func(*player.Player){back}
+	s.showCodexItem(p, it)
+}
+
+// codexBack is the back button of a codex page: to the page p came from, or
+// to the game's menu when p came from nowhere.
 func (s *session) codexBack(p *player.Player) ui.Option {
-	b := ui.Back(i18n.T(i18n.Of(p), "codex.title"), func(p *player.Player, _ *world.Tx) {
-		if f := s.codexLast[p.H()]; f != nil {
-			f(p)
+	n := s.codexNavOf(p)
+	if len(n.hist) == 0 {
+		return s.backOption()
+	}
+	b := ui.Back(i18n.T(i18n.Of(p), "codex.back"), func(p *player.Player, _ *world.Tx) {
+		n := s.codexNavOf(p)
+		if len(n.hist) == 0 {
+			s.showMenu(p)
 			return
 		}
-		s.showCodex(p)
+		prev := n.hist[len(n.hist)-1]
+		n.hist, n.cur = n.hist[:len(n.hist)-1], nil
+		prev(p)
 	})
-	return s.opt(b.Label, b.Icon, b.Run)
-}
-
-// codexBackTo is a back button that shows another page.
-func (s *session) codexBackTo(p *player.Player, show func(p *player.Player)) ui.Option {
-	b := ui.Back(i18n.T(i18n.Of(p), "codex.title"), func(p *player.Player, _ *world.Tx) { show(p) })
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 

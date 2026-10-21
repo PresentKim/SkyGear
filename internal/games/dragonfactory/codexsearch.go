@@ -105,7 +105,7 @@ func (s *session) askCodexSearch(p *player.Player, query string) {
 // Pressing one opens its page.
 func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	lang := i18n.Of(p)
-	s.codexRemember(p, func(p *player.Player) { s.showCodexSearch(p, query, page) })
+	s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, page) })
 	found := codexFind(query)
 	pages := max(1, (len(found)+codexPage-1)/codexPage)
 	page = max(0, min(page, pages-1))
@@ -113,7 +113,9 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	for _, e := range found[page*codexPage : min(len(found), (page+1)*codexPage)] {
 		slots = append(slots, ui.ItemSlot{
 			Icon: iconOf(e.stack), Tip: tipName(e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
-			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, e.stack) },
+			Run: func(p *player.Player, _ *world.Tx) {
+				s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
+			},
 		})
 	}
 	actions := s.guard(ui.Pager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showCodexSearch(p, query, to) }))
@@ -122,7 +124,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), "", func(p *player.Player, _ *world.Tx) { s.showCodexSearch(p, "", 0) }))
 	}
 	actions = append(actions, s.codexTabs(p, codexSearchTab)...)
-	actions = append(actions, s.backOption())
+	actions = append(actions, s.codexBack(p))
 	body := fmt.Sprintf(i18n.T(lang, "codex.search.all"), len(found))
 	if query != "" {
 		body = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
@@ -167,7 +169,7 @@ func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
 		}
 		slots = append(slots, ui.ItemSlot{
 			Icon: iconOf(st), Count: count, Tip: tipName(st),
-			Run: func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, st) },
+			Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) },
 		})
 	}
 	return slots

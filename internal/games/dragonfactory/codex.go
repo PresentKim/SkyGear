@@ -27,6 +27,7 @@ func codexSieveInputs() []world.Item {
 // the block p looks at (the one the WAILA panel shows), else the first page.
 func (s *session) openCodex(p *player.Player) {
 	count(p, "codex_open", 1)
+	s.codexStart(p)
 	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
 		s.showCodexItem(p, held)
 		return
