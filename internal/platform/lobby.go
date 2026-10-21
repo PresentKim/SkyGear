@@ -19,14 +19,16 @@ type lobbyHandler struct {
 	pf *Platform
 }
 
-// HandleStartBreak and HandlePunchAir open the main menu: when the menu form is
-// closed, the HUD still draws it (ui/df_lobby.json), so a click or tap on the
-// screen brings the form back.
+// A click, a hotbar slot or a jump opens the main menu again (lobbywake.go).
 func (h lobbyHandler) HandleStartBreak(ctx *player.Context, _ cube.Pos) {
 	ctx.Cancel()
-	h.pf.showLobbyMenu(ctx.Player())
+	h.pf.wakeLobbyMenu(ctx.Player())
 }
-func (h lobbyHandler) HandlePunchAir(ctx *player.Context) { h.pf.showLobbyMenu(ctx.Player()) }
+func (h lobbyHandler) HandlePunchAir(ctx *player.Context) { h.pf.wakeLobbyMenu(ctx.Player()) }
+func (h lobbyHandler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
+	h.pf.wakeLobbyMenu(ctx.Player())
+}
+func (h lobbyHandler) HandleJump(p *player.Player) { h.pf.wakeLobbyMenu(p) }
 func (lobbyHandler) HandleBlockBreak(ctx *player.Context, _ cube.Pos, _ *[]item.Stack, _ *int) {
 	ctx.Cancel()
 }
@@ -37,8 +39,9 @@ func (lobbyHandler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.
 	ctx.Cancel()
 }
 func (lobbyHandler) HandleFoodLoss(ctx *player.Context, _ int, _ *int) { ctx.Cancel() }
-func (lobbyHandler) HandleAttackEntity(ctx *player.Context, _ world.Entity, _, _ *float64, _ *bool) {
+func (h lobbyHandler) HandleAttackEntity(ctx *player.Context, _ world.Entity, _, _ *float64, _ *bool) {
 	ctx.Cancel()
+	h.pf.wakeLobbyMenu(ctx.Player())
 }
 func (h lobbyHandler) HandleItemUse(ctx *player.Context) {
 	if h.pf.useLobbyItem(ctx.Player()) {

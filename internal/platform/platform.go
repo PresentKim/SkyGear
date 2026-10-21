@@ -44,6 +44,7 @@ func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, on
 	pf := &Platform{log: log, db: d, m: m, game: game, online: online}
 	// Every form shown in the lobby gets the launcher frame.
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
+	lobbyPlatform = pf
 	account.Init(d, log)
 	m.Register(game)
 	registerCommands(pf)
@@ -104,6 +105,7 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 		_ = p.Inventory().SetItem(slot, menu)
 	}
 	_ = p.SetHeldSlot(0)
+	watchLobbyInput(p, p.Tx().World())
 	// The main menu is open on arrival (the guide comes first the first time:
 	// Join shows it).
 	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
@@ -372,7 +374,7 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 // form can close and open again without the screen changing. The labels are
 // the pack's language keys, which both draw.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
-	ui.LauncherMenu(p, pf.lobbyMenu()...)
+	ui.LauncherMenu(p, nil, pf.lobbyMenu()...)
 }
 
 // lobbyMenu are the buttons of the main menu, in the order the pack draws

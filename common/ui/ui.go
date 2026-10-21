@@ -65,9 +65,24 @@ func answered(s form.Submitter) {
 	}
 }
 
-type menu struct{ opts []Option }
+// menu runs the option of the pressed button; onClose, if set, runs when the
+// form is closed without a press.
+type menu struct {
+	opts    []Option
+	onClose func(p *player.Player, tx *world.Tx)
+}
 
-func (menu) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+func (m menu) Close(s form.Submitter, tx *world.Tx) {
+	answered(s)
+	p, ok := s.(*player.Player)
+	if !ok {
+		return
+	}
+	if m.onClose != nil {
+		defer recoverForm(p)
+		m.onClose(p, tx)
+	}
+}
 
 func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) {
 	answered(s)
@@ -126,9 +141,14 @@ const InputBackToken = "§d§f§b§r"
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
+	sendMenu(p, title, body, nil, opts)
+}
+
+// sendMenu sends a menu form; onClose runs when it is closed without a press.
+func sendMenu(p *player.Player, title, body string, onClose func(p *player.Player, tx *world.Tx), opts []Option) {
 	title = framed(p, title)
 	opts = uniqueLabels(onPanelOptions(opts))
-	f := form.NewMenu(menu{opts: opts}, title).WithBody(OnPanel(body))
+	f := form.NewMenu(menu{opts: opts, onClose: onClose}, title).WithBody(OnPanel(body))
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
@@ -766,11 +786,13 @@ type textInput struct {
 func (t textInput) Close(s form.Submitter, tx *world.Tx) {
 	answered(s)
 	p, ok := s.(*player.Player)
-	if !ok || t.back == nil {
+	if !ok {
 		return
 	}
-	defer recoverForm(p)
-	t.back(p, tx)
+	if t.back != nil {
+		defer recoverForm(p)
+		t.back(p, tx)
+	}
 }
 
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
