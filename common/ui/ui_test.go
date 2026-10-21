@@ -178,3 +178,12 @@ func TestRowSlotsWrap(t *testing.T) {
 		t.Errorf("slot %d label %q", RowSlots, l)
 	}
 }
+
+// TestCountPrefix: the count is 12 bytes, three resets and three digits.
+func TestCountPrefix(t *testing.T) {
+	for n, want := range map[int]string{0: "§r§r§r000", 9: "§r§r§r009", 93: "§r§r§r093", 1200: "§r§r§r999"} {
+		if got := countPrefix(n); got != want || len(got) != 12 {
+			t.Errorf("countPrefix(%d) = %q, want %q", n, got, want)
+		}
+	}
+}

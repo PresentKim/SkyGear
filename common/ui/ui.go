@@ -141,14 +141,22 @@ const InputBackToken = "§d§f§b§r"
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
-	sendMenu(p, title, body, nil, opts)
+	sendMenu(p, title, body, nil, len(opts), opts)
 }
 
-// sendMenu sends a menu form; onClose runs when it is closed without a press.
-func sendMenu(p *player.Player, title, body string, onClose func(p *player.Player, tx *world.Tx), opts []Option) {
+// wrapMenu sends a form of the wrapping grid: its first cells buttons fill
+// the grid, which sizes itself to them, so the buttons after them (actions,
+// tabs, pages) add no row of empty cells.
+func wrapMenu(p *player.Player, title, body string, cells int, opts []Option) {
+	sendMenu(p, WrapToken+title, body, nil, cells, opts)
+}
+
+// sendMenu sends a menu form whose grid has the first cells buttons; onClose
+// runs when it is closed without a press.
+func sendMenu(p *player.Player, title, body string, onClose func(p *player.Player, tx *world.Tx), cells int, opts []Option) {
 	title = framed(p, title)
 	opts = uniqueLabels(onPanelOptions(opts))
-	f := form.NewMenu(menu{opts: opts, onClose: onClose}, title).WithBody(OnPanel(body))
+	f := form.NewMenu(menu{opts: opts, onClose: onClose}, title).WithBody(countPrefix(cells) + OnPanel(body))
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
@@ -681,8 +689,9 @@ func ItemGrid(p *player.Player, title, body string, slots []ItemSlot, actions ..
 	for i, sl := range slots {
 		opts = append(opts, slotOption(slotWToken, i%gridColumns >= gridTipLeft, sl))
 	}
+	cells := len(opts)
 	opts = append(opts, actionOptions(actions)...)
-	Menu(p, WrapToken+title, body, opts...)
+	wrapMenu(p, title, body, cells, opts)
 }
 
 // Help is the "?" button left of the back button in the title bar: the tip
@@ -704,8 +713,9 @@ type GridSection struct {
 // section to a whole number of rows, so Go decides where the rows break.
 func ItemGridSections(p *player.Player, title, body string, sections []GridSection, actions ...Option) {
 	opts := sectionOptions(sections)
+	cells := len(opts)
 	opts = append(opts, actionOptions(actions)...)
-	Menu(p, WrapToken+title, body, opts...)
+	wrapMenu(p, title, body, cells, opts)
 }
 
 // sectionOptions is the buttons of the sections: heading, pads, slots, pads.
@@ -940,4 +950,15 @@ func SplitMenu(p *player.Player, title string, sp Split) {
 		}
 	}
 	Menu(p, SplitToken+title, sp.Detail.Body, opts...)
+}
+
+// countPrefix starts the body text of every menu form with its grid's cell
+// count: three resets and three decimal digits ("§r§r§r042", 12 bytes). The
+// client keeps its own button count (#form_button_length) at the largest
+// form it has shown, so the pack's grids read the count from here (the
+// bytes without the resets are a number), and its body labels leave these
+// bytes out. The resets come first: bytes that start with a digit would be
+// taken for a number where the labels cut them off.
+func countPrefix(n int) string {
+	return fmt.Sprintf("§r§r§r%03d", min(max(n, 0), 999))
 }

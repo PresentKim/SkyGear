@@ -72,8 +72,10 @@ func cardsHave(cards []codexCard, w world.Item, count string) bool {
 func TestCodexPagesAreWritten(t *testing.T) {
 	s := testSession(t)
 	lang := i18n.Default
-	if cards := s.codexProcessCards(lang); len(cards) < len(alloyRecipes)+len(labRecipes)+len(headMaterials) {
-		t.Errorf("process tab: %d cards", len(cards))
+	for _, pr := range codexProcesses() {
+		if cards := pr.cards(s, lang); len(cards) == 0 {
+			t.Errorf("process tab: no recipes of %s", itemKey(pr.head.Item()))
+		}
 	}
 	if cards := s.codexMobCards(lang); len(cards) < len(mobKinds)+len(waveLevels) {
 		t.Errorf("mobs tab: %d cards", len(cards))

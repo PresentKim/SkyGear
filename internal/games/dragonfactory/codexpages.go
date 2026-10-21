@@ -131,19 +131,41 @@ func (s *session) showCodexSieveAt(p *player.Player, which, page int) {
 		}
 		top[i] = ui.SlotCell(sl)
 	}
+	cards := s.codexSieveCards(lang, ins[which])
+	for i := range cards {
+		cards[i].name = ""
+	}
 	chrome := append(s.codexTabs(p, codexSieveTab), s.codexBack(p))
 	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.sieve")), [][]ui.BoardCell{top},
-		s.codexSieveCards(lang, ins[which]), page, func(p *player.Player, page int) { s.showCodexSieveAt(p, which, page) }, chrome)
+		cards, page, func(p *player.Player, page int) { s.showCodexSieveAt(p, which, page) }, chrome)
 }
 
-// showCodexProcess is the process tab: the crusher, washer, alloys, lab and
-// the tinker table's materials.
-func (s *session) showCodexProcess(p *player.Player, page int) {
+// showCodexProcess is the process tab: the first machine's recipes.
+func (s *session) showCodexProcess(p *player.Player, page int) { s.showCodexProcessAt(p, 0, page) }
+
+// showCodexProcessAt shows a row of the machines that process items, the
+// chosen one lit, and under it that machine's recipes.
+func (s *session) showCodexProcessAt(p *player.Player, which, page int) {
 	lang := i18n.Of(p)
-	s.codexAt(p, func(p *player.Player) { s.showCodexProcess(p, page) })
+	procs := codexProcesses()
+	which = max(0, min(which, len(procs)-1))
+	s.codexAt(p, func(p *player.Player) { s.showCodexProcessAt(p, which, page) })
+	top := blankRow()
+	for i, pr := range procs {
+		sl := ui.ItemSlot{Icon: iconOf(pr.head), Tip: tipName(pr.head), Selected: i == which}
+		if i != which {
+			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexProcessAt(p, i, 0) }
+		}
+		top[i] = ui.SlotCell(sl)
+	}
+	cards := procs[which].cards(s, lang)
+	for i := range cards {
+		// the machine is the one chosen above: no header
+		cards[i].name = ""
+	}
 	chrome := append(s.codexTabs(p, codexProcessTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.process")), nil,
-		s.codexProcessCards(lang), page, s.showCodexProcess, chrome)
+	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.process")), [][]ui.BoardCell{top},
+		cards, page, func(p *player.Player, page int) { s.showCodexProcessAt(p, which, page) }, chrome)
 }
 
 // showCodexMobs is the mobs tab: the simulator, the magic sieve's themes and

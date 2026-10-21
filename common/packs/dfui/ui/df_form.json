@@ -193,7 +193,8 @@
 
   "body_label": {
     "type": "label",
-    "text": "#form_text",
+    "text": "#df_body",
+    "bindings": [ { "binding_name": "#form_text" }, { "binding_type": "view", "source_property_name": "(#form_text - ('%.12s' * #form_text))", "target_property_name": "#df_body" } ],
     "color": [ 0.2, 0.2, 0.2 ],
     "size": [ "100% - 4px", "default" ],
     "offset": [ 2, 0 ],
@@ -714,7 +715,7 @@
           "size": [ "100%", "100%c" ],
           "bindings": [
             { "binding_name": "#form_text" },
-            { "binding_type": "view", "source_property_name": "(not (#form_text = ''))", "target_property_name": "#visible" }
+            { "binding_type": "view", "source_property_name": "(not (#form_text = ('%.12s' * #form_text)))", "target_property_name": "#visible" }
           ],
           "controls": [ { "label@df_form.body_label": {} } ]
         }
@@ -766,7 +767,8 @@
   // button_icon is a button's icon. A texture path ("textures/...") shows as
   // an image; anything else is an item (ui.ItemIcon: runtime ID * 65536)
   // that the client's item renderer draws like an inventory slot, so items
-  // and blocks need no icon texture (same trick as Chest-UI).
+  // and blocks need no icon texture (same trick as Chest-UI). The icon is a
+  // string; "- 0" makes it the number the renderer takes (there is no "%").
   "button_icon": {
     "type": "panel",
     "layer": 3,
@@ -822,7 +824,7 @@
       },
       {
         "binding_type": "view", 
-        "source_property_name": "(#form_button_texture - (#form_button_texture % 65536))",
+        "source_property_name": "(#form_button_texture - 0)",
         "target_property_name": "#item_id_aux"
       }
     ]
@@ -998,7 +1000,7 @@
           "size": [ "100%", "100%c" ],
           "bindings": [
             { "binding_name": "#form_text" },
-            { "binding_type": "view", "source_property_name": "(not (#form_text = ''))", "target_property_name": "#visible" }
+            { "binding_type": "view", "source_property_name": "(not (#form_text = ('%.12s' * #form_text)))", "target_property_name": "#visible" }
           ],
           "controls": [ { "label@df_form.body_label": {} } ]
         }
@@ -1021,11 +1023,8 @@
                 "grid_item_template": "df_form.card",
                 "collection_name": "form_buttons",
                 "bindings": [
-                  {
-                    "binding_name": "#form_button_length",
-                    "binding_name_override": "#maximum_grid_items",
-                    "binding_condition": "visible"
-                  }
+                  { "binding_name": "#form_text", "binding_condition": "always_when_visible" },
+                  { "binding_type": "view", "binding_condition": "always_when_visible", "source_property_name": "(((('%.12s' * #form_text) - '§r') - 0))", "target_property_name": "#maximum_grid_items" }
                 ]
               }
             }
@@ -1084,7 +1083,7 @@
           "size": [ "100%", "100%c" ],
           "bindings": [
             { "binding_name": "#form_text" },
-            { "binding_type": "view", "source_property_name": "(not (#form_text = ''))", "target_property_name": "#visible" }
+            { "binding_type": "view", "source_property_name": "(not (#form_text = ('%.12s' * #form_text)))", "target_property_name": "#visible" }
           ],
           "controls": [ { "label@df_form.body_label": {} } ]
         }
@@ -1108,11 +1107,8 @@
                 "grid_item_template": "df_form.shop_card",
                 "collection_name": "form_buttons",
                 "bindings": [
-                  {
-                    "binding_name": "#form_button_length",
-                    "binding_name_override": "#maximum_grid_items",
-                    "binding_condition": "visible"
-                  }
+                  { "binding_name": "#form_text", "binding_condition": "always_when_visible" },
+                  { "binding_type": "view", "binding_condition": "always_when_visible", "source_property_name": "(((('%.12s' * #form_text) - '§r') - 0))", "target_property_name": "#maximum_grid_items" }
                 ]
               }
             }
@@ -1248,11 +1244,8 @@
                 "grid_item_template": "df_form.table_cell",
                 "collection_name": "form_buttons",
                 "bindings": [
-                  {
-                    "binding_name": "#form_button_length",
-                    "binding_name_override": "#maximum_grid_items",
-                    "binding_condition": "visible"
-                  }
+                  { "binding_name": "#form_text", "binding_condition": "always_when_visible" },
+                  { "binding_type": "view", "binding_condition": "always_when_visible", "source_property_name": "(((('%.12s' * #form_text) - '§r') - 0))", "target_property_name": "#maximum_grid_items" }
                 ]
               }
             }
@@ -2626,12 +2619,12 @@
           "size": [ "100%", "100%c" ],
           "bindings": [
             { "binding_name": "#form_text" },
-            { "binding_type": "view", "source_property_name": "(not (#form_text = ''))", "target_property_name": "#visible" }
+            { "binding_type": "view", "source_property_name": "(not (#form_text = ('%.12s' * #form_text)))", "target_property_name": "#visible" }
           ],
           "controls": [ { "label@df_form.body_label": {} } ]
         }
       },
-      { "gap": { "type": "panel", "size": [ "100%", 6 ] } },
+      { "gap": { "type": "panel", "size": [ "100%", 4 ] } },
       {
         "grid_row": {
           "type": "panel",
@@ -2647,18 +2640,15 @@
                 "grid_item_template": "df_form.gslot_cell",
                 "collection_name": "form_buttons",
                 "bindings": [
-                  {
-                    "binding_name": "#form_button_length",
-                    "binding_name_override": "#maximum_grid_items",
-                    "binding_condition": "visible"
-                  }
+                  { "binding_name": "#form_text", "binding_condition": "always_when_visible" },
+                  { "binding_type": "view", "binding_condition": "always_when_visible", "source_property_name": "(((('%.12s' * #form_text) - '§r') - 0))", "target_property_name": "#maximum_grid_items" }
                 ]
               }
             }
           ]
         }
       },
-      { "gap2": { "type": "panel", "size": [ "100%", 8 ] } },
+      { "gap2": { "type": "panel", "size": [ "100%", 2 ] } },
       {
         "actions@df_form.marked_actions": {
           "orientation": "vertical",
@@ -4232,7 +4222,7 @@
                 "size": [ "100%", "100%c" ],
                 "bindings": [
                   { "binding_name": "#form_text" },
-                  { "binding_type": "view", "source_property_name": "(not (#form_text = ''))", "target_property_name": "#visible" }
+                  { "binding_type": "view", "source_property_name": "(not (#form_text = ('%.12s' * #form_text)))", "target_property_name": "#visible" }
                 ],
                 "controls": [ { "label@df_form.body_label": {} } ]
               }
@@ -4807,7 +4797,8 @@
   },
   "tree_progress": {
     "type": "label",
-    "text": "#form_text",
+    "text": "#df_body",
+    "bindings": [ { "binding_name": "#form_text" }, { "binding_type": "view", "source_property_name": "(#form_text - ('%.12s' * #form_text))", "target_property_name": "#df_body" } ],
     "color": [ 0.25, 0.25, 0.25 ],
     "size": [ "default", 10 ],
     "offset": [ -8, 6 ],

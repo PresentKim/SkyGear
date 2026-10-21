@@ -65,8 +65,9 @@ func TextCell(s string) BoardCell { return BoardCell{kind: cellText, text: s} }
 // of a slot answers the form: its Run must show a form again.
 func ItemBoard(p *player.Player, title, body string, rows [][]BoardCell, actions ...Option) {
 	opts := boardOptions(rows)
+	cells := len(opts)
 	opts = append(opts, actionOptions(actions)...)
-	Menu(p, WrapToken+title, body, opts...)
+	wrapMenu(p, title, body, cells, opts)
 }
 
 // boardOptions are the buttons of the cells of rows.

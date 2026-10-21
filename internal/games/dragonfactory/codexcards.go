@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -92,7 +93,14 @@ func tagStack(tag recipe.ItemTag) item.Stack {
 	}
 	st := item.Stack{}
 	if len(names) > 0 {
-		sort.Strings(names)
+		// oak first, the most common of a tag's kinds (planks, logs)
+		sort.Slice(names, func(i, j int) bool {
+			oi, oj := strings.HasPrefix(names[i], "minecraft:oak"), strings.HasPrefix(names[j], "minecraft:oak")
+			if oi != oj {
+				return oi
+			}
+			return names[i] < names[j]
+		})
 		st = item.NewStack(byName[names[0]], 1)
 	}
 	tagStacks.Store(tag.Tag(), st)
@@ -498,23 +506,90 @@ func (s *session) plantCard(pk plantKind) codexCard {
 	return c
 }
 
-// codexProcessCards are the process tab: the crusher, the alloys, the lab
-// and the tinker table's materials.
-func (s *session) codexProcessCards(lang string) []codexCard {
-	var cards []codexCard
-	for _, in := range crushInputs() {
-		if got, ok := crusherOutput(item.NewStack(in, 1)); ok {
-			cards = append(cards, s.crushCard(in, got))
-		}
+// codexProcess is one machine of the process tab: its block and its recipes.
+type codexProcess struct {
+	head  item.Stack
+	cards func(s *session, lang string) []codexCard
+}
+
+// codexProcesses are the machines of the process tab, in the order of the
+// row the player picks from.
+func codexProcesses() []codexProcess {
+	water := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
+	lava := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1)
+	return []codexProcess{
+		{machineItem(KindCrusher), func(s *session, _ string) []codexCard {
+			var cards []codexCard
+			for _, in := range crushInputs() {
+				if got, ok := crusherOutput(item.NewStack(in, 1)); ok {
+					cards = append(cards, s.crushCard(in, got))
+				}
+			}
+			return cards
+		}},
+		{machineItem(KindWasher), func(s *session, lang string) []codexCard {
+			var cards []codexCard
+			for _, k := range oreKinds {
+				for _, in := range []world.Item{k.block, OreChunk{Ore: k.ore}} {
+					if in == nil {
+						continue
+					}
+					out, chance, ok := oreDust(item.NewStack(in, 1), washerDust)
+					if !ok {
+						continue
+					}
+					cell := s.codexCell(out, countLabel(out.Count()))
+					if chance < 100 {
+						cell = s.codexCell(out, fmt.Sprintf("§f%d%%", chance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), chance))
+					}
+					cards = append(cards, machineCard(machineItem(KindWasher), []ui.BoardCell{s.codexCell(item.NewStack(in, 1), ""), s.codexCell(water, "", i18n.T(lang, "codex.card.water"))}, []ui.BoardCell{cell}))
+				}
+			}
+			return cards
+		}},
+		{machineItem(KindFurnace), func(s *session, _ string) []codexCard {
+			var cards []codexCard
+			// from every registered item (the index is built once the
+			// registry is complete; this may run before)
+			for _, in := range smeltables() {
+				got, _ := smeltOf(in)
+				cards = append(cards, machineCard(machineItem(KindFurnace), []ui.BoardCell{s.codexCell(in, "")}, []ui.BoardCell{s.codexCell(got, countLabel(got.Count()))}))
+			}
+			return cards
+		}},
+		{machineItem(KindAlloy), func(s *session, _ string) []codexCard {
+			var cards []codexCard
+			for _, r := range alloyRecipes {
+				cards = append(cards, s.alloyCard(r))
+			}
+			return cards
+		}},
+		{machineItem(KindLab), func(s *session, _ string) []codexCard {
+			var cards []codexCard
+			for i := range labRecipes {
+				cards = append(cards, s.labCard(&labRecipes[i]))
+			}
+			return cards
+		}},
+		{machineItem(KindCrucible), func(s *session, lang string) []codexCard {
+			return []codexCard{machineCard(machineItem(KindCrucible), []ui.BoardCell{s.codexCell(item.NewStack(block.Cobblestone{}, 1), "")},
+				[]ui.BoardCell{s.codexCell(lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), crucibleLava))})}
+		}},
+		{item.NewStack(Barrel{Wood: "oak"}, 1), func(s *session, lang string) []codexCard {
+			barrel := item.NewStack(Barrel{Wood: "oak"}, 1)
+			plants := s.codexCell(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(barrelCapacity("oak")), i18n.T(lang, "codex.card.anyPlant"))
+			return []codexCard{
+				machineCard(barrel, []ui.BoardCell{plants}, []ui.BoardCell{s.codexCell(water, "")}),
+				machineCard(barrel, []ui.BoardCell{s.codexCell(water, ""), s.codexCell(item.NewStack(Dust{}, 1), "")}, []ui.BoardCell{s.codexCell(item.NewStack(block.Clay{}, 1), "")}),
+			}
+		}},
+		{item.NewStack(Barrel{Wood: stoneWood}, 1), func(s *session, lang string) []codexCard {
+			return []codexCard{machineCard(item.NewStack(Barrel{Wood: stoneWood}, 1),
+				[]ui.BoardCell{s.codexCell(item.NewStack(block.Cobblestone{}, 1), countLabel(stoneBarrelCapacity)), s.codexCell(item.NewStack(block.Torch{}, 1), "", i18n.T(lang, "codex.card.heat"))},
+				[]ui.BoardCell{s.codexCell(lava, "")})}
+		}},
+		{machineItem(KindTinker), func(s *session, lang string) []codexCard { return s.codexGearCards(lang) }},
 	}
-	cards = append(cards, noteCard(machineItem(KindWasher), i18n.T(lang, "codex.src.washer")))
-	for _, r := range alloyRecipes {
-		cards = append(cards, s.alloyCard(r))
-	}
-	for i := range labRecipes {
-		cards = append(cards, s.labCard(&labRecipes[i]))
-	}
-	return append(cards, s.codexGearCards(lang)...)
 }
 
 // codexGearCards are the tinker table's head and handle materials and
@@ -571,4 +646,20 @@ func (s *session) codexSieveCards(lang string, in world.Item) []codexCard {
 			[]ui.BoardCell{s.codexCell(item.NewStack(Mesh{Tier: t.tier}, 1), "")}, outs))
 	}
 	return cards
+}
+
+// smeltables are the registered items a furnace smelts, by key.
+func smeltables() []item.Stack {
+	var out []item.Stack
+	seen := map[string]bool{}
+	for _, w := range world.Items() {
+		st := item.NewStack(w, 1)
+		k := itemKey(w)
+		if _, ok := smeltOf(st); ok && !seen[k] {
+			seen[k] = true
+			out = append(out, st)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return itemKey(out[i].Item()) < itemKey(out[j].Item()) })
+	return out
 }

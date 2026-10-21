@@ -18,5 +18,5 @@ const LauncherToken = "§d§f§n§r"
 // form without a press.
 // Labels must be unique.
 func LauncherMenu(p *player.Player, onClose func(p *player.Player, tx *world.Tx), opts ...Option) {
-	sendMenu(p, LauncherToken, "", onClose, opts)
+	sendMenu(p, LauncherToken, "", onClose, len(opts), opts)
 }
