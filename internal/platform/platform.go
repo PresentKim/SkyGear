@@ -65,6 +65,7 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 			account.Forget(p)
 			waila.Forget(p)
 			forgetLobbyHUD(p)
+			stopLobbyMotion(p)
 		},
 	}
 }
@@ -97,6 +98,7 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	p.SetGameMode(world.GameModeAdventure)
 	showLobbyScene(p, p.Tx())
 	forgetLobbyHUD(p)
+	startLobbyMotion(p)
 	sendLobbyHUD(p, "")
 	// The hotbar is hidden: every slot holds the menu, so the use key opens
 	// it whichever slot is held.

@@ -102,6 +102,7 @@ func showLobbyScene(p *player.Player, tx *world.Tx) {
 // leaveLobbyScene undoes showLobbyScene for p going into a save: the save
 // shows its players as its chunks arrive.
 func leaveLobbyScene(p *player.Player) {
+	stopLobbyMotion(p)
 	dfhook.ClearCamera(p)
 	dfhook.HideHUD(p, false)
 	dfhook.LockInputs(p, 0)

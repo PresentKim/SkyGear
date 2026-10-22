@@ -42,7 +42,8 @@ func forgetLobbyHUD(p *player.Player) {
 	lobbyHUD.Unlock()
 }
 
-// ShowLoad keeps the lobby HUD up to date every second until stop is closed:
+// ShowLoad keeps the lobby HUD up to date and moves the lobby scene
+// (moveLobbyScene) every second until stop is closed:
 // the frame for everyone, and the server load line at the top left for
 // operators who turned it on (/dfadmin tps, perf.Toggle). Games show the
 // same line on their own HUD.
@@ -55,8 +56,10 @@ func ShowLoad(lobby *world.World, isOperator func(*player.Player) bool, stop <-c
 			return
 		case <-t.C:
 			lobby.Do(func(tx *world.Tx) {
+				now := time.Now()
 				for e := range tx.Players() {
 					p := e.(*player.Player)
+					moveLobbyScene(p, now)
 					load := ""
 					if isOperator(p) && perf.Shown(p.Name()) {
 						load = perf.Line(lobby)

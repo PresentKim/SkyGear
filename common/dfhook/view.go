@@ -66,6 +66,35 @@ func SetCamera(p *player.Player, pos mgl64.Vec3, pitch, yaw, ease float64) {
 	write(p, &packet.CameraInstruction{Set: protocol.Option(set)})
 }
 
+// GlideCamera moves p's camera to pos and the rotation (pitch, yaw in
+// degrees) over seconds, starting and ending slowly (sine easing), for a
+// camera that drifts on its own.
+func GlideCamera(p *player.Player, pos mgl64.Vec3, pitch, yaw, seconds float64) {
+	write(p, &packet.CameraInstruction{Set: protocol.Option(protocol.CameraInstructionSet{
+		Preset:   cameraPresetFree,
+		Position: protocol.Option(vec32(pos)),
+		Rotation: protocol.Option(mgl32.Vec2{float32(pitch), float32(yaw)}),
+		Ease:     protocol.Option(protocol.CameraEase{Type: protocol.EasingTypeInOutSine, Duration: float32(seconds)}),
+	})})
+}
+
+// selfRuntimeID is the runtime ID a client knows its own player by.
+const selfRuntimeID = 1
+
+// Animate plays the resource pack animation name once on p's own player for
+// p's client only, over whatever the player model is doing (the way the
+// script API's playAnimation does). The server's player does not change.
+func Animate(p *player.Player, name string) {
+	write(p, &packet.AnimateEntity{
+		Animation:        name,
+		NextState:        "default",
+		StopCondition:    "query.any_animation_finished",
+		Controller:       "__runtime_controller",
+		BlendOutTime:     0.2,
+		EntityRuntimeIDs: []uint64{selfRuntimeID},
+	})
+}
+
 // ClearCamera returns p's camera to normal.
 func ClearCamera(p *player.Player) {
 	write(p, &packet.CameraInstruction{Clear: protocol.Option(true)})
