@@ -64,8 +64,41 @@
     "dragonfactory:machine_info": {
       "textures": "textures/items/machine_info"
     },
+    "dragonfactory:raw_tin": {
+      "textures": "textures/items/raw_tin"
+    },
+    "dragonfactory:raw_lead": {
+      "textures": "textures/items/raw_lead"
+    },
+    "dragonfactory:raw_silver": {
+      "textures": "textures/items/raw_silver"
+    },
+    "dragonfactory:raw_nickel": {
+      "textures": "textures/items/raw_nickel"
+    },
     "dragonfactory:pebble_stone": {
       "textures": "textures/items/pebble_stone"
+    },
+    "dragonfactory:mycelium_spores": {
+      "textures": "textures/items/mycelium_spores"
+    },
+    "dragonfactory:witch_water_bucket": {
+      "textures": "textures/items/witch_water_bucket"
+    },
+    "dragonfactory:pebble_deepslate": {
+      "textures": "textures/items/pebble_deepslate"
+    },
+    "dragonfactory:pebble_blackstone": {
+      "textures": "textures/items/pebble_blackstone"
+    },
+    "dragonfactory:pebble_basalt": {
+      "textures": "textures/items/pebble_basalt"
+    },
+    "dragonfactory:pebble_tuff": {
+      "textures": "textures/items/pebble_tuff"
+    },
+    "dragonfactory:pebble_calcite": {
+      "textures": "textures/items/pebble_calcite"
     },
     "dragonfactory:progress_0": {
       "textures": "textures/items/progress_0"

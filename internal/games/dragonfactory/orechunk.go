@@ -9,8 +9,9 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// OreChunk is a piece of ore, found by sieving gravel and sand (sievetable.go).
-// Four of a kind make the ore block, which a furnace smelts into ingots.
+// OreChunk is a piece of ore, found by sieving gravel and crushed deepslate
+// (sievetable.go). Four of a kind make the ore block (ore.go); a chunk itself
+// is neither smelted nor processed.
 type OreChunk struct{ Ore string }
 
 // oreKinds are the ores with the name of their chunks and the ore block four
@@ -22,11 +23,10 @@ var oreKinds = []struct {
 	{OreIron, i18n.T(i18n.Default, "dragonfactory.orechunk.init.1"), block.IronOre{}},
 	{OreGold, i18n.T(i18n.Default, "dragonfactory.orechunk.init.2"), block.GoldOre{}},
 	{OreCopper, i18n.T(i18n.Default, "dragonfactory.orechunk.init.3"), block.CopperOre{}},
-	// New ores have no ore block: their chunks are ground to dust (metals.go).
-	{MetalTin, i18n.T(i18n.Default, "metal.tin"), nil},
-	{MetalLead, i18n.T(i18n.Default, "metal.lead"), nil},
-	{MetalSilver, i18n.T(i18n.Default, "metal.silver"), nil},
-	{MetalNickel, i18n.T(i18n.Default, "metal.nickel"), nil},
+	{MetalTin, i18n.T(i18n.Default, "metal.tin"), OreBlock{Metal: MetalTin}},
+	{MetalLead, i18n.T(i18n.Default, "metal.lead"), OreBlock{Metal: MetalLead}},
+	{MetalSilver, i18n.T(i18n.Default, "metal.silver"), OreBlock{Metal: MetalSilver}},
+	{MetalNickel, i18n.T(i18n.Default, "metal.nickel"), OreBlock{Metal: MetalNickel}},
 }
 
 func (c OreChunk) EncodeItem() (string, int16) { return "dragonfactory:ore_chunk_" + c.Ore, 0 }
@@ -44,9 +44,6 @@ func (OreChunk) Category() category.Category { return category.Items() }
 // chunks (open with the research of the metal).
 func oreChunkRecipes() {
 	for _, k := range oreKinds {
-		if k.block == nil {
-			continue
-		}
 		c := item.NewStack(OreChunk{Ore: k.ore}, 1)
 		recipe.Register(recipe.NewShapeless([]recipe.Item{c, c, c, c}, item.NewStack(k.block, 1), "crafting_table"))
 	}

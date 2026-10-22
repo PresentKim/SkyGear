@@ -84,14 +84,22 @@ func TestAutoSieveKeepsProductsAndStopsWhenFull(t *testing.T) {
 	if len(st.kind.output) != 4 {
 		t.Fatalf("%d output slots, want 4", len(st.kind.output))
 	}
+	// gravel gives many kinds (ATM10 table): it sifts until its four slots
+	// hold four kinds, so a hopper or conduit must carry them away
 	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 64))
 	tick(s, 64*(st.kind.interval+1))
-	if left, _ := st.inv().Item(st.kind.input[0]); !left.Empty() {
-		t.Fatalf("gravel left: %v", left)
+	left, _ := st.inv().Item(st.kind.input[0])
+	if left.Count() == 64 {
+		t.Fatal("the auto sieve sifted no gravel")
 	}
-	flint := outputCount(st, item.Flint{})
-	if flint == 0 || flint == 64 {
-		t.Fatalf("flint from 64 gravel = %d, want some but not all", flint)
+	products := 0
+	for _, slot := range st.kind.output {
+		if it, _ := st.inv().Item(slot); !it.Empty() {
+			products += it.Count()
+		}
+	}
+	if products == 0 {
+		t.Fatal("no products in the output slots")
 	}
 	// every output slot full of something it cannot stack with: it stops
 	for i, slot := range st.kind.output {
@@ -414,36 +422,51 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 	}
 }
 
-// TestCrusherDoublesOre: an ore block crushes into two dusts of its metal, a
-// chunk (a quarter of an ore) into one dust half of the time, and a dust smelts
-// into an ingot (docs/design/07 §3).
-func TestCrusherDoublesOre(t *testing.T) {
+// TestCrusherOre: the crusher breaks an ore block into three raw ores and
+// two more at half a chance each, takes no chunks, and raw ores and dusts
+// smelt into ingots (ATM10, docs/design/16-ore-balance.md §4).
+func TestCrusherOre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 2))
-	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 4 {
-		t.Fatalf("iron dust from two ore blocks = %d, want 4", n)
+	if st.accepts(item.NewStack(OreChunk{Ore: OreIron}, 1)) {
+		t.Fatal("the crusher takes ore chunks")
 	}
-	// chunks: over many, half of them give a dust (an ore's four chunks give two)
-	crusherChunks := 0
-	for range 400 {
-		out := []item.Stack{}
-		if _, chance, _ := oreDust(item.NewStack(OreChunk{Ore: MetalTin}, 1), crusherDust); s.rand.IntN(100) < chance {
-			out = append(out, item.NewStack(MetalDust{Metal: MetalTin}, 1))
+	if out, _ := crusherOutput(item.NewStack(OreBlock{Metal: MetalTin}, 1)); out.Count() != crusherRaw || itemKey(out.Item()) != itemKey(RawOre{Metal: MetalTin}) {
+		t.Fatalf("a tin ore crushes into %v", out)
+	}
+	if out, _ := crusherOutput(item.NewStack(block.IronOre{}, 1)); out.Count() != crusherRaw || itemKey(out.Item()) != itemKey(item.RawIron{}) {
+		t.Fatalf("an iron ore crushes into %v", out)
+	}
+	// the bonus: 400 ores × 2 rolls at 50 % ≈ 400 more
+	bonus := 0
+	for range 400 * crusherBonus {
+		if s.rand.IntN(100) < crusherBonusChance {
+			bonus++
 		}
-		crusherChunks += len(out)
 	}
-	if crusherChunks < 160 || crusherChunks > 240 {
-		t.Fatalf("400 chunks gave %d dusts, want about 200", crusherChunks)
+	if bonus < 340 || bonus > 460 {
+		t.Fatalf("bonus raw ores %d, want about 400", bonus)
 	}
 	for _, m := range dustMetals {
-		d := MetalDust{Metal: m}
-		info := d.SmeltInfo()
-		if info.Product.Empty() || info.Product.Item() != ingotOf(m) {
+		if info := (MetalDust{Metal: m}).SmeltInfo(); info.Product.Empty() || itemKey(info.Product.Item()) != itemKey(ingotOf(m)) {
 			t.Errorf("%s dust smelts into %v", m, info.Product.Item())
 		}
+		if got, ok := smeltOf(item.NewStack(rawOf(m), 1)); !ok || itemKey(got.Item()) != itemKey(ingotOf(m)) {
+			t.Errorf("raw %s smelts into %v", m, got)
+		}
+	}
+}
+
+// TestCrusherBonusRolls: a crushed ore block gives three to five raw ores.
+func TestCrusherBonusRolls(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindCrusher, "")
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 1))
+	tick(s, st.kind.interval+2)
+	if n := outputCount(st, item.RawIron{}); n < crusherRaw || n > crusherRaw+crusherBonus {
+		t.Fatalf("raw iron from one ore = %d, want 3 to 5", n)
 	}
 }
 
@@ -571,22 +594,24 @@ func TestFluidLine(t *testing.T) {
 	}
 }
 
-// TestOreWasher: with water in its tank it washes an ore block into three dusts
-// (a chunk into one dust three quarters of the time) and uses 250 mB; without
-// water it does nothing.
+// TestOreWasher: with water in its tank it washes a raw ore into two dusts
+// and uses 250 mB; without water it does nothing; it takes no ore blocks.
 func TestOreWasher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindWasher, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 2))
+	if st.accepts(item.NewStack(block.IronOre{}, 1)) || st.accepts(item.NewStack(OreChunk{Ore: OreIron}, 1)) {
+		t.Fatal("the washer takes ore blocks or chunks")
+	}
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(RawOre{Metal: MetalLead}, 2))
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 0 {
+	if n := outputCount(st, MetalDust{Metal: MetalLead}); n != 0 {
 		t.Fatalf("dust without water = %d", n)
 	}
 	st.fluid, st.fluidAmt = fluidnet.Water, 500
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: OreIron}); n != 6 {
-		t.Errorf("dust from two ore blocks = %d, want 6", n)
+	if n := outputCount(st, MetalDust{Metal: MetalLead}); n != 4 {
+		t.Errorf("dust from two raw ores = %d, want 4", n)
 	}
 	if st.fluidAmt != 0 || st.fluid != fluidnet.None {
 		t.Errorf("tank %v %d", st.fluid, st.fluidAmt)

@@ -98,8 +98,20 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(FluidConduit{Tier: t}, 1) }
 	}
+	out["mycelium_spores"] = func() item.Stack { return item.NewStack(MyceliumSpores{}, 1) }
+	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(WitchWaterBucket{}, 1) }
+	for _, k := range crushedKinds {
+		out["crushed_"+k] = func() item.Stack { return item.NewStack(CrushedBlock{Kind: k}, 1) }
+	}
+	for _, k := range pebbleKinds {
+		out["pebble_"+k.kind] = func() item.Stack { return item.NewStack(Pebble{Kind: k.kind}, 1) }
+	}
 	for _, k := range oreKinds {
 		out["ore_chunk_"+k.ore] = func() item.Stack { return item.NewStack(OreChunk{Ore: k.ore}, 1) }
+	}
+	for _, m := range newOreMetals {
+		out[m+"_ore"] = func() item.Stack { return item.NewStack(OreBlock{Metal: m}, 1) }
+		out["raw_"+m] = func() item.Stack { return item.NewStack(RawOre{Metal: m}, 1) }
 	}
 	for _, k := range toolKinds {
 		for _, h := range headMaterials {

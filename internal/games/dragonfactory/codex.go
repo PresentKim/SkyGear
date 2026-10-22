@@ -20,7 +20,11 @@ import (
 // codexSieveInputs are the blocks a sieve takes, in the order the codex shows
 // them.
 func codexSieveInputs() []world.Item {
-	return []world.Item{block.Gravel{}, block.Sand{}, block.Dirt{}, Dust{}}
+	return []world.Item{
+		block.Gravel{}, block.Sand{}, block.Dirt{}, Dust{}, block.Sand{Red: true}, block.SoulSand{},
+		CrushedBlock{Kind: CrushedDeepslate}, CrushedBlock{Kind: CrushedNetherrack},
+		CrushedBlock{Kind: CrushedBlackstone}, CrushedBlock{Kind: CrushedEndStone},
+	}
 }
 
 // openCodex opens the codex: the page of the item p holds, else the page of
@@ -79,7 +83,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			}
 		}
 	}
-	for _, in := range append([]world.Item{block.Stone{}, block.Cobblestone{}, block.Gravel{}, block.Sand{}}, chunkItems()...) {
+	for _, in := range crushInputs() {
 		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && itemKey(got.Item()) == k {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.crusher"), n1(in)))
 		}

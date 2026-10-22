@@ -30,7 +30,9 @@ func TestCodexSourcesAndUses(t *testing.T) {
 		it            item.Stack
 		sources, uses []string
 	}{
-		{item.NewStack(OreChunk{Ore: OreIron}, 1), []string{"체"}, []string{"연구", "분쇄기"}},
+		{item.NewStack(OreChunk{Ore: OreIron}, 1), []string{"체"}, []string{"연구", "조합"}},
+		{item.NewStack(OreBlock{Metal: MetalTin}, 1), []string{"조합"}, []string{"분쇄기", "화로"}},
+		{item.NewStack(RawOre{Metal: MetalTin}, 1), []string{"분쇄기"}, []string{"화로"}},
 		{item.NewStack(Ingot{Metal: MetalSteel}, 1), []string{"합금로"}, []string{"연구", "장비"}},
 		{item.NewStack(Essence{Mob: MobZombie}, 1), []string{"체", "웨이브"}, []string{"몬스터 시뮬레이터"}},
 		{item.NewStack(item.Bone{}, 1), []string{"몬스터 시뮬레이터"}, []string{"장비"}},
@@ -301,6 +303,19 @@ func TestCodexRawPicksTheUsualRecipe(t *testing.T) {
 	for k := range counts {
 		if strings.Contains(k, "bamboo") {
 			t.Errorf("a diamond pickaxe takes bamboo: %v", counts)
+		}
+	}
+}
+
+// TestCrushInputsCoverRecipes: the codex lists every block the crusher takes.
+func TestCrushInputsCoverRecipes(t *testing.T) {
+	listed := map[string]bool{}
+	for _, in := range crushInputs() {
+		listed[itemKey(in)] = true
+	}
+	for k := range crushRecipes {
+		if !listed[k] {
+			t.Errorf("crusher input %s missing from the codex", k)
 		}
 	}
 }

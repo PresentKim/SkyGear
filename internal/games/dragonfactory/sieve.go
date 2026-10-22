@@ -86,7 +86,14 @@ func sieveLooks() [][3]int {
 var sieveContents = []struct {
 	name string
 	item world.Item
-}{{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}, {"dragonfactory_dust", Dust{}}}
+}{
+	{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}, {"dragonfactory_dust", Dust{}},
+	{"red_sand", block.Sand{Red: true}}, {"soul_sand", block.SoulSand{}},
+	{"dragonfactory_crushed_deepslate", CrushedBlock{Kind: CrushedDeepslate}},
+	{"dragonfactory_crushed_netherrack", CrushedBlock{Kind: CrushedNetherrack}},
+	{"dragonfactory_crushed_blackstone", CrushedBlock{Kind: CrushedBlackstone}},
+	{"dragonfactory_crushed_end_stone", CrushedBlock{Kind: CrushedEndStone}},
+}
 
 func sieveContentOf(it item.Stack) int {
 	if it.Empty() {
@@ -179,8 +186,15 @@ func showSieve(tx *world.Tx, pos cube.Pos, st *machineState) {
 func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
 	var out []item.Stack
 	for _, d := range sieveTables[mesh][itemKey(in.Item())] {
-		if s.rand.IntN(1000) < d.Permille {
-			out = append(out, d.Item)
+		// every item of the drop's stack is its own roll
+		n := 0
+		for range d.Item.Count() {
+			if s.rand.IntN(1000) < d.Permille {
+				n++
+			}
+		}
+		if n > 0 {
+			out = append(out, d.Item.Grow(n-d.Item.Count()))
 		}
 	}
 	return out

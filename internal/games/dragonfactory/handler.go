@@ -49,8 +49,8 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		h.s.reinforce(ctx.Player())
 	}
 	if held, _ := ctx.Player().HeldItems(); isHammer(held) {
-		if into, ok := crushed(ctx.Player().Tx().Block(pos)); ok {
-			*drops = []item.Stack{item.NewStack(into, 1)}
+		if into, ok := hammerDrop(ctx.Player().Tx().Block(pos)); ok {
+			*drops = []item.Stack{into}
 		}
 	}
 	switch b := ctx.Player().Tx().Block(pos).(type) {

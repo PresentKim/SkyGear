@@ -217,6 +217,9 @@
     "dragonfactory_barrel_water": {
       "textures": "textures/blocks/barrel_water"
     },
+    "dragonfactory_barrel_witch_water": {
+      "textures": "textures/blocks/barrel_witch_water"
+    },
     "dragonfactory_conduit_energy_1": {
       "textures": "textures/blocks/conduit_energy_1"
     },
@@ -405,6 +408,30 @@
     },
     "dragonfactory_drawer_side": {
       "textures": "textures/blocks/drawer_side"
+    },
+    "dragonfactory_crushed_deepslate": {
+      "textures": "textures/blocks/crushed_deepslate"
+    },
+    "dragonfactory_crushed_netherrack": {
+      "textures": "textures/blocks/crushed_netherrack"
+    },
+    "dragonfactory_crushed_blackstone": {
+      "textures": "textures/blocks/crushed_blackstone"
+    },
+    "dragonfactory_crushed_end_stone": {
+      "textures": "textures/blocks/crushed_end_stone"
+    },
+    "dragonfactory_tin_ore": {
+      "textures": "textures/blocks/tin_ore"
+    },
+    "dragonfactory_lead_ore": {
+      "textures": "textures/blocks/lead_ore"
+    },
+    "dragonfactory_silver_ore": {
+      "textures": "textures/blocks/silver_ore"
+    },
+    "dragonfactory_nickel_ore": {
+      "textures": "textures/blocks/nickel_ore"
     },
     "dragonfactory_dust": {
       "textures": "textures/blocks/dust"

@@ -487,9 +487,13 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 	return cards
 }
 
-// crushInputs are the blocks and chunks the crusher takes.
+// crushInputs are the blocks the crusher takes.
 func crushInputs() []world.Item {
-	return append([]world.Item{block.Stone{}, block.Cobblestone{}, block.Gravel{}, block.Sand{}}, chunkItems()...)
+	return append([]world.Item{
+		block.Stone{}, block.Cobblestone{}, block.Gravel{}, block.Sand{}, block.Sand{Red: true},
+		block.Deepslate{}, block.Deepslate{Type: block.CobbledDeepslate()}, block.Netherrack{},
+		CrushedBlock{Kind: CrushedNetherrack}, block.Blackstone{}, block.EndStone{},
+	}, oreBlocks()...)
 }
 
 // sieveDropOf is the drop with the key in a mesh's table for a block.
@@ -522,7 +526,13 @@ func (s *session) labCard(r *LabRecipe) codexCard {
 }
 
 func (s *session) crushCard(in world.Item, out item.Stack) codexCard {
-	return machineCard(machineItem(KindCrusher), []ui.BoardCell{s.codexCell(item.NewStack(in, 1), "")}, []ui.BoardCell{s.codexCell(out, countLabel(out.Count()))})
+	outs := []ui.BoardCell{s.codexCell(out, countLabel(out.Count()))}
+	if bonus, ok := crusherBonusOf(item.NewStack(in, 1)); ok {
+		for range crusherBonus {
+			outs = append(outs, s.codexCell(bonus, fmt.Sprintf("§f%d%%", crusherBonusChance), fmt.Sprintf(i18n.T(i18n.Default, "codex.card.chance"), crusherBonusChance)))
+		}
+	}
+	return machineCard(machineItem(KindCrusher), []ui.BoardCell{s.codexCell(item.NewStack(in, 1), "")}, outs)
 }
 
 // simCard is the drops of a mob's essence in the simulator.
@@ -620,20 +630,9 @@ func codexProcesses() []codexProcess {
 		{machineItem(KindWasher), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			for _, k := range oreKinds {
-				for _, in := range []world.Item{k.block, OreChunk{Ore: k.ore}} {
-					if in == nil {
-						continue
-					}
-					out, chance, ok := oreDust(item.NewStack(in, 1), washerDust)
-					if !ok {
-						continue
-					}
-					cell := s.codexCell(out, countLabel(out.Count()))
-					if chance < 100 {
-						cell = s.codexCell(out, fmt.Sprintf("§f%d%%", chance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), chance))
-					}
-					cards = append(cards, machineCard(machineItem(KindWasher), []ui.BoardCell{s.codexCell(item.NewStack(in, 1), ""), s.codexCell(water, "", i18n.T(lang, "codex.card.water"))}, []ui.BoardCell{cell}))
-				}
+				in := item.NewStack(rawOf(k.ore), 1)
+				out, _ := washerOutput(in)
+				cards = append(cards, machineCard(machineItem(KindWasher), []ui.BoardCell{s.codexCell(in, ""), s.codexCell(water, "", i18n.T(lang, "codex.card.water"))}, []ui.BoardCell{s.codexCell(out, countLabel(out.Count()))}))
 			}
 			return cards
 		}},
@@ -668,15 +667,17 @@ func codexProcesses() []codexProcess {
 		{item.NewStack(Barrel{Wood: "oak"}, 1), func(s *session, lang string) []codexCard {
 			barrel := item.NewStack(Barrel{Wood: "oak"}, 1)
 			plants := s.codexCell(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(barrelCapacity("oak")), i18n.T(lang, "codex.card.anyPlant"))
-			return []codexCard{
+			return append([]codexCard{
 				machineCard(barrel, []ui.BoardCell{plants}, []ui.BoardCell{s.codexCell(water, "")}),
 				machineCard(barrel, []ui.BoardCell{s.codexCell(water, ""), s.codexCell(item.NewStack(Dust{}, 1), "")}, []ui.BoardCell{s.codexCell(item.NewStack(block.Clay{}, 1), "")}),
-			}
+				machineCard(barrel, []ui.BoardCell{s.codexCell(water, ""), s.codexCell(item.NewStack(block.Mycelium{}, 1), "", i18n.T(lang, "codex.card.under"))}, []ui.BoardCell{s.codexCell(item.NewStack(WitchWaterBucket{}, 1), "")}),
+			}, s.barrelMixCards(barrel, false)...)
 		}},
 		{item.NewStack(Barrel{Wood: stoneWood}, 1), func(s *session, lang string) []codexCard {
-			return []codexCard{machineCard(item.NewStack(Barrel{Wood: stoneWood}, 1),
+			barrel := item.NewStack(Barrel{Wood: stoneWood}, 1)
+			return append([]codexCard{machineCard(barrel,
 				[]ui.BoardCell{s.codexCell(item.NewStack(block.Cobblestone{}, 1), countLabel(stoneBarrelCapacity)), s.codexCell(item.NewStack(block.Torch{}, 1), "", i18n.T(lang, "codex.card.heat"))},
-				[]ui.BoardCell{s.codexCell(lava, "")})}
+				[]ui.BoardCell{s.codexCell(lava, "")})}, s.barrelMixCards(barrel, true)...)
 		}},
 		{machineItem(KindTinker), func(s *session, lang string) []codexCard { return s.codexGearCards(lang) }},
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
-	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
@@ -30,8 +29,10 @@ import (
 const (
 	// barrelFillStages are the stages of filling; the next stage is water.
 	barrelFillStages = 6
-	// barrelWater is the stage of a barrel full of water.
+	// barrelWater is the stage of a barrel full of water (lava), barrelWitch
+	// of one full of witch water (witchwater.go).
 	barrelWater = 7
+	barrelWitch = 8
 	// barrelWaterDelay is how long (instance time) a full barrel needs to
 	// make water. Draft.
 	barrelWaterDelay = time.Minute
@@ -40,7 +41,7 @@ const (
 	barrelClayBuffer = 16
 )
 
-// barrelStageState is the one block state of a barrel: its stage 0 to 7.
+// barrelStageState is the one block state of a barrel: its stage 0 to 8.
 const barrelStageState = "dragonfactory:barrel_stage"
 
 // barrelWoods are the materials of the barrel family, in registration order:
@@ -122,6 +123,10 @@ type BarrelRecord struct {
 	Lava   bool          `json:"lava,omitempty"`
 	Heat   time.Duration `json:"heat,omitempty"`
 	HeatAt time.Duration `json:"heat_at,omitempty"`
+	// Witch is set once the water of an oak barrel on mycelium turned into
+	// witch water; WitchAt is the instance time it turns (0: not on mycelium).
+	Witch   bool          `json:"witch,omitempty"`
+	WitchAt time.Duration `json:"witch_at,omitempty"`
 }
 
 // barrelStage is the stage a record of an oak barrel shows.
@@ -132,6 +137,8 @@ func barrelStageOf(wood string, r *BarrelRecord) int {
 	switch {
 	case r == nil:
 		return 0
+	case r.Witch:
+		return barrelWitch
 	case r.Water || r.Lava:
 		return barrelWater
 	}
@@ -143,7 +150,7 @@ func (b Barrel) EncodeBlock() (string, map[string]any) {
 	return "dragonfactory:barrel_" + b.Wood, map[string]any{barrelStageState: fmt.Sprint(b.Stage)}
 }
 func (b Barrel) Hash() (uint64, uint64) { return barrelHashes[b.Wood], uint64(b.Stage) }
-func (Barrel) Model() world.BlockModel  { return model.Solid{} }
+func (Barrel) Model() world.BlockModel  { return tubModel{} }
 func (b Barrel) Name() string           { return woodNames[b.Wood] + i18n.T(i18n.Default, "name.Barrel.suffix") }
 func (Barrel) Category() category.Category {
 	return category.Construction()
@@ -161,6 +168,8 @@ func barrelMaterials(wood string, stage int) map[string]customblock.Material {
 		liquid, filling = "lava", "cobble"
 	}
 	switch {
+	case stage == barrelWitch:
+		m["content"] = alphaMaterial("dragonfactory_barrel_witch_water")
 	case stage == barrelWater:
 		m["content"] = alphaMaterial("dragonfactory_barrel_" + liquid)
 	case stage > 0:
@@ -176,7 +185,7 @@ func (b Barrel) Properties() customblock.Properties {
 // States implements block.Permutable.
 func (Barrel) States() map[string][]any {
 	var values []any
-	for i := 0; i <= barrelWater; i++ {
+	for i := 0; i <= barrelWitch; i++ {
 		values = append(values, fmt.Sprint(i))
 	}
 	return map[string][]any{barrelStageState: values}
@@ -185,11 +194,11 @@ func (Barrel) States() map[string][]any {
 // Permutations implements block.Permutable: one geometry per stage.
 func (b Barrel) Permutations() []customblock.Permutation {
 	var out []customblock.Permutation
-	for stage := 1; stage <= barrelWater; stage++ {
+	for stage := 1; stage <= barrelWitch; stage++ {
 		out = append(out, customblock.Permutation{
 			Condition: fmt.Sprintf("q.block_state('%s') == '%d'", barrelStageState, stage),
 			Properties: customblock.Properties{
-				Geometry: fmt.Sprintf("geometry.dragonfactory_barrel_%d", stage),
+				Geometry: fmt.Sprintf("geometry.dragonfactory_barrel_%d", min(stage, barrelWater)),
 				Textures: barrelMaterials(b.Wood, stage),
 			},
 		})
@@ -241,7 +250,37 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	rec := s.state.Barrels[key]
 	capacity := barrelCapacity(b.Wood)
 	stone := b.Wood == stoneWood
+	if out, bucket, ok := barrelMix(rec, held); ok {
+		if !bucket.Empty() && held.Count() == 1 {
+			_, left := p.HeldItems()
+			p.SetHeldItems(bucket, left)
+		} else {
+			ctx.SubtractFromCount(1)
+			if !bucket.Empty() {
+				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), bucket)
+			}
+		}
+		s.mixBarrel(tx, pos, b, out)
+		s.storeState()
+		return true
+	}
 	switch {
+	case rec != nil && rec.Witch:
+		if bk, ok := held.Item().(item.Bucket); ok && bk.Empty() {
+			filled := item.NewStack(WitchWaterBucket{}, 1)
+			if held.Count() == 1 {
+				_, left := p.HeldItems()
+				p.SetHeldItems(filled, left)
+			} else {
+				ctx.SubtractFromCount(1)
+				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+			}
+			delete(s.state.Barrels, key)
+			s.showBarrel(tx, pos, b)
+			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
+			s.storeState()
+		}
+		return true
 	case rec != nil && (rec.Water || rec.Lava):
 		if _, ok := held.Item().(Dust); ok && rec.Water {
 			// Dust soaks into the water and makes a clay block (docs/design/02-dragonfactory.md).
@@ -448,11 +487,14 @@ func (s *session) tickBarrels(tx *world.Tx) {
 			}
 			continue
 		}
-		if !rec.Water && rec.Count >= matterCapacity && now >= rec.ReadyAt {
+		if !rec.Water && !rec.Witch && rec.Count >= matterCapacity && now >= rec.ReadyAt {
 			rec.Water = true
 			countAll(tx, "barrel_water", 1)
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
+			changed = true
+		}
+		if s.tickWitchWater(tx, pos, b, rec, now) {
 			changed = true
 		}
 	}
@@ -497,6 +539,12 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	}
 	rec := s.barrelAt(pos)
 	switch {
+	case rec != nil && rec.Witch:
+		return []string{i18n.T(i18n.Default, "barrel.lines.witch")}
+	case rec != nil && rec.Water && rec.WitchAt > 0:
+		now, _, _ := s.clock.Now()
+		left := max(rec.WitchAt-now, 0).Round(time.Second)
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.toWitch"), int(left.Minutes()), int(left.Seconds())%60)}
 	case rec == nil || rec.Count == 0:
 		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1")}
 	case rec.Water && rec.Clay > 0:
@@ -536,7 +584,7 @@ func init() {
 		world.RegisterBlock(Barrel{Wood: w})
 		world.RegisterItem(Barrel{Wood: w})
 		// Every stage is a block state of its own.
-		for stage := 1; stage <= barrelWater; stage++ {
+		for stage := 1; stage <= barrelWitch; stage++ {
 			world.RegisterBlock(Barrel{Wood: w, Stage: stage})
 		}
 	}

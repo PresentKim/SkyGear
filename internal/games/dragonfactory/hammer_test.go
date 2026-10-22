@@ -61,3 +61,34 @@ func TestDustFromCrushedSand(t *testing.T) {
 		t.Fatal("sieve drops for farming and kelp missing")
 	}
 }
+
+// TestCrushedStones: the hammer breaks the stones of the deep, the Nether and
+// the End into their crushed blocks, and crushed netherrack into red sand
+// (Ex Deorum, docs/design/16-ore-balance.md §2.1).
+func TestCrushedStones(t *testing.T) {
+	for in, want := range map[world.Item]world.Item{
+		block.Deepslate{}: CrushedBlock{Kind: CrushedDeepslate},
+		block.Deepslate{Type: block.CobbledDeepslate()}: CrushedBlock{Kind: CrushedDeepslate},
+		block.Netherrack{}:                    CrushedBlock{Kind: CrushedNetherrack},
+		CrushedBlock{Kind: CrushedNetherrack}: block.Sand{Red: true},
+		block.Blackstone{}:                    CrushedBlock{Kind: CrushedBlackstone},
+		block.EndStone{}:                      CrushedBlock{Kind: CrushedEndStone},
+		block.Sand{Red: true}:                 Dust{},
+	} {
+		if out, ok := crushed(in.(world.Block)); !ok || itemKey(out) != itemKey(want) {
+			t.Errorf("crushed %s = %v, want %s", itemKey(in), out, itemKey(want))
+		}
+	}
+}
+
+// TestHammerOre: the hammer breaks an ore block into two dusts of its metal.
+func TestHammerOre(t *testing.T) {
+	for _, b := range []world.Block{block.IronOre{}, OreBlock{Metal: MetalNickel}} {
+		it := b.(world.Item)
+		metal, _ := oreBlockMetal(it)
+		got, ok := hammerDrop(b)
+		if !ok || got.Count() != hammerDust || itemKey(got.Item()) != itemKey(MetalDust{Metal: metal}) {
+			t.Errorf("hammer on %s drops %v", itemKey(it), got)
+		}
+	}
+}

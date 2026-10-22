@@ -27,6 +27,7 @@
 | [13-machine-tiers.md](13-machine-tiers.md) | 기계 강화(기본·고급·정밀·궁극): 합금·제어 회로·강화 키트 사슬, 단계별 효과, 연구 |
 | [14-config-copier.md](14-config-copier.md) | 설정 복사기: 도관 면·자동 제작기·서랍의 설정을 복사해 붙이기 |
 | [15-magic-sieve.md](15-magic-sieve.md) | 마법 체와 에센스 테마: 새 몬스터 4종, 난이도, 에센스로 바뀌는 드롭 표 |
+| [16-ore-balance.md](16-ore-balance.md) | 광석 밸런스: ATM10: To the Sky 와 같은 체 표, 조각 → 광석 블록, 망치·분쇄기·세척기 가공 |
 | [open-questions.md](open-questions.md) | 결정이 필요한 사항과 밸런싱 수치 표 |
 
 ## 용어

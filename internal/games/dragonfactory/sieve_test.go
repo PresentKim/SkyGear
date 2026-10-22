@@ -98,10 +98,10 @@ func TestSieveNeedsAMesh(t *testing.T) {
 	}
 }
 
-// TestSieveTablesGiveOreChunks: the string mesh gives iron chunks only
-// (copper from the flint mesh, gold from the iron mesh), with chances high
-// enough to see them (at least 4 %), and four chunks of an ore make the ore
-// block (recipes registered).
+// TestSieveTablesGiveOreChunks: gravel gives every ore's chunks from the
+// string mesh on, as ATM10: To the Sky does (docs/design/16-ore-balance.md),
+// sand none, and four chunks of an ore make the ore block (recipes
+// registered).
 func TestSieveTablesGiveOreChunks(t *testing.T) {
 	chance := func(tier string, in world.Item, want world.Item) int {
 		n := 0
@@ -112,15 +112,14 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 		}
 		return n
 	}
-	first := map[string]string{OreIron: "string", OreCopper: "flint", OreGold: "iron", MetalTin: "flint", MetalLead: "iron", MetalSilver: "gold", MetalNickel: "gold"}
+	want := map[string]int{OreIron: 100, OreCopper: 80, OreGold: 30, MetalTin: 60, MetalLead: 40, MetalSilver: 40, MetalNickel: 40}
 	for _, k := range oreKinds {
+		if got := chance("string", block.Gravel{}, OreChunk{Ore: k.ore}); got != want[k.ore] {
+			t.Errorf("%s chunks from gravel on the string mesh: %d permille, want %d", k.ore, got, want[k.ore])
+		}
 		for tier := range sieveTables {
-			sum := chance(tier, block.Gravel{}, OreChunk{Ore: k.ore}) + chance(tier, block.Sand{}, OreChunk{Ore: k.ore})
-			if (tier == "string" || tier == "flint" && k.ore == OreGold) && k.ore != OreIron && sum != 0 {
-				t.Errorf("the %s mesh gives %s chunks", tier, k.ore)
-			}
-			if tier == first[k.ore] && sum < 40 {
-				t.Errorf("%s chunks are too rare for the %s mesh", k.ore, tier)
+			if chance(tier, block.Sand{}, OreChunk{Ore: k.ore}) != 0 {
+				t.Errorf("sand gives %s chunks on the %s mesh", k.ore, tier)
 			}
 		}
 		if k.block == nil {
@@ -141,7 +140,8 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 		for _, d := range drops {
 			total += d.Permille
 		}
-		if total < 150 {
+		// crushed end stone is the thinnest (ATM10 without the chorus Bedrock servers lack)
+		if total < 80 {
 			t.Errorf("%s: the drops add up to %d per mille, a sift should often give something", in, total)
 		}
 	}
@@ -259,6 +259,30 @@ func TestSieveShowsItsMesh(t *testing.T) {
 	for i := 1; i < len(vals); i++ {
 		if vals[i-1].(string) >= vals[i].(string) {
 			t.Fatalf("state values %v and %v are not in order", vals[i-1], vals[i])
+		}
+	}
+}
+
+// TestSieveTakesCrushedBlocks: every crushed block, soul sand and red sand is
+// sifted, shows on the mesh, and its pebbles make their stone.
+func TestSieveTakesCrushedBlocks(t *testing.T) {
+	for _, in := range codexSieveInputs() {
+		if len(sieveTables["string"][itemKey(in)]) == 0 {
+			t.Errorf("%s is not sifted on the string mesh", itemKey(in))
+		}
+		if sieveContentOf(item.NewStack(in, 1)) == 0 {
+			t.Errorf("%s does not show on the mesh", itemKey(in))
+		}
+	}
+	for _, k := range pebbleKinds {
+		found := false
+		for _, r := range recipe.Recipes() {
+			if out := r.Output(); len(out) == 1 && itemKey(out[0].Item()) == itemKey(k.block) && len(r.Input()) == 4 {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("no recipe makes %s from four %s pebbles", itemKey(k.block), k.kind)
 		}
 	}
 }

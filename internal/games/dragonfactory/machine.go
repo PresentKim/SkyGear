@@ -248,56 +248,40 @@ var crushRecipes = map[string]world.Item{
 	itemKey(block.Stone{}):       block.Cobblestone{},
 	itemKey(block.Cobblestone{}): block.Gravel{},
 	itemKey(block.Gravel{}):      block.Sand{},
-	// Sand crushes into dust (13th playtest, sky progression).
-	itemKey(block.Sand{}): Dust{},
+	// Sand crushes into dust (13th playtest, sky progression), red sand too.
+	itemKey(block.Sand{}):          Dust{},
+	itemKey(block.Sand{Red: true}): Dust{},
+	// The stones of the deep, the Nether and the End (Ex Deorum, ATM10: To
+	// the Sky; docs/design/16-ore-balance.md §2.1).
+	itemKey(block.Deepslate{}):                               CrushedBlock{Kind: CrushedDeepslate},
+	itemKey(block.Deepslate{Type: block.CobbledDeepslate()}): CrushedBlock{Kind: CrushedDeepslate},
+	itemKey(block.Netherrack{}):                              CrushedBlock{Kind: CrushedNetherrack},
+	itemKey(CrushedBlock{Kind: CrushedNetherrack}):           block.Sand{Red: true},
+	itemKey(block.Blackstone{}):                              CrushedBlock{Kind: CrushedBlackstone},
+	itemKey(block.EndStone{}):                                CrushedBlock{Kind: CrushedEndStone},
 }
 
-// oreInput tells what an ore item is: its metal and how many of the ore's
-// four chunks it is worth (an ore block is the four; docs/design/07-progression-expansion.md §3).
-func oreInput(it world.Item) (metal string, chunks int, ok bool) {
-	if c, isChunk := it.(OreChunk); isChunk {
-		return c.Ore, 1, true
-	}
-	for _, k := range oreKinds {
-		if k.block != nil && itemKey(k.block) == itemKey(it) {
-			return k.ore, 4, true
-		}
-	}
-	return "", 0, false
-}
-
-// Dust an ore (four chunks) gives: the crusher doubles it, the ore washer
-// triples it. A single chunk gives a share of that, as a chance of one dust.
-const (
-	crusherDust = 2
-	washerDust  = 3
-)
-
-// oreDust is the most dust an ore item gives with a machine that makes perOre
-// dust of an ore, and the chance (percent) that it gives it: an ore block
-// always gives its dust, a chunk one dust with a quarter of that chance.
-func oreDust(in item.Stack, perOre int) (item.Stack, int, bool) {
-	metal, chunks, ok := oreInput(in.Item())
-	if !ok {
-		return item.Stack{}, 0, false
-	}
-	if chunks == 4 {
-		return item.NewStack(MetalDust{Metal: metal}, perOre), 100, true
-	}
-	return item.NewStack(MetalDust{Metal: metal}, 1), perOre * 100 / 4, true
-}
-
-// crusherOutput is what the crusher makes of an item: the blocks of the hammer
-// chain one step down, an ore block into two dusts of its metal and a chunk
-// into one dust half of the time.
+// crusherOutput is what the crusher always makes of an item: the blocks of
+// the hammer chain one step down, an ore block crusherRaw raw ores (and
+// crusherBonusOf more by chance).
 func crusherOutput(in item.Stack) (item.Stack, bool) {
-	if out, _, ok := oreDust(in, crusherDust); ok {
-		return out, true
+	if metal, ok := oreBlockMetal(in.Item()); ok {
+		return item.NewStack(rawOf(metal), crusherRaw), true
 	}
 	if out, ok := crushRecipes[itemKey(in.Item())]; ok {
 		return item.NewStack(out, 1), true
 	}
 	return item.Stack{}, false
+}
+
+// crusherBonusOf is the raw ore the crusher may make more of an ore block:
+// crusherBonus of them at crusherBonusChance percent each.
+func crusherBonusOf(in item.Stack) (item.Stack, bool) {
+	metal, ok := oreBlockMetal(in.Item())
+	if !ok {
+		return item.Stack{}, false
+	}
+	return item.NewStack(rawOf(metal), 1), true
 }
 
 // minerTool is what the auto miner mines with.
@@ -561,7 +545,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindCrucible]:
 		return k == itemKey(block.Cobblestone{})
 	case machineKinds[KindWasher]:
-		_, _, ok := oreInput(it.Item())
+		_, ok := washerOutput(it)
 		return ok
 	case machineKinds[KindFurnace]:
 		_, ok := smeltOf(it)
@@ -1272,11 +1256,18 @@ func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *wo
 	case KindCrusher:
 		st.process(func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
+			if bonus, ok := crusherBonusOf(in); ok {
+				out = out.Grow(bonus.Count() * crusherBonus)
+			}
 			return []item.Stack{out}
 		}, func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
-			if _, chance, ok := oreDust(in, crusherDust); ok && s.rand.IntN(100) >= chance {
-				return nil
+			if bonus, ok := crusherBonusOf(in); ok {
+				for range crusherBonus {
+					if s.rand.IntN(100) < crusherBonusChance {
+						out = out.Grow(bonus.Count())
+					}
+				}
 			}
 			return []item.Stack{out}
 		})

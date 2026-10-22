@@ -124,6 +124,13 @@ func codexRelevant() map[string]bool {
 			}
 		}
 	}
+	for _, in := range crushInputs() {
+		add(in)
+	}
+	for _, m := range barrelMixes() {
+		add(m.in)
+		add(m.out)
+	}
 	for _, r := range alloyRecipes {
 		add(r.A)
 		add(r.B)

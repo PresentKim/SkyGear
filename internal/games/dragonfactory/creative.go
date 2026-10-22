@@ -54,6 +54,9 @@ func registerCreativeItems() {
 			}
 		}
 		add(construction, Dust{})
+		for _, k := range crushedKinds {
+			add(construction, CrushedBlock{Kind: k})
+		}
 		for _, id := range hopperOrder {
 			add(construction, newFlowHopper(id, cube.FaceDown))
 		}
@@ -64,6 +67,8 @@ func registerCreativeItems() {
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
 		add(items, DrawerUpgrade{Kind: UpgradeVoid})
 		add(items, BarkFiber{})
+		add(items, MyceliumSpores{})
+		add(items, WitchWaterBucket{})
 		add(items, ConduitBinderMix{})
 		add(items, ConduitBinder{})
 		for _, t := range meshTiers {
@@ -71,6 +76,10 @@ func registerCreativeItems() {
 		}
 		for _, k := range oreKinds {
 			add(items, OreChunk{Ore: k.ore})
+		}
+		for _, m := range newOreMetals {
+			add(construction, OreBlock{Metal: m})
+			add(items, RawOre{Metal: m})
 		}
 		for _, k := range pebbleKinds {
 			add(items, Pebble{Kind: k.kind})

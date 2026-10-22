@@ -7,8 +7,8 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// Hammer crushes blocks by hand: a block it mines drops what the crusher
-// makes of it (stone → cobblestone → gravel → sand). It mines these blocks
+// Hammer crushes blocks by hand: a block it mines drops it one step down
+// (stone → cobblestone → gravel → sand), an ore block two dusts (ore.go). It mines these blocks
 // at stone-tool speed; the speeds are sent to clients (the minecraft:digger
 // component, a Dragonfly patch) so they mine as fast as the server expects.
 type Hammer struct{}
@@ -23,6 +23,22 @@ var hammerSpeeds = map[string]int{
 	"minecraft:gravel":      2,
 	"minecraft:sand":        2,
 	"minecraft:dirt":        2,
+	// the stones of the deep, the Nether and the End by their hardness
+	"minecraft:deepslate":              12,
+	"minecraft:cobbled_deepslate":      14,
+	"minecraft:netherrack":             2,
+	"minecraft:blackstone":             6,
+	"minecraft:end_stone":              12,
+	"minecraft:red_sand":               2,
+	"dragonfactory:crushed_netherrack": 2,
+	// ore blocks (into dust, ore.go)
+	"minecraft:iron_ore":       12,
+	"minecraft:gold_ore":       12,
+	"minecraft:copper_ore":     12,
+	"dragonfactory:tin_ore":    12,
+	"dragonfactory:lead_ore":   12,
+	"dragonfactory:silver_ore": 12,
+	"dragonfactory:nickel_ore": 12,
 }
 
 func (Hammer) EncodeItem() (string, int16) { return "dragonfactory:hammer", 0 }

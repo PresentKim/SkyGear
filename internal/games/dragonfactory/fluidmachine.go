@@ -230,12 +230,11 @@ func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
 	s.energyGrid().AddSource(pos)
 }
 
-// washerWater is the mB of water washing one ore chunk takes; it makes three
-// dusts of it instead of the crusher's two.
+// washerWater is the mB of water washing one raw ore takes.
 const washerWater = 250
 
-// runWasher washes the ore chunk in the input: with enough water in the tank it
-// works an interval, and gives three dusts of the metal.
+// runWasher washes the raw ore in the input: with enough water in the tank it
+// works an interval, and gives washerDust dusts of the metal (ore.go).
 func (st *machineState) runWasher() {
 	slot, in, ok := st.firstInput()
 	if !ok || !st.accepts(in) || st.fluidAmt < washerWater || st.fluid != fluidnet.Water {
@@ -246,14 +245,12 @@ func (st *machineState) runWasher() {
 		st.tickWork()
 		return
 	}
-	out, chance, _ := oreDust(in, washerDust)
+	out, _ := washerOutput(in)
 	if !st.roomFor([]item.Stack{out}) {
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
-	if st.sess == nil || st.sess.rand.IntN(100) < chance {
-		st.emit(out)
-	}
+	st.emit(out)
 	if st.fluidAmt -= washerWater; st.fluidAmt == 0 {
 		st.fluid = fluidnet.None
 	}

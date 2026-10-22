@@ -36,11 +36,17 @@ const (
 // Pebble kinds. Other stones (andesite, diorite, granite) are added here
 // when something uses them.
 const (
-	PebbleStone = "stone"
+	PebbleStone      = "stone"
+	PebbleDeepslate  = "deepslate"
+	PebbleBlackstone = "blackstone"
+	PebbleBasalt     = "basalt"
+	PebbleTuff       = "tuff"
+	PebbleCalcite    = "calcite"
 )
 
-// pebbleKinds are the pebble kinds with the drop weight of each and the
-// block four of them make.
+// pebbleKinds are the pebble kinds with the weight a stick knocks each out
+// of the ground with (0: only sieves give it, docs/design/16-ore-balance.md
+// §2.1) and the block four of them make.
 var pebbleKinds = []struct {
 	kind   string
 	name   string
@@ -48,6 +54,11 @@ var pebbleKinds = []struct {
 	block  world.Item
 }{
 	{PebbleStone, i18n.T(i18n.Default, "dragonfactory.handwork.init.1"), 1, block.Cobblestone{}},
+	{PebbleDeepslate, i18n.T(i18n.Default, "pebble.deepslate"), 0, block.Deepslate{Type: block.CobbledDeepslate()}},
+	{PebbleBlackstone, i18n.T(i18n.Default, "pebble.blackstone"), 0, block.Blackstone{}},
+	{PebbleBasalt, i18n.T(i18n.Default, "pebble.basalt"), 0, block.Basalt{}},
+	{PebbleTuff, i18n.T(i18n.Default, "pebble.tuff"), 0, block.Tuff{}},
+	{PebbleCalcite, i18n.T(i18n.Default, "pebble.calcite"), 0, block.Calcite{}},
 }
 
 // Pebble is a small stone a stick knocks out of grass and dirt.

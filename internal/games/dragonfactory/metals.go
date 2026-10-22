@@ -10,8 +10,8 @@ import (
 // Metals (docs/design/07-progression-expansion.md §2): iron, gold and copper
 // use the ingots of the game; tin, lead, silver and nickel are new ores found
 // by sieving (orechunk.go); bronze, electrum, invar and steel are alloys made
-// in the alloy smelter (alloy.go). Every metal has a dust: a crusher turns an
-// ore chunk into two of them, and a furnace smelts a dust into an ingot.
+// in the alloy smelter (alloy.go). Every ore metal has a dust (ore.go), which
+// a furnace smelts into an ingot.
 const (
 	MetalTin      = "tin"
 	MetalLead     = "lead"
