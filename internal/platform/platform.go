@@ -126,20 +126,10 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 }
 
 // showSaves shows the save slots of p and the actions of the chosen one
-// (ui.ListSplitMenu). Pressing a row chooses it. With 0 the first save is
-// chosen, or the first empty slot when there is no save yet.
+// (ui.ListSplitMenu). Pressing a save chooses it; pressing an empty slot asks
+// for the new save's name at once (no button on the right does the same).
+// With 0 the first save is chosen.
 func (pf *Platform) showSaves(p *player.Player, sel int64) {
-	pf.showSavesAt(p, sel, 0)
-}
-
-// showSavesSlot chooses the empty slot slot.
-func (pf *Platform) showSavesSlot(p *player.Player, slot int) {
-	pf.showSavesAt(p, 0, slot)
-}
-
-// showSavesAt shows the screen with the save sel or the empty slot slot
-// chosen (sel 0 for a slot).
-func (pf *Platform) showSavesAt(p *player.Player, sel int64, slot int) {
 	saves, err := pf.db.SavesOf(instance.AccountID(p), pf.game.ID())
 	if err != nil {
 		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.1"), err)
@@ -154,26 +144,17 @@ func (pf *Platform) showSavesAt(p *player.Player, sel int64, slot int) {
 			chosen = s
 		}
 	}
-	if sel == 0 && slot == 0 {
-		if len(saves) > 0 {
-			chosen = saves[0]
-		} else {
-			slot = 1
-		}
-	}
-	if s, ok := bySlot[slot]; ok {
-		// The slot was filled since the screen was sent: choose that save.
-		chosen, slot = s, 0
+	if chosen.ID == 0 && len(saves) > 0 {
+		chosen = saves[0]
 	}
 	var rows []ui.ListRow
 	for n := 1; n <= Slots; n++ {
 		s, ok := bySlot[n]
 		if !ok {
 			rows = append(rows, ui.ListRow{
-				Label:    ui.ListRowText(i18n.T(lang, "platform.platform.showSaves.2"), ""),
-				Icon:     iconNewSave,
-				Selected: n == slot,
-				Run:      func(p *player.Player, _ *world.Tx) { pf.showSavesSlot(p, n) },
+				Label: ui.ListRowText(i18n.T(lang, "platform.platform.showSaves.2"), ""),
+				Icon:  iconNewSave,
+				Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, n) },
 			})
 			continue
 		}
@@ -188,17 +169,36 @@ func (pf *Platform) showSavesAt(p *player.Player, sel int64, slot int) {
 	sp := ui.ListSplit{Rows: rows}
 	switch {
 	case chosen.ID != 0:
+		code, err := pf.inviteCode(chosen, false)
+		if err != nil {
+			pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
+			return
+		}
+		n, _ := pf.db.ActiveMembers(chosen.ID)
+		// the invite code (a friend enters it on their multiplayer screen;
+		// pressing makes a new one) and the member count sit on their
+		// buttons, so the actions fill the column without a body above them
 		sp.Actions = []ui.Option{
 			{Label: i18n.T(lang, "platform.platform.showSave.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, chosen.ID) }},
-			{Label: i18n.T(lang, "platform.platform.showSave.3"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.showInviteCode(p, chosen.ID) }},
-			{Label: i18n.T(lang, "platform.platform.showSave.4"), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
+			{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showSave.code"), code), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
+				pf.confirm(p, i18n.T(lang, "platform.invite.renew"), i18n.T(lang, "platform.invite.renew.ask"), i18n.T(lang, "platform.invite.renew"), func(p *player.Player, _ *world.Tx) {
+					s, err := pf.db.Save(chosen.ID)
+					if err == nil {
+						_, err = pf.inviteCode(s, true)
+					}
+					if err != nil {
+						pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
+						return
+					}
+					pf.showSaves(p, chosen.ID)
+				}, func(p *player.Player, _ *world.Tx) { pf.showSaves(p, chosen.ID) })
+			}},
+			{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showSave.members"), n, MaxMembers), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
 			{Label: i18n.T(lang, "platform.platform.showSave.5"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, chosen) }},
 			{Label: i18n.T(lang, "platform.platform.showSave.6"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, chosen, 0) }},
 		}
-	case slot != 0:
-		sp.Actions = []ui.Option{
-			{Label: i18n.T(lang, "platform.platform.showSaves.5"), Icon: iconNewSave, Run: func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, slot) }},
-		}
+	default:
+		sp.Body = i18n.T(lang, "platform.platform.showSaves.none")
 	}
 	// The back button sits in the control box left of the close button, like
 	// every other screen's.
@@ -244,7 +244,7 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 		}
 		pf.showSaves(p, s.ID)
 	}, func(p *player.Player, _ *world.Tx) {
-		pf.showSavesSlot(p, slot)
+		pf.showSaves(p, 0)
 	})
 }
 
@@ -387,18 +387,6 @@ func (pf *Platform) lobbyMenu() []ui.Option {
 		{Label: "df.lobby.cosmetics", Icon: "textures/ui/df/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
 		{Label: "df.lobby.help", Icon: "textures/ui/df/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	}
-}
-
-// showMultiplayer is the lobby's multiplayer menu: the saves p joined, the
-// invite code and the invites p received.
-func (pf *Platform) showMultiplayer(p *player.Player) {
-	lang := i18n.Of(p)
-	ui.Menu(p, i18n.T(lang, "platform.platform.showMultiplayer.1"), "",
-		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.4"), Icon: iconJoined, Run: func(p *player.Player, _ *world.Tx) { pf.showJoined(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.platform.showLobbyMenu.6"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) }},
-		ui.Option{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showLobbyMenu.5"), len(pf.invites.list(instance.AccountID(p)))), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) { pf.showInvites(p) }},
-		pf.lobbyBack(p, pf.showLobbyMenu),
-	)
 }
 
 // lobbyBack is the back button of a lobby screen: it shows back. The screens

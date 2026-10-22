@@ -102,6 +102,24 @@ func insetBox(size int, fill color.RGBA) image.Image {
 	return img
 }
 
+// chosenBox is a slot with a two pixel gold frame and a lighter field.
+func chosenBox(size int) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+	for x := range size {
+		for y := range size {
+			c := color.RGBA{176, 176, 176, 255}
+			switch {
+			case x == 0 || y == 0 || x == size-1 || y == size-1:
+				c = color.RGBA{214, 158, 24, 255}
+			case x == 1 || y == 1 || x == size-2 || y == size-2:
+				c = color.RGBA{255, 222, 92, 255}
+			}
+			img.Set(x, y, c)
+		}
+	}
+	return img
+}
+
 // bevel is the window's inner edge layer; the window picture draws its own
 // bevel, so it is clear.
 func bevel() image.Image { return image.NewNRGBA(image.Rect(0, 0, 16, 16)) }
@@ -236,6 +254,9 @@ func main() {
 	write("button_pressed", bevelBox(16, pressedFill, buttonLo, buttonFill), 3)
 	write("panel_bevel", bevel(), 5)
 	write("slot", insetBox(18, slotFill), 1)
+	// the chosen slot of a row (the research or recipe shown): a gold frame,
+	// so it does not read as a slot under the mouse
+	write("slot_chosen", chosenBox(18), 0)
 	// the dark field the game's own input forms are drawn in
 	write("inset", insetBox(8, color.RGBA{60, 60, 60, 255}), 1)
 	dimImg := image.NewRGBA(image.Rect(0, 0, 4, 4))

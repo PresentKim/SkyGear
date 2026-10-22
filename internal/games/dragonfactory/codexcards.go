@@ -198,32 +198,122 @@ func (s *session) codexHeadRow(c codexCard) []ui.BoardCell {
 	return row
 }
 
-// codexBoardPages lays the cards out in pages of at most budget rows. Cards
-// of the same machine in a row share one header; a page that goes on with
-// the machine of the page before repeats its header. A card is never split.
+// codexBoardPages lays the cards out in pages of at most budget rows, the
+// way JEI shows recipes: each machine's cards centred in the window, two
+// side by side when two fit, a blank row between them. Cards of the same
+// machine in a row share one header, at their left edge; a page that goes on
+// with the machine of the page before repeats its header. A card is never
+// split.
 func (s *session) codexBoardPages(cards []codexCard, budget int) [][][]ui.BoardCell {
 	var pages [][][]ui.BoardCell
 	var cur [][]ui.BoardCell
 	last := ""
-	for _, c := range cards {
-		need := len(c.rows)
-		if c.name != last {
-			need++
+	// above is the row a block needs above it on the current page: its
+	// machine's header, the blank row between cards or nothing.
+	above := func(b codexBlock) int {
+		if (len(cur) == 0 || b.name != last) && b.name != "" {
+			return 1
 		}
-		if len(cur) > 0 && len(cur)+need > budget {
+		if len(cur) > 0 {
+			return 1
+		}
+		return 0
+	}
+	for _, b := range codexBlocks(cards) {
+		if len(cur) > 0 && len(cur)+above(b)+len(b.rows) > budget {
 			pages = append(pages, cur)
-			cur, last = nil, ""
+			cur = nil
 		}
-		if c.name != last {
-			cur = append(cur, s.codexHeadRow(c))
-			last = c.name
+		switch {
+		case (len(cur) == 0 || b.name != last) && b.name != "":
+			cur = append(cur, shiftRow(s.codexHeadRow(codexCard{head: b.head, name: b.name}), b.offset))
+		case len(cur) > 0:
+			cur = append(cur, blankRow())
 		}
-		cur = append(cur, c.rows...)
+		cur = append(cur, b.rows...)
+		last = b.name
 	}
 	if len(cur) > 0 || len(pages) == 0 {
 		pages = append(pages, cur)
 	}
 	return pages
+}
+
+// codexBlock is a row of one or two cards of the same machine, placed in the
+// window's columns.
+type codexBlock struct {
+	head   item.Stack
+	name   string
+	offset int
+	rows   [][]ui.BoardCell
+}
+
+// codexBlocks places the cards: the cards of a machine share a width (the
+// widest one's), so their arrows line up, and are centred; two go side by
+// side, with a gap of up to three cells, when both fit a row.
+func codexBlocks(cards []codexCard) []codexBlock {
+	var out []codexBlock
+	for i := 0; i < len(cards); {
+		j := i
+		w := 0
+		for j < len(cards) && cards[j].name == cards[i].name {
+			w = max(w, cardWidth(cards[j]))
+			j++
+		}
+		perRow, gap := 1, 0
+		if 2*w+1 <= ui.BoardColumns {
+			perRow, gap = 2, min(3, ui.BoardColumns-2*w)
+		}
+		offset := (ui.BoardColumns - (perRow*w + (perRow-1)*gap)) / 2
+		for k := i; k < j; k += perRow {
+			b := codexBlock{head: cards[k].head, name: cards[k].name, offset: offset}
+			for n, c := range cards[k:min(k+perRow, j)] {
+				for r, row := range c.rows {
+					if r == len(b.rows) {
+						b.rows = append(b.rows, blankRow())
+					}
+					at := offset + n*(w+gap)
+					copy(b.rows[r][at:], row[:min(len(row), w)])
+				}
+			}
+			out = append(out, b)
+		}
+		i = j
+	}
+	return out
+}
+
+// cardWidth is how many columns a card's cells take; a line of text takes
+// the whole row, as it runs over the blank cells after it.
+func cardWidth(c codexCard) int {
+	w := 1
+	for _, row := range c.rows {
+		for i, cell := range row {
+			if cell.IsText() {
+				return ui.BoardColumns
+			}
+			if !cell.IsBlank() {
+				w = max(w, i+1)
+			}
+		}
+	}
+	return min(w, ui.BoardColumns)
+}
+
+// shiftRow moves a row's cells right by n columns, dropping what falls off.
+func shiftRow(row []ui.BoardCell, n int) []ui.BoardCell {
+	out := blankRow()
+	for i, c := range row {
+		if i+n < len(out) {
+			out[i+n] = c
+		}
+	}
+	return out
+}
+
+// centredRow is a row of the cells centred in the window.
+func centredRow(cells []ui.BoardCell) []ui.BoardCell {
+	return shiftRow(cells, (ui.BoardColumns-len(cells))/2)
 }
 
 var (

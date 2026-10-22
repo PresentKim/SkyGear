@@ -130,3 +130,10 @@ func (c BoardCell) IsArrow() bool { return c.kind == cellArrow }
 // IsHeader reports whether the cell starts a header row: a small icon or a
 // line of text.
 func (c BoardCell) IsHeader() bool { return c.kind == cellMini || c.kind == cellText }
+
+// IsBlank reports whether the cell draws nothing.
+func (c BoardCell) IsBlank() bool { return c.kind == cellBlank }
+
+// IsText reports whether the cell is a line of text (it runs over the blank
+// cells after it).
+func (c BoardCell) IsText() bool { return c.kind == cellText }

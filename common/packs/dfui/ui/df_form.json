@@ -3230,9 +3230,9 @@
 
   "gslot_sel_live@df_form.gslot_live_button": {
     "controls": [
-      { "default@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/button_hover" } },
-      { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_hover" } },
-      { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/button_pressed" } },
+      { "default@df_form.gslot_face": { "$df_slot_texture": "textures/ui/df/slot_chosen" } },
+      { "hover@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/slot_chosen" } },
+      { "pressed@df_form.gslot_face_tip": { "$df_slot_texture": "textures/ui/df/slot_chosen" } },
       { "deco@df_form.gslot_deco": {} }
     ]
   },
@@ -4154,10 +4154,21 @@
       {
         "window@df_form.window": {
           "$df_window_size": [ 326, 126 ],
-          "$df_tabs": "df_form.no_tabs",
+          "$df_tabs": "df_form.marked_tabs",
           "$df_content": "df_form.list_split_body"
         }
       }
+    ]
+  },
+
+  "list_split_rows": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      { "rows@df_form.marked_list_rows": { "orientation": "vertical", "size": [ "100%", "100%c" ] } }
     ]
   },
 
@@ -4171,19 +4182,22 @@
           "texture": "textures/ui/df/panel",
           "anchor_from": "top_left",
           "anchor_to": "top_left",
-          "size": [ 156, "100%c + 8px" ],
+          "size": [ 156, "100%" ],
           "controls": [
             {
-              "inner": {
-                "type": "stack_panel",
-                "orientation": "vertical",
-                "size": [ "100% - 8px", "100%c" ],
-                "offset": [ 4, 4 ],
-                "anchor_from": "top_left",
+              // the list keeps the window's height and scrolls when it is
+              // longer (friends, members), so an empty one is not a sliver
+              "scroll@common.scrolling_panel": {
                 "anchor_to": "top_left",
-                "controls": [
-                  { "rows@df_form.marked_list_rows": { "orientation": "vertical", "size": [ "100%", "100%c" ] } }
-                ]
+                "anchor_from": "top_left",
+                "offset": [ 4, 4 ],
+                "$show_background": false,
+                "size": [ "100% - 6px", "100% - 8px" ],
+                "$scrolling_content": "df_form.list_split_rows",
+                "$scroll_size": [ 4, "100% - 4px" ],
+                "$scrolling_pane_size": [ "100% - 6px", "100%" ],
+                "$scrolling_pane_offset": [ 0, 0 ],
+                "$scroll_bar_right_padding_size": [ 0, 0 ]
               }
             }
           ]
@@ -4239,32 +4253,31 @@
   // rest sit two to a row, the odd one out leaving its right cell empty. The
   // button order of the form is the grid order (primary, left, right, left…),
   // so a column marker (ui.ListSplitMenu) puts each button in its cell.
+  // The actions take only the room their buttons need, so a short body
+  // and a few actions fit the column without a scroll bar.
   "list_split_actions": {
-    "type": "panel",
-    "size": [ "100%", 94 ],
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ "100%", "100%c" ],
     "controls": [
       {
         "primary@df_form.marked_list_primary": {
           "orientation": "vertical",
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
           "size": [ "100%", "100%c" ]
         }
       },
+      { "gap": { "type": "panel", "size": [ "100%", 2 ] } },
       {
         "row": {
           "type": "panel",
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "offset": [ 0, 32 ],
-          "size": [ "100%", 62 ],
+          "size": [ "100%", "100%cm" ],
           "controls": [
             {
               "col_a@df_form.marked_list_col_a": {
                 "orientation": "vertical",
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
-                "size": [ "50% - 2px", 62 ]
+                "size": [ "50% - 2px", "100%c" ]
               }
             },
             {
@@ -4272,7 +4285,7 @@
                 "orientation": "vertical",
                 "anchor_from": "top_right",
                 "anchor_to": "top_right",
-                "size": [ "50% - 2px", 62 ]
+                "size": [ "50% - 2px", "100%c" ]
               }
             }
           ]

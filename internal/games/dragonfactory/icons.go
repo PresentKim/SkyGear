@@ -19,6 +19,7 @@ const (
 	iconLocked  = "textures/blocks/barrier"
 	iconAll     = "textures/blocks/hopper_top"
 	iconTitle   = "textures/items/name_tag"
+	iconFriends = "textures/ui/df/icon_person"
 )
 
 // iconOf returns the form icon of an item: the item drawn by the client's

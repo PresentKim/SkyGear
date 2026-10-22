@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 func hasLine(lines []string, part string) bool {
@@ -155,9 +156,44 @@ func TestCodexBoardPages(t *testing.T) {
 		if len(pg) > codexBoardRows {
 			t.Errorf("page %d has %d rows", i, len(pg))
 		}
-		if !pg[0][0].IsHeader() {
+		first := pg[0][0]
+		for _, c := range pg[0] {
+			if !c.IsBlank() {
+				first = c
+				break
+			}
+		}
+		if !first.IsHeader() {
 			t.Errorf("page %d does not start with a header", i)
 		}
+	}
+}
+
+// TestCodexBlocks: narrow cards go two to a row, centred, the same columns
+// for every row of a machine; a wide card is alone.
+func TestCodexBlocks(t *testing.T) {
+	narrow := func() codexCard {
+		row := blankRow()
+		row[0], row[1], row[2] = ui.Frame(), ui.Arrow(), ui.Frame()
+		return codexCard{rows: [][]ui.BoardCell{row}}
+	}
+	blocks := codexBlocks([]codexCard{narrow(), narrow(), narrow()})
+	if len(blocks) != 2 {
+		t.Fatalf("%d blocks for three narrow cards, want 2", len(blocks))
+	}
+	// 3 + 3 gap + 3 = 9 of 11 columns: one blank column on each side
+	for _, at := range []int{1, 7} {
+		if !blocks[0].rows[0][at+1].IsArrow() {
+			t.Errorf("no arrow at column %d of %v", at+1, blocks[0].rows[0])
+		}
+	}
+	if !blocks[1].rows[0][2].IsArrow() || !blocks[1].rows[0][8].IsBlank() {
+		t.Errorf("the last card is not in the left place alone: %v", blocks[1].rows[0])
+	}
+	wide := blankRow()
+	wide[0], wide[7] = ui.Frame(), ui.Frame()
+	if b := codexBlocks([]codexCard{{rows: [][]ui.BoardCell{wide}}}); len(b) != 1 || b[0].offset != 1 {
+		t.Errorf("a card 8 wide: %+v, want one block at column 1", b)
 	}
 }
 
