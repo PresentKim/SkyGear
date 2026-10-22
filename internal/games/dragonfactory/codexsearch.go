@@ -8,6 +8,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
@@ -32,12 +33,13 @@ var (
 )
 
 // codexIndex lists the items the codex knows something about (a source or a
-// use), by name. It is built once, from the creative inventory: every item
-// and block of the game is registered there, and so are the vanilla ones the
-// game's tables use.
+// use) that play a part in Dragon Factory (codexRelevant), by name. It is
+// built once, from the creative inventory: every item and block of the game
+// is registered there, and so are the vanilla ones the game's tables use.
 func codexIndex() []codexEntry {
 	codexIndexOnce.Do(func() {
 		var s *session // the lookups read static tables, not session state
+		relevant := codexRelevant()
 		seen := map[string]bool{}
 		for _, c := range creative.Items() {
 			st := c.Stack
@@ -45,7 +47,7 @@ func codexIndex() []codexEntry {
 				continue
 			}
 			k := itemKey(st.Item())
-			if seen[k] {
+			if seen[k] || !relevant[k] {
 				continue
 			}
 			seen[k] = true
@@ -60,6 +62,169 @@ func codexIndex() []codexEntry {
 		})
 	})
 	return codexIndexList
+}
+
+// codexRelevant are the items (itemKey) a player meets in Dragon Factory:
+// the game's own items, what its tables take and give (research costs, the
+// sieve, the machines, the simulator, the waves, the plants, tool
+// materials), the results of the recipes research opens, and then everything
+// those are made of (the open crafting recipes and the furnace, down to the
+// raw materials) and what the furnace makes of them. Vanilla items the game
+// never asks for (tipped arrows, lingering potions, ...) are left out.
+func codexRelevant() map[string]bool {
+	open := map[string]bool{}
+	for _, n := range baseUnlocks {
+		open[unlockName(n)] = true
+	}
+	for i := range researchTree {
+		for _, n := range researchTree[i].Unlocks {
+			open[unlockName(n)] = true
+		}
+	}
+	rel := map[string]bool{}
+	var queue []item.Stack
+	add := func(w world.Item) {
+		if w == nil {
+			return
+		}
+		if k := itemKey(w); !rel[k] {
+			rel[k] = true
+			queue = append(queue, item.NewStack(w, 1))
+		}
+	}
+	pick := func(it world.Item) {
+		name, _ := it.EncodeItem()
+		if strings.HasPrefix(name, "dragonfactory:") || open[recipeKey(it)] {
+			add(it)
+		}
+	}
+	for _, it := range world.Items() {
+		pick(it)
+	}
+	for _, c := range creative.Items() {
+		if !c.Stack.Empty() {
+			pick(c.Stack.Item())
+		}
+	}
+	for i := range researchTree {
+		for _, c := range researchTree[i].Cost {
+			add(c.Item)
+		}
+	}
+	for _, in := range codexSieveInputs() {
+		add(in)
+		for _, t := range meshTiers {
+			for _, d := range sieveTables[t.tier][itemKey(in)] {
+				add(d.Item.Item())
+			}
+		}
+		for _, mob := range mobKinds {
+			for _, d := range magicThemes[mob].Adds[itemKey(in)] {
+				add(d.Item.Item())
+			}
+		}
+	}
+	for _, r := range alloyRecipes {
+		add(r.A)
+		add(r.B)
+		add(r.Out)
+	}
+	for i := range labRecipes {
+		for _, in := range labRecipes[i].In {
+			add(in.Item)
+		}
+	}
+	for _, mob := range mobKinds {
+		for _, d := range simDrops[mob] {
+			add(d.Item)
+		}
+	}
+	for _, w := range waveLevels {
+		for _, r := range w.Reward {
+			add(r.Item())
+		}
+	}
+	for _, pk := range plantKinds {
+		for _, y := range pk.yield {
+			add(y.item)
+		}
+	}
+	for _, h := range headMaterials {
+		add(h.item)
+	}
+	for _, h := range handleMaterials {
+		add(h.item)
+	}
+	for _, m := range toolModifiers {
+		add(m.item)
+	}
+	// down to the raw materials, and through the furnace
+	for len(queue) > 0 {
+		st := queue[0]
+		queue = queue[1:]
+		if open[recipeKey(st.Item())] {
+			for _, cr := range crafterRecipes() {
+				if itemKey(cr.out.Item()) != itemKey(st.Item()) {
+					continue
+				}
+				for _, req := range cr.reqs {
+					switch need := req.need.(type) {
+					case item.Stack:
+						add(need.Item())
+					case recipe.ItemTag:
+						if t := tagStack(need); !t.Empty() {
+							add(t.Item())
+						}
+					}
+				}
+			}
+		}
+		// many things smelt into one (every log into charcoal): one of them
+		// is enough, the one the game has, else the plainest
+		if in, ok := codexOneOf(codexSmeltInputs(st), rel); ok {
+			add(in.Item())
+		}
+		if out, ok := smeltOf(st); ok {
+			add(out.Item())
+		}
+		if out, ok := crusherOutput(st); ok {
+			add(out.Item())
+		}
+	}
+	return rel
+}
+
+// codexOneOf picks the one of alternatives (things that each make the same
+// item) a player has: none when one of them is already relevant (it is
+// reachable that way), else the oak one or the one without a variant in its
+// name (no deepslate, colour or other wood), as tagStack picks.
+func codexOneOf(alts []item.Stack, rel map[string]bool) (item.Stack, bool) {
+	if len(alts) == 0 {
+		return item.Stack{}, false
+	}
+	for _, a := range alts {
+		if rel[itemKey(a.Item())] {
+			return item.Stack{}, false
+		}
+	}
+	best, score := alts[0], -1
+	for _, a := range alts {
+		name, _ := a.Item().EncodeItem()
+		name = strings.TrimPrefix(name, "minecraft:")
+		sc := 0
+		switch {
+		case strings.HasPrefix(name, "oak_"):
+			sc = 3
+		case !strings.Contains(name, "_"):
+			sc = 2
+		case !strings.Contains(name, "deepslate") && !strings.Contains(name, "stripped"):
+			sc = 1
+		}
+		if sc > score {
+			best, score = a, sc
+		}
+	}
+	return best, true
 }
 
 // plainName is a name without colour codes.

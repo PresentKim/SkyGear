@@ -215,6 +215,23 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	if n := len(codexFind("")); n < 50 {
 		t.Errorf("an empty search lists %d items, want the whole index", n)
 	}
+	// only what the game uses: no potions the game never asks for, but its
+	// own items, what research opens and what those are made of
+	in := codexRelevant()
+	// nothing the island cannot get: other woods, deepslate ores
+	for _, it := range []world.Item{item.Potion{}, item.LingeringPotion{}, item.SplashPotion{},
+		block.Log{Wood: block.SpruceWood()}, block.Log{Wood: block.MangroveWood()}, block.Log{Wood: block.BirchWood(), Stripped: true}} {
+		if in[itemKey(it)] {
+			t.Errorf("%s is in the codex", itemName(item.NewStack(it, 1)))
+		}
+	}
+	sieve, _ := world.ItemByName("dragonfactory:sieve", 0)
+	for _, it := range []world.Item{steel, sieve, item.IronIngot{}, block.Furnace{}, item.Stick{}, block.Log{Wood: block.OakWood()}} {
+		if !in[itemKey(it)] {
+			t.Errorf("%s is not in the codex", itemName(item.NewStack(it, 1)))
+		}
+	}
+	t.Logf("%d items play a part in the game", len(in))
 	if n := len(codexFind("ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
 		t.Errorf("a nonsense search found %d", n)
 	}
