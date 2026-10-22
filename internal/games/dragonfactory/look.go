@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
+	"math"
 	"strings"
 	"time"
 
@@ -140,13 +141,13 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			info.Lines = append(info.Lines, detailLines(b.st)...)
 		}
 	case Drawer:
-		// The drawer stays the icon; the held item is a line with its own
-		// small icon and its count; the lock and upgrades show on the
+		// The drawer stays the icon; the held item shows like a chest's, a
+		// slot with its count under it; the lock and upgrades show on the
 		// drawer's front and, while sneaking, in the panel.
 		if b.Item.Empty() {
 			info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.1")}
 		} else {
-			info.Line = &waila.ItemLine{Item: b.Item, Name: itemName(b.Item), Text: fmt.Sprintf("§f×%s", formatInt(b.Count))}
+			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{b.Item.Grow(int(min(b.Count, math.MaxInt32)) - b.Item.Count())}}
 		}
 		if p.Sneaking() {
 			info.Lines = append(info.Lines, drawerDetail(b)...)

@@ -78,20 +78,25 @@ func TestFormatContainer(t *testing.T) {
 	if it, _ := slot(2); it != empty {
 		t.Errorf("slot 2 = %q, want empty", it)
 	}
-	// More kinds than the row: the rest is left out.
+	// More kinds than a row: they go on in the next rows, up to 27.
 	var many []item.Stack
-	for i := range 20 {
+	for i := range 30 {
 		many = append(many, item.NewStack(block.Wool{Colour: item.Colours()[i%16]}, 1).WithCustomName(string(rune('a'+i))))
 	}
 	title, sub = Format(Info{Container: &Container{Layout: LayoutChest, Items: many}})
 	if strings.Contains(title, "inv.size_") {
-		t.Errorf("20 kinds: title %q, want no +n", title)
+		t.Errorf("30 kinds: title %q, want no +n", title)
 	}
-	if it, _ := slot(9); it == empty {
-		t.Errorf("20 kinds: last row slot empty")
+	for _, i := range []int{9, 10, 18, 19, 27} {
+		if it, _ := slot(i); it == empty {
+			t.Errorf("30 kinds: slot %d is empty", i)
+		}
 	}
-	if it, _ := slot(10); it != empty {
-		t.Errorf("20 kinds: slot 10 = %q, want empty (one row)", it)
+	if it, _ := slot(8); it != empty {
+		t.Errorf("30 kinds: slot 8 (the icon's) = %q, want empty", it)
+	}
+	if len(sub) < tailStart {
+		t.Errorf("subtitle is %d bytes, want the %d of the slots", len(sub), tailStart)
 	}
 }
 

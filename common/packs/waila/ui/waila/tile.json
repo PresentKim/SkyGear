@@ -225,6 +225,46 @@
 			{
 				"requires": "($index = 17)",
 				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.335s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 18)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.354s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 19)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.373s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 20)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.392s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 21)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.411s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 22)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.430s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 23)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.449s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 24)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.468s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 25)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.487s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 26)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.506s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+			},
+			{
+				"requires": "($index = 27)",
+				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.525s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			}
 		],
 		"controls": [
@@ -327,6 +367,46 @@
 						{
 							"requires": "($index = 17)",
 							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.346s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 18)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.365s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 19)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.384s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 20)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.403s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 21)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.422s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 22)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.441s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 23)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.460s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 24)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.479s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 25)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.498s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 26)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.517s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+						},
+						{
+							"requires": "($index = 27)",
+							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.536s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						}
 					],
 					"text": "$df_count"
@@ -359,7 +439,7 @@
 					"$df_lock|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.365s' * $var_subtitle_text))) = 'L')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.555s' * $var_subtitle_text))) = 'L')",
 							"$df_lock": "§e"
 						}
 					]
@@ -376,15 +456,15 @@
 					"$df_mult|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'b')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'b')",
 							"$df_mult": "§b×2"
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'c')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'c')",
 							"$df_mult": "§b×4"
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.366s' * $var_subtitle_text))) = 'd')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'd')",
 							"$df_mult": "§b×8"
 						}
 					]
@@ -401,7 +481,7 @@
 					"$df_void|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.367s' * $var_subtitle_text))) = 'V')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.557s' * $var_subtitle_text))) = 'V')",
 							"$df_void": "§f"
 						}
 					]
@@ -425,7 +505,7 @@
 						0.75,
 						0.75
 					],
-					"text": "($var_subtitle_text - ('%.393s' * $var_subtitle_text))"
+					"text": "($var_subtitle_text - ('%.583s' * $var_subtitle_text))"
 				}
 			},
 			{
@@ -441,7 +521,7 @@
 						-1
 					],
 					"layer": "($layer + 1)",
-					"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.354s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
+					"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.544s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
 					"property_bag": {
 						"#item_id_aux": "$df_aux"
 					}
@@ -453,7 +533,7 @@
 						2,
 						0
 					],
-					"text": "(((((('%.24s' * ($var_subtitle_text - ('%.369s' * $var_subtitle_text))) - '~~~~~~~~~~~~~~~~') - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+					"text": "(((((('%.24s' * ($var_subtitle_text - ('%.559s' * $var_subtitle_text))) - '~~~~~~~~~~~~~~~~') - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 				}
 			},
 			{
@@ -466,47 +546,47 @@
 					"$df_gauge|default": "",
 					"variables": [
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'a')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'a')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'b')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'b')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'c')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'c')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'd')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'd')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'e')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'e')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'f')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'f')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'g')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'g')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'h')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'h')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'i')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'i')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'j')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'j')",
 							"$df_gauge": ""
 						},
 						{
-							"requires": "(('%.1s' * ($var_subtitle_text - ('%.368s' * $var_subtitle_text))) = 'k')",
+							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'k')",
 							"$df_gauge": ""
 						}
 					]
@@ -730,6 +810,128 @@
 							"item_8@waila_tile.generic_container_inventory_item": {
 								"$a_index": 9, //? skipped a_index 8 because it is reserved for block icon
 								"$border_type": "top_right"
+							}
+						}
+					]
+				}
+			},
+			{
+				"row_1@waila_tile.generic_container_inventory_row": {
+					"ignored": "(('%.11s' * ($var_subtitle_text - ('%.202s' * $var_subtitle_text))) = 'xxxxxxxxxx0')",
+					"controls": [
+						{
+							"item_10@waila_tile.generic_container_inventory_item": {
+								"$a_index": 10,
+								"$border_type": "left_middle"
+							}
+						},
+						{
+							"item_11@waila_tile.generic_container_inventory_item": {
+								"$a_index": 11,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_12@waila_tile.generic_container_inventory_item": {
+								"$a_index": 12,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_13@waila_tile.generic_container_inventory_item": {
+								"$a_index": 13,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_14@waila_tile.generic_container_inventory_item": {
+								"$a_index": 14,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_15@waila_tile.generic_container_inventory_item": {
+								"$a_index": 15,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_16@waila_tile.generic_container_inventory_item": {
+								"$a_index": 16,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_17@waila_tile.generic_container_inventory_item": {
+								"$a_index": 17,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_18@waila_tile.generic_container_inventory_item": {
+								"$a_index": 18,
+								"$border_type": "right_middle"
+							}
+						}
+					]
+				}
+			},
+			{
+				"row_2@waila_tile.generic_container_inventory_row": {
+					"ignored": "(('%.11s' * ($var_subtitle_text - ('%.373s' * $var_subtitle_text))) = 'xxxxxxxxxx0')",
+					"controls": [
+						{
+							"item_19@waila_tile.generic_container_inventory_item": {
+								"$a_index": 19,
+								"$border_type": "left_middle"
+							}
+						},
+						{
+							"item_20@waila_tile.generic_container_inventory_item": {
+								"$a_index": 20,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_21@waila_tile.generic_container_inventory_item": {
+								"$a_index": 21,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_22@waila_tile.generic_container_inventory_item": {
+								"$a_index": 22,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_23@waila_tile.generic_container_inventory_item": {
+								"$a_index": 23,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_24@waila_tile.generic_container_inventory_item": {
+								"$a_index": 24,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_25@waila_tile.generic_container_inventory_item": {
+								"$a_index": 25,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_26@waila_tile.generic_container_inventory_item": {
+								"$a_index": 26,
+								"$border_type": "center"
+							}
+						},
+						{
+							"item_27@waila_tile.generic_container_inventory_item": {
+								"$a_index": 27,
+								"$border_type": "right_middle"
 							}
 						}
 					]

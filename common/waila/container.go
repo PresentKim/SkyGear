@@ -14,8 +14,9 @@ import (
 type Layout string
 
 const (
-	// LayoutChest shows up to 9 kinds of items in one row, stacks of a kind
-	// added up; kinds that do not fit are left out (11th playtest).
+	// LayoutChest shows up to 27 kinds of items in rows of 9 (a chest's
+	// worth), stacks of a kind added up; the pack draws only the rows that
+	// hold an item.
 	LayoutChest Layout = "chest"
 	// LayoutFurnace shows input, fuel and output.
 	LayoutFurnace Layout = "furnace"
@@ -40,7 +41,7 @@ const progressSlot = 17
 
 // panelSlots is how many container slots the panel has (index 8 is kept
 // for the block icon by the pack, as in WAILA).
-const panelSlots = 18
+const panelSlots = 28
 
 // Field widths of the subtitle in bytes (the pack's '%.Ns' cuts bytes): the
 // icon and each slot's item in iconWidth, a slot's count in countWidth.
@@ -49,8 +50,9 @@ const (
 	countWidth = 8
 )
 
-// chestRow is the panel slots of the one chest row (index 8 is the icon's).
-var chestRow = []int{0, 1, 2, 3, 4, 5, 6, 7, 9}
+// chestSlots are the panel slots of the chest's three rows of 9 (index 8 is
+// the icon's).
+var chestSlots = []int{0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
 
 // slots places the contents on the panel's slots. Chests add up stacks of a
 // kind and fill their row in order; other containers keep their slot
@@ -91,10 +93,10 @@ func (c Container) slots() (out [panelSlots]item.Stack) {
 		}
 	}
 	for i, it := range kinds {
-		if i >= len(chestRow) {
+		if i >= len(chestSlots) {
 			break
 		}
-		out[chestRow[i]] = it
+		out[chestSlots[i]] = it
 	}
 	return out
 }

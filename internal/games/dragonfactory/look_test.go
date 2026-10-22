@@ -78,8 +78,9 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("crusher line %+v, want the cobblestone with a gauge", info.Line)
 		}
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
-		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Line == nil || info.Line.Name != "흙" || info.Line.Text != "§f×70" || info.Marks != (waila.Marks{}) || info.Container != nil {
-			t.Errorf("drawer panel %+v, want a dirt line with its count and no marks", info)
+		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Container == nil || len(info.Container.Items) != 1 ||
+			info.Container.Items[0].Count() != 70 || info.Line != nil || info.Marks != (waila.Marks{}) {
+			t.Errorf("drawer panel %+v, want the dirt in a slot with its count, as a chest shows it, and no marks", info)
 		} else if _, ok := info.Item.(Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
