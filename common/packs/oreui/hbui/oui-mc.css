@@ -1,0 +1,953 @@
+/*
+ * The Dragon Factory JSON UI forms (common packs/dfui ui/df_form.json) redrawn in Ore UI
+ * (ore-ui-loading/마인크래프트-UI-스타일.md). Sizes are JSON UI GUI pixels: Ore UI sets the html
+ * font size to 5 x the GUI scale, so one GUI pixel is 0.2rem; a value Nu below is written as N*0.2rem.
+ * Pictures are the same textures the JSON UI uses, as nine-slices: the vanilla window, toolbar, tabs
+ * and slots, and the dfui pack's buttons, panels and chosen slot (the server sends the dfui pack).
+ * Gameface ignores calc() inside shorthands with several values, so margins and paddings are one side
+ * at a time.
+ */
+#oui-ddui {
+  --mc-ink: #333333;
+  --mc-title: #404040;
+  --mc-head: #4d4d4d;
+  --mc-light-text: #f2f2f7;
+  font-family: "Minecraft Seven v2", var(--localeSpecificNotoSansFonts);
+}
+
+/* --- screen ----------------------------------------------------------------------------- */
+
+.mc-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* The window: vanilla dialog_background_opaque (16x16, slice 4). Its size comes from the server
+   (style width/height in u), like $df_window_size. Title at 6u from the top, content from 18u. */
+.mc-window {
+  position: relative;
+  max-width: 96%;
+  max-height: 96%;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: var(--mc-ink);
+  font-size: 1.4rem;
+}
+
+.mc-title {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.8rem;
+  right: 0.8rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mc-title);
+  font-size: 1.4rem;
+}
+
+.mc-content {
+  position: absolute;
+  top: 2.8rem;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-scroll {
+  overflow-y: auto;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  padding-right: 1.6rem;
+}
+
+/* The vanilla mouse scrollbar (ui_common scrolling_panel): a 4u bar with 2u on each side, the track
+   ScrollRail (1x1, 3u wide) and the box ScrollHandle (3x5, nine-slice 1 2 1 2, 5u wide). */
+.mc-scroll-wrap {
+  position: relative;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-scrollbar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0.4rem;
+  width: 0.8rem;
+  display: none;
+}
+
+.mc-scroll-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.1rem;
+  width: 0.6rem;
+  background-image: url("pack://textures/ui/ScrollRail.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-scroll-handle {
+  position: absolute;
+  left: -0.1rem;
+  width: 1rem;
+  min-height: 1rem;
+  border-style: solid;
+  border-top-width: 0.4rem;
+  border-bottom-width: 0.4rem;
+  border-left-width: 0.2rem;
+  border-right-width: 0.2rem;
+  border-image-source: url("pack://textures/ui/ScrollHandle.png?filtering=point");
+  border-image-slice: 2 1 2 1 fill;
+}
+
+/* --- toolbar: vanilla toolbar_background (10x9, slice 4), 25u high, 22u above the window -------- */
+
+.mc-toolbar {
+  position: absolute;
+  top: -5.2rem;
+  right: -0.8rem;
+  height: 5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  padding-left: 1.4rem;
+  padding-right: 1.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+/* Only the background goes behind the window: Gameface does not hit-test anything inside an element
+   with a negative z-index, so the buttons stay above it (like .mc-tab-bg). */
+.mc-toolbar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/toolbar_background.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  z-index: -1;
+}
+
+.mc-toolbar-row {
+  height: 4.4rem;
+  margin-top: -0.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-icon-button {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.4rem;
+}
+
+.mc-icon-button:hover {
+  background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-icon-button:active {
+  background-image: url("pack://textures/ui/df/press_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-icon-button img {
+  width: 3rem;
+  height: 3rem;
+}
+
+.mc-close {
+  width: 3.4rem;
+  height: 4.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-close img {
+  width: 3rem;
+  height: 3rem;
+}
+
+.mc-close:hover {
+  background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+/* --- tabs: vanilla TabTopBack / TabTopBackHover / TabTopFront (12x11, slice 4) ------------------ */
+
+.mc-tabs {
+  position: absolute;
+  top: -5.2rem;
+  left: 0.8rem;
+  height: 4.8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.mc-tab {
+  position: relative;
+  width: 4.8rem;
+  height: 4.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-tab-wide {
+  width: 19.2rem;
+  justify-content: flex-start;
+}
+
+.mc-tab-bg,
+.mc-tab-front {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-tab-bg {
+  top: 0;
+  height: 5.6rem;
+  border-image-source: url("pack://textures/ui/TabTopBack.png?filtering=point");
+  z-index: -2;
+}
+
+.mc-tab:hover .mc-tab-bg {
+  border-image-source: url("pack://textures/ui/TabTopBackHover.png?filtering=point");
+}
+
+.mc-tab-front {
+  bottom: -0.4rem;
+  height: 4.8rem;
+  border-image-source: url("pack://textures/ui/TabTopFront.png?filtering=point");
+  display: none;
+}
+
+.mc-tab.on .mc-tab-front {
+  display: flex;
+}
+
+.mc-tab img {
+  position: relative;
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.mc-tab-wide img {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-left: 0.6rem;
+}
+
+.mc-tab-label {
+  position: relative;
+  margin-left: 0.6rem;
+  color: #f2f2f2;
+  font-size: 1.12rem;
+}
+
+.mc-tab.on .mc-tab-label {
+  color: #333333;
+}
+
+/* --- buttons: dfui button / button_hover / button_pressed (16x16, slice 3) --------------------- */
+
+.mc-btn {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-style: solid;
+  border-width: 0.6rem;
+  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+  border-image-slice: 3 fill;
+  border-image-width: 0.6rem;
+  color: var(--mc-light-text);
+}
+
+.mc-btn:hover {
+  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+}
+
+.mc-btn:active {
+  border-image-source: url("pack://textures/ui/df/button_pressed.png?filtering=point");
+}
+
+/* A list row: 32u high cell, 30u button, 20u icon at 6u, text at 32u. */
+.mc-list-row {
+  height: 6rem;
+  margin-bottom: 0.4rem;
+}
+
+.mc-list-row img {
+  position: absolute;
+  left: 0.6rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-list-row .mc-btn-text {
+  position: absolute;
+  left: 5.8rem;
+  right: 0.6rem;
+  font-size: 1.4rem;
+}
+
+/* A research action: 17u high, 12u icon at 3u, text at 18u (scale 0.8). */
+.mc-action {
+  height: 3.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.mc-action img {
+  position: absolute;
+  left: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-action .mc-btn-text {
+  position: absolute;
+  left: 3rem;
+  right: 0;
+  font-size: 1.12rem;
+}
+
+/* A card: 90x50 cell, 86x46 button, 22u icon 5u above the middle, label 3u from the bottom (0.8). */
+.mc-cards {
+  width: 54rem;
+  align-self: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-card-cell {
+  width: 18rem;
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-card {
+  width: 17.2rem;
+  height: 9.2rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-card img {
+  position: absolute;
+  top: 1.6rem;
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.mc-card .mc-btn-text {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.12rem;
+}
+
+/* --- slots: vanilla cell_image (10x10 at base 5, slice 1 base = 2 image px), 18u ---------------- */
+
+.mc-slot,
+.mc-frame {
+  position: relative;
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-image-source: url("pack://textures/ui/cell_image.png?filtering=point");
+  border-image-slice: 2 fill;
+  border-image-width: 0.2rem;
+}
+
+.mc-slot img.mc-icon {
+  position: relative;
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-slot.pressable:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.mc-slot .mc-deco,
+.mc-slot .mc-chosen {
+  position: absolute;
+  top: -0.2rem;
+  left: -0.2rem;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+.mc-slot .mc-chosen {
+  display: none;
+}
+
+.mc-slot.on .mc-chosen {
+  display: flex;
+}
+
+.mc-count {
+  position: absolute;
+  right: 0;
+  bottom: -0.2rem;
+  color: #ffffff;
+  font-size: 1.2rem;
+  text-shadow: 0.2rem 0.2rem 0 #3f3f3f;
+}
+
+/* The detail icons: 28u cell with a 22u icon (research), 36u with 28u (codex item). */
+.mc-slot.mc-big {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+.mc-slot.mc-big img.mc-icon {
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.mc-slot.mc-huge {
+  width: 7.2rem;
+  height: 7.2rem;
+}
+
+.mc-slot.mc-huge img.mc-icon {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+/* A board cell is 18x18; the arrow is the vanilla arrow_large at 15x10 in it. */
+.mc-arrow {
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-arrow-img {
+  width: 3rem;
+  height: 2rem;
+  background-image: url("pack://textures/ui/arrow_large.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-gap {
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+}
+
+.mc-cell-text {
+  height: 3.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 0.4rem;
+  font-size: 0.98rem;
+  color: var(--mc-ink);
+}
+
+.mc-board {
+  width: 39.6rem;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-board-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* Ex Deorum's JEI sieve recipe (compat/jei/SieveCategory): 162u wide, the input and the mesh slot at
+   x 58 and 86, the drops from y 28 in rows of 9 slots. */
+.mc-jei-recipe {
+  width: 32.4rem;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-jei-top {
+  height: 5.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding-left: 11.6rem;
+}
+
+/* A board's mini cell: a small icon without the slot frame (the machine heading a group of recipes). */
+.mc-slot.mc-mini {
+  border-image-source: none;
+  border-width: 0;
+}
+
+.mc-slot.mc-mini img.mc-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-jei-mesh {
+  margin-left: 2rem;
+}
+
+.mc-jei-drops {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* --- panels and text --------------------------------------------------------------------- */
+
+.mc-panel {
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/df/panel.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-body-text {
+  padding-left: 0.4rem;
+  color: var(--mc-ink);
+  font-size: 1.4rem;
+}
+
+.mc-small-text {
+  color: var(--mc-ink);
+  font-size: 1.12rem;
+}
+
+.mc-head {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  color: var(--mc-head);
+  font-size: 1.12rem;
+}
+
+.mc-gap-6 {
+  height: 1.2rem;
+  flex-shrink: 0;
+}
+
+.mc-gap-3 {
+  height: 0.6rem;
+  flex-shrink: 0;
+}
+
+.mc-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.mc-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-toast {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3.4rem;
+  display: flex;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.12rem;
+  text-shadow: 0.2rem 0.2rem 0 #3f3f3f;
+}
+
+.mc-search {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 3.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.mc-search img {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-right: 0.8rem;
+}
+
+.mc-input {
+  flex-grow: 1;
+  height: 3.2rem;
+  padding-left: 0.8rem;
+  background-color: #3c3c3c;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1e #a0a0a0 #a0a0a0 #1e1e1e;
+  color: #ffffff;
+  font-family: "Minecraft Seven v2", var(--localeSpecificNotoSansFonts);
+  font-size: 1.4rem;
+}
+
+/* The research split: the left panel 152u wide with the 8x6 grid (144x108) and the page row. */
+.mc-split-left {
+  width: 30.4rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-split-grid {
+  width: 28.8rem;
+  height: 21.6rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.mc-pager {
+  margin-top: 0.4rem;
+  height: 3.6rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mc-pager .mc-btn {
+  width: 3.6rem;
+  height: 3.6rem;
+  justify-content: center;
+}
+
+.mc-pager .mc-btn img {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-pager .mc-btn.off {
+  opacity: 0.4;
+}
+
+/* Gameface ignores min-width: 0, so long text would stretch a flex-grown panel: the width is fixed
+   (content 314u - left 152u - gap 6u = 156u). */
+.mc-split-right {
+  width: 31.2rem;
+  flex-shrink: 0;
+  margin-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* oui-ddui.css styles the plain renderer; the mc classes start from nothing. */
+.mc-btn.oui-button,
+.mc-slot.oui-item,
+.mc-tab.oui-button,
+.mc-icon-button.oui-button,
+.mc-close.oui-button {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.mc-btn.oui-button:hover,
+.mc-btn.oui-button.on,
+.mc-tab.oui-button:hover,
+.mc-tab.oui-button.on {
+  background-color: transparent;
+}
+
+.mc-slot.oui-item:hover {
+  background-color: transparent;
+}
+
+#oui-ddui .mc-window .oui-text {
+  margin: 0;
+}
+
+.mc-card .oui-line,
+.mc-btn-text .oui-line {
+  justify-content: center;
+}
+
+.mc-list-row .mc-btn-text .oui-line,
+.mc-action .mc-btn-text .oui-line {
+  justify-content: flex-start;
+}
+
+/* --- quest book (FTB Quests, as ATM10 To The Sky shows it): chapters on the left, the quests of the
+   chosen one on a plane the player drags around, the quest panel over it ------------------------ */
+
+.mc-quest-window {
+  position: relative;
+  width: 90%;
+  height: 88%;
+  display: flex;
+  flex-direction: row;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: var(--mc-ink);
+}
+
+.mc-chapters {
+  width: 24rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.8rem;
+}
+
+.mc-chapter {
+  height: 4.8rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 0.8rem;
+  border-style: solid;
+  border-width: 0.6rem;
+  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+  border-image-slice: 3 fill;
+  border-image-width: 0.6rem;
+  color: var(--mc-light-text);
+  font-size: 1.12rem;
+}
+
+.mc-chapter:hover {
+  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+}
+
+.mc-chapter.on {
+  border-image-source: url("pack://textures/ui/df/button_pressed.png?filtering=point");
+  color: #ffd34d;
+}
+
+.mc-chapter .mc-chapter-name {
+  flex-grow: 1;
+}
+
+.mc-chapter img {
+  width: 2.8rem;
+  height: 2.8rem;
+  margin-right: 0.8rem;
+}
+
+.mc-chapter .mc-chapter-count {
+  margin-right: 0.6rem;
+  color: #a0a0a0;
+}
+
+.mc-quest-main {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-quest-head {
+  height: 3.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 1.4rem;
+  color: var(--mc-title);
+}
+
+.mc-quest-head .mc-quest-progress {
+  margin-left: auto;
+  margin-right: 0.8rem;
+  font-size: 1.12rem;
+  color: var(--mc-head);
+}
+
+.oui-canvas {
+  position: relative;
+  flex-grow: 1;
+  overflow: hidden;
+  background-color: #1c1c22;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #373737 #ffffff #ffffff #373737;
+}
+
+.oui-canvas-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+.oui-line-seg {
+  position: absolute;
+  height: 0.4rem;
+  margin-top: -0.2rem;
+  transform-origin: 0 50%;
+  background-color: #8a8a9a;
+}
+
+.oui-line-seg.done {
+  background-color: #59c84a;
+}
+
+.oui-line-seg.locked {
+  background-color: #45454f;
+}
+
+/* A quest node: 24u, its centre on its place. Shapes as FTB draws them: square, diamond, circle. */
+.mc-quest {
+  position: absolute;
+  width: 4.8rem;
+  height: 4.8rem;
+  margin-left: -2.4rem;
+  margin-top: -2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-quest-shape {
+  position: absolute;
+  left: 0.4rem;
+  top: 0.4rem;
+  width: 4rem;
+  height: 4rem;
+  background-color: #3b3b46;
+  border-style: solid;
+  border-width: 0.3rem;
+  border-color: #9a9aa8;
+}
+
+.mc-quest.diamond .mc-quest-shape {
+  transform: rotate(45deg) scale(0.82);
+}
+
+.mc-quest.circle .mc-quest-shape {
+  border-radius: 50%;
+}
+
+.mc-quest.open .mc-quest-shape {
+  border-color: #e8e8f0;
+}
+
+.mc-quest.done .mc-quest-shape {
+  background-color: #2f4a2c;
+  border-color: #59c84a;
+}
+
+.mc-quest.locked .mc-quest-shape {
+  background-color: #26262c;
+  border-color: #4a4a52;
+}
+
+.mc-quest.tracked .mc-quest-shape {
+  border-color: #ffd34d;
+}
+
+.mc-quest:hover .mc-quest-shape {
+  background-color: #55556a;
+}
+
+.mc-quest img {
+  position: relative;
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-quest.locked img {
+  opacity: 0.35;
+}
+
+/* The quest panel over the plane. */
+.mc-quest-panel {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 8%;
+  bottom: 8%;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1.2rem;
+  padding-right: 0.4rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-quest-panel-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.mc-quest-panel-head .mc-col {
+  flex-grow: 1;
+  margin-left: 0.8rem;
+}
+
+.mc-quest-panel-head .mc-quest-title {
+  font-size: 1.4rem;
+  color: var(--mc-title);
+}

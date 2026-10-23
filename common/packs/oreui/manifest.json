@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DragonFactory-OreUI",
+    "description": "Server-driven DDUI screens drawn in Ore UI",
+    "uuid": "e871bad7-b608-4f3e-a8a6-90bc9d977c68",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 100]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "b8148a3e-366b-40b6-98f3-b26491f12777",
+      "version": [0, 0, 1]
+    }
+  ]
+}

@@ -64,6 +64,10 @@ func TextCell(s string) BoardCell { return BoardCell{kind: cellText, text: s} }
 // BoardColumns is filled with blank cells; a longer one is cut. Any press
 // of a slot answers the form: its Run must show a form again.
 func ItemBoard(p *player.Player, title, body string, rows [][]BoardCell, actions ...Option) {
+	if OreUIFor(p) {
+		oreBoard(p, title, body, rows, actions)
+		return
+	}
 	opts := boardOptions(rows)
 	cells := len(opts)
 	opts = append(opts, actionOptions(actions)...)

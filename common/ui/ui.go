@@ -46,6 +46,7 @@ const duplicateWindow = 3 * time.Second
 // send sends f unless a form with the same title was sent to p less than
 // duplicateWindow ago and is not answered yet.
 func send(p *player.Player, title string, f form.Form) {
+	closeOre(p)
 	pending.Lock()
 	if last, ok := pending.m[p.UUID()]; ok && last.title == title && time.Since(last.at) < duplicateWindow {
 		pending.Unlock()
@@ -141,6 +142,10 @@ const InputBackToken = "§d§f§b§r"
 // that repeats gets invisible "§r"s added until it is unique (all the empty
 // upgrade slots of the drawer window ran the first one, 11th playtest).
 func Menu(p *player.Player, title, body string, opts ...Option) {
+	if OreUIFor(p) && !strings.HasPrefix(title, "§d§f") {
+		oreMenu(p, title, body, opts)
+		return
+	}
 	sendMenu(p, title, body, nil, len(opts), opts)
 }
 
@@ -357,6 +362,10 @@ const CardToken = "§d§f§c§r"
 func CardMenu(p *player.Player, title, body string, opts ...Option) {
 	if title == "" {
 		title = UntitledToken
+	}
+	if OreUIFor(p) {
+		oreCardMenu(p, title, body, opts)
+		return
 	}
 	Menu(p, CardToken+title, body, opts...)
 }
@@ -892,6 +901,10 @@ const (
 // in the corners under the grid. Any press answers the form: Run must show a
 // form again. Help and Back options among the actions go to the control bar.
 func SplitMenu(p *player.Player, title string, sp Split) {
+	if OreUIFor(p) {
+		oreSplit(p, title, sp)
+		return
+	}
 	nop := func(*player.Player, *world.Tx) {}
 	opts := make([]Option, splitButtons)
 	for i := range opts {

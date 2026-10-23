@@ -140,8 +140,45 @@ func (s *session) showCodexSieveAt(p *player.Player, which, page int) {
 		cards[i].name = ""
 	}
 	chrome := append(s.codexTabs(p, codexSieveTab), s.codexBack(p))
+	if ui.OreUIFor(p) {
+		in := item.NewStack(ins[which], 1)
+		ui.SieveBoard(p, codexPickTitle(lang, "codex.sieve", in), [][]ui.BoardCell{centredRow(top)},
+			s.sieveGroups(in, cards), chrome...)
+		return
+	}
 	s.showCodexBoard(p, codexPickTitle(lang, "codex.sieve", item.NewStack(ins[which], 1)), [][]ui.BoardCell{centredRow(top)},
 		cards, page, func(p *player.Player, page int) { s.showCodexSieveAt(p, which, page) }, chrome)
+}
+
+// sieveGroups are the sieve cards of in as recipes (ui.SieveBoard), each
+// sieve's under it: a card's first slot is its mesh, the other slots are the
+// drops.
+func (s *session) sieveGroups(in item.Stack, cards []codexCard) []ui.SieveGroup {
+	var groups []ui.SieveGroup
+	lastHead := ""
+	for _, c := range cards {
+		if k := itemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
+			lastHead = k
+			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: iconOf(c.head), Tip: tipName(c.head)}, Name: itemName(c.head)})
+		}
+		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: iconOf(in), Tip: tipName(in)}}
+		first := true
+		for _, row := range c.rows {
+			for _, cell := range row {
+				sl, ok := cell.SlotOf()
+				switch {
+				case !ok:
+				case first:
+					r.Mesh, first = sl, false
+				default:
+					r.Drops = append(r.Drops, sl)
+				}
+			}
+		}
+		g := &groups[len(groups)-1]
+		g.Recipes = append(g.Recipes, r)
+	}
+	return groups
 }
 
 // codexPickTitle is the title of a tab whose top row picks a block or a

@@ -234,6 +234,10 @@ func (s *session) advancementTree(p *player.Player, v advView) ui.Tree {
 
 // showAdvancementView shows the advancement screen on a view.
 func (s *session) showAdvancementView(p *player.Player, v advView) {
+	if ui.OreUIFor(p) {
+		s.showQuestBook(p, v.tab, nil)
+		return
+	}
 	t := s.advancementTree(p, v)
 	ui.TreeMenu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancements.1"), t)
 }
@@ -269,6 +273,112 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 		opts = append(opts, s.opt(i18n.T(lang, "advancement.node.codex"), iconOf(it), func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, it) }))
 	}
 	ui.Menu(p, i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.4")+title, body, opts...)
+}
+
+// advShapes are the quest shapes of the frames in the quest book.
+var advShapes = map[byte]string{ui.FrameTask: ui.ShapeDiamond, ui.FrameGoal: ui.ShapeSquare, ui.FrameChallenge: ui.ShapeCircle}
+
+// showQuestBook shows the advancement screen as a quest book (DDUI): the
+// categories as chapters, the tab's tree on a plane (the same places as the
+// tree form) and, when open is set, its quest panel over it.
+func (s *session) showQuestBook(p *player.Player, tab advTab, open *Advancement) {
+	lang := i18n.Of(p)
+	b := ui.QuestBook{Key: "adv_" + advTabKeys[tab]}
+	for t := advTab(0); t < advTabCount; t++ {
+		done, list := 0, advancementsIn(t)
+		for _, a := range list {
+			if s.advanced(a.ID) {
+				done++
+			}
+		}
+		b.Chapters = append(b.Chapters, ui.QuestChapter{
+			Name: i18n.T(lang, "advancement.tab."+advTabKeys[t]), Icon: advTabIcon(t), Count: fmt.Sprintf("%d/%d", done, len(list)), On: t == tab,
+			Run: func(p *player.Player, tx *world.Tx) {
+				if tx.World() == s.world {
+					s.showQuestBook(p, t, nil)
+				}
+			},
+		})
+		if t == tab {
+			b.Heading = fmt.Sprintf(i18n.T(lang, "advancement.progress"), i18n.T(lang, "advancement.tab."+advTabKeys[t]), done, len(list))
+		}
+	}
+	l := s.advancementLayout(tab)
+	if next, ok := s.nextAdvancement(); ok && advTabOf(next) == tab {
+		b.Focus = next.ID
+	} else if len(l.order) > 0 {
+		b.Focus = l.order[0].ID
+	}
+	for _, a := range l.order {
+		pos := l.pos[a.ID]
+		q := ui.QuestNode{ID: a.ID, X: float64(pos.x), Y: float64(pos.y), Shape: advShapes[advFrame(a)], Tracked: s.state.Tracked == a.ID}
+		switch {
+		case s.advanced(a.ID):
+			q.State, q.Icon, q.Tip = ui.QuestDone, advancementIcon(a), "§a"+a.Name+"\n§7"+flatHint(a)
+		case s.advancementOpen(a):
+			q.State, q.Icon, q.Tip = ui.QuestOpen, advancementIcon(a), "§e"+a.Name+"\n§7"+flatHint(a)
+		default:
+			q.State, q.Icon, q.Tip = ui.QuestLocked, iconLocked, "§8???"
+		}
+		if par, ok := advancementByID(a.Parent); ok && advTabOf(par) == tab {
+			q.Deps = []string{par.ID}
+		}
+		q.Run = func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.showQuestBook(p, tab, a)
+			}
+		}
+		b.Nodes = append(b.Nodes, q)
+	}
+	if open != nil {
+		b.Panel = s.questPanel(p, tab, open)
+	}
+	ui.QuestBookMenu(p, i18n.T(lang, "dragonfactory.advancement.showAdvancements.1"), b, s.backOption())
+}
+
+// questPanel is an advancement's quest panel: its state and hint, the item
+// it asks for (pressing it opens the codex) and the track and codex buttons,
+// like showAdvancementNode.
+func (s *session) questPanel(p *player.Player, tab advTab, a *Advancement) *ui.QuestPanel {
+	lang := i18n.Of(p)
+	back := func(p *player.Player, tx *world.Tx) {
+		if tx.World() == s.world {
+			s.showQuestBook(p, tab, nil)
+		}
+	}
+	again := func(p *player.Player) { s.showQuestBook(p, tab, a) }
+	pn := &ui.QuestPanel{Icon: advancementIcon(a), Title: a.Name, Close: back}
+	switch {
+	case s.advanced(a.ID):
+		pn.Status = "§2" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1")
+		pn.Body = flatHint(a)
+	case s.advancementOpen(a):
+		pn.Status = "§1" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2")
+		pn.Body = flatHint(a)
+	default:
+		pn.Icon, pn.Title, pn.Body = iconLocked, "???", i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.3")
+		return pn
+	}
+	if it, ok := advancementStack(a); ok {
+		pn.Rows = []ui.SlotRow{{Slots: []ui.ItemSlot{{
+			Icon: iconOf(it), Tip: tipName(it),
+			Run: func(p *player.Player, _ *world.Tx) { s.codexFrom(p, again, it) },
+		}}}}
+	}
+	if s.advancementOpen(a) {
+		label := i18n.T(lang, "advancement.node.track")
+		if s.state.Tracked == a.ID {
+			label = i18n.T(lang, "advancement.node.untrack")
+		}
+		pn.Actions = append(pn.Actions, s.opt(label, iconMission, func(p *player.Player, tx *world.Tx) {
+			if s.state.Tracked != a.ID {
+				count(p, "adv_track", 1)
+			}
+			s.track(tx, a)
+			again(p)
+		}))
+	}
+	return pn
 }
 
 // advancementsIn lists a category in tree order.

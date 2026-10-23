@@ -277,6 +277,10 @@ func (s *session) askCodexSearch(p *player.Player, query string) {
 // Pressing one opens its page.
 func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	lang := i18n.Of(p)
+	if ui.OreUIFor(p) {
+		s.showCodexSearchLive(p, query)
+		return
+	}
 	s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, page) })
 	found := codexFind(query)
 	pages := max(1, (len(found)+codexPage-1)/codexPage)
@@ -320,6 +324,47 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 		return
 	}
 	ui.ItemGrid(p, title, body, slots, actions...)
+}
+
+// showCodexSearchLive is the search tab as a DDUI screen: the search box in
+// the window and the results, all of them in one scrolling grid, drawn again
+// as the player types. Going back from an item returns to the last query.
+func (s *session) showCodexSearchLive(p *player.Player, query string) {
+	lang := i18n.Of(p)
+	find := func(p *player.Player, query string) ui.SearchResult {
+		query = strings.TrimSpace(query)
+		s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, 0) })
+		found := codexFind(query)
+		var slots []ui.ItemSlot
+		for _, e := range found {
+			slots = append(slots, ui.ItemSlot{
+				Icon: iconOf(e.stack), Tip: tipName(e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+				Run: func(p *player.Player, _ *world.Tx) {
+					s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
+				},
+			})
+		}
+		r := ui.SearchResult{Info: fmt.Sprintf(i18n.T(lang, "codex.search.all"), len(found))}
+		if query != "" {
+			r.Info = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
+		} else {
+			if goals := s.goalSlots(); len(goals) > 0 {
+				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.goals"), Slots: goals})
+			}
+			if recent := s.codexRecent[p.H()]; len(recent) > 0 {
+				var links []codexLink
+				for _, st := range recent {
+					links = append(links, codexLink{stack: st})
+				}
+				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(links)})
+			}
+		}
+		r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.list"), Slots: slots})
+		return r
+	}
+	actions := append(s.codexTabs(p, codexSearchTab), s.codexBack(p))
+	ui.SearchGrid(p, i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search.label"), query, find,
+		func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, query) }, actions...)
 }
 
 // codexLink is an item linked from a page with how many of it the recipe

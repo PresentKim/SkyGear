@@ -23,6 +23,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/packs"
 	"github.com/presentkim/dragonfactory/common/resourcepack"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
@@ -90,6 +91,12 @@ func run(log *slog.Logger) error {
 	packNames := []string{"dragonfactory", "dfui", "inventoryui", "waila"}
 	if pconf.ResourcePack.SlotDeco {
 		packNames = append(packNames, "slotdeco")
+	}
+	// The game takes its in-game Ore UI page from an encrypted pack only, so
+	// the menus are drawn there (DDUI) when the packs are encrypted.
+	if packOpt.Encrypt {
+		packNames = append(packNames, "oreui")
+		ui.OreUI = true
 	}
 	for _, name := range packNames {
 		dir, ok := packDirs[name]
