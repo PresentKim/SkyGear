@@ -87,7 +87,7 @@ type RawOre struct{ Metal string }
 
 func (r RawOre) EncodeItem() (string, int16) { return "dragonfactory:raw_" + r.Metal, 0 }
 func (r RawOre) Name() string {
-	return metalName(r.Metal) + i18n.T(i18n.Default, "name.RawOre.suffix")
+	return i18n.T(i18n.Default, "name.RawOre.prefix") + metalName(r.Metal)
 }
 func (RawOre) Category() category.Category { return category.Items() }
 

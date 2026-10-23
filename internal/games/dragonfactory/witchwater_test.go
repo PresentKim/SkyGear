@@ -5,6 +5,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -103,4 +104,17 @@ func TestWitchWater(t *testing.T) {
 			t.Fatal("water off mycelium turns into witch water")
 		}
 	})
+}
+
+// TestMyceliumStaysUnderBarrel: a barrel lets light through and is not a
+// solid block, so the mycelium or grass under it does not turn to dirt
+// (spreadDirt reverts them without light or under model.Solid).
+func TestMyceliumStaysUnderBarrel(t *testing.T) {
+	var b world.Block = Barrel{Wood: "oak"}
+	if d, ok := b.(block.LightDiffuser); !ok || d.LightDiffusionLevel() > 2 {
+		t.Fatal("a barrel blocks light")
+	}
+	if _, solid := b.Model().(model.Solid); solid {
+		t.Fatal("a barrel is a solid block")
+	}
 }

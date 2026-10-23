@@ -506,9 +506,14 @@ func sieveDropOf(tier string, in world.Item, key string) (SieveDrop, bool) {
 	return SieveDrop{}, false
 }
 
-// chanceCell is a drop with its chance in per mille on the slot.
+// chanceCell is a drop with its chance in per mille on the slot. A stack of
+// several is rolled once for each (sieveDrops), which the tip tells.
 func (s *session) chanceCell(lang string, st item.Stack, permille int) ui.BoardCell {
-	return s.codexCell(st, "§f"+formatPermille(permille)+"%", fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(permille)))
+	tip := fmt.Sprintf(i18n.T(lang, "codex.sieve.chance"), formatPermille(permille))
+	if st.Count() > 1 {
+		tip = fmt.Sprintf(i18n.T(lang, "codex.sieve.rolls"), st.Count(), formatPermille(permille))
+	}
+	return s.codexCell(st, "§f"+formatPermille(permille)+"%", tip)
 }
 
 func (s *session) alloyCard(r AlloyRecipe) codexCard {

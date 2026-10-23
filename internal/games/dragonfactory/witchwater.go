@@ -56,6 +56,10 @@ func (WitchWaterBucket) Name() string                { return i18n.T(i18n.Defaul
 func (WitchWaterBucket) Category() category.Category { return category.Items() }
 func (WitchWaterBucket) MaxCount() int               { return 1 }
 
+// LightDiffusionLevel lets light through a barrel, as through a vanilla
+// composter: the mycelium or grass under it needs light or it turns to dirt.
+func (Barrel) LightDiffusionLevel() uint8 { return 0 }
+
 // tubModel is the model of a barrel: a full block that is not model.Solid, so
 // the mycelium or grass under it stays (vanilla keeps them under a barrel).
 type tubModel struct{}
