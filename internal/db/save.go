@@ -107,6 +107,46 @@ func (d *DB) RenameSave(id int64, name string) error {
 	return err
 }
 
+// CopySave creates a save in slot for owner, named name, as a copy of the
+// save src: its clock, its game state and the player state of its owner,
+// which becomes owner's. owner is its only member, the host.
+func (d *DB) CopySave(src int64, owner string, slot int, name string) (Save, error) {
+	from, err := d.Save(src)
+	if err != nil {
+		return Save{}, err
+	}
+	tx, err := d.sql.Begin()
+	if err != nil {
+		return Save{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	t := now()
+	res, err := tx.Exec(`INSERT INTO saves (game_type, owner, slot, name, instance_time, day, day_time, created_at, last_played)
+		SELECT game_type, ?, ?, ?, instance_time, day, day_time, ?, ? FROM saves WHERE id = ?
+		ON CONFLICT(owner, game_type, slot) DO NOTHING`, owner, slot, name, t, t, src)
+	if err != nil {
+		return Save{}, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return Save{}, ErrSlotUsed
+	}
+	id, _ := res.LastInsertId()
+	if _, err := tx.Exec(`INSERT INTO save_members (save_id, account_id, role, joined_at) VALUES (?, ?, ?, ?)`, id, owner, RoleHost, t); err != nil {
+		return Save{}, err
+	}
+	if _, err := tx.Exec(`INSERT INTO save_state (save_id, key, value) SELECT ?, key, value FROM save_state WHERE save_id = ?`, id, src); err != nil {
+		return Save{}, err
+	}
+	if _, err := tx.Exec(`INSERT INTO save_players (save_id, account_id, money, state)
+		SELECT ?, ?, money, state FROM save_players WHERE save_id = ? AND account_id = ?`, id, owner, src, from.Owner); err != nil {
+		return Save{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return Save{}, err
+	}
+	return d.Save(id)
+}
+
 // DeleteSave deletes a save and all of its rows.
 func (d *DB) DeleteSave(id int64) error {
 	_, err := d.sql.Exec(`DELETE FROM saves WHERE id = ?`, id)

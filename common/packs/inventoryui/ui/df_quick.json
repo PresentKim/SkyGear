@@ -1,16 +1,17 @@
 {
   "namespace": "df_quick",
 
-  // The bar right of a container window with the take everything out and put
-  // everything in buttons. A press runs on the client alone: under each button
-  // lies a hidden button for every slot it moves, all over the same spot, each
-  // turning the press into the vanilla quick move (shift click) of its slot
-  // (button.container_auto_place), so one press moves every slot.
+  // The bar right of a container window with the take everything out, put
+  // everything in and put only what the container holds buttons. A press runs
+  // on the client alone: under each button lies a hidden button for every slot
+  // it moves, all over the same spot, each turning the press into the vanilla
+  // quick move (shift click) of its slot (button.container_auto_place), so one
+  // press moves every slot.
   //   $quick_container_size  how many container slots the take button moves
   //   $quick_take_filter     when set, a binding expression on
   //                          #collection_index that keeps the container slots
   //                          the take button moves (the outputs of a machine)
-  //   $quick_put_hotbar      the put button also moves the hotbar
+  //   $quick_put_hotbar      the put buttons also move the hotbar
   "side_bar": {
     "type": "stack_panel",
     "orientation": "vertical",
@@ -27,10 +28,24 @@
         "take@df_quick.take_button": {}
       },
       {
-        "gap": { "type": "panel", "size": [ 18, 2 ] }
+        "gap1": { "type": "panel", "size": [ 18, 2 ] }
       },
       {
         "put@df_quick.put_button": {}
+      },
+      {
+        "gap2": { "type": "panel", "size": [ 18, 2 ] }
+      },
+      {
+        "put_matching@df_quick.put_button": {
+          "$moves_control": "df_quick_match.match_move",
+          "$quick_icon": "textures/ui/store_filter_icon",
+          "$quick_icon_color": [ 1, 1, 1 ],
+          "$quick_tip": "dfquick.putMatching"
+        }
+      },
+      {
+        "container_ids@df_quick_match.container_ids": {}
       }
     ]
   },
@@ -48,16 +63,21 @@
       },
       {
         "face@df_quick.face": {
-          "$quick_icon": "textures/ui/df_quick/take_all",
+          "$quick_icon": "textures/ui/up_arrow",
           "$quick_tip": "dfquick.takeAll"
         }
       }
     ]
   },
 
+  // $moves_control is the hidden button of a slot (df_quick.slot_move moves
+  // every slot, df_quick_match.match_move only those the container holds).
   "put_button": {
     "type": "panel",
     "size": [ 18, 18 ],
+    "$moves_control|default": "df_quick.slot_move",
+    "$quick_icon|default": "textures/ui/down_arrow",
+    "$quick_tip|default": "dfquick.putAll",
     "controls": [
       {
         "inventory@df_quick.slot_moves": {
@@ -75,26 +95,24 @@
         }
       },
       {
-        "face@df_quick.face": {
-          "$quick_icon": "textures/ui/df_quick/put_all",
-          "$quick_tip": "dfquick.putAll"
-        }
+        "face@df_quick.face": {}
       }
     ]
   },
 
-  // One hidden button for each of the first $moves_count slots of
-  // $moves_collection.
+  // One hidden button ($moves_control) for each of the first $moves_count
+  // slots of $moves_collection.
   "slot_moves": {
     "type": "collection_panel",
     "size": [ "100%", "100%" ],
     "layer": 8,
     "$moves_filter|default": "",
+    "$moves_control|default": "df_quick.slot_move",
     "collection_name": "$moves_collection",
     "property_bag": { "#moves_count": "$moves_count" },
     "factory": {
-      "name": "('df_quick_' + $moves_collection)",
-      "control_name": "df_quick.slot_move"
+      "name": "('df_quick_' + $moves_collection + '_' + $moves_control)",
+      "control_name": "$moves_control"
     },
     "bindings": [
       {
@@ -141,8 +159,9 @@
     ]
   },
 
-  // The visible button: the vanilla light button with the icon, and the name
-  // beside it while hovered (a label, so the lang key is translated).
+  // The visible button: the vanilla light button with the icon (a vanilla
+  // texture, the white arrows drawn dark), and the name beside it while
+  // hovered (a label, so the lang key is translated).
   "face@common_buttons.light_content_button": {
     "size": [ 18, 18 ],
     "layer": 1,
@@ -154,12 +173,14 @@
   "face_content": {
     "type": "panel",
     "size": [ 18, 18 ],
+    "$quick_icon_color|default": [ 0.3, 0.3, 0.3 ],
     "controls": [
       {
         "icon": {
           "type": "image",
           "texture": "$quick_icon",
-          "size": [ 16, 16 ],
+          "color": "$quick_icon_color",
+          "size": [ 12, 12 ],
           "layer": 2
         }
       },

@@ -333,6 +333,29 @@ func (m *Manager) DeleteSave(saveID int64) error {
 	return os.RemoveAll(filepath.Dir(m.worldDir(saveID)))
 }
 
+// CopySave copies the inactive save srcID, its world folder included, into
+// slot for owner under name (db.CopySave). An open world is not copied: its
+// files change while it runs.
+func (m *Manager) CopySave(srcID int64, owner string, slot int, name string) (db.Save, error) {
+	if m.Active(srcID) != nil {
+		return db.Save{}, ErrActive
+	}
+	s, err := m.db.CopySave(srcID, owner, slot, name)
+	if err != nil {
+		return db.Save{}, err
+	}
+	src := filepath.Dir(m.worldDir(srcID))
+	if _, err := os.Stat(src); errors.Is(err, os.ErrNotExist) {
+		return s, nil
+	}
+	if err := os.CopyFS(filepath.Dir(m.worldDir(s.ID)), os.DirFS(src)); err != nil {
+		_ = m.db.DeleteSave(s.ID)
+		_ = os.RemoveAll(filepath.Dir(m.worldDir(s.ID)))
+		return db.Save{}, fmt.Errorf("copy world: %w", err)
+	}
+	return s, nil
+}
+
 // CloseAll deactivates every instance, moving players to the lobby. It is
 // called before the server shuts down.
 func (m *Manager) CloseAll() {

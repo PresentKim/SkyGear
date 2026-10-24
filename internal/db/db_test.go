@@ -81,6 +81,44 @@ func TestAccountAndSaves(t *testing.T) {
 	}
 }
 
+func TestCopySave(t *testing.T) {
+	d := open(t)
+	for _, id := range []string{"owner", "admin"} {
+		if _, err := d.TouchAccount(id, "x-"+id, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	src, err := d.CreateSave("owner", "dragonfactory", 1, "island")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = d.UpdateSaveClock(src.ID, time.Hour, 5, time.Minute)
+	_ = d.SetSaveState(src.ID, "level", []byte("7"))
+	_ = d.SetPlayerState(src.ID, "owner", []byte{4, 2})
+	cp, err := d.CopySave(src.ID, "admin", 2, "island copy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cp.Owner != "admin" || cp.Slot != 2 || cp.Name != "island copy" || cp.Day != 5 || cp.InstanceTime != time.Hour {
+		t.Fatalf("copy = %+v", cp)
+	}
+	if v, err := d.SaveState(cp.ID, "level"); err != nil || string(v) != "7" {
+		t.Fatalf("copied state = %q, %v", v, err)
+	}
+	if _, st, err := d.PlayerState(cp.ID, "admin"); err != nil || len(st) != 2 {
+		t.Fatalf("copied player state = %v, %v", st, err)
+	}
+	if r, err := d.MemberRole(cp.ID, "admin"); err != nil || r != RoleHost {
+		t.Fatalf("copy host = %v, %v", r, err)
+	}
+	if _, err := d.MemberRole(cp.ID, "owner"); err == nil {
+		t.Error("the source owner is a member of the copy")
+	}
+	if _, err := d.CopySave(src.ID, "admin", 2, "again"); !errors.Is(err, ErrSlotUsed) {
+		t.Fatalf("copy into a used slot err = %v", err)
+	}
+}
+
 func TestMigrationsIdempotent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "m.db")
 	for range 2 {
