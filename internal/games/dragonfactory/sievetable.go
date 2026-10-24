@@ -69,18 +69,34 @@ var (
 )
 
 var sieveRows = []sieveRow{
-	// Dirt: seeds on every mesh (Ex Nihilo: wheat 70 %, melon and pumpkin
-	// 35 %, other seeds 5 %).
-	{block.Dirt{}, stack(block.WheatSeeds{}), same(700)},
-	{block.Dirt{}, stack(block.MelonSeeds{}), same(350)},
-	{block.Dirt{}, stack(block.PumpkinSeeds{}), same(350)},
-	{block.Dirt{}, stack(block.BeetrootSeeds{}), same(350)},
-	{block.Dirt{}, stack(block.Carrot{}), same(50)},
-	{block.Dirt{}, stack(block.Potato{}), same(50)},
-	{block.Dirt{}, stack(block.Sapling{Type: block.OakSapling()}), same(50)},
+	// Dirt: ATM10: To the Sky (Ex Deorum; the pack's additions are flowers
+	// and mod seeds Bedrock or the server lacks, as are sweet berries). The
+	// golden apple's 2.5 % on the netherite mesh is 3 per mille.
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleStone}, 7), [6]int{600, 600, 0, 0, 0, 0}},
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleStone}, 8), [6]int{0, 0, 650, 700, 700, 0}},
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleStone}, 5), from(5, 400)},
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleAndesite}, 7), from(1, 400, 0, 0, 0, 0)},
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleGranite}, 7), from(1, 400, 0, 0, 0, 0)},
+	{block.Dirt{}, rolls(Pebble{Kind: PebbleDiorite}, 7), from(1, 400, 0, 0, 0, 0)},
 	{block.Dirt{}, rolls(Pebble{Kind: PebbleDeepslate}, 3), [6]int{0, 0, 450, 550, 600, 0}},
-	{block.Dirt{}, stack(MyceliumSpores{}), [6]int{30, 50, 100, 130, 100, 200}},
 	{block.Dirt{}, rolls(Pebble{Kind: PebbleDeepslate}, 4), from(5, 650)},
+	{block.Dirt{}, stack(item.Flint{}), [6]int{250, 300, 300, 200, 0, 0}},
+	{block.Dirt{}, rolls(item.Flint{}, 3), from(4, 300, 400)},
+	{block.Dirt{}, stack(block.WheatSeeds{}), [6]int{125, 150, 175, 200, 0, 0}},
+	{block.Dirt{}, stack(block.MelonSeeds{}), [6]int{100, 120, 150, 165, 0, 0}},
+	{block.Dirt{}, stack(block.PumpkinSeeds{}), [6]int{100, 120, 150, 165, 0, 0}},
+	{block.Dirt{}, stack(block.BeetrootSeeds{}), [6]int{100, 0, 0, 0, 0, 0}},
+	{block.Dirt{}, stack(block.Potato{}), [6]int{100, 130, 150, 175, 250, 300}},
+	{block.Dirt{}, stack(block.Carrot{}), [6]int{100, 130, 150, 175, 250, 300}},
+	{block.Dirt{}, stack(GrassSeeds{}), [6]int{100, 150, 175, 250, 150, 200}},
+	{block.Dirt{}, stack(MyceliumSpores{}), [6]int{30, 50, 100, 130, 100, 200}},
+	{block.Dirt{}, stack(block.SugarCane{}), [6]int{100, 150, 150, 0, 0, 0}},
+	{block.Dirt{}, stack(item.PoisonousPotato{}), [6]int{50, 30, 0, 0, 0, 0}},
+	{block.Dirt{}, stack(block.Bamboo{}), [6]int{40, 40, 60, 50, 60, 60}},
+	{block.Dirt{}, stack(block.PinkPetals{}), from(1, 30, 0, 0, 0, 0)},
+	{block.Dirt{}, stack(item.IronNugget{}), from(2, 50, 50)},
+	{block.Dirt{}, stack(item.GoldenCarrot{}), [6]int{0, 0, 0, 20, 0, 10}},
+	{block.Dirt{}, stack(item.GoldenApple{}), from(5, 3)},
 
 	// Gravel: ATM10: To the Sky (Ex Deorum 1.21.1 SieveRecipes.java with the
 	// pack's KubeJS: gold nuggets and gravel pebbles removed, diamond and
@@ -104,8 +120,19 @@ var sieveRows = []sieveRow{
 	{block.Gravel{}, stack(OreChunk{Ore: MetalSilver}), [6]int{40, 50, 55, 120, 80, 110}},
 	{block.Gravel{}, stack(OreChunk{Ore: MetalNickel}), [6]int{40, 55, 70, 70, 90, 100}},
 
-	// Sand: no ores in ATM10 (iron nuggets instead, Ex Deorum). Kelp is ours.
-	{block.Sand{}, stack(block.Kelp{}), same(200)},
+	// Sand: ATM10: To the Sky (Ex Deorum without the gold nuggets, the
+	// pack's cactus and kelp on the diamond mesh; pottery sherds and armour
+	// trims left out).
+	{block.Sand{}, stack(block.Cactus{}), [6]int{130, 0, 130, 100, 120, 150}},
+	{block.Sand{}, stack(item.Flint{}), [6]int{200, 0, 230, 180, 230, 0}},
+	{block.Sand{}, rolls(item.Flint{}, 2), [6]int{0, 200, 0, 0, 0, 230}},
+	{block.Sand{}, stack(block.DeadBush{}), [6]int{80, 30, 80, 60, 0, 0}},
+	{block.Sand{}, stack(item.IronNugget{}), [6]int{130, 160, 180, 160, 220, 230}},
+	{block.Sand{}, stack(block.Kelp{}), [6]int{100, 0, 70, 50, 75, 100}},
+	{block.Sand{}, stack(block.SeaPickle{}), [6]int{50, 0, 30, 30, 0, 70}},
+	{block.Sand{}, stack(item.PrismarineShard{}), from(2, 60, 80, 90, 120)},
+	{block.Sand{}, stack(item.PrismarineCrystals{}), from(2, 60, 80, 90, 120)},
+	{block.Sand{}, stack(item.RawGold{}), from(3, 40)},
 
 	// Crushed deepslate (the pack takes its deepslate pebbles out).
 	{deepslateC, stack(OreChunk{Ore: OreIron}), [6]int{120, 130, 150, 150, 180, 200}},
@@ -165,12 +192,16 @@ var sieveRows = []sieveRow{
 	{block.Sand{Red: true}, stack(item.RedstoneWire{}), [6]int{80, 90, 110, 70, 140, 170}},
 	{block.Sand{Red: true}, stack(item.RawGold{}), [6]int{30, 40, 60, 110, 80, 100}},
 
-	// Dust: bone meal 20 % and gunpowder 7 % like Ex Nihilo; redstone 12.5 %
-	// with the iron mesh, 25 % with the diamond mesh (ours: from the string
-	// mesh on, the first machines need it).
-	{Dust{}, stack(item.BoneMeal{}), same(200)},
-	{Dust{}, stack(item.Gunpowder{}), same(70)},
-	{Dust{}, stack(item.RedstoneWire{}), [6]int{100, 120, 125, 180, 250, 300}},
+	// Dust: ATM10: To the Sky (Ex Deorum without the gold nuggets; the
+	// pack's additions are mod items). Monster essences are added on top
+	// (essenceExtra).
+	{Dust{}, stack(item.Gunpowder{}), [6]int{100, 110, 130, 130, 140, 140}},
+	{Dust{}, stack(item.BoneMeal{}), [6]int{100, 110, 120, 110, 100, 130}},
+	{Dust{}, stack(item.RedstoneWire{}), [6]int{60, 90, 100, 120, 120, 140}},
+	{Dust{}, stack(item.GlowstoneDust{}), [6]int{40, 70, 90, 110, 110, 150}},
+	{Dust{}, stack(item.BlazePowder{}), [6]int{30, 40, 50, 60, 60, 100}},
+	{Dust{}, stack(item.IronNugget{}), [6]int{0, 0, 60, 0, 0, 80}},
+	{Dust{}, stack(item.RawGold{}), from(3, 20)},
 }
 
 // meshIndex is the index of a mesh tier in meshTiers.

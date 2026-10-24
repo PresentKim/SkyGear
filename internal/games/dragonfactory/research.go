@@ -82,7 +82,7 @@ var researchTree = withEssenceCosts(baseResearchTree)
 var baseResearchTree = []Research{
 	{ID: "stick", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
 	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
-		Unlocks: []string{"cobblestone", "cobbled_deepslate", "blackstone", "basalt", "tuff", "calcite"}},
+		Unlocks: []string{"cobblestone", "cobbled_deepslate", "blackstone", "basalt", "tuff", "calcite", "andesite", "granite", "diorite"}},
 	{ID: "wood_tools", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
 	{ID: "chest", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"chest"}},

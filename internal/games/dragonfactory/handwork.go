@@ -43,6 +43,9 @@ const (
 	PebbleBasalt     = "basalt"
 	PebbleTuff       = "tuff"
 	PebbleCalcite    = "calcite"
+	PebbleAndesite   = "andesite"
+	PebbleGranite    = "granite"
+	PebbleDiorite    = "diorite"
 )
 
 // pebbleKinds are the pebble kinds with the weight a stick knocks each out
@@ -60,6 +63,9 @@ var pebbleKinds = []struct {
 	{PebbleBasalt, i18n.T(i18n.Default, "pebble.basalt"), 0, block.Basalt{}},
 	{PebbleTuff, i18n.T(i18n.Default, "pebble.tuff"), 0, block.Tuff{}},
 	{PebbleCalcite, i18n.T(i18n.Default, "pebble.calcite"), 0, block.Calcite{}},
+	{PebbleAndesite, i18n.T(i18n.Default, "pebble.andesite"), 0, block.Andesite{}},
+	{PebbleGranite, i18n.T(i18n.Default, "pebble.granite"), 0, block.Granite{}},
+	{PebbleDiorite, i18n.T(i18n.Default, "pebble.diorite"), 0, block.Diorite{}},
 }
 
 // Pebble is a small stone a stick knocks out of grass and dirt.

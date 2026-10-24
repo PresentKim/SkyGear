@@ -91,6 +91,15 @@
     "dragonfactory:liquid_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
+    "dragonfactory:pebble_andesite": {
+      "textures": "textures/items/pebble_andesite"
+    },
+    "dragonfactory:pebble_granite": {
+      "textures": "textures/items/pebble_granite"
+    },
+    "dragonfactory:pebble_diorite": {
+      "textures": "textures/items/pebble_diorite"
+    },
     "dragonfactory:pebble_stone": {
       "textures": "textures/items/pebble_stone"
     },
