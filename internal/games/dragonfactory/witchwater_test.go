@@ -118,3 +118,29 @@ func TestMyceliumStaysUnderBarrel(t *testing.T) {
 		t.Fatal("a barrel is a solid block")
 	}
 }
+
+// TestBarrelLiquidIcon: the WAILA panel shows the liquid of a barrel as its
+// icon: water, witch water or lava, none while it holds no liquid.
+func TestBarrelLiquidIcon(t *testing.T) {
+	s := testSession(t)
+	pos := cube.Pos{1, 2, 3}
+	s.state.Barrels = map[string]*BarrelRecord{}
+	if s.barrelLiquid(pos) != nil {
+		t.Fatal("an empty barrel shows a liquid")
+	}
+	for kind, rec := range map[string]*BarrelRecord{
+		liquidWater:      {Count: matterCapacity, Water: true},
+		liquidWitchWater: {Count: matterCapacity, Witch: true},
+		liquidLava:       {Count: stoneBarrelCapacity, Lava: true},
+	} {
+		s.state.Barrels[cropKey(pos)] = rec
+		line := s.barrelLiquid(pos)
+		if line == nil || itemKey(line.Item.Item()) != itemKey(LiquidIcon{Kind: kind}) {
+			t.Errorf("%s barrel shows %v", kind, line)
+		}
+	}
+	s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: 10}
+	if s.barrelLiquid(pos) != nil {
+		t.Fatal("a filling barrel shows a liquid")
+	}
+}

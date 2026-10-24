@@ -121,6 +121,13 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 type session struct {
 	// lastLook is when each player's WAILA panel was last updated.
 	lastLook map[*world.EntityHandle]time.Time
+	// veinOutlines are the vein outlines players are shown, and veinFood
+	// the fraction of a food point each owes for vein mining (vein.go).
+	veinOutlines map[*world.EntityHandle]veinOutline
+	veinFood     map[*world.EntityHandle]float64
+	// diedFood is the food level each player died with, given back when it
+	// respawns (handler.go).
+	diedFood map[*world.EntityHandle]int
 	// codexNav is where each player is in the codex and came from, and
 	// codexRecent the items they looked at last (codextabs.go).
 	codexNav map[*world.EntityHandle]*codexNav
@@ -254,6 +261,8 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
 	delete(s.lastLook, p.H())
+	delete(s.veinOutlines, p.H())
+	delete(s.veinFood, p.H())
 	delete(s.codexNav, p.H())
 	delete(s.codexRecent, p.H())
 	waila.Clear(p)

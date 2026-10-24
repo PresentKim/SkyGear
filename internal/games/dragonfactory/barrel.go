@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"time"
@@ -532,7 +533,26 @@ func (s *session) breakBarrel(pos cube.Pos, drops *[]item.Stack) {
 	delete(s.state.Barrels, cropKey(pos))
 }
 
-// barrelLines are the lines of a barrel's WAILA panel.
+// barrelLiquid is the panel line of the liquid a barrel holds (water, witch
+// water, lava), nil when it holds none.
+func (s *session) barrelLiquid(pos cube.Pos) *waila.ItemLine {
+	rec := s.barrelAt(pos)
+	full := i18n.T(i18n.Default, "barrel.lines.full")
+	switch {
+	case rec == nil:
+		return nil
+	case rec.Witch:
+		return liquidLine(liquidWitchWater, full)
+	case rec.Water:
+		return liquidLine(liquidWater, full)
+	case rec.Lava:
+		return liquidLine(liquidLava, full)
+	}
+	return nil
+}
+
+// barrelLines are the lines of a barrel's WAILA panel; its liquid shows on
+// the icon line (barrelLiquid).
 func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	if b, ok := tx.Block(pos).(Barrel); ok && b.Wood == stoneWood {
 		return s.stoneBarrelLines(tx, pos)
@@ -540,7 +560,7 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
 	case rec != nil && rec.Witch:
-		return []string{i18n.T(i18n.Default, "barrel.lines.witch")}
+		return nil
 	case rec != nil && rec.Water && rec.WitchAt > 0:
 		now, _, _ := s.clock.Now()
 		left := max(rec.WitchAt-now, 0).Round(time.Second)
@@ -548,9 +568,9 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	case rec == nil || rec.Count == 0:
 		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1")}
 	case rec.Water && rec.Clay > 0:
-		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3"), fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.clay"), rec.Clay)}
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.clay"), rec.Clay)}
 	case rec.Water:
-		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.3")}
+		return nil
 	case rec.Count >= matterCapacity:
 		now, _, _ := s.clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
@@ -564,7 +584,7 @@ func (s *session) stoneBarrelLines(tx *world.Tx, pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
 	case rec != nil && rec.Lava:
-		return []string{i18n.T(i18n.Default, "barrel.stone.lines.lava")}
+		return nil
 	case rec == nil || rec.Count == 0:
 		return []string{i18n.T(i18n.Default, "barrel.stone.lines.empty")}
 	case rec.Count < stoneBarrelCapacity:

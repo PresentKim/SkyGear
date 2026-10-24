@@ -263,7 +263,22 @@ func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) { count(c
 func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 	count(ctx.Player(), "pickup", int64(i.Count()))
 }
-func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) { count(p, "death", 1) }
+
+// HandleDeath and HandleRespawn keep the food level through death: dying
+// does not fill the food bar (it would make vein mining's food cost free).
+func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
+	count(p, "death", 1)
+	if h.s.diedFood == nil {
+		h.s.diedFood = map[*world.EntityHandle]int{}
+	}
+	h.s.diedFood[p.H()] = p.Food()
+}
+func (h *handler) HandleRespawn(p *player.Player, _ *mgl64.Vec3, _ **world.World) {
+	if food, ok := h.s.diedFood[p.H()]; ok {
+		delete(h.s.diedFood, p.H())
+		p.SetFood(food)
+	}
+}
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
 	count(ctx.Player(), "block_pick", 1)
 }

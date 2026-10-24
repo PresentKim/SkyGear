@@ -37,6 +37,7 @@ var researchRewards = map[string]map[string]int{
 	"crusher":            {"dragonfactory:crusher": 1},
 	"auto_sieve":         {"dragonfactory:auto_sieve": 1},
 	"auto_miner":         {"dragonfactory:auto_miner": 1},
+	"iron_hammer":        {"dragonfactory:hammer": 1},
 	"harvester":          {"dragonfactory:harvester": 1},
 	"electric_furnace":   {"dragonfactory:electric_furnace": 1},
 	"item_vacuum":        {"dragonfactory:item_vacuum": 1},

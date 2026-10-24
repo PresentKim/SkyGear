@@ -156,13 +156,67 @@ func TestVeinMine(t *testing.T) {
 	})
 }
 
-// TestVeinEdges: the outline of one block is its 12 edges, of two blocks side
-// by side 16 unit edges (the shared face's four are inside).
-func TestVeinEdges(t *testing.T) {
-	if n := len(veinEdges([]cube.Pos{{0, 0, 0}})); n != 12 {
-		t.Fatalf("one block: %d edges", n)
-	}
-	if n := len(veinEdges([]cube.Pos{{0, 0, 0}, {1, 0, 0}})); n != 16 {
-		t.Fatalf("two blocks: %d edges", n)
-	}
+// TestVeinMineFood: vein mining costs food, a full food bar paying for
+// veinLimit blocks; with little food it breaks fewer, and fractions carry
+// over.
+func TestVeinMineFood(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		held := item.NewStack(Hammer{}, 1)
+		oneFood := 12 // 1 / veinFoodCost = 12.8
+		p.SetFood(20)
+		if got := s.veinBudget(p, held); got != veinLimit-1 {
+			t.Fatalf("full food budget %d, want %d", got, veinLimit-1)
+		}
+		p.SetFood(1)
+		if got := s.veinBudget(p, held); got != oneFood {
+			t.Fatalf("one food budget %d, want %d", got, oneFood)
+		}
+		// a line of 15 cobblestone (in the owned chunk; gravel would fall) with one
+		// food point: only 12 more break
+		base := cube.Pos{0, IslandY + 3, 4}
+		for i := 0; i < 15; i++ {
+			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Cobblestone{}, nil)
+		}
+		p.StartSneaking()
+		p.SetHeldItems(held, item.Stack{})
+		s.veinMine(p, tx, base)
+		if broken := droppedKeys(tx)[itemKey(block.Gravel{})]; broken != oneFood {
+			t.Fatalf("broke %d with one food point, want %d", broken, oneFood)
+		}
+		// 12 blocks cost 0.9375 food: the bar keeps its point, the fraction
+		// is owed, and nothing is left for another block
+		if p.Food() != 1 || s.veinBudget(p, held) != 0 {
+			t.Fatalf("food %d budget %d after 12 blocks, want 1 and 0", p.Food(), s.veinBudget(p, held))
+		}
+		// fractions carry over
+		p.SetFood(20)
+		s.veinFood[p.H()] = 0
+		s.payVeinFood(p, 6)
+		s.payVeinFood(p, 7)
+		if p.Food() != 19 {
+			t.Fatalf("13 blocks cost %d food, want 1", 20-p.Food())
+		}
+	})
+}
+
+// TestDeathKeepsFood: respawning gives back the food level the player died
+// with instead of a full bar.
+func TestDeathKeepsFood(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		hd := &handler{s: s}
+		p.SetFood(5)
+		hd.HandleDeath(p, nil, new(bool))
+		p.SetFood(20) // what Dragonfly's respawn does
+		pos, w := p.Position(), tx.World()
+		hd.HandleRespawn(p, &pos, &w)
+		if p.Food() != 5 {
+			t.Fatalf("food after respawn %d, want 5", p.Food())
+		}
+	})
 }

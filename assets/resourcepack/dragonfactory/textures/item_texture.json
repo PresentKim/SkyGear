@@ -82,6 +82,15 @@
     "dragonfactory:grass_seeds": {
       "textures": "textures/items/grass_seeds"
     },
+    "dragonfactory:liquid_water": {
+      "textures": "textures/blocks/barrel_water"
+    },
+    "dragonfactory:liquid_witch_water": {
+      "textures": "textures/blocks/barrel_witch_water"
+    },
+    "dragonfactory:liquid_lava": {
+      "textures": "textures/blocks/barrel_lava"
+    },
     "dragonfactory:pebble_stone": {
       "textures": "textures/items/pebble_stone"
     },

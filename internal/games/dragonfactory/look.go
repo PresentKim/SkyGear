@@ -110,10 +110,10 @@ func (s *session) updateLooks(tx *world.Tx) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
-		if held, _ := p.HeldItems(); isIronHammer(held) && p.Sneaking() {
-			if at, _, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
-				s.showVeinOutline(p, tx, at)
-			}
+		if at, _, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+			s.showVeinOutline(p, tx, at)
+		} else {
+			s.hideVeinOutline(p)
 		}
 	}
 }
@@ -163,6 +163,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Lines = bundleLines(tx, pos, b)
 	case Barrel:
 		info.Lines = s.barrelLines(tx, pos)
+		info.Line = s.barrelLiquid(pos)
 	case FlowHopper:
 		info.Lines = hopperLines(b)
 	}
