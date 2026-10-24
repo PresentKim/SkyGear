@@ -55,6 +55,9 @@
     "dragonfactory:hammer": {
       "textures": "textures/items/hammer"
     },
+    "dragonfactory:stone_hammer": {
+      "textures": "textures/items/stone_hammer"
+    },
     "dragonfactory:machine_take_all": {
       "textures": "textures/items/machine_take_all"
     },
@@ -75,6 +78,9 @@
     },
     "dragonfactory:raw_nickel": {
       "textures": "textures/items/raw_nickel"
+    },
+    "dragonfactory:grass_seeds": {
+      "textures": "textures/items/grass_seeds"
     },
     "dragonfactory:pebble_stone": {
       "textures": "textures/items/pebble_stone"

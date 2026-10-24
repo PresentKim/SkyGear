@@ -44,7 +44,7 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 		}
 		return recipeKey(st.Item())
 	}
-	hammer := find(Hammer{})
+	hammer := find(Hammer{Stone: true})
 	if hammer.Shape() != recipe.NewShape(3, 3) || !hammer.NoMirror() {
 		t.Errorf("hammer shape %v, no mirror %v", hammer.Shape(), hammer.NoMirror())
 	}

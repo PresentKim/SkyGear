@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 // Hand-made resources of the start (docs/design/02-dragonfactory.md §3,
@@ -85,6 +86,46 @@ func (BarkFiber) Category() category.Category { return category.Items() }
 // CompostChance makes a fiber plant matter for the composter and the barrel
 // (composter.go; the chance itself is not used, only that it is above 0).
 func (BarkFiber) CompostChance() float64 { return 0.3 }
+
+// GrassSeeds turn the dirt they are used on into grass. Tilling dirt with a
+// hoe sometimes drops them (grassSeedChance): an island whose grass is all
+// broken gets it back.
+type GrassSeeds struct{}
+
+// grassSeedChance is the percent chance tilling dirt drops grass seeds.
+const grassSeedChance = 10
+
+func (GrassSeeds) EncodeItem() (string, int16) { return "dragonfactory:grass_seeds", 0 }
+func (GrassSeeds) Name() string                { return i18n.T(i18n.Default, "name.GrassSeeds") }
+func (GrassSeeds) Category() category.Category { return category.Items() }
+
+// UseOnBlock implements item.UsableOnBlock.
+func (GrassSeeds) UseOnBlock(pos cube.Pos, _ cube.Face, _ mgl64.Vec3, tx *world.Tx, _ item.User, ctx *item.UseContext) bool {
+	if d, ok := tx.Block(pos).(block.Dirt); !ok || d.Coarse {
+		return false
+	}
+	tx.SetBlock(pos, block.Grass{}, nil)
+	tx.PlaySound(pos.Vec3Centre(), sound.ItemUseOn{Block: block.Grass{}})
+	ctx.SubtractFromCount(1)
+	return true
+}
+
+// tillSeeds drops grass seeds grassSeedChance of the time when p tills dirt
+// at pos with a hoe (the hoe itself turns it into farmland afterwards).
+func (s *session) tillSeeds(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
+	if _, hoe := held.Item().(item.Hoe); !hoe || face == cube.FaceDown {
+		return
+	}
+	if d, ok := tx.Block(pos).(block.Dirt); !ok || d.Coarse {
+		return
+	}
+	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
+		return
+	}
+	if s.rand.IntN(100) < grassSeedChance {
+		s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Centre(), item.NewStack(GrassSeeds{}, 1))
+	}
+}
 
 // Dust is sand crushed once more (hammer, crusher), sifted for its drops.
 type Dust struct{}
@@ -209,6 +250,7 @@ func init() {
 		world.RegisterItem(Pebble{Kind: k.kind})
 	}
 	world.RegisterItem(BarkFiber{})
+	world.RegisterItem(GrassSeeds{})
 	world.RegisterBlock(Dust{})
 	world.RegisterItem(Dust{})
 	handworkRecipes()

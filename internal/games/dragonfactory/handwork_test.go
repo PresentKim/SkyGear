@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 // droppedItems counts the item entities in the world by item key.
@@ -127,4 +128,30 @@ func TestStringRecipe(t *testing.T) {
 		}
 	}
 	t.Fatal("no string recipe")
+}
+
+// TestGrassSeeds: tilling dirt with a hoe sometimes drops grass seeds, and the
+// seeds turn dirt into grass.
+func TestGrassSeeds(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		pos := cube.Pos{4, IslandY + 2, 4}
+		hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
+		for range 200 {
+			tx.SetBlock(pos, block.Dirt{}, nil)
+			s.tillSeeds(p, tx, pos, cube.FaceUp, hoe)
+		}
+		if n := droppedKeys(tx)[itemKey(GrassSeeds{})]; n < 5 || n > 40 {
+			t.Fatalf("200 tillings dropped %d seeds, want about 20", n)
+		}
+		ctx := &item.UseContext{}
+		if !(GrassSeeds{}).UseOnBlock(pos, cube.FaceUp, mgl64.Vec3{}, tx, p, ctx) || ctx.CountSub != 1 {
+			t.Fatal("seeds were not used on dirt")
+		}
+		if _, ok := tx.Block(pos).(block.Grass); !ok {
+			t.Fatalf("seeds made %T", tx.Block(pos))
+		}
+	})
 }

@@ -128,7 +128,7 @@ func TestAdvancementTreeFits(t *testing.T) {
 // TestAdvancementStack: an advancement points at its item, else its icon.
 func TestAdvancementStack(t *testing.T) {
 	a, _ := advancementByID("hammer")
-	if it, ok := advancementStack(a); !ok || itemName(it) != "망치" {
+	if it, ok := advancementStack(a); !ok || itemName(it) != "돌 망치" {
 		t.Fatalf("hammer stack %v %v", it, ok)
 	}
 	b, _ := advancementByID("first_research")
@@ -168,4 +168,35 @@ func TestTrackedAdvancement(t *testing.T) {
 			t.Fatal("a done advancement is not followed")
 		}
 	})
+}
+
+// TestAdvancementGuides: every advancement leads the quest panel to a
+// research, but those the start of the game or an event alone does.
+func TestAdvancementGuides(t *testing.T) {
+	free := map[string]bool{"wood": true, "planks": true, "crafting_table": true, "research_table": true,
+		advGrowTree: true, advChunk: true, advChunks8: true, advChunks16: true, advBloom: true}
+	for i := range advancementTree {
+		a := &advancementTree[i]
+		if _, ok := goalResearch(a); !ok && !free[a.ID] {
+			t.Errorf("%s leads to no research", a.ID)
+		}
+	}
+}
+
+// TestAdvancementOrder: the quest panel follows the main path: the stone
+// barrel and the auto miner before the crusher, the energy and item
+// conduits before the fluid conduit.
+func TestAdvancementOrder(t *testing.T) {
+	at := map[string]int{}
+	for i, a := range advancementTree {
+		at[a.ID] = i
+	}
+	for _, p := range [][2]string{
+		{"stone_barrel", "crusher"}, {"auto_miner", "crusher"}, {"energy_conduit", "fluid_conduit"},
+		{"item_conduit", "fluid_conduit"}, {"crusher", "alloy_smelter"}, {"laboratory", "crusher"},
+	} {
+		if at[p[0]] >= at[p[1]] {
+			t.Errorf("%s comes after %s", p[0], p[1])
+		}
+	}
 }

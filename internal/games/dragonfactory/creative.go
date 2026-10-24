@@ -60,6 +60,7 @@ func registerCreativeItems() {
 		for _, id := range hopperOrder {
 			add(construction, newFlowHopper(id, cube.FaceDown))
 		}
+		add(equipment, Hammer{Stone: true})
 		add(equipment, Hammer{})
 		add(items, WoodenBucket{})
 		add(items, WoodenBucket{Water: true})
@@ -67,6 +68,7 @@ func registerCreativeItems() {
 		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
 		add(items, DrawerUpgrade{Kind: UpgradeVoid})
 		add(items, BarkFiber{})
+		add(items, GrassSeeds{})
 		add(items, MyceliumSpores{})
 		add(items, WitchWaterBucket{})
 		add(items, ConduitBinderMix{})

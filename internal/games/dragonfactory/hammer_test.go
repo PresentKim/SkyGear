@@ -92,3 +92,77 @@ func TestHammerOre(t *testing.T) {
 		}
 	}
 }
+
+// TestHammerTiers: the stone and iron hammers last twice as long as tools of
+// their material, and only the iron hammer vein mines.
+func TestHammerTiers(t *testing.T) {
+	stone, iron := Hammer{Stone: true}, Hammer{}
+	if stone.DurabilityInfo().MaxDurability != 2*item.ToolTierStone.Durability || iron.DurabilityInfo().MaxDurability != 2*item.ToolTierIron.Durability {
+		t.Fatalf("durability stone %d iron %d", stone.DurabilityInfo().MaxDurability, iron.DurabilityInfo().MaxDurability)
+	}
+	if isIronHammer(item.NewStack(stone, 1)) || !isIronHammer(item.NewStack(iron, 1)) || !isHammer(item.NewStack(stone, 1)) {
+		t.Fatal("hammer kinds mixed up")
+	}
+	if (Hammer{}).BaseMiningEfficiency(block.Gravel{}) != 3 || (Hammer{}).BaseMiningEfficiency(Dust{}) != 3 {
+		t.Fatal("gravel and dust speeds")
+	}
+}
+
+// TestVeinMine: sneaking with the iron hammer breaks the connected blocks of
+// the same kind into what the hammer makes of them, costing durability; the
+// stone hammer and other kinds of blocks are left alone.
+func TestVeinMine(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	base := cube.Pos{4, IslandY + 3, 4}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		// a line of five gravel and one sand touching it
+		for i := 0; i < 5; i++ {
+			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Gravel{}, nil)
+		}
+		tx.SetBlock(base.Add(cube.Pos{0, 0, 1}), block.Sand{}, nil)
+		if got := veinBlocks(tx, base, veinLimit, s.canBuild); len(got) != 5 {
+			t.Fatalf("vein of %d blocks, want 5", len(got))
+		}
+		if got := veinBlocks(tx, base, 3, s.canBuild); len(got) != 3 {
+			t.Fatalf("limited vein of %d blocks, want 3", len(got))
+		}
+		p.StartSneaking()
+		p.SetHeldItems(item.NewStack(Hammer{Stone: true}, 1), item.Stack{})
+		s.veinMine(p, tx, base)
+		if _, ok := tx.Block(base.Add(cube.Pos{1, 0, 0})).(block.Gravel); !ok {
+			t.Fatal("the stone hammer vein mined")
+		}
+		p.SetHeldItems(item.NewStack(Hammer{}, 1), item.Stack{})
+		s.veinMine(p, tx, base)
+		for i := 1; i < 5; i++ {
+			if _, ok := tx.Block(base.Add(cube.Pos{i, 0, 0})).(block.Gravel); ok {
+				t.Fatalf("gravel %d is still there", i)
+			}
+		}
+		if _, ok := tx.Block(base).(block.Gravel); !ok {
+			t.Fatal("the mined block is the game's to break")
+		}
+		if _, ok := tx.Block(base.Add(cube.Pos{0, 0, 1})).(block.Sand); !ok {
+			t.Fatal("the sand was broken")
+		}
+		if held, _ := p.HeldItems(); held.MaxDurability()-held.Durability() != 4 {
+			t.Fatalf("durability used %d, want 4", held.MaxDurability()-held.Durability())
+		}
+		if got := droppedKeys(tx)[itemKey(block.Sand{})]; got != 4 {
+			t.Fatalf("%d sand dropped, want 4", got)
+		}
+	})
+}
+
+// TestVeinEdges: the outline of one block is its 12 edges, of two blocks side
+// by side 16 unit edges (the shared face's four are inside).
+func TestVeinEdges(t *testing.T) {
+	if n := len(veinEdges([]cube.Pos{{0, 0, 0}})); n != 12 {
+		t.Fatalf("one block: %d edges", n)
+	}
+	if n := len(veinEdges([]cube.Pos{{0, 0, 0}, {1, 0, 0}})); n != 16 {
+		t.Fatalf("two blocks: %d edges", n)
+	}
+}

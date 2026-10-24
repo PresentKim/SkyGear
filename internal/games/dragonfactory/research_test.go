@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -97,8 +98,11 @@ func TestResearchOpensRecipes(t *testing.T) {
 		if missing, done := s.doResearch(p, tx, chest); !done || len(missing) != 0 || !s.researched("chest") {
 			t.Fatalf("chest research: done %v missing %v", done, missing)
 		}
-		if st, _ := p.Inventory().Item(0); !st.Empty() {
-			t.Fatalf("%d planks left, want none", st.Count())
+		if p.Inventory().ContainsItem(item.NewStack(oakPlanks, 1)) {
+			t.Fatal("planks left, want none")
+		}
+		if !p.Inventory().ContainsItem(item.NewStack(block.NewChest(), 2)) {
+			t.Fatal("the chest research gave no chests")
 		}
 		if !s.recipeFilter()(recipeFor(stick)) || !s.recipeFilter()(recipeFor(block.NewChest())) {
 			t.Fatal("researches did not open sticks and the chest")
@@ -117,4 +121,34 @@ func TestResearchTableRecipe(t *testing.T) {
 		}
 	}
 	t.Fatal("no research table recipe")
+}
+
+// TestResearchRewards: every reward is something its research opens, and
+// researching gives it to the researcher.
+func TestResearchRewards(t *testing.T) {
+	for id, counts := range researchRewards {
+		r, ok := researchByID(id)
+		if !ok {
+			t.Errorf("reward for unknown research %s", id)
+			continue
+		}
+		for n, c := range counts {
+			if !slices.Contains(r.Unlocks, n) || c <= 0 {
+				t.Errorf("%s: reward %s ×%d is not one of its unlocks", id, n, c)
+			}
+		}
+		if len(researchReward(r)) != len(counts) {
+			t.Errorf("%s: reward items %v, want %d kinds", id, researchReward(r), len(counts))
+		}
+	}
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		r, _ := researchByID("generator")
+		s.giveResearchReward(p, tx, r)
+		if !p.Inventory().ContainsItem(machineItem(KindGenerator)) {
+			t.Fatal("no generator given")
+		}
+	})
 }

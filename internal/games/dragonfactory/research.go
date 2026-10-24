@@ -95,7 +95,7 @@ var baseResearchTree = []Research{
 	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 8}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
 	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
-	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 4}}, Unlocks: []string{"dragonfactory:hammer"}},
+	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 4}}, Unlocks: []string{"dragonfactory:stone_hammer"}},
 	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve", "dragonfactory:mesh_string", "dragonfactory:mesh_flint"}},
 	{ID: "torch", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 8}, {stick, 8}}, Unlocks: []string{"torch"}},
 	{ID: "woodwork", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 64}, {stick, 16}},
@@ -115,11 +115,11 @@ var baseResearchTree = []Research{
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:conduit_energy_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:conduit_item_1", "dragonfactory:conduit_binder_mix"}},
 	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"dragonfactory:conduit_fluid_1", "dragonfactory:conduit_binder_mix"}},
-	{ID: "crusher", Needs: []string{"hammer", "generator"}, Cost: []Requirement{{block.Cobblestone{}, 64}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
 	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 8}}, Unlocks: []string{"dragonfactory:auto_sieve"}},
 	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 32}},
-		Unlocks: []string{"iron_pickaxe", "iron_axe", "iron_shovel", "iron_hoe", "iron_sword"}},
+		Unlocks: []string{"iron_pickaxe", "iron_axe", "iron_shovel", "iron_hoe", "iron_sword", "dragonfactory:hammer"}},
 	{ID: "auto_miner", Needs: []string{"iron_tools", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.NewHopper(), 2}}, Unlocks: []string{"dragonfactory:auto_miner"}},
+	{ID: "crusher", Needs: []string{"hammer", "generator", "auto_miner"}, Cost: []Requirement{{block.Cobblestone{}, 64}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:crusher"}},
 	{ID: "drawer", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 32}, {block.NewChest(), 2}}, Unlocks: []string{"dragonfactory:drawer", "dragonfactory:drawer_key"}},
 	{ID: "drawer_upgrades", Needs: []string{"drawer", "iron"}, Cost: []Requirement{{item.IronIngot{}, 16}},
 		Unlocks: []string{"dragonfactory:drawer_upgrade_capacity", "dragonfactory:drawer_upgrade_void"}},
@@ -339,6 +339,7 @@ func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missi
 	}
 	pourEssences(tx, p, r.Cost)
 	s.completeResearch(tx, r)
+	s.giveResearchReward(p, tx, r)
 	account.Grant(p, achResearch)
 	return nil, true
 }
@@ -704,7 +705,16 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			continue
 		}
 		st := item.NewStack(it, 1)
-		opens = append(opens, toCodex(st, tipName(st)+i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")))
+		tip := tipName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")
+		c := rewardCount(r, n)
+		if c > 0 {
+			tip += "\n" + fmt.Sprintf(i18n.T(i18n.Of(p), "researchreward.tip"), c)
+		}
+		sl := toCodex(st, tip)
+		if c > 0 {
+			sl.Count = "§e+" + strconv.Itoa(c)
+		}
+		opens = append(opens, sl)
 	}
 	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
 	return d, rows, opts
@@ -785,11 +795,15 @@ func gameRecipes() {
 		recipe.Register(recipe.NewShaped(in, out, recipe.NewShape(w, h), "crafting_table").WithoutMirror())
 	}
 	cobble, planks, iron := block.Cobblestone{}, oakPlanks, item.IronIngot{}
-	// The hammer (and its later tiers, with another stone): two stones and
-	// two sticks in a diagonal pattern.
-	shaped(st(Hammer{}), 3, 3,
+	// The hammers: two of the material and two sticks in a diagonal
+	// pattern, the stone hammer of cobblestone, the iron hammer of iron.
+	shaped(st(Hammer{Stone: true}), 3, 3,
 		nil, cobble, nil,
 		nil, stick, cobble,
+		stick, nil, nil)
+	shaped(st(Hammer{}), 3, 3,
+		nil, iron, nil,
+		nil, stick, iron,
 		stick, nil, nil)
 	// The wooden bucket: three planks in a V, like the iron bucket.
 	shaped(st(WoodenBucket{}), 3, 2,

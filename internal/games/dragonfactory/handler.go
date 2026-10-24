@@ -52,6 +52,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		if into, ok := hammerDrop(ctx.Player().Tx().Block(pos)); ok {
 			*drops = []item.Stack{into}
 		}
+		h.s.veinMine(ctx.Player(), ctx.Player().Tx(), pos)
 	}
 	switch b := ctx.Player().Tx().Block(pos).(type) {
 	case Drawer:
@@ -150,6 +151,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	h.s.stripFiber(p, tx, pos, face, held)
+	h.s.tillSeeds(p, tx, pos, face, held)
 	// Using a crop shows its time or harvests it, and places nothing;
 	// sneaking uses it as usual (placing blocks, bone meal).
 	if !ctx.Player().Sneaking() && h.s.useCrop(ctx.Player(), ctx.Player().Tx(), pos) {

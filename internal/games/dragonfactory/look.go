@@ -110,6 +110,11 @@ func (s *session) updateLooks(tx *world.Tx) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
+		if held, _ := p.HeldItems(); isIronHammer(held) && p.Sneaking() {
+			if at, _, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+				s.showVeinOutline(p, tx, at)
+			}
+		}
 	}
 }
 

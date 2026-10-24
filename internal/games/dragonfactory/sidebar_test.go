@@ -62,7 +62,8 @@ func TestQuestShowsResearchStep(t *testing.T) {
 		}
 	}
 	_, rows := s.questRows()
-	if len(rows) < 4 || !strings.Contains(rows[2], step.Title(i18n.Default)) {
+	hint := len(strings.Split(a.Hint, "\n"))
+	if len(rows) < hint+2 || !strings.Contains(rows[hint], step.Title(i18n.Default)) {
 		t.Fatalf("rows %q", rows)
 	}
 }

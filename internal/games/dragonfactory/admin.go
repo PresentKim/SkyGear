@@ -76,6 +76,7 @@ func giveItems() map[string]func() item.Stack {
 		"upgrade_capacity": func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) },
 		"upgrade_void":     func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) },
 		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
+		"stone_hammer":     func() item.Stack { return item.NewStack(Hammer{Stone: true}, 1) },
 		"string_mesh":      func() item.Stack { return item.NewStack(Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
 		"stone_barrel":     func() item.Stack { return item.NewStack(Barrel{Wood: stoneWood}, 1) },
