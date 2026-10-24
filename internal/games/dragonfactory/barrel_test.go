@@ -220,6 +220,49 @@ func TestDustMakesClayInWater(t *testing.T) {
 	}
 }
 
+func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
+	water := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
+	cases := []struct {
+		wood       string
+		held       item.Stack
+		want       BarrelRecord
+		emptyAfter world.Item
+	}{
+		{"oak", water, BarrelRecord{Water: true}, item.Bucket{}},
+		{"oak", item.NewStack(WoodenBucket{Water: true}, 1), BarrelRecord{Water: true}, WoodenBucket{}},
+		{"oak", item.NewStack(WitchWaterBucket{}, 1), BarrelRecord{Witch: true}, item.Bucket{}},
+		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{Lava: true}, item.Bucket{}},
+		{stoneWood, water, BarrelRecord{}, nil},
+		{"oak", item.NewStack(lavaBucket, 1), BarrelRecord{}, nil},
+	}
+	for _, c := range cases {
+		s := testSession(t)
+		loadAround(s)
+		h := spawnPlayer(s)
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			tx.SetBlock(machinePos, Barrel{Wood: c.wood}, nil)
+			p.SetHeldItems(c.held, item.Stack{})
+			used := s.useBarrel(p, tx, machinePos, tx.Block(machinePos).(Barrel), c.held, &item.UseContext{})
+			rec := s.barrelAt(machinePos)
+			if c.emptyAfter == nil {
+				if used || rec != nil {
+					t.Errorf("%s barrel took %s", c.wood, itemKey(c.held.Item()))
+				}
+				return
+			}
+			if !used || rec == nil || *rec != c.want {
+				t.Errorf("%s barrel with %s: used %v, record %+v", c.wood, itemKey(c.held.Item()), used, rec)
+			}
+			if held, _ := p.HeldItems(); itemKey(held.Item()) != itemKey(c.emptyAfter) {
+				t.Errorf("%s left %s in the hand", itemKey(c.held.Item()), itemKey(held.Item()))
+			}
+			if got := tx.Block(machinePos).(Barrel).Stage; got != barrelStageOf(c.wood, rec) {
+				t.Errorf("stage %d", got)
+			}
+		})
+	}
+}
+
 // TestBarrelClayByHopper: dust put into a barrel of water by an item
 // transfer makes clay blocks the barrel keeps until they are taken out; a dry
 // barrel takes no dust, the buffer is limited and breaking the barrel drops

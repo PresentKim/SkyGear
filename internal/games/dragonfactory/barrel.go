@@ -265,6 +265,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		s.storeState()
 		return true
 	}
+	poured, empty, liq, pourOK := pourBucket(b.Wood, held)
 	switch {
 	case rec != nil && rec.Witch:
 		if bk, ok := held.Item().(item.Bucket); ok && bk.Empty() {
@@ -315,6 +316,17 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.1"))
 		}
 		return true
+	case pourOK && (rec == nil || (rec.Count == 0 && rec.Clay == 0)):
+		_, left := p.HeldItems()
+		p.SetHeldItems(empty, left)
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		s.state.Barrels[key] = &poured
+		s.showBarrel(tx, pos, b)
+		tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: liq})
+		s.storeState()
+		return true
 	case rec != nil && rec.Count >= capacity:
 		if stone {
 			p.SendTip(i18n.T(i18n.Of(p), "barrel.stone.heating"))
@@ -359,6 +371,36 @@ func emptyBucketFill(held item.Stack, lava bool) (filled item.Stack, fill world.
 		return item.NewStack(WoodenBucket{Water: true}, 1), block.Water{}, true
 	}
 	return item.Stack{}, nil, false
+}
+
+// pourBucket is what a full bucket in the hand pours into an empty barrel of
+// wood, the bucket left and the liquid sound; ok is false when the bucket
+// holds nothing that barrel takes. An oak barrel takes water and witch water,
+// a stone barrel lava.
+func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stack, liq world.Liquid, ok bool) {
+	stone := wood == stoneWood
+	switch b := held.Item().(type) {
+	case item.Bucket:
+		switch fluidOfBucket(b) {
+		case fluidnet.Water:
+			if !stone {
+				return BarrelRecord{Water: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
+			}
+		case fluidnet.Lava:
+			if stone {
+				return BarrelRecord{Lava: true}, item.NewStack(item.Bucket{}, 1), block.Lava{}, true
+			}
+		}
+	case WoodenBucket:
+		if b.Water && !stone {
+			return BarrelRecord{Water: true}, item.NewStack(WoodenBucket{}, 1), block.Water{}, true
+		}
+	case WitchWaterBucket:
+		if !stone {
+			return BarrelRecord{Witch: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
+		}
+	}
+	return BarrelRecord{}, item.Stack{}, nil, false
 }
 
 // fillBarrel puts up to n plant items of st into the barrel at pos (whose

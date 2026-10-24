@@ -1,6 +1,9 @@
 package dragonfactory
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -8,8 +11,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // WoodenBucket is the early bucket (docs/design/02-dragonfactory.md §5): it
@@ -101,4 +106,42 @@ func isWaterBucket(st item.Stack) bool {
 func init() {
 	world.RegisterItem(WoodenBucket{})
 	world.RegisterItem(WoodenBucket{Water: true})
+	dfhook.OnServerPacket(clipWoodenBucket)
+}
+
+// clipWoodenBucket makes the client aim the empty wooden bucket at liquids
+// (the item property liquid_clipped, as the iron bucket has): otherwise a
+// click passes through the water to the block behind it and the bucket never
+// gets the water. Dragonfly writes no such property, so it is added to the
+// item list the server sends at login; the entries are copies, as Dragonfly
+// sends the same ones to every player.
+func clipWoodenBucket(_ *dfhook.Conn, pk packet.Packet) bool {
+	reg, ok := pk.(*packet.ItemRegistry)
+	if !ok {
+		return false
+	}
+	name, _ := WoodenBucket{}.EncodeItem()
+	items := slices.Clone(reg.Items)
+	for i, e := range items {
+		if e.Name != name {
+			continue
+		}
+		comps, ok := e.Data["components"].(map[string]any)
+		if !ok {
+			continue
+		}
+		props, _ := comps["item_properties"].(map[string]any)
+		props = maps.Clone(props)
+		if props == nil {
+			props = map[string]any{}
+		}
+		props["liquid_clipped"] = true
+		comps = maps.Clone(comps)
+		comps["item_properties"] = props
+		data := maps.Clone(e.Data)
+		data["components"] = comps
+		items[i].Data = data
+	}
+	reg.Items = items
+	return false
 }
