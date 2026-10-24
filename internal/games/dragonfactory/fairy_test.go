@@ -42,7 +42,16 @@ func TestGiftsAreBasics(t *testing.T) {
 
 func TestGiftsComeFromDoneResearch(t *testing.T) {
 	s := testSession(t)
-	s.state.Researched = map[string]bool{"generator": true}
+	s.state.Researched = map[string]bool{}
+	var reach func(id string)
+	reach = func(id string) {
+		s.state.Researched[id] = true
+		r, _ := researchByID(id)
+		for _, n := range r.Needs {
+			reach(n)
+		}
+	}
+	reach("generator")
 	generator, _ := researchByID("generator")
 	costs, rewards := 0, 0
 	for range 1000 {
@@ -56,6 +65,28 @@ func TestGiftsComeFromDoneResearch(t *testing.T) {
 	}
 	if rewards == 0 || costs == 0 || rewards > costs {
 		t.Errorf("%d reward gifts and %d cost gifts in 1000", rewards, costs)
+	}
+}
+
+func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
+	s := testSession(t)
+	s.state.Researched = map[string]bool{"project_dragon": true, "iron_tools": true, "stick": true}
+	for range 500 {
+		gift := s.rollGift()
+		for _, st := range gift {
+			switch st.Item().(type) {
+			case item.Diamond, item.NetheriteIngot, item.Emerald, item.IronIngot:
+				t.Fatalf("gift %v from research done out of order", gift)
+			}
+		}
+	}
+	stick, _ := researchByID("stick")
+	if !s.reachedResearch(stick) {
+		t.Error("stick, done and needing nothing, is not reached")
+	}
+	project, _ := researchByID("project_dragon")
+	if s.reachedResearch(project) {
+		t.Error("project_dragon counted as reached without its needs")
 	}
 }
 

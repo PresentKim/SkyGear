@@ -207,14 +207,15 @@ func (s *session) rollGift() []item.Stack {
 }
 
 // giftResearch picks a done research that keep accepts, weighted by
-// researchDepth so later research comes up more often.
+// researchDepth so later research comes up more often. The projects (the
+// goals at the end of the tree) are never picked.
 func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
 	var picks []*Research
 	var weights []int
 	total := 0
 	for i := range researchTree {
 		r := &researchTree[i]
-		if r.isCopy() || !s.researched(r.ID) || !keep(r) {
+		if r.isCopy() || strings.HasPrefix(r.ID, "project_") || !s.reachedResearch(r) || !keep(r) {
 			continue
 		}
 		w := researchDepth(r) + 1
@@ -231,6 +232,22 @@ func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
 		n -= w
 	}
 	return nil, false
+}
+
+// reachedResearch reports whether r and every research before it are done.
+// The admin and debug commands can mark a research done out of order, and
+// such a one is no gift.
+func (s *session) reachedResearch(r *Research) bool {
+	if !s.researched(r.ID) {
+		return false
+	}
+	for _, n := range r.Needs {
+		need, ok := researchByID(n)
+		if ok && !s.reachedResearch(need) {
+			return false
+		}
+	}
+	return true
 }
 
 // researchDepth is how many researches must be done before r.

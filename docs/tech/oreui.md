@@ -2,6 +2,8 @@
 
 팩을 암호화하면(`[ResourcePack] Encrypt`, 기본 켬) 섬 안의 메뉴 폼은 게임의 Ore UI에 그린 서버 주도 DDUI 화면으로 보인다. 로비 폼과 입력·확인·표 폼은 JSON UI(`docs/tech/json-ui.md`)로 남는다.
 
+플레이어는 `/uimode` 로 자기 메뉴를 JSON UI 폼으로 바꾸거나 되돌린다. 계정 설정(`account_settings` 의 `ui_mode`, `"json"`)으로 남고, 기본값은 모든 기기가 같다(Ore UI). 애플 기기에서 Ore UI 화면이 깨진다는 보고가 있어, 그 기기에서 두 방식을 견주어 보는 데 쓴다(`internal/platform/uimode.go`, common `ui.PreferJSON`).
+
 ## 구성
 
 - common `packs/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화 팩에서만** 가져가므로, 암호화를 켤 때만 보낸다(`main.go`).

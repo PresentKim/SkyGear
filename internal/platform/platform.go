@@ -69,6 +69,7 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		UsePlayer: func(p, target *player.Player) bool { return (*pf).usePlayer(p, target) },
 		Quit: func(p *player.Player) {
 			account.Forget(p)
+			setJSONUI(p.UUID(), false)
 			waila.Forget(p)
 			forgetLobbyHUD(p)
 			stopLobbyMotion(p)
@@ -88,6 +89,7 @@ func (pf *Platform) Join(p *player.Player) {
 		p.Disconnect(i18n.T(i18n.Of(p), "platform.platform.Join.1"))
 		return
 	}
+	pf.loadUIMode(p)
 	pf.m.Join(p)
 	account.Count(p, "login", 1)
 	account.Refresh(p)
@@ -311,6 +313,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.platform.registerCommands.6"), nil, membersCmd{pf: pf}))
 	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.platform.registerCommands.7"), nil, joinCmd{pf: pf}))
 	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.platform.registerCommands.8"), []string{"titles"}, titleCmd{pf: pf}))
+	cmd.Register(cmd.New("uimode", i18n.T(i18n.Default, "platform.platform.registerCommands.9"), nil, uiModeCmd{pf: pf}))
 }
 
 type playerOnly struct{}

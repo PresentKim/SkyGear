@@ -23,8 +23,14 @@ import (
 // closes the DDUI screen first.
 var OreUI bool
 
+// PreferJSON reports whether p chose the JSON UI forms over the DDUI screens
+// (nil: nobody did). It is called from any goroutine.
+var PreferJSON func(p *player.Player) bool
+
 // OreUIFor reports whether forms for p show as DDUI screens.
-func OreUIFor(p *player.Player) bool { return OreUI && (InLobby == nil || !InLobby(p)) }
+func OreUIFor(p *player.Player) bool {
+	return OreUI && (InLobby == nil || !InLobby(p)) && (PreferJSON == nil || !PreferJSON(p))
+}
 
 // oreScreen is the DDUI screen of a player: what its elements run, and gen,
 // which counts the screens shown, so a press that shows none closes it (as a
