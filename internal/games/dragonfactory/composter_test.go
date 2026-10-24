@@ -21,9 +21,9 @@ func TestComposterLevels(t *testing.T) {
 	}
 }
 
-// TestComposterFillsToDirt: 32 plant items fill a composter step by step and
-// a click on the full one gives one dirt and empties it; other items are
-// not taken.
+// TestComposterFillsToDirt: 32 plant items fill a composter step by step,
+// the full one makes dirt in composterDelay, and a click then gives one dirt
+// and empties it; other items are not taken.
 func TestComposterFillsToDirt(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -50,8 +50,20 @@ func TestComposterFillsToDirt(t *testing.T) {
 			t.Fatalf("%d saplings left, want %d", held.Count(), 64-matterCapacity)
 		}
 		held, _ := p.HeldItems()
+		// full: the dirt takes composterDelay
 		if !s.useComposter(p, tx, pos, held) {
 			t.Fatal("the full composter did not answer")
+		}
+		if p.Inventory().ContainsItem(item.NewStack(block.Dirt{}, 1)) || s.composterCount(pos, tx.Block(pos).(block.Composter)) != matterCapacity {
+			t.Fatal("a full composter gave dirt at once")
+		}
+		s.state.ComposterReady[cropKey(pos)] = -1 // the time is up
+		s.tickComposters(tx)
+		if c := tx.Block(pos).(block.Composter); c.Level != composterReadyLevel {
+			t.Fatalf("ready composter shows level %d", c.Level)
+		}
+		if !s.useComposter(p, tx, pos, held) {
+			t.Fatal("the ready composter did not answer")
 		}
 		if c := tx.Block(pos).(block.Composter); c.Level != 0 || s.composterCount(pos, c) != 0 {
 			t.Errorf("the composter is not empty: %+v", c)

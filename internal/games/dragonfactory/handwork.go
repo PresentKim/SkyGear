@@ -98,7 +98,7 @@ func (Dust) Model() world.BlockModel               { return model.Solid{} }
 func (Dust) Name() string                          { return i18n.T(i18n.Default, "name.Dust") }
 func (Dust) Category() category.Category           { return category.Construction() }
 func (Dust) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": alphaMaterial("dragonfactory_dust")}}
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": solidMaterial("dragonfactory_dust")}}
 }
 func (d Dust) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{

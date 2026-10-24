@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -18,17 +19,23 @@ import (
 // with the game's own rules: no chance, no bone meal. Every plant item put
 // in (anything vanilla composts: leaves, saplings, seeds, crops, ... and the
 // bark fiber) counts as one, and the 32nd fills it. The seven fill levels
-// of the block are at fixed counts (the level is count * 7 / 32), and using
-// a full composter gives one dirt and empties it. The count of each
-// composter is in the save (State.Composters, by position); hoppers do not
-// feed it (Dragonfly patch block.ComposterVanillaRules).
+// of the block are at fixed counts (the level is count * 7 / 32). A full
+// composter turns its contents into dirt in composterDelay (instance time,
+// the ready level 8 of the block), and using it then gives one dirt and
+// empties it. The count of each composter is in the save (State.Composters,
+// by position) with the time its dirt is ready (State.ComposterReady);
+// hoppers do not feed it (Dragonfly patch block.ComposterVanillaRules).
 
 const (
 	// matterCapacity is how many plant items fill a composter or a barrel.
 	matterCapacity = 32
 	// composterLevels is the number of fill levels of the composter block;
-	// the last one is a full composter.
-	composterLevels = 7
+	// the last one is a full composter. composterReadyLevel shows its dirt
+	// is ready.
+	composterLevels     = 7
+	composterReadyLevel = 8
+	// composterDelay is how long a full composter takes to make dirt.
+	composterDelay = 30 * time.Second
 )
 
 func init() { block.ComposterVanillaRules = false }
@@ -77,8 +84,10 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 	n := s.composterCount(pos, c)
 	switch {
 	case n >= matterCapacity:
-		s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), s.emptyComposter(tx, pos, c))
-		count(p, "compost_dirt", 1)
+		if dirt := s.emptyComposter(tx, pos, c); !dirt.Empty() {
+			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), dirt)
+			count(p, "compost_dirt", 1)
+		}
 		return true
 	case plantMatter(held):
 		if s.fillComposter(tx, pos, c, held, 1) == 0 {
@@ -115,7 +124,12 @@ func (s *session) fillComposter(tx *world.Tx, pos cube.Pos, c block.Composter, s
 	tx.AddParticle(pos.Vec3(), particle.BoneMeal{})
 	switch {
 	case have >= matterCapacity:
-		tx.PlaySound(pos.Vec3(), sound.ComposterReady{})
+		if s.state.ComposterReady == nil {
+			s.state.ComposterReady = map[string]time.Duration{}
+		}
+		now, _, _ := s.clock.Now()
+		s.state.ComposterReady[cropKey(pos)] = now + composterDelay
+		tx.PlaySound(pos.Vec3(), sound.ComposterFillLayer{})
 	case level != c.Level:
 		tx.PlaySound(pos.Vec3(), sound.ComposterFillLayer{})
 	default:
@@ -125,13 +139,46 @@ func (s *session) fillComposter(tx *world.Tx, pos cube.Pos, c block.Composter, s
 	return n
 }
 
-// emptyComposter takes the dirt out of a full composter at pos and empties
-// it; it returns the dirt (empty when the composter is not full).
-func (s *session) emptyComposter(tx *world.Tx, pos cube.Pos, c block.Composter) item.Stack {
+// composterReady reports whether the composter at pos holds ready dirt: full
+// and its time is up (a full one the save has no time for is ready).
+func (s *session) composterReady(pos cube.Pos, c block.Composter) bool {
 	if s.composterCount(pos, c) < matterCapacity {
+		return false
+	}
+	at, ok := s.state.ComposterReady[cropKey(pos)]
+	now, _, _ := s.clock.Now()
+	return !ok || now >= at
+}
+
+// tickComposters shows the dirt of the full composters whose time is up and
+// forgets composters that are gone.
+func (s *session) tickComposters(tx *world.Tx) {
+	for key, at := range s.state.ComposterReady {
+		var pos cube.Pos
+		if _, err := fmt.Sscanf(key, "%d,%d,%d", &pos[0], &pos[1], &pos[2]); err != nil {
+			delete(s.state.ComposterReady, key)
+			continue
+		}
+		c, ok := tx.Block(pos).(block.Composter)
+		if !ok {
+			delete(s.state.ComposterReady, key)
+			continue
+		}
+		if now, _, _ := s.clock.Now(); now >= at && c.Level != composterReadyLevel {
+			tx.SetBlock(pos, block.Composter{Level: composterReadyLevel}, nil)
+			tx.PlaySound(pos.Vec3(), sound.ComposterReady{})
+		}
+	}
+}
+
+// emptyComposter takes the dirt out of a composter at pos and empties it; it
+// returns the dirt (empty when the dirt is not ready).
+func (s *session) emptyComposter(tx *world.Tx, pos cube.Pos, c block.Composter) item.Stack {
+	if !s.composterReady(pos, c) {
 		return item.Stack{}
 	}
 	s.setComposterCount(pos, 0)
+	delete(s.state.ComposterReady, cropKey(pos))
 	tx.SetBlock(pos, block.Composter{}, nil)
 	tx.PlaySound(pos.Vec3(), sound.ComposterEmpty{})
 	s.storeState()
@@ -152,7 +199,7 @@ func (c composterIO) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st ite
 
 func (c composterIO) PeekItems(tx *world.Tx, pos cube.Pos, face cube.Face, want func(item.Stack) bool) item.Stack {
 	comp, ok := tx.Block(pos).(block.Composter)
-	if !ok || face != cube.FaceDown || c.s.composterCount(pos, comp) < matterCapacity {
+	if !ok || face != cube.FaceDown || !c.s.composterReady(pos, comp) {
 		return item.Stack{}
 	}
 	dirt := item.NewStack(block.Dirt{}, 1)
@@ -180,16 +227,22 @@ func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it it
 // composterLines are the lines of the composter's WAILA panel.
 func (s *session) composterLines(pos cube.Pos, c block.Composter) []string {
 	n := s.composterCount(pos, c)
-	if n >= matterCapacity {
+	if s.composterReady(pos, c) {
 		return []string{i18n.T(i18n.Default, "dragonfactory.composter.composterLines.1")}
+	}
+	if n >= matterCapacity {
+		now, _, _ := s.clock.Now()
+		left := max(s.state.ComposterReady[cropKey(pos)]-now, 0).Round(time.Second)
+		return []string{fmt.Sprintf(i18n.T(i18n.Default, "composter.lines.making"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
 	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.composter.composterLines.2"), n, matterCapacity)}
 }
 
 // breakComposter forgets a composter that is broken; a full one drops dirt.
 func (s *session) breakComposter(pos cube.Pos, c block.Composter, drops *[]item.Stack) {
-	if s.composterCount(pos, c) >= matterCapacity {
+	if s.composterReady(pos, c) {
 		*drops = append(*drops, item.NewStack(block.Dirt{}, 1))
 	}
 	s.setComposterCount(pos, 0)
+	delete(s.state.ComposterReady, cropKey(pos))
 }

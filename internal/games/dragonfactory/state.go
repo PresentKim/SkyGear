@@ -41,6 +41,9 @@ type State struct {
 	// Composters are the plant items in each composter by position
 	// ("x,y,z", composter.go).
 	Composters map[string]int `json:"composters,omitempty"`
+	// ComposterReady is the instance time the dirt of each full composter
+	// is ready (composter.go).
+	ComposterReady map[string]time.Duration `json:"composter_ready,omitempty"`
 	// Barrels are the barrels' contents by position (barrel.go).
 	Barrels map[string]*BarrelRecord `json:"barrels,omitempty"`
 	// Plants are the magic plants by position (magic.go).

@@ -16,6 +16,14 @@ func alphaMaterial(texture string) customblock.Material {
 	return customblock.NewMaterial(texture, customblock.AlphaTestRenderMethod())
 }
 
+// solidMaterial is the material of a natural full block (dust, crushed
+// blocks, ores): opaque with ambient occlusion, shaded like vanilla dirt and
+// sand. alphaMaterial turns ambient occlusion off, and such a block looked
+// flat and brighter than its neighbours.
+func solidMaterial(texture string) customblock.Material {
+	return customblock.NewMaterial(texture, customblock.OpaqueRenderMethod())
+}
+
 // cubeProperties returns the properties of a plain cube block named name:
 // the vanilla full block geometry with the side texture on the four sides
 // ("*") and its own top and bottom (textures/blocks/<name>_<side|up|down>.png).

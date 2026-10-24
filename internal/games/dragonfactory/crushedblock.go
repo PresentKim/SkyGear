@@ -44,7 +44,7 @@ func (CrushedBlock) Model() world.BlockModel     { return model.Solid{} }
 func (c CrushedBlock) Name() string              { return i18n.T(i18n.Default, "name.Crushed."+c.Kind) }
 func (CrushedBlock) Category() category.Category { return category.Construction() }
 func (c CrushedBlock) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": alphaMaterial("dragonfactory_crushed_" + c.Kind)}}
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": solidMaterial("dragonfactory_crushed_" + c.Kind)}}
 }
 func (c CrushedBlock) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{

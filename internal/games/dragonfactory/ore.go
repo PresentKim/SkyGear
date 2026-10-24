@@ -55,7 +55,7 @@ func (o OreBlock) Name() string {
 	return metalName(o.Metal) + i18n.T(i18n.Default, "name.OreBlock.suffix")
 }
 func (o OreBlock) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": alphaMaterial("dragonfactory_" + o.Metal + "_ore")}}
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": solidMaterial("dragonfactory_" + o.Metal + "_ore")}}
 }
 
 // BreakInfo mines like an iron ore: a stone pickaxe or better gives one raw
