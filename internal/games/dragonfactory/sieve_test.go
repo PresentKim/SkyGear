@@ -147,15 +147,15 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 	}
 }
 
-// TestSieveActsOn3x3: fitting a mesh and putting in a block work on every
-// sieve in the 3×3 around the clicked one on its level, not beyond it.
-func TestSieveActsOn3x3(t *testing.T) {
+// TestSieveActsOn5x5: fitting a mesh and putting in a block work on every
+// sieve in the 5×5 around the clicked one on its level, not beyond it.
+func TestSieveActsOn5x5(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	at := func(dx, dz int) cube.Pos { return machinePos.Add(cube.Pos{dx, 0, dz}) }
 	mid := placeTestMachine(s, at(0, 0), KindSieve, "")
-	near := placeTestMachine(s, at(1, 1), KindSieve, "")
-	far := placeTestMachine(s, at(2, 0), KindSieve, "")
+	near := placeTestMachine(s, at(2, 2), KindSieve, "")
+	far := placeTestMachine(s, at(3, 0), KindSieve, "")
 	for _, st := range []*machineState{mid, near, far} {
 		st.mesh = ""
 	}
@@ -188,6 +188,33 @@ func TestSieveActsOn3x3(t *testing.T) {
 		use()
 		if mid.progress == 0 || near.progress == 0 || far.progress != 0 {
 			t.Errorf("sifting progress %d %d %d", mid.progress, near.progress, far.progress)
+		}
+	})
+}
+
+func TestSieveTopsUpTheHand(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	var group []*machineState
+	for dx := range 3 {
+		group = append(group, placeTestMachine(s, machinePos.Add(cube.Pos{dx, 0, 0}), KindSieve, ""))
+	}
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.SetHeldItems(item.NewStack(block.Gravel{}, 1), item.Stack{})
+		_ = p.Inventory().SetItem(20, item.NewStack(block.Gravel{}, 10))
+		(Machine{Kind: KindSieve, st: group[0]}).Activate(machinePos, cube.FaceUp, tx, p, nil)
+		for i, st := range group {
+			if _, _, filled := st.firstInput(); !filled {
+				t.Errorf("sieve %d got no gravel", i)
+			}
+		}
+		held, _ := p.HeldItems()
+		if itemKey(held.Item()) != itemKey(block.Gravel{}) || held.Count() != 8 {
+			t.Errorf("held %d %s, want the 8 gravel left", held.Count(), itemKey(held.Item()))
+		}
+		if total := countPlain(p.Inventory(), block.Gravel{}); total != 8 {
+			t.Errorf("%d gravel in the inventory, want 8", total)
 		}
 	})
 }

@@ -210,8 +210,8 @@ func sieveHolds(it item.Stack) bool {
 }
 
 // sieveReach is how far from the clicked sieve other sieves on the same
-// level work along: the 3×3 around it.
-const sieveReach = 1
+// level work along: the 5×5 around it.
+const sieveReach = 2
 
 // sieveAt is a sieve block of the game with its state.
 type sieveAt struct {
@@ -219,7 +219,7 @@ type sieveAt struct {
 	st  *machineState
 }
 
-// sievesAround are the sieves in the 3×3 on the level of pos, the clicked
+// sievesAround are the sieves in the 5×5 on the level of pos, the clicked
 // one first.
 func sievesAround(tx *world.Tx, pos cube.Pos, clicked *machineState) []sieveAt {
 	out := []sieveAt{{pos, clicked}}
@@ -236,8 +236,11 @@ func sievesAround(tx *world.Tx, pos cube.Pos, clicked *machineState) []sieveAt {
 
 // useSieve handles using a sieve: fitting a mesh, putting in a block (the
 // hand sieve takes one, the auto sieve the held stack) or sifting a stage.
-// Putting in and sifting work on every sieve in the 3×3 around the clicked
-// one at once; the mesh only on the clicked one.
+// Putting in and sifting work on every sieve in the 5×5 around the clicked
+// one at once; the mesh only on the clicked one. When the hand holds fewer
+// blocks than the empty hand sieves of the group take, more of the same
+// block comes into the hand from the inventory, and a hand left empty is
+// filled again with it.
 func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *machineState) {
 	held, off := p.HeldItems()
 	group := sievesAround(tx, pos, st)
@@ -254,12 +257,17 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 		return
 	}
 	if sieveHolds(held) {
+		proto := held.Grow(1 - held.Count())
+		topUpHand(p, proto, emptyHandSieves(group, proto))
 		put := 0
 		for _, sv := range group {
 			if held, off = p.HeldItems(); held.Empty() {
 				break
 			}
 			put += s.putIntoSieve(p, tx, sv, held, off)
+		}
+		if held, _ = p.HeldItems(); held.Empty() {
+			topUpHand(p, proto, proto.MaxCount())
 		}
 		if put > 0 {
 			return
@@ -285,6 +293,52 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 			}
 		}
 	}
+}
+
+// emptyHandSieves counts the hand sieves of a group that would take one of
+// it now (empty and with a mesh that sifts it).
+func emptyHandSieves(group []sieveAt, it item.Stack) int {
+	n := 0
+	for _, sv := range group {
+		if _, _, filled := sv.st.firstInput(); !filled && !sv.st.kind.autoSieve && sv.st.accepts(it) {
+			n++
+		}
+	}
+	return n
+}
+
+// topUpHand brings more of proto from the rest of p's inventory into its main
+// hand until the hand holds want of it (a stack at most). The hand must hold
+// proto or nothing. The hand is emptied while the other slots are searched,
+// so its own slot is never counted twice.
+func topUpHand(p *player.Player, proto item.Stack, want int) {
+	held, off := p.HeldItems()
+	if !held.Empty() && !held.Comparable(proto) {
+		return
+	}
+	want = min(want, proto.MaxCount())
+	if held.Count() >= want {
+		return
+	}
+	got := held
+	p.SetHeldItems(item.Stack{}, off)
+	inv := p.Inventory()
+	for slot, it := range inv.Slots() {
+		if got.Count() >= want {
+			break
+		}
+		if it.Empty() || !it.Comparable(proto) {
+			continue
+		}
+		n := min(it.Count(), want-got.Count())
+		_ = inv.SetItem(slot, it.Grow(-n))
+		if got.Empty() {
+			got = it.Grow(n - it.Count())
+		} else {
+			got = got.Grow(n)
+		}
+	}
+	p.SetHeldItems(got, off)
 }
 
 // putIntoSieve puts the held item into one sieve (the hand sieve takes one
