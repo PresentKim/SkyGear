@@ -951,3 +951,209 @@
   font-size: 1.4rem;
   color: var(--mc-title);
 }
+
+/* --- sides of a block (ui.SidesMenu), in a window of the vanilla inventory's size: the block in the
+   middle joined by lines to a card for each side (96x56u, placed by the server) with the side's arrow
+   and name, the block beside it and a 34x36u box for each port side by side: the square of its choice
+   on the left, its label at the top right and the plus button under it. The choices open in a panel.
+   Sizes are border-box, as Gameface lays boxes out. ------------------------------------------------ */
+
+.mc-sides {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.mc-side-line {
+  background-color: #8b8b8b;
+}
+
+.mc-side-centre {
+  position: absolute;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-side-centre img {
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-side-card {
+  position: absolute;
+  width: 19.2rem;
+  height: 11.2rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  background-color: #d6d6d6;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #8b8b8b;
+}
+
+.mc-side-card.on {
+  border-color: #ffffff;
+  background-color: #e4e4e4;
+}
+
+.mc-side-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 2rem;
+}
+
+.mc-side-head img.mc-side-arrow {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: 0.4rem;
+}
+
+.mc-side-name {
+  font-size: 1.12rem;
+  color: var(--mc-title);
+}
+
+.mc-side-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 8rem;
+}
+
+.mc-side-body img.mc-side-block {
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+  margin-right: 0.4rem;
+}
+
+.mc-side-ports {
+  display: flex;
+  flex-direction: row;
+}
+
+.mc-port {
+  position: relative;
+  width: 6.8rem;
+  height: 7.2rem;
+  margin-right: 0.4rem;
+  background-color: #ececec;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #a8a8a8;
+}
+
+.mc-port-label {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.4rem;
+  font-size: 1rem;
+  color: var(--mc-ink);
+}
+
+.mc-port-swatch {
+  position: absolute;
+  left: 0.4rem;
+  top: 1.6rem;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #3a3a3a;
+}
+
+.mc-port-swatch:hover {
+  border-color: #ffffff;
+}
+
+.mc-port-swatch.icon,
+.mc-choice-swatch.icon {
+  border-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-port-swatch.icon img {
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-port-plus {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #ffffff;
+  background-color: #6f6f6f;
+}
+
+.mc-port-plus:hover,
+.mc-port-plus.on {
+  background-color: #3a3a3a;
+}
+
+.mc-port-none {
+  width: 14rem;
+  height: 7.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #6a6a6a;
+  background-color: #bdbdbd;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #a0a0a0;
+}
+
+.mc-port-picker {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 0.6rem;
+  background-color: #f2f2f2;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #6f6f6f;
+}
+
+.mc-port-choice {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: transparent;
+}
+
+.mc-port-choice:hover {
+  background-color: #d6d6d6;
+}
+
+.mc-port-choice.on {
+  border-color: #333333;
+}
+
+.mc-choice-swatch {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-style: solid;
+  border-width: 0.1rem;
+  border-color: #3a3a3a;
+}
+
+.mc-choice-swatch.icon img {
+  width: 1.8rem;
+  height: 1.8rem;
+}

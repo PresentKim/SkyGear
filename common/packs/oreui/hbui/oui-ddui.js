@@ -106,6 +106,10 @@
     s = s === undefined || s === null ? "" : String(s);
     s.split("\n").forEach(function (line, i) {
       var lineEl = el("div", "oui-line");
+      // Gameface lays the colour runs of a line out as flex items aligned at their tops (no baseline
+      // alignment), so a run the Minecraft font draws sits higher than one in the locale's Noto font.
+      // A line with any non-ASCII letter is drawn in the Noto font throughout.
+      if (/[^\x00-\x7f§]/.test(line)) lineEl.className += " oui-wide";
       var colour = "", bold = false, italic = false, run = "";
       function flush() {
         if (!run) return;

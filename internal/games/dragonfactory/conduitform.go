@@ -2,12 +2,12 @@ package dragonfactory
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
@@ -34,115 +34,140 @@ func neighbourName(lang string, b world.Block) string {
 	return blockName(lang, b)
 }
 
-// showPlateForm shows the settings of a side of the bundle at pos that has a
-// connector plate (conduitplate.go), titled "<side> face: <block name>": at the
-// top what each conduit there carries and, for an item conduit, in two columns
-// like EnderIO's item conduit screen, the insert side (the conduit gives items to
-// the block) and the extract side (it takes items from the block), each with a
-// switch and a channel (itemnet.Channels). Priority, filters and redstone control
-// are not there.
+// showPlateForm shows the settings of the side of the bundle at pos that has
+// a connector plate (conduitplate.go): with an item conduit in the bundle the
+// sides screen (showConduitSides) with that side chosen, or else what each
+// conduit there carries, titled "<side> face: <block name>".
 func (s *session) showPlateForm(p *player.Player, tx *world.Tx, pos cube.Pos, side int) {
 	b, ok := tx.Block(pos).(ConduitBundle)
 	if !ok {
 		return
 	}
-	lang := i18n.Of(p)
-	f := conduitFaces[side]
 	kinds := plateKinds(tx, pos, b, side)
 	if len(kinds) == 0 {
 		return
 	}
+	if b.Item > 0 {
+		s.showConduitSides(p, tx, pos, side)
+		return
+	}
+	lang := i18n.Of(p)
+	f := conduitFaces[side]
 	title := fmt.Sprintf(i18n.T(lang, "conduitplate.title"), i18n.T(lang, "conduitplate.side."+sideName(f)), neighbourName(lang, tx.Block(pos.Side(f))))
+	ui.Menu(p, title, conduitLines(lang, b, kinds))
+}
+
+// conduitLines are the lines that tell what each of the kinds of conduits
+// (conduitKinds' indices) of b carries.
+func conduitLines(lang string, b ConduitBundle, kinds []int) string {
 	var lines []string
-	hasItem := false
 	for _, k := range kinds {
 		switch k {
 		case 0:
 			lines = append(lines, fmt.Sprintf("%s §7%d RE/t", i18n.T(lang, fmt.Sprintf("name.EnergyConduit.%d", b.Energy)), energy.RateOf(b.Energy)))
 		case 1:
-			hasItem = true
 			lines = append(lines, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item))+" §7"+
 				fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
 		default:
 			lines = append(lines, fmt.Sprintf("%s §7%d mB/t", i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid)), fluidRate(b.Fluid)))
 		}
 	}
-	body := strings.Join(lines, "\n")
-	if !hasItem {
-		ui.Menu(p, title, body)
-		return
-	}
-	mode := b.Modes[f]
-	// state of a column: 0 is off (shown as glass), 1+c is on at channel c
-	// (shown as concrete in the channel's colour)
-	stateOf := func(extract bool) int {
-		if extract {
-			if mode.Gives() {
-				return 1 + b.Extract[f]
-			}
-		} else if mode.Takes() {
-			return 1 + b.Insert[f]
-		}
-		return 0
-	}
-	apply := func(p *player.Player, tx *world.Tx, extract bool, state int) {
-		cur, ok := tx.Block(pos).(ConduitBundle)
-		if !ok {
-			return
-		}
-		ex, in := cur.Modes[f].Gives(), cur.Modes[f].Takes()
-		if extract {
-			ex = state > 0
-			if ex {
-				cur.Extract[f] = state - 1
-			}
-		} else {
-			in = state > 0
-			if in {
-				cur.Insert[f] = state - 1
-			}
-		}
-		cur.Modes[f] = itemnet.ModeOf(ex, in)
-		s.storeConduitSide(tx, pos, cur)
-		s.showPlateForm(p, tx, pos, side)
-	}
-	column := func(extract bool) []ui.ItemSlot {
-		state := stateOf(extract)
-		key := "conduitplate.insertTip"
-		if extract {
-			key = "conduitplate.extractTip"
-		}
-		return []ui.ItemSlot{
-			{
-				Icon: ui.ItemIcon(channelItem(state)),
-				Tip:  fmt.Sprintf(i18n.T(lang, key), stateName(lang, state)),
-				Run: func(p *player.Player, tx *world.Tx) {
-					apply(p, tx, extract, (state+1)%(itemnet.Channels+1))
-				},
-			},
-			{
-				Icon: ui.ItemIcon(PlusIcon{}),
-				Mini: true,
-				Tip:  i18n.T(lang, "conduitplate.choose"),
-				Run: func(p *player.Player, tx *world.Tx) {
-					s.showChannelPicker(p, tx, pos, side, extract)
-				},
-			},
-		}
-	}
-	ui.ColumnsMenu(p, title, body,
-		ui.SlotRow{Heading: i18n.T(lang, "conduitplate.insert"), Slots: column(false)},
-		ui.SlotRow{Heading: i18n.T(lang, "conduitplate.extract"), Slots: column(true)},
-	)
+	return strings.Join(lines, "\n")
 }
 
-// channelItem is the item that shows a side state: glass for off, concrete in the
-// channel's colour for on.
+// platePort is the insert or the extract side of side f of the bundle b at
+// pos: its state (0 off, 1+c on at channel c) and the states to choose from.
+func (s *session) platePort(lang string, b ConduitBundle, pos cube.Pos, f cube.Face, extract bool) ui.SidePort {
+	state, label := 0, "conduitplate.insert"
+	if extract {
+		label = "conduitplate.extract"
+		if b.Modes[f].Gives() {
+			state = 1 + b.Extract[f]
+		}
+	} else if b.Modes[f].Takes() {
+		state = 1 + b.Insert[f]
+	}
+	return ui.SidePort{Label: i18n.T(lang, label), Chosen: state, Choices: s.channelChoices(lang, pos, f, extract)}
+}
+
+// setPlateState sets the insert or the extract side of the item conduit on
+// side f of the bundle at pos to state (0 off, 1+c on at channel c).
+func (s *session) setPlateState(tx *world.Tx, pos cube.Pos, f cube.Face, extract bool, state int) {
+	cur, ok := tx.Block(pos).(ConduitBundle)
+	if !ok {
+		return
+	}
+	ex, in := cur.Modes[f].Gives(), cur.Modes[f].Takes()
+	if extract {
+		ex = state > 0
+		if ex {
+			cur.Extract[f] = state - 1
+		}
+	} else {
+		in = state > 0
+		if in {
+			cur.Insert[f] = state - 1
+		}
+	}
+	cur.Modes[f] = itemnet.ModeOf(ex, in)
+	s.storeConduitSide(tx, pos, cur)
+}
+
+// showConduitSides shows the bundle at pos with a card for each of its six
+// sides (ui.SidesMenu): the block the side meets and, where an item conduit
+// can connect to it, the insert and the extract side of it. The side at focus
+// is drawn as chosen.
+func (s *session) showConduitSides(p *player.Player, tx *world.Tx, pos cube.Pos, focus int) {
+	b, ok := tx.Block(pos).(ConduitBundle)
+	if !ok || b.Item == 0 {
+		return
+	}
+	lang := i18n.Of(p)
+	ui.SidesMenu(p, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item)), s.conduitSideBoard(p, tx, pos, focus))
+}
+
+// conduitSideBoard is the content of showConduitSides for the bundle at pos
+// as it is now.
+func (s *session) conduitSideBoard(p *player.Player, tx *world.Tx, pos cube.Pos, focus int) ui.SideBoard {
+	board := ui.SideBoard{
+		Focus:   focus,
+		Refresh: func(p *player.Player, tx *world.Tx) ui.SideBoard { return s.conduitSideBoard(p, tx, pos, focus) },
+	}
+	b, ok := tx.Block(pos).(ConduitBundle)
+	if !ok {
+		return board
+	}
+	lang := i18n.Of(p)
+	board.Center = ui.ItemIcon(ItemConduit{Tier: b.Item})
+	for side, f := range conduitFaces {
+		v := ui.SideView{Name: i18n.T(lang, "conduitplate.side."+sideName(f))}
+		if nb := tx.Block(pos.Side(f)); nb != (block.Air{}) {
+			v.Tip = neighbourName(lang, nb)
+			if it, ok := nb.(world.Item); ok {
+				v.Icon = ui.ItemIcon(it)
+			}
+		}
+		if slices.Contains(plateKinds(tx, pos, b, side), 1) {
+			v.Ports = []ui.SidePort{s.platePort(lang, b, pos, f, false), s.platePort(lang, b, pos, f, true)}
+		}
+		board.Sides[f] = v
+	}
+	return board
+}
+
+// channelItem is the item that shows a side state in JSON UI: a barrier for
+// off, concrete in the channel's colour for on.
 func channelItem(state int) world.Item {
 	if state == 0 {
-		return block.Glass{}
+		return block.Barrier{}
 	}
 	return block.Concrete{Colour: channelColours[state-1]}
+}
+
+// channelColour is the colour square of a channel in DDUI ("#rrggbb").
+func channelColour(c int) string {
+	rgb := channelColours[c].RGBA()
+	return fmt.Sprintf("#%02x%02x%02x", rgb.R, rgb.G, rgb.B)
 }
 
 func stateName(lang string, state int) string {
@@ -152,57 +177,23 @@ func stateName(lang string, state int) string {
 	return "§a" + channelName(lang, state-1)
 }
 
-// showChannelPicker lets the player choose off or a channel for the extract or
-// insert side of a bundle side.
-func (s *session) showChannelPicker(p *player.Player, tx *world.Tx, pos cube.Pos, side int, extract bool) {
-	lang := i18n.Of(p)
-	f := conduitFaces[side]
-	var slots []ui.ItemSlot
+// channelChoices are off (a barrier) and the channels (their colours) to
+// choose for the extract or the insert side of side f of the bundle at pos.
+func (s *session) channelChoices(lang string, pos cube.Pos, f cube.Face, extract bool) []ui.PortChoice {
+	var out []ui.PortChoice
 	for state := 0; state <= itemnet.Channels; state++ {
-		slots = append(slots, ui.ItemSlot{
+		c := ui.PortChoice{
 			Icon: ui.ItemIcon(channelItem(state)),
 			Tip:  stateName(lang, state),
-			Run: func(p *player.Player, tx *world.Tx) {
-				cur, ok := tx.Block(pos).(ConduitBundle)
-				if !ok {
-					return
-				}
-				ex, in := cur.Modes[f].Gives(), cur.Modes[f].Takes()
-				if extract {
-					ex = state > 0
-					if ex {
-						cur.Extract[f] = state - 1
-					}
-				} else {
-					in = state > 0
-					if in {
-						cur.Insert[f] = state - 1
-					}
-				}
-				cur.Modes[f] = itemnet.ModeOf(ex, in)
-				s.storeConduitSide(tx, pos, cur)
-				s.showPlateForm(p, tx, pos, side)
-			},
-		})
+			Run:  func(p *player.Player, tx *world.Tx) { s.setPlateState(tx, pos, f, extract, state) },
+		}
+		if state > 0 {
+			c.Colour = channelColour(state - 1)
+		}
+		out = append(out, c)
 	}
-	title := i18n.T(lang, "conduitplate.insertChannelTitle")
-	if extract {
-		title = i18n.T(lang, "conduitplate.extractChannelTitle")
-	}
-	ui.ItemGrid(p, title, "", slots, ui.Back(i18n.T(lang, "conduitplate.back"), func(p *player.Player, tx *world.Tx) {
-		s.showPlateForm(p, tx, pos, side)
-	}))
+	return out
 }
-
-// PlusIcon is the small white plus of the choose buttons in forms. It only ever
-// shows in forms.
-type PlusIcon struct{}
-
-func (PlusIcon) EncodeItem() (string, int16) { return "dragonfactory:plus", 0 }
-func (PlusIcon) Name() string                { return i18n.T(i18n.Default, "name.PlusIcon") }
-func (PlusIcon) Category() category.Category { return category.Items() }
-
-func init() { world.RegisterItem(PlusIcon{}) }
 
 // storeConduitSide stores a bundle whose side settings changed and shows it.
 func (s *session) storeConduitSide(tx *world.Tx, pos cube.Pos, b ConduitBundle) {

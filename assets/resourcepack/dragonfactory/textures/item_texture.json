@@ -226,9 +226,6 @@
     "dragonfactory:energy_gauge_10": {
       "textures": "textures/items/energy_gauge_10"
     },
-    "dragonfactory:plus": {
-      "textures": "textures/items/plus"
-    },
     "dragonfactory:ore_chunk_tin": {
       "textures": "textures/items/ore_chunk_tin"
     },

@@ -274,6 +274,10 @@ body.oui-active #root {
   flex-wrap: wrap;
 }
 
+.oui-line.oui-wide {
+  font-family: var(--localeSpecificNotoSansFonts);
+}
+
 .oui-button.disabled {
   opacity: 0.4;
 }

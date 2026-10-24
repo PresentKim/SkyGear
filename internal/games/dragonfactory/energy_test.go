@@ -455,8 +455,21 @@ func TestPlateFormsOpen(t *testing.T) {
 		b := tx.Block(pos).(ConduitBundle)
 		b.refresh(pos, tx)
 		s.showPlateForm(p, tx, pos, 4)
-		s.showChannelPicker(p, tx, pos, 4, true)
+		s.showConduitSides(p, tx, pos, 4)
+		board := s.conduitSideBoard(p, tx, pos, 4)
+		west := board.Sides[cube.FaceWest].Ports
+		if len(west) != 2 || len(west[1].Choices) != itemnet.Channels+1 || west[1].Choices[0].Colour != "" || west[1].Choices[1].Colour == "" {
+			t.Fatalf("west side ports %v", west)
+		}
+		west[1].Choices[2].Run(p, tx)
+		if got := tx.Block(pos).(ConduitBundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
+			t.Errorf("chose extract channel: %v %v", got.Modes, got.Extract)
+		}
 		s.showPlateForm(p, tx, pos, 0) // no plate below
+		s.setPlateState(tx, pos, cube.FaceWest, true, 2)
+		if got := tx.Block(pos).(ConduitBundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
+			t.Errorf("set extract channel: %v %v", got.Modes, got.Extract)
+		}
 		// the form's changes are stored as modes and channels
 		b = tx.Block(pos).(ConduitBundle)
 		b.Modes[cube.FaceWest] = itemnet.ModeOf(false, true)
@@ -533,12 +546,14 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 	})
 }
 
-// TestChannelItems: a side state shows glass when off and concrete in the
-// channel's colour when on; every state has an icon.
+// TestChannelItems: a side state shows a barrier when off and concrete in the
+// channel's colour when on; every state has an icon and every channel its own
+// colour square.
 func TestChannelItems(t *testing.T) {
-	if _, ok := channelItem(0).(block.Glass); !ok {
+	if _, ok := channelItem(0).(block.Barrier); !ok {
 		t.Errorf("off shows %T", channelItem(0))
 	}
+	colours := map[string]bool{}
 	for c := range itemnet.Channels {
 		got, ok := channelItem(1 + c).(block.Concrete)
 		if !ok || got.Colour != channelColours[c] {
@@ -547,6 +562,10 @@ func TestChannelItems(t *testing.T) {
 		if ui.ItemIcon(channelItem(1+c)) == "" {
 			t.Errorf("channel %d has no icon", c)
 		}
+		colours[channelColour(c)] = true
+	}
+	if len(colours) != itemnet.Channels {
+		t.Errorf("%d colour squares for %d channels", len(colours), itemnet.Channels)
 	}
 }
 

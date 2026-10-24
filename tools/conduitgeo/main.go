@@ -334,11 +334,11 @@ func arrowQuad(axis int, sign float64, lat lateral, in bool, collar bounds) map[
 	if !in {
 		want = -sign
 	}
-	// A real client showed the arrows turned the wrong way round with the
-	// directions of faceAxes everywhere except on the north and south faces of
-	// arms along x: there the texture is also seen from the other side (the model
-	// is mirrored in z), which turns it back.
-	if !(axis == uAxis && (name == "north" || name == "south")) {
+	// A real client shows the arrows the wrong way round with the directions
+	// of faceAxes on arms along y and on the up and down faces of arms along
+	// x; on arms along z and the north and south faces of arms along x they
+	// point the right way.
+	if axis == 1 || (axis == 0 && name != "north" && name != "south") {
 		want = -want
 	}
 	// the arrow at (0, 0) points along +v if it is the in arrow, -v if out; the
