@@ -319,7 +319,7 @@
  "dragonfactory.expand.showExpandActions.7": "§7Left island expansion mode.",
  "dragonfactory.expand.showExpandActions.8": "Island Expansion",
  "dragonfactory.fairy.Use.1": "§7Research Notes are no longer used. Research happens at the Research Table.",
- "dragonfactory.fairy.gift.1": "§dThe fairy gives you a gift and flies off: §f%s §7x%d",
+ "dragonfactory.fairy.gift.1": "§dThe fairy gives you a gift and flies off: §f%s",
  "dragonfactory.fairy.leave.1": "§7The fairy got tired of waiting and flew away.",
  "dragonfactory.fairy.spawnFairy.1": "§dA fairy has come with a gift! §7(Use the fairy to receive it)",
  "dragonfactory.game.Join.1": "§aEntered '%s'. §7Day %d · Open the menu with /menu.",

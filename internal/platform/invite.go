@@ -19,7 +19,7 @@ import (
 
 // MaxMembers is the maximum number of members of a save, host included
 // (docs/design/01-platform.md §4, balancing draft).
-const MaxMembers = 4
+const MaxMembers = 10
 
 // inviteTTL is how long a friend invite stays valid.
 const inviteTTL = 10 * time.Minute

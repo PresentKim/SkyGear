@@ -2372,7 +2372,7 @@
  "dragonfactory.expand.showExpandActions.7": "§7섬 확장 모드를 끝냈습니다.",
  "dragonfactory.expand.showExpandActions.8": "섬 확장",
  "dragonfactory.fairy.Use.1": "§7연구 노트는 더 이상 쓰이지 않습니다. 연구는 연구대에서 합니다.",
- "dragonfactory.fairy.gift.1": "§d요정이 선물을 주고 날아갑니다: §f%s §7x%d",
+ "dragonfactory.fairy.gift.1": "§d요정이 선물을 주고 날아갑니다: §f%s",
  "dragonfactory.fairy.leave.1": "§7요정이 기다리다 날아가 버렸습니다.",
  "dragonfactory.fairy.spawnFairy.1": "§d요정이 선물을 들고 찾아왔습니다! §7(요정을 사용하면 선물을 받습니다)",
  "dragonfactory.game.Join.1": "§a'%s'에 입장했습니다. §7%d일차 · /menu 로 메뉴를 엽니다.",

@@ -154,3 +154,31 @@ func TestResearchRewards(t *testing.T) {
 		}
 	})
 }
+
+func TestResearchRewardDropsWhenInventoryFull(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		for slot := range p.Inventory().Size() {
+			_ = p.Inventory().SetItem(slot, item.NewStack(block.Dirt{}, 64))
+		}
+		r, _ := researchByID("generator")
+		for _, n := range r.Needs {
+			need, _ := researchByID(n)
+			s.completeResearch(tx, need)
+		}
+		for i, c := range r.Cost {
+			_ = p.Inventory().SetItem(i, item.NewStack(c.Item, c.Count+1))
+		}
+		if missing, ok := s.doResearch(p, tx, r); !ok {
+			t.Fatalf("research not done, missing %v", missing)
+		}
+		if p.Inventory().ContainsItem(machineItem(KindGenerator)) {
+			t.Fatal("went into the inventory")
+		}
+		if droppedItems(tx)[itemKey(machineItem(KindGenerator).Item())] != 1 {
+			t.Fatalf("dropped %v, want the generator", droppedItems(tx))
+		}
+	})
+}

@@ -23,15 +23,47 @@ func TestOldResearchNoteIsKept(t *testing.T) {
 	})
 }
 
-// TestGiftsAreBasics: a gift is oak logs, oak saplings or stone pebbles.
+// TestGiftsAreBasics: with no research done, a gift is oak logs, oak
+// saplings or stone pebbles.
 func TestGiftsAreBasics(t *testing.T) {
 	s := testSession(t)
 	kinds := map[string]bool{}
 	for range 200 {
-		kinds[itemKey(s.rollGift().Item())] = true
+		gift := s.rollGift()
+		if len(gift) != 1 {
+			t.Fatalf("gift = %v", gift)
+		}
+		kinds[itemKey(gift[0].Item())] = true
 	}
 	if len(kinds) != 3 || !kinds[itemKey(oakLog)] || !kinds[itemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[itemKey(Pebble{Kind: PebbleStone})] {
 		t.Errorf("gifts = %v", kinds)
+	}
+}
+
+func TestGiftsComeFromDoneResearch(t *testing.T) {
+	s := testSession(t)
+	s.state.Researched = map[string]bool{"generator": true}
+	generator, _ := researchByID("generator")
+	costs, rewards := 0, 0
+	for range 1000 {
+		gift := s.rollGift()
+		switch {
+		case gift[0].Comparable(researchReward(generator)[0]):
+			rewards++
+		case gift[0].Comparable(halfCost(generator)[0]):
+			costs++
+		}
+	}
+	if rewards == 0 || costs == 0 || rewards > costs {
+		t.Errorf("%d reward gifts and %d cost gifts in 1000", rewards, costs)
+	}
+}
+
+func TestDeeperResearchIsDeeper(t *testing.T) {
+	stick, _ := researchByID("stick")
+	generator, _ := researchByID("generator")
+	if researchDepth(stick) != 0 || researchDepth(generator) <= researchDepth(stick) {
+		t.Errorf("depths: stick %d, generator %d", researchDepth(stick), researchDepth(generator))
 	}
 }
 

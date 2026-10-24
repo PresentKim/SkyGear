@@ -61,7 +61,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
 	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
-		s.dropAt(tx, p.Position(), st.Grow(added-st.Count()))
+		s.dropAt(tx, p.Position(), st.Grow(-added))
 	}
 	o.Printf("%s x%d", itemName(i18n.Of(p), st), st.Count())
 }
@@ -183,7 +183,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	for range n {
 		it := f()
 		if added, _ := p.Inventory().AddItem(it); added < it.Count() {
-			s.dropAt(tx, p.Position(), it.Grow(added-it.Count()))
+			s.dropAt(tx, p.Position(), it.Grow(-added))
 		}
 	}
 	o.Printf("%s x%d", itemName(i18n.Of(p), f()), n)

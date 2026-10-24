@@ -220,7 +220,7 @@ func (c composterIO) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st
 // giveItem gives p an item, dropping what does not fit at pos.
 func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
 	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-		s.dropAt(tx, pos, it.Grow(n-it.Count()))
+		s.dropAt(tx, pos, it.Grow(-n))
 	}
 }
 

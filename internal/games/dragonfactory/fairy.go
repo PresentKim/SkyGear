@@ -1,9 +1,12 @@
 package dragonfactory
 
 import (
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"fmt"
 	"math"
+	"strings"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -20,7 +23,8 @@ import (
 // Gift fairy (docs/design/02-dragonfactory.md §2): now and then a fairy
 // (an allay on the client) visits a player in the save and flits about them.
 // Using (or hitting) it throws a gift to the player and it flies away. The gift is
-// a few basic items. Values are drafts.
+// a few basic items, or now and then something from the save's research
+// (rollGift). Values are drafts.
 const (
 	// fairyMinGap and fairyMaxGap bound the instance time between visits:
 	// about three instance days (an hour with 20-minute days).
@@ -145,13 +149,17 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	}
 	d.gave = true
 	count(p, "fairy_gift", 1)
-	st := s.rollGift()
+	gift := s.rollGift()
 	// Throw it to the player: a short arc that lands at their feet.
 	to := p.Position().Sub(f.data.Pos)
 	vel := mgl64.Vec3{to[0] * 0.09, 0.2 + max(0, to[1])*0.05, to[2] * 0.09}
-	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
+	var names []string
+	for _, st := range gift {
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
+		names = append(names, fmt.Sprintf("%s §7x%d§f", itemName(i18n.Of(p), st), st.Count()))
+	}
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), itemName(i18n.Of(p), st), st.Count())
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), strings.Join(names, ", "))
 	f.leave(tx, p, true)
 	return true
 }
@@ -167,14 +175,90 @@ func (f *Fairy) leave(tx *world.Tx, p *player.Player, gave bool) {
 	}
 }
 
-// rollGift picks a gift: oak logs, oak saplings or pebbles. Draft.
-func (s *session) rollGift() item.Stack {
+// The chances in percent of the gifts that come from the save's research:
+// the reward of a done research, and half the cost of one. The rest of the
+// gifts are basic.
+const (
+	giftRewardChance = 5
+	giftCostChance   = 25
+)
+
+// rollGift picks a gift. It is now and then the research reward or half the
+// cost of a done research, a deeper one more likely (giftResearch), and
+// otherwise oak logs, oak saplings or pebbles.
+func (s *session) rollGift() []item.Stack {
+	roll := s.rand.IntN(100)
+	if roll < giftRewardChance {
+		if r, ok := s.giftResearch(func(r *Research) bool { return len(researchReward(r)) > 0 }); ok {
+			return researchReward(r)
+		}
+	}
+	if roll < giftRewardChance+giftCostChance {
+		if r, ok := s.giftResearch(func(r *Research) bool { return len(r.Cost) > 0 }); ok {
+			return halfCost(r)
+		}
+	}
 	gifts := []item.Stack{
 		item.NewStack(oakLog, 16),
 		item.NewStack(block.Sapling{Type: block.OakSapling()}, 2),
 		item.NewStack(Pebble{Kind: PebbleStone}, 16),
 	}
-	return gifts[s.rand.IntN(len(gifts))]
+	return []item.Stack{gifts[s.rand.IntN(len(gifts))]}
+}
+
+// giftResearch picks a done research that keep accepts, weighted by
+// researchDepth so later research comes up more often.
+func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
+	var picks []*Research
+	var weights []int
+	total := 0
+	for i := range researchTree {
+		r := &researchTree[i]
+		if r.isCopy() || !s.researched(r.ID) || !keep(r) {
+			continue
+		}
+		w := researchDepth(r) + 1
+		picks, weights, total = append(picks, r), append(weights, w), total+w
+	}
+	if total == 0 {
+		return nil, false
+	}
+	n := s.rand.IntN(total)
+	for i, w := range weights {
+		if n < w {
+			return picks[i], true
+		}
+		n -= w
+	}
+	return nil, false
+}
+
+// researchDepth is how many researches must be done before r.
+func researchDepth(r *Research) int {
+	seen := map[string]bool{}
+	var walk func(*Research)
+	walk = func(r *Research) {
+		for _, n := range r.Needs {
+			if need, ok := researchByID(n); ok && !seen[n] {
+				seen[n] = true
+				walk(need)
+			}
+		}
+	}
+	walk(r)
+	return len(seen)
+}
+
+// halfCost is half of each item of r's cost (at least one), in stacks.
+func halfCost(r *Research) []item.Stack {
+	var out []item.Stack
+	for _, c := range r.Cost {
+		st := item.NewStack(c.Item, 1)
+		for left := max(1, c.Count/2); left > 0; left -= st.MaxCount() {
+			out = append(out, item.NewStack(c.Item, min(left, st.MaxCount())))
+		}
+	}
+	return out
 }
 
 // FairyType is the world.EntityType of the gift fairy, shown as an allay.
