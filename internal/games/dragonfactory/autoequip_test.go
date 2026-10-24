@@ -108,6 +108,54 @@ func TestTreeFeller(t *testing.T) {
 	}
 }
 
+func TestTreeFellerBoneMealsSaplings(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindFeller, "")
+	sapling := machinePos.Add(cube.Pos{2, 0, 0})
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(sapling.Side(cube.FaceDown), block.Dirt{}, nil)
+		tx.SetBlock(sapling, block.Sapling{Type: block.OakSapling()}, nil)
+	})
+	if !st.insert(item.NewStack(item.BoneMeal{}, 1)) {
+		t.Fatal("feller took no bone meal")
+	}
+	if got, _ := st.inv().Item(st.kind.charge[0]); got.Count() != 1 {
+		t.Fatalf("bone meal slot holds %v", got)
+	}
+	_ = st.inv().SetItem(st.kind.charge[0], item.NewStack(item.BoneMeal{}, 64))
+	tick(s, 40*(machineKinds[KindFeller].interval+2))
+	if got, _ := st.inv().Item(st.kind.charge[0]); got.Count() == 64 {
+		t.Fatal("no bone meal was used")
+	}
+	if outputCount(st, block.Log{Wood: block.OakWood()}) == 0 {
+		t.Fatal("the sapling did not grow into a tree that was felled")
+	}
+}
+
+func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindFeller, "")
+	grassy := machinePos.Add(cube.Pos{2, 1, 1})
+	bare := machinePos.Add(cube.Pos{-4, -1, 2})
+	s.world.Do(func(tx *world.Tx) {
+		tx.SetBlock(grassy.Side(cube.FaceDown), block.Grass{}, nil)
+		tx.SetBlock(grassy, block.ShortGrass{}, nil)
+		tx.SetBlock(bare.Side(cube.FaceDown), block.Dirt{}, nil)
+		tx.SetBlock(bare, block.Air{}, nil)
+	})
+	_ = st.inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
+	tick(s, 3*(machineKinds[KindFeller].interval+2))
+	s.world.Do(func(tx *world.Tx) {
+		for _, at := range []cube.Pos{grassy, bare} {
+			if _, ok := tx.Block(at).(block.Sapling); !ok {
+				t.Errorf("no sapling at %v", at)
+			}
+		}
+	})
+}
+
 // TestAutoCrafterMakesARecipe: a sample on the recipe slot chooses the recipe,
 // the store takes only its ingredients, and the result comes out.
 func TestAutoCrafterMakesARecipe(t *testing.T) {

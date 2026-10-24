@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -75,8 +77,9 @@ const (
 	fellerReach = 5
 	fellerDown  = 1
 	fellerUp    = 14
-	// plantStep is the distance between the saplings it plants.
-	plantStep = 3
+	// plantRise is how far above or below the machine the ground it plants on
+	// may be.
+	plantRise = 1
 )
 
 // runFeller fells the highest log in reach every interval; with no log left
@@ -120,31 +123,111 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st.progress = 0
+	if !st.plantSapling(tx, pos, reach) {
+		st.boneMealSapling(tx, pos, reach)
+	}
+}
+
+// plantSapling plants a sapling from the input of the feller at pos,
+// reporting whether it did.
+func (st *machineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
 	slot, in, ok := st.firstInput()
 	if !ok {
-		return
+		return false
 	}
 	sap, ok := in.Item().(block.Sapling)
 	if !ok {
+		return false
+	}
+	at, ok := plantSpot(tx, pos, reach, sap)
+	if !ok {
+		return false
+	}
+	tx.SetBlock(at, sap, nil)
+	_ = st.inv().SetItem(slot, in.Grow(-1))
+	return true
+}
+
+// boneMealSapling uses one bone meal of the feller at pos on the nearest
+// sapling in reach that it works on, as a player using it would.
+func (st *machineState) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
+	slot := st.kind.charge[0]
+	meal, _ := st.inv().Item(slot)
+	if _, ok := meal.Item().(item.BoneMeal); !ok {
 		return
 	}
-	for dx := -reach / plantStep * plantStep; dx <= reach; dx += plantStep {
-		for dz := -reach / plantStep * plantStep; dz <= reach; dz += plantStep {
-			if dx == 0 && dz == 0 {
-				continue
-			}
-			at := pos.Add(cube.Pos{dx, 0, dz})
-			if _, air := tx.Block(at).(block.Air); !air {
-				continue
-			}
-			switch tx.Block(at.Side(cube.FaceDown)).(type) {
-			case block.Dirt, block.Grass:
-			default:
-				continue
-			}
-			tx.SetBlock(at, sap, nil)
-			_ = st.inv().SetItem(slot, in.Grow(-1))
+	for _, at := range saplingsNear(tx, pos, reach) {
+		if tx.Block(at).(block.Sapling).BoneMeal(at, tx) != item.BoneMealResultNone {
+			tx.AddParticle(at.Vec3(), particle.BoneMeal{})
+			_ = st.inv().SetItem(slot, meal.Grow(-1))
 			return
 		}
 	}
+}
+
+// saplingsNear are the saplings in reach of the feller at pos, nearest first.
+func saplingsNear(tx *world.Tx, pos cube.Pos, reach int) []cube.Pos {
+	var out []cube.Pos
+	for dx := -reach; dx <= reach; dx++ {
+		for dz := -reach; dz <= reach; dz++ {
+			for dy := -plantRise; dy <= plantRise; dy++ {
+				at := pos.Add(cube.Pos{dx, dy, dz})
+				if _, ok := tx.Block(at).(block.Sapling); ok {
+					out = append(out, at)
+				}
+			}
+		}
+	}
+	horizontal := func(p cube.Pos) int { return (p[0]-pos[0])*(p[0]-pos[0]) + (p[2]-pos[2])*(p[2]-pos[2]) }
+	slices.SortStableFunc(out, func(a, b cube.Pos) int { return horizontal(a) - horizontal(b) })
+	return out
+}
+
+// plantSpot is the nearest place in reach of the feller at pos where sap
+// grows: on soil, free or covered only by grass and the like, and with no
+// sapling or log next to it so the trees have room.
+func plantSpot(tx *world.Tx, pos cube.Pos, reach int, sap block.Sapling) (cube.Pos, bool) {
+	var best cube.Pos
+	bestDist := -1
+	for dx := -reach; dx <= reach; dx++ {
+		for dz := -reach; dz <= reach; dz++ {
+			if dx == 0 && dz == 0 {
+				continue
+			}
+			for dy := -plantRise; dy <= plantRise; dy++ {
+				at := pos.Add(cube.Pos{dx, dy, dz})
+				if dist := dx*dx + dz*dz; (bestDist < 0 || dist < bestDist) && plantable(tx, at, sap) {
+					best, bestDist = at, dist
+				}
+			}
+		}
+	}
+	return best, bestDist >= 0
+}
+
+// plantable reports whether sap can be planted at pos.
+func plantable(tx *world.Tx, pos cube.Pos, sap block.Sapling) bool {
+	switch b := tx.Block(pos).(type) {
+	case block.Air:
+	case world.Liquid:
+		return false
+	case block.Replaceable:
+		if !b.ReplaceableBy(sap) {
+			return false
+		}
+	default:
+		return false
+	}
+	if soil, ok := tx.Block(pos.Side(cube.FaceDown)).(block.Soil); !ok || !soil.SoilFor(sap) {
+		return false
+	}
+	for dx := -1; dx <= 1; dx++ {
+		for dz := -1; dz <= 1; dz++ {
+			switch tx.Block(pos.Add(cube.Pos{dx, 0, dz})).(type) {
+			case block.Sapling, block.Log:
+				return false
+			}
+		}
+	}
+	return true
 }

@@ -3235,6 +3235,7 @@
  "machine.feller.name": "자동 벌목기",
  "machine.feller.help.1": "§7둘레의 원목을 가장 높은 것부터 벱니다.",
  "machine.feller.help.2": "§7벨 원목이 없으면 입력 칸의 묘목을 심습니다.",
+ "machine.feller.help.3": "§7심을 자리도 없으면 둘레의 묘목에 뼛가루를 씁니다.",
  "machine.crafter.name": "자동 제작기",
  "machine.crafter.help.1": "§7정해 둔 조합법을 재료가 모이는 대로 만듭니다.",
  "machine.crafter.help.2": "§7조합법 칸에 만들 아이템을 올려 정합니다. 빈손으로 웅크리고 우클릭하면 목록이 열립니다.",

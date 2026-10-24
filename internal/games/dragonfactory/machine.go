@@ -106,7 +106,8 @@ type machineKind struct {
 	use int
 	// crafter marks the auto crafter, whose window has a recipe slot.
 	crafter bool
-	// charge are the slots that take the essence of a magic sieve; autoSieve
+	// charge are the slots that take the essence of a magic sieve or the bone
+	// meal of the tree feller (takesCharge); autoSieve
 	// marks the sieves that sift on their own (sieve.go).
 	charge    []int
 	autoSieve bool
@@ -219,9 +220,9 @@ var machineKinds = map[string]*machineKind{
 		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2"},
 	},
 	KindFeller: {
-		nameKey: "machine.feller.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "machine.feller.name", marker: "§d§m§9", interval: 60, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 15, energyCap: consumerBuffer,
-		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2"},
+		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3"},
 	},
 	KindCrafter: {
 		// The store is the 3×3 on the left, the recipe slot above the ring.
@@ -443,7 +444,8 @@ const (
 	roleOutput
 	// roleRecipe is the recipe slot of the auto crafter: it takes nothing.
 	roleRecipe
-	// roleCharge is the essence slot of a magic sieve.
+	// roleCharge is the essence slot of a magic sieve and the bone meal slot
+	// of the tree feller.
 	roleCharge
 )
 
@@ -574,7 +576,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 		return ok
 	case machineKinds[KindFeller]:
 		_, ok := it.Item().(block.Sapling)
-		return ok
+		return ok || st.takesCharge(it)
 	case machineKinds[KindCrafter]:
 		return st.recipe != nil && st.recipe.wants(it)
 	case machineKinds[KindLab]:
@@ -583,21 +585,34 @@ func (st *machineState) accepts(it item.Stack) bool {
 		// A sieve sifts only with a mesh fitted; the magic sieve also takes essences
 		// (into its essence slot).
 		_, ok := sieveTables[st.mesh][k]
-		return ok || (len(st.kind.charge) > 0 && acceptsEssence(it))
+		return ok || st.takesCharge(it)
 	}
 	// The sell box (no more shop, 13th playtest) takes nothing.
 	return false
 }
 
+// takesCharge reports whether it goes into the charge slots of the machine:
+// the essence of a magic sieve, the bone meal of the tree feller.
+func (st *machineState) takesCharge(it item.Stack) bool {
+	switch {
+	case len(st.kind.charge) == 0:
+		return false
+	case st.kind == machineKinds[KindFeller]:
+		_, ok := it.Item().(item.BoneMeal)
+		return ok
+	}
+	return acceptsEssence(it)
+}
+
 // slotAccepts reports whether the item may be put on a slot of the machine:
-// an input slot takes what the machine works on (the essence only into the
-// essence slot of a magic sieve).
+// an input slot takes what the machine works on, except what goes into its
+// charge slots.
 func (st *machineState) slotAccepts(slot int, it item.Stack) bool {
 	switch st.role(slot) {
 	case roleInput:
-		return st.accepts(it) && !(len(st.kind.charge) > 0 && acceptsEssence(it))
+		return st.accepts(it) && !st.takesCharge(it)
 	case roleCharge:
-		return acceptsEssence(it)
+		return st.takesCharge(it)
 	}
 	return false
 }
@@ -776,7 +791,7 @@ func (st *machineState) firstInput() (int, item.Stack, bool) {
 func (st *machineState) insert(it item.Stack) bool {
 	one := it.Grow(1 - it.Count())
 	slots := st.kind.input
-	if len(st.kind.charge) > 0 && acceptsEssence(one) {
+	if st.takesCharge(one) {
 		slots = st.kind.charge
 	}
 	if !st.accepts(one) || !fits(st.inv(), slots, []item.Stack{one}) {

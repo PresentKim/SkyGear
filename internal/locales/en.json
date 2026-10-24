@@ -842,6 +842,7 @@
  "machine.feller.name": "Tree Feller",
  "machine.feller.help.1": "§7Cuts nearby logs, highest first.",
  "machine.feller.help.2": "§7With no logs to cut, it plants saplings from its input slot.",
+ "machine.feller.help.3": "§7With nowhere to plant either, it uses bone meal on nearby saplings.",
  "machine.crafter.name": "Auto Crafter",
  "machine.crafter.help.1": "§7Crafts the set recipe whenever the materials are in.",
  "machine.crafter.help.2": "§7Set it by placing the item to make in the recipe slot. Sneak and right-click with an empty hand to open the list.",
