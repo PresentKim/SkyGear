@@ -642,93 +642,50 @@ func TestTankBuckets(t *testing.T) {
 	})
 }
 
-// TestMachineWindowButtons: the take-all button moves the output slots into the
-// player's inventory (what does not fit stays), and the put-all button fills
-// the input slots from it with what the machine takes only. A machine only
-// has the buttons for slots it has.
-func TestMachineWindowButtons(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	crusher := newMachine(KindCrusher, "", "")
-	if it, _ := crusher.st.inv().Item(takeAllSlot); it.Empty() {
-		t.Error("the crusher has no take-all button")
+func TestMachineFillTakesOnlyWhatFits(t *testing.T) {
+	st := newMachine(KindCrusher, "", "").st
+	in := st.kind.input[0]
+	if n := st.fill(item.NewStack(item.Stick{}, 5)); n != 0 {
+		t.Errorf("filled %d sticks the crusher does not take", n)
 	}
-	if it, _ := crusher.st.inv().Item(putAllSlot); it.Empty() {
-		t.Error("the crusher has no put-all button")
+	if n := st.fill(item.NewStack(block.Cobblestone{}, 50)); n != 50 {
+		t.Errorf("filled %d of 50 cobblestone", n)
 	}
-	miner := newMachine(KindMiner, "", "")
-	if it, _ := miner.st.inv().Item(putAllSlot); !it.Empty() {
-		t.Error("the miner, which takes no input, has a put-all button")
+	if n := st.fill(item.NewStack(block.Cobblestone{}, 30)); n != 14 {
+		t.Errorf("filled %d cobblestone onto 50, want 14", n)
 	}
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		st := crusher.st
-		inv := st.inv()
-		// the input slot takes cobblestone; sticks are not taken
-		_ = p.Inventory().SetItem(0, item.NewStack(block.Cobblestone{}, 30))
-		_ = p.Inventory().SetItem(1, item.NewStack(item.Stick{}, 5))
-		_ = p.Inventory().SetItem(2, item.NewStack(block.Cobblestone{}, 50))
-		st.putAll(p)
-		in := st.kind.input[0]
-		if got, _ := inv.Item(in); got.Count() != 64 || itemKey(got.Item()) != itemKey(block.Cobblestone{}) {
-			t.Errorf("the input slot holds %v, want 64 cobblestone", got)
-		}
-		if got, _ := p.Inventory().Item(1); got.Count() != 5 {
-			t.Errorf("the sticks changed: %v", got)
-		}
-		left := 0
-		for slot := range 2 {
-			it, _ := p.Inventory().Item(slot * 2)
-			left += it.Count()
-		}
-		if left != 16 {
-			t.Errorf("%d cobblestone stayed in the inventory, want 16", left)
-		}
-		// outputs move into the inventory; with a full inventory the rest stays
-		out := st.kind.output[0]
-		_ = inv.SetItem(out, item.NewStack(block.Gravel{}, 10))
-		st.takeAll(p)
-		if got, _ := inv.Item(out); !got.Empty() {
-			t.Errorf("the output slot still holds %v", got)
-		}
-		if !p.Inventory().ContainsItem(item.NewStack(block.Gravel{}, 10)) {
-			t.Error("the gravel did not reach the inventory")
-		}
-		for slot := range p.Inventory().Size() {
-			_ = p.Inventory().SetItem(slot, item.NewStack(item.Stick{}, 64))
-		}
-		_ = inv.SetItem(out, item.NewStack(block.Gravel{}, 10))
-		st.takeAll(p)
-		if got, _ := inv.Item(out); got.Count() != 10 {
-			t.Errorf("with no room the gravel left the machine: %v", got)
-		}
-	})
+	if got, _ := st.inv().Item(in); got.Count() != 64 {
+		t.Errorf("input holds %v", got)
+	}
 }
 
-// TestMachineWindowButtonClick: clicking a button slot never moves the button
-// itself; the move runs for the player who clicked.
-func TestMachineWindowButtonClick(t *testing.T) {
+func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	m := newMachine(KindCrusher, "", "")
-	st := m.st
+	st := newMachine(KindCrusher, "", "").st
+	out, in := st.kind.output[0], st.kind.input[0]
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_ = st.inv().SetItem(st.kind.output[0], item.NewStack(block.Gravel{}, 7))
-		button, _ := st.inv().Item(takeAllSlot)
-		ctx := event.C(inventory.Holder(p))
-		st.inv().Handler().HandleTake(ctx, takeAllSlot, button)
-		if !ctx.Cancelled() {
-			t.Error("the button slot gives its item to the hand")
+		_ = p.Inventory().SetItem(0, item.NewStack(block.Cobblestone{}, 20))
+		_ = p.Inventory().SetItem(1, item.NewStack(item.Stick{}, 5))
+		for _, it := range []item.Stack{item.NewStack(block.Cobblestone{}, 20), item.NewStack(item.Stick{}, 5)} {
+			ctx := event.C(inventory.Holder(p))
+			st.inv().Handler().HandlePlace(ctx, out, it)
+			if !ctx.Cancelled() {
+				t.Errorf("%v was placed on the output", it)
+			}
 		}
 	})
 	<-h.Do(func(*world.Tx, world.Entity) {}).Done()
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if got, _ := st.inv().Item(st.kind.output[0]); !got.Empty() {
-			t.Errorf("the output was not taken: %v", got)
+		if got, _ := st.inv().Item(in); got.Count() != 20 {
+			t.Errorf("input holds %v, want the 20 cobblestone", got)
 		}
-		if !p.Inventory().ContainsItem(item.NewStack(block.Gravel{}, 7)) {
-			t.Error("the gravel did not reach the player")
+		if p.Inventory().ContainsItem(item.NewStack(block.Cobblestone{}, 1)) {
+			t.Error("the cobblestone stayed with the player as well")
+		}
+		if got, _ := p.Inventory().Item(1); got.Count() != 5 {
+			t.Errorf("sticks changed: %v", got)
 		}
 	})
 }

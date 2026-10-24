@@ -1,0 +1,191 @@
+{
+  "namespace": "df_quick",
+
+  // The bar right of a container window with the take everything out and put
+  // everything in buttons. A press runs on the client alone: under each button
+  // lies a hidden button for every slot it moves, all over the same spot, each
+  // turning the press into the vanilla quick move (shift click) of its slot
+  // (button.container_auto_place), so one press moves every slot.
+  //   $quick_container_size  how many container slots the take button moves
+  //   $quick_take_filter     when set, a binding expression on
+  //                          #collection_index that keeps the container slots
+  //                          the take button moves (the outputs of a machine)
+  //   $quick_put_hotbar      the put button also moves the hotbar
+  "side_bar": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ 18, "100%c" ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_left",
+    "offset": [ 2, 8 ],
+    "layer": 20,
+    "$quick_container_size|default": 27,
+    "$quick_take_filter|default": "",
+    "$quick_put_hotbar|default": false,
+    "controls": [
+      {
+        "take@df_quick.take_button": {}
+      },
+      {
+        "gap": { "type": "panel", "size": [ 18, 2 ] }
+      },
+      {
+        "put@df_quick.put_button": {}
+      }
+    ]
+  },
+
+  "take_button": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      {
+        "moves@df_quick.slot_moves": {
+          "$moves_collection": "container_items",
+          "$moves_count": "$quick_container_size",
+          "$moves_filter": "$quick_take_filter"
+        }
+      },
+      {
+        "face@df_quick.face": {
+          "$quick_icon": "textures/ui/df_quick/take_all",
+          "$quick_tip": "dfquick.takeAll"
+        }
+      }
+    ]
+  },
+
+  "put_button": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      {
+        "inventory@df_quick.slot_moves": {
+          "$moves_collection": "inventory_items",
+          "$moves_count": 27,
+          "$moves_filter": ""
+        }
+      },
+      {
+        "hotbar@df_quick.slot_moves": {
+          "ignored": "(not $quick_put_hotbar)",
+          "$moves_collection": "hotbar_items",
+          "$moves_count": 9,
+          "$moves_filter": ""
+        }
+      },
+      {
+        "face@df_quick.face": {
+          "$quick_icon": "textures/ui/df_quick/put_all",
+          "$quick_tip": "dfquick.putAll"
+        }
+      }
+    ]
+  },
+
+  // One hidden button for each of the first $moves_count slots of
+  // $moves_collection.
+  "slot_moves": {
+    "type": "collection_panel",
+    "size": [ "100%", "100%" ],
+    "layer": 8,
+    "$moves_filter|default": "",
+    "collection_name": "$moves_collection",
+    "property_bag": { "#moves_count": "$moves_count" },
+    "factory": {
+      "name": "('df_quick_' + $moves_collection)",
+      "control_name": "df_quick.slot_move"
+    },
+    "bindings": [
+      {
+        "binding_type": "view",
+        "source_property_name": "#moves_count",
+        "target_property_name": "#collection_length"
+      }
+    ]
+  },
+
+  "slot_move": {
+    "type": "button",
+    "$moves_filter|default": "",
+    "size": [ "100%", "100%" ],
+    "layer": 90,
+    "always_listen_to_input": true,
+    "consume_hover_events": false,
+    "default_focus_precedence": -2,
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "$moves_collection"
+      },
+      {
+        "ignored": "($moves_filter = '')",
+        "binding_type": "view",
+        "source_property_name": "$moves_filter",
+        "target_property_name": "#visible"
+      }
+    ],
+    "button_mappings": [
+      {
+        "from_button_id": "button.menu_select",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "pressed",
+        "consume_event": false
+      },
+      {
+        "from_button_id": "button.menu_ok",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "focused",
+        "consume_event": false
+      }
+    ]
+  },
+
+  // The visible button: the vanilla light button with the icon, and the name
+  // beside it while hovered (a label, so the lang key is translated).
+  "face@common_buttons.light_content_button": {
+    "size": [ 18, 18 ],
+    "layer": 1,
+    "consume_hover_events": false,
+    "$pressed_button_name": "button.df_quick",
+    "$button_content": "df_quick.face_content"
+  },
+
+  "face_content": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      {
+        "icon": {
+          "type": "image",
+          "texture": "$quick_icon",
+          "size": [ 16, 16 ],
+          "layer": 2
+        }
+      },
+      {
+        "tip": {
+          "ignored": "(not $hover_state)",
+          "type": "image",
+          "texture": "textures/ui/purpleBorder",
+          "size": [ "100%c + 8px", "100%c + 8px" ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_left",
+          "offset": [ 4, -2 ],
+          "layer": 30,
+          "controls": [
+            {
+              "label": {
+                "type": "label",
+                "text": "$quick_tip",
+                "color": [ 1, 1, 1 ],
+                "shadow": true,
+                "layer": 1
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

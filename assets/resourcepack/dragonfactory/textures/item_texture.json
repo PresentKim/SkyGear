@@ -58,12 +58,6 @@
     "dragonfactory:stone_hammer": {
       "textures": "textures/items/stone_hammer"
     },
-    "dragonfactory:machine_take_all": {
-      "textures": "textures/items/machine_take_all"
-    },
-    "dragonfactory:machine_put_all": {
-      "textures": "textures/items/machine_put_all"
-    },
     "dragonfactory:machine_info": {
       "textures": "textures/items/machine_info"
     },

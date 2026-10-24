@@ -794,11 +794,11 @@
     "localize": "$localize_title",
     "enable_profanity_filter": true
   },
-  // The dark rounded bar above the window's top right corner holds the three
-  // window buttons (take everything out, put everything in, info) left of the
-  // close button, like the forms' bar (df_form.control_bar). The three are
-  // window slots of the machine (24, 25, 26 in machine.go) drawn here instead
-  // of in a slot layout, so every machine window has them in the same place.
+  // The dark rounded bar above the window's top right corner holds the info
+  // icon left of the close button, like the forms' bar (df_form.control_bar).
+  // The icon is window slot 26 of the machine (infoSlot in machine.go) drawn
+  // here instead of in a slot layout, so every machine window has it in the
+  // same place.
   "control_bar": {
     "type": "image",
     "texture": "textures/ui/toolbar_background",
@@ -825,8 +825,6 @@
                 "anchor_from": "center",
                 "anchor_to": "center",
                 "controls": [
-                  { "s24@df_machine.bar_button": { "collection_index": 24 } },
-                  { "s25@df_machine.bar_button": { "collection_index": 25 } },
                   { "s26@df_machine.bar_button": { "collection_index": 26 } }
                 ]
               }
@@ -875,6 +873,7 @@
   },
   "machine_panel": {
     "type": "panel",
+    "$df_machine_outputs|default": "(#collection_index = 13) or (#collection_index = 14) or (#collection_index = 15) or (#collection_index = 16)",
     "$df_machine_root_size|default": [ 176, 130 ],
     "$df_machine_top_size|default": [ "100%", 42 ],
     "controls": [
@@ -925,6 +924,15 @@
               }
             },
             { "chrome@df_machine.control_bar": {} },
+            // The take all and put all bar of the inventoryui pack: take all moves
+            // only the output slots ($df_machine_outputs, by layout), put all also
+            // the hotbar; the server puts what lands outside the inputs into them.
+            {
+              "quick_side_bar@df_quick.side_bar": {
+                "$quick_take_filter": "$df_machine_outputs",
+                "$quick_put_hotbar": true
+              }
+            },
             {
               "inventory_selected_icon_button@common.inventory_selected_icon_button": {}
             },
@@ -937,7 +945,8 @@
     ]
   },
   "crusher_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.crusher_slots"
+    "$df_machine_slots": "df_machine.crusher_slots",
+    "$df_machine_outputs": "(#collection_index = 15)"
   },
   "sieve_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.sieve_slots"
@@ -1127,22 +1136,27 @@
   },
   "lab_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.lab_slots",
+    "$df_machine_outputs": "(#collection_index = 6) or (#collection_index = 7) or (#collection_index = 15) or (#collection_index = 16)",
     "$df_machine_root_size": [ 176, 166 ],
     "$df_machine_top_size": [ "100%", 78 ]
   },
   "crafter_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.crafter_slots",
+    "$df_machine_outputs": "(#collection_index = 6) or (#collection_index = 7) or (#collection_index = 15) or (#collection_index = 16)",
     "$df_machine_root_size": [ 176, 166 ],
     "$df_machine_top_size": [ "100%", 78 ]
   },
   "alloy_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.alloy_slots"
+    "$df_machine_slots": "df_machine.alloy_slots",
+    "$df_machine_outputs": "(#collection_index = 15)"
   },
   "miner1_panel@df_machine.machine_panel": {
-    "$df_machine_slots": "df_machine.miner1_slots"
+    "$df_machine_slots": "df_machine.miner1_slots",
+    "$df_machine_outputs": "(#collection_index = 13)"
   },
   "sell_box_panel@df_machine.machine_panel": {
     "$df_machine_slots": "df_machine.sell_box_slots",
+    "$df_machine_outputs": "(#collection_index = -1)",
     "$df_machine_root_size": [ 176, 148 ],
     "$df_machine_top_size": [ "100%", 60 ]
   },

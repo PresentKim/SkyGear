@@ -164,6 +164,19 @@
   }
   var lastPress = null;
 
+  // pointOf is where a mouse or touch event happened. A touch device sends a mousedown for a tap but
+  // no mousemove while the finger moves, so drags also listen to the touch events.
+  function pointOf(ev) {
+    var t = (ev.touches && ev.touches[0]) || (ev.changedTouches && ev.changedTouches[0]);
+    return t || ev;
+  }
+
+  // onDragStart runs fn on the mouse button or a finger going down on e.
+  function onDragStart(e, fn) {
+    e.addEventListener("mousedown", fn);
+    e.addEventListener("touchstart", fn);
+  }
+
   function bind(entry) {
     entry.region = building;
     if (entry.panel === undefined) entry.panel = ink === "panel";
@@ -372,8 +385,8 @@
     wrap.appendChild(bar);
     var b = { sc: sc, bar: bar, handle: handle };
     bars.push(b);
-    handle.addEventListener("mousedown", function (ev) {
-      dragging = { b: b, y: ev.clientY, top: sc.scrollTop };
+    onDragStart(handle, function (ev) {
+      dragging = { b: b, y: pointOf(ev).clientY, top: sc.scrollTop };
       ev.stopPropagation();
     });
     bar.addEventListener("mousedown", function (ev) {
@@ -393,7 +406,7 @@
     if (!dragging) return;
     var b = dragging.b;
     var room = b.bar.clientHeight - b.handle.offsetHeight;
-    if (room > 0) b.sc.scrollTop = dragging.top + ((ev.clientY - dragging.y) * (b.sc.scrollHeight - b.sc.clientHeight)) / room;
+    if (room > 0) b.sc.scrollTop = dragging.top + ((pointOf(ev).clientY - dragging.y) * (b.sc.scrollHeight - b.sc.clientHeight)) / room;
     updateBar(b);
   }
 
@@ -434,11 +447,12 @@
       }
       place();
     }, 0);
-    view.addEventListener("mousedown", function (ev) {
+    onDragStart(view, function (ev) {
       if (ev.target !== view && ev.target !== plane && !/oui-line-seg|oui-canvas-deco/.test(ev.target.className)) return;
       if (!pan) return;
       if (tip) tip.style.display = "none";
-      panning = { pan: pan, place: place, x: ev.clientX, y: ev.clientY, px: pan.x, py: pan.y };
+      var at = pointOf(ev);
+      panning = { pan: pan, place: place, x: at.clientX, y: at.clientY, px: pan.x, py: pan.y };
     });
     return view;
   }
@@ -447,8 +461,9 @@
 
   function dragCanvas(ev) {
     if (!panning) return;
-    panning.pan.x = panning.px + ev.clientX - panning.x;
-    panning.pan.y = panning.py + ev.clientY - panning.y;
+    var at = pointOf(ev);
+    panning.pan.x = panning.px + at.clientX - panning.x;
+    panning.pan.y = panning.py + at.clientY - panning.y;
     panning.place();
   }
 
@@ -714,11 +729,16 @@
     drawStatus();
     measure();
     window.addEventListener("resize", measure);
-    document.addEventListener("mousemove", dragBar);
-    document.addEventListener("mousemove", dragCanvas);
-    document.addEventListener("mouseup", function () {
+    function drop() {
       dragging = null;
       panning = null;
+    }
+    ["mousemove", "touchmove"].forEach(function (type) {
+      document.addEventListener(type, dragBar);
+      document.addEventListener(type, dragCanvas);
+    });
+    ["mouseup", "touchend", "touchcancel"].forEach(function (type) {
+      document.addEventListener(type, drop);
     });
     // Content changes (regions, values, images loading) fire no scroll event, so the bars are also
     // checked on a timer. Bars of elements a region rebuild removed are dropped.

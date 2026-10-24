@@ -62,7 +62,8 @@
                             }
                         },
                         { "inventory_selected_icon_button@common.inventory_selected_icon_button": {} },
-                        { "gamepad_cursor@common.gamepad_cursor_button": {} }
+                        { "gamepad_cursor@common.gamepad_cursor_button": {} },
+                        { "quick_side_bar@df_quick.side_bar": {} } // add
                     ]
                 }
             }

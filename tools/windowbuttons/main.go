@@ -1,9 +1,10 @@
-// windowbuttons writes the item textures of the two buttons of machine
-// windows (machine.go, takeAllSlot and putAllSlot): an arrow out of the
-// machine (take everything out) and an arrow into it (put everything in).
-// They are temporary pictures; the PNGs can be replaced by hand.
+// windowbuttons writes the icons of the take all and put all buttons beside
+// container windows (common packs/inventoryui ui/df_quick.json): an arrow
+// out of the container (take everything out) and an arrow into it (put
+// everything in). They are temporary pictures; the PNGs can be replaced by
+// hand.
 //
-//	go run ./tools/windowbuttons assets/resourcepack/dragonfactory
+//	go run ./tools/windowbuttons ../common/packs/inventoryui
 package main
 
 import (
@@ -67,13 +68,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: windowbuttons <pack dir>")
 		os.Exit(2)
 	}
-	dir := filepath.Join(os.Args[1], "textures", "items")
+	dir := filepath.Join(os.Args[1], "textures", "ui", "df_quick")
 	take, put := image.NewRGBA(image.Rect(0, 0, 16, 16)), image.NewRGBA(image.Rect(0, 0, 16, 16))
 	frame(take)
 	frame(put)
-	arrow(take, 8, 10, 1, green) // out of the machine, up to the player
-	arrow(put, 8, 1, 9, amber)   // into the machine, down
-	for name, img := range map[string]*image.RGBA{"machine_take_all": take, "machine_put_all": put} {
+	arrow(take, 8, 10, 1, green) // out of the container, up to the player
+	arrow(put, 8, 1, 9, amber)   // into the container, down
+	for name, img := range map[string]*image.RGBA{"take_all": take, "put_all": put} {
 		if err := write(filepath.Join(dir, name+".png"), img); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

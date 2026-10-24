@@ -45,6 +45,7 @@
 				"$root_panel_size": [ 176, 130 ],
 				"$panel_top_half_size": [ "100%", 42 ],
 				"$screen_grid_size": [ 162, 18 ],
+				"$quick_container_size": 9,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			{ // 9 * 2
@@ -52,6 +53,7 @@
 				"$root_panel_size": [ 176, 148 ],
 				"$panel_top_half_size": [ "100%", 60 ],
 				"$screen_grid_size": [ 162, 36 ],
+				"$quick_container_size": 18,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			{ // 9 * 3
@@ -59,6 +61,7 @@
 				"$root_panel_size": [ 176, 166 ],
 				"$panel_top_half_size": [ "100%", 78 ],
 				"$screen_grid_size": [ 162, 54 ],
+				"$quick_container_size": 27,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			{ // 9 * 4
@@ -66,6 +69,7 @@
 				"$root_panel_size": [ 176, 184 ],
 				"$panel_top_half_size": [ "100%", 96 ],
 				"$screen_grid_size": [ 162, 72 ],
+				"$quick_container_size": 36,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			{ // 9 * 5
@@ -73,6 +77,7 @@
 				"$root_panel_size": [ 176, 202 ],
 				"$panel_top_half_size": [ "100%", 114 ],
 				"$screen_grid_size": [ 162, 90 ],
+				"$quick_container_size": 45,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			{ // 9 * 6
@@ -80,6 +85,7 @@
 				"$root_panel_size": [ 176, 220 ],
 				"$panel_top_half_size": [ "100%", 132 ],
 				"$screen_grid_size": [ 162, 108 ],
+				"$quick_container_size": 54,
 				"$screen_content": "vertical_screen.vertical_screen_panel"
 			},
 			
@@ -125,6 +131,8 @@
 				"$root_panel_size": [ 184, 220 ],
 				"$panel_top_half_size": [ "100%", 132 ],
 				"$scrolling_panel_size": [ 168, 108 ],
+				// chestui scrolls windows of more than 54 slots (the inventory view has 72)
+				"$quick_container_size": 108,
 				"$screen_content": "vertical_scroll_screen.vertical_scroll_screen_panel"
 			},
 			
@@ -174,5 +182,26 @@
 				"$screen_content": "df_machine.magicsieve_panel"
 			}
 		]
-    }
+    },
+
+	// The take all and put all bar (df_quick.json) on the vanilla chest windows; the ender chest,
+	// shulker box and barrel windows are the small chest's.
+	"small_chest_panel/root_panel": {
+		"modifications": [
+			{
+				"array_name": "controls",
+				"operation": "insert_back",
+				"value": [ { "quick_side_bar@df_quick.side_bar": { "$quick_container_size": 27 } } ]
+			}
+		]
+	},
+	"large_chest_panel/root_panel": {
+		"modifications": [
+			{
+				"array_name": "controls",
+				"operation": "insert_back",
+				"value": [ { "quick_side_bar@df_quick.side_bar": { "$quick_container_size": 54 } } ]
+			}
+		]
+	}
 }
