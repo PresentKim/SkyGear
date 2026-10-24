@@ -162,6 +162,9 @@ type session struct {
 	lastOpen map[*world.EntityHandle]time.Time
 	// lastStick is when each player last used a stick on the ground.
 	lastStick map[*world.EntityHandle]time.Time
+	// chestStreaks are each player's sneaking stick uses on a chest in a row
+	// (stickchest.go).
+	chestStreaks map[*world.EntityHandle]chestStreak
 	// walked is the part of a block each player walked since the last whole
 	// block was counted (counter.go).
 	walked map[*world.EntityHandle]float64

@@ -142,7 +142,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 			}
 		}
 	}
-	if h.s.useStick(p, tx, pos, face, held) {
+	if h.s.useStickOnChest(p, tx, pos, held) || h.s.useStick(p, tx, pos, face, held) {
 		ctx.Cancel()
 		return
 	}
