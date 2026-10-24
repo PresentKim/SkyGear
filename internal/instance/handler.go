@@ -193,6 +193,10 @@ func (h *Handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
 	if expiredHeld(ctx) {
 		return
 	}
+	if target, ok := e.(*player.Player); ok && h.instance() != nil && h.m.lobby.UsePlayer != nil && h.m.lobby.UsePlayer(ctx.Player(), target) {
+		ctx.Cancel()
+		return
+	}
 	h.in().HandleItemUseOnEntity(ctx, e)
 }
 func (h *Handler) HandleItemRelease(ctx *player.Context, it item.Stack, dur time.Duration) {

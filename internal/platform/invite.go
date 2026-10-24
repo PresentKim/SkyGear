@@ -96,10 +96,18 @@ func (iv *invites) remove(to string, saveID int64) {
 	iv.m[to] = list
 }
 
-// inviteCode returns the save's invite code, creating one if needed.
+// inviteCode returns the save's invite code, creating one if needed (a new
+// one when renew). The code is read from the database: s may be an older copy
+// (the save of a running instance keeps the code it was opened with, and the
+// friends tab showed the old code after it was renewed).
 func (pf *Platform) inviteCode(s db.Save, renew bool) (string, error) {
-	if s.InviteCode != "" && !renew {
-		return s.InviteCode, nil
+	if !renew {
+		if cur, err := pf.db.Save(s.ID); err == nil {
+			s = cur
+		}
+		if s.InviteCode != "" {
+			return s.InviteCode, nil
+		}
 	}
 	for range 10 {
 		code := newCode()

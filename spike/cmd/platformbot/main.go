@@ -8,12 +8,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/google/uuid"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -66,6 +68,8 @@ func main() {
 //	close                        close the open chest
 //	slot:<slot>=empty            wait for the server to empty an own inventory slot
 //	touch:<entity type>          wait for an entity of the type (e.g. minecraft:allay) and use (right-click) it
+//	sneak                        start sneaking
+//	touchplayer:<name>           use (right-click) the player with the name, once it has been seen
 //
 // "@file" in cmd and input values is replaced by the file's contents.
 func run(action string) {
@@ -147,6 +151,29 @@ func run(action string) {
 			Position:              pk.Position,
 		}})
 		fmt.Println("> touched", arg)
+	case "sneak":
+		// NaN position and rotation: the server keeps its own (Dragonfly
+		// replaces them), only the input flags count.
+		nan := float32(math.NaN())
+		flags := protocol.NewInputFlags(packet.InputFlagCount)
+		flags.Set(packet.InputFlagSneaking)
+		flags.Set(packet.InputFlagStartSneaking)
+		_ = conn.WritePacket(&packet.PlayerAuthInput{Pitch: nan, Yaw: nan, HeadYaw: nan, Position: mgl32.Vec3{nan, nan, nan}, InputData: flags})
+		fmt.Println("> sneaking")
+	case "touchplayer":
+		rid, ok := players[arg]
+		if !ok {
+			pk := waitFor(func(pk packet.Packet) bool {
+				a, ok := pk.(*packet.AddPlayer)
+				return ok && a.Username == arg
+			}).(*packet.AddPlayer)
+			rid = pk.EntityRuntimeID
+		}
+		_ = conn.WritePacket(&packet.InventoryTransaction{TransactionData: &protocol.UseItemOnEntityTransactionData{
+			TargetEntityRuntimeID: rid,
+			ActionType:            protocol.UseItemOnEntityActionInteract,
+		}})
+		fmt.Println("> touched player", arg)
 	case "close":
 		_ = conn.WritePacket(&packet.ContainerClose{WindowID: chestWindow})
 		fmt.Println("> closed chest")
@@ -454,8 +481,13 @@ var openWindows = map[byte]bool{}
 // the server relies on it: NetworkStackLatency requests, and a
 // PacketViolationWarning for a ContainerOpen of a window already open
 // (entity containers use it as the open acknowledgement).
+// players are the runtime IDs of the players seen, by name.
+var players = map[string]uint64{}
+
 func clientReact(pk packet.Packet) {
 	switch pk := pk.(type) {
+	case *packet.AddPlayer:
+		players[pk.Username] = pk.EntityRuntimeID
 	case *packet.NetworkStackLatency:
 		if pk.NeedsResponse {
 			_ = conn.WritePacket(&packet.NetworkStackLatency{Timestamp: pk.Timestamp})

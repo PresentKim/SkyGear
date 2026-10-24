@@ -77,6 +77,10 @@ type Lobby struct {
 	// Quit, if set, is called when a player leaves the server, wherever it
 	// was, after its state was stored.
 	Quit func(p *player.Player)
+	// UsePlayer, if set, is called in an instance when p uses (right-clicks)
+	// another player; returning true takes the click (the game does not see
+	// it).
+	UsePlayer func(p, target *player.Player) bool
 }
 
 // Manager owns all active instances.

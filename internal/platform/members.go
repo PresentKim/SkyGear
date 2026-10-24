@@ -61,6 +61,21 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 func (pf *Platform) memberActions(p *player.Player, saveID int64, m db.Member) []ui.Option {
 	lang := i18n.Of(p)
 	opts := []ui.Option{{Label: i18n.T(lang, "platform.members.showMember.1"), Icon: iconInvSee, Run: func(p *player.Player, tx *world.Tx) { pf.showInvSee(p, tx, saveID, m) }}}
+	// a member in the same save as p: go to them, or bring them here
+	if here := pf.m.Location(instance.AccountID(p)); here != nil && here.Save.ID == saveID && m.AccountID != instance.AccountID(p) && pf.m.Location(m.AccountID) == here {
+		opts = append(opts,
+			ui.Option{Label: i18n.T(lang, "platform.members.goTo"), Icon: iconEnter, Run: func(p *player.Player, tx *world.Tx) {
+				if t, ok := playerIn(tx, m.AccountID); ok {
+					p.Teleport(t.Position())
+				}
+			}},
+			ui.Option{Label: i18n.T(lang, "platform.members.bring"), Icon: iconInvite, Run: func(p *player.Player, tx *world.Tx) {
+				if t, ok := playerIn(tx, m.AccountID); ok {
+					t.Teleport(p.Position())
+					ui.Notify(t, i18n.T(i18n.Of(t), "platform.members.brought"), p.Name())
+				}
+			}})
+	}
 	if m.Role != db.RoleHost && !m.Left {
 		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.members.showMember.2"), Icon: iconKick, Run: func(p *player.Player, _ *world.Tx) {
 			pf.confirm(p, i18n.T(lang, "platform.members.showMember.3"), m.Name+i18n.T(lang, "platform.members.showMember.4"), i18n.T(lang, "platform.members.showMember.3"), func(p *player.Player, _ *world.Tx) {
@@ -70,6 +85,16 @@ func (pf *Platform) memberActions(p *player.Player, saveID int64, m db.Member) [
 		}})
 	}
 	return opts
+}
+
+// playerIn is the player of the account in tx's world.
+func playerIn(tx *world.Tx, accountID string) (*player.Player, bool) {
+	for e := range tx.Players() {
+		if p := e.(*player.Player); instance.AccountID(p) == accountID {
+			return p, true
+		}
+	}
+	return nil, false
 }
 
 func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
@@ -88,7 +113,36 @@ func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
 	})
 }
 
-// membersCmd opens member management from inside the save (host only).
+// managedSave is the save p manages from inside it: the one it hosts, or as
+// an operator (platform.toml [Admin]) any save it is in; nil otherwise.
+func (pf *Platform) managedSave(p *player.Player) *instance.Instance {
+	if inst := pf.hostedSave(p); inst != nil {
+		return inst
+	}
+	if pf.isOperator != nil && pf.isOperator(p) {
+		return pf.m.Location(instance.AccountID(p))
+	}
+	return nil
+}
+
+// usePlayer opens the management of target for p when p sneaks and
+// right-clicks it in a save it manages (managedSave): the member list with
+// target chosen, its inventory and kick on the right. It reports whether it
+// took the click.
+func (pf *Platform) usePlayer(p, target *player.Player) bool {
+	if !p.Sneaking() {
+		return false
+	}
+	inst := pf.managedSave(p)
+	if inst == nil || pf.m.Location(instance.AccountID(target)) != inst {
+		return false
+	}
+	pf.showMembersAt(p, inst.Save.ID, instance.AccountID(target))
+	return true
+}
+
+// membersCmd opens member management from inside the save (host, or an
+// operator in any save).
 type membersCmd struct {
 	playerOnly
 	pf *Platform
@@ -96,7 +150,7 @@ type membersCmd struct {
 
 func (c membersCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
-	inst := c.pf.hostedSave(p)
+	inst := c.pf.managedSave(p)
 	if inst == nil {
 		o.Error(i18n.T(i18n.Of(p), "platform.members.Run.1"))
 		return

@@ -37,11 +37,14 @@ type Platform struct {
 	game    instance.Game
 	online  Online
 	invites invites
+	// isOperator reports whether a player is a server operator (platform.toml
+	// [Admin]); operators manage the members of any save they are in.
+	isOperator func(p *player.Player) bool
 }
 
 // New creates the platform. The lobby world must already be built.
-func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online) *Platform {
-	pf := &Platform{log: log, db: d, m: m, game: game, online: online}
+func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online, isOperator func(*player.Player) bool) *Platform {
+	pf := &Platform{log: log, db: d, m: m, game: game, online: online, isOperator: isOperator}
 	// Every form shown in the lobby gets the launcher frame.
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	lobbyPlatform = pf
@@ -59,8 +62,9 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		Arrive: func(p *player.Player) {
 			(*pf).arriveLobby(p)
 		},
-		Handler:  func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
-		ChatName: account.DisplayName,
+		Handler:   func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
+		ChatName:  account.DisplayName,
+		UsePlayer: func(p, target *player.Player) bool { return (*pf).usePlayer(p, target) },
 		Quit: func(p *player.Player) {
 			account.Forget(p)
 			waila.Forget(p)

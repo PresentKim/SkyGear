@@ -150,7 +150,7 @@ func run(log *slog.Logger) error {
 		Entities:          conf.Entities,
 	}, platform.Lobby(lobby, &pf))
 	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
-	pf = platform.New(log, d, m, dragonfactory.New(log, d, isOperator), srv.Player)
+	pf = platform.New(log, d, m, dragonfactory.New(log, d, isOperator), srv.Player, isOperator)
 	// Operators who turn it on (/dfadmin tps) see the server load.
 	stopLoad := make(chan struct{})
 	go platform.ShowLoad(lobby, isOperator, stopLoad)
