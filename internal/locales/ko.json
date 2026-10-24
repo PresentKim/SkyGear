@@ -2516,6 +2516,8 @@
  "gate.title": "차원 게이트",
  "gate.win": "§a웨이브 %d단계를 클리어했습니다!",
  "generator.help.1": "§7연료(석탄·숯·판자 등)를 태워 에너지(RE)를 만듭니다.",
+ "hammer.diagonal.on": "§a대각선 연쇄 켬",
+ "hammer.diagonal.off": "§7대각선 연쇄 끔",
  "generator.help.2": "§7붙어 있는 기계나 에너지 도관으로 에너지를 내보냅니다.",
  "generator.lines.burning": "§c연료 연소 중 §7(%d RE/t)",
  "generator.lines.consumer": "에너지 §e%d§7/%d RE §8(%d RE/t)",

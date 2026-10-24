@@ -71,7 +71,16 @@ func (Hammer) Category() category.Category { return category.Equipment() }
 func (Hammer) MaxCount() int               { return 1 }
 func (Hammer) HandEquipped() bool          { return true }
 func (h Hammer) DurabilityInfo() item.DurabilityInfo {
-	return item.DurabilityInfo{MaxDurability: 2 * h.tier().Durability, BrokenItem: func() item.Stack { return item.Stack{} }}
+	return item.DurabilityInfo{MaxDurability: h.durabilityTimes() * h.tier().Durability, BrokenItem: func() item.Stack { return item.Stack{} }}
+}
+
+// durabilityTimes is how many times the durability of a tool of its material
+// the hammer has.
+func (h Hammer) durabilityTimes() int {
+	if h.Stone {
+		return 2
+	}
+	return 4
 }
 
 // ToolType, HarvestLevel and BaseMiningEfficiency make the hammer a pickaxe

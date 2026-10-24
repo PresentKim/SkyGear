@@ -211,6 +211,11 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if _, ok := held.Item().(ConfigCopier); ok {
 		h.s.clearCopier(ctx.Player(), held, off)
 	}
+	// The iron hammer used on the air while sneaking switches diagonal vein
+	// mining.
+	if isIronHammer(held) && ctx.Player().Sneaking() && !h.s.debounced(ctx.Player()) {
+		h.s.toggleVeinDiagonal(ctx.Player())
+	}
 }
 
 // useHeldScreen opens the menu held by p. The client repeats use packets

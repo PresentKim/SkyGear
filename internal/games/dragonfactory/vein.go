@@ -10,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -30,10 +32,27 @@ const (
 	veinFoodCost = 20.0 / veinLimit
 )
 
+// veinNeighbours are the offsets vein mining follows: the six faces, and
+// with diagonal also the blocks that touch only at an edge or a corner.
+func veinNeighbours(diagonal bool) []cube.Pos {
+	var out []cube.Pos
+	for x := -1; x <= 1; x++ {
+		for y := -1; y <= 1; y++ {
+			for z := -1; z <= 1; z++ {
+				if n := abs(x) + abs(y) + abs(z); n == 1 || (diagonal && n > 1) {
+					out = append(out, cube.Pos{x, y, z})
+				}
+			}
+		}
+	}
+	return out
+}
+
 // veinBlocks are the blocks of the same kind as the one at start connected
-// to it face to face, start first, up to limit; none when the hammer does not
-// crush it. canBuild filters the blocks a player may break.
-func veinBlocks(tx *world.Tx, start cube.Pos, limit int, canBuild func(cube.Pos) bool) []cube.Pos {
+// to it face to face (with diagonal also edge to edge and corner to corner),
+// start first, up to limit; none when the hammer does not crush it. canBuild
+// filters the blocks a player may break.
+func veinBlocks(tx *world.Tx, start cube.Pos, limit int, diagonal bool, canBuild func(cube.Pos) bool) []cube.Pos {
 	b := tx.Block(start)
 	it, ok := b.(world.Item)
 	if _, crushable := hammerDrop(b); !ok || !crushable {
@@ -46,9 +65,10 @@ func veinBlocks(tx *world.Tx, start cube.Pos, limit int, canBuild func(cube.Pos)
 	}
 	out := []cube.Pos{start}
 	seen := map[cube.Pos]bool{start: true}
+	neighbours := veinNeighbours(diagonal)
 	for i := 0; i < len(out) && len(out) < limit; i++ {
-		for _, f := range cube.Faces() {
-			n := out[i].Side(f)
+		for _, d := range neighbours {
+			n := out[i].Add(d)
 			if seen[n] || n.OutOfBounds(tx.Range()) {
 				continue
 			}
@@ -61,6 +81,41 @@ func veinBlocks(tx *world.Tx, start cube.Pos, limit int, canBuild func(cube.Pos)
 		}
 	}
 	return out
+}
+
+// veinDiagonalSetting is the account setting (db account_settings) that
+// makes a player's vein mining follow diagonal neighbours ("1": on).
+const veinDiagonalSetting = "vein_diagonal"
+
+// loadVeinDiagonal reads p's diagonal vein mining setting into the session.
+func (s *session) loadVeinDiagonal(p *player.Player) {
+	v, err := s.g.db.Setting(instance.AccountID(p), veinDiagonalSetting)
+	if err != nil {
+		s.g.log.Error("read setting", "player", p.Name(), "err", err)
+	}
+	if s.veinDiagonal == nil {
+		s.veinDiagonal = map[*world.EntityHandle]bool{}
+	}
+	s.veinDiagonal[p.H()] = v == "1"
+}
+
+// toggleVeinDiagonal switches p's diagonal vein mining, stores it and tells p
+// which it is now: nothing on screen shows it otherwise.
+func (s *session) toggleVeinDiagonal(p *player.Player) {
+	if s.veinDiagonal == nil {
+		s.veinDiagonal = map[*world.EntityHandle]bool{}
+	}
+	on := !s.veinDiagonal[p.H()]
+	s.veinDiagonal[p.H()] = on
+	value, key := "0", "hammer.diagonal.off"
+	if on {
+		value, key = "1", "hammer.diagonal.on"
+	}
+	if err := s.g.db.SetSetting(instance.AccountID(p), veinDiagonalSetting, value); err != nil {
+		s.g.log.Error("store setting", "player", p.Name(), "err", err)
+	}
+	s.hideVeinOutline(p)
+	p.SendTip(i18n.T(i18n.Of(p), key))
 }
 
 // veinBudget is how many blocks past the mined one p can break with held:
@@ -84,8 +139,9 @@ func (s *session) payVeinFood(p *player.Player, n int) {
 }
 
 // veinMine breaks the blocks connected to the one at pos p mines with an
-// iron hammer while sneaking (pos itself is broken by the game): each drops
-// what the hammer makes of it and costs one durability and veinFoodCost food.
+// iron hammer while sneaking (pos itself is broken by the game): each costs
+// one durability and veinFoodCost food, and what the hammer makes of them
+// drops together at pos.
 func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	held, off := p.HeldItems()
 	if !isIronHammer(held) || !p.Sneaking() {
@@ -94,11 +150,12 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	// the preview goes first, or its glass would stay where blocks were
 	s.hideVeinOutline(p)
 	left := s.veinBudget(p, held)
-	blocks := veinBlocks(tx, pos, left+1, s.canBuild)
+	blocks := veinBlocks(tx, pos, left+1, s.veinDiagonal[p.H()], s.canBuild)
 	if len(blocks) < 2 || left <= 0 {
 		return
 	}
 	broken := 0
+	var drops []item.Stack
 	for _, at := range blocks[1:] {
 		if broken >= left {
 			break
@@ -111,13 +168,27 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		countBreak(p, b, true)
 		tx.SetBlock(at, nil, nil)
 		tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
-		s.dropAt(tx, at.Vec3Centre(), drop)
+		drops = addDrop(drops, drop)
 		broken++
+	}
+	for _, drop := range drops {
+		for n := drop.Count(); n > 0; n -= drop.MaxCount() {
+			s.dropAt(tx, pos.Vec3Centre(), drop.Grow(min(n, drop.MaxCount())-drop.Count()))
+		}
 	}
 	if broken > 0 {
 		p.SetHeldItems(held.Damage(broken), off)
 		s.payVeinFood(p, broken)
 	}
+}
+
+// addDrop adds drop to drops, onto a stack it stacks with when there is one.
+func addDrop(drops []item.Stack, drop item.Stack) []item.Stack {
+	if i := slices.IndexFunc(drops, drop.Comparable); i >= 0 {
+		drops[i] = drops[i].Grow(drop.Count())
+		return drops
+	}
+	return append(drops, drop)
 }
 
 // The vein preview (like presentkim-pm/selection-visualize-utils'
@@ -149,7 +220,7 @@ func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) 
 		return
 	}
 	held, _ := p.HeldItems()
-	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, s.canBuild)
+	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, s.veinDiagonal[p.H()], s.canBuild)
 	if len(blocks) == 0 {
 		s.hideVeinOutline(p)
 		return

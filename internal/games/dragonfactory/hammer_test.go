@@ -5,9 +5,12 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
 func TestHammerDropsCrushedBlock(t *testing.T) {
@@ -93,11 +96,12 @@ func TestHammerOre(t *testing.T) {
 	}
 }
 
-// TestHammerTiers: the stone and iron hammers last twice as long as tools of
-// their material, and only the iron hammer vein mines.
+// TestHammerTiers: the stone hammer lasts twice and the iron hammer four
+// times as long as tools of their material, and only the iron hammer vein
+// mines.
 func TestHammerTiers(t *testing.T) {
 	stone, iron := Hammer{Stone: true}, Hammer{}
-	if stone.DurabilityInfo().MaxDurability != 2*item.ToolTierStone.Durability || iron.DurabilityInfo().MaxDurability != 2*item.ToolTierIron.Durability {
+	if stone.DurabilityInfo().MaxDurability != 2*item.ToolTierStone.Durability || iron.DurabilityInfo().MaxDurability != 4*item.ToolTierIron.Durability {
 		t.Fatalf("durability stone %d iron %d", stone.DurabilityInfo().MaxDurability, iron.DurabilityInfo().MaxDurability)
 	}
 	if isIronHammer(item.NewStack(stone, 1)) || !isIronHammer(item.NewStack(iron, 1)) || !isHammer(item.NewStack(stone, 1)) {
@@ -106,6 +110,37 @@ func TestHammerTiers(t *testing.T) {
 	if (Hammer{}).BaseMiningEfficiency(block.Gravel{}) != 3 || (Hammer{}).BaseMiningEfficiency(Dust{}) != 3 {
 		t.Fatal("gravel and dust speeds")
 	}
+}
+
+func TestVeinDiagonalSetting(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	base := cube.Pos{4, IslandY + 3, 4}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(base, block.Gravel{}, nil)
+		tx.SetBlock(base.Add(cube.Pos{1, 1, 0}), block.Gravel{}, nil)
+		tx.SetBlock(base.Add(cube.Pos{2, 2, 1}), block.Gravel{}, nil)
+		if got := veinBlocks(tx, base, veinLimit, false, s.canBuild); len(got) != 1 {
+			t.Fatalf("face vein of %d blocks, want 1", len(got))
+		}
+		if got := veinBlocks(tx, base, veinLimit, true, s.canBuild); len(got) != 3 {
+			t.Fatalf("diagonal vein of %d blocks, want 3", len(got))
+		}
+		if _, err := s.g.db.TouchAccount(instance.AccountID(p), "", p.Name()); err != nil {
+			t.Fatal(err)
+		}
+		s.loadVeinDiagonal(p)
+		if s.veinDiagonal[p.H()] {
+			t.Fatal("diagonal on before it was switched")
+		}
+		s.toggleVeinDiagonal(p)
+		s.veinDiagonal = nil
+		s.loadVeinDiagonal(p)
+		if !s.veinDiagonal[p.H()] {
+			t.Fatal("the switched setting was not stored")
+		}
+	})
 }
 
 // TestVeinMine: sneaking with the iron hammer breaks the connected blocks of
@@ -122,10 +157,10 @@ func TestVeinMine(t *testing.T) {
 			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Gravel{}, nil)
 		}
 		tx.SetBlock(base.Add(cube.Pos{0, 0, 1}), block.Sand{}, nil)
-		if got := veinBlocks(tx, base, veinLimit, s.canBuild); len(got) != 5 {
+		if got := veinBlocks(tx, base, veinLimit, false, s.canBuild); len(got) != 5 {
 			t.Fatalf("vein of %d blocks, want 5", len(got))
 		}
-		if got := veinBlocks(tx, base, 3, s.canBuild); len(got) != 3 {
+		if got := veinBlocks(tx, base, 3, false, s.canBuild); len(got) != 3 {
 			t.Fatalf("limited vein of %d blocks, want 3", len(got))
 		}
 		p.StartSneaking()
@@ -152,6 +187,17 @@ func TestVeinMine(t *testing.T) {
 		}
 		if got := droppedKeys(tx)[itemKey(block.Sand{})]; got != 4 {
 			t.Fatalf("%d sand dropped, want 4", got)
+		}
+		var at []mgl64.Vec3
+		for e := range tx.Entities() {
+			if it, ok := e.(*entity.Ent); ok {
+				if _, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
+					at = append(at, it.Position())
+				}
+			}
+		}
+		if len(at) != 1 || at[0] != base.Vec3Centre() {
+			t.Fatalf("drops at %v, want one stack at %v", at, base.Vec3Centre())
 		}
 	})
 }

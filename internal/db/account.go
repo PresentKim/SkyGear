@@ -1,6 +1,10 @@
 package db
 
-import "time"
+import (
+	"database/sql"
+	"errors"
+	"time"
+)
 
 // Account is a player account, shared by all saves.
 type Account struct {
@@ -56,6 +60,23 @@ func (d *DB) SetTitle(id, title string) error {
 // SetNameColor sets the name colour ID ("" for the default).
 func (d *DB) SetNameColor(id, color string) error {
 	_, err := d.sql.Exec(`UPDATE accounts SET name_color = ? WHERE id = ?`, color, id)
+	return err
+}
+
+// Setting returns a setting of the account, "" when it was never set.
+func (d *DB) Setting(id, key string) (string, error) {
+	var v string
+	err := d.sql.QueryRow(`SELECT value FROM account_settings WHERE account_id = ? AND key = ?`, id, key).Scan(&v)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return v, err
+}
+
+// SetSetting stores a setting of the account.
+func (d *DB) SetSetting(id, key, value string) error {
+	_, err := d.sql.Exec(`INSERT INTO account_settings (account_id, key, value) VALUES (?, ?, ?)
+		ON CONFLICT (account_id, key) DO UPDATE SET value = excluded.value`, id, key, value)
 	return err
 }
 

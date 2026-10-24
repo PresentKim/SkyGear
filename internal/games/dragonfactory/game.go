@@ -124,6 +124,9 @@ type session struct {
 	// the fraction of a food point each owes for vein mining (vein.go).
 	veinOutlines map[*world.EntityHandle]veinOutline
 	veinFood     map[*world.EntityHandle]float64
+	// veinDiagonal is whether each player's vein mining follows diagonal
+	// neighbours (an account setting, vein.go).
+	veinDiagonal map[*world.EntityHandle]bool
 	// diedFood is the food level each player died with, given back when it
 	// respawns (handler.go).
 	diedFood map[*world.EntityHandle]int
@@ -240,6 +243,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)
+	s.loadVeinDiagonal(p)
 	delete(s.boards, p.H())
 	s.updateBoard(p)
 }
@@ -264,6 +268,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.boards, p.H())
 	delete(s.veinOutlines, p.H())
 	delete(s.veinFood, p.H())
+	delete(s.veinDiagonal, p.H())
 	delete(s.codexNav, p.H())
 	delete(s.codexRecent, p.H())
 	waila.Clear(p)

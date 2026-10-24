@@ -463,6 +463,8 @@
  "gate.title": "Dimension Gate",
  "gate.win": "§aCleared wave stage %d!",
  "generator.help.1": "§7Burns fuel (Coal, Charcoal, Planks and more) to make energy (RE).",
+ "hammer.diagonal.on": "§aDiagonal vein mining on",
+ "hammer.diagonal.off": "§7Diagonal vein mining off",
  "generator.help.2": "§7Sends energy to adjacent machines or Energy Conduits.",
  "generator.lines.burning": "§cBurning fuel §7(%d RE/t)",
  "generator.lines.consumer": "Energy §e%d§7/%d RE §8(%d RE/t)",

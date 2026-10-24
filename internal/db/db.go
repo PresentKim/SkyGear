@@ -136,6 +136,14 @@ var migrations = []string{
 		value      INTEGER NOT NULL,
 		PRIMARY KEY (account_id, key)
 	);`,
+	// 6: the settings a player chooses for itself, by key (the iron hammer's
+	// diagonal vein mining, docs/design/02-dragonfactory.md §4).
+	`CREATE TABLE account_settings (
+		account_id TEXT NOT NULL REFERENCES accounts(id),
+		key        TEXT NOT NULL,
+		value      TEXT NOT NULL,
+		PRIMARY KEY (account_id, key)
+	);`,
 }
 
 func (d *DB) migrate() error {
