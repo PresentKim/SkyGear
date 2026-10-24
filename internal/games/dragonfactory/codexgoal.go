@@ -120,7 +120,7 @@ func codexRaw(it item.Stack, n int) []codexLink {
 
 // codexItemByKey finds the indexed item with the key.
 func codexItemByKey(key string) (item.Stack, bool) {
-	for _, e := range codexIndex() {
+	for _, e := range codexIndex(i18n.Default) {
 		if itemKey(e.stack.Item()) == key {
 			return e.stack, true
 		}
@@ -171,36 +171,36 @@ func (s *session) toggleGoal(tx *world.Tx, it item.Stack) {
 
 // goalRows are the quest panel rows of the goals: the name and what is
 // needed in raw materials.
-func (s *session) goalRows() []string {
+func (s *session) goalRows(lang string) []string {
 	var rows []string
 	for _, it := range s.goalItems() {
-		rows = append(rows, fmt.Sprintf(i18n.T(i18n.Default, "goal.row"), itemName(it)))
+		rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.row"), itemName(lang, it)))
 		raw := codexRaw(it, 1)
 		for i, l := range raw {
 			if i == 4 {
-				rows = append(rows, fmt.Sprintf(i18n.T(i18n.Default, "goal.more"), len(raw)-i))
+				rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.more"), len(raw)-i))
 				break
 			}
-			rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(l.stack), max(1, l.count)))
+			rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(lang, l.stack), max(1, l.count)))
 		}
 	}
 	return rows
 }
 
 // addGoalRows puts the goals under the quest panel.
-func (s *session) addGoalRows(b *hud.Board) {
-	for _, r := range s.goalRows() {
+func (s *session) addGoalRows(lang string, b *hud.Board) {
+	for _, r := range s.goalRows(lang) {
 		b.Add(hud.Quest, r)
 	}
 }
 
 // goalSlots are the goals as slots that open their pages.
-func (s *session) goalSlots() []ui.ItemSlot {
+func (s *session) goalSlots(lang string) []ui.ItemSlot {
 	var links []codexLink
 	for _, it := range s.goalItems() {
 		links = append(links, codexLink{stack: it})
 	}
-	return s.codexLinkSlots(links)
+	return s.codexLinkSlots(lang, links)
 }
 
 // codexReverses reports whether a recipe takes an ingredient that a crafting

@@ -31,9 +31,9 @@ var liquidColours = map[string]string{liquidWater: "§b", liquidWitchWater: "§d
 
 // liquidLine is the panel line of a liquid: its icon and name, and what is
 // said of it.
-func liquidLine(kind, text string) *waila.ItemLine {
+func liquidLine(lang, kind, text string) *waila.ItemLine {
 	it := LiquidIcon{Kind: kind}
-	return &waila.ItemLine{Item: item.NewStack(it, 1), Name: liquidColours[kind] + it.Name() + " ", Text: text}
+	return &waila.ItemLine{Item: item.NewStack(it, 1), Name: liquidColours[kind] + customItemName(lang, it) + " ", Text: text}
 }
 
 func init() {

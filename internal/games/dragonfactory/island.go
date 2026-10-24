@@ -42,8 +42,8 @@ func chunkCost(n int) Requirement {
 }
 
 // costText describes a cost, e.g. "조약돌 128개".
-func costText(r Requirement) string {
-	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.island.costText.1"), itemName(item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
+func costText(lang string, r Requirement) string {
+	return fmt.Sprintf(i18n.T(lang, "dragonfactory.island.costText.1"), itemName(lang, item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
 }
 
 // countPlain counts the plain items of it in an inventory.
@@ -127,7 +127,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	}
 	cost := chunkCost(len(s.state.Chunks))
 	if !takePlain(p.Inventory(), cost.Item, cost.Count) {
-		ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.2"), costText(cost))
+		ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.2"), costText(i18n.Of(p), cost))
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)

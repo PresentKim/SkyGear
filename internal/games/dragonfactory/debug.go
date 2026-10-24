@@ -61,7 +61,7 @@ func (c debugLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		p.Teleport(p.Position())
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
 		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
-			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.3"), blockName(b), at[0], at[1], at[2])
+			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.3"), blockName(i18n.Default, b), at[0], at[1], at[2])
 		} else {
 			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.4"))
 		}
@@ -249,7 +249,7 @@ func (c debugPlace) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p.SetHeldItems(st, off)
 	p.UseItemOnBlock(below, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
 	p.SetHeldItems(held, off)
-	o.Printf("%s at %d %d %d", blockName(tx.Block(pos)), pos[0], pos[1], pos[2])
+	o.Printf("%s at %d %d %d", blockName(i18n.Default, tx.Block(pos)), pos[0], pos[1], pos[2])
 }
 
 // debugFloor lays stone around the operator at the height of the block under

@@ -61,8 +61,8 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	return g
 }
 
-func (*Game) ID() string   { return "dragonfactory" }
-func (*Game) Name() string { return i18n.T(i18n.Default, "name.Game") }
+func (*Game) ID() string              { return "dragonfactory" }
+func (*Game) Name(lang string) string { return i18n.T(lang, "name.Game") }
 
 // islandCentre is the block (x and z) at the middle of the starting chunk,
 // where the starting island is built.

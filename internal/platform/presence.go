@@ -44,13 +44,13 @@ func (pf *Platform) with(accountID string, f func(p *player.Player)) bool {
 	return ok
 }
 
-// status describes where an account is: offline, lobby or a save.
-func (pf *Platform) status(accountID string) string {
+// status describes in lang where an account is: offline, lobby or a save.
+func (pf *Platform) status(lang, accountID string) string {
 	if !pf.isOnline(accountID) {
-		return i18n.T(i18n.Default, "platform.presence.status.1")
+		return i18n.T(lang, "platform.presence.status.1")
 	}
 	if inst := pf.m.Location(accountID); inst != nil {
-		return "§a● '" + inst.Save.Name + i18n.T(i18n.Default, "platform.presence.status.2")
+		return "§a● '" + inst.Save.Name + i18n.T(lang, "platform.presence.status.2")
 	}
-	return i18n.T(i18n.Default, "platform.presence.status.3")
+	return i18n.T(lang, "platform.presence.status.3")
 }

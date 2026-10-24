@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -48,7 +49,7 @@ func TestAchievementsOfAdvancements(t *testing.T) {
 		if _, ok := advancementByID(adv); !ok {
 			t.Errorf("no advancement %s", adv)
 		}
-		if a, ok := account.Get(ach); !ok || a.Title == "" || a.Name == "" {
+		if a, ok := account.Get(ach); !ok || a.Title(i18n.Default) == "" || a.Name(i18n.Default) == "" {
 			t.Errorf("achievement %s is not written", ach)
 		}
 	}

@@ -14,8 +14,8 @@ import (
 type Game interface {
 	// ID is the stable identifier stored in saves.game_type.
 	ID() string
-	// Name is the display name.
-	Name() string
+	// Name is the display name in lang.
+	Name(lang string) string
 	// Init builds the world of a brand new save. It runs once, on the
 	// first activation of the save.
 	Init(tx *world.Tx, inst *Instance)

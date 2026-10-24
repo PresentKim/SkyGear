@@ -535,27 +535,27 @@ func (s *session) breakBarrel(pos cube.Pos, drops *[]item.Stack) {
 
 // barrelLiquid is the panel line of the liquid a barrel holds (water, witch
 // water, lava), nil when it holds none.
-func (s *session) barrelLiquid(pos cube.Pos) *waila.ItemLine {
+func (s *session) barrelLiquid(lang string, pos cube.Pos) *waila.ItemLine {
 	rec := s.barrelAt(pos)
-	full := i18n.T(i18n.Default, "barrel.lines.full")
+	full := i18n.T(lang, "barrel.lines.full")
 	switch {
 	case rec == nil:
 		return nil
 	case rec.Witch:
-		return liquidLine(liquidWitchWater, full)
+		return liquidLine(lang, liquidWitchWater, full)
 	case rec.Water:
-		return liquidLine(liquidWater, full)
+		return liquidLine(lang, liquidWater, full)
 	case rec.Lava:
-		return liquidLine(liquidLava, full)
+		return liquidLine(lang, liquidLava, full)
 	}
 	return nil
 }
 
 // barrelLines are the lines of a barrel's WAILA panel; its liquid shows on
 // the icon line (barrelLiquid).
-func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
+func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	if b, ok := tx.Block(pos).(Barrel); ok && b.Wood == stoneWood {
-		return s.stoneBarrelLines(tx, pos)
+		return s.stoneBarrelLines(lang, tx, pos)
 	}
 	rec := s.barrelAt(pos)
 	switch {
@@ -564,39 +564,39 @@ func (s *session) barrelLines(tx *world.Tx, pos cube.Pos) []string {
 	case rec != nil && rec.Water && rec.WitchAt > 0:
 		now, _, _ := s.clock.Now()
 		left := max(rec.WitchAt-now, 0).Round(time.Second)
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.toWitch"), int(left.Minutes()), int(left.Seconds())%60)}
+		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.toWitch"), int(left.Minutes()), int(left.Seconds())%60)}
 	case rec == nil || rec.Count == 0:
-		return []string{i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.1")}
+		return []string{i18n.T(lang, "dragonfactory.barrel.barrelLines.1")}
 	case rec.Water && rec.Clay > 0:
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.lines.clay"), rec.Clay)}
+		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.clay"), rec.Clay)}
 	case rec.Water:
 		return nil
 	case rec.Count >= matterCapacity:
 		now, _, _ := s.clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.5"), int(left.Minutes()), int(left.Seconds())%60)}
+		return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.barrel.barrelLines.5"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.barrel.barrelLines.6"), rec.Count, matterCapacity)}
+	return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.barrel.barrelLines.6"), rec.Count, matterCapacity)}
 }
 
 // stoneBarrelLines are the lines of a stone barrel's WAILA panel.
-func (s *session) stoneBarrelLines(tx *world.Tx, pos cube.Pos) []string {
+func (s *session) stoneBarrelLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
 	case rec != nil && rec.Lava:
 		return nil
 	case rec == nil || rec.Count == 0:
-		return []string{i18n.T(i18n.Default, "barrel.stone.lines.empty")}
+		return []string{i18n.T(lang, "barrel.stone.lines.empty")}
 	case rec.Count < stoneBarrelCapacity:
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.stone.lines.count"), rec.Count, stoneBarrelCapacity)}
+		return []string{fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.count"), rec.Count, stoneBarrelCapacity)}
 	}
 	mult := heatMultiplier(tx.Block(pos.Side(cube.FaceDown)))
 	if mult == 0 {
-		return []string{i18n.T(i18n.Default, "barrel.stone.lines.noHeat")}
+		return []string{i18n.T(lang, "barrel.stone.lines.noHeat")}
 	}
 	left := max(stoneHeatNeeded-rec.Heat, 0) / time.Duration(mult)
 	left = left.Round(time.Second)
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "barrel.stone.lines.heating"), int(left.Minutes()), int(left.Seconds())%60, mult)}
+	return []string{fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.heating"), int(left.Minutes()), int(left.Seconds())%60, mult)}
 }
 
 func init() {

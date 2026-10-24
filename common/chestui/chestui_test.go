@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
+	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
 func TestTitle(t *testing.T) {
@@ -34,6 +36,33 @@ func TestStorageOnChange(t *testing.T) {
 	_ = s.Inventory().SetItem(29, item.NewStack(item.Apple{}, 3))
 	if len(changed) != 1 || changed[0] != 29 {
 		t.Fatalf("onChange %v", changed)
+	}
+}
+
+func TestLocalizeSlot(t *testing.T) {
+	saved := Localize
+	t.Cleanup(func() { Localize = saved })
+	Localize = func(lang string, it item.Stack) (string, []string, bool) {
+		return lang + ":" + it.CustomName(), []string{lang}, true
+	}
+	s := NewStorage(9, "t")
+	_ = s.Inventory().SetItem(0, item.NewStack(item.Apple{}, 1).WithCustomName("ko name"))
+	w := &window{inv: s.Inventory()}
+	rid, _, _ := world.ItemRuntimeID(item.Apple{})
+	shared := map[string]any{"display": map[string]any{"Name": "ko name", "Lore": []string{"old"}}}
+	apple := protocol.ItemStack{ItemType: protocol.ItemType{NetworkID: rid}, NBTData: shared}
+	localizeSlot("en", w, 0, &apple)
+	display := apple.NBTData["display"].(map[string]any)
+	if display["Name"] != "en:ko name" || len(display["Lore"].([]string)) != 1 || display["Lore"].([]string)[0] != "en" {
+		t.Fatalf("display %v", display)
+	}
+	if shared["display"].(map[string]any)["Name"] != "ko name" {
+		t.Fatal("changed the NBT it was given")
+	}
+	other := protocol.ItemStack{ItemType: protocol.ItemType{NetworkID: rid + 1}, NBTData: map[string]any{}}
+	localizeSlot("en", w, 0, &other)
+	if _, ok := other.NBTData["display"]; ok {
+		t.Fatal("localized a stack of another item")
 	}
 }
 

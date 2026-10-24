@@ -21,35 +21,36 @@ import (
 // (sievetable.go). A mesh is fitted by using it on a sieve and taken out
 // again by using the sieve with an empty hand.
 
-// meshTiers are the mesh tiers in order, with the name of their material
-// and what a tier is made with (the first one is made from string).
+// meshTiers are the mesh tiers in order, with the catalog key of the name of
+// their material and what a tier is made with (the first one is made from
+// string).
 var meshTiers = []struct {
-	tier, name string
-	material   world.Item
+	tier, nameKey string
+	material      world.Item
 }{
-	{"string", i18n.T(i18n.Default, "dragonfactory.mesh.init.1"), nil},
-	{"flint", i18n.T(i18n.Default, "dragonfactory.mesh.init.2"), item.Flint{}},
-	{"iron", i18n.T(i18n.Default, "dragonfactory.mesh.init.3"), item.IronIngot{}},
-	{"gold", i18n.T(i18n.Default, "dragonfactory.mesh.init.4"), item.GoldIngot{}},
-	{"diamond", i18n.T(i18n.Default, "dragonfactory.mesh.init.5"), item.Diamond{}},
-	{"netherite", i18n.T(i18n.Default, "dragonfactory.mesh.init.6"), item.NetheriteIngot{}},
+	{"string", "dragonfactory.mesh.init.1", nil},
+	{"flint", "dragonfactory.mesh.init.2", item.Flint{}},
+	{"iron", "dragonfactory.mesh.init.3", item.IronIngot{}},
+	{"gold", "dragonfactory.mesh.init.4", item.GoldIngot{}},
+	{"diamond", "dragonfactory.mesh.init.5", item.Diamond{}},
+	{"netherite", "dragonfactory.mesh.init.6", item.NetheriteIngot{}},
 }
 
-// meshName is the name of the mesh of a tier.
-func meshName(tier string) string {
+// meshName is the name of the mesh of a tier in lang.
+func meshName(lang, tier string) string {
 	for _, t := range meshTiers {
 		if t.tier == tier {
-			return t.name + i18n.T(i18n.Default, "dragonfactory.mesh.meshName.1")
+			return i18n.T(lang, t.nameKey) + i18n.T(lang, "dragonfactory.mesh.meshName.1")
 		}
 	}
-	return i18n.T(i18n.Default, "dragonfactory.mesh.meshName.2")
+	return i18n.T(lang, "dragonfactory.mesh.meshName.2")
 }
 
 // Mesh is the mesh item of a tier.
 type Mesh struct{ Tier string }
 
 func (m Mesh) EncodeItem() (string, int16) { return "dragonfactory:mesh_" + m.Tier, 0 }
-func (m Mesh) Name() string                { return meshName(m.Tier) }
+func (m Mesh) Name() string                { return meshName(i18n.Default, m.Tier) }
 func (Mesh) Category() category.Category   { return category.Items() }
 
 // equipMesh fits the mesh the player holds into the sieve st (the mesh it had

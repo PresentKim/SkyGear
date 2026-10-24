@@ -116,7 +116,7 @@ func (st *machineState) judge(now int) machineStatus {
 func (st *machineState) reason(lang string) string {
 	text := i18n.T(lang, st.mon.status.reasonKey())
 	if st.mon.status == statusStarved && st.kind.crafter && st.recipe != nil {
-		if missing := crafterMissing(st); missing != "" {
+		if missing := crafterMissing(lang, st); missing != "" {
 			text += ": " + missing
 		}
 	}
@@ -218,7 +218,7 @@ func (s *session) sendAlerts(tx *world.Tx, alerts []*alertLine) {
 				p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert.more"), len(alerts)-alertLines))
 				break
 			}
-			p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert"), a.st.kind.name, a.pos.X(), a.pos.Y(), a.pos.Z(), i18n.T(lang, a.st.mon.status.reasonKey())))
+			p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert"), a.st.kind.title(lang), a.pos.X(), a.pos.Y(), a.pos.Z(), i18n.T(lang, a.st.mon.status.reasonKey())))
 		}
 		p.PlaySound(sound.Note{Instrument: sound.Bass(), Pitch: 6})
 		count(p, "alerts_seen", int64(len(alerts)))
@@ -307,7 +307,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		}
 		pos := st.pos
 		secs := s.now - st.mon.since
-		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.name, pos.X(), pos.Y(), pos.Z(), st.reason(lang), formatSpan(lang, secs))
+		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), formatSpan(lang, secs))
 		opts = append(opts, s.opt(label, "", func(p *player.Player, tx *world.Tx) { s.goToMachine(p, tx, pos) }))
 	}
 	return body, opts

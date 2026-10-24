@@ -69,7 +69,7 @@ func TestLostMenu(t *testing.T) {
 	s.addLost(item.NewStack(item.Diamond{}, 3))
 	s.addLost(item.NewStack(item.Apple{}, 100))
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, slots, _ := s.lostMenu()
+		_, slots, _ := s.lostMenu(i18n.Default)
 		if len(slots) != 2 || slots[0].Count != "100" || !strings.Contains(slots[0].Tip, "100") {
 			t.Fatalf("slots = %+v", slots)
 		}

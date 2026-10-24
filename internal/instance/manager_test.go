@@ -21,8 +21,8 @@ import (
 
 type testGame struct{ joins, firsts, closes int }
 
-func (*testGame) ID() string   { return "test" }
-func (*testGame) Name() string { return "Test" }
+func (*testGame) ID() string         { return "test" }
+func (*testGame) Name(string) string { return "Test" }
 func (*testGame) Init(tx *world.Tx, _ *Instance) {
 	tx.SetBlock(cube.Pos{0, 63, 0}, block.Stone{}, nil)
 }

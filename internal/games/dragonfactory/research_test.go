@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"slices"
 	"strings"
 	"testing"
@@ -35,12 +37,12 @@ func TestResearchTreeIsValid(t *testing.T) {
 			if got := recipeKey(it); got != unlockName(n) {
 				t.Errorf("research %q: item %q encodes as %q", r.ID, n, got)
 			}
-			if name := itemName(item.NewStack(it, 1)); name == "" || name[0] < 0x80 {
+			if name := itemName(i18n.Default, item.NewStack(it, 1)); name == "" || name[0] < 0x80 {
 				t.Errorf("research %q: no Korean name for %q (%q)", r.ID, n, name)
 			}
 		}
 		for _, c := range r.Cost {
-			if name := itemName(item.NewStack(c.Item, 1)); name == "" || name[0] < 0x80 {
+			if name := itemName(i18n.Default, item.NewStack(c.Item, 1)); name == "" || name[0] < 0x80 {
 				t.Errorf("research %q: no Korean name for cost %v (%q)", r.ID, c.Item, name)
 			}
 		}

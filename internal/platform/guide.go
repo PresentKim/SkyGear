@@ -14,8 +14,8 @@ import (
 // GuideVersion is increased when the guide changes; players see it again once.
 const GuideVersion = 3
 
-func (pf *Platform) guideText() string {
-	return fmt.Sprintf(i18n.T(i18n.Default, "platform.guide.guideText.1"), pf.game.Name(), Slots, MaxMembers)
+func (pf *Platform) guideText(lang string) string {
+	return fmt.Sprintf(i18n.T(lang, "platform.guide.guideText.1"), pf.game.Name(lang), Slots, MaxMembers)
 }
 
 // showGuide shows the server guide. With first set, closing it records that
@@ -33,14 +33,14 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 			pf.showLobbyMenu(p)
 		}
 	}}
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.guide.showGuide.1"), pf.guideText(), ok)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.guide.showGuide.1"), pf.guideText(i18n.Of(p)), ok)
 }
 
-func formatDuration(d time.Duration) string {
+func formatDuration(lang string, d time.Duration) string {
 	h := int(d.Hours())
 	m := int(d.Minutes()) % 60
 	if h > 0 {
-		return fmt.Sprintf(i18n.T(i18n.Default, "platform.guide.formatDuration.1"), h, m)
+		return fmt.Sprintf(i18n.T(lang, "platform.guide.formatDuration.1"), h, m)
 	}
-	return fmt.Sprintf(i18n.T(i18n.Default, "platform.guide.formatDuration.2"), m)
+	return fmt.Sprintf(i18n.T(lang, "platform.guide.formatDuration.2"), m)
 }

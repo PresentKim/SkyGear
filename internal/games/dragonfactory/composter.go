@@ -225,17 +225,17 @@ func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it it
 }
 
 // composterLines are the lines of the composter's WAILA panel.
-func (s *session) composterLines(pos cube.Pos, c block.Composter) []string {
+func (s *session) composterLines(lang string, pos cube.Pos, c block.Composter) []string {
 	n := s.composterCount(pos, c)
 	if s.composterReady(pos, c) {
-		return []string{i18n.T(i18n.Default, "dragonfactory.composter.composterLines.1")}
+		return []string{i18n.T(lang, "dragonfactory.composter.composterLines.1")}
 	}
 	if n >= matterCapacity {
 		now, _, _ := s.clock.Now()
 		left := max(s.state.ComposterReady[cropKey(pos)]-now, 0).Round(time.Second)
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "composter.lines.making"), int(left.Minutes()), int(left.Seconds())%60)}
+		return []string{fmt.Sprintf(i18n.T(lang, "composter.lines.making"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.composter.composterLines.2"), n, matterCapacity)}
+	return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.composter.composterLines.2"), n, matterCapacity)}
 }
 
 // breakComposter forgets a composter that is broken; a full one drops dirt.

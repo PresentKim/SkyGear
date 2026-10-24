@@ -66,15 +66,38 @@ func answered(s form.Submitter) {
 	}
 }
 
+// FormOpen reports whether a form sent to p is not answered yet.
+func FormOpen(p *player.Player) bool {
+	pending.Lock()
+	defer pending.Unlock()
+	_, open := pending.m[p.UUID()]
+	return open
+}
+
+// Idle, if set, runs when p answered a form (title is the title it was sent
+// with; closed is true when it was closed without a press) and the form's
+// callbacks sent no other form, so p has no form open.
+var Idle func(p *player.Player, tx *world.Tx, title string, closed bool)
+
+// afterAnswer runs Idle when the submitter has no form open after answering
+// the form titled title.
+func afterAnswer(s form.Submitter, tx *world.Tx, title string, closed bool) {
+	if p, ok := s.(*player.Player); ok && Idle != nil && !FormOpen(p) {
+		Idle(p, tx, title, closed)
+	}
+}
+
 // menu runs the option of the pressed button; onClose, if set, runs when the
 // form is closed without a press.
 type menu struct {
+	title   string
 	opts    []Option
 	onClose func(p *player.Player, tx *world.Tx)
 }
 
 func (m menu) Close(s form.Submitter, tx *world.Tx) {
 	answered(s)
+	defer afterAnswer(s, tx, m.title, true)
 	p, ok := s.(*player.Player)
 	if !ok {
 		return
@@ -87,6 +110,7 @@ func (m menu) Close(s form.Submitter, tx *world.Tx) {
 
 func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) {
 	answered(s)
+	defer afterAnswer(s, tx, m.title, false)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	for _, o := range m.opts {
@@ -161,7 +185,7 @@ func wrapMenu(p *player.Player, title, body string, cells int, opts []Option) {
 func sendMenu(p *player.Player, title, body string, onClose func(p *player.Player, tx *world.Tx), cells int, opts []Option) {
 	title = framed(p, title)
 	opts = uniqueLabels(onPanelOptions(opts))
-	f := form.NewMenu(menu{opts: opts, onClose: onClose}, title).WithBody(countPrefix(cells) + OnPanel(body))
+	f := form.NewMenu(menu{title: title, opts: opts, onClose: onClose}, title).WithBody(countPrefix(cells) + OnPanel(body))
 	for _, o := range opts {
 		f = f.AddButton(form.NewButton(o.Label, o.Icon))
 	}
@@ -757,6 +781,7 @@ func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player,
 
 type textInput struct {
 	Value form.Input
+	title string
 	run   func(p *player.Player, tx *world.Tx, value string)
 	// back, if set, shows the screen the form was opened from when the
 	// player closes it or presses its back button (both send no data).
@@ -765,6 +790,7 @@ type textInput struct {
 
 func (t textInput) Close(s form.Submitter, tx *world.Tx) {
 	answered(s)
+	defer afterAnswer(s, tx, t.title, true)
 	p, ok := s.(*player.Player)
 	if !ok {
 		return
@@ -777,6 +803,7 @@ func (t textInput) Close(s form.Submitter, tx *world.Tx) {
 
 func (t textInput) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
+	defer afterAnswer(s, tx, t.title, false)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	t.run(p, tx, t.Value.Value())
@@ -798,18 +825,24 @@ func Input(p *player.Player, title, label, def string, f func(p *player.Player, 
 		title = InputBackToken + title
 	}
 	title = framed(p, title)
+	in.title = title
 	send(p, title, form.New(in, title))
 }
 
 type amount struct {
 	Value form.Slider
+	title string
 	run   func(p *player.Player, tx *world.Tx, n int)
 }
 
-func (amount) Close(s form.Submitter, _ *world.Tx) { answered(s) }
+func (a amount) Close(s form.Submitter, tx *world.Tx) {
+	answered(s)
+	afterAnswer(s, tx, a.title, true)
+}
 
 func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 	answered(s)
+	defer afterAnswer(s, tx, a.title, false)
 	p := s.(*player.Player)
 	defer recoverForm(p)
 	a.run(p, tx, int(a.Value.Value()))
@@ -818,7 +851,7 @@ func (a amount) Submit(s form.Submitter, tx *world.Tx) {
 // Amount asks for a number from 1 to max with a slider starting at def.
 func Amount(p *player.Player, title, label string, max, def int, f func(p *player.Player, tx *world.Tx, n int)) {
 	title = framed(p, title)
-	send(p, title, form.New(amount{Value: form.NewSlider(label, 1, float64(max), 1, float64(min(max, def))), run: f}, title))
+	send(p, title, form.New(amount{Value: form.NewSlider(label, 1, float64(max), 1, float64(min(max, def))), title: title, run: f}, title))
 }
 
 // ItemIcon returns a button icon that the resource pack theme draws as the

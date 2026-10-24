@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/go-gl/mathgl/mgl64"
@@ -519,13 +521,13 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 			t.Errorf("a held kind took %d of 5", n)
 		}
 		list, _ := storageContents(tx, ctl)
-		if got := filterStorage(list, ""); len(got) != 1 {
+		if got := filterStorage(i18n.Default, list, ""); len(got) != 1 {
 			t.Errorf("no query keeps %d entries", len(got))
 		}
-		if got := filterStorage(list, "ㅈㅇㅈㅇ"); len(got) != 0 {
+		if got := filterStorage(i18n.Default, list, "ㅈㅇㅈㅇ"); len(got) != 0 {
 			t.Errorf("a query that matches nothing keeps %d", len(got))
 		}
-		if got := filterStorage(list, itemName(item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
+		if got := filterStorage(i18n.Default, list, itemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
 			t.Errorf("the item's own name keeps %d", len(got))
 		}
 	})

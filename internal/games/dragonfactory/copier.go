@@ -97,10 +97,10 @@ func (c configCard) describe(lang string) string {
 		return fmt.Sprintf(i18n.T(lang, "copier.card.bundle"), n)
 	case cardCrafter:
 		if cr := crafterByID(c.Recipe); cr != nil {
-			return fmt.Sprintf(i18n.T(lang, "copier.card.crafter"), itemName(cr.out))
+			return fmt.Sprintf(i18n.T(lang, "copier.card.crafter"), itemName(lang, cr.out))
 		}
 	case cardDrawer:
-		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), itemName(decodeItem(c.Item)))
+		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), itemName(lang, decodeItem(c.Item)))
 	}
 	return i18n.T(lang, "copier.empty")
 }

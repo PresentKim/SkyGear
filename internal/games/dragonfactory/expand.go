@@ -234,7 +234,7 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.1"), c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
 		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.2"), c[0], c[1], costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.2"), c[0], c[1], costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
 		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.3"), c[0], c[1]))
 	}
@@ -266,8 +266,8 @@ func (s *session) showExpandActions(p *player.Player) {
 	var opts []ui.Option
 	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.1"), c[0], c[1], len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.2"), costText(cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.3"), costText(cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		body += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.2"), costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
+		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.3"), costText(i18n.Of(p), cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)

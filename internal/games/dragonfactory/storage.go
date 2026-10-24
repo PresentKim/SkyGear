@@ -179,13 +179,13 @@ func storageContents(tx *world.Tx, pos cube.Pos) ([]storageEntry, int) {
 }
 
 // storageLines are the WAILA lines of a controller.
-func storageLines(tx *world.Tx, pos cube.Pos) []string {
+func storageLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	list, drawers := storageContents(tx, pos)
 	var total int64
 	for _, e := range list {
 		total += e.count
 	}
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "storage.lines"), drawers, len(list), total)}
+	return []string{fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(list), total)}
 }
 
 // useController handles a click on a controller: an item in hand is deposited
@@ -220,13 +220,13 @@ func depositAll(tx *world.Tx, pos cube.Pos, p *player.Player) int {
 }
 
 // filterStorage keeps the entries whose name matches query.
-func filterStorage(list []storageEntry, query string) []storageEntry {
+func filterStorage(lang string, list []storageEntry, query string) []storageEntry {
 	if query == "" {
 		return list
 	}
 	var out []storageEntry
 	for _, e := range list {
-		if textsearch.Match(query, itemName(e.item)) {
+		if textsearch.Match(query, itemName(lang, e.item)) {
 			out = append(out, e)
 		}
 	}
@@ -244,7 +244,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 	if drawers == 0 {
 		return
 	}
-	list := filterStorage(all, query)
+	list := filterStorage(lang, all, query)
 	pages := max(1, (len(list)+storagePage-1)/storagePage)
 	page = max(0, min(page, pages-1))
 	var slots []ui.ItemSlot
@@ -253,7 +253,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(e.item.Item()),
 			Count: "§f" + ui.CountText(int(e.count)),
-			Tip:   tipName(e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
+			Tip:   tipName(lang, e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
 			Run: func(p *player.Player, tx *world.Tx) {
 				got := controllerExtract(tx, pos, e.item, e.item.MaxCount())
 				if !got.Empty() {

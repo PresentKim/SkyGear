@@ -378,10 +378,11 @@ func (cl *client) follow(pos mgl32.Vec3) {
 	cl.c.WritePacket(&packet.MoveActorAbsolute{EntityRuntimeID: w.runtimeID, Position: pos, Flags: packet.MoveFlagTeleport})
 }
 
-// serverPacket announces the window entity and notices windows that
-// Dragonfly closed itself (the client closed one, or another container
-// opened).
+// serverPacket announces the window entity, puts the client's texts into
+// its window's contents (Localize) and notices windows that Dragonfly closed
+// itself (the client closed one, or another container opened).
 func serverPacket(c *dfhook.Conn, pk packet.Packet) bool {
+	localizeWindow(c, pk)
 	switch pk := pk.(type) {
 	case *packet.AvailableActorIdentifiers:
 		pk.SerialisedEntityIdentifiers = addIdentifier(pk.SerialisedEntityIdentifiers)

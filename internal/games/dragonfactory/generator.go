@@ -140,27 +140,27 @@ var (
 )
 
 // generatorLines are the lines of a generator's WAILA panel.
-func generatorLines(st *machineState) []string {
-	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap())}
+func generatorLines(lang string, st *machineState) []string {
+	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.energy, st.energyCap())}
 	switch {
 	case st.burn > 0:
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.burning"), st.genRate()))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.burning"), st.genRate()))
 	case st.energy+st.genRate() > st.energyCap():
-		lines = append(lines, i18n.T(i18n.Default, "generator.lines.full"))
+		lines = append(lines, i18n.T(lang, "generator.lines.full"))
 	default:
-		lines = append(lines, i18n.T(i18n.Default, "generator.lines.noFuel"))
+		lines = append(lines, i18n.T(lang, "generator.lines.noFuel"))
 	}
 	return lines
 }
 
 // consumerLines are the energy lines of a machine that uses energy.
-func consumerLines(st *machineState) []string {
+func consumerLines(lang string, st *machineState) []string {
 	if st.kind.use == 0 || st.unlimited {
 		return nil
 	}
-	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.consumer"), st.energy, st.energyCap(), st.useTotal())}
+	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.consumer"), st.energy, st.energyCap(), st.useTotal())}
 	if st.stalled {
-		lines = append(lines, i18n.T(i18n.Default, "generator.lines.stalled"))
+		lines = append(lines, i18n.T(lang, "generator.lines.stalled"))
 	}
 	return lines
 }

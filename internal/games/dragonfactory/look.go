@@ -120,22 +120,23 @@ func (s *session) updateLooks(tx *world.Tx) {
 
 // lookInfo is the panel of block b at pos.
 func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world.Block) waila.Info {
+	lang := i18n.Of(p)
 	held, _ := p.HeldItems()
-	info := waila.Info{Name: blockName(b), Tools: waila.ToolsFor(b, held)}
+	info := waila.Info{Name: blockName(lang, b), Tools: waila.ToolsFor(b, held)}
 	if len(info.Tools) == 0 {
 		info.Tools = customTool(b, held)
 	}
 	if it, ok := b.(world.Item); ok {
 		info.Item = it
-		info.Name = itemName(item.NewStack(it, 1))
+		info.Name = itemName(lang, item.NewStack(it, 1))
 	}
 	info.NameKey = blockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
 	case Machine:
-		info.Lines, info.Line = machineLines(b)
+		info.Lines, info.Line = machineLines(lang, b)
 		if b.st != nil && b.st.kind.controller {
-			info.Lines = storageLines(tx, pos)
+			info.Lines = storageLines(lang, tx, pos)
 		}
 		if b.Kind == KindMiner && b.st != nil {
 			// The auto miner's one output slot shows like a container's.
@@ -143,35 +144,35 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{it}}
 		}
 		if p.Sneaking() && b.st != nil {
-			info.Lines = append(info.Lines, detailLines(b.st)...)
+			info.Lines = append(info.Lines, detailLines(lang, b.st)...)
 		}
 	case Drawer:
 		// The drawer stays the icon; the held item shows like a chest's, a
 		// slot with its count under it; the lock and upgrades show on the
 		// drawer's front and, while sneaking, in the panel.
 		if b.Item.Empty() {
-			info.Lines = []string{i18n.T(i18n.Of(p), "dragonfactory.look.lookInfo.1")}
+			info.Lines = []string{i18n.T(lang, "dragonfactory.look.lookInfo.1")}
 		} else {
 			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{b.Item.Grow(int(min(b.Count, math.MaxInt32)) - b.Item.Count())}}
 		}
 		if p.Sneaking() {
-			info.Lines = append(info.Lines, drawerDetail(b)...)
+			info.Lines = append(info.Lines, drawerDetail(lang, b)...)
 		}
 	case block.Composter:
-		info.Lines = s.composterLines(pos, b)
+		info.Lines = s.composterLines(lang, pos, b)
 	case ConduitBundle:
-		info.Lines = bundleLines(tx, pos, b)
+		info.Lines = bundleLines(lang, tx, pos, b)
 	case Barrel:
-		info.Lines = s.barrelLines(tx, pos)
-		info.Line = s.barrelLiquid(pos)
+		info.Lines = s.barrelLines(lang, tx, pos)
+		info.Line = s.barrelLiquid(lang, pos)
 	case FlowHopper:
-		info.Lines = hopperLines(b)
+		info.Lines = hopperLines(lang, b)
 	}
 	if kind, _, ok := cropOf(b); ok {
-		info.Name = cropNames[kind]
+		info.Name = i18n.T(lang, cropNameKeys[kind])
 		info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
 		if r, ok := s.state.Crops[cropKey(pos)]; ok {
-			info.Lines = s.cropLines(r, tx, pos)
+			info.Lines = s.cropLines(lang, r, tx, pos)
 		}
 	}
 	return info
@@ -265,7 +266,7 @@ func furnaceArrow(b world.Block) item.Stack {
 // machineLines are a machine's lines and item line: what it holds, with
 // its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"; 11th playtest),
 // grey "비어있음" when empty, and what waits in its output.
-func machineLines(m Machine) ([]string, *waila.ItemLine) {
+func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 	st := m.st
 	if st == nil {
 		return nil, nil
@@ -278,53 +279,53 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 	)
 	switch {
 	case st.kind.crafter:
-		return crafterLines(st), nil
+		return crafterLines(lang, st), nil
 	case st.kind == machineKinds[KindLab]:
-		return labLines(st), nil
+		return labLines(lang, st), nil
 	case st.kind == machineKinds[KindSellBox]:
-		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.1")+gauge)
+		lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.1")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
-		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.2")+gauge)
+		lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.2")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
-		return generatorLines(st), nil
+		return generatorLines(lang, st), nil
 	case st.kind.gate, m.Kind == KindStorageLink, m.Kind == KindTinker:
 		return nil, nil
 	case st.kind.controller:
 		return nil, nil
 	case st.kind.fluidCap > 0:
-		lines := fluidLines(st)
+		lines := fluidLines(lang, st)
 		if _, in, ok := st.firstInput(); ok {
-			lines = append(lines, stackLine(in))
+			lines = append(lines, stackLine(lang, in))
 		}
 		if st.kind.generates > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap()))
+			lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.energy, st.energyCap()))
 		} else {
-			lines = append(lines, consumerLines(st)...)
+			lines = append(lines, consumerLines(lang, st)...)
 		}
 		return lines, nil
 	case st.kind.cell:
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "generator.lines.energy"), st.energy, st.energyCap())}, nil
+		return []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.energy, st.energyCap())}, nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
-		return append(append([]string{i18n.T(i18n.Default, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(st)...), blockedLines(st)...), nil
+		return append(append([]string{i18n.T(lang, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(lang, st)...), blockedLines(lang, st)...), nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
-			line = &waila.ItemLine{Item: it, Name: itemName(it), Gauge: step, ShowGauge: true}
+			line = &waila.ItemLine{Item: it, Name: itemName(lang, it), Gauge: step, ShowGauge: true}
 			if it.Count() > 1 {
 				line.Text = fmt.Sprintf("§f×%d", it.Count())
 			}
 		} else {
-			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.4"))
+			lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.4"))
 		}
 	}
 	if len(st.kind.charge) > 0 && st.charges > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "magicsieve.lines.charged"), mobName(st.mob), st.charges))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), mobName(lang, st.mob), st.charges))
 	}
-	lines = append(lines, consumerLines(st)...)
-	lines = append(lines, blockedLines(st)...)
+	lines = append(lines, consumerLines(lang, st)...)
+	lines = append(lines, blockedLines(lang, st)...)
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
-			lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.5")+stackLine(it))
+			lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.5")+stackLine(lang, it))
 		}
 	}
 	return lines, line
@@ -332,54 +333,54 @@ func machineLines(m Machine) ([]string, *waila.ItemLine) {
 
 // detailLines are the figures the panel adds while its viewer sneaks: the
 // length of a work cycle with the ticks left (the energy is in the lines).
-func detailLines(st *machineState) []string {
+func detailLines(lang string, st *machineState) []string {
 	var lines []string
 	if cycle := st.cycleLen(); cycle > 1 && len(st.kind.input)+len(st.kind.output) > 0 && !st.kind.crafter {
 		if st.progress > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycle"), cycle, max(0, cycle-st.progress)))
+			lines = append(lines, fmt.Sprintf(i18n.T(lang, "look.detail.cycle"), cycle, max(0, cycle-st.progress)))
 		} else {
-			lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "look.detail.cycleOnly"), cycle))
+			lines = append(lines, fmt.Sprintf(i18n.T(lang, "look.detail.cycleOnly"), cycle))
 		}
 	}
 	return lines
 }
 
-// stackLine is an item's name with its count when more than one.
-func stackLine(it item.Stack) string {
+// stackLine is an item's name in lang with its count when more than one.
+func stackLine(lang string, it item.Stack) string {
 	if it.Count() > 1 {
-		return fmt.Sprintf("§f%s §7×%d", itemName(it), it.Count())
+		return fmt.Sprintf("§f%s §7×%d", itemName(lang, it), it.Count())
 	}
-	return "§f" + itemName(it)
+	return "§f" + itemName(lang, it)
 }
 
 // blockedLines say why a machine that finished does not go on: its output has
 // no room for the product.
-func blockedLines(st *machineState) []string {
+func blockedLines(lang string, st *machineState) []string {
 	if len(st.kind.output) > 0 && st.progress >= st.cycleLen() {
-		return []string{i18n.T(i18n.Default, "look.blocked")}
+		return []string{i18n.T(lang, "look.blocked")}
 	}
 	return nil
 }
 
 // crafterLines say what the auto crafter does: its recipe, what it lacks.
-func crafterLines(st *machineState) []string {
+func crafterLines(lang string, st *machineState) []string {
 	if st.recipe == nil {
-		return []string{i18n.T(i18n.Default, "crafter.status.none")}
+		return []string{i18n.T(lang, "crafter.status.none")}
 	}
-	lines := []string{"§f" + itemName(st.recipe.out)}
+	lines := []string{"§f" + itemName(lang, st.recipe.out)}
 	if _, ok := st.crafterPlan(st.recipe); !ok {
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), crafterMissing(st)))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), crafterMissing(lang, st)))
 	} else if !fits(st.inv(), st.kind.output, []item.Stack{st.recipe.out}) {
-		lines = append(lines, i18n.T(i18n.Default, "look.blocked"))
+		lines = append(lines, i18n.T(lang, "look.blocked"))
 	} else {
-		lines = append(lines, i18n.T(i18n.Default, "crafter.status.working"))
+		lines = append(lines, i18n.T(lang, "crafter.status.working"))
 	}
-	return append(lines, consumerLines(st)...)
+	return append(lines, consumerLines(lang, st)...)
 }
 
 // crafterMissing lists the ingredients an auto crafter lacks for its recipe
 // ("화약 ×2, 막대기 ×1").
-func crafterMissing(st *machineState) string {
+func crafterMissing(lang string, st *machineState) string {
 	var missing []string
 	for _, req := range st.recipe.reqs {
 		have := 0
@@ -389,7 +390,7 @@ func crafterMissing(st *machineState) string {
 			}
 		}
 		if have < req.count {
-			missing = append(missing, fmt.Sprintf("%s ×%d", reqName(i18n.Default, req), req.count-have))
+			missing = append(missing, fmt.Sprintf("%s ×%d", reqName(lang, req), req.count-have))
 		}
 	}
 	return strings.Join(missing, ", ")
@@ -397,13 +398,13 @@ func crafterMissing(st *machineState) string {
 
 // drawerDetail are the lines a sneaking viewer gets of a drawer: its upgrades
 // and lock.
-func drawerDetail(d Drawer) []string {
-	lines := []string{fmt.Sprintf(i18n.T(i18n.Default, "look.drawer.capacity"), d.Capacity, MaxCapacityUpgrades, formatInt(d.capacity()))}
+func drawerDetail(lang string, d Drawer) []string {
+	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, MaxCapacityUpgrades, formatInt(d.capacity()))}
 	if d.Void {
-		lines = append(lines, i18n.T(i18n.Default, "look.drawer.void"))
+		lines = append(lines, i18n.T(lang, "look.drawer.void"))
 	}
 	if d.Locked {
-		lines = append(lines, i18n.T(i18n.Default, "look.drawer.locked"))
+		lines = append(lines, i18n.T(lang, "look.drawer.locked"))
 	}
 	return lines
 }

@@ -89,7 +89,7 @@ func (s *session) giveResearchReward(p *player.Player, tx *world.Tx, r *Research
 	var names []string
 	for _, st := range reward {
 		s.giveItem(p, tx, p.Position(), st)
-		names = append(names, fmt.Sprintf("%s ×%d", itemName(st), st.Count()))
+		names = append(names, fmt.Sprintf("%s ×%d", itemName(i18n.Of(p), st), st.Count()))
 	}
 	p.Messagef(i18n.T(i18n.Of(p), "researchreward.given"), strings.Join(slices.Clip(names), ", "))
 }

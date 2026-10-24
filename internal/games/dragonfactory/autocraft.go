@@ -157,7 +157,7 @@ func (cr *crafterRecipe) wants(it item.Stack) bool {
 func reqName(lang string, req crafterReq) string {
 	switch need := req.need.(type) {
 	case item.Stack:
-		return itemName(need)
+		return itemName(lang, need)
 	case recipe.ItemTag:
 		return i18n.T(lang, "crafter.anyOf") + strings.TrimPrefix(need.Tag(), "minecraft:")
 	}
@@ -173,9 +173,21 @@ func (cr *crafterRecipe) tip(lang string) []string {
 	return lines
 }
 
-// preview is the item shown on the recipe slot.
-func (cr *crafterRecipe) preview(lang string) item.Stack {
-	return cr.out.WithCustomName("§r§f" + itemName(cr.out)).WithLore(cr.tip(lang)...)
+// preview is the item shown on the recipe slot: the result with what it
+// takes.
+func (cr *crafterRecipe) preview() item.Stack {
+	lore := []wtext{{wraw("§7"), wkey("crafter.needs")}}
+	for _, req := range cr.reqs {
+		line := wtext{wraw(fmt.Sprintf("§f%d× ", req.count))}
+		switch need := req.need.(type) {
+		case item.Stack:
+			line = append(line, witem(need))
+		case recipe.ItemTag:
+			line = append(line, wkey("crafter.anyOf"), wraw(strings.TrimPrefix(need.Tag(), "minecraft:")))
+		}
+		lore = append(lore, line)
+	}
+	return withWindowText(cr.out, wtext{wraw("§r§f"), witem(cr.out)}, lore...)
 }
 
 // crafterPlan finds the stacks of the store that make one run of the recipe:
@@ -231,9 +243,9 @@ func (st *machineState) showRecipe() {
 		return
 	}
 	st.shownRecipe = st.recipeID
-	it := item.NewStack(item.Paper{}, 1).WithCustomName("§r§7" + i18n.T(i18n.Default, "crafter.none")).WithLore("§f" + i18n.T(i18n.Default, "crafter.none.hint"))
+	it := withWindowText(item.NewStack(item.Paper{}, 1), wtext{wraw("§r§7"), wkey("crafter.none")}, wtext{wraw("§f"), wkey("crafter.none.hint")})
 	if st.recipe != nil {
-		it = st.recipe.preview(i18n.Default)
+		it = st.recipe.preview()
 	}
 	_ = st.inv().SetItem(crafterRecipeSlot, it)
 }
@@ -311,7 +323,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 			all = append(all, cr)
 		}
 	}
-	sort.SliceStable(all, func(i, j int) bool { return itemName(all[i].out) < itemName(all[j].out) })
+	sort.SliceStable(all, func(i, j int) bool { return itemName(lang, all[i].out) < itemName(lang, all[j].out) })
 	pages := max(1, (len(all)+crafterPage-1)/crafterPage)
 	page = min(max(page, 0), pages-1)
 	var slots []ui.ItemSlot
@@ -321,7 +333,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 			count = fmt.Sprint(cr.out.Count())
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(cr.out), Count: count, Tip: tipName(cr.out) + "\n" + strings.Join(cr.tip(lang), "\n"),
+			Icon: iconOf(cr.out), Count: count, Tip: tipName(lang, cr.out) + "\n" + strings.Join(cr.tip(lang), "\n"),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

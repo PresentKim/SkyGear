@@ -1,0 +1,18 @@
+{
+ "perf.perf.Line.1": "§7TPS %s%.1f §8· §7Load %s%.0f%% §8· §7Tick §f%s§7/%s §8· §7Memory §f%.0fMB",
+ "timed.timed.Describe.1": "Expired",
+ "timed.timed.Describe.2": "%dd %dh",
+ "timed.timed.Describe.3": "%dh %dm",
+ "timed.timed.Describe.4": "%dm",
+ "timed.timed.Describe.5": "%ds",
+ "timed.timed.Notify.1": "§cExpired and removed: §f%s §7x%d",
+ "timed.timed.Until.1": " until",
+ "ui.ui.Confirm.1": "Cancel",
+ "ui.ui.Tell.1": "§e§lNotice",
+ "ui.ui.Flash.1": "§a§lDone",
+ "ui.ui.Notify.1": "§c§lNotice",
+ "ui.ui.recoverForm.1": "§cSomething went wrong.",
+ "ui.ui.toast.1": " §7(+%d more)",
+ "ui.page.prev": "Previous page (%d/%d)",
+ "ui.page.next": "Next page (%d/%d)"
+}

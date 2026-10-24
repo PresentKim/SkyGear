@@ -3,6 +3,8 @@ package dragonfactory
 import (
 	"testing"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -140,7 +142,7 @@ func TestTierSaved(t *testing.T) {
 	if back.st.tier != 2 {
 		t.Fatalf("tier %d after a round trip", back.st.tier)
 	}
-	if back.Name() == machineKinds[KindCrusher].name {
+	if back.Name() == machineKinds[KindCrusher].title(i18n.Default) {
 		t.Fatal("the name does not show the tier")
 	}
 	if back.st.energyCap() != 4*consumerBuffer {

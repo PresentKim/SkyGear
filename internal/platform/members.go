@@ -32,7 +32,7 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 	}
 	var sp ui.ListSplit
 	for _, m := range members {
-		state := pf.status(m.AccountID)
+		state := pf.status(lang, m.AccountID)
 		switch {
 		case m.Role == db.RoleHost:
 			state = i18n.T(lang, "platform.members.showMembers.2")

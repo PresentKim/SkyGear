@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"encoding/json"
 	"image/png"
 	"os"
@@ -458,10 +460,10 @@ func TestFlipbooksMatchTheAtlas(t *testing.T) {
 // theme reads them; common's slotdeco test checks the theme).
 func TestTipNameMarks(t *testing.T) {
 	kit := item.NewStack(TierKit{Level: 2}, 1)
-	if r, tier := slotdeco.Of(tipName(kit)); r != slotdeco.Rare || tier != 2 {
+	if r, tier := slotdeco.Of(tipName(i18n.Default, kit)); r != slotdeco.Rare || tier != 2 {
 		t.Errorf("tipName of a kit marks %v, %d", r, tier)
 	}
-	if r, tier := slotdeco.Of(tipName(item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
+	if r, tier := slotdeco.Of(tipName(i18n.Default, item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
 		t.Errorf("tipName of a stick marks %v, %d", r, tier)
 	}
 }

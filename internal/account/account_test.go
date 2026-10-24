@@ -20,7 +20,7 @@ func TestGrantAndDisplayName(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = d.Close() })
 	Init(d, slog.Default())
-	Register(Achievement{ID: "test_a", Name: "시험", Desc: "시험 업적", Title: "시험관"})
+	Register(Achievement{ID: "test_a", NameKey: "시험", DescKey: "시험 업적", TitleKey: "시험관"})
 
 	id := uuid.New()
 	if _, err := d.TouchAccount(id.String(), "", "Hana"); err != nil {
@@ -55,7 +55,7 @@ func TestCounterTiers(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = d.Close() })
 	Init(d, slog.Default())
-	Register(Achievement{ID: "c_one", Name: "하나", Desc: "d", Title: "첫째"}, Achievement{ID: "c_ten", Name: "열", Desc: "d", Title: "열째"})
+	Register(Achievement{ID: "c_one", NameKey: "하나", DescKey: "d", TitleKey: "첫째"}, Achievement{ID: "c_ten", NameKey: "열", DescKey: "d", TitleKey: "열째"})
 	RegisterCounter("test_count", Tier{1, "c_one"}, Tier{10, "c_ten"})
 
 	id := uuid.New()

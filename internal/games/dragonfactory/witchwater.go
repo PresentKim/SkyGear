@@ -109,7 +109,7 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 
 // barrelMixCards are the codex cards of the mixings of a barrel of witch
 // water (lava).
-func (s *session) barrelMixCards(barrel item.Stack, lava bool) []codexCard {
+func (s *session) barrelMixCards(lang string, barrel item.Stack, lava bool) []codexCard {
 	liquid := item.NewStack(WitchWaterBucket{}, 1)
 	if lava {
 		liquid = item.NewStack(lavaBucket, 1)
@@ -117,9 +117,9 @@ func (s *session) barrelMixCards(barrel item.Stack, lava bool) []codexCard {
 	var cards []codexCard
 	for _, m := range barrelMixes() {
 		if m.lava == lava {
-			cards = append(cards, machineCard(barrel,
-				[]ui.BoardCell{s.codexCell(liquid, ""), s.codexCell(item.NewStack(m.in, 1), "")},
-				[]ui.BoardCell{s.codexCell(item.NewStack(m.out, 1), "")}))
+			cards = append(cards, machineCard(lang, barrel,
+				[]ui.BoardCell{s.codexCell(lang, liquid, ""), s.codexCell(lang, item.NewStack(m.in, 1), "")},
+				[]ui.BoardCell{s.codexCell(lang, item.NewStack(m.out, 1), "")}))
 		}
 	}
 	return cards

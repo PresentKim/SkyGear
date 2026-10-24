@@ -200,9 +200,9 @@ func (s *session) advancementTree(p *player.Player, v advView) ui.Tree {
 				c.Frame = advFrame(a)
 				switch {
 				case s.advanced(a.ID):
-					c.State, c.Icon, c.Tip = ui.StateDone, advancementIcon(a), "§a"+a.Name+"\n§7"+flatHint(a)
+					c.State, c.Icon, c.Tip = ui.StateDone, advancementIcon(a), "§a"+a.Title(lang)+"\n§7"+flatHint(lang, a)
 				case s.advancementOpen(a):
-					c.State, c.Icon, c.Tip = ui.StateOpen, advancementIcon(a), "§e"+a.Name+"\n§7"+flatHint(a)
+					c.State, c.Icon, c.Tip = ui.StateOpen, advancementIcon(a), "§e"+a.Title(lang)+"\n§7"+flatHint(lang, a)
 				default:
 					c.State, c.Icon, c.Tip = ui.StateLocked, iconLocked, "§8???"
 				}
@@ -246,12 +246,12 @@ func (s *session) showAdvancementView(p *player.Player, v advView) {
 // a hidden one shows only what comes before it.
 func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 	lang := i18n.Of(p)
-	title, body := a.Name, ""
+	title, body := a.Title(lang), ""
 	switch {
 	case s.advanced(a.ID):
-		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1") + flatHint(a)
+		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1") + flatHint(lang, a)
 	case s.advancementOpen(a):
-		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2") + flatHint(a)
+		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2") + flatHint(lang, a)
 	default:
 		title, body = "???", i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.3")
 	}
@@ -314,9 +314,9 @@ func (s *session) showQuestBook(p *player.Player, tab advTab, open *Advancement)
 		q := ui.QuestNode{ID: a.ID, X: float64(pos.x), Y: float64(pos.y), Shape: advShapes[advFrame(a)], Tracked: s.state.Tracked == a.ID}
 		switch {
 		case s.advanced(a.ID):
-			q.State, q.Icon, q.Tip = ui.QuestDone, advancementIcon(a), "§a"+a.Name+"\n§7"+flatHint(a)
+			q.State, q.Icon, q.Tip = ui.QuestDone, advancementIcon(a), "§a"+a.Title(lang)+"\n§7"+flatHint(lang, a)
 		case s.advancementOpen(a):
-			q.State, q.Icon, q.Tip = ui.QuestOpen, advancementIcon(a), "§e"+a.Name+"\n§7"+flatHint(a)
+			q.State, q.Icon, q.Tip = ui.QuestOpen, advancementIcon(a), "§e"+a.Title(lang)+"\n§7"+flatHint(lang, a)
 		default:
 			q.State, q.Icon, q.Tip = ui.QuestLocked, iconLocked, "§8???"
 		}
@@ -347,21 +347,21 @@ func (s *session) questPanel(p *player.Player, tab advTab, a *Advancement) *ui.Q
 		}
 	}
 	again := func(p *player.Player) { s.showQuestBook(p, tab, a) }
-	pn := &ui.QuestPanel{Icon: advancementIcon(a), Title: a.Name, Close: back}
+	pn := &ui.QuestPanel{Icon: advancementIcon(a), Title: a.Title(lang), Close: back}
 	switch {
 	case s.advanced(a.ID):
 		pn.Status = "§2" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1")
-		pn.Body = flatHint(a)
+		pn.Body = flatHint(lang, a)
 	case s.advancementOpen(a):
 		pn.Status = "§1" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2")
-		pn.Body = flatHint(a)
+		pn.Body = flatHint(lang, a)
 	default:
 		pn.Icon, pn.Title, pn.Body = iconLocked, "???", i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.3")
 		return pn
 	}
 	if it, ok := advancementStack(a); ok {
 		pn.Rows = []ui.SlotRow{{Slots: []ui.ItemSlot{{
-			Icon: iconOf(it), Tip: tipName(it),
+			Icon: iconOf(it), Tip: tipName(lang, it),
 			Run: func(p *player.Player, _ *world.Tx) { s.codexFrom(p, again, it) },
 		}}}}
 	}

@@ -3,6 +3,8 @@ package dragonfactory
 import (
 	"testing"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -187,15 +189,15 @@ func TestMachineStatusLines(t *testing.T) {
 	loadAround(s)
 	crusher := placeTestMachine(s, machinePos, KindCrusher, "")
 	crusher.progress = crusher.kind.interval
-	if lines, _ := machineLines(Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "출력 슬롯 부족") {
+	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "출력 슬롯 부족") {
 		t.Errorf("a blocked crusher says %q", lines)
 	}
 	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrafter, "")
-	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법 미설정") {
+	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법 미설정") {
 		t.Errorf("a crafter without a recipe says %q", lines)
 	}
 	crafter.setRecipe(s.crafterCandidates(machineItem(KindCrusher))[0])
-	if lines, _ := machineLines(Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "재료 부족") {
+	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "재료 부족") {
 		t.Errorf("a crafter without ingredients says %q", lines)
 	}
 }

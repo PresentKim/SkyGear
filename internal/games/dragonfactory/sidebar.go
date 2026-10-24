@@ -20,17 +20,18 @@ import (
 // sidebar rows (internal/hud).
 func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
+	lang := i18n.Of(p)
 	var b hud.Board
-	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.sidebar.updateBoard.1"), day, formatPlayTime(total)))
+	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.updateBoard.1"), day, formatPlayTime(total)))
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
-	title, rows := s.questRows()
+	title, rows := s.questRows(lang)
 	b.Add(hud.QuestTitle, title)
 	for _, r := range rows {
 		b.Add(hud.Quest, r)
 	}
-	s.addGoalRows(&b)
+	s.addGoalRows(lang, &b)
 	b.Send(p)
 }
 
@@ -47,47 +48,47 @@ func (s *session) nextResearch() (*Research, bool) {
 // questRows are the quest panel: the next advancement and its hint (with
 // the research cost for a research advancement), then once every
 // advancement is done the next research and its cost.
-func (s *session) questRows() (string, []string) {
+func (s *session) questRows(lang string) (string, []string) {
 	if a, ok := s.nextAdvancement(); ok {
-		rows := strings.Split(a.Hint, "\n")
+		rows := strings.Split(a.HintText(lang), "\n")
 		for i := range rows {
 			rows[i] = "§f" + rows[i]
 		}
 		if g, ok := goalResearch(a); ok {
 			if r, ok := s.researchStep(g); ok {
 				if r != g || a.Research == "" {
-					rows = append(rows, fmt.Sprintf(i18n.T(i18n.Default, "sidebar.quest.research"), r.Title(i18n.Default)))
+					rows = append(rows, fmt.Sprintf(i18n.T(lang, "sidebar.quest.research"), r.Title(lang)))
 				}
-				rows = append(rows, s.researchCostRows(r)...)
+				rows = append(rows, s.researchCostRows(lang, r)...)
 			}
 		}
-		return i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.1") + a.Name, rows
+		return i18n.T(lang, "dragonfactory.sidebar.questRows.1") + a.Title(lang), rows
 	}
 	r, ok := s.nextResearch()
 	if !ok {
-		return i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.2"), nil
+		return i18n.T(lang, "dragonfactory.sidebar.questRows.2"), nil
 	}
-	return fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.sidebar.questRows.3"), r.Title(i18n.Default)), s.researchCostRows(r)
+	return fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.questRows.3"), r.Title(lang)), s.researchCostRows(lang, r)
 }
 
 // researchCostRows are what a research spends, one row per item.
-func (s *session) researchCostRows(r *Research) []string {
+func (s *session) researchCostRows(lang string, r *Research) []string {
 	var rows []string
 	for _, c := range r.Cost {
-		rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(item.NewStack(c.Item, 1)), s.researchNeed(r, c)))
+		rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)))
 	}
 	return rows
 }
 
 // nextGoal is a one line summary of the next thing to do (menu).
-func (s *session) nextGoal() string {
+func (s *session) nextGoal(lang string) string {
 	if a, ok := s.nextAdvancement(); ok {
-		return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.1") + a.Name + " — " + flatHint(a)
+		return i18n.T(lang, "dragonfactory.sidebar.nextGoal.1") + a.Title(lang) + " — " + flatHint(lang, a)
 	}
 	if r, ok := s.nextResearch(); ok {
-		return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.2") + r.Title(i18n.Default) + i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.3")
+		return i18n.T(lang, "dragonfactory.sidebar.nextGoal.2") + r.Title(lang) + i18n.T(lang, "dragonfactory.sidebar.nextGoal.3")
 	}
-	return i18n.T(i18n.Default, "dragonfactory.sidebar.nextGoal.4")
+	return i18n.T(lang, "dragonfactory.sidebar.nextGoal.4")
 }
 
 // formatPlayTime formats the total instance time in whole minutes.

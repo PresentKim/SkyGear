@@ -5,7 +5,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -34,13 +33,7 @@ func init() {
 		var tiers []account.Tier
 		for _, n := range c.needs {
 			id := counterID(c.key, n)
-			account.Register(account.Achievement{
-				ID:    id,
-				Name:  i18n.T(i18n.Default, "achievement."+id+".name"),
-				Desc:  i18n.T(i18n.Default, "achievement."+id+".desc"),
-				Title: i18n.T(i18n.Default, "achievement."+id+".title"),
-				Group: achievementGroup(c.group),
-			})
+			account.Register(account.Keyed(id, achievementGroup(c.group)))
 			tiers = append(tiers, account.Tier{Need: n, ID: id})
 		}
 		account.RegisterCounter(c.key, tiers...)
@@ -48,7 +41,7 @@ func init() {
 }
 
 // achievementGroup is the name of a group of achievements.
-func achievementGroup(g string) string { return i18n.T(i18n.Default, "achgroup."+g) }
+func achievementGroup(g string) string { return "achgroup." + g }
 
 // count adds to a counter of p.
 func count(p *player.Player, key string, n int64) {

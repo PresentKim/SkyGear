@@ -151,7 +151,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	vel := mgl64.Vec3{to[0] * 0.09, 0.2 + max(0, to[1])*0.05, to[2] * 0.09}
 	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), itemName(st), st.Count())
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), itemName(i18n.Of(p), st), st.Count())
 	f.leave(tx, p, true)
 	return true
 }

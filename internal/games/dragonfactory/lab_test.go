@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -100,7 +102,7 @@ func TestLabWaits(t *testing.T) {
 	if st.progress != 0 || outputCount(st, hunting.Out) != 0 {
 		t.Fatalf("brewed without the ingredients: progress %d", st.progress)
 	}
-	lines := strings.Join(labLines(st), "\n")
+	lines := strings.Join(labLines(i18n.Default, st), "\n")
 	if !strings.Contains(lines, "재료 부족") || !strings.Contains(lines, "화약 ×2") || !strings.Contains(lines, "뼈다귀 ×1") {
 		t.Fatalf("lines %q", lines)
 	}
@@ -122,7 +124,7 @@ func TestLabStopsWithoutRoom(t *testing.T) {
 	if outputCount(st, r.Out) != 0 || st.progress < r.Ticks {
 		t.Fatalf("progress %d with a full output", st.progress)
 	}
-	if lines := strings.Join(labLines(st), "\n"); !strings.Contains(lines, "출력 슬롯 부족") {
+	if lines := strings.Join(labLines(i18n.Default, st), "\n"); !strings.Contains(lines, "출력 슬롯 부족") {
 		t.Fatalf("lines %q", lines)
 	}
 	_ = st.inv().SetItem(st.kind.output[0], item.Stack{})

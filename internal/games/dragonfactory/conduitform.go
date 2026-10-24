@@ -26,12 +26,12 @@ var channelColours = [itemnet.Channels]item.Colour{
 	item.ColourOrange(), item.ColourWhite(), item.ColourBlack(), item.ColourRed(),
 }
 
-// neighbourName is the name of the block a conduit side meets.
-func neighbourName(b world.Block) string {
-	if n, ok := b.(interface{ Name() string }); ok {
-		return n.Name()
+// neighbourName is the name of the block a conduit side meets, in lang.
+func neighbourName(lang string, b world.Block) string {
+	if it, ok := b.(world.CustomItem); ok {
+		return customItemName(lang, it)
 	}
-	return blockName(b)
+	return blockName(lang, b)
 }
 
 // showPlateForm shows the settings of a side of the bundle at pos that has a
@@ -52,7 +52,7 @@ func (s *session) showPlateForm(p *player.Player, tx *world.Tx, pos cube.Pos, si
 	if len(kinds) == 0 {
 		return
 	}
-	title := fmt.Sprintf(i18n.T(lang, "conduitplate.title"), i18n.T(lang, "conduitplate.side."+sideName(f)), neighbourName(tx.Block(pos.Side(f))))
+	title := fmt.Sprintf(i18n.T(lang, "conduitplate.title"), i18n.T(lang, "conduitplate.side."+sideName(f)), neighbourName(lang, tx.Block(pos.Side(f))))
 	var lines []string
 	hasItem := false
 	for _, k := range kinds {

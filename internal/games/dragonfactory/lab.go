@@ -208,32 +208,32 @@ func (st *machineState) runLab() {
 	st.tally("lab_"+r.Out.Kind, int64(r.OutCount))
 }
 
-// labLines say what the laboratory brews and what it lacks for it.
-func labLines(st *machineState) []string {
+// labLines say in lang what the laboratory brews and what it lacks for it.
+func labLines(lang string, st *machineState) []string {
 	r := st.lab
 	if r == nil {
-		return []string{i18n.T(i18n.Default, "lab.none")}
+		return []string{i18n.T(lang, "lab.none")}
 	}
-	lines := []string{"§f" + itemName(item.NewStack(r.Out, r.OutCount))}
+	lines := []string{"§f" + itemName(lang, item.NewStack(r.Out, r.OutCount))}
 	if missing := labMissing(r, st.labHave()); len(missing) > 0 {
 		var parts []string
 		for _, m := range missing {
-			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(item.NewStack(m.Item, 1)), m.Count))
+			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(lang, item.NewStack(m.Item, 1)), m.Count))
 		}
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), strings.Join(parts, ", ")))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), strings.Join(parts, ", ")))
 	}
-	lines = append(lines, consumerLines(st)...)
-	return append(lines, blockedLines(st)...)
+	lines = append(lines, consumerLines(lang, st)...)
+	return append(lines, blockedLines(lang, st)...)
 }
 
 // labIngredientsText lists the ingredients of a recipe in one line.
-func labIngredientsText(r *LabRecipe) string {
+func labIngredientsText(lang string, r *LabRecipe) string {
 	var parts []string
 	for _, in := range r.In {
 		if in.Count > 1 {
-			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(item.NewStack(in.Item, 1)), in.Count))
+			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(lang, item.NewStack(in.Item, 1)), in.Count))
 		} else {
-			parts = append(parts, itemName(item.NewStack(in.Item, 1)))
+			parts = append(parts, itemName(lang, item.NewStack(in.Item, 1)))
 		}
 	}
 	return strings.Join(parts, ", ")

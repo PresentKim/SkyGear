@@ -103,15 +103,18 @@ func (st *machineState) reach(kind string) int {
 	return 0
 }
 
-// tierName is the name of a tier.
-func tierName(lang string, tier int) string { return i18n.T(lang, fmt.Sprintf("tier.name.%d", tier)) }
+// tierNameKey is the catalog key of the name of a tier.
+func tierNameKey(tier int) string { return fmt.Sprintf("tier.name.%d", tier) }
 
-// tierTitle is a machine's name with its tier when it has one.
-func tierTitle(name string, tier int) string {
+// tierName is the name of a tier.
+func tierName(lang string, tier int) string { return i18n.T(lang, tierNameKey(tier)) }
+
+// tierTitle is a machine's name with its tier in lang when it has one.
+func tierTitle(lang, name string, tier int) string {
 	if tier == 0 {
 		return name
 	}
-	return name + " [" + tierName(i18n.Default, tier) + "]"
+	return name + " [" + tierName(lang, tier) + "]"
 }
 
 // TierAlloy is an alloy of the machine tiers: infused, reinforced, atomic.

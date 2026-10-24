@@ -87,6 +87,9 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("resource pack dragonfactory: %w", err)
 	}
+	if err := dragonfactory.LoadNames(dfPack); err != nil {
+		return fmt.Errorf("resource pack dragonfactory names: %w", err)
+	}
 	packDirs := map[string]fs.FS{"dragonfactory": dfPack}
 	packNames := []string{"dragonfactory", "dfui", "inventoryui", "waila"}
 	if pconf.ResourcePack.SlotDeco {

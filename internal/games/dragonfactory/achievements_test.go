@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -37,7 +38,7 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 // description and title in the catalog (a missing one shows its key).
 func TestAchievementsAreWritten(t *testing.T) {
 	for _, a := range account.All() {
-		for _, s := range []string{a.Name, a.Desc, a.Title} {
+		for _, s := range []string{a.Name(i18n.Default), a.Desc(i18n.Default), a.Title(i18n.Default)} {
 			if s == "" || strings.HasPrefix(s, "achievement.") {
 				t.Errorf("achievement %s: %q", a.ID, s)
 			}

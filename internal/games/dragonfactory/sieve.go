@@ -267,7 +267,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 	}
 	if st.kind.autoSieve {
 		// it sifts on its own, a click only opens its window
-		st.storage.Open(p, nil)
+		st.openWindow(p)
 		return
 	}
 	swung := false

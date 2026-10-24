@@ -1,26 +1,53 @@
 package platform
 
 import (
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// The lobby's main menu stays closed when the player closes it, and opens
-// again on the player's next action: a click, a movement key, a jump, a
-// sneak, the use key or a hotbar slot (docs/design/01-platform.md §1). The
-// pack draws the menu on the HUD, so the screen looks the same either way.
-// Movement is locked in the lobby, so the movement keys reach the server only
-// as the raw move vector of the client's input packet, read by a packet hook.
+// The lobby's main menu is open whenever no other form is (docs/design/
+// 01-platform.md §1): when a form of the lobby is answered or closed and no
+// form follows, the main menu comes back at once. Closing the main menu
+// itself (Esc) leaves it closed for lobbyEscDelay, or until the player's next
+// action: a click, a movement key, a jump, a sneak, the use key or a hotbar
+// slot. The pack draws the menu on the HUD, so the screen looks the same
+// either way. Movement is locked in the lobby, so the movement keys reach the
+// server only as the raw move vector of the client's input packet, read by a
+// packet hook.
 
 // lobbyWakeGap is how often an input of a player can ask for the menu: the
 // client sends its input every tick.
 const lobbyWakeGap = 300 * time.Millisecond
+
+// lobbyEscDelay is how long the main menu stays closed after the player
+// closed it.
+const lobbyEscDelay = 1500 * time.Millisecond
+
+// lobbyIdle is ui.Idle: p answered a form and has none open. In the lobby the
+// main menu opens again, at once or, when p closed the main menu itself,
+// after lobbyEscDelay.
+func (pf *Platform) lobbyIdle(p *player.Player, _ *world.Tx, title string, closed bool) {
+	if pf.m.Location(instance.AccountID(p)) != nil {
+		return
+	}
+	if closed && strings.Contains(title, ui.LauncherToken) {
+		p.H().DoAfter(lobbyEscDelay, func(_ *world.Tx, e world.Entity) {
+			if p := e.(*player.Player); !ui.FormOpen(p) {
+				pf.wakeLobbyMenu(p)
+			}
+		})
+		return
+	}
+	pf.showLobbyMenu(p)
+}
 
 // lobbyConns are the hooked connections of the players in the lobby, with
 // their handle and the time of their last wake.

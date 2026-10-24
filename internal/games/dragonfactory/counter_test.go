@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
@@ -42,23 +43,24 @@ func TestCounterCatalog(t *testing.T) {
 				t.Errorf("%s is not registered", id)
 				continue
 			}
-			for _, text := range []string{a.Name, a.Desc, a.Title} {
+			title := a.Title(i18n.Default)
+			for _, text := range []string{a.Name(i18n.Default), a.Desc(i18n.Default), title} {
 				if text == "" || strings.HasPrefix(text, "achievement.") {
 					t.Errorf("%s has a missing text: %q", id, text)
 				}
 			}
-			if other, dup := titles[a.Title]; dup {
-				t.Errorf("title %q of %s is also %s", a.Title, id, other)
+			if other, dup := titles[title]; dup {
+				t.Errorf("title %q of %s is also %s", title, id, other)
 			}
-			titles[a.Title] = id
-			if n := len([]rune(a.Title)); n > 14 {
-				t.Errorf("title %q is %d characters", a.Title, n)
+			titles[title] = id
+			if n := len([]rune(title)); n > 14 {
+				t.Errorf("title %q is %d characters", title, n)
 			}
 		}
 	}
 }
 
-func groupText(g string) string { return achievementGroup(g) }
+func groupText(g string) string { return i18n.T(i18n.Default, achievementGroup(g)) }
 
 // TestCountersCount: the actions of a player count under their keys.
 func TestCountersCount(t *testing.T) {

@@ -40,10 +40,13 @@ func blockKey(b world.Block) string {
 	return strings.TrimPrefix(name, "flowing_")
 }
 
-// blockName is the Korean name of a block.
-func blockName(b world.Block) string {
+// blockName is the name of a block in lang.
+func blockName(lang string, b world.Block) string {
 	k := blockKey(b)
-	if n, ok := koreanName(k); ok {
+	if n, ok := vanillaName(lang, k); ok {
+		return n
+	}
+	if n, ok := packName(lang, "tile."+k+".name"); ok {
 		return n
 	}
 	return k

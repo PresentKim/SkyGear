@@ -293,7 +293,7 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  iconOf(st),
 			Count: ui.CountText(int(r.r5 + 0.5)),
-			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), itemName(st), formatPerMin(r.r5), formatPerMin(r.r1), formatPerMin(r.r15), formatInt(r.total)),
+			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), itemName(lang, st), formatPerMin(r.r5), formatPerMin(r.r1), formatPerMin(r.r15), formatInt(r.total)),
 		})
 	}
 	return body, slots

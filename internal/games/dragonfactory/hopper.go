@@ -308,41 +308,42 @@ func (h FlowHopper) Activate(_ cube.Pos, _ cube.Face, _ *world.Tx, u item.User, 
 	if !ok {
 		return false
 	}
-	p.SendTip(h.contentsText())
+	p.SendTip(h.contentsText(i18n.Of(p)))
 	return true
 }
 
 // contentsText lists what the hopper holds.
-func (h FlowHopper) contentsText() string {
+func (h FlowHopper) contentsText(lang string) string {
 	var parts []string
 	if h.inv != nil {
 		for _, st := range h.inv.Items() {
 			if !st.Empty() {
-				parts = append(parts, fmt.Sprintf("%s ×%d", itemName(st), st.Count()))
+				parts = append(parts, fmt.Sprintf("%s ×%d", itemName(lang, st), st.Count()))
 			}
 		}
 	}
+	name := customItemName(lang, h)
 	if len(parts) == 0 {
-		return "§7" + h.Name() + i18n.T(i18n.Default, "dragonfactory.hopper.contentsText.1")
+		return "§7" + name + i18n.T(lang, "dragonfactory.hopper.contentsText.1")
 	}
-	return "§f" + h.Name() + ": §e" + strings.Join(parts, "§7, §e")
+	return "§f" + name + ": §e" + strings.Join(parts, "§7, §e")
 }
 
-// hopperLines are the lines of a hopper's WAILA panel: what it holds, and
-// how fast it moves.
-func hopperLines(h FlowHopper) []string {
+// hopperLines are the lines of a hopper's WAILA panel in lang: what it
+// holds, and how fast it moves.
+func hopperLines(lang string, h FlowHopper) []string {
 	var lines []string
 	if h.inv != nil {
 		for _, st := range h.inv.Items() {
 			if !st.Empty() {
-				lines = append(lines, fmt.Sprintf("§f%s §e×%d", itemName(st), st.Count()))
+				lines = append(lines, fmt.Sprintf("§f%s §e×%d", itemName(lang, st), st.Count()))
 			}
 		}
 	}
 	if len(lines) == 0 {
-		lines = []string{i18n.T(i18n.Default, "dragonfactory.hopper.hopperLines.1")}
+		lines = []string{i18n.T(lang, "dragonfactory.hopper.hopperLines.1")}
 	}
-	return append(lines, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.hopper.hopperLines.2"), float64(h.kind().interval)/20))
+	return append(lines, fmt.Sprintf(i18n.T(lang, "dragonfactory.hopper.hopperLines.2"), float64(h.kind().interval)/20))
 }
 
 var _ itemio.Inserter = FlowHopper{}

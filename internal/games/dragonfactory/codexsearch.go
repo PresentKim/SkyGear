@@ -28,15 +28,18 @@ type codexEntry struct {
 }
 
 var (
-	codexIndexOnce sync.Once
-	codexIndexList []codexEntry
+	codexIndexOnce   sync.Once
+	codexIndexStacks []item.Stack
+	codexIndexMu     sync.Mutex
+	codexIndexByLang = map[string][]codexEntry{}
 )
 
 // codexIndex lists the items the codex knows something about (a source or a
-// use) that play a part in Dragon Factory (codexRelevant), by name. It is
-// built once, from the creative inventory: every item and block of the game
-// is registered there, and so are the vanilla ones the game's tables use.
-func codexIndex() []codexEntry {
+// use) that play a part in Dragon Factory (codexRelevant), by their name in
+// lang. The items are found once, from the creative inventory: every item
+// and block of the game is registered there, and so are the vanilla ones the
+// game's tables use; each language's list is sorted once.
+func codexIndex(lang string) []codexEntry {
 	codexIndexOnce.Do(func() {
 		var s *session // the lookups read static tables, not session state
 		relevant := codexRelevant()
@@ -55,13 +58,23 @@ func codexIndex() []codexEntry {
 			if len(s.codexSources(i18n.Default, st)) == 0 && len(s.codexUses(i18n.Default, st)) == 0 {
 				continue
 			}
-			codexIndexList = append(codexIndexList, codexEntry{stack: st, name: itemName(st)})
+			codexIndexStacks = append(codexIndexStacks, st)
 		}
-		slices.SortStableFunc(codexIndexList, func(a, b codexEntry) int {
-			return strings.Compare(plainName(a.name), plainName(b.name))
-		})
 	})
-	return codexIndexList
+	codexIndexMu.Lock()
+	defer codexIndexMu.Unlock()
+	if list, ok := codexIndexByLang[lang]; ok {
+		return list
+	}
+	list := make([]codexEntry, len(codexIndexStacks))
+	for i, st := range codexIndexStacks {
+		list[i] = codexEntry{stack: st, name: itemName(lang, st)}
+	}
+	slices.SortStableFunc(list, func(a, b codexEntry) int {
+		return strings.Compare(plainName(a.name), plainName(b.name))
+	})
+	codexIndexByLang[lang] = list
+	return list
 }
 
 // codexRelevant are the items (itemKey) a player meets in Dragon Factory:
@@ -252,9 +265,9 @@ func plainName(s string) string {
 }
 
 // codexFind returns the entries whose name matches query.
-func codexFind(query string) []codexEntry {
+func codexFind(lang, query string) []codexEntry {
 	var out []codexEntry
-	for _, e := range codexIndex() {
+	for _, e := range codexIndex(lang) {
 		if textsearch.Match(query, e.name) {
 			out = append(out, e)
 		}
@@ -282,13 +295,13 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 		return
 	}
 	s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, page) })
-	found := codexFind(query)
+	found := codexFind(lang, query)
 	pages := max(1, (len(found)+codexPage-1)/codexPage)
 	page = max(0, min(page, pages-1))
 	var slots []ui.ItemSlot
 	for _, e := range found[page*codexPage : min(len(found), (page+1)*codexPage)] {
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(e.stack), Tip: tipName(e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+			Icon: iconOf(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 			Run: func(p *player.Player, _ *world.Tx) {
 				s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
 			},
@@ -308,7 +321,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	title := i18n.T(lang, "codex.title")
 	var sections []ui.GridSection
 	if query == "" && page == 0 {
-		if goals := s.goalSlots(); len(goals) > 0 {
+		if goals := s.goalSlots(lang); len(goals) > 0 {
 			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.goals"), Slots: goals})
 		}
 		if recent := s.codexRecent[p.H()]; len(recent) > 0 {
@@ -316,7 +329,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 			for _, st := range recent {
 				links = append(links, codexLink{stack: st})
 			}
-			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(links)})
+			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(lang, links)})
 		}
 	}
 	if len(sections) > 0 {
@@ -334,11 +347,11 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 	find := func(p *player.Player, query string) ui.SearchResult {
 		query = strings.TrimSpace(query)
 		s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, 0) })
-		found := codexFind(query)
+		found := codexFind(lang, query)
 		var slots []ui.ItemSlot
 		for _, e := range found {
 			slots = append(slots, ui.ItemSlot{
-				Icon: iconOf(e.stack), Tip: tipName(e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+				Icon: iconOf(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 				Run: func(p *player.Player, _ *world.Tx) {
 					s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
 				},
@@ -348,7 +361,7 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 		if query != "" {
 			r.Info = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
 		} else {
-			if goals := s.goalSlots(); len(goals) > 0 {
+			if goals := s.goalSlots(lang); len(goals) > 0 {
 				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.goals"), Slots: goals})
 			}
 			if recent := s.codexRecent[p.H()]; len(recent) > 0 {
@@ -356,7 +369,7 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 				for _, st := range recent {
 					links = append(links, codexLink{stack: st})
 				}
-				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(links)})
+				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(lang, links)})
 			}
 		}
 		r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.list"), Slots: slots})
@@ -376,7 +389,7 @@ type codexLink struct {
 
 // codexLinkSlots are slots that open the codex page of each linked item. A
 // recipe count shows on the slot like a stack size.
-func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
+func (s *session) codexLinkSlots(lang string, links []codexLink) []ui.ItemSlot {
 	var slots []ui.ItemSlot
 	for _, l := range links {
 		st := l.stack
@@ -385,7 +398,7 @@ func (s *session) codexLinkSlots(links []codexLink) []ui.ItemSlot {
 			count = "§f" + ui.CountText(l.count)
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(st), Count: count, Tip: tipName(st),
+			Icon: iconOf(st), Count: count, Tip: tipName(lang, st),
 			Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) },
 		})
 	}

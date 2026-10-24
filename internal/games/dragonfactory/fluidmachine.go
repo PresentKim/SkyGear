@@ -55,11 +55,11 @@ func bucketOf(k fluidnet.Kind) item.Stack {
 }
 
 // fluidName is the name of a fluid in the catalog.
-func fluidName(k fluidnet.Kind) string {
+func fluidName(lang string, k fluidnet.Kind) string {
 	if k == fluidnet.Lava {
-		return i18n.T(i18n.Default, "fluid.lava")
+		return i18n.T(lang, "fluid.lava")
 	}
-	return i18n.T(i18n.Default, "fluid.water")
+	return i18n.T(lang, "fluid.water")
 }
 
 // FluidRoles implements fluidnet.Holder.
@@ -187,11 +187,11 @@ func (s *session) swapBucket(p *player.Player, tx *world.Tx, pos cube.Pos, held 
 }
 
 // fluidLines are the WAILA lines of a machine with a tank.
-func fluidLines(st *machineState) []string {
+func fluidLines(lang string, st *machineState) []string {
 	if st.fluidAmt == 0 {
-		return []string{fmt.Sprintf(i18n.T(i18n.Default, "fluid.lines.empty"), st.kind.fluidCap)}
+		return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.empty"), st.kind.fluidCap)}
 	}
-	return []string{fmt.Sprintf(i18n.T(i18n.Default, "fluid.lines.tank"), fluidName(st.fluid), st.fluidAmt, st.kind.fluidCap)}
+	return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.tank"), fluidName(lang, st.fluid), st.fluidAmt, st.kind.fluidCap)}
 }
 
 // runCrucible melts the cobblestone in the input of an electric crucible into

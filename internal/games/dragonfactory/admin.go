@@ -63,7 +63,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
 		s.dropAt(tx, p.Position(), st.Grow(added-st.Count()))
 	}
-	o.Printf("%s x%d", itemName(st), st.Count())
+	o.Printf("%s x%d", itemName(i18n.Of(p), st), st.Count())
 }
 
 // giveItems are the items /dfadmin give hands out: the game's own items
@@ -186,7 +186,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			s.dropAt(tx, p.Position(), it.Grow(added-it.Count()))
 		}
 	}
-	o.Printf("%s x%d", itemName(f()), n)
+	o.Printf("%s x%d", itemName(i18n.Of(p), f()), n)
 }
 
 func registerAdmin(g *Game) {
@@ -326,6 +326,6 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			return
 		}
 		s.advance(tx, a.ID)
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.22"), a.Name)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.22"), a.Title(i18n.Default))
 	}
 }

@@ -44,12 +44,12 @@ func TestCodexSourcesAndUses(t *testing.T) {
 		src, use := s.codexSources(lang, c.it), s.codexUses(lang, c.it)
 		for _, want := range c.sources {
 			if !hasLine(src, want) {
-				t.Errorf("%s: no source with %q in %q", itemName(c.it), want, src)
+				t.Errorf("%s: no source with %q in %q", itemName(i18n.Default, c.it), want, src)
 			}
 		}
 		for _, want := range c.uses {
 			if !hasLine(use, want) {
-				t.Errorf("%s: no use with %q in %q", itemName(c.it), want, use)
+				t.Errorf("%s: no use with %q in %q", itemName(i18n.Default, c.it), want, use)
 			}
 		}
 	}
@@ -150,7 +150,7 @@ func TestCodexCraftCard(t *testing.T) {
 func TestCodexBoardPages(t *testing.T) {
 	s := testSession(t)
 	cards := s.codexMobCards(i18n.Default)
-	pages := s.codexBoardPages(cards, codexBoardRows)
+	pages := s.codexBoardPages(i18n.Default, cards, codexBoardRows)
 	if len(pages) < 2 {
 		t.Fatalf("%d pages for %d cards", len(pages), len(cards))
 	}
@@ -206,15 +206,15 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	s := testSession(t)
 	registerCreativeItems()
 	steel := Ingot{Metal: MetalSteel}
-	steelName := itemName(item.NewStack(steel, 1))
+	steelName := itemName(i18n.Default, item.NewStack(steel, 1))
 	found := false
-	for _, e := range codexFind(steelName) {
+	for _, e := range codexFind(i18n.Default, steelName) {
 		found = found || itemKey(e.stack.Item()) == itemKey(steel)
 	}
 	if !found {
-		t.Fatalf("searching %q does not find the steel ingot (%d entries in the index)", steelName, len(codexIndex()))
+		t.Fatalf("searching %q does not find the steel ingot (%d entries in the index)", steelName, len(codexIndex(i18n.Default)))
 	}
-	if n := len(codexFind("")); n < 50 {
+	if n := len(codexFind(i18n.Default, "")); n < 50 {
 		t.Errorf("an empty search lists %d items, want the whole index", n)
 	}
 	// only what the game uses: no potions the game never asks for, but its
@@ -224,17 +224,17 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	for _, it := range []world.Item{item.Potion{}, item.LingeringPotion{}, item.SplashPotion{},
 		block.Log{Wood: block.SpruceWood()}, block.Log{Wood: block.MangroveWood()}, block.Log{Wood: block.BirchWood(), Stripped: true}} {
 		if in[itemKey(it)] {
-			t.Errorf("%s is in the codex", itemName(item.NewStack(it, 1)))
+			t.Errorf("%s is in the codex", itemName(i18n.Default, item.NewStack(it, 1)))
 		}
 	}
 	sieve, _ := world.ItemByName("dragonfactory:sieve", 0)
 	for _, it := range []world.Item{steel, sieve, item.IronIngot{}, block.Furnace{}, item.Stick{}, block.Log{Wood: block.OakWood()}} {
 		if !in[itemKey(it)] {
-			t.Errorf("%s is not in the codex", itemName(item.NewStack(it, 1)))
+			t.Errorf("%s is not in the codex", itemName(i18n.Default, item.NewStack(it, 1)))
 		}
 	}
 	t.Logf("%d items play a part in the game", len(in))
-	if n := len(codexFind("ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
+	if n := len(codexFind(i18n.Default, "ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
 		t.Errorf("a nonsense search found %d", n)
 	}
 	from := s.codexSourceCards(i18n.Default, item.NewStack(steel, 1))
@@ -275,8 +275,8 @@ func TestCodexRawAndGoals(t *testing.T) {
 	if s.isGoal(steel) {
 		t.Error("the oldest goal was not pushed out")
 	}
-	rows := strings.Join(s.goalRows(), "\n")
-	if !strings.Contains(rows, itemName(item.NewStack(Ingot{Metal: MetalBronze}, 1))) {
+	rows := strings.Join(s.goalRows(i18n.Default), "\n")
+	if !strings.Contains(rows, itemName(i18n.Default, item.NewStack(Ingot{Metal: MetalBronze}, 1))) {
 		t.Errorf("the quest rows lack the goal: %q", rows)
 	}
 	for tab := codexTab(0); tab < codexTabCount; tab++ {

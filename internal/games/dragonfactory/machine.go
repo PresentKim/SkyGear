@@ -72,7 +72,8 @@ const (
 // machineKind describes a kind of machine. Slots are window slots of a 27
 // slot (3 row) window; the window inventory is the machine inventory.
 type machineKind struct {
-	name string
+	// nameKey is the catalog key of the name (title).
+	nameKey string
 	// marker in the window title selects the machine's layout in the
 	// resource pack (ui/df_machine.json via inventoryui's chest_screen.json).
 	marker string
@@ -81,8 +82,9 @@ type machineKind struct {
 	input     []int
 	output    []int
 	indicator int
-	help      []string
-	hash      uint64
+	// helpKeys are the catalog keys of the lines that explain it.
+	helpKeys []string
+	hash     uint64
 	// generates is the RE per tick a generator makes while it burns; energyCap
 	// the RE its buffer holds (docs/design/06-power-and-conduits.md).
 	generates, energyCap int
@@ -112,131 +114,131 @@ type machineKind struct {
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.1"), marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		nameKey: "dragonfactory.machine.init.1", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
 		use: 20, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.2"), i18n.T(i18n.Default, "dragonfactory.machine.init.3")},
+		helpKeys: []string{"dragonfactory.machine.init.2", "dragonfactory.machine.init.3"},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
 	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.4"), interval: 60, input: []int{10}, indicator: 12,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.5"), i18n.T(i18n.Default, "dragonfactory.machine.init.6")},
+		nameKey: "dragonfactory.machine.init.4", interval: 60, input: []int{10}, indicator: 12,
+		helpKeys: []string{"dragonfactory.machine.init.5", "dragonfactory.machine.init.6"},
 	},
 	KindAutoSieve: {
 		// The window shows the input (fed by hand, a hopper or a conduit), the ring
 		// and the four slots the products go into (ui/df_machine.json sieve_slots).
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.7"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "dragonfactory.machine.init.7", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 10, energyCap: consumerBuffer, autoSieve: true,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.8"), i18n.T(i18n.Default, "dragonfactory.machine.init.9")},
+		helpKeys: []string{"dragonfactory.machine.init.8", "dragonfactory.machine.init.9"},
 	},
 	KindMagicSieve: {
 		// Like the auto sieve, with the essence slot between the input and the ring
 		// (ui/df_machine.json magicsieve_slots).
-		name: i18n.T(i18n.Default, "machine.magicsieve.name"), marker: "§d§m§9", interval: 90, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "machine.magicsieve.name", marker: "§d§m§9", interval: 90, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer, autoSieve: true,
-		help: []string{i18n.T(i18n.Default, "machine.magicsieve.help.1"), i18n.T(i18n.Default, "machine.magicsieve.help.2"), i18n.T(i18n.Default, "machine.magicsieve.help.3")},
+		helpKeys: []string{"machine.magicsieve.help.1", "machine.magicsieve.help.2", "machine.magicsieve.help.3"},
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.10"), marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		nameKey: "dragonfactory.machine.init.10", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		use: 20, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.11")},
+		helpKeys: []string{"dragonfactory.machine.init.11"},
 	},
 	KindHarvester: {
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.13"), marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		nameKey: "dragonfactory.machine.init.13", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 10, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.14")},
+		helpKeys: []string{"dragonfactory.machine.init.14"},
 	},
 	KindGenerator: {
-		name: i18n.T(i18n.Default, "generator.name"), marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
+		nameKey: "generator.name", marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
 		generates: generatorOutput, energyCap: generatorBuffer,
-		help: []string{i18n.T(i18n.Default, "generator.help.1"), i18n.T(i18n.Default, "generator.help.2")},
+		helpKeys: []string{"generator.help.1", "generator.help.2"},
 	},
 	KindAlloy: {
-		name: i18n.T(i18n.Default, "machine.alloy.name"), marker: "§d§m§6", interval: 100, input: []int{10, 11}, output: []int{15}, indicator: 13,
+		nameKey: "machine.alloy.name", marker: "§d§m§6", interval: 100, input: []int{10, 11}, output: []int{15}, indicator: 13,
 		use: 20, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.alloy.help.1"), i18n.T(i18n.Default, "machine.alloy.help.2")},
+		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
 	KindStorageController: {
-		name: i18n.T(i18n.Default, "machine.controller.name"), interval: 1, indicator: 10, controller: true,
-		help: []string{i18n.T(i18n.Default, "machine.controller.help.1"), i18n.T(i18n.Default, "machine.controller.help.2")},
+		nameKey: "machine.controller.name", interval: 1, indicator: 10, controller: true,
+		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
 	KindStorageLink: {
-		name: i18n.T(i18n.Default, "machine.link.name"), interval: 1, indicator: 10,
-		help: []string{i18n.T(i18n.Default, "machine.link.help.1")},
+		nameKey: "machine.link.name", interval: 1, indicator: 10,
+		helpKeys: []string{"machine.link.help.1"},
 	},
 	KindTinker: {
-		name: i18n.T(i18n.Default, "machine.tinker.name"), interval: 1, indicator: 10,
-		help: []string{i18n.T(i18n.Default, "machine.tinker.help.1"), i18n.T(i18n.Default, "machine.tinker.help.2")},
+		nameKey: "machine.tinker.name", interval: 1, indicator: 10,
+		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
 	KindGate: {
-		name: i18n.T(i18n.Default, "machine.gate.name"), interval: 1, indicator: 10, gate: true,
-		help: []string{i18n.T(i18n.Default, "machine.gate.help.1"), i18n.T(i18n.Default, "machine.gate.help.2")},
+		nameKey: "machine.gate.name", interval: 1, indicator: 10, gate: true,
+		helpKeys: []string{"machine.gate.help.1", "machine.gate.help.2"},
 	},
 	KindWasher: {
-		name: i18n.T(i18n.Default, "machine.washer.name"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "machine.washer.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
 		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Water,
-		help: []string{i18n.T(i18n.Default, "machine.washer.help.1"), i18n.T(i18n.Default, "machine.washer.help.2")},
+		helpKeys: []string{"machine.washer.help.1", "machine.washer.help.2"},
 	},
 	KindTank: {
-		name: i18n.T(i18n.Default, "machine.tank.name"), interval: 1, indicator: 10,
+		nameKey: "machine.tank.name", interval: 1, indicator: 10,
 		fluidCap: tankCapacity, fluidSource: true, fluidSink: true,
-		help: []string{i18n.T(i18n.Default, "machine.tank.help.1"), i18n.T(i18n.Default, "machine.tank.help.2")},
+		helpKeys: []string{"machine.tank.help.1", "machine.tank.help.2"},
 	},
 	KindCrucible: {
-		name: i18n.T(i18n.Default, "machine.crucible.name"), interval: 20, input: []int{10}, indicator: 12,
+		nameKey: "machine.crucible.name", interval: 20, input: []int{10}, indicator: 12,
 		use: 30, energyCap: consumerBuffer,
 		fluidCap: 8000, fluidSource: true, fluidOnly: fluidnet.Lava,
-		help: []string{i18n.T(i18n.Default, "machine.crucible.help.1"), i18n.T(i18n.Default, "machine.crucible.help.2")},
+		helpKeys: []string{"machine.crucible.help.1", "machine.crucible.help.2"},
 	},
 	KindLavaGenerator: {
-		name: i18n.T(i18n.Default, "machine.lavagen.name"), interval: 1, indicator: 10,
+		nameKey: "machine.lavagen.name", interval: 1, indicator: 10,
 		generates: lavaGenOutput, energyCap: generatorBuffer,
 		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
-		help: []string{i18n.T(i18n.Default, "machine.lavagen.help.1"), i18n.T(i18n.Default, "machine.lavagen.help.2")},
+		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
 	KindSimulator: {
-		name: i18n.T(i18n.Default, "machine.simulator.name"), marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "machine.simulator.name", marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.simulator.help.1"), i18n.T(i18n.Default, "machine.simulator.help.2")},
+		helpKeys: []string{"machine.simulator.help.1", "machine.simulator.help.2"},
 	},
 	KindEnergyCell: {
-		name: i18n.T(i18n.Default, "machine.cell.name"), interval: 1, indicator: 10,
+		nameKey: "machine.cell.name", interval: 1, indicator: 10,
 		cell: true, energyCap: cellCapacity,
-		help: []string{i18n.T(i18n.Default, "machine.cell.help.1"), i18n.T(i18n.Default, "machine.cell.help.2")},
+		helpKeys: []string{"machine.cell.help.1", "machine.cell.help.2"},
 	},
 	KindFurnace: {
-		name: i18n.T(i18n.Default, "machine.furnace.name"), marker: "§d§m§1", interval: 100, input: []int{11}, output: []int{15}, indicator: 13,
+		nameKey: "machine.furnace.name", marker: "§d§m§1", interval: 100, input: []int{11}, output: []int{15}, indicator: 13,
 		use: 30, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.furnace.help.1"), i18n.T(i18n.Default, "machine.furnace.help.2")},
+		helpKeys: []string{"machine.furnace.help.1", "machine.furnace.help.2"},
 	},
 	KindVacuum: {
-		name: i18n.T(i18n.Default, "machine.vacuum.name"), marker: "§d§m§3", interval: 10, output: []int{13, 14, 15, 16}, indicator: 10,
+		nameKey: "machine.vacuum.name", marker: "§d§m§3", interval: 10, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 5, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.vacuum.help.1"), i18n.T(i18n.Default, "machine.vacuum.help.2")},
+		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2"},
 	},
 	KindFeller: {
-		name: i18n.T(i18n.Default, "machine.feller.name"), marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		nameKey: "machine.feller.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 15, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.feller.help.1"), i18n.T(i18n.Default, "machine.feller.help.2")},
+		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2"},
 	},
 	KindCrafter: {
 		// The store is the 3×3 on the left, the recipe slot above the ring.
-		name: i18n.T(i18n.Default, "machine.crafter.name"), marker: "§d§m§7", interval: 40, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		nameKey: "machine.crafter.name", marker: "§d§m§7", interval: 40, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
 		use: 25, energyCap: consumerBuffer, crafter: true,
-		help: []string{i18n.T(i18n.Default, "machine.crafter.help.1"), i18n.T(i18n.Default, "machine.crafter.help.2"), i18n.T(i18n.Default, "machine.crafter.help.3")},
+		helpKeys: []string{"machine.crafter.help.1", "machine.crafter.help.2", "machine.crafter.help.3"},
 	},
 	KindLab: {
 		// The materials are the 3×3 on the left, the essences go to the four
 		// slots on the right.
-		name: i18n.T(i18n.Default, "machine.lab.name"), marker: "§d§m§8", interval: 320, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		nameKey: "machine.lab.name", marker: "§d§m§8", interval: 320, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
 		use: 40, energyCap: consumerBuffer,
-		help: []string{i18n.T(i18n.Default, "machine.lab.help.1"), i18n.T(i18n.Default, "machine.lab.help.2"), i18n.T(i18n.Default, "machine.lab.help.3")},
+		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
 	KindSellBox: {
-		name: i18n.T(i18n.Default, "dragonfactory.machine.init.16"), marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
-		help: []string{i18n.T(i18n.Default, "dragonfactory.machine.init.17"), i18n.T(i18n.Default, "dragonfactory.machine.init.18")},
+		nameKey: "dragonfactory.machine.init.16", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
+		helpKeys: []string{"dragonfactory.machine.init.17", "dragonfactory.machine.init.18"},
 	},
 }
 
@@ -402,9 +404,7 @@ func (st *machineState) drainLegacy() {
 
 func newMachine(kind, owner, ownerName string) Machine {
 	k := machineKinds[kind]
-	// The marker's last code is a colour (§1 dark blue ...): §r gives the
-	// name the window's own title colour back.
-	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.marker+"§r"+k.name), owner: owner, ownerName: ownerName, shownPct: -1, shownEnergy: -1}
+	st := &machineState{kind: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), owner: owner, ownerName: ownerName, shownPct: -1, shownEnergy: -1}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.role(slot) == roleNone {
@@ -416,10 +416,10 @@ func newMachine(kind, owner, ownerName string) Machine {
 	_ = inv.SetItem(takeAllSlot, item.Stack{})
 	_ = inv.SetItem(putAllSlot, item.Stack{})
 	if len(k.output) > 0 {
-		_ = inv.SetItem(takeAllSlot, item.NewStack(MachineTakeAll{}, 1).WithCustomName("§r§f"+i18n.T(i18n.Default, "machine.takeAll")))
+		_ = inv.SetItem(takeAllSlot, withWindowText(item.NewStack(MachineTakeAll{}, 1), wtext{wraw("§r§f"), wkey("machine.takeAll")}))
 	}
 	if len(k.input)+len(k.charge) > 0 {
-		_ = inv.SetItem(putAllSlot, item.NewStack(MachinePutAll{}, 1).WithCustomName("§r§f"+i18n.T(i18n.Default, "machine.putAll")))
+		_ = inv.SetItem(putAllSlot, withWindowText(item.NewStack(MachinePutAll{}, 1), wtext{wraw("§r§f"), wkey("machine.putAll")}))
 	}
 	inv.Handle(machineHandler{st: st})
 	st.shownRecipe = "\x00"
@@ -460,23 +460,45 @@ const (
 // machine. The theme draws it left of the close button.
 const infoSlot = 26
 
+// title is the name of the kind in lang.
+func (k *machineKind) title(lang string) string { return i18n.T(lang, k.nameKey) }
+
+// windowTitle is the title of the kind's window in lang. The marker's last
+// code is a colour (§1 dark blue ...): §r gives the name the window's own
+// title colour back.
+func (k *machineKind) windowTitle(lang string) string { return k.marker + "§r" + k.title(lang) }
+
+// openWindow opens the machine's window for p, titled in p's language.
+func (st *machineState) openWindow(p *player.Player) {
+	st.storage.SetTitle(st.kind.windowTitle(i18n.Of(p)))
+	st.storage.Open(p, nil)
+}
+
 // infoItem is the info icon of a machine window: the machine's name, what
 // it does and, for the sell box, whose it is.
 func (st *machineState) infoItem() item.Stack {
-	lines := append([]string{}, st.kind.help...)
+	var lore []wtext
+	for _, k := range st.kind.helpKeys {
+		lore = append(lore, wtext{wkey(k)})
+	}
 	if st.kind == machineKinds[KindSellBox] && st.ownerName != "" {
-		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.machine.infoItem.1")+st.ownerName)
+		lore = append(lore, wtext{wkey("dragonfactory.machine.infoItem.1"), wraw(st.ownerName)})
 	}
 	if st.tier > 0 {
 		spec := st.spec()
-		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "tier.info"), tierName(i18n.Default, st.tier), spec.speed, float64(spec.use10)/10))
+		lore = append(lore, wtext{wkey("tier.info", wkey(tierNameKey(st.tier)), spec.speed, float64(spec.use10)/10)})
 	}
 	badge := 0
 	if st.stuck != stuckNone {
 		badge = slotdeco.BadgeWarn
 	}
 	st.shownStuck = badge != 0
-	return item.NewStack(MachineInfo{}, 1).WithCustomName(slotdeco.Decorate(slotdeco.Common, badge, "§r§f"+tierTitle(st.kind.name, st.tier))).WithLore(lines...)
+	name := wtext{wraw(slotdeco.Common.Mark() + "§r§f"), wkey(st.kind.nameKey)}
+	if st.tier > 0 {
+		name = append(name, wraw(" ["), wkey(tierNameKey(st.tier)), wraw("]"))
+	}
+	name = append(name, wraw(slotdeco.TierMark(badge)))
+	return withWindowText(item.NewStack(MachineInfo{}, 1), name, lore...)
 }
 
 // MachineTakeAll and MachinePutAll are the button items of machine windows
@@ -799,22 +821,22 @@ func (st *machineState) showProgress() {
 		return
 	}
 	st.shownPct = pct
-	name := fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.1"), pct)
+	name := wkey("dragonfactory.machine.showProgress.1", pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind {
 	case machineKinds[KindSellBox]:
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
-		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve], machineKinds[KindSimulator], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
-		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.3"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("dragonfactory.machine.showProgress.3", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindGenerator]:
 		// The ring shows the fuel left in the one burning.
-		name, it = fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.machine.showProgress.5"), pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("dragonfactory.machine.showProgress.5", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case machineKinds[KindHarvester]:
-		name, it = i18n.T(i18n.Default, "dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
-	_ = st.inv().SetItem(st.kind.indicator, it.WithCustomName("§r"+name))
+	_ = st.inv().SetItem(st.kind.indicator, withWindowText(it, wtext{wraw("§r"), name}))
 }
 
 // energyGaugeSlot is the window slot of the energy gauge, in the column right
@@ -838,9 +860,8 @@ func (st *machineState) showEnergy() {
 		return
 	}
 	st.shownEnergy = have
-	name := fmt.Sprintf(i18n.T(i18n.Default, "machine.energy.gauge"), have, capacity)
 	it := item.NewStack(EnergyGauge{Step: min(10, have*10/capacity)}, 1)
-	_ = st.inv().SetItem(energyGaugeSlot, it.WithCustomName(name))
+	_ = st.inv().SetItem(energyGaugeSlot, withWindowText(it, wtext{wkey("machine.energy.gauge", have, capacity)}))
 }
 
 // EnergyGauge is the energy indicator of machine windows: a battery filled in
@@ -901,9 +922,9 @@ func (m Machine) Hash() (uint64, uint64) {
 func (Machine) Model() world.BlockModel { return model.Solid{} }
 func (m Machine) Name() string {
 	if m.st != nil {
-		return tierTitle(m.kind().name, m.st.tier)
+		return tierTitle(i18n.Default, m.kind().title(i18n.Default), m.st.tier)
 	}
-	return m.kind().name
+	return m.kind().title(i18n.Default)
 }
 func (Machine) Category() category.Category { return category.Items() }
 
@@ -1150,7 +1171,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.st.kind.cell {
 		return false
 	}
-	m.st.storage.Open(p, nil)
+	m.st.openWindow(p)
 	return true
 }
 

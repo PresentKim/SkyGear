@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -20,22 +19,10 @@ const (
 func init() {
 	for _, h := range haveCatalog {
 		id := "df_have_" + h.short
-		account.Register(account.Achievement{
-			ID:    id,
-			Name:  i18n.T(i18n.Default, "achievement."+id+".name"),
-			Desc:  i18n.T(i18n.Default, "achievement."+id+".desc"),
-			Title: i18n.T(i18n.Default, "achievement."+id+".title"),
-			Group: achievementGroup("collect"),
-		})
+		account.Register(account.Keyed(id, achievementGroup("collect")))
 	}
 	for _, id := range []string{achAllResearch, achAllAdv} {
-		account.Register(account.Achievement{
-			ID:    id,
-			Name:  i18n.T(i18n.Default, "achievement."+id+".name"),
-			Desc:  i18n.T(i18n.Default, "achievement."+id+".desc"),
-			Title: i18n.T(i18n.Default, "achievement."+id+".title"),
-			Group: achievementGroup("progress"),
-		})
+		account.Register(account.Keyed(id, achievementGroup("progress")))
 	}
 }
 

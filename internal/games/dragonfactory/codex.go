@@ -60,7 +60,7 @@ func formatPermille(p int) string {
 	return fmt.Sprintf("%.1f", float64(p)/10)
 }
 
-func n1(w world.Item) string { return itemName(item.NewStack(w, 1)) }
+func n1(lang string, w world.Item) string { return itemName(lang, item.NewStack(w, 1)) }
 
 // codexSources lists where an item comes from, read from the tables of the
 // game.
@@ -73,7 +73,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			found := false
 			for _, d := range sieveTables[t.tier][itemKey(in)] {
 				if itemKey(d.Item.Item()) == k {
-					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sieve"), meshName(t.tier), n1(in), formatPermille(d.Permille)))
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sieve"), meshName(lang, t.tier), n1(lang, in), formatPermille(d.Permille)))
 					found = true
 					break
 				}
@@ -85,7 +85,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	}
 	for _, in := range crushInputs() {
 		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && itemKey(got.Item()) == k {
-			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.crusher"), n1(in)))
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.crusher"), n1(lang, in)))
 		}
 	}
 	if _, ok := it.Item().(MetalDust); ok {
@@ -93,18 +93,18 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	}
 	for _, r := range alloyRecipes {
 		if itemKey(r.Out) == k {
-			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.alloy"), fmt.Sprintf("%s ×%d + %s ×%d", n1(r.A), r.CountA, n1(r.B), r.CountB)))
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.alloy"), fmt.Sprintf("%s ×%d + %s ×%d", n1(lang, r.A), r.CountA, n1(lang, r.B), r.CountB)))
 		}
 	}
 	for i := range labRecipes {
 		if r := &labRecipes[i]; itemKey(r.Out) == k {
-			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.lab"), labIngredientsText(r)))
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.lab"), labIngredientsText(lang, r)))
 		}
 	}
 	for _, mob := range mobKinds {
 		for _, d := range simDrops[mob] {
 			if itemKey(d.Item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), mobName(mob), d.Chance))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), mobName(lang, mob), d.Chance))
 			}
 		}
 	}
@@ -112,7 +112,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 		for _, in := range codexSieveInputs() {
 			for _, d := range magicThemes[mob].Adds[itemKey(in)] {
 				if itemKey(d.Item.Item()) == k {
-					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), mobName(mob), n1(in), formatPermille(d.Permille)))
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), mobName(lang, mob), n1(lang, in), formatPermille(d.Permille)))
 				}
 			}
 		}
@@ -130,7 +130,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	for _, pk := range plantKinds {
 		for _, y := range pk.yield {
 			if itemKey(y.item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), itemName(item.NewStack(PlantSeed{Seed: pk.seed}, 1))))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), itemName(lang, item.NewStack(PlantSeed{Seed: pk.seed}, 1))))
 			}
 		}
 	}
@@ -172,7 +172,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	var made []string
 	for _, cr := range crafterRecipes() {
 		if cr.wants(it) {
-			made = append(made, itemName(cr.out))
+			made = append(made, itemName(lang, cr.out))
 		}
 	}
 	if len(made) > 0 {
@@ -185,27 +185,27 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	}
 	for _, r := range alloyRecipes {
 		if itemKey(r.A) == k || itemKey(r.B) == k {
-			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.alloy"), n1(r.Out)))
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.alloy"), n1(lang, r.Out)))
 		}
 	}
 	for i := range labRecipes {
 		for _, in := range labRecipes[i].In {
 			if itemKey(in.Item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.lab"), n1(labRecipes[i].Out)))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.lab"), n1(lang, labRecipes[i].Out)))
 			}
 		}
 	}
 	if got, ok := crusherOutput(it); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), itemName(got)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), itemName(lang, got)))
 	}
 	if e, ok := it.Item().(Essence); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), mobName(e.Mob)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), mobName(lang, e.Mob)))
 	}
 	if fuelDuration(it) > 0 {
 		out = append(out, i18n.T(lang, "codex.use.fuel"))
 	}
 	if sm, ok := smeltOf(it); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), itemName(sm)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), itemName(lang, sm)))
 	}
 	if plantMatter(it) {
 		out = append(out, i18n.T(lang, "codex.use.compost"))
@@ -227,7 +227,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	}
 	for _, t := range meshTiers {
 		if t.material != nil && itemKey(t.material) == k {
-			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.mesh"), meshName(t.tier)))
+			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.mesh"), meshName(lang, t.tier)))
 		}
 	}
 	return out

@@ -3,6 +3,8 @@ package dragonfactory
 import (
 	"testing"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -22,8 +24,8 @@ func TestAdvancementTreeIsValid(t *testing.T) {
 			t.Errorf("%s: parent %s not before it", a.ID, a.Parent)
 		}
 		seen[a.ID] = true
-		if a.Hint == "" {
-			t.Errorf("%s: no hint", a.ID)
+		if !i18n.Has(a.NameKey) || !i18n.Has(a.HintKey) {
+			t.Errorf("%s: no name or hint in the catalog", a.ID)
 		}
 		for _, n := range []string{a.Item, a.Icon} {
 			if _, ok := world.ItemByName(unlockName(n), 0); n != "" && !ok {
@@ -128,7 +130,7 @@ func TestAdvancementTreeFits(t *testing.T) {
 // TestAdvancementStack: an advancement points at its item, else its icon.
 func TestAdvancementStack(t *testing.T) {
 	a, _ := advancementByID("hammer")
-	if it, ok := advancementStack(a); !ok || itemName(it) != "돌 망치" {
+	if it, ok := advancementStack(a); !ok || itemName(i18n.Default, it) != "돌 망치" {
 		t.Fatalf("hammer stack %v %v", it, ok)
 	}
 	b, _ := advancementByID("first_research")

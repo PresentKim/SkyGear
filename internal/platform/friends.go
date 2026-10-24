@@ -132,7 +132,7 @@ func (pf *Platform) friendList(p *player.Player, sel string) (ui.ListSplit, erro
 			chosen = f
 		}
 		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(f.Name, pf.status(f.ID)), Icon: iconFriend,
+			Label: ui.ListRowText(f.Name, pf.status(lang, f.ID)), Icon: iconFriend,
 			Selected: f.ID == sel, Run: again(f.ID),
 		})
 	}
@@ -214,7 +214,7 @@ func (pf *Platform) requestList(p *player.Player, reqs []db.Account, sel string)
 	}
 	for _, r := range reqs {
 		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(r.Name, pf.status(r.ID)), Icon: iconFriend,
+			Label: ui.ListRowText(r.Name, pf.status(lang, r.ID)), Icon: iconFriend,
 			Selected: r.ID == chosen.ID,
 			Run:      func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, requestsTab, r.ID) },
 		})

@@ -68,7 +68,7 @@ func helpEssenceText(lang string) string {
 	lines := []string{i18n.T(lang, "help.essence.text"), ""}
 	for i := range labRecipes {
 		r := &labRecipes[i]
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "help.essence.recipe"), itemName(item.NewStack(r.Out, 1)), labIngredientsText(r), r.OutCount))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "help.essence.recipe"), itemName(lang, item.NewStack(r.Out, 1)), labIngredientsText(lang, r), r.OutCount))
 	}
 	return strings.Join(append(lines, "", i18n.T(lang, "help.essence.foot")), "\n")
 }

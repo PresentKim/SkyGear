@@ -27,7 +27,7 @@ func (s *session) showLab(p *player.Player, _ *world.Tx, pos cube.Pos, st *machi
 		return
 	}
 	body, rows, actions := s.labPanel(p, pos, st)
-	ui.ItemBoard(p, ui.SubTitle(i18n.T(lang, "machine.lab.name"), itemName(item.NewStack(st.lab.Out, 1))), body, rows, actions...)
+	ui.ItemBoard(p, ui.SubTitle(i18n.T(lang, "machine.lab.name"), itemName(lang, item.NewStack(st.lab.Out, 1))), body, rows, actions...)
 }
 
 // labStill reports whether the laboratory a screen was shown for still
@@ -63,7 +63,7 @@ func (s *session) labChoices(p *player.Player, pos cube.Pos, st *machineState) [
 		}
 		out := item.NewStack(r.Out, 1)
 		opts = append(opts, ui.Option{
-			Label: itemName(out) + "\n§8" + fmt.Sprintf(i18n.T(lang, "lab.card"), r.OutCount, r.Ticks/20),
+			Label: itemName(lang, out) + "\n§8" + fmt.Sprintf(i18n.T(lang, "lab.card"), r.OutCount, r.Ticks/20),
 			Icon:  iconOf(out),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if !s.labStill(tx, pos, st) || st.lab != nil {
@@ -105,7 +105,7 @@ func (s *session) labPanel(p *player.Player, pos cube.Pos, st *machineState) (st
 			count = fmt.Sprint(n)
 		}
 		row = append(row, ui.SlotCell(ui.ItemSlot{
-			Icon: iconOf(it), Count: count, Tip: tipName(it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count),
+			Icon: iconOf(it), Count: count, Tip: tipName(lang, it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count),
 			Run: again(func(p *player.Player, _ *world.Tx) { s.labDeposit(p, st, in.Item) }),
 		}))
 	}
@@ -115,11 +115,11 @@ func (s *session) labPanel(p *player.Player, pos cube.Pos, st *machineState) (st
 		made = fmt.Sprint(n)
 	}
 	row = append(row, ui.Arrow(), ui.SlotCell(ui.ItemSlot{
-		Icon: iconOf(out), Count: made, Tip: tipName(out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20),
+		Icon: iconOf(out), Count: made, Tip: tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20),
 		Run: again(func(p *player.Player, tx *world.Tx) { s.labTake(p, tx, st) }),
 	}))
 	lines := []string{fmt.Sprintf(i18n.T(lang, "lab.progress"), min(100, st.progress*100/r.Ticks))}
-	lines = append(lines, labLines(st)[1:]...)
+	lines = append(lines, labLines(lang, st)[1:]...)
 	actions := []ui.Option{
 		{Label: i18n.T(lang, "lab.deposit"), Icon: iconOf(item.NewStack(r.In[0].Item, 1)), Run: again(func(p *player.Player, _ *world.Tx) { s.labDeposit(p, st, nil) })},
 		{Label: i18n.T(lang, "lab.take"), Icon: iconOf(out), Run: again(func(p *player.Player, tx *world.Tx) { s.labTake(p, tx, st) })},

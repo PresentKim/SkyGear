@@ -275,18 +275,18 @@ func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u it
 
 // bundleLines are the lines of a bundle's WAILA panel: the conduits in it
 // and the mode of every side that has a block with items.
-func bundleLines(tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
+func bundleLines(lang string, tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
 	var lines []string
 	if b.Energy > 0 {
-		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.EnergyConduit.%d", b.Energy))+
+		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.EnergyConduit.%d", b.Energy))+
 			fmt.Sprintf(" §7%d RE/t", energy.RateOf(b.Energy)))
 	}
 	if b.Item > 0 {
-		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
-			" §7"+fmt.Sprintf(i18n.T(i18n.Default, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
+		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
+			" §7"+fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
 	}
 	if b.Fluid > 0 {
-		lines = append(lines, i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidRate(b.Fluid)))
+		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidRate(b.Fluid)))
 	}
 	return lines
 }

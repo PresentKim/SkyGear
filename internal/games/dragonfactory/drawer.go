@@ -202,7 +202,7 @@ func (d Drawer) toItem() item.Stack {
 	lore := []string{}
 	if !d.Item.Empty() {
 		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
-		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(d.Item), formatInt(d.Count)))
+		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(i18n.Default, d.Item), formatInt(d.Count)))
 	}
 	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.drawer.toItem.1"), d.Capacity, onOff(d.Void)))
 	if d.Locked {
@@ -515,7 +515,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	}
 	info := i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.1")
 	if !d.Item.Empty() {
-		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(d.Item), formatInt(d.Count), formatInt(d.capacity()))
+		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(i18n.Of(p), d.Item), formatInt(d.Count), formatInt(d.capacity()))
 	}
 	// act runs f on the drawer at pos and shows the menu again.
 	act := func(f func(p *player.Player, tx *world.Tx, d *Drawer)) func(*player.Player, *world.Tx) {

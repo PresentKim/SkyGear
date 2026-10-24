@@ -181,7 +181,7 @@ func (s *session) gainToolXP(p *player.Player, n int) {
 		if toolLevel(toolXP(next)) >= 5 {
 			s.advance(p.Tx(), advTool5)
 		}
-		p.Messagef(i18n.T(i18n.Of(p), "tinker.levelUp"), itemName(next), toolLevel(toolXP(next)))
+		p.Messagef(i18n.T(i18n.Of(p), "tinker.levelUp"), itemName(i18n.Of(p), next), toolLevel(toolXP(next)))
 	}
 }
 

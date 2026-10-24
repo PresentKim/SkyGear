@@ -90,10 +90,10 @@ func rarityColour(r slotdeco.Rarity) string {
 // tipName is the name of a stack for the first line of a form slot's
 // tooltip: the slot marks in front and after (the pack draws a frame and
 // badge from them, df_form.json gslot_deco), the name in the rarity colour.
-func tipName(st item.Stack) string {
+func tipName(lang string, st item.Stack) string {
 	if n := st.CustomName(); n != "" {
 		return n // stacks with a name of their own carry their marks already
 	}
 	r, tier := ItemDecor(st.Item())
-	return slotdeco.Decorate(r, tier, rarityColour(r)+itemName(st))
+	return slotdeco.Decorate(r, tier, rarityColour(r)+itemName(lang, st))
 }

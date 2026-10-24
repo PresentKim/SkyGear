@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/instance"
+	"golang.org/x/text/language"
 )
 
 // testSession returns a session over a synchronous world, without an
@@ -61,7 +62,7 @@ func loadAround(s *session) {
 
 func spawnPlayer(s *session) *world.EntityHandle {
 	id := uuid.New()
-	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "p", UUID: id, Position: mgl64.Vec3{0.5, 64, 2.5}})
+	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "p", UUID: id, Locale: language.Korean, Position: mgl64.Vec3{0.5, 64, 2.5}})
 	s.world.Do(func(tx *world.Tx) { tx.AddEntity(h) })
 	return h
 }

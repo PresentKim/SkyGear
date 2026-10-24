@@ -3,6 +3,8 @@ package dragonfactory
 import (
 	"testing"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/model"
@@ -125,7 +127,7 @@ func TestBarrelLiquidIcon(t *testing.T) {
 	s := testSession(t)
 	pos := cube.Pos{1, 2, 3}
 	s.state.Barrels = map[string]*BarrelRecord{}
-	if s.barrelLiquid(pos) != nil {
+	if s.barrelLiquid(i18n.Default, pos) != nil {
 		t.Fatal("an empty barrel shows a liquid")
 	}
 	for kind, rec := range map[string]*BarrelRecord{
@@ -134,13 +136,13 @@ func TestBarrelLiquidIcon(t *testing.T) {
 		liquidLava:       {Count: stoneBarrelCapacity, Lava: true},
 	} {
 		s.state.Barrels[cropKey(pos)] = rec
-		line := s.barrelLiquid(pos)
+		line := s.barrelLiquid(i18n.Default, pos)
 		if line == nil || itemKey(line.Item.Item()) != itemKey(LiquidIcon{Kind: kind}) {
 			t.Errorf("%s barrel shows %v", kind, line)
 		}
 	}
 	s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: 10}
-	if s.barrelLiquid(pos) != nil {
+	if s.barrelLiquid(i18n.Default, pos) != nil {
 		t.Fatal("a filling barrel shows a liquid")
 	}
 }

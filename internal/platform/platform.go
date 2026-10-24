@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/account"
@@ -47,6 +48,7 @@ func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, on
 	pf := &Platform{log: log, db: d, m: m, game: game, online: online, isOperator: isOperator}
 	// Every form shown in the lobby gets the launcher frame.
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
+	ui.Idle = pf.lobbyIdle
 	lobbyPlatform = pf
 	account.Init(d, log)
 	m.Register(game)
@@ -90,7 +92,7 @@ func (pf *Platform) Join(p *player.Player) {
 	account.Count(p, "login", 1)
 	account.Refresh(p)
 	if acc.GuideVersion < GuideVersion {
-		pf.showGuide(p, true)
+		dfhook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showGuide(p, true) })
 	}
 	pf.notifyRequests(p)
 }
@@ -113,9 +115,9 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	_ = p.SetHeldSlot(0)
 	watchLobbyInput(p, p.Tx().World())
 	// The main menu is open on arrival (the guide comes first the first time:
-	// Join shows it).
+	// Join shows it), once the client can show it.
 	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
-		pf.showLobbyMenu(p)
+		dfhook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.wakeLobbyMenu(p) })
 	}
 }
 
@@ -164,7 +166,7 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 			})
 			continue
 		}
-		info := fmt.Sprintf(i18n.T(lang, "platform.platform.showSaves.3"), s.Day, formatDuration(s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
+		info := fmt.Sprintf(i18n.T(lang, "platform.platform.showSaves.3"), s.Day, formatDuration(lang, s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
 		rows = append(rows, ui.ListRow{
 			Label:    ui.ListRowText(s.Name, info),
 			Icon:     iconSave,

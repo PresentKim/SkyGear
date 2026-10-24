@@ -132,13 +132,14 @@ func SweepPlayer(p *player.Player) []item.Stack {
 // Notify tells p that the stacks were removed because their time was up.
 func Notify(p *player.Player, removed []item.Stack) {
 	for _, st := range removed {
-		p.Messagef(i18n.T(i18n.Of(p), "timed.timed.Notify.1"), Name(st), st.Count())
+		lang := i18n.Of(p)
+		p.Messagef(i18n.T(lang, "timed.timed.Notify.1"), Name(lang, st), st.Count())
 	}
 }
 
-// Name is the name shown for a stack in messages: its custom name or its
-// item identifier. Games with their own item names can replace it.
-var Name = func(st item.Stack) string {
+// Name is the name shown for a stack in messages in lang: its custom name or
+// its item identifier. Games with their own item names can replace it.
+var Name = func(_ string, st item.Stack) string {
 	if n := st.CustomName(); n != "" {
 		return n
 	}

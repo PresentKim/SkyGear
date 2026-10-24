@@ -376,16 +376,16 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), r.Title(langOf(p)))
 			continue
 		}
-		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(r))
+		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(langOf(p), r))
 	}
 }
 
-// unlockNames lists a research's results in Korean.
-func (s *session) unlockNames(r *Research) string {
+// unlockNames lists a research's results in lang.
+func (s *session) unlockNames(lang string, r *Research) string {
 	var names []string
 	for _, n := range r.Unlocks {
 		if it, ok := world.ItemByName(unlockName(n), 0); ok {
-			names = append(names, itemName(item.NewStack(it, 1)))
+			names = append(names, itemName(lang, item.NewStack(it, 1)))
 		} else {
 			names = append(names, n)
 		}
@@ -648,7 +648,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			case len(missing) > 0:
 				var names []string
 				for _, m := range missing {
-					names = append(names, costText(m))
+					names = append(names, costText(i18n.Of(p), m))
 				}
 				ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.6"), strings.Join(names, ", "))
 			}
@@ -682,10 +682,10 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	for _, c := range r.Cost {
 		need := s.researchNeed(r, c)
 		st := item.NewStack(c.Item, 1)
-		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.7"), itemName(st), need)
+		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.7"), itemName(i18n.Of(p), st), need)
 		switch {
 		case done:
-			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.8"), itemName(st), c.Count)
+			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.8"), itemName(i18n.Of(p), st), c.Count)
 			need = c.Count
 		case p != nil:
 			have := countPlain(p.Inventory(), c.Item)
@@ -706,7 +706,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			continue
 		}
 		st := item.NewStack(it, 1)
-		tip := tipName(st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")
+		tip := tipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")
 		c := rewardCount(r, n)
 		if c > 0 {
 			tip += "\n" + fmt.Sprintf(i18n.T(i18n.Of(p), "researchreward.tip"), c)

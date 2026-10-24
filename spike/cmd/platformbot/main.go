@@ -27,11 +27,15 @@ var conn *minecraft.Conn
 
 func main() {
 	name := flag.String("name", "Bot", "player name")
+	lang := flag.String("lang", "ko_KR", "client language (the scenarios expect Korean texts)")
 	flag.Parse()
 	var err error
 	// A stable identity per name, so reconnecting is the same account.
 	id := uuid.NewSHA1(uuid.NameSpaceOID, []byte(*name)).String()
-	conn, err = minecraft.Dialer{IdentityData: login.IdentityData{DisplayName: *name, Identity: id}}.Dial("raknet", serverAddr())
+	conn, err = minecraft.Dialer{
+		IdentityData: login.IdentityData{DisplayName: *name, Identity: id},
+		ClientData:   login.ClientData{LanguageCode: *lang},
+	}.Dial("raknet", serverAddr())
 	if err != nil {
 		fail("dial: %v", err)
 	}
@@ -39,6 +43,9 @@ func main() {
 	if err := conn.DoSpawn(); err != nil {
 		fail("spawn: %v", err)
 	}
+	// A real client reports the end of its loading screen; the server holds
+	// the first forms until then.
+	_ = conn.WritePacket(&packet.ServerBoundLoadingScreen{Type: packet.LoadingScreenTypeEnd})
 	script := flag.Args()
 	fmt.Println("script:", script)
 	for _, action := range script {

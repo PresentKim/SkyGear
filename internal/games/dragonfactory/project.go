@@ -42,13 +42,7 @@ var advAchievements = map[string]string{
 }
 
 func init() {
-	ach := func(id, group string) account.Achievement {
-		return account.Achievement{
-			ID: id, Name: i18n.T(i18n.Default, "achievement."+id+".name"),
-			Desc: i18n.T(i18n.Default, "achievement."+id+".desc"), Title: i18n.T(i18n.Default, "achievement."+id+".title"),
-			Group: achievementGroup(group),
-		}
-	}
+	ach := func(id, group string) account.Achievement { return account.Keyed(id, achievementGroup(group)) }
 	account.Register(ach(achWave1, "combat"), ach(achWave8, "combat"), ach(achTinker, "gear"), ach(achBloom, "farm"), ach(achDragon, "progress"))
 }
 

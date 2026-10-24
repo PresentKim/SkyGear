@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 
+	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
 )
 
@@ -60,7 +61,7 @@ func (c debugUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func showWindowPicker(p *player.Player) {
 	var opts []ui.Option
 	for _, k := range windowKinds() {
-		opts = append(opts, ui.Option{Label: itemName(machineItem(k)) + "\n§8" + k, Icon: iconOf(machineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: itemName(i18n.Of(p), machineItem(k)) + "\n§8" + k, Icon: iconOf(machineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
 			previewLater(p, k)
 		}})
 	}
@@ -99,5 +100,5 @@ func previewWindow(p *player.Player, kind string) {
 		st.energy = st.energyCap() / 2
 		st.showEnergy()
 	}
-	st.storage.Open(p, nil)
+	st.openWindow(p)
 }

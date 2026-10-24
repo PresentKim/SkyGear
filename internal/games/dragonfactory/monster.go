@@ -268,8 +268,8 @@ func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
 	}
 }
 
-// mobName is the name of a mob in the catalog.
-func mobName(mob string) string { return i18n.T(i18n.Default, "mob."+mob) }
+// mobName is the name of a mob in lang.
+func mobName(lang, mob string) string { return i18n.T(lang, "mob."+mob) }
 
 // canSee reports whether no solid block lies between the monster's eyes and p's.
 func (m *Monster) canSee(tx *world.Tx, pos mgl64.Vec3, p *player.Player) bool {

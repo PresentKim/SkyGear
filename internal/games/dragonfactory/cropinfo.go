@@ -17,10 +17,10 @@ import (
 // nothing, so no block is placed on it. The WAILA panel shows the time
 // left (look.go).
 
-// cropNames are the Korean names of the crop kinds.
-var cropNames = map[string]string{
-	"wheat": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.1"), "carrot": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.2"), "potato": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.3"), "beetroot": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.4"),
-	"melon": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.5"), "pumpkin": i18n.T(i18n.Default, "dragonfactory.cropinfo.init.6"),
+// cropNameKeys are the catalog keys of the names of the crop kinds.
+var cropNameKeys = map[string]string{
+	"wheat": "dragonfactory.cropinfo.init.1", "carrot": "dragonfactory.cropinfo.init.2", "potato": "dragonfactory.cropinfo.init.3", "beetroot": "dragonfactory.cropinfo.init.4",
+	"melon": "dragonfactory.cropinfo.init.5", "pumpkin": "dragonfactory.cropinfo.init.6",
 }
 
 // useCrop handles a player using the crop at pos: a grown crop is
@@ -60,16 +60,16 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 
 // cropLines are the time left on a crop (the stage is only how the time
 // shows on the plant, not a number for players; 11th playtest).
-func (s *session) cropLines(r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
+func (s *session) cropLines(lang string, r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
 	now, _, _ := s.clock.Now()
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := max(0, r.Planted+s.growTime(r.Kind)-now)
-		return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.1") + formatDuration(left.Round(time.Second))}
+		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := max(0, r.NextFruit-now)
-		return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.2"), i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.3") + formatDuration(left.Round(time.Second))}
+		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.2"), i18n.T(lang, "dragonfactory.cropinfo.cropLines.3") + formatDuration(lang, left.Round(time.Second))}
 	}
-	return []string{i18n.T(i18n.Default, "dragonfactory.cropinfo.cropLines.4")}
+	return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.4")}
 }

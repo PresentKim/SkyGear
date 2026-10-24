@@ -67,7 +67,7 @@ func (s *session) showMenu(p *player.Player) {
 
 func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
 	_, day, _ := s.clock.Now()
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.1"), s.saveName, day, s.nextGoal())
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.1"), s.saveName, day, s.nextGoal(i18n.Of(p)))
 	return body, []ui.Option{
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.2"), iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
@@ -95,7 +95,7 @@ const (
 func (s *session) showLost(p *player.Player) { s.showLostPage(p, 0) }
 
 func (s *session) showLostPage(p *player.Player, page int) {
-	body, slots, back := s.lostMenu()
+	body, slots, back := s.lostMenu(i18n.Of(p))
 	pages := max(1, (len(slots)+lostPage-1)/lostPage)
 	page = max(0, min(page, pages-1))
 	slots = slots[min(len(slots), page*lostPage):min(len(slots), (page+1)*lostPage)]
@@ -115,9 +115,9 @@ func (s *session) showLostPage(p *player.Player, page int) {
 	ui.ItemBoard(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showLost.1"), "", rows, actions...)
 }
 
-func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
+func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 	s.purgeLost()
-	body := i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.1")
+	body := i18n.T(lang, "dragonfactory.screens.lostMenu.1")
 	var slots []ui.ItemSlot
 	for _, l := range s.state.Lost {
 		it := decodeItem(l.Item)
@@ -127,7 +127,7 @@ func (s *session) lostMenu() (string, []ui.ItemSlot, ui.Option) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  iconOf(it),
 			Count: ui.CountText(l.Count),
-			Tip:   fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.screens.lostMenu.3"), itemName(it), formatInt(int64(l.Count))),
+			Tip:   fmt.Sprintf(i18n.T(lang, "dragonfactory.screens.lostMenu.3"), itemName(lang, it), formatInt(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

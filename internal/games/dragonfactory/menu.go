@@ -77,19 +77,19 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.menu.Run.5"))
 }
 
-// itemName returns a readable name of an item stack.
-func itemName(s item.Stack) string {
+// itemName returns a readable name of an item stack in lang.
+func itemName(lang string, s item.Stack) string {
 	if n := s.CustomName(); n != "" {
 		// The slot marks are for the slot only (docs/tech/slotdeco.md).
 		return slotdeco.Strip(n)
 	}
 	if c, ok := s.Item().(world.CustomItem); ok {
-		return c.Name()
+		return customItemName(lang, c)
 	}
 	name, _ := s.Item().EncodeItem()
 	name = strings.TrimPrefix(name, "minecraft:")
-	if ko, ok := koreanName(name); ok {
-		return ko
+	if n, ok := vanillaName(lang, name); ok {
+		return n
 	}
 	return name
 }

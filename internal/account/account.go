@@ -19,28 +19,54 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Achievement is something a player can earn once per account. Title is the
-// title it unlocks (shown before the name when equipped).
+// Achievement is something a player can earn once per account. Its texts are
+// catalog keys: the name, what to do, and the title it unlocks (shown before
+// the name when equipped; none when TitleKey is empty).
 type Achievement struct {
-	ID, Name, Desc, Title string
-	// Group is the category the screens list it under.
-	Group string
+	ID                         string
+	NameKey, DescKey, TitleKey string
+	// GroupKey is the catalog key of the category the screens list it under.
+	GroupKey string
+}
+
+// Keyed is the achievement id with the texts under "achievement.<id>.name",
+// ".desc" and ".title", listed in the group of groupKey.
+func Keyed(id, groupKey string) Achievement {
+	prefix := "achievement." + id + "."
+	return Achievement{ID: id, NameKey: prefix + "name", DescKey: prefix + "desc", TitleKey: prefix + "title", GroupKey: groupKey}
+}
+
+// Name is the achievement's name in lang.
+func (a Achievement) Name(lang string) string { return i18n.T(lang, a.NameKey) }
+
+// Desc says in lang what earns the achievement.
+func (a Achievement) Desc(lang string) string { return i18n.T(lang, a.DescKey) }
+
+// Title is the title the achievement unlocks in lang, "" for none.
+func (a Achievement) Title(lang string) string {
+	if a.TitleKey == "" {
+		return ""
+	}
+	return i18n.T(lang, a.TitleKey)
 }
 
 // Color is a name colour. Need is the number of achievements that unlock it.
 type Color struct {
-	ID, Name, Code string
-	Need           int
+	ID, NameKey, Code string
+	Need              int
 }
+
+// Name is the colour's name in lang.
+func (c Color) Name(lang string) string { return i18n.T(lang, c.NameKey) }
 
 // Colors are the name colours in display order; the first is the default.
 // Unlock counts are balancing drafts.
 var Colors = []Color{
-	{"", i18n.T(i18n.Default, "account.account.init.1"), "§f", 0}, {"yellow", i18n.T(i18n.Default, "account.account.init.2"), "§e", 0}, {"aqua", i18n.T(i18n.Default, "account.account.init.3"), "§b", 0}, {"green", i18n.T(i18n.Default, "account.account.init.4"), "§a", 0},
-	{"gold", i18n.T(i18n.Default, "account.account.init.5"), "§6", 3}, {"pink", i18n.T(i18n.Default, "account.account.init.6"), "§d", 3}, {"red", i18n.T(i18n.Default, "account.account.init.7"), "§c", 6}, {"blue", i18n.T(i18n.Default, "account.account.init.8"), "§9", 6},
-	{"darkgreen", i18n.T(i18n.Default, "account.color.darkgreen"), "§2", 12}, {"darkaqua", i18n.T(i18n.Default, "account.color.darkaqua"), "§3", 20}, {"purple", i18n.T(i18n.Default, "account.color.purple"), "§5", 30},
-	{"copper", i18n.T(i18n.Default, "account.color.copper"), "§n", 45}, {"emerald", i18n.T(i18n.Default, "account.color.emerald"), "§q", 65}, {"diamond", i18n.T(i18n.Default, "account.color.diamond"), "§s", 90},
-	{"amethyst", i18n.T(i18n.Default, "account.color.amethyst"), "§u", 120}, {"netherite", i18n.T(i18n.Default, "account.color.netherite"), "§j", 160},
+	{"", "account.account.init.1", "§f", 0}, {"yellow", "account.account.init.2", "§e", 0}, {"aqua", "account.account.init.3", "§b", 0}, {"green", "account.account.init.4", "§a", 0},
+	{"gold", "account.account.init.5", "§6", 3}, {"pink", "account.account.init.6", "§d", 3}, {"red", "account.account.init.7", "§c", 6}, {"blue", "account.account.init.8", "§9", 6},
+	{"darkgreen", "account.color.darkgreen", "§2", 12}, {"darkaqua", "account.color.darkaqua", "§3", 20}, {"purple", "account.color.purple", "§5", 30},
+	{"copper", "account.color.copper", "§n", 45}, {"emerald", "account.color.emerald", "§q", 65}, {"diamond", "account.color.diamond", "§s", 90},
+	{"amethyst", "account.color.amethyst", "§u", 120}, {"netherite", "account.color.netherite", "§j", 160},
 }
 
 var (
@@ -78,21 +104,22 @@ func All() []Achievement {
 	return append([]Achievement(nil), achievements...)
 }
 
-// SetGroupOrder sets the order the achievement groups are listed in; groups
-// it does not name come after, in the order they were registered.
-func SetGroupOrder(names ...string) {
+// SetGroupOrder sets the order the achievement groups (their keys) are
+// listed in; groups it does not name come after, in the order they were
+// registered.
+func SetGroupOrder(keys ...string) {
 	mu.Lock()
 	defer mu.Unlock()
-	groupOrder = names
+	groupOrder = keys
 }
 
-// Groups returns the groups of the registered achievements in listing order.
-// Achievements without a group are in the group "".
+// Groups returns the group keys of the registered achievements in listing
+// order. Achievements without a group are in the group "".
 func Groups() []string {
 	var seen []string
 	for _, a := range All() {
-		if !slices.Contains(seen, a.Group) {
-			seen = append(seen, a.Group)
+		if !slices.Contains(seen, a.GroupKey) {
+			seen = append(seen, a.GroupKey)
 		}
 	}
 	mu.Lock()
@@ -149,9 +176,9 @@ func Grant(p *player.Player, id string) {
 		return
 	}
 	lang := i18n.Of(p)
-	ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name, a.Desc))
-	if a.Title != "" {
-		ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), a.Title))
+	ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name(lang), a.Desc(lang)))
+	if title := a.Title(lang); title != "" {
+		ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), title))
 	}
 	p.PlaySound(sound.LevelUp{})
 }
@@ -207,8 +234,9 @@ func Refresh(p *player.Player) {
 		return
 	}
 	name := ColorOf(acc.NameColor).Code + p.Name() + "§r"
-	if a, ok := Get(acc.Title); ok && a.Title != "" {
-		name = "§7[" + a.Title + "]§r " + name
+	// Everyone sees the same name tag and chat name: the default language.
+	if a, ok := Get(acc.Title); ok && a.Title(i18n.Default) != "" {
+		name = "§7[" + a.Title(i18n.Default) + "]§r " + name
 	}
 	mu.Lock()
 	display[acc.ID] = name
