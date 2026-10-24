@@ -6,6 +6,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
@@ -58,6 +59,7 @@ func TestLabBrews(t *testing.T) {
 			s := testSession(t)
 			loadAround(s)
 			st := placeTestMachine(s, machinePos, KindLab, "")
+			st.setLab(labByKind(r.Out.Kind))
 			fillLab(st, r, 2)
 			tick(s, r.Ticks/2)
 			if got := outputCount(st, r.Out); got != 0 {
@@ -91,6 +93,7 @@ func TestLabWaits(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
 	hunting := labRecipes[3]
+	st.setLab(&labRecipes[3])
 	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(item.GlassBottle{}, 4))
 	_ = st.inv().SetItem(st.kind.input[1], item.NewStack(item.Bone{}, 1))
 	tick(s, hunting.Ticks+10)
@@ -110,6 +113,7 @@ func TestLabStopsWithoutRoom(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
 	r := labRecipes[0]
+	st.setLab(&labRecipes[0])
 	for _, slot := range st.kind.output {
 		_ = st.inv().SetItem(slot, item.NewStack(block.Cobblestone{}, 64))
 	}
@@ -128,18 +132,22 @@ func TestLabStopsWithoutRoom(t *testing.T) {
 	}
 }
 
-// TestLabAccepts: the lab takes the ingredients of its recipes, and nothing
-// else.
+// TestLabAccepts: the lab takes nothing until an essence is chosen, then the
+// ingredients of that recipe only.
 func TestLabAccepts(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
-	for _, in := range []world.Item{item.GlassBottle{}, item.IronIngot{}, item.SpiderEye{}, Petal{Colour: "blue"}, Ingot{Metal: MetalInvar}} {
+	if st.accepts(item.NewStack(item.GlassBottle{}, 1)) || st.insert(item.NewStack(item.GlassBottle{}, 1)) {
+		t.Fatal("takes a glass bottle with no essence chosen")
+	}
+	st.setLab(labByKind(EssenceHunting))
+	for _, in := range []world.Item{item.GlassBottle{}, item.Gunpowder{}, item.SpiderEye{}} {
 		if !st.accepts(item.NewStack(in, 1)) {
 			t.Errorf("does not take %s", itemKey(in))
 		}
 	}
-	for _, in := range []world.Item{block.Dirt{}, item.Diamond{}, Petal{Colour: "pink"}} {
+	for _, in := range []world.Item{block.Dirt{}, item.Diamond{}, item.IronIngot{}, Petal{Colour: "blue"}} {
 		if st.accepts(item.NewStack(in, 1)) {
 			t.Errorf("takes %s", itemKey(in))
 		}
@@ -169,6 +177,7 @@ func TestLabNoticesAnIngredientTakenAway(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
 	r := labRecipes[1]
+	st.setLab(&labRecipes[1])
 	fillLab(st, r, 1)
 	tick(s, r.Ticks/2)
 	if st.progress == 0 {
@@ -182,26 +191,105 @@ func TestLabNoticesAnIngredientTakenAway(t *testing.T) {
 }
 
 // TestLabFeedLeavesRoom: a feed of one ingredient stops at a few cycles'
-// worth, so the other ingredients still find a slot; by hand any amount goes.
+// worth, so the other ingredients still find a slot.
 func TestLabFeedLeavesRoom(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
+	st.setLab(labByKind(EssenceEngineering))
+	iron := item.NewStack(item.IronIngot{}, 1)
 	fed := 0
-	for st.insert(item.NewStack(item.IronIngot{}, 1)) {
+	for st.insert(iron) {
 		fed++
 		if fed > 1000 {
 			t.Fatal("the feed never stopped")
 		}
 	}
-	if fed != labFeedCap(item.NewStack(item.IronIngot{}, 1)) {
-		t.Fatalf("fed %d iron, want the cap %d", fed, labFeedCap(item.NewStack(item.IronIngot{}, 1)))
+	if fed != st.labFeedCap(iron) {
+		t.Fatalf("fed %d iron, want the cap %d", fed, st.labFeedCap(iron))
 	}
 	if !st.insert(item.NewStack(item.RedstoneWire{}, 1)) || !st.insert(item.NewStack(item.GlassBottle{}, 1)) {
 		t.Fatal("the other ingredients found no room")
 	}
-	_ = st.inv().SetItem(st.kind.input[8], item.NewStack(item.IronIngot{}, 64))
-	if st.labHave()[itemKey(item.IronIngot{})] <= fed {
-		t.Fatal("a stack put in by hand was refused")
+}
+
+// TestLabScreen: the cards are the essences the research has come to;
+// choosing one puts its ingredients in from the inventory (and nothing
+// else), the essences made are handed out, and stopping gives everything
+// back and lets the lab take nothing.
+func TestLabScreen(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindLab, "")
+	conduit, _ := researchByID("energy_conduit")
+	s.state.Researched = map[string]bool{}
+	for _, id := range conduit.Needs {
+		s.state.Researched[id] = true
+	}
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		opts := s.labChoices(p, machinePos, st)
+		if len(opts) != 1 || !strings.HasPrefix(opts[0].Label, "공학의 정수") {
+			var labels []string
+			for _, o := range opts {
+				labels = append(labels, o.Label)
+			}
+			t.Fatalf("cards %q, want the essence of engineering", labels)
+		}
+		_, _ = p.Inventory().AddItem(item.NewStack(item.GlassBottle{}, 5))
+		_, _ = p.Inventory().AddItem(item.NewStack(item.IronIngot{}, 200))
+		_, _ = p.Inventory().AddItem(item.NewStack(item.RedstoneWire{}, 7))
+		_, _ = p.Inventory().AddItem(item.NewStack(item.Diamond{}, 3))
+		opts[0].Run(p, tx)
+		have := st.labHave()
+		if st.lab == nil || have[itemKey(item.GlassBottle{})] != 5 || have[itemKey(item.RedstoneWire{})] != 7 || have[itemKey(item.Diamond{})] != 0 {
+			t.Fatalf("chosen %v, holds %v", st.lab != nil, have)
+		}
+		if n := have[itemKey(item.IronIngot{})]; n != st.labHandCap(item.NewStack(item.IronIngot{}, 1)) {
+			t.Fatalf("holds %d iron, want the hand cap", n)
+		}
+		_ = st.inv().SetItem(st.kind.output[0], item.NewStack(ResearchEssence{EssenceEngineering}, 4))
+		_, _, actions := s.labPanel(p, machinePos, st)
+		press(t, p, tx, actions, "정수 꺼내기")
+		if outputCount(st, ResearchEssence{EssenceEngineering}) != 0 || countIn(p, ResearchEssence{EssenceEngineering}) != 4 {
+			t.Fatal("the essences were not handed out")
+		}
+		press(t, p, tx, actions, "§c생산 중지")
+		if st.lab != nil || len(st.labHave()) != 0 || countIn(p, item.GlassBottle{}) != 5 || countIn(p, item.IronIngot{}) != 200 {
+			t.Fatalf("stopped: chosen %v, holds %v, bottles %d, iron %d", st.lab != nil, st.labHave(), countIn(p, item.GlassBottle{}), countIn(p, item.IronIngot{}))
+		}
+		if st.insert(item.NewStack(item.GlassBottle{}, 1)) {
+			t.Fatal("a stopped lab takes a glass bottle")
+		}
+	})
+}
+
+// countIn counts the items of a kind in p's inventory.
+func countIn(p *player.Player, it world.Item) int {
+	n := 0
+	for _, st := range p.Inventory().Items() {
+		if itemKey(st.Item()) == itemKey(it) {
+			n += st.Count()
+		}
+	}
+	return n
+}
+
+// TestLabSaved: the chosen essence is saved, and a lab saved before it was
+// chosen brews what its ingredients are for.
+func TestLabSaved(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, KindLab, "")
+	st.setLab(labByKind(EssenceMagic))
+	back := Machine{Kind: KindLab}.DecodeNBT(Machine{Kind: KindLab, st: st}.EncodeNBT()).(Machine)
+	if back.st.lab == nil || back.st.lab.Out.Kind != EssenceMagic {
+		t.Fatal("the chosen essence was not saved")
+	}
+	st.setLab(nil)
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(item.Bone{}, 2))
+	back = Machine{Kind: KindLab}.DecodeNBT(Machine{Kind: KindLab, st: st}.EncodeNBT()).(Machine)
+	if back.st.lab == nil || back.st.lab.Out.Kind != EssenceHunting {
+		t.Fatal("an old lab with bones does not brew the essence of hunting")
 	}
 }

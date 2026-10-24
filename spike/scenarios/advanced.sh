@@ -4,7 +4,7 @@
 # register without server errors, an operator can be given them, and their
 # recipes and creative entries reach the client.
 timeout 90 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=고급 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=고급 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research free' \
   'cmd:/dfadmin give alloy_smelter 1' 'expect:합금로 x1' \
   'cmd:/dfadmin give energy_cell 1' 'expect:에너지 셀 x1' \

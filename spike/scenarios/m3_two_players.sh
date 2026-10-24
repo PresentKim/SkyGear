@@ -3,7 +3,7 @@
 # game menu forms and kick between a host (Hana) and a guest (Gyu).
 rm -f "$WORK/code.txt"
 timeout 90 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=하나 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=하나 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/invite' 'form:"초대하기"=0' "capture:\"초대 코드\"=$WORK/code.txt" \
   'expect:친구 요청을 보냈습니다' 'cmd:/friends' 'form:"친구"=1' 'form:"받은 친구 요청"=0' 'form:"친구 요청"=0' 'expect:친구가 되었습니다' \
   'expect:참여했습니다' 'wait:1' \

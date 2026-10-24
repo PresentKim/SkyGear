@@ -23,7 +23,8 @@ func (windowKindEnum) Options(cmd.Source) []string { return windowKinds() }
 func windowKinds() []string {
 	var out []string
 	for _, k := range machineOrder {
-		if machineKinds[k].marker != "" && k != KindSieve {
+		// the laboratory's use opens its screen (labui.go), not the window
+		if machineKinds[k].marker != "" && k != KindSieve && k != KindLab {
 			out = append(out, k)
 		}
 	}

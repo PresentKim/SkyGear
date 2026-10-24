@@ -10,17 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// essenceCostOf is how many essences of a kind a research costs.
-func essenceCostOf(r *Research, kind string) int {
-	n := 0
-	for _, c := range r.Cost {
-		if e, ok := c.Item.(ResearchEssence); ok && e.Kind == kind {
-			n += c.Count
-		}
-	}
-	return n
-}
-
 // closureOf are the researches that have to be done before the ones given
 // (and those themselves).
 func closureOf(ids ...string) map[string]bool {

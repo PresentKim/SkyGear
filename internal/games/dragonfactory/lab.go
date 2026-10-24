@@ -12,10 +12,10 @@ import (
 
 // The laboratory (docs/design/11-research-essences.md): it brews a research
 // essence from a glass bottle and the materials of an era, using energy and
-// time. The recipe is whatever the nine input slots hold (as the alloy
-// smelter's is): the first recipe of labRecipes whose ingredients are all in
-// there. Its work is paced by the recipe, not the machine, so the machine
-// keeps the length of the cycle it is on in machineState.period.
+// time. The player chooses the essence on its screen (labui.go); until then
+// it takes nothing, and then only the ingredients of that recipe. Its work is
+// paced by the recipe, not the machine, so the machine keeps the length of
+// the cycle it is on in machineState.period.
 
 // LabIngredient is an item with the count a recipe takes.
 type LabIngredient struct {
@@ -55,17 +55,44 @@ var labRecipes = []LabRecipe{
 		labBottle, {Petal{Colour: "red"}, 1}, {Petal{Colour: "yellow"}, 1}, {Petal{Colour: "blue"}, 1}, {item.LapisLazuli{}, 1}, {item.AmethystShard{}, 1}}},
 }
 
-// labAccepts reports whether an item is an ingredient of some recipe.
-func labAccepts(it item.Stack) bool {
-	k := itemKey(it.Item())
-	for _, r := range labRecipes {
-		for _, in := range r.In {
-			if itemKey(in.Item) == k {
-				return true
-			}
+// labByKind is the recipe of the essence of a kind, nil if there is none.
+func labByKind(kind string) *LabRecipe {
+	for i := range labRecipes {
+		if labRecipes[i].Out.Kind == kind {
+			return &labRecipes[i]
 		}
 	}
-	return false
+	return nil
+}
+
+// ingredient is the ingredient of the recipe that the item is, if it is one.
+func (r *LabRecipe) ingredient(it item.Stack) (LabIngredient, bool) {
+	k := itemKey(it.Item())
+	for _, in := range r.In {
+		if itemKey(in.Item) == k {
+			return in, true
+		}
+	}
+	return LabIngredient{}, false
+}
+
+// setLab makes the laboratory brew r (nil: nothing), from the start of a
+// cycle.
+func (st *machineState) setLab(r *LabRecipe) {
+	st.lab, st.recipeID, st.progress, st.period = r, "", 0, 0
+	if r != nil {
+		st.recipeID, st.period = r.Out.Kind, r.Ticks
+	}
+}
+
+// labAccepts reports whether the laboratory takes an item: an ingredient of
+// the recipe it brews.
+func (st *machineState) labAccepts(it item.Stack) bool {
+	if st.lab == nil {
+		return false
+	}
+	_, ok := st.lab.ingredient(it)
+	return ok
 }
 
 // labFeedCycles is how many cycles of an ingredient an automated feed
@@ -73,20 +100,17 @@ func labAccepts(it item.Stack) bool {
 const labFeedCycles = 8
 
 // labFeedCap is how many of an ingredient the feed puts in the laboratory:
-// the most any recipe takes of it for labFeedCycles cycles. A feed of one
-// ingredient cannot fill the nine slots and crowd the others out; what a
-// player puts in by hand is not limited.
-func labFeedCap(it item.Stack) int {
-	k := itemKey(it.Item())
-	most := 1
-	for _, r := range labRecipes {
-		for _, in := range r.In {
-			if itemKey(in.Item) == k {
-				most = max(most, in.Count)
-			}
-		}
-	}
-	return most * labFeedCycles
+// what the recipe takes of it for labFeedCycles cycles. A feed of one
+// ingredient cannot fill the nine slots and crowd the others out.
+func (st *machineState) labFeedCap(it item.Stack) int {
+	in, _ := st.lab.ingredient(it)
+	return max(1, in.Count) * labFeedCycles
+}
+
+// labHandCap is how many of an ingredient a player puts in by hand: the
+// stacks of the input slots shared out among the ingredients.
+func (st *machineState) labHandCap(it item.Stack) int {
+	return it.MaxCount() * max(1, len(st.kind.input)/len(st.lab.In))
 }
 
 // labHave counts what the input slots hold by item key.
@@ -111,23 +135,9 @@ func labMissing(r *LabRecipe, have map[string]int) []LabIngredient {
 	return missing
 }
 
-// labPlan is the recipe to work on: the one on now if its ingredients are
-// still there, else the first one whose ingredients are.
-func (st *machineState) labPlan() *LabRecipe {
-	have := st.labHave()
-	if r := st.lab; r != nil && len(labMissing(r, have)) == 0 {
-		return r
-	}
-	for i := range labRecipes {
-		if len(labMissing(&labRecipes[i], have)) == 0 {
-			return &labRecipes[i]
-		}
-	}
-	return nil
-}
-
 // labClosest is the recipe the input slots are closest to: the one with the
-// most of its ingredients started, none if no ingredient is in them.
+// most of its ingredients started, none if no ingredient is in them. A
+// laboratory saved before it was chosen on its screen brews this one.
 func (st *machineState) labClosest() (*LabRecipe, []LabIngredient) {
 	have := st.labHave()
 	var best *LabRecipe
@@ -148,26 +158,27 @@ func (st *machineState) labClosest() (*LabRecipe, []LabIngredient) {
 	return best, bestMissing
 }
 
-// runLab brews: it works the cycle of the recipe it has the ingredients
-// for, and when the cycle is out and the essences fit the output, takes the
-// ingredients and makes them. With no recipe the cycle starts over.
+// runLab brews: it works the cycle of the chosen recipe while its
+// ingredients are there, and when the cycle is out and the essences fit the
+// output, takes the ingredients and makes them. Without an ingredient the
+// cycle starts over.
 func (st *machineState) runLab() {
-	// Mid-cycle the ingredients are looked at once every labCheckEvery ticks,
-	// not every tick: finding the recipe counts the input slots.
-	if r := st.lab; r != nil && st.progress%labCheckEvery != 0 && st.progress < r.Ticks {
-		st.tickWork()
-		return
-	}
-	r := st.labPlan()
-	if r != st.lab {
-		st.progress = 0
-	}
-	st.lab = r
+	r := st.lab
 	if r == nil {
-		st.period = 0
+		st.progress, st.period = 0, 0
 		return
 	}
 	st.period = r.Ticks
+	// Mid-cycle the ingredients are looked at once every labCheckEvery ticks,
+	// not every tick: it counts the input slots.
+	if st.progress%labCheckEvery != 0 && st.progress < r.Ticks {
+		st.tickWork()
+		return
+	}
+	if len(labMissing(r, st.labHave())) > 0 {
+		st.progress = 0
+		return
+	}
 	if st.progress < r.Ticks {
 		st.tickWork()
 		return
@@ -197,21 +208,19 @@ func (st *machineState) runLab() {
 	st.tally("lab_"+r.Out.Kind, int64(r.OutCount))
 }
 
-// labLines say what the laboratory brews, or what it lacks for the recipe
-// it is closest to.
+// labLines say what the laboratory brews and what it lacks for it.
 func labLines(st *machineState) []string {
-	var lines []string
-	if r := st.lab; r != nil {
-		lines = append(lines, "§f"+itemName(item.NewStack(r.Out, r.OutCount)))
-	} else if r, missing := st.labClosest(); r != nil {
-		lines = append(lines, "§f"+itemName(item.NewStack(r.Out, 1)))
+	r := st.lab
+	if r == nil {
+		return []string{i18n.T(i18n.Default, "lab.none")}
+	}
+	lines := []string{"§f" + itemName(item.NewStack(r.Out, r.OutCount))}
+	if missing := labMissing(r, st.labHave()); len(missing) > 0 {
 		var parts []string
 		for _, m := range missing {
 			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(item.NewStack(m.Item, 1)), m.Count))
 		}
 		lines = append(lines, fmt.Sprintf(i18n.T(i18n.Default, "crafter.status.missing"), strings.Join(parts, ", ")))
-	} else {
-		lines = append(lines, i18n.T(i18n.Default, "dragonfactory.look.machineLines.4"))
 	}
 	lines = append(lines, consumerLines(st)...)
 	return append(lines, blockedLines(st)...)

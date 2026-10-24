@@ -556,7 +556,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case machineKinds[KindCrafter]:
 		return st.recipe != nil && st.recipe.wants(it)
 	case machineKinds[KindLab]:
-		return labAccepts(it)
+		return st.labAccepts(it)
 	case machineKinds[KindSieve], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve]:
 		// A sieve sifts only with a mesh fitted; the magic sieve also takes essences
 		// (into its essence slot).
@@ -760,11 +760,22 @@ func (st *machineState) insert(it item.Stack) bool {
 	if !st.accepts(one) || !fits(st.inv(), slots, []item.Stack{one}) {
 		return false
 	}
-	if st.kind == machineKinds[KindLab] && st.labHave()[itemKey(one.Item())] >= labFeedCap(one) {
+	if st.kind == machineKinds[KindLab] && st.labHave()[itemKey(one.Item())] >= st.labFeedCap(one) {
 		return false
 	}
 	put(st.inv(), slots, one)
 	return true
+}
+
+// outputCount counts the items of a kind in the output slots.
+func outputCount(st *machineState, it world.Item) int {
+	n := 0
+	for _, slot := range st.kind.output {
+		if got, _ := st.inv().Item(slot); !got.Empty() && itemKey(got.Item()) == itemKey(it) {
+			n += got.Count()
+		}
+	}
+	return n
 }
 
 // takeOutput removes one item from the output.
@@ -1032,6 +1043,9 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	}
 	if id, ok := data["Recipe"].(string); ok {
 		n.st.recipeID = id
+		if m.Kind == KindLab {
+			n.st.lab = labByKind(id)
+		}
 	}
 	if mesh, ok := data["Mesh"].(string); ok {
 		n.st.mesh = mesh
@@ -1062,6 +1076,13 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 			case !it.Empty():
 				n.st.legacy = append(n.st.legacy, it)
 			}
+		}
+	}
+	if m.Kind == KindLab && n.st.lab == nil {
+		// saved before the essence was chosen on the screen: it brews what
+		// its ingredients are for
+		if r, _ := n.st.labClosest(); r != nil {
+			n.st.setLab(r)
 		}
 	}
 	n.st.showProgress()
@@ -1105,6 +1126,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.st.kind.gate {
 		if !s.debounced(p) {
 			s.showGateForm(p, tx, pos)
+		}
+		return true
+	}
+	if m.Kind == KindLab {
+		if !s.debounced(p) {
+			s.showLab(p, tx, pos, m.st)
 		}
 		return true
 	}

@@ -3,7 +3,7 @@
 # research opens the pebble recipes (a few more recipes after it). Using a
 # stick on dirt and stripping logs are covered by unit tests.
 timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=손작업 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=손작업 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin item dragonfactory:pebble_stone 4' 'expect:x4' \
   'cmd:/dfadmin item dragonfactory:bark_fiber 4' 'expect:x4' \
   'cmd:/dfadmin item dragonfactory:dust 1' 'expect:x1' \

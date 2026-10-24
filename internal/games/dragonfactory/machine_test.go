@@ -35,16 +35,6 @@ func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineStat
 	return m.st
 }
 
-func outputCount(st *machineState, it world.Item) int {
-	n := 0
-	for _, slot := range st.kind.output {
-		if got, _ := st.inv().Item(slot); !got.Empty() && itemKey(got.Item()) == itemKey(it) {
-			n += got.Count()
-		}
-	}
-	return n
-}
-
 func TestCrusher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)

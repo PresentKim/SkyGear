@@ -3,7 +3,7 @@
 # the client after their researches, the blocks register without server
 # errors and an operator can get all three.
 timeout 60 "$BOT" -name Hana \
-  'form:"서버 안내"=0' 'form:"세이브 선택"=3' 'input:"새 게임 이름 설정"=호퍼 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
+  'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=호퍼 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research wood_hopper' 'cmd:/dfadmin research hopper' \
   'cmd:/dfadmin give wood_hopper 1' 'expect:나무 호퍼 x1' \
   'cmd:/dfadmin give wood_hopper_reverse 1' 'expect:나무 역방향 호퍼 x1' \

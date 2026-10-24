@@ -169,3 +169,14 @@ func pourEssences(tx *world.Tx, p *player.Player, cost []Requirement) {
 		tx.PlaySound(at, sound.PotionBrewed{})
 	}
 }
+
+// essenceCostOf is how many essences of a kind a research costs.
+func essenceCostOf(r *Research, kind string) int {
+	n := 0
+	for _, c := range r.Cost {
+		if e, ok := c.Item.(ResearchEssence); ok && e.Kind == kind {
+			n += c.Count
+		}
+	}
+	return n
+}
