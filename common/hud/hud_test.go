@@ -29,6 +29,26 @@ func TestRowsLimit(t *testing.T) {
 	}
 }
 
+func TestSentRowsAlwaysFull(t *testing.T) {
+	var b Board
+	b.Add(Quest, "a")
+	rows := b.sentRows()
+	if len(rows) != maxRows || rows[0] != Quest+"a" {
+		t.Fatalf("rows = %q", rows)
+	}
+	seen := map[string]bool{}
+	for _, r := range rows {
+		if seen[r] {
+			t.Fatalf("row %q twice", r)
+		}
+		seen[r] = true
+	}
+	var empty Board
+	if len(empty.sentRows()) != maxRows {
+		t.Fatal("an empty frame board is not full")
+	}
+}
+
 // TestFrameBoard: a frame board is told apart by its key even with no rows,
 // and the same rows with and without the frame differ.
 func TestFrameBoard(t *testing.T) {

@@ -1,7 +1,6 @@
 package dragonfactory
 
 import (
-	"fmt"
 	"math/rand/v2"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -10,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -66,7 +64,7 @@ func (s *session) completeDragon(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	s.advance(tx, advDragon)
-	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "project.dragon.done"), p.Name()))
+	s.broadcast(tx, "project.dragon.done", p.Name())
 	c := pos.Vec3Centre()
 	for range 24 {
 		at := c.Add(mgl64.Vec3{rand.Float64()*4 - 2, rand.Float64() * 3, rand.Float64()*4 - 2})

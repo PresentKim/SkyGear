@@ -2,7 +2,6 @@
 package dragonfactory
 
 import (
-	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
@@ -163,8 +162,8 @@ type session struct {
 	// walked is the part of a block each player walked since the last whole
 	// block was counted (counter.go).
 	walked map[*world.EntityHandle]float64
-	// boardMinute is the play time minute shown on the HUD.
-	boardMinute int
+	// boards are the HUDs players were last sent (hud.Board.Key).
+	boards map[*world.EntityHandle]string
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
 	shapes map[any]debug.Shape
 	// cropQueue holds the next growth update of every crop (crops.go).
@@ -241,6 +240,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)
+	delete(s.boards, p.H())
 	s.updateBoard(p)
 }
 
@@ -261,6 +261,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.lastPunch, p.H())
 	s.stopExpand(p, p.Tx())
 	delete(s.lastLook, p.H())
+	delete(s.boards, p.H())
 	delete(s.veinOutlines, p.H())
 	delete(s.veinFood, p.H())
 	delete(s.codexNav, p.H())
@@ -278,12 +279,10 @@ func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s}
 
 func (s *session) NewDay(tx *world.Tx, day int) {
 	s.purgeLost()
-	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.game.NewDay.1"), day))
-	s.updateBoards(tx)
+	s.broadcast(tx, "dragonfactory.game.NewDay.1", day)
 }
 
 func (s *session) Autosave(tx *world.Tx) {
-	s.refreshPlayTime(tx)
 	s.storeState()
 }
 
@@ -301,8 +300,9 @@ func (s *session) storeState() {
 }
 
 // broadcast messages every player in the instance.
-func (s *session) broadcast(tx *world.Tx, msg string) {
+func (s *session) broadcast(tx *world.Tx, key string, args ...any) {
 	for e := range tx.Players() {
-		e.(*player.Player).Message(msg)
+		p := e.(*player.Player)
+		p.Message(i18n.T(i18n.Of(p), key, args...))
 	}
 }

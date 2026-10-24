@@ -39,7 +39,7 @@ func (c debugSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.Second(tx)
 		total, day, _ := s.clock.Now()
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.2"), formatPlayTime(total), day)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.2"), formatPlayTime(i18n.Default, total), day)
 	}
 }
 

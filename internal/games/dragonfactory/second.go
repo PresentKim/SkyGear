@@ -17,7 +17,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickToolEffects(tx)
 	s.tickMonitor(tx)
 	s.tickPlants(tx)
-	s.updateLoadBoards(tx)
+	s.updateBoards(tx)
 	countAll(tx, "play_seconds", 1)
 	grantCollection(tx)
 }

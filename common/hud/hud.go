@@ -70,19 +70,29 @@ func (b *Board) Send(p *player.Player) {
 		p.RemoveScoreboard()
 		return
 	}
-	title, rows := Title, b.Rows()
+	title := Title
 	if b.Frame {
 		title = FrameTitle
 	}
-	if len(rows) == 0 {
-		rows = []string{blankRow}
-	}
 	sb := scoreboard.New(title)
 	sb.RemovePadding()
-	for i, r := range rows {
+	for i, r := range b.sentRows() {
 		sb.Set(i, r)
 	}
 	p.SendScoreboard(sb)
+}
+
+// sentRows are the rows sent: Rows, then rows of no part (which the pack does
+// not draw) up to maxRows. Dragonfly's Session.SendScoreboard removes as many
+// rows of the shown sidebar as the first sidebar of that name had, so with
+// fewer rows the ones past that count would stay on screen once a shorter
+// board follows a longer one.
+func (b *Board) sentRows() []string {
+	rows := b.Rows()
+	for i := len(rows); i < maxRows; i++ {
+		rows = append(rows, blankRow+strings.Repeat("§r", i))
+	}
+	return rows
 }
 
 // Key is what the board would show, to tell whether it changed.

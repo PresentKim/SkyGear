@@ -144,7 +144,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if len(s.state.Chunks) >= 16 {
 		s.advance(tx, advChunks16)
 	}
-	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.3"), p.Name(), c[0], c[1], len(s.state.Chunks)))
+	s.broadcast(tx, "dragonfactory.island.buyChunk.3", p.Name(), c[0], c[1], len(s.state.Chunks))
 }
 
 // keepLoaded keeps an owned chunk loaded and ticking while the instance is

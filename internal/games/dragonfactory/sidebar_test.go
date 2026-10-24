@@ -5,10 +5,27 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
+
+func TestCostRowsCountTheInventory(t *testing.T) {
+	s := testSession(t)
+	s.state.Researched = map[string]bool{}
+	r, _ := researchByID("chest")
+	inv := inventory.New(36, nil)
+	_, _ = inv.AddItem(item.NewStack(oakPlanks, 10))
+	rows := s.researchCostRows(i18n.Default, r, inv)
+	if len(rows) != 1 || !strings.Contains(rows[0], "10§7/32") {
+		t.Fatalf("rows %q", rows)
+	}
+	_, _ = inv.AddItem(item.NewStack(oakPlanks, 40))
+	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
+		t.Fatalf("enough planks %q", rows)
+	}
+}
 
 // TestHUDQuestFollowsAdvancements: the quest panel shows the next
 // advancement and its hint, with the research cost for a research
@@ -18,11 +35,11 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if title, rows := s.questRows(i18n.Default); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
+		if title, rows := s.questRows(i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		s.advance(tx, "research_table")
-		title, rows := s.questRows(i18n.Default)
+		title, rows := s.questRows(i18n.Default, nil)
 		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
@@ -30,13 +47,13 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
 		s.doResearch(p, tx, sticks)
 		s.checkAdvancements(tx)
-		if title, _ := s.questRows(i18n.Default); !strings.Contains(title, "돌멩이") {
+		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)
 		}
 		for _, a := range advancementTree {
 			s.state.Advancements[a.ID] = true
 		}
-		if title, _ := s.questRows(i18n.Default); !strings.Contains(title, "돌 다지기") {
+		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌 다지기") {
 			t.Fatalf("quest after every advancement %q", title)
 		}
 	})
@@ -61,7 +78,7 @@ func TestQuestShowsResearchStep(t *testing.T) {
 			s.state.Advancements[x.ID] = true
 		}
 	}
-	_, rows := s.questRows(i18n.Default)
+	_, rows := s.questRows(i18n.Default, nil)
 	hint := len(strings.Split(a.HintText(i18n.Default), "\n"))
 	if len(rows) < hint+2 || !strings.Contains(rows[hint], step.Title(i18n.Default)) {
 		t.Fatalf("rows %q", rows)

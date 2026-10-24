@@ -931,6 +931,36 @@ func gameRecipes() {
 	add(st(DrawerKey{}), n(item.IronNugget{}, 4), n(stick, 1))
 	add(st(DrawerUpgrade{Kind: UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
 	add(st(DrawerUpgrade{Kind: UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))
+	logRecipes(woodHopper)
+}
+
+// logRecipes are the shortcuts from logs (any log, stripped or not) to what
+// is otherwise made of their planks, at the planks' cost or a little less.
+// A result's research opens them with its other recipes. Their shapes keep
+// clear of the vanilla recipes of logs (one log: planks; four in a square:
+// wood).
+func logRecipes(woodHopper world.Item) {
+	log, iron := recipe.NewItemTag("minecraft:logs", 1), item.NewStack(item.IronIngot{}, 1)
+	none := item.Stack{}
+	shaped := func(out item.Stack, w, h int, cells ...recipe.Item) {
+		recipe.Register(recipe.NewShaped(cells, out, recipe.NewShape(w, h), "crafting_table").WithoutMirror())
+	}
+	// Two logs on top of each other: sixteen sticks, as their planks give.
+	shaped(item.NewStack(stick, 16), 1, 2, log, log)
+	// Eight logs around an empty middle: four chests.
+	shaped(item.NewStack(block.NewChest(), 4), 3, 3,
+		log, log, log,
+		log, none, log,
+		log, log, log)
+	// Three logs in a V: a wood hopper (five planks and a chest's eight).
+	shaped(item.NewStack(woodHopper, 1), 3, 2,
+		log, none, log,
+		none, log, none)
+	// The iron hopper with two logs where its chest goes.
+	shaped(item.NewStack(block.NewHopper(), 1), 3, 3,
+		iron, none, iron,
+		iron, log, iron,
+		none, log, none)
 }
 
 // dyeUnlocks are the results the dyeing research opens: the 16 dyes (made

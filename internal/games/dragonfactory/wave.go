@@ -95,7 +95,7 @@ func (s *session) startWave(tx *world.Tx, pos cube.Pos, level int) bool {
 		return false
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.Explosion{})
-	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "gate.start"), level, len(w.left), def.Seconds))
+	s.broadcast(tx, "gate.start", level, len(w.left), def.Seconds)
 	return true
 }
 
@@ -181,7 +181,7 @@ func (s *session) winWave(tx *world.Tx) {
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})
 	countAll(tx, "wave_win", 1)
 	countAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
-	s.broadcast(tx, fmt.Sprintf(i18n.T(i18n.Default, "gate.win"), w.level))
+	s.broadcast(tx, "gate.win", w.level)
 }
 
 // failWave ends the wave without a clear: the monsters left vanish.
@@ -197,7 +197,7 @@ func (s *session) failWave(tx *world.Tx, key string) {
 			_ = e.Close()
 		}
 	}
-	s.broadcast(tx, i18n.T(i18n.Default, key))
+	s.broadcast(tx, key)
 }
 
 // tickWave runs every second: it tells the players how the wave goes and ends it
