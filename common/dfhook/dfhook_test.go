@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player/form"
@@ -35,6 +36,7 @@ func TestInternals(t *testing.T) {
 	fh := &session.ModalFormResponseHandler{}
 	field[sync.Mutex](fh, "mu")
 	field[map[uint32]form.Form](fh, "forms")
+	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
 	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer}
 }
 

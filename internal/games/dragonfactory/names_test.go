@@ -10,7 +10,6 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // TestGameItemsHaveKoreanNames: every vanilla item the game names in its
@@ -87,21 +86,18 @@ func TestItemNamesInPlayerLanguage(t *testing.T) {
 	}
 }
 
-func TestItemRegistryNamesByTranslationKey(t *testing.T) {
+func TestItemEntriesNameByTranslationKey(t *testing.T) {
 	shown := map[string]any{"value": "공학의 정수"}
-	shared := map[string]any{"components": map[string]any{"minecraft:display_name": shown}}
-	pk := &packet.ItemRegistry{Items: []protocol.ItemEntry{
-		{Name: "dragonfactory:research_essence_engineering", ComponentBased: true, Data: shared},
-		{Name: "dragonfactory:sieve", Data: map[string]any{}},
-	}}
-	if localItemNames(nil, pk) {
-		t.Fatal("dropped the item registry")
-	}
-	got := pk.Items[0].Data["components"].(map[string]any)["minecraft:display_name"].(map[string]any)["value"]
+	e := localItemName(protocol.ItemEntry{Name: "dragonfactory:research_essence_engineering", ComponentBased: true,
+		Data: map[string]any{"components": map[string]any{"minecraft:display_name": shown}}})
+	got := e.Data["components"].(map[string]any)["minecraft:display_name"].(map[string]any)["value"]
 	if got != "item.dragonfactory:research_essence_engineering.name" {
 		t.Errorf("display name %v", got)
 	}
 	if shown["value"] != "공학의 정수" {
-		t.Error("changed the entry Dragonfly shares between players")
+		t.Error("changed the map it was given")
+	}
+	if block := localItemName(protocol.ItemEntry{Name: "dragonfactory:sieve", Data: map[string]any{}}); len(block.Data) != 0 {
+		t.Errorf("a block item got %v", block.Data)
 	}
 }

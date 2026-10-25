@@ -122,6 +122,7 @@ func run(log *slog.Logger) error {
 	// Chest windows reach the sessions through hooked connections.
 	dfhook.Wrap(&conf)
 	srv := conf.New()
+	dragonfactory.EditItemEntries(srv)
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)
 	lobby.SetDefaultGameMode(world.GameModeAdventure)

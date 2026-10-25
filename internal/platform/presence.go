@@ -1,6 +1,8 @@
 package platform
 
 import (
+	"fmt"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
@@ -27,11 +29,14 @@ func (pf *Platform) isOnline(accountID string) bool {
 	return ok
 }
 
-// tell sends a message to an account if it is online (ui.Tell: chat, or a
-// toast in the lobby).
-func (pf *Platform) tell(accountID, msg string) {
+// tell sends the catalog text key, filled with args, to an account if it is
+// online (ui.Tell: chat, or a toast in the lobby), in that player's language.
+func (pf *Platform) tell(accountID, key string, args ...any) {
 	if h, ok := pf.onlineHandle(accountID); ok {
-		h.Do(func(_ *world.Tx, e world.Entity) { ui.Tell(e.(*player.Player), "", msg) })
+		h.Do(func(_ *world.Tx, e world.Entity) {
+			p := e.(*player.Player)
+			ui.Tell(p, "", fmt.Sprintf(i18n.T(i18n.Of(p), key), args...))
+		})
 	}
 }
 

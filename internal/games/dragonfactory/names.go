@@ -6,18 +6,17 @@ import (
 	"path"
 	"strings"
 
+	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/presentkim/dragonfactory/common/timed"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 func init() {
 	timed.Name = itemName
-	dfhook.OnServerPacket(localItemNames)
 }
 
 // vanillaName returns the name of a vanilla item or block in lang, by name
@@ -78,35 +77,33 @@ func customItemName(lang string, c world.CustomItem) string {
 	return c.Name()
 }
 
-// localItemNames makes the client name our items by their translation key
-// ("item.<id>.name", from the pack's texts/*.lang) instead of the Korean
-// name Dragonfly puts in minecraft:display_name, so each client shows its
-// own language. Dragonfly sends the same entries to every player, so the
-// changed entries are copies.
-func localItemNames(_ *dfhook.Conn, pk packet.Packet) bool {
-	reg, ok := pk.(*packet.ItemRegistry)
+// EditItemEntries changes the item entries srv sends every player
+// (dfhook.EditCustomItems): our items are named by their translation key and
+// the empty wooden bucket aims at liquids. Call it once, before players join.
+func EditItemEntries(srv *server.Server) {
+	dfhook.EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry {
+		return clipWoodenBucket(localItemName(e))
+	})
+}
+
+// localItemName makes the client name an item by its translation key
+// ("item.<id>.name", from the pack's texts/*.lang) instead of the Korean name
+// Dragonfly puts in minecraft:display_name, so each client shows its own
+// language.
+func localItemName(e protocol.ItemEntry) protocol.ItemEntry {
+	if !e.ComponentBased {
+		return e
+	}
+	comps, ok := e.Data["components"].(map[string]any)
 	if !ok {
-		return false
+		return e
 	}
-	items := make([]protocol.ItemEntry, len(reg.Items))
-	for i, e := range reg.Items {
-		items[i] = e
-		if !e.ComponentBased {
-			continue
-		}
-		comps, ok := e.Data["components"].(map[string]any)
-		if !ok {
-			continue
-		}
-		if _, ok := comps["minecraft:display_name"]; !ok {
-			continue
-		}
-		comps = maps.Clone(comps)
-		comps["minecraft:display_name"] = map[string]any{"value": "item." + e.Name + ".name"}
-		data := maps.Clone(e.Data)
-		data["components"] = comps
-		items[i].Data = data
+	if _, ok := comps["minecraft:display_name"]; !ok {
+		return e
 	}
-	reg.Items = items
-	return false
+	comps = maps.Clone(comps)
+	comps["minecraft:display_name"] = map[string]any{"value": "item." + e.Name + ".name"}
+	e.Data = maps.Clone(e.Data)
+	e.Data["components"] = comps
+	return e
 }

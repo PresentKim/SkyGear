@@ -229,7 +229,7 @@ func (pf *Platform) requestList(p *player.Player, reqs []db.Account, sel string)
 				pf.fail(p, i18n.T(lang, "platform.friends.accept"), err)
 				return
 			}
-			pf.tell(chosen.ID, fmt.Sprintf(i18n.T(lang, "platform.friends.accepted"), p.Name()))
+			pf.tell(chosen.ID, "platform.friends.accepted", p.Name())
 			pf.showFriendsAt(p, requestsTab, "")
 		}},
 		{Label: i18n.T(lang, "platform.friends.decline"), Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
@@ -308,10 +308,10 @@ func (pf *Platform) addFriend(p *player.Player, name string) {
 		pf.fail(p, i18n.T(lang, "platform.friends.add"), err)
 	case accepted:
 		// they had asked p already: friends now
-		pf.tell(target.ID, fmt.Sprintf(i18n.T(lang, "platform.friends.accepted"), p.Name()))
+		pf.tell(target.ID, "platform.friends.accepted", p.Name())
 	default:
 		ui.Flash(p, i18n.T(lang, "platform.friends.add.sent"), target.Name)
-		pf.tell(target.ID, fmt.Sprintf(i18n.T(lang, "platform.friends.add.received"), p.Name()))
+		pf.tell(target.ID, "platform.friends.add.received", p.Name())
 	}
 }
 

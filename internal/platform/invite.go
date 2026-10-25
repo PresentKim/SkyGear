@@ -159,7 +159,7 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 		}
 		host, _ := pf.db.Account(s.Owner)
 		ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.join.5"), host.Name, s.Name)
-		pf.tell(s.Owner, fmt.Sprintf(i18n.T(i18n.Of(p), "platform.invite.join.6"), p.Name(), s.Name))
+		pf.tell(s.Owner, "platform.invite.join.6", p.Name(), s.Name)
 	}
 	pf.invites.remove(acc, saveID)
 	if pf.m.Active(saveID) == nil {
@@ -253,7 +253,7 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 					pf.fail(p, i18n.T(lang, "platform.invite.leave"), err)
 					return
 				}
-				pf.tell(s.Owner, fmt.Sprintf(i18n.T(lang, "platform.invite.left"), p.Name(), s.Name))
+				pf.tell(s.Owner, "platform.invite.left", p.Name(), s.Name)
 				pf.showMultiplayerAt(p, "")
 			}, again(id))
 		}})

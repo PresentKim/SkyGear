@@ -21,6 +21,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -201,6 +202,17 @@ func OpenWindow(s *session.Session, inv *inventory.Inventory, pos cube.Pos, cont
 func CloseWindow(s *session.Session, tx *world.Tx) {
 	if s != session.Nop {
 		session_closeCurrentContainer(s, tx, false)
+	}
+}
+
+// EditCustomItems replaces each entry of srv's custom items with what edit
+// makes of it. Call it once, after the server is made and before players
+// join: the client gets these entries in two item registries, and the first,
+// sent by gophertunnel during StartGame, does not pass OnServerPacket hooks.
+func EditCustomItems(srv *server.Server, edit func(protocol.ItemEntry) protocol.ItemEntry) {
+	items := field[[]protocol.ItemEntry](srv, "customItems")
+	for i, e := range *items {
+		(*items)[i] = edit(e)
 	}
 }
 
