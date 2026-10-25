@@ -60,3 +60,19 @@ const FastInterval = 200 * time.Millisecond
 type FastTicker interface {
 	Fast(tx *world.Tx)
 }
+
+// The platform screens that also open inside an instance, as MenuBacker
+// names them.
+const (
+	ScreenFriends  = "friends"
+	ScreenMembers  = "members"
+	ScreenTitles   = "titles"
+	ScreenSettings = "settings"
+)
+
+// MenuBacker is an optional Session interface: MenuBack shows p, in the
+// instance world, the game screen that the platform screen from (ScreenFriends,
+// ...) was opened from, for that screen's back button.
+type MenuBacker interface {
+	MenuBack(p *player.Player, from string)
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
 // showSettings is the settings screen (docs/design/01-platform.md §5.1): a
@@ -36,7 +37,7 @@ func (pf *Platform) showSettings(p *player.Player) {
 	}
 	_, json := jsonUI.Load(p.UUID())
 	opts = append(opts, row(i18n.T(lang, "setting.uimode"), json, func(p *player.Player) { pf.setUIMode(p, !json) }))
-	opts = append(opts, ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p) }))
+	opts = append(opts, ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenSettings) }))
 	ui.Menu(p, i18n.T(lang, "setting.title"), "", opts...)
 }
 

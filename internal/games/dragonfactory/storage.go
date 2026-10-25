@@ -267,7 +267,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.search"), Run: func(p *player.Player, tx *world.Tx) {
 		ui.Input(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, func(p *player.Player, tx *world.Tx, value string) {
 			s.showStorage(p, tx, pos, 0, strings.TrimSpace(value))
-		})
+		}, func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page, query) })
 	}})
 	if query != "" {
 		actions = append(actions, ui.Option{Label: fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, 0, "") }})

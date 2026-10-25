@@ -208,6 +208,17 @@ func (inst *Instance) storePlayer(p *player.Player) {
 // Host returns the account ID of the player that activated the instance.
 func (inst *Instance) Host() string { return inst.host }
 
+// MenuBack shows p the game screen the platform screen from was opened from
+// (MenuBacker) and reports whether the game has one. It must run in the
+// instance world.
+func (inst *Instance) MenuBack(p *player.Player, from string) bool {
+	b, ok := inst.session.(MenuBacker)
+	if ok {
+		b.MenuBack(p, from)
+	}
+	return ok
+}
+
 // Players returns the number of players in the instance.
 func (inst *Instance) Players() int {
 	inst.mu.Lock()

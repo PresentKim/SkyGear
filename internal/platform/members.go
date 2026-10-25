@@ -55,6 +55,8 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.showMembers.5"), active, MaxMembers)
 	if pf.m.Location(instance.AccountID(p)) == nil {
 		sp.Actions = append(sp.Actions, pf.lobbyBack(p, func(p *player.Player) { pf.showSaves(p, saveID) }))
+	} else {
+		sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenMembers) }))
 	}
 	ui.ListSplitMenu(p, i18n.T(lang, "platform.members.showMembers.4"), sp)
 }

@@ -34,7 +34,7 @@ func (pf *Platform) cosmeticTabs(p *player.Player, cur int) []ui.Option {
 		tab("platform.cosmetics.tab.titles", iconCode, cosmeticTitles, pf.showTitles),
 		tab("platform.cosmetics.tab.colors", iconRename, cosmeticColors, pf.showColors),
 		tab("platform.cosmetics.tab.achievements", iconGuide, cosmeticAchievements, pf.showAchievements),
-		ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p) }),
+		ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenTitles) }),
 	}
 }
 
@@ -57,14 +57,19 @@ func (pf *Platform) cosmeticsStatus(p *player.Player, owned int) string {
 		account.DisplayName(p), owned, len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name(lang))
 }
 
-// menuBack goes back to the menu a screen that opens in both places came
-// from: the lobby menu in the lobby, the game's menu (/menu) in a save.
-func (pf *Platform) menuBack(p *player.Player) {
-	if pf.m.Location(instance.AccountID(p)) == nil {
+// menuBack goes back to the menu a screen that opens in both places (from,
+// instance.ScreenFriends, ...) came from: the lobby menu in the lobby, the
+// game's screen it opens from in a save (the game's menu, /menu, when the
+// game names none).
+func (pf *Platform) menuBack(p *player.Player, from string) {
+	inst := pf.m.Location(instance.AccountID(p))
+	if inst == nil {
 		pf.showLobbyMenu(p)
 		return
 	}
-	p.ExecuteCommand("/menu")
+	if !inst.MenuBack(p, from) {
+		p.ExecuteCommand("/menu")
+	}
 }
 
 // pageSize is how many buttons a page of titles has.

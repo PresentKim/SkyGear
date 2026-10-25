@@ -282,11 +282,17 @@ func codexFind(lang, query string) []codexEntry {
 // codexPage is how many results a page of the search shows.
 const codexPage = 44
 
-// askCodexSearch asks for the words to search for.
+// askCodexSearch asks for the words to search for; going back shows the
+// search with query again.
 func (s *session) askCodexSearch(p *player.Player, query string) {
 	lang := i18n.Of(p)
 	ui.Input(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search")), i18n.T(lang, "codex.search.label"), query,
-		func(p *player.Player, _ *world.Tx, value string) { s.showCodexSearch(p, strings.TrimSpace(value), 0) })
+		func(p *player.Player, _ *world.Tx, value string) { s.showCodexSearch(p, strings.TrimSpace(value), 0) },
+		func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.showCodexSearch(p, query, 0)
+			}
+		})
 }
 
 // showCodexSearch is the search tab: the items matching query (all when it is

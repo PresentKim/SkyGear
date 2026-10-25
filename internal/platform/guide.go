@@ -37,7 +37,8 @@ func (pf *Platform) guideTopicText(lang, id string) string {
 }
 
 // showGuide shows the server guide: a short welcome, the start button first
-// and a button per topic. With first set, the start button records that the
+// and a button per topic (and the back button to the lobby menu when it is
+// opened from there). With first set, the start button records that the
 // account has seen the current version and goes on to the saves.
 func (pf *Platform) showGuide(p *player.Player, first bool) {
 	lang := i18n.Of(p)
@@ -57,6 +58,10 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.guide.topic."+t.id+".title"), Icon: t.icon, Run: func(p *player.Player, _ *world.Tx) {
 			pf.showGuideTopic(p, t.id, first)
 		}})
+	}
+	// opened again from the lobby menu, it goes back there
+	if !first && pf.m.Location(instance.AccountID(p)) == nil {
+		opts = append(opts, pf.lobbyBack(p, pf.showLobbyMenu))
 	}
 	body := fmt.Sprintf(i18n.T(lang, "platform.guide.intro"), pf.game.Name(lang))
 	ui.Menu(p, i18n.T(lang, "platform.guide.showGuide.1"), body, opts...)

@@ -290,22 +290,24 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 	})
 }
 
-// askDelete confirms twice before deleting a save.
+// askDelete confirms twice before deleting a save; cancelling shows the save
+// again.
 func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
+	back := func(p *player.Player, _ *world.Tx) { pf.showSaves(p, s.ID) }
 	if step == 0 {
-		ui.Confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.2"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.3"), func(p *player.Player, _ *world.Tx) {
+		pf.confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.2"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.3"), func(p *player.Player, _ *world.Tx) {
 			pf.askDelete(p, s, 1)
-		})
+		}, back)
 		return
 	}
-	ui.Confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.4"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.5"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.6"), func(p *player.Player, _ *world.Tx) {
+	pf.confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.4"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.5"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.6"), func(p *player.Player, _ *world.Tx) {
 		if err := pf.m.DeleteSave(s.ID); err != nil {
 			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.7"), err)
 			return
 		}
 		ui.Flash(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.8"), s.Name)
 		pf.showSaves(p, 0)
-	})
+	}, back)
 }
 
 func (pf *Platform) fail(p *player.Player, what string, err error) {
@@ -419,16 +421,7 @@ func (pf *Platform) lobbyMenu() []ui.Option {
 }
 
 // lobbyBack is the back button of a lobby screen: it shows back. The screens
-// that also open in a save (friends, help) leave it out there (lobbyBacks).
+// that also open in a save go back with menuBack.
 func (pf *Platform) lobbyBack(p *player.Player, back func(p *player.Player)) ui.Option {
 	return ui.Back(i18n.T(i18n.Of(p), "platform.platform.showSaves.6"), func(p *player.Player, _ *world.Tx) { back(p) })
-}
-
-// lobbyBacks is the back button to the lobby's main menu for a screen that
-// also opens in a save: none there.
-func (pf *Platform) lobbyBacks(p *player.Player) []ui.Option {
-	if pf.m.Location(instance.AccountID(p)) != nil {
-		return nil
-	}
-	return []ui.Option{pf.lobbyBack(p, pf.showLobbyMenu)}
 }

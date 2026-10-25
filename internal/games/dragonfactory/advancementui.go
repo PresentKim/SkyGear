@@ -250,6 +250,7 @@ func (s *session) advancementTree(p *player.Player, v advView) ui.Tree {
 		}
 	}
 	t.Body = fmt.Sprintf(i18n.T(lang, "advancement.progress"), i18n.T(lang, "advancement.tab."+advTabKeys[v.tab]), done, len(list))
+	t.Actions = []ui.Option{s.backOption()}
 	return t
 }
 
@@ -263,8 +264,8 @@ func (s *session) showAdvancementView(p *player.Player, v advView) {
 	ui.TreeMenu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancements.1"), t)
 }
 
-// showAdvancementNode shows one advancement with its buttons (track, codex);
-// a hidden one shows only what comes before it.
+// showAdvancementNode shows one advancement with its buttons (track, codex,
+// back to its tab); a hidden one shows only what comes before it.
 func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 	lang := i18n.Of(p)
 	title, body := a.Title(lang), ""
@@ -291,8 +292,12 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 		}))
 	}
 	if it, ok := advancementStack(a); ok && (s.advanced(a.ID) || s.advancementOpen(a)) {
-		opts = append(opts, s.opt(i18n.T(lang, "advancement.node.codex"), iconOf(it), func(p *player.Player, _ *world.Tx) { s.showCodexItem(p, it) }))
+		opts = append(opts, s.opt(i18n.T(lang, "advancement.node.codex"), iconOf(it), func(p *player.Player, _ *world.Tx) {
+			s.codexFrom(p, func(p *player.Player) { s.showAdvancementNode(p, a) }, it)
+		}))
 	}
+	back := ui.Back(i18n.T(lang, "codex.back"), func(p *player.Player, _ *world.Tx) { s.showAdvancementView(p, advView{tab: advTabOf(a)}) })
+	opts = append(opts, s.opt(back.Label, back.Icon, back.Run))
 	ui.Menu(p, i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.4")+title, body, opts...)
 }
 
