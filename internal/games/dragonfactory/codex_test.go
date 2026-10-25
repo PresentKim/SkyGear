@@ -102,7 +102,7 @@ func TestCodexPagesAreWritten(t *testing.T) {
 func TestCodexKnowsTheLab(t *testing.T) {
 	s := testSession(t)
 	essence := item.NewStack(ResearchEssence{EssenceHunting}, 1)
-	if src := strings.Join(s.codexSources(i18n.Default, essence), "\n"); !strings.Contains(src, "연구소") || !strings.Contains(src, "화약 ×2") {
+	if src := strings.Join(s.codexSources(i18n.Default, essence), "\n"); !strings.Contains(src, "정수 추출기") || !strings.Contains(src, "화약 ×2") {
 		t.Errorf("sources %q", src)
 	}
 	if uses := strings.Join(s.codexUses(i18n.Default, item.NewStack(item.SpiderEye{}, 1)), "\n"); !strings.Contains(uses, "사냥의 정수") {
@@ -316,5 +316,50 @@ func TestCrushInputsCoverRecipes(t *testing.T) {
 		if !listed[k] {
 			t.Errorf("crusher input %s missing from the codex", k)
 		}
+	}
+}
+
+// TestCodexHandWork: an item page lists the hand work and the barrels that
+// make it, and a tool's page what it is used on.
+func TestCodexHandWork(t *testing.T) {
+	s := testSession(t)
+	lang := i18n.Default
+	src := func(w world.Item) []codexCard { return s.codexSourceCards(lang, item.NewStack(w, 1)) }
+	use := func(w world.Item) []codexCard { return s.codexUseCards(lang, item.NewStack(w, 1)) }
+	if !cardsHave(src(Pebble{Kind: PebbleStone}), block.Grass{}, "-") || !cardsHave(src(Pebble{Kind: PebbleStone}), block.Dirt{}, "-") {
+		t.Error("a stick on grass or dirt gives pebbles")
+	}
+	if !cardsHave(use(item.Stick{}), block.Grass{}, "-") {
+		t.Error("the stick's page does not show it used on grass")
+	}
+	ore := oreBlocks()[0]
+	metal, _ := oreBlockMetal(ore)
+	if !cardsHave(src(MetalDust{Metal: metal}), ore, "-") {
+		t.Error("the hammer breaks an ore block into dust")
+	}
+	if !cardsHave(use(Hammer{Stone: true}), block.Stone{}, "-") {
+		t.Error("the hammer's page does not show what it breaks")
+	}
+	if !cardsHave(src(BarkFiber{}), block.Log{Wood: block.OakWood()}, "-") {
+		t.Error("stripping a log gives bark fibers")
+	}
+	if !cardsHave(src(GrassSeeds{}), block.Dirt{}, "-") {
+		t.Error("tilling dirt gives grass seeds")
+	}
+	if !cardsHave(src(block.Dirt{}), block.Leaves{Type: block.OakLeaves()}, "-") {
+		t.Error("the composter makes dirt")
+	}
+	if !cardsHave(src(block.Clay{}), Dust{}, "-") || !cardsHave(src(WitchWaterBucket{}), block.Mycelium{}, "-") {
+		t.Error("the barrel's clay and witch water are not on their pages")
+	}
+	if cardsHave(src(Pebble{Kind: PebbleDeepslate}), block.Grass{}, "-") {
+		t.Error("a stick gives a pebble kind it never drops")
+	}
+	idx := map[string]bool{}
+	for _, st := range codexIndex(lang) {
+		idx[itemKey(st.stack.Item())] = true
+	}
+	if !idx[itemKey(GrassSeeds{})] {
+		t.Error("grass seeds are not in the codex search")
 	}
 }

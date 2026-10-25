@@ -44,7 +44,7 @@ flipbook 은 클라이언트가 항상 돌린다. 켜고 끄는 것은 **블록 
 
 ## 구현
 
-- 대상(`animatedMachines`): 전기 화로·분쇄기·광석 세척기·합금로·몬스터 시뮬레이터·전기 도가니·자동 제작기·연구소(정면 `<이름>_front_on`)와 자동 자원 채굴기·수확기·연소 발전기·용암 발전기·아이템 흡수기·자동 벌목기(옆면 `<이름>_side_on`, 정육면체의 "*" 재질).
+- 대상(`animatedMachines`): 전기 화로·분쇄기·광석 세척기·합금로·몬스터 시뮬레이터·전기 도가니·자동 제작기·정수 추출기(정면 `<이름>_front_on`)와 자동 자원 채굴기·수확기·연소 발전기·용암 발전기·아이템 흡수기·자동 벌목기(옆면 `<이름>_side_on`, 정육면체의 "*" 재질).
 - 팩: 띠 PNG(16×64, 4프레임)와 `terrain_texture.json`·`flipbook_textures.json`(프레임당 4틱, 섞지 않음) 항목. 전기 화로의 톱니바퀴 띠는 따로 그렸고 나머지는 `go run ./tools/animtex assets/resourcepack/dragonfactory`가 기계 자신의 텍스처에서 만든다(강조 색 띠가 흐르고, 발전기·도가니는 깜빡임). 임시 그림이므로 교체본이 오면 PNG만 바꾼다. `pack_test.go`의 `TestFlipbooksMatchTheAtlas`가 띠 규격과 타일 이름을 확인한다.
 - 코드(`animate.go`): 블록 상태 `dragonfactory:active`(`off`/`on`). `on`일 때 위 재질로 바뀐다(`activePermutations`). 서버는 `Tick` 끝의 `showActive`가 판정해 바뀔 때만 `SetBlock`한다. 일했다는 표시는 `markWorked`(`tickWork`와 발전기)가 하고, 마지막 작업 뒤 40틱(`activeHold`)은 켜진 채로 둔다(깜빡임 방지).
 - 블록 해시는 켜진 모습이 따로이고(`Machine.active`), 저장은 하지 않는다(다음 틱에 다시 판정).

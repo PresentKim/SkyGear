@@ -397,7 +397,7 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 			}
 		}
 	}
-	return cards
+	return append(cards, s.codexWorkFor(lang, it, true)...)
 }
 
 // codexUseCards are the recipes it goes into, as cards.
@@ -463,7 +463,7 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 			cards = append(cards, noteCard(lang, tinker, fmt.Sprintf(i18n.T(lang, "codex.use.tool"), i18n.T(lang, "tmod."+m.id), fmt.Sprintf("×%d", m.cost))))
 		}
 	}
-	return cards
+	return append(cards, s.codexWorkFor(lang, it, false)...)
 }
 
 // crushInputs are the blocks the crusher takes.

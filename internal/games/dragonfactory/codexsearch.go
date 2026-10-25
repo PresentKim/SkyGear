@@ -56,7 +56,8 @@ func codexIndex(lang string) []codexEntry {
 			}
 			seen[k] = true
 			st = st.Grow(1 - st.Count())
-			if len(s.codexSources(i18n.Default, st)) == 0 && len(s.codexUses(i18n.Default, st)) == 0 {
+			if len(s.codexSources(i18n.Default, st)) == 0 && len(s.codexUses(i18n.Default, st)) == 0 &&
+				len(s.codexWorkFor(i18n.Default, st, true)) == 0 && len(s.codexWorkFor(i18n.Default, st, false)) == 0 {
 				continue
 			}
 			codexIndexStacks = append(codexIndexStacks, st)

@@ -9,7 +9,7 @@
 | 모드 | 저장소 | 확인한 커밋 | 라이선스 | 쓴 곳 |
 |---|---|---|---|---|
 | Mekanism | https://github.com/mekanism/Mekanism | `90bb3de4c7` | MIT (README: 모드 전체) | 합금(인퓨즈·강화·원자), 제어 회로 I~IV, 강화 키트(티어 인스톨러), 설정 복사기, 주괴·가루·덩어리(주석·납·청동·강철·구리·금·철), 전기 화로·전기 도가니·유체 탱크 면 |
-| Ender IO | https://github.com/Team-EnderIO/EnderIO | `a25cd60d65` | Unlicense, 외부 기여 그림은 CC0(`docs/license/`) | 합금로·자동 제작기·몬스터 시뮬레이터·광석 세척기·연구소·발전기류·흡수기·벌목기·에너지 셀·차원 게이트 면, 도관 접합제, 도관 텍스처(기존) |
+| Ender IO | https://github.com/Team-EnderIO/EnderIO | `a25cd60d65` | Unlicense, 외부 기여 그림은 CC0(`docs/license/`) | 합금로·자동 제작기·몬스터 시뮬레이터·광석 세척기·정수 추출기·발전기류·흡수기·벌목기·에너지 셀·차원 게이트 면, 도관 접합제, 도관 텍스처(기존) |
 | Tinkers' Construct | https://github.com/SlimeKnights/TinkersConstruct | `f4e77d43f3` | MIT (README: 코드와 텍스처 모두) | 장비 제작대 |
 | Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 컨트롤러 |
 | Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 링크 |
