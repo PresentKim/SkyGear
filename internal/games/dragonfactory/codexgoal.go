@@ -198,7 +198,7 @@ func (s *session) goalRows(lang string) []string {
 				rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.more"), len(raw)-i))
 				break
 			}
-			rows = append(rows, fmt.Sprintf("§f%s §e×%d", itemName(lang, l.stack), max(1, l.count)))
+			rows = append(rows, fmt.Sprintf("§0%s §8×%d", itemName(lang, l.stack), max(1, l.count)))
 		}
 	}
 	return rows

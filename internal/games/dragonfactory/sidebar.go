@@ -12,12 +12,14 @@ import (
 	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/perf"
+	"github.com/presentkim/dragonfactory/internal/account"
 )
 
 // updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §16): day
 // and play time at the top left (with the server load under it for an
 // operator who turned it on) and the next thing to do as a quest panel: the
-// first research that can be done now, with its cost. The texts travel as
+// first research that can be done now, with its cost (unless the player
+// turned the panel off in the settings). The texts travel as
 // sidebar rows (internal/hud), only when they changed since the last time.
 func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
@@ -27,12 +29,14 @@ func (s *session) updateBoard(p *player.Player) {
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
-	title, rows := s.questRows(lang, p.Inventory())
-	b.Add(hud.QuestTitle, title)
-	for _, r := range rows {
-		b.Add(hud.Quest, r)
+	if account.On(p, settingQuestPanel) {
+		title, rows := s.questRows(lang, p.Inventory())
+		b.Add(hud.QuestTitle, title)
+		for _, r := range rows {
+			b.Add(hud.Quest, r)
+		}
+		s.addGoalRows(lang, &b)
 	}
-	s.addGoalRows(lang, &b)
 	if s.boards == nil {
 		s.boards = map[*world.EntityHandle]string{}
 	}
@@ -52,7 +56,8 @@ func (s *session) nextResearch() (*Research, bool) {
 	return nil, false
 }
 
-// questRows are the quest panel: the next advancement and its hint (with
+// questRows are the quest panel, in dark ink for its parchment (the pack's
+// scoreboards.json df_quest): the next advancement and its hint (with
 // the research cost for a research advancement), then once every
 // advancement is done the next research and its cost. The cost rows count
 // what inv holds of each item, when inv is not nil.
@@ -60,7 +65,7 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 	if a, ok := s.nextAdvancement(); ok {
 		rows := strings.Split(a.HintText(lang), "\n")
 		for i := range rows {
-			rows[i] = "§f" + rows[i]
+			rows[i] = "§0" + rows[i]
 		}
 		if g, ok := goalResearch(a); ok {
 			if r, ok := s.researchStep(g); ok {
@@ -80,21 +85,21 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 }
 
 // researchCostRows are what a research spends, one row per item: how many
-// of it inv holds out of the number still needed (green once there are
-// enough), or the number alone when inv is nil.
+// of it inv holds out of the number still needed (dark red, dark green once
+// there are enough), or the number alone when inv is nil.
 func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inventory) []string {
 	var rows []string
 	for _, c := range r.Cost {
 		name, need := itemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)
 		if inv == nil {
-			rows = append(rows, fmt.Sprintf("§f%s §e×%d", name, need))
+			rows = append(rows, fmt.Sprintf("§0%s §8×%d", name, need))
 			continue
 		}
-		have, colour := min(countPlain(inv, c.Item), need), "§e"
+		have, colour := min(countPlain(inv, c.Item), need), "§4"
 		if have >= need {
-			colour = "§a"
+			colour = "§2"
 		}
-		rows = append(rows, fmt.Sprintf("§f%s %s%d§7/%d", name, colour, have, need))
+		rows = append(rows, fmt.Sprintf("§0%s %s%d§8/%d", name, colour, have, need))
 	}
 	return rows
 }

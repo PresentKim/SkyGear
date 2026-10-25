@@ -237,17 +237,36 @@
     "anchor_from": "top_right",
     "anchor_to": "top_right"
   },
+  // The quest panel: parchment in a frame (textures/ui/df/quest_panel, nine-slice), the title, a
+  // line under it, then the rows in dark ink (the server writes them dark, §0).
   "df_quest": {
     "type": "image",
-    "texture": "textures/ui/Black",
-    "alpha": 0.45,
+    "texture": "textures/ui/df/quest_panel",
     "anchor_from": "right_middle",
     "anchor_to": "right_middle",
     "size": [
-      "100%c + 10px",
-      "100%c + 8px"
+      "100%c + 14px",
+      "100%c + 12px"
     ],
     "controls": [
+      {
+        // under the title: 6px of padding, the 10px title row, 2px below it
+        "divider": {
+          "type": "image",
+          "texture": "textures/ui/df/quest_divider",
+          "layer": 1,
+          "size": [
+            "100% - 12px",
+            1
+          ],
+          "offset": [
+            0,
+            18
+          ],
+          "anchor_from": "top_middle",
+          "anchor_to": "top_middle"
+        }
+      },
       {
         "rows": {
           "type": "stack_panel",
@@ -267,7 +286,7 @@
                 "type": "panel",
                 "size": [
                   0,
-                  3
+                  6
                 ]
               }
             },
@@ -340,7 +359,7 @@
     ],
     "text": "#text",
     "text_alignment": "left",
-    "shadow": true,
+    "shadow": false,
     "bindings": [
       {
         "binding_name": "#player_name_sidebar",
@@ -376,7 +395,7 @@
     ],
     "text": "#text",
     "text_alignment": "left",
-    "shadow": true,
+    "shadow": false,
     "bindings": [
       {
         "binding_name": "#player_name_sidebar",

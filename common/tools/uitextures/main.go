@@ -35,6 +35,11 @@ var (
 	slotDark    = color.RGBA{55, 55, 55, 255}
 	arrowColor  = color.RGBA{245, 245, 245, 255}
 	dim         = color.RGBA{0, 0, 0, 140}
+	// the quest panel on the HUD: parchment in a dark brown frame
+	parchment     = color.RGBA{240, 222, 168, 245}
+	parchmentEdge = color.RGBA{214, 186, 124, 245}
+	parchmentInk  = color.RGBA{46, 30, 18, 255}
+	parchmentLine = color.RGBA{176, 136, 80, 255}
 )
 
 // bevelBox draws a size×size square with a black edge, a light line inside
@@ -205,6 +210,53 @@ func glyph(rows ...string) image.Image {
 	return img
 }
 
+// parchmentBox is the quest panel: a dark brown frame with a notch at each
+// corner around parchment with a darker band inside the frame (16×16,
+// nine-slice 5).
+func parchmentBox() image.Image {
+	const n = 16
+	img := image.NewRGBA(image.Rect(0, 0, n, n))
+	for x := range n {
+		for y := range n {
+			edge := min(x, y, n-1-x, n-1-y)
+			switch {
+			case edge == 0:
+				img.Set(x, y, parchmentInk)
+			case edge == 1:
+				img.Set(x, y, parchmentEdge)
+			default:
+				img.Set(x, y, parchment)
+			}
+		}
+	}
+	for _, c := range [][2]int{{0, 0}, {n - 1, 0}, {0, n - 1}, {n - 1, n - 1}} {
+		// the corner pixel is cut and the frame steps in to a notch
+		img.Set(c[0], c[1], color.RGBA{})
+		dx, dy := 1, 1
+		if c[0] > 0 {
+			dx = -1
+		}
+		if c[1] > 0 {
+			dy = -1
+		}
+		img.Set(c[0]+dx, c[1]+dy, parchmentInk)
+		img.Set(c[0]+2*dx, c[1]+dy, parchmentInk)
+		img.Set(c[0]+dx, c[1]+2*dy, parchmentInk)
+	}
+	return img
+}
+
+// fill is a w×h picture of one colour.
+func fill(w, h int, c color.RGBA) image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for x := range w {
+		for y := range h {
+			img.Set(x, y, c)
+		}
+	}
+	return img
+}
+
 // mirror flips an icon left to right.
 func mirror(src image.Image) image.Image {
 	b := src.Bounds()
@@ -274,6 +326,9 @@ func main() {
 	write("arrow_left", arrow(2), 0)
 	write("arrow_up", arrow(3), 0)
 	write("chevron_right", mirror(chevron()), 0)
+	// the quest panel of the HUD and the line under its title
+	write("quest_panel", parchmentBox(), 5)
+	write("quest_divider", fill(4, 1, parchmentLine), 0)
 
 	// the lobby's launcher menu (ui.LauncherMenu)
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1), 4)

@@ -8,7 +8,9 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/account"
 )
 
 func TestCostRowsCountTheInventory(t *testing.T) {
@@ -18,11 +20,11 @@ func TestCostRowsCountTheInventory(t *testing.T) {
 	inv := inventory.New(36, nil)
 	_, _ = inv.AddItem(item.NewStack(oakPlanks, 10))
 	rows := s.researchCostRows(i18n.Default, r, inv)
-	if len(rows) != 1 || !strings.Contains(rows[0], "10§7/32") {
+	if len(rows) != 1 || !strings.Contains(rows[0], "10§8/32") {
 		t.Fatalf("rows %q", rows)
 	}
 	_, _ = inv.AddItem(item.NewStack(oakPlanks, 40))
-	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
+	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§232§8/32") {
 		t.Fatalf("enough planks %q", rows)
 	}
 }
@@ -83,4 +85,26 @@ func TestQuestShowsResearchStep(t *testing.T) {
 	if len(rows) < hint+2 || !strings.Contains(rows[hint], step.Title(i18n.Default)) {
 		t.Fatalf("rows %q", rows)
 	}
+}
+
+// TestQuestPanelSetting: a player who turns the quest panel off sees no
+// quest rows on the HUD.
+func TestQuestPanelSetting(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.updateBoard(p)
+		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {
+			t.Fatalf("no quest panel by default: %q", s.boards[p.H()])
+		}
+		if on, _ := account.Toggle(p, settingQuestPanel); on {
+			t.Fatal("the quest panel setting did not turn off")
+		}
+		defer func() { _, _ = account.Toggle(p, settingQuestPanel) }()
+		s.updateBoard(p)
+		if b := s.boards[p.H()]; strings.Contains(b, hud.QuestTitle) || strings.Contains(b, hud.Quest) {
+			t.Fatalf("the quest panel shows while off: %q", b)
+		}
+	})
 }

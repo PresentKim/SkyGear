@@ -399,11 +399,13 @@ func heldItemNames(held []playerItems) map[string]bool {
 }
 
 // The player settings of how an advancement done is told: a toast, a chat
-// line, the sound. The vein mining setting is listed with them.
+// line, the sound; whether the quest panel shows the next advancement on the
+// screen. The vein mining setting is listed with them.
 const (
 	settingAdvancementToast = "notify_advancement_toast"
 	settingAdvancementChat  = "notify_advancement_chat"
 	settingAdvancementSound = "notify_advancement_sound"
+	settingQuestPanel       = "hud_quest_panel"
 )
 
 func init() {
@@ -411,6 +413,7 @@ func init() {
 		account.Setting{Key: settingAdvancementToast, NameKey: "setting.advancement.toast", Default: true},
 		account.Setting{Key: settingAdvancementChat, NameKey: "setting.advancement.chat", Default: true},
 		account.Setting{Key: settingAdvancementSound, NameKey: "setting.advancement.sound", Default: true},
+		account.Setting{Key: settingQuestPanel, NameKey: "setting.advancement.panel", Default: true},
 		account.Setting{Key: veinDiagonalSetting, NameKey: "setting.vein.diagonal"},
 	)
 }
