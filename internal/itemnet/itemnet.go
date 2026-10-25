@@ -51,11 +51,12 @@ func (m Mode) Gives() bool { return m == Both || m == Input }
 func (m Mode) Takes() bool { return m == Both || m == Output }
 
 // Rates are the items a network of a tier moves per step; a step is
-// StepTicks ticks long. Drafts.
-var Rates = [...]int{0, 1, 4, 16}
+// StepTicks ticks long. They move as many items a second as Ender IO 8.2's
+// item conduits (32 per 20 ticks, 64 per 20 ticks, 64 per 10 ticks).
+var Rates = [...]int{0, 32, 64, 128}
 
 // StepTicks is the ticks between two steps of a network.
-const StepTicks = 8
+const StepTicks = 20
 
 // RateOf is the rate of a tier (clamped to the known tiers).
 func RateOf(tier int) int { return Rates[max(1, min(tier, len(Rates)-1))] }

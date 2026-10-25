@@ -3,6 +3,7 @@ package dragonfactory
 import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"math"
 	"strings"
@@ -95,9 +96,13 @@ func (s *session) updateLook(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 func (s *session) Fast(tx *world.Tx) {
 	// Energy moves every FastInterval (four ticks) over the conduits.
 	s.energyGrid().Step(tx, 4)
-	// Items move every itemnet.StepTicks ticks (two Fast calls).
-	if s.fastCount++; s.fastCount%(itemnet.StepTicks/4) == 0 {
+	// Items move every itemnet.StepTicks ticks and fluids every
+	// fluidnet.StepTicks ticks (a Fast call is four ticks).
+	s.fastCount++
+	if s.fastCount%(itemnet.StepTicks/4) == 0 {
 		s.itemGrid().Step(tx)
+	}
+	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		s.fluidGrid().Step(tx)
 	}
 	s.updateLooks(tx)

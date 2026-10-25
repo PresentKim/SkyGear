@@ -66,9 +66,10 @@ type Conduit interface {
 }
 
 // Rates are the RE per tick a network of a tier carries; the tier of a
-// network is its lowest. DirectRate is what a source gives a sink it touches
-// without a conduit. Drafts.
-var Rates = [...]int{0, 40, 240, 960}
+// network is its lowest. They are Ender IO 8.2's energy conduits (energy,
+// energetic, vibrant). DirectRate is what a source gives a sink it touches
+// without a conduit.
+var Rates = [...]int{0, 8000, 48000, 192000}
 
 // DirectRate is the RE per tick between touching blocks.
 const DirectRate = 160

@@ -68,7 +68,7 @@ func TestItemsFlowBetweenChestsOverConduits(t *testing.T) {
 			from, to := cube.Pos{0, 64, 0}, cube.Pos{4, 64, 0}
 			src := chestAt(tx, from)
 			chestAt(tx, to)
-			_, _ = src.Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 64))
+			_, _ = src.Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 640))
 			for x := 1; x <= 3; x++ {
 				c := testConduit{tier: tier}
 				if x == 1 {
@@ -86,7 +86,7 @@ func TestItemsFlowBetweenChestsOverConduits(t *testing.T) {
 			}
 			g.AddConduit(cube.Pos{1, 64, 0})
 			g.Step(tx)
-			if count(tx, to, stone) != 2*RateOf(tier) || count(tx, from, stone) != 64-2*RateOf(tier) {
+			if count(tx, to, stone) != 2*RateOf(tier) || count(tx, from, stone) != 640-2*RateOf(tier) {
 				t.Errorf("tier %d: %d in the target, %d left", tier, count(tx, to, stone), count(tx, from, stone))
 			}
 		})
@@ -149,7 +149,8 @@ func TestModes(t *testing.T) {
 	})
 }
 
-// TestDestinationsTakeTurns: with two chests to fill the steps alternate.
+// TestDestinationsTakeTurns: with two chests to fill they take turns, each
+// getting half of every step.
 func TestDestinationsTakeTurns(t *testing.T) {
 	stone := item.NewStack(block.Stone{}, 1)
 	withWorld(t, func(tx *world.Tx) {
@@ -163,12 +164,11 @@ func TestDestinationsTakeTurns(t *testing.T) {
 		c.modes[cube.FaceNorth], c.modes[cube.FaceSouth] = Output, Output
 		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
 		g := NewGrid()
-		for range 6 {
-			g.AddConduit(cube.Pos{1, 64, 0})
-			g.Step(tx)
-		}
-		if count(tx, a, stone) != 3 || count(tx, b, stone) != 3 {
-			t.Errorf("the chests got %d and %d, want 3 and 3", count(tx, a, stone), count(tx, b, stone))
+		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Step(tx)
+		half := RateOf(1) / 2
+		if count(tx, a, stone) != half || count(tx, b, stone) != half {
+			t.Errorf("the chests got %d and %d, want %d each", count(tx, a, stone), count(tx, b, stone), half)
 		}
 	})
 }
@@ -182,7 +182,7 @@ func TestChannelsKeepLinesApart(t *testing.T) {
 		chestAt(tx, src)
 		chestAt(tx, a)
 		chestAt(tx, b)
-		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 64))
+		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 640))
 		c := testConduit{tier: 3}
 		c.modes[cube.FaceWest] = Input
 		c.extract[cube.FaceWest] = 5
@@ -200,8 +200,8 @@ func TestChannelsKeepLinesApart(t *testing.T) {
 	})
 }
 
-// TestRoundRobinWithinAStep: a fast network (16 items a step) hands out one item
-// at a time to each destination in turn, not a whole step's worth to the first.
+// TestRoundRobinWithinAStep: a fast network hands out one item at a time to
+// each destination in turn, not a whole step's worth to the first.
 func TestRoundRobinWithinAStep(t *testing.T) {
 	stone := item.NewStack(block.Stone{}, 1)
 	withWorld(t, func(tx *world.Tx) {
@@ -209,16 +209,16 @@ func TestRoundRobinWithinAStep(t *testing.T) {
 		chestAt(tx, src)
 		chestAt(tx, a)
 		chestAt(tx, b)
-		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 64))
+		_, _ = tx.Block(src).(block.Container).Inventory(tx, src).AddItem(item.NewStack(block.Stone{}, 640))
 		c := testConduit{tier: 3}
 		c.modes[cube.FaceWest] = Input
 		c.modes[cube.FaceNorth], c.modes[cube.FaceSouth] = Output, Output
 		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
-		if got := Discover(tx, cube.Pos{1, 64, 0}, 10).Step(tx); got != 16 {
-			t.Fatalf("moved %d, want 16", got)
+		if got := Discover(tx, cube.Pos{1, 64, 0}, 10).Step(tx); got != RateOf(3) {
+			t.Fatalf("moved %d, want %d", got, RateOf(3))
 		}
-		if count(tx, a, stone) != 8 || count(tx, b, stone) != 8 {
-			t.Errorf("the chests got %d and %d, want 8 and 8", count(tx, a, stone), count(tx, b, stone))
+		if count(tx, a, stone) != RateOf(3)/2 || count(tx, b, stone) != RateOf(3)/2 {
+			t.Errorf("the chests got %d and %d, want %d each", count(tx, a, stone), count(tx, b, stone), RateOf(3)/2)
 		}
 	})
 }

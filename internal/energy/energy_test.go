@@ -64,8 +64,8 @@ func line(w fakeWorld, tiers ...int) {
 // TestRateIsTheLowestTier: a network carries what its weakest conduit does,
 // times the ticks.
 func TestRateIsTheLowestTier(t *testing.T) {
-	store, have := 100000, 0
-	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {4, 0, 0}: machine{have: &have, room: 100000}}
+	store, have := 1000000, 0
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {4, 0, 0}: machine{have: &have, room: 1000000}}
 	line(w, 3, 2, 3)
 	g := NewGrid()
 	g.AddConduit(cube.Pos{1, 0, 0})
@@ -73,7 +73,7 @@ func TestRateIsTheLowestTier(t *testing.T) {
 	if st.Networks != 1 || st.Conduits != 3 {
 		t.Fatalf("stats %+v", st)
 	}
-	if have != RateOf(2)*4 || store != 100000-RateOf(2)*4 {
+	if have != RateOf(2)*4 || store != 1000000-RateOf(2)*4 {
 		t.Errorf("moved %d, want %d (tier 2 for 4 ticks)", have, RateOf(2)*4)
 	}
 }

@@ -169,7 +169,7 @@ func TestConduitLookCodes(t *testing.T) {
 }
 
 // TestItemConduitMovesItems: a chest gives over a conduit into another chest
-// (tier 1: one item per 0.4 seconds), and the modes survive the arms being
+// (tier 1: 32 items a second), and the modes survive the arms being
 // refreshed.
 func TestItemConduitMovesItems(t *testing.T) {
 	s := testSession(t)
@@ -178,20 +178,20 @@ func TestItemConduitMovesItems(t *testing.T) {
 	s.world.Do(func(tx *world.Tx) {
 		tx.SetBlock(from, block.NewChest(), nil)
 		tx.SetBlock(to, block.NewChest(), nil)
-		_, _ = tx.Block(from).(block.Chest).Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 40))
+		_, _ = tx.Block(from).(block.Chest).Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 64))
 		c := ConduitBundle{Item: 1}
 		c.Modes[cube.FaceWest] = itemnet.Input
 		c.Modes[cube.FaceEast] = itemnet.Output
 		tx.SetBlock(mid, c, nil)
 	})
-	runSteps(s, 20)
+	runSteps(s, 5)
 	s.world.Do(func(tx *world.Tx) {
 		got := 0
 		for _, st := range tx.Block(to).(block.Chest).Inventory(tx, to).Slots() {
 			got += st.Count()
 		}
-		if got < 8 || got > 12 {
-			t.Errorf("%d stone moved in 20 steps (4 seconds), want about 10", got)
+		if got != itemnet.RateOf(1) {
+			t.Errorf("%d stone moved in one second, want %d", got, itemnet.RateOf(1))
 		}
 		c := tx.Block(mid).(ConduitBundle)
 		if c.Modes[cube.FaceWest] != itemnet.Input || c.Modes[cube.FaceEast] != itemnet.Output {
