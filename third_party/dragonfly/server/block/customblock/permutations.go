@@ -10,6 +10,9 @@ type Properties struct {
 	// CollisionBox represents the bounding box of the block that the player can collide with. This cannot exceed the
 	// position of the current block in the world, otherwise it will be cut off at the edge.
 	CollisionBox cube.BBox
+	// CollisionBoxes, when set, are the boxes the player collides with instead of CollisionBox (up to 16, all
+	// within the block), so a block can be hollow like a composter.
+	CollisionBoxes []cube.BBox
 	// Cube determines whether the block should inherit the default cube geometry. This will only be considered if the
 	// Geometry field is empty.
 	Cube bool

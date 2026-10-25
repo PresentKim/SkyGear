@@ -67,7 +67,9 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 // a custom permutation.
 func componentsFromProperties(props customblock.Properties) map[string]any {
 	components := make(map[string]any)
-	if props.CollisionBox != (cube.BBox{}) {
+	if len(props.CollisionBoxes) > 0 {
+		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBoxes...)
+	} else if props.CollisionBox != (cube.BBox{}) {
 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
 	}
 	if props.SelectionBox != (cube.BBox{}) {
@@ -118,20 +120,22 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 }
 
 // collisionBoxComponent returns the component data for a collision box, using absolute min/max coordinates in pixels.
-func collisionBoxComponent(box cube.BBox) map[string]any {
-	min, max := box.Min(), box.Max()
+func collisionBoxComponent(boxes ...cube.BBox) map[string]any {
+	list := make([]map[string]any, 0, len(boxes))
+	for _, box := range boxes {
+		min, max := box.Min(), box.Max()
+		list = append(list, map[string]any{
+			"minX": float32(min.X() * 16),
+			"minY": float32(min.Y() * 16),
+			"minZ": float32(min.Z() * 16),
+			"maxX": float32(max.X() * 16),
+			"maxY": float32(max.Y() * 16),
+			"maxZ": float32(max.Z() * 16),
+		})
+	}
 	return map[string]any{
 		"enabled": true,
-		"boxes": []map[string]any{
-			{
-				"minX": float32(min.X() * 16),
-				"minY": float32(min.Y() * 16),
-				"minZ": float32(min.Z() * 16),
-				"maxX": float32(max.X() * 16),
-				"maxY": float32(max.Y() * 16),
-				"maxZ": float32(max.Z() * 16),
-			},
-		},
+		"boxes":   list,
 	}
 }
 

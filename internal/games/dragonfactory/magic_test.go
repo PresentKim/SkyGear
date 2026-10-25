@@ -42,10 +42,16 @@ func TestMagicPlantLifecycle(t *testing.T) {
 		if tx.Block(at).(MagicPlant).Bloom {
 			t.Error("bloomed at once")
 		}
+		if info := s.lookInfo(p, tx, at, tx.Block(at)); info.Item == nil || len(info.Lines) != 1 || !strings.Contains(info.Lines[0], "남은 시간") {
+			t.Errorf("the panel of a bud: %+v", info)
+		}
 		rec.ReadyAt = 0
 		s.tickPlants(tx)
 		if !tx.Block(at).(MagicPlant).Bloom {
 			t.Fatal("did not bloom when its time came")
+		}
+		if info := s.lookInfo(p, tx, at, tx.Block(at)); len(info.Lines) < 2 || !strings.Contains(info.Lines[0], "다 자람") {
+			t.Errorf("the panel of a bloom: %q", info.Lines)
 		}
 		if drops := tx.Block(at).(MagicPlant).BreakInfo().Drops(nil, nil); len(drops) < 2 {
 			t.Errorf("a bloom drops %d stacks when broken, want the seed and the yield", len(drops))

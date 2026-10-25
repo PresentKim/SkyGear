@@ -60,14 +60,27 @@ func (WitchWaterBucket) MaxCount() int               { return 1 }
 // composter: the mycelium or grass under it needs light or it turns to dirt.
 func (Barrel) LightDiffusionLevel() uint8 { return 0 }
 
-// tubModel is the model of a barrel: a full block that is not model.Solid, so
-// the mycelium or grass under it stays (vanilla keeps them under a barrel).
+// tubModel is the model of a barrel: a hollow full block like the composter
+// (a floor and four walls, tubBoxes) that is not model.Solid, so the mycelium
+// or grass under it stays (vanilla keeps them under a barrel).
 type tubModel struct{}
 
-func (tubModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {
-	return []cube.BBox{cube.Box(0, 0, 0, 1, 1, 1)}
+// tubBoxes are a barrel's floor (2px) and walls (2px thick, full height):
+// a player can step inside, as into a composter.
+var tubBoxes = []cube.BBox{
+	cube.Box(0, 0, 0, 1, 0.125, 1),
+	cube.Box(0, 0, 0, 1, 1, 0.125),
+	cube.Box(0, 0, 0.875, 1, 1, 1),
+	cube.Box(0, 0, 0, 0.125, 1, 1),
+	cube.Box(0.875, 0, 0, 1, 1, 1),
 }
-func (tubModel) FaceSolid(cube.Pos, cube.Face, world.BlockSource) bool { return true }
+
+func (tubModel) BBox(cube.Pos, world.BlockSource) []cube.BBox { return tubBoxes }
+
+// FaceSolid is true for every face but the open top.
+func (tubModel) FaceSolid(_ cube.Pos, face cube.Face, _ world.BlockSource) bool {
+	return face != cube.FaceUp
+}
 
 // barrelMixRecipe is a mixing: a barrel of witch water (lava) and in make out;
 // a bucket in comes back empty.

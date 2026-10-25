@@ -184,8 +184,8 @@ func TestVeinMine(t *testing.T) {
 		if _, ok := tx.Block(base.Add(cube.Pos{0, 0, 1})).(block.Sand); !ok {
 			t.Fatal("the sand was broken")
 		}
-		if held, _ := p.HeldItems(); held.MaxDurability()-held.Durability() != 4 {
-			t.Fatalf("durability used %d, want 4", held.MaxDurability()-held.Durability())
+		if held, _ := p.HeldItems(); held.Durability() != held.MaxDurability() {
+			t.Fatalf("the iron hammer wore down %d", held.MaxDurability()-held.Durability())
 		}
 		if got := droppedKeys(tx)[itemKey(block.Sand{})]; got != 4 {
 			t.Fatalf("%d sand dropped, want 4", got)

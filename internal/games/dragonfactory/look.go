@@ -192,6 +192,15 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Line = s.barrelLiquid(lang, pos)
 	case FlowHopper:
 		info.Lines = hopperLines(lang, b)
+	case MagicPlant:
+		if i := plantKindIndex(b.Kind); i >= 0 {
+			k := plantKinds[i]
+			seed := k.seedStack()
+			info.Item, info.NameKey = seed.Item(), ""
+			info.Name = i18n.T(lang, "pseed."+k.seed)
+			info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
+			info.Lines = s.plantLines(lang, pos, b, k)
+		}
 	}
 	if kind, _, ok := cropOf(b); ok {
 		info.Name = i18n.T(lang, cropNameKeys[kind])

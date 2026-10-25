@@ -11,8 +11,9 @@ import (
 // (stone → cobblestone → gravel → sand), an ore block two dusts (ore.go).
 // The stone hammer comes first; the iron hammer (the zero value, the first
 // hammer of the game) also breaks the same crushable blocks connected to the
-// one it mines while sneaking (vein.go). A hammer lasts twice as long as a
-// tool of its material. It mines these blocks at its own speeds, sent to
+// one it mines while sneaking (vein.go). The stone hammer lasts twice as
+// long as a stone tool; the iron hammer does not wear (handler.go
+// HandleItemDamage): the vein mining costs food. It mines these blocks at its own speeds, sent to
 // clients (the minecraft:digger component, a Dragonfly patch) so they mine as
 // fast as the server expects.
 type Hammer struct{ Stone bool }

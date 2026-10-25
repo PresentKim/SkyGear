@@ -113,10 +113,9 @@ func (s *session) veinBudget(p *player.Player, held item.Stack) int {
 }
 
 // veinToolBudget is how many blocks past the mined one held can break
-// whatever the food: its durability (one is left for the mined block) and
-// veinLimit.
+// whatever the food: veinLimit (the iron hammer does not wear).
 func (s *session) veinToolBudget(held item.Stack) int {
-	return max(0, min(held.Durability()-1, veinLimit-1))
+	return veinLimit - 1
 }
 
 // veinFoodBudget is how many blocks past the mined one p's food pays for.
@@ -140,10 +139,10 @@ func (s *session) payVeinFood(p *player.Player, n int) {
 
 // veinMine breaks the blocks connected to the one at pos p mines with an
 // iron hammer while sneaking (pos itself is broken by the game): each costs
-// one durability and veinFoodCost food, and what the hammer makes of them
+// veinFoodCost food, and what the hammer makes of them
 // drops together at pos.
 func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	held, off := p.HeldItems()
+	held, _ := p.HeldItems()
 	if !isIronHammer(held) || !p.Sneaking() {
 		return
 	}
@@ -185,7 +184,6 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		}
 	}
 	if broken > 0 {
-		p.SetHeldItems(held.Damage(broken), off)
 		s.payVeinFood(p, broken)
 	}
 }

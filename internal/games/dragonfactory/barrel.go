@@ -236,7 +236,7 @@ func barrelMaterials(wood string, stage int) map[string]customblock.Material {
 }
 
 func (b Barrel) Properties() customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.dragonfactory_barrel_0", Textures: barrelMaterials(b.Wood, 0)}
+	return customblock.Properties{Geometry: "geometry.dragonfactory_barrel_0", Textures: barrelMaterials(b.Wood, 0), CollisionBoxes: tubBoxes}
 }
 
 // States implements block.Permutable.

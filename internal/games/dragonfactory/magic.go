@@ -475,3 +475,21 @@ func dyeColour(c string) item.Colour {
 		"brown": item.ColourBrown(), "green": item.ColourGreen(), "red": item.ColourRed(), "black": item.ColourBlack(),
 	}[c]
 }
+
+// plantLines are the WAILA lines of the plant b of kind k at pos: the time
+// left until it blooms, or that it has and what harvesting it gives.
+func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKind) []string {
+	if !b.Bloom {
+		r := s.state.Plants[cropKey(pos)]
+		if r == nil {
+			return nil
+		}
+		now, _, _ := s.clock.Now()
+		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, max(0, r.ReadyAt-now).Round(time.Second))}
+	}
+	lines := []string{i18n.T(lang, "plant.waila.bloom")}
+	for _, y := range k.yield {
+		lines = append(lines, fmt.Sprintf("§f%s §7×%s", itemName(lang, item.NewStack(y.item, 1)), rangeText(y.min, y.max)))
+	}
+	return lines
+}

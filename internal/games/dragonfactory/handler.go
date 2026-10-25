@@ -240,7 +240,15 @@ func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
 		count(ctx.Player(), "sprint", 1)
 	}
 }
-func (h *handler) HandleJump(p *player.Player)                         { count(p, "jump", 1) }
+func (h *handler) HandleJump(p *player.Player) { count(p, "jump", 1) }
+
+// HandleItemDamage keeps the iron hammer whole: its vein mining costs food
+// instead (vein.go).
+func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *int) {
+	if isIronHammer(it) {
+		*damage = 0
+	}
+}
 func (h *handler) HandlePunchAir(ctx *player.Context)                  { count(ctx.Player(), "punch_air", 1) }
 func (h *handler) HandleChat(ctx *player.Context, _ *string)           { count(ctx.Player(), "chat", 1) }
 func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) { count(ctx.Player(), "eat", 1) }
