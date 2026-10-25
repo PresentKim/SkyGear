@@ -107,6 +107,47 @@
   var ON_PANEL = { f: "0", "7": "8", "8": "7", e: "1", "6": "4", a: "2", b: "3", c: "4", d: "5" };
   var ink = "dark"; // the ink of the node being built
 
+  // wideFont is the font the vanilla form draws the server's text with, for the lines with other letters
+  // than ASCII: the locale font of oui-ddui.css (--localeSpecificNotoSansFonts) has no Hangul on some
+  // devices (iOS) when the vanilla text has. The server titles the vanilla form under the screen with
+  // FONT_PROBE (common oreui.FontProbe); the element that draws it gives its computed font.
+  var FONT_PROBE = "\u2063한글\u2063";
+  var wideFont = "";
+  var probes = 0;
+  var probeFound = "-"; // the vanilla element the probe was found in (the debug line)
+
+  function probeFont() {
+    if (wideFont || probes > 20) return;
+    probes++;
+    var vanilla = document.getElementById("root");
+    var found = null;
+    try {
+      var all = vanilla ? vanilla.querySelectorAll("*") : [];
+      for (var i = 0; i < all.length; i++) {
+        // The innermost element with the probe: the last of those that hold it.
+        if ((all[i].textContent || "").indexOf(FONT_PROBE) >= 0) found = all[i];
+      }
+      if (found) {
+        probeFound = found.tagName + (found.className ? "." + found.className : "");
+        wideFont = window.getComputedStyle(found).fontFamily || "";
+      }
+    } catch (e) {
+      state.error = "font: " + e;
+    }
+    if (!wideFont) {
+      setTimeout(probeFont, 250);
+      drawStatus();
+      return;
+    }
+    var lines = root ? root.querySelectorAll(".oui-wide") : [];
+    for (var j = 0; j < lines.length; j++) lines[j].style.fontFamily = wideFont;
+    if (tip) {
+      var tipLines = tip.querySelectorAll(".oui-wide");
+      for (var k = 0; k < tipLines.length; k++) tipLines[k].style.fontFamily = wideFont;
+    }
+    drawStatus();
+  }
+
   // rich fills e with s, turning § colour and format codes into spans and newlines into lines.
   function rich(e, s, panel) {
     if (panel === undefined) panel = ink === "panel";
@@ -117,7 +158,10 @@
       // Gameface lays the colour runs of a line out as flex items aligned at their tops (no baseline
       // alignment), so a run the Minecraft font draws sits higher than one in the locale's Noto font.
       // A line with any non-ASCII letter is drawn in the Noto font throughout.
-      if (/[^\x00-\x7f§]/.test(line)) lineEl.className += " oui-wide";
+      if (/[^\x00-\x7f§]/.test(line)) {
+        lineEl.className += " oui-wide";
+        if (wideFont) lineEl.style.fontFamily = wideFont;
+      }
       var colour = "", bold = false, italic = false, run = "";
       function flush() {
         if (!run) return;
@@ -994,6 +1038,7 @@
     if (active) {
       tree = make(state.layout);
       root.appendChild(tree.el);
+      probeFont();
     }
     drawStatus();
   }
@@ -1019,9 +1064,65 @@
       document.body.appendChild(status);
     }
     status.style.display = state.vars.__debug ? "flex" : "none";
-    status.textContent =
+    if (!state.vars.__debug) return;
+    status.innerHTML = "";
+    [
       "oui-ddui screen=" + (state.screen || "-") + " layout=" + state.layoutText.length + "B updates=" + state.updates +
-      " vars=" + Object.keys(state.vars).length + " sent=" + state.seq + (state.error ? " error=" + state.error : "");
+        " vars=" + Object.keys(state.vars).length + " sent=" + state.seq + (state.error ? " error=" + state.error : ""),
+      "font=" + (wideFont || "-") + " probes=" + probes + " probeFound=" + probeFound,
+      "localeFonts=" + cssVar("--localeSpecificNotoSansFonts") + " html=" + (document.documentElement.lang || "-") + " ." +
+        (document.documentElement.className || "-") + " body=" + (document.body.className || "-"),
+      "rootFont=" + fontOf(document.getElementById("root")) + " bodyFont=" + fontOf(document.body),
+      "fontFaces=" + fontFaces(),
+      "w=" + window.innerWidth + " h=" + window.innerHeight + " rem=" + remPx() + " ua=" + (navigator.userAgent || "-")
+    ].forEach(function (line) {
+      status.appendChild(el("div", null, line));
+    });
+  }
+
+  // The values the debug line shows about fonts; "?" where the engine would not tell.
+  function cssVar(name) {
+    try {
+      return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "-";
+    } catch (e) {
+      return "?";
+    }
+  }
+
+  function fontOf(e) {
+    try {
+      return e ? window.getComputedStyle(e).fontFamily || "-" : "-";
+    } catch (err) {
+      return "?";
+    }
+  }
+
+  function remPx() {
+    try {
+      return window.getComputedStyle(document.documentElement).fontSize;
+    } catch (e) {
+      return "?";
+    }
+  }
+
+  // fontFaces are the families of the @font-face rules of the page's style sheets.
+  function fontFaces() {
+    var out = [];
+    try {
+      for (var i = 0; i < document.styleSheets.length; i++) {
+        var rules = document.styleSheets[i].cssRules || [];
+        for (var j = 0; j < rules.length; j++) {
+          var r = rules[j];
+          if (r.type !== 5) continue;
+          var f = (r.style && (r.style.getPropertyValue("font-family") || r.style.fontFamily)) || "";
+          f = f.replace(/["']/g, "");
+          if (f && out.indexOf(f) < 0) out.push(f);
+        }
+      }
+    } catch (e) {
+      return "? " + e;
+    }
+    return out.length ? out.join(", ") : "-";
   }
 
   // --- data ------------------------------------------------------------------------------------

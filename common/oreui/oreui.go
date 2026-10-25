@@ -147,6 +147,12 @@ func Open(p *player.Player, layout any, onEvent func(Event), onClose func()) (*F
 	return f, c.WritePacket(&packet.ClientBoundDataDrivenUIShowScreen{ScreenID: screen, FormID: f.id, DataInstanceID: protocol.Option(uint32(instance))})
 }
 
+// FontProbe is the title of the vanilla form under the screen, which the
+// renderer hides: the renderer finds the element that draws it and takes its
+// font for the lines with other letters than ASCII (Hangul and the like), as
+// the font its own CSS names lacks them on some devices (iOS).
+const FontProbe = "\u2063한글\u2063"
+
 // SetLayout replaces the layout tree of the screen. It resends the whole form
 // property with the vanilla fields the custom_form root reads.
 func (f *Form) SetLayout(layout any) error {
@@ -155,7 +161,7 @@ func (f *Form) SetLayout(layout any) error {
 		return err
 	}
 	return f.change(property, protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
-		{Key: "title", Value: str("")},
+		{Key: "title", Value: str(FontProbe)},
 		{Key: "closeButton", Value: protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
 			{Key: "label", Value: str("")},
 			{Key: "visible", Value: protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeBool, BoolValue: true}},

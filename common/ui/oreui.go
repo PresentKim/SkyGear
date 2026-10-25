@@ -96,6 +96,31 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 		return
 	}
 	st.form = f
+	if OreDebug(p) {
+		f.SetVars(map[string]any{"__debug": true})
+	}
+}
+
+// oreDebug holds the players whose DDUI screens show the renderer's debug
+// line, by UUID.
+var oreDebug sync.Map
+
+// SetOreDebug shows or hides the debug line of p's DDUI screens: what the
+// renderer knows of the screen and the fonts (packs/oreui/hbui/oui-ddui.js
+// drawStatus), over the top of the screen, for a screenshot from a device.
+func SetOreDebug(p *player.Player, on bool) {
+	if on {
+		oreDebug.Store(p.UUID(), true)
+	} else {
+		oreDebug.Delete(p.UUID())
+	}
+	withScreen(p, func(st *oreScreen) { st.form.SetVars(map[string]any{"__debug": on}) })
+}
+
+// OreDebug reports whether p's DDUI screens show the debug line.
+func OreDebug(p *player.Player) bool {
+	_, ok := oreDebug.Load(p.UUID())
+	return ok
 }
 
 // withScreen runs f, holding the lock, with the DDUI screen p has open (none:

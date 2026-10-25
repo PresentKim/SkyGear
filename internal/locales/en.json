@@ -1012,5 +1012,8 @@
  "setting.advancement.chat": "Advancement chat message",
  "setting.advancement.sound": "Advancement sound",
  "setting.vein.diagonal": "Vein mining includes diagonals",
- "setting.uimode": "Show menus as JSON UI forms"
+ "setting.uimode": "Show menus as JSON UI forms",
+ "platform.uidebug.command": "Turns the debug info of the menu screens (Ore UI) on or off",
+ "platform.uidebug.on": "§eMenu screen debug info on. It shows over the top of a menu.",
+ "platform.uidebug.off": "§7Menu screen debug info off."
 }

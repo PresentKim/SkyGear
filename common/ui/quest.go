@@ -131,7 +131,7 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 		if q.Tracked {
 			class += " tracked"
 		}
-		n := box(class, "tip", q.Tip, "quick", true, "style", map[string]any{"left": rem(pos(q.X)), "top": rem(pos(q.Y))},
+		n := box(class, "tip", q.Tip, "style", map[string]any{"left": rem(pos(q.X)), "top": rem(pos(q.Y))},
 			"children", []any{box("mc-quest-shape"), img("", q.Icon)})
 		plane = append(plane, l.press(n, q.Run))
 	}

@@ -3455,5 +3455,8 @@
  "setting.advancement.chat": "발전과제 달성 채팅 메시지",
  "setting.advancement.sound": "발전과제 달성 소리",
  "setting.vein.diagonal": "광맥 캐기 대각선 포함",
- "setting.uimode": "메뉴를 JSON UI 폼으로 보기"
+ "setting.uimode": "메뉴를 JSON UI 폼으로 보기",
+ "platform.uidebug.command": "메뉴 화면(Ore UI)의 디버그 정보를 켜고 끕니다",
+ "platform.uidebug.on": "§e메뉴 화면 디버그 정보를 켰습니다. 메뉴를 열면 화면 위에 보입니다.",
+ "platform.uidebug.off": "§7메뉴 화면 디버그 정보를 껐습니다."
 }

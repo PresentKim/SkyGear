@@ -22,12 +22,19 @@ body.oui-active #root {
   pointer-events: auto;
 }
 
+/* The debug line (the variable __debug, common ui.SetOreDebug): over the top of the screen, so a
+   screenshot carries it. */
 #oui-ddui-status {
   position: absolute;
-  bottom: 0.2rem;
+  top: 0.4rem;
   left: 0.4rem;
-  font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.6);
+  width: 96vw;
+  padding: 0.4rem;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  font-family: "Minecraft Seven v2";
+  font-size: 1rem;
 }
 
 .oui-col {
