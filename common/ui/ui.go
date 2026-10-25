@@ -474,6 +474,10 @@ type Slot struct {
 // right, then two rows of pressable slots: left (e.g. storage upgrades) and
 // right (utilities), then action buttons.
 func SlotMenu(p *player.Player, title string, store Slot, info string, left, right []Slot, actions ...Option) {
+	if OreUIFor(p) {
+		oreSlotMenu(p, title, store, info, left, right, actions)
+		return
+	}
 	nop := func(*player.Player, *world.Tx) {}
 	opts := []Option{
 		{Label: StoreToken + store.Text, Icon: store.Icon, Run: nop},
@@ -721,6 +725,10 @@ func ColumnsMenu(p *player.Player, title, body string, left, right SlotRow, acti
 // first among the buttons: the hidden action buttons would otherwise take
 // the first cells of the grid and push the slots to the right.
 func ItemGrid(p *player.Player, title, body string, slots []ItemSlot, actions ...Option) {
+	if OreUIFor(p) {
+		oreItemGrid(p, title, body, []GridSection{{Slots: slots}}, actions)
+		return
+	}
 	opts := make([]Option, 0, len(slots)+len(actions))
 	for i, sl := range slots {
 		opts = append(opts, slotOption(slotWToken, i%gridColumns >= gridTipLeft, sl))
@@ -748,6 +756,10 @@ type GridSection struct {
 // its slots wrap in rows after it. Empty cells (pad buttons) bring the
 // section to a whole number of rows, so Go decides where the rows break.
 func ItemGridSections(p *player.Player, title, body string, sections []GridSection, actions ...Option) {
+	if OreUIFor(p) {
+		oreItemGrid(p, title, body, sections, actions)
+		return
+	}
 	opts := sectionOptions(sections)
 	cells := len(opts)
 	opts = append(opts, actionOptions(actions)...)
@@ -822,6 +834,14 @@ const CreateToken = "§d§f§e§r"
 // form (both send no data): the pack draws that button when the title starts
 // with InputBackToken, which Input adds for a non-nil back.
 func Input(p *player.Player, title, label, def string, f func(p *player.Player, tx *world.Tx, value string), back ...func(p *player.Player, tx *world.Tx)) {
+	if OreUIFor(p) {
+		var b func(p *player.Player, tx *world.Tx)
+		if len(back) > 0 {
+			b = back[0]
+		}
+		oreInput(p, title, label, def, f, b)
+		return
+	}
 	in := textInput{Value: form.NewInput(label, def, ""), run: f}
 	if len(back) > 0 && back[0] != nil {
 		in.back = back[0]

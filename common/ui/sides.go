@@ -45,18 +45,17 @@ type SideBoard struct {
 	Refresh func(p *player.Player, tx *world.Tx) SideBoard
 }
 
-// The layout of SidesMenu in GUI pixels, in a window of the vanilla
-// inventory's size (sidesWindowW by sidesWindowH): the view is sidesW by
+// The layout of SidesMenu in GUI pixels, in the window (windowW by
+// windowH): the view is sidesW by
 // sidesH, a card cardW by cardH in three columns cardGap apart, the block in
 // the middle centreSize square, the choices panel pickerCols choices of
 // choiceSize to a row.
 const (
-	sidesWindowW, sidesWindowH = 326, 166
-	sidesW, sidesH             = 310, 144
-	cardW, cardH, cardGap      = 96, 56, 11
-	centreSize                 = 20
-	pickerCols, choiceSize     = 6, 12
-	pickerPad                  = 3
+	sidesW, sidesH         = 310, 144
+	cardW, cardH, cardGap  = 96, 56, 11
+	centreSize             = 20
+	pickerCols, choiceSize = 6, 12
+	pickerPad              = 3
 )
 
 // sideCard is where the card of side f is: its top left corner in the view,
@@ -136,7 +135,7 @@ func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
 	}
 	view = append(view, node("region", "name", "picker"))
 	content := box("mc-sides", "style", map[string]any{"width": gu(sidesW), "height": gu(sidesH)}, "children", view)
-	showOre(p, l, l.window(sidesWindowW, sidesWindowH, title, tabs, bar, content))
+	showOre(p, l, l.window(title, tabs, bar, content))
 	updateSides(p, b, nil)
 }
 
@@ -204,17 +203,13 @@ func updateSides(p *player.Player, b SideBoard, open *sidePicker) {
 		}
 		vars["@"+sideRegion(i)] = box("mc-side-ports", "children", ports)
 	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	st := oreScreens.m[p.UUID()]
-	if st == nil || st.form == nil {
-		return
-	}
-	st.gen++
-	for k, v := range l.runs {
-		st.runs[k] = v
-	}
-	st.form.SetVars(vars)
+	withScreen(p, func(st *oreScreen) {
+		st.gen++
+		for k, v := range l.runs {
+			st.runs[k] = v
+		}
+		st.form.SetVars(vars)
+	})
 }
 
 // pickerNode is the panel of the choices of port, on the card of side: under

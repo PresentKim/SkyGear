@@ -73,6 +73,10 @@ type ListSplit struct {
 // the client closes the window, so pressing the chosen row used to close the
 // screen instead of keeping it.
 func ListSplitMenu(p *player.Player, title string, sp ListSplit) {
+	if OreUIFor(p) {
+		oreListSplit(p, title, sp)
+		return
+	}
 	Menu(p, ListSplitToken+title, sp.Body, listSplitOptions(sp)...)
 }
 

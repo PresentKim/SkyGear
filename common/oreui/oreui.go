@@ -42,13 +42,14 @@ const (
 )
 
 // Event is one interaction the renderer reports: Kind "click" with the ID of
-// the pressed element, "input" with its Value, or "key" with ID "close" for
-// Esc.
+// the pressed element and the text of the screen's input boxes by their IDs
+// (Inputs), "change" with an input's Value, or "key" with ID "close" for Esc.
 type Event struct {
-	Seq   int    `json:"seq"`
-	ID    string `json:"id"`
-	Kind  string `json:"kind"`
-	Value any    `json:"value"`
+	Seq    int               `json:"seq"`
+	ID     string            `json:"id"`
+	Kind   string            `json:"kind"`
+	Value  any               `json:"value"`
+	Inputs map[string]string `json:"inputs"`
 }
 
 // Form is a DDUI screen open on one connection.

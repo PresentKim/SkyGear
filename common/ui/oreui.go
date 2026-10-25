@@ -13,15 +13,16 @@ import (
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 )
 
-// OreUI makes Menu, CardMenu, ItemBoard, SplitMenu and SieveBoard show as
-// DDUI screens that the oreui pack draws in the game's Ore UI, like the dfui
-// pack's JSON UI forms (packs/oreui/hbui/oui-mc.css): the same windows, tabs,
-// control bar, cards, list buttons, slot boards and split screen, with the
-// items drawn by the game and the window scrolling with a scrollbar. The
-// server must send the oreui pack encrypted and wrap its listeners with
-// dfhook. In the lobby the forms stay JSON UI (its frame is the dfui pack's).
-// The other forms (Input, Confirm, tables, ...) stay JSON UI too; one of them
-// closes the DDUI screen first.
+// OreUI makes Menu (and Confirm), CardMenu, ItemBoard, SplitMenu,
+// SieveBoard, ListSplitMenu, Input, ItemGrid, ItemGridSections and SlotMenu
+// show as DDUI screens that the oreui pack draws in the game's Ore UI, like
+// the dfui pack's JSON UI forms (packs/oreui/hbui/oui-mc.css): the same tabs,
+// control bar, cards, list buttons, slot boards and split screens in one
+// window, with the items drawn by the game and the window scrolling with a
+// scrollbar. The server must send the oreui pack encrypted and wrap its
+// listeners with dfhook. In the lobby the forms stay JSON UI (its frame is
+// the dfui pack's). The other forms (Amount, tables, ...) stay JSON UI too;
+// one of them closes the DDUI screen first.
 var OreUI bool
 
 // PreferJSON reports whether p chose the JSON UI forms over the DDUI screens
@@ -41,7 +42,9 @@ type oreScreen struct {
 	runs map[string]func(p *player.Player, tx *world.Tx)
 	// input runs when the text of the screen's input box changes (SearchGrid).
 	input func(p *player.Player, tx *world.Tx, value string)
-	gen   int
+	// values are the layout's input boxes' texts by their ids (oreLayout).
+	values map[string]string
+	gen    int
 	// size is the window size of the layout shown.
 	size string
 }
@@ -52,11 +55,17 @@ var oreScreens = struct {
 }{m: map[uuid.UUID]*oreScreen{}}
 
 // showOre shows the layout l built to p: in the screen p has open if its
-// window is as large, or else in a new one. Gameface hit-tests the presses
+// window is as large, where the renderer draws again only the nodes that
+// differ from the layout shown (a count, a selected slot, a row added), or
+// else in a new one. Gameface hit-tests the presses
 // after a window changes size at the places from before (a press on the
 // codex's second tab after the research screen opened its third), so a
 // window of another size is opened anew.
 func showOre(p *player.Player, l *oreLayout, layout any) {
+	if oreShown != nil {
+		oreShown(l, layout)
+		return
+	}
 	oreScreens.Lock()
 	defer oreScreens.Unlock()
 	st := oreScreens.m[p.UUID()]
@@ -65,7 +74,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 		oreScreens.m[p.UUID()] = st
 	}
 	st.gen++
-	st.runs, st.input = l.runs, l.input
+	st.runs, st.input, st.values = l.runs, l.input, l.values
 	if st.form != nil && !st.form.Closed() {
 		if st.size == l.size {
 			_ = st.form.SetLayout(layout)
@@ -89,6 +98,23 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 	st.form = f
 }
 
+// withScreen runs f, holding the lock, with the DDUI screen p has open (none:
+// f does not run).
+func withScreen(p *player.Player, f func(st *oreScreen)) {
+	if oreShown != nil {
+		return
+	}
+	oreScreens.Lock()
+	defer oreScreens.Unlock()
+	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil {
+		f(st)
+	}
+}
+
+// oreShown, when set (tests), takes the layouts showOre is given instead of
+// the players' screens.
+var oreShown func(l *oreLayout, layout any)
+
 // oreEvent runs what the pressed element does in the player's world. Esc
 // and the close button close the screen.
 func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
@@ -101,9 +127,21 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		oreScreens.Unlock()
 		return
 	}
+	oreScreens.Lock()
+	for id, v := range ev.Inputs {
+		if _, ok := st.values[id]; ok {
+			st.values[id] = v
+		}
+	}
+	oreScreens.Unlock()
 	if ev.Kind == "change" {
 		oreScreens.Lock()
 		in, gen := st.input, st.gen
+		if v, ok := ev.Value.(string); ok {
+			if _, kept := st.values[ev.ID]; kept {
+				st.values[ev.ID] = v
+			}
+		}
 		oreScreens.Unlock()
 		value, _ := ev.Value.(string)
 		if in == nil {
@@ -160,6 +198,9 @@ func closeOre(p *player.Player) {
 type oreLayout struct {
 	runs  map[string]func(p *player.Player, tx *world.Tx)
 	input func(p *player.Player, tx *world.Tx, value string)
+	// values keep the texts of the input boxes made by field, guarded by
+	// oreScreens.
+	values map[string]string
 	// size is the window's size, set by window.
 	size string
 	// prefix starts the ids of the elements, so the parts drawn again into a
@@ -168,7 +209,29 @@ type oreLayout struct {
 }
 
 func newOreLayout() *oreLayout {
-	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, prefix: "o"}
+	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, values: map[string]string{}, prefix: "o"}
+}
+
+// field is an input box with the text def whose text the presses of the
+// screen read with value. enter is the id of the button Enter presses ("":
+// none).
+func (l *oreLayout) field(id, def, placeholder, enter string) map[string]any {
+	l.values[id] = def
+	n := node("input", "id", id, "value", def, "class", "mc-input")
+	if placeholder != "" {
+		n["placeholder"] = placeholder
+	}
+	if enter != "" {
+		n["enter"] = enter
+	}
+	return n
+}
+
+// value is the text of the input box id as the player left it.
+func (l *oreLayout) value(id string) string {
+	oreScreens.Lock()
+	defer oreScreens.Unlock()
+	return l.values[id]
 }
 
 // press gives a node an id that runs run when pressed (nil: not pressable).
@@ -316,17 +379,26 @@ func (l *oreLayout) chrome(opts []Option, wideTabs bool) (tabs, bar []any, rest 
 		case strings.HasPrefix(o.Label, TabToken), strings.HasPrefix(o.Label, TabOnToken):
 			tabs = append(tabs, l.tab(o, wideTabs))
 		case strings.HasPrefix(o.Label, barPagerToken):
-			pagers = append(pagers, l.iconButton(o, o.Icon, ""))
+			pagers = append(pagers, quick(l.iconButton(o, o.Icon, "")))
 		case strings.HasPrefix(o.Label, HelpToken):
 			help = append(help, l.iconButton(o, "", "?"))
 		case strings.HasPrefix(o.Label, BackToken):
-			back = append(back, l.iconButton(o, "textures/ui/df/chevron_left", ""))
+			back = append(back, quick(l.iconButton(o, "textures/ui/df/chevron_left", "")))
 		default:
 			rest = append(rest, o)
 		}
 	}
 	bar = append(append(pagers, help...), back...)
 	return tabs, bar, rest
+}
+
+// quick makes a tap on n press it at once on a touch screen: its tooltip is
+// only its name. A tap on another node with a tooltip shows the tooltip
+// first and presses at the second tap (oui-ddui.js onPress), so the help
+// text, an item's tooltip and the like can be read.
+func quick(n map[string]any) map[string]any {
+	n["quick"] = true
+	return n
 }
 
 // iconButton is a 15x15 button of the control bar with an icon or a glyph;
@@ -357,6 +429,7 @@ func (l *oreLayout) tab(o Option, wide bool) map[string]any {
 		ch = append(ch, node("text", "class", "mc-tab-label", "text", untoken(o.Label), "ink", "dark"))
 	} else {
 		n["tip"] = untoken(o.Label)
+		quick(n)
 	}
 	n["children"] = ch
 	if !on {
@@ -365,10 +438,17 @@ func (l *oreLayout) tab(o Option, wide bool) map[string]any {
 	return n
 }
 
-// window is df_form's window: the size in GUI pixels, the tabs over its top
-// left, the control bar over its top right (with the close button), the title
-// and the content.
-func (l *oreLayout) window(w, h int, title string, tabs, bar []any, content any) any {
+// windowW by windowH is the size of every DDUI window in GUI pixels (but the
+// quest book's): the vanilla inventory's, the largest that fits a phone
+// (docs/tech/json-ui.md). One size for all lets a press go from any screen
+// to any other in the screen open, where the renderer draws again only what
+// differs; a window of another size has to be opened anew (showOre).
+const windowW, windowH = 326, 166
+
+// window is df_form's window: the tabs over its top left, the control bar
+// over its top right (with the close button), the title and the content.
+func (l *oreLayout) window(title string, tabs, bar []any, content any) any {
+	w, h := windowW, windowH
 	l.size = fmt.Sprintf("%dx%d", w, h)
 	bar = append(bar, box("mc-close", "id", "close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}))
 	var children []any
@@ -386,7 +466,7 @@ func (l *oreLayout) window(w, h int, title string, tabs, bar []any, content any)
 
 func scroll(children ...any) map[string]any { return box("mc-scroll mc-col", "children", children) }
 
-// oreMenu is a plain menu (df_form action_form, 230x166): the body text and a
+// oreMenu is a plain menu (df_form action_form): the body text and a
 // list button per option.
 func oreMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
@@ -398,10 +478,10 @@ func oreMenu(p *player.Player, title, body string, opts []Option) {
 	for _, o := range rest {
 		content = append(content, l.listButton(o))
 	}
-	showOre(p, l, l.window(230, 166, title, tabs, bar, scroll(content...)))
+	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreCardMenu is a card menu (df_form card_form, 296x166): the body text and
+// oreCardMenu is a card menu (df_form card_form): the body text and
 // three cards to a row.
 func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
@@ -418,7 +498,7 @@ func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	if title == UntitledToken {
 		title = ""
 	}
-	showOre(p, l, l.window(296, 166, title, tabs, bar, scroll(content...)))
+	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
 // boardRow is a row of board cells (BoardColumns to a row, 18u each).
@@ -459,7 +539,7 @@ func (l *oreLayout) boardRow(row []BoardCell) any {
 	return box("mc-board-row", "children", cells)
 }
 
-// oreBoard is an ItemBoard (df_form's board, 236x166): the body text, the
+// oreBoard is an ItemBoard (df_form's board): the body text, the
 // rows and list buttons for the actions that are not tabs or bar buttons.
 func oreBoard(p *player.Player, title, body string, rows [][]BoardCell, actions []Option) {
 	l := newOreLayout()
@@ -475,7 +555,7 @@ func oreBoard(p *player.Player, title, body string, rows [][]BoardCell, actions 
 	for _, o := range rest {
 		content = append(content, box("mc-gap-3"), l.listButton(o))
 	}
-	showOre(p, l, l.window(236, 166, title, tabs, bar, scroll(content...)))
+	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
 // SieveRecipe is one recipe of a sieve: the block that goes in, the mesh and
@@ -550,10 +630,10 @@ func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []Siev
 	for _, o := range rest {
 		content = append(content, box("mc-gap-3"), l.listButton(o))
 	}
-	showOre(p, l, l.window(236, 166, title, tabs, bar, scroll(content...)))
+	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreSplit is a SplitMenu (df_form split_form, 326x166): wide tabs over the
+// oreSplit is a SplitMenu (df_form split_form): wide tabs over the
 // window, the grid of SplitCells slots with the page arrows under it on the
 // left, and the chosen slot's detail on the right: the big slot, the name and
 // status with the action buttons under them, the body text and the headed
@@ -619,7 +699,7 @@ func oreSplit(p *player.Player, title string, sp Split) {
 	}
 	right := box("mc-panel mc-split-right", "children", []any{scroll(box("mc-col", "children", detail))})
 	content := box("mc-row", "style", map[string]any{"height": "100%"}, "children", []any{left, right})
-	showOre(p, l, l.window(326, 166, title, tabs, bar, content))
+	showOre(p, l, l.window(title, tabs, bar, content))
 }
 
 // SearchResult is what a search shows for a query: a line about it and the
@@ -629,7 +709,7 @@ type SearchResult struct {
 	Sections []GridSection
 }
 
-// SearchGrid shows a search window (df_form's board, 236x166): an input box
+// SearchGrid shows a search window (df_form's board): an input box
 // over the results, which are drawn again as the player types (in the
 // screen, without opening the window again: the box keeps its text and
 // focus). find makes the results of a query; it runs in the player's world
@@ -670,16 +750,12 @@ func SearchGrid(p *player.Player, title, label, query string, find func(p *playe
 	l.input = func(p *player.Player, _ *world.Tx, value string) {
 		turn++
 		n, info, runs := results(p, value, "r"+strconv.Itoa(turn)+"_")
-		oreScreens.Lock()
-		defer oreScreens.Unlock()
-		st := oreScreens.m[p.UUID()]
-		if st == nil || st.form == nil {
-			return
-		}
-		for k, v := range runs {
-			st.runs[k] = v
-		}
-		st.form.SetVars(map[string]any{"@results": n, "searchInfo": info})
+		withScreen(p, func(st *oreScreen) {
+			for k, v := range runs {
+				st.runs[k] = v
+			}
+			st.form.SetVars(map[string]any{"@results": n, "searchInfo": info})
+		})
 	}
 	content := []any{
 		box("mc-search", "children", []any{
@@ -693,10 +769,6 @@ func SearchGrid(p *player.Player, title, label, query string, find func(p *playe
 	for _, o := range rest {
 		content = append(content, box("mc-gap-3"), l.listButton(o))
 	}
-	showOre(p, l, l.window(236, 166, title, tabs, bar, scroll(box("mc-board", "children", content))))
-	oreScreens.Lock()
-	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil {
-		st.form.SetVars(map[string]any{"@results": first, "searchInfo": info})
-	}
-	oreScreens.Unlock()
+	showOre(p, l, l.window(title, tabs, bar, scroll(box("mc-board", "children", content))))
+	withScreen(p, func(st *oreScreen) { st.form.SetVars(map[string]any{"@results": first, "searchInfo": info}) })
 }

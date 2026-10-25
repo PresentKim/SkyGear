@@ -22,8 +22,8 @@ func TestSideCardsStayApartInTheView(t *testing.T) {
 		}
 		seen[f] = [2]int{x, y}
 	}
-	if sidesW > sidesWindowW-4 || sidesH > sidesWindowH-18 {
-		t.Errorf("view %dx%d does not fit a %dx%d window", sidesW, sidesH, sidesWindowW, sidesWindowH)
+	if sidesW > windowW-4 || sidesH > windowH-18 {
+		t.Errorf("view %dx%d does not fit a %dx%d window", sidesW, sidesH, windowW, windowH)
 	}
 	cx, cy := sidesW/2-centreSize/2, sidesH/2-centreSize/2
 	for f, o := range seen {

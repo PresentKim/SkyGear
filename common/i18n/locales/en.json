@@ -16,5 +16,8 @@
  "ui.page.prev": "Previous page (%d/%d)",
  "ui.page.next": "Next page (%d/%d)",
  "ui.sides.back": "Back",
- "ui.sides.none": "Not connected"
+ "ui.sides.none": "Not connected",
+ "ui.input.ok": "OK",
+ "ui.input.create": "Create",
+ "ui.input.back": "Back"
 }

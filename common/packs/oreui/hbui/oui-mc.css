@@ -17,12 +17,13 @@
 
 /* --- screen ----------------------------------------------------------------------------- */
 
+/* The screen and the windows are sized by the viewport (vw, vh), like #oui-ddui (oui-ddui.css). */
 .mc-screen {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,8 +34,8 @@
    (style width/height in u), like $df_window_size. Title at 6u from the top, content from 18u. */
 .mc-window {
   position: relative;
-  max-width: 96%;
-  max-height: 96%;
+  max-width: 96vw;
+  max-height: 96vh;
   border-style: solid;
   border-width: 0.8rem;
   border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
@@ -692,6 +693,93 @@
   flex-direction: column;
 }
 
+/* ListSplitMenu (df_form list_split_form): the list in a 156u panel on the left, the body and the
+   actions in the 154u right of it (content 314u - 156u - 4u gap). A row is a 30u button with a 20u
+   icon at 6u, the name at 30u and the information line under it (0.7); the chosen row is lit. Both
+   sides stretch to the row's height (a height of 100% would add the panel's border to it). */
+.mc-lsplit-left {
+  width: 31.2rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lsplit-right {
+  width: 30.8rem;
+  flex-shrink: 0;
+  margin-left: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lrow {
+  height: 6rem;
+  flex-shrink: 0;
+  margin-bottom: 0.4rem;
+}
+
+.mc-lrow.on {
+  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+}
+
+.mc-lrow img {
+  position: absolute;
+  left: 0.6rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-lrow-text {
+  position: absolute;
+  left: 5.4rem;
+  right: 0.6rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lrow-name {
+  font-size: 1.4rem;
+}
+
+.mc-lrow-name .oui-line,
+.mc-lrow-info .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-lrow-info {
+  color: #ccccd1;
+  font-size: 0.98rem;
+}
+
+/* The actions after the first, two to a row. */
+.mc-lsplit-pair {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mc-lsplit-pair .mc-action {
+  width: 15rem;
+}
+
+/* SlotMenu (df_form slot_form): the storage slot with its info beside it, the slots under them. */
+.mc-slotmenu-info {
+  margin-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-slotmenu-info .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-slotmenu-slots {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 /* oui-ddui.css styles the plain renderer; the mc classes start from nothing. */
 .mc-btn.oui-button,
 .mc-slot.oui-item,
@@ -734,8 +822,8 @@
 
 .mc-quest-window {
   position: relative;
-  width: 90%;
-  height: 88%;
+  width: 90vw;
+  height: 88vh;
   display: flex;
   flex-direction: row;
   border-style: solid;

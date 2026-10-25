@@ -2,8 +2,10 @@
 //
 // The server opens minecraft:custom_form and puts its own fields next to the vanilla ones in data
 // store "minecraft":
-//   custom_form_data_1.oui        JSON {form, root}: the layout tree, replaced as a whole, and the id of
-//                                 the form, which its variable patches carry too
+//   custom_form_data_1.oui        JSON {form, root}: the layout tree and the id of the form, which its
+//                                 variable patches carry too. A new layout of the form shown is
+//                                 compared with the one drawn and only the nodes that differ change
+//                                 (patch); another form's is drawn anew
 //   custom_form_data_1.oui_event  written here: JSON {seq, id, kind, value} for every interaction
 //   oui_vars_1_<n>.v              JSON {f, s, p}: patch p of changed variables, merged into what the
 //                                 renderer has. Patches rotate over VARS_SLOTS properties, since the
@@ -25,7 +27,7 @@
 // An icon is "geo:<item name>" (drawn by the engine through geo-item://, the URL the vanilla container
 // slots use), "tex:<texture path>" (a pack texture through pack://), or a bare item name.
 // A region's children come from the variable "@<name>" (a node), so the server can replace one part of
-// the screen without resending the layout. `tip` shows a tooltip while the pointer is over the node.
+// the screen without resending the layout; the region is patched like the layout. `tip` shows a tooltip while the pointer is over the node.
 (function () {
   var STORE = "minecraft";
   var PROPERTY = "custom_form_data_1";
@@ -40,6 +42,8 @@
   var bound = []; // {el, key, kind, region}
   var regions = {}; // name -> element
   var regionInk = {}; // name -> the ink where the region sits
+  var regionRecs = {}; // name -> the record of what the region shows
+  var tree = null; // the record of the layout shown
   var building = ""; // the region being built, so its bindings can be dropped when it is rebuilt
   var bars = []; // {sc, bar, handle}: the scrollbars of the mc-scroll elements shown
   var root = null;
@@ -73,7 +77,11 @@
   function send(id, kind, value) {
     var set = command("vanillaDduiDataStoreSetCommandGroup", "setDataStorePathString");
     state.seq++;
-    var ev = JSON.stringify({ seq: state.seq, id: id, kind: kind, value: value === undefined ? null : value, at: kind === "click" ? lastPress : null });
+    var msg = { seq: state.seq, id: id, kind: kind, value: value === undefined ? null : value, at: kind === "click" ? lastPress : null };
+    // A press carries the text of the input boxes, so a button that submits them reads what was typed
+    // even before the box's own change event.
+    if (kind === "click") msg.inputs = inputValues();
+    var ev = JSON.stringify(msg);
     if (!set) {
       state.error = "setDataStorePathString not found";
       drawStatus();
@@ -154,15 +162,60 @@
   }
 
   // Gameface does not deliver "click" to plain divs, so presses fire on the left mouse button going down.
-  function onPress(e, fn) {
+  // A touch has no pointer resting over an element to show its tooltip, so on a touch screen the first
+  // tap on an element with a tooltip (nodeOf: its node, whose tip is read at the tap) shows the tooltip
+  // and a second tap on it presses it, like the JSON UI forms. A node with `quick` (a back button, a
+  // tab) presses at once. The tap is told by the touch events around the mousedown, whose order the
+  // devices do not agree on, so the decision waits a moment. The mousedown bubbles up through the
+  // elements that listen, so only the innermost one that takes presses (wants, when given) answers it.
+  function onPress(e, fn, nodeOf, wants) {
     e.addEventListener("mousedown", function (ev) {
-      if (ev.button === undefined || ev.button === 0) {
-        lastPress = { x: Math.round(ev.clientX), y: Math.round(ev.clientY), w: window.innerWidth, h: window.innerHeight };
-        fn(ev);
-      }
+      if (ev.button !== undefined && ev.button !== 0) return;
+      if (claimed === ev || (wants && !wants())) return;
+      claimed = ev;
+      lastPress = { x: Math.round(ev.clientX), y: Math.round(ev.clientY), w: window.innerWidth, h: window.innerHeight };
+      var at = Date.now();
+      setTimeout(
+        function () {
+          var n = nodeOf ? nodeOf() : null;
+          var touch = touchSeen || Math.abs(touchAt - at) < TOUCH_WINDOW;
+          if (touch && n && n.tip && !n.quick && armed !== e) {
+            armed = e;
+            showTip(e, n.tip);
+            return;
+          }
+          armed = null;
+          if (touch) hideTip();
+          fn(ev);
+        },
+        touchSeen ? 0 : 40
+      );
     });
   }
   var lastPress = null;
+  var claimed = null; // the mousedown an element answered
+  var TOUCH_WINDOW = 700; // ms between a touch event and the mousedown of the same tap
+  var touchAt = 0; // when the last touch began
+  var touchSeen = false; // whether the presses come from a touch screen (until the mouse moves alone)
+  var armed = null; // the element whose tooltip the last tap showed; the next tap on it presses it
+
+  // noteTouch keeps when a touch began and puts away the tooltip of an element the touch is not on.
+  function noteTouch(ev) {
+    touchAt = Date.now();
+    touchSeen = true;
+    if (armed && !armed.contains(ev.target)) {
+      armed = null;
+      hideTip();
+    }
+  }
+
+  // A mouse that moves with no touch about is a mouse: presses go through at once again.
+  function noteMouse() {
+    if (touchSeen && Date.now() - touchAt > TOUCH_WINDOW) {
+      touchSeen = false;
+      armed = null;
+    }
+  }
 
   // pointOf is where a mouse or touch event happened. A touch device sends a mousedown for a tap but
   // no mousemove while the finger moves, so drags also listen to the touch events.
@@ -183,10 +236,11 @@
     bound.push(entry);
   }
 
-  function applyCommon(e, n) {
+  function applyCommon(e, n, rec) {
     if (n["class"]) e.className += " " + n["class"];
     if (n.style) for (var k in n.style) e.style[k] = n.style[k];
-    if (n.tip) withTip(e, n.tip);
+    rec.inner = e;
+    if (n.tip) withTip(e, rec);
   }
 
   function varOr(key, fallback) {
@@ -207,52 +261,76 @@
     return "geo-item://" + icon + "?width=" + size + "&height=" + size;
   }
 
-  function withTip(e, text) {
+  // withTip shows the tooltip of the node of rec (read when the pointer comes, so a node updated in
+  // place shows its new tooltip) while the pointer is over e.
+  function withTip(e, rec) {
+    rec.tipped = true;
     e.addEventListener("mouseover", function () {
-      if (panning) return;
-      if (!tip) {
-        tip = el("div");
-        tip.id = "oui-tip";
-        document.body.appendChild(tip);
-      }
-      rich(tip, text, false);
-      var r = e.getBoundingClientRect();
-      tip.style.left = Math.round(r.right + 6) + "px";
-      tip.style.top = Math.round(r.top) + "px";
-      tip.style.display = "flex";
+      if (panning || !rec.n.tip) return;
+      showTip(e, rec.n.tip);
     });
     e.addEventListener("mouseout", function () {
-      if (tip) tip.style.display = "none";
+      // The tooltip a tap showed stays until the next tap.
+      if (armed !== e) hideTip();
     });
   }
+  var tipOwner = null; // the element whose tooltip shows
 
-  function build(n) {
+  // showTip shows text as the tooltip of e, right of it.
+  function showTip(e, text) {
+    if (!tip) {
+      tip = el("div");
+      tip.id = "oui-tip";
+      document.body.appendChild(tip);
+    }
+    tipOwner = e;
+    rich(tip, text, false);
+    var r = e.getBoundingClientRect();
+    tip.style.left = Math.round(r.right + 6) + "px";
+    tip.style.top = Math.round(r.top) + "px";
+    tip.style.display = "flex";
+  }
+
+  function hideTip() {
+    if (tip) tip.style.display = "none";
+    tipOwner = null;
+  }
+
+  // A built node keeps a record: the node (n), the element that sits in its parent (el: the scroll
+  // wrapper of an mc-scroll element), the element the class, style and tooltip went on (inner), the
+  // element its children go in (box, with each child in a cell for a grid), the records of its
+  // children (kids) and the ink it was built with. A layout that comes again for the same form is
+  // compared with the records (patch), so only what changed is drawn again: the window, the scroll
+  // positions, the focused input and the images loaded stay.
+  function make(n) {
     var outerInk = ink;
     if (n.ink) ink = n.ink;
+    var rec = { n: n, el: null, inner: null, box: null, grid: false, kids: [], ink: ink, tipped: false };
     try {
-      return buildNode(n);
+      rec.el = buildNode(n, rec);
     } finally {
       ink = outerInk;
     }
+    return rec;
   }
 
-  function buildNode(n) {
+  function buildNode(n, rec) {
     var e;
     switch (n.t) {
       case "col":
       case "row":
         e = el("div", "oui-" + n.t);
         if (n.scroll) e.className += " oui-scroll";
-        appendChildren(e, n.children);
+        appendChildren(e, n.children, rec);
         break;
       case "grid":
         e = el("div", "oui-grid");
-        var w = 100 / (n.cols || 10) + "%";
+        rec.box = e;
+        rec.grid = true;
         (n.children || []).forEach(function (c) {
-          var cell = el("div", "oui-cell");
-          cell.style.width = w;
-          cell.appendChild(build(c));
-          e.appendChild(cell);
+          var r = make(c);
+          rec.kids.push(r);
+          e.appendChild(gridCell(n, r.el));
         });
         break;
       case "text":
@@ -278,9 +356,15 @@
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (!n.disabled) {
-          onPress(e, function () {
-            send(n.id, "click", null);
-          });
+          onPress(
+            e,
+            function () {
+              send(rec.n.id, "click", null);
+            },
+            function () {
+              return rec.n;
+            }
+          );
         }
         break;
       case "bar":
@@ -312,6 +396,7 @@
         e = el("div", "oui-region");
         regions[n.name] = e;
         regionInk[n.name] = ink;
+        delete regionRecs[n.name];
         fillRegion(n.name);
         break;
       case "watch":
@@ -327,17 +412,26 @@
         // A plain div for composed components: classes, children, a press (when it has an id and
         // press is not false) and activeBind, which toggles the "on" class.
         e = el("div", "oui-box");
-        appendChildren(e, n.children);
+        appendChildren(e, n.children, rec);
         if (n.activeBind) {
           if (varOr(n.activeBind, false)) e.className += " on";
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (n.on) e.className += " on";
-        if (n.id && n.press !== false) {
-          onPress(e, function () {
-            send(n.id, "click", null);
-          });
-        }
+        // The press reads the node of the record, so a box updated in place may gain or lose it. A box
+        // that does nothing when pressed still shows its tooltip at a tap.
+        onPress(
+          e,
+          function () {
+            if (rec.n.id && rec.n.press !== false) send(rec.n.id, "click", null);
+          },
+          function () {
+            return rec.n;
+          },
+          function () {
+            return !!((rec.n.id && rec.n.press !== false) || rec.n.tip);
+          }
+        );
         break;
       case "frame":
         e = el("div", "mc-frame");
@@ -353,7 +447,7 @@
         e = el("div", "oui-space");
         break;
       case "canvas":
-        e = buildCanvas(n);
+        e = buildCanvas(n, rec);
         break;
       case "line":
         // A straight line from (x1, y1) to (x2, y2), in rem: a thin box turned around its start.
@@ -367,8 +461,8 @@
       default:
         e = el("div", "oui-text", "unknown node " + n.t);
     }
-    applyCommon(e, n);
-    if (/(^| )mc-scroll( |$)/.test(e.className)) return withScrollbar(e);
+    applyCommon(e, n, rec);
+    if (isScroll(n)) return withScrollbar(e);
     return e;
   }
 
@@ -430,11 +524,11 @@
   // the first time the point (focusX, focusY) in rem is put in the middle.
   var pans = {};
 
-  function buildCanvas(n) {
+  function buildCanvas(n, rec) {
     var view = el("div", "oui-canvas");
     var plane = el("div", "oui-canvas-plane");
     view.appendChild(plane);
-    appendChildren(plane, n.children);
+    appendChildren(plane, n.children, rec);
     var pan = pans[n.key];
     function place() {
       plane.style.left = pan.x + "px";
@@ -467,30 +561,189 @@
     panning.place();
   }
 
-  function appendChildren(e, children) {
+  function appendChildren(e, children, rec) {
+    rec.box = e;
     (children || []).forEach(function (c) {
-      e.appendChild(build(c));
+      var r = make(c);
+      rec.kids.push(r);
+      e.appendChild(r.el);
     });
   }
 
-  // fillRegion (re)builds a region from its variable, dropping the bindings of what it held before.
+  // gridCell is the cell of a grid that holds child.
+  function gridCell(n, child) {
+    var cell = el("div", "oui-cell");
+    cell.style.width = 100 / (n.cols || 10) + "%";
+    cell.appendChild(child);
+    return cell;
+  }
+
+  function isScroll(n) {
+    return /(^| )mc-scroll( |$)/.test(n["class"] || "");
+  }
+
+  // --- patching --------------------------------------------------------------------------------
+
+  // id and tip are read from the record when used; children are patched one by one.
+  var SOFT = { id: true, tip: true, children: true };
+
+  // Keys of a node a record can take in place, by node type, besides SOFT.
+  var IN_PLACE = {
+    col: {}, row: {}, grid: {}, region: {}, frame: {}, arrow: {}, space: {},
+    box: { "class": true, style: true, on: true },
+    text: { "class": true, style: true, text: true },
+    img: { "class": true, style: true, icon: true, size: true },
+    canvas: { focusX: true, focusY: true } // only the first drawing reads the focus
+  };
+
+  // Node types whose presses read the id from the record (the others keep the id they were built with).
+  var LIVE_ID = { box: true, button: true, col: true, row: true, grid: true, text: true, img: true, region: true, frame: true, arrow: true, space: true, canvas: true };
+
+  function same(a, b) {
+    if (a === b) return true;
+    if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+
+  // changedKeys are the keys of a and b, not SOFT, whose values differ.
+  function changedKeys(a, b) {
+    var keys = {}, out = [], k;
+    for (k in a) keys[k] = true;
+    for (k in b) keys[k] = true;
+    for (k in keys) if (!SOFT[k] && !same(a[k], b[k])) out.push(k);
+    return out;
+  }
+
+  // takesInPlace reports whether rec can become node n without being built again.
+  function takesInPlace(rec, n, nInk) {
+    var o = rec.n;
+    if (o.t !== n.t || rec.ink !== nInk) return false;
+    var allowed = IN_PLACE[n.t];
+    if (!allowed) return changedKeys(o, n).length === 0 && (LIVE_ID[n.t] || same(o.id, n.id));
+    if (!LIVE_ID[n.t] && !same(o.id, n.id)) return false;
+    // A binding or a scroll wrapper is set up when the node is built.
+    if (o.bind || n.bind || o.activeBind || n.activeBind) {
+      if (changedKeys(o, n).length) return false;
+    }
+    if (isScroll(o) !== isScroll(n)) return false;
+    var keys = changedKeys(o, n);
+    for (var i = 0; i < keys.length; i++) if (!allowed[keys[i]]) return false;
+    return true;
+  }
+
+  // patch makes the drawing of rec show n, in place when it can, and returns the record that shows it
+  // (rec, or a new one the caller puts in rec's place). parentInk is the ink around n.
+  function patch(rec, n, parentInk) {
+    var nInk = n.ink || parentInk;
+    if (!takesInPlace(rec, n, nInk)) {
+      var outer = ink;
+      ink = parentInk;
+      try {
+        return make(n);
+      } finally {
+        ink = outer;
+      }
+    }
+    var o = rec.n, e = rec.inner;
+    rec.n = n;
+    if (!same(o["class"], n["class"]) || !same(o.on, n.on)) {
+      var base = n.t === "img" ? "oui-img" : "oui-" + n.t;
+      if (n.t === "box" && n.on) base += " on";
+      e.className = base + (n["class"] ? " " + n["class"] : "");
+    }
+    if (!same(o.style, n.style)) {
+      var k;
+      for (k in o.style || {}) if (!n.style || !(k in n.style)) e.style[k] = "";
+      for (k in n.style || {}) e.style[k] = n.style[k];
+    }
+    if (n.t === "text" && o.text !== n.text) rich(e, n.text, rec.ink === "panel");
+    if (n.t === "img" && (o.icon !== n.icon || o.size !== n.size)) e.src = iconSrc(n.icon, n.size || 64);
+    if (n.tip && !rec.tipped) withTip(e, rec);
+    if (tipOwner === e && tip) {
+      if (n.tip) rich(tip, n.tip, false);
+      else tip.style.display = "none";
+    }
+    if (rec.box) patchKids(rec, n.children || []);
+    return rec;
+  }
+
+  // patchKids makes the children of rec those of the list: each child patched in its place, the new
+  // ones added at the end, the ones left over removed.
+  function patchKids(rec, children) {
+    var kids = rec.kids, out = [], i;
+    for (i = 0; i < children.length; i++) {
+      if (i < kids.length) {
+        var r = patch(kids[i], children[i], rec.ink);
+        if (r !== kids[i]) kids[i].el.parentNode.replaceChild(r.el, kids[i].el);
+        out.push(r);
+        continue;
+      }
+      var outer = ink;
+      ink = rec.ink;
+      try {
+        var added = make(children[i]);
+      } finally {
+        ink = outer;
+      }
+      rec.box.appendChild(rec.grid ? gridCell(rec.n, added.el) : added.el);
+      out.push(added);
+    }
+    for (; i < kids.length; i++) {
+      var gone = rec.grid ? kids[i].el.parentNode : kids[i].el;
+      gone.parentNode.removeChild(gone);
+    }
+    rec.kids = out;
+  }
+
+  // prune drops the bindings, scrollbars and tooltip of what a patch took off the screen.
+  function prune() {
+    if (!root) return;
+    bound = bound.filter(function (b) {
+      return root.contains(b.el);
+    });
+    bars = bars.filter(function (b) {
+      return root.contains(b.sc);
+    });
+    inputs = inputs.filter(function (i) {
+      return root.contains(i.el);
+    });
+    if (tip && tipOwner && !root.contains(tipOwner)) hideTip();
+    if (armed && !root.contains(armed)) armed = null;
+  }
+
+  // fillRegion draws a region from its variable, patching what it showed before.
   function fillRegion(name) {
     var e = regions[name];
     if (!e) return;
-    bound = bound.filter(function (b) {
-      return b.region !== name;
-    });
-    e.innerHTML = "";
     var n = varOr("@" + name, null);
-    if (!n) return;
-    var outer = building, outerInk = ink;
+    var old = regionRecs[name];
+    var rInk = regionInk[name] || ink;
+    if (!n) {
+      e.innerHTML = "";
+      delete regionRecs[name];
+      return;
+    }
+    var outer = building;
     building = name;
-    ink = regionInk[name] || ink;
     try {
-      e.appendChild(build(n));
+      var r;
+      if (old && old.el.parentNode === e) {
+        r = patch(old, n, rInk);
+        if (r !== old) e.replaceChild(r.el, old.el);
+      } else {
+        e.innerHTML = "";
+        var outerInk = ink;
+        ink = rInk;
+        try {
+          r = make(n);
+        } finally {
+          ink = outerInk;
+        }
+        e.appendChild(r.el);
+      }
+      regionRecs[name] = r;
     } finally {
       building = outer;
-      ink = outerInk;
     }
   }
 
@@ -523,9 +776,15 @@
     }
     if (n.id && n.clickable !== false) {
       box.className += " pressable";
-      onPress(box, function () {
-        send(n.id, "click", null);
-      });
+      onPress(
+        box,
+        function () {
+          send(n.id, "click", null);
+        },
+        function () {
+          return n;
+        }
+      );
     }
     return box;
   }
@@ -618,11 +877,27 @@
     return labelled(n, wrap);
   }
 
+  // inputs are the input boxes drawn: {id, el}.
+  var inputs = [];
+
+  function inputValues() {
+    var out = null;
+    inputs.forEach(function (i) {
+      if (!i.id || !root || !root.contains(i.el)) return;
+      out = out || {};
+      out[i.id] = i.el.value;
+    });
+    return out;
+  }
+
+  // An input box sends its text a moment after the typing stops, or at Enter; with `enter` (the id of a
+  // button) Enter presses that button instead.
   function buildInput(n) {
     var input = el("input", "oui-input");
     input.type = "text";
     input.value = n.value || "";
     if (n.placeholder) input.placeholder = n.placeholder;
+    inputs.push({ id: n.id, el: input });
     var timer = null;
     function flush() {
       if (timer) clearTimeout(timer);
@@ -634,7 +909,12 @@
       timer = setTimeout(flush, n.delay || 400);
     });
     input.addEventListener("keydown", function (ev) {
-      if (ev.keyCode === 13) flush();
+      if (ev.keyCode !== 13) return;
+      if (n.enter) {
+        if (timer) clearTimeout(timer);
+        timer = null;
+        send(n.enter, "click", null);
+      } else flush();
     });
     return n.text ? labelled(n, input) : input;
   }
@@ -657,13 +937,14 @@
     return labelled(n, row);
   }
 
-  function applyVars(patch) {
-    for (var k in patch) {
+  function applyVars(changed) {
+    for (var k in changed) {
       if (k.charAt(0) === "@") fillRegion(k.slice(1));
     }
+    prune();
     bound.forEach(function (b) {
-      if (!Object.prototype.hasOwnProperty.call(patch, b.key)) return;
-      var v = patch[b.key];
+      if (!Object.prototype.hasOwnProperty.call(changed, b.key)) return;
+      var v = changed[b.key];
       if (b.kind === "text") rich(b.el, v, b.panel);
       else if (b.kind === "width") b.el.style.width = Math.round(100 * Number(v)) + "%";
       else if (b.kind === "slot") showSlot(b, v);
@@ -700,13 +981,33 @@
       root.id = "oui-ddui";
       document.body.appendChild(root);
     }
-    if (tip) tip.style.display = "none";
+    hideTip();
+    armed = null;
     root.innerHTML = "";
     bound = [];
     bars = [];
+    inputs = [];
     regions = {};
     regionInk = {};
-    if (active) root.appendChild(build(state.layout));
+    regionRecs = {};
+    tree = null;
+    if (active) {
+      tree = make(state.layout);
+      root.appendChild(tree.el);
+    }
+    drawStatus();
+  }
+
+  // update shows a new layout of the form on the screen: patched into what is drawn, or drawn anew.
+  function update() {
+    if (!tree || !root || state.screen !== SCREEN) return render();
+    measure();
+    var r = patch(tree, state.layout, "dark");
+    if (r !== tree) {
+      root.replaceChild(r.el, tree.el);
+      tree = r;
+    }
+    prune();
     drawStatus();
   }
 
@@ -737,6 +1038,8 @@
       document.addEventListener(type, dragBar);
       document.addEventListener(type, dragCanvas);
     });
+    document.addEventListener("touchstart", noteTouch);
+    document.addEventListener("mousemove", noteMouse);
     ["mouseup", "touchend", "touchcancel"].forEach(function (type) {
       document.addEventListener(type, drop);
     });
@@ -766,13 +1069,14 @@
       v = unwrap(v);
       state.updates++;
       if (typeof v !== "string" || v === "" || v === state.layoutText) return drawStatus();
+      var again = false;
       try {
         var doc = JSON.parse(v);
         if (doc.form !== state.form) {
           state.form = doc.form;
           state.vars = {};
           applied = {};
-        }
+        } else again = true;
         state.layout = doc.root;
         state.layoutText = v;
         state.error = "";
@@ -781,7 +1085,9 @@
       } catch (e) {
         state.error = "layout: " + e;
       }
-      render();
+      // A layout of the form shown changes only what differs; another form's is drawn anew.
+      if (again) update();
+      else render();
     });
     function take(v) {
       v = unwrap(v);

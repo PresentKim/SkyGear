@@ -3,12 +3,15 @@ body.oui-active #root {
   visibility: hidden;
 }
 
+/* The screen-sized boxes take the viewport's size (vw, vh), not a percentage of the body: the body
+   has no size of its own on some devices (iPad: the window folded into a strip at the top, with the
+   panels and the dark backdrop gone, while the fixed-size slot grid still showed). */
 #oui-ddui {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,8 +46,8 @@ body.oui-active #root {
 }
 
 .window {
-  width: 80%;
-  height: 85%;
+  width: 80vw;
+  height: 85vh;
   padding: 0.8rem;
   background-color: rgba(16, 18, 30, 0.94);
   border: 0.15rem solid rgb(255, 200, 0);
@@ -302,8 +305,8 @@ body.oui-active #root {
 
 /* The Dragon Factory research screen (ouitest research.go). */
 .rs-window {
-  width: 88%;
-  height: 88%;
+  width: 88vw;
+  height: 88vh;
   padding: 0.6rem 0.8rem;
   background-color: rgba(18, 16, 26, 0.96);
   border: 0.12rem solid rgb(196, 150, 60);
