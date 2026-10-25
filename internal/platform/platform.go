@@ -130,7 +130,7 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 	held, _ := p.HeldItems()
 	switch v, _ := held.Value(lobbyItemKey); v {
 	case "menu", "saves", "guide":
-		pf.showLobbyMenu(p)
+		pf.wakeLobbyMenu(p)
 	default:
 		return false
 	}

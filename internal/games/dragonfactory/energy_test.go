@@ -525,7 +525,11 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 			}
 			ctx := player.NewEventContext(tx, p)
 			(&handler{s: s}).HandleItemUseOnBlock(ctx, at, face, mgl64.Vec3{1, 0.5, 0.5})
-			return ctx.Cancelled()
+			if ctx.Cancelled() {
+				return true
+			}
+			act, ok := tx.Block(at).(block.Activatable)
+			return ok && (!sneak || held.Empty()) && act.Activate(at, face, tx, p, &item.UseContext{})
 		}
 		pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)
 		stone := item.NewStack(block.Stone{}, 1)

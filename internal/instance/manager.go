@@ -154,6 +154,15 @@ func (m *Manager) Location(accountID string) *Instance {
 	return m.location[accountID]
 }
 
+// InLobby reports whether the player is in the lobby and not on its way into
+// a save: an inactive save keeps its player in the lobby while it opens.
+func (m *Manager) InLobby(accountID string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	_, entering := m.entering[accountID]
+	return m.location[accountID] == nil && !entering
+}
+
 // Active returns the active instance of a save, or nil.
 func (m *Manager) Active(saveID int64) *Instance {
 	m.mu.Lock()

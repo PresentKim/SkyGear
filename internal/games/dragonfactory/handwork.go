@@ -29,7 +29,7 @@ import (
 const (
 	// stickCooldown is the shortest time between two stick uses on the
 	// ground (the client sends one click twice).
-	stickCooldown = 250 * time.Millisecond
+	stickCooldown = 100 * time.Millisecond
 	// fiberChance is the percent chance stripping a log drops fibers.
 	fiberChance = 50
 )

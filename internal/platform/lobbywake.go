@@ -35,7 +35,7 @@ const lobbyEscDelay = 1500 * time.Millisecond
 // main menu opens again, at once or, when p closed the main menu itself,
 // after lobbyEscDelay.
 func (pf *Platform) lobbyIdle(p *player.Player, _ *world.Tx, title string, closed bool) {
-	if pf.m.Location(instance.AccountID(p)) != nil {
+	if !pf.m.InLobby(instance.AccountID(p)) {
 		return
 	}
 	if closed && strings.Contains(title, ui.LauncherToken) {
@@ -125,7 +125,7 @@ func lobbyInput(in *packet.PlayerAuthInput) bool {
 // wakeLobbyMenu shows the main menu to p if p is still in the lobby. A menu
 // that is already open is not sent again (ui's guard against repeated forms).
 func (pf *Platform) wakeLobbyMenu(p *player.Player) {
-	if pf.m.Location(instance.AccountID(p)) == nil {
+	if pf.m.InLobby(instance.AccountID(p)) {
 		pf.showLobbyMenu(p)
 	}
 }

@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -285,19 +286,35 @@ func (s *session) nextPlateSide(p *player.Player, tx *world.Tx, pos cube.Pos, b 
 	return 0, false
 }
 
-// usePlate opens the settings of the connector plate the player clicked, or of
-// the clicked conduit that has one, unless the held conduit goes into that
-// conduit, and reports whether it took the click.
+// usePlate opens the settings of the connector plate the player clicked on the
+// block beside it, unless the held conduit goes into that conduit, and reports
+// whether it took the click.
 func (s *session) usePlate(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, held item.Stack) bool {
-	// One click sends several use events; only the first opens a form.
-	if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok && !fitsBundle(held, b) {
-		if !s.debounced(p) {
-			s.showPlateForm(p, tx, at, side)
-		}
-		return true
-	}
-	b, ok := tx.Block(pos).(ConduitBundle)
+	at, b, side, ok := plateHit(tx, pos, face, clickPos)
 	if !ok || fitsBundle(held, b) {
+		return false
+	}
+	// One click sends several use events; only the first opens a form.
+	if !s.debounced(p) {
+		s.showPlateForm(p, tx, at, side)
+	}
+	return true
+}
+
+var _ block.Activatable = ConduitBundle{}
+
+// Activate opens the settings of a conduit that has a connector plate: of the
+// clicked side, or the next side with one. A held conduit that goes into the
+// bundle and a sneaking player place blocks instead. Being Activatable also
+// tells the client not to predict placing the held block on a bundle.
+func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
+	p, ok := u.(*player.Player)
+	s, ok2 := activeGame.sessionOf(tx.World())
+	if !ok || !ok2 || p.Sneaking() {
+		return false
+	}
+	held, _ := p.HeldItems()
+	if fitsBundle(held, b) {
 		return false
 	}
 	if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {

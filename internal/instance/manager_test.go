@@ -394,6 +394,32 @@ func TestLockStateRefusedWhileEntering(t *testing.T) {
 	waitEntered(t, f.m, acc)
 }
 
+func TestNotInLobbyWhileEntering(t *testing.T) {
+	f := setup(t)
+	unblock, _ := blockClose(t, f)
+	host := f.spawn(t, "host")
+	acc := host.UUID().String()
+	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	f.enter(t, host, save.ID)
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	if !f.m.InLobby(acc) {
+		t.Fatal("not in the lobby after leaving the save")
+	}
+	in(t, host, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); err != nil {
+			t.Fatal(err)
+		}
+	})
+	if f.m.InLobby(acc) {
+		t.Fatal("in the lobby while entering the save")
+	}
+	unblock()
+	waitEntered(t, f.m, acc)
+	if f.m.InLobby(acc) {
+		t.Fatal("in the lobby inside the save")
+	}
+}
+
 func TestKeepLoadedOutsideRadius(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
