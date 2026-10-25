@@ -58,11 +58,7 @@ func TestQuitRestoresPosition(t *testing.T) {
 	}
 	save, _ := f.d.CreateSave(id.String(), "test", 1, "s")
 	h := join()
-	in(t, h, func(p *player.Player) {
-		if err := f.m.Enter(p, save.ID); err != nil {
-			t.Fatal(err)
-		}
-	})
+	f.enter(t, h, save.ID)
 	in(t, h, func(p *player.Player) {
 		p.Teleport(mgl64.Vec3{0.5, 64, 0.5}) // on the stone Init placed
 		_ = p.Close()                        // like a disconnect: HandleQuit stores the state
@@ -71,11 +67,7 @@ func TestQuitRestoresPosition(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	h = join()
-	in(t, h, func(p *player.Player) {
-		if err := f.m.Enter(p, save.ID); err != nil {
-			t.Fatal(err)
-		}
-	})
+	f.enter(t, h, save.ID)
 	in(t, h, func(p *player.Player) {
 		if pos := p.Position(); pos != (mgl64.Vec3{0.5, 64, 0.5}) {
 			t.Fatalf("position after rejoin = %v", pos)

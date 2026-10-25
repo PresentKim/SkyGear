@@ -83,11 +83,30 @@ func (s *session) updateLook(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 		return
 	}
 	at, b, ok := lookedAt(p, tx, pos, rot)
+	s.showLook(p, tx, at, b, ok)
+}
+
+// showLook shows p the panel of block b at pos it looks at (ok), or clears
+// it.
+func (s *session) showLook(p *player.Player, tx *world.Tx, at cube.Pos, b world.Block, ok bool) {
 	if !ok {
 		waila.Clear(p)
 		return
 	}
 	waila.Show(p, s.lookInfo(p, tx, at, b))
+}
+
+// updateLookAt is updateLook with force for block b at pos p looks at (ok).
+func (s *session) updateLookAt(p *player.Player, tx *world.Tx, at cube.Pos, b world.Block, ok bool) {
+	if s.lastLook == nil {
+		s.lastLook = map[*world.EntityHandle]time.Time{}
+	}
+	s.lastLook[p.H()] = time.Now()
+	if _, expanding := s.expansionOf(p); expanding {
+		waila.Clear(p)
+		return
+	}
+	s.showLook(p, tx, at, b, ok)
 }
 
 // Fast updates every player's panel (instance.FastTicker, every 0.2
@@ -114,8 +133,9 @@ var _ instance.FastTicker = (*session)(nil)
 func (s *session) updateLooks(tx *world.Tx) {
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
-		if at, _, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+		at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation())
+		s.updateLookAt(p, tx, at, b, ok)
+		if ok {
 			s.showVeinOutline(p, tx, at)
 		} else {
 			s.hideVeinOutline(p)

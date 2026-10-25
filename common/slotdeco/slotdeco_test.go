@@ -2,6 +2,7 @@ package slotdeco
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,6 +36,68 @@ func TestDecorateStripOf(t *testing.T) {
 			if i != j && contains(a, b) {
 				t.Errorf("mark %q contains mark %q", a, b)
 			}
+		}
+	}
+}
+
+func referenceTierMark(tier int) string {
+	return fmt.Sprintf("§k§l§r§%d§r", tier)
+}
+
+func referenceStrip(s string) string {
+	for t := 1; t <= MaxFront; t++ {
+		s = strings.ReplaceAll(s, referenceTierMark(t), "")
+	}
+	for _, m := range rarityMarks[1:] {
+		s = strings.ReplaceAll(s, m, "")
+	}
+	return s
+}
+
+func referenceOf(s string) (Rarity, int) {
+	var r Rarity
+	for i := Uncommon; i <= Legendary; i++ {
+		if strings.Contains(s, i.Mark()) {
+			r = i
+		}
+	}
+	tier := 0
+	for t := 1; t <= MaxFront; t++ {
+		if strings.Contains(s, referenceTierMark(t)) {
+			tier = t
+		}
+	}
+	return r, tier
+}
+
+func TestStripOfMatchSequentialReplace(t *testing.T) {
+	for tier := 1; tier <= MaxFront; tier++ {
+		if TierMark(tier) != referenceTierMark(tier) {
+			t.Errorf("TierMark(%d) = %q", tier, TierMark(tier))
+		}
+		if !strings.Contains(TierMark(tier), markPrefix) {
+			t.Errorf("TierMark(%d) lacks %q", tier, markPrefix)
+		}
+	}
+	for _, m := range rarityMarks[1:] {
+		if !strings.Contains(m, markPrefix) {
+			t.Errorf("rarity mark %q lacks %q", m, markPrefix)
+		}
+	}
+	inputs := []string{"", "plain", "§aGreen§r", "§l§r§3§r", "§k", "§kraw", "a§k§r§ab" + TierMark(2) + "§k§r§6x" + TierMark(BadgeLock)}
+	for r := Common; r <= Legendary; r++ {
+		for tier := 0; tier <= MaxFront; tier++ {
+			inputs = append(inputs, Decorate(r, tier, "name"), "§k§l§r"+Decorate(r, tier, "§k§r§a")+"§r")
+		}
+	}
+	for _, s := range inputs {
+		if got, want := Strip(s), referenceStrip(s); got != want {
+			t.Errorf("Strip(%q) = %q, want %q", s, got, want)
+		}
+		gr, gt := Of(s)
+		wr, wt := referenceOf(s)
+		if gr != wr || gt != wt {
+			t.Errorf("Of(%q) = %v, %v, want %v, %v", s, gr, gt, wr, wt)
 		}
 	}
 }

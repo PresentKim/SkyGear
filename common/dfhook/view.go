@@ -40,7 +40,9 @@ func init() {
 	OnClientPacket(func(c *Conn, pk packet.Packet) bool {
 		if in, ok := pk.(*packet.PlayerAuthInput); ok {
 			v := mgl64.Vec2{float64(in.RawMoveVector[0]), float64(in.RawMoveVector[1])}
-			c.moveInput.Store(&v)
+			if last := c.moveInput.Load(); last == nil || *last != v {
+				c.moveInput.Store(&v)
+			}
 		}
 		return false
 	})

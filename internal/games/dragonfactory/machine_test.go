@@ -35,6 +35,19 @@ func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineStat
 	return m.st
 }
 
+func TestMachineIDsDistinct(t *testing.T) {
+	seen := map[machineID]string{}
+	for kind, k := range machineKinds {
+		if k.id == 0 {
+			t.Errorf("%s has no id", kind)
+		}
+		if other, ok := seen[k.id]; ok {
+			t.Errorf("%s and %s share id %d", kind, other, k.id)
+		}
+		seen[k.id] = kind
+	}
+}
+
 func TestCrusher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)

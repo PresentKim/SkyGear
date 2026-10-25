@@ -66,11 +66,11 @@ func (s *session) showCodexTab(p *player.Player, t codexTab) {
 	case codexSieveTab:
 		s.showCodexSieve(p)
 	case codexProcessTab:
-		s.showCodexProcess(p, 0)
+		s.showCodexProcess(p)
 	case codexMobsTab:
-		s.showCodexMobs(p, 0)
+		s.showCodexMobs(p)
 	case codexPlantsTab:
-		s.showCodexPlants(p, 0)
+		s.showCodexPlants(p)
 	default:
 		s.showCodexSearch(p, "", 0)
 	}

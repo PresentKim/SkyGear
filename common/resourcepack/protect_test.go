@@ -3,8 +3,11 @@ package resourcepack
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -117,6 +120,113 @@ func TestEncryptedPackDecrypts(t *testing.T) {
 	}
 	if m, err := p1.ReadFile("manifest.json"); err != nil || !bytes.Contains(m, []byte("header")) {
 		t.Error("manifest.json must stay readable")
+	}
+}
+
+func referenceEncryptDir(dir, packUUID string, secret []byte) (string, error) {
+	var entries []contentEntry
+	err := filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, _ := filepath.Rel(dir, p)
+		rel = filepath.ToSlash(rel)
+		if rel == "manifest.json" || rel == "pack_icon.png" {
+			entries = append(entries, contentEntry{Path: rel})
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		key := deriveKey(secret, "file\x00"+rel)
+		if err := cfb8(b, key, false); err != nil {
+			return err
+		}
+		entries = append(entries, contentEntry{Path: rel, Key: string(key)})
+		return os.WriteFile(p, b, 0o644)
+	})
+	if err != nil {
+		return "", err
+	}
+	list, err := json.Marshal(struct {
+		Version int            `json:"version"`
+		Content []contentEntry `json:"content"`
+	}{1, entries})
+	if err != nil {
+		return "", err
+	}
+	master := deriveKey(secret, "master\x00"+packUUID)
+	if err := cfb8(list, master, false); err != nil {
+		return "", err
+	}
+	var head bytes.Buffer
+	head.Write(make([]byte, 4))
+	head.WriteString("\xfc\xb9\xcf\x9b")
+	head.Write(make([]byte, 8))
+	head.WriteByte(byte(len(packUUID)))
+	head.WriteString(packUUID)
+	head.Write(make([]byte, 256-head.Len()))
+	head.Write(list)
+	if err := os.WriteFile(filepath.Join(dir, "contents.json"), head.Bytes(), 0o644); err != nil {
+		return "", err
+	}
+	return string(master), nil
+}
+
+func readTree(t *testing.T, dir string) map[string]string {
+	t.Helper()
+	out := map[string]string{}
+	err := filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		b, err := os.ReadFile(p)
+		rel, _ := filepath.Rel(dir, p)
+		out[filepath.ToSlash(rel)] = string(b)
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
+}
+
+func TestEncryptDirMatchesSequential(t *testing.T) {
+	parallel, sequential := t.TempDir(), t.TempDir()
+	files := map[string]string{"manifest.json": manifest, "pack_icon.png": "icon"}
+	for i := range 40 {
+		files[fmt.Sprintf("d%d/f%02d.json", i%5, i)] = strings.Repeat(fmt.Sprintf("file %d ", i), i+1)
+	}
+	for _, dir := range []string{parallel, sequential} {
+		for name, s := range files {
+			_ = os.MkdirAll(filepath.Dir(filepath.Join(dir, name)), 0o755)
+			if err := os.WriteFile(filepath.Join(dir, name), []byte(s), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	secret := []byte("0123456789abcdef0123456789abcdef")
+	const id = "6f0c1c7e-1d2a-4f4b-9a3e-2b8d6f5a4c3e"
+	gotKey, err := encryptDir(parallel, id, secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantKey, err := referenceEncryptDir(sequential, id, secret)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotKey != wantKey {
+		t.Errorf("content key %q, want %q", gotKey, wantKey)
+	}
+	got, want := readTree(t, parallel), readTree(t, sequential)
+	if len(got) != len(want) {
+		t.Fatalf("%d files, want %d", len(got), len(want))
+	}
+	for name, w := range want {
+		if got[name] != w {
+			t.Errorf("%s differs", name)
+		}
 	}
 }
 

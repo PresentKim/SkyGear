@@ -49,8 +49,29 @@ var advTabRoots = map[string]advTab{
 	"magic_seed": advTabGarden, "dye": advTabGarden,
 }
 
+// advTabs are the categories of advancementTree by index, and advTabLists
+// the advancements of each category in tree order.
+var advTabs, advTabLists = func() ([]advTab, [advTabCount][]*Advancement) {
+	tabs := make([]advTab, len(advancementTree))
+	var lists [advTabCount][]*Advancement
+	for i := range advancementTree {
+		a := &advancementTree[i]
+		tabs[i] = advTabFind(a)
+		lists[tabs[i]] = append(lists[tabs[i]], a)
+	}
+	return tabs, lists
+}()
+
 // advTabOf is the category of an advancement.
 func advTabOf(a *Advancement) advTab {
+	if i, ok := advancementIndex[a.ID]; ok && &advancementTree[i] == a {
+		return advTabs[i]
+	}
+	return advTabFind(a)
+}
+
+// advTabFind works out the category of an advancement from its parents.
+func advTabFind(a *Advancement) advTab {
 	for cur, ok := a, true; ok; cur, ok = advancementByID(cur.Parent) {
 		if t, found := advTabRoots[cur.ID]; found {
 			return t
@@ -381,15 +402,10 @@ func (s *session) questPanel(p *player.Player, tab advTab, a *Advancement) *ui.Q
 	return pn
 }
 
-// advancementsIn lists a category in tree order.
+// advancementsIn lists a category in tree order. The list is shared: callers
+// only read it.
 func advancementsIn(tab advTab) []*Advancement {
-	var out []*Advancement
-	for i := range advancementTree {
-		if a := &advancementTree[i]; advTabOf(a) == tab {
-			out = append(out, a)
-		}
-	}
-	return out
+	return advTabLists[tab]
 }
 
 // advTabIcon is the icon of a tab.

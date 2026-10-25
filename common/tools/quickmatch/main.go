@@ -30,31 +30,32 @@ func main() {
 			name + "@df_quick_match.container_id": map[string]any{"collection_index": k},
 		})
 		bindings = append(bindings, map[string]any{
-			"binding_type":         "view",
-			"source_control_name":  name,
-			"source_property_name": "#item_id_aux",
-			"target_property_name": fmt.Sprintf("#c%d", k),
+			"binding_type":          "view",
+			"source_control_name":   name,
+			"resolve_sibling_scope": true,
+			"source_property_name":  "#item_id_aux",
+			"target_property_name":  fmt.Sprintf("#c%d", k),
 		})
-		terms = append(terms, fmt.Sprintf("(#ia = #c%d)", k))
+		terms = append(terms, fmt.Sprintf("#c%d", k))
 	}
-	moveBindings := append([]any{
-		map[string]any{"binding_type": "collection_details", "binding_collection_name": "$moves_collection"},
-		map[string]any{
-			"binding_name":            "#item_id_aux",
-			"binding_name_override":   "#ia",
-			"binding_type":            "collection",
-			"binding_collection_name": "$moves_collection",
-		},
-	}, bindings...)
-	moveBindings = append(moveBindings, map[string]any{
+	bindings = append(bindings, map[string]any{
 		"binding_type":         "view",
-		"source_property_name": "(" + strings.Join(terms, " or ") + ")",
-		"target_property_name": "#visible",
+		"source_property_name": "('|' + " + strings.Join(terms, " + '|' + ") + " + '|')",
+		"target_property_name": "#held",
+	})
+	ids = append(ids, map[string]any{
+		"df_quick_held": map[string]any{
+			"type":     "panel",
+			"size":     []int{0, 0},
+			"bindings": bindings,
+		},
 	})
 	doc := map[string]any{
 		"namespace": "df_quick_match",
-		// The item of each container slot, named so the slot moves below can
-		// read it (source_control_name searches the screen from its root).
+		// The item of each container slot, and df_quick_held joining them
+		// once as "|id|id|...|" for the slot moves below to search. A
+		// source_control_name lookup walks the screen from its root, so each
+		// slot move reads the one joined value instead of every slot.
 		"container_ids": map[string]any{
 			"type":            "stack_panel",
 			"size":            []int{0, 0},
@@ -79,7 +80,26 @@ func main() {
 			"always_listen_to_input":   true,
 			"consume_hover_events":     false,
 			"default_focus_precedence": -2,
-			"bindings":                 moveBindings,
+			"bindings": []any{
+				map[string]any{"binding_type": "collection_details", "binding_collection_name": "$moves_collection"},
+				map[string]any{
+					"binding_name":            "#item_id_aux",
+					"binding_name_override":   "#ia",
+					"binding_type":            "collection",
+					"binding_collection_name": "$moves_collection",
+				},
+				map[string]any{
+					"binding_type":         "view",
+					"source_control_name":  "df_quick_held",
+					"source_property_name": "#held",
+					"target_property_name": "#held",
+				},
+				map[string]any{
+					"binding_type":         "view",
+					"source_property_name": "(not ((#held - ('|' + #ia + '|')) = #held))",
+					"target_property_name": "#visible",
+				},
+			},
 			"button_mappings": []any{
 				map[string]any{"from_button_id": "button.menu_select", "to_button_id": "button.container_auto_place", "mapping_type": "pressed", "consume_event": false},
 				map[string]any{"from_button_id": "button.menu_ok", "to_button_id": "button.container_auto_place", "mapping_type": "focused", "consume_event": false},

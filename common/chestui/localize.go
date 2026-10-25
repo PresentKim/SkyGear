@@ -29,14 +29,13 @@ func localizeWindow(c *dfhook.Conn, pk packet.Packet) {
 	switch pk := pk.(type) {
 	case *packet.InventoryContent:
 		if w := openWindowOf(c, pk.WindowID); w != nil {
-			lang := connLang(c)
 			for slot := range pk.Content {
-				localizeSlot(lang, w, slot, &pk.Content[slot].Stack)
+				localizeSlot(w.cl.lang, w, slot, &pk.Content[slot].Stack)
 			}
 		}
 	case *packet.InventorySlot:
 		if w := openWindowOf(c, pk.WindowID); w != nil {
-			localizeSlot(connLang(c), w, int(pk.Slot), &pk.NewItem.Stack)
+			localizeSlot(w.cl.lang, w, int(pk.Slot), &pk.NewItem.Stack)
 		}
 	}
 }

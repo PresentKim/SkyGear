@@ -4,6 +4,8 @@ import (
 	"errors"
 	"log/slog"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -66,6 +68,7 @@ func setup(t *testing.T) fixture {
 	}, Lobby{World: lobby, Spawn: mgl64.Vec3{0, 100, 0}, Arrive: func(p *player.Player) {
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Compass{}, 1))
 	}})
+	t.Cleanup(m.CloseAll)
 	g := &testGame{}
 	m.Register(g)
 	return fixture{m: m, d: d, lobby: lobby, game: g}
@@ -98,6 +101,27 @@ func in(t *testing.T, h *world.EntityHandle, f func(p *player.Player)) {
 	}
 }
 
+func (f fixture) enter(t *testing.T, h *world.EntityHandle, saveID int64) {
+	t.Helper()
+	in(t, h, func(p *player.Player) {
+		if err := f.m.Enter(p, saveID); err != nil {
+			t.Fatal(err)
+		}
+	})
+	waitEntered(t, f.m, h.UUID().String())
+}
+
+func waitEntered(t *testing.T, m *Manager, acc string) {
+	t.Helper()
+	for range 100 {
+		if m.Location(acc) != nil {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatal("player did not enter")
+}
+
 func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
@@ -115,6 +139,7 @@ func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+	waitEntered(t, f.m, acc)
 	in(t, host, func(p *player.Player) {
 		if p.Tx().World() == f.lobby {
 			t.Fatal("player still in lobby")
@@ -126,6 +151,7 @@ func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 			t.Error("first-join item missing")
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Apple{}, 5))
+		p.Tx().SetBlock(cube.Pos{3, 63, 3}, block.Stone{}, nil)
 		p.Teleport(mgl64.Vec3{3.5, 64, 3.5})
 		f.m.ToLobby(p)
 	})
@@ -142,16 +168,11 @@ func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 		t.Fatalf("session closed %d times, want 1", f.game.closes)
 	}
 
-	in(t, host, func(p *player.Player) {
-		if err := f.m.Enter(p, save.ID); err != nil {
-			t.Fatal(err)
-		}
-	})
+	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) {
 		if !p.Inventory().ContainsItem(item.NewStack(item.Apple{}, 5)) {
 			t.Error("instance inventory not restored")
 		}
-		// Only x/z: there is no block under (3, 63, 3), so the player starts falling.
 		if pos := p.Position(); pos.X() != 3.5 || pos.Z() != 3.5 {
 			t.Errorf("position not restored: %v", p.Position())
 		}
@@ -186,7 +207,7 @@ func TestGuestNeedsHost(t *testing.T) {
 			t.Fatalf("guest without host err = %v", err)
 		}
 	})
-	in(t, host, func(p *player.Player) { _ = f.m.Enter(p, save.ID) })
+	f.enter(t, host, save.ID)
 	in(t, guest, func(p *player.Player) {
 		if err := f.m.Enter(p, save.ID); err != nil {
 			t.Fatalf("guest with host err = %v", err)
@@ -201,6 +222,32 @@ func TestGuestNeedsHost(t *testing.T) {
 	})
 	if _, blob, err := f.d.PlayerState(save.ID, guest.UUID().String()); err != nil || blob == nil {
 		t.Fatalf("guest state not stored: %v", err)
+	}
+}
+
+func TestEnterWhileClosing(t *testing.T) {
+	f := setup(t)
+	unblock, _ := blockClose(t, f)
+	host, guest := f.spawn(t, "host"), f.spawn(t, "guest")
+	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	if err := addGuest(f.d, save.ID, guest.UUID().String()); err != nil {
+		t.Fatal(err)
+	}
+	f.enter(t, host, save.ID)
+	old := f.m.Active(save.ID)
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	in(t, guest, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); !errors.Is(err, ErrHostOffline) {
+			t.Fatalf("guest into closing instance err = %v", err)
+		}
+	})
+	if f.m.Active(save.ID) != old {
+		t.Fatal("closing instance left before AfterClose")
+	}
+	time.AfterFunc(200*time.Millisecond, unblock)
+	f.enter(t, host, save.ID)
+	if inst := f.m.Active(save.ID); inst == nil || inst == old {
+		t.Fatal("save not reopened after close")
 	}
 }
 
@@ -220,7 +267,7 @@ func TestClockStoredOnDeactivate(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
 	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
-	in(t, host, func(p *player.Player) { _ = f.m.Enter(p, save.ID) })
+	f.enter(t, host, save.ID)
 	time.Sleep(1500 * time.Millisecond)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	waitInactive(t, f.m, save.ID)
@@ -248,11 +295,7 @@ func TestLockStateBlocksEnter(t *testing.T) {
 		}
 	})
 	unlock()
-	in(t, host, func(p *player.Player) {
-		if err := f.m.Enter(p, save.ID); err != nil {
-			t.Fatal(err)
-		}
-	})
+	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) {
 		if _, ok := f.m.LockState(save.ID, acc); ok {
 			t.Fatal("locked the stored state of a player inside the save")
@@ -261,11 +304,101 @@ func TestLockStateBlocksEnter(t *testing.T) {
 	f.m.CloseAll()
 }
 
+func blockClose(t *testing.T, f fixture) (unblock func(), closed *atomic.Int32) {
+	release := make(chan struct{})
+	var once sync.Once
+	unblock = func() { once.Do(func() { close(release) }) }
+	t.Cleanup(unblock)
+	closed = &atomic.Int32{}
+	f.m.conf.AfterClose = func(int64, string) {
+		<-release
+		closed.Add(1)
+	}
+	return unblock, closed
+}
+
+func TestEnterTwiceWhileActivating(t *testing.T) {
+	f := setup(t)
+	unblock, _ := blockClose(t, f)
+	var entered atomic.Int32
+	f.m.lobby.Entered = func(*player.Player) { entered.Add(1) }
+	host := f.spawn(t, "host")
+	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	f.enter(t, host, save.ID)
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	in(t, host, func(p *player.Player) {
+		for range 2 {
+			if err := f.m.Enter(p, save.ID); err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
+	unblock()
+	waitEntered(t, f.m, host.UUID().String())
+	time.Sleep(200 * time.Millisecond)
+	if n := entered.Load(); n != 2 {
+		t.Fatalf("entered %d times, want 2", n)
+	}
+	if f.m.ActiveCount() != 1 {
+		t.Fatalf("active = %d", f.m.ActiveCount())
+	}
+}
+
+func TestHostQuitWhileActivating(t *testing.T) {
+	f := setup(t)
+	unblock, closed := blockClose(t, f)
+	host := f.spawn(t, "host")
+	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	f.enter(t, host, save.ID)
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	in(t, host, func(p *player.Player) {
+		if err := f.m.Enter(p, save.ID); err != nil {
+			t.Fatal(err)
+		}
+		_ = p.Close()
+	})
+	unblock()
+	for range 100 {
+		if closed.Load() == 2 && f.m.Active(save.ID) == nil {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatalf("closed %d times, active %v", closed.Load(), f.m.Active(save.ID) != nil)
+}
+
+func TestLockStateRefusedWhileEntering(t *testing.T) {
+	f := setup(t)
+	unblock, _ := blockClose(t, f)
+	host := f.spawn(t, "host")
+	acc := host.UUID().String()
+	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	f.enter(t, host, save.ID)
+	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
+	time.Sleep(100 * time.Millisecond)
+	entered := make(chan error, 1)
+	host.Do(func(_ *world.Tx, e world.Entity) { entered <- f.m.Enter(e.(*player.Player), save.ID) })
+	time.Sleep(100 * time.Millisecond)
+	if _, ok := f.m.LockState(save.ID, acc); ok {
+		t.Fatal("locked the state of a player entering the save")
+	}
+	unblock()
+	select {
+	case err := <-entered:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("enter did not finish")
+	}
+	waitEntered(t, f.m, acc)
+}
+
 func TestKeepLoadedOutsideRadius(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
 	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
-	in(t, host, func(p *player.Player) { _ = f.m.Enter(p, save.ID) })
+	f.enter(t, host, save.ID)
 	inst := f.m.Active(save.ID)
 	if inst == nil {
 		t.Fatal("not active")
@@ -292,11 +425,7 @@ func TestTimedItemsExpireInInstance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	in(t, host, func(p *player.Player) {
-		if err := f.m.Enter(p, save.ID); err != nil {
-			t.Fatal(err)
-		}
-	})
+	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) {
 		_, _ = p.Inventory().AddItem(timed.For(item.NewStack(item.Apple{}, 3), time.Second))
 		_, _ = p.Inventory().AddItem(timed.For(item.NewStack(item.Bread{}, 1), time.Hour))

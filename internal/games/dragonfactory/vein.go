@@ -58,10 +58,14 @@ func veinBlocks(tx *world.Tx, start cube.Pos, limit int, diagonal bool, canBuild
 	if _, crushable := hammerDrop(b); !ok || !crushable {
 		return nil
 	}
-	key := itemKey(it)
+	name, meta := it.EncodeItem()
 	same := func(pos cube.Pos) bool {
 		other, ok := tx.Block(pos).(world.Item)
-		return ok && itemKey(other) == key && canBuild(pos)
+		if !ok {
+			return false
+		}
+		otherName, otherMeta := other.EncodeItem()
+		return otherName == name && otherMeta == meta && canBuild(pos)
 	}
 	out := []cube.Pos{start}
 	seen := map[cube.Pos]bool{start: true}

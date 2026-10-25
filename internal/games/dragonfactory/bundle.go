@@ -20,13 +20,6 @@ import (
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
-// fluidRates are the mB a fluid conduit of a tier moves a tick: EnderIO's
-// fluid conduits (200, 1000 and 8000; it moves them every 5 ticks in portions of
-// five times that).
-var fluidRates = [...]int{0, 200, 1000, 8000}
-
-func fluidRate(tier int) int { return fluidRates[max(1, min(tier, conduitTiers))] }
-
 // Conduit bundles (docs/design/06-power-and-conduits.md §3.4): the block every
 // conduit is placed as. It holds at most one conduit of each kind (energy, item,
 // fluid; each of a tier, 0 for none), so a cable run can carry all, as in
@@ -165,20 +158,6 @@ func joinsEnergy(b world.Block) bool {
 	return src != nil || snk != nil
 }
 
-// joinsItem reports whether the item conduit connects to the block other at
-// at, on its side f: another item conduit, or a block that holds items, unless
-// that side is off.
-func (b ConduitBundle) joinsItem(tx *world.Tx, f cube.Face, at cube.Pos, other world.Block) bool {
-	if _, ok := itemnet.IsConduit(other); ok {
-		return true
-	}
-	if b.Modes[f] == itemnet.Off {
-		return false
-	}
-	in, ex := itemio.IO(tx, at)
-	return in != nil || ex != nil
-}
-
 // joinsFluid reports whether the fluid conduit connects to b: another fluid
 // conduit, or a block that holds fluid (so far the barrel).
 func joinsFluid(b world.Block) bool {
@@ -192,29 +171,67 @@ func joinsFluid(b world.Block) bool {
 	return false
 }
 
+// bundleSide is a neighbour of a bundle, in the order of conduitFaces.
+// holdsItems is only looked up for a bundle with an item conduit and a block
+// that is not an item conduit.
+type bundleSide struct {
+	block      world.Block
+	holdsItems bool
+}
+
+// sides reads the six neighbours of the bundle at pos.
+func (b ConduitBundle) sides(tx *world.Tx, pos cube.Pos) (out [6]bundleSide) {
+	for i, f := range conduitFaces {
+		at := pos.Side(f)
+		out[i].block = tx.Block(at)
+		if b.Item == 0 {
+			continue
+		}
+		if _, isConduit := itemnet.IsConduit(out[i].block); !isConduit {
+			in, ex := itemio.IO(tx, at)
+			out[i].holdsItems = in != nil || ex != nil
+		}
+	}
+	return out
+}
+
 // connections returns the sides the energy, item and fluid conduit connect to.
 func (b ConduitBundle) connections(tx *world.Tx, pos cube.Pos) (e, i, f int) {
-	if b.Energy > 0 {
-		e = connectionsOf(tx, pos, func(_ cube.Face, _ cube.Pos, other world.Block) bool { return joinsEnergy(other) })
-	}
-	if b.Item > 0 {
-		i = connectionsOf(tx, pos, func(f cube.Face, at cube.Pos, other world.Block) bool { return b.joinsItem(tx, f, at, other) })
-	}
-	if b.Fluid > 0 {
-		f = connectionsOf(tx, pos, func(_ cube.Face, _ cube.Pos, other world.Block) bool { return joinsFluid(other) })
+	return b.connectionsFrom(b.sides(tx, pos))
+}
+
+// connectionsFrom returns the sides the energy conduit (another energy conduit
+// or a block that gives or takes energy), the item conduit (another item
+// conduit, or a block that holds items unless that side is off) and the fluid
+// conduit connect to.
+func (b ConduitBundle) connectionsFrom(sides [6]bundleSide) (e, i, f int) {
+	for side, s := range sides {
+		bit := 1 << side
+		if b.Energy > 0 && joinsEnergy(s.block) {
+			e |= bit
+		}
+		if b.Item > 0 {
+			if _, ok := itemnet.IsConduit(s.block); ok || (b.Modes[conduitFaces[side]] != itemnet.Off && s.holdsItems) {
+				i |= bit
+			}
+		}
+		if b.Fluid > 0 && joinsFluid(s.block) {
+			f |= bit
+		}
 	}
 	return e, i, f
 }
 
 // refresh sets the block to show the sides it connects to, and shows it.
 func (b ConduitBundle) refresh(pos cube.Pos, tx *world.Tx) {
-	e, i, f := b.connections(tx, pos)
+	sides := b.sides(tx, pos)
+	e, i, f := b.connectionsFrom(sides)
 	if e != b.EConn || i != b.IConn || f != b.FConn {
 		b.EConn, b.IConn, b.FConn = e, i, f
 		tx.SetBlock(pos, b, nil)
 	}
 	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		s.showConduit(tx, pos, b)
+		s.showConduitWith(tx, pos, b, b.plugsFrom(pos, sides))
 	}
 }
 
@@ -261,7 +278,7 @@ func bundleLines(lang string, tx *world.Tx, pos cube.Pos, b ConduitBundle) []str
 			" §7"+fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
 	}
 	if b.Fluid > 0 {
-		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidRate(b.Fluid)))
+		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidnet.RateOf(b.Fluid)))
 	}
 	return lines
 }

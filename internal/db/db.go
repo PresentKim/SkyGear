@@ -15,13 +15,22 @@ import (
 var ErrNotFound = errors.New("db: not found")
 
 // DB is the platform database.
-type DB struct{ sql *sql.DB }
+type DB struct {
+	sql  *sql.DB
+	path string
+}
+
+const memoryPath = ":memory:"
+
+func fileDSN(path string) string {
+	return "file:" + path + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
+}
 
 // Open opens (and migrates) the database at path. ":memory:" opens a
 // private in-memory database, useful for tests.
 func Open(path string) (*DB, error) {
-	dsn := "file:" + path + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
-	if path == ":memory:" {
+	dsn := fileDSN(path)
+	if path == memoryPath {
 		dsn = "file::memory:?_pragma=foreign_keys(1)"
 	}
 	s, err := sql.Open("sqlite", dsn)
@@ -30,7 +39,7 @@ func Open(path string) (*DB, error) {
 	}
 	// SQLite allows one writer; a single connection also keeps :memory: shared.
 	s.SetMaxOpenConns(1)
-	d := &DB{sql: s}
+	d := &DB{sql: s, path: path}
 	if err := d.migrate(); err != nil {
 		_ = s.Close()
 		return nil, err
@@ -181,9 +190,19 @@ func notFound(err error) error {
 }
 
 // Backup writes a consistent copy of the database to path (which must not
-// exist yet) while the database stays in use.
+// exist yet) while the database stays in use. A file database is copied
+// over its own connection, so other queries do not wait for the copy.
 func (d *DB) Backup(path string) error {
-	if _, err := d.sql.Exec(`VACUUM INTO ?`, path); err != nil {
+	s := d.sql
+	if d.path != memoryPath {
+		var err error
+		if s, err = sql.Open("sqlite", fileDSN(d.path)); err != nil {
+			return fmt.Errorf("backup db: %w", err)
+		}
+		defer s.Close()
+		s.SetMaxOpenConns(1)
+	}
+	if _, err := s.Exec(`VACUUM INTO ?`, path); err != nil {
 		return fmt.Errorf("backup db: %w", err)
 	}
 	return nil

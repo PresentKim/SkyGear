@@ -145,29 +145,28 @@ func TestCodexCraftCard(t *testing.T) {
 	}
 }
 
-// TestCodexBoardPages: no page is longer than its budget unless one card is,
-// and a page starts with the header of its machine.
-func TestCodexBoardPages(t *testing.T) {
+// TestCodexBoard: every card is on one board that starts with the header of
+// its machine.
+func TestCodexBoard(t *testing.T) {
 	s := testSession(t)
 	cards := s.codexMobCards(i18n.Default)
-	pages := s.codexBoardPages(i18n.Default, cards, codexBoardRows)
-	if len(pages) < 2 {
-		t.Fatalf("%d pages for %d cards", len(pages), len(cards))
+	rows := s.codexBoard(i18n.Default, cards)
+	cardRows := 0
+	for _, b := range codexBlocks(cards) {
+		cardRows += len(b.rows)
 	}
-	for i, pg := range pages {
-		if len(pg) > codexBoardRows {
-			t.Errorf("page %d has %d rows", i, len(pg))
+	if len(rows) < cardRows {
+		t.Fatalf("%d rows for %d card rows", len(rows), cardRows)
+	}
+	first := rows[0][0]
+	for _, c := range rows[0] {
+		if !c.IsBlank() {
+			first = c
+			break
 		}
-		first := pg[0][0]
-		for _, c := range pg[0] {
-			if !c.IsBlank() {
-				first = c
-				break
-			}
-		}
-		if !first.IsHeader() {
-			t.Errorf("page %d does not start with a header", i)
-		}
+	}
+	if !first.IsHeader() {
+		t.Error("board does not start with a header")
 	}
 }
 

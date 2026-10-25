@@ -109,24 +109,31 @@ func rawOf(metal string) world.Item {
 	return RawOre{Metal: metal}
 }
 
-// oreBlockMetal is the metal of an ore block.
-func oreBlockMetal(it world.Item) (string, bool) {
+// oreBlockMetals and rawMetals are the metals of the ore blocks and raw ores,
+// by itemKey.
+var oreBlockMetals, rawMetals = func() (blocks, raws map[string]string) {
+	blocks, raws = map[string]string{}, map[string]string{}
 	for _, k := range oreKinds {
-		if itemKey(k.block) == itemKey(it) {
-			return k.ore, true
+		if key := itemKey(k.block); blocks[key] == "" {
+			blocks[key] = k.ore
+		}
+		if key := itemKey(rawOf(k.ore)); raws[key] == "" {
+			raws[key] = k.ore
 		}
 	}
-	return "", false
+	return blocks, raws
+}()
+
+// oreBlockMetal is the metal of an ore block.
+func oreBlockMetal(it world.Item) (string, bool) {
+	metal, ok := oreBlockMetals[itemKey(it)]
+	return metal, ok
 }
 
 // rawMetal is the metal of a raw ore.
 func rawMetal(it world.Item) (string, bool) {
-	for _, k := range oreKinds {
-		if itemKey(rawOf(k.ore)) == itemKey(it) {
-			return k.ore, true
-		}
-	}
-	return "", false
+	metal, ok := rawMetals[itemKey(it)]
+	return metal, ok
 }
 
 // oreBlocks are the ore blocks of every metal.

@@ -1,6 +1,7 @@
 package chestui
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -78,5 +79,16 @@ func TestAddIdentifier(t *testing.T) {
 	}
 	if len(out.IDList) != 2 || out.IDList[0].ID != "minecraft:pig" || out.IDList[1].ID != EntityIdentifier {
 		t.Fatalf("idlist %+v", out.IDList)
+	}
+	first := addIdentifier(in)
+	if again := addIdentifier(bytes.Clone(in)); &again[0] != &first[0] {
+		t.Fatal("same input encoded again")
+	}
+	cow, _ := nbt.Marshal(map[string]any{"idlist": []any{map[string]any{"id": "minecraft:cow"}}})
+	if bytes.Equal(addIdentifier(cow), first) {
+		t.Fatal("other input given the cached output")
+	}
+	if got := addIdentifier([]byte{}); len(got) != 0 {
+		t.Fatalf("bad input became %v", got)
 	}
 }

@@ -8,7 +8,7 @@
 |---|---|
 | `account.Register` / `account.Grant` | 업적을 등록하고 계정에 한 번만 준다. 준 업적은 메모리에 캐시해(`granted`) 같은 업적을 또 줄 때 DB를 부르지 않는다. 새로 얻으면 메시지·소리, 칭호가 있으면 칭호 안내 |
 | `account.RegisterCounter` / `account.Count` | 키마다 단계(`Tier{Need, ID}`)를 두고, 횟수가 단계를 넘는 순간 그 업적을 준다. 등록되지 않은 키는 무시한다 |
-| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. `Count` 가 마지막 저장에서 20초가 지났을 때, 접속을 떠날 때(`Forget`), 서버를 끌 때(`main.go`) 부른다. DB에 없는 계정의 횟수는 버린다 |
+| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. `Count` 가 마지막 저장에서 20초가 지났을 때 따로 돌리고, 서버를 끌 때(`main.go`) 부른다. 접속을 떠날 때는 `Forget` 이 그 계정 것만 쓴다. DB에 없는 계정의 횟수는 버린다 |
 | `account.Groups` / `SetGroupOrder` | 칭호 고르기와 업적 목록의 분류와 순서 |
 | 게임의 `counterCatalog` | 키, 분류, 단계(횟수)의 표. 시작할 때 모두 등록한다 |
 

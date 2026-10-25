@@ -12,6 +12,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/energy"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
@@ -496,8 +497,8 @@ func TestConduitBlockSizes(t *testing.T) {
 		t.Errorf("the box is %v pixels wide", w)
 	}
 	for tier, want := range map[int]int{1: 200, 2: 1000, 3: 8000} {
-		if fluidRate(tier) != want {
-			t.Errorf("fluid tier %d moves %d mB/t, want %d", tier, fluidRate(tier), want)
+		if fluidnet.RateOf(tier) != want {
+			t.Errorf("fluid tier %d moves %d mB/t, want %d", tier, fluidnet.RateOf(tier), want)
 		}
 	}
 }

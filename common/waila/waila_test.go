@@ -119,6 +119,45 @@ func TestItemField(t *testing.T) {
 	}
 }
 
+func TestPrecomputedFields(t *testing.T) {
+	if itemField(item.Stack{}) != empty || emptyItemField != empty {
+		t.Errorf("empty field %q", itemField(item.Stack{}))
+	}
+	for _, n := range []int{-1, 0, 1} {
+		if got := countField(n); got != "~~~~~~~~" {
+			t.Errorf("countField(%d) = %q", n, got)
+		}
+	}
+	for _, tools := range [][]ToolIcon{nil, {{PickaxeWood, MarkRight}}, {{AxeIron, MarkWrong}, {Shears, 0}}, {{"", Mark(200)}, {Hoe, Mark(255)}}} {
+		title, _ := Format(Info{Tools: tools})
+		want := panelPrefix
+		padded := [2]ToolIcon{{ToolNone, MarkNone}, {ToolNone, MarkNone}}
+		copy(padded[:], tools)
+		for i, ti := range padded {
+			if ti.Tool == "" {
+				ti = ToolIcon{ToolNone, MarkNone}
+			}
+			if ti.Mark == 0 {
+				ti.Mark = MarkNone
+			}
+			want += fmt.Sprintf("%s,%c%c", ti.Tool, ti.Mark, ";:"[i])
+		}
+		if !strings.HasPrefix(title, want) {
+			t.Errorf("tools %v: title %q, want prefix %q", tools, title, want)
+		}
+	}
+	var items []item.Stack
+	for range 30 {
+		items = append(items, item.NewStack(block.Dirt{}, 1))
+	}
+	out := Container{Layout: LayoutHopper, Items: items}.slots()
+	for i, it := range out {
+		if it.Empty() != (i == 8) {
+			t.Errorf("hopper slot %d empty = %v", i, it.Empty())
+		}
+	}
+}
+
 // TestPackFields: the pack cuts the subtitle where Format puts the fields.
 func TestPackFields(t *testing.T) {
 	data, err := os.ReadFile("../packs/waila/ui/waila/tile.json")

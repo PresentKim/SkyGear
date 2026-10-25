@@ -101,6 +101,7 @@ type window struct {
 type client struct {
 	c         *dfhook.Conn
 	s         *session.Session
+	lang      string
 	win       atomic.Pointer[window]
 	lastClose atomic.Int64
 	token     atomic.Uint64
@@ -114,7 +115,10 @@ func clientOf(p *player.Player) *client {
 	if c == nil {
 		return nil
 	}
-	cl, _ := clients.LoadOrStore(c, &client{c: c, s: c.Session()})
+	if cl := loadClient(c); cl != nil {
+		return cl
+	}
+	cl, _ := clients.LoadOrStore(c, &client{c: c, s: c.Session(), lang: connLang(c)})
 	return cl.(*client)
 }
 
@@ -404,20 +408,39 @@ func serverPacket(c *dfhook.Conn, pk packet.Packet) bool {
 	return false
 }
 
+var identifiers struct {
+	sync.Mutex
+	in, out []byte
+}
+
 // addIdentifier adds EntityIdentifier to serialised actor identifiers.
 func addIdentifier(data []byte) []byte {
+	identifiers.Lock()
+	defer identifiers.Unlock()
+	if identifiers.out != nil && bytes.Equal(identifiers.in, data) {
+		return identifiers.out
+	}
+	out, ok := encodeWithIdentifier(data)
+	if !ok {
+		return data
+	}
+	identifiers.in, identifiers.out = bytes.Clone(data), out
+	return out
+}
+
+func encodeWithIdentifier(data []byte) ([]byte, bool) {
 	var ids struct {
 		IDList []map[string]any `nbt:"idlist"`
 	}
 	if err := nbt.NewDecoder(bytes.NewReader(data)).Decode(&ids); err != nil {
-		return data
+		return nil, false
 	}
 	ids.IDList = append(ids.IDList, map[string]any{"id": EntityIdentifier})
 	out, err := nbt.Marshal(ids)
 	if err != nil {
-		return data
+		return nil, false
 	}
-	return out
+	return out, true
 }
 
 // viewer shows slot changes of an inventory to a client if that inventory

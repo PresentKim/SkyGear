@@ -77,6 +77,12 @@ type Lobby struct {
 	// Quit, if set, is called when a player leaves the server, wherever it
 	// was, after its state was stored.
 	Quit func(p *player.Player)
+	// Entered, if set, is called in the lobby world when Enter took p out of
+	// the lobby.
+	Entered func(p *player.Player)
+	// EnterFailed, if set, is called in the lobby world with the error of an
+	// Enter that failed after it returned (Manager.Enter).
+	EnterFailed func(p *player.Player, err error)
 	// UsePlayer, if set, is called in an instance when p uses (right-clicks)
 	// another player; returning true takes the click (the game does not see
 	// it).
@@ -97,6 +103,10 @@ type Manager struct {
 	location map[string]*Instance
 	// locked are (save, account) states being edited outside the instance.
 	locked map[stateKey]bool
+	// entering maps account IDs to the save Enter is moving them into.
+	entering map[string]int64
+	// activating are the saves being opened, closed once they are.
+	activating map[int64]chan struct{}
 }
 
 type stateKey struct {
@@ -113,7 +123,8 @@ func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby) *Manager {
 		conf.WorldSaveInterval = time.Minute
 	}
 	return &Manager{log: log, db: d, conf: conf, lobby: lobby, games: map[string]Game{},
-		active: map[int64]*Instance{}, location: map[string]*Instance{}, locked: map[stateKey]bool{}}
+		active: map[int64]*Instance{}, location: map[string]*Instance{}, locked: map[stateKey]bool{}, entering: map[string]int64{},
+		activating: map[int64]chan struct{}{}}
 }
 
 // Register adds a game type.
@@ -150,6 +161,23 @@ func (m *Manager) Active(saveID int64) *Instance {
 	return m.active[saveID]
 }
 
+// running returns the active instance of a save that is not closing, or nil.
+func (m *Manager) running(saveID int64) *Instance {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if inst := m.active[saveID]; inst != nil && !inst.closing {
+		return inst
+	}
+	return nil
+}
+
+// inUse reports whether a save is active or being activated.
+func (m *Manager) inUse(saveID int64) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.active[saveID] != nil || m.activating[saveID] != nil
+}
+
 // ActiveCount returns the number of active instances.
 func (m *Manager) ActiveCount() int {
 	m.mu.Lock()
@@ -162,31 +190,76 @@ func (m *Manager) worldDir(saveID int64) string {
 }
 
 // Enter moves p from the lobby into the instance of saveID, activating it if
-// p may do so. It must be called in p's lobby world transaction.
+// p may do so. It must be called in p's lobby world transaction. An inactive
+// save is activated in the background while p stays in the lobby; the errors
+// from then on go to Lobby.EnterFailed. Entering again while p is on its way
+// does nothing.
 func (m *Manager) Enter(p *player.Player, saveID int64) error {
 	acc := AccountID(p)
 	m.mu.Lock()
-	locked := m.locked[stateKey{saveID, acc}]
-	m.mu.Unlock()
-	if locked {
+	if m.locked[stateKey{saveID, acc}] {
+		m.mu.Unlock()
 		return ErrStateLocked
 	}
+	if _, ok := m.entering[acc]; ok {
+		m.mu.Unlock()
+		return nil
+	}
+	m.entering[acc] = saveID
+	m.mu.Unlock()
 	role, err := m.db.MemberRole(saveID, acc)
 	if errors.Is(err, db.ErrNotFound) {
-		return ErrNotMember
-	} else if err != nil {
+		err = ErrNotMember
+	}
+	if err != nil {
+		m.doneEntering(acc)
 		return err
 	}
-	inst := m.Active(saveID)
-	if inst == nil {
-		if !role.CanActivate() {
-			return ErrHostOffline
-		}
-		if inst, err = m.activate(saveID, acc); err != nil {
-			return err
-		}
+	if inst := m.running(saveID); inst != nil {
+		defer m.doneEntering(acc)
+		return m.join(p, inst)
 	}
+	if !role.CanActivate() {
+		m.doneEntering(acc)
+		return ErrHostOffline
+	}
+	if m.full(saveID) {
+		m.doneEntering(acc)
+		return ErrTooManyActive
+	}
+	go m.activateFor(p.H(), acc, saveID)
+	return nil
+}
 
+// activateFor activates saveID for the host acc and moves its player in once
+// the save is open, if it is still in the lobby. An instance the host did not
+// make it into is deactivated again.
+func (m *Manager) activateFor(h *world.EntityHandle, acc string, saveID int64) {
+	inst, err := m.activate(saveID, acc)
+	<-h.Do(func(tx *world.Tx, e world.Entity) {
+		defer m.doneEntering(acc)
+		if tx.World() != m.lobby.World || m.Location(acc) != nil {
+			return
+		}
+		p := e.(*player.Player)
+		if err == nil {
+			err = m.join(p, inst)
+		}
+		if err != nil && m.lobby.EnterFailed != nil {
+			m.lobby.EnterFailed(p, err)
+		}
+	}).Done()
+	m.doneEntering(acc)
+	if inst != nil && inst.host == acc && m.Location(acc) != inst {
+		inst.deactivate()
+	}
+}
+
+// join moves p from the lobby into inst. It must be called in p's lobby world
+// transaction.
+func (m *Manager) join(p *player.Player, inst *Instance) error {
+	acc := AccountID(p)
+	saveID := inst.Save.ID
 	first := false
 	var state playerstate.State
 	_, blob, err := m.db.PlayerState(saveID, acc)
@@ -206,12 +279,21 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 	}
 
 	chestui.Close(p)
-	h := p.Tx().RemoveEntity(p)
-	inst.addPlayer(acc, h)
 	m.mu.Lock()
+	if inst.closing {
+		m.mu.Unlock()
+		return ErrHostOffline
+	}
+	inst.joining.Add(1)
 	m.location[acc] = inst
 	m.mu.Unlock()
+	h := p.Tx().RemoveEntity(p)
+	inst.addPlayer(acc, h)
+	if m.lobby.Entered != nil {
+		m.lobby.Entered(p)
+	}
 	inst.World.Do(func(tx *world.Tx) {
+		defer inst.joining.Done()
 		np := tx.AddEntityAt(h, SafeSpot(tx, pos)).(*player.Player)
 		if first {
 			playerstate.Reset(np)
@@ -228,6 +310,12 @@ func (m *Manager) Enter(p *player.Player, saveID int64) error {
 		inst.session.Join(np, first)
 	})
 	return nil
+}
+
+func (m *Manager) doneEntering(acc string) {
+	m.mu.Lock()
+	delete(m.entering, acc)
+	m.mu.Unlock()
 }
 
 // tellOthers tells the other players of p's world (the save) that p came or
@@ -311,7 +399,8 @@ func (m *Manager) LockState(saveID int64, accountID string) (unlock func(), ok b
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	k := stateKey{saveID, accountID}
-	if inst := m.location[accountID]; (inst != nil && inst.Save.ID == saveID) || m.locked[k] {
+	entering, ok := m.entering[accountID]
+	if inst := m.location[accountID]; (inst != nil && inst.Save.ID == saveID) || (ok && entering == saveID) || m.locked[k] {
 		return nil, false
 	}
 	m.locked[k] = true
@@ -324,7 +413,7 @@ func (m *Manager) LockState(saveID int64, accountID string) (unlock func(), ok b
 
 // DeleteSave deletes an inactive save and its world folder.
 func (m *Manager) DeleteSave(saveID int64) error {
-	if m.Active(saveID) != nil {
+	if m.inUse(saveID) {
 		return ErrActive
 	}
 	if err := m.db.DeleteSave(saveID); err != nil {
@@ -337,7 +426,7 @@ func (m *Manager) DeleteSave(saveID int64) error {
 // slot for owner under name (db.CopySave). An open world is not copied: its
 // files change while it runs.
 func (m *Manager) CopySave(srcID int64, owner string, slot int, name string) (db.Save, error) {
-	if m.Active(srcID) != nil {
+	if m.inUse(srcID) {
 		return db.Save{}, ErrActive
 	}
 	s, err := m.db.CopySave(srcID, owner, slot, name)
@@ -360,6 +449,15 @@ func (m *Manager) CopySave(srcID int64, owner string, slot int, name string) (db
 // called before the server shuts down.
 func (m *Manager) CloseAll() {
 	m.mu.Lock()
+	opening := make([]chan struct{}, 0, len(m.activating))
+	for _, ready := range m.activating {
+		opening = append(opening, ready)
+	}
+	m.mu.Unlock()
+	for _, ready := range opening {
+		<-ready
+	}
+	m.mu.Lock()
 	list := make([]*Instance, 0, len(m.active))
 	for _, inst := range m.active {
 		list = append(list, inst)
@@ -376,18 +474,65 @@ func (m *Manager) CloseAll() {
 	wg.Wait()
 }
 
+// full reports whether activating saveID would exceed MaxActive.
+func (m *Manager) full(saveID int64) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.fullLocked(saveID)
+}
+
+func (m *Manager) fullLocked(saveID int64) bool {
+	if m.active[saveID] != nil || m.activating[saveID] != nil {
+		return false
+	}
+	return m.conf.MaxActive > 0 && len(m.active)+len(m.activating) >= m.conf.MaxActive
+}
+
+// activate returns the running instance of saveID, opening it with host if
+// there is none. It waits for a closing instance of the save to finish
+// closing and for another activation of it to finish.
 func (m *Manager) activate(saveID int64, host string) (*Instance, error) {
 	m.mu.Lock()
-	if inst, ok := m.active[saveID]; ok {
-		m.mu.Unlock()
-		return inst, nil
+	for {
+		if inst, ok := m.active[saveID]; ok {
+			closing := inst.closing
+			m.mu.Unlock()
+			if !closing {
+				return inst, nil
+			}
+			<-inst.closed
+		} else if ch, ok := m.activating[saveID]; ok {
+			m.mu.Unlock()
+			<-ch
+		} else {
+			break
+		}
+		m.mu.Lock()
 	}
-	if m.conf.MaxActive > 0 && len(m.active) >= m.conf.MaxActive {
+	if m.fullLocked(saveID) {
 		m.mu.Unlock()
 		return nil, ErrTooManyActive
 	}
+	ready := make(chan struct{})
+	m.activating[saveID] = ready
 	m.mu.Unlock()
 
+	inst, err := m.open(saveID, host)
+	m.mu.Lock()
+	delete(m.activating, saveID)
+	if err == nil {
+		m.active[saveID] = inst
+	}
+	m.mu.Unlock()
+	close(ready)
+	if err != nil {
+		return nil, err
+	}
+	m.log.Info("instance activated", "save", saveID, "game", inst.Game.ID(), "host", host)
+	return inst, nil
+}
+
+func (m *Manager) open(saveID int64, host string) (*Instance, error) {
 	save, err := m.db.Save(saveID)
 	if err != nil {
 		return nil, err
@@ -396,13 +541,5 @@ func (m *Manager) activate(saveID int64, host string) (*Instance, error) {
 	if !ok {
 		return nil, fmt.Errorf("instance: unknown game type %q", save.GameType)
 	}
-	inst, err := newInstance(m, save, g, host)
-	if err != nil {
-		return nil, err
-	}
-	m.mu.Lock()
-	m.active[saveID] = inst
-	m.mu.Unlock()
-	m.log.Info("instance activated", "save", saveID, "game", g.ID(), "host", host)
-	return inst, nil
+	return newInstance(m, save, g, host)
 }

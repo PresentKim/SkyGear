@@ -33,16 +33,3 @@ func (m conduitModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {
 }
 
 func (conduitModel) FaceSolid(cube.Pos, cube.Face, world.BlockSource) bool { return false }
-
-// connectionsOf returns the set of sides of pos whose neighbour takes part
-// according to joins (given the face of pos the neighbour is on).
-func connectionsOf(tx *world.Tx, pos cube.Pos, joins func(f cube.Face, at cube.Pos, b world.Block) bool) int {
-	conn := 0
-	for i, f := range conduitFaces {
-		at := pos.Side(f)
-		if joins(f, at, tx.Block(at)) {
-			conn |= 1 << i
-		}
-	}
-	return conn
-}

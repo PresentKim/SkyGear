@@ -64,14 +64,6 @@ func (r *Research) Title(lang string) string {
 // cost nothing.
 func (r *Research) isCopy() bool { return strings.Contains(r.ID, "#") }
 
-// langOf is the catalog language of p (the default for a nil p).
-func langOf(p *player.Player) string {
-	if p == nil {
-		return i18n.Default
-	}
-	return i18n.For(p)
-}
-
 // researchTree is every research in menu order; a research's needs come
 // before it.
 // researchTree is the research tree: the researches below with the research
@@ -233,12 +225,21 @@ var baseResearchTree = []Research{
 // baseUnlocks are the results open without research.
 var baseUnlocks = []string{"oak_planks", "crafting_table", "dragonfactory:research_table"}
 
+// researchIndex is the index in researchTree of each ID's first research.
+var researchIndex = func() map[string]int {
+	m := map[string]int{}
+	for i := range researchTree {
+		if _, ok := m[researchTree[i].ID]; !ok {
+			m[researchTree[i].ID] = i
+		}
+	}
+	return m
+}()
+
 // researchByID returns a research of the tree.
 func researchByID(id string) (*Research, bool) {
-	for i := range researchTree {
-		if researchTree[i].ID == id {
-			return &researchTree[i], true
-		}
+	if i, ok := researchIndex[id]; ok {
+		return &researchTree[i], true
 	}
 	return nil, false
 }
@@ -373,10 +374,10 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 		p := e.(*player.Player)
 		if len(r.Unlocks) == 0 {
 			// a project: it opens no recipe of its own
-			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), r.Title(langOf(p)))
+			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), r.Title(i18n.Of(p)))
 			continue
 		}
-		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(langOf(p)), s.unlockNames(langOf(p), r))
+		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(i18n.Of(p)), s.unlockNames(i18n.Of(p), r))
 	}
 }
 
@@ -476,15 +477,15 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 	switch e.kind {
 	case researchDone:
 		// The done tab holds only done researches: no mark.
-		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§7", r), Run: show}
+		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), "§7", r), Run: show}
 	case researchTodo:
 		colour := "§e"
 		if p != nil && len(s.researchMissing(p, r)) == 0 {
 			colour = "§a"
 		}
-		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), colour, r), Run: show}
+		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), colour, r), Run: show}
 	}
-	return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(langOf(p), "§8", r), Run: show}
+	return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), "§8", r), Run: show}
 }
 
 // showResearchSplit shows the research screen (ui.SplitMenu): on the left
@@ -621,13 +622,13 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 // what it needs. redo shows the screen again, finished shows it after the
 // research was done, goTo shows another research. p may be nil.
 func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
-	txt := researchText(langOf(p), r.ID)
+	txt := researchText(i18n.Of(p), r.ID)
 	done := s.researched(r.ID)
 	var b strings.Builder
 	if txt.About != "" {
 		fmt.Fprintf(&b, "§f%s\n", txt.About)
 	}
-	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Title(langOf(p))}
+	d := ui.Detail{Icon: researchIcon(r), Name: "§6" + r.Title(i18n.Of(p))}
 	var opts []ui.Option
 	switch {
 	case done:
@@ -658,7 +659,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	// What is still to do before it: a button that goes to that research.
 	for _, n := range r.Needs {
 		if need, ok := researchByID(n); ok && !done && !s.researched(n) {
-			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(langOf(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
+			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(i18n.Of(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
 		}
 	}
 	d.Body = b.String()

@@ -512,8 +512,8 @@ func (s *session) tickBarrels(tx *world.Tx) {
 	now, _, _ := s.clock.Now()
 	changed := false
 	for key, rec := range s.state.Barrels {
-		var pos cube.Pos
-		if _, err := fmt.Sscanf(key, "%d,%d,%d", &pos[0], &pos[1], &pos[2]); err != nil {
+		pos, ok := parseCropKey(key)
+		if !ok {
 			delete(s.state.Barrels, key)
 			changed = true
 			continue

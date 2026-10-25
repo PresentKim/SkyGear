@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -23,7 +24,7 @@ var oakLog = block.Log{Wood: block.OakWood()}
 // itemKey identifies an item type: its name and metadata.
 func itemKey(it world.Item) string {
 	name, meta := it.EncodeItem()
-	return fmt.Sprintf("%s:%d", name, meta)
+	return name + ":" + strconv.Itoa(int(meta))
 }
 
 // plain reports whether a stack is a plain item: no added NBT (custom

@@ -136,7 +136,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	}
 	crafts := 0
 	for _, cr := range crafterRecipes() {
-		if itemKey(cr.out.Item()) == k && crafts < 3 {
+		if cr.outKey == k && crafts < 3 {
 			var parts []string
 			for _, req := range cr.reqs {
 				parts = append(parts, fmt.Sprintf("%s ×%d", reqName(lang, req), req.count))

@@ -43,18 +43,20 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		return
 	}
 	held, _ := ctx.Player().HeldItems()
-	countBreak(ctx.Player(), ctx.Player().Tx().Block(pos), isHammer(held))
+	broken := ctx.Player().Tx().Block(pos)
+	hammer := isHammer(held)
+	countBreak(ctx.Player(), broken, hammer)
 	if _, ok := toolOf(ctx.Player()); ok {
 		h.s.gainToolXP(ctx.Player(), 1)
 		h.s.reinforce(ctx.Player())
 	}
-	if held, _ := ctx.Player().HeldItems(); isHammer(held) {
-		if into, ok := hammerDrop(ctx.Player().Tx().Block(pos)); ok {
+	if hammer {
+		if into, ok := hammerDrop(broken); ok {
 			*drops = []item.Stack{into}
 		}
 		h.s.veinMine(ctx.Player(), ctx.Player().Tx(), pos)
 	}
-	switch b := ctx.Player().Tx().Block(pos).(type) {
+	switch b := broken.(type) {
 	case Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
 		if lp, ok := h.s.lastPunch[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
@@ -114,33 +116,9 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	// A player who clicks a conduit's connector plate, or a conduit that has
 	// one, opens its settings, whatever they hold, unless the held conduit goes
 	// into that conduit. Sneaking places blocks instead.
-	if !p.Sneaking() {
-		// One click sends several use events; only the first opens a form.
-		if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok && !fitsBundle(held, b) {
-			ctx.Cancel()
-			if !h.s.debounced(p) {
-				h.s.showPlateForm(p, tx, at, side)
-			}
-			return
-		}
-		if b, ok := tx.Block(pos).(ConduitBundle); ok && !fitsBundle(held, b) {
-			if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
-				ctx.Cancel()
-				if !h.s.debounced(p) {
-					h.s.showPlateForm(p, tx, pos, faceIndex(face))
-				}
-				return
-			}
-			if bundleHasPlate(tx, pos, b) {
-				ctx.Cancel()
-				if !h.s.debounced(p) {
-					if side, found := h.s.nextPlateSide(p, tx, pos, b); found {
-						h.s.showPlateForm(p, tx, pos, side)
-					}
-				}
-				return
-			}
-		}
+	if !p.Sneaking() && h.s.usePlate(p, tx, pos, face, clickPos, held) {
+		ctx.Cancel()
+		return
 	}
 	if h.s.useStickOnChest(p, tx, pos, held) || h.s.useStick(p, tx, pos, face, held) {
 		ctx.Cancel()

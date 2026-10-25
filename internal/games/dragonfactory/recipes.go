@@ -50,17 +50,22 @@ func (s *session) recipeFilter() func(recipe.Recipe) bool {
 
 // sendRecipes sends every player on the island its recipe list.
 func (s *session) sendRecipes(tx *world.Tx) {
+	filter := s.islandRecipeFilter()
 	for e := range tx.Players() {
-		s.sendRecipesTo(e.(*player.Player))
+		e.(*player.Player).SetRecipeFilter(filter)
 	}
 }
 
-// sendRecipesTo sends p the island's recipe list (every recipe while an
-// operator opened them all with /dfadmin research free).
+// sendRecipesTo sends p the island's recipe list.
 func (s *session) sendRecipesTo(p *player.Player) {
+	p.SetRecipeFilter(s.islandRecipeFilter())
+}
+
+// islandRecipeFilter is the filter players on the island get: none while an
+// operator opened every recipe with /dfadmin research free.
+func (s *session) islandRecipeFilter() func(recipe.Recipe) bool {
 	if s.recipesFree {
-		p.SetRecipeFilter(nil)
-		return
+		return nil
 	}
-	p.SetRecipeFilter(s.recipeFilter())
+	return s.recipeFilter()
 }

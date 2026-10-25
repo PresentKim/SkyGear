@@ -32,17 +32,21 @@ func (d *DB) TouchAccount(id, xuid, name string) (Account, error) {
 	return d.Account(id)
 }
 
-// Account returns the account with id.
-func (d *DB) Account(id string) (Account, error) {
+const accountColumns = `a.id, a.xuid, a.name, a.guide_version, a.title, a.name_color, a.created_at, a.last_seen`
+
+func scanAccount(row interface{ Scan(...any) error }) (Account, error) {
 	var a Account
 	var created, seen int64
-	err := d.sql.QueryRow(`SELECT id, xuid, name, guide_version, title, name_color, created_at, last_seen FROM accounts WHERE id = ?`, id).
-		Scan(&a.ID, &a.XUID, &a.Name, &a.GuideVersion, &a.Title, &a.NameColor, &created, &seen)
-	if err != nil {
+	if err := row.Scan(&a.ID, &a.XUID, &a.Name, &a.GuideVersion, &a.Title, &a.NameColor, &created, &seen); err != nil {
 		return Account{}, notFound(err)
 	}
 	a.CreatedAt, a.LastSeen = time.UnixMilli(created), time.UnixMilli(seen)
 	return a, nil
+}
+
+// Account returns the account with id.
+func (d *DB) Account(id string) (Account, error) {
+	return scanAccount(d.sql.QueryRow(`SELECT `+accountColumns+` FROM accounts a WHERE a.id = ?`, id))
 }
 
 // SetGuideVersion records the server guide version the account has seen.

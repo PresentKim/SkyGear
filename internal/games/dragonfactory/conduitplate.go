@@ -8,8 +8,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/internal/energy"
-	"github.com/presentkim/dragonfactory/internal/itemio"
-	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
 // ConduitPlate is the connector plate of a conduit bundle, as in EnderIO: where
@@ -55,21 +53,21 @@ func faceIndex(f cube.Face) int {
 // kind, the tier of the conduit. An item conduit also has its connector where
 // the side is switched off (the plate is how it is switched on again).
 func plugsOf(tx *world.Tx, pos cube.Pos, b ConduitBundle) map[plugKey]int {
+	return b.plugsFrom(pos, b.sides(tx, pos))
+}
+
+// plugsFrom is plugsOf for the neighbours sides of the bundle at pos.
+func (b ConduitBundle) plugsFrom(pos cube.Pos, sides [6]bundleSide) map[plugKey]int {
 	out := map[plugKey]int{}
-	for side, f := range conduitFaces {
-		at := pos.Side(f)
-		other := tx.Block(at)
+	for side, s := range sides {
+		other := s.block
 		if b.Energy > 0 {
 			if _, isConduit := energy.IsConduit(other); !isConduit && joinsEnergy(other) {
 				out[plugKey{pos, side, 0}] = b.Energy
 			}
 		}
-		if b.Item > 0 {
-			if _, isConduit := itemnet.IsConduit(other); !isConduit {
-				if in, ex := itemio.IO(tx, at); in != nil || ex != nil {
-					out[plugKey{pos, side, 1}] = b.Item
-				}
-			}
+		if b.Item > 0 && s.holdsItems {
+			out[plugKey{pos, side, 1}] = b.Item
 		}
 		if b.Fluid > 0 {
 			if o, isBundle := other.(ConduitBundle); !isBundle || o.Fluid == 0 {
@@ -93,8 +91,9 @@ type plugKey struct {
 // plateKinds are the kinds that have a connector on the side of the bundle.
 func plateKinds(tx *world.Tx, pos cube.Pos, b ConduitBundle, side int) []int {
 	var out []int
+	plugs := plugsOf(tx, pos, b)
 	for k := range 3 {
-		if _, ok := plugsOf(tx, pos, b)[plugKey{pos, side, k}]; ok {
+		if _, ok := plugs[plugKey{pos, side, k}]; ok {
 			out = append(out, k)
 		}
 	}
@@ -177,12 +176,11 @@ func (plateType) BBox(world.Entity) cube.BBox                     { return cube.
 func (plateType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &plateData{} }
 func (plateType) EncodeNBT(*world.EntityData) map[string]any      { return nil }
 
-// syncPlates makes the plates of the bundle at pos what plugsOf says.
-func (s *session) syncPlates(tx *world.Tx, pos cube.Pos, b ConduitBundle) {
+// syncPlates makes the plates of the bundle at pos what its plugs say.
+func (s *session) syncPlates(tx *world.Tx, pos cube.Pos, b ConduitBundle, plugs map[plugKey]int) {
 	if s.plates == nil {
 		s.plates = map[plateKey]*world.EntityHandle{}
 	}
-	plugs := plugsOf(tx, pos, b)
 	for side := range conduitFaces {
 		key := plateKey{pos, side}
 		variant, mark, need := plateLook(plugs, pos, b, side)
@@ -285,6 +283,38 @@ func (s *session) nextPlateSide(p *player.Player, tx *world.Tx, pos cube.Pos, b 
 		}
 	}
 	return 0, false
+}
+
+// usePlate opens the settings of the connector plate the player clicked, or of
+// the clicked conduit that has one, unless the held conduit goes into that
+// conduit, and reports whether it took the click.
+func (s *session) usePlate(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, held item.Stack) bool {
+	// One click sends several use events; only the first opens a form.
+	if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok && !fitsBundle(held, b) {
+		if !s.debounced(p) {
+			s.showPlateForm(p, tx, at, side)
+		}
+		return true
+	}
+	b, ok := tx.Block(pos).(ConduitBundle)
+	if !ok || fitsBundle(held, b) {
+		return false
+	}
+	if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
+		if !s.debounced(p) {
+			s.showPlateForm(p, tx, pos, faceIndex(face))
+		}
+		return true
+	}
+	if bundleHasPlate(tx, pos, b) {
+		if !s.debounced(p) {
+			if side, found := s.nextPlateSide(p, tx, pos, b); found {
+				s.showPlateForm(p, tx, pos, side)
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // bundleHasPlate reports whether any side of the bundle has a connector plate.

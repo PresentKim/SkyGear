@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
 	"github.com/presentkim/dragonfactory/common/oreui"
+	"github.com/presentkim/dragonfactory/common/slotdeco"
 )
 
 // OreUI makes Menu, CardMenu, ItemBoard, SplitMenu and SieveBoard show as
@@ -269,14 +270,22 @@ func (l *oreLayout) slotNode(sl ItemSlot, extra ...string) map[string]any {
 // slotdeco): it returns the tooltip without the hidden part and the texture
 // of the rarity.
 func slotDeco(tip string) (string, string) {
-	rarity := map[string]int{"§a": 1, "§b": 2, "§d": 3, "§6": 4}
-	if rest, ok := strings.CutPrefix(tip, "§k§r"); ok && len(rest) >= len("§a") {
-		if r, ok := rarity[rest[:len("§a")]]; ok {
-			return rest, fmt.Sprintf("tex:textures/ui/df/deco_%d_0", r)
+	for _, d := range rarityDecos {
+		if strings.HasPrefix(tip, d.mark) {
+			return tip[len(d.mark)-len("§a"):], d.texture
 		}
 	}
 	return tip, ""
 }
+
+type rarityDeco struct{ mark, texture string }
+
+var rarityDecos = func() (decos []rarityDeco) {
+	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
+		decos = append(decos, rarityDeco{r.Mark(), fmt.Sprintf("tex:textures/ui/df/deco_%d_0", r)})
+	}
+	return decos
+}()
 
 func (l *oreLayout) button(class string, o Option) map[string]any {
 	ch := []any{}

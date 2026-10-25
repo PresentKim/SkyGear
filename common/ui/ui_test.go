@@ -6,6 +6,8 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/google/uuid"
+	"github.com/presentkim/dragonfactory/common/internal/slottext"
 )
 
 // TestUniqueLabels: repeated labels get "§r"s so each button is found.
@@ -16,6 +18,29 @@ func TestUniqueLabels(t *testing.T) {
 		if o.Label != want[i] {
 			t.Errorf("label %d = %q, want %q", i, o.Label, want[i])
 		}
+	}
+}
+
+func TestForget(t *testing.T) {
+	gone, kept := uuid.New(), uuid.New()
+	for _, id := range []uuid.UUID{gone, kept} {
+		pending.m[id] = sentForm{title: "t"}
+		toasts.m[id] = &toastState{}
+		oreScreens.m[id] = &oreScreen{}
+	}
+	t.Cleanup(func() { forget(kept) })
+	forget(gone)
+	if _, ok := pending.m[gone]; ok {
+		t.Error("pending kept")
+	}
+	if _, ok := toasts.m[gone]; ok {
+		t.Error("toast state kept")
+	}
+	if _, ok := oreScreens.m[gone]; ok {
+		t.Error("ore screen kept")
+	}
+	if pending.m[kept].title != "t" || toasts.m[kept] == nil || oreScreens.m[kept] == nil {
+		t.Error("another player's state dropped")
 	}
 }
 
@@ -51,7 +76,7 @@ func TestSlotLabelFields(t *testing.T) {
 
 // TestSlotCountKeepsWholeCharacters: a cut never splits a character.
 func TestSlotCountKeepsWholeCharacters(t *testing.T) {
-	got := padSlotCount("§f가나다라", slotCountBytes)
+	got := slottext.Pad("§f가나다라", slotCountBytes)
 	if len(got) != slotCountBytes {
 		t.Fatalf("%q is %d bytes", got, len(got))
 	}

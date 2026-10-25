@@ -31,7 +31,11 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 		sel = members[0].AccountID
 	}
 	var sp ui.ListSplit
+	active := 0
 	for _, m := range members {
+		if !m.Left {
+			active++
+		}
 		state := pf.status(lang, m.AccountID)
 		switch {
 		case m.Role == db.RoleHost:
@@ -48,8 +52,7 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 			sp.Actions = pf.memberActions(p, saveID, m)
 		}
 	}
-	n, _ := pf.db.ActiveMembers(saveID)
-	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.showMembers.5"), n, MaxMembers)
+	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.showMembers.5"), active, MaxMembers)
 	if pf.m.Location(instance.AccountID(p)) == nil {
 		sp.Actions = append(sp.Actions, pf.lobbyBack(p, func(p *player.Player) { pf.showSaves(p, saveID) }))
 	}

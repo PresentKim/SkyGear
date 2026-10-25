@@ -10,6 +10,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/scoreboard"
+	"github.com/presentkim/dragonfactory/common/internal/slottext"
 )
 
 // Title is the objective name that tells the pack to draw the HUD parts.
@@ -56,10 +57,7 @@ func (b *Board) Rows() []string {
 	rows := make([]string, len(b.rows))
 	seen := map[string]bool{}
 	for i, r := range b.rows {
-		for seen[r] {
-			r += "§r"
-		}
-		seen[r], rows[i] = true, r
+		rows[i] = slottext.Unique(seen, r)
 	}
 	return rows
 }

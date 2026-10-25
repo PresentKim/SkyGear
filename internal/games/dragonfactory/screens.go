@@ -120,7 +120,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 	body := i18n.T(lang, "dragonfactory.screens.lostMenu.1")
 	var slots []ui.ItemSlot
 	for _, l := range s.state.Lost {
-		it := decodeItem(l.Item)
+		it := l.decoded()
 		if it.Empty() {
 			continue
 		}

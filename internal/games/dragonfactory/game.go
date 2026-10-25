@@ -2,6 +2,7 @@
 package dragonfactory
 
 import (
+	"encoding/json"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
@@ -57,6 +58,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	registerItemIO()
 	registerAdmin(g)
 	registerDebug(g)
+	go codexIndex(i18n.Default)
 	return g
 }
 
@@ -151,7 +153,11 @@ type session struct {
 	saveName string
 	hostID   string
 	state    *State
-	rand     *rand.Rand
+	// stateDirty is whether state changed since it was last handed to
+	// writer, which writes it to the database (storeState).
+	stateDirty bool
+	writer     *stateWriter
+	rand       *rand.Rand
 	// displays are the drawer display entities by drawer position.
 	displays map[cube.Pos]*drawerDisplay
 	// lastUse and lastPunch are each player's last drawer use and punch.
@@ -274,6 +280,10 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.veinDiagonal, p.H())
 	delete(s.codexNav, p.H())
 	delete(s.codexRecent, p.H())
+	delete(s.walked, p.H())
+	delete(s.diedFood, p.H())
+	delete(s.lastStick, p.H())
+	delete(s.chestStreaks, p.H())
 	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
@@ -291,18 +301,52 @@ func (s *session) NewDay(tx *world.Tx, day int) {
 }
 
 func (s *session) Autosave(tx *world.Tx) {
-	s.storeState()
+	s.flushState()
 }
 
 func (s *session) Close(tx *world.Tx) {
 	s.removeDisplays(tx)
 	s.removeVisuals(tx)
-	s.Autosave(tx)
+	s.closeState()
 	s.g.sessions.Delete(s.world)
 }
 
+// storeState marks the state to be written on the next second.
 func (s *session) storeState() {
-	if err := s.state.save(s.g.db, s.saveID); err != nil {
+	s.stateDirty = true
+}
+
+// flushState hands the state to the state writer.
+func (s *session) flushState() {
+	b, err := json.Marshal(s.state)
+	if err != nil {
+		s.g.log.Error("store dragonfactory state", "save", s.saveID, "err", err)
+		return
+	}
+	s.stateDirty = false
+	if s.writer == nil {
+		s.writer = newStateWriter(s.writeState)
+	}
+	s.writer.put(b)
+}
+
+// closeState stops the state writer and writes the state before returning.
+func (s *session) closeState() {
+	if s.writer != nil {
+		s.writer.stop()
+		s.writer = nil
+	}
+	b, err := json.Marshal(s.state)
+	if err != nil {
+		s.g.log.Error("store dragonfactory state", "save", s.saveID, "err", err)
+		return
+	}
+	s.stateDirty = false
+	s.writeState(b)
+}
+
+func (s *session) writeState(b []byte) {
+	if err := s.g.db.SetSaveState(s.saveID, stateKey, b); err != nil {
 		s.g.log.Error("store dragonfactory state", "save", s.saveID, "err", err)
 	}
 }

@@ -16,12 +16,7 @@ var (
 
 // AccountByName finds an account by player name, ignoring case.
 func (d *DB) AccountByName(name string) (Account, error) {
-	var id string
-	err := d.sql.QueryRow(`SELECT id FROM accounts WHERE name = ? COLLATE NOCASE ORDER BY last_seen DESC LIMIT 1`, name).Scan(&id)
-	if err != nil {
-		return Account{}, notFound(err)
-	}
-	return d.Account(id)
+	return scanAccount(d.sql.QueryRow(`SELECT `+accountColumns+` FROM accounts a WHERE a.name = ? COLLATE NOCASE ORDER BY a.last_seen DESC LIMIT 1`, name))
 }
 
 func (d *DB) exists(q string, args ...any) (bool, error) {
@@ -68,7 +63,7 @@ func (d *DB) SendFriendRequest(from, to string) (accepted bool, err error) {
 
 // FriendRequests returns the accounts that sent `to` a friend request.
 func (d *DB) FriendRequests(to string) ([]Account, error) {
-	return d.accounts(`SELECT a.id FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
+	return d.accounts(`SELECT `+accountColumns+` FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
 }
 
 // AcceptFriend accepts from's request to `to`.
@@ -98,7 +93,7 @@ func (d *DB) DeclineFriend(to, from string) error {
 
 // Friends returns a's friends ordered by name.
 func (d *DB) Friends(a string) ([]Account, error) {
-	return d.accounts(`SELECT a.id FROM friends f JOIN accounts a ON a.id = f.friend_id WHERE f.account_id = ? ORDER BY a.name COLLATE NOCASE`, a)
+	return d.accounts(`SELECT `+accountColumns+` FROM friends f JOIN accounts a ON a.id = f.friend_id WHERE f.account_id = ? ORDER BY a.name COLLATE NOCASE`, a)
 }
 
 // RemoveFriend ends the friendship of a and b.
@@ -130,7 +125,7 @@ func (d *DB) Unblock(a, b string) error {
 
 // BlockedAccounts returns the accounts a blocked.
 func (d *DB) BlockedAccounts(a string) ([]Account, error) {
-	return d.accounts(`SELECT a.id FROM blocks b JOIN accounts a ON a.id = b.blocked_id WHERE b.account_id = ? ORDER BY a.name COLLATE NOCASE`, a)
+	return d.accounts(`SELECT `+accountColumns+` FROM blocks b JOIN accounts a ON a.id = b.blocked_id WHERE b.account_id = ? ORDER BY a.name COLLATE NOCASE`, a)
 }
 
 func (d *DB) accounts(q string, args ...any) ([]Account, error) {
@@ -138,19 +133,10 @@ func (d *DB) accounts(q string, args ...any) ([]Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	var ids []string
+	defer rows.Close()
+	out := []Account{}
 	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
-			_ = rows.Close()
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-	_ = rows.Close()
-	out := make([]Account, 0, len(ids))
-	for _, id := range ids {
-		a, err := d.Account(id)
+		a, err := scanAccount(rows)
 		if err != nil {
 			return nil, err
 		}

@@ -40,6 +40,36 @@ func TestInternals(t *testing.T) {
 	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer}
 }
 
+func TestFieldCached(t *testing.T) {
+	a, b := &session.Session{}, &session.Session{}
+	for range 2 {
+		if p := field[int32](a, "chunkRadius"); p != (*int32)(reflect.ValueOf(a).Elem().FieldByName("chunkRadius").Addr().UnsafePointer()) {
+			t.Fatal("field of a points elsewhere")
+		}
+		if field[int32](b, "chunkRadius") == field[int32](a, "chunkRadius") {
+			t.Fatal("field of b points into a")
+		}
+	}
+	for range 2 {
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("no panic for a wrong type")
+				}
+			}()
+			field[int64](a, "chunkRadius")
+		}()
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("no panic for a missing field")
+				}
+			}()
+			field[int32](a, "noSuchField")
+		}()
+	}
+}
+
 // fakeConn reads packets from a list and records the written ones.
 type fakeConn struct {
 	session.Conn
@@ -112,6 +142,16 @@ func TestMoveInput(t *testing.T) {
 	c := &Conn{Conn: f}
 	_, _ = c.ReadPacket()
 	if v := c.moveInput.Load(); v == nil || v[0] != 1 || v[1] != -1 {
+		t.Fatalf("move input %v", v)
+	}
+	first := c.moveInput.Load()
+	f.in = []packet.Packet{&packet.PlayerAuthInput{RawMoveVector: [2]float32{1, -1}}, &packet.PlayerAuthInput{RawMoveVector: [2]float32{0, 0.5}}}
+	_, _ = c.ReadPacket()
+	if c.moveInput.Load() != first {
+		t.Fatal("unchanged move input stored again")
+	}
+	_, _ = c.ReadPacket()
+	if v := c.moveInput.Load(); v == nil || v[0] != 0 || v[1] != 0.5 {
 		t.Fatalf("move input %v", v)
 	}
 }

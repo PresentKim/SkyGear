@@ -94,3 +94,29 @@ func TestCounterTiers(t *testing.T) {
 		}
 	}).Done()
 }
+
+func TestForgetStoresPendingCounts(t *testing.T) {
+	d, err := db.Open(filepath.Join(t.TempDir(), "db.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = d.Close() })
+	Init(d, slog.Default())
+	RegisterCounter("forget_count", Tier{100, "f_hundred"})
+
+	id := uuid.New()
+	if _, err := d.TouchAccount(id.String(), "", "Hana"); err != nil {
+		t.Fatal(err)
+	}
+	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()
+	t.Cleanup(func() { _ = w.Close() })
+	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "Hana", UUID: id})
+	<-w.Do(func(tx *world.Tx) {
+		p := tx.AddEntity(h).(*player.Player)
+		Count(p, "forget_count", 3)
+		Forget(p)
+		if got := Counter(id.String(), "forget_count"); got != 3 {
+			t.Fatalf("reloaded %d", got)
+		}
+	}).Done()
+}

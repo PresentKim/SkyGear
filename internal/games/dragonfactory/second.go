@@ -9,7 +9,8 @@ import (
 // load lines (instance.SecondTicker).
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
-	s.checkAdvancements(tx)
+	held := inventoryNames(tx)
+	s.checkAdvancementsHeld(tx, held)
 	s.tickBarrels(tx)
 	s.tickComposters(tx)
 	s.tickFairy(tx)
@@ -19,7 +20,10 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickPlants(tx)
 	s.updateBoards(tx)
 	countAll(tx, "play_seconds", 1)
-	grantCollection(tx)
+	grantCollection(held)
+	if s.stateDirty {
+		s.flushState()
+	}
 }
 
 var _ instance.SecondTicker = (*session)(nil)

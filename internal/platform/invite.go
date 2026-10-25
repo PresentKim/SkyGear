@@ -226,9 +226,14 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 			}
 		}
 	}
+	hosts := map[string]db.Account{}
 	for _, s := range saves {
 		id := fmt.Sprintf("s%d", s.ID)
-		host, _ := pf.db.Account(s.Owner)
+		host, ok := hosts[s.Owner]
+		if !ok {
+			host, _ = pf.db.Account(s.Owner)
+			hosts[s.Owner] = host
+		}
 		open := pf.m.Active(s.ID) != nil
 		state := i18n.T(lang, "platform.invite.save.offline")
 		if open {

@@ -14,6 +14,12 @@ var cycleOnReset = map[string]bool{
 	KindCrafter: true, KindSimulator: true,
 }
 
+func init() {
+	for kind := range cycleOnReset {
+		machineKinds[kind].cycleOnReset = true
+	}
+}
+
 // countWork passes the work a machine did to the players' counters: its
 // finished cycles at once, the RE it generated once a second.
 func (st *machineState) countWork(tx *world.Tx, kind string, tick int64) {

@@ -21,6 +21,12 @@ var animatedMachines = map[string]bool{
 	KindVacuum: true, KindFeller: true,
 }
 
+func init() {
+	for kind := range animatedMachines {
+		machineKinds[kind].animated = true
+	}
+}
+
 // activeState is the block state of an animated machine.
 const activeState = "dragonfactory:active"
 

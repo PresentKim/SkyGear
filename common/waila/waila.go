@@ -6,7 +6,6 @@ package waila
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -129,7 +128,10 @@ func Format(info Info) (titleText, subtitle string) {
 		if i == 1 {
 			sep = ':'
 		}
-		fmt.Fprintf(&b, "%s,%c%c", t.Tool, t.Mark, sep)
+		b.WriteString(string(t.Tool))
+		b.WriteByte(',')
+		b.WriteRune(rune(t.Mark))
+		b.WriteByte(sep)
 	}
 	if info.NameKey != "" {
 		b.WriteString("§f" + keyMark + info.NameKey + keyMark + "§r")

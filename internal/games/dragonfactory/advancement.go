@@ -214,12 +214,22 @@ var advancementTree = []Advancement{
 	{ID: advDragon, NameKey: "advancement.dragon_egg.name", Parent: "project_dragon", HintKey: "advancement.dragon_egg.hint", Event: true, Icon: "dragon_egg", Guide: "project_dragon"},
 }
 
+// advancementIndex is the index in advancementTree of each ID's first
+// advancement.
+var advancementIndex = func() map[string]int {
+	m := map[string]int{}
+	for i := range advancementTree {
+		if _, ok := m[advancementTree[i].ID]; !ok {
+			m[advancementTree[i].ID] = i
+		}
+	}
+	return m
+}()
+
 // advancementByID returns an advancement of the tree.
 func advancementByID(id string) (*Advancement, bool) {
-	for i := range advancementTree {
-		if advancementTree[i].ID == id {
-			return &advancementTree[i], true
-		}
+	if i, ok := advancementIndex[id]; ok {
+		return &advancementTree[i], true
 	}
 	return nil, false
 }
@@ -307,9 +317,27 @@ func (s *session) advance(tx *world.Tx, id string) {
 	}
 }
 
+// advancementItems are the unlockName of each advancement's Item, by index
+// in advancementTree.
+var advancementItems = func() []string {
+	out := make([]string, len(advancementTree))
+	for i, a := range advancementTree {
+		if a.Item != "" {
+			out[i] = unlockName(a.Item)
+		}
+	}
+	return out
+}()
+
 // checkAdvancements completes the item and research advancements met by
-// the players in tx. It runs every second.
+// the players in tx.
 func (s *session) checkAdvancements(tx *world.Tx) {
+	s.checkAdvancementsHeld(tx, inventoryNames(tx))
+}
+
+// checkAdvancementsHeld is checkAdvancements with the players' item names
+// (inventoryNames). It runs every second.
+func (s *session) checkAdvancementsHeld(tx *world.Tx, held []playerItems) {
 	var have map[string]bool
 	var done []*Advancement
 	for i := range advancementTree {
@@ -324,9 +352,9 @@ func (s *session) checkAdvancements(tx *world.Tx) {
 			}
 		case a.Item != "":
 			if have == nil {
-				have = heldItemNames(tx)
+				have = heldItemNames(held)
 			}
-			if have[unlockName(a.Item)] {
+			if have[advancementItems[i]] {
 				done = append(done, a)
 			}
 		}
@@ -336,13 +364,32 @@ func (s *session) checkAdvancements(tx *world.Tx) {
 	}
 }
 
-// heldItemNames are the names of the items in the inventories of the
-// players in tx.
-func heldItemNames(tx *world.Tx) map[string]bool {
-	names := map[string]bool{}
+// playerItems are the names of the items in a player's inventory.
+type playerItems struct {
+	p     *player.Player
+	names map[string]bool
+}
+
+// inventoryNames are the item names in the inventory of each player in tx.
+func inventoryNames(tx *world.Tx) []playerItems {
+	var out []playerItems
 	for e := range tx.Players() {
-		for _, st := range e.(*player.Player).Inventory().Items() {
+		p := e.(*player.Player)
+		names := map[string]bool{}
+		for _, st := range p.Inventory().Items() {
 			name, _ := st.Item().EncodeItem()
+			names[name] = true
+		}
+		out = append(out, playerItems{p: p, names: names})
+	}
+	return out
+}
+
+// heldItemNames are the names of the items any of the players hold.
+func heldItemNames(held []playerItems) map[string]bool {
+	names := map[string]bool{}
+	for _, h := range held {
+		for name := range h.names {
 			names[name] = true
 		}
 	}

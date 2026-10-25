@@ -91,8 +91,10 @@ func (pf *Platform) friendList(p *player.Player, sel string) (ui.ListSplit, erro
 		return ui.ListSplit{}, err
 	}
 	var online, offline []db.Account
+	isOnline := map[string]bool{}
 	for _, f := range friends {
-		if pf.isOnline(f.ID) {
+		isOnline[f.ID] = pf.isOnline(f.ID)
+		if isOnline[f.ID] {
 			online = append(online, f)
 		} else {
 			offline = append(offline, f)
@@ -132,7 +134,7 @@ func (pf *Platform) friendList(p *player.Player, sel string) (ui.ListSplit, erro
 			chosen = f
 		}
 		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(f.Name, pf.status(lang, f.ID)), Icon: iconFriend,
+			Label: ui.ListRowText(f.Name, pf.statusOf(lang, f.ID, isOnline[f.ID])), Icon: iconFriend,
 			Selected: f.ID == sel, Run: again(f.ID),
 		})
 	}

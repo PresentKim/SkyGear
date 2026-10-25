@@ -35,7 +35,7 @@ func formOpen(s *session.Session, id uint32) bool {
 	if s == nil {
 		return true
 	}
-	h := unexported(reflect.ValueOf(s).Elem().FieldByName("handlers")).MapIndex(reflect.ValueOf(uint32(packet.IDModalFormResponse)))
+	h := unexported(fieldByName(reflect.ValueOf(s).Elem(), "handlers")).MapIndex(reflect.ValueOf(uint32(packet.IDModalFormResponse)))
 	fh, ok := h.Interface().(*session.ModalFormResponseHandler)
 	if !ok {
 		return true

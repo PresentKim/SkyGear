@@ -109,10 +109,15 @@ func (s *session) ownsVisual(pos cube.Pos, h *world.EntityHandle) bool {
 // showConduit makes sure the bundle at pos has a display entity that shows
 // what it holds now: one that is out of date is made again.
 func (s *session) showConduit(tx *world.Tx, pos cube.Pos, b ConduitBundle) {
+	s.showConduitWith(tx, pos, b, plugsOf(tx, pos, b))
+}
+
+// showConduitWith is showConduit for a bundle whose plugs are known.
+func (s *session) showConduitWith(tx *world.Tx, pos cube.Pos, b ConduitBundle, plugs map[plugKey]int) {
 	if s.visuals == nil {
 		s.visuals = map[cube.Pos]*world.EntityHandle{}
 	}
-	s.syncPlates(tx, pos, b)
+	s.syncPlates(tx, pos, b, plugs)
 	variant, mark := conduitLook(b)
 	if h, ok := s.visuals[pos]; ok {
 		if e, ok := h.Entity(tx); ok {

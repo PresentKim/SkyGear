@@ -1,8 +1,6 @@
 package dragonfactory
 
 import (
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/internal/account"
 )
 
@@ -27,18 +25,12 @@ func init() {
 }
 
 // grantCollection gives the first-possession achievements to the players who
-// hold the items. It runs every second.
-func grantCollection(tx *world.Tx) {
-	for e := range tx.Players() {
-		p := e.(*player.Player)
-		have := map[string]bool{}
-		for _, st := range p.Inventory().Items() {
-			name, _ := st.Item().EncodeItem()
-			have[name] = true
-		}
+// hold the items (inventoryNames). It runs every second.
+func grantCollection(held []playerItems) {
+	for _, ph := range held {
 		for _, h := range haveCatalog {
-			if have[h.item] {
-				account.Grant(p, "df_have_"+h.short)
+			if ph.names[h.item] {
+				account.Grant(ph.p, "df_have_"+h.short)
 			}
 		}
 	}

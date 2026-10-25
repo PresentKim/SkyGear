@@ -1,6 +1,7 @@
 package account
 
 import (
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -32,6 +33,9 @@ var (
 	counts     = map[string]map[string]int64{}
 	dirty      = map[string]map[string]int64{}
 	lastFlush  = time.Now()
+	// flushMu is held while counts are written, so a reload after Forget
+	// reads them.
+	flushMu sync.Mutex
 )
 
 // RegisterCounter makes key a counter whose tiers grant achievements. The
@@ -45,15 +49,23 @@ func RegisterCounter(key string, t ...Tier) {
 	}
 }
 
-// loadLocked returns the counts of an account, reading them on first use.
-func loadLocked(acc string) map[string]int64 {
+// lockCounts locks mu and returns the counts of an account, reading them on
+// first use with mu released. The caller unlocks mu.
+func lockCounts(acc string) map[string]int64 {
+	mu.Lock()
 	if c, ok := counts[acc]; ok {
 		return c
 	}
-	c, err := store.Counters(acc)
+	d := store
+	mu.Unlock()
+	c, err := d.Counters(acc)
 	if err != nil {
 		log.Error("load counters", "account", acc, "err", err)
 		c = map[string]int64{}
+	}
+	mu.Lock()
+	if have, ok := counts[acc]; ok {
+		return have
 	}
 	counts[acc] = c
 	return c
@@ -72,7 +84,8 @@ func Count(p *player.Player, key string, n int64) {
 		mu.Unlock()
 		return
 	}
-	c := loadLocked(acc)
+	mu.Unlock()
+	c := lockCounts(acc)
 	before := c[key]
 	c[key] = before + n
 	if dirty[acc] == nil {
@@ -86,23 +99,28 @@ func Count(p *player.Player, key string, n int64) {
 		}
 	}
 	due := time.Since(lastFlush) >= flushEvery
+	if due {
+		lastFlush = time.Now()
+	}
 	mu.Unlock()
 	for _, id := range reached {
 		Grant(p, id)
 	}
 	if due {
-		Flush()
+		go Flush()
 	}
 }
 
 // Counter returns the count of key for an account.
 func Counter(acc, key string) int64 {
 	mu.Lock()
-	defer mu.Unlock()
-	if store == nil {
+	d := store
+	mu.Unlock()
+	if d == nil {
 		return 0
 	}
-	return loadLocked(acc)[key]
+	defer mu.Unlock()
+	return lockCounts(acc)[key]
 }
 
 // Progress returns how far an account is to the achievement id: the count
@@ -120,6 +138,8 @@ func Progress(acc, id string) (have, need int64, ok bool) {
 
 // Flush writes the counts not yet stored.
 func Flush() {
+	flushMu.Lock()
+	defer flushMu.Unlock()
 	mu.Lock()
 	batch := dirty
 	dirty = map[string]map[string]int64{}

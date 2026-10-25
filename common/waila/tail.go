@@ -4,7 +4,7 @@ import (
 	"math/bits"
 	"strings"
 
-	"github.com/df-mc/dragonfly/server/item"
+	"github.com/presentkim/dragonfactory/common/internal/slottext"
 )
 
 // The tail of the subtitle, after the panel slots: the item line's icon
@@ -26,7 +26,7 @@ const lineToken = "__waila:df.line__"
 // tail is the subtitle tail for marks and line.
 func tail(m Marks, line *ItemLine) string {
 	var b strings.Builder
-	lineIcon, text, name := itemField(item.Stack{}), "", ""
+	lineIcon, text, name := emptyItemField, "", ""
 	if line != nil {
 		lineIcon, text, name = itemField(line.Item), line.Text, line.Name
 	}
@@ -45,7 +45,7 @@ func tail(m Marks, line *ItemLine) string {
 		gauge = byte('a' + min(max(line.Gauge, 0), 10))
 	}
 	b.WriteByte(gauge)
-	b.WriteString(pad(text, textWidth))
+	b.WriteString(slottext.Pad(text, textWidth))
 	b.WriteString(name)
 	return b.String()
 }

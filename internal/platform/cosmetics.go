@@ -42,8 +42,8 @@ func (pf *Platform) cosmeticTabs(p *player.Player, cur int) []ui.Option {
 func (pf *Platform) showCosmetics(p *player.Player) { pf.showTitles(p) }
 
 // cosmeticsStatus is the line above the first tab: the display name, how many
-// achievements are owned, the title and the name colour now.
-func (pf *Platform) cosmeticsStatus(p *player.Player) string {
+// achievements are owned (owned), the title and the name colour now.
+func (pf *Platform) cosmeticsStatus(p *player.Player, owned int) string {
 	acc, err := pf.db.Account(instance.AccountID(p))
 	if err != nil {
 		return ""
@@ -54,7 +54,7 @@ func (pf *Platform) cosmeticsStatus(p *player.Player) string {
 		title = a.Title(lang)
 	}
 	return fmt.Sprintf(i18n.T(lang, "platform.cosmetics.showCosmetics.3"),
-		account.DisplayName(p), len(account.Owned(acc.ID)), len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name(lang))
+		account.DisplayName(p), owned, len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name(lang))
 }
 
 // cosmeticsBack goes back to the menu the cosmetics came from: the lobby
@@ -118,7 +118,7 @@ func (pf *Platform) showTitles(p *player.Player) {
 		}
 	}
 	opts = append(opts, pf.cosmeticTabs(p, cosmeticTitles)...)
-	body := pf.cosmeticsStatus(p) + "\n\n" + i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
+	body := pf.cosmeticsStatus(p, len(owned)) + "\n\n" + i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
 	if len(titles) == 0 {
 		body += i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.4")
 	}

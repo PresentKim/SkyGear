@@ -137,7 +137,9 @@ func Groups() []string {
 
 // Get returns the achievement with id.
 func Get(id string) (Achievement, bool) {
-	for _, a := range All() {
+	mu.Lock()
+	defer mu.Unlock()
+	for _, a := range achievements {
 		if a.ID == id {
 			return a, true
 		}
@@ -158,12 +160,15 @@ func ColorOf(id string) Color {
 // Grant gives p the achievement id if it does not have it yet, telling p.
 // It may be called from any world transaction.
 func Grant(p *player.Player, id string) {
-	a, ok := Get(id)
-	if !ok || store == nil {
+	if store == nil {
 		return
 	}
 	acc := instance.AccountID(p)
 	if hasGranted(acc, id) {
+		return
+	}
+	a, ok := Get(id)
+	if !ok {
 		return
 	}
 	isNew, err := store.GrantAchievement(acc, id)
@@ -187,21 +192,28 @@ func Grant(p *player.Player, id string) {
 // reading its achievements the first time.
 func hasGranted(acc, id string) bool {
 	mu.Lock()
-	defer mu.Unlock()
-	set, ok := granted[acc]
-	if !ok {
-		set = map[string]bool{}
-		ids, err := store.Achievements(acc)
-		if err != nil {
-			log.Error("load achievements", "account", acc, "err", err)
-			return false
-		}
-		for _, x := range ids {
-			set[x] = true
-		}
-		granted[acc] = set
+	if set, ok := granted[acc]; ok {
+		has := set[id]
+		mu.Unlock()
+		return has
 	}
-	return set[id]
+	mu.Unlock()
+	ids, err := store.Achievements(acc)
+	if err != nil {
+		log.Error("load achievements", "account", acc, "err", err)
+		return false
+	}
+	loaded := make(map[string]bool, len(ids))
+	for _, x := range ids {
+		loaded[x] = true
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if set, ok := granted[acc]; ok {
+		return set[id]
+	}
+	granted[acc] = loaded
+	return loaded[id]
 }
 
 func markGranted(acc, id string) {
@@ -254,12 +266,24 @@ func DisplayName(p *player.Player) string {
 	return p.Name()
 }
 
-// Forget drops the cached name of a player who left.
+// Forget writes the counts of a player who left and drops its cached name.
 func Forget(p *player.Player) {
-	Flush()
+	acc := instance.AccountID(p)
+	flushMu.Lock()
+	defer flushMu.Unlock()
 	mu.Lock()
-	delete(display, instance.AccountID(p))
-	delete(counts, instance.AccountID(p))
-	delete(granted, instance.AccountID(p))
+	delta := dirty[acc]
+	delete(dirty, acc)
+	d := store
+	mu.Unlock()
+	if d != nil && len(delta) > 0 {
+		if err := d.AddCounters(acc, delta); err != nil {
+			log.Error("store counters", "account", acc, "err", err)
+		}
+	}
+	mu.Lock()
+	delete(display, acc)
+	delete(counts, acc)
+	delete(granted, acc)
 	mu.Unlock()
 }

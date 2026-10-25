@@ -154,8 +154,8 @@ func (s *session) composterReady(pos cube.Pos, c block.Composter) bool {
 // forgets composters that are gone.
 func (s *session) tickComposters(tx *world.Tx) {
 	for key, at := range s.state.ComposterReady {
-		var pos cube.Pos
-		if _, err := fmt.Sscanf(key, "%d,%d,%d", &pos[0], &pos[1], &pos[2]); err != nil {
+		pos, ok := parseCropKey(key)
+		if !ok {
 			delete(s.state.ComposterReady, key)
 			continue
 		}

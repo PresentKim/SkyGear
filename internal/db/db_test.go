@@ -179,6 +179,23 @@ func TestFriends(t *testing.T) {
 	}
 }
 
+func TestSetPlayerStatesKeepsMoney(t *testing.T) {
+	d := open(t)
+	_, _ = d.TouchAccount("h", "", "h")
+	_, _ = d.TouchAccount("g", "", "g")
+	s, _ := d.CreateSave("h", "g", 1, "s")
+	_ = d.SetMoney(s.ID, "h", 7)
+	if err := d.SetPlayerStates(s.ID, map[string][]byte{"h": {1}, "g": {2}}); err != nil {
+		t.Fatal(err)
+	}
+	if money, state, err := d.PlayerState(s.ID, "h"); err != nil || money != 7 || string(state) != "\x01" {
+		t.Fatalf("host = %d %v %v", money, state, err)
+	}
+	if _, state, err := d.PlayerState(s.ID, "g"); err != nil || string(state) != "\x02" {
+		t.Fatalf("guest = %v %v", state, err)
+	}
+}
+
 func TestMembersAndInviteCodes(t *testing.T) {
 	d := open(t)
 	_, _ = d.TouchAccount("h", "", "h")
@@ -248,6 +265,32 @@ func TestAchievementsAndCosmetics(t *testing.T) {
 
 func TestBackupCopiesData(t *testing.T) {
 	d := open(t)
+	if _, err := d.TouchAccount("a", "", "A"); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "copy.sqlite")
+	if err := d.Backup(path); err != nil {
+		t.Fatal(err)
+	}
+	if fi, err := os.Stat(path); err != nil || fi.Size() == 0 {
+		t.Fatalf("backup file: %v %v", fi, err)
+	}
+	c, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = c.Close() })
+	if a, err := c.Account("a"); err != nil || a.Name != "A" {
+		t.Fatalf("backup account %+v %v", a, err)
+	}
+}
+
+func TestBackupInMemory(t *testing.T) {
+	d, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = d.Close() })
 	path := filepath.Join(t.TempDir(), "copy.sqlite")
 	if err := d.Backup(path); err != nil {
 		t.Fatal(err)

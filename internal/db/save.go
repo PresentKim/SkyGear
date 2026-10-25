@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"strings"
 	"time"
@@ -85,7 +86,10 @@ func (d *DB) Save(id int64) (Save, error) {
 
 // SavesOf returns the saves owned by owner for a game type, ordered by slot.
 func (d *DB) SavesOf(owner, gameType string) ([]Save, error) {
-	rows, err := d.sql.Query(`SELECT `+saveColumns+` FROM saves WHERE owner = ? AND game_type = ? ORDER BY slot`, owner, gameType)
+	return scanSaves(d.sql.Query(`SELECT `+saveColumns+` FROM saves WHERE owner = ? AND game_type = ? ORDER BY slot`, owner, gameType))
+}
+
+func scanSaves(rows *sql.Rows, err error) ([]Save, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -211,6 +215,23 @@ func (d *DB) SetPlayerState(saveID int64, accountID string, state []byte) error 
 	return err
 }
 
+// SetPlayerStates stores the per-save state blobs of players by account ID
+// in one transaction.
+func (d *DB) SetPlayerStates(saveID int64, states map[string][]byte) error {
+	tx, err := d.sql.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	for acc, state := range states {
+		if _, err := tx.Exec(`INSERT INTO save_players (save_id, account_id, state) VALUES (?, ?, ?)
+			ON CONFLICT(save_id, account_id) DO UPDATE SET state = excluded.state`, saveID, acc, state); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 // SaveState returns a game specific value of a save, or ErrNotFound.
 func (d *DB) SaveState(saveID int64, key string) ([]byte, error) {
 	var v []byte
@@ -272,22 +293,9 @@ func (d *DB) LeaveMember(saveID int64, accountID string) error {
 
 // JoinedSaves returns the saves an account joined as a non-host member.
 func (d *DB) JoinedSaves(accountID string) ([]Save, error) {
-	rows, err := d.sql.Query(`SELECT s.id, s.game_type, s.owner, s.slot, s.name, COALESCE(s.invite_code, ''), s.instance_time, s.day, s.day_time, s.created_at, s.last_played
+	return scanSaves(d.sql.Query(`SELECT `+saveColumns+`
 		FROM saves s JOIN save_members m ON m.save_id = s.id
-		WHERE m.account_id = ? AND m.left_at IS NULL AND m.role != ? ORDER BY s.last_played DESC`, accountID, RoleHost)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var out []Save
-	for rows.Next() {
-		s, err := scanSave(rows)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, s)
-	}
-	return out, rows.Err()
+		WHERE m.account_id = ? AND m.left_at IS NULL AND m.role != ? ORDER BY s.last_played DESC`, accountID, RoleHost))
 }
 
 // SetInviteCode stores the invite code of a save. It returns ErrCodeTaken

@@ -30,6 +30,7 @@ type codexEntry struct {
 var (
 	codexIndexOnce   sync.Once
 	codexIndexStacks []item.Stack
+	codexIndexByKey  = map[string]item.Stack{}
 	codexIndexMu     sync.Mutex
 	codexIndexByLang = map[string][]codexEntry{}
 )
@@ -59,6 +60,7 @@ func codexIndex(lang string) []codexEntry {
 				continue
 			}
 			codexIndexStacks = append(codexIndexStacks, st)
+			codexIndexByKey[k] = st
 		}
 	})
 	codexIndexMu.Lock()
@@ -183,8 +185,9 @@ func codexRelevant() map[string]bool {
 		st := queue[0]
 		queue = queue[1:]
 		if open[recipeKey(st.Item())] {
+			k := itemKey(st.Item())
 			for _, cr := range crafterRecipes() {
-				if itemKey(cr.out.Item()) != itemKey(st.Item()) {
+				if cr.outKey != k {
 					continue
 				}
 				for _, req := range cr.reqs {

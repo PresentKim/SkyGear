@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/internal/slottext"
 )
 
 // Layout is how the panel lays out a container's contents.
@@ -54,20 +53,29 @@ const (
 // the icon's).
 var chestSlots = []int{0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}
 
+// slotIndexes are the panel slots other containers fill in slot order.
+var slotIndexes = func() (indexes []int) {
+	for i := range panelSlots {
+		if i != 8 {
+			indexes = append(indexes, i)
+		}
+	}
+	return indexes
+}()
+
+var (
+	emptyItemField = strings.Repeat("x", iconWidth-1) + "0"
+	blankCount     = strings.Repeat("~", countWidth)
+)
+
 // slots places the contents on the panel's slots. Chests add up stacks of a
 // kind and fill their row in order; other containers keep their slot
 // positions.
 func (c Container) slots() (out [panelSlots]item.Stack) {
 	if c.Layout != LayoutChest {
-		var indexes []int
-		for i := range panelSlots {
-			if i != 8 {
-				indexes = append(indexes, i)
-			}
-		}
 		for i, it := range c.Items {
-			if i < len(indexes) {
-				out[indexes[i]] = it
+			if i < len(slotIndexes) {
+				out[slotIndexes[i]] = it
 			}
 		}
 		if !c.Progress.Empty() {
@@ -119,9 +127,12 @@ func (c Container) empty() bool {
 func itemField(it item.Stack) string {
 	n := 0
 	if !it.Empty() {
-		if rid, _, ok := world.ItemRuntimeID(it.Item()); ok {
-			n = int(rid) * 65536
+		if aux, ok := slottext.ItemAux(it.Item()); ok {
+			n = int(aux)
 		}
+	}
+	if n == 0 {
+		return emptyItemField
 	}
 	s := strconv.Itoa(n)
 	if len(s) > iconWidth {
@@ -136,31 +147,16 @@ func itemField(it item.Stack) string {
 // the pack, and a label shows nothing for a number (the counts did not
 // show, 11th playtest).
 func countField(n int) string {
-	text := ""
+	var text string
 	switch {
 	case n <= 1:
+		return blankCount
 	case n < 10000:
 		text = fmt.Sprintf("§f%d", n)
 	default:
 		text = fmt.Sprintf("§f%dk", min(n/1000, 999))
 	}
-	return pad(text, countWidth)
-}
-
-// pad cuts s to at most n bytes (whole characters) and fills it with '~'
-// to n bytes.
-func pad(s string, n int) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '~' {
-			continue
-		}
-		if b.Len()+utf8.RuneLen(r) > n {
-			break
-		}
-		b.WriteRune(r)
-	}
-	return b.String() + strings.Repeat("~", n-b.Len())
+	return slottext.Pad(text, countWidth)
 }
 
 // token is the title token that shows the container panel.

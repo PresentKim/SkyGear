@@ -3,8 +3,10 @@ package dragonfactory
 import (
 	"encoding/json"
 	"errors"
+	"sync"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/dragonfactory/internal/db"
 )
 
@@ -74,6 +76,16 @@ type LostItem struct {
 	Count int    `json:"count"`
 	// LastDropped is the instance time of the most recent drop.
 	LastDropped time.Duration `json:"last_dropped"`
+	// stack is Item decoded, once it was needed (decoded).
+	stack item.Stack
+}
+
+// decoded is the stack of the entry, with count 1.
+func (l *LostItem) decoded() item.Stack {
+	if l.stack.Empty() {
+		l.stack = decodeItem(l.Item)
+	}
+	return l.stack
 }
 
 func newState() *State {
@@ -100,10 +112,54 @@ func loadState(d *db.DB, saveID int64) (*State, error) {
 	return s, nil
 }
 
-func (s *State) save(d *db.DB, saveID int64) error {
-	b, err := json.Marshal(s)
-	if err != nil {
-		return err
+// stateWriter writes the marshalled states of one save outside the world,
+// keeping only the newest one not written yet.
+type stateWriter struct {
+	write   func([]byte)
+	mu      sync.Mutex
+	pending []byte
+	wake    chan struct{}
+	quit    chan struct{}
+	done    chan struct{}
+}
+
+func newStateWriter(write func([]byte)) *stateWriter {
+	w := &stateWriter{write: write, wake: make(chan struct{}, 1), quit: make(chan struct{}), done: make(chan struct{})}
+	go w.run()
+	return w
+}
+
+func (w *stateWriter) put(b []byte) {
+	w.mu.Lock()
+	w.pending = b
+	w.mu.Unlock()
+	select {
+	case w.wake <- struct{}{}:
+	default:
 	}
-	return d.SetSaveState(saveID, stateKey, b)
+}
+
+func (w *stateWriter) run() {
+	defer close(w.done)
+	for {
+		select {
+		case <-w.wake:
+			w.mu.Lock()
+			b := w.pending
+			w.pending = nil
+			w.mu.Unlock()
+			if b != nil {
+				w.write(b)
+			}
+		case <-w.quit:
+			return
+		}
+	}
+}
+
+// stop ends the writer once the write in progress is done, dropping the
+// pending state.
+func (w *stateWriter) stop() {
+	close(w.quit)
+	<-w.done
 }

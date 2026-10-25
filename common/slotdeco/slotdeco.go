@@ -58,8 +58,17 @@ func TierMark(tier int) string {
 	if tier < 1 || tier > MaxFront {
 		return ""
 	}
-	return fmt.Sprintf("§k§l§r§%d§r", tier)
+	return tierMarks[tier]
 }
+
+const markPrefix = "§k"
+
+var tierMarks = func() (m [MaxFront + 1]string) {
+	for t := 1; t <= MaxFront; t++ {
+		m[t] = fmt.Sprintf("§k§l§r§%d§r", t)
+	}
+	return m
+}()
 
 // Decorate returns name with the rarity mark in front and the front image
 // mark after it.
@@ -69,8 +78,11 @@ func Decorate(r Rarity, tier int, name string) string {
 
 // Strip removes every mark from s.
 func Strip(s string) string {
-	for t := 1; t <= MaxFront; t++ {
-		s = strings.ReplaceAll(s, TierMark(t), "")
+	if !strings.Contains(s, markPrefix) {
+		return s
+	}
+	for _, m := range tierMarks[1:] {
+		s = strings.ReplaceAll(s, m, "")
 	}
 	for _, m := range rarityMarks[1:] {
 		s = strings.ReplaceAll(s, m, "")
@@ -80,6 +92,9 @@ func Strip(s string) string {
 
 // Of returns the rarity and tier marked in s.
 func Of(s string) (Rarity, int) {
+	if !strings.Contains(s, markPrefix) {
+		return Common, 0
+	}
 	var r Rarity
 	for i := Uncommon; i <= Legendary; i++ {
 		if strings.Contains(s, i.Mark()) {
@@ -88,7 +103,7 @@ func Of(s string) (Rarity, int) {
 	}
 	tier := 0
 	for t := 1; t <= MaxFront; t++ {
-		if strings.Contains(s, TierMark(t)) {
+		if strings.Contains(s, tierMarks[t]) {
 			tier = t
 		}
 	}

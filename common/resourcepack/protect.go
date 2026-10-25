@@ -13,7 +13,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 )
 
 // Options say how a pack is prepared before it is sent to clients.
@@ -157,29 +159,28 @@ type contentEntry struct {
 // the paths with their keys, itself encrypted with the pack's content key
 // (which the server hands to clients). The content key is returned.
 func encryptDir(dir, packUUID string, secret []byte) (string, error) {
-	var entries []contentEntry
+	var (
+		entries   []contentEntry
+		files     []string
+		encrypted []int
+	)
 	err := filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}
 		rel, _ := filepath.Rel(dir, p)
 		rel = filepath.ToSlash(rel)
-		if rel == "manifest.json" || rel == "pack_icon.png" {
-			entries = append(entries, contentEntry{Path: rel})
-			return nil
+		if rel != "manifest.json" && rel != "pack_icon.png" {
+			encrypted = append(encrypted, len(entries))
 		}
-		b, err := os.ReadFile(p)
-		if err != nil {
-			return err
-		}
-		key := deriveKey(secret, "file\x00"+rel)
-		if err := cfb8(b, key, false); err != nil {
-			return err
-		}
-		entries = append(entries, contentEntry{Path: rel, Key: string(key)})
-		return os.WriteFile(p, b, 0o644)
+		entries = append(entries, contentEntry{Path: rel})
+		files = append(files, p)
+		return nil
 	})
 	if err != nil {
+		return "", err
+	}
+	if err := encryptFiles(entries, files, encrypted, secret); err != nil {
 		return "", err
 	}
 	list, err := json.Marshal(struct {
@@ -207,4 +208,45 @@ func encryptDir(dir, packUUID string, secret []byte) (string, error) {
 		return "", err
 	}
 	return string(master), nil
+}
+
+// encryptFiles encrypts files[i] in place for every i of encrypted, at most
+// GOMAXPROCS at once, and sets entries[i].Key. It returns the error of the
+// first such file in walk order.
+func encryptFiles(entries []contentEntry, files []string, encrypted []int, secret []byte) error {
+	errs := make([]error, len(entries))
+	next := make(chan int)
+	var wg sync.WaitGroup
+	for range min(runtime.GOMAXPROCS(0), len(encrypted)) {
+		wg.Go(func() {
+			for i := range next {
+				entries[i].Key, errs[i] = encryptFile(files[i], entries[i].Path, secret)
+			}
+		})
+	}
+	for _, i := range encrypted {
+		next <- i
+	}
+	close(next)
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// encryptFile encrypts the file at p, rel in the pack, with its own key and
+// returns the key.
+func encryptFile(p, rel string, secret []byte) (string, error) {
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return "", err
+	}
+	key := deriveKey(secret, "file\x00"+rel)
+	if err := cfb8(b, key, false); err != nil {
+		return "", err
+	}
+	return string(key), os.WriteFile(p, b, 0o644)
 }

@@ -69,9 +69,43 @@ const (
 	KindLab     = "laboratory"
 )
 
+// machineID is the kind of a machine as a number, for switching on it.
+type machineID int
+
+const (
+	idCrusher machineID = iota + 1
+	idSieve
+	idAutoSieve
+	idMagicSieve
+	idMiner
+	idSellBox
+	idHarvester
+	idGenerator
+	idAlloy
+	idTank
+	idWasher
+	idStorageController
+	idStorageLink
+	idTinker
+	idGate
+	idCrucible
+	idLavaGenerator
+	idSimulator
+	idEnergyCell
+	idFurnace
+	idVacuum
+	idFeller
+	idCrafter
+	idLab
+)
+
 // machineKind describes a kind of machine. Slots are window slots of a 27
 // slot (3 row) window; the window inventory is the machine inventory.
 type machineKind struct {
+	id machineID
+	// animated and cycleOnReset are animatedMachines and cycleOnReset of the
+	// kind.
+	animated, cycleOnReset bool
 	// nameKey is the catalog key of the name (title).
 	nameKey string
 	// marker in the window title selects the machine's layout in the
@@ -115,130 +149,130 @@ type machineKind struct {
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
-		nameKey: "dragonfactory.machine.init.1", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		id: idCrusher, nameKey: "dragonfactory.machine.init.1", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
 		use: 20, energyCap: consumerBuffer,
 		helpKeys: []string{"dragonfactory.machine.init.2", "dragonfactory.machine.init.3"},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
 	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
-		nameKey: "dragonfactory.machine.init.4", interval: 60, input: []int{10}, indicator: 12,
+		id: idSieve, nameKey: "dragonfactory.machine.init.4", interval: 60, input: []int{10}, indicator: 12,
 		helpKeys: []string{"dragonfactory.machine.init.5", "dragonfactory.machine.init.6"},
 	},
 	KindAutoSieve: {
 		// The window shows the input (fed by hand, a hopper or a conduit), the ring
 		// and the four slots the products go into (ui/df_machine.json sieve_slots).
-		nameKey: "dragonfactory.machine.init.7", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idAutoSieve, nameKey: "dragonfactory.machine.init.7", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 10, energyCap: consumerBuffer, autoSieve: true,
 		helpKeys: []string{"dragonfactory.machine.init.8", "dragonfactory.machine.init.9"},
 	},
 	KindMagicSieve: {
 		// Like the auto sieve, with the essence slot between the input and the ring
 		// (ui/df_machine.json magicsieve_slots).
-		nameKey: "machine.magicsieve.name", marker: "§d§m§9", interval: 90, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idMagicSieve, nameKey: "machine.magicsieve.name", marker: "§d§m§9", interval: 90, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer, autoSieve: true,
 		helpKeys: []string{"machine.magicsieve.help.1", "machine.magicsieve.help.2", "machine.magicsieve.help.3"},
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
-		nameKey: "dragonfactory.machine.init.10", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		id: idMiner, nameKey: "dragonfactory.machine.init.10", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		use: 20, energyCap: consumerBuffer,
 		helpKeys: []string{"dragonfactory.machine.init.11"},
 	},
 	KindHarvester: {
-		nameKey: "dragonfactory.machine.init.13", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		id: idHarvester, nameKey: "dragonfactory.machine.init.13", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 10, energyCap: consumerBuffer,
 		helpKeys: []string{"dragonfactory.machine.init.14"},
 	},
 	KindGenerator: {
-		nameKey: "generator.name", marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
+		id: idGenerator, nameKey: "generator.name", marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
 		generates: generatorOutput, energyCap: generatorBuffer,
 		helpKeys: []string{"generator.help.1", "generator.help.2"},
 	},
 	KindAlloy: {
-		nameKey: "machine.alloy.name", marker: "§d§m§6", interval: 100, input: []int{10, 11}, output: []int{15}, indicator: 13,
+		id: idAlloy, nameKey: "machine.alloy.name", marker: "§d§m§6", interval: 100, input: []int{10, 11}, output: []int{15}, indicator: 13,
 		use: 20, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
 	KindStorageController: {
-		nameKey: "machine.controller.name", interval: 1, indicator: 10, controller: true,
+		id: idStorageController, nameKey: "machine.controller.name", interval: 1, indicator: 10, controller: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
 	KindStorageLink: {
-		nameKey: "machine.link.name", interval: 1, indicator: 10,
+		id: idStorageLink, nameKey: "machine.link.name", interval: 1, indicator: 10,
 		helpKeys: []string{"machine.link.help.1"},
 	},
 	KindTinker: {
-		nameKey: "machine.tinker.name", interval: 1, indicator: 10,
+		id: idTinker, nameKey: "machine.tinker.name", interval: 1, indicator: 10,
 		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
 	KindGate: {
-		nameKey: "machine.gate.name", interval: 1, indicator: 10, gate: true,
+		id: idGate, nameKey: "machine.gate.name", interval: 1, indicator: 10, gate: true,
 		helpKeys: []string{"machine.gate.help.1", "machine.gate.help.2"},
 	},
 	KindWasher: {
-		nameKey: "machine.washer.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idWasher, nameKey: "machine.washer.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
 		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Water,
 		helpKeys: []string{"machine.washer.help.1", "machine.washer.help.2"},
 	},
 	KindTank: {
-		nameKey: "machine.tank.name", interval: 1, indicator: 10,
+		id: idTank, nameKey: "machine.tank.name", interval: 1, indicator: 10,
 		fluidCap: tankCapacity, fluidSource: true, fluidSink: true,
 		helpKeys: []string{"machine.tank.help.1", "machine.tank.help.2"},
 	},
 	KindCrucible: {
-		nameKey: "machine.crucible.name", interval: 20, input: []int{10}, indicator: 12,
+		id: idCrucible, nameKey: "machine.crucible.name", interval: 20, input: []int{10}, indicator: 12,
 		use: 30, energyCap: consumerBuffer,
 		fluidCap: 8000, fluidSource: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.crucible.help.1", "machine.crucible.help.2"},
 	},
 	KindLavaGenerator: {
-		nameKey: "machine.lavagen.name", interval: 1, indicator: 10,
+		id: idLavaGenerator, nameKey: "machine.lavagen.name", interval: 1, indicator: 10,
 		generates: lavaGenOutput, energyCap: generatorBuffer,
 		fluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
 	KindSimulator: {
-		nameKey: "machine.simulator.name", marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idSimulator, nameKey: "machine.simulator.name", marker: "§d§m§2", interval: 200, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 40, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.simulator.help.1", "machine.simulator.help.2"},
 	},
 	KindEnergyCell: {
-		nameKey: "machine.cell.name", interval: 1, indicator: 10,
+		id: idEnergyCell, nameKey: "machine.cell.name", interval: 1, indicator: 10,
 		cell: true, energyCap: cellCapacity,
 		helpKeys: []string{"machine.cell.help.1", "machine.cell.help.2"},
 	},
 	KindFurnace: {
-		nameKey: "machine.furnace.name", marker: "§d§m§1", interval: 100, input: []int{11}, output: []int{15}, indicator: 13,
+		id: idFurnace, nameKey: "machine.furnace.name", marker: "§d§m§1", interval: 100, input: []int{11}, output: []int{15}, indicator: 13,
 		use: 30, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.furnace.help.1", "machine.furnace.help.2"},
 	},
 	KindVacuum: {
-		nameKey: "machine.vacuum.name", marker: "§d§m§3", interval: 10, output: []int{13, 14, 15, 16}, indicator: 10,
+		id: idVacuum, nameKey: "machine.vacuum.name", marker: "§d§m§3", interval: 10, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 5, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2"},
 	},
 	KindFeller: {
-		nameKey: "machine.feller.name", marker: "§d§m§9", interval: 60, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idFeller, nameKey: "machine.feller.name", marker: "§d§m§9", interval: 60, input: []int{10}, charge: []int{11}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 15, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3"},
 	},
 	KindCrafter: {
 		// The store is the 3×3 on the left, the recipe slot above the ring.
-		nameKey: "machine.crafter.name", marker: "§d§m§7", interval: 40, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		id: idCrafter, nameKey: "machine.crafter.name", marker: "§d§m§7", interval: 40, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
 		use: 25, energyCap: consumerBuffer, crafter: true,
 		helpKeys: []string{"machine.crafter.help.1", "machine.crafter.help.2", "machine.crafter.help.3"},
 	},
 	KindLab: {
 		// The materials are the 3×3 on the left, the essences go to the four
 		// slots on the right.
-		nameKey: "machine.lab.name", marker: "§d§m§8", interval: 320, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
+		id: idLab, nameKey: "machine.lab.name", marker: "§d§m§8", interval: 320, input: []int{0, 1, 2, 9, 10, 11, 18, 19, 20}, output: []int{6, 7, 15, 16}, indicator: 13,
 		use: 40, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
 	KindSellBox: {
-		nameKey: "dragonfactory.machine.init.16", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
+		id: idSellBox, nameKey: "dragonfactory.machine.init.16", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
 		helpKeys: []string{"dragonfactory.machine.init.17", "dragonfactory.machine.init.18"},
 	},
 }
@@ -465,7 +499,7 @@ func (st *machineState) infoItem() item.Stack {
 	for _, k := range st.kind.helpKeys {
 		lore = append(lore, wtext{wkey(k)})
 	}
-	if st.kind == machineKinds[KindSellBox] && st.ownerName != "" {
+	if st.kind.id == idSellBox && st.ownerName != "" {
 		lore = append(lore, wtext{wkey("dragonfactory.machine.infoItem.1"), wraw(st.ownerName)})
 	}
 	if st.tier > 0 {
@@ -523,36 +557,35 @@ func (st *machineState) accepts(it item.Stack) bool {
 	if it.Empty() || !plain(it) {
 		return false
 	}
-	k := itemKey(it.Item())
-	switch st.kind {
-	case machineKinds[KindCrusher]:
+	switch st.kind.id {
+	case idCrusher:
 		_, ok := crusherOutput(it)
 		return ok
-	case machineKinds[KindGenerator]:
+	case idGenerator:
 		return fuelDuration(it) > 0
-	case machineKinds[KindAlloy]:
+	case idAlloy:
 		return alloyAccepts(it)
-	case machineKinds[KindSimulator]:
+	case idSimulator:
 		return acceptsEssence(it)
-	case machineKinds[KindCrucible]:
-		return k == itemKey(block.Cobblestone{})
-	case machineKinds[KindWasher]:
+	case idCrucible:
+		return itemKey(it.Item()) == itemKey(block.Cobblestone{})
+	case idWasher:
 		_, ok := washerOutput(it)
 		return ok
-	case machineKinds[KindFurnace]:
+	case idFurnace:
 		_, ok := smeltOf(it)
 		return ok
-	case machineKinds[KindFeller]:
+	case idFeller:
 		_, ok := it.Item().(block.Sapling)
 		return ok || st.takesCharge(it)
-	case machineKinds[KindCrafter]:
+	case idCrafter:
 		return st.recipe != nil && st.recipe.wants(it)
-	case machineKinds[KindLab]:
+	case idLab:
 		return st.labAccepts(it)
-	case machineKinds[KindSieve], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve]:
+	case idSieve, idAutoSieve, idMagicSieve:
 		// A sieve sifts only with a mesh fitted; the magic sieve also takes essences
 		// (into its essence slot).
-		_, ok := sieveTables[st.mesh][k]
+		_, ok := sieveTables[st.mesh][itemKey(it.Item())]
 		return ok || st.takesCharge(it)
 	}
 	// The sell box (no more shop, 13th playtest) takes nothing.
@@ -565,7 +598,7 @@ func (st *machineState) takesCharge(it item.Stack) bool {
 	switch {
 	case len(st.kind.charge) == 0:
 		return false
-	case st.kind == machineKinds[KindFeller]:
+	case st.kind.id == idFeller:
 		_, ok := it.Item().(item.BoneMeal)
 		return ok
 	}
@@ -754,7 +787,7 @@ func (st *machineState) insert(it item.Stack) bool {
 	if !st.accepts(one) || !fits(st.inv(), slots, []item.Stack{one}) {
 		return false
 	}
-	if st.kind == machineKinds[KindLab] && st.labHave()[itemKey(one.Item())] >= st.labFeedCap(one) {
+	if st.kind.id == idLab && st.labHave()[itemKey(one.Item())] >= st.labFeedCap(one) {
 		return false
 	}
 	put(st.inv(), slots, one)
@@ -795,17 +828,17 @@ func (st *machineState) showProgress() {
 	st.shownPct = pct
 	name := wkey("dragonfactory.machine.showProgress.1", pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
-	switch st.kind {
-	case machineKinds[KindSellBox]:
+	switch st.kind.id {
+	case idSellBox:
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
 		name, it = wkey("dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindMiner], machineKinds[KindAutoSieve], machineKinds[KindMagicSieve], machineKinds[KindSimulator], machineKinds[KindWasher], machineKinds[KindVacuum], machineKinds[KindFeller], machineKinds[KindCrafter], machineKinds[KindLab]:
+	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
 		name, it = wkey("dragonfactory.machine.showProgress.3", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindGenerator]:
+	case idGenerator:
 		// The ring shows the fuel left in the one burning.
 		name, it = wkey("dragonfactory.machine.showProgress.5", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case machineKinds[KindHarvester]:
+	case idHarvester:
 		name, it = wkey("dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, withWindowText(it, wtext{wraw("§r"), name}))
@@ -1233,8 +1266,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	for range st.reps() {
 		full := st.kind.interval > 1 && st.progress >= st.kind.interval
 		before, at := st.worked, st.progress
-		s.runMachine(m.Kind, st, pos, tx)
-		if full && st.progress == 0 && cycleOnReset[m.Kind] {
+		s.runMachine(st, pos, tx)
+		if full && st.progress == 0 && st.kind.cycleOnReset {
 			st.done++
 		}
 		// a machine that is stuck or did nothing has nothing to repeat
@@ -1244,11 +1277,12 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
-	if animatedMachines[m.Kind] {
+	if st.kind.animated {
 		showActive(tx, pos, st, currentTick)
 	}
-	if m.Kind == KindEnergyCell || m.Kind == KindTank || m.Kind == KindCrucible || m.Kind == KindLavaGenerator || m.Kind == KindGate || m.Kind == KindStorageController || m.Kind == KindStorageLink || m.Kind == KindTinker {
-		if m.Kind == KindEnergyCell && st.energy > 0 {
+	switch st.kind.id {
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker:
+		if st.kind.id == idEnergyCell && st.energy > 0 {
 			s.energyGrid().AddSource(pos)
 		}
 		return
@@ -1270,10 +1304,10 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.showProgress()
 }
 
-// runMachine runs the work of a machine of a kind once.
-func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *world.Tx) {
-	switch kind {
-	case KindCrusher:
+// runMachine runs the work of a machine once.
+func (s *session) runMachine(st *machineState, pos cube.Pos, tx *world.Tx) {
+	switch st.kind.id {
+	case idCrusher:
 		st.process(func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
 			if bonus, ok := crusherBonusOf(in); ok {
@@ -1291,33 +1325,33 @@ func (s *session) runMachine(kind string, st *machineState, pos cube.Pos, tx *wo
 			}
 			return []item.Stack{out}
 		})
-	case KindGenerator:
+	case idGenerator:
 		s.runGenerator(st, pos, tx)
-	case KindAlloy:
+	case idAlloy:
 		st.runAlloy()
-	case KindSimulator:
+	case idSimulator:
 		s.runSimulator(st)
-	case KindCrucible:
+	case idCrucible:
 		st.runCrucible()
-	case KindWasher:
+	case idWasher:
 		st.runWasher()
-	case KindLavaGenerator:
+	case idLavaGenerator:
 		s.runLavaGenerator(st, pos)
-	case KindAutoSieve, KindMagicSieve:
+	case idAutoSieve, idMagicSieve:
 		s.runAutoSieve(st, pos, tx)
-	case KindMiner:
+	case idMiner:
 		s.runMiner(st, pos, tx)
-	case KindHarvester:
+	case idHarvester:
 		s.runHarvester(st, pos, tx)
-	case KindFurnace:
+	case idFurnace:
 		st.runFurnace()
-	case KindVacuum:
+	case idVacuum:
 		s.runVacuum(st, pos, tx)
-	case KindFeller:
+	case idFeller:
 		s.runFeller(st, pos, tx)
-	case KindCrafter:
+	case idCrafter:
 		s.runCrafter(st)
-	case KindLab:
+	case idLab:
 		st.runLab()
 	}
 }

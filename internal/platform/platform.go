@@ -74,6 +74,8 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 			forgetLobbyHUD(p)
 			stopLobbyMotion(p)
 		},
+		Entered:     entered,
+		EnterFailed: func(p *player.Player, err error) { (*pf).enterFailed(p, err) },
 	}
 }
 
@@ -179,10 +181,12 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 	sp := ui.ListSplit{Rows: rows}
 	switch {
 	case chosen.ID != 0:
-		code, err := pf.inviteCode(chosen, false)
-		if err != nil {
-			pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
-			return
+		code := chosen.InviteCode
+		if code == "" {
+			if code, err = pf.inviteCode(chosen, false); err != nil {
+				pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
+				return
+			}
 		}
 		n, _ := pf.db.ActiveMembers(chosen.ID)
 		// the invite code (a friend enters it on their multiplayer screen;
@@ -220,14 +224,20 @@ func (pf *Platform) enter(p *player.Player, saveID int64) {
 	if pf.m.Location(instance.AccountID(p)) != nil {
 		return
 	}
-	err := pf.m.Enter(p, saveID)
-	if err == nil {
-		// The save has its own view; the lobby's camera, HUD, locks and
-		// frame go.
-		leaveLobbyScene(p)
-		forgetLobbyHUD(p)
-		return
+	if err := pf.m.Enter(p, saveID); err != nil {
+		pf.enterFailed(p, err)
 	}
+}
+
+// entered runs when p left the lobby for a save: the save has its own view,
+// so the lobby's camera, HUD, locks and frame go.
+func entered(p *player.Player) {
+	leaveLobbyScene(p)
+	forgetLobbyHUD(p)
+}
+
+// enterFailed tells p in the lobby why it could not enter a save.
+func (pf *Platform) enterFailed(p *player.Player, err error) {
 	switch err {
 	case instance.ErrHostOffline:
 		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.1"))

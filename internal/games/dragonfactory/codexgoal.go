@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -37,7 +38,7 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 	k := itemKey(it.Item())
 	best, bestRate := recipeStep{}, 0.0
 	for _, cr := range crafterRecipes() {
-		if itemKey(cr.out.Item()) != k {
+		if cr.outKey != k {
 			continue
 		}
 		step := recipeStep{out: max(1, cr.out.Count())}
@@ -118,14 +119,30 @@ func codexRaw(it item.Stack, n int) []codexLink {
 	return out
 }
 
+var (
+	codexRawMu   sync.Mutex
+	codexRawOnes = map[string][]codexLink{}
+)
+
+// codexRawOne is codexRaw(it, 1), worked out once for each item key. The
+// result is shared: callers only read it.
+func codexRawOne(it item.Stack) []codexLink {
+	k := itemKey(it.Item())
+	codexRawMu.Lock()
+	defer codexRawMu.Unlock()
+	if raw, ok := codexRawOnes[k]; ok {
+		return raw
+	}
+	raw := codexRaw(it, 1)
+	codexRawOnes[k] = raw
+	return raw
+}
+
 // codexItemByKey finds the indexed item with the key.
 func codexItemByKey(key string) (item.Stack, bool) {
-	for _, e := range codexIndex(i18n.Default) {
-		if itemKey(e.stack.Item()) == key {
-			return e.stack, true
-		}
-	}
-	return item.Stack{}, false
+	codexIndex(i18n.Default)
+	st, ok := codexIndexByKey[key]
+	return st, ok
 }
 
 // goalItems are the goals of the save as items.
@@ -175,7 +192,7 @@ func (s *session) goalRows(lang string) []string {
 	var rows []string
 	for _, it := range s.goalItems() {
 		rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.row"), itemName(lang, it)))
-		raw := codexRaw(it, 1)
+		raw := codexRawOne(it)
 		for i, l := range raw {
 			if i == 4 {
 				rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.more"), len(raw)-i))
@@ -210,7 +227,7 @@ func codexReverses(step recipeStep, key string) bool {
 	for _, in := range step.ins {
 		ik := itemKey(in.stack.Item())
 		for _, cr := range crafterRecipes() {
-			if itemKey(cr.out.Item()) != ik || len(cr.reqs) != 1 {
+			if cr.outKey != ik || len(cr.reqs) != 1 {
 				continue
 			}
 			if st, ok := cr.reqs[0].need.(item.Stack); ok && itemKey(st.Item()) == key {

@@ -10,14 +10,36 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/google/uuid"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/internal/slottext"
 )
+
+func init() {
+	dfhook.OnClose(func(c *dfhook.Conn) {
+		if id, err := uuid.Parse(c.IdentityData().Identity); err == nil {
+			forget(id)
+		}
+	})
+}
+
+// forget drops what is kept about the player with id once it quit.
+func forget(id uuid.UUID) {
+	pending.Lock()
+	delete(pending.m, id)
+	pending.Unlock()
+	toasts.Lock()
+	delete(toasts.m, id)
+	toasts.Unlock()
+	oreScreens.Lock()
+	delete(oreScreens.m, id)
+	oreScreens.Unlock()
+}
 
 // Option is a menu button and the action it runs. Icon is an optional
 // texture path shown on the button, e.g. "textures/items/emerald".
@@ -208,10 +230,7 @@ func uniqueLabels(opts []Option) []Option {
 	seen := map[string]bool{}
 	out := make([]Option, len(opts))
 	for i, o := range opts {
-		for seen[o.Label] {
-			o.Label += "§r"
-		}
-		seen[o.Label] = true
+		o.Label = slottext.Unique(seen, o.Label)
 		out[i] = o
 	}
 	return out
@@ -581,22 +600,6 @@ type SlotRow struct {
 	Slots   []ItemSlot
 }
 
-// padSlotCount cuts s to at most n bytes (whole characters) and fills it
-// with '~' up to n bytes; '~' in s is dropped.
-func padSlotCount(s string, n int) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '~' {
-			continue
-		}
-		if b.Len()+utf8.RuneLen(r) > n {
-			break
-		}
-		b.WriteRune(r)
-	}
-	return b.String() + strings.Repeat("~", n-b.Len())
-}
-
 // CountText formats an item count for a slot's bottom right: whole up to
 // 9999, then in thousands ("12k") or millions ("3m").
 func CountText(n int) string {
@@ -626,7 +629,7 @@ func slotLabel(marker string, tipRight bool, sl ItemSlot) string {
 		// answer the form
 		align = viewOnly
 	}
-	return marker + align + padSlotCount(count, slotCountBytes) + sl.Tip
+	return marker + align + slottext.Pad(count, slotCountBytes) + sl.Tip
 }
 
 // slotOption is the option of a slot (nil Run does nothing).
@@ -860,11 +863,11 @@ func Amount(p *player.Player, title, label string, max, def int, f func(p *playe
 // metadata is not used). It returns "" for an unregistered item. Blocks
 // show as blocks and no icon texture is needed (docs/tech/json-ui.md).
 func ItemIcon(it world.Item) string {
-	rid, _, ok := world.ItemRuntimeID(it)
+	aux, ok := slottext.ItemAux(it)
 	if !ok {
 		return ""
 	}
-	return strconv.FormatInt(int64(rid)*65536, 10)
+	return strconv.FormatInt(aux, 10)
 }
 
 // Page arrow cells of a SplitMenu: pagerToken, then one byte for the kind

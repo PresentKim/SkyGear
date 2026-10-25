@@ -198,45 +198,24 @@ func (s *session) codexHeadRow(lang string, c codexCard) []ui.BoardCell {
 	return row
 }
 
-// codexBoardPages lays the cards out in pages of at most budget rows, the
-// way JEI shows recipes: each machine's cards centred in the window, two
-// side by side when two fit, a blank row between them. Cards of the same
-// machine in a row share one header, at their left edge; a page that goes on
-// with the machine of the page before repeats its header. A card is never
-// split.
-func (s *session) codexBoardPages(lang string, cards []codexCard, budget int) [][][]ui.BoardCell {
-	var pages [][][]ui.BoardCell
-	var cur [][]ui.BoardCell
+// codexBoard lays the cards out the way JEI shows recipes: each machine's
+// cards centred in the window, two side by side when two fit, a blank row
+// between them. Cards of the same machine share one header, at their left
+// edge.
+func (s *session) codexBoard(lang string, cards []codexCard) [][]ui.BoardCell {
+	var rows [][]ui.BoardCell
 	last := ""
-	// above is the row a block needs above it on the current page: its
-	// machine's header, the blank row between cards or nothing.
-	above := func(b codexBlock) int {
-		if (len(cur) == 0 || b.name != last) && b.name != "" {
-			return 1
-		}
-		if len(cur) > 0 {
-			return 1
-		}
-		return 0
-	}
 	for _, b := range codexBlocks(cards) {
-		if len(cur) > 0 && len(cur)+above(b)+len(b.rows) > budget {
-			pages = append(pages, cur)
-			cur = nil
-		}
 		switch {
-		case (len(cur) == 0 || b.name != last) && b.name != "":
-			cur = append(cur, shiftRow(s.codexHeadRow(lang, codexCard{head: b.head, name: b.name}), b.offset))
-		case len(cur) > 0:
-			cur = append(cur, blankRow())
+		case (len(rows) == 0 || b.name != last) && b.name != "":
+			rows = append(rows, shiftRow(s.codexHeadRow(lang, codexCard{head: b.head, name: b.name}), b.offset))
+		case len(rows) > 0:
+			rows = append(rows, blankRow())
 		}
-		cur = append(cur, b.rows...)
+		rows = append(rows, b.rows...)
 		last = b.name
 	}
-	if len(cur) > 0 || len(pages) == 0 {
-		pages = append(pages, cur)
-	}
-	return pages
+	return rows
 }
 
 // codexBlock is a row of one or two cards of the same machine, placed in the
@@ -345,7 +324,7 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 	k := itemKey(it.Item())
 	var cards []codexCard
 	for _, cr := range crafterRecipes() {
-		if itemKey(cr.out.Item()) == k {
+		if cr.outKey == k {
 			cards = append(cards, s.craftCard(lang, cr))
 		}
 	}

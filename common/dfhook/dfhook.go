@@ -218,11 +218,31 @@ func EditCustomItems(srv *server.Server, edit func(protocol.ItemEntry) protocol.
 
 // field returns a pointer to the unexported field name of *v.
 func field[T any](v any, name string) *T {
-	f := reflect.ValueOf(v).Elem().FieldByName(name)
+	f := fieldByName(reflect.ValueOf(v).Elem(), name)
 	if !f.IsValid() || f.Type() != reflect.TypeFor[T]() {
 		panic("dfhook: no field " + name + " of type " + reflect.TypeFor[T]().String())
 	}
 	return (*T)(unsafe.Pointer(f.UnsafeAddr()))
+}
+
+type fieldKey struct {
+	t    reflect.Type
+	name string
+}
+
+var fieldIndexes sync.Map
+
+func fieldByName(v reflect.Value, name string) reflect.Value {
+	key := fieldKey{v.Type(), name}
+	if index, ok := fieldIndexes.Load(key); ok {
+		return v.FieldByIndex(index.([]int))
+	}
+	sf, ok := v.Type().FieldByName(name)
+	if !ok {
+		return reflect.Value{}
+	}
+	fieldIndexes.Store(key, sf.Index)
+	return v.FieldByIndex(sf.Index)
 }
 
 //go:linkname player_session github.com/df-mc/dragonfly/server/player.(*Player).session

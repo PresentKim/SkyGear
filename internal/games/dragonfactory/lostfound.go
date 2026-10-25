@@ -54,7 +54,7 @@ func (s *session) addLost(it item.Stack) {
 	entry := &LostItem{Item: encodeItem(it)}
 	for i, l := range s.state.Lost {
 		// Compare decoded stacks: encoded NBT bytes are not canonical.
-		if decodeItem(l.Item).Comparable(it) {
+		if l.decoded().Comparable(it) {
 			entry = l
 			s.state.Lost = append(s.state.Lost[:i], s.state.Lost[i+1:]...)
 			break
@@ -71,7 +71,7 @@ func (s *session) purgeLost() {
 	now, _, _ := s.clock.Now()
 	keep := s.state.Lost[:0]
 	for _, l := range s.state.Lost {
-		if now-l.LastDropped < s.clock.DayLength() && !timed.Expired(decodeItem(l.Item)) {
+		if now-l.LastDropped < s.clock.DayLength() && !timed.Expired(l.decoded()) {
 			keep = append(keep, l)
 		}
 	}
@@ -80,7 +80,7 @@ func (s *session) purgeLost() {
 
 // takeLost moves as much of l as fits into p's inventory.
 func (s *session) takeLost(p *player.Player, l *LostItem) {
-	it := decodeItem(l.Item)
+	it := l.decoded()
 	for l.Count > 0 {
 		n := min(l.Count, it.MaxCount())
 		added, _ := p.Inventory().AddItem(it.Grow(n - it.Count()))

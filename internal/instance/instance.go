@@ -35,6 +35,11 @@ type Instance struct {
 	mu      sync.Mutex
 	players map[string]*world.EntityHandle
 
+	// closing is set under m.mu once deactivate starts; joining counts the
+	// players added before that whose entry into the world is still queued.
+	closing bool
+	joining sync.WaitGroup
+
 	stop      chan struct{}
 	runDone   chan struct{}
 	closeOnce sync.Once
@@ -138,10 +143,20 @@ func (inst *Instance) sweepTimed(tx *world.Tx) {
 func (inst *Instance) autosave() {
 	inst.storeClock()
 	inst.World.Do(func(tx *world.Tx) {
+		states := map[string][]byte{}
 		for _, h := range inst.handles() {
 			if e, ok := h.Entity(tx); ok {
-				inst.storePlayer(e.(*player.Player))
+				p := e.(*player.Player)
+				b, err := playerstate.Marshal(playerstate.Capture(p))
+				if err != nil {
+					inst.m.log.Error("store player state", "save", inst.Save.ID, "player", p.Name(), "err", err)
+					continue
+				}
+				states[AccountID(p)] = b
 			}
+		}
+		if err := inst.m.db.SetPlayerStates(inst.Save.ID, states); err != nil {
+			inst.m.log.Error("store player states", "save", inst.Save.ID, "err", err)
 		}
 		inst.session.Autosave(tx)
 	})
@@ -226,6 +241,10 @@ func (inst *Instance) handles() []*world.EntityHandle {
 // closes the world. It must not be called from the instance world itself.
 func (inst *Instance) deactivate() {
 	inst.closeOnce.Do(func() {
+		inst.m.mu.Lock()
+		inst.closing = true
+		inst.m.mu.Unlock()
+		inst.joining.Wait()
 		<-inst.World.Do(func(tx *world.Tx) {
 			for _, h := range inst.handles() {
 				if e, ok := h.Entity(tx); ok {
