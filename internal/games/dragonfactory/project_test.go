@@ -34,10 +34,8 @@ func TestProjectsLeadToTheDragonEgg(t *testing.T) {
 			t.Fatal("the last project did not open the egg recipe")
 		}
 		s.completeDragon(p, tx, machinePos)
-		for _, id := range []string{advDragon, "project_dragon", "project_botanist", "project_hunter", "project_industry"} {
-			if !s.advanced(id) {
-				t.Errorf("%s not done by placing the egg", id)
-			}
+		if !s.advanced(advDragon) {
+			t.Errorf("%s not done by placing the egg", advDragon)
 		}
 	})
 }

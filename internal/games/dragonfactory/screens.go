@@ -123,7 +123,10 @@ func (s *session) mainMenu(p *player.Player) []ui.Option {
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
 		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, _ *world.Tx) { s.showStats(p, statsItems) }),
+		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, tx *world.Tx) {
+			s.advance(tx, advStats)
+			s.showStats(p, statsItems)
+		}),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.helpOption(p),
 		s.lobbyOption(),
@@ -181,7 +184,9 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 				if tx.World() != s.world {
 					return
 				}
-				s.takeLost(p, l)
+				if s.takeLost(p, l) {
+					s.advance(tx, advLost)
+				}
 				s.showLost(p)
 			},
 		})

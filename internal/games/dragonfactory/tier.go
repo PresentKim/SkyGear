@@ -178,6 +178,7 @@ func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine
 		tx.PlaySound(pos.Vec3Centre(), sound.Experience{})
 		tx.AddParticle(pos.Vec3Centre(), particle.HugeExplosion{})
 		count(p, "tier_up", 1)
+		s.advance(tx, advMachineTier)
 		count(p, fmt.Sprintf("tier_up_%d", st.tier), 1)
 	}
 }

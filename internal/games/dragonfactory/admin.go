@@ -325,7 +325,15 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.21"), c.Advancement)
 			return
 		}
-		s.advance(tx, a.ID)
+		var as []*Advancement
+		for _, b := range advancementWithAncestors(a) {
+			if !s.advanced(b.ID) {
+				as = append(as, b)
+			}
+		}
+		if len(as) > 0 {
+			s.completeAdvancements(tx, as)
+		}
 		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.22"), a.Title(i18n.Default))
 	}
 }

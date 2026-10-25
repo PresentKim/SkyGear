@@ -40,7 +40,10 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		if title, rows := s.questRows(i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
-		s.advance(tx, "research_table")
+		rt, _ := advancementByID("research_table")
+		for _, a := range advancementWithAncestors(rt) {
+			s.advance(tx, a.ID)
+		}
 		title, rows := s.questRows(i18n.Default, nil)
 		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)

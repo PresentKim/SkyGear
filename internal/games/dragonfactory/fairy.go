@@ -151,6 +151,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	}
 	d.gave = true
 	count(p, "fairy_gift", 1)
+	s.advance(tx, advFairyGift)
 	gift := s.fairyGift()
 	// Throw it to the player: a short arc that lands at their feet.
 	to := p.Position().Sub(f.data.Pos)

@@ -281,7 +281,8 @@
   }
   var tipOwner = null; // the element whose tooltip shows
 
-  // showTip shows text as the tooltip of e, right of it.
+  // showTip shows text as the tooltip of e, right of it, or left of it when there is no room at the
+  // right, kept inside the screen. After a touch it is a step larger (#oui-tip.touch).
   function showTip(e, text) {
     if (!tip) {
       tip = el("div");
@@ -289,11 +290,20 @@
       document.body.appendChild(tip);
     }
     tipOwner = e;
+    tip.className = touchSeen ? "touch" : "";
     rich(tip, text, false);
-    var r = e.getBoundingClientRect();
-    tip.style.left = Math.round(r.right + 6) + "px";
-    tip.style.top = Math.round(r.top) + "px";
+    tip.style.left = "0px";
+    tip.style.top = "0px";
     tip.style.display = "flex";
+    var r = e.getBoundingClientRect();
+    var t = tip.getBoundingClientRect();
+    var vw = window.innerWidth, vh = window.innerHeight, gap = 6;
+    var x = r.right + gap;
+    if (x + t.width > vw - gap) x = r.left - gap - t.width;
+    x = Math.max(gap, Math.min(x, vw - gap - t.width));
+    var y = Math.max(gap, Math.min(r.top, vh - gap - t.height));
+    tip.style.left = Math.round(x) + "px";
+    tip.style.top = Math.round(y) + "px";
   }
 
   function hideTip() {

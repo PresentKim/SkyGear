@@ -834,26 +834,27 @@
 /* --- quest book (FTB Quests, as ATM10 To The Sky shows it): chapters on the left, the quests of the
    chosen one on a plane the player drags around, the quest panel over it ------------------------ */
 
-/* The window leaves a margin of the screen around it, and its control bar is inside (in the head of
-   the quests), so nothing of it goes off a phone's short screen. */
+/* The window is the size of every other (its style, from ui.windowW and windowH) and its control bar
+   sits over its top right like .mc-window's. */
 .mc-quest-window {
   position: relative;
-  width: 82vw;
-  height: 82vh;
+  max-width: 96vw;
+  max-height: 96vh;
   display: flex;
   flex-direction: row;
+  padding: 0.4rem;
   border-style: solid;
   border-width: 0.8rem;
   border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
   border-image-slice: 4 fill;
   border-image-width: 0.8rem;
   color: var(--mc-ink);
+  font-size: 1.4rem;
 }
 
-/* At most a quarter of the screen, so a phone at a large GUI scale keeps room for the plane. */
+/* The chapters: an 80u column, so the plane keeps most of the window. */
 .mc-chapters {
-  width: 24rem;
-  max-width: 24vw;
+  width: 16rem;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -866,14 +867,14 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding-left: 0.8rem;
+  padding-left: 0.4rem;
   border-style: solid;
   border-width: 0.6rem;
   border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
   border-image-slice: 3 fill;
   border-image-width: 0.6rem;
   color: var(--mc-light-text);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
 }
 
 .mc-chapter:hover {
@@ -885,18 +886,25 @@
   color: #ffd34d;
 }
 
-.mc-chapter .mc-chapter-name {
+/* The name over the count, so a long name keeps the column's width. */
+.mc-chapter .mc-chapter-text {
   flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .mc-chapter img {
-  width: 2.8rem;
-  height: 2.8rem;
-  margin-right: 0.8rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  margin-right: 0.4rem;
 }
 
 .mc-chapter .mc-chapter-count {
-  margin-right: 0.6rem;
+  font-size: 1rem;
   color: #a0a0a0;
 }
 
@@ -908,7 +916,7 @@
 }
 
 .mc-quest-head {
-  height: 3.2rem;
+  height: 2.4rem;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -921,26 +929,6 @@
   margin-right: 0.8rem;
   font-size: 1.4rem;
   color: var(--mc-head);
-}
-
-/* The control bar in the head: in the flow instead of over the window. The z-index makes it a stacking
-   context, so its background (z-index -1) stays in front of the window's. */
-.mc-quest-head .mc-toolbar {
-  position: relative;
-  top: 0;
-  right: 0;
-  height: 3.2rem;
-  padding-top: 0.1rem;
-  padding-bottom: 0.1rem;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
-  align-items: center;
-  z-index: 0;
-}
-
-.mc-quest-head .mc-toolbar-row {
-  height: 3rem;
-  margin-top: 0;
 }
 
 .oui-canvas {
@@ -1038,6 +1026,22 @@
   border-radius: 50%;
 }
 
+/* An entrance of a quest of another chapter: smaller, a dashed circle with that quest's icon. */
+.mc-quest.gate .mc-quest-shape {
+  left: 0.9rem;
+  top: 0.9rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border-style: dashed;
+  border-width: 0.2rem;
+}
+
+.mc-quest.gate img {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
 .mc-quest.open .mc-quest-shape {
   border-color: #e8e8f0;
 }
@@ -1047,9 +1051,10 @@
   border-color: #59c84a;
 }
 
+/* A quest whose parents are not all done: a little darker than an open one, its icon still clear. */
 .mc-quest.locked .mc-quest-shape {
-  background-color: #26262c;
-  border-color: #4a4a52;
+  background-color: #2c2c34;
+  border-color: #5c5c66;
 }
 
 .mc-quest.tracked .mc-quest-shape {
@@ -1067,7 +1072,7 @@
 }
 
 .mc-quest.locked img {
-  opacity: 0.35;
+  opacity: 0.6;
 }
 
 /* The quest panel over the plane. */
@@ -1097,9 +1102,19 @@
   margin-bottom: 0.8rem;
 }
 
+/* The title and status take the room left by the icon and the close button and wrap in it. */
 .mc-quest-panel-head .mc-col {
   flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
   margin-left: 0.8rem;
+  margin-right: 0.8rem;
+}
+
+.mc-quest-panel-head .mc-close,
+.mc-quest-panel-head .mc-slot {
+  flex-shrink: 0;
 }
 
 .mc-quest-panel-head .mc-quest-title {

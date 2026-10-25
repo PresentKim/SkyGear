@@ -61,6 +61,13 @@ func windowScreens() map[string]func() {
 			SlotMenu(p, "서랍", Slot{Icon: "textures/ui/confirm", Text: "64"}, "§f돌\n§764 / 1024", []Slot{{Icon: "textures/ui/confirm", Text: "tip"}}, []Slot{{Icon: "textures/ui/confirm"}})
 		},
 		"sides": func() { SidesMenu(p, "면", SideBoard{}) },
+		"quest": func() {
+			QuestBookMenu(p, "발전과제", QuestBook{
+				Chapters: []QuestChapter{{Name: "시작", Icon: "textures/ui/confirm", Count: "1/2", On: true, Run: nop}},
+				Nodes:    []QuestNode{{ID: "a", Icon: "textures/ui/confirm", State: QuestDone}, {ID: "b", X: 1, Icon: "textures/ui/confirm", State: QuestOpen, Deps: []string{"a"}}},
+				Key:      "q",
+			}, Option{Label: BackToken + "뒤로", Run: nop})
+		},
 		"search": func() {
 			SearchGrid(p, "검색", "찾기", "", func(*player.Player, string) SearchResult {
 				return SearchResult{Sections: []GridSection{{Slots: slots}}}
@@ -85,5 +92,42 @@ func TestWindowSize(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
+	}
+}
+
+// TestQuestBookToolbar: the quest book's control bar is a child of its
+// window, like window's, so it sits over the window's top right.
+func TestQuestBookToolbar(t *testing.T) {
+	_, layouts := shownLayouts(t, windowScreens()["quest"])
+	win := childWithClass(layouts[0].(map[string]any), "mc-quest-window")
+	if win == nil {
+		t.Fatal("no quest window")
+	}
+	if childWithClass(win, "mc-toolbar") == nil {
+		t.Error("the control bar is not a child of the window")
+	}
+}
+
+// childWithClass is the first child of n whose class is class.
+func childWithClass(n map[string]any, class string) map[string]any {
+	kids, _ := n["children"].([]any)
+	for _, k := range kids {
+		if m, ok := k.(map[string]any); ok && m["class"] == class {
+			return m
+		}
+	}
+	return nil
+}
+
+// TestQuestLinesDoneOnTop: of two lines leaving one quest, the done one is
+// drawn after the locked one, so the shared piece shows done.
+func TestQuestLinesDoneOnTop(t *testing.T) {
+	segs := questLines([]QuestNode{
+		{ID: "a", State: QuestDone},
+		{ID: "c", X: 1, Y: 1, State: QuestLocked, Deps: []string{"a"}},
+		{ID: "b", X: 1, State: QuestDone, Deps: []string{"a"}},
+	})
+	if last := segs[len(segs)-1]; last.class != "oui-line-seg done" {
+		t.Fatalf("last line %q", last.class)
 	}
 }

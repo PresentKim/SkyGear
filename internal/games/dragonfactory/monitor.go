@@ -355,6 +355,7 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "dragonfactory.menu.Run.1"))
 		return
 	}
+	s.advance(tx, advStats)
 	s.showStats(p, statsItems)
 }
 

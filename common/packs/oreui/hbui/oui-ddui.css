@@ -322,18 +322,27 @@ body.oui-active #root {
   background-color: rgba(255, 255, 255, 0.18);
 }
 
+/* The tooltip is in the body, outside #oui-ddui, so it names the font stack itself. Its text is the
+   window's size; on a touch screen (oui-ddui.js showTip) one step larger, as a finger is over it. */
 #oui-tip {
   position: absolute;
   display: none;
   flex-direction: column;
-  max-width: 18rem;
-  padding: 0.35rem 0.5rem;
+  max-width: 50rem;
+  padding: 0.7rem;
   background-color: rgba(16, 0, 16, 0.94);
-  border: 0.1rem solid rgb(80, 0, 160);
+  border: 0.2rem solid rgb(80, 0, 160);
   border-radius: 0.2rem;
   color: rgb(255, 255, 255);
-  font-size: 0.75rem;
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
+  font-size: 1.4rem;
   pointer-events: none;
+}
+
+#oui-tip.touch {
+  max-width: 60vw;
+  padding: 0.9rem;
+  font-size: 1.8rem;
 }
 
 /* The Dragon Factory research screen (ouitest research.go). */

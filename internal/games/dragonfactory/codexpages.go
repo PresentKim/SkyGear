@@ -61,6 +61,9 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 		Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.toggleFavourite(p, it)
+				if s.isFavourite(p, it) {
+					s.advance(tx, advFavourite)
+				}
 			}
 			s.showCodexItemAt(p, it, mode)
 		}})

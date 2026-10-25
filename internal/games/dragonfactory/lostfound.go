@@ -78,9 +78,10 @@ func (s *session) purgeLost() {
 	s.state.Lost = keep
 }
 
-// takeLost moves as much of l as fits into p's inventory.
-func (s *session) takeLost(p *player.Player, l *LostItem) {
-	it := l.decoded()
+// takeLost moves as much of l as fits into p's inventory and reports
+// whether any did.
+func (s *session) takeLost(p *player.Player, l *LostItem) bool {
+	it, before := l.decoded(), l.Count
 	for l.Count > 0 {
 		n := min(l.Count, it.MaxCount())
 		added, _ := p.Inventory().AddItem(it.Grow(n - it.Count()))
@@ -98,4 +99,5 @@ func (s *session) takeLost(p *player.Player, l *LostItem) {
 			}
 		}
 	}
+	return l.Count < before
 }
