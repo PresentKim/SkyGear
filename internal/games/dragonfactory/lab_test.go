@@ -215,10 +215,10 @@ func TestLabFeedLeavesRoom(t *testing.T) {
 	}
 }
 
-// TestLabScreen: the cards are the essences the research has come to;
-// choosing one puts its ingredients in from the inventory (and nothing
-// else), the essences made are handed out, and stopping gives everything
-// back and lets the lab take nothing.
+// TestLabScreen: the screen lists the essences the research has come to;
+// starting one puts its ingredients in from the inventory (and nothing else),
+// the essences made are handed out, and stopping gives everything back and
+// lets the extractor take nothing.
 func TestLabScreen(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -230,19 +230,18 @@ func TestLabScreen(t *testing.T) {
 	}
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		opts := s.labChoices(p, machinePos, st)
-		if len(opts) != 1 || !strings.HasPrefix(opts[0].Label, "공학의 정수") {
-			var labels []string
-			for _, o := range opts {
-				labels = append(labels, o.Label)
-			}
-			t.Fatalf("cards %q, want the essence of engineering", labels)
+		open := s.labOpenRecipes()
+		if len(open) != 1 || open[0].Out.Kind != EssenceEngineering {
+			t.Fatalf("%d essences open, want the essence of engineering", len(open))
 		}
+		// the screen's buttons run at once in the test
+		run := func(_ *LabRecipe, f func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx) { return f }
+		_, _, actions := s.labDetail(i18n.Default, st, open[0], run)
 		_, _ = p.Inventory().AddItem(item.NewStack(item.GlassBottle{}, 5))
 		_, _ = p.Inventory().AddItem(item.NewStack(item.IronIngot{}, 200))
 		_, _ = p.Inventory().AddItem(item.NewStack(item.RedstoneWire{}, 7))
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Diamond{}, 3))
-		opts[0].Run(p, tx)
+		press(t, p, tx, actions, "§a만들기 시작")
 		have := st.labHave()
 		if st.lab == nil || have[itemKey(item.GlassBottle{})] != 5 || have[itemKey(item.RedstoneWire{})] != 7 || have[itemKey(item.Diamond{})] != 0 {
 			t.Fatalf("chosen %v, holds %v", st.lab != nil, have)
@@ -251,7 +250,10 @@ func TestLabScreen(t *testing.T) {
 			t.Fatalf("holds %d iron, want the hand cap", n)
 		}
 		_ = st.inv().SetItem(st.kind.output[0], item.NewStack(ResearchEssence{EssenceEngineering}, 4))
-		_, _, actions := s.labPanel(p, machinePos, st)
+		_, rows, actions := s.labDetail(i18n.Default, st, st.lab, run)
+		if len(rows) != 2 || rows[1].Slots[0].Count != "4" {
+			t.Fatalf("rows %+v", rows)
+		}
 		press(t, p, tx, actions, "정수 꺼내기")
 		if outputCount(st, ResearchEssence{EssenceEngineering}) != 0 || countIn(p, ResearchEssence{EssenceEngineering}) != 4 {
 			t.Fatal("the essences were not handed out")

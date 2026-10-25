@@ -86,7 +86,7 @@ func rem(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) + "rem" 
 // zooms the plane with the mouse wheel, two fingers or its + and - buttons.
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
-	_, bar, _ := l.chrome(actions, false)
+	_, bar, _ := l.chrome(actions)
 	var chapters []any
 	for _, c := range b.Chapters {
 		n := box("mc-chapter", "on", c.On, "ink", "dark", "children", []any{

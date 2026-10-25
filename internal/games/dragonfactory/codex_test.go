@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
@@ -245,10 +246,11 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	}
 }
 
-// TestCodexRawAndGoals: the raw materials of an item follow the recipes down
-// (counting how many crafts a recipe needs), goals are kept to goalMax and the
-// quest panel shows their raw needs; the codex tabs have names.
-func TestCodexRawAndGoals(t *testing.T) {
+// TestCodexRawAndFavourites: the raw materials of an item follow the recipes
+// down (counting how many crafts a recipe needs), a player's favourites are
+// kept in order and starring again takes the star off; the codex tabs have
+// names.
+func TestCodexRawAndFavourites(t *testing.T) {
 	s := testSession(t)
 	registerCreativeItems()
 	steel := item.NewStack(Ingot{Metal: MetalSteel}, 1)
@@ -263,21 +265,20 @@ func TestCodexRawAndGoals(t *testing.T) {
 	if raw := codexRaw(item.NewStack(item.Coal{}, 1), 5); len(raw) != 1 || raw[0].count != 5 {
 		t.Errorf("coal is raw: %v", raw)
 	}
-	s.world.Do(func(tx *world.Tx) {
-		for _, w := range []world.Item{Ingot{Metal: MetalSteel}, Ingot{Metal: MetalBronze}, Ingot{Metal: MetalInvar}, Ingot{Metal: MetalElectrum}} {
-			s.toggleGoal(tx, item.NewStack(w, 1))
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		bronze := item.NewStack(Ingot{Metal: MetalBronze}, 1)
+		s.toggleFavourite(p, steel)
+		s.toggleFavourite(p, bronze)
+		if favs := s.favourites(p); len(favs) != 2 || itemKey(favs[0].Item()) != itemKey(steel.Item()) {
+			t.Fatalf("favourites %v", favs)
+		}
+		s.toggleFavourite(p, steel)
+		if s.isFavourite(p, steel) || !s.isFavourite(p, bronze) {
+			t.Error("starring again did not take the star off")
 		}
 	})
-	if n := len(s.state.Goals); n != goalMax {
-		t.Fatalf("%d goals kept, want %d", n, goalMax)
-	}
-	if s.isGoal(steel) {
-		t.Error("the oldest goal was not pushed out")
-	}
-	rows := strings.Join(s.goalRows(i18n.Default), "\n")
-	if !strings.Contains(rows, itemName(i18n.Default, item.NewStack(Ingot{Metal: MetalBronze}, 1))) {
-		t.Errorf("the quest rows lack the goal: %q", rows)
-	}
 	for tab := codexTab(0); tab < codexTabCount; tab++ {
 		if !i18n.Has(codexTabKeys[tab]) {
 			t.Errorf("codex tab %d has no name", tab)

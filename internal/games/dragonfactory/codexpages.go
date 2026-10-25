@@ -53,21 +53,17 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	}
 	head[8] = modeSlot(codexSourcesMode, item.NewStack(block.CraftingTable{}, 1), "codex.item.sources")
 	head[9] = modeSlot(codexUsesMode, item.NewStack(block.Chest{}, 1), "codex.item.uses")
-	if _, ok := codexRecipeOf(it); ok {
-		goalMark := ""
-		key := "goal.set"
-		if s.isGoal(it) {
-			key = "goal.unset"
-			goalMark = "§e★"
-		}
-		head[10] = ui.SlotCell(ui.ItemSlot{Icon: iconOf(item.NewStack(item.BookAndQuill{}, 1)), Tip: "§f" + i18n.T(lang, key), Count: goalMark,
-			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() == s.world {
-					s.toggleGoal(tx, it)
-				}
-				s.showCodexItemAt(p, it, mode)
-			}})
+	favMark, favKey := "", "codex.fav.add"
+	if s.isFavourite(p, it) {
+		favMark, favKey = "§e★", "codex.fav.remove"
 	}
+	head[10] = ui.SlotCell(ui.ItemSlot{Icon: iconOf(item.NewStack(item.NetherStar{}, 1)), Tip: "§f" + i18n.T(lang, favKey), Count: favMark,
+		Run: func(p *player.Player, tx *world.Tx) {
+			if tx.World() == s.world {
+				s.toggleFavourite(p, it)
+			}
+			s.showCodexItemAt(p, it, mode)
+		}})
 	var cards []codexCard
 	if mode == codexUsesMode {
 		cards = s.codexUseCards(lang, it)

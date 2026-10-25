@@ -110,7 +110,7 @@ func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
 		return
 	}
 	l := newOreLayout()
-	tabs, bar, _ := l.chrome(actions, false)
+	tabs, bar, _ := l.chrome(actions)
 	cx, cy := sidesW/2, sidesH/2
 	pos := func(x, y int) map[string]any { return map[string]any{"left": gu(x), "top": gu(y)} }
 	var view []any

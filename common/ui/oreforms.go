@@ -14,14 +14,14 @@ import (
 // from one to another (a friend's row to the confirm question, a grid to its
 // next page) stays in the screen open and changes only what differs.
 
-// oreListSplit is a ListSplitMenu (df_form list_split_form): the tabs named
-// over the window, the rows in a scrolling panel on the left, each a button
+// oreListSplit is a ListSplitMenu (df_form list_split_form): icon tabs
+// over the window (the name is the tooltip), the rows in a scrolling panel on the left, each a button
 // with its icon, its name and the information line under it (the chosen one
 // lit), and on the right the body and the actions, the first full width and
 // the rest two to a row.
 func oreListSplit(p *player.Player, title string, sp ListSplit) {
 	l := newOreLayout()
-	tabs, bar, actions := l.chrome(sp.Actions, true)
+	tabs, bar, actions := l.chrome(sp.Actions)
 	var rows []any
 	for _, r := range sp.Rows {
 		name, info := listRowParts(r.Label)
@@ -88,7 +88,7 @@ func oreInput(p *player.Player, title, label, def string, f func(p *player.Playe
 	if back != nil {
 		opts = append(opts, Back(i18n.T(lang, "ui.input.back"), back))
 	}
-	_, bar, _ := l.chrome(opts, false)
+	_, bar, _ := l.chrome(opts)
 	submit := i18n.T(lang, "ui.input.ok")
 	if strings.Contains(title, CreateToken) {
 		submit = i18n.T(lang, "ui.input.create")
@@ -111,7 +111,7 @@ func oreInput(p *player.Player, title, label, def string, f func(p *player.Playe
 // and the control bar's buttons in their places, the rest as list buttons).
 func oreItemGrid(p *player.Player, title, body string, sections []GridSection, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions, false)
+	tabs, bar, rest := l.chrome(actions)
 	content := []any{}
 	if body != "" {
 		content = append(content, txt("mc-body-text", body), box("mc-gap-3"))
@@ -138,7 +138,7 @@ func oreItemGrid(p *player.Player, title, body string, sections []GridSection, a
 // tooltip; the storage slot's is its count.
 func oreSlotMenu(p *player.Player, title string, store Slot, info string, left, right []Slot, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions, false)
+	tabs, bar, rest := l.chrome(actions)
 	slots := func(list []Slot) []any {
 		var out []any
 		for _, sl := range list {

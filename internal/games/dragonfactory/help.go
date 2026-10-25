@@ -48,7 +48,7 @@ var helpTopics = []struct {
 // showHelp lists the help topics.
 func (s *session) showHelp(p *player.Player) {
 	lang := i18n.Of(p)
-	opts := []ui.Option{s.opt("§e"+i18n.T(lang, "codex.title"), iconOf(item.NewStack(item.Book{}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodex(p) })}
+	var opts []ui.Option
 	for _, t := range helpTopics {
 		title := i18n.T(lang, "help."+t.id+".title")
 		text := i18n.T(lang, "help."+t.id+".text")

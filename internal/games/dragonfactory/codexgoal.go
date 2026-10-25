@@ -1,23 +1,23 @@
 package dragonfactory
 
 import (
-	"fmt"
-	"sync"
+	"slices"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
-	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/hud"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Goal items: an item the save's players chose to make. The codex works out
-// what it takes down to the raw materials, and the quest panel keeps those
-// in view (docs/tech/codex-jei.md).
+// The raw materials of an item: the codex works out what it takes down the
+// recipe chain (docs/tech/codex-jei.md). Favourite items: each player's
+// items starred in the codex, shown above the recently viewed ones.
 
-// goalMax is how many goals the save keeps; a new one pushes the oldest out.
-const goalMax = 3
+// favouriteMax is how many favourites a player keeps; a new one pushes the
+// oldest out.
+const favouriteMax = 33
 
 // goalChainDepth is how many recipes deep the raw materials are followed.
 const goalChainDepth = 6
@@ -119,25 +119,6 @@ func codexRaw(it item.Stack, n int) []codexLink {
 	return out
 }
 
-var (
-	codexRawMu   sync.Mutex
-	codexRawOnes = map[string][]codexLink{}
-)
-
-// codexRawOne is codexRaw(it, 1), worked out once for each item key. The
-// result is shared: callers only read it.
-func codexRawOne(it item.Stack) []codexLink {
-	k := itemKey(it.Item())
-	codexRawMu.Lock()
-	defer codexRawMu.Unlock()
-	if raw, ok := codexRawOnes[k]; ok {
-		return raw
-	}
-	raw := codexRaw(it, 1)
-	codexRawOnes[k] = raw
-	return raw
-}
-
 // codexItemByKey finds the indexed item with the key.
 func codexItemByKey(key string) (item.Stack, bool) {
 	codexIndex(i18n.Default)
@@ -145,10 +126,10 @@ func codexItemByKey(key string) (item.Stack, bool) {
 	return st, ok
 }
 
-// goalItems are the goals of the save as items.
-func (s *session) goalItems() []item.Stack {
+// favourites are p's favourite items, oldest first.
+func (s *session) favourites(p *player.Player) []item.Stack {
 	var out []item.Stack
-	for _, k := range s.state.Goals {
+	for _, k := range s.state.Favourites[instance.AccountID(p)] {
 		if st, ok := codexItemByKey(k); ok {
 			out = append(out, st)
 		}
@@ -156,65 +137,37 @@ func (s *session) goalItems() []item.Stack {
 	return out
 }
 
-func (s *session) isGoal(it item.Stack) bool {
-	k := itemKey(it.Item())
-	for _, g := range s.state.Goals {
-		if g == k {
-			return true
-		}
-	}
-	return false
+// isFavourite reports whether it is one of p's favourites.
+func (s *session) isFavourite(p *player.Player, it item.Stack) bool {
+	return slices.Contains(s.state.Favourites[instance.AccountID(p)], itemKey(it.Item()))
 }
 
-// toggleGoal makes the item a goal, or removes it from the goals.
-func (s *session) toggleGoal(tx *world.Tx, it item.Stack) {
-	k := itemKey(it.Item())
-	if s.isGoal(it) {
-		var keep []string
-		for _, g := range s.state.Goals {
-			if g != k {
-				keep = append(keep, g)
-			}
-		}
-		s.state.Goals = keep
+// toggleFavourite stars it for p, or takes the star off.
+func (s *session) toggleFavourite(p *player.Player, it item.Stack) {
+	acc, k := instance.AccountID(p), itemKey(it.Item())
+	if s.state.Favourites == nil {
+		s.state.Favourites = map[string][]string{}
+	}
+	list := s.state.Favourites[acc]
+	if i := slices.Index(list, k); i >= 0 {
+		list = slices.Delete(list, i, i+1)
 	} else {
-		s.state.Goals = append(s.state.Goals, k)
-		if len(s.state.Goals) > goalMax {
-			s.state.Goals = s.state.Goals[len(s.state.Goals)-goalMax:]
+		list = append(list, k)
+		if len(list) > favouriteMax {
+			list = list[len(list)-favouriteMax:]
 		}
 	}
-	s.updateBoards(tx)
-}
-
-// goalRows are the quest panel rows of the goals: the name and what is
-// needed in raw materials.
-func (s *session) goalRows(lang string) []string {
-	var rows []string
-	for _, it := range s.goalItems() {
-		rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.row"), itemName(lang, it)))
-		raw := codexRawOne(it)
-		for i, l := range raw {
-			if i == 4 {
-				rows = append(rows, fmt.Sprintf(i18n.T(lang, "goal.more"), len(raw)-i))
-				break
-			}
-			rows = append(rows, fmt.Sprintf("§0%s §8×%d", itemName(lang, l.stack), max(1, l.count)))
-		}
+	if len(list) == 0 {
+		delete(s.state.Favourites, acc)
+		return
 	}
-	return rows
+	s.state.Favourites[acc] = list
 }
 
-// addGoalRows puts the goals under the quest panel.
-func (s *session) addGoalRows(lang string, b *hud.Board) {
-	for _, r := range s.goalRows(lang) {
-		b.Add(hud.Quest, r)
-	}
-}
-
-// goalSlots are the goals as slots that open their pages.
-func (s *session) goalSlots(lang string) []ui.ItemSlot {
+// favouriteSlots are p's favourites as slots that open their pages.
+func (s *session) favouriteSlots(p *player.Player, lang string) []ui.ItemSlot {
 	var links []codexLink
-	for _, it := range s.goalItems() {
+	for _, it := range s.favourites(p) {
 		links = append(links, codexLink{stack: it})
 	}
 	return s.codexLinkSlots(lang, links)

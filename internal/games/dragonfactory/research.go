@@ -420,7 +420,6 @@ func (s *session) showResearch(p *player.Player) {
 type researchView struct {
 	tab, page int
 	sel       string
-	help      bool
 }
 
 // researchKind is how a research stands.
@@ -494,7 +493,7 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 // again.
 func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	lang := i18n.Of(p)
-	todo, done, openN := s.researchEntries()
+	todo, done, _ := s.researchEntries()
 	list := todo
 	if v.tab == 1 {
 		list = done
@@ -530,14 +529,14 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		}
 		slots = append(slots, sl)
 	}
-	tab := func(key string, n int, icon string, t int) ui.Option {
-		o := ui.Tab(fmt.Sprintf(i18n.T(lang, key), n), icon, v.tab == t, pick(t, 0, ""))
+	tab := func(key string, icon string, t int) ui.Option {
+		o := ui.Tab(i18n.T(lang, key), icon, v.tab == t, pick(t, 0, ""))
 		return s.opt(o.Label, o.Icon, o.Run)
 	}
 	sp := ui.Split{
 		Tabs: []ui.Option{
-			tab("researchtab.todo", openN, iconMission, 0),
-			tab("researchtab.done", len(done), iconDone, 1),
+			tab("researchtab.todo", iconMission, 0),
+			tab("researchtab.done", iconDone, 1),
 		},
 		Slots: slots,
 		Page:  v.page, Pages: pages,
@@ -555,15 +554,8 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		d, rows, opts := s.researchNodeWith(p, list[idx].r, again, finished, goTo)
 		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
 	}
-	if v.help {
-		sp.Detail.Body = tip
-	}
-	sp.Actions = append(sp.Actions, ui.Help(tip, func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.world {
-			v.help = !v.help
-			s.showResearchSplit(p, v)
-		}
-	}), s.backOption())
+	// the help is the button's tooltip; pressing it keeps the screen
+	sp.Actions = append(sp.Actions, s.opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.backOption())
 	ui.SplitMenu(p, i18n.T(lang, "dragonfactory.research.showResearchTab.1"), sp)
 }
 

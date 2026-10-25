@@ -473,12 +473,12 @@ func (l *oreLayout) card(o Option) map[string]any {
 
 // chrome sorts the buttons of a form: tabs over the window, the control bar
 // (page arrows, help, back) and the rest.
-func (l *oreLayout) chrome(opts []Option, wideTabs bool) (tabs, bar []any, rest []Option) {
+func (l *oreLayout) chrome(opts []Option) (tabs, bar []any, rest []Option) {
 	var pagers, help, back []any
 	for _, o := range opts {
 		switch {
 		case strings.HasPrefix(o.Label, TabToken), strings.HasPrefix(o.Label, TabOnToken):
-			tabs = append(tabs, l.tab(o, wideTabs))
+			tabs = append(tabs, l.tab(o))
 		case strings.HasPrefix(o.Label, barPagerToken):
 			pagers = append(pagers, quick(l.iconButton(o, o.Icon, "")))
 		case strings.HasPrefix(o.Label, HelpToken):
@@ -518,21 +518,11 @@ func (l *oreLayout) iconButton(o Option, icon, glyph string) map[string]any {
 	return l.press(n, o.Run)
 }
 
-// tab is a creative inventory tab (24x22) whose name is its tooltip; a wide
-// tab (96x22) shows the name, like the split screen's.
-func (l *oreLayout) tab(o Option, wide bool) map[string]any {
+// tab is a creative inventory tab (24x22) whose name is its tooltip.
+func (l *oreLayout) tab(o Option) map[string]any {
 	on := strings.HasPrefix(o.Label, TabOnToken)
-	ch := []any{box("mc-tab-bg"), box("mc-tab-front"), img("", o.Icon)}
-	class := "mc-tab"
-	n := box(class, "on", on)
-	if wide {
-		n["class"] = class + " mc-tab-wide"
-		ch = append(ch, node("text", "class", "mc-tab-label", "text", untoken(o.Label), "ink", "dark"))
-	} else {
-		n["tip"] = untoken(o.Label)
-		quick(n)
-	}
-	n["children"] = ch
+	n := box("mc-tab", "on", on, "tip", untoken(o.Label), "children", []any{box("mc-tab-bg"), box("mc-tab-front"), img("", o.Icon)})
+	quick(n)
 	if !on {
 		l.press(n, o.Run)
 	}
@@ -571,7 +561,7 @@ func scroll(children ...any) map[string]any { return box("mc-scroll mc-col", "ch
 // list button per option.
 func oreMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(opts, false)
+	tabs, bar, rest := l.chrome(opts)
 	content := []any{}
 	if body != "" {
 		content = append(content, txt("mc-body-text", body), box("mc-gap-6"))
@@ -586,7 +576,7 @@ func oreMenu(p *player.Player, title, body string, opts []Option) {
 // three cards to a row.
 func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(opts, false)
+	tabs, bar, rest := l.chrome(opts)
 	var cards []any
 	for _, o := range rest {
 		cards = append(cards, l.card(o))
@@ -644,7 +634,7 @@ func (l *oreLayout) boardRow(row []BoardCell) any {
 // rows and list buttons for the actions that are not tabs or bar buttons.
 func oreBoard(p *player.Player, title, body string, rows [][]BoardCell, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions, false)
+	tabs, bar, rest := l.chrome(actions)
 	var board []any
 	if body != "" {
 		board = append(board, txt("mc-body-text", body), box("mc-gap-3"))
@@ -699,7 +689,7 @@ func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []Siev
 		return
 	}
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions, false)
+	tabs, bar, rest := l.chrome(actions)
 	var board []any
 	for _, r := range top {
 		board = append(board, l.boardRow(r))
@@ -734,14 +724,14 @@ func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []Siev
 	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreSplit is a SplitMenu (df_form split_form): wide tabs over the
+// oreSplit is a SplitMenu (df_form split_form): icon tabs over the
 // window, the grid of SplitCells slots with the page arrows under it on the
 // left, and the chosen slot's detail on the right: the big slot, the name and
 // status with the action buttons under them, the body text and the headed
 // rows of slots.
 func oreSplit(p *player.Player, title string, sp Split) {
 	l := newOreLayout()
-	tabs, bar, actions := l.chrome(append(append([]Option(nil), sp.Tabs...), sp.Actions...), true)
+	tabs, bar, actions := l.chrome(append(append([]Option(nil), sp.Tabs...), sp.Actions...))
 	var cells []any
 	for i := range SplitCells {
 		if i < len(sp.Slots) {
@@ -825,7 +815,7 @@ func SearchGrid(p *player.Player, title, label, query string, find func(p *playe
 		return
 	}
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions, false)
+	tabs, bar, rest := l.chrome(actions)
 	results := func(p *player.Player, query string, prefix string) (any, string, map[string]func(p *player.Player, tx *world.Tx)) {
 		sub := newOreLayout()
 		sub.prefix = prefix

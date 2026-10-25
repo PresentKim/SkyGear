@@ -35,7 +35,6 @@ func (s *session) updateBoard(p *player.Player) {
 		for _, r := range rows {
 			b.Add(hud.Quest, r)
 		}
-		s.addGoalRows(lang, &b)
 	}
 	if s.boards == nil {
 		s.boards = map[*world.EntityHandle]string{}

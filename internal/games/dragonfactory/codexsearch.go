@@ -325,8 +325,8 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	title := i18n.T(lang, "codex.title")
 	var sections []ui.GridSection
 	if query == "" && page == 0 {
-		if goals := s.goalSlots(lang); len(goals) > 0 {
-			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.goals"), Slots: goals})
+		if favs := s.favouriteSlots(p, lang); len(favs) > 0 {
+			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.favourites"), Slots: favs})
 		}
 		if recent := s.codexRecent[p.H()]; len(recent) > 0 {
 			var links []codexLink
@@ -365,8 +365,8 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 		if query != "" {
 			r.Info = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
 		} else {
-			if goals := s.goalSlots(lang); len(goals) > 0 {
-				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.goals"), Slots: goals})
+			if favs := s.favouriteSlots(p, lang); len(favs) > 0 {
+				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.favourites"), Slots: favs})
 			}
 			if recent := s.codexRecent[p.H()]; len(recent) > 0 {
 				var links []codexLink

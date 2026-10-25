@@ -261,11 +261,6 @@
   justify-content: center;
 }
 
-.mc-tab-wide {
-  width: 19.2rem;
-  justify-content: flex-start;
-}
-
 .mc-tab-bg,
 .mc-tab-front {
   position: absolute;
@@ -303,23 +298,6 @@
   position: relative;
   width: 2.8rem;
   height: 2.8rem;
-}
-
-.mc-tab-wide img {
-  width: 2.4rem;
-  height: 2.4rem;
-  margin-left: 0.6rem;
-}
-
-.mc-tab-label {
-  position: relative;
-  margin-left: 0.6rem;
-  color: #f2f2f2;
-  font-size: 1.12rem;
-}
-
-.mc-tab.on .mc-tab-label {
-  color: #333333;
 }
 
 /* --- buttons: dfui button / button_hover / button_pressed (16x16, slice 3) --------------------- */
@@ -1414,10 +1392,6 @@
 .mc-lobby .mc-window {
   border-width: 0.8rem;
   border-image-width: 0.8rem;
-}
-
-.mc-lobby .mc-tab.on .mc-tab-label {
-  color: #ffffff;
 }
 
 .mc-lobby .mc-input {

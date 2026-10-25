@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
 // Menu screens: the game menu and the lost-and-found box. They are
@@ -39,6 +40,30 @@ func (s *session) guard(opts []ui.Option) []ui.Option {
 func (s *session) backOption() ui.Option {
 	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.backOption.1"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 	return s.opt(b.Label, b.Icon, b.Run)
+}
+
+// showIslandManage is the island management screen: the invite code (the
+// host), the members in the save (the host, or an operator) and the island
+// expansion. The first two are the platform's screens (/invite, /members).
+func (s *session) showIslandManage(p *player.Player) {
+	lang := i18n.Of(p)
+	var opts []ui.Option
+	host := instance.AccountID(p) == s.hostID
+	if host {
+		opts = append(opts, s.opt(i18n.T(lang, "island.manage.invite"), "textures/ui/df/icon_invite", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/invite") }))
+	}
+	if host || s.isOperator(p) {
+		opts = append(opts, s.opt(i18n.T(lang, "island.manage.members"), "textures/ui/df/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
+	}
+	opts = append(opts, s.opt(i18n.T(lang, "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
+	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
+}
+
+// helpOption is the help button of the game menu: the "?" of the control
+// bar, as the other screens have it, opening the help topics.
+func (s *session) helpOption(p *player.Player) ui.Option {
+	h := ui.Help(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), func(p *player.Player, _ *world.Tx) { s.showHelp(p) })
+	return s.opt(h.Label, h.Icon, h.Run)
 }
 
 // lobbyOption is the exit button of the game menu: where the other menus
@@ -75,19 +100,19 @@ func (s *session) showMenu(p *player.Player) {
 	ui.CardMenu(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showMenu.1"), "", s.mainMenu(p)...)
 }
 
-// mainMenu are the cards of the game menu, settings last, then the lobby
-// exit.
+// mainMenu are the cards of the game menu, the codex first and settings
+// last, then the help button (the control bar's "?") and the lobby exit.
 func (s *session) mainMenu(p *player.Player) []ui.Option {
 	return []ui.Option{
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.2"), iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
+		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), iconOf(item.NewStack(item.Book{}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
+		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
 		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, _ *world.Tx) { s.showStats(p, statsItems) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
+		s.helpOption(p),
 		s.lobbyOption(),
 	}
 }

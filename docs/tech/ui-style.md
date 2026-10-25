@@ -65,7 +65,7 @@
 
 ## 탭 모양
 
-탭은 창조 인벤토리 탭처럼 아이콘만 있는 칸이다: 바닐라 탭 그림(`TabTopBack`)으로 낮게 놓이고, 포인터가 올라오면 밝아지며(`TabTopBackHover`) 탭 이름이 엔진 툴팁으로 뜨고(터치는 누르고 있는 동안), 선택된 탭은 창과 같은 색(`TabTopFront`)으로 한 칸 솟는다. 모양은 `df_form.json` 의 `tab_button` 이다. 연구 화면의 두 탭만 글과 개수가 보이는 넓은 탭(`split_tab_button`)이다.
+탭은 창조 인벤토리 탭처럼 아이콘만 있는 칸이다: 바닐라 탭 그림(`TabTopBack`)으로 낮게 놓이고, 포인터가 올라오면 밝아지며(`TabTopBackHover`) 탭 이름이 엔진 툴팁으로 뜨고(터치는 누르고 있는 동안), 선택된 탭은 창과 같은 색(`TabTopFront`)으로 한 칸 솟는다. 모양은 `df_form.json` 의 `tab_button` 이다. DDUI 화면은 연구·친구 화면도 같은 아이콘 탭이다(JSON UI 폼의 연구 화면만 글이 보이는 넓은 탭 `split_tab_button`).
 
 ## 칸과 아이템
 

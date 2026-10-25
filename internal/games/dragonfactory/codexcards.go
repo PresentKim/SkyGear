@@ -191,9 +191,9 @@ func (s *session) codexHeadRow(lang string, c codexCard) []ui.BoardCell {
 		// as a slot of the recipes under it
 		sl, _ := s.codexCell(lang, c.head, "").SlotOf()
 		row[0] = ui.MiniCell(sl)
-		row[1] = ui.TextCell(c.name)
+		row[1] = ui.TextCell("§e" + c.name)
 	} else {
-		row[0] = ui.TextCell(c.name)
+		row[0] = ui.TextCell("§e" + c.name)
 	}
 	return row
 }
@@ -201,13 +201,17 @@ func (s *session) codexHeadRow(lang string, c codexCard) []ui.BoardCell {
 // codexBoard lays the cards out the way JEI shows recipes: each machine's
 // cards centred in the window, two side by side when two fit, a blank row
 // between them. Cards of the same machine share one header, at their left
-// edge.
+// edge; a new machine's header comes after a blank row too, so where one
+// source ends and the next begins shows.
 func (s *session) codexBoard(lang string, cards []codexCard) [][]ui.BoardCell {
 	var rows [][]ui.BoardCell
 	last := ""
 	for _, b := range codexBlocks(cards) {
 		switch {
 		case (len(rows) == 0 || b.name != last) && b.name != "":
+			if len(rows) > 0 {
+				rows = append(rows, blankRow())
+			}
 			rows = append(rows, shiftRow(s.codexHeadRow(lang, codexCard{head: b.head, name: b.name}), b.offset))
 		case len(rows) > 0:
 			rows = append(rows, blankRow())
