@@ -47,13 +47,13 @@ main.go
 internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
 internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
 internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴
-internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 common `i18n` 에 더해진다
+internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
 internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시
 internal/games/dragonfactory/  드래곤팩토리: research, advancement, machine, sieve, hammer, drawer, bundle(도관), storage, tinker, wave, monster, magic, expand, achievements, help …
 internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
 ```
 
-공통 패키지(`playerstate`, `timed`, `chestui`, `ui`, `waila`, `hud`, `i18n`, `resourcepack`, `dfhook`, `perf`, `backup` …)는 별도 모듈 [common](https://github.com/PresentKim/common)에 있다. 다른 Dragonfly 서버(마인팜)와 함께 쓰며, 게임·플랫폼 규칙은 넣지 않는다.
+공통 패키지(`playerstate`, `timed`, `chestui`, `ui`, `waila`, `hud`, `i18n`, `resourcepack`, `dfhook`, `perf`, `backup` …)는 별도 모듈 `common/`에 있다. 다른 Dragonfly 서버(마인팜)와 함께 쓰며, 게임·플랫폼 규칙은 넣지 않는다.
 
 게임 종류 인터페이스(`internal/instance/game.go`):
 

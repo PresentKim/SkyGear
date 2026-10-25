@@ -1,7 +1,7 @@
 # JSON UI (드래곤팩토리 테마)
 
 폼과 기계 창의 모양은 리소스팩 JSON UI 로 바꾼다. 서버는 폼 내용만 보내고, 모양은 클라이언트가 팩으로 그린다.
-폼·HUD 테마는 게임과 상관없어 common `packs/dfui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `dragonfactory` 팩에 있다. `main.go` 가 `dragonfactory` 를 `dfui` 보다 먼저(스택 위에) 싣는다.
+폼·HUD 테마는 게임과 상관없어 `common/packs/dfui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `dragonfactory` 팩에 있다. `main.go` 가 `dragonfactory` 를 `dfui` 보다 먼저(스택 위에) 싣는다.
 
 레이아웃 13개(목록·카드·상점·표·칸·분할·트리·런처 등)는 `server_form.json` 의 `long_form` 아래에 모두 있고 제목 표식으로 `visible` 만 바뀐다. 그래서 어느 폼을 열든 모든 레이아웃이 만들어지고 배치된다. 맞는 레이아웃 하나만 팩토리로 만드는 게이트(`property_bag` 의 역할 이름 배열을 `('#이름_' + 조건)` 으로 골라 `#collection_length` 에 주는 방식)는 동작하지만, 우리 팩토리가 만든 컨트롤 안에서는 `#form_button_contents` 로 버튼을 만드는 팩토리와 고정 `collection_index` 칸이 비어(격자만 채워진다) 지금 레이아웃에는 쓸 수 없다. 쓰려면 레이아웃이 버튼을 격자로만 읽게 바꿔야 한다.
 
@@ -15,7 +15,7 @@
 | `assets/resourcepack/dragonfactory/ui/dfui_hooks.json` | `dfui_hooks.lobby_frame` 을 `df_lobby.frame` 으로 채운다 |
 | `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `common/packs/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§1`~`§d§m§5` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
-| `common/packs/dfui/textures/ui/df/*` | 테마 텍스처. common 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `dragonfactory` 팩에 있다 |
+| `common/packs/dfui/textures/ui/df/*` | 테마 텍스처. `common/` 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `dragonfactory` 팩에 있다 |
 
 ## 폼 (메뉴·확인·입력)
 
@@ -125,7 +125,7 @@
 
 - HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.
 - 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `dfui_hooks.form_frame` 으로 바꿔 그 표식이 있으면 틀(`dfui_hooks.lobby_frame`)을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`df_form.window` 의 `dim`).
-- 메인 메뉴(`ui.LauncherMenu`, 제목 표식 `§d§f§n§r`): 창 없이 이름 아래(왼쪽 16, 위 54)에 큰 버튼(150×24, 간격 4)이 세로로 놓인다(`df_form.launcher_form`). 버튼은 반투명 어두운 바탕·옅은 테두리(`launcher_button`, 호버는 파란 테두리), 흰 선 아이콘(`icon_cube` 등, common `tools/uitextures`), 이름, 꺾쇠(`chevron_right`)다. 버튼 글은 팩 언어 키(`df.lobby.single` 등)이고 라벨이 `localize` 로 번역한다.
+- 메인 메뉴(`ui.LauncherMenu`, 제목 표식 `§d§f§n§r`): 창 없이 이름 아래(왼쪽 16, 위 54)에 큰 버튼(150×24, 간격 4)이 세로로 놓인다(`df_form.launcher_form`). 버튼은 반투명 어두운 바탕·옅은 테두리(`launcher_button`, 호버는 파란 테두리), 흰 선 아이콘(`icon_cube` 등, `common/tools/uitextures`), 이름, 꺾쇠(`chevron_right`)다. 버튼 글은 팩 언어 키(`df.lobby.single` 등)이고 라벨이 `localize` 로 번역한다.
 - HUD 의 메인 메뉴 그림: 테마의 `dfui_hooks.lobby_menu`(HUD 에만, 틀과 같은 조건)를 서버 팩이 `df_lobby.menu` 로 채운다. 같은 자리(`df_form.launcher_column`)에 같은 모양의 그림 버튼(`df_form.launcher_static`)을 같은 키·아이콘·순서로 그린다(`platform` 의 `lobbyMenu` 와 맞는지 `lobbymenu_test.go` 가 검사). 그래서 메뉴 폼을 닫아도 화면이 같다. 플레이어가 닫은 폼은 다시 보내지 않고, 다음 행동에서 메인 메뉴를 연다(`internal/platform/lobbywake.go`): 클릭·핫바·점프·공격은 로비 핸들러가, 이동 키·점프·웅크리기는 이동이 잠겨 있어 패킷 훅이 `PlayerAuthInput` 의 `RawMoveVector` 와 입력 플래그로 본다(플레이어마다 0.3초에 한 번). 이미 열린 메뉴는 ui 의 같은 폼 반복 방지로 다시 가지 않는다.
 - 제목 없는 카드 폼(`ui.CardMenu` 에 빈 제목 → `§d§f§u§r`, `ui.UntitledToken`): 제목 막대 없이 내용이 창 위 10px 에서 시작하고 창이 그만큼 낮다(`cards_u`·`cards_us`, 296×124).
 
@@ -160,7 +160,7 @@
 왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`common/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
 
 - 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
-- 팩: common `dfui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
+- 팩: `common/packs/dfui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다고 보고 짰다(실기 확인 필요).
 - 경험치 바는 바닐라 그대로다.
 - 분할·트리 폼의 왼쪽/오른쪽 판은 `panel` 안에 왼쪽 위 기준(오른쪽은 `offset` 220)으로 둔다. 가로 스택은 `100%c` 가 높이를 더하고 `100%cm` 은 오른쪽 상세를 접어 버려, 높이가 큰 쪽을 따르는 `panel` 의 `100%c`(자식 범위)를 쓴다.
@@ -168,7 +168,7 @@
 
 ## HUD (터치의 포켓 배치)
 
-터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, common `packs/dfui/ui/hud_screen.json` 이 그 판을 다시 정의해 하트·갑옷·배고픔·공기 방울·탈것 하트를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔다. 핫바는 포켓 배치가 따로 그리므로 넣지 않고, 종이 인형만 왼쪽 위에 남는다.
+터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, `common/packs/dfui/ui/hud_screen.json` 이 그 판을 다시 정의해 하트·갑옷·배고픔·공기 방울·탈것 하트를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔다. 핫바는 포켓 배치가 따로 그리므로 넣지 않고, 종이 인형만 왼쪽 위에 남는다.
 
 ## 흑백 PNG
 

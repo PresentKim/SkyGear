@@ -4,7 +4,6 @@
 
 `github.com/df-mc/dragonfly` **v0.11.5** 의 사본에 dragonfactory 패치를 얹은 것이다.
 루트 `go.mod` 의 `replace github.com/df-mc/dragonfly => ./third_party/dragonfly` 로 쓰인다.
-**[common](https://github.com/PresentKim/common) 의 `third_party/dragonfly` 와 같은 사본이어야 한다**(`replace` 는 최상위 모듈에서만 적용되어 레포마다 사본을 둔다). 패치를 바꾸면 양쪽에 똑같이 적용한다.
 자체 `go.mod` 가 있어 루트의 `go vet ./...`, `go test ./...` 대상이 아니다(`.github` 는 제거).
 
 ### 왜 포크하는가

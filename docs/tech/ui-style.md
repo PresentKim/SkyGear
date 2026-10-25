@@ -6,7 +6,7 @@
 
 ## 팔레트
 
-게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 색은 common `tools/uitextures/main.go` 위쪽 한 곳에서 정한다(그림은 common `packs/dfui`)(없는 것만 만든다, `-f` 는 모두).
+게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 색은 `common/tools/uitextures/main.go` 위쪽 한 곳에서 정한다(그림은 `common/packs/dfui`)(없는 것만 만든다, `-f` 는 모두).
 
 | 쓰임 | 색 | 값 |
 |---|---|---|
@@ -53,7 +53,7 @@
 
 ## 버튼 아이콘
 
-버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `dragonfactory` 팩 `textures/ui/df/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비 메인 메뉴의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 common `packs/dfui` 에 있다.
+버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `dragonfactory` 팩 `textures/ui/df/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비 메인 메뉴의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 `common/packs/dfui` 에 있다.
 
 ## 고른 칸
 
@@ -89,7 +89,7 @@
 
 ## 창 겉모양(게임 기본 화면 기준)
 
-- 창과 탭의 모서리는 둥글다: 모서리 세 픽셀을 비우고 계단 모양으로 검은 선을 잇는다(common `tools/uitextures` 의 `roundCorners`). 창은 아홉 조각(모서리 4px)이다.
+- 창과 탭의 모서리는 둥글다: 모서리 세 픽셀을 비우고 계단 모양으로 검은 선을 잇는다(`common/tools/uitextures` 의 `roundCorners`). 창은 아홉 조각(모서리 4px)이다.
 - 제목은 막대 없이 창 위 가운데에 쓴다. 도움말(?)·뒤로·닫기는 창 오른쪽 위 모서리 위에 붙은 어두운 둥근 막대(바닐라 `toolbar_background`)에 바닐라 닫기·도움말 그림과 흰 화살표로 둔다. 틀은 없고 포인터가 올라오면 칸이 밝아진다(`icon_button`, `help_button` 의 기본 그림이 `clear`).
 - 탭은 창 위 왼쪽 가장자리에 붙는다(`df_form.window` 의 `tabs_top`, 폼마다 안쪽에 두지 않는다). 연구 분할 화면은 넓은 탭(`marked_split_tabs`)을 같은 자리에 둔다. 목록 분할 화면(`list_split_form`)은 보통 탭을 쓰고, 탭을 보내지 않는 세이브 선택에는 탭이 없다.
 

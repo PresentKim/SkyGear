@@ -41,10 +41,10 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 
 ## 켜고 끄기
 
-`platform.toml` `[ResourcePack] SlotDeco`(기본 켬)가 `slotdeco` 팩을 보낼지 정한다. 바닐라 칸 템플릿을 바꾸므로 화면이 이상하면 끈다(표식은 이름에 남아도 보이지 않는다). 텍스처는 common 에서 `go run ./tools/slotdecotex packs/slotdeco packs/dfui` 가 만든 임시 그림이고 PNG 를 바꿔도 된다(9-슬라이스 `.json` 은 그대로).
+`platform.toml` `[ResourcePack] SlotDeco`(기본 켬)가 `slotdeco` 팩을 보낼지 정한다. 바닐라 칸 템플릿을 바꾸므로 화면이 이상하면 끈다(표식은 이름에 남아도 보이지 않는다). 텍스처는 `common/` 에서 `go run ./tools/slotdecotex packs/slotdeco packs/dfui` 가 만든 임시 그림이고 PNG 를 바꿔도 된다(9-슬라이스 `.json` 은 그대로).
 
 ## 이 방식의 한계와 확장
 
-- 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 서버 폼의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 버튼이라 따로 한다: 칸의 호버 글 첫 줄에 같은 표식을 넣고(`tipName`), 테마의 `gslot_button` 이 칸마다 컨트롤 하나(`gslot_deco`)로 테두리와 배지를 한 그림(`textures/ui/df/deco_<등급>_<전면>.png`, 22×22 34장)으로 고른다. 이 그림은 `slotdeco` 팩이 아니라 common `dfui` 팩(폼 테마)에 있어 `SlotDeco` 설정과 상관없다. 그림은 위의 `slotdecotex` 가 함께 만든다.
+- 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 서버 폼의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 버튼이라 따로 한다: 칸의 호버 글 첫 줄에 같은 표식을 넣고(`tipName`), 테마의 `gslot_button` 이 칸마다 컨트롤 하나(`gslot_deco`)로 테두리와 배지를 한 그림(`textures/ui/df/deco_<등급>_<전면>.png`, 22×22 34장)으로 고른다. 이 그림은 `slotdeco` 팩이 아니라 `common/dfui` 팩(폼 테마)에 있어 `SlotDeco` 설정과 상관없다. 그림은 위의 `slotdecotex` 가 함께 만든다.
 - 한 칸에 컨트롤 둘이 늘어 칸 수에 비례해 비용이 든다. 인벤토리 보기(72칸)처럼 칸이 많은 창은 실기에서 열릴 때 지연을 본다.
 - 새 값(배지)을 늘리려면 `slotdeco` 의 번호와 `front_N.png`, 팩의 식 두 곳을 같이 늘린다.
