@@ -20,9 +20,10 @@ import (
 // control bar, cards, list buttons, slot boards and split screens in one
 // window, with the items drawn by the game and the window scrolling with a
 // scrollbar. The server must send the oreui pack encrypted and wrap its
-// listeners with dfhook. In the lobby the forms stay JSON UI (its frame is
-// the dfui pack's). The other forms (Amount, tables, ...) stay JSON UI too;
-// one of them closes the DDUI screen first.
+// listeners with dfhook. In the lobby they are drawn in the lobby's look
+// (lobbySkin); its main menu (LauncherMenu) stays the JSON UI form the HUD
+// copies. The other forms (Amount, tables, ...) stay JSON UI; one of them
+// closes the DDUI screen first.
 var OreUI bool
 
 // PreferJSON reports whether p chose the JSON UI forms over the DDUI screens
@@ -31,7 +32,70 @@ var PreferJSON func(p *player.Player) bool
 
 // OreUIFor reports whether forms for p show as DDUI screens.
 func OreUIFor(p *player.Player) bool {
-	return OreUI && (InLobby == nil || !InLobby(p)) && (PreferJSON == nil || !PreferJSON(p))
+	return OreUI && (PreferJSON == nil || !PreferJSON(p))
+}
+
+// LobbyHeader, when set, is the game's name and logo (a form icon) that the
+// DDUI screens of the lobby draw at the top left, where the lobby's frame has
+// them. The platform sets it.
+var LobbyHeader func(p *player.Player) (title, logo string)
+
+// lobbySkin draws a layout for p in the lobby the way the lobby's main menu
+// looks (packs/oreui/hbui/oui-mc.css .mc-lobby): no darkened screen, the
+// game's name at the top left, navy windows and buttons with light text (the
+// text keeps its colours: no ink of the grey window).
+func lobbySkin(p *player.Player, layout any) any {
+	darkInk(layout)
+	root, ok := layout.(map[string]any)
+	if !ok {
+		return layout
+	}
+	root["class"] = fmt.Sprint(root["class"]) + " mc-lobby"
+	if LobbyHeader != nil {
+		title, logo := LobbyHeader(p)
+		head := box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title), box("mc-lobby-line")})
+		kids, _ := root["children"].([]any)
+		root["children"] = append([]any{head}, kids...)
+	}
+	return layout
+}
+
+// darkInk turns the panel ink of a layout's nodes into the dark one.
+func darkInk(n any) {
+	switch v := n.(type) {
+	case map[string]any:
+		if v["ink"] == "panel" {
+			v["ink"] = "dark"
+		}
+		for _, c := range v {
+			darkInk(c)
+		}
+	case []any:
+		for _, c := range v {
+			darkInk(c)
+		}
+	}
+}
+
+// oreOpen reports whether p has a DDUI screen open.
+func oreOpen(p *player.Player) bool {
+	oreScreens.Lock()
+	defer oreScreens.Unlock()
+	st := oreScreens.m[p.UUID()]
+	return st != nil && st.form != nil && !st.form.Closed()
+}
+
+// oreIdle runs Idle for the player of h, whose DDUI screen closed (closed:
+// without a press), when no form or screen followed.
+func oreIdle(h *world.EntityHandle, closed bool) {
+	if Idle == nil {
+		return
+	}
+	h.Do(func(tx *world.Tx, e world.Entity) {
+		if p := e.(*player.Player); !FormOpen(p) {
+			Idle(p, tx, "", closed)
+		}
+	})
 }
 
 // oreScreen is the DDUI screen of a player: what its elements run, and gen,
@@ -62,6 +126,9 @@ var oreScreens = struct {
 // codex's second tab after the research screen opened its third), so a
 // window of another size is opened anew.
 func showOre(p *player.Player, l *oreLayout, layout any) {
+	if InLobby != nil && InLobby(p) {
+		layout = lobbySkin(p, layout)
+	}
 	if oreShown != nil {
 		oreShown(l, layout)
 		return
@@ -90,6 +157,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 			st.form = nil
 		}
 		oreScreens.Unlock()
+		oreIdle(h, true)
 	})
 	if err != nil {
 		st.form = nil
@@ -145,11 +213,15 @@ var oreShown func(l *oreLayout, layout any)
 func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 	if ev.ID == "close" {
 		oreScreens.Lock()
-		if st.form != nil {
+		open := st.form != nil
+		if open {
 			_ = st.form.Close()
 			st.form = nil
 		}
 		oreScreens.Unlock()
+		if open {
+			oreIdle(h, true)
+		}
 		return
 	}
 	oreScreens.Lock()
@@ -200,11 +272,15 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 			run(p, tx)
 		}()
 		oreScreens.Lock()
-		if st.gen == gen && st.form != nil {
+		ended := st.gen == gen && st.form != nil
+		if ended {
 			_ = st.form.Close()
 			st.form = nil
 		}
 		oreScreens.Unlock()
+		if ended && Idle != nil && !FormOpen(p) {
+			Idle(p, tx, "", false)
+		}
 	})
 }
 

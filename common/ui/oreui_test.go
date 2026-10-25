@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 )
 
@@ -52,5 +53,27 @@ func TestUntoken(t *testing.T) {
 	}
 	if got := untoken(CardToken + UntitledToken + "메뉴"); got != "메뉴" {
 		t.Errorf("untoken = %q", got)
+	}
+}
+
+// TestLobbySkin: a screen in the lobby is marked for the lobby's look, has
+// the game's name at the top left and keeps its text colours.
+func TestLobbySkin(t *testing.T) {
+	old := LobbyHeader
+	LobbyHeader = func(*player.Player) (string, string) { return "game", "textures/blocks/grass_side_carried" }
+	defer func() { LobbyHeader = old }()
+	l := newOreLayout()
+	layout := lobbySkin(nil, l.window("title", nil, nil, txt("", "x")))
+	root := layout.(map[string]any)
+	if root["class"] != "mc-screen mc-lobby" {
+		t.Fatalf("class %q", root["class"])
+	}
+	kids := root["children"].([]any)
+	head := kids[0].(map[string]any)
+	if head["class"] != "mc-lobby-head" {
+		t.Fatalf("first child %v", head)
+	}
+	if win := kids[1].(map[string]any); win["ink"] != "dark" {
+		t.Errorf("window ink %v", win["ink"])
 	}
 }

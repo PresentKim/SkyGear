@@ -49,6 +49,11 @@ func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, on
 	// Every form shown in the lobby gets the launcher frame.
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
+	// The DDUI screens of the lobby draw the frame's name and logo themselves
+	// (assets/resourcepack/dragonfactory/ui/df_lobby.json frame).
+	ui.LobbyHeader = func(p *player.Player) (string, string) {
+		return i18n.T(i18n.Of(p), "name.Game"), "textures/blocks/grass_side_carried"
+	}
 	lobbyPlatform = pf
 	account.Init(d, log)
 	m.Register(game)

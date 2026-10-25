@@ -30,6 +30,9 @@ if [ ! -f config.toml ]; then
   sed -i 's/AuthEnabled = true/AuthEnabled = false/' config.toml
   # The host bot may use the operator tools.
   sed -i 's/^\(\s*\)Operators = \[\]/\1Operators = ["Hana"]/' platform.toml
+  # The bots read JSON UI forms only: unencrypted packs leave the menus JSON
+  # UI (the DDUI screens need the encrypted oreui pack, main.go).
+  sed -i 's/^\(\s*\)Encrypt = true/\1Encrypt = false/' platform.toml
 fi
 # PORT runs the server and the bots on another port (another server on 19132).
 port=${PORT:-19132}

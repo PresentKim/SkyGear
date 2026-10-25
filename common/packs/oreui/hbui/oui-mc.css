@@ -1339,3 +1339,88 @@
   width: 1.8rem;
   height: 1.8rem;
 }
+
+/* --- the lobby (ui.lobbySkin): the screens look like the lobby's main menu (packs/dfui
+   launcher_form, the server pack's df_lobby.json frame) over the lobby island. The screen is not
+   darkened; the game's logo, name and the line under them are at the top left as in the frame
+   (16u, 14u: a 22u logo, the name at 44u, a 150u line at 44u down); the window, buttons, tabs and
+   control bar take the navy launcher button pictures (dfui launcher_button, 16x16, slice 4) and the
+   text is light. ------------------------------------------------------------------------------- */
+
+.mc-screen.mc-lobby {
+  background-color: rgba(0, 0, 0, 0);
+  --mc-ink: #f2f2f7;
+  --mc-title: #ffffff;
+  --mc-head: #c3d2ea;
+}
+
+.mc-lobby-head {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40rem;
+  height: 10rem;
+}
+
+.mc-lobby-logo {
+  position: absolute;
+  left: 3.2rem;
+  top: 2.8rem;
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.mc-lobby-title {
+  position: absolute;
+  left: 8.8rem;
+  top: 3rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  font-size: 2.6rem;
+}
+
+.mc-lobby-line {
+  position: absolute;
+  left: 3.2rem;
+  top: 8.8rem;
+  width: 30rem;
+  height: 0.2rem;
+  background-color: rgba(191, 217, 255, 0.5);
+}
+
+.mc-lobby .mc-window,
+.mc-lobby .mc-panel,
+.mc-lobby .mc-toolbar-bg,
+.mc-lobby .mc-btn,
+.mc-lobby .mc-tab-bg,
+.mc-lobby .mc-tab-front {
+  border-image-source: url("pack://textures/ui/df/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
+}
+
+.mc-lobby .mc-btn:hover,
+.mc-lobby .mc-lrow.on,
+.mc-lobby .mc-tab:hover .mc-tab-bg {
+  border-image-source: url("pack://textures/ui/df/launcher_button_hover.png?filtering=point");
+}
+
+.mc-lobby .mc-btn:active,
+.mc-lobby .mc-tab.on .mc-tab-front {
+  border-image-source: url("pack://textures/ui/df/launcher_button_pressed.png?filtering=point");
+}
+
+.mc-lobby .mc-window {
+  border-width: 0.8rem;
+  border-image-width: 0.8rem;
+}
+
+.mc-lobby .mc-tab.on .mc-tab-label {
+  color: #ffffff;
+}
+
+.mc-lobby .mc-input {
+  background-color: rgba(10, 16, 30, 0.85);
+  border-color: rgba(110, 135, 170, 0.9);
+}

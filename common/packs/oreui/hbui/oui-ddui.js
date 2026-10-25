@@ -1279,6 +1279,32 @@
     document.body.classList.add(cls);
   }
 
+  // fitLobbyHead keeps the game's name at the top left of a lobby screen (ui.lobbySkin) clear of
+  // the window: where the window, its tabs or its control bar would cover the name (34x10rem,
+  // oui-mc.css .mc-lobby-head), the window moves down when the screen has room below it, and the
+  // name is hidden when it has not (a short screen). It runs once for each window drawn.
+  function fitLobbyHead() {
+    var head = root && root.querySelector(".mc-lobby-head");
+    var win = root && root.querySelector(".mc-window");
+    if (!head || !win || win.__lobbyFit) return;
+    win.__lobbyFit = true;
+    var rem = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+    var top = Infinity;
+    [win, root.querySelector(".mc-tabs"), root.querySelector(".mc-toolbar")].forEach(function (e) {
+      if (!e) return;
+      var r = e.getBoundingClientRect();
+      if (r.width > 0 && r.left < 34 * rem) top = Math.min(top, r.top);
+    });
+    var need = 10 * rem - top;
+    if (need <= 0) return;
+    if (need <= window.innerHeight - win.getBoundingClientRect().bottom) {
+      // the window is centred, so a margin moves it down by half of itself
+      win.style.marginTop = Math.ceil(2 * need) + "px";
+    } else {
+      head.style.display = "none";
+    }
+  }
+
   function render() {
     measure();
     var active = state.screen === SCREEN && state.layout;
@@ -1395,7 +1421,16 @@
   function start() {
     drawStatus();
     measure();
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", function () {
+      measure();
+      var head = root && root.querySelector(".mc-lobby-head");
+      var win = root && root.querySelector(".mc-window");
+      if (head && win) {
+        head.style.display = "";
+        win.style.marginTop = "";
+        win.__lobbyFit = false;
+      }
+    });
     function drop(ev) {
       dragging = null;
       panning = null;
@@ -1431,6 +1466,7 @@
         return root && root.contains(b.sc);
       });
       bars.forEach(updateBar);
+      fitLobbyHead();
       if (!envSent && probeLive()) drawProbe();
     }, 100);
     // The vanilla form is hidden, so Esc would do nothing: report it and let the server close the form.

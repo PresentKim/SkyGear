@@ -88,12 +88,13 @@ func answered(s form.Submitter) {
 	}
 }
 
-// FormOpen reports whether a form sent to p is not answered yet.
+// FormOpen reports whether a form sent to p is not answered yet, or p has a
+// DDUI screen open.
 func FormOpen(p *player.Player) bool {
 	pending.Lock()
-	defer pending.Unlock()
 	_, open := pending.m[p.UUID()]
-	return open
+	pending.Unlock()
+	return open || oreOpen(p)
 }
 
 // Idle, if set, runs when p answered a form (title is the title it was sent
