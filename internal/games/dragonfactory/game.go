@@ -137,6 +137,8 @@ type session struct {
 	copies      []*Research
 	copiesDone  map[string]bool
 	codexRecent map[*world.EntityHandle][]item.Stack
+	// helpTab is the help tab each player looked at last (help.go).
+	helpTab map[*world.EntityHandle]helpTab
 	// urgentBarShown is whether the urgent mission boss bar is up.
 	urgentBarShown bool
 	// fairy is the gift fairy visiting now, or nil.
@@ -276,6 +278,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.veinFood, p.H())
 	delete(s.codexNav, p.H())
 	delete(s.codexRecent, p.H())
+	delete(s.helpTab, p.H())
 	delete(s.walked, p.H())
 	delete(s.diedFood, p.H())
 	delete(s.lastStick, p.H())

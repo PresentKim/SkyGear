@@ -10,7 +10,7 @@ timeout 60 "$BOT" -name Hana \
   'cmd:/dfadmin give generator 1' 'expect:연소 발전기 x1' \
   'cmd:/dfadmin give energy_conduit_1 4' 'expect:기본 에너지 도관 x4' \
   'cmd:/dfadmin give item_conduit_1 4' 'expect:기본 아이템 도관 x4' \
-  'cmd:/dfadmin give fluid_conduit_1 4' 'expect:기본 액체 도관 x4' \
+  'cmd:/dfadmin give fluid_conduit_1 4' 'expect:기본 유체 도관 x4' \
   'cmd:/dfdebug status' 'expect:researched=' > host.log 2>&1
 h=$?
 echo "=== host"; grep -E "FORM|OK|FAIL|DONE|OUTPUT" host.log

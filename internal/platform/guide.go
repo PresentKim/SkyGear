@@ -12,16 +12,36 @@ import (
 )
 
 // GuideVersion is increased when the guide changes; players see it again once.
-const GuideVersion = 3
+const GuideVersion = 4
 
-func (pf *Platform) guideText(lang string) string {
-	return fmt.Sprintf(i18n.T(lang, "platform.guide.guideText.1"), pf.game.Name(lang), Slots, MaxMembers)
+// guideTopics are the pages of the server guide, in display order. Their
+// texts are "platform.guide.topic.<id>.title" and ".text" in the catalog.
+var guideTopics = []struct{ id, icon string }{
+	{"saves", "textures/ui/df/icon_cube"},
+	{"together", "textures/ui/df/icon_people"},
+	{"friends", "textures/ui/df/icon_person"},
+	{"cosmetics", "textures/ui/df/icon_crown"},
+	{"rules", "textures/ui/df/icon_help"},
 }
 
-// showGuide shows the server guide. With first set, closing it records that
-// the account has seen the current version.
+// guideTopicText is the text of a guide page, with the server's numbers.
+func (pf *Platform) guideTopicText(lang, id string) string {
+	text := i18n.T(lang, "platform.guide.topic."+id+".text")
+	switch id {
+	case "saves":
+		return fmt.Sprintf(text, Slots)
+	case "together":
+		return fmt.Sprintf(text, MaxMembers)
+	}
+	return text
+}
+
+// showGuide shows the server guide: a short welcome, the start button first
+// and a button per topic. With first set, the start button records that the
+// account has seen the current version and goes on to the saves.
 func (pf *Platform) showGuide(p *player.Player, first bool) {
-	ok := ui.Option{Label: i18n.T(i18n.Of(p), "platform.guide.showGuide.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
+	lang := i18n.Of(p)
+	opts := []ui.Option{{Label: i18n.T(lang, "platform.guide.start"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
 		if first {
 			if err := pf.db.SetGuideVersion(instance.AccountID(p), GuideVersion); err != nil {
 				pf.log.Error("set guide version", "err", err)
@@ -32,8 +52,23 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 		if pf.m.Location(instance.AccountID(p)) == nil {
 			pf.showLobbyMenu(p)
 		}
-	}}
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.guide.showGuide.1"), pf.guideText(i18n.Of(p)), ok)
+	}}}
+	for _, t := range guideTopics {
+		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.guide.topic."+t.id+".title"), Icon: t.icon, Run: func(p *player.Player, _ *world.Tx) {
+			pf.showGuideTopic(p, t.id, first)
+		}})
+	}
+	body := fmt.Sprintf(i18n.T(lang, "platform.guide.intro"), pf.game.Name(lang))
+	ui.Menu(p, i18n.T(lang, "platform.guide.showGuide.1"), body, opts...)
+}
+
+// showGuideTopic shows one page of the guide; back returns to its list.
+func (pf *Platform) showGuideTopic(p *player.Player, id string, first bool) {
+	lang := i18n.Of(p)
+	title := ui.SubTitle(i18n.T(lang, "platform.guide.showGuide.1"), i18n.T(lang, "platform.guide.topic."+id+".title"))
+	ui.Menu(p, title, pf.guideTopicText(lang, id), ui.Back(i18n.T(lang, "platform.guide.back"), func(p *player.Player, _ *world.Tx) {
+		pf.showGuide(p, first)
+	}))
 }
 
 func formatDuration(lang string, d time.Duration) string {

@@ -55,8 +55,7 @@ func (s *session) nextResearch() (*Research, bool) {
 	return nil, false
 }
 
-// questRows are the quest panel, in dark ink for its parchment (the pack's
-// scoreboards.json df_quest): the next advancement and its hint (with
+// questRows are the quest panel: the next advancement and its hint (with
 // the research cost for a research advancement), then once every
 // advancement is done the next research and its cost. The cost rows count
 // what inv holds of each item, when inv is not nil.
@@ -64,7 +63,7 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 	if a, ok := s.nextAdvancement(); ok {
 		rows := strings.Split(a.HintText(lang), "\n")
 		for i := range rows {
-			rows[i] = "§0" + rows[i]
+			rows[i] = "§f" + rows[i]
 		}
 		if g, ok := goalResearch(a); ok {
 			if r, ok := s.researchStep(g); ok {
@@ -84,21 +83,21 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 }
 
 // researchCostRows are what a research spends, one row per item: how many
-// of it inv holds out of the number still needed (dark red, dark green once
-// there are enough), or the number alone when inv is nil.
+// of it inv holds out of the number still needed (green once there are
+// enough), or the number alone when inv is nil.
 func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inventory) []string {
 	var rows []string
 	for _, c := range r.Cost {
 		name, need := itemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)
 		if inv == nil {
-			rows = append(rows, fmt.Sprintf("§0%s §8×%d", name, need))
+			rows = append(rows, fmt.Sprintf("§f%s §e×%d", name, need))
 			continue
 		}
-		have, colour := min(countPlain(inv, c.Item), need), "§4"
+		have, colour := min(countPlain(inv, c.Item), need), "§e"
 		if have >= need {
-			colour = "§2"
+			colour = "§a"
 		}
-		rows = append(rows, fmt.Sprintf("§0%s %s%d§8/%d", name, colour, have, need))
+		rows = append(rows, fmt.Sprintf("§f%s %s%d§7/%d", name, colour, have, need))
 	}
 	return rows
 }

@@ -159,9 +159,9 @@ func TestPager(t *testing.T) {
 		labels      []string
 	}{
 		{0, 1, nil},
-		{0, 3, []string{"다음 쪽 (2/3)"}},
-		{1, 3, []string{"이전 쪽 (1/3)", "다음 쪽 (3/3)"}},
-		{2, 3, []string{"이전 쪽 (2/3)"}},
+		{0, 3, []string{"다음 페이지 (2/3)"}},
+		{1, 3, []string{"이전 페이지 (1/3)", "다음 페이지 (3/3)"}},
+		{2, 3, []string{"이전 페이지 (2/3)"}},
 	} {
 		opts := Pager(nil, tc.page, tc.pages, show)
 		if len(opts) != len(tc.labels) {

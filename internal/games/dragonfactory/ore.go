@@ -1,6 +1,8 @@
 package dragonfactory
 
 import (
+	"fmt"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/block/model"
@@ -87,7 +89,7 @@ type RawOre struct{ Metal string }
 
 func (r RawOre) EncodeItem() (string, int16) { return "dragonfactory:raw_" + r.Metal, 0 }
 func (r RawOre) Name() string {
-	return i18n.T(i18n.Default, "name.RawOre.prefix") + metalName(r.Metal)
+	return fmt.Sprintf(i18n.T(i18n.Default, "name.RawOre"), metalName(r.Metal))
 }
 func (RawOre) Category() category.Category { return category.Items() }
 

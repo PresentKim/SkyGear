@@ -20,11 +20,11 @@ func TestCostRowsCountTheInventory(t *testing.T) {
 	inv := inventory.New(36, nil)
 	_, _ = inv.AddItem(item.NewStack(oakPlanks, 10))
 	rows := s.researchCostRows(i18n.Default, r, inv)
-	if len(rows) != 1 || !strings.Contains(rows[0], "10§8/32") {
+	if len(rows) != 1 || !strings.Contains(rows[0], "10§7/32") {
 		t.Fatalf("rows %q", rows)
 	}
 	_, _ = inv.AddItem(item.NewStack(oakPlanks, 40))
-	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§232§8/32") {
+	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
 		t.Fatalf("enough planks %q", rows)
 	}
 }

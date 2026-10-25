@@ -48,6 +48,8 @@ func registerCommands(g *Game) {
 	cmd.Register(cmd.New("menuitem", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.5"), nil, menuItemCmd{g: g}))
 	cmd.Register(cmd.New("도감", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.7"), nil, codexCmd{g: g}))
 	cmd.Register(cmd.New("codex", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.8"), nil, codexCmd{g: g}))
+	cmd.Register(cmd.New("도움말", i18n.T(i18n.Default, "help.cmd"), nil, helpCmd{g: g}))
+	cmd.Register(cmd.New("dfhelp", i18n.T(i18n.Default, "help.cmd"), nil, helpCmd{g: g}))
 	cmd.Register(cmd.New("통계", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
 	cmd.Register(cmd.New("stats", i18n.T(i18n.Default, "monitor.cmd"), nil, statsCmd{g: g}))
 	cmd.Register(cmd.New("sapling", i18n.T(i18n.Default, "dragonfactory.menu.registerCommands.6"), nil, saplingCmd{g: g}))
@@ -66,6 +68,22 @@ func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	s.openMenu(p)
+}
+
+// helpCmd is /도움말 (and /dfhelp): the help window.
+type helpCmd struct{ g *Game }
+
+func (c helpCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, ok := src.(*player.Player)
+	if !ok || tx == nil {
+		return
+	}
+	s, ok := c.g.sessionOf(tx.World())
+	if !ok {
+		o.Error(i18n.T(i18n.Of(p), "dragonfactory.menu.Run.1"))
+		return
+	}
+	s.showHelp(p)
 }
 
 // menuItemCmd is /메뉴발급 (and /menuitem): a new menu item for a player who
