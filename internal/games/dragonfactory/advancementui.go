@@ -39,18 +39,19 @@ const (
 	advChapterHunting
 	advChapterGear
 	advChapterMagic
+	advChapterFairy
 	advChapterProject
 	advChapterExtra
 	advChapterCount
 )
 
 // advChapterKeys name the chapters in the catalog ("advancement.tab.<key>").
-var advChapterKeys = [advChapterCount]string{"start", "sieve", "farming", "automation", "logistics", "lab", "alloy", "hunting", "gear", "magic", "project", "extra"}
+var advChapterKeys = [advChapterCount]string{"start", "sieve", "farming", "automation", "logistics", "lab", "alloy", "hunting", "gear", "magic", "fairy", "project", "extra"}
 
 // advChapterIcons are items whose icon marks each chapter.
 var advChapterIcons = [advChapterCount]string{
 	"crafting_table", "dragonfactory:sieve", "wheat", "dragonfactory:generator", "hopper", "dragonfactory:laboratory", "dragonfactory:alloy_smelter",
-	"dragonfactory:mob_simulator", "iron_pickaxe", "dragonfactory:petal_red", "dragon_egg", "lantern",
+	"dragonfactory:mob_simulator", "iron_pickaxe", "dragonfactory:petal_red", "dragonfactory:fairy_dust", "dragon_egg", "lantern",
 }
 
 // advChapterLists are the advancements of each chapter in tree order.

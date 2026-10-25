@@ -254,7 +254,7 @@ func TestAdvancementChapters(t *testing.T) {
 	for id, ch := range map[string]advChapter{
 		"wood": advChapterStart, advSift: advChapterSieve, "mesh_diamond": advChapterSieve, "seeds": advChapterFarming,
 		"generator": advChapterAutomation, "alloy_smelter": advChapterAlloy, advWave1: advChapterHunting,
-		"diamond_tools": advChapterGear, advBloom: advChapterMagic, "project_dragon": advChapterProject, advChunks16: advChapterExtra,
+		"diamond_tools": advChapterGear, advBloom: advChapterMagic, advFairyGift: advChapterFairy, "fairy_board": advChapterFairy, "project_dragon": advChapterProject, advChunks16: advChapterExtra,
 	} {
 		if a, ok := advancementByID(id); !ok || a.Chapter != ch {
 			t.Errorf("%s not in chapter %s", id, advChapterKeys[ch])
@@ -267,6 +267,7 @@ func TestAdvancementChapters(t *testing.T) {
 		"clay":           {"barrel", "dust"},
 		"seeds":          {advSift},
 		"mesh_diamond":   {"mesh_string"},
+		"fairy_board":    {"fairy_dust"},
 	} {
 		if a, _ := advancementByID(id); !slices.Equal(a.Parents, parents) {
 			t.Errorf("%s after %v, want %v", id, a.Parents, parents)
