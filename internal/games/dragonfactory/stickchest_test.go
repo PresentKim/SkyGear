@@ -22,9 +22,10 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 		_ = chest.SetItem(1, item.NewStack(item.Stick{}, 1))
 		stick := item.NewStack(item.Stick{}, 1)
 		p.SetHeldItems(stick, item.Stack{})
-		_ = p.Inventory().SetItem(5, item.NewStack(block.Dirt{}, 40))
-		_ = p.Inventory().SetItem(6, item.NewStack(block.Cobblestone{}, 10))
-		_ = p.Inventory().SetItem(7, item.NewStack(item.Stick{}, 3))
+		_ = p.Inventory().SetItem(5, item.NewStack(block.Dirt{}, 7))
+		_ = p.Inventory().SetItem(14, item.NewStack(block.Dirt{}, 40))
+		_ = p.Inventory().SetItem(15, item.NewStack(block.Cobblestone{}, 10))
+		_ = p.Inventory().SetItem(16, item.NewStack(item.Stick{}, 3))
 		if s.useStickOnChest(p, tx, pos, stick) {
 			t.Fatal("a stick use without sneaking was handled")
 		}
@@ -43,6 +44,9 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 		}
 		if held, _ := p.HeldItems(); held.Count() != 1 {
 			t.Errorf("held %v, want the stick", held)
+		}
+		if it, _ := p.Inventory().Item(5); it.Count() != 7 {
+			t.Errorf("hotbar slot 5 holds %v, want the 7 dirt kept", it)
 		}
 	})
 }

@@ -31,7 +31,7 @@ func TestMainMenuHasIcons(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, opts := s.mainMenu(p)
+		opts := s.mainMenu(p)
 		for _, o := range opts {
 			if o.Icon == "" {
 				t.Errorf("option %q has no icon", o.Label)
@@ -47,9 +47,12 @@ func TestMainMenuLayout(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, opts := s.mainMenu(p)
+		opts := s.mainMenu(p)
 		if len(opts) != 10 {
 			t.Fatalf("%d options, want 9 cards and the lobby exit", len(opts))
+		}
+		if !strings.Contains(opts[8].Label, "설정") {
+			t.Errorf("last card %q is not the settings", opts[8].Label)
 		}
 		for _, o := range opts[:9] {
 			if strings.HasPrefix(o.Label, "§0§") || strings.Contains(o.Label, "메뉴 아이템") {

@@ -2474,7 +2474,6 @@
  "dragonfactory.screens.lobbyOption.1": "로비로",
  "dragonfactory.screens.lostMenu.1": "§7공허로 떨어진 아이템이 모입니다. 마지막으로 들어온 뒤 하루가 지나면 사라집니다. 누르면 들어가는 만큼 가져옵니다.",
  "dragonfactory.screens.lostMenu.3": "§f%s\n§7%s개\n§7누르면 들어가는 만큼 가져옵니다",
- "dragonfactory.screens.mainMenu.1": "§f%s §7· %d일차\n§7%s",
  "dragonfactory.screens.mainMenu.2": "§d연구",
  "dragonfactory.screens.mainMenu.3": "§e발전과제",
  "dragonfactory.screens.mainMenu.4": "§a섬 확장",
@@ -3463,5 +3462,9 @@
  "advancement.seeds.name": "흙 속의 씨앗",
  "advancement.seeds.hint": "흙을 들고 체를 우클릭해 얹고\n우클릭을 반복해 거르세요\n밀 씨앗이 나와요",
  "advancement.wheat.name": "첫 수확",
- "advancement.wheat.hint": "나무 괭이로 흙을 갈아 밀 씨앗을 심고\n다 자라면 우클릭해 거두세요"
+ "advancement.wheat.hint": "나무 괭이로 흙을 갈아 밀 씨앗을 심고\n다 자라면 우클릭해 거두세요",
+ "dragonfactory.screens.lobbyConfirm.title": "로비로",
+ "dragonfactory.screens.lobbyConfirm.body": "로비로 나가시겠습니까?",
+ "dragonfactory.screens.lobbyConfirm.yes": "로비로 나가기",
+ "dragonfactory.screens.lobbyConfirm.no": "취소"
 }

@@ -421,7 +421,6 @@
  "dragonfactory.screens.lobbyOption.1": "To lobby",
  "dragonfactory.screens.lostMenu.1": "§7Items that fell into the void gather here. They disappear a day after the last one arrives. Press to take as many as fit.",
  "dragonfactory.screens.lostMenu.3": "§f%s\n§7x%s\n§7Press to take as many as fit",
- "dragonfactory.screens.mainMenu.1": "§f%s §7· Day %d\n§7%s",
  "dragonfactory.screens.mainMenu.2": "§dResearch",
  "dragonfactory.screens.mainMenu.3": "§eAdvancements",
  "dragonfactory.screens.mainMenu.4": "§aIsland Expansion",
@@ -1016,5 +1015,9 @@
  "platform.uidebug.command": "Turns the debug info of the menu screens (Ore UI) on or off",
  "platform.uidebug.on": "§eMenu screen debug info on. It shows over the top of a menu.",
  "platform.uidebug.off": "§7Menu screen debug info off.",
- "hammer.vein.hungry": "§cNot enough food."
+ "hammer.vein.hungry": "§cNot enough food.",
+ "dragonfactory.screens.lobbyConfirm.title": "To lobby",
+ "dragonfactory.screens.lobbyConfirm.body": "Leave for the lobby?",
+ "dragonfactory.screens.lobbyConfirm.yes": "Leave for the lobby",
+ "dragonfactory.screens.lobbyConfirm.no": "Cancel"
 }

@@ -28,8 +28,8 @@ type chestStreak struct {
 	last time.Time
 }
 
-// useStickOnChest puts the items of p's inventory that the chest at pos
-// already holds into it, when p uses a stick on it while sneaking; the
+// useStickOnChest puts the items of p's inventory past the hotbar that the
+// chest at pos already holds into it, when p uses a stick on it while sneaking; the
 // chestSortUses-th use in a row also sorts it. It reports whether the use
 // was a sneaking stick use on a chest.
 func (s *session) useStickOnChest(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
@@ -44,10 +44,7 @@ func (s *session) useStickOnChest(p *player.Player, tx *world.Tx, pos cube.Pos, 
 		return true
 	}
 	inv := c.Inventory(tx, pos)
-	_, off := p.HeldItems()
-	p.SetHeldItems(item.Stack{}, off)
 	depositMatching(p.Inventory(), inv)
-	p.SetHeldItems(held, off)
 	if s.countChestUse(p, pos) >= chestSortUses {
 		delete(s.chestStreaks, p.H())
 		sortInventory(inv)
@@ -71,11 +68,15 @@ func (s *session) countChestUse(p *player.Player, pos cube.Pos) int {
 	return cur.uses
 }
 
-// depositMatching moves the stacks of from that to already holds the like
-// of into to, as far as they fit.
+// hotbarSize is the number of player inventory slots, from the first, that
+// make up the hotbar.
+const hotbarSize = 9
+
+// depositMatching moves the stacks of from past the hotbar that to already
+// holds the like of into to, as far as they fit.
 func depositMatching(from, to *inventory.Inventory) {
 	for slot, it := range from.Slots() {
-		if it.Empty() || !holdsLike(to, it) {
+		if slot < hotbarSize || it.Empty() || !holdsLike(to, it) {
 			continue
 		}
 		if n, _ := to.AddItem(it); n > 0 {

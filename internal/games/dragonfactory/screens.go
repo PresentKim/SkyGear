@@ -44,9 +44,20 @@ func (s *session) backOption() ui.Option {
 // lobbyOption is the exit button of the game menu: where the other menus
 // have their back button, left of the close button, it goes to the lobby.
 func (s *session) lobbyOption() ui.Option {
-	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.lobbyOption.1"), func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") })
+	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.lobbyOption.1"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
 	b.Icon = iconLobby
 	return s.opt(b.Label, b.Icon, b.Run)
+}
+
+// confirmLobby asks p whether to leave for the lobby, as the exit sits where
+// the menu's other buttons are pressed (players left by mistake); cancelling
+// shows the menu again.
+func (s *session) confirmLobby(p *player.Player) {
+	lang := i18n.Of(p)
+	ui.Menu(p, i18n.T(lang, "dragonfactory.screens.lobbyConfirm.title"), i18n.T(lang, "dragonfactory.screens.lobbyConfirm.body"),
+		s.opt(i18n.T(lang, "dragonfactory.screens.lobbyConfirm.yes"), iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
+		s.opt(i18n.T(lang, "dragonfactory.screens.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showMenu(p) }),
+	)
 }
 
 // openMenu opens the game menu, or the expansion actions in expansion mode
@@ -61,23 +72,22 @@ func (s *session) openMenu(p *player.Player) {
 }
 
 func (s *session) showMenu(p *player.Player) {
-	body, opts := s.mainMenu(p)
-	ui.CardMenu(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showMenu.1"), body, opts...)
+	ui.CardMenu(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showMenu.1"), "", s.mainMenu(p)...)
 }
 
-func (s *session) mainMenu(p *player.Player) (string, []ui.Option) {
-	_, day, _ := s.clock.Now()
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.1"), s.saveName, day, s.nextGoal(i18n.Of(p)))
-	return body, []ui.Option{
+// mainMenu are the cards of the game menu, settings last, then the lobby
+// exit.
+func (s *session) mainMenu(p *player.Player) []ui.Option {
+	return []ui.Option{
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.2"), iconOf(item.NewStack(ResearchTable{}, 1)), func(p *player.Player, _ *world.Tx) { s.showResearch(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
 		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), iconMission, func(p *player.Player, _ *world.Tx) { s.showHelp(p) }),
 		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, _ *world.Tx) { s.showStats(p, statsItems) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.lobbyOption(),
 	}
 }
