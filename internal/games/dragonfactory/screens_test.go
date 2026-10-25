@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/ui"
 )
 
@@ -252,4 +253,32 @@ func TestHelpTopicsAreWritten(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestExpansionPlane: a player who sees DDUI screens gets the expansion
+// screen instead of the keys, with no quest panel meanwhile; leaving the mode
+// brings the quest panel back.
+func TestExpansionPlane(t *testing.T) {
+	defer func(on bool) { ui.OreUI = on }(ui.OreUI)
+	ui.OreUI = true
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.showExpand(p)
+		e, ok := s.expansionOf(p)
+		if !ok || !e.plane {
+			t.Fatalf("expansion %v, plane %v", ok, ok && e.plane)
+		}
+		if strings.Contains(s.boards[p.H()], hud.QuestTitle) {
+			t.Error("the quest panel shows in expansion mode")
+		}
+		if got := s.chunkLabel(i18n.Default, ChunkPos{1, 0}, s.purchasableChunks()); !strings.Contains(got, "구매 가능") {
+			t.Errorf("label of the chunk beside the island %q", got)
+		}
+		s.stopExpand(p, tx)
+		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {
+			t.Error("the quest panel did not come back")
+		}
+	})
 }

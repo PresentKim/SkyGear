@@ -89,6 +89,9 @@ type expansion struct {
 	// (expandmap.go); home is where the body stood, to go back to.
 	mapShown map[ChunkPos]world.Block
 	home     mgl64.Vec3
+	// plane is set while the mode is shown as the DDUI screen
+	// (expandplane.go) instead of the movement keys and the tip.
+	plane bool
 }
 
 func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
@@ -98,7 +101,11 @@ func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
 
 // showExpand starts expansion mode, or opens its actions if already in it.
 func (s *session) showExpand(p *player.Player) {
-	if _, ok := s.expansionOf(p); ok {
+	if e, ok := s.expansionOf(p); ok {
+		if e.plane {
+			s.showExpandPlane(p, e)
+			return
+		}
 		s.showExpandActions(p)
 		return
 	}
@@ -112,6 +119,12 @@ func (s *session) showExpand(p *player.Player) {
 	p.SetGameMode(viewOnlyMode{})
 	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0)
+	s.updateBoard(p)
+	if ui.OreUIFor(p) {
+		e.plane = true
+		s.showExpandPlane(p, e)
+		return
+	}
 	p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpand.1"))
 	s.expandTip(p, e)
 	s.repeatExpandTip(p, e)
@@ -131,6 +144,7 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 	dfhook.ClearCameraFOV(p)
 	p.SetGameMode(e.mode)
 	p.SetMobile()
+	s.updateBoard(p)
 }
 
 // cursorPos is the centre of chunk c at the island surface.
@@ -194,7 +208,9 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	// The map first: the body moves over the cursor with it.
 	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0.2)
-	s.expandTip(p, e)
+	if !e.plane {
+		s.expandTip(p, e)
+	}
 }
 
 func (s *session) moveExpandCamera(p *player.Player, e *expansion, ease float64) {

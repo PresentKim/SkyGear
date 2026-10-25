@@ -19,7 +19,8 @@
 //   (min, max, step), input (placeholder), select (options), item (icon, size, count, text), slot (bind
 //   to {id, n}, size), region (name), watch (property, path: shows a string the data store holds, read
 //   through its own query), space.
-// More nodes for the Minecraft style (oui-mc.css): frame (an empty slot), arrow, img (icon, size).
+// More nodes for the Minecraft style (oui-mc.css): frame (an empty slot), arrow, img (icon, size), plane
+// (fov, dist: boxes with `at` [x, z, w, h] in blocks over the ground a straight-down camera shows).
 // For trying what an inventory needs: slot with `raw` (rawSlot), box with `self` (presses on the box
 // itself, any button), cursor (bind: the item on the pointer), probe (input events and engine command
 // groups) and engine (slots [[container, index]], sizes, calls [{label, cmd, args}]: the vanilla
@@ -461,6 +462,15 @@
       case "canvas":
         e = buildCanvas(n, rec);
         break;
+      case "plane":
+        // The ground a straight-down camera shows: the children are boxes placed by `at` [x, z, w, h]
+        // in blocks from the point under the camera (x east, z south), scaled from the camera's vertical
+        // field of view `fov` (degrees) and its height `dist` over the ground (layoutPlanes).
+        e = el("div", "oui-plane");
+        e.__rec = rec;
+        appendChildren(e, n.children, rec);
+        setTimeout(layoutPlanes, 0);
+        break;
       case "line":
         // A straight line from (x1, y1) to (x2, y2), in rem: a thin box turned around its start.
         e = el("div", "oui-line-seg");
@@ -649,6 +659,31 @@
     panning.place();
   }
 
+  // layoutPlanes places the children of every plane node on the screen: a straight-down camera at
+  // height dist with the vertical field of view fov shows dist*tan(fov/2) blocks from the middle of the
+  // screen to its top edge, so a block is that many pixels (the same across, as pixels are square).
+  function layoutPlanes() {
+    if (!root) return;
+    var planes = root.querySelectorAll(".oui-plane");
+    for (var i = 0; i < planes.length; i++) {
+      var rec = planes[i].__rec;
+      if (!rec) continue;
+      var n = rec.n;
+      var half = (n.dist || 1) * Math.tan((((n.fov || 60) / 2) * Math.PI) / 180);
+      var scale = window.innerHeight / 2 / half;
+      var cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+      rec.kids.forEach(function (k) {
+        var at = k.n.at;
+        if (!at) return;
+        var st = k.el.style;
+        st.left = Math.round(cx + at[0] * scale) + "px";
+        st.top = Math.round(cy + at[1] * scale) + "px";
+        st.width = Math.round(at[2] * scale) + "px";
+        st.height = Math.round(at[3] * scale) + "px";
+      });
+    }
+  }
+
   function appendChildren(e, children, rec) {
     rec.box = e;
     (children || []).forEach(function (c) {
@@ -678,14 +713,15 @@
   // Keys of a node a record can take in place, by node type, besides SOFT.
   var IN_PLACE = {
     col: {}, row: {}, grid: {}, region: {}, frame: {}, arrow: {}, space: {},
-    box: { "class": true, style: true, on: true },
+    box: { "class": true, style: true, on: true, at: true },
     text: { "class": true, style: true, text: true },
     img: { "class": true, style: true, icon: true, size: true },
-    canvas: { focusX: true, focusY: true } // only the first drawing reads the focus
+    canvas: { focusX: true, focusY: true }, // only the first drawing reads the focus
+    plane: { fov: true, dist: true }
   };
 
   // Node types whose presses read the id from the record (the others keep the id they were built with).
-  var LIVE_ID = { box: true, button: true, col: true, row: true, grid: true, text: true, img: true, region: true, frame: true, arrow: true, space: true, canvas: true };
+  var LIVE_ID = { box: true, button: true, col: true, row: true, grid: true, text: true, img: true, region: true, frame: true, arrow: true, space: true, canvas: true, plane: true };
 
   function same(a, b) {
     if (a === b) return true;
@@ -1467,6 +1503,7 @@
       });
       bars.forEach(updateBar);
       fitLobbyHead();
+      layoutPlanes();
       if (!envSent && probeLive()) drawProbe();
     }, 100);
     // The vanilla form is hidden, so Esc would do nothing: report it and let the server close the form.

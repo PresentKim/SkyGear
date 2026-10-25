@@ -85,6 +85,23 @@ func oreOpen(p *player.Player) bool {
 	return st != nil && st.form != nil && !st.form.Closed()
 }
 
+// oreClosed runs what the closing of st does for the player of h: its close
+// run, or Idle.
+func oreClosed(h *world.EntityHandle, st *oreScreen) {
+	oreScreens.Lock()
+	run := st.close
+	oreScreens.Unlock()
+	if run == nil {
+		oreIdle(h, true)
+		return
+	}
+	h.Do(func(tx *world.Tx, e world.Entity) {
+		p := e.(*player.Player)
+		defer recoverForm(p)
+		run(p, tx)
+	})
+}
+
 // oreIdle runs Idle for the player of h, whose DDUI screen closed (closed:
 // without a press), when no form or screen followed.
 func oreIdle(h *world.EntityHandle, closed bool) {
@@ -111,6 +128,8 @@ type oreScreen struct {
 	gen    int
 	// size is the window size of the layout shown.
 	size string
+	// close is the layout's run on closing (oreLayout.close).
+	close func(p *player.Player, tx *world.Tx)
 }
 
 var oreScreens = struct {
@@ -141,7 +160,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 		oreScreens.m[p.UUID()] = st
 	}
 	st.gen++
-	st.runs, st.input, st.values = l.runs, l.input, l.values
+	st.runs, st.input, st.values, st.close = l.runs, l.input, l.values, l.close
 	if st.form != nil && !st.form.Closed() {
 		if st.size == l.size {
 			_ = st.form.SetLayout(layout)
@@ -157,7 +176,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 			st.form = nil
 		}
 		oreScreens.Unlock()
-		oreIdle(h, true)
+		oreClosed(h, st)
 	})
 	if err != nil {
 		st.form = nil
@@ -220,7 +239,7 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		}
 		oreScreens.Unlock()
 		if open {
-			oreIdle(h, true)
+			oreClosed(h, st)
 		}
 		return
 	}
@@ -307,6 +326,9 @@ type oreLayout struct {
 	// prefix starts the ids of the elements, so the parts drawn again into a
 	// region do not reuse the ids of the screen around them.
 	prefix string
+	// close, if set, runs when the player closes the screen (Esc, the close
+	// button) instead of Idle.
+	close func(p *player.Player, tx *world.Tx)
 }
 
 func newOreLayout() *oreLayout {

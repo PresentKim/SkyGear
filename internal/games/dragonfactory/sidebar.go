@@ -29,7 +29,7 @@ func (s *session) updateBoard(p *player.Player) {
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
-	if account.On(p, settingQuestPanel) {
+	if _, expanding := s.expansionOf(p); !expanding && account.On(p, settingQuestPanel) {
 		title, rows := s.questRows(lang, p.Inventory())
 		b.Add(hud.QuestTitle, title)
 		for _, r := range rows {

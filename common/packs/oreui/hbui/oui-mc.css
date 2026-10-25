@@ -1398,3 +1398,64 @@
   background-color: rgba(10, 16, 30, 0.85);
   border-color: rgba(110, 135, 170, 0.9);
 }
+
+/* --- the plane (ui.PlaneMenu): buttons over the ground a straight-down camera shows, placed by the
+   renderer (layoutPlanes), and a panel at the bottom of the screen. The screen is not darkened. --- */
+
+.mc-screen.mc-plane-screen {
+  background-color: rgba(0, 0, 0, 0);
+  align-items: flex-end;
+}
+
+.oui-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.mc-spot {
+  position: absolute;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.mc-spot:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.mc-spot.on {
+  border-width: 0.6rem;
+  border-color: #ffd34d;
+}
+
+.mc-plane-panel {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 1.6rem;
+  padding-right: 1.2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/df/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: #f2f2f7;
+  font-size: 1.4rem;
+}
+
+.mc-plane-info {
+  margin-right: 1.6rem;
+}
+
+.mc-plane-panel .mc-action {
+  min-width: 14rem;
+  margin-left: 0.6rem;
+}

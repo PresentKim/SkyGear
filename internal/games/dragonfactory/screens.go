@@ -90,7 +90,7 @@ func (s *session) confirmLobby(p *player.Player) {
 func (s *session) openMenu(p *player.Player) {
 	count(p, "menu_open", 1)
 	if _, ok := s.expansionOf(p); ok {
-		s.showExpandActions(p)
+		s.showExpand(p)
 		return
 	}
 	s.showMenu(p)

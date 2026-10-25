@@ -226,7 +226,7 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 // (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	if _, ok := h.s.expansionOf(ctx.Player()); ok && after {
-		h.s.showExpandActions(ctx.Player())
+		h.s.showExpand(ctx.Player())
 		return
 	}
 	if after {
