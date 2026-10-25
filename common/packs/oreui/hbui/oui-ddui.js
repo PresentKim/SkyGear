@@ -543,10 +543,17 @@
     b.handle.style.top = Math.round(((track - h) * b.sc.scrollTop) / (full - view)) + "px";
   }
 
-  // canvas is a view on a plane of absolutely placed children that the player drags around. Where it
-  // was dragged to is kept by its key, so a screen drawn again (a quest opened) stays where it was;
-  // the first time the point (focusX, focusY) in rem is put in the middle.
+  // canvas is a view on a plane of absolutely placed children that the player drags around and zooms
+  // (the mouse wheel, two fingers, or the + and - buttons at its bottom right; the zoom stays at the
+  // pointer or between the fingers). Where it was dragged to and the zoom are kept by its key, so a
+  // screen drawn again (a quest opened) stays as it was; the first time the point (focusX, focusY) in
+  // rem is put in the middle, at the zoom last used. The plane starts zoomed in a step on a touch
+  // screen, where the nodes are pressed with a finger.
   var pans = {};
+  var ZOOM_MIN = 0.5;
+  var ZOOM_MAX = 3;
+  var ZOOM_STEP = 1.25;
+  var lastZoom = 0; // the zoom of the canvas last zoomed, 0 before any
 
   function buildCanvas(n, rec) {
     var view = el("div", "oui-canvas");
@@ -557,27 +564,84 @@
     function place() {
       plane.style.left = pan.x + "px";
       plane.style.top = pan.y + "px";
+      plane.style.transform = "scale(" + pan.z + ")";
+    }
+    // zoomTo zooms to z keeping the point (cx, cy) of the view, in px, where it is (the middle when
+    // none is given).
+    function zoomTo(z, cx, cy) {
+      if (!pan) return;
+      z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+      if (cx === undefined) {
+        cx = view.clientWidth / 2;
+        cy = view.clientHeight / 2;
+      }
+      pan.x = cx - ((cx - pan.x) * z) / pan.z;
+      pan.y = cy - ((cy - pan.y) * z) / pan.z;
+      pan.z = lastZoom = z;
+      place();
+    }
+    // inView is where a client point is in the view.
+    function inView(x, y) {
+      var r = view.getBoundingClientRect();
+      return { x: x - r.left - (view.clientLeft || 0), y: y - r.top - (view.clientTop || 0) };
     }
     setTimeout(function () {
       if (!pan) {
         var rem = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
-        pan = pans[n.key] = { x: view.clientWidth / 2 - (n.focusX || 0) * rem, y: view.clientHeight / 2 - (n.focusY || 0) * rem };
+        var z = lastZoom || (touchSeen ? ZOOM_STEP : 1);
+        pan = pans[n.key] = { x: view.clientWidth / 2 - (n.focusX || 0) * rem * z, y: view.clientHeight / 2 - (n.focusY || 0) * rem * z, z: z };
       }
       place();
     }, 0);
     onDragStart(view, function (ev) {
+      if (ev.touches && ev.touches.length >= 2) return;
       if (ev.target !== view && ev.target !== plane && !/oui-line-seg|oui-canvas-deco/.test(ev.target.className)) return;
       if (!pan) return;
       if (tip) tip.style.display = "none";
       var at = pointOf(ev);
       panning = { pan: pan, place: place, x: at.clientX, y: at.clientY, px: pan.x, py: pan.y };
     });
+    view.addEventListener("wheel", function (ev) {
+      if (!pan || !ev.deltaY) return;
+      var at = inView(ev.clientX, ev.clientY);
+      zoomTo(ev.deltaY < 0 ? pan.z * ZOOM_STEP : pan.z / ZOOM_STEP, at.x, at.y);
+      if (ev.preventDefault) ev.preventDefault();
+    });
+    // A second finger, wherever it lands in the view, turns the drag into a pinch.
+    view.addEventListener("touchstart", function (ev) {
+      if (!pan || !ev.touches || ev.touches.length < 2) return;
+      panning = null;
+      if (tip) tip.style.display = "none";
+      pinching = { zoomTo: zoomTo, inView: inView, d: fingerGap(ev.touches) || 1, z: pan.z };
+    });
+    var zoom = el("div", "oui-canvas-zoom");
+    [["+", ZOOM_STEP], ["-", 1 / ZOOM_STEP]].forEach(function (b) {
+      var button = el("div", "oui-canvas-zoom-button", b[0]);
+      button.addEventListener("mousedown", function (ev) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        claimed = ev;
+        if (pan) zoomTo(pan.z * b[1]);
+      });
+      zoom.appendChild(button);
+    });
+    view.appendChild(zoom);
     return view;
   }
 
   var panning = null; // {pan, place, x, y, px, py}: the canvas being dragged
+  var pinching = null; // {zoomTo, inView, d, z}: the canvas being pinched, from the finger gap d at zoom z
+
+  function fingerGap(touches) {
+    return Math.sqrt(Math.pow(touches[1].clientX - touches[0].clientX, 2) + Math.pow(touches[1].clientY - touches[0].clientY, 2));
+  }
 
   function dragCanvas(ev) {
+    if (pinching) {
+      if (!ev.touches || ev.touches.length < 2) return;
+      var mid = pinching.inView((ev.touches[0].clientX + ev.touches[1].clientX) / 2, (ev.touches[0].clientY + ev.touches[1].clientY) / 2);
+      pinching.zoomTo((pinching.z * fingerGap(ev.touches)) / pinching.d, mid.x, mid.y);
+      return;
+    }
     if (!panning) return;
     var at = pointOf(ev);
     panning.pan.x = panning.px + at.clientX - panning.x;
@@ -1332,9 +1396,10 @@
     drawStatus();
     measure();
     window.addEventListener("resize", measure);
-    function drop() {
+    function drop(ev) {
       dragging = null;
       panning = null;
+      if (!ev.touches || ev.touches.length < 2) pinching = null;
     }
     ["mousemove", "touchmove"].forEach(function (type) {
       document.addEventListener(type, dragBar);

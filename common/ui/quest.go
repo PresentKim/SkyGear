@@ -81,8 +81,9 @@ func rem(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) + "rem" 
 // Sky: the chapters on the left, the chapter's quests on a dark plane the
 // player drags around, with lines from the quests each follows, and the
 // panel of an open quest over it. It is a DDUI screen only (OreUIFor); the
-// window takes most of the screen. Actions (Back, Help) go to the control
-// bar.
+// window takes most of the screen, so the control bar (Back, Help and the
+// close button) sits inside it, at the right of the heading. The player
+// zooms the plane with the mouse wheel, two fingers or its + and - buttons.
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
 	_, bar, _ := l.chrome(actions, false)
@@ -135,8 +136,12 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 			"children", []any{box("mc-quest-shape"), img("", q.Icon)})
 		plane = append(plane, l.press(n, q.Run))
 	}
+	bar = append(bar, box("mc-close", "id", "close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}))
 	main := []any{
-		box("mc-quest-head", "children", []any{txt("", b.Heading), txt("mc-quest-progress", b.Progress)}),
+		box("mc-quest-head", "children", []any{
+			txt("", b.Heading), txt("mc-quest-progress", b.Progress),
+			box("mc-toolbar", "children", []any{box("mc-toolbar-bg"), box("mc-toolbar-row", "children", bar)}),
+		}),
 		node("canvas", "key", b.Key, "focusX", focusX, "focusY", focusY, "children", plane),
 	}
 	if pn := b.Panel; pn != nil {
@@ -165,9 +170,7 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 			scroll(box("mc-col", "children", body)),
 		}))
 	}
-	bar = append(bar, box("mc-close", "id", "close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}))
 	win := box("mc-quest-window", "ink", "panel", "children", []any{
-		box("mc-toolbar", "children", []any{box("mc-toolbar-bg"), box("mc-toolbar-row", "children", bar)}),
 		box("mc-chapters", "children", []any{txt("mc-quest-head", untoken(title)), scroll(box("mc-col", "children", chapters))}),
 		box("mc-quest-main", "children", main),
 	})

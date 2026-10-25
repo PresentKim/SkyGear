@@ -856,10 +856,12 @@
 /* --- quest book (FTB Quests, as ATM10 To The Sky shows it): chapters on the left, the quests of the
    chosen one on a plane the player drags around, the quest panel over it ------------------------ */
 
+/* The window leaves a margin of the screen around it, and its control bar is inside (in the head of
+   the quests), so nothing of it goes off a phone's short screen. */
 .mc-quest-window {
   position: relative;
-  width: 90vw;
-  height: 88vh;
+  width: 82vw;
+  height: 82vh;
   display: flex;
   flex-direction: row;
   border-style: solid;
@@ -870,8 +872,10 @@
   color: var(--mc-ink);
 }
 
+/* At most a quarter of the screen, so a phone at a large GUI scale keeps room for the plane. */
 .mc-chapters {
   width: 24rem;
+  max-width: 24vw;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -891,7 +895,7 @@
   border-image-slice: 3 fill;
   border-image-width: 0.6rem;
   color: var(--mc-light-text);
-  font-size: 1.12rem;
+  font-size: 1.4rem;
 }
 
 .mc-chapter:hover {
@@ -937,8 +941,28 @@
 .mc-quest-head .mc-quest-progress {
   margin-left: auto;
   margin-right: 0.8rem;
-  font-size: 1.12rem;
+  font-size: 1.4rem;
   color: var(--mc-head);
+}
+
+/* The control bar in the head: in the flow instead of over the window. The z-index makes it a stacking
+   context, so its background (z-index -1) stays in front of the window's. */
+.mc-quest-head .mc-toolbar {
+  position: relative;
+  top: 0;
+  right: 0;
+  height: 3.2rem;
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  align-items: center;
+  z-index: 0;
+}
+
+.mc-quest-head .mc-toolbar-row {
+  height: 3rem;
+  margin-top: 0;
 }
 
 .oui-canvas {
@@ -957,6 +981,35 @@
   top: 0;
   width: 0;
   height: 0;
+  transform-origin: 0 0;
+}
+
+/* The zoom buttons at the bottom right of the canvas (oui-ddui.js buildCanvas). */
+.oui-canvas-zoom {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-canvas-zoom-button {
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.55);
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #8a8a9a;
+  color: #ffffff;
+  font-size: 2rem;
+}
+
+.oui-canvas-zoom-button:hover {
+  background-color: rgba(90, 90, 110, 0.8);
 }
 
 .oui-line-seg {
@@ -1072,8 +1125,13 @@
 }
 
 .mc-quest-panel-head .mc-quest-title {
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   color: var(--mc-title);
+}
+
+.mc-quest-panel .mc-small-text,
+.mc-quest-panel .mc-head {
+  font-size: 1.4rem;
 }
 
 /* --- sides of a block (ui.SidesMenu), in a window of the vanilla inventory's size: the block in the
