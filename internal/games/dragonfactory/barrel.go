@@ -50,43 +50,70 @@ const barrelStageState = "dragonfactory:barrel_stage"
 // cobblestone (stoneWood).
 var barrelWoods = []string{"oak", stoneWood}
 
-// The stone barrel (docs/design/02-dragonfactory.md §5): eight cobblestone
-// go in, and with a heat source right under it they turn into lava, one
-// bucket's worth (a lava stage like the water one). A torch is the least
-// heat (speed 1×) and takes stoneHeatNeeded; lava (source or flowing) is 4×,
-// a magma block 8×.
+// The stone barrel (docs/design/02-dragonfactory.md §5) melts blocks into
+// lava like Ex Deorum's lava crucible: cobblestone, stone, gravel and
+// netherrack (stoneMelts) go in as stoneMeltMB of solids each, up to
+// stoneSolidsMax, and every stoneMeltStep the heat source right under it
+// melts as many mB of the solids as its heat value (heatValue) into the
+// lava, which holds up to stoneLavaMax. A bucket takes a bucket's worth.
 const (
-	stoneWood           = "stone"
-	stoneBarrelCapacity = 8
-	stoneHeatNeeded     = time.Minute
+	stoneWood      = "stone"
+	stoneMeltMB    = 250
+	stoneSolidsMax = 1000
+	stoneLavaMax   = 4000
+	// stoneMeltStep is Ex Deorum's crucible step: 10 ticks.
+	stoneMeltStep = 500 * time.Millisecond
+	// legacyStoneCount is the cobblestone that made a bucket of lava in the
+	// stone barrel of older saves (stoneRecord).
+	legacyStoneCount = 8
 )
 
-// heatMultiplier is the speed the block under a stone barrel heats it with
-// (0: no heat source).
-func heatMultiplier(b world.Block) int {
-	switch b.(type) {
+// stoneMelts are the blocks a stone barrel melts.
+var stoneMelts = []world.Item{block.Cobblestone{}, block.Stone{}, block.Gravel{}, block.Netherrack{}}
+
+// heatValue is the heat of the block under a stone barrel: the mB of solids
+// it melts every stoneMeltStep (0: no heat source). The values are Ex
+// Deorum's crucible heat sources.
+func heatValue(b world.Block) int {
+	switch b := b.(type) {
 	case block.Torch:
+		if b.Type == block.SoulFire() {
+			return 2
+		}
 		return 1
+	case block.Lantern:
+		if b.Type == block.SoulFire() {
+			return 2
+		}
+		return 1
+	case block.Campfire:
+		if !b.Extinguished {
+			return 2
+		}
 	case block.Lava:
-		return 4
-	case block.Magma:
-		return 8
+		return 3
+	case block.Fire:
+		return 5
 	}
 	return 0
 }
 
-// barrelCapacity is how many items a barrel of wood takes; barrelAccepts
-// whether it takes st.
-func barrelCapacity(wood string) int {
-	if wood == stoneWood {
-		return stoneBarrelCapacity
-	}
-	return matterCapacity
-}
+// barrelCapacity is how many plant items an oak barrel takes.
+func barrelCapacity(string) int { return matterCapacity }
 
+// barrelAccepts reports whether a barrel of wood takes st: plant matter, or
+// a block to melt in a stone barrel.
 func barrelAccepts(wood string, st item.Stack) bool {
 	if wood == stoneWood {
-		return !st.Empty() && itemKey(st.Item()) == itemKey(block.Cobblestone{}) && plain(st)
+		if st.Empty() || !plain(st) {
+			return false
+		}
+		for _, m := range stoneMelts {
+			if itemKey(st.Item()) == itemKey(m) {
+				return true
+			}
+		}
+		return false
 	}
 	return plantMatter(st)
 }
@@ -118,9 +145,17 @@ type BarrelRecord struct {
 	// ReadyAt is the instance time the contents turn into water (a full
 	// barrel only).
 	ReadyAt time.Duration `json:"ready_at,omitempty"`
-	// Lava is set once the cobblestone of a stone barrel turned into lava;
-	// Heat is the heat it has had so far (instance time × the speed of the
-	// heat source) and HeatAt when it was last counted.
+	// Solids are the mB of blocks a stone barrel has yet to melt and LavaMB
+	// the lava it holds; MeltAt is the instance time the melting was counted
+	// to and Made the lava made since the last bucket's worth was counted
+	// (barrel_lava).
+	Solids int           `json:"solids,omitempty"`
+	LavaMB int           `json:"lava_mb,omitempty"`
+	MeltAt time.Duration `json:"melt_at,omitempty"`
+	Made   int           `json:"made,omitempty"`
+	// Lava, Heat and HeatAt are a stone barrel of older saves (a bucket of
+	// lava; the heat of its cobblestone); stoneRecord turns them into the
+	// fields above.
 	Lava   bool          `json:"lava,omitempty"`
 	Heat   time.Duration `json:"heat,omitempty"`
 	HeatAt time.Duration `json:"heat_at,omitempty"`
@@ -133,17 +168,38 @@ type BarrelRecord struct {
 // barrelStage is the stage a record of an oak barrel shows.
 func barrelStage(r *BarrelRecord) int { return barrelStageOf("oak", r) }
 
-// barrelStageOf is the stage a record of a barrel of wood shows.
+// barrelStageOf is the stage a record of a barrel of wood shows: a stone
+// barrel shows its lava, or its solids as the fill stages.
 func barrelStageOf(wood string, r *BarrelRecord) int {
 	switch {
 	case r == nil:
 		return 0
+	case wood == stoneWood && r.LavaMB > 0:
+		return barrelWater
+	case wood == stoneWood:
+		return (r.Solids*barrelFillStages + stoneSolidsMax - 1) / stoneSolidsMax
 	case r.Witch:
 		return barrelWitch
-	case r.Water || r.Lava:
+	case r.Water:
 		return barrelWater
 	}
 	return r.Count * barrelFillStages / barrelCapacity(wood)
+}
+
+// stoneRecord turns the fields of a stone barrel of an older save into the
+// solids and lava it holds.
+func stoneRecord(r *BarrelRecord) {
+	if r == nil {
+		return
+	}
+	if r.Lava {
+		// Its cobblestone had turned into the lava.
+		r.LavaMB, r.Lava, r.Count = min(r.LavaMB+bucketMB, stoneLavaMax), false, 0
+	}
+	if r.Count > 0 {
+		r.Solids, r.Count = min(r.Solids+r.Count*bucketMB/legacyStoneCount, stoneSolidsMax), 0
+	}
+	r.Heat, r.HeatAt = 0, 0
 }
 
 func (b Barrel) EncodeItem() (string, int16) { return "dragonfactory:barrel_" + b.Wood, 0 }
@@ -251,6 +307,9 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	rec := s.state.Barrels[key]
 	capacity := barrelCapacity(b.Wood)
 	stone := b.Wood == stoneWood
+	if stone {
+		stoneRecord(rec)
+	}
 	if out, bucket, ok := barrelMix(rec, held); ok {
 		if !bucket.Empty() && held.Count() == 1 {
 			_, left := p.HeldItems()
@@ -264,6 +323,9 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		s.mixBarrel(tx, pos, b, out)
 		s.storeState()
 		return true
+	}
+	if stone {
+		return s.useStoneBarrel(p, tx, pos, b, held, ctx)
 	}
 	poured, empty, liq, pourOK := pourBucket(b.Wood, held)
 	switch {
@@ -283,15 +345,15 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			s.storeState()
 		}
 		return true
-	case rec != nil && (rec.Water || rec.Lava):
-		if _, ok := held.Item().(Dust); ok && rec.Water {
+	case rec != nil && rec.Water:
+		if _, ok := held.Item().(Dust); ok {
 			// Dust soaks into the water and makes a clay block (docs/design/02-dragonfactory.md).
 			ctx.SubtractFromCount(1)
 			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 			return true
 		}
-		if filled, fill, ok := emptyBucketFill(held, rec.Lava); ok {
+		if filled, fill, ok := emptyBucketFill(held, false); ok {
 			if held.Count() == 1 {
 				// A single bucket turns into the full one in the hand.
 				_, left := p.HeldItems()
@@ -306,15 +368,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			s.storeState()
 			return true
 		}
-		if wb, ok := held.Item().(WoodenBucket); ok && !wb.Water && rec.Lava {
-			p.SendTip(i18n.T(i18n.Of(p), "barrel.woodenNoLava"))
-			return true
-		}
-		if rec.Lava {
-			p.SendTip(i18n.T(i18n.Of(p), "barrel.stone.lavaFull"))
-		} else {
-			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.1"))
-		}
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.1"))
 		return true
 	case pourOK && (rec == nil || (rec.Count == 0 && rec.Clay == 0)):
 		_, left := p.HeldItems()
@@ -328,11 +382,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		s.storeState()
 		return true
 	case rec != nil && rec.Count >= capacity:
-		if stone {
-			p.SendTip(i18n.T(i18n.Of(p), "barrel.stone.heating"))
-		} else {
-			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.2"))
-		}
+		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.2"))
 		return true
 	case barrelAccepts(b.Wood, held):
 		if s.fillBarrel(tx, pos, b, held, 1) == 0 {
@@ -340,15 +390,85 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		}
 		ctx.SubtractFromCount(1)
 		if s.barrelAt(pos).Count >= capacity {
-			if stone {
-				p.SendTip(i18n.T(i18n.Of(p), "barrel.stone.full"))
-			} else {
-				p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.3"))
-			}
+			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.3"))
 		}
 		return true
 	}
 	return false
+}
+
+// useStoneBarrel handles a player using a stone barrel: an empty bucket takes
+// a bucket's worth of its lava, a lava bucket pours one in, and a block it
+// melts goes in. A click on a barrel that cannot take or give it is used up
+// all the same, so the block in the hand is not placed.
+func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barrel, held item.Stack, ctx *item.UseContext) bool {
+	key := cropKey(pos)
+	rec := s.state.Barrels[key]
+	if filled, fill, ok := emptyBucketFill(held, true); ok {
+		if rec == nil || rec.LavaMB < bucketMB {
+			return true
+		}
+		if held.Count() == 1 {
+			_, left := p.HeldItems()
+			p.SetHeldItems(filled, left)
+		} else {
+			ctx.SubtractFromCount(1)
+			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+		}
+		rec.LavaMB -= bucketMB
+		s.forgetEmptyStone(pos, rec)
+		s.showBarrel(tx, pos, b)
+		tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})
+		s.storeState()
+		return true
+	}
+	if wb, ok := held.Item().(WoodenBucket); ok && !wb.Water {
+		if rec != nil && rec.LavaMB > 0 {
+			p.SendTip(i18n.T(i18n.Of(p), "barrel.woodenNoLava"))
+		}
+		return true
+	}
+	if bk, ok := held.Item().(item.Bucket); ok && fluidOfBucket(bk) == fluidnet.Lava {
+		if rec != nil && rec.LavaMB+bucketMB > stoneLavaMax {
+			return true
+		}
+		_, left := p.HeldItems()
+		p.SetHeldItems(item.NewStack(item.Bucket{}, 1), left)
+		rec = s.stoneBarrel(pos)
+		rec.LavaMB += bucketMB
+		s.showBarrel(tx, pos, b)
+		tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Lava{}})
+		s.storeState()
+		return true
+	}
+	if barrelAccepts(b.Wood, held) {
+		if s.fillBarrel(tx, pos, b, held, 1) > 0 {
+			ctx.SubtractFromCount(1)
+		}
+		return true
+	}
+	return false
+}
+
+// stoneBarrel is the record of the stone barrel at pos, made when it has none.
+func (s *session) stoneBarrel(pos cube.Pos) *BarrelRecord {
+	rec := s.state.Barrels[cropKey(pos)]
+	if rec == nil {
+		rec = &BarrelRecord{}
+		if s.state.Barrels == nil {
+			s.state.Barrels = map[string]*BarrelRecord{}
+		}
+		s.state.Barrels[cropKey(pos)] = rec
+	}
+	stoneRecord(rec)
+	return rec
+}
+
+// forgetEmptyStone forgets the record of a stone barrel that holds nothing.
+func (s *session) forgetEmptyStone(pos cube.Pos, rec *BarrelRecord) {
+	if rec.LavaMB == 0 && rec.Solids == 0 {
+		delete(s.state.Barrels, cropKey(pos))
+	}
 }
 
 // emptyBucketFill is what an empty bucket in the hand of a player becomes
@@ -375,8 +495,8 @@ func emptyBucketFill(held item.Stack, lava bool) (filled item.Stack, fill world.
 
 // pourBucket is what a full bucket in the hand pours into an empty barrel of
 // wood, the bucket left and the liquid sound; ok is false when the bucket
-// holds nothing that barrel takes. An oak barrel takes water and witch water,
-// a stone barrel lava.
+// holds nothing that barrel takes. An oak barrel takes water and witch water;
+// a stone barrel takes lava into what it holds (useStoneBarrel).
 func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stack, liq world.Liquid, ok bool) {
 	stone := wood == stoneWood
 	switch b := held.Item().(type) {
@@ -385,10 +505,6 @@ func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stac
 		case fluidnet.Water:
 			if !stone {
 				return BarrelRecord{Water: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
-			}
-		case fluidnet.Lava:
-			if stone {
-				return BarrelRecord{Lava: true}, item.NewStack(item.Bucket{}, 1), block.Lava{}, true
 			}
 		}
 	case WoodenBucket:
@@ -408,11 +524,14 @@ func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stac
 // water takes none. A barrel that just filled starts making water.
 func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack, n int) int {
 	rec := s.state.Barrels[cropKey(pos)]
-	if _, dust := st.Item().(Dust); dust && b.Wood != stoneWood {
+	if b.Wood == stoneWood {
+		return s.fillStoneBarrel(tx, pos, b, st, n)
+	}
+	if _, dust := st.Item().(Dust); dust {
 		return s.soakDust(tx, pos, rec, st, n)
 	}
 	capacity := barrelCapacity(b.Wood)
-	if (rec != nil && (rec.Water || rec.Lava || rec.Count >= capacity)) || !barrelAccepts(b.Wood, st) {
+	if (rec != nil && (rec.Water || rec.Count >= capacity)) || !barrelAccepts(b.Wood, st) {
 		return 0
 	}
 	if rec == nil {
@@ -430,13 +549,39 @@ func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack
 	case rec.Count >= capacity:
 		now, _, _ := s.clock.Now()
 		rec.ReadyAt = now + barrelWaterDelay
-		rec.Heat, rec.HeatAt = 0, now
 		tx.PlaySound(pos.Vec3Centre(), sound.ComposterReady{})
 	case barrelStageOf(b.Wood, rec) != before:
 		tx.PlaySound(pos.Vec3Centre(), sound.ComposterFillLayer{})
 	default:
 		tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
 	}
+	s.showBarrel(tx, pos, b)
+	s.storeState()
+	return n
+}
+
+// fillStoneBarrel puts up to n blocks of st to melt into the stone barrel at
+// pos, as many as its solids have room for, and returns how many it took.
+func (s *session) fillStoneBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack, n int) int {
+	if !barrelAccepts(b.Wood, st) {
+		return 0
+	}
+	if rec := s.state.Barrels[cropKey(pos)]; rec != nil {
+		stoneRecord(rec)
+		n = min(n, (stoneSolidsMax-rec.Solids)/stoneMeltMB)
+	} else {
+		n = min(n, stoneSolidsMax/stoneMeltMB)
+	}
+	if n <= 0 {
+		return 0
+	}
+	rec := s.stoneBarrel(pos)
+	if rec.Solids == 0 {
+		// The melting is counted from now: solids that were not there did not melt.
+		rec.MeltAt, _, _ = s.clock.Now()
+	}
+	rec.Solids += n * stoneMeltMB
+	tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
 	s.showBarrel(tx, pos, b)
 	s.storeState()
 	return n
@@ -525,7 +670,7 @@ func (s *session) tickBarrels(tx *world.Tx) {
 			continue
 		}
 		if b.Wood == stoneWood {
-			if s.heatBarrel(tx, pos, b, rec, now) {
+			if s.meltBarrel(tx, pos, b, rec, now) {
 				changed = true
 			}
 			continue
@@ -546,24 +691,41 @@ func (s *session) tickBarrels(tx *world.Tx) {
 	}
 }
 
-// heatBarrel counts the heat a full stone barrel got since it was last
-// counted (the time × the speed of the heat source under it) and turns its
-// cobblestone into lava once it has had stoneHeatNeeded. It reports whether
-// the barrel turned into lava.
-func (s *session) heatBarrel(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRecord, now time.Duration) bool {
-	if rec.Lava || rec.Count < stoneBarrelCapacity {
-		return false
+// meltBarrel melts the solids of a stone barrel for the melting steps since
+// they were last counted: each step the heat value of the block under it in
+// mB, as long as there are solids and the lava has room. Every bucket's worth
+// made counts as a lava made (barrel_lava). It reports whether the barrel
+// changed.
+func (s *session) meltBarrel(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRecord, now time.Duration) bool {
+	changed := rec.Lava || rec.Count > 0
+	stoneRecord(rec)
+	if rec.Solids == 0 || now < rec.MeltAt {
+		rec.MeltAt = now
+		if changed {
+			s.showBarrel(tx, pos, b)
+		}
+		return changed
 	}
-	dt := max(now-rec.HeatAt, 0)
-	rec.HeatAt = now
-	rec.Heat += dt * time.Duration(heatMultiplier(tx.Block(pos.Side(cube.FaceDown))))
-	if rec.Heat < stoneHeatNeeded {
-		return false
+	steps := int((now - rec.MeltAt) / stoneMeltStep)
+	if steps == 0 {
+		return changed
 	}
-	rec.Lava = true
-	countAll(tx, "barrel_lava", 1)
+	rec.MeltAt += time.Duration(steps) * stoneMeltStep
+	n := min(steps*heatValue(tx.Block(pos.Side(cube.FaceDown))), rec.Solids, stoneLavaMax-rec.LavaMB)
+	if n <= 0 {
+		return changed
+	}
+	first := rec.LavaMB == 0
+	rec.Solids -= n
+	rec.LavaMB += n
+	rec.Made += n
+	for ; rec.Made >= bucketMB; rec.Made -= bucketMB {
+		countAll(tx, "barrel_lava", 1)
+	}
 	s.showBarrel(tx, pos, b)
-	tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Lava{}})
+	if first {
+		tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Lava{}})
+	}
 	return true
 }
 
@@ -579,16 +741,16 @@ func (s *session) breakBarrel(pos cube.Pos, drops *[]item.Stack) {
 // water, lava), nil when it holds none.
 func (s *session) barrelLiquid(lang string, pos cube.Pos) *waila.ItemLine {
 	rec := s.barrelAt(pos)
-	full := i18n.T(lang, "barrel.lines.full")
+	bucket := fmt.Sprintf(i18n.T(lang, "barrel.lines.mb"), bucketMB)
 	switch {
 	case rec == nil:
 		return nil
 	case rec.Witch:
-		return liquidLine(lang, liquidWitchWater, full)
+		return liquidLine(lang, liquidWitchWater, bucket)
 	case rec.Water:
-		return liquidLine(lang, liquidWater, full)
-	case rec.Lava:
-		return liquidLine(lang, liquidLava, full)
+		return liquidLine(lang, liquidWater, bucket)
+	case rec.LavaMB > 0:
+		return liquidLine(lang, liquidLava, fmt.Sprintf(i18n.T(lang, "barrel.lines.tank"), rec.LavaMB, stoneLavaMax))
 	}
 	return nil
 }
@@ -621,24 +783,27 @@ func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string 
 	return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.barrel.barrelLines.6"), rec.Count, matterCapacity)}
 }
 
-// stoneBarrelLines are the lines of a stone barrel's WAILA panel.
+// stoneBarrelLines are the lines of a stone barrel's WAILA panel (its lava
+// shows on the icon line): the solids and how they melt.
 func (s *session) stoneBarrelLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	rec := s.barrelAt(pos)
 	switch {
-	case rec != nil && rec.Lava:
-		return nil
-	case rec == nil || rec.Count == 0:
+	case rec == nil || (rec.Solids == 0 && rec.LavaMB == 0):
 		return []string{i18n.T(lang, "barrel.stone.lines.empty")}
-	case rec.Count < stoneBarrelCapacity:
-		return []string{fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.count"), rec.Count, stoneBarrelCapacity)}
+	case rec.Solids == 0:
+		return nil
 	}
-	mult := heatMultiplier(tx.Block(pos.Side(cube.FaceDown)))
-	if mult == 0 {
-		return []string{i18n.T(lang, "barrel.stone.lines.noHeat")}
+	lines := []string{fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.solids"), rec.Solids, stoneSolidsMax)}
+	heat := heatValue(tx.Block(pos.Side(cube.FaceDown)))
+	switch {
+	case heat == 0:
+		return append(lines, i18n.T(lang, "barrel.stone.lines.noHeat"))
+	case rec.LavaMB >= stoneLavaMax:
+		return append(lines, i18n.T(lang, "barrel.stone.lines.lavaFull"))
 	}
-	left := max(stoneHeatNeeded-rec.Heat, 0) / time.Duration(mult)
-	left = left.Round(time.Second)
-	return []string{fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.heating"), int(left.Minutes()), int(left.Seconds())%60, mult)}
+	steps := (min(rec.Solids, stoneLavaMax-rec.LavaMB) + heat - 1) / heat
+	left := (time.Duration(steps) * stoneMeltStep).Round(time.Second)
+	return append(lines, fmt.Sprintf(i18n.T(lang, "barrel.stone.lines.melting"), int(left.Minutes()), int(left.Seconds())%60, heat))
 }
 
 func init() {
@@ -652,18 +817,20 @@ func init() {
 	}
 }
 
-// FluidRoles implements fluidnet.Holder: a barrel full of water (lava) gives a
-// bucket's worth to a fluid conduit; it takes none.
+// FluidRoles implements fluidnet.Holder: a barrel of water gives its bucket's
+// worth to a fluid conduit, a stone barrel any part of its lava; it takes
+// none.
 func (Barrel) FluidRoles() (source, sink bool) { return true, false }
 
 // FillFluid implements fluidnet.Holder.
 func (Barrel) FillFluid(fluidnet.World, cube.Pos, fluidnet.Kind, int, bool) int { return 0 }
 
-// DrainFluid implements fluidnet.Holder: all of the bucket at once, and only
-// when max allows it.
+// DrainFluid implements fluidnet.Holder: the water of a barrel all of the
+// bucket at once, and only when max allows it; the lava of a stone barrel up
+// to max.
 func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate bool) (fluidnet.Kind, int) {
 	tx, ok := w.(*world.Tx)
-	if !ok || max < bucketMB {
+	if !ok || max <= 0 {
 		return fluidnet.None, 0
 	}
 	s, ok := activeGame.sessionOf(tx.World())
@@ -671,13 +838,24 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 		return fluidnet.None, 0
 	}
 	rec := s.state.Barrels[cropKey(pos)]
-	if rec == nil || !(rec.Water || rec.Lava) {
+	if b.Wood == stoneWood {
+		stoneRecord(rec)
+		if rec == nil || rec.LavaMB == 0 {
+			return fluidnet.None, 0
+		}
+		n := min(max, rec.LavaMB)
+		if !simulate {
+			rec.LavaMB -= n
+			s.forgetEmptyStone(pos, rec)
+			s.showBarrel(tx, pos, b)
+			s.storeState()
+		}
+		return fluidnet.Lava, n
+	}
+	if rec == nil || !rec.Water || max < bucketMB {
 		return fluidnet.None, 0
 	}
 	k := fluidnet.Water
-	if rec.Lava {
-		k = fluidnet.Lava
-	}
 	if !simulate {
 		delete(s.state.Barrels, cropKey(pos))
 		s.showBarrel(tx, pos, b)

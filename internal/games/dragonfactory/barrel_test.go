@@ -10,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
@@ -107,11 +109,12 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 	})
 }
 
-// TestStoneBarrelMakesLava: eight cobblestone fill a stone barrel; heat
-// under it turns them into lava after 1 minute with a torch (1×), 15
-// seconds over lava (4×) and 7.5 over a magma block (8×); no heat, no lava; a
-// bucket takes the lava.
-func TestStoneBarrelMakesLava(t *testing.T) {
+// TestStoneBarrelMeltsLikeACrucible: a stone barrel takes blocks to melt up
+// to 1000 mB of solids (250 mB each) and melts every 0.5 seconds as many mB
+// as the heat value of the block under it (Ex Deorum's crucible heat
+// sources), up to 4000 mB of lava; without heat nothing melts; a bucket takes
+// 1000 mB of lava, and only when there is that much.
+func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
@@ -119,65 +122,140 @@ func TestStoneBarrelMakesLava(t *testing.T) {
 	for _, c := range []struct {
 		name  string
 		below world.Block
-		after time.Duration
+		heat  int
 	}{
-		{"torch", block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, time.Minute},
-		{"lava", block.Lava{Still: true, Depth: 8}, 15 * time.Second},
-		{"magma", block.Magma{}, 7500 * time.Millisecond},
+		{"torch", block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, 1},
+		{"soul torch", block.Torch{Facing: cube.FaceDown, Type: block.SoulFire()}, 2},
+		{"lantern", block.Lantern{Type: block.NormalFire()}, 1},
+		{"soul lantern", block.Lantern{Type: block.SoulFire()}, 2},
+		{"campfire", block.Campfire{Type: block.NormalFire()}, 2},
+		{"put out campfire", block.Campfire{Type: block.NormalFire(), Extinguished: true}, 0},
+		{"lava", block.Lava{Still: true, Depth: 8}, 3},
+		{"fire", block.Fire{Type: block.NormalFire()}, 5},
+		{"magma block", block.Magma{}, 0},
+		{"nothing", block.Air{}, 0},
 	} {
 		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 			pos := cube.Pos{4, IslandY + 3, 4}
 			barrel := Barrel{Wood: stoneWood}
+			delete(s.state.Barrels, cropKey(pos))
 			tx.SetBlock(pos.Side(cube.FaceDown), c.below, nil)
 			tx.SetBlock(pos, barrel, nil)
 			var ctx item.UseContext
 			if s.useBarrel(p, tx, pos, barrel, item.NewStack(item.Stick{}, 1), &ctx) {
 				t.Fatal("a stick was put in a stone barrel")
 			}
-			for i := 1; i <= stoneBarrelCapacity; i++ {
-				if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx) {
+			for i := 1; i <= stoneSolidsMax/stoneMeltMB; i++ {
+				ctx = item.UseContext{}
+				if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx) || ctx.CountSub != 1 {
 					t.Fatalf("%s: cobblestone %d was not taken", c.name, i)
 				}
 			}
+			ctx = item.UseContext{}
+			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx) || ctx.CountSub != 0 {
+				t.Fatalf("%s: a fifth cobblestone was taken (or the click placed it)", c.name)
+			}
 			rec := s.barrelAt(pos)
-			if rec.Count != stoneBarrelCapacity {
-				t.Fatalf("%s: %d cobblestone", c.name, rec.Count)
+			if rec.Solids != stoneSolidsMax || tx.Block(pos).(Barrel).Stage != barrelFillStages {
+				t.Fatalf("%s: %d mB of solids, stage %d", c.name, rec.Solids, tx.Block(pos).(Barrel).Stage)
 			}
-			// Just short of the time: still cobblestone.
-			rec.HeatAt -= c.after - time.Second
+			// Ten seconds are 20 steps.
+			rec.MeltAt -= 10 * time.Second
 			s.tickBarrels(tx)
-			if s.barrelAt(pos).Lava {
-				t.Fatalf("%s: lava a second too early", c.name)
+			if want := 20 * c.heat; rec.LavaMB != want || rec.Solids != stoneSolidsMax-want {
+				t.Fatalf("%s: %d mB lava and %d solids after 10 s, want %d lava", c.name, rec.LavaMB, rec.Solids, want)
 			}
-			rec.HeatAt -= time.Second
-			s.tickBarrels(tx)
-			if !s.barrelAt(pos).Lava || tx.Block(pos).(Barrel).Stage != barrelWater {
-				t.Fatalf("%s: no lava after %s", c.name, c.after)
-			}
-			var bucketCtx item.UseContext
-			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &bucketCtx) {
-				t.Fatalf("%s: the bucket did not answer", c.name)
-			}
-			lava := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1)
-			if !p.Inventory().ContainsItem(lava) || s.barrelAt(pos) != nil {
-				t.Errorf("%s: no lava bucket or the barrel is not empty", c.name)
-			}
-			_ = p.Inventory().RemoveItem(lava)
 		})
 	}
-	// Without a heat source nothing happens, however long it waits.
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{8, IslandY + 3, 8}
 		barrel := Barrel{Wood: stoneWood}
+		tx.SetBlock(pos.Side(cube.FaceDown), block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, nil)
 		tx.SetBlock(pos, barrel, nil)
-		var ctx item.UseContext
-		for range stoneBarrelCapacity {
-			s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &ctx)
+		for range stoneSolidsMax / stoneMeltMB {
+			s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), cobble, &item.UseContext{})
 		}
-		s.barrelAt(pos).HeatAt -= time.Hour
+		rec := s.barrelAt(pos)
+		// A torch melts the 1000 mB in 500 seconds; a bucket wants 1000 mB.
+		rec.MeltAt -= 499 * time.Second
 		s.tickBarrels(tx)
-		if s.barrelAt(pos).Lava {
-			t.Error("lava without a heat source")
+		if rec.LavaMB != 998 || tx.Block(pos).(Barrel).Stage != barrelWater {
+			t.Fatalf("%d mB of lava after 499 s, stage %d", rec.LavaMB, tx.Block(pos).(Barrel).Stage)
+		}
+		var ctx item.UseContext
+		p.SetHeldItems(item.NewStack(item.Bucket{}, 1), item.Stack{})
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &ctx) {
+			t.Fatal("the bucket did not answer")
+		}
+		if held, _ := p.HeldItems(); !held.Comparable(item.NewStack(item.Bucket{}, 1)) || rec.LavaMB != 998 {
+			t.Fatal("a bucket took less than 1000 mB of lava")
+		}
+		rec.MeltAt -= time.Second
+		s.tickBarrels(tx)
+		if rec.LavaMB != bucketMB || rec.Solids != 0 {
+			t.Fatalf("%d mB of lava and %d solids after 500 s", rec.LavaMB, rec.Solids)
+		}
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &ctx) {
+			t.Fatal("the bucket did not answer")
+		}
+		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava || s.barrelAt(pos) != nil {
+			t.Fatalf("held %v, barrel %+v: want a lava bucket and an empty barrel", held, s.barrelAt(pos))
+		}
+		if tx.Block(pos).(Barrel).Stage != 0 {
+			t.Fatal("the empty barrel still shows lava")
+		}
+		// The lava bucket pours back in, up to 4000 mB.
+		for i := range stoneLavaMax / bucketMB {
+			held, _ := p.HeldItems()
+			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), held, &item.UseContext{}) || s.barrelAt(pos).LavaMB != (i+1)*bucketMB {
+				t.Fatalf("lava bucket %d was not poured in", i+1)
+			}
+			p.SetHeldItems(item.NewStack(lavaBucket, 1), item.Stack{})
+		}
+		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(lavaBucket, 1), &item.UseContext{}) || s.barrelAt(pos).LavaMB != stoneLavaMax {
+			t.Fatal("lava went over 4000 mB")
+		}
+		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
+			t.Fatal("the bucket of a full barrel was emptied")
+		}
+		// Full of lava, the solids wait.
+		rec = s.barrelAt(pos)
+		rec.Solids, rec.MeltAt = stoneSolidsMax, rec.MeltAt-time.Hour
+		s.tickBarrels(tx)
+		if rec.LavaMB != stoneLavaMax || rec.Solids != stoneSolidsMax {
+			t.Fatalf("%d lava, %d solids: melted over the top", rec.LavaMB, rec.Solids)
+		}
+		lines := s.stoneBarrelLines(i18n.Default, tx, pos)
+		if len(lines) != 2 || lines[1] != i18n.T(i18n.Default, "barrel.stone.lines.lavaFull") {
+			t.Fatalf("panel %q", lines)
+		}
+		// A conduit takes any part of the lava.
+		if k, n := (Barrel{Wood: stoneWood}).DrainFluid(tx, pos, 300, false); k != fluidnet.Lava || n != 300 || rec.LavaMB != stoneLavaMax-300 {
+			t.Fatalf("drained %v %d, %d left", k, n, rec.LavaMB)
+		}
+	})
+}
+
+// TestStoneBarrelOldSave: a stone barrel of an older save (a bucket of lava,
+// or cobblestone heating) holds the same as lava and solids.
+func TestStoneBarrelOldSave(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		lava, cobble := cube.Pos{4, IslandY + 3, 4}, cube.Pos{6, IslandY + 3, 4}
+		tx.SetBlock(lava, Barrel{Wood: stoneWood, Stage: barrelWater}, nil)
+		tx.SetBlock(cobble, Barrel{Wood: stoneWood, Stage: 3}, nil)
+		s.state.Barrels = map[string]*BarrelRecord{
+			cropKey(lava):   {Count: legacyStoneCount, Lava: true, Heat: time.Minute},
+			cropKey(cobble): {Count: 4, Heat: 10 * time.Second},
+		}
+		s.tickBarrels(tx)
+		if r := s.barrelAt(lava); r.LavaMB != bucketMB || r.Solids != 0 || r.Lava || r.Count != 0 || r.Heat != 0 {
+			t.Errorf("old lava barrel: %+v", r)
+		}
+		if r := s.barrelAt(cobble); r.Solids != 500 || r.LavaMB != 0 || r.Count != 0 {
+			t.Errorf("old cobblestone barrel: %+v", r)
 		}
 	})
 }
@@ -231,7 +309,7 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 		{"oak", water, BarrelRecord{Water: true}, item.Bucket{}},
 		{"oak", item.NewStack(WoodenBucket{Water: true}, 1), BarrelRecord{Water: true}, WoodenBucket{}},
 		{"oak", item.NewStack(WitchWaterBucket{}, 1), BarrelRecord{Witch: true}, item.Bucket{}},
-		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{Lava: true}, item.Bucket{}},
+		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{LavaMB: bucketMB}, item.Bucket{}},
 		{stoneWood, water, BarrelRecord{}, nil},
 		{"oak", item.NewStack(lavaBucket, 1), BarrelRecord{}, nil},
 	}
@@ -335,7 +413,7 @@ func TestWoodenBucket(t *testing.T) {
 		// Lava stays in the barrel.
 		stone := cube.Pos{6, IslandY + 3, 4}
 		tx.SetBlock(stone, Barrel{Wood: stoneWood}, nil)
-		s.state.Barrels[cropKey(stone)] = &BarrelRecord{Count: stoneBarrelCapacity, Lava: true}
+		s.state.Barrels[cropKey(stone)] = &BarrelRecord{LavaMB: bucketMB}
 		p.SetHeldItems(empty, item.Stack{})
 		if !s.useBarrel(p, tx, stone, tx.Block(stone).(Barrel), empty, &item.UseContext{}) {
 			t.Fatal("the click on the lava barrel was not used")
@@ -343,7 +421,7 @@ func TestWoodenBucket(t *testing.T) {
 		if held, _ := p.HeldItems(); !held.Comparable(empty) {
 			t.Fatalf("a wooden bucket took lava: %v", held)
 		}
-		if rec := s.barrelAt(stone); rec == nil || !rec.Lava {
+		if rec := s.barrelAt(stone); rec == nil || rec.LavaMB != bucketMB {
 			t.Fatal("the lava went")
 		}
 		// A water source fills the bucket and the full bucket pours it out.

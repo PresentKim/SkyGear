@@ -659,9 +659,14 @@ func codexProcesses() []codexProcess {
 		}},
 		{item.NewStack(Barrel{Wood: stoneWood}, 1), func(s *session, lang string) []codexCard {
 			barrel := item.NewStack(Barrel{Wood: stoneWood}, 1)
-			return append([]codexCard{machineCard(lang, barrel,
-				[]ui.BoardCell{s.codexCell(lang, item.NewStack(block.Cobblestone{}, 1), countLabel(stoneBarrelCapacity)), s.codexCell(lang, item.NewStack(block.Torch{}, 1), "", i18n.T(lang, "codex.card.heat"))},
-				[]ui.BoardCell{s.codexCell(lang, lava, "")})}, s.barrelMixCards(lang, barrel, true)...)
+			heat := s.codexCell(lang, item.NewStack(block.Torch{}, 1), "", i18n.T(lang, "codex.card.heat"))
+			var cards []codexCard
+			for _, m := range stoneMelts {
+				cards = append(cards, machineCard(lang, barrel,
+					[]ui.BoardCell{s.codexCell(lang, item.NewStack(m, 1), ""), heat},
+					[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), stoneMeltMB))}))
+			}
+			return append(cards, s.barrelMixCards(lang, barrel, true)...)
 		}},
 		{machineItem(KindTinker), func(s *session, lang string) []codexCard { return s.codexGearCards(lang) }},
 	}

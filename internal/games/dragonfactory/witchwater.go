@@ -95,7 +95,7 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 		return nil, item.Stack{}, false
 	}
 	for _, m := range barrelMixes() {
-		if (m.lava && !rec.Lava) || (!m.lava && !rec.Witch) || itemKey(held.Item()) != itemKey(m.in) {
+		if (m.lava && rec.LavaMB < bucketMB) || (!m.lava && !rec.Witch) || itemKey(held.Item()) != itemKey(m.in) {
 			continue
 		}
 		switch m.in.(type) {
@@ -159,12 +159,21 @@ func (s *session) tickWitchWater(tx *world.Tx, pos cube.Pos, b Barrel, rec *Barr
 	return true
 }
 
-// mixBarrel empties the barrel at pos and drops out on top.
+// mixBarrel empties the barrel at pos (uses up a bucket's worth of the lava
+// of a stone barrel) and drops out on top.
 func (s *session) mixBarrel(tx *world.Tx, pos cube.Pos, b Barrel, out world.Item) {
-	if rec := s.barrelAt(pos); rec != nil && rec.Clay > 0 {
-		s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, rec.Clay))
+	rec := s.barrelAt(pos)
+	switch {
+	case b.Wood == stoneWood && rec != nil:
+		// A stone barrel uses up a bucket's worth of its lava.
+		rec.LavaMB -= bucketMB
+		s.forgetEmptyStone(pos, rec)
+	default:
+		if rec != nil && rec.Clay > 0 {
+			s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, rec.Clay))
+		}
+		delete(s.state.Barrels, cropKey(pos))
 	}
-	delete(s.state.Barrels, cropKey(pos))
 	s.showBarrel(tx, pos, b)
 	s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(out, 1))
 	tx.PlaySound(pos.Vec3Centre(), sound.Fizz{})

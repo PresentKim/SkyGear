@@ -88,9 +88,9 @@ func TestWitchWater(t *testing.T) {
 		// lava + witch water bucket → blackstone, lava + glowstone → end stone
 		stone := Barrel{Wood: stoneWood}
 		tx.SetBlock(pos, stone, nil)
-		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: stoneBarrelCapacity, Lava: true}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
 		s.useBarrel(p, tx, pos, stone, item.NewStack(WitchWaterBucket{}, 1), &item.UseContext{})
-		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: stoneBarrelCapacity, Lava: true}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
 		s.useBarrel(p, tx, pos, stone, item.NewStack(item.GlowstoneDust{}, 1), &item.UseContext{})
 		got := droppedKeys(tx)
 		if got[itemKey(block.Blackstone{})] != 1 || got[itemKey(block.EndStone{})] != 1 {
@@ -133,7 +133,7 @@ func TestBarrelLiquidIcon(t *testing.T) {
 	for kind, rec := range map[string]*BarrelRecord{
 		liquidWater:      {Count: matterCapacity, Water: true},
 		liquidWitchWater: {Count: matterCapacity, Witch: true},
-		liquidLava:       {Count: stoneBarrelCapacity, Lava: true},
+		liquidLava:       {LavaMB: bucketMB},
 	} {
 		s.state.Barrels[cropKey(pos)] = rec
 		line := s.barrelLiquid(i18n.Default, pos)
