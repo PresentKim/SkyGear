@@ -16,7 +16,7 @@
  "ui.page.prev": "이전 쪽 (%d/%d)",
  "ui.page.next": "다음 쪽 (%d/%d)",
  "ui.sides.back": "돌아가기",
- "ui.sides.none": "연결 없음",
+ "ui.sides.none": "포트 없음",
  "ui.input.ok": "확인",
  "ui.input.create": "생성하기",
  "ui.input.back": "돌아가기"

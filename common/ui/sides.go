@@ -84,13 +84,13 @@ func sideCard(f cube.Face) (x, y int, low bool) {
 func sideArrow(f cube.Face) string {
 	switch f {
 	case cube.FaceWest:
-		return "textures/ui/df/arrow_left"
+		return "←"
 	case cube.FaceEast:
-		return "textures/ui/df/arrow_right"
+		return "→"
 	case cube.FaceUp, cube.FaceNorth:
-		return "textures/ui/df/arrow_up"
+		return "↑"
 	}
-	return "textures/ui/df/arrow_down"
+	return "↓"
 }
 
 // sidePicker is the port whose choices are open: the side and the port.
@@ -99,10 +99,11 @@ type sidePicker struct{ side, port int }
 // SidesMenu shows a block in the middle with a card for each of its six sides
 // around it, joined to it by a line, each card with the arrow and name of the
 // side, the block beside it and a box for each port side by side: the square
-// of its choice, which turns it to the next choice when pressed, its label
-// and a plus button that opens the choices in a panel beside the card. A
-// change redraws only the ports. A side without ports shows a grey box in
-// their place. Without DDUI it is an ItemBoard with a row for each side, and
+// of its choice filling the box, which turns it to the next choice when
+// pressed, its label at the top right and a plus button on the square's
+// corner that opens the choices in a panel beside the card. A change redraws
+// only the ports. A side without ports shows a dashed box in their place, and
+// a side with no block beside it an empty diamond in the block's. Without DDUI it is an ItemBoard with a row for each side, and
 // the choices are an ItemGrid.
 func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
 	if !OreUIFor(p) {
@@ -126,10 +127,12 @@ func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
 		if i == b.Focus {
 			class += " on"
 		}
-		block := img("mc-side-block", s.Icon)
-		block["tip"] = s.Tip
+		block := box("mc-side-block", "children", []any{box("mc-side-empty")})
+		if s.Icon != "" {
+			block = box("mc-side-block", "tip", s.Tip, "children", []any{img("", s.Icon)})
+		}
 		view = append(view, box(class, "style", pos(x, y), "children", []any{
-			box("mc-side-head", "children", []any{img("mc-side-arrow", sideArrow(cube.Face(i))), txt("mc-side-name", s.Name)}),
+			box("mc-side-head", "children", []any{txt("mc-side-arrow", sideArrow(cube.Face(i))), txt("mc-side-name", s.Name)}),
 			box("mc-side-body", "children", []any{block, node("region", "name", sideRegion(i))}),
 		}))
 	}
@@ -162,6 +165,19 @@ func updateSides(p *player.Player, b SideBoard, open *sidePicker) {
 	l := newOreLayout()
 	l.prefix = "s" + strconv.Itoa(sidesTurn) + "_"
 	oreScreens.Unlock()
+	vars := sidesVars(p, l, b, open)
+	withScreen(p, func(st *oreScreen) {
+		st.gen++
+		for k, v := range l.runs {
+			st.runs[k] = v
+		}
+		st.form.SetVars(vars)
+	})
+}
+
+// sidesVars are the regions of a SidesMenu screen: the ports of each side
+// ("@side<n>") and the open choices ("@picker"), their presses in l.
+func sidesVars(p *player.Player, l *oreLayout, b SideBoard, open *sidePicker) map[string]any {
 	choose := func(run func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
 			if run != nil {
@@ -203,13 +219,7 @@ func updateSides(p *player.Player, b SideBoard, open *sidePicker) {
 		}
 		vars["@"+sideRegion(i)] = box("mc-side-ports", "children", ports)
 	}
-	withScreen(p, func(st *oreScreen) {
-		st.gen++
-		for k, v := range l.runs {
-			st.runs[k] = v
-		}
-		st.form.SetVars(vars)
-	})
+	return vars
 }
 
 // pickerNode is the panel of the choices of port, on the card of side: under

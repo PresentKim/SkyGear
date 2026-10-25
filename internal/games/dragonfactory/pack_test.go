@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"encoding/json"
@@ -465,5 +466,44 @@ func TestTipNameMarks(t *testing.T) {
 	}
 	if r, tier := slotdeco.Of(tipName(i18n.Default, item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
 		t.Errorf("tipName of a stick marks %v, %d", r, tier)
+	}
+}
+
+// TestGatePortalPack: the gate entity names its geometry, a texture for every
+// wave level and the render controller that picks one by the level.
+func TestGatePortalPack(t *testing.T) {
+	var ent struct {
+		E struct {
+			D struct {
+				Identifier string            `json:"identifier"`
+				Textures   map[string]string `json:"textures"`
+				Geometry   map[string]string `json:"geometry"`
+			} `json:"description"`
+		} `json:"minecraft:client_entity"`
+	}
+	readPackJSON(t, "entity/gate_portal.entity.json", &ent)
+	d := ent.E.D
+	if d.Identifier != GatePortalType.EncodeEntity() {
+		t.Errorf("entity identifier %s", d.Identifier)
+	}
+	for level := 1; level <= len(waveLevels); level++ {
+		path, ok := d.Textures[fmt.Sprintf("tier_%d", level)]
+		if !ok || !packFileExists(path+".png") {
+			t.Errorf("no texture for wave level %d (%q)", level, path)
+		}
+	}
+	var geo struct {
+		G []struct {
+			D struct {
+				Identifier string `json:"identifier"`
+			} `json:"description"`
+		} `json:"minecraft:geometry"`
+	}
+	readPackJSON(t, "models/entity/gate_portal.geo.json", &geo)
+	if len(geo.G) != 1 || geo.G[0].D.Identifier != d.Geometry["default"] {
+		t.Errorf("geometry %v, want %s", geo.G, d.Geometry["default"])
+	}
+	if !packFileExists("render_controllers/gate_portal.render_controllers.json") || !packFileExists("animations/gate_portal.animation.json") {
+		t.Error("the gate's render controller or animation is missing")
 	}
 }

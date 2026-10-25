@@ -73,12 +73,24 @@ type monsterData struct {
 	onGround bool
 	// lost is set when the monster fell into the void.
 	lost bool
+	// exit is the way out of the gate it walks for exitTicks more ticks
+	// before it goes for a player (gateportal.go).
+	exit      mgl64.Vec3
+	exitTicks int
 }
 
-type monsterConfig struct{ mob string }
+type monsterConfig struct {
+	mob string
+	// exit is the way out of the gate the monster came out of.
+	exit mgl64.Vec3
+}
 
 func (c monsterConfig) Apply(data *world.EntityData) {
-	data.Data = &monsterData{mob: c.mob, health: monsterTable[c.mob].health}
+	d := &monsterData{mob: c.mob, health: monsterTable[c.mob].health, exit: c.exit}
+	if c.exit != (mgl64.Vec3{}) {
+		d.exitTicks = gateExitTicks
+	}
+	data.Data = d
 }
 
 func (m *Monster) H() *world.EntityHandle  { return m.handle }
@@ -160,6 +172,13 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	if pos.Y() < IslandY-monsterVoid {
 		d.lost = true
 		s.monsterGone(tx, m, nil)
+		return
+	}
+	if d.exitTicks > 0 {
+		// still coming out of the gate
+		d.exitTicks--
+		m.data.Rot = cube.Rotation{dirYaw(d.exit), 0}
+		m.move(tx, pos, d.exit, monsterTable[m.kind])
 		return
 	}
 	var target *player.Player

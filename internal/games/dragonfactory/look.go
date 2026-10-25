@@ -124,6 +124,7 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		s.fluidGrid().Step(tx)
 	}
+	s.emergeMonsters(tx)
 	s.updateLooks(tx)
 }
 

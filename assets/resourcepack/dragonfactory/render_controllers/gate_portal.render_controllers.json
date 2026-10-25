@@ -1,0 +1,30 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.dragonfactory_gate_portal": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.tier_1",
+            "Texture.tier_2",
+            "Texture.tier_3",
+            "Texture.tier_4",
+            "Texture.tier_5",
+            "Texture.tier_6",
+            "Texture.tier_7",
+            "Texture.tier_8"
+          ]
+        }
+      },
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(query.variant, 0, 7)]"
+      ]
+    }
+  }
+}

@@ -2,7 +2,6 @@ package dragonfactory
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -16,9 +15,9 @@ import (
 	"github.com/presentkim/dragonfactory/common/ui"
 )
 
-// The dimension gate (docs/design/05-sky-progression.md §4.1): using it starts a
-// wave of monsters around it that the players must all kill before the time
-// runs out. Clearing the highest level opens the next; each first clear gives
+// The dimension gate anchor (docs/design/05-sky-progression.md §4.1): using it
+// opens a gate over it and starts a wave of monsters that come out of the gate
+// (gateportal.go), which the players must all kill before the time runs out. Clearing the highest level opens the next; each first clear gives
 // essences, and every monster drops what its mob drops (the simulator's tables)
 // and sometimes an essence. Values are drafts.
 
@@ -58,6 +57,13 @@ type waveState struct {
 	// left are the monsters alive, by handle.
 	left     map[*world.EntityHandle]string
 	deadline time.Time
+	// pending are the mobs still to come out of the gate, in order; emerge
+	// counts the Fast calls since the last one (gateportal.go).
+	pending []string
+	emerge  int
+	// out is the way out of the gate and portal the gate entity.
+	out    mgl64.Vec3
+	portal *world.EntityHandle
 }
 
 func (w *waveState) owns(h *world.EntityHandle) bool { _, ok := w.left[h]; return ok }
@@ -71,48 +77,27 @@ func (s *session) canStartWave(level int) bool {
 	return level >= 1 && level <= len(waveLevels) && level <= s.state.GateTier+1
 }
 
-// startWave spawns the wave of a level around the gate at pos.
-func (s *session) startWave(tx *world.Tx, pos cube.Pos, level int) bool {
+// startWave opens the gate of a level over the anchor at pos, facing a player
+// at from: its monsters come out of it one after another (gateportal.go).
+func (s *session) startWave(tx *world.Tx, pos cube.Pos, from mgl64.Vec3, level int) bool {
 	if s.wave != nil || !s.canStartWave(level) {
 		return false
 	}
 	def := waveLevels[level-1]
-	w := &waveState{level: level, gate: pos, left: map[*world.EntityHandle]string{}, deadline: time.Now().Add(time.Duration(def.Seconds) * time.Second)}
-	s.wave = w
+	w := &waveState{level: level, gate: pos, left: map[*world.EntityHandle]string{}, out: gateFacing(pos, from),
+		deadline: time.Now().Add(time.Duration(def.Seconds) * time.Second)}
 	for _, g := range def.Groups {
 		for range g.N {
-			at, ok := s.waveSpawnPoint(tx, pos)
-			if !ok {
-				continue
-			}
-			h := world.EntitySpawnOpts{Position: at}.New(monsterTypes[g.Mob], monsterConfig{mob: g.Mob})
-			w.left[h] = g.Mob
-			tx.AddEntity(h)
+			w.pending = append(w.pending, g.Mob)
 		}
 	}
-	if len(w.left) == 0 {
-		s.wave = nil
-		return false
-	}
+	// the kinds come out mixed, not one group after the other
+	s.rand.Shuffle(len(w.pending), func(i, j int) { w.pending[i], w.pending[j] = w.pending[j], w.pending[i] })
+	s.wave = w
+	s.openGatePortal(tx, w)
 	tx.PlaySound(pos.Vec3Centre(), sound.Explosion{})
-	s.broadcast(tx, "gate.start", level, len(w.left), def.Seconds)
+	s.broadcast(tx, "gate.start", level, len(w.pending), def.Seconds)
 	return true
-}
-
-// waveSpawnPoint finds a free spot on solid ground 3 to 6 blocks from the gate.
-func (s *session) waveSpawnPoint(tx *world.Tx, gate cube.Pos) (mgl64.Vec3, bool) {
-	for range 40 {
-		a := s.rand.Float64() * 2 * math.Pi
-		r := 3 + s.rand.Float64()*3
-		x, z := gate.X()+int(math.Round(r*math.Cos(a))), gate.Z()+int(math.Round(r*math.Sin(a)))
-		for y := gate.Y() + 2; y >= gate.Y()-3; y-- {
-			p := cube.Pos{x, y, z}
-			if solidAt(tx, p) && !solidAt(tx, p.Add(cube.Pos{0, 1, 0})) && !solidAt(tx, p.Add(cube.Pos{0, 2, 0})) {
-				return mgl64.Vec3{float64(x) + 0.5, float64(y) + 1, float64(z) + 0.5}, true
-			}
-		}
-	}
-	return mgl64.Vec3{}, false
 }
 
 // monsterGone handles a monster that died to p (or fell into the void when
@@ -160,6 +145,7 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 func (s *session) winWave(tx *world.Tx) {
 	w := s.wave
 	s.wave = nil
+	s.closeGatePortal(tx, w)
 	def := waveLevels[w.level-1]
 	first := w.level > s.state.GateTier
 	if first {
@@ -191,6 +177,7 @@ func (s *session) failWave(tx *world.Tx, key string) {
 		return
 	}
 	s.wave = nil
+	s.closeGatePortal(tx, w)
 	countAll(tx, "wave_fail", 1)
 	for h := range w.left {
 		if e, ok := h.Entity(tx); ok {
@@ -222,12 +209,12 @@ func (s *session) tickWave(tx *world.Tx) {
 			delete(w.left, h)
 		}
 	}
-	if len(w.left) == 0 {
+	if len(w.left) == 0 && len(w.pending) == 0 {
 		s.winWave(tx)
 		return
 	}
 	for e := range tx.Players() {
-		e.(*player.Player).SendTip(fmt.Sprintf(i18n.T(i18n.Of(e.(*player.Player)), "gate.tip"), w.level, len(w.left), left))
+		e.(*player.Player).SendTip(fmt.Sprintf(i18n.T(i18n.Of(e.(*player.Player)), "gate.tip"), w.level, len(w.left)+len(w.pending), left))
 	}
 }
 
@@ -254,7 +241,7 @@ func (s *session) showGateForm(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		}
 		lines += fmt.Sprintf("\n§f%d §7%s (%d%s)", level, parts, def.Seconds, i18n.T(lang, "gate.seconds"))
 		opts = append(opts, ui.Option{Label: label, Run: func(p *player.Player, tx *world.Tx) {
-			s.startWave(tx, pos, level)
+			s.startWave(tx, pos, p.Position(), level)
 		}})
 	}
 	body := fmt.Sprintf(i18n.T(lang, "gate.body"), s.state.GateTier) + lines

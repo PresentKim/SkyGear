@@ -43,14 +43,27 @@ func TestWaveFlow(t *testing.T) {
 		}
 		placeTestMachine(s, gate, KindGate, "")
 		p.Teleport(gate.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}))
-		if s.startWave(tx, gate, 2) {
+		if s.startWave(tx, gate, p.Position(), 2) {
 			t.Fatal("level 2 started before level 1 was cleared")
 		}
-		if !s.startWave(tx, gate, 1) {
+		if !s.startWave(tx, gate, p.Position(), 1) {
 			t.Fatal("level 1 did not start")
 		}
-		if s.startWave(tx, gate, 1) {
+		if s.startWave(tx, gate, p.Position(), 1) {
 			t.Error("two waves at once")
+		}
+		if s.wave.portal == nil || len(s.wave.left) != 0 || len(s.wave.pending) != 4 {
+			t.Fatalf("the gate opened with %d monsters out and %d to come", len(s.wave.left), len(s.wave.pending))
+		}
+		if s.wave.out != (mgl64.Vec3{1, 0, 0}) {
+			t.Errorf("the gate faces %v, want east to the player", s.wave.out)
+		}
+		s.tickWave(tx)
+		if s.wave == nil {
+			t.Fatal("the wave ended before its monsters came out")
+		}
+		for range 4 * gatePortalEvery {
+			s.emergeMonsters(tx)
 		}
 		mons := waveMonsters(s, tx)
 		if len(mons) != 4 {
@@ -100,7 +113,7 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 			}
 		}
 		placeTestMachine(s, gate, KindGate, "")
-		s.startWave(tx, gate, 1)
+		s.startWave(tx, gate, p.Position(), 1)
 		s.wave.deadline = s.wave.deadline.Add(-1000 * 1e9)
 		s.tickWave(tx)
 		if s.wave != nil {

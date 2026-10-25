@@ -13,7 +13,7 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/dfadmin give crucible 1' 'expect:전기 도가니 x1' \
   'cmd:/dfadmin give lava_generator 1' 'expect:용암 발전기 x1' \
   'cmd:/dfadmin give ore_washer 1' 'expect:광석 세척기 x1' \
-  'cmd:/dfadmin give dimension_gate 1' 'expect:차원 게이트 x1' \
+  'cmd:/dfadmin give dimension_gate 1' 'expect:차원 게이트 고정 앵커 x1' \
   'cmd:/dfadmin give tinker_table 1' 'expect:장비 제작대 x1' \
   'cmd:/dfadmin give tool_pickaxe_steel_bone 1' 'expect:강철 곡괭이' \
   'cmd:/dfadmin give storage_controller 1' 'expect:스토리지 컨트롤러 x1' \

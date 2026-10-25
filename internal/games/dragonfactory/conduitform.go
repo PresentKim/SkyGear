@@ -124,7 +124,8 @@ func (s *session) showConduitSides(p *player.Player, tx *world.Tx, pos cube.Pos,
 		return
 	}
 	lang := i18n.Of(p)
-	ui.SidesMenu(p, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item)), s.conduitSideBoard(p, tx, pos, focus))
+	// what the squares and the plus buttons do is the help button's tooltip
+	ui.SidesMenu(p, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item)), s.conduitSideBoard(p, tx, pos, focus), ui.Help(i18n.T(lang, "conduit.sides.help"), nil))
 }
 
 // conduitSideBoard is the content of showConduitSides for the bundle at pos

@@ -153,11 +153,11 @@ func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		tx.SetBlock(pos, newMachine(KindGate, "", ""), nil)
 	}
 	s.state.GateTier = max(s.state.GateTier, c.Level-1)
-	if !s.startWave(tx, pos, c.Level) {
+	if !s.startWave(tx, pos, p.Position(), c.Level) {
 		o.Error("a wave is already going on")
 		return
 	}
-	o.Printf("wave %d started with %d monsters", c.Level, len(s.wave.left))
+	o.Printf("wave %d started with %d monsters", c.Level, len(s.wave.left)+len(s.wave.pending))
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random
