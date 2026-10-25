@@ -363,9 +363,10 @@
   font-size: 1.12rem;
 }
 
-/* A card: 90x50 cell, 86x46 button, 22u icon 5u above the middle, label 3u from the bottom (0.8). */
+/* A card: 76x50 cell, 72x46 button, 22u icon 5u above the middle, label 3u from the bottom (0.8),
+   four to a row. */
 .mc-cards {
-  width: 54rem;
+  width: 60.8rem;
   align-self: center;
   display: flex;
   flex-direction: row;
@@ -373,7 +374,7 @@
 }
 
 .mc-card-cell {
-  width: 18rem;
+  width: 15.2rem;
   height: 10rem;
   display: flex;
   align-items: center;
@@ -381,7 +382,7 @@
 }
 
 .mc-card {
-  width: 17.2rem;
+  width: 14.4rem;
   height: 9.2rem;
   flex-direction: column;
   justify-content: center;

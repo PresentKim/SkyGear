@@ -84,7 +84,7 @@
         // Untitled cards (ui.UntitledToken): the lobby menu.
         "cards_u@df_form.card_form": {
           "visible": false,
-          "$df_card_size": [ 296, 124 ],
+          "$df_card_size": [ 326, 124 ],
           "$df_card_title": false,
           "$df_card_offset": [ 0, 10 ],
           "$df_card_content": [ "100% - 12px", "100% - 16px" ],

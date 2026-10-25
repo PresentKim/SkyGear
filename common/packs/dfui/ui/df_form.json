@@ -951,14 +951,14 @@
   },
 
   // ---- card grid (title starts with §d§f§c§r): menu and shop ----
-  // Buttons as icon-and-text cards, three per row, as many rows as needed.
+  // Buttons as icon-and-text cards, four per row, as many rows as needed.
 
   // An untitled card form (ui.UntitledToken: the lobby menu, whose name is in
   // the lobby frame) has no title bar, and the window is as much shorter.
   "card_form": {
     "type": "panel",
     "size": [ "100%", "100%" ],
-    "$df_card_size|default": [ 296, 166 ],
+    "$df_card_size|default": [ 326, 166 ],
     "$df_card_title|default": true,
     "$df_card_offset|default": [ 0, 18 ],
     "$df_card_content|default": [ "100% - 12px", "100% - 24px" ],
@@ -1012,11 +1012,12 @@
           "size": [ "100%", "100%c" ],
           "controls": [
             {
-              // Three 90px cells (270px) fit the 276px content; a 100%
-              // wide grid rounded down to two columns (7th playtest).
+              // Four 76px cells (304px) fit the 308px content, so two
+              // rows hold eight cards; a 100% wide grid rounded down a
+              // column (7th playtest).
               "cards": {
                 "type": "grid",
-                "size": [ 270, "100%c" ],
+                "size": [ 304, "100%c" ],
                 "anchor_from": "top_middle",
                 "anchor_to": "top_middle",
                 "grid_rescaling_type": "horizontal",
@@ -1038,7 +1039,7 @@
   // Marked buttons (tabs, back) leave an empty cell; they come last.
   "card@df_form.unmarked_visible": {
     "type": "panel",
-    "size": [ 90, 50 ],
+    "size": [ 76, 50 ],
     "controls": [ { "button@df_form.card_button": {} } ]
   },
 
@@ -1139,7 +1140,7 @@
     "$pressed_button_name": "button.form_button_click",
     "$df_card_icon|default": [ 22, 22 ],
     "$df_card_font|default": 0.8,
-    "size": [ 86, 46 ],
+    "size": [ 72, 46 ],
     "default_control": "default",
     "hover_control": "hover",
     "pressed_control": "pressed",

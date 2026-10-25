@@ -488,7 +488,7 @@ func (l *oreLayout) listButton(o Option) map[string]any { return l.button("mc-li
 // actionButton is the split screen's 17u action button.
 func (l *oreLayout) actionButton(o Option) map[string]any { return l.button("mc-action", o) }
 
-// card is df_form's card_button: 86x46 in a 90x50 cell.
+// card is df_form's card_button: 72x46 in a 76x50 cell.
 func (l *oreLayout) card(o Option) map[string]any {
 	return box("mc-card-cell", "children", []any{l.button("mc-card", o)})
 }
@@ -595,7 +595,7 @@ func oreMenu(p *player.Player, title, body string, opts []Option) {
 }
 
 // oreCardMenu is a card menu (df_form card_form): the body text and
-// three cards to a row.
+// four cards to a row.
 func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
 	tabs, bar, rest := l.chrome(opts)

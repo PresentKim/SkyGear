@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/presentkim/dragonfactory/common/i18n"
 
-	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/ui"
@@ -68,7 +67,7 @@ func (s *session) showIslandManage(p *player.Player) {
 	if host || s.isOperator(p) {
 		opts = append(opts, s.opt(i18n.T(lang, "island.manage.members"), "textures/ui/df/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "dragonfactory.screens.mainMenu.4"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
+	opts = append(opts, s.opt(i18n.T(lang, "dragonfactory.screens.mainMenu.4"), iconExpand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
@@ -117,13 +116,13 @@ func (s *session) showMenu(p *player.Player) {
 // last, then the help button (the control bar's "?") and the lobby exit.
 func (s *session) mainMenu(p *player.Player) []ui.Option {
 	return []ui.Option{
-		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), iconOf(item.NewStack(item.Book{}, 1)), func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconMission, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
-		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconIsland, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
+		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), iconCodex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconAdvances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
+		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconManage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
 		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconOf(machineItem(KindCrusher)), func(p *player.Player, tx *world.Tx) {
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
+		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
+		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconStats, func(p *player.Player, tx *world.Tx) {
 			s.advance(tx, advStats)
 			s.showStats(p, statsItems)
 		}),
