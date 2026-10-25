@@ -7,12 +7,48 @@
  * Gameface ignores calc() inside shorthands with several values, so margins and paddings are one side
  * at a time.
  */
+/* The fonts are declared here from the game's own files (ui://hbui/fonts, the names of the vanilla
+   gameplay CSS of the game version gameplay.html loads) and named in the font stacks directly. On iOS
+   the vanilla CSS gameplay.html links is not loaded (the pack's hbui folder stands in for the game's
+   there), so neither its @font-face rules nor --localeSpecificNotoSansFonts, which its bundle sets,
+   exist: Hangul showed as boxes and the Minecraft font as a plain one. When the game updates, the
+   file names follow gameplay.html's. */
+@font-face {
+  font-family: "Minecraft Seven v2";
+  src: url(ui://hbui/fonts/Minecraft-Seven-66398119c2c20ee73019.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url(ui://hbui/fonts/NotoSansMerged-Regular-5df70ade1ecaa8cdc5e2.ttf);
+}
+
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url(ui://hbui/fonts/NotoSansKR-Regular-8625bb7c3e1813759ad0.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url(ui://hbui/fonts/NotoSansJP-Regular-aaed512b00984a945133.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url(ui://hbui/fonts/NotoSansSC-Regular-a4317c614d07055b56ed.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans TC";
+  src: url(ui://hbui/fonts/NotoSansTC-Regular-2eeafb04c562f274e44b.otf);
+}
+
 #oui-ddui {
   --mc-ink: #333333;
   --mc-title: #404040;
   --mc-head: #4d4d4d;
   --mc-light-text: #f2f2f7;
-  font-family: "Minecraft Seven v2", var(--localeSpecificNotoSansFonts);
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
 }
 
 /* --- screen ----------------------------------------------------------------------------- */
@@ -639,7 +675,7 @@
   border-width: 0.2rem;
   border-color: #1e1e1e #a0a0a0 #a0a0a0 #1e1e1e;
   color: #ffffff;
-  font-family: "Minecraft Seven v2", var(--localeSpecificNotoSansFonts);
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
   font-size: 1.4rem;
 }
 

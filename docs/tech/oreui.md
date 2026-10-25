@@ -22,11 +22,20 @@
 
 ## 지킬 것
 
-- **게임이 업데이트되면 `packs/oreui/hbui/gameplay.html`의 바닐라 번들 파일 이름(해시)을 설치본 `data/gui/dist/hbui/gameplay.html`과 맞춘다.** 틀리면 게임 중 Ore UI 전체가 뜨지 않는다.
+- **게임이 업데이트되면 `packs/oreui/hbui/gameplay.html`의 바닐라 번들 파일 이름(해시)을 설치본 `data/gui/dist/hbui/gameplay.html`과 맞춘다.** 틀리면 게임 중 Ore UI 전체가 뜨지 않는다. `oui-mc.css` 의 `@font-face` 글꼴 파일 이름(설치본 바닐라 gameplay CSS 의 `ui://hbui/fonts/...`)도 함께 맞춘다.
 - 창 크기가 바뀌면 Gameface가 누름을 바뀌기 전 자리로 판정한다. 그래서 크기가 다른 창은 화면을 새로 연다(`showOre`). 새 화면도 같은 창 크기(common `ui.windowW`·`windowH`)로 만든다.
 - 화면 크기 상자(`#oui-ddui`, `.mc-screen`, 창의 최대 크기, 퀘스트 책 창)는 퍼센트가 아닌 화면 단위(vw·vh)로 잡는다. Gameface 는 절대 위치 상자의 퍼센트를 부모(body) 크기로 풀고, iPad 에서는 body 높이가 0이라 창이 위쪽 띠로 접힌다.
-- 한글처럼 ASCII 밖의 글자가 있는 줄은 바닐라 DDUI 폼이 서버 글을 그리는 글꼴로 그린다. iOS 에서는 CSS 의 지역 글꼴(`--localeSpecificNotoSansFonts`)에 한글이 없다. 서버가 화면 밑에 가려진 바닐라 폼의 제목에 표식 글자(common `oreui.FontProbe`)를 넣고, 렌더러가 그 글자를 그리는 요소의 글꼴을 가져온다(`oui-ddui.js` `probeFont`). `/uidebug`(플레이어 자신의 화면, common `ui.SetOreDebug`)를 쓰면 화면 위에 렌더러의 디버그 줄이 뜬다: 화면 상태, 가져온 글꼴(`font=`)과 찾은 요소, 지역 글꼴 변수, 페이지 언어, 바닐라 루트·body 의 글꼴, `@font-face` 글꼴 목록, 화면 크기.
+- 화면은 바닐라 CSS·JS 에 기대지 않는다. iOS 에서는 팩의 `hbui` 폴더가 게임의 것을 통째로 대신해, `gameplay.html` 이 잇는 바닐라 CSS 가 불러와지지 않는다(그 `@font-face`, `body` 높이, 번들이 정하는 `--localeSpecificNotoSansFonts` 가 없다). 그래서 글꼴은 팩 CSS 가 게임 파일(`ui://hbui/fonts`, iOS 에서도 열린다)로 직접 선언하고 글꼴 목록에 이름으로 적는다(한글 줄은 Noto Sans KR 먼저), 화면 크기는 vw·vh 로 잡는다.
+- `/uidebug`(플레이어 자신의 화면, common `ui.SetOreDebug`)를 쓰면 화면 위에 렌더러의 디버그 줄이 뜬다: 화면 상태, 지역 글꼴 변수, 페이지 언어, 바닐라 루트·body 의 글꼴, `@font-face` 글꼴 목록(바닐라 CSS 가 불러와졌는지), 화면 크기.
 - 화면은 플레이어마다 하나다. JSON UI 폼을 보낼 때는 먼저 닫는다.
+
+## 인벤토리 시험
+
+DDUI 로 진짜 인벤토리처럼 도는 화면을 만들 수 있는지 보는 운영자 명령이다([admin.md](admin.md)). 결과는 이 절에 적는다.
+
+- 게임 번들(`gameplay-*.js`)과 바닐라 팩에는 컨테이너 DDUI 화면 18개(`minecraft:inventory_screen`, `workbench_screen`, `furnace_screen`, 상자류, `base_layout`)가 있다. 레이아웃은 데이터 저장소 `minecraft` / `container` 의 `slots.<모음>[i]`(`armorContainer`, `offhandContainer`, `craftingInputContainer` 등)를 읽고, 바닐라 슬롯(`Container.Slot`)은 엔진 쿼리 `vanillaGameplayContainerItemQuery(모음 번호, 칸)`(핫바 28, 인벤토리 29, 갑옷 6, 보조손 34, 커서 59)로 아이템을 읽는다. 누름은 엔진 명령 `vanillaGameplayContainerAPICommands`(`handleSlotMousePress(버튼, 모음, 칸, …)`, `takeAllItems`, `placeOneItem`, `splitMultipleItems` 등)로 보낸다. `/dfdebug orescreen`·`oreengine` 이 이것들을 그대로 시험한다.
+- `/dfdebug oreinput` 은 Gameface 가 오른쪽 버튼·더블 클릭·숫자 키·길게 누르기를 페이지에 주는지 본다. 바닐라 슬롯은 `button` 0 과 2 를 쓴다.
+- `/dfdebug oreinv` 는 엔진 없이 서버가 바닐라 조작을 다시 만든 화면이다. 렌더러의 `raw` 슬롯(누른 버튼·수정키·더블 클릭, 버튼을 놓을 때 지나간 칸, 위에서 누른 키), `cursor` 노드(커서 아이템), `self` 상자(창 밖 누름)를 쓴다. 누를 때마다 서버를 다녀오므로 지연이 그대로 보인다. 터치로 끌기는 지나간 칸을 모으지 않는다(손가락이 움직일 때는 마우스 이벤트가 오지 않는다, `oui-ddui.js` `pointOf`).
 
 ## 실기 확인
 

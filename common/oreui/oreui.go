@@ -19,6 +19,8 @@ package oreui
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -147,12 +149,6 @@ func Open(p *player.Player, layout any, onEvent func(Event), onClose func()) (*F
 	return f, c.WritePacket(&packet.ClientBoundDataDrivenUIShowScreen{ScreenID: screen, FormID: f.id, DataInstanceID: protocol.Option(uint32(instance))})
 }
 
-// FontProbe is the title of the vanilla form under the screen, which the
-// renderer hides: the renderer finds the element that draws it and takes its
-// font for the lines with other letters than ASCII (Hangul and the like), as
-// the font its own CSS names lacks them on some devices (iOS).
-const FontProbe = "\u2063한글\u2063"
-
 // SetLayout replaces the layout tree of the screen. It resends the whole form
 // property with the vanilla fields the custom_form root reads.
 func (f *Form) SetLayout(layout any) error {
@@ -161,7 +157,7 @@ func (f *Form) SetLayout(layout any) error {
 		return err
 	}
 	return f.change(property, protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
-		{Key: "title", Value: str(FontProbe)},
+		{Key: "title", Value: str("")},
 		{Key: "closeButton", Value: protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
 			{Key: "label", Value: str("")},
 			{Key: "visible", Value: protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeBool, BoolValue: true}},
@@ -247,6 +243,82 @@ func (f *Form) change(prop string, v protocol.DataStorePropertyValue) error {
 		ChangeType: protocol.DataStoreChangeTypeChange,
 		Change:     protocol.DataStoreChange{DataStoreName: store, Property: prop, UpdateCount: updateCount.Add(1), NewValue: v},
 	}}})
+}
+
+// ShowScreen opens the DDUI screen id (a vanilla root such as
+// minecraft:chest_screen, or one of the layouts in the game's own bundle such
+// as minecraft:inventory_screen) without the renderer, to see what the client
+// draws from the data store. It returns the form ID the client reports the
+// closing with.
+func ShowScreen(p *player.Player, id string) (uint32, error) {
+	c := dfhook.Of(p)
+	if c == nil {
+		return 0, fmt.Errorf("oreui: %v has no hooked connection", p.Name())
+	}
+	formID := formIDs.Add(1)
+	return formID, c.WritePacket(&packet.ClientBoundDataDrivenUIShowScreen{ScreenID: id, FormID: formID, DataInstanceID: protocol.Option(uint32(instance))})
+}
+
+// CloseAll closes every DDUI screen p has open, whoever opened it.
+func CloseAll(p *player.Player) error {
+	c := dfhook.Of(p)
+	if c == nil {
+		return fmt.Errorf("oreui: %v has no hooked connection", p.Name())
+	}
+	return c.WritePacket(&packet.ClientBoundDataDrivenUICloseScreen{})
+}
+
+// SetStore replaces property of data store "minecraft" for p with v: maps
+// (keys in order), slices, strings, bools, integers and floats.
+func SetStore(p *player.Player, property string, v any) error {
+	c := dfhook.Of(p)
+	if c == nil {
+		return fmt.Errorf("oreui: %v has no hooked connection", p.Name())
+	}
+	value, err := storeValue(v)
+	if err != nil {
+		return err
+	}
+	return c.WritePacket(&packet.ClientBoundDataStore{Updates: []protocol.DataStoreChangeEntry{{
+		ChangeType: protocol.DataStoreChangeTypeChange,
+		Change:     protocol.DataStoreChange{DataStoreName: store, Property: property, UpdateCount: updateCount.Add(1), NewValue: value},
+	}}})
+}
+
+func storeValue(v any) (protocol.DataStorePropertyValue, error) {
+	switch v := v.(type) {
+	case string:
+		return str(v), nil
+	case bool:
+		return protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeBool, BoolValue: v}, nil
+	case int:
+		return protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeInt64, Int64Value: int64(v)}, nil
+	case int64:
+		return protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeInt64, Int64Value: v}, nil
+	case float64:
+		return protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeDouble, DoubleValue: v}, nil
+	case []any:
+		out := protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeList}
+		for _, e := range v {
+			ev, err := storeValue(e)
+			if err != nil {
+				return out, err
+			}
+			out.ListValue = append(out.ListValue, ev)
+		}
+		return out, nil
+	case map[string]any:
+		out := protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap}
+		for _, k := range slices.Sorted(maps.Keys(v)) {
+			ev, err := storeValue(v[k])
+			if err != nil {
+				return out, err
+			}
+			out.MapValue = append(out.MapValue, protocol.DataStoreMapEntry{Key: k, Value: ev})
+		}
+		return out, nil
+	}
+	return protocol.DataStorePropertyValue{}, fmt.Errorf("oreui: no data store value for %T", v)
 }
 
 func str(s string) protocol.DataStorePropertyValue {

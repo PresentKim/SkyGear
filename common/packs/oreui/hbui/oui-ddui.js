@@ -20,6 +20,10 @@
 //   to {id, n}, size), region (name), watch (property, path: shows a string the data store holds, read
 //   through its own query), space.
 // More nodes for the Minecraft style (oui-mc.css): frame (an empty slot), arrow, img (icon, size).
+// For trying what an inventory needs: slot with `raw` (rawSlot), box with `self` (presses on the box
+// itself, any button), cursor (bind: the item on the pointer), probe (input events and engine command
+// groups) and engine (slots [[container, index]], sizes, calls [{label, cmd, args}]: the vanilla
+// container queries and commands).
 // `ink: "panel"` on a node makes the text under it the dark variant of its § colours (text drawn right on
 // the grey window, like common ui.OnPanel); buttons, slot counts and tooltips keep the colours.
 // The body gets mc-w-s / mc-w-m / mc-w-l for the window width, so the CSS can lay out by size.
@@ -107,47 +111,6 @@
   var ON_PANEL = { f: "0", "7": "8", "8": "7", e: "1", "6": "4", a: "2", b: "3", c: "4", d: "5" };
   var ink = "dark"; // the ink of the node being built
 
-  // wideFont is the font the vanilla form draws the server's text with, for the lines with other letters
-  // than ASCII: the locale font of oui-ddui.css (--localeSpecificNotoSansFonts) has no Hangul on some
-  // devices (iOS) when the vanilla text has. The server titles the vanilla form under the screen with
-  // FONT_PROBE (common oreui.FontProbe); the element that draws it gives its computed font.
-  var FONT_PROBE = "\u2063한글\u2063";
-  var wideFont = "";
-  var probes = 0;
-  var probeFound = "-"; // the vanilla element the probe was found in (the debug line)
-
-  function probeFont() {
-    if (wideFont || probes > 20) return;
-    probes++;
-    var vanilla = document.getElementById("root");
-    var found = null;
-    try {
-      var all = vanilla ? vanilla.querySelectorAll("*") : [];
-      for (var i = 0; i < all.length; i++) {
-        // The innermost element with the probe: the last of those that hold it.
-        if ((all[i].textContent || "").indexOf(FONT_PROBE) >= 0) found = all[i];
-      }
-      if (found) {
-        probeFound = found.tagName + (found.className ? "." + found.className : "");
-        wideFont = window.getComputedStyle(found).fontFamily || "";
-      }
-    } catch (e) {
-      state.error = "font: " + e;
-    }
-    if (!wideFont) {
-      setTimeout(probeFont, 250);
-      drawStatus();
-      return;
-    }
-    var lines = root ? root.querySelectorAll(".oui-wide") : [];
-    for (var j = 0; j < lines.length; j++) lines[j].style.fontFamily = wideFont;
-    if (tip) {
-      var tipLines = tip.querySelectorAll(".oui-wide");
-      for (var k = 0; k < tipLines.length; k++) tipLines[k].style.fontFamily = wideFont;
-    }
-    drawStatus();
-  }
-
   // rich fills e with s, turning § colour and format codes into spans and newlines into lines.
   function rich(e, s, panel) {
     if (panel === undefined) panel = ink === "panel";
@@ -158,10 +121,7 @@
       // Gameface lays the colour runs of a line out as flex items aligned at their tops (no baseline
       // alignment), so a run the Minecraft font draws sits higher than one in the locale's Noto font.
       // A line with any non-ASCII letter is drawn in the Noto font throughout.
-      if (/[^\x00-\x7f§]/.test(line)) {
-        lineEl.className += " oui-wide";
-        if (wideFont) lineEl.style.fontFamily = wideFont;
-      }
+      if (/[^\x00-\x7f§]/.test(line)) lineEl.className += " oui-wide";
       var colour = "", bold = false, italic = false, run = "";
       function flush() {
         if (!run) return;
@@ -462,6 +422,14 @@
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (n.on) e.className += " on";
+        // A `self` box takes the presses of any button that land on the box itself and not on what it
+        // holds: the backdrop around a window, where the vanilla inventory drops the held item.
+        if (n.self) {
+          e.addEventListener("mousedown", function (ev) {
+            if (ev.target === e && rec.n.id) send(rec.n.id, "click", { b: ev.button || 0 });
+          });
+          break;
+        }
         // The press reads the node of the record, so a box updated in place may gain or lose it. A box
         // that does nothing when pressed still shows its tooltip at a tap.
         onPress(
@@ -501,6 +469,18 @@
         e.style.top = n.y1 + "rem";
         e.style.width = Math.sqrt(dx * dx + dy * dy) + "rem";
         e.style.transform = "rotate(" + (Math.atan2(dy, dx) * 180) / Math.PI + "deg)";
+        break;
+      case "cursor":
+        e = buildCursor(n);
+        break;
+      case "probe":
+        e = el("div", "oui-probe");
+        probeEl = e;
+        envSent = false;
+        drawProbe();
+        break;
+      case "engine":
+        e = buildEngine(n);
         break;
       default:
         e = el("div", "oui-text", "unknown node " + n.t);
@@ -857,10 +837,230 @@
     var b = { el: box, key: n.bind, kind: "slot", size: size, img: img, count: count, id: null };
     showSlot(b, varOr(n.bind, null));
     if (n.bind) bind(b);
-    onPress(box, function () {
-      send(n.id, "click", null);
-    });
+    if (n.raw) rawSlot(box, n);
+    else
+      onPress(box, function () {
+        send(n.id, "click", null);
+      });
     return box;
+  }
+
+  // A raw slot reports every press with its button and modifier keys ("slot"), the slots a held button
+  // passed over when it is let go ("slotup"), and the keys pressed while the pointer is over it
+  // ("slotkey"), so the server can play the vanilla inventory: right button, shift, double click,
+  // splitting by dragging, number keys.
+  var DOUBLE_MS = 300;
+  var rawDown = null; // {id, b, slots}: the press of a raw slot whose button is still held
+  var lastRaw = null; // {id, b, at}: the last press of a raw slot, to tell a double click
+  var hoverSlot = null; // the id of the raw slot under the pointer
+
+  function rawSlot(box, n) {
+    box.addEventListener("mousedown", function (ev) {
+      if (claimed === ev) return;
+      claimed = ev;
+      var b = ev.button || 0, at = Date.now();
+      var dbl = !!lastRaw && lastRaw.id === n.id && lastRaw.b === b && at - lastRaw.at < DOUBLE_MS;
+      lastRaw = { id: n.id, b: b, at: at };
+      rawDown = { id: n.id, b: b, slots: [n.id] };
+      send(n.id, "slot", { b: b, shift: !!ev.shiftKey, ctrl: !!ev.ctrlKey, alt: !!ev.altKey, dbl: dbl });
+    });
+    box.addEventListener("mouseover", function () {
+      hoverSlot = n.id;
+      if (rawDown && rawDown.slots.indexOf(n.id) < 0) rawDown.slots.push(n.id);
+    });
+    box.addEventListener("mouseout", function () {
+      if (hoverSlot === n.id) hoverSlot = null;
+    });
+  }
+
+  function releaseRaw() {
+    if (!rawDown) return;
+    var d = rawDown;
+    rawDown = null;
+    send(d.id, "slotup", { b: d.b, slots: d.slots });
+  }
+
+  // The cursor node is the item held on the pointer: a slot variable drawn where the pointer is. It sits
+  // in a box at the top left of the screen (mc-screen), so the pointer's client position places it.
+  var pointer = { x: 0, y: 0 };
+  var cursors = [];
+
+  function buildCursor(n) {
+    var size = n.size || 40;
+    var box = el("div", "oui-cursor");
+    var img = el("img", "oui-slot-img");
+    img.style.width = size + "px";
+    img.style.height = size + "px";
+    var count = el("div", "oui-slot-count");
+    box.appendChild(img);
+    box.appendChild(count);
+    var b = { el: box, key: n.bind, kind: "slot", size: size, img: img, count: count, id: null };
+    showSlot(b, varOr(n.bind, null));
+    if (n.bind) bind(b);
+    var c = { el: box, size: size };
+    cursors.push(c);
+    placeCursor(c);
+    return box;
+  }
+
+  function placeCursor(c) {
+    c.el.style.left = Math.round(pointer.x - c.size / 2) + "px";
+    c.el.style.top = Math.round(pointer.y - c.size / 2) + "px";
+  }
+
+  function trackPointer(ev) {
+    var at = pointOf(ev);
+    if (at.clientX === undefined) return;
+    pointer = { x: at.clientX, y: at.clientY };
+    if (!cursors.length) return;
+    cursors = cursors.filter(function (c) {
+      return root && root.contains(c.el);
+    });
+    cursors.forEach(placeCursor);
+  }
+
+  // The probe node lists what the page knows: the engine command groups and their commands, and the
+  // last input events with their buttons, keys and modifiers. Every event but a move is sent to the
+  // server too ("probe"), so the server log keeps what a device delivers.
+  var PROBE_TYPES = ["mousedown", "mouseup", "click", "dblclick", "contextmenu", "wheel", "keydown", "keyup", "touchstart", "touchend", "touchcancel", "mousemove", "touchmove"];
+  var probeEl = null;
+  var probeLog = [];
+  var probeMoves = { mousemove: 0, touchmove: 0 };
+  var probeDownAt = 0;
+  var envSent = false;
+
+  function commandList() {
+    var c = window.__commands__ || {}, out = [];
+    for (var g in c) {
+      var names = [];
+      for (var k in c[g]) names.push(k);
+      out.push(g + ": " + names.join(" "));
+    }
+    return out;
+  }
+
+  function probeLive() {
+    return probeEl && root && root.contains(probeEl);
+  }
+
+  function probeEvent(ev) {
+    if (!probeLive()) return;
+    var t = ev.type;
+    if (t === "mousemove" || t === "touchmove") {
+      probeMoves[t]++;
+      return drawProbe();
+    }
+    var parts = [t];
+    if (/mouse|click|contextmenu|wheel/.test(t)) parts.push("button=" + ev.button, "buttons=" + ev.buttons, "detail=" + ev.detail);
+    if (t === "wheel") parts.push("dx=" + Math.round(ev.deltaX || 0), "dy=" + Math.round(ev.deltaY || 0));
+    if (/^key/.test(t)) parts.push("key=" + ev.key, "code=" + ev.code, "keyCode=" + ev.keyCode, "repeat=" + ev.repeat);
+    if (ev.touches) parts.push("touches=" + ev.touches.length);
+    if (t === "mousedown" || t === "touchstart") probeDownAt = Date.now();
+    if ((t === "mouseup" || t === "touchend") && probeDownAt) parts.push("held=" + (Date.now() - probeDownAt) + "ms");
+    var mods = [];
+    if (ev.shiftKey) mods.push("shift");
+    if (ev.ctrlKey) mods.push("ctrl");
+    if (ev.altKey) mods.push("alt");
+    if (ev.metaKey) mods.push("meta");
+    if (mods.length) parts.push(mods.join("+"));
+    if (ev.target && ev.target.className) parts.push("on=" + String(ev.target.className).split(" ")[0]);
+    var line = parts.join(" ");
+    probeLog.unshift(line);
+    if (probeLog.length > 16) probeLog.length = 16;
+    drawProbe();
+    send("probe", "probe", line);
+  }
+
+  function drawProbe() {
+    if (!probeEl) return;
+    var cmds = commandList();
+    if (!envSent && probeLive()) {
+      envSent = true;
+      send("env", "probe", "engine=" + typeof engine + " size=" + window.innerWidth + "x" + window.innerHeight + " | " + cmds.join(" | "));
+    }
+    var lines = ["§emoves§r mouse " + probeMoves.mousemove + ", touch " + probeMoves.touchmove, "§eevents§r"].concat(probeLog);
+    lines.push("§ecommand groups§r " + cmds.length);
+    rich(probeEl, lines.concat(cmds).join("\n"), false);
+  }
+
+  // The engine node reads the vanilla container queries (vanillaGameplayContainerItemQuery for
+  // [container, index], vanillaGameplayContainerSizeQuery for a container: the ones the vanilla Ore UI
+  // slots read) and calls the vanilla container commands (vanillaGameplayContainerAPICommands) with the
+  // arguments the server gives, to see whether they reach the player's inventory outside a container
+  // screen. A call with cmd "__report" sends what the queries hold.
+  var engineVals = {};
+  var engineSubs = {};
+  var engineEls = [];
+
+  function engineWatch(key, name, params) {
+    if (engineSubs[key]) return;
+    engineSubs[key] = true;
+    engineVals[key] = "(none)";
+    subscribe(name, params, function (v) {
+      v = unwrap(v);
+      engineVals[key] = v && typeof v === "object" ? JSON.stringify(v) : String(v);
+      drawEngines();
+    });
+  }
+
+  function buildEngine(n) {
+    var e = el("div", "oui-engine");
+    var list = el("div", "oui-engine-list");
+    var result = el("div", "oui-engine-result");
+    var calls = el("div", "oui-row oui-engine-calls");
+    (n.sizes || []).forEach(function (c) {
+      engineWatch("size " + c, "vanillaGameplayContainerSizeQuery", [c]);
+    });
+    (n.slots || []).forEach(function (s) {
+      engineWatch(s[0] + ":" + s[1], "vanillaGameplayContainerItemQuery", [s[0], s[1]]);
+    });
+    (n.calls || []).forEach(function (c) {
+      var b = el("div", "oui-button", c.label);
+      onPress(b, function () {
+        var out;
+        if (c.cmd === "__report") out = JSON.stringify(engineVals);
+        else {
+          var f = command("vanillaGameplayContainerAPICommands", c.cmd);
+          if (!f) out = "missing";
+          else {
+            try {
+              out = "ok " + JSON.stringify(f.apply(null, c.args || []));
+            } catch (err) {
+              out = "throw " + err;
+            }
+          }
+        }
+        rich(result, c.label + ": " + out, false);
+        send(n.id || "engine", "engine", c.label + ": " + out);
+      });
+      calls.appendChild(b);
+    });
+    e.appendChild(calls);
+    e.appendChild(result);
+    e.appendChild(list);
+    var keys = (n.sizes || []).map(function (c) {
+      return "size " + c;
+    });
+    (n.slots || []).forEach(function (s) {
+      keys.push(s[0] + ":" + s[1]);
+    });
+    var x = { el: e, list: list, keys: keys, labels: n.labels || {} };
+    engineEls.push(x);
+    drawEngine(x);
+    return e;
+  }
+
+  function drawEngine(x) {
+    rich(x.list, x.keys.map(function (k) {
+      return (x.labels[k] ? x.labels[k] + " " : "") + k + " = " + engineVals[k];
+    }).join("\n"), false);
+  }
+
+  function drawEngines() {
+    engineEls = engineEls.filter(function (x) {
+      return root && root.contains(x.el);
+    });
+    engineEls.forEach(drawEngine);
   }
 
   function labelled(n, control) {
@@ -1027,6 +1227,9 @@
     }
     hideTip();
     armed = null;
+    rawDown = null;
+    hoverSlot = null;
+    cursors = [];
     root.innerHTML = "";
     bound = [];
     bars = [];
@@ -1038,7 +1241,6 @@
     if (active) {
       tree = make(state.layout);
       root.appendChild(tree.el);
-      probeFont();
     }
     drawStatus();
   }
@@ -1069,7 +1271,6 @@
     [
       "oui-ddui screen=" + (state.screen || "-") + " layout=" + state.layoutText.length + "B updates=" + state.updates +
         " vars=" + Object.keys(state.vars).length + " sent=" + state.seq + (state.error ? " error=" + state.error : ""),
-      "font=" + (wideFont || "-") + " probes=" + probes + " probeFound=" + probeFound,
       "localeFonts=" + cssVar("--localeSpecificNotoSansFonts") + " html=" + (document.documentElement.lang || "-") + " ." +
         (document.documentElement.className || "-") + " body=" + (document.body.className || "-"),
       "rootFont=" + fontOf(document.getElementById("root")) + " bodyFont=" + fontOf(document.body),
@@ -1144,6 +1345,20 @@
     ["mouseup", "touchend", "touchcancel"].forEach(function (type) {
       document.addEventListener(type, drop);
     });
+    document.addEventListener("mouseup", releaseRaw);
+    ["mousemove", "mousedown", "touchmove", "touchstart"].forEach(function (type) {
+      document.addEventListener(type, trackPointer);
+    });
+    PROBE_TYPES.forEach(function (type) {
+      document.addEventListener(type, probeEvent);
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (hoverSlot && ev.keyCode !== 27 && state.screen === SCREEN) send(hoverSlot, "slotkey", { k: ev.keyCode, shift: !!ev.shiftKey, ctrl: !!ev.ctrlKey });
+    });
+    // The vanilla inventory takes half a stack with the right button, which must not open a menu.
+    document.addEventListener("contextmenu", function (ev) {
+      if (state.screen === SCREEN && state.layout) ev.preventDefault();
+    });
     // Content changes (regions, values, images loading) fire no scroll event, so the bars are also
     // checked on a timer. Bars of elements a region rebuild removed are dropped.
     setInterval(function () {
@@ -1151,6 +1366,7 @@
         return root && root.contains(b.sc);
       });
       bars.forEach(updateBar);
+      if (!envSent && probeLive()) drawProbe();
     }, 100);
     // The vanilla form is hidden, so Esc would do nothing: report it and let the server close the form.
     document.addEventListener("keydown", function (ev) {

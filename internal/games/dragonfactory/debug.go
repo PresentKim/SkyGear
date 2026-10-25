@@ -22,7 +22,8 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfdebug", i18n.T(i18n.Default, "dragonfactory.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}))
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugOreInput{adminBase: b}, debugOreEngine{adminBase: b}, debugOreScreen{adminBase: b}, debugOreInv{adminBase: b}))
 }
 
 type debugSkip struct {

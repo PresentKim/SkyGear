@@ -277,6 +277,32 @@ body.oui-active #root {
   color: rgb(255, 255, 255);
 }
 
+.oui-cursor {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.oui-probe,
+.oui-engine-list,
+.oui-engine-result {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: rgb(255, 255, 255);
+}
+
+.oui-engine {
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-engine-calls {
+  flex-wrap: wrap;
+}
+
 /* Shared pieces of the renderer. */
 .oui-line {
   display: flex;
@@ -285,7 +311,7 @@ body.oui-active #root {
 }
 
 .oui-line.oui-wide {
-  font-family: var(--localeSpecificNotoSansFonts);
+  font-family: "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
 }
 
 .oui-button.disabled {
