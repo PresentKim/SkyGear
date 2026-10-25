@@ -40,7 +40,7 @@ func TestMainMenuHasIcons(t *testing.T) {
 	})
 }
 
-// TestMainMenuLayout: eight cards (no menu item card: /메뉴발급 gives it) and
+// TestMainMenuLayout: nine cards (no menu item card: /메뉴발급 gives it) and
 // the lobby exit in the back button's place.
 func TestMainMenuLayout(t *testing.T) {
 	s := testSession(t)
@@ -48,15 +48,15 @@ func TestMainMenuLayout(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_, opts := s.mainMenu(p)
-		if len(opts) != 9 {
-			t.Fatalf("%d options, want 8 cards and the lobby exit", len(opts))
+		if len(opts) != 10 {
+			t.Fatalf("%d options, want 9 cards and the lobby exit", len(opts))
 		}
-		for _, o := range opts[:8] {
+		for _, o := range opts[:9] {
 			if strings.HasPrefix(o.Label, "§0§") || strings.Contains(o.Label, "메뉴 아이템") {
 				t.Errorf("card %q", o.Label)
 			}
 		}
-		if last := opts[8]; !strings.HasPrefix(last.Label, ui.BackToken) || !strings.Contains(last.Label, "로비로") {
+		if last := opts[9]; !strings.HasPrefix(last.Label, ui.BackToken) || !strings.Contains(last.Label, "로비로") {
 			t.Errorf("last option %q is not the lobby exit", last.Label)
 		}
 	})

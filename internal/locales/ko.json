@@ -3442,5 +3442,18 @@
  "platform.invite.renew.ask": "새 코드를 만들면 지금 코드로는 참여할 수 없습니다.",
  "platform.platform.showSave.code": "초대 코드\n§e%s",
  "platform.platform.showSave.members": "참여자 %d/%d",
- "platform.platform.showSaves.none": "§7세이브가 없습니다."
+ "platform.platform.showSaves.none": "§7세이브가 없습니다.",
+ "dragonfactory.screens.mainMenu.settings": "§7설정",
+ "setting.title": "설정",
+ "setting.command": "플레이어 설정을 엽니다",
+ "setting.on": "§a켜짐",
+ "setting.off": "§c꺼짐",
+ "setting.achievement.toast": "업적 달성 화면 알림",
+ "setting.achievement.chat": "업적 달성 채팅 메시지",
+ "setting.achievement.sound": "업적 달성 소리",
+ "setting.advancement.toast": "발전과제 달성 화면 알림",
+ "setting.advancement.chat": "발전과제 달성 채팅 메시지",
+ "setting.advancement.sound": "발전과제 달성 소리",
+ "setting.vein.diagonal": "광맥 캐기 대각선 포함",
+ "setting.uimode": "메뉴를 JSON UI 폼으로 보기"
 }

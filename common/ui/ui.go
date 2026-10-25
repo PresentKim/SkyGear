@@ -292,6 +292,10 @@ type toastState struct {
 	waiting    bool
 }
 
+// Toast shows p a toast titled title, like Notify and Flash do: at most one
+// a ToastGap, the ones in between folded into the next.
+func Toast(p *player.Player, title, msg string) { toast(p, title, msg) }
+
 // toast sends a toast now, or holds it back until the shown one is gone.
 func toast(p *player.Player, title, msg string) {
 	toasts.Lock()

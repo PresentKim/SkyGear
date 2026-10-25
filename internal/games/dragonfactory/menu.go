@@ -13,9 +13,24 @@ import (
 
 const menuItemKey = "dragonfactory_menu"
 
-// menuItem opens the game menu when used.
-func menuItem() item.Stack {
-	return item.NewStack(item.NetherStar{}, 1).WithCustomName(i18n.T(i18n.Default, "dragonfactory.menu.menuItem.1")).WithValue(menuItemKey, true)
+// menuItem opens the game menu when used. Its name is written on it in lang
+// (a name of a stack is text, not a translation key); renameMenuItems names
+// the menu items a player has in the player's language again.
+func menuItem(lang string) item.Stack {
+	return item.NewStack(item.NetherStar{}, 1).WithCustomName(i18n.T(lang, "dragonfactory.menu.menuItem.1")).WithValue(menuItemKey, true)
+}
+
+// renameMenuItems names the menu items in p's inventory in p's language, as
+// p may have come with another client language than the one they got them
+// in.
+func renameMenuItems(p *player.Player) {
+	inv := p.Inventory()
+	name := i18n.T(i18n.Of(p), "dragonfactory.menu.menuItem.1")
+	for slot, it := range inv.Slots() {
+		if isMenuItem(it) && it.CustomName() != name {
+			_ = inv.SetItem(slot, it.WithCustomName(name))
+		}
+	}
 }
 
 func isMenuItem(s item.Stack) bool {
@@ -70,7 +85,7 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "dragonfactory.menu.Run.3"))
 		return
 	}
-	if _, err := p.Inventory().AddItem(menuItem()); err != nil {
+	if _, err := p.Inventory().AddItem(menuItem(i18n.Of(p))); err != nil {
 		o.Error(i18n.T(i18n.Of(p), "dragonfactory.menu.Run.4"))
 		return
 	}

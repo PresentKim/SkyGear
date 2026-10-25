@@ -9,17 +9,18 @@ import (
 // the client already has. Items use iconOf.
 
 const (
-	iconMission = "textures/items/book_normal"
-	iconDone    = "textures/ui/check"
-	iconIsland  = "textures/blocks/grass_side_carried"
-	iconLost    = "textures/blocks/chest_front"
-	iconMenu    = "textures/items/nether_star"
-	iconLobby   = "textures/items/compass_item"
-	iconBack    = "textures/items/arrow"
-	iconLocked  = "textures/blocks/barrier"
-	iconAll     = "textures/blocks/hopper_top"
-	iconTitle   = "textures/items/name_tag"
-	iconFriends = "textures/ui/df/icon_person"
+	iconMission  = "textures/items/book_normal"
+	iconDone     = "textures/ui/check"
+	iconIsland   = "textures/blocks/grass_side_carried"
+	iconLost     = "textures/blocks/chest_front"
+	iconMenu     = "textures/items/nether_star"
+	iconLobby    = "textures/items/compass_item"
+	iconBack     = "textures/items/arrow"
+	iconLocked   = "textures/blocks/barrier"
+	iconAll      = "textures/blocks/hopper_top"
+	iconTitle    = "textures/items/name_tag"
+	iconFriends  = "textures/ui/df/icon_person"
+	iconSettings = "textures/ui/settings_glyph_color_2x"
 )
 
 // iconOf returns the form icon of an item: the item drawn by the client's

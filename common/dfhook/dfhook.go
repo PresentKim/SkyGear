@@ -132,6 +132,7 @@ func (l listener) Accept() (session.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+	applyItemEdits()
 	return conn{&Conn{Conn: c}}, nil
 }
 
@@ -205,14 +206,38 @@ func CloseWindow(s *session.Session, tx *world.Tx) {
 	}
 }
 
+// itemEdits is the edit of the custom item entries EditCustomItems was given,
+// made once the server has built them.
+var itemEdits struct {
+	sync.Mutex
+	srv  *server.Server
+	edit func(protocol.ItemEntry) protocol.ItemEntry
+	done bool
+}
+
 // EditCustomItems replaces each entry of srv's custom items with what edit
-// makes of it. Call it once, after the server is made and before players
-// join: the client gets these entries in two item registries, and the first,
-// sent by gophertunnel during StartGame, does not pass OnServerPacket hooks.
+// makes of it: the client gets these entries in two item registries, and the
+// first, sent by gophertunnel during StartGame, does not pass OnServerPacket
+// hooks. Call it once, after the server is made (with Wrap). The server builds
+// the entries when it starts listening (Listen), so the edit is made when the
+// first connection is accepted, before the server reads them for it.
 func EditCustomItems(srv *server.Server, edit func(protocol.ItemEntry) protocol.ItemEntry) {
-	items := field[[]protocol.ItemEntry](srv, "customItems")
+	itemEdits.Lock()
+	defer itemEdits.Unlock()
+	itemEdits.srv, itemEdits.edit, itemEdits.done = srv, edit, false
+}
+
+// applyItemEdits makes the edit of EditCustomItems, once.
+func applyItemEdits() {
+	itemEdits.Lock()
+	defer itemEdits.Unlock()
+	if itemEdits.done || itemEdits.srv == nil {
+		return
+	}
+	itemEdits.done = true
+	items := field[[]protocol.ItemEntry](itemEdits.srv, "customItems")
 	for i, e := range *items {
-		(*items)[i] = edit(e)
+		(*items)[i] = itemEdits.edit(e)
 	}
 }
 

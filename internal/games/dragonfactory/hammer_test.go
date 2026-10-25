@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"log/slog"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -10,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -130,14 +132,14 @@ func TestVeinDiagonalSetting(t *testing.T) {
 		if _, err := s.g.db.TouchAccount(instance.AccountID(p), "", p.Name()); err != nil {
 			t.Fatal(err)
 		}
-		s.loadVeinDiagonal(p)
-		if s.veinDiagonal[p.H()] {
+		account.Init(s.g.db, slog.Default())
+		t.Cleanup(func() { account.Init(nil, slog.Default()) })
+		if account.On(p, veinDiagonalSetting) {
 			t.Fatal("diagonal on before it was switched")
 		}
 		s.toggleVeinDiagonal(p)
-		s.veinDiagonal = nil
-		s.loadVeinDiagonal(p)
-		if !s.veinDiagonal[p.H()] {
+		account.Forget(p) // read it again from the database
+		if !account.On(p, veinDiagonalSetting) {
 			t.Fatal("the switched setting was not stored")
 		}
 	})

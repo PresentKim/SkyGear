@@ -10,6 +10,7 @@ import (
 	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 	"log/slog"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -157,7 +158,8 @@ func ColorOf(id string) Color {
 	return Colors[0]
 }
 
-// Grant gives p the achievement id if it does not have it yet, telling p.
+// Grant gives p the achievement id if it does not have it yet, telling p
+// (the message and the sound as p's settings say).
 // It may be called from any world transaction.
 func Grant(p *player.Player, id string) {
 	if store == nil {
@@ -181,11 +183,22 @@ func Grant(p *player.Player, id string) {
 		return
 	}
 	lang := i18n.Of(p)
-	ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name(lang), a.Desc(lang)))
+	lines := []string{fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name(lang), a.Desc(lang))}
 	if title := a.Title(lang); title != "" {
-		ui.Tell(p, i18n.T(lang, "account.account.Grant.3"), fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), title))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), title))
 	}
-	p.PlaySound(sound.LevelUp{})
+	if On(p, SettingAchievementToast) {
+		ui.Toast(p, i18n.T(lang, "account.account.Grant.3"), strings.Join(lines, "\n"))
+	}
+	// The lobby has no chat.
+	if On(p, SettingAchievementChat) && (ui.InLobby == nil || !ui.InLobby(p)) {
+		for _, l := range lines {
+			p.Message(l)
+		}
+	}
+	if On(p, SettingAchievementSound) {
+		p.PlaySound(sound.LevelUp{})
+	}
 }
 
 // hasGranted reports whether the account is known to have the achievement,
@@ -285,5 +298,6 @@ func Forget(p *player.Player) {
 	delete(display, acc)
 	delete(counts, acc)
 	delete(granted, acc)
+	delete(chosen, acc)
 	mu.Unlock()
 }

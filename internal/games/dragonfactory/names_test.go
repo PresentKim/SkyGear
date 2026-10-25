@@ -59,7 +59,7 @@ func TestNamedItemsHaveIcons(t *testing.T) {
 			t.Errorf("%s has no icon", itemKey(it))
 		}
 	}
-	if iconOf(menuItem()) == "" {
+	if iconOf(menuItem(i18n.Default)) == "" {
 		t.Error("menu item has no icon")
 	}
 }

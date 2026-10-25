@@ -11,7 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -87,36 +87,20 @@ func veinBlocks(tx *world.Tx, start cube.Pos, limit int, diagonal bool, canBuild
 	return out
 }
 
-// veinDiagonalSetting is the account setting (db account_settings) that
-// makes a player's vein mining follow diagonal neighbours ("1": on).
+// veinDiagonalSetting is the player setting (account.Setting) that makes a
+// player's vein mining follow diagonal neighbours.
 const veinDiagonalSetting = "vein_diagonal"
-
-// loadVeinDiagonal reads p's diagonal vein mining setting into the session.
-func (s *session) loadVeinDiagonal(p *player.Player) {
-	v, err := s.g.db.Setting(instance.AccountID(p), veinDiagonalSetting)
-	if err != nil {
-		s.g.log.Error("read setting", "player", p.Name(), "err", err)
-	}
-	if s.veinDiagonal == nil {
-		s.veinDiagonal = map[*world.EntityHandle]bool{}
-	}
-	s.veinDiagonal[p.H()] = v == "1"
-}
 
 // toggleVeinDiagonal switches p's diagonal vein mining, stores it and tells p
 // which it is now: nothing on screen shows it otherwise.
 func (s *session) toggleVeinDiagonal(p *player.Player) {
-	if s.veinDiagonal == nil {
-		s.veinDiagonal = map[*world.EntityHandle]bool{}
-	}
-	on := !s.veinDiagonal[p.H()]
-	s.veinDiagonal[p.H()] = on
-	value, key := "0", "hammer.diagonal.off"
-	if on {
-		value, key = "1", "hammer.diagonal.on"
-	}
-	if err := s.g.db.SetSetting(instance.AccountID(p), veinDiagonalSetting, value); err != nil {
+	on, err := account.Toggle(p, veinDiagonalSetting)
+	if err != nil {
 		s.g.log.Error("store setting", "player", p.Name(), "err", err)
+	}
+	key := "hammer.diagonal.off"
+	if on {
+		key = "hammer.diagonal.on"
 	}
 	s.hideVeinOutline(p)
 	p.SendTip(i18n.T(i18n.Of(p), key))
@@ -154,7 +138,7 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	// the preview goes first, or its glass would stay where blocks were
 	s.hideVeinOutline(p)
 	left := s.veinBudget(p, held)
-	blocks := veinBlocks(tx, pos, left+1, s.veinDiagonal[p.H()], s.canBuild)
+	blocks := veinBlocks(tx, pos, left+1, account.On(p, veinDiagonalSetting), s.canBuild)
 	if len(blocks) < 2 || left <= 0 {
 		return
 	}
@@ -224,7 +208,7 @@ func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) 
 		return
 	}
 	held, _ := p.HeldItems()
-	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, s.veinDiagonal[p.H()], s.canBuild)
+	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, account.On(p, veinDiagonalSetting), s.canBuild)
 	if len(blocks) == 0 {
 		s.hideVeinOutline(p)
 		return

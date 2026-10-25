@@ -180,3 +180,26 @@ func TestFormResponse(t *testing.T) {
 		t.Fatal("null response not turned into a cancel")
 	}
 }
+
+// TestEditCustomItems: the edit waits for the first accepted connection (the
+// server builds its entries when it starts listening) and is made once.
+func TestEditCustomItems(t *testing.T) {
+	srv := &server.Server{}
+	edits := 0
+	EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry {
+		edits++
+		e.Name += "!"
+		return e
+	})
+	t.Cleanup(func() { EditCustomItems(nil, nil) })
+	items := field[[]protocol.ItemEntry](srv, "customItems")
+	*items = []protocol.ItemEntry{{Name: "a"}} // as Listen builds them
+	if (*items)[0].Name != "a" {
+		t.Fatal("edited before a connection")
+	}
+	applyItemEdits()
+	applyItemEdits()
+	if (*items)[0].Name != "a!" || edits != 1 {
+		t.Fatalf("entry %q after %d edits", (*items)[0].Name, edits)
+	}
+}

@@ -324,6 +324,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.platform.registerCommands.7"), nil, joinCmd{pf: pf}))
 	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.platform.registerCommands.8"), []string{"titles"}, titleCmd{pf: pf}))
 	cmd.Register(cmd.New("uimode", i18n.T(i18n.Default, "platform.platform.registerCommands.9"), nil, uiModeCmd{pf: pf}))
+	cmd.Register(cmd.New("settings", i18n.T(i18n.Default, "setting.command"), []string{"setting", "options"}, settingsCmd{pf: pf}))
 	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.platform.registerCommands.10"), nil, copySaveCmd{pf: pf}))
 }
 

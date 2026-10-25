@@ -120,3 +120,36 @@ func TestForgetStoresPendingCounts(t *testing.T) {
 		}
 	}).Done()
 }
+
+// TestSettings: a setting is its default until toggled, a toggled one is
+// stored with the account and read again after the player left.
+func TestSettings(t *testing.T) {
+	d, err := db.Open(filepath.Join(t.TempDir(), "db.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = d.Close() })
+	Init(d, slog.Default())
+	RegisterSetting(Setting{Key: "test_off", NameKey: "test"})
+
+	id := uuid.New()
+	if _, err := d.TouchAccount(id.String(), "", "Hana"); err != nil {
+		t.Fatal(err)
+	}
+	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()
+	t.Cleanup(func() { _ = w.Close() })
+	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "Hana", UUID: id})
+	<-w.Do(func(tx *world.Tx) {
+		p := tx.AddEntity(h).(*player.Player)
+		if !On(p, SettingAchievementSound) || On(p, "test_off") {
+			t.Fatal("not the defaults")
+		}
+		if on, err := Toggle(p, SettingAchievementSound); err != nil || on {
+			t.Fatalf("toggled to %v, %v", on, err)
+		}
+		Forget(p)
+		if On(p, SettingAchievementSound) {
+			t.Fatal("the toggled setting was not stored")
+		}
+	}).Done()
+}

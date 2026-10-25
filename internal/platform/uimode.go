@@ -48,16 +48,29 @@ func setJSONUI(id uuid.UUID, on bool) {
 // stores it and tells p which it is now.
 func (pf *Platform) toggleUIMode(p *player.Player) {
 	_, was := jsonUI.Load(p.UUID())
-	value, key := "json", "platform.uimode.json"
+	if !pf.setUIMode(p, !was) {
+		return
+	}
+	key := "platform.uimode.json"
 	if was {
-		value, key = "", "platform.uimode.ddui"
+		key = "platform.uimode.ddui"
+	}
+	p.Message(i18n.T(i18n.Of(p), key))
+}
+
+// setUIMode makes p's menus JSON UI forms (json) or DDUI screens and stores
+// it; it reports whether it could.
+func (pf *Platform) setUIMode(p *player.Player, json bool) bool {
+	value := ""
+	if json {
+		value = "json"
 	}
 	if err := pf.db.SetSetting(instance.AccountID(p), uiModeSetting, value); err != nil {
 		pf.fail(p, "store setting", err)
-		return
+		return false
 	}
-	setJSONUI(p.UUID(), !was)
-	p.Message(i18n.T(i18n.Of(p), key))
+	setJSONUI(p.UUID(), json)
+	return true
 }
 
 type uiModeCmd struct {

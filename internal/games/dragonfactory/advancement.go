@@ -396,9 +396,26 @@ func heldItemNames(held []playerItems) map[string]bool {
 	return names
 }
 
+// The player settings of how an advancement done is told: a toast, a chat
+// line, the sound. The vein mining setting is listed with them.
+const (
+	settingAdvancementToast = "notify_advancement_toast"
+	settingAdvancementChat  = "notify_advancement_chat"
+	settingAdvancementSound = "notify_advancement_sound"
+)
+
+func init() {
+	account.RegisterSetting(
+		account.Setting{Key: settingAdvancementToast, NameKey: "setting.advancement.toast", Default: true},
+		account.Setting{Key: settingAdvancementChat, NameKey: "setting.advancement.chat", Default: true},
+		account.Setting{Key: settingAdvancementSound, NameKey: "setting.advancement.sound", Default: true},
+		account.Setting{Key: veinDiagonalSetting, NameKey: "setting.vein.diagonal"},
+	)
+}
+
 // completeAdvancements marks advancements done, with the ones before them
 // (an item used up within a second would otherwise leave a gap), and tells
-// everyone on the island what they did .
+// everyone on the island what they did, as each one's settings say.
 func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 	if s.state.Advancements == nil {
 		s.state.Advancements = map[string]bool{}
@@ -426,9 +443,15 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 		for _, a := range as {
 			names = append(names, a.Title(lang))
 		}
-		p.SendToast(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.3"), strings.Join(names, ", "))
-		p.Message(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", "))
-		p.PlaySound(sound.LevelUp{})
+		if account.On(p, settingAdvancementToast) {
+			p.SendToast(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.3"), strings.Join(names, ", "))
+		}
+		if account.On(p, settingAdvancementChat) {
+			p.Message(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", "))
+		}
+		if account.On(p, settingAdvancementSound) {
+			p.PlaySound(sound.LevelUp{})
+		}
 	}
 }
 
