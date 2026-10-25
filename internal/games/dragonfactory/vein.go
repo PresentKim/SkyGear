@@ -109,8 +109,20 @@ func (s *session) toggleVeinDiagonal(p *player.Player) {
 // veinBudget is how many blocks past the mined one p can break with held:
 // what the durability (one is left for the mined block) and the food allow.
 func (s *session) veinBudget(p *player.Player, held item.Stack) int {
+	return max(0, min(s.veinToolBudget(held), s.veinFoodBudget(p)))
+}
+
+// veinToolBudget is how many blocks past the mined one held can break
+// whatever the food: its durability (one is left for the mined block) and
+// veinLimit.
+func (s *session) veinToolBudget(held item.Stack) int {
+	return max(0, min(held.Durability()-1, veinLimit-1))
+}
+
+// veinFoodBudget is how many blocks past the mined one p's food pays for.
+func (s *session) veinFoodBudget(p *player.Player) int {
 	food := float64(p.Food()) - s.veinFood[p.H()]
-	return max(0, min(held.Durability()-1, int(food/veinFoodCost+1e-9), veinLimit-1))
+	return max(0, int(food/veinFoodCost+1e-9))
 }
 
 // payVeinFood takes the food of n vein mined blocks from p.
@@ -138,7 +150,15 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	// the preview goes first, or its glass would stay where blocks were
 	s.hideVeinOutline(p)
 	left := s.veinBudget(p, held)
-	blocks := veinBlocks(tx, pos, left+1, account.On(p, veinDiagonalSetting), s.canBuild)
+	diagonal := account.On(p, veinDiagonalSetting)
+	if tool := s.veinToolBudget(held); s.veinFoodBudget(p) < tool {
+		// The food stops the vein short of what the hammer would break: the
+		// player sees fewer blocks go and nothing else says why.
+		if len(veinBlocks(tx, pos, tool+1, diagonal, s.canBuild))-1 > left {
+			p.SendTip(i18n.T(i18n.Of(p), "hammer.vein.hungry"))
+		}
+	}
+	blocks := veinBlocks(tx, pos, left+1, diagonal, s.canBuild)
 	if len(blocks) < 2 || left <= 0 {
 		return
 	}

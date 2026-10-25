@@ -3130,7 +3130,7 @@
  "advancement.glass.name": "투명 인간은 아닙니다",
  "advancement.glass.hint": "모래를 화로에 구우면\n유리가 돼요. 모래는\n망치로 자갈을 캐서 얻어요",
  "advancement.bread.name": "오늘의 점심은 빵",
- "advancement.bread.hint": "\"농사\"를 연구하고 흙을 걸러\n나온 밀 씨앗을 심어\n밀 3개로 빵을 만드세요",
+ "advancement.bread.hint": "\"농사\"를 연구하고\n밀 3개로 빵을 만드세요",
  "advancement.bucket.name": "물 한 통 배달이오",
  "advancement.bucket.hint": "\"양동이\"를 연구하세요\n(철 주괴 6개)\n연구 보상으로 하나를 받아요",
  "advancement.shears.name": "싹둑싹둑",
@@ -3458,5 +3458,10 @@
  "setting.uimode": "메뉴를 JSON UI 폼으로 보기",
  "platform.uidebug.command": "메뉴 화면(Ore UI)의 디버그 정보를 켜고 끕니다",
  "platform.uidebug.on": "§e메뉴 화면 디버그 정보를 켰습니다. 메뉴를 열면 화면 위에 보입니다.",
- "platform.uidebug.off": "§7메뉴 화면 디버그 정보를 껐습니다."
+ "platform.uidebug.off": "§7메뉴 화면 디버그 정보를 껐습니다.",
+ "hammer.vein.hungry": "§c배고픔이 부족합니다.",
+ "advancement.seeds.name": "흙 속의 씨앗",
+ "advancement.seeds.hint": "흙을 들고 체를 우클릭해 얹고\n우클릭을 반복해 거르세요\n밀 씨앗이 나와요",
+ "advancement.wheat.name": "첫 수확",
+ "advancement.wheat.hint": "나무 괭이로 흙을 갈아 밀 씨앗을 심고\n다 자라면 우클릭해 거두세요"
 }

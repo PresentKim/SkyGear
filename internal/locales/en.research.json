@@ -408,7 +408,7 @@
  "advancement.glass.name": "Not Invisible",
  "advancement.glass.hint": "Smelt Sand in a Furnace\nto get Glass. Get Sand by\nmining Gravel with a Hammer",
  "advancement.bread.name": "Bread for Lunch",
- "advancement.bread.hint": "Research \"Farming\", plant Wheat\nSeeds sifted from Dirt and\nmake Bread from 3 Wheat",
+ "advancement.bread.hint": "Research \"Farming\"\nand make Bread from 3 Wheat",
  "advancement.bucket.name": "Water Delivery",
  "advancement.bucket.hint": "Research \"Bucket\"\n(6 Iron Ingots)\nYou get one as a reward",
  "advancement.shears.name": "Snip Snip",
@@ -530,5 +530,9 @@
  "advancement.tab.factory": "Factory",
  "advancement.tab.combat": "Combat",
  "advancement.tab.garden": "Garden",
- "advancement.progress": "%s %d/%d done"
+ "advancement.progress": "%s %d/%d done",
+ "advancement.seeds.name": "Seeds in the Dirt",
+ "advancement.seeds.hint": "Hold Dirt and use the Sieve to put it on,\nthen keep using it to sift\nWheat Seeds come out",
+ "advancement.wheat.name": "First Harvest",
+ "advancement.wheat.hint": "Till Dirt with a Wooden Hoe, plant the seeds\nand use the grown wheat to harvest it"
 }

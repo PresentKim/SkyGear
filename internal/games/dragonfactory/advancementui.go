@@ -46,7 +46,7 @@ var advTabRoots = map[string]advTab{
 	"conduit_upgrade_2": advTabFactory, "conduit_upgrade_3": advTabFactory,
 	"tinker_table": advTabFactory, "project_industry": advTabFactory,
 	"essence": advTabCombat, "dimension_gate": advTabCombat,
-	"magic_seed": advTabGarden, "dye": advTabGarden,
+	"seeds": advTabGarden, "magic_seed": advTabGarden, "dye": advTabGarden,
 }
 
 // advTabs are the categories of advancementTree by index, and advTabLists

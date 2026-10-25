@@ -202,3 +202,24 @@ func TestAdvancementOrder(t *testing.T) {
 		}
 	}
 }
+
+// TestGardenTabStartsEarly: the garden tab starts with sifting seeds from
+// dirt, then wheat and bread, so it shows a node once the first sifting is
+// done.
+func TestGardenTabStartsEarly(t *testing.T) {
+	s := testSession(t)
+	for id, parent := range map[string]string{"seeds": advSift, "wheat": "seeds", "bread": "wheat"} {
+		a, ok := advancementByID(id)
+		if !ok || a.Parent != parent || advTabOf(a) != advTabGarden {
+			t.Fatalf("%s: parent %q, tab %d", id, a.Parent, advTabOf(a))
+		}
+	}
+	s.state.Advancements = map[string]bool{}
+	for cur, ok := advancementByID(advSift); ok; cur, ok = advancementByID(cur.Parent) {
+		s.state.Advancements[cur.ID] = true
+	}
+	seeds, _ := advancementByID("seeds")
+	if !s.advShown(seeds) {
+		t.Fatal("the seeds advancement is not shown once sifting is done")
+	}
+}
