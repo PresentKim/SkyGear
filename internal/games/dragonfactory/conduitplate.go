@@ -252,11 +252,16 @@ func sideName(f cube.Face) string {
 	}[f]
 }
 
-// isConduitItem reports whether the stack is a conduit to place.
-func isConduitItem(st item.Stack) bool {
+// fitsBundle reports whether the stack is a conduit of a kind the bundle has
+// not got yet.
+func fitsBundle(st item.Stack, b ConduitBundle) bool {
 	switch st.Item().(type) {
-	case EnergyConduit, ItemConduit, FluidConduit:
-		return true
+	case EnergyConduit:
+		return b.Energy == 0
+	case ItemConduit:
+		return b.Item == 0
+	case FluidConduit:
+		return b.Fluid == 0
 	}
 	return false
 }

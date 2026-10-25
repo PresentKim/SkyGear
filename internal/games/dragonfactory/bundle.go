@@ -248,31 +248,6 @@ func (b ConduitBundle) FluidTier() int { return b.Fluid }
 
 var _ fluidnet.Conduit = ConduitBundle{}
 
-// Activate opens the settings of the clicked side (sneaking, empty hand: with
-// something in hand the handler does it) if that side has a connector plate
-// (conduitplate.go).
-func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
-	p, ok := u.(*player.Player)
-	if !ok || !p.Sneaking() {
-		return false
-	}
-	if held, _ := p.HeldItems(); !held.Empty() {
-		return false
-	}
-	s, ok := activeGame.sessionOf(tx.World())
-	if !ok {
-		return false
-	}
-	side := faceIndex(face)
-	if len(plateKinds(tx, pos, b, side)) == 0 {
-		return false
-	}
-	if !s.debounced(p) {
-		s.showPlateForm(p, tx, pos, side)
-	}
-	return true
-}
-
 // bundleLines are the lines of a bundle's WAILA panel: the conduits in it
 // and the mode of every side that has a block with items.
 func bundleLines(lang string, tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {

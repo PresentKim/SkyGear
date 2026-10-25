@@ -502,10 +502,9 @@ func TestConduitBlockSizes(t *testing.T) {
 	}
 }
 
-// TestPlateClicksWithAnythingInHand: a sneaking player holding a tool opens the
-// settings by clicking the plate's square on the block it touches, or the side
-// of the conduit; one holding a conduit item places instead; standing does
-// nothing.
+// TestPlateClicksWithAnythingInHand: a click on the plate's square on the block
+// it touches, or on the conduit, opens the settings whatever is in hand, unless
+// the held conduit goes into that conduit; sneaking places instead.
 func TestPlateClicksWithAnythingInHand(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -528,20 +527,24 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 			return ctx.Cancelled()
 		}
 		pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)
-		if !click(machinePos, cube.FaceEast, pick, true) {
+		stone := item.NewStack(block.Stone{}, 1)
+		if !click(machinePos, cube.FaceEast, pick, false) {
 			t.Error("a pickaxe in hand: the chest face with the plate did not open the settings")
 		}
-		if !click(machinePos, cube.FaceEast, item.Stack{}, true) {
+		if !click(machinePos, cube.FaceEast, item.Stack{}, false) {
 			t.Error("an empty hand: the chest face did not open the settings")
 		}
-		if !click(pos, cube.FaceWest, pick, true) {
-			t.Error("a pickaxe in hand: the conduit's side with the plate did not open the settings")
+		if !click(pos, cube.FaceUp, stone, false) {
+			t.Error("a block in hand: the conduit did not open the settings")
 		}
-		if click(machinePos, cube.FaceEast, pick, false) {
-			t.Error("standing: the click was taken")
+		if !click(pos, cube.FaceUp, item.NewStack(ItemConduit{Tier: 1}, 1), false) {
+			t.Error("an item conduit in hand: the conduit that has one did not open the settings")
 		}
-		if click(machinePos, cube.FaceEast, item.NewStack(ItemConduit{Tier: 1}, 1), true) {
-			t.Error("a conduit item in hand did not place")
+		if click(pos, cube.FaceUp, item.NewStack(EnergyConduit{Tier: 1}, 1), false) {
+			t.Error("an energy conduit in hand did not go into the conduit")
+		}
+		if click(pos, cube.FaceUp, stone, true) || click(machinePos, cube.FaceEast, pick, true) {
+			t.Error("sneaking: the click was taken")
 		}
 	})
 }

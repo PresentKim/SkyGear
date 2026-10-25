@@ -111,19 +111,19 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.s.useCopier(p, tx, pos, face, clickPos, held, off)
 		return
 	}
-	// A sneaking player who clicks the face of a block where a conduit's
-	// connector plate sits, or the side of a conduit that has one, opens the
-	// settings of that side, whatever they hold (a conduit item in hand places).
-	if p.Sneaking() && !isConduitItem(held) {
+	// A player who clicks a conduit's connector plate, or a conduit that has
+	// one, opens its settings, whatever they hold, unless the held conduit goes
+	// into that conduit. Sneaking places blocks instead.
+	if !p.Sneaking() {
 		// One click sends several use events; only the first opens a form.
-		if at, _, side, ok := plateHit(tx, pos, face, clickPos); ok {
+		if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok && !fitsBundle(held, b) {
 			ctx.Cancel()
 			if !h.s.debounced(p) {
 				h.s.showPlateForm(p, tx, at, side)
 			}
 			return
 		}
-		if b, ok := tx.Block(pos).(ConduitBundle); ok {
+		if b, ok := tx.Block(pos).(ConduitBundle); ok && !fitsBundle(held, b) {
 			if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
 				ctx.Cancel()
 				if !h.s.debounced(p) {

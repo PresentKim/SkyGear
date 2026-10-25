@@ -237,7 +237,7 @@
  "research.iron_hammer.about": "Mining while sneaking with the Iron Hammer breaks up to 256 connected blocks of the same type at once. Each block costs a little durability and hunger, and a full hunger bar breaks 256 blocks. Sneak and look at a block to see the blocks that will break in light blue. Stone and Cobblestone break too, so lay slab floors where you use the Iron Hammer.",
  "research.iron_hammer.name": "Iron Hammer",
  "research.iron_hammer.short": "A hammer that breaks connected blocks at once",
- "research.item_conduit.about": "Item Conduits connect on their own to nearby chests, Drawers, machines and furnaces and carry items from the extracting side to the inserting side. Sneak and right-click a conduit face with an empty hand to switch its mode (both, extract only, insert only, off).",
+ "research.item_conduit.about": "Item Conduits connect on their own to nearby chests, Drawers, machines and furnaces and carry items from the extracting side to the inserting side. Right-click a conduit to set extract, insert and the channel of each side in its settings window.",
  "research.item_conduit.name": "Item Conduit",
  "research.item_conduit.short": "Basic conduit that carries items far",
  "research.kelp.about": "Makes Dried Kelp Blocks.",
