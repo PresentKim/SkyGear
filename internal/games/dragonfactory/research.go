@@ -220,6 +220,10 @@ var baseResearchTree = []Research{
 		Cost:    []Requirement{{item.Diamond{}, 32}, {item.Emerald{}, 32}, {item.NetheriteIngot{}, 4}, {Ingot{Metal: MetalSteel}, 32}},
 		Unlocks: []string{"dragon_egg"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 16}}, Unlocks: []string{"dried_kelp_block"}},
+	// The fairy magic (fairymagic.go): dust from the nightly fairy and a
+	// research table; it gives the board at once.
+	{ID: "fairy_magic", Cost: []Requirement{{FairyDust{}, 2}, {ResearchTable{}, 1}},
+		Unlocks: []string{"dragonfactory:fairy_emerald", "dragonfactory:fairy_board"}},
 }
 
 // baseUnlocks are the results open without research.

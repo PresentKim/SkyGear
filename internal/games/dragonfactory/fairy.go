@@ -20,18 +20,20 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Gift fairy (docs/design/02-dragonfactory.md §2): now and then a fairy
-// (an allay on the client) visits a player in the save and flits about them.
-// Using (or hitting) it throws a gift to the player and it flies away. The gift is
-// a few basic items, or now and then something from the save's research
-// (rollGift). Values are drafts.
+// Gift fairy (docs/design/02-dragonfactory.md §2): every night of the
+// instance clock a fairy (an allay on the client) visits a player in the save
+// and flits about them. Using (or hitting) it throws a gift to the player and
+// it flies away; left alone for fairyStay, it scatters the gift about the
+// player and flies away. The gift is fairy dust with a few basic items, or
+// now and then something from the save's research (fairyGift). Values are
+// drafts.
 const (
-	// fairyMinGap and fairyMaxGap bound the instance time between visits:
-	// about three instance days (an hour with 20-minute days).
-	fairyMinGap = 2 // instance days
-	fairyMaxGap = 4
+	// fairyFrom and fairyTo bound when in the instance day the fairy comes,
+	// in percent of the day: about midnight, the day starting at sunrise.
+	fairyFrom = 75
+	fairyTo   = 85
 	// fairyStay is how long a fairy waits for a player before leaving.
-	fairyStay = 2 * time.Minute
+	fairyStay = time.Minute
 	// fairyLeaveTicks is how long the fly-away lasts.
 	fairyLeaveTicks = 60
 )
@@ -102,7 +104,7 @@ func (f *Fairy) Tick(tx *world.Tx, _ int64) {
 			return
 		}
 	case time.Duration(d.ticks)*time.Second/20 > fairyStay:
-		f.leave(tx, target, false)
+		f.scatter(tx, s, target)
 	default:
 		pos = f.wander(s, d, pos, target)
 	}
@@ -149,43 +151,108 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	}
 	d.gave = true
 	count(p, "fairy_gift", 1)
-	gift := s.rollGift()
+	gift := s.fairyGift()
 	// Throw it to the player: a short arc that lands at their feet.
 	to := p.Position().Sub(f.data.Pos)
 	vel := mgl64.Vec3{to[0] * 0.09, 0.2 + max(0, to[1])*0.05, to[2] * 0.09}
-	var names []string
 	for _, st := range gift {
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
-		names = append(names, fmt.Sprintf("%s §7x%d§f", itemName(i18n.Of(p), st), st.Count()))
 	}
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), strings.Join(names, ", "))
-	f.leave(tx, p, true)
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), giftNames(p, gift))
+	d.leaving = 1
 	return true
 }
 
-func (f *Fairy) leave(tx *world.Tx, p *player.Player, gave bool) {
+// scatter drops the gift about p, as items fall (dropAt), when nobody took
+// it in time, and sends the fairy away.
+func (f *Fairy) scatter(tx *world.Tx, s *session, p *player.Player) {
 	d := f.data.Data.(*fairyData)
-	if d.leaving > 0 {
+	if d.gave || d.leaving > 0 {
 		return
 	}
-	d.leaving = 1
-	if !gave && p != nil {
-		p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.leave.1"))
+	d.gave, d.leaving = true, 1
+	gift := s.fairyGift()
+	for _, st := range gift {
+		s.dropAt(tx, p.Position().Add(mgl64.Vec3{0, 1, 0}), st)
 	}
+	tx.PlaySound(f.data.Pos, sound.Pop{})
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.scatter.1"), giftNames(p, gift))
+}
+
+// giftNames lists a gift for p's chat.
+func giftNames(p *player.Player, gift []item.Stack) string {
+	var names []string
+	for _, st := range gift {
+		names = append(names, fmt.Sprintf("%s §7x%d§f", itemName(i18n.Of(p), st), st.Count()))
+	}
+	return strings.Join(names, ", ")
 }
 
 // The chances in percent of the gifts that come from the save's research:
 // the reward of a done research, and half the cost of one. The rest of the
-// gifts are basic.
+// gifts are basic. The fairy comes every night, about three times as often
+// as when it came every two to four days, so these are a third of those.
 const (
-	giftRewardChance = 5
-	giftCostChance   = 25
+	giftRewardChance = 2
+	giftCostChance   = 8
 )
+
+// fairyDustMin and fairyDustMax bound the fairy dust of every gift.
+const (
+	fairyDustMin = 2
+	fairyDustMax = 3
+)
+
+// fairyGift is a visit's gift: rollGift and fairy dust.
+func (s *session) fairyGift() []item.Stack {
+	s.state.FairyDust = true
+	s.storeState()
+	return append(s.rollGift(), item.NewStack(FairyDust{}, s.rollDust()))
+}
+
+// rollDust is the fairy dust of one visit.
+func (s *session) rollDust() int {
+	return fairyDustMin + s.rand.IntN(fairyDustMax-fairyDustMin+1)
+}
+
+// pastNights counts the fairy's nights that are over in the save's play
+// time.
+func (s *session) pastNights() int {
+	total, _, _ := s.clock.Now()
+	day := s.clock.DayLength()
+	if end := day * fairyTo / 100; day > 0 && total >= end {
+		return int((total-end)/day) + 1
+	}
+	return 0
+}
+
+// backfillFairyDust gives p the fairy dust of every night the save played
+// before the fairy brought any: a save from before the dust gets what its
+// fairies would have left, once.
+func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
+	if s.state.FairyDust {
+		return
+	}
+	nights := s.pastNights()
+	if nights == 0 {
+		return
+	}
+	dust := 0
+	for range nights {
+		dust += s.rollDust()
+	}
+	s.state.FairyDust = true
+	s.storeState()
+	for left := dust; left > 0; left -= 64 {
+		s.giveItem(p, tx, p.Position(), item.NewStack(FairyDust{}, min(left, 64)))
+	}
+	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.backfill"), nights, dust)
+}
 
 // rollGift picks a gift. It is now and then the research reward or half the
 // cost of a done research, a deeper one more likely (giftResearch), and
-// otherwise oak logs, oak saplings or pebbles.
+// otherwise oak logs, an oak sapling or pebbles.
 func (s *session) rollGift() []item.Stack {
 	roll := s.rand.IntN(100)
 	if roll < giftRewardChance {
@@ -199,9 +266,9 @@ func (s *session) rollGift() []item.Stack {
 		}
 	}
 	gifts := []item.Stack{
-		item.NewStack(oakLog, 16),
-		item.NewStack(block.Sapling{Type: block.OakSapling()}, 2),
-		item.NewStack(Pebble{Kind: PebbleStone}, 16),
+		item.NewStack(oakLog, 6),
+		item.NewStack(block.Sapling{Type: block.OakSapling()}, 1),
+		item.NewStack(Pebble{Kind: PebbleStone}, 6),
 	}
 	return []item.Stack{gifts[s.rand.IntN(len(gifts))]}
 }
@@ -301,8 +368,9 @@ func (fairyType) EncodeNBT(*world.EntityData) map[string]any      { return nil }
 // is due. It runs every second (session.Second).
 func (s *session) tickFairy(tx *world.Tx) {
 	now, _, _ := s.clock.Now()
-	if s.state.NextFairy == 0 {
-		s.scheduleFairy(now)
+	if s.state.NextFairy == 0 || s.state.NextFairy-now > 2*s.clock.DayLength() {
+		// New, or a visit planned by the old schedule days ahead.
+		s.scheduleFairy(false)
 		return
 	}
 	if now < s.state.NextFairy || s.fairy != nil {
@@ -316,13 +384,21 @@ func (s *session) tickFairy(tx *world.Tx) {
 		return
 	}
 	s.spawnFairy(tx, players[s.rand.IntN(len(players))])
-	s.scheduleFairy(now)
+	s.scheduleFairy(true)
 }
 
-func (s *session) scheduleFairy(now time.Duration) {
+// scheduleFairy plans the next visit at a random time of a night: the next
+// one after a visit, else this one (at once if it is under way) unless it is
+// over.
+func (s *session) scheduleFairy(next bool) {
+	now, _, dayTime := s.clock.Now()
 	day := s.clock.DayLength()
-	gap := time.Duration(fairyMinGap)*day + time.Duration(s.rand.Int64N(int64(time.Duration(fairyMaxGap-fairyMinGap)*day)+1))
-	s.state.NextFairy = now + gap
+	from, span := day*fairyFrom/100, day*(fairyTo-fairyFrom)/100
+	start := now - dayTime
+	if next || dayTime > from+span {
+		start += day
+	}
+	s.state.NextFairy = max(now, start+from+time.Duration(s.rand.Int64N(int64(span)+1)))
 }
 
 // spawnFairy sends a fairy to p.

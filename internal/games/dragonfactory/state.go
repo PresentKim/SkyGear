@@ -31,6 +31,22 @@ type State struct {
 	ResearchPaid map[string]map[string]int `json:"research_paid,omitempty"`
 	// NextFairy is the instance time of the next gift fairy visit.
 	NextFairy time.Duration `json:"next_fairy,omitempty"`
+	// FairyDust is whether the fairy has given the save fairy dust; until
+	// then a joining player gets the dust of the nights before
+	// (backfillFairyDust).
+	FairyDust bool `json:"fairy_dust,omitempty"`
+	// Weather is the weather a fairy spell brought ("", rain or snow) and
+	// WeatherUntil the instance time it ends (fairyspell.go).
+	Weather      string        `json:"weather,omitempty"`
+	WeatherUntil time.Duration `json:"weather_until,omitempty"`
+	// Sun is the fixed sun ("" flows with the instance clock).
+	Sun string `json:"sun,omitempty"`
+	// GrowClock is the growth clock the crops and magic plants count on
+	// (growNow).
+	GrowClock time.Duration `json:"grow_clock,omitempty"`
+	// BaseBiome is the island's biome a snow changed, given back at the
+	// next start (restoreBiome).
+	BaseBiome *uint32 `json:"base_biome,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
 	// Crops are the planted crops by position ("x,y,z", crops.go).

@@ -361,6 +361,9 @@ type machineState struct {
 	// test factories); stalled is set while a machine that works has no
 	// energy for a tick.
 	unlimited, stalled bool
+	// free marks a run the snow adds (snowReps): it needs the energy of a
+	// run but spends none.
+	free bool
 	// energy is the RE in the buffer; burn the ticks the fuel in a generator
 	// burns still, burnMax the ticks it burned for in all (generator.go).
 	energy, burn, burnMax int
@@ -1263,7 +1266,12 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.mon.seen, s.lastTick = currentTick, currentTick
 	s.machines[pos] = st
 	st.drainLegacy()
-	for range st.reps() {
+	reps := st.reps()
+	if st.kind.use > 0 && st.kind.generates == 0 && !st.kind.cell {
+		reps += s.snowReps(reps, currentTick)
+	}
+	for i := range reps {
+		st.free = i >= st.reps()
 		full := st.kind.interval > 1 && st.progress >= st.kind.interval
 		before, at := st.worked, st.progress
 		s.runMachine(st, pos, tx)
@@ -1275,6 +1283,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 			break
 		}
 	}
+	st.free = false
 	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
 	if st.kind.animated {

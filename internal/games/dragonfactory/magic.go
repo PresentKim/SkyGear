@@ -133,7 +133,7 @@ func (s PlantSeed) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *wo
 		return false
 	}
 	tx.SetBlock(at, MagicPlant{Kind: id}, nil)
-	now, _, _ := sess.clock.Now()
+	now := sess.growNow()
 	if sess.state.Plants == nil {
 		sess.state.Plants = map[string]*PlantRecord{}
 	}
@@ -335,7 +335,7 @@ func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 		countAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	if r := s.state.Plants[cropKey(pos)]; r != nil {
 		r.ReadyAt = now + k.grow
 	} else {
@@ -365,7 +365,7 @@ func (s *session) tickPlants(tx *world.Tx) {
 	if len(s.state.Plants) == 0 {
 		return
 	}
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	for key, r := range s.state.Plants {
 		pos, ok := parseCropKey(key)
 		if !ok {
@@ -484,8 +484,8 @@ func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKin
 		if r == nil {
 			return nil
 		}
-		now, _, _ := s.clock.Now()
-		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, max(0, r.ReadyAt-now).Round(time.Second))}
+		now := s.growNow()
+		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
 	}
 	lines := []string{i18n.T(lang, "plant.waila.bloom")}
 	for _, y := range k.yield {

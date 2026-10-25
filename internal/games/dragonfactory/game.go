@@ -103,6 +103,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		for _, c := range st.Chunks {
 			s.keepLoaded(tx, c)
 		}
+		s.applyEnvironment(tx)
 	})
 	inst.World.Handle(&worldHandler{s: s})
 	g.sessions.Store(inst.World, s)
@@ -146,6 +147,13 @@ type session struct {
 	g     *Game
 	world *world.World
 	clock *instance.Clock
+	// growInit and growAt are whether the growth clock started and the
+	// instance time it last ran to; rain and snow are whether it rains or
+	// snows now (fairyspell.go).
+	growInit bool
+	growAt   time.Duration
+	rain     bool
+	snow     bool
 	// keep keeps an owned chunk loaded (instance.KeepLoaded); nil in tests.
 	keep     func(tx *world.Tx, c ChunkPos)
 	saveID   int64
@@ -249,6 +257,8 @@ func (s *session) Join(p *player.Player, first bool) {
 		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
 	}
 	renameMenuItems(p)
+	s.backfillFairyDust(p, p.Tx())
+	s.showWeather(p)
 	s.sendShapes(p)
 	s.purgeLost()
 	s.sendRecipesTo(p)

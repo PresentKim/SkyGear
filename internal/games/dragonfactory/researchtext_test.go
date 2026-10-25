@@ -60,12 +60,12 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 		return open, grey
 	}
 	open, grey := split()
-	if open != 1 || grey != 3 { // the stick research; pebbles, wood tools, chest a step away
+	if open != 2 || grey != 3 { // the stick and fairy magic researches; pebbles, wood tools, chest a step away
 		t.Fatalf("at the start: %d open, %d grey", open, grey)
 	}
 	s.state.Researched = map[string]bool{"stick": true}
 	open, grey = split()
-	if open != 3 { // pebbles, wood tools, chest
+	if open != 4 { // pebbles, wood tools, chest, fairy magic
 		t.Fatalf("%d researches after the stick research", open)
 	}
 	if grey == 0 {
@@ -122,7 +122,7 @@ func TestResearchListSections(t *testing.T) {
 	s.state.Researched = map[string]bool{"stick": true}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		todo, done, todoN, doneN := s.researchSlots(p)
-		if todoN != 3 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
+		if todoN != 4 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
 			t.Fatalf("%d to do (%d slots), %d done (%d slots)", todoN, len(todo), doneN, len(done))
 		}
 		if !strings.HasPrefix(todo[0].Tip, "§e돌 다지기\n§7") || strings.Contains(todo[0].Tip, "모자랍니다") {

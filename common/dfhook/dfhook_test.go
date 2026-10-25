@@ -37,7 +37,7 @@ func TestInternals(t *testing.T) {
 	field[sync.Mutex](fh, "mu")
 	field[map[uint32]form.Form](fh, "forms")
 	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
-	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer}
+	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer, tx_chunk}
 }
 
 func TestFieldCached(t *testing.T) {

@@ -61,14 +61,14 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 // cropLines are the time left on a crop (the stage is only how the time
 // shows on the plant, not a number for players; 11th playtest).
 func (s *session) cropLines(lang string, r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
-		left := max(0, r.Planted+s.growTime(r.Kind)-now)
+		left := s.realLeft(max(0, r.Planted+s.growTime(r.Kind)-now))
 		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
-		left := max(0, r.NextFruit-now)
+		left := s.realLeft(max(0, r.NextFruit-now))
 		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.2"), i18n.T(lang, "dragonfactory.cropinfo.cropLines.3") + formatDuration(lang, left.Round(time.Second))}
 	}
 	return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.4")}

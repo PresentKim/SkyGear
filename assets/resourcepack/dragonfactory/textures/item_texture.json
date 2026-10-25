@@ -1,6 +1,15 @@
 {
   "resource_pack_name": "vanilla",
   "texture_data": {
+    "dragonfactory:fairy_dust": {
+      "textures": "textures/items/fairy_dust"
+    },
+    "dragonfactory:fairy_emerald": {
+      "textures": "textures/items/fairy_emerald"
+    },
+    "dragonfactory:fairy_board": {
+      "textures": "textures/items/fairy_board"
+    },
     "dragonfactory:bark_fiber": {
       "textures": "textures/items/bark_fiber"
     },

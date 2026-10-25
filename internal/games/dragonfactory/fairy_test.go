@@ -2,8 +2,11 @@ package dragonfactory
 
 import (
 	"testing"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -106,7 +109,7 @@ func TestFairyVisitsAndGives(t *testing.T) {
 	h := spawnPlayer(s)
 	s.world.Do(func(tx *world.Tx) {
 		s.tickFairy(tx)
-		if s.state.NextFairy < fairyMinGap*s.clock.DayLength() || s.state.NextFairy > fairyMaxGap*s.clock.DayLength() {
+		if day := s.clock.DayLength(); s.state.NextFairy < day*fairyFrom/100 || s.state.NextFairy > day*fairyTo/100 {
 			t.Fatalf("next fairy at %v", s.state.NextFairy)
 		}
 		s.state.NextFairy = -1 // due (0 means not scheduled)
@@ -153,4 +156,112 @@ func TestHittingTheFairyGivesTheGift(t *testing.T) {
 			t.Fatal("hitting the fairy did not give the gift instead of a hit")
 		}
 	})
+}
+
+// TestFairyComesEveryNight: the visits fall in the night window, one each
+// day, and a save opened during the window still gets that night's visit.
+func TestFairyComesEveryNight(t *testing.T) {
+	s := testSession(t)
+	day := s.clock.DayLength()
+	s.scheduleFairy(false)
+	for n := range 20 {
+		at := s.state.NextFairy
+		if want := time.Duration(n) * day; at < want+day*fairyFrom/100 || at > want+day*fairyTo/100 {
+			t.Fatalf("visit %d at %v, want in night %d", n, at, n)
+		}
+		now, _, _ := s.clock.Now()
+		s.clock.Advance(at - now)
+		s.scheduleFairy(true)
+	}
+	s = testSession(t)
+	s.clock.Advance(day * 80 / 100)
+	s.scheduleFairy(false)
+	if now, _, _ := s.clock.Now(); s.state.NextFairy > now+day*5/100 {
+		t.Errorf("opened at 80%% of the day, visit at %v (now %v)", s.state.NextFairy, now)
+	}
+	s.clock.Advance(day * 10 / 100)
+	s.scheduleFairy(false)
+	if s.state.NextFairy < day+day*fairyFrom/100 {
+		t.Errorf("opened after the night, visit at %v", s.state.NextFairy)
+	}
+}
+
+// TestFairyGiftHasDust: every gift brings two or three fairy dust.
+func TestFairyGiftHasDust(t *testing.T) {
+	s := testSession(t)
+	for range 100 {
+		gift := s.fairyGift()
+		last := gift[len(gift)-1]
+		if _, ok := last.Item().(FairyDust); !ok || last.Count() < fairyDustMin || last.Count() > fairyDustMax {
+			t.Fatalf("gift = %v", gift)
+		}
+	}
+}
+
+// TestFairyScattersTheGift: left alone for fairyStay, the fairy drops its
+// gift about the player and flies away.
+func TestFairyScattersTheGift(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		// a floor for the gift to land on
+		for x := -4; x <= 4; x++ {
+			for z := -2; z <= 7; z++ {
+				tx.SetBlock(cube.Pos{x, 63, z}, block.Stone{}, nil)
+			}
+		}
+		s.spawnFairy(tx, p)
+	})
+	tick(s, int(fairyStay/(time.Second/20))+fairyLeaveTicks+10)
+	if s.fairy != nil {
+		t.Fatal("the fairy did not fly away")
+	}
+	dust := 0
+	s.world.Do(func(tx *world.Tx) {
+		for e := range tx.Entities() {
+			if it, ok := e.(*entity.Ent); ok {
+				if b, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
+					if _, ok := b.Item().Item().(FairyDust); ok {
+						dust += b.Item().Count()
+					}
+				}
+			}
+		}
+	})
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		dust += countPlain(p.Inventory(), FairyDust{})
+	})
+	if dust < fairyDustMin {
+		t.Errorf("%d fairy dust scattered", dust)
+	}
+}
+
+// TestFairyDustBackfill: a save that played nights before the fairy brought
+// dust gets two or three dust a night once; the fairy's own dust ends it.
+func TestFairyDustBackfill(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	day := s.clock.DayLength()
+	s.clock.Advance(4*day + day*fairyTo/100)
+	if n := s.pastNights(); n != 5 {
+		t.Fatalf("%d nights past", n)
+	}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		s.backfillFairyDust(p, tx)
+		if n := countPlain(p.Inventory(), FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
+			t.Fatalf("%d dust for 5 nights", n)
+		}
+		s.backfillFairyDust(p, tx)
+		if n := countPlain(p.Inventory(), FairyDust{}); n > 5*fairyDustMax {
+			t.Fatalf("backfilled twice: %d dust", n)
+		}
+	})
+	s = testSession(t)
+	s.clock.Advance(3 * day)
+	s.fairyGift()
+	if !s.state.FairyDust {
+		t.Fatal("the fairy's dust did not mark the save")
+	}
 }

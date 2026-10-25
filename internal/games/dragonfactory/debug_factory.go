@@ -126,7 +126,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 	// crops at random stages, a chest above the harvester.
 	const fx, fz = 6, 0
 	kinds := []string{"wheat", "carrot", "potato", "beetroot"}
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	for x := range 9 {
 		for z := range 9 {
 			corner := (x == 0 || x == 8) && (z == 0 || z == 8)

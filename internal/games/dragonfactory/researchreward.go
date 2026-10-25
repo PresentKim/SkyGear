@@ -54,6 +54,7 @@ var researchRewards = map[string]map[string]int{
 	"tinker_table":       {"dragonfactory:tinker_table": 1},
 	"magic_sieve":        {"dragonfactory:magic_sieve": 1},
 	"dimension_gate":     {"dragonfactory:dimension_gate": 1},
+	"fairy_magic":        {"dragonfactory:fairy_board": 1},
 }
 
 // researchReward is what a research gives the researcher, in the order of

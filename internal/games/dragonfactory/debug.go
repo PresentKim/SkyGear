@@ -22,7 +22,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfdebug", i18n.T(i18n.Default, "dragonfactory.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
 		debugOreInput{adminBase: b}, debugOreEngine{adminBase: b}, debugOreScreen{adminBase: b}, debugOreInv{adminBase: b}, debugResearchScreen{adminBase: b}))
 }
 
@@ -117,6 +117,54 @@ func (c debugFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
 		s.spawnFairy(tx, p)
 		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.8"))
+	}
+}
+
+// weatherEnum and sunEnum name the weathers and sun modes of the fairy
+// board for /dfdebug weather and sun.
+type weatherEnum string
+
+func (weatherEnum) Type() string                { return "df_weather" }
+func (weatherEnum) Options(cmd.Source) []string { return []string{"clear", weatherRain, weatherSnow} }
+
+type sunEnum string
+
+func (sunEnum) Type() string                { return "df_sun" }
+func (sunEnum) Options(cmd.Source) []string { return []string{"flow", sunDay, sunDusk, sunNight} }
+
+// debugWeather casts a weather without a fairy emerald.
+type debugWeather struct {
+	adminBase
+	Sub     cmd.SubCommand `cmd:"weather"`
+	Weather weatherEnum    `cmd:"weather"`
+}
+
+func (c debugWeather) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		w := string(c.Weather)
+		if w == "clear" {
+			w = ""
+		}
+		s.castWeather(tx, w)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.weather"), i18n.T(i18n.Default, "fairy.weather."+weatherKey(w)))
+	}
+}
+
+// debugSun sets the sun without a fairy emerald.
+type debugSun struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"sun"`
+	Sun sunEnum        `cmd:"sun"`
+}
+
+func (c debugSun) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	if _, s, ok := c.session(src, o, tx); ok {
+		m := string(c.Sun)
+		if m == "flow" {
+			m = ""
+		}
+		s.castSun(tx, m)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.sun"), i18n.T(i18n.Default, "fairy.sun."+sunKey(m)))
 	}
 }
 

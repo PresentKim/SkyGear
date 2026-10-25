@@ -64,6 +64,7 @@ var helpTopics = []struct {
 	{"handwork", helpHandTab, func() string { return iconOf(item.NewStack(Pebble{Kind: PebbleStone}, 1)) }, nil},
 	{"sieve", helpHandTab, func() string { return iconOf(machineItem(KindSieve)) }, nil},
 	{"water", helpHandTab, func() string { return iconOf(item.NewStack(item.Bucket{}, 1)) }, nil},
+	{"fairy", helpHandTab, func() string { return iconOf(item.NewStack(FairyBoard{}, 1)) }, nil},
 	{"power", helpAutoTab, func() string { return iconOf(machineItem(KindGenerator)) }, nil},
 	{"conduit", helpAutoTab, func() string { return iconOf(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
 	{"drawer", helpAutoTab, func() string { return iconOf(item.NewStack(Drawer{}, 1)) }, nil},

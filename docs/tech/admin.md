@@ -35,6 +35,8 @@
 | `/dfdebug skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/dfdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |
 | `/dfdebug fairy` | 선물 요정을 지금 나에게 부름 |
+| `/dfdebug weather <clear\|rain\|snow>` | 요정의 에메랄드 없이 날씨 마법을 씀(같은 날씨면 3일 더함) |
+| `/dfdebug sun <flow\|day\|dusk\|night>` | 요정의 에메랄드 없이 해를 고정하거나 흐르게 함 |
 | `/dfdebug wave <단계>` | 옆에 차원 게이트를 놓고 그 단계의 웨이브를 바로 시작(아래 단계는 열어 준다) |
 | `/dfdebug research random [퍼센트]` | 연구를 무작위로 그만큼 완료(연구 화면의 두 탭 채우기, [research-screen.md](research-screen.md)) |
 | `/dfdebug research load <개수>` | 연구 복사본을 개수만큼 만든다(긴 목록 시험, 저장하지 않음, 0 이면 없앰) |

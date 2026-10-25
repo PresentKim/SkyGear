@@ -39,6 +39,10 @@ func (st *machineState) consume() bool {
 	if u == 0 || st.unlimited {
 		return true
 	}
+	if st.free {
+		// a run the snow adds: free, but only while there is energy
+		return st.energy >= u
+	}
 	if st.energy < u {
 		// a stop shows after stallShow ticks in a row: a machine that gets
 		// energy as it uses it does not flicker "stopped"

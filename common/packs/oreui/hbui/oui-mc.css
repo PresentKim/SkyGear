@@ -1501,3 +1501,124 @@
   min-width: 14rem;
   margin-left: 0.6rem;
 }
+
+/* --- ChoiceBoard (common ui ChoiceMenu): a panel of figures (an icon and a value, the label in the
+   tooltip) over a row per group: its title in 46u on the left, then its tiles (58x40, 3u apart: a 18u icon
+   over the name, what it does in the tooltip). The current tile has a green ring and does not
+   press, a dim one is greyed. ------------------------------------------------------------------ */
+
+.mc-stats {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  padding: 0.4rem 0.2rem;
+}
+
+.mc-stat {
+  flex-grow: 1;
+  flex-basis: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-stat-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-stat-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  flex-shrink: 0;
+  margin-right: 0.8rem;
+}
+
+.mc-stat-value {
+  color: #1e1e1e;
+  font-size: 1.4rem;
+}
+
+.mc-pick-title .oui-line,
+.mc-pick-note .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-pick-note {
+  margin-top: 0.6rem;
+  padding-left: 0.4rem;
+  color: #5a5a5a;
+  font-size: 0.98rem;
+  flex-shrink: 0;
+}
+
+.mc-pick-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 1.2rem;
+}
+
+.mc-pick-title {
+  width: 9.2rem;
+  flex-shrink: 0;
+  padding-left: 0.4rem;
+  color: var(--mc-head);
+  font-size: 1.12rem;
+}
+
+.mc-picks {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-pick {
+  box-sizing: border-box;
+  width: 11.6rem;
+  height: 8rem;
+  margin-right: 0.6rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-pick img {
+  position: absolute;
+  top: 0.6rem;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+.mc-pick-name {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  font-size: 1.12rem;
+}
+
+.mc-pick-name .oui-line {
+  justify-content: center;
+}
+
+.mc-pick-ring {
+  position: absolute;
+  top: -0.6rem;
+  left: -0.6rem;
+  right: -0.6rem;
+  bottom: -0.6rem;
+  border-style: solid;
+  border-width: 0.4rem;
+  border-color: #4fd64f;
+}
+
+.mc-pick.on:hover {
+  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+}
+
+.mc-pick.dim {
+  opacity: 0.55;
+}

@@ -8,12 +8,13 @@
 
 - `common/packs/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화 팩에서만** 가져가므로, 암호화를 켤 때만 보낸다(`main.go`).
 - `common/oreui`: DDUI 화면을 열고, 레이아웃과 값을 데이터 저장소로 보내고, 누름을 받는다. 클라이언트의 DDUI 패킷은 `dfhook`에서 가로챈다.
-- `common/ui`: `ui.OreUI`를 켜면 `Menu`(`Confirm`), `CardMenu`, `ItemBoard`, `SplitMenu`, `SieveBoard`, `ListSplitMenu`, `Input`, `ItemGrid`, `ItemGridSections`, `SlotMenu`가 같은 모양의 DDUI 화면이 된다(`ui/oreui.go`, `ui/oreforms.go`). 게임 코드는 바꾸지 않는다. 버튼의 `Run`도 폼과 같이 그 플레이어 월드에서 돈다. 누름 뒤에 새 화면을 보이지 않으면 화면이 닫힌다(폼 버튼을 누르면 폼이 닫히는 것과 같다).
+- `common/ui`: `ui.OreUI`를 켜면 `Menu`(`Confirm`), `CardMenu`, `ItemBoard`, `SplitMenu`, `SieveBoard`, `ListSplitMenu`, `Input`, `ItemGrid`, `ItemGridSections`, `SlotMenu`, `ChoiceMenu`가 같은 모양의 DDUI 화면이 된다(`ui/oreui.go`, `ui/oreforms.go`). 게임 코드는 바꾸지 않는다. 버튼의 `Run`도 폼과 같이 그 플레이어 월드에서 돈다. 누름 뒤에 새 화면을 보이지 않으면 화면이 닫힌다(폼 버튼을 누르면 폼이 닫히는 것과 같다).
 - 창은 모두 바닐라 인벤토리 크기(326×166) 하나다(퀘스트 책만 따로). 그래서 한 화면에서 다른 화면으로 가는 누름(정수 추출기의 정수 고르기, 도움말 주제, 치장 탭, 친구 줄에서 확인 질문, 통계 탭)은 열린 화면 안에서 바뀐다.
 - 같은 화면에 새 레이아웃이 오면 렌더러는 그려 둔 것과 견주어 달라진 노드만 고친다(`oui-ddui.js` `patch`). 개수·글·아이콘·고른 칸만 바뀌면 그 요소만 바뀌고, 창·스크롤 위치·입력칸·불러온 아이템 그림은 그대로다. 영역(`region`)도 값이 바뀌면 같은 방식으로 고친다. 게임 코드는 화면 전체를 다시 보이기만 하면 된다.
 - 터치 화면에서는 툴팁이 있는 요소(아이템 칸, 도움말 `?`, 발전과제 노드, 버튼)를 처음 탭하면 툴팁만 뜨고, 같은 요소를 한 번 더 탭하면 눌린다(JSON UI 폼과 같다). 다른 곳을 탭하면 툴팁이 닫힌다. 툴팁이 이름뿐인 뒤로·쪽 넘김 버튼과 탭은 바로 눌린다(`common/ui.quick`, 노드의 `quick`). 마우스는 가리키면 툴팁이 뜨고 누르면 바로 눌린다.
 - 입력 화면(`ui.Input`)은 창 안의 입력칸과 확인 버튼이다. 버튼을 누르면 화면의 입력칸 글이 함께 오고, Enter 도 확인을 누른다. 돌아갈 화면이 있으면 컨트롤 막대에 뒤로 버튼이 있다.
 - 소셜 화면(친구·참여자 관리)은 목록 분할 화면(`ui.ListSplitMenu`)이다. 탭은 다른 화면과 같은 아이콘 탭(이름은 툴팁)으로 창 위에, 줄은 왼쪽 판에서 스크롤되고(이름과 그 아래 작은 정보 줄, 고른 줄은 밝게), 오른쪽은 본문과 동작 버튼(첫 버튼은 전체 폭, 나머지는 두 칸씩)이다. 확인 질문·친구 추가 입력도 같은 창에서 바뀐다.
+- 선택 판(`ui.ChoiceMenu`, 요정의 마법판)은 위의 수치 판(아이콘과 값 한 줄, 이름은 툴팁, `ui.Stat`)과 한 줄 메모, 아래에 갈래(`ui.ChoiceGroup`)마다 한 줄: 왼쪽에 갈래 이름, 오른쪽에 아이콘 위·이름 아래의 칸(효과는 툴팁)이다. 지금 것(`On`)은 초록 테두리로 눌리지 않고 툴팁에 표시(`Badge`)가 붙으며, 지금 못 하는 것(`Dim`)은 흐리다. JSON UI 폼에서는 본문에 수치, 버튼마다 칸인 목록이다(`ui/choice.go`, `oui-mc.css` `.mc-pick*`·`.mc-stat*`).
 - 도감의 체 탭은 Ex Deorum JEI 체 화면 배치로 그린다(`ui.SieveBoard`, `codexpages.go`).
 - 도감 검색 탭은 창 안의 검색칸과 결과 한 판이다(`ui.SearchGrid`, `codexsearch.go` `showCodexSearchLive`). 글을 치면 250ms 뒤 결과 영역만 다시 그리므로 검색칸의 글과 커서가 남는다. 결과는 쪽 없이 스크롤된다. 빈 검색에서는 즐겨찾기와 최근 본 아이템이 위에 나온다.
 

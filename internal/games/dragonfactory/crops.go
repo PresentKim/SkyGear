@@ -145,7 +145,7 @@ func (s *session) plantCrop(pos cube.Pos, kind string) {
 	if _, ok := cropKinds[kind]; !ok {
 		return
 	}
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	if s.state.Crops == nil {
 		s.state.Crops = map[string]*CropRecord{}
 	}
@@ -162,7 +162,7 @@ func (s *session) scheduleCrop(pos cube.Pos, r *CropRecord, stage int) {
 
 // loadCrops builds the queue from the stored records (session start).
 func (s *session) loadCrops() {
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	for k, r := range s.state.Crops {
 		pos, ok := parseCropKey(k)
 		if _, known := cropKinds[r.Kind]; !ok || !known {
@@ -176,7 +176,7 @@ func (s *session) loadCrops() {
 
 // growCrops updates the crops that are due (called every second).
 func (s *session) growCrops(tx *world.Tx) {
-	now, _, _ := s.clock.Now()
+	now := s.growNow()
 	for s.cropQueue.Len() > 0 && s.cropQueue[0].at <= now {
 		d := heap.Pop(&s.cropQueue).(cropDue)
 		if s.state.Crops[cropKey(d.pos)] != d.rec {
