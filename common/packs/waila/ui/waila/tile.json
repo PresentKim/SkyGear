@@ -670,7 +670,7 @@
 						{
 							"bubbles@waila_common.image": {
 								"size": [12, 30],
-								"texture": "textures/waila/bubbles"
+								"texture": "textures/ui/bubbles_full"
 							}
 						}
 					]
@@ -1075,13 +1075,19 @@
 		"anchor_to": "top_right",
 		"size": ["100%c", 11],
 
-		/* デフォルトのプレースホルダーアイコンを設定 */
+		/* tool codes with no vanilla icon show the placeholder */
 		"$texture|default": "pack_icon",
 
 		//* _waila:A:zz,t;zz,z: ...
 		//* _waila:B:yyyyyyyyyyyyyyyyyyyynnnnnnnnnn:zz,t;zz,z: ...
 
 		"$tooltip_renderer_type": "('%.2s' * ($var_title_text - ('%.7s' * $var_title_text)))",
+
+		/* tag codes, mapped to vanilla item textures in the icons */
+		"$tag_0_tile": "(('%.2s' * ($var_title_text - ('%.9s' * $var_title_text))) - ':')",
+		"$tag_0_entity": "(('%.2s' * ($var_title_text - ('%.40s' * $var_title_text))) - ':')",
+		"$tag_1_tile": "(('%.2s' * ($var_title_text - ('%.14s' * $var_title_text))) - ':')",
+		"$tag_1_entity": "(('%.2s' * ($var_title_text - ('%.45s' * $var_title_text))) - ':')",
 
 		"controls": [
 			{
@@ -1091,14 +1097,32 @@
 					"bilinear": true,
 
 					"variables": [
-						{
-							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.9s' * $var_title_text)))) - ':')"
-						},
-						{
-							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.40s' * $var_title_text)))) - ':')"
-						}
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'aa'))", "$texture": "textures/items/wood_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ab'))", "$texture": "textures/items/stone_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ac'))", "$texture": "textures/items/iron_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ad'))", "$texture": "textures/items/diamond_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ba'))", "$texture": "textures/items/wood_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'bb'))", "$texture": "textures/items/stone_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'bc'))", "$texture": "textures/items/iron_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'bd'))", "$texture": "textures/items/diamond_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ca'))", "$texture": "textures/items/wood_shovel" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'da'))", "$texture": "textures/items/wood_hoe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'ea'))", "$texture": "textures/items/wood_sword" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'fa'))", "$texture": "textures/items/flint_and_steel" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'fb'))", "$texture": "textures/items/seeds_wheat" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'fc'))", "$texture": "textures/items/shears" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'fd'))", "$texture": "textures/items/bucket_empty" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_0_tile = 'fe'))", "$texture": "textures/items/brush" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'aa'))", "$texture": "textures/blocks/ladder" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'ai'))", "$texture": "textures/items/saddle" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'an'))", "$texture": "textures/items/wheat" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'ao'))", "$texture": "textures/items/potato" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'aq'))", "$texture": "textures/items/seeds_wheat" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'ar'))", "$texture": "textures/items/apple_golden" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'as'))", "$texture": "textures/items/fish_raw" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'av'))", "$texture": "textures/items/slimeball" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'ax'))", "$texture": "textures/items/torchflower_seeds" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_0_entity = 'ay'))", "$texture": "textures/items/spider_eye" }
 					],
 
 					"controls": [
@@ -1135,14 +1159,32 @@
 					"bilinear": true,
 
 					"variables": [
-						{
-							"requires": "($tooltip_renderer_type = 'A:')",
-							"$texture": "(('textures/waila/icons/tags/tile/' + ('%.2s' * ($var_title_text - ('%.14s' * $var_title_text)))) - ':')"
-						},
-						{
-							"requires": "(not ($tooltip_renderer_type = 'A:'))",
-							"$texture": "(('textures/waila/icons/tags/entity/' + ('%.2s' * ($var_title_text - ('%.45s' * $var_title_text)))) - ':')"
-						}
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'aa'))", "$texture": "textures/items/wood_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ab'))", "$texture": "textures/items/stone_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ac'))", "$texture": "textures/items/iron_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ad'))", "$texture": "textures/items/diamond_pickaxe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ba'))", "$texture": "textures/items/wood_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'bb'))", "$texture": "textures/items/stone_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'bc'))", "$texture": "textures/items/iron_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'bd'))", "$texture": "textures/items/diamond_axe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ca'))", "$texture": "textures/items/wood_shovel" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'da'))", "$texture": "textures/items/wood_hoe" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'ea'))", "$texture": "textures/items/wood_sword" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'fa'))", "$texture": "textures/items/flint_and_steel" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'fb'))", "$texture": "textures/items/seeds_wheat" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'fc'))", "$texture": "textures/items/shears" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'fd'))", "$texture": "textures/items/bucket_empty" },
+						{ "requires": "(($tooltip_renderer_type = 'A:') and ($tag_1_tile = 'fe'))", "$texture": "textures/items/brush" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'aa'))", "$texture": "textures/blocks/ladder" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'ai'))", "$texture": "textures/items/saddle" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'an'))", "$texture": "textures/items/wheat" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'ao'))", "$texture": "textures/items/potato" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'aq'))", "$texture": "textures/items/seeds_wheat" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'ar'))", "$texture": "textures/items/apple_golden" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'as'))", "$texture": "textures/items/fish_raw" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'av'))", "$texture": "textures/items/slimeball" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'ax'))", "$texture": "textures/items/torchflower_seeds" },
+						{ "requires": "((not ($tooltip_renderer_type = 'A:')) and ($tag_1_entity = 'ay'))", "$texture": "textures/items/spider_eye" }
 					],
 
 					"controls": [

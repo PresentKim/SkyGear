@@ -14,10 +14,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 // machine is one upgradable machine: its texture name, the faces it has and
@@ -46,19 +47,6 @@ var trims = [3]color.RGBA{
 	{205, 210, 220, 255}, // tier 1: iron
 	{250, 200, 60, 255},  // tier 2: gold
 	{90, 230, 230, 255},  // tier 3: diamond
-}
-
-func load(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	im, err := png.Decode(f)
-	if err != nil {
-		panic(err)
-	}
-	return im
 }
 
 func exists(path string) bool { _, err := os.Stat(path); return err == nil }
@@ -102,7 +90,7 @@ func main() {
 			faces = append(faces, m.on)
 		}
 		for _, face := range faces {
-			base := load(filepath.Join(dir, m.name+"_"+face+".png"))
+			base := imgio.Load(filepath.Join(dir, m.name+"_"+face+".png"))
 			for tier := 1; tier <= 3; tier++ {
 				name := fmt.Sprintf("%s_%s_t%d", m.name, face, tier)
 				tile := "dragonfactory_" + name
@@ -114,14 +102,7 @@ func main() {
 				if exists(path) {
 					continue
 				}
-				f, err := os.Create(path)
-				if err != nil {
-					panic(err)
-				}
-				if err := png.Encode(f, trimmed(base, tier)); err != nil {
-					panic(err)
-				}
-				_ = f.Close()
+				imgio.Save(path, trimmed(base, tier))
 			}
 		}
 	}

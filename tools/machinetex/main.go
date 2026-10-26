@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 type variant struct {
@@ -28,7 +29,6 @@ var variants = []variant{
 	{"lava_generator", "generator", []string{"side", "up", "down"}, color.RGBA{255, 120, 20, 255}},
 	{"crucible", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{255, 70, 30, 255}},
 	{"ore_washer", "crusher", []string{"front", "back", "side", "up", "down"}, color.RGBA{60, 190, 200, 255}},
-	{"dimension_gate", "generator", []string{"side", "up", "down"}, color.RGBA{150, 60, 190, 255}},
 	{"storage_controller", "generator", []string{"side", "up", "down"}, color.RGBA{240, 200, 60, 255}},
 	{"storage_link", "generator", []string{"side", "up", "down"}, color.RGBA{150, 160, 180, 255}},
 	{"tinker_table", "generator", []string{"side", "up", "down"}, color.RGBA{200, 120, 60, 255}},
@@ -48,15 +48,7 @@ func main() {
 	dir := filepath.Join(os.Args[1], "textures/blocks")
 	for _, v := range variants {
 		for _, face := range v.faces {
-			in, err := os.Open(filepath.Join(dir, v.base+"_"+face+".png"))
-			if err != nil {
-				panic(err)
-			}
-			src, err := png.Decode(in)
-			in.Close()
-			if err != nil {
-				panic(err)
-			}
+			src := imgio.Load(filepath.Join(dir, v.base+"_"+face+".png"))
 			b := src.Bounds()
 			out := image.NewRGBA(b)
 			for y := b.Min.Y; y < b.Max.Y; y++ {
@@ -70,14 +62,7 @@ func main() {
 					out.Set(x, y, c)
 				}
 			}
-			f, err := os.Create(filepath.Join(dir, v.name+"_"+face+".png"))
-			if err != nil {
-				panic(err)
-			}
-			if err := png.Encode(f, out); err != nil {
-				panic(err)
-			}
-			f.Close()
+			imgio.Save(filepath.Join(dir, v.name+"_"+face+".png"), out)
 		}
 	}
 }

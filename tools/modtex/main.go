@@ -18,9 +18,10 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 type repo struct {
@@ -94,12 +95,11 @@ var entries = func() []entry {
 	}
 	add(machine("electric_furnace", "mek", mekFaces("energized_smelter", "side"), nil)...)
 	add(machine("crucible", "mek", mekFaces("fuelwood_heater", "left"), nil)...)
-	// storage, energy, fluids, crafting station, gate.
+	// storage, energy, fluids, crafting station.
 	for _, f := range []string{"side", "up", "down"} {
 		add(entry{dst: "blocks/storage_controller_" + f, src: "drawr:block/drawers_controller_front"})
 		add(entry{dst: "blocks/storage_link_" + f, src: "rs:block/network_transmitter/base"})
 		add(entry{dst: "blocks/energy_cell_" + f, src: "eio:block/basic_capacitor_bank"})
-		add(entry{dst: "blocks/dimension_gate_" + f, src: "eio:block/vacuum_portal"})
 	}
 	add(entry{dst: "blocks/fluid_tank_side", src: "mek:block/models/fluid_tank", over: "block/dynamic_tank"},
 		entry{dst: "blocks/fluid_tank_up", src: "mek:block/models/fluid_tank_top"},
@@ -144,19 +144,6 @@ var entries = func() []entry {
 	return e
 }()
 
-func load(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	im, err := png.Decode(f)
-	if err != nil {
-		panic(fmt.Errorf("%s: %w", path, err))
-	}
-	return im
-}
-
 func find(refs, spec string) string {
 	var key, path string
 	for i := range spec {
@@ -189,10 +176,10 @@ func main() {
 	}
 	refs, pack := os.Args[1], os.Args[2]
 	for _, e := range entries {
-		img := square(load(find(refs, e.src)))
+		img := square(imgio.Load(find(refs, e.src)))
 		if e.over != "" {
 			prefix := e.src[:indexByte(e.src, ':')]
-			base := square(load(find(refs, prefix+":"+e.over)))
+			base := square(imgio.Load(find(refs, prefix+":"+e.over)))
 			draw.Draw(base, base.Bounds(), img, image.Point{}, draw.Over)
 			img = base
 		}
@@ -207,14 +194,7 @@ func main() {
 			}
 		}
 		out := filepath.Join(pack, "textures", e.dst+".png")
-		f, err := os.Create(out)
-		if err != nil {
-			panic(err)
-		}
-		if err := png.Encode(f, img); err != nil {
-			panic(err)
-		}
-		_ = f.Close()
+		imgio.Save(out, img)
 	}
 	fmt.Println(len(entries), "textures written")
 }

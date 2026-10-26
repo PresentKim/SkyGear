@@ -23,8 +23,6 @@ var (
 	white       = color.RGBA{255, 255, 255, 255}
 	panelFill   = color.RGBA{198, 198, 198, 255}
 	panelShade  = color.RGBA{85, 85, 85, 255}
-	titleFill   = color.RGBA{178, 178, 178, 255}
-	titleLine   = color.RGBA{110, 110, 110, 255}
 	buttonFill  = color.RGBA{66, 66, 66, 255}
 	buttonHi    = color.RGBA{92, 92, 92, 255}
 	buttonLo    = color.RGBA{40, 40, 40, 255}

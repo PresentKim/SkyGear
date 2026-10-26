@@ -12,10 +12,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 // spec is one machine: the texture that animates (its front or its side), the
@@ -45,19 +46,6 @@ var specs = []spec{
 
 const frames = 4
 
-func load(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	im, err := png.Decode(f)
-	if err != nil {
-		panic(err)
-	}
-	return im
-}
-
 func mix(c, a color.RGBA, t float64) color.RGBA {
 	m := func(x, y uint8) uint8 { return uint8(float64(x)*(1-t) + float64(y)*t) }
 	return color.RGBA{m(c.R, a.R), m(c.G, a.G), m(c.B, a.B), c.A}
@@ -73,7 +61,7 @@ func main() {
 	var flips []map[string]any
 	atlas := map[string]string{}
 	for _, sp := range specs {
-		base := load(filepath.Join(dir, sp.name+"_"+sp.face+".png"))
+		base := imgio.Load(filepath.Join(dir, sp.name+"_"+sp.face+".png"))
 		strip := image.NewRGBA(image.Rect(0, 0, 16, 16*frames))
 		for f := 0; f < frames; f++ {
 			for y := 0; y < 16; y++ {
@@ -102,14 +90,7 @@ func main() {
 			}
 		}
 		out := sp.name + "_" + sp.face + "_on"
-		file, err := os.Create(filepath.Join(dir, out+".png"))
-		if err != nil {
-			panic(err)
-		}
-		if err := png.Encode(file, strip); err != nil {
-			panic(err)
-		}
-		_ = file.Close()
+		imgio.Save(filepath.Join(dir, out+".png"), strip)
 		tile := "dragonfactory_" + out
 		atlas[tile] = "textures/blocks/" + out
 		flips = append(flips, map[string]any{"flipbook_texture": "textures/blocks/" + out, "atlas_tile": tile, "ticks_per_frame": 4, "blend_frames": false})

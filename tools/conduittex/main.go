@@ -15,23 +15,11 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/png"
 	"os"
 	"path/filepath"
-)
 
-func load(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	im, err := png.Decode(f)
-	if err != nil {
-		panic(err)
-	}
-	return im
-}
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+)
 
 // part draws one conduit into dst at x0: the arm strip (16×52) at (x0, 0), the
 // core face (scaled to 16×16) at (x0+16, 0) and the strip turned on its side,
@@ -52,17 +40,6 @@ func part(dst *image.RGBA, src image.Image, x0 int) {
 	}
 }
 
-func save(path string, im image.Image) {
-	f, err := os.Create(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if err := png.Encode(f, im); err != nil {
-		panic(err)
-	}
-}
-
 func main() {
 	if len(os.Args) != 3 {
 		fmt.Fprintln(os.Stderr, "usage: conduittex src-dir pack-dir")
@@ -72,13 +49,13 @@ func main() {
 	for _, kind := range []string{"energy", "item", "fluid"} {
 		for t := 1; t <= 3; t++ {
 			name := fmt.Sprintf("conduit_%s_%d.png", kind, t)
-			sheet := load(filepath.Join(src, name))
+			sheet := imgio.Load(filepath.Join(src, name))
 			// the texture of the display entity
 			im := image.NewRGBA(image.Rect(0, 0, 64, 64))
 			part(im, sheet, 0)
-			save(filepath.Join(pack, "textures/entity/dragonfactory", name), im)
+			imgio.Save(filepath.Join(pack, "textures/entity/dragonfactory", name), im)
 			// the same sheet is the texture of the item block (conduit icons)
-			save(filepath.Join(pack, "textures/blocks", name), im)
+			imgio.Save(filepath.Join(pack, "textures/blocks", name), im)
 		}
 	}
 	plates(src, pack)
@@ -92,7 +69,7 @@ func main() {
 			}
 		}
 	}
-	save(filepath.Join(pack, "textures/blocks/conduit_node.png"), node)
+	imgio.Save(filepath.Join(pack, "textures/blocks/conduit_node.png"), node)
 }
 
 // channelColours are the colours of the 16 channels (dye colours, the order of
@@ -112,7 +89,7 @@ var channelColours = [16]color.RGBA{
 func plates(src, pack string) {
 	dir := filepath.Join(pack, "textures/entity/dragonfactory")
 	for _, dir2 := range []string{"in", "out"} {
-		arrow := load(filepath.Join(src, "arrow_"+dir2+".png"))
+		arrow := imgio.Load(filepath.Join(src, "arrow_"+dir2+".png"))
 		for i, col := range channelColours {
 			im := image.NewRGBA(image.Rect(0, 0, 64, 64))
 			for y := 0; y < 24; y++ {
@@ -129,7 +106,7 @@ func plates(src, pack string) {
 					im.Set(32+y, 23-x, c)
 				}
 			}
-			save(filepath.Join(dir, fmt.Sprintf("channel_%s_%d.png", dir2, i)), im)
+			imgio.Save(filepath.Join(dir, fmt.Sprintf("channel_%s_%d.png", dir2, i)), im)
 		}
 	}
 }

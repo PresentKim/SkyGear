@@ -30,9 +30,18 @@
 		"controls": [
 			{
 				"icon@image": {
-					"$texture_path": "('textures/waila/icons/' + $texture)",
+					// a-c: empty, half, full heart; d-f: empty, half, full armour; x-z: none
+					"$texture_path|default": "",
+					"variables": [
+						{ "requires": "($texture = 'a')", "$texture_path": "textures/ui/heart_background" },
+						{ "requires": "($texture = 'b')", "$texture_path": "textures/ui/heart_half" },
+						{ "requires": "($texture = 'c')", "$texture_path": "textures/ui/heart_new" },
+						{ "requires": "($texture = 'd')", "$texture_path": "textures/ui/armor_empty" },
+						{ "requires": "($texture = 'e')", "$texture_path": "textures/ui/armor_half" },
+						{ "requires": "($texture = 'f')", "$texture_path": "textures/ui/armor_full" }
+					],
 					"texture": "$texture_path",
-					"ignored": "(($texture = 'x') or ($texture = 'y'))",
+					"ignored": "(($texture = 'x') or ($texture = 'y') or ($texture = 'z'))",
 
 					"size": [9, 9],
 					"uv_size": [9, 9],

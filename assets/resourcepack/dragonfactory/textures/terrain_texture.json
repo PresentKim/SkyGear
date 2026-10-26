@@ -197,7 +197,7 @@
       "textures": "textures/blocks/auto_miner_up_t3"
     },
     "dragonfactory_auto_sieve": {
-      "textures": "textures/blocks/auto_sieve"
+      "textures": "textures/blocks/planks_dark_oak"
     },
     "dragonfactory_barrel_cobble": {
       "textures": "textures/blocks/barrel_cobble"
@@ -209,7 +209,7 @@
       "textures": "textures/blocks/barrel_lava"
     },
     "dragonfactory_barrel_oak": {
-      "textures": "textures/blocks/barrel_oak"
+      "textures": "textures/blocks/planks_oak"
     },
     "dragonfactory_barrel_stone": {
       "textures": "textures/blocks/barrel_stone"
@@ -395,13 +395,13 @@
       "textures": "textures/blocks/crusher_up_t3"
     },
     "dragonfactory_dimension_gate_down": {
-      "textures": "textures/blocks/dimension_gate_down"
+      "textures": "textures/blocks/portal_placeholder"
     },
     "dragonfactory_dimension_gate_side": {
-      "textures": "textures/blocks/dimension_gate_side"
+      "textures": "textures/blocks/portal_placeholder"
     },
     "dragonfactory_dimension_gate_up": {
-      "textures": "textures/blocks/dimension_gate_up"
+      "textures": "textures/blocks/portal_placeholder"
     },
     "dragonfactory_drawer_front": {
       "textures": "textures/blocks/drawer_front"
@@ -650,7 +650,7 @@
       "textures": "textures/blocks/harvester_up_t3"
     },
     "dragonfactory_iron_hopper": {
-      "textures": "textures/blocks/iron_hopper"
+      "textures": "textures/blocks/hopper_outside"
     },
     "dragonfactory_item_vacuum_down": {
       "textures": "textures/blocks/item_vacuum_down"
@@ -821,7 +821,7 @@
       "textures": "textures/blocks/lava_generator_up_t3"
     },
     "dragonfactory_magic_sieve": {
-      "textures": "textures/blocks/magic_sieve"
+      "textures": "textures/blocks/huge_fungus/crimson_planks"
     },
     "dragonfactory_mob_simulator_back": {
       "textures": "textures/blocks/mob_simulator_back"
@@ -1187,7 +1187,7 @@
       "textures": "textures/blocks/research_table_down"
     },
     "dragonfactory_research_table_side": {
-      "textures": "textures/blocks/research_table_side"
+      "textures": "textures/blocks/bookshelf"
     },
     "dragonfactory_research_table_up": {
       "textures": "textures/blocks/research_table_up"
@@ -1208,7 +1208,7 @@
       "textures": "textures/blocks/sell_box_up"
     },
     "dragonfactory_sieve": {
-      "textures": "textures/blocks/sieve"
+      "textures": "textures/blocks/planks_oak"
     },
     "dragonfactory_sieve_mesh": {
       "textures": "textures/blocks/sieve_mesh"
@@ -1310,7 +1310,7 @@
       "textures": "textures/blocks/tree_feller_up_t3"
     },
     "dragonfactory_wood_hopper": {
-      "textures": "textures/blocks/wood_hopper"
+      "textures": "textures/blocks/planks_oak"
     }
   }
 }

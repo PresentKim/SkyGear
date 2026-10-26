@@ -11,9 +11,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 var tiers = []struct {
@@ -35,15 +36,7 @@ func main() {
 	}
 	pack := os.Args[1]
 	dir := filepath.Join(pack, "textures/blocks")
-	f, err := os.Open(filepath.Join(dir, "sieve_mesh.png"))
-	if err != nil {
-		panic(err)
-	}
-	base, err := png.Decode(f)
-	_ = f.Close()
-	if err != nil {
-		panic(err)
-	}
+	base := imgio.Load(filepath.Join(dir, "sieve_mesh.png"))
 	// the average brightness of the net, to keep its shading
 	var sum, n float64
 	b := base.Bounds()
@@ -78,14 +71,7 @@ func main() {
 			}
 		}
 		name := "sieve_mesh_" + t.name
-		file, err := os.Create(filepath.Join(dir, name+".png"))
-		if err != nil {
-			panic(err)
-		}
-		if err := png.Encode(file, out); err != nil {
-			panic(err)
-		}
-		_ = file.Close()
+		imgio.Save(filepath.Join(dir, name+".png"), out)
 		data["dragonfactory_"+name] = map[string]any{"textures": "textures/blocks/" + name}
 	}
 	enc, _ := json.MarshalIndent(doc, "", "  ")

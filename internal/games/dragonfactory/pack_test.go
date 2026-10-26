@@ -77,13 +77,24 @@ func TestPackHasItemAssets(t *testing.T) {
 	}
 }
 
+// vanillaTerrain are the vanilla block textures atlas tiles point at directly
+// (the client has them, the pack does not).
+var vanillaTerrain = map[string]bool{
+	"textures/blocks/bookshelf":                  true,
+	"textures/blocks/hopper_outside":             true,
+	"textures/blocks/huge_fungus/crimson_planks": true,
+	"textures/blocks/planks_dark_oak":            true,
+	"textures/blocks/planks_oak":                 true,
+	"textures/blocks/portal_placeholder":         true,
+}
+
 // TestPackHasBlockAssets: every geometry and pack texture a custom block or
 // one of its permutations names is in the pack.
 func TestPackHasBlockAssets(t *testing.T) {
 	var atlas packAtlas
 	readPackJSON(t, "textures/terrain_texture.json", &atlas)
 	for key, e := range atlas.TextureData {
-		if !packFileExists(e.Textures + ".png") {
+		if !vanillaTerrain[e.Textures] && !packFileExists(e.Textures+".png") {
 			t.Errorf("terrain %s: missing %s.png", key, e.Textures)
 		}
 	}

@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 func scale(c color.RGBA, f float64) color.RGBA {
@@ -26,17 +27,6 @@ func scale(c color.RGBA, f float64) color.RGBA {
 		return uint8(v)
 	}
 	return color.RGBA{cl(float64(c.R) * f), cl(float64(c.G) * f), cl(float64(c.B) * f), c.A}
-}
-
-func save(path string, im image.Image) {
-	f, err := os.Create(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if err := png.Encode(f, im); err != nil {
-		panic(err)
-	}
 }
 
 // draw paints a shape: every letter has a colour in the palette.
@@ -150,7 +140,7 @@ func main() {
 		im := draw(ingotShape, map[byte]color.RGBA{
 			'o': scale(col, 0.4), 't': scale(col, 1.2), 'f': scale(col, 0.95), 's': scale(col, 0.7), 'g': scale(col, 1.7),
 		})
-		save(filepath.Join(dir, "alloy_"+name+".png"), im)
+		imgio.Save(filepath.Join(dir, "alloy_"+name+".png"), im)
 	}
 	circuits := []color.RGBA{{70, 150, 80, 255}, {70, 110, 200, 255}, {200, 80, 70, 255}, {230, 190, 70, 255}}
 	for i, col := range circuits {
@@ -158,9 +148,9 @@ func main() {
 			'o': {30, 30, 36, 255}, 'b': scale(col, 0.75), 't': scale(col, 1.35), 'p': {190, 190, 200, 255},
 			'c': {40, 40, 48, 255}, 'h': {96, 96, 112, 255},
 		})
-		save(filepath.Join(dir, fmt.Sprintf("circuit_%d.png", i+1)), im)
+		imgio.Save(filepath.Join(dir, fmt.Sprintf("circuit_%d.png", i+1)), im)
 	}
-	save(filepath.Join(dir, "config_copier.png"), draw(copierShape, map[byte]color.RGBA{
+	imgio.Save(filepath.Join(dir, "config_copier.png"), draw(copierShape, map[byte]color.RGBA{
 		'o': {30, 36, 40, 255}, 'b': {150, 156, 164, 255}, 's': {40, 70, 60, 255}, 'l': {110, 230, 160, 255},
 		'k': {220, 170, 60, 255}, 'a': {200, 200, 210, 255},
 	}))
@@ -169,6 +159,6 @@ func main() {
 		im := draw(kitShape, map[byte]color.RGBA{
 			'o': {40, 34, 30, 255}, 'b': {120, 96, 74, 255}, 'l': {150, 120, 92, 255}, 'r': scale(col, 0.9), 'g': scale(col, 1.6),
 		})
-		save(filepath.Join(dir, fmt.Sprintf("kit_%d.png", i+1)), im)
+		imgio.Save(filepath.Join(dir, fmt.Sprintf("kit_%d.png", i+1)), im)
 	}
 }

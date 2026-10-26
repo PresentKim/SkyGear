@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 // essences are the colours of the research essences, by kind.
@@ -84,13 +85,6 @@ func main() {
 				}
 			}
 		}
-		f, err := os.Create(filepath.Join(dir, "research_essence_"+kind+".png"))
-		if err != nil {
-			panic(err)
-		}
-		if err := png.Encode(f, im); err != nil {
-			panic(err)
-		}
-		_ = f.Close()
+		imgio.Save(filepath.Join(dir, "research_essence_"+kind+".png"), im)
 	}
 }

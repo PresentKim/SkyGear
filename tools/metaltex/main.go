@@ -11,9 +11,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/presentkim/dragonfactory/tools/internal/imgio"
 )
 
 type metal struct {
@@ -48,30 +49,6 @@ func scale(c color.RGBA, f float64) color.RGBA {
 		return uint8(v)
 	}
 	return color.RGBA{cl(float64(c.R) * f), cl(float64(c.G) * f), cl(float64(c.B) * f), c.A}
-}
-
-func save(path string, im image.Image) {
-	f, err := os.Create(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if err := png.Encode(f, im); err != nil {
-		panic(err)
-	}
-}
-
-func load(path string) image.Image {
-	f, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	im, err := png.Decode(f)
-	if err != nil {
-		panic(err)
-	}
-	return im
 }
 
 // ingotShape: 'o' outline, 't' top face, 'f' front face, 's' side face.
@@ -120,7 +97,7 @@ func main() {
 		os.Exit(2)
 	}
 	dir := filepath.Join(os.Args[1], "textures/items")
-	template := load(filepath.Join(dir, "ore_chunk_copper.png"))
+	template := imgio.Load(filepath.Join(dir, "ore_chunk_copper.png"))
 	for _, m := range metals {
 		if m.chunk {
 			im := image.NewRGBA(image.Rect(0, 0, 16, 16))
@@ -134,7 +111,7 @@ func main() {
 					im.Set(x, y, c)
 				}
 			}
-			save(filepath.Join(dir, "ore_chunk_"+m.name+".png"), im)
+			imgio.Save(filepath.Join(dir, "ore_chunk_"+m.name+".png"), im)
 		}
 		dust := image.NewRGBA(image.Rect(0, 0, 16, 16))
 		shades := []float64{1.18, 1.0, 0.85, 0.7}
@@ -145,7 +122,7 @@ func main() {
 				}
 			}
 		}
-		save(filepath.Join(dir, "metal_dust_"+m.name+".png"), dust)
+		imgio.Save(filepath.Join(dir, "metal_dust_"+m.name+".png"), dust)
 		if m.ingot {
 			im := image.NewRGBA(image.Rect(0, 0, 16, 16))
 			for y, row := range ingotShape {
@@ -162,7 +139,7 @@ func main() {
 					}
 				}
 			}
-			save(filepath.Join(dir, "ingot_"+m.name+".png"), im)
+			imgio.Save(filepath.Join(dir, "ingot_"+m.name+".png"), im)
 		}
 	}
 }

@@ -18,8 +18,8 @@ import (
 	"github.com/presentkim/dragonfactory/common/dfhook"
 )
 
-// Tool is a tool icon of the panel (textures/waila/icons/tags/
-// tile/<code>.png).
+// Tool is a tool icon code of the panel; the pack maps each code to a
+// vanilla item texture (block_tags in packs/waila/ui/waila/tile.json).
 type Tool string
 
 const (
