@@ -13,14 +13,17 @@
 | Tinkers' Construct | https://github.com/SlimeKnights/TinkersConstruct | `f4e77d43f3` | MIT (README: 코드와 텍스처 모두) | 장비 제작대 |
 | Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 컨트롤러 |
 | Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 링크 |
+| Ex Nihilo Fabrico | https://github.com/SirLyle/ExNihiloFabrico (기본 브랜치 `1.14.4-Fabric`) | `5224a14b7b` | MIT (`LICENSE`: 원작 MikeLydeamore, 이식·텍스처 기여자 포함) | 체 세 종류의 모델(다리·틀, 메쉬 막대 여덟 개, 내용물 높이)과 메쉬 텍스처(블록 `sieve_mesh*`, 아이템 `mesh_*`). `tools/fabricotex` 가 모델 JSON(`models/block/sieve.json`, `models/item/mesh.json`)에서 만든다 |
 
 주석: 은·니켈·인바·일렉트럼 주괴·가루·덩어리는 Mekanism의 회색 바탕 그림(`ingot`, `dust`, `clump`)에 색만 곱해 만든 파생물이다.
+
+주석: Ex Nihilo Fabrico 에는 메쉬 그림 파일이 없다(메쉬 모델이 바닐라 흰 양털에 메쉬마다 색을 입혀 그린다). 그래서 메쉬 모델의 막대 배치를 위에서 본 16×16 흰 바탕 그림(`sieve_mesh`)으로 옮기고 Fabrico 가 메쉬마다 주는 색(실 `FFFFFF`, 부싯돌 `555555`, 철 `777777`, 금 `FFAA00`, 다이아몬드 `00AAAA`)을 곱했다. 네더라이트 메쉬는 Fabrico 에 없어 같은 바탕에 우리 색(`524248`)을 곱했다. 체 틀은 Fabrico 처럼 바닐라 판자를 경로로 가리킨다.
 
 ## 쓰지 않는 모드
 
 | 모드 | 이유 |
 |---|---|
-| Ex Nihilo(Sequentia 등) | 그림 라이선스가 All Rights Reserved(저장소 README) |
+| Ex Nihilo(Sequentia 등, Fabrico 외의 이식판) | 그림 라이선스가 All Rights Reserved(저장소 README). MIT 인 Ex Nihilo Fabrico 만 위 표대로 쓴다 |
 | Create | 에셋 All Rights Reserved |
 | Thermal 시리즈 | 저장소 라이선스 없음(All Rights Reserved) |
 | Applied Energistics 2 | 텍스처 CC BY-NC-SA 3.0(상업 이용 금지) |
@@ -28,13 +31,14 @@
 | Botania, Immersive Engineering | 에셋 조건이 단순 허용형이 아니어서 쓰지 않음 |
 | Industrial Foregoing | 저장소는 MIT 이지만 그림이 외부 텍스처 팩(Unity)의 것이라 그 팩의 허락이 확인되지 않음 |
 
-그래서 체·통(배럴)처럼 그런 모드의 요소는 가져오지 않고 바닐라 텍스처를 경로로 가리킨다(아래 "바닐라 텍스처").
+그래서 통(배럴)처럼 그런 모드의 요소는 가져오지 않고 바닐라 텍스처를 경로로 가리킨다(아래 "바닐라 텍스처"). 체의 모델과 메쉬는 Ex Nihilo Fabrico 의 것이다.
 
 ## 가져온 UI
 
 | 저장소 | 확인한 커밋 | 라이선스 | 쓴 곳 |
 |---|---|---|---|
 | https://github.com/tedo0627/InventoryUIResourcePack | `394fb0a935` | MIT (`third_party/licenses/InventoryUIResourcePack-MIT.txt`) | `common/packs/inventoryui/ui/` 상자 화면 JSON UI |
+| https://github.com/r4isen1920/WAILA | | MIT (`third_party/licenses/WAILA-MIT.txt`) | `common/packs/waila/` WAILA 패널 JSON UI·테두리 |
 
 ## 바닐라 텍스처
 
@@ -59,6 +63,7 @@ go run ./tools/modtex <클론 폴더> assets/resourcepack/dragonfactory
 go run ./tools/animtex assets/resourcepack/dragonfactory          # 작동 띠
 rm assets/resourcepack/dragonfactory/textures/blocks/*_t[123].png
 go run ./tools/tierblocks assets/resourcepack/dragonfactory       # 단계 텍스처
+go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/dragonfactory  # 체 모델·메쉬
 ```
 
 저작권 표시는 MIT 조건에 따라 `third_party/licenses/` 의 파일과 이 문서가 맡는다.

@@ -23,7 +23,7 @@
 | `textsearch` | 한글 초성 등 글 검색 |
 | `packs` | 위 패키지들의 리소스팩(`inventoryui`, `waila`, `slotdeco`, `dfui`, `oreui`)을 실행 파일에 넣은 것 |
 
-`packs/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을 바탕으로 한다.
+`packs/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을, `packs/waila` 는 [r4isen1920/WAILA](https://github.com/r4isen1920/WAILA)(MIT)를 바탕으로 한다.
 
 ## 쓰기
 
