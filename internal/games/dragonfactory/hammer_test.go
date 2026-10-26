@@ -12,6 +12,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -28,22 +31,22 @@ func TestHammerDropsCrushedBlock(t *testing.T) {
 			(&handler{s: s}).HandleBlockBreak(player.NewEventContext(tx, p), pos, &drops, new(int))
 			return drops
 		}
-		hammer := item.NewStack(Hammer{}, 1)
-		if d := mine(block.Cobblestone{}, hammer); len(d) != 1 || itemKey(d[0].Item()) != itemKey(block.Gravel{}) {
+		hammer := item.NewStack(dfitem.Hammer{}, 1)
+		if d := mine(block.Cobblestone{}, hammer); len(d) != 1 || naming.ItemKey(d[0].Item()) != naming.ItemKey(block.Gravel{}) {
 			t.Fatalf("cobblestone with a hammer drops %v", d)
 		}
-		if d := mine(block.Gravel{}, hammer); len(d) != 1 || itemKey(d[0].Item()) != itemKey(block.Sand{}) {
+		if d := mine(block.Gravel{}, hammer); len(d) != 1 || naming.ItemKey(d[0].Item()) != naming.ItemKey(block.Sand{}) {
 			t.Fatalf("gravel with a hammer drops %v", d)
 		}
-		if d := mine(block.Cobblestone{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierStone}, 1)); itemKey(d[0].Item()) != itemKey(block.Cobblestone{}) {
+		if d := mine(block.Cobblestone{}, item.NewStack(item.Pickaxe{Tier: item.ToolTierStone}, 1)); naming.ItemKey(d[0].Item()) != naming.ItemKey(block.Cobblestone{}) {
 			t.Fatalf("cobblestone with a pickaxe drops %v", d)
 		}
 	})
 	// Clients get the hammer's mining speeds.
-	if (Hammer{}).DestroySpeeds()["minecraft:cobblestone"] == 0 {
+	if (dfitem.Hammer{}).DestroySpeeds()["minecraft:cobblestone"] == 0 {
 		t.Fatal("no client speed for cobblestone")
 	}
-	if block.BreakDuration(block.Cobblestone{}, item.NewStack(Hammer{}, 1), block.BreakContext{}) >= block.BreakDuration(block.Cobblestone{}, item.Stack{}, block.BreakContext{}) {
+	if block.BreakDuration(block.Cobblestone{}, item.NewStack(dfitem.Hammer{}, 1), block.BreakContext{}) >= block.BreakDuration(block.Cobblestone{}, item.Stack{}, block.BreakContext{}) {
 		t.Fatal("the hammer does not mine cobblestone faster than a hand")
 	}
 }
@@ -51,12 +54,12 @@ func TestHammerDropsCrushedBlock(t *testing.T) {
 // TestDustFromCrushedSand: sand crushes into dust (sky progression); dirt
 // and sand sift out the farming and kelp drops.
 func TestDustFromCrushedSand(t *testing.T) {
-	if out, ok := crushed(block.Sand{}); !ok || itemKey(out) != itemKey(Dust{}) {
+	if out, ok := dfitem.Crushed(block.Sand{}); !ok || naming.ItemKey(out) != naming.ItemKey(dfitem.Dust{}) {
 		t.Fatalf("crushed sand = %v", out)
 	}
 	has := func(in world.Item, want world.Item) bool {
-		for _, d := range sieveTables["string"][itemKey(in)] {
-			if itemKey(d.Item.Item()) == itemKey(want) {
+		for _, d := range sievetable.Tables["string"][naming.ItemKey(in)] {
+			if naming.ItemKey(d.Item.Item()) == naming.ItemKey(want) {
 				return true
 			}
 		}
@@ -72,28 +75,28 @@ func TestDustFromCrushedSand(t *testing.T) {
 // (Ex Deorum, docs/design/16-ore-balance.md §2.1).
 func TestCrushedStones(t *testing.T) {
 	for in, want := range map[world.Item]world.Item{
-		block.Deepslate{}: CrushedBlock{Kind: CrushedDeepslate},
-		block.Deepslate{Type: block.CobbledDeepslate()}: CrushedBlock{Kind: CrushedDeepslate},
-		block.Netherrack{}:                    CrushedBlock{Kind: CrushedNetherrack},
-		CrushedBlock{Kind: CrushedNetherrack}: block.Sand{Red: true},
-		block.Blackstone{}:                    CrushedBlock{Kind: CrushedBlackstone},
-		block.EndStone{}:                      CrushedBlock{Kind: CrushedEndStone},
-		block.Sand{Red: true}:                 Dust{},
+		block.Deepslate{}: dfitem.CrushedBlock{Kind: dfitem.CrushedDeepslate},
+		block.Deepslate{Type: block.CobbledDeepslate()}: dfitem.CrushedBlock{Kind: dfitem.CrushedDeepslate},
+		block.Netherrack{}: dfitem.CrushedBlock{Kind: dfitem.CrushedNetherrack},
+		dfitem.CrushedBlock{Kind: dfitem.CrushedNetherrack}: block.Sand{Red: true},
+		block.Blackstone{}:    dfitem.CrushedBlock{Kind: dfitem.CrushedBlackstone},
+		block.EndStone{}:      dfitem.CrushedBlock{Kind: dfitem.CrushedEndStone},
+		block.Sand{Red: true}: dfitem.Dust{},
 	} {
-		if out, ok := crushed(in.(world.Block)); !ok || itemKey(out) != itemKey(want) {
-			t.Errorf("crushed %s = %v, want %s", itemKey(in), out, itemKey(want))
+		if out, ok := dfitem.Crushed(in.(world.Block)); !ok || naming.ItemKey(out) != naming.ItemKey(want) {
+			t.Errorf("crushed %s = %v, want %s", naming.ItemKey(in), out, naming.ItemKey(want))
 		}
 	}
 }
 
 // TestHammerOre: the hammer breaks an ore block into two dusts of its metal.
 func TestHammerOre(t *testing.T) {
-	for _, b := range []world.Block{block.IronOre{}, OreBlock{Metal: MetalNickel}} {
+	for _, b := range []world.Block{block.IronOre{}, dfitem.OreBlock{Metal: dfitem.MetalNickel}} {
 		it := b.(world.Item)
-		metal, _ := oreBlockMetal(it)
-		got, ok := hammerDrop(b)
-		if !ok || got.Count() != hammerDust || itemKey(got.Item()) != itemKey(MetalDust{Metal: metal}) {
-			t.Errorf("hammer on %s drops %v", itemKey(it), got)
+		metal, _ := dfitem.OreBlockMetal(it)
+		got, ok := dfitem.HammerDrop(b)
+		if !ok || got.Count() != dfitem.HammerDust || naming.ItemKey(got.Item()) != naming.ItemKey(dfitem.MetalDust{Metal: metal}) {
+			t.Errorf("hammer on %s drops %v", naming.ItemKey(it), got)
 		}
 	}
 }
@@ -102,14 +105,14 @@ func TestHammerOre(t *testing.T) {
 // times as long as tools of their material, and only the iron hammer vein
 // mines.
 func TestHammerTiers(t *testing.T) {
-	stone, iron := Hammer{Stone: true}, Hammer{}
+	stone, iron := dfitem.Hammer{Stone: true}, dfitem.Hammer{}
 	if stone.DurabilityInfo().MaxDurability != 2*item.ToolTierStone.Durability || iron.DurabilityInfo().MaxDurability != 4*item.ToolTierIron.Durability {
 		t.Fatalf("durability stone %d iron %d", stone.DurabilityInfo().MaxDurability, iron.DurabilityInfo().MaxDurability)
 	}
-	if isIronHammer(item.NewStack(stone, 1)) || !isIronHammer(item.NewStack(iron, 1)) || !isHammer(item.NewStack(stone, 1)) {
+	if dfitem.IsIronHammer(item.NewStack(stone, 1)) || !dfitem.IsIronHammer(item.NewStack(iron, 1)) || !dfitem.IsHammer(item.NewStack(stone, 1)) {
 		t.Fatal("hammer kinds mixed up")
 	}
-	if (Hammer{}).BaseMiningEfficiency(block.Gravel{}) != 3 || (Hammer{}).BaseMiningEfficiency(Dust{}) != 3 {
+	if (dfitem.Hammer{}).BaseMiningEfficiency(block.Gravel{}) != 3 || (dfitem.Hammer{}).BaseMiningEfficiency(dfitem.Dust{}) != 3 {
 		t.Fatal("gravel and dust speeds")
 	}
 }
@@ -166,12 +169,12 @@ func TestVeinMine(t *testing.T) {
 			t.Fatalf("limited vein of %d blocks, want 3", len(got))
 		}
 		p.StartSneaking()
-		p.SetHeldItems(item.NewStack(Hammer{Stone: true}, 1), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.Hammer{Stone: true}, 1), item.Stack{})
 		s.veinMine(p, tx, base)
 		if _, ok := tx.Block(base.Add(cube.Pos{1, 0, 0})).(block.Gravel); !ok {
 			t.Fatal("the stone hammer vein mined")
 		}
-		p.SetHeldItems(item.NewStack(Hammer{}, 1), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.Hammer{}, 1), item.Stack{})
 		s.veinMine(p, tx, base)
 		for i := 1; i < 5; i++ {
 			if _, ok := tx.Block(base.Add(cube.Pos{i, 0, 0})).(block.Gravel); ok {
@@ -187,7 +190,7 @@ func TestVeinMine(t *testing.T) {
 		if held, _ := p.HeldItems(); held.Durability() != held.MaxDurability() {
 			t.Fatalf("the iron hammer wore down %d", held.MaxDurability()-held.Durability())
 		}
-		if got := droppedKeys(tx)[itemKey(block.Sand{})]; got != 4 {
+		if got := droppedKeys(tx)[naming.ItemKey(block.Sand{})]; got != 4 {
 			t.Fatalf("%d sand dropped, want 4", got)
 		}
 		var at []mgl64.Vec3
@@ -212,7 +215,7 @@ func TestVeinMineFood(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		held := item.NewStack(Hammer{}, 1)
+		held := item.NewStack(dfitem.Hammer{}, 1)
 		oneFood := 12 // 1 / veinFoodCost = 12.8
 		p.SetFood(20)
 		if got := s.veinBudget(p, held); got != veinLimit-1 {
@@ -231,7 +234,7 @@ func TestVeinMineFood(t *testing.T) {
 		p.StartSneaking()
 		p.SetHeldItems(held, item.Stack{})
 		s.veinMine(p, tx, base)
-		if broken := droppedKeys(tx)[itemKey(block.Gravel{})]; broken != oneFood {
+		if broken := droppedKeys(tx)[naming.ItemKey(block.Gravel{})]; broken != oneFood {
 			t.Fatalf("broke %d with one food point, want %d", broken, oneFood)
 		}
 		// 12 blocks cost 0.9375 food: the bar keeps its point, the fraction

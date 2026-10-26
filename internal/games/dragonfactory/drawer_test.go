@@ -3,17 +3,21 @@ package dragonfactory
 import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 
+	"strings"
+	"testing"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/go-gl/mathgl/mgl64"
-	"strings"
-	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 func TestDrawerStorageRules(t *testing.T) {
@@ -180,7 +184,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		// An upgrade, then repeated empty-hand uses, must not pull the
 		// first inventory slot into the empty drawer.
 		_ = p.Inventory().SetItem(1, item.NewStack(block.Dirt{}, 10))
-		p.SetHeldItems(item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeVoid}, 1), item.Stack{})
 		use(p)
 		use(p)
 		use(p)
@@ -191,13 +195,13 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if it, _ := p.Inventory().Item(1); it.Count() != 10 {
 			t.Fatalf("slot 1 = %v, the repeats pulled it into the drawer", it)
 		}
-		if m, ok := s.shapes[drawerUpgradeKey(pos)].(*debug.Text); !ok || !strings.Contains(m.Text, voidGlyph) {
+		if m, ok := s.shapes[drawerUpgradeKey(pos)].(*debug.Text); !ok || !strings.Contains(m.Text, textfmt.VoidGlyph) {
 			t.Fatalf("void mark not shown: %v", s.shapes[drawerUpgradeKey(pos)])
 		}
 		// The key toggles the lock and stays in the hand.
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
 		use(p) // insert dirt
-		p.SetHeldItems(item.NewStack(DrawerKey{}, 1), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.DrawerKey{}, 1), item.Stack{})
 		s.lastOpen = nil
 		use(p)
 		if d := tx.Block(pos).(Drawer); !d.Locked {
@@ -206,7 +210,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if _, ok := s.shapes[drawerLockKey(pos)]; !ok {
 			t.Fatal("no lock mark shown")
 		}
-		if held, _ := p.HeldItems(); !isDrawerKey(held) {
+		if held, _ := p.HeldItems(); !dfitem.IsDrawerKey(held) {
 			t.Fatal("key was used up")
 		}
 		// Picking the drawer up removes both texts.
@@ -230,8 +234,8 @@ func TestDrawerUpgradeMarks(t *testing.T) {
 	}{
 		{Drawer{}, ""},
 		{Drawer{Capacity: 2}, "§b×4"},
-		{Drawer{Void: true}, "§f" + voidGlyph},
-		{Drawer{Capacity: 1, Void: true}, "§b×2 §f" + voidGlyph},
+		{Drawer{Void: true}, "§f" + textfmt.VoidGlyph},
+		{Drawer{Capacity: 1, Void: true}, "§b×2 §f" + textfmt.VoidGlyph},
 	} {
 		if got := c.d.upgradeMarks(); got != c.want {
 			t.Errorf("%+v: %q, want %q", c.d, got, c.want)
@@ -399,9 +403,9 @@ func TestDrawerMenuSlots(t *testing.T) {
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_ = p.Inventory().SetItem(5, item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 2))
+		_ = p.Inventory().SetItem(5, item.NewStack(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeCapacity}, 2))
 		d := tx.Block(pos).(Drawer)
-		s.fitUpgrade(p, tx, pos, &d, UpgradeCapacity)
+		s.fitUpgrade(p, tx, pos, &d, dfitem.UpgradeCapacity)
 		if d := tx.Block(pos).(Drawer); d.Capacity != 1 {
 			t.Fatalf("capacity %d after fitting, want 1", d.Capacity)
 		}
@@ -409,12 +413,12 @@ func TestDrawerMenuSlots(t *testing.T) {
 			t.Fatalf("upgrades left %d, want 1", it.Count())
 		}
 		d = tx.Block(pos).(Drawer)
-		s.fitUpgrade(p, tx, pos, &d, UpgradeVoid) // none in the inventory
+		s.fitUpgrade(p, tx, pos, &d, dfitem.UpgradeVoid) // none in the inventory
 		if tx.Block(pos).(Drawer).Void {
 			t.Fatal("void fitted without an upgrade")
 		}
 		d = tx.Block(pos).(Drawer)
-		s.removeUpgrade(p, tx, pos, &d, UpgradeCapacity)
+		s.removeUpgrade(p, tx, pos, &d, dfitem.UpgradeCapacity)
 		if d := tx.Block(pos).(Drawer); d.Capacity != 0 {
 			t.Fatalf("capacity %d after taking out, want 0", d.Capacity)
 		}
@@ -479,7 +483,7 @@ func TestStorageController(t *testing.T) {
 		if held != 1 {
 			t.Errorf("the cobblestone is in %d drawers, want 1", held)
 		}
-		if got := controllerPeek(tx, ctl, nil); got.Empty() || itemKey(got.Item()) != itemKey(block.Cobblestone{}) {
+		if got := controllerPeek(tx, ctl, nil); got.Empty() || naming.ItemKey(got.Item()) != naming.ItemKey(block.Cobblestone{}) {
 			t.Errorf("peek %v", got)
 		}
 		out := controllerExtract(tx, ctl, cobble, 50)
@@ -527,7 +531,7 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 		if got := filterStorage(i18n.Default, list, "ㅈㅇㅈㅇ"); len(got) != 0 {
 			t.Errorf("a query that matches nothing keeps %d", len(got))
 		}
-		if got := filterStorage(i18n.Default, list, itemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
+		if got := filterStorage(i18n.Default, list, naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
 			t.Errorf("the item's own name keeps %d", len(got))
 		}
 	})

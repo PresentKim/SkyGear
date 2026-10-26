@@ -8,6 +8,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // closureOf are the researches that have to be done before the ones given
@@ -52,7 +54,7 @@ func TestEssenceCostsAreInTheTree(t *testing.T) {
 		}
 	}
 	for _, r := range researchTree {
-		for _, kind := range researchEssenceKinds {
+		for _, kind := range dfitem.ResearchEssenceKinds {
 			if essenceCostOf(&r, kind) > 0 && researchEssenceCosts[r.ID][kind] == 0 {
 				t.Errorf("%s: essence of %s that is not in the table", r.ID, kind)
 			}
@@ -64,13 +66,13 @@ func TestEssenceCostsAreInTheTree(t *testing.T) {
 // a research that costs that essence (or the lab itself would be locked).
 func TestEssencesCanBeMade(t *testing.T) {
 	makers := map[string][]string{
-		EssenceEngineering: {"laboratory", "iron"},
-		EssenceAlchemy:     {"laboratory", "alloy_smelter", "tin", "nickel", "copper"},
-		EssenceFarming:     {"laboratory", "farming", "harvest"},
-		EssenceHunting:     {"laboratory", "mob_simulator"},
-		EssenceMagic:       {"laboratory", "dimension_gate"},
+		dfitem.EssenceEngineering: {"laboratory", "iron"},
+		dfitem.EssenceAlchemy:     {"laboratory", "alloy_smelter", "tin", "nickel", "copper"},
+		dfitem.EssenceFarming:     {"laboratory", "farming", "harvest"},
+		dfitem.EssenceHunting:     {"laboratory", "mob_simulator"},
+		dfitem.EssenceMagic:       {"laboratory", "dimension_gate"},
 	}
-	for _, kind := range researchEssenceKinds {
+	for _, kind := range dfitem.ResearchEssenceKinds {
 		ids, ok := makers[kind]
 		if !ok {
 			t.Fatalf("no makers listed for %s", kind)
@@ -83,7 +85,7 @@ func TestEssencesCanBeMade(t *testing.T) {
 	}
 	// the laboratory itself costs none
 	lab, _ := researchByID("laboratory")
-	for _, kind := range researchEssenceKinds {
+	for _, kind := range dfitem.ResearchEssenceKinds {
 		if essenceCostOf(lab, kind) > 0 {
 			t.Errorf("the laboratory costs the essence of %s", kind)
 		}
@@ -97,7 +99,7 @@ func TestEssencesCanBeMade(t *testing.T) {
 // the last project asks for all of them.
 func TestEveryEssenceIsUsed(t *testing.T) {
 	last, _ := researchByID("project_dragon")
-	for _, kind := range researchEssenceKinds {
+	for _, kind := range dfitem.ResearchEssenceKinds {
 		used := false
 		for _, r := range researchTree {
 			used = used || essenceCostOf(&r, kind) > 0
@@ -128,19 +130,19 @@ func TestResearchPaidWithEssences(t *testing.T) {
 		inv := p.Inventory()
 		_, _ = inv.AddItem(item.NewStack(block.Cobblestone{}, 64))
 		_, _ = inv.AddItem(item.NewStack(item.IronIngot{}, 8))
-		_, _ = inv.AddItem(item.NewStack(ResearchEssence{EssenceEngineering}, 3))
+		_, _ = inv.AddItem(item.NewStack(dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}, 3))
 		missing, done := s.doResearch(p, tx, crusher)
-		if done || len(missing) != 1 || missing[0].Count != 1 || missing[0].Item != (ResearchEssence{EssenceEngineering}) {
+		if done || len(missing) != 1 || missing[0].Count != 1 || missing[0].Item != (dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}) {
 			t.Fatalf("with 3 of 4 essences: done %v, missing %v", done, missing)
 		}
-		_, _ = inv.AddItem(item.NewStack(ResearchEssence{EssenceEngineering}, 1))
+		_, _ = inv.AddItem(item.NewStack(dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}, 1))
 		if missing, done := s.doResearch(p, tx, crusher); !done || len(missing) != 0 {
 			t.Fatalf("with every essence: done %v, missing %v", done, missing)
 		}
-		if got := countPlain(inv, ResearchEssence{EssenceEngineering}); got != 0 {
+		if got := countPlain(inv, dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}); got != 0 {
 			t.Errorf("%d essences left", got)
 		}
-		if !s.advanced(advEssenceResearch) {
+		if !s.advanced(advancement.EssenceResearch) {
 			t.Error("the first research paid with essences did not finish its advancement")
 		}
 	})

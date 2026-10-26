@@ -14,6 +14,12 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/textsearch"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
 // The codex as a recipe viewer (docs/tech/codex-jei.md): an index of every
@@ -50,7 +56,7 @@ func codexIndex(lang string) []codexEntry {
 			if st.Empty() {
 				continue
 			}
-			k := itemKey(st.Item())
+			k := naming.ItemKey(st.Item())
 			if seen[k] || !relevant[k] {
 				continue
 			}
@@ -71,7 +77,7 @@ func codexIndex(lang string) []codexEntry {
 	}
 	list := make([]codexEntry, len(codexIndexStacks))
 	for i, st := range codexIndexStacks {
-		list[i] = codexEntry{stack: st, name: itemName(lang, st)}
+		list[i] = codexEntry{stack: st, name: naming.ItemName(lang, st)}
 	}
 	slices.SortStableFunc(list, func(a, b codexEntry) int {
 		return strings.Compare(plainName(a.name), plainName(b.name))
@@ -90,11 +96,11 @@ func codexIndex(lang string) []codexEntry {
 func codexRelevant() map[string]bool {
 	open := map[string]bool{}
 	for _, n := range baseUnlocks {
-		open[unlockName(n)] = true
+		open[naming.UnlockName(n)] = true
 	}
 	for i := range researchTree {
 		for _, n := range researchTree[i].Unlocks {
-			open[unlockName(n)] = true
+			open[naming.UnlockName(n)] = true
 		}
 	}
 	rel := map[string]bool{}
@@ -103,7 +109,7 @@ func codexRelevant() map[string]bool {
 		if w == nil {
 			return
 		}
-		if k := itemKey(w); !rel[k] {
+		if k := naming.ItemKey(w); !rel[k] {
 			rel[k] = true
 			queue = append(queue, item.NewStack(w, 1))
 		}
@@ -129,13 +135,13 @@ func codexRelevant() map[string]bool {
 	}
 	for _, in := range codexSieveInputs() {
 		add(in)
-		for _, t := range meshTiers {
-			for _, d := range sieveTables[t.tier][itemKey(in)] {
+		for _, t := range dfitem.MeshTiers {
+			for _, d := range sievetable.Tables[t.Tier][naming.ItemKey(in)] {
 				add(d.Item.Item())
 			}
 		}
-		for _, mob := range mobKinds {
-			for _, d := range magicThemes[mob].Adds[itemKey(in)] {
+		for _, mob := range dfitem.MobKinds {
+			for _, d := range sievetable.MagicThemes[mob].Adds[naming.ItemKey(in)] {
 				add(d.Item.Item())
 			}
 		}
@@ -147,18 +153,18 @@ func codexRelevant() map[string]bool {
 		add(m.in)
 		add(m.out)
 	}
-	for _, r := range alloyRecipes {
+	for _, r := range machinerecipe.Alloys {
 		add(r.A)
 		add(r.B)
 		add(r.Out)
 	}
-	for i := range labRecipes {
-		for _, in := range labRecipes[i].In {
+	for i := range machinerecipe.Labs {
+		for _, in := range machinerecipe.Labs[i].In {
 			add(in.Item)
 		}
 	}
-	for _, mob := range mobKinds {
-		for _, d := range simDrops[mob] {
+	for _, mob := range dfitem.MobKinds {
+		for _, d := range dfitem.SimDrops[mob] {
 			add(d.Item)
 		}
 	}
@@ -172,27 +178,27 @@ func codexRelevant() map[string]bool {
 			add(y.item)
 		}
 	}
-	for _, h := range headMaterials {
-		add(h.item)
+	for _, h := range tinker.HeadMaterials {
+		add(h.Item)
 	}
-	for _, h := range handleMaterials {
-		add(h.item)
+	for _, h := range tinker.HandleMaterials {
+		add(h.Item)
 	}
-	for _, m := range toolModifiers {
-		add(m.item)
+	for _, m := range tinker.ToolModifiers {
+		add(m.Item)
 	}
 	// down to the raw materials, and through the furnace
 	for len(queue) > 0 {
 		st := queue[0]
 		queue = queue[1:]
 		if open[recipeKey(st.Item())] {
-			k := itemKey(st.Item())
-			for _, cr := range crafterRecipes() {
-				if cr.outKey != k {
+			k := naming.ItemKey(st.Item())
+			for _, cr := range machinerecipe.Crafters() {
+				if cr.OutKey != k {
 					continue
 				}
-				for _, req := range cr.reqs {
-					switch need := req.need.(type) {
+				for _, req := range cr.Reqs {
+					switch need := req.Need.(type) {
 					case item.Stack:
 						add(need.Item())
 					case recipe.ItemTag:
@@ -227,7 +233,7 @@ func codexOneOf(alts []item.Stack, rel map[string]bool) (item.Stack, bool) {
 		return item.Stack{}, false
 	}
 	for _, a := range alts {
-		if rel[itemKey(a.Item())] {
+		if rel[naming.ItemKey(a.Item())] {
 			return item.Stack{}, false
 		}
 	}
@@ -311,7 +317,7 @@ func (s *session) showCodexSearch(p *player.Player, query string, page int) {
 	var slots []ui.ItemSlot
 	for _, e := range found[page*codexPage : min(len(found), (page+1)*codexPage)] {
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+			Icon: formicon.Of(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 			Run: func(p *player.Player, _ *world.Tx) {
 				s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
 			},
@@ -361,7 +367,7 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 		var slots []ui.ItemSlot
 		for _, e := range found {
 			slots = append(slots, ui.ItemSlot{
-				Icon: iconOf(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+				Icon: formicon.Of(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 				Run: func(p *player.Player, _ *world.Tx) {
 					s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
 				},
@@ -408,7 +414,7 @@ func (s *session) codexLinkSlots(lang string, links []codexLink) []ui.ItemSlot {
 			count = "§f" + ui.CountText(l.count)
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(st), Count: count, Tip: tipName(lang, st),
+			Icon: formicon.Of(st), Count: count, Tip: tipName(lang, st),
 			Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) },
 		})
 	}

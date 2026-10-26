@@ -2,10 +2,11 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/dfhook"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"slices"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -14,6 +15,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §13): the
@@ -250,7 +253,7 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.owned"), c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
 		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), c[0], c[1], costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), c[0], c[1], costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
 		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.none"), c[0], c[1]))
 	}
@@ -282,8 +285,8 @@ func (s *session) showExpandActions(p *player.Player) {
 	var opts []ui.Option
 	body := fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.chunk"), c[0], c[1], len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.cost"), costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.buy"), costText(i18n.Of(p), cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		body += fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.cost"), costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
+		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.buy"), costText(i18n.Of(p), cost)), formicon.Island, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
@@ -294,8 +297,8 @@ func (s *session) showExpandActions(p *player.Player) {
 		body += i18n.T(i18n.Of(p), "expand.menu.notBuyable")
 	}
 	opts = append(opts,
-		s.opt(i18n.T(i18n.Of(p), "expand.menu.keepLooking"), iconLobby, func(*player.Player, *world.Tx) {}),
-		s.opt(i18n.T(i18n.Of(p), "expand.menu.stop"), iconBack, func(p *player.Player, tx *world.Tx) {
+		s.opt(i18n.T(i18n.Of(p), "expand.menu.keepLooking"), formicon.Lobby, func(*player.Player, *world.Tx) {}),
+		s.opt(i18n.T(i18n.Of(p), "expand.menu.stop"), formicon.Back, func(p *player.Player, tx *world.Tx) {
 			s.stopExpand(p, tx)
 			p.Message(i18n.T(i18n.Of(p), "expand.left"))
 		}),

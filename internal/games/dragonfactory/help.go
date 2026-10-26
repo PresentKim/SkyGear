@@ -11,6 +11,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // helpTab is a tab of the help window: the topics of one stage of the game,
@@ -33,15 +37,15 @@ var helpTabKeys = [helpTabCount]string{"help.tab.start", "help.tab.hand", "help.
 func helpTabIcon(t helpTab) string {
 	switch t {
 	case helpHandTab:
-		return iconOf(item.NewStack(Pebble{Kind: PebbleStone}, 1))
+		return formicon.Of(item.NewStack(dfitem.Pebble{Kind: dfitem.PebbleStone}, 1))
 	case helpAutoTab:
-		return iconOf(machineItem(KindGenerator))
+		return formicon.Of(machineItem(KindGenerator))
 	case helpMetalTab:
-		return iconOf(machineItem(KindAlloy))
+		return formicon.Of(machineItem(KindAlloy))
 	case helpFightTab:
-		return iconOf(machineItem(KindGate))
+		return formicon.Of(machineItem(KindGate))
 	}
-	return iconMission
+	return formicon.Mission
 }
 
 // helpTopics are the in-game help pages (menu → 도움말, /도움말), by tab and
@@ -56,29 +60,31 @@ var helpTopics = []struct {
 	// list what the game's tables hold.
 	text func(lang string) string
 }{
-	{"start", helpStartTab, func() string { return iconMission }, nil},
-	{"goal", helpStartTab, func() string { return iconOf(item.NewStack(block.DragonEgg{}, 1)) }, nil},
-	{"quest", helpStartTab, func() string { return iconMission }, nil},
-	{"research", helpStartTab, func() string { return iconOf(item.NewStack(ResearchTable{}, 1)) }, nil},
-	{"island", helpStartTab, func() string { return iconIsland }, nil},
-	{"handwork", helpHandTab, func() string { return iconOf(item.NewStack(Pebble{Kind: PebbleStone}, 1)) }, nil},
-	{"sieve", helpHandTab, func() string { return iconOf(machineItem(KindSieve)) }, nil},
-	{"water", helpHandTab, func() string { return iconOf(item.NewStack(item.Bucket{}, 1)) }, nil},
-	{"fairy", helpHandTab, func() string { return iconOf(item.NewStack(FairyBoard{}, 1)) }, nil},
-	{"power", helpAutoTab, func() string { return iconOf(machineItem(KindGenerator)) }, nil},
-	{"conduit", helpAutoTab, func() string { return iconOf(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
-	{"drawer", helpAutoTab, func() string { return iconOf(item.NewStack(Drawer{}, 1)) }, nil},
-	{"lines", helpAutoTab, func() string { return iconOf(machineItem(KindMiner)) }, nil},
-	{"monitor", helpAutoTab, func() string { return iconOf(machineItem(KindCrusher)) }, nil},
-	{"copier", helpAutoTab, func() string { return iconOf(item.NewStack(ConfigCopier{}, 1)) }, nil},
-	{"essence", helpAutoTab, func() string { return iconOf(item.NewStack(ResearchEssence{Kind: EssenceEngineering}, 1)) }, helpEssenceText},
-	{"fluid", helpAutoTab, func() string { return iconOf(machineItem(KindTank)) }, nil},
-	{"metal", helpMetalTab, func() string { return iconOf(machineItem(KindAlloy)) }, nil},
-	{"tier", helpMetalTab, func() string { return iconOf(item.NewStack(TierKit{Level: 1}, 1)) }, nil},
-	{"wave", helpFightTab, func() string { return iconOf(machineItem(KindGate)) }, nil},
-	{"gear", helpFightTab, func() string { return iconOf(machineItem(KindTinker)) }, nil},
-	{"magic", helpFightTab, func() string { return iconOf(item.NewStack(Petal{Colour: "red"}, 1)) }, nil},
-	{"magicsieve", helpFightTab, func() string { return iconOf(machineItem(KindMagicSieve)) }, nil},
+	{"start", helpStartTab, func() string { return formicon.Mission }, nil},
+	{"goal", helpStartTab, func() string { return formicon.Of(item.NewStack(block.DragonEgg{}, 1)) }, nil},
+	{"quest", helpStartTab, func() string { return formicon.Mission }, nil},
+	{"research", helpStartTab, func() string { return formicon.Of(item.NewStack(ResearchTable{}, 1)) }, nil},
+	{"island", helpStartTab, func() string { return formicon.Island }, nil},
+	{"handwork", helpHandTab, func() string { return formicon.Of(item.NewStack(dfitem.Pebble{Kind: dfitem.PebbleStone}, 1)) }, nil},
+	{"sieve", helpHandTab, func() string { return formicon.Of(machineItem(KindSieve)) }, nil},
+	{"water", helpHandTab, func() string { return formicon.Of(item.NewStack(item.Bucket{}, 1)) }, nil},
+	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(FairyBoard{}, 1)) }, nil},
+	{"power", helpAutoTab, func() string { return formicon.Of(machineItem(KindGenerator)) }, nil},
+	{"conduit", helpAutoTab, func() string { return formicon.Of(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
+	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(Drawer{}, 1)) }, nil},
+	{"lines", helpAutoTab, func() string { return formicon.Of(machineItem(KindMiner)) }, nil},
+	{"monitor", helpAutoTab, func() string { return formicon.Of(machineItem(KindCrusher)) }, nil},
+	{"copier", helpAutoTab, func() string { return formicon.Of(item.NewStack(dfitem.ConfigCopier{}, 1)) }, nil},
+	{"essence", helpAutoTab, func() string {
+		return formicon.Of(item.NewStack(dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}, 1))
+	}, helpEssenceText},
+	{"fluid", helpAutoTab, func() string { return formicon.Of(machineItem(KindTank)) }, nil},
+	{"metal", helpMetalTab, func() string { return formicon.Of(machineItem(KindAlloy)) }, nil},
+	{"tier", helpMetalTab, func() string { return formicon.Of(item.NewStack(dfitem.TierKit{Level: 1}, 1)) }, nil},
+	{"wave", helpFightTab, func() string { return formicon.Of(machineItem(KindGate)) }, nil},
+	{"gear", helpFightTab, func() string { return formicon.Of(machineItem(KindTinker)) }, nil},
+	{"magic", helpFightTab, func() string { return formicon.Of(item.NewStack(dfitem.Petal{Colour: "red"}, 1)) }, nil},
+	{"magicsieve", helpFightTab, func() string { return formicon.Of(machineItem(KindMagicSieve)) }, nil},
 }
 
 // helpTopicsOf are the indexes in helpTopics of the topics of a tab.
@@ -156,9 +162,9 @@ func (s *session) showHelpTopic(p *player.Player, i int) {
 // for and the recipes of the laboratory, written from its table.
 func helpEssenceText(lang string) string {
 	lines := []string{i18n.T(lang, "help.essence.text"), ""}
-	for i := range labRecipes {
-		r := &labRecipes[i]
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "help.essence.recipe"), itemName(lang, item.NewStack(r.Out, 1)), labIngredientsText(lang, r), r.OutCount))
+	for i := range machinerecipe.Labs {
+		r := &machinerecipe.Labs[i]
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "help.essence.recipe"), naming.ItemName(lang, item.NewStack(r.Out, 1)), machinerecipe.LabIngredientsText(lang, r), r.OutCount))
 	}
 	return strings.Join(append(lines, "", i18n.T(lang, "help.essence.foot")), "\n")
 }

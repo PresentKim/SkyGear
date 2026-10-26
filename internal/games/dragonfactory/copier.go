@@ -6,12 +6,14 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
@@ -20,15 +22,7 @@ import (
 // drawer and writes them to another. The settings live on the item, as the
 // value cardKey.
 
-// ConfigCopier is the item.
-type ConfigCopier struct{}
-
-func (ConfigCopier) EncodeItem() (string, int16) { return "dragonfactory:config_copier", 0 }
-func (ConfigCopier) Name() string                { return i18n.T(i18n.Default, "copier.name") }
-func (ConfigCopier) Category() category.Category { return category.Items() }
-func (ConfigCopier) MaxCount() int               { return 1 }
-
-func init() { world.RegisterItem(ConfigCopier{}) }
+func init() { world.RegisterItem(dfitem.ConfigCopier{}) }
 
 // cardKey is the item value that holds the copied settings (JSON).
 const cardKey = "df_card"
@@ -96,11 +90,11 @@ func (c configCard) describe(lang string) string {
 		}
 		return fmt.Sprintf(i18n.T(lang, "copier.card.bundle"), n)
 	case cardCrafter:
-		if cr := crafterByID(c.Recipe); cr != nil {
-			return fmt.Sprintf(i18n.T(lang, "copier.card.crafter"), itemName(lang, cr.out))
+		if cr := machinerecipe.CrafterByID(c.Recipe); cr != nil {
+			return fmt.Sprintf(i18n.T(lang, "copier.card.crafter"), naming.ItemName(lang, cr.Out))
 		}
 	case cardDrawer:
-		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), itemName(lang, decodeItem(c.Item)))
+		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), naming.ItemName(lang, decodeItem(c.Item)))
 	}
 	return i18n.T(lang, "copier.empty")
 }
@@ -251,7 +245,7 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 		return changed
 	case t.kind == cardCrafter && c.Kind == cardCrafter:
 		m := tx.Block(t.pos).(Machine)
-		cr := crafterByID(c.Recipe)
+		cr := machinerecipe.CrafterByID(c.Recipe)
 		if cr == nil || !s.crafterOpen(cr) {
 			return false
 		}

@@ -1,8 +1,9 @@
 package dragonfactory
 
 import (
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -10,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Crops by hand (docs/design/02-dragonfactory.md §12): using a grown crop
@@ -65,11 +67,11 @@ func (s *session) cropLines(lang string, r *CropRecord, tx *world.Tx, pos cube.P
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := s.realLeft(max(0, r.Planted+s.growTime(r.Kind)-now))
-		return []string{i18n.T(lang, "crop.lines.left") + formatDuration(lang, left.Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := s.realLeft(max(0, r.NextFruit-now))
-		return []string{i18n.T(lang, "crop.lines.grown"), i18n.T(lang, "crop.lines.nextFruit") + formatDuration(lang, left.Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.grown"), i18n.T(lang, "crop.lines.nextFruit") + textfmt.Duration(lang, left.Round(time.Second))}
 	}
 	return []string{i18n.T(lang, "crop.lines.grown")}
 }

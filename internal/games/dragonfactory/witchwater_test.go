@@ -13,6 +13,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // droppedKeys are the item keys of the item entities lying in tx.
@@ -21,7 +23,7 @@ func droppedKeys(tx *world.Tx) map[string]int {
 	for e := range tx.Entities() {
 		if ent, ok := e.(*entity.Ent); ok {
 			if ib, ok := ent.Behaviour().(*entity.ItemBehaviour); ok {
-				out[itemKey(ib.Item().Item())] += ib.Item().Count()
+				out[naming.ItemKey(ib.Item().Item())] += ib.Item().Count()
 			}
 		}
 	}
@@ -40,7 +42,7 @@ func TestWitchWater(t *testing.T) {
 		under := pos.Side(cube.FaceDown)
 		tx.SetBlock(under, block.Dirt{}, nil)
 		ctx := &item.UseContext{}
-		if !(MyceliumSpores{}).UseOnBlock(under, cube.FaceUp, mgl64.Vec3{}, tx, p, ctx) || ctx.CountSub != 1 {
+		if !(dfitem.MyceliumSpores{}).UseOnBlock(under, cube.FaceUp, mgl64.Vec3{}, tx, p, ctx) || ctx.CountSub != 1 {
 			t.Fatal("spores were not used on dirt")
 		}
 		if _, ok := tx.Block(under).(block.Mycelium); !ok {
@@ -67,7 +69,7 @@ func TestWitchWater(t *testing.T) {
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(block.Sand{}, 4), ctx) || ctx.CountSub != 1 {
 			t.Fatal("sand was not mixed")
 		}
-		if s.barrelAt(pos) != nil || droppedKeys(tx)[itemKey(block.SoulSand{})] != 1 {
+		if s.barrelAt(pos) != nil || droppedKeys(tx)[naming.ItemKey(block.SoulSand{})] != 1 {
 			t.Fatalf("no soul sand, barrel %+v", s.barrelAt(pos))
 		}
 		// witch water + lava bucket → netherrack, the bucket comes back empty
@@ -76,24 +78,24 @@ func TestWitchWater(t *testing.T) {
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(lavaBucket, 1), &item.UseContext{}) {
 			t.Fatal("lava was not mixed")
 		}
-		if held, _ := p.HeldItems(); itemKey(held.Item()) != itemKey(item.Bucket{}) || droppedKeys(tx)[itemKey(block.Netherrack{})] != 1 {
+		if held, _ := p.HeldItems(); naming.ItemKey(held.Item()) != naming.ItemKey(item.Bucket{}) || droppedKeys(tx)[naming.ItemKey(block.Netherrack{})] != 1 {
 			t.Fatalf("lava mixing left %v in the hand", held)
 		}
 		// an empty bucket takes the witch water
 		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Witch: true}
 		s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &item.UseContext{})
-		if held, _ := p.HeldItems(); itemKey(held.Item()) != itemKey(WitchWaterBucket{}) || s.barrelAt(pos) != nil {
+		if held, _ := p.HeldItems(); naming.ItemKey(held.Item()) != naming.ItemKey(dfitem.WitchWaterBucket{}) || s.barrelAt(pos) != nil {
 			t.Fatalf("the bucket took %v", held)
 		}
 		// lava + witch water bucket → blackstone, lava + glowstone → end stone
 		stone := Barrel{Wood: stoneWood}
 		tx.SetBlock(pos, stone, nil)
 		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
-		s.useBarrel(p, tx, pos, stone, item.NewStack(WitchWaterBucket{}, 1), &item.UseContext{})
+		s.useBarrel(p, tx, pos, stone, item.NewStack(dfitem.WitchWaterBucket{}, 1), &item.UseContext{})
 		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
 		s.useBarrel(p, tx, pos, stone, item.NewStack(item.GlowstoneDust{}, 1), &item.UseContext{})
 		got := droppedKeys(tx)
-		if got[itemKey(block.Blackstone{})] != 1 || got[itemKey(block.EndStone{})] != 1 {
+		if got[naming.ItemKey(block.Blackstone{})] != 1 || got[naming.ItemKey(block.EndStone{})] != 1 {
 			t.Fatalf("lava mixings dropped %v", got)
 		}
 		// water off mycelium stays water
@@ -131,13 +133,13 @@ func TestBarrelLiquidIcon(t *testing.T) {
 		t.Fatal("an empty barrel shows a liquid")
 	}
 	for kind, rec := range map[string]*BarrelRecord{
-		liquidWater:      {Count: matterCapacity, Water: true},
-		liquidWitchWater: {Count: matterCapacity, Witch: true},
-		liquidLava:       {LavaMB: bucketMB},
+		dfitem.LiquidWater:      {Count: matterCapacity, Water: true},
+		dfitem.LiquidWitchWater: {Count: matterCapacity, Witch: true},
+		dfitem.LiquidLava:       {LavaMB: bucketMB},
 	} {
 		s.state.Barrels[cropKey(pos)] = rec
 		line := s.barrelLiquid(i18n.Default, pos)
-		if line == nil || itemKey(line.Item.Item()) != itemKey(LiquidIcon{Kind: kind}) {
+		if line == nil || naming.ItemKey(line.Item.Item()) != naming.ItemKey(dfitem.LiquidIcon{Kind: kind}) {
 			t.Errorf("%s barrel shows %v", kind, line)
 		}
 	}

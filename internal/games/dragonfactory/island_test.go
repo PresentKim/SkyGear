@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 func TestChunkRules(t *testing.T) {
@@ -86,7 +87,7 @@ func TestNearestBlockColumn(t *testing.T) {
 
 func TestFormatInt(t *testing.T) {
 	for v, want := range map[int64]string{0: "0", 999: "999", 1000: "1,000", 1234567: "1,234,567", -12400: "-12,400"} {
-		if got := formatInt(v); got != want {
+		if got := textfmt.Int(v); got != want {
 			t.Errorf("formatInt(%d) = %q, want %q", v, got, want)
 		}
 	}

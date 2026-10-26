@@ -2,10 +2,11 @@ package dragonfactory
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -19,6 +20,14 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/presentkim/dragonfactory/common/chestui"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/wintext"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -280,32 +289,14 @@ var machineKinds = map[string]*machineKind{
 // machineOrder is the registration and display order.
 var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
 
-// crushRecipes maps an input item key to its output.
-var crushRecipes = map[string]world.Item{
-	itemKey(block.Stone{}):       block.Cobblestone{},
-	itemKey(block.Cobblestone{}): block.Gravel{},
-	itemKey(block.Gravel{}):      block.Sand{},
-	// Sand crushes into dust (13th playtest, sky progression), red sand too.
-	itemKey(block.Sand{}):          Dust{},
-	itemKey(block.Sand{Red: true}): Dust{},
-	// The stones of the deep, the Nether and the End (Ex Deorum, ATM10: To
-	// the Sky; docs/design/16-ore-balance.md §2.1).
-	itemKey(block.Deepslate{}):                               CrushedBlock{Kind: CrushedDeepslate},
-	itemKey(block.Deepslate{Type: block.CobbledDeepslate()}): CrushedBlock{Kind: CrushedDeepslate},
-	itemKey(block.Netherrack{}):                              CrushedBlock{Kind: CrushedNetherrack},
-	itemKey(CrushedBlock{Kind: CrushedNetherrack}):           block.Sand{Red: true},
-	itemKey(block.Blackstone{}):                              CrushedBlock{Kind: CrushedBlackstone},
-	itemKey(block.EndStone{}):                                CrushedBlock{Kind: CrushedEndStone},
-}
-
 // crusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block crusherRaw raw ores (and
 // crusherBonusOf more by chance).
 func crusherOutput(in item.Stack) (item.Stack, bool) {
-	if metal, ok := oreBlockMetal(in.Item()); ok {
-		return item.NewStack(rawOf(metal), crusherRaw), true
+	if metal, ok := dfitem.OreBlockMetal(in.Item()); ok {
+		return item.NewStack(dfitem.RawOf(metal), dfitem.CrusherRaw), true
 	}
-	if out, ok := crushRecipes[itemKey(in.Item())]; ok {
+	if out, ok := dfitem.CrushRecipes[naming.ItemKey(in.Item())]; ok {
 		return item.NewStack(out, 1), true
 	}
 	return item.Stack{}, false
@@ -314,11 +305,11 @@ func crusherOutput(in item.Stack) (item.Stack, bool) {
 // crusherBonusOf is the raw ore the crusher may make more of an ore block:
 // crusherBonus of them at crusherBonusChance percent each.
 func crusherBonusOf(in item.Stack) (item.Stack, bool) {
-	metal, ok := oreBlockMetal(in.Item())
+	metal, ok := dfitem.OreBlockMetal(in.Item())
 	if !ok {
 		return item.Stack{}, false
 	}
-	return item.NewStack(rawOf(metal), 1), true
+	return item.NewStack(dfitem.RawOf(metal), 1), true
 }
 
 // minerTool is what the auto miner mines with.
@@ -380,7 +371,7 @@ type machineState struct {
 	// recipe is the recipe an auto crafter makes (recipeID is how it is saved);
 	// shownRecipe is the one the recipe slot shows; sample is an item put on
 	// the recipe slot to choose by, dropRecipe a request to clear it.
-	recipe      *crafterRecipe
+	recipe      *machinerecipe.Crafter
 	recipeID    string
 	shownRecipe string
 	sample      item.Stack
@@ -395,7 +386,7 @@ type machineState struct {
 	// tick (counter.go); lab is the recipe the laboratory works on, period
 	// the length of the cycle it is on (0: the kind's interval).
 	tallyCounts map[string]int64
-	lab         *LabRecipe
+	lab         *machinerecipe.Lab
 	period      int
 	// sess is the session the machine ticks in; stuck why the last tick
 	// could not work, didWork whether a tick worked since the last second,
@@ -498,28 +489,28 @@ func (st *machineState) openWindow(p *player.Player) {
 // infoItem is the info icon of a machine window: the machine's name, what
 // it does and, for the sell box, whose it is.
 func (st *machineState) infoItem() item.Stack {
-	var lore []wtext
+	var lore []wintext.Text
 	for _, k := range st.kind.helpKeys {
-		lore = append(lore, wtext{wkey(k)})
+		lore = append(lore, wintext.Text{wintext.Key(k)})
 	}
 	if st.kind.id == idSellBox && st.ownerName != "" {
-		lore = append(lore, wtext{wkey("machine.info.owner"), wraw(st.ownerName)})
+		lore = append(lore, wintext.Text{wintext.Key("machine.info.owner"), wintext.Raw(st.ownerName)})
 	}
 	if st.tier > 0 {
 		spec := st.spec()
-		lore = append(lore, wtext{wkey("tier.info", wkey(tierNameKey(st.tier)), spec.speed, float64(spec.use10)/10)})
+		lore = append(lore, wintext.Text{wintext.Key("tier.info", wintext.Key(tierNameKey(st.tier)), spec.speed, float64(spec.use10)/10)})
 	}
 	badge := 0
 	if st.stuck != stuckNone {
 		badge = slotdeco.BadgeWarn
 	}
 	st.shownStuck = badge != 0
-	name := wtext{wraw(slotdeco.Common.Mark() + "§r§f"), wkey(st.kind.nameKey)}
+	name := wintext.Text{wintext.Raw(slotdeco.Common.Mark() + "§r§f"), wintext.Key(st.kind.nameKey)}
 	if st.tier > 0 {
-		name = append(name, wraw(" ["), wkey(tierNameKey(st.tier)), wraw("]"))
+		name = append(name, wintext.Raw(" ["), wintext.Key(tierNameKey(st.tier)), wintext.Raw("]"))
 	}
-	name = append(name, wraw(slotdeco.TierMark(badge)))
-	return withWindowText(item.NewStack(MachineInfo{}, 1), name, lore...)
+	name = append(name, wintext.Raw(slotdeco.TierMark(badge)))
+	return wintext.With(item.NewStack(MachineInfo{}, 1), name, lore...)
 }
 
 // MachineInfo is the info icon item of machine windows. It only ever sits
@@ -567,13 +558,13 @@ func (st *machineState) accepts(it item.Stack) bool {
 	case idGenerator:
 		return fuelDuration(it) > 0
 	case idAlloy:
-		return alloyAccepts(it)
+		return machinerecipe.AlloyAccepts(it)
 	case idSimulator:
-		return acceptsEssence(it)
+		return dfitem.AcceptsEssence(it)
 	case idCrucible:
-		return itemKey(it.Item()) == itemKey(block.Cobblestone{})
+		return naming.ItemKey(it.Item()) == naming.ItemKey(block.Cobblestone{})
 	case idWasher:
-		_, ok := washerOutput(it)
+		_, ok := dfitem.WasherOutput(it)
 		return ok
 	case idFurnace:
 		_, ok := smeltOf(it)
@@ -582,13 +573,13 @@ func (st *machineState) accepts(it item.Stack) bool {
 		_, ok := it.Item().(block.Sapling)
 		return ok || st.takesCharge(it)
 	case idCrafter:
-		return st.recipe != nil && st.recipe.wants(it)
+		return st.recipe != nil && st.recipe.Wants(it)
 	case idLab:
 		return st.labAccepts(it)
 	case idSieve, idAutoSieve, idMagicSieve:
 		// A sieve sifts only with a mesh fitted; the magic sieve also takes essences
 		// (into its essence slot).
-		_, ok := sieveTables[st.mesh][itemKey(it.Item())]
+		_, ok := sievetable.Tables[st.mesh][naming.ItemKey(it.Item())]
 		return ok || st.takesCharge(it)
 	}
 	// The sell box (no more shop, 13th playtest) takes nothing.
@@ -605,7 +596,7 @@ func (st *machineState) takesCharge(it item.Stack) bool {
 		_, ok := it.Item().(item.BoneMeal)
 		return ok
 	}
-	return acceptsEssence(it)
+	return dfitem.AcceptsEssence(it)
 }
 
 // slotAccepts reports whether the item may be put on a slot of the machine:
@@ -790,7 +781,7 @@ func (st *machineState) insert(it item.Stack) bool {
 	if !st.accepts(one) || !fits(st.inv(), slots, []item.Stack{one}) {
 		return false
 	}
-	if st.kind.id == idLab && st.labHave()[itemKey(one.Item())] >= st.labFeedCap(one) {
+	if st.kind.id == idLab && st.labHave()[naming.ItemKey(one.Item())] >= st.labFeedCap(one) {
 		return false
 	}
 	put(st.inv(), slots, one)
@@ -801,7 +792,7 @@ func (st *machineState) insert(it item.Stack) bool {
 func outputCount(st *machineState, it world.Item) int {
 	n := 0
 	for _, slot := range st.kind.output {
-		if got, _ := st.inv().Item(slot); !got.Empty() && itemKey(got.Item()) == itemKey(it) {
+		if got, _ := st.inv().Item(slot); !got.Empty() && naming.ItemKey(got.Item()) == naming.ItemKey(it) {
 			n += got.Count()
 		}
 	}
@@ -818,22 +809,22 @@ func (st *machineState) showProgress() {
 		return
 	}
 	st.shownPct = pct
-	name := wkey("machine.progress.percent", pct)
+	name := wintext.Key("machine.progress.percent", pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind.id {
 	case idSellBox:
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
-		name, it = wkey("machine.progress.sellCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wintext.Key("machine.progress.sellCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
-		name, it = wkey("machine.progress.mining", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wintext.Key("machine.progress.mining", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idGenerator:
 		// The ring shows the fuel left in the one burning.
-		name, it = wkey("machine.progress.fuel", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wintext.Key("machine.progress.fuel", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idHarvester:
-		name, it = wkey("machine.progress.harvestCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wintext.Key("machine.progress.harvestCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
-	_ = st.inv().SetItem(st.kind.indicator, withWindowText(it, wtext{wraw("§r"), name}))
+	_ = st.inv().SetItem(st.kind.indicator, wintext.With(it, wintext.Text{wintext.Raw("§r"), name}))
 }
 
 // energyGaugeSlot is the window slot of the energy gauge, in the column right
@@ -858,7 +849,7 @@ func (st *machineState) showEnergy() {
 	}
 	st.shownEnergy = have
 	it := item.NewStack(EnergyGauge{Step: min(10, have*10/capacity)}, 1)
-	_ = st.inv().SetItem(energyGaugeSlot, withWindowText(it, wtext{wkey("machine.energy.gauge", have, capacity)}))
+	_ = st.inv().SetItem(energyGaugeSlot, wintext.With(it, wintext.Text{wintext.Key("machine.energy.gauge", have, capacity)}))
 }
 
 // EnergyGauge is the energy indicator of machine windows: a battery filled in
@@ -963,10 +954,10 @@ func (m Machine) Permutations() []customblock.Permutation {
 
 func (m Machine) Properties() customblock.Properties {
 	if cubeMachines[m.Kind] {
-		return cubeProperties(m.Kind)
+		return blockmodel.CubeProperties(m.Kind)
 	}
 	if frontMachines[m.Kind] {
-		return frontCubeProperties(m.Kind)
+		return blockmodel.FrontCubeProperties(m.Kind)
 	}
 	return sieveProperties(m.Kind)
 }
@@ -976,19 +967,19 @@ func (m Machine) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 6,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   customBlockEffective,
+		Effective:   blockmodel.CustomBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
 			if m.st != nil {
 				drops = append(drops, m.st.pending...)
 			}
 			if m.st != nil && m.st.mesh != "" {
-				drops = append(drops, item.NewStack(Mesh{Tier: m.st.mesh}, 1))
+				drops = append(drops, item.NewStack(dfitem.Mesh{Tier: m.st.mesh}, 1))
 			}
 			if m.st != nil {
 				// the kits it was raised with come back
 				for l := 1; l <= m.st.tier; l++ {
-					drops = append(drops, item.NewStack(TierKit{Level: l}, 1))
+					drops = append(drops, item.NewStack(dfitem.TierKit{Level: l}, 1))
 				}
 			}
 			if m.st != nil {
@@ -1062,7 +1053,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	if id, ok := data["Recipe"].(string); ok {
 		n.st.recipeID = id
 		if m.Kind == KindLab {
-			n.st.lab = labByKind(id)
+			n.st.lab = machinerecipe.LabByKind(id)
 		}
 	}
 	if mesh, ok := data["Mesh"].(string); ok {
@@ -1116,7 +1107,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	}
 	m.st.pos = pos
 	if held, off := p.HeldItems(); !held.Empty() {
-		if kit, ok := held.Item().(TierKit); ok {
+		if kit, ok := held.Item().(dfitem.TierKit); ok {
 			s.useKit(p, tx, pos, m, kit, held, off)
 			return true
 		}
@@ -1309,14 +1300,14 @@ func (s *session) runMachine(st *machineState, pos cube.Pos, tx *world.Tx) {
 		st.process(func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
 			if bonus, ok := crusherBonusOf(in); ok {
-				out = out.Grow(bonus.Count() * crusherBonus)
+				out = out.Grow(bonus.Count() * dfitem.CrusherBonus)
 			}
 			return []item.Stack{out}
 		}, func(in item.Stack) []item.Stack {
 			out, _ := crusherOutput(in)
 			if bonus, ok := crusherBonusOf(in); ok {
-				for range crusherBonus {
-					if s.rand.IntN(100) < crusherBonusChance {
+				for range dfitem.CrusherBonus {
+					if s.rand.IntN(100) < dfitem.CrusherBonusChance {
 						out = out.Grow(bonus.Count())
 					}
 				}
@@ -1455,11 +1446,11 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 // placeMachine sets up a placed machine with a fresh state.
 func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
 	m := newMachine(kind, instance.AccountID(p), p.Name())
-	account.Grant(p, achMachine)
+	account.Grant(p, achievement.FirstMachine)
 	count(p, "machine_place", 1)
 	count(p, "place_"+kind, 1)
 	if m.Kind != KindSieve {
-		s.advance(tx, advMachine)
+		s.advance(tx, advancement.Machine)
 	}
 	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 }
@@ -1503,9 +1494,3 @@ func init() {
 		}
 	}
 }
-
-// customBlockEffective makes no tool faster on custom blocks. The client
-// takes its break time from the block definition, which only carries the
-// bare-hand time; if the server used a faster tool time, the crack would
-// finish while the client still mines and the block would never break.
-func customBlockEffective(item.Tool) bool { return false }

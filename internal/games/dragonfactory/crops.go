@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"container/heap"
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"strconv"
 	"strings"
 	"time"
@@ -276,13 +275,4 @@ func (q *cropQueue) Pop() any {
 
 func init() {
 	block.ScheduledCropGrowth = true
-}
-
-// formatDuration formats a duration in minutes and seconds.
-func formatDuration(lang string, d time.Duration) string {
-	m, sec := int(d/time.Minute), int(d%time.Minute/time.Second)
-	if sec == 0 {
-		return fmt.Sprintf(i18n.T(lang, "crop.time.min"), m)
-	}
-	return fmt.Sprintf(i18n.T(lang, "crop.time.minSec"), m, sec)
 }

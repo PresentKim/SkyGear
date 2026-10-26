@@ -9,6 +9,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
@@ -21,12 +25,12 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 			items = append(items, c.Item)
 		}
 	}
-	for _, drops := range sieveTables["string"] {
+	for _, drops := range sievetable.Tables["string"] {
 		for _, d := range drops {
 			items = append(items, d.Item.Item())
 		}
 	}
-	for _, out := range crushRecipes {
+	for _, out := range dfitem.CrushRecipes {
 		items = append(items, out)
 	}
 	for _, f := range giveItems() {
@@ -37,7 +41,7 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 			continue
 		}
 		name, _ := it.EncodeItem()
-		if got := itemName(i18n.Default, item.NewStack(it, 1)); "minecraft:"+got == name {
+		if got := naming.ItemName(i18n.Default, item.NewStack(it, 1)); "minecraft:"+got == name {
 			t.Errorf("no Korean name for %s", name)
 		}
 	}
@@ -55,33 +59,33 @@ func TestNamedItemsHaveIcons(t *testing.T) {
 		if !ok || name == "air" {
 			continue
 		}
-		if iconOf(item.NewStack(it, 1)) == "" {
-			t.Errorf("%s has no icon", itemKey(it))
+		if formicon.Of(item.NewStack(it, 1)) == "" {
+			t.Errorf("%s has no icon", naming.ItemKey(it))
 		}
 	}
-	if iconOf(menuItem(i18n.Default)) == "" {
+	if formicon.Of(menuItem(i18n.Default)) == "" {
 		t.Error("menu item has no icon")
 	}
 }
 
 func TestItemNamesInPlayerLanguage(t *testing.T) {
-	saved := packNames
-	t.Cleanup(func() { packNames = saved })
-	if err := LoadNames(os.DirFS(packDir)); err != nil {
+	saved := naming.PackNames
+	t.Cleanup(func() { naming.PackNames = saved })
+	if err := naming.LoadNames(os.DirFS(packDir)); err != nil {
 		t.Fatal(err)
 	}
-	essence := item.NewStack(ResearchEssence{Kind: EssenceEngineering}, 1)
+	essence := item.NewStack(dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}, 1)
 	en := slotdeco.Strip(packLangFile(t, "en_US")["item.dragonfactory:research_essence_engineering.name"])
-	if got := itemName("en", essence); en == "" || got != en {
+	if got := naming.ItemName("en", essence); en == "" || got != en {
 		t.Errorf("english name %q, want %q", got, en)
 	}
-	if got, want := itemName(i18n.Default, essence), (ResearchEssence{Kind: EssenceEngineering}).Name(); got != want {
+	if got, want := naming.ItemName(i18n.Default, essence), (dfitem.ResearchEssence{Kind: dfitem.EssenceEngineering}).Name(); got != want {
 		t.Errorf("korean name %q, want %q", got, want)
 	}
-	if got := itemName("en", item.NewStack(item.Diamond{}, 1)); got != "Diamond" {
+	if got := naming.ItemName("en", item.NewStack(item.Diamond{}, 1)); got != "Diamond" {
 		t.Errorf("english vanilla name %q", got)
 	}
-	if got := blockName("en", Machine{Kind: KindCrusher}); got == blockName(i18n.Default, Machine{Kind: KindCrusher}) {
+	if got := naming.BlockName("en", Machine{Kind: KindCrusher}); got == naming.BlockName(i18n.Default, Machine{Kind: KindCrusher}) {
 		t.Errorf("crusher block name %q in both languages", got)
 	}
 }

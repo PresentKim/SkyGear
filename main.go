@@ -27,6 +27,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 	"github.com/presentkim/dragonfactory/internal/instance"
 	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 	"github.com/presentkim/dragonfactory/internal/platform"
@@ -87,7 +88,7 @@ func run(log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("resource pack dragonfactory: %w", err)
 	}
-	if err := dragonfactory.LoadNames(dfPack); err != nil {
+	if err := naming.LoadNames(dfPack); err != nil {
 		return fmt.Errorf("resource pack dragonfactory names: %w", err)
 	}
 	packDirs := map[string]fs.FS{"dragonfactory": dfPack}

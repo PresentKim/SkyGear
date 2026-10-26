@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Research rewards (docs/design/02-dragonfactory.md §9): a research that
@@ -68,7 +69,7 @@ func researchReward(r *Research) []item.Stack {
 		if !ok {
 			continue
 		}
-		if it, ok := world.ItemByName(unlockName(n), 0); ok {
+		if it, ok := world.ItemByName(naming.UnlockName(n), 0); ok {
 			out = append(out, item.NewStack(it, c))
 		}
 	}
@@ -90,7 +91,7 @@ func (s *session) giveResearchReward(p *player.Player, tx *world.Tx, r *Research
 	var names []string
 	for _, st := range reward {
 		s.giveItem(p, tx, p.Position(), st)
-		names = append(names, fmt.Sprintf("%s ×%d", itemName(i18n.Of(p), st), st.Count()))
+		names = append(names, fmt.Sprintf("%s ×%d", naming.ItemName(i18n.Of(p), st), st.Count()))
 	}
 	p.Messagef(i18n.T(i18n.Of(p), "researchreward.given"), strings.Join(slices.Clip(names), ", "))
 }

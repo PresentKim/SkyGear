@@ -2,15 +2,16 @@ package dragonfactory
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
-	"strings"
-	"testing"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -18,6 +19,10 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
 var machinePos = cube.Pos{3, IslandY, 3}
@@ -408,8 +413,8 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
 	st.mesh = "iron"
 	kinds := map[string]bool{}
-	for _, d := range sieveTables[st.mesh][itemKey(block.Gravel{})] {
-		kinds[itemKey(d.Item.Item())] = true
+	for _, d := range sievetable.Tables[st.mesh][naming.ItemKey(block.Gravel{})] {
+		kinds[naming.ItemKey(d.Item.Item())] = true
 	}
 	if len(kinds) <= len(st.kind.output) {
 		t.Skipf("only %d kinds of products", len(kinds))
@@ -428,30 +433,30 @@ func TestCrusherOre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	if st.accepts(item.NewStack(OreChunk{Ore: OreIron}, 1)) {
+	if st.accepts(item.NewStack(dfitem.OreChunk{Ore: dfitem.OreIron}, 1)) {
 		t.Fatal("the crusher takes ore chunks")
 	}
-	if out, _ := crusherOutput(item.NewStack(OreBlock{Metal: MetalTin}, 1)); out.Count() != crusherRaw || itemKey(out.Item()) != itemKey(RawOre{Metal: MetalTin}) {
+	if out, _ := crusherOutput(item.NewStack(dfitem.OreBlock{Metal: dfitem.MetalTin}, 1)); out.Count() != dfitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(dfitem.RawOre{Metal: dfitem.MetalTin}) {
 		t.Fatalf("a tin ore crushes into %v", out)
 	}
-	if out, _ := crusherOutput(item.NewStack(block.IronOre{}, 1)); out.Count() != crusherRaw || itemKey(out.Item()) != itemKey(item.RawIron{}) {
+	if out, _ := crusherOutput(item.NewStack(block.IronOre{}, 1)); out.Count() != dfitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(item.RawIron{}) {
 		t.Fatalf("an iron ore crushes into %v", out)
 	}
 	// the bonus: 400 ores × 2 rolls at 50 % ≈ 400 more
 	bonus := 0
-	for range 400 * crusherBonus {
-		if s.rand.IntN(100) < crusherBonusChance {
+	for range 400 * dfitem.CrusherBonus {
+		if s.rand.IntN(100) < dfitem.CrusherBonusChance {
 			bonus++
 		}
 	}
 	if bonus < 340 || bonus > 460 {
 		t.Fatalf("bonus raw ores %d, want about 400", bonus)
 	}
-	for _, m := range dustMetals {
-		if info := (MetalDust{Metal: m}).SmeltInfo(); info.Product.Empty() || itemKey(info.Product.Item()) != itemKey(ingotOf(m)) {
+	for _, m := range dfitem.DustMetals {
+		if info := (dfitem.MetalDust{Metal: m}).SmeltInfo(); info.Product.Empty() || naming.ItemKey(info.Product.Item()) != naming.ItemKey(dfitem.IngotOf(m)) {
 			t.Errorf("%s dust smelts into %v", m, info.Product.Item())
 		}
-		if got, ok := smeltOf(item.NewStack(rawOf(m), 1)); !ok || itemKey(got.Item()) != itemKey(ingotOf(m)) {
+		if got, ok := smeltOf(item.NewStack(dfitem.RawOf(m), 1)); !ok || naming.ItemKey(got.Item()) != naming.ItemKey(dfitem.IngotOf(m)) {
 			t.Errorf("raw %s smelts into %v", m, got)
 		}
 	}
@@ -464,7 +469,7 @@ func TestCrusherBonusRolls(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
 	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 1))
 	tick(s, st.kind.interval+2)
-	if n := outputCount(st, item.RawIron{}); n < crusherRaw || n > crusherRaw+crusherBonus {
+	if n := outputCount(st, item.RawIron{}); n < dfitem.CrusherRaw || n > dfitem.CrusherRaw+dfitem.CrusherBonus {
 		t.Fatalf("raw iron from one ore = %d, want 3 to 5", n)
 	}
 }
@@ -477,10 +482,10 @@ func TestAlloySmelter(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindAlloy, "")
 	a, b := st.kind.input[0], st.kind.input[1]
 	// copper in the second slot, tin in the first: bronze, whichever way round
-	_ = st.inv().SetItem(a, item.NewStack(Ingot{Metal: MetalTin}, 2))
+	_ = st.inv().SetItem(a, item.NewStack(dfitem.Ingot{Metal: dfitem.MetalTin}, 2))
 	_ = st.inv().SetItem(b, item.NewStack(item.CopperIngot{}, 6))
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, Ingot{Metal: MetalBronze}); n != 8 {
+	if n := outputCount(st, dfitem.Ingot{Metal: dfitem.MetalBronze}); n != 8 {
 		t.Fatalf("bronze from 6 copper and 2 tin = %d, want 8", n)
 	}
 	// steel: one iron and four coal
@@ -488,10 +493,10 @@ func TestAlloySmelter(t *testing.T) {
 	_ = st2.inv().SetItem(a, item.NewStack(item.IronIngot{}, 1))
 	_ = st2.inv().SetItem(b, item.NewStack(item.Coal{}, 3))
 	tick(s, st2.kind.interval+2)
-	if n := outputCount(st2, Ingot{Metal: MetalSteel}); n != 0 {
+	if n := outputCount(st2, dfitem.Ingot{Metal: dfitem.MetalSteel}); n != 0 {
 		t.Fatalf("steel from three coal = %d", n)
 	}
-	if !alloyAccepts(item.NewStack(item.Coal{}, 1)) || alloyAccepts(item.NewStack(block.Dirt{}, 1)) {
+	if !machinerecipe.AlloyAccepts(item.NewStack(item.Coal{}, 1)) || machinerecipe.AlloyAccepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Error("the smelter does not take exactly its ingredients")
 	}
 }
@@ -526,9 +531,9 @@ func TestMobSimulator(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindSimulator, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(Essence{Mob: MobZombie}, 2))
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(dfitem.Essence{Mob: dfitem.MobZombie}, 2))
 	tick(s, (st.kind.interval+1)*3)
-	if st.mob != MobZombie || st.charges != simCharges-3 {
+	if st.mob != dfitem.MobZombie || st.charges != dfitem.SimCharges-3 {
 		t.Fatalf("mob %q charges %d after three runs", st.mob, st.charges)
 	}
 	if n := outputCount(st, item.RottenFlesh{}); n < 3 {
@@ -539,15 +544,15 @@ func TestMobSimulator(t *testing.T) {
 	}
 	m := Machine{Kind: KindSimulator, st: st}
 	back := m.DecodeNBT(m.EncodeNBT()).(Machine)
-	if back.st.mob != MobZombie || back.st.charges != st.charges {
+	if back.st.mob != dfitem.MobZombie || back.st.charges != st.charges {
 		t.Errorf("NBT round trip: %q %d", back.st.mob, back.st.charges)
 	}
-	for _, mob := range mobKinds {
-		if len(simDrops[mob]) == 0 {
+	for _, mob := range dfitem.MobKinds {
+		if len(dfitem.SimDrops[mob]) == 0 {
 			t.Errorf("%s drops nothing", mob)
 		}
 	}
-	if acceptsEssence(item.NewStack(block.Dirt{}, 1)) {
+	if dfitem.AcceptsEssence(item.NewStack(block.Dirt{}, 1)) {
 		t.Error("the simulator takes dirt")
 	}
 }
@@ -599,17 +604,17 @@ func TestOreWasher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindWasher, "")
-	if st.accepts(item.NewStack(block.IronOre{}, 1)) || st.accepts(item.NewStack(OreChunk{Ore: OreIron}, 1)) {
+	if st.accepts(item.NewStack(block.IronOre{}, 1)) || st.accepts(item.NewStack(dfitem.OreChunk{Ore: dfitem.OreIron}, 1)) {
 		t.Fatal("the washer takes ore blocks or chunks")
 	}
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(RawOre{Metal: MetalLead}, 2))
+	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(dfitem.RawOre{Metal: dfitem.MetalLead}, 2))
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: MetalLead}); n != 0 {
+	if n := outputCount(st, dfitem.MetalDust{Metal: dfitem.MetalLead}); n != 0 {
 		t.Fatalf("dust without water = %d", n)
 	}
 	st.fluid, st.fluidAmt = fluidnet.Water, 500
 	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, MetalDust{Metal: MetalLead}); n != 4 {
+	if n := outputCount(st, dfitem.MetalDust{Metal: dfitem.MetalLead}); n != 4 {
 		t.Errorf("dust from two raw ores = %d, want 4", n)
 	}
 	if st.fluidAmt != 0 || st.fluid != fluidnet.None {

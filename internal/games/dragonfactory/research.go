@@ -18,6 +18,13 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Research (docs/design/02-dragonfactory.md §9): every crafting recipe is
@@ -73,7 +80,7 @@ var researchTree = withEssenceCosts(baseResearchTree)
 // baseResearchTree are the researches with their material costs.
 var baseResearchTree = []Research{
 	{ID: "stick", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
-	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{Pebble{Kind: PebbleStone}, 4}},
+	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{dfitem.Pebble{Kind: dfitem.PebbleStone}, 4}},
 		Unlocks: []string{"cobblestone", "cobbled_deepslate", "blackstone", "basalt", "tuff", "calcite", "andesite", "granite", "diorite"}},
 	{ID: "wood_tools", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
@@ -86,7 +93,7 @@ var baseResearchTree = []Research{
 	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}}, Unlocks: []string{"furnace"}},
 	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 8}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
-	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{BarkFiber{}, 8}}, Unlocks: []string{"string"}},
+	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{dfitem.BarkFiber{}, 8}}, Unlocks: []string{"string"}},
 	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 4}}, Unlocks: []string{"dragonfactory:stone_hammer"}},
 	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"dragonfactory:sieve", "dragonfactory:mesh_string", "dragonfactory:mesh_flint"}},
 	{ID: "torch", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 8}, {stick, 8}}, Unlocks: []string{"torch"}},
@@ -95,7 +102,7 @@ var baseResearchTree = []Research{
 	{ID: "masonry", Needs: []string{"furnace"}, Cost: []Requirement{{block.Stone{}, 32}, {block.Cobblestone{}, 32}},
 		Unlocks: []string{"cobblestone_slab", "stone_stairs", "cobblestone_wall", "normal_stone_slab", "normal_stone_stairs", "stone_bricks"}},
 	{ID: "glasswork", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 16}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
-	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
+	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "dragonfactory:mesh_iron"}},
 	{ID: "wooden_bucket", Needs: []string{"barrel"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"dragonfactory:wooden_bucket"}},
 	{ID: "bucket", Needs: []string{"iron", "barrel"}, Cost: []Requirement{{item.IronIngot{}, 6}}, Unlocks: []string{"bucket"}},
 	{ID: "shears", Needs: []string{"iron", "wood_tools"}, Cost: []Requirement{{item.IronIngot{}, 4}}, Unlocks: []string{"shears"}},
@@ -119,27 +126,27 @@ var baseResearchTree = []Research{
 	{ID: "farming", Needs: []string{"wood_tools"}, Cost: []Requirement{{item.Wheat{}, 16}}, Unlocks: []string{"bread", "hay_block"}},
 	{ID: "harvester", Needs: []string{"farming", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"dragonfactory:harvester"}},
 	{ID: "clay", Needs: []string{"furnace", "barrel"}, Cost: []Requirement{{block.Clay{}, 4}}, Unlocks: []string{"clay", "brick_block"}},
-	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{OreChunk{Ore: OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
+	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "dragonfactory:mesh_gold"}},
 	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:mesh_diamond"}},
 	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"dragonfactory:mesh_netherite", "netherite_ingot"}},
-	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{OreChunk{Ore: OreCopper}, 16}}, Unlocks: []string{"copper_ore", "copper_ingot", "copper_block", "copper_nugget"}},
-	{ID: "tin", Needs: []string{"copper"}, Cost: []Requirement{{OreChunk{Ore: MetalTin}, 16}}, Unlocks: []string{"dragonfactory:tin_ore", "dragonfactory:metal_dust_tin"}},
-	{ID: "lead", Needs: []string{"tin", "iron"}, Cost: []Requirement{{OreChunk{Ore: MetalLead}, 16}}, Unlocks: []string{"dragonfactory:lead_ore", "dragonfactory:metal_dust_lead"}},
-	{ID: "silver", Needs: []string{"gold"}, Cost: []Requirement{{OreChunk{Ore: MetalSilver}, 16}}, Unlocks: []string{"dragonfactory:silver_ore", "dragonfactory:metal_dust_silver"}},
-	{ID: "nickel", Needs: []string{"gold"}, Cost: []Requirement{{OreChunk{Ore: MetalNickel}, 16}}, Unlocks: []string{"dragonfactory:nickel_ore", "dragonfactory:metal_dust_nickel"}},
-	{ID: "alloy_smelter", Needs: []string{"generator", "tin", "crusher"}, Cost: []Requirement{{item.IronIngot{}, 16}, {Ingot{Metal: MetalTin}, 8}}, Unlocks: []string{"dragonfactory:alloy_smelter"}},
-	{ID: "energy_cell", Needs: []string{"generator", "lead"}, Cost: []Requirement{{Ingot{Metal: MetalLead}, 8}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:energy_cell"}},
-	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []Requirement{{Ingot{Metal: MetalElectrum}, 8}}, Unlocks: []string{"dragonfactory:conduit_energy_2", "dragonfactory:conduit_item_2", "dragonfactory:conduit_fluid_2"}},
-	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:conduit_energy_3", "dragonfactory:conduit_item_3", "dragonfactory:conduit_fluid_3"}},
-	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []Requirement{{Ingot{Metal: MetalBronze}, 8}, {Essence{Mob: MobZombie}, 4}, {Essence{Mob: MobSkeleton}, 4}}, Unlocks: []string{"dragonfactory:mob_simulator"}},
+	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.OreCopper}, 16}}, Unlocks: []string{"copper_ore", "copper_ingot", "copper_block", "copper_nugget"}},
+	{ID: "tin", Needs: []string{"copper"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.MetalTin}, 16}}, Unlocks: []string{"dragonfactory:tin_ore", "dragonfactory:metal_dust_tin"}},
+	{ID: "lead", Needs: []string{"tin", "iron"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.MetalLead}, 16}}, Unlocks: []string{"dragonfactory:lead_ore", "dragonfactory:metal_dust_lead"}},
+	{ID: "silver", Needs: []string{"gold"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.MetalSilver}, 16}}, Unlocks: []string{"dragonfactory:silver_ore", "dragonfactory:metal_dust_silver"}},
+	{ID: "nickel", Needs: []string{"gold"}, Cost: []Requirement{{dfitem.OreChunk{Ore: dfitem.MetalNickel}, 16}}, Unlocks: []string{"dragonfactory:nickel_ore", "dragonfactory:metal_dust_nickel"}},
+	{ID: "alloy_smelter", Needs: []string{"generator", "tin", "crusher"}, Cost: []Requirement{{item.IronIngot{}, 16}, {dfitem.Ingot{Metal: dfitem.MetalTin}, 8}}, Unlocks: []string{"dragonfactory:alloy_smelter"}},
+	{ID: "energy_cell", Needs: []string{"generator", "lead"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalLead}, 8}, {item.IronIngot{}, 8}}, Unlocks: []string{"dragonfactory:energy_cell"}},
+	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalElectrum}, 8}}, Unlocks: []string{"dragonfactory:conduit_energy_2", "dragonfactory:conduit_item_2", "dragonfactory:conduit_fluid_2"}},
+	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"dragonfactory:conduit_energy_3", "dragonfactory:conduit_item_3", "dragonfactory:conduit_fluid_3"}},
+	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalBronze}, 8}, {dfitem.Essence{Mob: dfitem.MobZombie}, 4}, {dfitem.Essence{Mob: dfitem.MobSkeleton}, 4}}, Unlocks: []string{"dragonfactory:mob_simulator"}},
 	{ID: "fluid_tank", Needs: []string{"fluid_conduit", "bucket"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"dragonfactory:fluid_tank"}},
-	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {Ingot{Metal: MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:crucible"}},
-	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}}, Unlocks: []string{"dragonfactory:lava_generator"}},
-	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []Requirement{{item.IronIngot{}, 12}, {Ingot{Metal: MetalBronze}, 4}}, Unlocks: []string{"dragonfactory:ore_washer"}},
-	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {Essence{Mob: MobZombie}, 8}, {Essence{Mob: MobSkeleton}, 8}}, Unlocks: []string{"dragonfactory:dimension_gate"}},
+	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {dfitem.Ingot{Metal: dfitem.MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:crucible"}},
+	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 8}}, Unlocks: []string{"dragonfactory:lava_generator"}},
+	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []Requirement{{item.IronIngot{}, 12}, {dfitem.Ingot{Metal: dfitem.MetalBronze}, 4}}, Unlocks: []string{"dragonfactory:ore_washer"}},
+	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 8}, {dfitem.Essence{Mob: dfitem.MobZombie}, 8}, {dfitem.Essence{Mob: dfitem.MobSkeleton}, 8}}, Unlocks: []string{"dragonfactory:dimension_gate"}},
 	{ID: "diamond_tools", Needs: []string{"iron_tools", "mesh_diamond"}, Cost: []Requirement{{item.Diamond{}, 8}},
 		Unlocks: []string{"diamond_pickaxe", "diamond_axe", "diamond_shovel", "diamond_hoe", "diamond_sword"}},
-	{ID: "storage_controller", Needs: []string{"drawer_upgrades", "item_conduit", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {Ingot{Metal: MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:storage_controller", "dragonfactory:storage_link"}},
+	{ID: "storage_controller", Needs: []string{"drawer_upgrades", "item_conduit", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {dfitem.Ingot{Metal: dfitem.MetalBronze}, 8}}, Unlocks: []string{"dragonfactory:storage_controller", "dragonfactory:storage_link"}},
 	{ID: "tinker_table", Needs: []string{"iron_tools", "tin"}, Cost: []Requirement{{item.IronIngot{}, 24}, {item.Flint{}, 8}}, Unlocks: []string{"dragonfactory:tinker_table"}},
 	{ID: "copper_tools", Needs: []string{"copper", "iron_tools"}, Cost: []Requirement{{item.CopperIngot{}, 12}},
 		Unlocks: []string{"copper_pickaxe", "copper_axe", "copper_shovel", "copper_hoe", "copper_sword"}},
@@ -196,33 +203,33 @@ var baseResearchTree = []Research{
 	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []Requirement{{PlantSeed{Seed: "gem_redstone"}, 2}}, Unlocks: []string{"dragonfactory:seed_ess_zombie", "dragonfactory:seed_ess_skeleton", "dragonfactory:seed_ess_creeper", "dragonfactory:seed_ess_spider", "dragonfactory:seed_ess_slime", "dragonfactory:seed_ess_enderman", "dragonfactory:seed_ess_blaze"}},
 	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []Requirement{{item.Diamond{}, 8}, {item.EnderPearl{}, 8}},
 		Unlocks: []string{"dragonfactory:magic_sieve"}},
-	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 16}, {Ingot{Metal: MetalElectrum}, 16}, {item.Diamond{}, 4}},
+	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 16}, {dfitem.Ingot{Metal: dfitem.MetalElectrum}, 16}, {item.Diamond{}, 4}},
 		Unlocks: []string{"dragonfactory:circuit_1", "dragonfactory:circuit_2", "dragonfactory:kit_1"}},
-	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []Requirement{{item.Diamond{}, 16}, {Ingot{Metal: MetalInvar}, 16}},
+	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []Requirement{{item.Diamond{}, 16}, {dfitem.Ingot{Metal: dfitem.MetalInvar}, 16}},
 		Unlocks: []string{"dragonfactory:circuit_3", "dragonfactory:kit_2"}},
 	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []Requirement{{item.NetheriteIngot{}, 2}},
 		Unlocks: []string{"dragonfactory:circuit_4", "dragonfactory:kit_3"}},
-	{ID: "config_copier", Needs: []string{"machine_tier_1", "item_conduit", "auto_crafter"}, Cost: []Requirement{{Ingot{Metal: MetalSteel}, 8}, {item.LapisLazuli{}, 8}},
+	{ID: "config_copier", Needs: []string{"machine_tier_1", "item_conduit", "auto_crafter"}, Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 8}, {item.LapisLazuli{}, 8}},
 		Unlocks: []string{"dragonfactory:config_copier"}},
-	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{Petal{Colour: "red"}, 4}, {Petal{Colour: "yellow"}, 4}, {Petal{Colour: "blue"}, 4}},
+	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{dfitem.Petal{Colour: "red"}, 4}, {dfitem.Petal{Colour: "yellow"}, 4}, {dfitem.Petal{Colour: "blue"}, 4}},
 		Unlocks: dyeUnlocks()},
 	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 16}, {block.Pumpkin{}, 4}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
 	{ID: "golden_food", Needs: []string{"gold", "harvest"}, Cost: []Requirement{{item.GoldIngot{}, 8}, {block.Carrot{}, 4}},
 		Unlocks: []string{"golden_apple", "golden_carrot", "glistering_melon_slice"}},
 	{ID: "project_industry", Icon: "dragonfactory:storage_controller", Needs: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"},
-		Cost: []Requirement{{Ingot{Metal: MetalSteel}, 32}, {Ingot{Metal: MetalElectrum}, 32}, {Ingot{Metal: MetalInvar}, 32}, {Ingot{Metal: MetalBronze}, 32}, {item.Diamond{}, 16}}},
+		Cost: []Requirement{{dfitem.Ingot{Metal: dfitem.MetalSteel}, 32}, {dfitem.Ingot{Metal: dfitem.MetalElectrum}, 32}, {dfitem.Ingot{Metal: dfitem.MetalInvar}, 32}, {dfitem.Ingot{Metal: dfitem.MetalBronze}, 32}, {item.Diamond{}, 16}}},
 	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension_gate", "tinker_table", "diamond_armor", "blaze_craft"},
 		Cost: []Requirement{{item.BlazeRod{}, 16}, {item.EnderPearl{}, 16}, {item.Slimeball{}, 16}, {item.SpiderEye{}, 16}, {item.Bone{}, 32}}},
 	{ID: "project_botanist", Icon: "dragonfactory:petal_red", Needs: []string{"magic_essence", "dyeing"},
-		Cost: []Requirement{{PlantSeed{Seed: "ess_enderman"}, 2}, {PlantSeed{Seed: "ess_blaze"}, 2}, {PlantSeed{Seed: "gem_diamond"}, 2}, {PlantSeed{Seed: "gem_emerald"}, 2}, {Essence{Mob: MobEnder}, 8}, {Essence{Mob: MobBlaze}, 8}}},
+		Cost: []Requirement{{PlantSeed{Seed: "ess_enderman"}, 2}, {PlantSeed{Seed: "ess_blaze"}, 2}, {PlantSeed{Seed: "gem_diamond"}, 2}, {PlantSeed{Seed: "gem_emerald"}, 2}, {dfitem.Essence{Mob: dfitem.MobEnder}, 8}, {dfitem.Essence{Mob: dfitem.MobBlaze}, 8}}},
 	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
-		Cost:    []Requirement{{item.Diamond{}, 32}, {item.Emerald{}, 32}, {item.NetheriteIngot{}, 4}, {Ingot{Metal: MetalSteel}, 32}},
+		Cost:    []Requirement{{item.Diamond{}, 32}, {item.Emerald{}, 32}, {item.NetheriteIngot{}, 4}, {dfitem.Ingot{Metal: dfitem.MetalSteel}, 32}},
 		Unlocks: []string{"dragon_egg"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 16}}, Unlocks: []string{"dried_kelp_block"}},
 	// The fairy magic (fairymagic.go): dust from the nightly fairy and a
 	// research table; it gives the board at once.
-	{ID: "fairy_magic", Cost: []Requirement{{FairyDust{}, 2}, {ResearchTable{}, 1}},
+	{ID: "fairy_magic", Cost: []Requirement{{dfitem.FairyDust{}, 2}, {ResearchTable{}, 1}},
 		Unlocks: []string{"dragonfactory:fairy_emerald", "dragonfactory:fairy_board"}},
 }
 
@@ -246,14 +253,6 @@ func researchByID(id string) (*Research, bool) {
 		return &researchTree[i], true
 	}
 	return nil, false
-}
-
-// unlockName is the item name of an unlock as items encode it.
-func unlockName(n string) string {
-	if strings.Contains(n, ":") {
-		return n
-	}
-	return "minecraft:" + n
 }
 
 // researched reports whether the save has done a research.
@@ -309,7 +308,7 @@ func (s *session) researchBlocker(r *Research) (*Research, bool) {
 // had already delivered in parts (partial delivery is gone: a research is
 // paid whole, at once; the count only keeps what older saves gave).
 func (s *session) researchPaid(r *Research, it world.Item) int {
-	return s.state.ResearchPaid[r.ID][itemKey(it)]
+	return s.state.ResearchPaid[r.ID][naming.ItemKey(it)]
 }
 
 // researchNeed is how many of an item of a research's cost are still to be
@@ -346,7 +345,7 @@ func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missi
 	pourEssences(tx, p, r.Cost)
 	s.completeResearch(tx, r)
 	s.giveResearchReward(p, tx, r)
-	account.Grant(p, achResearch)
+	account.Grant(p, achievement.FirstResearch)
 	return nil, true
 }
 
@@ -359,7 +358,7 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	s.state.Researched[r.ID] = true
 	countAll(tx, "research_done", 1)
 	if spent := essencesIn(r.Cost); spent > 0 {
-		s.advance(tx, advEssenceResearch)
+		s.advance(tx, advancement.EssenceResearch)
 		countAll(tx, "essence_spent", int64(spent))
 	}
 	if strings.HasPrefix(r.ID, "project_") && r.ID != "project_dragon" {
@@ -367,7 +366,7 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 	}
 	if len(s.state.Researched) >= len(researchTree) {
 		for e := range tx.Players() {
-			account.Grant(e.(*player.Player), achAllResearch)
+			account.Grant(e.(*player.Player), achievement.AllResearch)
 		}
 	}
 	delete(s.state.ResearchPaid, r.ID)
@@ -389,8 +388,8 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 func (s *session) unlockNames(lang string, r *Research) string {
 	var names []string
 	for _, n := range r.Unlocks {
-		if it, ok := world.ItemByName(unlockName(n), 0); ok {
-			names = append(names, itemName(lang, item.NewStack(it, 1)))
+		if it, ok := world.ItemByName(naming.UnlockName(n), 0); ok {
+			names = append(names, naming.ItemName(lang, item.NewStack(it, 1)))
 		} else {
 			names = append(names, n)
 		}
@@ -401,15 +400,15 @@ func (s *session) unlockNames(lang string, r *Research) string {
 // researchIcon is a research's form icon: its first result.
 func researchIcon(r *Research) string {
 	if len(r.Unlocks) == 0 {
-		if it, ok := world.ItemByName(unlockName(r.Icon), 0); ok {
-			return iconOf(item.NewStack(it, 1))
+		if it, ok := world.ItemByName(naming.UnlockName(r.Icon), 0); ok {
+			return formicon.Of(item.NewStack(it, 1))
 		}
-		return iconMission
+		return formicon.Mission
 	}
-	if it, ok := world.ItemByName(unlockName(r.Unlocks[0]), 0); ok {
-		return iconOf(item.NewStack(it, 1))
+	if it, ok := world.ItemByName(naming.UnlockName(r.Unlocks[0]), 0); ok {
+		return formicon.Of(item.NewStack(it, 1))
 	}
-	return iconMission
+	return formicon.Mission
 }
 
 // showResearch shows the research screen.
@@ -539,8 +538,8 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	}
 	sp := ui.Split{
 		Tabs: []ui.Option{
-			tab("researchtab.todo", iconMission, 0),
-			tab("researchtab.done", iconDone, 1),
+			tab("researchtab.todo", formicon.Mission, 0),
+			tab("researchtab.done", formicon.Done, 1),
 		},
 		Slots: slots,
 		Page:  v.page, Pages: pages,
@@ -627,7 +626,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	case done:
 		d.Status = i18n.T(i18n.Of(p), "researchnode.complete")
 	case s.researchOpen(r):
-		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "researchnode.start"), iconMission, func(p *player.Player, tx *world.Tx) {
+		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "researchnode.start"), formicon.Mission, func(p *player.Player, tx *world.Tx) {
 			if r.isCopy() {
 				s.copiesDone[r.ID] = true
 				finished(p)
@@ -660,10 +659,10 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	// button comes back here; an item the codex does not know cannot be
 	// pressed.
 	toCodex := func(st item.Stack, tip string) ui.ItemSlot {
-		if _, ok := codexItemByKey(itemKey(st.Item())); !ok {
-			return ui.ItemSlot{Icon: iconOf(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.none")}
+		if _, ok := codexItemByKey(naming.ItemKey(st.Item())); !ok {
+			return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.none")}
 		}
-		return ui.ItemSlot{Icon: iconOf(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
+		return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.codexFrom(p, redo, st)
 			}
@@ -676,10 +675,10 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	for _, c := range r.Cost {
 		need := s.researchNeed(r, c)
 		st := item.NewStack(c.Item, 1)
-		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), itemName(i18n.Of(p), st), need)
+		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), naming.ItemName(i18n.Of(p), st), need)
 		switch {
 		case done:
-			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), itemName(i18n.Of(p), st), c.Count)
+			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), naming.ItemName(i18n.Of(p), st), c.Count)
 			need = c.Count
 		case p != nil:
 			have := countPlain(p.Inventory(), c.Item)
@@ -695,7 +694,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	// The recipes it opens.
 	var opens []ui.ItemSlot
 	for _, n := range r.Unlocks {
-		it, ok := world.ItemByName(unlockName(n), 0)
+		it, ok := world.ItemByName(naming.UnlockName(n), 0)
 		if !ok {
 			continue
 		}
@@ -725,16 +724,18 @@ func (ResearchTable) EncodeItem() (string, int16) { return "dragonfactory:resear
 func (ResearchTable) EncodeBlock() (string, map[string]any) {
 	return "dragonfactory:research_table", nil
 }
-func (ResearchTable) Hash() (uint64, uint64)             { return researchTableHash, 0 }
-func (ResearchTable) Model() world.BlockModel            { return model.Solid{} }
-func (ResearchTable) Name() string                       { return i18n.T(i18n.Default, "name.ResearchTable") }
-func (ResearchTable) Category() category.Category        { return category.Items() }
-func (ResearchTable) Properties() customblock.Properties { return cubeProperties("research_table") }
+func (ResearchTable) Hash() (uint64, uint64)      { return researchTableHash, 0 }
+func (ResearchTable) Model() world.BlockModel     { return model.Solid{} }
+func (ResearchTable) Name() string                { return i18n.T(i18n.Default, "name.ResearchTable") }
+func (ResearchTable) Category() category.Category { return category.Items() }
+func (ResearchTable) Properties() customblock.Properties {
+	return blockmodel.CubeProperties("research_table")
+}
 func (t ResearchTable) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 2.5, BlastResistance: 2.5,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   customBlockEffective,
+		Effective:   blockmodel.CustomBlockEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{item.NewStack(t, 1)} },
 	}
 }
@@ -792,16 +793,16 @@ func gameRecipes() {
 	cobble, planks, iron := block.Cobblestone{}, oakPlanks, item.IronIngot{}
 	// The hammers: two of the material and two sticks in a diagonal
 	// pattern, the stone hammer of cobblestone, the iron hammer of iron.
-	shaped(st(Hammer{Stone: true}), 3, 3,
+	shaped(st(dfitem.Hammer{Stone: true}), 3, 3,
 		nil, cobble, nil,
 		nil, stick, cobble,
 		stick, nil, nil)
-	shaped(st(Hammer{}), 3, 3,
+	shaped(st(dfitem.Hammer{}), 3, 3,
 		nil, iron, nil,
 		nil, stick, iron,
 		stick, nil, nil)
 	// The wooden bucket: three planks in a V, like the iron bucket.
-	shaped(st(WoodenBucket{}), 3, 2,
+	shaped(st(dfitem.WoodenBucket{}), 3, 2,
 		planks, nil, planks,
 		nil, planks, nil)
 	// The sieve: a row of planks on two stick legs. The mesh is made and
@@ -817,8 +818,8 @@ func gameRecipes() {
 	// redstone (energy), an iron nugget, a chest and an iron nugget (item) or
 	// glass (fluid).
 	// The better tiers wait for the ore design.
-	sand, gravel, binder := block.Sand{}, block.Gravel{}, ConduitBinder{}
-	shaped(item.NewStack(ConduitBinderMix{}, 6), 3, 3,
+	sand, gravel, binder := block.Sand{}, block.Gravel{}, dfitem.ConduitBinder{}
+	shaped(item.NewStack(dfitem.ConduitBinderMix{}, 6), 3, 3,
 		sand, gravel, sand,
 		gravel, sand, gravel,
 		sand, gravel, sand)
@@ -838,16 +839,16 @@ func gameRecipes() {
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
 	// The alloy smelter and the energy cell (docs/design/07-progression-expansion.md).
 	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindEnergyCell), n(Ingot{Metal: MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
+	add(machineItem(KindEnergyCell), n(dfitem.Ingot{Metal: dfitem.MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
 	add(machineItem(KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
-	add(machineItem(KindCrucible), n(Ingot{Metal: MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindLavaGenerator), n(Ingot{Metal: MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
-	add(machineItem(KindWasher), n(Ingot{Metal: MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
-	add(machineItem(KindGate), n(Ingot{Metal: MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
-	add(machineItem(KindStorageController), n(Ingot{Metal: MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(machineItem(KindCrucible), n(dfitem.Ingot{Metal: dfitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
+	add(machineItem(KindLavaGenerator), n(dfitem.Ingot{Metal: dfitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
+	add(machineItem(KindWasher), n(dfitem.Ingot{Metal: dfitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
+	add(machineItem(KindGate), n(dfitem.Ingot{Metal: dfitem.MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
+	add(machineItem(KindStorageController), n(dfitem.Ingot{Metal: dfitem.MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(item.NewStack(Machine{Kind: KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
-	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(Ingot{Metal: MetalBronze}, 2), n(block.CraftingTable{}, 1))
-	add(machineItem(KindSimulator), n(Ingot{Metal: MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
+	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(dfitem.Ingot{Metal: dfitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
+	add(machineItem(KindSimulator), n(dfitem.Ingot{Metal: dfitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// The dragon egg, the last project's prize (project.go).
 	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
 	// The automation equipment (docs/design/09-automation-equipment.md).
@@ -862,9 +863,9 @@ func gameRecipes() {
 		for _, kind := range []string{"energy", "item", "fluid"} {
 			below := conduitOf(kind, tier-1)
 			if tier == 2 {
-				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(Ingot{Metal: MetalElectrum}, 1))
+				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(dfitem.Ingot{Metal: dfitem.MetalElectrum}, 1))
 			} else {
-				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(Ingot{Metal: MetalSteel}, 1), n(item.Diamond{}, 1))
+				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(dfitem.Ingot{Metal: dfitem.MetalSteel}, 1), n(item.Diamond{}, 1))
 			}
 		}
 	}
@@ -874,29 +875,29 @@ func gameRecipes() {
 	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
 	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
 	// The machine tiers' circuits and kits (docs/design/13-machine-tiers.md §3).
-	steel, electrum := Ingot{Metal: MetalSteel}, Ingot{Metal: MetalElectrum}
-	infused, reinforced, atomic := TierAlloy{Kind: "infused"}, TierAlloy{Kind: "reinforced"}, TierAlloy{Kind: "atomic"}
-	c1, c2, c3, c4 := Circuit{Level: 1}, Circuit{Level: 2}, Circuit{Level: 3}, Circuit{Level: 4}
+	steel, electrum := dfitem.Ingot{Metal: dfitem.MetalSteel}, dfitem.Ingot{Metal: dfitem.MetalElectrum}
+	infused, reinforced, atomic := dfitem.TierAlloy{Kind: "infused"}, dfitem.TierAlloy{Kind: "reinforced"}, dfitem.TierAlloy{Kind: "atomic"}
+	c1, c2, c3, c4 := dfitem.Circuit{Level: 1}, dfitem.Circuit{Level: 2}, dfitem.Circuit{Level: 3}, dfitem.Circuit{Level: 4}
 	shaped(st(c1), 3, 1, redstone, infused, redstone)
 	shaped(st(c2), 3, 1, reinforced, c1, reinforced)
 	shaped(st(c3), 3, 1, atomic, c2, atomic)
 	shaped(st(c4), 3, 3,
 		atomic, item.NetheriteScrap{}, atomic,
-		ResearchEssence{Kind: EssenceHunting}, c3, ResearchEssence{Kind: EssenceMagic},
+		dfitem.ResearchEssence{Kind: dfitem.EssenceHunting}, c3, dfitem.ResearchEssence{Kind: dfitem.EssenceMagic},
 		atomic, nil, atomic)
-	shaped(st(TierKit{Level: 1}), 3, 3,
+	shaped(st(dfitem.TierKit{Level: 1}), 3, 3,
 		steel, c2, steel,
 		electrum, Machine{Kind: KindEnergyCell}, electrum,
 		steel, c2, steel)
-	shaped(st(TierKit{Level: 2}), 3, 3,
+	shaped(st(dfitem.TierKit{Level: 2}), 3, 3,
 		item.Diamond{}, c3, item.Diamond{},
-		reinforced, TierKit{Level: 1}, reinforced,
+		reinforced, dfitem.TierKit{Level: 1}, reinforced,
 		item.Diamond{}, c3, item.Diamond{})
-	shaped(st(TierKit{Level: 3}), 3, 3,
+	shaped(st(dfitem.TierKit{Level: 3}), 3, 3,
 		item.NetheriteIngot{}, c4, atomic,
-		atomic, TierKit{Level: 2}, atomic,
-		ResearchEssence{Kind: EssenceAlchemy}, c4, ResearchEssence{Kind: EssenceFarming})
-	shaped(st(ConfigCopier{}), 3, 3,
+		atomic, dfitem.TierKit{Level: 2}, atomic,
+		dfitem.ResearchEssence{Kind: dfitem.EssenceAlchemy}, c4, dfitem.ResearchEssence{Kind: dfitem.EssenceFarming})
+	shaped(st(dfitem.ConfigCopier{}), 3, 3,
 		steel, c2, steel,
 		infused, item.LapisLazuli{}, infused,
 		nil, item.Stick{}, nil)
@@ -915,16 +916,16 @@ func gameRecipes() {
 	add(st(Barrel{Wood: stoneWood}), n(block.Stone{}, 6), n(stick, 2))
 	// Hoppers: the wood hopper from planks and a chest; each hopper and its
 	// reverse turn into one another when crafted alone.
-	woodHopper, woodReverse := newFlowHopper("wood_hopper", cube.FaceDown), newFlowHopper("wood_hopper_reverse", cube.FaceUp)
-	ironReverse := newFlowHopper("iron_hopper_reverse", cube.FaceUp)
+	woodHopper, woodReverse := hopper.NewFlowHopper("wood_hopper", cube.FaceDown), hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp)
+	ironReverse := hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp)
 	add(st(woodHopper), n(planks, 5), n(block.NewChest(), 1))
 	add(st(woodReverse), n(woodHopper, 1))
 	add(st(woodHopper), n(woodReverse, 1))
 	add(st(ironReverse), n(block.NewHopper(), 1))
 	add(st(block.NewHopper()), n(ironReverse, 1))
-	add(st(DrawerKey{}), n(item.IronNugget{}, 4), n(stick, 1))
-	add(st(DrawerUpgrade{Kind: UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
-	add(st(DrawerUpgrade{Kind: UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))
+	add(st(dfitem.DrawerKey{}), n(item.IronNugget{}, 4), n(stick, 1))
+	add(st(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
+	add(st(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))
 	logRecipes(woodHopper)
 }
 
@@ -961,7 +962,7 @@ func logRecipes(woodHopper world.Item) {
 // from petals) and the blocks that take a colour.
 func dyeUnlocks() []string {
 	var out []string
-	for _, c := range petalColours {
+	for _, c := range dfitem.PetalColours {
 		for _, suffix := range []string{"dye", "stained_glass", "stained_glass_pane", "terracotta", "concrete_powder", "candle"} {
 			out = append(out, c+"_"+suffix)
 		}

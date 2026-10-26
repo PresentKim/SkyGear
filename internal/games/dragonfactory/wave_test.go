@@ -1,15 +1,18 @@
 package dragonfactory
 
 import (
-	"github.com/df-mc/dragonfly/server/entity"
 	"testing"
 	"time"
+
+	"github.com/df-mc/dragonfly/server/entity"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // monsterAt returns the live monsters of the wave.
@@ -82,7 +85,7 @@ func TestWaveFlow(t *testing.T) {
 		// hurt, then die
 		p.Teleport(mons[0].Position())
 		mons[0].Hurt(tx, 5, p)
-		if mons[0].Health() != monsterTable[MobZombie].health-5 {
+		if mons[0].Health() != monsterTable[dfitem.MobZombie].health-5 {
 			t.Errorf("health %v after a hit of 5", mons[0].Health())
 		}
 		for _, m := range mons {
@@ -94,7 +97,7 @@ func TestWaveFlow(t *testing.T) {
 		if s.state.GateTier != 1 || !s.canStartWave(2) {
 			t.Errorf("tier %d, level 2 open %v", s.state.GateTier, s.canStartWave(2))
 		}
-		if !s.advanced(advWave1) {
+		if !s.advanced(advancement.Wave1) {
 			t.Error("clearing level 1 did not do its advancement")
 		}
 	})
@@ -136,7 +139,7 @@ func TestWaveLevelsAreValid(t *testing.T) {
 			}
 		}
 	}
-	for _, mob := range mobKinds {
+	for _, mob := range dfitem.MobKinds {
 		if _, ok := monsterTypes[mob]; !ok {
 			t.Errorf("no entity type for %s", mob)
 		}
@@ -160,8 +163,8 @@ func TestSkeletonShoots(t *testing.T) {
 		s.wave = &waveState{level: 1, gate: gate, left: map[*world.EntityHandle]string{}, deadline: time.Now().Add(time.Hour)}
 		at := gate.Vec3Centre().Add(mgl64.Vec3{0, 0.5, 0})
 		p.Teleport(at.Add(mgl64.Vec3{8, 0, 0}))
-		hd := world.EntitySpawnOpts{Position: at}.New(monsterTypes[MobSkeleton], monsterConfig{mob: MobSkeleton})
-		s.wave.left[hd] = MobSkeleton
+		hd := world.EntitySpawnOpts{Position: at}.New(monsterTypes[dfitem.MobSkeleton], monsterConfig{mob: dfitem.MobSkeleton})
+		s.wave.left[hd] = dfitem.MobSkeleton
 		e := tx.AddEntity(hd)
 		m := e.(*Monster)
 		for range 60 {
@@ -176,7 +179,7 @@ func TestSkeletonShoots(t *testing.T) {
 		if arrows == 0 {
 			t.Error("the skeleton shot no arrow")
 		}
-		if dist := m.Position().Sub(p.Position()).Len(); dist < monsterTable[MobSkeleton].holdRange-1 {
+		if dist := m.Position().Sub(p.Position()).Len(); dist < monsterTable[dfitem.MobSkeleton].holdRange-1 {
 			t.Errorf("the skeleton walked up to %.1f blocks", dist)
 		}
 	})

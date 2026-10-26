@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // TestComposterLevels: the levels are at fixed counts (no chance): the
@@ -76,7 +77,7 @@ func TestComposterFillsToDirt(t *testing.T) {
 
 // TestBarkFiberIsPlantMatter: the bark fiber goes into the composter.
 func TestBarkFiberIsPlantMatter(t *testing.T) {
-	if !plantMatter(item.NewStack(BarkFiber{}, 1)) || !plantMatter(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)) {
+	if !plantMatter(item.NewStack(dfitem.BarkFiber{}, 1)) || !plantMatter(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)) {
 		t.Error("fibers or leaves are not plant matter")
 	}
 	if plantMatter(item.NewStack(item.Stick{}, 1)) || plantMatter(item.Stack{}) {
@@ -101,7 +102,7 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		tx.SetBlock(compPos, block.Composter{}, nil)
 		tx.SetBlock(barrelPos, Barrel{Wood: "oak"}, nil)
 		hopperAt(tx, compPos.Side(cube.FaceUp), item.NewStack(block.Leaves{Type: block.OakLeaves()}, 3))
-		hopperAt(tx, barrelPos.Side(cube.FaceUp), item.NewStack(BarkFiber{}, 2))
+		hopperAt(tx, barrelPos.Side(cube.FaceUp), item.NewStack(dfitem.BarkFiber{}, 2))
 	})
 	tick(s, 20*3)
 	s.world.Do(func(tx *world.Tx) {

@@ -2,11 +2,12 @@ package dragonfactory
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/waila"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/presentkim/dragonfactory/internal/itemio"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -17,6 +18,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Barrels (docs/design/02-dragonfactory.md §5) are the family of wooden
@@ -109,7 +113,7 @@ func barrelAccepts(wood string, st item.Stack) bool {
 			return false
 		}
 		for _, m := range stoneMelts {
-			if itemKey(st.Item()) == itemKey(m) {
+			if naming.ItemKey(st.Item()) == naming.ItemKey(m) {
 				return true
 			}
 		}
@@ -216,18 +220,18 @@ var woodNames = map[string]string{"oak": i18n.T(i18n.Default, "barrel.oak.name")
 // fills it ("content": compost, or water at the last stage; cobblestone and
 // lava in a stone barrel).
 func barrelMaterials(wood string, stage int) map[string]customblock.Material {
-	m := map[string]customblock.Material{"*": alphaMaterial("dragonfactory_barrel_" + wood)}
+	m := map[string]customblock.Material{"*": blockmodel.AlphaMaterial("dragonfactory_barrel_" + wood)}
 	liquid, filling := "water", "compost"
 	if wood == stoneWood {
 		liquid, filling = "lava", "cobble"
 	}
 	switch {
 	case stage == barrelWitch:
-		m["content"] = alphaMaterial("dragonfactory_barrel_witch_water")
+		m["content"] = blockmodel.AlphaMaterial("dragonfactory_barrel_witch_water")
 	case stage == barrelWater:
-		m["content"] = alphaMaterial("dragonfactory_barrel_" + liquid)
+		m["content"] = blockmodel.AlphaMaterial("dragonfactory_barrel_" + liquid)
 	case stage > 0:
-		m["content"] = alphaMaterial("dragonfactory_barrel_" + filling)
+		m["content"] = blockmodel.AlphaMaterial("dragonfactory_barrel_" + filling)
 	}
 	return m
 }
@@ -264,7 +268,7 @@ func (b Barrel) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 2, BlastResistance: 2,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   customBlockEffective,
+		Effective:   blockmodel.CustomBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			return []item.Stack{item.NewStack(Barrel{Wood: b.Wood}, 1)}
 		},
@@ -328,7 +332,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 	switch {
 	case rec != nil && rec.Witch:
 		if bk, ok := held.Item().(item.Bucket); ok && bk.Empty() {
-			filled := item.NewStack(WitchWaterBucket{}, 1)
+			filled := item.NewStack(dfitem.WitchWaterBucket{}, 1)
 			if held.Count() == 1 {
 				_, left := p.HeldItems()
 				p.SetHeldItems(filled, left)
@@ -343,7 +347,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		}
 		return true
 	case rec != nil && rec.Water:
-		if _, ok := held.Item().(Dust); ok {
+		if _, ok := held.Item().(dfitem.Dust); ok {
 			// Dust soaks into the water and makes a clay block (docs/design/02-dragonfactory.md).
 			ctx.SubtractFromCount(1)
 			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
@@ -419,7 +423,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 		s.storeState()
 		return true
 	}
-	if wb, ok := held.Item().(WoodenBucket); ok && !wb.Water {
+	if wb, ok := held.Item().(dfitem.WoodenBucket); ok && !wb.Water {
 		if rec != nil && rec.LavaMB > 0 {
 			p.SendTip(i18n.T(i18n.Of(p), "barrel.woodenNoLava"))
 		}
@@ -481,11 +485,11 @@ func emptyBucketFill(held item.Stack, lava bool) (filled item.Stack, fill world.
 			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1), block.Lava{}, true
 		}
 		return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1), block.Water{}, true
-	case WoodenBucket:
+	case dfitem.WoodenBucket:
 		if b.Water || lava {
 			return item.Stack{}, nil, false
 		}
-		return item.NewStack(WoodenBucket{Water: true}, 1), block.Water{}, true
+		return item.NewStack(dfitem.WoodenBucket{Water: true}, 1), block.Water{}, true
 	}
 	return item.Stack{}, nil, false
 }
@@ -504,11 +508,11 @@ func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stac
 				return BarrelRecord{Water: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
 			}
 		}
-	case WoodenBucket:
+	case dfitem.WoodenBucket:
 		if b.Water && !stone {
-			return BarrelRecord{Water: true}, item.NewStack(WoodenBucket{}, 1), block.Water{}, true
+			return BarrelRecord{Water: true}, item.NewStack(dfitem.WoodenBucket{}, 1), block.Water{}, true
 		}
-	case WitchWaterBucket:
+	case dfitem.WitchWaterBucket:
 		if !stone {
 			return BarrelRecord{Witch: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
 		}
@@ -524,7 +528,7 @@ func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack
 	if b.Wood == stoneWood {
 		return s.fillStoneBarrel(tx, pos, b, st, n)
 	}
-	if _, dust := st.Item().(Dust); dust {
+	if _, dust := st.Item().(dfitem.Dust); dust {
 		return s.soakDust(tx, pos, rec, st, n)
 	}
 	capacity := barrelCapacity(b.Wood)
@@ -743,11 +747,11 @@ func (s *session) barrelLiquid(lang string, pos cube.Pos) *waila.ItemLine {
 	case rec == nil:
 		return nil
 	case rec.Witch:
-		return liquidLine(lang, liquidWitchWater, bucket)
+		return dfitem.LiquidLine(lang, dfitem.LiquidWitchWater, bucket)
 	case rec.Water:
-		return liquidLine(lang, liquidWater, bucket)
+		return dfitem.LiquidLine(lang, dfitem.LiquidWater, bucket)
 	case rec.LavaMB > 0:
-		return liquidLine(lang, liquidLava, fmt.Sprintf(i18n.T(lang, "barrel.lines.tank"), rec.LavaMB, stoneLavaMax))
+		return dfitem.LiquidLine(lang, dfitem.LiquidLava, fmt.Sprintf(i18n.T(lang, "barrel.lines.tank"), rec.LavaMB, stoneLavaMax))
 	}
 	return nil
 }

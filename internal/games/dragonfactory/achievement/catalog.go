@@ -1,10 +1,10 @@
-package dragonfactory
+package achievement
 
-// counterCatalog is every counter achievement of the game: the key a
+// Counters is every counter achievement of the game: the key a
 // game action counts under, the group its achievements are listed in and
 // the counts they are granted at. The texts are in the catalog
 // (achievement.df_<key>_<count>.name|desc|title). See counter.go.
-var counterCatalog = []counterDef{
+var Counters = []CounterDef{
 	{"stick_dirt", "hand", []int64{1, 100, 1000, 10000}},
 	{"stick_grass", "hand", []int64{1, 100, 1000, 10000}},
 	{"hammer_stone", "hand", []int64{1, 100, 1000, 10000}},
@@ -185,9 +185,9 @@ var counterCatalog = []counterDef{
 	{"copier_conduit_all", "factory", []int64{1, 20, 100}},
 }
 
-// haveCatalog are the items whose first possession is an achievement
+// Haves are the items whose first possession is an achievement
 // (achievement.df_have_<short>.*).
-var haveCatalog = []haveDef{
+var Haves = []HaveDef{
 	{"minecraft:amethyst_shard", "amethyst_shard"},
 	{"minecraft:arrow", "arrow"},
 	{"minecraft:bone", "bone"},

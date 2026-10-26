@@ -2,8 +2,9 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -13,6 +14,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
 // Sieves work like the sieve of the Dorios' Basics add-on: a wooden frame
@@ -58,8 +63,8 @@ func lookValue(mesh, content, fill int) string {
 
 // meshLookOf is the look number of the mesh tier fitted (0: none).
 func meshLookOf(tier string) int {
-	for i, t := range meshTiers {
-		if t.tier == tier {
+	for i, t := range dfitem.MeshTiers {
+		if t.Tier == tier {
 			return i + 1
 		}
 	}
@@ -70,7 +75,7 @@ func meshLookOf(tier string) int {
 // with nothing on it (fill 1) and with each content at each fill.
 func sieveLooks() [][3]int {
 	var out [][3]int
-	for mesh := 1; mesh <= len(meshTiers); mesh++ {
+	for mesh := 1; mesh <= len(dfitem.MeshTiers); mesh++ {
 		out = append(out, [3]int{mesh, 0, 1})
 		for c := 1; c < len(sieveContents); c++ {
 			for fill := 1; fill <= sieveStages; fill++ {
@@ -87,12 +92,12 @@ var sieveContents = []struct {
 	name string
 	item world.Item
 }{
-	{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}, {"dragonfactory_dust", Dust{}},
+	{"none", nil}, {"gravel", block.Gravel{}}, {"sand", block.Sand{}}, {"dirt", block.Dirt{}}, {"dragonfactory_dust", dfitem.Dust{}},
 	{"red_sand", block.Sand{Red: true}}, {"soul_sand", block.SoulSand{}},
-	{"dragonfactory_crushed_deepslate", CrushedBlock{Kind: CrushedDeepslate}},
-	{"dragonfactory_crushed_netherrack", CrushedBlock{Kind: CrushedNetherrack}},
-	{"dragonfactory_crushed_blackstone", CrushedBlock{Kind: CrushedBlackstone}},
-	{"dragonfactory_crushed_end_stone", CrushedBlock{Kind: CrushedEndStone}},
+	{"dragonfactory_crushed_deepslate", dfitem.CrushedBlock{Kind: dfitem.CrushedDeepslate}},
+	{"dragonfactory_crushed_netherrack", dfitem.CrushedBlock{Kind: dfitem.CrushedNetherrack}},
+	{"dragonfactory_crushed_blackstone", dfitem.CrushedBlock{Kind: dfitem.CrushedBlackstone}},
+	{"dragonfactory_crushed_end_stone", dfitem.CrushedBlock{Kind: dfitem.CrushedEndStone}},
 }
 
 func sieveContentOf(it item.Stack) int {
@@ -100,7 +105,7 @@ func sieveContentOf(it item.Stack) int {
 		return 0
 	}
 	for i, c := range sieveContents[1:] {
-		if itemKey(c.item) == itemKey(it.Item()) {
+		if naming.ItemKey(c.item) == naming.ItemKey(it.Item()) {
 			return i + 1
 		}
 	}
@@ -112,7 +117,7 @@ func sieveContentOf(it item.Stack) int {
 func sieveMaterials(kind string, content, mesh int) map[string]customblock.Material {
 	meshTexture := "dragonfactory_sieve_nomesh"
 	if mesh > 0 {
-		meshTexture = "dragonfactory_sieve_mesh_" + meshTiers[mesh-1].tier
+		meshTexture = "dragonfactory_sieve_mesh_" + dfitem.MeshTiers[mesh-1].Tier
 	}
 	m := map[string]customblock.Material{
 		"*":    customblock.NewMaterial("dragonfactory_"+kind, customblock.AlphaTestRenderMethod()),
@@ -185,7 +190,7 @@ func showSieve(tx *world.Tx, pos cube.Pos, st *machineState) {
 // sieveDrops rolls the products of sifting one in.
 func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
 	var out []item.Stack
-	for _, d := range sieveTables[mesh][itemKey(in.Item())] {
+	for _, d := range sievetable.Tables[mesh][naming.ItemKey(in.Item())] {
 		// every item of the drop's stack is its own roll
 		n := 0
 		for range d.Item.Count() {
@@ -205,7 +210,7 @@ func sieveHolds(it item.Stack) bool {
 	if it.Empty() || !plain(it) {
 		return false
 	}
-	_, ok := sieveTables["string"][itemKey(it.Item())]
+	_, ok := sievetable.Tables["string"][naming.ItemKey(it.Item())]
 	return ok
 }
 
@@ -245,7 +250,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 	held, off := p.HeldItems()
 	group := sievesAround(tx, pos, st)
 	// Fitting and taking out a mesh work on the clicked sieve only.
-	if _, ok := held.Item().(Mesh); ok {
+	if _, ok := held.Item().(dfitem.Mesh); ok {
 		s.equipMesh(p, tx, pos, st, held, off)
 		return
 	}
@@ -392,7 +397,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
-	s.advance(tx, advSift)
+	s.advance(tx, advancement.Sift)
 	countAll(tx, "sift_mesh_"+st.mesh, 1)
 	drops := s.siftDrops(st, in)
 	for _, it := range drops {

@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Recipe locking (research.go, docs/tech/recipes.md): players on the island
@@ -25,12 +26,12 @@ func recipeKey(it world.Item) string {
 func (s *session) openResults() map[string]bool {
 	open := map[string]bool{}
 	for _, n := range baseUnlocks {
-		open[unlockName(n)] = true
+		open[naming.UnlockName(n)] = true
 	}
 	for i := range researchTree {
 		if r := &researchTree[i]; s.researched(r.ID) {
 			for _, n := range r.Unlocks {
-				open[unlockName(n)] = true
+				open[naming.UnlockName(n)] = true
 			}
 		}
 	}

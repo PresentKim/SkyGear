@@ -6,7 +6,7 @@
 
 - 제목 접두어·토큰은 `_waila:` / `__waila:`. 팩의 제목 위치 자르기(`'%.Ns' * $var_title_text`)는 접두어 길이에 맞춘다.
 - 리소스팩: `common/packs/waila/`(아이콘을 부제목에서 읽는 `df_subtitle_item_renderer` 포함).
-- `common/waila`: 제목 형식(`Format`), 보내기(`Show` — 바뀐 것만, 30초마다 다시; `Clear`), 도구 아이콘(`ToolsFor`: Dragonfly `BreakInfo` 로 효과 있는 도구와 최소 등급, 손에 든 것이 맞으면 `a`·필요한데 틀리면 `b`). 우리 블록은 어떤 도구로도 빨라지지 않아(`customBlockEffective`) 판정에 안 걸리므로 `look.go` `customTool` 이 어울리는 도구를 보인다(서랍·연구대·배럴 도끼, 기계 곡괭이, 들고 있으면 ✓; 11차 실기).
+- `common/waila`: 제목 형식(`Format`), 보내기(`Show` — 바뀐 것만, 30초마다 다시; `Clear`), 도구 아이콘(`ToolsFor`: Dragonfly `BreakInfo` 로 효과 있는 도구와 최소 등급, 손에 든 것이 맞으면 `a`·필요한데 틀리면 `b`). 우리 블록은 어떤 도구로도 빨라지지 않아(`blockmodel.CustomBlockEffective`) 판정에 안 걸리므로 `look.go` `customTool` 이 어울리는 도구를 보인다(서랍·연구대·배럴 도끼, 기계 곡괭이, 들고 있으면 ✓; 11차 실기).
   - 제목: `_waila:A:` + 도구 칸 10자(`aa,a;zz,z:`) + `§f이름` + `\n§7정보 줄…` + `__waila:anchor.top_middle__`. 출처 줄(드래곤팩토리/Minecraft)은 쓰지 않는다(11차 실기).
   - 부제목: `i` + 아이콘 칸 11자(아이템 런타임 ID × 65536 을 왼쪽에 `x` 로 채움, 빈 것은 `xxxxxxxxxx0`) + (보관 블록이면 칸들) + `e`. 숫자만 보내면 팩이 부제목을 문자열로 다루는 블록 상태 검사가 깨져 회색 칸과 "expected a string" 경고가 났다(11차 실기).
   - 팩이 칸을 꺼내는 법: 제목 팩토리가 주는 **변수** `$var_subtitle_text`(패널 글자도 모두 이 변수로 그린다)에서 `'%.11s'` 로 칸을 잘라 `x` 를 지우고, `property_bag` 의 `#item_id_aux` 에 넣는다. 11차 실기에서 아이콘·칸이 보이는 것을 확인했다(서랍·상자·화로·통).

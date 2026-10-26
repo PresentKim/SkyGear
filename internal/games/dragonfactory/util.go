@@ -2,10 +2,6 @@ package dragonfactory
 
 import (
 	_ "embed"
-	"encoding/json"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
@@ -21,81 +17,8 @@ type Requirement struct {
 
 var oakLog = block.Log{Wood: block.OakWood()}
 
-// itemKey identifies an item type: its name and metadata.
-func itemKey(it world.Item) string {
-	name, meta := it.EncodeItem()
-	return name + ":" + strconv.Itoa(int(meta))
-}
-
 // plain reports whether a stack is a plain item: no added NBT (custom
 // name, lore, values such as a time-limited item's expiry). Research,
 // machine recipes and prices ask for plain items; anything else is a
 // different item to them.
 func plain(st item.Stack) bool { return st.Comparable(item.NewStack(st.Item(), 1)) }
-
-// blockKey identifies a block: its name without the namespace and any
-// state (log axis, facing, ...).
-func blockKey(b world.Block) string {
-	name, _ := b.EncodeBlock()
-	name = strings.TrimPrefix(name, "minecraft:")
-	return strings.TrimPrefix(name, "flowing_")
-}
-
-// blockName is the name of a block in lang.
-func blockName(lang string, b world.Block) string {
-	k := blockKey(b)
-	if n, ok := vanillaName(lang, k); ok {
-		return n
-	}
-	if n, ok := packName(lang, "tile."+k+".name"); ok {
-		return n
-	}
-	return k
-}
-
-//go:embed vanillakeys.json
-var vanillaKeysJSON []byte
-
-// vanillaKeys name the vanilla blocks whose key is not "tile.<id>.name": the
-// client names modern IDs such as oak_planks by legacy keys
-// ("tile.planks.oak.name"). Generated from the official texts by
-// tools/vanillakeys (docs/tech/i18n.md).
-var vanillaKeys = func() map[string]string {
-	m := map[string]string{}
-	if err := json.Unmarshal(vanillaKeysJSON, &m); err != nil {
-		panic(err)
-	}
-	return m
-}()
-
-// blockNameKey is the client translation key of a block's name: the client
-// shows it in its own language, from its vanilla texts or the pack's
-// texts/*.lang for our blocks ("tile.dragonfactory:sieve.name").
-func blockNameKey(b world.Block) string {
-	name, _ := b.EncodeBlock()
-	name = strings.TrimPrefix(strings.TrimPrefix(name, "minecraft:"), "flowing_")
-	if key, ok := vanillaKeys[name]; ok {
-		return key
-	}
-	return "tile." + name + ".name"
-}
-
-// formatInt formats a number with thousands separators, e.g. 12,400.
-func formatInt(v int64) string {
-	s := fmt.Sprint(v)
-	neg := v < 0
-	if neg {
-		s = s[1:]
-	}
-	var out []byte
-	for i := range s {
-		if i > 0 && (len(s)-i)%3 == 0 {
-			out = append(out, ',')
-		}
-		out = append(out, s[i])
-	}
-	if neg {
-		return "-" + string(out)
-	}
-	return string(out)
-}

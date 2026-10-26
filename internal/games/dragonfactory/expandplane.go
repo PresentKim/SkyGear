@@ -8,6 +8,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Island expansion as a DDUI screen (ui.PlaneMenu) for the players who see
@@ -53,8 +55,8 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 	info := s.chunkLabel(lang, t, buyable) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks))
 	var actions []ui.Option
 	if slices.Contains(buyable, t) {
-		info += "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		info += "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
+		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), formicon.Island, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, t)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
@@ -67,7 +69,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			s.stopExpand(p, tx)
 		}
 	}
-	actions = append(actions, s.opt(i18n.T(lang, "expand.menu.stop"), iconBack, leave))
+	actions = append(actions, s.opt(i18n.T(lang, "expand.menu.stop"), formicon.Back, leave))
 	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: info, Actions: actions, Close: leave})
 }
 

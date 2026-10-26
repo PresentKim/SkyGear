@@ -12,6 +12,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -55,7 +56,7 @@ func veinNeighbours(diagonal bool) []cube.Pos {
 func veinBlocks(tx *world.Tx, start cube.Pos, limit int, diagonal bool, canBuild func(cube.Pos) bool) []cube.Pos {
 	b := tx.Block(start)
 	it, ok := b.(world.Item)
-	if _, crushable := hammerDrop(b); !ok || !crushable {
+	if _, crushable := dfitem.HammerDrop(b); !ok || !crushable {
 		return nil
 	}
 	name, meta := it.EncodeItem()
@@ -143,7 +144,7 @@ func (s *session) payVeinFood(p *player.Player, n int) {
 // drops together at pos.
 func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	held, _ := p.HeldItems()
-	if !isIronHammer(held) || !p.Sneaking() {
+	if !dfitem.IsIronHammer(held) || !p.Sneaking() {
 		return
 	}
 	// the preview goes first, or its glass would stay where blocks were
@@ -168,7 +169,7 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 			break
 		}
 		b := tx.Block(at)
-		drop, ok := hammerDrop(b)
+		drop, ok := dfitem.HammerDrop(b)
 		if !ok {
 			continue
 		}
@@ -221,7 +222,7 @@ type veinOutline struct {
 // showVeinOutline shows p, sneaking with the iron hammer, the blocks it
 // would break mining the block at pos (hiding them otherwise).
 func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if held, _ := p.HeldItems(); !isIronHammer(held) || !p.Sneaking() || !s.canBuild(pos) {
+	if held, _ := p.HeldItems(); !dfitem.IsIronHammer(held) || !p.Sneaking() || !s.canBuild(pos) {
 		s.hideVeinOutline(p)
 		return
 	}

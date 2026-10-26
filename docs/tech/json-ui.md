@@ -25,7 +25,7 @@
   - 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`) + 글자. 아이콘은 두 가지:
   - `textures/...` 로 시작하는 텍스처 경로: 이미지로 그린다(메뉴 항목 등 아이템이 아닌 것).
-  - **아이템**: `ui.ItemIcon`(`dragonfactory.iconOf`)이 아이템 런타임 ID × 65536 을 숫자 문자열로 넣는다. 테마의 `button_icon_item`(`inventory_item_renderer`)이
+  - **아이템**: `ui.ItemIcon`(`formicon.Of`)이 아이템 런타임 ID × 65536 을 숫자 문자열로 넣는다. 테마의 `button_icon_item`(`inventory_item_renderer`)이
     그 값을 `(#form_button_texture - 0)` 으로 숫자로 바꿔 `#item_id_aux` 로 받아 인벤토리 칸처럼 아이템을 직접 그린다(식에는 `%` 연산자가 없다). 블록은 블록 모양 그대로, 아이콘 텍스처 경로를 따로 관리할 필요가 없다(빠진 경로 때문에 아이콘이 안 보이던 문제 해결).
     패키지 변수 초기화 때 만들면 안 된다: 아이템 등록(`init`) 전이라 런타임 ID 가 없어 빈 아이콘이 된다. 폼을 만들 때 계산한다.
     방식은 Chest-UI 와 같고, `#item_id_aux` = ID × 65536 + 데이터값은 바닐라 `inventory_screen.json`·bedrock-wiki 표와 같다. 데이터값(메타)은 쓰지 않는다.

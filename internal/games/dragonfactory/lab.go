@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // The laboratory (docs/design/11-research-essences.md): it brews a research
@@ -17,68 +17,13 @@ import (
 // paced by the recipe, not the machine, so the machine keeps the length of
 // the cycle it is on in machineState.period.
 
-// LabIngredient is an item with the count a recipe takes.
-type LabIngredient struct {
-	Item  world.Item
-	Count int
-}
-
-// LabRecipe is one recipe of the laboratory.
-type LabRecipe struct {
-	// Out is the essence made, OutCount how many at once.
-	Out      ResearchEssence
-	OutCount int
-	// In are the ingredients, the glass bottle among them.
-	In []LabIngredient
-	// Ticks is how long a cycle takes.
-	Ticks int
-}
-
 // labCheckEvery is how many ticks of a cycle pass between two looks at the
 // input slots.
 const labCheckEvery = 10
 
-// labBottle is the glass bottle every recipe uses one of.
-var labBottle = LabIngredient{item.GlassBottle{}, 1}
-
-// labRecipes are the recipes, drafts (open-questions.md).
-var labRecipes = []LabRecipe{
-	{Out: ResearchEssence{EssenceEngineering}, OutCount: 2, Ticks: 160, In: []LabIngredient{
-		labBottle, {item.IronIngot{}, 1}, {item.RedstoneWire{}, 2}}},
-	{Out: ResearchEssence{EssenceAlchemy}, OutCount: 1, Ticks: 240, In: []LabIngredient{
-		labBottle, {Ingot{Metal: MetalBronze}, 1}, {Ingot{Metal: MetalInvar}, 1}}},
-	{Out: ResearchEssence{EssenceFarming}, OutCount: 1, Ticks: 240, In: []LabIngredient{
-		labBottle, {item.Wheat{}, 1}, {block.Carrot{}, 1}, {block.Potato{}, 1}, {item.Beetroot{}, 1}, {block.Pumpkin{}, 1}, {item.MelonSlice{}, 1}}},
-	{Out: ResearchEssence{EssenceHunting}, OutCount: 1, Ticks: 320, In: []LabIngredient{
-		labBottle, {item.Gunpowder{}, 2}, {item.Bone{}, 2}, {item.Slimeball{}, 1}, {item.SpiderEye{}, 1}}},
-	{Out: ResearchEssence{EssenceMagic}, OutCount: 1, Ticks: 320, In: []LabIngredient{
-		labBottle, {Petal{Colour: "red"}, 1}, {Petal{Colour: "yellow"}, 1}, {Petal{Colour: "blue"}, 1}, {item.LapisLazuli{}, 1}, {item.AmethystShard{}, 1}}},
-}
-
-// labByKind is the recipe of the essence of a kind, nil if there is none.
-func labByKind(kind string) *LabRecipe {
-	for i := range labRecipes {
-		if labRecipes[i].Out.Kind == kind {
-			return &labRecipes[i]
-		}
-	}
-	return nil
-}
-
-// ingredient is the ingredient of the recipe that the item is, if it is one.
-func (r *LabRecipe) ingredient(it item.Stack) (LabIngredient, bool) {
-	k := itemKey(it.Item())
-	for _, in := range r.In {
-		if itemKey(in.Item) == k {
-			return in, true
-		}
-	}
-	return LabIngredient{}, false
-}
-
 // setLab makes the laboratory brew r (nil: nothing), from the start of a
 // cycle.
-func (st *machineState) setLab(r *LabRecipe) {
+func (st *machineState) setLab(r *machinerecipe.Lab) {
 	st.lab, st.recipeID, st.progress, st.period = r, "", 0, 0
 	if r != nil {
 		st.recipeID, st.period = r.Out.Kind, r.Ticks
@@ -91,7 +36,7 @@ func (st *machineState) labAccepts(it item.Stack) bool {
 	if st.lab == nil {
 		return false
 	}
-	_, ok := st.lab.ingredient(it)
+	_, ok := st.lab.Ingredient(it)
 	return ok
 }
 
@@ -103,7 +48,7 @@ const labFeedCycles = 8
 // what the recipe takes of it for labFeedCycles cycles. A feed of one
 // ingredient cannot fill the nine slots and crowd the others out.
 func (st *machineState) labFeedCap(it item.Stack) int {
-	in, _ := st.lab.ingredient(it)
+	in, _ := st.lab.Ingredient(it)
 	return max(1, in.Count) * labFeedCycles
 }
 
@@ -118,41 +63,30 @@ func (st *machineState) labHave() map[string]int {
 	have := map[string]int{}
 	for _, slot := range st.kind.input {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
-			have[itemKey(it.Item())] += it.Count()
+			have[naming.ItemKey(it.Item())] += it.Count()
 		}
 	}
 	return have
 }
 
-// labMissing lists what a recipe still lacks of the ingredients.
-func labMissing(r *LabRecipe, have map[string]int) []LabIngredient {
-	var missing []LabIngredient
-	for _, in := range r.In {
-		if short := in.Count - have[itemKey(in.Item)]; short > 0 {
-			missing = append(missing, LabIngredient{in.Item, short})
-		}
-	}
-	return missing
-}
-
 // labClosest is the recipe the input slots are closest to: the one with the
 // most of its ingredients started, none if no ingredient is in them. A
 // laboratory saved before it was chosen on its screen brews this one.
-func (st *machineState) labClosest() (*LabRecipe, []LabIngredient) {
+func (st *machineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingredient) {
 	have := st.labHave()
-	var best *LabRecipe
-	var bestMissing []LabIngredient
+	var best *machinerecipe.Lab
+	var bestMissing []machinerecipe.Ingredient
 	bestHave := 0
-	for i := range labRecipes {
-		r := &labRecipes[i]
+	for i := range machinerecipe.Labs {
+		r := &machinerecipe.Labs[i]
 		got := 0
 		for _, in := range r.In {
-			if have[itemKey(in.Item)] > 0 {
+			if have[naming.ItemKey(in.Item)] > 0 {
 				got++
 			}
 		}
 		if got > bestHave {
-			best, bestMissing, bestHave = r, labMissing(r, have), got
+			best, bestMissing, bestHave = r, machinerecipe.LabMissing(r, have), got
 		}
 	}
 	return best, bestMissing
@@ -175,7 +109,7 @@ func (st *machineState) runLab() {
 		st.tickWork()
 		return
 	}
-	if len(labMissing(r, st.labHave())) > 0 {
+	if len(machinerecipe.LabMissing(r, st.labHave())) > 0 {
 		st.progress = 0
 		return
 	}
@@ -194,7 +128,7 @@ func (st *machineState) runLab() {
 			if left == 0 {
 				break
 			}
-			if cur.Empty() || itemKey(cur.Item()) != itemKey(in.Item) {
+			if cur.Empty() || naming.ItemKey(cur.Item()) != naming.ItemKey(in.Item) {
 				continue
 			}
 			take := min(left, cur.Count())
@@ -214,27 +148,14 @@ func labLines(lang string, st *machineState) []string {
 	if r == nil {
 		return []string{i18n.T(lang, "lab.none")}
 	}
-	lines := []string{"§f" + itemName(lang, item.NewStack(r.Out, r.OutCount))}
-	if missing := labMissing(r, st.labHave()); len(missing) > 0 {
+	lines := []string{"§f" + naming.ItemName(lang, item.NewStack(r.Out, r.OutCount))}
+	if missing := machinerecipe.LabMissing(r, st.labHave()); len(missing) > 0 {
 		var parts []string
 		for _, m := range missing {
-			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(lang, item.NewStack(m.Item, 1)), m.Count))
+			parts = append(parts, fmt.Sprintf("%s ×%d", naming.ItemName(lang, item.NewStack(m.Item, 1)), m.Count))
 		}
 		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), strings.Join(parts, ", ")))
 	}
 	lines = append(lines, consumerLines(lang, st)...)
 	return append(lines, blockedLines(lang, st)...)
-}
-
-// labIngredientsText lists the ingredients of a recipe in one line.
-func labIngredientsText(lang string, r *LabRecipe) string {
-	var parts []string
-	for _, in := range r.In {
-		if in.Count > 1 {
-			parts = append(parts, fmt.Sprintf("%s ×%d", itemName(lang, item.NewStack(in.Item, 1)), in.Count))
-		} else {
-			parts = append(parts, itemName(lang, item.NewStack(in.Item, 1)))
-		}
-	}
-	return strings.Join(parts, ", ")
 }

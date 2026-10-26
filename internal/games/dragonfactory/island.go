@@ -2,9 +2,10 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"math"
 	"slices"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -15,6 +16,10 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // VoidReturnY is the height players are put at above the nearest block when
@@ -43,14 +48,14 @@ func chunkCost(n int) Requirement {
 
 // costText describes a cost, e.g. "조약돌 128개".
 func costText(lang string, r Requirement) string {
-	return fmt.Sprintf(i18n.T(lang, "island.chunk.cost"), itemName(lang, item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
+	return fmt.Sprintf(i18n.T(lang, "island.chunk.cost"), naming.ItemName(lang, item.NewStack(r.Item, 1)), textfmt.Int(int64(r.Count)))
 }
 
 // countPlain counts the plain items of it in an inventory.
 func countPlain(inv *inventory.Inventory, it world.Item) int {
-	n, key := 0, itemKey(it)
+	n, key := 0, naming.ItemKey(it)
 	for _, st := range inv.Slots() {
-		if !st.Empty() && plain(st) && itemKey(st.Item()) == key {
+		if !st.Empty() && plain(st) && naming.ItemKey(st.Item()) == key {
 			n += st.Count()
 		}
 	}
@@ -63,12 +68,12 @@ func takePlain(inv *inventory.Inventory, it world.Item, count int) bool {
 	if countPlain(inv, it) < count {
 		return false
 	}
-	key := itemKey(it)
+	key := naming.ItemKey(it)
 	for slot, st := range inv.Slots() {
 		if count == 0 {
 			break
 		}
-		if st.Empty() || !plain(st) || itemKey(st.Item()) != key {
+		if st.Empty() || !plain(st) || naming.ItemKey(st.Item()) != key {
 			continue
 		}
 		n := min(count, st.Count())
@@ -113,16 +118,16 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	s.state.Chunks = append(s.state.Chunks, c)
 	count(p, "chunk_buy", 1)
 	if len(s.state.Chunks) >= 10 {
-		account.Grant(p, achChunks)
+		account.Grant(p, achievement.Chunks10)
 	}
 	s.keepLoaded(tx, c)
 	s.storeState()
-	s.advance(tx, advChunk)
+	s.advance(tx, advancement.Chunk)
 	if len(s.state.Chunks) >= 8 {
-		s.advance(tx, advChunks8)
+		s.advance(tx, advancement.Chunks8)
 	}
 	if len(s.state.Chunks) >= 16 {
-		s.advance(tx, advChunks16)
+		s.advance(tx, advancement.Chunks16)
 	}
 	s.broadcast(tx, "island.chunk.bought", p.Name(), c[0], c[1], len(s.state.Chunks))
 }

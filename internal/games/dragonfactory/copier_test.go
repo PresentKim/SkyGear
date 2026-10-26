@@ -9,6 +9,9 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
@@ -28,7 +31,7 @@ func chestWithBundle(tx *world.Tx, pos cube.Pos, mode itemnet.Mode, extract, ins
 // TestCopierCardOnItem: the settings live on the item and survive its NBT.
 func TestCopierCardOnItem(t *testing.T) {
 	c := &configCard{Kind: cardSide, Side: 4, Sides: []*conduitCard{{Mode: int(itemnet.Input), Extract: 5, Insert: 9}}}
-	st := withCard(item.NewStack(ConfigCopier{}, 1), c, "ko")
+	st := withCard(item.NewStack(dfitem.ConfigCopier{}, 1), c, "ko")
 	back, ok := cardOf(st)
 	if !ok || back.Kind != cardSide || back.Sides[0].Extract != 5 || back.Sides[0].Insert != 9 {
 		t.Fatalf("card back: %+v %v", back, ok)
@@ -125,7 +128,7 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 	s.recipesFree = true
 	crafterA := placeTestMachine(s, machinePos, KindCrafter, "")
 	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), KindCrafter, "")
-	cr := crafterRecipes()[0]
+	cr := machinerecipe.Crafters()[0]
 	crafterA.setRecipe(cr)
 	s.world.Do(func(tx *world.Tx) {
 		src, ok := targetOf(tx, machinePos, cube.FaceNorth, mgl64Centre())
@@ -137,8 +140,8 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 			t.Fatal("no recipe read")
 		}
 		dst, _ := targetOf(tx, machinePos.Add(cube.Pos{0, 0, 3}), cube.FaceNorth, mgl64Centre())
-		if !s.pasteCard(tx, dst, *card) || crafterB.recipeID != cr.id {
-			t.Fatalf("recipe %q, want %q", crafterB.recipeID, cr.id)
+		if !s.pasteCard(tx, dst, *card) || crafterB.recipeID != cr.ID {
+			t.Fatalf("recipe %q, want %q", crafterB.recipeID, cr.ID)
 		}
 		// an auto crafter with no recipe has nothing to copy
 		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), KindCrafter, "")
@@ -161,7 +164,7 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 		if !s.pasteCard(tx, to, *dcard) {
 			t.Fatal("not pasted on the empty drawer")
 		}
-		if got := tx.Block(d2).(Drawer); !got.Locked || itemKey(got.Item.Item()) != itemKey(block.Dirt{}) {
+		if got := tx.Block(d2).(Drawer); !got.Locked || naming.ItemKey(got.Item.Item()) != naming.ItemKey(block.Dirt{}) {
 			t.Fatalf("empty drawer after pasting: %+v", got)
 		}
 		other, _ := targetOf(tx, d3, cube.FaceNorth, mgl64Centre())
@@ -180,7 +183,7 @@ func TestCopierHandler(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		a := chestWithBundle(tx, machinePos, itemnet.Input, 5, 9)
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
-		p.SetHeldItems(item.NewStack(ConfigCopier{}, 1), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.ConfigCopier{}, 1), item.Stack{})
 		held, off := p.HeldItems()
 		s.useCopier(p, tx, a, cube.FaceWest, mgl64Centre(), held, off)
 		held, _ = p.HeldItems()

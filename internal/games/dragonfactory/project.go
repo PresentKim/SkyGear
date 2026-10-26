@@ -10,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
 // The projects (docs/design/10-user-flow.md §5): the long goal of the game.
@@ -19,29 +21,19 @@ import (
 // the Dragon Factory. They are researches whose cost is the goal, so the
 // research screen, the paying and the sharing of the island come for free.
 
-// Achievements of the account that the game's milestones give; they open
-// titles and, by their number, name colours (docs/design/01-platform.md §5).
-const (
-	achWave1  = "df_wave_1"
-	achWave8  = "df_wave_8"
-	achTinker = "df_tinker"
-	achBloom  = "df_bloom"
-	achDragon = "df_dragon"
-)
-
 // advAchievements gives an account achievement to everyone on the island when
 // an advancement is done.
 var advAchievements = map[string]string{
-	advWave1:    achWave1,
-	advWave8:    achWave8,
-	advToolMade: achTinker,
-	advBloom:    achBloom,
-	advDragon:   achDragon,
+	advancement.Wave1:    achievement.Wave1,
+	advancement.Wave8:    achievement.Wave8,
+	advancement.ToolMade: achievement.Tinker,
+	advancement.Bloom:    achievement.Bloom,
+	advancement.Dragon:   achievement.Dragon,
 }
 
 func init() {
-	ach := func(id, group string) account.Achievement { return account.Keyed(id, achievementGroup(group)) }
-	account.Register(ach(achWave1, "combat"), ach(achWave8, "combat"), ach(achTinker, "gear"), ach(achBloom, "farm"), ach(achDragon, "progress"))
+	ach := func(id, group string) account.Achievement { return account.Keyed(id, achievement.Group(group)) }
+	account.Register(ach(achievement.Wave1, "combat"), ach(achievement.Wave8, "combat"), ach(achievement.Tinker, "gear"), ach(achievement.Bloom, "farm"), ach(achievement.Dragon, "progress"))
 }
 
 // grantAdvancementAchievements gives the achievements of advancements just done.
@@ -60,10 +52,10 @@ func (s *session) grantAdvancementAchievements(tx *world.Tx, ids []string) {
 // completeDragon is the end of the game: the dragon egg is placed. The
 // advancement is the record; the island celebrates.
 func (s *session) completeDragon(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if s.advanced(advDragon) {
+	if s.advanced(advancement.Dragon) {
 		return
 	}
-	s.advance(tx, advDragon)
+	s.advance(tx, advancement.Dragon)
 	s.broadcast(tx, "project.dragon.done", p.Name())
 	c := pos.Vec3Centre()
 	for range 24 {

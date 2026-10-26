@@ -3,7 +3,6 @@ package dragonfactory
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
@@ -13,6 +12,9 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/perf"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §16): day
@@ -25,11 +27,11 @@ func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
 	lang := i18n.Of(p)
 	var b hud.Board
-	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "sidebar.day"), day, formatPlayTime(lang, total)))
+	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "sidebar.day"), day, textfmt.PlayTime(lang, total)))
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
-	if _, expanding := s.expansionOf(p); !expanding && account.On(p, settingQuestPanel) {
+	if _, expanding := s.expansionOf(p); !expanding && account.On(p, advancement.SettingQuestPanel) {
 		title, rows := s.questRows(lang, p.Inventory())
 		b.Add(hud.QuestTitle, title)
 		for _, r := range rows {
@@ -88,7 +90,7 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inventory) []string {
 	var rows []string
 	for _, c := range r.Cost {
-		name, need := itemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)
+		name, need := naming.ItemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)
 		if inv == nil {
 			rows = append(rows, fmt.Sprintf("§f%s §e×%d", name, need))
 			continue
@@ -100,15 +102,6 @@ func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inve
 		rows = append(rows, fmt.Sprintf("§f%s %s%d§7/%d", name, colour, have, need))
 	}
 	return rows
-}
-
-// formatPlayTime formats the total instance time in whole minutes in lang.
-func formatPlayTime(lang string, d time.Duration) string {
-	m := int(d / time.Minute)
-	if m < 60 {
-		return fmt.Sprintf(i18n.T(lang, "sidebar.time.min"), m)
-	}
-	return fmt.Sprintf(i18n.T(lang, "sidebar.time.hourMin"), m/60, m%60)
 }
 
 // isOperator reports whether p sees the operator tools.

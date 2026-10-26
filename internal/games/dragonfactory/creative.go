@@ -7,6 +7,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
 )
 
 // Creative inventory entries of the game's own items and blocks. The client
@@ -53,66 +55,66 @@ func registerCreativeItems() {
 				add(construction, Machine{Kind: k})
 			}
 		}
-		add(construction, Dust{})
-		for _, k := range crushedKinds {
-			add(construction, CrushedBlock{Kind: k})
+		add(construction, dfitem.Dust{})
+		for _, k := range dfitem.CrushedKinds {
+			add(construction, dfitem.CrushedBlock{Kind: k})
 		}
-		for _, id := range hopperOrder {
-			add(construction, newFlowHopper(id, cube.FaceDown))
+		for _, id := range hopper.HopperOrder {
+			add(construction, hopper.NewFlowHopper(id, cube.FaceDown))
 		}
-		add(equipment, Hammer{Stone: true})
-		add(equipment, Hammer{})
-		add(items, WoodenBucket{})
-		add(items, WoodenBucket{Water: true})
-		add(equipment, DrawerKey{})
-		add(items, DrawerUpgrade{Kind: UpgradeCapacity})
-		add(items, DrawerUpgrade{Kind: UpgradeVoid})
-		add(items, BarkFiber{})
-		add(items, FairyDust{})
-		add(items, FairyEmerald{})
+		add(equipment, dfitem.Hammer{Stone: true})
+		add(equipment, dfitem.Hammer{})
+		add(items, dfitem.WoodenBucket{})
+		add(items, dfitem.WoodenBucket{Water: true})
+		add(equipment, dfitem.DrawerKey{})
+		add(items, dfitem.DrawerUpgrade{Kind: dfitem.UpgradeCapacity})
+		add(items, dfitem.DrawerUpgrade{Kind: dfitem.UpgradeVoid})
+		add(items, dfitem.BarkFiber{})
+		add(items, dfitem.FairyDust{})
+		add(items, dfitem.FairyEmerald{})
 		add(equipment, FairyBoard{})
-		add(items, GrassSeeds{})
-		add(items, MyceliumSpores{})
-		add(items, WitchWaterBucket{})
-		add(items, ConduitBinderMix{})
-		add(items, ConduitBinder{})
-		for _, t := range meshTiers {
-			add(items, Mesh{Tier: t.tier})
+		add(items, dfitem.GrassSeeds{})
+		add(items, dfitem.MyceliumSpores{})
+		add(items, dfitem.WitchWaterBucket{})
+		add(items, dfitem.ConduitBinderMix{})
+		add(items, dfitem.ConduitBinder{})
+		for _, t := range dfitem.MeshTiers {
+			add(items, dfitem.Mesh{Tier: t.Tier})
 		}
-		for _, k := range oreKinds {
-			add(items, OreChunk{Ore: k.ore})
+		for _, k := range dfitem.OreKinds {
+			add(items, dfitem.OreChunk{Ore: k.Ore})
 		}
-		for _, m := range newOreMetals {
-			add(construction, OreBlock{Metal: m})
-			add(items, RawOre{Metal: m})
+		for _, m := range dfitem.NewOreMetals {
+			add(construction, dfitem.OreBlock{Metal: m})
+			add(items, dfitem.RawOre{Metal: m})
 		}
-		for _, k := range pebbleKinds {
-			add(items, Pebble{Kind: k.kind})
+		for _, k := range dfitem.PebbleKinds {
+			add(items, dfitem.Pebble{Kind: k.Kind})
 		}
-		for _, c := range petalColours {
-			add(items, Petal{Colour: c})
+		for _, c := range dfitem.PetalColours {
+			add(items, dfitem.Petal{Colour: c})
 		}
 		for _, sd := range plantSeeds {
 			add(items, PlantSeed{Seed: sd})
 		}
-		for _, m := range mobKinds {
-			add(items, Essence{Mob: m})
+		for _, m := range dfitem.MobKinds {
+			add(items, dfitem.Essence{Mob: m})
 		}
-		for _, m := range dustMetals {
-			add(items, MetalDust{Metal: m})
+		for _, m := range dfitem.DustMetals {
+			add(items, dfitem.MetalDust{Metal: m})
 		}
-		for _, m := range ingotMetals {
-			add(items, Ingot{Metal: m})
+		for _, m := range dfitem.IngotMetals {
+			add(items, dfitem.Ingot{Metal: m})
 		}
-		for _, a := range tierAlloys {
-			add(items, TierAlloy{Kind: a})
+		for _, a := range dfitem.TierAlloys {
+			add(items, dfitem.TierAlloy{Kind: a})
 		}
 		for l := 1; l <= 4; l++ {
-			add(items, Circuit{Level: l})
+			add(items, dfitem.Circuit{Level: l})
 		}
 		for l := 1; l <= maxTier; l++ {
-			add(items, TierKit{Level: l})
+			add(items, dfitem.TierKit{Level: l})
 		}
-		add(equipment, ConfigCopier{})
+		add(equipment, dfitem.ConfigCopier{})
 	})
 }

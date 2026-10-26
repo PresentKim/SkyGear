@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
 )
 
 // TestFirstResearchGrantsAchievement: completing a research earns the
@@ -28,7 +29,7 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
 		s.doResearch(p, tx, sticks)
-		if got := account.Owned(p.UUID().String()); !slices.Contains(got, achResearch) {
+		if got := account.Owned(p.UUID().String()); !slices.Contains(got, achievement.FirstResearch) {
 			t.Fatalf("achievements %v", got)
 		}
 	})

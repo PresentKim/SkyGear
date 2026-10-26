@@ -11,6 +11,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
 func TestCostRowsCountTheInventory(t *testing.T) {
@@ -40,8 +41,8 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		if title, rows := s.questRows(i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
-		rt, _ := advancementByID("research_table")
-		for _, a := range advancementWithAncestors(rt) {
+		rt, _ := advancement.ByID("research_table")
+		for _, a := range advancement.WithAncestors(rt) {
 			s.advance(tx, a.ID)
 		}
 		title, rows := s.questRows(i18n.Default, nil)
@@ -51,11 +52,11 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
 		s.doResearch(p, tx, sticks)
-		s.checkAdvancementsHeld(tx, inventoryNames(tx))
+		s.checkAdvancementsHeld(tx, advancement.InventoryNames(tx))
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)
 		}
-		for _, a := range advancementTree {
+		for _, a := range advancement.Tree {
 			s.state.Advancements[a.ID] = true
 		}
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌 다지기") {
@@ -68,7 +69,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 // behind others shows the research to do now with its cost.
 func TestQuestShowsResearchStep(t *testing.T) {
 	s := testSession(t)
-	a, _ := advancementByID("alloy_smelter")
+	a, _ := advancement.ByID("alloy_smelter")
 	g, ok := goalResearch(a)
 	if !ok || g.ID != "alloy_smelter" {
 		t.Fatalf("goal %v %v", g, ok)
@@ -78,7 +79,7 @@ func TestQuestShowsResearchStep(t *testing.T) {
 		t.Fatalf("step %v %v", step, ok)
 	}
 	s.state.Advancements = map[string]bool{}
-	for _, x := range advancementTree {
+	for _, x := range advancement.Tree {
 		if x.ID != a.ID {
 			s.state.Advancements[x.ID] = true
 		}
@@ -101,10 +102,10 @@ func TestQuestPanelSetting(t *testing.T) {
 		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {
 			t.Fatalf("no quest panel by default: %q", s.boards[p.H()])
 		}
-		if on, _ := account.Toggle(p, settingQuestPanel); on {
+		if on, _ := account.Toggle(p, advancement.SettingQuestPanel); on {
 			t.Fatal("the quest panel setting did not turn off")
 		}
-		defer func() { _, _ = account.Toggle(p, settingQuestPanel) }()
+		defer func() { _, _ = account.Toggle(p, advancement.SettingQuestPanel) }()
 		s.updateBoard(p)
 		if b := s.boards[p.H()]; strings.Contains(b, hud.QuestTitle) || strings.Contains(b, hud.Quest) {
 			t.Fatalf("the quest panel shows while off: %q", b)

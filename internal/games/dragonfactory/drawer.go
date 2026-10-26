@@ -2,9 +2,10 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"strings"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -18,6 +19,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/common/timed"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Drawer stores a large amount of a single item type
@@ -36,9 +41,6 @@ type Drawer struct {
 
 // DrawerBaseStacks is the capacity of a drawer without upgrades, in stacks.
 const DrawerBaseStacks = 32
-
-// MaxCapacityUpgrades limits capacity upgrades per drawer.
-const MaxCapacityUpgrades = 3
 
 const facingState = "dragonfactory:facing"
 
@@ -60,8 +62,8 @@ func (Drawer) Name() string                { return i18n.T(i18n.Default, "name.D
 func (Drawer) Category() category.Category { return category.Items() }
 func (Drawer) Properties() customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.dragonfactory_drawer", Textures: map[string]customblock.Material{
-		"*":     alphaMaterial("dragonfactory_drawer_side"),
-		"front": alphaMaterial("dragonfactory_drawer_front"),
+		"*":     blockmodel.AlphaMaterial("dragonfactory_drawer_side"),
+		"front": blockmodel.AlphaMaterial("dragonfactory_drawer_front"),
 	}}
 }
 
@@ -96,7 +98,7 @@ func (d Drawer) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1, BlastResistance: 2.5,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   customBlockEffective,
+		Effective:   blockmodel.CustomBlockEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{d.toItem()} },
 	}
 }
@@ -115,7 +117,7 @@ func (d Drawer) capacity() int64 {
 // told apart by their whole NBT (custom name, lore, values such as a
 // time-limited item's expiry), so only identical items share a drawer.
 func (d Drawer) accepts(it item.Stack) bool {
-	if it.Empty() || it.MaxCount() == 1 || isDrawerUpgrade(it) || isDrawerKey(it) {
+	if it.Empty() || it.MaxCount() == 1 || dfitem.IsDrawerUpgrade(it) || dfitem.IsDrawerKey(it) {
 		return false
 	}
 	return d.Item.Empty() || d.Item.Comparable(it)
@@ -166,7 +168,7 @@ func (d Drawer) label() string {
 	if d.Item.Empty() {
 		return ""
 	}
-	return formatInt(d.Count)
+	return textfmt.Int(d.Count)
 }
 
 // upgradeMarks returns the upgrade marks shown on the front: the capacity
@@ -177,7 +179,7 @@ func (d Drawer) upgradeMarks() string {
 		marks = append(marks, fmt.Sprintf("§b×%d", 1<<d.Capacity))
 	}
 	if d.Void {
-		marks = append(marks, "§f"+voidGlyph)
+		marks = append(marks, "§f"+textfmt.VoidGlyph)
 	}
 	return strings.Join(marks, " ")
 }
@@ -202,11 +204,11 @@ func (d Drawer) toItem() item.Stack {
 	lore := []string{}
 	if !d.Item.Empty() {
 		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
-		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(i18n.Default, d.Item), formatInt(d.Count)))
+		lore = append(lore, fmt.Sprintf("§f%s §7x%s", naming.ItemName(i18n.Default, d.Item), textfmt.Int(d.Count)))
 	}
 	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "drawer.lore.upgrades"), d.Capacity, onOff(d.Void)))
 	if d.Locked {
-		lore = append(lore, "§e"+lockGlyph+i18n.T(i18n.Default, "drawer.lore.locked"))
+		lore = append(lore, "§e"+textfmt.LockGlyph+i18n.T(i18n.Default, "drawer.lore.locked"))
 	}
 	return st.WithLore(lore...)
 }
@@ -300,13 +302,13 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	if face != d.Facing.Face() {
 		return false
 	}
-	if isDrawerKey(held) {
+	if dfitem.IsDrawerKey(held) {
 		if !s.debounced(p) {
 			s.toggleLock(tx, pos, &d)
 		}
 		return true
 	}
-	if isDrawerUpgrade(held) {
+	if dfitem.IsDrawerUpgrade(held) {
 		if !s.debounced(p) && s.applyUpgrade(p, tx, pos, &d, held) {
 			p.SetHeldItems(held.Grow(-1), off)
 			s.setDrawer(tx, pos, d)
@@ -422,43 +424,6 @@ func activeGameSession(tx *world.Tx) *session {
 	return nil
 }
 
-// DrawerUpgrade is an upgrade item for drawers (§15.4).
-type DrawerUpgrade struct{ Kind int }
-
-const (
-	UpgradeCapacity = iota
-	UpgradeVoid
-)
-
-var upgradeInfo = []struct{ id, name string }{
-	{"capacity", i18n.T(i18n.Default, "drawer.upgrade.capacity")},
-	{"void", i18n.T(i18n.Default, "drawer.upgrade.void")},
-}
-
-func (u DrawerUpgrade) EncodeItem() (string, int16) {
-	return "dragonfactory:drawer_upgrade_" + upgradeInfo[u.Kind].id, 0
-}
-func (u DrawerUpgrade) Name() string              { return upgradeInfo[u.Kind].name }
-func (DrawerUpgrade) Category() category.Category { return category.Items() }
-
-func isDrawerUpgrade(st item.Stack) bool {
-	_, ok := st.Item().(DrawerUpgrade)
-	return ok
-}
-
-// DrawerKey locks and unlocks drawers. It is never used up (§15.4).
-type DrawerKey struct{}
-
-func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }
-func (DrawerKey) Name() string                { return i18n.T(i18n.Default, "name.DrawerKey") }
-func (DrawerKey) Category() category.Category { return category.Items() }
-func (DrawerKey) MaxCount() int               { return 1 }
-
-func isDrawerKey(st item.Stack) bool {
-	_, ok := st.Item().(DrawerKey)
-	return ok
-}
-
 // toggleLock locks or unlocks a drawer with a key.
 func (s *session) toggleLock(tx *world.Tx, pos cube.Pos, d *Drawer) {
 	s.setLocked(tx, pos, d, !d.Locked)
@@ -482,15 +447,15 @@ func (s *session) setLocked(tx *world.Tx, pos cube.Pos, d *Drawer, locked bool) 
 }
 
 func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, held item.Stack) bool {
-	u := held.Item().(DrawerUpgrade)
+	u := held.Item().(dfitem.DrawerUpgrade)
 	switch u.Kind {
-	case UpgradeCapacity:
-		if d.Capacity >= MaxCapacityUpgrades {
+	case dfitem.UpgradeCapacity:
+		if d.Capacity >= dfitem.MaxCapacityUpgrades {
 			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
 			return false
 		}
 		d.Capacity++
-	case UpgradeVoid:
+	case dfitem.UpgradeVoid:
 		if d.Void {
 			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
 			return false
@@ -515,7 +480,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	}
 	info := i18n.T(i18n.Of(p), "drawer.menu.empty")
 	if !d.Item.Empty() {
-		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(i18n.Of(p), d.Item), formatInt(d.Count), formatInt(d.capacity()))
+		info = fmt.Sprintf("§f%s\n§7%s / %s", naming.ItemName(i18n.Of(p), d.Item), textfmt.Int(d.Count), textfmt.Int(d.capacity()))
 	}
 	// act runs f on the drawer at pos and shows the menu again.
 	act := func(f func(p *player.Player, tx *world.Tx, d *Drawer)) func(*player.Player, *world.Tx) {
@@ -528,30 +493,30 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	}
 	var store ui.Slot
 	if !d.Item.Empty() {
-		store.Icon, store.Text = ui.ItemIcon(d.Item.Item()), formatInt(d.Count)
+		store.Icon, store.Text = ui.ItemIcon(d.Item.Item()), textfmt.Int(d.Count)
 	}
 	// A slot's text is its tooltip (hover, or the first tap on touch).
 	slot := func(kind int, filled bool, empty, tip string) ui.Slot {
 		if filled {
-			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + i18n.T(i18n.Of(p), "drawer.menu.remove"), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+			return ui.Slot{Icon: ui.ItemIcon(dfitem.DrawerUpgrade{Kind: kind}), Text: tip + i18n.T(i18n.Of(p), "drawer.menu.remove"), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 				s.removeUpgrade(p, tx, pos, d, kind)
 			})}
 		}
-		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf(i18n.T(i18n.Of(p), "drawer.menu.emptySlot"), upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf(i18n.T(i18n.Of(p), "drawer.menu.emptySlot"), dfitem.UpgradeInfo[kind].Name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 			s.fitUpgrade(p, tx, pos, d, kind)
 		})}
 	}
 	// Storage upgrades on the left, utilities (void, lock) on the right.
 	var storage []ui.Slot
-	for i := range MaxCapacityUpgrades {
-		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", i18n.T(i18n.Of(p), "drawer.menu.capacity")))
+	for i := range dfitem.MaxCapacityUpgrades {
+		storage = append(storage, slot(dfitem.UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", i18n.T(i18n.Of(p), "drawer.menu.capacity")))
 	}
 	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: i18n.T(i18n.Of(p), "drawer.menu.unlocked")}
 	if d.Locked {
 		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", i18n.T(i18n.Of(p), "drawer.menu.locked")
 	}
 	lock.Run = act(func(_ *player.Player, tx *world.Tx, d *Drawer) { s.setLocked(tx, pos, d, !d.Locked) })
-	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", i18n.T(i18n.Of(p), "drawer.menu.void")), lock}
+	utils := []ui.Slot{slot(dfitem.UpgradeVoid, d.Void, "slot_empty_void", i18n.T(i18n.Of(p), "drawer.menu.void")), lock}
 	ui.SlotMenu(p, i18n.T(i18n.Of(p), "drawer.menu.title"), store, info, storage, utils)
 }
 
@@ -559,7 +524,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 func (s *session) fitUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, kind int) {
 	inv := p.Inventory()
 	for slot, it := range inv.Slots() {
-		if u, ok := it.Item().(DrawerUpgrade); ok && u.Kind == kind {
+		if u, ok := it.Item().(dfitem.DrawerUpgrade); ok && u.Kind == kind {
 			if s.applyUpgrade(p, tx, pos, d, it) {
 				_ = inv.SetItem(slot, it.Grow(-1))
 				s.setDrawer(tx, pos, *d)
@@ -568,13 +533,13 @@ func (s *session) fitUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		}
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-	ui.Notify(p, i18n.T(i18n.Of(p), "drawer.upgrade.missing"), upgradeInfo[kind].name)
+	ui.Notify(p, i18n.T(i18n.Of(p), "drawer.upgrade.missing"), dfitem.UpgradeInfo[kind].Name)
 }
 
 // removeUpgrade takes an upgrade of kind out into p's inventory.
 func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Drawer, kind int) {
 	switch kind {
-	case UpgradeCapacity:
+	case dfitem.UpgradeCapacity:
 		if d.Capacity == 0 {
 			return
 		}
@@ -585,7 +550,7 @@ func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d 
 			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "drawer.upgrade.tooFull"))
 			return
 		}
-	case UpgradeVoid:
+	case dfitem.UpgradeVoid:
 		if !d.Void {
 			return
 		}
@@ -594,7 +559,7 @@ func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d 
 		return
 	}
 	s.setDrawer(tx, pos, *d)
-	it := item.NewStack(DrawerUpgrade{Kind: kind}, 1)
+	it := item.NewStack(dfitem.DrawerUpgrade{Kind: kind}, 1)
 	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
 		s.dropAt(tx, p.Position(), it)
 	}
@@ -630,7 +595,7 @@ func (s *session) showLabel(tx *world.Tx, pos cube.Pos, d Drawer) {
 	s.showFaceText(tx, drawerLabelKey(pos), d.label(), func() *debug.Text { return drawerLabel(pos, d) })
 	lock := ""
 	if d.Locked {
-		lock = lockGlyph
+		lock = textfmt.LockGlyph
 	}
 	s.showFaceText(tx, drawerLockKey(pos), lock, func() *debug.Text { return drawerLock(pos, d) })
 	s.showFaceText(tx, drawerUpgradeKey(pos), d.upgradeMarks(), func() *debug.Text { return drawerUpgrades(pos, d) })
@@ -725,8 +690,8 @@ func init() {
 		world.RegisterBlock(Drawer{Facing: f})
 	}
 	world.RegisterItem(Drawer{})
-	world.RegisterItem(DrawerKey{})
-	for k := range upgradeInfo {
-		world.RegisterItem(DrawerUpgrade{Kind: k})
+	world.RegisterItem(dfitem.DrawerKey{})
+	for k := range dfitem.UpgradeInfo {
+		world.RegisterItem(dfitem.DrawerUpgrade{Kind: k})
 	}
 }

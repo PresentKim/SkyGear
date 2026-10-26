@@ -4,6 +4,9 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
 // Slot decoration (docs/tech/slotdeco.md): the rarity and the tier of an item
@@ -17,17 +20,17 @@ import (
 // game the item is (docs/design/open-questions.md).
 func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 	switch it := it.(type) {
-	case TierAlloy:
-		for i, k := range tierAlloys {
+	case dfitem.TierAlloy:
+		for i, k := range dfitem.TierAlloys {
 			if k == it.Kind {
 				return slotdeco.Rarity(i + 1), i + 1
 			}
 		}
-	case TierKit:
+	case dfitem.TierKit:
 		return slotdeco.Rarity(min(it.Level, int(slotdeco.Epic))), it.Level
-	case Circuit:
+	case dfitem.Circuit:
 		return slotdeco.Rarity(min(it.Level, int(slotdeco.Legendary))), it.Level
-	case Mesh:
+	case dfitem.Mesh:
 		switch it.Tier {
 		case "flint", "iron":
 			return slotdeco.Uncommon, 0
@@ -38,55 +41,24 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 		case "netherite":
 			return slotdeco.Legendary, 0
 		}
-	case Ingot:
+	case dfitem.Ingot:
 		switch it.Metal {
-		case MetalBronze, MetalSteel:
+		case dfitem.MetalBronze, dfitem.MetalSteel:
 			return slotdeco.Uncommon, 0
-		case MetalElectrum, MetalInvar:
+		case dfitem.MetalElectrum, dfitem.MetalInvar:
 			return slotdeco.Rare, 0
 		}
-	case ResearchEssence:
+	case dfitem.ResearchEssence:
 		return slotdeco.Uncommon, 0
-	case Essence:
-		if mobDifficulty[it.Mob] >= 4 {
+	case dfitem.Essence:
+		if dfitem.MobDifficulty[it.Mob] >= 4 {
 			return slotdeco.Epic, 0
 		}
 		return slotdeco.Rare, 0
-	case FairyEmerald, FairyBoard:
+	case dfitem.FairyEmerald, FairyBoard:
 		return slotdeco.Rare, 0
 	}
 	return slotdeco.Common, 0
-}
-
-// toolRarity is the rarity of a tool of the level: a tool that has been used
-// a lot looks worth more.
-func toolRarity(level int) slotdeco.Rarity {
-	switch {
-	case level >= 10:
-		return slotdeco.Legendary
-	case level >= 8:
-		return slotdeco.Epic
-	case level >= 5:
-		return slotdeco.Rare
-	case level >= 3:
-		return slotdeco.Uncommon
-	}
-	return slotdeco.Common
-}
-
-// rarityColour is the colour code of a rarity's name ("§f" for Common).
-func rarityColour(r slotdeco.Rarity) string {
-	switch r {
-	case slotdeco.Uncommon:
-		return "§a"
-	case slotdeco.Rare:
-		return "§b"
-	case slotdeco.Epic:
-		return "§d"
-	case slotdeco.Legendary:
-		return "§6"
-	}
-	return "§f"
 }
 
 // tipName is the name of a stack for the first line of a form slot's
@@ -97,5 +69,5 @@ func tipName(lang string, st item.Stack) string {
 		return n // stacks with a name of their own carry their marks already
 	}
 	r, tier := ItemDecor(st.Item())
-	return slotdeco.Decorate(r, tier, rarityColour(r)+itemName(lang, st))
+	return slotdeco.Decorate(r, tier, tinker.RarityColour(r)+naming.ItemName(lang, st))
 }

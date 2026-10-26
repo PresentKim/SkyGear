@@ -15,6 +15,8 @@ import (
 	"github.com/presentkim/dragonfactory/common/ui"
 	"github.com/presentkim/dragonfactory/internal/energy"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
@@ -30,9 +32,9 @@ var channelColours = [itemnet.Channels]item.Colour{
 // neighbourName is the name of the block a conduit side meets, in lang.
 func neighbourName(lang string, b world.Block) string {
 	if it, ok := b.(world.CustomItem); ok {
-		return customItemName(lang, it)
+		return naming.CustomItemName(lang, it)
 	}
-	return blockName(lang, b)
+	return naming.BlockName(lang, b)
 }
 
 // showPlateForm shows the settings of the side of the bundle at pos that has
@@ -68,7 +70,7 @@ func conduitLines(lang string, b ConduitBundle, kinds []int) string {
 			lines = append(lines, fmt.Sprintf("%s §7%d RE/t", i18n.T(lang, fmt.Sprintf("name.EnergyConduit.%d", b.Energy)), energy.RateOf(b.Energy)))
 		case 1:
 			lines = append(lines, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item))+" §7"+
-				fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
+				fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), textfmt.Rate(itemsPerTick(b.Item))))
 		default:
 			lines = append(lines, fmt.Sprintf("%s §7%d mB/t", i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid)), fluidnet.RateOf(b.Fluid)))
 		}

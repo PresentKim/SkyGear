@@ -13,6 +13,9 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
 // The dimension gate anchor (docs/design/05-sky-progression.md §4.1): using it
@@ -37,14 +40,14 @@ type waveDef struct {
 
 // waveLevels are the levels of the gate, easiest first.
 var waveLevels = []waveDef{
-	{[]waveGroup{{MobZombie, 4}}, 90, []item.Stack{item.NewStack(Essence{Mob: MobZombie}, 3)}},
-	{[]waveGroup{{MobZombie, 4}, {MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(Essence{Mob: MobSkeleton}, 3), item.NewStack(Essence{Mob: MobCreeper}, 1), item.NewStack(PlantSeed{Seed: "flower_red"}, 1)}},
-	{[]waveGroup{{MobSpider, 4}, {MobCreeper, 3}, {MobZombie, 3}, {MobWitch, 2}}, 130, []item.Stack{item.NewStack(Essence{Mob: MobSpider}, 3), item.NewStack(Essence{Mob: MobCreeper}, 3), item.NewStack(Essence{Mob: MobWitch}, 2)}},
-	{[]waveGroup{{MobSlime, 6}, {MobSkeleton, 4}, {MobZombie, 4}, {MobDrowned, 3}}, 130, []item.Stack{item.NewStack(Essence{Mob: MobSlime}, 4), item.NewStack(Essence{Mob: MobDrowned}, 3)}},
-	{[]waveGroup{{MobEnder, 2}, {MobZombie, 6}, {MobSkeleton, 4}}, 150, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 3)}},
-	{[]waveGroup{{MobBlaze, 2}, {MobCreeper, 6}, {MobSpider, 6}, {MobPiglin, 3}}, 160, []item.Stack{item.NewStack(Essence{Mob: MobBlaze}, 3), item.NewStack(Essence{Mob: MobPiglin}, 3)}},
-	{[]waveGroup{{MobEnder, 3}, {MobBlaze, 3}, {MobZombie, 8}, {MobPiglin, 3}}, 190, []item.Stack{item.NewStack(Essence{Mob: MobEnder}, 4), item.NewStack(Essence{Mob: MobBlaze}, 4), item.NewStack(Essence{Mob: MobPiglin}, 2)}},
-	{[]waveGroup{{MobEnder, 4}, {MobBlaze, 4}, {MobZombie, 6}, {MobSkeleton, 6}, {MobWither, 3}}, 260, []item.Stack{item.NewStack(Ingot{Metal: MetalSteel}, 8), item.NewStack(item.Diamond{}, 4), item.NewStack(Essence{Mob: MobWither}, 3)}},
+	{[]waveGroup{{dfitem.MobZombie, 4}}, 90, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobZombie}, 3)}},
+	{[]waveGroup{{dfitem.MobZombie, 4}, {dfitem.MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobSkeleton}, 3), item.NewStack(dfitem.Essence{Mob: dfitem.MobCreeper}, 1), item.NewStack(PlantSeed{Seed: "flower_red"}, 1)}},
+	{[]waveGroup{{dfitem.MobSpider, 4}, {dfitem.MobCreeper, 3}, {dfitem.MobZombie, 3}, {dfitem.MobWitch, 2}}, 130, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobSpider}, 3), item.NewStack(dfitem.Essence{Mob: dfitem.MobCreeper}, 3), item.NewStack(dfitem.Essence{Mob: dfitem.MobWitch}, 2)}},
+	{[]waveGroup{{dfitem.MobSlime, 6}, {dfitem.MobSkeleton, 4}, {dfitem.MobZombie, 4}, {dfitem.MobDrowned, 3}}, 130, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobSlime}, 4), item.NewStack(dfitem.Essence{Mob: dfitem.MobDrowned}, 3)}},
+	{[]waveGroup{{dfitem.MobEnder, 2}, {dfitem.MobZombie, 6}, {dfitem.MobSkeleton, 4}}, 150, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobEnder}, 3)}},
+	{[]waveGroup{{dfitem.MobBlaze, 2}, {dfitem.MobCreeper, 6}, {dfitem.MobSpider, 6}, {dfitem.MobPiglin, 3}}, 160, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobBlaze}, 3), item.NewStack(dfitem.Essence{Mob: dfitem.MobPiglin}, 3)}},
+	{[]waveGroup{{dfitem.MobEnder, 3}, {dfitem.MobBlaze, 3}, {dfitem.MobZombie, 8}, {dfitem.MobPiglin, 3}}, 190, []item.Stack{item.NewStack(dfitem.Essence{Mob: dfitem.MobEnder}, 4), item.NewStack(dfitem.Essence{Mob: dfitem.MobBlaze}, 4), item.NewStack(dfitem.Essence{Mob: dfitem.MobPiglin}, 2)}},
+	{[]waveGroup{{dfitem.MobEnder, 4}, {dfitem.MobBlaze, 4}, {dfitem.MobZombie, 6}, {dfitem.MobSkeleton, 6}, {dfitem.MobWither, 3}}, 260, []item.Stack{item.NewStack(dfitem.Ingot{Metal: dfitem.MetalSteel}, 8), item.NewStack(item.Diamond{}, 4), item.NewStack(dfitem.Essence{Mob: dfitem.MobWither}, 3)}},
 }
 
 // waveEssenceChance is the percent chance a killed monster drops its essence.
@@ -108,27 +111,27 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	pos := m.data.Pos
 	delete(w.left, m.handle)
 	if p != nil {
-		s.advance(tx, advKill)
+		s.advance(tx, advancement.Kill)
 		count(p, "kill_total", 1)
 		count(p, "kill_"+m.kind, 1)
 		looting := 0
 		if held, ok := toolOf(p); ok {
-			looting += toolMods(held)["looting"]
+			looting += tinker.ToolMods(held)["looting"]
 			s.gainToolXP(p, int(monsterTable[m.kind].health/2)+1)
 		}
 		for _, v := range tx.Viewers(pos) {
 			v.ViewEntityAction(m, entity.DeathAction{})
 		}
-		for _, d := range simDrops[m.kind] {
+		for _, d := range dfitem.SimDrops[m.kind] {
 			if s.rand.IntN(100) < d.Chance+looting*8 {
 				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
 			}
 		}
 		if w.level >= 2 && s.rand.IntN(100) < 4 {
-			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + petalColours[s.rand.IntN(len(petalColours))]}, 1))
+			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + dfitem.PetalColours[s.rand.IntN(len(dfitem.PetalColours))]}, 1))
 		}
 		if s.rand.IntN(100) < waveEssenceChance+looting*4 {
-			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(Essence{Mob: m.kind}, 1))
+			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(dfitem.Essence{Mob: m.kind}, 1))
 		}
 	}
 	_ = m.Close()
@@ -151,11 +154,11 @@ func (s *session) winWave(tx *world.Tx) {
 		for _, r := range def.Reward {
 			s.dropAt(tx, w.gate.Vec3Centre().Add(mgl64.Vec3{0, 1.2, 0}), r)
 		}
-		s.advance(tx, advWave1)
+		s.advance(tx, advancement.Wave1)
 		for _, a := range []struct {
 			level int
 			id    string
-		}{{3, advWave3}, {5, advWave5}, {8, advWave8}} {
+		}{{3, advancement.Wave3}, {5, advancement.Wave5}, {8, advancement.Wave8}} {
 			if w.level >= a.level {
 				s.advance(tx, a.id)
 			}

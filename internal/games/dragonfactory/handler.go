@@ -12,6 +12,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
 // handler handles a player's events inside a dragonfactory instance.
@@ -44,14 +46,14 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	}
 	held, _ := ctx.Player().HeldItems()
 	broken := ctx.Player().Tx().Block(pos)
-	hammer := isHammer(held)
+	hammer := dfitem.IsHammer(held)
 	countBreak(ctx.Player(), broken, hammer)
 	if _, ok := toolOf(ctx.Player()); ok {
 		h.s.gainToolXP(ctx.Player(), 1)
 		h.s.reinforce(ctx.Player())
 	}
 	if hammer {
-		if into, ok := hammerDrop(broken); ok {
+		if into, ok := dfitem.HammerDrop(broken); ok {
 			*drops = []item.Stack{into}
 		}
 		h.s.veinMine(ctx.Player(), ctx.Player().Tx(), pos)
@@ -107,7 +109,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
 	// The configuration copier copies and pastes settings and does nothing else.
-	if _, ok := held.Item().(ConfigCopier); ok {
+	if _, ok := held.Item().(dfitem.ConfigCopier); ok {
 		ctx.Cancel()
 		_, off := p.HeldItems()
 		h.s.useCopier(p, tx, pos, face, clickPos, held, off)
@@ -156,15 +158,15 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 		if w, ok := held.Item().(item.Weapon); ok {
 			dmg = w.AttackDamage()
 		}
-		if td, ok := tinkerDamage(held); ok {
+		if td, ok := tinker.TinkerDamage(held); ok {
 			dmg = td
-			mods := toolMods(held)
+			mods := tinker.ToolMods(held)
 			if v := mods["vampiric"]; v > 0 {
 				p.Heal(0.5*float64(v), entity.FoodHealingSource{})
 			}
 			// a use costs the tool durability and gives it experience
 			_, off := p.HeldItems()
-			p.SetHeldItems(describeTool(held.Damage(2)), off)
+			p.SetHeldItems(tinker.DescribeTool(held.Damage(2)), off)
 			h.s.reinforce(p)
 		}
 		count(p, "hit_monster", 1)
@@ -187,12 +189,12 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 	}
-	if _, ok := held.Item().(ConfigCopier); ok {
+	if _, ok := held.Item().(dfitem.ConfigCopier); ok {
 		h.s.clearCopier(ctx.Player(), held, off)
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
-	if isIronHammer(held) && ctx.Player().Sneaking() && !h.s.debounced(ctx.Player()) {
+	if dfitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.debounced(ctx.Player()) {
 		h.s.toggleVeinDiagonal(ctx.Player())
 	}
 }
@@ -245,7 +247,7 @@ func (h *handler) HandleJump(p *player.Player) { count(p, "jump", 1) }
 // HandleItemDamage keeps the iron hammer whole: its vein mining costs food
 // instead (vein.go).
 func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *int) {
-	if isIronHammer(it) {
+	if dfitem.IsIronHammer(it) {
 		*damage = 0
 	}
 }

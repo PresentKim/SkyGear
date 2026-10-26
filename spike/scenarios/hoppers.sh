@@ -1,5 +1,5 @@
 #!/bin/bash
-# The game's hoppers (hopper.go): the wood hopper and the turn recipes reach
+# The game's hoppers (hopper/hopper.go): the wood hopper and the turn recipes reach
 # the client after their researches, the blocks register without server
 # errors and an operator can get all three.
 timeout 60 "$BOT" -name Hana \

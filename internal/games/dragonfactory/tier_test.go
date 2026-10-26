@@ -10,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
 )
 
 // TestTierNumbers: a better tier spends less energy on the same work, the
@@ -93,15 +95,15 @@ func TestUseKit(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		m := Machine{Kind: KindCrusher, st: st}
-		kit := func(l int) (item.Stack, item.Stack) { return item.NewStack(TierKit{Level: l}, 1), item.Stack{} }
+		kit := func(l int) (item.Stack, item.Stack) { return item.NewStack(dfitem.TierKit{Level: l}, 1), item.Stack{} }
 		held, off := kit(2)
-		s.useKit(p, tx, machinePos, m, TierKit{Level: 2}, held, off)
+		s.useKit(p, tx, machinePos, m, dfitem.TierKit{Level: 2}, held, off)
 		if st.tier != 0 {
 			t.Fatal("the second kit raised a basic machine")
 		}
 		for l := 1; l <= maxTier; l++ {
 			held, off = kit(l)
-			s.useKit(p, tx, machinePos, m, TierKit{Level: l}, held, off)
+			s.useKit(p, tx, machinePos, m, dfitem.TierKit{Level: l}, held, off)
 			if st.tier != l {
 				t.Fatalf("kit %d: tier %d", l, st.tier)
 			}
@@ -110,13 +112,13 @@ func TestUseKit(t *testing.T) {
 			}
 		}
 		held, off = kit(3)
-		s.useKit(p, tx, machinePos, m, TierKit{Level: 3}, held, off)
+		s.useKit(p, tx, machinePos, m, dfitem.TierKit{Level: 3}, held, off)
 		if st.tier != maxTier {
 			t.Fatal("the tier went past the top")
 		}
 		tank := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), KindTank, "")
 		held, off = kit(1)
-		s.useKit(p, tx, machinePos, Machine{Kind: KindTank, st: tank}, TierKit{Level: 1}, held, off)
+		s.useKit(p, tx, machinePos, Machine{Kind: KindTank, st: tank}, dfitem.TierKit{Level: 1}, held, off)
 		if tank.tier != 0 {
 			t.Fatal("a tank took a kit")
 		}
@@ -124,7 +126,7 @@ func TestUseKit(t *testing.T) {
 	drops := Machine{Kind: KindCrusher, st: st}.BreakInfo().Drops(nil, nil)
 	kits := 0
 	for _, d := range drops {
-		if _, ok := d.Item().(TierKit); ok {
+		if _, ok := d.Item().(dfitem.TierKit); ok {
 			kits++
 		}
 	}
@@ -178,12 +180,12 @@ func TestTierAlloyRecipes(t *testing.T) {
 		want string
 	}{
 		{item.NewStack(item.IronIngot{}, 1), item.NewStack(item.RedstoneWire{}, 4), "infused"},
-		{item.NewStack(TierAlloy{Kind: "infused"}, 2), item.NewStack(item.Diamond{}, 1), "reinforced"},
-		{item.NewStack(block.Obsidian{}, 2), item.NewStack(TierAlloy{Kind: "reinforced"}, 2), "atomic"},
+		{item.NewStack(dfitem.TierAlloy{Kind: "infused"}, 2), item.NewStack(item.Diamond{}, 1), "reinforced"},
+		{item.NewStack(block.Obsidian{}, 2), item.NewStack(dfitem.TierAlloy{Kind: "reinforced"}, 2), "atomic"},
 	}
 	for _, c := range cases {
-		r, ok := matchAlloy(c.a, c.b)
-		if !ok || r.Out.(TierAlloy).Kind != c.want || r.OutCount != 2 {
+		r, ok := machinerecipe.MatchAlloy(c.a, c.b)
+		if !ok || r.Out.(dfitem.TierAlloy).Kind != c.want || r.OutCount != 2 {
 			t.Errorf("%s: %v %v", c.want, r, ok)
 		}
 	}

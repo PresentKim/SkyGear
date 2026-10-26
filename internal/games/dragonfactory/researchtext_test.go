@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // TestEveryResearchIsExplained: every research has its texts.
@@ -128,7 +129,7 @@ func TestResearchListSections(t *testing.T) {
 		if !strings.HasPrefix(todo[0].Tip, "§e돌 다지기\n§7") || strings.Contains(todo[0].Tip, "모자랍니다") {
 			t.Errorf("tooltip %q is not the yellow name and the short text", todo[0].Tip)
 		}
-		_, _ = p.Inventory().AddItem(item.NewStack(Pebble{Kind: PebbleStone}, 4))
+		_, _ = p.Inventory().AddItem(item.NewStack(dfitem.Pebble{Kind: dfitem.PebbleStone}, 4))
 		todo, _, _, _ = s.researchSlots(p)
 		if !strings.HasPrefix(todo[0].Tip, "§a돌 다지기") || strings.HasPrefix(todo[1].Tip, "§a") {
 			t.Errorf("tooltips %q %q: only the one with all materials is green", todo[0].Tip, todo[1].Tip)

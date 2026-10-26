@@ -12,6 +12,9 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
@@ -269,7 +272,7 @@ func TestDustMakesClayInWater(t *testing.T) {
 	pos := machinePos
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
-		dust := item.NewStack(Dust{}, 2)
+		dust := item.NewStack(dfitem.Dust{}, 2)
 		ctx := &item.UseContext{}
 		if s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), dust, ctx) && ctx.CountSub != 0 {
 			t.Fatal("a dry barrel took the dust")
@@ -289,7 +292,7 @@ func TestDustMakesClayInWater(t *testing.T) {
 			t.Error("the water went")
 		}
 	})
-	for _, drops := range sieveTables["string"] {
+	for _, drops := range sievetable.Tables["string"] {
 		for _, d := range drops {
 			if _, clay := d.Item.Item().(item.ClayBall); clay {
 				t.Error("a sieve still drops clay")
@@ -307,8 +310,8 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 		emptyAfter world.Item
 	}{
 		{"oak", water, BarrelRecord{Water: true}, item.Bucket{}},
-		{"oak", item.NewStack(WoodenBucket{Water: true}, 1), BarrelRecord{Water: true}, WoodenBucket{}},
-		{"oak", item.NewStack(WitchWaterBucket{}, 1), BarrelRecord{Witch: true}, item.Bucket{}},
+		{"oak", item.NewStack(dfitem.WoodenBucket{Water: true}, 1), BarrelRecord{Water: true}, dfitem.WoodenBucket{}},
+		{"oak", item.NewStack(dfitem.WitchWaterBucket{}, 1), BarrelRecord{Witch: true}, item.Bucket{}},
 		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{LavaMB: bucketMB}, item.Bucket{}},
 		{stoneWood, water, BarrelRecord{}, nil},
 		{"oak", item.NewStack(lavaBucket, 1), BarrelRecord{}, nil},
@@ -324,15 +327,15 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 			rec := s.barrelAt(machinePos)
 			if c.emptyAfter == nil {
 				if used || rec != nil {
-					t.Errorf("%s barrel took %s", c.wood, itemKey(c.held.Item()))
+					t.Errorf("%s barrel took %s", c.wood, naming.ItemKey(c.held.Item()))
 				}
 				return
 			}
 			if !used || rec == nil || *rec != c.want {
-				t.Errorf("%s barrel with %s: used %v, record %+v", c.wood, itemKey(c.held.Item()), used, rec)
+				t.Errorf("%s barrel with %s: used %v, record %+v", c.wood, naming.ItemKey(c.held.Item()), used, rec)
 			}
-			if held, _ := p.HeldItems(); itemKey(held.Item()) != itemKey(c.emptyAfter) {
-				t.Errorf("%s left %s in the hand", itemKey(c.held.Item()), itemKey(held.Item()))
+			if held, _ := p.HeldItems(); naming.ItemKey(held.Item()) != naming.ItemKey(c.emptyAfter) {
+				t.Errorf("%s left %s in the hand", naming.ItemKey(c.held.Item()), naming.ItemKey(held.Item()))
 			}
 			if got := tx.Block(machinePos).(Barrel).Stage; got != barrelStageOf(c.wood, rec) {
 				t.Errorf("stage %d", got)
@@ -352,7 +355,7 @@ func TestBarrelClayByHopper(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, IslandY + 3, 4}
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
-		dust := item.NewStack(Dust{}, 40)
+		dust := item.NewStack(dfitem.Dust{}, 40)
 		if n := itemio.Insert(tx, pos, cube.FaceUp, dust); n != 0 {
 			t.Fatalf("a dry barrel took %d dust", n)
 		}
@@ -398,13 +401,13 @@ func TestWoodenBucket(t *testing.T) {
 		if s.state.Barrels == nil {
 			s.state.Barrels = map[string]*BarrelRecord{}
 		}
-		empty := item.NewStack(WoodenBucket{}, 1)
+		empty := item.NewStack(dfitem.WoodenBucket{}, 1)
 		s.state.Barrels[cropKey(pos)] = &BarrelRecord{Count: matterCapacity, Water: true}
 		p.SetHeldItems(empty, item.Stack{})
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), empty, &item.UseContext{}) {
 			t.Fatal("the water of the barrel was not used")
 		}
-		if held, _ := p.HeldItems(); held.Item() != (WoodenBucket{Water: true}) {
+		if held, _ := p.HeldItems(); held.Item() != (dfitem.WoodenBucket{Water: true}) {
 			t.Fatalf("held %v, want a wooden bucket of water", held)
 		}
 		if s.barrelAt(pos) != nil {
@@ -428,14 +431,14 @@ func TestWoodenBucket(t *testing.T) {
 		src := cube.Pos{8, IslandY + 3, 8}
 		tx.SetLiquid(src, block.Water{Depth: 8, Still: true})
 		var ctx item.UseContext
-		if !(WoodenBucket{}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) || ctx.NewItem.Empty() {
+		if !(dfitem.WoodenBucket{}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) || ctx.NewItem.Empty() {
 			t.Fatal("the bucket did not take the water source")
 		}
 		if _, ok := tx.Liquid(src); ok {
 			t.Fatal("the source stayed")
 		}
 		ctx = item.UseContext{}
-		if !(WoodenBucket{Water: true}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) {
+		if !(dfitem.WoodenBucket{Water: true}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) {
 			t.Fatal("the full bucket did not pour")
 		}
 		if _, ok := tx.Liquid(src); !ok {

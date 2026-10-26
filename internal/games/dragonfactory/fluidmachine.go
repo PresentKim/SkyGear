@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // Machines with a tank (docs/design/07-progression-expansion.md §6.1): the fluid
@@ -113,7 +114,7 @@ var _ fluidnet.Holder = Machine{}
 // crucible takes its cobblestone. It returns whether the click was used.
 func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
 	st := m.st
-	if wb, ok := held.Item().(WoodenBucket); ok {
+	if wb, ok := held.Item().(dfitem.WoodenBucket); ok {
 		// A wooden bucket carries water only.
 		switch {
 		case wb.Water:
@@ -121,11 +122,11 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 				return true
 			}
 			m.FillFluid(tx, pos, fluidnet.Water, bucketMB, false)
-			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(WoodenBucket{}, 1))
+			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(dfitem.WoodenBucket{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 		case st.kind.fluidSource && st.fluid == fluidnet.Water && st.fluidAmt >= bucketMB:
 			m.DrainFluid(tx, pos, bucketMB, false)
-			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(WoodenBucket{Water: true}, 1))
+			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(dfitem.WoodenBucket{Water: true}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
 		}
 		return true
@@ -245,7 +246,7 @@ func (st *machineState) runWasher() {
 		st.tickWork()
 		return
 	}
-	out, _ := washerOutput(in)
+	out, _ := dfitem.WasherOutput(in)
 	if !st.roomFor([]item.Stack{out}) {
 		return
 	}

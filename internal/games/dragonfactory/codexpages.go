@@ -9,6 +9,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Modes of an item's page, like a recipe viewer's R and U.
@@ -42,10 +45,10 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	s.codexSeen(p, it)
 	s.codexAt(p, func(p *player.Player) { s.showCodexItemAt(p, it, mode) })
 	head := blankRow()
-	head[0] = ui.SlotCell(ui.ItemSlot{Icon: iconOf(it), Tip: tipName(lang, it), Selected: true})
-	head[1] = ui.TextCell("§l" + itemName(lang, it))
+	head[0] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(it), Tip: tipName(lang, it), Selected: true})
+	head[1] = ui.TextCell("§l" + naming.ItemName(lang, it))
 	modeSlot := func(m int, icon item.Stack, key string) ui.BoardCell {
-		sl := ui.ItemSlot{Icon: iconOf(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
+		sl := ui.ItemSlot{Icon: formicon.Of(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
 		if m != mode {
 			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexItemAt(p, it, m) }
 		}
@@ -57,12 +60,12 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	if s.isFavourite(p, it) {
 		favMark, favKey = "§e★", "codex.fav.remove"
 	}
-	head[10] = ui.SlotCell(ui.ItemSlot{Icon: iconOf(item.NewStack(item.NetherStar{}, 1)), Tip: "§f" + i18n.T(lang, favKey), Count: favMark,
+	head[10] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(item.NewStack(item.NetherStar{}, 1)), Tip: "§f" + i18n.T(lang, favKey), Count: favMark,
 		Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.world {
 				s.toggleFavourite(p, it)
 				if s.isFavourite(p, it) {
-					s.advance(tx, advFavourite)
+					s.advance(tx, advancement.Favourite)
 				}
 			}
 			s.showCodexItemAt(p, it, mode)
@@ -82,7 +85,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 		cards = []codexCard{{name: i18n.T(lang, "codex.item."+map[int]string{codexSourcesMode: "sources", codexUsesMode: "uses"}[mode]), rows: [][]ui.BoardCell{row}}}
 	}
 	chrome := append(s.codexTabs(p, codexNoTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), itemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
+	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), naming.ItemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
 }
 
 // codexRawCard is what an item takes in raw materials, down the recipe
@@ -120,7 +123,7 @@ func (s *session) showCodexSieveAt(p *player.Player, which int) {
 	var top []ui.BoardCell
 	for i, in := range ins {
 		st := item.NewStack(in, 1)
-		sl := ui.ItemSlot{Icon: iconOf(st), Tip: tipName(lang, st), Selected: i == which}
+		sl := ui.ItemSlot{Icon: formicon.Of(st), Tip: tipName(lang, st), Selected: i == which}
 		if i != which {
 			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexSieveAt(p, i) }
 		}
@@ -148,11 +151,11 @@ func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []u
 	var groups []ui.SieveGroup
 	lastHead := ""
 	for _, c := range cards {
-		if k := itemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
+		if k := naming.ItemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
 			lastHead = k
-			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: iconOf(c.head), Tip: tipName(lang, c.head)}, Name: itemName(lang, c.head)})
+			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: tipName(lang, c.head)}, Name: naming.ItemName(lang, c.head)})
 		}
-		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: iconOf(in), Tip: tipName(lang, in)}}
+		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: formicon.Of(in), Tip: tipName(lang, in)}}
 		first := true
 		for _, row := range c.rows {
 			for _, cell := range row {
@@ -175,7 +178,7 @@ func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []u
 // codexPickTitle is the title of a tab whose top row picks a block or a
 // machine: the tab and the pick, as JEI names the recipe category shown.
 func codexPickTitle(lang, tab string, pick item.Stack) string {
-	return ui.SubTitle(ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, tab)), itemName(lang, pick))
+	return ui.SubTitle(ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, tab)), naming.ItemName(lang, pick))
 }
 
 // showCodexProcess is the process tab: the first machine's recipes.
@@ -190,7 +193,7 @@ func (s *session) showCodexProcessAt(p *player.Player, which int) {
 	s.codexAt(p, func(p *player.Player) { s.showCodexProcessAt(p, which) })
 	var top []ui.BoardCell
 	for i, pr := range procs {
-		sl := ui.ItemSlot{Icon: iconOf(pr.head), Tip: tipName(lang, pr.head), Selected: i == which}
+		sl := ui.ItemSlot{Icon: formicon.Of(pr.head), Tip: tipName(lang, pr.head), Selected: i == which}
 		if i != which {
 			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexProcessAt(p, i) }
 		}

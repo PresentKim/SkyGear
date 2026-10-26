@@ -2,12 +2,13 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"github.com/presentkim/dragonfactory/internal/itemnet"
 	"math"
 	"strings"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/fluidnet"
+	"github.com/presentkim/dragonfactory/internal/itemnet"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -18,6 +19,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/waila"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -148,15 +154,15 @@ func (s *session) updateLooks(tx *world.Tx) {
 func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world.Block) waila.Info {
 	lang := i18n.Of(p)
 	held, _ := p.HeldItems()
-	info := waila.Info{Name: blockName(lang, b), Tools: waila.ToolsFor(b, held)}
+	info := waila.Info{Name: naming.BlockName(lang, b), Tools: waila.ToolsFor(b, held)}
 	if len(info.Tools) == 0 {
 		info.Tools = customTool(b, held)
 	}
 	if it, ok := b.(world.Item); ok {
 		info.Item = it
-		info.Name = itemName(lang, item.NewStack(it, 1))
+		info.Name = naming.ItemName(lang, item.NewStack(it, 1))
 	}
-	info.NameKey = blockNameKey(b)
+	info.NameKey = naming.BlockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
 	case Machine:
@@ -191,8 +197,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	case Barrel:
 		info.Lines = s.barrelLines(lang, tx, pos)
 		info.Line = s.barrelLiquid(lang, pos)
-	case FlowHopper:
-		info.Lines = hopperLines(lang, b)
+	case hopper.FlowHopper:
+		info.Lines = hopper.HopperLines(lang, b)
 	case MagicPlant:
 		if i := plantKindIndex(b.Kind); i >= 0 {
 			k := plantKinds[i]
@@ -224,8 +230,8 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 	switch b.(type) {
 	case Drawer, ResearchTable, Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
-	case FlowHopper:
-		if h := b.(FlowHopper); h.kind().wood {
+	case hopper.FlowHopper:
+		if h := b.(hopper.FlowHopper); h.Info().Wood {
 			icon, typ = waila.AxeWood, item.TypeAxe
 		} else {
 			icon, typ = waila.PickaxeWood, item.TypePickaxe
@@ -307,7 +313,7 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return nil, nil
 	}
 	step := min(10, st.progress*10/st.cycleLen())
-	gauge := gaugeGlyph(step)
+	gauge := textfmt.GaugeGlyph(step)
 	var (
 		lines []string
 		line  *waila.ItemLine
@@ -345,7 +351,7 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return append(append([]string{i18n.T(lang, "look.machine.mining") + gauge}, consumerLines(lang, st)...), blockedLines(lang, st)...), nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
-			line = &waila.ItemLine{Item: it, Name: itemName(lang, it), Gauge: step, ShowGauge: true}
+			line = &waila.ItemLine{Item: it, Name: naming.ItemName(lang, it), Gauge: step, ShowGauge: true}
 			if it.Count() > 1 {
 				line.Text = fmt.Sprintf("§f×%d", it.Count())
 			}
@@ -383,9 +389,9 @@ func detailLines(lang string, st *machineState) []string {
 // stackLine is an item's name in lang with its count when more than one.
 func stackLine(lang string, it item.Stack) string {
 	if it.Count() > 1 {
-		return fmt.Sprintf("§f%s §7×%d", itemName(lang, it), it.Count())
+		return fmt.Sprintf("§f%s §7×%d", naming.ItemName(lang, it), it.Count())
 	}
-	return "§f" + itemName(lang, it)
+	return "§f" + naming.ItemName(lang, it)
 }
 
 // blockedLines say why a machine that finished does not go on: its output has
@@ -402,10 +408,10 @@ func crafterLines(lang string, st *machineState) []string {
 	if st.recipe == nil {
 		return []string{i18n.T(lang, "crafter.status.none")}
 	}
-	lines := []string{"§f" + itemName(lang, st.recipe.out)}
+	lines := []string{"§f" + naming.ItemName(lang, st.recipe.Out)}
 	if _, ok := st.crafterPlan(st.recipe); !ok {
 		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), crafterMissing(lang, st)))
-	} else if !fits(st.inv(), st.kind.output, []item.Stack{st.recipe.out}) {
+	} else if !fits(st.inv(), st.kind.output, []item.Stack{st.recipe.Out}) {
 		lines = append(lines, i18n.T(lang, "look.blocked"))
 	} else {
 		lines = append(lines, i18n.T(lang, "crafter.status.working"))
@@ -417,15 +423,15 @@ func crafterLines(lang string, st *machineState) []string {
 // ("화약 ×2, 막대기 ×1").
 func crafterMissing(lang string, st *machineState) string {
 	var missing []string
-	for _, req := range st.recipe.reqs {
+	for _, req := range st.recipe.Reqs {
 		have := 0
 		for _, slot := range st.kind.input {
-			if it, _ := st.inv().Item(slot); matchReq(it, req) {
+			if it, _ := st.inv().Item(slot); machinerecipe.MatchReq(it, req) {
 				have += it.Count()
 			}
 		}
-		if have < req.count {
-			missing = append(missing, fmt.Sprintf("%s ×%d", reqName(lang, req), req.count-have))
+		if have < req.Count {
+			missing = append(missing, fmt.Sprintf("%s ×%d", machinerecipe.ReqName(lang, req), req.Count-have))
 		}
 	}
 	return strings.Join(missing, ", ")
@@ -434,7 +440,7 @@ func crafterMissing(lang string, st *machineState) string {
 // drawerDetail are the lines a sneaking viewer gets of a drawer: its upgrades
 // and lock.
 func drawerDetail(lang string, d Drawer) []string {
-	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, MaxCapacityUpgrades, formatInt(d.capacity()))}
+	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, dfitem.MaxCapacityUpgrades, textfmt.Int(d.capacity()))}
 	if d.Void {
 		lines = append(lines, i18n.T(lang, "look.drawer.void"))
 	}

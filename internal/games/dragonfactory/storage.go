@@ -13,6 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/textsearch"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // The storage controller (FunctionalStorage's controller, docs/design/08): it
@@ -219,7 +220,7 @@ func filterStorage(lang string, list []storageEntry, query string) []storageEntr
 	}
 	var out []storageEntry
 	for _, e := range list {
-		if textsearch.Match(query, itemName(lang, e.item)) {
+		if textsearch.Match(query, naming.ItemName(lang, e.item)) {
 			out = append(out, e)
 		}
 	}

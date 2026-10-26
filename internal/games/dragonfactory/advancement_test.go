@@ -11,13 +11,15 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // TestAdvancementTreeIsValid: ids are unique, parents come before their
 // children, items exist and researches are in the research tree.
 func TestAdvancementTreeIsValid(t *testing.T) {
 	seen := map[string]bool{}
-	for _, a := range advancementTree {
+	for _, a := range advancement.Tree {
 		if seen[a.ID] {
 			t.Errorf("%s twice", a.ID)
 		}
@@ -31,7 +33,7 @@ func TestAdvancementTreeIsValid(t *testing.T) {
 			t.Errorf("%s: no name or hint in the catalog", a.ID)
 		}
 		for _, n := range []string{a.Item, a.Icon} {
-			if _, ok := world.ItemByName(unlockName(n), 0); n != "" && !ok {
+			if _, ok := world.ItemByName(naming.UnlockName(n), 0); n != "" && !ok {
 				t.Errorf("%s: no item %s", a.ID, n)
 			}
 		}
@@ -55,7 +57,7 @@ func TestAdvancementsFromItems(t *testing.T) {
 			t.Fatalf("first advancement %s", a.ID)
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(block.CraftingTable{}, 1))
-		s.checkAdvancementsHeld(tx, inventoryNames(tx))
+		s.checkAdvancementsHeld(tx, advancement.InventoryNames(tx))
 		if !s.advanced("crafting_table") {
 			t.Error("crafting_table not done")
 		}
@@ -67,11 +69,11 @@ func TestAdvancementsFromItems(t *testing.T) {
 		if a, _ := s.nextAdvancement(); a.ID != "wood" {
 			t.Errorf("next advancement %s", a.ID)
 		}
-		s.advance(tx, advSift)
-		if !s.advanced(advSift) || s.advanced("sieve") {
+		s.advance(tx, advancement.Sift)
+		if !s.advanced(advancement.Sift) || s.advanced("sieve") {
 			t.Errorf("sift must complete itself alone: %v", s.state.Advancements)
 		}
-		if s.advanced(advGrowTree) {
+		if s.advanced(advancement.GrowTree) {
 			t.Error("grow tree done without growing")
 		}
 	})
@@ -83,36 +85,36 @@ func TestAdvancementsFromItems(t *testing.T) {
 func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 	s := testSession(t)
 	s.state.Advancements = map[string]bool{}
-	l := advancementLayout(advChapterStart)
-	for _, a := range advancementsIn(advChapterStart) {
-		if _, ok := l.pos[a.ID]; !ok {
+	l := advancement.LayoutOf(advancement.ChapterStart)
+	for _, a := range advancement.In(advancement.ChapterStart) {
+		if _, ok := l.Pos[a.ID]; !ok {
 			t.Errorf("%s not shown", a.ID)
 		}
 	}
-	wood, planks := l.pos["wood"], l.pos["planks"]
-	if planks.x != wood.x+1 {
-		t.Errorf("planks at column %d beside wood at %d", planks.x, wood.x)
+	wood, planks := l.Pos["wood"], l.Pos["planks"]
+	if planks.X != wood.X+1 {
+		t.Errorf("planks at column %d beside wood at %d", planks.X, wood.X)
 	}
-	if l.strips[planks]&ui.StripRight == 0 || l.strips[advPos{planks.x, wood.y}]&ui.StripLeft == 0 {
-		t.Errorf("no connector between wood and planks: %v", l.strips)
+	if l.Strips[planks]&ui.StripRight == 0 || l.Strips[advancement.Pos{X: planks.X, Y: wood.Y}]&ui.StripLeft == 0 {
+		t.Errorf("no connector between wood and planks: %v", l.Strips)
 	}
-	seen := map[advPos]string{}
-	for id, ps := range l.pos {
+	seen := map[advancement.Pos]string{}
+	for id, ps := range l.Pos {
 		if o, dup := seen[ps]; dup {
 			t.Errorf("%s and %s share %v", id, o, ps)
 		}
 		seen[ps] = id
 	}
 	total := 0
-	for tab := advChapter(0); tab < advChapterCount; tab++ {
-		n := len(advancementsIn(tab))
+	for tab := advancement.Chapter(0); tab < advancement.ChapterCount; tab++ {
+		n := len(advancement.In(tab))
 		if n == 0 {
 			t.Errorf("tab %d is empty", tab)
 		}
 		total += n
 	}
-	if total != len(advancementTree) {
-		t.Errorf("tabs list %d of %d", total, len(advancementTree))
+	if total != len(advancement.Tree) {
+		t.Errorf("tabs list %d of %d", total, len(advancement.Tree))
 	}
 }
 
@@ -121,35 +123,35 @@ func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 // no two places share a cell and every node with parents has the line of
 // one in the tree form.
 func TestAdvancementLayout(t *testing.T) {
-	for ch := range advChapterCount {
-		l := advancementLayout(ch)
-		seen := map[advPos]string{}
-		for id, ps := range l.pos {
+	for ch := range advancement.ChapterCount {
+		l := advancement.LayoutOf(ch)
+		seen := map[advancement.Pos]string{}
+		for id, ps := range l.Pos {
 			if o, dup := seen[ps]; dup {
-				t.Errorf("%s: %s and %s share %v", advChapterKeys[ch], id, o, ps)
+				t.Errorf("%s: %s and %s share %v", advancement.ChapterKeys[ch], id, o, ps)
 			}
 			seen[ps] = id
 		}
-		for _, g := range l.gates {
-			if _, ok := l.pos[advGateID(g.ID)]; g.Chapter == ch || !ok {
-				t.Errorf("%s: entrance of %s at %v", advChapterKeys[ch], g.ID, l.pos[advGateID(g.ID)])
+		for _, g := range l.Gates {
+			if _, ok := l.Pos[advancement.GateID(g.ID)]; g.Chapter == ch || !ok {
+				t.Errorf("%s: entrance of %s at %v", advancement.ChapterKeys[ch], g.ID, l.Pos[advancement.GateID(g.ID)])
 			}
 		}
-		for _, a := range l.order {
-			c := l.pos[a.ID]
+		for _, a := range l.Order {
+			c := l.Pos[a.ID]
 			for _, id := range a.Parents {
-				par, _ := advancementByID(id)
+				par, _ := advancement.ByID(id)
 				key := id
 				if par.Chapter != ch {
-					key = advGateID(id)
+					key = advancement.GateID(id)
 				}
-				p, ok := l.pos[key]
-				if !ok || p.x >= c.x {
-					t.Errorf("%s: %s at %v, its parent %s at %v", advChapterKeys[ch], a.ID, c, key, p)
+				p, ok := l.Pos[key]
+				if !ok || p.X >= c.X {
+					t.Errorf("%s: %s at %v, its parent %s at %v", advancement.ChapterKeys[ch], a.ID, c, key, p)
 				}
 			}
-			if len(a.Parents) > 0 && l.line[a.ID] == "" {
-				t.Errorf("%s: %s has no line", advChapterKeys[ch], a.ID)
+			if len(a.Parents) > 0 && l.Line[a.ID] == "" {
+				t.Errorf("%s: %s has no line", advancement.ChapterKeys[ch], a.ID)
 			}
 		}
 	}
@@ -160,28 +162,28 @@ func TestAdvancementLayout(t *testing.T) {
 func TestAdvancementTreeFits(t *testing.T) {
 	s := testSession(t)
 	s.state.Advancements = map[string]bool{}
-	for _, a := range advancementTree {
+	for _, a := range advancement.Tree {
 		s.state.Advancements[a.ID] = true
 	}
-	for tab := advChapter(0); tab < advChapterCount; tab++ {
-		l := advancementLayout(tab)
-		if l.w > ui.TreeCols || l.h > ui.TreeRows {
-			t.Errorf("tab %s is %d×%d, the grid %d×%d", advChapterKeys[tab], l.w, l.h, ui.TreeCols, ui.TreeRows)
+	for tab := advancement.Chapter(0); tab < advancement.ChapterCount; tab++ {
+		l := advancement.LayoutOf(tab)
+		if l.W > ui.TreeCols || l.H > ui.TreeRows {
+			t.Errorf("tab %s is %d×%d, the grid %d×%d", advancement.ChapterKeys[tab], l.W, l.H, ui.TreeCols, ui.TreeRows)
 		}
 	}
 }
 
 // TestAdvancementStack: an advancement points at its item, else its icon.
 func TestAdvancementStack(t *testing.T) {
-	a, _ := advancementByID("hammer")
-	if it, ok := advancementStack(a); !ok || itemName(i18n.Default, it) != "돌 망치" {
+	a, _ := advancement.ByID("hammer")
+	if it, ok := advancement.Stack(a); !ok || naming.ItemName(i18n.Default, it) != "돌 망치" {
 		t.Fatalf("hammer stack %v %v", it, ok)
 	}
-	b, _ := advancementByID("first_research")
-	if _, ok := advancementStack(b); !ok {
+	b, _ := advancement.ByID("first_research")
+	if _, ok := advancement.Stack(b); !ok {
 		t.Fatal("first_research has an icon")
 	}
-	if _, ok := advancementStack(&Advancement{}); ok {
+	if _, ok := advancement.Stack(&advancement.Advancement{}); ok {
 		t.Fatal("empty advancement has no item")
 	}
 }
@@ -195,7 +197,7 @@ func TestTrackedAdvancement(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.advance(tx, "research_table")
-		chest, _ := advancementByID("chest")
+		chest, _ := advancement.ByID("chest")
 		s.state.Advancements["first_research"] = true
 		if next, _ := s.nextAdvancement(); next.ID == "chest" {
 			t.Fatal("chest is not first in the tree order")
@@ -220,10 +222,10 @@ func TestTrackedAdvancement(t *testing.T) {
 // research, but those the start of the game or an event alone does.
 func TestAdvancementGuides(t *testing.T) {
 	free := map[string]bool{"wood": true, "planks": true, "crafting_table": true, "research_table": true,
-		advGrowTree: true, advChunk: true, advChunks8: true, advChunks16: true, advBloom: true,
-		advStats: true, advFairyGift: true, advFavourite: true, advLost: true}
-	for i := range advancementTree {
-		a := &advancementTree[i]
+		advancement.GrowTree: true, advancement.Chunk: true, advancement.Chunks8: true, advancement.Chunks16: true, advancement.Bloom: true,
+		advancement.Stats: true, advancement.FairyGift: true, advancement.Favourite: true, advancement.Lost: true}
+	for i := range advancement.Tree {
+		a := &advancement.Tree[i]
 		if _, ok := goalResearch(a); !ok && !free[a.ID] {
 			t.Errorf("%s leads to no research", a.ID)
 		}
@@ -235,7 +237,7 @@ func TestAdvancementGuides(t *testing.T) {
 // crucible, the barrel before the generator.
 func TestAdvancementOrder(t *testing.T) {
 	at := map[string]int{}
-	for i, a := range advancementTree {
+	for i, a := range advancement.Tree {
 		at[a.ID] = i
 	}
 	for _, p := range [][2]string{
@@ -251,25 +253,25 @@ func TestAdvancementOrder(t *testing.T) {
 // TestAdvancementChapters: an advancement is in the chapter of how its thing
 // is got, and the projects gather the branches before the dragon.
 func TestAdvancementChapters(t *testing.T) {
-	for id, ch := range map[string]advChapter{
-		"wood": advChapterStart, advSift: advChapterSieve, "mesh_diamond": advChapterSieve, "seeds": advChapterFarming,
-		"generator": advChapterAutomation, "alloy_smelter": advChapterAlloy, advWave1: advChapterHunting,
-		"diamond_tools": advChapterGear, advBloom: advChapterMagic, advFairyGift: advChapterFairy, "fairy_board": advChapterFairy, "project_dragon": advChapterProject, advChunks16: advChapterExtra,
+	for id, ch := range map[string]advancement.Chapter{
+		"wood": advancement.ChapterStart, advancement.Sift: advancement.ChapterSieve, "mesh_diamond": advancement.ChapterSieve, "seeds": advancement.ChapterFarming,
+		"generator": advancement.ChapterAutomation, "alloy_smelter": advancement.ChapterAlloy, advancement.Wave1: advancement.ChapterHunting,
+		"diamond_tools": advancement.ChapterGear, advancement.Bloom: advancement.ChapterMagic, advancement.FairyGift: advancement.ChapterFairy, "fairy_board": advancement.ChapterFairy, "project_dragon": advancement.ChapterProject, advancement.Chunks16: advancement.ChapterExtra,
 	} {
-		if a, ok := advancementByID(id); !ok || a.Chapter != ch {
-			t.Errorf("%s not in chapter %s", id, advChapterKeys[ch])
+		if a, ok := advancement.ByID(id); !ok || a.Chapter != ch {
+			t.Errorf("%s not in chapter %s", id, advancement.ChapterKeys[ch])
 		}
 	}
 	for id, parents := range map[string][]string{
-		"project_dragon": {"project_industry", "project_hunter", "project_botanist"},
-		advWave5:         {advWave3},
-		"bronze_ingot":   {"alloy_smelter", "tin_ingot"},
-		"clay":           {"barrel", "dust"},
-		"seeds":          {advSift},
-		"mesh_diamond":   {"mesh_string"},
-		"fairy_board":    {"fairy_dust"},
+		"project_dragon":  {"project_industry", "project_hunter", "project_botanist"},
+		advancement.Wave5: {advancement.Wave3},
+		"bronze_ingot":    {"alloy_smelter", "tin_ingot"},
+		"clay":            {"barrel", "dust"},
+		"seeds":           {advancement.Sift},
+		"mesh_diamond":    {"mesh_string"},
+		"fairy_board":     {"fairy_dust"},
 	} {
-		if a, _ := advancementByID(id); !slices.Equal(a.Parents, parents) {
+		if a, _ := advancement.ByID(id); !slices.Equal(a.Parents, parents) {
 			t.Errorf("%s after %v, want %v", id, a.Parents, parents)
 		}
 	}

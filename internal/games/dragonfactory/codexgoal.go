@@ -8,6 +8,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -35,17 +37,17 @@ type recipeStep struct {
 // out, and the one that makes the most per ingredient is taken (sticks from
 // planks before sticks from bamboo).
 func codexRecipeOf(it item.Stack) (recipeStep, bool) {
-	k := itemKey(it.Item())
+	k := naming.ItemKey(it.Item())
 	best, bestRate := recipeStep{}, 0.0
-	for _, cr := range crafterRecipes() {
-		if cr.outKey != k {
+	for _, cr := range machinerecipe.Crafters() {
+		if cr.OutKey != k {
 			continue
 		}
-		step := recipeStep{out: max(1, cr.out.Count())}
+		step := recipeStep{out: max(1, cr.Out.Count())}
 		ins := 0
-		for _, req := range cr.reqs {
+		for _, req := range cr.Reqs {
 			var st item.Stack
-			switch need := req.need.(type) {
+			switch need := req.Need.(type) {
 			case item.Stack:
 				st = need
 			case recipe.ItemTag:
@@ -55,8 +57,8 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 				step.ins = nil
 				break
 			}
-			step.ins = append(step.ins, codexLink{stack: item.NewStack(st.Item(), 1), count: req.count})
-			ins += req.count
+			step.ins = append(step.ins, codexLink{stack: item.NewStack(st.Item(), 1), count: req.Count})
+			ins += req.Count
 		}
 		if len(step.ins) == 0 || codexReverses(step, k) {
 			continue
@@ -68,16 +70,16 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 	if bestRate > 0 {
 		return best, true
 	}
-	for _, r := range alloyRecipes {
-		if itemKey(r.Out) == k {
+	for _, r := range machinerecipe.Alloys {
+		if naming.ItemKey(r.Out) == k {
 			return recipeStep{out: max(1, r.OutCount), ins: []codexLink{
 				{stack: item.NewStack(r.A, 1), count: r.CountA}, {stack: item.NewStack(r.B, 1), count: r.CountB}}}, true
 		}
 	}
-	for i := range labRecipes {
-		if itemKey(labRecipes[i].Out) == k {
-			step := recipeStep{out: max(1, labRecipes[i].OutCount)}
-			for _, in := range labRecipes[i].In {
+	for i := range machinerecipe.Labs {
+		if naming.ItemKey(machinerecipe.Labs[i].Out) == k {
+			step := recipeStep{out: max(1, machinerecipe.Labs[i].OutCount)}
+			for _, in := range machinerecipe.Labs[i].In {
 				step.ins = append(step.ins, codexLink{stack: item.NewStack(in.Item, 1), count: in.Count})
 			}
 			return step, true
@@ -94,7 +96,7 @@ func codexRaw(it item.Stack, n int) []codexLink {
 	total := map[string]*codexLink{}
 	var walk func(it item.Stack, n, depth int, path map[string]bool)
 	walk = func(it item.Stack, n, depth int, path map[string]bool) {
-		k := itemKey(it.Item())
+		k := naming.ItemKey(it.Item())
 		step, ok := codexRecipeOf(it)
 		if !ok || depth >= goalChainDepth || path[k] {
 			if total[k] == nil {
@@ -139,12 +141,12 @@ func (s *session) favourites(p *player.Player) []item.Stack {
 
 // isFavourite reports whether it is one of p's favourites.
 func (s *session) isFavourite(p *player.Player, it item.Stack) bool {
-	return slices.Contains(s.state.Favourites[instance.AccountID(p)], itemKey(it.Item()))
+	return slices.Contains(s.state.Favourites[instance.AccountID(p)], naming.ItemKey(it.Item()))
 }
 
 // toggleFavourite stars it for p, or takes the star off.
 func (s *session) toggleFavourite(p *player.Player, it item.Stack) {
-	acc, k := instance.AccountID(p), itemKey(it.Item())
+	acc, k := instance.AccountID(p), naming.ItemKey(it.Item())
 	if s.state.Favourites == nil {
 		s.state.Favourites = map[string][]string{}
 	}
@@ -178,12 +180,12 @@ func (s *session) favouriteSlots(p *player.Player, lang string) []ui.ItemSlot {
 // from a block of diamonds, which is made of diamonds).
 func codexReverses(step recipeStep, key string) bool {
 	for _, in := range step.ins {
-		ik := itemKey(in.stack.Item())
-		for _, cr := range crafterRecipes() {
-			if cr.outKey != ik || len(cr.reqs) != 1 {
+		ik := naming.ItemKey(in.stack.Item())
+		for _, cr := range machinerecipe.Crafters() {
+			if cr.OutKey != ik || len(cr.Reqs) != 1 {
 				continue
 			}
-			if st, ok := cr.reqs[0].need.(item.Stack); ok && itemKey(st.Item()) == key {
+			if st, ok := cr.Reqs[0].Need.(item.Stack); ok && naming.ItemKey(st.Item()) == key {
 				return true
 			}
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // chestSortUses sneaking stick uses on the same chest, each less than
@@ -110,7 +111,7 @@ func sortInventory(inv *inventory.Inventory) {
 		}
 	}
 	slices.SortStableFunc(merged, func(a, b item.Stack) int {
-		return cmp.Compare(itemKey(a.Item()), itemKey(b.Item()))
+		return cmp.Compare(naming.ItemKey(a.Item()), naming.ItemKey(b.Item()))
 	})
 	var stacks []item.Stack
 	for _, it := range merged {

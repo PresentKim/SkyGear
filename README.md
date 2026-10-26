@@ -72,7 +72,19 @@ internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친�
 internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
 internal/locales/               이 서버의 문구 카탈로그(ko/en, 바닐라 이름). 불러오면 common/i18n 에 더해진다
 common/                         게임과 상관없는 공통 패키지와 팩(폼·DDUI·엔티티 상자·WAILA·HUD·i18n·리소스팩 로더 등, common/README.md)
-internal/games/dragonfactory/   드래곤팩토리 (연구, 발전과제, 섬 확장, 서랍, 기계, 도관, 웨이브, 장비, 마법 식물, 도움말 …)
+internal/games/dragonfactory/   드래곤팩토리: 세션에 묶인 코드(게임·세션·상태, 핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브, 도움말, WAILA, 관리·디버그 …)
+  dfitem/                       세션이 필요 없는 아이템·단순 블록(돌멩이·먼지·광석·금속·메쉬·망치·정수·양동이·업그레이드 …)과 종류 목록·분쇄 표
+  naming/                       아이템·블록 키와 이름(카탈로그·팩 texts, vanillakeys.json)
+  textfmt/                      숫자·시간 표기, 팩 글꼴 글리프
+  blockmodel/                   커스텀 블록 재질·정육면체 속성
+  formicon/                     폼 버튼 아이콘
+  wintext/                      기계 창 아이템의 글(보는 사람의 언어로)
+  sievetable/                   체 드롭 표, 마법 체 테마
+  machinerecipe/                합금로·정수 추출기·자동 제작기 레시피
+  tinker/                       장비(팅커스풍) 재료·레벨·경험치·강화
+  hopper/                       나무·역방향 호퍼 블록
+  advancement/                  발전과제 트리·챕터·판 배치
+  achievement/                  계정 업적 카탈로그와 ID
 internal/itemio/                아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 도관이 쓴다
 internal/energy, itemnet, fluidnet/  에너지·아이템·액체 연결망
 spike/scenarios/, spike/cmd/platformbot/  접속 시나리오와 시나리오 봇 (spike/scenarios/run.sh)

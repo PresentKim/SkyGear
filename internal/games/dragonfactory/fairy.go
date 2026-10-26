@@ -12,11 +12,13 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -151,7 +153,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	}
 	d.gave = true
 	count(p, "fairy_gift", 1)
-	s.advance(tx, advFairyGift)
+	s.advance(tx, advancement.FairyGift)
 	gift := s.fairyGift()
 	// Throw it to the player: a short arc that lands at their feet.
 	to := p.Position().Sub(f.data.Pos)
@@ -185,7 +187,7 @@ func (f *Fairy) scatter(tx *world.Tx, s *session, p *player.Player) {
 func giftNames(p *player.Player, gift []item.Stack) string {
 	var names []string
 	for _, st := range gift {
-		names = append(names, fmt.Sprintf("%s §7x%d§f", itemName(i18n.Of(p), st), st.Count()))
+		names = append(names, fmt.Sprintf("%s §7x%d§f", naming.ItemName(i18n.Of(p), st), st.Count()))
 	}
 	return strings.Join(names, ", ")
 }
@@ -209,7 +211,7 @@ const (
 func (s *session) fairyGift() []item.Stack {
 	s.state.FairyDust = true
 	s.storeState()
-	return append(s.rollGift(), item.NewStack(FairyDust{}, s.rollDust()))
+	return append(s.rollGift(), item.NewStack(dfitem.FairyDust{}, s.rollDust()))
 }
 
 // rollDust is the fairy dust of one visit.
@@ -246,7 +248,7 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 	s.state.FairyDust = true
 	s.storeState()
 	for left := dust; left > 0; left -= 64 {
-		s.giveItem(p, tx, p.Position(), item.NewStack(FairyDust{}, min(left, 64)))
+		s.giveItem(p, tx, p.Position(), item.NewStack(dfitem.FairyDust{}, min(left, 64)))
 	}
 	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.backfill"), nights, dust)
 }
@@ -269,7 +271,7 @@ func (s *session) rollGift() []item.Stack {
 	gifts := []item.Stack{
 		item.NewStack(oakLog, 6),
 		item.NewStack(block.Sapling{Type: block.OakSapling()}, 1),
-		item.NewStack(Pebble{Kind: PebbleStone}, 6),
+		item.NewStack(dfitem.Pebble{Kind: dfitem.PebbleStone}, 6),
 	}
 	return []item.Stack{gifts[s.rand.IntN(len(gifts))]}
 }
@@ -423,22 +425,6 @@ func (s *session) fairyOf(e world.Entity) (*Fairy, bool) {
 	return f, ok && s.fairy == f.handle
 }
 
-// ResearchNote was a fairy gift that revealed hints of hidden core
-// recipes, which are gone (13th playtest). It stays registered so old
-// inventories load; using it only says so.
-type ResearchNote struct{}
-
-func (ResearchNote) EncodeItem() (string, int16) { return "dragonfactory:research_note", 0 }
-func (ResearchNote) Name() string                { return i18n.T(i18n.Default, "name.ResearchNote") }
-func (ResearchNote) Category() category.Category { return category.Items() }
-
-func (ResearchNote) Use(_ *world.Tx, u item.User, _ *item.UseContext) bool {
-	if p, ok := u.(*player.Player); ok {
-		p.Message(i18n.T(i18n.Of(p), "fairy.researchNote.unused"))
-	}
-	return false
-}
-
 func init() {
-	world.RegisterItem(ResearchNote{})
+	world.RegisterItem(dfitem.ResearchNote{})
 }

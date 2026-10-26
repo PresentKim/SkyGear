@@ -3,7 +3,7 @@
 # barrel recipe and creative entry reach the client, an operator gets a
 # barrel (the block with its seven stages registers without server errors);
 # the stone barrel (lava) too, and witch water with the crushed blocks
-# (witchwater.go, crushedblock.go).
+# (witchwater.go, dfitem/crushedblock.go).
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=배럴 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \
   'cmd:/dfadmin research compost' 'cmd:/dfadmin research barrel' \

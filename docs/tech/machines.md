@@ -5,7 +5,7 @@
 ## 구조
 
 - `Machine{Kind}` 하나의 블록 타입이 종류(`crusher`, `sieve`, `auto_sieve`, `auto_miner`, `harvester`, `alloy_smelter` …)마다 따로 등록된다.
-  식별자는 `dragonfactory:<종류>`. 모델·텍스처는 리소스팩 `assets/resourcepack/dragonfactory/`(`models/blocks/`, `textures/`), Go 는 식별자·재질 이름만(`models.go`·`sieve.go`).
+  식별자는 `dragonfactory:<종류>`. 모델·텍스처는 리소스팩 `assets/resourcepack/dragonfactory/`(`models/blocks/`, `textures/`), Go 는 식별자·재질 이름만(`blockmodel/models.go`·`sieve.go`).
 - 체 세 종류는 상태 하나(`dragonfactory:look`, 끼운 메쉬 단계×내용물×높이의 번호 `000`~)가 있는 블록이라 메쉬(여섯 단계, 단계마다 색이 다른 `sieve_mesh_<단계>` 텍스처를 입힌 가로세로 막대 여덟 개)와 내용물·진행(8단계, 높이 6픽셀에서 1픽셀까지)이 모델에 보인다. 모델과 메쉬 텍스처는 Ex Nihilo Fabrico 의 체·메쉬 모델에서 `tools/fabricotex` 가 만든다(창 없음, [sieve.go](../../internal/games/dragonfactory/sieve.go)). 상태를 하나로 둔 것은 클라이언트가 런타임 ID를 상태 순서대로 짝짓기 때문이다.
 - 설치된 기계는 `machineState`(포인터)를 가진다. Dragonfly 상자처럼 블록 값이 상태를 가리키고,
   블록 엔티티 NBT(`Items`, `Progress`, `Owner`, `OwnerName`)로 월드와 함께 저장된다.
@@ -34,9 +34,9 @@
 | 아이템 흡수기 | - | 13~16 | 링(10) | 10틱마다 한 묶음, 5 RE/t, 창 `§d§m§3` |
 | 자동 벌목기 | 10(묘목) | 13~16 | 링(12) | 60틱, 15 RE/t, 창 `§d§m§2` |
 | 자동 제작기 | 0·1·2·9·10·11·18·19·20 | 6·7·15·16 | 링(13), 조합법 칸 4 | 40틱, 25 RE/t, 창 `§d§m§7` |
-| 정수 추출기 | 0·1·2·9·10·11·18·19·20 | 6·7·15·16 | 링(13) | 레시피마다 160~320틱(`machineState.period`), 40 RE/t, 창 대신 정수 추출기 화면(`labui.go`)으로 정수를 고르고 넣고 뺀다. 고른 레시피의 재료만 받고 `Recipe` 에 정수 종류로 저장한다. 레시피는 `labRecipes` |
+| 정수 추출기 | 0·1·2·9·10·11·18·19·20 | 6·7·15·16 | 링(13) | 레시피마다 160~320틱(`machineState.period`), 40 RE/t, 창 대신 정수 추출기 화면(`labui.go`)으로 정수를 고르고 넣고 뺀다. 고른 레시피의 재료만 받고 `Recipe` 에 정수 종류로 저장한다. 레시피는 `machinerecipe.Labs` |
 | 자동 체 | 10 | 13~16(칸 4개, 호퍼·도관이 꺼냄; 가득 차면 멈춤) | 링 게이지(12) | 60틱 |
-| 마법 체 | 10(블록), 11(에센스) | 13~16 | 링 게이지(12) | 90틱, 40 RE/t, 창 `§d§m§9`(`magicsieve_slots`). 에센스 칸은 `machineKind.charge`, 역할 `roleCharge`. 에센스 하나가 24번 충전하고, 충전·몬스터는 `charges`·`mob`(시뮬레이터와 같은 NBT)에 저장된다. 테마 표는 `magicsieve_tables.go`, 굴리기는 `magicsieve.go` |
+| 마법 체 | 10(블록), 11(에센스) | 13~16 | 링 게이지(12) | 90틱, 40 RE/t, 창 `§d§m§9`(`magicsieve_slots`). 에센스 칸은 `machineKind.charge`, 역할 `roleCharge`. 에센스 하나가 24번 충전하고, 충전·몬스터는 `charges`·`mob`(시뮬레이터와 같은 NBT)에 저장된다. 테마 표는 `sievetable/magicsieve_tables.go`, 굴리기는 `magicsieve.go` |
 | 자동 자원 채굴기 | - | 13~16 | 10 | 40틱 |
 | 자동 농작물 수확기 | - | 13~16 | 10 | 40틱 |
 
@@ -70,12 +70,12 @@
 
 ## 정육면체 블록 (모델링 없음)
 
-자동 자원 채굴기·자동 농작물 수확기는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`models.go` `cubeProperties`).
+자동 자원 채굴기·자동 농작물 수확기는 모델 없이 바닐라 정육면체(`minecraft:geometry.full_block`)에 텍스처를 붙인다(`blockmodel/models.go` `CubeProperties`).
 텍스처는 `textures/blocks/<이름>_<side|up|down>.png` 3장: 네 옆면은 `side` 하나를 같이 쓴다(방향 없음).
 이름은 `auto_miner`, `harvester`다. 면 그림만 바꾸려면 PNG를 교체한다.
 놓는 방향으로 돌지 않는다.
 
-분쇄기도 모델 없는 정육면체지만 정면이 따로 있다(`frontCubeProperties`): `textures/blocks/<이름>_<front|back|side|up|down>.png` 5장, 정면 **남쪽**·후면 북쪽·좌우 두 옆면은 `side` 공통. 블록 아이템은 인벤토리에서 남쪽 면이 보이게 그려지므로 정면을 남쪽에 둔다(서랍은 기본 상태를 남쪽으로: `drawerFacings`). 블록 아이템은 인벤토리·폼에서 블록 모양 그대로 보이므로 아이템 아이콘 텍스처는 두지 않는다.
+분쇄기도 모델 없는 정육면체지만 정면이 따로 있다(`blockmodel.FrontCubeProperties`): `textures/blocks/<이름>_<front|back|side|up|down>.png` 5장, 정면 **남쪽**·후면 북쪽·좌우 두 옆면은 `side` 공통. 블록 아이템은 인벤토리에서 남쪽 면이 보이게 그려지므로 정면을 남쪽에 둔다(서랍은 기본 상태를 남쪽으로: `drawerFacings`). 블록 아이템은 인벤토리·폼에서 블록 모양 그대로 보이므로 아이템 아이콘 텍스처는 두지 않는다.
 
 ## 에너지 게이지
 

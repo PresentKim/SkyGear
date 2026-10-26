@@ -11,6 +11,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // droppedItems counts the item entities in the world by item key.
@@ -19,7 +21,7 @@ func droppedItems(tx *world.Tx) map[string]int {
 	for e := range tx.Entities() {
 		if it, ok := e.(*entity.Ent); ok {
 			if b, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
-				out[itemKey(b.Item().Item())] += b.Item().Count()
+				out[naming.ItemKey(b.Item().Item())] += b.Item().Count()
 			}
 		}
 	}
@@ -77,13 +79,13 @@ func TestAxeStripsFiber(t *testing.T) {
 		for range 50 {
 			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		}
-		if droppedItems(tx)[itemKey(BarkFiber{})] != 0 {
+		if droppedItems(tx)[naming.ItemKey(dfitem.BarkFiber{})] != 0 {
 			t.Fatal("a wooden axe stripped fibers")
 		}
 		for range 50 {
 			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
 		}
-		if n := droppedItems(tx)[itemKey(BarkFiber{})]; n < 20 {
+		if n := droppedItems(tx)[naming.ItemKey(dfitem.BarkFiber{})]; n < 20 {
 			t.Fatalf("%d fibers from 50 stone axe strips", n)
 		}
 	})
@@ -95,7 +97,7 @@ func TestDropsHaveMotion(t *testing.T) {
 	loadAround(s)
 	s.world.Do(func(tx *world.Tx) {
 		for range 20 {
-			s.dropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(Pebble{Kind: PebbleStone}, 1))
+			s.dropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(dfitem.Pebble{Kind: dfitem.PebbleStone}, 1))
 		}
 		n := 0
 		for e := range tx.Entities() {
@@ -143,11 +145,11 @@ func TestGrassSeeds(t *testing.T) {
 			tx.SetBlock(pos, block.Dirt{}, nil)
 			s.tillSeeds(p, tx, pos, cube.FaceUp, hoe)
 		}
-		if n := droppedKeys(tx)[itemKey(GrassSeeds{})]; n < 5 || n > 40 {
+		if n := droppedKeys(tx)[naming.ItemKey(dfitem.GrassSeeds{})]; n < 5 || n > 40 {
 			t.Fatalf("200 tillings dropped %d seeds, want about 20", n)
 		}
 		ctx := &item.UseContext{}
-		if !(GrassSeeds{}).UseOnBlock(pos, cube.FaceUp, mgl64.Vec3{}, tx, p, ctx) || ctx.CountSub != 1 {
+		if !(dfitem.GrassSeeds{}).UseOnBlock(pos, cube.FaceUp, mgl64.Vec3{}, tx, p, ctx) || ctx.CountSub != 1 {
 			t.Fatal("seeds were not used on dirt")
 		}
 		if _, ok := tx.Block(pos).(block.Grass); !ok {

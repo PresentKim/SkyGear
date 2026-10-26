@@ -2,9 +2,10 @@ package dragonfactory
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/internal/fluidnet"
-	"strconv"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -16,6 +17,8 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/energy"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
@@ -64,7 +67,7 @@ var bundleSelection = cube.Box(3.5/16, 3.5/16, 3.5/16, 12.5/16, 12.5/16, 12.5/16
 func (ConduitBundle) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.dragonfactory_conduit_node",
-		Textures:     map[string]customblock.Material{"*": alphaMaterial("dragonfactory_conduit_node")},
+		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("dragonfactory_conduit_node")},
 		SelectionBox: bundleSelection,
 		CollisionBox: bundleSelection,
 	}
@@ -74,7 +77,7 @@ func (b ConduitBundle) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 3,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   customBlockEffective,
+		Effective:   blockmodel.CustomBlockEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			var out []item.Stack
 			if b.Energy > 0 {
@@ -275,16 +278,13 @@ func bundleLines(lang string, tx *world.Tx, pos cube.Pos, b ConduitBundle) []str
 	}
 	if b.Item > 0 {
 		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item))+
-			" §7"+fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), formatRate(itemsPerTick(b.Item))))
+			" §7"+fmt.Sprintf(i18n.T(lang, "itemconduit.lines.rate"), textfmt.Rate(itemsPerTick(b.Item))))
 	}
 	if b.Fluid > 0 {
 		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidnet.RateOf(b.Fluid)))
 	}
 	return lines
 }
-
-// formatRate writes a rate without trailing zeros.
-func formatRate(r float64) string { return strconv.FormatFloat(r, 'f', -1, 64) }
 
 // itemsPerTick is how many items an item conduit of a tier moves a tick.
 func itemsPerTick(tier int) float64 {
@@ -340,7 +340,7 @@ func conduitItemID(kind string, tier int) string {
 func conduitIconProperties(kind string, tier int) customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.dragonfactory.conduit_icon_" + kind,
-		Textures:     map[string]customblock.Material{"*": alphaMaterial(fmt.Sprintf("dragonfactory_conduit_%s_%d", kind, tier))},
+		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial(fmt.Sprintf("dragonfactory_conduit_%s_%d", kind, tier))},
 		SelectionBox: conduitCore,
 	}
 }

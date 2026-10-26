@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
 )
 
 // The look of a machine tier (docs/design/13-machine-tiers.md): a machine that
@@ -59,7 +60,7 @@ func lookProperties(kind string, tier int, on bool) customblock.Properties {
 		suffix = fmt.Sprintf("_t%d", tier)
 	}
 	tex := func(face string) customblock.Material {
-		return alphaMaterial("dragonfactory_" + kind + "_" + face + suffix)
+		return blockmodel.AlphaMaterial("dragonfactory_" + kind + "_" + face + suffix)
 	}
 	if cubeMachines[kind] {
 		side := "side"

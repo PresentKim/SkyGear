@@ -1,8 +1,10 @@
-package dragonfactory
+package sievetable
 
 import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // The drop tables of the magic sieve by the essence in it (docs/design/15-magic-sieve.md §5).
@@ -24,17 +26,17 @@ type Theme struct {
 }
 
 var (
-	inGravel = itemKey(block.Gravel{})
-	inSand   = itemKey(block.Sand{})
-	inDirt   = itemKey(block.Dirt{})
-	inDust   = itemKey(Dust{})
+	inGravel = naming.ItemKey(block.Gravel{})
+	inSand   = naming.ItemKey(block.Sand{})
+	inDirt   = naming.ItemKey(block.Dirt{})
+	inDust   = naming.ItemKey(dfitem.Dust{})
 )
 
 func td(it item.Stack, permille int, rare bool) ThemeDrop { return ThemeDrop{it, permille, rare} }
 
-// magicThemes are the themes by mob.
-var magicThemes = map[string]Theme{
-	MobZombie: {
+// MagicThemes are the themes by mob.
+var MagicThemes = map[string]Theme{
+	dfitem.MobZombie: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.RottenFlesh{}, 1), 200, false),
@@ -57,7 +59,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobSkeleton: {
+	dfitem.MobSkeleton: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.Bone{}, 1), 300, false),
@@ -80,7 +82,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobSpider: {
+	dfitem.MobSpider: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(block.String{}, 1), 300, false),
@@ -103,7 +105,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobCreeper: {
+	dfitem.MobCreeper: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.Gunpowder{}, 1), 300, false),
@@ -121,7 +123,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobSlime: {
+	dfitem.MobSlime: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.Slimeball{}, 1), 150, false),
@@ -140,7 +142,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobDrowned: {
+	dfitem.MobDrowned: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.PrismarineShard{}, 1), 100, false),
@@ -175,7 +177,7 @@ var magicThemes = map[string]Theme{
 		},
 		Replace: map[string]bool{inSand: true},
 	},
-	MobWitch: {
+	dfitem.MobWitch: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.Gunpowder{}, 1), 100, false),
@@ -203,7 +205,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobPiglin: {
+	dfitem.MobPiglin: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(block.Netherrack{}, 1), 400, false),
@@ -234,7 +236,7 @@ var magicThemes = map[string]Theme{
 		},
 		Replace: map[string]bool{inGravel: true, inSand: true},
 	},
-	MobEnder: {
+	dfitem.MobEnder: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(block.EndStone{}, 1), 400, false),
@@ -261,7 +263,7 @@ var magicThemes = map[string]Theme{
 		},
 		Replace: map[string]bool{inGravel: true, inSand: true},
 	},
-	MobBlaze: {
+	dfitem.MobBlaze: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(block.Magma{}, 1), 140, false),
@@ -284,7 +286,7 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
-	MobWither: {
+	dfitem.MobWither: {
 		Adds: map[string][]ThemeDrop{
 			inGravel: {
 				td(item.NewStack(item.Bone{}, 1), 200, false),
@@ -307,4 +309,31 @@ var magicThemes = map[string]Theme{
 			},
 		},
 	},
+}
+
+// MagicCharges is how many sifts one essence charges.
+const MagicCharges = 24
+
+// ThemeCap is the most a theme drop is likely to come out, per mille.
+const ThemeCap = 950
+
+// rareBoost is how much a mob's difficulty raises its rare drops: ×1 for the
+// easiest, +0.2 a step.
+func rareBoost(mob string) float64 { return 1 + 0.2*float64(dfitem.MobDifficulty[mob]-1) }
+
+// meshBoost is how much a better mesh multiplies the chances of the theme
+// drops of the magic sieve (percent).
+var meshBoost = map[string]int{"flint": 130, "iron": 160, "gold": 200, "diamond": 250, "netherite": 300}
+
+// ThemeChance is the chance, per mille, of a theme drop with a mesh fitted.
+func ThemeChance(d ThemeDrop, mesh, mob string) float64 {
+	boost := 1.0
+	if percent, ok := meshBoost[mesh]; ok {
+		boost = float64(percent) / 100
+	}
+	p := float64(d.Permille) * boost
+	if d.Rare {
+		p *= rareBoost(mob)
+	}
+	return min(p, ThemeCap)
 }

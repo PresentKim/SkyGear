@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // TestEveryCounterIsCounted: each key of the catalog is counted somewhere in
@@ -50,9 +53,9 @@ func TestEveryCounterIsCounted(t *testing.T) {
 		}
 		return false
 	}
-	for _, c := range counterCatalog {
-		if !counted(c.key) {
-			t.Errorf("counter %s is not counted anywhere", c.key)
+	for _, c := range achievement.Counters {
+		if !counted(c.Key) {
+			t.Errorf("counter %s is not counted anywhere", c.Key)
 		}
 	}
 }
@@ -69,11 +72,11 @@ func TestCounterKindsExist(t *testing.T) {
 		return false
 	}
 	var meshes, pebbles, crops []string
-	for _, m := range meshTiers {
-		meshes = append(meshes, m.tier)
+	for _, m := range dfitem.MeshTiers {
+		meshes = append(meshes, m.Tier)
 	}
-	for _, p := range pebbleKinds {
-		pebbles = append(pebbles, p.kind)
+	for _, p := range dfitem.PebbleKinds {
+		pebbles = append(pebbles, p.Kind)
 	}
 	for k := range cropKinds {
 		crops = append(crops, k)
@@ -82,20 +85,20 @@ func TestCounterKindsExist(t *testing.T) {
 		prefix string
 		kinds  []string
 	}{
-		{"place_", machineOrder}, {"cycle_", machineOrder}, {"kill_", mobKinds}, {"crop_", crops},
-		{"sift_mesh_", meshes}, {"pebble_", pebbles}, {"lab_", researchEssenceKinds},
+		{"place_", machineOrder}, {"cycle_", machineOrder}, {"kill_", dfitem.MobKinds}, {"crop_", crops},
+		{"sift_mesh_", meshes}, {"pebble_", pebbles}, {"lab_", dfitem.ResearchEssenceKinds},
 	}
-	for _, c := range counterCatalog {
-		if rest, ok := strings.CutPrefix(c.key, "wave_level_"); ok {
+	for _, c := range achievement.Counters {
+		if rest, ok := strings.CutPrefix(c.Key, "wave_level_"); ok {
 			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(waveLevels) {
-				t.Errorf("counter %s: the gate has %d levels", c.key, len(waveLevels))
+				t.Errorf("counter %s: the gate has %d levels", c.Key, len(waveLevels))
 			}
 			continue
 		}
 		for _, r := range rules {
 			// crop_plant, crop_harvest, cycle_total and kill_total count all kinds
-			if kind, ok := strings.CutPrefix(c.key, r.prefix); ok && !has([]string{"plant", "harvest", "total"}, kind) && !has(r.kinds, kind) {
-				t.Errorf("counter %s: no %q", c.key, kind)
+			if kind, ok := strings.CutPrefix(c.Key, r.prefix); ok && !has([]string{"plant", "harvest", "total"}, kind) && !has(r.kinds, kind) {
+				t.Errorf("counter %s: no %q", c.Key, kind)
 			}
 		}
 	}
@@ -105,8 +108,8 @@ func TestCounterKindsExist(t *testing.T) {
 			continue
 		}
 		found := false
-		for _, c := range counterCatalog {
-			found = found || c.key == "place_"+k
+		for _, c := range achievement.Counters {
+			found = found || c.Key == "place_"+k
 		}
 		if !found {
 			t.Errorf("no achievement for placing the %s", k)

@@ -11,6 +11,8 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // TestMagicPlantLifecycle: a seed planted on dirt makes a bud, it blooms when its
@@ -60,7 +62,7 @@ func TestMagicPlantLifecycle(t *testing.T) {
 		if got := tx.Block(at).(MagicPlant); got.Bloom {
 			t.Error("a harvested plant is still in bloom")
 		}
-		if !s.advanced(advBloom) {
+		if !s.advanced(advancement.Bloom) {
 			t.Error("harvesting did not do the advancement")
 		}
 		// without ground it drops
@@ -129,7 +131,7 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 			t.Fatalf("the bloom was not picked: %#v", tx.Block(bloom))
 		}
 	})
-	if outputCount(st, OreChunk{Ore: OreIron}) == 0 && outputCount(st, PlantSeed{Seed: "ore_iron"}) == 0 {
+	if outputCount(st, dfitem.OreChunk{Ore: dfitem.OreIron}) == 0 && outputCount(st, PlantSeed{Seed: "ore_iron"}) == 0 {
 		t.Error("the harvester has no yield of the plant")
 	}
 }

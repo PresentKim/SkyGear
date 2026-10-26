@@ -7,19 +7,22 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
 // TestMagicThemesAreComplete: every mob has a theme with drops that all
 // exist, the replaced inputs have drops, and the difficulties and flower
 // kinds fit the mob list.
 func TestMagicThemesAreComplete(t *testing.T) {
-	for _, mob := range mobKinds {
-		th, ok := magicThemes[mob]
+	for _, mob := range dfitem.MobKinds {
+		th, ok := sievetable.MagicThemes[mob]
 		if !ok {
 			t.Errorf("%s has no theme", mob)
 			continue
 		}
-		if mobDifficulty[mob] < 1 {
+		if dfitem.MobDifficulty[mob] < 1 {
 			t.Errorf("%s has no difficulty", mob)
 		}
 		for in, drops := range th.Adds {
@@ -42,8 +45,8 @@ func TestMagicThemesAreComplete(t *testing.T) {
 			}
 		}
 	}
-	for mob := range magicThemes {
-		if !slices.Contains(mobKinds, mob) {
+	for mob := range sievetable.MagicThemes {
+		if !slices.Contains(dfitem.MobKinds, mob) {
 			t.Errorf("theme of unknown mob %s", mob)
 		}
 	}
@@ -52,20 +55,20 @@ func TestMagicThemesAreComplete(t *testing.T) {
 // TestThemeChance: the mesh multiplies a theme and the mob's difficulty the
 // rare drops, up to the cap.
 func TestThemeChance(t *testing.T) {
-	plainDrop := ThemeDrop{Permille: 100}
-	rareDrop := ThemeDrop{Permille: 10, Rare: true}
-	if got := themeChance(plainDrop, "string", MobWither); got != 100 {
+	plainDrop := sievetable.ThemeDrop{Permille: 100}
+	rareDrop := sievetable.ThemeDrop{Permille: 10, Rare: true}
+	if got := sievetable.ThemeChance(plainDrop, "string", dfitem.MobWither); got != 100 {
 		t.Fatalf("plain drop with the string mesh: %v, want 100", got)
 	}
-	if got := themeChance(plainDrop, "netherite", MobZombie); got != 300 {
+	if got := sievetable.ThemeChance(plainDrop, "netherite", dfitem.MobZombie); got != 300 {
 		t.Fatalf("plain drop with the netherite mesh: %v, want 300", got)
 	}
-	easy, hard := themeChance(rareDrop, "string", MobZombie), themeChance(rareDrop, "string", MobWither)
+	easy, hard := sievetable.ThemeChance(rareDrop, "string", dfitem.MobZombie), sievetable.ThemeChance(rareDrop, "string", dfitem.MobWither)
 	if easy != 10 || hard <= easy*2 {
 		t.Fatalf("rare drop: %v for the easiest mob, %v for the hardest", easy, hard)
 	}
-	if got := themeChance(ThemeDrop{Permille: 900, Rare: true}, "netherite", MobWither); got != themeCap {
-		t.Fatalf("capped chance %v, want %d", got, themeCap)
+	if got := sievetable.ThemeChance(sievetable.ThemeDrop{Permille: 900, Rare: true}, "netherite", dfitem.MobWither); got != sievetable.ThemeCap {
+		t.Fatalf("capped chance %v, want %d", got, sievetable.ThemeCap)
 	}
 }
 
@@ -76,7 +79,7 @@ func TestMagicSieveCharging(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindMagicSieve, "")
-	ess := item.NewStack(Essence{Mob: MobPiglin}, 2)
+	ess := item.NewStack(dfitem.Essence{Mob: dfitem.MobPiglin}, 2)
 	if st.slotAccepts(10, ess) || !st.slotAccepts(11, ess) {
 		t.Fatal("the essence belongs in the essence slot only")
 	}
@@ -91,17 +94,17 @@ func TestMagicSieveCharging(t *testing.T) {
 	}
 	in := item.NewStack(block.Sand{}, 1)
 	s.chargeSieve(st)
-	if st.charges != magicCharges || st.mob != MobPiglin {
+	if st.charges != sievetable.MagicCharges || st.mob != dfitem.MobPiglin {
 		t.Fatalf("charged with %d of %q", st.charges, st.mob)
 	}
-	for range magicCharges {
+	for range sievetable.MagicCharges {
 		s.siftDrops(st, in)
 	}
 	if st.charges != 0 || st.mob != "" {
-		t.Fatalf("after %d sifts: %d charges of %q", magicCharges, st.charges, st.mob)
+		t.Fatalf("after %d sifts: %d charges of %q", sievetable.MagicCharges, st.charges, st.mob)
 	}
 	s.chargeSieve(st)
-	if st.charges != magicCharges {
+	if st.charges != sievetable.MagicCharges {
 		t.Fatal("the second essence did not charge")
 	}
 	if got, _ := st.inv().Item(11); !got.Empty() {
@@ -124,17 +127,17 @@ func TestMagicThemeReplaces(t *testing.T) {
 	s := testSession(t)
 	sand := item.NewStack(block.Sand{}, 1)
 	base := map[string]bool{}
-	for _, d := range sieveTables["string"][itemKey(block.Sand{})] {
-		base[itemKey(d.Item.Item())] = true
+	for _, d := range sievetable.Tables["string"][naming.ItemKey(block.Sand{})] {
+		base[naming.ItemKey(d.Item.Item())] = true
 	}
 	var sawSoul, sawBase bool
 	for range 3000 {
-		drops, _ := s.magicDrops(sand, "string", MobPiglin)
+		drops, _ := s.magicDrops(sand, "string", dfitem.MobPiglin)
 		for _, d := range drops {
 			if _, ok := d.Item().(block.SoulSand); ok {
 				sawSoul = true
 			}
-			if base[itemKey(d.Item())] {
+			if base[naming.ItemKey(d.Item())] {
 				t.Fatalf("the piglin theme left the base drop %v", d)
 			}
 		}
@@ -143,9 +146,9 @@ func TestMagicThemeReplaces(t *testing.T) {
 		t.Fatal("the piglin theme gave no soul sand from sand")
 	}
 	for range 3000 {
-		drops, _ := s.magicDrops(sand, "string", MobZombie)
+		drops, _ := s.magicDrops(sand, "string", dfitem.MobZombie)
 		for _, d := range drops {
-			if base[itemKey(d.Item())] {
+			if base[naming.ItemKey(d.Item())] {
 				sawBase = true
 			}
 		}
@@ -160,15 +163,15 @@ func TestMagicSieveWorks(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindMagicSieve, "")
-	_ = st.insert(item.NewStack(Essence{Mob: MobEnder}, 1))
+	_ = st.insert(item.NewStack(dfitem.Essence{Mob: dfitem.MobEnder}, 1))
 	for range 3 {
 		_ = st.insert(item.NewStack(block.Gravel{}, 1))
 	}
 	tick(s, 3*(machineKinds[KindMagicSieve].interval+3))
-	if st.charges >= magicCharges {
+	if st.charges >= sievetable.MagicCharges {
 		t.Fatalf("no charge was used (%d left)", st.charges)
 	}
-	if st.mob != MobEnder {
+	if st.mob != dfitem.MobEnder {
 		t.Fatalf("charged with %q", st.mob)
 	}
 }

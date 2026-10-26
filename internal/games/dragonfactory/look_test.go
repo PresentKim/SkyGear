@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/waila"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // eyeAt returns a player position whose eyes are dist blocks north of the
@@ -149,7 +150,7 @@ func TestBlockNameKeys(t *testing.T) {
 		block.Lava{Still: true, Depth: 8}:                "tile.lava.name",
 		Machine{Kind: KindSieve}:                         "tile.dragonfactory:sieve.name",
 	} {
-		if got := blockNameKey(b); got != want {
+		if got := naming.BlockNameKey(b); got != want {
 			t.Errorf("%T: %s, want %s", b, got, want)
 		}
 	}

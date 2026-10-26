@@ -1,4 +1,6 @@
-package dragonfactory
+// Package wintext writes the texts of machine window items in each client's
+// language.
+package wintext
 
 import (
 	"encoding/json"
@@ -9,6 +11,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/chestui"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 )
 
 // The items of machine windows (progress, energy, info, buttons, the recipe
@@ -18,37 +22,37 @@ import (
 // language into the window packets sent to it, and the item's own name and
 // lore are the default language's.
 
-// wtext is a text made of parts, written out in a language with in.
-type wtext []wpart
+// Text is a text made of parts, written out in a language with in.
+type Text []Part
 
-// wpart is a part of a wtext: plain text, a catalog text with its arguments,
+// Part is a part of a wtext: plain text, a catalog text with its arguments,
 // or an item's name.
-type wpart struct {
+type Part struct {
 	S    string `json:"s,omitempty"`
 	Key  string `json:"k,omitempty"`
-	Args []warg `json:"a,omitempty"`
+	Args []Arg  `json:"a,omitempty"`
 	// Item and Meta name an item (EncodeItem) whose name the part is.
 	Item string `json:"i,omitempty"`
 	Meta int16  `json:"m,omitempty"`
 }
 
-// warg is an argument of a catalog text: a number, a string or a wtext.
-type warg struct {
+// Arg is an argument of a catalog text: a number, a string or a wtext.
+type Arg struct {
 	I *int64   `json:"i,omitempty"`
 	F *float64 `json:"f,omitempty"`
 	S *string  `json:"s,omitempty"`
-	T wtext    `json:"t,omitempty"`
+	T Text     `json:"t,omitempty"`
 }
 
-// wraw is a part of plain text.
-func wraw(s string) wpart { return wpart{S: s} }
+// Raw is a part of plain text.
+func Raw(s string) Part { return Part{S: s} }
 
-// wkey is a part of the catalog text of key formatted with args (int,
+// Key is a part of the catalog text of key formatted with args (int,
 // float64, string, wtext or wpart).
-func wkey(key string, args ...any) wpart {
-	p := wpart{Key: key}
+func Key(key string, args ...any) Part {
+	p := Part{Key: key}
 	for _, a := range args {
-		var w warg
+		var w Arg
 		switch a := a.(type) {
 		case int:
 			n := int64(a)
@@ -59,10 +63,10 @@ func wkey(key string, args ...any) wpart {
 			w.F = &a
 		case string:
 			w.S = &a
-		case wtext:
+		case Text:
 			w.T = a
-		case wpart:
-			w.T = wtext{a}
+		case Part:
+			w.T = Text{a}
 		default:
 			panic(fmt.Sprintf("wkey %s: argument of type %T", key, a))
 		}
@@ -71,14 +75,14 @@ func wkey(key string, args ...any) wpart {
 	return p
 }
 
-// witem is a part that is the name of an item.
-func witem(st item.Stack) wpart {
+// Item is a part that is the name of an item.
+func Item(st item.Stack) Part {
 	name, meta := st.Item().EncodeItem()
-	return wpart{Item: name, Meta: meta}
+	return Part{Item: name, Meta: meta}
 }
 
 // in writes the text out in lang.
-func (t wtext) in(lang string) string {
+func (t Text) in(lang string) string {
 	var b strings.Builder
 	for _, p := range t {
 		switch {
@@ -99,7 +103,7 @@ func (t wtext) in(lang string) string {
 			b.WriteString(i18n.T(lang, p.Key, args...))
 		case p.Item != "":
 			if it, ok := world.ItemByName(p.Item, p.Meta); ok {
-				b.WriteString(itemName(lang, item.NewStack(it, 1)))
+				b.WriteString(naming.ItemName(lang, item.NewStack(it, 1)))
 			} else {
 				b.WriteString(p.Item)
 			}
@@ -110,23 +114,23 @@ func (t wtext) in(lang string) string {
 	return b.String()
 }
 
-// windowTextValue is the item value that holds the texts of a window item.
-const windowTextValue = "df_window_text"
+// ValueKey is the item value that holds the texts of a window item.
+const ValueKey = "df_window_text"
 
-// windowTexts are the name and lore of a window item.
-type windowTexts struct {
-	Name wtext   `json:"n"`
-	Lore []wtext `json:"l,omitempty"`
+// Texts are the name and lore of a window item.
+type Texts struct {
+	Name Text   `json:"n"`
+	Lore []Text `json:"l,omitempty"`
 }
 
-// withWindowText gives a window item its name and lore: written in the
+// With gives a window item its name and lore: written in the
 // default language on the item, and kept as texts for chestui.Localize.
-func withWindowText(st item.Stack, name wtext, lore ...wtext) item.Stack {
-	raw, err := json.Marshal(windowTexts{Name: name, Lore: lore})
+func With(st item.Stack, name Text, lore ...Text) item.Stack {
+	raw, err := json.Marshal(Texts{Name: name, Lore: lore})
 	if err != nil {
 		panic(err)
 	}
-	st = st.WithCustomName(name.in(i18n.Default)).WithValue(windowTextValue, string(raw))
+	st = st.WithCustomName(name.in(i18n.Default)).WithValue(ValueKey, string(raw))
 	if len(lore) == 0 {
 		return st
 	}
@@ -137,9 +141,9 @@ func withWindowText(st item.Stack, name wtext, lore ...wtext) item.Stack {
 	return st.WithLore(lines...)
 }
 
-// localizeWindowItem is chestui.Localize: the texts of a window item in lang.
-func localizeWindowItem(lang string, st item.Stack) (string, []string, bool) {
-	v, ok := st.Value(windowTextValue)
+// Localize is chestui.Localize: the texts of a window item in lang.
+func Localize(lang string, st item.Stack) (string, []string, bool) {
+	v, ok := st.Value(ValueKey)
 	if !ok {
 		return "", nil, false
 	}
@@ -147,7 +151,7 @@ func localizeWindowItem(lang string, st item.Stack) (string, []string, bool) {
 	if !ok {
 		return "", nil, false
 	}
-	var t windowTexts
+	var t Texts
 	if err := json.Unmarshal([]byte(raw), &t); err != nil {
 		return "", nil, false
 	}
@@ -158,4 +162,4 @@ func localizeWindowItem(lang string, st item.Stack) (string, []string, bool) {
 	return t.Name.in(lang), lore, true
 }
 
-func init() { chestui.Localize = localizeWindowItem }
+func init() { chestui.Localize = Localize }

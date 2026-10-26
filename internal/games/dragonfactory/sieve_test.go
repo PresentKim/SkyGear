@@ -1,15 +1,19 @@
 package dragonfactory
 
 import (
-	"github.com/df-mc/dragonfly/server/item/recipe"
 	"testing"
 	"time"
+
+	"github.com/df-mc/dragonfly/server/item/recipe"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
 func TestSieveByHand(t *testing.T) {
@@ -77,7 +81,7 @@ func TestSieveNeedsAMesh(t *testing.T) {
 		if held, _ := p.HeldItems(); held.Count() != 3 {
 			t.Fatalf("gravel went into a sieve without a mesh: %v", held)
 		}
-		p.SetHeldItems(item.NewStack(Mesh{Tier: "string"}, 2), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.Mesh{Tier: "string"}, 2), item.Stack{})
 		(Machine{Kind: KindSieve, st: st}).Activate(machinePos, cube.FaceUp, tx, p, nil)
 		if st.mesh != "string" {
 			t.Fatal("the mesh was not fitted")
@@ -105,37 +109,37 @@ func TestSieveNeedsAMesh(t *testing.T) {
 func TestSieveTablesGiveOreChunks(t *testing.T) {
 	chance := func(tier string, in world.Item, want world.Item) int {
 		n := 0
-		for _, d := range sieveTables[tier][itemKey(in)] {
-			if itemKey(d.Item.Item()) == itemKey(want) {
+		for _, d := range sievetable.Tables[tier][naming.ItemKey(in)] {
+			if naming.ItemKey(d.Item.Item()) == naming.ItemKey(want) {
 				n += d.Permille
 			}
 		}
 		return n
 	}
-	want := map[string]int{OreIron: 100, OreCopper: 80, OreGold: 30, MetalTin: 60, MetalLead: 40, MetalSilver: 40, MetalNickel: 40}
-	for _, k := range oreKinds {
-		if got := chance("string", block.Gravel{}, OreChunk{Ore: k.ore}); got != want[k.ore] {
-			t.Errorf("%s chunks from gravel on the string mesh: %d permille, want %d", k.ore, got, want[k.ore])
+	want := map[string]int{dfitem.OreIron: 100, dfitem.OreCopper: 80, dfitem.OreGold: 30, dfitem.MetalTin: 60, dfitem.MetalLead: 40, dfitem.MetalSilver: 40, dfitem.MetalNickel: 40}
+	for _, k := range dfitem.OreKinds {
+		if got := chance("string", block.Gravel{}, dfitem.OreChunk{Ore: k.Ore}); got != want[k.Ore] {
+			t.Errorf("%s chunks from gravel on the string mesh: %d permille, want %d", k.Ore, got, want[k.Ore])
 		}
-		for tier := range sieveTables {
-			if chance(tier, block.Sand{}, OreChunk{Ore: k.ore}) != 0 {
-				t.Errorf("sand gives %s chunks on the %s mesh", k.ore, tier)
+		for tier := range sievetable.Tables {
+			if chance(tier, block.Sand{}, dfitem.OreChunk{Ore: k.Ore}) != 0 {
+				t.Errorf("sand gives %s chunks on the %s mesh", k.Ore, tier)
 			}
 		}
-		if k.block == nil {
+		if k.Block == nil {
 			continue
 		}
 		found := false
 		for _, r := range recipe.Recipes() {
-			if out := r.Output(); len(out) == 1 && recipeKey(out[0].Item()) == recipeKey(k.block) && len(r.Input()) == 4 {
+			if out := r.Output(); len(out) == 1 && recipeKey(out[0].Item()) == recipeKey(k.Block) && len(r.Input()) == 4 {
 				found = true
 			}
 		}
 		if !found {
-			t.Errorf("no recipe makes %T from four chunks", k.block)
+			t.Errorf("no recipe makes %T from four chunks", k.Block)
 		}
 	}
-	for in, drops := range sieveTables["string"] {
+	for in, drops := range sievetable.Tables["string"] {
 		total := 0
 		for _, d := range drops {
 			total += d.Permille
@@ -164,7 +168,7 @@ func TestSieveActsOn5x5(t *testing.T) {
 		use := func() {
 			(Machine{Kind: KindSieve, st: mid}).Activate(at(0, 0), cube.FaceUp, tx, p, nil)
 		}
-		p.SetHeldItems(item.NewStack(Mesh{Tier: "string"}, 5), item.Stack{})
+		p.SetHeldItems(item.NewStack(dfitem.Mesh{Tier: "string"}, 5), item.Stack{})
 		use()
 		if mid.mesh != "string" || near.mesh != "" || far.mesh != "" {
 			t.Fatalf("meshes %q %q %q: only the clicked sieve takes one", mid.mesh, near.mesh, far.mesh)
@@ -210,8 +214,8 @@ func TestSieveTopsUpTheHand(t *testing.T) {
 			}
 		}
 		held, _ := p.HeldItems()
-		if itemKey(held.Item()) != itemKey(block.Gravel{}) || held.Count() != 8 {
-			t.Errorf("held %d %s, want the 8 gravel left", held.Count(), itemKey(held.Item()))
+		if naming.ItemKey(held.Item()) != naming.ItemKey(block.Gravel{}) || held.Count() != 8 {
+			t.Errorf("held %d %s, want the 8 gravel left", held.Count(), naming.ItemKey(held.Item()))
 		}
 		if total := countPlain(p.Inventory(), block.Gravel{}); total != 8 {
 			t.Errorf("%d gravel in the inventory, want 8", total)
@@ -241,7 +245,7 @@ func TestEmptyHandTakesTheMeshOut(t *testing.T) {
 		}
 		got := 0
 		for _, st := range p.Inventory().Items() {
-			if m, ok := st.Item().(Mesh); ok && m.Tier == "iron" {
+			if m, ok := st.Item().(dfitem.Mesh); ok && m.Tier == "iron" {
 				got += st.Count()
 			}
 		}
@@ -268,14 +272,14 @@ func TestSieveShowsItsMesh(t *testing.T) {
 		}
 		seen[v] = true
 	}
-	if len(seen) != 1+len(meshTiers)*(1+(len(sieveContents)-1)*sieveStages) {
+	if len(seen) != 1+len(dfitem.MeshTiers)*(1+(len(sieveContents)-1)*sieveStages) {
 		t.Fatalf("%d looks", len(seen))
 	}
-	for i, tier := range meshTiers {
+	for i, tier := range dfitem.MeshTiers {
 		st := newMachine(KindSieve, "", "").st
-		st.mesh = tier.tier
+		st.mesh = tier.Tier
 		if mesh, content, fill := sieveLook(st); mesh != i+1 || content != 0 || fill != 1 {
-			t.Fatalf("%s mesh look %d/%d/%d", tier.tier, mesh, content, fill)
+			t.Fatalf("%s mesh look %d/%d/%d", tier.Tier, mesh, content, fill)
 		}
 	}
 	if mesh, _, _ := sieveLook(newMachine(KindSieve, "", "").st); mesh != 0 {
@@ -294,22 +298,22 @@ func TestSieveShowsItsMesh(t *testing.T) {
 // sifted, shows on the mesh, and its pebbles make their stone.
 func TestSieveTakesCrushedBlocks(t *testing.T) {
 	for _, in := range codexSieveInputs() {
-		if len(sieveTables["string"][itemKey(in)]) == 0 {
-			t.Errorf("%s is not sifted on the string mesh", itemKey(in))
+		if len(sievetable.Tables["string"][naming.ItemKey(in)]) == 0 {
+			t.Errorf("%s is not sifted on the string mesh", naming.ItemKey(in))
 		}
 		if sieveContentOf(item.NewStack(in, 1)) == 0 {
-			t.Errorf("%s does not show on the mesh", itemKey(in))
+			t.Errorf("%s does not show on the mesh", naming.ItemKey(in))
 		}
 	}
-	for _, k := range pebbleKinds {
+	for _, k := range dfitem.PebbleKinds {
 		found := false
 		for _, r := range recipe.Recipes() {
-			if out := r.Output(); len(out) == 1 && itemKey(out[0].Item()) == itemKey(k.block) && len(r.Input()) == 4 {
+			if out := r.Output(); len(out) == 1 && naming.ItemKey(out[0].Item()) == naming.ItemKey(k.Block) && len(r.Input()) == 4 {
 				found = true
 			}
 		}
 		if !found {
-			t.Errorf("no recipe makes %s from four %s pebbles", itemKey(k.block), k.kind)
+			t.Errorf("no recipe makes %s from four %s pebbles", naming.ItemKey(k.Block), k.Kind)
 		}
 	}
 }

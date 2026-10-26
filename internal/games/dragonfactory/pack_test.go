@@ -2,6 +2,7 @@ package dragonfactory
 
 import (
 	"fmt"
+
 	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"encoding/json"
@@ -16,6 +17,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/slotdeco"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
 )
 
 // packDir is the resource pack that draws the custom blocks and items.
@@ -71,7 +74,7 @@ func TestPackHasItemAssets(t *testing.T) {
 		if got, want := lang["item."+id+".name"], slotdeco.Decorate(r, tier, it.Name()); got != want {
 			t.Errorf("%s: texts/ko_KR.lang name %q, want %q (go run ./tools/slotmarks assets/resourcepack/dragonfactory writes the marks)", id, got, want)
 		}
-		if iconOf(item.NewStack(it, 1)) == "" {
+		if formicon.Of(item.NewStack(it, 1)) == "" {
 			t.Errorf("%s: no form icon", id)
 		}
 	}
@@ -471,7 +474,7 @@ func TestFlipbooksMatchTheAtlas(t *testing.T) {
 // front and after its name (the form slot decoration of the common dfui
 // theme reads them; common's slotdeco test checks the theme).
 func TestTipNameMarks(t *testing.T) {
-	kit := item.NewStack(TierKit{Level: 2}, 1)
+	kit := item.NewStack(dfitem.TierKit{Level: 2}, 1)
 	if r, tier := slotdeco.Of(tipName(i18n.Default, kit)); r != slotdeco.Rare || tier != 2 {
 		t.Errorf("tipName of a kit marks %v, %d", r, tier)
 	}

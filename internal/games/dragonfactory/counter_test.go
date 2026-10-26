@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
 	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -23,21 +24,21 @@ import (
 func TestCounterCatalog(t *testing.T) {
 	titles := map[string]string{}
 	keys := map[string]bool{}
-	for _, c := range counterCatalog {
-		if keys[c.key] {
-			t.Errorf("counter %s twice", c.key)
+	for _, c := range achievement.Counters {
+		if keys[c.Key] {
+			t.Errorf("counter %s twice", c.Key)
 		}
-		keys[c.key] = true
-		if g := groupText(c.group); strings.HasPrefix(g, "achgroup.") {
-			t.Errorf("counter %s: group %s has no name", c.key, c.group)
+		keys[c.Key] = true
+		if g := groupText(c.Group); strings.HasPrefix(g, "achgroup.") {
+			t.Errorf("counter %s: group %s has no name", c.Key, c.Group)
 		}
 		last := int64(0)
-		for _, n := range c.needs {
+		for _, n := range c.Needs {
 			if n <= last {
-				t.Errorf("counter %s: count %d is not above %d", c.key, n, last)
+				t.Errorf("counter %s: count %d is not above %d", c.Key, n, last)
 			}
 			last = n
-			id := counterID(c.key, n)
+			id := achievement.CounterID(c.Key, n)
 			a, ok := account.Get(id)
 			if !ok {
 				t.Errorf("%s is not registered", id)
@@ -60,7 +61,7 @@ func TestCounterCatalog(t *testing.T) {
 	}
 }
 
-func groupText(g string) string { return i18n.T(i18n.Default, achievementGroup(g)) }
+func groupText(g string) string { return i18n.T(i18n.Default, achievement.Group(g)) }
 
 // TestCountersCount: the actions of a player count under their keys.
 func TestCountersCount(t *testing.T) {
@@ -90,7 +91,7 @@ func TestCountersCount(t *testing.T) {
 		if got := account.Counter(acc, "stick_dirt"); got != 1 {
 			t.Fatalf("stick_dirt %d", got)
 		}
-		if owned := account.Owned(acc); !slices.Contains(owned, counterID("stick_dirt", 1)) {
+		if owned := account.Owned(acc); !slices.Contains(owned, achievement.CounterID("stick_dirt", 1)) {
 			t.Fatalf("owned %v", owned)
 		}
 		countBreak(p, block.Cobblestone{}, true)

@@ -1,13 +1,15 @@
 package dragonfactory
 
 import (
+	"testing"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/dragonfactory/internal/instance"
-	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // runSeconds runs the monitor's second n times.
@@ -29,7 +31,7 @@ func TestProductionRecorded(t *testing.T) {
 	if made == 0 {
 		t.Fatal("nothing was smelted")
 	}
-	key := itemKey(block.Stone{})
+	key := naming.ItemKey(block.Stone{})
 	if got := s.state.Produced[key]; got != int64(made) {
 		t.Fatalf("saved total %d, want %d", got, made)
 	}
@@ -37,7 +39,7 @@ func TestProductionRecorded(t *testing.T) {
 	if items[key] != made {
 		t.Fatalf("window has %d, want %d", items[key], made)
 	}
-	if got := s.keyStack(key); got.Empty() || itemKey(got.Item()) != key {
+	if got := s.keyStack(key); got.Empty() || naming.ItemKey(got.Item()) != key {
 		t.Fatalf("key %q does not give its item back: %v", key, got)
 	}
 }
@@ -54,7 +56,7 @@ func TestMinuteWindows(t *testing.T) {
 	p.add(state, item.NewStack(block.Cobblestone{}, 1), 30, true)
 	p.secs = 30
 	items, minutes := p.window(5)
-	key := itemKey(block.Cobblestone{})
+	key := naming.ItemKey(block.Cobblestone{})
 	if items[key] != 90 || minutes != 1.5 {
 		t.Fatalf("5 minute window: %d items over %v minutes", items[key], minutes)
 	}

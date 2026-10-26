@@ -2,8 +2,6 @@ package dragonfactory
 
 import (
 	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/common/slotdeco"
-	"strings"
 
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
@@ -108,21 +106,4 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	o.Printf("%s", i18n.T(i18n.Of(p), "menu.item.given"))
-}
-
-// itemName returns a readable name of an item stack in lang.
-func itemName(lang string, s item.Stack) string {
-	if n := s.CustomName(); n != "" {
-		// The slot marks are for the slot only (docs/tech/slotdeco.md).
-		return slotdeco.Strip(n)
-	}
-	if c, ok := s.Item().(world.CustomItem); ok {
-		return customItemName(lang, c)
-	}
-	name, _ := s.Item().EncodeItem()
-	name = strings.TrimPrefix(name, "minecraft:")
-	if n, ok := vanillaName(lang, name); ok {
-		return n
-	}
-	return name
 }

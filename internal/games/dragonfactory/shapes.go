@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Shapes and text drawn in the air with the client's debug shape packet
@@ -106,7 +107,7 @@ const drawerMarkUp = 0.43
 // drawerLock returns the small lock mark of a locked drawer, at the top
 // centre of its front, level with the upgrade marks.
 func drawerLock(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, 0, drawerMarkUp, 0.16, lockGlyph)
+	return faceText(pos, d, 0, drawerMarkUp, 0.16, textfmt.LockGlyph)
 }
 
 // drawerUpgrades returns the upgrade marks of a drawer (capacity multiplier,

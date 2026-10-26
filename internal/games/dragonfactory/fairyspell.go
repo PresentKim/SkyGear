@@ -13,6 +13,9 @@ import (
 	"github.com/presentkim/dragonfactory/common/dfhook"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -283,19 +286,19 @@ func (FairyBoard) Use(tx *world.Tx, u item.User, _ *item.UseContext) bool {
 func (s *session) showFairyBoard(p *player.Player) {
 	lang := i18n.Of(p)
 	now, _, _ := s.clock.Now()
-	emeralds := countPlain(p.Inventory(), FairyEmerald{})
+	emeralds := countPlain(p.Inventory(), dfitem.FairyEmerald{})
 	weather := s.weatherNow(now)
 	cast := func(do func(tx *world.Tx) bool) func(p *player.Player, tx *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
-			if countPlain(p.Inventory(), FairyEmerald{}) > 0 && do(tx) {
-				takePlain(p.Inventory(), FairyEmerald{}, 1)
+			if countPlain(p.Inventory(), dfitem.FairyEmerald{}) > 0 && do(tx) {
+				takePlain(p.Inventory(), dfitem.FairyEmerald{}, 1)
 				tx.PlaySound(p.Position(), sound.Experience{})
 			}
 			s.showFairyBoard(p)
 		}
 	}
 	choice := func(name, info string, icon item.Stack, on bool, do func(tx *world.Tx) bool) ui.Choice {
-		return ui.Choice{Label: i18n.T(lang, name), Info: i18n.T(lang, info), Icon: iconOf(icon), Badge: i18n.T(lang, "fairy.board.now"),
+		return ui.Choice{Label: i18n.T(lang, name), Info: i18n.T(lang, info), Icon: formicon.Of(icon), Badge: i18n.T(lang, "fairy.board.now"),
 			On: on, Dim: emeralds == 0, Run: cast(do)}
 	}
 	weathers := ui.ChoiceGroup{Title: i18n.T(lang, "fairy.board.weathers")}
@@ -310,7 +313,7 @@ func (s *session) showFairyBoard(p *player.Player) {
 	} {
 		k := weatherKey(w.weather)
 		if weather == w.weather {
-			weatherIcon = iconOf(w.icon)
+			weatherIcon = formicon.Of(w.icon)
 		}
 		weathers.Choices = append(weathers.Choices, choice("fairy.weather."+k, "fairy.board.weather."+k+".info", w.icon, weather == w.weather,
 			func(tx *world.Tx) bool { return s.castWeather(tx, w.weather) }))
@@ -328,18 +331,18 @@ func (s *session) showFairyBoard(p *player.Player) {
 	} {
 		k := sunKey(m.sun)
 		if s.state.Sun == m.sun {
-			sunIcon = iconOf(m.icon)
+			sunIcon = formicon.Of(m.icon)
 		}
 		suns.Choices = append(suns.Choices, choice("fairy.board.sun."+k, "fairy.board.sun."+k+".info", m.icon, s.state.Sun == m.sun,
 			func(tx *world.Tx) bool { return s.castSun(tx, m.sun) }))
 	}
 	weatherText := i18n.T(lang, "fairy.weather."+weatherKey(weather))
 	if weather != "" {
-		weatherText = fmt.Sprintf(i18n.T(lang, "fairy.board.left"), weatherText, formatDuration(lang, (s.state.WeatherUntil-now).Round(time.Second)))
+		weatherText = fmt.Sprintf(i18n.T(lang, "fairy.board.left"), weatherText, textfmt.Duration(lang, (s.state.WeatherUntil-now).Round(time.Second)))
 	}
 	ui.ChoiceMenu(p, i18n.T(lang, "fairy.board.title"), ui.ChoiceBoard{
 		Stats: []ui.Stat{
-			{Icon: iconOf(item.NewStack(FairyEmerald{}, 1)), Label: i18n.T(lang, "fairy.board.emeralds"), Value: fmt.Sprintf(i18n.T(lang, "fairy.board.count"), emeralds)},
+			{Icon: formicon.Of(item.NewStack(dfitem.FairyEmerald{}, 1)), Label: i18n.T(lang, "fairy.board.emeralds"), Value: fmt.Sprintf(i18n.T(lang, "fairy.board.count"), emeralds)},
 			{Icon: weatherIcon, Label: i18n.T(lang, "fairy.board.weather"), Value: weatherText},
 			{Icon: sunIcon, Label: i18n.T(lang, "fairy.board.sun"), Value: i18n.T(lang, "fairy.sun."+sunKey(s.state.Sun))},
 		},

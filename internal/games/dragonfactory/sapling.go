@@ -2,8 +2,9 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"time"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -12,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
 // Tree safety nets of the start (docs/design/02-dragonfactory.md §2): /묘목
@@ -56,7 +58,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
 				count(p, "sapling_grow", 1)
-				s.advance(tx, advGrowTree)
+				s.advance(tx, advancement.GrowTree)
 			}
 		}
 	}

@@ -5,12 +5,13 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // Machine tiers (docs/design/13-machine-tiers.md): a machine is made faster
@@ -117,48 +118,21 @@ func tierTitle(lang, name string, tier int) string {
 	return name + " [" + tierName(lang, tier) + "]"
 }
 
-// TierAlloy is an alloy of the machine tiers: infused, reinforced, atomic.
-type TierAlloy struct{ Kind string }
-
-// tierAlloys are the alloys, weakest first.
-var tierAlloys = []string{"infused", "reinforced", "atomic"}
-
-func (a TierAlloy) EncodeItem() (string, int16) { return "dragonfactory:alloy_" + a.Kind, 0 }
-func (a TierAlloy) Name() string                { return i18n.T(i18n.Default, "tier.alloy."+a.Kind) }
-func (TierAlloy) Category() category.Category   { return category.Items() }
-
-// Circuit is a control circuit of level 1 to 4.
-type Circuit struct{ Level int }
-
-func (c Circuit) EncodeItem() (string, int16) {
-	return fmt.Sprintf("dragonfactory:circuit_%d", c.Level), 0
-}
-func (c Circuit) Name() string              { return i18n.T(i18n.Default, fmt.Sprintf("tier.circuit.%d", c.Level)) }
-func (Circuit) Category() category.Category { return category.Items() }
-
-// TierKit is a kit that raises a machine to its level (1 to maxTier).
-type TierKit struct{ Level int }
-
-func (k TierKit) EncodeItem() (string, int16) { return fmt.Sprintf("dragonfactory:kit_%d", k.Level), 0 }
-func (k TierKit) Name() string                { return i18n.T(i18n.Default, fmt.Sprintf("tier.kit.%d", k.Level)) }
-func (TierKit) Category() category.Category   { return category.Items() }
-func (TierKit) MaxCount() int                 { return 16 }
-
 func init() {
-	for _, a := range tierAlloys {
-		world.RegisterItem(TierAlloy{Kind: a})
+	for _, a := range dfitem.TierAlloys {
+		world.RegisterItem(dfitem.TierAlloy{Kind: a})
 	}
 	for l := 1; l <= 4; l++ {
-		world.RegisterItem(Circuit{Level: l})
+		world.RegisterItem(dfitem.Circuit{Level: l})
 	}
 	for l := 1; l <= maxTier; l++ {
-		world.RegisterItem(TierKit{Level: l})
+		world.RegisterItem(dfitem.TierKit{Level: l})
 	}
 }
 
 // useKit handles a player using a kit on a machine: it goes up one tier when
 // the kit is the next one.
-func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, kit TierKit, held, off item.Stack) {
+func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, kit dfitem.TierKit, held, off item.Stack) {
 	lang, st := i18n.Of(p), m.st
 	switch {
 	case !tierable(m.Kind):
@@ -178,7 +152,7 @@ func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine
 		tx.PlaySound(pos.Vec3Centre(), sound.Experience{})
 		tx.AddParticle(pos.Vec3Centre(), particle.HugeExplosion{})
 		count(p, "tier_up", 1)
-		s.advance(tx, advMachineTier)
+		s.advance(tx, advancement.MachineTier)
 		count(p, fmt.Sprintf("tier_up_%d", st.tier), 1)
 	}
 }

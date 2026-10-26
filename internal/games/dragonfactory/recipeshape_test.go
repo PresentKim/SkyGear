@@ -6,6 +6,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
 // TestToolAndMachineRecipesAreShaped: the hammer, the sieve and the drawer
@@ -44,7 +46,7 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 		}
 		return recipeKey(st.Item())
 	}
-	hammer := find(Hammer{Stone: true})
+	hammer := find(dfitem.Hammer{Stone: true})
 	if hammer.Shape() != recipe.NewShape(3, 3) || !hammer.NoMirror() {
 		t.Errorf("hammer shape %v, no mirror %v", hammer.Shape(), hammer.NoMirror())
 	}
@@ -100,7 +102,7 @@ func TestConduitRecipes(t *testing.T) {
 		}
 		return s
 	}
-	_, count, in := cells(ConduitBinderMix{})
+	_, count, in := cells(dfitem.ConduitBinderMix{})
 	want := "minecraft:sand minecraft:gravel minecraft:sand minecraft:gravel minecraft:sand minecraft:gravel minecraft:sand minecraft:gravel minecraft:sand "
 	if count != 6 || join(in) != want {
 		t.Errorf("mix: %d from %s", count, join(in))
@@ -133,7 +135,7 @@ func TestConduitRecipes(t *testing.T) {
 			t.Errorf("%s conduit tier 3: %d from %s", kind, count, join(in))
 		}
 	}
-	if info := (ConduitBinderMix{}).SmeltInfo(); info.Product.Item() != (ConduitBinder{}) {
+	if info := (dfitem.ConduitBinderMix{}).SmeltInfo(); info.Product.Item() != (dfitem.ConduitBinder{}) {
 		t.Errorf("the mix bakes into %v", info.Product.Item())
 	}
 }
@@ -151,7 +153,7 @@ func TestFluidConduitRecipe(t *testing.T) {
 	if r == nil || len(r.Unlocks) == 0 || r.Unlocks[0] != "dragonfactory:conduit_fluid_1" {
 		t.Fatalf("fluid conduit research: %+v", r)
 	}
-	if a, ok := advancementByID("fluid_conduit"); !ok || a.Research != "fluid_conduit" {
+	if a, ok := advancement.ByID("fluid_conduit"); !ok || a.Research != "fluid_conduit" {
 		t.Errorf("fluid conduit advancement: %+v", a)
 	}
 }

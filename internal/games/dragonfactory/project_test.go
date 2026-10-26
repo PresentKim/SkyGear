@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/internal/account"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
 // TestProjectsLeadToTheDragonEgg: the last project needs the three others,
@@ -34,8 +35,8 @@ func TestProjectsLeadToTheDragonEgg(t *testing.T) {
 			t.Fatal("the last project did not open the egg recipe")
 		}
 		s.completeDragon(p, tx, machinePos)
-		if !s.advanced(advDragon) {
-			t.Errorf("%s not done by placing the egg", advDragon)
+		if !s.advanced(advancement.Dragon) {
+			t.Errorf("%s not done by placing the egg", advancement.Dragon)
 		}
 	})
 }
@@ -44,7 +45,7 @@ func TestProjectsLeadToTheDragonEgg(t *testing.T) {
 // achievement exists, and so does the achievement.
 func TestAchievementsOfAdvancements(t *testing.T) {
 	for adv, ach := range advAchievements {
-		if _, ok := advancementByID(adv); !ok {
+		if _, ok := advancement.ByID(adv); !ok {
 			t.Errorf("no advancement %s", adv)
 		}
 		if a, ok := account.Get(ach); !ok || a.Title(i18n.Default) == "" || a.Name(i18n.Default) == "" {

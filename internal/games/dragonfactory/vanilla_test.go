@@ -5,6 +5,7 @@ import (
 	_ "unsafe" // go:linkname
 
 	_ "github.com/df-mc/dragonfly/server/item/recipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
 )
 
 // registerVanillaRecipes registers the game's own recipes as the server does
@@ -19,6 +20,6 @@ var vanillaOnce sync.Once
 func registerVanillaRecipes() {
 	vanillaOnce.Do(func() {
 		recipeRegisterVanilla()
-		crafterOnce = sync.Once{}
+		machinerecipe.ResetCrafters()
 	})
 }

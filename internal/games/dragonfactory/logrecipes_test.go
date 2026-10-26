@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
 )
 
 func logRecipeFor(out world.Item, count int) (recipe.Shaped, bool) {
@@ -32,7 +33,7 @@ func TestLogRecipesOpenWithTheirResults(t *testing.T) {
 	}{
 		{stick, 16, "stick"},
 		{block.NewChest(), 4, "chest"},
-		{newFlowHopper("wood_hopper", cube.FaceDown), 1, "wood_hopper"},
+		{hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1, "wood_hopper"},
 		{block.NewHopper(), 1, "hopper"},
 	}
 	for _, c := range cases {

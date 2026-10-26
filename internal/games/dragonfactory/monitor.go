@@ -13,6 +13,8 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -307,21 +309,10 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		}
 		pos := st.pos
 		secs := s.now - st.mon.since
-		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), formatSpan(lang, secs))
+		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), textfmt.Span(lang, secs))
 		opts = append(opts, s.opt(label, "", func(p *player.Player, tx *world.Tx) { s.goToMachine(p, tx, pos) }))
 	}
 	return body, opts
-}
-
-// formatSpan writes seconds as "45초", "3분", "2시간 5분".
-func formatSpan(lang string, secs int) string {
-	switch {
-	case secs < 60:
-		return fmt.Sprintf(i18n.T(lang, "monitor.span.sec"), secs)
-	case secs < 3600:
-		return fmt.Sprintf(i18n.T(lang, "monitor.span.min"), secs/60)
-	}
-	return fmt.Sprintf(i18n.T(lang, "monitor.span.hour"), secs/3600, secs%3600/60)
 }
 
 // goToMachine moves p next to the machine at pos: a free spot of two blocks
@@ -355,7 +346,7 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
-	s.advance(tx, advStats)
+	s.advance(tx, advancement.Stats)
 	s.showStats(p, statsItems)
 }
 

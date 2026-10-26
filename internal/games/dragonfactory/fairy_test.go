@@ -10,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // TestOldResearchNoteIsKept: an old research note only says it is no
@@ -20,7 +22,7 @@ func TestOldResearchNoteIsKept(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		ctx := &item.UseContext{}
-		if (ResearchNote{}).Use(tx, p, ctx) || ctx.CountSub != 0 {
+		if (dfitem.ResearchNote{}).Use(tx, p, ctx) || ctx.CountSub != 0 {
 			t.Fatal("an old research note was used up")
 		}
 	})
@@ -36,9 +38,9 @@ func TestGiftsAreBasics(t *testing.T) {
 		if len(gift) != 1 {
 			t.Fatalf("gift = %v", gift)
 		}
-		kinds[itemKey(gift[0].Item())] = true
+		kinds[naming.ItemKey(gift[0].Item())] = true
 	}
-	if len(kinds) != 3 || !kinds[itemKey(oakLog)] || !kinds[itemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[itemKey(Pebble{Kind: PebbleStone})] {
+	if len(kinds) != 3 || !kinds[naming.ItemKey(oakLog)] || !kinds[naming.ItemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[naming.ItemKey(dfitem.Pebble{Kind: dfitem.PebbleStone})] {
 		t.Errorf("gifts = %v", kinds)
 	}
 }
@@ -192,7 +194,7 @@ func TestFairyGiftHasDust(t *testing.T) {
 	for range 100 {
 		gift := s.fairyGift()
 		last := gift[len(gift)-1]
-		if _, ok := last.Item().(FairyDust); !ok || last.Count() < fairyDustMin || last.Count() > fairyDustMax {
+		if _, ok := last.Item().(dfitem.FairyDust); !ok || last.Count() < fairyDustMin || last.Count() > fairyDustMax {
 			t.Fatalf("gift = %v", gift)
 		}
 	}
@@ -222,7 +224,7 @@ func TestFairyScattersTheGift(t *testing.T) {
 		for e := range tx.Entities() {
 			if it, ok := e.(*entity.Ent); ok {
 				if b, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
-					if _, ok := b.Item().Item().(FairyDust); ok {
+					if _, ok := b.Item().Item().(dfitem.FairyDust); ok {
 						dust += b.Item().Count()
 					}
 				}
@@ -230,7 +232,7 @@ func TestFairyScattersTheGift(t *testing.T) {
 		}
 	})
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		dust += countPlain(p.Inventory(), FairyDust{})
+		dust += countPlain(p.Inventory(), dfitem.FairyDust{})
 	})
 	if dust < fairyDustMin {
 		t.Errorf("%d fairy dust scattered", dust)
@@ -250,11 +252,11 @@ func TestFairyDustBackfill(t *testing.T) {
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.backfillFairyDust(p, tx)
-		if n := countPlain(p.Inventory(), FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
+		if n := countPlain(p.Inventory(), dfitem.FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
 			t.Fatalf("%d dust for 5 nights", n)
 		}
 		s.backfillFairyDust(p, tx)
-		if n := countPlain(p.Inventory(), FairyDust{}); n > 5*fairyDustMax {
+		if n := countPlain(p.Inventory(), dfitem.FairyDust{}); n > 5*fairyDustMax {
 			t.Fatalf("backfilled twice: %d dust", n)
 		}
 	})

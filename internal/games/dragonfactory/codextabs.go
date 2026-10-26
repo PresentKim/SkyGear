@@ -8,6 +8,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // The codex is one window with a tab strip: search (the whole index), the
@@ -36,15 +39,15 @@ var codexTabKeys = [codexTabCount]string{"codex.tab.search", "codex.tab.sieve", 
 func codexTabIcon(t codexTab) string {
 	switch t {
 	case codexSearchTab:
-		return iconOf(item.NewStack(item.Compass{}, 1))
+		return formicon.Of(item.NewStack(item.Compass{}, 1))
 	case codexSieveTab:
-		return iconOf(machineItem(KindSieve))
+		return formicon.Of(machineItem(KindSieve))
 	case codexProcessTab:
-		return iconOf(machineItem(KindAlloy))
+		return formicon.Of(machineItem(KindAlloy))
 	case codexMobsTab:
-		return iconOf(machineItem(KindGate))
+		return formicon.Of(machineItem(KindGate))
 	}
-	return iconOf(item.NewStack(Petal{Colour: "red"}, 1))
+	return formicon.Of(item.NewStack(dfitem.Petal{Colour: "red"}, 1))
 }
 
 // codexTabs is the tab strip with cur selected (codexNoTab: none).
@@ -160,8 +163,8 @@ func (s *session) codexSeen(p *player.Player, st item.Stack) {
 	if s.codexRecent == nil {
 		s.codexRecent = map[*world.EntityHandle][]item.Stack{}
 	}
-	k := itemKey(st.Item())
-	list := slices.DeleteFunc(slices.Clone(s.codexRecent[p.H()]), func(o item.Stack) bool { return itemKey(o.Item()) == k })
+	k := naming.ItemKey(st.Item())
+	list := slices.DeleteFunc(slices.Clone(s.codexRecent[p.H()]), func(o item.Stack) bool { return naming.ItemKey(o.Item()) == k })
 	list = append([]item.Stack{st}, list...)
 	if len(list) > codexRecentMax {
 		list = list[:codexRecentMax]

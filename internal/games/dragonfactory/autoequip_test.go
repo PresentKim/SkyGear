@@ -13,6 +13,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // TestElectricFurnace: it smelts what a furnace smelts and takes nothing else.
@@ -180,7 +181,7 @@ func TestAutoCrafterMakesARecipe(t *testing.T) {
 	if !st.accepts(item.NewStack(block.Cobblestone{}, 1)) || !st.accepts(item.NewStack(item.IronIngot{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Fatal("the store takes the wrong items")
 	}
-	if shown, _ := st.inv().Item(crafterRecipeSlot); itemKey(shown.Item()) != itemKey(Machine{Kind: KindCrusher}) {
+	if shown, _ := st.inv().Item(crafterRecipeSlot); naming.ItemKey(shown.Item()) != naming.ItemKey(Machine{Kind: KindCrusher}) {
 		t.Fatalf("the recipe slot shows %v", shown)
 	}
 	// Not enough yet: nothing is made.

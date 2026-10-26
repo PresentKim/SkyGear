@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/wintext"
 )
 
 // The auto crafter (docs/design/09-automation-equipment.md §2): it makes one
@@ -26,176 +28,10 @@ const crafterRecipeSlot = 4
 // crafterStore is how many slots the 3×3 store has.
 const crafterStore = 9
 
-// crafterReq is one ingredient of a recipe: an item (or a tag of items) and
-// how many.
-type crafterReq struct {
-	need  recipe.Item
-	key   string
-	count int
-}
-
-// crafterRecipe is a crafting-table recipe the auto crafter can make.
-type crafterRecipe struct {
-	id     string
-	r      recipe.Recipe
-	out    item.Stack
-	outKey string
-	reqs   []crafterReq
-}
-
-// reqKey identifies an ingredient; equal ingredients of a recipe are added.
-func reqKey(in recipe.Item) string {
-	switch in := in.(type) {
-	case item.Stack:
-		name, meta := in.Item().EncodeItem()
-		if _, variants := in.Value("variants"); variants {
-			return "v:" + name
-		}
-		return fmt.Sprintf("s:%s:%d", name, meta)
-	case recipe.ItemTag:
-		return "t:" + in.Tag()
-	}
-	return ""
-}
-
-var (
-	crafterOnce sync.Once
-	crafterList []*crafterRecipe
-	crafterIDs  map[string]*crafterRecipe
-)
-
-// crafterRecipes lists the recipes the auto crafter can make: the shaped and
-// shapeless ones of the crafting table (their shape does not matter), in
-// registration order. The game's recipes are registered in init and the
-// vanilla ones when the server is made, before the game, so the list is
-// built once.
-func crafterRecipes() []*crafterRecipe {
-	crafterOnce.Do(buildCrafterRecipes)
-	return crafterList
-}
-
-func buildCrafterRecipes() {
-	seen := map[string]int{}
-	var list []*crafterRecipe
-	ids := map[string]*crafterRecipe{}
-	for _, r := range recipe.Recipes() {
-		if r.Block() != "crafting_table" {
-			continue
-		}
-		switch r.(type) {
-		case recipe.Shaped, recipe.Shapeless:
-		default:
-			continue
-		}
-		outs := r.Output()
-		if len(outs) != 1 || outs[0].Empty() {
-			continue
-		}
-		cr := &crafterRecipe{r: r, out: outs[0]}
-		index := map[string]int{}
-		for _, in := range r.Input() {
-			if in == nil || in.Empty() {
-				continue
-			}
-			k := reqKey(in)
-			if i, ok := index[k]; ok {
-				cr.reqs[i].count += in.Count()
-				continue
-			}
-			index[k] = len(cr.reqs)
-			cr.reqs = append(cr.reqs, crafterReq{need: in, key: k, count: in.Count()})
-		}
-		if len(cr.reqs) == 0 {
-			continue
-		}
-		base := itemKey(outs[0].Item())
-		cr.outKey = base
-		cr.id = fmt.Sprintf("%s#%d", base, seen[base])
-		seen[base]++
-		list = append(list, cr)
-		ids[cr.id] = cr
-	}
-	crafterList, crafterIDs = list, ids
-}
-
-// crafterByID returns the recipe with an id.
-func crafterByID(id string) *crafterRecipe {
-	crafterOnce.Do(buildCrafterRecipes)
-	return crafterIDs[id]
-}
-
-// matchReq reports whether a stack is the ingredient (the matching of the
-// crafting grid).
-func matchReq(has item.Stack, req crafterReq) bool {
-	if has.Empty() {
-		return false
-	}
-	switch need := req.need.(type) {
-	case item.Stack:
-		if _, variants := need.Value("variants"); variants {
-			a, _ := has.Item().EncodeItem()
-			b, _ := need.Item().EncodeItem()
-			return a == b
-		}
-		return has.Comparable(need)
-	case recipe.ItemTag:
-		name, _ := has.Item().EncodeItem()
-		return need.Contains(name)
-	}
-	return false
-}
-
-// crafterWants reports whether a recipe uses an item as an ingredient.
-func (cr *crafterRecipe) wants(it item.Stack) bool {
-	for _, req := range cr.reqs {
-		if matchReq(it, req) {
-			return true
-		}
-	}
-	return false
-}
-
-// reqName is the name of an ingredient for a tooltip.
-func reqName(lang string, req crafterReq) string {
-	switch need := req.need.(type) {
-	case item.Stack:
-		return itemName(lang, need)
-	case recipe.ItemTag:
-		return i18n.T(lang, "crafter.anyOf") + strings.TrimPrefix(need.Tag(), "minecraft:")
-	}
-	return ""
-}
-
-// tip is the tooltip of a recipe: the result and what it takes.
-func (cr *crafterRecipe) tip(lang string) []string {
-	lines := []string{"§7" + i18n.T(lang, "crafter.needs")}
-	for _, req := range cr.reqs {
-		lines = append(lines, fmt.Sprintf("§f%d× %s", req.count, reqName(lang, req)))
-	}
-	return lines
-}
-
-// preview is the item shown on the recipe slot: the result with what it
-// takes.
-func (cr *crafterRecipe) preview() item.Stack {
-	lore := []wtext{{wraw("§7"), wkey("crafter.needs")}}
-	for _, req := range cr.reqs {
-		line := wtext{wraw(fmt.Sprintf("§f%d× ", req.count))}
-		switch need := req.need.(type) {
-		case item.Stack:
-			line = append(line, witem(need))
-		case recipe.ItemTag:
-			line = append(line, wkey("crafter.anyOf"), wraw(strings.TrimPrefix(need.Tag(), "minecraft:")))
-		}
-		lore = append(lore, line)
-	}
-	return withWindowText(cr.out, wtext{wraw("§r§f"), witem(cr.out)}, lore...)
-}
-
 // crafterPlan finds the stacks of the store that make one run of the recipe:
 // the slot and how many of it to take. ok is false when something is
 // missing.
-func (st *machineState) crafterPlan(cr *crafterRecipe) (plan [][2]int, ok bool) {
+func (st *machineState) crafterPlan(cr *machinerecipe.Crafter) (plan [][2]int, ok bool) {
 	var left [crafterStore]int
 	var stacks [crafterStore]item.Stack
 	for i, slot := range st.kind.input {
@@ -204,13 +40,13 @@ func (st *machineState) crafterPlan(cr *crafterRecipe) (plan [][2]int, ok bool) 
 			left[i], stacks[i] = it.Count(), it
 		}
 	}
-	for _, req := range cr.reqs {
-		need := req.count
+	for _, req := range cr.Reqs {
+		need := req.Count
 		for i, slot := range st.kind.input {
 			if need == 0 {
 				break
 			}
-			if left[i] == 0 || !matchReq(stacks[i], req) {
+			if left[i] == 0 || !machinerecipe.MatchReq(stacks[i], req) {
 				continue
 			}
 			n := min(need, left[i])
@@ -226,8 +62,8 @@ func (st *machineState) crafterPlan(cr *crafterRecipe) (plan [][2]int, ok bool) 
 }
 
 // setRecipe makes the crafter work on a recipe.
-func (st *machineState) setRecipe(cr *crafterRecipe) {
-	st.recipe, st.recipeID = cr, cr.id
+func (st *machineState) setRecipe(cr *machinerecipe.Crafter) {
+	st.recipe, st.recipeID = cr, cr.ID
 	st.progress = 0
 	st.shownRecipe = "\x00"
 }
@@ -245,47 +81,47 @@ func (st *machineState) showRecipe() {
 		return
 	}
 	st.shownRecipe = st.recipeID
-	it := withWindowText(item.NewStack(item.Paper{}, 1), wtext{wraw("§r§7"), wkey("crafter.none")}, wtext{wraw("§f"), wkey("crafter.none.hint")})
+	it := wintext.With(item.NewStack(item.Paper{}, 1), wintext.Text{wintext.Raw("§r§7"), wintext.Key("crafter.none")}, wintext.Text{wintext.Raw("§f"), wintext.Key("crafter.none.hint")})
 	if st.recipe != nil {
-		it = st.recipe.preview()
+		it = st.recipe.Preview()
 	}
 	_ = st.inv().SetItem(crafterRecipeSlot, it)
 }
 
 // crafterCandidates are the researched recipes that make an item, the
 // preferred first.
-func (s *session) crafterCandidates(sample item.Stack) []*crafterRecipe {
-	var out []*crafterRecipe
-	k := itemKey(sample.Item())
+func (s *session) crafterCandidates(sample item.Stack) []*machinerecipe.Crafter {
+	var out []*machinerecipe.Crafter
+	k := naming.ItemKey(sample.Item())
 	open := s.crafterOpener()
-	for _, cr := range crafterRecipes() {
-		if cr.outKey == k && open(cr) {
+	for _, cr := range machinerecipe.Crafters() {
+		if cr.OutKey == k && open(cr) {
 			out = append(out, cr)
 		}
 	}
-	sort.SliceStable(out, func(i, j int) bool { return out[i].r.Priority() < out[j].r.Priority() })
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Recipe.Priority() < out[j].Recipe.Priority() })
 	return out
 }
 
 // crafterOpen reports whether a recipe is researched (or all are open).
-func (s *session) crafterOpen(cr *crafterRecipe) bool {
+func (s *session) crafterOpen(cr *machinerecipe.Crafter) bool {
 	return s.crafterOpener()(cr)
 }
 
 // crafterOpener returns crafterOpen for the researches done now.
-func (s *session) crafterOpener() func(*crafterRecipe) bool {
+func (s *session) crafterOpener() func(*machinerecipe.Crafter) bool {
 	if s.recipesFree {
-		return func(*crafterRecipe) bool { return true }
+		return func(*machinerecipe.Crafter) bool { return true }
 	}
 	filter := s.recipeFilter()
-	return func(cr *crafterRecipe) bool { return filter(cr.r) }
+	return func(cr *machinerecipe.Crafter) bool { return filter(cr.Recipe) }
 }
 
 // runCrafter makes the recipe: the ingredients are used when the interval
 // has passed and the result fits the output.
 func (s *session) runCrafter(st *machineState) {
 	if st.recipe == nil && st.recipeID != "" {
-		st.recipe = crafterByID(st.recipeID)
+		st.recipe = machinerecipe.CrafterByID(st.recipeID)
 	}
 	if st.dropRecipe {
 		st.dropRecipe = false
@@ -308,7 +144,7 @@ func (s *session) runCrafter(st *machineState) {
 		st.progress = 0
 		return
 	}
-	if !st.roomFor([]item.Stack{cr.out}) {
+	if !st.roomFor([]item.Stack{cr.Out}) {
 		return
 	}
 	if st.progress < st.kind.interval {
@@ -319,7 +155,7 @@ func (s *session) runCrafter(st *machineState) {
 		it, _ := st.inv().Item(p[0])
 		_ = st.inv().SetItem(p[0], it.Grow(-p[1]))
 	}
-	st.emit(cr.out)
+	st.emit(cr.Out)
 	st.progress = 0
 }
 
@@ -330,24 +166,24 @@ const crafterPage = 36
 // the one the crafter at pos makes.
 func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Pos, st *machineState, page int) {
 	lang := i18n.Of(p)
-	var all []*crafterRecipe
+	var all []*machinerecipe.Crafter
 	open := s.crafterOpener()
-	for _, cr := range crafterRecipes() {
+	for _, cr := range machinerecipe.Crafters() {
 		if open(cr) {
 			all = append(all, cr)
 		}
 	}
-	sort.SliceStable(all, func(i, j int) bool { return itemName(lang, all[i].out) < itemName(lang, all[j].out) })
+	sort.SliceStable(all, func(i, j int) bool { return naming.ItemName(lang, all[i].Out) < naming.ItemName(lang, all[j].Out) })
 	pages := max(1, (len(all)+crafterPage-1)/crafterPage)
 	page = min(max(page, 0), pages-1)
 	var slots []ui.ItemSlot
 	for _, cr := range all[min(page*crafterPage, len(all)):min((page+1)*crafterPage, len(all))] {
 		count := ""
-		if cr.out.Count() > 1 {
-			count = fmt.Sprint(cr.out.Count())
+		if cr.Out.Count() > 1 {
+			count = fmt.Sprint(cr.Out.Count())
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: iconOf(cr.out), Count: count, Tip: tipName(lang, cr.out) + "\n" + strings.Join(cr.tip(lang), "\n"),
+			Icon: formicon.Of(cr.Out), Count: count, Tip: tipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n"),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

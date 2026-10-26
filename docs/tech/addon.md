@@ -94,4 +94,4 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 서랍·체의 모델은 리소스팩 `models/blocks/<이름>.geo.json` 이다. 상자 면마다 16×16 텍스처의 (0,0)부터 면 크기만큼을 쓴다.
 체는 파일 하나에 채움 단계별 geometry(`geometry.dragonfactory_<종류>_<0..8>`)가 들어 있다. 자동 자원 채굴기·자동 농작물 수확기·분쇄기는 바닐라 `minecraft:geometry.full_block` 정육면체라 모델 파일이 없다.
-Go(`models.go`, `sieve.go`)는 식별자와 재질 이름만 적는다.
+Go(`blockmodel/models.go`, `sieve.go`)는 식별자와 재질 이름만 적는다.

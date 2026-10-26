@@ -16,6 +16,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // Magic plants (docs/design/08-storage-gear-magic.md §4): plants that grow on dirt
@@ -27,18 +32,6 @@ import (
 //     + petals + a material give the seed of the next kind (ore blooms give ore
 //     chunks, gem blooms gems and redstone, essence blooms mob essences).
 // A bloom regrows when it is harvested.
-
-// petalColours are the colours of the petals, named like the dyes.
-var petalColours = []string{"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"}
-
-// Petal is a petal of a magic flower in a colour.
-type Petal struct{ Colour string }
-
-func (p Petal) EncodeItem() (string, int16) { return "dragonfactory:petal_" + p.Colour, 0 }
-func (p Petal) Name() string {
-	return i18n.T(i18n.Default, "pcolour."+p.Colour) + i18n.T(i18n.Default, "name.Petal.suffix")
-}
-func (Petal) Category() category.Category { return category.Items() }
 
 // plantYield is what a bloom gives: Min to Max of an item.
 type plantYield struct {
@@ -63,11 +56,11 @@ var plantKinds []plantKind
 var plantSeeds []string
 
 func init() {
-	for _, c := range petalColours {
-		plantKinds = append(plantKinds, plantKind{id: "flower_" + c, tier: 1, seed: "flower_" + c, grow: 90 * time.Second, yield: []plantYield{{Petal{Colour: c}, 2, 3}}})
+	for _, c := range dfitem.PetalColours {
+		plantKinds = append(plantKinds, plantKind{id: "flower_" + c, tier: 1, seed: "flower_" + c, grow: 90 * time.Second, yield: []plantYield{{dfitem.Petal{Colour: c}, 2, 3}}})
 	}
-	for _, m := range []string{OreIron, OreGold, OreCopper, MetalTin, MetalLead, MetalSilver, MetalNickel} {
-		plantKinds = append(plantKinds, plantKind{id: "ore_" + m, tier: 2, seed: "ore_" + m, grow: 180 * time.Second, yield: []plantYield{{OreChunk{Ore: m}, 1, 2}}})
+	for _, m := range []string{dfitem.OreIron, dfitem.OreGold, dfitem.OreCopper, dfitem.MetalTin, dfitem.MetalLead, dfitem.MetalSilver, dfitem.MetalNickel} {
+		plantKinds = append(plantKinds, plantKind{id: "ore_" + m, tier: 2, seed: "ore_" + m, grow: 180 * time.Second, yield: []plantYield{{dfitem.OreChunk{Ore: m}, 1, 2}}})
 	}
 	gems := []struct {
 		id       string
@@ -80,8 +73,8 @@ func init() {
 	for _, g := range gems {
 		plantKinds = append(plantKinds, plantKind{id: "gem_" + g.id, tier: 3, seed: "gem_" + g.id, grow: 300 * time.Second, yield: []plantYield{{g.it, g.min, g.max}}})
 	}
-	for _, mob := range flowerMobKinds {
-		plantKinds = append(plantKinds, plantKind{id: "ess_" + mob, tier: 4, seed: "ess_" + mob, grow: 480 * time.Second, yield: []plantYield{{Essence{Mob: mob}, 1, 1}}})
+	for _, mob := range dfitem.FlowerMobKinds {
+		plantKinds = append(plantKinds, plantKind{id: "ess_" + mob, tier: 4, seed: "ess_" + mob, grow: 480 * time.Second, yield: []plantYield{{dfitem.Essence{Mob: mob}, 1, 1}}})
 	}
 	seen := map[string]bool{}
 	for _, k := range plantKinds {
@@ -189,7 +182,7 @@ func (MagicPlant) Name() string             { return i18n.T(i18n.Default, "name.
 func (MagicPlant) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.dragonfactory_magic_plant",
-		Textures:     map[string]customblock.Material{"*": alphaMaterial("dragonfactory_plant_" + plantKinds[0].id + "_0")},
+		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("dragonfactory_plant_" + plantKinds[0].id + "_0")},
 		CollisionBox: cube.Box(0.45, 0, 0.45, 0.55, 0.01, 0.55),
 		SelectionBox: cube.Box(0.15, 0, 0.15, 0.85, 0.7, 0.85),
 	}
@@ -217,7 +210,7 @@ func (MagicPlant) Permutations() []customblock.Permutation {
 				Condition: fmt.Sprintf("q.block_state('%s') == '%s'", plantState, plantValue(k.id, bloom)),
 				Properties: customblock.Properties{
 					Geometry: "geometry.dragonfactory_magic_plant",
-					Textures: map[string]customblock.Material{"*": alphaMaterial(fmt.Sprintf("dragonfactory_plant_%s_%d", k.id, stage))},
+					Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial(fmt.Sprintf("dragonfactory_plant_%s_%d", k.id, stage))},
 				},
 			})
 		}
@@ -321,17 +314,17 @@ func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
 // and reports the harvest to the advancements.
 func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 	k := plantKinds[plantKindIndex(b.Kind)]
-	s.advance(tx, advBloom)
+	s.advance(tx, advancement.Bloom)
 	countAll(tx, "bloom_total", 1)
 	switch k.tier {
 	case 2:
-		s.advance(tx, advOreHarvest)
+		s.advance(tx, advancement.OreHarvest)
 		countAll(tx, "bloom_ore", 1)
 	case 3:
-		s.advance(tx, advGemHarvest)
+		s.advance(tx, advancement.GemHarvest)
 		countAll(tx, "bloom_gem", 1)
 	case 4:
-		s.advance(tx, advEssHarvest)
+		s.advance(tx, advancement.EssHarvest)
 		countAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
@@ -403,8 +396,8 @@ func plantRecipes() {
 		recipe.Register(recipe.NewShapeless(join(in...), item.NewStack(PlantSeed{Seed: seed}, 1), "crafting_table"))
 	}
 	// dyes: a petal gives two dyes of its colour
-	for _, c := range petalColours {
-		recipe.Register(recipe.NewShapeless(st(Petal{Colour: c}, 1), item.NewStack(item.Dye{Colour: dyeColour(c)}, 2), "crafting_table"))
+	for _, c := range dfitem.PetalColours {
+		recipe.Register(recipe.NewShapeless(st(dfitem.Petal{Colour: c}, 1), item.NewStack(item.Dye{Colour: dfitem.DyeColour(c)}, 2), "crafting_table"))
 	}
 	// ore blooms: a flower seed, a vanilla flower, petals and four dust of the metal
 	ore := []struct {
@@ -412,12 +405,12 @@ func plantRecipes() {
 		flower block.FlowerType
 		p1, p2 string
 	}{
-		{OreIron, block.Poppy(), "gray", "red"}, {OreGold, block.Dandelion(), "yellow", "orange"}, {OreCopper, block.OrangeTulip(), "orange", "brown"},
-		{MetalTin, block.WhiteTulip(), "light_gray", "white"}, {MetalLead, block.BlueOrchid(), "purple", "blue"},
-		{MetalSilver, block.OxeyeDaisy(), "white", "light_blue"}, {MetalNickel, block.Allium(), "green", "lime"},
+		{dfitem.OreIron, block.Poppy(), "gray", "red"}, {dfitem.OreGold, block.Dandelion(), "yellow", "orange"}, {dfitem.OreCopper, block.OrangeTulip(), "orange", "brown"},
+		{dfitem.MetalTin, block.WhiteTulip(), "light_gray", "white"}, {dfitem.MetalLead, block.BlueOrchid(), "purple", "blue"},
+		{dfitem.MetalSilver, block.OxeyeDaisy(), "white", "light_blue"}, {dfitem.MetalNickel, block.Allium(), "green", "lime"},
 	}
 	for _, o := range ore {
-		reg("ore_"+o.metal, st(PlantSeed{Seed: "flower_" + o.p1}, 1), st(block.Flower{Type: o.flower}, 1), st(Petal{Colour: o.p1}, 2), st(Petal{Colour: o.p2}, 1), st(MetalDust{Metal: o.metal}, 4))
+		reg("ore_"+o.metal, st(PlantSeed{Seed: "flower_" + o.p1}, 1), st(block.Flower{Type: o.flower}, 1), st(dfitem.Petal{Colour: o.p1}, 2), st(dfitem.Petal{Colour: o.p2}, 1), st(dfitem.MetalDust{Metal: o.metal}, 4))
 	}
 	// gem blooms: the seed of an ore bloom, a vanilla plant, petals and the material
 	gem := []struct {
@@ -428,33 +421,33 @@ func plantRecipes() {
 		mat      world.Item
 		mn       int
 	}{
-		{"coal", "ore_" + OreCopper, item.Wheat{}, "black", 2, item.Coal{}, 4},
-		{"lapis", "ore_" + MetalTin, item.Beetroot{}, "blue", 3, item.LapisLazuli{}, 4},
-		{"redstone", "ore_" + OreIron, block.Carrot{}, "red", 3, item.RedstoneWire{}, 4},
-		{"quartz", "ore_" + MetalSilver, block.Potato{}, "white", 3, item.NetherQuartz{}, 4},
-		{"diamond", "ore_" + OreGold, block.MelonSeeds{}, "light_blue", 4, item.Diamond{}, 2},
-		{"emerald", "ore_" + MetalNickel, block.PumpkinSeeds{}, "green", 4, item.Emerald{}, 2},
+		{"coal", "ore_" + dfitem.OreCopper, item.Wheat{}, "black", 2, item.Coal{}, 4},
+		{"lapis", "ore_" + dfitem.MetalTin, item.Beetroot{}, "blue", 3, item.LapisLazuli{}, 4},
+		{"redstone", "ore_" + dfitem.OreIron, block.Carrot{}, "red", 3, item.RedstoneWire{}, 4},
+		{"quartz", "ore_" + dfitem.MetalSilver, block.Potato{}, "white", 3, item.NetherQuartz{}, 4},
+		{"diamond", "ore_" + dfitem.OreGold, block.MelonSeeds{}, "light_blue", 4, item.Diamond{}, 2},
+		{"emerald", "ore_" + dfitem.MetalNickel, block.PumpkinSeeds{}, "green", 4, item.Emerald{}, 2},
 	}
 	for _, g := range gem {
-		reg("gem_"+g.id, st(PlantSeed{Seed: g.from}, 1), st(g.plant, 1), st(Petal{Colour: g.colour}, g.pn), st(g.mat, g.mn))
+		reg("gem_"+g.id, st(PlantSeed{Seed: g.from}, 1), st(g.plant, 1), st(dfitem.Petal{Colour: g.colour}, g.pn), st(g.mat, g.mn))
 	}
 	// essence blooms: a redstone bloom seed, three essences, petals and a mob item
 	mob := map[string]struct {
 		it     world.Item
 		colour string
 	}{
-		MobZombie: {item.RottenFlesh{}, "green"}, MobSkeleton: {item.Bone{}, "white"}, MobCreeper: {item.Gunpowder{}, "lime"},
-		MobSpider: {item.SpiderEye{}, "red"}, MobSlime: {item.Slimeball{}, "lime"}, MobEnder: {item.EnderPearl{}, "purple"}, MobBlaze: {item.BlazePowder{}, "orange"},
+		dfitem.MobZombie: {item.RottenFlesh{}, "green"}, dfitem.MobSkeleton: {item.Bone{}, "white"}, dfitem.MobCreeper: {item.Gunpowder{}, "lime"},
+		dfitem.MobSpider: {item.SpiderEye{}, "red"}, dfitem.MobSlime: {item.Slimeball{}, "lime"}, dfitem.MobEnder: {item.EnderPearl{}, "purple"}, dfitem.MobBlaze: {item.BlazePowder{}, "orange"},
 	}
-	for _, m := range flowerMobKinds {
+	for _, m := range dfitem.FlowerMobKinds {
 		d := mob[m]
-		reg("ess_"+m, st(PlantSeed{Seed: "gem_redstone"}, 1), st(Essence{Mob: m}, 3), st(Petal{Colour: d.colour}, 2), st(d.it, 1))
+		reg("ess_"+m, st(PlantSeed{Seed: "gem_redstone"}, 1), st(dfitem.Essence{Mob: m}, 3), st(dfitem.Petal{Colour: d.colour}, 2), st(d.it, 1))
 	}
 }
 
 func init() {
-	for _, c := range petalColours {
-		world.RegisterItem(Petal{Colour: c})
+	for _, c := range dfitem.PetalColours {
+		world.RegisterItem(dfitem.Petal{Colour: c})
 	}
 	for _, s := range plantSeeds {
 		world.RegisterItem(PlantSeed{Seed: s})
@@ -466,16 +459,6 @@ func init() {
 	plantRecipes()
 }
 
-// dyeColour is the dye colour of a petal colour.
-func dyeColour(c string) item.Colour {
-	return map[string]item.Colour{
-		"white": item.ColourWhite(), "orange": item.ColourOrange(), "magenta": item.ColourMagenta(), "light_blue": item.ColourLightBlue(),
-		"yellow": item.ColourYellow(), "lime": item.ColourLime(), "pink": item.ColourPink(), "gray": item.ColourGrey(),
-		"light_gray": item.ColourLightGrey(), "cyan": item.ColourCyan(), "purple": item.ColourPurple(), "blue": item.ColourBlue(),
-		"brown": item.ColourBrown(), "green": item.ColourGreen(), "red": item.ColourRed(), "black": item.ColourBlack(),
-	}[c]
-}
-
 // plantLines are the WAILA lines of the plant b of kind k at pos: the time
 // left until it blooms, or that it has and what harvesting it gives.
 func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKind) []string {
@@ -485,11 +468,11 @@ func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKin
 			return nil
 		}
 		now := s.growNow()
-		return []string{i18n.T(lang, "crop.lines.left") + formatDuration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
 	}
 	lines := []string{i18n.T(lang, "plant.waila.bloom")}
 	for _, y := range k.yield {
-		lines = append(lines, fmt.Sprintf("§f%s §7×%s", itemName(lang, item.NewStack(y.item, 1)), rangeText(y.min, y.max)))
+		lines = append(lines, fmt.Sprintf("§f%s §7×%s", naming.ItemName(lang, item.NewStack(y.item, 1)), rangeText(y.min, y.max)))
 	}
 	return lines
 }

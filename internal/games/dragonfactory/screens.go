@@ -2,11 +2,16 @@ package dragonfactory
 
 import (
 	"fmt"
+
 	"github.com/presentkim/dragonfactory/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
@@ -67,7 +72,7 @@ func (s *session) showIslandManage(p *player.Player) {
 	if host || s.isOperator(p) {
 		opts = append(opts, s.opt(i18n.T(lang, "island.manage.members"), "textures/ui/df/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "menu.expand"), iconExpand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
+	opts = append(opts, s.opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
@@ -82,7 +87,7 @@ func (s *session) helpOption(p *player.Player) ui.Option {
 // have their back button, left of the close button, it goes to the lobby.
 func (s *session) lobbyOption() ui.Option {
 	b := ui.Back(i18n.T(i18n.Default, "menu.lobby"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
-	b.Icon = iconLobby
+	b.Icon = formicon.Lobby
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
@@ -92,7 +97,7 @@ func (s *session) lobbyOption() ui.Option {
 func (s *session) confirmLobby(p *player.Player) {
 	lang := i18n.Of(p)
 	ui.Menu(p, i18n.T(lang, "menu.lobbyConfirm.title"), i18n.T(lang, "menu.lobbyConfirm.body"),
-		s.opt(i18n.T(lang, "menu.lobbyConfirm.yes"), iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
+		s.opt(i18n.T(lang, "menu.lobbyConfirm.yes"), formicon.Lobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
 		s.opt(i18n.T(lang, "menu.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showMenu(p) }),
 	)
 }
@@ -116,17 +121,17 @@ func (s *session) showMenu(p *player.Player) {
 // last, then the help button (the control bar's "?") and the lobby exit.
 func (s *session) mainMenu(p *player.Player) []ui.Option {
 	return []ui.Option{
-		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), iconCodex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
-		s.opt(i18n.T(i18n.Of(p), "menu.advancements"), iconAdvances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
-		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconManage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
-		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt(i18n.T(i18n.Of(p), "menu.friends"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
-		s.opt(i18n.T(i18n.Of(p), "menu.cosmetics"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
-		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconStats, func(p *player.Player, tx *world.Tx) {
-			s.advance(tx, advStats)
+		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
+		s.opt(i18n.T(i18n.Of(p), "menu.advancements"), formicon.Advances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
+		s.opt(i18n.T(i18n.Of(p), "island.manage"), formicon.Manage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
+		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(s.state.Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
+		s.opt(i18n.T(i18n.Of(p), "menu.friends"), formicon.Friends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
+		s.opt(i18n.T(i18n.Of(p), "menu.cosmetics"), formicon.Title, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
+		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), formicon.Stats, func(p *player.Player, tx *world.Tx) {
+			s.advance(tx, advancement.Stats)
 			s.showStats(p, statsItems)
 		}),
-		s.opt(i18n.T(i18n.Of(p), "menu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
+		s.opt(i18n.T(i18n.Of(p), "menu.settings"), formicon.Settings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.helpOption(p),
 		s.lobbyOption(),
 	}
@@ -176,15 +181,15 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 			continue
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon:  iconOf(it),
+			Icon:  formicon.Of(it),
 			Count: ui.CountText(l.Count),
-			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), itemName(lang, it), formatInt(int64(l.Count))),
+			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), naming.ItemName(lang, it), textfmt.Int(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return
 				}
 				if s.takeLost(p, l) {
-					s.advance(tx, advLost)
+					s.advance(tx, advancement.Lost)
 				}
 				s.showLost(p)
 			},

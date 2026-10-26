@@ -12,6 +12,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
 // The production record of an island (docs/design/12-production-monitor.md):
@@ -53,9 +57,9 @@ func newProdStats() *prodStats {
 // none besides the total).
 func madeCategory(it world.Item) string {
 	switch it.(type) {
-	case Ingot, item.IronIngot, item.GoldIngot, item.CopperIngot, item.NetheriteIngot:
+	case dfitem.Ingot, item.IronIngot, item.GoldIngot, item.CopperIngot, item.NetheriteIngot:
 		return "made_ingot"
-	case Dust, MetalDust:
+	case dfitem.Dust, dfitem.MetalDust:
 		return "made_dust"
 	case item.Diamond, item.Emerald, item.NetherQuartz, item.LapisLazuli, item.AmethystShard:
 		return "made_gem"
@@ -76,7 +80,7 @@ func (p *prodStats) add(state *State, st item.Stack, n int, counted bool) {
 	if n <= 0 || st.Empty() {
 		return
 	}
-	key := itemKey(st.Item())
+	key := naming.ItemKey(st.Item())
 	b := &p.buckets[p.head]
 	b.items[key] += n
 	b.total += n
@@ -218,9 +222,9 @@ func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
 	// Tabs carry an icon: the tab strip reads at a glance, like the tabs of
 	// the creative inventory (docs/tech/ui-style.md).
 	icons := map[statsTab]string{
-		statsItems:  iconOf(machineItem(KindCrusher)),
-		statsPower:  iconOf(machineItem(KindGenerator)),
-		statsStalls: iconLocked,
+		statsItems:  formicon.Of(machineItem(KindCrusher)),
+		statsPower:  formicon.Of(machineItem(KindGenerator)),
+		statsStalls: formicon.Locked,
 	}
 	mk := func(label string, t statsTab) ui.Option {
 		return ui.Tab(label, icons[t], tab == t, func(p *player.Player, tx *world.Tx) {
@@ -283,7 +287,7 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 		}
 		return rows[i].key < rows[j].key
 	})
-	body := fmt.Sprintf(i18n.T(lang, "monitor.items.head"), formatPerMin(sum), len(rows))
+	body := fmt.Sprintf(i18n.T(lang, "monitor.items.head"), textfmt.PerMin(sum), len(rows))
 	var slots []ui.ItemSlot
 	for _, r := range rows {
 		st := s.keyStack(r.key)
@@ -291,21 +295,12 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 			continue
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon:  iconOf(st),
+			Icon:  formicon.Of(st),
 			Count: ui.CountText(int(r.r5 + 0.5)),
-			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), itemName(lang, st), formatPerMin(r.r5), formatPerMin(r.r1), formatPerMin(r.r15), formatInt(r.total)),
+			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), naming.ItemName(lang, st), textfmt.PerMin(r.r5), textfmt.PerMin(r.r1), textfmt.PerMin(r.r15), textfmt.Int(r.total)),
 		})
 	}
 	return body, slots
-}
-
-// formatPerMin writes a per-minute amount: whole numbers from ten up, one
-// decimal below.
-func formatPerMin(v float64) string {
-	if v >= 10 {
-		return formatInt(int64(v + 0.5))
-	}
-	return strconv.FormatFloat(v, 'f', 1, 64)
 }
 
 // powerText is the energy page.
@@ -328,7 +323,7 @@ func (s *session) powerText(lang string) string {
 			}
 		}
 	}
-	text := fmt.Sprintf(i18n.T(lang, "monitor.power.body"), genRate, useRate, formatInt(int64(stored)), formatInt(int64(capacity)), generators, running)
+	text := fmt.Sprintf(i18n.T(lang, "monitor.power.body"), genRate, useRate, textfmt.Int(int64(stored)), textfmt.Int(int64(capacity)), generators, running)
 	if genRate+0.05 < useRate {
 		text += "\n" + i18n.T(lang, "monitor.power.low")
 	}

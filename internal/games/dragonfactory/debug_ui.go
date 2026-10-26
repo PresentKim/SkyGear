@@ -12,6 +12,9 @@ import (
 
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // windowKindEnum names a machine kind that has a window (/dfdebug ui).
@@ -61,7 +64,7 @@ func (c debugUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func showWindowPicker(p *player.Player) {
 	var opts []ui.Option
 	for _, k := range windowKinds() {
-		opts = append(opts, ui.Option{Label: itemName(i18n.Of(p), machineItem(k)) + "\n§8" + k, Icon: iconOf(machineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: naming.ItemName(i18n.Of(p), machineItem(k)) + "\n§8" + k, Icon: formicon.Of(machineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
 			previewLater(p, k)
 		}})
 	}
@@ -89,7 +92,7 @@ func previewWindow(p *player.Player, kind string) {
 		_ = inv.SetItem(s, item.NewStack(block.Cobblestone{}, 16+i))
 	}
 	for _, s := range st.kind.charge {
-		_ = inv.SetItem(s, item.NewStack(Essence{Mob: mobKinds[0]}, 4))
+		_ = inv.SetItem(s, item.NewStack(dfitem.Essence{Mob: dfitem.MobKinds[0]}, 4))
 	}
 	for i, s := range st.kind.output {
 		_ = inv.SetItem(s, item.NewStack(block.Gravel{}, 8+i))

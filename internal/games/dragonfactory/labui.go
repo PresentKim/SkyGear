@@ -10,6 +10,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/machinerecipe"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // The essence extractor's screen (docs/design/11-research-essences.md §3) is
@@ -30,7 +33,7 @@ func (s *session) showLab(p *player.Player, tx *world.Tx, pos cube.Pos, st *mach
 
 // showLabOn shows the essence extractor's screen with the recipe r chosen
 // (nil: the first open one).
-func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r *LabRecipe) {
+func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r *machinerecipe.Lab) {
 	lang := i18n.Of(p)
 	open := s.labOpenRecipes()
 	if r == nil && len(open) > 0 {
@@ -38,7 +41,7 @@ func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r 
 	}
 	// again runs f on the extractor, if it still stands, and shows the screen
 	// again on the recipe on.
-	again := func(on *LabRecipe, f func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
+	again := func(on *machinerecipe.Lab, f func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
 			if !s.labStill(tx, pos, st) {
 				return
@@ -51,7 +54,7 @@ func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r 
 	for _, o := range open {
 		out := item.NewStack(o.Out, 1)
 		tip := tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), o.OutCount, o.Ticks/20)
-		sl := ui.ItemSlot{Icon: iconOf(out), Tip: tip, Selected: o == r, Run: again(o, func(*player.Player, *world.Tx) {})}
+		sl := ui.ItemSlot{Icon: formicon.Of(out), Tip: tip, Selected: o == r, Run: again(o, func(*player.Player, *world.Tx) {})}
 		if o == st.lab {
 			sl.Count = "§a▶"
 		}
@@ -69,10 +72,10 @@ func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r 
 
 // labOpenRecipes are the recipes whose essence the island's research has
 // come to, in table order.
-func (s *session) labOpenRecipes() []*LabRecipe {
-	var out []*LabRecipe
-	for i := range labRecipes {
-		if r := &labRecipes[i]; s.labOpen(r) {
+func (s *session) labOpenRecipes() []*machinerecipe.Lab {
+	var out []*machinerecipe.Lab
+	for i := range machinerecipe.Labs {
+		if r := &machinerecipe.Labs[i]; s.labOpen(r) {
 			out = append(out, r)
 		}
 	}
@@ -89,7 +92,7 @@ func (s *session) labStill(tx *world.Tx, pos cube.Pos, st *machineState) bool {
 // labOpen reports whether the island's research has come to the essence a
 // recipe makes: a research that costs it is done or can be done (or every
 // recipe is open).
-func (s *session) labOpen(r *LabRecipe) bool {
+func (s *session) labOpen(r *machinerecipe.Lab) bool {
 	if s.recipesFree {
 		return true
 	}
@@ -103,17 +106,17 @@ func (s *session) labOpen(r *LabRecipe) bool {
 
 // labDetail is the right side of the screen for recipe r: the card, the
 // rows of the ingredients and the essences made, and the buttons.
-func (s *session) labDetail(lang string, st *machineState, r *LabRecipe, again func(*LabRecipe, func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx)) (ui.Detail, []ui.SlotRow, []ui.Option) {
+func (s *session) labDetail(lang string, st *machineState, r *machinerecipe.Lab, again func(*machinerecipe.Lab, func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx)) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	out := item.NewStack(r.Out, 1)
-	d := ui.Detail{Icon: iconOf(out), Name: itemName(lang, out)}
+	d := ui.Detail{Icon: formicon.Of(out), Name: naming.ItemName(lang, out)}
 	running := st.lab == r
 	have := st.labHave()
 	var ins []ui.ItemSlot
 	for _, in := range r.In {
 		it := item.NewStack(in.Item, 1)
-		sl := ui.ItemSlot{Icon: iconOf(it), Count: fmt.Sprint(in.Count), Tip: tipName(lang, it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count)}
+		sl := ui.ItemSlot{Icon: formicon.Of(it), Count: fmt.Sprint(in.Count), Tip: tipName(lang, it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count)}
 		if running {
-			n := have[itemKey(in.Item)]
+			n := have[naming.ItemKey(in.Item)]
 			sl.Count = ui.CountText(n)
 			if n < in.Count {
 				sl.Count = "§c" + sl.Count
@@ -123,7 +126,7 @@ func (s *session) labDetail(lang string, st *machineState, r *LabRecipe, again f
 		}
 		ins = append(ins, sl)
 	}
-	made := ui.ItemSlot{Icon: iconOf(out), Count: fmt.Sprint(r.OutCount), Tip: tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)}
+	made := ui.ItemSlot{Icon: formicon.Of(out), Count: fmt.Sprint(r.OutCount), Tip: tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)}
 	rows := []ui.SlotRow{{Heading: i18n.T(lang, "lab.ingredients"), Slots: ins}}
 	if !running {
 		d.Status = fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)
@@ -139,7 +142,7 @@ func (s *session) labDetail(lang string, st *machineState, r *LabRecipe, again f
 		if st.lab != nil {
 			key = "lab.switch"
 		}
-		return d, rows, []ui.Option{{Label: i18n.T(lang, key), Icon: iconOf(out), Run: again(r, start)}}
+		return d, rows, []ui.Option{{Label: i18n.T(lang, key), Icon: formicon.Of(out), Run: again(r, start)}}
 	}
 	n := outputCount(st, r.Out)
 	made.Count = ui.CountText(n)
@@ -150,9 +153,9 @@ func (s *session) labDetail(lang string, st *machineState, r *LabRecipe, again f
 	d.Status = fmt.Sprintf(i18n.T(lang, "lab.progress"), min(100, st.progress*100/r.Ticks))
 	d.Body = strings.Join(labLines(lang, st)[1:], "\n")
 	actions := []ui.Option{
-		{Label: i18n.T(lang, "lab.deposit"), Icon: iconOf(item.NewStack(r.In[0].Item, 1)), Run: again(r, func(p *player.Player, _ *world.Tx) { s.labDeposit(p, st, nil) })},
-		{Label: i18n.T(lang, "lab.take"), Icon: iconOf(out), Run: again(r, func(p *player.Player, tx *world.Tx) { s.labTake(p, tx, st) })},
-		{Label: i18n.T(lang, "lab.stop"), Icon: iconLocked, Run: again(r, func(p *player.Player, tx *world.Tx) { s.labStop(p, tx, st) })},
+		{Label: i18n.T(lang, "lab.deposit"), Icon: formicon.Of(item.NewStack(r.In[0].Item, 1)), Run: again(r, func(p *player.Player, _ *world.Tx) { s.labDeposit(p, st, nil) })},
+		{Label: i18n.T(lang, "lab.take"), Icon: formicon.Of(out), Run: again(r, func(p *player.Player, tx *world.Tx) { s.labTake(p, tx, st) })},
+		{Label: i18n.T(lang, "lab.stop"), Icon: formicon.Locked, Run: again(r, func(p *player.Player, tx *world.Tx) { s.labStop(p, tx, st) })},
 	}
 	return d, rows, actions
 }
@@ -163,10 +166,10 @@ func (s *session) labDetail(lang string, st *machineState, r *LabRecipe, again f
 func (s *session) labDeposit(p *player.Player, st *machineState, only world.Item) {
 	inv := p.Inventory()
 	for slot, it := range inv.Slots() {
-		if it.Empty() || !st.accepts(it) || (only != nil && itemKey(it.Item()) != itemKey(only)) {
+		if it.Empty() || !st.accepts(it) || (only != nil && naming.ItemKey(it.Item()) != naming.ItemKey(only)) {
 			continue
 		}
-		n := min(it.Count(), st.labHandCap(it)-st.labHave()[itemKey(it.Item())], st.inputRoom(it))
+		n := min(it.Count(), st.labHandCap(it)-st.labHave()[naming.ItemKey(it.Item())], st.inputRoom(it))
 		if n <= 0 {
 			continue
 		}

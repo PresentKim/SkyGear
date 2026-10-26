@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // TestResearchTreeIsValid: IDs are unique, needs come earlier in the tree,
@@ -29,20 +30,20 @@ func TestResearchTreeIsValid(t *testing.T) {
 		}
 		seen[r.ID] = true
 		for _, n := range r.Unlocks {
-			it, ok := world.ItemByName(unlockName(n), 0)
+			it, ok := world.ItemByName(naming.UnlockName(n), 0)
 			if !ok {
 				t.Errorf("research %q opens unknown item %q", r.ID, n)
 				continue
 			}
-			if got := recipeKey(it); got != unlockName(n) {
+			if got := recipeKey(it); got != naming.UnlockName(n) {
 				t.Errorf("research %q: item %q encodes as %q", r.ID, n, got)
 			}
-			if name := itemName(i18n.Default, item.NewStack(it, 1)); name == "" || name[0] < 0x80 {
+			if name := naming.ItemName(i18n.Default, item.NewStack(it, 1)); name == "" || name[0] < 0x80 {
 				t.Errorf("research %q: no Korean name for %q (%q)", r.ID, n, name)
 			}
 		}
 		for _, c := range r.Cost {
-			if name := itemName(i18n.Default, item.NewStack(c.Item, 1)); name == "" || name[0] < 0x80 {
+			if name := naming.ItemName(i18n.Default, item.NewStack(c.Item, 1)); name == "" || name[0] < 0x80 {
 				t.Errorf("research %q: no Korean name for cost %v (%q)", r.ID, c.Item, name)
 			}
 		}
@@ -177,7 +178,7 @@ func TestResearchRewardDropsWhenInventoryFull(t *testing.T) {
 		if p.Inventory().ContainsItem(machineItem(KindGenerator)) {
 			t.Fatal("went into the inventory")
 		}
-		if droppedItems(tx)[itemKey(machineItem(KindGenerator).Item())] != 1 {
+		if droppedItems(tx)[naming.ItemKey(machineItem(KindGenerator).Item())] != 1 {
 			t.Fatalf("dropped %v, want the generator", droppedItems(tx))
 		}
 	})

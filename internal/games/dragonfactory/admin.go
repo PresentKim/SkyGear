@@ -2,10 +2,11 @@ package dragonfactory
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/df-mc/dragonfly/server/block/cube"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -14,6 +15,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/perf"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
 // Operator tools (/dfadmin) for running the server: items, research and
@@ -63,7 +69,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
 		s.dropAt(tx, p.Position(), st.Grow(-added))
 	}
-	o.Printf("%s x%d", itemName(i18n.Of(p), st), st.Count())
+	o.Printf("%s x%d", naming.ItemName(i18n.Of(p), st), st.Count())
 }
 
 // giveItems are the items /dfadmin give hands out: the game's own items
@@ -72,20 +78,20 @@ func giveItems() map[string]func() item.Stack {
 	out := map[string]func() item.Stack{
 		"research_table":   func() item.Stack { return item.NewStack(ResearchTable{}, 1) },
 		"drawer":           func() item.Stack { return item.NewStack(Drawer{}, 1) },
-		"drawer_key":       func() item.Stack { return item.NewStack(DrawerKey{}, 1) },
-		"upgrade_capacity": func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeCapacity}, 1) },
-		"upgrade_void":     func() item.Stack { return item.NewStack(DrawerUpgrade{Kind: UpgradeVoid}, 1) },
-		"hammer":           func() item.Stack { return item.NewStack(Hammer{}, 1) },
-		"stone_hammer":     func() item.Stack { return item.NewStack(Hammer{Stone: true}, 1) },
-		"string_mesh":      func() item.Stack { return item.NewStack(Mesh{Tier: "string"}, 1) },
+		"drawer_key":       func() item.Stack { return item.NewStack(dfitem.DrawerKey{}, 1) },
+		"upgrade_capacity": func() item.Stack { return item.NewStack(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeCapacity}, 1) },
+		"upgrade_void":     func() item.Stack { return item.NewStack(dfitem.DrawerUpgrade{Kind: dfitem.UpgradeVoid}, 1) },
+		"hammer":           func() item.Stack { return item.NewStack(dfitem.Hammer{}, 1) },
+		"stone_hammer":     func() item.Stack { return item.NewStack(dfitem.Hammer{Stone: true}, 1) },
+		"string_mesh":      func() item.Stack { return item.NewStack(dfitem.Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
 		"stone_barrel":     func() item.Stack { return item.NewStack(Barrel{Wood: stoneWood}, 1) },
-		"wood_hopper":      func() item.Stack { return item.NewStack(newFlowHopper("wood_hopper", cube.FaceDown), 1) },
+		"wood_hopper":      func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {
-			return item.NewStack(newFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
+			return item.NewStack(hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
 		},
 		"iron_hopper_reverse": func() item.Stack {
-			return item.NewStack(newFlowHopper("iron_hopper_reverse", cube.FaceUp), 1)
+			return item.NewStack(hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp), 1)
 		},
 		"water": func() item.Stack {
 			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
@@ -99,57 +105,57 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(FluidConduit{Tier: t}, 1) }
 	}
-	out["mycelium_spores"] = func() item.Stack { return item.NewStack(MyceliumSpores{}, 1) }
-	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(WitchWaterBucket{}, 1) }
-	for _, k := range crushedKinds {
-		out["crushed_"+k] = func() item.Stack { return item.NewStack(CrushedBlock{Kind: k}, 1) }
+	out["mycelium_spores"] = func() item.Stack { return item.NewStack(dfitem.MyceliumSpores{}, 1) }
+	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(dfitem.WitchWaterBucket{}, 1) }
+	for _, k := range dfitem.CrushedKinds {
+		out["crushed_"+k] = func() item.Stack { return item.NewStack(dfitem.CrushedBlock{Kind: k}, 1) }
 	}
-	for _, k := range pebbleKinds {
-		out["pebble_"+k.kind] = func() item.Stack { return item.NewStack(Pebble{Kind: k.kind}, 1) }
+	for _, k := range dfitem.PebbleKinds {
+		out["pebble_"+k.Kind] = func() item.Stack { return item.NewStack(dfitem.Pebble{Kind: k.Kind}, 1) }
 	}
-	for _, k := range oreKinds {
-		out["ore_chunk_"+k.ore] = func() item.Stack { return item.NewStack(OreChunk{Ore: k.ore}, 1) }
+	for _, k := range dfitem.OreKinds {
+		out["ore_chunk_"+k.Ore] = func() item.Stack { return item.NewStack(dfitem.OreChunk{Ore: k.Ore}, 1) }
 	}
-	for _, m := range newOreMetals {
-		out[m+"_ore"] = func() item.Stack { return item.NewStack(OreBlock{Metal: m}, 1) }
-		out["raw_"+m] = func() item.Stack { return item.NewStack(RawOre{Metal: m}, 1) }
+	for _, m := range dfitem.NewOreMetals {
+		out[m+"_ore"] = func() item.Stack { return item.NewStack(dfitem.OreBlock{Metal: m}, 1) }
+		out["raw_"+m] = func() item.Stack { return item.NewStack(dfitem.RawOre{Metal: m}, 1) }
 	}
-	for _, k := range toolKinds {
-		for _, h := range headMaterials {
-			for _, hd := range handleMaterials {
-				out[fmt.Sprintf("tool_%s_%s_%s", k, h.id, hd.id)] = func() item.Stack {
-					return describeTool(item.NewStack(TinkerTool{Kind: k, Head: h.id, Handle: hd.id}, 1))
+	for _, k := range tinker.ToolKinds {
+		for _, h := range tinker.HeadMaterials {
+			for _, hd := range tinker.HandleMaterials {
+				out[fmt.Sprintf("tool_%s_%s_%s", k, h.ID, hd.ID)] = func() item.Stack {
+					return tinker.DescribeTool(item.NewStack(tinker.Tool{Kind: k, Head: h.ID, Handle: hd.ID}, 1))
 				}
 			}
 		}
 	}
-	for _, c := range petalColours {
-		out["petal_"+c] = func() item.Stack { return item.NewStack(Petal{Colour: c}, 1) }
+	for _, c := range dfitem.PetalColours {
+		out["petal_"+c] = func() item.Stack { return item.NewStack(dfitem.Petal{Colour: c}, 1) }
 	}
 	for _, sd := range plantSeeds {
 		out["seed_"+sd] = func() item.Stack { return item.NewStack(PlantSeed{Seed: sd}, 1) }
 	}
-	for _, m := range mobKinds {
-		out["essence_"+m] = func() item.Stack { return item.NewStack(Essence{Mob: m}, 1) }
+	for _, m := range dfitem.MobKinds {
+		out["essence_"+m] = func() item.Stack { return item.NewStack(dfitem.Essence{Mob: m}, 1) }
 	}
-	out["config_copier"] = func() item.Stack { return item.NewStack(ConfigCopier{}, 1) }
-	for _, a := range tierAlloys {
-		out["alloy_"+a] = func() item.Stack { return item.NewStack(TierAlloy{Kind: a}, 1) }
+	out["config_copier"] = func() item.Stack { return item.NewStack(dfitem.ConfigCopier{}, 1) }
+	for _, a := range dfitem.TierAlloys {
+		out["alloy_"+a] = func() item.Stack { return item.NewStack(dfitem.TierAlloy{Kind: a}, 1) }
 	}
 	for l := 1; l <= 4; l++ {
-		out[fmt.Sprintf("circuit_%d", l)] = func() item.Stack { return item.NewStack(Circuit{Level: l}, 1) }
+		out[fmt.Sprintf("circuit_%d", l)] = func() item.Stack { return item.NewStack(dfitem.Circuit{Level: l}, 1) }
 	}
 	for l := 1; l <= maxTier; l++ {
-		out[fmt.Sprintf("kit_%d", l)] = func() item.Stack { return item.NewStack(TierKit{Level: l}, 1) }
+		out[fmt.Sprintf("kit_%d", l)] = func() item.Stack { return item.NewStack(dfitem.TierKit{Level: l}, 1) }
 	}
-	for _, k := range researchEssenceKinds {
-		out["research_essence_"+k] = func() item.Stack { return item.NewStack(ResearchEssence{Kind: k}, 1) }
+	for _, k := range dfitem.ResearchEssenceKinds {
+		out["research_essence_"+k] = func() item.Stack { return item.NewStack(dfitem.ResearchEssence{Kind: k}, 1) }
 	}
-	for _, m := range dustMetals {
-		out["metal_dust_"+m] = func() item.Stack { return item.NewStack(MetalDust{Metal: m}, 1) }
+	for _, m := range dfitem.DustMetals {
+		out["metal_dust_"+m] = func() item.Stack { return item.NewStack(dfitem.MetalDust{Metal: m}, 1) }
 	}
-	for _, m := range ingotMetals {
-		out["ingot_"+m] = func() item.Stack { return item.NewStack(Ingot{Metal: m}, 1) }
+	for _, m := range dfitem.IngotMetals {
+		out["ingot_"+m] = func() item.Stack { return item.NewStack(dfitem.Ingot{Metal: m}, 1) }
 	}
 	return out
 }
@@ -186,7 +192,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			s.dropAt(tx, p.Position(), it.Grow(-added))
 		}
 	}
-	o.Printf("%s x%d", itemName(i18n.Of(p), f()), n)
+	o.Printf("%s x%d", naming.ItemName(i18n.Of(p), f()), n)
 }
 
 func registerAdmin(g *Game) {
@@ -283,7 +289,7 @@ type advanceEnum string
 func (advanceEnum) Type() string { return "df_advancement" }
 func (advanceEnum) Options(cmd.Source) []string {
 	opts := []string{"all", "reset"}
-	for _, a := range advancementTree {
+	for _, a := range advancement.Tree {
 		opts = append(opts, a.ID)
 	}
 	return opts
@@ -304,10 +310,10 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	switch c.Advancement {
 	case "all":
-		var as []*Advancement
-		for i := range advancementTree {
-			if !s.advanced(advancementTree[i].ID) {
-				as = append(as, &advancementTree[i])
+		var as []*advancement.Advancement
+		for i := range advancement.Tree {
+			if !s.advanced(advancement.Tree[i].ID) {
+				as = append(as, &advancement.Tree[i])
 			}
 		}
 		if len(as) > 0 {
@@ -320,13 +326,13 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		s.updateBoards(tx)
 		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.advancement.cleared"))
 	default:
-		a, ok := advancementByID(string(c.Advancement))
+		a, ok := advancement.ByID(string(c.Advancement))
 		if !ok {
 			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.advancement.unknown"), c.Advancement)
 			return
 		}
-		var as []*Advancement
-		for _, b := range advancementWithAncestors(a) {
+		var as []*advancement.Advancement
+		for _, b := range advancement.WithAncestors(a) {
 			if !s.advanced(b.ID) {
 				as = append(as, b)
 			}

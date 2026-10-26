@@ -40,14 +40,14 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 | 서랍(`drawer.go`) | 모든 면(잠긴 서랍·다른 종류는 거절) | 모든 면(호퍼는 아래, 도관은 어느 면이든) |
 | 퇴비통(`composter.go`, 어댑터) | 모든 면: 식물 아이템 | 아래 면: 가득 찼을 때 흙 1개 |
 | 배럴(`barrel.go`) | 모든 면: 식물 아이템 | 없음(물은 양동이) |
-| 나무 호퍼·역방향 호퍼(`hopper.go`) | 호퍼 규칙 | 호퍼 규칙 |
+| 나무 호퍼·역방향 호퍼(`hopper/hopper.go`) | 호퍼 규칙 | 호퍼 규칙 |
 
 **기계는 이웃에 밀어 넣지 않는다**(결과 칸에 쌓이고, 호퍼·아이템 도관이 어느 면에서든 꺼낸다).
 
 ## 호퍼
 
 - 바닐라 호퍼는 Dragonfly 패치의 `block.HopperTransfer` 훅(`dragonfly.patch`, `third_party/README.md`)으로 **같은 길**을 탄다: 한 걸음마다 자기 칸의 아이템 하나를 바라보는 블록에 넣고(`Insert`), 위 블록에서 하나를 꺼낸다(`Peek` → `Extract`). 쿨타임은 바닐라 8틱.
-- 이동 한 걸음은 `stepHopper`(`itemlink.go`) 하나이고 우리 호퍼들도 이것을 쓴다. 방향만 다르다: 바닐라·나무 호퍼는 `out = 바라보는 면`, `in = 위`; 역방향 호퍼는 `out = 위`, `in = 아래`.
+- 이동 한 걸음은 `hopper.StepHopper`(`hopper/itemlink.go`) 하나이고 우리 호퍼들도 이것을 쓴다. 방향만 다르다: 바닐라·나무 호퍼는 `out = 바라보는 면`, `in = 위`; 역방향 호퍼는 `out = 위`, `in = 아래`.
 
 ## 새 블록을 붙이려면
 

@@ -6,12 +6,11 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/i18n"
 	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
 // Witch water and the barrel mixing of Ex Deorum, as ATM10: To the Sky uses
@@ -29,32 +28,6 @@ import (
 // witchWaterDelay is how long water on mycelium takes to turn (Ex Deorum:
 // 1,700 ticks).
 const witchWaterDelay = 1700 * time.Second / 20
-
-// MyceliumSpores turn the dirt they are used on into mycelium.
-type MyceliumSpores struct{}
-
-func (MyceliumSpores) EncodeItem() (string, int16) { return "dragonfactory:mycelium_spores", 0 }
-func (MyceliumSpores) Name() string                { return i18n.T(i18n.Default, "name.MyceliumSpores") }
-func (MyceliumSpores) Category() category.Category { return category.Items() }
-
-// UseOnBlock implements item.UsableOnBlock.
-func (MyceliumSpores) UseOnBlock(pos cube.Pos, _ cube.Face, _ mgl64.Vec3, tx *world.Tx, _ item.User, ctx *item.UseContext) bool {
-	if d, ok := tx.Block(pos).(block.Dirt); !ok || d.Coarse {
-		return false
-	}
-	tx.SetBlock(pos, block.Mycelium{}, nil)
-	tx.PlaySound(pos.Vec3Centre(), sound.ItemUseOn{Block: block.Mycelium{}})
-	ctx.SubtractFromCount(1)
-	return true
-}
-
-// WitchWaterBucket is a bucket of witch water, taken from a barrel.
-type WitchWaterBucket struct{}
-
-func (WitchWaterBucket) EncodeItem() (string, int16) { return "dragonfactory:witch_water_bucket", 0 }
-func (WitchWaterBucket) Name() string                { return i18n.T(i18n.Default, "name.WitchWaterBucket") }
-func (WitchWaterBucket) Category() category.Category { return category.Items() }
-func (WitchWaterBucket) MaxCount() int               { return 1 }
 
 // LightDiffusionLevel lets light through a barrel, as through a vanilla
 // composter: the mycelium or grass under it needs light or it turns to dirt.
@@ -96,7 +69,7 @@ func barrelMixes() []barrelMixRecipe {
 	return []barrelMixRecipe{
 		{false, lavaBucket, block.Netherrack{}},
 		{false, block.Sand{}, block.SoulSand{}},
-		{true, WitchWaterBucket{}, block.Blackstone{}},
+		{true, dfitem.WitchWaterBucket{}, block.Blackstone{}},
 		{true, item.GlowstoneDust{}, block.EndStone{}},
 	}
 }
@@ -108,11 +81,11 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 		return nil, item.Stack{}, false
 	}
 	for _, m := range barrelMixes() {
-		if (m.lava && rec.LavaMB < bucketMB) || (!m.lava && !rec.Witch) || itemKey(held.Item()) != itemKey(m.in) {
+		if (m.lava && rec.LavaMB < bucketMB) || (!m.lava && !rec.Witch) || naming.ItemKey(held.Item()) != naming.ItemKey(m.in) {
 			continue
 		}
 		switch m.in.(type) {
-		case item.Bucket, WitchWaterBucket:
+		case item.Bucket, dfitem.WitchWaterBucket:
 			bucket = item.NewStack(item.Bucket{}, 1)
 		}
 		return m.out, bucket, true
@@ -123,7 +96,7 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 // barrelMixCards are the codex cards of the mixings of a barrel of witch
 // water (lava).
 func (s *session) barrelMixCards(lang string, barrel item.Stack, lava bool) []codexCard {
-	liquid := item.NewStack(WitchWaterBucket{}, 1)
+	liquid := item.NewStack(dfitem.WitchWaterBucket{}, 1)
 	if lava {
 		liquid = item.NewStack(lavaBucket, 1)
 	}
@@ -193,6 +166,6 @@ func (s *session) mixBarrel(tx *world.Tx, pos cube.Pos, b Barrel, out world.Item
 }
 
 func init() {
-	world.RegisterItem(MyceliumSpores{})
-	world.RegisterItem(WitchWaterBucket{})
+	world.RegisterItem(dfitem.MyceliumSpores{})
+	world.RegisterItem(dfitem.WitchWaterBucket{})
 }

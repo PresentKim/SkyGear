@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/hopper"
 	"github.com/presentkim/dragonfactory/internal/itemio"
 )
 
@@ -26,21 +27,21 @@ func chestCount(tx *world.Tx, pos cube.Pos, it item.Stack) int {
 func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	top, hopper, bottom := cube.Pos{2, IslandY + 4, 2}, cube.Pos{2, IslandY + 3, 2}, cube.Pos{2, IslandY + 2, 2}
+	top, mid, bottom := cube.Pos{2, IslandY + 4, 2}, cube.Pos{2, IslandY + 3, 2}, cube.Pos{2, IslandY + 2, 2}
 	wheat := item.NewStack(item.Wheat{}, 1)
 	s.world.Do(func(tx *world.Tx) {
 		tx.SetBlock(top, block.NewChest(), nil)
 		_, _ = tx.Block(top).(block.Chest).Inventory(tx, top).AddItem(item.NewStack(item.Wheat{}, 3))
-		tx.SetBlock(hopper, newFlowHopper("wood_hopper", cube.FaceDown), nil)
+		tx.SetBlock(mid, hopper.NewFlowHopper("wood_hopper", cube.FaceDown), nil)
 		tx.SetBlock(bottom, block.NewChest(), nil)
-		h := tx.Block(hopper).(FlowHopper)
-		if n := h.InsertItems(tx, hopper, cube.FaceUp, item.NewStack(item.Wheat{}, 2)); n != 2 {
+		h := tx.Block(mid).(hopper.FlowHopper)
+		if n := h.InsertItems(tx, mid, cube.FaceUp, item.NewStack(item.Wheat{}, 2)); n != 2 {
 			t.Fatalf("a wood hopper took %d wheat, want both (one slot, a stack)", n)
 		}
-		if n := h.InsertItems(tx, hopper, cube.FaceUp, item.NewStack(item.Stick{}, 1)); n != 0 {
+		if n := h.InsertItems(tx, mid, cube.FaceUp, item.NewStack(item.Stick{}, 1)); n != 0 {
 			t.Errorf("a second kind fit into the one slot: %d", n)
 		}
-		_ = h.inv.SetItem(0, item.Stack{})
+		_ = h.Inv.SetItem(0, item.Stack{})
 	})
 	tick(s, 60)
 	s.world.Do(func(tx *world.Tx) {
@@ -61,13 +62,13 @@ func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 func TestReverseHopperMovesUp(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	below, hopper, above := cube.Pos{4, IslandY + 2, 4}, cube.Pos{4, IslandY + 3, 4}, cube.Pos{4, IslandY + 4, 4}
+	below, mid, above := cube.Pos{4, IslandY + 2, 4}, cube.Pos{4, IslandY + 3, 4}, cube.Pos{4, IslandY + 4, 4}
 	side := cube.Pos{5, IslandY + 3, 4}
 	wheat := item.NewStack(item.Wheat{}, 1)
 	s.world.Do(func(tx *world.Tx) {
 		tx.SetBlock(below, block.NewChest(), nil)
 		_, _ = tx.Block(below).(block.Chest).Inventory(tx, below).AddItem(item.NewStack(item.Wheat{}, 4))
-		tx.SetBlock(hopper, newFlowHopper("iron_hopper_reverse", cube.FaceUp), nil)
+		tx.SetBlock(mid, hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp), nil)
 		tx.SetBlock(above, block.NewChest(), nil)
 		tx.SetBlock(side, block.NewChest(), nil)
 	})
@@ -85,14 +86,14 @@ func TestReverseHopperMovesUp(t *testing.T) {
 // TestHopperNBT: a hopper keeps its items through its NBT and drops them
 // with itself.
 func TestHopperNBT(t *testing.T) {
-	h := newFlowHopper("iron_hopper_reverse", cube.FaceUp)
-	_ = h.inv.SetItem(0, item.NewStack(item.Wheat{}, 5))
-	_ = h.inv.SetItem(3, item.NewStack(item.Stick{}, 2))
-	back := h.DecodeNBT(h.EncodeNBT()).(FlowHopper)
-	if got, _ := back.inv.Item(0); got.Count() != 5 {
+	h := hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp)
+	_ = h.Inv.SetItem(0, item.NewStack(item.Wheat{}, 5))
+	_ = h.Inv.SetItem(3, item.NewStack(item.Stick{}, 2))
+	back := h.DecodeNBT(h.EncodeNBT()).(hopper.FlowHopper)
+	if got, _ := back.Inv.Item(0); got.Count() != 5 {
 		t.Errorf("slot 0 after NBT: %v", got)
 	}
-	if got, _ := back.inv.Item(3); got.Count() != 2 {
+	if got, _ := back.Inv.Item(3); got.Count() != 2 {
 		t.Errorf("slot 3 after NBT: %v", got)
 	}
 	if drops := back.BreakInfo().Drops(nil, nil); len(drops) != 3 {
@@ -104,8 +105,8 @@ func TestHopperNBT(t *testing.T) {
 // reverse alone into the hopper, for the wood and the iron one.
 func TestHopperTurnRecipes(t *testing.T) {
 	pairs := [][2]world.Item{
-		{block.NewHopper(), newFlowHopper("iron_hopper_reverse", cube.FaceUp)},
-		{newFlowHopper("wood_hopper", cube.FaceDown), newFlowHopper("wood_hopper_reverse", cube.FaceUp)},
+		{block.NewHopper(), hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp)},
+		{hopper.NewFlowHopper("wood_hopper", cube.FaceDown), hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp)},
 	}
 	has := func(in, out world.Item) bool {
 		for _, r := range recipe.Recipes() {
@@ -137,14 +138,14 @@ func TestVanillaHopperFeedsWoodHopper(t *testing.T) {
 		h.Facing = cube.FaceDown
 		_ = h.Inventory(tx, vanilla).SetItem(0, item.NewStack(item.Wheat{}, 2))
 		tx.SetBlock(vanilla, h, nil)
-		tx.SetBlock(wood, newFlowHopper("wood_hopper", cube.FaceDown), nil)
+		tx.SetBlock(wood, hopper.NewFlowHopper("wood_hopper", cube.FaceDown), nil)
 		if _, ex := itemio.IO(tx, wood); ex == nil {
 			t.Fatal("the wood hopper has no Extractor")
 		}
 	})
 	tick(s, 20)
 	s.world.Do(func(tx *world.Tx) {
-		if got, _ := tx.Block(wood).(FlowHopper).inv.Item(0); got.Count() != 2 {
+		if got, _ := tx.Block(wood).(hopper.FlowHopper).Inv.Item(0); got.Count() != 2 {
 			t.Errorf("the wood hopper holds %v, want the wheat of the vanilla hopper", got)
 		}
 	})
@@ -156,7 +157,7 @@ func TestHopperGeometryMirrorsX(t *testing.T) {
 	for f, want := range map[cube.Face]string{
 		cube.FaceEast: "west", cube.FaceWest: "east", cube.FaceNorth: "north", cube.FaceSouth: "south", cube.FaceDown: "down",
 	} {
-		if got := hopperGeometry(f); got != "geometry.dragonfactory_flow_hopper_"+want {
+		if got := hopper.HopperGeometry(f); got != "geometry.dragonfactory_flow_hopper_"+want {
 			t.Errorf("%v: %s", f, got)
 		}
 	}
@@ -165,8 +166,8 @@ func TestHopperGeometryMirrorsX(t *testing.T) {
 // TestChestOpensUnderFlowHopper: a chest opens only when the block above
 // diffuses light; the game's hoppers must not count as solid.
 func TestChestOpensUnderFlowHopper(t *testing.T) {
-	for _, id := range hopperOrder {
-		var b world.Block = newFlowHopper(id, cube.FaceDown)
+	for _, id := range hopper.HopperOrder {
+		var b world.Block = hopper.NewFlowHopper(id, cube.FaceDown)
 		d, ok := b.(block.LightDiffuser)
 		if !ok || d.LightDiffusionLevel() > 2 {
 			t.Errorf("%s blocks the chest below it", id)
