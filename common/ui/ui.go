@@ -99,7 +99,10 @@ func FormOpen(p *player.Player) bool {
 
 // Idle, if set, runs when p answered a form (title is the title it was sent
 // with; closed is true when it was closed without a press) and the form's
-// callbacks sent no other form, so p has no form open.
+// callbacks sent no other form, so p has no form open. After a press or Esc
+// on a DDUI screen that showed nothing else, it runs with the screen still
+// open and title "": a screen it shows replaces that one in place, and the
+// screen closes if it shows none.
 var Idle func(p *player.Player, tx *world.Tx, title string, closed bool)
 
 // afterAnswer runs Idle when the submitter has no form open after answering

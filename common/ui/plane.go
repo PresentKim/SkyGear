@@ -28,6 +28,9 @@ type Plane struct {
 	Actions []Option
 	// Close runs when the player closes the screen (Esc).
 	Close func(p *player.Player, tx *world.Tx)
+	// Keys are what the keys of the keyboard do (none: a key moves the
+	// keyboard selection).
+	Keys map[Key]func(p *player.Player, tx *world.Tx)
 }
 
 // PlaneMenu shows buttons over the ground the player's camera looks straight
@@ -39,6 +42,9 @@ func PlaneMenu(p *player.Player, v Plane) {
 	l := newOreLayout()
 	l.size = "plane"
 	l.close = v.Close
+	for _, k := range keyOrder {
+		l.key(k, v.Keys[k])
+	}
 	var spots []any
 	for _, sp := range v.Spots {
 		n := box("mc-spot", "on", sp.On, "at", []float64{sp.X, sp.Z, sp.W, sp.H})

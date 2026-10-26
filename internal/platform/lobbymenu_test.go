@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/dragonfactory/common/i18n"
+	_ "github.com/presentkim/dragonfactory/internal/locales"
 )
 
 // TestLobbyMenuMatchesThePack: the main menu form and the picture of it the
@@ -53,6 +56,18 @@ func TestLobbyMenuMatchesThePack(t *testing.T) {
 				t.Fatal(err)
 			}
 			if !strings.Contains("\n"+string(text), "\n"+o.Label+"=") {
+				t.Errorf("%s has no %s", lang, o.Label)
+			}
+		}
+	}
+}
+
+// TestHomeMenuText: every button of the main menu has its text for the main
+// screen in each language.
+func TestHomeMenuText(t *testing.T) {
+	for _, lang := range i18n.Languages() {
+		for _, o := range homeMenu(lang, (&Platform{}).lobbyMenu()) {
+			if strings.HasPrefix(o.Label, "platform.home.") {
 				t.Errorf("%s has no %s", lang, o.Label)
 			}
 		}

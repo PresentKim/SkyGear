@@ -206,7 +206,8 @@
   font-size: 1.4rem;
 }
 
-.mc-icon-button:hover {
+.mc-icon-button:hover,
+.mc-icon-button.oui-kb {
   background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
   background-size: 100% 100%;
 }
@@ -234,7 +235,8 @@
   height: 3rem;
 }
 
-.mc-close:hover {
+.mc-close:hover,
+.mc-close.oui-kb {
   background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
   background-size: 100% 100%;
 }
@@ -279,7 +281,8 @@
   z-index: -2;
 }
 
-.mc-tab:hover .mc-tab-bg {
+.mc-tab:hover .mc-tab-bg,
+.mc-tab.oui-kb .mc-tab-bg {
   border-image-source: url("pack://textures/ui/TabTopBackHover.png?filtering=point");
 }
 
@@ -315,7 +318,8 @@
   color: var(--mc-light-text);
 }
 
-.mc-btn:hover {
+.mc-btn:hover,
+.mc-btn.oui-kb {
   border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
 }
 
@@ -428,7 +432,8 @@
   height: 3.2rem;
 }
 
-.mc-slot.pressable:hover {
+.mc-slot.pressable:hover,
+.mc-slot.pressable.oui-kb {
   background-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -808,13 +813,16 @@
 }
 
 .mc-btn.oui-button:hover,
+.mc-btn.oui-button.oui-kb,
 .mc-btn.oui-button.on,
 .mc-tab.oui-button:hover,
+.mc-tab.oui-button.oui-kb,
 .mc-tab.oui-button.on {
   background-color: transparent;
 }
 
-.mc-slot.oui-item:hover {
+.mc-slot.oui-item:hover,
+.mc-slot.oui-item.oui-kb {
   background-color: transparent;
 }
 
@@ -878,7 +886,8 @@
   font-size: 1.2rem;
 }
 
-.mc-chapter:hover {
+.mc-chapter:hover,
+.mc-chapter.oui-kb {
   border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
 }
 
@@ -975,7 +984,8 @@
   font-size: 2rem;
 }
 
-.oui-canvas-zoom-button:hover {
+.oui-canvas-zoom-button:hover,
+.oui-canvas-zoom-button.oui-kb {
   background-color: rgba(90, 90, 110, 0.8);
 }
 
@@ -1062,7 +1072,8 @@
   border-color: #ffd34d;
 }
 
-.mc-quest:hover .mc-quest-shape {
+.mc-quest:hover .mc-quest-shape,
+.mc-quest.oui-kb .mc-quest-shape {
   background-color: #55556a;
 }
 
@@ -1278,7 +1289,8 @@
   border-color: #3a3a3a #1e1e1e #1e1e1e #3a3a3a;
 }
 
-.mc-port-swatch:hover {
+.mc-port-swatch:hover,
+.mc-port-swatch.oui-kb {
   border-color: #ffffff;
 }
 
@@ -1314,6 +1326,7 @@
 }
 
 .mc-port-plus:hover,
+.mc-port-plus.oui-kb,
 .mc-port-plus.on {
   background-color: #3a3a3a;
 }
@@ -1355,7 +1368,8 @@
   border-color: transparent;
 }
 
-.mc-port-choice:hover {
+.mc-port-choice:hover,
+.mc-port-choice.oui-kb {
   background-color: #d6d6d6;
 }
 
@@ -1437,8 +1451,10 @@
 }
 
 .mc-lobby .mc-btn:hover,
+.mc-lobby .mc-btn.oui-kb,
 .mc-lobby .mc-lrow.on,
-.mc-lobby .mc-tab:hover .mc-tab-bg {
+.mc-lobby .mc-tab:hover .mc-tab-bg,
+.mc-lobby .mc-tab.oui-kb .mc-tab-bg {
   border-image-source: url("pack://textures/ui/df/launcher_button_hover.png?filtering=point");
 }
 
@@ -1455,6 +1471,68 @@
 .mc-lobby .mc-input {
   background-color: rgba(10, 16, 30, 0.85);
   border-color: rgba(110, 135, 170, 0.9);
+}
+
+/* The shade over the left of every lobby screen: the lobby island shows through it, darker under the
+   name and the main screen's menu. The screens drawn over it keep it, so going between the main screen
+   and a menu does not change it. */
+.mc-lobby-shade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: linear-gradient(to right, rgba(5, 9, 20, 0.78) 0%, rgba(5, 9, 20, 0.45) 35%, rgba(5, 9, 20, 0) 70%);
+}
+
+/* --- the lobby's main screen (ui.HomeScreen): a column of large buttons (170x28u, 4u apart) under the
+   name, each with its icon (14u at 5u), text and a chevron, and the footer line at the bottom right,
+   clear of the menu on a short screen. */
+
+.mc-home-menu {
+  position: absolute;
+  left: 3.2rem;
+  top: 11.6rem;
+  width: 34rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-btn {
+  height: 5.6rem;
+  flex-shrink: 0;
+  margin-bottom: 0.8rem;
+  border-width: 0.8rem;
+  border-image-width: 0.8rem;
+}
+
+.mc-home-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.mc-home-label {
+  flex-grow: 1;
+  margin-left: 1.4rem;
+  color: #ffffff;
+  font-size: 1.8rem;
+}
+
+.mc-home-chevron {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.8rem;
+  flex-shrink: 0;
+}
+
+.mc-home-foot {
+  position: absolute;
+  right: 3.2rem;
+  bottom: 2.4rem;
+  color: rgba(195, 210, 234, 0.85);
+  font-size: 1.4rem;
 }
 
 /* --- the plane (ui.PlaneMenu): buttons over the ground a straight-down camera shows, placed by the
@@ -1480,7 +1558,8 @@
   border-color: rgba(255, 255, 255, 0.35);
 }
 
-.mc-spot:hover {
+.mc-spot:hover,
+.mc-spot.oui-kb {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -1631,7 +1710,8 @@
   border-color: #4fd64f;
 }
 
-.mc-pick.on:hover {
+.mc-pick.on:hover,
+.mc-pick.on.oui-kb {
   border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
 }
 

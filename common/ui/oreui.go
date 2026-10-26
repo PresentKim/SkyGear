@@ -35,8 +35,11 @@ func OreUIFor(p *player.Player) bool {
 // them. The platform sets it.
 var LobbyHeader func(p *player.Player) (title, logo string)
 
-// lobbySkin restyles a layout for p in the lobby (.mc-lobby): no darkened
-// screen, the game's name at the top left, navy windows with light text.
+// lobbySkin restyles a layout for p in the lobby (.mc-lobby): the lobby
+// island seen through a shade over the left of the screen, the game's name at
+// the top left, navy windows with light text. The main screen (HomeScreen)
+// and the screens it opens have the same shade and name, so going between
+// them changes only the menu or the window.
 func lobbySkin(p *player.Player, layout any) any {
 	darkInk(layout)
 	root, ok := layout.(map[string]any)
@@ -44,12 +47,13 @@ func lobbySkin(p *player.Player, layout any) any {
 		return layout
 	}
 	root["class"] = fmt.Sprint(root["class"]) + " mc-lobby"
+	skin := []any{box("mc-lobby-shade")}
 	if LobbyHeader != nil {
 		title, logo := LobbyHeader(p)
-		head := box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title), box("mc-lobby-line")})
-		kids, _ := root["children"].([]any)
-		root["children"] = append([]any{head}, kids...)
+		skin = append(skin, box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title), box("mc-lobby-line")}))
 	}
+	kids, _ := root["children"].([]any)
+	root["children"] = append(skin, kids...)
 	return layout
 }
 
@@ -138,6 +142,9 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 	if InLobby != nil && InLobby(p) {
 		layout = lobbySkin(p, layout)
 	}
+	if root, ok := layout.(map[string]any); ok && len(l.keys) > 0 {
+		root["keys"] = l.keys
+	}
 	if oreShown != nil {
 		oreShown(l, layout)
 		return
@@ -218,19 +225,33 @@ func withScreen(p *player.Player, f func(st *oreScreen)) {
 var oreShown func(l *oreLayout, layout any)
 
 // oreEvent runs what the pressed element does in the player's world. Esc
-// and the close button close the screen.
+// and the close button run the layout's close run, or Idle, and close the
+// screen when that showed no other screen.
 func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 	if ev.ID == "close" {
 		oreScreens.Lock()
-		open := st.form != nil
-		if open {
-			_ = st.form.Close()
-			st.form = nil
-		}
+		open, run, gen := st.form != nil, st.close, st.gen
 		oreScreens.Unlock()
-		if open {
-			oreClosed(h, st)
+		if !open {
+			return
 		}
+		h.Do(func(tx *world.Tx, e world.Entity) {
+			p := e.(*player.Player)
+			if run == nil {
+				oreEnd(p, tx, st, gen, true)
+				return
+			}
+			func() {
+				defer recoverForm(p)
+				run(p, tx)
+			}()
+			oreScreens.Lock()
+			if st.gen == gen && st.form != nil {
+				_ = st.form.Close()
+				st.form = nil
+			}
+			oreScreens.Unlock()
+		})
 		return
 	}
 	oreScreens.Lock()
@@ -280,17 +301,33 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 			defer recoverForm(p)
 			run(p, tx)
 		}()
-		oreScreens.Lock()
-		ended := st.gen == gen && st.form != nil
-		if ended {
-			_ = st.form.Close()
-			st.form = nil
-		}
-		oreScreens.Unlock()
-		if ended && Idle != nil && !FormOpen(p) {
-			Idle(p, tx, "", false)
-		}
+		oreEnd(p, tx, st, gen, false)
 	})
+}
+
+// oreEnd ends a press (closed: Esc) on the screen st of p that showed no other
+// screen or form (st.gen is still gen): Idle runs while the screen is still
+// open, so a screen it shows (the lobby's main screen) takes its place
+// without closing it, and the screen closes when Idle showed none either.
+func oreEnd(p *player.Player, tx *world.Tx, st *oreScreen, gen int, closed bool) {
+	oreScreens.Lock()
+	ended := st.gen == gen && st.form != nil
+	oreScreens.Unlock()
+	if !ended {
+		return
+	}
+	if Idle != nil {
+		func() {
+			defer recoverForm(p)
+			Idle(p, tx, "", closed)
+		}()
+	}
+	oreScreens.Lock()
+	if st.gen == gen && st.form != nil {
+		_ = st.form.Close()
+		st.form = nil
+	}
+	oreScreens.Unlock()
 }
 
 // closeOre closes the DDUI screen of p, before a JSON UI form is sent.
@@ -319,6 +356,38 @@ type oreLayout struct {
 	// close, if set, runs when the player closes the screen (Esc, the close
 	// button) instead of Idle.
 	close func(p *player.Player, tx *world.Tx)
+	// keys are the ids the screen's keys press, by Key (oreLayout.key).
+	keys map[string]string
+}
+
+// Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
+// WASD for the directions, Enter and the space bar for KeyOK. A key the
+// screen does not answer moves and presses the keyboard selection
+// (oui-ddui.js navKey).
+type Key string
+
+const (
+	KeyUp    Key = "up"
+	KeyDown  Key = "down"
+	KeyLeft  Key = "left"
+	KeyRight Key = "right"
+	KeyOK    Key = "ok"
+)
+
+// keyOrder is the order the keys of a layout get their ids in.
+var keyOrder = []Key{KeyUp, KeyDown, KeyLeft, KeyRight, KeyOK}
+
+// key makes key k run run on the screen (nil: k is not answered).
+func (l *oreLayout) key(k Key, run func(p *player.Player, tx *world.Tx)) {
+	if run == nil {
+		return
+	}
+	id := l.prefix + strconv.Itoa(len(l.runs))
+	l.runs[id] = run
+	if l.keys == nil {
+		l.keys = map[string]string{}
+	}
+	l.keys[string(k)] = id
 }
 
 func newOreLayout() *oreLayout {
@@ -355,6 +424,18 @@ func (l *oreLayout) press(n map[string]any, run func(p *player.Player, tx *world
 	id := l.prefix + strconv.Itoa(len(l.runs))
 	l.runs[id] = run
 	n["id"] = id
+	return n
+}
+
+// alt gives a pressable node an id that runs run when it is pressed with the
+// right mouse button (nil: the right button does nothing).
+func (l *oreLayout) alt(n map[string]any, run func(p *player.Player, tx *world.Tx)) map[string]any {
+	if run == nil {
+		return n
+	}
+	id := l.prefix + strconv.Itoa(len(l.runs))
+	l.runs[id] = run
+	n["alt"] = id
 	return n
 }
 

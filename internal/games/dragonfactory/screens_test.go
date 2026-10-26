@@ -256,8 +256,8 @@ func TestHelpTopicsAreWritten(t *testing.T) {
 }
 
 // TestExpansionPlane: a player who sees DDUI screens gets the expansion
-// screen instead of the keys, with no quest panel meanwhile; leaving the mode
-// brings the quest panel back.
+// screen instead of the keys, with no quest panel meanwhile, and its arrow
+// keys move the selection; leaving the mode brings the quest panel back.
 func TestExpansionPlane(t *testing.T) {
 	defer func(on bool) { ui.OreUI = on }(ui.OreUI)
 	ui.OreUI = true
@@ -275,6 +275,11 @@ func TestExpansionPlane(t *testing.T) {
 		}
 		if got := s.chunkLabel(i18n.Default, ChunkPos{1, 0}, s.purchasableChunks()); !strings.Contains(got, "구매 가능") {
 			t.Errorf("label of the chunk beside the island %q", got)
+		}
+		from := e.target
+		s.expandStep(1, 0)(p, tx)
+		if want := (ChunkPos{from[0] + 1, from[1]}); e.target != want {
+			t.Errorf("the right key moved the selection to %v, want %v", e.target, want)
 		}
 		s.stopExpand(p, tx)
 		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {

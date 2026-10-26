@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/world"
 )
 
 func abs(n int) int { return max(n, -n) }
@@ -30,5 +32,30 @@ func TestSideCardsStayApartInTheView(t *testing.T) {
 		if cx < o[0]+cardW && o[0] < cx+centreSize && cy < o[1]+cardH && o[1] < cy+centreSize {
 			t.Errorf("%v covers the block in the middle", f)
 		}
+	}
+}
+
+// TestSidePortRightPress: a port's square presses to the next choice and,
+// with the right mouse button, to the one before, wrapping at the ends.
+func TestSidePortRightPress(t *testing.T) {
+	var chosen int
+	choices := make([]PortChoice, 3)
+	for i := range choices {
+		choices[i] = PortChoice{Colour: "#000000", Run: func(*player.Player, *world.Tx) { chosen = i }}
+	}
+	var b SideBoard
+	for i := range b.Sides {
+		b.Sides[i].Ports = []SidePort{{Label: "port", Chosen: 0, Choices: choices}}
+	}
+	l := newOreLayout()
+	vars := sidesVars(nil, l, b, nil)
+	swatch := vars["@side0"].(map[string]any)["children"].([]any)[0].(map[string]any)["children"].([]any)[0].(map[string]any)
+	l.runs[swatch["id"].(string)](nil, nil)
+	if chosen != 1 {
+		t.Errorf("press chose %d, want 1", chosen)
+	}
+	l.runs[swatch["alt"].(string)](nil, nil)
+	if chosen != 2 {
+		t.Errorf("right press chose %d, want 2", chosen)
 	}
 }

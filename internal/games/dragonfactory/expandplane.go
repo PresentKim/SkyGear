@@ -15,6 +15,8 @@ import (
 // Island expansion as a DDUI screen (ui.PlaneMenu) for Ore UI clients: each
 // chunk near the selected one is a button over the map (pressing selects it
 // and the camera follows), with the price and buy/exit in a bottom panel.
+// The arrow keys and WASD move the selection a chunk, Enter and the space bar
+// buy it.
 // JSON UI clients use the movement keys and the sneak menu (expand.go).
 
 // expandPlaneReach is how many chunks around the selected one have a
@@ -50,15 +52,20 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 	}
 	info := s.chunkLabel(lang, t, buyable) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks))
 	var actions []ui.Option
+	keys := map[ui.Key]func(p *player.Player, tx *world.Tx){
+		ui.KeyUp: s.expandStep(0, -1), ui.KeyDown: s.expandStep(0, 1), ui.KeyLeft: s.expandStep(-1, 0), ui.KeyRight: s.expandStep(1, 0),
+	}
 	if slices.Contains(buyable, t) {
 		info += "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
-		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), formicon.Island, func(p *player.Player, tx *world.Tx) {
+		buy := func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, t)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
 				s.showExpandPlane(p, e)
 			}
-		}))
+		}
+		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), formicon.Island, buy))
+		keys[ui.KeyOK] = buy
 	}
 	leave := func(p *player.Player, tx *world.Tx) {
 		if tx.World() == s.world {
@@ -66,7 +73,19 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 		}
 	}
 	actions = append(actions, s.opt(i18n.T(lang, "expand.menu.stop"), formicon.Back, leave))
-	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: info, Actions: actions, Close: leave})
+	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: info, Actions: actions, Close: leave, Keys: keys})
+}
+
+// expandStep moves the selection of the expansion screen by dx, dz chunks
+// (north at the top of the screen) and shows the screen again, also at the
+// edge of the island, so the screen stays open.
+func (s *session) expandStep(dx, dz int32) func(p *player.Player, tx *world.Tx) {
+	return func(p *player.Player, tx *world.Tx) {
+		if e, ok := s.expansionOf(p); ok && tx.World() == s.world {
+			s.moveCursor(p, e, ChunkPos{e.target[0] + dx, e.target[1] + dz})
+			s.showExpandPlane(p, e)
+		}
+	}
 }
 
 // chunkLabel is chunk c's line: where it is and whether it is owned, can be

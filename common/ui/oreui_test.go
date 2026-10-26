@@ -57,7 +57,7 @@ func TestUntoken(t *testing.T) {
 }
 
 // TestLobbySkin: a screen in the lobby is marked for the lobby's look, has
-// the game's name at the top left and keeps its text colours.
+// the shade and the game's name at the top left and keeps its text colours.
 func TestLobbySkin(t *testing.T) {
 	old := LobbyHeader
 	LobbyHeader = func(*player.Player) (string, string) { return "game", "textures/blocks/grass_side_carried" }
@@ -69,11 +69,13 @@ func TestLobbySkin(t *testing.T) {
 		t.Fatalf("class %q", root["class"])
 	}
 	kids := root["children"].([]any)
-	head := kids[0].(map[string]any)
-	if head["class"] != "mc-lobby-head" {
-		t.Fatalf("first child %v", head)
+	if shade := kids[0].(map[string]any); shade["class"] != "mc-lobby-shade" {
+		t.Fatalf("first child %v", shade)
 	}
-	if win := kids[1].(map[string]any); win["ink"] != "dark" {
+	if head := kids[1].(map[string]any); head["class"] != "mc-lobby-head" {
+		t.Fatalf("second child %v", head)
+	}
+	if win := kids[2].(map[string]any); win["ink"] != "dark" {
 		t.Errorf("window ink %v", win["ink"])
 	}
 }

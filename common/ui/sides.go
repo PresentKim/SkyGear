@@ -95,7 +95,8 @@ func sideArrow(f cube.Face) string {
 type sidePicker struct{ side, port int }
 
 // SidesMenu shows a block with a card for each of its six sides: the
-// neighbouring block and a box per port that cycles its choice when pressed,
+// neighbouring block and a box per port that cycles its choice when pressed
+// (back with the right mouse button),
 // with a plus button that opens all choices beside the card. A change redraws
 // only the ports. Without DDUI it is an ItemBoard with a row per side and the
 // choices in an ItemGrid.
@@ -194,10 +195,12 @@ func sidesVars(p *player.Player, l *oreLayout, b SideBoard, open *sidePicker) ma
 		for j, port := range s.Ports {
 			var children []any
 			if n := len(port.Choices); n > 0 {
-				cur := port.Choices[min(max(port.Chosen, 0), n-1)]
+				at := min(max(port.Chosen, 0), n-1)
+				cur := port.Choices[at]
 				swatch := choiceNode("mc-port-swatch", cur)
 				swatch["tip"] = cur.Tip
-				children = append(children, l.press(swatch, choose(port.Choices[(port.Chosen+1)%n].Run)))
+				l.press(swatch, choose(port.Choices[(port.Chosen+1)%n].Run))
+				children = append(children, l.alt(swatch, choose(port.Choices[(at+n-1)%n].Run)))
 			}
 			plus := box("mc-port-plus", "children", []any{txt("", "+")})
 			at := sidePicker{i, j}

@@ -33,6 +33,9 @@
 // slots use), "tex:<texture path>" (a pack texture through pack://), or a bare item name.
 // A region's children come from the variable "@<name>" (a node), so the server can replace one part of
 // the screen without resending the layout; the region is patched like the layout. `tip` shows a tooltip while the pointer is over the node.
+// `alt` on a box is the id its press with the right mouse button sends.
+// `keys` on the root ({up, down, left, right, ok: id}) presses the id for the arrow keys or WASD, Enter or
+// the space bar (onKey).
 (function () {
   var STORE = "minecraft";
   var PROPERTY = "custom_form_data_1";
@@ -174,6 +177,7 @@
   // devices do not agree on, so the decision waits a moment. The mousedown bubbles up through the
   // elements that listen, so only the innermost one that takes presses (wants, when given) answers it.
   function onPress(e, fn, nodeOf, wants) {
+    pressables.push({ e: e, fn: fn, nodeOf: nodeOf });
     e.addEventListener("mousedown", function (ev) {
       if (ev.button !== undefined && ev.button !== 0) return;
       if (claimed === ev || (wants && !wants())) return;
@@ -198,6 +202,7 @@
     });
   }
   var lastPress = null;
+  var pressables = []; // {e, fn, nodeOf}: the elements onPress made pressable, for the keyboard selection
   var claimed = null; // the mousedown an element answered
   var TOUCH_WINDOW = 700; // ms between a touch event and the mousedown of the same tap
   var touchAt = 0; // when the last touch began
@@ -433,6 +438,12 @@
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (n.on) e.className += " on";
+        // `alt` is the id the right mouse button presses.
+        e.addEventListener("mousedown", function (ev) {
+          if (ev.button !== 2 || !rec.n.alt || claimed === ev) return;
+          claimed = ev;
+          send(rec.n.alt, "click", null);
+        });
         // A `self` box takes the presses of any button that land on the box itself and not on what it
         // holds: the backdrop around a window, where the vanilla inventory drops the held item.
         if (n.self) {
@@ -841,8 +852,12 @@
     inputs = inputs.filter(function (i) {
       return root.contains(i.el);
     });
+    pressables = pressables.filter(function (p) {
+      return root.contains(p.e);
+    });
     if (tip && tipOwner && !root.contains(tipOwner)) hideTip();
     if (armed && !root.contains(armed)) armed = null;
+    keepFocus();
   }
 
   // fillRegion draws a region from its variable, patching what it showed before.
@@ -1370,6 +1385,8 @@
     bound = [];
     bars = [];
     inputs = [];
+    pressables = [];
+    if (kbFocus) kbFocus = null;
     regions = {};
     regionInk = {};
     regionRecs = {};
@@ -1378,6 +1395,7 @@
       tree = make(state.layout);
       root.appendChild(tree.el);
     }
+    keepFocus();
     drawStatus();
   }
 
@@ -1462,6 +1480,153 @@
     return out.length ? out.join(", ") : "-";
   }
 
+  // --- keyboard --------------------------------------------------------------------------------
+
+  // The keys a screen can answer: the arrow keys and WASD, Enter and the space bar.
+  var KEY_NAMES = { 38: "up", 87: "up", 40: "down", 83: "down", 37: "left", 65: "left", 39: "right", 68: "right", 13: "ok", 32: "ok" };
+  // A held key presses at most this often (Gameface may not mark the repeats of a held key).
+  var KEY_REPEAT_MS = 120;
+  var keyAt = {}; // name -> when the key last pressed
+
+  // onKey presses what the screen's root gives the key in `keys` ({name: id}).
+  function onKey(ev) {
+    var name = KEY_NAMES[ev.keyCode];
+    if (!name || state.screen !== SCREEN || !state.layout) return;
+    var t = ev.target && ev.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    var now = Date.now();
+    if (now - (keyAt[name] || 0) < KEY_REPEAT_MS) return;
+    keyAt[name] = now;
+    var keys = state.layout.keys;
+    if (ev.preventDefault) ev.preventDefault();
+    if (keys && keys[name]) send(keys[name], "click", null);
+    else navKey(name);
+  }
+
+  // The keyboard selection: a key the screen does not answer moves a selection over the elements that
+  // take presses, drawn like the pointer over them (oui-kb, with the tooltip), and Enter or the space
+  // bar presses it. The pointer moving takes the selection away. When the selected element goes (the
+  // press drew another screen), the element nearest to where it was is selected.
+  var kbFocus = null; // the entry of pressables selected
+  var kbOn = false; // whether the keyboard moved the selection since the pointer last moved
+  var kbAt = null; // {x, y}: the middle of the element last selected
+
+  function navigable(p) {
+    if (!root || !root.contains(p.e)) return false;
+    var n = p.nodeOf ? p.nodeOf() : null;
+    if (n && (!n.id || n.press === false)) return false;
+    var r = p.e.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.top < window.innerHeight && r.left < window.innerWidth;
+  }
+
+  function middle(e) {
+    var r = e.getBoundingClientRect();
+    return { x: (r.left + r.right) / 2, y: (r.top + r.bottom) / 2, r: r };
+  }
+
+  function navKey(name) {
+    if (name === "ok") {
+      if (kbFocus && navigable(kbFocus)) kbFocus.fn({});
+      return;
+    }
+    var list = pressables.filter(navigable);
+    if (!list.length) return;
+    kbOn = true;
+    if (!kbFocus || !navigable(kbFocus)) return select(nearest(list, kbAt));
+    var from = middle(kbFocus.e), best = null, bestScore = Infinity;
+    list.forEach(function (p) {
+      if (p === kbFocus) return;
+      var to = middle(p.e);
+      var along, across, overlap;
+      if (name === "left" || name === "right") {
+        along = name === "right" ? to.x - from.x : from.x - to.x;
+        overlap = to.r.top < from.r.bottom && from.r.top < to.r.bottom;
+        across = overlap ? 0 : Math.abs(to.y - from.y);
+      } else {
+        along = name === "down" ? to.y - from.y : from.y - to.y;
+        overlap = to.r.left < from.r.right && from.r.left < to.r.right;
+        across = overlap ? 0 : Math.abs(to.x - from.x);
+      }
+      if (along <= 1) return;
+      var score = along + 2 * across;
+      if (score < bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    });
+    if (best) select(best);
+  }
+
+  // nearest is the entry of list nearest to the point at, or the one at the top left without one.
+  function nearest(list, at) {
+    var best = null, bestScore = Infinity;
+    list.forEach(function (p) {
+      var m = middle(p.e);
+      var score = at ? Math.abs(m.x - at.x) + Math.abs(m.y - at.y) : m.y * 4 + m.x;
+      if (score < bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    });
+    return best;
+  }
+
+  function select(p) {
+    if (kbFocus && kbFocus.e !== p.e) unmark(kbFocus.e);
+    kbFocus = p;
+    if (p.e.className.indexOf(" oui-kb") < 0) p.e.className += " oui-kb";
+    revealIn(p.e);
+    var m = middle(p.e);
+    kbAt = { x: m.x, y: m.y };
+    var n = p.nodeOf ? p.nodeOf() : null;
+    if (n && n.tip) showTip(p.e, n.tip);
+    else hideTip();
+  }
+
+  function unmark(e) {
+    e.className = e.className.replace(/ oui-kb/g, "");
+    if (tipOwner === e) hideTip();
+  }
+
+  // revealIn scrolls the scrolling boxes around e so that e shows.
+  function revealIn(e) {
+    for (var a = e.parentNode; a && a !== root; a = a.parentNode) {
+      if (!a.className || !/(^| )(oui-scroll|mc-scroll)( |$)/.test(a.className) || a.scrollHeight <= a.clientHeight) continue;
+      var r = e.getBoundingClientRect(), box = a.getBoundingClientRect();
+      if (r.top < box.top) a.scrollTop -= box.top - r.top;
+      else if (r.bottom > box.bottom) a.scrollTop += r.bottom - box.bottom;
+    }
+  }
+
+  // keepFocus selects again, once the screen is laid out, after a patch or a new screen: the element
+  // selected (a patch may have reset its class) or the one nearest to where it was.
+  function keepFocus() {
+    if (!kbOn) return;
+    setTimeout(function () {
+      if (!kbOn || !root) return;
+      if (kbFocus && navigable(kbFocus)) {
+        if (kbFocus.e.className.indexOf(" oui-kb") < 0) kbFocus.e.className += " oui-kb";
+        return;
+      }
+      kbFocus = null;
+      var list = pressables.filter(navigable);
+      if (list.length) select(nearest(list, kbAt));
+    }, 30);
+  }
+
+  // A mouse moving takes the keyboard selection away. A mousemove where the pointer already was (the
+  // screen changed under it) does not.
+  var mouseAt = null;
+  function dropFocus(ev) {
+    var at = ev && ev.clientX !== undefined ? ev.clientX + "," + ev.clientY : "";
+    var moved = ev.type !== "mousemove" || (mouseAt !== null && at !== mouseAt);
+    mouseAt = at;
+    if (!kbOn || !moved) return;
+    kbOn = false;
+    if (kbFocus) unmark(kbFocus.e);
+    kbFocus = null;
+  }
+
   // --- data ------------------------------------------------------------------------------------
 
   function start() {
@@ -1487,6 +1652,8 @@
       document.addEventListener(type, dragCanvas);
     });
     document.addEventListener("touchstart", noteTouch);
+    document.addEventListener("mousemove", dropFocus);
+    document.addEventListener("touchstart", dropFocus);
     document.addEventListener("mousemove", noteMouse);
     ["mouseup", "touchend", "touchcancel"].forEach(function (type) {
       document.addEventListener(type, drop);
@@ -1520,6 +1687,7 @@
     document.addEventListener("keydown", function (ev) {
       if (ev.keyCode === 27 && state.screen === SCREEN && state.layout) send("close", "key", null);
     });
+    document.addEventListener("keydown", onKey);
     if (!engine) {
       state.error = "no window.engine";
       drawStatus();

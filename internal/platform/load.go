@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/dragonfactory/common/hud"
 	"github.com/presentkim/dragonfactory/common/perf"
+	"github.com/presentkim/dragonfactory/common/ui"
 )
 
 // lobbyHUD is what each lobby player's HUD was last sent, by name, so a
@@ -17,10 +18,11 @@ var lobbyHUD = struct {
 	sent map[string]string
 }{sent: map[string]string{}}
 
-// sendLobbyHUD shows p the lobby's launcher frame (hud.Board.Frame) and, if
-// load is not empty, the server load line at the top left.
+// sendLobbyHUD shows p the lobby's launcher frame (hud.Board.Frame; not to a
+// player who sees DDUI screens, whose main screen draws its own) and, if load
+// is not empty, the server load line at the top left.
 func sendLobbyHUD(p *player.Player, load string) {
-	b := hud.Board{Frame: true}
+	b := hud.Board{Frame: !ui.OreUIFor(p)}
 	if load != "" {
 		b.Add(hud.TopLeft, load)
 	}

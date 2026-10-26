@@ -121,6 +121,8 @@
 
 ## 로비 입장기 틀
 
+이 틀과 HUD 의 메인 메뉴 그림은 JSON UI 폼을 쓰는 플레이어(`/uimode`, 팩 암호화를 끈 서버)의 것이다. Ore UI 를 쓰는 플레이어는 메인 화면(`ui.HomeScreen`, [oreui.md](oreui.md) "로비 화면")이 같은 배치를 그리고, HUD 틀은 보내지 않는다.
+
 로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/df_lobby.json` 의 `df_lobby.frame`, 테마의 `dfui_hooks.lobby_frame` 을 채운다): 왼쪽 위에 게임 아이콘(풀 블록 옆면)과 이름(`df.lobby.title`, MinecraftTen 글꼴), 그 아래 옅은 1px 선. 나머지는 비워 고정 카메라로 비춘 로비 섬이 보인다(`internal/platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(`dfhook.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
 
 - HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.

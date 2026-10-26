@@ -14,8 +14,10 @@ import (
 )
 
 // The lobby's main menu reopens whenever no other form is open; after Esc it
-// waits lobbyEscDelay or the player's next input. Movement is locked, so the
-// movement keys are read from the raw input packet by a packet hook.
+// waits lobbyEscDelay or the player's next input. For a player who sees DDUI
+// screens it is the main screen, whose menus open in its place and go back
+// to it in place (ui.Idle), so it closes only on Esc. Movement is locked, so
+// the movement keys are read from the raw input packet by a packet hook.
 
 // lobbyWakeGap is how often an input of a player can ask for the menu: the
 // client sends its input every tick.
@@ -33,14 +35,20 @@ func (pf *Platform) lobbyIdle(p *player.Player, _ *world.Tx, title string, close
 		return
 	}
 	if closed && strings.Contains(title, ui.LauncherToken) {
-		p.H().DoAfter(lobbyEscDelay, func(_ *world.Tx, e world.Entity) {
-			if p := e.(*player.Player); !ui.FormOpen(p) {
-				pf.wakeLobbyMenu(p)
-			}
-		})
+		pf.lobbyEscaped(p, nil)
 		return
 	}
 	pf.showLobbyMenu(p)
+}
+
+// lobbyEscaped opens the main menu p closed again after lobbyEscDelay, if p
+// opened no other form meanwhile.
+func (pf *Platform) lobbyEscaped(p *player.Player, _ *world.Tx) {
+	p.H().DoAfter(lobbyEscDelay, func(_ *world.Tx, e world.Entity) {
+		if p := e.(*player.Player); !ui.FormOpen(p) {
+			pf.wakeLobbyMenu(p)
+		}
+	})
 }
 
 // lobbyConns are the hooked connections of the players in the lobby, with
@@ -117,9 +125,11 @@ func lobbyInput(in *packet.PlayerAuthInput) bool {
 }
 
 // wakeLobbyMenu shows the main menu to p if p is still in the lobby. A menu
-// that is already open is not sent again (ui's guard against repeated forms).
+// form that is already open is not sent again (ui's guard against repeated
+// forms), and a DDUI screen that is open (the main screen or a menu in its
+// place) stays.
 func (pf *Platform) wakeLobbyMenu(p *player.Player) {
-	if pf.m.InLobby(instance.AccountID(p)) {
+	if pf.m.InLobby(instance.AccountID(p)) && !(ui.OreUIFor(p) && ui.FormOpen(p)) {
 		pf.showLobbyMenu(p)
 	}
 }

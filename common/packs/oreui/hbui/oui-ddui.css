@@ -108,7 +108,8 @@ body.oui-active #root {
   text-align: center;
 }
 
-.oui-button:hover {
+.oui-button:hover,
+.oui-button.oui-kb {
   background-color: rgb(90, 98, 130);
 }
 
@@ -116,7 +117,8 @@ body.oui-active #root {
   background-color: rgb(60, 150, 70);
 }
 
-.oui-button.on:hover {
+.oui-button.on:hover,
+.oui-button.on.oui-kb {
   background-color: rgb(80, 185, 90);
 }
 
@@ -223,7 +225,8 @@ body.oui-active #root {
   border-radius: 0.3rem;
 }
 
-.oui-item:hover {
+.oui-item:hover,
+.oui-item.oui-kb {
   background-color: rgba(255, 255, 255, 0.16);
 }
 
@@ -264,7 +267,8 @@ body.oui-active #root {
   border-radius: 0.25rem;
 }
 
-.oui-slot:hover {
+.oui-slot:hover,
+.oui-slot.oui-kb {
   background-color: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 200, 0, 0.7);
 }
@@ -318,7 +322,8 @@ body.oui-active #root {
   opacity: 0.4;
 }
 
-.oui-item.pressable:hover {
+.oui-item.pressable:hover,
+.oui-item.pressable.oui-kb {
   background-color: rgba(255, 255, 255, 0.18);
 }
 
@@ -510,7 +515,8 @@ body.oui-active #root {
   font-size: 0.9rem;
 }
 
-.rs-primary:hover {
+.rs-primary:hover,
+.rs-primary.oui-kb {
   background-color: rgb(70, 165, 80);
 }
 

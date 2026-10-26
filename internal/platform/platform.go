@@ -399,11 +399,28 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 	c.pf.showFriends(src.(*player.Player))
 }
 
-// showLobbyMenu is the lobby's main menu. It matches the copy the pack draws
-// on the HUD (ui/df_lobby.json), so closing the form does not change the
-// screen; labels are pack language keys.
+// showLobbyMenu is the lobby's main menu: the full-screen main screen for a
+// player who sees DDUI screens, whose menus open in its place. The JSON UI
+// form matches the copy the pack draws on the HUD (ui/df_lobby.json), so
+// closing the form does not change the screen; its labels are pack language
+// keys.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
+	if ui.OreUIFor(p) {
+		ui.HomeScreen(p, ui.Home{Buttons: homeMenu(i18n.Of(p), pf.lobbyMenu()), Footer: p.Name(), Close: pf.lobbyEscaped})
+		return
+	}
 	ui.LauncherMenu(p, nil, pf.lobbyMenu()...)
+}
+
+// homeMenu are the buttons of the main menu with their text in lang
+// (platform.home.<name> for the pack key df.lobby.<name>).
+func homeMenu(lang string, opts []ui.Option) []ui.Option {
+	out := make([]ui.Option, len(opts))
+	for i, o := range opts {
+		o.Label = i18n.T(lang, "platform.home."+strings.TrimPrefix(o.Label, "df.lobby."))
+		out[i] = o
+	}
+	return out
 }
 
 // lobbyMenu are the buttons of the main menu, in the order the pack draws
