@@ -1,103 +1,141 @@
-# dragonfactory — 드래곤팩토리
+# dragonfactory
 
-[Dragonfly](https://github.com/df-mc/dragonfly) 기반 Minecraft Bedrock 멀티 게임 섬 서버입니다.
-첫 게임은 스카이팩토리/알케미 팩토리 스타일의 공장 만들기 게임 **드래곤팩토리**입니다.
+A multi-game island server for **Minecraft: Bedrock Edition**, built on
+[Dragonfly](https://github.com/df-mc/dragonfly) (Go).
 
-- 기획: [docs/design](docs/design/README.md)
-- 기술 검증·애드온 운용: [docs/tech](docs/tech)
-- 백업과 되돌리기: [docs/tech/backup.md](docs/tech/backup.md)
+Every player gets their own save slots; each save is a separate world (an
+*instance*) that runs while its host is online and can be shared with friends.
+The first game is **DragonFactory** (드래곤팩토리), a SkyFactory / ATM10 Sky
+style factory-building game: start bare-handed on a 3×3×3 sky island, craft
+resources by hand, unlock recipes through research, and work your way up to
+powered machines, conduits, alloys, monster waves and magic.
 
-## 실행
+The game's text and design documents are in Korean; the server also ships an
+English translation that follows each player's client language. A Korean
+feature list is in [docs/features.md](docs/features.md).
+
+## Requirements
+
+- Go 1.26 or newer (see `go.mod`).
+- A Minecraft: Bedrock Edition client (Windows, mobile or console) that matches
+  the protocol of the bundled Dragonfly version.
+- No add-ons to install: the server builds its resource packs into the binary
+  and sends them to the client on join (the client must accept them).
+
+## Build and run
 
 ```sh
 go run .
+# or
+go build -o dragonfactory . && ./dragonfactory
 ```
 
-처음 실행하면 설정 파일이 생성됩니다.
+On the first run the server writes its configuration files in the working
+directory and stores its data under `data/`:
 
-| 파일 | 내용 |
+| File | Contents |
 |---|---|
-| `config.toml` | Dragonfly 서버 설정(포트, 서버 이름, 인증 등) |
-| `platform.toml` | 플랫폼 설정(데이터 폴더, 인스턴스 하루 길이, 로드 반경, 동시 인스턴스 수, 자동 저장 주기 `AutosaveSeconds`, 월드 저장 주기 `WorldSaveSeconds`, 운영자 XUID `Admin.Operators`) |
+| `config.toml` | Dragonfly server settings: network address (default `:19132`), server name, Xbox Live authentication, … |
+| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `Encrypt`, `SlotDeco`), operators (`Admin.Operators`) |
+| `data/platform.db` | SQLite database: accounts, friends, saves, per-save player state, game state |
+| `data/saves/<save id>/world` | One world per save |
+| `data/backups/` | Automatic database and world backups ([docs/tech/backup.md](docs/tech/backup.md)) |
+| `data/resourcepack.secret` | Key material for resource pack encryption; keep it, or clients re-download the packs |
 
-데이터는 `data/` 아래에 저장됩니다: `data/platform.db`(SQLite), `data/saves/<세이브 ID>/world`(세이브별 월드).
+Stop the server with Ctrl+C; running instances are saved before it exits.
 
-## 현재 구현
+## Connecting
 
-### 플랫폼
-- 첫 접속 시 서버 안내, 로비(나침반 = 세이브 선택, 책 = 안내)
-- 계정당 세이브 슬롯 3개: 한 화면의 왼쪽 슬롯 목록과 오른쪽 동작(새 게임 / 입장 / 초대 코드 / 참여자 관리 / 이름 변경 / 삭제 2회 확인)
-- 세이브마다 별도 월드(인스턴스). 호스트가 들어오면 활성화, 나가면 종료
-- 세이브별 인벤토리·체력·허기·경험치·효과·위치 저장과 복원
-- 인스턴스 시간과 경과 일수(호스트가 있을 때만 흐름), 자동 저장
-- 낙하 피해 없음, 사망 시 인벤토리 유지
+Add the server in the Bedrock client (Play → Servers → Add Server) with the
+host's address and port `19132`, then join. On first join you get a short
+server guide and land in the lobby, where you can create a save and enter your
+island.
 
-### 협동
-- 친구: 요청(오프라인 대상 포함)·수락·거절·삭제·차단, 접속 상태 표시(오프라인/로비/플레이 중)
-- 초대 코드(6자리, 재발급 가능)와 친구 초대(세이브 안에서), 세이브당 최대 10명
-- 참여 중인 세이브 목록(입장·탈퇴), 호스트가 플레이 중일 때만 입장
-- 호스트의 참여자 관리: 추방, 인벤토리 보기(엔티티 상자, 접속 중이면 실시간·아니면 저장된 인벤토리)
+## Becoming an operator
 
-### 드래곤팩토리
-- 3×3×3 하늘섬 + 나무 한 그루, 맨손 시작([기획 05](docs/design/05-sky-progression.md))
-- **연구**: 참나무 판자·조합대·연구대 외 모든 조합법이 잠겨 있고, 연구대에서 재료를 한 번에 써서 조합법을 연다. 섬의 모두에게 바로 열린다(Dragonfly 패치 레시피 필터)
-- **발전과제**: 다음 할 일을 힌트로 안내하고 사이드바 퀘스트 창에 보여 준다
-- **손작업 자원**: 돌멩이, 나무껍질 섬유·실, 망치 분해(조약돌 → 자갈 → 모래 → 먼지), 체와 메쉬 등급, 퇴비통(흙), 배럴(물)과 돌 배럴(용암)
-- **자동화**: 호퍼, 에너지(RE)와 발전기, 에너지·아이템·액체 도관, 분쇄기·자동 체·자동 자원 채굴기·자동 농작물 수확기·합금로·광석 세척기 등. 기계 창은 엔티티 상자이고 호퍼·도관으로 넣고 뺀다
-- **연구 정수와 정수 추출기**: 자동화 이후의 연구는 재료와 함께 정수 추출기에서 만든 "~의 정수"(공학·연금술·농사·사냥·마법)를 낸다. 연구는 즉시 끝나고 시간은 정수 생산에 든다([기획 11](docs/design/11-research-essences.md))
-- **서랍과 스토리지 컨트롤러**: 한 종류 대용량 보관, 앞면 넣기/꺼내기, 업그레이드·잠금, 여러 서랍을 한 저장소로 묶기
-- **차원 게이트 웨이브**: 몬스터 8단계, 에센스 드롭, 몬스터 시뮬레이터
-- **장비 제작(팅커스풍)**: 머리·손잡이 조합, 도구 레벨과 강화
-- **마법 식물**: 꽃·광석꽃·보석꽃·에센스꽃, 꽃잎 염색
-- **섬 확장**: 위에서 내려다보는 지도에서 맞닿은 청크를 조약돌로 구매, 소유 청크 밖 건축 금지
-- **보이드 복귀**(가장 가까운 블록 위 높은 곳에서 다시 낙하), **분실물 보관함**(공허로 떨어진 아이템, 하루 보관)
-- 선물 요정(가끔 찾아와 원목·묘목 선물)
-- HUD(왼쪽 위 일차·플레이 시간, 오른쪽 퀘스트 창)
+Operators can use the admin and debug commands (`/dfadmin`, `/dfdebug`,
+`/copysave`). Add your Xbox **XUID** to `platform.toml` and restart:
 
-### 명령어
-| 위치 | 명령어 |
-|---|---|
-| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends` |
-| 로비 | `/saves`, `/join [코드]` |
-| 세이브 안 | `/menu`(`/df`), `/invite`·`/members`(호스트) |
-| 운영자 | 관리 `/dfadmin give·item·research·advance·tps`, 디버그 `/dfdebug ui·look·status·wave·factory …` ([docs/tech/admin.md](docs/tech/admin.md), `platform.toml`의 `Admin.Operators`) |
-
-## 구조
-
-```
-main.go                         서버 부트스트랩, 종료 시 인스턴스 저장
-internal/db/                    SQLite (계정, 세이브, 참여자, 세이브별 플레이어 상태, 게임 상태)
-internal/instance/              인스턴스 매니저(활성화/종료, 로비↔인스턴스 이동, 시계, 기본 핸들러)
-internal/platform/              로비, 서버 안내, 세이브 선택 UI, 친구·초대·참여자, 칭호·치장 메뉴, 명령어
-internal/account/               업적 등록·지급, 칭호·이름 색(채팅·이름표 표시)
-internal/locales/               이 서버의 문구 카탈로그(ko/en, 바닐라 이름). 불러오면 common/i18n 에 더해진다
-common/                         게임과 상관없는 공통 패키지와 팩(폼·DDUI·엔티티 상자·WAILA·HUD·i18n·리소스팩 로더 등, common/README.md)
-internal/games/dragonfactory/   드래곤팩토리: 세션에 묶인 코드(게임·세션·상태, 핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브, 도움말, WAILA, 관리·디버그 …)
-  dfitem/                       세션이 필요 없는 아이템·단순 블록(돌멩이·먼지·광석·금속·메쉬·망치·정수·양동이·업그레이드 …)과 종류 목록·분쇄 표
-  naming/                       아이템·블록 키와 이름(카탈로그·팩 texts, vanillakeys.json)
-  textfmt/                      숫자·시간 표기, 팩 글꼴 글리프
-  blockmodel/                   커스텀 블록 재질·정육면체 속성
-  formicon/                     폼 버튼 아이콘
-  wintext/                      기계 창 아이템의 글(보는 사람의 언어로)
-  sievetable/                   체 드롭 표, 마법 체 테마
-  machinerecipe/                합금로·정수 추출기·자동 제작기 레시피
-  tinker/                       장비(팅커스풍) 재료·레벨·경험치·강화
-  hopper/                       나무·역방향 호퍼 블록
-  advancement/                  발전과제 트리·챕터·판 배치
-  achievement/                  계정 업적 카탈로그와 ID
-internal/itemio/                아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 도관이 쓴다
-internal/energy, itemnet, fluidnet/  에너지·아이템·액체 연결망
-spike/scenarios/, spike/cmd/platformbot/  접속 시나리오와 시나리오 봇 (spike/scenarios/run.sh)
-assets/resourcepack/            리소스팩 원본, 빌드할 때 실행 파일에 들어간다 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, 로비 틀·기계 창 JSON UI). 폼·HUD 테마(dfui)·inventoryui·oreui·waila·slotdeco 팩은 common/packs
-third_party/dragonfly/          패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
+```toml
+[Admin]
+Operators = ["2535412345678901"]
 ```
 
-폼·엔티티 상자·WAILA·HUD·i18n·기간제 아이템·플레이어 상태·리소스팩 로더·백업 같은 공통 패키지는 같은 모듈의 `common/`(`github.com/presentkim/dragonfactory/common/...`)에 있다.
+Names also work, but Xbox gamertags can change hands, so XUIDs are
+recommended; when someone becomes operator by name only, the server logs a
+warning with their XUID. With authentication disabled (test servers) XUIDs are
+empty and only names match. See [docs/tech/admin.md](docs/tech/admin.md) for
+the commands.
 
-## 테스트
+## Repository layout
+
+```
+main.go                         Server bootstrap; saves instances on shutdown
+assets.go                       Embeds the resource packs into the binary
+internal/db/                    SQLite access and schema migrations
+internal/instance/              Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
+                                Game/Session interfaces between the platform and a game
+internal/platform/              Lobby, server guide, save selection, friends, invites, members, titles, commands
+internal/account/               Achievements, titles, name colours, per-account settings
+internal/locales/               This server's text catalogs (ko/en, vanilla names), merged into common/i18n
+internal/games/dragonfactory/   DragonFactory: session-bound code (game, state, handlers, machine/drawer/barrel/
+                                conduit blocks, research, advancement screens, codex, island expansion, waves, …)
+  dfitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
+  naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)
+  textfmt/                      Number and duration formatting, pack font glyphs
+  blockmodel/                   Custom block materials and cube properties
+  formicon/                     Form button icons
+  wintext/                      Texts of machine window items, localised per viewer
+  sievetable/                   Sieve drop tables and magic sieve themes
+  machinerecipe/                Alloy smelter, essence extractor and auto crafter recipes
+  tinker/                       Tinkers'-style tool materials, levels, experience and modifiers
+  hopper/                       Wooden and reverse hoppers
+  advancement/                  Advancement tree, chapters and layout
+  achievement/                  Account achievement catalog and IDs
+internal/itemio/                Item input/output interface used by hoppers and conduits
+internal/energy, itemnet, fluidnet/  Energy, item and fluid networks
+common/                         Game-independent packages and packs (forms, DDUI screens, entity chests, WAILA,
+                                HUD, i18n, resource pack loader, backups, …; see common/README.md)
+assets/resourcepack/dragonfactory/  The game's resource pack: textures, models, names, entities, JSON UI
+tools/                          Generators for textures, models and data files used by the packs
+spike/scenarios/, spike/cmd/platformbot/  Connection scenarios and the scenario bot
+third_party/dragonfly/          Dragonfly v0.11.5 with this project's patches (third_party/README.md)
+docs/                           Design (docs/design) and technical notes (docs/tech), in Korean
+```
+
+## Testing
 
 ```sh
+go vet ./...
 go test ./...
-# 실제 접속 흐름(서버 빌드·인증 끔 실행·봇 시나리오·종료까지 자동)
+gofmt -l .
+```
+
+`spike/scenarios/run.sh` checks real connection flows end to end: it builds the
+server, runs it with authentication off, drives a bot through a scenario and
+shuts everything down, failing if the server log has an `ERROR` or a panic.
+
+```sh
 spike/scenarios/run.sh spike/scenarios/advanced.sh
 ```
+
+Each `spike/scenarios/*.sh` file is one scenario.
+
+## Documentation
+
+- [docs/design](docs/design/README.md): game design, the source of truth for features
+- [docs/tech](docs/tech): technical notes (resource packs, JSON UI, Ore UI, chests, WAILA, conduits, performance, …)
+- [docs/TODO.md](docs/TODO.md): open work and checks to do in a real client
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). Third-party code and assets (the patched
+Dragonfly, resource pack parts and mod textures) keep their own licences; see
+[NOTICE.md](NOTICE.md) and [docs/tech/asset-credits.md](docs/tech/asset-credits.md).
+
+Minecraft is a trademark of Mojang Synergies AB / Microsoft. This project is
+not affiliated with Mojang or Microsoft.

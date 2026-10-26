@@ -8,7 +8,7 @@
    - 파일마다 32글자 키로 AES-256-CFB8(IV = 키 앞 16바이트)로 암호화한다. `manifest.json`·`pack_icon.png` 는 그대로 둔다.
    - `contents.json` 에 경로와 키를 적고(앞 256바이트는 머리: 버전 0, 매직 `FC B9 CF 9B`, 팩 UUID), 목록은 팩의 **콘텐츠 키**로 같은 방식으로 암호화한다. 콘텐츠 키는 접속할 때 서버가 클라이언트에 준다(gophertunnel `Pack.WithContentKey`).
    - 키는 비밀값에서 HMAC 으로 만든다(같은 내용 = 같은 키·같은 버전, 클라이언트 캐시가 유지된다). 비밀값은 `data/resourcepack.secret`(처음 켤 때 만들어짐, 권한 0600). **이 파일을 잃거나 바꾸면 모든 팩의 키·버전이 바뀌어 클라이언트가 팩을 다시 받는다.** 저장소에 넣지 않는다(`/data/` 는 무시됨).
-   - 형식은 커뮤니티 도구(`akmalfairuz/bedrockpack`, `EncryptMyPack`)와 같다. 테스트(`protect_test.go`)가 우리 쪽에서 되풀이로 풀어 보는 것까지 확인한다. **실제 클라이언트에서 열리는지는 실기로 확인해야 한다**(안 되면 `platform.toml` 에서 `Encrypt = false`).
+   - 형식은 커뮤니티 도구(`akmalfairuz/bedrockpack`, `EncryptMyPack`)와 같다. 테스트(`protect_test.go`)가 우리 쪽에서 되풀이로 풀어 보는 것까지 확인한다. 문제가 있으면 `platform.toml` 에서 `Encrypt = false` 로 끈다. 끄면 Ore UI 화면(DDUI)도 꺼진다([oreui.md](oreui.md)).
 
 ## 한계
 

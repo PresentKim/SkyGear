@@ -1,6 +1,6 @@
 # 서랍 구현
 
-기획: [02-dragonfactory.md](../design/02-dragonfactory.md) §10. 코드: `internal/games/dragonfactory/drawer.go`, `holder.go`.
+기획: [02-dragonfactory.md](../design/02-dragonfactory.md) §15. 코드: `internal/games/dragonfactory/drawer.go`, `holder.go`.
 
 ## 블록
 - `world.CustomBlock` + `CustomItem`(서랍 아이템) + `NBTer`. 비바닐라 블록은 `CustomBlock`과 `CustomItem`을 구현해야 등록된다.
@@ -34,6 +34,6 @@
 ## 앞면 글자 방향 (디버그 셰이프)
 
 수량·잠금·업그레이드 글자는 회전을 고정한 디버그 셰이프 글자(`shapes.go` `faceText`)다. 셰이프의 `Rotation` 은 [pitch, yaw, roll] **도(°)** 단위이고, yaw 0 이면 **북쪽에서 읽히는** 방향이다.
-앞면 방향별 yaw: 북 0, 동 -90, 남 180, 서 90(`faceTextYaw`, `TestFaceTextRotation`). 10차 실기에서 찾았다:
-- 엔티티 yaw(남 0, 북 180, 동 -90, 서 90)를 넣었더니 동·서는 맞고 남·북만 뒤집혀 보였다.
-- 회전 단위는 도(°)이고 0°가 북쪽이다. 라디안 값(0~3.14)을 넣으면 사실상 0°라 동·서가 90° 돌아간다.
+앞면 방향별 yaw: 북 0, 동 -90, 남 180, 서 90(`faceTextYaw`, `TestFaceTextRotation`).
+- 엔티티 yaw(남 0, 북 180)와 기준이 달라 그대로 쓰면 남·북이 뒤집힌다.
+- 라디안 값(0~3.14)을 넣으면 사실상 0°라 동·서가 90° 돌아간다.

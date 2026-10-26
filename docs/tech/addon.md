@@ -3,7 +3,7 @@
 Bedrock 애드온은 **리소스팩(RP)** 과 **비헤이비어팩(BP, 스크립트 포함)** 으로 이루어진다.
 이 서버는 Mojang의 BDS가 아니라 **Dragonfly(Go)** 이므로, 두 팩의 역할이 아래처럼 나뉜다.
 
-## 1. 결론
+## 1. 역할 나누기
 
 | 구분 | BDS에서 | 이 서버(Dragonfly)에서 |
 |---|---|---|
@@ -42,16 +42,16 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 - RP: 같은 식별자로 **클라이언트 엔티티 정의**(`entity/*.entity.json`), 지오메트리, 텍스처, 애니메이션, 렌더 컨트롤러를 만든다.
 - AI·이동·상호작용은 전부 Go로 구현한다.
 - 엔티티가 `item.Carrier`를 구현하면 들고 있는 아이템이 클라이언트로 전송되고, 지오메트리의 `rightItem` 본에 그려진다.
-- 첫 사례: 서랍 표시용 `dragonfactory:item_holder` ([drawer.md](drawer.md)). 실제 클라이언트에서 표시 확인 완료.
+- 예: 서랍 표시용 `dragonfactory:item_holder` ([drawer.md](drawer.md)), 도관 표시 엔티티([conduits.md](conduits.md)).
 - 주의: 지오메트리를 바꿔도 팩 버전이 같으면 클라이언트가 캐시를 쓴다 → `resourcepack.Load`의 자동 버전으로 해결(§6).
 
 ## 5. UI
 
 | 방식 | 용도 | 비고 |
 |---|---|---|
-| 폼(`form.Menu`, `form.Custom`, `form.Modal`) | 메뉴, 설정, 세이브 선택 | 기본 수단 |
+| 폼(`common/ui`, Dragonfly `form`) | 메뉴, 설정, 세이브 선택 | 기본 수단 |
 | JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적 |
-| 상자형 인벤토리 UI | InvSee, 분실물 보관함, 기계 인벤토리 | Dragonfly는 실제 컨테이너 블록만 열 수 있음(`OpenBlockContainer`) → 플레이어가 볼 수 없는 위치(섬 아래 등)에 컨테이너 블록을 두고 여는 방식으로 구현 |
+| 상자형 인벤토리 UI | 인벤토리 보기, 기계 창 | 보이지 않는 엔티티를 상자로 여는 `common/chestui`([chestui.md](chestui.md)) |
 | 사이드바, 보스바, 타이틀, 액션바 | 퀘스트 창·HUD 표시 | Dragonfly API 지원 |
 
 ## 6. 리소스팩 운영 방식
@@ -75,7 +75,7 @@ Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/
 
 Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜서, 리피터, 비교기.
 있는 것: 호퍼, 상자, 화로, 레드스톤 가루·횃불·레버 등 일부.
-→ 공장 자동화는 커스텀 기계 블록(Go)으로 만든다([02-dragonfactory.md](../design/02-dragonfactory.md) §6).
+→ 공장 자동화는 커스텀 기계 블록(Go)으로 만든다([02-dragonfactory.md](../design/02-dragonfactory.md) §11).
 
 ## 8. 애드온 기능 → 구현 위치 대응표
 

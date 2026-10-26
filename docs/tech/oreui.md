@@ -2,7 +2,7 @@
 
 팩을 암호화하면(`[ResourcePack] Encrypt`, 기본 켬) 섬과 로비의 메뉴 폼은 게임의 Ore UI에 그린 서버 주도 DDUI 화면으로 보인다. 로비의 메인 메뉴(`ui.LauncherMenu`, HUD 가 같은 그림을 그린다)와 수량·표 폼은 JSON UI(`docs/tech/json-ui.md`)로 남는다.
 
-플레이어는 `/uimode` 로 자기 메뉴를 JSON UI 폼으로 바꾸거나 되돌린다. 계정 설정(`account_settings` 의 `ui_mode`, `"json"`)으로 남고, 기본값은 모든 기기가 같다(Ore UI). 애플 기기에서 Ore UI 화면이 깨진다는 보고가 있어, 그 기기에서 두 방식을 견주어 보는 데 쓴다(`internal/platform/uimode.go`, `common/ui.PreferJSON`).
+플레이어는 `/uimode` 로 자기 메뉴를 JSON UI 폼으로 바꾸거나 되돌린다. 계정 설정(`account_settings` 의 `ui_mode`, `"json"`)으로 남고, 기본값은 모든 기기가 같다(Ore UI). Ore UI 화면이 깨지는 기기(애플 기기 등)에서 두 방식을 견주어 보는 데 쓴다(`internal/platform/uimode.go`, `common/ui.PreferJSON`).
 
 ## 구성
 
@@ -17,7 +17,6 @@
 - 선택 판(`ui.ChoiceMenu`, 요정의 마법판)은 위의 수치 판(아이콘과 값 한 줄, 이름은 툴팁, `ui.Stat`)과 한 줄 메모, 아래에 갈래(`ui.ChoiceGroup`)마다 한 줄: 왼쪽에 갈래 이름, 오른쪽에 아이콘 위·이름 아래의 칸(효과는 툴팁)이다. 지금 것(`On`)은 초록 테두리로 눌리지 않고 툴팁에 표시(`Badge`)가 붙으며, 지금 못 하는 것(`Dim`)은 흐리다. JSON UI 폼에서는 본문에 수치, 버튼마다 칸인 목록이다(`ui/choice.go`, `oui-mc.css` `.mc-pick*`·`.mc-stat*`).
 - 도감의 체 탭은 Ex Deorum JEI 체 화면 배치로 그린다(`ui.SieveBoard`, `codexpages.go`).
 - 도감 검색 탭은 창 안의 검색칸과 결과 한 판이다(`ui.SearchGrid`, `codexsearch.go` `showCodexSearchLive`). 글을 치면 250ms 뒤 결과 영역만 다시 그리므로 검색칸의 글과 커서가 남는다. 결과는 쪽 없이 스크롤된다. 빈 검색에서는 즐겨찾기와 최근 본 아이템이 위에 나온다.
-
 - 아이템 도관 설정은 가운데 블록과 여섯 면의 카드를 선으로 이은 화면이다(`ui.SidesMenu`, `conduitform.go` `showConduitSides`). 카드 자리는 서버가 정하고(`sideCard`), 포트 줄과 고르기 판은 영역(`@side<n>`, `@picker`)이라 값이 바뀌면 그 부분만 다시 그린다. 채널은 아이템이 아닌 색 네모(`PortChoice.Colour`)로 그린다.
 - 발전과제는 ATM10 To The Sky의 FTB Quests 퀘스트 책처럼 그린다(`ui.QuestBookMenu`, `advancementui.go` `showQuestBook`). 왼쪽은 챕터 목록(달성 수), 오른쪽은 끌어서 움직이는 어두운 판 위의 노드와 선행마다 오는 꺾은선(열 사이 틈에서 꺾여 노드 위를 지나지 않는다)이다. 노드 자리는 트리 폼과 같고(`advancement.LayoutOf`), 모양은 과제 마름모·연구 네모·도전 원, 다른 챕터에서 오는 입구 표시는 작은 점선 원(그 선행 과제의 아이콘, 누르면 그 챕터의 그 과제 패널)이다. 선행이 남은 노드는 조금 어둡게 그리되 아이콘·툴팁은 그대로 보인다. 처음에는 다음 할 과제가 가운데에 오고, 끈 자리는 다시 그려도 남는다. 노드를 누르면 판 위에 과제 패널(상태, 힌트, 아이템, 추적)이 열린다. 창은 다른 창과 같은 크기이고 컨트롤 막대(뒤로·닫기)도 다른 창처럼 창 오른쪽 위 바깥에 있다. 챕터 목록은 80u 폭이고 줄마다 아이콘, 이름, 그 아래 달성 수를 둔다. 판은 마우스 휠, 두 손가락 벌리기·오므리기, 판 오른쪽 아래의 +·- 버튼으로 확대·축소한다(0.5~3배, 휠·손가락은 가리킨 자리를 중심으로). 확대 배율과 끈 자리는 챕터마다 남고, 새로 여는 챕터는 마지막 배율로 시작한다(터치 화면은 처음부터 한 단계 확대).
 
@@ -62,9 +61,3 @@
 ## 바닐라 컨테이너 화면
 
 - 게임 번들(`gameplay-*.js`)과 바닐라 팩에는 컨테이너 DDUI 화면 18개(`minecraft:inventory_screen`, `workbench_screen`, `furnace_screen`, 상자류, `base_layout`)가 있다. 레이아웃은 데이터 저장소 `minecraft` / `container` 의 `slots.<모음>[i]`(`armorContainer`, `offhandContainer`, `craftingInputContainer` 등)를 읽고, 바닐라 슬롯(`Container.Slot`)은 엔진 쿼리 `vanillaGameplayContainerItemQuery(모음 번호, 칸)`(핫바 28, 인벤토리 29, 갑옷 6, 보조손 34, 커서 59)로 아이템을 읽는다. 누름은 엔진 명령 `vanillaGameplayContainerAPICommands`(`handleSlotMousePress(버튼, 모음, 칸, …)`, `takeAllItems`, `placeOneItem`, `splitMultipleItems` 등)로 보낸다.
-
-## 실기 확인
-
-- 2026-10-24 실제 세이브: 메뉴 카드(색 코드 없는 글도 가운데), 연구(분할 화면, 선택, 뒤로), 도감 검색(초성 검색, 결과 누르고 뒤로 오면 검색어 유지)·가공·체 탭, 아이템 쪽 보드(글 칸 왼쪽 맞춤, 뒤 칸 제자리), 도움말 목록·주제, 스크롤 막대 끌기, 창 크기가 바뀐 뒤 바로 누른 탭.
-- 2026-10-24 실제 세이브: 퀘스트 책(갈래 전환, 판 끌기, 직선 연결선과 회전한 마름모, 원, 과제 패널 열고 닫기, 끈 자리 유지).
-- 모바일은 확인 전이다([TODO](../TODO.md)).

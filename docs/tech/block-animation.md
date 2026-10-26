@@ -1,6 +1,6 @@
-# 블록 애니메이션 텍스처 (조사)
+# 블록 애니메이션 텍스처
 
-목표: 기계가 동작 중(활성)일 때만 움직이는 텍스처를 보여 준다. 정면이 있는 기계와 정육면체 기계 전부에 적용했다(`animate.go`). 모델이 있는 체(자동 체·마법 체·손 체)는 제외한다.
+기계가 동작 중(활성)일 때만 움직이는 텍스처를 보여 준다. 정면이 있는 기계와 정육면체 기계 전부에 적용했다(`animate.go`). 모델이 있는 체(자동 체·마법 체·손 체)는 제외한다.
 
 ## Bedrock 의 방법: flipbook 텍스처
 
@@ -23,7 +23,7 @@
   - `blend_frames`: 프레임 사이를 섞어 부드럽게 한다(기본값 켜짐. 픽셀 느낌을 원하면 `false`).
   - 그 밖에 `atlas_index`, `atlas_tile_variant`, `replicate` 가 있다(쓸 일 없음).
 - 커스텀 블록은 `material_instances` 의 텍스처 이름이 그 아틀라스 타일이면 그대로 움직인다. 블록 쪽에 추가 컴포넌트는 없다.
-- `terrain_texture.json`·`flipbook_textures.json` 은 팩끼리 **병합**된다. Dragonfly 가 만드는 팩의 타일을 우리 팩(`assets/resourcepack`)의 flipbook 이 가리켜도 된다.
+- `terrain_texture.json`·`flipbook_textures.json` 은 팩끼리 **병합**된다. 다른 팩의 타일을 우리 팩(`assets/resourcepack`)의 flipbook 이 가리켜도 된다.
 
 ## 활성 시에만 움직이게
 
@@ -51,7 +51,7 @@ flipbook 은 클라이언트가 항상 돌린다. 켜고 끄는 것은 **블록 
 - 강화되는 기계는 단계 모양과 한 상태(`dragonfactory:tier`)에 합쳐 담는다(`tierlook.go`, 작동 모습 값은 단계×2+1). 단계별 띠(`_on_t<단계>`)와 평면 텍스처는 `tools/tierblocks`가 만든다. `animtex`는 flipbook 목록을 새로 쓰므로 `animtex`를 먼저, `tierblocks`를 나중에 돌린다.
 - 새 기계를 더하려면 `animatedMachines`에 종류를 더하고 띠(`tools/animtex`의 `specs`)를 만든다.
 
-실기에서 먼저 확인할 것: (1) 커스텀 블록 `alpha_test` 재질에서 flipbook이 움직이는지, (2) 상태 전환 시 텍스처가 바로 바뀌는지. 안 되면 `blend_frames`·재질 렌더 방식을 바꿔 본다.
+커스텀 블록 `alpha_test` 재질에서 flipbook 이 움직이지 않거나 상태 전환이 늦으면 `blend_frames`·재질 렌더 방식을 바꿔 본다.
 
 ## 참고
 

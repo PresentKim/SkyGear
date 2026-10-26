@@ -1,12 +1,13 @@
 # 기획 문서
 
 > 수치(확률, 시간, 비용)는 모두 밸런싱 전 초안이다. 결정이 필요한 항목과 수치 표는 [open-questions.md](open-questions.md)에 모은다.
+> 지금 갖춘 기능의 목록은 [features.md](../features.md)에 있다.
 
 ## 비전
 
 하나의 서버 안에서 여러 종류의 **섬 게임**을 골라 플레이하는 플랫폼.
 첫 번째 게임은 스카이팩토리 / ATM10 Sky 스타일의 **공장 만들기** 게임 **드래곤팩토리**다.
-게임 종류를 늘릴 수 있는 구조로 만들되, 지금은 사용자에게 게임 선택 단계를 보여 주지 않는다.
+게임 종류를 늘릴 수 있는 구조이고, 게임이 하나라 게임 선택 단계 없이 바로 세이브로 간다.
 
 ## 문서 구성
 
@@ -15,7 +16,7 @@
 | [01-platform.md](01-platform.md) | 접속 흐름, 계정, 세이브 슬롯, 인스턴스(호스트 기준 활성화), 친구·초대, 참여자 관리, 기간제 아이템 |
 | [02-dragonfactory.md](02-dragonfactory.md) | 드래곤팩토리: 시작 상태, 손작업 자원, 퇴비통·배럴, 체, 연구와 발전과제, 기계, 작물, 섬 영역, 안전 장치, 서랍, HUD, 메뉴 |
 | [03-architecture.md](03-architecture.md) | 기술 설계, Dragonfly 구현 방식, 데이터 저장, 패키지 구조 |
-| [04-roadmap.md](04-roadmap.md) | 개발 단계와 방향 |
+| [04-roadmap.md](04-roadmap.md) | 지금의 범위와 앞으로의 방향 |
 | [05-sky-progression.md](05-sky-progression.md) | 스카이블록 진행 설계(스카이팩토리 3·ATM10 Sky): 손작업 초반, 체 그물, 발전과제 안내, 차원 게이트 웨이브 |
 | [06-power-and-conduits.md](06-power-and-conduits.md) | 에너지(RE)·발전기·도관(에너지/아이템/액체, EnderIO 참고) |
 | [07-progression-expansion.md](07-progression-expansion.md) | 금속·합금로·에너지 셀·몬스터 시뮬레이터·액체 네트워크·차원 게이트, 연구·발전과제 구성 |

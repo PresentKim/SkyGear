@@ -14,7 +14,7 @@
 | 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정(월드는 로더가 있을 때만, 블록 엔티티는 로더의 `TickRange` 안에서만 틱한다. 동기 테스트 월드는 로드된 청크를 모두 틱하므로 이 동작은 비동기 월드로 검증한다) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
 | 낙하 피해 제거 | 플레이어 핸들러 `HandleHurt`에서 `entity.FallDamageSource` 취소 |
-| 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, Dragonfly 패치)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
+| 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, `common/dfhook` 패킷 훅)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
 
 애드온(리소스팩) 운용: [docs/tech/addon.md](../tech/addon.md).
 부하 시험: [performance.md](../tech/performance.md).
@@ -43,24 +43,27 @@
 ## 3. 패키지 구조
 
 ```
-main.go
+main.go                        서버 부트스트랩, 종료 시 인스턴스 저장
 internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
 internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
-internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴
+internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
+internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
 internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
-internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시
-internal/games/dragonfactory/  드래곤팩토리: research, advancement, machine, sieve, hammer, drawer, bundle(도관), storage, tinker, wave, monster, magic, expand, achievements, help …
+internal/games/dragonfactory/  드래곤팩토리: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
+                               세션이 필요 없는 하위 패키지(dfitem, naming, textfmt, blockmodel, formicon, wintext,
+                               sievetable, machinerecipe, tinker, hopper, advancement, achievement)
 internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
+common/                        게임과 상관없는 공통 패키지와 팩(같은 모듈, common/README.md)
 ```
 
-공통 패키지(`playerstate`, `timed`, `chestui`, `ui`, `waila`, `hud`, `i18n`, `resourcepack`, `dfhook`, `perf`, `backup` …)는 별도 모듈 `common/`에 있다. 다른 Dragonfly 서버(마인팜)와 함께 쓰며, 게임·플랫폼 규칙은 넣지 않는다.
+공통 패키지(`dfhook`, `chestui`, `ui`, `oreui`, `hud`, `waila`, `slotdeco`, `i18n`, `timed`, `perf`, `playerstate`, `resourcepack`, `backup`, `textsearch`)는 같은 모듈의 `common/` 에 있고, 게임·플랫폼 규칙은 넣지 않는다. 하위 패키지별 설명은 저장소 루트의 README.md 에 있다.
 
 게임 종류 인터페이스(`internal/instance/game.go`):
 
 ```go
 type Game interface {
     ID() string                         // "dragonfactory"
-    Name() string                       // "드래곤팩토리"
+    Name(lang string) string            // 플레이어 언어의 게임 이름
     Init(tx *world.Tx, inst *Instance)  // 새 세이브의 월드를 처음 한 번 만든다
     Start(inst *Instance) Session       // 인스턴스 활성화 시 게임 로직 시작
 }

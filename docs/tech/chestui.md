@@ -12,19 +12,18 @@ Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([be
 1. 보이지 않는 클라이언트 전용 엔티티(`dragonfly:entity_container`)를 `AddActor` 로 보낸다.
    메타데이터: 투명·NoAI, `ContainerType`=INVENTORY(-1), `ContainerSize`=칸 수, 이름=창 제목.
    식별자는 나가는 `AvailableActorIdentifiers` 패킷에 훅으로 덧붙인다(엔티티 정의 파일 불필요).
-2. 바로 `ContainerOpen`(`ContainerTypeContainer` + `ContainerEntityUniqueID`)과 내용물을 보낸다. **기본값이며 1차 실기에서 동작한 방식.**
+2. 바로 `ContainerOpen`(`ContainerTypeContainer` + `ContainerEntityUniqueID`)과 내용물을 보낸다(기본 동작).
 3. 엔티티 상자가 열려 있는 동안 클라이언트가 보내는 255 창 닫기(폼이 닫히거나 블록 클릭과 겹칠 때)는 무시하고,
    같은 인벤토리를 다시 열면 무시한다(블록 연타 대비).
 4. **상자 → 상자 전환**: 창이 닫힌 지 1초 안에 새 창을 열면, 클라이언트가 닫기를 처리했는지 `NetworkStackLatency` 왕복으로
    확인한 뒤 엔티티를 만들고 연다(InvMenu 와 같은 원리. 닫히는 중의 열기는 클라이언트가 무시함).
 5. 열린 동안 플레이어가 움직이면 엔티티도 플레이어 위치로 옮긴다(떨어지거나 밀려 멀어지면 클라이언트가 창을 닫음).
 
-`platform.toml` `[ChestUI]` 로 [Muqsit/InvMenu](https://github.com/Muqsit/InvMenu) `PlayerWindowDispatcher` 의 단계를 하나씩 켤 수 있다.
-2차 실기에서 셋을 모두 켠 상태로 "모든 상자가 바로 닫힘" 이 나와 하나씩 켜 보며 확인한다. `Ride` 는 5차 실기에서 정상이라 기본으로 켰다.
+`platform.toml` `[ChestUI]` 로 [Muqsit/InvMenu](https://github.com/Muqsit/InvMenu) `PlayerWindowDispatcher` 의 단계를 하나씩 켤 수 있다. 기본은 `Ride` 만 켜져 있다. 셋을 모두 켜면 상자가 바로 닫히므로 문제를 좁힐 때 하나씩 켠다.
 
 | 설정 | 동작 |
 |---|---|
-| `Ride` | 엔티티를 플레이어에 탑승 링크로 붙인다. **기본 켜짐**(5차 실기: 이동해도 안 닫힘) |
+| `Ride` | 엔티티를 플레이어에 탑승 링크로 붙인다. **기본 켜짐**(움직여도 창이 닫히지 않는다) |
 | `WaitLatency` | `AddActor` 뒤 `NetworkStackLatency` 응답을 받고 연다(최대 1초) |
 | `Retry` | 클라이언트가 초과 열기에 대한 `PacketViolationWarning`(type -1)으로 확인할 때까지 매 틱 닫기+열기 재전송(최대 20회). 그동안 그 창의 닫기는 무시 |
 | `Debug` | 열기·닫기·클라이언트 닫기·위반 경고를 INFO 로그로 남긴다 |
@@ -37,7 +36,7 @@ Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([be
    Dragonfly 가 닫으면(클라이언트 닫기 응답 `ContainerClose` 를 훅이 봄) 플레이어 트랜잭션(`Do`)에서, 접속이 끊기면 닫힘 훅에서 플레이어 없이 부른다.
 
 테스트 봇(`spike/cmd/platformbot`)은 클라이언트처럼 `NetworkStackLatency` 에 응답하고, 이미 열린 창의 `ContainerOpen` 에
-`PacketViolationWarning` 을 보낸다. 실제 클라이언트의 정확한 동작은 실기로 확인한다.
+`PacketViolationWarning` 을 보낸다.
 
 리소스팩은 필수(`ResourcesRequired`)로 보낸다. 팩이 없으면 27칸 상자로만 보인다.
 
@@ -59,13 +58,7 @@ Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([be
 
 메뉴(넣고 빼는 것이 없는 화면)는 상자가 아니라 폼이다([json-ui.md](json-ui.md)). 상자는 실제 아이템이 오가는 곳에만 쓴다.
 
-
 - **인벤토리 보기(InvSee)** — 72칸(8줄, 스크롤): 인벤 27 + 핫바 9 / 갑옷 4 + 보조손 1 / 엔더상자 27.
   같은 세이브 월드에 있는 대상은 실시간(1초마다 + 이동 직전 동기화, 화면과 대상이 다르면 그 이동은 취소),
   그 외에는 저장된 상태를 `LockState` 로 잠그고 바뀔 때마다 DB 에 쓴다. 잠글 수 없으면 읽기 전용.
 - **기계 창**([machines](machines.md)): 기계별 레이아웃은 [json-ui.md](json-ui.md).
-  섬 확장(확인 창)은 폼으로 이어진다.
-
-## 실기 확인 필요
-
-[TODO](../TODO.md) 의 "엔티티 상자" 항목.

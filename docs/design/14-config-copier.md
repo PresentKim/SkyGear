@@ -1,6 +1,6 @@
 # 14. 설정 복사기
 
-> 수치는 모두 초안이다. 도관 설정은 [06 §3](06-power-and-conduits.md), 자동 제작기는 [09 §2](09-automation-equipment.md), 서랍은 [02 §12](02-dragonfactory.md). 메카니즘의 설정 카드(Configuration Card)와 구성기(Configurator)를 참고했다.
+> 수치는 모두 초안이다. 도관 설정은 [06 §3](06-power-and-conduits.md), 자동 제작기는 [09 §2](09-automation-equipment.md), 서랍은 [02 §15](02-dragonfactory.md). 메카니즘의 설정 카드(Configuration Card)와 구성기(Configurator)를 참고했다.
 
 큰 공장은 같은 설정을 수십 번 되풀이한다. 도관 면마다 모드와 채널을 맞추고, 자동 제작기마다 조합법을 고르고, 서랍마다 아이템을 정한다. **설정 복사기**는 설정 하나를 읽어 두었다가 다른 곳에 붙여 넣는다.
 
