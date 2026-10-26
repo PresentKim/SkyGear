@@ -39,9 +39,6 @@ type sieveRow struct {
 	per  [6]int
 }
 
-// same is a chance the same on every mesh.
-func same(n int) [6]int { return [6]int{n, n, n, n, n, n} }
-
 // from is a chance that starts at a mesh tier (index into meshTiers) with
 // the chances of the meshes from there on.
 func from(tier int, chances ...int) [6]int {
@@ -202,16 +199,6 @@ var sieveRows = []sieveRow{
 	{Dust{}, stack(item.BlazePowder{}), [6]int{30, 40, 50, 60, 60, 100}},
 	{Dust{}, stack(item.IronNugget{}), [6]int{0, 0, 60, 0, 0, 80}},
 	{Dust{}, stack(item.RawGold{}), from(3, 20)},
-}
-
-// meshIndex is the index of a mesh tier in meshTiers.
-func meshIndex(tier string) int {
-	for i, t := range meshTiers {
-		if t.tier == tier {
-			return i
-		}
-	}
-	return -1
 }
 
 // essenceDrop makes a sieve drop of an essence; chance is a percent.

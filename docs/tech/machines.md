@@ -61,7 +61,7 @@
 ## 검증
 
 - 단위: `machine_test.go`(분쇄·자동 체·채굴·창 조작 제한·NBT 왕복·부술 때 드롭·무인 라인), `sieve_test.go`, `harvester_test.go`, `hammer_test.go`.
-- 접속: `spike/scenarios/run.sh spike/scenarios/m4_line.sh`, `power.sh`, `advanced.sh`.
+- 접속: `spike/scenarios/run.sh spike/scenarios/give_and_expand.sh`, `power.sh`, `advanced.sh`.
 - 실기 확인 항목은 [TODO](../TODO.md).
 
 ## 주기형 기계의 링 게이지

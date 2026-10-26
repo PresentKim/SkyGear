@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -42,19 +43,10 @@ func TestMagicThemesAreComplete(t *testing.T) {
 		}
 	}
 	for mob := range magicThemes {
-		if !contains(mobKinds, mob) {
+		if !slices.Contains(mobKinds, mob) {
 			t.Errorf("theme of unknown mob %s", mob)
 		}
 	}
-}
-
-func contains(list []string, s string) bool {
-	for _, v := range list {
-		if v == s {
-			return true
-		}
-	}
-	return false
 }
 
 // TestThemeChance: the mesh multiplies a theme and the mob's difficulty the

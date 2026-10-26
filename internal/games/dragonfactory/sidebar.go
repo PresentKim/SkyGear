@@ -102,17 +102,6 @@ func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inve
 	return rows
 }
 
-// nextGoal is a one line summary of the next thing to do (menu).
-func (s *session) nextGoal(lang string) string {
-	if a, ok := s.nextAdvancement(); ok {
-		return i18n.T(lang, "dragonfactory.sidebar.nextGoal.1") + a.Title(lang) + " — " + flatHint(lang, a)
-	}
-	if r, ok := s.nextResearch(); ok {
-		return i18n.T(lang, "dragonfactory.sidebar.nextGoal.2") + r.Title(lang) + i18n.T(lang, "dragonfactory.sidebar.nextGoal.3")
-	}
-	return i18n.T(lang, "dragonfactory.sidebar.nextGoal.4")
-}
-
 // formatPlayTime formats the total instance time in whole minutes in lang.
 func formatPlayTime(lang string, d time.Duration) string {
 	m := int(d / time.Minute)

@@ -68,9 +68,6 @@ type waveState struct {
 
 func (w *waveState) owns(h *world.EntityHandle) bool { _, ok := w.left[h]; return ok }
 
-// gateTier is the highest level cleared.
-func (s *session) gateTier() int { return s.state.GateTier }
-
 // canStartWave reports whether a level may be started: the next one to clear or
 // any below.
 func (s *session) canStartWave(level int) bool {

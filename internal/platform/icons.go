@@ -11,7 +11,6 @@ const (
 	iconMembers  = "textures/ui/df/icon_members"
 	iconRename   = "textures/items/name_tag"
 	iconDelete   = "textures/blocks/barrier"
-	iconBack     = "textures/items/arrow"
 	iconNewSave  = "textures/blocks/sapling_oak"
 	iconSave     = "textures/blocks/grass_side_carried"
 	iconAdd      = "textures/ui/df/icon_friend_add"

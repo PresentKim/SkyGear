@@ -100,26 +100,6 @@ func (s *session) purchasableChunks() []ChunkPos {
 	return out
 }
 
-func direction(from mgl64.Vec3, c ChunkPos) string {
-	dx := float64(c[0])*16 + 8 - from.X()
-	dz := float64(c[1])*16 + 8 - from.Z()
-	var ns, ew string
-	if dz < -8 {
-		ns = i18n.T(i18n.Default, "dragonfactory.island.direction.1")
-	} else if dz > 8 {
-		ns = i18n.T(i18n.Default, "dragonfactory.island.direction.2")
-	}
-	if dx < -8 {
-		ew = i18n.T(i18n.Default, "dragonfactory.island.direction.3")
-	} else if dx > 8 {
-		ew = i18n.T(i18n.Default, "dragonfactory.island.direction.4")
-	}
-	if ns+ew == "" {
-		return i18n.T(i18n.Default, "dragonfactory.island.direction.5")
-	}
-	return ns + ew + i18n.T(i18n.Default, "dragonfactory.island.direction.6")
-}
-
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if !slices.Contains(s.purchasableChunks(), c) {
 		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.1"))
@@ -196,7 +176,8 @@ func (s *session) nearestBlockColumn(tx *world.Tx, x, z int) (int, int, bool) {
 	return 0, 0, false
 }
 
-func abs(v int) int {
+// abs is the absolute value of v.
+func abs[T int | int32](v T) T {
 	if v < 0 {
 		return -v
 	}

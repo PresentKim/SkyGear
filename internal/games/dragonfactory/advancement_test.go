@@ -55,7 +55,7 @@ func TestAdvancementsFromItems(t *testing.T) {
 			t.Fatalf("first advancement %s", a.ID)
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(block.CraftingTable{}, 1))
-		s.checkAdvancements(tx)
+		s.checkAdvancementsHeld(tx, inventoryNames(tx))
 		if !s.advanced("crafting_table") {
 			t.Error("crafting_table not done")
 		}

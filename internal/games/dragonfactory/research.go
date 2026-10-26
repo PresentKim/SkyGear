@@ -599,9 +599,6 @@ func researchTip(lang, colour string, r *Research) string {
 	return tip
 }
 
-// showResearchNode shows one research on the research screen.
-func (s *session) showResearchNode(p *player.Player, r *Research) { s.showResearchAt(p, r) }
-
 // researchNode builds the screen of a research with a way back to the
 // research screen. p may be nil (the owned counts are then left out).
 func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.SlotRow, []ui.Option) {

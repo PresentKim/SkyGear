@@ -76,7 +76,9 @@ func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, erro
 
 	w.SetTickRange(m.conf.LoadRadius)
 	<-w.Do(func(tx *world.Tx) {
-		// Keep the island loaded and ticking without players (docs/tech/m0-verification.md §4).
+		// Keep the island loaded and ticking without players: a world ticks only
+		// while it has a loader, and block entities tick only within TickRange of
+		// one, so a viewerless loader covers every owned chunk.
 		inst.loader = world.NewLoader(m.conf.LoadRadius, w, world.NopViewer{})
 		inst.loader.Move(tx, mgl64.Vec3{})
 		inst.loader.Load(tx, (2*m.conf.LoadRadius+1)*(2*m.conf.LoadRadius+1))

@@ -51,7 +51,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		sticks, _ := researchByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
 		s.doResearch(p, tx, sticks)
-		s.checkAdvancements(tx)
+		s.checkAdvancementsHeld(tx, inventoryNames(tx))
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)
 		}

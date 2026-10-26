@@ -165,9 +165,6 @@ type BarrelRecord struct {
 	WitchAt time.Duration `json:"witch_at,omitempty"`
 }
 
-// barrelStage is the stage a record of an oak barrel shows.
-func barrelStage(r *BarrelRecord) int { return barrelStageOf("oak", r) }
-
 // barrelStageOf is the stage a record of a barrel of wood shows: a stone
 // barrel shows its lava, or its solids as the fill stages.
 func barrelStageOf(wood string, r *BarrelRecord) int {

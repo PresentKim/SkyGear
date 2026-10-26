@@ -395,14 +395,8 @@ var advancementItems = func() []string {
 	return out
 }()
 
-// checkAdvancements completes the item and research advancements met by
-// the players in tx.
-func (s *session) checkAdvancements(tx *world.Tx) {
-	s.checkAdvancementsHeld(tx, inventoryNames(tx))
-}
-
-// checkAdvancementsHeld is checkAdvancements with the players' item names
-// (inventoryNames). It runs every second.
+// checkAdvancementsHeld completes the item and research advancements met by
+// the players with these item names (inventoryNames). It runs every second.
 func (s *session) checkAdvancementsHeld(tx *world.Tx, held []playerItems) {
 	var have map[string]bool
 	var done []*Advancement

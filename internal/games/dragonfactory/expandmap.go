@@ -50,7 +50,7 @@ func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
 	want := map[ChunkPos]world.Block{}
 	near := int32(expandMapReach)
 	add := func(c ChunkPos, b world.Block) {
-		if abs32(c[0]-e.target[0]) <= near && abs32(c[1]-e.target[1]) <= near {
+		if abs(c[0]-e.target[0]) <= near && abs(c[1]-e.target[1]) <= near {
 			want[c] = b
 		}
 	}

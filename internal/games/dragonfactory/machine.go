@@ -808,17 +808,6 @@ func outputCount(st *machineState, it world.Item) int {
 	return n
 }
 
-// takeOutput removes one item from the output.
-func (st *machineState) takeOutput() (item.Stack, bool) {
-	for _, s := range st.kind.output {
-		if it, _ := st.inv().Item(s); !it.Empty() {
-			_ = st.inv().SetItem(s, it.Grow(-1))
-			return it.Grow(1 - it.Count()), true
-		}
-	}
-	return item.Stack{}, false
-}
-
 // showProgress updates the indicator item when the shown percent changes.
 // The indicator is a progress arrow item (ProgressArrow), so the window
 // shows a filling arrow between input and output.

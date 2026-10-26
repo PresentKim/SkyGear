@@ -148,15 +148,6 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	return out
 }
 
-// chunkItems are the ore chunks.
-func chunkItems() []world.Item {
-	var out []world.Item
-	for _, o := range oreKinds {
-		out = append(out, OreChunk{Ore: o.ore})
-	}
-	return out
-}
-
 // codexUses lists what an item is for.
 func (s *session) codexUses(lang string, it item.Stack) []string {
 	k := itemKey(it.Item())

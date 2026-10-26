@@ -33,7 +33,7 @@ func TestDecorateStripOf(t *testing.T) {
 	}
 	for i, a := range marks {
 		for j, b := range marks {
-			if i != j && contains(a, b) {
+			if i != j && strings.Contains(a, b) {
 				t.Errorf("mark %q contains mark %q", a, b)
 			}
 		}
@@ -100,15 +100,6 @@ func TestStripOfMatchSequentialReplace(t *testing.T) {
 			t.Errorf("Of(%q) = %v, %v, want %v, %v", s, gr, gt, wr, wt)
 		}
 	}
-}
-
-func contains(s, sub string) bool {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
 }
 
 const packDir = "../packs/slotdeco"

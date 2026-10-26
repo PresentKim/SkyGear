@@ -182,15 +182,6 @@ var toolModifiers = []toolModifier{
 	{"vampiric", item.SpiderEye{}, 2, 3},
 }
 
-func modifierOf(id string) (toolModifier, bool) {
-	for _, m := range toolModifiers {
-		if m.id == id {
-			return m, true
-		}
-	}
-	return toolModifier{}, false
-}
-
 const (
 	toolBaseSlots = 3
 	toolMaxLevel  = 10

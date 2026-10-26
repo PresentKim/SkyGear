@@ -11,7 +11,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/internal/fluidnet"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
@@ -86,17 +85,6 @@ func liquidFits(b world.Block, liq world.Liquid) bool {
 	}
 	if r, ok := b.(interface{ ReplaceableBy(world.Block) bool }); ok {
 		return r.ReplaceableBy(liq)
-	}
-	return false
-}
-
-// isWaterBucket reports whether st is a bucket of water, of iron or of wood.
-func isWaterBucket(st item.Stack) bool {
-	switch b := st.Item().(type) {
-	case WoodenBucket:
-		return b.Water
-	case item.Bucket:
-		return fluidOfBucket(b) == fluidnet.Water
 	}
 	return false
 }

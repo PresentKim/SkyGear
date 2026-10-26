@@ -75,7 +75,7 @@ common/                         게임과 상관없는 공통 패키지와 팩(�
 internal/games/dragonfactory/   드래곤팩토리 (연구, 발전과제, 섬 확장, 서랍, 기계, 도관, 웨이브, 장비, 마법 식물, 도움말 …)
 internal/itemio/                아이템 입출력 인터페이스(Inserter·Extractor·Transfer, 바닐라 어댑터): 호퍼와 도관이 쓴다
 internal/energy, itemnet, fluidnet/  에너지·아이템·액체 연결망
-spike/                          기술 검증 코드와 테스트 클라이언트
+spike/scenarios/, spike/cmd/platformbot/  접속 시나리오와 시나리오 봇 (spike/scenarios/run.sh)
 assets/resourcepack/            리소스팩 원본, 빌드할 때 실행 파일에 들어간다 (dragonfactory: 블록·아이템 텍스처·모델·이름, 엔티티, 로비 틀·기계 창 JSON UI). 폼·HUD 테마(dfui)·inventoryui·oreui·waila·slotdeco 팩은 common/packs
 third_party/dragonfly/          패치를 얹은 Dragonfly v0.11.5 (third_party/README.md)
 ```

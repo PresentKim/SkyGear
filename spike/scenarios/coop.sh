@@ -1,5 +1,5 @@
 #!/bin/bash
-# M3: friend request, invite code join, live InvSee (entity chest), the
+# Friend request, invite code join, live InvSee (entity chest), the
 # game menu forms and kick between a host (Hana) and a guest (Gyu).
 rm -f "$WORK/code.txt"
 timeout 90 "$BOT" -name Hana \

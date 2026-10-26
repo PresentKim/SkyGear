@@ -71,10 +71,6 @@ func TestCrusher(t *testing.T) {
 	if _, _, ok := st.firstInput(); ok {
 		t.Fatal("input not consumed")
 	}
-	got, ok := st.takeOutput()
-	if !ok || got.Count() != 1 {
-		t.Fatalf("takeOutput = %v %v", got, ok)
-	}
 }
 
 // TestAutoSieveKeepsProductsAndStopsWhenFull: the auto sieve puts its products

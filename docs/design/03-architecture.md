@@ -11,12 +11,12 @@
 | 아이템 값 | `item.Stack` 값(`WithValue`)에 서랍 내용, 도구 경험·강화 같은 값을 저장 |
 | 메뉴 | 폼(`common/ui`, 리소스팩 JSON UI 테마), 아이템이 오가는 창은 엔티티 상자(`common/chestui`) |
 | 시간 기반 이벤트 | 인스턴스 시간(활성 누적 시간) 기준 스케줄러. 비활성화 시 멈춤 |
-| 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정 ([M0 결과](../tech/m0-verification.md) §4) |
+| 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정(월드는 로더가 있을 때만, 블록 엔티티는 로더의 `TickRange` 안에서만 틱한다. 동기 테스트 월드는 로드된 청크를 모두 틱하므로 이 동작은 비동기 월드로 검증한다) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
 | 낙하 피해 제거 | 플레이어 핸들러 `HandleHurt`에서 `entity.FallDamageSource` 취소 |
 | 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, Dragonfly 패치)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
 
-**검증 결과**: [docs/tech/m0-verification.md](../tech/m0-verification.md). 애드온(리소스팩) 운용: [docs/tech/addon.md](../tech/addon.md).
+애드온(리소스팩) 운용: [docs/tech/addon.md](../tech/addon.md).
 부하 시험: [performance.md](../tech/performance.md).
 
 ## 2. 데이터 저장

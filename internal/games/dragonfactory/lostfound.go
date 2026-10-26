@@ -19,8 +19,9 @@ type worldHandler struct {
 	s *session
 }
 
-// HandleEntityDespawn collects items that fell into the void
-// (docs/tech/m0-verification.md §5).
+// HandleEntityDespawn collects items that fell into the void: Dragonfly
+// closes an item entity below the world's lowest height, while a picked-up or
+// expired item despawns above it.
 func (h *worldHandler) HandleEntityDespawn(tx *world.Tx, e world.Entity) {
 	ent, ok := e.(*entity.Ent)
 	if !ok || e.Position().Y() >= float64(tx.Range()[0]) {

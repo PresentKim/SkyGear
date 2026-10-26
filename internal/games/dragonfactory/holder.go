@@ -58,13 +58,6 @@ func (h *ItemHolder) HeldItems() (item.Stack, item.Stack) {
 	return it, item.Stack{}
 }
 
-func (h *ItemHolder) setItem(it item.Stack) {
-	h.data.Data.(*holderData).item = it
-	for _, v := range h.tx.Viewers(h.data.Pos) {
-		v.ViewEntityItems(h)
-	}
-}
-
 // Tick removes holders that no longer belong to a drawer display.
 func (h *ItemHolder) Tick(tx *world.Tx, _ int64) {
 	d := h.data.Data.(*holderData)

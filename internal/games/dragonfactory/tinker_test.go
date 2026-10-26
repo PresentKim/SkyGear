@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -83,7 +84,7 @@ func TestTinkerTable(t *testing.T) {
 			t.Fatal("no tool in the inventory")
 		}
 		p.SetHeldItems(tool, item.Stack{})
-		sharp, _ := modifierOf("sharp")
+		sharp := toolModifiers[slices.IndexFunc(toolModifiers, func(m toolModifier) bool { return m.id == "sharp" })]
 		_, _ = inv.AddItem(item.NewStack(item.NetherQuartz{}, 2*toolSlots(0)+2))
 		for range toolSlots(0) {
 			if !s.applyModifier(p, tx, machinePos, sharp) {

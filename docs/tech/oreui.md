@@ -39,13 +39,9 @@
 - `/uidebug`(플레이어 자신의 화면, `common/ui.SetOreDebug`)를 쓰면 화면 위에 렌더러의 디버그 줄이 뜬다: 화면 상태, 지역 글꼴 변수, 페이지 언어, 바닐라 루트·body 의 글꼴, `@font-face` 글꼴 목록(바닐라 CSS 가 불러와졌는지), 화면 크기.
 - 화면은 플레이어마다 하나다. JSON UI 폼을 보낼 때는 먼저 닫는다.
 
-## 인벤토리 시험
+## 바닐라 컨테이너 화면
 
-DDUI 로 진짜 인벤토리처럼 도는 화면을 만들 수 있는지 보는 운영자 명령이다([admin.md](admin.md)). 결과는 이 절에 적는다.
-
-- 게임 번들(`gameplay-*.js`)과 바닐라 팩에는 컨테이너 DDUI 화면 18개(`minecraft:inventory_screen`, `workbench_screen`, `furnace_screen`, 상자류, `base_layout`)가 있다. 레이아웃은 데이터 저장소 `minecraft` / `container` 의 `slots.<모음>[i]`(`armorContainer`, `offhandContainer`, `craftingInputContainer` 등)를 읽고, 바닐라 슬롯(`Container.Slot`)은 엔진 쿼리 `vanillaGameplayContainerItemQuery(모음 번호, 칸)`(핫바 28, 인벤토리 29, 갑옷 6, 보조손 34, 커서 59)로 아이템을 읽는다. 누름은 엔진 명령 `vanillaGameplayContainerAPICommands`(`handleSlotMousePress(버튼, 모음, 칸, …)`, `takeAllItems`, `placeOneItem`, `splitMultipleItems` 등)로 보낸다. `/dfdebug orescreen`·`oreengine` 이 이것들을 그대로 시험한다.
-- `/dfdebug oreinput` 은 Gameface 가 오른쪽 버튼·더블 클릭·숫자 키·길게 누르기를 페이지에 주는지 본다. 바닐라 슬롯은 `button` 0 과 2 를 쓴다.
-- `/dfdebug oreinv` 는 엔진 없이 서버가 바닐라 조작을 다시 만든 화면이다. 렌더러의 `raw` 슬롯(누른 버튼·수정키·더블 클릭, 버튼을 놓을 때 지나간 칸, 위에서 누른 키), `cursor` 노드(커서 아이템), `self` 상자(창 밖 누름)를 쓴다. 누를 때마다 서버를 다녀오므로 지연이 그대로 보인다. 터치로 끌기는 지나간 칸을 모으지 않는다(손가락이 움직일 때는 마우스 이벤트가 오지 않는다, `oui-ddui.js` `pointOf`).
+- 게임 번들(`gameplay-*.js`)과 바닐라 팩에는 컨테이너 DDUI 화면 18개(`minecraft:inventory_screen`, `workbench_screen`, `furnace_screen`, 상자류, `base_layout`)가 있다. 레이아웃은 데이터 저장소 `minecraft` / `container` 의 `slots.<모음>[i]`(`armorContainer`, `offhandContainer`, `craftingInputContainer` 등)를 읽고, 바닐라 슬롯(`Container.Slot`)은 엔진 쿼리 `vanillaGameplayContainerItemQuery(모음 번호, 칸)`(핫바 28, 인벤토리 29, 갑옷 6, 보조손 34, 커서 59)로 아이템을 읽는다. 누름은 엔진 명령 `vanillaGameplayContainerAPICommands`(`handleSlotMousePress(버튼, 모음, 칸, …)`, `takeAllItems`, `placeOneItem`, `splitMultipleItems` 등)로 보낸다.
 
 ## 실기 확인
 

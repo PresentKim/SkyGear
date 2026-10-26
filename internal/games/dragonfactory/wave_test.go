@@ -91,8 +91,8 @@ func TestWaveFlow(t *testing.T) {
 		if s.wave != nil {
 			t.Fatal("the wave goes on with every monster dead")
 		}
-		if s.gateTier() != 1 || !s.canStartWave(2) {
-			t.Errorf("tier %d, level 2 open %v", s.gateTier(), s.canStartWave(2))
+		if s.state.GateTier != 1 || !s.canStartWave(2) {
+			t.Errorf("tier %d, level 2 open %v", s.state.GateTier, s.canStartWave(2))
 		}
 		if !s.advanced(advWave1) {
 			t.Error("clearing level 1 did not do its advancement")
@@ -119,7 +119,7 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 		if s.wave != nil {
 			t.Error("the wave outlived its time")
 		}
-		if s.gateTier() != 0 {
+		if s.state.GateTier != 0 {
 			t.Error("a failed wave opened a level")
 		}
 	})

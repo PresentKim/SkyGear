@@ -19,11 +19,11 @@ import (
 func TestBarrelStages(t *testing.T) {
 	want := map[int]int{0: 0, 5: 0, 6: 1, 10: 1, 11: 2, 16: 3, 21: 3, 22: 4, 27: 5, 32: 6}
 	for n, stage := range want {
-		if got := barrelStage(&BarrelRecord{Count: n}); got != stage {
+		if got := barrelStageOf("oak", &BarrelRecord{Count: n}); got != stage {
 			t.Errorf("%d items: stage %d, want %d", n, got, stage)
 		}
 	}
-	if barrelStage(&BarrelRecord{Count: 32, Water: true}) != barrelWater || barrelStage(nil) != 0 {
+	if barrelStageOf("oak", &BarrelRecord{Count: 32, Water: true}) != barrelWater || barrelStageOf("oak", nil) != 0 {
 		t.Error("water or no record shows the wrong stage")
 	}
 }
@@ -404,7 +404,7 @@ func TestWoodenBucket(t *testing.T) {
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), empty, &item.UseContext{}) {
 			t.Fatal("the water of the barrel was not used")
 		}
-		if held, _ := p.HeldItems(); !isWaterBucket(held) || held.Item().(WoodenBucket).Water != true {
+		if held, _ := p.HeldItems(); held.Item() != (WoodenBucket{Water: true}) {
 			t.Fatalf("held %v, want a wooden bucket of water", held)
 		}
 		if s.barrelAt(pos) != nil {

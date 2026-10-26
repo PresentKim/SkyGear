@@ -302,10 +302,3 @@ func (s *session) showExpandActions(p *player.Player) {
 	)
 	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.8"), body, opts...)
 }
-
-func abs32(v int32) int32 {
-	if v < 0 {
-		return -v
-	}
-	return v
-}

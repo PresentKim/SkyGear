@@ -42,7 +42,7 @@ func storageNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 		queue = queue[1:]
 		for _, f := range cube.Faces() {
 			next := at.Side(f)
-			if seen[next] || absInt(next.X()-pos.X()) > controllerReach || absInt(next.Y()-pos.Y()) > controllerReach || absInt(next.Z()-pos.Z()) > controllerReach {
+			if seen[next] || abs(next.X()-pos.X()) > controllerReach || abs(next.Y()-pos.Y()) > controllerReach || abs(next.Z()-pos.Z()) > controllerReach {
 				continue
 			}
 			switch b := tx.Block(next).(type) {
@@ -60,13 +60,6 @@ func storageNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 	}
 	sort.SliceStable(out, func(i, j int) bool { return distSq(out[i].pos, pos) < distSq(out[j].pos, pos) })
 	return out
-}
-
-func absInt(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
 }
 
 func distSq(a, b cube.Pos) int {
