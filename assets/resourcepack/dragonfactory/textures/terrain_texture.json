@@ -197,7 +197,7 @@
       "textures": "textures/blocks/auto_miner_up_t3"
     },
     "dragonfactory_auto_sieve": {
-      "textures": "textures/blocks/planks_dark_oak"
+      "textures": "textures/blocks/planks_big_oak"
     },
     "dragonfactory_barrel_cobble": {
       "textures": "textures/blocks/barrel_cobble"

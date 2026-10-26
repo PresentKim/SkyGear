@@ -86,7 +86,7 @@ var vanillaTerrain = map[string]bool{
 	"textures/blocks/bookshelf":                  true,
 	"textures/blocks/hopper_outside":             true,
 	"textures/blocks/huge_fungus/crimson_planks": true,
-	"textures/blocks/planks_dark_oak":            true,
+	"textures/blocks/planks_big_oak":             true,
 	"textures/blocks/planks_oak":                 true,
 	"textures/blocks/portal_placeholder":         true,
 }

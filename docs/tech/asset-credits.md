@@ -44,7 +44,7 @@
 
 마인크래프트 바닐라 텍스처는 팩에 복사하지 않는다. 클라이언트가 가진 그림을 경로로 가리킨다.
 
-- 드래곤팩토리 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 통(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_dark_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
+- 드래곤팩토리 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 통(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
 - WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`common/packs/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
 
 ## 생성한 그림
