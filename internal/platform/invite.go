@@ -137,7 +137,7 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 	acc := instance.AccountID(p)
 	s, err := pf.db.Save(saveID)
 	if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.join.1"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.joining"), err)
 		return
 	}
 	if s.Owner == acc {
@@ -145,21 +145,21 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 		return
 	}
 	if blocked, _ := pf.db.Blocked(s.Owner, acc); blocked {
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.join.2"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.denied"))
 		return
 	}
 	if _, err := pf.db.MemberRole(saveID, acc); errors.Is(err, db.ErrNotFound) {
 		if n, _ := pf.db.ActiveMembers(saveID); n >= MaxMembers {
-			ui.Notify(p, i18n.T(i18n.Of(p), "platform.invite.join.3"), MaxMembers)
+			ui.Notify(p, i18n.T(i18n.Of(p), "platform.invite.full"), MaxMembers)
 			return
 		}
 		if err := pf.db.AddMember(saveID, acc, db.RoleGuest); err != nil {
-			pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.join.4"), err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.joining"), err)
 			return
 		}
 		host, _ := pf.db.Account(s.Owner)
-		ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.join.5"), host.Name, s.Name)
-		pf.tell(s.Owner, "platform.invite.join.6", p.Name(), s.Name)
+		ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.joined"), host.Name, s.Name)
+		pf.tell(s.Owner, "platform.invite.memberJoined", p.Name(), s.Name)
 	}
 	pf.invites.remove(acc, saveID)
 	if pf.m.Active(saveID) == nil {
@@ -248,7 +248,7 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 			continue
 		}
 		if open {
-			sp.Actions = append(sp.Actions, ui.Option{Label: i18n.T(lang, "platform.platform.showSave.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }})
+			sp.Actions = append(sp.Actions, ui.Option{Label: i18n.T(lang, "platform.save.enter"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, s.ID) }})
 		} else {
 			sp.Body = fmt.Sprintf(i18n.T(lang, "platform.invite.save.wait"), host.Name)
 		}
@@ -293,7 +293,7 @@ type inviteCmd struct {
 func (c inviteCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	if c.pf.hostedSave(p) == nil {
-		o.Error(i18n.T(i18n.Of(p), "platform.invite.Run.1"))
+		o.Error(i18n.T(i18n.Of(p), "platform.invite.hostOnly"))
 		return
 	}
 	c.pf.showFriendsAt(p, friendsTab, codeRow)
@@ -304,13 +304,13 @@ func (c inviteCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.Account) {
 	in := invite{saveID: inst.Save.ID, saveName: inst.Save.Name, from: p.Name(), at: time.Now()}
 	pf.invites.add(f.ID, in)
-	ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.sendInvite.1"), f.Name)
+	ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.sent"), f.Name)
 	pf.with(f.ID, func(fp *player.Player) {
 		if pf.m.Location(f.ID) == nil {
 			pf.askAcceptInvite(fp, in)
 			return
 		}
-		ui.Tell(fp, "", fmt.Sprintf(i18n.T(i18n.Of(fp), "platform.invite.sendInvite.2"), p.Name(), inst.Save.Name))
+		ui.Tell(fp, "", fmt.Sprintf(i18n.T(i18n.Of(fp), "platform.invite.received"), p.Name(), inst.Save.Name))
 	})
 }
 
@@ -324,7 +324,7 @@ type joinCmd struct {
 func (c joinCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	if c.pf.m.Location(instance.AccountID(p)) != nil {
-		o.Error(i18n.T(i18n.Of(p), "platform.invite.Run.2"))
+		o.Error(i18n.T(i18n.Of(p), "platform.lobbyOnly"))
 		return
 	}
 	code, ok := c.Code.Load()
@@ -341,10 +341,10 @@ func (pf *Platform) joinCode(p *player.Player, code string) bool {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	s, err := pf.db.SaveByInviteCode(code)
 	if errors.Is(err, db.ErrNotFound) || code == "" {
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.joinCode.1"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invite.code.invalid"))
 		return false
 	} else if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.joinCode.2"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invite.code.checking"), err)
 		return true
 	}
 	pf.join(p, s.ID)

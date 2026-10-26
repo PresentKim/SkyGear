@@ -123,7 +123,7 @@ func (s *session) showHelpTab(p *player.Player, t helpTab) {
 		opts = append(opts, s.opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, i) }))
 	}
 	opts = append(opts, s.helpTabs(p, t)...)
-	ui.CardMenu(p, i18n.T(lang, "dragonfactory.help.showHelp.3"), i18n.T(lang, "dragonfactory.help.showHelp.4"), append(opts, s.backOption())...)
+	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.backOption())...)
 }
 
 // showHelpTopic shows a help page with the topics before and after it in its
@@ -146,9 +146,9 @@ func (s *session) showHelpTopic(p *player.Player, i int) {
 		next := helpTopics[in[at+1]]
 		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(lang, "help.next"), i18n.T(lang, "help."+next.id+".title")), next.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at+1]) }))
 	}
-	back := ui.Back(i18n.T(lang, "dragonfactory.help.showHelp.3"), func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, h.tab) })
+	back := ui.Back(i18n.T(lang, "help.title"), func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, h.tab) })
 	opts = append(opts, s.opt(back.Label, back.Icon, back.Run))
-	title := ui.SubTitle(i18n.T(lang, "dragonfactory.help.showHelp.3"), i18n.T(lang, "help."+h.id+".title"))
+	title := ui.SubTitle(i18n.T(lang, "help.title"), i18n.T(lang, "help."+h.id+".title"))
 	ui.Menu(p, title, text, opts...)
 }
 

@@ -67,7 +67,7 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 		ui.Tab(tabLabel("platform.friends.tab.requests", len(reqs)), iconRequests, tab == requestsTab, tabTo(requestsTab)),
 		ui.Tab(i18n.T(lang, "platform.friends.tab.blocked"), iconBlocked, tab == blockedTab, tabTo(blockedTab)),
 	)
-	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
 	ui.ListSplitMenu(p, i18n.T(lang, "platform.friends.title"), sp)
 }
 
@@ -329,6 +329,6 @@ func (pf *Platform) confirm(p *player.Player, title, body, yes string, f, back f
 // notifyRequests tells p about pending friend requests on join.
 func (pf *Platform) notifyRequests(p *player.Player) {
 	if reqs, err := pf.db.FriendRequests(instance.AccountID(p)); err == nil && len(reqs) > 0 {
-		ui.Tell(p, "", fmt.Sprintf(i18n.T(i18n.Of(p), "platform.friends.notifyRequests.1"), len(reqs)))
+		ui.Tell(p, "", fmt.Sprintf(i18n.T(i18n.Of(p), "platform.friends.pending"), len(reqs)))
 	}
 }

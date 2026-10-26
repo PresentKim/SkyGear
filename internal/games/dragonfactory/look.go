@@ -177,7 +177,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		// slot with its count under it; the lock and upgrades show on the
 		// drawer's front and, while sneaking, in the panel.
 		if b.Item.Empty() {
-			info.Lines = []string{i18n.T(lang, "dragonfactory.look.lookInfo.1")}
+			info.Lines = []string{i18n.T(lang, "look.empty")}
 		} else {
 			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{b.Item.Grow(int(min(b.Count, math.MaxInt32)) - b.Item.Count())}}
 		}
@@ -318,9 +318,9 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 	case st.kind == machineKinds[KindLab]:
 		return labLines(lang, st), nil
 	case st.kind == machineKinds[KindSellBox]:
-		lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.1")+gauge)
+		lines = append(lines, i18n.T(lang, "look.machine.sellCycle")+gauge)
 	case st.kind == machineKinds[KindHarvester]:
-		lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.2")+gauge)
+		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
 	case st.kind == machineKinds[KindGenerator]:
 		return generatorLines(lang, st), nil
 	case st.kind.gate, m.Kind == KindStorageLink, m.Kind == KindTinker:
@@ -342,7 +342,7 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.energy, st.energyCap())}, nil
 	case st.kind == machineKinds[KindMiner]:
 		// Its output shows as a slot.
-		return append(append([]string{i18n.T(lang, "dragonfactory.look.machineLines.3") + gauge}, consumerLines(lang, st)...), blockedLines(lang, st)...), nil
+		return append(append([]string{i18n.T(lang, "look.machine.mining") + gauge}, consumerLines(lang, st)...), blockedLines(lang, st)...), nil
 	default:
 		if _, it, ok := st.firstInput(); ok {
 			line = &waila.ItemLine{Item: it, Name: itemName(lang, it), Gauge: step, ShowGauge: true}
@@ -350,7 +350,7 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 				line.Text = fmt.Sprintf("§f×%d", it.Count())
 			}
 		} else {
-			lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.4"))
+			lines = append(lines, i18n.T(lang, "look.empty"))
 		}
 	}
 	if len(st.kind.charge) > 0 && st.charges > 0 {
@@ -360,7 +360,7 @@ func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 	lines = append(lines, blockedLines(lang, st)...)
 	for _, slot := range st.kind.output {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
-			lines = append(lines, i18n.T(lang, "dragonfactory.look.machineLines.5")+stackLine(lang, it))
+			lines = append(lines, i18n.T(lang, "look.machine.output")+stackLine(lang, it))
 		}
 	}
 	return lines, line

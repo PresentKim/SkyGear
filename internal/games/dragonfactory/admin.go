@@ -32,7 +32,7 @@ func (a adminBase) session(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player
 	p := src.(*player.Player)
 	s, ok := a.g.sessionOf(tx.World())
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "dragonfactory.admin.session.1"))
+		o.Error(i18n.T(i18n.Of(p), "dragonfactory.admin.needSave"))
 	}
 	return p, s, ok
 }
@@ -56,7 +56,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	it, ok := world.ItemByName(name, 0)
 	if !ok {
-		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.1"), name)
+		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.unknownItem"), name)
 		return
 	}
 	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
@@ -176,7 +176,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	f, ok := giveItems()[string(c.Item)]
 	if !ok {
-		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.9"), c.Item)
+		o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.unknownItem"), c.Item)
 		return
 	}
 	n := max(1, c.Count.LoadOr(1))
@@ -191,7 +191,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
-	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.registerAdmin.1"), nil,
+	cmd.Register(cmd.New("dfadmin", i18n.T(i18n.Default, "dragonfactory.admin.cmd"), nil,
 		adminItem{adminBase: b}, adminGive{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
 }
 
@@ -211,9 +211,9 @@ func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		s.updateBoard(p)
 	}
 	if on {
-		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.Run.11"))
+		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.perf.on"))
 	} else {
-		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.Run.12"))
+		o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.admin.perf.off"))
 	}
 }
 
@@ -250,30 +250,30 @@ func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 				s.completeResearch(tx, &researchTree[i])
 			}
 		}
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.13"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.research.all"))
 	case "reset":
 		s.state.Researched, s.state.ResearchPaid = nil, nil
 		s.storeState()
 		s.sendRecipes(tx)
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.14"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.research.cleared"))
 	case "free":
 		s.recipesFree = !s.recipesFree
 		s.sendRecipes(tx)
 		if s.recipesFree {
-			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.15"))
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.recipes.unlocked"))
 		} else {
-			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.16"))
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.recipes.locked"))
 		}
 	default:
 		r, ok := researchByID(string(c.Research))
 		if !ok {
-			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.17"), c.Research)
+			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.research.unknown"), c.Research)
 			return
 		}
 		if !s.researched(r.ID) {
 			s.completeResearch(tx, r)
 		}
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.18"), r.Title(i18n.Default))
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.research.done"), r.Title(i18n.Default))
 	}
 }
 
@@ -313,16 +313,16 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if len(as) > 0 {
 			s.completeAdvancements(tx, as)
 		}
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.19"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.advancement.all"))
 	case "reset":
 		s.state.Advancements = nil
 		s.storeState()
 		s.updateBoards(tx)
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.20"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.advancement.cleared"))
 	default:
 		a, ok := advancementByID(string(c.Advancement))
 		if !ok {
-			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.Run.21"), c.Advancement)
+			o.Errorf(i18n.T(i18n.Default, "dragonfactory.admin.advancement.unknown"), c.Advancement)
 			return
 		}
 		var as []*Advancement
@@ -334,6 +334,6 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if len(as) > 0 {
 			s.completeAdvancements(tx, as)
 		}
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.22"), a.Title(i18n.Default))
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.advancement.done"), a.Title(i18n.Default))
 	}
 }

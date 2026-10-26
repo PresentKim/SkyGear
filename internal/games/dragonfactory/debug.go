@@ -53,7 +53,7 @@ func (c debugSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.Second(tx)
 		total, day, _ := s.clock.Now()
-		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.2"), formatPlayTime(i18n.Default, total), day)
+		o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.time"), formatPlayTime(i18n.Default, total), day)
 	}
 }
 
@@ -75,9 +75,9 @@ func (c debugLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		p.Teleport(p.Position())
 		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
 		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
-			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.3"), blockName(i18n.Default, b), at[0], at[1], at[2])
+			o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.lookingAt"), blockName(i18n.Default, b), at[0], at[1], at[2])
 		} else {
-			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.4"))
+			o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.lookingAtNone"))
 		}
 	}
 }
@@ -95,16 +95,16 @@ func (c debugTimed) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	main, off := p.HeldItems()
 	if main.Empty() {
-		o.Error(i18n.T(i18n.Default, "dragonfactory.admin.Run.5"))
+		o.Error(i18n.T(i18n.Default, "dragonfactory.admin.noHeldItem"))
 		return
 	}
 	if c.Seconds <= 0 {
 		p.SetHeldItems(timed.Clear(main), off)
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.6"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.timed.off"))
 		return
 	}
 	p.SetHeldItems(timed.For(main, time.Duration(c.Seconds)*time.Second), off)
-	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.Run.7"), timed.Describe(time.Duration(c.Seconds)*time.Second))
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.timed.on"), timed.Describe(time.Duration(c.Seconds)*time.Second))
 }
 
 // debugFairy sends the gift fairy to the operator now.
@@ -116,7 +116,7 @@ type debugFairy struct {
 func (c debugFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
 		s.spawnFairy(tx, p)
-		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.Run.8"))
+		o.Printf("%s", i18n.T(i18n.Default, "dragonfactory.admin.fairy"))
 	}
 }
 

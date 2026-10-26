@@ -19,8 +19,8 @@ import (
 
 // cropNameKeys are the catalog keys of the names of the crop kinds.
 var cropNameKeys = map[string]string{
-	"wheat": "dragonfactory.cropinfo.init.1", "carrot": "dragonfactory.cropinfo.init.2", "potato": "dragonfactory.cropinfo.init.3", "beetroot": "dragonfactory.cropinfo.init.4",
-	"melon": "dragonfactory.cropinfo.init.5", "pumpkin": "dragonfactory.cropinfo.init.6",
+	"wheat": "crop.wheat", "carrot": "crop.carrot", "potato": "crop.potato", "beetroot": "crop.beetroot",
+	"melon": "crop.melonStem", "pumpkin": "crop.pumpkinStem",
 }
 
 // useCrop handles a player using the crop at pos: a grown crop is
@@ -65,11 +65,11 @@ func (s *session) cropLines(lang string, r *CropRecord, tx *world.Tx, pos cube.P
 	_, stage, _ := cropOf(tx.Block(pos))
 	if stage < maxCropStage {
 		left := s.realLeft(max(0, r.Planted+s.growTime(r.Kind)-now))
-		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, left.Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.left") + formatDuration(lang, left.Round(time.Second))}
 	}
 	if cropKinds[r.Kind].stem && r.NextFruit > 0 {
 		left := s.realLeft(max(0, r.NextFruit-now))
-		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.2"), i18n.T(lang, "dragonfactory.cropinfo.cropLines.3") + formatDuration(lang, left.Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.grown"), i18n.T(lang, "crop.lines.nextFruit") + formatDuration(lang, left.Round(time.Second))}
 	}
-	return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.4")}
+	return []string{i18n.T(lang, "crop.lines.grown")}
 }

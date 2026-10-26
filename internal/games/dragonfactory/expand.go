@@ -125,7 +125,7 @@ func (s *session) showExpand(p *player.Player) {
 		s.showExpandPlane(p, e)
 		return
 	}
-	p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpand.1"))
+	p.Message(i18n.T(i18n.Of(p), "expand.enter"))
 	s.expandTip(p, e)
 	s.repeatExpandTip(p, e)
 	s.pollExpand(p, e)
@@ -201,7 +201,7 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	case c == e.target:
 		return
 	case c[0] < -r || c[0] > r || c[1] < -r || c[1] > r:
-		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.expand.moveCursor.1"))
+		p.SendTip(i18n.T(i18n.Of(p), "expand.edge"))
 		return
 	}
 	e.target = c
@@ -247,12 +247,12 @@ func (s *session) expandTip(p *player.Player, e *expansion) {
 	c := e.target
 	switch {
 	case s.owns(c):
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.1"), c[0], c[1]))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.owned"), c[0], c[1]))
 	case slices.Contains(s.purchasableChunks(), c):
 		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.2"), c[0], c[1], costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), c[0], c[1], costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.expandTip.3"), c[0], c[1]))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.none"), c[0], c[1]))
 	}
 }
 
@@ -280,10 +280,10 @@ func (s *session) showExpandActions(p *player.Player) {
 	c := e.target
 	cost := chunkCost(len(s.state.Chunks))
 	var opts []ui.Option
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.1"), c[0], c[1], len(s.state.Chunks))
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.chunk"), c[0], c[1], len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.2"), costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.3"), costText(i18n.Of(p), cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		body += fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.cost"), costText(i18n.Of(p), cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
+		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.buy"), costText(i18n.Of(p), cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, c)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
@@ -291,14 +291,14 @@ func (s *session) showExpandActions(p *player.Player) {
 			}
 		}))
 	} else {
-		body += i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.4")
+		body += i18n.T(i18n.Of(p), "expand.menu.notBuyable")
 	}
 	opts = append(opts,
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.5"), iconLobby, func(*player.Player, *world.Tx) {}),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.6"), iconBack, func(p *player.Player, tx *world.Tx) {
+		s.opt(i18n.T(i18n.Of(p), "expand.menu.keepLooking"), iconLobby, func(*player.Player, *world.Tx) {}),
+		s.opt(i18n.T(i18n.Of(p), "expand.menu.stop"), iconBack, func(p *player.Player, tx *world.Tx) {
 			s.stopExpand(p, tx)
-			p.Message(i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.7"))
+			p.Message(i18n.T(i18n.Of(p), "expand.left"))
 		}),
 	)
-	ui.Menu(p, i18n.T(i18n.Of(p), "dragonfactory.expand.showExpandActions.8"), body, opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "expand.menu.title"), body, opts...)
 }

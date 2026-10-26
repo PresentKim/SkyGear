@@ -43,9 +43,9 @@ type hopperKind struct {
 }
 
 var hopperKinds = map[string]*hopperKind{
-	"wood_hopper":         {id: "wood_hopper", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.1"), slots: 1, interval: 80, texture: "wood_hopper", wood: true},
-	"wood_hopper_reverse": {id: "wood_hopper_reverse", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.2"), slots: 1, interval: 80, reverse: true, texture: "wood_hopper", wood: true},
-	"iron_hopper_reverse": {id: "iron_hopper_reverse", name: i18n.T(i18n.Default, "dragonfactory.hopper.init.3"), slots: 5, interval: 8, reverse: true, texture: "iron_hopper"},
+	"wood_hopper":         {id: "wood_hopper", name: i18n.T(i18n.Default, "hopper.wood"), slots: 1, interval: 80, texture: "wood_hopper", wood: true},
+	"wood_hopper_reverse": {id: "wood_hopper_reverse", name: i18n.T(i18n.Default, "hopper.woodReverse"), slots: 1, interval: 80, reverse: true, texture: "wood_hopper", wood: true},
+	"iron_hopper_reverse": {id: "iron_hopper_reverse", name: i18n.T(i18n.Default, "hopper.ironReverse"), slots: 5, interval: 8, reverse: true, texture: "iron_hopper"},
 }
 
 // hopperOrder is the registration and display order.
@@ -324,7 +324,7 @@ func (h FlowHopper) contentsText(lang string) string {
 	}
 	name := customItemName(lang, h)
 	if len(parts) == 0 {
-		return "§7" + name + i18n.T(lang, "dragonfactory.hopper.contentsText.1")
+		return "§7" + name + i18n.T(lang, "hopper.contents.empty")
 	}
 	return "§f" + name + ": §e" + strings.Join(parts, "§7, §e")
 }
@@ -341,9 +341,9 @@ func hopperLines(lang string, h FlowHopper) []string {
 		}
 	}
 	if len(lines) == 0 {
-		lines = []string{i18n.T(lang, "dragonfactory.hopper.hopperLines.1")}
+		lines = []string{i18n.T(lang, "hopper.lines.empty")}
 	}
-	return append(lines, fmt.Sprintf(i18n.T(lang, "dragonfactory.hopper.hopperLines.2"), float64(h.kind().interval)/20))
+	return append(lines, fmt.Sprintf(i18n.T(lang, "hopper.lines.rate"), float64(h.kind().interval)/20))
 }
 
 var _ itemio.Inserter = FlowHopper{}

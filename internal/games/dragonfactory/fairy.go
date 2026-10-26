@@ -160,7 +160,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
 	}
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.gift.1"), giftNames(p, gift))
+	p.Messagef(i18n.T(i18n.Of(p), "fairy.gift"), giftNames(p, gift))
 	d.leaving = 1
 	return true
 }
@@ -178,7 +178,7 @@ func (f *Fairy) scatter(tx *world.Tx, s *session, p *player.Player) {
 		s.dropAt(tx, p.Position().Add(mgl64.Vec3{0, 1, 0}), st)
 	}
 	tx.PlaySound(f.data.Pos, sound.Pop{})
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.fairy.scatter.1"), giftNames(p, gift))
+	p.Messagef(i18n.T(i18n.Of(p), "fairy.scatter"), giftNames(p, gift))
 }
 
 // giftNames lists a gift for p's chat.
@@ -414,7 +414,7 @@ func (s *session) spawnFairy(tx *world.Tx, p *player.Player) {
 	s.fairy = h
 	tx.AddEntity(h)
 	tx.PlaySound(pos, sound.Experience{})
-	p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.spawnFairy.1"))
+	p.Message(i18n.T(i18n.Of(p), "fairy.arrived"))
 }
 
 // fairyOf returns e as this session's fairy.
@@ -434,7 +434,7 @@ func (ResearchNote) Category() category.Category { return category.Items() }
 
 func (ResearchNote) Use(_ *world.Tx, u item.User, _ *item.UseContext) bool {
 	if p, ok := u.(*player.Player); ok {
-		p.Message(i18n.T(i18n.Of(p), "dragonfactory.fairy.Use.1"))
+		p.Message(i18n.T(i18n.Of(p), "fairy.researchNote.unused"))
 	}
 	return false
 }

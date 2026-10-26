@@ -16,8 +16,8 @@ const (
 
 func init() {
 	account.Register(
-		account.Achievement{ID: achMachine, NameKey: "dragonfactory.achievements.init.1", DescKey: "dragonfactory.achievements.init.2", TitleKey: "dragonfactory.achievements.init.3", GroupKey: achievementGroup("factory")},
-		account.Achievement{ID: achChunks, NameKey: "dragonfactory.achievements.init.4", DescKey: "dragonfactory.achievements.init.5", TitleKey: "dragonfactory.achievements.init.6", GroupKey: achievementGroup("island")},
-		account.Achievement{ID: achResearch, NameKey: "dragonfactory.achievements.init.7", DescKey: "dragonfactory.achievements.init.8", TitleKey: "dragonfactory.achievements.init.9", GroupKey: achievementGroup("progress")},
+		account.Keyed(achMachine, achievementGroup("factory")),
+		account.Keyed(achChunks, achievementGroup("island")),
+		account.Keyed(achResearch, achievementGroup("progress")),
 	)
 }

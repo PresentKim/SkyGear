@@ -253,7 +253,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 		return
 	}
 	if st.mesh == "" && sieveHolds(held) {
-		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.sieve.useSieve.1"))
+		p.SendTip(i18n.T(i18n.Of(p), "sieve.needMesh"))
 		return
 	}
 	if sieveHolds(held) {

@@ -952,5 +952,14 @@
  "achievement.pf_login_100.title": "Hundred Visits",
  "achievement.pf_login_365.name": "365 Logins",
  "achievement.pf_login_365.desc": "Log in 365 times",
- "achievement.pf_login_365.title": "Never Misses a Day"
+ "achievement.pf_login_365.title": "Never Misses a Day",
+ "achievement.df_first_machine.name": "First Machine",
+ "achievement.df_first_machine.desc": "Place a machine for the first time",
+ "achievement.df_first_machine.title": "Technician",
+ "achievement.df_chunks_10.name": "Land Baron",
+ "achievement.df_chunks_10.desc": "Own 10 island chunks",
+ "achievement.df_chunks_10.title": "Landlord",
+ "achievement.df_research_first.name": "First Research",
+ "achievement.df_research_first.desc": "Complete 1 research at the Research Table",
+ "achievement.df_research_first.title": "Researcher"
 }

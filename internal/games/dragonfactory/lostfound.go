@@ -88,7 +88,7 @@ func (s *session) takeLost(p *player.Player, l *LostItem) bool {
 		added, _ := p.Inventory().AddItem(it.Grow(n - it.Count()))
 		l.Count -= added
 		if added < n {
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.lostfound.takeLost.1"))
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "lost.inventoryFull"))
 			break
 		}
 	}

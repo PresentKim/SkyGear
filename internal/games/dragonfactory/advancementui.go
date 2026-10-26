@@ -487,7 +487,7 @@ func (s *session) showAdvancementView(p *player.Player, v advView) {
 		return
 	}
 	t := s.advancementTree(p, v)
-	ui.TreeMenu(p, i18n.T(i18n.Of(p), "dragonfactory.advancement.showAdvancements.1"), t)
+	ui.TreeMenu(p, i18n.T(i18n.Of(p), "advancement.title"), t)
 }
 
 // showAdvancementNode shows one advancement with its buttons (track, codex,
@@ -497,11 +497,11 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 	title, body := a.Title(lang), ""
 	switch {
 	case s.advanced(a.ID):
-		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1") + flatHint(lang, a)
+		body = i18n.T(lang, "advancement.node.done") + flatHint(lang, a)
 	case s.advancementOpen(a):
-		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2") + flatHint(lang, a)
+		body = i18n.T(lang, "advancement.node.progress") + flatHint(lang, a)
 	default:
-		body = i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2") + flatHint(lang, a) + "\n\n" + s.advancementBefore(lang, a)
+		body = i18n.T(lang, "advancement.node.progress") + flatHint(lang, a) + "\n\n" + s.advancementBefore(lang, a)
 	}
 	var opts []ui.Option
 	if !s.advanced(a.ID) {
@@ -524,7 +524,7 @@ func (s *session) showAdvancementNode(p *player.Player, a *Advancement) {
 	}
 	back := ui.Back(i18n.T(lang, "codex.back"), func(p *player.Player, _ *world.Tx) { s.showAdvancementView(p, advView{tab: a.Chapter}) })
 	opts = append(opts, s.opt(back.Label, back.Icon, back.Run))
-	ui.Menu(p, i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.4")+title, body, opts...)
+	ui.Menu(p, i18n.T(lang, "advancement.node.title")+title, body, opts...)
 }
 
 // advancementTip is a node's tooltip: its name, coloured by its state, and
@@ -675,7 +675,7 @@ func (s *session) showQuestBook(p *player.Player, tab advChapter, open *Advancem
 	if open != nil {
 		b.Panel = s.questPanel(p, tab, open)
 	}
-	ui.QuestBookMenu(p, i18n.T(lang, "dragonfactory.advancement.showAdvancements.1"), b, s.backOption())
+	ui.QuestBookMenu(p, i18n.T(lang, "advancement.title"), b, s.backOption())
 }
 
 // advQuestX is the place on the quest book's plane of a column: wider apart
@@ -696,10 +696,10 @@ func (s *session) questPanel(p *player.Player, tab advChapter, a *Advancement) *
 	pn := &ui.QuestPanel{Icon: advancementIcon(a), Title: a.Title(lang), Close: back}
 	switch {
 	case s.advanced(a.ID):
-		pn.Status = "§2" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.1")
+		pn.Status = "§2" + i18n.T(lang, "advancement.node.done")
 		pn.Body = flatHint(lang, a)
 	case s.advancementOpen(a):
-		pn.Status = "§1" + i18n.T(lang, "dragonfactory.advancement.showAdvancementNode.2")
+		pn.Status = "§1" + i18n.T(lang, "advancement.node.progress")
 		pn.Body = flatHint(lang, a)
 	default:
 		pn.Status = s.advancementBefore(lang, a)

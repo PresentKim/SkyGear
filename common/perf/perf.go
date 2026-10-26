@@ -81,7 +81,7 @@ func Line(w *world.World) string {
 	if t.TPS < 15 {
 		tpsColour = "§c"
 	}
-	return fmt.Sprintf(i18n.T(i18n.Default, "perf.perf.Line.1"),
+	return fmt.Sprintf(i18n.T(i18n.Default, "perf.line"),
 		tpsColour, t.TPS, loadColour(load), load*100, ms(t.MSPT), ms(t.MaxMSPT), ProcessStats().HeapMB)
 }
 

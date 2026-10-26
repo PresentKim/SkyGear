@@ -43,7 +43,7 @@ func chunkCost(n int) Requirement {
 
 // costText describes a cost, e.g. "조약돌 128개".
 func costText(lang string, r Requirement) string {
-	return fmt.Sprintf(i18n.T(lang, "dragonfactory.island.costText.1"), itemName(lang, item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
+	return fmt.Sprintf(i18n.T(lang, "island.chunk.cost"), itemName(lang, item.NewStack(r.Item, 1)), formatInt(int64(r.Count)))
 }
 
 // countPlain counts the plain items of it in an inventory.
@@ -102,12 +102,12 @@ func (s *session) purchasableChunks() []ChunkPos {
 
 func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if !slices.Contains(s.purchasableChunks(), c) {
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.1"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "island.chunk.notBuyable"))
 		return
 	}
 	cost := chunkCost(len(s.state.Chunks))
 	if !takePlain(p.Inventory(), cost.Item, cost.Count) {
-		ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.island.buyChunk.2"), costText(i18n.Of(p), cost))
+		ui.Notify(p, i18n.T(i18n.Of(p), "island.chunk.needs"), costText(i18n.Of(p), cost))
 		return
 	}
 	s.state.Chunks = append(s.state.Chunks, c)
@@ -124,7 +124,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if len(s.state.Chunks) >= 16 {
 		s.advance(tx, advChunks16)
 	}
-	s.broadcast(tx, "dragonfactory.island.buyChunk.3", p.Name(), c[0], c[1], len(s.state.Chunks))
+	s.broadcast(tx, "island.chunk.bought", p.Name(), c[0], c[1], len(s.state.Chunks))
 }
 
 // keepLoaded keeps an owned chunk loaded and ticking while the instance is
@@ -145,7 +145,7 @@ func (s *session) returnFromVoid(p *player.Player, tx *world.Tx) {
 		return
 	}
 	p.Teleport(mgl64.Vec3{float64(x) + 0.5, VoidReturnY, float64(z) + 0.5})
-	p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.island.returnFromVoid.1"))
+	p.SendTip(i18n.T(i18n.Of(p), "island.returnedFromVoid"))
 }
 
 // nearestBlockColumn searches outwards from (x, z) for a column with a block.

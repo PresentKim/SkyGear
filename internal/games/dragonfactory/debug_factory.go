@@ -57,7 +57,7 @@ func (c debugFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		s.buildFactoryModule(tx, at, instance.AccountID(p), p.Name(), &built)
 	}
-	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin_factory.Run.1"), n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.factory.built"), n, built.machines, built.drawers, built.hoppers, built.crops, built.blocks, outside)
 }
 
 // factoryCount counts what a factory build placed.
@@ -215,5 +215,5 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		d := Drawer{Facing: cube.South}
 		s.setDrawer(tx, set(1, 2, d), d)
 	}
-	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin_factory.Run.2"), n, cols*2, rows, n*2, n, n)
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.factory.dense"), n, cols*2, rows, n*2, n, n)
 }

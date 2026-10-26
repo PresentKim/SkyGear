@@ -149,22 +149,22 @@ type machineKind struct {
 
 var machineKinds = map[string]*machineKind{
 	KindCrusher: {
-		id: idCrusher, nameKey: "dragonfactory.machine.init.1", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
+		id: idCrusher, nameKey: "machine.crusher.name", marker: "§d§m§1", interval: 80, input: []int{11}, output: []int{15}, indicator: 13,
 		use: 20, energyCap: consumerBuffer,
-		helpKeys: []string{"dragonfactory.machine.init.2", "dragonfactory.machine.init.3"},
+		helpKeys: []string{"machine.crusher.help.1", "machine.crusher.help.2"},
 	},
 	// Sieves have no window: the input lies on the mesh and the products
 	// drop (or, from the auto sieve, go into containers beside or below).
 	KindSieve: {
-		id: idSieve, nameKey: "dragonfactory.machine.init.4", interval: 60, input: []int{10}, indicator: 12,
-		helpKeys: []string{"dragonfactory.machine.init.5", "dragonfactory.machine.init.6"},
+		id: idSieve, nameKey: "machine.sieve.name", interval: 60, input: []int{10}, indicator: 12,
+		helpKeys: []string{"machine.sieve.help.1", "machine.sieve.help.2"},
 	},
 	KindAutoSieve: {
 		// The window shows the input (fed by hand, a hopper or a conduit), the ring
 		// and the four slots the products go into (ui/df_machine.json sieve_slots).
-		id: idAutoSieve, nameKey: "dragonfactory.machine.init.7", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
+		id: idAutoSieve, nameKey: "machine.autosieve.name", marker: "§d§m§2", interval: 60, input: []int{10}, output: []int{13, 14, 15, 16}, indicator: 12,
 		use: 10, energyCap: consumerBuffer, autoSieve: true,
-		helpKeys: []string{"dragonfactory.machine.init.8", "dragonfactory.machine.init.9"},
+		helpKeys: []string{"machine.autosieve.help.1", "machine.autosieve.help.2"},
 	},
 	KindMagicSieve: {
 		// Like the auto sieve, with the essence slot between the input and the ring
@@ -175,14 +175,14 @@ var machineKinds = map[string]*machineKind{
 	},
 	KindMiner: {
 		// One output slot (11th playtest; it had four, like the harvester).
-		id: idMiner, nameKey: "dragonfactory.machine.init.10", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
+		id: idMiner, nameKey: "machine.miner.name", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		use: 20, energyCap: consumerBuffer,
-		helpKeys: []string{"dragonfactory.machine.init.11"},
+		helpKeys: []string{"machine.miner.help.1"},
 	},
 	KindHarvester: {
-		id: idHarvester, nameKey: "dragonfactory.machine.init.13", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
+		id: idHarvester, nameKey: "machine.harvester.name", marker: "§d§m§3", interval: 40, output: []int{13, 14, 15, 16}, indicator: 10,
 		use: 10, energyCap: consumerBuffer,
-		helpKeys: []string{"dragonfactory.machine.init.14"},
+		helpKeys: []string{"machine.harvester.help.1"},
 	},
 	KindGenerator: {
 		id: idGenerator, nameKey: "generator.name", marker: "§d§m§5", interval: 100, input: []int{13}, indicator: 10,
@@ -272,8 +272,8 @@ var machineKinds = map[string]*machineKind{
 		helpKeys: []string{"machine.lab.help.1", "machine.lab.help.2", "machine.lab.help.3"},
 	},
 	KindSellBox: {
-		id: idSellBox, nameKey: "dragonfactory.machine.init.16", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
-		helpKeys: []string{"dragonfactory.machine.init.17", "dragonfactory.machine.init.18"},
+		id: idSellBox, nameKey: "machine.sellbox.name", marker: "§d§m§4", interval: 20, input: []int{9, 10, 11, 12, 13, 14, 15, 16, 17}, indicator: 4,
+		helpKeys: []string{"machine.sellbox.help.1", "machine.sellbox.help.2"},
 	},
 }
 
@@ -503,7 +503,7 @@ func (st *machineState) infoItem() item.Stack {
 		lore = append(lore, wtext{wkey(k)})
 	}
 	if st.kind.id == idSellBox && st.ownerName != "" {
-		lore = append(lore, wtext{wkey("dragonfactory.machine.infoItem.1"), wraw(st.ownerName)})
+		lore = append(lore, wtext{wkey("machine.info.owner"), wraw(st.ownerName)})
 	}
 	if st.tier > 0 {
 		spec := st.spec()
@@ -818,20 +818,20 @@ func (st *machineState) showProgress() {
 		return
 	}
 	st.shownPct = pct
-	name := wkey("dragonfactory.machine.showProgress.1", pct)
+	name := wkey("machine.progress.percent", pct)
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
 	switch st.kind.id {
 	case idSellBox:
 		// Machines that work in a repeating cycle, the auto miner and the generator
 		// show a ring that fills.
-		name, it = wkey("dragonfactory.machine.showProgress.2"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("machine.progress.sellCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
-		name, it = wkey("dragonfactory.machine.showProgress.3", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("machine.progress.mining", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idGenerator:
 		// The ring shows the fuel left in the one burning.
-		name, it = wkey("dragonfactory.machine.showProgress.5", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("machine.progress.fuel", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	case idHarvester:
-		name, it = wkey("dragonfactory.machine.showProgress.4"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+		name, it = wkey("machine.progress.harvestCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.inv().SetItem(st.kind.indicator, withWindowText(it, wtext{wraw("§r"), name}))
 }

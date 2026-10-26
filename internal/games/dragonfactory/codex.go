@@ -234,7 +234,7 @@ func (c codexCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	s, ok := c.g.sessionOf(tx.World())
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "dragonfactory.menu.Run.1"))
+		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
 	s.openCodex(p)

@@ -20,9 +20,9 @@ var oreKinds = []struct {
 	ore, name string
 	block     world.Item
 }{
-	{OreIron, i18n.T(i18n.Default, "dragonfactory.orechunk.init.1"), block.IronOre{}},
-	{OreGold, i18n.T(i18n.Default, "dragonfactory.orechunk.init.2"), block.GoldOre{}},
-	{OreCopper, i18n.T(i18n.Default, "dragonfactory.orechunk.init.3"), block.CopperOre{}},
+	{OreIron, i18n.T(i18n.Default, "orechunk.iron"), block.IronOre{}},
+	{OreGold, i18n.T(i18n.Default, "orechunk.gold"), block.GoldOre{}},
+	{OreCopper, i18n.T(i18n.Default, "orechunk.copper"), block.CopperOre{}},
 	{MetalTin, i18n.T(i18n.Default, "metal.tin"), OreBlock{Metal: MetalTin}},
 	{MetalLead, i18n.T(i18n.Default, "metal.lead"), OreBlock{Metal: MetalLead}},
 	{MetalSilver, i18n.T(i18n.Default, "metal.silver"), OreBlock{Metal: MetalSilver}},

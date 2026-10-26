@@ -54,7 +54,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 	var actions []ui.Option
 	if slices.Contains(buyable, t) {
 		info += "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), formatInt(int64(countPlain(p.Inventory(), cost.Item))))
-		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "dragonfactory.expand.showExpandActions.3"), costText(lang, cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
+		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), iconIsland, func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, t)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
@@ -67,7 +67,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			s.stopExpand(p, tx)
 		}
 	}
-	actions = append(actions, s.opt(i18n.T(lang, "dragonfactory.expand.showExpandActions.6"), iconBack, leave))
+	actions = append(actions, s.opt(i18n.T(lang, "expand.menu.stop"), iconBack, leave))
 	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: info, Actions: actions, Close: leave})
 }
 

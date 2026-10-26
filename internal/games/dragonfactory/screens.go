@@ -37,7 +37,7 @@ func (s *session) guard(opts []ui.Option) []ui.Option {
 // backOption is the back button to the game menu, drawn left of the close
 // button by the theme.
 func (s *session) backOption() ui.Option {
-	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.backOption.1"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
+	b := ui.Back(i18n.T(i18n.Default, "menu.back"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
@@ -67,21 +67,21 @@ func (s *session) showIslandManage(p *player.Player) {
 	if host || s.isOperator(p) {
 		opts = append(opts, s.opt(i18n.T(lang, "island.manage.members"), "textures/ui/df/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "dragonfactory.screens.mainMenu.4"), iconExpand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
+	opts = append(opts, s.opt(i18n.T(lang, "menu.expand"), iconExpand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
 // helpOption is the help button of the game menu: the "?" of the control
 // bar, as the other screens have it, opening the help topics.
 func (s *session) helpOption(p *player.Player) ui.Option {
-	h := ui.Help(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.6"), func(p *player.Player, _ *world.Tx) { s.showHelp(p) })
+	h := ui.Help(i18n.T(i18n.Of(p), "menu.help"), func(p *player.Player, _ *world.Tx) { s.showHelp(p) })
 	return s.opt(h.Label, h.Icon, h.Run)
 }
 
 // lobbyOption is the exit button of the game menu: where the other menus
 // have their back button, left of the close button, it goes to the lobby.
 func (s *session) lobbyOption() ui.Option {
-	b := ui.Back(i18n.T(i18n.Default, "dragonfactory.screens.lobbyOption.1"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
+	b := ui.Back(i18n.T(i18n.Default, "menu.lobby"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
 	b.Icon = iconLobby
 	return s.opt(b.Label, b.Icon, b.Run)
 }
@@ -91,9 +91,9 @@ func (s *session) lobbyOption() ui.Option {
 // shows the menu again.
 func (s *session) confirmLobby(p *player.Player) {
 	lang := i18n.Of(p)
-	ui.Menu(p, i18n.T(lang, "dragonfactory.screens.lobbyConfirm.title"), i18n.T(lang, "dragonfactory.screens.lobbyConfirm.body"),
-		s.opt(i18n.T(lang, "dragonfactory.screens.lobbyConfirm.yes"), iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
-		s.opt(i18n.T(lang, "dragonfactory.screens.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showMenu(p) }),
+	ui.Menu(p, i18n.T(lang, "menu.lobbyConfirm.title"), i18n.T(lang, "menu.lobbyConfirm.body"),
+		s.opt(i18n.T(lang, "menu.lobbyConfirm.yes"), iconLobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
+		s.opt(i18n.T(lang, "menu.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showMenu(p) }),
 	)
 }
 
@@ -109,7 +109,7 @@ func (s *session) openMenu(p *player.Player) {
 }
 
 func (s *session) showMenu(p *player.Player) {
-	ui.CardMenu(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showMenu.1"), "", s.mainMenu(p)...)
+	ui.CardMenu(p, i18n.T(i18n.Of(p), "menu.title"), "", s.mainMenu(p)...)
 }
 
 // mainMenu are the cards of the game menu, the codex first and settings
@@ -117,16 +117,16 @@ func (s *session) showMenu(p *player.Player) {
 func (s *session) mainMenu(p *player.Player) []ui.Option {
 	return []ui.Option{
 		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), iconCodex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.3"), iconAdvances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
+		s.opt(i18n.T(i18n.Of(p), "menu.advancements"), iconAdvances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt(i18n.T(i18n.Of(p), "island.manage"), iconManage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
-		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.5"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.8"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.7"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
+		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(s.state.Lost)), iconLost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
+		s.opt(i18n.T(i18n.Of(p), "menu.friends"), iconFriends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
+		s.opt(i18n.T(i18n.Of(p), "menu.cosmetics"), iconTitle, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), iconStats, func(p *player.Player, tx *world.Tx) {
 			s.advance(tx, advStats)
 			s.showStats(p, statsItems)
 		}),
-		s.opt(i18n.T(i18n.Of(p), "dragonfactory.screens.mainMenu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
+		s.opt(i18n.T(i18n.Of(p), "menu.settings"), iconSettings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.helpOption(p),
 		s.lobbyOption(),
 	}
@@ -163,12 +163,12 @@ func (s *session) showLostPage(p *player.Player, page int) {
 	}
 	actions := s.guard(ui.BarPager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showLostPage(p, to) }))
 	actions = append(actions, s.opt(ui.Help(body, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showLostPage(p, page) }), back)
-	ui.ItemBoard(p, i18n.T(i18n.Of(p), "dragonfactory.screens.showLost.1"), "", rows, actions...)
+	ui.ItemBoard(p, i18n.T(i18n.Of(p), "lost.title"), "", rows, actions...)
 }
 
 func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 	s.purgeLost()
-	body := i18n.T(lang, "dragonfactory.screens.lostMenu.1")
+	body := i18n.T(lang, "lost.body")
 	var slots []ui.ItemSlot
 	for _, l := range s.state.Lost {
 		it := l.decoded()
@@ -178,7 +178,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  iconOf(it),
 			Count: ui.CountText(l.Count),
-			Tip:   fmt.Sprintf(i18n.T(lang, "dragonfactory.screens.lostMenu.3"), itemName(lang, it), formatInt(int64(l.Count))),
+			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), itemName(lang, it), formatInt(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

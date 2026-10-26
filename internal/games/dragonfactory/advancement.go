@@ -95,39 +95,39 @@ const (
 // quest panel follows this order, so the main path comes first. The screen
 // shows each chapter's advancements in this order too.
 var advancementTree = []Advancement{
-	{ID: "wood", Chapter: advChapterStart, NameKey: "dragonfactory.advancement.init.1", HintKey: "dragonfactory.advancement.init.2", Item: "oak_log"},
-	{ID: "planks", Chapter: advChapterStart, Parents: []string{"wood"}, NameKey: "dragonfactory.advancement.init.3", HintKey: "dragonfactory.advancement.init.4", Item: "oak_planks"},
-	{ID: "crafting_table", Chapter: advChapterStart, Parents: []string{"planks"}, NameKey: "dragonfactory.advancement.init.5", HintKey: "dragonfactory.advancement.init.6", Item: "crafting_table"},
-	{ID: "research_table", Chapter: advChapterStart, Parents: []string{"crafting_table"}, NameKey: "dragonfactory.advancement.init.7", HintKey: "dragonfactory.advancement.init.8", Item: "dragonfactory:research_table"},
-	{ID: "first_research", Chapter: advChapterStart, Parents: []string{"research_table"}, NameKey: "dragonfactory.advancement.init.9", HintKey: "dragonfactory.advancement.init.10", Research: "stick", Icon: "stick"},
-	{ID: "pebble", Chapter: advChapterStart, Parents: []string{"first_research"}, NameKey: "dragonfactory.advancement.init.11", HintKey: "dragonfactory.advancement.init.12", Item: "dragonfactory:pebble_stone", Guide: "stick"},
-	{ID: "cobble", Chapter: advChapterStart, Parents: []string{"pebble"}, NameKey: "dragonfactory.advancement.init.13", HintKey: "dragonfactory.advancement.init.14", Item: "cobblestone"},
-	{ID: "wood_tools", Chapter: advChapterStart, Parents: []string{"first_research"}, NameKey: "dragonfactory.advancement.init.17", HintKey: "dragonfactory.advancement.init.18", Item: "wooden_pickaxe"},
+	{ID: "wood", Chapter: advChapterStart, NameKey: "advancement.wood.name", HintKey: "advancement.wood.hint", Item: "oak_log"},
+	{ID: "planks", Chapter: advChapterStart, Parents: []string{"wood"}, NameKey: "advancement.planks.name", HintKey: "advancement.planks.hint", Item: "oak_planks"},
+	{ID: "crafting_table", Chapter: advChapterStart, Parents: []string{"planks"}, NameKey: "advancement.crafting_table.name", HintKey: "advancement.crafting_table.hint", Item: "crafting_table"},
+	{ID: "research_table", Chapter: advChapterStart, Parents: []string{"crafting_table"}, NameKey: "advancement.research_table.name", HintKey: "advancement.research_table.hint", Item: "dragonfactory:research_table"},
+	{ID: "first_research", Chapter: advChapterStart, Parents: []string{"research_table"}, NameKey: "advancement.first_research.name", HintKey: "advancement.first_research.hint", Research: "stick", Icon: "stick"},
+	{ID: "pebble", Chapter: advChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.pebble.name", HintKey: "advancement.pebble.hint", Item: "dragonfactory:pebble_stone", Guide: "stick"},
+	{ID: "cobble", Chapter: advChapterStart, Parents: []string{"pebble"}, NameKey: "advancement.cobble.name", HintKey: "advancement.cobble.hint", Item: "cobblestone"},
+	{ID: "wood_tools", Chapter: advChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.wood_tools.name", HintKey: "advancement.wood_tools.hint", Item: "wooden_pickaxe"},
 	{ID: "chest", Chapter: advChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.chest.name", HintKey: "advancement.chest.hint", Item: "chest"},
-	{ID: "stone_axe", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "dragonfactory.advancement.init.23", HintKey: "dragonfactory.advancement.init.24", Item: "stone_axe"},
-	{ID: "fiber", Chapter: advChapterStart, Parents: []string{"stone_axe"}, NameKey: "dragonfactory.advancement.init.25", HintKey: "dragonfactory.advancement.init.26", Item: "dragonfactory:bark_fiber", Guide: "stone_tools"},
-	{ID: "string", Chapter: advChapterStart, Parents: []string{"fiber"}, NameKey: "dragonfactory.advancement.init.27", HintKey: "dragonfactory.advancement.init.28", Item: "string"},
-	{ID: "hammer", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "dragonfactory.advancement.init.29", HintKey: "dragonfactory.advancement.init.30", Item: "dragonfactory:stone_hammer"},
-	{ID: "gravel", Chapter: advChapterStart, Parents: []string{"hammer"}, NameKey: "dragonfactory.advancement.init.31", HintKey: "dragonfactory.advancement.init.32", Item: "gravel", Guide: "hammer"},
+	{ID: "stone_axe", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.stone_axe.name", HintKey: "advancement.stone_axe.hint", Item: "stone_axe"},
+	{ID: "fiber", Chapter: advChapterStart, Parents: []string{"stone_axe"}, NameKey: "advancement.fiber.name", HintKey: "advancement.fiber.hint", Item: "dragonfactory:bark_fiber", Guide: "stone_tools"},
+	{ID: "string", Chapter: advChapterStart, Parents: []string{"fiber"}, NameKey: "advancement.string.name", HintKey: "advancement.string.hint", Item: "string"},
+	{ID: "hammer", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.hammer.name", HintKey: "advancement.hammer.hint", Item: "dragonfactory:stone_hammer"},
+	{ID: "gravel", Chapter: advChapterStart, Parents: []string{"hammer"}, NameKey: "advancement.gravel.name", HintKey: "advancement.gravel.hint", Item: "gravel", Guide: "hammer"},
 	{ID: "sand", Chapter: advChapterStart, Parents: []string{"gravel"}, NameKey: "advancement.sand.name", HintKey: "advancement.sand.hint", Item: "sand", Guide: "hammer"},
-	{ID: "sieve", Chapter: advChapterSieve, Parents: []string{"string"}, NameKey: "dragonfactory.advancement.init.33", HintKey: "dragonfactory.advancement.init.34", Item: "dragonfactory:sieve"},
+	{ID: "sieve", Chapter: advChapterSieve, Parents: []string{"string"}, NameKey: "advancement.sieve.name", HintKey: "advancement.sieve.hint", Item: "dragonfactory:sieve"},
 	{ID: "mesh_string", Chapter: advChapterSieve, Parents: []string{"sieve"}, NameKey: "advancement.mesh_string.name", HintKey: "advancement.mesh_string.hint", Item: "dragonfactory:mesh_string"},
-	{ID: advSift, Chapter: advChapterSieve, Parents: []string{"mesh_string", "gravel"}, Event: true, NameKey: "dragonfactory.advancement.init.35", HintKey: "dragonfactory.advancement.init.36", Icon: "gravel", Guide: "sieve"},
+	{ID: advSift, Chapter: advChapterSieve, Parents: []string{"mesh_string", "gravel"}, Event: true, NameKey: "advancement.sift.name", HintKey: "advancement.sift.hint", Icon: "gravel", Guide: "sieve"},
 	{ID: "mesh_flint", Chapter: advChapterSieve, Parents: []string{"mesh_string"}, NameKey: "advancement.mesh_flint.name", HintKey: "advancement.mesh_flint.hint", Item: "dragonfactory:mesh_flint"},
 	{ID: "ore_block", Chapter: advChapterSieve, NameKey: "advancement.ore_block.name", Parents: []string{advSift}, HintKey: "advancement.ore_block.hint", Item: "iron_ore"},
 	{ID: "seeds", Chapter: advChapterFarming, Parents: []string{advSift}, NameKey: "advancement.seeds.name", HintKey: "advancement.seeds.hint", Item: "wheat_seeds", Guide: "sieve"},
 	{ID: "wheat", Chapter: advChapterFarming, Parents: []string{"seeds"}, NameKey: "advancement.wheat.name", HintKey: "advancement.wheat.hint", Item: "wheat", Guide: "wood_tools"},
 	{ID: "bread", Chapter: advChapterFarming, Parents: []string{"wheat"}, NameKey: "advancement.bread.name", HintKey: "advancement.bread.hint", Item: "bread"},
-	{ID: "furnace", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "dragonfactory.advancement.init.39", HintKey: "dragonfactory.advancement.init.40", Item: "furnace"},
+	{ID: "furnace", Chapter: advChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.furnace.name", HintKey: "advancement.furnace.hint", Item: "furnace"},
 	{ID: "torch", Chapter: advChapterStart, Parents: []string{"furnace"}, NameKey: "advancement.torch.name", HintKey: "advancement.torch.hint", Item: "torch"},
-	{ID: "composter", Chapter: advChapterFarming, Parents: []string{"wood_tools"}, NameKey: "dragonfactory.advancement.init.19", HintKey: "dragonfactory.advancement.init.20", Item: "composter"},
-	{ID: "barrel", Chapter: advChapterFarming, Parents: []string{"composter"}, NameKey: "dragonfactory.advancement.init.21", HintKey: "dragonfactory.advancement.init.22", Item: "dragonfactory:barrel_oak"},
-	{ID: advGrowTree, Chapter: advChapterStart, Parents: []string{"wood"}, Event: true, NameKey: "dragonfactory.advancement.init.15", HintKey: "dragonfactory.advancement.init.16", Icon: "oak_sapling"},
-	{ID: "dust", Chapter: advChapterStart, Parents: []string{"sand"}, NameKey: "dragonfactory.advancement.init.37", HintKey: "dragonfactory.advancement.init.38", Item: "dragonfactory:dust", Guide: "hammer"},
+	{ID: "composter", Chapter: advChapterFarming, Parents: []string{"wood_tools"}, NameKey: "advancement.composter.name", HintKey: "advancement.composter.hint", Item: "composter"},
+	{ID: "barrel", Chapter: advChapterFarming, Parents: []string{"composter"}, NameKey: "advancement.barrel.name", HintKey: "advancement.barrel.hint", Item: "dragonfactory:barrel_oak"},
+	{ID: advGrowTree, Chapter: advChapterStart, Parents: []string{"wood"}, Event: true, NameKey: "advancement.grow_tree.name", HintKey: "advancement.grow_tree.hint", Icon: "oak_sapling"},
+	{ID: "dust", Chapter: advChapterStart, Parents: []string{"sand"}, NameKey: "advancement.dust.name", HintKey: "advancement.dust.hint", Item: "dragonfactory:dust", Guide: "hammer"},
 	{ID: "clay", Chapter: advChapterFarming, Parents: []string{"barrel", "dust"}, NameKey: "advancement.clay.name", HintKey: "advancement.clay.hint", Item: "clay", Icon: "clay"},
 	{ID: "wooden_bucket", Chapter: advChapterFarming, Parents: []string{"barrel"}, NameKey: "advancement.wooden_bucket.name", HintKey: "advancement.wooden_bucket.hint", Item: "dragonfactory:wooden_bucket"},
 	{ID: "glass", Chapter: advChapterStart, Parents: []string{"furnace", "sand"}, NameKey: "advancement.glass.name", HintKey: "advancement.glass.hint", Item: "glass", Guide: "furnace"},
-	{ID: "iron", Chapter: advChapterSieve, Parents: []string{"ore_block", "furnace"}, NameKey: "dragonfactory.advancement.init.41", HintKey: "dragonfactory.advancement.init.42", Item: "iron_ingot"},
+	{ID: "iron", Chapter: advChapterSieve, Parents: []string{"ore_block", "furnace"}, NameKey: "advancement.iron.name", HintKey: "advancement.iron.hint", Item: "iron_ingot"},
 	{ID: "mesh_iron", Chapter: advChapterSieve, Parents: []string{"mesh_string"}, NameKey: "advancement.mesh_iron.name", HintKey: "advancement.mesh_iron.hint", Item: "dragonfactory:mesh_iron"},
 	{ID: "ore_dust", Chapter: advChapterSieve, Parents: []string{"ore_block", "hammer"}, NameKey: "advancement.ore_dust.name", HintKey: "advancement.ore_dust.hint", Item: "dragonfactory:metal_dust_iron", Guide: "iron"},
 	{ID: "diamond", Chapter: advChapterSieve, Parents: []string{"mesh_iron", advSift}, NameKey: "advancement.diamond.name", HintKey: "advancement.diamond.hint", Item: "diamond"},
@@ -135,7 +135,7 @@ var advancementTree = []Advancement{
 	{ID: "stone_barrel", Chapter: advChapterFarming, Parents: []string{"barrel", "furnace"}, NameKey: "advancement.stone_barrel.name", HintKey: "advancement.stone_barrel.hint", Item: "dragonfactory:barrel_stone", Icon: "dragonfactory:barrel_stone"},
 	{ID: "lava", Chapter: advChapterFarming, Parents: []string{"stone_barrel", "bucket"}, NameKey: "advancement.lava.name", HintKey: "advancement.lava.hint", Item: "lava_bucket", Icon: "lava_bucket", Guide: "stone_barrel"},
 	{ID: "generator", Chapter: advChapterAutomation, Parents: []string{"iron"}, NameKey: "advancement.generator.name", HintKey: "advancement.generator.hint", Research: "generator", Icon: "dragonfactory:generator"},
-	{ID: advMachine, Chapter: advChapterAutomation, Parents: []string{"generator"}, Event: true, NameKey: "dragonfactory.advancement.init.43", HintKey: "dragonfactory.advancement.init.44", Icon: "dragonfactory:crusher", Guide: "generator"},
+	{ID: advMachine, Chapter: advChapterAutomation, Parents: []string{"generator"}, Event: true, NameKey: "advancement.machine.name", HintKey: "advancement.machine.hint", Icon: "dragonfactory:crusher", Guide: "generator"},
 	{ID: "laboratory", Chapter: advChapterLab, Parents: []string{"generator", "glass"}, NameKey: "advancement.laboratory.name", HintKey: "advancement.laboratory.hint", Item: "dragonfactory:laboratory"},
 	{ID: "lab_engineering", Chapter: advChapterLab, Parents: []string{"laboratory"}, NameKey: "advancement.lab_engineering.name", HintKey: "advancement.lab_engineering.hint", Item: "dragonfactory:research_essence_engineering", Guide: "laboratory"},
 	{ID: advEssenceResearch, Chapter: advChapterLab, Parents: []string{"lab_engineering"}, Event: true, NameKey: "advancement.essence_research.name", HintKey: "advancement.essence_research.hint", Icon: "dragonfactory:research_essence_engineering", Guide: "laboratory"},
@@ -176,7 +176,7 @@ var advancementTree = []Advancement{
 	{ID: "ender_pearl", Chapter: advChapterHunting, Parents: []string{"mob_simulator", "mesh_diamond"}, NameKey: "advancement.ender_pearl.name", HintKey: "advancement.ender_pearl.hint", Item: "ender_pearl", Icon: "ender_pearl", Guide: "mob_simulator"},
 	{ID: "mesh_netherite", Chapter: advChapterSieve, Parents: []string{"mesh_string"}, NameKey: "advancement.mesh_netherite.name", HintKey: "advancement.mesh_netherite.hint", Item: "dragonfactory:mesh_netherite", Icon: "dragonfactory:mesh_netherite"},
 	{ID: "blaze_rod", Chapter: advChapterHunting, Parents: []string{"mob_simulator", "mesh_netherite"}, NameKey: "advancement.blaze_rod.name", HintKey: "advancement.blaze_rod.hint", Item: "blaze_rod", Icon: "blaze_rod", Guide: "mesh_netherite"},
-	{ID: "fluid_conduit", Chapter: advChapterLogistics, Parents: []string{"item_conduit", "glass"}, NameKey: "dragonfactory.advancement.init.47", HintKey: "dragonfactory.advancement.init.48", Research: "fluid_conduit", Icon: "dragonfactory:conduit_fluid_1"},
+	{ID: "fluid_conduit", Chapter: advChapterLogistics, Parents: []string{"item_conduit", "glass"}, NameKey: "advancement.fluid_conduit.name", HintKey: "advancement.fluid_conduit.hint", Research: "fluid_conduit", Icon: "dragonfactory:conduit_fluid_1"},
 	{ID: "fluid_tank", Chapter: advChapterLogistics, Parents: []string{"fluid_conduit"}, NameKey: "advancement.fluid_tank.name", HintKey: "advancement.fluid_tank.hint", Research: "fluid_tank", Icon: "dragonfactory:fluid_tank"},
 	{ID: "ore_washer", Chapter: advChapterAlloy, Parents: []string{"fluid_tank", "crusher"}, NameKey: "advancement.ore_washer.name", HintKey: "advancement.ore_washer.hint", Research: "ore_washer", Icon: "dragonfactory:ore_washer"},
 	{ID: "crucible", Chapter: advChapterAlloy, Parents: []string{"fluid_tank", "bronze_ingot"}, NameKey: "advancement.crucible.name", HintKey: "advancement.crucible.hint", Research: "crucible", Icon: "dragonfactory:crucible"},
@@ -202,7 +202,7 @@ var advancementTree = []Advancement{
 	{ID: "magic_sieve", Chapter: advChapterMagic, Parents: []string{"auto_sieve", "ore_bloom"}, NameKey: "advancement.magic_sieve.name", HintKey: "advancement.magic_sieve.hint", Research: "magic_sieve", Icon: "dragonfactory:magic_sieve"},
 	{ID: "gem_bloom", Chapter: advChapterMagic, Parents: []string{"ore_bloom"}, NameKey: "advancement.gem_bloom.name", HintKey: "advancement.gem_bloom.hint", Item: "dragonfactory:seed_gem_diamond"},
 	{ID: "essence_bloom", Chapter: advChapterMagic, Parents: []string{"gem_bloom"}, NameKey: "advancement.essence_bloom.name", HintKey: "advancement.essence_bloom.hint", Item: "dragonfactory:seed_ess_enderman"},
-	{ID: advChunk, Chapter: advChapterStart, Parents: []string{"cobble"}, Event: true, NameKey: "dragonfactory.advancement.init.45", HintKey: "dragonfactory.advancement.init.46", Icon: "grass_block"},
+	{ID: advChunk, Chapter: advChapterStart, Parents: []string{"cobble"}, Event: true, NameKey: "advancement.chunk.name", HintKey: "advancement.chunk.hint", Icon: "grass_block"},
 	{ID: "shears", Chapter: advChapterGear, Parents: []string{"iron"}, NameKey: "advancement.shears.name", HintKey: "advancement.shears.hint", Item: "shears"},
 	{ID: "iron_armor", Chapter: advChapterGear, Parents: []string{"iron"}, NameKey: "advancement.iron_armor.name", HintKey: "advancement.iron_armor.hint", Item: "iron_chestplate"},
 	{ID: "lantern", Chapter: advChapterExtra, Parents: []string{"iron", "torch"}, NameKey: "advancement.lantern.name", HintKey: "advancement.lantern.hint", Item: "lantern"},
@@ -507,10 +507,10 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*Advancement) {
 			names = append(names, a.Title(lang))
 		}
 		if account.On(p, settingAdvancementToast) {
-			p.SendToast(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.3"), strings.Join(names, ", "))
+			p.SendToast(i18n.T(lang, "advancement.done.toast"), strings.Join(names, ", "))
 		}
 		if account.On(p, settingAdvancementChat) {
-			p.Message(i18n.T(lang, "dragonfactory.advancement.completeAdvancements.1") + strings.Join(names, ", "))
+			p.Message(i18n.T(lang, "advancement.done.chat") + strings.Join(names, ", "))
 		}
 		if account.On(p, settingAdvancementSound) {
 			p.PlaySound(sound.LevelUp{})

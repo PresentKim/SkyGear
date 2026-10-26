@@ -28,22 +28,22 @@ var meshTiers = []struct {
 	tier, nameKey string
 	material      world.Item
 }{
-	{"string", "dragonfactory.mesh.init.1", nil},
-	{"flint", "dragonfactory.mesh.init.2", item.Flint{}},
-	{"iron", "dragonfactory.mesh.init.3", item.IronIngot{}},
-	{"gold", "dragonfactory.mesh.init.4", item.GoldIngot{}},
-	{"diamond", "dragonfactory.mesh.init.5", item.Diamond{}},
-	{"netherite", "dragonfactory.mesh.init.6", item.NetheriteIngot{}},
+	{"string", "mesh.string", nil},
+	{"flint", "mesh.flint", item.Flint{}},
+	{"iron", "mesh.iron", item.IronIngot{}},
+	{"gold", "mesh.gold", item.GoldIngot{}},
+	{"diamond", "mesh.diamond", item.Diamond{}},
+	{"netherite", "mesh.netherite", item.NetheriteIngot{}},
 }
 
 // meshName is the name of the mesh of a tier in lang.
 func meshName(lang, tier string) string {
 	for _, t := range meshTiers {
 		if t.tier == tier {
-			return i18n.T(lang, t.nameKey) + i18n.T(lang, "dragonfactory.mesh.meshName.1")
+			return i18n.T(lang, t.nameKey) + i18n.T(lang, "mesh.suffix")
 		}
 	}
-	return i18n.T(lang, "dragonfactory.mesh.meshName.2")
+	return i18n.T(lang, "mesh.name")
 }
 
 // Mesh is the mesh item of a tier.

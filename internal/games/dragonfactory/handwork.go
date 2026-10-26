@@ -57,7 +57,7 @@ var pebbleKinds = []struct {
 	weight int
 	block  world.Item
 }{
-	{PebbleStone, i18n.T(i18n.Default, "dragonfactory.handwork.init.1"), 1, block.Cobblestone{}},
+	{PebbleStone, i18n.T(i18n.Default, "pebble.stone"), 1, block.Cobblestone{}},
 	{PebbleDeepslate, i18n.T(i18n.Default, "pebble.deepslate"), 0, block.Deepslate{Type: block.CobbledDeepslate()}},
 	{PebbleBlackstone, i18n.T(i18n.Default, "pebble.blackstone"), 0, block.Blackstone{}},
 	{PebbleBasalt, i18n.T(i18n.Default, "pebble.basalt"), 0, block.Basalt{}},

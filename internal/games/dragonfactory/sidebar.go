@@ -25,7 +25,7 @@ func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
 	lang := i18n.Of(p)
 	var b hud.Board
-	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.updateBoard.1"), day, formatPlayTime(lang, total)))
+	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "sidebar.day"), day, formatPlayTime(lang, total)))
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.world))
 	}
@@ -73,13 +73,13 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 				rows = append(rows, s.researchCostRows(lang, r, inv)...)
 			}
 		}
-		return i18n.T(lang, "dragonfactory.sidebar.questRows.1") + a.Title(lang), rows
+		return i18n.T(lang, "sidebar.quest.advancement") + a.Title(lang), rows
 	}
 	r, ok := s.nextResearch()
 	if !ok {
-		return i18n.T(lang, "dragonfactory.sidebar.questRows.2"), nil
+		return i18n.T(lang, "sidebar.quest.allResearch"), nil
 	}
-	return fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.questRows.3"), r.Title(lang)), s.researchCostRows(lang, r, inv)
+	return fmt.Sprintf(i18n.T(lang, "sidebar.quest.researchNamed"), r.Title(lang)), s.researchCostRows(lang, r, inv)
 }
 
 // researchCostRows are what a research spends, one row per item: how many
@@ -106,9 +106,9 @@ func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inve
 func formatPlayTime(lang string, d time.Duration) string {
 	m := int(d / time.Minute)
 	if m < 60 {
-		return fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.formatPlayTime.1"), m)
+		return fmt.Sprintf(i18n.T(lang, "sidebar.time.min"), m)
 	}
-	return fmt.Sprintf(i18n.T(lang, "dragonfactory.sidebar.formatPlayTime.2"), m/60, m%60)
+	return fmt.Sprintf(i18n.T(lang, "sidebar.time.hourMin"), m/60, m%60)
 }
 
 // isOperator reports whether p sees the operator tools.

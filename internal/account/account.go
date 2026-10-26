@@ -63,8 +63,8 @@ func (c Color) Name(lang string) string { return i18n.T(lang, c.NameKey) }
 // Colors are the name colours in display order; the first is the default.
 // Unlock counts are balancing drafts.
 var Colors = []Color{
-	{"", "account.account.init.1", "§f", 0}, {"yellow", "account.account.init.2", "§e", 0}, {"aqua", "account.account.init.3", "§b", 0}, {"green", "account.account.init.4", "§a", 0},
-	{"gold", "account.account.init.5", "§6", 3}, {"pink", "account.account.init.6", "§d", 3}, {"red", "account.account.init.7", "§c", 6}, {"blue", "account.account.init.8", "§9", 6},
+	{"", "account.color.default", "§f", 0}, {"yellow", "account.color.yellow", "§e", 0}, {"aqua", "account.color.aqua", "§b", 0}, {"green", "account.color.green", "§a", 0},
+	{"gold", "account.color.gold", "§6", 3}, {"pink", "account.color.pink", "§d", 3}, {"red", "account.color.red", "§c", 6}, {"blue", "account.color.blue", "§9", 6},
 	{"darkgreen", "account.color.darkgreen", "§2", 12}, {"darkaqua", "account.color.darkaqua", "§3", 20}, {"purple", "account.color.purple", "§5", 30},
 	{"copper", "account.color.copper", "§n", 45}, {"emerald", "account.color.emerald", "§q", 65}, {"diamond", "account.color.diamond", "§s", 90},
 	{"amethyst", "account.color.amethyst", "§u", 120}, {"netherite", "account.color.netherite", "§j", 160},
@@ -183,12 +183,12 @@ func Grant(p *player.Player, id string) {
 		return
 	}
 	lang := i18n.Of(p)
-	lines := []string{fmt.Sprintf(i18n.T(lang, "account.account.Grant.1"), a.Name(lang), a.Desc(lang))}
+	lines := []string{fmt.Sprintf(i18n.T(lang, "account.achievement.unlocked"), a.Name(lang), a.Desc(lang))}
 	if title := a.Title(lang); title != "" {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "account.account.Grant.2"), title))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "account.achievement.titleEarned"), title))
 	}
 	if On(p, SettingAchievementToast) {
-		ui.Toast(p, i18n.T(lang, "account.account.Grant.3"), strings.Join(lines, "\n"))
+		ui.Toast(p, i18n.T(lang, "account.achievement.toast"), strings.Join(lines, "\n"))
 	}
 	// The lobby has no chat.
 	if On(p, SettingAchievementChat) && (ui.InLobby == nil || !ui.InLobby(p)) {

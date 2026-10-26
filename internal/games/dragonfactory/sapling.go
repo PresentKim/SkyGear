@@ -29,7 +29,7 @@ const (
 // giveSapling gives p an oak sapling if the cooldown has passed.
 func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) error {
 	if wait := s.state.LastSapling.Add(saplingCooldown).Sub(now); wait > 0 {
-		return fmt.Errorf(i18n.T(i18n.Of(p), "dragonfactory.sapling.giveSapling.1"), int(wait.Minutes()), int(wait.Seconds())%60)
+		return fmt.Errorf(i18n.T(i18n.Of(p), "sapling.wait"), int(wait.Minutes()), int(wait.Seconds())%60)
 	}
 	s.state.LastSapling = now
 	count(p, "sapling_cmd", 1)
@@ -72,12 +72,12 @@ func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	s, ok := c.g.sessionOf(tx.World())
 	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.1"))
+		o.Error(i18n.T(i18n.Of(p), "sapling.needIsland"))
 		return
 	}
 	if err := s.giveSapling(p, tx, time.Now()); err != nil {
-		o.Errorf(i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.2"), err.Error())
+		o.Errorf(i18n.T(i18n.Of(p), "sapling.cooldown"), err.Error())
 		return
 	}
-	o.Printf("%s", i18n.T(i18n.Of(p), "dragonfactory.sapling.Run.3"))
+	o.Printf("%s", i18n.T(i18n.Of(p), "sapling.given"))
 }

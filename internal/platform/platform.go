@@ -93,7 +93,7 @@ func (pf *Platform) Join(p *player.Player) {
 	acc, err := pf.db.TouchAccount(instance.AccountID(p), p.XUID(), p.Name())
 	if err != nil {
 		pf.log.Error("touch account", "player", p.Name(), "err", err)
-		p.Disconnect(i18n.T(i18n.Of(p), "platform.platform.Join.1"))
+		p.Disconnect(i18n.T(i18n.Of(p), "platform.accountLoadFailed"))
 		return
 	}
 	pf.loadUIMode(p)
@@ -117,7 +117,7 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	sendLobbyHUD(p, "")
 	// The hotbar is hidden: every slot holds the menu, so the use key opens
 	// it whichever slot is held.
-	menu := item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.platform.arriveLobby.1")).WithValue(lobbyItemKey, "menu")
+	menu := item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.lobby.menuItem")).WithValue(lobbyItemKey, "menu")
 	for slot := range 9 {
 		_ = p.Inventory().SetItem(slot, menu)
 	}
@@ -149,7 +149,7 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 func (pf *Platform) showSaves(p *player.Player, sel int64) {
 	saves, err := pf.db.SavesOf(instance.AccountID(p), pf.game.ID())
 	if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.showSaves.1"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.saves.loading"), err)
 		return
 	}
 	lang := i18n.Of(p)
@@ -169,13 +169,13 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 		s, ok := bySlot[n]
 		if !ok {
 			rows = append(rows, ui.ListRow{
-				Label: ui.ListRowText(i18n.T(lang, "platform.platform.showSaves.2"), ""),
+				Label: ui.ListRowText(i18n.T(lang, "platform.saves.new"), ""),
 				Icon:  iconNewSave,
 				Run:   func(p *player.Player, _ *world.Tx) { pf.askNewSave(p, n) },
 			})
 			continue
 		}
-		info := fmt.Sprintf(i18n.T(lang, "platform.platform.showSaves.3"), s.Day, formatDuration(lang, s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
+		info := fmt.Sprintf(i18n.T(lang, "platform.saves.info"), s.Day, formatDuration(lang, s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
 		rows = append(rows, ui.ListRow{
 			Label:    ui.ListRowText(s.Name, info),
 			Icon:     iconSave,
@@ -198,8 +198,8 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 		// pressing makes a new one) and the member count sit on their
 		// buttons, so the actions fill the column without a body above them
 		sp.Actions = []ui.Option{
-			{Label: i18n.T(lang, "platform.platform.showSave.2"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, chosen.ID) }},
-			{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showSave.code"), code), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
+			{Label: i18n.T(lang, "platform.save.enter"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, chosen.ID) }},
+			{Label: fmt.Sprintf(i18n.T(lang, "platform.save.code"), code), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
 				pf.confirm(p, i18n.T(lang, "platform.invite.renew"), i18n.T(lang, "platform.invite.renew.ask"), i18n.T(lang, "platform.invite.renew"), func(p *player.Player, _ *world.Tx) {
 					s, err := pf.db.Save(chosen.ID)
 					if err == nil {
@@ -212,17 +212,17 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 					pf.showSaves(p, chosen.ID)
 				}, func(p *player.Player, _ *world.Tx) { pf.showSaves(p, chosen.ID) })
 			}},
-			{Label: fmt.Sprintf(i18n.T(lang, "platform.platform.showSave.members"), n, MaxMembers), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
-			{Label: i18n.T(lang, "platform.platform.showSave.5"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, chosen) }},
-			{Label: i18n.T(lang, "platform.platform.showSave.6"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, chosen, 0) }},
+			{Label: fmt.Sprintf(i18n.T(lang, "platform.save.members"), n, MaxMembers), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
+			{Label: i18n.T(lang, "platform.save.rename"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, chosen) }},
+			{Label: i18n.T(lang, "platform.save.delete"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, chosen, 0) }},
 		}
 	default:
-		sp.Body = i18n.T(lang, "platform.platform.showSaves.none")
+		sp.Body = i18n.T(lang, "platform.saves.none")
 	}
 	// The back button sits in the control box left of the close button, like
 	// every other screen's.
-	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.platform.showSaves.6"), func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) }))
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.platform.showSaves.4"), sp)
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.saves.lobby"), func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) }))
+	ui.ListSplitMenu(p, i18n.T(lang, "platform.saves.title"), sp)
 }
 
 func (pf *Platform) enter(p *player.Player, saveID int64) {
@@ -245,26 +245,26 @@ func entered(p *player.Player) {
 func (pf *Platform) enterFailed(p *player.Player, err error) {
 	switch err {
 	case instance.ErrHostOffline:
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.1"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.enter.hostOffline"))
 	case instance.ErrStateLocked:
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.2"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.enter.hostBusy"))
 	case instance.ErrTooManyActive:
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.enter.3"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.enter.serverBusy"))
 	default:
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.enter.4"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.enter.entering"), err)
 	}
 }
 
 func (pf *Platform) askNewSave(p *player.Player, slot int) {
-	ui.Input(p, ui.CreateToken+i18n.T(i18n.Of(p), "platform.platform.askNewSave.1"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.2"), i18n.T(i18n.Of(p), "platform.platform.askNewSave.3"), func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, ui.CreateToken+i18n.T(i18n.Of(p), "platform.newSave.title"), i18n.T(i18n.Of(p), "platform.newSave.label"), i18n.T(i18n.Of(p), "platform.newSave.placeholder"), func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.askNewSave.4"))
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.save.nameLength"))
 			return
 		}
 		s, err := pf.db.CreateSave(instance.AccountID(p), pf.game.ID(), slot, name)
 		if err != nil {
-			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askNewSave.5"), err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.newSave.creating"), err)
 			return
 		}
 		pf.showSaves(p, s.ID)
@@ -274,14 +274,14 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 }
 
 func (pf *Platform) askRename(p *player.Player, s db.Save) {
-	ui.Input(p, i18n.T(i18n.Of(p), "platform.platform.askRename.1"), i18n.T(i18n.Of(p), "platform.platform.askRename.2"), s.Name, func(p *player.Player, _ *world.Tx, name string) {
+	ui.Input(p, i18n.T(i18n.Of(p), "platform.rename.title"), i18n.T(i18n.Of(p), "platform.rename.label"), s.Name, func(p *player.Player, _ *world.Tx, name string) {
 		name, ok := cleanName(name)
 		if !ok {
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.platform.askRename.3"))
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.save.nameLength"))
 			return
 		}
 		if err := pf.db.RenameSave(s.ID, name); err != nil {
-			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askRename.4"), err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.rename.renaming"), err)
 			return
 		}
 		pf.showSaves(p, s.ID)
@@ -295,24 +295,24 @@ func (pf *Platform) askRename(p *player.Player, s db.Save) {
 func (pf *Platform) askDelete(p *player.Player, s db.Save, step int) {
 	back := func(p *player.Player, _ *world.Tx) { pf.showSaves(p, s.ID) }
 	if step == 0 {
-		pf.confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.1"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.2"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.3"), func(p *player.Player, _ *world.Tx) {
+		pf.confirm(p, i18n.T(i18n.Of(p), "platform.delete.title"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.delete.ask"), s.Name), i18n.T(i18n.Of(p), "platform.save.delete"), func(p *player.Player, _ *world.Tx) {
 			pf.askDelete(p, s, 1)
 		}, back)
 		return
 	}
-	pf.confirm(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.4"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.platform.askDelete.5"), s.Name), i18n.T(i18n.Of(p), "platform.platform.askDelete.6"), func(p *player.Player, _ *world.Tx) {
+	pf.confirm(p, i18n.T(i18n.Of(p), "platform.delete.confirmTitle"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.delete.confirmAsk"), s.Name), i18n.T(i18n.Of(p), "platform.delete.forever"), func(p *player.Player, _ *world.Tx) {
 		if err := pf.m.DeleteSave(s.ID); err != nil {
-			pf.fail(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.7"), err)
+			pf.fail(p, i18n.T(i18n.Of(p), "platform.delete.deleting"), err)
 			return
 		}
-		ui.Flash(p, i18n.T(i18n.Of(p), "platform.platform.askDelete.8"), s.Name)
+		ui.Flash(p, i18n.T(i18n.Of(p), "platform.delete.done"), s.Name)
 		pf.showSaves(p, 0)
 	}, back)
 }
 
 func (pf *Platform) fail(p *player.Player, what string, err error) {
 	pf.log.Error(what, "player", p.Name(), "err", err)
-	ui.Notify(p, i18n.T(i18n.Of(p), "platform.platform.fail.1"), what)
+	ui.Notify(p, i18n.T(i18n.Of(p), "platform.failed"), what)
 }
 
 func cleanName(s string) (string, bool) {
@@ -322,18 +322,18 @@ func cleanName(s string) (string, bool) {
 }
 
 func registerCommands(pf *Platform) {
-	cmd.Register(cmd.New("lobby", i18n.T(i18n.Default, "platform.platform.registerCommands.1"), []string{"spawn"}, lobbyCmd{pf: pf}))
-	cmd.Register(cmd.New("saves", i18n.T(i18n.Default, "platform.platform.registerCommands.2"), nil, savesCmd{pf: pf}))
-	cmd.Register(cmd.New("guide", i18n.T(i18n.Default, "platform.platform.registerCommands.3"), nil, guideCmd{pf: pf}))
-	cmd.Register(cmd.New("friends", i18n.T(i18n.Default, "platform.platform.registerCommands.4"), []string{"friend"}, friendsCmd{pf: pf}))
-	cmd.Register(cmd.New("invite", i18n.T(i18n.Default, "platform.platform.registerCommands.5"), nil, inviteCmd{pf: pf}))
-	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.platform.registerCommands.6"), nil, membersCmd{pf: pf}))
-	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.platform.registerCommands.7"), nil, joinCmd{pf: pf}))
-	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.platform.registerCommands.8"), []string{"titles"}, titleCmd{pf: pf}))
-	cmd.Register(cmd.New("uimode", i18n.T(i18n.Default, "platform.platform.registerCommands.9"), nil, uiModeCmd{pf: pf}))
+	cmd.Register(cmd.New("lobby", i18n.T(i18n.Default, "platform.cmd.lobby"), []string{"spawn"}, lobbyCmd{pf: pf}))
+	cmd.Register(cmd.New("saves", i18n.T(i18n.Default, "platform.cmd.saves"), nil, savesCmd{pf: pf}))
+	cmd.Register(cmd.New("guide", i18n.T(i18n.Default, "platform.cmd.guide"), nil, guideCmd{pf: pf}))
+	cmd.Register(cmd.New("friends", i18n.T(i18n.Default, "platform.cmd.friends"), []string{"friend"}, friendsCmd{pf: pf}))
+	cmd.Register(cmd.New("invite", i18n.T(i18n.Default, "platform.cmd.invite"), nil, inviteCmd{pf: pf}))
+	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.cmd.members"), nil, membersCmd{pf: pf}))
+	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.cmd.join"), nil, joinCmd{pf: pf}))
+	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.cmd.title"), []string{"titles"}, titleCmd{pf: pf}))
+	cmd.Register(cmd.New("uimode", i18n.T(i18n.Default, "platform.cmd.uimode"), nil, uiModeCmd{pf: pf}))
 	cmd.Register(cmd.New("uidebug", i18n.T(i18n.Default, "platform.uidebug.command"), nil, uiDebugCmd{}))
 	cmd.Register(cmd.New("settings", i18n.T(i18n.Default, "setting.command"), []string{"setting", "options"}, settingsCmd{pf: pf}))
-	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.platform.registerCommands.10"), nil, copySaveCmd{pf: pf}))
+	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.cmd.copysave"), nil, copySaveCmd{pf: pf}))
 }
 
 type playerOnly struct{}
@@ -363,7 +363,7 @@ func (c lobbyCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 		p.Teleport(LobbySpawn.Vec3Middle())
 		return
 	}
-	p.Message(i18n.T(i18n.Of(p), "platform.platform.Run.1"))
+	p.Message(i18n.T(i18n.Of(p), "platform.toLobby"))
 	c.pf.m.ToLobby(p)
 }
 
@@ -375,7 +375,7 @@ type savesCmd struct {
 func (c savesCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	if c.pf.m.Location(instance.AccountID(p)) != nil {
-		o.Error(i18n.T(i18n.Of(p), "platform.platform.Run.2"))
+		o.Error(i18n.T(i18n.Of(p), "platform.lobbyOnly"))
 		return
 	}
 	c.pf.showSaves(p, 0)
@@ -423,5 +423,5 @@ func (pf *Platform) lobbyMenu() []ui.Option {
 // lobbyBack is the back button of a lobby screen: it shows back. The screens
 // that also open in a save go back with menuBack.
 func (pf *Platform) lobbyBack(p *player.Player, back func(p *player.Player)) ui.Option {
-	return ui.Back(i18n.T(i18n.Of(p), "platform.platform.showSaves.6"), func(p *player.Player, _ *world.Tx) { back(p) })
+	return ui.Back(i18n.T(i18n.Of(p), "platform.saves.lobby"), func(p *player.Player, _ *world.Tx) { back(p) })
 }

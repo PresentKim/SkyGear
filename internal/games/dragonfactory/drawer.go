@@ -204,9 +204,9 @@ func (d Drawer) toItem() item.Stack {
 		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
 		lore = append(lore, fmt.Sprintf("§f%s §7x%s", itemName(i18n.Default, d.Item), formatInt(d.Count)))
 	}
-	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "dragonfactory.drawer.toItem.1"), d.Capacity, onOff(d.Void)))
+	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "drawer.lore.upgrades"), d.Capacity, onOff(d.Void)))
 	if d.Locked {
-		lore = append(lore, "§e"+lockGlyph+i18n.T(i18n.Default, "dragonfactory.drawer.toItem.2"))
+		lore = append(lore, "§e"+lockGlyph+i18n.T(i18n.Default, "drawer.lore.locked"))
 	}
 	return st.WithLore(lore...)
 }
@@ -240,7 +240,7 @@ func boolByte(b bool) byte {
 func byteBool(v any, _ bool) bool { b, _ := v.(byte); return b == 1 }
 
 func onOff(b bool) string {
-	return map[bool]string{true: i18n.T(i18n.Default, "dragonfactory.drawer.onOff.1"), false: i18n.T(i18n.Default, "dragonfactory.drawer.onOff.2")}[b]
+	return map[bool]string{true: i18n.T(i18n.Default, "drawer.on"), false: i18n.T(i18n.Default, "drawer.off")}[b]
 }
 
 func (d Drawer) EncodeNBT() map[string]any {
@@ -431,8 +431,8 @@ const (
 )
 
 var upgradeInfo = []struct{ id, name string }{
-	{"capacity", i18n.T(i18n.Default, "dragonfactory.drawer.init.1")},
-	{"void", i18n.T(i18n.Default, "dragonfactory.drawer.init.3")},
+	{"capacity", i18n.T(i18n.Default, "drawer.upgrade.capacity")},
+	{"void", i18n.T(i18n.Default, "drawer.upgrade.void")},
 }
 
 func (u DrawerUpgrade) EncodeItem() (string, int16) {
@@ -513,7 +513,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	if !ok {
 		return
 	}
-	info := i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.1")
+	info := i18n.T(i18n.Of(p), "drawer.menu.empty")
 	if !d.Item.Empty() {
 		info = fmt.Sprintf("§f%s\n§7%s / %s", itemName(i18n.Of(p), d.Item), formatInt(d.Count), formatInt(d.capacity()))
 	}
@@ -533,26 +533,26 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	// A slot's text is its tooltip (hover, or the first tap on touch).
 	slot := func(kind int, filled bool, empty, tip string) ui.Slot {
 		if filled {
-			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.2"), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+			return ui.Slot{Icon: ui.ItemIcon(DrawerUpgrade{Kind: kind}), Text: tip + i18n.T(i18n.Of(p), "drawer.menu.remove"), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 				s.removeUpgrade(p, tx, pos, d, kind)
 			})}
 		}
-		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.3"), upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
+		return ui.Slot{Icon: "textures/ui/df/" + empty, Text: fmt.Sprintf(i18n.T(i18n.Of(p), "drawer.menu.emptySlot"), upgradeInfo[kind].name), Run: act(func(p *player.Player, tx *world.Tx, d *Drawer) {
 			s.fitUpgrade(p, tx, pos, d, kind)
 		})}
 	}
 	// Storage upgrades on the left, utilities (void, lock) on the right.
 	var storage []ui.Slot
 	for i := range MaxCapacityUpgrades {
-		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.4")))
+		storage = append(storage, slot(UpgradeCapacity, i < d.Capacity, "slot_empty_capacity", i18n.T(i18n.Of(p), "drawer.menu.capacity")))
 	}
-	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.5")}
+	lock := ui.Slot{Icon: "textures/ui/df/slot_empty_lock", Text: i18n.T(i18n.Of(p), "drawer.menu.unlocked")}
 	if d.Locked {
-		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.6")
+		lock.Icon, lock.Text = "textures/items/drawer_upgrade_lock", i18n.T(i18n.Of(p), "drawer.menu.locked")
 	}
 	lock.Run = act(func(_ *player.Player, tx *world.Tx, d *Drawer) { s.setLocked(tx, pos, d, !d.Locked) })
-	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.7")), lock}
-	ui.SlotMenu(p, i18n.T(i18n.Of(p), "dragonfactory.drawer.showDrawer.8"), store, info, storage, utils)
+	utils := []ui.Slot{slot(UpgradeVoid, d.Void, "slot_empty_void", i18n.T(i18n.Of(p), "drawer.menu.void")), lock}
+	ui.SlotMenu(p, i18n.T(i18n.Of(p), "drawer.menu.title"), store, info, storage, utils)
 }
 
 // fitUpgrade fits an upgrade of kind from p's inventory.
@@ -568,7 +568,7 @@ func (s *session) fitUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *Dr
 		}
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-	ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.drawer.fitUpgrade.1"), upgradeInfo[kind].name)
+	ui.Notify(p, i18n.T(i18n.Of(p), "drawer.upgrade.missing"), upgradeInfo[kind].name)
 }
 
 // removeUpgrade takes an upgrade of kind out into p's inventory.
@@ -582,7 +582,7 @@ func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d 
 		if d.Count > d.capacity() {
 			d.Capacity++
 			tx.PlaySound(pos.Vec3Centre(), sound.Deny{})
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.drawer.removeUpgrade.1"))
+			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "drawer.upgrade.tooFull"))
 			return
 		}
 	case UpgradeVoid:

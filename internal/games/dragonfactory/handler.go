@@ -33,7 +33,7 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		return false
 	}
 	ctx.Cancel()
-	ctx.Player().SendTip(i18n.T(i18n.Default, "dragonfactory.handler.deny.1"))
+	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
 	return true
 }
 

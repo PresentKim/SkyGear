@@ -64,13 +64,13 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 		opts = append(opts, pf.lobbyBack(p, pf.showLobbyMenu))
 	}
 	body := fmt.Sprintf(i18n.T(lang, "platform.guide.intro"), pf.game.Name(lang))
-	ui.Menu(p, i18n.T(lang, "platform.guide.showGuide.1"), body, opts...)
+	ui.Menu(p, i18n.T(lang, "platform.guide.title"), body, opts...)
 }
 
 // showGuideTopic shows one page of the guide; back returns to its list.
 func (pf *Platform) showGuideTopic(p *player.Player, id string, first bool) {
 	lang := i18n.Of(p)
-	title := ui.SubTitle(i18n.T(lang, "platform.guide.showGuide.1"), i18n.T(lang, "platform.guide.topic."+id+".title"))
+	title := ui.SubTitle(i18n.T(lang, "platform.guide.title"), i18n.T(lang, "platform.guide.topic."+id+".title"))
 	ui.Menu(p, title, pf.guideTopicText(lang, id), ui.Back(i18n.T(lang, "platform.guide.back"), func(p *player.Player, _ *world.Tx) {
 		pf.showGuide(p, first)
 	}))
@@ -80,7 +80,7 @@ func formatDuration(lang string, d time.Duration) string {
 	h := int(d.Hours())
 	m := int(d.Minutes()) % 60
 	if h > 0 {
-		return fmt.Sprintf(i18n.T(lang, "platform.guide.formatDuration.1"), h, m)
+		return fmt.Sprintf(i18n.T(lang, "platform.time.hourMin"), h, m)
 	}
-	return fmt.Sprintf(i18n.T(lang, "platform.guide.formatDuration.2"), m)
+	return fmt.Sprintf(i18n.T(lang, "platform.time.min"), m)
 }

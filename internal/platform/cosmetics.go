@@ -34,7 +34,7 @@ func (pf *Platform) cosmeticTabs(p *player.Player, cur int) []ui.Option {
 		tab("platform.cosmetics.tab.titles", iconCode, cosmeticTitles, pf.showTitles),
 		tab("platform.cosmetics.tab.colors", iconRename, cosmeticColors, pf.showColors),
 		tab("platform.cosmetics.tab.achievements", iconGuide, cosmeticAchievements, pf.showAchievements),
-		ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenTitles) }),
+		ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenTitles) }),
 	}
 }
 
@@ -49,11 +49,11 @@ func (pf *Platform) cosmeticsStatus(p *player.Player, owned int) string {
 		return ""
 	}
 	lang := i18n.Of(p)
-	title := i18n.T(lang, "platform.cosmetics.showCosmetics.2")
+	title := i18n.T(lang, "platform.cosmetics.none")
 	if a, ok := account.Get(acc.Title); ok {
 		title = a.Title(lang)
 	}
-	return fmt.Sprintf(i18n.T(lang, "platform.cosmetics.showCosmetics.3"),
+	return fmt.Sprintf(i18n.T(lang, "platform.cosmetics.status"),
 		account.DisplayName(p), owned, len(account.All()), title, account.ColorOf(acc.NameColor).Code, account.ColorOf(acc.NameColor).Name(lang))
 }
 
@@ -109,7 +109,7 @@ func groupsOf(owned []string) (keys []string, total, have map[string]int) {
 func (pf *Platform) showTitles(p *player.Player) {
 	acc := instance.AccountID(p)
 	owned := account.Owned(acc)
-	opts := []ui.Option{{Label: i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.1"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, "") }}}
+	opts := []ui.Option{{Label: i18n.T(i18n.Of(p), "platform.cosmetics.titles.none"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, "") }}}
 	keys, _, _ := groupsOf(owned)
 	titles := map[string]int{}
 	for _, a := range account.All() {
@@ -123,11 +123,11 @@ func (pf *Platform) showTitles(p *player.Player) {
 		}
 	}
 	opts = append(opts, pf.cosmeticTabs(p, cosmeticTitles)...)
-	body := pf.cosmeticsStatus(p, len(owned)) + "\n\n" + i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.3")
+	body := pf.cosmeticsStatus(p, len(owned)) + "\n\n" + i18n.T(i18n.Of(p), "platform.cosmetics.titles.body")
 	if len(titles) == 0 {
-		body += i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.4")
+		body += i18n.T(i18n.Of(p), "platform.cosmetics.titles.empty")
 	}
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.5"), body, opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.titles.choose"), body, opts...)
 }
 
 // showTitleGroup lists the titles of a group (its key), a page at a time.
@@ -146,8 +146,8 @@ func (pf *Platform) showTitleGroup(p *player.Player, group string, page int) {
 		opts = append(opts, ui.Option{Label: "§e[" + a.Title(lang) + "]\n§8" + a.Name(lang), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) { pf.setTitle(p, a.ID) }})
 	}
 	opts = append(opts, ui.Pager(p, page, max(1, (len(list)+pageSize-1)/pageSize), func(p *player.Player, _ *world.Tx, to int) { pf.showTitleGroup(p, group, to) })...)
-	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showTitles.2"), func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }))
-	ui.Menu(p, ui.SubTitle(i18n.T(lang, "platform.cosmetics.showCosmetics.4"), i18n.T(lang, group)), i18n.T(lang, "platform.cosmetics.showTitles.3"), opts...)
+	opts = append(opts, ui.Back(i18n.T(i18n.Of(p), "platform.back"), func(p *player.Player, _ *world.Tx) { pf.showTitles(p) }))
+	ui.Menu(p, ui.SubTitle(i18n.T(lang, "platform.cosmetics.title"), i18n.T(lang, group)), i18n.T(lang, "platform.cosmetics.titles.body"), opts...)
 }
 
 func (pf *Platform) setTitle(p *player.Player, id string) {
@@ -156,11 +156,11 @@ func (pf *Platform) setTitle(p *player.Player, id string) {
 		return
 	}
 	if err := pf.db.SetTitle(acc, id); err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.cosmetics.setTitle.1"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.cosmetics.title.equipping"), err)
 		return
 	}
 	account.Refresh(p)
-	ui.Flash(p, i18n.T(i18n.Of(p), "platform.cosmetics.setTitle.2"), account.DisplayName(p))
+	ui.Flash(p, i18n.T(i18n.Of(p), "platform.cosmetics.title.changed"), account.DisplayName(p))
 	pf.showCosmetics(p)
 }
 
@@ -170,16 +170,16 @@ func (pf *Platform) showColors(p *player.Player) {
 	for _, c := range account.Colors {
 		label := c.Code + c.Name(i18n.Of(p))
 		if c.Need > n {
-			label = fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.showColors.1"), c.Name(i18n.Of(p)), c.Need)
+			label = fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.color.locked"), c.Name(i18n.Of(p)), c.Need)
 		}
 		opts = append(opts, ui.Option{Label: label, Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) {
 			if c.Need > len(account.Owned(instance.AccountID(p))) {
-				ui.Notify(p, i18n.T(i18n.Of(p), "platform.cosmetics.showColors.2"), c.Need)
+				ui.Notify(p, i18n.T(i18n.Of(p), "platform.cosmetics.color.needs"), c.Need)
 				pf.showColors(p)
 				return
 			}
 			if err := pf.db.SetNameColor(instance.AccountID(p), c.ID); err != nil {
-				pf.fail(p, i18n.T(i18n.Of(p), "platform.cosmetics.showColors.3"), err)
+				pf.fail(p, i18n.T(i18n.Of(p), "platform.cosmetics.color.changing"), err)
 				return
 			}
 			account.Refresh(p)
@@ -187,7 +187,7 @@ func (pf *Platform) showColors(p *player.Player) {
 		}})
 	}
 	opts = append(opts, pf.cosmeticTabs(p, cosmeticColors)...)
-	ui.CardMenu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showColors.5"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.showColors.6"), n), opts...)
+	ui.CardMenu(p, i18n.T(i18n.Of(p), "platform.cosmetics.color.title"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.color.body"), n), opts...)
 }
 
 func (pf *Platform) showAchievements(p *player.Player) {
@@ -199,7 +199,7 @@ func (pf *Platform) showAchievements(p *player.Player) {
 		opts = append(opts, ui.Option{Label: label, Icon: iconGuide, Run: func(p *player.Player, _ *world.Tx) { pf.showAchievementGroup(p, g) }})
 	}
 	opts = append(opts, pf.cosmeticTabs(p, cosmeticAchievements)...)
-	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.2"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achTotal"), len(owned), len(account.All())), opts...)
+	ui.Menu(p, i18n.T(i18n.Of(p), "platform.cosmetics.achievements"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.cosmetics.achTotal"), len(owned), len(account.All())), opts...)
 }
 
 // showAchievementGroup lists the achievements of a group (its key): the ones
@@ -220,14 +220,14 @@ func (pf *Platform) showAchievementGroup(p *player.Player, group string) {
 		fmt.Fprintf(&b, "%s%s §8- %s", mark, a.Name(lang), a.Desc(lang))
 		if slices.Contains(owned, a.ID) {
 			if title := a.Title(lang); title != "" {
-				fmt.Fprintf(&b, i18n.T(lang, "platform.cosmetics.showAchievements.1"), title)
+				fmt.Fprintf(&b, i18n.T(lang, "platform.cosmetics.achievement.title"), title)
 			}
 		} else if have, need, ok := account.Progress(acc, a.ID); ok {
 			fmt.Fprintf(&b, i18n.T(lang, "platform.cosmetics.progress"), commas(have), commas(need))
 		}
 		b.WriteString("\n")
 	}
-	ui.Menu(p, ui.SubTitle(i18n.T(lang, "platform.cosmetics.showCosmetics.4"), i18n.T(lang, group)), b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.cosmetics.showAchievements.3"), func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }))
+	ui.Menu(p, ui.SubTitle(i18n.T(lang, "platform.cosmetics.title"), i18n.T(lang, group)), b.String(), ui.Back(i18n.T(i18n.Of(p), "platform.back"), func(p *player.Player, _ *world.Tx) { pf.showAchievements(p) }))
 }
 
 // commas writes n with thousands separators.

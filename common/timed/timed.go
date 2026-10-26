@@ -45,7 +45,7 @@ func Until(st item.Stack, t time.Time) item.Stack {
 		return st
 	}
 	lore := withoutExpiryLine(st.Lore())
-	lore = append(lore, lorePrefix+t.In(Zone).Format("2006-01-02 15:04")+i18n.T(i18n.Default, "timed.timed.Until.1"))
+	lore = append(lore, lorePrefix+t.In(Zone).Format("2006-01-02 15:04")+i18n.T(i18n.Default, "timed.until"))
 	return st.WithValue(key, t.Unix()).WithLore(lore...)
 }
 
@@ -133,7 +133,7 @@ func SweepPlayer(p *player.Player) []item.Stack {
 func Notify(p *player.Player, removed []item.Stack) {
 	for _, st := range removed {
 		lang := i18n.Of(p)
-		p.Messagef(i18n.T(lang, "timed.timed.Notify.1"), Name(lang, st), st.Count())
+		p.Messagef(i18n.T(lang, "timed.removed"), Name(lang, st), st.Count())
 	}
 }
 
@@ -151,13 +151,13 @@ var Name = func(_ string, st item.Stack) string {
 func Describe(d time.Duration) string {
 	switch {
 	case d <= 0:
-		return i18n.T(i18n.Default, "timed.timed.Describe.1")
+		return i18n.T(i18n.Default, "timed.expired")
 	case d >= 24*time.Hour:
-		return fmt.Sprintf(i18n.T(i18n.Default, "timed.timed.Describe.2"), int(d/(24*time.Hour)), int(d%(24*time.Hour)/time.Hour))
+		return fmt.Sprintf(i18n.T(i18n.Default, "timed.left.dayHour"), int(d/(24*time.Hour)), int(d%(24*time.Hour)/time.Hour))
 	case d >= time.Hour:
-		return fmt.Sprintf(i18n.T(i18n.Default, "timed.timed.Describe.3"), int(d/time.Hour), int(d%time.Hour/time.Minute))
+		return fmt.Sprintf(i18n.T(i18n.Default, "timed.left.hourMin"), int(d/time.Hour), int(d%time.Hour/time.Minute))
 	case d >= time.Minute:
-		return fmt.Sprintf(i18n.T(i18n.Default, "timed.timed.Describe.4"), int(d/time.Minute))
+		return fmt.Sprintf(i18n.T(i18n.Default, "timed.left.min"), int(d/time.Minute))
 	}
-	return fmt.Sprintf(i18n.T(i18n.Default, "timed.timed.Describe.5"), int(d/time.Second))
+	return fmt.Sprintf(i18n.T(i18n.Default, "timed.left.sec"), int(d/time.Second))
 }

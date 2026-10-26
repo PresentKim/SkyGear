@@ -485,7 +485,7 @@ func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKin
 			return nil
 		}
 		now := s.growNow()
-		return []string{i18n.T(lang, "dragonfactory.cropinfo.cropLines.1") + formatDuration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
+		return []string{i18n.T(lang, "crop.lines.left") + formatDuration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
 	}
 	lines := []string{i18n.T(lang, "plant.waila.bloom")}
 	for _, y := range k.yield {

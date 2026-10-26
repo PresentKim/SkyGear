@@ -241,7 +241,7 @@ func (v *invSee) check(ctx *inventory.Context, slot int) {
 	if cur, _ := v.st.Inventory().Item(slot); !ok || !sameStack(cur, it) {
 		ctx.Cancel()
 		if !v.sync(tx) {
-			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.check.1"))
+			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.gone"))
 			chestui.Close(p)
 		}
 	}
@@ -300,25 +300,25 @@ func filler(name string) item.Stack {
 
 func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m db.Member) {
 	if m.AccountID == instance.AccountID(p) && pf.m.Location(m.AccountID) != nil {
-		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invsee.showInvSee.1"))
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.invsee.self"))
 		return
 	}
 	src, live, readOnly, unlock, err := pf.targetSource(tx, saveID, m.AccountID)
 	if errors.Is(err, errNeverEntered) {
-		ui.Notify(p, i18n.T(i18n.Of(p), "platform.invsee.showInvSee.2"), m.Name)
+		ui.Notify(p, i18n.T(i18n.Of(p), "platform.invsee.neverEntered"), m.Name)
 		return
 	}
 	if err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.invsee.showInvSee.3"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.invsee.loading"), err)
 		return
 	}
-	title := m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.4")
+	title := m.Name + i18n.T(i18n.Of(p), "platform.invsee.saved")
 	switch {
 	case live:
-		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.5")
+		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.live")
 	case readOnly:
-		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.showInvSee.6")
-		ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.showInvSee.7"))
+		title = m.Name + i18n.T(i18n.Of(p), "platform.invsee.readOnly")
+		ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.readOnlyNote"))
 	}
 	v := &invSee{st: chestui.NewStorage(invSeeSize, title), src: src, readOnly: readOnly}
 	inv := v.st.Inventory()
@@ -327,8 +327,8 @@ func (pf *Platform) showInvSee(p *player.Player, tx *world.Tx, saveID int64, m d
 			_ = inv.SetItem(slot, filler(" "))
 		}
 	}
-	_ = inv.SetItem(invSeeOffHand+1, filler(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.8")))
-	_ = inv.SetItem(invSeeEnder-1, filler(i18n.T(i18n.Of(p), "platform.invsee.showInvSee.9")))
+	_ = inv.SetItem(invSeeOffHand+1, filler(i18n.T(i18n.Of(p), "platform.invsee.armorHint")))
+	_ = inv.SetItem(invSeeEnder-1, filler(i18n.T(i18n.Of(p), "platform.invsee.enderHint")))
 	v.sync(tx)
 	inv.Handle(v)
 	v.st.OnChange(v.changed)
@@ -352,7 +352,7 @@ func (pf *Platform) refreshInvSee(h *world.EntityHandle, v *invSee) {
 		}
 		if !v.sync(tx) {
 			p := e.(*player.Player)
-			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.refreshInvSee.1"))
+			ui.Tell(p, "", i18n.T(i18n.Of(p), "platform.invsee.goneClosing"))
 			chestui.Close(p)
 			return
 		}

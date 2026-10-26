@@ -378,10 +378,10 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 		p := e.(*player.Player)
 		if len(r.Unlocks) == 0 {
 			// a project: it opens no recipe of its own
-			p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.2"), r.Title(i18n.Of(p)))
+			p.Messagef(i18n.T(i18n.Of(p), "researchdone.plain"), r.Title(i18n.Of(p)))
 			continue
 		}
-		p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.research.completeResearch.1"), r.Title(i18n.Of(p)), s.unlockNames(i18n.Of(p), r))
+		p.Messagef(i18n.T(i18n.Of(p), "researchdone.unlocks"), r.Title(i18n.Of(p)), s.unlockNames(i18n.Of(p), r))
 	}
 }
 
@@ -550,7 +550,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 			}
 		},
 	}
-	tip := i18n.T(lang, "dragonfactory.research.researchList.1")
+	tip := i18n.T(lang, "researchlist.tip")
 	if idx >= 0 {
 		again := func(p *player.Player) { s.showResearchSplit(p, v) }
 		finished := func(p *player.Player) { s.showResearchSplit(p, researchView{tab: v.tab, page: v.page}) }
@@ -560,7 +560,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	}
 	// the help is the button's tooltip; pressing it keeps the screen
 	sp.Actions = append(sp.Actions, s.opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.backOption())
-	ui.SplitMenu(p, i18n.T(lang, "dragonfactory.research.showResearchTab.1"), sp)
+	ui.SplitMenu(p, i18n.T(lang, "researchlist.title"), sp)
 }
 
 // showResearchAt shows the research screen with a research chosen, on the tab
@@ -606,7 +606,7 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 		func(p *player.Player) { s.showResearchAt(p, r) },
 		func(p *player.Player) { s.showResearch(p) },
 		func(p *player.Player, n *Research) { s.showResearchAt(p, n) })
-	back := ui.Back(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.13"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
+	back := ui.Back(i18n.T(i18n.Of(p), "researchnode.back"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
 	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
 }
 
@@ -625,9 +625,9 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	var opts []ui.Option
 	switch {
 	case done:
-		d.Status = i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.1")
+		d.Status = i18n.T(i18n.Of(p), "researchnode.complete")
 	case s.researchOpen(r):
-		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.4"), iconMission, func(p *player.Player, tx *world.Tx) {
+		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "researchnode.start"), iconMission, func(p *player.Player, tx *world.Tx) {
 			if r.isCopy() {
 				s.copiesDone[r.ID] = true
 				finished(p)
@@ -636,7 +636,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			missing, ok := s.doResearch(p, tx, r)
 			switch {
 			case ok:
-				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.5"))
+				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "researchnode.finished"))
 				finished(p)
 				return
 			case len(missing) > 0:
@@ -644,7 +644,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 				for _, m := range missing {
 					names = append(names, costText(i18n.Of(p), m))
 				}
-				ui.Notify(p, i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.6"), strings.Join(names, ", "))
+				ui.Notify(p, i18n.T(i18n.Of(p), "researchnode.missing"), strings.Join(names, ", "))
 			}
 			redo(p)
 		}))
@@ -676,17 +676,17 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	for _, c := range r.Cost {
 		need := s.researchNeed(r, c)
 		st := item.NewStack(c.Item, 1)
-		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.7"), itemName(i18n.Of(p), st), need)
+		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), itemName(i18n.Of(p), st), need)
 		switch {
 		case done:
-			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.8"), itemName(i18n.Of(p), st), c.Count)
+			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), itemName(i18n.Of(p), st), c.Count)
 			need = c.Count
 		case p != nil:
 			have := countPlain(p.Inventory(), c.Item)
 			if have >= need {
 				mark = "§a"
 			}
-			tip += fmt.Sprintf(i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.9"), mark, have)
+			tip += fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.have"), mark, have)
 		}
 		sl := toCodex(st, tip)
 		sl.Count = mark + strconv.Itoa(need)
@@ -700,7 +700,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			continue
 		}
 		st := item.NewStack(it, 1)
-		tip := tipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.10")
+		tip := tipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "researchnode.unlocks")
 		c := rewardCount(r, n)
 		if c > 0 {
 			tip += "\n" + fmt.Sprintf(i18n.T(i18n.Of(p), "researchreward.tip"), c)
@@ -711,7 +711,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 		}
 		opens = append(opens, sl)
 	}
-	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.11"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "dragonfactory.research.researchNode.12"), Slots: opens}}
+	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "researchnode.materials"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "researchnode.rewards"), Slots: opens}}
 	return d, rows, opts
 }
 

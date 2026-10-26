@@ -152,7 +152,7 @@ func (m menu) Submit(s form.Submitter, pressedButton form.Button, tx *world.Tx) 
 func recoverForm(p *player.Player) {
 	if r := recover(); r != nil {
 		slog.Error("form callback panicked", "player", p.Name(), "panic", r, "stack", string(debug.Stack()))
-		Tell(p, "", i18n.T(i18n.Of(p), "ui.ui.recoverForm.1"))
+		Tell(p, "", i18n.T(i18n.Of(p), "ui.form.error"))
 	}
 }
 
@@ -243,7 +243,7 @@ func uniqueLabels(opts []Option) []Option {
 // Notify tells p about something that failed (not enough money, out of
 // stock, ...): a toast only, as it matters just now.
 func Notify(p *player.Player, format string, a ...any) {
-	toast(p, i18n.T(i18n.Of(p), "ui.ui.Notify.1"), fmt.Sprintf(format, a...))
+	toast(p, i18n.T(i18n.Of(p), "ui.notify.title"), fmt.Sprintf(format, a...))
 }
 
 // Flash tells p the result of an action that matters later (a purchase, a
@@ -251,18 +251,18 @@ func Notify(p *player.Player, format string, a ...any) {
 // lobby).
 func Flash(p *player.Player, format string, a ...any) {
 	msg := fmt.Sprintf(format, a...)
-	toast(p, i18n.T(i18n.Of(p), "ui.ui.Flash.1"), msg)
+	toast(p, i18n.T(i18n.Of(p), "ui.flash.title"), msg)
 	if InLobby == nil || !InLobby(p) {
 		p.Message(msg)
 	}
 }
 
 // Tell writes msg in p's chat. The lobby has no chat (docs/design/01-platform.md
-// §1): there it is a toast titled title (ui.ui.Tell.1 when empty) instead.
+// §1): there it is a toast titled title (ui.tell.title when empty) instead.
 func Tell(p *player.Player, title, msg string) {
 	if InLobby != nil && InLobby(p) {
 		if title == "" {
-			title = i18n.T(i18n.Of(p), "ui.ui.Tell.1")
+			title = i18n.T(i18n.Of(p), "ui.tell.title")
 		}
 		toast(p, title, msg)
 		return
@@ -331,7 +331,7 @@ func toast(p *player.Player, title, msg string) {
 		st.waiting, st.folded, st.next = false, 0, time.Now().Add(ToastGap)
 		toasts.Unlock()
 		if folded > 0 {
-			msg += fmt.Sprintf(i18n.T(i18n.Of(p), "ui.ui.toast.1"), folded)
+			msg += fmt.Sprintf(i18n.T(i18n.Of(p), "ui.toast.more"), folded)
 		}
 		e.(*player.Player).SendToast(title, msg)
 	})
@@ -795,7 +795,7 @@ func sectionOptions(sections []GridSection) []Option {
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
 	Menu(p, title, body,
 		Option{Label: yes, Icon: "textures/ui/confirm", Run: f},
-		Option{Label: i18n.T(i18n.Of(p), "ui.ui.Confirm.1"), Icon: "textures/ui/cancel", Run: func(*player.Player, *world.Tx) {}},
+		Option{Label: i18n.T(i18n.Of(p), "ui.confirm.cancel"), Icon: "textures/ui/cancel", Run: func(*player.Player, *world.Tx) {}},
 	)
 }
 

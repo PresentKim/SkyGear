@@ -57,10 +57,10 @@ func (pf *Platform) status(lang, accountID string) string {
 // statusOf is status for an account already known to be online or not.
 func (pf *Platform) statusOf(lang, accountID string, online bool) string {
 	if !online {
-		return i18n.T(lang, "platform.presence.status.1")
+		return i18n.T(lang, "platform.presence.offline")
 	}
 	if inst := pf.m.Location(accountID); inst != nil {
-		return "§a● '" + inst.Save.Name + i18n.T(lang, "platform.presence.status.2")
+		return "§a● '" + inst.Save.Name + i18n.T(lang, "platform.presence.playing")
 	}
-	return i18n.T(lang, "platform.presence.status.3")
+	return i18n.T(lang, "platform.presence.lobby")
 }

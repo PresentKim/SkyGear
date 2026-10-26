@@ -251,7 +251,7 @@ func (s *session) Spawn() mgl64.Vec3 {
 
 func (s *session) Join(p *player.Player, first bool) {
 	_, day, _ := s.clock.Now()
-	p.Messagef(i18n.T(i18n.Of(p), "dragonfactory.game.Join.1"), s.saveName, day)
+	p.Messagef(i18n.T(i18n.Of(p), "game.joined"), s.saveName, day)
 	if first {
 		// Bare hands: only the menu item (§2).
 		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
@@ -306,7 +306,7 @@ func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s}
 
 func (s *session) NewDay(tx *world.Tx, day int) {
 	s.purgeLost()
-	s.broadcast(tx, "dragonfactory.game.NewDay.1", day)
+	s.broadcast(tx, "game.newDay", day)
 }
 
 func (s *session) Autosave(tx *world.Tx) {

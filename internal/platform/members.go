@@ -24,7 +24,7 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 	lang := i18n.Of(p)
 	members, err := pf.db.Members(saveID)
 	if err != nil {
-		pf.fail(p, i18n.T(lang, "platform.members.showMembers.1"), err)
+		pf.fail(p, i18n.T(lang, "platform.members.loading"), err)
 		return
 	}
 	if sel == "" && len(members) > 0 {
@@ -39,9 +39,9 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 		state := pf.status(lang, m.AccountID)
 		switch {
 		case m.Role == db.RoleHost:
-			state = i18n.T(lang, "platform.members.showMembers.2")
+			state = i18n.T(lang, "platform.members.host")
 		case m.Left:
-			state = i18n.T(lang, "platform.members.showMembers.3")
+			state = i18n.T(lang, "platform.members.gone")
 		}
 		sp.Rows = append(sp.Rows, ui.ListRow{
 			Label: ui.ListRowText(m.Name, state), Icon: iconFriend,
@@ -52,20 +52,20 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 			sp.Actions = pf.memberActions(p, saveID, m)
 		}
 	}
-	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.showMembers.5"), active, MaxMembers)
+	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.body"), active, MaxMembers)
 	if pf.m.Location(instance.AccountID(p)) == nil {
 		sp.Actions = append(sp.Actions, pf.lobbyBack(p, func(p *player.Player) { pf.showSaves(p, saveID) }))
 	} else {
-		sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.cosmetics.showCosmetics.8"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenMembers) }))
+		sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenMembers) }))
 	}
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.members.showMembers.4"), sp)
+	ui.ListSplitMenu(p, i18n.T(lang, "platform.members.title"), sp)
 }
 
 // memberActions are what the host does with a member: see the inventory and,
 // for a guest still in the save, kick.
 func (pf *Platform) memberActions(p *player.Player, saveID int64, m db.Member) []ui.Option {
 	lang := i18n.Of(p)
-	opts := []ui.Option{{Label: i18n.T(lang, "platform.members.showMember.1"), Icon: iconInvSee, Run: func(p *player.Player, tx *world.Tx) { pf.showInvSee(p, tx, saveID, m) }}}
+	opts := []ui.Option{{Label: i18n.T(lang, "platform.members.invsee"), Icon: iconInvSee, Run: func(p *player.Player, tx *world.Tx) { pf.showInvSee(p, tx, saveID, m) }}}
 	// a member in the same save as p: go to them, or bring them here
 	if here := pf.m.Location(instance.AccountID(p)); here != nil && here.Save.ID == saveID && m.AccountID != instance.AccountID(p) && pf.m.Location(m.AccountID) == here {
 		opts = append(opts,
@@ -82,8 +82,8 @@ func (pf *Platform) memberActions(p *player.Player, saveID int64, m db.Member) [
 			}})
 	}
 	if m.Role != db.RoleHost && !m.Left {
-		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.members.showMember.2"), Icon: iconKick, Run: func(p *player.Player, _ *world.Tx) {
-			pf.confirm(p, i18n.T(lang, "platform.members.showMember.3"), m.Name+i18n.T(lang, "platform.members.showMember.4"), i18n.T(lang, "platform.members.showMember.3"), func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.members.kick"), Icon: iconKick, Run: func(p *player.Player, _ *world.Tx) {
+			pf.confirm(p, i18n.T(lang, "platform.members.kick.title"), m.Name+i18n.T(lang, "platform.members.kick.ask"), i18n.T(lang, "platform.members.kick.title"), func(p *player.Player, _ *world.Tx) {
 				pf.kick(p, saveID, m)
 				pf.showMembersAt(p, saveID, m.AccountID)
 			}, func(p *player.Player, _ *world.Tx) { pf.showMembersAt(p, saveID, m.AccountID) })
@@ -104,17 +104,17 @@ func playerIn(tx *world.Tx, accountID string) (*player.Player, bool) {
 
 func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
 	if err := pf.db.LeaveMember(saveID, m.AccountID); err != nil {
-		pf.fail(p, i18n.T(i18n.Of(p), "platform.members.kick.1"), err)
+		pf.fail(p, i18n.T(i18n.Of(p), "platform.members.kicking"), err)
 		return
 	}
 	pf.invites.remove(m.AccountID, saveID)
 	pf.with(m.AccountID, func(tp *player.Player) {
 		if inst := pf.m.Location(m.AccountID); inst != nil && inst.Save.ID == saveID {
-			ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kick.3"))
+			ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kicked"))
 			pf.m.ToLobby(tp)
 			return
 		}
-		ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kick.4"))
+		ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kickedOffline"))
 	})
 }
 
@@ -157,7 +157,7 @@ func (c membersCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	p := src.(*player.Player)
 	inst := c.pf.managedSave(p)
 	if inst == nil {
-		o.Error(i18n.T(i18n.Of(p), "platform.members.Run.1"))
+		o.Error(i18n.T(i18n.Of(p), "platform.members.hostOnly"))
 		return
 	}
 	c.pf.showMembers(p, inst.Save.ID)

@@ -262,7 +262,7 @@ func (inst *Instance) deactivate() {
 			for _, h := range inst.handles() {
 				if e, ok := h.Entity(tx); ok {
 					p := e.(*player.Player)
-					p.Message(i18n.T(i18n.Of(p), "instance.instance.deactivate.1"))
+					p.Message(i18n.T(i18n.Of(p), "instance.hostClosed"))
 					inst.m.leave(inst, p, true)
 				}
 			}

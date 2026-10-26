@@ -210,7 +210,7 @@ func (Barrel) Category() category.Category {
 	return category.Construction()
 }
 
-var woodNames = map[string]string{"oak": i18n.T(i18n.Default, "dragonfactory.barrel.init.1"), stoneWood: i18n.T(i18n.Default, "barrel.stone.name")}
+var woodNames = map[string]string{"oak": i18n.T(i18n.Default, "barrel.oak.name"), stoneWood: i18n.T(i18n.Default, "barrel.stone.name")}
 
 // barrelMaterials are the textures of a barrel: the wood ("*") and what
 // fills it ("content": compost, or water at the last stage; cobblestone and
@@ -365,7 +365,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			s.storeState()
 			return true
 		}
-		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.1"))
+		p.SendTip(i18n.T(i18n.Of(p), "barrel.full.water"))
 		return true
 	case pourOK && (rec == nil || (rec.Count == 0 && rec.Clay == 0)):
 		_, left := p.HeldItems()
@@ -379,7 +379,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		s.storeState()
 		return true
 	case rec != nil && rec.Count >= capacity:
-		p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.2"))
+		p.SendTip(i18n.T(i18n.Of(p), "barrel.busy"))
 		return true
 	case barrelAccepts(b.Wood, held):
 		if s.fillBarrel(tx, pos, b, held, 1) == 0 {
@@ -387,7 +387,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		}
 		ctx.SubtractFromCount(1)
 		if s.barrelAt(pos).Count >= capacity {
-			p.SendTip(i18n.T(i18n.Of(p), "dragonfactory.barrel.useBarrel.3"))
+			p.SendTip(i18n.T(i18n.Of(p), "barrel.full.plants"))
 		}
 		return true
 	}
@@ -767,7 +767,7 @@ func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string 
 		left := max(rec.WitchAt-now, 0).Round(time.Second)
 		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.toWitch"), int(left.Minutes()), int(left.Seconds())%60)}
 	case rec == nil || rec.Count == 0:
-		return []string{i18n.T(lang, "dragonfactory.barrel.barrelLines.1")}
+		return []string{i18n.T(lang, "barrel.lines.empty")}
 	case rec.Water && rec.Clay > 0:
 		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.clay"), rec.Clay)}
 	case rec.Water:
@@ -775,9 +775,9 @@ func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string 
 	case rec.Count >= matterCapacity:
 		now, _, _ := s.clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
-		return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.barrel.barrelLines.5"), int(left.Minutes()), int(left.Seconds())%60)}
+		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.water"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
-	return []string{fmt.Sprintf(i18n.T(lang, "dragonfactory.barrel.barrelLines.6"), rec.Count, matterCapacity)}
+	return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.plants"), rec.Count, matterCapacity)}
 }
 
 // stoneBarrelLines are the lines of a stone barrel's WAILA panel (its lava
