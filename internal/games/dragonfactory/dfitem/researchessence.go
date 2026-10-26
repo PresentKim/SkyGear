@@ -7,7 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// Research essences (docs/design/11-research-essences.md): a research of a
+// Research essences: a research of a
 // high enough level costs essences next to its materials. Each kind is one
 // era of the factory, made in the laboratory (lab.go) from that era's
 // materials. They are not the essences of mobs (essence.go).

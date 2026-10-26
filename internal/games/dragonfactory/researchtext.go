@@ -6,10 +6,9 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// ResearchText explains a research in its screen (docs/design/02-dragonfactory.md
-// §9): what it is for. Where to get what it costs and what to do next is the
-// advancements' job (§10). The texts are in the catalog
-// (internal/locales) under "research.<id>.short|about".
+// ResearchText explains what a research is for in its screen; where to get
+// the cost and what to do next is the advancements' job. The texts are in
+// internal/locales under "research.<id>.short|about".
 type ResearchText struct {
 	// Short is one line shown under the name in the hover text of the list.
 	Short string

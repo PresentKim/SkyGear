@@ -1,4 +1,4 @@
-// essencetex writes the item textures of the research essences
+// Command essencetex writes the item textures of the research essences
 // (internal/games/dragonfactory/researchessence.go): a glass bottle filled
 // with a liquid of the colour of each essence. They are temporary pictures,
 // drawn from the colour of each essence.

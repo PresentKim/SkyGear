@@ -6,7 +6,7 @@ import (
 )
 
 // Clock is the instance time of a save. It only advances while the instance
-// is active (docs/design/01-platform.md §3).
+// is active.
 type Clock struct {
 	mu        sync.Mutex
 	total     time.Duration

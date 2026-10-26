@@ -14,12 +14,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// debugFactory builds a large test factory on the island: count modules in
-// a grid centred on the operator, each a machine line (cobblestone, auto miner, crusher,
-// hopper into a drawer, sell box), an auto sieve line fed by a chest of
-// gravel, and a 9×9 farm with an auto harvester. It is a load test for
-// letting players build freely (docs/tech/performance.md); watch the load
-// lines on the sidebar.
+// debugFactory builds a load-test factory: count modules in a grid centred
+// on the operator, each a machine line, an auto sieve line and a 9×9 farm
+// with an auto harvester. Watch the load lines on the sidebar.
 type debugFactory struct {
 	adminBase
 	Sub   cmd.SubCommand `cmd:"factory"`
@@ -96,7 +93,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		}
 	}
 
-	// Machine line (docs/tech/machines.md): the auto miner mines the
+	// Machine line: the auto miner mines the
 	// cobblestone under it once and hands it to the crusher (into a hopper
 	// and a drawer below).
 	set(1, 1, 2, block.Cobblestone{})
@@ -169,11 +166,9 @@ func cropBlock(kind string) world.Block {
 	}
 }
 
-// debugDense builds count compact machine cells in a grid centred on the
-// operator: each cell is 2×1 blocks, cobblestone, an
-// auto miner above its output, a crusher beside the miner over a hopper
-// into a drawer. Many machines in little room, for load tests
-// in game (docs/tech/performance.md).
+// debugDense builds count compact 2×1 machine cells (an auto miner over
+// cobblestone, a crusher over a hopper into a drawer) in a grid centred on
+// the operator: many machines in little room, for load tests.
 type debugDense struct {
 	adminBase
 	Sub   cmd.SubCommand `cmd:"dense"`

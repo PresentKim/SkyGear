@@ -1,4 +1,4 @@
-// Package dragonfactory is the factory building game (docs/design/02-dragonfactory.md).
+// Package dragonfactory is the factory building game.
 package dragonfactory
 
 import (
@@ -69,7 +69,7 @@ func (*Game) Name(lang string) string { return i18n.T(lang, "name.Game") }
 // where the starting island is built.
 const islandCentre = 8
 
-// Init builds the starting island (docs/design/02-dragonfactory.md §2): a
+// Init builds the starting island: a
 // 3×3×3 sky island in the middle of the first chunk, bedrock at the bottom,
 // dirt, grass on top, with an oak tree in the middle.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
@@ -238,9 +238,8 @@ func (s *session) debounced(p *player.Player) bool {
 }
 
 // Spawn is next to the tree of the starting island: Home is the island's
-// centre, where the trunk grows, so the spawn is one block east of it. A save
-// made before the island moved to the middle of its chunk has no Home and
-// keeps its old island around the origin.
+// centre, where the trunk grows, so the spawn is one block east of it. An old
+// save without Home has its island around the origin.
 func (s *session) Spawn() mgl64.Vec3 {
 	home := [2]float64{1.5, 1.5}
 	if s.state != nil && s.state.Home != ([2]float64{}) {
@@ -253,7 +252,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	_, day, _ := s.clock.Now()
 	p.Messagef(i18n.T(i18n.Of(p), "game.joined"), s.saveName, day)
 	if first {
-		// Bare hands: only the menu item (§2).
+		// Bare hands: only the menu item.
 		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
 	}
 	renameMenuItems(p)
@@ -267,7 +266,7 @@ func (s *session) Join(p *player.Player, first bool) {
 }
 
 // dropAt drops an item stack at pos with a small random push, so drops
-// never just fall dead still (docs/design/02-dragonfactory.md §18.1).
+// never just fall dead still.
 // Every item the game drops goes through here unless it is thrown on
 // purpose (the fairy's gift).
 func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {

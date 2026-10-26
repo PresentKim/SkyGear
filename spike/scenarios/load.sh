@@ -1,5 +1,5 @@
 #!/bin/bash
-# HUD rows (internal/hud) and the server load: the island HUD has the day
+# HUD rows (common/hud) and the server load: the island HUD has the day
 # and the next advancement (quest panel); the operator turns the load line on with
 # /dfadmin tps and sees it on the island and in the lobby. (An expect step
 # takes a whole board, later boards only carry changed rows, and the first

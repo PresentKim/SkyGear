@@ -23,15 +23,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Magic plants (docs/design/08-storage-gear-magic.md §4): plants that grow on dirt
-// from seeds and give things when they bloom, after Botania and Mystical
-// Agriculture. Only the plants are here; mana comes later.
-//   - Magic flowers: a seed, which monsters of the gate sometimes drop, grows into
-//     a flower of its own colour (a seed for each of the 16) that gives petals.
-//   - Better plants are made by crafting: a seed of a plant below + a vanilla plant
-//     + petals + a material give the seed of the next kind (ore blooms give ore
-//     chunks, gem blooms gems and redstone, essence blooms mob essences).
-// A bloom regrows when it is harvested.
+// Magic plants (after Botania and Mystical Agriculture) grow on dirt from
+// seeds and regrow after each harvest. Flower seeds drop from gate monsters;
+// better seeds are crafted from a lower seed, a vanilla plant, petals and a
+// material (ore, gem and essence blooms).
 
 // plantYield is what a bloom gives: Min to Max of an item.
 type plantYield struct {
@@ -39,7 +34,6 @@ type plantYield struct {
 	min, max int
 }
 
-// plantKind is a kind of magic plant.
 type plantKind struct {
 	id   string
 	tier int
@@ -163,7 +157,7 @@ func (b MagicPlant) EncodeBlock() (string, map[string]any) {
 	return "dragonfactory:magic_plant", map[string]any{plantState: plantValue(b.Kind, b.Bloom)}
 }
 
-// plantIndex is the number of the state of a plant.
+// index is the number of the state of a plant.
 func (b MagicPlant) index() uint64 {
 	i := plantKindIndex(b.Kind)
 	if i < 0 {

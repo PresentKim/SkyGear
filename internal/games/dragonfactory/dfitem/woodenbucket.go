@@ -14,7 +14,7 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
-// WoodenBucket is the early bucket (docs/design/02-dragonfactory.md §5): it
+// WoodenBucket is the early bucket: it
 // is made of planks as soon as the barrel is researched and holds water only
 // (no lava). It takes the water of a barrel, tank or world water source and
 // pours it like the iron bucket does.

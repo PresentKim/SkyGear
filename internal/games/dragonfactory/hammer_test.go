@@ -72,7 +72,7 @@ func TestDustFromCrushedSand(t *testing.T) {
 
 // TestCrushedStones: the hammer breaks the stones of the deep, the Nether and
 // the End into their crushed blocks, and crushed netherrack into red sand
-// (Ex Deorum, docs/design/16-ore-balance.md §2.1).
+// (Ex Deorum).
 func TestCrushedStones(t *testing.T) {
 	for in, want := range map[world.Item]world.Item{
 		block.Deepslate{}: dfitem.CrushedBlock{Kind: dfitem.CrushedDeepslate},

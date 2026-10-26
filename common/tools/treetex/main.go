@@ -1,13 +1,9 @@
-// Command treetex writes the textures of the advancement tree screen
-// (packs/dfui/textures/ui/df), drawn like a Java
-// advancements screen: the window and its inset (nine-slice, with .json
-// sidecars), the tabs, the node frames tree_node_<letter> (letter = 'a'+
-// 3*frame+state: frame task, goal, challenge; state unobtained-locked, open,
-// obtained), the hover highlight tree_hl and the connector strips
-// tree_strip_<letter> ('a' plus the bits up 1, down 2, left 4, right 8).
-// Run it from the repository root: go run ./tools/treetex (only the pictures
-// that are missing; -f writes all). The pictures are placeholders to be
-// replaced by hand-drawn ones.
+// Command treetex writes placeholder textures of the advancement tree screen
+// in the Java style: window, inset and tabs (nine-slice), node frames
+// tree_node_<'a'+3*frame+state> (frame task, goal, challenge; state locked,
+// open, obtained), tree_hl and connector strips tree_strip_<'a'+bits> (up 1,
+// down 2, left 4, right 8). Run it from common/: go run ./tools/treetex
+// writes the missing pictures, -f writes all.
 package main
 
 import (

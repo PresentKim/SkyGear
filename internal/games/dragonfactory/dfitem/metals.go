@@ -7,7 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// Metals (docs/design/07-progression-expansion.md §2): iron, gold and copper
+// Metals: iron, gold and copper
 // use the ingots of the game; tin, lead, silver and nickel are new ores found
 // by sieving (orechunk.go); bronze, electrum, invar and steel are alloys made
 // in the alloy smelter (alloy.go). Every ore metal has a dust (ore.go), which
@@ -29,7 +29,6 @@ var DustMetals = []string{OreIron, OreGold, OreCopper, MetalTin, MetalLead, Meta
 // IngotMetals have an ingot item of their own.
 var IngotMetals = []string{MetalTin, MetalLead, MetalSilver, MetalNickel, MetalBronze, MetalElectrum, MetalInvar, MetalSteel}
 
-// metalName is the name of a metal in the catalog.
 func metalName(metal string) string { return i18n.T(i18n.Default, "metal."+metal) }
 
 // IngotOf returns the ingot of a metal.

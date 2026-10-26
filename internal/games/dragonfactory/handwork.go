@@ -13,8 +13,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Hand-made resources of the start (docs/design/02-dragonfactory.md §3,
-// 05-sky-progression.md §3). Chances are drafts.
+// Hand-made resources of the start. Chances are drafts.
 //   - A stick used on grass or dirt always drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").
 //   - Stripping a log with a stone or better axe sometimes drops one or two

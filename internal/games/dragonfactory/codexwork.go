@@ -13,11 +13,9 @@ import (
 )
 
 // Cards of what no machine table lists: the hand work of the start (a stick
-// on the ground, the hammer, stripping logs, tilling dirt, the composter,
-// handwork.go, hammer.go, composter.go) and the processes of the blocks the
-// process tab shows but no item page read (the crucible, the barrels). An
-// item page finds them by the slots of the cards (codexWorkCards), so it
-// shows what the cards draw.
+// on the ground, the hammer, stripping logs, tilling dirt, the composter) and
+// block processes (the crucible, the barrels). Item pages find them by their
+// slots (codexWorkCards).
 
 // codexHandCards are the hand work cards, the tool the header.
 func (s *session) codexHandCards(lang string) []codexCard {

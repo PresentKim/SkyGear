@@ -23,7 +23,7 @@ import (
 )
 
 // VoidReturnY is the height players are put at above the nearest block when
-// they fall into the void (docs/design/02-dragonfactory.md §14.2).
+// they fall into the void.
 const VoidReturnY = 300
 
 // VoidY is the height below which a player counts as fallen into the void.
@@ -33,14 +33,13 @@ func chunkOf(pos cube.Pos) ChunkPos {
 	return ChunkPos{int32(pos.X() >> 4), int32(pos.Z() >> 4)}
 }
 
-// owns reports if the island owns the chunk.
 func (s *session) owns(c ChunkPos) bool { return slices.Contains(s.state.Chunks, c) }
 
 // canBuild reports if blocks at pos may be changed.
 func (s *session) canBuild(pos cube.Pos) bool { return s.owns(chunkOf(pos)) }
 
 // chunkCost is what the next chunk costs when n chunks are owned: items
-// from the buyer's inventory (13th playtest: no money). 1 chunk to start:
+// from the buyer's inventory. 1 chunk to start:
 // 64 cobblestone for each of the next four, 64 more for each after. Draft.
 func chunkCost(n int) Requirement {
 	return Requirement{block.Cobblestone{}, 64 * max(1, n-3)}

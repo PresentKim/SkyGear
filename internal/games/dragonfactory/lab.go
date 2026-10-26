@@ -10,12 +10,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The laboratory (docs/design/11-research-essences.md): it brews a research
-// essence from a glass bottle and the materials of an era, using energy and
-// time. The player chooses the essence on its screen (labui.go); until then
-// it takes nothing, and then only the ingredients of that recipe. Its work is
-// paced by the recipe, not the machine, so the machine keeps the length of
-// the cycle it is on in machineState.period.
+// The laboratory brews the research essence chosen on its screen from a
+// glass bottle and an era's materials. Its work is paced by the recipe, not
+// the machine, so the cycle length is kept in machineState.period.
 
 // labCheckEvery is how many ticks of a cycle pass between two looks at the
 // input slots.

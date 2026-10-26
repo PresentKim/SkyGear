@@ -6,7 +6,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// Tinkered tools (docs/design/08-storage-gear-magic.md §2), after Tinkers'
+// Tinkered tools, after Tinkers'
 // Construct: a tool is a head of a metal on a handle, made at the tinker table;
 // each tool keeps its modifiers and its experience in its stack, levels up as it
 // is used and gets more modifier slots with every level.

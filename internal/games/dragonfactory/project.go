@@ -14,7 +14,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
-// The projects (docs/design/10-user-flow.md §5): the long goal of the game.
+// The projects: the long goal of the game.
 // Three projects (industry, hunter, botanist) each ask for a pile of what one
 // part of the game makes; the last one asks for the rarest things of all and
 // opens the recipe of the dragon egg. Placing the egg on the island finishes

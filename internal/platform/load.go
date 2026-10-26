@@ -42,11 +42,8 @@ func forgetLobbyHUD(p *player.Player) {
 	lobbyHUD.Unlock()
 }
 
-// ShowLoad keeps the lobby HUD up to date and moves the lobby scene
-// (moveLobbyScene) every second until stop is closed:
-// the frame for everyone, and the server load line at the top left for
-// operators who turned it on (/dfadmin tps, perf.Toggle). Games show the
-// same line on their own HUD.
+// ShowLoad updates the lobby HUD and scene every second until stop closes;
+// operators who turned it on (/dfadmin tps) also get the server load line.
 func ShowLoad(lobby *world.World, isOperator func(*player.Player) bool, stop <-chan struct{}) {
 	t := time.NewTicker(time.Second)
 	defer t.Stop()

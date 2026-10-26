@@ -25,8 +25,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Drawer stores a large amount of a single item type
-// (docs/design/02-dragonfactory.md §15).
+// Drawer stores a large amount of a single item type.
 type Drawer struct {
 	// Facing is the direction the front face looks to.
 	Facing cube.Direction
@@ -192,7 +191,7 @@ const (
 	drawerVoidKey     = "drawer_void"
 )
 
-// toItem keeps the contents and upgrades in the drawer item (§15.6).
+// toItem keeps the contents and upgrades in the drawer item.
 func (d Drawer) toItem() item.Stack {
 	st := item.NewStack(Drawer{}, 1)
 	empty := d.Item.Empty() && d.Capacity == 0 && !d.Locked && !d.Void
@@ -267,7 +266,7 @@ func (d Drawer) DecodeNBT(data map[string]any) any {
 }
 
 // Tick keeps the display of the drawer present and empties a drawer whose
-// time-limited items expired, lock included (the item no longer exists).
+// time-limited items expired, lock included (the item is gone).
 func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	s, ok := activeGame.sessionOf(tx.World())
 	if !ok {
@@ -292,7 +291,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	}
 	held, off := p.HeldItems()
 	// The menu opens from any face; putting items in and upgrades work only
-	// on the front (11th playtest).
+	// on the front.
 	if p.Sneaking() && held.Empty() {
 		if !s.debounced(p) {
 			s.showDrawer(p, pos)
@@ -365,8 +364,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 		return
 	}
 	s.setDrawer(tx, pos, d)
-	// What does not fit drops at the player (it vanished before: the rest
-	// was computed as an empty stack when nothing fit, 11th playtest).
+	// What does not fit drops at the player.
 	if added, _ := p.Inventory().AddItem(out); added < out.Count() {
 		s.dropAt(tx, p.Position(), out.Grow(-added))
 	}
@@ -431,7 +429,7 @@ func (s *session) toggleLock(tx *world.Tx, pos cube.Pos, d *Drawer) {
 
 // setLocked locks or unlocks a drawer. An empty drawer locks too: then
 // hoppers and machines put nothing in it, and the first item a player puts
-// in by hand becomes its kind (11th playtest).
+// in by hand becomes its kind.
 func (s *session) setLocked(tx *world.Tx, pos cube.Pos, d *Drawer, locked bool) {
 	d.Locked = locked
 	if !d.Locked && d.Count == 0 {
@@ -470,9 +468,9 @@ func (s *session) applyUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d *
 // showDrawer shows a drawer as an inventory-like form (ui.SlotMenu): its
 // item and count with the name and count / capacity beside it, then the
 // storage upgrade slots (three capacity) on the left and the utility slots
-// (void, lock) on the right. Pressing an empty upgrade slot fits an upgrade from the
-// inventory, a full one takes it out; the lock slot locks and unlocks
-// without a key (11th playtest).
+// (void, lock) on the right. Pressing an empty upgrade slot fits an upgrade
+// from the inventory, a full one takes it out; the lock slot locks and
+// unlocks without a key.
 func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	d, ok := p.Tx().Block(pos).(Drawer)
 	if !ok {

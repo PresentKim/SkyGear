@@ -17,7 +17,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/wintext"
 )
 
-// The auto crafter (docs/design/09-automation-equipment.md §2): it makes one
+// The auto crafter: it makes one
 // crafting-table recipe over and over from the items in its 3×3 store.
 // The recipe is chosen with a sample item put on its recipe slot, or from a
 // list of the recipes researched; only researched recipes can be chosen.

@@ -12,13 +12,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Crops grow on a fixed schedule of instance time (docs/design/02-dragonfactory.md
-// §12), not on random ticks (block.ScheduledCropGrowth): a crop planted at
-// instance time t reaches stage n (of 7) at t + n×stageTime, and a grown
-// melon or pumpkin stem grows a fruit every fruitTime. Instance time only
-// runs while the save is active, so crops stop with it. Blocks are only
-// written when a stage changes: a queue ordered by due time holds the next
-// change of every crop, and Second handles the due ones.
+// Crops grow on a fixed schedule of instance time, not on random ticks
+// (block.ScheduledCropGrowth): the stages are spread evenly over the kind's
+// growth time, and a grown stem makes a fruit every fruitTime. A queue
+// ordered by due time holds
+// each crop's next change, so blocks are written only when a stage changes.
 
 // CropRecord is a planted crop.
 type CropRecord struct {
@@ -30,7 +28,7 @@ type CropRecord struct {
 	NextFruit time.Duration `json:"next_fruit,omitempty"`
 }
 
-// cropKind describes a crop: its full growth time at upgrade level 0.
+// cropKind describes a crop: its full growth time.
 type cropKind struct {
 	grow time.Duration
 	stem bool
@@ -46,7 +44,7 @@ var cropKinds = map[string]cropKind{
 	"pumpkin":  {grow: 6 * time.Minute, stem: true},
 }
 
-// fruitTime is how often a grown stem grows a fruit (level 0).
+// fruitTime is how often a grown stem grows a fruit.
 const fruitTime = 4 * time.Minute
 
 // maxCropStage is the last growth stage of every crop.

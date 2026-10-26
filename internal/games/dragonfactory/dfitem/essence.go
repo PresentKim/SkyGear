@@ -44,7 +44,7 @@ func (e Essence) Name() string {
 
 func (Essence) Category() category.Category { return category.Items() }
 
-// maxStackSize keeps essences in stacks of 16.
+// MaxCount keeps essences in stacks of 16.
 func (Essence) MaxCount() int { return 16 }
 
 // AcceptsEssence reports whether the simulator takes it.

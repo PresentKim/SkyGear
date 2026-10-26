@@ -22,13 +22,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// The codex draws its tables like a recipe viewer (docs/tech/codex-jei.md):
-// each recipe is a card of item slots on a board (ui.ItemBoard), a crafting
-// recipe as the crafting table's 3×3 grid with an arrow to the result, a
-// machine recipe as its inputs, an arrow and its outputs, a sieve recipe as
-// the block and the mesh with every drop and its chance. Cards of the same
-// machine sit under one header row with the machine's slot and name. The
-// details are in the tooltips of the slots.
+// The codex draws each recipe as a card of item slots on a board
+// (ui.ItemBoard), JEI style: inputs, an arrow and outputs, grouped under one
+// header row per machine. Details are in the slot tooltips.
 
 // Columns of a card: inputs from the left (at most cardInCols to a row), the
 // arrow right after them, then the outputs to the end of the row. A crafting
@@ -46,7 +42,6 @@ type codexCard struct {
 	rows [][]ui.BoardCell
 }
 
-// blankRow is a row of blank cells.
 func blankRow() []ui.BoardCell { return make([]ui.BoardCell, ui.BoardColumns) }
 
 // countLabel is the count shown on a slot (none for 1).

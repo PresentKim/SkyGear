@@ -428,7 +428,7 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 
 // TestCrusherOre: the crusher breaks an ore block into three raw ores and
 // two more at half a chance each, takes no chunks, and raw ores and dusts
-// smelt into ingots (ATM10, docs/design/16-ore-balance.md §4).
+// smelt into ingots (ATM10).
 func TestCrusherOre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -524,7 +524,7 @@ func TestEnergyCell(t *testing.T) {
 	}
 }
 
-// TestMobSimulator: an essence charges the simulator for simCharges runs; each run
+// TestMobSimulator: an essence charges the simulator for dfitem.SimCharges runs; each run
 // rolls the drops of the mob into the output; the machine remembers its charge
 // in its NBT.
 func TestMobSimulator(t *testing.T) {

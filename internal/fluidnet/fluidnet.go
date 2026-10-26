@@ -1,10 +1,6 @@
-// Package fluidnet moves fluids over fluid conduits (docs/design/07-
-// progression-expansion.md §6.1): the conduits that touch each other form a
-// network; every block with a tank next to one takes part as a source (the
-// fluid is taken from it), a sink (it takes fluid in) or both. Each step a
-// network moves up to its tier's rate of mB from the sources to the sinks,
-// round robin. The package knows nothing of the game's blocks: a block
-// implements Holder, a cable implements Conduit.
+// Package fluidnet moves fluids over networks of touching fluid conduits,
+// round robin from the tanks that give (sources) to those that take (sinks),
+// up to the network tier's rate. Blocks take part via Holder and Conduit.
 package fluidnet
 
 import (
@@ -46,7 +42,7 @@ type Conduit interface {
 }
 
 // Rates are the mB per tick a network of a tier carries (EnderIO's fluid
-// conduits), StepTicks the ticks between two steps.
+// conduits).
 var Rates = [...]int{0, 200, 1000, 8000}
 
 // StepTicks is the ticks between two steps of a network.
@@ -188,7 +184,6 @@ type Grid struct {
 	step     int64
 }
 
-// NewGrid returns an empty grid.
 func NewGrid() *Grid {
 	return &Grid{conduits: map[cube.Pos]int64{}, nets: map[cube.Pos]*Network{}}
 }

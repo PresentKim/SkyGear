@@ -15,16 +15,11 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// The composter (docs/design/02-dragonfactory.md §4) is the vanilla block
-// with the game's own rules: no chance, no bone meal. Every plant item put
-// in (anything vanilla composts: leaves, saplings, seeds, crops, ... and the
-// bark fiber) counts as one, and the 32nd fills it. The seven fill levels
-// of the block are at fixed counts (the level is count * 7 / 32). A full
-// composter turns its contents into dirt in composterDelay (instance time,
-// the ready level 8 of the block), and using it then gives one dirt and
-// empties it. The count of each composter is in the save (State.Composters,
-// by position) with the time its dirt is ready (State.ComposterReady);
-// hoppers do not feed it (Dragonfly patch block.ComposterVanillaRules).
+// The composter is the vanilla block with the game's own rules: every plant
+// item counts as one, no chance, and the 32nd fills it; a full one makes one
+// dirt after composterDelay. Counts are saved in State.Composters. The
+// Dragonfly patch (block.ComposterVanillaRules) turns off vanilla hopper
+// feeding so composterIO handles it.
 
 const (
 	// matterCapacity is how many plant items fill a composter or a barrel.

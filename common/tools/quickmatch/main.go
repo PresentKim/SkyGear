@@ -2,7 +2,7 @@
 // part of the take all and put all bar (ui/df_quick.json) that puts only
 // what the container already holds. JSON UI has no loops, so the controls
 // that compare an inventory slot with every container slot are written out
-// here. Run it from the repository root: go run ./tools/quickmatch
+// here. Run it from common/: go run ./tools/quickmatch
 package main
 
 import (

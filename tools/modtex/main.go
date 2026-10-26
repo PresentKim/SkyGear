@@ -1,10 +1,6 @@
-// modtex replaces placeholder textures of the pack with textures of open-source
-// mods (docs/tech/asset-credits.md lists the sources and licenses): each entry
-// of `entries` copies one picture of a mod's resource directory to a pack
-// texture, optionally laid over a chassis picture of the same mod (a machine
-// front with see-through parts) or tinted (metals that the mods do not have).
-// Only mods whose repository licenses cover their textures (MIT, Unlicense/CC0)
-// are listed. Textures that were drawn by hand are not in `entries`.
+// Command modtex copies textures of open-source mods (MIT, Unlicense/CC0; see
+// docs/tech/asset-credits.md) over the pack's placeholders: each entry copies
+// one picture, optionally over a chassis picture of the same mod or tinted.
 //
 //	go run ./tools/modtex <dir with the mod clones> assets/resourcepack/dragonfactory
 //

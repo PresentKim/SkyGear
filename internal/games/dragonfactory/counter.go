@@ -7,12 +7,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/achievement"
 )
 
-// The counter achievements of the game (docs/design/01-platform.md §5,
-// docs/tech/achievements.md): what a player does is counted by key
-// (account.Count), and counterCatalog (achcatalog.go) says which counts
-// grant which achievement and title. The code that counts is next to what
-// it counts; counterhooks.go, collect.go and machinecount.go have the
-// shared parts.
+// The counter achievements of the game: what a player does is counted by key
+// (account.Count), and achievement.Counters says which counts grant which
+// achievement and title. The code that counts sits next to what it counts;
+// counterhooks.go, collect.go and machinecount.go have the shared parts.
 
 func init() {
 	account.SetGroupOrder(achievement.Group("hand"), achievement.Group("farm"), achievement.Group("sift"),

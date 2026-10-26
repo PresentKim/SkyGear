@@ -10,11 +10,8 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// showSettings is the settings screen (docs/design/01-platform.md §5.1): a
-// button for every player setting (account.Settings) with its name and
-// whether it is on, then the menu style (uimode), and the back button to the
-// menu it came from. Pressing a setting turns it over and shows the screen
-// again.
+// showSettings is the settings screen: a toggle per account.Settings entry
+// and the menu style (uimode).
 func (pf *Platform) showSettings(p *player.Player) {
 	lang := i18n.Of(p)
 	row := func(name string, on bool, toggle func(p *player.Player)) ui.Option {

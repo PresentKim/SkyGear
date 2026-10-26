@@ -1,6 +1,6 @@
 #!/bin/bash
-# The magic sieve and the new mobs (docs/design/15-magic-sieve.md): the machine,
-# its recipe and the four new essences register without server errors, an
+# The magic sieve and its mobs: the machine,
+# its recipe and the four essences register without server errors, an
 # operator can be given them, and the production statistics screen opens.
 timeout 90 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=마법 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \

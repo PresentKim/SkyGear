@@ -6,24 +6,12 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// ConduitVisual is the display entity of a conduit bundle: an invisible
-// entity (no collision, no sound) standing in the block that the client draws
-// with models/entity/conduit_visual.geo.json. It carries the whole look of the
-// bundle in two numbers, which the render controller
-// (render_controllers/conduit_visual.render_controllers.json) takes apart to
-// show the right parts and textures. That is what keeps the block states of
-// conduits at one: no combination of kinds, tiers and sides needs a model
-// (docs/tech/conduits.md).
-//
-// Each kind has a code, 0 for no conduit of the kind and otherwise
-// 1 + (tier-1)*64 + sides, sides being the set of connected sides (bit i is
-// conduitFaces[i]), so a code is 0 to 192.
-//
-// Variant holds the energy code plus 193 times the item code and MarkVariant
-// the fluid code (later kinds follow); every number stays small enough for
-// the client's float32 molang. An entity is made for a bundle by showConduit,
-// belongs to one position and removes itself when the bundle is gone or the
-// session does not know it (entities are saved with the world).
+// ConduitVisual draws a conduit bundle so the bundle block needs a single
+// state: the render controller decodes the look from two variants. Each kind
+// has a code, 0 for none, else 1 + (tier-1)*64 + sides (bit i is
+// conduitFaces[i]); Variant = energy + 193*item, MarkVariant = fluid, small
+// enough for the client's float32 molang. It removes itself when its bundle
+// or session is gone (entities are saved with the world).
 
 const conduitCodes = 193
 

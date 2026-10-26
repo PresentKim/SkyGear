@@ -12,10 +12,8 @@ import (
 )
 
 // Creative inventory entries of the game's own items and blocks. The client
-// builds its recipe book from the creative inventory the server sends: a
-// recipe whose result is not in it is sent but never listed (the hammer, the
-// sieve and the other recipes of the game's items were missing from the
-// crafting list, 14th playtest). So every item and block the game makes is
+// builds its recipe book from the creative inventory: a recipe whose result
+// is not in it is never listed, so every item and block the game makes is
 // registered here, in anonymous groups of the fitting tab.
 var registerCreativeOnce sync.Once
 

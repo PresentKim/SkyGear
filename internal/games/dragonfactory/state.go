@@ -44,8 +44,8 @@ type State struct {
 	// GrowClock is the growth clock the crops and magic plants count on
 	// (growNow).
 	GrowClock time.Duration `json:"grow_clock,omitempty"`
-	// BaseBiome is the island's biome a snow changed, given back at the
-	// next start (restoreBiome).
+	// BaseBiome is the island's biome an old save's snow changed, given back
+	// at the next start (restoreBiome).
 	BaseBiome *uint32 `json:"base_biome,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
@@ -84,7 +84,7 @@ type State struct {
 // ChunkPos is a chunk coordinate.
 type ChunkPos [2]int32
 
-// LostItem is a stack type in the lost-and-found box (docs/design/02-dragonfactory.md §14.3).
+// LostItem is a stack type in the lost-and-found box.
 type LostItem struct {
 	// Item is the little endian NBT of the item with count 1. Drops are
 	// merged when the decoded stacks are Comparable (same item and NBT).

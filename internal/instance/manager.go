@@ -1,5 +1,5 @@
 // Package instance runs saves as instances: one world per save that is only
-// active while its host is inside (docs/design/01-platform.md §3), and moves
+// active while its host is inside, and moves
 // players between the lobby and instances while swapping their per-save state.
 package instance
 
@@ -22,7 +22,6 @@ import (
 	"github.com/presentkim/dragonfactory/internal/db"
 )
 
-// Config configures the Manager.
 type Config struct {
 	// Dir holds one folder per save: <Dir>/<save id>/world.
 	Dir string
@@ -114,7 +113,6 @@ type stateKey struct {
 	acc  string
 }
 
-// NewManager creates a Manager.
 func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby) *Manager {
 	if conf.AutosaveInterval <= 0 {
 		conf.AutosaveInterval = 30 * time.Second

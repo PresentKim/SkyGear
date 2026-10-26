@@ -7,7 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The drop tables of the magic sieve by the essence in it (docs/design/15-magic-sieve.md §5).
+// The drop tables of the magic sieve by the essence in it.
 // Chances are per mille at the string mesh; rare entries grow with the
 // difficulty of the mob.
 

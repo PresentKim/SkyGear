@@ -2,7 +2,7 @@
 // rows of the sidebar scoreboard. The dfui pack's ui/scoreboards.json draws
 // a sidebar whose objective name is Title as these parts instead of the
 // sidebar: each row starts with the marker of its part, which the pack
-// removes. Rows keep their order within a part. docs/tech/json-ui.md "HUD".
+// removes. Rows keep their order within a part.
 package hud
 
 import (
@@ -80,11 +80,9 @@ func (b *Board) Send(p *player.Player) {
 	p.SendScoreboard(sb)
 }
 
-// sentRows are the rows sent: Rows, then rows of no part (which the pack does
-// not draw) up to maxRows. Dragonfly's Session.SendScoreboard removes as many
-// rows of the shown sidebar as the first sidebar of that name had, so with
-// fewer rows the ones past that count would stay on screen once a shorter
-// board follows a longer one.
+// sentRows are Rows padded with blank rows to maxRows. Dragonfly's
+// SendScoreboard clears only as many rows as the first board of that name
+// had, so a shorter board would leave stale rows on screen.
 func (b *Board) sentRows() []string {
 	rows := b.Rows()
 	for i := len(rows); i < maxRows; i++ {

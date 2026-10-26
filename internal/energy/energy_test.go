@@ -124,7 +124,6 @@ func TestNothingFlowsWithoutBothEnds(t *testing.T) {
 	}
 }
 
-// TestTouchingSourceFeedsSinkWithoutConduit.
 func TestTouchingSourceFeedsSinkWithoutConduit(t *testing.T) {
 	store, have := 10000, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: machine{have: &have, room: 10000}}
@@ -152,7 +151,6 @@ func TestRegistrationsExpire(t *testing.T) {
 	}
 }
 
-// TestSeparateNetworksDoNotMix.
 func TestSeparateNetworksDoNotMix(t *testing.T) {
 	s1, s2, h1, h2 := 1000, 0, 0, 0
 	w := fakeWorld{

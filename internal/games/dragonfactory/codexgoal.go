@@ -14,7 +14,7 @@ import (
 )
 
 // The raw materials of an item: the codex works out what it takes down the
-// recipe chain (docs/tech/codex-jei.md). Favourite items: each player's
+// recipe chain. Favourite items: each player's
 // items starred in the codex, shown above the recently viewed ones.
 
 // favouriteMax is how many favourites a player keeps; a new one pushes the
@@ -139,7 +139,6 @@ func (s *session) favourites(p *player.Player) []item.Stack {
 	return out
 }
 
-// isFavourite reports whether it is one of p's favourites.
 func (s *session) isFavourite(p *player.Player, it item.Stack) bool {
 	return slices.Contains(s.state.Favourites[instance.AccountID(p)], naming.ItemKey(it.Item()))
 }

@@ -15,15 +15,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The essence extractor's screen (docs/design/11-research-essences.md §3) is
-// one split screen, like the research screen: on the left the essences the
-// island's research has come to, on the right the one chosen (at first the
-// one it makes). For the essence it makes the right side shows the progress
-// and state, its ingredients with how many it holds (pressing one puts that
-// one in) and the essences made (pressing them takes them), with the buttons
-// to put everything in, take the essences and stop (giving everything back).
-// For another essence it shows its recipe and a button that starts it
-// (stopping the one it made first).
+// The laboratory's screen is a split screen like the research screen: the
+// essences research has reached on the left, the chosen one on the right.
+// The essence being made shows its progress, ingredients and products with
+// fill/take/stop buttons; another one shows its recipe and a start button.
 
 // showLab shows the essence extractor's screen on the essence it makes, or
 // the first one.

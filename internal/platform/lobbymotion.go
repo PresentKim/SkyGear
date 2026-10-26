@@ -11,10 +11,8 @@ import (
 	"github.com/presentkim/dragonfactory/common/dfhook"
 )
 
-// The lobby scene is not a still picture (docs/design/01-platform.md §1):
-// the camera drifts slowly around the island, and the player's character
-// looks about and now and then waves or stretches. Everything is sent to
-// that player's client only; the server's own player does not move.
+// The lobby camera drifts around the island and the character idles and
+// gestures, sent to that player's client only.
 
 // lobbyGlide is how long the camera takes from one stop to the next; a new
 // stop is sent as the camera arrives, so it never rests.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# The server guide (docs/design/01-platform.md §1): the first join shows it,
+# The server guide: the first join shows it,
 # a topic page goes back to it and 시작하기 goes on to the saves. /guide
 # opens it again: in a save 시작하기 only closes it, in the lobby it does not
 # open the saves.

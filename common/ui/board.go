@@ -60,7 +60,7 @@ func TextCell(s string) BoardCell { return BoardCell{kind: cellText, text: s} }
 
 // ItemBoard sends a form with the body text and rows of cells, BoardColumns
 // to a row, drawn like a recipe viewer: slots, empty frames, arrows and
-// lines of text (packs/dfui, the wrapping grid). A row shorter than
+// lines of text. A row shorter than
 // BoardColumns is filled with blank cells; a longer one is cut. Any press
 // of a slot answers the form: its Run must show a form again.
 func ItemBoard(p *player.Player, title, body string, rows [][]BoardCell, actions ...Option) {

@@ -3,7 +3,7 @@ package textfmt
 // Glyphs drawn by the resource pack font
 // (assets/resourcepack/dragonfactory/font/glyph_E1.png): a padlock in the
 // first cell and the void upgrade's mark in the second; the second row
-// holds the cycle gauge rings (textures/items/cycle_0..10, gaugeGlyph).
+// holds the cycle gauge rings (textures/items/cycle_0..10, GaugeGlyph).
 const (
 	LockGlyph = "\ue100"
 	VoidGlyph = "\ue101"

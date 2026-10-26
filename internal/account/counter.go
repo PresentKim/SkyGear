@@ -8,9 +8,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Counters (docs/design/01-platform.md §5): a game counts what a player does
-// by key, and a counter grants an achievement at each of its tiers. The
-// counts are kept in memory and written to the database in batches.
+// Counters: a game counts what a player does by key, and a counter grants an
+// achievement at each of its tiers. Counts are written to the database in
+// batches.
 
 // Tier is an achievement a counter grants once it reaches Need.
 type Tier struct {

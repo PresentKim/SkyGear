@@ -19,20 +19,14 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Island expansion mode (섬 확장, docs/design/02-dragonfactory.md §13): the
-// player's body stays where it is, frozen, and the camera looks straight
-// down on the selected chunk. The movement keys move the selection a chunk
-// at a time (read from the client's input, Player.MoveInput). The chunks
-// are shown on a map far away (expandmap.go) under stained glass: owned ones
-// in a checkerboard of two greens so their borders show, buyable ones
-// yellow, and the selected one in its own colour. Sneaking (or /menu) opens
-// buy and exit. The player is in a view-only game mode meanwhile, so the
-// client neither breaks nor places blocks.
+// Island expansion mode (섬 확장): the body is frozen and the camera looks
+// down on the selected chunk of the map (expandmap.go); the movement keys
+// move the selection a chunk at a time and sneaking opens buy and exit. A
+// view-only game mode keeps the client from breaking or placing blocks.
 
 const (
 	// The camera looks down on the map with a narrow field of view from high
-	// up, so the map looks nearly flat (less perspective at the edges, 13th
-	// playtest).
+	// up, so the map looks nearly flat.
 	expandMapFOV          = 30
 	expandMapCameraHeight = 65
 	// expandFloorY is the height of the map's glass (the island surface).
@@ -75,7 +69,6 @@ func (viewOnlyMode) AllowsInteraction() bool   { return false }
 func (viewOnlyMode) Visible() bool             { return true }
 func (viewOnlyMode) InstantPortalTravel() bool { return false }
 
-// expansion is the expansion mode of one player.
 type expansion struct {
 	target ChunkPos
 	// mode is the game mode to restore.

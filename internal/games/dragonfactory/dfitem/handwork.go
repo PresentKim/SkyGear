@@ -30,8 +30,8 @@ const (
 )
 
 // PebbleKinds are the pebble kinds with the weight a stick knocks each out
-// of the ground with (0: only sieves give it, docs/design/16-ore-balance.md
-// §2.1) and the block four of them make.
+// of the ground with (0: only sieves give it) and the block four of them
+// make.
 var PebbleKinds = []struct {
 	Kind   string
 	name   string

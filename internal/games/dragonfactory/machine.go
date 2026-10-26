@@ -31,11 +31,11 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Machines are the automation blocks
-// (docs/design/02-dragonfactory.md §11). Most run on energy (RE) and stop
-// without it; each operation takes a fixed time. Items go in and out by hand in the machine window
-// (an entity chest) or by hoppers: a hopper above or beside a machine
-// inserts into its input, a hopper below extracts from its output.
+// Machines are the automation blocks. Most run on energy (RE) and stop
+// without it; each operation takes a fixed time. Items go in and out by hand
+// in the machine window (an entity chest) or by hoppers: a hopper above or
+// beside a machine inserts into its input, a hopper below extracts from its
+// output.
 
 // Machine kinds.
 const (
@@ -78,7 +78,6 @@ const (
 	KindLab     = "laboratory"
 )
 
-// machineID is the kind of a machine as a number, for switching on it.
 type machineID int
 
 const (
@@ -111,9 +110,7 @@ const (
 // machineKind describes a kind of machine. Slots are window slots of a 27
 // slot (3 row) window; the window inventory is the machine inventory.
 type machineKind struct {
-	id machineID
-	// animated and cycleOnReset are animatedMachines and cycleOnReset of the
-	// kind.
+	id                     machineID
 	animated, cycleOnReset bool
 	// nameKey is the catalog key of the name (title).
 	nameKey string
@@ -129,7 +126,7 @@ type machineKind struct {
 	helpKeys []string
 	hash     uint64
 	// generates is the RE per tick a generator makes while it burns; energyCap
-	// the RE its buffer holds (docs/design/06-power-and-conduits.md).
+	// the RE its buffer holds.
 	generates, energyCap int
 	// fluidCap is the mB a tank of the machine holds (0: no tank); fluidSource and
 	// fluidSink say whether fluid conduits take fluid from it and put it in;
@@ -162,8 +159,8 @@ var machineKinds = map[string]*machineKind{
 		use: 20, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.crusher.help.1", "machine.crusher.help.2"},
 	},
-	// Sieves have no window: the input lies on the mesh and the products
-	// drop (or, from the auto sieve, go into containers beside or below).
+	// The hand sieve has no window: the input lies on the mesh and the
+	// products drop on top.
 	KindSieve: {
 		id: idSieve, nameKey: "machine.sieve.name", interval: 60, input: []int{10}, indicator: 12,
 		helpKeys: []string{"machine.sieve.help.1", "machine.sieve.help.2"},
@@ -183,7 +180,6 @@ var machineKinds = map[string]*machineKind{
 		helpKeys: []string{"machine.magicsieve.help.1", "machine.magicsieve.help.2", "machine.magicsieve.help.3"},
 	},
 	KindMiner: {
-		// One output slot (11th playtest; it had four, like the harvester).
 		id: idMiner, nameKey: "machine.miner.name", marker: "§d§m§5", interval: 40, output: []int{13}, indicator: 10,
 		use: 20, energyCap: consumerBuffer,
 		helpKeys: []string{"machine.miner.help.1"},
@@ -290,8 +286,8 @@ var machineKinds = map[string]*machineKind{
 var machineOrder = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
 
 // crusherOutput is what the crusher always makes of an item: the blocks of
-// the hammer chain one step down, an ore block crusherRaw raw ores (and
-// crusherBonusOf more by chance).
+// the hammer chain one step down, an ore block dfitem.CrusherRaw raw ores
+// (and crusherBonusOf more by chance).
 func crusherOutput(in item.Stack) (item.Stack, bool) {
 	if metal, ok := dfitem.OreBlockMetal(in.Item()); ok {
 		return item.NewStack(dfitem.RawOf(metal), dfitem.CrusherRaw), true
@@ -303,7 +299,7 @@ func crusherOutput(in item.Stack) (item.Stack, bool) {
 }
 
 // crusherBonusOf is the raw ore the crusher may make more of an ore block:
-// crusherBonus of them at crusherBonusChance percent each.
+// dfitem.CrusherBonus of them at dfitem.CrusherBonusChance percent each.
 func crusherBonusOf(in item.Stack) (item.Stack, bool) {
 	metal, ok := dfitem.OreBlockMetal(in.Item())
 	if !ok {
@@ -358,9 +354,9 @@ type machineState struct {
 	// energy is the RE in the buffer; burn the ticks the fuel in a generator
 	// burns still, burnMax the ticks it burned for in all (generator.go).
 	energy, burn, burnMax int
-	// legacy are saved items of slots the kind no longer has (the auto
-	// miner had four output slots); they move into the output as it frees
-	// up, and are saved until then.
+	// legacy are saved items of slots outside the kind's layout (saves of a
+	// four-output auto miner); they move into the output as it frees up, and
+	// are saved until then.
 	legacy []item.Stack
 	// fluid and fluidAmt are what the tank holds (fluidmachine.go).
 	fluid    fluidnet.Kind
@@ -472,7 +468,6 @@ const (
 // machine. The theme draws it left of the close button.
 const infoSlot = 26
 
-// title is the name of the kind in lang.
 func (k *machineKind) title(lang string) string { return i18n.T(lang, k.nameKey) }
 
 // windowTitle is the title of the kind's window in lang. The marker's last
@@ -480,7 +475,6 @@ func (k *machineKind) title(lang string) string { return i18n.T(lang, k.nameKey)
 // title colour back.
 func (k *machineKind) windowTitle(lang string) string { return k.marker + "§r" + k.title(lang) }
 
-// openWindow opens the machine's window for p, titled in p's language.
 func (st *machineState) openWindow(p *player.Player) {
 	st.storage.SetTitle(st.kind.windowTitle(i18n.Of(p)))
 	st.storage.Open(p, nil)
@@ -582,7 +576,7 @@ func (st *machineState) accepts(it item.Stack) bool {
 		_, ok := sievetable.Tables[st.mesh][naming.ItemKey(it.Item())]
 		return ok || st.takesCharge(it)
 	}
-	// The sell box (no more shop, 13th playtest) takes nothing.
+	// The sell box takes nothing.
 	return false
 }
 
@@ -1189,8 +1183,8 @@ func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item
 }
 
 // PeekItems implements itemio.Extractor: the output leaves through any face
-// (a hopper under the machine, a conduit anywhere, since machines no longer
-// push their output into their neighbours).
+// (a hopper under the machine, a conduit anywhere); machines do not push it
+// into their neighbours.
 func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
 	if m.st != nil && m.st.kind.controller {
 		return controllerPeek(tx, pos, want)
@@ -1463,7 +1457,6 @@ func (s *session) breakMachine(tx *world.Tx, pos cube.Pos, m Machine) {
 	}
 }
 
-// machineItem returns a machine item stack.
 func machineItem(kind string) item.Stack { return item.NewStack(Machine{Kind: kind}, 1) }
 
 func init() {

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Hand resources (handwork.go): the new items exist and the "돌 다지기"
+# Hand resources (handwork.go): the items exist and the "돌 다지기"
 # research opens the pebble recipes (a few more recipes after it). Using a
 # stick on dirt and stripping logs are covered by unit tests.
 timeout 60 "$BOT" -name Hana \

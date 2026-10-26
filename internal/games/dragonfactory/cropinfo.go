@@ -14,8 +14,8 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Crops by hand (docs/design/02-dragonfactory.md §12): using a grown crop
-// harvests it and replants it (free for now); using a growing one does
+// Crops by hand: using a grown crop
+// harvests it and replants it for free; using a growing one does
 // nothing, so no block is placed on it. The WAILA panel shows the time
 // left (look.go).
 
@@ -61,7 +61,7 @@ func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block
 }
 
 // cropLines are the time left on a crop (the stage is only how the time
-// shows on the plant, not a number for players; 11th playtest).
+// shows on the plant, not a number for players).
 func (s *session) cropLines(lang string, r *CropRecord, tx *world.Tx, pos cube.Pos) []string {
 	now := s.growNow()
 	_, stage, _ := cropOf(tx.Block(pos))

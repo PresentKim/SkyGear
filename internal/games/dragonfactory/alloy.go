@@ -7,7 +7,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The alloy smelter (docs/design/07-progression-expansion.md §4): two input
+// The alloy smelter: two input
 // slots, one output; it needs energy. A recipe wants a count of each of two
 // ingredients (in either slot) and makes a count of its product.
 

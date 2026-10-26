@@ -18,7 +18,7 @@ import (
 )
 
 // helpTab is a tab of the help window: the topics of one stage of the game,
-// in the order a new player meets them (docs/design/10-user-flow.md).
+// in the order a new player meets them.
 type helpTab int
 
 const (
@@ -30,10 +30,8 @@ const (
 	helpTabCount
 )
 
-// helpTabKeys are the label keys of the tabs.
 var helpTabKeys = [helpTabCount]string{"help.tab.start", "help.tab.hand", "help.tab.auto", "help.tab.metal", "help.tab.fight"}
 
-// helpTabIcon is the icon of a tab.
 func helpTabIcon(t helpTab) string {
 	switch t {
 	case helpHandTab:

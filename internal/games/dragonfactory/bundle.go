@@ -23,18 +23,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
-// Conduit bundles (docs/design/06-power-and-conduits.md §3.4): the block every
-// conduit is placed as. It holds at most one conduit of each kind (energy, item,
-// fluid; each of a tier, 0 for none), so a cable run can carry all, as in
-// EnderIO. Placing a conduit item on a bundle that has room for its kind adds
-// it; breaking the bundle drops everything in it.
-//
-// The block is a block entity with one block state and an invisible model: all
-// its data (tiers, the sides each kind connects to, the item modes) is stored
-// in its NBT, and the display entity of conduitvisual.go draws it. Each kind
-// connects to its own neighbours, so a side can have the arm of one kind only.
-// Item side modes (itemnet.Mode) belong to the item conduit; using a side
-// with an empty hand while sneaking cycles it.
+// Conduit bundles are the block every conduit is placed as: at most one
+// conduit of each kind (energy, item, fluid), each of a tier, as in EnderIO.
+// The block is a block entity with one state and an invisible model; its data
+// lives in its NBT and the display entity of conduitvisual.go draws it.
 
 // ConduitBundle is the conduit block. Energy, Item and Fluid are the tiers of
 // the conduits in it (0 for none), EConn, IConn and FConn the sides each of
@@ -162,7 +154,7 @@ func joinsEnergy(b world.Block) bool {
 }
 
 // joinsFluid reports whether the fluid conduit connects to b: another fluid
-// conduit, or a block that holds fluid (so far the barrel).
+// conduit, or a block that holds fluid.
 func joinsFluid(b world.Block) bool {
 	if o, ok := b.(ConduitBundle); ok {
 		return o.Fluid > 0

@@ -1,5 +1,5 @@
 // Package platform implements the server around the games: accounts, the
-// server guide, the lobby and save slot selection (docs/design/01-platform.md).
+// server guide, the lobby and save slot selection.
 package platform
 
 import (
@@ -33,8 +33,8 @@ type Platform struct {
 	log *slog.Logger
 	db  *db.DB
 	m   *instance.Manager
-	// game is the only game type offered to players for now; game selection
-	// is hidden until more games exist (docs/design/01-platform.md §1).
+	// game is the game type offered to players; game selection stays hidden
+	// while there is only one.
 	game    instance.Game
 	online  Online
 	invites invites
@@ -399,11 +399,9 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 	c.pf.showFriends(src.(*player.Player))
 }
 
-// showLobbyMenu is the lobby's main menu (docs/design/01-platform.md §1): five
-// large buttons at the top left under the game's name, the same as the
-// picture of it the pack draws on the HUD (ui/df_lobby.json menu), so the menu
-// form can close and open again without the screen changing. The labels are
-// the pack's language keys, which both draw.
+// showLobbyMenu is the lobby's main menu. It matches the copy the pack draws
+// on the HUD (ui/df_lobby.json), so closing the form does not change the
+// screen; labels are pack language keys.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
 	ui.LauncherMenu(p, nil, pf.lobbyMenu()...)
 }

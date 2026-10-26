@@ -8,12 +8,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 )
 
-// The auto harvester (second era, draft) harvests the grown crops around it
-// on its own level, harvestRadius blocks each way: wheat, carrots, potatoes
-// and beetroots are picked and left as young plants, and melons and pumpkins
-// grown from stems are cut; blooming magic plants are picked and go back to
-// buds. The products go to its output slots, from where
-// it pushes them into neighbouring containers like the auto miner.
+// The auto harvester harvests the grown crops around it on its own level,
+// harvestRadius blocks each way: crops are left as young plants, stem fruits
+// are cut and blooming magic plants go back to buds. The products go to its
+// output slots.
 
 // harvestRadius is how far the harvester reaches in x and z.
 const harvestRadius = 4

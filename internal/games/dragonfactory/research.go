@@ -27,12 +27,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Research (docs/design/02-dragonfactory.md §9): every crafting recipe is
-// locked but oak planks, the crafting table and the research table. A
-// research opens the recipes making its results for everyone on the
-// island at once (recipes.go). Researches form a tree: each needs the ones
-// before it. A research is paid with items, delivered from the inventory
-// at the research table (in parts if need be). Trees and costs are drafts.
+// Research: every crafting recipe but baseUnlocks is locked. A research,
+// paid whole with items at the research table, opens the recipes of its
+// results for everyone on the island (recipes.go). Researches form a tree;
+// trees and costs are drafts.
 
 // Research is one node of the research tree.
 type Research struct {
@@ -54,8 +52,8 @@ var (
 	stick     = item.Stick{}
 )
 
-// Title is the name of the research in lang (the catalog, i18n). A test copy
-// (copyOf) has its original's name and its number.
+// Title is the name of the research in lang. A test copy (isCopy) has its
+// original's name and its number.
 func (r *Research) Title(lang string) string {
 	id, n, copied := strings.Cut(r.ID, "#")
 	name := i18n.T(lang, "research."+id+".name")
@@ -71,10 +69,8 @@ func (r *Research) Title(lang string) string {
 // cost nothing.
 func (r *Research) isCopy() bool { return strings.Contains(r.ID, "#") }
 
-// researchTree is every research in menu order; a research's needs come
-// before it.
-// researchTree is the research tree: the researches below with the research
-// essences of researchEssenceCosts added (researchessence.go).
+// researchTree is every research in menu order (a research's needs come
+// before it), with the essence costs of researchEssenceCosts added.
 var researchTree = withEssenceCosts(baseResearchTree)
 
 // baseResearchTree are the researches with their material costs.
@@ -247,7 +243,6 @@ var researchIndex = func() map[string]int {
 	return m
 }()
 
-// researchByID returns a research of the tree.
 func researchByID(id string) (*Research, bool) {
 	if i, ok := researchIndex[id]; ok {
 		return &researchTree[i], true
@@ -304,9 +299,8 @@ func (s *session) researchBlocker(r *Research) (*Research, bool) {
 	return left, true
 }
 
-// researchPaid is how many of an item of a research's cost an older save
-// had already delivered in parts (partial delivery is gone: a research is
-// paid whole, at once; the count only keeps what older saves gave).
+// researchPaid is how many of an item of a research's cost the save records
+// as delivered in parts. Research is paid whole; only old saves hold parts.
 func (s *session) researchPaid(r *Research, it world.Item) int {
 	return s.state.ResearchPaid[r.ID][naming.ItemKey(it)]
 }
@@ -411,7 +405,6 @@ func researchIcon(r *Research) string {
 	return formicon.Mission
 }
 
-// showResearch shows the research screen.
 func (s *session) showResearch(p *player.Player) {
 	count(p, "research_open", 1)
 	s.showResearchSplit(p, researchView{})
@@ -812,12 +805,10 @@ func gameRecipes() {
 		stick, nil, stick)
 	// The combustion generator and the first energy conduit.
 	add(machineItem(KindGenerator), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
-	// The conduits (docs/design/06-power-and-conduits.md §5.1): sand and gravel
-	// in a checkerboard make the binder mix, a furnace bakes it into the
-	// binder; the basic conduits are binders above and below a row of
-	// redstone (energy), an iron nugget, a chest and an iron nugget (item) or
-	// glass (fluid).
-	// The better tiers wait for the ore design.
+	// The conduits: sand and gravel in a checkerboard make the binder mix, a
+	// furnace bakes it into the binder; the basic conduits are binders above
+	// and below a row of redstone (energy), an iron nugget, a chest and an
+	// iron nugget (item) or glass (fluid).
 	sand, gravel, binder := block.Sand{}, block.Gravel{}, dfitem.ConduitBinder{}
 	shaped(item.NewStack(dfitem.ConduitBinderMix{}, 6), 3, 3,
 		sand, gravel, sand,
@@ -837,7 +828,7 @@ func gameRecipes() {
 		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
 	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
-	// The alloy smelter and the energy cell (docs/design/07-progression-expansion.md).
+	// The alloy smelter and the energy cell.
 	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machineItem(KindEnergyCell), n(dfitem.Ingot{Metal: dfitem.MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
 	add(machineItem(KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
@@ -851,7 +842,7 @@ func gameRecipes() {
 	add(machineItem(KindSimulator), n(dfitem.Ingot{Metal: dfitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// The dragon egg, the last project's prize (project.go).
 	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
-	// The automation equipment (docs/design/09-automation-equipment.md).
+	// The automation equipment.
 	add(machineItem(KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(machineItem(KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
@@ -874,7 +865,7 @@ func gameRecipes() {
 	// told (any), not by the one state an empty sieve has.
 	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
 	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
-	// The machine tiers' circuits and kits (docs/design/13-machine-tiers.md §3).
+	// The machine tiers' circuits and kits.
 	steel, electrum := dfitem.Ingot{Metal: dfitem.MetalSteel}, dfitem.Ingot{Metal: dfitem.MetalElectrum}
 	infused, reinforced, atomic := dfitem.TierAlloy{Kind: "infused"}, dfitem.TierAlloy{Kind: "reinforced"}, dfitem.TierAlloy{Kind: "atomic"}
 	c1, c2, c3, c4 := dfitem.Circuit{Level: 1}, dfitem.Circuit{Level: 2}, dfitem.Circuit{Level: 3}, dfitem.Circuit{Level: 4}

@@ -18,10 +18,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// The codex (docs/design/10-user-flow.md §4): what the game's tables say,
-// asked from the game. Players of the genre expect a recipe viewer: where
-// does this come from, what is it for, what does this mesh sift. It reads the
-// same tables the machines use, so it cannot disagree with them.
+// The codex is the game's recipe viewer: where an item comes from, what it is
+// for, what a mesh sifts. It reads the same tables the machines use, so it
+// cannot disagree with them.
 
 // codexSieveInputs are the blocks a sieve takes, in the order the codex shows
 // them.

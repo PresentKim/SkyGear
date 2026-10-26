@@ -13,18 +13,10 @@ import (
 	"github.com/presentkim/dragonfactory/common/dfhook"
 )
 
-// The expansion map (12th playtest): the island is shown as a map
-// far away from it, where nothing else is. Each chunk near the cursor is
-// sent to the player (Player.ViewFakeChunk) at the island chunk moved by
-// mapOffset, holding only the top block of every column (and the one below
-// it where the top block does not cover it) flattened just under the island
-// surface, with the floor's stained glass on the surface. The camera
-// looks down on the map at the same height as over the island, so the glass
-// lies right on the blocks and nothing hides it. The client only draws
-// chunks around the player, so the frozen body is moved there too, above
-// the camera, following the cursor (so the cursor is not bound to where the
-// player stood), and back to where it stood when the view ends. The empty
-// world chunks there are not saved (nothing changes in them).
+// The expansion map is a flattened copy of the island sent as fake chunks
+// (Player.ViewFakeChunk) mapOffset chunks away, with the floor glass on top.
+// The client only draws chunks around the player, so the frozen body follows
+// the cursor above the camera there and goes back when the view ends.
 
 // mapBodyAbove is how far above the camera the body waits.
 const mapBodyAbove = 4
@@ -110,10 +102,10 @@ func (s *session) drawMap(p *player.Player, e *expansion, on bool) {
 }
 
 // mapColumn builds the map chunk of island chunk c: the top block of each
-// column just under the island surface, glass on the surface. A top block light passes through (torch, crop, slab,
-// glass, our own models) gets the next block below it underneath, so the
-// map has no holes (12th playtest). Only owned chunks are read (others are
-// empty void and may not be loaded).
+// column just under the island surface, glass on the surface. A top block
+// light passes through (torch, crop, slab, glass, our own models) gets the
+// next block below it underneath, so the map has no holes. Only owned
+// chunks are read (others are empty void and may not be loaded).
 func (s *session) mapColumn(tx *world.Tx, c ChunkPos, glass world.Block) *chunk.Chunk {
 	reg := tx.World().BlockRegistry()
 	col := chunk.New(reg, tx.Range())

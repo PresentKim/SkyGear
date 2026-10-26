@@ -1,19 +1,17 @@
-// Package oreui opens server-driven DDUI screens that the renderer of the
-// oreui pack (packs/oreui/hbui/oui-ddui.js) draws in the game's Ore UI from a
-// layout tree the server sends.
+// Package oreui opens server-driven DDUI screens that the oreui pack's
+// renderer (hbui/oui-ddui.js) draws in Ore UI from a layout tree.
 //
-// The vanilla DDUI root minecraft:custom_form reads its data from data store
-// "minecraft", property custom_form_data_<instance id>. Next to the vanilla
-// fields the server puts fields of its own, which the renderer reads instead
-// of drawing the vanilla form:
+// The vanilla root minecraft:custom_form reads data store "minecraft",
+// property custom_form_data_<instance id>; the renderer reads these extra
+// fields instead of drawing the vanilla form:
 //
 //	custom_form_data_1.oui        JSON {"form": nonce, "root": layout}
 //	custom_form_data_1.oui_event  JSON written by the client: {"seq", "id", "kind", "value"}
 //	oui_vars_1_<n>.v              JSON {"f": nonce, "s": seq, "p": patch}: changed
 //	                              variables, rotating over varsSlots properties
 //
-// The connections must pass dfhook (dfhook.Wrap): the client's DDUI packets
-// are taken there, as the player session does not handle them.
+// Connections must pass dfhook (dfhook.Wrap), which takes the client's DDUI
+// packets the session does not handle.
 package oreui
 
 import (

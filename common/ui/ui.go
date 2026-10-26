@@ -161,11 +161,9 @@ func recoverForm(p *player.Player) {
 // whose name is the lobby frame's).
 const UntitledToken = "§d§f§u§r"
 
-// LobbyToken in a form's title makes the pack draw the lobby's frame behind
-// the window (dfui_hooks.lobby_frame, which the server pack fills; the HUD's
-// frame is hidden while a form is open) and not darken the screen, so the
-// forms of the lobby fill the screen like a game launcher over the island. It is added to every form
-// shown to a player in the lobby (InLobby).
+// LobbyToken in a form's title makes the pack draw the lobby frame
+// (dfui_hooks.lobby_frame) behind the window without darkening the screen.
+// It is added to every form shown to a player in the lobby (InLobby).
 const LobbyToken = "§d§f§w§r"
 
 // InLobby reports whether p is in the lobby. The platform sets it.
@@ -186,8 +184,7 @@ const InputBackToken = "§d§f§b§r"
 
 // Menu shows a menu form whose buttons run their options. The pressed
 // button is found by its label (the client sends no index), so a label
-// that repeats gets invisible "§r"s added until it is unique (all the empty
-// upgrade slots of the drawer window ran the first one, 11th playtest).
+// that repeats gets invisible "§r"s added until it is unique.
 func Menu(p *player.Player, title, body string, opts ...Option) {
 	if OreUIFor(p) && !strings.HasPrefix(title, "§d§f") {
 		oreMenu(p, title, body, opts)
@@ -257,8 +254,8 @@ func Flash(p *player.Player, format string, a ...any) {
 	}
 }
 
-// Tell writes msg in p's chat. The lobby has no chat (docs/design/01-platform.md
-// §1): there it is a toast titled title (ui.tell.title when empty) instead.
+// Tell writes msg in p's chat. The lobby has no chat: there it is a toast
+// titled title (ui.tell.title when empty) instead.
 func Tell(p *player.Player, title, msg string) {
 	if InLobby != nil && InLobby(p) {
 		if title == "" {
@@ -270,14 +267,11 @@ func Tell(p *player.Player, title, msg string) {
 	p.Message(msg)
 }
 
-// ToastGap is how long a toast stays on screen, roughly. The client shows
-// toasts one after another, so many quick ones (buying again and again)
-// came minutes late (10th playtest). A player gets at most one toast per
-// ToastGap: what comes in between is merged into the next one, which shows
-// the latest message and how many were folded into it.
+// ToastGap is roughly how long a toast stays on screen. The client queues
+// toasts, so a player gets at most one per ToastGap: those in between fold
+// into the next, which shows the latest message and how many it stands for.
 var ToastGap = 3 * time.Second
 
-// toasts are the players' toast states.
 var toasts = struct {
 	sync.Mutex
 	m map[uuid.UUID]*toastState
@@ -379,8 +373,7 @@ func SubTitle(parent, sub string) string { return parent + " · " + sub }
 // Pager returns the buttons that turn pages of a list shown page of pages (both
 // from 0 and 1 respectively: page is the index): "previous" when there is an
 // earlier page and "next" when there is a later one, each naming the page it
-// goes to. show shows that page again. Every paged list of the game uses it,
-// so they read and sit the same (docs/tech/ui-style.md).
+// goes to. show shows that page again.
 func Pager(p *player.Player, page, pages int, show func(p *player.Player, tx *world.Tx, page int)) []Option {
 	lang := i18n.Of(p)
 	var out []Option
@@ -402,7 +395,7 @@ func Back(label string, run func(p *player.Player, tx *world.Tx)) Option {
 }
 
 // CardToken starts the title of a menu shown as a grid of icon-and-text
-// cards, three per row (packs/dfui ui/df_form.json).
+// cards, four per row.
 const CardToken = "§d§f§c§r"
 
 // CardMenu shows a menu as a grid of cards with the icon above the label,
@@ -509,8 +502,7 @@ func SlotMenu(p *player.Player, title string, store Slot, info string, left, rig
 // Item slot forms (ItemDetail, ItemGrid). A slot is a button whose text holds
 // a 9 byte marker, one byte saying which side its tooltip grows to, its
 // count in 10 bytes (starts with a colour code, padded with '~') and then
-// its tooltip; the pack cuts them apart
-// (packs/dfui ui/df_form.json, dragonfactory docs/tech/json-ui.md).
+// its tooltip; the pack (dfui ui/df_form.json) cuts them apart.
 const (
 	// DetailToken starts the title of an item detail form (ItemDetail).
 	DetailToken = "§d§f§g§r"
@@ -885,8 +877,7 @@ func Amount(p *player.Player, title, label string, max, def int, f func(p *playe
 // ItemIcon returns a button icon that the resource pack theme draws as the
 // item itself, with the client's item renderer, instead of a texture path:
 // the item's runtime ID times 65536 (the renderer's "#item_id_aux"; the
-// metadata is not used). It returns "" for an unregistered item. Blocks
-// show as blocks and no icon texture is needed (docs/tech/json-ui.md).
+// metadata is not used). It returns "" for an unregistered item.
 func ItemIcon(it world.Item) string {
 	aux, ok := slottext.ItemAux(it)
 	if !ok {
@@ -937,10 +928,9 @@ func rowSlotOption(marker string, j int, sl ItemSlot) Option {
 	return o
 }
 
-// The buttons of a SplitMenu sit at fixed indexes, so the pack draws every
-// part from its own index (collection_index) instead of a stack per part
-// that walks all the buttons: a factory over a hundred buttons, each with a
-// full slot, made the screen take seconds to open. Unused places are pads.
+// The buttons of a SplitMenu sit at fixed indexes so the pack reads each part
+// by collection_index; a per-part stack factory over every button takes
+// seconds to open. Unused places are pads.
 const (
 	splitPrevAt    = SplitCells     // the page arrows
 	splitTabsAt    = SplitCells + 2 // two tabs

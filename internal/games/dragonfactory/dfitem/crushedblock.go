@@ -13,7 +13,7 @@ import (
 
 // Crushed blocks are the stones of the deep, the Nether and the End broken
 // once by the hammer or the crusher, as Ex Deorum makes them in ATM10: To the
-// Sky (docs/design/16-ore-balance.md §2.1). A sieve sifts them for their own
+// Sky. A sieve sifts them for their own
 // drops; crushed netherrack crushes once more into red sand.
 const (
 	CrushedDeepslate  = "deepslate"

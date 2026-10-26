@@ -9,21 +9,17 @@ import (
 )
 
 // Hammer crushes blocks by hand: a block it mines drops it one step down
-// (stone → cobblestone → gravel → sand), an ore block two dusts (ore.go).
-// The stone hammer comes first; the iron hammer (the zero value, the first
-// hammer of the game) also breaks the same crushable blocks connected to the
-// one it mines while sneaking (vein.go). The stone hammer lasts twice as
-// long as a stone tool; the iron hammer does not wear (handler.go
-// HandleItemDamage): the vein mining costs food. It mines these blocks at its own speeds, sent to
-// clients (the minecraft:digger component, a Dragonfly patch) so they mine as
-// fast as the server expects.
+// (stone → cobblestone → gravel → sand), an ore block two dusts. The iron
+// hammer (the zero value) also vein mines while sneaking and does not wear;
+// the stone hammer lasts twice as long as a stone tool. Its mining speeds go
+// to clients as the minecraft:digger component (a Dragonfly patch) so they
+// mine as fast as the server expects.
 type Hammer struct{ Stone bool }
 
 // hammerSpeeds are the mining speeds of the hammer per block. Stone is
 // three times as hard as gravel, sand and dirt, so those get a third of
-// the speed and every block takes about as long (playtest: soft blocks
-// broke far too fast at the same speed); gravel, sand and dust a half more
-// (playtest: still slow).
+// the speed and every block takes about as long; gravel, sand and dust get
+// a half more.
 var hammerSpeeds = map[string]int{
 	"minecraft:stone":       6,
 	"minecraft:cobblestone": 6,

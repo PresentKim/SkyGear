@@ -1,5 +1,5 @@
 // Package backup copies the platform database and the save worlds so that a
-// broken disk or a bad update does not lose them (docs/tech/backup.md).
+// broken disk or a bad update does not lose them.
 package backup
 
 import (

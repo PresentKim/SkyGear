@@ -1,7 +1,6 @@
-// slotmarks writes the slot decoration marks (internal/slotdeco) into the item
-// names of the pack's language files: every item whose rarity or tier is not
-// the plain one (dragonfactory.ItemDecor) gets its marks around the name, the
-// others lose them. Run it after changing ItemDecor or adding items:
+// Command slotmarks writes the slot decoration marks (common/slotdeco) into
+// the item names of the pack's language files from dragonfactory.ItemDecor;
+// plain items lose them. Run it after changing ItemDecor or adding items:
 //
 //	go run ./tools/slotmarks assets/resourcepack/dragonfactory
 package main

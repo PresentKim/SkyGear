@@ -13,17 +13,12 @@ import (
 	"github.com/presentkim/dragonfactory/common/slotdeco"
 )
 
-// OreUI makes Menu (and Confirm), CardMenu, ItemBoard, SplitMenu,
-// SieveBoard, ListSplitMenu, Input, ItemGrid, ItemGridSections and SlotMenu
-// show as DDUI screens that the oreui pack draws in the game's Ore UI, like
-// the dfui pack's JSON UI forms (packs/oreui/hbui/oui-mc.css): the same tabs,
-// control bar, cards, list buttons, slot boards and split screens in one
-// window, with the items drawn by the game and the window scrolling with a
-// scrollbar. The server must send the oreui pack encrypted and wrap its
-// listeners with dfhook. In the lobby they are drawn in the lobby's look
-// (lobbySkin); its main menu (LauncherMenu) stays the JSON UI form the HUD
-// copies. The other forms (Amount, tables, ...) stay JSON UI; one of them
-// closes the DDUI screen first.
+// OreUI makes Menu, Confirm, CardMenu, ItemBoard, SplitMenu, SieveBoard,
+// ListSplitMenu, Input, ItemGrid, ItemGridSections and SlotMenu show as DDUI
+// screens drawn by the oreui pack, mirroring the dfui JSON UI forms. The
+// server must send the oreui pack encrypted and wrap its listeners with
+// dfhook. LauncherMenu and the other forms (Amount, tables) stay JSON UI and
+// close any open DDUI screen first.
 var OreUI bool
 
 // PreferJSON reports whether p chose the JSON UI forms over the DDUI screens
@@ -40,10 +35,8 @@ func OreUIFor(p *player.Player) bool {
 // them. The platform sets it.
 var LobbyHeader func(p *player.Player) (title, logo string)
 
-// lobbySkin draws a layout for p in the lobby the way the lobby's main menu
-// looks (packs/oreui/hbui/oui-mc.css .mc-lobby): no darkened screen, the
-// game's name at the top left, navy windows and buttons with light text (the
-// text keeps its colours: no ink of the grey window).
+// lobbySkin restyles a layout for p in the lobby (.mc-lobby): no darkened
+// screen, the game's name at the top left, navy windows with light text.
 func lobbySkin(p *player.Player, layout any) any {
 	darkInk(layout)
 	root, ok := layout.(map[string]any)
@@ -137,12 +130,9 @@ var oreScreens = struct {
 	m map[uuid.UUID]*oreScreen
 }{m: map[uuid.UUID]*oreScreen{}}
 
-// showOre shows the layout l built to p: in the screen p has open if its
-// window is as large, where the renderer draws again only the nodes that
-// differ from the layout shown (a count, a selected slot, a row added), or
-// else in a new one. Gameface hit-tests the presses
-// after a window changes size at the places from before (a press on the
-// codex's second tab after the research screen opened its third), so a
+// showOre shows the layout l built to p, reusing p's open screen (the
+// renderer redraws only changed nodes) when its window is the same size.
+// Gameface hit-tests presses at the old places after a window resizes, so a
 // window of another size is opened anew.
 func showOre(p *player.Player, l *oreLayout, layout any) {
 	if InLobby != nil && InLobby(p) {
@@ -313,8 +303,8 @@ func closeOre(p *player.Player) {
 	}
 }
 
-// oreLayout builds a layout: the nodes of the renderer (packs/oreui/hbui/
-// oui-ddui.js) and the runs of the elements that can be pressed.
+// oreLayout builds a layout: the renderer's nodes and the runs of the
+// elements that can be pressed.
 type oreLayout struct {
 	runs  map[string]func(p *player.Player, tx *world.Tx)
 	input func(p *player.Player, tx *world.Tx, value string)
@@ -551,11 +541,9 @@ func (l *oreLayout) tab(o Option) map[string]any {
 	return n
 }
 
-// windowW by windowH is the size of every DDUI window in GUI pixels (but the
-// quest book's): the vanilla inventory's, the largest that fits a phone
-// (docs/tech/json-ui.md). One size for all lets a press go from any screen
-// to any other in the screen open, where the renderer draws again only what
-// differs; a window of another size has to be opened anew (showOre).
+// windowW by windowH is the size of every DDUI window but the quest book's,
+// in GUI pixels: the vanilla inventory's, the largest that fits a phone. One
+// size lets showOre switch screens in place.
 const windowW, windowH = 326, 166
 
 // window is df_form's window: the tabs over its top left, the control bar
@@ -686,12 +674,9 @@ type SieveGroup struct {
 }
 
 // SieveBoard shows rows of top (the blocks to pick) and under them the
-// recipes of groups the way Ex Deorum's JEI sieve category does
-// (compat/jei/SieveCategory): each recipe 162u wide, the input and the mesh
-// slot at x 58 and 86 on top, the drops from y 28 in rows of 9 slots, as
-// many rows for every recipe, empty slots drawn. The drops' counts are left
-// off (their tooltips tell the chance). Without DDUI it is an ItemBoard of
-// the mesh, an arrow and the drops.
+// recipes of groups laid out like Ex Deorum's JEI sieve category: input and
+// mesh on top, drops in rows of 9 (counts in the tooltips). Without DDUI it
+// is an ItemBoard of the mesh, an arrow and the drops.
 func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []SieveGroup, actions ...Option) {
 	if !OreUIFor(p) {
 		rows := append([][]BoardCell(nil), top...)
@@ -822,13 +807,10 @@ type SearchResult struct {
 	Sections []GridSection
 }
 
-// SearchGrid shows a search window (df_form's board): an input box
-// over the results, which are drawn again as the player types (in the
-// screen, without opening the window again: the box keeps its text and
-// focus). find makes the results of a query; it runs in the player's world
-// and may record where the player is (the query to come back to).
-// Without DDUI it shows the results of query as ItemGridSections, with a
-// button that asks for another query in an input form (ask).
+// SearchGrid shows an input box over the results of find, redrawn in place
+// as the player types. find runs in the player's world. Without DDUI it shows
+// the results of query as ItemGridSections with a button that asks for
+// another query.
 func SearchGrid(p *player.Player, title, label, query string, find func(p *player.Player, query string) SearchResult,
 	ask func(p *player.Player, tx *world.Tx), actions ...Option) {
 	if !OreUIFor(p) {

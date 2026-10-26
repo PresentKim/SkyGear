@@ -1,5 +1,5 @@
 #!/bin/bash
-# Research essences (docs/design/11-research-vials.md): the laboratory and the
+# Research essences: the laboratory and the
 # five essences register without server errors, an operator can be given them,
 # and their recipe and creative entries reach the client. The brewing itself
 # and the essence costs of the researches are covered by unit tests.

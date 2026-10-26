@@ -14,11 +14,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Machine tiers (docs/design/13-machine-tiers.md): a machine is made faster
+// Machine tiers: a machine is made faster
 // and larger with kits that are made from alloys and control circuits. The
 // tier of a machine is saved with it.
 
-// maxTier is the highest tier.
 const maxTier = 3
 
 // tierSpec are the numbers of a tier. A machine of speed n runs its work n
@@ -104,10 +103,8 @@ func (st *machineState) reach(kind string) int {
 	return 0
 }
 
-// tierNameKey is the catalog key of the name of a tier.
 func tierNameKey(tier int) string { return fmt.Sprintf("tier.name.%d", tier) }
 
-// tierName is the name of a tier.
 func tierName(lang string, tier int) string { return i18n.T(lang, tierNameKey(tier)) }
 
 // tierTitle is a machine's name with its tier in lang when it has one.

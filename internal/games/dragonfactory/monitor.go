@@ -18,9 +18,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// The machine list and the stall alerts (docs/design/12-production-monitor.md
-// §2, §3): every machine that ticks is on the island's list; once a second the
-// list is walked to judge what each machine is doing.
+// The machine list and the stall alerts: every machine that ticks is on the
+// island's list; once a second the list is walked to judge what each machine
+// is doing.
 
 // machineStatus is what a machine is doing.
 type machineStatus int

@@ -250,12 +250,12 @@ func expand(s string) string {
 	})
 }
 
-// messages returns the chat or command output text of a packet.
 // itemNames are the names of the items of the join by network ID.
 var itemNames = map[int32]string{}
 var creativeIDs = map[int32]bool{}
 var creativeRIDs = map[int32]map[int32]bool{}
 
+// messages returns the chat or command output text of a packet.
 func messages(pk packet.Packet) []string {
 	switch pk := pk.(type) {
 	case *packet.Text:
@@ -484,13 +484,13 @@ func take(slotStr, want string) {
 // openWindows are the container windows the bot has open, like a client.
 var openWindows = map[byte]bool{}
 
+// players are the runtime IDs of the players seen, by name.
+var players = map[string]uint64{}
+
 // clientReact answers packets the way the Bedrock client does, as far as
 // the server relies on it: NetworkStackLatency requests, and a
 // PacketViolationWarning for a ContainerOpen of a window already open
 // (entity containers use it as the open acknowledgement).
-// players are the runtime IDs of the players seen, by name.
-var players = map[string]uint64{}
-
 func clientReact(pk packet.Packet) {
 	switch pk := pk.(type) {
 	case *packet.AddPlayer:

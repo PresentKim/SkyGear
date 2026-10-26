@@ -9,7 +9,7 @@ import (
 // MaxCapacityUpgrades limits capacity upgrades per drawer.
 const MaxCapacityUpgrades = 3
 
-// DrawerUpgrade is an upgrade item for drawers (§15.4).
+// DrawerUpgrade is an upgrade item for drawers.
 type DrawerUpgrade struct{ Kind int }
 
 const (
@@ -35,7 +35,7 @@ func IsDrawerUpgrade(st item.Stack) bool {
 	return ok
 }
 
-// DrawerKey locks and unlocks drawers. It is never used up (§15.4).
+// DrawerKey locks and unlocks drawers. It is never used up.
 type DrawerKey struct{}
 
 func (DrawerKey) EncodeItem() (string, int16) { return "dragonfactory:drawer_key", 0 }

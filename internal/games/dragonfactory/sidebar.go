@@ -17,12 +17,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// updateBoard refreshes p's HUD (docs/design/02-dragonfactory.md §16): day
-// and play time at the top left (with the server load under it for an
-// operator who turned it on) and the next thing to do as a quest panel: the
-// first research that can be done now, with its cost (unless the player
-// turned the panel off in the settings). The texts travel as
-// sidebar rows (internal/hud), only when they changed since the last time.
+// updateBoard refreshes p's HUD: day and play time (and the server load for
+// an operator who turned it on) and the quest panel. Rows go out through
+// common/hud only when they changed.
 func (s *session) updateBoard(p *player.Player) {
 	total, day, _ := s.clock.Now()
 	lang := i18n.Of(p)

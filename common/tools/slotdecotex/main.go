@@ -1,15 +1,10 @@
-// slotdecotex writes the textures of the slotdeco resource pack
-// (common packs/slotdeco/textures/ui/df): the slot backgrounds of the
-// rarities (rarity_1..4), the tier pips drawn over a slot (front_1..4) and the badges (front_5 warning, front_6 lock) and the
-// rarity frames of the selected-item bubble (tip_1..4). They are flat
-// temporary pictures; the PNGs can be replaced by hand.
+// Command slotdecotex writes placeholder textures of the slotdeco pack:
+// rarity backgrounds (rarity_1..4), tier pips and badges (front_1..6) and
+// bubble frames (tip_1..4). The optional second pack gets the 22×22 form slot
+// pictures deco_<rarity>_<front>.png (frame and badge in one, so a form slot
+// needs one control). Run it from common/:
 //
 //	go run ./tools/slotdecotex packs/slotdeco packs/dfui
-//
-// The second pack (optional, the dfui theme) gets the pictures of the form
-// slots (textures/ui/df/deco_<rarity>_<front>.png, 22×22: a frame and a
-// badge in one picture, so a form slot needs one control, df_form.json
-// gslot_deco).
 package main
 
 import (

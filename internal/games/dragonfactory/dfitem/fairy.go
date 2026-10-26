@@ -8,8 +8,7 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// ResearchNote was a fairy gift that revealed hints of hidden core
-// recipes, which are gone (13th playtest). It stays registered so old
+// ResearchNote is a retired fairy gift. It stays registered so old
 // inventories load; using it only says so.
 type ResearchNote struct{}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// ItemHolder is the display entity of drawers (docs/tech/drawer.md): it holds
+// ItemHolder is the display entity of drawers: it holds
 // an item so the client renders it flat on the drawer face, and/or shows a
 // name tag. Holders belong to a drawer position and remove themselves when
 // that drawer is gone or the session does not know them (e.g. after a
@@ -35,8 +35,8 @@ func (c holderConfig) Apply(data *world.EntityData) {
 	data.Data = &holderData{item: c.item, owner: c.owner}
 }
 
-// Display depths in front of the block centre, confirmed on a real client
-// (docs/tech/drawer.md): main hand items and off hand cube blocks differ.
+// Display depths in front of the block centre, confirmed on a real client:
+// main hand items and off hand cube blocks differ.
 const (
 	mainHandDepth = 0.05
 	offHandDepth  = 0.025

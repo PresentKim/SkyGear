@@ -1,6 +1,6 @@
 package dfhook
 
-// Experiments switched on in platform.toml [Experimental].
+// Experiments a server can switch on.
 
 import (
 	"log/slog"
@@ -13,8 +13,7 @@ var (
 	// SendBasicVoxelShapes sends a minimal voxel shape registry
 	// (minecraft:empty and minecraft:unit_cube) when the player spawns.
 	// Dragonfly sends none and 1.26 clients log "Shape registry is full" /
-	// "minecraft:unit_cube doesn't exist" for it. Whether this matters (e.g.
-	// for breaking custom blocks) is unverified. Set it once at startup.
+	// "minecraft:unit_cube doesn't exist" for it. Set it once at startup.
 	SendBasicVoxelShapes bool
 	// BlockActionDebug logs the block breaking actions clients send, at
 	// INFO level. Set it once at startup.

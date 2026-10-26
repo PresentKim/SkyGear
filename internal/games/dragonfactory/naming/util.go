@@ -41,7 +41,7 @@ var vanillaKeysJSON []byte
 // vanillaKeys name the vanilla blocks whose key is not "tile.<id>.name": the
 // client names modern IDs such as oak_planks by legacy keys
 // ("tile.planks.oak.name"). Generated from the official texts by
-// tools/vanillakeys (docs/tech/i18n.md).
+// tools/vanillakeys.
 var vanillaKeys = func() map[string]string {
 	m := map[string]string{}
 	if err := json.Unmarshal(vanillaKeysJSON, &m); err != nil {

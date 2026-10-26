@@ -9,14 +9,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Sieve meshes (docs/design/02-dragonfactory.md §6). A sieve is made
-// without its mesh: the mesh is made apart and fitted by using it on the
-// sieve, and the tier of the fitted mesh picks the drop table (sievetable.go).
-// The string mesh is made from nine string; each better tier (flint, iron,
-// gold, diamond, netherite) is made from the string mesh and one of its
-// material, or from its material surrounded by string, and finds more
-// (sievetable.go). A mesh is fitted by using it on a sieve and taken out
-// again by using the sieve with an empty hand.
+// Sieve meshes are made apart from the sieve and fitted by using them on it
+// (an empty hand takes one out); the tier fitted picks the drop table. Better
+// tiers are made from the string mesh and their material.
 
 // equipMesh fits the mesh the player holds into the sieve st (the mesh it had
 // goes back to the player) and reports whether the held item was a mesh.

@@ -13,15 +13,9 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// The lobby's main menu is open whenever no other form is (docs/design/
-// 01-platform.md §1): when a form of the lobby is answered or closed and no
-// form follows, the main menu comes back at once. Closing the main menu
-// itself (Esc) leaves it closed for lobbyEscDelay, or until the player's next
-// action: a click, a movement key, a jump, a sneak, the use key or a hotbar
-// slot. The pack draws the menu on the HUD, so the screen looks the same
-// either way. Movement is locked in the lobby, so the movement keys reach the
-// server only as the raw move vector of the client's input packet, read by a
-// packet hook.
+// The lobby's main menu reopens whenever no other form is open; after Esc it
+// waits lobbyEscDelay or the player's next input. Movement is locked, so the
+// movement keys are read from the raw input packet by a packet hook.
 
 // lobbyWakeGap is how often an input of a player can ask for the menu: the
 // client sends its input every tick.

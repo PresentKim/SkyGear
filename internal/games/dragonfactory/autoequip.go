@@ -11,7 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 )
 
-// The automation equipment (docs/design/09-automation-equipment.md): the
+// The automation equipment: the
 // electric furnace, the item vacuum and the tree feller. The auto crafter is
 // in autocraft.go.
 

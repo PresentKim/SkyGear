@@ -1,24 +1,16 @@
-// fabricotex builds the sieve and mesh visuals of the pack from Ex Nihilo
-// Fabrico (https://github.com/SirLyle/ExNihiloFabrico, MIT, see
-// third_party/licenses/ExNihiloFabrico-MIT.txt and docs/tech/asset-credits.md):
+// Command fabricotex builds the sieve and mesh visuals of the pack from Ex
+// Nihilo Fabrico (https://github.com/SirLyle/ExNihiloFabrico, MIT, see
+// third_party/licenses/ExNihiloFabrico-MIT.txt):
 //
-//   - models/blocks/{sieve,auto_sieve,magic_sieve}.geo.json from Fabrico's
-//     block model `models/block/sieve.json` (four legs, the frame rails) and
-//     item model `models/item/mesh.json` (eight rods, drawn on the "mesh"
-//     material instance), plus the content cube of each fill height, sized as
-//     Fabrico's SieveBlockEntityRenderer draws it. The geometries keep the
-//     names the Go side asks for (geometry.dragonfactory_<kind>_<fill>, fill 0
-//     without content) and the material instances "*" (frame), "mesh" and
-//     "content".
+//   - models/blocks/{sieve,auto_sieve,magic_sieve}.geo.json: Fabrico's sieve
+//     and mesh models plus a content cube per fill height, as
+//     geometry.dragonfactory_<kind>_<fill> with material instances "*",
+//     "mesh" and "content".
 //   - textures/blocks/sieve_mesh*.png and textures/items/mesh_*.png: Fabrico
-//     has no mesh picture (its mesh model is vanilla white wool tinted per
-//     mesh), so the rods of its mesh model are laid out top-down as a 16×16
-//     picture and tinted with the colours Fabrico gives each mesh
-//     (ExNihiloFabrico.kt registerMesh). Netherite is not a Fabrico mesh; it is
-//     the same picture in a netherite colour.
+//     tints white wool per mesh, so its rods are drawn top-down as a 16×16
+//     picture in each mesh's colour.
 //
-// The sieve frame keeps the vanilla planks textures (Fabrico's sieves take the
-// planks of their wood), which the atlas points at by path.
+// The sieve frame keeps the vanilla planks textures.
 //
 //	git clone --depth 1 -b 1.14.4-Fabric https://github.com/SirLyle/ExNihiloFabrico <dir>
 //	go run ./tools/fabricotex <dir> assets/resourcepack/dragonfactory
@@ -38,8 +30,8 @@ import (
 
 const assets = "src/main/resources/assets/exnihilofabrico"
 
-// meshes are the mesh tiers (internal/games/dragonfactory/mesh.go) with
-// Fabrico's colour for each; netherite is ours.
+// meshes are the mesh tiers (dragonfactory/dfitem) with Fabrico's colour for
+// each; netherite is ours.
 var meshes = []struct {
 	tier string
 	col  color.RGBA

@@ -22,15 +22,9 @@ const (
 	placeReleaseTimeout = placeTries*placeEvery + time.Second
 )
 
-// PlaceAt puts p on the nearest safe ground at want and holds it still until
-// the chunks around that spot are loaded and the client has them, then lets it
-// move again. fallback is used when no ground is found near want.
-//
-// A player added to a world whose chunks the server has not loaded yet is
-// placed over air, and both the server and the client drop it: the server
-// teleports it again every placeEvery (which also clears the fall distance),
-// and the client only starts its own physics once it has the chunk data
-// (dfhook.AfterClientSync). It must be called in p's transaction.
+// PlaceAt puts p on the nearest safe ground at want (fallback if none) and
+// holds it still until the server and client both have the chunks there, as
+// a player over unloaded chunks falls through air. Call it in p's transaction.
 func PlaceAt(p *player.Player, want, fallback mgl64.Vec3) {
 	p.SetImmobile()
 	h, w := p.H(), p.Tx().World()

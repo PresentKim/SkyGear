@@ -11,7 +11,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/energy"
 )
 
-// The combustion generator (docs/design/06-power-and-conduits.md §2): it
+// The combustion generator: it
 // burns a fuel item at a time (the furnace's fuels, with their burning time)
 // and makes generatorOutput RE per tick while it burns, into a buffer. The
 // buffer gives its energy to the conduits and blocks that touch it. When the

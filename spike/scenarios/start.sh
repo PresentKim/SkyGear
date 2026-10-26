@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sky start (docs/design/02-dragonfactory.md §2): a new save, /묘목 gives a
+# Sky start: a new save, /묘목 gives a
 # sapling and refuses a second one within 10 minutes; /sapling is the same.
 timeout 60 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=시작 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \

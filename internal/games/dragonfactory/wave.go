@@ -18,11 +18,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// The dimension gate anchor (docs/design/05-sky-progression.md §4.1): using it
-// opens a gate over it and starts a wave of monsters that come out of the gate
-// (gateportal.go), which the players must all kill before the time runs out. Clearing the highest level opens the next; each first clear gives
-// essences, and every monster drops what its mob drops (the simulator's tables)
-// and sometimes an essence. Values are drafts.
+// The dimension gate anchor: using it opens a gate and starts a wave of
+// monsters the players must all kill before the time runs out. Clearing the
+// highest level opens the next; first clears give essences, and monsters drop
+// their mob's simulator drops. Values are drafts.
 
 // waveGroup is a number of one kind of mob in a wave.
 type waveGroup struct {

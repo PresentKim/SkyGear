@@ -15,7 +15,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// monsterAt returns the live monsters of the wave.
+// waveMonsters returns the live monsters of the wave.
 func waveMonsters(s *session, tx *world.Tx) []*Monster {
 	var out []*Monster
 	if s.wave == nil {

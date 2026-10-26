@@ -1,38 +1,16 @@
-// conduitgeo writes two files of the pack:
-//   - models/entity/conduit_visual.geo.json, the models of the conduit display
-//     entity (conduitvisual.go), one geometry for every kind of conduit;
-//   - models/blocks/conduit_icon.geo.json, the core of every kind alone, a little
-//     bigger (9 pixels, centred) inside an invisible full 16 pixel cube, so the
-//     client, which scales an item block to fill its frame, draws it 9/16 as big as
-//     a full block: the model of the conduit item blocks that show a conduit in
-//     the inventory and the hand;
-//   - the geometry "conduit_plate" in the entity file: the connector plate at the
-//     end of the arms where conduits meet a chest or a machine, one set of bones
-//     for each side (conduitplate.go).
+// Command conduitgeo writes the conduit models of the pack: the display
+// entity geometries (one per kind, plus "conduit_plate" connectors) and the
+// item-block icons (the core, 9 pixels inside an invisible 16 pixel cube so
+// the client's scale-to-fit draws it at 9/16).
 //
-// Like EnderIO's conduit model, a conduit is a 3×3×3
-// core with a thin 2×2 arm towards each side; every part is a bone of its own
-// (core, down, up, north, south, west, east) that the render controller
-// (render_controllers/conduit_visual.render_controllers.json) shows or hides
-// by the entity's variant, so no combination of conduits needs a model of its
-// own.
+// Like EnderIO's, a conduit is a 3×3×3 core with a 2×2 arm per side, each a
+// bone the render controller toggles by variant. Each kind has its own lane,
+// offset on every axis (energy -3, items 0, fluids +3 pixels), so kinds never
+// overlap from any view.
 //
-// Each kind of conduit has a lane of its own, the same in every block, so
-// conduits of one kind meet end to end and the kinds never overlap: energy is
-// shifted 3 pixels towards -x, -y and -z, items sit in the middle and fluids are 3
-// pixels towards +x, +y and +z. The lanes differ on every
-// axis, so whichever way arms run, the arms of the kinds are side by side seen
-// from every direction (a lane that differs on one axis only hides behind
-// another from one side).
-//
-// Entity models are drawn mirrored in z against the world (the model's front
-// is north, a yaw of 0 faces south, and x is the same): a model's z is the
-// world's, negated (flipZ); a real client showed arms to the wrong sides when x
-// was negated as well.
-//
-// The texture of a kind and tier is one 64×64 image (tools/conduittex): the
-// arm strip (16×52, lengthways) at the left, the core face (16×16) beside it,
-// the strip turned on its side (32×10) below.
+// Entity models are mirrored in z against the world (flipZ); x is not.
+// Textures are 64×64 sheets from tools/conduittex: arm strip (16×52) left,
+// core face (16×16) beside it, turned strip (32×10) below.
 //
 //	go run ./tools/conduitgeo assets/resourcepack/dragonfactory/models/entity/conduit_visual.geo.json assets/resourcepack/dragonfactory/models/blocks/conduit_icon.geo.json
 package main
@@ -178,19 +156,11 @@ func geometry(name string, shift [3]float64, icon bool) map[string]any {
 	}
 }
 
-// plateGeometry makes the model of the connector entity (conduitplate.go),
-// drawn like EnderIO's item conduit connector: where an item conduit meets a
-// chest or a machine, a 4×4 collar three pixels deep behind the end of the arm,
-// and on all four of its side faces the extract arrow (taking from the block) and
-// the insert arrow (giving to it), flat on the collar, so the state shows from
-// every direction. Energy and fluid conduits have no connector. Each part is a
-// bone per side (collar_item_<side>, in_<side>, out_<side>) that the render
-// controllers show.
-//
-// An arrow is the 24×24 arrow of the texture at (0, 0), or the same turned on
-// its side at (32, 0) where it has to run along the u axis of a face. On a face
-// the two arrows lie side by side, the "in" arrow on one half and the "out" arrow
-// on the other.
+// plateGeometry makes the item conduit connector, like EnderIO's: a 4×4
+// collar behind the arm's end with the in and out arrows side by side on all
+// four side faces. Each part is a bone per side (collar_item_<side>,
+// in_<side>, out_<side>). Arrows use the texture at (0, 0), or the turned one
+// at (32, 0) where they run along a face's u axis.
 func plateGeometry() map[string]any {
 	var bones []any
 	// the two cross axes (u, v) of a side by its axis: where u and v point
@@ -334,10 +304,8 @@ func arrowQuad(axis int, sign float64, lat lateral, in bool, collar bounds) map[
 	if !in {
 		want = -sign
 	}
-	// A real client shows the arrows the wrong way round with the directions
-	// of faceAxes on arms along y and on the up and down faces of arms along
-	// x; on arms along z and the north and south faces of arms along x they
-	// point the right way.
+	// The client flips the arrows on arms along y and on the up and down faces
+	// of arms along x relative to faceAxes.
 	if axis == 1 || (axis == 0 && name != "north" && name != "south") {
 		want = -want
 	}

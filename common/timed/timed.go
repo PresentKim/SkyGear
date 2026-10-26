@@ -1,8 +1,6 @@
-// Package timed implements time-limited items (기간제 아이템). The period is
-// real time only: an item stores the wall-clock time it expires at and is
-// removed after that, whether or not the server, the save or the player was
-// online in between. Limits by use count are separate (durability or uses)
-// and do not belong here (docs/tech/timed-items.md).
+// Package timed implements time-limited items. An item stores the wall-clock
+// time it expires at and is removed after that, whether or not the server or
+// the player was online in between.
 package timed
 
 import (

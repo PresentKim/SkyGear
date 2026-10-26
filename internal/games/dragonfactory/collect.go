@@ -17,7 +17,7 @@ func init() {
 }
 
 // grantCollection gives the first-possession achievements to the players who
-// hold the items (inventoryNames). It runs every second.
+// hold the items (advancement.InventoryNames). It runs every second.
 func grantCollection(held []advancement.PlayerItems) {
 	for _, ph := range held {
 		for _, h := range achievement.Haves {

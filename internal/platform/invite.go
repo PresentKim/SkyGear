@@ -18,7 +18,7 @@ import (
 )
 
 // MaxMembers is the maximum number of members of a save, host included
-// (docs/design/01-platform.md §4, balancing draft).
+// (balancing draft).
 const MaxMembers = 10
 
 // inviteTTL is how long a friend invite stays valid.
@@ -97,9 +97,8 @@ func (iv *invites) remove(to string, saveID int64) {
 }
 
 // inviteCode returns the save's invite code, creating one if needed (a new
-// one when renew). The code is read from the database: s may be an older copy
-// (the save of a running instance keeps the code it was opened with, and the
-// friends tab showed the old code after it was renewed).
+// one when renew). The code is read from the database, as s may be an older
+// copy (a running instance keeps the save it was opened with).
 func (pf *Platform) inviteCode(s db.Save, renew bool) (string, error) {
 	if !renew {
 		if cur, err := pf.db.Save(s.ID); err == nil {
@@ -170,11 +169,8 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 	pf.enter(p, saveID)
 }
 
-// showMultiplayer is the lobby's multiplayer screen (docs/design/01-platform.md
-// §1, §4): the row that asks for an invite code first (pressing it asks at
-// once: no button on the right does the same), then the invites received and the
-// saves p joined as a guest, the list on the left and what can be done with
-// the chosen one on the right.
+// showMultiplayer is the lobby's multiplayer screen: a row that asks for an
+// invite code, then the invites received and the saves p joined as a guest.
 func (pf *Platform) showMultiplayer(p *player.Player) { pf.showMultiplayerAt(p, "") }
 
 // showMultiplayerAt shows the screen with the row sel chosen: "i<save>" for

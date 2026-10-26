@@ -17,13 +17,10 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// Vein mining (like the VeinMiner mod): the iron hammer, mining a crushable
-// block while sneaking, also breaks the blocks of the same kind connected to
-// it face to face, up to veinLimit and what the hammer's durability (one a
-// block) and the player's food (veinFoodCost a block, from the food bar;
-// fractions carry over to the next vein in session.veinFood) allow. Only blocks the hammer crushes (hammerDrop) count.
-// While a player sneaks with the iron hammer and looks at such a block, what
-// it would break shows tinted to that player (the vein preview, below).
+// Vein mining (like the VeinMiner mod): mining a block the iron hammer
+// crushes while sneaking also breaks the connected blocks of the same kind,
+// up to veinLimit and what the player's food pays for (veinFoodCost a
+// block; fractions carry over in session.veinFood).
 
 // veinLimit is the most blocks one vein mining breaks, the mined one
 // included. Each block past the mined one also costs veinFoodCost food
@@ -107,8 +104,7 @@ func (s *session) toggleVeinDiagonal(p *player.Player) {
 	p.SendTip(i18n.T(i18n.Of(p), key))
 }
 
-// veinBudget is how many blocks past the mined one p can break with held:
-// what the durability (one is left for the mined block) and the food allow.
+// veinBudget is how many blocks past the mined one p can break with held.
 func (s *session) veinBudget(p *player.Player, held item.Stack) int {
 	return max(0, min(s.veinToolBudget(held), s.veinFoodBudget(p)))
 }
@@ -198,15 +194,10 @@ func addDrop(drops []item.Stack, drop item.Stack) []item.Stack {
 	return append(drops, drop)
 }
 
-// The vein preview (like presentkim-pm/selection-visualize-utils'
-// BlockPreview): every block the iron hammer would break gets a light blue
-// stained glass on its liquid layer (layer 1), sent only to the player, so
-// the block looks tinted however close the player stands (an outline drawn
-// on the edges went off screen up close). The real layer 1 (air, or the
-// water of a waterlogged block) is sent again to remove it. The preview
-// stays while the player keeps looking at the same vein, changes with it,
-// and is removed before the blocks break (veinMine, HandleBlockBreak) so
-// no glass is left floating where a block was.
+// The vein preview tints every block the hammer would break with stained
+// glass on its liquid layer, sent only to that player (an edge outline goes
+// off screen up close). It is removed before the blocks break, or glass
+// would be left floating where they were.
 
 // veinPreviewBlock is the block the preview puts on the liquid layer.
 var veinPreviewBlock world.Block = block.StainedGlass{Colour: item.ColourLightBlue()}

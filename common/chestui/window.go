@@ -1,24 +1,10 @@
 package chestui
 
 // Windows backed by an invisible, client-only entity instead of a block,
-// like PocketMine's InvMenu actor menus. Dragonfly has no API for them, so
-// the session is reached through dfhook.
-//
-// By default the window opens right after the entity is spawned. The steps
-// of Muqsit/InvMenu (PlayerWindowDispatcher) can be switched on with
-// Options while they are verified against real clients:
-//
-//   - Ride: the entity rides the player, so it stays next to them.
-//   - WaitLatency: open the window once the client answers a
-//     NetworkStackLatency request sent after AddActor (the entity exists).
-//   - Retry: until the client acknowledges the window with a
-//     PacketViolationWarning (type -1, severity warning) caused by excess
-//     opens, resend ContainerClose + ContainerOpen every tick (at most
-//     openRetries). Meanwhile client closes of the window are acknowledged
-//     but do not close it.
-//
-// A client close of window 0xff (sent when a window opens while the client
-// is busy, e.g. a form closing) never closes an entity window.
+// like PocketMine's InvMenu actor menus, reached through dfhook. Options
+// enables InvMenu's extra open steps (Ride, WaitLatency, Retry until the
+// client acks with a PacketViolationWarning). A client close of window 0xff
+// (sent when a window opens while a form closes) never closes an entity window.
 
 import (
 	"bytes"
@@ -59,6 +45,10 @@ const (
 
 // Options switches the optional steps of opening windows. Set it once at
 // startup.
+// Ride makes the entity ride the player; WaitLatency opens the window after
+// a NetworkStackLatency round trip following AddActor; Retry resends
+// ContainerClose+ContainerOpen every tick (at most openRetries) until the
+// client acks, ignoring client closes meanwhile.
 var Options struct {
 	Ride, WaitLatency, Retry bool
 	// Debug logs the opening and closing packets at INFO level.
@@ -185,7 +175,7 @@ func Close(p *player.Player) {
 	tx := p.Tx()
 	cl := clientOf(p)
 	if cl != nil {
-		cl.token.Add(1) // a window waiting to open no longer does
+		cl.token.Add(1) // cancel a window waiting to open
 		if dfhook.ContainerOpen(s) {
 			cl.lastClose.Store(time.Now().UnixNano())
 		}

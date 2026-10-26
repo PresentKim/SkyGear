@@ -64,9 +64,7 @@ type (
 // faceTextYaw is the yaw in degrees that lays a text flat on a face
 // looking to each direction, readable from in front of it. The client reads
 // the rotation in degrees ([pitch, yaw, roll]); a yaw of 0 reads from the
-// north. Found on real clients (10th playtest): entity yaw (S 0, N 180)
-// mirrored south and north texts, and radians laid every text towards the
-// north.
+// north. Entity yaw (S 0, N 180) mirrors south and north texts.
 var faceTextYaw = map[cube.Direction]float64{cube.North: 0, cube.East: -90, cube.South: 180, cube.West: 90}
 
 // faceTextRotation is the shape rotation of a text on a face looking to
@@ -77,8 +75,7 @@ func faceTextRotation(facing cube.Direction) mgl64.Vec3 {
 
 // faceTextDepth is how far from the block centre the front-face texts
 // sit: just in front of the face (0.5), so they lie on it without
-// z-fighting. 0.53 suited the old recessed front panel and stood out from
-// the flat cube front (9th playtest).
+// z-fighting.
 const faceTextDepth = 0.505
 
 // faceText returns a text fixed flat on a drawer's front face, without a
@@ -100,8 +97,7 @@ func drawerLabel(pos cube.Pos, d Drawer) *debug.Text {
 }
 
 // drawerMarkUp is the height of the lock and upgrade marks above the
-// centre of a drawer front: in the top frame, above the handle (playtest:
-// at 0.34 the lock sat on the handle).
+// centre of a drawer front: in the top frame, above the handle.
 const drawerMarkUp = 0.43
 
 // drawerLock returns the small lock mark of a locked drawer, at the top

@@ -27,7 +27,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// The WAILA panel (internal/waila, docs/tech/waila.md) shows the block a
+// The WAILA panel (common/waila) shows the block a
 // player looks at: its name, icon, tools and the game's own lines (machine
 // progress, drawer contents, crop time, what a core makes, the mission);
 // drawers and cores also show their item or output block in the slots.
@@ -41,7 +41,7 @@ const lookInterval = 100 * time.Millisecond
 // lookedAt returns the block a player at pos with rotation rot looks at.
 // Crops count where the view crosses their height (it grows with the
 // stage; the client targets what is behind the empty space above a low
-// crop, 11th playtest), other blocks without a collision box (flowers)
+// crop), other blocks without a collision box (flowers)
 // anywhere in their cell; air and liquids do not count.
 func lookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation) (cube.Pos, world.Block, bool) {
 	eye := pos.Add(mgl64.Vec3{0, p.EyeHeight(), 0})
@@ -220,8 +220,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 }
 
 // customTool is the tool icon of our blocks. No tool mines them faster
-// (customBlockEffective), so ToolsFor finds none; the panel still shows the
-// tool that fits them, marked when it is held (11th playtest).
+// (blockmodel.CustomBlockEffective), so ToolsFor finds none; the panel still shows the
+// tool that fits them, marked when it is held.
 func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 	var (
 		icon waila.Tool
@@ -277,7 +277,7 @@ func containerOf(tx *world.Tx, pos cube.Pos, b world.Block) *waila.Container {
 
 // furnaceArrow is the progress arrow of a furnace, blast furnace or smoker:
 // filled to how far the item is cooked while it burns, empty when it does
-// not (11th playtest).
+// not.
 func furnaceArrow(b world.Block) item.Stack {
 	var (
 		lit         bool
@@ -305,7 +305,7 @@ func furnaceArrow(b world.Block) item.Stack {
 }
 
 // machineLines are a machine's lines and item line: what it holds, with
-// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"; 11th playtest),
+// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"),
 // grey "비어있음" when empty, and what waits in its output.
 func machineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 	st := m.st

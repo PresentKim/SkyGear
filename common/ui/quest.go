@@ -87,14 +87,10 @@ const questUnit = 36
 
 func rem(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) + "rem" }
 
-// QuestBookMenu shows a quest book the way FTB Quests does in ATM10 To The
-// Sky: the chapters on the left, the chapter's quests on a dark plane the
-// player drags around, with lines from the quests each follows, and the
-// panel of an open quest over it. It is a DDUI screen only (OreUIFor) in a
-// window of the size of every other (windowW by windowH), with the control
-// bar (Back, Help and the close button) over its top right like window's.
-// The player zooms the plane with the mouse wheel, two fingers or its + and
-// - buttons.
+// QuestBookMenu shows a quest book in the style of FTB Quests: chapters on
+// the left, the chapter's quests on a draggable, zoomable plane with lines
+// from their dependencies, and an open quest's panel over it. It is DDUI
+// only (OreUIFor).
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
 	_, bar, _ := l.chrome(actions)
@@ -189,14 +185,10 @@ type questSeg struct {
 	from, to       string
 }
 
-// questLines are the lines from the quests each quest follows. A line
-// between two rows runs right from the quest followed to a lane in the gap
-// before the quest's column, along it and right into the quest, so it never
-// crosses a quest; each quest followed has a lane of its own in a gap, so
-// the lines of two do not lie on each other. The lanes of a gap are ordered
-// so the lines cross each other the least, and the lines into a quest that
-// follows several come in at heights of their own, highest from the quest
-// highest up.
+// questLines are the lines from the quests each quest follows. A line runs
+// right to its own lane in the gap before the quest's column, along it and
+// into the quest, so it never crosses a node or overlaps another line; lanes
+// are ordered for the fewest crossings.
 func questLines(nodes []QuestNode) []questSeg {
 	at := map[string]QuestNode{}
 	var xs []float64
@@ -317,13 +309,9 @@ func questLines(nodes []QuestNode) []questSeg {
 	return out
 }
 
-// questLaneOrder orders the lanes of a gap, from left to right, so their
-// lines cross each other the least. A lane's line comes in from the left at
-// the height of its quest followed and leaves right at the heights it goes
-// into its quests at; it crosses the upright of each lane it passes that
-// reaches past that height, and lies on a line leaving at the height it
-// comes in at. Up to seven lanes every order is tried, more are
-// improved by swapping neighbours; ties keep the lower quest followed left,
+// questLaneOrder orders the lanes of a gap, left to right, for the fewest
+// crossings and overlaps. Up to seven lanes every order is tried; more are
+// improved by swapping neighbours. Ties keep the lower quest followed left,
 // as lines mostly run down.
 func questLaneOrder[L any](ls []L, at func(L) (float64, []float64)) []L {
 	slices.SortStableFunc(ls, func(a, b L) int {

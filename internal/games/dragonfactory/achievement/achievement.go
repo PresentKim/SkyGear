@@ -1,15 +1,13 @@
-// Package achievement lists the game's account achievements (docs/tech/achievements.md):
-// the counter and first-possession catalogs and the IDs of the other
-// achievements. The game package registers and grants them.
+// Package achievement lists the game's account achievements: the counter and
+// first-possession catalogs and the IDs of the other achievements. The game
+// package registers and grants them.
 package achievement
 
 import (
 	"fmt"
 )
 
-// Achievements of the game (docs/design/01-platform.md §5). Drafts. The
-// level, mission, urgent and money achievements went with those systems
-// (13th playtest).
+// Achievements of the game. Drafts.
 const (
 	FirstMachine  = "df_first_machine"
 	Chunks10      = "df_chunks_10"
@@ -40,7 +38,7 @@ func CounterID(key string, need int64) string { return fmt.Sprintf("df_%s_%d", k
 func Group(g string) string { return "achgroup." + g }
 
 // Achievements of the account that the game's milestones give; they open
-// titles and, by their number, name colours (docs/design/01-platform.md §5).
+// titles and, by their number, name colours.
 const (
 	Wave1  = "df_wave_1"
 	Wave8  = "df_wave_8"

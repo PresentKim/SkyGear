@@ -12,11 +12,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Research rewards (docs/design/02-dragonfactory.md §9): a research that
-// opens a facility or a machine gives the player who did it some of what it
-// opens, so the first one costs no more materials (playtest: research and
-// the first machines spent so much iron that players stopped before
-// automating it). The amounts are drafts.
+// Research rewards: a research that opens a facility or a machine gives the
+// player who did it some of what it opens, so the research and the first
+// machine are not paid for twice. The amounts are drafts.
 
 // researchRewards are the rewards by research: how many of each item it
 // opens (unlock name) the researcher gets.

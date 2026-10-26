@@ -7,10 +7,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// TreeMenu is a form with a tree (docs/tech/advancement-tree.md): the tree is
-// laid out by the server on a grid of cells (a column per depth, a row per
-// leaf) and the form shows all of it, at most TreeCols×TreeRows cells. Every cell may have a node (a frame with an icon, its
-// name and text in the tooltip) and the connector pieces in its top strip.
+// TreeMenu is a form with a tree laid out by the server on a grid of at most
+// TreeCols×TreeRows cells (a column per depth, a row per leaf). A cell may
+// hold a node (frame, icon, tooltip) and connector pieces in its left strip.
 const (
 	// TreeToken starts the title of a TreeMenu.
 	TreeToken = "§d§f§z§r"
@@ -55,10 +54,8 @@ type TreeCell struct {
 type Tree struct {
 	// Tabs are the tab buttons over the tree (Tab).
 	Tabs []Option
-	// Cells are the grid, row by row, at most TreeCells; the rest of the grid
-	// is empty cells (the grid takes the first TreeCells buttons, so every
-	// one of them must be a cell, or the buttons after them would show up as
-	// broken cells).
+	// Cells are the grid, row by row, at most TreeCells; the rest is padded
+	// with empty cells, since the grid takes the first TreeCells buttons.
 	Cells []TreeCell
 	// Actions are the title bar buttons (Back).
 	Actions []Option

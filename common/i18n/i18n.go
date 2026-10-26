@@ -1,12 +1,8 @@
-// Package i18n is the server's own message catalog, for the texts the game
-// sends in a player's language (docs/tech/i18n.md). Texts are looked up by
-// key in the catalog of the player's language, then in the default one
-// (Korean), so a language can be added by a file and may be incomplete.
-// Names of blocks and items are not here: the client translates those by
-// itself from the resource pack's texts/*.lang and vanilla keys.
-//
-// This package holds the texts of the common packages (locales/); a
-// server adds its own with Register.
+// Package i18n is a message catalog for texts sent in a player's language.
+// Keys are looked up in the player's language, then the default (Korean), so
+// a language file may be incomplete. Block and item names are translated by
+// the client from .lang files instead. The common packages' texts live in
+// locales/; a server adds its own with Register.
 package i18n
 
 import (

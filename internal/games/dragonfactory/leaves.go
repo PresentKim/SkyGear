@@ -6,9 +6,8 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 )
 
-// Leaves (docs/design/02-dragonfactory.md §2). The block stays Dragonfly's
-// Leaves (trees, shears, the textures and old worlds all depend on it); the
-// dragonfactory patch makes its numbers variables the game sets here.
+// Leaves stay Dragonfly's block (trees, shears, textures and old worlds
+// depend on it); the Dragonfly patch makes its numbers variables set here.
 //   - Saplings drop far more often than vanilla's 5%: without a sapling the
 //     start is stuck, and a sapling grows into a tree whose leaves give
 //     more. Fortune raises it a little; jungle leaves drop half as often.

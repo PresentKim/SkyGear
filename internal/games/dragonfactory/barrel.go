@@ -23,13 +23,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Barrels (docs/design/02-dragonfactory.md §5) are the family of wooden
-// tubs of the game; the first is the oak barrel. Plant items go in like into
-// the composter, 32 of them, and the barrel shows six fill stages (stage =
-// count * 6 / 32). A full barrel takes barrelWaterDelay to turn the
-// contents into water (stage 7); a bucket takes the water, and the barrel
-// is empty again. The contents of each barrel are in the save
-// (State.Barrels, by position).
+// Barrels: an oak barrel takes 32 plant items like the composter and turns
+// them into water after barrelWaterDelay, which a bucket takes. Contents are
+// saved in State.Barrels.
 
 const (
 	// barrelFillStages are the stages of filling; the next stage is water.
@@ -54,12 +50,9 @@ const barrelStageState = "dragonfactory:barrel_stage"
 // cobblestone (stoneWood).
 var barrelWoods = []string{"oak", stoneWood}
 
-// The stone barrel (docs/design/02-dragonfactory.md §5) melts blocks into
-// lava like Ex Deorum's lava crucible: cobblestone, stone, gravel and
-// netherrack (stoneMelts) go in as stoneMeltMB of solids each, up to
-// stoneSolidsMax, and every stoneMeltStep the heat source right under it
-// melts as many mB of the solids as its heat value (heatValue) into the
-// lava, which holds up to stoneLavaMax. A bucket takes a bucket's worth.
+// The stone barrel melts blocks into lava like Ex Deorum's crucible: each
+// block adds stoneMeltMB of solids, and every stoneMeltStep the heat source
+// under it melts its heatValue in mB of them into lava.
 const (
 	stoneWood      = "stone"
 	stoneMeltMB    = 250
@@ -348,7 +341,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		return true
 	case rec != nil && rec.Water:
 		if _, ok := held.Item().(dfitem.Dust); ok {
-			// Dust soaks into the water and makes a clay block (docs/design/02-dragonfactory.md).
+			// Dust soaks into the water and makes a clay block.
 			ctx.SubtractFromCount(1)
 			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})

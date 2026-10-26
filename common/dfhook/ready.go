@@ -65,13 +65,11 @@ func init() {
 	})
 }
 
-// AfterClientReady runs f once p's client has closed its loading screen (it
-// sends ServerBoundLoadingScreen with the end type): a client that still
-// shows it drops the forms sent to it, and the game's own login handshake
-// ends before that. f runs at once, in the caller's transaction, when the
-// screen is closed already or p has no hooked connection; otherwise later in
-// p's transaction, at the latest after readyTimeout. It must be called in
-// p's transaction.
+// AfterClientReady runs f once p's client has closed its loading screen
+// (ServerBoundLoadingScreen end), since a client still loading drops forms.
+// f runs at once if the screen is already closed or p is not hooked, else
+// later in p's transaction, at most readyTimeout later. Call it in p's
+// transaction.
 func AfterClientReady(p *player.Player, f func(p *player.Player, tx *world.Tx)) {
 	c := Of(p)
 	if c == nil {

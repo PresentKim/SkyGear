@@ -12,14 +12,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Island expansion as a DDUI screen (ui.PlaneMenu) for the players who see
-// the menus in Ore UI: over the map the camera looks down on, every chunk
-// within expandPlaneReach of the selected one is a button the size of the
-// chunk on the screen (pressing one selects it, the camera follows), and a
-// panel at the bottom shows the selected chunk, its price and what the
-// player holds of it, how many chunks the island has, and the buy and exit
-// buttons. Esc leaves the mode too. The movement keys and the sneak menu are
-// for the JSON UI forms (expand.go).
+// Island expansion as a DDUI screen (ui.PlaneMenu) for Ore UI clients: each
+// chunk near the selected one is a button over the map (pressing selects it
+// and the camera follows), with the price and buy/exit in a bottom panel.
+// JSON UI clients use the movement keys and the sneak menu (expand.go).
 
 // expandPlaneReach is how many chunks around the selected one have a
 // button: more than the camera shows, so a wide screen has them all.

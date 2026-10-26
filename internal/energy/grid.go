@@ -20,15 +20,14 @@ type Grid struct {
 	step int64
 }
 
-// NewGrid returns an empty grid.
 func NewGrid() *Grid {
 	return &Grid{conduits: map[cube.Pos]int64{}, sources: map[cube.Pos]int64{}}
 }
 
-// AddConduit registers the conduit at pos; call it whenever the block ticks.
 // Conduits returns how many conduits are registered.
 func (g *Grid) Conduits() int { return len(g.conduits) }
 
+// AddConduit registers the conduit at pos; call it whenever the block ticks.
 func (g *Grid) AddConduit(pos cube.Pos) { g.conduits[pos] = g.step }
 
 // AddSource registers a source that touches sinks without a conduit (a

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Machine tiers (docs/design/13-machine-tiers.md): the alloys, circuits and
-# kits and the configuration copier register without server errors, an operator can be given them, their
+# Machine tiers: the alloys, circuits, kits and the configuration copier
+# register without server errors, an operator can be given them, and their
 # recipes and creative entries reach the client.
 timeout 90 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=강화 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \

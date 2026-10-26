@@ -1,13 +1,8 @@
 #!/bin/bash
-# Friend request, invite code join, live InvSee (entity chest), the
-# game menu forms and kick between a host (Hana) and a guest (Gyu). /invite
-# opens the friends screen with the invite code in its first row; a request
-# is accepted on the requests tab (the friend's row, then accept), which
-# tells the one who asked. The guest waits out its login toast first: a
-# player gets one toast per ui.ToastGap and a held one gives way to the next,
-# so "request sent" would be replaced by the host's quick "friends now".
-# /members lists the members with the chosen one's actions on the right
-# (inventory, go to, bring, kick); after a kick the list shows the guest gone.
+# Friend request, invite code join, live InvSee (entity chest), the game menu
+# forms and kick between a host (Hana) and a guest (Gyu). The guest waits out
+# its login toast first: one toast shows per ui.ToastGap and a held one gives
+# way to the next, so "request sent" would be replaced by "friends now".
 rm -f "$WORK/code.txt"
 timeout 90 "$BOT" -name Hana \
   'form:"서버 안내"=0' 'form:"세이브 선택"=0' 'input:"새 게임 이름 설정"=하나 섬' 'form:"세이브 선택"=3' 'expect:입장했습니다' \

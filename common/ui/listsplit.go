@@ -25,9 +25,8 @@ const (
 
 // listNameBytes is the width of the name field of a row's label, padded with
 // invisible "§r"s (3 bytes) and spaces so the pack can cut the name and the
-// information under it apart and draw them at different sizes
-// (docs/tech/json-ui.md). Padding must never split a colour code: the client
-// then shows the "r".
+// information under it apart and draw them at different sizes. Padding must
+// never split a colour code: the client then shows the "r".
 const listNameBytes = 60
 
 // ListRowText formats the label of a ListRow: the name padded to
@@ -70,8 +69,7 @@ type ListSplit struct {
 // ListSplitMenu shows a list on the left and the actions of the chosen row on
 // the right. Pressing any row answers the form, so Run must show the form
 // again with that row chosen, the chosen one included: with nothing sent back
-// the client closes the window, so pressing the chosen row used to close the
-// screen instead of keeping it.
+// the client closes the window.
 func ListSplitMenu(p *player.Player, title string, sp ListSplit) {
 	if OreUIFor(p) {
 		oreListSplit(p, title, sp)

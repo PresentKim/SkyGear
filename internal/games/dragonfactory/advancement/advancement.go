@@ -1,4 +1,4 @@
-// Package advancement defines the advancement tree (docs/design): the
+// Package advancement defines the advancement tree: the
 // advancements, their chapters and the board layout of each chapter. The game
 // package grants them and draws the board.
 package advancement
@@ -27,8 +27,8 @@ type Advancement struct {
 	// Parents come before it: it is open once they are all done (none for
 	// the first). Doing it first is fine; they stay as they are.
 	Parents []string
-	// Item is the name of an item to have in the inventory (unlockName
-	// form), or empty.
+	// Item is the name of an item to have in the inventory
+	// (naming.UnlockName form), or empty.
 	Item string
 	// Research is a research to complete, or empty.
 	Research string
@@ -48,13 +48,12 @@ const (
 	Sift     = "sift"
 	Machine  = "machine"
 	Chunk    = "chunk"
-	// Wave1 and advWave5 are done by clearing levels 1 and 5 of the gate
-	// (wave.go).
+	// Wave1 and Wave5 are done by clearing levels 1 and 5 of the gate.
 	Wave1 = "wave_1"
-	// ToolMod and advToolLevel are done by putting a modifier on a tool and
-	// by a tool reaching level 1 (tinkerform.go).
+	// ToolMod and ToolLevel are done by putting a modifier on a tool and
+	// by a tool reaching level 1.
 	ToolMod = "tool_modifier"
-	// Bloom is done by harvesting a magic plant (magic.go).
+	// Bloom is done by harvesting a magic plant.
 	Bloom     = "first_bloom"
 	ToolLevel = "tool_level"
 	Wave5     = "wave_5"
@@ -69,16 +68,14 @@ const (
 	EssHarvest = "ess_harvest"
 	Chunks8    = "chunks_8"
 	Chunks16   = "chunks_16"
-	// EssenceResearch is done by a research that cost research essences
-	// (research.go).
+	// EssenceResearch is done by a research that cost research essences.
 	EssenceResearch = "essence_research"
-	// Dragon is done by placing the dragon egg (project.go).
+	// Dragon is done by placing the dragon egg.
 	Dragon = "dragon_egg"
-	// MachineTier is done by putting a kit on a machine (tier.go),
-	// advStats by opening the production stats (stats.go), advFairyGift by
-	// a gift fairy's gift (fairy.go), advFavourite by a favourite in the
-	// codex (codexgoal.go) and advLost by taking an item back from the lost
-	// and found (lostfound.go).
+	// MachineTier is done by putting a kit on a machine, Stats by opening
+	// the production stats, FairyGift by a gift fairy's gift, Favourite by a
+	// favourite in the codex and Lost by taking an item back from the lost
+	// and found.
 	MachineTier = "machine_tier"
 	Stats       = "stats"
 	FairyGift   = "fairy_gift"
@@ -245,8 +242,7 @@ var Tree = []Advancement{
 	{ID: "config_copier", Chapter: ChapterAutomation, NameKey: "advancement.config_copier.name", Parents: []string{MachineTier}, HintKey: "advancement.config_copier.hint", Item: "dragonfactory:config_copier"},
 }
 
-// advancementIndex is the index in advancementTree of each ID's first
-// advancement.
+// advancementIndex is the index in Tree of each ID's first advancement.
 var advancementIndex = func() map[string]int {
 	m := map[string]int{}
 	for i := range Tree {
@@ -287,8 +283,8 @@ func WithAncestors(a *Advancement) []*Advancement {
 	return out
 }
 
-// Items are the unlockName of each advancement's Item, by index
-// in advancementTree.
+// Items are the naming.UnlockName of each advancement's Item, by index in
+// Tree.
 var Items = func() []string {
 	out := make([]string, len(Tree))
 	for i, a := range Tree {

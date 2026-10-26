@@ -9,15 +9,15 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// Slot decoration (docs/tech/slotdeco.md): the rarity and the tier of an item
+// Slot decoration: the rarity and the tier of an item
 // show as a coloured slot background and tier pips on its slot. The marks are
 // part of the item's name: texts/*.lang for items that have no custom name of
 // their own (tools/slotmarks writes them from ItemDecor), the custom name for
-// stacks that have one (describeTool).
+// stacks that have one (tinker.DescribeTool).
 
 // ItemDecor returns the rarity and the tier badge of an item type: Common and
 // 0 for the many items that have none. Rarity grows with how far into the
-// game the item is (docs/design/open-questions.md).
+// game the item is.
 func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 	switch it := it.(type) {
 	case dfitem.TierAlloy:

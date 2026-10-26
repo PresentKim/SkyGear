@@ -14,19 +14,15 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Ores and their processing follow ATM10: To the Sky
-// (docs/design/16-ore-balance.md §3·§4): four chunks of a metal make its ore
-// block; a pickaxe mines it into one raw ore and a furnace smelts it into one
-// ingot; the hammer breaks it into two dusts; the crusher into three raw ores
-// and two more at half a chance each; the ore washer washes a raw ore into
-// two dusts. A raw ore and a dust each smelt into an ingot. Iron, gold and
-// copper use the vanilla ores and raw ores; tin, lead, silver and nickel
-// have their own.
+// Ores follow ATM10: To the Sky: four chunks make an ore block; a pickaxe
+// mines it into one raw ore, the hammer into two dusts, the crusher into
+// three raw ores and maybe more. Raw ores and dusts each smelt into an
+// ingot. Tin, lead, silver and nickel have their own ores.
 const (
 	// HammerDust are the dusts the hammer breaks an ore block into.
 	HammerDust = 2
 	// CrusherRaw are the raw ores the crusher always makes of an ore block,
-	// crusherBonus the more it makes at crusherBonusChance percent each.
+	// CrusherBonus the more it makes at CrusherBonusChance percent each.
 	CrusherRaw         = 3
 	CrusherBonus       = 2
 	CrusherBonusChance = 50
@@ -122,7 +118,7 @@ func RawOf(metal string) world.Item {
 }
 
 // oreBlockMetals and rawMetals are the metals of the ore blocks and raw ores,
-// by itemKey.
+// by naming.ItemKey.
 var oreBlockMetals, rawMetals = func() (blocks, raws map[string]string) {
 	blocks, raws = map[string]string{}, map[string]string{}
 	for _, k := range OreKinds {
@@ -142,7 +138,6 @@ func OreBlockMetal(it world.Item) (string, bool) {
 	return metal, ok
 }
 
-// rawMetal is the metal of a raw ore.
 func rawMetal(it world.Item) (string, bool) {
 	metal, ok := rawMetals[naming.ItemKey(it)]
 	return metal, ok
@@ -158,7 +153,7 @@ func OreBlocks() []world.Item {
 }
 
 // HammerDrop is what the hammer breaks b into: an ore block into its dusts,
-// the stones one step down (crushRecipes).
+// the stones one step down (CrushRecipes).
 func HammerDrop(b world.Block) (item.Stack, bool) {
 	it, ok := b.(world.Item)
 	if !ok {

@@ -133,7 +133,7 @@ func (inst *Instance) run() {
 }
 
 // sweepTimed removes the time-limited items whose time is up from the
-// players in the instance (internal/timed).
+// players in the instance (common/timed).
 func (inst *Instance) sweepTimed(tx *world.Tx) {
 	for _, h := range inst.handles() {
 		if e, ok := h.Entity(tx); ok {

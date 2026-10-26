@@ -1,7 +1,6 @@
 // Command uitextures writes the flat textures of the grey JSON UI theme
-// (packs/dfui/textures/ui/df). Run it from the repository root after
-// changing the colours: go run ./tools/uitextures (only the pictures that
-// are missing; go run ./tools/uitextures -f writes all).
+// (packs/dfui/textures/ui/df). Run it from common/: go run ./tools/uitextures
+// writes the missing pictures, -f writes all.
 package main
 
 import (

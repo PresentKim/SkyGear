@@ -14,10 +14,9 @@ import (
 )
 
 // Witch water and the barrel mixing of Ex Deorum, as ATM10: To the Sky uses
-// them (docs/design/16-ore-balance.md §2.1): mycelium spores sifted from dirt
-// turn dirt into mycelium; an oak barrel of water standing on mycelium turns
-// into witch water after witchWaterDelay; and barrels of witch water and lava
-// make the blocks of the Nether and the End.
+// them: mycelium spores turn dirt into mycelium, an oak barrel of water on
+// mycelium turns into witch water after witchWaterDelay, and barrels of
+// witch water and lava make the blocks of the Nether and the End.
 //   - witch water + lava bucket (or a lava source on top) → netherrack
 //   - witch water + sand → soul sand
 //   - lava + witch water bucket → blackstone

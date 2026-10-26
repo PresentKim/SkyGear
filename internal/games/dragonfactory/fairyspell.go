@@ -19,7 +19,7 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// The spells of the fairy board (docs/design/02-dragonfactory.md §19): the
+// The spells of the fairy board: the
 // island's weather never changes by itself; a fairy emerald brings rain,
 // which grows the timed crops faster, or snow, which runs the energy machines
 // faster, for spellDays instance days. The sun follows the instance clock
@@ -178,7 +178,7 @@ func (s *session) tickFall(tx *world.Tx, now time.Duration) {
 	}
 }
 
-// restoreBiome gives back the island's biome that snow used to change
+// restoreBiome gives back the island's biome an old save's snow changed
 // (State.BaseBiome), once.
 func (s *session) restoreBiome(tx *world.Tx) {
 	if s.state.BaseBiome == nil {

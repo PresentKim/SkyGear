@@ -39,7 +39,7 @@ func TestInvitesReplaceAndExpire(t *testing.T) {
 	}
 }
 
-// A fresh invites value must work without any add (this crashed the server).
+// A zero invites value must work without any add.
 func TestInvitesZeroValue(t *testing.T) {
 	var iv invites
 	iv.remove("a", 1)

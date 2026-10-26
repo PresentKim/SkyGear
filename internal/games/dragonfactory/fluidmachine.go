@@ -14,7 +14,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Machines with a tank (docs/design/07-progression-expansion.md §6.1): the fluid
+// Machines with a tank: the fluid
 // tank, the electric crucible (cobblestone into lava) and the lava generator.
 // They have no window: a bucket fills or empties them by hand, fluid conduits
 // carry the fluid (internal/fluidnet), and their WAILA panel shows the tank.
@@ -31,7 +31,7 @@ const (
 	tankCapacity = 16000
 )
 
-// fluidKind returns the fluid of a bucket's content.
+// fluidOfBucket returns the fluid of a bucket's content.
 func fluidOfBucket(b item.Bucket) fluidnet.Kind {
 	liq, ok := b.Content.Liquid()
 	if !ok {
@@ -55,7 +55,6 @@ func bucketOf(k fluidnet.Kind) item.Stack {
 	return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(liq)}, 1)
 }
 
-// fluidName is the name of a fluid in the catalog.
 func fluidName(lang string, k fluidnet.Kind) string {
 	if k == fluidnet.Lava {
 		return i18n.T(lang, "fluid.lava")

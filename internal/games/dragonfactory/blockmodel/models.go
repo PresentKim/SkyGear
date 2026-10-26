@@ -7,15 +7,10 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 )
 
-// Block looks. Models (models/blocks/*.geo.json), textures and their atlas
-// (textures/terrain_texture.json, item_texture.json) live in the resource
-// pack assets/resourcepack/dragonfactory; the server only names them here:
-// geometry identifiers and material textures (atlas keys
-// "dragonfactory_<file>" for textures/blocks/<file>.png). Fronts of the
-// fixed cubes look south, which is in view in the inventory; drawers are
-// turned per facing. Materials: "*" is the body
-// texture, other names are listed per block. TestPackHasBlockAssets checks
-// every name exists in the pack.
+// Block looks. Models, textures and atlases live in the resource pack
+// (assets/resourcepack/dragonfactory); the server only names geometry
+// identifiers and atlas keys ("dragonfactory_<file>"). Material "*" is the
+// body texture. TestPackHasBlockAssets checks every name exists in the pack.
 
 func AlphaMaterial(texture string) customblock.Material {
 	return customblock.NewMaterial(texture, customblock.AlphaTestRenderMethod())
@@ -23,7 +18,7 @@ func AlphaMaterial(texture string) customblock.Material {
 
 // SolidMaterial is the material of a natural full block (dust, crushed
 // blocks, ores): opaque with ambient occlusion, shaded like vanilla dirt and
-// sand. alphaMaterial turns ambient occlusion off, and such a block looked
+// sand. AlphaMaterial turns ambient occlusion off, and such a block looked
 // flat and brighter than its neighbours.
 func SolidMaterial(texture string) customblock.Material {
 	return customblock.NewMaterial(texture, customblock.OpaqueRenderMethod())

@@ -1,14 +1,7 @@
-// Package itemio is the one interface through which blocks give and take
-// items: hoppers, and later the pipes (docs/tech/itemio.md). A block that
-// holds items implements Inserter and Extractor (or registers an Adapter for
-// a block it cannot add methods to); everything else moves items with
-// Insert, Peek, Extract and Transfer, which also know the vanilla blocks
-// (chests, furnaces, brewing stands).
-//
-// Positions and faces: pos is the block that gives or takes, and face is the
-// face of that block the items pass through. Items entering a block from
-// above enter through cube.FaceUp; items leaving a block downwards leave
-// through cube.FaceDown.
+// Package itemio is how blocks give and take items (hoppers, conduits). A
+// block implements Inserter/Extractor or gets an Adapter; vanilla containers
+// are built in. face is the face of pos the items pass through: items from
+// above enter through cube.FaceUp.
 package itemio
 
 import (

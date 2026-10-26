@@ -8,7 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Machines that show whether they work (docs/tech/block-animation.md): the
+// Machines that show whether they work: the
 // block has a state (activeState) and its working look uses the animated
 // front texture (a flipbook strip in the pack, textures/flipbook_textures.json).
 // The server only changes the state when the machine starts or stops working.

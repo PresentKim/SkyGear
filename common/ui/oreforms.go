@@ -8,17 +8,13 @@ import (
 	"github.com/presentkim/dragonfactory/common/i18n"
 )
 
-// The DDUI screens of the forms that have no Ore UI look of their own in
-// oreui.go: ListSplitMenu, Input, ItemGrid (and ItemGridSections) and
-// SlotMenu. They draw in the same window as the others, so a press that goes
-// from one to another (a friend's row to the confirm question, a grid to its
-// next page) stays in the screen open and changes only what differs.
+// DDUI screens for ListSplitMenu, Input, ItemGrid(Sections) and SlotMenu.
+// They share the common window size, so moving between them updates the open
+// screen in place.
 
-// oreListSplit is a ListSplitMenu (df_form list_split_form): icon tabs
-// over the window (the name is the tooltip), the rows in a scrolling panel on the left, each a button
-// with its icon, its name and the information line under it (the chosen one
-// lit), and on the right the body and the actions, the first full width and
-// the rest two to a row.
+// oreListSplit is a ListSplitMenu: icon tabs over the window, the rows in a
+// scrolling panel on the left, and on the right the body and the actions,
+// the first full width and the rest two to a row.
 func oreListSplit(p *player.Player, title string, sp ListSplit) {
 	l := newOreLayout()
 	tabs, bar, actions := l.chrome(sp.Actions)

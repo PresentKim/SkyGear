@@ -1,4 +1,4 @@
-// tierblocks writes the per-tier textures of the upgradable machines
+// Command tierblocks writes the per-tier textures of the upgradable machines
 // (internal/games/dragonfactory/tierlook.go): for every machine face it
 // copies the base picture to "<name>_<face>_t1" .. "_t3" with a trim in the
 // colour of the tier along the edges (iron, gold, diamond), the same for the

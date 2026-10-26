@@ -103,7 +103,7 @@ func TestSieveNeedsAMesh(t *testing.T) {
 }
 
 // TestSieveTablesGiveOreChunks: gravel gives every ore's chunks from the
-// string mesh on, as ATM10: To the Sky does (docs/design/16-ore-balance.md),
+// string mesh on, as ATM10: To the Sky does,
 // sand none, and four chunks of an ore make the ore block (recipes
 // registered).
 func TestSieveTablesGiveOreChunks(t *testing.T) {

@@ -19,7 +19,7 @@ type Drop struct {
 	Permille int
 }
 
-// The drop tables follow ATM10: To the Sky (docs/design/16-ore-balance.md):
+// The drop tables follow ATM10: To the Sky:
 // Ex Deorum's tables (the 1.21.1 port of Ex Nihilo) with the pack's
 // changes, for the items Bedrock has. Every mesh of the game has its own
 // column; a row lists the chance per mille of its drop for each mesh from
@@ -27,14 +27,14 @@ type Drop struct {
 // as ours.
 
 // sieveRow is one drop of one sifted block with its chance per mesh tier
-// (meshTiers order: string, flint, iron, gold, diamond, netherite).
+// (dfitem.MeshTiers order: string, flint, iron, gold, diamond, netherite).
 type sieveRow struct {
 	in   world.Item
 	drop item.Stack
 	per  [6]int
 }
 
-// from is a chance that starts at a mesh tier (index into meshTiers) with
+// from is a chance that starts at a mesh tier (index into dfitem.MeshTiers) with
 // the chances of the meshes from there on.
 func from(tier int, chances ...int) [6]int {
 	var out [6]int
@@ -92,9 +92,9 @@ var sieveRows = []sieveRow{
 
 	// Gravel: ATM10: To the Sky (Ex Deorum 1.21.1 SieveRecipes.java with the
 	// pack's KubeJS: gold nuggets and gravel pebbles removed, diamond and
-	// emerald from the iron mesh on, twice on the netherite mesh) —
-	// docs/design/16-ore-balance.md. Every ore is a chunk from the string
-	// mesh on; research decides when a metal is of use.
+	// emerald from the iron mesh on, twice on the netherite mesh). Every ore
+	// is a chunk from the string mesh on; research decides when a metal is
+	// of use.
 	{block.Gravel{}, stack(item.Flint{}), [6]int{200, 250, 150, 130, 50, 0}},
 	{block.Gravel{}, stack(item.Coal{}), [6]int{100, 125, 150, 200, 60, 60}},
 	{block.Gravel{}, stack(item.LapisLazuli{}), [6]int{30, 50, 80, 100, 110, 110}},

@@ -5,14 +5,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Conduits (docs/design/06-power-and-conduits.md): cables that carry energy
-// (internal/energy) and items (internal/itemnet). Every conduit in the world
-// is a ConduitBundle (bundle.go): one block holding at most one conduit of
-// each kind. EnergyConduit and ItemConduit are the items that are placed into
-// a bundle. The block itself is invisible and has a single state: a display
-// entity (conduitvisual.go) draws the conduits, with a core for each kind and
-// an arm towards every side the kind connects to, so no combination of kinds,
-// tiers and sides multiplies the block states (docs/tech/conduits.md).
+// Conduits carry energy (internal/energy), items (internal/itemnet) and
+// fluids (internal/fluidnet). Every conduit in the world is part of a
+// ConduitBundle (bundle.go); the conduit items only go into bundles.
 
 // conduitFaces are the six sides in the bit order of a connection set.
 var conduitFaces = [6]cube.Face{cube.FaceDown, cube.FaceUp, cube.FaceNorth, cube.FaceSouth, cube.FaceWest, cube.FaceEast}
@@ -24,8 +19,8 @@ const conduitTiers = 3
 var conduitCore = cube.Box(5.0/16, 5.0/16, 5.0/16, 11.0/16, 11.0/16, 11.0/16)
 
 // conduitModel is the shape of a conduit block: the space its cores take
-// (bundleSelection); no side of it is solid. conn is unused now that the arms
-// are drawn by the display entity.
+// (bundleSelection); no side of it is solid. conn is unused: the display
+// entity draws the arms.
 type conduitModel struct{ conn int }
 
 func (m conduitModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {

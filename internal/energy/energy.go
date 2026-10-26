@@ -1,12 +1,6 @@
-// Package energy moves RE (RedstoneEnergy) from blocks that give it to
-// blocks that take it, over conduits (docs/design/06-power-and-conduits.md).
-// It knows nothing of the game's blocks: a block takes part by implementing
-// Source (a generator, a battery), Sink (a machine) or Conduit (a cable).
-//
-// The Grid is owned by one world (the island instance). Conduits and sources
-// register themselves each time they tick; Step, called every few ticks,
-// finds the networks of the conduits that registered lately and shares out
-// the energy.
+// Package energy moves RE (RedstoneEnergy) from Sources to Sinks over
+// Conduits. A Grid belongs to one world: blocks register as they tick, and
+// Step shares out the energy over the networks of recent registrations.
 package energy
 
 import (
@@ -67,8 +61,7 @@ type Conduit interface {
 
 // Rates are the RE per tick a network of a tier carries; the tier of a
 // network is its lowest. They are Ender IO 8.2's energy conduits (energy,
-// energetic, vibrant). DirectRate is what a source gives a sink it touches
-// without a conduit.
+// energetic, vibrant).
 var Rates = [...]int{0, 8000, 48000, 192000}
 
 // DirectRate is the RE per tick between touching blocks.

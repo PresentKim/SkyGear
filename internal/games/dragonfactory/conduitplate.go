@@ -11,25 +11,15 @@ import (
 	"github.com/presentkim/dragonfactory/internal/energy"
 )
 
-// ConduitPlate is the connector plate of a conduit bundle, as in EnderIO: where
-// the conduits meet a chest, a machine or another block that is not a conduit
-// of their kind, one black plate sits on the side of the bundle, with a
-// connector (collar) behind it for each kind of conduit in the kind's lane and,
-// for an item conduit, an arrow on the plate for taking items from the block and
-// one for giving items to it, each in the colour of its channel
-// (models/entity/conduit_visual.geo.json, geometry conduit_plate).
+// ConduitPlate is the EnderIO-style connector plate on a side of a bundle that
+// meets a block other than a conduit of its kind. It has no hitbox; clicking
+// its square on the block it touches opens the side's settings. The render
+// controllers decode
 //
-// There is one plate entity for each side of a bundle that needs one. It is
-// invisible to the world (no hitbox, no shadow, nothing to click): a sneaking
-// player with an empty hand who clicks the block it touches, in the plate's
-// square, gets the settings of the side (conduitform.go). Variant is
+//	Variant     = side + 6*kinds + 48*mode + 192*extractChannel + 3072*insertChannel
+//	MarkVariant = energyTier + 4*itemTier + 16*fluidTier
 //
-//	side + 6*kinds + 48*mode + 192*extractChannel + 3072*insertChannel
-//
-// with kinds the bit set of the conduit kinds with a connector here (energy 1,
-// item 2, fluid 4) and mode the item conduit's mode (itemnet.Mode); MarkVariant
-// is the tier of the energy conduit + 4 * the item conduit's + 16 * the
-// fluid's. The render controllers take them apart.
+// with kinds the bit set of kinds with a connector (energy 1, item 2, fluid 4).
 
 // plateKey identifies the plate on a side of the bundle at pos.
 type plateKey struct {
@@ -57,7 +47,7 @@ func plugsOf(tx *world.Tx, pos cube.Pos, b ConduitBundle) map[plugKey]int {
 	return b.plugsFrom(pos, b.sides(tx, pos))
 }
 
-// plugsFrom is plugsOf for the neighbours sides of the bundle at pos.
+// plugsFrom is plugsOf for the neighbour sides of the bundle at pos.
 func (b ConduitBundle) plugsFrom(pos cube.Pos, sides [6]bundleSide) map[plugKey]int {
 	out := map[plugKey]int{}
 	for side, s := range sides {

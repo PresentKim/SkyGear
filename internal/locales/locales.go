@@ -1,8 +1,5 @@
-// Package locales is dragonfactory's text catalog (docs/tech/i18n.md): the
-// hand-written texts in <lang>.json and the generated vanilla names in
-// <lang>.vanilla.json, added to the common i18n catalogs on import. Every
-// package that looks up its own keys imports it, so the texts are there in
-// its tests too.
+// Package locales registers dragonfactory's text catalog (<lang>.json, and the
+// generated vanilla names in <lang>.vanilla.json) with common/i18n on import.
 package locales
 
 import (

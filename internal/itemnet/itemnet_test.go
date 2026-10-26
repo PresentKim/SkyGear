@@ -93,7 +93,6 @@ func TestItemsFlowBetweenChestsOverConduits(t *testing.T) {
 	}
 }
 
-// TestSlowestConduitSetsTheRate.
 func TestSlowestConduitSetsTheRate(t *testing.T) {
 	withWorld(t, func(tx *world.Tx) {
 		chestAt(tx, cube.Pos{0, 64, 0})

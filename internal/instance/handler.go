@@ -55,8 +55,7 @@ func (h *Handler) in() player.Handler {
 	return player.NopHandler{}
 }
 
-// HandleHurt removes fall damage everywhere (docs/design/02-dragonfactory.md §14.1)
-// and returns players that reach the void to a spawn if the location's
+// HandleHurt removes fall damage everywhere and returns players that reach the void to a spawn if the location's
 // handler does not handle it.
 func (h *Handler) HandleHurt(ctx *player.Context, damage *float64, immune bool, attackImmunity *time.Duration, src world.DamageSource) {
 	if _, ok := src.(entity.FallDamageSource); ok {
@@ -105,8 +104,8 @@ func (h *Handler) HandleToggleSneak(ctx *player.Context, after bool) {
 
 // HandleChat keeps chat within a save: a message reaches the players of the
 // same instance only, with the display name (ChatName) instead of
-// Dragonfly's plain "<name> message". The lobby has no chat
-// (docs/design/01-platform.md §1). The server console gets every message.
+// Dragonfly's plain "<name> message". The lobby has no chat. The server
+// console gets every message.
 func (h *Handler) HandleChat(ctx *player.Context, message *string) {
 	h.in().HandleChat(ctx, message)
 	if ctx.Cancelled() {
@@ -137,7 +136,7 @@ func (h *Handler) HandleSetOnFire(ctx *player.Context, duration *time.Duration) 
 	h.in().HandleSetOnFire(ctx, duration)
 }
 func (h *Handler) HandleDeath(p *player.Player, src world.DamageSource, keepInv *bool) {
-	// Inventories are kept on death everywhere (docs/design/02-dragonfactory.md §14.1).
+	// Inventories are kept on death everywhere.
 	*keepInv = true
 	h.in().HandleDeath(p, src, keepInv)
 }

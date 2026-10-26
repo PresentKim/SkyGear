@@ -239,7 +239,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 	})
 }
 
-// TestStoneBarrelOldSave: a stone barrel of an older save (a bucket of lava,
+// TestStoneBarrelOldSave: a stone barrel of an old save (a bucket of lava,
 // or cobblestone heating) holds the same as lava and solids.
 func TestStoneBarrelOldSave(t *testing.T) {
 	s := testSession(t)

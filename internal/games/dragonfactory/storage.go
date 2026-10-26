@@ -16,7 +16,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The storage controller (FunctionalStorage's controller, docs/design/08): it
+// The storage controller (after FunctionalStorage's): it
 // makes the drawers that touch it, directly or through each other and the storage
 // links (blocks that only connect), up to controllerReach blocks away, one
 // storage: hoppers and conduits put items into it and take them out through the
@@ -26,7 +26,6 @@ import (
 // still belongs to its network.
 const controllerReach = 16
 
-// storageDrawer is a drawer of a network.
 type storageDrawer struct {
 	pos cube.Pos
 	d   Drawer
@@ -144,7 +143,7 @@ func controllerExtract(tx *world.Tx, pos cube.Pos, st item.Stack, n int) item.St
 	return out
 }
 
-// storageTotals lists what the network holds, by item, biggest count first.
+// storageEntry is an item the network holds with its count.
 type storageEntry struct {
 	item  item.Stack
 	count int64

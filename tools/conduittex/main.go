@@ -1,11 +1,8 @@
-// conduittex writes the conduit textures of the pack from the 64×64 sheets in
-// src/ (EnderIO's conduit sheets, Unlicense, see third_party/README.md; the arm
-// strip is the 16×52 at (0, 0), the core face the 24×24 at (40, 40)): for each
-// kind and tier the texture of the display entity (textures/entity/dragonfactory/,
-// the layout is described in tools/conduitgeo) and the same sheet for the
-// item block (textures/blocks/), and the texture of the conduit block: one
-// transparent pixel, which its model shows, in grey, which its break particles
-// are made of.
+// Command conduittex writes the conduit textures of the pack from EnderIO's
+// 64×64 sheets in src/ (Unlicense, see third_party/README.md): per kind and
+// tier the display entity and item block sheet (layout in tools/conduitgeo),
+// and the conduit block texture, a grey sheet with one transparent pixel
+// that the model shows (the rest only colours break particles).
 //
 //	go run ./tools/conduittex tools/conduittex/src assets/resourcepack/dragonfactory
 package main

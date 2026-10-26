@@ -135,7 +135,7 @@ func MatchReq(has item.Stack, req CrafterReq) bool {
 	return false
 }
 
-// crafterWants reports whether a recipe uses an item as an ingredient.
+// Wants reports whether a recipe uses an item as an ingredient.
 func (cr *Crafter) Wants(it item.Stack) bool {
 	for _, req := range cr.Reqs {
 		if MatchReq(it, req) {

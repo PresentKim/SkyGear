@@ -1,7 +1,6 @@
-// machinetex writes the block textures of the machines that are made from the
-// textures of another one (temporary pictures until real ones are made): every
-// reddish accent pixel of the base machine is recoloured to the accent of the
-// new one, keeping its brightness, the rest stays.
+// Command machinetex writes placeholder block textures of machines derived
+// from another machine's: every reddish accent pixel of the base is recoloured
+// to the new accent, keeping its brightness.
 //
 //	go run ./tools/machinetex assets/resourcepack/dragonfactory
 package main

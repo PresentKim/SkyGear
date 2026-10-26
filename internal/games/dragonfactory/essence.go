@@ -6,10 +6,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Essences and the mob simulator (docs/design/07-progression-expansion.md §6):
+// Essences and the mob simulator:
 // the island has no mobs, so what they drop comes from the simulator instead. An
 // essence of a mob is found by sifting dust with a better mesh; one essence
-// charges the simulator for simCharges runs, each run (an interval of energy)
+// charges the simulator for dfitem.SimCharges runs, each run (an interval of energy)
 // gives the drops of the mob, rolled.
 
 // runSimulator runs the mob simulator: a charge (from an essence in the input

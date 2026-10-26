@@ -1,7 +1,5 @@
-// Package account has the account-wide extras of players
-// (docs/design/01-platform.md §5): achievements, the title they unlock and
-// the name colour. Games register their achievements and grant them with
-// Grant; the platform shows titles and colours in chat and name tags.
+// Package account has the account-wide extras of players: achievements, the
+// titles they unlock, name colours, counters and settings.
 package account
 
 import (

@@ -22,7 +22,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/tinker"
 )
 
-// The codex as a recipe viewer (docs/tech/codex-jei.md): an index of every
+// The codex as a recipe viewer: an index of every
 // item it can say something about, a search over the index, and links from an
 // item to the items it is made from and the items it is made into, so that a
 // player follows a chain of production by pressing items.
@@ -86,13 +86,10 @@ func codexIndex(lang string) []codexEntry {
 	return list
 }
 
-// codexRelevant are the items (itemKey) a player meets in Dragon Factory:
-// the game's own items, what its tables take and give (research costs, the
-// sieve, the machines, the simulator, the waves, the plants, tool
-// materials), the results of the recipes research opens, and then everything
-// those are made of (the open crafting recipes and the furnace, down to the
-// raw materials) and what the furnace makes of them. Vanilla items the game
-// never asks for (tipped arrows, lingering potions, ...) are left out.
+// codexRelevant are the items (naming.ItemKey) a player meets in Dragon
+// Factory: the game's own items, what its tables take and give, the results
+// of the recipes research opens, and everything those are made of down to
+// the raw materials. Vanilla items the game never asks for are left out.
 func codexRelevant() map[string]bool {
 	open := map[string]bool{}
 	for _, n := range baseUnlocks {

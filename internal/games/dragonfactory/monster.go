@@ -13,12 +13,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Monsters of the dimension gate (docs/design/05-sky-progression.md §4.1,
-// docs/design/07-progression-expansion.md §7). Dragonfly has no mobs, so they are
-// ours: an entity the client draws as the vanilla mob, which walks towards the
-// nearest player, steps up blocks, falls, hits when close, and takes the damage
-// of the player's weapon. Only the gate's waves spawn them (wave.go); a monster
-// that does not belong to the current wave of its session is removed.
+// Monsters of the dimension gate. Dragonfly has no mobs, so they are ours: an
+// entity the client draws as the vanilla mob that walks to the nearest player
+// and hits when close. A monster not in its session's current wave is removed.
 
 // monsterStats are the numbers of a mob, drafts.
 type monsterStats struct {
@@ -288,7 +285,6 @@ func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
 	}
 }
 
-// mobName is the name of a mob in lang.
 func mobName(lang, mob string) string { return i18n.T(lang, "mob."+mob) }
 
 // canSee reports whether no solid block lies between the monster's eyes and p's.

@@ -1,5 +1,5 @@
 #!/bin/bash
-# The help window (docs/design/10-user-flow.md): /도움말 opens it on the first
+# The help window: /도움말 opens it on the first
 # tab, a topic's next button goes on through the tab and back returns to it,
 # and the window opens again on the tab looked at last (/dfhelp too).
 timeout 60 "$BOT" -name Hana \

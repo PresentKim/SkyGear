@@ -59,7 +59,7 @@ var HeadMaterials = []HeadMaterial{
 type HandleMaterial struct {
 	ID   string
 	Item world.Item
-	// DurMul and speedMul scale the head's durability and mining speed.
+	// DurMul and SpeedMul scale the head's durability and mining speed.
 	DurMul, SpeedMul float64
 	// Attack is added to the attack.
 	Attack float64
@@ -143,7 +143,7 @@ func (t Tool) speed() float64 { return t.head().Eff * t.handle().SpeedMul }
 
 func (t Tool) BaseMiningEfficiency(world.Block) float64 { return t.speed() }
 
-// AttackDamage is the damage of the bare tool; tinkerDamage adds what the stack
+// AttackDamage is the damage of the bare tool; TinkerDamage adds what the stack
 // has gained.
 func (t Tool) AttackDamage() float64 {
 	return t.head().Attack + ToolAttackBonus[t.Kind] + t.handle().Attack

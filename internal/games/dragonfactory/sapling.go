@@ -16,7 +16,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/advancement"
 )
 
-// Tree safety nets of the start (docs/design/02-dragonfactory.md §2): /묘목
+// Tree safety nets of the start: /묘목
 // gives an oak sapling once every saplingCooldown (per save, real time), and
 // crouching again and again makes nearby saplings grow. Drafts.
 const (

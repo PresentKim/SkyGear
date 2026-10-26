@@ -8,13 +8,10 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// The gate (docs/design/05-sky-progression.md §4.1): starting a wave opens a
-// gate over the dimension gate anchor, a round flat portal three blocks wide
-// that turns slowly and looks like the level's monsters (its texture by the
-// level, packs: entity/gate_portal.entity.json), facing the player who
-// opened it. The wave's monsters come out of it one after another
-// (gatePortalEvery) and first walk out in the direction it faces before they
-// go for the players. It closes when the wave ends.
+// The gate: starting a wave opens a slowly turning round portal over the
+// anchor, textured by the level and facing the player who opened it. The
+// monsters come out of it every gatePortalEvery and walk out the way it faces
+// before going for the players. It closes when the wave ends.
 
 // gatePortalEvery is how many Fast calls (0.2 s each) pass between two
 // monsters coming out of the gate.
@@ -94,7 +91,6 @@ func (s *session) openGatePortal(tx *world.Tx, w *waveState) {
 	w.portal = h
 }
 
-// closeGatePortal closes the gate of a wave.
 func (s *session) closeGatePortal(tx *world.Tx, w *waveState) {
 	if w.portal == nil {
 		return

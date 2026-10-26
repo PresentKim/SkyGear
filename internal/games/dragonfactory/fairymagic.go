@@ -9,7 +9,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/dfitem"
 )
 
-// Fairy magic (docs/design/02-dragonfactory.md §19): the fairy leaves fairy
+// Fairy magic: the fairy leaves fairy
 // dust, which makes fairy emeralds and the fairy board. The board casts the
 // spells that change the island's weather and sun, an emerald each.
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Counter achievements (docs/design/01-platform.md §5): counting an action
+# Counter achievements: counting an action
 # grants an achievement and its title, the title screen lists them by group
 # and a title can be put on.
 timeout 60 "$BOT" -name Hana \

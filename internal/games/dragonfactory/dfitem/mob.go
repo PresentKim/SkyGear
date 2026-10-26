@@ -1,6 +1,6 @@
 package dfitem
 
-// Mobs of the dimension gate and their essences (docs/design/15-magic-sieve.md §1).
+// Mobs of the dimension gate and their essences.
 const (
 	MobZombie   = "zombie"
 	MobSkeleton = "skeleton"

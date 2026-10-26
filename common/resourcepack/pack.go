@@ -17,12 +17,8 @@ import (
 )
 
 // Load reads the resource pack folder at dir. The header and module versions
-// in its manifest are replaced by a version derived from the pack contents.
-//
-// Clients cache packs by UUID and version and are not sent a pack they
-// already have, so a pack that changed without a version bump would keep
-// showing the old content. Deriving the version from the content makes every
-// change reach clients without editing manifest.json by hand.
+// in its manifest are replaced by a version derived from the pack contents,
+// since clients cache packs by UUID and version.
 func Load(dir string) (*resource.Pack, error) { return LoadWith(dir, Options{}) }
 
 // LoadWith is Load with the pack minified and/or encrypted (Options).

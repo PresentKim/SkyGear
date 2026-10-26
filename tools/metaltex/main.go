@@ -1,8 +1,6 @@
-// metaltex writes the item textures of the metals of the pack (metals.go):
-// the ore chunk of each new metal (the copper chunk with its ore pixels
-// recoloured), the dust of every metal (a small mound) and the ingots of the
-// new metals and alloys. They are temporary pictures, drawn from the colour of
-// each metal.
+// Command metaltex writes placeholder metal item textures from each metal's
+// colour: ore chunks (the copper chunk recoloured), dusts, and ingots of the
+// new metals and alloys.
 //
 //	go run ./tools/metaltex assets/resourcepack/dragonfactory
 package main

@@ -14,14 +14,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Advancements (docs/design/02-dragonfactory.md §10, 05-sky-progression.md
-// §5): Bedrock has no advancements a server can use, so they are ours. An
-// advancement is a step of the progression with a hint of how to do it; the
-// quest panel shows the first one open. They belong to the save and are
-// shared by everyone on the island like the researches. Every advancement
-// is shown from the start, in its chapter; one whose parents are not all
-// done yet is drawn darker but can be done all the same. The tree is a
-// draft.
+// Advancements: Bedrock has no advancements a server can use, so they are
+// ours. Each is a progression step with a hint; the quest panel shows the
+// first open one. They belong to the save like the researches, and one whose
+// parents are not done is drawn darker but can still be done.
 
 // advanced reports whether the save has done an advancement.
 func (s *session) advanced(id string) bool { return s.state.Advancements[id] }
@@ -115,7 +111,7 @@ func (s *session) advance(tx *world.Tx, id string) {
 }
 
 // checkAdvancementsHeld completes the item and research advancements met by
-// the players with these item names (inventoryNames). It runs every second.
+// the players with these item names (advancement.InventoryNames). It runs every second.
 func (s *session) checkAdvancementsHeld(tx *world.Tx, held []advancement.PlayerItems) {
 	var have map[string]bool
 	var done []*advancement.Advancement

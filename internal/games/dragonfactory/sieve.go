@@ -20,17 +20,11 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
-// Sieves work like the sieve of the Dorios' Basics add-on: a wooden frame
-// on legs with a mesh, and the block being sifted lying on the mesh, sinking
-// as it is sifted. Using a sieve with gravel, sand or dirt puts it in; using
-// it again sifts one stage (every sieve in the 3×3 around it on the same
-// level takes part), and the last stage drops the products on top. There is no
-// window: the products are never stored, since a block gives several kinds.
-//
-// The hand sieve (KindSieve) takes one block at a time and sifts only by
-// hand. The auto sieve (KindAutoSieve) also takes stacks from hoppers or the
-// hand, sifts on its own, and puts its products into containers beside or
-// below it, dropping them on top when none takes them.
+// Sieves follow the Dorios' Basics add-on: a frame with a mesh and the block
+// being sifted lying on it, sinking as it is sifted. The hand sieve
+// (KindSieve) takes one block and sifts a stage per use, dropping the
+// products on top; the auto sieve takes stacks, sifts on its own and puts
+// its products into its output slots.
 
 func isSieve(kind string) bool {
 	return kind == KindSieve || kind == KindAutoSieve || kind == KindMagicSieve
@@ -52,7 +46,7 @@ const sieveCooldown = 150 * time.Millisecond
 const sieveLookState = "dragonfactory:look"
 
 // lookIndex numbers the look of a sieve: the mesh fitted (0 none, 1 to
-// len(meshTiers) the tier), the content and the fill; lookValue is its state
+// len(dfitem.MeshTiers) the tier), the content and the fill; lookValue is its state
 // value.
 func lookIndex(mesh, content, fill int) int {
 	return (mesh*len(sieveContents)+content)*(sieveStages+1) + fill

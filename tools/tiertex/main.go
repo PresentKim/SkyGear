@@ -1,7 +1,6 @@
-// tiertex writes the item textures of the machine tiers (tier.go): the three
-// alloys (ingots), the four control circuits, the three tier kits and the
-// configuration copier. They
-// are temporary pictures drawn from a colour for each item.
+// Command tiertex writes placeholder item textures of the machine tiers: the
+// three alloys, the four control circuits, the three tier kits and the
+// configuration copier, each drawn from one colour.
 //
 //	go run ./tools/tiertex assets/resourcepack/dragonfactory
 package main

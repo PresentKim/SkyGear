@@ -1,6 +1,6 @@
 // Package slotdeco marks item names so that the slotdeco resource pack can
 // draw a background (rarity) and a front badge (tier pips) on the slots that
-// hold the item (docs/tech/slotdeco.md).
+// hold the item.
 //
 // The client's JSON UI cannot read an item's data, only the text of its hover
 // box (the name and lore). So the marks are invisible colour-code sequences

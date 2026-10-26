@@ -10,7 +10,7 @@ import (
 )
 
 // Hooks of the counter achievements for what a player does with a block
-// or on the move (docs/design/01-platform.md §5).
+// or on the move.
 
 // countBreak counts a block p breaks: all blocks, logs, leaves, and what a
 // hammer crushes.

@@ -7,8 +7,8 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/sievetable"
 )
 
-// The magic sieve (docs/design/15-magic-sieve.md): an auto sieve with an
-// essence slot. A mob's essence charges it for magicCharges sifts, and while
+// The magic sieve: an auto sieve with an
+// essence slot. A mob's essence charges it for sievetable.MagicCharges sifts, and while
 // it is charged, what it sifts gets the mob's theme (magicsieve_tables.go) on
 // top of, or instead of, the table of the mesh.
 

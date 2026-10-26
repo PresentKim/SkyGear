@@ -12,13 +12,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/formicon"
 )
 
-// The advancement screen (docs/design/02-dragonfactory.md §10,
-// docs/tech/advancement-tree.md): chapters over the whole tree of the
-// chapter, laid out left to right by the server (layoutChapter). Every node
-// is shown: done, open (its parents are done) or locked (drawn darker). A
-// parent in another chapter is an entrance at the left edge that leads
-// there. A node's name and text are its tooltip; pressing it opens its
-// detail.
+// The advancement screen: a tab per chapter with its tree laid out left to
+// right by the server (advancement.LayoutOf). A parent in another chapter is
+// an entrance that leads there; pressing a node opens its detail.
 
 // showAdvancements opens the advancement screen on the tab of the advancement
 // the quest panel follows.
@@ -91,7 +87,6 @@ func (s *session) advancementTree(p *player.Player, v advancement.View) ui.Tree 
 	return t
 }
 
-// showAdvancementView shows the advancement screen on a view.
 func (s *session) showAdvancementView(p *player.Player, v advancement.View) {
 	if ui.OreUIFor(p) {
 		s.showQuestBook(p, v.Tab, nil)

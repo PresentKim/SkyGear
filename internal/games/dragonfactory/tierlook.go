@@ -10,7 +10,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/blockmodel"
 )
 
-// The look of a machine tier (docs/design/13-machine-tiers.md): a machine that
+// The look of a machine tier: a machine that
 // takes kits shows its tier with its own textures
 // "<name>_<face>_t<tier>" (and "_on_t<tier>" for the working look), written
 // to the pack by tools/tierblocks. The sieves keep one look for every tier.

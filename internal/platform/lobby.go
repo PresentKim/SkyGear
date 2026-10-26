@@ -62,10 +62,8 @@ func (lobbyHandler) HandleMove(ctx *player.Context, pos mgl64.Vec3, _ cube.Rotat
 	}
 }
 
-// The lobby looks like a game launcher (docs/design/01-platform.md §1): the
-// camera rests in front of a small sky island the players stand on, and the
-// pack draws the launcher frame over it, behind the lobby forms and on the
-// HUD when no form is open, so the scene stays when a form closes.
+// The lobby looks like a game launcher: a fixed camera on a small sky island,
+// with the pack's launcher frame drawn behind forms and on the HUD.
 var (
 	// lobbyCamera is where the camera looks from: south of the island,
 	// slightly above, towards north (yaw 180) and a little down.
@@ -110,8 +108,7 @@ func leaveLobbyScene(p *player.Player) {
 }
 
 // lobbyClear is how far around the spawn the lobby is cleared before the
-// island is built: the lobby world is saved, and an earlier lobby (the
-// flat platform) must not stay around the island.
+// island is built, as the lobby world is saved and may hold an older layout.
 const lobbyClear = 12
 
 // buildLobbyIsland builds the lobby's sky island: a round grass top that

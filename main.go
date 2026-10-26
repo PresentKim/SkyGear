@@ -1,4 +1,4 @@
-// Command dragonfactory runs the multi game island server (docs/design).
+// Command dragonfactory runs the multi game island server.
 package main
 
 import (
@@ -192,9 +192,8 @@ func run(log *slog.Logger) error {
 	return nil
 }
 
-// readServerConfig reads the Dragonfly configuration from config.toml, or
-// creates the file with defaults if it does not yet exist. Player data is
-// always stored by the platform per save, so Dragonfly's player provider is
+// readServerConfig reads config.toml, creating it with defaults if missing.
+// The platform stores player data per save, so Dragonfly's player provider is
 // disabled.
 func readServerConfig(log *slog.Logger) (server.Config, error) {
 	c := server.DefaultConfig()

@@ -121,9 +121,8 @@ func (c Container) empty() bool {
 
 // itemField is an item's subtitle field: its runtime ID × 65536 (0, air,
 // for nothing) left padded with 'x' to iconWidth. The pack removes the 'x's
-// and reads the number like the form item icons. Zero padding
-// ("-0013107200") and an added offset did not read as items (11th
-// playtest).
+// and reads the number like the form item icons; zero padding or an offset
+// does not read as an item.
 func itemField(it item.Stack) string {
 	n := 0
 	if !it.Empty() {
@@ -143,9 +142,8 @@ func itemField(it item.Stack) string {
 
 // countField is a slot's count: "§f" and the number (in thousands from
 // 10000), padded with '~' to countWidth bytes; only '~' for one or none.
-// It starts with "§f": text that looks like a number becomes a number in
-// the pack, and a label shows nothing for a number (the counts did not
-// show, 11th playtest).
+// The "§f" keeps it text: the pack turns number-like text into a number, and
+// a label shows nothing for a number.
 func countField(n int) string {
 	var text string
 	switch {

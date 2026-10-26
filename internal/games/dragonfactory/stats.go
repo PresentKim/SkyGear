@@ -18,7 +18,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// The production record of an island (docs/design/12-production-monitor.md):
+// The production record of an island:
 // what its machines put in their output slots and the energy they make and
 // use. The last statMinutes minutes are kept in one-minute buckets; the
 // totals are saved in the state.
@@ -219,8 +219,7 @@ func (s *session) showStats(p *player.Player, tab statsTab) {
 
 func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
 	lang := i18n.Of(p)
-	// Tabs carry an icon: the tab strip reads at a glance, like the tabs of
-	// the creative inventory (docs/tech/ui-style.md).
+	// Tabs carry an icon, like the tabs of the creative inventory.
 	icons := map[statsTab]string{
 		statsItems:  formicon.Of(machineItem(KindCrusher)),
 		statsPower:  formicon.Of(machineItem(KindGenerator)),

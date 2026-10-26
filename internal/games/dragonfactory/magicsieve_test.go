@@ -73,7 +73,7 @@ func TestThemeChance(t *testing.T) {
 }
 
 // TestMagicSieveCharging: an essence goes to the essence slot only, charges
-// the sieve for magicCharges sifts, and the sieve falls back to its mesh
+// the sieve for sievetable.MagicCharges sifts, and the sieve falls back to its mesh
 // table when the charges run out.
 func TestMagicSieveCharging(t *testing.T) {
 	s := testSession(t)

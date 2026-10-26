@@ -1,7 +1,6 @@
-// Package waila shows what a player looks at in the WAILA HUD panel. The
-// panel is the WAILA resource pack (packs/waila); this package does what its Script API behaviour pack did:
-// it sends the panel's data as a title the pack draws instead of a vanilla
-// title (docs/tech/waila.md). Games find the target and fill an Info.
+// Package waila shows what a player looks at in the WAILA HUD panel of the
+// waila resource pack, sending the panel's data as a title the pack draws in
+// place of a vanilla title. Games find the target and fill an Info.
 package waila
 
 import (
@@ -105,13 +104,11 @@ const panelPrefix = "_waila:A:"
 // anchor places the panel at the top middle of the screen.
 const anchor = "__waila:anchor.top_middle__"
 
-// Format returns the title and subtitle that show info. The title is the
-// prefix, a 10-character tool field ("aa,a;zz,z:"), the text, and tokens the
-// pack removes (also the container layout); the subtitle is
-// "i", the icon item's field (runtime ID × 65536 left padded with 'x' to 11
-// characters; the pack draws it like the form item icons), for a container
-// (or a tail) per panel slot the item's field and the count in 4
-// characters, and the tail of marks and the item line.
+// Format returns the title and subtitle that show info. Title: the prefix, a
+// 10-character tool field ("aa,a;zz,z:"), the text and tokens the pack
+// removes. Subtitle: "i", the icon item's field (runtime ID × 65536 padded
+// with 'x' to 11 characters), per panel slot an item field and a 4-character
+// count (container or tail only), then the tail.
 func Format(info Info) (titleText, subtitle string) {
 	tools := [2]ToolIcon{{ToolNone, MarkNone}, {ToolNone, MarkNone}}
 	copy(tools[:], info.Tools)
@@ -145,10 +142,8 @@ func Format(info Info) (titleText, subtitle string) {
 		b.WriteString("\n§9§o" + clean(info.Source) + "§r")
 	}
 	b.WriteString(anchor)
-	// The subtitle: "i" (keeps it text: the pack also reads it as a string
-	// for block states, and a bare number broke that, a grey box) and the
-	// icon field; for a container or a tail, each panel slot's item and
-	// count fields; then the tail (tail.go).
+	// The leading "i" keeps the subtitle a string: the pack also reads it for
+	// block states, and a bare number draws a grey box.
 	var sub strings.Builder
 	sub.WriteString("i")
 	var icon item.Stack

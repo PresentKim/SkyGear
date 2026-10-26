@@ -33,7 +33,7 @@ func tail(m Marks, line *ItemLine) string {
 	b.WriteString(lineIcon)
 	b.WriteByte(flag(m.Lock, 'L'))
 	// Letters, not digits: a one-digit flag reads as a number in the pack
-	// and never equals the digit text (the ×2 mark did not show).
+	// and never equals the digit text.
 	mult := byte('a')
 	if m.Multiplier > 1 {
 		mult = byte('a' + min(bits.Len(uint(m.Multiplier))-1, 9))

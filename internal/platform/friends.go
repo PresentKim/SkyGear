@@ -24,10 +24,8 @@ const (
 // inside the host's save.
 const codeRow = "+code"
 
-// showFriends is the friends screen (docs/design/01-platform.md §4): tabs for
-// the friends, the requests received and the blocked players, the list on the
-// left and what can be done with the chosen one on the right. Inside a save
-// the host invites an online friend from here.
+// showFriends is the friends screen: tabs for friends, requests and blocked
+// players. Inside a save the host invites an online friend from here.
 func (pf *Platform) showFriends(p *player.Player) { pf.showFriendsAt(p, friendsTab, "") }
 
 // showFriendsAt shows the tab with the row sel chosen (an account ID or

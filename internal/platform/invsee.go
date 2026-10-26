@@ -18,15 +18,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Inventory viewing (InvSee, docs/design/01-platform.md §4). The host sees a
-// member's inventory in a chest window and moves items in and out directly.
-// A member inside the save, in the viewer's world, is edited live; anyone
-// else is edited in the stored state, locked against entering the save while
-// the window is open.
-//
-// The window is a mirror: every slot change by the viewer is written through
-// to the target, and the mirror is refreshed from the target every second
-// and before each move, so a move never acts on a stale slot.
+// InvSee: the host edits a member's inventory in a chest window that mirrors
+// it, live if the member is in the viewer's world, else in the stored state
+// (locked against entering). The mirror refreshes before each move.
 
 // Window layout (8 rows, scrolls).
 const (

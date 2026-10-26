@@ -47,7 +47,6 @@ func Open(path string) (*DB, error) {
 	return d, nil
 }
 
-// Close closes the database.
 func (d *DB) Close() error { return d.sql.Close() }
 
 // migrations are applied in order; the index+1 is stored in PRAGMA user_version.
@@ -97,7 +96,7 @@ var migrations = []string{
 		value   BLOB NOT NULL,
 		PRIMARY KEY (save_id, key)
 	);`,
-	// 2: cheque ledger (docs/design/02-dragonfactory.md §7).
+	// 2: cheque ledger.
 	`CREATE TABLE cheques (
 		id          TEXT PRIMARY KEY,
 		save_id     INTEGER NOT NULL REFERENCES saves(id) ON DELETE CASCADE,
@@ -107,8 +106,8 @@ var migrations = []string{
 		redeemed_by TEXT,
 		redeemed_at INTEGER
 	);`,
-	// 3: friends (docs/design/01-platform.md §4). An accepted friendship is
-	// stored as two rows, one per direction.
+	// 3: friends. An accepted friendship is stored as two rows, one per
+	// direction.
 	`CREATE TABLE friend_requests (
 		from_id    TEXT NOT NULL REFERENCES accounts(id),
 		to_id      TEXT NOT NULL REFERENCES accounts(id),
@@ -128,8 +127,7 @@ var migrations = []string{
 		PRIMARY KEY (account_id, blocked_id)
 	);
 	CREATE INDEX accounts_name ON accounts(name COLLATE NOCASE);`,
-	// 4: account achievements, the equipped title and the name colour
-	// (docs/design/01-platform.md §5).
+	// 4: account achievements, the equipped title and the name colour.
 	`ALTER TABLE accounts ADD COLUMN title TEXT NOT NULL DEFAULT '';
 	ALTER TABLE accounts ADD COLUMN name_color TEXT NOT NULL DEFAULT '';
 	CREATE TABLE achievements (
@@ -138,15 +136,14 @@ var migrations = []string{
 		earned_at  INTEGER NOT NULL,
 		PRIMARY KEY (account_id, id)
 	);`,
-	// 5: the counters of account achievements (docs/design/01-platform.md §5).
+	// 5: the counters of account achievements.
 	`CREATE TABLE counters (
 		account_id TEXT NOT NULL REFERENCES accounts(id),
 		key        TEXT NOT NULL,
 		value      INTEGER NOT NULL,
 		PRIMARY KEY (account_id, key)
 	);`,
-	// 6: the settings a player chooses for itself, by key (the iron hammer's
-	// diagonal vein mining, docs/design/02-dragonfactory.md §4).
+	// 6: the settings a player chooses for itself, by key.
 	`CREATE TABLE account_settings (
 		account_id TEXT NOT NULL REFERENCES accounts(id),
 		key        TEXT NOT NULL,

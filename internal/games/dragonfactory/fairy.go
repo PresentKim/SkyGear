@@ -22,13 +22,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Gift fairy (docs/design/02-dragonfactory.md §2): every night of the
-// instance clock a fairy (an allay on the client) visits a player in the save
-// and flits about them. Using (or hitting) it throws a gift to the player and
-// it flies away; left alone for fairyStay, it scatters the gift about the
-// player and flies away. The gift is fairy dust with a few basic items, or
-// now and then something from the save's research (fairyGift). Values are
-// drafts.
+// Gift fairy: every instance night a fairy (an allay on the client) visits a
+// player. Using it throws the gift to them; left alone for fairyStay it
+// scatters the gift and flies away. Values are drafts.
 const (
 	// fairyFrom and fairyTo bound when in the instance day the fairy comes,
 	// in percent of the day: about midnight, the day starting at sunrise.
@@ -194,8 +190,7 @@ func giftNames(p *player.Player, gift []item.Stack) string {
 
 // The chances in percent of the gifts that come from the save's research:
 // the reward of a done research, and half the cost of one. The rest of the
-// gifts are basic. The fairy comes every night, about three times as often
-// as when it came every two to four days, so these are a third of those.
+// gifts are basic. They are low because the fairy comes every night.
 const (
 	giftRewardChance = 2
 	giftCostChance   = 8
@@ -404,7 +399,6 @@ func (s *session) scheduleFairy(next bool) {
 	s.state.NextFairy = max(now, start+from+time.Duration(s.rand.Int64N(int64(span)+1)))
 }
 
-// spawnFairy sends a fairy to p.
 func (s *session) spawnFairy(tx *world.Tx, p *player.Player) {
 	if s.fairy != nil {
 		if e, ok := s.fairy.Entity(tx); ok {

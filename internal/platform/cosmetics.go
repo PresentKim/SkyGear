@@ -13,11 +13,11 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// Titles, name colours and achievements (docs/design/01-platform.md §5),
-// from the lobby menu, /title, or a game's menu (which runs /title).
+// Titles, name colours and achievements, from the lobby menu, /title, or a
+// game's menu (which runs /title).
 
 // The cosmetics are one window with three tabs: titles, name colours and
-// achievements (docs/tech/ui-style.md).
+// achievements.
 const (
 	cosmeticTitles = iota
 	cosmeticColors

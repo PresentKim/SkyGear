@@ -1,11 +1,6 @@
-// Package itemnet moves items over item conduits (docs/design/06-power-and-
-// conduits.md §3.3), the way EnderIO's item conduits do: the conduits that
-// touch each other form a network; every block with items next to it is an
-// endpoint whose side of the conduit has a connection mode (both ways, only
-// taken from, only given to, or off) and channels. Each step a network moves up to its
-// tier's rate of items from the endpoints that give to the endpoints that
-// take, in turn so every destination gets some. Items move through
-// internal/itemio, so chests, furnaces, drawers and machines all work.
+// Package itemnet moves items over networks of touching item conduits, as
+// EnderIO does: each conduit side has a Mode and channels, and each step moves
+// up to the tier's rate round robin, through itemio so any container works.
 package itemnet
 
 import (
@@ -150,11 +145,8 @@ func Discover(tx *world.Tx, start cube.Pos, limit int) *Network {
 	return n
 }
 
-// Step moves up to the network's rate of items and returns how many moved,
-// one item at a time and round robin: every source in turn hands its next item
-// to the next destination after the one it served last, so the destinations
-// share what the sources give evenly (the default mode of EnderIO's item
-// conduit, the only one here).
+// Step moves up to the network's rate of items, one at a time round robin so
+// destinations share evenly (EnderIO's default mode), and returns how many.
 func (n *Network) Step(tx *world.Tx) int {
 	var sources, dests []Endpoint
 	for _, e := range n.Ends {
@@ -227,7 +219,6 @@ type Grid struct {
 	step     int64
 }
 
-// NewGrid returns an empty grid.
 func NewGrid() *Grid {
 	return &Grid{conduits: map[cube.Pos]int64{}, nets: map[cube.Pos]*Network{}}
 }

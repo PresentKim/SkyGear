@@ -12,10 +12,8 @@ import (
 	"github.com/presentkim/dragonfactory/internal/instance"
 )
 
-// showMembers lets the host manage the members of a save
-// (docs/design/01-platform.md §4, 참여자 관리): the members on the left, the
-// host first and those who left last, and what can be done with the chosen
-// one on the right.
+// showMembers lets the host manage the members of a save: host first, those
+// who left last.
 func (pf *Platform) showMembers(p *player.Player, saveID int64) { pf.showMembersAt(p, saveID, "") }
 
 // showMembersAt shows the members with the account sel chosen (the first one

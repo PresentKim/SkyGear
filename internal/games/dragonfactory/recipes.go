@@ -10,7 +10,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// Recipe locking (research.go, docs/tech/recipes.md): players on the island
+// Recipe locking (research.go): players on the island
 // only get the recipes whose result is open: the base results and those of
 // the done researches (Player.SetRecipeFilter, Dragonfly patch). The list
 // is sent again at once when a research is done.

@@ -13,13 +13,10 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/naming"
 )
 
-// The codex is one window with a tab strip: search (the whole index), the
-// sieve tables, processing and gear, mobs and waves, plants. The tabs stay
-// visible on every page of the codex, also on the pages that go deeper (a
-// mesh's drops, an item), so the player moves between them in one press
-// (docs/tech/ui-style.md).
+// The codex is one window with a tab strip (search, sieve, processing and
+// gear, mobs and waves, plants) that stays visible on every page, also the
+// deeper ones, so the player moves between them in one press.
 
-// codexTab is a tab of the codex.
 type codexTab int
 
 const (
@@ -32,10 +29,8 @@ const (
 	codexTabCount
 )
 
-// codexTabKeys are the label keys of the tabs.
 var codexTabKeys = [codexTabCount]string{"codex.tab.search", "codex.tab.sieve", "codex.tab.process", "codex.tab.mobs", "codex.tab.plants"}
 
-// codexTabIcon is the icon of a tab.
 func codexTabIcon(t codexTab) string {
 	switch t {
 	case codexSearchTab:

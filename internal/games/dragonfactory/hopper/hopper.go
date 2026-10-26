@@ -23,15 +23,15 @@ import (
 	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
 )
 
-// The game's own hoppers (docs/design/02-dragonfactory.md §8):
+// The game's own hoppers:
 //   - the wood hopper: one slot and very slow (an item every four seconds),
 //     for the first bulk work before iron;
 //   - reverse hoppers (wood and iron): the same hoppers turned upside down,
 //     which take from the block below and give to the block above, only
 //     that way. Crafting a hopper alone gives its reverse and the reverse
 //     alone gives the hopper back.
-// The iron hopper is Dragonfly's; it moves items like these (stepHopper).
-// All of them move items through internal/itemio.
+// The iron hopper is Dragonfly's; it moves items like these (StepHopper).
+// All of them move items through itemio.
 
 var _ itemio.Inserter = FlowHopper{}
 var _ itemio.Extractor = FlowHopper{}
@@ -107,7 +107,7 @@ func (FlowHopper) Model() world.BlockModel { return model.Solid{} }
 
 // LightDiffusionLevel lets light through like the vanilla hopper. A chest
 // opens only when the block above it diffuses light (Chest.Activate), so a
-// hopper above a chest no longer blocks it.
+// hopper above a chest does not block it.
 func (FlowHopper) LightDiffusionLevel() uint8 { return 0 }
 
 func (h FlowHopper) Name() string { return h.Info().name }

@@ -18,9 +18,8 @@ func init() {
 }
 
 // researchEssenceCosts are the research essences the researches cost next to
-// their materials, by research: how many of the essence of each kind
-// (docs/design/11-research-essences.md §5). Researches before the laboratory,
-// and the tools and armour, cost none.
+// their materials, by research: how many of the essence of each kind.
+// Researches before the laboratory, and the tools and armour, cost none.
 var researchEssenceCosts = map[string]map[string]int{
 	// the first machines and conduits
 	"energy_conduit": {dfitem.EssenceEngineering: 2}, "item_conduit": {dfitem.EssenceEngineering: 2}, "drawer_upgrades": {dfitem.EssenceEngineering: 2},

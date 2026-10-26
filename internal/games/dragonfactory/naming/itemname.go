@@ -11,7 +11,7 @@ import (
 // ItemName returns a readable name of an item stack in lang.
 func ItemName(lang string, s item.Stack) string {
 	if n := s.CustomName(); n != "" {
-		// The slot marks are for the slot only (docs/tech/slotdeco.md).
+		// The slot marks are for the slot only.
 		return slotdeco.Strip(n)
 	}
 	if c, ok := s.Item().(world.CustomItem); ok {

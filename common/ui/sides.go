@@ -45,11 +45,9 @@ type SideBoard struct {
 	Refresh func(p *player.Player, tx *world.Tx) SideBoard
 }
 
-// The layout of SidesMenu in GUI pixels, in the window (windowW by
-// windowH): the view is sidesW by
-// sidesH, a card cardW by cardH in three columns cardGap apart, the block in
-// the middle centreSize square, the choices panel pickerCols choices of
-// choiceSize to a row.
+// The layout of SidesMenu in GUI pixels: the view is sidesW by sidesH, cards
+// cardW by cardH in three columns cardGap apart, the block centreSize square,
+// the choices panel pickerCols choices of choiceSize to a row.
 const (
 	sidesW, sidesH         = 310, 144
 	cardW, cardH, cardGap  = 96, 56, 11
@@ -96,15 +94,11 @@ func sideArrow(f cube.Face) string {
 // sidePicker is the port whose choices are open: the side and the port.
 type sidePicker struct{ side, port int }
 
-// SidesMenu shows a block in the middle with a card for each of its six sides
-// around it, joined to it by a line, each card with the arrow and name of the
-// side, the block beside it and a box for each port side by side: the square
-// of its choice filling the box, which turns it to the next choice when
-// pressed, its label at the top right and a plus button on the square's
-// corner that opens the choices in a panel beside the card. A change redraws
-// only the ports. A side without ports shows a dashed box in their place, and
-// a side with no block beside it an empty diamond in the block's. Without DDUI it is an ItemBoard with a row for each side, and
-// the choices are an ItemGrid.
+// SidesMenu shows a block with a card for each of its six sides: the
+// neighbouring block and a box per port that cycles its choice when pressed,
+// with a plus button that opens all choices beside the card. A change redraws
+// only the ports. Without DDUI it is an ItemBoard with a row per side and the
+// choices in an ItemGrid.
 func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
 	if !OreUIFor(p) {
 		ItemBoard(p, title, "", sideRows(title, b, actions), actions...)

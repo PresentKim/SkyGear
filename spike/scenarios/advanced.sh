@@ -1,5 +1,5 @@
 #!/bin/bash
-# Progression expansion (docs/design/07-progression-expansion.md): the metals,
+# Progression expansion: the metals,
 # alloy smelter, energy cell, simulator, fluid machines and washer
 # register without server errors, an operator can be given them, and their
 # recipes and creative entries reach the client.

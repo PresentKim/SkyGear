@@ -17,8 +17,7 @@ type Config struct {
 		Dir string
 	}
 	Instance struct {
-		// DayLengthMinutes is the length of an instance day in real minutes
-		// (docs/design/open-questions.md: decided during balancing).
+		// DayLengthMinutes is the length of an instance day in real minutes.
 		DayLengthMinutes int
 		// LoadRadius is the radius in chunks kept loaded and ticked around
 		// the island centre of an active instance.
@@ -44,25 +43,23 @@ type Config struct {
 	}
 	ResourcePack struct {
 		// Minify strips comments and white space from the packs' JSON, and
-		// Encrypt encrypts the packs (docs/tech/resourcepack.md). Both are on
+		// Encrypt encrypts the packs. Both are on
 		// by default; turn them off to read what the client receives.
 		Minify, Encrypt bool
 		// SlotDeco adds the slotdeco pack: slot backgrounds by item rarity
-		// and tier badges (docs/tech/slotdeco.md). It changes the vanilla
+		// and tier badges. It changes the vanilla
 		// item slot template of every container screen; turn it off if the
 		// screens look wrong.
 		SlotDeco bool
 	}
 	ChestUI struct {
-		// Ride links the chest entity to the player (on by default, confirmed
-		// on a real client). WaitLatency and Retry switch on further
-		// InvMenu-style steps of opening entity chests (docs/tech/chestui.md).
-		// Debug logs the open/close packets.
+		// Ride links the chest entity to the player so the chest stays open
+		// while moving. WaitLatency and Retry switch on further InvMenu-style
+		// steps of opening entity chests. Debug logs the open/close packets.
 		Ride, WaitLatency, Retry, Debug bool
 	}
 	Experimental struct {
-		// VoxelShapes sends a minimal voxel shape registry on spawn
-		// (docs/TODO.md: custom blocks that cannot be broken).
+		// VoxelShapes sends a minimal voxel shape registry on spawn.
 		VoxelShapes bool
 		// BlockActions logs the block breaking actions clients send.
 		BlockActions bool
@@ -128,7 +125,6 @@ func DefaultConfig() Config {
 	c.Backup.DatabaseMinutes = 60
 	c.Backup.DatabaseKeep = 48
 	c.Backup.WorldKeep = 5
-	// Confirmed on a real client: the chest stays open while moving.
 	c.ChestUI.Ride = true
 	c.ResourcePack.Minify = true
 	c.ResourcePack.Encrypt = true

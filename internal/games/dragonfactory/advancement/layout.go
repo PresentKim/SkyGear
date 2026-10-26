@@ -75,7 +75,7 @@ type Layout struct {
 	Order  []*Advancement
 	Gates  []*Advancement
 	// Vias are the places a line passes in the columns between a parent and
-	// a node further than the next column, by advViaKey: kept free, so the
+	// a node further than the next column, by ViaKey: kept free, so the
 	// quest book's line goes around the nodes between.
 	Vias map[string][]string
 }
@@ -96,17 +96,11 @@ var advLayouts = func() (out [ChapterCount]Layout) {
 // LayoutOf is the layout of a chapter.
 func LayoutOf(ch Chapter) Layout { return advLayouts[ch] }
 
-// layoutChapter places the nodes of a chapter (a layered drawing): a node's
-// column is one more than its latest parent's, so it sits right of every
-// parent; a parent in another chapter is an entrance right before its first
-// child.
-// Each group of nodes joined by lines is drawn apart (layoutGroup); the
-// groups go one under another in tree order, and one that would pass the
-// bottom of the tree form's grid starts a new band right of the others.
-// Connectors of the tree form run in the left strip of a child's column
-// from the parent in the column before it: the parent's row has a line to
-// the strip, the bus between the rows is vertical and the child's row has a
-// line into the node.
+// layoutChapter places the nodes of a chapter as a layered drawing: a node's
+// column is one more than its latest parent's, and a parent in another
+// chapter is an entrance right before its first child. Connected groups
+// (layoutGroup) stack in tree order, starting a new band to the right when
+// one would pass the bottom of the grid.
 func layoutChapter(ch Chapter) Layout {
 	l := Layout{Pos: map[string]Pos{}, Line: map[string]string{}, Strips: map[Pos]int{}, Vias: map[string][]string{}}
 	l.Order = In(ch)
@@ -221,7 +215,7 @@ func layoutChapter(ch Chapter) Layout {
 // withVias is the graph with a via point in every column a line passes
 // between a parent and a node further than the next column, the keys in tree
 // order with the vias of a node's lines before it; vias gets the vias of
-// each line (advViaKey).
+// each line (ViaKey).
 func (g advGraph) withVias(keys []string, vias map[string][]string) (advGraph, []string) {
 	e := advGraph{col: map[string]int{}, parents: map[string][]string{}, children: map[string][]string{}}
 	var out []string

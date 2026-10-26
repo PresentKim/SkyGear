@@ -17,9 +17,9 @@ import (
 	"github.com/presentkim/dragonfactory/internal/games/dragonfactory/textfmt"
 )
 
-// Debugging tools (/dfdebug): helpers for scenarios and playtests that make
-// things happen now or report state. Like /dfadmin, only operators see and
-// run them (adminBase). docs/tech/admin.md.
+// Debugging tools (/dfdebug): helpers for scenarios and manual tests that
+// make things happen now or report state. Like /dfadmin, only operators see
+// and run them (adminBase).
 
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
@@ -272,8 +272,8 @@ func (c debugResearchLoad) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 // debugPlace places a block dx, dy, dz from the operator's feet as the
 // operator would by hand: holding the item (a /dfadmin give id, or any
 // vanilla item name), it clicks the top of the block below that spot, so
-// the game's own placing runs (machine state, facing, handlers). It lets
-// playtests build without aiming the camera.
+// the game's own placing runs (machine state, facing, handlers), so tests
+// build without aiming the camera.
 type debugPlace struct {
 	adminBase
 	Sub  cmd.SubCommand `cmd:"place"`
@@ -318,7 +318,7 @@ func (c debugPlace) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 
 // debugFloor lays stone around the operator at the height of the block under
 // its feet, radius blocks out, without replacing what is there: a place to
-// build on in a playtest (the island is small and the rest is void).
+// build on in a test (the island is small and the rest is void).
 type debugFloor struct {
 	adminBase
 	Sub    cmd.SubCommand `cmd:"floor"`

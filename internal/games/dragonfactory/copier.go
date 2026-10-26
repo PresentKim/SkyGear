@@ -17,7 +17,7 @@ import (
 	"github.com/presentkim/dragonfactory/internal/itemnet"
 )
 
-// The configuration copier (docs/design/14-config-copier.md): it reads the
+// The configuration copier: it reads the
 // settings of a conduit side, a bundle of conduits, an auto crafter or a
 // drawer and writes them to another. The settings live on the item, as the
 // value cardKey.
