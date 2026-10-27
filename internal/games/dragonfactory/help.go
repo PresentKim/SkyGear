@@ -127,7 +127,7 @@ func (s *session) showHelpTab(p *player.Player, t helpTab) {
 		opts = append(opts, s.opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, i) }))
 	}
 	opts = append(opts, s.helpTabs(p, t)...)
-	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.backOption())...)
+	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.backOption(lang))...)
 }
 
 // showHelpTopic shows a help page with the topics before and after it in its

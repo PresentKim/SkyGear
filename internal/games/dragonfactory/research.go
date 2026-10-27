@@ -551,7 +551,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
 	}
 	// the help is the button's tooltip; pressing it keeps the screen
-	sp.Actions = append(sp.Actions, s.opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.backOption())
+	sp.Actions = append(sp.Actions, s.opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.backOption(lang))
 	ui.SplitMenu(p, i18n.T(lang, "researchlist.title"), sp)
 }
 

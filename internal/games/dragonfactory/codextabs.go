@@ -135,7 +135,7 @@ func (s *session) codexFrom(p *player.Player, back func(p *player.Player), it it
 func (s *session) codexBack(p *player.Player) ui.Option {
 	n := s.codexNavOf(p)
 	if len(n.hist) == 0 {
-		return s.backOption()
+		return s.backOption(i18n.Of(p))
 	}
 	b := ui.Back(i18n.T(i18n.Of(p), "codex.back"), func(p *player.Player, _ *world.Tx) {
 		n := s.codexNavOf(p)

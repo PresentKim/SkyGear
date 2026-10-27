@@ -19,12 +19,18 @@ import (
 
 var verbs = regexp.MustCompile(`%[-+# 0-9.]*[a-zA-Z%]`)
 
-// Catalogs checks that another language only has keys the default has, with
-// the same format verbs. Keys starting with "vanilla." are generated from
-// the official texts and may lack a language's name, so they are skipped.
+// Catalogs checks that every language has exactly the keys the default has
+// (a missing key falls back to the default language), with the same format
+// verbs. Keys starting with "vanilla." are generated from the official texts
+// and may lack a language's name, so they are skipped.
 func Catalogs(t *testing.T) {
 	t.Helper()
 	for _, l := range i18n.Languages() {
+		for _, key := range i18n.Keys(i18n.Default) {
+			if _, ok := i18n.Lookup(l, key); !ok && !strings.HasPrefix(key, "vanilla.") {
+				t.Errorf("%s: key %s is missing", l, key)
+			}
+		}
 		for _, key := range i18n.Keys(l) {
 			if strings.HasPrefix(key, "vanilla.") {
 				continue

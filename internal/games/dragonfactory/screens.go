@@ -41,8 +41,8 @@ func (s *session) guard(opts []ui.Option) []ui.Option {
 
 // backOption is the back button to the game menu, drawn left of the close
 // button by the theme.
-func (s *session) backOption() ui.Option {
-	b := ui.Back(i18n.T(i18n.Default, "menu.back"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
+func (s *session) backOption(lang string) ui.Option {
+	b := ui.Back(i18n.T(lang, "menu.back"), func(p *player.Player, _ *world.Tx) { s.showMenu(p) })
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
@@ -72,7 +72,7 @@ func (s *session) showIslandManage(p *player.Player) {
 	if host || s.isOperator(p) {
 		opts = append(opts, s.opt(i18n.T(lang, "island.manage.members"), "textures/ui/df/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption())
+	opts = append(opts, s.opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.backOption(lang))
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
@@ -85,8 +85,8 @@ func (s *session) helpOption(p *player.Player) ui.Option {
 
 // lobbyOption is the exit button of the game menu: where the other menus
 // have their back button, left of the close button, it goes to the lobby.
-func (s *session) lobbyOption() ui.Option {
-	b := ui.Back(i18n.T(i18n.Default, "menu.lobby"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
+func (s *session) lobbyOption(lang string) ui.Option {
+	b := ui.Back(i18n.T(lang, "menu.lobby"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
 	b.Icon = formicon.Lobby
 	return s.opt(b.Label, b.Icon, b.Run)
 }
@@ -133,7 +133,7 @@ func (s *session) mainMenu(p *player.Player) []ui.Option {
 		}),
 		s.opt(i18n.T(i18n.Of(p), "menu.settings"), formicon.Settings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.helpOption(p),
-		s.lobbyOption(),
+		s.lobbyOption(i18n.Of(p)),
 	}
 }
 
@@ -195,5 +195,5 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 			},
 		})
 	}
-	return body, slots, s.backOption()
+	return body, slots, s.backOption(lang)
 }

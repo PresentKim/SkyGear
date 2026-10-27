@@ -83,7 +83,7 @@ func (s *session) advancementTree(p *player.Player, v advancement.View) ui.Tree 
 		}
 	}
 	t.Body = fmt.Sprintf(i18n.T(lang, "advancement.progress"), i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[v.Tab]), done, len(list))
-	t.Actions = []ui.Option{s.backOption()}
+	t.Actions = []ui.Option{s.backOption(lang)}
 	return t
 }
 
@@ -260,7 +260,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 	if open != nil {
 		b.Panel = s.questPanel(p, tab, open)
 	}
-	ui.QuestBookMenu(p, i18n.T(lang, "advancement.title"), b, s.backOption())
+	ui.QuestBookMenu(p, i18n.T(lang, "advancement.title"), b, s.backOption(lang))
 }
 
 // questPanel is an advancement's quest panel: its state and hint, the item
