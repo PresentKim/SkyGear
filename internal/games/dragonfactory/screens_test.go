@@ -105,12 +105,10 @@ func TestExpansionMode(t *testing.T) {
 		if !ok {
 			t.Fatal("not in expansion mode")
 		}
-		// (1, 0) is next to the island: yellow glass. The selected chunk
-		// (0, 0) is owned: light blue.
 		if b := e.mapShown[ChunkPos{1, 0}]; b != world.Block(floorBuyable) {
 			t.Fatalf("buyable chunk = %v", b)
 		}
-		if b := e.mapShown[ChunkPos{0, 0}]; b != world.Block(floorTargetOwned) {
+		if b := e.mapShown[ChunkPos{0, 0}]; b != world.Block(floorOwned) {
 			t.Fatalf("selected owned chunk = %v", b)
 		}
 		if _, ok := p.GameMode().(viewOnlyMode); !ok {
@@ -127,7 +125,7 @@ func TestExpansionMode(t *testing.T) {
 			t.Fatal("movement not cancelled in expansion mode")
 		}
 		s.expandInput(p, e, mgl64.Vec2{-1, 0})
-		if e.target != (ChunkPos{1, 0}) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorTarget) {
+		if e.target != (ChunkPos{1, 0}) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) {
 			t.Fatalf("target = %v, glass %v", e.target, e.mapShown[ChunkPos{1, 0}])
 		}
 		// A key held on does not move again at once; a new press does.
@@ -150,14 +148,11 @@ func TestExpansionMode(t *testing.T) {
 		}
 		s.buyChunk(p, tx, ChunkPos{1, 0})
 		s.drawMap(p, e, true)
-		if e.mapShown[ChunkPos{1, 0}] != world.Block(floorTargetOwned) {
-			t.Fatal("bought selected chunk not shown as owned")
-		}
-		s.expandInput(p, e, mgl64.Vec2{})
-		s.expandInput(p, e, mgl64.Vec2{1, 0}) // back west to (0, 0)
 		if b := e.mapShown[ChunkPos{1, 0}]; b != world.Block(floorOwnedAlt) {
 			t.Fatalf("owned chunk (1, 0) floor = %v, want the other green of the checkerboard", b)
 		}
+		s.expandInput(p, e, mgl64.Vec2{})
+		s.expandInput(p, e, mgl64.Vec2{1, 0}) // back west to (0, 0)
 		if b := e.mapShown[ChunkPos{2, 0}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
 		}
@@ -194,10 +189,10 @@ func TestExpansionMap(t *testing.T) {
 		tx.SetBlock(cube.Pos{3, expandFloorY + 7, 3}, block.Stone{}, nil)
 		s.showExpand(p)
 		e, _ := s.expansionOf(p)
-		if e.mapShown[ChunkPos{0, 0}] != world.Block(floorTargetOwned) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) {
+		if e.mapShown[ChunkPos{0, 0}] != world.Block(floorOwned) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) {
 			t.Fatalf("map chunks %v", e.mapShown)
 		}
-		col := s.mapColumn(tx, ChunkPos{0, 0}, floorTargetOwned)
+		col := s.mapColumn(tx, ChunkPos{0, 0}, floorOwned)
 		reg := tx.World().BlockRegistry()
 		at := func(x, y, z int) world.Block {
 			b, _ := reg.BlockByRuntimeID(col.Block(uint8(x), int16(y), uint8(z), 0))
@@ -207,13 +202,13 @@ func TestExpansionMap(t *testing.T) {
 		if at(3, expandFloorY-1, 3) != (block.Stone{}) || !isAir(at(3, expandFloorY-2, 3)) {
 			t.Fatalf("map column = %v over %v, want stone alone", at(3, expandFloorY-1, 3), at(3, expandFloorY-2, 3))
 		}
-		if at(3, expandFloorY, 3) != world.Block(floorTargetOwned) {
+		if at(3, expandFloorY, 3) != world.Block(floorOwned) {
 			t.Fatalf("map glass = %v", at(3, expandFloorY, 3))
 		}
 		// A torch shows the block it stands on under it.
 		tx.SetBlock(cube.Pos{5, expandFloorY + 3, 5}, block.Planks{}, nil)
 		tx.SetBlock(cube.Pos{5, expandFloorY + 4, 5}, block.Torch{Facing: cube.FaceDown}, nil)
-		col = s.mapColumn(tx, ChunkPos{0, 0}, floorTargetOwned)
+		col = s.mapColumn(tx, ChunkPos{0, 0}, floorOwned)
 		if _, ok := at(5, expandFloorY-1, 5).(block.Torch); !ok || at(5, expandFloorY-2, 5) != (block.Planks{}) {
 			t.Fatalf("torch column = %v over %v", at(5, expandFloorY-1, 5), at(5, expandFloorY-2, 5))
 		}
@@ -275,6 +270,9 @@ func TestExpansionPlane(t *testing.T) {
 		}
 		if got := s.chunkLabel(i18n.Default, ChunkPos{1, 0}, s.purchasableChunks()); !strings.Contains(got, "구매 가능") {
 			t.Errorf("label of the chunk beside the island %q", got)
+		}
+		if got := s.chunkLabel(i18n.Default, ChunkPos{5, 5}, s.purchasableChunks()); !strings.Contains(got, "연결된 땅 없음") {
+			t.Errorf("label of a chunk away from the island %q", got)
 		}
 		from := e.target
 		s.expandStep(1, 0)(p, tx)

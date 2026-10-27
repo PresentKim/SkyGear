@@ -49,10 +49,6 @@ var (
 	floorOwned    = block.StainedGlass{Colour: item.ColourLime()}
 	floorOwnedAlt = block.StainedGlass{Colour: item.ColourGreen()}
 	floorBuyable  = block.StainedGlass{Colour: item.ColourYellow()}
-	// The selected chunk: buyable, owned, or neither.
-	floorTarget      = block.StainedGlass{Colour: item.ColourOrange()}
-	floorTargetOwned = block.StainedGlass{Colour: item.ColourLightBlue()}
-	floorTargetNone  = block.StainedGlass{Colour: item.ColourRed()}
 )
 
 // viewOnlyMode is the game mode of expansion mode: no breaking, placing or
@@ -238,17 +234,17 @@ func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
 	})
 }
 
-// expandTip shows the target chunk and its price above the hotbar.
+// expandTip shows the target chunk's state and price above the hotbar.
 func (s *session) expandTip(p *player.Player, e *expansion) {
 	c := e.target
 	switch {
 	case s.owns(c):
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.owned"), c[0], c[1]))
+		p.SendTip(i18n.T(i18n.Of(p), "expand.tip.owned"))
 	case slices.Contains(s.purchasableChunks(), c):
 		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), c[0], c[1], costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item)))))
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item)))))
 	default:
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.none"), c[0], c[1]))
+		p.SendTip(i18n.T(i18n.Of(p), "expand.tip.none"))
 	}
 }
 
@@ -276,7 +272,7 @@ func (s *session) showExpandActions(p *player.Player) {
 	c := e.target
 	cost := chunkCost(len(s.state.Chunks))
 	var opts []ui.Option
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.chunk"), c[0], c[1], len(s.state.Chunks))
+	body := fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.chunk"), len(s.state.Chunks))
 	if slices.Contains(s.purchasableChunks(), c) {
 		body += fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.cost"), costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
 		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.buy"), costText(i18n.Of(p), cost)), formicon.Island, func(p *player.Player, tx *world.Tx) {

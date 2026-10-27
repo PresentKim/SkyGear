@@ -50,13 +50,12 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			spots = append(spots, sp)
 		}
 	}
-	info := s.chunkLabel(lang, t, buyable) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks))
+	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
 	var actions []ui.Option
 	keys := map[ui.Key]func(p *player.Player, tx *world.Tx){
 		ui.KeyUp: s.expandStep(0, -1), ui.KeyDown: s.expandStep(0, 1), ui.KeyLeft: s.expandStep(-1, 0), ui.KeyRight: s.expandStep(1, 0),
 	}
 	if slices.Contains(buyable, t) {
-		info += "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
 		buy := func(p *player.Player, tx *world.Tx) {
 			s.buyChunk(p, tx, t)
 			if e, ok := s.expansionOf(p); ok {
@@ -64,7 +63,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 				s.showExpandPlane(p, e)
 			}
 		}
-		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "expand.menu.buy"), costText(lang, cost)), formicon.Island, buy))
+		actions = append(actions, s.opt(i18n.T(lang, "expand.plane.buy"), formicon.Island, buy))
 		keys[ui.KeyOK] = buy
 	}
 	leave := func(p *player.Player, tx *world.Tx) {
@@ -72,8 +71,8 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			s.stopExpand(p, tx)
 		}
 	}
-	actions = append(actions, s.opt(i18n.T(lang, "expand.menu.stop"), formicon.Back, leave))
-	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: info, Actions: actions, Close: leave, Keys: keys})
+	actions = append(actions, s.opt(i18n.T(lang, "expand.plane.leave"), formicon.Back, leave))
+	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: s.chunkLabel(lang, t, buyable), Actions: actions, Corner: corner, Close: leave, Keys: keys})
 }
 
 // expandStep moves the selection of the expansion screen by dx, dz chunks
@@ -88,15 +87,14 @@ func (s *session) expandStep(dx, dz int32) func(p *player.Player, tx *world.Tx) 
 	}
 }
 
-// chunkLabel is chunk c's line: where it is and whether it is owned, can be
-// bought (buyable) or not.
+// chunkLabel is whether chunk c is owned, can be bought (buyable) or has no
+// owned chunk beside it.
 func (s *session) chunkLabel(lang string, c ChunkPos, buyable []ChunkPos) string {
-	key := "expand.plane.none"
 	switch {
 	case s.owns(c):
-		key = "expand.plane.ownedChunk"
+		return i18n.T(lang, "expand.plane.ownedChunk")
 	case slices.Contains(buyable, c):
-		key = "expand.plane.buyable"
+		return i18n.T(lang, "expand.plane.buyable")
 	}
-	return fmt.Sprintf(i18n.T(lang, key), c[0], c[1])
+	return i18n.T(lang, "expand.plane.none")
 }

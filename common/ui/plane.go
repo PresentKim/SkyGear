@@ -26,6 +26,8 @@ type Plane struct {
 	// Info is the text of the panel at the bottom; Actions its buttons.
 	Info    string
 	Actions []Option
+	// Corner is the text of a panel at the top left (none: no panel).
+	Corner string
 	// Close runs when the player closes the screen (Esc).
 	Close func(p *player.Player, tx *world.Tx)
 	// Keys are what the keys of the keyboard do (none: a key moves the
@@ -59,8 +61,9 @@ func PlaneMenu(p *player.Player, v Plane) {
 		buttons = append(buttons, l.actionButton(a))
 	}
 	panel := box("mc-plane-panel", "ink", "dark", "children", append([]any{txt("mc-plane-info", v.Info)}, buttons...))
-	showOre(p, l, box("mc-screen mc-plane-screen", "children", []any{
-		node("plane", "fov", v.FOV, "dist", v.Distance, "children", spots),
-		panel,
-	}))
+	children := []any{node("plane", "fov", v.FOV, "dist", v.Distance, "children", spots), panel}
+	if v.Corner != "" {
+		children = append(children, box("mc-plane-panel mc-plane-corner", "ink", "dark", "children", []any{txt("mc-plane-info", v.Corner)}))
+	}
+	showOre(p, l, box("mc-screen mc-plane-screen", "children", children))
 }

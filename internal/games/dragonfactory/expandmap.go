@@ -1,8 +1,6 @@
 package dragonfactory
 
 import (
-	"slices"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/model"
@@ -36,8 +34,7 @@ func mapShift(v mgl64.Vec3) mgl64.Vec3 {
 }
 
 // mapKinds returns the glass of each chunk drawn near the cursor: owned
-// chunks in the two greens, buyable ones yellow, the selected one in its
-// own colour.
+// chunks in the two greens, buyable ones yellow.
 func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
 	want := map[ChunkPos]world.Block{}
 	near := int32(expandMapReach)
@@ -53,18 +50,9 @@ func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
 		}
 		add(c, b)
 	}
-	buyable := s.purchasableChunks()
-	for _, c := range buyable {
+	for _, c := range s.purchasableChunks() {
 		add(c, floorBuyable)
 	}
-	target := world.Block(floorTargetNone)
-	switch {
-	case s.owns(e.target):
-		target = floorTargetOwned
-	case slices.Contains(buyable, e.target):
-		target = floorTarget
-	}
-	add(e.target, target)
 	return want
 }
 
