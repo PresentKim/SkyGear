@@ -33,6 +33,8 @@
 - 터치 툴팁: 처음 탭하면 툴팁만, 두 번째 탭에 눌림. 뒤로·쪽 넘김·탭은 한 번에. 툴팁 글자 크기와 화면 끝 처리.
 - 애플 기기: Ore UI 한글이 네모 없이 보이는지, 창이 가운데 서는지, 바닐라 Ore UI(HUD·바닐라 화면)가 그대로 뜨는지. 안 되면 `/uidebug` 디버그 줄을 스크린샷으로 받는다.
 - 한글과 영문·숫자가 섞인 줄이 같은 높이인지(`common/oui-ddui.js` `rich`).
+- Ore UI 서버 리소스(`/dfdebug oreres`): Windows 에서 `packet style`·`packet blob: script`·`pack link` 를 다시 본다. 모바일(Android, iOS)에서 같은 표가 나오는지. 결과는 [oreui-probes.md](tech/oreui-probes.md) 표에 적는다.
+- Ore UI 입력 이벤트(`/dfdebug oreinput`): Windows 에서 Alt 를 누르지 않고 마우스 버튼별 `button`, `dblclick`, `contextmenu`, 휠(`dx`·`dy`), 포커스, 입력칸의 `input`·`composition*`(한글 IME)이 찍히는지. 모바일에서 터치·누른 시간·포인터 이벤트, 게임패드 연결·버튼·축. 결과는 [oreui-probes.md](tech/oreui-probes.md) 에 적는다.
 - Ore UI 부분 갱신: 바뀐 칸만 바뀌고 스크롤 자리·툴팁이 남지 않는지(정수 추출기, 도움말, 통계, 연구, 도감).
 - JSON UI 호버 상자: 격자 칸·서랍 창·도관 설정에서 포인터 옆에 뜨는지, 폼을 처음 열 때 꺼져 있는지.
 - 카드 메뉴(한 줄 4장), 쪽 넘김 줄, 창 입체선, 회색 테마 글자 대비, 입력 폼의 안쪽 테두리.

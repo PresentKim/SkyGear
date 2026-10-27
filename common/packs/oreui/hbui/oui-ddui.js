@@ -513,6 +513,9 @@
       case "engine":
         e = buildEngine(n);
         break;
+      case "restest":
+        e = buildResTest(n);
+        break;
       default:
         e = el("div", "oui-text", "unknown node " + n.t);
     }
@@ -1046,12 +1049,21 @@
 
   // The probe node lists what the page knows: the engine command groups and their commands, and the
   // last input events with their buttons, keys and modifiers. Every event but a move is sent to the
-  // server too ("probe"), so the server log keeps what a device delivers.
-  var PROBE_TYPES = ["mousedown", "mouseup", "click", "dblclick", "contextmenu", "wheel", "keydown", "keyup", "touchstart", "touchend", "touchcancel", "mousemove", "touchmove"];
+  // server too ("probe"), so the server log keeps what a device delivers. The document's events are
+  // taken in the capture phase, so focus, blur and scroll, which do not bubble, come too; the window's
+  // own events (PROBE_WINDOW_TYPES) are taken on the window. Gamepads are read with
+  // navigator.getGamepads on the timer (probeGamepads).
+  var PROBE_TYPES = ["mousedown", "mouseup", "click", "dblclick", "contextmenu", "wheel", "keydown", "keyup", "keypress",
+    "touchstart", "touchend", "touchcancel", "mousemove", "touchmove", "pointerdown", "pointerup", "pointercancel", "pointermove",
+    "focus", "blur", "focusin", "focusout", "input", "change", "compositionstart", "compositionupdate", "compositionend",
+    "scroll", "visibilitychange"];
+  var PROBE_WINDOW_TYPES = ["resize", "gamepadconnected", "gamepaddisconnected"];
+  var PROBE_MOVES = { mousemove: true, touchmove: true, pointermove: true, scroll: true };
   var probeEl = null;
   var probeLog = [];
-  var probeMoves = { mousemove: 0, touchmove: 0 };
+  var probeMoves = { mousemove: 0, touchmove: 0, pointermove: 0, scroll: 0 };
   var probeDownAt = 0;
+  var probePads = "";
   var envSent = false;
 
   function commandList() {
@@ -1071,14 +1083,20 @@
   function probeEvent(ev) {
     if (!probeLive()) return;
     var t = ev.type;
-    if (t === "mousemove" || t === "touchmove") {
+    if (PROBE_MOVES[t]) {
       probeMoves[t]++;
       return drawProbe();
     }
     var parts = [t];
-    if (/mouse|click|contextmenu|wheel/.test(t)) parts.push("button=" + ev.button, "buttons=" + ev.buttons, "detail=" + ev.detail);
-    if (t === "wheel") parts.push("dx=" + Math.round(ev.deltaX || 0), "dy=" + Math.round(ev.deltaY || 0));
+    if (/mouse|click|contextmenu|wheel|pointer/.test(t)) parts.push("button=" + ev.button, "buttons=" + ev.buttons, "detail=" + ev.detail);
+    if (/down$|start$/.test(t) && ev.clientX !== undefined) parts.push("x=" + Math.round(ev.clientX), "y=" + Math.round(ev.clientY));
+    if (/^pointer/.test(t)) parts.push("pointerType=" + ev.pointerType, "pointerId=" + ev.pointerId);
+    if (t === "wheel") parts.push("dx=" + Math.round(ev.deltaX || 0), "dy=" + Math.round(ev.deltaY || 0), "mode=" + ev.deltaMode);
     if (/^key/.test(t)) parts.push("key=" + ev.key, "code=" + ev.code, "keyCode=" + ev.keyCode, "repeat=" + ev.repeat);
+    if (/^composition|^input$/.test(t)) parts.push("data=" + ev.data);
+    if (t === "change" || t === "input") parts.push("value=" + (ev.target && ev.target.value));
+    if (t === "resize") parts.push("w=" + window.innerWidth, "h=" + window.innerHeight);
+    if (/^gamepad/.test(t) && ev.gamepad) parts.push("index=" + ev.gamepad.index, "id=" + ev.gamepad.id);
     if (ev.touches) parts.push("touches=" + ev.touches.length);
     if (t === "mousedown" || t === "touchstart") probeDownAt = Date.now();
     if ((t === "mouseup" || t === "touchend") && probeDownAt) parts.push("held=" + (Date.now() - probeDownAt) + "ms");
@@ -1089,11 +1107,52 @@
     if (ev.metaKey) mods.push("meta");
     if (mods.length) parts.push(mods.join("+"));
     if (ev.target && ev.target.className) parts.push("on=" + String(ev.target.className).split(" ")[0]);
-    var line = parts.join(" ");
+    probeLine(parts.join(" "));
+  }
+
+  // A line like the last one (a held key's repeats) counts on the last line and is not sent again, so
+  // one key does not push the other events off the list.
+  var probeLast = "", probeRepeats = 0;
+  function probeLine(line) {
+    if (line === probeLast) {
+      probeRepeats++;
+      probeLog[0] = line + " §7x" + (probeRepeats + 1);
+      return drawProbe();
+    }
+    probeLast = line;
+    probeRepeats = 0;
     probeLog.unshift(line);
     if (probeLog.length > 16) probeLog.length = 16;
     drawProbe();
     send("probe", "probe", line);
+  }
+
+  // probeGamepads logs a gamepad's pressed buttons and moved axes whenever they change.
+  function probeGamepads() {
+    if (!navigator.getGamepads) return;
+    var pads;
+    try {
+      pads = navigator.getGamepads() || [];
+    } catch (e) {
+      return;
+    }
+    var out = [];
+    for (var i = 0; i < pads.length; i++) {
+      var g = pads[i];
+      if (!g) continue;
+      var held = [], axes = [];
+      (g.buttons || []).forEach(function (b, j) {
+        if (b && (b.pressed || b.value > 0.5)) held.push(j);
+      });
+      (g.axes || []).forEach(function (a, j) {
+        if (Math.abs(a) > 0.3) axes.push(j + ":" + a.toFixed(1));
+      });
+      out.push("gamepad " + g.index + " buttons=" + held.join(",") + " axes=" + axes.join(","));
+    }
+    var s = out.join(" | ");
+    if (s === probePads) return;
+    probePads = s;
+    if (s) probeLine(s);
   }
 
   function drawProbe() {
@@ -1101,11 +1160,246 @@
     var cmds = commandList();
     if (!envSent && probeLive()) {
       envSent = true;
-      send("env", "probe", "engine=" + typeof engine + " size=" + window.innerWidth + "x" + window.innerHeight + " | " + cmds.join(" | "));
+      send("env", "probe", "engine=" + typeof engine + " size=" + window.innerWidth + "x" + window.innerHeight + " getGamepads=" +
+        typeof navigator.getGamepads + " PointerEvent=" + typeof window.PointerEvent + " href=" + location.href + " | " + cmds.join(" | "));
     }
-    var lines = ["§emoves§r mouse " + probeMoves.mousemove + ", touch " + probeMoves.touchmove, "§eevents§r"].concat(probeLog);
+    var lines = ["§emoves§r mouse " + probeMoves.mousemove + ", touch " + probeMoves.touchmove + ", pointer " + probeMoves.pointermove +
+      ", scroll " + probeMoves.scroll, "§eevents§r"].concat(probeLog);
     lines.push("§ecommand groups§r " + cmds.length);
     rich(probeEl, lines.concat(cmds).join("\n"), false);
+  }
+
+  // The restest node tries, one at a time, the ways the server could give the page JS, CSS and HTML:
+  // the text in the node (js, css, html: sent in the data store) run through eval, Function and inline,
+  // data: and blob: elements; the pack's files (/hbui/oui-probe.*) through elements, fetch and
+  // XMLHttpRequest; and the same kinds of files from each HTTP server of `http` ([{name, base}]). A
+  // script passes when it calls __ouiRes, a style sheet when it makes .oui-res-probe 13px wide, an HTML
+  // text when it holds oui-res-html. Every result is drawn and sent to the server ("res").
+  var RES_TIMEOUT = 4000;
+  var resRan = null;
+  window.__ouiRes = function (tag) {
+    resRan = String(tag);
+  };
+
+  function resEnv() {
+    return "href=" + location.href + " origin=" + location.origin + " fetch=" + typeof window.fetch + " XMLHttpRequest=" +
+      typeof window.XMLHttpRequest + " Blob=" + typeof window.Blob + " createObjectURL=" + typeof (window.URL && URL.createObjectURL);
+  }
+
+  // Gameface lays the page out on its next frame, so a style sheet is judged on an element that stays
+  // in the page (off the screen) some time after the sheet came (RES_SETTLE_MS).
+  var RES_SETTLE_MS = 300;
+  var resProbe = null;
+
+  function resStyled() {
+    if (!resProbe) {
+      resProbe = el("div", "oui-res-probe");
+      resProbe.style.position = "absolute";
+      resProbe.style.left = "-100px";
+      resProbe.style.top = "0px";
+      document.body.appendChild(resProbe);
+    }
+    return Math.round(resProbe.getBoundingClientRect().width) === 13;
+  }
+
+  function resStyleNote() {
+    if (!resProbe) return "";
+    var cs = "?";
+    try {
+      cs = window.getComputedStyle(resProbe).width;
+    } catch (e) {}
+    return " w=" + resProbe.getBoundingClientRect().width + " computed=" + cs;
+  }
+
+  function resHTML(text) {
+    return typeof text === "string" && text.indexOf("oui-res-html") >= 0;
+  }
+
+  // resElement adds e to the head and passes the test when ok() holds RES_SETTLE_MS after it loads (or
+  // after it is added, when it has no load to wait for), then takes e away again.
+  function resElement(e, ok, now, note) {
+    return {
+      check: ok,
+      run: function (finish) {
+        var over = false;
+        function done(label) {
+          if (over) return;
+          over = true;
+          setTimeout(function () {
+            var pass = ok();
+            var detail = label + (note ? note() : "");
+            if (e.parentNode) e.parentNode.removeChild(e);
+            finish(pass, detail);
+          }, RES_SETTLE_MS);
+        }
+        e.onload = function () {
+          done("onload");
+        };
+        e.onerror = function () {
+          if (over) return;
+          over = true;
+          if (e.parentNode) e.parentNode.removeChild(e);
+          finish(false, "onerror");
+        };
+        resStyled();
+        document.head.appendChild(e);
+        if (now) done("added");
+      }
+    };
+  }
+
+  function resScript(src, text) {
+    var s = document.createElement("script");
+    if (src) s.src = src;
+    else s.textContent = text;
+    return resElement(s, function () {
+      return resRan !== null;
+    }, !src);
+  }
+
+  function resSheet(href) {
+    var l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = href;
+    return resElement(l, resStyled, false, resStyleNote);
+  }
+
+  function resImage(src) {
+    var i = el("img");
+    return {
+      run: function (finish) {
+        i.onload = function () {
+          finish(true, "onload");
+        };
+        i.onerror = function () {
+          finish(false, "onerror");
+        };
+        i.src = src;
+      }
+    };
+  }
+
+  function resFetch(url) {
+    return {
+      run: function (finish) {
+        if (typeof window.fetch !== "function") return finish(false, "no fetch");
+        window
+          .fetch(url)
+          .then(function (r) {
+            return r.text().then(function (t) {
+              finish(resHTML(t), "status=" + r.status + " " + t.length + "B");
+            });
+          })
+          .catch(function (err) {
+            finish(false, "catch " + err);
+          });
+      }
+    };
+  }
+
+  function resXHR(url) {
+    return {
+      run: function (finish) {
+        if (typeof window.XMLHttpRequest === "undefined") return finish(false, "no XMLHttpRequest");
+        var x = new XMLHttpRequest();
+        x.onload = function () {
+          finish(resHTML(x.responseText), "status=" + x.status + " " + String(x.responseText || "").length + "B");
+        };
+        x.onerror = function () {
+          finish(false, "onerror status=" + x.status);
+        };
+        x.open("GET", url);
+        x.send();
+      }
+    };
+  }
+
+  function resTests(n) {
+    var js = n.js || "", css = n.css || "", html = n.html || "";
+    function now(f) {
+      return {
+        run: function (finish) {
+          f(finish);
+        }
+      };
+    }
+    var tests = [
+      ["packet eval", now(function (finish) {
+        (0, eval)(js);
+        finish(resRan !== null);
+      })],
+      ["packet Function", now(function (finish) {
+        new Function(js)();
+        finish(resRan !== null);
+      })],
+      ["packet inline script", resScript(null, js)],
+      ["packet data: script", resScript("data:text/javascript;charset=utf-8," + encodeURIComponent(js))],
+      ["packet blob: script", now(function (finish) {
+        if (typeof window.Blob === "undefined" || !window.URL || !URL.createObjectURL) return finish(false, "no Blob");
+        resScript(URL.createObjectURL(new Blob([js]))).run(finish);
+      })],
+      ["packet style", resElement(el("style", null, css), resStyled, true, resStyleNote)],
+      ["packet data: link", resSheet("data:text/css;charset=utf-8," + encodeURIComponent(css))],
+      ["packet innerHTML", now(function (finish) {
+        var d = el("div");
+        d.innerHTML = html;
+        finish(!!d.querySelector(".oui-res-html"));
+      })],
+      ["pack script", resScript("/hbui/oui-probe.js")],
+      ["pack link", resSheet("/hbui/oui-probe.css")],
+      ["pack fetch", resFetch("/hbui/oui-probe.html")],
+      ["pack xhr", resXHR("/hbui/oui-probe.html")],
+      ["pack:// xhr", resXHR("pack://hbui/oui-probe.html")]
+    ];
+    (n.http || []).forEach(function (h) {
+      var q = "?t=" + encodeURIComponent(h.name);
+      tests.push(
+        [h.name + " script", resScript(h.base + "/probe.js" + q)],
+        [h.name + " link", resSheet(h.base + "/probe.css" + q)],
+        [h.name + " img", resImage(h.base + "/probe.png" + q)],
+        [h.name + " fetch", resFetch(h.base + "/probe.html" + q)],
+        [h.name + " xhr", resXHR(h.base + "/probe.html" + q)]
+      );
+    });
+    return tests;
+  }
+
+  function buildResTest(n) {
+    var e = el("div", "oui-probe");
+    var lines = ["§eenv§r " + resEnv()];
+    function line(s) {
+      lines.push(s);
+      rich(e, lines.join("\n"), false);
+    }
+    rich(e, lines[0], false);
+    send("res-env", "probe", resEnv());
+    var tests = resTests(n), i = 0;
+    function next() {
+      if (!root || !root.contains(e)) return;
+      if (i >= tests.length) return line("§edone§r");
+      var name = tests[i][0], t = tests[i][1], over = false;
+      i++;
+      resRan = null;
+      var timer = setTimeout(function () {
+        finish(t.check ? t.check() : false, "timeout");
+      }, RES_TIMEOUT);
+      function finish(ok, detail) {
+        if (over) return;
+        over = true;
+        clearTimeout(timer);
+        var s = name + " " + (ok ? "ok" : "fail") + (detail ? " " + detail : "") + (resRan !== null ? " ran=" + resRan : "");
+        line((ok ? "§a" : "§c") + s);
+        send("res", "probe", s);
+        setTimeout(next, 50);
+      }
+      try {
+        t.run(finish);
+      } catch (err) {
+        finish(false, "throw " + err);
+      }
+    }
+    setTimeout(next, 100);
+    return e;
   }
 
   // The engine node reads the vanilla container queries (vanillaGameplayContainerItemQuery for
@@ -1663,7 +1957,10 @@
       document.addEventListener(type, trackPointer);
     });
     PROBE_TYPES.forEach(function (type) {
-      document.addEventListener(type, probeEvent);
+      document.addEventListener(type, probeEvent, true);
+    });
+    PROBE_WINDOW_TYPES.forEach(function (type) {
+      window.addEventListener(type, probeEvent);
     });
     document.addEventListener("keydown", function (ev) {
       if (hoverSlot && ev.keyCode !== 27 && state.screen === SCREEN) send(hoverSlot, "slotkey", { k: ev.keyCode, shift: !!ev.shiftKey, ctrl: !!ev.ctrlKey });
@@ -1682,6 +1979,7 @@
       fitLobbyHead();
       layoutPlanes();
       if (!envSent && probeLive()) drawProbe();
+      if (probeLive()) probeGamepads();
     }, 100);
     // The vanilla form is hidden, so Esc would do nothing: report it and let the server close the form.
     document.addEventListener("keydown", function (ev) {

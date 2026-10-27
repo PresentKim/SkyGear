@@ -127,6 +127,9 @@ type oreScreen struct {
 	size string
 	// close is the layout's run on closing (oreLayout.close).
 	close func(p *player.Player, tx *world.Tx)
+	// probe is the layout's run for the lines its test nodes report
+	// (oreLayout.probe).
+	probe func(p *player.Player, tx *world.Tx, id, line string)
 }
 
 var oreScreens = struct {
@@ -157,7 +160,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 		oreScreens.m[p.UUID()] = st
 	}
 	st.gen++
-	st.runs, st.input, st.values, st.close = l.runs, l.input, l.values, l.close
+	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
 	if st.form != nil && !st.form.Closed() {
 		if st.size == l.size {
 			_ = st.form.SetLayout(layout)
@@ -286,6 +289,16 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		})
 		return
 	}
+	if ev.Kind == "probe" {
+		oreScreens.Lock()
+		run := st.probe
+		oreScreens.Unlock()
+		line, _ := ev.Value.(string)
+		if run != nil {
+			h.Do(func(tx *world.Tx, e world.Entity) { run(e.(*player.Player), tx, ev.ID, line) })
+		}
+		return
+	}
 	if ev.Kind != "click" {
 		return
 	}
@@ -358,6 +371,9 @@ type oreLayout struct {
 	close func(p *player.Player, tx *world.Tx)
 	// keys are the ids the screen's keys press, by Key (oreLayout.key).
 	keys map[string]string
+	// probe, if set, takes the lines the renderer's test nodes report
+	// (ProbeScreen).
+	probe func(p *player.Player, tx *world.Tx, id, line string)
 }
 
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and

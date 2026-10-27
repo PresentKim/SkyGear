@@ -62,6 +62,7 @@
 - 화면은 바닐라 CSS·JS 에 기대지 않는다. iOS 에서는 팩의 `hbui` 폴더가 게임의 것을 통째로 대신해, `gameplay.html` 이 잇는 바닐라 CSS 가 불러와지지 않는다(그 `@font-face`, `body` 높이, 번들이 정하는 `--localeSpecificNotoSansFonts` 가 없다). 그래서 글꼴은 팩 CSS 가 게임 파일(`ui://hbui/fonts`, iOS 에서도 열린다)로 직접 선언하고 글꼴 목록에 이름으로 적는다(한글 줄은 Noto Sans KR 먼저), 화면 크기는 vw·vh 로 잡는다.
 - `/uidebug`(플레이어 자신의 화면, `common/ui.SetOreDebug`)를 쓰면 화면 위에 렌더러의 디버그 줄이 뜬다: 화면 상태, 지역 글꼴 변수, 페이지 언어, 바닐라 루트·body 의 글꼴, `@font-face` 글꼴 목록(바닐라 CSS 가 불러와졌는지), 화면 크기.
 - 화면은 플레이어마다 하나다. JSON UI 폼을 보낼 때는 먼저 닫는다.
+- 페이지가 받는 입력과 불러올 수 있는 리소스를 보는 운영자 시험 화면은 [oreui-probes.md](oreui-probes.md) 에 있다.
 
 ## 바닐라 컨테이너 화면
 
