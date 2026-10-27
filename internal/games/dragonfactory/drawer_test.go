@@ -2,7 +2,9 @@ package dragonfactory
 
 import (
 	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/dragonfactory/common/ui"
 
+	"slices"
 	"strings"
 	"testing"
 
@@ -533,6 +535,179 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 		}
 		if got := filterStorage(i18n.Default, list, naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
 			t.Errorf("the item's own name keeps %d", len(got))
+		}
+	})
+}
+
+func useBlock(s *session, tx *world.Tx, p *player.Player, pos cube.Pos, held item.Stack, sneak bool) bool {
+	p.SetHeldItems(held, item.Stack{})
+	if sneak {
+		p.StartSneaking()
+	} else {
+		p.StopSneaking()
+	}
+	ctx := player.NewEventContext(tx, p)
+	(&handler{s: s}).HandleItemUseOnBlock(ctx, pos, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
+	if ctx.Cancelled() {
+		return true
+	}
+	held, _ = p.HeldItems()
+	act, ok := tx.Block(pos).(block.Activatable)
+	return ok && (!sneak || held.Empty()) && act.Activate(pos, cube.FaceUp, tx, p, &item.UseContext{})
+}
+
+func TestControllerSneakClickOpensList(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		for _, held := range []item.Stack{item.NewStack(block.Stone{}, 5), {}} {
+			delete(s.lastOpen, p.H())
+			if !useBlock(s, tx, p, ctl, held, true) {
+				t.Fatalf("sneaking with %v: the click was not taken", held)
+			}
+			if _, ok := s.lastOpen[p.H()]; !ok {
+				t.Errorf("sneaking with %v: the list did not open", held)
+			}
+		}
+		if list, _ := storageContents(tx, ctl); len(list) != 0 {
+			t.Errorf("a sneaking click put items in: %v", list)
+		}
+	})
+}
+
+func TestControllerClickInsertsHeldItem(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		if !useBlock(s, tx, p, ctl, item.NewStack(block.Stone{}, 5), false) {
+			t.Fatal("the click was not taken")
+		}
+		if held, _ := p.HeldItems(); !held.Empty() {
+			t.Errorf("held after the click: %v", held)
+		}
+		if list, _ := storageContents(tx, ctl); len(list) != 1 || list[0].count != 5 {
+			t.Errorf("contents %v, want 5 stone", list)
+		}
+		if !useBlock(s, tx, p, ctl, item.Stack{}, false) {
+			t.Fatal("the empty hand click was not taken")
+		}
+		if _, ok := s.lastOpen[p.H()]; ok {
+			t.Error("a click without sneaking opened the list")
+		}
+	})
+}
+
+func TestStorageLiveSearch(t *testing.T) {
+	defer func(on bool) { ui.OreUI = on }(ui.OreUI)
+	ui.OreUI = true
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 100))
+		s.showStorage(p, tx, ctl, "")
+		all, drawers := storageContents(tx, ctl)
+		name := naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))
+		if info := storageInfo(i18n.Default, all, drawers, name, 1); !strings.Contains(info, name) {
+			t.Errorf("info %q does not name the query", info)
+		}
+		shown := 0
+		slots := s.storageSlots(i18n.Default, ctl, all, func(*player.Player, *world.Tx) { shown++ })
+		slots[0].Run(p, tx)
+		if it, _ := p.Inventory().Item(0); it.Count() != 64 {
+			t.Errorf("pressing the slot gave %v, want a stack", it)
+		}
+		if shown != 1 {
+			t.Errorf("the list was shown again %d times", shown)
+		}
+		bar := ui.BarButton("", "", nil).Label
+		if o := s.depositAllOption(i18n.Default, ctl, nil); !strings.HasPrefix(o.Label, bar) {
+			t.Errorf("deposit all %q is not a control bar button", o.Label)
+		}
+	})
+}
+
+func TestStorageOrders(t *testing.T) {
+	stack := func(it world.Item, n int64) storageEntry { return storageEntry{item.NewStack(it, 1), n} }
+	list := []storageEntry{stack(block.Dirt{}, 5), stack(block.Cobblestone{}, 50), stack(block.Sand{}, 1)}
+	names := func(l []storageEntry) []string {
+		var out []string
+		for _, e := range l {
+			out = append(out, plainName(naming.ItemName(i18n.Default, e.item)))
+		}
+		return out
+	}
+	counts := func(l []storageEntry) []int64 {
+		var out []int64
+		for _, e := range l {
+			out = append(out, e.count)
+		}
+		return out
+	}
+	if got := counts(sortStorage(i18n.Default, list, orderCountDesc)); !slices.Equal(got, []int64{50, 5, 1}) {
+		t.Errorf("most first %v", got)
+	}
+	if got := counts(sortStorage(i18n.Default, list, orderCountAsc)); !slices.Equal(got, []int64{1, 5, 50}) {
+		t.Errorf("fewest first %v", got)
+	}
+	asc := names(sortStorage(i18n.Default, list, orderNameAsc))
+	if !slices.IsSorted(asc) {
+		t.Errorf("by name %v", asc)
+	}
+	desc := names(sortStorage(i18n.Default, list, orderNameDesc))
+	slices.Reverse(desc)
+	if !slices.Equal(asc, desc) {
+		t.Errorf("by name reversed %v", desc)
+	}
+}
+
+func TestStorageOrderButtonCycles(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		for want := orderCountAsc; want <= storageOrderCount; want++ {
+			s.storageOrderOption(p, func(*player.Player, *world.Tx) {}).Run(p, tx)
+			if got := s.storageOrders[p.H()]; got != want%storageOrderCount {
+				t.Fatalf("order %d, want %d", got, want%storageOrderCount)
+			}
+		}
+	})
+}
+
+func TestControllerDoubleClickInsertsInventory(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	ctl := machinePos
+	placeTestMachine(s, ctl, KindStorageController, "")
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(ctl.Add(cube.Pos{2, 0, 0}), Drawer{Facing: cube.South}, nil)
+		controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1))
+		_ = p.Inventory().SetItem(3, item.NewStack(block.Cobblestone{}, 30))
+		_ = p.Inventory().SetItem(4, item.NewStack(block.Dirt{}, 7))
+		useBlock(s, tx, p, ctl, item.Stack{}, false)
+		if it, _ := p.Inventory().Item(3); it.Count() != 30 {
+			t.Fatalf("a single click took the inventory: %v", it)
+		}
+		useBlock(s, tx, p, ctl, item.Stack{}, false)
+		if it, _ := p.Inventory().Item(3); !it.Empty() {
+			t.Errorf("cobblestone left after a double click: %v", it)
+		}
+		if it, _ := p.Inventory().Item(4); it.Count() != 7 {
+			t.Errorf("a kind the storage does not hold went in: %v", it)
 		}
 	})
 }

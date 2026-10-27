@@ -14,7 +14,8 @@ const BoardColumns = gridColumns
 const (
 	// arrowToken marks the arrow cell of a board.
 	arrowToken = "§0§w§r"
-	// barPagerToken marks a page arrow of the control bar.
+	// barPagerToken marks a small icon button of the control bar: a page
+	// arrow (BarPager) or a BarButton.
 	barPagerToken = "§0§j§r"
 	// miniToken marks a small icon without a slot frame (the header of a group
 	// of recipes: the machine they are made in).
@@ -123,6 +124,12 @@ func BarPager(p *player.Player, page, pages int, show func(p *player.Player, tx 
 			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page+1) }})
 	}
 	return out
+}
+
+// BarButton is a small icon button in the control bar, where BarPager draws
+// its arrows: label is its tooltip.
+func BarButton(label, icon string, run func(p *player.Player, tx *world.Tx)) Option {
+	return Option{Label: barPagerToken + label, Icon: icon, Run: run}
 }
 
 // SlotOf returns the slot of a slot cell.

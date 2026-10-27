@@ -1,9 +1,12 @@
 package dragonfactory
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -20,7 +23,8 @@ import (
 // makes the drawers that touch it, directly or through each other and the storage
 // links (blocks that only connect), up to controllerReach blocks away, one
 // storage: hoppers and conduits put items into it and take them out through the
-// controller, and a click opens a list to take from or deposit into.
+// controller, a click deposits the held stack and a sneaking click opens a
+// list to take from or deposit into.
 
 // controllerReach is how far (in blocks, each axis) from the controller a block
 // still belongs to its network.
@@ -181,18 +185,36 @@ func storageLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	return []string{fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(list), total)}
 }
 
-// useController handles a click on a controller: an item in hand is deposited
-// (all of it), an empty hand opens the list.
-func (s *session) useController(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) {
-	if !held.Empty() {
-		if n := controllerInsert(tx, pos, held); n > 0 {
-			_, off := p.HeldItems()
-			p.SetHeldItems(held.Grow(-n), off)
-			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+func isStorageController(b world.Block) bool {
+	m, ok := b.(Machine)
+	return ok && m.Kind == KindStorageController
+}
+
+// useController handles a click on a controller: a sneaking click opens the
+// list, any other deposits the held stack (all of it), and a second click
+// within 500ms of a click also deposits the inventory (depositAll).
+func (s *session) useController(p *player.Player, tx *world.Tx, pos cube.Pos) {
+	if p.Sneaking() {
+		if !s.debounced(p) {
+			s.showStorage(p, tx, pos, "")
 		}
 		return
 	}
-	s.showStorage(p, tx, pos, 0, "")
+	last := s.lastUse[p.H()]
+	double := last.pos == pos && time.Since(last.at) < 500*time.Millisecond
+	s.lastUse[p.H()] = drawerUse{pos: pos, at: time.Now()}
+	held, off := p.HeldItems()
+	total := 0
+	if n := controllerInsert(tx, pos, held); n > 0 {
+		p.SetHeldItems(held.Grow(-n), off)
+		total += n
+	}
+	if double {
+		total += depositAll(tx, pos, p)
+	}
+	if total > 0 {
+		tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+	}
 }
 
 // depositAll puts everything of p's inventory that the network already holds
@@ -226,23 +248,104 @@ func filterStorage(lang string, list []storageEntry, query string) []storageEntr
 	return out
 }
 
-// storagePage is how many entries a page of the list shows.
-const storagePage = 44
-
-// showStorage lists the items of the network whose name matches query (all
-// when it is empty); pressing one takes a stack.
-func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page int, query string) {
+// showStorage lists all the items of the network whose name matches query
+// (all when it is empty) in one scrolling grid; pressing one takes a stack.
+func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, query string) {
 	lang := i18n.Of(p)
 	all, drawers := storageContents(tx, pos)
 	if drawers == 0 {
 		return
 	}
-	list := filterStorage(lang, all, query)
-	pages := max(1, (len(list)+storagePage-1)/storagePage)
-	page = max(0, min(page, pages-1))
+	if ui.OreUIFor(p) {
+		s.showStorageLive(p, pos, query)
+		return
+	}
+	list := sortStorage(lang, filterStorage(lang, all, query), s.storageOrders[p.H()])
+	again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
+	actions := []ui.Option{s.depositAllOption(lang, pos, again), s.storageOrderOption(p, again), {Label: i18n.T(lang, "storage.search"), Run: s.askStorageSearch(pos, query, again)}}
+	if query != "" {
+		actions = append(actions, ui.Option{Label: fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, "") }})
+	}
+	ui.ItemGrid(p, i18n.T(lang, "storage.title"), storageInfo(lang, all, drawers, query, len(list)), s.storageSlots(lang, pos, list, again), actions...)
+}
+
+// showStorageLive is the list as a DDUI screen: the search box in the window
+// over the matching items, all of them in one scrolling grid, drawn again as
+// the player types.
+func (s *session) showStorageLive(p *player.Player, pos cube.Pos, query string) {
+	lang := i18n.Of(p)
+	find := func(p *player.Player, query string) ui.SearchResult {
+		query = strings.TrimSpace(query)
+		all, drawers := storageContents(p.Tx(), pos)
+		list := sortStorage(lang, filterStorage(lang, all, query), s.storageOrders[p.H()])
+		again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
+		return ui.SearchResult{Info: storageInfo(lang, all, drawers, query, len(list)), Sections: []ui.GridSection{{Slots: s.storageSlots(lang, pos, list, again)}}}
+	}
+	again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
+	ui.SearchGrid(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, find,
+		s.askStorageSearch(pos, query, again), s.depositAllOption(lang, pos, again), s.storageOrderOption(p, again))
+}
+
+// storageOrder is how a controller list is sorted; the zero value is the
+// most items first.
+type storageOrder int
+
+const (
+	orderCountDesc storageOrder = iota
+	orderCountAsc
+	orderNameAsc
+	orderNameDesc
+	storageOrderCount
+)
+
+var storageOrderKeys = [storageOrderCount]string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
+
+// sortStorage returns list sorted by o, names in lang.
+func sortStorage(lang string, list []storageEntry, o storageOrder) []storageEntry {
+	type named struct {
+		storageEntry
+		name string
+	}
+	out := make([]named, len(list))
+	for i, e := range list {
+		out[i] = named{e, plainName(naming.ItemName(lang, e.item))}
+	}
+	slices.SortStableFunc(out, func(a, b named) int {
+		switch o {
+		case orderCountAsc:
+			return cmp.Compare(a.count, b.count)
+		case orderNameAsc:
+			return strings.Compare(a.name, b.name)
+		case orderNameDesc:
+			return strings.Compare(b.name, a.name)
+		}
+		return cmp.Compare(b.count, a.count)
+	})
+	sorted := make([]storageEntry, len(out))
+	for i, n := range out {
+		sorted[i] = n.storageEntry
+	}
+	return sorted
+}
+
+// storageOrderOption is the control bar button that names p's order and
+// switches to the next one.
+func (s *session) storageOrderOption(p *player.Player, again func(p *player.Player, tx *world.Tx)) ui.Option {
+	o := s.storageOrders[p.H()]
+	return ui.BarButton(i18n.T(i18n.Of(p), storageOrderKeys[o]), "textures/ui/store_filter_icon", func(p *player.Player, tx *world.Tx) {
+		if s.storageOrders == nil {
+			s.storageOrders = map[*world.EntityHandle]storageOrder{}
+		}
+		s.storageOrders[p.H()] = (o + 1) % storageOrderCount
+		again(p, tx)
+	})
+}
+
+// storageSlots are the slots of list; pressing one takes a stack of it and
+// runs again.
+func (s *session) storageSlots(lang string, pos cube.Pos, list []storageEntry, again func(p *player.Player, tx *world.Tx)) []ui.ItemSlot {
 	var slots []ui.ItemSlot
-	for _, e := range list[page*storagePage : min(len(list), (page+1)*storagePage)] {
-		e := e
+	for _, e := range list {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(e.item.Item()),
 			Count: "§f" + ui.CountText(int(e.count)),
@@ -252,30 +355,41 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, page
 				if !got.Empty() {
 					s.giveItem(p, tx, p.Position(), got)
 				}
-				s.showStorage(p, tx, pos, page, query)
+				again(p, tx)
 			},
 		})
 	}
-	actions := ui.Pager(p, page, pages, func(p *player.Player, tx *world.Tx, to int) { s.showStorage(p, tx, pos, to, query) })
-	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.search"), Run: func(p *player.Player, tx *world.Tx) {
+	return slots
+}
+
+// askStorageSearch asks for the words to search the list for; going back
+// runs back.
+func (s *session) askStorageSearch(pos cube.Pos, query string, back func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
+	return func(p *player.Player, tx *world.Tx) {
+		lang := i18n.Of(p)
 		ui.Input(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, func(p *player.Player, tx *world.Tx, value string) {
-			s.showStorage(p, tx, pos, 0, strings.TrimSpace(value))
-		}, func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, page, query) })
-	}})
-	if query != "" {
-		actions = append(actions, ui.Option{Label: fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, 0, "") }})
+			s.showStorage(p, tx, pos, strings.TrimSpace(value))
+		}, back)
 	}
-	actions = append(actions, ui.Option{Label: i18n.T(lang, "storage.depositAll"), Run: func(p *player.Player, tx *world.Tx) {
+}
+
+func (s *session) depositAllOption(lang string, pos cube.Pos, again func(p *player.Player, tx *world.Tx)) ui.Option {
+	return ui.BarButton(i18n.T(lang, "storage.depositAll"), "textures/ui/df/arrow_down", func(p *player.Player, tx *world.Tx) {
 		if depositAll(tx, pos, p) > 0 {
 			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 		}
-		s.showStorage(p, tx, pos, page, query)
-	}})
-	body := fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(all), totalOf(all))
+		again(p, tx)
+	})
+}
+
+// storageInfo is the line about the network over the list, and about the
+// search when there is a query.
+func storageInfo(lang string, all []storageEntry, drawers int, query string, found int) string {
+	info := fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(all), totalOf(all))
 	if query != "" {
-		body += "\n" + fmt.Sprintf(i18n.T(lang, "storage.search.found"), query, len(list))
+		info += "\n" + fmt.Sprintf(i18n.T(lang, "storage.search.found"), query, found)
 	}
-	ui.ItemGrid(p, i18n.T(lang, "storage.title"), body, slots, actions...)
+	return info
 }
 
 func totalOf(list []storageEntry) int64 {

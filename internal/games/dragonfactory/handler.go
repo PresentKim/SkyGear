@@ -115,6 +115,14 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.s.useCopier(p, tx, pos, face, clickPos, held, off)
 		return
 	}
+	// Dragonfly places the held item instead of calling Activate when the
+	// player sneaks, so the sneaking click that opens a storage controller's
+	// list whatever is held is handled here.
+	if p.Sneaking() && !held.Empty() && isStorageController(tx.Block(pos)) {
+		ctx.Cancel()
+		h.s.useController(p, tx, pos)
+		return
+	}
 	// A player who clicks a conduit's connector plate on the block it touches
 	// opens its settings, whatever they hold, unless the held conduit goes into
 	// that conduit (a click on the conduit itself is ConduitBundle.Activate).

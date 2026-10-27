@@ -1111,10 +1111,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return true
 	}
 	if m.st.kind.controller {
-		held, _ := p.HeldItems()
-		if !s.debounced(p) {
-			s.useController(p, tx, pos, held)
-		}
+		s.useController(p, tx, pos)
 		return true
 	}
 	if m.Kind == KindStorageLink {

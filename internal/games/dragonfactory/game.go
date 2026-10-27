@@ -167,9 +167,12 @@ type session struct {
 	rand       *rand.Rand
 	// displays are the drawer display entities by drawer position.
 	displays map[cube.Pos]*drawerDisplay
-	// lastUse and lastPunch are each player's last drawer use and punch.
+	// lastUse is each player's last drawer or storage controller use, and
+	// lastPunch the last drawer punch.
 	lastUse   map[*world.EntityHandle]drawerUse
 	lastPunch map[*world.EntityHandle]drawerPunch
+	// storageOrders are how each player sorts storage controller lists.
+	storageOrders map[*world.EntityHandle]storageOrder
 	// lastOpen debounces block interactions that open a screen: the client
 	// repeats the use packet while the button is held.
 	lastOpen map[*world.EntityHandle]time.Time
@@ -280,6 +283,7 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.lastOpen, p.H())
 	delete(s.lastUse, p.H())
 	delete(s.lastPunch, p.H())
+	delete(s.storageOrders, p.H())
 	s.stopExpand(p, p.Tx())
 	delete(s.lastLook, p.H())
 	delete(s.boards, p.H())
