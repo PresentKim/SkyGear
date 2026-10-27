@@ -167,6 +167,8 @@ type session struct {
 	rand       *rand.Rand
 	// displays are the drawer display entities by drawer position.
 	displays map[cube.Pos]*drawerDisplay
+	// holderPose is the hand-equipped item pose tried on display entities.
+	holderPose holderPose
 	// lastUse is each player's last drawer or storage controller use, and
 	// lastPunch the last drawer punch.
 	lastUse   map[*world.EntityHandle]drawerUse

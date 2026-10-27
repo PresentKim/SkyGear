@@ -627,7 +627,7 @@ func (s *session) ensureDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 	}
 	at, yaw := holderPosition(pos, d.Facing, d.Item)
 	disp := &drawerDisplay{
-		item:  world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{item: d.Item, owner: pos}),
+		item:  world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{item: d.Item, owner: pos, pose: s.holderPose}),
 		shown: d.Item,
 	}
 	s.displays[pos] = disp

@@ -23,16 +23,37 @@ type ItemHolder struct {
 type holderData struct {
 	item  item.Stack
 	owner cube.Pos
+	pose  holderPose
 }
 
 // holderConfig spawns an ItemHolder for the drawer at owner.
 type holderConfig struct {
 	item  item.Stack
 	owner cube.Pos
+	pose  holderPose
 }
 
 func (c holderConfig) Apply(data *world.EntityData) {
-	data.Data = &holderData{item: c.item, owner: c.owner}
+	data.Data = &holderData{item: c.item, owner: c.owner, pose: c.pose}
+}
+
+// holderPose is a hand-equipped item pose tried with /dfdebug holderpose,
+// sent as the variant (rotation) and mark variant (scale, offset) that
+// animations/item_holder.animation.json decodes. Zero is the pack's own pose.
+type holderPose struct {
+	variant, mark int32
+}
+
+// newHolderPose packs rotations in degrees (5 degree steps, -180 to 180), a
+// scale in percent (1 to 255) and offsets in pixels (-16 to 15). Molang
+// numbers are 32-bit floats, so both values stay below 2^24.
+func newHolderPose(rx, ry, rz, scale, dx, dy, dz int) holderPose {
+	angle := func(d int) int32 { return int32((max(-180, min(180, d)) + 180 + 2) / 5) }
+	offset := func(px int) int32 { return int32(max(-16, min(15, px)) + 16) }
+	return holderPose{
+		variant: angle(rx) + 73*angle(ry) + 73*73*angle(rz),
+		mark:    int32(max(1, min(255, scale))) + 256*offset(dx) + 256*32*offset(dy) + 256*32*32*offset(dz),
+	}
 }
 
 // Display depths in front of the block centre, confirmed on a real client:
@@ -47,6 +68,8 @@ func (h *ItemHolder) Position() mgl64.Vec3    { return h.data.Pos }
 func (h *ItemHolder) Rotation() cube.Rotation { return h.data.Rot }
 func (h *ItemHolder) NameTag() string         { return h.data.Name }
 func (h *ItemHolder) AlwaysShowNameTag() bool { return h.data.AlwaysShowNameTag }
+func (h *ItemHolder) Variant() int32          { return h.data.Data.(*holderData).pose.variant }
+func (h *ItemHolder) MarkVariant() int32      { return h.data.Data.(*holderData).pose.mark }
 
 // HeldItems implements item.Carrier: cube blocks in the off hand, everything
 // else in the main hand (each hand bone has its own transform).

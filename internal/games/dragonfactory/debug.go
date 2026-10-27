@@ -24,7 +24,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("dfdebug", i18n.T(i18n.Default, "dragonfactory.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -107,6 +107,39 @@ func (c debugTimed) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	p.SetHeldItems(timed.For(main, time.Duration(c.Seconds)*time.Second), off)
 	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.timed.on"), timed.Describe(time.Duration(c.Seconds)*time.Second))
+}
+
+// debugHolderPose tries a pose for hand-equipped items (sticks, bones) on
+// drawer faces without reloading the pack (holderPose, docs/tech/drawer.md).
+type debugHolderPose struct {
+	adminBase
+	Sub   cmd.SubCommand    `cmd:"holderpose"`
+	X     int               `cmd:"x"`
+	Y     int               `cmd:"y"`
+	Z     int               `cmd:"z"`
+	Scale int               `cmd:"scale"`
+	DX    cmd.Optional[int] `cmd:"dx"`
+	DY    cmd.Optional[int] `cmd:"dy"`
+	DZ    cmd.Optional[int] `cmd:"dz"`
+}
+
+func (c debugHolderPose) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	_, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	s.holderPose = newHolderPose(c.X, c.Y, c.Z, c.Scale, c.DX.LoadOr(0), c.DY.LoadOr(0), c.DZ.LoadOr(0))
+	for _, disp := range s.displays {
+		e, ok := disp.item.Entity(tx)
+		if !ok {
+			continue
+		}
+		e.(*ItemHolder).data.Data.(*holderData).pose = s.holderPose
+		for _, v := range tx.Viewers(e.Position()) {
+			v.ViewEntityState(e)
+		}
+	}
+	o.Printf(i18n.T(i18n.Default, "dragonfactory.admin.holderPose"), c.X, c.Y, c.Z, c.Scale, c.DX.LoadOr(0), c.DY.LoadOr(0), c.DZ.LoadOr(0))
 }
 
 // debugFairy sends the gift fairy to the operator now.

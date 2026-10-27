@@ -2257,6 +2257,7 @@
  "dragonfactory.admin.weather": "날씨: %s",
  "dragonfactory.admin.sun": "해: %s",
  "dragonfactory.admin.fairy": "요정을 불렀습니다.",
+ "dragonfactory.admin.holderPose": "서랍 손 아이템 자세: 회전 %d %d %d, 크기 %d%%, 위치 %d %d %d",
  "dragonfactory.admin.cmd": "드래곤팩토리 운영자 도구",
  "dragonfactory.debug.register": "드래곤팩토리 디버그 도구",
  "dragonfactory.admin.needSave": "세이브 안에서 사용하세요.",

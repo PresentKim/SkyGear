@@ -12,6 +12,16 @@
       "geometry": {
         "default": "geometry.dragonfactory.item_holder"
       },
+      "animations": {
+        "handheld": "animation.dragonfactory.item_holder.handheld"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "handheld": "query.is_item_name_any('slot.weapon.mainhand', 0, 'minecraft:stick', 'minecraft:bone', 'minecraft:blaze_rod', 'minecraft:breeze_rod')"
+          }
+        ]
+      },
       "render_controllers": [
         "controller.render.default"
       ],

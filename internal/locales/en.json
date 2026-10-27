@@ -170,6 +170,7 @@
  "dragonfactory.admin.weather": "Weather: %s",
  "dragonfactory.admin.sun": "Sun: %s",
  "dragonfactory.admin.fairy": "Called a fairy.",
+ "dragonfactory.admin.holderPose": "Drawer hand item pose: rotation %d %d %d, scale %d%%, offset %d %d %d",
  "dragonfactory.admin.cmd": "DragonFactory admin tools",
  "dragonfactory.debug.register": "DragonFactory debug tools",
  "dragonfactory.admin.needSave": "Use this inside a save.",
