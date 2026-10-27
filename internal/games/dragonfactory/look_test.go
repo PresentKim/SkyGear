@@ -57,6 +57,32 @@ func TestLookedAt(t *testing.T) {
 	})
 }
 
+// TestLookedAtPlacedBarrel: a barrel placed by hand stays in view, over the
+// fire that heats it.
+func TestLookedAtPlacedBarrel(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	target := cube.Pos{2, IslandY + 3, 5}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		below := target.Side(cube.FaceDown)
+		tx.SetBlock(below.Side(cube.FaceDown), block.Netherrack{}, nil)
+		tx.SetBlock(below, block.Stone{}, nil)
+		held, off := p.HeldItems()
+		p.SetHeldItems(item.NewStack(Barrel{Wood: stoneWood}, 1), off)
+		p.UseItemOnBlock(below, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
+		p.SetHeldItems(held, off)
+		if _, ok := tx.Block(target).(Barrel); !ok {
+			t.Fatalf("placed %T, want a barrel", tx.Block(target))
+		}
+		tx.SetBlock(below, block.Fire{}, nil)
+		pos, rot := eyeAt(p, target, 3)
+		if at, b, ok := lookedAt(p, tx, pos, rot); !ok || at != target {
+			t.Fatalf("looked at %v %T, want the barrel at %v", at, b, target)
+		}
+	})
+}
+
 // TestLookInfo: the panel lines of the game's blocks.
 func TestLookInfo(t *testing.T) {
 	s := testSession(t)
@@ -106,6 +132,11 @@ func TestLookInfo(t *testing.T) {
 		info := s.lookInfo(p, tx, stone, block.Stone{})
 		if info.Name != "돌" || info.Source != "" || len(info.Tools) == 0 || info.Item == nil {
 			t.Errorf("stone panel %+v", info)
+		}
+		fire := stone.Side(cube.FaceUp)
+		tx.SetBlock(fire, block.Fire{}, nil)
+		if info := s.lookInfo(p, tx, fire, block.Fire{}); info.Item != (item.FlintAndSteel{}) || info.NameKey != "tile.fire.name" {
+			t.Errorf("fire panel %+v, want flint and steel as the icon", info)
 		}
 	})
 }

@@ -1,6 +1,7 @@
 package dragonfactory
 
 import (
+	"slices"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -47,7 +48,9 @@ var tubBoxes = []cube.BBox{
 	cube.Box(0.875, 0, 0, 1, 1, 1),
 }
 
-func (tubModel) BBox(cube.Pos, world.BlockSource) []cube.BBox { return tubBoxes }
+// BBox returns a copy: Dragonfly's Player.obstructedPos translates the boxes
+// it gets in place.
+func (tubModel) BBox(cube.Pos, world.BlockSource) []cube.BBox { return slices.Clone(tubBoxes) }
 
 // FaceSolid is true for every face but the open top.
 func (tubModel) FaceSolid(_ cube.Pos, face cube.Face, _ world.BlockSource) bool {

@@ -162,6 +162,9 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Item = it
 		info.Name = naming.ItemName(lang, item.NewStack(it, 1))
 	}
+	if _, fire := b.(block.Fire); fire {
+		info.Item = item.FlintAndSteel{}
+	}
 	info.NameKey = naming.BlockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
 	switch b := b.(type) {
