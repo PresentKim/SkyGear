@@ -1,12 +1,11 @@
 # Sky Gear
 
-A multi-game island server for **Minecraft: Bedrock Edition**, built on
+The **Sky Gear** (스카이기어) server for **Minecraft: Bedrock Edition**, built on
 [Dragonfly](https://github.com/df-mc/dragonfly) (Go).
 
 Every player gets their own save slots; each save is a separate world (an
 *instance*) that runs while its host is online and can be shared with friends.
-The first game is **Sky Gear** (스카이기어), a SkyFactory / ATM10 Sky
-style factory-building game: start bare-handed on a 3×3×3 sky island, craft
+Sky Gear is a SkyFactory / ATM10 Sky style factory-building game: start bare-handed on a 3×3×3 sky island, craft
 resources by hand, unlock recipes through research, and work your way up to
 powered machines, conduits, alloys, monster waves and magic.
 
@@ -74,11 +73,11 @@ main.go                         Server bootstrap; saves instances on shutdown
 assets.go                       Embeds the resource packs into the binary
 internal/db/                    SQLite access and schema migrations
 internal/instance/              Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
-                                Game/Session interfaces between the platform and a game
+                                Game/Session interfaces the manager calls Sky Gear through
 internal/platform/              Lobby, server guide, save selection, friends, invites, members, titles, commands
 internal/account/               Achievements, titles, name colours, per-account settings
 internal/locales/               This server's text catalogs (ko/en, vanilla names), merged into common/i18n
-internal/skygear/   Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
+internal/skygear/               Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
                                 conduit blocks, research, advancement screens, codex, island expansion, waves, …)
   sgitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
   naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)
