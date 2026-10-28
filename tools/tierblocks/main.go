@@ -1,5 +1,5 @@
 // Command tierblocks writes the per-tier textures of the upgradable machines
-// (internal/games/skygear/tierlook.go): for every machine face it
+// (internal/skygear/tierlook.go): for every machine face it
 // copies the base picture to "<name>_<face>_t1" .. "_t3" with a trim in the
 // colour of the tier along the edges (iron, gold, diamond), the same for the
 // working strips ("_on", every frame), and adds the atlas and flipbook

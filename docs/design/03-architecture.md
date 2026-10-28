@@ -49,7 +49,7 @@ internal/instance/             인스턴스 매니저, Game/Session 인터페이
 internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
 internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
 internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
-internal/games/skygear/  스카이기어: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
+internal/skygear/  스카이기어: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
                                세션이 필요 없는 하위 패키지(sgitem, naming, textfmt, blockmodel, formicon, wintext,
                                sievetable, machinerecipe, tinker, hopper, advancement, achievement)
 internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스

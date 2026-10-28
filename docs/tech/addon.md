@@ -81,7 +81,7 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 | 애드온에서 하던 것 | 여기서 할 곳 |
 |---|---|
-| `blocks/*.json` | `internal/games/skygear/...` Go 블록 타입 |
+| `blocks/*.json` | `internal/skygear/...` Go 블록 타입 |
 | `items/*.json` | Go 아이템 타입 |
 | `entities/*.json` (BP) | Go `EntityType` + 동작 코드 |
 | `entity/*.entity.json` (RP), 모델, 애니메이션 | `assets/resourcepack/skygear/` |

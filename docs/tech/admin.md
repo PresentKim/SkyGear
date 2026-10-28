@@ -6,7 +6,7 @@
 
 ## 관리 (`/sgadmin`)
 
-서버를 운영하며 쓰는 명령. 코드: `internal/games/skygear/admin.go`.
+서버를 운영하며 쓰는 명령. 코드: `internal/skygear/admin.go`.
 
 | 명령 | 하는 일 |
 |---|---|

@@ -78,7 +78,7 @@ internal/instance/              Instance manager (activate/close, lobby ↔ inst
 internal/platform/              Lobby, server guide, save selection, friends, invites, members, titles, commands
 internal/account/               Achievements, titles, name colours, per-account settings
 internal/locales/               This server's text catalogs (ko/en, vanilla names), merged into common/i18n
-internal/games/skygear/   Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
+internal/skygear/   Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
                                 conduit blocks, research, advancement screens, codex, island expansion, waves, …)
   sgitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
   naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)

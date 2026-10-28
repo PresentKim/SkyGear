@@ -1,5 +1,5 @@
 // Command animtex writes the animated "working" textures of the machines
-// (internal/games/skygear/animate.go): a vertical strip of frames made
+// (internal/skygear/animate.go): a vertical strip of frames made
 // from a machine's own texture, with a bright band of an accent colour that
 // moves across it (the generators flicker instead), and the atlas and flipbook
 // entries that go with them. They are temporary pictures.

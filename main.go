@@ -26,12 +26,12 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/internal/account"
 	"github.com/presentkim/skygear/internal/db"
-	"github.com/presentkim/skygear/internal/games/skygear"
-	"github.com/presentkim/skygear/internal/games/skygear/naming"
 	"github.com/presentkim/skygear/internal/instance"
 	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"github.com/presentkim/skygear/internal/nsmigrate"
 	"github.com/presentkim/skygear/internal/platform"
+	"github.com/presentkim/skygear/internal/skygear"
+	"github.com/presentkim/skygear/internal/skygear/naming"
 )
 
 func main() {
