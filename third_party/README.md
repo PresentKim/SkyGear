@@ -2,7 +2,8 @@
 
 ## dragonfly
 
-`github.com/df-mc/dragonfly` **v0.11.5** 의 사본에 skygear 패치를 얹은 것이다.
+`github.com/df-mc/dragonfly` 의 사본에 skygear 패치를 얹은 것이다. 기준은 master `1bf4e242`(v0.11.5 이후, 2026-10-24)에
+1.26.60 지원 PR [#1481](https://github.com/df-mc/dragonfly/pull/1481)(`d86aefd`, gophertunnel v1.63.0)을 더한 것이다.
 루트 `go.mod` 의 `replace github.com/df-mc/dragonfly => ./third_party/dragonfly` 로 쓰인다.
 자체 `go.mod` 가 있어 루트의 `go vet ./...`, `go test ./...` 대상이 아니다(`.github` 는 제거).
 
@@ -43,11 +44,11 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
 | `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(업스트림은 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사된다). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트는 금 가기를 끝내도 파괴 동작을 보내지 않는다). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
-패치한 곳에는 `skygear patch` 주석을 단다.
+패치한 곳에는 `skygear patch` 주석을 단다. 자동 팩 아이콘(`server/internal/packbuilder/pack_icon.png`)은 새로 그린 그림으로 바꿨다(패치 파일에는 없다).
 
 ### 업그레이드 절차
 
-1. 새 버전을 받는다: `go mod download -json github.com/df-mc/dragonfly@vX.Y.Z` 의 `Dir` 을 복사.
+1. 새 버전을 받는다: `go mod download -json github.com/df-mc/dragonfly@vX.Y.Z` 의 `Dir` 을 복사(릴리스 전 PR 은 `git fetch https://github.com/df-mc/dragonfly refs/pull/<번호>/head` 후 `git archive`).
 2. `.github` 를 지우고 `third_party/dragonfly` 를 교체한다.
 3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` — 충돌은 손으로 고친다.
 4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...`, 시나리오 실행.

@@ -99,7 +99,7 @@ common/                         Game-independent packages and packs (forms, DDUI
 assets/resourcepack/skygear/  The game's resource pack: textures, models, names, entities, JSON UI
 tools/                          Generators for textures, models and data files used by the packs
 spike/scenarios/, spike/cmd/platformbot/  Connection scenarios and the scenario bot
-third_party/dragonfly/          Dragonfly v0.11.5 with this project's patches (third_party/README.md)
+third_party/dragonfly/          Dragonfly (1.26.60) with this project's patches (third_party/README.md)
 docs/                           Design (docs/design) and technical notes (docs/tech), in Korean
 ```
 
