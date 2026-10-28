@@ -23,6 +23,7 @@ const gateExitTicks = 25
 // GatePortal is the gate entity over the anchor. Variant is the wave level
 // minus one: the render controller picks the texture with it.
 type GatePortal struct {
+	tx     *world.Tx
 	handle *world.EntityHandle
 	data   *world.EntityData
 }
@@ -48,18 +49,23 @@ func (g *GatePortal) Tick(tx *world.Tx, _ int64) {
 	}
 }
 
-func (g *GatePortal) Close() error { return g.handle.Close() }
+// Close takes the gate out of the world before closing its handle (a handle
+// still in a world cannot close, as when its chunk unloads).
+func (g *GatePortal) Close() error {
+	g.tx.RemoveEntity(g)
+	return g.handle.Close()
+}
 
 // GatePortalType is the world.EntityType of GatePortal.
 var GatePortalType gatePortalType
 
 type gatePortalType struct{}
 
-func (gatePortalType) Open(_ *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
+func (gatePortalType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
 		data.Data = &gatePortalData{level: 1}
 	}
-	return &GatePortal{handle: handle, data: data}
+	return &GatePortal{tx: tx, handle: handle, data: data}
 }
 func (gatePortalType) EncodeEntity() string        { return "skygear:gate_portal" }
 func (gatePortalType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
