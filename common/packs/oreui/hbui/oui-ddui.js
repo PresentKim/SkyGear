@@ -103,6 +103,68 @@
     drawStatus();
   }
 
+  // --- client translation ----------------------------------------------------------------------
+  // The server sends names and dates as client spans (common/i18n ClientKey, ClientDate, ClientAgo):
+  // U+FDD0 kind:value U+FDD1 fallback U+FDD2. localize puts the client's own text in their place: tr for
+  // a translation key the client knows (the vanilla and the pack's texts/*.lang), fmtDate and fmtAgo for
+  // a moment in Unix seconds, in the device's language. Each shows the server's text (in the player's
+  // language) when the engine has no answer. Other pages reach them as window.__oui.
+
+  var TRANSLATE = "coreTranslateCommandGroup";
+  var translated = {}; // key -> the client's text, null: none
+
+  // engineText is the text the engine command name of the translate group gives for arg, or null.
+  function engineText(name, arg) {
+    var f = command(TRANSLATE, name);
+    if (!f) return undefined;
+    var v;
+    try {
+      v = unwrap(f(arg));
+    } catch (e) {
+      return null;
+    }
+    return typeof v === "string" && v !== "" ? v : null;
+  }
+
+  function tr(key, fallback) {
+    if (fallback === undefined) fallback = key;
+    if (!(key in translated)) {
+      var v = engineText("translate", key);
+      if (v === undefined) return fallback; // not ready: ask again next time
+      translated[key] = v === key ? null : v;
+    }
+    return translated[key] === null ? fallback : translated[key];
+  }
+
+  function fmtDate(sec, fallback) {
+    var v = engineText("formatDate", Number(sec));
+    return v ? v : fallback;
+  }
+
+  function fmtAgo(sec, fallback) {
+    var v = engineText("getHowLongAgoAsString", Number(sec));
+    return v ? v : fallback;
+  }
+
+  var SPAN_OPEN = "\uFDD0";
+  var SPAN = /\uFDD0([a-z]):([^\uFDD1]*)\uFDD1([^\uFDD2]*)\uFDD2/g;
+
+  function localize(s) {
+    if (typeof s !== "string" || s.indexOf(SPAN_OPEN) < 0) return s;
+    return s.replace(SPAN, function (_, kind, value, fallback) {
+      if (kind === "k") return tr(value, fallback);
+      if (kind === "d") return fmtDate(value, fallback);
+      if (kind === "a") return fmtAgo(value, fallback);
+      return fallback;
+    });
+  }
+
+  window.__oui = window.__oui || {};
+  window.__oui.tr = tr;
+  window.__oui.fmtDate = fmtDate;
+  window.__oui.fmtAgo = fmtAgo;
+  window.__oui.localize = localize;
+
   // --- text ------------------------------------------------------------------------------------
 
   var COLOURS = {
@@ -119,7 +181,7 @@
   function rich(e, s, panel) {
     if (panel === undefined) panel = ink === "panel";
     e.innerHTML = "";
-    s = s === undefined || s === null ? "" : String(s);
+    s = s === undefined || s === null ? "" : localize(String(s));
     s.split("\n").forEach(function (line, i) {
       var lineEl = el("div", "oui-line");
       // Gameface lays the colour runs of a line out as flex items aligned at their tops (no baseline
@@ -1559,7 +1621,7 @@
     var input = el("input", "oui-input");
     input.type = "text";
     input.value = n.value || "";
-    if (n.placeholder) input.placeholder = n.placeholder;
+    if (n.placeholder) input.placeholder = localize(n.placeholder);
     inputs.push({ id: n.id, el: input });
     var timer = null;
     function flush() {
@@ -1586,7 +1648,7 @@
     var row = el("div", "oui-row oui-options");
     var buttons = [];
     (n.options || []).forEach(function (opt) {
-      var b = el("div", "oui-button" + (opt === n.value ? " on" : ""), opt);
+      var b = el("div", "oui-button" + (opt === n.value ? " on" : ""), localize(opt));
       onPress(b, function () {
         buttons.forEach(function (x) {
           x.className = "oui-button";
