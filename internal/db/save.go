@@ -23,7 +23,6 @@ func (r Role) CanActivate() bool { return r == RoleHost }
 // Save is a save slot of an account.
 type Save struct {
 	ID           int64
-	GameType     string
 	Owner        string
 	Slot         int
 	Name         string
@@ -35,12 +34,12 @@ type Save struct {
 	LastPlayed   time.Time
 }
 
-const saveColumns = `id, game_type, owner, slot, name, COALESCE(invite_code, ''), instance_time, day, day_time, created_at, last_played`
+const saveColumns = `id, owner, slot, name, COALESCE(invite_code, ''), instance_time, day, day_time, created_at, last_played`
 
 func scanSave(row interface{ Scan(...any) error }) (Save, error) {
 	var s Save
 	var it, dt, created, played int64
-	err := row.Scan(&s.ID, &s.GameType, &s.Owner, &s.Slot, &s.Name, &s.InviteCode, &it, &s.Day, &dt, &created, &played)
+	err := row.Scan(&s.ID, &s.Owner, &s.Slot, &s.Name, &s.InviteCode, &it, &s.Day, &dt, &created, &played)
 	if err != nil {
 		return Save{}, notFound(err)
 	}
@@ -53,15 +52,15 @@ func scanSave(row interface{ Scan(...any) error }) (Save, error) {
 var ErrSlotUsed = errors.New("db: save slot already used")
 
 // CreateSave creates a save in slot for owner and adds the owner as host.
-func (d *DB) CreateSave(owner, gameType string, slot int, name string) (Save, error) {
+func (d *DB) CreateSave(owner string, slot int, name string) (Save, error) {
 	tx, err := d.sql.Begin()
 	if err != nil {
 		return Save{}, err
 	}
 	defer func() { _ = tx.Rollback() }()
 	t := now()
-	res, err := tx.Exec(`INSERT INTO saves (game_type, owner, slot, name, created_at, last_played) VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT(owner, game_type, slot) DO NOTHING`, gameType, owner, slot, name, t, t)
+	res, err := tx.Exec(`INSERT INTO saves (owner, slot, name, created_at, last_played) VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(owner, slot) DO NOTHING`, owner, slot, name, t, t)
 	if err != nil {
 		return Save{}, err
 	}
@@ -83,9 +82,9 @@ func (d *DB) Save(id int64) (Save, error) {
 	return scanSave(d.sql.QueryRow(`SELECT `+saveColumns+` FROM saves WHERE id = ?`, id))
 }
 
-// SavesOf returns the saves owned by owner for a game type, ordered by slot.
-func (d *DB) SavesOf(owner, gameType string) ([]Save, error) {
-	return scanSaves(d.sql.Query(`SELECT `+saveColumns+` FROM saves WHERE owner = ? AND game_type = ? ORDER BY slot`, owner, gameType))
+// SavesOf returns the saves owned by owner, ordered by slot.
+func (d *DB) SavesOf(owner string) ([]Save, error) {
+	return scanSaves(d.sql.Query(`SELECT `+saveColumns+` FROM saves WHERE owner = ? ORDER BY slot`, owner))
 }
 
 func scanSaves(rows *sql.Rows, err error) ([]Save, error) {
@@ -124,9 +123,9 @@ func (d *DB) CopySave(src int64, owner string, slot int, name string) (Save, err
 	}
 	defer func() { _ = tx.Rollback() }()
 	t := now()
-	res, err := tx.Exec(`INSERT INTO saves (game_type, owner, slot, name, instance_time, day, day_time, created_at, last_played)
-		SELECT game_type, ?, ?, ?, instance_time, day, day_time, ?, ? FROM saves WHERE id = ?
-		ON CONFLICT(owner, game_type, slot) DO NOTHING`, owner, slot, name, t, t, src)
+	res, err := tx.Exec(`INSERT INTO saves (owner, slot, name, instance_time, day, day_time, created_at, last_played)
+		SELECT ?, ?, ?, instance_time, day, day_time, ?, ? FROM saves WHERE id = ?
+		ON CONFLICT(owner, slot) DO NOTHING`, owner, slot, name, t, t, src)
 	if err != nil {
 		return Save{}, err
 	}
@@ -231,14 +230,14 @@ func (d *DB) SetPlayerStates(saveID int64, states map[string][]byte) error {
 	return tx.Commit()
 }
 
-// SaveState returns a game specific value of a save, or ErrNotFound.
+// SaveState returns a game value of a save, or ErrNotFound.
 func (d *DB) SaveState(saveID int64, key string) ([]byte, error) {
 	var v []byte
 	err := d.sql.QueryRow(`SELECT value FROM save_state WHERE save_id = ? AND key = ?`, saveID, key).Scan(&v)
 	return v, notFound(err)
 }
 
-// SetSaveState stores a game specific value of a save.
+// SetSaveState stores a game value of a save.
 func (d *DB) SetSaveState(saveID int64, key string, value []byte) error {
 	_, err := d.sql.Exec(`INSERT INTO save_state (save_id, key, value) VALUES (?, ?, ?)
 		ON CONFLICT(save_id, key) DO UPDATE SET value = excluded.value`, saveID, key, value)

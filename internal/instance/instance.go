@@ -23,7 +23,6 @@ type Instance struct {
 	m       *Manager
 	Save    db.Save
 	World   *world.World
-	Game    Game
 	Clock   *Clock
 	host    string
 	session Session
@@ -46,7 +45,7 @@ type Instance struct {
 	closed    chan struct{}
 }
 
-func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, error) {
+func newInstance(m *Manager, save db.Save, host string) (*Instance, error) {
 	prov, err := mcdb.Config{Log: m.log}.Open(m.worldDir(save.ID))
 	if err != nil {
 		return nil, err
@@ -62,7 +61,7 @@ func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, erro
 		SaveInterval: m.conf.WorldSaveInterval,
 	}.New()
 	inst := &Instance{
-		m: m, Save: save, World: w, Game: g, host: host,
+		m: m, Save: save, World: w, host: host,
 		Clock:   NewClock(save.InstanceTime, save.Day, save.DayTime, m.conf.DayLength),
 		players: map[string]*world.EntityHandle{},
 		stop:    make(chan struct{}), runDone: make(chan struct{}), closed: make(chan struct{}),
@@ -83,7 +82,7 @@ func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, erro
 		inst.loader.Move(tx, mgl64.Vec3{})
 		inst.loader.Load(tx, (2*m.conf.LoadRadius+1)*(2*m.conf.LoadRadius+1))
 		if fresh {
-			g.Init(tx, inst)
+			m.game.Init(tx, inst)
 		}
 	}).Done()
 	if fresh {
@@ -91,7 +90,7 @@ func newInstance(m *Manager, save db.Save, g Game, host string) (*Instance, erro
 			m.log.Error("mark save initialized", "save", save.ID, "err", err)
 		}
 	}
-	inst.session = g.Start(inst)
+	inst.session = m.game.Start(inst)
 	go inst.run()
 	return inst, nil
 }
@@ -103,7 +102,6 @@ func (inst *Instance) run() {
 	defer tick.Stop()
 	fast := time.NewTicker(FastInterval)
 	defer fast.Stop()
-	fastTicker, _ := inst.session.(FastTicker)
 	last := time.Now()
 	lastSave := last
 	for {
@@ -112,17 +110,13 @@ func (inst *Instance) run() {
 			inst.Clock.Advance(time.Since(last))
 			return
 		case <-fast.C:
-			if fastTicker != nil {
-				inst.World.Do(fastTicker.Fast)
-			}
+			inst.World.Do(inst.session.Fast)
 		case now := <-tick.C:
 			for _, day := range inst.Clock.Advance(now.Sub(last)) {
 				inst.World.Do(func(tx *world.Tx) { inst.session.NewDay(tx, day) })
 			}
 			inst.World.Do(inst.sweepTimed)
-			if t, ok := inst.session.(SecondTicker); ok {
-				inst.World.Do(t.Second)
-			}
+			inst.World.Do(inst.session.Second)
 			last = now
 			if now.Sub(lastSave) >= inst.m.conf.AutosaveInterval {
 				lastSave = now
@@ -211,15 +205,8 @@ func (inst *Instance) storePlayer(p *player.Player) {
 func (inst *Instance) Host() string { return inst.host }
 
 // MenuBack shows p the game screen the platform screen from was opened from
-// (MenuBacker) and reports whether the game has one. It must run in the
-// instance world.
-func (inst *Instance) MenuBack(p *player.Player, from string) bool {
-	b, ok := inst.session.(MenuBacker)
-	if ok {
-		b.MenuBack(p, from)
-	}
-	return ok
-}
+// (Session.MenuBack). It must run in the instance world.
+func (inst *Instance) MenuBack(p *player.Player, from string) { inst.session.MenuBack(p, from) }
 
 // Players returns the number of players in the instance.
 func (inst *Instance) Players() int {

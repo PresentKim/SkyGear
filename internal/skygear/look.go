@@ -19,7 +19,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/waila"
-	"github.com/presentkim/skygear/internal/instance"
 	"github.com/presentkim/skygear/internal/skygear/hopper"
 	"github.com/presentkim/skygear/internal/skygear/machinerecipe"
 	"github.com/presentkim/skygear/internal/skygear/naming"
@@ -115,7 +114,7 @@ func (s *session) updateLookAt(p *player.Player, tx *world.Tx, at cube.Pos, b wo
 	s.showLook(p, tx, at, b, ok)
 }
 
-// Fast updates every player's panel (instance.FastTicker, every 0.2
+// Fast updates every player's panel (instance.Session.Fast, every 0.2
 // seconds: gauges and time left change while a player looks; Show sends only
 // what changed).
 func (s *session) Fast(tx *world.Tx) {
@@ -133,8 +132,6 @@ func (s *session) Fast(tx *world.Tx) {
 	s.emergeMonsters(tx)
 	s.updateLooks(tx)
 }
-
-var _ instance.FastTicker = (*session)(nil)
 
 // updateLooks updates every player's panel.
 func (s *session) updateLooks(tx *world.Tx) {

@@ -13,7 +13,7 @@ func TestCopySaveCopiesTheWorldFolder(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	src, err := f.d.CreateSave("owner", "test", 1, "island")
+	src, err := f.d.CreateSave("owner", 1, "island")
 	if err != nil {
 		t.Fatal(err)
 	}

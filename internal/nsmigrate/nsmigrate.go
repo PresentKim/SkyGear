@@ -1,7 +1,7 @@
 // Package nsmigrate converts the saves of the server from before its rename
 // from DragonFactory to Sky Gear: identifiers, item value and message keys
 // move from dragonfactory: (_ and .) to skygear:, the time limit key from df-server:expires to skygear:expires,
-// the game ID to skygear and the df_ achievement and item value keys to sg_.
+// and the df_ achievement and item value keys to sg_.
 // Run does it once at startup and leaves a flag file in the data folder; the
 // package goes away once every server has run it.
 package nsmigrate

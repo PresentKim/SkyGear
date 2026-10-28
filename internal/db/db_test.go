@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"os"
 	"path/filepath"
@@ -31,14 +32,14 @@ func TestAccountAndSaves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, err := d.CreateSave("u1", "skygear", 1, "first")
+	s, err := d.CreateSave("u1", 1, "first")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if s.Day != 1 || s.InstanceTime != 0 {
 		t.Fatalf("new save clock = day %d time %v", s.Day, s.InstanceTime)
 	}
-	if _, err := d.CreateSave("u1", "skygear", 1, "dup"); !errors.Is(err, ErrSlotUsed) {
+	if _, err := d.CreateSave("u1", 1, "dup"); !errors.Is(err, ErrSlotUsed) {
 		t.Fatalf("duplicate slot err = %v", err)
 	}
 	if r, err := d.MemberRole(s.ID, "u1"); err != nil || r != RoleHost || !r.CanActivate() {
@@ -66,7 +67,7 @@ func TestAccountAndSaves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	saves, err := d.SavesOf("u1", "skygear")
+	saves, err := d.SavesOf("u1")
 	if err != nil || len(saves) != 1 {
 		t.Fatalf("saves = %v, %v", saves, err)
 	}
@@ -76,7 +77,7 @@ func TestAccountAndSaves(t *testing.T) {
 	if _, err := d.SaveState(s.ID, "level"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("save state after delete err = %v", err)
 	}
-	if _, err := d.CreateSave("u1", "skygear", 1, "again"); err != nil {
+	if _, err := d.CreateSave("u1", 1, "again"); err != nil {
 		t.Fatalf("slot not reusable after delete: %v", err)
 	}
 }
@@ -88,7 +89,7 @@ func TestCopySave(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	src, err := d.CreateSave("owner", "skygear", 1, "island")
+	src, err := d.CreateSave("owner", 1, "island")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +184,7 @@ func TestSetPlayerStatesKeepsMoney(t *testing.T) {
 	d := open(t)
 	_, _ = d.TouchAccount("h", "", "h")
 	_, _ = d.TouchAccount("g", "", "g")
-	s, _ := d.CreateSave("h", "g", 1, "s")
+	s, _ := d.CreateSave("h", 1, "s")
 	_ = d.SetMoney(s.ID, "h", 7)
 	if err := d.SetPlayerStates(s.ID, map[string][]byte{"h": {1}, "g": {2}}); err != nil {
 		t.Fatal(err)
@@ -200,8 +201,8 @@ func TestMembersAndInviteCodes(t *testing.T) {
 	d := open(t)
 	_, _ = d.TouchAccount("h", "", "h")
 	_, _ = d.TouchAccount("g", "", "g")
-	s, _ := d.CreateSave("h", "g", 1, "s")
-	s2, _ := d.CreateSave("h", "g", 2, "s2")
+	s, _ := d.CreateSave("h", 1, "s")
+	s2, _ := d.CreateSave("h", 2, "s2")
 	if err := d.SetInviteCode(s.ID, "ABC123"); err != nil {
 		t.Fatal(err)
 	}
@@ -297,5 +298,55 @@ func TestBackupInMemory(t *testing.T) {
 	}
 	if fi, err := os.Stat(path); err != nil || fi.Size() == 0 {
 		t.Fatalf("backup file: %v %v", fi, err)
+	}
+}
+
+func TestMigrationDropsGameTypeAndKeepsSaves(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "old.db")
+	old, err := sql.Open("sqlite", fileDSN(path))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range migrations[:6] {
+		if _, err := old.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, q := range []string{
+		`PRAGMA user_version = 6`,
+		`INSERT INTO accounts (id, name, created_at, last_seen) VALUES ('h', 'host', 0, 0)`,
+		`INSERT INTO saves (game_type, owner, slot, name, invite_code, day, created_at, last_played) VALUES ('skygear', 'h', 2, 'island', 'ABC', 5, 0, 0)`,
+		`INSERT INTO save_members (save_id, account_id, role, joined_at) VALUES (1, 'h', 'host', 0)`,
+		`INSERT INTO save_state (save_id, key, value) VALUES (1, 'k', x'01')`,
+	} {
+		if _, err := old.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_ = old.Close()
+
+	d, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	saves, err := d.SavesOf("h")
+	if err != nil || len(saves) != 1 || saves[0].Slot != 2 || saves[0].Day != 5 || saves[0].InviteCode != "ABC" {
+		t.Fatalf("saves = %+v, %v", saves, err)
+	}
+	if r, err := d.MemberRole(saves[0].ID, "h"); err != nil || r != RoleHost {
+		t.Fatalf("member kept = %v, %v", r, err)
+	}
+	if v, err := d.SaveState(saves[0].ID, "k"); err != nil || len(v) != 1 {
+		t.Fatalf("state kept = %v, %v", v, err)
+	}
+	if _, err := d.CreateSave("h", 2, "dup"); !errors.Is(err, ErrSlotUsed) {
+		t.Fatalf("slot still unique: err = %v", err)
+	}
+	if err := d.DeleteSave(saves[0].ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := d.MemberRole(saves[0].ID, "h"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("members cascade after migration: err = %v", err)
 	}
 }

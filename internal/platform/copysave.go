@@ -34,7 +34,7 @@ func (c copySaveCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 		o.Errorf(i18n.T(lang, "platform.copysave.noPlayer"), c.Player)
 		return
 	}
-	saves, err := c.pf.db.SavesOf(acc.ID, c.pf.game.ID())
+	saves, err := c.pf.db.SavesOf(acc.ID)
 	if err != nil {
 		o.Error(err)
 		return
@@ -80,7 +80,7 @@ func (c copySaveCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 
 // freeSlot is the first save slot of the account id with no save in it.
 func (pf *Platform) freeSlot(id string) (int, bool) {
-	saves, err := pf.db.SavesOf(id, pf.game.ID())
+	saves, err := pf.db.SavesOf(id)
 	if err != nil {
 		return 0, false
 	}

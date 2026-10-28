@@ -57,7 +57,7 @@ func TestInviteCodeRenewed(t *testing.T) {
 	}
 	defer d.Close()
 	_, _ = d.TouchAccount("h", "", "h")
-	s, _ := d.CreateSave("h", "test", 1, "s")
+	s, _ := d.CreateSave("h", 1, "s")
 	pf := &Platform{log: slog.Default(), db: d}
 	first, err := pf.inviteCode(s, false)
 	if err != nil {

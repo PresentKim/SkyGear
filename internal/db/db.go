@@ -150,6 +150,28 @@ var migrations = []string{
 		value      TEXT NOT NULL,
 		PRIMARY KEY (account_id, key)
 	);`,
+	// 7: saves without a game type (Sky Gear is the only game). SQLite
+	// cannot drop a column in a UNIQUE constraint, so the table is rebuilt;
+	// migrate turns foreign keys off meanwhile, or dropping the old table
+	// would delete the rows that reference it.
+	`CREATE TABLE saves_new (
+		id            INTEGER PRIMARY KEY AUTOINCREMENT,
+		owner         TEXT NOT NULL REFERENCES accounts(id),
+		slot          INTEGER NOT NULL,
+		name          TEXT NOT NULL,
+		invite_code   TEXT,
+		instance_time INTEGER NOT NULL DEFAULT 0, -- total active milliseconds
+		day           INTEGER NOT NULL DEFAULT 1,
+		day_time      INTEGER NOT NULL DEFAULT 0, -- milliseconds into the current day
+		created_at    INTEGER NOT NULL,
+		last_played   INTEGER NOT NULL,
+		UNIQUE (owner, slot)
+	);
+	INSERT INTO saves_new (id, owner, slot, name, invite_code, instance_time, day, day_time, created_at, last_played)
+		SELECT id, owner, slot, name, invite_code, instance_time, day, day_time, created_at, last_played FROM saves;
+	DROP TABLE saves;
+	ALTER TABLE saves_new RENAME TO saves;
+	CREATE UNIQUE INDEX saves_invite_code ON saves(invite_code) WHERE invite_code IS NOT NULL;`,
 }
 
 func (d *DB) migrate() error {
@@ -157,6 +179,15 @@ func (d *DB) migrate() error {
 	if err := d.sql.QueryRow(`PRAGMA user_version`).Scan(&v); err != nil {
 		return fmt.Errorf("read schema version: %w", err)
 	}
+	if v == len(migrations) {
+		return nil
+	}
+	// Migrations that rebuild a table run with foreign keys off; the
+	// references are checked once they are done.
+	if _, err := d.sql.Exec(`PRAGMA foreign_keys = OFF`); err != nil {
+		return err
+	}
+	defer d.sql.Exec(`PRAGMA foreign_keys = ON`)
 	for i := v; i < len(migrations); i++ {
 		tx, err := d.sql.Begin()
 		if err != nil {
@@ -174,7 +205,15 @@ func (d *DB) migrate() error {
 			return err
 		}
 	}
-	return nil
+	rows, err := d.sql.Query(`PRAGMA foreign_key_check`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return errors.New("migrate: foreign key check failed")
+	}
+	return rows.Err()
 }
 
 func now() int64 { return time.Now().UnixMilli() }

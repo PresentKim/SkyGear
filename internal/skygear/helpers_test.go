@@ -30,7 +30,7 @@ func testSession(t *testing.T) *session {
 	if _, err := d.TouchAccount("host", "", "host"); err != nil {
 		t.Fatal(err)
 	}
-	save, err := d.CreateSave("host", "skygear", 1, "test")
+	save, err := d.CreateSave("host", 1, "test")
 	if err != nil {
 		t.Fatal(err)
 	}

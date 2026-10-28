@@ -56,7 +56,7 @@ func TestQuitRestoresPosition(t *testing.T) {
 		<-f.lobby.Do(func(tx *world.Tx) { f.m.Join(tx.AddEntity(h).(*player.Player)) }).Done()
 		return h
 	}
-	save, _ := f.d.CreateSave(id.String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(id.String(), 1, "s")
 	h := join()
 	f.enter(t, h, save.ID)
 	in(t, h, func(p *player.Player) {

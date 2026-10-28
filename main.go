@@ -1,4 +1,4 @@
-// Command skygear runs the multi game island server.
+// Command skygear runs the Sky Gear island server.
 package main
 
 import (
@@ -97,7 +97,6 @@ func run(log *slog.Logger) error {
 	if err := naming.LoadNames(sgPack); err != nil {
 		return fmt.Errorf("resource pack skygear names: %w", err)
 	}
-	packDirs := map[string]fs.FS{"skygear": sgPack}
 	packNames := []string{"skygear", "sgui", "inventoryui", "waila"}
 	if pconf.ResourcePack.SlotDeco {
 		packNames = append(packNames, "slotdeco")
@@ -109,8 +108,8 @@ func run(log *slog.Logger) error {
 		ui.OreUI = true
 	}
 	for _, name := range packNames {
-		dir, ok := packDirs[name]
-		if !ok {
+		dir := sgPack
+		if name != "skygear" {
 			if dir, err = packs.Sub(name); err != nil {
 				return fmt.Errorf("resource pack %s: %w", name, err)
 			}
@@ -149,6 +148,7 @@ func run(log *slog.Logger) error {
 		}
 	}
 
+	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
 	var pf *platform.Platform
 	m := instance.NewManager(log, d, instance.Config{
 		AfterClose:        afterClose,
@@ -159,9 +159,8 @@ func run(log *slog.Logger) error {
 		AutosaveInterval:  time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
 		WorldSaveInterval: time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
 		Entities:          conf.Entities,
-	}, platform.Lobby(lobby, &pf))
-	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
-	pf = platform.New(log, d, m, skygear.New(log, d, isOperator), srv.Player, isOperator)
+	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator))
+	pf = platform.New(log, d, m, srv.Player, isOperator)
 	// Operators who turn it on (/sgadmin tps) see the server load.
 	stopLoad := make(chan struct{})
 	go platform.ShowLoad(lobby, isOperator, stopLoad)

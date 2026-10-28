@@ -46,10 +46,8 @@ func (s *session) backOption(lang string) ui.Option {
 	return s.opt(b.Label, b.Icon, b.Run)
 }
 
-var _ instance.MenuBacker = (*session)(nil)
-
 // MenuBack shows the game screen a platform screen opened in the save goes
-// back to (instance.MenuBacker): the island management screen for the
+// back to (instance.Session.MenuBack): the island management screen for the
 // members, the game menu for the rest.
 func (s *session) MenuBack(p *player.Player, from string) {
 	if from == instance.ScreenMembers {

@@ -2,12 +2,11 @@ package skygear
 
 import (
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/internal/instance"
 	"github.com/presentkim/skygear/internal/skygear/advancement"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
-// load lines (instance.SecondTicker).
+// load lines (instance.Session.Second).
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
 	held := advancement.InventoryNames(tx)
@@ -27,5 +26,3 @@ func (s *session) Second(tx *world.Tx) {
 		s.flushState()
 	}
 }
-
-var _ instance.SecondTicker = (*session)(nil)

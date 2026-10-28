@@ -1,4 +1,4 @@
-// Package platform implements the server around the games: accounts, the
+// Package platform implements the server around Sky Gear: accounts, the
 // server guide, the lobby and save slot selection.
 package platform
 
@@ -30,12 +30,9 @@ var LobbySpawn = cube.Pos{0, 64, 0}
 
 // Platform ties accounts, the lobby and instances together.
 type Platform struct {
-	log *slog.Logger
-	db  *db.DB
-	m   *instance.Manager
-	// game is the game type offered to players; game selection stays hidden
-	// while there is only one.
-	game    instance.Game
+	log     *slog.Logger
+	db      *db.DB
+	m       *instance.Manager
 	online  Online
 	invites invites
 	// isOperator reports whether a player is a server operator (platform.toml
@@ -44,8 +41,8 @@ type Platform struct {
 }
 
 // New creates the platform. The lobby world must already be built.
-func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, online Online, isOperator func(*player.Player) bool) *Platform {
-	pf := &Platform{log: log, db: d, m: m, game: game, online: online, isOperator: isOperator}
+func New(log *slog.Logger, d *db.DB, m *instance.Manager, online Online, isOperator func(*player.Player) bool) *Platform {
+	pf := &Platform{log: log, db: d, m: m, online: online, isOperator: isOperator}
 	// Every form shown in the lobby gets the launcher frame.
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
@@ -56,7 +53,6 @@ func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, on
 	}
 	lobbyPlatform = pf
 	account.Init(d, log)
-	m.Register(game)
 	registerCommands(pf)
 	return pf
 }
@@ -148,7 +144,7 @@ func (pf *Platform) useLobbyItem(p *player.Player) bool {
 // for the new save's name at once (no button on the right does the same).
 // With 0 the first save is chosen.
 func (pf *Platform) showSaves(p *player.Player, sel int64) {
-	saves, err := pf.db.SavesOf(instance.AccountID(p), pf.game.ID())
+	saves, err := pf.db.SavesOf(instance.AccountID(p))
 	if err != nil {
 		pf.fail(p, i18n.T(i18n.Of(p), "platform.saves.loading"), err)
 		return
@@ -263,7 +259,7 @@ func (pf *Platform) askNewSave(p *player.Player, slot int) {
 			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.save.nameLength"))
 			return
 		}
-		s, err := pf.db.CreateSave(instance.AccountID(p), pf.game.ID(), slot, name)
+		s, err := pf.db.CreateSave(instance.AccountID(p), slot, name)
 		if err != nil {
 			pf.fail(p, i18n.T(i18n.Of(p), "platform.newSave.creating"), err)
 			return
