@@ -61,3 +61,16 @@ Windows 클라이언트에서 본 결과(2026-10-27) [실측]:
 - Ore UI 페이지에서 보낼 길은 찾지 못했다. Windows 1.26.52 설치본의 게임 중 번들(`gameplay-*.js`)이 쓰는 엔진 명령 그룹은 `coreTranslate`·`coreScreenReader`·`sound`·`coreApplication`·`coreHaptics`·`coreOptions`·`vanillaGameplayContainerAPICommands`·`vanillaGameplayLocalPlayerRespawnCommand`·`vanillaGameplayLeaveGameCommandGroup`·`vanillaGameplayLocalPlayerWakeUpCommand`·`vanillaDduiDataStoreSetCommandGroup`(`setDataStorePathString`·`Number`·`Bool`, `dataStoreButtonPress`, `dataStoreCloseButtonPress`)·`vanillaCoreDduiContentLogCommandGroup` 이고, 메뉴 번들(`index-*.js`)에도 스크립트 이벤트·채팅·슬래시 명령을 보내는 그룹은 없다 [코드]. 8Crafter 의 Ore UI 형 정의에도 게임 채팅·명령·`ScriptMessage` 를 보내는 그룹은 없다(파티 채팅 `vanilla_partyChatCommandGroup` 만 있다) [문서](https://github.com/8Crafter-Studios/Ore-UI-Types/blob/main/index.d.ts). 실행 중 `window.__commands__` 의 40개 그룹에도 그런 이름은 없다(위 Windows 결과) [실측].
 - 바닐라 클라이언트가 `ScriptMessage` 를 보내는 경우가 있는지, `/scriptevent` 와 이 패킷이 이어지는지는 확인 안 됨. 클라이언트가 친 `/scriptevent` 는 다른 명령처럼 `CommandRequest` 로 서버에 간다.
 - 정리: 페이지에서 서버로 가는 길은 지금 데이터 저장소(`ServerBoundDataStore`)와 DDUI 화면 닫기(`ServerBoundDataDrivenScreenClosed`)다.
+
+## 게임 중 페이지가 쓸 수 있는 엔진 기능
+
+게임 중 Ore UI 페이지(`hbui/gameplay.html`)에서 서버가 보낸 JS 로 불러 본 결과다(Windows 1.26.60.5, 2026-10-28).
+
+- **설정**: 게임 설정 화면의 설정을 읽고(`vanilla.menus.settings{Boolean,Option,Number,String}Query(id)`) 쓴다(`vanilla_menus_update_settings` 의 `updateBoolean`·`updateOption`·`updateNumber`·`updateString`(id, 값)) [실측]. 트리는 `vanilla.menus.settingsGroupQuery("settings-tabs-groups")` 아래 설정 664개다. 서버가 쓰는 방식은 [oreui.md](oreui.md) 클라이언트 설정.
+- **효과음**: `soundCommandGroup.play(이름, 볼륨, 피치)` 가 소리를 낸다(`random.click`, `note.bass`, `ui.drawer_open`) [실측]. 팩 사운드 이름은 확인 안 됨.
+- **번역**: `coreTranslateCommandGroup.translate(키)` 가 클라이언트 언어의 글을 돌려준다(`item.diamond.name`, 팩 `texts/*.lang` 키 모두) [실측]. 인자 배열을 둘째로 준 호출은 `undefined` 였다. `formatDate(초)` 는 `10/28/26`, `getHowLongAgoAsString(초)` 는 `1h ago` 를 돌려준다 [실측].
+- **클립보드**: facet `vanilla.clipboard` 의 `copyToClipboard(글)` 이 복사한다(Windows) [실측]. 다른 기기는 확인 안 됨.
+- **큰 UI**: `vanillaExtraLargeUICommandGroup.setExtraLargeUIEnabled(bool)` 이 바로 바꾼다 [실측].
+- **안 되는 것**: 화면 낭독 `coreScreenReaderCommandGroup.read`(TTS 꺼짐), 캔버스(`getContext` 없음)는 안 됐다. `core.input`·`core.device.display`·`core.locale`·`core.safeZone`·`core.deviceInformation` 쿼리와 `vanilla.userAccount`·`vanilla.editor`(`navigateUri`)·`vanilla.share`·`vanilla.webBrowserFacet` facet 은 답이 오지 않았다 [실측].
+- **읽을 수 있는 것**: `core.device.platform` 은 `{type, inputMethods}`, `vanilla.inGame` 은 `isInGame`·`isInMultiplayerSession`, `vanilla.buildSettings` 는 게임 버전과 빌드 종류다. `core.staticFeatureFlag(id)` 는 `{enabled}` 를 돌려준다 [실측].
+- **페이지**: SVG 요소는 만들어진다. `requestAnimationFrame`·`performance.now` 가 있다. `localStorage` 는 서버를 나갔다 다시 들어와도 남지만 게임을 다시 켜면 사라진다 [실측]. `engine` 에는 `on`·`off`·`trigger`·`call`·`translate`·`createJSModel`·`updateWholeModel`·`synchronizeModels`·`createVirtualList`·`registerBindingAttribute` 등이 있다(Gameface 데이터 바인딩) [실측].
