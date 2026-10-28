@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"strings"
 	"sync"
 	"time"
@@ -12,9 +12,9 @@ import (
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/db"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/db"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // MaxMembers is the maximum number of members of a save, host included

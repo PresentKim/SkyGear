@@ -7,7 +7,7 @@ import (
 
 // ScheduledCropGrowth turns off the random growth of crops and melon and
 // pumpkin stems: random ticks do nothing to them, so the game can grow them
-// on its own schedule. It is set once at startup. (dragonfactory patch)
+// on its own schedule. It is set once at startup. (skygear patch)
 var ScheduledCropGrowth bool
 
 // Crop is an interface for all crops that are grown on farmland. A crop has a random chance to grow during random ticks.

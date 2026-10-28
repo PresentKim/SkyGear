@@ -1,5 +1,5 @@
 // Command uitextures writes the flat textures of the grey JSON UI theme
-// (packs/dfui/textures/ui/df). Run it from common/: go run ./tools/uitextures
+// (packs/sgui/textures/ui/sg). Run it from common/: go run ./tools/uitextures
 // writes the missing pictures, -f writes all.
 package main
 
@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-const dir = "packs/dfui/textures/ui/df"
+const dir = "packs/sgui/textures/ui/sg"
 
 // The theme is the grey look of the game's own screens: a light grey window
 // with a white edge at the top left and a dark one at the bottom right, mid

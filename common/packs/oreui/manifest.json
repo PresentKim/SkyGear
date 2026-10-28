@@ -1,7 +1,7 @@
 {
   "format_version": 2,
   "header": {
-    "name": "DragonFactory-OreUI",
+    "name": "SkyGear-OreUI",
     "description": "Server-driven DDUI screens drawn in Ore UI",
     "uuid": "e871bad7-b608-4f3e-a8a6-90bc9d977c68",
     "version": [0, 0, 1],

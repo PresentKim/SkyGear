@@ -31,14 +31,14 @@ func TestAccountAndSaves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s, err := d.CreateSave("u1", "dragonfactory", 1, "first")
+	s, err := d.CreateSave("u1", "skygear", 1, "first")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if s.Day != 1 || s.InstanceTime != 0 {
 		t.Fatalf("new save clock = day %d time %v", s.Day, s.InstanceTime)
 	}
-	if _, err := d.CreateSave("u1", "dragonfactory", 1, "dup"); !errors.Is(err, ErrSlotUsed) {
+	if _, err := d.CreateSave("u1", "skygear", 1, "dup"); !errors.Is(err, ErrSlotUsed) {
 		t.Fatalf("duplicate slot err = %v", err)
 	}
 	if r, err := d.MemberRole(s.ID, "u1"); err != nil || r != RoleHost || !r.CanActivate() {
@@ -66,7 +66,7 @@ func TestAccountAndSaves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	saves, err := d.SavesOf("u1", "dragonfactory")
+	saves, err := d.SavesOf("u1", "skygear")
 	if err != nil || len(saves) != 1 {
 		t.Fatalf("saves = %v, %v", saves, err)
 	}
@@ -76,7 +76,7 @@ func TestAccountAndSaves(t *testing.T) {
 	if _, err := d.SaveState(s.ID, "level"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("save state after delete err = %v", err)
 	}
-	if _, err := d.CreateSave("u1", "dragonfactory", 1, "again"); err != nil {
+	if _, err := d.CreateSave("u1", "skygear", 1, "again"); err != nil {
 		t.Fatalf("slot not reusable after delete: %v", err)
 	}
 }
@@ -88,7 +88,7 @@ func TestCopySave(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	src, err := d.CreateSave("owner", "dragonfactory", 1, "island")
+	src, err := d.CreateSave("owner", "skygear", 1, "island")
 	if err != nil {
 		t.Fatal(err)
 	}

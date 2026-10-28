@@ -2,7 +2,7 @@
 // docs/tech/asset-credits.md) over the pack's placeholders: each entry copies
 // one picture, optionally over a chassis picture of the same mod or tinted.
 //
-//	go run ./tools/modtex <dir with the mod clones> assets/resourcepack/dragonfactory
+//	go run ./tools/modtex <dir with the mod clones> assets/resourcepack/skygear
 //
 // The clones are named after `repos` (git clone --depth 1 <url> <name>). Run
 // tools/animtex and tools/tierblocks (after deleting the *_t1..t3 pictures)
@@ -17,7 +17,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 type repo struct {

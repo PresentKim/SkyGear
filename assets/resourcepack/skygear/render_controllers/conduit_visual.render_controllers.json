@@ -1,0 +1,298 @@
+{
+  "format_version": "1.8.0",
+  "render_controllers": {
+    "controller.render.skygear_conduit_energy": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.energy_1",
+            "Texture.energy_2",
+            "Texture.energy_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.energy",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((math.mod(query.variant, 193) - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "math.mod(query.variant, 193) > 0"
+        },
+        {
+          "down": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(math.mod(query.variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.variant, 193) - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.skygear_conduit_item": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.item_1",
+            "Texture.item_2",
+            "Texture.item_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.item",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((math.floor(query.variant / 193) - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "math.floor(query.variant / 193) > 0"
+        },
+        {
+          "down": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(math.floor(query.variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.variant / 193) - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.skygear_conduit_fluid": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.fluid_1",
+            "Texture.fluid_2",
+            "Texture.fluid_3"
+          ]
+        }
+      },
+      "geometry": "Geometry.fluid",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[math.clamp(math.floor((query.mark_variant - 1) / 64), 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "query.mark_variant > 0"
+        },
+        {
+          "down": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.skygear_plate_collar_item": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.item_1",
+            "Texture.item_2",
+            "Texture.item_3"
+          ]
+        }
+      },
+      "textures": [
+        "Array.tier[math.clamp(math.mod(math.floor(query.mark_variant / 4), 4) - 1, 0, 2)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "collar_item_down": "(math.mod(query.variant, 6) == 0) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        },
+        {
+          "collar_item_up": "(math.mod(query.variant, 6) == 1) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        },
+        {
+          "collar_item_north": "(math.mod(query.variant, 6) == 2) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        },
+        {
+          "collar_item_south": "(math.mod(query.variant, 6) == 3) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        },
+        {
+          "collar_item_west": "(math.mod(query.variant, 6) == 4) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        },
+        {
+          "collar_item_east": "(math.mod(query.variant, 6) == 5) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1)) && (math.mod(math.floor(query.variant / 48), 4) != 3)"
+        }
+      ]
+    },
+    "controller.render.skygear_plate_in": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "arrays": {
+        "textures": {
+          "Array.chan": [
+            "Texture.in_0",
+            "Texture.in_1",
+            "Texture.in_2",
+            "Texture.in_3",
+            "Texture.in_4",
+            "Texture.in_5",
+            "Texture.in_6",
+            "Texture.in_7",
+            "Texture.in_8",
+            "Texture.in_9",
+            "Texture.in_10",
+            "Texture.in_11",
+            "Texture.in_12",
+            "Texture.in_13",
+            "Texture.in_14",
+            "Texture.in_15"
+          ]
+        }
+      },
+      "textures": [
+        "Array.chan[math.clamp(math.mod(math.floor(query.variant / 192), 16), 0, 15)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "in_down": "(math.mod(query.variant, 6) == 0) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        },
+        {
+          "in_up": "(math.mod(query.variant, 6) == 1) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        },
+        {
+          "in_north": "(math.mod(query.variant, 6) == 2) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        },
+        {
+          "in_south": "(math.mod(query.variant, 6) == 3) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        },
+        {
+          "in_west": "(math.mod(query.variant, 6) == 4) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        },
+        {
+          "in_east": "(math.mod(query.variant, 6) == 5) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 1))"
+        }
+      ]
+    },
+    "controller.render.skygear_plate_out": {
+      "geometry": "Geometry.default",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "arrays": {
+        "textures": {
+          "Array.chan": [
+            "Texture.out_0",
+            "Texture.out_1",
+            "Texture.out_2",
+            "Texture.out_3",
+            "Texture.out_4",
+            "Texture.out_5",
+            "Texture.out_6",
+            "Texture.out_7",
+            "Texture.out_8",
+            "Texture.out_9",
+            "Texture.out_10",
+            "Texture.out_11",
+            "Texture.out_12",
+            "Texture.out_13",
+            "Texture.out_14",
+            "Texture.out_15"
+          ]
+        }
+      },
+      "textures": [
+        "Array.chan[math.clamp(math.floor(query.variant / 3072), 0, 15)]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "out_down": "(math.mod(query.variant, 6) == 0) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        },
+        {
+          "out_up": "(math.mod(query.variant, 6) == 1) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        },
+        {
+          "out_north": "(math.mod(query.variant, 6) == 2) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        },
+        {
+          "out_south": "(math.mod(query.variant, 6) == 3) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        },
+        {
+          "out_west": "(math.mod(query.variant, 6) == 4) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        },
+        {
+          "out_east": "(math.mod(query.variant, 6) == 5) && ((math.mod(math.floor(math.mod(math.floor(query.variant / 6), 8) / 2), 2) == 1) && (math.mod(math.floor(query.variant / 48), 4) == 0 || math.mod(math.floor(query.variant / 48), 4) == 2))"
+        }
+      ]
+    }
+  }
+}

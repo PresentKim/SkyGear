@@ -1,0 +1,35 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "skygear:gate_portal",
+      "materials": {
+        "default": "entity_emissive_alpha_one_sided"
+      },
+      "textures": {
+        "tier_1": "textures/entity/skygear/gate_portal_1",
+        "tier_2": "textures/entity/skygear/gate_portal_2",
+        "tier_3": "textures/entity/skygear/gate_portal_3",
+        "tier_4": "textures/entity/skygear/gate_portal_4",
+        "tier_5": "textures/entity/skygear/gate_portal_5",
+        "tier_6": "textures/entity/skygear/gate_portal_6",
+        "tier_7": "textures/entity/skygear/gate_portal_7",
+        "tier_8": "textures/entity/skygear/gate_portal_8"
+      },
+      "geometry": {
+        "default": "geometry.skygear.gate_portal"
+      },
+      "animations": {
+        "spin": "animation.skygear.gate_portal.spin"
+      },
+      "scripts": {
+        "animate": [
+          "spin"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.skygear_gate_portal"
+      ]
+    }
+  }
+}

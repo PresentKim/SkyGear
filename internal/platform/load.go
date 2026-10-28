@@ -6,9 +6,9 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/hud"
-	"github.com/presentkim/dragonfactory/common/perf"
-	"github.com/presentkim/dragonfactory/common/ui"
+	"github.com/presentkim/skygear/common/hud"
+	"github.com/presentkim/skygear/common/perf"
+	"github.com/presentkim/skygear/common/ui"
 )
 
 // lobbyHUD is what each lobby player's HUD was last sent, by name, so a
@@ -45,7 +45,7 @@ func forgetLobbyHUD(p *player.Player) {
 }
 
 // ShowLoad updates the lobby HUD and scene every second until stop closes;
-// operators who turned it on (/dfadmin tps) also get the server load line.
+// operators who turned it on (/sgadmin tps) also get the server load line.
 func ShowLoad(lobby *world.World, isOperator func(*player.Player) bool, stop <-chan struct{}) {
 	t := time.NewTicker(time.Second)
 	defer t.Stop()

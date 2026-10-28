@@ -66,7 +66,7 @@ type Config struct {
 	}
 	Admin struct {
 		// Operators are the XUIDs (digits) of the players allowed to use
-		// operator tools such as /dfadmin. An entry that is not a number is a
+		// operator tools such as /sgadmin. An entry that is not a number is a
 		// player name; names can pass to another player when an Xbox gamertag
 		// changes hands, so the server warns when one is used.
 		Operators []string

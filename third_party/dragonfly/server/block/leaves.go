@@ -64,7 +64,7 @@ func findLog(pos cube.Pos, tx *world.Tx) bool {
 }
 
 // LeavesDecayDelay is the time the game gives leaves that lost their log to
-// decay, as a minimum and a random extra, via a scheduled tick (dragonfactory
+// decay, as a minimum and a random extra, via a scheduled tick (skygear
 // patch). Both zero keeps vanilla: decay waits for a random tick.
 var (
 	LeavesDecayDelayMin    time.Duration
@@ -72,7 +72,7 @@ var (
 )
 
 // decay removes the leaves at pos if no log is near, dropping what leaves
-// drop; with a log near they stay (dragonfactory patch: shared by the random
+// drop; with a log near they stay (skygear patch: shared by the random
 // tick and the scheduled tick).
 func (l Leaves) decay(pos cube.Pos, tx *world.Tx) {
 	if l.Persistent || !l.ShouldUpdate {
@@ -101,7 +101,7 @@ func (l Leaves) RandomTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
 	l.decay(pos, tx)
 }
 
-// ScheduledTick decays leaves whose log is gone (dragonfactory patch).
+// ScheduledTick decays leaves whose log is gone (skygear patch).
 func (l Leaves) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
 	if cur, ok := tx.Block(pos).(Leaves); ok {
 		cur.decay(pos, tx)
@@ -129,12 +129,12 @@ func (l Leaves) FlammabilityInfo() FlammabilityInfo {
 }
 
 // LeavesSaplingChances are the chances of leaves dropping a sapling when
-// broken or decayed, by fortune level 0 to 3 (vanilla values). dragonfactory
+// broken or decayed, by fortune level 0 to 3 (vanilla values). skygear
 // patch: variables instead of constants.
 var LeavesSaplingChances = []float64{0.05, 0.0625, 0.083333336, 0.1}
 
 // LeavesStickChances are the chances of leaves dropping sticks, by fortune
-// level 0 to 3 (vanilla values; dragonfactory patch: a variable).
+// level 0 to 3 (vanilla values; skygear patch: a variable).
 var LeavesStickChances = []float64{0.02, 0.022222222, 0.025, 0.033333333}
 
 // JungleLeavesSaplingChances are LeavesSaplingChances for jungle leaves.
@@ -152,7 +152,7 @@ func (l Leaves) BreakInfo() BreakInfo {
 		var drops []item.Stack
 
 		if sapling, ok := l.Type.Sapling(); ok {
-			// dragonfactory patch: the chances are variables the game can raise.
+			// skygear patch: the chances are variables the game can raise.
 			chances := LeavesSaplingChances
 			if l.Type == JungleLeaves() {
 				chances = JungleLeavesSaplingChances

@@ -1,7 +1,0 @@
-{
-  "ui_defs": [
-    "ui/df_machine.json",
-    "ui/df_lobby.json",
-    "ui/dfui_hooks.json"
-  ]
-}

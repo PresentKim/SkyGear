@@ -4,7 +4,7 @@
 // and the conduit block texture, a grey sheet with one transparent pixel
 // that the model shows (the rest only colours break particles).
 //
-//	go run ./tools/conduittex tools/conduittex/src assets/resourcepack/dragonfactory
+//	go run ./tools/conduittex tools/conduittex/src assets/resourcepack/skygear
 package main
 
 import (
@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 // part draws one conduit into dst at x0: the arm strip (16×52) at (x0, 0), the
@@ -50,7 +50,7 @@ func main() {
 			// the texture of the display entity
 			im := image.NewRGBA(image.Rect(0, 0, 64, 64))
 			part(im, sheet, 0)
-			imgio.Save(filepath.Join(pack, "textures/entity/dragonfactory", name), im)
+			imgio.Save(filepath.Join(pack, "textures/entity/skygear", name), im)
 			// the same sheet is the texture of the item block (conduit icons)
 			imgio.Save(filepath.Join(pack, "textures/blocks", name), im)
 		}
@@ -84,7 +84,7 @@ var channelColours = [16]color.RGBA{
 // turned a quarter counterclockwise (the input points right, the output left),
 // for the faces where an arrow runs along the u axis.
 func plates(src, pack string) {
-	dir := filepath.Join(pack, "textures/entity/dragonfactory")
+	dir := filepath.Join(pack, "textures/entity/skygear")
 	for _, dir2 := range []string{"in", "out"} {
 		arrow := imgio.Load(filepath.Join(src, "arrow_"+dir2+".png"))
 		for i, col := range channelColours {

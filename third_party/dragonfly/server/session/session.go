@@ -60,7 +60,7 @@ type Session struct {
 	entities         map[uint64]*world.EntityHandle
 	hiddenEntities   map[uuid.UUID]struct{}
 
-	// fakeChunks are the chunks shown with ViewFakeChunk. (dragonfactory patch)
+	// fakeChunks are the chunks shown with ViewFakeChunk. (skygear patch)
 	fakeChunkMu sync.Mutex
 	fakeChunks  map[world.ChunkPos]*world.Column
 
@@ -90,7 +90,7 @@ type Session struct {
 
 	recipes map[uint32]recipe.Recipe
 	// recipeFilter, if set, picks the recipes sent and accepted.
-	// (dragonfactory patch)
+	// (skygear patch)
 	recipeFilter func(recipe.Recipe) bool
 
 	blobMu                sync.Mutex
@@ -425,7 +425,7 @@ func (s *Session) handlePackets() {
 			if sessionOwnerStopped(err) {
 				return
 			}
-			// dragonfactory patch: a packet error ends the session; log it where
+			// skygear patch: a packet error ends the session; log it where
 			// operators see it and tell the player why.
 			s.conf.Log.Error("process packet: " + err.Error())
 			s.Disconnect("서버 처리 오류로 연결이 끊겼습니다.\n" + err.Error())

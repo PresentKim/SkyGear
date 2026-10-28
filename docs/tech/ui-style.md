@@ -4,7 +4,7 @@
 
 ## 팔레트
 
-게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 색은 `common/tools/uitextures/main.go` 위쪽 한 곳에서 정하고, 그 도구가 `common/packs/dfui` 에 그림을 만든다(없는 것만, `-f` 는 모두).
+게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 색은 `common/tools/uitextures/main.go` 위쪽 한 곳에서 정하고, 그 도구가 `common/packs/sgui` 에 그림을 만든다(없는 것만, `-f` 는 모두).
 
 | 쓰임 | 색 | 값 |
 |---|---|---|
@@ -51,7 +51,7 @@
 
 ## 버튼 아이콘
 
-버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `dragonfactory` 팩 `textures/ui/df/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비 메인 메뉴의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 `common/packs/dfui` 에 있다.
+버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `skygear` 팩 `textures/ui/sg/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비 메인 메뉴의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 `common/packs/sgui` 에 있다.
 
 ## 고른 칸
 
@@ -63,7 +63,7 @@
 
 ## 탭 모양
 
-탭은 창조 인벤토리 탭처럼 아이콘만 있는 칸이다: 바닐라 탭 그림(`TabTopBack`)으로 낮게 놓이고, 포인터가 올라오면 밝아지며(`TabTopBackHover`) 탭 이름이 엔진 툴팁으로 뜨고(터치는 누르고 있는 동안), 선택된 탭은 창과 같은 색(`TabTopFront`)으로 한 칸 솟는다. 모양은 `df_form.json` 의 `tab_button` 이다. DDUI 화면은 연구·친구 화면도 같은 아이콘 탭이다(JSON UI 폼의 연구 화면만 글이 보이는 넓은 탭 `split_tab_button`).
+탭은 창조 인벤토리 탭처럼 아이콘만 있는 칸이다: 바닐라 탭 그림(`TabTopBack`)으로 낮게 놓이고, 포인터가 올라오면 밝아지며(`TabTopBackHover`) 탭 이름이 엔진 툴팁으로 뜨고(터치는 누르고 있는 동안), 선택된 탭은 창과 같은 색(`TabTopFront`)으로 한 칸 솟는다. 모양은 `sg_form.json` 의 `tab_button` 이다. DDUI 화면은 연구·친구 화면도 같은 아이콘 탭이다(JSON UI 폼의 연구 화면만 글이 보이는 넓은 탭 `split_tab_button`).
 
 ## 칸과 아이템
 
@@ -77,20 +77,20 @@
 
 ## 창의 입체감
 
-창 그림(`panel`)이 위·왼쪽 흰 선과 아래·오른쪽 어두운 선을 직접 갖고 있어 창이 떠 보인다(`panel_bevel` 은 비어 있다). 모든 테마 폼이 `df_form.window` 를 쓰므로 한 곳이다.
+창 그림(`panel`)이 위·왼쪽 흰 선과 아래·오른쪽 어두운 선을 직접 갖고 있어 창이 떠 보인다(`panel_bevel` 은 비어 있다). 모든 테마 폼이 `sg_form.window` 를 쓰므로 한 곳이다.
 
 ## 창 겉모양(게임 기본 화면 기준)
 
 - 창과 탭의 모서리는 둥글다: 모서리 세 픽셀을 비우고 계단 모양으로 검은 선을 잇는다(`common/tools/uitextures` 의 `roundCorners`). 창은 아홉 조각(모서리 4px)이다.
 - 제목은 막대 없이 창 위 가운데에 쓴다. 도움말(?)·뒤로·닫기는 창 오른쪽 위 모서리 위에 붙은 어두운 둥근 막대(바닐라 `toolbar_background`)에 바닐라 닫기·도움말 그림과 흰 화살표로 둔다. 틀은 없고 포인터가 올라오면 칸이 밝아진다(`icon_button`, `help_button` 의 기본 그림이 `clear`).
-- 탭은 창 위 왼쪽 가장자리에 붙는다(`df_form.window` 의 `tabs_top`, 폼마다 안쪽에 두지 않는다). 연구 분할 화면은 넓은 탭(`marked_split_tabs`)을 같은 자리에 둔다. 목록 분할 화면(`list_split_form`)은 보통 탭을 쓰고, 탭을 보내지 않는 세이브 선택에는 탭이 없다.
+- 탭은 창 위 왼쪽 가장자리에 붙는다(`sg_form.window` 의 `tabs_top`, 폼마다 안쪽에 두지 않는다). 연구 분할 화면은 넓은 탭(`marked_split_tabs`)을 같은 자리에 둔다. 목록 분할 화면(`list_split_form`)은 보통 탭을 쓰고, 탭을 보내지 않는 세이브 선택에는 탭이 없다.
 
 - 카드(`card_button`, 72×46)의 아이콘은 22px 이고 카드 가운데에 놓인다(이름은 아래).
 - 뒤로 버튼은 픽셀 꺾쇠 그림(`chevron_left`)이고, 호버·누름은 닫기 버튼처럼 테두리 없는 회색 정사각형(`hover_flat`, `press_flat`)이다.
 - 컨트롤 막대는 창 뒤(레이어 -2)에 그려지고 창의 오른쪽 가장자리에 딱 붙으며 아래 3px 이 창 뒤로 들어가고 오른쪽 끝은 창과 같다(offset 0).
 - 창 안쪽 위 여백은 18(제목 한 줄 아래 내용까지), 아래 여백은 6, 컨트롤 막대는 높이 25(안쪽 글자·아이콘 크기는 그대로)이다.
 - 폼 뒤 화면은 바닐라처럼 어둡게 한다: 창의 첫 자식 `dim` 이 `textures/ui/Black` 4000×4000 을 투명도 0.5 로 깐다(바닐라는 `screen_background` 를 0.4). 로비 폼은 로비 섬이 보이도록 어둡게 하지 않는다. 본문이 비어 있으면 본문 칸이 접힌다(`#form_text` 가 빈 글이면 숨김).
-- `df_form.window` 를 쓰는 모든 폼과 발전과제 트리 창(`tree_form`)이 `df_form.control_bar` 와 `dim` 을 같이 쓴다. 새 폼은 `df_form.window` 를 쓰고, 자체 창이 필요하면 `control_bar` 와 `dim` 을 넣는다.
+- `sg_form.window` 를 쓰는 모든 폼과 발전과제 트리 창(`tree_form`)이 `sg_form.control_bar` 와 `dim` 을 같이 쓴다. 새 폼은 `sg_form.window` 를 쓰고, 자체 창이 필요하면 `control_bar` 와 `dim` 을 넣는다.
 - 폼 창은 애니메이션 없이 바로 나타난다(창이 움직이는 동안 다음 폼이 오면 두 창이 겹쳐 보인다).
 
 ## 입력 폼

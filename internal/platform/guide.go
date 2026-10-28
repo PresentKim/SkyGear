@@ -2,13 +2,13 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // GuideVersion is increased when the guide changes; players see it again once.
@@ -17,11 +17,11 @@ const GuideVersion = 4
 // guideTopics are the pages of the server guide, in display order. Their
 // texts are "platform.guide.topic.<id>.title" and ".text" in the catalog.
 var guideTopics = []struct{ id, icon string }{
-	{"saves", "textures/ui/df/icon_cube"},
-	{"together", "textures/ui/df/icon_people"},
-	{"friends", "textures/ui/df/icon_person"},
-	{"cosmetics", "textures/ui/df/icon_crown"},
-	{"rules", "textures/ui/df/icon_help"},
+	{"saves", "textures/ui/sg/icon_cube"},
+	{"together", "textures/ui/sg/icon_people"},
+	{"friends", "textures/ui/sg/icon_person"},
+	{"cosmetics", "textures/ui/sg/icon_crown"},
+	{"rules", "textures/ui/sg/icon_help"},
 }
 
 // guideTopicText is the text of a guide page, with the server's numbers.

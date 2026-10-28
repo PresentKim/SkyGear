@@ -4,7 +4,7 @@
 // pictures deco_<rarity>_<front>.png (frame and badge in one, so a form slot
 // needs one control). Run it from common/:
 //
-//	go run ./tools/slotdecotex packs/slotdeco packs/dfui
+//	go run ./tools/slotdecotex packs/slotdeco packs/sgui
 package main
 
 import (
@@ -207,11 +207,11 @@ func formDeco(r, n int) image.Image {
 
 func main() {
 	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: slotdecotex <slotdeco pack dir> [<dfui pack dir>]")
+		fmt.Fprintln(os.Stderr, "usage: slotdecotex <slotdeco pack dir> [<sgui pack dir>]")
 		os.Exit(2)
 	}
 	if len(os.Args) == 3 {
-		formDir := filepath.Join(os.Args[2], "textures", "ui", "df")
+		formDir := filepath.Join(os.Args[2], "textures", "ui", "sg")
 		for r := 0; r <= 4; r++ {
 			for n := 0; n <= 6; n++ {
 				if r > 0 || n > 0 {
@@ -220,7 +220,7 @@ func main() {
 			}
 		}
 	}
-	dir := filepath.Join(os.Args[1], "textures", "ui", "df")
+	dir := filepath.Join(os.Args[1], "textures", "ui", "sg")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		panic(err)
 	}

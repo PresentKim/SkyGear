@@ -36,7 +36,7 @@ func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackReques
 	size := s.craftingSize()
 	offset := s.craftingOffset()
 	if sh, ok := craft.(recipe.Shaped); ok {
-		// dragonfactory patch: a shaped recipe is only crafted in its arrangement (the client matches shapes, but
+		// skygear patch: a shaped recipe is only crafted in its arrangement (the client matches shapes, but
 		// the server used to take the items from any slots).
 		cells := make([]item.Stack, size)
 		for i := range cells {
@@ -260,7 +260,7 @@ func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, time
 	if timesCrafted < 1 {
 		return fmt.Errorf("times crafted must be at least 1")
 	}
-	// dragonfactory patch: dynamic recipes (the decorated pot) are not in the
+	// skygear patch: dynamic recipes (the decorated pot) are not in the
 	// recipe list a filter picks from, so a filter turns them off.
 	if s.recipeFilter != nil {
 		return fmt.Errorf("dynamic recipes are locked by the recipe filter")
@@ -333,7 +333,7 @@ func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, time
 
 // shapedArrangementOK reports whether the crafting grid cells (cols per row) hold the items of the shaped
 // recipe in its shape, anywhere in the grid, and mirrored left to right only if the recipe allows it
-// (dragonfactory patch).
+// (skygear patch).
 func shapedArrangementOK(cells []item.Stack, cols int, r recipe.Shaped) bool {
 	rows := len(cells) / cols
 	minR, maxR, minC, maxC := rows, -1, cols, -1

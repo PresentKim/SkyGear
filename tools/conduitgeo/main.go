@@ -12,7 +12,7 @@
 // Textures are 64×64 sheets from tools/conduittex: arm strip (16×52) left,
 // core face (16×16) beside it, turned strip (32×10) below.
 //
-//	go run ./tools/conduitgeo assets/resourcepack/dragonfactory/models/entity/conduit_visual.geo.json assets/resourcepack/dragonfactory/models/blocks/conduit_icon.geo.json
+//	go run ./tools/conduitgeo assets/resourcepack/skygear/models/entity/conduit_visual.geo.json assets/resourcepack/skygear/models/blocks/conduit_icon.geo.json
 package main
 
 import (
@@ -139,9 +139,9 @@ func geometry(name string, shift [3]float64, icon bool) map[string]any {
 			"cubes": []any{cube(arm, armFaces(d.axis), entity)},
 		})
 	}
-	identifier := "geometry.dragonfactory.conduit_" + name
+	identifier := "geometry.skygear.conduit_" + name
 	if icon {
-		identifier = "geometry.dragonfactory.conduit_icon_" + name
+		identifier = "geometry.skygear.conduit_icon_" + name
 	}
 	return map[string]any{
 		"description": map[string]any{
@@ -205,7 +205,7 @@ func plateGeometry() map[string]any {
 	}
 	return map[string]any{
 		"description": map[string]any{
-			"identifier": "geometry.dragonfactory.conduit_plate", "texture_width": 64, "texture_height": 64,
+			"identifier": "geometry.skygear.conduit_plate", "texture_width": 64, "texture_height": 64,
 			"visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": []float64{0, 0.5, 0},
 		},
 		"bones": bones,

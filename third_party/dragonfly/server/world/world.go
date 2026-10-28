@@ -30,7 +30,7 @@ type World struct {
 	conf Config
 	ra   cube.Range
 
-	// dragonfactory patch: timing of recent ticks (TickStats).
+	// skygear patch: timing of recent ticks (TickStats).
 	tickStats tickStats
 
 	queue        chan transaction

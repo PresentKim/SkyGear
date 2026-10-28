@@ -8,7 +8,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// Game is a game type that saves are created for (e.g. dragonfactory).
+// Game is a game type that saves are created for (e.g. skygear).
 // Games know nothing about lobbies, accounts or persistence of players;
 // the Manager handles those.
 type Game interface {

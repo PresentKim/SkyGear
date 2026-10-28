@@ -2,7 +2,7 @@
 // three alloys, the four control circuits, the three tier kits and the
 // configuration copier, each drawn from one colour.
 //
-//	go run ./tools/tiertex assets/resourcepack/dragonfactory
+//	go run ./tools/tiertex assets/resourcepack/skygear
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 func scale(c color.RGBA, f float64) color.RGBA {

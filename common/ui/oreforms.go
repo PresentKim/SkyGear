@@ -5,7 +5,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 // DDUI screens for ListSplitMenu, Input, ItemGrid(Sections) and SlotMenu.
@@ -128,7 +128,7 @@ func oreItemGrid(p *player.Player, title, body string, sections []GridSection, a
 	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreSlotMenu is a SlotMenu (df_form slot_form): the storage slot with the
+// oreSlotMenu is a SlotMenu (sg_form slot_form): the storage slot with the
 // info text beside it, under them the left slots at the left and the right
 // slots at the right, and the actions as list buttons. A slot's text is its
 // tooltip; the storage slot's is its count.

@@ -7,7 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/common/internal/slottext"
+	"github.com/presentkim/skygear/common/internal/slottext"
 )
 
 // TestUniqueLabels: repeated labels get "§r"s so each button is found.

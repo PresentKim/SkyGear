@@ -4,7 +4,7 @@
 //
 //   - models/blocks/{sieve,auto_sieve,magic_sieve}.geo.json: Fabrico's sieve
 //     and mesh models plus a content cube per fill height, as
-//     geometry.dragonfactory_<kind>_<fill> with material instances "*",
+//     geometry.skygear_<kind>_<fill> with material instances "*",
 //     "mesh" and "content".
 //   - textures/blocks/sieve_mesh*.png and textures/items/mesh_*.png: Fabrico
 //     tints white wool per mesh, so its rods are drawn top-down as a 16×16
@@ -13,7 +13,7 @@
 // The sieve frame keeps the vanilla planks textures.
 //
 //	git clone --depth 1 -b 1.14.4-Fabric https://github.com/SirLyle/ExNihiloFabrico <dir>
-//	go run ./tools/fabricotex <dir> assets/resourcepack/dragonfactory
+//	go run ./tools/fabricotex <dir> assets/resourcepack/skygear
 package main
 
 import (
@@ -25,12 +25,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 const assets = "src/main/resources/assets/exnihilofabrico"
 
-// meshes are the mesh tiers (dragonfactory/dfitem) with Fabrico's colour for
+// meshes are the mesh tiers (skygear/sgitem) with Fabrico's colour for
 // each; netherite is ours.
 var meshes = []struct {
 	tier string
@@ -268,7 +268,7 @@ func writeGeometry(pack, kind string, frame, rods []element) {
 		}
 		geos = append(geos, map[string]any{
 			"description": map[string]any{
-				"identifier":            fmt.Sprintf("geometry.dragonfactory_%s_%d", kind, fill),
+				"identifier":            fmt.Sprintf("geometry.skygear_%s_%d", kind, fill),
 				"texture_width":         16,
 				"texture_height":        16,
 				"visible_bounds_width":  2,

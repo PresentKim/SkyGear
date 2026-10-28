@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 var verbs = regexp.MustCompile(`%[-+# 0-9.]*[a-zA-Z%]`)

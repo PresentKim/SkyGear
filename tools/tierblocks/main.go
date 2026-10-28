@@ -1,12 +1,12 @@
 // Command tierblocks writes the per-tier textures of the upgradable machines
-// (internal/games/dragonfactory/tierlook.go): for every machine face it
+// (internal/games/skygear/tierlook.go): for every machine face it
 // copies the base picture to "<name>_<face>_t1" .. "_t3" with a trim in the
 // colour of the tier along the edges (iron, gold, diamond), the same for the
 // working strips ("_on", every frame), and adds the atlas and flipbook
 // entries. Files that already exist are left alone, so a texture that was
 // redrawn by hand is kept; delete a file to have it made again.
 //
-//	go run ./tools/tierblocks assets/resourcepack/dragonfactory
+//	go run ./tools/tierblocks assets/resourcepack/skygear
 package main
 
 import (
@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 // machine is one upgradable machine: its texture name, the faces it has and
@@ -93,7 +93,7 @@ func main() {
 			base := imgio.Load(filepath.Join(dir, m.name+"_"+face+".png"))
 			for tier := 1; tier <= 3; tier++ {
 				name := fmt.Sprintf("%s_%s_t%d", m.name, face, tier)
-				tile := "dragonfactory_" + name
+				tile := "skygear_" + name
 				atlas[tile] = "textures/blocks/" + name
 				if face == m.on {
 					flips[tile] = map[string]any{"flipbook_texture": "textures/blocks/" + name, "atlas_tile": tile, "ticks_per_frame": 4, "blend_frames": false}

@@ -1,6 +1,6 @@
 # 서랍 구현
 
-기획: [02-dragonfactory.md](../design/02-dragonfactory.md) §15. 코드: `internal/games/dragonfactory/drawer.go`, `holder.go`.
+기획: [02-skygear.md](../design/02-skygear.md) §15. 코드: `internal/games/skygear/drawer.go`, `holder.go`.
 
 ## 블록
 - `world.CustomBlock` + `CustomItem`(서랍 아이템) + `NBTer`. 비바닐라 블록은 `CustomBlock`과 `CustomItem`을 구현해야 등록된다.
@@ -18,13 +18,13 @@
 아이템 엔티티는 클라이언트에서 항상 회전·흔들리고, 근처에 떨어진 같은 아이템과 합쳐지며, 아래 칸 호퍼에 흡수된다. 그래서 **아이템을 손에 든 커스텀 엔티티**로 표시한다. 아이템 엔티티가 아니므로 합쳐짐·호퍼 흡수 문제가 없다.
 
 - 서버(Go, `holder.go`)
-  - 엔티티 타입 `dragonfactory:item_holder`, 히트박스 없음, 저장하지 않음(`EncodeNBT` → nil, 서랍이 다시 생성).
+  - 엔티티 타입 `skygear:item_holder`, 히트박스 없음, 저장하지 않음(`EncodeNBT` → nil, 서랍이 다시 생성).
   - `item.Carrier`(`HeldItems()`)를 구현하면 Dragonfly가 보는 사람에게 `MobEquipment` 패킷으로 들고 있는 아이템을 보낸다.
   - 서버 엔티티 레지스트리에 추가하면(`EntityTypes`) 접속 시 엔티티 식별자 목록에 포함되어 전송된다.
   - 엔티티는 블록 중앙에서 앞면 쪽으로 조금 나온 곳에 두고, yaw로 앞면을 바라보게 한다(북 180, 동 -90, 서 90, 남 0).
   - **꽉 찬 큐브 모델 블록은 보조 손, 그 외(일반 아이템, 문·묘목·꽃·레일처럼 평면으로 보이는 블록)는 주 손**에 쥐여 준다(`isCubeItem`). 손에 든 블록은 입체로 그려져 각도가 다르다.
   - 깊이(블록 중앙에서 앞면 방향): 주 손 0.05, 보조 손 0.025(`mainHandDepth`, `offHandDepth`). 0 이면 블록 안에 숨는다.
-- 리소스팩(`assets/resourcepack/dragonfactory/`)
+- 리소스팩(`assets/resourcepack/skygear/`)
   - `entity/item_holder.entity.json`: 클라이언트 엔티티 정의(`enable_attachables`, 기본 렌더 컨트롤러).
   - `models/entity/item_holder.geo.json`: `root → body → rightarm → rightitem_pose → rightitem_handheld → rightitem`, `body → leftarm → leftitem`. 손 아이템 본에 3인칭 손 자세를 상쇄하는 피벗·회전을 준다(`rightitem_pose`: pivot [-1, -6, -6], rotation [-75, -12, -16], `leftitem`: pivot [5.5, 1, -3], rotation [-20, 45, 0]). `rightitem_handheld`·`rightitem` 은 같은 피벗에 회전 없이 두고, 손에 쥐는 모양 아이템일 때만 애니메이션이 `rightitem_handheld` 를 돌린다(아래). 구조는 Storage Drawers Bedrock 애드온을 참고했다.
   - `animations/item_holder.animation.json`, `entity/item_holder.entity.json` 의 `scripts.animate`: 손에 쥐는 모양 아이템 보정.
@@ -44,11 +44,11 @@
 - 서버가 바닐라 아이템 구성 요소를 바꿔 `hand_equipped` 를 끄기: 아이템 등록 데이터는 모든 플레이어 손에 적용되어 플레이어가 막대기를 드는 모습까지 바뀐다. 막대기·뼈는 구성 요소 기반이 아니라 바꾸면 다른 동작이 깨질 수 있다. 쓰지 않는다.
 - 아이템 엔티티·액자: 아이템 엔티티는 돌고 합쳐진다(위). 액자는 블록이라 서랍 앞 칸을 차지한다. 쓰지 않는다.
 - 엔티티 텍스처에 아이템 그림을 그리기: 클라이언트 엔티티 텍스처는 아이템마다 따로 고를 수 없어(렌더 컨트롤러 배열과 서버 변형 값이 아이템 수만큼 필요) 모든 아이템에 쓸 수 없다.
-- **리소스팩 Molang 으로 보정(사용 중)**: 홀더가 `query.is_item_name_any('slot.weapon.mainhand', 0, ...)` 로 주 손 아이템 이름을 보고, 목록에 있으면 `animation.dragonfactory.item_holder.handheld` 가 `rightitem_handheld` 를 돌리고 옮기고 줄인다. 보정 본을 기본 자세 본(`rightitem_pose`) 아래에 따로 두어 애니메이션 회전이 기본 회전에 더해지지 않고 따로 곱해진다.
+- **리소스팩 Molang 으로 보정(사용 중)**: 홀더가 `query.is_item_name_any('slot.weapon.mainhand', 0, ...)` 로 주 손 아이템 이름을 보고, 목록에 있으면 `animation.skygear.item_holder.handheld` 가 `rightitem_handheld` 를 돌리고 옮기고 줄인다. 보정 본을 기본 자세 본(`rightitem_pose`) 아래에 따로 두어 애니메이션 회전이 기본 회전에 더해지지 않고 따로 곱해진다.
 
 보정 값: Bedrock 의 3인칭 아이템 변환 값은 공개 자료에 없어 실제 클라이언트에서 맞춘다. 기본은 크기 0.65 만 준다(Java 판 아이템 모델의 3인칭 크기 `item/generated` 0.55 와 `item/handheld` 0.85 의 비, 스크린샷의 막대기가 약 1.5배 큰 것과 맞다). Java 판 회전 차이([0, -90, 55])를 되돌린 값은 막대기를 납작하게 아래로 숨겨 맞지 않았다.
 
-맞추는 법: `/dfdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` 가 그 세이브의 모든 서랍 홀더에 회전(도, 5도 단위, -180~180)·크기(퍼센트, 1~255)·위치(픽셀, -16~15)를 보낸다. 홀더 엔티티의 variant(회전 셋)와 mark variant(크기·위치)에 담아 보내고 애니메이션이 풀어 쓴다(`newHolderPose`, Molang 수는 32비트 실수라 두 값 모두 2^24 미만). 팩을 다시 받지 않고 바로 바뀐다. 맞는 값을 찾으면 애니메이션의 기본값(`query.variant > 0 ? ... : 기본`)에 적는다. 다른 아이템이 같은 증상이면 `item_holder.entity.json` 의 이름 목록에 더한다.
+맞추는 법: `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` 가 그 세이브의 모든 서랍 홀더에 회전(도, 5도 단위, -180~180)·크기(퍼센트, 1~255)·위치(픽셀, -16~15)를 보낸다. 홀더 엔티티의 variant(회전 셋)와 mark variant(크기·위치)에 담아 보내고 애니메이션이 풀어 쓴다(`newHolderPose`, Molang 수는 32비트 실수라 두 값 모두 2^24 미만). 팩을 다시 받지 않고 바로 바뀐다. 맞는 값을 찾으면 애니메이션의 기본값(`query.variant > 0 ? ... : 기본`)에 적는다. 다른 아이템이 같은 증상이면 `item_holder.entity.json` 의 이름 목록에 더한다.
 
 ## 앞면 글자 방향 (디버그 셰이프)
 

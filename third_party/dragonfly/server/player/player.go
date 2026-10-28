@@ -106,7 +106,7 @@ type playerData struct {
 	lastBreakDuration time.Duration
 	// breakStarted is when the player started breaking breakingPos. Custom
 	// blocks are finished by the server from it (see tickCustomBreak).
-	// (dragonfactory patch)
+	// (skygear patch)
 	breakStarted time.Time
 
 	breakCounter uint32
@@ -1782,11 +1782,11 @@ func (p *Player) UseItemOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec
 			// The block was activated: Blocks such as doors must always have precedence over the item being
 			// used.
 			if useCtx := p.useContext(); act.Activate(pos, face, p.tx, p, useCtx) {
-				// dragonfactory patch: the client may have predicted placing the
+				// skygear patch: the client may have predicted placing the
 				// held block (custom blocks are not known to be activatable).
 				p.resendNearbyBlocks(pos, face)
 				p.SwingArm()
-				// dragonfactory patch: re-read the held items. Activate may have
+				// skygear patch: re-read the held items. Activate may have
 				// changed them (e.g. inserting the held stack into a block);
 				// writing back the stack read before would duplicate items.
 				i, left = p.HeldItems()
@@ -1958,7 +1958,7 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 // immediately and the block will not be broken. StartBreaking will stop the breaking of any block that the
 // player might be breaking before this method is called.
 func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
-	// dragonfactory patch: clients repeat the start (ContinueDestroyBlock)
+	// skygear patch: clients repeat the start (ContinueDestroyBlock)
 	// while mining the same block; that keeps the time it started.
 	wasBreaking, prevPos := p.breaking, p.breakingPos
 	p.AbortBreaking()
@@ -2059,7 +2059,7 @@ const customBreakGrace = 150 * time.Millisecond
 // tickCustomBreak finishes breaking a custom block once its break time has
 // passed. Clients finish the crack of custom blocks but may not send the
 // destroy action, so the block would otherwise never break.
-// (dragonfactory patch)
+// (skygear patch)
 func (p *Player) tickCustomBreak() {
 	if !p.breaking || p.GameMode().CreativeInventory() {
 		return
@@ -2694,7 +2694,7 @@ func (p *Player) Tick(tx *world.Tx, current int64) {
 		}
 	}
 
-	p.tickCustomBreak() // dragonfactory patch
+	p.tickCustomBreak() // skygear patch
 
 	p.checkBlockCollisions(p.data.Vel)
 	p.onGround = p.checkOnGround(mgl64.Vec3{})
@@ -3458,19 +3458,19 @@ func (p *Player) Data() Config {
 
 // ViewFakeChunk shows c in place of the world's chunk at pos to this player
 // only, until ClearFakeChunk; the world's block updates there are not sent
-// meanwhile. (dragonfactory patch)
+// meanwhile. (skygear patch)
 func (p *Player) ViewFakeChunk(pos world.ChunkPos, c *chunk.Chunk) {
 	p.session().ViewFakeChunk(pos, p.tx.World().Dimension(), c)
 }
 
-// ClearFakeChunk shows the world's chunk at pos again. (dragonfactory patch)
+// ClearFakeChunk shows the world's chunk at pos again. (skygear patch)
 func (p *Player) ClearFakeChunk(pos world.ChunkPos) {
 	p.session().ClearFakeChunk(pos, p.tx.World().Dimension())
 }
 
 // SetRecipeFilter limits the player's recipes to those f keeps (all if f
 // is nil) and sends the new list at once; call it again when f's answers
-// change. (dragonfactory patch)
+// change. (skygear patch)
 func (p *Player) SetRecipeFilter(f func(recipe.Recipe) bool) { p.session().SetRecipeFilter(f) }
 
 // session returns the network session of the player. If it has one, it is returned. If not, a no-op session

@@ -7,8 +7,8 @@
 /resources/
 /data/
 /keys/
-/dragonfactory
-/dragonfactory.exe
+/skygear
+/skygear.exe
 *.tmp
 
 # IDE

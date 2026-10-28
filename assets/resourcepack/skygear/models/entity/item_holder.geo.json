@@ -1,0 +1,102 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.skygear.item_holder",
+        "texture_width": 16,
+        "texture_height": 16,
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [
+          0,
+          1,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "body",
+          "parent": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "rightarm",
+          "parent": "body",
+          "pivot": [
+            -10,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "leftarm",
+          "parent": "body",
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "rightitem_pose",
+          "parent": "rightarm",
+          "pivot": [
+            -1,
+            -6,
+            -6
+          ],
+          "rotation": [
+            -75,
+            -12,
+            -16
+          ]
+        },
+        {
+          "name": "rightitem_handheld",
+          "parent": "rightitem_pose",
+          "pivot": [
+            -1,
+            -6,
+            -6
+          ]
+        },
+        {
+          "name": "rightitem",
+          "parent": "rightitem_handheld",
+          "pivot": [
+            -1,
+            -6,
+            -6
+          ]
+        },
+        {
+          "name": "leftitem",
+          "parent": "leftarm",
+          "pivot": [
+            5.5,
+            1,
+            -3
+          ],
+          "rotation": [
+            -20,
+            45,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

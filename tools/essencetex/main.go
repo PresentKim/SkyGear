@@ -1,9 +1,9 @@
 // Command essencetex writes the item textures of the research essences
-// (internal/games/dragonfactory/researchessence.go): a glass bottle filled
+// (internal/games/skygear/researchessence.go): a glass bottle filled
 // with a liquid of the colour of each essence. They are temporary pictures,
 // drawn from the colour of each essence.
 //
-//	go run ./tools/essencetex assets/resourcepack/dragonfactory
+//	go run ./tools/essencetex assets/resourcepack/skygear
 package main
 
 import (
@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 // essences are the colours of the research essences, by kind.

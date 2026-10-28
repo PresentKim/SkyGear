@@ -7,9 +7,9 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // uiModeSetting is the account setting (db account_settings) that makes a

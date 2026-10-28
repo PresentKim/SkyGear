@@ -9,7 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -86,9 +86,9 @@ const lobbyLocks = packet.ClientInputLockCamera | packet.ClientInputLockMovement
 // and sneaking, and the other players hidden both ways. It runs in the lobby
 // transaction.
 func showLobbyScene(p *player.Player, tx *world.Tx) {
-	dfhook.SetCamera(p, lobbyCamera, lobbyPitch, lobbyYaw, 0)
-	dfhook.HideHUD(p, true)
-	dfhook.LockInputs(p, lobbyLocks)
+	sghook.SetCamera(p, lobbyCamera, lobbyPitch, lobbyYaw, 0)
+	sghook.HideHUD(p, true)
+	sghook.LockInputs(p, lobbyLocks)
 	for e := range tx.Players() {
 		if o := e.(*player.Player); o.H() != p.H() {
 			p.HideEntity(o)
@@ -101,10 +101,10 @@ func showLobbyScene(p *player.Player, tx *world.Tx) {
 // shows its players as its chunks arrive.
 func leaveLobbyScene(p *player.Player) {
 	stopLobbyMotion(p)
-	dfhook.ClearCamera(p)
-	dfhook.HideHUD(p, false)
-	dfhook.LockInputs(p, 0)
-	dfhook.ForgetHiddenEntities(p)
+	sghook.ClearCamera(p)
+	sghook.HideHUD(p, false)
+	sghook.LockInputs(p, 0)
+	sghook.ForgetHiddenEntities(p)
 }
 
 // lobbyClear is how far around the spawn the lobby is cleared before the

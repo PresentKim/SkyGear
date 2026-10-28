@@ -4,8 +4,8 @@
 //   - inventoryui: chest windows (chestui)
 //   - waila: the looking-at panel (waila)
 //   - slotdeco: slot decorations (slotdeco)
-//   - dfui: the form and HUD theme (ui, hud). A server pack loaded above it
-//     fills its hooks (ui/dfui_hooks.json), such as the lobby frame.
+//   - sgui: the form and HUD theme (ui, hud). A server pack loaded above it
+//     fills its hooks (ui/sgui_hooks.json), such as the lobby frame.
 //   - oreui: the renderer of server-driven DDUI screens (oreui, ui with
 //     ui.OreUI). Its hbui/gameplay.html replaces the game's own in-game Ore
 //     UI page, which the client takes from an encrypted pack only, so the pack
@@ -19,11 +19,11 @@ import (
 	"io/fs"
 )
 
-//go:embed all:inventoryui all:waila all:slotdeco all:dfui all:oreui
+//go:embed all:inventoryui all:waila all:slotdeco all:sgui all:oreui
 var files embed.FS
 
 // Names are the packs in this package.
-var Names = []string{"inventoryui", "waila", "slotdeco", "dfui", "oreui"}
+var Names = []string{"inventoryui", "waila", "slotdeco", "sgui", "oreui"}
 
 // Sub returns the files of the pack name, rooted at the pack folder.
 func Sub(name string) (fs.FS, error) { return fs.Sub(files, name) }

@@ -4,14 +4,14 @@ import (
 	"math/bits"
 	"strings"
 
-	"github.com/presentkim/dragonfactory/common/internal/slottext"
+	"github.com/presentkim/skygear/common/internal/slottext"
 )
 
 // The tail of the subtitle, after the panel slots: the item line's icon
 // field, four flags (lock 'L', capacity upgrades 'a'+n, void 'V', the line's
 // gauge 'a'+tenths; '-' for none), the item line's text in textWidth bytes
 // padded with '~', and the item line's name (the rest). The pack reads it
-// in tile.json df_marks and df_item_line.
+// in tile.json sg_marks and sg_item_line.
 const (
 	tailStart  = 1 + iconWidth + panelSlots*(iconWidth+countWidth)
 	flagsStart = tailStart + iconWidth
@@ -21,7 +21,7 @@ const (
 )
 
 // lineToken in the title shows the item line.
-const lineToken = "__waila:df.line__"
+const lineToken = "__waila:sg.line__"
 
 // tail is the subtitle tail for marks and line.
 func tail(m Marks, line *ItemLine) string {

@@ -1,8 +1,8 @@
 # 11. 연구 정수와 정수 추출기
 
-> 수치(시간, 개수, 비용)는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 연구 규칙은 [02 §9](02-dragonfactory.md), 에너지는 [06](06-power-and-conduits.md), 자동화는 [09](09-automation-equipment.md).
+> 수치(시간, 개수, 비용)는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 연구 규칙은 [02 §9](02-skygear.md), 에너지는 [06](06-power-and-conduits.md), 자동화는 [09](09-automation-equipment.md).
 
-팩토리오의 연구팩은 "한 단계 높은 연구에는 한 단계 높은 생산 라인이 필요하다"는 규칙으로 중반 이후의 공장을 키운다. 드래곤팩토리는 이 규칙을 **연구 정수**로 옮긴다. 연구 정수는 이름을 "**~의 정수**"로 붙이는 한 계열(공학의 정수, 연금술의 정수, 농사의 정수, 사냥의 정수, 마법의 정수)이고, **정수 추출기**에서 비싼 재료와 에너지, 시간을 들여 만들며 높은 연구의 비용에 재료와 함께 얹힌다. 계열은 시기와 순환이 하나 더 생길 때마다 "~의 정수"를 하나 더하는 식으로 늘린다.
+팩토리오의 연구팩은 "한 단계 높은 연구에는 한 단계 높은 생산 라인이 필요하다"는 규칙으로 중반 이후의 공장을 키운다. 스카이기어는 이 규칙을 **연구 정수**로 옮긴다. 연구 정수는 이름을 "**~의 정수**"로 붙이는 한 계열(공학의 정수, 연금술의 정수, 농사의 정수, 사냥의 정수, 마법의 정수)이고, **정수 추출기**에서 비싼 재료와 에너지, 시간을 들여 만들며 높은 연구의 비용에 재료와 함께 얹힌다. 계열은 시기와 순환이 하나 더 생길 때마다 "~의 정수"를 하나 더하는 식으로 늘린다.
 
 ## 1. 원칙
 
@@ -17,7 +17,7 @@
 
 마인크래프트에서 "재료를 모아 에너지를 들여 시간을 기다려 얻는" 대표적인 일은 **양조**다. 정수 추출기는 양조대처럼 유리병에 재료를 넣어 색이 있는 정수를 만든다.
 
-| 마인크래프트 | 드래곤팩토리 |
+| 마인크래프트 | 스카이기어 |
 |---|---|
 | 유리병 | 정수의 바탕. 정수 추출기가 정수 하나에 유리병 하나를 쓴다 |
 | 양조 재료(네더 사마귀, 블레이즈 가루 …) | 시기별 재료(철·레드스톤, 청동·인바, 작물, 몬스터 드롭, 꽃잎 …) |
@@ -137,7 +137,7 @@
 | 정수 아이템, 연구별 정수 비용 표, 정수 추출기 선행 붙이기, 연출 | `researchessence.go` (`researchEssenceCosts`, `withEssenceCosts`, `pourEssences`) |
 | 정수 추출기 레시피 표, 주기, WAILA 줄 | `lab.go` (`machinerecipe.Labs`, `runLab`, `labLines`) |
 | 정수 추출기 화면(정수 고르기, 넣기·꺼내기·중지) | `labui.go` (`showLab`, `showLabOn`, `labDetail`) |
-| 기계 종류·창 배치·주기 | `machine.go` (`KindLab`, `machineState.period`), 창 JSON `df_machine.json`의 `lab_slots`와 `chest_screen.json`의 `§d§m§8` |
+| 기계 종류·창 배치·주기 | `machine.go` (`KindLab`, `machineState.period`), 창 JSON `sg_machine.json`의 `lab_slots`와 `chest_screen.json`의 `§d§m§8` |
 | 연구 트리·정수 추출기 조합법 | `research.go` (`baseResearchTree`, `laboratory`) |
 | 도감·도움말·발전과제·카운터 | `codex.go`, `help.go`(`helpEssenceText`), `advancement.go`, `counter.go`·`achievement/catalog.go` |
 | 텍스처 | `tools/essencetex`(정수 5종), `tools/machinetex`(정수 추출기) |

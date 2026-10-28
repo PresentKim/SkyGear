@@ -2,15 +2,15 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"slices"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/account"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // Titles, name colours and achievements, from the lobby menu, /title, or a

@@ -2,8 +2,8 @@ package account
 
 import (
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // Setting is an on/off choice of a player, kept with the account (db

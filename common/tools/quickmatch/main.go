@@ -1,5 +1,5 @@
-// Command quickmatch writes packs/inventoryui/ui/df_quick_match.json, the
-// part of the take all and put all bar (ui/df_quick.json) that puts only
+// Command quickmatch writes packs/inventoryui/ui/sg_quick_match.json, the
+// part of the take all and put all bar (ui/sg_quick.json) that puts only
 // what the container already holds. JSON UI has no loops, so the controls
 // that compare an inventory slot with every container slot are written out
 // here. Run it from common/: go run ./tools/quickmatch
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const out = "packs/inventoryui/ui/df_quick_match.json"
+const out = "packs/inventoryui/ui/sg_quick_match.json"
 
 // slots is how many container slots an inventory slot is compared with: a
 // large chest.
@@ -23,11 +23,11 @@ func main() {
 	var bindings []any
 	var terms []string
 	for k := range slots {
-		name := fmt.Sprintf("df_quick_c%d", k)
+		name := fmt.Sprintf("sg_quick_c%d", k)
 		// collection_index is taken only where a definition is used, not
 		// in a control defined in place.
 		ids = append(ids, map[string]any{
-			name + "@df_quick_match.container_id": map[string]any{"collection_index": k},
+			name + "@sg_quick_match.container_id": map[string]any{"collection_index": k},
 		})
 		bindings = append(bindings, map[string]any{
 			"binding_type":         "view",
@@ -52,7 +52,7 @@ func main() {
 		"target_property_name": "#visible",
 	})
 	doc := map[string]any{
-		"namespace": "df_quick_match",
+		"namespace": "sg_quick_match",
 		// The item of each container slot, named so the slot moves below can
 		// read it (source_control_name searches the screen from its root).
 		"container_ids": map[string]any{

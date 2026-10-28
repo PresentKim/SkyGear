@@ -9,15 +9,15 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/common/oreui"
-	"github.com/presentkim/dragonfactory/common/slotdeco"
+	"github.com/presentkim/skygear/common/oreui"
+	"github.com/presentkim/skygear/common/slotdeco"
 )
 
 // OreUI makes Menu, Confirm, CardMenu, ItemBoard, SplitMenu, SieveBoard,
 // ListSplitMenu, Input, ItemGrid, ItemGridSections and SlotMenu show as DDUI
-// screens drawn by the oreui pack, mirroring the dfui JSON UI forms. The
+// screens drawn by the oreui pack, mirroring the sgui JSON UI forms. The
 // server must send the oreui pack encrypted and wrap its listeners with
-// dfhook. LauncherMenu and the other forms (Amount, tables) stay JSON UI and
+// sghook. LauncherMenu and the other forms (Amount, tables) stay JSON UI and
 // close any open DDUI screen first.
 var OreUI bool
 
@@ -520,7 +520,7 @@ func (l *oreLayout) slotNode(sl ItemSlot, extra ...string) map[string]any {
 		ch = append(ch, node("img", "class", "mc-deco", "icon", deco))
 	}
 	// slot_chosen has an opaque middle, so like in JSON UI it goes under the icon.
-	ch = append(ch, node("img", "class", "mc-chosen", "icon", "tex:textures/ui/df/slot_chosen"))
+	ch = append(ch, node("img", "class", "mc-chosen", "icon", "tex:textures/ui/sg/slot_chosen"))
 	if sl.Icon != "" {
 		ch = append(ch, img("mc-icon", sl.Icon))
 	}
@@ -555,7 +555,7 @@ type rarityDeco struct{ mark, texture string }
 
 var rarityDecos = func() (decos []rarityDeco) {
 	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
-		decos = append(decos, rarityDeco{r.Mark(), fmt.Sprintf("tex:textures/ui/df/deco_%d_0", r)})
+		decos = append(decos, rarityDeco{r.Mark(), fmt.Sprintf("tex:textures/ui/sg/deco_%d_0", r)})
 	}
 	return decos
 }()
@@ -569,13 +569,13 @@ func (l *oreLayout) button(class string, o Option) map[string]any {
 	return l.press(box("mc-btn "+class, "ink", "dark", "children", ch), o.Run)
 }
 
-// listButton is df_form's list_button: 30u high, a 20u icon and the text.
+// listButton is sg_form's list_button: 30u high, a 20u icon and the text.
 func (l *oreLayout) listButton(o Option) map[string]any { return l.button("mc-list-row", o) }
 
 // actionButton is the split screen's 17u action button.
 func (l *oreLayout) actionButton(o Option) map[string]any { return l.button("mc-action", o) }
 
-// card is df_form's card_button: 72x46 in a 76x50 cell.
+// card is sg_form's card_button: 72x46 in a 76x50 cell.
 func (l *oreLayout) card(o Option) map[string]any {
 	return box("mc-card-cell", "children", []any{l.button("mc-card", o)})
 }
@@ -593,7 +593,7 @@ func (l *oreLayout) chrome(opts []Option) (tabs, bar []any, rest []Option) {
 		case strings.HasPrefix(o.Label, HelpToken):
 			help = append(help, l.iconButton(o, "", "?"))
 		case strings.HasPrefix(o.Label, BackToken):
-			back = append(back, quick(l.iconButton(o, "textures/ui/df/chevron_left", "")))
+			back = append(back, quick(l.iconButton(o, "textures/ui/sg/chevron_left", "")))
 		default:
 			rest = append(rest, o)
 		}
@@ -643,7 +643,7 @@ func (l *oreLayout) tab(o Option) map[string]any {
 // size lets showOre switch screens in place.
 const windowW, windowH = 326, 166
 
-// window is df_form's window: the tabs over its top left, the control bar
+// window is sg_form's window: the tabs over its top left, the control bar
 // over its top right (with the close button), the title and the content.
 func (l *oreLayout) window(title string, tabs, bar []any, content any) any {
 	w, h := windowW, windowH
@@ -664,7 +664,7 @@ func (l *oreLayout) window(title string, tabs, bar []any, content any) any {
 
 func scroll(children ...any) map[string]any { return box("mc-scroll mc-col", "children", children) }
 
-// oreMenu is a plain menu (df_form action_form): the body text and a
+// oreMenu is a plain menu (sg_form action_form): the body text and a
 // list button per option.
 func oreMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
@@ -679,7 +679,7 @@ func oreMenu(p *player.Player, title, body string, opts []Option) {
 	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreCardMenu is a card menu (df_form card_form): the body text and
+// oreCardMenu is a card menu (sg_form card_form): the body text and
 // four cards to a row.
 func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
@@ -737,7 +737,7 @@ func (l *oreLayout) boardRow(row []BoardCell) any {
 	return box("mc-board-row", "children", cells)
 }
 
-// oreBoard is an ItemBoard (df_form's board): the body text, the
+// oreBoard is an ItemBoard (sg_form's board): the body text, the
 // rows and list buttons for the actions that are not tabs or bar buttons.
 func oreBoard(p *player.Player, title, body string, rows [][]BoardCell, actions []Option) {
 	l := newOreLayout()
@@ -828,7 +828,7 @@ func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []Siev
 	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
 }
 
-// oreSplit is a SplitMenu (df_form split_form): icon tabs over the
+// oreSplit is a SplitMenu (sg_form split_form): icon tabs over the
 // window, the grid of SplitCells slots with the page arrows under it on the
 // left, and the chosen slot's detail on the right: the big slot, the name and
 // status with the action buttons under them, the body text and the headed
@@ -857,8 +857,8 @@ func oreSplit(p *player.Player, title string, sp Split) {
 	left := box("mc-panel mc-split-left", "children", []any{box("mc-col", "children", []any{
 		box("mc-split-grid", "children", cells),
 		box("mc-pager", "children", []any{
-			pager(page > 0, "textures/ui/df/arrow_left", page-1),
-			pager(page < pages-1, "textures/ui/df/arrow_right", page+1),
+			pager(page > 0, "textures/ui/sg/arrow_left", page-1),
+			pager(page < pages-1, "textures/ui/sg/arrow_right", page+1),
 		}),
 	})})
 	head := []any{}

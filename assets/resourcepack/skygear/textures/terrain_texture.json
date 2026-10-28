@@ -1,0 +1,1316 @@
+{
+  "num_mip_levels": 4,
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "resource_pack_name": "vanilla",
+  "texture_data": {
+    "skygear_alloy_smelter_back": {
+      "textures": "textures/blocks/alloy_smelter_back"
+    },
+    "skygear_alloy_smelter_back_t1": {
+      "textures": "textures/blocks/alloy_smelter_back_t1"
+    },
+    "skygear_alloy_smelter_back_t2": {
+      "textures": "textures/blocks/alloy_smelter_back_t2"
+    },
+    "skygear_alloy_smelter_back_t3": {
+      "textures": "textures/blocks/alloy_smelter_back_t3"
+    },
+    "skygear_alloy_smelter_down": {
+      "textures": "textures/blocks/alloy_smelter_down"
+    },
+    "skygear_alloy_smelter_down_t1": {
+      "textures": "textures/blocks/alloy_smelter_down_t1"
+    },
+    "skygear_alloy_smelter_down_t2": {
+      "textures": "textures/blocks/alloy_smelter_down_t2"
+    },
+    "skygear_alloy_smelter_down_t3": {
+      "textures": "textures/blocks/alloy_smelter_down_t3"
+    },
+    "skygear_alloy_smelter_front": {
+      "textures": "textures/blocks/alloy_smelter_front"
+    },
+    "skygear_alloy_smelter_front_on": {
+      "textures": "textures/blocks/alloy_smelter_front_on"
+    },
+    "skygear_alloy_smelter_front_on_t1": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t1"
+    },
+    "skygear_alloy_smelter_front_on_t2": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t2"
+    },
+    "skygear_alloy_smelter_front_on_t3": {
+      "textures": "textures/blocks/alloy_smelter_front_on_t3"
+    },
+    "skygear_alloy_smelter_front_t1": {
+      "textures": "textures/blocks/alloy_smelter_front_t1"
+    },
+    "skygear_alloy_smelter_front_t2": {
+      "textures": "textures/blocks/alloy_smelter_front_t2"
+    },
+    "skygear_alloy_smelter_front_t3": {
+      "textures": "textures/blocks/alloy_smelter_front_t3"
+    },
+    "skygear_alloy_smelter_side": {
+      "textures": "textures/blocks/alloy_smelter_side"
+    },
+    "skygear_alloy_smelter_side_t1": {
+      "textures": "textures/blocks/alloy_smelter_side_t1"
+    },
+    "skygear_alloy_smelter_side_t2": {
+      "textures": "textures/blocks/alloy_smelter_side_t2"
+    },
+    "skygear_alloy_smelter_side_t3": {
+      "textures": "textures/blocks/alloy_smelter_side_t3"
+    },
+    "skygear_alloy_smelter_up": {
+      "textures": "textures/blocks/alloy_smelter_up"
+    },
+    "skygear_alloy_smelter_up_t1": {
+      "textures": "textures/blocks/alloy_smelter_up_t1"
+    },
+    "skygear_alloy_smelter_up_t2": {
+      "textures": "textures/blocks/alloy_smelter_up_t2"
+    },
+    "skygear_alloy_smelter_up_t3": {
+      "textures": "textures/blocks/alloy_smelter_up_t3"
+    },
+    "skygear_auto_crafter_back": {
+      "textures": "textures/blocks/auto_crafter_back"
+    },
+    "skygear_auto_crafter_back_t1": {
+      "textures": "textures/blocks/auto_crafter_back_t1"
+    },
+    "skygear_auto_crafter_back_t2": {
+      "textures": "textures/blocks/auto_crafter_back_t2"
+    },
+    "skygear_auto_crafter_back_t3": {
+      "textures": "textures/blocks/auto_crafter_back_t3"
+    },
+    "skygear_auto_crafter_down": {
+      "textures": "textures/blocks/auto_crafter_down"
+    },
+    "skygear_auto_crafter_down_t1": {
+      "textures": "textures/blocks/auto_crafter_down_t1"
+    },
+    "skygear_auto_crafter_down_t2": {
+      "textures": "textures/blocks/auto_crafter_down_t2"
+    },
+    "skygear_auto_crafter_down_t3": {
+      "textures": "textures/blocks/auto_crafter_down_t3"
+    },
+    "skygear_auto_crafter_front": {
+      "textures": "textures/blocks/auto_crafter_front"
+    },
+    "skygear_auto_crafter_front_on": {
+      "textures": "textures/blocks/auto_crafter_front_on"
+    },
+    "skygear_auto_crafter_front_on_t1": {
+      "textures": "textures/blocks/auto_crafter_front_on_t1"
+    },
+    "skygear_auto_crafter_front_on_t2": {
+      "textures": "textures/blocks/auto_crafter_front_on_t2"
+    },
+    "skygear_auto_crafter_front_on_t3": {
+      "textures": "textures/blocks/auto_crafter_front_on_t3"
+    },
+    "skygear_auto_crafter_front_t1": {
+      "textures": "textures/blocks/auto_crafter_front_t1"
+    },
+    "skygear_auto_crafter_front_t2": {
+      "textures": "textures/blocks/auto_crafter_front_t2"
+    },
+    "skygear_auto_crafter_front_t3": {
+      "textures": "textures/blocks/auto_crafter_front_t3"
+    },
+    "skygear_auto_crafter_side": {
+      "textures": "textures/blocks/auto_crafter_side"
+    },
+    "skygear_auto_crafter_side_t1": {
+      "textures": "textures/blocks/auto_crafter_side_t1"
+    },
+    "skygear_auto_crafter_side_t2": {
+      "textures": "textures/blocks/auto_crafter_side_t2"
+    },
+    "skygear_auto_crafter_side_t3": {
+      "textures": "textures/blocks/auto_crafter_side_t3"
+    },
+    "skygear_auto_crafter_up": {
+      "textures": "textures/blocks/auto_crafter_up"
+    },
+    "skygear_auto_crafter_up_t1": {
+      "textures": "textures/blocks/auto_crafter_up_t1"
+    },
+    "skygear_auto_crafter_up_t2": {
+      "textures": "textures/blocks/auto_crafter_up_t2"
+    },
+    "skygear_auto_crafter_up_t3": {
+      "textures": "textures/blocks/auto_crafter_up_t3"
+    },
+    "skygear_auto_miner_down": {
+      "textures": "textures/blocks/auto_miner_down"
+    },
+    "skygear_auto_miner_down_t1": {
+      "textures": "textures/blocks/auto_miner_down_t1"
+    },
+    "skygear_auto_miner_down_t2": {
+      "textures": "textures/blocks/auto_miner_down_t2"
+    },
+    "skygear_auto_miner_down_t3": {
+      "textures": "textures/blocks/auto_miner_down_t3"
+    },
+    "skygear_auto_miner_side": {
+      "textures": "textures/blocks/auto_miner_side"
+    },
+    "skygear_auto_miner_side_on": {
+      "textures": "textures/blocks/auto_miner_side_on"
+    },
+    "skygear_auto_miner_side_on_t1": {
+      "textures": "textures/blocks/auto_miner_side_on_t1"
+    },
+    "skygear_auto_miner_side_on_t2": {
+      "textures": "textures/blocks/auto_miner_side_on_t2"
+    },
+    "skygear_auto_miner_side_on_t3": {
+      "textures": "textures/blocks/auto_miner_side_on_t3"
+    },
+    "skygear_auto_miner_side_t1": {
+      "textures": "textures/blocks/auto_miner_side_t1"
+    },
+    "skygear_auto_miner_side_t2": {
+      "textures": "textures/blocks/auto_miner_side_t2"
+    },
+    "skygear_auto_miner_side_t3": {
+      "textures": "textures/blocks/auto_miner_side_t3"
+    },
+    "skygear_auto_miner_up": {
+      "textures": "textures/blocks/auto_miner_up"
+    },
+    "skygear_auto_miner_up_t1": {
+      "textures": "textures/blocks/auto_miner_up_t1"
+    },
+    "skygear_auto_miner_up_t2": {
+      "textures": "textures/blocks/auto_miner_up_t2"
+    },
+    "skygear_auto_miner_up_t3": {
+      "textures": "textures/blocks/auto_miner_up_t3"
+    },
+    "skygear_auto_sieve": {
+      "textures": "textures/blocks/planks_big_oak"
+    },
+    "skygear_barrel_cobble": {
+      "textures": "textures/blocks/barrel_cobble"
+    },
+    "skygear_barrel_compost": {
+      "textures": "textures/blocks/barrel_compost"
+    },
+    "skygear_barrel_lava": {
+      "textures": "textures/blocks/barrel_lava"
+    },
+    "skygear_barrel_oak": {
+      "textures": "textures/blocks/planks_oak"
+    },
+    "skygear_barrel_stone": {
+      "textures": "textures/blocks/barrel_stone"
+    },
+    "skygear_barrel_water": {
+      "textures": "textures/blocks/water_placeholder"
+    },
+    "skygear_barrel_witch_water": {
+      "textures": "textures/blocks/water_placeholder"
+    },
+    "skygear_conduit_energy_1": {
+      "textures": "textures/blocks/conduit_energy_1"
+    },
+    "skygear_conduit_energy_2": {
+      "textures": "textures/blocks/conduit_energy_2"
+    },
+    "skygear_conduit_energy_3": {
+      "textures": "textures/blocks/conduit_energy_3"
+    },
+    "skygear_conduit_fluid_1": {
+      "textures": "textures/blocks/conduit_fluid_1"
+    },
+    "skygear_conduit_fluid_2": {
+      "textures": "textures/blocks/conduit_fluid_2"
+    },
+    "skygear_conduit_fluid_3": {
+      "textures": "textures/blocks/conduit_fluid_3"
+    },
+    "skygear_conduit_item_1": {
+      "textures": "textures/blocks/conduit_item_1"
+    },
+    "skygear_conduit_item_2": {
+      "textures": "textures/blocks/conduit_item_2"
+    },
+    "skygear_conduit_item_3": {
+      "textures": "textures/blocks/conduit_item_3"
+    },
+    "skygear_conduit_node": {
+      "textures": "textures/blocks/conduit_node"
+    },
+    "skygear_crucible_back": {
+      "textures": "textures/blocks/crucible_back"
+    },
+    "skygear_crucible_back_t1": {
+      "textures": "textures/blocks/crucible_back_t1"
+    },
+    "skygear_crucible_back_t2": {
+      "textures": "textures/blocks/crucible_back_t2"
+    },
+    "skygear_crucible_back_t3": {
+      "textures": "textures/blocks/crucible_back_t3"
+    },
+    "skygear_crucible_down": {
+      "textures": "textures/blocks/crucible_down"
+    },
+    "skygear_crucible_down_t1": {
+      "textures": "textures/blocks/crucible_down_t1"
+    },
+    "skygear_crucible_down_t2": {
+      "textures": "textures/blocks/crucible_down_t2"
+    },
+    "skygear_crucible_down_t3": {
+      "textures": "textures/blocks/crucible_down_t3"
+    },
+    "skygear_crucible_front": {
+      "textures": "textures/blocks/crucible_front"
+    },
+    "skygear_crucible_front_on": {
+      "textures": "textures/blocks/crucible_front_on"
+    },
+    "skygear_crucible_front_on_t1": {
+      "textures": "textures/blocks/crucible_front_on_t1"
+    },
+    "skygear_crucible_front_on_t2": {
+      "textures": "textures/blocks/crucible_front_on_t2"
+    },
+    "skygear_crucible_front_on_t3": {
+      "textures": "textures/blocks/crucible_front_on_t3"
+    },
+    "skygear_crucible_front_t1": {
+      "textures": "textures/blocks/crucible_front_t1"
+    },
+    "skygear_crucible_front_t2": {
+      "textures": "textures/blocks/crucible_front_t2"
+    },
+    "skygear_crucible_front_t3": {
+      "textures": "textures/blocks/crucible_front_t3"
+    },
+    "skygear_crucible_side": {
+      "textures": "textures/blocks/crucible_side"
+    },
+    "skygear_crucible_side_t1": {
+      "textures": "textures/blocks/crucible_side_t1"
+    },
+    "skygear_crucible_side_t2": {
+      "textures": "textures/blocks/crucible_side_t2"
+    },
+    "skygear_crucible_side_t3": {
+      "textures": "textures/blocks/crucible_side_t3"
+    },
+    "skygear_crucible_up": {
+      "textures": "textures/blocks/crucible_up"
+    },
+    "skygear_crucible_up_t1": {
+      "textures": "textures/blocks/crucible_up_t1"
+    },
+    "skygear_crucible_up_t2": {
+      "textures": "textures/blocks/crucible_up_t2"
+    },
+    "skygear_crucible_up_t3": {
+      "textures": "textures/blocks/crucible_up_t3"
+    },
+    "skygear_crusher_back": {
+      "textures": "textures/blocks/crusher_back"
+    },
+    "skygear_crusher_back_t1": {
+      "textures": "textures/blocks/crusher_back_t1"
+    },
+    "skygear_crusher_back_t2": {
+      "textures": "textures/blocks/crusher_back_t2"
+    },
+    "skygear_crusher_back_t3": {
+      "textures": "textures/blocks/crusher_back_t3"
+    },
+    "skygear_crusher_down": {
+      "textures": "textures/blocks/crusher_down"
+    },
+    "skygear_crusher_down_t1": {
+      "textures": "textures/blocks/crusher_down_t1"
+    },
+    "skygear_crusher_down_t2": {
+      "textures": "textures/blocks/crusher_down_t2"
+    },
+    "skygear_crusher_down_t3": {
+      "textures": "textures/blocks/crusher_down_t3"
+    },
+    "skygear_crusher_front": {
+      "textures": "textures/blocks/crusher_front"
+    },
+    "skygear_crusher_front_on": {
+      "textures": "textures/blocks/crusher_front_on"
+    },
+    "skygear_crusher_front_on_t1": {
+      "textures": "textures/blocks/crusher_front_on_t1"
+    },
+    "skygear_crusher_front_on_t2": {
+      "textures": "textures/blocks/crusher_front_on_t2"
+    },
+    "skygear_crusher_front_on_t3": {
+      "textures": "textures/blocks/crusher_front_on_t3"
+    },
+    "skygear_crusher_front_t1": {
+      "textures": "textures/blocks/crusher_front_t1"
+    },
+    "skygear_crusher_front_t2": {
+      "textures": "textures/blocks/crusher_front_t2"
+    },
+    "skygear_crusher_front_t3": {
+      "textures": "textures/blocks/crusher_front_t3"
+    },
+    "skygear_crusher_side": {
+      "textures": "textures/blocks/crusher_side"
+    },
+    "skygear_crusher_side_t1": {
+      "textures": "textures/blocks/crusher_side_t1"
+    },
+    "skygear_crusher_side_t2": {
+      "textures": "textures/blocks/crusher_side_t2"
+    },
+    "skygear_crusher_side_t3": {
+      "textures": "textures/blocks/crusher_side_t3"
+    },
+    "skygear_crusher_up": {
+      "textures": "textures/blocks/crusher_up"
+    },
+    "skygear_crusher_up_t1": {
+      "textures": "textures/blocks/crusher_up_t1"
+    },
+    "skygear_crusher_up_t2": {
+      "textures": "textures/blocks/crusher_up_t2"
+    },
+    "skygear_crusher_up_t3": {
+      "textures": "textures/blocks/crusher_up_t3"
+    },
+    "skygear_dimension_gate_down": {
+      "textures": "textures/blocks/portal_placeholder"
+    },
+    "skygear_dimension_gate_side": {
+      "textures": "textures/blocks/portal_placeholder"
+    },
+    "skygear_dimension_gate_up": {
+      "textures": "textures/blocks/portal_placeholder"
+    },
+    "skygear_drawer_front": {
+      "textures": "textures/blocks/drawer_front"
+    },
+    "skygear_drawer_side": {
+      "textures": "textures/blocks/drawer_side"
+    },
+    "skygear_crushed_deepslate": {
+      "textures": "textures/blocks/crushed_deepslate"
+    },
+    "skygear_crushed_netherrack": {
+      "textures": "textures/blocks/crushed_netherrack"
+    },
+    "skygear_crushed_blackstone": {
+      "textures": "textures/blocks/crushed_blackstone"
+    },
+    "skygear_crushed_end_stone": {
+      "textures": "textures/blocks/crushed_end_stone"
+    },
+    "skygear_tin_ore": {
+      "textures": "textures/blocks/tin_ore"
+    },
+    "skygear_lead_ore": {
+      "textures": "textures/blocks/lead_ore"
+    },
+    "skygear_silver_ore": {
+      "textures": "textures/blocks/silver_ore"
+    },
+    "skygear_nickel_ore": {
+      "textures": "textures/blocks/nickel_ore"
+    },
+    "skygear_dust": {
+      "textures": "textures/blocks/dust"
+    },
+    "skygear_electric_furnace_back": {
+      "textures": "textures/blocks/electric_furnace_back"
+    },
+    "skygear_electric_furnace_back_t1": {
+      "textures": "textures/blocks/electric_furnace_back_t1"
+    },
+    "skygear_electric_furnace_back_t2": {
+      "textures": "textures/blocks/electric_furnace_back_t2"
+    },
+    "skygear_electric_furnace_back_t3": {
+      "textures": "textures/blocks/electric_furnace_back_t3"
+    },
+    "skygear_electric_furnace_down": {
+      "textures": "textures/blocks/electric_furnace_down"
+    },
+    "skygear_electric_furnace_down_t1": {
+      "textures": "textures/blocks/electric_furnace_down_t1"
+    },
+    "skygear_electric_furnace_down_t2": {
+      "textures": "textures/blocks/electric_furnace_down_t2"
+    },
+    "skygear_electric_furnace_down_t3": {
+      "textures": "textures/blocks/electric_furnace_down_t3"
+    },
+    "skygear_electric_furnace_front": {
+      "textures": "textures/blocks/electric_furnace_front"
+    },
+    "skygear_electric_furnace_front_on": {
+      "textures": "textures/blocks/electric_furnace_front_on"
+    },
+    "skygear_electric_furnace_front_on_t1": {
+      "textures": "textures/blocks/electric_furnace_front_on_t1"
+    },
+    "skygear_electric_furnace_front_on_t2": {
+      "textures": "textures/blocks/electric_furnace_front_on_t2"
+    },
+    "skygear_electric_furnace_front_on_t3": {
+      "textures": "textures/blocks/electric_furnace_front_on_t3"
+    },
+    "skygear_electric_furnace_front_t1": {
+      "textures": "textures/blocks/electric_furnace_front_t1"
+    },
+    "skygear_electric_furnace_front_t2": {
+      "textures": "textures/blocks/electric_furnace_front_t2"
+    },
+    "skygear_electric_furnace_front_t3": {
+      "textures": "textures/blocks/electric_furnace_front_t3"
+    },
+    "skygear_electric_furnace_side": {
+      "textures": "textures/blocks/electric_furnace_side"
+    },
+    "skygear_electric_furnace_side_t1": {
+      "textures": "textures/blocks/electric_furnace_side_t1"
+    },
+    "skygear_electric_furnace_side_t2": {
+      "textures": "textures/blocks/electric_furnace_side_t2"
+    },
+    "skygear_electric_furnace_side_t3": {
+      "textures": "textures/blocks/electric_furnace_side_t3"
+    },
+    "skygear_electric_furnace_up": {
+      "textures": "textures/blocks/electric_furnace_up"
+    },
+    "skygear_electric_furnace_up_t1": {
+      "textures": "textures/blocks/electric_furnace_up_t1"
+    },
+    "skygear_electric_furnace_up_t2": {
+      "textures": "textures/blocks/electric_furnace_up_t2"
+    },
+    "skygear_electric_furnace_up_t3": {
+      "textures": "textures/blocks/electric_furnace_up_t3"
+    },
+    "skygear_energy_cell_down": {
+      "textures": "textures/blocks/energy_cell_down"
+    },
+    "skygear_energy_cell_down_t1": {
+      "textures": "textures/blocks/energy_cell_down_t1"
+    },
+    "skygear_energy_cell_down_t2": {
+      "textures": "textures/blocks/energy_cell_down_t2"
+    },
+    "skygear_energy_cell_down_t3": {
+      "textures": "textures/blocks/energy_cell_down_t3"
+    },
+    "skygear_energy_cell_side": {
+      "textures": "textures/blocks/energy_cell_side"
+    },
+    "skygear_energy_cell_side_t1": {
+      "textures": "textures/blocks/energy_cell_side_t1"
+    },
+    "skygear_energy_cell_side_t2": {
+      "textures": "textures/blocks/energy_cell_side_t2"
+    },
+    "skygear_energy_cell_side_t3": {
+      "textures": "textures/blocks/energy_cell_side_t3"
+    },
+    "skygear_energy_cell_up": {
+      "textures": "textures/blocks/energy_cell_up"
+    },
+    "skygear_energy_cell_up_t1": {
+      "textures": "textures/blocks/energy_cell_up_t1"
+    },
+    "skygear_energy_cell_up_t2": {
+      "textures": "textures/blocks/energy_cell_up_t2"
+    },
+    "skygear_energy_cell_up_t3": {
+      "textures": "textures/blocks/energy_cell_up_t3"
+    },
+    "skygear_fluid_tank_down": {
+      "textures": "textures/blocks/fluid_tank_down"
+    },
+    "skygear_fluid_tank_side": {
+      "textures": "textures/blocks/fluid_tank_side"
+    },
+    "skygear_fluid_tank_up": {
+      "textures": "textures/blocks/fluid_tank_up"
+    },
+    "skygear_generator_down": {
+      "textures": "textures/blocks/generator_down"
+    },
+    "skygear_generator_down_t1": {
+      "textures": "textures/blocks/generator_down_t1"
+    },
+    "skygear_generator_down_t2": {
+      "textures": "textures/blocks/generator_down_t2"
+    },
+    "skygear_generator_down_t3": {
+      "textures": "textures/blocks/generator_down_t3"
+    },
+    "skygear_generator_side": {
+      "textures": "textures/blocks/generator_side"
+    },
+    "skygear_generator_side_on": {
+      "textures": "textures/blocks/generator_side_on"
+    },
+    "skygear_generator_side_on_t1": {
+      "textures": "textures/blocks/generator_side_on_t1"
+    },
+    "skygear_generator_side_on_t2": {
+      "textures": "textures/blocks/generator_side_on_t2"
+    },
+    "skygear_generator_side_on_t3": {
+      "textures": "textures/blocks/generator_side_on_t3"
+    },
+    "skygear_generator_side_t1": {
+      "textures": "textures/blocks/generator_side_t1"
+    },
+    "skygear_generator_side_t2": {
+      "textures": "textures/blocks/generator_side_t2"
+    },
+    "skygear_generator_side_t3": {
+      "textures": "textures/blocks/generator_side_t3"
+    },
+    "skygear_generator_up": {
+      "textures": "textures/blocks/generator_up"
+    },
+    "skygear_generator_up_t1": {
+      "textures": "textures/blocks/generator_up_t1"
+    },
+    "skygear_generator_up_t2": {
+      "textures": "textures/blocks/generator_up_t2"
+    },
+    "skygear_generator_up_t3": {
+      "textures": "textures/blocks/generator_up_t3"
+    },
+    "skygear_harvester_down": {
+      "textures": "textures/blocks/harvester_down"
+    },
+    "skygear_harvester_down_t1": {
+      "textures": "textures/blocks/harvester_down_t1"
+    },
+    "skygear_harvester_down_t2": {
+      "textures": "textures/blocks/harvester_down_t2"
+    },
+    "skygear_harvester_down_t3": {
+      "textures": "textures/blocks/harvester_down_t3"
+    },
+    "skygear_harvester_side": {
+      "textures": "textures/blocks/harvester_side"
+    },
+    "skygear_harvester_side_on": {
+      "textures": "textures/blocks/harvester_side_on"
+    },
+    "skygear_harvester_side_on_t1": {
+      "textures": "textures/blocks/harvester_side_on_t1"
+    },
+    "skygear_harvester_side_on_t2": {
+      "textures": "textures/blocks/harvester_side_on_t2"
+    },
+    "skygear_harvester_side_on_t3": {
+      "textures": "textures/blocks/harvester_side_on_t3"
+    },
+    "skygear_harvester_side_t1": {
+      "textures": "textures/blocks/harvester_side_t1"
+    },
+    "skygear_harvester_side_t2": {
+      "textures": "textures/blocks/harvester_side_t2"
+    },
+    "skygear_harvester_side_t3": {
+      "textures": "textures/blocks/harvester_side_t3"
+    },
+    "skygear_harvester_up": {
+      "textures": "textures/blocks/harvester_up"
+    },
+    "skygear_harvester_up_t1": {
+      "textures": "textures/blocks/harvester_up_t1"
+    },
+    "skygear_harvester_up_t2": {
+      "textures": "textures/blocks/harvester_up_t2"
+    },
+    "skygear_harvester_up_t3": {
+      "textures": "textures/blocks/harvester_up_t3"
+    },
+    "skygear_iron_hopper": {
+      "textures": "textures/blocks/hopper_outside"
+    },
+    "skygear_item_vacuum_down": {
+      "textures": "textures/blocks/item_vacuum_down"
+    },
+    "skygear_item_vacuum_down_t1": {
+      "textures": "textures/blocks/item_vacuum_down_t1"
+    },
+    "skygear_item_vacuum_down_t2": {
+      "textures": "textures/blocks/item_vacuum_down_t2"
+    },
+    "skygear_item_vacuum_down_t3": {
+      "textures": "textures/blocks/item_vacuum_down_t3"
+    },
+    "skygear_item_vacuum_side": {
+      "textures": "textures/blocks/item_vacuum_side"
+    },
+    "skygear_item_vacuum_side_on": {
+      "textures": "textures/blocks/item_vacuum_side_on"
+    },
+    "skygear_item_vacuum_side_on_t1": {
+      "textures": "textures/blocks/item_vacuum_side_on_t1"
+    },
+    "skygear_item_vacuum_side_on_t2": {
+      "textures": "textures/blocks/item_vacuum_side_on_t2"
+    },
+    "skygear_item_vacuum_side_on_t3": {
+      "textures": "textures/blocks/item_vacuum_side_on_t3"
+    },
+    "skygear_item_vacuum_side_t1": {
+      "textures": "textures/blocks/item_vacuum_side_t1"
+    },
+    "skygear_item_vacuum_side_t2": {
+      "textures": "textures/blocks/item_vacuum_side_t2"
+    },
+    "skygear_item_vacuum_side_t3": {
+      "textures": "textures/blocks/item_vacuum_side_t3"
+    },
+    "skygear_item_vacuum_up": {
+      "textures": "textures/blocks/item_vacuum_up"
+    },
+    "skygear_item_vacuum_up_t1": {
+      "textures": "textures/blocks/item_vacuum_up_t1"
+    },
+    "skygear_item_vacuum_up_t2": {
+      "textures": "textures/blocks/item_vacuum_up_t2"
+    },
+    "skygear_item_vacuum_up_t3": {
+      "textures": "textures/blocks/item_vacuum_up_t3"
+    },
+    "skygear_laboratory_back": {
+      "textures": "textures/blocks/laboratory_back"
+    },
+    "skygear_laboratory_back_t1": {
+      "textures": "textures/blocks/laboratory_back_t1"
+    },
+    "skygear_laboratory_back_t2": {
+      "textures": "textures/blocks/laboratory_back_t2"
+    },
+    "skygear_laboratory_back_t3": {
+      "textures": "textures/blocks/laboratory_back_t3"
+    },
+    "skygear_laboratory_down": {
+      "textures": "textures/blocks/laboratory_down"
+    },
+    "skygear_laboratory_down_t1": {
+      "textures": "textures/blocks/laboratory_down_t1"
+    },
+    "skygear_laboratory_down_t2": {
+      "textures": "textures/blocks/laboratory_down_t2"
+    },
+    "skygear_laboratory_down_t3": {
+      "textures": "textures/blocks/laboratory_down_t3"
+    },
+    "skygear_laboratory_front": {
+      "textures": "textures/blocks/laboratory_front"
+    },
+    "skygear_laboratory_front_on": {
+      "textures": "textures/blocks/laboratory_front_on"
+    },
+    "skygear_laboratory_front_on_t1": {
+      "textures": "textures/blocks/laboratory_front_on_t1"
+    },
+    "skygear_laboratory_front_on_t2": {
+      "textures": "textures/blocks/laboratory_front_on_t2"
+    },
+    "skygear_laboratory_front_on_t3": {
+      "textures": "textures/blocks/laboratory_front_on_t3"
+    },
+    "skygear_laboratory_front_t1": {
+      "textures": "textures/blocks/laboratory_front_t1"
+    },
+    "skygear_laboratory_front_t2": {
+      "textures": "textures/blocks/laboratory_front_t2"
+    },
+    "skygear_laboratory_front_t3": {
+      "textures": "textures/blocks/laboratory_front_t3"
+    },
+    "skygear_laboratory_side": {
+      "textures": "textures/blocks/laboratory_side"
+    },
+    "skygear_laboratory_side_t1": {
+      "textures": "textures/blocks/laboratory_side_t1"
+    },
+    "skygear_laboratory_side_t2": {
+      "textures": "textures/blocks/laboratory_side_t2"
+    },
+    "skygear_laboratory_side_t3": {
+      "textures": "textures/blocks/laboratory_side_t3"
+    },
+    "skygear_laboratory_up": {
+      "textures": "textures/blocks/laboratory_up"
+    },
+    "skygear_laboratory_up_t1": {
+      "textures": "textures/blocks/laboratory_up_t1"
+    },
+    "skygear_laboratory_up_t2": {
+      "textures": "textures/blocks/laboratory_up_t2"
+    },
+    "skygear_laboratory_up_t3": {
+      "textures": "textures/blocks/laboratory_up_t3"
+    },
+    "skygear_lava_generator_down": {
+      "textures": "textures/blocks/lava_generator_down"
+    },
+    "skygear_lava_generator_down_t1": {
+      "textures": "textures/blocks/lava_generator_down_t1"
+    },
+    "skygear_lava_generator_down_t2": {
+      "textures": "textures/blocks/lava_generator_down_t2"
+    },
+    "skygear_lava_generator_down_t3": {
+      "textures": "textures/blocks/lava_generator_down_t3"
+    },
+    "skygear_lava_generator_side": {
+      "textures": "textures/blocks/lava_generator_side"
+    },
+    "skygear_lava_generator_side_on": {
+      "textures": "textures/blocks/lava_generator_side_on"
+    },
+    "skygear_lava_generator_side_on_t1": {
+      "textures": "textures/blocks/lava_generator_side_on_t1"
+    },
+    "skygear_lava_generator_side_on_t2": {
+      "textures": "textures/blocks/lava_generator_side_on_t2"
+    },
+    "skygear_lava_generator_side_on_t3": {
+      "textures": "textures/blocks/lava_generator_side_on_t3"
+    },
+    "skygear_lava_generator_side_t1": {
+      "textures": "textures/blocks/lava_generator_side_t1"
+    },
+    "skygear_lava_generator_side_t2": {
+      "textures": "textures/blocks/lava_generator_side_t2"
+    },
+    "skygear_lava_generator_side_t3": {
+      "textures": "textures/blocks/lava_generator_side_t3"
+    },
+    "skygear_lava_generator_up": {
+      "textures": "textures/blocks/lava_generator_up"
+    },
+    "skygear_lava_generator_up_t1": {
+      "textures": "textures/blocks/lava_generator_up_t1"
+    },
+    "skygear_lava_generator_up_t2": {
+      "textures": "textures/blocks/lava_generator_up_t2"
+    },
+    "skygear_lava_generator_up_t3": {
+      "textures": "textures/blocks/lava_generator_up_t3"
+    },
+    "skygear_magic_sieve": {
+      "textures": "textures/blocks/huge_fungus/crimson_planks"
+    },
+    "skygear_mob_simulator_back": {
+      "textures": "textures/blocks/mob_simulator_back"
+    },
+    "skygear_mob_simulator_back_t1": {
+      "textures": "textures/blocks/mob_simulator_back_t1"
+    },
+    "skygear_mob_simulator_back_t2": {
+      "textures": "textures/blocks/mob_simulator_back_t2"
+    },
+    "skygear_mob_simulator_back_t3": {
+      "textures": "textures/blocks/mob_simulator_back_t3"
+    },
+    "skygear_mob_simulator_down": {
+      "textures": "textures/blocks/mob_simulator_down"
+    },
+    "skygear_mob_simulator_down_t1": {
+      "textures": "textures/blocks/mob_simulator_down_t1"
+    },
+    "skygear_mob_simulator_down_t2": {
+      "textures": "textures/blocks/mob_simulator_down_t2"
+    },
+    "skygear_mob_simulator_down_t3": {
+      "textures": "textures/blocks/mob_simulator_down_t3"
+    },
+    "skygear_mob_simulator_front": {
+      "textures": "textures/blocks/mob_simulator_front"
+    },
+    "skygear_mob_simulator_front_on": {
+      "textures": "textures/blocks/mob_simulator_front_on"
+    },
+    "skygear_mob_simulator_front_on_t1": {
+      "textures": "textures/blocks/mob_simulator_front_on_t1"
+    },
+    "skygear_mob_simulator_front_on_t2": {
+      "textures": "textures/blocks/mob_simulator_front_on_t2"
+    },
+    "skygear_mob_simulator_front_on_t3": {
+      "textures": "textures/blocks/mob_simulator_front_on_t3"
+    },
+    "skygear_mob_simulator_front_t1": {
+      "textures": "textures/blocks/mob_simulator_front_t1"
+    },
+    "skygear_mob_simulator_front_t2": {
+      "textures": "textures/blocks/mob_simulator_front_t2"
+    },
+    "skygear_mob_simulator_front_t3": {
+      "textures": "textures/blocks/mob_simulator_front_t3"
+    },
+    "skygear_mob_simulator_side": {
+      "textures": "textures/blocks/mob_simulator_side"
+    },
+    "skygear_mob_simulator_side_t1": {
+      "textures": "textures/blocks/mob_simulator_side_t1"
+    },
+    "skygear_mob_simulator_side_t2": {
+      "textures": "textures/blocks/mob_simulator_side_t2"
+    },
+    "skygear_mob_simulator_side_t3": {
+      "textures": "textures/blocks/mob_simulator_side_t3"
+    },
+    "skygear_mob_simulator_up": {
+      "textures": "textures/blocks/mob_simulator_up"
+    },
+    "skygear_mob_simulator_up_t1": {
+      "textures": "textures/blocks/mob_simulator_up_t1"
+    },
+    "skygear_mob_simulator_up_t2": {
+      "textures": "textures/blocks/mob_simulator_up_t2"
+    },
+    "skygear_mob_simulator_up_t3": {
+      "textures": "textures/blocks/mob_simulator_up_t3"
+    },
+    "skygear_ore_washer_back": {
+      "textures": "textures/blocks/ore_washer_back"
+    },
+    "skygear_ore_washer_back_t1": {
+      "textures": "textures/blocks/ore_washer_back_t1"
+    },
+    "skygear_ore_washer_back_t2": {
+      "textures": "textures/blocks/ore_washer_back_t2"
+    },
+    "skygear_ore_washer_back_t3": {
+      "textures": "textures/blocks/ore_washer_back_t3"
+    },
+    "skygear_ore_washer_down": {
+      "textures": "textures/blocks/ore_washer_down"
+    },
+    "skygear_ore_washer_down_t1": {
+      "textures": "textures/blocks/ore_washer_down_t1"
+    },
+    "skygear_ore_washer_down_t2": {
+      "textures": "textures/blocks/ore_washer_down_t2"
+    },
+    "skygear_ore_washer_down_t3": {
+      "textures": "textures/blocks/ore_washer_down_t3"
+    },
+    "skygear_ore_washer_front": {
+      "textures": "textures/blocks/ore_washer_front"
+    },
+    "skygear_ore_washer_front_on": {
+      "textures": "textures/blocks/ore_washer_front_on"
+    },
+    "skygear_ore_washer_front_on_t1": {
+      "textures": "textures/blocks/ore_washer_front_on_t1"
+    },
+    "skygear_ore_washer_front_on_t2": {
+      "textures": "textures/blocks/ore_washer_front_on_t2"
+    },
+    "skygear_ore_washer_front_on_t3": {
+      "textures": "textures/blocks/ore_washer_front_on_t3"
+    },
+    "skygear_ore_washer_front_t1": {
+      "textures": "textures/blocks/ore_washer_front_t1"
+    },
+    "skygear_ore_washer_front_t2": {
+      "textures": "textures/blocks/ore_washer_front_t2"
+    },
+    "skygear_ore_washer_front_t3": {
+      "textures": "textures/blocks/ore_washer_front_t3"
+    },
+    "skygear_ore_washer_side": {
+      "textures": "textures/blocks/ore_washer_side"
+    },
+    "skygear_ore_washer_side_t1": {
+      "textures": "textures/blocks/ore_washer_side_t1"
+    },
+    "skygear_ore_washer_side_t2": {
+      "textures": "textures/blocks/ore_washer_side_t2"
+    },
+    "skygear_ore_washer_side_t3": {
+      "textures": "textures/blocks/ore_washer_side_t3"
+    },
+    "skygear_ore_washer_up": {
+      "textures": "textures/blocks/ore_washer_up"
+    },
+    "skygear_ore_washer_up_t1": {
+      "textures": "textures/blocks/ore_washer_up_t1"
+    },
+    "skygear_ore_washer_up_t2": {
+      "textures": "textures/blocks/ore_washer_up_t2"
+    },
+    "skygear_ore_washer_up_t3": {
+      "textures": "textures/blocks/ore_washer_up_t3"
+    },
+    "skygear_plant_ess_blaze_0": {
+      "textures": "textures/blocks/plant_ess_blaze_0"
+    },
+    "skygear_plant_ess_blaze_1": {
+      "textures": "textures/blocks/plant_ess_blaze_1"
+    },
+    "skygear_plant_ess_creeper_0": {
+      "textures": "textures/blocks/plant_ess_creeper_0"
+    },
+    "skygear_plant_ess_creeper_1": {
+      "textures": "textures/blocks/plant_ess_creeper_1"
+    },
+    "skygear_plant_ess_enderman_0": {
+      "textures": "textures/blocks/plant_ess_enderman_0"
+    },
+    "skygear_plant_ess_enderman_1": {
+      "textures": "textures/blocks/plant_ess_enderman_1"
+    },
+    "skygear_plant_ess_skeleton_0": {
+      "textures": "textures/blocks/plant_ess_skeleton_0"
+    },
+    "skygear_plant_ess_skeleton_1": {
+      "textures": "textures/blocks/plant_ess_skeleton_1"
+    },
+    "skygear_plant_ess_slime_0": {
+      "textures": "textures/blocks/plant_ess_slime_0"
+    },
+    "skygear_plant_ess_slime_1": {
+      "textures": "textures/blocks/plant_ess_slime_1"
+    },
+    "skygear_plant_ess_spider_0": {
+      "textures": "textures/blocks/plant_ess_spider_0"
+    },
+    "skygear_plant_ess_spider_1": {
+      "textures": "textures/blocks/plant_ess_spider_1"
+    },
+    "skygear_plant_ess_zombie_0": {
+      "textures": "textures/blocks/plant_ess_zombie_0"
+    },
+    "skygear_plant_ess_zombie_1": {
+      "textures": "textures/blocks/plant_ess_zombie_1"
+    },
+    "skygear_plant_flower_black_0": {
+      "textures": "textures/blocks/plant_flower_black_0"
+    },
+    "skygear_plant_flower_black_1": {
+      "textures": "textures/blocks/plant_flower_black_1"
+    },
+    "skygear_plant_flower_blue_0": {
+      "textures": "textures/blocks/plant_flower_blue_0"
+    },
+    "skygear_plant_flower_blue_1": {
+      "textures": "textures/blocks/plant_flower_blue_1"
+    },
+    "skygear_plant_flower_brown_0": {
+      "textures": "textures/blocks/plant_flower_brown_0"
+    },
+    "skygear_plant_flower_brown_1": {
+      "textures": "textures/blocks/plant_flower_brown_1"
+    },
+    "skygear_plant_flower_cyan_0": {
+      "textures": "textures/blocks/plant_flower_cyan_0"
+    },
+    "skygear_plant_flower_cyan_1": {
+      "textures": "textures/blocks/plant_flower_cyan_1"
+    },
+    "skygear_plant_flower_gray_0": {
+      "textures": "textures/blocks/plant_flower_gray_0"
+    },
+    "skygear_plant_flower_gray_1": {
+      "textures": "textures/blocks/plant_flower_gray_1"
+    },
+    "skygear_plant_flower_green_0": {
+      "textures": "textures/blocks/plant_flower_green_0"
+    },
+    "skygear_plant_flower_green_1": {
+      "textures": "textures/blocks/plant_flower_green_1"
+    },
+    "skygear_plant_flower_light_blue_0": {
+      "textures": "textures/blocks/plant_flower_light_blue_0"
+    },
+    "skygear_plant_flower_light_blue_1": {
+      "textures": "textures/blocks/plant_flower_light_blue_1"
+    },
+    "skygear_plant_flower_light_gray_0": {
+      "textures": "textures/blocks/plant_flower_light_gray_0"
+    },
+    "skygear_plant_flower_light_gray_1": {
+      "textures": "textures/blocks/plant_flower_light_gray_1"
+    },
+    "skygear_plant_flower_lime_0": {
+      "textures": "textures/blocks/plant_flower_lime_0"
+    },
+    "skygear_plant_flower_lime_1": {
+      "textures": "textures/blocks/plant_flower_lime_1"
+    },
+    "skygear_plant_flower_magenta_0": {
+      "textures": "textures/blocks/plant_flower_magenta_0"
+    },
+    "skygear_plant_flower_magenta_1": {
+      "textures": "textures/blocks/plant_flower_magenta_1"
+    },
+    "skygear_plant_flower_orange_0": {
+      "textures": "textures/blocks/plant_flower_orange_0"
+    },
+    "skygear_plant_flower_orange_1": {
+      "textures": "textures/blocks/plant_flower_orange_1"
+    },
+    "skygear_plant_flower_pink_0": {
+      "textures": "textures/blocks/plant_flower_pink_0"
+    },
+    "skygear_plant_flower_pink_1": {
+      "textures": "textures/blocks/plant_flower_pink_1"
+    },
+    "skygear_plant_flower_purple_0": {
+      "textures": "textures/blocks/plant_flower_purple_0"
+    },
+    "skygear_plant_flower_purple_1": {
+      "textures": "textures/blocks/plant_flower_purple_1"
+    },
+    "skygear_plant_flower_red_0": {
+      "textures": "textures/blocks/plant_flower_red_0"
+    },
+    "skygear_plant_flower_red_1": {
+      "textures": "textures/blocks/plant_flower_red_1"
+    },
+    "skygear_plant_flower_white_0": {
+      "textures": "textures/blocks/plant_flower_white_0"
+    },
+    "skygear_plant_flower_white_1": {
+      "textures": "textures/blocks/plant_flower_white_1"
+    },
+    "skygear_plant_flower_yellow_0": {
+      "textures": "textures/blocks/plant_flower_yellow_0"
+    },
+    "skygear_plant_flower_yellow_1": {
+      "textures": "textures/blocks/plant_flower_yellow_1"
+    },
+    "skygear_plant_gem_coal_0": {
+      "textures": "textures/blocks/plant_gem_coal_0"
+    },
+    "skygear_plant_gem_coal_1": {
+      "textures": "textures/blocks/plant_gem_coal_1"
+    },
+    "skygear_plant_gem_diamond_0": {
+      "textures": "textures/blocks/plant_gem_diamond_0"
+    },
+    "skygear_plant_gem_diamond_1": {
+      "textures": "textures/blocks/plant_gem_diamond_1"
+    },
+    "skygear_plant_gem_emerald_0": {
+      "textures": "textures/blocks/plant_gem_emerald_0"
+    },
+    "skygear_plant_gem_emerald_1": {
+      "textures": "textures/blocks/plant_gem_emerald_1"
+    },
+    "skygear_plant_gem_lapis_0": {
+      "textures": "textures/blocks/plant_gem_lapis_0"
+    },
+    "skygear_plant_gem_lapis_1": {
+      "textures": "textures/blocks/plant_gem_lapis_1"
+    },
+    "skygear_plant_gem_quartz_0": {
+      "textures": "textures/blocks/plant_gem_quartz_0"
+    },
+    "skygear_plant_gem_quartz_1": {
+      "textures": "textures/blocks/plant_gem_quartz_1"
+    },
+    "skygear_plant_gem_redstone_0": {
+      "textures": "textures/blocks/plant_gem_redstone_0"
+    },
+    "skygear_plant_gem_redstone_1": {
+      "textures": "textures/blocks/plant_gem_redstone_1"
+    },
+    "skygear_plant_ore_copper_0": {
+      "textures": "textures/blocks/plant_ore_copper_0"
+    },
+    "skygear_plant_ore_copper_1": {
+      "textures": "textures/blocks/plant_ore_copper_1"
+    },
+    "skygear_plant_ore_gold_0": {
+      "textures": "textures/blocks/plant_ore_gold_0"
+    },
+    "skygear_plant_ore_gold_1": {
+      "textures": "textures/blocks/plant_ore_gold_1"
+    },
+    "skygear_plant_ore_iron_0": {
+      "textures": "textures/blocks/plant_ore_iron_0"
+    },
+    "skygear_plant_ore_iron_1": {
+      "textures": "textures/blocks/plant_ore_iron_1"
+    },
+    "skygear_plant_ore_lead_0": {
+      "textures": "textures/blocks/plant_ore_lead_0"
+    },
+    "skygear_plant_ore_lead_1": {
+      "textures": "textures/blocks/plant_ore_lead_1"
+    },
+    "skygear_plant_ore_nickel_0": {
+      "textures": "textures/blocks/plant_ore_nickel_0"
+    },
+    "skygear_plant_ore_nickel_1": {
+      "textures": "textures/blocks/plant_ore_nickel_1"
+    },
+    "skygear_plant_ore_silver_0": {
+      "textures": "textures/blocks/plant_ore_silver_0"
+    },
+    "skygear_plant_ore_silver_1": {
+      "textures": "textures/blocks/plant_ore_silver_1"
+    },
+    "skygear_plant_ore_tin_0": {
+      "textures": "textures/blocks/plant_ore_tin_0"
+    },
+    "skygear_plant_ore_tin_1": {
+      "textures": "textures/blocks/plant_ore_tin_1"
+    },
+    "skygear_research_table_down": {
+      "textures": "textures/blocks/research_table_down"
+    },
+    "skygear_research_table_side": {
+      "textures": "textures/blocks/bookshelf"
+    },
+    "skygear_research_table_up": {
+      "textures": "textures/blocks/research_table_up"
+    },
+    "skygear_sell_box_back": {
+      "textures": "textures/blocks/sell_box_back"
+    },
+    "skygear_sell_box_down": {
+      "textures": "textures/blocks/sell_box_down"
+    },
+    "skygear_sell_box_front": {
+      "textures": "textures/blocks/sell_box_front"
+    },
+    "skygear_sell_box_side": {
+      "textures": "textures/blocks/sell_box_side"
+    },
+    "skygear_sell_box_up": {
+      "textures": "textures/blocks/sell_box_up"
+    },
+    "skygear_sieve": {
+      "textures": "textures/blocks/planks_oak"
+    },
+    "skygear_sieve_mesh": {
+      "textures": "textures/blocks/sieve_mesh"
+    },
+    "skygear_sieve_mesh_diamond": {
+      "textures": "textures/blocks/sieve_mesh_diamond"
+    },
+    "skygear_sieve_mesh_flint": {
+      "textures": "textures/blocks/sieve_mesh_flint"
+    },
+    "skygear_sieve_mesh_gold": {
+      "textures": "textures/blocks/sieve_mesh_gold"
+    },
+    "skygear_sieve_mesh_iron": {
+      "textures": "textures/blocks/sieve_mesh_iron"
+    },
+    "skygear_sieve_mesh_netherite": {
+      "textures": "textures/blocks/sieve_mesh_netherite"
+    },
+    "skygear_sieve_mesh_string": {
+      "textures": "textures/blocks/sieve_mesh_string"
+    },
+    "skygear_sieve_nomesh": {
+      "textures": "textures/blocks/sieve_nomesh"
+    },
+    "skygear_storage_controller_down": {
+      "textures": "textures/blocks/storage_controller_down"
+    },
+    "skygear_storage_controller_side": {
+      "textures": "textures/blocks/storage_controller_side"
+    },
+    "skygear_storage_controller_up": {
+      "textures": "textures/blocks/storage_controller_up"
+    },
+    "skygear_storage_link_down": {
+      "textures": "textures/blocks/storage_link_down"
+    },
+    "skygear_storage_link_side": {
+      "textures": "textures/blocks/storage_link_side"
+    },
+    "skygear_storage_link_up": {
+      "textures": "textures/blocks/storage_link_up"
+    },
+    "skygear_tinker_table_down": {
+      "textures": "textures/blocks/tinker_table_down"
+    },
+    "skygear_tinker_table_side": {
+      "textures": "textures/blocks/tinker_table_side"
+    },
+    "skygear_tinker_table_up": {
+      "textures": "textures/blocks/tinker_table_up"
+    },
+    "skygear_tree_feller_down": {
+      "textures": "textures/blocks/tree_feller_down"
+    },
+    "skygear_tree_feller_down_t1": {
+      "textures": "textures/blocks/tree_feller_down_t1"
+    },
+    "skygear_tree_feller_down_t2": {
+      "textures": "textures/blocks/tree_feller_down_t2"
+    },
+    "skygear_tree_feller_down_t3": {
+      "textures": "textures/blocks/tree_feller_down_t3"
+    },
+    "skygear_tree_feller_side": {
+      "textures": "textures/blocks/tree_feller_side"
+    },
+    "skygear_tree_feller_side_on": {
+      "textures": "textures/blocks/tree_feller_side_on"
+    },
+    "skygear_tree_feller_side_on_t1": {
+      "textures": "textures/blocks/tree_feller_side_on_t1"
+    },
+    "skygear_tree_feller_side_on_t2": {
+      "textures": "textures/blocks/tree_feller_side_on_t2"
+    },
+    "skygear_tree_feller_side_on_t3": {
+      "textures": "textures/blocks/tree_feller_side_on_t3"
+    },
+    "skygear_tree_feller_side_t1": {
+      "textures": "textures/blocks/tree_feller_side_t1"
+    },
+    "skygear_tree_feller_side_t2": {
+      "textures": "textures/blocks/tree_feller_side_t2"
+    },
+    "skygear_tree_feller_side_t3": {
+      "textures": "textures/blocks/tree_feller_side_t3"
+    },
+    "skygear_tree_feller_up": {
+      "textures": "textures/blocks/tree_feller_up"
+    },
+    "skygear_tree_feller_up_t1": {
+      "textures": "textures/blocks/tree_feller_up_t1"
+    },
+    "skygear_tree_feller_up_t2": {
+      "textures": "textures/blocks/tree_feller_up_t2"
+    },
+    "skygear_tree_feller_up_t3": {
+      "textures": "textures/blocks/tree_feller_up_t3"
+    },
+    "skygear_wood_hopper": {
+      "textures": "textures/blocks/planks_oak"
+    }
+  }
+}

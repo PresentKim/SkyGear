@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // Counters: a game counts what a player does by key, and a counter grants an

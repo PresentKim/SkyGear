@@ -8,7 +8,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 )
 
 // The lobby camera drifts around the island and the character idles and
@@ -40,8 +40,8 @@ func lobbyCameraAt(i int) (pos mgl64.Vec3, pitch, yaw float64) {
 // flowers and the sky. lobbyGestures are the bigger ones, now and then:
 // waving at the camera and stretching.
 var (
-	lobbyIdles    = []string{"animation.df_lobby.look_left", "animation.df_lobby.look_right", "animation.df_lobby.look_down", "animation.df_lobby.look_up"}
-	lobbyGestures = []string{"animation.df_lobby.wave", "animation.df_lobby.stretch"}
+	lobbyIdles    = []string{"animation.sg_lobby.look_left", "animation.sg_lobby.look_right", "animation.sg_lobby.look_down", "animation.sg_lobby.look_up"}
+	lobbyGestures = []string{"animation.sg_lobby.wave", "animation.sg_lobby.stretch"}
 )
 
 // lobbyMotion is where one player's lobby scene is.
@@ -86,11 +86,11 @@ func moveLobbyScene(p *player.Player, now time.Time) {
 	if !now.Before(m.nextCamera) {
 		m.stop = (m.stop + 1) % len(lobbyOrbit)
 		pos, pitch, yaw := lobbyCameraAt(m.stop)
-		dfhook.GlideCamera(p, pos, pitch, yaw, lobbyGlide.Seconds())
+		sghook.GlideCamera(p, pos, pitch, yaw, lobbyGlide.Seconds())
 		m.nextCamera = now.Add(lobbyGlide)
 	}
 	if !now.Before(m.nextGesture) {
-		dfhook.Animate(p, lobbyGestures[rand.IntN(len(lobbyGestures))])
+		sghook.Animate(p, lobbyGestures[rand.IntN(len(lobbyGestures))])
 		m.nextGesture = now.Add(time.Duration(25+rand.IntN(15)) * time.Second)
 		m.nextLook = now.Add(5 * time.Second)
 		return
@@ -101,7 +101,7 @@ func moveLobbyScene(p *player.Player, now time.Time) {
 			next++ // never the same move twice
 		}
 		m.idle = next
-		dfhook.Animate(p, lobbyIdles[next])
+		sghook.Animate(p, lobbyIdles[next])
 		m.nextLook = now.Add(time.Duration(5+rand.IntN(5)) * time.Second)
 	}
 }

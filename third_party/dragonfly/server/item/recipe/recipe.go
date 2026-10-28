@@ -146,7 +146,7 @@ type Shaped struct {
 	// shape contains the width and height of the shaped recipe.
 	shape Shape
 	// noMirror is set when the recipe must be crafted exactly as arranged, not also mirrored left to right
-	// (dragonfactory patch).
+	// (skygear patch).
 	noMirror bool
 }
 
@@ -171,7 +171,7 @@ func (r Shaped) Shape() Shape {
 }
 
 // WithoutMirror returns the recipe that only crafts as arranged: the mirrored arrangement does not craft it
-// (dragonfactory patch).
+// (skygear patch).
 func (r Shaped) WithoutMirror() Shaped {
 	r.noMirror = true
 	return r

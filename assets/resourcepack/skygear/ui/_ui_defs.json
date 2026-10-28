@@ -1,0 +1,7 @@
+{
+  "ui_defs": [
+    "ui/sg_machine.json",
+    "ui/sg_lobby.json",
+    "ui/sgui_hooks.json"
+  ]
+}

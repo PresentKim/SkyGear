@@ -10,7 +10,7 @@ timeout 90 "$BOT" -name Hana \
   'expect:친구 요청을 보냈습니다' 'cmd:/friends' 'form:"친구"=4' 'form:"친구"=1' 'form:"친구"=null' \
   'expect:참여했습니다' 'wait:1' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"참여자 관리"=2' 'chest:Gyu' 'take:35=ok' 'close' \
-  'cmd:/dfdebug research' 'form:연구"=null' \
+  'cmd:/sgdebug research' 'form:연구"=null' \
   'cmd:/members' 'form:"참여자 관리"=1' 'form:"참여자 관리"=5' 'form:"추방"=0' 'form:탈퇴·추방됨=null' > host.log 2>&1 &
 host=$!
 timeout 90 "$BOT" -name Gyu \

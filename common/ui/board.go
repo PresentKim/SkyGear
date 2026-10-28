@@ -5,7 +5,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 // BoardColumns is how many cells a row of an ItemBoard holds.
@@ -116,11 +116,11 @@ func BarPager(p *player.Player, page, pages int, show func(p *player.Player, tx 
 	lang := i18n.Of(p)
 	var out []Option
 	if page > 0 {
-		out = append(out, Option{Label: barPagerToken + fmt.Sprintf(i18n.T(lang, "ui.page.prev"), page, pages), Icon: "textures/ui/df/arrow_left",
+		out = append(out, Option{Label: barPagerToken + fmt.Sprintf(i18n.T(lang, "ui.page.prev"), page, pages), Icon: "textures/ui/sg/arrow_left",
 			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page-1) }})
 	}
 	if page < pages-1 {
-		out = append(out, Option{Label: barPagerToken + fmt.Sprintf(i18n.T(lang, "ui.page.next"), page+2, pages), Icon: "textures/ui/df/arrow_right",
+		out = append(out, Option{Label: barPagerToken + fmt.Sprintf(i18n.T(lang, "ui.page.next"), page+2, pages), Icon: "textures/ui/sg/arrow_right",
 			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page+1) }})
 	}
 	return out

@@ -2,8 +2,8 @@ package instance
 
 import (
 	"errors"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
+	"github.com/presentkim/skygear/common/i18n"
+	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"sync"
 	"time"
 
@@ -11,9 +11,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/mcdb"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/playerstate"
-	"github.com/presentkim/dragonfactory/common/timed"
-	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/skygear/common/playerstate"
+	"github.com/presentkim/skygear/common/timed"
+	"github.com/presentkim/skygear/internal/db"
 )
 
 const initializedKey = "platform.initialized"

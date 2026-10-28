@@ -1,8 +1,8 @@
 {
   "format_version": 2,
   "header": {
-    "name": "DragonFactory-WAILA",
-    "description": "WAILA for DragonFactory",
+    "name": "SkyGear-WAILA",
+    "description": "WAILA for SkyGear",
     "uuid": "6a1c64be-a508-4d74-8aa9-56dcbfbb0877",
     "version": [0, 0, 1],
     "min_engine_version": [1, 21, 100]

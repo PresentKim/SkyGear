@@ -1,0 +1,32 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "skygear:conduit_visual",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "energy_1": "textures/entity/skygear/conduit_energy_1",
+        "energy_2": "textures/entity/skygear/conduit_energy_2",
+        "energy_3": "textures/entity/skygear/conduit_energy_3",
+        "item_1": "textures/entity/skygear/conduit_item_1",
+        "item_2": "textures/entity/skygear/conduit_item_2",
+        "item_3": "textures/entity/skygear/conduit_item_3",
+        "fluid_1": "textures/entity/skygear/conduit_fluid_1",
+        "fluid_2": "textures/entity/skygear/conduit_fluid_2",
+        "fluid_3": "textures/entity/skygear/conduit_fluid_3"
+      },
+      "geometry": {
+        "energy": "geometry.skygear.conduit_energy",
+        "item": "geometry.skygear.conduit_item",
+        "fluid": "geometry.skygear.conduit_fluid"
+      },
+      "render_controllers": [
+        "controller.render.skygear_conduit_energy",
+        "controller.render.skygear_conduit_item",
+        "controller.render.skygear_conduit_fluid"
+      ]
+    }
+  }
+}

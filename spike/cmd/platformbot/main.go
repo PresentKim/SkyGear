@@ -346,16 +346,16 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			// The game's own items in the creative inventory (the recipe
 			// book lists only recipes whose result is in it).
 			for _, it := range c.Items {
-				if name := itemNames[it.Item.NetworkID]; strings.HasPrefix(name, "dragonfactory:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
+				if name := itemNames[it.Item.NetworkID]; strings.HasPrefix(name, "skygear:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
 					fmt.Println("CREATIVE", name)
 				}
 			}
 		} else if c, ok := pk.(*packet.CraftingData); ok {
 			// The results of the game's own recipes, for scenarios that
-			// grep the log ("RECIPE dragonfactory:hammer").
+			// grep the log ("RECIPE skygear:hammer").
 			outputs := func(out []protocol.ItemStack) {
 				for _, o := range out {
-					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "dragonfactory:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
+					if name := itemNames[o.NetworkID]; strings.HasPrefix(name, "skygear:") || strings.HasSuffix(name, "chest") || strings.HasSuffix(name, "composter") {
 						fmt.Println("RECIPE", name)
 					}
 				}
@@ -394,7 +394,7 @@ func waitFor(match func(packet.Packet) bool) packet.Packet {
 			}
 			for _, r := range c.ShapedRecipes {
 				outputs(r.Output)
-				if os.Getenv("BOT_DUMP_RECIPES") != "" && len(r.Output) > 0 && r.Output[0].NetworkID == 54 || r.Output[0].NetworkID == -213 || strings.HasPrefix(itemNames[r.Output[0].NetworkID], "dragonfactory:drawer") {
+				if os.Getenv("BOT_DUMP_RECIPES") != "" && len(r.Output) > 0 && r.Output[0].NetworkID == 54 || r.Output[0].NetworkID == -213 || strings.HasPrefix(itemNames[r.Output[0].NetworkID], "skygear:drawer") {
 					fmt.Printf("SHAPEDDUMP prio=%d sym=%v block=%s\n", r.Priority, r.AssumeSymmetry, r.Block)
 					for _, in := range r.Input {
 						fmt.Printf("  IN count=%d %#v\n", in.Count, in.Descriptor)

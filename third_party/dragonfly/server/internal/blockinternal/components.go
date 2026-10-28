@@ -41,7 +41,7 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 		})
 	}
 	if _, ok := b.(block.Activatable); ok {
-		// dragonfactory patch: marks the block as interactable, so the client sends the click to
+		// skygear patch: marks the block as interactable, so the client sends the click to
 		// the server instead of predicting the held block being placed.
 		builder.AddComponent("minecraft:custom_components", map[string]any{
 			"hasPlayerInteract": uint8(1),

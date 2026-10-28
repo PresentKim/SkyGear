@@ -17,8 +17,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/common/timed"
-	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/skygear/common/timed"
+	"github.com/presentkim/skygear/internal/db"
 )
 
 type testGame struct{ joins, firsts, closes int }

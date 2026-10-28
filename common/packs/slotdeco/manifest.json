@@ -1,8 +1,8 @@
 {
   "format_version": 2,
   "header": {
-    "name": "DragonFactory-SlotDeco",
-    "description": "Slot backgrounds by item rarity and tier badges for DragonFactory",
+    "name": "SkyGear-SlotDeco",
+    "description": "Slot backgrounds by item rarity and tier badges for SkyGear",
     "uuid": "8de6c229-e5f9-48e9-b98f-3259bebc7dc8",
     "version": [0, 0, 1],
     "min_engine_version": [1, 21, 100]

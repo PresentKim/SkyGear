@@ -4,10 +4,10 @@ import (
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/account"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // showSettings is the settings screen: a toggle per account.Settings entry

@@ -13,7 +13,7 @@ import (
 
 // ComposterVanillaRules says whether composters follow the vanilla rules: filled by chance, with hoppers, and
 // emptied into bone meal. A game that runs its own composter rules sets it to false and handles clicks itself
-// (dragonfactory patch).
+// (skygear patch).
 var ComposterVanillaRules = true
 
 // Composter is a block that can turn biological matter in to compost which can then produce bone meal. It is also the

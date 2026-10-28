@@ -1,10 +1,10 @@
 // Command animtex writes the animated "working" textures of the machines
-// (internal/games/dragonfactory/animate.go): a vertical strip of frames made
+// (internal/games/skygear/animate.go): a vertical strip of frames made
 // from a machine's own texture, with a bright band of an accent colour that
 // moves across it (the generators flicker instead), and the atlas and flipbook
 // entries that go with them. They are temporary pictures.
 //
-//	go run ./tools/animtex assets/resourcepack/dragonfactory
+//	go run ./tools/animtex assets/resourcepack/skygear
 package main
 
 import (
@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 // spec is one machine: the texture that animates (its front or its side), the
@@ -91,12 +91,12 @@ func main() {
 		}
 		out := sp.name + "_" + sp.face + "_on"
 		imgio.Save(filepath.Join(dir, out+".png"), strip)
-		tile := "dragonfactory_" + out
+		tile := "skygear_" + out
 		atlas[tile] = "textures/blocks/" + out
 		flips = append(flips, map[string]any{"flipbook_texture": "textures/blocks/" + out, "atlas_tile": tile, "ticks_per_frame": 4, "blend_frames": false})
 	}
 	// the electric furnace's own strip (a turning gear) is kept as it is
-	flips = append(flips, map[string]any{"flipbook_texture": "textures/blocks/electric_furnace_front_on", "atlas_tile": "dragonfactory_electric_furnace_front_on", "ticks_per_frame": 4, "blend_frames": false})
+	flips = append(flips, map[string]any{"flipbook_texture": "textures/blocks/electric_furnace_front_on", "atlas_tile": "skygear_electric_furnace_front_on", "ticks_per_frame": 4, "blend_frames": false})
 
 	// atlas: add the new tiles
 	atlasPath := filepath.Join(pack, "textures/terrain_texture.json")

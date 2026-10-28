@@ -7,14 +7,14 @@
 | 로비 / 인스턴스 분리 | 인스턴스마다 별도의 `world.World` (`world.Config{...}.New()`), 세이브별 `mcdb` 폴더 |
 | 인스턴스 간 이동 | `tx.RemoveEntity(p)`로 핸들 회수 → 대상 월드 `w.Do(func(tx){ tx.AddEntityAt(handle, pos) })` |
 | 인스턴스별 인벤토리·상태 | 기본 `playerdb`는 플레이어당 1벌이라 사용하지 않음. 이동 시 직접 직렬화/복원 |
-| 기계 | `world.CustomBlock` + `NBTer`(블록 엔티티) + `TickerBlock`. 모양·텍스처·이름은 리소스팩 파일(`assets/resourcepack/dragonfactory/`), Go는 모델 식별자와 재질 키만 적는다 |
+| 기계 | `world.CustomBlock` + `NBTer`(블록 엔티티) + `TickerBlock`. 모양·텍스처·이름은 리소스팩 파일(`assets/resourcepack/skygear/`), Go는 모델 식별자와 재질 키만 적는다 |
 | 아이템 값 | `item.Stack` 값(`WithValue`)에 서랍 내용, 도구 경험·강화 같은 값을 저장 |
 | 메뉴 | 폼(`common/ui`, 리소스팩 JSON UI 테마), 아이템이 오가는 창은 엔티티 상자(`common/chestui`) |
 | 시간 기반 이벤트 | 인스턴스 시간(활성 누적 시간) 기준 스케줄러. 비활성화 시 멈춤 |
 | 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정(월드는 로더가 있을 때만, 블록 엔티티는 로더의 `TickRange` 안에서만 틱한다. 동기 테스트 월드는 로드된 청크를 모두 틱하므로 이 동작은 비동기 월드로 검증한다) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
 | 낙하 피해 제거 | 플레이어 핸들러 `HandleHurt`에서 `entity.FallDamageSource` 취소 |
-| 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, `common/dfhook` 패킷 훅)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
+| 인벤토리 열람(InvSee) | 엔티티 상자(`common/chestui`, `common/sghook` 패킷 훅)로 대상 인벤토리를 표시·동기화. 오프라인 대상은 저장된 상태 편집 |
 
 애드온(리소스팩) 운용: [docs/tech/addon.md](../tech/addon.md).
 부하 시험: [performance.md](../tech/performance.md).
@@ -49,20 +49,20 @@ internal/instance/             인스턴스 매니저, Game/Session 인터페이
 internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
 internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
 internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
-internal/games/dragonfactory/  드래곤팩토리: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
-                               세션이 필요 없는 하위 패키지(dfitem, naming, textfmt, blockmodel, formicon, wintext,
+internal/games/skygear/  스카이기어: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
+                               세션이 필요 없는 하위 패키지(sgitem, naming, textfmt, blockmodel, formicon, wintext,
                                sievetable, machinerecipe, tinker, hopper, advancement, achievement)
 internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
 common/                        게임과 상관없는 공통 패키지와 팩(같은 모듈, common/README.md)
 ```
 
-공통 패키지(`dfhook`, `chestui`, `ui`, `oreui`, `hud`, `waila`, `slotdeco`, `i18n`, `timed`, `perf`, `playerstate`, `resourcepack`, `backup`, `textsearch`)는 같은 모듈의 `common/` 에 있고, 게임·플랫폼 규칙은 넣지 않는다. 하위 패키지별 설명은 저장소 루트의 README.md 에 있다.
+공통 패키지(`sghook`, `chestui`, `ui`, `oreui`, `hud`, `waila`, `slotdeco`, `i18n`, `timed`, `perf`, `playerstate`, `resourcepack`, `backup`, `textsearch`)는 같은 모듈의 `common/` 에 있고, 게임·플랫폼 규칙은 넣지 않는다. 하위 패키지별 설명은 저장소 루트의 README.md 에 있다.
 
 게임 종류 인터페이스(`internal/instance/game.go`):
 
 ```go
 type Game interface {
-    ID() string                         // "dragonfactory"
+    ID() string                         // "skygear"
     Name(lang string) string            // 플레이어 언어의 게임 이름
     Init(tx *world.Tx, inst *Instance)  // 새 세이브의 월드를 처음 한 번 만든다
     Start(inst *Instance) Session       // 인스턴스 활성화 시 게임 로직 시작

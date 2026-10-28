@@ -123,7 +123,7 @@ func (s *Session) sendRecipes() {
 		potionContainerChange    []protocol.PotionContainerChangeRecipe
 	)
 
-	// dragonfactory patch: only the recipes the filter keeps are sent and
+	// skygear patch: only the recipes the filter keeps are sent and
 	// accepted. Network IDs stay the index in the full list.
 	clear(s.recipes)
 	fit := creativeBlockFitter(s.br)
@@ -233,7 +233,7 @@ func (s *Session) sendRecipes() {
 // SetRecipeFilter limits the player's recipes to those f keeps (all if f
 // is nil) and sends the new list at once: the client replaces its recipes
 // (recipe book, crafting grid output), and crafting a recipe left out is
-// refused. Call it again whenever f's answers change. (dragonfactory patch)
+// refused. Call it again whenever f's answers change. (skygear patch)
 func (s *Session) SetRecipeFilter(f func(recipe.Recipe) bool) {
 	if s == Nop {
 		return
@@ -490,7 +490,7 @@ func (s *Session) CloseDialogue() {
 // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
 // client submits the form.
 func (s *Session) SendForm(f form.Form) {
-	if s == Nop { // dragonfactory patch: players without a connection (tests)
+	if s == Nop { // skygear patch: players without a connection (tests)
 		return
 	}
 	b, _ := json.Marshal(f)
@@ -1085,7 +1085,7 @@ func stacksToRecipeStacks(br world.BlockRegistry, inputs []item.Stack) []protoco
 
 // creativeBlockFitter returns a function that gives the block runtime ID of
 // a recipe result the one of its creative inventory entry when the item has
-// exactly one entry and the recipe's differs (dragonfactory patch). The client
+// exactly one entry and the recipe's differs (skygear patch). The client
 // lists a recipe in its recipe book only when its result is the creative
 // item; vanilla recipe data names block states (a chest facing another way)
 // that the creative list does not, so such recipes were not listed.

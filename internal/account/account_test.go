@@ -10,7 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/skygear/internal/db"
 )
 
 func TestGrantAndDisplayName(t *testing.T) {

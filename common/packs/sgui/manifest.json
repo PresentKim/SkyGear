@@ -1,0 +1,17 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "SkyGear-UI",
+    "description": "Form and HUD theme for SkyGear servers",
+    "uuid": "ef1582eb-673a-4f50-8817-8d872e970421",
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 100]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "f6d5f9b3-535f-4a6d-b51f-fba33af9e0e0",
+      "version": [0, 0, 1]
+    }
+  ]
+}

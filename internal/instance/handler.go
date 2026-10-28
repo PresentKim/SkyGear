@@ -17,7 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/timed"
+	"github.com/presentkim/skygear/common/timed"
 )
 
 // Handler is the handler every player has for its whole connection. It

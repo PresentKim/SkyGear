@@ -9,7 +9,7 @@ import (
 )
 
 // TestShapedArrangement: a shaped recipe crafts only in its arrangement,
-// anywhere in the grid, mirrored only when allowed (dragonfactory patch).
+// anywhere in the grid, mirrored only when allowed (skygear patch).
 func TestShapedArrangement(t *testing.T) {
 	c, s := item.NewStack(block.Cobblestone{}, 1), item.NewStack(item.Stick{}, 1)
 	e := item.Stack{}

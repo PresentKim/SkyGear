@@ -1,9 +1,9 @@
 /*
- * The Dragon Factory JSON UI forms (common packs/dfui ui/df_form.json) redrawn in Ore UI
+ * The Sky Gear JSON UI forms (common packs/sgui ui/sg_form.json) redrawn in Ore UI
  * (ore-ui-loading/마인크래프트-UI-스타일.md). Sizes are JSON UI GUI pixels: Ore UI sets the html
  * font size to 5 x the GUI scale, so one GUI pixel is 0.2rem; a value Nu below is written as N*0.2rem.
  * Pictures are the same textures the JSON UI uses, as nine-slices: the vanilla window, toolbar, tabs
- * and slots, and the dfui pack's buttons, panels and chosen slot (the server sends the dfui pack).
+ * and slots, and the sgui pack's buttons, panels and chosen slot (the server sends the sgui pack).
  * Gameface ignores calc() inside shorthands with several values, so margins and paddings are one side
  * at a time.
  */
@@ -67,7 +67,7 @@
 }
 
 /* The window: vanilla dialog_background_opaque (16x16, slice 4). Its size comes from the server
-   (style width/height in u), like $df_window_size. Title at 6u from the top, content from 18u. */
+   (style width/height in u), like $sg_window_size. Title at 6u from the top, content from 18u. */
 .mc-window {
   position: relative;
   max-width: 96vw;
@@ -208,12 +208,12 @@
 
 .mc-icon-button:hover,
 .mc-icon-button.oui-kb {
-  background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
+  background-image: url("pack://textures/ui/sg/hover_flat.png?filtering=point");
   background-size: 100% 100%;
 }
 
 .mc-icon-button:active {
-  background-image: url("pack://textures/ui/df/press_flat.png?filtering=point");
+  background-image: url("pack://textures/ui/sg/press_flat.png?filtering=point");
   background-size: 100% 100%;
 }
 
@@ -237,7 +237,7 @@
 
 .mc-close:hover,
 .mc-close.oui-kb {
-  background-image: url("pack://textures/ui/df/hover_flat.png?filtering=point");
+  background-image: url("pack://textures/ui/sg/hover_flat.png?filtering=point");
   background-size: 100% 100%;
 }
 
@@ -303,7 +303,7 @@
   height: 2.8rem;
 }
 
-/* --- buttons: dfui button / button_hover / button_pressed (16x16, slice 3) --------------------- */
+/* --- buttons: sgui button / button_hover / button_pressed (16x16, slice 3) --------------------- */
 
 .mc-btn {
   position: relative;
@@ -312,7 +312,7 @@
   align-items: center;
   border-style: solid;
   border-width: 0.6rem;
-  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
   border-image-slice: 3 fill;
   border-image-width: 0.6rem;
   color: var(--mc-light-text);
@@ -320,11 +320,11 @@
 
 .mc-btn:hover,
 .mc-btn.oui-kb {
-  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
 }
 
 .mc-btn:active {
-  border-image-source: url("pack://textures/ui/df/button_pressed.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
 }
 
 /* A list row: 32u high cell, 30u button, 20u icon at 6u, text at 32u. */
@@ -580,7 +580,7 @@
 .mc-panel {
   border-style: solid;
   border-width: 0.8rem;
-  border-image-source: url("pack://textures/ui/df/panel.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/panel.png?filtering=point");
   border-image-slice: 4 fill;
   border-image-width: 0.8rem;
 }
@@ -713,7 +713,7 @@
   flex-direction: column;
 }
 
-/* ListSplitMenu (df_form list_split_form): the list in a 156u panel on the left, the body and the
+/* ListSplitMenu (sg_form list_split_form): the list in a 156u panel on the left, the body and the
    actions in the 154u right of it (content 314u - 156u - 4u gap). A row is a 30u button with a 20u
    icon at 6u, the name at 30u and the information line under it (0.7); the chosen row is lit. Both
    sides stretch to the row's height (a height of 100% would add the panel's border to it). */
@@ -739,7 +739,7 @@
 }
 
 .mc-lrow.on {
-  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
 }
 
 .mc-lrow img {
@@ -782,7 +782,7 @@
   width: 15rem;
 }
 
-/* SlotMenu (df_form slot_form): the storage slot with its info beside it, the slots under them. */
+/* SlotMenu (sg_form slot_form): the storage slot with its info beside it, the slots under them. */
 .mc-slotmenu-info {
   margin-left: 1.2rem;
   display: flex;
@@ -879,7 +879,7 @@
   padding-left: 0.4rem;
   border-style: solid;
   border-width: 0.6rem;
-  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
   border-image-slice: 3 fill;
   border-image-width: 0.6rem;
   color: var(--mc-light-text);
@@ -888,11 +888,11 @@
 
 .mc-chapter:hover,
 .mc-chapter.oui-kb {
-  border-image-source: url("pack://textures/ui/df/button_hover.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
 }
 
 .mc-chapter.on {
-  border-image-source: url("pack://textures/ui/df/button_pressed.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
   color: #ffd34d;
 }
 
@@ -1390,11 +1390,11 @@
   height: 1.8rem;
 }
 
-/* --- the lobby (ui.lobbySkin): the screens look like the lobby's main menu (packs/dfui
-   launcher_form, the server pack's df_lobby.json frame) over the lobby island. The screen is not
+/* --- the lobby (ui.lobbySkin): the screens look like the lobby's main menu (packs/sgui
+   launcher_form, the server pack's sg_lobby.json frame) over the lobby island. The screen is not
    darkened; the game's logo, name and the line under them are at the top left as in the frame
    (16u, 14u: a 22u logo, the name at 44u, a 150u line at 44u down); the window, buttons, tabs and
-   control bar take the navy launcher button pictures (dfui launcher_button, 16x16, slice 4) and the
+   control bar take the navy launcher button pictures (sgui launcher_button, 16x16, slice 4) and the
    text is light. ------------------------------------------------------------------------------- */
 
 .mc-screen.mc-lobby {
@@ -1446,7 +1446,7 @@
 .mc-lobby .mc-btn,
 .mc-lobby .mc-tab-bg,
 .mc-lobby .mc-tab-front {
-  border-image-source: url("pack://textures/ui/df/launcher_button.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
   border-image-slice: 4 fill;
 }
 
@@ -1455,12 +1455,12 @@
 .mc-lobby .mc-lrow.on,
 .mc-lobby .mc-tab:hover .mc-tab-bg,
 .mc-lobby .mc-tab.oui-kb .mc-tab-bg {
-  border-image-source: url("pack://textures/ui/df/launcher_button_hover.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/launcher_button_hover.png?filtering=point");
 }
 
 .mc-lobby .mc-btn:active,
 .mc-lobby .mc-tab.on .mc-tab-front {
-  border-image-source: url("pack://textures/ui/df/launcher_button_pressed.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/launcher_button_pressed.png?filtering=point");
 }
 
 .mc-lobby .mc-window {
@@ -1582,7 +1582,7 @@
   padding-bottom: 0.4rem;
   border-style: solid;
   border-width: 0.8rem;
-  border-image-source: url("pack://textures/ui/df/launcher_button.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
   border-image-slice: 4 fill;
   border-image-width: 0.8rem;
   color: #f2f2f7;
@@ -1727,7 +1727,7 @@
 
 .mc-pick.on:hover,
 .mc-pick.on.oui-kb {
-  border-image-source: url("pack://textures/ui/df/button.png?filtering=point");
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
 }
 
 .mc-pick.dim {

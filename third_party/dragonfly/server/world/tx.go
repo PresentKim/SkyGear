@@ -416,7 +416,7 @@ func (ntx normalTransaction) Run(w *World) {
 }
 
 // runRecovered runs f and logs a panic instead of letting it end the process.
-// dragonfactory patch: a panic in a block tick, an event handler or a packet
+// skygear patch: a panic in a block tick, an event handler or a packet
 // handler would otherwise bring down every island on the server.
 func runRecovered(w *World, f func()) {
 	defer func() {

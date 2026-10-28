@@ -1,11 +1,11 @@
-// Package locales registers dragonfactory's text catalog (<lang>.json, and the
+// Package locales registers skygear's text catalog (<lang>.json, and the
 // generated vanilla names in <lang>.vanilla.json) with common/i18n on import.
 package locales
 
 import (
 	"embed"
 
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 //go:embed *.json

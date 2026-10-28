@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// dragonfactory patch: tick timing of a World, for showing the server load.
+// skygear patch: tick timing of a World, for showing the server load.
 
 // TickStats summarises the recent ticks of a World.
 type TickStats struct {

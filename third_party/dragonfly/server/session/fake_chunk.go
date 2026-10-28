@@ -1,6 +1,6 @@
 package session
 
-// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
+// This file is part of the skygear patch to Dragonfly (third_party/README.md):
 // client-only chunk views.
 
 import (

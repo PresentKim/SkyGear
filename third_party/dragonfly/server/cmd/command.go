@@ -361,7 +361,7 @@ func exportedFields(command reflect.Value) []reflect.StructField {
 
 // runRecovered runs r, turning a panic into an ERROR log and an error
 // output, so a bug in one command does not take the server down.
-// (dragonfactory patch)
+// (skygear patch)
 func runRecovered(r Runnable, source Source, output *Output, tx *world.Tx) {
 	defer func() {
 		if v := recover(); v != nil {

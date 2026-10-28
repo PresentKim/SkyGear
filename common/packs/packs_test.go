@@ -85,16 +85,16 @@ var (
 	namespaceRe = regexp.MustCompile(`"namespace"\s*:\s*"(\w+)"`)
 	// A reference to an element of a theme namespace: "@ns.name" in a key
 	// or "ns.name" as a value.
-	refRe     = regexp.MustCompile(`["@]((?:df|dfui)_\w+)\.\w+`)
-	textureRe = regexp.MustCompile(`textures/ui/df/(\w+)`)
+	refRe     = regexp.MustCompile(`["@]((?:sg|sgui)_\w+)\.\w+`)
+	textureRe = regexp.MustCompile(`textures/ui/sg/(\w+)`)
 )
 
-// TestThemeStandsAlone: the dfui theme refers only to its own namespaces
-// (the game namespaces of a server pack fill dfui_hooks instead) and to
+// TestThemeStandsAlone: the sgui theme refers only to its own namespaces
+// (the game namespaces of a server pack fill sgui_hooks instead) and to
 // pictures it has. Pictures picked by a binding (a name ending in "_") are
 // checked by tree pictures here and by the slotdeco test.
 func TestThemeStandsAlone(t *testing.T) {
-	dir := sub(t, "dfui")
+	dir := sub(t, "sgui")
 	files, err := fs.Glob(dir, "ui/*.json")
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestThemeStandsAlone(t *testing.T) {
 			own[m[1]] = true
 		}
 	}
-	for _, ns := range []string{"df_form", "dfui_hooks"} {
+	for _, ns := range []string{"sg_form", "sgui_hooks"} {
 		if !own[ns] {
 			t.Errorf("no file has namespace %s", ns)
 		}
@@ -124,18 +124,18 @@ func TestThemeStandsAlone(t *testing.T) {
 			if strings.HasSuffix(m[1], "_") {
 				continue
 			}
-			if _, err := fs.Stat(dir, "textures/ui/df/"+m[1]+".png"); err != nil {
+			if _, err := fs.Stat(dir, "textures/ui/sg/"+m[1]+".png"); err != nil {
 				t.Errorf("%s: %v", f, err)
 			}
 		}
 	}
 	for c := 'a'; c <= 'i'; c++ {
-		if _, err := fs.Stat(dir, "textures/ui/df/tree_node_"+string(c)+".png"); err != nil {
+		if _, err := fs.Stat(dir, "textures/ui/sg/tree_node_"+string(c)+".png"); err != nil {
 			t.Error(err)
 		}
 	}
 	for c := 'b'; c <= 'p'; c++ {
-		if _, err := fs.Stat(dir, "textures/ui/df/tree_strip_"+string(c)+".png"); err != nil {
+		if _, err := fs.Stat(dir, "textures/ui/sg/tree_strip_"+string(c)+".png"); err != nil {
 			t.Error(err)
 		}
 	}
@@ -144,7 +144,7 @@ func TestThemeStandsAlone(t *testing.T) {
 // TestThemeTexts: every language of the theme names the same keys, and the
 // keys the theme's labels show are among them.
 func TestThemeTexts(t *testing.T) {
-	dir := sub(t, "dfui")
+	dir := sub(t, "sgui")
 	var langs []string
 	readJSON(t, dir, "texts/languages.json", &langs)
 	keys := map[string]map[string]bool{}
@@ -160,11 +160,11 @@ func TestThemeTexts(t *testing.T) {
 			}
 		}
 	}
-	b, err := fs.ReadFile(dir, "ui/df_form.json")
+	b, err := fs.ReadFile(dir, "ui/sg_form.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, m := range regexp.MustCompile(`"text"\s*:\s*"(dfui\.[\w.]+)"`).FindAllStringSubmatch(string(b), -1) {
+	for _, m := range regexp.MustCompile(`"text"\s*:\s*"(sgui\.[\w.]+)"`).FindAllStringSubmatch(string(b), -1) {
 		for _, lang := range langs {
 			if !keys[lang][m[1]] {
 				t.Errorf("%s has no %s", lang, m[1])

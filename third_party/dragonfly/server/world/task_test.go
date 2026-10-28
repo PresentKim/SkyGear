@@ -393,7 +393,7 @@ func testContext(t *testing.T) context.Context {
 	return ctx
 }
 
-// TestPanicInTransactionIsRecovered checks the dragonfactory patch: a panic in an
+// TestPanicInTransactionIsRecovered checks the skygear patch: a panic in an
 // Exec transaction (as a tick or handler runs) is logged and the world goes on.
 func TestPanicInTransactionIsRecovered(t *testing.T) {
 	w := Config{Log: slog.New(slog.NewTextHandler(io.Discard, nil))}.New()

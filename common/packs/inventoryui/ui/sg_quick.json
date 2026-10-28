@@ -1,0 +1,212 @@
+{
+  "namespace": "sg_quick",
+
+  // The bar right of a container window with the take everything out, put
+  // everything in and put only what the container holds buttons. A press runs
+  // on the client alone: under each button lies a hidden button for every slot
+  // it moves, all over the same spot, each turning the press into the vanilla
+  // quick move (shift click) of its slot (button.container_auto_place), so one
+  // press moves every slot.
+  //   $quick_container_size  how many container slots the take button moves
+  //   $quick_take_filter     when set, a binding expression on
+  //                          #collection_index that keeps the container slots
+  //                          the take button moves (the outputs of a machine)
+  //   $quick_put_hotbar      the put buttons also move the hotbar
+  "side_bar": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [ 18, "100%c" ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_left",
+    "offset": [ 2, 8 ],
+    "layer": 20,
+    "$quick_container_size|default": 27,
+    "$quick_take_filter|default": "",
+    "$quick_put_hotbar|default": false,
+    "controls": [
+      {
+        "take@sg_quick.take_button": {}
+      },
+      {
+        "gap1": { "type": "panel", "size": [ 18, 2 ] }
+      },
+      {
+        "put@sg_quick.put_button": {}
+      },
+      {
+        "gap2": { "type": "panel", "size": [ 18, 2 ] }
+      },
+      {
+        "put_matching@sg_quick.put_button": {
+          "$moves_control": "sg_quick_match.match_move",
+          "$quick_icon": "textures/ui/store_filter_icon",
+          "$quick_icon_color": [ 1, 1, 1 ],
+          "$quick_tip": "sgquick.putMatching"
+        }
+      },
+      {
+        "container_ids@sg_quick_match.container_ids": {}
+      }
+    ]
+  },
+
+  "take_button": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "controls": [
+      {
+        "moves@sg_quick.slot_moves": {
+          "$moves_collection": "container_items",
+          "$moves_count": "$quick_container_size",
+          "$moves_filter": "$quick_take_filter"
+        }
+      },
+      {
+        "face@sg_quick.face": {
+          "$quick_icon": "textures/ui/up_arrow",
+          "$quick_tip": "sgquick.takeAll"
+        }
+      }
+    ]
+  },
+
+  // $moves_control is the hidden button of a slot (sg_quick.slot_move moves
+  // every slot, sg_quick_match.match_move only those the container holds).
+  "put_button": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "$moves_control|default": "sg_quick.slot_move",
+    "$quick_icon|default": "textures/ui/down_arrow",
+    "$quick_tip|default": "sgquick.putAll",
+    "controls": [
+      {
+        "inventory@sg_quick.slot_moves": {
+          "$moves_collection": "inventory_items",
+          "$moves_count": 27,
+          "$moves_filter": ""
+        }
+      },
+      {
+        "hotbar@sg_quick.slot_moves": {
+          "ignored": "(not $quick_put_hotbar)",
+          "$moves_collection": "hotbar_items",
+          "$moves_count": 9,
+          "$moves_filter": ""
+        }
+      },
+      {
+        "face@sg_quick.face": {}
+      }
+    ]
+  },
+
+  // One hidden button ($moves_control) for each of the first $moves_count
+  // slots of $moves_collection.
+  "slot_moves": {
+    "type": "collection_panel",
+    "size": [ "100%", "100%" ],
+    "layer": 8,
+    "$moves_filter|default": "",
+    "$moves_control|default": "sg_quick.slot_move",
+    "collection_name": "$moves_collection",
+    "property_bag": { "#moves_count": "$moves_count" },
+    "factory": {
+      "name": "('sg_quick_' + $moves_collection + '_' + $moves_control)",
+      "control_name": "$moves_control"
+    },
+    "bindings": [
+      {
+        "binding_type": "view",
+        "source_property_name": "#moves_count",
+        "target_property_name": "#collection_length"
+      }
+    ]
+  },
+
+  "slot_move": {
+    "type": "button",
+    "$moves_filter|default": "",
+    "size": [ "100%", "100%" ],
+    "layer": 90,
+    "always_listen_to_input": true,
+    "consume_hover_events": false,
+    "default_focus_precedence": -2,
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "$moves_collection"
+      },
+      {
+        "ignored": "($moves_filter = '')",
+        "binding_type": "view",
+        "source_property_name": "$moves_filter",
+        "target_property_name": "#visible"
+      }
+    ],
+    "button_mappings": [
+      {
+        "from_button_id": "button.menu_select",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "pressed",
+        "consume_event": false
+      },
+      {
+        "from_button_id": "button.menu_ok",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "focused",
+        "consume_event": false
+      }
+    ]
+  },
+
+  // The visible button: the vanilla light button with the icon (a vanilla
+  // texture, the white arrows drawn dark), and the name beside it while
+  // hovered (a label, so the lang key is translated).
+  "face@common_buttons.light_content_button": {
+    "size": [ 18, 18 ],
+    "layer": 1,
+    "consume_hover_events": false,
+    "$pressed_button_name": "button.sg_quick",
+    "$button_content": "sg_quick.face_content"
+  },
+
+  "face_content": {
+    "type": "panel",
+    "size": [ 18, 18 ],
+    "$quick_icon_color|default": [ 0.3, 0.3, 0.3 ],
+    "controls": [
+      {
+        "icon": {
+          "type": "image",
+          "texture": "$quick_icon",
+          "color": "$quick_icon_color",
+          "size": [ 12, 12 ],
+          "layer": 2
+        }
+      },
+      {
+        "tip": {
+          "ignored": "(not $hover_state)",
+          "type": "image",
+          "texture": "textures/ui/purpleBorder",
+          "size": [ "100%c + 8px", "100%c + 8px" ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_left",
+          "offset": [ 4, -2 ],
+          "layer": 30,
+          "controls": [
+            {
+              "label": {
+                "type": "label",
+                "text": "$quick_tip",
+                "color": [ 1, 1, 1 ],
+                "shadow": true,
+                "layer": 1
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

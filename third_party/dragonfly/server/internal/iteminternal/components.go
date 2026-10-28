@@ -81,7 +81,7 @@ func Components(it world.CustomItem) map[string]any {
 		builder.AddProperty("foil", x.Glinted())
 	}
 	if x, ok := it.(item.Digger); ok {
-		// dragonfactory patch: per-block mining speeds for clients.
+		// skygear patch: per-block mining speeds for clients.
 		speeds := x.DestroySpeeds()
 		names := make([]string, 0, len(speeds))
 		for name := range speeds {

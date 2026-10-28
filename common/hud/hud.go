@@ -1,5 +1,5 @@
 // Package hud sends the HUD texts (top left, top right, quest panel) as the
-// rows of the sidebar scoreboard. The dfui pack's ui/scoreboards.json draws
+// rows of the sidebar scoreboard. The sgui pack's ui/scoreboards.json draws
 // a sidebar whose objective name is Title as these parts instead of the
 // sidebar: each row starts with the marker of its part, which the pack
 // removes. Rows keep their order within a part.
@@ -10,14 +10,14 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/scoreboard"
-	"github.com/presentkim/dragonfactory/common/internal/slottext"
+	"github.com/presentkim/skygear/common/internal/slottext"
 )
 
 // Title is the objective name that tells the pack to draw the HUD parts.
 const Title = "§d§h§u§d"
 
 // FrameTitle is Title with the lobby frame marker: the pack also draws the
-// lobby's frame over the whole screen (dfui_hooks.lobby_frame, which the
+// lobby's frame over the whole screen (sgui_hooks.lobby_frame, which the
 // server pack fills), the same one it draws behind lobby forms.
 const FrameTitle = Title + "§d§l§b"
 

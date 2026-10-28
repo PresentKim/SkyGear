@@ -2,7 +2,7 @@
 
 ## dragonfly
 
-`github.com/df-mc/dragonfly` **v0.11.5** 의 사본에 dragonfactory 패치를 얹은 것이다.
+`github.com/df-mc/dragonfly` **v0.11.5** 의 사본에 skygear 패치를 얹은 것이다.
 루트 `go.mod` 의 `replace github.com/df-mc/dragonfly => ./third_party/dragonfly` 로 쓰인다.
 자체 `go.mod` 가 있어 루트의 `go vet ./...`, `go test ./...` 대상이 아니다(`.github` 는 제거).
 
@@ -43,7 +43,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
 | `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(업스트림은 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사된다). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트는 금 가기를 끝내도 파괴 동작을 보내지 않는다). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
-패치한 곳에는 `dragonfactory patch` 주석을 단다.
+패치한 곳에는 `skygear patch` 주석을 단다.
 
 ### 업그레이드 절차
 
@@ -55,7 +55,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 
 ## EnderIO 리소스 (도관 텍스처)
 
-도관 텍스처(`tools/conduittex/src/` 의 64×64 원본과 거기서 만든 `textures/entity/dragonfactory/conduit_*.png`, `textures/items/conduit_*.png`)와 도관 결합체·결합 반죽 아이콘은 Team-EnderIO/EnderIO
+도관 텍스처(`tools/conduittex/src/` 의 64×64 원본과 거기서 만든 `textures/entity/skygear/conduit_*.png`, `textures/items/conduit_*.png`)와 도관 결합체·결합 반죽 아이콘은 Team-EnderIO/EnderIO
 (Unlicense, 퍼블릭 도메인)의 텍스처(`energy`, `enhanced_energy`, `ender_energy`, `item`의 첫 프레임, `conduit_binder`, `conduit_binder_composite`)에서 가져왔다. 아이템 도관 2·3단은 색조만 바꾼 것이다. 모델 비율(3×3×3 코어, 2×2 팔)도 EnderIO 모델을 따랐다. 배치는 `tools/conduitgeo`·`tools/conduittex` 참고.
 
 연결부 판의 화살표(`tools/conduittex/src/arrow_in.png`, `arrow_out.png`)도 EnderIO(`item_conduit_in`, `item_conduit_out`)의 것이다(채널 색으로 물들여 쓴다).

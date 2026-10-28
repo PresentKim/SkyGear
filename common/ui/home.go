@@ -29,7 +29,7 @@ func HomeScreen(p *player.Player, h Home) {
 	l.close = h.Close
 	var buttons []any
 	for _, o := range h.Buttons {
-		ch := []any{img("mc-home-icon", o.Icon), txt("mc-home-label", o.Label), img("mc-home-chevron", "textures/ui/df/chevron_right")}
+		ch := []any{img("mc-home-icon", o.Icon), txt("mc-home-label", o.Label), img("mc-home-chevron", "textures/ui/sg/chevron_right")}
 		buttons = append(buttons, l.press(box("mc-btn mc-home-btn", "children", ch), o.Run))
 	}
 	children := []any{box("mc-home-menu", "children", buttons)}

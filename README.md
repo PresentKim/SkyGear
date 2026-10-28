@@ -1,11 +1,11 @@
-# dragonfactory
+# Sky Gear
 
 A multi-game island server for **Minecraft: Bedrock Edition**, built on
 [Dragonfly](https://github.com/df-mc/dragonfly) (Go).
 
 Every player gets their own save slots; each save is a separate world (an
 *instance*) that runs while its host is online and can be shared with friends.
-The first game is **DragonFactory** (드래곤팩토리), a SkyFactory / ATM10 Sky
+The first game is **Sky Gear** (스카이기어), a SkyFactory / ATM10 Sky
 style factory-building game: start bare-handed on a 3×3×3 sky island, craft
 resources by hand, unlock recipes through research, and work your way up to
 powered machines, conduits, alloys, monster waves and magic.
@@ -27,7 +27,7 @@ feature list is in [docs/features.md](docs/features.md).
 ```sh
 go run .
 # or
-go build -o dragonfactory . && ./dragonfactory
+go build -o skygear . && ./skygear
 ```
 
 On the first run the server writes its configuration files in the working
@@ -53,7 +53,7 @@ island.
 
 ## Becoming an operator
 
-Operators can use the admin and debug commands (`/dfadmin`, `/dfdebug`,
+Operators can use the admin and debug commands (`/sgadmin`, `/sgdebug`,
 `/copysave`). Add your Xbox **XUID** to `platform.toml` and restart:
 
 ```toml
@@ -78,9 +78,9 @@ internal/instance/              Instance manager (activate/close, lobby ↔ inst
 internal/platform/              Lobby, server guide, save selection, friends, invites, members, titles, commands
 internal/account/               Achievements, titles, name colours, per-account settings
 internal/locales/               This server's text catalogs (ko/en, vanilla names), merged into common/i18n
-internal/games/dragonfactory/   DragonFactory: session-bound code (game, state, handlers, machine/drawer/barrel/
+internal/games/skygear/   Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
                                 conduit blocks, research, advancement screens, codex, island expansion, waves, …)
-  dfitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
+  sgitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
   naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)
   textfmt/                      Number and duration formatting, pack font glyphs
   blockmodel/                   Custom block materials and cube properties
@@ -96,7 +96,7 @@ internal/itemio/                Item input/output interface used by hoppers and 
 internal/energy, itemnet, fluidnet/  Energy, item and fluid networks
 common/                         Game-independent packages and packs (forms, DDUI screens, entity chests, WAILA,
                                 HUD, i18n, resource pack loader, backups, …; see common/README.md)
-assets/resourcepack/dragonfactory/  The game's resource pack: textures, models, names, entities, JSON UI
+assets/resourcepack/skygear/  The game's resource pack: textures, models, names, entities, JSON UI
 tools/                          Generators for textures, models and data files used by the packs
 spike/scenarios/, spike/cmd/platformbot/  Connection scenarios and the scenario bot
 third_party/dragonfly/          Dragonfly v0.11.5 with this project's patches (third_party/README.md)

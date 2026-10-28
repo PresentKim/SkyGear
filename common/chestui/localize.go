@@ -6,8 +6,8 @@ import (
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/dfhook"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 	"golang.org/x/text/language"
@@ -22,7 +22,7 @@ var Localize func(lang string, it item.Stack) (name string, lore []string, ok bo
 
 // localizeWindow puts the texts of c's language into the contents of its
 // window sent in pk.
-func localizeWindow(c *dfhook.Conn, pk packet.Packet) {
+func localizeWindow(c *sghook.Conn, pk packet.Packet) {
 	if Localize == nil {
 		return
 	}
@@ -41,7 +41,7 @@ func localizeWindow(c *dfhook.Conn, pk packet.Packet) {
 }
 
 // openWindowOf is c's window with the window ID, if it has one.
-func openWindowOf(c *dfhook.Conn, windowID uint32) *window {
+func openWindowOf(c *sghook.Conn, windowID uint32) *window {
 	cl := loadClient(c)
 	if cl == nil {
 		return nil
@@ -61,7 +61,7 @@ func (w *window) id() byte {
 }
 
 // connLang is the catalog language of the client's language.
-func connLang(c *dfhook.Conn) string {
+func connLang(c *sghook.Conn) string {
 	tag, _ := language.Parse(strings.Replace(c.ClientData().LanguageCode, "_", "-", 1))
 	return i18n.Lang(tag)
 }

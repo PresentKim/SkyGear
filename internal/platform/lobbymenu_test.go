@@ -7,17 +7,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/dragonfactory/common/i18n"
-	_ "github.com/presentkim/dragonfactory/internal/locales"
+	"github.com/presentkim/skygear/common/i18n"
+	_ "github.com/presentkim/skygear/internal/locales"
 )
 
 // TestLobbyMenuMatchesThePack: the main menu form and the picture of it the
-// pack draws on the HUD (ui/df_lobby.json menu) have the same buttons in the
+// pack draws on the HUD (ui/sg_lobby.json menu) have the same buttons in the
 // same order, so closing and opening the form does not change the screen,
 // and every label is a key of both language files.
 func TestLobbyMenuMatchesThePack(t *testing.T) {
-	const pack = "../../assets/resourcepack/dragonfactory/"
-	raw, err := os.ReadFile(pack + "ui/df_lobby.json")
+	const pack = "../../assets/resourcepack/skygear/"
+	raw, err := os.ReadFile(pack + "ui/sg_lobby.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestLobbyMenuMatchesThePack(t *testing.T) {
 		for _, col := range c {
 			for _, b := range col.Controls {
 				for _, vars := range b {
-					drawn = append(drawn, [2]string{vars["$df_launcher_label"], vars["$df_launcher_icon"]})
+					drawn = append(drawn, [2]string{vars["$sg_launcher_label"], vars["$sg_launcher_icon"]})
 				}
 			}
 		}

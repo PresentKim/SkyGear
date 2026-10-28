@@ -65,7 +65,7 @@ func (c Carrot) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world
 // BreakInfo ...
 func (c Carrot) BreakInfo() BreakInfo {
 	return newBreakInfo(0, alwaysHarvestable, nothingEffective, func(t item.Tool, enchantments []item.Enchantment) []item.Stack {
-		// dragonfactory patch: drops are new crops (growth 0), not copies of the
+		// skygear patch: drops are new crops (growth 0), not copies of the
 		// grown one, which would be planted fully grown.
 		if c.Growth < 7 {
 			return []item.Stack{item.NewStack(Carrot{}, 1)}
@@ -89,7 +89,7 @@ func (c Carrot) EncodeItem() (name string, meta int16) {
 // RandomTick ...
 func (c Carrot) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 	if ScheduledCropGrowth {
-		return // dragonfactory patch: the game grows crops on a schedule.
+		return // skygear patch: the game grows crops on a schedule.
 	}
 	if tx.Light(pos) < 8 {
 		breakBlock(c, pos, tx)

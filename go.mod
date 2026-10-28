@@ -1,4 +1,4 @@
-module github.com/presentkim/dragonfactory
+module github.com/presentkim/skygear
 
 go 1.26.0
 

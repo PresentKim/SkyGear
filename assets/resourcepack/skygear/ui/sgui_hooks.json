@@ -1,0 +1,19 @@
+// Fills the hooks of the common sgui theme (its ui/sgui_hooks.json); this
+// pack is loaded above sgui, so these definitions win.
+{
+  "namespace": "sgui_hooks",
+
+  // The lobby's launcher frame (ui/sg_lobby.json).
+  "lobby_frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [ { "frame@sg_lobby.frame": {} } ]
+  },
+
+  // The lobby's main menu as pictures (ui/sg_lobby.json).
+  "lobby_menu": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [ { "menu@sg_lobby.menu": {} } ]
+  }
+}

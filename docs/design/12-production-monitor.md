@@ -1,6 +1,6 @@
 # 12. 생산 통계와 정지 알림
 
-> 수치(시간, 개수)는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 기계 공통 규칙은 [02 §11](02-dragonfactory.md), 에너지는 [06](06-power-and-conduits.md), 업적 엔진은 [01 §5](01-platform.md).
+> 수치(시간, 개수)는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 기계 공통 규칙은 [02 §11](02-skygear.md), 에너지는 [06](06-power-and-conduits.md), 업적 엔진은 [01 §5](01-platform.md).
 
 공장 게임의 재미는 병목을 찾아 푸는 데 있다. 기계가 늘어나면 바라보는 것만으로는 어디가 막혔는지 알 수 없으므로, 섬이 **무엇을 얼마나 만드는지**(생산 통계)와 **어느 기계가 왜 멈췄는지**(정지 알림)를 한곳에서 보여 준다.
 

@@ -7,7 +7,7 @@
         "array_name": "controls",
         "operation": "insert_front",
         "value": {
-          "df_deco@df_slot.deco": {}
+          "sg_deco@sg_slot.deco": {}
         }
       }
     ]

@@ -16,10 +16,10 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/chestui"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	"github.com/presentkim/dragonfactory/common/playerstate"
-	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/skygear/common/chestui"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/playerstate"
+	"github.com/presentkim/skygear/internal/db"
 )
 
 type Config struct {

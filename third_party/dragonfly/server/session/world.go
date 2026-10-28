@@ -1003,7 +1003,7 @@ func (s *Session) ViewBrewingUpdate(prevBrewTime, brewTime time.Duration, prevFu
 
 // ViewBlockUpdate ...
 func (s *Session) ViewBlockUpdate(pos cube.Pos, b world.Block, layer int) {
-	// dragonfactory patch: the world's blocks are not shown in a chunk shown
+	// skygear patch: the world's blocks are not shown in a chunk shown
 	// with ViewFakeChunk.
 	if s.inFakeChunk(pos) {
 		return
@@ -1011,7 +1011,7 @@ func (s *Session) ViewBlockUpdate(pos cube.Pos, b world.Block, layer int) {
 	s.viewBlockUpdate(pos, b, layer)
 }
 
-// viewBlockUpdate sends b at pos. (dragonfactory patch)
+// viewBlockUpdate sends b at pos. (skygear patch)
 func (s *Session) viewBlockUpdate(pos cube.Pos, b world.Block, layer int) {
 	blockPos := protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])}
 	s.writePacket(&packet.UpdateBlock{

@@ -4,8 +4,8 @@ package account
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
-	_ "github.com/presentkim/dragonfactory/internal/locales" // this server's texts
+	"github.com/presentkim/skygear/common/i18n"
+	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"log/slog"
 	"slices"
 	"strings"
@@ -13,9 +13,9 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/db"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/db"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // Achievement is something a player can earn once per account. Its texts are

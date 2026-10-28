@@ -1,0 +1,17 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.skygear.gate_portal.spin": {
+      "loop": true,
+      "bones": {
+        "portal": {
+          "rotation": [
+            0,
+            0,
+            "query.anim_time * 40"
+          ]
+        }
+      }
+    }
+  }
+}

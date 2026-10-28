@@ -33,4 +33,4 @@
 
 ## 우리 폼에 적용한 것
 
-창(`df_form.window`)·기계 창 배경(`df_machine.dark_bg`)은 `dialog_background_opaque`, 컨트롤 막대는 `toolbar_background`, 닫기는 `light_close_button`, 도움말은 `how_to_play_button_*_light`, 위 탭은 `TabTopBack`/`TabTopFront`, 아이템 칸은 `cell_image`. 안쪽 판(연구 분할의 왼쪽·오른쪽 등)은 우리 그림 `textures/ui/df/panel`(회색 판)이다.
+창(`sg_form.window`)·기계 창 배경(`sg_machine.dark_bg`)은 `dialog_background_opaque`, 컨트롤 막대는 `toolbar_background`, 닫기는 `light_close_button`, 도움말은 `how_to_play_button_*_light`, 위 탭은 `TabTopBack`/`TabTopFront`, 아이템 칸은 `cell_image`. 안쪽 판(연구 분할의 왼쪽·오른쪽 등)은 우리 그림 `textures/ui/sg/panel`(회색 판)이다.

@@ -26,7 +26,7 @@
 - 업적(카운터 업적 포함)과 칭호, 업적 수로 열리는 이름 색
 - 설정(알림, 광맥 캐기 대각선, JSON UI 폼)
 
-## 드래곤팩토리
+## 스카이기어
 
 - 3×3×3 하늘섬 + 나무 한 그루, 맨손 시작([기획 05](design/05-sky-progression.md))
 - **연구**: 참나무 판자·조합대·연구대 외 모든 조합법이 잠겨 있고, 연구대에서 재료를 한 번에 써서 조합법을 연다. 섬의 모두에게 바로 열린다
@@ -54,5 +54,5 @@
 |---|---|
 | 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/title`, `/settings`, `/uimode` |
 | 로비 | `/saves`, `/join [코드]` |
-| 세이브 안 | `/menu`(`/df`), `/도감`(`/codex`), `/도움말`(`/dfhelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
-| 운영자 | 관리 `/dfadmin give·item·research·advance·tps`, 디버그 `/dfdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |
+| 세이브 안 | `/menu`(`/sg`), `/도감`(`/codex`), `/도움말`(`/sghelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
+| 운영자 | 관리 `/sgadmin give·item·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |

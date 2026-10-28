@@ -8,8 +8,8 @@
 - Dragonfly 는 접속 때 한 번 전체 목록을 보내고, 세션마다 `네트워크 ID → 레시피` 표를 만들어 조합 요청(`CraftRecipe`·`AutoCraftRecipe`·대장장이·석재 절단기)을 그 표로만 받는다. 표에 없는 ID 는 동적 레시피(장식 항아리)로 넘어가고 거기도 없으면 거절.
 - Dragonfly 패치 `Player.SetRecipeFilter(f)`: 필터가 고른 레시피만 보내고 표에 넣는다(네트워크 ID 는 전체 목록 순번 그대로라 바뀌지 않음). 부르면 바로 다시 보낸다. 필터가 있으면 동적 레시피는 막는다.
   - 따라서 잠긴 레시피는 레시피 책·조합 칸에 안 나오고, 패킷을 위조해도 서버가 거절한다.
-- 시나리오 `spike/scenarios/recipes.sh`: 막대기 연구 뒤 받는 레시피가 두 자리 수 이하, `/dfadmin research free` 로 수백 개, 다시 잠그면 줄어듦, 연구 창에서 상자 연구를 판자로 납품해 완료(봇이 `CraftingData` 를 `recipes=<n>` 로 셈).
-- 연구 시스템([기획 02 §9](../design/02-dragonfactory.md))이 이것을 쓴다: 섬에 들어오면 열린 결과(기본 + 완료한 연구)의 레시피만 보내고, 연구가 끝나면 섬의 모두에게 바로 다시 보낸다. 나가면 필터를 푼다. 코드 `dragonfactory/recipes.go`, `research.go`. 열기 단위는 결과 아이템 이름(색·나무 종류 구분 없이 함께 열림).
+- 시나리오 `spike/scenarios/recipes.sh`: 막대기 연구 뒤 받는 레시피가 두 자리 수 이하, `/sgadmin research free` 로 수백 개, 다시 잠그면 줄어듦, 연구 창에서 상자 연구를 판자로 납품해 완료(봇이 `CraftingData` 를 `recipes=<n>` 로 셈).
+- 연구 시스템([기획 02 §9](../design/02-skygear.md))이 이것을 쓴다: 섬에 들어오면 열린 결과(기본 + 완료한 연구)의 레시피만 보내고, 연구가 끝나면 섬의 모두에게 바로 다시 보낸다. 나가면 필터를 푼다. 코드 `skygear/recipes.go`, `research.go`. 열기 단위는 결과 아이템 이름(색·나무 종류 구분 없이 함께 열림).
 
 ## 레시피 목록에 없는 것(따로 막아야 함)
 - **화로·훈연기·용광로 굽기**: Dragonfly 는 레시피 목록이 아니라 아이템의 `Smeltable` 로 굽는다. 잠그려면 화로에 넣을 때·구울 때 검사를 따로 둔다.
@@ -20,5 +20,5 @@
 
 클라이언트 레시피 책은 **창작 인벤토리 목록**(`CreativeContent`)에 있는 결과의 레시피만, 그것도 **블록 상태까지** 같을 때만 나열한다.
 
-- 우리 아이템·블록: `creative.go` 가 게임 시작 때 창작 인벤토리에 등록한다(머리 없는 익명 그룹, 탭은 건축·장비·아이템). `TestEveryGameRecipeResultIsCreative` 가 우리 레시피의 결과가 모두 창작 목록에 있는지 검사한다. **새 아이템·블록을 레시피로 만들 때는 `creative.go` 에도 넣는다.** 시나리오 `hammer_recipe.sh` 는 봇이 결과 아이템을 풀어 `RECIPE dragonfactory:hammer` 를 확인한다.
+- 우리 아이템·블록: `creative.go` 가 게임 시작 때 창작 인벤토리에 등록한다(머리 없는 익명 그룹, 탭은 건축·장비·아이템). `TestEveryGameRecipeResultIsCreative` 가 우리 레시피의 결과가 모두 창작 목록에 있는지 검사한다. **새 아이템·블록을 레시피로 만들 때는 `creative.go` 에도 넣는다.** 시나리오 `hammer_recipe.sh` 는 봇이 결과 아이템을 풀어 `RECIPE skygear:hammer` 를 확인한다.
 - 바닐라 블록: 바닐라 레시피 데이터(`crafting_data.nbt`)의 블록 결과는 창작 항목과 상태가 다른 것이 많다(상자·퇴비통 등 30여 종). Dragonfly 패치 `creativeBlockFitter` 가 레시피 결과의 블록 런타임 ID 를 창작 항목의 것으로 맞춘다. 시나리오 `recipe_book.sh`(봇 `BOT_DUMP_RECIPES=1`)가 어긋난 결과(`MISMATCH`)가 없는지 확인한다.

@@ -1,0 +1,786 @@
+{
+  "resource_pack_name": "vanilla",
+  "texture_data": {
+    "skygear:fairy_dust": {
+      "textures": "textures/items/fairy_dust"
+    },
+    "skygear:fairy_emerald": {
+      "textures": "textures/items/fairy_emerald"
+    },
+    "skygear:fairy_board": {
+      "textures": "textures/items/fairy_board"
+    },
+    "skygear:fairy_bone_meal": {
+      "textures": "textures/items/fairy_bone_meal"
+    },
+    "skygear:fairy_hourglass": {
+      "textures": "textures/items/fairy_hourglass"
+    },
+    "skygear:bark_fiber": {
+      "textures": "textures/items/bark_fiber"
+    },
+    "skygear:cycle_0": {
+      "textures": "textures/items/cycle_0"
+    },
+    "skygear:cycle_1": {
+      "textures": "textures/items/cycle_1"
+    },
+    "skygear:cycle_10": {
+      "textures": "textures/items/cycle_10"
+    },
+    "skygear:cycle_2": {
+      "textures": "textures/items/cycle_2"
+    },
+    "skygear:cycle_3": {
+      "textures": "textures/items/cycle_3"
+    },
+    "skygear:cycle_4": {
+      "textures": "textures/items/cycle_4"
+    },
+    "skygear:cycle_5": {
+      "textures": "textures/items/cycle_5"
+    },
+    "skygear:cycle_6": {
+      "textures": "textures/items/cycle_6"
+    },
+    "skygear:cycle_7": {
+      "textures": "textures/items/cycle_7"
+    },
+    "skygear:cycle_8": {
+      "textures": "textures/items/cycle_8"
+    },
+    "skygear:cycle_9": {
+      "textures": "textures/items/cycle_9"
+    },
+    "skygear:drawer_key": {
+      "textures": "textures/items/drawer_key"
+    },
+    "skygear:drawer_upgrade_capacity": {
+      "textures": "textures/items/drawer_upgrade_capacity"
+    },
+    "skygear:drawer_upgrade_void": {
+      "textures": "textures/items/drawer_upgrade_void"
+    },
+    "skygear:wooden_bucket": {
+      "textures": "textures/items/wooden_bucket"
+    },
+    "skygear:wooden_water_bucket": {
+      "textures": "textures/items/wooden_water_bucket"
+    },
+    "skygear:hammer": {
+      "textures": "textures/items/hammer"
+    },
+    "skygear:stone_hammer": {
+      "textures": "textures/items/stone_hammer"
+    },
+    "skygear:machine_info": {
+      "textures": "textures/items/machine_info"
+    },
+    "skygear:raw_tin": {
+      "textures": "textures/items/raw_tin"
+    },
+    "skygear:raw_lead": {
+      "textures": "textures/items/raw_lead"
+    },
+    "skygear:raw_silver": {
+      "textures": "textures/items/raw_silver"
+    },
+    "skygear:raw_nickel": {
+      "textures": "textures/items/raw_nickel"
+    },
+    "skygear:grass_seeds": {
+      "textures": "textures/items/grass_seeds"
+    },
+    "skygear:liquid_water": {
+      "textures": "textures/blocks/water_placeholder"
+    },
+    "skygear:liquid_witch_water": {
+      "textures": "textures/blocks/water_placeholder"
+    },
+    "skygear:liquid_lava": {
+      "textures": "textures/blocks/barrel_lava"
+    },
+    "skygear:pebble_andesite": {
+      "textures": "textures/items/pebble_andesite"
+    },
+    "skygear:pebble_granite": {
+      "textures": "textures/items/pebble_granite"
+    },
+    "skygear:pebble_diorite": {
+      "textures": "textures/items/pebble_diorite"
+    },
+    "skygear:pebble_stone": {
+      "textures": "textures/items/pebble_stone"
+    },
+    "skygear:mycelium_spores": {
+      "textures": "textures/items/mycelium_spores"
+    },
+    "skygear:witch_water_bucket": {
+      "textures": "textures/items/witch_water_bucket"
+    },
+    "skygear:pebble_deepslate": {
+      "textures": "textures/items/pebble_deepslate"
+    },
+    "skygear:pebble_blackstone": {
+      "textures": "textures/items/pebble_blackstone"
+    },
+    "skygear:pebble_basalt": {
+      "textures": "textures/items/pebble_basalt"
+    },
+    "skygear:pebble_tuff": {
+      "textures": "textures/items/pebble_tuff"
+    },
+    "skygear:pebble_calcite": {
+      "textures": "textures/items/pebble_calcite"
+    },
+    "skygear:progress_0": {
+      "textures": "textures/items/progress_0"
+    },
+    "skygear:progress_1": {
+      "textures": "textures/items/progress_1"
+    },
+    "skygear:progress_10": {
+      "textures": "textures/items/progress_10"
+    },
+    "skygear:progress_2": {
+      "textures": "textures/items/progress_2"
+    },
+    "skygear:progress_3": {
+      "textures": "textures/items/progress_3"
+    },
+    "skygear:progress_4": {
+      "textures": "textures/items/progress_4"
+    },
+    "skygear:progress_5": {
+      "textures": "textures/items/progress_5"
+    },
+    "skygear:progress_6": {
+      "textures": "textures/items/progress_6"
+    },
+    "skygear:progress_7": {
+      "textures": "textures/items/progress_7"
+    },
+    "skygear:progress_8": {
+      "textures": "textures/items/progress_8"
+    },
+    "skygear:progress_9": {
+      "textures": "textures/items/progress_9"
+    },
+    "skygear:research_note": {
+      "textures": "textures/items/research_note"
+    },
+    "skygear:ore_chunk_iron": {
+      "textures": "textures/items/ore_chunk_iron"
+    },
+    "skygear:ore_chunk_gold": {
+      "textures": "textures/items/ore_chunk_gold"
+    },
+    "skygear:ore_chunk_copper": {
+      "textures": "textures/items/ore_chunk_copper"
+    },
+    "skygear:mesh_string": {
+      "textures": "textures/items/mesh_string"
+    },
+    "skygear:mesh_flint": {
+      "textures": "textures/items/mesh_flint"
+    },
+    "skygear:mesh_iron": {
+      "textures": "textures/items/mesh_iron"
+    },
+    "skygear:mesh_gold": {
+      "textures": "textures/items/mesh_gold"
+    },
+    "skygear:mesh_diamond": {
+      "textures": "textures/items/mesh_diamond"
+    },
+    "skygear:mesh_netherite": {
+      "textures": "textures/items/mesh_netherite"
+    },
+    "skygear:conduit_binder": {
+      "textures": "textures/items/conduit_binder"
+    },
+    "skygear:conduit_binder_mix": {
+      "textures": "textures/items/conduit_binder_mix"
+    },
+    "skygear:energy_gauge_0": {
+      "textures": "textures/items/energy_gauge_0"
+    },
+    "skygear:energy_gauge_1": {
+      "textures": "textures/items/energy_gauge_1"
+    },
+    "skygear:energy_gauge_2": {
+      "textures": "textures/items/energy_gauge_2"
+    },
+    "skygear:energy_gauge_3": {
+      "textures": "textures/items/energy_gauge_3"
+    },
+    "skygear:energy_gauge_4": {
+      "textures": "textures/items/energy_gauge_4"
+    },
+    "skygear:energy_gauge_5": {
+      "textures": "textures/items/energy_gauge_5"
+    },
+    "skygear:energy_gauge_6": {
+      "textures": "textures/items/energy_gauge_6"
+    },
+    "skygear:energy_gauge_7": {
+      "textures": "textures/items/energy_gauge_7"
+    },
+    "skygear:energy_gauge_8": {
+      "textures": "textures/items/energy_gauge_8"
+    },
+    "skygear:energy_gauge_9": {
+      "textures": "textures/items/energy_gauge_9"
+    },
+    "skygear:energy_gauge_10": {
+      "textures": "textures/items/energy_gauge_10"
+    },
+    "skygear:ore_chunk_tin": {
+      "textures": "textures/items/ore_chunk_tin"
+    },
+    "skygear:ore_chunk_lead": {
+      "textures": "textures/items/ore_chunk_lead"
+    },
+    "skygear:ore_chunk_silver": {
+      "textures": "textures/items/ore_chunk_silver"
+    },
+    "skygear:ore_chunk_nickel": {
+      "textures": "textures/items/ore_chunk_nickel"
+    },
+    "skygear:metal_dust_iron": {
+      "textures": "textures/items/metal_dust_iron"
+    },
+    "skygear:metal_dust_gold": {
+      "textures": "textures/items/metal_dust_gold"
+    },
+    "skygear:metal_dust_copper": {
+      "textures": "textures/items/metal_dust_copper"
+    },
+    "skygear:metal_dust_tin": {
+      "textures": "textures/items/metal_dust_tin"
+    },
+    "skygear:metal_dust_lead": {
+      "textures": "textures/items/metal_dust_lead"
+    },
+    "skygear:metal_dust_silver": {
+      "textures": "textures/items/metal_dust_silver"
+    },
+    "skygear:metal_dust_nickel": {
+      "textures": "textures/items/metal_dust_nickel"
+    },
+    "skygear:ingot_tin": {
+      "textures": "textures/items/ingot_tin"
+    },
+    "skygear:ingot_lead": {
+      "textures": "textures/items/ingot_lead"
+    },
+    "skygear:ingot_silver": {
+      "textures": "textures/items/ingot_silver"
+    },
+    "skygear:ingot_nickel": {
+      "textures": "textures/items/ingot_nickel"
+    },
+    "skygear:ingot_bronze": {
+      "textures": "textures/items/ingot_bronze"
+    },
+    "skygear:ingot_electrum": {
+      "textures": "textures/items/ingot_electrum"
+    },
+    "skygear:ingot_invar": {
+      "textures": "textures/items/ingot_invar"
+    },
+    "skygear:ingot_steel": {
+      "textures": "textures/items/ingot_steel"
+    },
+    "skygear:research_essence_engineering": {
+      "textures": "textures/items/research_essence_engineering"
+    },
+    "skygear:research_essence_alchemy": {
+      "textures": "textures/items/research_essence_alchemy"
+    },
+    "skygear:research_essence_farming": {
+      "textures": "textures/items/research_essence_farming"
+    },
+    "skygear:research_essence_hunting": {
+      "textures": "textures/items/research_essence_hunting"
+    },
+    "skygear:research_essence_magic": {
+      "textures": "textures/items/research_essence_magic"
+    },
+    "skygear:essence_zombie": {
+      "textures": "textures/items/essence_zombie"
+    },
+    "skygear:essence_skeleton": {
+      "textures": "textures/items/essence_skeleton"
+    },
+    "skygear:essence_creeper": {
+      "textures": "textures/items/essence_creeper"
+    },
+    "skygear:essence_spider": {
+      "textures": "textures/items/essence_spider"
+    },
+    "skygear:essence_slime": {
+      "textures": "textures/items/essence_slime"
+    },
+    "skygear:essence_enderman": {
+      "textures": "textures/items/essence_enderman"
+    },
+    "skygear:essence_blaze": {
+      "textures": "textures/items/essence_blaze"
+    },
+    "skygear:alloy_infused": {
+      "textures": "textures/items/alloy_infused"
+    },
+    "skygear:alloy_reinforced": {
+      "textures": "textures/items/alloy_reinforced"
+    },
+    "skygear:alloy_atomic": {
+      "textures": "textures/items/alloy_atomic"
+    },
+    "skygear:circuit_1": {
+      "textures": "textures/items/circuit_1"
+    },
+    "skygear:circuit_2": {
+      "textures": "textures/items/circuit_2"
+    },
+    "skygear:circuit_3": {
+      "textures": "textures/items/circuit_3"
+    },
+    "skygear:circuit_4": {
+      "textures": "textures/items/circuit_4"
+    },
+    "skygear:kit_1": {
+      "textures": "textures/items/kit_1"
+    },
+    "skygear:kit_2": {
+      "textures": "textures/items/kit_2"
+    },
+    "skygear:kit_3": {
+      "textures": "textures/items/kit_3"
+    },
+    "skygear:config_copier": {
+      "textures": "textures/items/config_copier"
+    },
+    "skygear:essence_drowned": {
+      "textures": "textures/items/essence_drowned"
+    },
+    "skygear:essence_witch": {
+      "textures": "textures/items/essence_witch"
+    },
+    "skygear:essence_piglin": {
+      "textures": "textures/items/essence_piglin"
+    },
+    "skygear:essence_wither_skeleton": {
+      "textures": "textures/items/essence_wither_skeleton"
+    },
+    "skygear:tool_sword_flint_wood": {
+      "textures": "textures/items/tool_sword_flint_wood"
+    },
+    "skygear:tool_sword_flint_bone": {
+      "textures": "textures/items/tool_sword_flint_bone"
+    },
+    "skygear:tool_sword_flint_blaze": {
+      "textures": "textures/items/tool_sword_flint_blaze"
+    },
+    "skygear:tool_sword_iron_wood": {
+      "textures": "textures/items/tool_sword_iron_wood"
+    },
+    "skygear:tool_sword_iron_bone": {
+      "textures": "textures/items/tool_sword_iron_bone"
+    },
+    "skygear:tool_sword_iron_blaze": {
+      "textures": "textures/items/tool_sword_iron_blaze"
+    },
+    "skygear:tool_sword_bronze_wood": {
+      "textures": "textures/items/tool_sword_bronze_wood"
+    },
+    "skygear:tool_sword_bronze_bone": {
+      "textures": "textures/items/tool_sword_bronze_bone"
+    },
+    "skygear:tool_sword_bronze_blaze": {
+      "textures": "textures/items/tool_sword_bronze_blaze"
+    },
+    "skygear:tool_sword_electrum_wood": {
+      "textures": "textures/items/tool_sword_electrum_wood"
+    },
+    "skygear:tool_sword_electrum_bone": {
+      "textures": "textures/items/tool_sword_electrum_bone"
+    },
+    "skygear:tool_sword_electrum_blaze": {
+      "textures": "textures/items/tool_sword_electrum_blaze"
+    },
+    "skygear:tool_sword_invar_wood": {
+      "textures": "textures/items/tool_sword_invar_wood"
+    },
+    "skygear:tool_sword_invar_bone": {
+      "textures": "textures/items/tool_sword_invar_bone"
+    },
+    "skygear:tool_sword_invar_blaze": {
+      "textures": "textures/items/tool_sword_invar_blaze"
+    },
+    "skygear:tool_sword_steel_wood": {
+      "textures": "textures/items/tool_sword_steel_wood"
+    },
+    "skygear:tool_sword_steel_bone": {
+      "textures": "textures/items/tool_sword_steel_bone"
+    },
+    "skygear:tool_sword_steel_blaze": {
+      "textures": "textures/items/tool_sword_steel_blaze"
+    },
+    "skygear:tool_sword_diamond_wood": {
+      "textures": "textures/items/tool_sword_diamond_wood"
+    },
+    "skygear:tool_sword_diamond_bone": {
+      "textures": "textures/items/tool_sword_diamond_bone"
+    },
+    "skygear:tool_sword_diamond_blaze": {
+      "textures": "textures/items/tool_sword_diamond_blaze"
+    },
+    "skygear:tool_pickaxe_flint_wood": {
+      "textures": "textures/items/tool_pickaxe_flint_wood"
+    },
+    "skygear:tool_pickaxe_flint_bone": {
+      "textures": "textures/items/tool_pickaxe_flint_bone"
+    },
+    "skygear:tool_pickaxe_flint_blaze": {
+      "textures": "textures/items/tool_pickaxe_flint_blaze"
+    },
+    "skygear:tool_pickaxe_iron_wood": {
+      "textures": "textures/items/tool_pickaxe_iron_wood"
+    },
+    "skygear:tool_pickaxe_iron_bone": {
+      "textures": "textures/items/tool_pickaxe_iron_bone"
+    },
+    "skygear:tool_pickaxe_iron_blaze": {
+      "textures": "textures/items/tool_pickaxe_iron_blaze"
+    },
+    "skygear:tool_pickaxe_bronze_wood": {
+      "textures": "textures/items/tool_pickaxe_bronze_wood"
+    },
+    "skygear:tool_pickaxe_bronze_bone": {
+      "textures": "textures/items/tool_pickaxe_bronze_bone"
+    },
+    "skygear:tool_pickaxe_bronze_blaze": {
+      "textures": "textures/items/tool_pickaxe_bronze_blaze"
+    },
+    "skygear:tool_pickaxe_electrum_wood": {
+      "textures": "textures/items/tool_pickaxe_electrum_wood"
+    },
+    "skygear:tool_pickaxe_electrum_bone": {
+      "textures": "textures/items/tool_pickaxe_electrum_bone"
+    },
+    "skygear:tool_pickaxe_electrum_blaze": {
+      "textures": "textures/items/tool_pickaxe_electrum_blaze"
+    },
+    "skygear:tool_pickaxe_invar_wood": {
+      "textures": "textures/items/tool_pickaxe_invar_wood"
+    },
+    "skygear:tool_pickaxe_invar_bone": {
+      "textures": "textures/items/tool_pickaxe_invar_bone"
+    },
+    "skygear:tool_pickaxe_invar_blaze": {
+      "textures": "textures/items/tool_pickaxe_invar_blaze"
+    },
+    "skygear:tool_pickaxe_steel_wood": {
+      "textures": "textures/items/tool_pickaxe_steel_wood"
+    },
+    "skygear:tool_pickaxe_steel_bone": {
+      "textures": "textures/items/tool_pickaxe_steel_bone"
+    },
+    "skygear:tool_pickaxe_steel_blaze": {
+      "textures": "textures/items/tool_pickaxe_steel_blaze"
+    },
+    "skygear:tool_pickaxe_diamond_wood": {
+      "textures": "textures/items/tool_pickaxe_diamond_wood"
+    },
+    "skygear:tool_pickaxe_diamond_bone": {
+      "textures": "textures/items/tool_pickaxe_diamond_bone"
+    },
+    "skygear:tool_pickaxe_diamond_blaze": {
+      "textures": "textures/items/tool_pickaxe_diamond_blaze"
+    },
+    "skygear:tool_axe_flint_wood": {
+      "textures": "textures/items/tool_axe_flint_wood"
+    },
+    "skygear:tool_axe_flint_bone": {
+      "textures": "textures/items/tool_axe_flint_bone"
+    },
+    "skygear:tool_axe_flint_blaze": {
+      "textures": "textures/items/tool_axe_flint_blaze"
+    },
+    "skygear:tool_axe_iron_wood": {
+      "textures": "textures/items/tool_axe_iron_wood"
+    },
+    "skygear:tool_axe_iron_bone": {
+      "textures": "textures/items/tool_axe_iron_bone"
+    },
+    "skygear:tool_axe_iron_blaze": {
+      "textures": "textures/items/tool_axe_iron_blaze"
+    },
+    "skygear:tool_axe_bronze_wood": {
+      "textures": "textures/items/tool_axe_bronze_wood"
+    },
+    "skygear:tool_axe_bronze_bone": {
+      "textures": "textures/items/tool_axe_bronze_bone"
+    },
+    "skygear:tool_axe_bronze_blaze": {
+      "textures": "textures/items/tool_axe_bronze_blaze"
+    },
+    "skygear:tool_axe_electrum_wood": {
+      "textures": "textures/items/tool_axe_electrum_wood"
+    },
+    "skygear:tool_axe_electrum_bone": {
+      "textures": "textures/items/tool_axe_electrum_bone"
+    },
+    "skygear:tool_axe_electrum_blaze": {
+      "textures": "textures/items/tool_axe_electrum_blaze"
+    },
+    "skygear:tool_axe_invar_wood": {
+      "textures": "textures/items/tool_axe_invar_wood"
+    },
+    "skygear:tool_axe_invar_bone": {
+      "textures": "textures/items/tool_axe_invar_bone"
+    },
+    "skygear:tool_axe_invar_blaze": {
+      "textures": "textures/items/tool_axe_invar_blaze"
+    },
+    "skygear:tool_axe_steel_wood": {
+      "textures": "textures/items/tool_axe_steel_wood"
+    },
+    "skygear:tool_axe_steel_bone": {
+      "textures": "textures/items/tool_axe_steel_bone"
+    },
+    "skygear:tool_axe_steel_blaze": {
+      "textures": "textures/items/tool_axe_steel_blaze"
+    },
+    "skygear:tool_axe_diamond_wood": {
+      "textures": "textures/items/tool_axe_diamond_wood"
+    },
+    "skygear:tool_axe_diamond_bone": {
+      "textures": "textures/items/tool_axe_diamond_bone"
+    },
+    "skygear:tool_axe_diamond_blaze": {
+      "textures": "textures/items/tool_axe_diamond_blaze"
+    },
+    "skygear:tool_shovel_flint_wood": {
+      "textures": "textures/items/tool_shovel_flint_wood"
+    },
+    "skygear:tool_shovel_flint_bone": {
+      "textures": "textures/items/tool_shovel_flint_bone"
+    },
+    "skygear:tool_shovel_flint_blaze": {
+      "textures": "textures/items/tool_shovel_flint_blaze"
+    },
+    "skygear:tool_shovel_iron_wood": {
+      "textures": "textures/items/tool_shovel_iron_wood"
+    },
+    "skygear:tool_shovel_iron_bone": {
+      "textures": "textures/items/tool_shovel_iron_bone"
+    },
+    "skygear:tool_shovel_iron_blaze": {
+      "textures": "textures/items/tool_shovel_iron_blaze"
+    },
+    "skygear:tool_shovel_bronze_wood": {
+      "textures": "textures/items/tool_shovel_bronze_wood"
+    },
+    "skygear:tool_shovel_bronze_bone": {
+      "textures": "textures/items/tool_shovel_bronze_bone"
+    },
+    "skygear:tool_shovel_bronze_blaze": {
+      "textures": "textures/items/tool_shovel_bronze_blaze"
+    },
+    "skygear:tool_shovel_electrum_wood": {
+      "textures": "textures/items/tool_shovel_electrum_wood"
+    },
+    "skygear:tool_shovel_electrum_bone": {
+      "textures": "textures/items/tool_shovel_electrum_bone"
+    },
+    "skygear:tool_shovel_electrum_blaze": {
+      "textures": "textures/items/tool_shovel_electrum_blaze"
+    },
+    "skygear:tool_shovel_invar_wood": {
+      "textures": "textures/items/tool_shovel_invar_wood"
+    },
+    "skygear:tool_shovel_invar_bone": {
+      "textures": "textures/items/tool_shovel_invar_bone"
+    },
+    "skygear:tool_shovel_invar_blaze": {
+      "textures": "textures/items/tool_shovel_invar_blaze"
+    },
+    "skygear:tool_shovel_steel_wood": {
+      "textures": "textures/items/tool_shovel_steel_wood"
+    },
+    "skygear:tool_shovel_steel_bone": {
+      "textures": "textures/items/tool_shovel_steel_bone"
+    },
+    "skygear:tool_shovel_steel_blaze": {
+      "textures": "textures/items/tool_shovel_steel_blaze"
+    },
+    "skygear:tool_shovel_diamond_wood": {
+      "textures": "textures/items/tool_shovel_diamond_wood"
+    },
+    "skygear:tool_shovel_diamond_bone": {
+      "textures": "textures/items/tool_shovel_diamond_bone"
+    },
+    "skygear:tool_shovel_diamond_blaze": {
+      "textures": "textures/items/tool_shovel_diamond_blaze"
+    },
+    "skygear:petal_white": {
+      "textures": "textures/items/petal_white"
+    },
+    "skygear:petal_orange": {
+      "textures": "textures/items/petal_orange"
+    },
+    "skygear:petal_magenta": {
+      "textures": "textures/items/petal_magenta"
+    },
+    "skygear:petal_light_blue": {
+      "textures": "textures/items/petal_light_blue"
+    },
+    "skygear:petal_yellow": {
+      "textures": "textures/items/petal_yellow"
+    },
+    "skygear:petal_lime": {
+      "textures": "textures/items/petal_lime"
+    },
+    "skygear:petal_pink": {
+      "textures": "textures/items/petal_pink"
+    },
+    "skygear:petal_gray": {
+      "textures": "textures/items/petal_gray"
+    },
+    "skygear:petal_light_gray": {
+      "textures": "textures/items/petal_light_gray"
+    },
+    "skygear:petal_cyan": {
+      "textures": "textures/items/petal_cyan"
+    },
+    "skygear:petal_purple": {
+      "textures": "textures/items/petal_purple"
+    },
+    "skygear:petal_blue": {
+      "textures": "textures/items/petal_blue"
+    },
+    "skygear:petal_brown": {
+      "textures": "textures/items/petal_brown"
+    },
+    "skygear:petal_green": {
+      "textures": "textures/items/petal_green"
+    },
+    "skygear:petal_red": {
+      "textures": "textures/items/petal_red"
+    },
+    "skygear:petal_black": {
+      "textures": "textures/items/petal_black"
+    },
+    "skygear:seed_ore_iron": {
+      "textures": "textures/items/seed_ore_iron"
+    },
+    "skygear:seed_ore_gold": {
+      "textures": "textures/items/seed_ore_gold"
+    },
+    "skygear:seed_ore_copper": {
+      "textures": "textures/items/seed_ore_copper"
+    },
+    "skygear:seed_ore_tin": {
+      "textures": "textures/items/seed_ore_tin"
+    },
+    "skygear:seed_ore_lead": {
+      "textures": "textures/items/seed_ore_lead"
+    },
+    "skygear:seed_ore_silver": {
+      "textures": "textures/items/seed_ore_silver"
+    },
+    "skygear:seed_ore_nickel": {
+      "textures": "textures/items/seed_ore_nickel"
+    },
+    "skygear:seed_gem_lapis": {
+      "textures": "textures/items/seed_gem_lapis"
+    },
+    "skygear:seed_gem_redstone": {
+      "textures": "textures/items/seed_gem_redstone"
+    },
+    "skygear:seed_gem_quartz": {
+      "textures": "textures/items/seed_gem_quartz"
+    },
+    "skygear:seed_gem_coal": {
+      "textures": "textures/items/seed_gem_coal"
+    },
+    "skygear:seed_gem_diamond": {
+      "textures": "textures/items/seed_gem_diamond"
+    },
+    "skygear:seed_gem_emerald": {
+      "textures": "textures/items/seed_gem_emerald"
+    },
+    "skygear:seed_ess_zombie": {
+      "textures": "textures/items/seed_ess_zombie"
+    },
+    "skygear:seed_ess_skeleton": {
+      "textures": "textures/items/seed_ess_skeleton"
+    },
+    "skygear:seed_ess_creeper": {
+      "textures": "textures/items/seed_ess_creeper"
+    },
+    "skygear:seed_ess_spider": {
+      "textures": "textures/items/seed_ess_spider"
+    },
+    "skygear:seed_ess_slime": {
+      "textures": "textures/items/seed_ess_slime"
+    },
+    "skygear:seed_ess_enderman": {
+      "textures": "textures/items/seed_ess_enderman"
+    },
+    "skygear:seed_ess_blaze": {
+      "textures": "textures/items/seed_ess_blaze"
+    },
+    "skygear:seed_flower_white": {
+      "textures": "textures/items/seed_flower_white"
+    },
+    "skygear:seed_flower_orange": {
+      "textures": "textures/items/seed_flower_orange"
+    },
+    "skygear:seed_flower_magenta": {
+      "textures": "textures/items/seed_flower_magenta"
+    },
+    "skygear:seed_flower_light_blue": {
+      "textures": "textures/items/seed_flower_light_blue"
+    },
+    "skygear:seed_flower_yellow": {
+      "textures": "textures/items/seed_flower_yellow"
+    },
+    "skygear:seed_flower_lime": {
+      "textures": "textures/items/seed_flower_lime"
+    },
+    "skygear:seed_flower_pink": {
+      "textures": "textures/items/seed_flower_pink"
+    },
+    "skygear:seed_flower_gray": {
+      "textures": "textures/items/seed_flower_gray"
+    },
+    "skygear:seed_flower_light_gray": {
+      "textures": "textures/items/seed_flower_light_gray"
+    },
+    "skygear:seed_flower_cyan": {
+      "textures": "textures/items/seed_flower_cyan"
+    },
+    "skygear:seed_flower_purple": {
+      "textures": "textures/items/seed_flower_purple"
+    },
+    "skygear:seed_flower_blue": {
+      "textures": "textures/items/seed_flower_blue"
+    },
+    "skygear:seed_flower_brown": {
+      "textures": "textures/items/seed_flower_brown"
+    },
+    "skygear:seed_flower_green": {
+      "textures": "textures/items/seed_flower_green"
+    },
+    "skygear:seed_flower_red": {
+      "textures": "textures/items/seed_flower_red"
+    },
+    "skygear:seed_flower_black": {
+      "textures": "textures/items/seed_flower_black"
+    }
+  },
+  "texture_name": "atlas.items"
+}

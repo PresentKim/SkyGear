@@ -2,7 +2,7 @@
 
 	"namespace": "waila_tile",
 
-	//* dragonfactory change: the server (Go, no Script API) sends the looked-at
+	//* skygear change: the server (Go, no Script API) sends the looked-at
 	//* item's runtime ID × 65536 in the subtitle, after an "i" so the pack
 	//* still reads the subtitle as text (a bare number broke the block state
 	//* check: a grey box and "expected a string"), in 11 characters left
@@ -11,13 +11,13 @@
 	//* property bag, as older WAILA versions read the title; binding
 	//* expressions on #hud_subtitle_text_string never gave an item (11th
 	//* playtest). This replaces the script's inventory slot mirror. *//
-	"df_subtitle_item_renderer": {
+	"sg_subtitle_item_renderer": {
 		"type": "custom",
 		"renderer": "inventory_item_renderer",
 		"layer": "($layer + 1)",
-		"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.1s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
+		"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.1s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
 		"property_bag": {
-			"#item_id_aux": "$df_aux"
+			"#item_id_aux": "$sg_aux"
 		}
 	},
 
@@ -137,7 +137,7 @@
 		]
 	},
 
-	//* dragonfactory change: container slots come from the subtitle the server
+	//* skygear change: container slots come from the subtitle the server
 	//* sends ("i", the 11-byte icon field, per slot 11 bytes of item and 8
 	//* of count ("§f12" padded with '~'), then the tail; docs/tech/waila.md)
 	//* instead of player
@@ -148,7 +148,7 @@
 	"item_inventory": {
 		"type": "panel",
 		"$index|default": 0,
-		"$df_aux|default": "0",
+		"$sg_aux|default": "0",
 		"size": [
 			14,
 			14
@@ -156,115 +156,115 @@
 		"variables": [
 			{
 				"requires": "($index = 0)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.12s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.12s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 1)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.31s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.31s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 2)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.50s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.50s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 3)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.69s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.69s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 4)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.88s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.88s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 5)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.107s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.107s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 6)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.126s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.126s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 7)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.145s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.145s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 8)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.164s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.164s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 9)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.183s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.183s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 10)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.202s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.202s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 11)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.221s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.221s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 12)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.240s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.240s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 13)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.259s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.259s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 14)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.278s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.278s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 15)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.297s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.297s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 16)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.316s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.316s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 17)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.335s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.335s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 18)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.354s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.354s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 19)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.373s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.373s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 20)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.392s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.392s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 21)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.411s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.411s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 22)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.430s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.430s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 23)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.449s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.449s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 24)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.468s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.468s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 25)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.487s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.487s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 26)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.506s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.506s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			},
 			{
 				"requires": "($index = 27)",
-				"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.525s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
+				"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.525s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')"
 			}
 		],
 		"controls": [
@@ -278,7 +278,7 @@
 					],
 					"layer": "($layer + 1)",
 					"property_bag": {
-						"#item_id_aux": "$df_aux"
+						"#item_id_aux": "$sg_aux"
 					}
 				}
 			},
@@ -294,133 +294,133 @@
 					"text_alignment": "right",
 					"shadow": true,
 					"layer": "($layer + 2)",
-					"$df_count|default": "",
+					"$sg_count|default": "",
 					"variables": [
 						{
 							"requires": "($index = 0)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.23s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.23s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 1)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.42s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.42s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 2)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.61s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.61s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 3)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.80s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.80s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 4)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.99s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.99s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 5)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.118s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.118s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 6)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.137s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.137s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 7)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.156s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.156s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 8)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.175s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.175s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 9)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.194s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.194s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 10)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.213s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.213s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 11)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.232s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.232s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 12)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.251s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.251s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 13)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.270s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.270s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 14)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.289s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.289s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 15)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.308s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.308s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 16)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.327s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.327s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 17)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.346s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.346s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 18)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.365s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.365s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 19)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.384s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.384s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 20)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.403s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.403s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 21)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.422s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.422s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 22)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.441s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.441s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 23)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.460s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.460s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 24)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.479s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.479s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 25)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.498s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.498s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 26)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.517s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.517s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						},
 						{
 							"requires": "($index = 27)",
-							"$df_count": "((((('%.8s' * ($var_subtitle_text - ('%.536s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
+							"$sg_count": "((((('%.8s' * ($var_subtitle_text - ('%.536s' * $var_subtitle_text))) - '~~~~~~~~') - '~~~~') - '~~') - '~')"
 						}
 					],
-					"text": "$df_count"
+					"text": "$sg_count"
 				}
 			}
 		]
 	},
 
-	//* dragonfactory change: small marks after the name (a drawer's lock and
+	//* skygear change: small marks after the name (a drawer's lock and
 	//* upgrades) and a line with an item icon ("참나무 원목 [icon] x 132/1,024"),
 	//* read from the subtitle tail (internal/waila tail.go; TestTail checks
 	//* the places). Expressions are whole in each property: a variable
 	//* from a variables block used inside another expression stays text. *//
-	"df_marks": {
+	"sg_marks": {
 		"type": "stack_panel",
 		"orientation": "horizontal",
 		"size": [
@@ -430,59 +430,59 @@
 		"controls": [
 			{
 				"lock@waila_common.label": {
-					"text": "$df_lock",
+					"text": "$sg_lock",
 					"font_scale_factor": 0.6,
 					"offset": [
 						1,
 						2
 					],
-					"$df_lock|default": "",
+					"$sg_lock|default": "",
 					"variables": [
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.555s' * $var_subtitle_text))) = 'L')",
-							"$df_lock": "§e"
+							"$sg_lock": "§e"
 						}
 					]
 				}
 			},
 			{
 				"multiplier@waila_common.label": {
-					"text": "$df_mult",
+					"text": "$sg_mult",
 					"font_scale_factor": 0.6,
 					"offset": [
 						1,
 						2
 					],
-					"$df_mult|default": "",
+					"$sg_mult|default": "",
 					"variables": [
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'b')",
-							"$df_mult": "§b×2"
+							"$sg_mult": "§b×2"
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'c')",
-							"$df_mult": "§b×4"
+							"$sg_mult": "§b×4"
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.556s' * $var_subtitle_text))) = 'd')",
-							"$df_mult": "§b×8"
+							"$sg_mult": "§b×8"
 						}
 					]
 				}
 			},
 			{
 				"void@waila_common.label": {
-					"text": "$df_void",
+					"text": "$sg_void",
 					"font_scale_factor": 0.6,
 					"offset": [
 						1,
 						2
 					],
-					"$df_void|default": "",
+					"$sg_void|default": "",
 					"variables": [
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.557s' * $var_subtitle_text))) = 'V')",
-							"$df_void": "§f"
+							"$sg_void": "§f"
 						}
 					]
 				}
@@ -490,7 +490,7 @@
 		]
 	},
 
-	"df_item_line": {
+	"sg_item_line": {
 		"type": "stack_panel",
 		"orientation": "horizontal",
 		"size": [
@@ -521,9 +521,9 @@
 						-1
 					],
 					"layer": "($layer + 1)",
-					"$df_aux": "((((('%.11s' * ($var_subtitle_text - ('%.544s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
+					"$sg_aux": "((((('%.11s' * ($var_subtitle_text - ('%.544s' * $var_subtitle_text))) - 'xxxxxxxx') - 'xxxx') - 'xx') - 'x')",
 					"property_bag": {
-						"#item_id_aux": "$df_aux"
+						"#item_id_aux": "$sg_aux"
 					}
 				}
 			},
@@ -542,52 +542,52 @@
 						2,
 						0
 					],
-					"text": "$df_gauge",
-					"$df_gauge|default": "",
+					"text": "$sg_gauge",
+					"$sg_gauge|default": "",
 					"variables": [
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'a')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'b')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'c')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'd')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'e')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'f')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'g')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'h')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'i')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'j')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						},
 						{
 							"requires": "(('%.1s' * ($var_subtitle_text - ('%.558s' * $var_subtitle_text))) = 'k')",
-							"$df_gauge": ""
+							"$sg_gauge": ""
 						}
 					]
 				}
@@ -616,7 +616,7 @@
 				"arrow_centerer@common.empty_panel": {
 					"size": [21, "100%"], // 15px + 6px (padding)
 					"controls": [
-						// dragonfactory change: the server's progress arrow item (panel
+						// skygear change: the server's progress arrow item (panel
 						// slot 17), filled to how far the item is cooked.
 						{
 							"arrow@waila_tile.item_inventory": {
@@ -721,7 +721,7 @@
 
 		"controls": [
 			{
-				// dragonfactory change: no grey slot borders (the slots show the kinds
+				// skygear change: no grey slot borders (the slots show the kinds
 				// of items, not the real layout; 11th playtest). Same size.
 				"border": {
 					"type": "panel",

@@ -4,7 +4,7 @@ package perf
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"runtime"
 	"sync"
 	"time"
@@ -86,7 +86,7 @@ func Line(w *world.World) string {
 }
 
 // shown are the players (by name) who turned the load line on
-// (/dfadmin tps).
+// (/sgadmin tps).
 var (
 	shownMu sync.Mutex
 	shown   = map[string]bool{}

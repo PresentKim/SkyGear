@@ -4,7 +4,7 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"log/slog"
 	"strings"
 	"unicode/utf8"
@@ -14,12 +14,12 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/dfhook"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/common/waila"
-	"github.com/presentkim/dragonfactory/internal/account"
-	"github.com/presentkim/dragonfactory/internal/db"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/sghook"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/common/waila"
+	"github.com/presentkim/skygear/internal/account"
+	"github.com/presentkim/skygear/internal/db"
+	"github.com/presentkim/skygear/internal/instance"
 )
 
 // Slots is the number of save slots per account.
@@ -50,7 +50,7 @@ func New(log *slog.Logger, d *db.DB, m *instance.Manager, game instance.Game, on
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
 	// The DDUI screens of the lobby draw the frame's name and logo themselves
-	// (assets/resourcepack/dragonfactory/ui/df_lobby.json frame).
+	// (assets/resourcepack/skygear/ui/sg_lobby.json frame).
 	ui.LobbyHeader = func(p *player.Player) (string, string) {
 		return i18n.T(i18n.Of(p), "name.Game"), "textures/blocks/grass_side_carried"
 	}
@@ -101,7 +101,7 @@ func (pf *Platform) Join(p *player.Player) {
 	account.Count(p, "login", 1)
 	account.Refresh(p)
 	if acc.GuideVersion < GuideVersion {
-		dfhook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showGuide(p, true) })
+		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showGuide(p, true) })
 	}
 	pf.notifyRequests(p)
 }
@@ -126,7 +126,7 @@ func (pf *Platform) arriveLobby(p *player.Player) {
 	// The main menu is open on arrival (the guide comes first the first time:
 	// Join shows it), once the client can show it.
 	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
-		dfhook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.wakeLobbyMenu(p) })
+		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.wakeLobbyMenu(p) })
 	}
 }
 
@@ -401,7 +401,7 @@ func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 
 // showLobbyMenu is the lobby's main menu: the full-screen main screen for a
 // player who sees DDUI screens, whose menus open in its place. The JSON UI
-// form matches the copy the pack draws on the HUD (ui/df_lobby.json), so
+// form matches the copy the pack draws on the HUD (ui/sg_lobby.json), so
 // closing the form does not change the screen; its labels are pack language
 // keys.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
@@ -413,11 +413,11 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 }
 
 // homeMenu are the buttons of the main menu with their text in lang
-// (platform.home.<name> for the pack key df.lobby.<name>).
+// (platform.home.<name> for the pack key sg.lobby.<name>).
 func homeMenu(lang string, opts []ui.Option) []ui.Option {
 	out := make([]ui.Option, len(opts))
 	for i, o := range opts {
-		o.Label = i18n.T(lang, "platform.home."+strings.TrimPrefix(o.Label, "df.lobby."))
+		o.Label = i18n.T(lang, "platform.home."+strings.TrimPrefix(o.Label, "sg.lobby."))
 		out[i] = o
 	}
 	return out
@@ -427,11 +427,11 @@ func homeMenu(lang string, opts []ui.Option) []ui.Option {
 // them.
 func (pf *Platform) lobbyMenu() []ui.Option {
 	return []ui.Option{
-		{Label: "df.lobby.single", Icon: "textures/ui/df/icon_cube", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
-		{Label: "df.lobby.multi", Icon: "textures/ui/df/icon_people", Run: func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) }},
-		{Label: "df.lobby.friends", Icon: "textures/ui/df/icon_person", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		{Label: "df.lobby.cosmetics", Icon: "textures/ui/df/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		{Label: "df.lobby.help", Icon: "textures/ui/df/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
+		{Label: "sg.lobby.single", Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
+		{Label: "sg.lobby.multi", Icon: "textures/ui/sg/icon_people", Run: func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) }},
+		{Label: "sg.lobby.friends", Icon: "textures/ui/sg/icon_person", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
+		{Label: "sg.lobby.cosmetics", Icon: "textures/ui/sg/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
+		{Label: "sg.lobby.help", Icon: "textures/ui/sg/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
 	}
 }
 

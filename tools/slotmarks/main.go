@@ -1,8 +1,8 @@
 // Command slotmarks writes the slot decoration marks (common/slotdeco) into
-// the item names of the pack's language files from dragonfactory.ItemDecor;
+// the item names of the pack's language files from skygear.ItemDecor;
 // plain items lose them. Run it after changing ItemDecor or adding items:
 //
-//	go run ./tools/slotmarks assets/resourcepack/dragonfactory
+//	go run ./tools/slotmarks assets/resourcepack/skygear
 package main
 
 import (
@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/slotdeco"
-	"github.com/presentkim/dragonfactory/internal/games/dragonfactory"
+	"github.com/presentkim/skygear/common/slotdeco"
+	"github.com/presentkim/skygear/internal/games/skygear"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	marks := map[string]mark{}
 	for _, it := range world.CustomItems() {
 		id, _ := it.EncodeItem()
-		r, tier := dragonfactory.ItemDecor(it)
+		r, tier := skygear.ItemDecor(it)
 		marks["item."+id+".name"] = mark{r, tier}
 	}
 	for _, file := range []string{"ko_KR.lang", "en_US.lang"} {

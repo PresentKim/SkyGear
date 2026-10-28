@@ -14,7 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 )
 
 // Tool is a tool icon code of the panel; the pack maps each code to a
@@ -257,7 +257,7 @@ func Show(p *player.Player, info Info) {
 	text, isJSON := rawText(t)
 	tt := title.New(text).WithSubtitle(sub).WithFadeInDuration(0).WithFadeOutDuration(0).WithDuration(stay)
 	// The subtitle (the panel's icons) must arrive with its own title.
-	dfhook.SendTitle(p, tt, isJSON)
+	sghook.SendTitle(p, tt, isJSON)
 }
 
 // Clear hides the panel of p if it is up.
@@ -282,7 +282,7 @@ func SendTitle(p *player.Player, t title.Title) {
 	st.pausedUntil = time.Now().Add(t.FadeInDuration() + t.Duration() + t.FadeOutDuration())
 	st.shown, st.sub = "", ""
 	players.Unlock()
-	dfhook.SendTitle(p, t, false)
+	sghook.SendTitle(p, t, false)
 }
 
 // Forget drops what is kept about p (on quit).

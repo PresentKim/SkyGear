@@ -143,55 +143,55 @@
 				"$screen_content": "custom_pocket_containers.panel"
 			},
 
-			// dragonfactory: DragonFactory machine windows (assets/resourcepack/dragonfactory/ui/df_machine.json)
+			// skygear: SkyGear machine windows (assets/resourcepack/skygear/ui/sg_machine.json)
 
 			{
 				"requires": "(not (($container_title_copy - '§d§m§1') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.crusher_panel"
+				"$screen_content": "sg_machine.crusher_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§2') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.sieve_panel"
+				"$screen_content": "sg_machine.sieve_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§3') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.miner_panel"
+				"$screen_content": "sg_machine.miner_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§4') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.sell_box_panel"
+				"$screen_content": "sg_machine.sell_box_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§5') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.miner1_panel"
+				"$screen_content": "sg_machine.miner1_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§6') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.alloy_panel"
+				"$screen_content": "sg_machine.alloy_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§7') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.crafter_panel"
+				"$screen_content": "sg_machine.crafter_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§8') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.lab_panel"
+				"$screen_content": "sg_machine.lab_panel"
 			},
 			{
 				"requires": "(not (($container_title_copy - '§d§m§9') = $container_title_copy)) and $desktop_screen",
-				"$screen_content": "df_machine.magicsieve_panel"
+				"$screen_content": "sg_machine.magicsieve_panel"
 			}
 		]
     },
 
-	// The take all and put all bar (df_quick.json) on the vanilla chest windows; the ender chest,
+	// The take all and put all bar (sg_quick.json) on the vanilla chest windows; the ender chest,
 	// shulker box and barrel windows are the small chest's.
 	"small_chest_panel/root_panel": {
 		"modifications": [
 			{
 				"array_name": "controls",
 				"operation": "insert_back",
-				"value": [ { "quick_side_bar@df_quick.side_bar": { "$quick_container_size": 27 } } ]
+				"value": [ { "quick_side_bar@sg_quick.side_bar": { "$quick_container_size": 27 } } ]
 			}
 		]
 	},
@@ -200,7 +200,7 @@
 			{
 				"array_name": "controls",
 				"operation": "insert_back",
-				"value": [ { "quick_side_bar@df_quick.side_bar": { "$quick_container_size": 54 } } ]
+				"value": [ { "quick_side_bar@sg_quick.side_bar": { "$quick_container_size": 54 } } ]
 			}
 		]
 	}

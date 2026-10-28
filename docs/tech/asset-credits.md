@@ -44,7 +44,7 @@
 
 마인크래프트 바닐라 텍스처는 팩에 복사하지 않는다. 클라이언트가 가진 그림을 경로로 가리킨다.
 
-- 드래곤팩토리 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 통(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
+- 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 통(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
 - WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`common/packs/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
 
 ## 생성한 그림
@@ -59,11 +59,11 @@
 
 ```
 git clone --depth 1 <저장소> <모드 이름>      # tools/modtex 의 repos 이름대로
-go run ./tools/modtex <클론 폴더> assets/resourcepack/dragonfactory
-go run ./tools/animtex assets/resourcepack/dragonfactory          # 작동 띠
-rm assets/resourcepack/dragonfactory/textures/blocks/*_t[123].png
-go run ./tools/tierblocks assets/resourcepack/dragonfactory       # 단계 텍스처
-go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/dragonfactory  # 체 모델·메쉬
+go run ./tools/modtex <클론 폴더> assets/resourcepack/skygear
+go run ./tools/animtex assets/resourcepack/skygear          # 작동 띠
+rm assets/resourcepack/skygear/textures/blocks/*_t[123].png
+go run ./tools/tierblocks assets/resourcepack/skygear       # 단계 텍스처
+go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/skygear  # 체 모델·메쉬
 ```
 
 저작권 표시는 MIT 조건에 따라 `third_party/licenses/` 의 파일과 이 문서가 맡는다.

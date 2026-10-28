@@ -68,7 +68,7 @@ func (d Dirt) EncodeBlock() (string, map[string]any) {
 // attempt may target.
 func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY int) {
 	aboveLight := tx.Light(pos.Side(cube.FaceUp))
-	// dragonfactory patch: like vanilla, grass under a full solid block turns
+	// skygear patch: like vanilla, grass under a full solid block turns
 	// back into dirt and does not spread under one. The light check alone
 	// misses blocks that let light through, such as custom blocks.
 	if aboveLight < 4 || solidAbove(pos, tx) {
@@ -101,7 +101,7 @@ func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY in
 }
 
 // solidAbove reports whether the block above pos is a full solid block.
-// dragonfactory patch.
+// skygear patch.
 func solidAbove(pos cube.Pos, tx *world.Tx) bool {
 	_, ok := tx.Block(pos.Side(cube.FaceUp)).Model().(model.Solid)
 	return ok

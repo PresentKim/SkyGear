@@ -1,8 +1,8 @@
 {
   "format_version": 2,
   "header": {
-    "name": "DragonFactory-InventoryUI",
-    "description": "InventoryUI for DragonFactory",
+    "name": "SkyGear-InventoryUI",
+    "description": "InventoryUI for SkyGear",
     "uuid": "42f0e388-105d-40b9-96cc-a383d80930b8",
     "version": [0, 0, 1],
     "min_engine_version": [1, 21, 100]

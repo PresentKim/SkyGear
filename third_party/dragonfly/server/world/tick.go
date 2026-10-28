@@ -25,7 +25,7 @@ func (t ticker) tickLoop(w *World) {
 		select {
 		case at := <-tc.C:
 			<-w.exec(t.tick)
-			// dragonfactory patch: record how long the tick took.
+			// skygear patch: record how long the tick took.
 			w.tickStats.add(at, time.Since(at))
 		case <-w.closing:
 			// World is being closed: Stop ticking and get rid of a task.

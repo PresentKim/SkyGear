@@ -2,10 +2,10 @@
 
 아이템이 실제로 오가는 가상 창고는 `common/chestui` 의 **엔티티 상자**로 띄운다.
 [CustomSizedInvMenu](https://github.com/Muqsit/CustomSizedInvMenu) 와 같은 방식이다.
-Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 의 `entityinv` 와 같은 기술):
+Dragonfly 를 패치하지 않고 `common/sghook` 으로 세션에 닿는다([bedrock-gophers/inv](https://github.com/bedrock-gophers/inv) 의 `entityinv` 와 같은 기술):
 
-- `dfhook.Wrap` 이 서버 리스너를 감싸, 연결마다 클라이언트→서버·서버→클라이언트 패킷이 훅을 먼저 지난다(바꾸기·버리기 가능). 연결이 끊기면 닫힘 훅이 돈다.
-- 세션의 비공개 메서드(`writePacket`, `sendInv`, `nextWindowID`, `closeCurrentContainer`)는 `go:linkname`, 비공개 필드(`openedWindow` 등)는 리플렉션으로 쓴다. 이름이 바뀌면 `dfhook` 의 `TestInternals` 가 깨진다.
+- `sghook.Wrap` 이 서버 리스너를 감싸, 연결마다 클라이언트→서버·서버→클라이언트 패킷이 훅을 먼저 지난다(바꾸기·버리기 가능). 연결이 끊기면 닫힘 훅이 돈다.
+- 세션의 비공개 메서드(`writePacket`, `sendInv`, `nextWindowID`, `closeCurrentContainer`)는 `go:linkname`, 비공개 필드(`openedWindow` 등)는 리플렉션으로 쓴다. 이름이 바뀌면 `sghook` 의 `TestInternals` 가 깨진다.
 
 ## 동작
 
@@ -40,7 +40,7 @@ Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([be
 
 리소스팩은 필수(`ResourcesRequired`)로 보낸다. 팩이 없으면 27칸 상자로만 보인다.
 
-같은 팩의 `ui/df_quick.json` 은 모든 창고 창(바닐라 상자·큰 상자·엔더 상자·셜커 상자·통, chestui 세로·스크롤 창, 기계 창) 오른쪽 바깥에 **모두 꺼내기·모두 넣기** 버튼을 세로로 붙인다. 버튼 밑에 칸 수만큼 보이지 않는 버튼이 겹쳐 있고, 누름을 각 칸의 바닐라 빠른 이동(쉬프트 클릭)으로 바꾼다. 그래서 서버에는 평범한 아이템 이동 요청이 칸마다 오고 서버 코드는 없다. 꺼내기는 창고 칸(`$quick_container_size`, 창 표식마다 `chest_screen.json` 이 정함), 넣기는 인벤토리 27칸(`$quick_put_hotbar` 면 핫바까지)을 옮긴다. 세 번째 **있는 것만 넣기**는 넣기와 같되, 창고 앞 54칸 중 어느 칸에 같은 아이템(`#item_id_aux`)이 있는 인벤토리 칸만 옮긴다. JSON UI 에는 반복이 없어 창고 칸마다 이름 붙은 컨트롤(`df_quick_c<n>`)과 인벤토리 칸마다 54개의 비교 바인딩을 `common/tools/quickmatch` 가 `ui/df_quick_match.json` 으로 써 둔다. 아이콘은 바닐라 `up_arrow`·`down_arrow`(어둡게 칠함)·`store_filter_icon` 이다.
+같은 팩의 `ui/sg_quick.json` 은 모든 창고 창(바닐라 상자·큰 상자·엔더 상자·셜커 상자·통, chestui 세로·스크롤 창, 기계 창) 오른쪽 바깥에 **모두 꺼내기·모두 넣기** 버튼을 세로로 붙인다. 버튼 밑에 칸 수만큼 보이지 않는 버튼이 겹쳐 있고, 누름을 각 칸의 바닐라 빠른 이동(쉬프트 클릭)으로 바꾼다. 그래서 서버에는 평범한 아이템 이동 요청이 칸마다 오고 서버 코드는 없다. 꺼내기는 창고 칸(`$quick_container_size`, 창 표식마다 `chest_screen.json` 이 정함), 넣기는 인벤토리 27칸(`$quick_put_hotbar` 면 핫바까지)을 옮긴다. 세 번째 **있는 것만 넣기**는 넣기와 같되, 창고 앞 54칸 중 어느 칸에 같은 아이템(`#item_id_aux`)이 있는 인벤토리 칸만 옮긴다. JSON UI 에는 반복이 없어 창고 칸마다 이름 붙은 컨트롤(`sg_quick_c<n>`)과 인벤토리 칸마다 54개의 비교 바인딩을 `common/tools/quickmatch` 가 `ui/sg_quick_match.json` 으로 써 둔다. 아이콘은 바닐라 `up_arrow`·`down_arrow`(어둡게 칠함)·`store_filter_icon` 이다.
 
 ## 사용
 
@@ -49,10 +49,10 @@ Dragonfly 를 패치하지 않고 `common/dfhook` 으로 세션에 닿는다([be
 | `chestui.Storage` | 실제 아이템이 오가는 창고. 여러 명이 같이 봐도 변경이 모두에게 보인다. `Inventory().Handle` 로 이동 검증, `OnChange` 로 변경 반영 |
 
 - 버튼 동작은 플레이어의 현재 월드 트랜잭션에서 실행된다. 게임 세션 상태를 만지는 버튼은
-  그 세션 월드인지 확인한다(드래곤팩토리 `session.button`).
+  그 세션 월드인지 확인한다(스카이기어 `session.button`).
 - 닫힘 콜백의 `p`·`tx` 는 접속이 끊겨 닫힌 경우 nil 이다.
 - 열린 창(상자든 블록 컨테이너든)은 `chestui.Close(p)` 로 닫는다. 인스턴스 이동(`instance.Manager` Enter/leave) 전에 닫는다.
-- 클라이언트가 보낸 것을 다 처리한 뒤에 할 일은 `dfhook.AfterClientSync`(NetworkStackLatency 왕복, 최대 1초).
+- 클라이언트가 보낸 것을 다 처리한 뒤에 할 일은 `sghook.AfterClientSync`(NetworkStackLatency 왕복, 최대 1초).
 
 ## 적용 화면
 

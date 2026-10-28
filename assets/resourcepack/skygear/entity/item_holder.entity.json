@@ -1,0 +1,31 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "skygear:item_holder",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/skygear/item_holder"
+      },
+      "geometry": {
+        "default": "geometry.skygear.item_holder"
+      },
+      "animations": {
+        "handheld": "animation.skygear.item_holder.handheld"
+      },
+      "scripts": {
+        "animate": [
+          {
+            "handheld": "query.is_item_name_any('slot.weapon.mainhand', 0, 'minecraft:stick', 'minecraft:bone', 'minecraft:blaze_rod', 'minecraft:breeze_rod')"
+          }
+        ]
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ],
+      "enable_attachables": true
+    }
+  }
+}

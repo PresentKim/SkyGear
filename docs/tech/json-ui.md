@@ -1,7 +1,7 @@
-# JSON UI (드래곤팩토리 테마)
+# JSON UI (스카이기어 테마)
 
 폼과 기계 창의 모양은 리소스팩 JSON UI 로 바꾼다. 서버는 폼 내용만 보내고, 모양은 클라이언트가 팩으로 그린다.
-폼·HUD 테마는 게임과 상관없어 `common/packs/dfui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `dragonfactory` 팩에 있다. `main.go` 가 `dragonfactory` 를 `dfui` 보다 먼저(스택 위에) 싣는다.
+폼·HUD 테마는 게임과 상관없어 `common/packs/sgui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `skygear` 팩에 있다. `main.go` 가 `skygear` 를 `sgui` 보다 먼저(스택 위에) 싣는다.
 
 레이아웃 13개(목록·카드·상점·표·칸·분할·트리·런처 등)는 `server_form.json` 의 `long_form` 아래에 모두 있고 제목 표식으로 `visible` 만 바뀐다. 그래서 어느 폼을 열든 모든 레이아웃이 만들어지고 배치된다. 맞는 레이아웃 하나만 팩토리로 만드는 게이트(`property_bag` 의 역할 이름 배열을 `('#이름_' + 조건)` 으로 골라 `#collection_length` 에 주는 방식)는 동작하지만, 우리 팩토리가 만든 컨트롤 안에서는 `#form_button_contents` 로 버튼을 만드는 팩토리와 고정 `collection_index` 칸이 비어(격자만 채워진다) 지금 레이아웃에는 쓸 수 없다. 쓰려면 레이아웃이 버튼을 격자로만 읽게 바꿔야 한다.
 
@@ -9,18 +9,18 @@
 
 | 파일 | 내용 |
 |---|---|
-| `common/packs/dfui/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
-| `common/packs/dfui/ui/df_form.json` | 테마 컨트롤(`df_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼. 글자는 팩 번역 키(`dfui.*`, `texts/*.lang`) |
-| `common/packs/dfui/ui/dfui_hooks.json` | 테마가 그리지만 서버 팩이 채우는 자리(`dfui_hooks` 네임스페이스): `lobby_frame`(로비 틀, 테마에서는 비어 있다)과 그것을 폼 배경에 표식으로 띄우는 `form_frame`. 서버 팩은 같은 경로의 파일에서 같은 이름을 다시 정의한다 |
-| `assets/resourcepack/dragonfactory/ui/dfui_hooks.json` | `dfui_hooks.lobby_frame` 을 `df_lobby.frame` 으로 채운다 |
-| `assets/resourcepack/dragonfactory/ui/df_machine.json` | 기계 창 레이아웃(`df_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
+| `common/packs/sgui/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
+| `common/packs/sgui/ui/sg_form.json` | 테마 컨트롤(`sg_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼. 글자는 팩 번역 키(`sgui.*`, `texts/*.lang`) |
+| `common/packs/sgui/ui/sgui_hooks.json` | 테마가 그리지만 서버 팩이 채우는 자리(`sgui_hooks` 네임스페이스): `lobby_frame`(로비 틀, 테마에서는 비어 있다)과 그것을 폼 배경에 표식으로 띄우는 `form_frame`. 서버 팩은 같은 경로의 파일에서 같은 이름을 다시 정의한다 |
+| `assets/resourcepack/skygear/ui/sgui_hooks.json` | `sgui_hooks.lobby_frame` 을 `sg_lobby.frame` 으로 채운다 |
+| `assets/resourcepack/skygear/ui/sg_machine.json` | 기계 창 레이아웃(`sg_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `common/packs/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§<n>` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
-| `common/packs/dfui/textures/ui/df/*` | 테마 텍스처. `common/` 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `dragonfactory` 팩에 있다 |
+| `common/packs/sgui/textures/ui/sg/*` | 테마 텍스처. `common/` 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `skygear` 팩에 있다 |
 
 ## 폼 (메뉴·확인·입력)
 
-- 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 드래곤팩토리 메뉴, 분실물 보관함, 섬 확장 지도 등.
-- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 4개(76×50 칸, 격자 폭 304px 고정·가운데, 창 326px), 버튼 수만큼 줄이 늘어난다(스크롤). 드래곤팩토리 메뉴·도움말·로비 메뉴·이름 색. 더 작은 칸이 많을 때는 촘촘한 격자(`ui.ShopMenu`).
+- 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 스카이기어 메뉴, 분실물 보관함, 섬 확장 지도 등.
+- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 4개(76×50 칸, 격자 폭 304px 고정·가운데, 창 326px), 버튼 수만큼 줄이 늘어난다(스크롤). 스카이기어 메뉴·도움말·로비 메뉴·이름 색. 더 작은 칸이 많을 때는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 본문 앞 12바이트에서 읽는다: `ui.Menu` 가 격자 칸 수를 `§r§r§r` 과 세 자리 숫자(`§r§r§r042`)로 본문 맨 앞에 쓰고, 팩이 `((('%.12s' * #form_text) - '§r') - 0)` 으로 숫자를 꺼내 `#maximum_grid_items` 로 묶으며 본문 글에서는 이 12바이트를 뺀다. 클라이언트의 `#form_button_length` 는 지금까지 보인 가장 큰 폼의 버튼 수로 남아 쓰지 않는다. 숫자를 앞에 두면 잘라낸 12바이트가 통째로 숫자로 읽혀 본문 자르기 식이 깨지므로 `§r` 을 앞에 둔다(식 결과 문자열은 생김새로 타입이 다시 정해진다). 펼치는 격자(`ui.ItemGrid`·`ui.ItemBoard`)는 칸 버튼 수만 보내, 뒤에 오는 탭·뒤로·쪽 버튼이 빈 줄을 만들지 않는다.
   - 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`) + 글자. 아이콘은 두 가지:
@@ -31,7 +31,7 @@
     방식은 Chest-UI 와 같고, `#item_id_aux` = ID × 65536 + 데이터값은 바닐라 `inventory_screen.json`·bedrock-wiki 표와 같다. 데이터값(메타)은 쓰지 않는다.
 - 확인 폼(`ui.Confirm`)은 바닐라 modal 이 테마를 받지 않아(밝은 기본 창으로 뜬다) **목록 폼 두 버튼**(확인·취소)으로 보낸다. 닫기는 취소와 같다.
 - 수량 폼(`ui.Amount`): 입력 폼(custom_form)의 슬라이더 하나.
-- 입력 폼은 제목 막대와 스크롤을 끈다(`$df_title: false`, `custom_form_content` 가 바닐라 `custom_form_scrolling_content` 대신 필드와 제출 버튼만 쌓는다). 필드 그룹 라벨이 곧 질문이다. 제출 버튼 글은 테마 팩 `texts/*.lang` 의 `dfui.submit`("확인"), 제목에 `ui.CreateToken` 이 있으면 `dfui.create`("생성하기").
+- 입력 폼은 제목 막대와 스크롤을 끈다(`$sg_title: false`, `custom_form_content` 가 바닐라 `custom_form_scrolling_content` 대신 필드와 제출 버튼만 쌓는다). 필드 그룹 라벨이 곧 질문이다. 제출 버튼 글은 테마 팩 `texts/*.lang` 의 `sgui.submit`("확인"), 제목에 `ui.CreateToken` 이 있으면 `sgui.create`("생성하기").
 - 세이브 생성 입력은 `ui.CreateToken`(`§d§f§e§r`)을 제목 앞에 붙여 창을 만든다.
 
 ### 버튼 표식 (탭·뒤로·표)
@@ -46,7 +46,7 @@
 | `§0§5§r`·`§0§6§r` | `ui.Cell` | 표의 칸(글자·숫자, 머리 칸은 회색 글자), 버튼이 아니라 눌리지 않음 |
 | `§0§8§r` | 표의 합계 | 표 아래 오른쪽 어두운 글자 |
 
-- 탭 줄·뒤로 칸·합계·동작은 `df_form.marked_buttons`: 모든 버튼을 도는 가로/세로 스택 팩토리에서 그 표식 버튼만 보이게 한다(숨긴 컨트롤은 스택에서 자리를 차지하지 않음).
+- 탭 줄·뒤로 칸·합계·동작은 `sg_form.marked_buttons`: 모든 버튼을 도는 가로/세로 스택 팩토리에서 그 표식 버튼만 보이게 한다(숨긴 컨트롤은 스택에서 자리를 차지하지 않음).
 - 표(`ui.TableMenu`)는 4열(76px) 격자. 첫 열은 아이콘+이름, 숫자 열은 오른쪽 정렬이다.
 - 상점(`ui.ShopMenu`)은 318px 창, 50×46px 칸 6열의 인벤토리 같은 작은 카드(아이콘·이름·가격). 격자 폭(300px)이 내용 영역을 넘으면 왼쪽 열이 잘린다.
 - 탭 줄 높이는 `100%cm`(가장 큰 자식). 가로 스택의 `100%c` 는 자식 높이를 모두 더해 탭 아래에 큰 공백이 생겼다.
@@ -70,9 +70,9 @@
 | `ui.BarPager(p, page, pages, show)` | 컨트롤 막대 | 도움말 왼쪽의 작은 쪽 화살표(`§0§j§r`): 툴팁이 갈 쪽을 말한다. 창 안 자리를 차지하지 않는다 |
 
 - `ui.ItemSlot{Icon, Count, Tip, Run}`: `Icon` 은 `ui.ItemIcon`(아이템 그림), `Count` 는 오른쪽 아래 글자(색 코드로 시작, 10바이트까지; `ui.CountText` 가 1만부터 `12k`), `Tip` 은 호버 상자 글(여러 줄 가능), `Run` 은 누르면 할 일. **칸을 누르면 폼이 답해 닫히므로 `Run` 은 폼을 다시 띄워야 한다.**
-- **버튼 글자에 값을 고정 위치로 싣는다**(WAILA 보관 블록 칸과 같은 방식): 표식 9바이트(`§0§d§r` 줄 A, `§0§e§r` 줄 B, `§0§f§r` 줄바꿈 격자) + 예비 1바이트(`l`/`r`, 쓰지 않는다) + 개수 10바이트(`~` 로 채움) + 나머지는 호버 글. 팩은 `'%.9s'`, `'%.10s'`, `'%.20s'` 로 자르고 빼서(`df_form.json` `gslot_count`·`gslot_tooltip_text`) 개수의 `~` 를 지운다. 개수가 색 코드로 시작해야 하는 이유: 숫자만 있는 글은 숫자로 바뀌어 라벨에 안 나온다.
+- **버튼 글자에 값을 고정 위치로 싣는다**(WAILA 보관 블록 칸과 같은 방식): 표식 9바이트(`§0§d§r` 줄 A, `§0§e§r` 줄 B, `§0§f§r` 줄바꿈 격자) + 예비 1바이트(`l`/`r`, 쓰지 않는다) + 개수 10바이트(`~` 로 채움) + 나머지는 호버 글. 팩은 `'%.9s'`, `'%.10s'`, `'%.20s'` 로 자르고 빼서(`sg_form.json` `gslot_count`·`gslot_tooltip_text`) 개수의 `~` 를 지운다. 개수가 색 코드로 시작해야 하는 이유: 숫자만 있는 글은 숫자로 바뀌어 라벨에 안 나온다.
 
-- **고른 칸은 눌리지 않는다**: 서버 폼 버튼은 끌 수 없으므로, 고른 칸(`ItemSlot.Selected`, `§0§s§r`)은 같은 모양의 버튼에 눌러도 폼에 답하지 않는 이름(`button.df_noop`)을 단다(`gslot_sel_button`). 호버 툴팁은 그대로 뜬다. 고른 탭(`tab_button_on`, 발전과제 트리의 `tree_tab_button_on`)과 세이브 선택의 고른 줄(`list_row_button_on`)도 같다. 같은 화면을 다시 보낼 뿐인 칸(고른 연구, 도감의 지금 보기)을 고른 칸으로 둔다. 칸마다 버튼은 하나다: 누르는 버튼과 누르지 않는 버튼을 칸마다 둘 다 두면 컨트롤이 두 배가 되어 연구 화면이 열리는 데 몇 초 걸린다. 채움 칸·틀·화살표·글처럼 버튼이 아닌 칸은 처음부터 그림이라 눌리지 않는다. 연구 화면의 재료·보상 칸(고정 32칸)만 `Run` 이 없는 칸을 누를 수 없는 버튼으로 그린다(버튼 글 11번째 바이트 `v`).
+- **고른 칸은 눌리지 않는다**: 서버 폼 버튼은 끌 수 없으므로, 고른 칸(`ItemSlot.Selected`, `§0§s§r`)은 같은 모양의 버튼에 눌러도 폼에 답하지 않는 이름(`button.sg_noop`)을 단다(`gslot_sel_button`). 호버 툴팁은 그대로 뜬다. 고른 탭(`tab_button_on`, 발전과제 트리의 `tree_tab_button_on`)과 세이브 선택의 고른 줄(`list_row_button_on`)도 같다. 같은 화면을 다시 보낼 뿐인 칸(고른 연구, 도감의 지금 보기)을 고른 칸으로 둔다. 칸마다 버튼은 하나다: 누르는 버튼과 누르지 않는 버튼을 칸마다 둘 다 두면 컨트롤이 두 배가 되어 연구 화면이 열리는 데 몇 초 걸린다. 채움 칸·틀·화살표·글처럼 버튼이 아닌 칸은 처음부터 그림이라 눌리지 않는다. 연구 화면의 재료·보상 칸(고정 32칸)만 `Run` 이 없는 칸을 누를 수 없는 버튼으로 그린다(버튼 글 11번째 바이트 `v`).
 
 - **호버 상자는 엔진 툴팁이다**: 바닐라 `common.hover_text`(`hover_text_renderer`, 인벤토리 아이템 툴팁과 같은 렌더러)를 호버·선택 상태의 자식으로 두고 `#hover_text` 에 버튼 글(칸은 20바이트 뒤, 서랍 창 칸은 전부)을 넣는다(`gslot_hover_tip`, `slot_tooltip`). 엔진이 포인터 옆에 그리므로 스크롤 창에 잘리지 않고 방향을 정할 필요가 없다. 줄바꿈은 글에 넣은 `\n` 에서만 한다(`$hover_text_max_width` 0; 150 이면 한글이 5자쯤에서 꺾인다).
 - **줄바꿈 격자의 버튼 순서**: 격자는 숨겨진 버튼도 칸을 차지하므로 탭·뒤로가기 같은 표식 버튼은 **칸 뒤에** 둔다(`ui.ItemGrid`). 앞에 두면 칸이 오른쪽으로 밀려 시작한다.
@@ -112,9 +112,9 @@
 ## 기계 창
 
 - 기계 인벤토리는 그대로 엔티티 상자(`chestui.Storage`, 27칸). 제목 표식으로 기계별 레이아웃을 골라 입력·진행·출력·회수 칸만 보인다.
-- 진행도 칸에는 `dragonfactory:progress_0`~`progress_10` 아이템(채워지는 화살표)이 들어가 화살표가 차오르는 것처럼 보인다.
-- 창 오른쪽 위 어두운 컨트롤 막대(`df_machine.control_bar`)에 닫기 버튼 왼쪽으로 26번(정보 아이콘, 툴팁이 기계 설명)이 칸 배경 없이 18×18로 놓인다.
-- 모두 꺼내기·모두 넣기는 모든 창고와 같이 창 오른쪽 바깥의 세로 버튼 줄(common inventoryui `df_quick.side_bar`)이다. 버튼 밑에 칸마다 보이지 않는 버튼을 겹쳐 두고, 각각 누름을 그 칸의 바닐라 빠른 이동(`button.container_auto_place`, `consume_event: false`)으로 바꾸므로 클릭 한 번이 모든 칸의 쉬프트 클릭이 된다(Quick Container 팩의 기법, 코드는 쓰지 않음). 기계 창은 `$df_machine_outputs` 식으로 꺼낼 칸을 거른다. 있는 것만 넣기는 인벤토리 칸의 숨은 버튼이 이름 붙은 창고 칸 컨트롤(`df_quick_c<n>`)의 `#item_id_aux` 를 `source_control_name` 으로 읽어(화면 루트부터 첫 일치) 같은 것이 있을 때만 보인다(`#visible`). 툴팁은 버튼 hover 상태 안의 라벨이라 번역 키가 풀린다(`common.hover_text` 의 `#hover_text` 는 번역되지 않음).
+- 진행도 칸에는 `skygear:progress_0`~`progress_10` 아이템(채워지는 화살표)이 들어가 화살표가 차오르는 것처럼 보인다.
+- 창 오른쪽 위 어두운 컨트롤 막대(`sg_machine.control_bar`)에 닫기 버튼 왼쪽으로 26번(정보 아이콘, 툴팁이 기계 설명)이 칸 배경 없이 18×18로 놓인다.
+- 모두 꺼내기·모두 넣기는 모든 창고와 같이 창 오른쪽 바깥의 세로 버튼 줄(common inventoryui `sg_quick.side_bar`)이다. 버튼 밑에 칸마다 보이지 않는 버튼을 겹쳐 두고, 각각 누름을 그 칸의 바닐라 빠른 이동(`button.container_auto_place`, `consume_event: false`)으로 바꾸므로 클릭 한 번이 모든 칸의 쉬프트 클릭이 된다(Quick Container 팩의 기법, 코드는 쓰지 않음). 기계 창은 `$sg_machine_outputs` 식으로 꺼낼 칸을 거른다. 있는 것만 넣기는 인벤토리 칸의 숨은 버튼이 이름 붙은 창고 칸 컨트롤(`sg_quick_c<n>`)의 `#item_id_aux` 를 `source_control_name` 으로 읽어(화면 루트부터 첫 일치) 같은 것이 있을 때만 보인다(`#visible`). 툴팁은 버튼 hover 상태 안의 라벨이라 번역 키가 풀린다(`common.hover_text` 의 `#hover_text` 는 번역되지 않음).
   - `collection_index` 는 `collection_name` 을 가진 요소의 바로 아래 자식에서만 먹는다. `collection_panel` 안의 `stack_panel` 자식에 쓰면 "Unknown property [collection_index]" 오류가 나므로, `stack_panel` 자체에 `"collection_name": "container_items"` 를 준다.
 - 모양은 바닐라 화로 화면과 같다: 밝은 회색 창(`textures/ui/dialog_background_opaque`), 바닐라 칸(`textures/ui/cell_image`), 진한 회색 제목(바닐라 `$title_text_color` 그대로)은 화로 화면(`furnace_label`)처럼 창 위 가운데 4px 아래. 제목 표식 `§d§m§<n>` 의 마지막 코드는 색 코드라 Go 가 표식 뒤에 `§r` 을 붙인다. 출력이 하나인 기계(분쇄기·전기 화로·합금로)의 출력 칸은 화로 결과 칸처럼 26×26. 진행도 칸은 칸 배경 없이 그림만이고, 화살표·링·배터리의 빈 부분은 바닐라 화로 화살표(`arrow_inactive`)와 같은 밝은 회색, 찬 부분은 흰색·주황이다. 정보 아이콘은 창 오른쪽 위 어두운 컨트롤 막대에 흰 그림으로, 모두 꺼내기·모두 넣기는 창 오른쪽 바깥에 바닐라 밝은 버튼으로 있다.
 - 기계 창 레이아웃은 PC 화면에만 있다. 모바일은 크기 지정 상자 그대로 보인다.
@@ -123,17 +123,17 @@
 
 이 틀과 HUD 의 메인 메뉴 그림은 JSON UI 폼을 쓰는 플레이어(`/uimode`, 팩 암호화를 끈 서버)의 것이다. Ore UI 를 쓰는 플레이어는 메인 화면(`ui.HomeScreen`, [oreui.md](oreui.md) "로비 화면")이 같은 배치를 그리고, HUD 틀은 보내지 않는다.
 
-로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/df_lobby.json` 의 `df_lobby.frame`, 테마의 `dfui_hooks.lobby_frame` 을 채운다): 왼쪽 위에 게임 아이콘(풀 블록 옆면)과 이름(`df.lobby.title`, MinecraftTen 글꼴), 그 아래 옅은 1px 선. 나머지는 비워 고정 카메라로 비춘 로비 섬이 보인다(`internal/platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(`dfhook.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
+로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/sg_lobby.json` 의 `sg_lobby.frame`, 테마의 `sgui_hooks.lobby_frame` 을 채운다): 왼쪽 위에 게임 아이콘(풀 블록 옆면)과 이름(`sg.lobby.title`, MinecraftTen 글꼴), 그 아래 옅은 1px 선. 나머지는 비워 고정 카메라로 비춘 로비 섬이 보인다(`internal/platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(`sghook.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
 
 - HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.
-- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `dfui_hooks.form_frame` 으로 바꿔 그 표식이 있으면 틀(`dfui_hooks.lobby_frame`)을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`df_form.window` 의 `dim`). DDUI 를 쓰는 플레이어의 로비 화면은 렌더러가 같은 틀을 그린다([oreui.md](oreui.md) "로비 화면").
-- 메인 메뉴(`ui.LauncherMenu`, 제목 표식 `§d§f§n§r`): 창 없이 이름 아래(왼쪽 16, 위 54)에 큰 버튼(150×24, 간격 4)이 세로로 놓인다(`df_form.launcher_form`). 버튼은 반투명 어두운 바탕·옅은 테두리(`launcher_button`, 호버는 파란 테두리), 흰 선 아이콘(`icon_cube` 등, `common/tools/uitextures`), 이름, 꺾쇠(`chevron_right`)다. 버튼 글은 팩 언어 키(`df.lobby.single` 등)이고 라벨이 `localize` 로 번역한다.
-- HUD 의 메인 메뉴 그림: 테마의 `dfui_hooks.lobby_menu`(HUD 에만, 틀과 같은 조건)를 서버 팩이 `df_lobby.menu` 로 채운다. 같은 자리(`df_form.launcher_column`)에 같은 모양의 그림 버튼(`df_form.launcher_static`)을 같은 키·아이콘·순서로 그린다(`platform` 의 `lobbyMenu` 와 맞는지 `lobbymenu_test.go` 가 검사). 그래서 메뉴 폼을 닫아도 화면이 같다. 플레이어가 닫은 폼은 다시 보내지 않고, 다음 행동에서 메인 메뉴를 연다(`internal/platform/lobbywake.go`): 클릭·핫바·점프·공격은 로비 핸들러가, 이동 키·점프·웅크리기는 이동이 잠겨 있어 패킷 훅이 `PlayerAuthInput` 의 `RawMoveVector` 와 입력 플래그로 본다(플레이어마다 0.3초에 한 번). 이미 열린 메뉴는 ui 의 같은 폼 반복 방지로 다시 가지 않는다.
+- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `sgui_hooks.form_frame` 으로 바꿔 그 표식이 있으면 틀(`sgui_hooks.lobby_frame`)을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`sg_form.window` 의 `dim`). DDUI 를 쓰는 플레이어의 로비 화면은 렌더러가 같은 틀을 그린다([oreui.md](oreui.md) "로비 화면").
+- 메인 메뉴(`ui.LauncherMenu`, 제목 표식 `§d§f§n§r`): 창 없이 이름 아래(왼쪽 16, 위 54)에 큰 버튼(150×24, 간격 4)이 세로로 놓인다(`sg_form.launcher_form`). 버튼은 반투명 어두운 바탕·옅은 테두리(`launcher_button`, 호버는 파란 테두리), 흰 선 아이콘(`icon_cube` 등, `common/tools/uitextures`), 이름, 꺾쇠(`chevron_right`)다. 버튼 글은 팩 언어 키(`sg.lobby.single` 등)이고 라벨이 `localize` 로 번역한다.
+- HUD 의 메인 메뉴 그림: 테마의 `sgui_hooks.lobby_menu`(HUD 에만, 틀과 같은 조건)를 서버 팩이 `sg_lobby.menu` 로 채운다. 같은 자리(`sg_form.launcher_column`)에 같은 모양의 그림 버튼(`sg_form.launcher_static`)을 같은 키·아이콘·순서로 그린다(`platform` 의 `lobbyMenu` 와 맞는지 `lobbymenu_test.go` 가 검사). 그래서 메뉴 폼을 닫아도 화면이 같다. 플레이어가 닫은 폼은 다시 보내지 않고, 다음 행동에서 메인 메뉴를 연다(`internal/platform/lobbywake.go`): 클릭·핫바·점프·공격은 로비 핸들러가, 이동 키·점프·웅크리기는 이동이 잠겨 있어 패킷 훅이 `PlayerAuthInput` 의 `RawMoveVector` 와 입력 플래그로 본다(플레이어마다 0.3초에 한 번). 이미 열린 메뉴는 ui 의 같은 폼 반복 방지로 다시 가지 않는다.
 - 제목 없는 카드 폼(`ui.CardMenu` 에 빈 제목 → `§d§f§u§r`, `ui.UntitledToken`): 제목 막대 없이 내용이 창 위 10px 에서 시작하고 창이 그만큼 낮다(`cards_u`·`cards_us`, 326×124).
 
 ## 요령
 
-- 팩토리 `control_ids` 에 변수(`$df_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$df_window_size"`) 둔다. `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의한다.
+- 팩토리 `control_ids` 에 변수(`$sg_marked_template`)를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$sg_window_size"`) 둔다. `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의한다.
 - 분할·트리 폼의 왼쪽/오른쪽 판은 `panel` 안에 왼쪽 위 기준(오른쪽은 `offset` 220)으로 둔다. 가로 스택은 `100%c` 가 높이를 더하고 `100%cm` 은 오른쪽 상세를 접어 버려, 높이가 큰 쪽을 따르는 `panel` 의 `100%c`(자식 범위)를 쓴다.
 - 글자 비교로 보이기를 정할 때는 먼저 글자를 `#변수`에 담고 `(not (#변수 = 'z'))` 로 비교한다. `(not ((A - B) = 'z'))` 처럼 식 안에서 바로 비교하면 참·거짓이 뒤집힌다.
 - 정적 검사로는 클릭 전달·스크롤·포커스를 알 수 없으므로 실제 클라이언트에서 확인한다([TODO](../TODO.md)).
@@ -161,13 +161,13 @@
 왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`common/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
 
 - 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
-- 팩: `common/packs/dfui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `df_hud`, 없으면 단순한 상자(`df_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
+- 팩: `common/packs/sgui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `sg_hud`, 없으면 단순한 상자(`sg_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다.
 - 경험치 바는 바닐라 그대로다.
 
 ## HUD (터치의 포켓 배치)
 
-터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, `common/packs/dfui/ui/hud_screen.json` 이 그 판을 다시 정의해 하트·갑옷·배고픔·공기 방울·탈것 하트를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔다. 핫바는 포켓 배치가 따로 그리므로 넣지 않고, 종이 인형만 왼쪽 위에 남는다.
+터치 화면에서 UI 프로필이 포켓이면 바닐라 HUD 가 `not_centered_gui_elements` 를 써서 하트를 왼쪽 위, 배고픔을 오른쪽 위에 그린다. 그 자리는 이 서버의 일차·플레이 시간 줄과 겹치므로, `common/packs/sgui/ui/hud_screen.json` 이 그 판을 다시 정의해 하트·갑옷·배고픔·공기 방울·탈것 하트를 핫바 위(클래식 터치 배치, 바닐라 `centered_gui_elements_at_bottom_middle_touch` 와 같은 위치)에 둔다. 핫바는 포켓 배치가 따로 그리므로 넣지 않고, 종이 인형만 왼쪽 위에 남는다.
 
 ## 흑백 PNG
 

@@ -91,7 +91,7 @@
 
 														"controls": [
 															{
-																"block@waila_tile.df_subtitle_item_renderer": {
+																"block@waila_tile.sg_subtitle_item_renderer": {
 																	"size": ["100%", "100%"],
 
 																	"visible": "($tooltip_renderer_type = 'A:')"
@@ -145,22 +145,22 @@
 														"controls": [
 															//* _waila:A:zz,t;zz,z: ...
 															{
-																// dragonfactory change: the name with small marks after it, then the
-																// item line (tile.json df_marks, df_item_line).
-																"df_name_row": {
+																// skygear change: the name with small marks after it, then the
+																// item line (tile.json sg_marks, sg_item_line).
+																"sg_name_row": {
 																	"type": "stack_panel",
 																	"orientation": "horizontal",
 																	"size": ["100%c", "100%cm"],
 																	"controls": [
 																		{
 																			"hover_name_and_namespace@waila_common.label": {
-																				"min_size": ["default", 10], // dragonfactory change: was 20 (the icon height); slots and lines sat low (11th playtest)
+																				"min_size": ["default", 10], // skygear change: was 20 (the icon height); slots and lines sat low (11th playtest)
 			
 																				"text": "$text",
 																				"variables": [
 																					{
 																						"requires": "($tooltip_renderer_type = 'A:')",
-																						"$text": "('' + ($var_title_text - ('%.19s' * $var_title_text)) - 'tile.' - 'entity.' - '.name' - '__waila:df.line__' - '__waila:inv.furnace__' - '__waila:inv.brewstand__' - '__waila:inv.chest__' - '__waila:inv.dropper__' - '__waila:inv.hopper__' - '__waila:inv.size_1__' - '__waila:inv.size_2__' - '__waila:inv.size_3__' - '__waila:inv.size_4__' - '__waila:inv.size_5__' - '__waila:inv.size_6__' - '__waila:inv.size_7__' - '__waila:inv.size_8__' - '__waila:inv.size_9__' - '__waila:inv.size_10__' - '__waila:inv.size_11__' - '__waila:inv.size_12__' - '__waila:inv.size_13__' - '__waila:inv.size_14__' - '__waila:inv.size_15__' - '__waila:inv.size_16__' - '__waila:inv.size_17__' - '__waila:inv.size_18__' - '__waila:inv.size_19__' - '__waila:inv.size_20__' - '__waila:inv.size_21__' - '__waila:inv.size_22__' - '__waila:inv.size_23__' - '__waila:inv.size_24__' - '__waila:inv.size_25__' - '__waila:inv.size_26__' - '__waila:inv.size_27__' - '__waila:inv.size_28__' - '__waila:inv.size_29__' - '__waila:inv.size_30__' - '__waila:inv.size_31__' - '__waila:inv.size_32__' - '__waila:inv.size_33__' - '__waila:inv.size_34__' - '__waila:inv.size_35__' - '__waila:inv.size_36__' - '__waila:inv.size_37__' - '__waila:inv.size_38__' - '__waila:inv.size_39__' - '__waila:inv.size_40__' - '__waila:inv.size_41__' - '__waila:inv.size_42__' - '__waila:inv.size_43__' - '__waila:inv.size_44__' - '__waila:inv.size_45__' - '__waila:inv.size_46__' - '__waila:inv.size_47__' - '__waila:inv.size_48__' - '__waila:inv.size_49__' - '__waila:inv.size_50__' - '__waila:inv.size_51__' - '__waila:inv.size_52__' - '__waila:inv.size_53__' - '__waila:inv.size_54__' - '__waila:inv.size_55__' - '__waila:inv.size_56__' - '__waila:inv.size_57__' - '__waila:inv.size_58__' - '__waila:inv.size_59__' - '__waila:inv.size_60__' - '__waila:inv.size_61__' - '__waila:inv.size_62__' - '__waila:inv.size_63__' - '__waila:inv.size_64__' - '__waila:inv.size_65__' - '__waila:inv.size_66__' - '__waila:inv.size_67__' - '__waila:inv.size_68__' - '__waila:inv.size_69__' - '__waila:inv.size_70__' - '__waila:inv.size_71__' - '__waila:inv.size_72__' - '__waila:inv.size_73__' - '__waila:inv.size_74__' - '__waila:inv.size_75__' - '__waila:inv.size_76__' - '__waila:inv.size_77__' - '__waila:inv.size_78__' - '__waila:inv.size_79__' - '__waila:inv.size_80__' - '__waila:inv.size_81__' - '__waila:inv.size_82__' - '__waila:inv.size_83__' - '__waila:inv.size_84__' - '__waila:inv.size_85__' - '__waila:inv.size_86__' - '__waila:inv.size_87__' - '__waila:inv.size_88__' - '__waila:inv.size_89__' - '__waila:inv.size_90__' - '__waila:inv.size_91__' - '__waila:inv.size_92__' - '__waila:inv.size_93__' - '__waila:inv.size_94__' - '__waila:inv.size_95__' - '__waila:inv.size_96__' - '__waila:inv.size_97__' - '__waila:inv.size_98__' - '__waila:inv.size_99__')"
+																						"$text": "('' + ($var_title_text - ('%.19s' * $var_title_text)) - 'tile.' - 'entity.' - '.name' - '__waila:sg.line__' - '__waila:inv.furnace__' - '__waila:inv.brewstand__' - '__waila:inv.chest__' - '__waila:inv.dropper__' - '__waila:inv.hopper__' - '__waila:inv.size_1__' - '__waila:inv.size_2__' - '__waila:inv.size_3__' - '__waila:inv.size_4__' - '__waila:inv.size_5__' - '__waila:inv.size_6__' - '__waila:inv.size_7__' - '__waila:inv.size_8__' - '__waila:inv.size_9__' - '__waila:inv.size_10__' - '__waila:inv.size_11__' - '__waila:inv.size_12__' - '__waila:inv.size_13__' - '__waila:inv.size_14__' - '__waila:inv.size_15__' - '__waila:inv.size_16__' - '__waila:inv.size_17__' - '__waila:inv.size_18__' - '__waila:inv.size_19__' - '__waila:inv.size_20__' - '__waila:inv.size_21__' - '__waila:inv.size_22__' - '__waila:inv.size_23__' - '__waila:inv.size_24__' - '__waila:inv.size_25__' - '__waila:inv.size_26__' - '__waila:inv.size_27__' - '__waila:inv.size_28__' - '__waila:inv.size_29__' - '__waila:inv.size_30__' - '__waila:inv.size_31__' - '__waila:inv.size_32__' - '__waila:inv.size_33__' - '__waila:inv.size_34__' - '__waila:inv.size_35__' - '__waila:inv.size_36__' - '__waila:inv.size_37__' - '__waila:inv.size_38__' - '__waila:inv.size_39__' - '__waila:inv.size_40__' - '__waila:inv.size_41__' - '__waila:inv.size_42__' - '__waila:inv.size_43__' - '__waila:inv.size_44__' - '__waila:inv.size_45__' - '__waila:inv.size_46__' - '__waila:inv.size_47__' - '__waila:inv.size_48__' - '__waila:inv.size_49__' - '__waila:inv.size_50__' - '__waila:inv.size_51__' - '__waila:inv.size_52__' - '__waila:inv.size_53__' - '__waila:inv.size_54__' - '__waila:inv.size_55__' - '__waila:inv.size_56__' - '__waila:inv.size_57__' - '__waila:inv.size_58__' - '__waila:inv.size_59__' - '__waila:inv.size_60__' - '__waila:inv.size_61__' - '__waila:inv.size_62__' - '__waila:inv.size_63__' - '__waila:inv.size_64__' - '__waila:inv.size_65__' - '__waila:inv.size_66__' - '__waila:inv.size_67__' - '__waila:inv.size_68__' - '__waila:inv.size_69__' - '__waila:inv.size_70__' - '__waila:inv.size_71__' - '__waila:inv.size_72__' - '__waila:inv.size_73__' - '__waila:inv.size_74__' - '__waila:inv.size_75__' - '__waila:inv.size_76__' - '__waila:inv.size_77__' - '__waila:inv.size_78__' - '__waila:inv.size_79__' - '__waila:inv.size_80__' - '__waila:inv.size_81__' - '__waila:inv.size_82__' - '__waila:inv.size_83__' - '__waila:inv.size_84__' - '__waila:inv.size_85__' - '__waila:inv.size_86__' - '__waila:inv.size_87__' - '__waila:inv.size_88__' - '__waila:inv.size_89__' - '__waila:inv.size_90__' - '__waila:inv.size_91__' - '__waila:inv.size_92__' - '__waila:inv.size_93__' - '__waila:inv.size_94__' - '__waila:inv.size_95__' - '__waila:inv.size_96__' - '__waila:inv.size_97__' - '__waila:inv.size_98__' - '__waila:inv.size_99__')"
 																					},
 																					{
 																						"requires": "(not ($tooltip_renderer_type = 'A:'))",
@@ -169,13 +169,13 @@
 																				]
 																			}
 																		},
-																		{ "df_marks@waila_tile.df_marks": {} }
+																		{ "sg_marks@waila_tile.sg_marks": {} }
 																	]
 																}
 															},
 															{
-																"df_item_line@waila_tile.df_item_line": {
-																	"ignored": "(($var_title_text - '__waila:df.line__') = $var_title_text)"
+																"sg_item_line@waila_tile.sg_item_line": {
+																	"ignored": "(($var_title_text - '__waila:sg.line__') = $var_title_text)"
 																}
 															},
 
@@ -235,7 +235,7 @@
 																			}
 																		}
 																	],
-																	// dragonfactory change: the server sends no block states, and
+																	// skygear change: the server sends no block states, and
 																	// this label warned "expected a string" (11th playtest).
 																	"ignored": true
 																}
@@ -381,7 +381,7 @@
 					"offset": "$offset",
 
 					"variables": [
-						// dragonfactory change: top middle sits below the boss bar (urgent
+						// skygear change: top middle sits below the boss bar (urgent
 						// missions use it) and the touch pause buttons.
 						{
 							"requires": "($s_anchor = 'top_middle')",

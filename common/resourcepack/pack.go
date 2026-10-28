@@ -41,7 +41,7 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 	}
 	version := Version(sum)
 
-	tmp, err := os.MkdirTemp("", "df-resourcepack-")
+	tmp, err := os.MkdirTemp("", "sg-resourcepack-")
 	if err != nil {
 		return nil, err
 	}

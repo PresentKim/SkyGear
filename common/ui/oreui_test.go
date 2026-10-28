@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/presentkim/dragonfactory/common/slotdeco"
+	"github.com/presentkim/skygear/common/slotdeco"
 )
 
 func referenceSlotDeco(tip string) (string, string) {
 	rarity := map[string]int{"§a": 1, "§b": 2, "§d": 3, "§6": 4}
 	if rest, ok := strings.CutPrefix(tip, "§k§r"); ok && len(rest) >= len("§a") {
 		if r, ok := rarity[rest[:len("§a")]]; ok {
-			return rest, fmt.Sprintf("tex:textures/ui/df/deco_%d_0", r)
+			return rest, fmt.Sprintf("tex:textures/ui/sg/deco_%d_0", r)
 		}
 	}
 	return tip, ""
@@ -39,7 +39,7 @@ func TestOreIcon(t *testing.T) {
 	for in, want := range map[string]string{
 		"":                          "",
 		"20840448":                  "aux:20840448",
-		"textures/ui/df/arrow_left": "tex:textures/ui/df/arrow_left",
+		"textures/ui/sg/arrow_left": "tex:textures/ui/sg/arrow_left",
 	} {
 		if got := oreIcon(in); got != want {
 			t.Errorf("oreIcon(%q) = %q, want %q", in, got, want)

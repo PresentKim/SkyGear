@@ -3,7 +3,7 @@ package i18n_test
 import (
 	"testing"
 
-	"github.com/presentkim/dragonfactory/common/i18n/i18ntest"
+	"github.com/presentkim/skygear/common/i18n/i18ntest"
 )
 
 func TestCatalogs(t *testing.T) { i18ntest.Catalogs(t) }

@@ -4,7 +4,7 @@
 // the legacy key ("tile.planks.oak.name") of each block the client does not
 // find under "tile.<id>.name", matched by its English name in Dragonfly.
 //
-//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/dragonfactory/naming/vanillakeys.json internal/locales
+//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/skygear/naming/vanillakeys.json internal/locales
 package main
 
 import (

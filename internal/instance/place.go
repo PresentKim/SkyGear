@@ -7,7 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 )
 
 const (
@@ -60,7 +60,7 @@ func placeAt(h *world.EntityHandle, w *world.World, want, fallback mgl64.Vec3, n
 		}
 		// The client has everything sent so far, the position and chunks
 		// included: put it on the ground once more, then let it move.
-		dfhook.AfterClientSync(p, func(p *player.Player, tx *world.Tx) {
+		sghook.AfterClientSync(p, func(p *player.Player, tx *world.Tx) {
 			if tx.World() != w {
 				return
 			}

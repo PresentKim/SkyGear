@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-const dir = "packs/dfui/textures/ui/df"
+const dir = "packs/sgui/textures/ui/sg"
 
 var (
 	black = color.NRGBA{16, 16, 16, 255}

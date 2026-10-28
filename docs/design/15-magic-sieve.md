@@ -1,6 +1,6 @@
 # 15. 마법 체와 에센스 테마
 
-> 수치는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 체와 메쉬는 [02 §6](02-dragonfactory.md), 몬스터·웨이브·시뮬레이터는 [07 §7](07-progression-expansion.md), 에센스꽃은 [08 §3](08-storage-gear-magic.md). 드롭 표의 기준은 `internal/games/dragonfactory/sievetable/magicsieve_tables.go`다.
+> 수치는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 체와 메쉬는 [02 §6](02-skygear.md), 몬스터·웨이브·시뮬레이터는 [07 §7](07-progression-expansion.md), 에센스꽃은 [08 §3](08-storage-gear-magic.md). 드롭 표의 기준은 `internal/games/skygear/sievetable/magicsieve_tables.go`다.
 
 **마법 체**는 자동 체에 **에센스 칸**을 더한 기계다. 몬스터의 에센스를 넣으면 체에서 나오는 것이 그 몬스터의 **테마**로 바뀐다. 익사자의 에센스는 바다의 것을, 엔더맨의 에센스는 엔드의 것을, 피글린의 에센스는 지옥의 것을 내놓는다. 어려운 몬스터의 에센스일수록 희귀한 것이 더 잘 나온다.
 
@@ -182,6 +182,6 @@
 
 ## 9. 구현 위치
 
-- `dfitem/mob.go`: 몬스터 종류·난이도(`MobDifficulty`).
+- `sgitem/mob.go`: 몬스터 종류·난이도(`MobDifficulty`).
 - `magicsieve.go`: 기계 동작(충전, 굴리기), `sievetable/magicsieve_tables.go`: 테마 표.
 - 웨이브는 `wave.go`, 몬스터 능력치는 `monster.go`, 시뮬레이터 드롭은 `essence.go`.

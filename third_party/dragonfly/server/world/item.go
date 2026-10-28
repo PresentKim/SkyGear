@@ -28,7 +28,7 @@ type CustomItem interface {
 
 // CustomItemTextured is a CustomItem whose texture Dragonfly puts into the
 // auto-built resource pack.
-// dragonfactory patch: Texture moved out of CustomItem, so items whose textures
+// skygear patch: Texture moved out of CustomItem, so items whose textures
 // come from a hand-written resource pack need no image.
 type CustomItemTextured interface {
 	CustomItem

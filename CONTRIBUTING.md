@@ -36,11 +36,11 @@ Thanks for your interest. These are the rules the project follows; the full
 ## Code structure
 
 - Game-independent code lives in `common/` (same Go module). Platform and game
-  rules (lobby, saves, account storage, DragonFactory content) do not go there.
+  rules (lobby, saves, account storage, Sky Gear content) do not go there.
 - Player moves and state saving always go through `instance.Manager`
   (`Enter`/`ToLobby`). Games connect to the platform only through the
   `instance.Game`/`Session` interfaces.
-- DragonFactory session state belongs to its instance world: read and write it
+- Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).
 - Database schema changes add a new entry to `migrations` in
@@ -63,7 +63,7 @@ Thanks for your interest. These are the rules the project follows; the full
 ## Resource packs
 
 - Everything visible lives in the resource pack
-  (`assets/resourcepack/dragonfactory/`): textures, atlases, block models,
+  (`assets/resourcepack/skygear/`): textures, atlases, block models,
   names, animations, JSON UI. Go code only names the model identifier and the
   material key; Dragonfly's automatic pack generation is turned off.
 - Do not edit the version in a pack's `manifest.json`;
@@ -79,7 +79,7 @@ Thanks for your interest. These are the rules the project follows; the full
 
 The server uses the patched copy in `third_party/dragonfly`. Keep the patch
 small: anything that can be done by intercepting packets or reading and
-writing session internals belongs in `common/dfhook` (packet hooks,
+writing session internals belongs in `common/sghook` (packet hooks,
 `go:linkname`, reflection). Patch Dragonfly only when its behaviour itself has
 to change, and then update `third_party/dragonfly.patch` and
 `third_party/README.md`.

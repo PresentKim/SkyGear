@@ -15,7 +15,7 @@ import (
 
 // HopperTransfer, if set, does the item moving of every hopper instead of the vanilla rules: it moves at most one
 // item into the block the hopper faces and at most one from the block above it, and reports what it did
-// (dragonfactory patch: the game routes hoppers through its own item transfer interface).
+// (skygear patch: the game routes hoppers through its own item transfer interface).
 var HopperTransfer func(h Hopper, pos cube.Pos, tx *world.Tx) (inserted, extracted bool)
 
 // Hopper is a low-capacity storage block that can be used to collect item entities directly above it, as well as to

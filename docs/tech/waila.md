@@ -5,22 +5,22 @@
 ## 구성
 
 - `common/waila`: 제목 형식(`Format`), 보내기(`Show`: 바뀐 것만, 30초마다 다시; `Clear`), 도구 아이콘(`ToolsFor`: Dragonfly `BreakInfo` 로 효과 있는 도구와 최소 등급, 손에 든 것이 맞으면 `a`·필요한데 틀리면 `b`), 부제목 꼬리(`tail.go`).
-- 리소스팩 `common/packs/waila/`: 아이콘을 부제목에서 읽는 `df_subtitle_item_renderer`, `tile.json`(`df_marks`·`df_item_line`·`item_inventory`), `main.json`(위치, `df_name_row`).
-- 드래곤팩토리 `look.go`: 시선 추적과 블록별 정보 줄.
-- 확인: `waila_test.go`, `look_test.go`, 시나리오 `spike/scenarios/waila.sh`(`/dfdebug look 0 90` 으로 바닥을 보면 `_waila:A:` 제목이 온다).
+- 리소스팩 `common/packs/waila/`: 아이콘을 부제목에서 읽는 `sg_subtitle_item_renderer`, `tile.json`(`sg_marks`·`sg_item_line`·`item_inventory`), `main.json`(위치, `sg_name_row`).
+- 스카이기어 `look.go`: 시선 추적과 블록별 정보 줄.
+- 확인: `waila_test.go`, `look_test.go`, 시나리오 `spike/scenarios/waila.sh`(`/sgdebug look 0 90` 으로 바닥을 보면 `_waila:A:` 제목이 온다).
 
 ## 제목과 부제목
 
 - 접두어·토큰은 `_waila:` / `__waila:`. 팩의 제목 위치 자르기(`'%.Ns' * $var_title_text`)는 접두어 길이에 맞춘다. `'%.Ns'` 는 바이트로 자른다.
-- **제목**: `_waila:A:` + 도구 칸 10자(`aa,a;zz,z:`) + `§f이름` + `\n§7정보 줄…` + `__waila:anchor.top_middle__`. 출처 줄(드래곤팩토리/Minecraft)은 쓰지 않는다.
+- **제목**: `_waila:A:` + 도구 칸 10자(`aa,a;zz,z:`) + `§f이름` + `\n§7정보 줄…` + `__waila:anchor.top_middle__`. 출처 줄(스카이기어/Minecraft)은 쓰지 않는다.
 - **부제목**: `i` + 아이콘 칸 11자(아이템 런타임 ID × 65536 을 왼쪽에 `x` 로 채움, 빈 것은 `xxxxxxxxxx0`) + (보관 블록이면 칸들) + `e`. 숫자만 보내면 팩이 부제목을 문자열로 다루는 블록 상태 검사가 깨져(회색 칸, "expected a string" 경고) 문자열 형태를 지킨다. 블록 상태 칸(`main.json` `block_states`)은 쓰지 않아 끈다.
 - 팩은 제목 팩토리가 주는 **변수** `$var_subtitle_text` 에서 `'%.11s'` 로 칸을 잘라 `x` 를 지우고 `property_bag` 의 `#item_id_aux` 에 넣는다. 패널 글자도 모두 이 변수로 그린다.
-- 부제목을 제목보다 먼저 보낸다(`dfhook.SendTitle`). 일반 제목(레벨 업·긴급 매입)은 `waila.SendTitle` 로 보내고, 그 제목이 끝날 때까지 패널을 멈춘다.
+- 부제목을 제목보다 먼저 보낸다(`sghook.SendTitle`). 일반 제목(레벨 업·긴급 매입)은 `waila.SendTitle` 로 보내고, 그 제목이 끝날 때까지 패널을 멈춘다.
 - 위치: 위 가운데, 보스바 아래로 26 내림(`main.json`). 이름 줄 최소 높이 10.
 
 ### 부제목 꼬리 (`common/waila/tail.go`)
 
-칸 28개 뒤에 줄 아이콘 칸(11자), 표시 4자(`L`/`-`, 용량 업그레이드 `a`+단계, `V`/`-`, 줄 게이지 `a`+10분의 몇 또는 `-`), 줄 글자 24바이트(`~` 로 채움, `§f` 로 시작), 나머지가 줄 이름이다. 한글은 줄 이름에만 둔다(팩이 위치로 자르므로 앞쪽은 모두 ASCII). 팩은 `tile.json` `df_marks`(이름 옆)와 `df_item_line`(제목에 `__waila:df.line__` 이 있을 때)으로 그린다.
+칸 28개 뒤에 줄 아이콘 칸(11자), 표시 4자(`L`/`-`, 용량 업그레이드 `a`+단계, `V`/`-`, 줄 게이지 `a`+10분의 몇 또는 `-`), 줄 글자 24바이트(`~` 로 채움, `§f` 로 시작), 나머지가 줄 이름이다. 한글은 줄 이름에만 둔다(팩이 위치로 자르므로 앞쪽은 모두 ASCII). 팩은 `tile.json` `sg_marks`(이름 옆)와 `sg_item_line`(제목에 `__waila:sg.line__` 이 있을 때)으로 그린다.
 
 ### JSON UI 에서 피할 것
 

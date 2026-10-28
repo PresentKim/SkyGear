@@ -2,7 +2,7 @@
 // from another machine's: every reddish accent pixel of the base is recoloured
 // to the new accent, keeping its brightness.
 //
-//	go run ./tools/machinetex assets/resourcepack/dragonfactory
+//	go run ./tools/machinetex assets/resourcepack/skygear
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 type variant struct {

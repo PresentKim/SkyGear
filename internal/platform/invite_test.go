@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/presentkim/dragonfactory/internal/db"
+	"github.com/presentkim/skygear/internal/db"
 )
 
 func TestInviteCodeFormat(t *testing.T) {

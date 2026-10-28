@@ -12,14 +12,14 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 | 전면 | 이름 뒤 `§k§l§r§N§r` (N=1~6) | 1~4 단계 점(철·금·다이아·보라), 5 경고(빨간 느낌표), 6 잠금 |
 
 - `§k`(깜빡이는 글자)는 바로 `§r` 로 풀려 화면에 아무것도 남지 않는다. 표식끼리는 서로의 일부가 아니다(`slotdeco_test.go`).
-- 바인딩: `(not ((#hover_text - '표식') = #hover_text)) * 번호` 를 더해 번호 하나를 만들고(`#df_rarity`, `#df_tier`), `('textures/ui/df/rarity_' + 번호)` 로 텍스처를 고르고, `번호 > 0` 일 때만 보인다. 칸 하나에 컨트롤 둘(뒤·앞), 바인딩 여섯이다. 식에 변수를 넣지 않고 표식을 글자로 적는다([json-ui.md](json-ui.md)).
+- 바인딩: `(not ((#hover_text - '표식') = #hover_text)) * 번호` 를 더해 번호 하나를 만들고(`#sg_rarity`, `#sg_tier`), `('textures/ui/sg/rarity_' + 번호)` 로 텍스처를 고르고, `번호 > 0` 일 때만 보인다. 칸 하나에 컨트롤 둘(뒤·앞), 바인딩 여섯이다. 식에 변수를 넣지 않고 표식을 글자로 적는다([json-ui.md](json-ui.md)).
 - 칸 템플릿 두 곳에 `insert_front` 로 끼운다: `container_item`(상자·기계 창·인벤토리 보기, `ui/ui_common.json`)과 `inventory_container_item`(가방·조합 칸, `ui/inventory_screen.json`; 따로 `controls` 를 가져 앞의 수정이 미치지 않는다). 뒤 이미지는 층 6(칸 배경 1 위, 아이템 7 아래), 앞 이미지는 층 9.
 - 선택한 아이템 말풍선(`item_panel_image`, 터치 UI)에는 등급 테두리(`tip_N`)를 위에 얹는다. PC 의 호버 상자는 엔진이 그려 틀을 바꿀 수 없고, 이름 색만 등급 색이 된다.
 
 ## 서버 쪽
 
 - `slotdeco.Decorate(등급, 전면 번호, 이름)` 이 표식을 붙이고, `Strip` 이 지우고, `Of` 가 읽는다.
-- 이름이 직접 없는 고정 아이템은 언어 파일(`texts/ko_KR.lang`·`en_US.lang`)의 이름에 표식이 들어 있다. 규칙은 한 곳, `dragonfactory.ItemDecor`(decor.go)이고 `go run ./tools/slotmarks assets/resourcepack/dragonfactory` 가 두 파일에 쓴다. 테스트(`TestPackHasItemAssets`)가 어긋나면 알려 준다.
+- 이름이 직접 없는 고정 아이템은 언어 파일(`texts/ko_KR.lang`·`en_US.lang`)의 이름에 표식이 들어 있다. 규칙은 한 곳, `skygear.ItemDecor`(decor.go)이고 `go run ./tools/slotmarks assets/resourcepack/skygear` 가 두 파일에 쓴다. 테스트(`TestPackHasItemAssets`)가 어긋나면 알려 준다.
 - 스택마다 이름이 있는 아이템은 이름을 만들 때 붙인다: 도구는 레벨로 등급(`toolRarity`: 3·5·8·10 레벨에서 고급·희귀·영웅·전설, 이름 색도 등급 색), 기계 창의 정보 아이콘은 정지 중일 때 경고 배지.
 - 표식이 든 이름을 문장 중간에 넣으면 등급 색이 뒤의 글에 이어진다. 그래서 `naming.ItemName()` 은 표식이 없는 이름을 돌려주고, 칸 위의 이름에만 표식을 쓴다. 이름을 비교·검색하는 곳은 `textsearch`(색 코드를 건너뜀)나 `slotdeco.Strip` 을 쓴다.
 
@@ -41,10 +41,10 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 
 ## 켜고 끄기
 
-`platform.toml` `[ResourcePack] SlotDeco`(기본 켬)가 `slotdeco` 팩을 보낼지 정한다. 바닐라 칸 템플릿을 바꾸므로 화면이 이상하면 끈다(표식은 이름에 남아도 보이지 않는다). 텍스처는 `common/` 에서 `go run ./tools/slotdecotex packs/slotdeco packs/dfui` 가 만든 임시 그림이고 PNG 를 바꿔도 된다(9-슬라이스 `.json` 은 그대로).
+`platform.toml` `[ResourcePack] SlotDeco`(기본 켬)가 `slotdeco` 팩을 보낼지 정한다. 바닐라 칸 템플릿을 바꾸므로 화면이 이상하면 끈다(표식은 이름에 남아도 보이지 않는다). 텍스처는 `common/` 에서 `go run ./tools/slotdecotex packs/slotdeco packs/sgui` 가 만든 임시 그림이고 PNG 를 바꿔도 된다(9-슬라이스 `.json` 은 그대로).
 
 ## 이 방식의 한계와 확장
 
-- 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 서버 폼의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 버튼이라 따로 한다: 칸의 호버 글 첫 줄에 같은 표식을 넣고(`tipName`), 테마의 `gslot_button` 이 칸마다 컨트롤 하나(`gslot_deco`)로 테두리와 배지를 한 그림(`textures/ui/df/deco_<등급>_<전면>.png`, 22×22 34장)으로 고른다. 이 그림은 `slotdeco` 팩이 아니라 `common/dfui` 팩(폼 테마)에 있어 `SlotDeco` 설정과 상관없다. 그림은 위의 `slotdecotex` 가 함께 만든다.
+- 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 서버 폼의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 버튼이라 따로 한다: 칸의 호버 글 첫 줄에 같은 표식을 넣고(`tipName`), 테마의 `gslot_button` 이 칸마다 컨트롤 하나(`gslot_deco`)로 테두리와 배지를 한 그림(`textures/ui/sg/deco_<등급>_<전면>.png`, 22×22 34장)으로 고른다. 이 그림은 `slotdeco` 팩이 아니라 `common/sgui` 팩(폼 테마)에 있어 `SlotDeco` 설정과 상관없다. 그림은 위의 `slotdecotex` 가 함께 만든다.
 - 한 칸에 컨트롤 둘이 늘어 칸 수에 비례해 비용이 든다. 인벤토리 보기(72칸)처럼 칸이 많은 창은 열림 시간을 잰다.
 - 새 값(배지)을 늘리려면 `slotdeco` 의 번호와 `front_N.png`, 팩의 식 두 곳을 같이 늘린다.

@@ -1,0 +1,74 @@
+// The lobby's launcher screen (docs/design/01-platform.md §1): the game's
+// name at the top left over the lobby island, and under it the main menu.
+// The frame fills the sgui theme's lobby_frame hook (ui/sgui_hooks.json),
+// which the theme draws in the HUD (sidebar objective with §d§l§b,
+// hud.FrameTitle) and, as the HUD is hidden while a form is open, behind
+// lobby forms (title marker §d§f§w§r, ui.LobbyToken): it is on screen with a
+// form open or closed. The menu fills the lobby_menu hook, drawn only in the
+// HUD: it is the main menu form (ui.LauncherMenu, platform.go
+// showLobbyMenu) as pictures, so closing the menu form does not change the
+// screen. Its buttons must match the form's: the same keys, icons and order.
+{
+  "namespace": "sg_lobby",
+  "frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "logo": {
+          "type": "image",
+          "texture": "textures/blocks/grass_side_carried",
+          "size": [ 22, 22 ],
+          "offset": [ 16, 14 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "title": {
+          "type": "label",
+          "text": "sg.lobby.title",
+          "font_type": "MinecraftTen",
+          "font_scale_factor": 1.6,
+          "color": [ 1, 1, 1 ],
+          "shadow": true,
+          "offset": [ 44, 17 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      },
+      {
+        "line": {
+          "type": "image",
+          "texture": "textures/ui/white",
+          "color": [ 0.75, 0.85, 1 ],
+          "alpha": 0.5,
+          "keep_ratio": false,
+          "size": [ 150, 1 ],
+          "offset": [ 16, 44 ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left"
+        }
+      }
+    ]
+  },
+
+  // The main menu as pictures (the same buttons as platform.go showLobbyMenu).
+  "menu": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "column@sg_form.launcher_column": {
+          "controls": [
+            { "single@sg_form.launcher_static": { "$sg_launcher_icon": "textures/ui/sg/icon_cube", "$sg_launcher_label": "sg.lobby.single" } },
+            { "multi@sg_form.launcher_static": { "$sg_launcher_icon": "textures/ui/sg/icon_people", "$sg_launcher_label": "sg.lobby.multi" } },
+            { "friends@sg_form.launcher_static": { "$sg_launcher_icon": "textures/ui/sg/icon_person", "$sg_launcher_label": "sg.lobby.friends" } },
+            { "cosmetics@sg_form.launcher_static": { "$sg_launcher_icon": "textures/ui/sg/icon_crown", "$sg_launcher_label": "sg.lobby.cosmetics" } },
+            { "help@sg_form.launcher_static": { "$sg_launcher_icon": "textures/ui/sg/icon_help", "$sg_launcher_label": "sg.lobby.help" } }
+          ]
+        }
+      }
+    ]
+  }
+}

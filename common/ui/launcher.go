@@ -11,7 +11,7 @@ const LauncherToken = "§d§f§n§r"
 
 // LauncherMenu shows the lobby's main menu: large buttons with an icon, a
 // label and a chevron. Labels are unique language keys of the server pack,
-// which the HUD copy (dfui_hooks.lobby_menu) also draws, so the screen does
+// which the HUD copy (sgui_hooks.lobby_menu) also draws, so the screen does
 // not change while the form is away. onClose, if set, runs on close without
 // a press.
 func LauncherMenu(p *player.Player, onClose func(p *player.Player, tx *world.Tx), opts ...Option) {

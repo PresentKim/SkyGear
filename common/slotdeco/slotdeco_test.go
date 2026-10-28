@@ -144,7 +144,7 @@ func TestPackMatchesMarks(t *testing.T) {
 			t.Errorf("slotdeco.json does not look for the mark of rarity %d", r)
 		}
 		for _, name := range []string{"rarity_", "tip_"} {
-			if _, err := os.Stat(filepath.Join(packDir, "textures/ui/df", name+string(rune('0'+int(r)))+".png")); err != nil {
+			if _, err := os.Stat(filepath.Join(packDir, "textures/ui/sg", name+string(rune('0'+int(r)))+".png")); err != nil {
 				t.Error(err)
 			}
 		}
@@ -153,7 +153,7 @@ func TestPackMatchesMarks(t *testing.T) {
 		if !strings.Contains(text, "'"+TierMark(tier)+"'") {
 			t.Errorf("slotdeco.json does not look for the mark of front image %d", tier)
 		}
-		if _, err := os.Stat(filepath.Join(packDir, "textures/ui/df", "front_"+string(rune('0'+tier))+".png")); err != nil {
+		if _, err := os.Stat(filepath.Join(packDir, "textures/ui/sg", "front_"+string(rune('0'+tier))+".png")); err != nil {
 			t.Error(err)
 		}
 	}
@@ -167,7 +167,7 @@ func TestPackMatchesMarks(t *testing.T) {
 		for name, m := range mods {
 			for _, mod := range m.Modifications {
 				for ref := range mod.Value {
-					_, id, _ := strings.Cut(ref, "@df_slot.")
+					_, id, _ := strings.Cut(ref, "@sg_slot.")
 					if _, ok := ui[id]; !ok {
 						t.Errorf("%s: %s inserts %s, which slotdeco.json does not define", f, name, ref)
 					}
@@ -177,23 +177,23 @@ func TestPackMatchesMarks(t *testing.T) {
 	}
 }
 
-// TestFormDecoMatchesMarks: the form slot decoration of the dfui theme looks
+// TestFormDecoMatchesMarks: the form slot decoration of the sgui theme looks
 // for exactly the marks of this package and every picture it can pick exists.
 func TestFormDecoMatchesMarks(t *testing.T) {
-	const dfui = "../packs/dfui"
-	b, err := os.ReadFile(filepath.Join(dfui, "ui/df_form.json"))
+	const sgui = "../packs/sgui"
+	b, err := os.ReadFile(filepath.Join(sgui, "ui/sg_form.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	ui := string(b)
 	for r := Uncommon; r <= Legendary; r++ {
 		if !strings.Contains(ui, "'"+r.Mark()+"'") {
-			t.Errorf("df_form.json does not look for the mark of rarity %d", r)
+			t.Errorf("sg_form.json does not look for the mark of rarity %d", r)
 		}
 	}
 	for n := 1; n <= MaxFront; n++ {
 		if !strings.Contains(ui, "'"+TierMark(n)+"'") {
-			t.Errorf("df_form.json does not look for the mark of front image %d", n)
+			t.Errorf("sg_form.json does not look for the mark of front image %d", n)
 		}
 	}
 	for r := 0; r <= int(Legendary); r++ {
@@ -202,7 +202,7 @@ func TestFormDecoMatchesMarks(t *testing.T) {
 				continue
 			}
 			name := "deco_" + string(rune('0'+r)) + "_" + string(rune('0'+n)) + ".png"
-			if _, err := os.Stat(filepath.Join(dfui, "textures/ui/df", name)); err != nil {
+			if _, err := os.Stat(filepath.Join(sgui, "textures/ui/sg", name)); err != nil {
 				t.Error(err)
 			}
 		}

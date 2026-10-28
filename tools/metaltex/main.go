@@ -2,7 +2,7 @@
 // colour: ore chunks (the copper chunk recoloured), dusts, and ingots of the
 // new metals and alloys.
 //
-//	go run ./tools/metaltex assets/resourcepack/dragonfactory
+//	go run ./tools/metaltex assets/resourcepack/skygear
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/presentkim/dragonfactory/tools/internal/imgio"
+	"github.com/presentkim/skygear/tools/internal/imgio"
 )
 
 type metal struct {

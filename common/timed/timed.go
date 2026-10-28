@@ -5,7 +5,7 @@ package timed
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"strings"
 	"time"
 
@@ -17,7 +17,7 @@ import (
 // key is the item stack value holding the expiry as Unix seconds. Stack
 // values are saved with the item (Dragonfly's dragonflyData), so the expiry
 // survives inventories, containers and the database.
-const key = "df-server:expires"
+const key = "skygear:expires"
 
 // lorePrefix starts the lore line that shows the expiry.
 const lorePrefix = "§r§e기간제 §7· "

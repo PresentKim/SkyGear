@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/presentkim/dragonfactory/common/internal/slottext"
+	"github.com/presentkim/skygear/common/internal/slottext"
 )
 
 // Layout is how the panel lays out a container's contents.

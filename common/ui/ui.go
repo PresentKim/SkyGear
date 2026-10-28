@@ -3,7 +3,7 @@ package ui
 
 import (
 	"fmt"
-	"github.com/presentkim/dragonfactory/common/i18n"
+	"github.com/presentkim/skygear/common/i18n"
 	"log/slog"
 	"runtime/debug"
 	"strconv"
@@ -16,12 +16,12 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/dfhook"
-	"github.com/presentkim/dragonfactory/common/internal/slottext"
+	"github.com/presentkim/skygear/common/internal/slottext"
+	"github.com/presentkim/skygear/common/sghook"
 )
 
 func init() {
-	dfhook.OnClose(func(c *dfhook.Conn) {
+	sghook.OnClose(func(c *sghook.Conn) {
 		if id, err := uuid.Parse(c.IdentityData().Identity); err == nil {
 			forget(id)
 		}
@@ -165,7 +165,7 @@ func recoverForm(p *player.Player) {
 const UntitledToken = "§d§f§u§r"
 
 // LobbyToken in a form's title makes the pack draw the lobby frame
-// (dfui_hooks.lobby_frame) behind the window without darkening the screen.
+// (sgui_hooks.lobby_frame) behind the window without darkening the screen.
 // It is added to every form shown to a player in the lobby (InLobby).
 const LobbyToken = "§d§f§w§r"
 
@@ -381,11 +381,11 @@ func Pager(p *player.Player, page, pages int, show func(p *player.Player, tx *wo
 	lang := i18n.Of(p)
 	var out []Option
 	if page > 0 {
-		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.prev"), page, pages), Icon: "textures/ui/df/arrow_left",
+		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.prev"), page, pages), Icon: "textures/ui/sg/arrow_left",
 			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page-1) }})
 	}
 	if page < pages-1 {
-		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.next"), page+2, pages), Icon: "textures/ui/df/arrow_right",
+		out = append(out, Option{Label: fmt.Sprintf(i18n.T(lang, "ui.page.next"), page+2, pages), Icon: "textures/ui/sg/arrow_right",
 			Run: func(p *player.Player, tx *world.Tx) { show(p, tx, page+1) }})
 	}
 	return out
@@ -394,7 +394,7 @@ func Pager(p *player.Player, page, pages int, show func(p *player.Player, tx *wo
 // Back returns the back button of a themed form, drawn left of the close
 // button.
 func Back(label string, run func(p *player.Player, tx *world.Tx)) Option {
-	return Option{Label: BackToken + label, Icon: "textures/ui/df/chevron_left", Run: run}
+	return Option{Label: BackToken + label, Icon: "textures/ui/sg/chevron_left", Run: run}
 }
 
 // CardToken starts the title of a menu shown as a grid of icon-and-text
@@ -470,7 +470,7 @@ type Slot struct {
 	Run        func(p *player.Player, tx *world.Tx)
 }
 
-// SlotMenu sends an inventory-like form (df_form.json slot_form): a
+// SlotMenu sends an inventory-like form (sg_form.json slot_form): a
 // storage slot that only shows (icon and count) with info text on its
 // right, then two rows of pressable slots: left (e.g. storage upgrades) and
 // right (utilities), then action buttons.
@@ -505,7 +505,7 @@ func SlotMenu(p *player.Player, title string, store Slot, info string, left, rig
 // Item slot forms (ItemDetail, ItemGrid). A slot is a button whose text holds
 // a 9 byte marker, one byte saying which side its tooltip grows to, its
 // count in 10 bytes (starts with a colour code, padded with '~') and then
-// its tooltip; the pack (dfui ui/df_form.json) cuts them apart.
+// its tooltip; the pack (sgui ui/sg_form.json) cuts them apart.
 const (
 	// DetailToken starts the title of an item detail form (ItemDetail).
 	DetailToken = "§d§f§g§r"
@@ -912,8 +912,8 @@ func splitPagerRow(p *player.Player, sp Split) []Option {
 			Run: func(p *player.Player, tx *world.Tx) { sp.Turn(p, tx, to) }}
 	}
 	return []Option{
-		arrow(page > 0, pagerPrev, pagerPrevOff, "textures/ui/df/arrow_left", "ui.page.prev", page-1),
-		arrow(page < pages-1, pagerNext, pagerNextOff, "textures/ui/df/arrow_right", "ui.page.next", page+1),
+		arrow(page > 0, pagerPrev, pagerPrevOff, "textures/ui/sg/arrow_left", "ui.page.prev", page-1),
+		arrow(page < pages-1, pagerNext, pagerNextOff, "textures/ui/sg/arrow_right", "ui.page.next", page+1),
 	}
 }
 

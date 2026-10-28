@@ -18,7 +18,7 @@ const subChunkRequests = true
 
 // ViewChunk ...
 func (s *Session) ViewChunk(pos world.ChunkPos, dim world.Dimension, blockEntities map[cube.Pos]world.Block, c *chunk.Chunk) {
-	// dragonfactory patch: a chunk shown with ViewFakeChunk stays.
+	// skygear patch: a chunk shown with ViewFakeChunk stays.
 	if fake, ok := s.fakeChunk(pos); ok && fake.Chunk != c {
 		c, blockEntities = fake.Chunk, nil
 	}
@@ -45,7 +45,7 @@ func (s *Session) ViewSubChunks(centre world.SubChunkPos, offsets []protocol.Sub
 			centre.X() + int32(offset[0]),
 			centre.Z() + int32(offset[2]),
 		})
-		// dragonfactory patch: answer from a chunk shown with ViewFakeChunk.
+		// skygear patch: answer from a chunk shown with ViewFakeChunk.
 		if fake, faked := s.fakeChunk(world.ChunkPos{centre.X() + int32(offset[0]), centre.Z() + int32(offset[2])}); faked {
 			col, ok = fake, true
 		}

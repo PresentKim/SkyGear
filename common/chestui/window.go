@@ -1,7 +1,7 @@
 package chestui
 
 // Windows backed by an invisible, client-only entity instead of a block,
-// like PocketMine's InvMenu actor menus, reached through dfhook. Options
+// like PocketMine's InvMenu actor menus, reached through sghook. Options
 // enables InvMenu's extra open steps (Ride, WaitLatency, Retry until the
 // client acks with a PacketViolationWarning). A client close of window 0xff
 // (sent when a window opens while a form closes) never closes an entity window.
@@ -20,7 +20,7 @@ import (
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/sandertv/gophertunnel/minecraft/nbt"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
@@ -89,7 +89,7 @@ type window struct {
 
 // client is the window state of one connection.
 type client struct {
-	c         *dfhook.Conn
+	c         *sghook.Conn
 	s         *session.Session
 	lang      string
 	win       atomic.Pointer[window]
@@ -98,10 +98,10 @@ type client struct {
 	lastPos   atomic.Pointer[mgl32.Vec3]
 }
 
-var clients sync.Map // *dfhook.Conn → *client
+var clients sync.Map // *sghook.Conn → *client
 
 func clientOf(p *player.Player) *client {
-	c := dfhook.Of(p)
+	c := sghook.Of(p)
 	if c == nil {
 		return nil
 	}
@@ -112,7 +112,7 @@ func clientOf(p *player.Player) *client {
 	return cl.(*client)
 }
 
-func loadClient(c *dfhook.Conn) *client {
+func loadClient(c *sghook.Conn) *client {
 	cl, ok := clients.Load(c)
 	if !ok {
 		return nil
@@ -122,9 +122,9 @@ func loadClient(c *dfhook.Conn) *client {
 
 func init() {
 	nextRuntimeID.Store(1 << 62)
-	dfhook.OnClientPacket(clientPacket)
-	dfhook.OnServerPacket(serverPacket)
-	dfhook.OnClose(func(c *dfhook.Conn) {
+	sghook.OnClientPacket(clientPacket)
+	sghook.OnServerPacket(serverPacket)
+	sghook.OnClose(func(c *sghook.Conn) {
 		if cl := loadClient(c); cl != nil {
 			clients.Delete(c)
 			if w := cl.win.Load(); w != nil {
@@ -159,7 +159,7 @@ func openWindow(p *player.Player, inv *inventory.Inventory, title string, onClos
 	// for a NetworkStackLatency round trip first, like InvMenu does.
 	if since := time.Since(time.Unix(0, cl.lastClose.Load())); since < transitionWindow {
 		debug("switching windows: waiting for the client", "since", since)
-		dfhook.AfterClientSync(p, spawn)
+		sghook.AfterClientSync(p, spawn)
 		return
 	}
 	spawn(p, p.Tx())
@@ -168,7 +168,7 @@ func openWindow(p *player.Player, inv *inventory.Inventory, title string, onClos
 // Close closes the container window p has open: a chest window, or a
 // block container of Dragonfly. It must run in p's transaction.
 func Close(p *player.Player) {
-	s := dfhook.Session(p)
+	s := sghook.Session(p)
 	if s == session.Nop {
 		return
 	}
@@ -176,11 +176,11 @@ func Close(p *player.Player) {
 	cl := clientOf(p)
 	if cl != nil {
 		cl.token.Add(1) // cancel a window waiting to open
-		if dfhook.ContainerOpen(s) {
+		if sghook.ContainerOpen(s) {
 			cl.lastClose.Store(time.Now().UnixNano())
 		}
 	}
-	dfhook.CloseWindow(s, tx)
+	sghook.CloseWindow(s, tx)
 	if cl != nil {
 		if w := cl.win.Load(); w != nil {
 			cl.finish(w, p, tx)
@@ -204,7 +204,7 @@ func (cl *client) spawn(p *player.Player, inv *inventory.Inventory, title string
 	pos := p.Position()
 	pos32 := mgl32.Vec3{float32(pos[0]), float32(pos[1]), float32(pos[2])}
 	cl.lastPos.Store(&pos32)
-	dfhook.WritePacket(cl.s, &packet.AddActor{
+	sghook.WritePacket(cl.s, &packet.AddActor{
 		EntityUniqueID:  int64(id),
 		EntityRuntimeID: id,
 		EntityType:      EntityIdentifier,
@@ -220,7 +220,7 @@ func (cl *client) spawn(p *player.Player, inv *inventory.Inventory, title string
 		w.open()
 		return
 	}
-	dfhook.AfterClientSync(p, func(*player.Player, *world.Tx) { w.open() })
+	sghook.AfterClientSync(p, func(*player.Player, *world.Tx) { w.open() })
 }
 
 // open sends the ContainerOpen of a waiting window and starts resending it
@@ -232,11 +232,11 @@ func (w *window) open() {
 		return
 	}
 	w.state = opening
-	w.windowID = dfhook.OpenWindow(w.cl.s, w.inv, w.pos, protocol.ContainerTypeContainer)
+	w.windowID = sghook.OpenWindow(w.cl.s, w.inv, w.pos, protocol.ContainerTypeContainer)
 	w.mu.Unlock()
 
-	dfhook.WritePacket(w.cl.s, w.openPacket())
-	dfhook.SendInventory(w.cl.s, w.inv, w.windowID)
+	sghook.WritePacket(w.cl.s, w.openPacket())
+	sghook.SendInventory(w.cl.s, w.inv, w.windowID)
 	debug("opened", "actor", w.runtimeID, "window", w.windowID)
 	if !Options.Retry {
 		w.ack()
@@ -267,8 +267,8 @@ func (w *window) retry() {
 		if !w.opening() {
 			return
 		}
-		dfhook.WritePacket(w.cl.s, &packet.ContainerClose{WindowID: w.windowID, ContainerType: protocol.ContainerTypeContainer})
-		dfhook.WritePacket(w.cl.s, w.openPacket())
+		sghook.WritePacket(w.cl.s, &packet.ContainerClose{WindowID: w.windowID, ContainerType: protocol.ContainerTypeContainer})
+		sghook.WritePacket(w.cl.s, w.openPacket())
 	}
 	// Never acknowledged: keep the window as it is.
 	debug("never acknowledged", "actor", w.runtimeID)
@@ -285,7 +285,7 @@ func (w *window) ack() {
 	w.state = open
 	w.mu.Unlock()
 	if w.cl.win.Load() == w && Options.Retry {
-		dfhook.SendInventory(w.cl.s, w.inv, w.windowID)
+		sghook.SendInventory(w.cl.s, w.inv, w.windowID)
 	}
 }
 
@@ -311,7 +311,7 @@ func (cl *client) finish(w *window, p *player.Player, tx *world.Tx) {
 	close(w.stop)
 	debug("closed", "actor", w.runtimeID)
 	if p != nil {
-		dfhook.WritePacket(cl.s, &packet.RemoveActor{EntityUniqueID: int64(w.runtimeID)})
+		sghook.WritePacket(cl.s, &packet.RemoveActor{EntityUniqueID: int64(w.runtimeID)})
 	}
 	if w.onClose != nil {
 		w.onClose(p, tx)
@@ -319,7 +319,7 @@ func (cl *client) finish(w *window, p *player.Player, tx *world.Tx) {
 }
 
 // clientPacket handles packets from the client that concern its window.
-func clientPacket(c *dfhook.Conn, pk packet.Packet) bool {
+func clientPacket(c *sghook.Conn, pk packet.Packet) bool {
 	cl := loadClient(c)
 	if cl == nil {
 		return false
@@ -375,7 +375,7 @@ func (cl *client) follow(pos mgl32.Vec3) {
 // serverPacket announces the window entity, puts the client's texts into
 // its window's contents (Localize) and notices windows that Dragonfly closed
 // itself (the client closed one, or another container opened).
-func serverPacket(c *dfhook.Conn, pk packet.Packet) bool {
+func serverPacket(c *sghook.Conn, pk packet.Packet) bool {
 	localizeWindow(c, pk)
 	switch pk := pk.(type) {
 	case *packet.AvailableActorIdentifiers:

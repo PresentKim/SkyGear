@@ -31,7 +31,7 @@ func TestCFB8RoundTrip(t *testing.T) {
 	if len(key) != 32 {
 		t.Fatalf("key length %d", len(key))
 	}
-	plain := bytes.Repeat([]byte("dragon factory "), 50)
+	plain := bytes.Repeat([]byte("sky gear "), 50)
 	data := append([]byte(nil), plain...)
 	if err := cfb8(data, key, false); err != nil {
 		t.Fatal(err)

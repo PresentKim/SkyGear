@@ -7,9 +7,9 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/dragonfactory/common/dfhook"
-	"github.com/presentkim/dragonfactory/common/ui"
-	"github.com/presentkim/dragonfactory/internal/instance"
+	"github.com/presentkim/skygear/common/sghook"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/internal/instance"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
@@ -55,8 +55,8 @@ func (pf *Platform) lobbyEscaped(p *player.Player, _ *world.Tx) {
 // their handle and the time of their last wake.
 var lobbyConns = struct {
 	sync.Mutex
-	m map[*dfhook.Conn]*lobbyConn
-}{m: map[*dfhook.Conn]*lobbyConn{}}
+	m map[*sghook.Conn]*lobbyConn
+}{m: map[*sghook.Conn]*lobbyConn{}}
 
 type lobbyConn struct {
 	h    *world.EntityHandle
@@ -67,7 +67,7 @@ type lobbyConn struct {
 // watchLobbyInput makes the input of p, who arrived in the lobby w, open the
 // main menu.
 func watchLobbyInput(p *player.Player, w *world.World) {
-	c := dfhook.Of(p)
+	c := sghook.Of(p)
 	if c == nil {
 		return
 	}
@@ -80,12 +80,12 @@ func watchLobbyInput(p *player.Player, w *world.World) {
 var lobbyPlatform *Platform
 
 func init() {
-	dfhook.OnClose(func(c *dfhook.Conn) {
+	sghook.OnClose(func(c *sghook.Conn) {
 		lobbyConns.Lock()
 		delete(lobbyConns.m, c)
 		lobbyConns.Unlock()
 	})
-	dfhook.OnClientPacket(func(c *dfhook.Conn, pk packet.Packet) bool {
+	sghook.OnClientPacket(func(c *sghook.Conn, pk packet.Packet) bool {
 		in, ok := pk.(*packet.PlayerAuthInput)
 		if !ok || !lobbyInput(in) {
 			return false

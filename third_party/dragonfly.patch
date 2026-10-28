@@ -6,7 +6,7 @@ diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
  // BreakInfo ...
  func (b BeetrootSeeds) BreakInfo() BreakInfo {
 -	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(b, item.Beetroot{}, b.Growth))
-+	// dragonfactory patch: seeds with growth 0, not copies of the grown crop.
++	// skygear patch: seeds with growth 0, not copies of the grown crop.
 +	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(BeetrootSeeds{}, item.Beetroot{}, b.Growth))
  }
  
@@ -16,7 +16,7 @@ diff -ruN a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
  // RandomTick ...
  func (b BeetrootSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if tx.Light(pos) < 8 {
  		breakBlock(b, pos, tx)
@@ -28,7 +28,7 @@ diff -ruN a/server/block/carrot.go b/server/block/carrot.go
  // BreakInfo ...
  func (c Carrot) BreakInfo() BreakInfo {
  	return newBreakInfo(0, alwaysHarvestable, nothingEffective, func(t item.Tool, enchantments []item.Enchantment) []item.Stack {
-+		// dragonfactory patch: drops are new crops (growth 0), not copies of the
++		// skygear patch: drops are new crops (growth 0), not copies of the
 +		// grown one, which would be planted fully grown.
  		if c.Growth < 7 {
 -			return []item.Stack{item.NewStack(c, 1)}
@@ -46,7 +46,7 @@ diff -ruN a/server/block/carrot.go b/server/block/carrot.go
  // RandomTick ...
  func (c Carrot) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if tx.Light(pos) < 8 {
  		breakBlock(c, pos, tx)
@@ -60,7 +60,7 @@ diff -ruN a/server/block/composter.go b/server/block/composter.go
  
 +// ComposterVanillaRules says whether composters follow the vanilla rules: filled by chance, with hoppers, and
 +// emptied into bone meal. A game that runs its own composter rules sets it to false and handles clicks itself
-+// (dragonfactory patch).
++// (skygear patch).
 +var ComposterVanillaRules = true
 +
  // Composter is a block that can turn biological matter in to compost which can then produce bone meal. It is also the
@@ -103,7 +103,7 @@ diff -ruN a/server/block/crop.go b/server/block/crop.go
  
 +// ScheduledCropGrowth turns off the random growth of crops and melon and
 +// pumpkin stems: random ticks do nothing to them, so the game can grow them
-+// on its own schedule. It is set once at startup. (dragonfactory patch)
++// on its own schedule. It is set once at startup. (skygear patch)
 +var ScheduledCropGrowth bool
 +
  // Crop is an interface for all crops that are grown on farmland. A crop has a random chance to grow during random ticks.
@@ -138,7 +138,7 @@ diff -ruN a/server/block/dirt.go b/server/block/dirt.go
  func spreadDirt(b world.Block, pos cube.Pos, tx *world.Tx, r *rand.Rand, minY int) {
  	aboveLight := tx.Light(pos.Side(cube.FaceUp))
 -	if aboveLight < 4 {
-+	// dragonfactory patch: like vanilla, grass under a full solid block turns
++	// skygear patch: like vanilla, grass under a full solid block turns
 +	// back into dirt and does not spread under one. The light check alone
 +	// misses blocks that let light through, such as custom blocks.
 +	if aboveLight < 4 || solidAbove(pos, tx) {
@@ -157,7 +157,7 @@ diff -ruN a/server/block/dirt.go b/server/block/dirt.go
  }
  
 +// solidAbove reports whether the block above pos is a full solid block.
-+// dragonfactory patch.
++// skygear patch.
 +func solidAbove(pos cube.Pos, tx *world.Tx) bool {
 +	_, ok := tx.Block(pos.Side(cube.FaceUp)).Model().(model.Solid)
 +	return ok
@@ -175,7 +175,7 @@ diff -ruN a/server/block/hopper.go b/server/block/hopper.go
  
 +// HopperTransfer, if set, does the item moving of every hopper instead of the vanilla rules: it moves at most one
 +// item into the block the hopper faces and at most one from the block above it, and reports what it did
-+// (dragonfactory patch: the game routes hoppers through its own item transfer interface).
++// (skygear patch: the game routes hoppers through its own item transfer interface).
 +var HopperTransfer func(h Hopper, pos cube.Pos, tx *world.Tx) (inserted, extracted bool)
 +
  // Hopper is a low-capacity storage block that can be used to collect item entities directly above it, as well as to
@@ -212,7 +212,7 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
  }
  
 +// LeavesDecayDelay is the time the game gives leaves that lost their log to
-+// decay, as a minimum and a random extra, via a scheduled tick (dragonfactory
++// decay, as a minimum and a random extra, via a scheduled tick (skygear
 +// patch). Both zero keeps vanilla: decay waits for a random tick.
 +var (
 +	LeavesDecayDelayMin    time.Duration
@@ -220,7 +220,7 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
 +)
 +
 +// decay removes the leaves at pos if no log is near, dropping what leaves
-+// drop; with a log near they stay (dragonfactory patch: shared by the random
++// drop; with a log near they stay (skygear patch: shared by the random
 +// tick and the scheduled tick).
 +func (l Leaves) decay(pos cube.Pos, tx *world.Tx) {
 +	if l.Persistent || !l.ShouldUpdate {
@@ -266,7 +266,7 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
 +	l.decay(pos, tx)
 +}
 +
-+// ScheduledTick decays leaves whose log is gone (dragonfactory patch).
++// ScheduledTick decays leaves whose log is gone (skygear patch).
 +func (l Leaves) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
 +	if cur, ok := tx.Block(pos).(Leaves); ok {
 +		cur.decay(pos, tx)
@@ -292,12 +292,12 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
  }
  
 +// LeavesSaplingChances are the chances of leaves dropping a sapling when
-+// broken or decayed, by fortune level 0 to 3 (vanilla values). dragonfactory
++// broken or decayed, by fortune level 0 to 3 (vanilla values). skygear
 +// patch: variables instead of constants.
 +var LeavesSaplingChances = []float64{0.05, 0.0625, 0.083333336, 0.1}
 +
 +// LeavesStickChances are the chances of leaves dropping sticks, by fortune
-+// level 0 to 3 (vanilla values; dragonfactory patch: a variable).
++// level 0 to 3 (vanilla values; skygear patch: a variable).
 +var LeavesStickChances = []float64{0.02, 0.022222222, 0.025, 0.033333333}
 +
 +// JungleLeavesSaplingChances are LeavesSaplingChances for jungle leaves.
@@ -311,7 +311,7 @@ diff -ruN a/server/block/leaves.go b/server/block/leaves.go
  
  		if sapling, ok := l.Type.Sapling(); ok {
 -			chances := []float64{0.05, 0.0625, 0.083333336, 0.1}
-+			// dragonfactory patch: the chances are variables the game can raise.
++			// skygear patch: the chances are variables the game can raise.
 +			chances := LeavesSaplingChances
  			if l.Type == JungleLeaves() {
 -				chances = []float64{0.025, 0.027777778, 0.03125, 0.041666668}
@@ -335,7 +335,7 @@ diff -ruN a/server/block/melon_seeds.go b/server/block/melon_seeds.go
  // RandomTick ...
  func (m MelonSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if r.Float64() <= m.CalculateGrowthChance(pos, tx) && tx.Light(pos) >= 8 {
  		if m.Growth < 7 {
@@ -347,7 +347,7 @@ diff -ruN a/server/block/potato.go b/server/block/potato.go
  // BreakInfo ...
  func (p Potato) BreakInfo() BreakInfo {
  	return newBreakInfo(0, alwaysHarvestable, nothingEffective, func(t item.Tool, enchantments []item.Enchantment) []item.Stack {
-+		// dragonfactory patch: drops are new crops (growth 0).
++		// skygear patch: drops are new crops (growth 0).
  		if p.Growth < 7 {
 -			return []item.Stack{item.NewStack(p, 1)}
 +			return []item.Stack{item.NewStack(Potato{}, 1)}
@@ -368,7 +368,7 @@ diff -ruN a/server/block/potato.go b/server/block/potato.go
  // RandomTick ...
  func (p Potato) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if tx.Light(pos) < 8 {
  		breakBlock(p, pos, tx)
@@ -381,7 +381,7 @@ diff -ruN a/server/block/pumpkin_seeds.go b/server/block/pumpkin_seeds.go
  // RandomTick ...
  func (p PumpkinSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if r.Float64() <= p.CalculateGrowthChance(pos, tx) && tx.Light(pos) >= 8 {
  		if p.Growth < 7 {
@@ -394,7 +394,7 @@ diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
  // BreakInfo ...
  func (s WheatSeeds) BreakInfo() BreakInfo {
 -	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(s, item.Wheat{}, s.Growth))
-+	// dragonfactory patch: seeds with growth 0, not copies of the grown crop.
++	// skygear patch: seeds with growth 0, not copies of the grown crop.
 +	return newBreakInfo(0, alwaysHarvestable, nothingEffective, cropSeedDrops(WheatSeeds{}, item.Wheat{}, s.Growth))
  }
  
@@ -404,7 +404,7 @@ diff -ruN a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
  // RandomTick ...
  func (s WheatSeeds) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 +	if ScheduledCropGrowth {
-+		return // dragonfactory patch: the game grows crops on a schedule.
++		return // skygear patch: the game grows crops on a schedule.
 +	}
  	if tx.Light(pos) < 8 {
  		breakBlock(s, pos, tx)
@@ -438,7 +438,7 @@ diff -ruN a/server/cmd/command.go b/server/cmd/command.go
 +
 +// runRecovered runs r, turning a panic into an ERROR log and an error
 +// output, so a bug in one command does not take the server down.
-+// (dragonfactory patch)
++// (skygear patch)
 +func runRecovered(r Runnable, source Source, output *Output, tx *world.Tx) {
 +	defer func() {
 +		if v := recover(); v != nil {
@@ -470,7 +470,7 @@ diff -ruN a/server/internal/blockinternal/components.go b/server/internal/blocki
  		})
  	}
 +	if _, ok := b.(block.Activatable); ok {
-+		// dragonfactory patch: marks the block as interactable, so the client sends the click to
++		// skygear patch: marks the block as interactable, so the client sends the click to
 +		// the server instead of predicting the held block being placed.
 +		builder.AddComponent("minecraft:custom_components", map[string]any{
 +			"hasPlayerInteract": uint8(1),
@@ -548,7 +548,7 @@ diff -ruN a/server/internal/iteminternal/components.go b/server/internal/itemint
  		builder.AddProperty("foil", x.Glinted())
  	}
 +	if x, ok := it.(item.Digger); ok {
-+		// dragonfactory patch: per-block mining speeds for clients.
++		// skygear patch: per-block mining speeds for clients.
 +		speeds := x.DestroySpeeds()
 +		names := make([]string, 0, len(speeds))
 +		for name := range speeds {
@@ -579,7 +579,7 @@ diff -ruN a/server/internal/packbuilder/items.go b/server/internal/packbuilder/i
  	textureData := make(map[string]any)
 -	for _, item := range world.CustomItems() {
 +	for _, custom := range world.CustomItems() {
-+		// dragonfactory patch: only items that carry a texture are built.
++		// skygear patch: only items that carry a texture are built.
 +		item, ok := custom.(world.CustomItemTextured)
 +		if !ok {
 +			continue
@@ -597,7 +597,7 @@ diff -ruN a/server/item/digger.go b/server/item/digger.go
 +// Digger is a custom item that tells clients how fast it mines certain
 +// blocks (the minecraft:digger item component). Without it, clients mine
 +// with a custom item at bare-hand speed whatever the server computes.
-+// (dragonfactory patch)
++// (skygear patch)
 +type Digger interface {
 +	// DestroySpeeds maps block names (e.g. "minecraft:stone") to the mining
 +	// speed of the item on them (a tool tier efficiency, e.g. 4 for stone).
@@ -611,7 +611,7 @@ diff -ruN a/server/item/recipe/recipe.go b/server/item/recipe/recipe.go
  	// shape contains the width and height of the shaped recipe.
  	shape Shape
 +	// noMirror is set when the recipe must be crafted exactly as arranged, not also mirrored left to right
-+	// (dragonfactory patch).
++	// (skygear patch).
 +	noMirror bool
  }
  
@@ -621,7 +621,7 @@ diff -ruN a/server/item/recipe/recipe.go b/server/item/recipe/recipe.go
  }
  
 +// WithoutMirror returns the recipe that only crafts as arranged: the mirrored arrangement does not craft it
-+// (dragonfactory patch).
++// (skygear patch).
 +func (r Shaped) WithoutMirror() Shaped {
 +	r.noMirror = true
 +	return r
@@ -660,7 +660,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  	lastBreakDuration time.Duration
 +	// breakStarted is when the player started breaking breakingPos. Custom
 +	// blocks are finished by the server from it (see tickCustomBreak).
-+	// (dragonfactory patch)
++	// (skygear patch)
 +	breakStarted time.Time
  
  	breakCounter uint32
@@ -669,11 +669,11 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  			// The block was activated: Blocks such as doors must always have precedence over the item being
  			// used.
  			if useCtx := p.useContext(); act.Activate(pos, face, p.tx, p, useCtx) {
-+				// dragonfactory patch: the client may have predicted placing the
++				// skygear patch: the client may have predicted placing the
 +				// held block (custom blocks are not known to be activatable).
 +				p.resendNearbyBlocks(pos, face)
  				p.SwingArm()
-+				// dragonfactory patch: re-read the held items. Activate may have
++				// skygear patch: re-read the held items. Activate may have
 +				// changed them (e.g. inserting the held stack into a block);
 +				// writing back the stack read before would duplicate items.
 +				i, left = p.HeldItems()
@@ -684,7 +684,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  // immediately and the block will not be broken. StartBreaking will stop the breaking of any block that the
  // player might be breaking before this method is called.
  func (p *Player) StartBreaking(pos cube.Pos, face cube.Face) {
-+	// dragonfactory patch: clients repeat the start (ContinueDestroyBlock)
++	// skygear patch: clients repeat the start (ContinueDestroyBlock)
 +	// while mining the same block; that keeps the time it started.
 +	wasBreaking, prevPos := p.breaking, p.breakingPos
  	p.AbortBreaking()
@@ -711,7 +711,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
 +// tickCustomBreak finishes breaking a custom block once its break time has
 +// passed. Clients finish the crack of custom blocks but may not send the
 +// destroy action, so the block would otherwise never break.
-+// (dragonfactory patch)
++// (skygear patch)
 +func (p *Player) tickCustomBreak() {
 +	if !p.breaking || p.GameMode().CreativeInventory() {
 +		return
@@ -733,7 +733,7 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  		}
  	}
  
-+	p.tickCustomBreak() // dragonfactory patch
++	p.tickCustomBreak() // skygear patch
 +
  	p.checkBlockCollisions(p.data.Vel)
  	p.onGround = p.checkOnGround(mgl64.Vec3{})
@@ -744,19 +744,19 @@ diff -ruN a/server/player/player.go b/server/player/player.go
  
 +// ViewFakeChunk shows c in place of the world's chunk at pos to this player
 +// only, until ClearFakeChunk; the world's block updates there are not sent
-+// meanwhile. (dragonfactory patch)
++// meanwhile. (skygear patch)
 +func (p *Player) ViewFakeChunk(pos world.ChunkPos, c *chunk.Chunk) {
 +	p.session().ViewFakeChunk(pos, p.tx.World().Dimension(), c)
 +}
 +
-+// ClearFakeChunk shows the world's chunk at pos again. (dragonfactory patch)
++// ClearFakeChunk shows the world's chunk at pos again. (skygear patch)
 +func (p *Player) ClearFakeChunk(pos world.ChunkPos) {
 +	p.session().ClearFakeChunk(pos, p.tx.World().Dimension())
 +}
 +
 +// SetRecipeFilter limits the player's recipes to those f keeps (all if f
 +// is nil) and sends the new list at once; call it again when f's answers
-+// change. (dragonfactory patch)
++// change. (skygear patch)
 +func (p *Player) SetRecipeFilter(f func(recipe.Recipe) bool) { p.session().SetRecipeFilter(f) }
 +
  // session returns the network session of the player. If it has one, it is returned. If not, a no-op session
@@ -785,7 +785,7 @@ diff -ruN a/server/session/chunk.go b/server/session/chunk.go
  
  // ViewChunk ...
  func (s *Session) ViewChunk(pos world.ChunkPos, dim world.Dimension, blockEntities map[cube.Pos]world.Block, c *chunk.Chunk) {
-+	// dragonfactory patch: a chunk shown with ViewFakeChunk stays.
++	// skygear patch: a chunk shown with ViewFakeChunk stays.
 +	if fake, ok := s.fakeChunk(pos); ok && fake.Chunk != c {
 +		c, blockEntities = fake.Chunk, nil
 +	}
@@ -796,7 +796,7 @@ diff -ruN a/server/session/chunk.go b/server/session/chunk.go
  			centre.X() + int32(offset[0]),
  			centre.Z() + int32(offset[2]),
  		})
-+		// dragonfactory patch: answer from a chunk shown with ViewFakeChunk.
++		// skygear patch: answer from a chunk shown with ViewFakeChunk.
 +		if fake, faked := s.fakeChunk(world.ChunkPos{centre.X() + int32(offset[0]), centre.Z() + int32(offset[2])}); faked {
 +			col, ok = fake, true
 +		}
@@ -809,7 +809,7 @@ diff -ruN a/server/session/fake_chunk.go b/server/session/fake_chunk.go
 @@ -0,0 +1,59 @@
 +package session
 +
-+// This file is part of the dragonfactory patch to Dragonfly (third_party/README.md):
++// This file is part of the skygear patch to Dragonfly (third_party/README.md):
 +// client-only chunk views.
 +
 +import (
@@ -874,7 +874,7 @@ diff -ruN a/server/session/handler_crafting.go b/server/session/handler_crafting
  	size := s.craftingSize()
  	offset := s.craftingOffset()
 +	if sh, ok := craft.(recipe.Shaped); ok {
-+		// dragonfactory patch: a shaped recipe is only crafted in its arrangement (the client matches shapes, but
++		// skygear patch: a shaped recipe is only crafted in its arrangement (the client matches shapes, but
 +		// the server used to take the items from any slots).
 +		cells := make([]item.Stack, size)
 +		for i := range cells {
@@ -895,7 +895,7 @@ diff -ruN a/server/session/handler_crafting.go b/server/session/handler_crafting
  	if timesCrafted < 1 {
  		return fmt.Errorf("times crafted must be at least 1")
  	}
-+	// dragonfactory patch: dynamic recipes (the decorated pot) are not in the
++	// skygear patch: dynamic recipes (the decorated pot) are not in the
 +	// recipe list a filter picks from, so a filter turns them off.
 +	if s.recipeFilter != nil {
 +		return fmt.Errorf("dynamic recipes are locked by the recipe filter")
@@ -910,7 +910,7 @@ diff -ruN a/server/session/handler_crafting.go b/server/session/handler_crafting
 +
 +// shapedArrangementOK reports whether the crafting grid cells (cols per row) hold the items of the shaped
 +// recipe in its shape, anywhere in the grid, and mirrored left to right only if the recipe allows it
-+// (dragonfactory patch).
++// (skygear patch).
 +func shapedArrangementOK(cells []item.Stack, cols int, r recipe.Shaped) bool {
 +	rows := len(cells) / cols
 +	minR, maxR, minC, maxC := rows, -1, cols, -1
@@ -953,7 +953,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  		potionContainerChange    []protocol.PotionContainerChangeRecipe
  	)
  
-+	// dragonfactory patch: only the recipes the filter keeps are sent and
++	// skygear patch: only the recipes the filter keeps are sent and
 +	// accepted. Network IDs stay the index in the full list.
 +	clear(s.recipes)
 +	fit := creativeBlockFitter(s.br)
@@ -1002,7 +1002,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
 +// SetRecipeFilter limits the player's recipes to those f keeps (all if f
 +// is nil) and sends the new list at once: the client replaces its recipes
 +// (recipe book, crafting grid output), and crafting a recipe left out is
-+// refused. Call it again whenever f's answers change. (dragonfactory patch)
++// refused. Call it again whenever f's answers change. (skygear patch)
 +func (s *Session) SetRecipeFilter(f func(recipe.Recipe) bool) {
 +	if s == Nop {
 +		return
@@ -1018,7 +1018,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
  // client submits the form.
  func (s *Session) SendForm(f form.Form) {
-+	if s == Nop { // dragonfactory patch: players without a connection (tests)
++	if s == Nop { // skygear patch: players without a connection (tests)
 +		return
 +	}
  	b, _ := json.Marshal(f)
@@ -1030,7 +1030,7 @@ diff -ruN a/server/session/player.go b/server/session/player.go
  
 +// creativeBlockFitter returns a function that gives the block runtime ID of
 +// a recipe result the one of its creative inventory entry when the item has
-+// exactly one entry and the recipe's differs (dragonfactory patch). The client
++// exactly one entry and the recipe's differs (skygear patch). The client
 +// lists a recipe in its recipe book only when its result is the creative
 +// item; vanilla recipe data names block states (a chest facing another way)
 +// that the creative list does not, so such recipes were not listed.
@@ -1067,7 +1067,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  	entities         map[uint64]*world.EntityHandle
  	hiddenEntities   map[uuid.UUID]struct{}
  
-+	// fakeChunks are the chunks shown with ViewFakeChunk. (dragonfactory patch)
++	// fakeChunks are the chunks shown with ViewFakeChunk. (skygear patch)
 +	fakeChunkMu sync.Mutex
 +	fakeChunks  map[world.ChunkPos]*world.Column
 +
@@ -1079,7 +1079,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  
  	recipes map[uint32]recipe.Recipe
 +	// recipeFilter, if set, picks the recipes sent and accepted.
-+	// (dragonfactory patch)
++	// (skygear patch)
 +	recipeFilter func(recipe.Recipe) bool
  
  	blobMu                sync.Mutex
@@ -1089,7 +1089,7 @@ diff -ruN a/server/session/session.go b/server/session/session.go
  				return
  			}
 -			s.conf.Log.Debug("process packet: " + err.Error())
-+			// dragonfactory patch: a packet error ends the session; log it where
++			// skygear patch: a packet error ends the session; log it where
 +			// operators see it and tell the player why.
 +			s.conf.Log.Error("process packet: " + err.Error())
 +			s.Disconnect("서버 처리 오류로 연결이 끊겼습니다.\n" + err.Error())
@@ -1111,7 +1111,7 @@ diff -ruN a/server/session/shaped_arrangement_test.go b/server/session/shaped_ar
 +)
 +
 +// TestShapedArrangement: a shaped recipe crafts only in its arrangement,
-+// anywhere in the grid, mirrored only when allowed (dragonfactory patch).
++// anywhere in the grid, mirrored only when allowed (skygear patch).
 +func TestShapedArrangement(t *testing.T) {
 +	c, s := item.NewStack(block.Cobblestone{}, 1), item.NewStack(item.Stick{}, 1)
 +	e := item.Stack{}
@@ -1144,7 +1144,7 @@ diff -ruN a/server/session/world.go b/server/session/world.go
  
  // ViewBlockUpdate ...
  func (s *Session) ViewBlockUpdate(pos cube.Pos, b world.Block, layer int) {
-+	// dragonfactory patch: the world's blocks are not shown in a chunk shown
++	// skygear patch: the world's blocks are not shown in a chunk shown
 +	// with ViewFakeChunk.
 +	if s.inFakeChunk(pos) {
 +		return
@@ -1152,7 +1152,7 @@ diff -ruN a/server/session/world.go b/server/session/world.go
 +	s.viewBlockUpdate(pos, b, layer)
 +}
 +
-+// viewBlockUpdate sends b at pos. (dragonfactory patch)
++// viewBlockUpdate sends b at pos. (skygear patch)
 +func (s *Session) viewBlockUpdate(pos cube.Pos, b world.Block, layer int) {
  	blockPos := protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])}
  	s.writePacket(&packet.UpdateBlock{
@@ -1172,7 +1172,7 @@ diff -ruN a/server/world/item.go b/server/world/item.go
  
 +// CustomItemTextured is a CustomItem whose texture Dragonfly puts into the
 +// auto-built resource pack.
-+// dragonfactory patch: Texture moved out of CustomItem, so items whose textures
++// skygear patch: Texture moved out of CustomItem, so items whose textures
 +// come from a hand-written resource pack need no image.
 +type CustomItemTextured interface {
 +	CustomItem
@@ -1191,7 +1191,7 @@ diff -ruN a/server/world/task_test.go b/server/world/task_test.go
  	return ctx
  }
 +
-+// TestPanicInTransactionIsRecovered checks the dragonfactory patch: a panic in an
++// TestPanicInTransactionIsRecovered checks the skygear patch: a panic in an
 +// Exec transaction (as a tick or handler runs) is logged and the world goes on.
 +func TestPanicInTransactionIsRecovered(t *testing.T) {
 +	w := Config{Log: slog.New(slog.NewTextHandler(io.Discard, nil))}.New()
@@ -1213,7 +1213,7 @@ diff -ruN a/server/world/tick.go b/server/world/tick.go
 -		case <-tc.C:
 +		case at := <-tc.C:
  			<-w.exec(t.tick)
-+			// dragonfactory patch: record how long the tick took.
++			// skygear patch: record how long the tick took.
 +			w.tickStats.add(at, time.Since(at))
  		case <-w.closing:
  			// World is being closed: Stop ticking and get rid of a task.
@@ -1229,7 +1229,7 @@ diff -ruN a/server/world/tick_stats.go b/server/world/tick_stats.go
 +	"time"
 +)
 +
-+// dragonfactory patch: tick timing of a World, for showing the server load.
++// skygear patch: tick timing of a World, for showing the server load.
 +
 +// TickStats summarises the recent ticks of a World.
 +type TickStats struct {
@@ -1326,7 +1326,7 @@ diff -ruN a/server/world/tx.go b/server/world/tx.go
  }
  
 +// runRecovered runs f and logs a panic instead of letting it end the process.
-+// dragonfactory patch: a panic in a block tick, an event handler or a packet
++// skygear patch: a panic in a block tick, an event handler or a packet
 +// handler would otherwise bring down every island on the server.
 +func runRecovered(w *World, f func()) {
 +	defer func() {
@@ -1356,7 +1356,7 @@ diff -ruN a/server/world/world.go b/server/world/world.go
  	conf Config
  	ra   cube.Range
  
-+	// dragonfactory patch: timing of recent ticks (TickStats).
++	// skygear patch: timing of recent ticks (TickStats).
 +	tickStats tickStats
 +
  	queue        chan transaction

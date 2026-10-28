@@ -1,6 +1,6 @@
 # 09. 자동화 설비 확장
 
-> 수치는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 기계 공통 규칙은 [02 §11](02-dragonfactory.md), 에너지는 [06](06-power-and-conduits.md).
+> 수치는 모두 초안이며 [open-questions](open-questions.md)의 표에서 관리한다. 기계 공통 규칙은 [02 §11](02-skygear.md), 에너지는 [06](06-power-and-conduits.md).
 
 섬의 순환(돌 → 가루 → 금속, 식물 → 흙, 물·용암, 몬스터)은 기계가 이미 맡고 있다. 남은 손일은 **굽기, 조합, 나무, 흩어진 아이템 줍기**이므로 이 네 가지를 설비로 만든다. 모두 에너지로 돌고, 호퍼·도관으로 넣고 빼며, 기계 창은 엔티티 상자다.
 

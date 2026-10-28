@@ -1,6 +1,6 @@
 // Package chestui shows virtual storages as chest windows of any
 // size. The windows are backed by an invisible client-only entity
-// (window.go, through dfhook), and the inventoryui resource pack reads the
+// (window.go, through sghook), and the inventoryui resource pack reads the
 // size from a prefix of the window title (like PocketMine's
 // CustomSizedInvMenu).
 //

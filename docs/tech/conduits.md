@@ -5,10 +5,10 @@
 ## 구조
 
 - **충돌·선택 상자·모양은 모두 9픽셀**(`bundleSelection`, `Properties.CollisionBox`)이다.
-- **블록** `ConduitBundle`(`bundle.go`): 상태 하나(`dragonfactory:conduit_node`), 모양은 **9픽셀 투명 큐브**(세 차선의 코어가 차지하는 공간 3.5~12.5)(텍스처의 투명한 첫 픽셀만 쓰는 큐브; 나머지 픽셀은 불투명 회색이라 부술 때 파편이 나온다. 클라이언트의 부수기 균열과 파편은 블록 큐브 위에 그려지므로 큐브가 커야 보인다). 선택 상자(같은 9픽셀)·부수기·틱을 맡는다. 종류별 단계, 종류별 연결 면, 아이템 면 모드는 **블록 엔티티 NBT**에 저장한다.
-- **엔티티** `ConduitVisual`(`conduitvisual.go`, `dragonfactory:conduit_visual`): 블록 하나에 하나. 충돌·소리 없음. `Variant`(정수)와 `MarkVariant`에 모양을 담아 보낸다.
-- **리소스팩**: `entity/conduit_visual.entity.json`(클라이언트 엔티티), `render_controllers/conduit_visual.render_controllers.json`(종류마다 컨트롤러 하나), `models/entity/conduit_visual.geo.json`(`tools/conduitgeo`로 생성, 종류마다 지오메트리 하나), `textures/entity/dragonfactory/conduit_<종류>_<단계>.png`(`tools/conduittex`).
-- 아이템(`EnergyConduit`·`ItemConduit`·`FluidConduit`)은 **아이템용 블록**(`dragonfactory:conduit_<종류>_N`, 모양은 `models/blocks/conduit_icon.geo.json`: **9픽셀 코어 큐브 하나**를 투명한 16픽셀 틀 큐브(시트의 투명한 한 픽셀) 안에 넣은 것. 클라이언트는 아이템 블록을 칸에 꽉 차게 키워 그리므로 틀이 있어야 일반 블록의 9/16 크기로 보인다. 텍스처는 엔티티와 같은 시트)이다. 인벤토리와 손에서 블록처럼 보이는 UX 만을 위한 것이고, 쓰면 블록이 놓이는 대신 `placeConduit`이 번들에 넣는다. 아이템 텍스처를 따로 관리하지 않는다.
+- **블록** `ConduitBundle`(`bundle.go`): 상태 하나(`skygear:conduit_node`), 모양은 **9픽셀 투명 큐브**(세 차선의 코어가 차지하는 공간 3.5~12.5)(텍스처의 투명한 첫 픽셀만 쓰는 큐브; 나머지 픽셀은 불투명 회색이라 부술 때 파편이 나온다. 클라이언트의 부수기 균열과 파편은 블록 큐브 위에 그려지므로 큐브가 커야 보인다). 선택 상자(같은 9픽셀)·부수기·틱을 맡는다. 종류별 단계, 종류별 연결 면, 아이템 면 모드는 **블록 엔티티 NBT**에 저장한다.
+- **엔티티** `ConduitVisual`(`conduitvisual.go`, `skygear:conduit_visual`): 블록 하나에 하나. 충돌·소리 없음. `Variant`(정수)와 `MarkVariant`에 모양을 담아 보낸다.
+- **리소스팩**: `entity/conduit_visual.entity.json`(클라이언트 엔티티), `render_controllers/conduit_visual.render_controllers.json`(종류마다 컨트롤러 하나), `models/entity/conduit_visual.geo.json`(`tools/conduitgeo`로 생성, 종류마다 지오메트리 하나), `textures/entity/skygear/conduit_<종류>_<단계>.png`(`tools/conduittex`).
+- 아이템(`EnergyConduit`·`ItemConduit`·`FluidConduit`)은 **아이템용 블록**(`skygear:conduit_<종류>_N`, 모양은 `models/blocks/conduit_icon.geo.json`: **9픽셀 코어 큐브 하나**를 투명한 16픽셀 틀 큐브(시트의 투명한 한 픽셀) 안에 넣은 것. 클라이언트는 아이템 블록을 칸에 꽉 차게 키워 그리므로 틀이 있어야 일반 블록의 9/16 크기로 보인다. 텍스처는 엔티티와 같은 시트)이다. 인벤토리와 손에서 블록처럼 보이는 UX 만을 위한 것이고, 쓰면 블록이 놓이는 대신 `placeConduit`이 번들에 넣는다. 아이템 텍스처를 따로 관리하지 않는다.
 
 ## 코드 값
 
@@ -44,7 +44,7 @@
 - 도관을 든 채 도관 블록을 우클릭: 그 종류가 비어 있으면 그 안에 들어간다. 이미 있으면 놓이지 않는다.
 - **숙이고** 우클릭: 그 도관 블록을 바닥이나 벽처럼 보고, 눌린 면 쪽 칸에 놓는다(그 칸이 도관 블록이고 자리가 있으면 그 안에, 아니면 새로).
 - 도관이 얇아서 **그 너머 블록을 찍은** 경우: 눌린 면 쪽 칸(도관이 선 칸)이 도관 블록이고 그 종류가 비어 있으면 그 안에 들어간다.
-- 놓이지 않았을 때 클라이언트가 예측해 그린 블록은 `dfhook.ViewFakeBlock`으로 바로잡는다.
+- 놓이지 않았을 때 클라이언트가 예측해 그린 블록은 `sghook.ViewFakeBlock`으로 바로잡는다.
 
 ## 액체 도관
 
@@ -52,7 +52,7 @@
 
 ## 연결부 판(플레이트) 엔티티
 
-도관이 상자·기계·통 같은 **도관이 아닌 블록**과 이어지는 면에는 EnderIO처럼 도관 끝에 종류별 **연결부(칼라)**가 달린다. 연결부는 블록 면에서 떨어져 있어야 깜빡이지 않는다(`conduitplate.go`, `dragonfactory:conduit_plate`).
+도관이 상자·기계·통 같은 **도관이 아닌 블록**과 이어지는 면에는 EnderIO처럼 도관 끝에 종류별 **연결부(칼라)**가 달린다. 연결부는 블록 면에서 떨어져 있어야 깜빡이지 않는다(`conduitplate.go`, `skygear:conduit_plate`).
 
 - **면마다 엔티티 하나**(그 면에 연결부가 있는 종류가 하나라도 있을 때). 월드에는 보이지 않는 엔티티다: **히트박스가 없어서 그림자도 없고** 클릭 대상도 아니다. 엔티티 그림자는 히트박스 크기에 비례하므로, 표시 엔티티는 크기를 0으로 둔다.
 - **모양**(`conduit_plate` 지오메트리, 면마다 뼈대 3개): **아이템 도관에만** 연결부가 있다(에너지·액체 도관은 팔만 이어진다). 도관 끝에 4×4·깊이 3의 칼라가 있고, 그 **네 옆면 모두**에 납작한 **넣기 화살표**(도관에서 블록으로)와 **꺼내기 화살표**(블록에서 도관으로)가 나란히 채널 색으로 붙어 어느 방향에서 봐도 상태가 보인다(화살표는 칼라에서 0.08픽셀(칼라에 묻은 얇은 상자, 두 면 모두 화살표) 띄워 멀리서도 깜빡이지 않게). 화살표 텍스처는 (0,0)에 원본, (32,0)에 90° 돌린 것을 두고, 면마다 `faceAxes`(그 면 텍스처의 u·v 가 월드의 어느 축으로 가는지)로 원본/돌린 것과 뒤집기(uv_size 음수)를 정한다. 넣기는 모드가 넣기·양쪽일 때, 꺼내기는 꺼내기·양쪽일 때만 보인다.

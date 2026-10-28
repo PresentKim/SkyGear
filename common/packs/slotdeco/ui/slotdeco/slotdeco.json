@@ -2,7 +2,7 @@
 // (internal/slotdeco) choose a background (rarity) and a front badge (tier
 // pips) for every slot that shows the item. Generated shape; edit by hand.
 {
-  "namespace": "df_slot",
+  "namespace": "sg_slot",
   "deco": {
     "type": "panel",
     "size": [
@@ -11,10 +11,10 @@
     ],
     "controls": [
       {
-        "back@df_slot.back": {}
+        "back@sg_slot.back": {}
       },
       {
-        "front@df_slot.front": {}
+        "front@sg_slot.front": {}
       }
     ]
   },
@@ -35,16 +35,16 @@
       {
         "binding_type": "view",
         "source_property_name": "((not ((#hover_text - '§k§r§a') = #hover_text)) * 1 + (not ((#hover_text - '§k§r§b') = #hover_text)) * 2 + (not ((#hover_text - '§k§r§d') = #hover_text)) * 3 + (not ((#hover_text - '§k§r§6') = #hover_text)) * 4)",
-        "target_property_name": "#df_rarity"
+        "target_property_name": "#sg_rarity"
       },
       {
         "binding_type": "view",
-        "source_property_name": "('textures/ui/df/rarity_' + #df_rarity)",
+        "source_property_name": "('textures/ui/sg/rarity_' + #sg_rarity)",
         "target_property_name": "#texture"
       },
       {
         "binding_type": "view",
-        "source_property_name": "(#df_rarity > 0)",
+        "source_property_name": "(#sg_rarity > 0)",
         "target_property_name": "#visible"
       }
     ]
@@ -66,16 +66,16 @@
       {
         "binding_type": "view",
         "source_property_name": "((not ((#hover_text - '§k§l§r§1§r') = #hover_text)) * 1 + (not ((#hover_text - '§k§l§r§2§r') = #hover_text)) * 2 + (not ((#hover_text - '§k§l§r§3§r') = #hover_text)) * 3 + (not ((#hover_text - '§k§l§r§4§r') = #hover_text)) * 4 + (not ((#hover_text - '§k§l§r§5§r') = #hover_text)) * 5 + (not ((#hover_text - '§k§l§r§6§r') = #hover_text)) * 6)",
-        "target_property_name": "#df_tier"
+        "target_property_name": "#sg_tier"
       },
       {
         "binding_type": "view",
-        "source_property_name": "('textures/ui/df/front_' + #df_tier)",
+        "source_property_name": "('textures/ui/sg/front_' + #sg_tier)",
         "target_property_name": "#texture"
       },
       {
         "binding_type": "view",
-        "source_property_name": "(#df_tier > 0)",
+        "source_property_name": "(#sg_tier > 0)",
         "target_property_name": "#visible"
       }
     ]
@@ -95,16 +95,16 @@
       {
         "binding_type": "view",
         "source_property_name": "((not ((#selected_hover_text - '§k§r§a') = #selected_hover_text)) * 1 + (not ((#selected_hover_text - '§k§r§b') = #selected_hover_text)) * 2 + (not ((#selected_hover_text - '§k§r§d') = #selected_hover_text)) * 3 + (not ((#selected_hover_text - '§k§r§6') = #selected_hover_text)) * 4)",
-        "target_property_name": "#df_rarity"
+        "target_property_name": "#sg_rarity"
       },
       {
         "binding_type": "view",
-        "source_property_name": "('textures/ui/df/tip_' + #df_rarity)",
+        "source_property_name": "('textures/ui/sg/tip_' + #sg_rarity)",
         "target_property_name": "#texture"
       },
       {
         "binding_type": "view",
-        "source_property_name": "(#df_rarity > 0)",
+        "source_property_name": "(#sg_rarity > 0)",
         "target_property_name": "#visible"
       }
     ]

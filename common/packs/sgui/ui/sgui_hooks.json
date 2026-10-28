@@ -1,0 +1,47 @@
+// Elements the theme draws but a server's own pack fills: the server pack
+// ships its own ui/sgui_hooks.json (namespace sgui_hooks) and is loaded above
+// this pack, so its definitions of these elements win.
+{
+  "namespace": "sgui_hooks",
+
+  // The lobby's frame over the whole screen: drawn by the HUD while the
+  // sidebar title has the lobby frame marker (hud.FrameTitle,
+  // ui/scoreboards.json) and, as the HUD is hidden while a form is open, by
+  // the form screen's background for forms with the lobby marker
+  // (ui.LobbyToken, form_frame). Empty here.
+  "lobby_frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ]
+  },
+
+  // The lobby's main menu drawn as pictures on the HUD (no form open): the
+  // server pack draws the buttons of its launcher menu (ui.LauncherMenu) in
+  // sg_form.launcher_column with sg_form.launcher_static, so the screen does
+  // not change when the menu form closes. Not drawn behind forms. Empty here.
+  "lobby_menu": {
+    "type": "panel",
+    "size": [ "100%", "100%" ]
+  },
+
+  // The form screen's background (server_form.json): the lobby frame for
+  // forms shown in the lobby.
+  "form_frame": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "frame@sgui_hooks.lobby_frame": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global" },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§d§f§w§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

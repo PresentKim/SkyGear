@@ -10,7 +10,7 @@
 //	oui_vars_1_<n>.v              JSON {"f": nonce, "s": seq, "p": patch}: changed
 //	                              variables, rotating over varsSlots properties
 //
-// Connections must pass dfhook (dfhook.Wrap), which takes the client's DDUI
+// Connections must pass sghook (sghook.Wrap), which takes the client's DDUI
 // packets the session does not handle.
 package oreui
 
@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/presentkim/dragonfactory/common/dfhook"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -52,7 +52,7 @@ type Event struct {
 
 // Form is a DDUI screen open on one connection.
 type Form struct {
-	conn *dfhook.Conn
+	conn *sghook.Conn
 	// id is the form's own ID: the client reports the closing of a replaced
 	// form after the next one opened, which must not close the next one. The
 	// data instance (custom_form_data_1) stays the same for all.
@@ -71,7 +71,7 @@ type Form struct {
 
 var (
 	formsMu sync.Mutex
-	forms   = map[*dfhook.Conn]*Form{}
+	forms   = map[*sghook.Conn]*Form{}
 	// updateCount numbers every data store write: the client applies a change
 	// only when its count is above the last one of the property.
 	updateCount atomic.Uint32
@@ -79,7 +79,7 @@ var (
 )
 
 func init() {
-	dfhook.OnClientPacket(func(c *dfhook.Conn, pk packet.Packet) bool {
+	sghook.OnClientPacket(func(c *sghook.Conn, pk packet.Packet) bool {
 		switch pk := pk.(type) {
 		case *packet.ServerBoundDataStore:
 			if f := formOf(c); f != nil && pk.Update.Property == property && pk.Update.Path == "oui_event" &&
@@ -104,7 +104,7 @@ func init() {
 		}
 		return false
 	})
-	dfhook.OnClose(func(c *dfhook.Conn) {
+	sghook.OnClose(func(c *sghook.Conn) {
 		formsMu.Lock()
 		f := forms[c]
 		delete(forms, c)
@@ -115,7 +115,7 @@ func init() {
 	})
 }
 
-func formOf(c *dfhook.Conn) *Form {
+func formOf(c *sghook.Conn) *Form {
 	formsMu.Lock()
 	defer formsMu.Unlock()
 	return forms[c]
@@ -126,7 +126,7 @@ func formOf(c *dfhook.Conn) *Form {
 // read goroutine for each event, onClose when the player closes the screen or
 // leaves.
 func Open(p *player.Player, layout any, onEvent func(Event), onClose func()) (*Form, error) {
-	c := dfhook.Of(p)
+	c := sghook.Of(p)
 	if c == nil {
 		return nil, fmt.Errorf("oreui: %v has no hooked connection", p.Name())
 	}

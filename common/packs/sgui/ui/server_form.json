@@ -1,0 +1,249 @@
+{
+  // Overrides the vanilla server form roots with the sgui theme
+  // (ui/sg_form.json). A title starting with §d§f§c§r (Go: ui.CardToken)
+  // shows the buttons as a grid of icon-and-text cards, §d§f§s§r
+  // (ui.ShopToken) as a compact grid, §d§f§t§r (ui.TableToken) as a table,
+  // §d§f§i§r (ui.SlotToken) as inventory-like slots, §d§f§g§r / §d§f§h§r
+  // (ui.DetailToken, ui.WrapToken) as item slots with counts and tooltips,
+  // §d§f§j§r (ui.ColumnsToken) as two columns of them, §d§f§y§r (ui.SplitToken)
+  // as a grid with the detail of the chosen slot beside it, §d§f§l§r
+  // (ui.ListSplitToken) as a list with the detail of the chosen row beside it,
+  // §d§f§z§r (ui.TreeToken) as the advancement tree, §d§f§n§r (ui.LauncherToken)
+  // as the lobby's main menu, otherwise a list.
+  //
+  // Each layout starts hidden and shows while the title has its marker. The
+  // condition is evaluated on every frame: evaluated once, a layout that
+  // matched the title for a moment while one form replaced another stayed on
+  // screen under the next form.
+  "namespace": "server_form",
+
+  // The screen's background (outside the safe zone, never slid by the screen
+  // animations) holds the lobby's frame for forms shown in the lobby
+  // (ui.LobbyToken, sgui_hooks.form_frame): the HUD frame is hidden while a
+  // form is open. No fade either, so the frame stays put between lobby forms.
+  // The screen does not slide or fade in and out either: the lobby's main
+  // menu (ui.LauncherMenu) closes and opens again without the screen
+  // changing, the HUD drawing the same menu under it.
+  "third_party_server_screen": {
+    "$screen_bg_content": "sgui_hooks.form_frame",
+    "$background_animations": [],
+    "$screen_animations": []
+  },
+
+  // The vanilla screen content is a 0×0 panel whose forms have fixed sizes.
+  // Make it fill the screen so the theme can size and dim relative to it.
+  "main_screen_content": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        "server_form_factory": {
+          "type": "factory",
+          "control_ids": {
+            "long_form": "@server_form.long_form",
+            "custom_form": "@server_form.custom_form"
+          }
+        }
+      }
+    ]
+  },
+
+  "long_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [
+      {
+        // A list of buttons: every title without a layout marker.
+        "list@sg_form.action_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(((#title_text - '§d§f§c§r') = #title_text) and ((#title_text - '§d§f§s§r') = #title_text) and ((#title_text - '§d§f§t§r') = #title_text) and ((#title_text - '§d§f§i§r') = #title_text) and ((#title_text - '§d§f§g§r') = #title_text) and ((#title_text - '§d§f§j§r') = #title_text) and ((#title_text - '§d§f§y§r') = #title_text) and ((#title_text - '§d§f§l§r') = #title_text) and ((#title_text - '§d§f§z§r') = #title_text) and ((#title_text - '§d§f§h§r') = #title_text) and ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Cards: the game menu, the help.
+        "cards@sg_form.card_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and ((#title_text - '§d§f§u§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Untitled cards (ui.UntitledToken): the lobby menu.
+        "cards_u@sg_form.card_form": {
+          "visible": false,
+          "$sg_card_size": [ 326, 124 ],
+          "$sg_card_title": false,
+          "$sg_card_offset": [ 0, 10 ],
+          "$sg_card_content": [ "100% - 12px", "100% - 16px" ],
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "((not ((#title_text - '§d§f§c§r') = #title_text)) and (not ((#title_text - '§d§f§u§r') = #title_text)))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Compact cards: the shop.
+        "shop@sg_form.shop_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§s§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Table: icon, name and number columns, total and actions below.
+        "table@sg_form.table_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§t§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Slots: the drawer menu.
+        "slots@sg_form.slot_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§i§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in the two-column detail form (ui.ItemDetail).
+        "gslot_detail@sg_form.gslot_detail_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§g§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Two columns of item slots under the body text (ui.ColumnsMenu): the conduit side settings.
+        "gslot_cols@sg_form.gslot_cols_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§j§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // A grid of slots with the detail of the chosen one beside it (ui.SplitMenu): the research screen.
+        "split@sg_form.split_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§y§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // A list of rows with the detail of the chosen one beside it (ui.ListSplitMenu): the save screen.
+        "list_split@sg_form.list_split_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§l§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // The advancement tree (ui.TreeMenu).
+        "tree@sg_form.tree_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§z§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // The lobby's main menu: large buttons at the top left, no window (ui.LauncherMenu).
+        "launcher@sg_form.launcher_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§n§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        // Item slots in a wrapping grid (ui.ItemGrid): the lost-and-found box.
+        "gslot_wrap@sg_form.gslot_wrap_form": {
+          "visible": false,
+          "bindings": [
+            { "binding_name": "#title_text", "binding_type": "global", "binding_condition": "always" },
+            {
+              "binding_type": "view", "binding_condition": "always",
+              "source_property_name": "(not ((#title_text - '§d§f§h§r') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
+
+  "custom_form": {
+    "type": "panel",
+    "size": [ "100%", "100%" ],
+    "controls": [ { "custom@sg_form.custom_form": {} } ]
+  }
+}
