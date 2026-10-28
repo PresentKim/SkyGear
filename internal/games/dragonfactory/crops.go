@@ -26,6 +26,9 @@ type CropRecord struct {
 	Planted time.Duration `json:"planted"`
 	// NextFruit is when a grown stem grows its next fruit.
 	NextFruit time.Duration `json:"next_fruit,omitempty"`
+	// due is when the record's queued update is: an update queued before
+	// fairy bone meal moved it is stale.
+	due time.Duration
 }
 
 // cropKind describes a crop: its full growth time.
@@ -152,7 +155,8 @@ func (s *session) plantCrop(pos cube.Pos, kind string) {
 }
 
 func (s *session) scheduleCrop(pos cube.Pos, r *CropRecord, stage int) {
-	if due := s.nextDue(r, stage); due >= 0 {
+	r.due = s.nextDue(r, stage)
+	if due := r.due; due >= 0 {
 		heap.Push(&s.cropQueue, cropDue{at: due, pos: pos, rec: r})
 	}
 }
@@ -167,6 +171,7 @@ func (s *session) loadCrops() {
 			continue
 		}
 		// Due at once: the first update syncs the block with the record.
+		r.due = now
 		heap.Push(&s.cropQueue, cropDue{at: now, pos: pos, rec: r})
 	}
 }
@@ -176,8 +181,8 @@ func (s *session) growCrops(tx *world.Tx) {
 	now := s.growNow()
 	for s.cropQueue.Len() > 0 && s.cropQueue[0].at <= now {
 		d := heap.Pop(&s.cropQueue).(cropDue)
-		if s.state.Crops[cropKey(d.pos)] != d.rec {
-			continue // replanted or removed since it was queued
+		if s.state.Crops[cropKey(d.pos)] != d.rec || d.rec.due != d.at {
+			continue // replanted, removed or moved since it was queued
 		}
 		s.growCrop(tx, d.pos, d.rec, now)
 	}

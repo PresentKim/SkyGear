@@ -42,3 +42,13 @@ func (FairyEmerald) EncodeItem() (string, int16) { return "dragonfactory:fairy_e
 func (FairyEmerald) Name() string { return i18n.T(i18n.Default, "name.FairyEmerald") }
 
 func (FairyEmerald) Category() category.Category { return category.Items() }
+
+// FairyBoneMeal grows the timed crops and magic plants ahead, which plain
+// bone meal does not (fairytime.go).
+type FairyBoneMeal struct{}
+
+func (FairyBoneMeal) EncodeItem() (string, int16) { return "dragonfactory:fairy_bone_meal", 0 }
+
+func (FairyBoneMeal) Name() string { return i18n.T(i18n.Default, "name.FairyBoneMeal") }
+
+func (FairyBoneMeal) Category() category.Category { return category.Items() }

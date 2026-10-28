@@ -71,6 +71,7 @@ func registerCreativeItems() {
 		add(items, dfitem.FairyDust{})
 		add(items, dfitem.FairyEmerald{})
 		add(equipment, FairyBoard{})
+		add(items, dfitem.FairyBoneMeal{})
 		add(items, dfitem.GrassSeeds{})
 		add(items, dfitem.MyceliumSpores{})
 		add(items, dfitem.WitchWaterBucket{})

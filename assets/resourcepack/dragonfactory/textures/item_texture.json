@@ -10,6 +10,9 @@
     "dragonfactory:fairy_board": {
       "textures": "textures/items/fairy_board"
     },
+    "dragonfactory:fairy_bone_meal": {
+      "textures": "textures/items/fairy_bone_meal"
+    },
     "dragonfactory:bark_fiber": {
       "textures": "textures/items/bark_fiber"
     },

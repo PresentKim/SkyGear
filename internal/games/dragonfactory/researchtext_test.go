@@ -61,7 +61,7 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 		return open, grey
 	}
 	open, grey := split()
-	if open != 2 || grey != 3 { // the stick and fairy magic researches; pebbles, wood tools, chest a step away
+	if open != 2 || grey != 4 { // the stick and fairy magic researches; pebbles, wood tools, chest, fairy time a step away
 		t.Fatalf("at the start: %d open, %d grey", open, grey)
 	}
 	s.state.Researched = map[string]bool{"stick": true}
