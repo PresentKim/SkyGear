@@ -672,10 +672,10 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	for _, c := range r.Cost {
 		need := s.researchNeed(r, c)
 		st := item.NewStack(c.Item, 1)
-		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), naming.ItemName(i18n.Of(p), st), need)
+		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), naming.UIItemName(i18n.Of(p), st), need)
 		switch {
 		case done:
-			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), naming.ItemName(i18n.Of(p), st), c.Count)
+			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), naming.UIItemName(i18n.Of(p), st), c.Count)
 			need = c.Count
 		case p != nil:
 			have := countPlain(p.Inventory(), c.Item)

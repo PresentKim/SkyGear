@@ -69,5 +69,5 @@ func tipName(lang string, st item.Stack) string {
 		return n // stacks with a name of their own carry their marks already
 	}
 	r, tier := ItemDecor(st.Item())
-	return slotdeco.Decorate(r, tier, tinker.RarityColour(r)+naming.ItemName(lang, st))
+	return slotdeco.Decorate(r, tier, tinker.RarityColour(r)+naming.UIItemName(lang, st))
 }

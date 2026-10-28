@@ -176,7 +176,7 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 			})
 			continue
 		}
-		info := fmt.Sprintf(i18n.T(lang, "platform.saves.info"), s.Day, formatDuration(lang, s.InstanceTime), s.CreatedAt.Format("2006-01-02"))
+		info := fmt.Sprintf(i18n.T(lang, "platform.saves.info"), s.Day, formatDuration(lang, s.InstanceTime), i18n.ClientDate(s.CreatedAt, s.CreatedAt.Format("2006-01-02")))
 		rows = append(rows, ui.ListRow{
 			Label:    ui.ListRowText(s.Name, info),
 			Icon:     iconSave,

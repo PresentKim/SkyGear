@@ -103,7 +103,7 @@ func (s *session) labOpen(r *machinerecipe.Lab) bool {
 // rows of the ingredients and the essences made, and the buttons.
 func (s *session) labDetail(lang string, st *machineState, r *machinerecipe.Lab, again func(*machinerecipe.Lab, func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx)) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	out := item.NewStack(r.Out, 1)
-	d := ui.Detail{Icon: formicon.Of(out), Name: naming.ItemName(lang, out)}
+	d := ui.Detail{Icon: formicon.Of(out), Name: naming.UIItemName(lang, out)}
 	running := st.lab == r
 	have := st.labHave()
 	var ins []ui.ItemSlot

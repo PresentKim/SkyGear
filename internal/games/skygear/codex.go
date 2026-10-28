@@ -57,7 +57,7 @@ func (s *session) openCodex(p *player.Player) {
 // showCodex is the front page of the codex: the search tab.
 func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "", 0) }
 
-func n1(lang string, w world.Item) string { return naming.ItemName(lang, item.NewStack(w, 1)) }
+func n1(lang string, w world.Item) string { return naming.UIItemName(lang, item.NewStack(w, 1)) }
 
 // codexSources lists where an item comes from, read from the tables of the
 // game.
@@ -127,7 +127,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	for _, pk := range plantKinds {
 		for _, y := range pk.yield {
 			if naming.ItemKey(y.item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), naming.ItemName(lang, item.NewStack(PlantSeed{Seed: pk.seed}, 1))))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), naming.UIItemName(lang, item.NewStack(PlantSeed{Seed: pk.seed}, 1))))
 			}
 		}
 	}
@@ -160,7 +160,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	var made []string
 	for _, cr := range machinerecipe.Crafters() {
 		if cr.Wants(it) {
-			made = append(made, naming.ItemName(lang, cr.Out))
+			made = append(made, naming.UIItemName(lang, cr.Out))
 		}
 	}
 	if len(made) > 0 {
@@ -184,7 +184,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 		}
 	}
 	if got, ok := crusherOutput(it); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), naming.ItemName(lang, got)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), naming.UIItemName(lang, got)))
 	}
 	if e, ok := it.Item().(sgitem.Essence); ok {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), mobName(lang, e.Mob)))
@@ -193,7 +193,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 		out = append(out, i18n.T(lang, "codex.use.fuel"))
 	}
 	if sm, ok := smeltOf(it); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), naming.ItemName(lang, sm)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), naming.UIItemName(lang, sm)))
 	}
 	if plantMatter(it) {
 		out = append(out, i18n.T(lang, "codex.use.compost"))

@@ -296,7 +296,7 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  formicon.Of(st),
 			Count: ui.CountText(int(r.r5 + 0.5)),
-			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), naming.ItemName(lang, st), textfmt.PerMin(r.r5), textfmt.PerMin(r.r1), textfmt.PerMin(r.r15), textfmt.Int(r.total)),
+			Tip:   fmt.Sprintf(i18n.T(lang, "monitor.items.tip"), naming.UIItemName(lang, st), textfmt.PerMin(r.r5), textfmt.PerMin(r.r1), textfmt.PerMin(r.r15), textfmt.Int(r.total)),
 		})
 	}
 	return body, slots

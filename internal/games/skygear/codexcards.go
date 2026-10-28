@@ -153,7 +153,7 @@ func (s *session) craftCard(lang string, cr *machinerecipe.Crafter) codexCard {
 	rows[mid][craftArrow] = ui.Arrow()
 	rows[mid][craftArrow+1] = s.codexCell(lang, cr.Out, countLabel(cr.Out.Count()))
 	table := item.NewStack(block.CraftingTable{}, 1)
-	return codexCard{head: table, name: naming.ItemName(lang, table), rows: rows}
+	return codexCard{head: table, name: naming.UIItemName(lang, table), rows: rows}
 }
 
 // machineCard is a machine recipe: inputs (four to a row), the arrow and the
@@ -174,7 +174,7 @@ func machineCard(lang string, head item.Stack, ins, outs []ui.BoardCell) codexCa
 	for i, c := range outs {
 		rows[i/outCols][outCol+i%outCols] = c
 	}
-	return codexCard{head: head, name: naming.ItemName(lang, head), rows: rows}
+	return codexCard{head: head, name: naming.UIItemName(lang, head), rows: rows}
 }
 
 // noteCard is a line of text under a machine's header (what has no recipe
@@ -182,7 +182,7 @@ func machineCard(lang string, head item.Stack, ins, outs []ui.BoardCell) codexCa
 func noteCard(lang string, head item.Stack, text string) codexCard {
 	row := blankRow()
 	row[0] = ui.TextCell(text)
-	return codexCard{head: head, name: naming.ItemName(lang, head), rows: [][]ui.BoardCell{row}}
+	return codexCard{head: head, name: naming.UIItemName(lang, head), rows: [][]ui.BoardCell{row}}
 }
 
 // codexHeadRow is the header of a group of cards: the machine and its name.
@@ -687,7 +687,7 @@ func (s *session) codexGearCards(lang string) []codexCard {
 		row := blankRow()
 		row[0] = s.codexCell(lang, item.NewStack(it, 1), "", text)
 		row[1] = ui.TextCell(text)
-		cards = append(cards, codexCard{head: tinkerTable, name: naming.ItemName(lang, tinkerTable), rows: [][]ui.BoardCell{row}})
+		cards = append(cards, codexCard{head: tinkerTable, name: naming.UIItemName(lang, tinkerTable), rows: [][]ui.BoardCell{row}})
 	}
 	for _, h := range tinker.HeadMaterials {
 		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.head"), i18n.T(lang, "tmat."+h.ID), h.Dur, h.Eff, h.Attack))

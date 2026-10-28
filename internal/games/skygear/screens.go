@@ -183,7 +183,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 		slots = append(slots, ui.ItemSlot{
 			Icon:  formicon.Of(it),
 			Count: ui.CountText(l.Count),
-			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), naming.ItemName(lang, it), textfmt.Int(int64(l.Count))),
+			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), naming.UIItemName(lang, it), textfmt.Int(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.world {
 					return

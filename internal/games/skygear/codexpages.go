@@ -46,7 +46,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	s.codexAt(p, func(p *player.Player) { s.showCodexItemAt(p, it, mode) })
 	head := blankRow()
 	head[0] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(it), Tip: tipName(lang, it), Selected: true})
-	head[1] = ui.TextCell("§l" + naming.ItemName(lang, it))
+	head[1] = ui.TextCell("§l" + naming.UIItemName(lang, it))
 	modeSlot := func(m int, icon item.Stack, key string) ui.BoardCell {
 		sl := ui.ItemSlot{Icon: formicon.Of(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
 		if m != mode {
@@ -85,7 +85,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 		cards = []codexCard{{name: i18n.T(lang, "codex.item."+map[int]string{codexSourcesMode: "sources", codexUsesMode: "uses"}[mode]), rows: [][]ui.BoardCell{row}}}
 	}
 	chrome := append(s.codexTabs(p, codexNoTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), naming.ItemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
+	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), naming.UIItemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
 }
 
 // codexRawCard is what an item takes in raw materials, down the recipe
@@ -153,7 +153,7 @@ func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []u
 	for _, c := range cards {
 		if k := naming.ItemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
 			lastHead = k
-			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: tipName(lang, c.head)}, Name: naming.ItemName(lang, c.head)})
+			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: tipName(lang, c.head)}, Name: naming.UIItemName(lang, c.head)})
 		}
 		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: formicon.Of(in), Tip: tipName(lang, in)}}
 		first := true
@@ -178,7 +178,7 @@ func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []u
 // codexPickTitle is the title of a tab whose top row picks a block or a
 // machine: the tab and the pick, as JEI names the recipe category shown.
 func codexPickTitle(lang, tab string, pick item.Stack) string {
-	return ui.SubTitle(ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, tab)), naming.ItemName(lang, pick))
+	return ui.SubTitle(ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, tab)), naming.UIItemName(lang, pick))
 }
 
 // showCodexProcess is the process tab: the first machine's recipes.

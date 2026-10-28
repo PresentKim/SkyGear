@@ -29,12 +29,14 @@ var channelColours = [itemnet.Channels]item.Colour{
 	item.ColourOrange(), item.ColourWhite(), item.ColourBlack(), item.ColourRed(),
 }
 
-// neighbourName is the name of the block a conduit side meets, in lang.
+// neighbourName is the name of the block a conduit side meets, in lang, as
+// a client span (i18n.ClientKey).
 func neighbourName(lang string, b world.Block) string {
 	if it, ok := b.(world.CustomItem); ok {
-		return naming.CustomItemName(lang, it)
+		id, _ := it.EncodeItem()
+		return i18n.ClientKey("item."+id+".name", naming.CustomItemName(lang, it))
 	}
-	return naming.BlockName(lang, b)
+	return i18n.ClientKey(naming.BlockNameKey(b), naming.BlockName(lang, b))
 }
 
 // showPlateForm shows the settings of the side of the bundle at pos that has
