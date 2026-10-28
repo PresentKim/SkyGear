@@ -38,8 +38,9 @@ func BlockName(lang string, b world.Block) string {
 //go:embed vanillakeys.json
 var vanillaKeysJSON []byte
 
-// vanillaKeys name the vanilla blocks whose key is not "tile.<id>.name": the
-// client names modern IDs such as oak_planks by legacy keys
+// vanillaKeys are the client's keys of the vanilla blocks and items named by
+// another key than "tile.<id>.name": the items ("item.diamond.name") and
+// modern IDs such as oak_planks, named by legacy keys
 // ("tile.planks.oak.name"). Generated from the official texts by
 // tools/vanillakeys.
 var vanillaKeys = func() map[string]string {

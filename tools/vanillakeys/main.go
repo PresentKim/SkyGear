@@ -1,8 +1,9 @@
 // Command vanillakeys builds from the official texts (Mojang/bedrock-samples
 // en_US.lang, ko_KR.lang) internal/locales/{en,ko}.vanilla.json, the names of
 // every vanilla block and item as "vanilla.<id>", and naming/vanillakeys.json,
-// the legacy key ("tile.planks.oak.name") of each block the client does not
-// find under "tile.<id>.name", matched by its English name in Dragonfly.
+// the client's key of each block and item named by another key than
+// "tile.<id>.name" (items, and legacy keys like "tile.planks.oak.name"),
+// matched by its English name in Dragonfly.
 //
 //	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/skygear/naming/vanillakeys.json internal/locales
 package main
@@ -45,7 +46,7 @@ func main() {
 		id, _ := it.EncodeItem()
 		ids[id] = true
 	}
-	keyOf := map[string]string{} // block keys the client needs (tile.*)
+	keyOf := map[string]string{} // keys other than tile.<id>.name
 	names := map[string]map[string]string{"en": {}, "ko": {}}
 	var unmapped []string
 	var sorted []string
@@ -74,7 +75,7 @@ func main() {
 			unmapped = append(unmapped, n)
 			continue
 		}
-		if strings.HasPrefix(key, "tile.") && key != "tile."+n+".name" {
+		if key != "tile."+n+".name" {
 			keyOf[n] = key
 		}
 		names["en"]["vanilla."+n] = en[key]
@@ -82,7 +83,7 @@ func main() {
 			names["ko"]["vanilla."+n] = v
 		}
 	}
-	fmt.Fprintf(os.Stderr, "%d block keys, %d ids named, %d unmapped\n", len(keyOf), len(names["en"]), len(unmapped))
+	fmt.Fprintf(os.Stderr, "%d keys, %d ids named, %d unmapped\n", len(keyOf), len(names["en"]), len(unmapped))
 	write(os.Args[3], keyOf)
 	for lang, m := range names {
 		write(filepath.Join(os.Args[4], lang+".vanilla.json"), m)
