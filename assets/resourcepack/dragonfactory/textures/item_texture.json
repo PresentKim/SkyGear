@@ -92,10 +92,10 @@
       "textures": "textures/items/grass_seeds"
     },
     "dragonfactory:liquid_water": {
-      "textures": "textures/blocks/barrel_water"
+      "textures": "textures/blocks/water_placeholder"
     },
     "dragonfactory:liquid_witch_water": {
-      "textures": "textures/blocks/barrel_witch_water"
+      "textures": "textures/blocks/water_placeholder"
     },
     "dragonfactory:liquid_lava": {
       "textures": "textures/blocks/barrel_lava"

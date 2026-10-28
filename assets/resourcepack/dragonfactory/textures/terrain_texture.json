@@ -215,10 +215,10 @@
       "textures": "textures/blocks/barrel_stone"
     },
     "dragonfactory_barrel_water": {
-      "textures": "textures/blocks/barrel_water"
+      "textures": "textures/blocks/water_placeholder"
     },
     "dragonfactory_barrel_witch_water": {
-      "textures": "textures/blocks/barrel_witch_water"
+      "textures": "textures/blocks/water_placeholder"
     },
     "dragonfactory_conduit_energy_1": {
       "textures": "textures/blocks/conduit_energy_1"

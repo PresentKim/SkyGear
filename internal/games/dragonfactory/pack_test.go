@@ -67,7 +67,7 @@ func TestPackHasItemAssets(t *testing.T) {
 			}
 		} else if !ok {
 			t.Errorf("%s: not in item_texture.json", id)
-		} else if !packFileExists(e.Textures + ".png") {
+		} else if !vanillaTerrain[e.Textures] && !packFileExists(e.Textures+".png") {
 			t.Errorf("%s: missing %s.png", id, e.Textures)
 		}
 		r, tier := ItemDecor(it)
@@ -89,6 +89,7 @@ var vanillaTerrain = map[string]bool{
 	"textures/blocks/planks_big_oak":             true,
 	"textures/blocks/planks_oak":                 true,
 	"textures/blocks/portal_placeholder":         true,
+	"textures/blocks/water_placeholder":          true,
 }
 
 // TestPackHasBlockAssets: every geometry and pack texture a custom block or
