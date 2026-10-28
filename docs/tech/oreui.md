@@ -47,6 +47,7 @@
 Ore UI 페이지는 게임의 설정 화면이 쓰는 설정을 읽고 바꿀 수 있다(`vanilla.menus.settings*Query`, `vanilla_menus_update_settings`). 서버는 접속한 동안 몇 가지를 정해 둔다(`platform` `keepClientSettings`, `common/oreui.SetClientSettings`).
 
 - 모두: UI 프로필 클래식(`video.ui_profile` 0). 서버의 창과 화면은 클래식 UI 에 맞춰 그린다.
+- 운영자가 아닌 플레이어: 콘텐츠 로그 끔(`creator.contentLog.gui.enable`, `creator.contentLog.gui.showErrors`, `creator.contentLog.file.enable`, `creator.scriptDiagnostic.enableClient`).
 - 설정은 다음에 열리는 DDUI 화면의 레이아웃과 함께 가고(`oui` 의 `settings`), 렌더러가 다를 때만 쓴다(`oui-ddui.js` `keepSettings`). 쓴 뒤에도 값을 지켜보아, 플레이어가 접속 중에 바꾸면 되돌린다.
 - 설정은 기기에 저장되는 게임 옵션이라 서버를 나간 뒤에도 남는다.
 - Ore UI 화면을 쓰지 않는 플레이어(`/uimode` JSON UI, 암호화 끔)는 페이지가 레이아웃을 받지 않으므로 설정도 바뀌지 않는다.
