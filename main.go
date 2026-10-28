@@ -30,6 +30,7 @@ import (
 	"github.com/presentkim/skygear/internal/games/skygear/naming"
 	"github.com/presentkim/skygear/internal/instance"
 	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
+	"github.com/presentkim/skygear/internal/nsmigrate"
 	"github.com/presentkim/skygear/internal/platform"
 )
 
@@ -43,15 +44,20 @@ func main() {
 }
 
 func run(log *slog.Logger) error {
-	conf, err := readServerConfig(log)
-	if err != nil {
-		return err
-	}
 	pconf, err := platform.LoadConfig("platform.toml")
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
+		return err
+	}
+	// Saves from before the rename to SkyGear are converted once, before
+	// the lobby world opens.
+	if err := nsmigrate.Run(log, pconf.Data.Dir, pconf.Backup.Dir); err != nil {
+		return err
+	}
+	conf, err := readServerConfig(log)
+	if err != nil {
 		return err
 	}
 	chestui.Options.Ride = pconf.ChestUI.Ride

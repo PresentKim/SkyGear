@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/df-mc/dragonfly v0.11.5
+	github.com/df-mc/goleveldb v1.1.9
 	github.com/go-gl/mathgl v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/pelletier/go-toml v1.9.5
@@ -20,7 +21,6 @@ require (
 	github.com/df-mc/go-nethernet v1.0.20 // indirect
 	github.com/df-mc/go-playfab/v2 v2.0.2 // indirect
 	github.com/df-mc/go-xsapi/v2 v2.0.3 // indirect
-	github.com/df-mc/goleveldb v1.1.9 // indirect
 	github.com/df-mc/jsonc v1.0.5 // indirect
 	github.com/df-mc/worldupgrader v1.0.22 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect

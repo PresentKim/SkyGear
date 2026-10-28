@@ -16,6 +16,9 @@
 - 모바일(pocket) 창고 화면에도 모두 꺼내기·모두 넣기 버튼 줄(`sg_quick.side_bar`).
 - 달성 토스트를 HUD 제목 표식으로 그릴지 검토(지금은 엔진 토스트).
 
+### 정리
+- Sky Gear 이름 변경 세이브 변환(`internal/nsmigrate`)과 그 호출(`main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
+
 ### 시나리오
 - 시나리오 봇은 JSON UI 폼만 읽는다(`run.sh` 가 팩 암호화를 꺼 DDUI 를 끈다). DDUI 화면을 읽는 봇이 없다.
 - 로비의 무작위 틱 중 nil 역참조 패닉(`world/tick.go`)이 한 번 났다. 재현 조건을 찾는다.
