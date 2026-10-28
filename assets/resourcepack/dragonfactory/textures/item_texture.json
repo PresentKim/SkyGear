@@ -13,6 +13,9 @@
     "dragonfactory:fairy_bone_meal": {
       "textures": "textures/items/fairy_bone_meal"
     },
+    "dragonfactory:fairy_hourglass": {
+      "textures": "textures/items/fairy_hourglass"
+    },
     "dragonfactory:bark_fiber": {
       "textures": "textures/items/bark_fiber"
     },

@@ -55,7 +55,7 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 			return slotdeco.Epic, 0
 		}
 		return slotdeco.Rare, 0
-	case dfitem.FairyEmerald, FairyBoard:
+	case dfitem.FairyEmerald, FairyBoard, dfitem.FairyHourglass:
 		return slotdeco.Rare, 0
 	}
 	return slotdeco.Common, 0

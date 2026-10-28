@@ -170,6 +170,9 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	switch b := b.(type) {
 	case Machine:
 		info.Lines, info.Line = machineLines(lang, b)
+		if l := hourglassLine(lang, b.st); l != "" {
+			info.Lines = append(info.Lines, l)
+		}
 		if b.st != nil && b.st.kind.controller {
 			info.Lines = storageLines(lang, tx, pos)
 		}

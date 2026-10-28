@@ -52,3 +52,12 @@ func (FairyBoneMeal) EncodeItem() (string, int16) { return "dragonfactory:fairy_
 func (FairyBoneMeal) Name() string { return i18n.T(i18n.Default, "name.FairyBoneMeal") }
 
 func (FairyBoneMeal) Category() category.Category { return category.Items() }
+
+// FairyHourglass runs an energy machine faster for a while (fairytime.go).
+type FairyHourglass struct{}
+
+func (FairyHourglass) EncodeItem() (string, int16) { return "dragonfactory:fairy_hourglass", 0 }
+
+func (FairyHourglass) Name() string { return i18n.T(i18n.Default, "name.FairyHourglass") }
+
+func (FairyHourglass) Category() category.Category { return category.Items() }

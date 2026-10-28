@@ -227,9 +227,10 @@ var baseResearchTree = []Research{
 	// research table; it gives the board at once.
 	{ID: "fairy_magic", Cost: []Requirement{{dfitem.FairyDust{}, 2}, {ResearchTable{}, 1}},
 		Unlocks: []string{"dragonfactory:fairy_emerald", "dragonfactory:fairy_board"}},
-	// Fairy time (fairytime.go): dust and bone meal for fairy bone meal.
+	// Fairy time (fairytime.go): dust and bone meal for the things that
+	// cut waiting short.
 	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []Requirement{{dfitem.FairyDust{}, 4}, {item.BoneMeal{}, 8}},
-		Unlocks: []string{"dragonfactory:fairy_bone_meal"}},
+		Unlocks: []string{"dragonfactory:fairy_bone_meal", "dragonfactory:fairy_hourglass"}},
 }
 
 // baseUnlocks are the results open without research.

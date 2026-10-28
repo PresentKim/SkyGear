@@ -87,3 +87,33 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 		}
 	})
 }
+
+// TestFairyHourglass: it winds an energy machine up to the cap, doubles its
+// runs while it lasts, and stays on the machine's NBT; a generator takes none.
+func TestFairyHourglass(t *testing.T) {
+	m := newMachine(KindCrusher, "", "")
+	st := m.st
+	if st.hourglassReps(2) != 0 {
+		t.Fatal("extra runs without an hourglass")
+	}
+	n := 0
+	for st.windHourglass() {
+		n++
+	}
+	if n != hourglassMaxTicks/hourglassTicks || st.boost != hourglassMaxTicks {
+		t.Fatalf("%d hourglasses wound %d ticks", n, st.boost)
+	}
+	if st.hourglassReps(2) != 2 {
+		t.Fatal("an hourglass does not double the runs")
+	}
+	back := Machine{Kind: KindCrusher}.DecodeNBT(m.EncodeNBT()).(Machine)
+	if back.st.boost != st.boost {
+		t.Fatalf("boost %d after NBT, want %d", back.st.boost, st.boost)
+	}
+	if hourglassLine("ko_KR", st) == "" {
+		t.Fatal("no WAILA line while the hourglass runs")
+	}
+	if newMachine(KindGenerator, "", "").st.windHourglass() {
+		t.Fatal("a generator took an hourglass")
+	}
+}

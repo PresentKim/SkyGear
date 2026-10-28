@@ -351,6 +351,9 @@ type machineState struct {
 	// free marks a run the snow adds (snowReps): it needs the energy of a
 	// run but spends none.
 	free bool
+	// boost is the ticks of fairy hourglass left: the machine runs twice
+	// as fast, the extra runs free (fairytime.go).
+	boost int
 	// energy is the RE in the buffer; burn the ticks the fuel in a generator
 	// burns still, burnMax the ticks it burned for in all (generator.go).
 	energy, burn, burnMax int
@@ -1022,6 +1025,7 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["Fluid"] = int32(m.st.fluid)
 	data["FluidAmt"] = int32(m.st.fluidAmt)
 	data["Charges"] = int32(m.st.charges)
+	data["Boost"] = int32(m.st.boost)
 	data["Recipe"] = m.st.recipeID
 	data["Owner"] = m.st.owner
 	data["OwnerName"] = m.st.ownerName
@@ -1063,7 +1067,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	if v, ok := data["Unlimited"].(bool); ok {
 		n.st.unlimited = v
 	}
-	for key, dst := range map[string]*int{"Energy": &n.st.energy, "Burn": &n.st.burn, "BurnMax": &n.st.burnMax} {
+	for key, dst := range map[string]*int{"Energy": &n.st.energy, "Burn": &n.st.burn, "BurnMax": &n.st.burnMax, "Boost": &n.st.boost} {
 		if v, ok := data[key].(int32); ok {
 			*dst = int(v)
 		}
@@ -1238,8 +1242,11 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	s.machines[pos] = st
 	st.drainLegacy()
 	reps := st.reps()
-	if st.kind.use > 0 && st.kind.generates == 0 && !st.kind.cell {
-		reps += s.snowReps(reps, currentTick)
+	if st.hourglassable() {
+		reps += s.snowReps(reps, currentTick) + st.hourglassReps(reps)
+	}
+	if st.boost > 0 {
+		st.boost--
 	}
 	for i := range reps {
 		st.free = i >= st.reps()
