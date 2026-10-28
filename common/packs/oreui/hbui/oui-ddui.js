@@ -2010,6 +2010,7 @@
         } else again = true;
         state.layout = doc.root;
         state.layoutText = v;
+        keepSettings(doc.settings);
         state.error = "";
         held.forEach(take);
         held = [];
@@ -2043,6 +2044,45 @@
       drawStatus();
     }
     for (var i = 0; i < VARS_SLOTS; i++) subscribe("vanilla.ddui.string", [STORE, VARS_PROPERTY + i, "v", false], take);
+  }
+
+  // keepSettings holds the client settings the server asks for ([{id, kind, value}], the ids of the game's
+  // settings screen) at their values: it watches each through the settings query of its kind and writes it
+  // through vanilla_menus_update_settings when it differs, so a setting the player changes goes back.
+  var SETTING_QUERIES = { bool: "settingsBooleanQuery", option: "settingsOptionQuery", number: "settingsNumberQuery", string: "settingsStringQuery" };
+  var SETTING_WRITES = { bool: "updateBoolean", option: "updateOption", number: "updateNumber", string: "updateString" };
+  var kept = {};
+
+  function keepSettings(list) {
+    (list || []).forEach(function (s) {
+      if (!SETTING_QUERIES[s.kind]) return;
+      var k = kept[s.id];
+      if (k) {
+        k.want = s.value;
+        return fixSetting(s.id);
+      }
+      kept[s.id] = { kind: s.kind, want: s.value, has: false, value: undefined };
+      subscribe("vanilla.menus." + SETTING_QUERIES[s.kind], [s.id], function (v) {
+        v = unwrap(v);
+        var k = kept[s.id];
+        k.has = true;
+        k.value = v && typeof v === "object" ? v.value : v;
+        fixSetting(s.id);
+      });
+    });
+  }
+
+  function fixSetting(id) {
+    var k = kept[id];
+    if (!k.has || k.value === k.want) return;
+    var write = command("vanilla_menus_update_settings", SETTING_WRITES[k.kind]);
+    if (!write) return;
+    try {
+      write(id, k.want);
+    } catch (e) {
+      state.error = "setting " + id + ": " + e;
+      drawStatus();
+    }
   }
 
   if (document.body) start();

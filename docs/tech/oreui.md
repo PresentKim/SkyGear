@@ -42,6 +42,16 @@
 - Gameface 는 일반 `div` 에 `click` 을 보내지 않으므로 렌더러는 `mousedown` 으로 누름을 받는다.
 - 팩으로 할 수 없는 것: 바닐라 DDUI 레이아웃(`ddui/root`) 바꾸기, 진짜 컨테이너(상자·화로·인벤토리)를 Ore UI 로 열기, HUD(HUD 는 Ore UI 가 아니다). 컨테이너 화면은 JSON UI 로 꾸민다([chestui.md](chestui.md)).
 
+## 클라이언트 설정
+
+Ore UI 페이지는 게임의 설정 화면이 쓰는 설정을 읽고 바꿀 수 있다(`vanilla.menus.settings*Query`, `vanilla_menus_update_settings`). 서버는 접속한 동안 몇 가지를 정해 둔다(`platform` `keepClientSettings`, `common/oreui.SetClientSettings`).
+
+- 모두: UI 프로필 클래식(`video.ui_profile` 0). 서버의 창과 화면은 클래식 UI 에 맞춰 그린다.
+- 설정은 다음에 열리는 DDUI 화면의 레이아웃과 함께 가고(`oui` 의 `settings`), 렌더러가 다를 때만 쓴다(`oui-ddui.js` `keepSettings`). 쓴 뒤에도 값을 지켜보아, 플레이어가 접속 중에 바꾸면 되돌린다.
+- 설정은 기기에 저장되는 게임 옵션이라 서버를 나간 뒤에도 남는다.
+- Ore UI 화면을 쓰지 않는 플레이어(`/uimode` JSON UI, 암호화 끔)는 페이지가 레이아웃을 받지 않으므로 설정도 바뀌지 않는다.
+- 설정 id 는 게임의 설정 화면 트리(`vanilla.menus.settingsGroupQuery("settings-tabs-groups")` 아래)의 이름이다.
+
 ## 로비 화면
 
 로비의 메인 화면(`ui.HomeScreen`, `platform` `showLobbyMenu`)은 일반 게임의 첫 화면처럼 화면 전체를 채운다. 하위 DDUI 화면(세이브 선택, 멀티 플레이, 친구, 칭호·치장, 안내, 입력·확인)은 같은 모양으로 그 자리에 열린다(`ui.lobbySkin`, `oui-mc.css` `.mc-lobby`).

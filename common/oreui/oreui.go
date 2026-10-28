@@ -5,7 +5,7 @@
 // property custom_form_data_<instance id>; the renderer reads these extra
 // fields instead of drawing the vanilla form:
 //
-//	custom_form_data_1.oui        JSON {"form": nonce, "root": layout}
+//	custom_form_data_1.oui        JSON {"form": nonce, "root": layout, "settings": [Setting]}
 //	custom_form_data_1.oui_event  JSON written by the client: {"seq", "id", "kind", "value"}
 //	oui_vars_1_<n>.v              JSON {"f": nonce, "s": seq, "p": patch}: changed
 //	                              variables, rotating over varsSlots properties
@@ -69,6 +69,40 @@ type Form struct {
 	nonce string
 }
 
+// Setting is a client setting the renderer keeps at Value while the page is
+// open (SetClientSettings): ID as the game's settings screen names it
+// (video.ui_profile), Kind "bool", "option", "number" or "string".
+type Setting struct {
+	ID    string `json:"id"`
+	Kind  string `json:"kind"`
+	Value any    `json:"value"`
+}
+
+var (
+	settingsMu sync.Mutex
+	settings   = map[*sghook.Conn][]Setting{}
+)
+
+// SetClientSettings makes the renderer of p's client keep s: it writes each
+// setting when it differs and again whenever the player changes it. The
+// settings go with the layout of the next screen opened; they stay in the
+// client's options after p leaves.
+func SetClientSettings(p *player.Player, s []Setting) {
+	c := sghook.Of(p)
+	if c == nil {
+		return
+	}
+	settingsMu.Lock()
+	settings[c] = s
+	settingsMu.Unlock()
+}
+
+func settingsOf(c *sghook.Conn) []Setting {
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
+	return settings[c]
+}
+
 var (
 	formsMu sync.Mutex
 	forms   = map[*sghook.Conn]*Form{}
@@ -109,6 +143,9 @@ func init() {
 		f := forms[c]
 		delete(forms, c)
 		formsMu.Unlock()
+		settingsMu.Lock()
+		delete(settings, c)
+		settingsMu.Unlock()
 		if f != nil {
 			f.closedByClient()
 		}
@@ -148,7 +185,7 @@ func Open(p *player.Player, layout any, onEvent func(Event), onClose func()) (*F
 // SetLayout replaces the layout tree of the screen. It resends the whole form
 // property with the vanilla fields the custom_form root reads.
 func (f *Form) SetLayout(layout any) error {
-	b, err := json.Marshal(map[string]any{"form": f.nonce, "root": layout})
+	b, err := json.Marshal(map[string]any{"form": f.nonce, "root": layout, "settings": settingsOf(f.conn)})
 	if err != nil {
 		return err
 	}

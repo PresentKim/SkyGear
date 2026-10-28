@@ -97,6 +97,7 @@ func (pf *Platform) Join(p *player.Player) {
 		return
 	}
 	pf.loadUIMode(p)
+	pf.keepClientSettings(p)
 	pf.m.Join(p)
 	account.Count(p, "login", 1)
 	account.Refresh(p)
