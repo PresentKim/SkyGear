@@ -18,6 +18,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/internal/slottext"
 	"github.com/presentkim/skygear/common/sghook"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 func init() {
@@ -26,6 +27,25 @@ func init() {
 			forget(id)
 		}
 	})
+	sghook.OnServerPacket(plainText)
+}
+
+// plainText puts the fallback texts in place of the client spans
+// (i18n.ClientKey) of what only the Ore UI page translates: the JSON UI
+// forms, and chat and titles should a span end up there.
+func plainText(_ *sghook.Conn, pk packet.Packet) bool {
+	switch pk := pk.(type) {
+	case *packet.ModalFormRequest:
+		pk.FormData = i18n.PlainBytes(pk.FormData)
+	case *packet.Text:
+		pk.Message = i18n.Plain(pk.Message)
+		for i, s := range pk.Parameters {
+			pk.Parameters[i] = i18n.Plain(s)
+		}
+	case *packet.SetTitle:
+		pk.Text = i18n.Plain(pk.Text)
+	}
+	return false
 }
 
 // forget drops what is kept about the player with id once it quit.
