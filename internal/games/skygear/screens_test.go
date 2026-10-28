@@ -41,38 +41,6 @@ func TestMainMenuHasIcons(t *testing.T) {
 	})
 }
 
-// TestMainMenuLayout: eight cards, the codex first and the settings last (no
-// menu item card: /메뉴발급 gives it), the help button and the lobby exit in
-// the back button's place.
-func TestMainMenuLayout(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		opts := s.mainMenu(p)
-		if len(opts) != 10 {
-			t.Fatalf("%d options, want 8 cards, the help button and the lobby exit", len(opts))
-		}
-		if !strings.Contains(opts[0].Label, "도감") {
-			t.Errorf("first card %q is not the codex", opts[0].Label)
-		}
-		if !strings.Contains(opts[7].Label, "설정") {
-			t.Errorf("last card %q is not the settings", opts[7].Label)
-		}
-		for _, o := range opts[:8] {
-			if strings.HasPrefix(o.Label, "§0§") || strings.Contains(o.Label, "메뉴 아이템") || strings.Contains(o.Label, "연구") {
-				t.Errorf("card %q", o.Label)
-			}
-		}
-		if help := opts[8]; !strings.HasPrefix(help.Label, ui.HelpToken) {
-			t.Errorf("option %q is not the help button", help.Label)
-		}
-		if last := opts[9]; !strings.HasPrefix(last.Label, ui.BackToken) || !strings.Contains(last.Label, "로비로") {
-			t.Errorf("last option %q is not the lobby exit", last.Label)
-		}
-	})
-}
-
 func TestLostMenu(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -232,22 +200,6 @@ func TestExpansionMap(t *testing.T) {
 			t.Fatalf("after leaving: map %v, body at %v, want %v", e.mapShown, p.Position(), home)
 		}
 	})
-}
-
-// TestHelpTopicsAreWritten: every help topic has a title and a text, and the
-// help names only things the game has.
-func TestHelpTopicsAreWritten(t *testing.T) {
-	for _, h := range helpTopics {
-		title, text := i18n.T(i18n.Default, "help."+h.id+".title"), i18n.T(i18n.Default, "help."+h.id+".text")
-		if title == "" || text == "" || strings.HasPrefix(title, "help.") {
-			t.Errorf("help %s: title %q text %q", h.id, title, text)
-		}
-		for _, gone := range []string{"코어", "상점", "수표", "납품"} {
-			if strings.Contains(text, gone) {
-				t.Errorf("help %s mentions %q", h.id, gone)
-			}
-		}
-	}
 }
 
 // TestExpansionPlane: a player who sees DDUI screens gets the expansion

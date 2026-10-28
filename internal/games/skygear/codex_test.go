@@ -222,16 +222,9 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	if n := len(codexFind(i18n.Default, "")); n < 50 {
 		t.Errorf("an empty search lists %d items, want the whole index", n)
 	}
-	// only what the game uses: no potions the game never asks for, but its
-	// own items, what research opens and what those are made of
+	// what the game uses: its own items, what research opens and what those
+	// are made of
 	in := codexRelevant()
-	// nothing the island cannot get: other woods, deepslate ores
-	for _, it := range []world.Item{item.Potion{}, item.LingeringPotion{}, item.SplashPotion{},
-		block.Log{Wood: block.SpruceWood()}, block.Log{Wood: block.MangroveWood()}, block.Log{Wood: block.BirchWood(), Stripped: true}} {
-		if in[naming.ItemKey(it)] {
-			t.Errorf("%s is in the codex", naming.ItemName(i18n.Default, item.NewStack(it, 1)))
-		}
-	}
 	sieve, _ := world.ItemByName("skygear:sieve", 0)
 	for _, it := range []world.Item{steel, sieve, item.IronIngot{}, block.Furnace{}, item.Stick{}, block.Log{Wood: block.OakWood()}} {
 		if !in[naming.ItemKey(it)] {

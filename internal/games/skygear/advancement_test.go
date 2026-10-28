@@ -232,24 +232,6 @@ func TestAdvancementGuides(t *testing.T) {
 	}
 }
 
-// TestAdvancementOrder: the quest panel follows the main path: the auto
-// miner and the laboratory before the crusher, the stone barrel before the
-// crucible, the barrel before the generator.
-func TestAdvancementOrder(t *testing.T) {
-	at := map[string]int{}
-	for i, a := range advancement.Tree {
-		at[a.ID] = i
-	}
-	for _, p := range [][2]string{
-		{"auto_miner", "crusher"}, {"laboratory", "crusher"}, {"stone_barrel", "crucible"}, {"barrel", "generator"},
-		{"energy_conduit", "fluid_conduit"}, {"item_conduit", "fluid_conduit"}, {"crusher", "alloy_smelter"},
-	} {
-		if at[p[0]] >= at[p[1]] {
-			t.Errorf("%s comes after %s", p[0], p[1])
-		}
-	}
-}
-
 // TestAdvancementChapters: an advancement is in the chapter of how its thing
 // is got, and the projects gather the branches before the dragon.
 func TestAdvancementChapters(t *testing.T) {

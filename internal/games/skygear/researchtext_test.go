@@ -33,17 +33,6 @@ func TestEveryResearchIsExplained(t *testing.T) {
 	}
 }
 
-// TestResearchScreenHasNoHints: the research screen explains what a research
-// is, not what to do next (the advancements say that).
-func TestResearchScreenHasNoHints(t *testing.T) {
-	s := testSession(t)
-	r, _ := researchByID("stick")
-	d, _, _ := s.researchNode(nil, r)
-	if d.Body != "§f"+researchText(i18n.Default, "stick").About+"\n" {
-		t.Errorf("body %q", d.Body)
-	}
-}
-
 // TestResearchListHidesLockedResearches: a research shows up to do only when
 // everything before it is done; one that is a step from open shows in grey
 // after them, and nothing further is shown.

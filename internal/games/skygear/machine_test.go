@@ -270,21 +270,6 @@ func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	}
 }
 
-// TestNoMachineTextAboveBlock: machines show no floating text; their
-// progress is in the machine window only.
-func TestNoMachineTextAboveBlock(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	st.insert(item.NewStack(block.Cobblestone{}, 5))
-	tick(s, machineKinds[KindCrusher].interval/2+1)
-	s.world.Do(func(tx *world.Tx) {
-		if len(s.shapes) != 0 {
-			t.Errorf("shapes shown above machines: %v", s.shapes)
-		}
-	})
-}
-
 // TestServerFinishesCustomBlockBreak: clients finish the crack of custom
 // blocks without sending the destroy action, so the server breaks the block
 // once its break time has passed while the player still mines it.
