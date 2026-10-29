@@ -991,6 +991,7 @@
  "setting.advancement.sound": "Advancement sound",
  "setting.advancement.panel": "Show the advancement panel",
  "setting.vein.diagonal": "Vein mining includes diagonals",
+ "setting.autotool": "Hold the right tool automatically",
  "platform.uidebug.command": "Turns the debug info of the menu screens (Ore UI) on or off",
  "platform.uidebug.on": "§eMenu screen debug info on. It shows over the top of a menu.",
  "platform.uidebug.off": "§7Menu screen debug info off.",

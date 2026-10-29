@@ -39,7 +39,12 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 	return true
 }
 
-func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) { h.deny(ctx, pos) }
+func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
+	if h.deny(ctx, pos) {
+		return
+	}
+	autoTool(ctx.Player(), ctx.Player().Tx().Block(pos))
+}
 func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
 	if h.deny(ctx, pos) {
 		return
