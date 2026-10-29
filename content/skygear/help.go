@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"slices"
 	"strings"
 
@@ -71,7 +72,7 @@ var helpTopics = []struct {
 	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(FairyBoard{}, 1)) }, nil},
 	{"power", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindGenerator)) }, nil},
 	{"conduit", helpAutoTab, func() string { return formicon.Of(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
-	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(Drawer{}, 1)) }, nil},
+	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(storage.Drawer{}, 1)) }, nil},
 	{"lines", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindMiner)) }, nil},
 	{"monitor", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindCrusher)) }, nil},
 	{"copier", helpAutoTab, func() string { return formicon.Of(item.NewStack(sgitem.ConfigCopier{}, 1)) }, nil},

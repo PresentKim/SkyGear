@@ -3,6 +3,7 @@ package skygear
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
 
@@ -179,7 +180,7 @@ func targetOf(tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) (
 		if b.State != nil && b.State.Def.Crafter {
 			return copyTarget{cardCrafter, pos, 0}, true
 		}
-	case Drawer:
+	case storage.Drawer:
 		return copyTarget{cardDrawer, pos, 0}, true
 	}
 	return copyTarget{}, false
@@ -207,7 +208,7 @@ func readCard(tx *world.Tx, t copyTarget) (*configCard, bool) {
 		}
 		return &configCard{Kind: cardCrafter, Recipe: m.State.RecipeID}, true
 	case cardDrawer:
-		d := tx.Block(t.pos).(Drawer)
+		d := tx.Block(t.pos).(storage.Drawer)
 		if d.Item.Empty() {
 			return nil, false
 		}
@@ -260,13 +261,13 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 		m.State.SetRecipe(cr)
 		return true
 	case t.kind == cardDrawer && c.Kind == cardDrawer:
-		d := tx.Block(t.pos).(Drawer)
+		d := tx.Block(t.pos).(storage.Drawer)
 		it := core.DecodeItem(c.Item)
 		if it.Empty() || (d.Count > 0 && !d.Item.Comparable(it)) {
 			return false
 		}
 		d.Item, d.Locked = it, true
-		s.setDrawer(tx, t.pos, d)
+		storage.SetDrawer(s.Session, tx, t.pos, d)
 		return true
 	}
 	return false

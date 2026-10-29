@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"testing"
 	"time"
 
@@ -27,14 +28,14 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	plainLog := item.NewStack(block.Log{Wood: block.OakWood()}, 32)
 	log := timed.For(plainLog, time.Hour)
 
-	d := Drawer{}
-	if d.insert(log, 32) != 32 {
+	d := storage.Drawer{}
+	if d.Insert(log, 32) != 32 {
 		t.Fatal("an empty drawer refuses a timed item")
 	}
-	if d.accepts(plainLog) || d.accepts(timed.For(plainLog, 2*time.Hour)) {
+	if d.Accepts(plainLog) || d.Accepts(timed.For(plainLog, 2*time.Hour)) {
 		t.Error("a drawer of timed logs takes plain logs or another expiry")
 	}
-	if (Drawer{Item: plainLog.Grow(-31), Count: 1}).accepts(log) {
+	if (storage.Drawer{Item: plainLog.Grow(-31), Count: 1}).Accepts(log) {
 		t.Error("a drawer of plain logs takes timed logs")
 	}
 	crusher := machine.New(machine.KindCrusher, "", "").State
@@ -61,15 +62,15 @@ func TestExpiredDrawerEmpties(t *testing.T) {
 	t.Cleanup(func() { timed.Now = time.Now })
 	pos := cube.Pos{3, 65, 3}
 	s.World.Do(func(tx *world.Tx) {
-		d := Drawer{Facing: cube.North, Locked: true}
-		d.insert(timed.For(item.NewStack(item.Apple{}, 10), time.Minute), 10)
+		d := storage.Drawer{Facing: cube.North, Locked: true}
+		d.Insert(timed.For(item.NewStack(item.Apple{}, 10), time.Minute), 10)
 		tx.SetBlock(pos, d, nil)
 	})
 	tick(s, 2)
 	timed.Now = func() time.Time { return start.Add(time.Minute) }
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
-		if d := tx.Block(pos).(Drawer); !d.Item.Empty() || d.Count != 0 {
+		if d := tx.Block(pos).(storage.Drawer); !d.Item.Empty() || d.Count != 0 {
 			t.Fatalf("expired drawer holds %v x%d", d.Item, d.Count)
 		}
 	})

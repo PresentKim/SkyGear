@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"slices"
 	"strconv"
 	"strings"
@@ -654,7 +655,7 @@ func gameRecipes() {
 	add(machine.Item(machine.KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
 	add(machine.Item(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindGate), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
-	add(machine.Item(machine.KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(machine.Item(machine.KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(storage.Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(item.NewStack(machine.Machine{Kind: machine.KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machine.Item(machine.KindTinker), n(item.IronIngot{}, 6), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
 	add(machine.Item(machine.KindSimulator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
@@ -716,7 +717,7 @@ func gameRecipes() {
 	add(machine.Item(machine.KindMiner), n(iron, 6), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	// The drawer: a ring of planks round a chest.
-	shaped(st(Drawer{}), 3, 3,
+	shaped(st(storage.Drawer{}), 3, 3,
 		planks, planks, planks,
 		planks, block.NewChest(), planks,
 		planks, planks, planks)

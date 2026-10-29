@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -30,7 +31,7 @@ func TestAdminDense(t *testing.T) {
 		if m, ok := tx.Block(at.Add(cube.Pos{0, 4, 0})).(machine.Machine); !ok || m.Kind != machine.KindMiner {
 			t.Errorf("no miner in the first cell")
 		}
-		if _, ok := tx.Block(at.Add(cube.Pos{1, 2, 0})).(Drawer); !ok {
+		if _, ok := tx.Block(at.Add(cube.Pos{1, 2, 0})).(storage.Drawer); !ok {
 			t.Errorf("no drawer in the first cell")
 		}
 	})

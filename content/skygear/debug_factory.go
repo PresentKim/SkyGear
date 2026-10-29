@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"container/heap"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"math"
 	"time"
 
@@ -105,8 +106,8 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 	placeMachine(1, 4, 2, machine.KindMiner)
 	placeMachine(2, 4, 2, machine.KindCrusher)
 	hopper(2, 3, 2, cube.FaceDown)
-	drawerPos := set(2, 2, 2, Drawer{Facing: cube.South})
-	s.setDrawer(tx, drawerPos, Drawer{Facing: cube.South})
+	drawerPos := set(2, 2, 2, storage.Drawer{Facing: cube.South})
+	storage.SetDrawer(s.Session, tx, drawerPos, storage.Drawer{Facing: cube.South})
 	n.drawers++
 
 	// Sieve line: a chest of gravel, a hopper into the auto sieve, chests
@@ -211,8 +212,8 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		set(1, 3, h)
-		d := Drawer{Facing: cube.South}
-		s.setDrawer(tx, set(1, 2, d), d)
+		d := storage.Drawer{Facing: cube.South}
+		storage.SetDrawer(s.Session, tx, set(1, 2, d), d)
 	}
 	o.Printf(i18n.T(i18n.Default, "skygear.admin.factory.dense"), n, cols*2, rows, n*2, n, n)
 }

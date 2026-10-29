@@ -1,4 +1,4 @@
-package skygear
+package storage
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -7,12 +7,12 @@ import (
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
-// drawerLabelKey, drawerLockKey and drawerUpgradeKey key the count, lock and
+// DrawerLabelKey, drawerLockKey and drawerUpgradeKey key the count, lock and
 // upgrade texts of a drawer.
 type (
-	drawerLabelKey   cube.Pos
-	drawerLockKey    cube.Pos
-	drawerUpgradeKey cube.Pos
+	DrawerLabelKey   cube.Pos
+	DrawerLockKey    cube.Pos
+	DrawerUpgradeKey cube.Pos
 )
 
 // faceTextYaw is the yaw in degrees that lays a text flat on a face
@@ -21,9 +21,9 @@ type (
 // north. Entity yaw (S 0, N 180) mirrors south and north texts.
 var faceTextYaw = map[cube.Direction]float64{cube.North: 0, cube.East: -90, cube.South: 180, cube.West: 90}
 
-// faceTextRotation is the shape rotation of a text on a face looking to
+// FaceTextRotation is the shape rotation of a text on a face looking to
 // facing.
-func faceTextRotation(facing cube.Direction) mgl64.Vec3 {
+func FaceTextRotation(facing cube.Direction) mgl64.Vec3 {
 	return mgl64.Vec3{0, faceTextYaw[facing], 0}
 }
 
@@ -41,7 +41,7 @@ func faceText(pos cube.Pos, d Drawer, right, up, scale float64, text string) *de
 	at := pos.Vec3Centre().Add(front.Mul(faceTextDepth)).Add(side.Mul(right)).Add(mgl64.Vec3{0, up, 0})
 	return &debug.Text{
 		Position: at, Text: text, Scale: scale, HideBackground: true,
-		LockRotation: true, Rotation: faceTextRotation(d.Facing),
+		LockRotation: true, Rotation: FaceTextRotation(d.Facing),
 	}
 }
 
@@ -63,5 +63,5 @@ func drawerLock(pos cube.Pos, d Drawer) *debug.Text {
 // drawerUpgrades returns the upgrade marks of a drawer (capacity multiplier,
 // void), in the top right corner of its front.
 func drawerUpgrades(pos cube.Pos, d Drawer) *debug.Text {
-	return faceText(pos, d, 0.36, drawerMarkUp, 0.2, d.upgradeMarks())
+	return faceText(pos, d, 0.36, drawerMarkUp, 0.2, d.UpgradeMarks())
 }

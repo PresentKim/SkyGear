@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
@@ -82,7 +83,7 @@ func TestCopierConduitSide(t *testing.T) {
 		}
 		// a side card does not fit a drawer
 		drawer := machinePos.Add(cube.Pos{0, 0, 8})
-		tx.SetBlock(drawer, Drawer{}, nil)
+		tx.SetBlock(drawer, storage.Drawer{}, nil)
 		dt, ok := targetOf(tx, drawer, cube.FaceNorth, mgl64Centre())
 		if !ok || s.pasteCard(tx, dt, *card) {
 			t.Fatalf("a conduit side was pasted on a drawer (target %v)", ok)
@@ -157,9 +158,9 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 		}
 		// drawers
 		d1, d2, d3 := machinePos.Add(cube.Pos{3, 0, 0}), machinePos.Add(cube.Pos{3, 0, 2}), machinePos.Add(cube.Pos{3, 0, 4})
-		tx.SetBlock(d1, Drawer{Item: item.NewStack(block.Dirt{}, 1), Count: 5}, nil)
-		tx.SetBlock(d2, Drawer{}, nil)
-		tx.SetBlock(d3, Drawer{Item: item.NewStack(block.Stone{}, 1), Count: 4}, nil)
+		tx.SetBlock(d1, storage.Drawer{Item: item.NewStack(block.Dirt{}, 1), Count: 5}, nil)
+		tx.SetBlock(d2, storage.Drawer{}, nil)
+		tx.SetBlock(d3, storage.Drawer{Item: item.NewStack(block.Stone{}, 1), Count: 4}, nil)
 		from, _ := targetOf(tx, d1, cube.FaceNorth, mgl64Centre())
 		dcard, ok := readCard(tx, from)
 		if !ok {
@@ -169,7 +170,7 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 		if !s.pasteCard(tx, to, *dcard) {
 			t.Fatal("not pasted on the empty drawer")
 		}
-		if got := tx.Block(d2).(Drawer); !got.Locked || naming.ItemKey(got.Item.Item()) != naming.ItemKey(block.Dirt{}) {
+		if got := tx.Block(d2).(storage.Drawer); !got.Locked || naming.ItemKey(got.Item.Item()) != naming.ItemKey(block.Dirt{}) {
 			t.Fatalf("empty drawer after pasting: %+v", got)
 		}
 		other, _ := targetOf(tx, d3, cube.FaceNorth, mgl64Centre())

@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"strings"
 	"time"
 
@@ -132,13 +133,13 @@ func (c debugHolderPose) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	drawersOf(s.Session).holderPose = newHolderPose(c.X, c.Y, c.Z, c.Scale, c.DX.LoadOr(0), c.DY.LoadOr(0), c.DZ.LoadOr(0))
-	for _, disp := range drawersOf(s.Session).displays {
-		e, ok := disp.item.Entity(tx)
+	storage.LocalOf(s.Session).HolderPose = storage.NewHolderPose(c.X, c.Y, c.Z, c.Scale, c.DX.LoadOr(0), c.DY.LoadOr(0), c.DZ.LoadOr(0))
+	for _, disp := range storage.LocalOf(s.Session).Displays {
+		e, ok := disp.Item.Entity(tx)
 		if !ok {
 			continue
 		}
-		e.(*ItemHolder).data.Data.(*holderData).pose = drawersOf(s.Session).holderPose
+		e.(*storage.ItemHolder).Data.Data.(*storage.HolderData).Pose = storage.LocalOf(s.Session).HolderPose
 		for _, v := range tx.Viewers(e.Position()) {
 			v.ViewEntityState(e)
 		}

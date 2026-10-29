@@ -3,6 +3,7 @@ package skygear
 
 import (
 	"errors"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"log/slog"
 	"sync"
 	"time"
@@ -231,7 +232,7 @@ func (s *session) Autosave(tx *world.Tx) {
 }
 
 func (s *session) Close(tx *world.Tx) {
-	s.removeDisplays(tx)
+	storage.RemoveDisplays(s.Session, tx)
 	conduit.RemoveVisuals(s.Session, tx)
 	s.Session.Close()
 	core.Unregister(s.Session)
@@ -243,10 +244,10 @@ func init() {
 	sess := func(c *core.Session) *session { s, _ := activeGame.sessionOf(c.World); return s }
 	ctl := machine.Kinds[machine.KindStorageController]
 	ctl.Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		sess(c).useController(p, tx, pos)
+		storage.UseController(sess(c).Session, p, tx, pos)
 		return true
 	}
-	ctl.Insert, ctl.Peek, ctl.Extract = controllerInsert, controllerPeek, controllerExtract
+	ctl.Insert, ctl.Peek, ctl.Extract = storage.ControllerInsert, storage.ControllerPeek, storage.ControllerExtract
 	machine.Kinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		if !c.Debounced(p) {
 			sess(c).showGateForm(p, tx, pos)
@@ -269,5 +270,5 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), HolderType, FairyType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, FairyType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
 }

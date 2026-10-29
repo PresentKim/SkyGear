@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"sync"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
@@ -43,7 +44,7 @@ func registerCreativeItems() {
 			creative.RegisterItem(creative.Item{Stack: item.NewStack(it, 1), Group: groupName(c)})
 		}
 		add(construction, ResearchTable{})
-		add(construction, Drawer{})
+		add(construction, storage.Drawer{})
 		for _, w := range barrelWoods {
 			add(construction, Barrel{Wood: w})
 		}

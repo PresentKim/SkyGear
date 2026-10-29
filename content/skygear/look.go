@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"math"
 	"time"
 
@@ -176,7 +177,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			info.Lines = append(info.Lines, l)
 		}
 		if b.State != nil && b.State.Def.Controller {
-			info.Lines = storageLines(lang, tx, pos)
+			info.Lines = storage.Lines(lang, tx, pos)
 		}
 		if b.Kind == machine.KindMiner && b.State != nil {
 			// The auto miner's one output slot shows like a container's.
@@ -186,7 +187,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		if p.Sneaking() && b.State != nil {
 			info.Lines = append(info.Lines, detailLines(lang, b.State)...)
 		}
-	case Drawer:
+	case storage.Drawer:
 		// The drawer stays the icon; the held item shows like a chest's, a
 		// slot with its count under it; the lock and upgrades show on the
 		// drawer's front and, while sneaking, in the panel.
@@ -236,7 +237,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case Drawer, ResearchTable, Barrel:
+	case storage.Drawer, ResearchTable, Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case hopper.FlowHopper:
 		if h := b.(hopper.FlowHopper); h.Info().Wood {
@@ -420,8 +421,8 @@ func crafterLines(lang string, st *machine.State) []string {
 
 // drawerDetail are the lines a sneaking viewer gets of a drawer: its upgrades
 // and lock.
-func drawerDetail(lang string, d Drawer) []string {
-	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, sgitem.MaxCapacityUpgrades, textfmt.Int(d.capacity()))}
+func drawerDetail(lang string, d storage.Drawer) []string {
+	lines := []string{fmt.Sprintf(i18n.T(lang, "look.drawer.capacity"), d.Capacity, sgitem.MaxCapacityUpgrades, textfmt.Int(d.MaxItems()))}
 	if d.Void {
 		lines = append(lines, i18n.T(lang, "look.drawer.void"))
 	}

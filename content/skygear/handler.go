@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
@@ -72,13 +73,13 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		tinker.VeinMine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos)
 	}
 	switch b := broken.(type) {
-	case Drawer:
+	case storage.Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
-		if lp, ok := lastPunch.Of(h.s.Session)[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
+		if lp, ok := storage.LastPunch.Of(h.s.Session)[ctx.Player().H()]; ok && lp.Pos == pos && lp.Front {
 			ctx.Cancel()
 			return
 		}
-		h.s.removeDisplay(ctx.Player().Tx(), pos)
+		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
 	case machine.Machine:
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
@@ -102,8 +103,8 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	switch b := b.(type) {
 	case machine.Machine:
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
-	case Drawer:
-		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
+	case storage.Drawer:
+		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
 	case conduit.Bundle:
 		achievement.Count(ctx.Player(), "conduit_place", 1)
 	case block.DragonEgg:
@@ -131,9 +132,9 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	// Dragonfly places the held item instead of calling Activate when the
 	// player sneaks, so the sneaking click that opens a storage controller's
 	// list whatever is held is handled here.
-	if p.Sneaking() && !held.Empty() && isStorageController(tx.Block(pos)) {
+	if p.Sneaking() && !held.Empty() && storage.IsStorageController(tx.Block(pos)) {
 		ctx.Cancel()
-		h.s.useController(p, tx, pos)
+		storage.UseController(h.s.Session, p, tx, pos)
 		return
 	}
 	// A player who clicks a conduit's connector plate on the block it touches

@@ -1,13 +1,14 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"math"
 	"testing"
 )
 
 func TestHolderPoseRoundTrip(t *testing.T) {
-	p := newHolderPose(-90, 45, 180, 65, -16, 3, 15)
-	v, m := float64(float32(p.variant)), float64(float32(p.mark))
+	p := storage.NewHolderPose(-90, 45, 180, 65, -16, 3, 15)
+	v, m := float64(float32(p.Variant)), float64(float32(p.Mark))
 	got := []float64{
 		math.Mod(v, 73)*5 - 180,
 		math.Mod(math.Floor(v/73), 73)*5 - 180,

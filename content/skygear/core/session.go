@@ -200,3 +200,9 @@ func (s *Session) ForgetOpen(p *player.Player) { delete(s.lastOpen, p.H()) }
 
 // ForgetOpens forgets every player's last opening.
 func (s *Session) ForgetOpens() { s.lastOpen = nil }
+
+// At is the session running in the world of tx, or nil.
+func At(tx *world.Tx) *Session {
+	s, _ := Of(tx)
+	return s
+}

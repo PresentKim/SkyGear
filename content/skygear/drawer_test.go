@@ -5,6 +5,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"slices"
 	"strings"
@@ -25,59 +26,59 @@ import (
 )
 
 func TestDrawerStorageRules(t *testing.T) {
-	d := Drawer{}
+	d := storage.Drawer{}
 	cobble := item.NewStack(block.Cobblestone{}, 64)
-	if n := d.insert(cobble, 64); n != 64 || d.Count != 64 {
+	if n := d.Insert(cobble, 64); n != 64 || d.Count != 64 {
 		t.Fatalf("insert = %d, count %d", n, d.Count)
 	}
-	if d.insert(item.NewStack(block.Dirt{}, 1), 1) != 0 {
+	if d.Insert(item.NewStack(block.Dirt{}, 1), 1) != 0 {
 		t.Fatal("a drawer holding cobblestone accepted dirt")
 	}
-	if d.capacity() != DrawerBaseStacks*64 {
-		t.Fatalf("capacity = %d", d.capacity())
+	if d.MaxItems() != storage.DrawerBaseStacks*64 {
+		t.Fatalf("capacity = %d", d.MaxItems())
 	}
-	d.Count = d.capacity() - 10
-	if n := d.insert(cobble, 64); n != 10 || d.Count != d.capacity() {
+	d.Count = d.MaxItems() - 10
+	if n := d.Insert(cobble, 64); n != 10 || d.Count != d.MaxItems() {
 		t.Fatalf("insert into almost full = %d", n)
 	}
 	d.Void = true
-	if n := d.insert(cobble, 64); n != 64 || d.Count != d.capacity() {
+	if n := d.Insert(cobble, 64); n != 64 || d.Count != d.MaxItems() {
 		t.Fatalf("void drawer must take and destroy overflow, took %d count %d", n, d.Count)
 	}
 	d.Capacity = 1
-	if d.capacity() != 2*DrawerBaseStacks*64 {
+	if d.MaxItems() != 2*storage.DrawerBaseStacks*64 {
 		t.Fatal("capacity upgrade must double the capacity")
 	}
 
-	d = Drawer{}
-	d.insert(cobble, 3)
-	if out := d.extract(64); out.Count() != 3 || !d.Item.Empty() {
+	d = storage.Drawer{}
+	d.Insert(cobble, 3)
+	if out := d.Extract(64); out.Count() != 3 || !d.Item.Empty() {
 		t.Fatalf("extract all = %d, unlocked drawer must forget its item", out.Count())
 	}
 	d.Locked = true
-	d.insert(cobble, 3)
-	d.extract(64)
+	d.Insert(cobble, 3)
+	d.Extract(64)
 	if d.Item.Empty() {
 		t.Fatal("a locked drawer forgot its item when emptied")
 	}
-	if d.insert(item.NewStack(block.Dirt{}, 1), 1) != 0 {
+	if d.Insert(item.NewStack(block.Dirt{}, 1), 1) != 0 {
 		t.Fatal("a locked empty drawer accepted another item")
 	}
 }
 
 func TestDrawerItemKeepsContents(t *testing.T) {
-	d := Drawer{Count: 1234, Capacity: 2, Locked: true}
+	d := storage.Drawer{Count: 1234, Capacity: 2, Locked: true}
 	d.Item = item.NewStack(block.Log{Wood: block.OakWood()}, 1)
-	st := d.toItem()
+	st := d.ToItem()
 	back := item.ReadNBT(item.WriteNBT(st, true), nil) // as when stored and dropped
-	r := drawerFromItem(back, cube.East)
+	r := storage.DrawerFromItem(back, cube.East)
 	if r.Count != 1234 || r.Capacity != 2 || !r.Locked || r.Void || !r.Item.Comparable(d.Item) || r.Facing != cube.East {
 		t.Fatalf("restored drawer = %+v", r)
 	}
 	if len(st.Lore()) == 0 {
 		t.Fatal("drawer item with contents must describe them in its lore")
 	}
-	if e := (Drawer{}).toItem(); len(e.Values()) != 0 {
+	if e := (storage.Drawer{}).ToItem(); len(e.Values()) != 0 {
 		t.Fatal("an empty drawer item must stay stackable (no values)")
 	}
 }
@@ -87,28 +88,28 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 	loadAround(s)
 	top, mid, bottom := cube.Pos{1, 66, 1}, cube.Pos{1, 65, 1}, cube.Pos{1, 64, 1}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
+		tx.SetBlock(mid, storage.Drawer{Facing: cube.North}, nil)
 		tx.SetBlock(top, block.NewHopper(), nil)
 		_, _ = tx.Block(top).(block.Hopper).Inventory(tx, top).AddItem(item.NewStack(item.Wheat{}, 10))
 	})
 	tick(s, 20*12)
 	s.World.Do(func(tx *world.Tx) {
-		d := tx.Block(mid).(Drawer)
+		d := tx.Block(mid).(storage.Drawer)
 		if d.Count != 10 {
 			t.Fatalf("drawer count = %d after hopper input, want 10", d.Count)
 		}
-		disp, ok := drawersOf(s.Session).displays[mid]
+		disp, ok := storage.LocalOf(s.Session).Displays[mid]
 		if !ok {
 			t.Fatal("drawer has no display")
 		}
-		e, ok := disp.item.Entity(tx)
+		e, ok := disp.Item.Entity(tx)
 		if !ok {
 			t.Fatal("display holder missing")
 		}
-		if main, _ := e.(*ItemHolder).HeldItems(); main.Empty() {
+		if main, _ := e.(*storage.ItemHolder).HeldItems(); main.Empty() {
 			t.Fatal("display does not hold the stored item")
 		}
-		l, ok := shapeAs(s, drawerLabelKey(mid)).(*debug.Text)
+		l, ok := shapeAs(s, storage.DrawerLabelKey(mid)).(*debug.Text)
 		if !ok || l.Text != "10" {
 			t.Fatalf("count text = %+v", l)
 		}
@@ -116,7 +117,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 	})
 	tick(s, 20*12)
 	s.World.Do(func(tx *world.Tx) {
-		if d := tx.Block(mid).(Drawer); d.Count != 0 {
+		if d := tx.Block(mid).(storage.Drawer); d.Count != 0 {
 			t.Fatalf("hopper below did not empty the drawer (%d left)", d.Count)
 		}
 		// Removing the drawer by other means makes its display clean up.
@@ -125,20 +126,20 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
 		for e := range tx.Entities() {
-			if _, ok := e.(*ItemHolder); ok {
+			if _, ok := e.(*storage.ItemHolder); ok {
 				t.Fatal("display entity outlived its drawer")
 			}
 		}
-		if _, ok := s.Shape(drawerLabelKey(mid)); ok {
+		if _, ok := s.Shape(storage.DrawerLabelKey(mid)); ok {
 			t.Fatal("count text outlived its drawer")
 		}
-		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
+		tx.SetBlock(mid, storage.Drawer{Facing: cube.North}, nil)
 	})
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
 		n := 0
 		for e := range tx.Entities() {
-			if _, ok := e.(*ItemHolder); ok {
+			if _, ok := e.(*storage.ItemHolder); ok {
 				n++
 			}
 		}
@@ -155,7 +156,7 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 	loadAround(s)
 	drawerPos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(drawerPos, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(drawerPos, storage.Drawer{Facing: cube.South}, nil)
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -164,7 +165,7 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 		if held, _ := p.HeldItems(); !held.Empty() {
 			t.Fatalf("held after inserting into a drawer = %v", held)
 		}
-		if d := tx.Block(drawerPos).(Drawer); d.Count != 40 {
+		if d := tx.Block(drawerPos).(storage.Drawer); d.Count != 40 {
 			t.Fatalf("drawer count = %d", d.Count)
 		}
 
@@ -175,7 +176,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, island.IslandY, 0}
-	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, Drawer{Facing: cube.South}, nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, storage.Drawer{Facing: cube.South}, nil) })
 	h := spawnPlayer(s)
 	use := func(p *player.Player) { p.UseItemOnBlock(pos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1}) }
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -192,15 +193,15 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		use(p)
 		use(p)
 		use(p)
-		d := tx.Block(pos).(Drawer)
+		d := tx.Block(pos).(storage.Drawer)
 		if !d.Void || d.Count != 0 {
 			t.Fatalf("after upgrade and repeats: void=%v count=%d", d.Void, d.Count)
 		}
 		if it, _ := p.Inventory().Item(1); it.Count() != 10 {
 			t.Fatalf("slot 1 = %v, the repeats pulled it into the drawer", it)
 		}
-		if m, ok := shapeAs(s, drawerUpgradeKey(pos)).(*debug.Text); !ok || !strings.Contains(m.Text, textfmt.VoidGlyph) {
-			t.Fatalf("void mark not shown: %v", shapeAs(s, drawerUpgradeKey(pos)))
+		if m, ok := shapeAs(s, storage.DrawerUpgradeKey(pos)).(*debug.Text); !ok || !strings.Contains(m.Text, textfmt.VoidGlyph) {
+			t.Fatalf("void mark not shown: %v", shapeAs(s, storage.DrawerUpgradeKey(pos)))
 		}
 		// The key toggles the lock and stays in the hand.
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
@@ -208,24 +209,24 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		p.SetHeldItems(item.NewStack(sgitem.DrawerKey{}, 1), item.Stack{})
 		s.ForgetOpens()
 		use(p)
-		if d := tx.Block(pos).(Drawer); !d.Locked {
+		if d := tx.Block(pos).(storage.Drawer); !d.Locked {
 			t.Fatalf("not locked by the key: %+v", d)
 		}
-		if _, ok := s.Shape(drawerLockKey(pos)); !ok {
+		if _, ok := s.Shape(storage.DrawerLockKey(pos)); !ok {
 			t.Fatal("no lock mark shown")
 		}
 		if held, _ := p.HeldItems(); !sgitem.IsDrawerKey(held) {
 			t.Fatal("key was used up")
 		}
 		// Picking the drawer up removes both texts.
-		s.removeDisplay(tx, pos)
-		if _, ok := s.Shape(drawerLockKey(pos)); ok {
+		storage.RemoveDisplay(s.Session, tx, pos)
+		if _, ok := s.Shape(storage.DrawerLockKey(pos)); ok {
 			t.Fatal("lock mark left after removal")
 		}
-		if _, ok := s.Shape(drawerLabelKey(pos)); ok {
+		if _, ok := s.Shape(storage.DrawerLabelKey(pos)); ok {
 			t.Fatal("count text left after removal")
 		}
-		if _, ok := s.Shape(drawerUpgradeKey(pos)); ok {
+		if _, ok := s.Shape(storage.DrawerUpgradeKey(pos)); ok {
 			t.Fatal("upgrade marks left after removal")
 		}
 	})
@@ -233,15 +234,15 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 
 func TestDrawerUpgradeMarks(t *testing.T) {
 	for _, c := range []struct {
-		d    Drawer
+		d    storage.Drawer
 		want string
 	}{
-		{Drawer{}, ""},
-		{Drawer{Capacity: 2}, "§b×4"},
-		{Drawer{Void: true}, "§f" + textfmt.VoidGlyph},
-		{Drawer{Capacity: 1, Void: true}, "§b×2 §f" + textfmt.VoidGlyph},
+		{storage.Drawer{}, ""},
+		{storage.Drawer{Capacity: 2}, "§b×4"},
+		{storage.Drawer{Void: true}, "§f" + textfmt.VoidGlyph},
+		{storage.Drawer{Capacity: 1, Void: true}, "§b×2 §f" + textfmt.VoidGlyph},
 	} {
-		if got := c.d.upgradeMarks(); got != c.want {
+		if got := c.d.UpgradeMarks(); got != c.want {
 			t.Errorf("%+v: %q, want %q", c.d, got, c.want)
 		}
 	}
@@ -254,7 +255,7 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 	loadAround(s)
 	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Locked: true}, nil)
+		tx.SetBlock(pos, storage.Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Locked: true}, nil)
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -264,7 +265,7 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 5), item.Stack{})
 		use()
 		use()
-		d := tx.Block(pos).(Drawer)
+		d := tx.Block(pos).(storage.Drawer)
 		if d.Count != 30 {
 			t.Fatalf("count after a double use = %d, want 30", d.Count)
 		}
@@ -276,12 +277,12 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 		}
 		p.SetHeldItems(item.Stack{}, item.Stack{})
 		d.Punch(pos, cube.FaceSouth, tx, p)
-		if d := tx.Block(pos).(Drawer); d.Count != 29 {
+		if d := tx.Block(pos).(storage.Drawer); d.Count != 29 {
 			t.Fatalf("punch took %d, want 1", 30-d.Count)
 		}
 		p.StartSneaking()
-		tx.Block(pos).(Drawer).Punch(pos, cube.FaceSouth, tx, p)
-		if d := tx.Block(pos).(Drawer); d.Count != 0 {
+		tx.Block(pos).(storage.Drawer).Punch(pos, cube.FaceSouth, tx, p)
+		if d := tx.Block(pos).(storage.Drawer); d.Count != 0 {
 			t.Fatalf("sneaking punch left %d, want a stack (29) taken", d.Count)
 		}
 	})
@@ -294,14 +295,14 @@ func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 	loadAround(s)
 	d1, d2 := cube.Pos{0, island.IslandY, 0}, cube.Pos{2, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(d1, Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(d2, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(d1, storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(d2, storage.Drawer{Facing: cube.South}, nil)
 	})
 	a, b := spawnPlayer(s), spawnPlayer(s)
 	withPlayer(t, s, a, func(pa *player.Player, tx *world.Tx) {
-		tx.Block(d1).(Drawer).Punch(d1, cube.FaceSouth, tx, pa)
+		tx.Block(d1).(storage.Drawer).Punch(d1, cube.FaceSouth, tx, pa)
 		e, _ := b.Entity(tx)
-		tx.Block(d2).(Drawer).Punch(d2, cube.FaceSouth, tx, e.(*player.Player))
+		tx.Block(d2).(storage.Drawer).Punch(d2, cube.FaceSouth, tx, e.(*player.Player))
 		ctx := player.NewEventContext(tx, pa)
 		(&handler{s: s}).HandleBlockBreak(ctx, d1, &[]item.Stack{}, new(int))
 		if !ctx.Cancelled() {
@@ -315,7 +316,7 @@ func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 func TestFaceTextRotation(t *testing.T) {
 	want := map[cube.Direction]float64{cube.North: 0, cube.East: -90, cube.South: 180, cube.West: 90}
 	for f, yaw := range want {
-		if got := faceTextRotation(f); got != (mgl64.Vec3{0, yaw, 0}) {
+		if got := storage.FaceTextRotation(f); got != (mgl64.Vec3{0, yaw, 0}) {
 			t.Errorf("%v: rotation %v, want yaw %v", f, got, yaw)
 		}
 	}
@@ -325,16 +326,16 @@ func TestFaceTextRotation(t *testing.T) {
 // in the order of its state values, so drawer runtime IDs must follow
 // drawerFacings, with south (the default, drawn in the inventory) first.
 func TestDrawerStatesMatchRuntimeIDs(t *testing.T) {
-	if drawerFacings[0] != cube.South {
-		t.Fatalf("default drawer facing %v, want south", drawerFacings[0])
+	if storage.DrawerFacings[0] != cube.South {
+		t.Fatalf("default drawer facing %v, want south", storage.DrawerFacings[0])
 	}
-	values := Drawer{}.States()[facingState]
+	values := storage.Drawer{}.States()[storage.FacingState]
 	var last uint32
-	for i, f := range drawerFacings {
-		if values[i] != facingNames[f] {
-			t.Errorf("state %d is %v, want %v", i, values[i], facingNames[f])
+	for i, f := range storage.DrawerFacings {
+		if values[i] != storage.FacingNames[f] {
+			t.Errorf("state %d is %v, want %v", i, values[i], storage.FacingNames[f])
 		}
-		rid := world.BlockRuntimeID(Drawer{Facing: f})
+		rid := world.BlockRuntimeID(storage.Drawer{Facing: f})
 		if i > 0 && rid != last+1 {
 			t.Errorf("%v has runtime ID %d after %d", f, rid, last)
 		}
@@ -349,7 +350,7 @@ func TestDrawerPunchFullInventoryDrops(t *testing.T) {
 	loadAround(s)
 	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}, nil)
+		tx.SetBlock(pos, storage.Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}, nil)
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -357,8 +358,8 @@ func TestDrawerPunchFullInventoryDrops(t *testing.T) {
 		for slot := range inv.Size() {
 			_ = inv.SetItem(slot, item.NewStack(block.Stone{}, 64))
 		}
-		tx.Block(pos).(Drawer).Punch(pos, cube.FaceSouth, tx, p)
-		if d := tx.Block(pos).(Drawer); d.Count != 9 {
+		tx.Block(pos).(storage.Drawer).Punch(pos, cube.FaceSouth, tx, p)
+		if d := tx.Block(pos).(storage.Drawer); d.Count != 9 {
 			t.Fatalf("count %d, want 9", d.Count)
 		}
 		dropped := 0
@@ -380,18 +381,18 @@ func TestDrawerPunchFullInventoryDrops(t *testing.T) {
 // TestLockedEmptyDrawer: a locked drawer without an item kind takes nothing
 // from hoppers and machines, but a player's item, which becomes its kind.
 func TestLockedEmptyDrawer(t *testing.T) {
-	d := Drawer{Locked: true}
+	d := storage.Drawer{Locked: true}
 	dirt := item.NewStack(block.Dirt{}, 1)
-	if d.takesAutomated(dirt) {
+	if d.TakesAutomated(dirt) {
 		t.Fatal("locked empty drawer takes automated items")
 	}
-	if d.insert(dirt, 1) != 1 || d.Item.Empty() {
+	if d.Insert(dirt, 1) != 1 || d.Item.Empty() {
 		t.Fatal("a player cannot put an item into a locked empty drawer")
 	}
-	if !d.takesAutomated(dirt) || d.takesAutomated(item.NewStack(block.Stone{}, 1)) {
+	if !d.TakesAutomated(dirt) || d.TakesAutomated(item.NewStack(block.Stone{}, 1)) {
 		t.Error("after a player's item, the locked drawer takes that kind only")
 	}
-	if (Drawer{}).takesAutomated(dirt) == false {
+	if (storage.Drawer{}).TakesAutomated(dirt) == false {
 		t.Error("an unlocked empty drawer takes automated items")
 	}
 }
@@ -403,35 +404,35 @@ func TestDrawerMenuSlots(t *testing.T) {
 	loadAround(s)
 	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(pos, storage.Drawer{Facing: cube.South}, nil)
 	})
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_ = p.Inventory().SetItem(5, item.NewStack(sgitem.DrawerUpgrade{Kind: sgitem.UpgradeCapacity}, 2))
-		d := tx.Block(pos).(Drawer)
-		s.fitUpgrade(p, tx, pos, &d, sgitem.UpgradeCapacity)
-		if d := tx.Block(pos).(Drawer); d.Capacity != 1 {
+		d := tx.Block(pos).(storage.Drawer)
+		storage.FitUpgrade(s.Session, p, tx, pos, &d, sgitem.UpgradeCapacity)
+		if d := tx.Block(pos).(storage.Drawer); d.Capacity != 1 {
 			t.Fatalf("capacity %d after fitting, want 1", d.Capacity)
 		}
 		if it, _ := p.Inventory().Item(5); it.Count() != 1 {
 			t.Fatalf("upgrades left %d, want 1", it.Count())
 		}
-		d = tx.Block(pos).(Drawer)
-		s.fitUpgrade(p, tx, pos, &d, sgitem.UpgradeVoid) // none in the inventory
-		if tx.Block(pos).(Drawer).Void {
+		d = tx.Block(pos).(storage.Drawer)
+		storage.FitUpgrade(s.Session, p, tx, pos, &d, sgitem.UpgradeVoid) // none in the inventory
+		if tx.Block(pos).(storage.Drawer).Void {
 			t.Fatal("void fitted without an upgrade")
 		}
-		d = tx.Block(pos).(Drawer)
-		s.removeUpgrade(p, tx, pos, &d, sgitem.UpgradeCapacity)
-		if d := tx.Block(pos).(Drawer); d.Capacity != 0 {
+		d = tx.Block(pos).(storage.Drawer)
+		storage.RemoveUpgrade(s.Session, p, tx, pos, &d, sgitem.UpgradeCapacity)
+		if d := tx.Block(pos).(storage.Drawer); d.Capacity != 0 {
 			t.Fatalf("capacity %d after taking out, want 0", d.Capacity)
 		}
 		if it, _ := p.Inventory().Item(5); it.Count() != 2 {
 			t.Fatalf("upgrades %d after taking out, want 2", it.Count())
 		}
-		d = tx.Block(pos).(Drawer)
-		s.setLocked(tx, pos, &d, true)
-		if !tx.Block(pos).(Drawer).Locked {
+		d = tx.Block(pos).(storage.Drawer)
+		storage.SetLocked(s.Session, tx, pos, &d, true)
+		if !tx.Block(pos).(storage.Drawer).Locked {
 			t.Fatal("not locked")
 		}
 	})
@@ -440,7 +441,7 @@ func TestDrawerMenuSlots(t *testing.T) {
 // TestDrawerGivesThroughAnyFace: a conduit beside a drawer takes its items, not
 // only a hopper under it.
 func TestDrawerGivesThroughAnyFace(t *testing.T) {
-	d := Drawer{Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}
+	d := storage.Drawer{Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}
 	for _, f := range cube.Faces() {
 		if got := d.PeekItems(nil, cube.Pos{}, f, nil); got.Empty() {
 			t.Errorf("a drawer gives nothing through %v", f)
@@ -458,44 +459,44 @@ func TestStorageController(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
-		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(b, storage.Drawer{Facing: cube.South}, nil)
 		// a link joins a drawer that does not touch
 		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindStorageLink, "", ""), nil)
 		c := ctl.Add(cube.Pos{0, 0, 2})
-		tx.SetBlock(c, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(c, storage.Drawer{Facing: cube.South}, nil)
 		// out of reach and unconnected
 		far := ctl.Add(cube.Pos{0, 3, 0})
-		tx.SetBlock(far, Drawer{Facing: cube.South}, nil)
-		if n := len(storageNetwork(tx, ctl)); n != 3 {
+		tx.SetBlock(far, storage.Drawer{Facing: cube.South}, nil)
+		if n := len(storage.Network(tx, ctl)); n != 3 {
 			t.Fatalf("%d drawers, want 3", n)
 		}
 		cobble := item.NewStack(block.Cobblestone{}, 100)
-		if n := controllerInsert(tx, ctl, cobble); n != 100 {
+		if n := storage.ControllerInsert(tx, ctl, cobble); n != 100 {
 			t.Fatalf("took %d of 100", n)
 		}
 		// the same kind goes to the drawer that holds it
-		if n := controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 28)); n != 28 {
+		if n := storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 28)); n != 28 {
 			t.Fatalf("took %d of 28", n)
 		}
 		held := 0
-		for _, sd := range storageNetwork(tx, ctl) {
-			if sd.d.Count > 0 {
+		for _, sd := range storage.Network(tx, ctl) {
+			if sd.D.Count > 0 {
 				held++
 			}
 		}
 		if held != 1 {
 			t.Errorf("the cobblestone is in %d drawers, want 1", held)
 		}
-		if got := controllerPeek(tx, ctl, nil); got.Empty() || naming.ItemKey(got.Item()) != naming.ItemKey(block.Cobblestone{}) {
+		if got := storage.ControllerPeek(tx, ctl, nil); got.Empty() || naming.ItemKey(got.Item()) != naming.ItemKey(block.Cobblestone{}) {
 			t.Errorf("peek %v", got)
 		}
-		out := controllerExtract(tx, ctl, cobble, 50)
+		out := storage.ControllerExtract(tx, ctl, cobble, 50)
 		if out.Count() != 50 {
 			t.Errorf("took out %d of 50", out.Count())
 		}
-		list, drawers := storageContents(tx, ctl)
-		if drawers != 3 || len(list) != 1 || list[0].count != 78 {
+		list, drawers := storage.Contents(tx, ctl)
+		if drawers != 3 || len(list) != 1 || list[0].Count != 78 {
 			t.Errorf("contents %v in %d drawers", list, drawers)
 		}
 		// through the Machine itemio methods too
@@ -516,26 +517,26 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
-		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
-		if n := controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 10)); n != 10 {
+		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(b, storage.Drawer{Facing: cube.South}, nil)
+		if n := storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 10)); n != 10 {
 			t.Fatalf("took %d of 10", n)
 		}
 		// a kind the network does not hold is not taken, a held one is
-		if n := controllerInsertHeld(tx, ctl, item.NewStack(block.Sand{}, 5)); n != 0 {
+		if n := storage.ControllerInsertHeld(tx, ctl, item.NewStack(block.Sand{}, 5)); n != 0 {
 			t.Errorf("a new kind went in: %d", n)
 		}
-		if n := controllerInsertHeld(tx, ctl, item.NewStack(block.Cobblestone{}, 5)); n != 5 {
+		if n := storage.ControllerInsertHeld(tx, ctl, item.NewStack(block.Cobblestone{}, 5)); n != 5 {
 			t.Errorf("a held kind took %d of 5", n)
 		}
-		list, _ := storageContents(tx, ctl)
-		if got := filterStorage(i18n.Default, list, ""); len(got) != 1 {
+		list, _ := storage.Contents(tx, ctl)
+		if got := storage.Filter(i18n.Default, list, ""); len(got) != 1 {
 			t.Errorf("no query keeps %d entries", len(got))
 		}
-		if got := filterStorage(i18n.Default, list, "ㅈㅇㅈㅇ"); len(got) != 0 {
+		if got := storage.Filter(i18n.Default, list, "ㅈㅇㅈㅇ"); len(got) != 0 {
 			t.Errorf("a query that matches nothing keeps %d", len(got))
 		}
-		if got := filterStorage(i18n.Default, list, naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
+		if got := storage.Filter(i18n.Default, list, naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))); len(got) != 1 {
 			t.Errorf("the item's own name keeps %d", len(got))
 		}
 	})
@@ -565,7 +566,7 @@ func TestControllerSneakClickOpensList(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
 		for _, held := range []item.Stack{item.NewStack(block.Stone{}, 5), {}} {
 			s.ForgetOpen(p)
 			if !useBlock(s, tx, p, ctl, held, true) {
@@ -575,7 +576,7 @@ func TestControllerSneakClickOpensList(t *testing.T) {
 				t.Errorf("sneaking with %v: the list did not open", held)
 			}
 		}
-		if list, _ := storageContents(tx, ctl); len(list) != 0 {
+		if list, _ := storage.Contents(tx, ctl); len(list) != 0 {
 			t.Errorf("a sneaking click put items in: %v", list)
 		}
 	})
@@ -588,14 +589,14 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
 		if !useBlock(s, tx, p, ctl, item.NewStack(block.Stone{}, 5), false) {
 			t.Fatal("the click was not taken")
 		}
 		if held, _ := p.HeldItems(); !held.Empty() {
 			t.Errorf("held after the click: %v", held)
 		}
-		if list, _ := storageContents(tx, ctl); len(list) != 1 || list[0].count != 5 {
+		if list, _ := storage.Contents(tx, ctl); len(list) != 1 || list[0].Count != 5 {
 			t.Errorf("contents %v, want 5 stone", list)
 		}
 		if !useBlock(s, tx, p, ctl, item.Stack{}, false) {
@@ -614,16 +615,16 @@ func TestStorageLiveSearch(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
-		controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 100))
-		s.showStorage(p, tx, ctl, "")
-		all, drawers := storageContents(tx, ctl)
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+		storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 100))
+		storage.Show(s.Session, p, tx, ctl, "")
+		all, drawers := storage.Contents(tx, ctl)
 		name := naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))
-		if info := storageInfo(i18n.Default, all, drawers, name, 1); !strings.Contains(info, name) {
+		if info := storage.Info(i18n.Default, all, drawers, name, 1); !strings.Contains(info, name) {
 			t.Errorf("info %q does not name the query", info)
 		}
 		shown := 0
-		slots := s.storageSlots(i18n.Default, ctl, all, func(*player.Player, *world.Tx) { shown++ })
+		slots := storage.Slots(s.Session, i18n.Default, ctl, all, func(*player.Player, *world.Tx) { shown++ })
 		slots[0].Run(p, tx)
 		if it, _ := p.Inventory().Item(0); it.Count() != 64 {
 			t.Errorf("pressing the slot gave %v, want a stack", it)
@@ -632,40 +633,42 @@ func TestStorageLiveSearch(t *testing.T) {
 			t.Errorf("the list was shown again %d times", shown)
 		}
 		bar := ui.BarButton("", "", nil).Label
-		if o := s.depositAllOption(i18n.Default, ctl, nil); !strings.HasPrefix(o.Label, bar) {
+		if o := storage.DepositAllOption(s.Session, i18n.Default, ctl, nil); !strings.HasPrefix(o.Label, bar) {
 			t.Errorf("deposit all %q is not a control bar button", o.Label)
 		}
 	})
 }
 
 func TestStorageOrders(t *testing.T) {
-	stack := func(it world.Item, n int64) storageEntry { return storageEntry{item.NewStack(it, 1), n} }
-	list := []storageEntry{stack(block.Dirt{}, 5), stack(block.Cobblestone{}, 50), stack(block.Sand{}, 1)}
-	names := func(l []storageEntry) []string {
+	stack := func(it world.Item, n int64) storage.Entry {
+		return storage.Entry{Item: item.NewStack(it, 1), Count: n}
+	}
+	list := []storage.Entry{stack(block.Dirt{}, 5), stack(block.Cobblestone{}, 50), stack(block.Sand{}, 1)}
+	names := func(l []storage.Entry) []string {
 		var out []string
 		for _, e := range l {
-			out = append(out, textfmt.PlainName(naming.ItemName(i18n.Default, e.item)))
+			out = append(out, textfmt.PlainName(naming.ItemName(i18n.Default, e.Item)))
 		}
 		return out
 	}
-	counts := func(l []storageEntry) []int64 {
+	counts := func(l []storage.Entry) []int64 {
 		var out []int64
 		for _, e := range l {
-			out = append(out, e.count)
+			out = append(out, e.Count)
 		}
 		return out
 	}
-	if got := counts(sortStorage(i18n.Default, list, orderCountDesc)); !slices.Equal(got, []int64{50, 5, 1}) {
+	if got := counts(storage.Sort(i18n.Default, list, storage.OrderCountDesc)); !slices.Equal(got, []int64{50, 5, 1}) {
 		t.Errorf("most first %v", got)
 	}
-	if got := counts(sortStorage(i18n.Default, list, orderCountAsc)); !slices.Equal(got, []int64{1, 5, 50}) {
+	if got := counts(storage.Sort(i18n.Default, list, storage.OrderCountAsc)); !slices.Equal(got, []int64{1, 5, 50}) {
 		t.Errorf("fewest first %v", got)
 	}
-	asc := names(sortStorage(i18n.Default, list, orderNameAsc))
+	asc := names(storage.Sort(i18n.Default, list, storage.OrderNameAsc))
 	if !slices.IsSorted(asc) {
 		t.Errorf("by name %v", asc)
 	}
-	desc := names(sortStorage(i18n.Default, list, orderNameDesc))
+	desc := names(storage.Sort(i18n.Default, list, storage.OrderNameDesc))
 	slices.Reverse(desc)
 	if !slices.Equal(asc, desc) {
 		t.Errorf("by name reversed %v", desc)
@@ -677,10 +680,10 @@ func TestStorageOrderButtonCycles(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		for want := orderCountAsc; want <= storageOrderCount; want++ {
-			s.storageOrderOption(p, func(*player.Player, *world.Tx) {}).Run(p, tx)
-			if got := storageOrders.Of(s.Session)[p.H()]; got != want%storageOrderCount {
-				t.Fatalf("order %d, want %d", got, want%storageOrderCount)
+		for want := storage.OrderCountAsc; want <= storage.StorageOrderCount; want++ {
+			storage.OrderOption(s.Session, p, func(*player.Player, *world.Tx) {}).Run(p, tx)
+			if got := storage.Orders.Of(s.Session)[p.H()]; got != want%storage.StorageOrderCount {
+				t.Fatalf("order %d, want %d", got, want%storage.StorageOrderCount)
 			}
 		}
 	})
@@ -693,9 +696,9 @@ func TestControllerDoubleClickInsertsInventory(t *testing.T) {
 	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(ctl.Add(cube.Pos{2, 0, 0}), Drawer{Facing: cube.South}, nil)
-		controllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1))
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(ctl.Add(cube.Pos{2, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+		storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1))
 		_ = p.Inventory().SetItem(3, item.NewStack(block.Cobblestone{}, 30))
 		_ = p.Inventory().SetItem(4, item.NewStack(block.Dirt{}, 7))
 		useBlock(s, tx, p, ctl, item.Stack{}, false)

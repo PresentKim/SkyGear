@@ -1,4 +1,4 @@
-package skygear
+package storage
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core"
 )
 
 // ItemHolder is the display entity of drawers: it holds
@@ -16,42 +17,42 @@ import (
 type ItemHolder struct {
 	tx     *world.Tx
 	handle *world.EntityHandle
-	data   *world.EntityData
+	Data   *world.EntityData
 }
 
-type holderData struct {
-	item  item.Stack
+type HolderData struct {
+	Item  item.Stack
 	owner cube.Pos
-	pose  holderPose
+	Pose  holderPose
 }
 
 // holderConfig spawns an ItemHolder for the drawer at owner.
 type holderConfig struct {
-	item  item.Stack
+	Item  item.Stack
 	owner cube.Pos
-	pose  holderPose
+	Pose  holderPose
 }
 
 func (c holderConfig) Apply(data *world.EntityData) {
-	data.Data = &holderData{item: c.item, owner: c.owner, pose: c.pose}
+	data.Data = &HolderData{Item: c.Item, owner: c.owner, Pose: c.Pose}
 }
 
 // holderPose is a hand-equipped item pose tried with /sgdebug holderpose,
 // sent as the variant (rotation) and mark variant (scale, offset) that
 // animations/item_holder.animation.json decodes. Zero is the pack's own pose.
 type holderPose struct {
-	variant, mark int32
+	Variant, Mark int32
 }
 
-// newHolderPose packs rotations in degrees (5 degree steps, -180 to 180), a
+// NewHolderPose packs rotations in degrees (5 degree steps, -180 to 180), a
 // scale in percent (1 to 255) and offsets in pixels (-16 to 15). Molang
 // numbers are 32-bit floats, so both values stay below 2^24.
-func newHolderPose(rx, ry, rz, scale, dx, dy, dz int) holderPose {
+func NewHolderPose(rx, ry, rz, scale, dx, dy, dz int) holderPose {
 	angle := func(d int) int32 { return int32((max(-180, min(180, d)) + 180 + 2) / 5) }
 	offset := func(px int) int32 { return int32(max(-16, min(15, px)) + 16) }
 	return holderPose{
-		variant: angle(rx) + 73*angle(ry) + 73*73*angle(rz),
-		mark:    int32(max(1, min(255, scale))) + 256*offset(dx) + 256*32*offset(dy) + 256*32*32*offset(dz),
+		Variant: angle(rx) + 73*angle(ry) + 73*73*angle(rz),
+		Mark:    int32(max(1, min(255, scale))) + 256*offset(dx) + 256*32*offset(dy) + 256*32*32*offset(dz),
 	}
 }
 
@@ -62,18 +63,24 @@ const (
 	offHandDepth  = 0.025
 )
 
-func (h *ItemHolder) H() *world.EntityHandle  { return h.handle }
-func (h *ItemHolder) Position() mgl64.Vec3    { return h.data.Pos }
-func (h *ItemHolder) Rotation() cube.Rotation { return h.data.Rot }
-func (h *ItemHolder) NameTag() string         { return h.data.Name }
-func (h *ItemHolder) AlwaysShowNameTag() bool { return h.data.AlwaysShowNameTag }
-func (h *ItemHolder) Variant() int32          { return h.data.Data.(*holderData).pose.variant }
-func (h *ItemHolder) MarkVariant() int32      { return h.data.Data.(*holderData).pose.mark }
+func (h *ItemHolder) H() *world.EntityHandle { return h.handle }
+
+func (h *ItemHolder) Position() mgl64.Vec3 { return h.Data.Pos }
+
+func (h *ItemHolder) Rotation() cube.Rotation { return h.Data.Rot }
+
+func (h *ItemHolder) NameTag() string { return h.Data.Name }
+
+func (h *ItemHolder) AlwaysShowNameTag() bool { return h.Data.AlwaysShowNameTag }
+
+func (h *ItemHolder) Variant() int32 { return h.Data.Data.(*HolderData).Pose.Variant }
+
+func (h *ItemHolder) MarkVariant() int32 { return h.Data.Data.(*HolderData).Pose.Mark }
 
 // HeldItems implements item.Carrier: cube blocks in the off hand, everything
 // else in the main hand (each hand bone has its own transform).
 func (h *ItemHolder) HeldItems() (item.Stack, item.Stack) {
-	it := h.data.Data.(*holderData).item
+	it := h.Data.Data.(*HolderData).Item
 	if isCubeItem(it) {
 		return item.Stack{}, it
 	}
@@ -82,15 +89,15 @@ func (h *ItemHolder) HeldItems() (item.Stack, item.Stack) {
 
 // Tick removes holders that no longer belong to a drawer display.
 func (h *ItemHolder) Tick(tx *world.Tx, _ int64) {
-	d := h.data.Data.(*holderData)
-	s, ok := activeGame.sessionOf(tx.World())
+	d := h.Data.Data.(*HolderData)
+	s, ok := core.Of(tx)
 	_, isDrawer := tx.Block(d.owner).(Drawer)
-	if ok && isDrawer && s.ownsDisplay(d.owner, h.handle) {
+	if ok && isDrawer && ownsDisplay(s, d.owner, h.handle) {
 		return
 	}
-	if ok && !isDrawer && s.ownsDisplay(d.owner, h.handle) {
+	if ok && !isDrawer && ownsDisplay(s, d.owner, h.handle) {
 		// The drawer was removed by other means: drop its count text too.
-		s.removeDisplay(tx, d.owner)
+		RemoveDisplay(s, tx, d.owner)
 		return
 	}
 	_ = h.Close()
@@ -142,11 +149,15 @@ type holderType struct{}
 
 func (holderType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
-		data.Data = &holderData{}
+		data.Data = &HolderData{}
 	}
-	return &ItemHolder{tx: tx, handle: handle, data: data}
+	return &ItemHolder{tx: tx, handle: handle, Data: data}
 }
-func (holderType) EncodeEntity() string                            { return "skygear:item_holder" }
-func (holderType) BBox(world.Entity) cube.BBox                     { return cube.BBox{} }
-func (holderType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &holderData{} }
-func (holderType) EncodeNBT(*world.EntityData) map[string]any      { return nil }
+
+func (holderType) EncodeEntity() string { return "skygear:item_holder" }
+
+func (holderType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
+
+func (holderType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &HolderData{} }
+
+func (holderType) EncodeNBT(*world.EntityData) map[string]any { return nil }

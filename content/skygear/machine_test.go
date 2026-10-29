@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"strings"
 	"testing"
 	"time"
@@ -159,11 +160,11 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 			t.Fatal("the miner pushed into the chest")
 		}
 		// Special blocks are never mined.
-		tx.SetBlock(below, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(below, storage.Drawer{Facing: cube.South}, nil)
 	})
 	tick(s, 2*machine.Kinds[machine.KindMiner].Interval)
 	s.World.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(below).(Drawer); !ok {
+		if _, ok := tx.Block(below).(storage.Drawer); !ok {
 			t.Fatal("auto miner mined a drawer")
 		}
 	})
@@ -219,7 +220,7 @@ func TestMineable(t *testing.T) {
 	}{
 		{block.Stone{}, true}, {block.Log{Wood: block.OakWood()}, true}, {block.CoalOre{}, true},
 		{block.Air{}, false}, {block.Bedrock{}, false},
-		{machine.Machine{Kind: machine.KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
+		{machine.Machine{Kind: machine.KindCrusher}, false}, {storage.Drawer{}, false}, {block.NewChest(), false},
 	} {
 		if _, got := machine.Mineable(c.b); got != c.want {
 			t.Errorf("mineable(%T) = %v, want %v", c.b, got, c.want)
@@ -264,7 +265,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, Drawer{}, Barrel{}} {
+	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, storage.Drawer{}, Barrel{}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {
@@ -285,7 +286,7 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	loadAround(s)
 	pos := cube.Pos{0, island.IslandY, 1}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(pos, storage.Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(cube.Pos{0, island.IslandY, 2}, block.Stone{}, nil)
 	})
 	h := spawnPlayer(s)
@@ -294,14 +295,14 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(pos).(Drawer); !ok {
+		if _, ok := tx.Block(pos).(storage.Drawer); !ok {
 			t.Fatal("broke before its break time")
 		}
 	})
-	time.Sleep(block.BreakDuration(Drawer{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
+	time.Sleep(block.BreakDuration(storage.Drawer{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
 	tick(s, 2)
 	s.World.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(pos).(Drawer); ok {
+		if _, ok := tx.Block(pos).(storage.Drawer); ok {
 			t.Fatal("not broken after its break time")
 		}
 	})

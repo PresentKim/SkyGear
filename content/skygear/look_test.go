@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"strings"
 	"testing"
 
@@ -108,11 +109,11 @@ func TestLookInfo(t *testing.T) {
 		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Line == nil || info.Line.Name != "조약돌" || !info.Line.ShowGauge {
 			t.Errorf("crusher line %+v, want the cobblestone with a gauge", info.Line)
 		}
-		tx.SetBlock(drawerPos, Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
+		tx.SetBlock(drawerPos, storage.Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
 		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Container == nil || len(info.Container.Items) != 1 ||
 			info.Container.Items[0].Count() != 70 || info.Line != nil || info.Marks != (waila.Marks{}) {
 			t.Errorf("drawer panel %+v, want the dirt in a slot with its count, as a chest shows it, and no marks", info)
-		} else if _, ok := info.Item.(Drawer); !ok {
+		} else if _, ok := info.Item.(storage.Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
 		p.StartSneaking()
@@ -158,7 +159,7 @@ func TestFurnaceArrow(t *testing.T) {
 
 // TestCustomTool: our blocks show a fitting tool, marked when held.
 func TestCustomTool(t *testing.T) {
-	if got := customTool(Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
+	if got := customTool(storage.Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
 		t.Errorf("drawer by hand: %v", got)
 	}
 	if got := customTool(machine.Machine{Kind: machine.KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {

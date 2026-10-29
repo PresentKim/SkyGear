@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
@@ -71,7 +72,7 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 			t.Error("the sieve takes string")
 		}
 	}
-	if drawer := find(Drawer{}); drawer.Shape() != recipe.NewShape(3, 3) || !drawer.NoMirror() || name(drawer.Input()[4]) != "minecraft:chest" {
+	if drawer := find(storage.Drawer{}); drawer.Shape() != recipe.NewShape(3, 3) || !drawer.NoMirror() || name(drawer.Input()[4]) != "minecraft:chest" {
 		t.Errorf("drawer shape %v centre %s", drawer.Shape(), name(drawer.Input()[4]))
 	}
 }
