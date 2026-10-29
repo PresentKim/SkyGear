@@ -238,7 +238,7 @@ func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
 		mk(i18n.T(lang, "monitor.tab.items"), statsItems),
 		mk(i18n.T(lang, "monitor.tab.power"), statsPower),
 		mk(fmt.Sprintf(i18n.T(lang, "monitor.tab.stalls"), s.stalledCount()), statsStalls),
-		s.backOption(lang),
+		s.BackOption(lang),
 	}
 }
 

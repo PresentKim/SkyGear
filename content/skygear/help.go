@@ -109,7 +109,7 @@ func (s *session) helpTabs(p *player.Player, cur helpTab) []ui.Option {
 	for t := helpTab(0); t < helpTabCount; t++ {
 		t := t
 		o := ui.Tab(i18n.T(lang, helpTabKeys[t]), helpTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, t) })
-		out = append(out, s.opt(o.Label, o.Icon, o.Run))
+		out = append(out, s.Opt(o.Label, o.Icon, o.Run))
 	}
 	return out
 }
@@ -124,10 +124,10 @@ func (s *session) showHelpTab(p *player.Player, t helpTab) {
 	var opts []ui.Option
 	for _, i := range helpTopicsOf(t) {
 		h := helpTopics[i]
-		opts = append(opts, s.opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, i) }))
+		opts = append(opts, s.Opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, i) }))
 	}
 	opts = append(opts, s.helpTabs(p, t)...)
-	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.backOption(lang))...)
+	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.BackOption(lang))...)
 }
 
 // showHelpTopic shows a help page with the topics before and after it in its
@@ -144,14 +144,14 @@ func (s *session) showHelpTopic(p *player.Player, i int) {
 	at := slices.Index(in, i)
 	if at > 0 {
 		prev := helpTopics[in[at-1]]
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(lang, "help.prev"), i18n.T(lang, "help."+prev.id+".title")), prev.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at-1]) }))
+		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.prev"), i18n.T(lang, "help."+prev.id+".title")), prev.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at-1]) }))
 	}
 	if at < len(in)-1 {
 		next := helpTopics[in[at+1]]
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(lang, "help.next"), i18n.T(lang, "help."+next.id+".title")), next.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at+1]) }))
+		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.next"), i18n.T(lang, "help."+next.id+".title")), next.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at+1]) }))
 	}
 	back := ui.Back(i18n.T(lang, "help.title"), func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, h.tab) })
-	opts = append(opts, s.opt(back.Label, back.Icon, back.Run))
+	opts = append(opts, s.Opt(back.Label, back.Icon, back.Run))
 	title := ui.SubTitle(i18n.T(lang, "help.title"), i18n.T(lang, "help."+h.id+".title"))
 	ui.Menu(p, title, text, opts...)
 }

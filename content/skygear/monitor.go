@@ -5,6 +5,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -297,7 +299,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 	if len(list) == 0 {
 		body += "\n" + i18n.T(lang, "monitor.stalls.none")
 	}
-	opts := []ui.Option{s.opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/icon_bell", func(p *player.Player, _ *world.Tx) {
+	opts := []ui.Option{s.Opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/icon_bell", func(p *player.Player, _ *world.Tx) {
 		if s.state.AlertsOn == nil {
 			s.state.AlertsOn = map[string]bool{}
 		}
@@ -316,7 +318,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		pos := st.pos
 		secs := s.now - st.mon.since
 		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), textfmt.Span(lang, secs))
-		opts = append(opts, s.opt(label, "", func(p *player.Player, tx *world.Tx) { s.goToMachine(p, tx, pos) }))
+		opts = append(opts, s.Opt(label, "", func(p *player.Player, tx *world.Tx) { s.goToMachine(p, tx, pos) }))
 	}
 	return body, opts
 }
@@ -326,7 +328,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 func (s *session) goToMachine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	for _, d := range []cube.Pos{{0, 1, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {1, 1, 0}, {-1, 1, 0}, {0, 1, 1}, {0, 1, -1}} {
 		at := pos.Add(d)
-		if solidAt(tx, at) || solidAt(tx, at.Add(cube.Pos{0, 1, 0})) {
+		if core.SolidAt(tx, at) || core.SolidAt(tx, at.Add(cube.Pos{0, 1, 0})) {
 			continue
 		}
 		if !island.Owns(s.Session, island.ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {

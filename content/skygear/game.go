@@ -42,6 +42,11 @@ type Game struct {
 }
 
 func init() {
+	core.ShowMenu = func(c *core.Session, p *player.Player) {
+		if s, ok := activeGame.sessionOf(c.World); ok {
+			s.showMenu(p)
+		}
+	}
 	// The quest panel follows the progress.
 	progress.OnChange = func(c *core.Session, tx *world.Tx) {
 		if s, ok := activeGame.sessionOf(c.World); ok {

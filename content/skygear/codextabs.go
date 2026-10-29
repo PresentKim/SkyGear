@@ -52,7 +52,7 @@ func (s *session) codexTabs(p *player.Player, cur codexTab) []ui.Option {
 	for t := codexTab(0); t < codexTabCount; t++ {
 		t := t
 		o := ui.Tab(i18n.T(lang, codexTabKeys[t]), codexTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { s.showCodexTab(p, t) })
-		out = append(out, s.opt(o.Label, o.Icon, o.Run))
+		out = append(out, s.Opt(o.Label, o.Icon, o.Run))
 	}
 	return out
 }
@@ -135,7 +135,7 @@ func (s *session) codexFrom(p *player.Player, back func(p *player.Player), it it
 func (s *session) codexBack(p *player.Player) ui.Option {
 	n := s.codexNavOf(p)
 	if len(n.hist) == 0 {
-		return s.backOption(i18n.Of(p))
+		return s.BackOption(i18n.Of(p))
 	}
 	b := ui.Back(i18n.T(i18n.Of(p), "codex.back"), func(p *player.Player, _ *world.Tx) {
 		n := s.codexNavOf(p)
@@ -147,7 +147,7 @@ func (s *session) codexBack(p *player.Player) ui.Option {
 		n.hist, n.cur = n.hist[:len(n.hist)-1], nil
 		prev(p)
 	})
-	return s.opt(b.Label, b.Icon, b.Run)
+	return s.Opt(b.Label, b.Icon, b.Run)
 }
 
 // codexRecentMax is how many viewed items the search tab keeps.

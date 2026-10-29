@@ -3,6 +3,8 @@ package skygear
 import (
 	"math"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -149,15 +151,6 @@ func (t monsterType) DecodeNBT(_ map[string]any, d *world.EntityData) {
 }
 func (monsterType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
-// solidAt reports whether the block at p stops a monster.
-func solidAt(tx *world.Tx, p cube.Pos) bool {
-	b := tx.Block(p)
-	if _, liquid := b.(world.Liquid); liquid {
-		return false
-	}
-	return len(b.Model().BBox(p, tx)) > 0
-}
-
 // Tick walks the monster towards the nearest player and hits when close.
 func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	s, ok := activeGame.sessionOf(tx.World())
@@ -229,12 +222,12 @@ func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	if dir.Len() > 0 {
 		next := pos.Add(dir.Mul(st.speed))
 		front := feet(next.Add(dir.Mul(st.width / 2)))
-		blockedLow := solidAt(tx, front)
-		blockedHigh := solidAt(tx, front.Add(cube.Pos{0, 1, 0}))
+		blockedLow := core.SolidAt(tx, front)
+		blockedHigh := core.SolidAt(tx, front.Add(cube.Pos{0, 1, 0}))
 		switch {
 		case !blockedLow && !blockedHigh:
 			pos = mgl64.Vec3{next[0], pos[1], next[2]}
-		case blockedLow && !blockedHigh && !solidAt(tx, front.Add(cube.Pos{0, 2, 0})) && d.onGround:
+		case blockedLow && !blockedHigh && !core.SolidAt(tx, front.Add(cube.Pos{0, 2, 0})) && d.onGround:
 			d.vel[1] = 0.42 // jump over the block
 			pos = mgl64.Vec3{next[0], pos[1], next[2]}
 		}
@@ -244,11 +237,11 @@ func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	pos[1] += d.vel[1]
 	cell := feet(pos)
 	d.onGround = false
-	if d.vel[1] <= 0 && solidAt(tx, cell) {
+	if d.vel[1] <= 0 && core.SolidAt(tx, cell) {
 		pos[1] = float64(cell.Y()) + 1
 		d.vel[1] = 0
 		d.onGround = true
-	} else if d.vel[1] <= 0 && solidAt(tx, feet(pos.Sub(mgl64.Vec3{0, 0.001, 0}))) {
+	} else if d.vel[1] <= 0 && core.SolidAt(tx, feet(pos.Sub(mgl64.Vec3{0, 0.001, 0}))) {
 		d.onGround = true
 		d.vel[1] = 0
 	}
@@ -293,7 +286,7 @@ func (m *Monster) canSee(tx *world.Tx, pos mgl64.Vec3, p *player.Player) bool {
 	line := to.Sub(from)
 	steps := int(line.Len() * 2)
 	for i := 1; i < steps; i++ {
-		if solidAt(tx, cube.PosFromVec3(from.Add(line.Mul(float64(i)/float64(steps))))) {
+		if core.SolidAt(tx, cube.PosFromVec3(from.Add(line.Mul(float64(i)/float64(steps))))) {
 			return false
 		}
 	}

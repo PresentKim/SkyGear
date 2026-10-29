@@ -341,7 +341,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	}
 	tab := func(key string, icon string, t int) ui.Option {
 		o := ui.Tab(i18n.T(lang, key), icon, v.tab == t, pick(t, 0, ""))
-		return s.opt(o.Label, o.Icon, o.Run)
+		return s.Opt(o.Label, o.Icon, o.Run)
 	}
 	sp := ui.Split{
 		Tabs: []ui.Option{
@@ -365,7 +365,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
 	}
 	// the help is the button's tooltip; pressing it keeps the screen
-	sp.Actions = append(sp.Actions, s.opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.backOption(lang))
+	sp.Actions = append(sp.Actions, s.Opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.BackOption(lang))
 	ui.SplitMenu(p, i18n.T(lang, "researchlist.title"), sp)
 }
 
@@ -413,7 +413,7 @@ func (s *session) researchNode(p *player.Player, r *progress.Research) (ui.Detai
 		func(p *player.Player) { s.showResearch(p) },
 		func(p *player.Player, n *progress.Research) { s.showResearchAt(p, n) })
 	back := ui.Back(i18n.T(i18n.Of(p), "researchnode.back"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
-	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
+	return d, rows, append(opts, s.Opt(back.Label, back.Icon, back.Run))
 }
 
 // researchNodeWith builds the detail of a research: the card, the text, the
@@ -433,7 +433,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	case done:
 		d.Status = i18n.T(i18n.Of(p), "researchnode.complete")
 	case progress.Open(s.Session, r):
-		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "researchnode.start"), formicon.Mission, func(p *player.Player, tx *world.Tx) {
+		opts = append(opts, s.Opt(i18n.T(i18n.Of(p), "researchnode.start"), formicon.Mission, func(p *player.Player, tx *world.Tx) {
 			if r.IsCopy() {
 				progress.LocalOf(s.Session).CopiesDone[r.ID] = true
 				finished(p)
@@ -458,7 +458,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	// What is still to do before it: a button that goes to that research.
 	for _, n := range r.Needs {
 		if need, ok := progress.ByID(n); ok && !done && !progress.Researched(s.Session, n) {
-			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(i18n.Of(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
+			opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(i18n.Of(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
 		}
 	}
 	d.Body = b.String()

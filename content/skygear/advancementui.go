@@ -149,7 +149,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 	if open != nil {
 		b.Panel = s.questPanel(p, tab, open)
 	}
-	ui.QuestBookMenu(p, i18n.T(lang, "advancement.title"), b, s.backOption(lang))
+	ui.QuestBookMenu(p, i18n.T(lang, "advancement.title"), b, s.BackOption(lang))
 }
 
 // questPanel is an advancement's quest panel: its state and hint, the item
@@ -185,7 +185,7 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 		if progress.StateOf(s.Session).Tracked == a.ID {
 			label = i18n.T(lang, "advancement.node.untrack")
 		}
-		pn.Actions = append(pn.Actions, s.opt(label, formicon.Mission, func(p *player.Player, tx *world.Tx) {
+		pn.Actions = append(pn.Actions, s.Opt(label, formicon.Mission, func(p *player.Player, tx *world.Tx) {
 			if progress.StateOf(s.Session).Tracked != a.ID {
 				achievement.Count(p, "adv_track", 1)
 			}

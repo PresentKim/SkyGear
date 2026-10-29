@@ -65,7 +65,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 				s.showExpandPlane(p, e)
 			}
 		}
-		actions = append(actions, s.opt(i18n.T(lang, "expand.plane.buy"), formicon.Island, buy))
+		actions = append(actions, s.Opt(i18n.T(lang, "expand.plane.buy"), formicon.Island, buy))
 		keys[ui.KeyOK] = buy
 	}
 	leave := func(p *player.Player, tx *world.Tx) {
@@ -73,7 +73,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			s.stopExpand(p, tx)
 		}
 	}
-	actions = append(actions, s.opt(i18n.T(lang, "expand.plane.leave"), formicon.Back, leave))
+	actions = append(actions, s.Opt(i18n.T(lang, "expand.plane.leave"), formicon.Back, leave))
 	ui.PlaneMenu(p, ui.Plane{FOV: expandMapFOV, Distance: expandMapCameraHeight, Spots: spots, Info: s.chunkLabel(lang, t, buyable), Actions: actions, Corner: corner, Close: leave, Keys: keys})
 }
 
