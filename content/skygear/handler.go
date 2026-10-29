@@ -78,7 +78,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		h.s.removeDisplay(ctx.Player().Tx(), pos)
 	case machine.Machine:
-		machine.BreakMachine(h.s.Session, ctx.Player().Tx(), pos, b)
+		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
 		h.s.breakComposter(pos, b, drops)
 	case Barrel:
@@ -99,7 +99,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case machine.Machine:
-		machine.PlaceMachine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
+		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	case ConduitBundle:

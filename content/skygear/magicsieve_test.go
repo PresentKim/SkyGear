@@ -169,7 +169,7 @@ func TestMagicSieveWorks(t *testing.T) {
 	for range 3 {
 		_ = st.Insert(item.NewStack(block.Gravel{}, 1))
 	}
-	tick(s, 3*(machine.MachineKinds[machine.KindMagicSieve].Interval+3))
+	tick(s, 3*(machine.Kinds[machine.KindMagicSieve].Interval+3))
 	if st.Charges >= sievetable.MagicCharges {
 		t.Fatalf("no charge was used (%d left)", st.Charges)
 	}

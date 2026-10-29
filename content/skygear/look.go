@@ -327,13 +327,13 @@ func machineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	switch {
 	case st.Def.Crafter:
 		return crafterLines(lang, st), nil
-	case st.Def == machine.MachineKinds[machine.KindLab]:
+	case st.Def == machine.Kinds[machine.KindLab]:
 		return machine.LabLines(lang, st), nil
-	case st.Def == machine.MachineKinds[machine.KindSellBox]:
+	case st.Def == machine.Kinds[machine.KindSellBox]:
 		lines = append(lines, i18n.T(lang, "look.machine.sellCycle")+gauge)
-	case st.Def == machine.MachineKinds[machine.KindHarvester]:
+	case st.Def == machine.Kinds[machine.KindHarvester]:
 		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
-	case st.Def == machine.MachineKinds[machine.KindGenerator]:
+	case st.Def == machine.Kinds[machine.KindGenerator]:
 		return machine.GeneratorLines(lang, st), nil
 	case st.Def.Gate, m.Kind == machine.KindStorageLink, m.Kind == machine.KindTinker:
 		return nil, nil
@@ -352,7 +352,7 @@ func machineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		return lines, nil
 	case st.Def.Cell:
 		return []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap())}, nil
-	case st.Def == machine.MachineKinds[machine.KindMiner]:
+	case st.Def == machine.Kinds[machine.KindMiner]:
 		// Its output shows as a slot.
 		return append(append([]string{i18n.T(lang, "look.machine.mining") + gauge}, machine.ConsumerLines(lang, st)...), machine.BlockedLines(lang, st)...), nil
 	default:
@@ -380,7 +380,7 @@ func machineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 
 // detailLines are the figures the panel adds while its viewer sneaks: the
 // length of a work cycle with the ticks left (the energy is in the lines).
-func detailLines(lang string, st *machine.MachineState) []string {
+func detailLines(lang string, st *machine.State) []string {
 	var lines []string
 	if cycle := st.CycleLen(); cycle > 1 && len(st.Def.Input)+len(st.Def.Output) > 0 && !st.Def.Crafter {
 		if st.Progress > 0 {
@@ -401,7 +401,7 @@ func stackLine(lang string, it item.Stack) string {
 }
 
 // crafterLines say what the auto crafter does: its recipe, what it lacks.
-func crafterLines(lang string, st *machine.MachineState) []string {
+func crafterLines(lang string, st *machine.State) []string {
 	if st.Recipe == nil {
 		return []string{i18n.T(lang, "crafter.status.none")}
 	}

@@ -47,7 +47,7 @@ func TestQuickBarTakesEveryOutputAndNothingElse(t *testing.T) {
 		return out
 	}
 	takeable := map[string][]int{}
-	for name, k := range machine.MachineKinds {
+	for name, k := range machine.Kinds {
 		panel, ok := machinePanels[k.Marker]
 		if !ok {
 			continue

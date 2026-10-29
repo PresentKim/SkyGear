@@ -147,7 +147,7 @@ func PerMinute(count int, minutes float64) float64 {
 
 // roomFor reports whether stacks fit in the output; when they do not, the
 // machine is stuck on its output.
-func (st *MachineState) RoomFor(stacks []item.Stack) bool {
+func (st *State) RoomFor(stacks []item.Stack) bool {
 	if Fits(st.Inv(), st.Def.Output, stacks) {
 		return true
 	}
@@ -156,7 +156,7 @@ func (st *MachineState) RoomFor(stacks []item.Stack) bool {
 }
 
 // emit puts a product in the output and records it as made by the island.
-func (st *MachineState) Emit(it item.Stack) {
+func (st *State) Emit(it item.Stack) {
 	put(st.Inv(), st.Def.Output, it)
 	if st.Sess != nil {
 		FactoryOf(st.Sess).Stats.Add(FactorySaved.Of(st.Sess), it, it.Count(), true)
@@ -165,7 +165,7 @@ func (st *MachineState) Emit(it item.Stack) {
 
 // tickWork spends one tick of energy and advances the work; it reports
 // whether the machine could work.
-func (st *MachineState) TickWork() bool {
+func (st *State) TickWork() bool {
 	if !st.consume() {
 		return false
 	}
@@ -221,8 +221,8 @@ func statsTabs(s *core.Session, p *player.Player, tab StatsTab) []ui.Option {
 	lang := i18n.Of(p)
 	// Tabs carry an icon, like the tabs of the creative inventory.
 	icons := map[StatsTab]string{
-		StatsItems:  formicon.Of(MachineItem(KindCrusher)),
-		StatsPower:  formicon.Of(MachineItem(KindGenerator)),
+		StatsItems:  formicon.Of(Item(KindCrusher)),
+		StatsPower:  formicon.Of(Item(KindGenerator)),
 		StatsStalls: formicon.Locked,
 	}
 	mk := func(label string, t StatsTab) ui.Option {
@@ -330,7 +330,7 @@ func powerText(s *core.Session, lang string) string {
 }
 
 // markWorked notes that the machine did its work this tick.
-func (st *MachineState) markWorked() {
+func (st *State) markWorked() {
 	st.didWork = true
 	st.worked++
 }

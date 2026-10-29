@@ -28,9 +28,9 @@ func (windowKindEnum) Options(cmd.Source) []string { return windowKinds() }
 // windowKinds returns the machine kinds whose use opens a machine window.
 func windowKinds() []string {
 	var out []string
-	for _, k := range machine.MachineOrder {
+	for _, k := range machine.Order {
 		// the laboratory's use opens its screen (labui.go), not the window
-		if machine.MachineKinds[k].Marker != "" && k != machine.KindSieve && k != machine.KindLab {
+		if machine.Kinds[k].Marker != "" && k != machine.KindSieve && k != machine.KindLab {
 			out = append(out, k)
 		}
 	}
@@ -66,7 +66,7 @@ func (c debugUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func showWindowPicker(p *player.Player) {
 	var opts []ui.Option
 	for _, k := range windowKinds() {
-		opts = append(opts, ui.Option{Label: naming.ItemName(i18n.Of(p), machine.MachineItem(k)) + "\n§8" + k, Icon: formicon.Of(machine.MachineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: naming.ItemName(i18n.Of(p), machine.Item(k)) + "\n§8" + k, Icon: formicon.Of(machine.Item(k)), Run: func(p *player.Player, _ *world.Tx) {
 			previewLater(p, k)
 		}})
 	}
@@ -87,7 +87,7 @@ func previewLater(p *player.Player, kind string) {
 
 // previewWindow opens a sample window of the machine kind.
 func previewWindow(p *player.Player, kind string) {
-	m := machine.NewMachine(kind, "", "")
+	m := machine.New(kind, "", "")
 	st := m.State
 	inv := st.Inv()
 	for i, s := range st.Def.Input {

@@ -13,7 +13,7 @@ import (
 
 // runAlloy works on the recipe the two input slots make: it needs energy every
 // tick of the interval, and finishes when the output has room.
-func (st *MachineState) runAlloy() {
+func (st *State) runAlloy() {
 	a, _ := st.Inv().Item(st.Def.Input[0])
 	b, _ := st.Inv().Item(st.Def.Input[1])
 	r, ok := machinerecipe.MatchAlloy(a, b)

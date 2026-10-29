@@ -25,13 +25,13 @@ import (
 
 // showLab shows the essence extractor's screen on the essence it makes, or
 // the first one.
-func showLab(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState) {
+func showLab(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State) {
 	showLabOn(s, p, pos, st, st.Lab)
 }
 
 // showLabOn shows the essence extractor's screen with the recipe r chosen
 // (nil: the first open one).
-func showLabOn(s *core.Session, p *player.Player, pos cube.Pos, st *MachineState, r *machinerecipe.Lab) {
+func showLabOn(s *core.Session, p *player.Player, pos cube.Pos, st *State, r *machinerecipe.Lab) {
 	lang := i18n.Of(p)
 	open := LabOpenRecipes(s)
 	if r == nil && len(open) > 0 {
@@ -82,7 +82,7 @@ func LabOpenRecipes(s *core.Session) []*machinerecipe.Lab {
 
 // labStill reports whether the extractor a screen was shown for still
 // stands where it did, in the session's world.
-func labStill(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState) bool {
+func labStill(s *core.Session, tx *world.Tx, pos cube.Pos, st *State) bool {
 	m, ok := tx.Block(pos).(Machine)
 	return tx.World() == s.World && ok && m.State == st
 }
@@ -104,7 +104,7 @@ func labOpen(s *core.Session, r *machinerecipe.Lab) bool {
 
 // LabDetail is the right side of the screen for recipe r: the card, the
 // rows of the ingredients and the essences made, and the buttons.
-func LabDetail(s *core.Session, lang string, st *MachineState, r *machinerecipe.Lab, again func(*machinerecipe.Lab, func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx)) (ui.Detail, []ui.SlotRow, []ui.Option) {
+func LabDetail(s *core.Session, lang string, st *State, r *machinerecipe.Lab, again func(*machinerecipe.Lab, func(*player.Player, *world.Tx)) func(*player.Player, *world.Tx)) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	out := item.NewStack(r.Out, 1)
 	d := ui.Detail{Icon: formicon.Of(out), Name: naming.UIItemName(lang, out)}
 	running := st.Lab == r
@@ -161,7 +161,7 @@ func LabDetail(s *core.Session, lang string, st *MachineState, r *machinerecipe.
 // labDeposit puts the ingredients of the recipe (only, when it is set, the
 // one that is that item) from p's inventory in the laboratory, up to
 // labHandCap of each.
-func labDeposit(s *core.Session, p *player.Player, st *MachineState, only world.Item) {
+func labDeposit(s *core.Session, p *player.Player, st *State, only world.Item) {
 	inv := p.Inventory()
 	for slot, it := range inv.Slots() {
 		if it.Empty() || !st.Accepts(it) || (only != nil && naming.ItemKey(it.Item()) != naming.ItemKey(only)) {
@@ -177,7 +177,7 @@ func labDeposit(s *core.Session, p *player.Player, st *MachineState, only world.
 }
 
 // inputRoom is how many of it the input slots still take.
-func (st *MachineState) inputRoom(it item.Stack) int {
+func (st *State) inputRoom(it item.Stack) int {
 	room := 0
 	for _, slot := range st.Def.Input {
 		cur, _ := st.Inv().Item(slot)
@@ -192,13 +192,13 @@ func (st *MachineState) inputRoom(it item.Stack) int {
 }
 
 // labTake gives p the essences made.
-func labTake(s *core.Session, p *player.Player, tx *world.Tx, st *MachineState) {
+func labTake(s *core.Session, p *player.Player, tx *world.Tx, st *State) {
 	labGive(s, p, tx, st, st.Def.Output)
 }
 
 // labStop stops the laboratory: p gets back what it holds, and it takes
 // nothing until an essence is chosen again.
-func labStop(s *core.Session, p *player.Player, tx *world.Tx, st *MachineState) {
+func labStop(s *core.Session, p *player.Player, tx *world.Tx, st *State) {
 	labGive(s, p, tx, st, st.Def.Input)
 	labGive(s, p, tx, st, st.Def.Output)
 	st.SetLab(nil)
@@ -206,7 +206,7 @@ func labStop(s *core.Session, p *player.Player, tx *world.Tx, st *MachineState) 
 
 // labGive empties slots of the laboratory into p's inventory (what does not
 // fit drops at p).
-func labGive(s *core.Session, p *player.Player, tx *world.Tx, st *MachineState, slots []int) {
+func labGive(s *core.Session, p *player.Player, tx *world.Tx, st *State, slots []int) {
 	for _, slot := range slots {
 		if it, _ := st.Inv().Item(slot); !it.Empty() {
 			_ = st.Inv().SetItem(slot, item.Stack{})

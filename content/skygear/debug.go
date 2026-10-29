@@ -237,7 +237,7 @@ func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
 	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
-		tx.SetBlock(pos, machine.NewMachine(machine.KindGate, "", ""), nil)
+		tx.SetBlock(pos, machine.New(machine.KindGate, "", ""), nil)
 	}
 	s.state.GateTier = max(s.state.GateTier, c.Level-1)
 	if !s.startWave(tx, pos, p.Position(), c.Level) {

@@ -38,11 +38,11 @@ func codexTabIcon(t codexTab) string {
 	case codexSearchTab:
 		return formicon.Of(item.NewStack(item.Compass{}, 1))
 	case codexSieveTab:
-		return formicon.Of(machine.MachineItem(machine.KindSieve))
+		return formicon.Of(machine.Item(machine.KindSieve))
 	case codexProcessTab:
-		return formicon.Of(machine.MachineItem(machine.KindAlloy))
+		return formicon.Of(machine.Item(machine.KindAlloy))
 	case codexMobsTab:
-		return formicon.Of(machine.MachineItem(machine.KindGate))
+		return formicon.Of(machine.Item(machine.KindGate))
 	}
 	return formicon.Of(item.NewStack(sgitem.Petal{Colour: "red"}, 1))
 }

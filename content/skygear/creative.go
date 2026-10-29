@@ -50,7 +50,7 @@ func registerCreativeItems() {
 			add(construction, ItemConduit{Tier: t})
 			add(construction, FluidConduit{Tier: t})
 		}
-		for _, k := range machine.MachineOrder {
+		for _, k := range machine.Order {
 			if k != machine.KindSellBox {
 				add(construction, machine.Machine{Kind: k})
 			}

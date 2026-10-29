@@ -27,7 +27,7 @@ func SmeltOf(in item.Stack) (item.Stack, bool) {
 }
 
 // runFurnace smelts the input into the output slot without fuel.
-func (st *MachineState) runFurnace() {
+func (st *State) runFurnace() {
 	st.process(func(in item.Stack) []item.Stack {
 		out, _ := SmeltOf(in)
 		return []item.Stack{out}
@@ -43,7 +43,7 @@ const (
 
 // runVacuum collects one stack of the dropped items around it every
 // interval. A stack that does not fit the output is left lying.
-func runVacuum(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+func runVacuum(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	if st.Progress < st.Def.Interval {
 		st.TickWork()
 		return
@@ -85,7 +85,7 @@ const (
 
 // runFeller fells the highest log in reach every interval; with no log left
 // it plants a sapling from its input.
-func runFeller(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	if st.Progress < st.Def.Interval {
 		st.TickWork()
 		return
@@ -131,7 +131,7 @@ func runFeller(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
 
 // plantSapling plants a sapling from the input of the feller at pos,
 // reporting whether it did.
-func (st *MachineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
+func (st *State) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
 	slot, in, ok := st.FirstInput()
 	if !ok {
 		return false
@@ -151,7 +151,7 @@ func (st *MachineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool
 
 // boneMealSapling uses one bone meal of the feller at pos on the nearest
 // sapling in reach that it works on, as a player using it would.
-func (st *MachineState) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
+func (st *State) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
 	slot := st.Def.Charge[0]
 	meal, _ := st.Inv().Item(slot)
 	if _, ok := meal.Item().(item.BoneMeal); !ok {

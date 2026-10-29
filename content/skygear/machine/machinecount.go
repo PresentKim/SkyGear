@@ -9,7 +9,7 @@ import (
 
 func init() {
 	for kind := range CycleOnReset {
-		MachineKinds[kind].CycleOnReset = true
+		Kinds[kind].CycleOnReset = true
 	}
 }
 
@@ -23,7 +23,7 @@ var CycleOnReset = map[string]bool{
 
 // countWork passes the work a machine did to the players' counters: its
 // finished cycles at once, the RE it generated once a second.
-func (st *MachineState) countWork(tx *world.Tx, kind string, tick int64) {
+func (st *State) countWork(tx *world.Tx, kind string, tick int64) {
 	if st.Done > 0 {
 		achievement.CountAll(tx, "cycle_total", int64(st.Done))
 		achievement.CountAll(tx, "cycle_"+kind, int64(st.Done))
@@ -44,7 +44,7 @@ func (st *MachineState) countWork(tx *world.Tx, kind string, tick int64) {
 
 // tally adds to a count the players' counters get at the machine's next
 // tick.
-func (st *MachineState) tally(key string, n int64) {
+func (st *State) tally(key string, n int64) {
 	if st.tallyCounts == nil {
 		st.tallyCounts = map[string]int64{}
 	}

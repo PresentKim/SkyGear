@@ -91,7 +91,7 @@ func (s machineStatus) reasonKey() string {
 }
 
 // judge decides what the machine did in the last second.
-func (st *MachineState) judge(now int) machineStatus {
+func (st *State) judge(now int) machineStatus {
 	m := &st.Mon
 	var cur machineStatus
 	switch {
@@ -116,7 +116,7 @@ func (st *MachineState) judge(now int) machineStatus {
 
 // reason is the status of a machine in words; a starved crafter says what it
 // misses.
-func (st *MachineState) reason(lang string) string {
+func (st *State) reason(lang string) string {
 	text := i18n.T(lang, st.Mon.Status.reasonKey())
 	if st.Mon.Status == StatusStarved && st.Def.Crafter && st.Recipe != nil {
 		if missing := CrafterMissing(lang, st); missing != "" {
@@ -188,7 +188,7 @@ func TickMonitor(s *core.Session, tx *world.Tx) {
 // alertLine is one machine to alert.
 type alertLine struct {
 	pos   cube.Pos
-	State *MachineState
+	State *State
 }
 
 // sendAlerts tells the players with alerts on about stuck machines: a line
@@ -264,7 +264,7 @@ func StallOptions(s *core.Session, p *player.Player) (string, []ui.Option) {
 	if FactorySaved.Of(s).AlertsOn[id] {
 		state = "monitor.alerts.on"
 	}
-	var list []*MachineState
+	var list []*State
 	for _, st := range FactoryOf(s).machines {
 		if st.Mon.Status.alerts() {
 			list = append(list, st)
@@ -337,14 +337,14 @@ func faceTowards(p *player.Player, eyes, target mgl64.Vec3) {
 // stall (uptime).
 type factory struct {
 	Stats    *prodStats
-	machines map[cube.Pos]*MachineState
+	machines map[cube.Pos]*State
 	now      int
 	lastTick int64
 	uptime   int
 }
 
 var factoryPart = core.NewPart(func() *factory {
-	return &factory{Stats: NewProdStats(), machines: map[cube.Pos]*MachineState{}}
+	return &factory{Stats: NewProdStats(), machines: map[cube.Pos]*State{}}
 })
 
 // FactoryOf is what the save of s knows of its machines.

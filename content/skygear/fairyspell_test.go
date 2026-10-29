@@ -92,7 +92,7 @@ func TestSnowRunsMachinesFaster(t *testing.T) {
 		st.Unlimited = false
 		st.Energy = 1000
 		st.Insert(item.NewStack(block.Cobblestone{}, 1))
-		tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2)
+		tick(s, machine.Kinds[machine.KindCrusher].Interval/2)
 		return st.Progress, 1000 - st.Energy
 	}
 	p, e := run(false)

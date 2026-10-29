@@ -20,7 +20,7 @@ const labCheckEvery = 10
 
 // setLab makes the laboratory brew r (nil: nothing), from the start of a
 // cycle.
-func (st *MachineState) SetLab(r *machinerecipe.Lab) {
+func (st *State) SetLab(r *machinerecipe.Lab) {
 	st.Lab, st.RecipeID, st.Progress, st.period = r, "", 0, 0
 	if r != nil {
 		st.RecipeID, st.period = r.Out.Kind, r.Ticks
@@ -29,7 +29,7 @@ func (st *MachineState) SetLab(r *machinerecipe.Lab) {
 
 // labAccepts reports whether the laboratory takes an item: an ingredient of
 // the recipe it brews.
-func (st *MachineState) labAccepts(it item.Stack) bool {
+func (st *State) labAccepts(it item.Stack) bool {
 	if st.Lab == nil {
 		return false
 	}
@@ -44,19 +44,19 @@ const labFeedCycles = 8
 // labFeedCap is how many of an ingredient the feed puts in the laboratory:
 // what the recipe takes of it for labFeedCycles cycles. A feed of one
 // ingredient cannot fill the nine slots and crowd the others out.
-func (st *MachineState) LabFeedCap(it item.Stack) int {
+func (st *State) LabFeedCap(it item.Stack) int {
 	in, _ := st.Lab.Ingredient(it)
 	return max(1, in.Count) * labFeedCycles
 }
 
 // labHandCap is how many of an ingredient a player puts in by hand: the
 // stacks of the input slots shared out among the ingredients.
-func (st *MachineState) LabHandCap(it item.Stack) int {
+func (st *State) LabHandCap(it item.Stack) int {
 	return it.MaxCount() * max(1, len(st.Def.Input)/len(st.Lab.In))
 }
 
 // labHave counts what the input slots hold by item key.
-func (st *MachineState) LabHave() map[string]int {
+func (st *State) LabHave() map[string]int {
 	have := map[string]int{}
 	for _, slot := range st.Def.Input {
 		if it, _ := st.Inv().Item(slot); !it.Empty() {
@@ -69,7 +69,7 @@ func (st *MachineState) LabHave() map[string]int {
 // labClosest is the recipe the input slots are closest to: the one with the
 // most of its ingredients started, none if no ingredient is in them. A
 // laboratory saved before it was chosen on its screen brews this one.
-func (st *MachineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingredient) {
+func (st *State) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingredient) {
 	have := st.LabHave()
 	var best *machinerecipe.Lab
 	var bestMissing []machinerecipe.Ingredient
@@ -93,7 +93,7 @@ func (st *MachineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingred
 // ingredients are there, and when the cycle is out and the essences fit the
 // output, takes the ingredients and makes them. Without an ingredient the
 // cycle starts over.
-func (st *MachineState) runLab() {
+func (st *State) runLab() {
 	r := st.Lab
 	if r == nil {
 		st.Progress, st.period = 0, 0
@@ -140,7 +140,7 @@ func (st *MachineState) runLab() {
 }
 
 // LabLines say in lang what the laboratory brews and what it lacks for it.
-func LabLines(lang string, st *MachineState) []string {
+func LabLines(lang string, st *State) []string {
 	r := st.Lab
 	if r == nil {
 		return []string{i18n.T(lang, "lab.none")}

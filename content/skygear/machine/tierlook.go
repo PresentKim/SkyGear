@@ -28,7 +28,7 @@ func TierLook(kind string) bool {
 
 // tierLookIndex is the state number of a tier and working look.
 func tierLookIndex(kind string, tier int, on bool) int {
-	if !AnimatedMachines[kind] {
+	if !AnimatedKinds[kind] {
 		return tier
 	}
 	if on {
@@ -45,7 +45,7 @@ func tierStates(kind string) map[string][]any {
 	var vals []any
 	for t := 0; t <= MaxTier; t++ {
 		vals = append(vals, TierValue(kind, t, false))
-		if AnimatedMachines[kind] {
+		if AnimatedKinds[kind] {
 			vals = append(vals, TierValue(kind, t, true))
 		}
 	}
@@ -86,7 +86,7 @@ func tierPermutations(kind string) []customblock.Permutation {
 	var perms []customblock.Permutation
 	for t := 0; t <= MaxTier; t++ {
 		for _, on := range []bool{false, true} {
-			if (t == 0 && !on) || (on && !AnimatedMachines[kind]) {
+			if (t == 0 && !on) || (on && !AnimatedKinds[kind]) {
 				continue
 			}
 			perms = append(perms, customblock.Permutation{
@@ -100,7 +100,7 @@ func tierPermutations(kind string) []customblock.Permutation {
 
 // showTier sets the block of a machine to the look of its tier when that
 // changed.
-func showTier(tx *world.Tx, pos cube.Pos, st *MachineState) {
+func showTier(tx *world.Tx, pos cube.Pos, st *State) {
 	m, ok := tx.Block(pos).(Machine)
 	if !ok || m.State != st || !TierLook(m.Kind) || m.Tier == st.Tier {
 		return

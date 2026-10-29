@@ -264,19 +264,19 @@ func (s *session) Close(tx *world.Tx) {
 // The machine kinds of other parts of the game.
 func init() {
 	sess := func(c *core.Session) *session { s, _ := activeGame.sessionOf(c.World); return s }
-	ctl := machine.MachineKinds[machine.KindStorageController]
+	ctl := machine.Kinds[machine.KindStorageController]
 	ctl.Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		sess(c).useController(p, tx, pos)
 		return true
 	}
 	ctl.Insert, ctl.Peek, ctl.Extract = controllerInsert, controllerPeek, controllerExtract
-	machine.MachineKinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	machine.Kinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		if !c.Debounced(p) {
 			sess(c).showGateForm(p, tx, pos)
 		}
 		return true
 	}
-	machine.MachineKinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.MachineState, pos cube.Pos, tx *world.Tx) {
+	machine.Kinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx) {
 		sess(c).runHarvester(st, pos, tx)
 	}
 	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }

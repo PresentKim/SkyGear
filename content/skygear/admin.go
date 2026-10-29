@@ -100,8 +100,8 @@ func giveItems() map[string]func() item.Stack {
 			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
 		},
 	}
-	for _, k := range machine.MachineOrder {
-		out[k] = func() item.Stack { return machine.MachineItem(k) }
+	for _, k := range machine.Order {
+		out[k] = func() item.Stack { return machine.Item(k) }
 	}
 	for t := 1; t <= conduitTiers; t++ {
 		out[fmt.Sprintf("energy_conduit_%d", t)] = func() item.Stack { return item.NewStack(EnergyConduit{Tier: t}, 1) }

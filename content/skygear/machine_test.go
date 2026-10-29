@@ -33,8 +33,8 @@ import (
 var machinePos = cube.Pos{3, island.IslandY, 3}
 
 // placeTestMachine places a machine and returns its state.
-func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machine.MachineState {
-	m := machine.NewMachine(kind, owner, owner)
+func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machine.State {
+	m := machine.New(kind, owner, owner)
 	// These tests are about the work itself, not about energy (energy_test.go).
 	m.State.Unlimited = true
 	if machine.IsSieve(kind) {
@@ -46,15 +46,15 @@ func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machine.Mac
 }
 
 func TestMachineIDsDistinct(t *testing.T) {
-	seen := map[machine.MachineID]string{}
-	for kind, k := range machine.MachineKinds {
-		if k.Id == 0 {
+	seen := map[machine.ID]string{}
+	for kind, k := range machine.Kinds {
+		if k.ID == 0 {
 			t.Errorf("%s has no id", kind)
 		}
-		if other, ok := seen[k.Id]; ok {
-			t.Errorf("%s and %s share id %d", kind, other, k.Id)
+		if other, ok := seen[k.ID]; ok {
+			t.Errorf("%s and %s share id %d", kind, other, k.ID)
 		}
-		seen[k.Id] = kind
+		seen[k.ID] = kind
 	}
 }
 
@@ -70,11 +70,11 @@ func TestCrusher(t *testing.T) {
 			t.Fatal("crusher refused cobblestone")
 		}
 	}
-	tick(s, machine.MachineKinds[machine.KindCrusher].Interval+1)
+	tick(s, machine.Kinds[machine.KindCrusher].Interval+1)
 	if n := machine.OutputCount(st, block.Gravel{}); n != 1 {
 		t.Fatalf("gravel after one interval = %d", n)
 	}
-	tick(s, machine.MachineKinds[machine.KindCrusher].Interval+1)
+	tick(s, machine.Kinds[machine.KindCrusher].Interval+1)
 	if n := machine.OutputCount(st, block.Gravel{}); n != 2 {
 		t.Fatalf("gravel after two intervals = %d", n)
 	}
@@ -144,7 +144,7 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 		tx.SetBlock(above, block.NewChest(), nil)
 	})
 	st := placeTestMachine(s, machinePos, machine.KindMiner, "")
-	tick(s, machine.MachineKinds[machine.KindMiner].Interval+10)
+	tick(s, machine.Kinds[machine.KindMiner].Interval+10)
 	s.World.Do(func(tx *world.Tx) {
 		if _, air := tx.Block(below).(block.Air); !air {
 			t.Fatalf("stone not mined: %v", tx.Block(below))
@@ -159,7 +159,7 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 		// Special blocks are never mined.
 		tx.SetBlock(below, Drawer{Facing: cube.South}, nil)
 	})
-	tick(s, 2*machine.MachineKinds[machine.KindMiner].Interval)
+	tick(s, 2*machine.Kinds[machine.KindMiner].Interval)
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(below).(Drawer); !ok {
 			t.Fatal("auto miner mined a drawer")
@@ -168,7 +168,7 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 }
 
 func TestMachineWindowAndNBT(t *testing.T) {
-	m := machine.NewMachine(machine.KindCrusher, "a", "A")
+	m := machine.New(machine.KindCrusher, "a", "A")
 	st := m.State
 	h := st.Inv().Handler()
 	for _, c := range []struct {
@@ -623,7 +623,7 @@ func TestTankBuckets(t *testing.T) {
 		m := tx.Block(machinePos).(machine.Machine)
 		use := func(held item.Stack) {
 			p.SetHeldItems(held, item.Stack{})
-			machine.UseFluidMachine(s.Session, p, tx, machinePos, m, held, &item.UseContext{})
+			machine.UseFluid(s.Session, p, tx, machinePos, m, held, &item.UseContext{})
 		}
 		use(machine.BucketOf(fluidnet.Lava))
 		if st.Fluid != fluidnet.Lava || st.FluidAmt != machine.BucketMB {
@@ -647,7 +647,7 @@ func TestTankBuckets(t *testing.T) {
 }
 
 func TestMachineFillTakesOnlyWhatFits(t *testing.T) {
-	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	st := machine.New(machine.KindCrusher, "", "").State
 	in := st.Def.Input[0]
 	if n := st.Fill(item.NewStack(item.Stick{}, 5)); n != 0 {
 		t.Errorf("filled %d sticks the crusher does not take", n)
@@ -667,7 +667,7 @@ func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	st := machine.New(machine.KindCrusher, "", "").State
 	out, in := st.Def.Output[0], st.Def.Input[0]
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_ = p.Inventory().SetItem(0, item.NewStack(block.Cobblestone{}, 20))
@@ -697,7 +697,7 @@ func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 // TestMachineInfoWarnsWhenStalled: the info icon of a machine window carries
 // the warning badge mark while the machine is stuck, and not otherwise.
 func TestMachineInfoWarnsWhenStalled(t *testing.T) {
-	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	st := machine.New(machine.KindCrusher, "", "").State
 	if _, tier := slotdeco.Of(st.InfoItem().CustomName()); tier != 0 {
 		t.Errorf("a working machine shows badge %d", tier)
 	}

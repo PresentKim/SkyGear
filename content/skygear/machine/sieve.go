@@ -155,7 +155,7 @@ func sievePermutations(kind string) []customblock.Permutation {
 
 // SieveLook returns the mesh, content and fill a sieve shows for its state:
 // no mesh (0, 0, 0), a mesh and nothing on it (mesh, 0, 1).
-func SieveLook(st *MachineState) (mesh, content, fill int) {
+func SieveLook(st *State) (mesh, content, fill int) {
 	if mesh = meshLookOf(st.Mesh); mesh == 0 {
 		return 0, 0, 0
 	}
@@ -171,7 +171,7 @@ func SieveLook(st *MachineState) (mesh, content, fill int) {
 }
 
 // showSieve sets the sieve block to show its content when it changed.
-func showSieve(tx *world.Tx, pos cube.Pos, st *MachineState) {
+func showSieve(tx *world.Tx, pos cube.Pos, st *State) {
 	m, ok := tx.Block(pos).(Machine)
 	if !ok || m.State != st {
 		return
@@ -218,12 +218,12 @@ const sieveReach = 2
 // sieveAt is a sieve block of the game with its state.
 type sieveAt struct {
 	pos   cube.Pos
-	State *MachineState
+	State *State
 }
 
 // sievesAround are the sieves in the 5×5 on the level of pos, the clicked
 // one first.
-func sievesAround(tx *world.Tx, pos cube.Pos, clicked *MachineState) []sieveAt {
+func sievesAround(tx *world.Tx, pos cube.Pos, clicked *State) []sieveAt {
 	out := []sieveAt{{pos, clicked}}
 	for x := -sieveReach; x <= sieveReach; x++ {
 		for z := -sieveReach; z <= sieveReach; z++ {
@@ -243,7 +243,7 @@ func sievesAround(tx *world.Tx, pos cube.Pos, clicked *MachineState) []sieveAt {
 // blocks than the empty hand sieves of the group take, more of the same
 // block comes into the hand from the inventory, and a hand left empty is
 // filled again with it.
-func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState) {
+func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State) {
 	held, off := p.HeldItems()
 	group := sievesAround(tx, pos, st)
 	// Fitting and taking out a mesh work on the clicked sieve only.
@@ -370,7 +370,7 @@ func putIntoSieve(s *core.Session, p *player.Player, tx *world.Tx, sv sieveAt, h
 
 // siftStage sifts one stage of in by hand. The last stage drops the
 // products on top of the sieve.
-func siftStage(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState, in item.Stack) (finished bool) {
+func siftStage(s *core.Session, tx *world.Tx, pos cube.Pos, st *State, in item.Stack) (finished bool) {
 	st.LastUse = time.Now()
 	if b, ok := in.Item().(world.Block); ok {
 		tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
@@ -387,7 +387,7 @@ func siftStage(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState, in
 // finishSifting uses up one input block and gives its products: dropped on
 // top of a hand sieve, or into the output slots of an auto sieve (toOutput),
 // what does not fit waits in pending.
-func finishSifting(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState, toOutput bool) {
+func finishSifting(s *core.Session, tx *world.Tx, pos cube.Pos, st *State, toOutput bool) {
 	st.Progress = 0
 	slot, in, ok := st.FirstInput()
 	if !ok {
@@ -410,7 +410,7 @@ func finishSifting(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState
 }
 
 // outputHasRoom reports whether an output slot is empty or not yet full.
-func outputHasRoom(st *MachineState) bool {
+func outputHasRoom(st *State) bool {
 	for _, slot := range st.Def.Output {
 		if it, _ := st.Inv().Item(slot); it.Empty() || it.Count() < it.MaxCount() {
 			return true
@@ -420,7 +420,7 @@ func outputHasRoom(st *MachineState) bool {
 }
 
 // runAutoSieve sifts the input of an auto sieve on its own.
-func runAutoSieve(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+func runAutoSieve(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	// products that did not fit go first; while any is left the sieve waits
 	for len(st.pending) > 0 {
 		if !st.RoomFor(st.pending[:1]) {

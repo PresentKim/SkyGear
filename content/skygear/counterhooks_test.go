@@ -95,7 +95,7 @@ func TestCounterKindsExist(t *testing.T) {
 		prefix string
 		kinds  []string
 	}{
-		{"place_", machine.MachineOrder}, {"cycle_", machine.MachineOrder}, {"kill_", sgitem.MobKinds}, {"crop_", crops},
+		{"place_", machine.Order}, {"cycle_", machine.Order}, {"kill_", sgitem.MobKinds}, {"crop_", crops},
 		{"sift_mesh_", meshes}, {"pebble_", pebbles}, {"lab_", sgitem.ResearchEssenceKinds},
 	}
 	for _, c := range achievement.Counters {
@@ -113,7 +113,7 @@ func TestCounterKindsExist(t *testing.T) {
 		}
 	}
 	// and the other way round: every machine can be placed for an achievement
-	for _, k := range machine.MachineOrder {
+	for _, k := range machine.Order {
 		if k == machine.KindSellBox {
 			continue
 		}

@@ -110,10 +110,10 @@ func (m Machine) DrainFluid(_ fluidnet.World, _ cube.Pos, max int, simulate bool
 	return k, n
 }
 
-// UseFluidMachine handles a player using a machine with a tank: a full bucket
+// UseFluid handles a player using a machine with a tank: a full bucket
 // pours into the tank, an empty one takes a bucket's worth out, and the
 // crucible takes its cobblestone. It returns whether the click was used.
-func UseFluidMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
+func UseFluid(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
 	st := m.State
 	if wb, ok := held.Item().(sgitem.WoodenBucket); ok {
 		// A wooden bucket carries water only.
@@ -189,7 +189,7 @@ func swapBucket(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, h
 }
 
 // FluidLines are the WAILA lines of a machine with a tank.
-func FluidLines(lang string, st *MachineState) []string {
+func FluidLines(lang string, st *State) []string {
 	if st.FluidAmt == 0 {
 		return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.empty"), st.Def.FluidCap)}
 	}
@@ -198,7 +198,7 @@ func FluidLines(lang string, st *MachineState) []string {
 
 // runCrucible melts the cobblestone in the input of an electric crucible into
 // lava, every interval one block, while the tank has room.
-func (st *MachineState) runCrucible() {
+func (st *State) runCrucible() {
 	slot, in, ok := st.FirstInput()
 	if !ok || !st.Accepts(in) || st.FluidAmt+CrucibleLava > st.Def.FluidCap || (st.FluidAmt > 0 && st.Fluid != fluidnet.Lava) {
 		st.Progress = 0
@@ -214,7 +214,7 @@ func (st *MachineState) runCrucible() {
 }
 
 // runLavaGenerator burns the lava in its tank into energy while the buffer has room.
-func runLavaGenerator(s *core.Session, st *MachineState, pos cube.Pos) {
+func runLavaGenerator(s *core.Session, st *State, pos cube.Pos) {
 	gen := st.GenRate()
 	if st.FluidAmt > 0 && st.Energy+gen <= st.EnergyCap() {
 		if st.Progress += st.BurnRate(); st.Progress >= LavaGenBurn {
@@ -237,7 +237,7 @@ const washerWater = 250
 
 // runWasher washes the raw ore in the input: with enough water in the tank it
 // works an interval, and gives washerDust dusts of the metal (ore.go).
-func (st *MachineState) runWasher() {
+func (st *State) runWasher() {
 	slot, in, ok := st.FirstInput()
 	if !ok || !st.Accepts(in) || st.FluidAmt < washerWater || st.Fluid != fluidnet.Water {
 		st.Progress = 0

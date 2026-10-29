@@ -461,7 +461,7 @@ func TestStorageController(t *testing.T) {
 		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
 		// a link joins a drawer that does not touch
-		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.NewMachine(machine.KindStorageLink, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindStorageLink, "", ""), nil)
 		c := ctl.Add(cube.Pos{0, 0, 2})
 		tx.SetBlock(c, Drawer{Facing: cube.South}, nil)
 		// out of reach and unconnected

@@ -15,7 +15,7 @@ import (
 )
 
 func TestWindowItemTextsInDefaultLanguage(t *testing.T) {
-	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	st := machine.New(machine.KindCrusher, "", "").State
 	st.Tier = 2
 	info := st.InfoItem()
 	name, lore, ok := wintext.Localize(i18n.Default, info)

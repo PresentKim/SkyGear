@@ -42,7 +42,7 @@ const stallShow = 40
 // consume takes the energy of one tick of work from the buffer and reports
 // whether there was enough; a machine without need (or an unlimited one)
 // always works.
-func (st *MachineState) consume() bool {
+func (st *State) consume() bool {
 	u := st.useCost()
 	if u == 0 || st.Unlimited {
 		return true
@@ -77,7 +77,7 @@ func FuelDuration(st item.Stack) int {
 }
 
 // runGenerator burns fuel and fills the buffer; it runs every tick.
-func runGenerator(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+func runGenerator(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	gen, energyCap := st.GenRate(), st.EnergyCap()
 	if st.Burn == 0 && st.Energy+gen <= energyCap {
 		slot, fuel, ok := st.FirstInput()
@@ -146,7 +146,7 @@ func (m Machine) ReceiveEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int,
 func max0(n int) int { return max(n, 0) }
 
 // GeneratorLines are the lines of a generator's WAILA panel.
-func GeneratorLines(lang string, st *MachineState) []string {
+func GeneratorLines(lang string, st *State) []string {
 	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap())}
 	switch {
 	case st.Burn > 0:
@@ -160,7 +160,7 @@ func GeneratorLines(lang string, st *MachineState) []string {
 }
 
 // ConsumerLines are the energy lines of a machine that uses energy.
-func ConsumerLines(lang string, st *MachineState) []string {
+func ConsumerLines(lang string, st *State) []string {
 	if st.Def.Use == 0 || st.Unlimited {
 		return nil
 	}

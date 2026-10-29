@@ -71,11 +71,11 @@ var tierRanges = map[string][MaxTier + 1]int{
 // tierable reports whether the machines of a kind take kits.
 func tierable(kind string) bool { return tierKinds[kind] }
 
-func (st *MachineState) spec() tierSpec { return TierSpecs[st.Tier] }
+func (st *State) spec() tierSpec { return TierSpecs[st.Tier] }
 
 // reps is how many times a tick the machine runs its work; generators and
 // cells do not run faster, they make more.
-func (st *MachineState) Reps() int {
+func (st *State) Reps() int {
 	if st.Def.Generates > 0 || st.Def.Cell {
 		return 1
 	}
@@ -83,7 +83,7 @@ func (st *MachineState) Reps() int {
 }
 
 // energyCap is the RE the machine's buffer holds.
-func (st *MachineState) EnergyCap() int {
+func (st *State) EnergyCap() int {
 	k := st.Def
 	switch {
 	case k.Cell:
@@ -95,7 +95,7 @@ func (st *MachineState) EnergyCap() int {
 }
 
 // useCost is the RE one run of the work takes (rounded up).
-func (st *MachineState) useCost() int {
+func (st *State) useCost() int {
 	if st.Def.Use == 0 {
 		return 0
 	}
@@ -104,15 +104,15 @@ func (st *MachineState) useCost() int {
 }
 
 // useTotal is the RE a tick of work takes.
-func (st *MachineState) UseTotal() int { return st.useCost() * st.Reps() }
+func (st *State) UseTotal() int { return st.useCost() * st.Reps() }
 
 // genRate is the RE a generator makes a tick, burnRate how fast it burns.
-func (st *MachineState) GenRate() int { return st.Def.Generates * st.spec().gen }
+func (st *State) GenRate() int { return st.Def.Generates * st.spec().gen }
 
-func (st *MachineState) BurnRate() int { return st.spec().Burn }
+func (st *State) BurnRate() int { return st.spec().Burn }
 
 // reach is the reach of a machine with a range: sideways, in blocks.
-func (st *MachineState) Reach(kind string) int {
+func (st *State) Reach(kind string) int {
 	if r, ok := tierRanges[kind]; ok {
 		return r[st.Tier]
 	}

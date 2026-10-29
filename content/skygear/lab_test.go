@@ -30,8 +30,8 @@ func TestLabRecipes(t *testing.T) {
 		if r.OutCount < 1 || r.Ticks < 1 {
 			t.Errorf("%s: count %d, ticks %d", r.Out.Kind, r.OutCount, r.Ticks)
 		}
-		if len(r.In) > len(machine.MachineKinds[machine.KindLab].Input) {
-			t.Errorf("%s: %d ingredients for %d slots", r.Out.Kind, len(r.In), len(machine.MachineKinds[machine.KindLab].Input))
+		if len(r.In) > len(machine.Kinds[machine.KindLab].Input) {
+			t.Errorf("%s: %d ingredients for %d slots", r.Out.Kind, len(r.In), len(machine.Kinds[machine.KindLab].Input))
 		}
 		keys := map[string]bool{}
 		for _, in := range r.In {
@@ -53,7 +53,7 @@ func TestLabRecipes(t *testing.T) {
 }
 
 // fillLab puts the ingredients of a recipe, times sets of them, in the input slots.
-func fillLab(st *machine.MachineState, r machinerecipe.Lab, sets int) {
+func fillLab(st *machine.State, r machinerecipe.Lab, sets int) {
 	for i, in := range r.In {
 		_ = st.Inv().SetItem(st.Def.Input[i], item.NewStack(in.Item, in.Count*sets))
 	}

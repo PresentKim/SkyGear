@@ -23,7 +23,7 @@ func init() {
 
 // equipMesh fits the mesh the player holds into the sieve st (the mesh it had
 // goes back to the player) and reports whether the held item was a mesh.
-func equipMesh(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState, held item.Stack, off item.Stack) bool {
+func equipMesh(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State, held item.Stack, off item.Stack) bool {
 	m, ok := held.Item().(sgitem.Mesh)
 	if !ok {
 		return false
@@ -46,7 +46,7 @@ func equipMesh(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st
 // takeMesh takes the mesh out of an empty sieve into the player's
 // inventory and reports whether there was one. Fitting and taking out give
 // no message.
-func takeMesh(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState) bool {
+func takeMesh(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State) bool {
 	if st.Mesh == "" {
 		return false
 	}

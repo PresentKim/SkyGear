@@ -19,7 +19,7 @@ import (
 // TestTierNumbers: a better tier spends less energy on the same work, the
 // buffer grows with the tier, and a generator makes more.
 func TestTierNumbers(t *testing.T) {
-	crusher := &machine.MachineState{Def: machine.MachineKinds[machine.KindCrusher]}
+	crusher := &machine.State{Def: machine.Kinds[machine.KindCrusher]}
 	use := crusher.Def.Use
 	var perWork []float64
 	for tier := range machine.MaxTier + 1 {
@@ -38,11 +38,11 @@ func TestTierNumbers(t *testing.T) {
 			t.Fatalf("energy per work did not fall: %v", perWork)
 		}
 	}
-	gen := &machine.MachineState{Def: machine.MachineKinds[machine.KindGenerator], Tier: 3}
+	gen := &machine.State{Def: machine.Kinds[machine.KindGenerator], Tier: 3}
 	if gen.GenRate() != 8*machine.GeneratorOutput || gen.Reps() != 1 || gen.BurnRate() != 3 {
 		t.Fatalf("tier 3 generator: %d RE/t, %d runs, burn %d", gen.GenRate(), gen.Reps(), gen.BurnRate())
 	}
-	cell := &machine.MachineState{Def: machine.MachineKinds[machine.KindEnergyCell], Tier: 2}
+	cell := &machine.State{Def: machine.Kinds[machine.KindEnergyCell], Tier: 2}
 	if cell.EnergyCap() != 16*machine.CellCapacity {
 		t.Fatalf("tier 2 cell holds %d", cell.EnergyCap())
 	}
@@ -140,20 +140,20 @@ func TestUseKit(t *testing.T) {
 // TestTierSaved: the tier is saved with the machine and the machine's name and
 // info show it.
 func TestTierSaved(t *testing.T) {
-	m := machine.NewMachine(machine.KindCrusher, "", "")
+	m := machine.New(machine.KindCrusher, "", "")
 	m.State.Tier = 2
 	back := machine.Machine{Kind: machine.KindCrusher}.DecodeNBT(m.EncodeNBT()).(machine.Machine)
 	if back.State.Tier != 2 {
 		t.Fatalf("tier %d after a round trip", back.State.Tier)
 	}
-	if back.Name() == machine.MachineKinds[machine.KindCrusher].Title(i18n.Default) {
+	if back.Name() == machine.Kinds[machine.KindCrusher].Title(i18n.Default) {
 		t.Fatal("the name does not show the tier")
 	}
 	if back.State.EnergyCap() != 4*machine.ConsumerBuffer {
 		t.Fatalf("buffer %d", back.State.EnergyCap())
 	}
 	// a machine that takes no kits keeps tier 0 whatever is saved
-	tank := machine.NewMachine(machine.KindTank, "", "")
+	tank := machine.New(machine.KindTank, "", "")
 	data := tank.EncodeNBT()
 	data["Tier"] = int32(3)
 	if got := (machine.Machine{Kind: machine.KindTank}).DecodeNBT(data).(machine.Machine); got.State.Tier != 0 {
@@ -163,7 +163,7 @@ func TestTierSaved(t *testing.T) {
 
 // TestTierRanges: the harvester reaches further with its tier.
 func TestTierRanges(t *testing.T) {
-	st := &machine.MachineState{Def: machine.MachineKinds[machine.KindHarvester]}
+	st := &machine.State{Def: machine.Kinds[machine.KindHarvester]}
 	var last int
 	for tier := range machine.MaxTier + 1 {
 		st.Tier = tier
@@ -197,7 +197,7 @@ func TestTierAlloyRecipes(t *testing.T) {
 // tier (and working look), with a hash of its own, and the other machines have
 // none.
 func TestTierLooks(t *testing.T) {
-	for _, kind := range machine.MachineOrder {
+	for _, kind := range machine.Order {
 		if !machine.TierLook(kind) {
 			if _, ok := (machine.Machine{Kind: kind}).States()[machine.TierState]; ok {
 				t.Errorf("%s has tier states", kind)
@@ -205,7 +205,7 @@ func TestTierLooks(t *testing.T) {
 			continue
 		}
 		want := machine.MaxTier + 1
-		if machine.AnimatedMachines[kind] {
+		if machine.AnimatedKinds[kind] {
 			want *= 2
 		}
 		vals := machine.Machine{Kind: kind}.States()[machine.TierState]
@@ -215,7 +215,7 @@ func TestTierLooks(t *testing.T) {
 		seen := map[uint64]bool{}
 		for tier := 0; tier <= machine.MaxTier; tier++ {
 			for _, on := range []bool{false, true} {
-				if on && !machine.AnimatedMachines[kind] {
+				if on && !machine.AnimatedKinds[kind] {
 					continue
 				}
 				m := machine.Machine{Kind: kind, Tier: tier, Active: on}

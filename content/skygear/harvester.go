@@ -47,7 +47,7 @@ func harvestable(b world.Block) (world.Block, bool) {
 // runHarvester harvests one grown crop per interval.
 // The cycle runs on whether or not a crop is ready, so the gauge keeps
 // turning.
-func (s *session) runHarvester(st *machine.MachineState, pos cube.Pos, tx *world.Tx) {
+func (s *session) runHarvester(st *machine.State, pos cube.Pos, tx *world.Tx) {
 	if st.Progress < st.Def.Interval {
 		st.TickWork()
 		return
@@ -102,7 +102,7 @@ func (s *session) runHarvester(st *machine.MachineState, pos cube.Pos, tx *world
 // harvestMagicPlant picks a blooming magic plant: the yield goes to the
 // harvester's output and the plant goes back to a bud. A plant whose yield
 // does not fit is left for the next cycle.
-func (s *session) harvestMagicPlant(st *machine.MachineState, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
+func (s *session) harvestMagicPlant(st *machine.State, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
 	drops, ok := s.plantDrops(mp)
 	if !ok || !st.RoomFor(drops) {
 		return false
@@ -119,7 +119,7 @@ func (s *session) harvestMagicPlant(st *machine.MachineState, tx *world.Tx, at c
 // replantSeed takes the seed a harvested crop is replanted with: one from
 // its drops, else one from the harvester's output. Without a seed the crop
 // is not replanted (after becomes air). Stems (melon, pumpkin) need none.
-func replantSeed(st *machine.MachineState, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
+func replantSeed(st *machine.State, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
 	if _, _, crop := cropOf(after); !crop {
 		return after, drops
 	}

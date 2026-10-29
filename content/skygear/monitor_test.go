@@ -28,7 +28,7 @@ func TestProductionRecorded(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
-	tick(s, 3*(machine.MachineKinds[machine.KindFurnace].Interval+2))
+	tick(s, 3*(machine.Kinds[machine.KindFurnace].Interval+2))
 	made := machine.OutputCount(st, block.Stone{})
 	if made == 0 {
 		t.Fatal("nothing was smelted")
@@ -87,7 +87,7 @@ func TestStallAlert(t *testing.T) {
 		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64))
 	}
 	// A worked-before furnace: it finished one, then the output filled.
-	tick(s, machine.MachineKinds[machine.KindFurnace].Interval+5)
+	tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
 	tick(s, 5)
 	runSeconds(s, 1)
@@ -127,7 +127,7 @@ func TestStarvedIsQuiet(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 1))
-	tick(s, machine.MachineKinds[machine.KindFurnace].Interval+5)
+	tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
 	runSeconds(s, 2*machine.AlertAfter)
 	if st.Mon.Alerted {
@@ -151,7 +151,7 @@ func TestStatsScreens(t *testing.T) {
 			machine.ShowStats(s.Session, p, tab)
 		}
 	})
-	tick(s, 2*(machine.MachineKinds[machine.KindFurnace].Interval+2))
+	tick(s, 2*(machine.Kinds[machine.KindFurnace].Interval+2))
 	runSeconds(s, 3)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for _, tab := range []machine.StatsTab{machine.StatsItems, machine.StatsPower, machine.StatsStalls} {

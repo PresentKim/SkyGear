@@ -76,7 +76,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		return pos
 	}
 	placeMachine := func(dx, dy, dz int, kind string) {
-		m := machine.NewMachine(kind, owner, ownerName)
+		m := machine.New(kind, owner, ownerName)
 		// Test factories run without energy.
 		m.State.Unlimited = true
 		if machine.IsSieve(kind) {
@@ -204,7 +204,7 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		set(1, 0, block.Stone{})
 		set(0, 1, block.Cobblestone{})
 		set(0, 2, block.Cobblestone{})
-		miner, crusher := machine.NewMachine(machine.KindMiner, owner, name), machine.NewMachine(machine.KindCrusher, owner, name)
+		miner, crusher := machine.New(machine.KindMiner, owner, name), machine.New(machine.KindCrusher, owner, name)
 		miner.State.Unlimited, crusher.State.Unlimited = true, true
 		set(0, 4, miner)
 		set(1, 4, crusher)

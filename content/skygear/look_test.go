@@ -94,7 +94,7 @@ func TestLookInfo(t *testing.T) {
 	h := spawnPlayer(s)
 	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
 	st.Insert(item.NewStack(block.Cobblestone{}, 5))
-	tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2+1)
+	tick(s, machine.Kinds[machine.KindCrusher].Interval/2+1)
 	drawerPos := cube.Pos{6, island.IslandY, 3}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		text := func(pos cube.Pos) string {
@@ -199,7 +199,7 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 	h := spawnPlayer(s)
 	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
 	st.Insert(item.NewStack(block.Cobblestone{}, 5))
-	tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2+1)
+	tick(s, machine.Kinds[machine.KindCrusher].Interval/2+1)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		plain := len(s.lookInfo(p, tx, machinePos, tx.Block(machinePos)).Lines)
 		p.StartSneaking()

@@ -34,7 +34,7 @@ const crafterStore = 9
 // crafterPlan finds the stacks of the store that make one run of the recipe:
 // the slot and how many of it to take. ok is false when something is
 // missing.
-func (st *MachineState) CrafterPlan(cr *machinerecipe.Crafter) (plan [][2]int, ok bool) {
+func (st *State) CrafterPlan(cr *machinerecipe.Crafter) (plan [][2]int, ok bool) {
 	var left [crafterStore]int
 	var stacks [crafterStore]item.Stack
 	for i, slot := range st.Def.Input {
@@ -65,21 +65,21 @@ func (st *MachineState) CrafterPlan(cr *machinerecipe.Crafter) (plan [][2]int, o
 }
 
 // setRecipe makes the crafter work on a recipe.
-func (st *MachineState) SetRecipe(cr *machinerecipe.Crafter) {
+func (st *State) SetRecipe(cr *machinerecipe.Crafter) {
 	st.Recipe, st.RecipeID = cr, cr.ID
 	st.Progress = 0
 	st.shownRecipe = "\x00"
 }
 
 // clearRecipe takes the recipe off.
-func (st *MachineState) clearRecipe() {
+func (st *State) clearRecipe() {
 	st.Recipe, st.RecipeID = nil, ""
 	st.Progress = 0
 	st.shownRecipe = "\x00"
 }
 
 // showRecipe puts the recipe (or the hint) on the recipe slot when it changed.
-func (st *MachineState) showRecipe() {
+func (st *State) showRecipe() {
 	if st.shownRecipe == st.RecipeID && st.shownRecipe != "\x00" {
 		return
 	}
@@ -122,7 +122,7 @@ func crafterOpener(s *core.Session) func(*machinerecipe.Crafter) bool {
 
 // runCrafter makes the recipe: the ingredients are used when the interval
 // has passed and the result fits the output.
-func runCrafter(s *core.Session, st *MachineState) {
+func runCrafter(s *core.Session, st *State) {
 	if st.Recipe == nil && st.RecipeID != "" {
 		st.Recipe = machinerecipe.CrafterByID(st.RecipeID)
 	}
@@ -167,7 +167,7 @@ const crafterPage = 36
 
 // showCrafterRecipes lists the researched recipes (a page of them) to pick
 // the one the crafter at pos makes.
-func showCrafterRecipes(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState, page int) {
+func showCrafterRecipes(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State, page int) {
 	lang := i18n.Of(p)
 	var all []*machinerecipe.Crafter
 	open := crafterOpener(s)

@@ -29,7 +29,7 @@ func TestHarvesterHarvestsGrownCrops(t *testing.T) {
 		tx.SetBlock(wheat, w, nil)
 		tx.SetBlock(melon, block.Melon{}, nil)
 	})
-	tick(s, 2*(machine.MachineKinds[machine.KindHarvester].Interval+1))
+	tick(s, 2*(machine.Kinds[machine.KindHarvester].Interval+1))
 	s.World.Do(func(tx *world.Tx) {
 		if w, ok := tx.Block(wheat).(block.WheatSeeds); !ok || w.Growth != 0 {
 			t.Fatalf("grown wheat not replanted: %#v", tx.Block(wheat))
@@ -79,7 +79,7 @@ func TestHarvestedCropsAreYoung(t *testing.T) {
 // TestReplantUsesSeeds: replanting takes a seed from the drops, else from
 // the output; without one the crop is not replanted.
 func TestReplantUsesSeeds(t *testing.T) {
-	st := machine.NewMachine(machine.KindHarvester, "", "").State
+	st := machine.New(machine.KindHarvester, "", "").State
 	young := block.WheatSeeds{}
 	after, drops := replantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1), item.NewStack(block.WheatSeeds{}, 2)})
 	if _, ok := after.(block.WheatSeeds); !ok || drops[1].Count() != 1 {

@@ -22,7 +22,7 @@ func init() {
 // runSimulator runs the mob simulator: a charge (from an essence in the input
 // slot) is spent every interval, and the drops of the mob are rolled into the
 // output; it waits for room, and for energy.
-func runSimulator(s *core.Session, st *MachineState) {
+func runSimulator(s *core.Session, st *State) {
 	if st.Charges == 0 {
 		slot, in, ok := st.FirstInput()
 		if !ok {

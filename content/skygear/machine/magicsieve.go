@@ -15,7 +15,7 @@ import (
 
 // ChargeSieve takes an essence from the essence slot when the sieve has no
 // charge left.
-func ChargeSieve(s *core.Session, st *MachineState) {
+func ChargeSieve(s *core.Session, st *State) {
 	if len(st.Def.Charge) == 0 || st.Charges > 0 {
 		return
 	}
@@ -35,7 +35,7 @@ func ChargeSieve(s *core.Session, st *MachineState) {
 // SiftDrops rolls the products of sifting in with the sieve: the mesh table,
 // and for a charged magic sieve the theme of its essence, which uses up a
 // charge.
-func SiftDrops(s *core.Session, st *MachineState, in item.Stack) []item.Stack {
+func SiftDrops(s *core.Session, st *State, in item.Stack) []item.Stack {
 	if len(st.Def.Charge) == 0 || st.Charges == 0 {
 		return sieveDrops(s, in, st.Mesh)
 	}

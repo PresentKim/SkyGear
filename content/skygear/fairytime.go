@@ -133,7 +133,7 @@ func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 }
 
 // hourglassLine is the WAILA line of the hourglass time left, or "".
-func hourglassLine(lang string, st *machine.MachineState) string {
+func hourglassLine(lang string, st *machine.State) string {
 	if st == nil || st.Boost <= 0 {
 		return ""
 	}

@@ -152,7 +152,7 @@ func TestResearchRewards(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		r, _ := progress.ByID("generator")
 		progress.GiveReward(s.Session, p, tx, r)
-		if !p.Inventory().ContainsItem(machine.MachineItem(machine.KindGenerator)) {
+		if !p.Inventory().ContainsItem(machine.Item(machine.KindGenerator)) {
 			t.Fatal("no generator given")
 		}
 	})
@@ -177,10 +177,10 @@ func TestResearchRewardDropsWhenInventoryFull(t *testing.T) {
 		if missing, ok := progress.Do(s.Session, p, tx, r); !ok {
 			t.Fatalf("research not done, missing %v", missing)
 		}
-		if p.Inventory().ContainsItem(machine.MachineItem(machine.KindGenerator)) {
+		if p.Inventory().ContainsItem(machine.Item(machine.KindGenerator)) {
 			t.Fatal("went into the inventory")
 		}
-		if droppedItems(tx)[naming.ItemKey(machine.MachineItem(machine.KindGenerator).Item())] != 1 {
+		if droppedItems(tx)[naming.ItemKey(machine.Item(machine.KindGenerator).Item())] != 1 {
 			t.Fatalf("dropped %v, want the generator", droppedItems(tx))
 		}
 	})

@@ -31,7 +31,7 @@ func TestActiveLook(t *testing.T) {
 	if !look() {
 		t.Fatal("a working furnace does not show it")
 	}
-	tick(s, machine.MachineKinds[machine.KindFurnace].Interval+machine.ActiveHold+10)
+	tick(s, machine.Kinds[machine.KindFurnace].Interval+machine.ActiveHold+10)
 	if look() {
 		t.Fatal("a furnace that finished keeps showing as working")
 	}

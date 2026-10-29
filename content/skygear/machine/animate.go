@@ -14,13 +14,13 @@ import (
 // The server only changes the state when the machine starts or stops working.
 
 func init() {
-	for kind := range AnimatedMachines {
-		MachineKinds[kind].Animated = true
+	for kind := range AnimatedKinds {
+		Kinds[kind].Animated = true
 	}
 }
 
-// AnimatedMachines are the machines with a working look.
-var AnimatedMachines = map[string]bool{
+// AnimatedKinds are the machines with a working look.
+var AnimatedKinds = map[string]bool{
 	KindFurnace: true, KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true,
 	KindCrucible: true, KindCrafter: true, KindLab: true,
 	KindMiner: true, KindHarvester: true, KindGenerator: true, KindLavaGenerator: true,
@@ -58,7 +58,7 @@ func activePermutations(kind string) []customblock.Permutation {
 
 // showActive sets the block of an animated machine to its working or resting
 // look when that changed.
-func showActive(tx *world.Tx, pos cube.Pos, st *MachineState, tick int64) {
+func showActive(tx *world.Tx, pos cube.Pos, st *State, tick int64) {
 	if st.worked != st.seenWorked {
 		st.seenWorked, st.lastWorkTick = st.worked, tick
 	}

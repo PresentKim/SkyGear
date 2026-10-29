@@ -129,7 +129,7 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 		tx.SetBlock(bloom, MagicPlant{Kind: "ore_iron", Bloom: true}, nil)
 		tx.SetBlock(bud, MagicPlant{Kind: "ore_iron"}, nil)
 	})
-	tick(s, 2*(machine.MachineKinds[machine.KindHarvester].Interval+1))
+	tick(s, 2*(machine.Kinds[machine.KindHarvester].Interval+1))
 	s.World.Do(func(tx *world.Tx) {
 		if mp, ok := tx.Block(bloom).(MagicPlant); !ok || mp.Bloom {
 			t.Fatalf("the bloom was not picked: %#v", tx.Block(bloom))
