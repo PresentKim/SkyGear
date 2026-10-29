@@ -14,7 +14,7 @@ import (
 )
 
 // The tabs of the friends screen. The friend requests are notices
-// (notice.go), which a tab between them opens.
+// (notify.go), which a tab between them opens.
 const (
 	friendsTab = iota
 	blockedTab
@@ -44,8 +44,8 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 		pf.fail(p, i18n.T(lang, "platform.friends.load"), err)
 		return
 	}
-	notices := i18n.T(lang, "platform.notice.title")
-	if n := len(pf.notices(p)); n > 0 {
+	notices := i18n.T(lang, "platform.notify.title")
+	if n := len(pf.notifies(p)); n > 0 {
 		notices = fmt.Sprintf("%s §e%d", notices, n)
 	}
 	tabTo := func(t int) func(p *player.Player, _ *world.Tx) {
@@ -53,7 +53,7 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 	}
 	sp.Actions = append(sp.Actions,
 		ui.Tab(i18n.T(lang, "platform.friends.tab.friends"), iconFriend, tab == friendsTab, tabTo(friendsTab)),
-		ui.Tab(notices, iconRequests, false, func(p *player.Player, _ *world.Tx) { pf.showNotices(p, "") }),
+		ui.Tab(notices, iconRequests, false, func(p *player.Player, _ *world.Tx) { pf.showNotify(p, "") }),
 		ui.Tab(i18n.T(lang, "platform.friends.tab.blocked"), iconBlocked, tab == blockedTab, tabTo(blockedTab)),
 	)
 	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
@@ -264,7 +264,7 @@ func (pf *Platform) addFriend(p *player.Player, name string) {
 		pf.tell(target.ID, "platform.friends.accepted", p.Name())
 	default:
 		ui.Flash(p, i18n.T(lang, "platform.friends.add.sent"), target.Name)
-		pf.noticed(target.ID, "platform.friends.add.received", p.Name())
+		pf.notified(target.ID, "platform.friends.add.received", p.Name())
 	}
 }
 
@@ -277,9 +277,9 @@ func (pf *Platform) confirm(p *player.Player, title, body, yes string, f, back f
 	)
 }
 
-// notifyNotices tells p on join how many notices wait.
-func (pf *Platform) notifyNotices(p *player.Player) {
-	if n := len(pf.notices(p)); n > 0 {
-		ui.Tell(p, i18n.T(i18n.Of(p), "platform.notice.title"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.notice.pending"), n))
+// notifyPending tells p on join how many notices wait.
+func (pf *Platform) notifyPending(p *player.Player) {
+	if n := len(pf.notifies(p)); n > 0 {
+		ui.Tell(p, i18n.T(i18n.Of(p), "platform.notify.title"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.notify.pending"), n))
 	}
 }

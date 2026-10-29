@@ -96,7 +96,7 @@ func (pf *Platform) Join(p *player.Player) {
 	if acc.GuideVersion < GuideVersion {
 		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showGuide(p, true) })
 	}
-	pf.notifyNotices(p)
+	pf.notifyPending(p)
 }
 
 // arriveLobby shows the lobby scene and, once the client can show it, the
@@ -296,7 +296,7 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("lobby", i18n.T(i18n.Default, "platform.cmd.lobby"), []string{"spawn"}, lobbyCmd{pf: pf}))
 	cmd.Register(cmd.New("saves", i18n.T(i18n.Default, "platform.cmd.saves"), nil, savesCmd{pf: pf}))
 	cmd.Register(cmd.New("guide", i18n.T(i18n.Default, "platform.cmd.guide"), nil, guideCmd{pf: pf}))
-	cmd.Register(cmd.New("notices", i18n.T(i18n.Default, "platform.cmd.notices"), []string{"notice", "inbox"}, noticesCmd{pf: pf}))
+	cmd.Register(cmd.New("notify", i18n.T(i18n.Default, "platform.cmd.notify"), []string{"notices", "inbox"}, notifyCmd{pf: pf}))
 	cmd.Register(cmd.New("friends", i18n.T(i18n.Default, "platform.cmd.friends"), []string{"friend"}, friendsCmd{pf: pf}))
 	cmd.Register(cmd.New("invite", i18n.T(i18n.Default, "platform.cmd.invite"), nil, inviteCmd{pf: pf}))
 	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.cmd.members"), nil, membersCmd{pf: pf}))

@@ -16,7 +16,7 @@
 ## 협동
 
 - 친구: 요청(오프라인 대상 포함)·수락·거절·삭제·차단, 접속 상태 표시(오프라인/로비/플레이 중)
-- 초대 코드(6자리, 재발급 가능)와 친구 초대(세이브 안에서), 세이브당 최대 10명; 받은 친구 요청·세이브 초대는 알림(`/notices`, 로비 메인 화면의 알림)에 모인다
+- 초대 코드(6자리, 재발급 가능)와 친구 초대(세이브 안에서), 세이브당 최대 10명; 받은 친구 요청·세이브 초대는 알림(`/notify`, 로비 메인 화면의 알림)에 모인다
 - 참여 중인 세이브 목록(입장·탈퇴), 호스트가 플레이 중일 때만 입장
 - 호스트의 참여자 관리: 추방, 인벤토리 보기(엔티티 상자, 접속 중이면 실시간·아니면 저장된 인벤토리)
 - 채팅과 들어옴·나감 알림은 같은 세이브 안에서만
@@ -52,7 +52,7 @@
 
 | 위치 | 명령어 |
 |---|---|
-| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/notices`, `/title`, `/settings` |
+| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/notify`, `/title`, `/settings` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/sg`), `/도감`(`/codex`), `/도움말`(`/sghelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
 | 운영자 | 관리 `/sgadmin give·item·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |

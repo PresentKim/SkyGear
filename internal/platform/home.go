@@ -123,9 +123,9 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 		},
 	}
 
-	notices := pf.notices(p)
+	notices := pf.notifies(p)
 	h.Corner = []ui.HomeButton{
-		{Icon: iconRequests, Label: i18n.T(lang, "platform.notice.title"), Badge: len(notices), Run: homeRun(func(p *player.Player) { pf.showNotices(p, "") })},
+		{Icon: iconRequests, Label: i18n.T(lang, "platform.notify.title"), Badge: len(notices), Run: homeRun(func(p *player.Player) { pf.showNotify(p, "") })},
 		{Icon: iconSettings, Label: i18n.T(lang, "platform.home.settings"), Run: homeRun(pf.showSettings)},
 		{Icon: iconExit, Label: i18n.T(lang, "platform.home.exit"), Run: pf.overlay(homeExit)},
 	}
@@ -193,7 +193,7 @@ func (pf *Platform) homeProfile(p *player.Player) ui.HomeProfile {
 
 // homeFeed are the recent lines: p's newest notices, then the friends
 // online, at most homeFeedLines, oldest first.
-func (pf *Platform) homeFeed(lang, id string, notices []Notice) []string {
+func (pf *Platform) homeFeed(lang, id string, notices []Notify) []string {
 	var lines []string
 	for _, n := range notices {
 		if n.Feed != "" {

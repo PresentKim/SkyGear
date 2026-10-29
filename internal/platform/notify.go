@@ -13,15 +13,16 @@ import (
 	"github.com/presentkim/skygear/internal/instance"
 )
 
-// A player's notices are everything waiting for them to answer or read: the
+// notify is the notification system. A player's notifications (Notify) are
+// everything waiting for them to answer or read: the
 // friend requests and save invites they got, and later announcements and the
-// like. Each kind is a noticeSource that lists its notices when the notices
+// like. Each kind is a notifySource that lists its notices when the notices
 // are shown; the notice screen, the main screen's bell (the count) and its
 // feed (the newest lines) read them all through notices, so a new kind is
-// one more source in noticeSources.
+// one more source in notifySources.
 
-// Notice is one notice of a player.
-type Notice struct {
+// Notify is one notification of a player.
+type Notify struct {
 	// Key tells the notice from the others of the player ("<kind>:<id>"); the
 	// notice screen keeps it chosen.
 	Key string
@@ -35,37 +36,37 @@ type Notice struct {
 	// At is when it came: the newest come first.
 	At time.Time
 	// Actions are its buttons. A run that shows no screen of its own shows
-	// the notices again (showNotices).
+	// the notices again (showNotify).
 	Actions []ui.Option
 }
 
-// noticeSource lists the notices of one kind for an account, in lang.
-type noticeSource func(pf *Platform, accountID, lang string) []Notice
+// notifySource lists the notices of one kind for an account, in lang.
+type notifySource func(pf *Platform, accountID, lang string) []Notify
 
-// noticeSources are the kinds of notices, in no order (notices sorts them).
-func noticeSources() []noticeSource { return []noticeSource{friendRequestNotices, inviteNotices} }
+// notifySources are the kinds of notices, in no order (notices sorts them).
+func notifySources() []notifySource { return []notifySource{friendRequestNotifies, inviteNotifies} }
 
 // notices are p's notices, newest first.
-func (pf *Platform) notices(p *player.Player) []Notice {
-	return pf.noticesOf(instance.AccountID(p), i18n.Of(p))
+func (pf *Platform) notifies(p *player.Player) []Notify {
+	return pf.notifiesOf(instance.AccountID(p), i18n.Of(p))
 }
 
-// noticesOf are the notices of an account in lang, newest first.
-func (pf *Platform) noticesOf(accountID, lang string) []Notice {
-	var out []Notice
-	for _, src := range noticeSources() {
+// notifiesOf are the notices of an account in lang, newest first.
+func (pf *Platform) notifiesOf(accountID, lang string) []Notify {
+	var out []Notify
+	for _, src := range notifySources() {
 		out = append(out, src(pf, accountID, lang)...)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].At.After(out[j].At) })
 	return out
 }
 
-// showNotices is the notice screen: the notices on the left, newest first,
+// showNotify is the notice screen: the notices on the left, newest first,
 // and the chosen one (sel, a Key; the newest when not found) with its
 // actions on the right.
-func (pf *Platform) showNotices(p *player.Player, sel string) {
+func (pf *Platform) showNotify(p *player.Player, sel string) {
 	lang := i18n.Of(p)
-	list := pf.notices(p)
+	list := pf.notifies(p)
 	var sp ui.ListSplit
 	chosen := -1
 	for i, n := range list {
@@ -79,52 +80,52 @@ func (pf *Platform) showNotices(p *player.Player, sel string) {
 	for i, n := range list {
 		sp.Rows = append(sp.Rows, ui.ListRow{
 			Label: ui.ListRowText(n.Name, n.Info), Icon: n.Icon, Selected: i == chosen,
-			Run: func(p *player.Player, _ *world.Tx) { pf.showNotices(p, n.Key) },
+			Run: func(p *player.Player, _ *world.Tx) { pf.showNotify(p, n.Key) },
 		})
 	}
 	if chosen < 0 {
-		sp.Body = i18n.T(lang, "platform.notice.none")
+		sp.Body = i18n.T(lang, "platform.notify.none")
 	} else {
 		sp.Body = list[chosen].Body
 		sp.Actions = list[chosen].Actions
 	}
-	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenNotices) }))
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.notice.title"), sp)
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenNotify) }))
+	ui.ListSplitMenu(p, i18n.T(lang, "platform.notify.title"), sp)
 }
 
-// noticed tells p, online, about a new notice: a toast with line, and the
+// notified tells the account, online, about a new notice: a toast with line, and the
 // main screen drawn again for its count when p is looking at it.
-func (pf *Platform) noticed(accountID, key string, args ...any) {
+func (pf *Platform) notified(accountID, key string, args ...any) {
 	pf.with(accountID, func(p *player.Player) {
-		ui.Tell(p, i18n.T(i18n.Of(p), "platform.notice.title"), fmt.Sprintf(i18n.T(i18n.Of(p), key), args...))
+		ui.Tell(p, i18n.T(i18n.Of(p), "platform.notify.title"), fmt.Sprintf(i18n.T(i18n.Of(p), key), args...))
 		pf.refreshHome(p)
 	})
 }
 
-// noticeAgo is the "when" of a notice's row in lang.
-func noticeAgo(lang string, at time.Time) string {
+// notifyAgo is the "when" of a notice's row in lang.
+func notifyAgo(lang string, at time.Time) string {
 	return i18n.ClientAgo(at, at.Format("2006-01-02 15:04"))
 }
 
-// friendRequestNotices are the friend requests p got: accept, decline or
+// friendRequestNotifies are the friend requests p got: accept, decline or
 // block the one who sent it.
-func friendRequestNotices(pf *Platform, accountID, lang string) []Notice {
+func friendRequestNotifies(pf *Platform, accountID, lang string) []Notify {
 	reqs, err := pf.db.FriendRequestsTo(accountID)
 	if err != nil {
 		pf.log.Error("load friend requests", "account", accountID, "err", err)
 		return nil
 	}
-	again := func(p *player.Player, _ *world.Tx) { pf.showNotices(p, "") }
-	var out []Notice
+	again := func(p *player.Player, _ *world.Tx) { pf.showNotify(p, "") }
+	var out []Notify
 	for _, r := range reqs {
 		from := r.From
-		out = append(out, Notice{
+		out = append(out, Notify{
 			Key:  "friend:" + from.ID,
 			Icon: iconAdd,
 			Name: from.Name,
-			Info: fmt.Sprintf(i18n.T(lang, "platform.notice.friend.info"), noticeAgo(lang, r.At)),
-			Body: fmt.Sprintf(i18n.T(lang, "platform.notice.friend.body"), from.Name, pf.status(lang, from.ID)),
-			Feed: fmt.Sprintf(i18n.T(lang, "platform.notice.friend.feed"), from.Name),
+			Info: fmt.Sprintf(i18n.T(lang, "platform.notify.friend.info"), notifyAgo(lang, r.At)),
+			Body: fmt.Sprintf(i18n.T(lang, "platform.notify.friend.body"), from.Name, pf.status(lang, from.ID)),
+			Feed: fmt.Sprintf(i18n.T(lang, "platform.notify.friend.feed"), from.Name),
 			At:   r.At,
 			Actions: []ui.Option{
 				{Label: i18n.T(lang, "platform.friends.accept"), Icon: iconAccept, Run: func(p *player.Player, tx *world.Tx) {
@@ -140,38 +141,38 @@ func friendRequestNotices(pf *Platform, accountID, lang string) []Notice {
 					_ = pf.db.DeclineFriend(instance.AccountID(p), from.ID)
 					again(p, tx)
 				}},
-				pf.blockOption(lang, from, again, func(p *player.Player, _ *world.Tx) { pf.showNotices(p, "friend:"+from.ID) }),
+				pf.blockOption(lang, from, again, func(p *player.Player, _ *world.Tx) { pf.showNotify(p, "friend:"+from.ID) }),
 			},
 		})
 	}
 	return out
 }
 
-// inviteNotices are the save invites p got: join the save, or decline.
-func inviteNotices(pf *Platform, accountID, lang string) []Notice {
-	var out []Notice
+// inviteNotifies are the save invites p got: join the save, or decline.
+func inviteNotifies(pf *Platform, accountID, lang string) []Notify {
+	var out []Notify
 	for _, in := range pf.invites.list(accountID) {
 		left := max(1, int((inviteTTL-time.Since(in.at)).Minutes()+0.5))
-		out = append(out, Notice{
+		out = append(out, Notify{
 			Key:  fmt.Sprintf("invite:%d", in.saveID),
 			Icon: iconInvite,
 			Name: in.saveName,
 			Info: fmt.Sprintf(i18n.T(lang, "platform.invite.row"), in.from, left),
 			Body: fmt.Sprintf(i18n.T(lang, "platform.invite.body"), in.from, in.saveName),
-			Feed: fmt.Sprintf(i18n.T(lang, "platform.notice.invite.feed"), in.from, in.saveName),
+			Feed: fmt.Sprintf(i18n.T(lang, "platform.notify.invite.feed"), in.from, in.saveName),
 			At:   in.at,
 			Actions: []ui.Option{
 				{Label: i18n.T(lang, "platform.invite.accept"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
 					if pf.m.Location(instance.AccountID(p)) != nil {
 						ui.Notify(p, "%s", i18n.T(lang, "platform.lobbyOnly"))
-						pf.showNotices(p, "")
+						pf.showNotify(p, "")
 						return
 					}
 					pf.join(p, in.saveID)
 				}},
 				{Label: i18n.T(lang, "platform.invite.decline"), Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
 					pf.invites.remove(instance.AccountID(p), in.saveID)
-					pf.showNotices(p, "")
+					pf.showNotify(p, "")
 				}},
 			},
 		})
@@ -179,12 +180,12 @@ func inviteNotices(pf *Platform, accountID, lang string) []Notice {
 	return out
 }
 
-// noticesCmd opens the notice screen: /notices.
-type noticesCmd struct {
+// notifyCmd opens the notice screen: /notify.
+type notifyCmd struct {
 	playerOnly
 	pf *Platform
 }
 
-func (c noticesCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
-	c.pf.showNotices(src.(*player.Player), "")
+func (c notifyCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
+	c.pf.showNotify(src.(*player.Player), "")
 }

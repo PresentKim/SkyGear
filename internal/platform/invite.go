@@ -171,7 +171,7 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 
 // showMultiplayer is the lobby's multiplayer screen: a row that asks for an
 // invite code, then the saves p joined as a guest. The invites p got are
-// notices (notice.go).
+// notices (notify.go).
 func (pf *Platform) showMultiplayer(p *player.Player) { pf.showMultiplayerAt(p, "") }
 
 // showMultiplayerAt shows the screen with the row sel chosen ("s<save>"; the
@@ -259,7 +259,7 @@ func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.A
 	in := invite{saveID: inst.Save.ID, saveName: inst.Save.Name, from: p.Name(), at: time.Now()}
 	pf.invites.add(f.ID, in)
 	ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.sent"), f.Name)
-	pf.noticed(f.ID, "platform.invite.received", p.Name(), inst.Save.Name)
+	pf.notified(f.ID, "platform.invite.received", p.Name(), inst.Save.Name)
 }
 
 // joinCmd joins a save with an invite code: /join [code].
