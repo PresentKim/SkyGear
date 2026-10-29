@@ -10,7 +10,7 @@
 - 세이브별 인벤토리·체력·허기·경험치·효과·위치 저장과 복원
 - 인스턴스 시간과 경과 일수(호스트가 있을 때만 흐름), 자동 저장, DB·월드 자동 백업
 - 낙하 피해 없음, 사망 시 인벤토리 유지
-- 메뉴는 Ore UI(DDUI) 화면, `/uimode` 로 JSON UI 폼으로 바꿀 수 있다
+- 메뉴는 Ore UI(DDUI) 화면, 로비는 닫히지 않는 메인 화면(프로필, 세이브 카드와 섬으로 출발, Esc 시스템 메뉴)
 - 한국어·영어(클라이언트 언어를 따른다)
 
 ## 협동
@@ -52,7 +52,7 @@
 
 | 위치 | 명령어 |
 |---|---|
-| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/title`, `/settings`, `/uimode` |
+| 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/title`, `/settings` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/sg`), `/도감`(`/codex`), `/도움말`(`/sghelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
 | 운영자 | 관리 `/sgadmin give·item·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |

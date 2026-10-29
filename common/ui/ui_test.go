@@ -179,20 +179,6 @@ func TestPager(t *testing.T) {
 	}
 }
 
-// TestFramedTitle: forms for players in the lobby get the lobby frame
-// marker, others do not.
-func TestFramedTitle(t *testing.T) {
-	defer func(f func(*player.Player) bool) { InLobby = f }(InLobby)
-	InLobby = func(*player.Player) bool { return true }
-	if got := framed(nil, "x"); got != LobbyToken+"x" {
-		t.Errorf("in the lobby: %q", got)
-	}
-	InLobby = func(*player.Player) bool { return false }
-	if got := framed(nil, "x"); got != "x" {
-		t.Errorf("in a save: %q", got)
-	}
-}
-
 // TestRowSlotsWrap: the ninth slot of a headed row and later go on the
 // row's second line.
 func TestRowSlotsWrap(t *testing.T) {

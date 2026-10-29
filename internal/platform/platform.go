@@ -11,7 +11,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
-	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/sghook"
@@ -43,15 +42,13 @@ type Platform struct {
 // New creates the platform. The lobby world must already be built.
 func New(log *slog.Logger, d *db.DB, m *instance.Manager, online Online, isOperator func(*player.Player) bool) *Platform {
 	pf := &Platform{log: log, db: d, m: m, online: online, isOperator: isOperator}
-	// Every form shown in the lobby gets the launcher frame.
+	// The DDUI screens shown in the lobby take its look (ui.lobbySkin).
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
-	// The DDUI screens of the lobby draw the frame's name and logo themselves
-	// (assets/resourcepack/skygear/ui/sg_lobby.json frame).
+	// The game's name and logo at the top of every lobby screen.
 	ui.LobbyHeader = func(p *player.Player) (string, string) {
 		return i18n.T(i18n.Of(p), "name.Game"), "textures/blocks/grass_side_carried"
 	}
-	lobbyPlatform = pf
 	account.Init(d, log)
 	registerCommands(pf)
 	return pf
@@ -65,15 +62,15 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		Arrive: func(p *player.Player) {
 			(*pf).arriveLobby(p)
 		},
-		Handler:   func(*player.Player) player.Handler { return lobbyHandler{pf: *pf} },
+		Handler:   func(*player.Player) player.Handler { return lobbyHandler{} },
 		ChatName:  account.DisplayName,
 		UsePlayer: func(p, target *player.Player) bool { return (*pf).usePlayer(p, target) },
 		Quit: func(p *player.Player) {
 			account.Forget(p)
-			setJSONUI(p.UUID(), false)
 			waila.Forget(p)
 			forgetLobbyHUD(p)
 			stopLobbyMotion(p)
+			forgetHome(p)
 		},
 		Entered:     entered,
 		EnterFailed: func(p *player.Player, err error) { (*pf).enterFailed(p, err) },
@@ -92,7 +89,6 @@ func (pf *Platform) Join(p *player.Player) {
 		p.Disconnect(i18n.T(i18n.Of(p), "platform.accountLoadFailed"))
 		return
 	}
-	pf.loadUIMode(p)
 	pf.keepClientSettings(p)
 	pf.m.Join(p)
 	account.Count(p, "login", 1)
@@ -103,40 +99,18 @@ func (pf *Platform) Join(p *player.Player) {
 	pf.notifyRequests(p)
 }
 
-const lobbyItemKey = "platform_lobby_item"
-
-// arriveLobby gives the lobby menu items and shows the lobby scene and frame.
+// arriveLobby shows the lobby scene and, once the client can show it, the
+// main screen (the guide comes first the first time: Join shows it).
 func (pf *Platform) arriveLobby(p *player.Player) {
 	p.SetGameMode(world.GameModeAdventure)
+	p.Inventory().Clear()
 	showLobbyScene(p, p.Tx())
 	forgetLobbyHUD(p)
 	startLobbyMotion(p)
 	sendLobbyHUD(p, "")
-	// The hotbar is hidden: every slot holds the menu, so the use key opens
-	// it whichever slot is held.
-	menu := item.NewStack(item.Compass{}, 1).WithCustomName(i18n.T(i18n.Of(p), "platform.lobby.menuItem")).WithValue(lobbyItemKey, "menu")
-	for slot := range 9 {
-		_ = p.Inventory().SetItem(slot, menu)
-	}
-	_ = p.SetHeldSlot(0)
-	watchLobbyInput(p, p.Tx().World())
-	// The main menu is open on arrival (the guide comes first the first time:
-	// Join shows it), once the client can show it.
 	if acc, err := pf.db.Account(instance.AccountID(p)); err == nil && acc.GuideVersion >= GuideVersion {
-		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.wakeLobbyMenu(p) })
+		sghook.AfterClientReady(p, func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) })
 	}
-}
-
-// useLobbyItem runs the action of a lobby item held by p.
-func (pf *Platform) useLobbyItem(p *player.Player) bool {
-	held, _ := p.HeldItems()
-	switch v, _ := held.Value(lobbyItemKey); v {
-	case "menu", "saves", "guide":
-		pf.wakeLobbyMenu(p)
-	default:
-		return false
-	}
-	return true
 }
 
 // showSaves shows the save slots of p and the actions of the chosen one
@@ -327,7 +301,6 @@ func registerCommands(pf *Platform) {
 	cmd.Register(cmd.New("members", i18n.T(i18n.Default, "platform.cmd.members"), nil, membersCmd{pf: pf}))
 	cmd.Register(cmd.New("join", i18n.T(i18n.Default, "platform.cmd.join"), nil, joinCmd{pf: pf}))
 	cmd.Register(cmd.New("title", i18n.T(i18n.Default, "platform.cmd.title"), []string{"titles"}, titleCmd{pf: pf}))
-	cmd.Register(cmd.New("uimode", i18n.T(i18n.Default, "platform.cmd.uimode"), nil, uiModeCmd{pf: pf}))
 	cmd.Register(cmd.New("uidebug", i18n.T(i18n.Default, "platform.uidebug.command"), nil, uiDebugCmd{}))
 	cmd.Register(cmd.New("settings", i18n.T(i18n.Default, "setting.command"), []string{"setting", "options"}, settingsCmd{pf: pf}))
 	cmd.Register(cmd.New("copysave", i18n.T(i18n.Default, "platform.cmd.copysave"), nil, copySaveCmd{pf: pf}))
@@ -394,42 +367,6 @@ type friendsCmd struct {
 
 func (c friendsCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
 	c.pf.showFriends(src.(*player.Player))
-}
-
-// showLobbyMenu is the lobby's main menu: the full-screen main screen for a
-// player who sees DDUI screens, whose menus open in its place. The JSON UI
-// form matches the copy the pack draws on the HUD (ui/sg_lobby.json), so
-// closing the form does not change the screen; its labels are pack language
-// keys.
-func (pf *Platform) showLobbyMenu(p *player.Player) {
-	if ui.OreUIFor(p) {
-		ui.HomeScreen(p, ui.Home{Buttons: homeMenu(i18n.Of(p), pf.lobbyMenu()), Footer: p.Name(), Close: pf.lobbyEscaped})
-		return
-	}
-	ui.LauncherMenu(p, nil, pf.lobbyMenu()...)
-}
-
-// homeMenu are the buttons of the main menu with their text in lang
-// (platform.home.<name> for the pack key sg.lobby.<name>).
-func homeMenu(lang string, opts []ui.Option) []ui.Option {
-	out := make([]ui.Option, len(opts))
-	for i, o := range opts {
-		o.Label = i18n.T(lang, "platform.home."+strings.TrimPrefix(o.Label, "sg.lobby."))
-		out[i] = o
-	}
-	return out
-}
-
-// lobbyMenu are the buttons of the main menu, in the order the pack draws
-// them.
-func (pf *Platform) lobbyMenu() []ui.Option {
-	return []ui.Option{
-		{Label: "sg.lobby.single", Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
-		{Label: "sg.lobby.multi", Icon: "textures/ui/sg/icon_people", Run: func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) }},
-		{Label: "sg.lobby.friends", Icon: "textures/ui/sg/icon_person", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		{Label: "sg.lobby.cosmetics", Icon: "textures/ui/sg/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		{Label: "sg.lobby.help", Icon: "textures/ui/sg/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
-	}
 }
 
 // lobbyBack is the back button of a lobby screen: it shows back. The screens

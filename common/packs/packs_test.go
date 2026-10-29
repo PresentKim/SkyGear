@@ -90,8 +90,7 @@ var (
 )
 
 // TestThemeStandsAlone: the sgui theme refers only to its own namespaces
-// (the game namespaces of a server pack fill sgui_hooks instead) and to
-// pictures it has. Pictures picked by a binding (a name ending in "_") are
+// (not to the game namespaces of a server pack) and to pictures it has. Pictures picked by a binding (a name ending in "_") are
 // checked by tree pictures here and by the slotdeco test.
 func TestThemeStandsAlone(t *testing.T) {
 	dir := sub(t, "sgui")
@@ -109,7 +108,7 @@ func TestThemeStandsAlone(t *testing.T) {
 			own[m[1]] = true
 		}
 	}
-	for _, ns := range []string{"sg_form", "sgui_hooks"} {
+	for _, ns := range []string{"sg_form"} {
 		if !own[ns] {
 			t.Errorf("no file has namespace %s", ns)
 		}

@@ -148,7 +148,7 @@ func (g *Game) openProbe(p *player.Player, title string, nodes []any, closed fun
 // oreUIOnly tells whether p sees DDUI screens, writing an error to o if not.
 func oreUIOnly(p *player.Player, o *cmd.Output) bool {
 	if !ui.OreUIFor(p) {
-		o.Errorf("Ore UI screens are off for %s (/uimode, [ResourcePack] Encrypt)", p.Name())
+		o.Errorf("Ore UI screens are off for %s ([ResourcePack] Encrypt)", p.Name())
 		return false
 	}
 	return true

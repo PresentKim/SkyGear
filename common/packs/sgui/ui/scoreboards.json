@@ -10,39 +10,6 @@
     "anchor_to": "center",
     "controls": [
       {
-        // The lobby's frame (hud.FrameTitle), filled by the server pack
-        // (ui/sgui_hooks.json).
-        "lobby_frame@sgui_hooks.lobby_frame": {
-          "bindings": [
-            {
-              "binding_name": "#objective_sidebar_name",
-              "binding_type": "global"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        // The lobby's main menu as pictures, under the menu form.
-        "lobby_menu@sgui_hooks.lobby_menu": {
-          "bindings": [
-            {
-              "binding_name": "#objective_sidebar_name",
-              "binding_type": "global"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
         "sg_plain@scoreboard.sg_plain_sidebar": {
           "bindings": [
             {
@@ -102,18 +69,6 @@
           "offset": [
             -4,
             -10
-          ],
-          // The lobby has no quest: no empty panel at the right edge.
-          "bindings": [
-            {
-              "binding_name": "#objective_sidebar_name",
-              "binding_type": "global"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "((#objective_sidebar_name - '§d§l§b') = #objective_sidebar_name)",
-              "target_property_name": "#visible"
-            }
           ]
         }
       }

@@ -28,7 +28,6 @@
 ## 쓰기
 
 - 리소스팩: `packs.Sub(name)` 을 `resourcepack.LoadFS` 에 넘긴다.
-- `sgui` 테마는 서버 팩이 채우는 자리(`ui/sgui_hooks.json`, 네임스페이스 `sgui_hooks`)를 둔다. 로비 화면 틀(`lobby_frame`)처럼 이 서버에 맞춘 것은 서버 팩이 같은 경로의 `ui/sgui_hooks.json` 에 다시 정의하고, 서버 팩을 `sgui` 보다 먼저(위에) 싣는다(`conf.Resources` 의 앞쪽이 위).
 - 글: 서버의 카탈로그 패키지가 `init` 에서 `i18n.Register(fsys)` 를 부른다.
 
 ## 개발

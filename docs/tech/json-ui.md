@@ -1,9 +1,9 @@
 # JSON UI (스카이기어 테마)
 
 폼과 기계 창의 모양은 리소스팩 JSON UI 로 바꾼다. 서버는 폼 내용만 보내고, 모양은 클라이언트가 팩으로 그린다.
-폼·HUD 테마는 게임과 상관없어 `common/packs/sgui` 에 있고, 기계 창·로비 틀처럼 이 게임에만 있는 것은 `skygear` 팩에 있다. `main.go` 가 `skygear` 를 `sgui` 보다 먼저(스택 위에) 싣는다.
+폼·HUD 테마는 게임과 상관없어 `common/packs/sgui` 에 있고, 기계 창처럼 이 게임에만 있는 것은 `skygear` 팩에 있다. `main.go` 가 `skygear` 를 `sgui` 보다 먼저(스택 위에) 싣는다.
 
-레이아웃 13개(목록·카드·상점·표·칸·분할·트리·런처 등)는 `server_form.json` 의 `long_form` 아래에 모두 있고 제목 표식으로 `visible` 만 바뀐다. 그래서 어느 폼을 열든 모든 레이아웃이 만들어지고 배치된다. 맞는 레이아웃 하나만 팩토리로 만드는 게이트(`property_bag` 의 역할 이름 배열을 `('#이름_' + 조건)` 으로 골라 `#collection_length` 에 주는 방식)는 동작하지만, 우리 팩토리가 만든 컨트롤 안에서는 `#form_button_contents` 로 버튼을 만드는 팩토리와 고정 `collection_index` 칸이 비어(격자만 채워진다) 지금 레이아웃에는 쓸 수 없다. 쓰려면 레이아웃이 버튼을 격자로만 읽게 바꿔야 한다.
+레이아웃 12개(목록·카드·상점·표·칸·분할·트리 등)는 `server_form.json` 의 `long_form` 아래에 모두 있고 제목 표식으로 `visible` 만 바뀐다. 그래서 어느 폼을 열든 모든 레이아웃이 만들어지고 배치된다. 맞는 레이아웃 하나만 팩토리로 만드는 게이트(`property_bag` 의 역할 이름 배열을 `('#이름_' + 조건)` 으로 골라 `#collection_length` 에 주는 방식)는 동작하지만, 우리 팩토리가 만든 컨트롤 안에서는 `#form_button_contents` 로 버튼을 만드는 팩토리와 고정 `collection_index` 칸이 비어(격자만 채워진다) 지금 레이아웃에는 쓸 수 없다. 쓰려면 레이아웃이 버튼을 격자로만 읽게 바꿔야 한다.
 
 ## 파일
 
@@ -11,8 +11,6 @@
 |---|---|
 | `common/packs/sgui/ui/server_form.json` | 바닐라 `server_form.main_screen_content`(전체 화면으로)·`long_form`·`custom_form` 을 덮어써 모든 서버 폼을 어두운 테마로. 제목 앞 표식으로 분기: `§d§f§c§r`(`ui.CardToken`) 카드 격자, `§d§f§s§r`(`ui.ShopToken`) 촘촘한 상점 격자, `§d§f§t§r`(`ui.TableToken`) 표, `§d§f§i§r`(`ui.SlotToken`) 인벤토리처럼 보이는 칸(보이기만 하는 보관 칸 `§0§9§r`과 옆 글 `§0§b§r`, 누르는 왼쪽 칸 `§0§a§r`·오른쪽 칸 `§0§c§r`, 서랍 창; 칸 글자가 안내 문구 — 마우스는 hover·pressed 상태에 안내 상자. 터치(`$touch`)는 서랍 창(`slot_*`)만 바닐라 라디오 토글로 첫 탭 선택·안내, 선택된 칸 위에만 진짜 버튼이 있어 다시 탭하면 실행). 폼은 누른 버튼을 글자로 찾으므로 같은 글자의 버튼은 `ui.Menu` 가 `§r` 을 붙여 구별한다, 없으면 목록 |
 | `common/packs/sgui/ui/sg_form.json` | 테마 컨트롤(`sg_form` 네임스페이스): 창(패널·제목 막대·닫기), 목록 버튼(아이콘+글자), 카드 격자, 입력 폼. 글자는 팩 번역 키(`sgui.*`, `texts/*.lang`) |
-| `common/packs/sgui/ui/sgui_hooks.json` | 테마가 그리지만 서버 팩이 채우는 자리(`sgui_hooks` 네임스페이스): `lobby_frame`(로비 틀, 테마에서는 비어 있다)과 그것을 폼 배경에 표식으로 띄우는 `form_frame`. 서버 팩은 같은 경로의 파일에서 같은 이름을 다시 정의한다 |
-| `assets/resourcepack/skygear/ui/sgui_hooks.json` | `sgui_hooks.lobby_frame` 을 `sg_lobby.frame` 으로 채운다 |
 | `assets/resourcepack/skygear/ui/sg_machine.json` | 기계 창 레이아웃(`sg_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
 | `common/packs/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§<n>` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
 | `common/packs/sgui/textures/ui/sg/*` | 테마 텍스처. `common/` 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)만 `skygear` 팩에 있다 |
@@ -20,7 +18,7 @@
 ## 폼 (메뉴·확인·입력)
 
 - 항목을 넣고 빼지 않는 메뉴는 **폼**으로 만든다(상자 아님): 스카이기어 메뉴, 분실물 보관함, 섬 확장 지도 등.
-- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 4개(76×50 칸, 격자 폭 304px 고정·가운데, 창 326px), 버튼 수만큼 줄이 늘어난다(스크롤). 스카이기어 메뉴·도움말·로비 메뉴·이름 색. 더 작은 칸이 많을 때는 촘촘한 격자(`ui.ShopMenu`).
+- 카드 격자 폼(`ui.CardMenu`): 아이콘 위·글자 아래 카드가 한 줄에 4개(76×50 칸, 격자 폭 304px 고정·가운데, 창 326px), 버튼 수만큼 줄이 늘어난다(스크롤). 스카이기어 메뉴·도움말·이름 색. 더 작은 칸이 많을 때는 촘촘한 격자(`ui.ShopMenu`).
   - 격자 항목 수는 본문 앞 12바이트에서 읽는다: `ui.Menu` 가 격자 칸 수를 `§r§r§r` 과 세 자리 숫자(`§r§r§r042`)로 본문 맨 앞에 쓰고, 팩이 `((('%.12s' * #form_text) - '§r') - 0)` 으로 숫자를 꺼내 `#maximum_grid_items` 로 묶으며 본문 글에서는 이 12바이트를 뺀다. 클라이언트의 `#form_button_length` 는 지금까지 보인 가장 큰 폼의 버튼 수로 남아 쓰지 않는다. 숫자를 앞에 두면 잘라낸 12바이트가 통째로 숫자로 읽혀 본문 자르기 식이 깨지므로 `§r` 을 앞에 둔다(식 결과 문자열은 생김새로 타입이 다시 정해진다). 펼치는 격자(`ui.ItemGrid`·`ui.ItemBoard`)는 칸 버튼 수만 보내, 뒤에 오는 탭·뒤로·쪽 버튼이 빈 줄을 만들지 않는다.
   - 격자 높이는 `100%c` 로 묶는다(`#form_button_contents` 나 `default` 높이면 버튼이 하나도 안 생긴다).
 - 목록 폼(`ui.Menu`): 버튼마다 아이콘(`ui.Option.Icon`) + 글자. 아이콘은 두 가지:
@@ -119,16 +117,12 @@
 - 모양은 바닐라 화로 화면과 같다: 밝은 회색 창(`textures/ui/dialog_background_opaque`), 바닐라 칸(`textures/ui/cell_image`), 진한 회색 제목(바닐라 `$title_text_color` 그대로)은 화로 화면(`furnace_label`)처럼 창 위 가운데 4px 아래. 제목 표식 `§d§m§<n>` 의 마지막 코드는 색 코드라 Go 가 표식 뒤에 `§r` 을 붙인다. 출력이 하나인 기계(분쇄기·전기 화로·합금로)의 출력 칸은 화로 결과 칸처럼 26×26. 진행도 칸은 칸 배경 없이 그림만이고, 화살표·링·배터리의 빈 부분은 바닐라 화로 화살표(`arrow_inactive`)와 같은 밝은 회색, 찬 부분은 흰색·주황이다. 정보 아이콘은 창 오른쪽 위 어두운 컨트롤 막대에 흰 그림으로, 모두 꺼내기·모두 넣기는 창 오른쪽 바깥에 바닐라 밝은 버튼으로 있다.
 - 기계 창 레이아웃은 PC 화면에만 있다. 모바일은 크기 지정 상자 그대로 보인다.
 
-## 로비 입장기 틀
+## 로비
 
-이 틀과 HUD 의 메인 메뉴 그림은 JSON UI 폼을 쓰는 플레이어(`/uimode`, 팩 암호화를 끈 서버)의 것이다. Ore UI 를 쓰는 플레이어는 메인 화면(`ui.HomeScreen`, [oreui.md](oreui.md) "로비 화면")이 같은 배치를 그리고, HUD 틀은 보내지 않는다.
+로비는 Ore UI 메인 화면(`ui.HomeScreen`)이 그린다([oreui.md](oreui.md) "로비 화면"). JSON UI 에는 로비 전용 틀·메인 메뉴·폼 표식이 없고, 로비 폼도 다른 폼처럼 창 둘레를 어둡게 한다.
 
-로비를 게임 입장기처럼 보이게 하는 화면 전체의 틀(`ui/sg_lobby.json` 의 `sg_lobby.frame`, 테마의 `sgui_hooks.lobby_frame` 을 채운다): 왼쪽 위에 게임 아이콘(풀 블록 옆면)과 이름(`sg.lobby.title`, MinecraftTen 글꼴), 그 아래 옅은 1px 선. 나머지는 비워 고정 카메라로 비춘 로비 섬이 보인다(`internal/platform/lobby.go`). 바닐라 HUD 는 `SetHud` 로 숨기고(`sghook.HideHUD`), 틀은 리소스팩 HUD 부분이라 남는다.
+## 기타 폼
 
-- HUD: 로비에서는 사이드바 목표 이름이 `hud.FrameTitle`(`§d§h§u§d§d§l§b`)이고 `scoreboards.json` 이 그 표식으로 틀을 그리고 퀘스트 창을 숨긴다. 줄이 없어도 사이드바가 보이도록 아무 부분에도 속하지 않는 줄 `§d§0` 하나를 보낸다. 운영자 부하 줄은 그대로 왼쪽 위에 겹친다. 바뀔 때만 보내고(`internal/platform/load.go`), 로비에 도착할 때마다 다시 보낸다.
-- 폼: 폼이 열려 있는 동안 HUD 는 그려지지 않으므로 폼 화면도 같은 틀을 그린다. 로비에 있는 플레이어에게 보내는 모든 폼 제목에 `§d§f§w§r`(`ui.LobbyToken`, `ui.InLobby` 로 판별)이 붙고, `server_form.json` 이 `third_party_server_screen` 의 `$screen_bg_content`(안전 영역 밖 배경, 화면 전환 때 밀려나지 않는다)를 `sgui_hooks.form_frame` 으로 바꿔 그 표식이 있으면 틀(`sgui_hooks.lobby_frame`)을 그린다. 이 배경에서는 `#title_text` 바인딩을 `once` 로 두면 폼 내용이 오기 전에 평가돼 보이지 않으므로 조건 없이 계속 평가한다. 배경 애니메이션(`$background_animations`)은 비워 폼을 바꿀 때 틀이 깜빡이지 않는다. 로비 폼은 창 둘레를 어둡게 하지 않는다(`sg_form.window` 의 `dim`). DDUI 를 쓰는 플레이어의 로비 화면은 렌더러가 같은 틀을 그린다([oreui.md](oreui.md) "로비 화면").
-- 메인 메뉴(`ui.LauncherMenu`, 제목 표식 `§d§f§n§r`): 창 없이 이름 아래(왼쪽 16, 위 54)에 큰 버튼(150×24, 간격 4)이 세로로 놓인다(`sg_form.launcher_form`). 버튼은 반투명 어두운 바탕·옅은 테두리(`launcher_button`, 호버는 파란 테두리), 흰 선 아이콘(`icon_cube` 등, `common/tools/uitextures`), 이름, 꺾쇠(`chevron_right`)다. 버튼 글은 팩 언어 키(`sg.lobby.single` 등)이고 라벨이 `localize` 로 번역한다.
-- HUD 의 메인 메뉴 그림: 테마의 `sgui_hooks.lobby_menu`(HUD 에만, 틀과 같은 조건)를 서버 팩이 `sg_lobby.menu` 로 채운다. 같은 자리(`sg_form.launcher_column`)에 같은 모양의 그림 버튼(`sg_form.launcher_static`)을 같은 키·아이콘·순서로 그린다(`platform` 의 `lobbyMenu` 와 맞는지 `lobbymenu_test.go` 가 검사). 그래서 메뉴 폼을 닫아도 화면이 같다. 플레이어가 닫은 폼은 다시 보내지 않고, 다음 행동에서 메인 메뉴를 연다(`internal/platform/lobbywake.go`): 클릭·핫바·점프·공격은 로비 핸들러가, 이동 키·점프·웅크리기는 이동이 잠겨 있어 패킷 훅이 `PlayerAuthInput` 의 `RawMoveVector` 와 입력 플래그로 본다(플레이어마다 0.3초에 한 번). 이미 열린 메뉴는 ui 의 같은 폼 반복 방지로 다시 가지 않는다.
 - 제목 없는 카드 폼(`ui.CardMenu` 에 빈 제목 → `§d§f§u§r`, `ui.UntitledToken`): 제목 막대 없이 내용이 창 위 10px 에서 시작하고 창이 그만큼 낮다(`cards_u`·`cards_us`, 326×124).
 
 ## 요령

@@ -1390,12 +1390,10 @@
   height: 1.8rem;
 }
 
-/* --- the lobby (ui.lobbySkin): the screens look like the lobby's main menu (packs/sgui
-   launcher_form, the server pack's sg_lobby.json frame) over the lobby island. The screen is not
-   darkened; the game's logo, name and the line under them are at the top left as in the frame
-   (16u, 14u: a 22u logo, the name at 44u, a 150u line at 44u down); the window, buttons, tabs and
-   control bar take the navy launcher button pictures (sgui launcher_button, 16x16, slice 4) and the
-   text is light. ------------------------------------------------------------------------------- */
+/* --- the lobby (ui.lobbySkin): the lobby island shows through a shade at the top and the bottom of
+   the screen, darker behind a window; the game's logo and name are at the top middle (16u down); the
+   windows, panels, buttons, tabs and control bar take the navy launcher button pictures (sgui
+   launcher_button, 16x16, slice 4) and the text is light. ----------------------------------------- */
 
 .mc-screen.mc-lobby {
   background-color: rgba(0, 0, 0, 0);
@@ -1404,40 +1402,44 @@
   --mc-head: #c3d2ea;
 }
 
-.mc-lobby-head {
+.mc-lobby-shade {
   position: absolute;
   left: 0;
   top: 0;
-  width: 40rem;
-  height: 10rem;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(4, 7, 16, 0.5);
+}
+
+.mc-home .mc-lobby-shade {
+  background-color: rgba(0, 0, 0, 0);
+  background-image: linear-gradient(to bottom, rgba(5, 9, 20, 0.55) 0%, rgba(5, 9, 20, 0) 22%, rgba(5, 9, 20, 0) 62%, rgba(5, 9, 20, 0.7) 100%);
+}
+
+/* The head spans the screen to centre the logo and the name; the renderer measures what it holds
+   (oui-ddui.js fitLobbyHead). */
+.mc-lobby-head {
+  position: absolute;
+  left: 0;
+  top: 1.6rem;
+  width: 100vw;
+  height: 3.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 .mc-lobby-logo {
-  position: absolute;
-  left: 3.2rem;
-  top: 2.8rem;
-  width: 4.4rem;
-  height: 4.4rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  margin-right: 1rem;
 }
 
 .mc-lobby-title {
-  position: absolute;
-  left: 8.8rem;
-  top: 3rem;
-  height: 4rem;
-  display: flex;
-  align-items: center;
   color: #ffffff;
   font-size: 2.6rem;
-}
-
-.mc-lobby-line {
-  position: absolute;
-  left: 3.2rem;
-  top: 8.8rem;
-  width: 30rem;
-  height: 0.2rem;
-  background-color: rgba(191, 217, 255, 0.5);
+  text-shadow: 0 0.3rem 0 #2a3a56;
 }
 
 .mc-lobby .mc-window,
@@ -1463,9 +1465,21 @@
   border-image-source: url("pack://textures/ui/sg/launcher_button_pressed.png?filtering=point");
 }
 
-.mc-lobby .mc-window {
+.mc-lobby .mc-window,
+.mc-home .mc-btn,
+.mc-home .mc-panel {
   border-width: 0.8rem;
   border-image-width: 0.8rem;
+}
+
+/* Text lines are rows of spans (oui-ddui.js rich): centred text centres them. */
+.mc-home-badge .oui-line,
+.mc-home-hint .oui-line,
+.mc-home-ov-title .oui-line,
+.mc-home-ov-body .oui-line,
+.mc-home-play .oui-line,
+.mc-home-tile .oui-line {
+  justify-content: center;
 }
 
 .mc-lobby .mc-input {
@@ -1473,66 +1487,308 @@
   border-color: rgba(110, 135, 170, 0.9);
 }
 
-/* The shade over the left of every lobby screen: the lobby island shows through it, darker under the
-   name and the main screen's menu. The screens drawn over it keep it, so going between the main screen
-   and a menu does not change it. */
-.mc-lobby-shade {
+/* --- the lobby's main screen (ui.HomeScreen), a game lobby around the character on the island:
+   the profile card at the top left (135x37u), icon buttons at the top right (22u, 4u apart) and down
+   the left (38x28u, 4u apart), the Esc hint under the name, the recent lines at the bottom left, and at the bottom right (156u wide)
+   the save card over the green play button and the save button. The middle is left to the island. */
+
+.mc-home-profile {
+  position: absolute;
+  left: 1.6rem;
+  top: 1.4rem;
+  width: 27rem;
+  height: 7.4rem;
+}
+
+.mc-home-head {
+  width: 4.6rem;
+  height: 4.6rem;
+  margin-left: 0.2rem;
+  flex-shrink: 0;
+}
+
+.mc-home-info {
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-name {
+  font-size: 1.6rem;
+}
+
+.mc-home-title {
+  font-size: 1.12rem;
+}
+
+.mc-home-bar {
+  height: 0.8rem;
+  margin-top: 0.4rem;
+  margin-right: 0.4rem;
+  background-color: #0b1020;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+}
+
+.mc-home-bar-fill {
+  height: 100%;
+  background-color: #62c240;
+}
+
+.mc-home-bar-line {
+  font-size: 1rem;
+  color: #aab6d0;
+}
+
+.mc-home-corner {
+  position: absolute;
+  right: 1.6rem;
+  top: 1.8rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.mc-home-sq {
+  width: 4.4rem;
+  height: 4.4rem;
+  margin-left: 0.8rem;
+  justify-content: center;
+}
+
+.mc-home-ic {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.mc-home-badge {
+  position: absolute;
+  top: -1.4rem;
+  right: -1.4rem;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  padding: 0 0.3rem;
+  background-color: #d83a3a;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+  color: #ffffff;
+  font-size: 1.1rem;
+  line-height: 1.4rem;
+  text-align: center;
+}
+
+.mc-home-side {
+  position: absolute;
+  left: 1.6rem;
+  top: 10.6rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-tile {
+  width: 7.6rem;
+  height: 5.6rem;
+  margin-bottom: 0.8rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-home-tile .mc-home-ic {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.mc-home-tile-label {
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.mc-home-feed {
+  position: absolute;
+  left: 1.6rem;
+  bottom: 1.8rem;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-feed-line {
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  background-color: rgba(5, 9, 20, 0.55);
+  border-left-style: solid;
+  border-left-width: 0.3rem;
+  border-left-color: #4f6ea8;
+  font-size: 1.2rem;
+}
+
+.mc-home-start {
+  position: absolute;
+  right: 1.6rem;
+  bottom: 1.6rem;
+  width: 31.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-save {
+  height: 9.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-home-save-pic {
+  width: 6rem;
+  height: 6rem;
+  flex-shrink: 0;
+}
+
+.mc-home-save-text {
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-save-head {
+  font-size: 1rem;
+  color: #8fb8ff;
+}
+
+.mc-home-save-name {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+
+.mc-home-save-line {
+  font-size: 1.1rem;
+  color: #aab6d0;
+}
+
+.mc-home-arrows {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-arrow {
+  width: 2.8rem;
+  height: 2.8rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  justify-content: center;
+}
+
+.mc-home-arrow img {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.mc-home-arrow.off {
+  opacity: 0.35;
+}
+
+/* The play button: Bedrock's green button, a light top edge and a dark bottom one. */
+.mc-home-play {
+  height: 6rem;
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #3c8527;
+  border-style: solid;
+  border-width: 0.4rem 0.2rem 0.6rem 0.2rem;
+  border-color: #6cc44a #1e1e1f #1d4d13 #1e1e1f;
+  color: #ffffff;
+}
+
+.mc-home-play:hover,
+.mc-home-play.oui-kb {
+  background-color: #4a9b31;
+}
+
+.mc-home-play:active {
+  border-width: 0.6rem 0.2rem 0.4rem 0.2rem;
+  border-color: #1d4d13 #1e1e1f #1d4d13 #1e1e1f;
+}
+
+.mc-home-play-label {
+  font-size: 2rem;
+  text-shadow: 0.2rem 0.2rem 0 rgba(0, 0, 0, 0.35);
+}
+
+.mc-home-play-sub {
+  font-size: 1.1rem;
+  color: #e3f5da;
+}
+
+.mc-home-manage {
+  height: 3.6rem;
+  margin-top: 0.8rem;
+  justify-content: center;
+}
+
+.mc-home-manage .mc-btn-text,
+.mc-home-ov-btn .mc-btn-text {
+  font-size: 1.3rem;
+}
+
+.mc-home-hint {
+  position: absolute;
+  left: 0;
+  top: 5.4rem;
+  width: 100vw;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #c9d4ea;
+}
+
+/* The overlay (the system menu, a question): a panel in the middle over the dimmed screen. */
+.mc-home-ov {
   position: absolute;
   left: 0;
   top: 0;
   width: 100vw;
   height: 100vh;
-  background-image: linear-gradient(to right, rgba(5, 9, 20, 0.78) 0%, rgba(5, 9, 20, 0.45) 35%, rgba(5, 9, 20, 0) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(4, 7, 16, 0.55);
 }
 
-/* --- the lobby's main screen (ui.HomeScreen): a column of large buttons (170x28u, 4u apart) under the
-   name, each with its icon (14u at 5u), text and a chevron, and the footer line at the bottom right,
-   clear of the menu on a short screen. */
-
-.mc-home-menu {
-  position: absolute;
-  left: 3.2rem;
-  top: 11.6rem;
-  width: 34rem;
+.mc-home-ov-panel {
+  width: 30rem;
   display: flex;
   flex-direction: column;
-}
-
-.mc-home-btn {
-  height: 5.6rem;
-  flex-shrink: 0;
-  margin-bottom: 0.8rem;
+  padding: 1.4rem;
+  border-style: solid;
   border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
   border-image-width: 0.8rem;
 }
 
-.mc-home-icon {
-  width: 2.8rem;
-  height: 2.8rem;
-  margin-left: 1rem;
-  flex-shrink: 0;
-}
-
-.mc-home-label {
-  flex-grow: 1;
-  margin-left: 1.4rem;
+.mc-home-ov-title {
+  font-size: 1.6rem;
   color: #ffffff;
-  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 0.8rem;
 }
 
-.mc-home-chevron {
-  width: 1.6rem;
-  height: 1.6rem;
-  margin-right: 0.8rem;
-  flex-shrink: 0;
+.mc-home-ov-body {
+  font-size: 1.3rem;
+  text-align: center;
+  margin-bottom: 0.8rem;
 }
 
-.mc-home-foot {
-  position: absolute;
-  right: 3.2rem;
-  bottom: 2.4rem;
-  color: rgba(195, 210, 234, 0.85);
-  font-size: 1.4rem;
+.mc-home-ov-btn {
+  height: 4rem;
+  margin-top: 0.8rem;
+  justify-content: center;
 }
 
 /* --- the plane (ui.PlaneMenu): buttons over the ground a straight-down camera shows, placed by the

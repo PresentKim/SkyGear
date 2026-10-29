@@ -19,7 +19,7 @@
       { "binding_name": "#title_text", "binding_type": "global" },
       {
         "binding_type": "view",
-        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§b§r' - '§d§f§w§r' - '§d§f§u§r')",
+        "source_property_name": "(#title_text - '§d§f§c§r' - '§d§f§s§r' - '§d§f§t§r' - '§d§f§i§r' - '§d§f§g§r' - '§d§f§h§r' - '§d§f§j§r' - '§d§f§y§r' - '§d§f§l§r' - '§d§f§e§r' - '§d§f§z§r' - '§d§f§b§r' - '§d§f§u§r')",
         "target_property_name": "#sg_title"
       }
     ]
@@ -115,9 +115,7 @@
     "max_size": [ "100% - 8px", "100% - 8px" ],
     "layer": 2,
     "controls": [
-      // The screen around the window is darkened like the game's own screens,
-      // but not in the lobby (ui.LobbyToken): there the lobby island and its
-      // launcher frame stay bright around the window.
+      // The screen around the window is darkened like the game's own screens.
       {
         "dim": {
           "type": "image",
@@ -127,15 +125,7 @@
           "size": [ 4000, 4000 ],
           "anchor_from": "center",
           "anchor_to": "center",
-          "layer": -8,
-          "bindings": [
-            { "binding_name": "#title_text", "binding_type": "global" },
-            {
-              "binding_type": "view",
-              "source_property_name": "((#title_text - '§d§f§w§r') = #title_text)",
-              "target_property_name": "#visible"
-            }
-          ]
+          "layer": -8
         }
       },
       // The tabs sit on the window's top edge like the game's own tabs.
@@ -4408,158 +4398,6 @@
   },
 
 
-  // ---- launcher menu (title starts with §d§f§n§r, Go ui.LauncherMenu) ----
-  // The lobby's main menu: no window, a column of large buttons at the top
-  // left of the screen under the lobby frame's title, each with a white icon,
-  // its label and a chevron. The HUD draws the same column with pictures
-  // (launcher_static, filled by the server pack in sgui_hooks.lobby_menu), so
-  // closing and opening the menu form does not show. Labels are pack
-  // language keys: the form's button text is the key and the label
-  // localizes it, so the form and the HUD read the same words.
-  "launcher_column": {
-    "type": "stack_panel",
-    "orientation": "vertical",
-    "size": [ 150, "100%c" ],
-    "offset": [ 16, 54 ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left"
-  },
-  "launcher_bg": {
-    "type": "image",
-    "size": [ "100%", "100%" ],
-    "texture": "$sg_launcher_bg",
-    "layer": 1
-  },
-  "launcher_chevron": {
-    "type": "image",
-    "texture": "textures/ui/sg/chevron_right",
-    "size": [ 8, 8 ],
-    "offset": [ -8, 0 ],
-    "anchor_from": "right_middle",
-    "anchor_to": "right_middle",
-    "layer": 3
-  },
-  "launcher_label": {
-    "type": "label",
-    "layer": 3,
-    "color": [ 1, 1, 1 ],
-    "shadow": true,
-    "size": [ "100% - 48px", "default" ],
-    "offset": [ 30, 0 ],
-    "anchor_from": "left_middle",
-    "anchor_to": "left_middle"
-  },
-  // A button drawn as a picture (the HUD's copy of the menu).
-  "launcher_static": {
-    "type": "panel",
-    "size": [ 150, 28 ],
-    "$sg_launcher_icon|default": "textures/ui/sg/icon_cube",
-    "$sg_launcher_label|default": "",
-    "controls": [
-      {
-        "face": {
-          "type": "panel",
-          "size": [ 150, 24 ],
-          "anchor_from": "top_left",
-          "anchor_to": "top_left",
-          "controls": [
-            { "bg@sg_form.launcher_bg": { "$sg_launcher_bg": "textures/ui/sg/launcher_button" } },
-            {
-              "icon": {
-                "type": "image",
-                "texture": "$sg_launcher_icon",
-                "size": [ 14, 14 ],
-                "offset": [ 9, 0 ],
-                "anchor_from": "left_middle",
-                "anchor_to": "left_middle",
-                "layer": 3
-              }
-            },
-            { "label@sg_form.launcher_label": { "text": "$sg_launcher_label" } },
-            { "chevron@sg_form.launcher_chevron": {} }
-          ]
-        }
-      }
-    ]
-  },
-  "launcher_face": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "$sg_launcher_bg|default": "textures/ui/sg/launcher_button",
-    "controls": [
-      { "bg@sg_form.launcher_bg": {} },
-      {
-        "icon@sg_form.button_icon": {
-          "$sg_icon_size": [ 14, 14 ],
-          "offset": [ 9, 0 ],
-          "anchor_from": "left_middle",
-          "anchor_to": "left_middle"
-        }
-      },
-      {
-        "label@sg_form.launcher_label": {
-          "text": "#form_button_text",
-          "localize": true,
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            }
-          ]
-        }
-      },
-      { "chevron@sg_form.launcher_chevron": {} }
-    ]
-  },
-  "launcher_button@common.button": {
-    "$focus_enabled": false,
-    "$pressed_button_name": "button.form_button_click",
-    "size": [ 150, 24 ],
-    "anchor_from": "top_left",
-    "anchor_to": "top_left",
-    "default_control": "default",
-    "hover_control": "hover",
-    "pressed_control": "pressed",
-    "bindings": [
-      {
-        "binding_type": "collection_details",
-        "binding_collection_name": "form_buttons"
-      }
-    ],
-    "controls": [
-      { "default@sg_form.launcher_face": {} },
-      { "hover@sg_form.launcher_face": { "$sg_launcher_bg": "textures/ui/sg/launcher_button_hover" } },
-      { "pressed@sg_form.launcher_face": { "$sg_launcher_bg": "textures/ui/sg/launcher_button_pressed" } }
-    ]
-  },
-  "launcher_item@sg_form.unmarked_visible": {
-    "type": "panel",
-    "size": [ 150, 28 ],
-    "controls": [ { "button@sg_form.launcher_button": {} } ]
-  },
-  "launcher_form": {
-    "type": "panel",
-    "size": [ "100%", "100%" ],
-    "controls": [
-      {
-        "column@sg_form.launcher_column": {
-          "factory": {
-            "name": "buttons",
-            "control_ids": { "button": "sg_form.launcher_item" }
-          },
-          "collection_name": "form_buttons",
-          "bindings": [
-            {
-              "binding_name": "#form_button_contents",
-              "binding_name_override": "#collection_length",
-              "binding_condition": "visible"
-            }
-          ]
-        }
-      }
-    ]
-  },
   // ---- tree form (title starts with §d§f§z§r, Go ui.TreeMenu) ----
   // The advancement tree, drawn like a Java advancements screen: a light window
   // with its tabs above it, the tree on a tiled background in an inset. The tree

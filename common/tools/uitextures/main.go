@@ -272,7 +272,7 @@ func main() {
 	write("arrow_up", arrow(3), 0)
 	write("chevron_right", mirror(chevron()), 0)
 
-	// the lobby's launcher menu (ui.LauncherMenu)
+	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1), 4)
 	write("launcher_button_hover", launcherBox(color.NRGBA{34, 60, 98, 220}, color.NRGBA{150, 210, 255, 255}, 2), 4)
 	write("launcher_button_pressed", launcherBox(color.NRGBA{14, 22, 38, 235}, color.NRGBA{120, 170, 220, 255}, 2), 4)

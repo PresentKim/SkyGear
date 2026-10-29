@@ -1,6 +1,5 @@
 {
   "ui_defs": [
-    "ui/sg_form.json",
-    "ui/sgui_hooks.json"
+    "ui/sg_form.json"
   ]
 }

@@ -1696,29 +1696,36 @@
     document.body.classList.add(cls);
   }
 
-  // fitLobbyHead keeps the game's name at the top left of a lobby screen (ui.lobbySkin) clear of
-  // the window: where the window, its tabs or its control bar would cover the name (34x10rem,
-  // oui-mc.css .mc-lobby-head), the window moves down when the screen has room below it, and the
+  // fitLobbyHead keeps the game's name at the top middle of a lobby screen (ui.lobbySkin) clear of
+  // the window: where the window, its tabs or its control bar would cover the logo and the name (what
+  // oui-mc.css .mc-lobby-head holds), the window moves down when the screen has room below it, and the
   // name is hidden when it has not (a short screen). It runs once for each window drawn.
   function fitLobbyHead() {
     var head = root && root.querySelector(".mc-lobby-head");
     var win = root && root.querySelector(".mc-window");
     if (!head || !win || win.__lobbyFit) return;
     win.__lobbyFit = true;
-    var rem = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+    var left = Infinity, right = -Infinity, bottom = -Infinity;
+    for (var i = 0; i < head.children.length; i++) {
+      var h = head.children[i].getBoundingClientRect();
+      left = Math.min(left, h.left);
+      right = Math.max(right, h.right);
+      bottom = Math.max(bottom, h.bottom);
+    }
+    if (bottom < 0) return;
     var top = Infinity;
     [win, root.querySelector(".mc-tabs"), root.querySelector(".mc-toolbar")].forEach(function (e) {
       if (!e) return;
       var r = e.getBoundingClientRect();
-      if (r.width > 0 && r.left < 34 * rem) top = Math.min(top, r.top);
+      if (r.width > 0 && r.left < right && r.right > left) top = Math.min(top, r.top);
     });
-    var need = 10 * rem - top;
+    var need = bottom - top;
     if (need <= 0) return;
     if (need <= window.innerHeight - win.getBoundingClientRect().bottom) {
       // the window is centred, so a margin moves it down by half of itself
       win.style.marginTop = Math.ceil(2 * need) + "px";
     } else {
-      head.style.display = "none";
+      head.style.visibility = "hidden";
     }
   }
 
@@ -1993,7 +2000,7 @@
       var head = root && root.querySelector(".mc-lobby-head");
       var win = root && root.querySelector(".mc-window");
       if (head && win) {
-        head.style.display = "";
+        head.style.visibility = "";
         win.style.marginTop = "";
         win.__lobbyFit = false;
       }

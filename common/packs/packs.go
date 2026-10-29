@@ -4,8 +4,7 @@
 //   - inventoryui: chest windows (chestui)
 //   - waila: the looking-at panel (waila)
 //   - slotdeco: slot decorations (slotdeco)
-//   - sgui: the form and HUD theme (ui, hud). A server pack loaded above it
-//     fills its hooks (ui/sgui_hooks.json), such as the lobby frame.
+//   - sgui: the form and HUD theme (ui, hud).
 //   - oreui: the renderer of server-driven DDUI screens (oreui, ui with
 //     ui.OreUI). Its hbui/gameplay.html replaces the game's own in-game Ore
 //     UI page, which the client takes from an encrypted pack only, so the pack

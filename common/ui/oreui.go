@@ -17,29 +17,23 @@ import (
 // ListSplitMenu, Input, ItemGrid, ItemGridSections and SlotMenu show as DDUI
 // screens drawn by the oreui pack, mirroring the sgui JSON UI forms. The
 // server must send the oreui pack encrypted and wrap its listeners with
-// sghook. LauncherMenu and the other forms (Amount, tables) stay JSON UI and
-// close any open DDUI screen first.
+// sghook. The other forms (Amount, tables) stay JSON UI and close any open
+// DDUI screen first.
 var OreUI bool
 
-// PreferJSON reports whether p chose the JSON UI forms over the DDUI screens
-// (nil: nobody did). It is called from any goroutine.
-var PreferJSON func(p *player.Player) bool
-
 // OreUIFor reports whether forms for p show as DDUI screens.
-func OreUIFor(p *player.Player) bool {
-	return OreUI && (PreferJSON == nil || !PreferJSON(p))
-}
+func OreUIFor(*player.Player) bool { return OreUI }
 
 // LobbyHeader, when set, is the game's name and logo (a form icon) that the
-// DDUI screens of the lobby draw at the top left, where the lobby's frame has
-// them. The platform sets it.
+// DDUI screens of the lobby draw at the top middle. The platform sets it.
 var LobbyHeader func(p *player.Player) (title, logo string)
 
 // lobbySkin restyles a layout for p in the lobby (.mc-lobby): the lobby
-// island seen through a shade over the left of the screen, the game's name at
-// the top left, navy windows with light text. The main screen (HomeScreen)
-// and the screens it opens have the same shade and name, so going between
-// them changes only the menu or the window.
+// island seen through a shade at the top and the bottom of the screen
+// (darker behind a window), the game's name at the top middle, navy windows
+// with light text. The main screen (HomeScreen) and the screens it opens have
+// the same shade and name, so going between them changes only what is over
+// the island.
 func lobbySkin(p *player.Player, layout any) any {
 	darkInk(layout)
 	root, ok := layout.(map[string]any)
@@ -50,7 +44,7 @@ func lobbySkin(p *player.Player, layout any) any {
 	skin := []any{box("mc-lobby-shade")}
 	if LobbyHeader != nil {
 		title, logo := LobbyHeader(p)
-		skin = append(skin, box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title), box("mc-lobby-line")}))
+		skin = append(skin, box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title)}))
 	}
 	kids, _ := root["children"].([]any)
 	root["children"] = append(skin, kids...)
@@ -495,7 +489,7 @@ func oreIcon(icon string) string {
 
 // tokens are the form and button markers of the JSON UI theme, which say
 // where a thing goes; the DDUI screens take them off.
-var tokens = []string{UntitledToken, LobbyToken, InputBackToken, CardToken, ShopToken, TableToken, SlotToken,
+var tokens = []string{UntitledToken, InputBackToken, CardToken, ShopToken, TableToken, SlotToken,
 	DetailToken, WrapToken, ColumnsToken, SplitToken, CreateToken, TabToken, TabOnToken, BackToken, ActionToken,
 	CellToken, CellNumToken, TotalToken, StoreToken, UpgradeToken, InfoToken, UtilToken, HelpToken, barPagerToken}
 
