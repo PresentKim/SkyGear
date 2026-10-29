@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/slotdeco"
 )
 
@@ -84,5 +85,22 @@ func TestLobbySkin(t *testing.T) {
 	}
 	if win := kids[2].(map[string]any); win["ink"] != "dark" {
 		t.Errorf("window ink %v", win["ink"])
+	}
+}
+
+// TestToggleRow: a Toggle option is a pressable row holding the label and a
+// switch, marked on when the option is.
+func TestToggleRow(t *testing.T) {
+	for _, on := range []bool{false, true} {
+		l := newOreLayout()
+		row := l.listButton(Toggle("x", on, func(*player.Player, *world.Tx) {}))
+		if row["class"] != "mc-btn mc-list-row mc-toggle-row" || row["id"] == nil {
+			t.Fatalf("row %v", row)
+		}
+		kids := row["children"].([]any)
+		sw := kids[len(kids)-1].(map[string]any)
+		if sw["class"] != "mc-switch" || (sw["on"] == true) != on {
+			t.Errorf("on %v: switch %v", on, sw)
+		}
 	}
 }

@@ -348,6 +348,42 @@
   font-size: 1.4rem;
 }
 
+/* A toggle row (ui.Toggle): the label at the left, the switch at the right; "on" moves the knob
+   right over green. */
+.mc-toggle-row .mc-btn-text {
+  left: 1.2rem;
+  right: 7.6rem;
+}
+
+.mc-switch {
+  margin-left: auto;
+  margin-right: 0.6rem;
+  width: 5.6rem;
+  height: 2.8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 0.2rem;
+  background-color: #58585a;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+}
+
+.mc-switch.on {
+  justify-content: flex-end;
+  background-color: #3c8527;
+}
+
+.mc-switch-knob {
+  width: 2.2rem;
+  height: 2.2rem;
+  background-color: #e6e8eb;
+  border-style: solid;
+  border-width: 0 0 0.3rem 0;
+  border-color: #9a9ca0;
+}
+
 /* A research action: 17u high, 12u icon at 3u, text at 18u (scale 0.8). */
 .mc-action {
   height: 3.4rem;

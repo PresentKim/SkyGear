@@ -10,25 +10,16 @@ import (
 	"github.com/presentkim/skygear/internal/instance"
 )
 
-// showSettings is the settings screen: a toggle per account.Settings entry.
+// showSettings is the settings screen: a switch per account.Settings entry.
 func (pf *Platform) showSettings(p *player.Player) {
 	lang := i18n.Of(p)
-	row := func(name string, on bool, toggle func(p *player.Player)) ui.Option {
-		state, icon := i18n.T(lang, "setting.off"), "textures/ui/cancel"
-		if on {
-			state, icon = i18n.T(lang, "setting.on"), "textures/ui/confirm"
-		}
-		return ui.Option{Label: name + "  " + state, Icon: icon, Run: func(p *player.Player, _ *world.Tx) {
-			toggle(p)
-			pf.showSettings(p)
-		}}
-	}
 	var opts []ui.Option
 	for _, s := range account.Settings() {
-		opts = append(opts, row(s.Name(lang), account.On(p, s.Key), func(p *player.Player) {
+		opts = append(opts, ui.Toggle(s.Name(lang), account.On(p, s.Key), func(p *player.Player, _ *world.Tx) {
 			if _, err := account.Toggle(p, s.Key); err != nil {
 				pf.fail(p, "store setting", err)
 			}
+			pf.showSettings(p)
 		}))
 	}
 	opts = append(opts, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenSettings) }))

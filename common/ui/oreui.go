@@ -585,7 +585,23 @@ func (l *oreLayout) button(class string, o Option) map[string]any {
 }
 
 // listButton is a list button: 30u high, a 20u icon and the text.
-func (l *oreLayout) listButton(o Option) map[string]any { return l.button("mc-list-row", o) }
+func (l *oreLayout) listButton(o Option) map[string]any {
+	if o.toggle {
+		return l.toggleRow(o)
+	}
+	return l.button("mc-list-row", o)
+}
+
+// toggleRow is a list row with the label at the left and a switch at the
+// right (Toggle).
+func (l *oreLayout) toggleRow(o Option) map[string]any {
+	sw := box("mc-switch", "children", []any{box("mc-switch-knob")})
+	if o.on {
+		sw["on"] = true
+	}
+	ch := []any{txt("mc-btn-text", untoken(o.Label)), sw}
+	return l.press(box("mc-btn mc-list-row mc-toggle-row", "ink", "dark", "children", ch), o.Run)
+}
 
 // actionButton is the split screen's 17u action button.
 func (l *oreLayout) actionButton(o Option) map[string]any { return l.button("mc-action", o) }

@@ -981,8 +981,6 @@
  "menu.settings": "§7Settings",
  "setting.title": "Settings",
  "setting.command": "Opens the player settings",
- "setting.on": "§aOn",
- "setting.off": "§cOff",
  "setting.achievement.toast": "Achievement on-screen notice",
  "setting.achievement.chat": "Achievement chat message",
  "setting.achievement.sound": "Achievement sound",

@@ -61,6 +61,15 @@ type Option struct {
 	Label string
 	Icon  string
 	Run   func(p *player.Player, tx *world.Tx)
+	// toggle draws the option as a row with a switch, on when on (Toggle).
+	toggle, on bool
+}
+
+// Toggle is a menu option drawn as a row with an Ore UI switch on its right,
+// on when on. Pressing the row runs run, which should change the setting and
+// show the menu again.
+func Toggle(label string, on bool, run func(p *player.Player, tx *world.Tx)) Option {
+	return Option{Label: label, Run: run, toggle: true, on: on}
 }
 
 // FormOpen reports whether p has a DDUI screen open.
