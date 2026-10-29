@@ -2,6 +2,8 @@ package skygear
 
 import (
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
@@ -106,4 +108,21 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	o.Printf("%s", i18n.T(i18n.Of(p), "menu.item.given"))
+}
+
+// statsCmd is /통계 (and /stats): the production statistics.
+type statsCmd struct{ g *Game }
+
+func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, ok := src.(*player.Player)
+	if !ok || tx == nil {
+		return
+	}
+	s, ok := c.g.sessionOf(tx.World())
+	if !ok {
+		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
+		return
+	}
+	progress.Advance(s.Session, tx, advancement.Stats)
+	s.showStats(p, statsItems)
 }

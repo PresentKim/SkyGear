@@ -160,6 +160,16 @@ type machineKind struct {
 	// marks the sieves that sift on their own (sieve.go).
 	charge    []int
 	autoSieve bool
+
+	// The kinds whose behaviour is another package's set these (Register):
+	// click is what a click does instead of opening the window, true if
+	// it took the click; run is the work of one run; insert, peek and extract
+	// replace the item I/O of the block.
+	click   func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool
+	run     func(s *core.Session, st *machineState, pos cube.Pos, tx *world.Tx)
+	insert  func(tx *world.Tx, pos cube.Pos, st item.Stack) int
+	peek    func(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack
+	extract func(tx *world.Tx, pos cube.Pos, st item.Stack, n int) item.Stack
 }
 
 var machineKinds = map[string]*machineKind{
@@ -1123,8 +1133,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		s.useSieve(p, tx, pos, m.st)
 		return true
 	}
-	if m.st.kind.controller {
-		s.useController(p, tx, pos)
+	if c := m.st.kind.click; c != nil && c(s.Session, p, tx, pos) {
 		return true
 	}
 	if m.Kind == KindStorageLink {
@@ -1133,12 +1142,6 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.Kind == KindTinker {
 		if !s.Debounced(p) {
 			tinker.ShowTable(s.Session, p, tx, pos)
-		}
-		return true
-	}
-	if m.st.kind.gate {
-		if !s.Debounced(p) {
-			s.showGateForm(p, tx, pos)
 		}
 		return true
 	}
@@ -1172,8 +1175,8 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 // (it needs its mesh), so it takes one only while it is empty, and its look
 // follows.
 func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack) int {
-	if m.st != nil && m.st.kind.controller {
-		return controllerInsert(tx, pos, st)
+	if m.st != nil && m.st.kind.insert != nil {
+		return m.st.kind.insert(tx, pos, st)
 	}
 	if m.st == nil || len(m.st.kind.input) == 0 || face == cube.FaceDown {
 		return 0
@@ -1196,8 +1199,8 @@ func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item
 // (a hopper under the machine, a conduit anywhere); machines do not push it
 // into their neighbours.
 func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
-	if m.st != nil && m.st.kind.controller {
-		return controllerPeek(tx, pos, want)
+	if m.st != nil && m.st.kind.peek != nil {
+		return m.st.kind.peek(tx, pos, want)
 	}
 	if m.st == nil {
 		return item.Stack{}
@@ -1212,8 +1215,8 @@ func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(it
 
 // ExtractItems implements itemio.Extractor.
 func (m Machine) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
-	if m.st != nil && m.st.kind.controller {
-		return controllerExtract(tx, pos, st, n)
+	if m.st != nil && m.st.kind.extract != nil {
+		return m.st.kind.extract(tx, pos, st, n)
 	}
 	if m.st == nil {
 		return item.Stack{}
@@ -1245,14 +1248,13 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st := m.st
-	s.initMonitor()
 	st.sess, st.pos, st.stuck = s, pos, stuckNone
-	st.mon.seen, s.lastTick = currentTick, currentTick
-	s.machines[pos] = st
+	st.mon.seen, factoryOf(s.Session).lastTick = currentTick, currentTick
+	factoryOf(s.Session).machines[pos] = st
 	st.drainLegacy()
 	reps := st.reps()
 	if st.hourglassable() {
-		reps += s.snowReps(reps, currentTick) + st.hourglassReps(reps)
+		reps += extraReps(s.Session, reps, currentTick) + st.hourglassReps(reps)
 	}
 	if st.boost > 0 {
 		st.boost--
@@ -1337,8 +1339,6 @@ func (s *session) runMachine(st *machineState, pos cube.Pos, tx *world.Tx) {
 		s.runAutoSieve(st, pos, tx)
 	case idMiner:
 		s.runMiner(st, pos, tx)
-	case idHarvester:
-		s.runHarvester(st, pos, tx)
 	case idFurnace:
 		st.runFurnace()
 	case idVacuum:
@@ -1349,8 +1349,16 @@ func (s *session) runMachine(st *machineState, pos cube.Pos, tx *world.Tx) {
 		s.runCrafter(st)
 	case idLab:
 		st.runLab()
+	default:
+		if st.kind.run != nil {
+			st.kind.run(s.Session, st, pos, tx)
+		}
 	}
 }
+
+// extraReps are the runs a tick of a machine gets on top of its own reps
+// (the fairy's snow; the fairy sets it).
+var extraReps = func(s *core.Session, reps int, tick int64) int { return 0 }
 
 // process advances an input → output operation on accepted inputs.
 // possible returns every product one input item may give; a completed
@@ -1464,7 +1472,7 @@ func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kin
 
 // breakMachine closes the windows of a machine being broken.
 func (s *session) breakMachine(tx *world.Tx, pos cube.Pos, m Machine) {
-	delete(s.machines, pos)
+	delete(factoryOf(s.Session).machines, pos)
 	if m.st != nil {
 		m.st.storage.CloseAll()
 	}

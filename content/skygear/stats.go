@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
@@ -78,7 +79,7 @@ func madeCategory(it world.Item) string {
 }
 
 // add records n items made.
-func (p *prodStats) add(state *State, st item.Stack, n int, counted bool) {
+func (p *prodStats) add(state *factoryState, st item.Stack, n int, counted bool) {
 	if n <= 0 || st.Empty() {
 		return
 	}
@@ -159,7 +160,7 @@ func (st *machineState) roomFor(stacks []item.Stack) bool {
 func (st *machineState) emit(it item.Stack) {
 	put(st.inv(), st.kind.output, it)
 	if st.sess != nil {
-		st.sess.stats.add(st.sess.state, it, it.Count(), true)
+		factoryOf(st.sess.Session).stats.add(factorySaved.Of(st.sess.Session), it, it.Count(), true)
 	}
 }
 
@@ -178,13 +179,12 @@ func (st *machineState) tickWork() bool {
 // the statistics show them, the achievements for what machines make do not
 // count them.
 func (s *session) recordMade(it item.Stack) {
-	s.initMonitor()
-	s.stats.add(s.state, it, it.Count(), false)
+	factoryOf(s.Session).stats.add(factorySaved.Of(s.Session), it, it.Count(), false)
 }
 
 // keyStack returns a stack of a saved item key.
 func (s *session) keyStack(key string) item.Stack {
-	if st, ok := s.stats.samples[key]; ok {
+	if st, ok := factoryOf(s.Session).stats.samples[key]; ok {
 		return st
 	}
 	i := strings.LastIndex(key, ":")
@@ -197,7 +197,7 @@ func (s *session) keyStack(key string) item.Stack {
 	}
 	if it, ok := world.ItemByName(key[:i], int16(meta)); ok {
 		st := item.NewStack(it, 1)
-		s.stats.samples[key] = st
+		factoryOf(s.Session).stats.samples[key] = st
 		return st
 	}
 	return item.Stack{}
@@ -214,7 +214,6 @@ const (
 
 // showStats opens the statistics screen on a page.
 func (s *session) showStats(p *player.Player, tab statsTab) {
-	s.initMonitor()
 	achievement.Count(p, "stats_open", 1)
 	s.showStatsPage(p, tab)
 }
@@ -260,22 +259,22 @@ func (s *session) showStatsPage(p *player.Player, tab statsTab) {
 
 // itemSlots are the item slots of the production page and its heading.
 func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
-	m1, t1 := s.stats.window(1)
-	m5, t5 := s.stats.window(5)
-	m15, t15 := s.stats.window(15)
+	m1, t1 := factoryOf(s.Session).stats.window(1)
+	m5, t5 := factoryOf(s.Session).stats.window(5)
+	m15, t15 := factoryOf(s.Session).stats.window(15)
 	type row struct {
 		key         string
 		r1, r5, r15 float64
 		total       int64
 	}
 	keys := map[string]bool{}
-	for k := range s.state.Produced {
+	for k := range factorySaved.Of(s.Session).Produced {
 		keys[k] = true
 	}
 	var rows []row
 	var sum float64
 	for k := range keys {
-		r := row{key: k, r1: perMinute(m1[k], t1), r5: perMinute(m5[k], t5), r15: perMinute(m15[k], t15), total: s.state.Produced[k]}
+		r := row{key: k, r1: perMinute(m1[k], t1), r5: perMinute(m5[k], t5), r15: perMinute(m15[k], t15), total: factorySaved.Of(s.Session).Produced[k]}
 		sum += r.r5
 		rows = append(rows, r)
 	}
@@ -306,13 +305,13 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 
 // powerText is the energy page.
 func (s *session) powerText(lang string) string {
-	gen, use, ticks := s.stats.energyWindow(5)
+	gen, use, ticks := factoryOf(s.Session).stats.energyWindow(5)
 	var genRate, useRate float64
 	if ticks >= 200 {
 		genRate, useRate = float64(gen)/ticks, float64(use)/ticks
 	}
 	var stored, capacity, generators, running int
-	for _, st := range s.machines {
+	for _, st := range factoryOf(s.Session).machines {
 		switch {
 		case st.kind.cell:
 			stored += st.energy
@@ -336,3 +335,15 @@ func (st *machineState) markWorked() {
 	st.didWork = true
 	st.worked++
 }
+
+// factoryState is what a save keeps of its machines: the stall alerts
+// settings and the production totals.
+type factoryState struct {
+	// Produced counts the items the machines made, by item key.
+	Produced map[string]int64 `json:"produced,omitempty"`
+	// AlertsOn are the accounts that turned the stall alerts on; they are
+	// off until then (monitor.go).
+	AlertsOn map[string]bool `json:"alerts_on,omitempty"`
+}
+
+var factorySaved = core.NewSaved[factoryState](nil)

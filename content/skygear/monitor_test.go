@@ -32,10 +32,10 @@ func TestProductionRecorded(t *testing.T) {
 		t.Fatal("nothing was smelted")
 	}
 	key := naming.ItemKey(block.Stone{})
-	if got := s.state.Produced[key]; got != int64(made) {
+	if got := factorySaved.Of(s.Session).Produced[key]; got != int64(made) {
 		t.Fatalf("saved total %d, want %d", got, made)
 	}
-	items, _ := s.stats.window(1)
+	items, _ := factoryOf(s.Session).stats.window(1)
 	if items[key] != made {
 		t.Fatalf("window has %d, want %d", items[key], made)
 	}
@@ -47,7 +47,7 @@ func TestProductionRecorded(t *testing.T) {
 // TestMinuteWindows: the minutes rotate and the windows cover the right time.
 func TestMinuteWindows(t *testing.T) {
 	p := newProdStats()
-	state := newState()
+	state := &factoryState{}
 	p.add(state, item.NewStack(block.Cobblestone{}, 1), 60, true)
 	for range 60 {
 		p.secs++
@@ -160,7 +160,7 @@ func TestStatsScreens(t *testing.T) {
 			t.Fatal("empty stall page")
 		}
 		opts[0].Run(p, tx)
-		if !s.state.AlertsOn[instance.AccountID(p)] {
+		if !factorySaved.Of(s.Session).AlertsOn[instance.AccountID(p)] {
 			t.Fatal("the alert switch was not saved")
 		}
 	})

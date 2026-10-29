@@ -25,7 +25,11 @@ import (
 const (
 	fairyBoneMealTime = 2 * time.Minute
 	fairyBoneMealMade = 4
+)
 
+// hourglassTicks is how long one fairy hourglass boosts a machine, and
+// hourglassMaxTicks how much boost a machine holds.
+const (
 	hourglassTicks    = 10 * 60 * 20
 	hourglassMaxTicks = 60 * 60 * 20
 )

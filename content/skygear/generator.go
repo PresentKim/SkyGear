@@ -55,7 +55,7 @@ func (st *machineState) consume() bool {
 	st.energy -= u
 	st.stalled, st.stallTicks = false, 0
 	if st.sess != nil {
-		st.sess.stats.buckets[st.sess.stats.head].use += u
+		factoryOf(st.sess.Session).stats.buckets[factoryOf(st.sess.Session).stats.head].use += u
 	}
 	return true
 }

@@ -36,7 +36,7 @@ func (st *machineState) countWork(tx *world.Tx, kind string, tick int64) {
 	if st.made > 0 && tick%20 == 0 {
 		achievement.CountAll(tx, "energy_made", int64(st.made))
 		if st.sess != nil {
-			st.sess.stats.buckets[st.sess.stats.head].gen += st.made
+			factoryOf(st.sess.Session).stats.buckets[factoryOf(st.sess.Session).stats.head].gen += st.made
 		}
 		st.made = 0
 	}

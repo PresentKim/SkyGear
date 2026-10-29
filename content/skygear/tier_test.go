@@ -56,7 +56,7 @@ func TestTierSpeedsUpWork(t *testing.T) {
 		st.tier = tier
 		_ = st.inv().SetItem(11, item.NewStack(block.Stone{}, 64))
 		tick(s, 800)
-		return st.sess.stats.buckets[st.sess.stats.head].total
+		return factoryOf(st.sess.Session).stats.buckets[factoryOf(st.sess.Session).stats.head].total
 	}
 	basic, fast := run(0), run(3)
 	if basic < 8 || fast < basic*6 {

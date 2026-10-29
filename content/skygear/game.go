@@ -100,7 +100,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		Store: func(b []byte) error { return g.db.SetSaveState(saveID, stateKey, b) },
 	})
 	s := &session{
-		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{}, stats: newProdStats(), machines: map[cube.Pos]*machineState{},
+		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{},
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 	}
 	s.state = savedState.Of(c)
@@ -197,15 +197,6 @@ type session struct {
 	// plateTurn is the side of the last connector plate form each player was
 	// shown by clicking a conduit where no plate sits (nextPlateSide).
 	plateTurn map[uuid.UUID]int
-	// stats is the production record, machines the machines that tick by
-	// position; now the seconds the island ran, lastTick the last machine
-	// tick seen and uptime the seconds without a stall (stats.go,
-	// monitor.go).
-	stats    *prodStats
-	machines map[cube.Pos]*machineState
-	now      int
-	lastTick int64
-	uptime   int
 }
 
 // Spawn is where a player without a position starts (island.Spawn).
@@ -266,4 +257,25 @@ func (s *session) Close(tx *world.Tx) {
 	s.Session.Close()
 	core.Unregister(s.Session)
 	s.g.sessions.Delete(s.World)
+}
+
+// The machine kinds of other parts of the game.
+func init() {
+	sess := func(c *core.Session) *session { s, _ := activeGame.sessionOf(c.World); return s }
+	ctl := machineKinds[KindStorageController]
+	ctl.click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		sess(c).useController(p, tx, pos)
+		return true
+	}
+	ctl.insert, ctl.peek, ctl.extract = controllerInsert, controllerPeek, controllerExtract
+	machineKinds[KindGate].click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		if !c.Debounced(p) {
+			sess(c).showGateForm(p, tx, pos)
+		}
+		return true
+	}
+	machineKinds[KindHarvester].run = func(c *core.Session, st *machineState, pos cube.Pos, tx *world.Tx) {
+		sess(c).runHarvester(st, pos, tx)
+	}
+	extraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }
 }

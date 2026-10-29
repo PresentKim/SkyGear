@@ -50,12 +50,6 @@ type State struct {
 	Plants map[string]*PlantRecord `json:"plants,omitempty"`
 	// GateTier is the highest level of the dimension gate cleared (wave.go).
 	GateTier int `json:"gate_tier,omitempty"`
-	// Produced counts the items the machines made, by item key
-	// (stats.go).
-	Produced map[string]int64 `json:"produced,omitempty"`
-	// AlertsOn are the accounts that turned the stall alerts on; they are
-	// off until then (monitor.go).
-	AlertsOn map[string]bool `json:"alerts_on,omitempty"`
 	// Favourites are each account's favourite item keys in the codex,
 	// oldest first (codexgoal.go).
 	Favourites map[string][]string `json:"favourites,omitempty"`
