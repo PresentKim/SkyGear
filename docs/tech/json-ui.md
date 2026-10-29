@@ -38,6 +38,7 @@ HUD 는 게임과 상관없어 `common/packs/sgui` 에, 상자 창은 `common/pa
 - 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
 - 팩: `common/packs/sgui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `sg_hud`, 없으면 단순한 상자(`sg_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다.
+- 터치 화면(`$touch`)은 채팅을 왼쪽 위에 그리므로, 왼쪽 위 줄을 오른쪽 위(오른쪽 맞춤, 오른쪽 위 줄 위)에 그린다(`sg_top_left_touch_stack`).
 - 경험치 바는 바닐라 그대로다.
 
 ## HUD (터치의 포켓 배치)

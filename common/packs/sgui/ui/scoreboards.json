@@ -50,6 +50,7 @@
     "controls": [
       {
         "top_left@scoreboard.sg_top_left_stack": {
+          "ignored": "$touch",
           "offset": [
             4,
             4
@@ -57,10 +58,30 @@
         }
       },
       {
-        "top_right@scoreboard.sg_top_right_stack": {
+        // A touch screen shows the chat at the top left, so there the top left rows go to the top right,
+        // over the top right rows.
+        "top_right": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "size": [
+            "100%cm",
+            "100%c"
+          ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
           "offset": [
             -4,
             4
+          ],
+          "controls": [
+            {
+              "top_left_touch@scoreboard.sg_top_left_touch_stack": {
+                "ignored": "(not $touch)"
+              }
+            },
+            {
+              "top_right@scoreboard.sg_top_right_stack": {}
+            }
           ]
         }
       },
@@ -96,6 +117,14 @@
         "binding_name_override": "#collection_length"
       }
     ]
+  },
+  "sg_top_left_touch_stack@scoreboard.sg_top_left_stack": {
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_top_left_touch"
+    }
   },
   "sg_top_right_stack": {
     "type": "stack_panel",
@@ -155,6 +184,11 @@
     ],
     "anchor_from": "top_left",
     "anchor_to": "top_left"
+  },
+  "sg_row_top_left_touch@scoreboard.sg_row_top_left": {
+    "text_alignment": "right",
+    "anchor_from": "top_right",
+    "anchor_to": "top_right"
   },
   "sg_row_top_right": {
     "type": "label",

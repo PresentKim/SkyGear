@@ -547,12 +547,15 @@
         e = el("div", "oui-space");
         break;
       case "pixels":
-        // A row of boxes for each row of the picture: the page has no canvas (getContext).
+        // A row of boxes for each row of the picture: the page has no canvas (getContext). Rows and boxes
+        // take their share of the picture's size in percent: Gameface does not stretch empty flex items.
         e = el("div", "oui-pixels");
         for (var py = 0; py < (n.h || 0); py++) {
           var prow = el("div", "oui-pixels-row");
+          prow.style.height = 100 / n.h + "%";
           for (var px = 0; px < (n.w || 0); px++) {
             var cell = el("div", "oui-pixel");
+            cell.style.width = 100 / n.w + "%";
             var colour = (n.px || [])[py * n.w + px];
             if (colour) cell.style.backgroundColor = "#" + colour;
             prow.appendChild(cell);

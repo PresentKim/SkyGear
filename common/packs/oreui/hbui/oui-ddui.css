@@ -549,9 +549,11 @@ body.oui-active #root {
 .oui-pixels-row {
   display: flex;
   flex-direction: row;
-  flex-grow: 1;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .oui-pixel {
-  flex-grow: 1;
+  height: 100%;
+  flex-shrink: 0;
 }

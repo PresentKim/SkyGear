@@ -10,7 +10,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/google/uuid"
 	"github.com/presentkim/skygear/common/oreui"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/slotdeco"
+	"github.com/sandertv/gophertunnel/minecraft/protocol"
 )
 
 // The menus are DDUI screens drawn by the oreui pack. The server must send
@@ -22,8 +24,7 @@ import (
 var LobbyHeader func(p *player.Player) (title, logo string)
 
 // lobbySkin restyles a layout for p in the lobby (.mc-lobby): the lobby
-// island seen through a shade at the top and the bottom of the screen
-// (darker behind a window), the game's name at the top middle, navy windows
+// island seen clear (through a shade behind a window), the game's name at the top middle, navy windows
 // with light text. The main screen (HomeScreen) and the screens it opens have
 // the same shade and name, so going between them changes only what is over
 // the island.
@@ -34,6 +35,9 @@ func lobbySkin(p *player.Player, layout any) any {
 		return layout
 	}
 	root["class"] = fmt.Sprint(root["class"]) + " mc-lobby"
+	if touchDevice(p) {
+		root["class"] = fmt.Sprint(root["class"]) + " mc-touch"
+	}
 	skin := []any{box("mc-lobby-shade")}
 	if LobbyHeader != nil {
 		title, logo := LobbyHeader(p)
@@ -42,6 +46,25 @@ func lobbySkin(p *player.Player, layout any) any {
 	kids, _ := root["children"].([]any)
 	root["children"] = append(skin, kids...)
 	return layout
+}
+
+// touchDevice reports whether p plays on a phone or tablet (Android, iOS,
+// Fire OS), whose screen edges may hold a camera cutout or a system handle
+// that takes touches: the lobby keeps its buttons larger and away from the
+// edges there (.mc-touch).
+func touchDevice(p *player.Player) bool {
+	if p == nil {
+		return false
+	}
+	c := sghook.Of(p)
+	if c == nil {
+		return false
+	}
+	switch c.ClientData().DeviceOS {
+	case protocol.DeviceAndroid, protocol.DeviceIOS, protocol.DeviceFireOS:
+		return true
+	}
+	return false
 }
 
 // darkInk turns the panel ink of a layout's nodes into the dark one.
