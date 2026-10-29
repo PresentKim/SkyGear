@@ -1,8 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/look"
 
 	"github.com/presentkim/skygear/content/skygear/expand"
 
@@ -126,7 +128,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
 	held, _ := ctx.Player().HeldItems()
-	if isMenuItem(held) {
+	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 		return
@@ -224,7 +226,7 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, off := ctx.Player().HeldItems()
-	if isMenuItem(held) {
+	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
 	}
@@ -244,7 +246,7 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 	if h.s.Debounced(p) {
 		return
 	}
-	h.s.openMenu(p)
+	screens.OpenMenu(h.s.Session, p)
 }
 
 // HandleMove returns players that fall below the island into the void, and

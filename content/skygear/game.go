@@ -3,6 +3,7 @@ package skygear
 
 import (
 	"errors"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"log/slog"
 	"sync"
 
@@ -60,18 +61,18 @@ type Game struct {
 func init() {
 	core.ShowMenu = func(c *core.Session, p *player.Player) {
 		if s, ok := activeGame.sessionOf(c.World); ok {
-			s.showMenu(p)
+			screens.ShowMenu(s.Session, p)
 		}
 	}
 	core.UpdateBoard = func(c *core.Session, p *player.Player) {
 		if s, ok := activeGame.sessionOf(c.World); ok {
-			s.updateBoard(p)
+			screens.UpdateBoard(s.Session, p)
 		}
 	}
 	// The quest panel follows the progress.
 	progress.OnChange = func(c *core.Session, tx *world.Tx) {
 		if s, ok := activeGame.sessionOf(c.World); ok {
-			s.updateBoards(tx)
+			screens.UpdateBoards(s.Session, tx)
 		}
 	}
 }
@@ -156,15 +157,9 @@ type session struct {
 	// diedFood is the food level each player died with, given back when it
 	// respawns (handler.go).
 	diedFood map[*world.EntityHandle]int
-	// helpTab is the help tab each player looked at last (help.go).
-	helpTab map[*world.EntityHandle]helpTab
-	// urgentBarShown is whether the urgent mission boss bar is up.
-	urgentBarShown bool
-	g              *Game
+	g        *Game
 	// state is the saved state (savedState).
 	state *State
-	// boards are the HUDs players were last sent (hud.Board.Key).
-	boards map[*world.EntityHandle]string
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
@@ -179,23 +174,20 @@ func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 func (s *session) Join(p *player.Player, first bool) {
 	if first {
 		// Bare hands: only the menu item.
-		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
+		_ = p.Inventory().SetItem(8, screens.MenuItem(i18n.Of(p)))
 	}
-	renameMenuItems(p)
+	screens.RenameMenuItems(p)
 	fairy.BackfillDust(s.Session, p, p.Tx())
 	climate.ShowWeather(s.Session, p)
 	s.SendShapes(p)
 	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
-	delete(s.boards, p.H())
-	s.updateBoard(p)
+	screens.UpdateBoard(s.Session, p)
 }
 
 func (s *session) Leave(p *player.Player) {
 	s.Session.Leave(p)
 	expand.Stop(s.Session, p, p.Tx())
-	delete(s.boards, p.H())
-	delete(s.helpTab, p.H())
 	delete(s.diedFood, p.H())
 	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
@@ -257,4 +249,15 @@ func activeGameSession(tx *world.Tx) *session {
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
 	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, wave.GatePortalType), wave.MonsterTypes()...)
+}
+
+// MenuBack shows the game screen a platform screen opened in the save goes
+// back to (instance.Session.MenuBack): the island management screen for the
+// members, the game menu for the rest.
+func (s *session) MenuBack(p *player.Player, from string) {
+	if from == instance.ScreenMembers {
+		screens.ShowIslandManage(s.Session, p)
+		return
+	}
+	screens.ShowMenu(s.Session, p)
 }

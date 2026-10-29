@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
 
@@ -39,7 +40,7 @@ func TestMainMenuHasIcons(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		opts := s.mainMenu(p)
+		opts := screens.MainMenu(s.Session, p)
 		for _, o := range opts {
 			if o.Icon == "" && !strings.HasPrefix(o.Label, ui.HelpToken) {
 				t.Errorf("option %q has no icon", o.Label)
@@ -55,7 +56,7 @@ func TestLostMenu(t *testing.T) {
 	island.AddLost(s.Session, item.NewStack(item.Diamond{}, 3))
 	island.AddLost(s.Session, item.NewStack(item.Apple{}, 100))
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, slots, _ := s.lostMenu(i18n.Default)
+		_, slots, _ := screens.LostMenu(s.Session, i18n.Default)
 		if len(slots) != 2 || slots[0].Count != "100" || !strings.Contains(slots[0].Tip, "100") {
 			t.Fatalf("slots = %+v", slots)
 		}
@@ -212,7 +213,7 @@ func TestExpansionPlane(t *testing.T) {
 		if !ok {
 			t.Fatal("not in expansion mode")
 		}
-		if strings.Contains(s.boards[p.H()], hud.QuestTitle) {
+		if strings.Contains(screens.Boards.Of(s.Session)[p.H()], hud.QuestTitle) {
 			t.Error("the quest panel shows in expansion mode")
 		}
 		if got := expand.ChunkLabel(s.Session, i18n.Default, island.ChunkPos{1, 0}, island.Purchasable(s.Session)); !strings.Contains(got, "구매 가능") {
@@ -227,7 +228,7 @@ func TestExpansionPlane(t *testing.T) {
 			t.Errorf("the right key moved the selection to %v, want %v", e.Target, want)
 		}
 		expand.Stop(s.Session, p, tx)
-		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {
+		if !strings.Contains(screens.Boards.Of(s.Session)[p.H()], hud.QuestTitle) {
 			t.Error("the quest panel did not come back")
 		}
 	})

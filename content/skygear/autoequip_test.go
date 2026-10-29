@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/look"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/look"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 // texts; the grid of the split screen holds one page of them.
 func TestResearchCopiesFillTheTabs(t *testing.T) {
 	s := testSession(t)
-	todoBefore, _, _ := s.researchEntries()
+	todoBefore, _, _ := screens.ResearchEntries(s.Session)
 	for i := range 130 {
 		r := progress.Tree[i%len(progress.Tree)]
 		r.ID += "#" + string(rune('A'+i%26)) + string(rune('a'+i/26))
@@ -21,7 +22,7 @@ func TestResearchCopiesFillTheTabs(t *testing.T) {
 		progress.LocalOf(s.Session).Copies = append(progress.LocalOf(s.Session).Copies, &r)
 	}
 	progress.LocalOf(s.Session).CopiesDone = map[string]bool{}
-	todo, done, openN := s.researchEntries()
+	todo, done, openN := screens.ResearchEntries(s.Session)
 	if len(todo) != len(todoBefore)+130 || len(done) != 0 || openN < 130 {
 		t.Fatalf("%d to do, %d done, %d open with 130 copies (%d before)", len(todo), len(done), openN, len(todoBefore))
 	}
@@ -33,7 +34,7 @@ func TestResearchCopiesFillTheTabs(t *testing.T) {
 		t.Error("a copy does not read its original's text")
 	}
 	progress.LocalOf(s.Session).CopiesDone[c.ID] = true
-	_, done, _ = s.researchEntries()
+	_, done, _ = screens.ResearchEntries(s.Session)
 	if len(done) != 1 || len(progress.StateOf(s.Session).Researched) != 0 {
 		t.Errorf("a done copy: %d done, %d saved", len(done), len(progress.StateOf(s.Session).Researched))
 	}

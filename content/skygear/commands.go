@@ -1,52 +1,22 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"time"
 
-	"github.com/presentkim/skygear/content/skygear/codex"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-	"github.com/presentkim/skygear/content/skygear/farm"
-	"github.com/presentkim/skygear/content/skygear/naming"
-
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/advancement"
-	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/progress"
-
 	"github.com/df-mc/dragonfly/server/cmd"
-	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/codex"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
-
-const menuItemKey = "skygear_menu"
-
-// menuItem opens the game menu when used. Its name is written on it in lang
-// (a name of a stack is text, not a translation key); renameMenuItems names
-// the menu items a player has in the player's language again.
-func menuItem(lang string) item.Stack {
-	return item.NewStack(item.NetherStar{}, 1).WithCustomName(i18n.T(lang, "menu.item.name")).WithValue(menuItemKey, true)
-}
-
-// renameMenuItems names the menu items in p's inventory in p's language, as
-// p may have come with another client language than the one they got them
-// in.
-func renameMenuItems(p *player.Player) {
-	inv := p.Inventory()
-	name := i18n.T(i18n.Of(p), "menu.item.name")
-	for slot, it := range inv.Slots() {
-		if isMenuItem(it) && it.CustomName() != name {
-			_ = inv.SetItem(slot, it.WithCustomName(name))
-		}
-	}
-}
-
-func isMenuItem(s item.Stack) bool {
-	_, ok := s.Value(menuItemKey)
-	return ok
-}
 
 func registerCommands(g *Game) {
 	cmd.Register(cmd.New("menu", i18n.T(i18n.Default, "cmd.menu"), nil, menuCmd{g: g}))
@@ -77,7 +47,7 @@ func (c menuCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
-	s.openMenu(p)
+	screens.OpenMenu(s.Session, p)
 }
 
 // helpCmd is /도움말 (and /sghelp): the help window.
@@ -93,7 +63,7 @@ func (c helpCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
-	s.showHelp(p)
+	screens.ShowHelp(s.Session, p)
 }
 
 // menuItemCmd is /메뉴발급 (and /menuitem): a new menu item for a player who
@@ -109,11 +79,11 @@ func (c menuItemCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
-	if p.Inventory().ContainsItemFunc(1, isMenuItem) {
+	if p.Inventory().ContainsItemFunc(1, screens.IsMenuItem) {
 		o.Error(i18n.T(i18n.Of(p), "menu.item.alreadyHave"))
 		return
 	}
-	if _, err := p.Inventory().AddItem(menuItem(i18n.Of(p))); err != nil {
+	if _, err := p.Inventory().AddItem(screens.MenuItem(i18n.Of(p))); err != nil {
 		o.Error(i18n.T(i18n.Of(p), "menu.item.inventoryFull"))
 		return
 	}
@@ -162,7 +132,7 @@ func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func (s *session) openCodex(p *player.Player) {
 	achievement.Count(p, "codex_open", 1)
 	codex.Start(s.Session, p)
-	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
+	if held, _ := p.HeldItems(); !held.Empty() && !screens.IsMenuItem(held) {
 		codex.ShowItem(s.Session, p, held)
 		return
 	}

@@ -1,17 +1,9 @@
-package skygear
+package screens
 
 import (
 	"fmt"
 	"slices"
 	"strings"
-
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
@@ -19,28 +11,33 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/formicon"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-// helpTab is a tab of the help window: the topics of one stage of the game,
+// HelpTab is a tab of the help window: the topics of one stage of the game,
 // in the order a new player meets them.
-type helpTab int
+type HelpTab int
 
 const (
-	helpStartTab helpTab = iota
+	helpStartTab HelpTab = iota
 	helpHandTab
 	helpAutoTab
 	helpMetalTab
 	helpFightTab
-	helpTabCount
+	HelpTabCount
 )
 
-var helpTabKeys = [helpTabCount]string{"help.tab.start", "help.tab.hand", "help.tab.auto", "help.tab.metal", "help.tab.fight"}
+var HelpTabKeys = [HelpTabCount]string{"help.tab.start", "help.tab.hand", "help.tab.auto", "help.tab.metal", "help.tab.fight"}
 
-func helpTabIcon(t helpTab) string {
+func helpTabIcon(t HelpTab) string {
 	switch t {
 	case helpHandTab:
 		return formicon.Of(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
@@ -54,13 +51,13 @@ func helpTabIcon(t helpTab) string {
 	return formicon.Mission
 }
 
-// helpTopics are the in-game help pages (menu → 도움말, /도움말), by tab and
+// HelpTopics are the in-game help pages (menu → 도움말, /도움말), by tab and
 // in display order within it. Their texts are "help.<id>.title" and
 // "help.<id>.text" in the catalog. The icon is made when the list opens, once
 // the items are registered.
-var helpTopics = []struct {
+var HelpTopics = []struct {
 	id   string
-	tab  helpTab
+	tab  HelpTab
 	icon func() string
 	// text, if set, writes the text instead of the catalog, for pages that
 	// list what the game's tables hold.
@@ -93,10 +90,10 @@ var helpTopics = []struct {
 	{"magicsieve", helpFightTab, func() string { return formicon.Of(machine.Item(machine.KindMagicSieve)) }, nil},
 }
 
-// helpTopicsOf are the indexes in helpTopics of the topics of a tab.
-func helpTopicsOf(t helpTab) []int {
+// HelpTopicsOf are the indexes in helpTopics of the topics of a tab.
+func HelpTopicsOf(t HelpTab) []int {
 	var out []int
-	for i, h := range helpTopics {
+	for i, h := range HelpTopics {
 		if h.tab == t {
 			out = append(out, i)
 		}
@@ -104,61 +101,58 @@ func helpTopicsOf(t helpTab) []int {
 	return out
 }
 
-// showHelp opens the help window on the tab p looked at last in this save,
+// ShowHelp opens the help window on the tab p looked at last in this save,
 // the first one the first time.
-func (s *session) showHelp(p *player.Player) {
-	s.showHelpTab(p, s.helpTab[p.H()])
+func ShowHelp(s *core.Session, p *player.Player) {
+	showHelpTab(s, p, lastHelpTab.Of(s)[p.H()])
 }
 
 // helpTabs is the tab strip with cur selected.
-func (s *session) helpTabs(p *player.Player, cur helpTab) []ui.Option {
+func helpTabs(s *core.Session, p *player.Player, cur HelpTab) []ui.Option {
 	lang := i18n.Of(p)
 	var out []ui.Option
-	for t := helpTab(0); t < helpTabCount; t++ {
+	for t := HelpTab(0); t < HelpTabCount; t++ {
 		t := t
-		o := ui.Tab(i18n.T(lang, helpTabKeys[t]), helpTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, t) })
+		o := ui.Tab(i18n.T(lang, HelpTabKeys[t]), helpTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { showHelpTab(s, p, t) })
 		out = append(out, s.Opt(o.Label, o.Icon, o.Run))
 	}
 	return out
 }
 
 // showHelpTab lists the topics of a tab and remembers it as p's tab.
-func (s *session) showHelpTab(p *player.Player, t helpTab) {
-	if s.helpTab == nil {
-		s.helpTab = map[*world.EntityHandle]helpTab{}
-	}
-	s.helpTab[p.H()] = t
+func showHelpTab(s *core.Session, p *player.Player, t HelpTab) {
+	lastHelpTab.Of(s)[p.H()] = t
 	lang := i18n.Of(p)
 	var opts []ui.Option
-	for _, i := range helpTopicsOf(t) {
-		h := helpTopics[i]
-		opts = append(opts, s.Opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, i) }))
+	for _, i := range HelpTopicsOf(t) {
+		h := HelpTopics[i]
+		opts = append(opts, s.Opt("§f"+i18n.T(lang, "help."+h.id+".title"), h.icon(), func(p *player.Player, _ *world.Tx) { showHelpTopic(s, p, i) }))
 	}
-	opts = append(opts, s.helpTabs(p, t)...)
+	opts = append(opts, helpTabs(s, p, t)...)
 	ui.CardMenu(p, i18n.T(lang, "help.title"), i18n.T(lang, "help.body"), append(opts, s.BackOption(lang))...)
 }
 
 // showHelpTopic shows a help page with the topics before and after it in its
 // tab, so a new player can read a tab through, and back to the tab.
-func (s *session) showHelpTopic(p *player.Player, i int) {
+func showHelpTopic(s *core.Session, p *player.Player, i int) {
 	lang := i18n.Of(p)
-	h := helpTopics[i]
+	h := HelpTopics[i]
 	text := i18n.T(lang, "help."+h.id+".text")
 	if h.text != nil {
 		text = h.text(lang)
 	}
 	var opts []ui.Option
-	in := helpTopicsOf(h.tab)
+	in := HelpTopicsOf(h.tab)
 	at := slices.Index(in, i)
 	if at > 0 {
-		prev := helpTopics[in[at-1]]
-		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.prev"), i18n.T(lang, "help."+prev.id+".title")), prev.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at-1]) }))
+		prev := HelpTopics[in[at-1]]
+		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.prev"), i18n.T(lang, "help."+prev.id+".title")), prev.icon(), func(p *player.Player, _ *world.Tx) { showHelpTopic(s, p, in[at-1]) }))
 	}
 	if at < len(in)-1 {
-		next := helpTopics[in[at+1]]
-		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.next"), i18n.T(lang, "help."+next.id+".title")), next.icon(), func(p *player.Player, _ *world.Tx) { s.showHelpTopic(p, in[at+1]) }))
+		next := HelpTopics[in[at+1]]
+		opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(lang, "help.next"), i18n.T(lang, "help."+next.id+".title")), next.icon(), func(p *player.Player, _ *world.Tx) { showHelpTopic(s, p, in[at+1]) }))
 	}
-	back := ui.Back(i18n.T(lang, "help.title"), func(p *player.Player, _ *world.Tx) { s.showHelpTab(p, h.tab) })
+	back := ui.Back(i18n.T(lang, "help.title"), func(p *player.Player, _ *world.Tx) { showHelpTab(s, p, h.tab) })
 	opts = append(opts, s.Opt(back.Label, back.Icon, back.Run))
 	title := ui.SubTitle(i18n.T(lang, "help.title"), i18n.T(lang, "help."+h.id+".title"))
 	ui.Menu(p, title, text, opts...)
@@ -174,3 +168,6 @@ func helpEssenceText(lang string) string {
 	}
 	return strings.Join(append(lines, "", i18n.T(lang, "help.essence.foot")), "\n")
 }
+
+// lastHelpTab is the help tab each player looked at last.
+var lastHelpTab = core.NewPlayers[HelpTab]()

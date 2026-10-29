@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"os"
 	"strings"
 	"testing"
@@ -67,7 +68,7 @@ func TestNamedItemsHaveIcons(t *testing.T) {
 			t.Errorf("%s has no icon", naming.ItemKey(it))
 		}
 	}
-	if formicon.Of(menuItem(i18n.Default)) == "" {
+	if formicon.Of(screens.MenuItem(i18n.Default)) == "" {
 		t.Error("menu item has no icon")
 	}
 }

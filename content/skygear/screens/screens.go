@@ -1,27 +1,22 @@
-package skygear
+package screens
 
 import (
 	"fmt"
 
-	"github.com/presentkim/skygear/content/skygear/codex"
-
-	"github.com/presentkim/skygear/content/skygear/expand"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
-	"github.com/presentkim/skygear/common/i18n"
-
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/codex"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/formicon"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -31,45 +26,34 @@ import (
 // theme (assets/resourcepack/skygear/ui). Each screen's options are
 // built by a function so tests can press them.
 
-// MenuBack shows the game screen a platform screen opened in the save goes
-// back to (instance.Session.MenuBack): the island management screen for the
-// members, the game menu for the rest.
-func (s *session) MenuBack(p *player.Player, from string) {
-	if from == instance.ScreenMembers {
-		s.showIslandManage(p)
-		return
-	}
-	s.showMenu(p)
-}
-
-// showIslandManage is the island management screen: the invite code (the
+// ShowIslandManage is the island management screen: the invite code (the
 // host), the members in the save (the host, or an operator) and the island
 // expansion. The first two are the platform's screens (/invite, /members).
-func (s *session) showIslandManage(p *player.Player) {
+func ShowIslandManage(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
 	var opts []ui.Option
 	host := instance.AccountID(p) == s.HostID
 	if host {
 		opts = append(opts, s.Opt(i18n.T(lang, "island.manage.invite"), "textures/ui/sg/icon_invite", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/invite") }))
 	}
-	if host || s.isOperator(p) {
+	if host || s.IsOperator(p) {
 		opts = append(opts, s.Opt(i18n.T(lang, "island.manage.members"), "textures/ui/sg/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.Opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { expand.Show(s.Session, p) }), s.BackOption(lang))
+	opts = append(opts, s.Opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { expand.Show(s, p) }), s.BackOption(lang))
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
 // helpOption is the help button of the game menu: the "?" of the control
 // bar, as the other screens have it, opening the help topics.
-func (s *session) helpOption(p *player.Player) ui.Option {
-	h := ui.Help(i18n.T(i18n.Of(p), "menu.help"), func(p *player.Player, _ *world.Tx) { s.showHelp(p) })
+func helpOption(s *core.Session, p *player.Player) ui.Option {
+	h := ui.Help(i18n.T(i18n.Of(p), "menu.help"), func(p *player.Player, _ *world.Tx) { ShowHelp(s, p) })
 	return s.Opt(h.Label, h.Icon, h.Run)
 }
 
 // lobbyOption is the exit button of the game menu: where the other menus
 // have their back button, left of the close button, it goes to the lobby.
-func (s *session) lobbyOption(lang string) ui.Option {
-	b := ui.Back(i18n.T(lang, "menu.lobby"), func(p *player.Player, _ *world.Tx) { s.confirmLobby(p) })
+func lobbyOption(s *core.Session, lang string) ui.Option {
+	b := ui.Back(i18n.T(lang, "menu.lobby"), func(p *player.Player, _ *world.Tx) { confirmLobby(s, p) })
 	b.Icon = formicon.Lobby
 	return s.Opt(b.Label, b.Icon, b.Run)
 }
@@ -77,46 +61,46 @@ func (s *session) lobbyOption(lang string) ui.Option {
 // confirmLobby asks p whether to leave for the lobby, as the exit sits where
 // the menu's other buttons are pressed (players left by mistake); cancelling
 // shows the menu again.
-func (s *session) confirmLobby(p *player.Player) {
+func confirmLobby(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
 	ui.Menu(p, i18n.T(lang, "menu.lobbyConfirm.title"), i18n.T(lang, "menu.lobbyConfirm.body"),
 		s.Opt(i18n.T(lang, "menu.lobbyConfirm.yes"), formicon.Lobby, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/lobby") }),
-		s.Opt(i18n.T(lang, "menu.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { s.showMenu(p) }),
+		s.Opt(i18n.T(lang, "menu.lobbyConfirm.no"), "textures/ui/cancel", func(p *player.Player, _ *world.Tx) { ShowMenu(s, p) }),
 	)
 }
 
-// openMenu opens the game menu, or the expansion screen in expansion mode
+// OpenMenu opens the game menu, or the expansion screen in expansion mode
 // (the camera looks down, so the menu item and /menu act on the mode).
-func (s *session) openMenu(p *player.Player) {
+func OpenMenu(s *core.Session, p *player.Player) {
 	achievement.Count(p, "menu_open", 1)
-	if _, ok := expand.Of(s.Session, p); ok {
-		expand.Show(s.Session, p)
+	if _, ok := expand.Of(s, p); ok {
+		expand.Show(s, p)
 		return
 	}
-	s.showMenu(p)
+	ShowMenu(s, p)
 }
 
-func (s *session) showMenu(p *player.Player) {
-	ui.CardMenu(p, i18n.T(i18n.Of(p), "menu.title"), "", s.mainMenu(p)...)
+func ShowMenu(s *core.Session, p *player.Player) {
+	ui.CardMenu(p, i18n.T(i18n.Of(p), "menu.title"), "", MainMenu(s, p)...)
 }
 
-// mainMenu are the cards of the game menu, the codex first and settings
+// MainMenu are the cards of the game menu, the codex first and settings
 // last, then the help button (the control bar's "?") and the lobby exit.
-func (s *session) mainMenu(p *player.Player) []ui.Option {
+func MainMenu(s *core.Session, p *player.Player) []ui.Option {
 	return []ui.Option{
-		s.Opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { codex.Show(s.Session, p) }),
-		s.Opt(i18n.T(i18n.Of(p), "menu.advancements"), formicon.Advances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
-		s.Opt(i18n.T(i18n.Of(p), "island.manage"), formicon.Manage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
-		s.Opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(island.StateOf(s.Session).Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
+		s.Opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { codex.Show(s, p) }),
+		s.Opt(i18n.T(i18n.Of(p), "menu.advancements"), formicon.Advances, func(p *player.Player, _ *world.Tx) { showAdvancements(s, p) }),
+		s.Opt(i18n.T(i18n.Of(p), "island.manage"), formicon.Manage, func(p *player.Player, _ *world.Tx) { ShowIslandManage(s, p) }),
+		s.Opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(island.StateOf(s).Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { showLost(s, p) }),
 		s.Opt(i18n.T(i18n.Of(p), "menu.friends"), formicon.Friends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
 		s.Opt(i18n.T(i18n.Of(p), "menu.cosmetics"), formicon.Title, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.Opt(i18n.T(i18n.Of(p), "monitor.menu"), formicon.Stats, func(p *player.Player, tx *world.Tx) {
-			progress.Advance(s.Session, tx, advancement.Stats)
-			machine.ShowStats(s.Session, p, machine.StatsItems)
+			progress.Advance(s, tx, advancement.Stats)
+			machine.ShowStats(s, p, machine.StatsItems)
 		}),
 		s.Opt(i18n.T(i18n.Of(p), "menu.settings"), formicon.Settings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
-		s.helpOption(p),
-		s.lobbyOption(i18n.Of(p)),
+		helpOption(s, p),
+		lobbyOption(s, i18n.Of(p)),
 	}
 }
 
@@ -131,10 +115,10 @@ const (
 // empty ones as frames. Each entry is its item with the count at the bottom
 // right and the name and what pressing does in the tooltip; pressing takes
 // as much of it as fits. What the box is for is the help button's tooltip.
-func (s *session) showLost(p *player.Player) { s.showLostPage(p, 0) }
+func showLost(s *core.Session, p *player.Player) { showLostPage(s, p, 0) }
 
-func (s *session) showLostPage(p *player.Player, page int) {
-	body, slots, back := s.lostMenu(i18n.Of(p))
+func showLostPage(s *core.Session, p *player.Player, page int) {
+	body, slots, back := LostMenu(s, i18n.Of(p))
 	pages := max(1, (len(slots)+lostPage-1)/lostPage)
 	page = max(0, min(page, pages-1))
 	slots = slots[min(len(slots), page*lostPage):min(len(slots), (page+1)*lostPage)]
@@ -149,16 +133,16 @@ func (s *session) showLostPage(p *player.Player, page int) {
 		}
 		rows[i/ui.BoardColumns][i%ui.BoardColumns] = cell
 	}
-	actions := s.Guard(ui.BarPager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showLostPage(p, to) }))
-	actions = append(actions, s.Opt(ui.Help(body, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showLostPage(p, page) }), back)
+	actions := s.Guard(ui.BarPager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { showLostPage(s, p, to) }))
+	actions = append(actions, s.Opt(ui.Help(body, nil).Label, "", func(p *player.Player, _ *world.Tx) { showLostPage(s, p, page) }), back)
 	ui.ItemBoard(p, i18n.T(i18n.Of(p), "lost.title"), "", rows, actions...)
 }
 
-func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
-	island.PurgeLost(s.Session)
+func LostMenu(s *core.Session, lang string) (string, []ui.ItemSlot, ui.Option) {
+	island.PurgeLost(s)
 	body := i18n.T(lang, "lost.body")
 	var slots []ui.ItemSlot
-	for _, l := range island.StateOf(s.Session).Lost {
+	for _, l := range island.StateOf(s).Lost {
 		it := l.Decoded()
 		if it.Empty() {
 			continue
@@ -171,12 +155,15 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 				if tx.World() != s.World {
 					return
 				}
-				if island.TakeLost(s.Session, p, l) {
-					progress.Advance(s.Session, tx, advancement.Lost)
+				if island.TakeLost(s, p, l) {
+					progress.Advance(s, tx, advancement.Lost)
 				}
-				s.showLost(p)
+				showLost(s, p)
 			},
 		})
 	}
 	return body, slots, s.BackOption(lang)
 }
+
+// Boards are the HUDs players were last sent (hud.Board.Key).
+var Boards = core.NewPlayers[string]()

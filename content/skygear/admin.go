@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"maps"
 	"slices"
 	"strings"
@@ -223,7 +224,7 @@ func (c adminTPS) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	on := perf.Toggle(p.Name())
 	// In the lobby, platform.ShowLoad shows or clears it within a second.
 	if s, ok := c.g.sessionOf(tx.World()); ok {
-		s.updateBoard(p)
+		screens.UpdateBoard(s.Session, p)
 	}
 	if on {
 		o.Printf("%s", i18n.T(i18n.Of(p), "skygear.admin.perf.on"))
@@ -332,7 +333,7 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	case "reset":
 		progress.StateOf(s.Session).Advancements = nil
 		s.MarkDirty()
-		s.updateBoards(tx)
+		screens.UpdateBoards(s.Session, tx)
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.advancement.cleared"))
 	default:
 		a, ok := advancement.ByID(string(c.Advancement))

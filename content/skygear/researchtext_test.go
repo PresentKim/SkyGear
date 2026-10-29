@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
 
@@ -40,7 +41,7 @@ func TestEveryResearchIsExplained(t *testing.T) {
 func TestResearchListHidesLockedResearches(t *testing.T) {
 	s := testSession(t)
 	split := func() (open, grey int) {
-		slots, _, _, _ := s.researchSlots(nil)
+		slots, _, _, _ := screens.ResearchSlots(s.Session, nil)
 		for _, sl := range slots {
 			if strings.HasPrefix(sl.Tip, "§8") {
 				grey++
@@ -62,13 +63,13 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 	if grey == 0 {
 		t.Fatal("nothing is shown a step ahead")
 	}
-	slots, _, _, _ := s.researchSlots(nil)
+	slots, _, _, _ := screens.ResearchSlots(s.Session, nil)
 	for i, sl := range slots {
 		if i < open && strings.HasPrefix(sl.Tip, "§8") || i >= open && !strings.HasPrefix(sl.Tip, "§8") {
 			t.Fatalf("grey ones do not come last: slot %d %q", i, sl.Tip)
 		}
 	}
-	if _, done, _, _ := s.researchSlots(nil); len(done) != 1 {
+	if _, done, _, _ := screens.ResearchSlots(s.Session, nil); len(done) != 1 {
 		t.Fatalf("%d done researches", len(done))
 	}
 }
@@ -82,7 +83,7 @@ func TestResearchPreviewButton(t *testing.T) {
 	if !ok || need.ID != "stick" {
 		t.Fatalf("blocker %v %v", need, ok)
 	}
-	_, _, opts := s.researchNode(nil, r)
+	_, _, opts := screens.ResearchNode(s.Session, nil, r)
 	var found bool
 	for _, o := range opts {
 		if strings.Contains(o.Label, need.Title(i18n.Default)) && strings.Contains(o.Label, "선행 연구") {
@@ -112,7 +113,7 @@ func TestResearchListSections(t *testing.T) {
 	h := spawnPlayer(s)
 	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		todo, done, todoN, doneN := s.researchSlots(p)
+		todo, done, todoN, doneN := screens.ResearchSlots(s.Session, p)
 		if todoN != 4 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
 			t.Fatalf("%d to do (%d slots), %d done (%d slots)", todoN, len(todo), doneN, len(done))
 		}
@@ -120,7 +121,7 @@ func TestResearchListSections(t *testing.T) {
 			t.Errorf("tooltip %q is not the yellow name and the short text", todo[0].Tip)
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 4))
-		todo, _, _, _ = s.researchSlots(p)
+		todo, _, _, _ = screens.ResearchSlots(s.Session, p)
 		if !strings.HasPrefix(todo[0].Tip, "§a돌 다지기") || strings.HasPrefix(todo[1].Tip, "§a") {
 			t.Errorf("tooltips %q %q: only the one with all materials is green", todo[0].Tip, todo[1].Tip)
 		}
@@ -134,7 +135,7 @@ func TestResearchScreen(t *testing.T) {
 	s := testSession(t)
 	r, _ := progress.ByID("wood_tools")
 	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
-	d, rows, opts := s.researchNode(nil, r)
+	d, rows, opts := screens.ResearchNode(s.Session, nil, r)
 	if len(opts) != 2 || !strings.Contains(opts[0].Label, "연구 진행") {
 		t.Fatalf("options %+v", opts)
 	}
@@ -148,7 +149,7 @@ func TestResearchScreen(t *testing.T) {
 		t.Errorf("material counts %q %q", rows[0].Slots[0].Count, rows[0].Slots[1].Count)
 	}
 	progress.StateOf(s.Session).Researched["wood_tools"] = true
-	d, _, opts = s.researchNode(nil, r)
+	d, _, opts = screens.ResearchNode(s.Session, nil, r)
 	if len(opts) != 1 || !strings.Contains(d.Status, "연구 완료") {
 		t.Errorf("done research: status %q options %+v", d.Status, opts)
 	}

@@ -1,4 +1,4 @@
-package skygear
+package screens
 
 import (
 	"testing"
@@ -10,12 +10,12 @@ import (
 // the texts of the tabs and topics are in the catalog.
 func TestHelpTopics(t *testing.T) {
 	seen := map[string]bool{}
-	for _, h := range helpTopics {
+	for _, h := range HelpTopics {
 		if seen[h.id] {
 			t.Errorf("help topic %q listed twice", h.id)
 		}
 		seen[h.id] = true
-		if h.tab < 0 || h.tab >= helpTabCount {
+		if h.tab < 0 || h.tab >= HelpTabCount {
 			t.Errorf("help topic %q: no tab", h.id)
 		}
 		for _, k := range []string{"help." + h.id + ".title", "help." + h.id + ".text"} {
@@ -24,12 +24,12 @@ func TestHelpTopics(t *testing.T) {
 			}
 		}
 	}
-	for tab := helpTab(0); tab < helpTabCount; tab++ {
-		if len(helpTopicsOf(tab)) == 0 {
+	for tab := HelpTab(0); tab < HelpTabCount; tab++ {
+		if len(HelpTopicsOf(tab)) == 0 {
 			t.Errorf("help tab %d has no topics", tab)
 		}
-		if !i18n.Has(helpTabKeys[tab]) {
-			t.Errorf("help tab %d: no %s", tab, helpTabKeys[tab])
+		if !i18n.Has(HelpTabKeys[tab]) {
+			t.Errorf("help tab %d: no %s", tab, HelpTabKeys[tab])
 		}
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wave"
 )
@@ -31,7 +32,7 @@ func (s *session) Second(tx *world.Tx) {
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)
-	s.updateBoards(tx)
+	screens.UpdateBoards(s.Session, tx)
 	achievement.CountAll(tx, "play_seconds", 1)
 	achievement.GrantCollection(held)
 	if s.Dirty() {

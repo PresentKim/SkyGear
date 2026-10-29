@@ -2,9 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/look"
 
 	"github.com/presentkim/skygear/content/skygear/wave"
 
@@ -50,7 +52,7 @@ type debugResearchScreen struct {
 // no research card).
 func (c debugResearchScreen) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
-		s.showResearch(p)
+		screens.ShowResearch(s.Session, p)
 	}
 }
 
@@ -287,7 +289,7 @@ func (c debugResearchRandom) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	s.MarkDirty()
 	progress.SendRecipes(s.Session, tx)
-	s.updateBoards(tx)
+	screens.UpdateBoards(s.Session, tx)
 	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchRandom"), n, len(progress.Tree), pct)
 }
 

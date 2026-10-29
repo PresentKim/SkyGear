@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
 
@@ -23,12 +24,12 @@ func TestCostRowsCountTheInventory(t *testing.T) {
 	r, _ := progress.ByID("chest")
 	inv := inventory.New(36, nil)
 	_, _ = inv.AddItem(item.NewStack(catalog.OakPlanks, 10))
-	rows := s.researchCostRows(i18n.Default, r, inv)
+	rows := screens.ResearchCostRows(s.Session, i18n.Default, r, inv)
 	if len(rows) != 1 || !strings.Contains(rows[0], "10§7/32") {
 		t.Fatalf("rows %q", rows)
 	}
 	_, _ = inv.AddItem(item.NewStack(catalog.OakPlanks, 40))
-	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
+	if rows := screens.ResearchCostRows(s.Session, i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
 		t.Fatalf("enough planks %q", rows)
 	}
 }
@@ -41,14 +42,14 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if title, rows := s.questRows(i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
+		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		rt, _ := advancement.ByID("research_table")
 		for _, a := range advancement.WithAncestors(rt) {
 			progress.Advance(s.Session, tx, a.ID)
 		}
-		title, rows := s.questRows(i18n.Default, nil)
+		title, rows := screens.QuestRows(s.Session, i18n.Default, nil)
 		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
@@ -56,13 +57,13 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		_, _ = p.Inventory().AddItem(item.NewStack(catalog.OakPlanks, 16))
 		progress.Do(s.Session, p, tx, sticks)
 		progress.CheckHeld(s.Session, tx, advancement.InventoryNames(tx))
-		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {
+		if title, _ := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)
 		}
 		for _, a := range advancement.Tree {
 			progress.StateOf(s.Session).Advancements[a.ID] = true
 		}
-		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌 다지기") {
+		if title, _ := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "돌 다지기") {
 			t.Fatalf("quest after every advancement %q", title)
 		}
 	})
@@ -87,7 +88,7 @@ func TestQuestShowsResearchStep(t *testing.T) {
 			progress.StateOf(s.Session).Advancements[x.ID] = true
 		}
 	}
-	_, rows := s.questRows(i18n.Default, nil)
+	_, rows := screens.QuestRows(s.Session, i18n.Default, nil)
 	hint := len(strings.Split(a.HintText(i18n.Default), "\n"))
 	if len(rows) < hint+2 || !strings.Contains(rows[hint], step.Title(i18n.Default)) {
 		t.Fatalf("rows %q", rows)
@@ -101,16 +102,16 @@ func TestQuestPanelSetting(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.updateBoard(p)
-		if !strings.Contains(s.boards[p.H()], hud.QuestTitle) {
-			t.Fatalf("no quest panel by default: %q", s.boards[p.H()])
+		screens.UpdateBoard(s.Session, p)
+		if !strings.Contains(screens.Boards.Of(s.Session)[p.H()], hud.QuestTitle) {
+			t.Fatalf("no quest panel by default: %q", screens.Boards.Of(s.Session)[p.H()])
 		}
 		if on, _ := account.Toggle(p, advancement.SettingQuestPanel); on {
 			t.Fatal("the quest panel setting did not turn off")
 		}
 		defer func() { _, _ = account.Toggle(p, advancement.SettingQuestPanel) }()
-		s.updateBoard(p)
-		if b := s.boards[p.H()]; strings.Contains(b, hud.QuestTitle) || strings.Contains(b, hud.Quest) {
+		screens.UpdateBoard(s.Session, p)
+		if b := screens.Boards.Of(s.Session)[p.H()]; strings.Contains(b, hud.QuestTitle) || strings.Contains(b, hud.Quest) {
 			t.Fatalf("the quest panel shows while off: %q", b)
 		}
 	})

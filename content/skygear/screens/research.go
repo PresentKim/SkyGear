@@ -1,18 +1,9 @@
-package skygear
+package screens
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/presentkim/skygear/content/skygear/codex"
-
-	"github.com/presentkim/skygear/content/skygear/decor"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -20,14 +11,20 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/codex"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/formicon"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
-// Research: every crafting recipe but baseUnlocks is locked. A research,
-// paid whole with items at the research table, opens the recipes of its
-// results for everyone on the island (recipes.go). Researches form a tree;
-// trees and costs are drafts.
+// The research screen: the researches to do and done, and a research's
+// costs, rewards and needs (progress has the rules).
+
+// The research table opens the research screen.
+func init() { progress.ShowScreen = ShowResearch }
 
 // researchIcon is a research's form icon: its first result.
 func researchIcon(r *progress.Research) string {
@@ -43,16 +40,16 @@ func researchIcon(r *progress.Research) string {
 	return formicon.Mission
 }
 
-func (s *session) showResearch(p *player.Player) {
+func ShowResearch(s *core.Session, p *player.Player) {
 	achievement.Count(p, "research_open", 1)
-	s.showResearchSplit(p, researchView{})
+	showResearchSplit(s, p, researchView{})
 }
 
 // researchView is what the research screen shows: the tab (0 to do, 1 done),
 // the page of the grid and the chosen research ("" the first of the tab);
 // help shows the explanation as the text of the form.
 type researchView struct {
-	tab, page int
+	Tab, page int
 	sel       string
 }
 
@@ -71,28 +68,28 @@ type researchEntry struct {
 	kind researchKind
 }
 
-// researchEntries are the researches of the tabs: the ones to do (those that
+// ResearchEntries are the researches of the tabs: the ones to do (those that
 // can be done now first, then the grey ones a step from open) and the done
 // ones. A research is hidden until everything before it is done, so the tree
 // is found step by step. openN is how many are to do without the grey ones.
-func (s *session) researchEntries() (todo, done []researchEntry, openN int) {
+func ResearchEntries(s *core.Session) (todo, done []researchEntry, openN int) {
 	var previews []researchEntry
 	for i := range progress.Tree {
 		r := &progress.Tree[i]
 		switch {
-		case progress.Researched(s.Session, r.ID):
+		case progress.Researched(s, r.ID):
 			done = append(done, researchEntry{r, researchDone})
-		case progress.Open(s.Session, r):
+		case progress.Open(s, r):
 			openN++
 			todo = append(todo, researchEntry{r, researchTodo})
 		default:
-			if _, ok := progress.Blocker(s.Session, r); ok {
+			if _, ok := progress.Blocker(s, r); ok {
 				previews = append(previews, researchEntry{r, researchPreview})
 			}
 		}
 	}
-	for _, r := range progress.LocalOf(s.Session).Copies {
-		if progress.Researched(s.Session, r.ID) {
+	for _, r := range progress.LocalOf(s).Copies {
+		if progress.Researched(s, r.ID) {
 			done = append(done, researchEntry{r, researchDone})
 		} else {
 			openN++
@@ -105,7 +102,7 @@ func (s *session) researchEntries() (todo, done []researchEntry, openN int) {
 // researchSlot is the grid slot of a research. The tooltip of a research to
 // do is its name in yellow, in green when p has all it spends and can do it
 // now. p may be nil.
-func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *player.Player, tx *world.Tx)) ui.ItemSlot {
+func researchSlot(s *core.Session, p *player.Player, e researchEntry, show func(p *player.Player, tx *world.Tx)) ui.ItemSlot {
 	r := e.r
 	switch e.kind {
 	case researchDone:
@@ -113,7 +110,7 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), "§7", r), Run: show}
 	case researchTodo:
 		colour := "§e"
-		if p != nil && len(progress.Missing(s.Session, p, r)) == 0 {
+		if p != nil && len(progress.Missing(s, p, r)) == 0 {
 			colour = "§a"
 		}
 		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), colour, r), Run: show}
@@ -125,11 +122,11 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 // the tabs, the grid of researches and the page buttons, on the right the
 // research chosen. Choosing a research, a tab or a page shows the screen
 // again.
-func (s *session) showResearchSplit(p *player.Player, v researchView) {
+func showResearchSplit(s *core.Session, p *player.Player, v researchView) {
 	lang := i18n.Of(p)
-	todo, done, _ := s.researchEntries()
+	todo, done, _ := ResearchEntries(s)
 	list := todo
-	if v.tab == 1 {
+	if v.Tab == 1 {
 		list = done
 	}
 	idx := -1
@@ -151,20 +148,20 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	}
 	pick := func(tab, page int, sel string) func(p *player.Player, _ *world.Tx) {
 		return func(p *player.Player, _ *world.Tx) {
-			s.showResearchSplit(p, researchView{tab: tab, page: page, sel: sel})
+			showResearchSplit(s, p, researchView{Tab: tab, page: page, sel: sel})
 		}
 	}
 	var slots []ui.ItemSlot
 	for i := v.page * ui.SplitCells; i < min(len(list), (v.page+1)*ui.SplitCells); i++ {
 		e := list[i]
-		sl := s.researchSlot(p, e, pick(v.tab, v.page, e.r.ID))
+		sl := researchSlot(s, p, e, pick(v.Tab, v.page, e.r.ID))
 		if e.r.ID == v.sel {
 			sl.Selected, sl.Run = true, nil
 		}
 		slots = append(slots, sl)
 	}
 	tab := func(key string, icon string, t int) ui.Option {
-		o := ui.Tab(i18n.T(lang, key), icon, v.tab == t, pick(t, 0, ""))
+		o := ui.Tab(i18n.T(lang, key), icon, v.Tab == t, pick(t, 0, ""))
 		return s.Opt(o.Label, o.Icon, o.Run)
 	}
 	sp := ui.Split{
@@ -176,45 +173,45 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		Page:  v.page, Pages: pages,
 		Turn: func(p *player.Player, tx *world.Tx, to int) {
 			if tx.World() == s.World {
-				s.showResearchSplit(p, researchView{tab: v.tab, page: to})
+				showResearchSplit(s, p, researchView{Tab: v.Tab, page: to})
 			}
 		},
 	}
 	tip := i18n.T(lang, "researchlist.tip")
 	if idx >= 0 {
-		again := func(p *player.Player) { s.showResearchSplit(p, v) }
-		finished := func(p *player.Player) { s.showResearchSplit(p, researchView{tab: v.tab, page: v.page}) }
-		goTo := func(p *player.Player, r *progress.Research) { s.showResearchAt(p, r) }
-		d, rows, opts := s.researchNodeWith(p, list[idx].r, again, finished, goTo)
+		again := func(p *player.Player) { showResearchSplit(s, p, v) }
+		finished := func(p *player.Player) { showResearchSplit(s, p, researchView{Tab: v.Tab, page: v.page}) }
+		goTo := func(p *player.Player, r *progress.Research) { showResearchAt(s, p, r) }
+		d, rows, opts := researchNodeWith(s, p, list[idx].r, again, finished, goTo)
 		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
 	}
 	// the help is the button's tooltip; pressing it keeps the screen
-	sp.Actions = append(sp.Actions, s.Opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { s.showResearchSplit(p, v) }), s.BackOption(lang))
+	sp.Actions = append(sp.Actions, s.Opt(ui.Help(tip, nil).Label, "", func(p *player.Player, _ *world.Tx) { showResearchSplit(s, p, v) }), s.BackOption(lang))
 	ui.SplitMenu(p, i18n.T(lang, "researchlist.title"), sp)
 }
 
 // showResearchAt shows the research screen with a research chosen, on the tab
 // it belongs to.
-func (s *session) showResearchAt(p *player.Player, r *progress.Research) {
+func showResearchAt(s *core.Session, p *player.Player, r *progress.Research) {
 	v := researchView{sel: r.ID}
-	if progress.Researched(s.Session, r.ID) {
-		v.tab = 1
+	if progress.Researched(s, r.ID) {
+		v.Tab = 1
 	}
-	s.showResearchSplit(p, v)
+	showResearchSplit(s, p, v)
 }
 
-// researchSlots builds the two sections of the research list: the slots of the
+// ResearchSlots builds the two sections of the research list: the slots of the
 // researches to do and of the done ones, with how many are to do (without the
 // grey ones) and done. p may be nil.
-func (s *session) researchSlots(p *player.Player) (todo, done []ui.ItemSlot, todoN, doneN int) {
-	todoE, doneE, openN := s.researchEntries()
+func ResearchSlots(s *core.Session, p *player.Player) (todo, done []ui.ItemSlot, todoN, doneN int) {
+	todoE, doneE, openN := ResearchEntries(s)
 	for _, e := range todoE {
 		r := e.r
-		todo = append(todo, s.researchSlot(p, e, func(p *player.Player, _ *world.Tx) { s.showResearchAt(p, r) }))
+		todo = append(todo, researchSlot(s, p, e, func(p *player.Player, _ *world.Tx) { showResearchAt(s, p, r) }))
 	}
 	for _, e := range doneE {
 		r := e.r
-		done = append(done, s.researchSlot(p, e, func(p *player.Player, _ *world.Tx) { s.showResearchAt(p, r) }))
+		done = append(done, researchSlot(s, p, e, func(p *player.Player, _ *world.Tx) { showResearchAt(s, p, r) }))
 	}
 	return todo, done, openN, len(doneE)
 }
@@ -229,14 +226,14 @@ func researchTip(lang, colour string, r *progress.Research) string {
 	return tip
 }
 
-// researchNode builds the screen of a research with a way back to the
+// ResearchNode builds the screen of a research with a way back to the
 // research screen. p may be nil (the owned counts are then left out).
-func (s *session) researchNode(p *player.Player, r *progress.Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
-	d, rows, opts := s.researchNodeWith(p, r,
-		func(p *player.Player) { s.showResearchAt(p, r) },
-		func(p *player.Player) { s.showResearch(p) },
-		func(p *player.Player, n *progress.Research) { s.showResearchAt(p, n) })
-	back := ui.Back(i18n.T(i18n.Of(p), "researchnode.back"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
+func ResearchNode(s *core.Session, p *player.Player, r *progress.Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
+	d, rows, opts := researchNodeWith(s, p, r,
+		func(p *player.Player) { showResearchAt(s, p, r) },
+		func(p *player.Player) { ShowResearch(s, p) },
+		func(p *player.Player, n *progress.Research) { showResearchAt(s, p, n) })
+	back := ui.Back(i18n.T(i18n.Of(p), "researchnode.back"), func(p *player.Player, _ *world.Tx) { ShowResearch(s, p) })
 	return d, rows, append(opts, s.Opt(back.Label, back.Icon, back.Run))
 }
 
@@ -244,9 +241,9 @@ func (s *session) researchNode(p *player.Player, r *progress.Research) (ui.Detai
 // materials and the recipes it opens, and the buttons to do it and to go to
 // what it needs. redo shows the screen again, finished shows it after the
 // research was done, goTo shows another research. p may be nil.
-func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *progress.Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
+func researchNodeWith(s *core.Session, p *player.Player, r *progress.Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *progress.Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	txt := progress.Text(i18n.Of(p), r.ID)
-	done := progress.Researched(s.Session, r.ID)
+	done := progress.Researched(s, r.ID)
 	var b strings.Builder
 	if txt.About != "" {
 		fmt.Fprintf(&b, "§f%s\n", txt.About)
@@ -256,14 +253,14 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	switch {
 	case done:
 		d.Status = i18n.T(i18n.Of(p), "researchnode.complete")
-	case progress.Open(s.Session, r):
+	case progress.Open(s, r):
 		opts = append(opts, s.Opt(i18n.T(i18n.Of(p), "researchnode.start"), formicon.Mission, func(p *player.Player, tx *world.Tx) {
 			if r.IsCopy() {
-				progress.LocalOf(s.Session).CopiesDone[r.ID] = true
+				progress.LocalOf(s).CopiesDone[r.ID] = true
 				finished(p)
 				return
 			}
-			missing, ok := progress.Do(s.Session, p, tx, r)
+			missing, ok := progress.Do(s, p, tx, r)
 			switch {
 			case ok:
 				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "researchnode.finished"))
@@ -281,7 +278,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	}
 	// What is still to do before it: a button that goes to that research.
 	for _, n := range r.Needs {
-		if need, ok := progress.ByID(n); ok && !done && !progress.Researched(s.Session, n) {
+		if need, ok := progress.ByID(n); ok && !done && !progress.Researched(s, n) {
 			opts = append(opts, s.Opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(i18n.Of(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
 		}
 	}
@@ -295,7 +292,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 		}
 		return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.World {
-				codex.From(s.Session, p, redo, st)
+				codex.From(s, p, redo, st)
 			}
 		}}
 	}
@@ -304,7 +301,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	// p has.
 	var cost []ui.ItemSlot
 	for _, c := range r.Cost {
-		need := progress.Need(s.Session, r, c)
+		need := progress.Need(s, r, c)
 		st := item.NewStack(c.Item, 1)
 		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), naming.UIItemName(i18n.Of(p), st), need)
 		switch {
@@ -343,12 +340,4 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	}
 	rows := []ui.SlotRow{{Heading: i18n.T(i18n.Of(p), "researchnode.materials"), Slots: cost}, {Heading: i18n.T(i18n.Of(p), "researchnode.rewards"), Slots: opens}}
 	return d, rows, opts
-}
-
-func init() {
-	progress.ShowScreen = func(c *core.Session, p *player.Player) {
-		if s, ok := activeGame.sessionOf(c.World); ok {
-			s.showResearch(p)
-		}
-	}
 }
