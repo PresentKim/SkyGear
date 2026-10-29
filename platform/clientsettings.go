@@ -2,7 +2,6 @@ package platform
 
 import (
 	"github.com/df-mc/dragonfly/server/player"
-
 	"github.com/presentkim/skygear/common/oreui"
 )
 

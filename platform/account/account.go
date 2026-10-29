@@ -4,8 +4,6 @@ package account
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
-	_ "github.com/presentkim/skygear/platform/locales" // the platform's texts
 	"log/slog"
 	"slices"
 	"strings"
@@ -13,9 +11,11 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
+	_ "github.com/presentkim/skygear/platform/locales" // the platform's texts
 )
 
 // Achievement is something a player can earn once per account. Its texts are

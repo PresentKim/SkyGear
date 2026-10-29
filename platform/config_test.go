@@ -1,6 +1,8 @@
 package platform
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestOperatorByXUIDOrName(t *testing.T) {
 	var c Config

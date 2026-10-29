@@ -5,22 +5,17 @@ import (
 	"math"
 	"time"
 
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/climate"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/core"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/platform/instance"
 )
 

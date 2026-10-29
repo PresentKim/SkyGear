@@ -7,10 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/handwork"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -18,6 +14,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/handwork"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"

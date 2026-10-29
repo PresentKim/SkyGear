@@ -3,15 +3,13 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 

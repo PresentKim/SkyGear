@@ -3,15 +3,13 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/presentkim/skygear/platform/instance"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/platform/instance"
 )
 
 // runSeconds runs the monitor's second n times.

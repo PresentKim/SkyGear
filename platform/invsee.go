@@ -2,7 +2,6 @@ package platform
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/common/i18n"
 	"log/slog"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/chestui"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/playerstate"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/platform/db"

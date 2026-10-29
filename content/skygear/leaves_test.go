@@ -3,14 +3,12 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/island"
 )
 
 // TestLeavesDropSaplingsOften: oak leaves give a sapling about one time in

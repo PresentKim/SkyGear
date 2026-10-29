@@ -1,10 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/island"
-
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/island"
 )
 
 // worldHandler handles events of the instance world.

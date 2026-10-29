@@ -5,10 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/machine"
-
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/wintext"

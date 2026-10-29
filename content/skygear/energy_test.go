@@ -3,14 +3,9 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/conduit"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/df-mc/dragonfly/server/block/customblock"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -19,6 +14,8 @@ import (
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
 // run advances n steps of four ticks, calling Fast (which moves the energy)

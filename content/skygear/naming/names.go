@@ -7,11 +7,10 @@ import (
 	"path"
 	"strings"
 
-	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
-
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 )
 
 // VanillaName returns the name of a vanilla item or block in lang, by name

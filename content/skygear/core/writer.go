@@ -1,6 +1,8 @@
 package core
 
-import "sync"
+import (
+	"sync"
+)
 
 // stateWriter writes the state documents of one save outside the world,
 // keeping only the newest one not written yet.

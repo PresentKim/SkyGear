@@ -1,27 +1,25 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/ui"
-	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/storage"
-
 	"slices"
 	"strings"
 	"testing"
-
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
-	"github.com/go-gl/mathgl/mgl64"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 

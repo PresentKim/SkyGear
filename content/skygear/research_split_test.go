@@ -1,12 +1,12 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
 
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
 )
 
 // TestResearchCopiesFillTheTabs: test copies of the researches make the lists

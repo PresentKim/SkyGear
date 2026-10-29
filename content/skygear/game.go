@@ -3,35 +3,8 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"log/slog"
 	"sync"
-
-	"github.com/presentkim/skygear/content/skygear/catalog"
-	"github.com/presentkim/skygear/content/skygear/codex"
-
-	"github.com/presentkim/skygear/content/skygear/expand"
-
-	"github.com/presentkim/skygear/content/skygear/wave"
-
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/climate"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/conduit"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -39,7 +12,22 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/waila"
+	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/codex"
+	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/expand"
+	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
+	"github.com/presentkim/skygear/content/skygear/storage"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )

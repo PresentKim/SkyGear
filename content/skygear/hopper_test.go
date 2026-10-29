@@ -3,10 +3,6 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -14,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/content/skygear/hopper"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 func chestCount(tx *world.Tx, pos cube.Pos, it item.Stack) int {

@@ -1,31 +1,7 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/look"
-
-	"github.com/presentkim/skygear/content/skygear/expand"
-
-	"github.com/presentkim/skygear/content/skygear/copier"
-	"github.com/presentkim/skygear/content/skygear/handwork"
-
-	"github.com/presentkim/skygear/content/skygear/wave"
-
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/conduit"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -36,8 +12,21 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/copier"
+	"github.com/presentkim/skygear/content/skygear/expand"
+	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/handwork"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // handler handles a player's events inside a skygear instance.

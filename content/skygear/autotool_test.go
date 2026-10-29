@@ -3,13 +3,12 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/tinker"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // TestEquipToolFor: starting to break a block with a tool that does not fit

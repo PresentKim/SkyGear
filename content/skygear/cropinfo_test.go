@@ -4,15 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/look"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/look"
 )
 
 // TestUsingCrops: using a growing crop places nothing (the WAILA panel shows

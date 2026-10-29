@@ -4,10 +4,6 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/tinker"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -15,9 +11,11 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/instance"
 )

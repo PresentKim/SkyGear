@@ -1,11 +1,6 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/catalog"
-	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/progress"
-
 	"slices"
 	"strings"
 	"testing"
@@ -15,7 +10,11 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // TestResearchTreeIsValid: IDs are unique, needs come earlier in the tree,

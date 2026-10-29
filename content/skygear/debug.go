@@ -2,21 +2,8 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/look"
-
-	"github.com/presentkim/skygear/content/skygear/wave"
-
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/climate"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -26,10 +13,17 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
+	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
+	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that

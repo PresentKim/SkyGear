@@ -3,13 +3,12 @@ package skygear
 import (
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/progress"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/platform/account"
 )
 

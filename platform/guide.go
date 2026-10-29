@@ -2,11 +2,11 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/platform/instance"
 )

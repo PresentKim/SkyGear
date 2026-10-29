@@ -21,10 +21,9 @@ import (
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // Ore UI probes (/sgdebug oreinput, oreres): DDUI screens that try in the

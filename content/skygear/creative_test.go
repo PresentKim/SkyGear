@@ -4,10 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/catalog"
-
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
+	"github.com/presentkim/skygear/content/skygear/catalog"
 )
 
 // TestEveryGameRecipeResultIsCreative: the client lists a recipe in its

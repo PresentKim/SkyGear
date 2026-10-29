@@ -4,7 +4,6 @@ package platform
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
 	"log/slog"
 	"strings"
 	"unicode/utf8"
@@ -13,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/common/waila"

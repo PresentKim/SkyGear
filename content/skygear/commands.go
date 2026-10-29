@@ -1,7 +1,6 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -16,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
 )
 
 func registerCommands(g *Game) {

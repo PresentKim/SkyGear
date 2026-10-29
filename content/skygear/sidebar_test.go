@@ -1,11 +1,8 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/screens"
 	"strings"
 	"testing"
-
-	"github.com/presentkim/skygear/content/skygear/catalog"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
@@ -14,7 +11,9 @@ import (
 	"github.com/presentkim/skygear/common/hud"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/catalog"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/platform/account"
 )
 

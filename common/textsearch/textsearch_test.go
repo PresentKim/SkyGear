@@ -1,6 +1,8 @@
 package textsearch
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMatch(t *testing.T) {
 	for _, tc := range []struct {

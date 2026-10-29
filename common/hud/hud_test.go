@@ -1,6 +1,8 @@
 package hud
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestRowsUnique(t *testing.T) {
 	var b Board

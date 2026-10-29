@@ -1,6 +1,8 @@
 package sgitem
 
-import "github.com/df-mc/dragonfly/server/world"
+import (
+	"github.com/df-mc/dragonfly/server/world"
+)
 
 // The items and blocks of this package register with the world on import.
 func init() {

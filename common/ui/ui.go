@@ -10,10 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/google/uuid"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/internal/slottext"
 	"github.com/presentkim/skygear/common/sghook"

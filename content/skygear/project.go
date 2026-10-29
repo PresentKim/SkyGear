@@ -3,8 +3,6 @@ package skygear
 import (
 	"math/rand/v2"
 
-	"github.com/presentkim/skygear/content/skygear/progress"
-
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -12,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // The projects: the long goal of the game.

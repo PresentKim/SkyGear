@@ -4,12 +4,12 @@ package perf
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
 	"runtime"
 	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 // Process is the load of the server process.

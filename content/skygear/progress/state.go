@@ -1,6 +1,8 @@
 package progress
 
-import "github.com/presentkim/skygear/content/skygear/core"
+import (
+	"github.com/presentkim/skygear/content/skygear/core"
+)
 
 // State is the progress a save keeps: its fields are part of the save's
 // state document (core.Saved).

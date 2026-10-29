@@ -4,11 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/presentkim/skygear/content/skygear/catalog"
-	"github.com/presentkim/skygear/content/skygear/codex"
-
-	"github.com/presentkim/skygear/content/skygear/wave"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -16,11 +11,14 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 func hasLine(lines []string, part string) bool {

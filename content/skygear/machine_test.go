@@ -6,34 +6,28 @@ import (
 	"testing"
 	"time"
 
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/conduit"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/network"
-
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/skygear/common/energy"
-	"github.com/presentkim/skygear/common/fluidnet"
-	"github.com/presentkim/skygear/common/itemnet"
-	"github.com/presentkim/skygear/common/slotdeco"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/event"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/energy"
+	"github.com/presentkim/skygear/common/fluidnet"
+	"github.com/presentkim/skygear/common/itemnet"
+	"github.com/presentkim/skygear/common/slotdeco"
+	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
+	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
 var machinePos = cube.Pos{3, island.IslandY, 3}
