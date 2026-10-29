@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/sghook"
+	"github.com/presentkim/skygear/common/ui"
 )
 
 const (
@@ -24,7 +25,8 @@ const (
 
 // PlaceAt puts p on the nearest safe ground at want (fallback if none) and
 // holds it still until the server and client both have the chunks there, as
-// a player over unloaded chunks falls through air. Call it in p's transaction.
+// a player over unloaded chunks falls through air. Then the loading screen
+// (ui.LoadingScreen), if p has one up, closes. Call it in p's transaction.
 func PlaceAt(p *player.Player, want, fallback mgl64.Vec3) {
 	p.SetImmobile()
 	h, w := p.H(), p.Tx().World()
@@ -40,6 +42,7 @@ func PlaceAt(p *player.Player, want, fallback mgl64.Vec3) {
 			p := e.(*player.Player)
 			p.Teleport(LandingSpot(tx, p.Position(), fallback))
 			p.SetMobile()
+			ui.CloseLoading(p)
 		})
 	}()
 }
@@ -66,6 +69,7 @@ func placeAt(h *world.EntityHandle, w *world.World, want, fallback mgl64.Vec3, n
 			}
 			p.Teleport(LandingSpot(tx, p.Position(), fallback))
 			p.SetMobile()
+			ui.CloseLoading(p)
 		})
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -140,6 +141,9 @@ type oreScreen struct {
 	// probe is the layout's run for the lines its test nodes report
 	// (oreLayout.probe).
 	probe func(p *player.Player, tx *world.Tx, id, line string)
+	// loading is when the loading screen shown came up (zero: the screen is
+	// not a loading screen, LoadingScreen).
+	loading time.Time
 }
 
 var oreScreens = struct {
@@ -171,6 +175,12 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 	}
 	st.gen++
 	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
+	switch {
+	case !l.loading:
+		st.loading = time.Time{}
+	case st.loading.IsZero() || st.form == nil || st.form.Closed():
+		st.loading = time.Now()
+	}
 	if st.form != nil && !st.form.Closed() {
 		if st.size == l.size {
 			_ = st.form.SetLayout(layout)
@@ -374,6 +384,9 @@ type oreLayout struct {
 	// probe, if set, takes the lines the renderer's test nodes report
 	// (ProbeScreen).
 	probe func(p *player.Player, tx *world.Tx, id, line string)
+	// loading marks a loading screen (LoadingScreen), which CloseLoading
+	// closes.
+	loading bool
 }
 
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and

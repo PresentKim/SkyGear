@@ -113,7 +113,6 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 	st := homeOf(p)
 	h := ui.Home{
 		Profile: pf.homeProfile(p),
-		Hint:    i18n.T(lang, "platform.home.hint"),
 		Close: func(p *player.Player, tx *world.Tx) {
 			o := homeSystem
 			if homeOf(p).overlay != homeNoOverlay {

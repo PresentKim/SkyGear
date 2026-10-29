@@ -23,8 +23,6 @@ type Home struct {
 	Save         HomeSave
 	Play, Manage HomeButton
 	PlaySub      string
-	// Hint is the small line at the bottom middle.
-	Hint string
 	// Overlay, if set, is a panel over the dimmed screen: the system menu, a
 	// question.
 	Overlay *HomeOverlay
@@ -100,9 +98,6 @@ func HomeScreen(p *player.Player, h Home) {
 		play = append(play, l.press(box("mc-btn mc-home-manage", "children", []any{txt("mc-btn-text", h.Manage.Label)}), h.Manage.Run))
 	}
 	children = append(children, box("mc-home-start", "children", play))
-	if h.Hint != "" {
-		children = append(children, txt("mc-home-hint", h.Hint))
-	}
 	if o := h.Overlay; o != nil {
 		panel := []any{txt("mc-home-ov-title", o.Title)}
 		if o.Body != "" {

@@ -1522,7 +1522,6 @@
 
 /* Text lines are rows of spans (oui-ddui.js rich): centred text centres them. */
 .mc-home-badge .oui-line,
-.mc-home-hint .oui-line,
 .mc-home-ov-title .oui-line,
 .mc-home-ov-body .oui-line,
 .mc-home-play .oui-line,
@@ -1537,7 +1536,7 @@
 
 /* --- the lobby's main screen (ui.HomeScreen), a game lobby around the character on the island:
    the profile card at the top left (135x37u), icon buttons at the top right (22u, 4u apart) and down
-   the left (38x28u, 4u apart), the Esc hint under the name, the recent lines at the bottom left, and at the bottom right (156u wide)
+   the left (38x28u, 4u apart), the recent lines at the bottom left, and at the bottom right (156u wide)
    the save card over the green play button and the save button. The middle is left to the island. */
 
 .mc-home-profile {
@@ -1822,17 +1821,6 @@
   font-size: 1.3rem;
 }
 
-.mc-home-hint {
-  position: absolute;
-  left: 0;
-  top: 5.4rem;
-  width: 100vw;
-  text-align: center;
-  font-size: 1.1rem;
-  color: #e6edf9;
-  text-shadow: 0 0.15rem 0 rgba(20, 30, 50, 0.6);
-}
-
 /* The overlay (the system menu, a question): a panel in the middle over the dimmed screen. */
 .mc-home-ov {
   position: absolute;
@@ -2074,4 +2062,187 @@
 
 .mc-pick.dim {
   opacity: 0.55;
+}
+
+/* --- the loading screen (ui.LoadingScreen): an opaque sky over the whole screen with blocky clouds
+   drifting across, the save's picture bobbing over a pulsing glow in the middle, its name and day,
+   a bar with a sliding fill and a line whose dots blink in turn, and the tip at the bottom. --------- */
+
+.mc-load {
+  overflow: hidden;
+  flex-direction: column;
+  background-color: #10204a;
+  animation: mc-load-in 0.35s ease-out;
+}
+
+.mc-load-sky {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: linear-gradient(to bottom, #13245a 0%, #2f5aa3 50%, #7fb3e6 85%, #b9dcf7 100%);
+}
+
+.mc-load-clouds {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.mc-load-cloud {
+  position: absolute;
+  left: -40vw;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom-style: solid;
+  border-bottom-width: 0.6rem;
+  border-bottom-color: rgba(200, 218, 240, 0.8);
+  animation-name: mc-load-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.mc-load-cloud-0 { top: 10vh; width: 26rem; height: 3.2rem; animation-duration: 21s; animation-delay: -4s; }
+.mc-load-cloud-1 { top: 24vh; width: 16rem; height: 2.4rem; animation-duration: 15s; animation-delay: -11s; opacity: 0.75; }
+.mc-load-cloud-2 { top: 64vh; width: 34rem; height: 4rem; animation-duration: 26s; animation-delay: -17s; }
+.mc-load-cloud-3 { top: 78vh; width: 20rem; height: 2.8rem; animation-duration: 18s; animation-delay: -2s; opacity: 0.85; }
+.mc-load-cloud-4 { top: 42vh; width: 12rem; height: 2rem; animation-duration: 12s; animation-delay: -7s; opacity: 0.6; }
+
+.mc-load-mid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-load-isle {
+  position: relative;
+  width: 12rem;
+  height: 12rem;
+  margin-bottom: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-load-glow {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 5rem;
+  background-color: rgba(255, 244, 196, 0.22);
+  animation: mc-load-pulse 1.8s ease-in-out infinite alternate;
+}
+
+.mc-load-icon {
+  position: relative;
+  width: 7.2rem;
+  height: 7.2rem;
+  animation: mc-load-bob 1.6s ease-in-out infinite alternate;
+}
+
+.mc-load-title {
+  color: #ffffff;
+  font-size: 2.8rem;
+  text-shadow: 0 0.3rem 0 #1a2a4a;
+}
+
+.mc-load-sub {
+  margin-top: 0.4rem;
+  font-size: 1.3rem;
+  color: #d6e4fb;
+  text-shadow: 0 0.15rem 0 rgba(20, 30, 50, 0.6);
+}
+
+.mc-load-bar {
+  position: relative;
+  overflow: hidden;
+  width: 28rem;
+  height: 1rem;
+  margin-top: 2rem;
+  background-color: rgba(5, 9, 20, 0.6);
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+}
+
+.mc-load-bar-fill {
+  position: absolute;
+  top: 0;
+  left: -35%;
+  width: 35%;
+  height: 100%;
+  background-color: #62c240;
+  border-top-style: solid;
+  border-top-width: 0.2rem;
+  border-top-color: #8fe36a;
+  animation: mc-load-slide 1.3s ease-in-out infinite;
+}
+
+.mc-load-line {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.8rem;
+  font-size: 1.3rem;
+  color: #ffffff;
+  text-shadow: 0 0.15rem 0 rgba(20, 30, 50, 0.6);
+}
+
+.mc-load-dot {
+  animation: mc-load-blink 1.2s linear infinite;
+}
+
+.mc-load-dot-1 { animation-delay: 0.2s; }
+.mc-load-dot-2 { animation-delay: 0.4s; }
+
+.mc-load-tip {
+  position: absolute;
+  left: 0;
+  bottom: 2.4rem;
+  width: 100vw;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #1a2a4a;
+}
+
+@keyframes mc-load-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mc-load-drift {
+  from { left: -40vw; }
+  to { left: 110vw; }
+}
+
+@keyframes mc-load-bob {
+  from { transform: translateY(0.8rem); }
+  to { transform: translateY(-0.8rem); }
+}
+
+@keyframes mc-load-pulse {
+  from { opacity: 0.5; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes mc-load-slide {
+  from { left: -35%; }
+  to { left: 100%; }
+}
+
+@keyframes mc-load-blink {
+  0% { opacity: 0.2; }
+  30% { opacity: 1; }
+  60% { opacity: 0.2; }
+  100% { opacity: 0.2; }
+}
+
+.mc-load-title .oui-line,
+.mc-load-sub .oui-line,
+.mc-load-tip .oui-line {
+  justify-content: center;
 }

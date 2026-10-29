@@ -196,13 +196,29 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 	ui.ListSplitMenu(p, i18n.T(lang, "platform.saves.title"), sp)
 }
 
+// enter moves p into saveID behind the loading screen, which stays until p
+// stands on the save's ground (instance.PlaceAt closes it).
 func (pf *Platform) enter(p *player.Player, saveID int64) {
 	if pf.m.Location(instance.AccountID(p)) != nil {
 		return
 	}
+	pf.showLoading(p, saveID)
 	if err := pf.m.Enter(p, saveID); err != nil {
 		pf.enterFailed(p, err)
 	}
+}
+
+// showLoading shows p the loading screen of saveID: its name, day and play
+// time.
+func (pf *Platform) showLoading(p *player.Player, saveID int64) {
+	lang := i18n.Of(p)
+	setHome(p, func(s *homeState) { s.overlay, s.shown = homeNoOverlay, false })
+	ld := ui.Loading{Icon: iconSave, Line: i18n.T(lang, "platform.loading.line"), Tip: i18n.T(lang, "platform.loading.tip")}
+	if s, err := pf.db.Save(saveID); err == nil {
+		ld.Title = s.Name
+		ld.Sub = fmt.Sprintf(i18n.T(lang, "platform.home.saveInfo"), s.Day, formatDuration(lang, s.InstanceTime))
+	}
+	ui.LoadingScreen(p, ld)
 }
 
 // entered runs when p left the lobby for a save: the save has its own view,
@@ -212,8 +228,10 @@ func entered(p *player.Player) {
 	forgetLobbyHUD(p)
 }
 
-// enterFailed tells p in the lobby why it could not enter a save.
+// enterFailed tells p in the lobby why it could not enter a save, back on
+// the main screen.
 func (pf *Platform) enterFailed(p *player.Player, err error) {
+	pf.showLobbyMenu(p)
 	switch err {
 	case instance.ErrHostOffline:
 		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "platform.enter.hostOffline"))

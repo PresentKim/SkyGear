@@ -251,8 +251,6 @@ func (s *session) Spawn() mgl64.Vec3 {
 }
 
 func (s *session) Join(p *player.Player, first bool) {
-	_, day, _ := s.clock.Now()
-	p.Messagef(i18n.T(i18n.Of(p), "game.joined"), s.saveName, day)
 	if first {
 		// Bare hands: only the menu item.
 		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
