@@ -5,6 +5,8 @@ import (
 	"math/rand/v2"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/climate"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -124,7 +126,7 @@ func (s PlantSeed) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *wo
 		return false
 	}
 	tx.SetBlock(at, MagicPlant{Kind: id}, nil)
-	now := sess.growNow()
+	now := climate.GrowNow(sess.Session)
 	if sess.state.Plants == nil {
 		sess.state.Plants = map[string]*PlantRecord{}
 	}
@@ -326,7 +328,7 @@ func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 		achievement.CountAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	if r := s.state.Plants[cropKey(pos)]; r != nil {
 		r.ReadyAt = now + k.grow
 	} else {
@@ -356,7 +358,7 @@ func (s *session) tickPlants(tx *world.Tx) {
 	if len(s.state.Plants) == 0 {
 		return
 	}
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	for key, r := range s.state.Plants {
 		pos, ok := parseCropKey(key)
 		if !ok {
@@ -465,8 +467,8 @@ func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKin
 		if r == nil {
 			return nil
 		}
-		now := s.growNow()
-		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, s.realLeft(max(0, r.ReadyAt-now)).Round(time.Second))}
+		now := climate.GrowNow(s.Session)
+		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, climate.RealLeft(s.Session, max(0, r.ReadyAt-now)).Round(time.Second))}
 	}
 	lines := []string{i18n.T(lang, "plant.waila.bloom")}
 	for _, y := range k.yield {

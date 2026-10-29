@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/climate"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -113,7 +115,7 @@ func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 	if !ok {
 		return false
 	}
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	r := s.state.Crops[cropKey(pos)]
 	if r == nil {
 		s.plantCrop(pos, kind)

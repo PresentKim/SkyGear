@@ -1,9 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"testing"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 

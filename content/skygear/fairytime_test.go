@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/climate"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -25,7 +27,7 @@ func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
 	if !used() {
 		t.Fatal("fairy bone meal did nothing on a young carrot")
 	}
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	if want := s.stageAt("carrot", now-fairyBoneMealTime, now); stageOf(t, s, cropPos) != want {
 		t.Fatalf("stage %d after one use, want %d", stageOf(t, s, cropPos), want)
 	}
@@ -68,7 +70,7 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(pos, MagicPlant{Kind: "flower_red"}, nil)
-		s.state.Plants = map[string]*PlantRecord{cropKey(pos): {Kind: "flower_red", ReadyAt: s.growNow() + time.Minute}}
+		s.state.Plants = map[string]*PlantRecord{cropKey(pos): {Kind: "flower_red", ReadyAt: climate.GrowNow(s.Session) + time.Minute}}
 		if !s.fairyBoneMeal(tx, pos) {
 			t.Error("fairy bone meal did nothing on a magic plant")
 		}

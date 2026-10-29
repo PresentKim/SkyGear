@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
 

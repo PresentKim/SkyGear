@@ -2,9 +2,12 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"strings"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/climate"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 
@@ -165,12 +168,14 @@ func (c debugFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 type weatherEnum string
 
 func (weatherEnum) Type() string                { return "sg_weather" }
-func (weatherEnum) Options(cmd.Source) []string { return []string{"clear", weatherRain, weatherSnow} }
+func (weatherEnum) Options(cmd.Source) []string { return []string{"clear", climate.Rain, climate.Snow} }
 
 type sunEnum string
 
-func (sunEnum) Type() string                { return "sg_sun" }
-func (sunEnum) Options(cmd.Source) []string { return []string{"flow", sunDay, sunDusk, sunNight} }
+func (sunEnum) Type() string { return "sg_sun" }
+func (sunEnum) Options(cmd.Source) []string {
+	return []string{"flow", climate.SunDay, climate.SunDusk, climate.SunNight}
+}
 
 // debugWeather casts a weather without a fairy emerald.
 type debugWeather struct {
@@ -185,8 +190,8 @@ func (c debugWeather) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if w == "clear" {
 			w = ""
 		}
-		s.castWeather(tx, w)
-		o.Printf(i18n.T(i18n.Default, "skygear.admin.weather"), i18n.T(i18n.Default, "fairy.weather."+weatherKey(w)))
+		climate.CastWeather(s.Session, tx, w)
+		o.Printf(i18n.T(i18n.Default, "skygear.admin.weather"), i18n.T(i18n.Default, "fairy.weather."+climate.WeatherKey(w)))
 	}
 }
 
@@ -203,8 +208,8 @@ func (c debugSun) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		if m == "flow" {
 			m = ""
 		}
-		s.castSun(tx, m)
-		o.Printf(i18n.T(i18n.Default, "skygear.admin.sun"), i18n.T(i18n.Default, "fairy.sun."+sunKey(m)))
+		climate.CastSun(s.Session, tx, m)
+		o.Printf(i18n.T(i18n.Default, "skygear.admin.sun"), i18n.T(i18n.Default, "fairy.sun."+climate.SunKey(m)))
 	}
 }
 

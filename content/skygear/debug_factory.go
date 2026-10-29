@@ -2,9 +2,12 @@ package skygear
 
 import (
 	"container/heap"
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/climate"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 
@@ -128,7 +131,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 	// crops at random stages, a chest above the harvester.
 	const fx, fz = 6, 0
 	kinds := []string{"wheat", "carrot", "potato", "beetroot"}
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	for x := range 9 {
 		for z := range 9 {
 			corner := (x == 0 || x == 8) && (z == 0 || z == 8)

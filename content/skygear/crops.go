@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/climate"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
@@ -145,7 +147,7 @@ func (s *session) plantCrop(pos cube.Pos, kind string) {
 	if _, ok := cropKinds[kind]; !ok {
 		return
 	}
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	if s.state.Crops == nil {
 		s.state.Crops = map[string]*CropRecord{}
 	}
@@ -163,7 +165,7 @@ func (s *session) scheduleCrop(pos cube.Pos, r *CropRecord, stage int) {
 
 // loadCrops builds the queue from the stored records (session start).
 func (s *session) loadCrops() {
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	for k, r := range s.state.Crops {
 		pos, ok := parseCropKey(k)
 		if _, known := cropKinds[r.Kind]; !ok || !known {
@@ -178,7 +180,7 @@ func (s *session) loadCrops() {
 
 // growCrops updates the crops that are due (called every second).
 func (s *session) growCrops(tx *world.Tx) {
-	now := s.growNow()
+	now := climate.GrowNow(s.Session)
 	for s.cropQueue.Len() > 0 && s.cropQueue[0].at <= now {
 		d := heap.Pop(&s.cropQueue).(cropDue)
 		if s.state.Crops[cropKey(d.pos)] != d.rec || d.rec.due != d.at {

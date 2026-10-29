@@ -1,9 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"math"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
 func TestHolderPoseRoundTrip(t *testing.T) {

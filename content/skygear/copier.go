@@ -3,6 +3,7 @@ package skygear
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"

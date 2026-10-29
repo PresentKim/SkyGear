@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/tinker"
@@ -18,7 +19,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickBarrels(tx)
 	s.tickComposters(tx)
 	s.tickFairy(tx)
-	s.tickEnvironment(tx)
+	climate.Tick(s.Session, tx)
 	s.tickWave(tx)
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)

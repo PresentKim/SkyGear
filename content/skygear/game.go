@@ -3,10 +3,13 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/climate"
+
+	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
 
@@ -114,7 +117,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		for _, c := range island.StateOf(s.Session).Chunks {
 			island.KeepLoaded(s.Session, tx, c)
 		}
-		s.applyEnvironment(tx)
+		climate.Apply(s.Session, tx)
 	})
 	inst.World.Handle(&worldHandler{s: s})
 	g.sessions.Store(inst.World, s)
@@ -152,13 +155,6 @@ type session struct {
 	// fairy is the gift fairy visiting now, or nil.
 	fairy *world.EntityHandle
 	g     *Game
-	// growInit and growAt are whether the growth clock started and the
-	// instance time it last ran to; rain and snow are whether it rains or
-	// snows now (fairyspell.go).
-	growInit bool
-	growAt   time.Duration
-	rain     bool
-	snow     bool
 	// state is the saved state (savedState).
 	state *State
 	// lastStick is when each player last used a stick on the ground.
@@ -192,7 +188,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	}
 	renameMenuItems(p)
 	s.backfillFairyDust(p, p.Tx())
-	s.showWeather(p)
+	climate.ShowWeather(s.Session, p)
 	s.SendShapes(p)
 	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
@@ -257,7 +253,7 @@ func init() {
 	machine.Kinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx) {
 		sess(c).runHarvester(st, pos, tx)
 	}
-	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }
+	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return climate.SnowReps(sess(c).Session, reps, tick) }
 }
 
 // activeGameSession is the session of the world of tx, nil if it has none.
