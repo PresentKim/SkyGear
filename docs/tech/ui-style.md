@@ -4,7 +4,7 @@
 
 ## 팔레트
 
-게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 화면의 모양은 `common/packs/oreui/hbui/oui-mc.css` 가 정하고, 버튼·창 그림의 색은 `common/tools/uitextures/main.go` 위쪽 한 곳에서 정해 그 도구가 `common/packs/sgui` 에 그림을 만든다(없는 것만, `-f` 는 모두).
+게임 기본 화면 같은 **회색 테마** 하나를 쓴다. 화면의 모양은 `assets/resourcepack/oreui/hbui/oui-mc.css` 가 정하고, 버튼·창 그림의 색은 `tools/uitextures/main.go` 위쪽 한 곳에서 정해 그 도구가 `assets/resourcepack/sgui` 에 그림을 만든다(없는 것만, `-f` 는 모두).
 
 | 쓰임 | 색 | 값 |
 |---|---|---|
@@ -45,7 +45,7 @@
 
 ## 버튼 아이콘
 
-버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `skygear` 팩 `textures/ui/sg/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 `common/packs/sgui` 에 있다.
+버튼 아이콘은 그 버튼이 하는 일을 그림만 보고 알 수 있어야 한다. 바닐라 그림(아이템·블록·`textures/ui`)이 그 뜻을 말하면 그대로 쓰고(세이브=잔디, 삭제=방벽, 이름 변경=이름표), 말하지 못하면 팩에 아이콘을 둔다: `skygear` 팩 `textures/ui/sg/icon_*.png`(16×16 RGBA, deep-pixels 로 그려 배경을 투명하게) — 입장(문으로 들어가는 화살표), 친구 추가, 수락(초록 체크), 거절(빨간 X), 받은 요청(봉투), 초대(초대장), 초대 코드(열쇠), 참여자(두 사람), 추방(문 밖 화살표). 로비의 흰 선 아이콘(`icon_cube`·`icon_people`·`icon_person`·`icon_crown`·`icon_help`)은 `assets/resourcepack/sgui` 에 있다.
 
 ## 고른 칸
 
@@ -68,7 +68,7 @@
 ## 창 겉모양(게임 기본 화면 기준)
 
 - 창은 바닐라 인벤토리 크기(326×166) 하나다(퀘스트 책 포함, [oreui.md](oreui.md)). 내용이 넘치면 창 안이 스크롤된다.
-- 창은 바닐라 `dialog_background_opaque` 다. 창 안의 판(`.mc-panel`: 분할 화면의 왼쪽, 선택 판의 수치)은 `panel` 그림으로, 위·왼쪽 흰 선과 아래·오른쪽 어두운 선을 직접 갖고 모서리가 둥글다(`common/tools/uitextures` 의 `roundCorners`).
+- 창은 바닐라 `dialog_background_opaque` 다. 창 안의 판(`.mc-panel`: 분할 화면의 왼쪽, 선택 판의 수치)은 `panel` 그림으로, 위·왼쪽 흰 선과 아래·오른쪽 어두운 선을 직접 갖고 모서리가 둥글다(`tools/uitextures` 의 `roundCorners`).
 - 제목은 막대 없이 창 위 가운데에 쓴다. 쪽 화살표·도움말(?)·뒤로·닫기는 창 오른쪽 위 모서리 위에 붙은 어두운 둥근 막대(바닐라 `toolbar_background`)에 둔다. 틀은 없고 포인터가 올라오면 칸이 밝아진다.
 - 탭은 창 위 왼쪽 가장자리에 붙는다.
 - 카드(72×46)의 아이콘은 22px 이고 카드 가운데에 놓인다(이름은 아래).

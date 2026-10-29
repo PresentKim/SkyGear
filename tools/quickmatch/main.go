@@ -1,8 +1,8 @@
-// Command quickmatch writes packs/inventoryui/ui/sg_quick_match.json, the
+// Command quickmatch writes assets/resourcepack/inventoryui/ui/sg_quick_match.json, the
 // part of the take all and put all bar (ui/sg_quick.json) that puts only
 // what the container already holds. JSON UI has no loops, so the controls
 // that compare an inventory slot with every container slot are written out
-// here. Run it from common/: go run ./tools/quickmatch
+// here. Run it from the repository root: go run ./tools/quickmatch
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const out = "packs/inventoryui/ui/sg_quick_match.json"
+const out = "assets/resourcepack/inventoryui/ui/sg_quick_match.json"
 
 // slots is how many container slots an inventory slot is compared with: a
 // large chest.

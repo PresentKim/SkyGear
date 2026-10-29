@@ -3,7 +3,6 @@ package main
 
 import (
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -17,10 +16,10 @@ import (
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/pelletier/go-toml"
+	"github.com/presentkim/skygear/assets"
 	"github.com/presentkim/skygear/common/backup"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/packs"
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/internal/account"
@@ -89,7 +88,7 @@ func run(log *slog.Logger) error {
 	// This server's pack, then the common packs (HUD and menu textures,
 	// chest windows, WAILA, slot decorations, the Ore UI page of the menus).
 	// The first pack is the top of the stack.
-	sgPack, err := fs.Sub(packFS, "assets/resourcepack/skygear")
+	sgPack, err := assets.Pack("skygear")
 	if err != nil {
 		return fmt.Errorf("resource pack skygear: %w", err)
 	}
@@ -104,7 +103,7 @@ func run(log *slog.Logger) error {
 	for _, name := range packNames {
 		dir := sgPack
 		if name != "skygear" {
-			if dir, err = packs.Sub(name); err != nil {
+			if dir, err = assets.Pack(name); err != nil {
 				return fmt.Errorf("resource pack %s: %w", name, err)
 			}
 		}

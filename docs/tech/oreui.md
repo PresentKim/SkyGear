@@ -4,7 +4,7 @@
 
 ## 구성
 
-- `common/packs/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화되었거나 `contents.zip` 이 있는 팩에서만** 가져간다. 암호화하지 않은 팩에는 로더가 빈 `contents.zip` 을 넣는다(`common/resourcepack`).
+- `assets/resourcepack/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화되었거나 `contents.zip` 이 있는 팩에서만** 가져간다. 암호화하지 않은 팩에는 로더가 빈 `contents.zip` 을 넣는다(`common/resourcepack`).
 - `common/oreui`: DDUI 화면을 열고, 레이아웃과 값을 데이터 저장소로 보내고, 누름을 받는다. 클라이언트의 DDUI 패킷은 `sghook`에서 가로챈다.
 - `common/ui`: `Menu`(`Confirm`), `CardMenu`, `ItemBoard`, `SplitMenu`, `SieveBoard`, `ListSplitMenu`, `Input`, `ItemGrid`, `ItemGridSections`, `SearchGrid`, `SlotMenu`, `ChoiceMenu`, `SidesMenu`, `PlaneMenu`, `QuestBookMenu` 가 DDUI 화면을 그린다(`ui/oreui.go`, `ui/oreforms.go` 등). 버튼의 `Run`은 그 플레이어 월드에서 돈다. 탭·뒤로·도움말·쪽 버튼은 라벨 앞 표식(`ui.Tab`, `ui.Back`, `ui.Help`, `ui.BarPager`)으로 창 위·컨트롤 막대에 놓이고, 표식은 글에서 빠진다(`chrome`, `untoken`). 누름 뒤에 새 화면을 보이지 않으면 화면이 닫힌다(폼 버튼을 누르면 폼이 닫히는 것과 같다).
 - 창은 퀘스트 책까지 모두 바닐라 인벤토리 크기(326×166) 하나다. 그래서 한 화면에서 다른 화면으로 가는 누름(정수 추출기의 정수 고르기, 도움말 주제, 치장 탭, 친구 줄에서 확인 질문, 통계 탭)은 열린 화면 안에서 바뀐다.
@@ -79,7 +79,7 @@ Ore UI 페이지는 게임의 설정 화면이 쓰는 설정을 읽고 바꿀 �
 
 ## 지킬 것
 
-- **게임이 업데이트되면 `packs/oreui/hbui/gameplay.html`의 바닐라 번들 파일 이름(해시)을 설치본 `data/gui/dist/hbui/gameplay.html`과 맞춘다.** 틀리면 게임 중 Ore UI 전체가 뜨지 않는다. `oui-mc.css` 의 `@font-face` 글꼴 파일 이름(설치본 바닐라 gameplay CSS 의 `ui://hbui/fonts/...`)도 함께 맞춘다.
+- **게임이 업데이트되면 `assets/resourcepack/oreui/hbui/gameplay.html`의 바닐라 번들 파일 이름(해시)을 설치본 `data/gui/dist/hbui/gameplay.html`과 맞춘다.** 틀리면 게임 중 Ore UI 전체가 뜨지 않는다. `oui-mc.css` 의 `@font-face` 글꼴 파일 이름(설치본 바닐라 gameplay CSS 의 `ui://hbui/fonts/...`)도 함께 맞춘다.
 - 창 크기가 바뀌면 Gameface가 누름을 바뀌기 전 자리로 판정한다. 그래서 크기가 다른 창은 화면을 새로 연다(`showOre`). 새 화면도 같은 창 크기(`common/ui.windowW`·`windowH`)로 만든다.
 - 화면 크기 상자(`#oui-ddui`, `.mc-screen`, 창의 최대 크기)는 퍼센트가 아닌 화면 단위(vw·vh)로 잡는다. Gameface 는 절대 위치 상자의 퍼센트를 부모(body) 크기로 풀고, iPad 에서는 body 높이가 0이라 창이 위쪽 띠로 접힌다.
 - 화면은 바닐라 CSS·JS 에 기대지 않는다. iOS 에서는 팩의 `hbui` 폴더가 게임의 것을 통째로 대신해, `gameplay.html` 이 잇는 바닐라 CSS 가 불러와지지 않는다(그 `@font-face`, `body` 높이, 번들이 정하는 `--localeSpecificNotoSansFonts` 가 없다). 그래서 글꼴은 팩 CSS 가 게임 파일(`ui://hbui/fonts`, iOS 에서도 열린다)로 직접 선언하고 글꼴 목록에 이름으로 적는다(한글 줄은 Noto Sans KR 먼저), 화면 크기는 vw·vh 로 잡는다.

@@ -70,7 +70,6 @@ the commands.
 
 ```
 main.go                         Server bootstrap; saves instances on shutdown
-assets.go                       Embeds the resource packs into the binary
 internal/db/                    SQLite access and schema migrations
 internal/instance/              Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
                                 Game/Session interfaces the manager calls Sky Gear through
@@ -93,9 +92,11 @@ internal/skygear/               Sky Gear: session-bound code (game, state, handl
   achievement/                  Account achievement catalog and IDs
 internal/itemio/                Item input/output interface used by hoppers and conduits
 internal/energy, itemnet, fluidnet/  Energy, item and fluid networks
-common/                         Game-independent packages and packs (menus as DDUI screens, entity chests, WAILA,
+common/                         Game-independent packages (menus as DDUI screens, entity chests, WAILA,
                                 HUD, i18n, resource pack loader, backups, …; see common/README.md)
-assets/resourcepack/skygear/  The game's resource pack: textures, models, names, entities, JSON UI
+assets/                         The resource packs, embedded in the binary (assets.Pack): resourcepack/skygear
+                                is the game's pack (textures, models, names, entities, JSON UI), the others
+                                (inventoryui, waila, slotdeco, sgui, oreui) are drawn on by common/
 tools/                          Generators for textures, models and data files used by the packs
 spike/scenarios/, spike/cmd/platformbot/  Connection scenarios and the scenario bot
 third_party/dragonfly/          Dragonfly (1.26.60) with this project's patches (third_party/README.md)

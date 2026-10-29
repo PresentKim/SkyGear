@@ -217,7 +217,7 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 var oreDebug sync.Map
 
 // SetOreDebug shows or hides the debug line of p's DDUI screens: what the
-// renderer knows of the screen and the fonts (packs/oreui/hbui/oui-ddui.js
+// renderer knows of the screen and the fonts (assets/resourcepack/oreui/hbui/oui-ddui.js
 // drawStatus), over the top of the screen, for a screenshot from a device.
 func SetOreDebug(p *player.Player, on bool) {
 	if on {

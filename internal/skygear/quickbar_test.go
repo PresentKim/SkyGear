@@ -10,7 +10,7 @@ import (
 )
 
 // machinePanels are the layouts of sg_machine.json by window title marker,
-// as common packs/inventoryui ui/chest_screen.json picks them.
+// as common assets/resourcepack/inventoryui ui/chest_screen.json picks them.
 var machinePanels = map[string]string{
 	"§d§m§1": "crusher_panel", "§d§m§2": "sieve_panel", "§d§m§3": "miner_panel",
 	"§d§m§4": "sell_box_panel", "§d§m§5": "miner1_panel", "§d§m§6": "alloy_panel",

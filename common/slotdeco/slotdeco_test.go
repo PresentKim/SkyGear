@@ -102,7 +102,7 @@ func TestStripOfMatchSequentialReplace(t *testing.T) {
 	}
 }
 
-const packDir = "../packs/slotdeco"
+const packDir = "../../assets/resourcepack/slotdeco"
 
 func stripComments(s string) string {
 	var out []string
@@ -182,7 +182,7 @@ func TestPackMatchesMarks(t *testing.T) {
 func TestScreenDecoPictures(t *testing.T) {
 	for r := Uncommon; r <= Legendary; r++ {
 		name := "deco_" + string(rune('0'+int(r))) + "_0.png"
-		if _, err := os.Stat(filepath.Join("../packs/sgui/textures/ui/sg", name)); err != nil {
+		if _, err := os.Stat(filepath.Join("../../assets/resourcepack/sgui/textures/ui/sg", name)); err != nil {
 			t.Error(err)
 		}
 	}

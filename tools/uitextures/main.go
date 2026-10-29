@@ -1,7 +1,7 @@
 // Command uitextures writes the textures of the menus' DDUI screens
-// (packs/sgui/textures/ui/sg: buttons, the window, page arrows, chevrons, the
+// (assets/resourcepack/sgui/textures/ui/sg: buttons, the window, page arrows, chevrons, the
 // chosen slot, the lobby's buttons and icons), which the oreui pack's CSS and
-// common/ui draw. Run it from common/: go run ./tools/uitextures writes the
+// common/ui draw. Run it from the repository root: go run ./tools/uitextures writes the
 // missing pictures, -f writes all.
 package main
 
@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-const dir = "packs/sgui/textures/ui/sg"
+const dir = "assets/resourcepack/sgui/textures/ui/sg"
 
 // The theme is the grey look of the game's own screens: a light grey window
 // with a white edge at the top left and a dark one at the bottom right, mid

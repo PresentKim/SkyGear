@@ -4,7 +4,7 @@
 // frames deco_<rarity>_0.png that the DDUI screens put behind an item slot
 // (common/ui slotDeco). Run it from common/:
 //
-//	go run ./tools/slotdecotex packs/slotdeco packs/sgui
+//	go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui
 package main
 
 import (

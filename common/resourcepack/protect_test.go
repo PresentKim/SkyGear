@@ -234,7 +234,7 @@ func TestEncryptDirMatchesSequential(t *testing.T) {
 // minifying, and keeps the same JSON content.
 func TestRepositoryPacksMinify(t *testing.T) {
 	for _, name := range []string{"inventoryui", "waila", "slotdeco"} {
-		dir := filepath.Join("..", "packs", name)
+		dir := filepath.Join("..", "..", "assets", "resourcepack", name)
 		if _, err := LoadWith(dir, Options{Minify: true, Encrypt: true, Secret: []byte("test secret test secret test sec")}); err != nil {
 			t.Errorf("%s: %v", name, err)
 		}

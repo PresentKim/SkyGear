@@ -55,7 +55,7 @@ func TestVersionFollowsContent(t *testing.T) {
 }
 
 func TestRepositoryPack(t *testing.T) {
-	p, err := Load("../packs/inventoryui")
+	p, err := Load("../../assets/resourcepack/inventoryui")
 	if err != nil {
 		t.Fatal(err)
 	}

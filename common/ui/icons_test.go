@@ -19,7 +19,7 @@ func TestIconsInTheme(t *testing.T) {
 		t.Fatal("no icons found")
 	}
 	for _, m := range icons {
-		if _, err := os.Stat(filepath.Join("../packs/sgui", m[1]+".png")); err != nil {
+		if _, err := os.Stat(filepath.Join("../../assets/resourcepack/sgui", m[1]+".png")); err != nil {
 			t.Error(err)
 		}
 	}

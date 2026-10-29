@@ -1,4 +1,4 @@
-package packs
+package assets
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ func readJSON(t *testing.T, dir fs.FS, path string, v any) string {
 
 func sub(t *testing.T, name string) fs.FS {
 	t.Helper()
-	dir, err := Sub(name)
+	dir, err := Pack(name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func sub(t *testing.T, name string) fs.FS {
 // _ui_defs.json lists exist.
 func TestPacks(t *testing.T) {
 	seen := map[string]string{}
-	for _, name := range Names {
+	for _, name := range Packs {
 		dir := sub(t, name)
 		var m struct {
 			Header struct {

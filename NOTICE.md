@@ -6,11 +6,11 @@ below are third-party work and keep their own licences:
 - `third_party/dragonfly` — a patched copy of
   [Dragonfly](https://github.com/df-mc/dragonfly), MIT License,
   see `third_party/dragonfly/LICENSE`.
-- `common/packs/inventoryui/ui/` — derived from
+- `assets/resourcepack/inventoryui/ui/` — derived from
   [InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)
   by tedo0627, MIT License, see
   `third_party/licenses/InventoryUIResourcePack-MIT.txt`.
-- `common/packs/waila/` — the WAILA HUD pack is derived from
+- `assets/resourcepack/waila/` — the WAILA HUD pack is derived from
   [WAILA](https://github.com/r4isen1920/WAILA) by r4isen1920, MIT License,
   see `third_party/licenses/WAILA-MIT.txt`.
 - Textures and models taken from open-source Minecraft mods (Mekanism,

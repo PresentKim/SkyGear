@@ -69,7 +69,7 @@ Thanks for your interest. These are the rules the project follows; the full
   material key; Dragonfly's automatic pack generation is turned off.
 - Do not edit the version in a pack's `manifest.json`;
   `common/resourcepack.Load` derives it from the content hash.
-- Do not change the UUIDs of the packs under `common/packs/` (clients have them
+- Do not change the UUIDs of the packs under `assets/resourcepack/` (clients have them
   cached).
 - New craftable items and blocks must also be registered in `creative.go`
   (the client recipe book only lists results that are in the creative
