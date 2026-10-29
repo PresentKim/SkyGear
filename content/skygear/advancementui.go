@@ -2,8 +2,9 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/codex"
 	"strings"
+
+	"github.com/presentkim/skygear/content/skygear/codex"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
 

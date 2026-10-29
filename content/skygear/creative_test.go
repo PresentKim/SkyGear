@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/catalog"
+
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 )
@@ -13,7 +15,7 @@ import (
 // result of the game's own items must be registered there (the hammer and
 // the sieve were missing from the crafting list).
 func TestEveryGameRecipeResultIsCreative(t *testing.T) {
-	registerCreativeItems()
+	catalog.RegisterCreativeItems()
 	have := map[string]bool{}
 	for _, c := range creative.Items() {
 		name, _ := c.Stack.Item().EncodeItem()

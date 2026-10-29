@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/catalog"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
@@ -20,12 +22,12 @@ func TestCostRowsCountTheInventory(t *testing.T) {
 	progress.StateOf(s.Session).Researched = map[string]bool{}
 	r, _ := progress.ByID("chest")
 	inv := inventory.New(36, nil)
-	_, _ = inv.AddItem(item.NewStack(oakPlanks, 10))
+	_, _ = inv.AddItem(item.NewStack(catalog.OakPlanks, 10))
 	rows := s.researchCostRows(i18n.Default, r, inv)
 	if len(rows) != 1 || !strings.Contains(rows[0], "10§7/32") {
 		t.Fatalf("rows %q", rows)
 	}
-	_, _ = inv.AddItem(item.NewStack(oakPlanks, 40))
+	_, _ = inv.AddItem(item.NewStack(catalog.OakPlanks, 40))
 	if rows := s.researchCostRows(i18n.Default, r, inv); !strings.Contains(rows[0], "§a32§7/32") {
 		t.Fatalf("enough planks %q", rows)
 	}
@@ -51,7 +53,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		sticks, _ := progress.ByID("stick")
-		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
+		_, _ = p.Inventory().AddItem(item.NewStack(catalog.OakPlanks, 16))
 		progress.Do(s.Session, p, tx, sticks)
 		progress.CheckHeld(s.Session, tx, advancement.InventoryNames(tx))
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {

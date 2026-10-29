@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/catalog"
+
 	"github.com/presentkim/skygear/content/skygear/storage"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -45,7 +47,7 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 		t.Error("a crusher takes an item with extra NBT or refuses a plain one")
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16).WithLore("x"))
+		_, _ = p.Inventory().AddItem(item.NewStack(catalog.OakPlanks, 16).WithLore("x"))
 		sticks, _ := progress.ByID("stick")
 		if _, done := progress.Do(s.Session, p, tx, sticks); done {
 			t.Error("a research was done with planks that have extra NBT")

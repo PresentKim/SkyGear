@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/catalog"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -67,12 +68,12 @@ func TestResearchOpensRecipes(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		open := progress.RecipeFilter(s.Session)
-		for _, it := range []world.Item{oakPlanks, block.CraftingTable{}, progress.ResearchTable{}} {
+		for _, it := range []world.Item{catalog.OakPlanks, block.CraftingTable{}, progress.ResearchTable{}} {
 			if !open(recipeFor(it)) {
 				t.Errorf("base recipe of %v is locked", it)
 			}
 		}
-		if open(recipeFor(stick)) || open(recipeFor(block.NewChest())) {
+		if open(recipeFor(catalog.Stick)) || open(recipeFor(block.NewChest())) {
 			t.Fatal("a recipe is open before research")
 		}
 		chest, _ := progress.ByID("chest")
@@ -80,14 +81,14 @@ func TestResearchOpensRecipes(t *testing.T) {
 			t.Fatal("did a research whose needs are not done")
 		}
 		sticks, _ := progress.ByID("stick")
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 3))
+		_ = p.Inventory().SetItem(0, item.NewStack(catalog.OakPlanks, 3))
 		if missing, done := progress.Do(s.Session, p, tx, sticks); done || len(missing) != 1 || missing[0].Count != 1 {
 			t.Fatalf("with 3 of 4 planks: done %v, missing %v", done, missing)
 		}
 		if st, _ := p.Inventory().Item(0); st.Count() != 3 {
 			t.Fatalf("a research that was not done took planks: %d left", st.Count())
 		}
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 6))
+		_ = p.Inventory().SetItem(0, item.NewStack(catalog.OakPlanks, 6))
 		if _, done := progress.Do(s.Session, p, tx, sticks); !done || !progress.Researched(s.Session, "stick") {
 			t.Fatal("stick research not done with enough planks")
 		}
@@ -95,21 +96,21 @@ func TestResearchOpensRecipes(t *testing.T) {
 			t.Fatalf("%d planks left, want 2", st.Count())
 		}
 		// The chest research costs more and is also paid whole, at once.
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 31))
+		_ = p.Inventory().SetItem(0, item.NewStack(catalog.OakPlanks, 31))
 		if _, done := progress.Do(s.Session, p, tx, chest); done {
 			t.Fatal("chest research done with 31 of 32 planks")
 		}
-		_ = p.Inventory().SetItem(0, item.NewStack(oakPlanks, 32))
+		_ = p.Inventory().SetItem(0, item.NewStack(catalog.OakPlanks, 32))
 		if missing, done := progress.Do(s.Session, p, tx, chest); !done || len(missing) != 0 || !progress.Researched(s.Session, "chest") {
 			t.Fatalf("chest research: done %v missing %v", done, missing)
 		}
-		if p.Inventory().ContainsItem(item.NewStack(oakPlanks, 1)) {
+		if p.Inventory().ContainsItem(item.NewStack(catalog.OakPlanks, 1)) {
 			t.Fatal("planks left, want none")
 		}
 		if !p.Inventory().ContainsItem(item.NewStack(block.NewChest(), 2)) {
 			t.Fatal("the chest research gave no chests")
 		}
-		if !progress.RecipeFilter(s.Session)(recipeFor(stick)) || !progress.RecipeFilter(s.Session)(recipeFor(block.NewChest())) {
+		if !progress.RecipeFilter(s.Session)(recipeFor(catalog.Stick)) || !progress.RecipeFilter(s.Session)(recipeFor(block.NewChest())) {
 			t.Fatal("researches did not open sticks and the chest")
 		}
 	})

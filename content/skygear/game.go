@@ -3,10 +3,12 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/codex"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/codex"
 
 	"github.com/presentkim/skygear/content/skygear/expand"
 
@@ -85,7 +87,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	g := &Game{log: log, db: d, isOperator: isOperator}
 	activeGame = g
 	registerCommands(g)
-	registerCreativeItems()
+	catalog.RegisterCreativeItems()
 	registerItemIO()
 	registerAdmin(g)
 	registerDebug(g)

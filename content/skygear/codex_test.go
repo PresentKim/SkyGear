@@ -1,9 +1,11 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/codex"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/catalog"
+	"github.com/presentkim/skygear/content/skygear/codex"
 
 	"github.com/presentkim/skygear/content/skygear/wave"
 
@@ -212,7 +214,7 @@ func TestCodexBlocks(t *testing.T) {
 // made from and made into.
 func TestCodexSearchAndLinks(t *testing.T) {
 	s := testSession(t)
-	registerCreativeItems()
+	catalog.RegisterCreativeItems()
 	steel := sgitem.Ingot{Metal: sgitem.MetalSteel}
 	steelName := naming.ItemName(i18n.Default, item.NewStack(steel, 1))
 	found := false
@@ -253,7 +255,7 @@ func TestCodexSearchAndLinks(t *testing.T) {
 // names.
 func TestCodexRawAndFavourites(t *testing.T) {
 	s := testSession(t)
-	registerCreativeItems()
+	catalog.RegisterCreativeItems()
 	steel := item.NewStack(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1)
 	counts := map[string]int{}
 	for _, l := range codex.Raw(steel, 3) {
@@ -292,7 +294,7 @@ func TestCodexRawAndFavourites(t *testing.T) {
 // diamonds or bamboo sticks.
 func TestCodexRawPicksTheUsualRecipe(t *testing.T) {
 	testSession(t)
-	registerCreativeItems()
+	catalog.RegisterCreativeItems()
 	registerVanillaRecipes()
 	counts := map[string]int{}
 	for _, l := range codex.Raw(item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1), 1) {

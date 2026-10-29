@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+
 	"github.com/presentkim/skygear/content/skygear/codex"
 
 	"github.com/presentkim/skygear/content/skygear/expand"

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/catalog"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -29,7 +31,7 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 			t.Fatal(err)
 		}
 		sticks, _ := progress.ByID("stick")
-		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
+		_, _ = p.Inventory().AddItem(item.NewStack(catalog.OakPlanks, 16))
 		progress.Do(s.Session, p, tx, sticks)
 		if got := account.Owned(p.UUID().String()); !slices.Contains(got, achievement.FirstResearch) {
 			t.Fatalf("achievements %v", got)

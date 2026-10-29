@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/catalog"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -32,7 +34,7 @@ func TestLogRecipesOpenWithTheirResults(t *testing.T) {
 		count    int
 		research string
 	}{
-		{stick, 16, "stick"},
+		{catalog.Stick, 16, "stick"},
 		{block.NewChest(), 4, "chest"},
 		{hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1, "wood_hopper"},
 		{block.NewHopper(), 1, "hopper"},

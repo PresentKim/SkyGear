@@ -1,26 +1,20 @@
-package skygear
+package catalog
 
 import (
 	"sync"
-
-	"github.com/presentkim/skygear/content/skygear/fairy"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/storage"
-
-	"github.com/presentkim/skygear/content/skygear/conduit"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
+	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
 // Creative inventory entries of the game's own items and blocks. The client
@@ -29,9 +23,9 @@ import (
 // registered here, in anonymous groups of the fitting tab.
 var registerCreativeOnce sync.Once
 
-// registerCreativeItems adds the game's items to the creative inventory. It
+// RegisterCreativeItems adds the game's items to the creative inventory. It
 // runs when the game starts, after every item is registered.
-func registerCreativeItems() {
+func RegisterCreativeItems() {
 	registerCreativeOnce.Do(func() {
 		construction, equipment, items := creative.ConstructionCategory(), creative.EquipmentCategory(), creative.ItemsCategory()
 		groupName := func(c creative.Category) string {
