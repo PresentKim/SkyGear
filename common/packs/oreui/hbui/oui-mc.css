@@ -315,6 +315,7 @@
   border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
   border-image-slice: 3 fill;
   border-image-width: 0.6rem;
+  border-color: transparent;
   color: var(--mc-light-text);
 }
 
@@ -1498,6 +1499,33 @@
 .mc-lobby .mc-tab-front {
   border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
   border-image-slice: 4 fill;
+  border-color: transparent;
+}
+
+/* The hover and pressed pictures are drawn all the time, under the shade, so the engine keeps them
+   loaded: one loaded only when the pointer comes left a frame of the button without its picture, the
+   border in the text colour (a white flash). */
+.mc-lobby-preload {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0.8rem;
+  height: 0.8rem;
+  opacity: 0.01;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: transparent;
+  border-image-slice: 4 fill;
+  border-image-width: 0.2rem;
+}
+
+.mc-lobby-preload-hover {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_hover.png?filtering=point");
+}
+
+.mc-lobby-preload-pressed {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_pressed.png?filtering=point");
 }
 
 .mc-lobby .mc-btn:hover,
@@ -1855,6 +1883,8 @@
   border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
   border-image-slice: 4 fill;
   border-image-width: 0.8rem;
+  border-color: transparent;
+  color: var(--mc-light-text);
 }
 
 .mc-home-ov-title {

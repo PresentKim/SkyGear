@@ -39,7 +39,11 @@ func lobbySkin(p *player.Player, layout any) any {
 	if touchDevice(p) {
 		root["class"] = fmt.Sprint(root["class"]) + " mc-touch"
 	}
-	skin := []any{box("mc-lobby-shade")}
+	skin := []any{
+		box("mc-lobby-preload mc-lobby-preload-hover"),
+		box("mc-lobby-preload mc-lobby-preload-pressed"),
+		box("mc-lobby-shade"),
+	}
 	if LobbyHeader != nil {
 		title, logo := LobbyHeader(p)
 		skin = append(skin, box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title)}))
