@@ -195,7 +195,7 @@ func (s *session) reinforce(p *player.Player) {
 	if !ok {
 		return
 	}
-	if l := tinker.ToolMods(held)["reinforced"]; l > 0 && held.Durability() < held.MaxDurability() && s.rand.IntN(100) < 14*l {
+	if l := tinker.ToolMods(held)["reinforced"]; l > 0 && held.Durability() < held.MaxDurability() && s.Rand.IntN(100) < 14*l {
 		_, off := p.HeldItems()
 		p.SetHeldItems(held.WithDurability(held.Durability()+1), off)
 	}

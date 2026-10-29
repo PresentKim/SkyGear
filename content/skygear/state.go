@@ -1,16 +1,16 @@
 package skygear
 
 import (
-	"encoding/json"
-	"errors"
-	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/presentkim/skygear/platform/db"
+	"github.com/presentkim/skygear/content/skygear/core"
 )
 
 const stateKey = "skygear.state"
+
+// savedState is State in each session (core.Saved).
+var savedState = core.NewSaved(newState)
 
 // stateVersion is increased when State changes incompatibly.
 const stateVersion = 1
@@ -112,70 +112,4 @@ func newState() *State {
 		Chunks: []ChunkPos{{0, 0}},
 		Home:   [2]float64{islandCentre + 0.5, islandCentre + 0.5},
 	}
-}
-
-func loadState(d *db.DB, saveID int64) (*State, error) {
-	b, err := d.SaveState(saveID, stateKey)
-	if errors.Is(err, db.ErrNotFound) {
-		return newState(), nil
-	} else if err != nil {
-		return nil, err
-	}
-	s := &State{}
-	if err := json.Unmarshal(b, s); err != nil {
-		return nil, err
-	}
-	return s, nil
-}
-
-// stateWriter writes the marshalled states of one save outside the world,
-// keeping only the newest one not written yet.
-type stateWriter struct {
-	write   func([]byte)
-	mu      sync.Mutex
-	pending []byte
-	wake    chan struct{}
-	quit    chan struct{}
-	done    chan struct{}
-}
-
-func newStateWriter(write func([]byte)) *stateWriter {
-	w := &stateWriter{write: write, wake: make(chan struct{}, 1), quit: make(chan struct{}), done: make(chan struct{})}
-	go w.run()
-	return w
-}
-
-func (w *stateWriter) put(b []byte) {
-	w.mu.Lock()
-	w.pending = b
-	w.mu.Unlock()
-	select {
-	case w.wake <- struct{}{}:
-	default:
-	}
-}
-
-func (w *stateWriter) run() {
-	defer close(w.done)
-	for {
-		select {
-		case <-w.wake:
-			w.mu.Lock()
-			b := w.pending
-			w.pending = nil
-			w.mu.Unlock()
-			if b != nil {
-				w.write(b)
-			}
-		case <-w.quit:
-			return
-		}
-	}
-}
-
-// stop ends the writer once the write in progress is done, dropping the
-// pending state.
-func (w *stateWriter) stop() {
-	close(w.quit)
-	<-w.done
 }

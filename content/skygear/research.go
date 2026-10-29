@@ -368,7 +368,7 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 		}
 	}
 	delete(s.state.ResearchPaid, r.ID)
-	s.storeState()
+	s.MarkDirty()
 	s.sendRecipes(tx)
 	s.updateBoards(tx)
 	for e := range tx.Players() {
@@ -541,7 +541,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 		Slots: slots,
 		Page:  v.page, Pages: pages,
 		Turn: func(p *player.Player, tx *world.Tx, to int) {
-			if tx.World() == s.world {
+			if tx.World() == s.World {
 				s.showResearchSplit(p, researchView{tab: v.tab, page: to})
 			}
 		},
@@ -660,7 +660,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.none")}
 		}
 		return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
+			if tx.World() == s.World {
 				s.codexFrom(p, redo, st)
 			}
 		}}
@@ -747,7 +747,7 @@ func (ResearchTable) Activate(_ cube.Pos, _ cube.Face, tx *world.Tx, u item.User
 	if !ok {
 		return false
 	}
-	if !s.debounced(p) {
+	if !s.Debounced(p) {
 		s.showResearch(p)
 	}
 	return true

@@ -109,9 +109,9 @@ func TestFairyVisitsAndGives(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		s.tickFairy(tx)
-		if day := s.clock.DayLength(); s.state.NextFairy < day*fairyFrom/100 || s.state.NextFairy > day*fairyTo/100 {
+		if day := s.Clock.DayLength(); s.state.NextFairy < day*fairyFrom/100 || s.state.NextFairy > day*fairyTo/100 {
 			t.Fatalf("next fairy at %v", s.state.NextFairy)
 		}
 		s.state.NextFairy = -1 // due (0 means not scheduled)
@@ -164,24 +164,24 @@ func TestHittingTheFairyGivesTheGift(t *testing.T) {
 // day, and a save opened during the window still gets that night's visit.
 func TestFairyComesEveryNight(t *testing.T) {
 	s := testSession(t)
-	day := s.clock.DayLength()
+	day := s.Clock.DayLength()
 	s.scheduleFairy(false)
 	for n := range 20 {
 		at := s.state.NextFairy
 		if want := time.Duration(n) * day; at < want+day*fairyFrom/100 || at > want+day*fairyTo/100 {
 			t.Fatalf("visit %d at %v, want in night %d", n, at, n)
 		}
-		now, _, _ := s.clock.Now()
-		s.clock.Advance(at - now)
+		now, _, _ := s.Clock.Now()
+		s.Clock.Advance(at - now)
 		s.scheduleFairy(true)
 	}
 	s = testSession(t)
-	s.clock.Advance(day * 80 / 100)
+	s.Clock.Advance(day * 80 / 100)
 	s.scheduleFairy(false)
-	if now, _, _ := s.clock.Now(); s.state.NextFairy > now+day*5/100 {
+	if now, _, _ := s.Clock.Now(); s.state.NextFairy > now+day*5/100 {
 		t.Errorf("opened at 80%% of the day, visit at %v (now %v)", s.state.NextFairy, now)
 	}
-	s.clock.Advance(day * 10 / 100)
+	s.Clock.Advance(day * 10 / 100)
 	s.scheduleFairy(false)
 	if s.state.NextFairy < day+day*fairyFrom/100 {
 		t.Errorf("opened after the night, visit at %v", s.state.NextFairy)
@@ -220,7 +220,7 @@ func TestFairyScattersTheGift(t *testing.T) {
 		t.Fatal("the fairy did not fly away")
 	}
 	dust := 0
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for e := range tx.Entities() {
 			if it, ok := e.(*entity.Ent); ok {
 				if b, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
@@ -245,8 +245,8 @@ func TestFairyDustBackfill(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	day := s.clock.DayLength()
-	s.clock.Advance(4*day + day*fairyTo/100)
+	day := s.Clock.DayLength()
+	s.Clock.Advance(4*day + day*fairyTo/100)
 	if n := s.pastNights(); n != 5 {
 		t.Fatalf("%d nights past", n)
 	}
@@ -261,7 +261,7 @@ func TestFairyDustBackfill(t *testing.T) {
 		}
 	})
 	s = testSession(t)
-	s.clock.Advance(3 * day)
+	s.Clock.Advance(3 * day)
 	s.fairyGift()
 	if !s.state.FairyDust {
 		t.Fatal("the fairy's dust did not mark the save")

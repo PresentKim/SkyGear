@@ -55,7 +55,7 @@ func TestExpiredDrawerEmpties(t *testing.T) {
 	timed.Now = func() time.Time { return start }
 	t.Cleanup(func() { timed.Now = time.Now })
 	pos := cube.Pos{3, 65, 3}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		d := Drawer{Facing: cube.North, Locked: true}
 		d.insert(timed.For(item.NewStack(item.Apple{}, 10), time.Minute), 10)
 		tx.SetBlock(pos, d, nil)
@@ -63,7 +63,7 @@ func TestExpiredDrawerEmpties(t *testing.T) {
 	tick(s, 2)
 	timed.Now = func() time.Time { return start.Add(time.Minute) }
 	tick(s, 2)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if d := tx.Block(pos).(Drawer); !d.Item.Empty() || d.Count != 0 {
 			t.Fatalf("expired drawer holds %v x%d", d.Item, d.Count)
 		}

@@ -118,10 +118,10 @@ func (f *Fairy) Tick(tx *world.Tx, _ int64) {
 func (f *Fairy) wander(s *session, d *fairyData, pos mgl64.Vec3, target *player.Player) mgl64.Vec3 {
 	home := target.Position()
 	if d.wayTicks--; d.wayTicks <= 0 || home.Add(d.waypoint).Sub(pos).Len() < 0.3 {
-		a := s.rand.Float64() * 2 * math.Pi
-		r := 1.5 + s.rand.Float64()*2.5
-		d.waypoint = mgl64.Vec3{r * math.Cos(a), 1.2 + s.rand.Float64()*1.8, r * math.Sin(a)}
-		d.wayTicks = 30 + s.rand.IntN(50)
+		a := s.Rand.Float64() * 2 * math.Pi
+		r := 1.5 + s.Rand.Float64()*2.5
+		d.waypoint = mgl64.Vec3{r * math.Cos(a), 1.2 + s.Rand.Float64()*1.8, r * math.Sin(a)}
+		d.wayTicks = 30 + s.Rand.IntN(50)
 	}
 	// Steer towards the waypoint with a little drag and a speed limit, and
 	// bob gently.
@@ -173,7 +173,7 @@ func (f *Fairy) scatter(tx *world.Tx, s *session, p *player.Player) {
 	d.gave, d.leaving = true, 1
 	gift := s.fairyGift()
 	for _, st := range gift {
-		s.dropAt(tx, p.Position().Add(mgl64.Vec3{0, 1, 0}), st)
+		s.DropAt(tx, p.Position().Add(mgl64.Vec3{0, 1, 0}), st)
 	}
 	tx.PlaySound(f.data.Pos, sound.Pop{})
 	p.Messagef(i18n.T(i18n.Of(p), "fairy.scatter"), giftNames(p, gift))
@@ -205,20 +205,20 @@ const (
 // fairyGift is a visit's gift: rollGift and fairy dust.
 func (s *session) fairyGift() []item.Stack {
 	s.state.FairyDust = true
-	s.storeState()
+	s.MarkDirty()
 	return append(s.rollGift(), item.NewStack(sgitem.FairyDust{}, s.rollDust()))
 }
 
 // rollDust is the fairy dust of one visit.
 func (s *session) rollDust() int {
-	return fairyDustMin + s.rand.IntN(fairyDustMax-fairyDustMin+1)
+	return fairyDustMin + s.Rand.IntN(fairyDustMax-fairyDustMin+1)
 }
 
 // pastNights counts the fairy's nights that are over in the save's play
 // time.
 func (s *session) pastNights() int {
-	total, _, _ := s.clock.Now()
-	day := s.clock.DayLength()
+	total, _, _ := s.Clock.Now()
+	day := s.Clock.DayLength()
 	if end := day * fairyTo / 100; day > 0 && total >= end {
 		return int((total-end)/day) + 1
 	}
@@ -241,7 +241,7 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 		dust += s.rollDust()
 	}
 	s.state.FairyDust = true
-	s.storeState()
+	s.MarkDirty()
 	for left := dust; left > 0; left -= 64 {
 		s.giveItem(p, tx, p.Position(), item.NewStack(sgitem.FairyDust{}, min(left, 64)))
 	}
@@ -252,7 +252,7 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 // cost of a done research, a deeper one more likely (giftResearch), and
 // otherwise oak logs, an oak sapling or pebbles.
 func (s *session) rollGift() []item.Stack {
-	roll := s.rand.IntN(100)
+	roll := s.Rand.IntN(100)
 	if roll < giftRewardChance {
 		if r, ok := s.giftResearch(func(r *Research) bool { return len(researchReward(r)) > 0 }); ok {
 			return researchReward(r)
@@ -268,7 +268,7 @@ func (s *session) rollGift() []item.Stack {
 		item.NewStack(block.Sapling{Type: block.OakSapling()}, 1),
 		item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 6),
 	}
-	return []item.Stack{gifts[s.rand.IntN(len(gifts))]}
+	return []item.Stack{gifts[s.Rand.IntN(len(gifts))]}
 }
 
 // giftResearch picks a done research that keep accepts, weighted by
@@ -289,7 +289,7 @@ func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
 	if total == 0 {
 		return nil, false
 	}
-	n := s.rand.IntN(total)
+	n := s.Rand.IntN(total)
 	for i, w := range weights {
 		if n < w {
 			return picks[i], true
@@ -365,8 +365,8 @@ func (fairyType) EncodeNBT(*world.EntityData) map[string]any      { return nil }
 // tickFairy schedules visits and sends a fairy to a random player when one
 // is due. It runs every second (session.Second).
 func (s *session) tickFairy(tx *world.Tx) {
-	now, _, _ := s.clock.Now()
-	if s.state.NextFairy == 0 || s.state.NextFairy-now > 2*s.clock.DayLength() {
+	now, _, _ := s.Clock.Now()
+	if s.state.NextFairy == 0 || s.state.NextFairy-now > 2*s.Clock.DayLength() {
 		// New, or a visit planned by the old schedule days ahead.
 		s.scheduleFairy(false)
 		return
@@ -381,7 +381,7 @@ func (s *session) tickFairy(tx *world.Tx) {
 	if len(players) == 0 {
 		return
 	}
-	s.spawnFairy(tx, players[s.rand.IntN(len(players))])
+	s.spawnFairy(tx, players[s.Rand.IntN(len(players))])
 	s.scheduleFairy(true)
 }
 
@@ -389,14 +389,14 @@ func (s *session) tickFairy(tx *world.Tx) {
 // one after a visit, else this one (at once if it is under way) unless it is
 // over.
 func (s *session) scheduleFairy(next bool) {
-	now, _, dayTime := s.clock.Now()
-	day := s.clock.DayLength()
+	now, _, dayTime := s.Clock.Now()
+	day := s.Clock.DayLength()
 	from, span := day*fairyFrom/100, day*(fairyTo-fairyFrom)/100
 	start := now - dayTime
 	if next || dayTime > from+span {
 		start += day
 	}
-	s.state.NextFairy = max(now, start+from+time.Duration(s.rand.Int64N(int64(span)+1)))
+	s.state.NextFairy = max(now, start+from+time.Duration(s.Rand.Int64N(int64(span)+1)))
 }
 
 func (s *session) spawnFairy(tx *world.Tx, p *player.Player) {

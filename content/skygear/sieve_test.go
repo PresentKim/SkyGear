@@ -67,7 +67,7 @@ func TestSieveNeedsAMesh(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	m := newMachine(KindSieve, "", "")
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(machinePos, m, nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(machinePos, m, nil) })
 	st := m.st
 	if st.accepts(item.NewStack(block.Gravel{}, 1)) || st.insert(item.NewStack(block.Gravel{}, 1)) {
 		t.Fatal("a sieve without a mesh takes gravel")

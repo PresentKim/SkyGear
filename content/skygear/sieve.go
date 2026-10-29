@@ -188,7 +188,7 @@ func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
 		// every item of the drop's stack is its own roll
 		n := 0
 		for range d.Item.Count() {
-			if s.rand.IntN(1000) < d.Permille {
+			if s.Rand.IntN(1000) < d.Permille {
 				n++
 			}
 		}
@@ -397,7 +397,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	for _, it := range drops {
 		if !toOutput {
 			s.recordMade(it)
-			s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
+			s.DropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
 		} else if st.roomFor([]item.Stack{it}) {
 			st.emit(it)
 		} else {

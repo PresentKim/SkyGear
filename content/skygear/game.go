@@ -2,20 +2,19 @@
 package skygear
 
 import (
-	"encoding/json"
+	"errors"
+	"log/slog"
+	"sync"
+	"time"
+
 	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemnet"
-	"log/slog"
-	"math"
-	"math/rand/v2"
-	"sync"
-	"time"
+	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
@@ -82,17 +81,22 @@ func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 
 // Start begins a session for an activated save.
 func (g *Game) Start(inst *instance.Instance) instance.Session {
-	st, err := loadState(g.db, inst.Save.ID)
-	if err != nil {
+	doc, err := g.db.SaveState(inst.Save.ID, stateKey)
+	if err != nil && !errors.Is(err, db.ErrNotFound) {
 		g.log.Error("load skygear state; starting from a new state", "save", inst.Save.ID, "err", err)
-		st = newState()
 	}
+	saveID := inst.Save.ID
+	c := core.New(core.Config{
+		World: inst.World, Clock: inst.Clock, SaveID: saveID, SaveName: inst.Save.Name, HostID: inst.Save.Owner,
+		Log: g.log, IsOperator: g.isOperator, State: doc,
+		Store: func(b []byte) error { return g.db.SetSaveState(saveID, stateKey, b) },
+	})
 	s := &session{
-		g: g, world: inst.World, clock: inst.Clock,
-		saveID: inst.Save.ID, saveName: inst.Save.Name, hostID: inst.Save.Owner,
-		state: st, displays: map[cube.Pos]*drawerDisplay{}, stats: newProdStats(), machines: map[cube.Pos]*machineState{},
-		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{}, rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(inst.Save.ID))),
+		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{}, stats: newProdStats(), machines: map[cube.Pos]*machineState{},
+		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 	}
+	s.state = savedState.Of(c)
+	st := s.state
 	s.tickReach = inst.LoadRadius() * 16
 	s.loadCrops()
 	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
@@ -104,6 +108,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	})
 	inst.World.Handle(&worldHandler{s: s})
 	g.sessions.Store(inst.World, s)
+	core.Register(c)
 	return s
 }
 
@@ -116,8 +121,11 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 	return v.(*session), true
 }
 
-// session is one active save. All fields are owned by the instance world.
+// session is one active save: the core session (core.Session) and the
+// features' data that is not in core parts yet. All fields are owned by the
+// instance world.
 type session struct {
+	*core.Session
 	// lastLook is when each player's WAILA panel was last updated.
 	lastLook map[*world.EntityHandle]time.Time
 	// veinOutlines are the vein outlines players are shown, and veinFood
@@ -142,8 +150,6 @@ type session struct {
 	// fairy is the gift fairy visiting now, or nil.
 	fairy *world.EntityHandle
 	g     *Game
-	world *world.World
-	clock *instance.Clock
 	// growInit and growAt are whether the growth clock started and the
 	// instance time it last ran to; rain and snow are whether it rains or
 	// snows now (fairyspell.go).
@@ -152,16 +158,9 @@ type session struct {
 	rain     bool
 	snow     bool
 	// keep keeps an owned chunk loaded (instance.KeepLoaded); nil in tests.
-	keep     func(tx *world.Tx, c ChunkPos)
-	saveID   int64
-	saveName string
-	hostID   string
-	state    *State
-	// stateDirty is whether state changed since it was last handed to
-	// writer, which writes it to the database (storeState).
-	stateDirty bool
-	writer     *stateWriter
-	rand       *rand.Rand
+	keep func(tx *world.Tx, c ChunkPos)
+	// state is the saved state (savedState).
+	state *State
 	// displays are the drawer display entities by drawer position.
 	displays map[cube.Pos]*drawerDisplay
 	// holderPose is the hand-equipped item pose tried on display entities.
@@ -172,9 +171,6 @@ type session struct {
 	lastPunch map[*world.EntityHandle]drawerPunch
 	// storageOrders are how each player sorts storage controller lists.
 	storageOrders map[*world.EntityHandle]storageOrder
-	// lastOpen debounces block interactions that open a screen: the client
-	// repeats the use packet while the button is held.
-	lastOpen map[*world.EntityHandle]time.Time
 	// lastStick is when each player last used a stick on the ground.
 	lastStick map[*world.EntityHandle]time.Time
 	// chestStreaks are each player's sneaking stick uses on a chest in a row
@@ -226,19 +222,6 @@ type session struct {
 	uptime   int
 }
 
-// debounced reports whether p opened a screen less than 500ms ago, and
-// otherwise records this opening.
-func (s *session) debounced(p *player.Player) bool {
-	if s.lastOpen == nil {
-		s.lastOpen = map[*world.EntityHandle]time.Time{}
-	}
-	if t, ok := s.lastOpen[p.H()]; ok && time.Since(t) < 500*time.Millisecond {
-		return true
-	}
-	s.lastOpen[p.H()] = time.Now()
-	return false
-}
-
 // Spawn is next to the tree of the starting island: Home is the island's
 // centre, where the trunk grows, so the spawn is one block east of it. An old
 // save without Home has its island around the origin.
@@ -265,19 +248,8 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.updateBoard(p)
 }
 
-// dropAt drops an item stack at pos with a small random push, so drops
-// never just fall dead still.
-// Every item the game drops goes through here unless it is thrown on
-// purpose (the fairy's gift).
-func (s *session) dropAt(tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
-	a := s.rand.Float64() * 2 * math.Pi
-	speed := 0.06 + s.rand.Float64()*0.08
-	vel := mgl64.Vec3{speed * math.Cos(a), 0.22 + s.rand.Float64()*0.1, speed * math.Sin(a)}
-	tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: pos, Velocity: vel}, it))
-}
-
 func (s *session) Leave(p *player.Player) {
-	delete(s.lastOpen, p.H())
+	s.Session.Leave(p)
 	delete(s.lastUse, p.H())
 	delete(s.lastPunch, p.H())
 	delete(s.storageOrders, p.H())
@@ -306,64 +278,17 @@ func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s}
 
 func (s *session) NewDay(tx *world.Tx, day int) {
 	s.purgeLost()
-	s.broadcast(tx, "game.newDay", day)
+	s.Broadcast(tx, "game.newDay", day)
 }
 
 func (s *session) Autosave(tx *world.Tx) {
-	s.flushState()
+	s.Flush()
 }
 
 func (s *session) Close(tx *world.Tx) {
 	s.removeDisplays(tx)
 	s.removeVisuals(tx)
-	s.closeState()
-	s.g.sessions.Delete(s.world)
-}
-
-// storeState marks the state to be written on the next second.
-func (s *session) storeState() {
-	s.stateDirty = true
-}
-
-// flushState hands the state to the state writer.
-func (s *session) flushState() {
-	b, err := json.Marshal(s.state)
-	if err != nil {
-		s.g.log.Error("store skygear state", "save", s.saveID, "err", err)
-		return
-	}
-	s.stateDirty = false
-	if s.writer == nil {
-		s.writer = newStateWriter(s.writeState)
-	}
-	s.writer.put(b)
-}
-
-// closeState stops the state writer and writes the state before returning.
-func (s *session) closeState() {
-	if s.writer != nil {
-		s.writer.stop()
-		s.writer = nil
-	}
-	b, err := json.Marshal(s.state)
-	if err != nil {
-		s.g.log.Error("store skygear state", "save", s.saveID, "err", err)
-		return
-	}
-	s.stateDirty = false
-	s.writeState(b)
-}
-
-func (s *session) writeState(b []byte) {
-	if err := s.g.db.SetSaveState(s.saveID, stateKey, b); err != nil {
-		s.g.log.Error("store skygear state", "save", s.saveID, "err", err)
-	}
-}
-
-// broadcast messages every player in the instance.
-func (s *session) broadcast(tx *world.Tx, key string, args ...any) {
-	for e := range tx.Players() {
-		p := e.(*player.Player)
-		p.Message(i18n.T(i18n.Of(p), key, args...))
-	}
+	s.Session.Close()
+	core.Unregister(s.Session)
+	s.g.sessions.Delete(s.World)
 }

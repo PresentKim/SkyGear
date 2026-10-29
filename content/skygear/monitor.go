@@ -300,7 +300,7 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		} else {
 			s.state.AlertsOn[id] = true
 		}
-		s.storeState()
+		s.MarkDirty()
 		s.showStatsPage(p, statsStalls)
 	})}
 	for i, st := range list {

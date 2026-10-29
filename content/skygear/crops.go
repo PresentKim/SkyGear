@@ -232,7 +232,7 @@ func (s *session) growFruit(tx *world.Tx, pos cube.Pos, stem world.Block, kind s
 			return
 		}
 	}
-	start := s.rand.IntN(len(sides))
+	start := s.Rand.IntN(len(sides))
 	for i := range sides {
 		face := sides[(start+i)%len(sides)].Face()
 		at := pos.Side(face)

@@ -73,7 +73,7 @@ func TestStickKnocksPebbles(t *testing.T) {
 func TestAxeStripsFiber(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, IslandY, 1}
 		tx.SetBlock(pos, oakLog, nil)
 		for range 50 {
@@ -95,9 +95,9 @@ func TestAxeStripsFiber(t *testing.T) {
 func TestDropsHaveMotion(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for range 20 {
-			s.dropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
+			s.DropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
 		}
 		n := 0
 		for e := range tx.Entities() {

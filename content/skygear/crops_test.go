@@ -15,7 +15,7 @@ var cropPos = cube.Pos{4, IslandY, 4}
 
 // plantAt puts a crop on farmland and records it as planted now.
 func plantAt(s *session, pos cube.Pos, b world.Block) {
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		tx.SetBlock(pos, b, nil)
 		kind, _, _ := cropOf(b)
@@ -26,7 +26,7 @@ func plantAt(s *session, pos cube.Pos, b world.Block) {
 func stageOf(t *testing.T, s *session, pos cube.Pos) int {
 	t.Helper()
 	stage := -1
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, g, ok := cropOf(tx.Block(pos)); ok {
 			stage = g
 		}
@@ -36,8 +36,8 @@ func stageOf(t *testing.T, s *session, pos cube.Pos) int {
 
 // advance moves instance time on and runs the per-second update.
 func advance(s *session, d time.Duration) {
-	s.clock.Advance(d)
-	s.world.Do(func(tx *world.Tx) { s.growCrops(tx) })
+	s.Clock.Advance(d)
+	s.World.Do(func(tx *world.Tx) { s.growCrops(tx) })
 }
 
 func TestCropsGrowOnInstanceTime(t *testing.T) {
@@ -55,7 +55,7 @@ func TestCropsGrowOnInstanceTime(t *testing.T) {
 		t.Fatalf("stage %d after one stage time", g)
 	}
 	// Nothing is due until the next stage: the queue head is in the future.
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	if s.cropQueue.Len() != 1 || s.cropQueue[0].at <= now {
 		t.Fatalf("queue %v at %v", s.cropQueue, now)
 	}
@@ -73,7 +73,7 @@ func TestRandomTicksDoNotGrowCrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	plantAt(s, cropPos, block.WheatSeeds{})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		r := rand.New(rand.NewPCG(1, 1))
 		for range 200 {
 			tx.Block(cropPos).(block.WheatSeeds).RandomTick(cropPos, tx, r)
@@ -89,7 +89,7 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 	loadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	// Bone meal took it to stage 5: it continues from there.
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, withGrowth(block.Carrot{}, 5), nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, withGrowth(block.Carrot{}, 5), nil) })
 	step := (s.growTime("carrot") + maxCropStage - 1) / maxCropStage
 	advance(s, step)
 	if g := stageOf(t, s, cropPos); g != 5 {
@@ -100,7 +100,7 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 		t.Fatalf("stage %d one stage after bone meal", g)
 	}
 	// A crop that was broken is forgotten.
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, nil, nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, nil, nil) })
 	advance(s, s.growTime("carrot"))
 	if len(s.state.Crops) != 0 {
 		t.Fatalf("records left: %v", s.state.Crops)
@@ -110,7 +110,7 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 func TestStemGrowsFruit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for _, d := range cube.Directions() {
 			tx.SetBlock(cropPos.Side(d.Face()).Side(cube.FaceDown), block.Dirt{}, nil)
 		}
@@ -119,7 +119,7 @@ func TestStemGrowsFruit(t *testing.T) {
 	advance(s, s.growTime("melon"))
 	advance(s, s.stemFruitTime())
 	found := false
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for _, d := range cube.Directions() {
 			if _, ok := tx.Block(cropPos.Side(d.Face())).(block.Melon); ok {
 				found = true

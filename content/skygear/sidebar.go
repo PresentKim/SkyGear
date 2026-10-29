@@ -21,12 +21,12 @@ import (
 // an operator who turned it on) and the quest panel. Rows go out through
 // common/hud only when they changed.
 func (s *session) updateBoard(p *player.Player) {
-	total, day, _ := s.clock.Now()
+	total, day, _ := s.Clock.Now()
 	lang := i18n.Of(p)
 	var b hud.Board
 	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "sidebar.day"), day, textfmt.PlayTime(lang, total)))
 	if s.showsLoad(p) {
-		b.Add(hud.TopLeft, perf.Line(s.world))
+		b.Add(hud.TopLeft, perf.Line(s.World))
 	}
 	if _, expanding := s.expansionOf(p); !expanding && account.On(p, advancement.SettingQuestPanel) {
 		title, rows := s.questRows(lang, p.Inventory())

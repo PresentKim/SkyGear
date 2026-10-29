@@ -55,7 +55,7 @@ func TestCopierCardOnItem(t *testing.T) {
 func TestCopierConduitSide(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		a := chestWithBundle(tx, machinePos, itemnet.Input, 5, 9)
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		// a click on the bundle's west face finds its side
@@ -91,7 +91,7 @@ func TestCopierConduitSide(t *testing.T) {
 func TestCopierWholeBundle(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		a := chestWithBundle(tx, machinePos, itemnet.Both, 2, 3)
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		northBefore := tx.Block(b).(ConduitBundle).Modes[cube.FaceNorth]
@@ -130,7 +130,7 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), KindCrafter, "")
 	cr := machinerecipe.Crafters()[0]
 	crafterA.setRecipe(cr)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		src, ok := targetOf(tx, machinePos, cube.FaceNorth, mgl64Centre())
 		if !ok || src.kind != cardCrafter {
 			t.Fatalf("crafter target %+v %v", src, ok)
@@ -190,7 +190,7 @@ func TestCopierHandler(t *testing.T) {
 		if _, ok := cardOf(held); !ok {
 			t.Fatal("a click did not copy")
 		}
-		s.lastOpen = nil
+		s.ForgetOpens()
 		p.StartSneaking()
 		held, off = p.HeldItems()
 		s.useCopier(p, tx, b, cube.FaceWest, mgl64Centre(), held, off)
@@ -198,7 +198,7 @@ func TestCopierHandler(t *testing.T) {
 			t.Fatalf("a sneaking click did not paste: %v", got.Extract)
 		}
 		p.StopSneaking()
-		s.lastOpen = nil
+		s.ForgetOpens()
 		held, off = p.HeldItems()
 		s.clearCopier(p, held, off)
 		held, _ = p.HeldItems()

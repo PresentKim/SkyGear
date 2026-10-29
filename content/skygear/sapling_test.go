@@ -16,7 +16,7 @@ import (
 func TestStartIsland(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		(&Game{}).Init(tx, nil)
 		for x := islandCentre - 1; x <= islandCentre+1; x++ {
 			for z := islandCentre - 1; z <= islandCentre+1; z++ {
@@ -35,7 +35,7 @@ func TestStartIsland(t *testing.T) {
 			t.Fatal("the island is wider than 3")
 		}
 		// A new save spawns on the grass beside the trunk, not inside it.
-		s.state = newState()
+		*s.state = *newState()
 		at := cube.PosFromVec3(s.Spawn())
 		if _, ok := tx.Block(at.Side(cube.FaceDown)).(block.Grass); !ok {
 			t.Fatalf("spawn %v stands on %T", at, tx.Block(at.Side(cube.FaceDown)))

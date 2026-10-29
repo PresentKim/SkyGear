@@ -39,7 +39,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			sp := ui.PlaneSpot{X: float64(c[0])*16 - cx, Z: float64(c[1])*16 - cz, W: 16, H: 16, On: c == t, Tip: s.chunkLabel(lang, c, buyable)}
 			if c != t {
 				sp.Run = func(p *player.Player, tx *world.Tx) {
-					if e, ok := s.expansionOf(p); ok && tx.World() == s.world {
+					if e, ok := s.expansionOf(p); ok && tx.World() == s.World {
 						s.moveCursor(p, e, c)
 						s.showExpandPlane(p, e)
 					}
@@ -65,7 +65,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 		keys[ui.KeyOK] = buy
 	}
 	leave := func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.world {
+		if tx.World() == s.World {
 			s.stopExpand(p, tx)
 		}
 	}
@@ -78,7 +78,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 // edge of the island, so the screen stays open.
 func (s *session) expandStep(dx, dz int32) func(p *player.Player, tx *world.Tx) {
 	return func(p *player.Player, tx *world.Tx) {
-		if e, ok := s.expansionOf(p); ok && tx.World() == s.world {
+		if e, ok := s.expansionOf(p); ok && tx.World() == s.World {
 			s.moveCursor(p, e, ChunkPos{e.target[0] + dx, e.target[1] + dz})
 			s.showExpandPlane(p, e)
 		}

@@ -60,7 +60,7 @@ func (s *session) weatherNow(now time.Duration) string {
 // (crops.go, magic.go). It starts at the instance time, so records made
 // before it keep their times.
 func (s *session) growNow() time.Duration {
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	if !s.growInit {
 		s.growInit = true
 		if s.state.GrowClock == 0 {
@@ -81,7 +81,7 @@ func (s *session) growNow() time.Duration {
 
 // realLeft turns growth time left into instance time at the current rate.
 func (s *session) realLeft(d time.Duration) time.Duration {
-	if now, _, _ := s.clock.Now(); s.weatherNow(now) == weatherRain {
+	if now, _, _ := s.Clock.Now(); s.weatherNow(now) == weatherRain {
 		return d * 2 / 3
 	}
 	return d
@@ -100,11 +100,11 @@ func (s *session) snowReps(reps int, tick int64) int {
 // tickEnvironment ends a weather that ran out, keeps the rain or snow falling and
 // the sun up (Second).
 func (s *session) tickEnvironment(tx *world.Tx) {
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	if s.state.Weather != "" && s.weatherNow(now) == "" {
 		s.growNow()
 		s.state.Weather, s.state.WeatherUntil = "", 0
-		s.storeState()
+		s.MarkDirty()
 		s.applyWeather(tx)
 	}
 	s.tickFall(tx, now)
@@ -123,7 +123,7 @@ func (s *session) applyEnvironment(tx *world.Tx) {
 // tickFall). The world itself never rains; the client draws only what the
 // server sends.
 func (s *session) applyWeather(tx *world.Tx) {
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	w, weather := tx.World(), s.weatherNow(now)
 	w.StopWeatherCycle()
 	w.StopRaining()
@@ -200,13 +200,13 @@ func (s *session) restoreBiome(tx *world.Tx) {
 		}
 	}
 	s.state.BaseBiome = nil
-	s.storeState()
+	s.MarkDirty()
 }
 
 // applySun keeps the world's sun on the instance clock, or at the fixed
 // time.
 func (s *session) applySun(tx *world.Tx) {
-	_, day, dayTime := s.clock.Now()
+	_, day, dayTime := s.Clock.Now()
 	w := tx.World()
 	base := (day - 1) * 24000
 	if t, fixed := sunTimes[s.state.Sun]; fixed {
@@ -222,7 +222,7 @@ func (s *session) applySun(tx *world.Tx) {
 		w.StartTime()
 	}
 	want := base
-	if l := s.clock.DayLength(); l > 0 {
+	if l := s.Clock.DayLength(); l > 0 {
 		want += int(dayTime * 24000 / l)
 	}
 	// the world ticks the time on by itself; set it when it drifts more
@@ -236,13 +236,13 @@ func (s *session) applySun(tx *world.Tx) {
 // one replaces it. It reports false if there is nothing to change (clear
 // when it is clear), which costs nothing.
 func (s *session) castWeather(tx *world.Tx, weather string) bool {
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	cur := s.weatherNow(now)
 	if weather == "" && cur == "" {
 		return false
 	}
 	s.growNow()
-	span := spellDays * s.clock.DayLength()
+	span := spellDays * s.Clock.DayLength()
 	switch {
 	case weather == "":
 		s.state.Weather, s.state.WeatherUntil = "", 0
@@ -251,7 +251,7 @@ func (s *session) castWeather(tx *world.Tx, weather string) bool {
 	default:
 		s.state.Weather, s.state.WeatherUntil = weather, now+span
 	}
-	s.storeState()
+	s.MarkDirty()
 	s.applyWeather(tx)
 	return true
 }
@@ -263,7 +263,7 @@ func (s *session) castSun(tx *world.Tx, mode string) bool {
 		return false
 	}
 	s.state.Sun = mode
-	s.storeState()
+	s.MarkDirty()
 	s.applySun(tx)
 	return true
 }
@@ -285,7 +285,7 @@ func (FairyBoard) Use(tx *world.Tx, u item.User, _ *item.UseContext) bool {
 // casting for a fairy emerald from p's inventory.
 func (s *session) showFairyBoard(p *player.Player) {
 	lang := i18n.Of(p)
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	emeralds := countPlain(p.Inventory(), sgitem.FairyEmerald{})
 	weather := s.weatherNow(now)
 	cast := func(do func(tx *world.Tx) bool) func(p *player.Player, tx *world.Tx) {

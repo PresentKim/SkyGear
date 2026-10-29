@@ -17,7 +17,7 @@ func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
 	loadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	used := func() (ok bool) {
-		s.world.Do(func(tx *world.Tx) { ok = s.fairyBoneMeal(tx, cropPos) })
+		s.World.Do(func(tx *world.Tx) { ok = s.fairyBoneMeal(tx, cropPos) })
 		return ok
 	}
 	if !used() {
@@ -47,7 +47,7 @@ func TestFairyBoneMealBringsFruitSooner(t *testing.T) {
 	advance(s, s.growTime("pumpkin"))
 	r := s.state.Crops[cropKey(cropPos)]
 	before := r.NextFruit
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if !s.fairyBoneMeal(tx, cropPos) {
 			t.Error("fairy bone meal did nothing on a grown stem")
 		}
@@ -63,7 +63,7 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cropPos
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(pos, MagicPlant{Kind: "flower_red"}, nil)
 		s.state.Plants = map[string]*PlantRecord{cropKey(pos): {Kind: "flower_red", ReadyAt: s.growNow() + time.Minute}}

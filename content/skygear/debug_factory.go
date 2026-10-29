@@ -141,7 +141,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 				s.state.Crops = map[string]*CropRecord{}
 			}
 			grow := s.growTime(kind)
-			r := &CropRecord{Kind: kind, Planted: now - time.Duration(s.rand.Int64N(int64(grow)+1))}
+			r := &CropRecord{Kind: kind, Planted: now - time.Duration(s.Rand.Int64N(int64(grow)+1))}
 			s.state.Crops[cropKey(pos)] = r
 			// Due at once: the first update brings the block to its stage.
 			heap.Push(&s.cropQueue, cropDue{at: now, pos: pos, rec: r})

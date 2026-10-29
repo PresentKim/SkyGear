@@ -115,7 +115,7 @@ func (s *session) returnToGate(tx *world.Tx, m *Monster) {
 	d := m.md()
 	d.vel, d.onGround = mgl64.Vec3{}, false
 	d.exit, d.exitTicks = w.out, gateExitTicks
-	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.rand.Float64()*1.2 - 0.6)
+	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
 	m.data.Pos = w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.out.Mul(0.6)).Add(side)
 	m.data.Rot = cube.Rotation{dirYaw(w.out), 0}
 	for _, v := range tx.Viewers(m.data.Pos) {
@@ -136,7 +136,7 @@ func (s *session) emergeMonsters(tx *world.Tx) {
 	w.emerge = 0
 	mob := w.pending[0]
 	w.pending = w.pending[1:]
-	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.rand.Float64()*1.2 - 0.6)
+	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
 	at := w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.out.Mul(0.6)).Add(side)
 	h := world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{dirYaw(w.out), 0}}.New(monsterTypes[mob], monsterConfig{mob: mob, exit: w.out})
 	w.left[h] = mob

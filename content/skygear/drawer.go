@@ -293,7 +293,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	// The menu opens from any face; putting items in and upgrades work only
 	// on the front.
 	if p.Sneaking() && held.Empty() {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showDrawer(p, pos)
 		}
 		return true
@@ -302,13 +302,13 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 		return false
 	}
 	if sgitem.IsDrawerKey(held) {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.toggleLock(tx, pos, &d)
 		}
 		return true
 	}
 	if sgitem.IsDrawerUpgrade(held) {
-		if !s.debounced(p) && s.applyUpgrade(p, tx, pos, &d, held) {
+		if !s.Debounced(p) && s.applyUpgrade(p, tx, pos, &d, held) {
 			p.SetHeldItems(held.Grow(-1), off)
 			s.setDrawer(tx, pos, d)
 		}
@@ -366,7 +366,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	s.setDrawer(tx, pos, d)
 	// What does not fit drops at the player.
 	if added, _ := p.Inventory().AddItem(out); added < out.Count() {
-		s.dropAt(tx, p.Position(), out.Grow(-added))
+		s.DropAt(tx, p.Position(), out.Grow(-added))
 	}
 }
 
@@ -559,7 +559,7 @@ func (s *session) removeUpgrade(p *player.Player, tx *world.Tx, pos cube.Pos, d 
 	s.setDrawer(tx, pos, *d)
 	it := item.NewStack(sgitem.DrawerUpgrade{Kind: kind}, 1)
 	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-		s.dropAt(tx, p.Position(), it)
+		s.DropAt(tx, p.Position(), it)
 	}
 }
 

@@ -50,11 +50,11 @@ type debugSkip struct {
 // Run advances the instance time (days, crops, lost-and-found).
 func (c debugSkip) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		for _, day := range s.clock.Advance(time.Duration(max(0, c.Minutes)) * time.Minute) {
+		for _, day := range s.Clock.Advance(time.Duration(max(0, c.Minutes)) * time.Minute) {
 			s.NewDay(tx, day)
 		}
 		s.Second(tx)
-		total, day, _ := s.clock.Now()
+		total, day, _ := s.Clock.Now()
 		o.Printf(i18n.T(i18n.Default, "skygear.admin.time"), textfmt.PlayTime(i18n.Default, total), day)
 	}
 }
@@ -262,15 +262,15 @@ func (c debugResearchRandom) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	s.state.Researched, s.state.ResearchPaid = nil, nil
 	n := 0
 	for i := range researchTree {
-		if s.rand.IntN(100) < pct {
+		if s.Rand.IntN(100) < pct {
 			s.completeResearch(tx, &researchTree[i])
 			n++
 		}
 	}
 	for _, r := range s.copies {
-		s.copiesDone[r.ID] = s.rand.IntN(100) < pct
+		s.copiesDone[r.ID] = s.Rand.IntN(100) < pct
 	}
-	s.storeState()
+	s.MarkDirty()
 	s.sendRecipes(tx)
 	s.updateBoards(tx)
 	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchRandom"), n, len(researchTree), pct)
@@ -297,7 +297,7 @@ func (c debugResearchLoad) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		r.ID = fmt.Sprintf("%s#%d", r.ID, i+1)
 		r.Needs = nil
 		s.copies = append(s.copies, &r)
-		s.copiesDone[r.ID] = s.rand.IntN(2) == 0
+		s.copiesDone[r.ID] = s.Rand.IntN(2) == 0
 	}
 	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchLoad"), len(s.copies))
 }

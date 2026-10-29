@@ -58,7 +58,7 @@ func (s *session) track(tx *world.Tx, a *advancement.Advancement) {
 	} else {
 		s.state.Tracked = a.ID
 	}
-	s.storeState()
+	s.MarkDirty()
 	s.updateBoards(tx)
 }
 
@@ -171,7 +171,7 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*advancement.Advanceme
 			account.Grant(e.(*player.Player), achievement.AllAdvancements)
 		}
 	}
-	s.storeState()
+	s.MarkDirty()
 	s.updateBoards(tx)
 	for e := range tx.Players() {
 		p := e.(*player.Player)

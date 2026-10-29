@@ -35,10 +35,10 @@ func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) err
 	}
 	s.state.LastSapling = now
 	count(p, "sapling_cmd", 1)
-	s.storeState()
+	s.MarkDirty()
 	st := item.NewStack(block.Sapling{Type: block.OakSapling()}, 1)
 	if added, _ := p.Inventory().AddItem(st); added < 1 {
-		s.dropAt(tx, p.Position(), st)
+		s.DropAt(tx, p.Position(), st)
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 			for y := -1; y <= 2; y++ {
 				pos := feet.Add(cube.Pos{x, y, z})
 				sp, ok := tx.Block(pos).(block.Sapling)
-				if !ok || s.rand.IntN(100) >= crouchGrowChance {
+				if !ok || s.Rand.IntN(100) >= crouchGrowChance {
 					continue
 				}
 				sp.BoneMeal(pos, tx)

@@ -259,7 +259,7 @@ func (b MagicPlant) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 	if s, ok := activeGame.sessionOf(tx.World()); ok {
 		delete(s.state.Plants, cropKey(pos))
 		for _, d := range b.BreakInfo().Drops(nil, nil) {
-			s.dropAt(tx, pos.Vec3Centre(), d)
+			s.DropAt(tx, pos.Vec3Centre(), d)
 		}
 	}
 }
@@ -284,7 +284,7 @@ func (s *session) harvestPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 		return
 	}
 	for _, st := range drops {
-		s.dropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), st)
+		s.DropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), st)
 	}
 	s.resetPlant(tx, pos, b)
 }
@@ -298,7 +298,7 @@ func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
 	}
 	k := plantKinds[i]
 	out := s.rollPlantYield(k)
-	if s.rand.IntN(100) < 6 {
+	if s.Rand.IntN(100) < 6 {
 		out = append(out, k.seedStack())
 	}
 	return out, true
@@ -340,7 +340,7 @@ func (s *session) rollPlantYield(k plantKind) []item.Stack {
 	for _, y := range k.yield {
 		n := y.min
 		if y.max > y.min {
-			n += s.rand.IntN(y.max - y.min + 1)
+			n += s.Rand.IntN(y.max - y.min + 1)
 		}
 		out = append(out, item.NewStack(y.item, n))
 	}

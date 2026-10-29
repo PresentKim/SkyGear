@@ -78,7 +78,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 		b.Chapters = append(b.Chapters, ui.QuestChapter{
 			Name: i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[t]), Icon: advancement.ChapterIcon(t), Count: fmt.Sprintf("%d/%d", done, len(list)), On: t == tab,
 			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() == s.world {
+				if tx.World() == s.World {
 					s.showQuestBook(p, t, nil)
 				}
 			},
@@ -123,7 +123,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 			q.Deps = append(q.Deps, from)
 		}
 		q.Run = func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
+			if tx.World() == s.World {
 				s.showQuestBook(p, tab, a)
 			}
 		}
@@ -135,7 +135,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 			ID: advancement.GateID(g.ID), X: advancement.QuestX(pos.X), Y: float64(pos.Y), Shape: ui.ShapeGate,
 			Icon: advancement.Icon(g), Tip: advancement.GateTip(lang, g), State: s.advQuestState(g),
 			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() == s.world {
+				if tx.World() == s.World {
 					s.showQuestBook(p, g.Chapter, g)
 				}
 			},
@@ -152,7 +152,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advancement.Advancement) *ui.QuestPanel {
 	lang := i18n.Of(p)
 	back := func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.world {
+		if tx.World() == s.World {
 			s.showQuestBook(p, tab, nil)
 		}
 	}

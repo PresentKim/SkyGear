@@ -122,7 +122,7 @@ func (s *session) fillComposter(tx *world.Tx, pos cube.Pos, c block.Composter, s
 		if s.state.ComposterReady == nil {
 			s.state.ComposterReady = map[string]time.Duration{}
 		}
-		now, _, _ := s.clock.Now()
+		now, _, _ := s.Clock.Now()
 		s.state.ComposterReady[cropKey(pos)] = now + composterDelay
 		tx.PlaySound(pos.Vec3(), sound.ComposterFillLayer{})
 	case level != c.Level:
@@ -130,7 +130,7 @@ func (s *session) fillComposter(tx *world.Tx, pos cube.Pos, c block.Composter, s
 	default:
 		tx.PlaySound(pos.Vec3(), sound.ComposterFill{})
 	}
-	s.storeState()
+	s.MarkDirty()
 	return n
 }
 
@@ -141,7 +141,7 @@ func (s *session) composterReady(pos cube.Pos, c block.Composter) bool {
 		return false
 	}
 	at, ok := s.state.ComposterReady[cropKey(pos)]
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	return !ok || now >= at
 }
 
@@ -159,7 +159,7 @@ func (s *session) tickComposters(tx *world.Tx) {
 			delete(s.state.ComposterReady, key)
 			continue
 		}
-		if now, _, _ := s.clock.Now(); now >= at && c.Level != composterReadyLevel {
+		if now, _, _ := s.Clock.Now(); now >= at && c.Level != composterReadyLevel {
 			tx.SetBlock(pos, block.Composter{Level: composterReadyLevel}, nil)
 			tx.PlaySound(pos.Vec3(), sound.ComposterReady{})
 		}
@@ -176,7 +176,7 @@ func (s *session) emptyComposter(tx *world.Tx, pos cube.Pos, c block.Composter) 
 	delete(s.state.ComposterReady, cropKey(pos))
 	tx.SetBlock(pos, block.Composter{}, nil)
 	tx.PlaySound(pos.Vec3(), sound.ComposterEmpty{})
-	s.storeState()
+	s.MarkDirty()
 	return item.NewStack(block.Dirt{}, 1)
 }
 
@@ -215,7 +215,7 @@ func (c composterIO) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st
 // giveItem gives p an item, dropping what does not fit at pos.
 func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
 	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-		s.dropAt(tx, pos, it.Grow(-n))
+		s.DropAt(tx, pos, it.Grow(-n))
 	}
 }
 
@@ -226,7 +226,7 @@ func (s *session) composterLines(lang string, pos cube.Pos, c block.Composter) [
 		return []string{i18n.T(lang, "composter.lines.done")}
 	}
 	if n >= matterCapacity {
-		now, _, _ := s.clock.Now()
+		now, _, _ := s.Clock.Now()
 		left := max(s.state.ComposterReady[cropKey(pos)]-now, 0).Round(time.Second)
 		return []string{fmt.Sprintf(i18n.T(lang, "composter.lines.making"), int(left.Minutes()), int(left.Seconds())%60)}
 	}

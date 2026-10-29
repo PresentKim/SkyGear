@@ -91,11 +91,11 @@ func (s *session) startWave(tx *world.Tx, pos cube.Pos, from mgl64.Vec3, level i
 		}
 	}
 	// the kinds come out mixed, not one group after the other
-	s.rand.Shuffle(len(w.pending), func(i, j int) { w.pending[i], w.pending[j] = w.pending[j], w.pending[i] })
+	s.Rand.Shuffle(len(w.pending), func(i, j int) { w.pending[i], w.pending[j] = w.pending[j], w.pending[i] })
 	s.wave = w
 	s.openGatePortal(tx, w)
 	tx.PlaySound(pos.Vec3Centre(), sound.Explosion{})
-	s.broadcast(tx, "gate.start", level, len(w.pending), def.Seconds)
+	s.Broadcast(tx, "gate.start", level, len(w.pending), def.Seconds)
 	return true
 }
 
@@ -123,15 +123,15 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 			v.ViewEntityAction(m, entity.DeathAction{})
 		}
 		for _, d := range sgitem.SimDrops[m.kind] {
-			if s.rand.IntN(100) < d.Chance+looting*8 {
-				s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
+			if s.Rand.IntN(100) < d.Chance+looting*8 {
+				s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(d.Item, d.Min+s.Rand.IntN(d.Max-d.Min+1)))
 			}
 		}
-		if w.level >= 2 && s.rand.IntN(100) < 4 {
-			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + sgitem.PetalColours[s.rand.IntN(len(sgitem.PetalColours))]}, 1))
+		if w.level >= 2 && s.Rand.IntN(100) < 4 {
+			s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + sgitem.PetalColours[s.Rand.IntN(len(sgitem.PetalColours))]}, 1))
 		}
-		if s.rand.IntN(100) < waveEssenceChance+looting*4 {
-			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(sgitem.Essence{Mob: m.kind}, 1))
+		if s.Rand.IntN(100) < waveEssenceChance+looting*4 {
+			s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(sgitem.Essence{Mob: m.kind}, 1))
 		}
 	}
 	_ = m.Close()
@@ -150,9 +150,9 @@ func (s *session) winWave(tx *world.Tx) {
 	first := w.level > s.state.GateTier
 	if first {
 		s.state.GateTier = w.level
-		s.storeState()
+		s.MarkDirty()
 		for _, r := range def.Reward {
-			s.dropAt(tx, w.gate.Vec3Centre().Add(mgl64.Vec3{0, 1.2, 0}), r)
+			s.DropAt(tx, w.gate.Vec3Centre().Add(mgl64.Vec3{0, 1.2, 0}), r)
 		}
 		s.advance(tx, advancement.Wave1)
 		for _, a := range []struct {
@@ -167,7 +167,7 @@ func (s *session) winWave(tx *world.Tx) {
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})
 	countAll(tx, "wave_win", 1)
 	countAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
-	s.broadcast(tx, "gate.win", w.level)
+	s.Broadcast(tx, "gate.win", w.level)
 }
 
 // failWave ends the wave without a clear: the monsters left vanish.
@@ -184,7 +184,7 @@ func (s *session) failWave(tx *world.Tx, key string) {
 			_ = e.Close()
 		}
 	}
-	s.broadcast(tx, key)
+	s.Broadcast(tx, key)
 }
 
 // tickWave runs every second: it tells the players how the wave goes and ends it

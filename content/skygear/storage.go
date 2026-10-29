@@ -195,7 +195,7 @@ func isStorageController(b world.Block) bool {
 // within 500ms of a click also deposits the inventory (depositAll).
 func (s *session) useController(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	if p.Sneaking() {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showStorage(p, tx, pos, "")
 		}
 		return

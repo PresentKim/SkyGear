@@ -150,7 +150,7 @@ func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
 	p.H().DoAfter(expandRestore, func(tx *world.Tx, ent world.Entity) {
 		p := ent.(*player.Player)
 		e, ok := s.expansionOf(p)
-		if !ok || tx.World() != s.world {
+		if !ok || tx.World() != s.World {
 			return
 		}
 		c := chunkOf(pos)

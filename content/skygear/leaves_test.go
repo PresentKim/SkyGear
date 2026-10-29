@@ -46,7 +46,7 @@ func TestLeavesDropNoSticks(t *testing.T) {
 func TestLeavesDecayOnScheduledTick(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		alone, near := cube.Pos{6, IslandY + 5, 6}, cube.Pos{9, IslandY + 5, 9}
 		leaves := block.Leaves{Type: block.OakLeaves(), ShouldUpdate: true}
 		tx.SetBlock(alone, leaves, nil)

@@ -62,7 +62,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	}
 	head[10] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(item.NewStack(item.NetherStar{}, 1)), Tip: "§f" + i18n.T(lang, favKey), Count: favMark,
 		Run: func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
+			if tx.World() == s.World {
 				s.toggleFavourite(p, it)
 				if s.isFavourite(p, it) {
 					s.advance(tx, advancement.Favourite)

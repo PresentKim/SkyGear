@@ -36,7 +36,7 @@ func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineStat
 		// The tests sift with the string mesh fitted.
 		m.st.mesh = "string"
 	}
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 	return m.st
 }
 
@@ -134,13 +134,13 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	below, above := machinePos.Side(cube.FaceDown), machinePos.Side(cube.FaceUp)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(below, block.Stone{}, nil)
 		tx.SetBlock(above, block.NewChest(), nil)
 	})
 	st := placeTestMachine(s, machinePos, KindMiner, "")
 	tick(s, machineKinds[KindMiner].interval+10)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, air := tx.Block(below).(block.Air); !air {
 			t.Fatalf("stone not mined: %v", tx.Block(below))
 		}
@@ -155,7 +155,7 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 		tx.SetBlock(below, Drawer{Facing: cube.South}, nil)
 	})
 	tick(s, 2*machineKinds[KindMiner].interval)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(below).(Drawer); !ok {
 			t.Fatal("auto miner mined a drawer")
 		}
@@ -230,7 +230,7 @@ func TestHandsFreeLine(t *testing.T) {
 	conduitPos := minerPos.Side(cube.FaceEast)
 	crusherPos := conduitPos.Side(cube.FaceEast)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(minerPos.Side(cube.FaceDown), block.Cobblestone{}, nil)
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
@@ -244,7 +244,7 @@ func TestHandsFreeLine(t *testing.T) {
 	placeTestMachine(s, minerPos, KindMiner, "")
 	placeTestMachine(s, crusherPos, KindCrusher, "")
 	runSteps(s, 120)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		inv := tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos)
 		if !inv.ContainsItem(item.NewStack(block.Gravel{}, 1)) {
 			t.Fatalf("crusher output never reached the chest: %v", inv.Items())
@@ -277,7 +277,7 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 1}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(cube.Pos{0, IslandY, 2}, block.Stone{}, nil)
 	})
@@ -286,14 +286,14 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	tick(s, 2) // land
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
 	tick(s, 2)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(pos).(Drawer); !ok {
 			t.Fatal("broke before its break time")
 		}
 	})
 	time.Sleep(block.BreakDuration(Drawer{}, item.Stack{}, block.BreakContext{}) + 200*time.Millisecond)
 	tick(s, 2)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(pos).(Drawer); ok {
 			t.Fatal("not broken after its break time")
 		}
@@ -330,7 +330,7 @@ func TestHopperFillsHandSieve(t *testing.T) {
 	st.mesh = ""
 	m := Machine{Kind: KindSieve, st: st}
 	gravel := item.NewStack(block.Gravel{}, 5)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 0 {
 			t.Errorf("a sieve without a mesh took %d", n)
 		}
@@ -430,7 +430,7 @@ func TestCrusherOre(t *testing.T) {
 	// the bonus: 400 ores × 2 rolls at 50 % ≈ 400 more
 	bonus := 0
 	for range 400 * sgitem.CrusherBonus {
-		if s.rand.IntN(100) < sgitem.CrusherBonusChance {
+		if s.Rand.IntN(100) < sgitem.CrusherBonusChance {
 			bonus++
 		}
 	}
@@ -555,7 +555,7 @@ func TestFluidLine(t *testing.T) {
 	if crucible.fluid != fluidnet.Lava || crucible.fluidAmt != 4*crucibleLava {
 		t.Fatalf("crucible holds %v %d, want %d lava", crucible.fluid, crucible.fluidAmt, 4*crucibleLava)
 	}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Fluid: 1}, nil)
 		s.fluidGrid().AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
 		if moved := s.fluidGrid().Step(tx); moved != 4*crucibleLava {

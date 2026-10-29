@@ -17,7 +17,7 @@ func TestActiveLook(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindFurnace, "")
 	look := func() bool {
 		on := false
-		s.world.Do(func(tx *world.Tx) { on = tx.Block(machinePos).(Machine).active })
+		s.World.Do(func(tx *world.Tx) { on = tx.Block(machinePos).(Machine).active })
 		return on
 	}
 	tick(s, 5)

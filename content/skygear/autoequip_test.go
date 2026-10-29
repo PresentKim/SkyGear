@@ -38,7 +38,7 @@ func TestItemVacuum(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindVacuum, "")
 	near, far := machinePos.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{30, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: near}, item.NewStack(block.Cobblestone{}, 5)))
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: far}, item.NewStack(block.Cobblestone{}, 7)))
 	})
@@ -47,7 +47,7 @@ func TestItemVacuum(t *testing.T) {
 		t.Fatalf("collected %d, want the 5 in reach", got)
 	}
 	left := 0
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for e := range tx.Entities() {
 			if ent, ok := e.(*entity.Ent); ok {
 				if ib, ok := ent.Behaviour().(*entity.ItemBehaviour); ok {
@@ -69,7 +69,7 @@ func TestTreeFeller(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindFeller, "")
 	log := func() world.Block { return block.Log{Wood: block.OakWood()} }
 	trunk := machinePos.Add(cube.Pos{2, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for dy := range 3 {
 			tx.SetBlock(trunk.Add(cube.Pos{0, dy, 0}), log(), nil)
 		}
@@ -85,7 +85,7 @@ func TestTreeFeller(t *testing.T) {
 	})
 	_ = st.inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
 	tick(s, 3*(machineKinds[KindFeller].interval+2))
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(trunk.Add(cube.Pos{0, 2, 0})).(block.Log); ok {
 			t.Error("the top log was not felled first")
 		}
@@ -95,7 +95,7 @@ func TestTreeFeller(t *testing.T) {
 	}
 	tick(s, 6*(machineKinds[KindFeller].interval+2))
 	planted := 0
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for dx := -3; dx <= 3; dx += 3 {
 			for dz := -3; dz <= 3; dz += 3 {
 				if _, ok := tx.Block(machinePos.Add(cube.Pos{dx, 0, dz})).(block.Sapling); ok {
@@ -114,7 +114,7 @@ func TestTreeFellerBoneMealsSaplings(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindFeller, "")
 	sapling := machinePos.Add(cube.Pos{2, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(sapling.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(sapling, block.Sapling{Type: block.OakSapling()}, nil)
 	})
@@ -140,7 +140,7 @@ func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindFeller, "")
 	grassy := machinePos.Add(cube.Pos{2, 1, 1})
 	bare := machinePos.Add(cube.Pos{-4, -1, 2})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(grassy.Side(cube.FaceDown), block.Grass{}, nil)
 		tx.SetBlock(grassy, block.ShortGrass{}, nil)
 		tx.SetBlock(bare.Side(cube.FaceDown), block.Dirt{}, nil)
@@ -148,7 +148,7 @@ func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 	})
 	_ = st.inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
 	tick(s, 3*(machineKinds[KindFeller].interval+2))
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for _, at := range []cube.Pos{grassy, bare} {
 			if _, ok := tx.Block(at).(block.Sapling); !ok {
 				t.Errorf("no sapling at %v", at)

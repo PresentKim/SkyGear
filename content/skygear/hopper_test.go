@@ -29,7 +29,7 @@ func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 	loadAround(s)
 	top, mid, bottom := cube.Pos{2, IslandY + 4, 2}, cube.Pos{2, IslandY + 3, 2}, cube.Pos{2, IslandY + 2, 2}
 	wheat := item.NewStack(item.Wheat{}, 1)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(top, block.NewChest(), nil)
 		_, _ = tx.Block(top).(block.Chest).Inventory(tx, top).AddItem(item.NewStack(item.Wheat{}, 3))
 		tx.SetBlock(mid, hopper.NewFlowHopper("wood_hopper", cube.FaceDown), nil)
@@ -44,13 +44,13 @@ func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 		_ = h.Inv.SetItem(0, item.Stack{})
 	})
 	tick(s, 60)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if n := chestCount(tx, bottom, wheat); n > 1 {
 			t.Errorf("%d wheat passed in 3 seconds, a wood hopper moves one per 4", n)
 		}
 	})
 	tick(s, 20*30)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if n := chestCount(tx, bottom, wheat); n != 3 {
 			t.Errorf("%d wheat arrived, want 3", n)
 		}
@@ -65,7 +65,7 @@ func TestReverseHopperMovesUp(t *testing.T) {
 	below, mid, above := cube.Pos{4, IslandY + 2, 4}, cube.Pos{4, IslandY + 3, 4}, cube.Pos{4, IslandY + 4, 4}
 	side := cube.Pos{5, IslandY + 3, 4}
 	wheat := item.NewStack(item.Wheat{}, 1)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(below, block.NewChest(), nil)
 		_, _ = tx.Block(below).(block.Chest).Inventory(tx, below).AddItem(item.NewStack(item.Wheat{}, 4))
 		tx.SetBlock(mid, hopper.NewFlowHopper("iron_hopper_reverse", cube.FaceUp), nil)
@@ -73,7 +73,7 @@ func TestReverseHopperMovesUp(t *testing.T) {
 		tx.SetBlock(side, block.NewChest(), nil)
 	})
 	tick(s, 60)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if n := chestCount(tx, above, wheat); n < 3 {
 			t.Errorf("%d wheat went up, want at least 3 in three seconds", n)
 		}
@@ -133,7 +133,7 @@ func TestVanillaHopperFeedsWoodHopper(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	vanilla, wood := cube.Pos{8, IslandY + 3, 8}, cube.Pos{8, IslandY + 2, 8}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		_ = h.Inventory(tx, vanilla).SetItem(0, item.NewStack(item.Wheat{}, 2))
@@ -144,7 +144,7 @@ func TestVanillaHopperFeedsWoodHopper(t *testing.T) {
 		}
 	})
 	tick(s, 20)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if got, _ := tx.Block(wood).(hopper.FlowHopper).Inv.Item(0); got.Count() != 2 {
 			t.Errorf("the wood hopper holds %v, want the wheat of the vanilla hopper", got)
 		}

@@ -211,7 +211,7 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
-	if sgitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.debounced(ctx.Player()) {
+	if sgitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
 		h.s.toggleVeinDiagonal(ctx.Player())
 	}
 }
@@ -219,7 +219,7 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 // useHeldScreen opens the menu held by p. The client repeats use packets
 // while the button is held, so repeats are ignored.
 func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
-	if h.s.debounced(p) {
+	if h.s.Debounced(p) {
 		return
 	}
 	h.s.openMenu(p)

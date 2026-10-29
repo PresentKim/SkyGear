@@ -185,7 +185,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 		slots = append(slots, ui.ItemSlot{
 			Icon: formicon.Of(cr.Out), Count: count, Tip: tipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n"),
 			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() != s.world {
+				if tx.World() != s.World {
 					return
 				}
 				st.setRecipe(cr)
@@ -194,7 +194,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 	}
 	actions := ui.Pager(p, page, pages, func(p *player.Player, tx *world.Tx, to int) { s.showCrafterRecipes(p, tx, pos, st, to) })
 	actions = append(actions, ui.Option{Label: i18n.T(lang, "crafter.clear"), Run: func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.world {
+		if tx.World() == s.World {
 			st.clearRecipe()
 		}
 	}})

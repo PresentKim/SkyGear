@@ -16,7 +16,7 @@ func TestHarvesterHarvestsGrownCrops(t *testing.T) {
 	// A seed to replant with even if the wheat drops none.
 	_ = st.inv().SetItem(st.kind.output[0], item.NewStack(block.WheatSeeds{}, 1))
 	wheat, young, melon := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 1}), machinePos.Add(cube.Pos{0, 0, 3})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for _, p := range []cube.Pos{wheat, young} {
 			tx.SetBlock(p.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		}
@@ -28,7 +28,7 @@ func TestHarvesterHarvestsGrownCrops(t *testing.T) {
 		tx.SetBlock(melon, block.Melon{}, nil)
 	})
 	tick(s, 2*(machineKinds[KindHarvester].interval+1))
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if w, ok := tx.Block(wheat).(block.WheatSeeds); !ok || w.Growth != 0 {
 			t.Fatalf("grown wheat not replanted: %#v", tx.Block(wheat))
 		}

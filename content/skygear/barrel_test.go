@@ -100,7 +100,7 @@ func TestBarrelMakesWater(t *testing.T) {
 func TestBarrelRecordIsForgotten(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{5, IslandY, 5}
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
 		s.state.Barrels = map[string]*BarrelRecord{cropKey(pos): {Count: 3}}

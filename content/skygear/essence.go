@@ -34,8 +34,8 @@ func (s *session) runSimulator(st *machineState) {
 	var all []item.Stack
 	for _, d := range sgitem.SimDrops[st.mob] {
 		all = append(all, item.NewStack(d.Item, d.Max))
-		if s.rand.IntN(100) < d.Chance {
-			drops = append(drops, item.NewStack(d.Item, d.Min+s.rand.IntN(d.Max-d.Min+1)))
+		if s.Rand.IntN(100) < d.Chance {
+			drops = append(drops, item.NewStack(d.Item, d.Min+s.Rand.IntN(d.Max-d.Min+1)))
 		}
 	}
 	if !st.roomFor(all) {

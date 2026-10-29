@@ -81,7 +81,7 @@ func (s *session) labOpenRecipes() []*machinerecipe.Lab {
 // stands where it did, in the session's world.
 func (s *session) labStill(tx *world.Tx, pos cube.Pos, st *machineState) bool {
 	m, ok := tx.Block(pos).(Machine)
-	return tx.World() == s.world && ok && m.st == st
+	return tx.World() == s.World && ok && m.st == st
 }
 
 // labOpen reports whether the island's research has come to the essence a

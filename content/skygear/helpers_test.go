@@ -1,18 +1,20 @@
 package skygear
 
 import (
-	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/player"
-	"github.com/go-gl/mathgl/mgl64"
-	"github.com/google/uuid"
 	"log/slog"
 	"math/rand/v2"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/google/uuid"
+
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 	"golang.org/x/text/language"
@@ -37,18 +39,20 @@ func testSession(t *testing.T) *session {
 	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry.Config().New(EntityTypes())}.New()
 	t.Cleanup(func() { _ = w.Close() })
 	g := &Game{log: slog.Default(), db: d}
-	s := &session{
-		g: g, world: w, clock: instance.NewClock(0, 1, 0, 20*time.Minute),
-		saveID: save.ID, saveName: save.Name, hostID: "host", state: newState(), displays: map[cube.Pos]*drawerDisplay{},
-		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
-		rand: rand.New(rand.NewPCG(1, 2)),
-	}
-	t.Cleanup(func() {
-		if s.writer != nil {
-			s.writer.stop()
-		}
+	c := core.New(core.Config{
+		World: w, Clock: instance.NewClock(0, 1, 0, 20*time.Minute),
+		SaveID: save.ID, SaveName: save.Name, HostID: "host", Log: slog.Default(),
 	})
+	c.Rand = rand.New(rand.NewPCG(1, 2))
+	s := &session{
+		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{},
+		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
+	}
+	s.state = savedState.Of(c)
+	t.Cleanup(c.Close)
 	g.sessions.Store(w, s)
+	core.Register(c)
+	t.Cleanup(func() { core.Unregister(c) })
 	activeGame = g
 	registerItemIO()
 	w.Handle(&worldHandler{s: s})
@@ -58,8 +62,8 @@ func testSession(t *testing.T) *session {
 func init() { world.DefaultBlockRegistry.Finalize() }
 
 func loadAround(s *session) {
-	s.world.Do(func(tx *world.Tx) {
-		l := world.NewLoader(2, s.world, world.NopViewer{})
+	s.World.Do(func(tx *world.Tx) {
+		l := world.NewLoader(2, s.World, world.NopViewer{})
 		l.Move(tx, mgl64.Vec3{})
 		l.Load(tx, 50)
 	})
@@ -68,7 +72,7 @@ func loadAround(s *session) {
 func spawnPlayer(s *session) *world.EntityHandle {
 	id := uuid.New()
 	h := world.EntitySpawnOpts{ID: id}.New(player.Type, player.Config{Name: "p", UUID: id, Locale: language.Korean, Position: mgl64.Vec3{0.5, 64, 2.5}})
-	s.world.Do(func(tx *world.Tx) { tx.AddEntity(h) })
+	s.World.Do(func(tx *world.Tx) { tx.AddEntity(h) })
 	return h
 }
 
@@ -77,7 +81,7 @@ func spawnPlayer(s *session) *world.EntityHandle {
 func withPlayer(t *testing.T, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
 	t.Helper()
 	finished := false
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		e, _ := h.Entity(tx)
 		f(e.(*player.Player), tx)
 		finished = true
@@ -89,6 +93,6 @@ func withPlayer(t *testing.T, s *session, h *world.EntityHandle, f func(p *playe
 
 func tick(s *session, n int) {
 	for range n {
-		s.world.AdvanceTick()
+		s.World.AdvanceTick()
 	}
 }

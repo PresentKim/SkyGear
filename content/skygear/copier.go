@@ -275,7 +275,7 @@ func setSide(b *ConduitBundle, side int, c *conduitCard) {
 // click while sneaking pastes. It reports whether the click was handled (a click
 // on something with no settings does nothing).
 func (s *session) useCopier(p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, held, off item.Stack) {
-	if s.debounced(p) {
+	if s.Debounced(p) {
 		return
 	}
 	lang := i18n.Of(p)
@@ -315,7 +315,7 @@ func (s *session) useCopier(p *player.Player, tx *world.Tx, pos cube.Pos, face c
 
 // clearCopier empties the copier a player uses on the air.
 func (s *session) clearCopier(p *player.Player, held, off item.Stack) {
-	if _, ok := cardOf(held); !ok || s.debounced(p) {
+	if _, ok := cardOf(held); !ok || s.Debounced(p) {
 		return
 	}
 	p.SetHeldItems(withCard(held, nil, i18n.Of(p)), off)

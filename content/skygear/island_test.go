@@ -47,15 +47,15 @@ func TestChunkRules(t *testing.T) {
 
 func TestLostAndFound(t *testing.T) {
 	s := testSession(t)
-	s.world.Do(func(tx *world.Tx) {
-		l := world.NewLoader(2, s.world, world.NopViewer{})
+	s.World.Do(func(tx *world.Tx) {
+		l := world.NewLoader(2, s.World, world.NopViewer{})
 		l.Move(tx, mgl64.Vec3{})
 		l.Load(tx, 50)
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: mgl64.Vec3{0, -70, 0}}, item.NewStack(item.Diamond{}, 3)))
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: mgl64.Vec3{5, -70, 0}}, item.NewStack(item.Apple{}, 1)))
 	})
 	for range 20 {
-		s.world.AdvanceTick()
+		s.World.AdvanceTick()
 	}
 	s.addLost(item.NewStack(item.Diamond{}, 2))
 	if len(s.state.Lost) != 2 {
@@ -64,9 +64,9 @@ func TestLostAndFound(t *testing.T) {
 	if top := s.state.Lost[0]; top.Count != 5 {
 		t.Fatalf("most recent entry count = %d, want 5 diamonds", top.Count)
 	}
-	s.clock.Advance(19 * time.Minute)
+	s.Clock.Advance(19 * time.Minute)
 	s.addLost(item.NewStack(item.Apple{}, 1))
-	s.clock.Advance(2 * time.Minute)
+	s.Clock.Advance(2 * time.Minute)
 	s.purgeLost()
 	if len(s.state.Lost) != 1 || s.state.Lost[0].Count != 2 {
 		t.Fatalf("after a day only the recently dropped apples remain, got %+v", s.state.Lost)
@@ -75,7 +75,7 @@ func TestLostAndFound(t *testing.T) {
 
 func TestNearestBlockColumn(t *testing.T) {
 	s := testSession(t)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(cube.Pos{3, 63, 0}, block.Stone{}, nil)
 		tx.SetBlock(cube.Pos{-10, 63, 0}, block.Stone{}, nil)
 		x, z, ok := s.nearestBlockColumn(tx, 7, 1)

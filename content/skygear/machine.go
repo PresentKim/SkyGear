@@ -1122,25 +1122,25 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return true
 	}
 	if m.Kind == KindTinker {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showTinker(p, tx, pos)
 		}
 		return true
 	}
 	if m.st.kind.gate {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showGateForm(p, tx, pos)
 		}
 		return true
 	}
 	if m.Kind == KindLab {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showLab(p, tx, pos, m.st)
 		}
 		return true
 	}
 	if m.st.kind.crafter && p.Sneaking() {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showCrafterRecipes(p, tx, pos, m.st, 0)
 		}
 		return true
@@ -1305,7 +1305,7 @@ func (s *session) runMachine(st *machineState, pos cube.Pos, tx *world.Tx) {
 			out, _ := crusherOutput(in)
 			if bonus, ok := crusherBonusOf(in); ok {
 				for range sgitem.CrusherBonus {
-					if s.rand.IntN(100) < sgitem.CrusherBonusChance {
+					if s.Rand.IntN(100) < sgitem.CrusherBonusChance {
 						out = out.Grow(bonus.Count())
 					}
 				}

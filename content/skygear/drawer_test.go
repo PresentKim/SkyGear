@@ -84,13 +84,13 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	top, mid, bottom := cube.Pos{1, 66, 1}, cube.Pos{1, 65, 1}, cube.Pos{1, 64, 1}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
 		tx.SetBlock(top, block.NewHopper(), nil)
 		_, _ = tx.Block(top).(block.Hopper).Inventory(tx, top).AddItem(item.NewStack(item.Wheat{}, 10))
 	})
 	tick(s, 20*12)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		d := tx.Block(mid).(Drawer)
 		if d.Count != 10 {
 			t.Fatalf("drawer count = %d after hopper input, want 10", d.Count)
@@ -113,7 +113,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		tx.SetBlock(bottom, block.NewHopper(), nil)
 	})
 	tick(s, 20*12)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if d := tx.Block(mid).(Drawer); d.Count != 0 {
 			t.Fatalf("hopper below did not empty the drawer (%d left)", d.Count)
 		}
@@ -121,7 +121,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		tx.SetBlock(mid, nil, nil)
 	})
 	tick(s, 2)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for e := range tx.Entities() {
 			if _, ok := e.(*ItemHolder); ok {
 				t.Fatal("display entity outlived its drawer")
@@ -133,7 +133,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
 	})
 	tick(s, 2)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		n := 0
 		for e := range tx.Entities() {
 			if _, ok := e.(*ItemHolder); ok {
@@ -152,7 +152,7 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	drawerPos := cube.Pos{0, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South}, nil)
 	})
 	h := spawnPlayer(s)
@@ -173,7 +173,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) { tx.SetBlock(pos, Drawer{Facing: cube.South}, nil) })
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, Drawer{Facing: cube.South}, nil) })
 	h := spawnPlayer(s)
 	use := func(p *player.Player) { p.UseItemOnBlock(pos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1}) }
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
@@ -204,7 +204,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
 		use(p) // insert dirt
 		p.SetHeldItems(item.NewStack(sgitem.DrawerKey{}, 1), item.Stack{})
-		s.lastOpen = nil
+		s.ForgetOpens()
 		use(p)
 		if d := tx.Block(pos).(Drawer); !d.Locked {
 			t.Fatalf("not locked by the key: %+v", d)
@@ -251,7 +251,7 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Locked: true}, nil)
 	})
 	h := spawnPlayer(s)
@@ -291,7 +291,7 @@ func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	d1, d2 := cube.Pos{0, IslandY, 0}, cube.Pos{2, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(d1, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(d2, Drawer{Facing: cube.South}, nil)
 	})
@@ -346,7 +346,7 @@ func TestDrawerPunchFullInventoryDrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}, nil)
 	})
 	h := spawnPlayer(s)
@@ -400,7 +400,7 @@ func TestDrawerMenuSlots(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := cube.Pos{0, IslandY, 0}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
 	})
 	h := spawnPlayer(s)
@@ -454,7 +454,7 @@ func TestStorageController(t *testing.T) {
 	loadAround(s)
 	ctl := machinePos
 	placeTestMachine(s, ctl, KindStorageController, "")
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
@@ -512,7 +512,7 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 	loadAround(s)
 	ctl := machinePos
 	placeTestMachine(s, ctl, KindStorageController, "")
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
@@ -565,11 +565,11 @@ func TestControllerSneakClickOpensList(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
 		for _, held := range []item.Stack{item.NewStack(block.Stone{}, 5), {}} {
-			delete(s.lastOpen, p.H())
+			s.ForgetOpen(p)
 			if !useBlock(s, tx, p, ctl, held, true) {
 				t.Fatalf("sneaking with %v: the click was not taken", held)
 			}
-			if _, ok := s.lastOpen[p.H()]; !ok {
+			if ok := s.Opened(p); !ok {
 				t.Errorf("sneaking with %v: the list did not open", held)
 			}
 		}
@@ -599,7 +599,7 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 		if !useBlock(s, tx, p, ctl, item.Stack{}, false) {
 			t.Fatal("the empty hand click was not taken")
 		}
-		if _, ok := s.lastOpen[p.H()]; ok {
+		if ok := s.Opened(p); ok {
 			t.Error("a click without sneaking opened the list")
 		}
 	})

@@ -98,14 +98,14 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		_ = h.Inventory(tx, pos).SetItem(0, it)
 		tx.SetBlock(pos, h, nil)
 	}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(compPos, block.Composter{}, nil)
 		tx.SetBlock(barrelPos, Barrel{Wood: "oak"}, nil)
 		hopperAt(tx, compPos.Side(cube.FaceUp), item.NewStack(block.Leaves{Type: block.OakLeaves()}, 3))
 		hopperAt(tx, barrelPos.Side(cube.FaceUp), item.NewStack(sgitem.BarkFiber{}, 2))
 	})
 	tick(s, 20*3)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if n := s.composterCount(compPos, tx.Block(compPos).(block.Composter)); n != 3 {
 			t.Errorf("the composter holds %d, want 3", n)
 		}
@@ -115,7 +115,7 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 	})
 	// A full composter with a hopper under it and a chest under that.
 	full, chestPos := cube.Pos{10, IslandY + 3, 2}, cube.Pos{10, IslandY + 1, 2}
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(full, block.Composter{Level: composterLevels}, nil)
 		s.setComposterCount(full, matterCapacity)
 		h := block.NewHopper()
@@ -124,7 +124,7 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		tx.SetBlock(chestPos, block.NewChest(), nil)
 	})
 	tick(s, 20*3)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if !tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos).ContainsItem(item.NewStack(block.Dirt{}, 1)) {
 			t.Error("the hopper did not take the dirt out of the full composter")
 		}

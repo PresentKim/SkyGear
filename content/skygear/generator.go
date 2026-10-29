@@ -83,7 +83,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 			_ = st.inv().SetItem(slot, fuel.Grow(-1))
 			if !residue.Empty() {
 				if left, _ := st.inv().AddItem(residue); left < residue.Count() {
-					s.dropAt(tx, pos.Vec3Centre(), residue)
+					s.DropAt(tx, pos.Vec3Centre(), residue)
 				}
 			}
 			st.burn, st.burnMax = d, d

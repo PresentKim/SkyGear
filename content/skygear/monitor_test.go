@@ -15,7 +15,7 @@ import (
 // runSeconds runs the monitor's second n times.
 func runSeconds(s *session, n int) {
 	for range n {
-		s.world.Do(func(tx *world.Tx) { s.tickMonitor(tx) })
+		s.World.Do(func(tx *world.Tx) { s.tickMonitor(tx) })
 	}
 }
 

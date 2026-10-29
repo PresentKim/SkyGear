@@ -285,7 +285,7 @@ func (s *session) usePlate(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 		return false
 	}
 	// One click sends several use events; only the first opens a form.
-	if !s.debounced(p) {
+	if !s.Debounced(p) {
 		s.showPlateForm(p, tx, at, side)
 	}
 	return true
@@ -308,13 +308,13 @@ func (b ConduitBundle) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u it
 		return false
 	}
 	if len(plateKinds(tx, pos, b, faceIndex(face))) > 0 {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			s.showPlateForm(p, tx, pos, faceIndex(face))
 		}
 		return true
 	}
 	if bundleHasPlate(tx, pos, b) {
-		if !s.debounced(p) {
+		if !s.Debounced(p) {
 			if side, found := s.nextPlateSide(p, tx, pos, b); found {
 				s.showPlateForm(p, tx, pos, side)
 			}

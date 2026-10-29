@@ -60,7 +60,7 @@ func (s *session) magicDrops(in item.Stack, mesh, mob string) (out []item.Stack,
 		out = s.sieveDrops(in, mesh)
 	}
 	for _, d := range theme.Adds[key] {
-		if s.rand.Float64()*1000 < sievetable.ThemeChance(d, mesh, mob) {
+		if s.Rand.Float64()*1000 < sievetable.ThemeChance(d, mesh, mob) {
 			out = append(out, d.Item)
 			if d.Rare {
 				rare++

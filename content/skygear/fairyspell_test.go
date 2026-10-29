@@ -15,7 +15,7 @@ import (
 func cast(t *testing.T, s *session, weather string) bool {
 	t.Helper()
 	var ok bool
-	s.world.Do(func(tx *world.Tx) { ok = s.castWeather(tx, weather) })
+	s.World.Do(func(tx *world.Tx) { ok = s.castWeather(tx, weather) })
 	return ok
 }
 
@@ -24,7 +24,7 @@ func cast(t *testing.T, s *session, weather string) bool {
 func TestRainGrowsFaster(t *testing.T) {
 	s := testSession(t)
 	start := s.growNow()
-	s.clock.Advance(time.Minute)
+	s.Clock.Advance(time.Minute)
 	if got := s.growNow() - start; got != time.Minute {
 		t.Fatalf("clear: grew %v in a minute", got)
 	}
@@ -32,15 +32,15 @@ func TestRainGrowsFaster(t *testing.T) {
 		t.Fatal("rain was not cast")
 	}
 	start = s.growNow()
-	s.clock.Advance(time.Minute)
+	s.Clock.Advance(time.Minute)
 	if got := s.growNow() - start; got != 90*time.Second {
 		t.Fatalf("rain: grew %v in a minute", got)
 	}
 	// the rain ends within the next stretch
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	left := s.state.WeatherUntil - now
 	start = s.growNow()
-	s.clock.Advance(left + time.Minute)
+	s.Clock.Advance(left + time.Minute)
 	if got, want := s.growNow()-start, left*3/2+time.Minute; got != want {
 		t.Fatalf("rain running out: grew %v, want %v", got, want)
 	}
@@ -50,17 +50,17 @@ func TestRainGrowsFaster(t *testing.T) {
 // clear ends it, and clear when clear costs nothing.
 func TestWeatherSpells(t *testing.T) {
 	s := testSession(t)
-	span := spellDays * s.clock.DayLength()
+	span := spellDays * s.Clock.DayLength()
 	if cast(t, s, "") {
 		t.Fatal("clear was cast on a clear day")
 	}
 	cast(t, s, weatherRain)
 	cast(t, s, weatherRain)
-	if now, _, _ := s.clock.Now(); s.state.WeatherUntil != now+2*span {
+	if now, _, _ := s.Clock.Now(); s.state.WeatherUntil != now+2*span {
 		t.Fatalf("rain twice ends at %v", s.state.WeatherUntil)
 	}
 	cast(t, s, weatherSnow)
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	if s.weatherNow(now) != weatherSnow || s.state.WeatherUntil != now+span || !s.snow {
 		t.Fatalf("snow over rain: %q until %v", s.state.Weather, s.state.WeatherUntil)
 	}
@@ -68,8 +68,8 @@ func TestWeatherSpells(t *testing.T) {
 		t.Fatal("clear did not end the snow")
 	}
 	cast(t, s, weatherSnow)
-	s.clock.Advance(span)
-	s.world.Do(func(tx *world.Tx) { s.tickEnvironment(tx) })
+	s.Clock.Advance(span)
+	s.World.Do(func(tx *world.Tx) { s.tickEnvironment(tx) })
 	if s.state.Weather != "" || s.snow {
 		t.Fatal("the snow did not run out")
 	}
@@ -102,8 +102,8 @@ func TestSnowRunsMachinesFaster(t *testing.T) {
 // spell for the sun it already has costs nothing.
 func TestSunSpells(t *testing.T) {
 	s := testSession(t)
-	s.clock.Advance(s.clock.DayLength() + s.clock.DayLength()/2)
-	s.world.Do(func(tx *world.Tx) {
+	s.Clock.Advance(s.Clock.DayLength() + s.Clock.DayLength()/2)
+	s.World.Do(func(tx *world.Tx) {
 		s.applySun(tx)
 		if got := tx.World().Time(); got != 24000+12000 || !tx.World().TimeCycle() {
 			t.Errorf("flowing sun at %d", got)
@@ -124,7 +124,7 @@ func TestRestoreBiome(t *testing.T) {
 	s.state.Chunks = []ChunkPos{{0, 0}}
 	snowy, plains := uint32(biome.SnowyPlains{}.EncodeBiome()), uint32(biome.Plains{}.EncodeBiome())
 	s.state.BaseBiome = &plains
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBiome(cube.Pos{3, IslandY, 3}, biome.SnowyPlains{})
 		tx.SetBiome(cube.Pos{-5, IslandY, 20}, biome.SnowyPlains{})
 		s.applyEnvironment(tx)

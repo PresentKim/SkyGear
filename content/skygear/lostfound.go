@@ -51,7 +51,7 @@ func (s *session) addLost(it item.Stack) {
 	if it.Empty() || timed.Expired(it) {
 		return
 	}
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	entry := &LostItem{Item: encodeItem(it)}
 	for i, l := range s.state.Lost {
 		// Compare decoded stacks: encoded NBT bytes are not canonical.
@@ -69,10 +69,10 @@ func (s *session) addLost(it item.Stack) {
 // purgeLost removes entries whose last drop is older than one instance day
 // and time-limited items whose time is up.
 func (s *session) purgeLost() {
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	keep := s.state.Lost[:0]
 	for _, l := range s.state.Lost {
-		if now-l.LastDropped < s.clock.DayLength() && !timed.Expired(l.decoded()) {
+		if now-l.LastDropped < s.Clock.DayLength() && !timed.Expired(l.decoded()) {
 			keep = append(keep, l)
 		}
 	}

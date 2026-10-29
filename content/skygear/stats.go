@@ -227,7 +227,7 @@ func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
 	}
 	mk := func(label string, t statsTab) ui.Option {
 		return ui.Tab(label, icons[t], tab == t, func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
+			if tx.World() == s.World {
 				s.showStatsPage(p, t)
 			}
 		})

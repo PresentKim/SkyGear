@@ -24,7 +24,7 @@ import (
 // this session's world: session state belongs to that world.
 func (s *session) opt(label, icon string, run func(p *player.Player, tx *world.Tx)) ui.Option {
 	return ui.Option{Label: label, Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.world {
+		if tx.World() == s.World {
 			run(p, tx)
 		}
 	}}
@@ -63,7 +63,7 @@ func (s *session) MenuBack(p *player.Player, from string) {
 func (s *session) showIslandManage(p *player.Player) {
 	lang := i18n.Of(p)
 	var opts []ui.Option
-	host := instance.AccountID(p) == s.hostID
+	host := instance.AccountID(p) == s.HostID
 	if host {
 		opts = append(opts, s.opt(i18n.T(lang, "island.manage.invite"), "textures/ui/sg/icon_invite", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/invite") }))
 	}
@@ -183,7 +183,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 			Count: ui.CountText(l.Count),
 			Tip:   fmt.Sprintf(i18n.T(lang, "lost.entry"), naming.UIItemName(lang, it), textfmt.Int(int64(l.Count))),
 			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() != s.world {
+				if tx.World() != s.World {
 					return
 				}
 				if s.takeLost(p, l) {

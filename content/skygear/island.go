@@ -120,7 +120,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		account.Grant(p, achievement.Chunks10)
 	}
 	s.keepLoaded(tx, c)
-	s.storeState()
+	s.MarkDirty()
 	s.advance(tx, advancement.Chunk)
 	if len(s.state.Chunks) >= 8 {
 		s.advance(tx, advancement.Chunks8)
@@ -128,7 +128,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	if len(s.state.Chunks) >= 16 {
 		s.advance(tx, advancement.Chunks16)
 	}
-	s.broadcast(tx, "island.chunk.bought", p.Name(), c[0], c[1], len(s.state.Chunks))
+	s.Broadcast(tx, "island.chunk.bought", p.Name(), c[0], c[1], len(s.state.Chunks))
 }
 
 // keepLoaded keeps an owned chunk loaded and ticking while the instance is

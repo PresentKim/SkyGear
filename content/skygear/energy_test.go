@@ -21,7 +21,7 @@ import (
 func runSteps(s *session, n int) {
 	for range n {
 		tick(s, 4)
-		s.world.Do(func(tx *world.Tx) { s.Fast(tx) })
+		s.World.Do(func(tx *world.Tx) { s.Fast(tx) })
 	}
 }
 
@@ -71,7 +71,7 @@ func TestPowerLine(t *testing.T) {
 	gen.unlimited = false
 	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrusher, "")
 	crusher.unlimited = false
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Energy: 1}, nil)
 		tx.SetBlock(machinePos.Add(cube.Pos{2, 0, 0}), ConduitBundle{Energy: 1}, nil)
 	})
@@ -92,7 +92,7 @@ func TestPowerLine(t *testing.T) {
 		t.Errorf("the powered crusher made no gravel (energy %d, progress %d)", crusher.energy, crusher.progress)
 	}
 	// The conduits showed their arms.
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		c := tx.Block(machinePos.Add(cube.Pos{1, 0, 0})).(ConduitBundle)
 		want := 1<<4 | 1<<5 // west (the generator) and east (the next conduit)
 		if c.EConn != want || c.IConn != 0 {
@@ -109,7 +109,7 @@ func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 	loadAround(s)
 	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), KindCrusher, "")
 	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), KindSieve, "")
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if joinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
 			t.Error("a conduit joins a hand sieve")
 		}
@@ -176,7 +176,7 @@ func TestItemConduitMovesItems(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	from, mid, to := machinePos, machinePos.Add(cube.Pos{1, 0, 0}), machinePos.Add(cube.Pos{2, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(from, block.NewChest(), nil)
 		tx.SetBlock(to, block.NewChest(), nil)
 		_, _ = tx.Block(from).(block.Chest).Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 64))
@@ -186,7 +186,7 @@ func TestItemConduitMovesItems(t *testing.T) {
 		tx.SetBlock(mid, c, nil)
 	})
 	runSteps(s, 5)
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		got := 0
 		for _, st := range tx.Block(to).(block.Chest).Inventory(tx, to).Slots() {
 			got += st.Count()
@@ -377,7 +377,7 @@ func TestConduitPlates(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos, block.NewChest(), nil)
 		b := ConduitBundle{Item: 1, Energy: 1}
 		b.Modes[cube.FaceWest] = itemnet.Input

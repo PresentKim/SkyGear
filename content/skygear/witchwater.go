@@ -158,12 +158,12 @@ func (s *session) mixBarrel(tx *world.Tx, pos cube.Pos, b Barrel, out world.Item
 		s.forgetEmptyStone(pos, rec)
 	default:
 		if rec != nil && rec.Clay > 0 {
-			s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, rec.Clay))
+			s.DropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, rec.Clay))
 		}
 		delete(s.state.Barrels, cropKey(pos))
 	}
 	s.showBarrel(tx, pos, b)
-	s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(out, 1))
+	s.DropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(out, 1))
 	tx.PlaySound(pos.Vec3Centre(), sound.Fizz{})
 }
 

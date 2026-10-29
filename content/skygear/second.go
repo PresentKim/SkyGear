@@ -22,7 +22,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.updateBoards(tx)
 	countAll(tx, "play_seconds", 1)
 	grantCollection(held)
-	if s.stateDirty {
-		s.flushState()
+	if s.Dirty() {
+		s.Flush()
 	}
 }

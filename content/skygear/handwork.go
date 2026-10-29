@@ -43,8 +43,8 @@ func (s *session) tillSeeds(p *player.Player, tx *world.Tx, pos cube.Pos, face c
 	if _, air := tx.Block(pos.Side(cube.FaceUp)).(block.Air); !air {
 		return
 	}
-	if s.rand.IntN(100) < grassSeedChance {
-		s.dropAt(tx, pos.Side(cube.FaceUp).Vec3Centre(), item.NewStack(sgitem.GrassSeeds{}, 1))
+	if s.Rand.IntN(100) < grassSeedChance {
+		s.DropAt(tx, pos.Side(cube.FaceUp).Vec3Centre(), item.NewStack(sgitem.GrassSeeds{}, 1))
 	}
 }
 
@@ -54,7 +54,7 @@ func (s *session) rollPebble() sgitem.Pebble {
 	for _, k := range sgitem.PebbleKinds {
 		total += k.Weight
 	}
-	n := s.rand.IntN(total)
+	n := s.Rand.IntN(total)
 	for _, k := range sgitem.PebbleKinds {
 		if n < k.Weight {
 			return sgitem.Pebble{Kind: k.Kind}
@@ -107,7 +107,7 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
 	pebble := s.rollPebble()
 	count(p, "pebble_"+pebble.Kind, 1)
-	s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(pebble, 1))
+	s.DropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(pebble, 1))
 	return true
 }
 
@@ -125,8 +125,8 @@ func (s *session) stripFiber(p *player.Player, tx *world.Tx, pos cube.Pos, face 
 	if axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
 		return
 	}
-	if s.rand.IntN(100) < fiberChance {
-		s.dropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(sgitem.BarkFiber{}, 1+s.rand.IntN(2)))
+	if s.Rand.IntN(100) < fiberChance {
+		s.DropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(sgitem.BarkFiber{}, 1+s.Rand.IntN(2)))
 	}
 }
 

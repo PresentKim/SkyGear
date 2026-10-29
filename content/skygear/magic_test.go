@@ -118,7 +118,7 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindHarvester, "")
 	bloom, bud := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 0})
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		for _, at := range []cube.Pos{bloom, bud} {
 			tx.SetBlock(at.Side(cube.FaceDown), block.Dirt{}, nil)
 		}
@@ -126,7 +126,7 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 		tx.SetBlock(bud, MagicPlant{Kind: "ore_iron"}, nil)
 	})
 	tick(s, 2*(machineKinds[KindHarvester].interval+1))
-	s.world.Do(func(tx *world.Tx) {
+	s.World.Do(func(tx *world.Tx) {
 		if mp, ok := tx.Block(bloom).(MagicPlant); !ok || mp.Bloom {
 			t.Fatalf("the bloom was not picked: %#v", tx.Block(bloom))
 		}

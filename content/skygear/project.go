@@ -56,7 +56,7 @@ func (s *session) completeDragon(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	s.advance(tx, advancement.Dragon)
-	s.broadcast(tx, "project.dragon.done", p.Name())
+	s.Broadcast(tx, "project.dragon.done", p.Name())
 	c := pos.Vec3Centre()
 	for range 24 {
 		at := c.Add(mgl64.Vec3{rand.Float64()*4 - 2, rand.Float64() * 3, rand.Float64()*4 - 2})

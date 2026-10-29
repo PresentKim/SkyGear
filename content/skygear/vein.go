@@ -94,7 +94,7 @@ const veinDiagonalSetting = "vein_diagonal"
 func (s *session) toggleVeinDiagonal(p *player.Player) {
 	on, err := account.Toggle(p, veinDiagonalSetting)
 	if err != nil {
-		s.g.log.Error("store setting", "player", p.Name(), "err", err)
+		s.Log.Error("store setting", "player", p.Name(), "err", err)
 	}
 	key := "hammer.diagonal.off"
 	if on {
@@ -177,7 +177,7 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	}
 	for _, drop := range drops {
 		for n := drop.Count(); n > 0; n -= drop.MaxCount() {
-			s.dropAt(tx, pos.Vec3Centre(), drop.Grow(min(n, drop.MaxCount())-drop.Count()))
+			s.DropAt(tx, pos.Vec3Centre(), drop.Grow(min(n, drop.MaxCount())-drop.Count()))
 		}
 	}
 	if broken > 0 {

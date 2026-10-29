@@ -50,7 +50,7 @@ func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 func (s *session) harvestByHand(tx *world.Tx, pos cube.Pos, b, after world.Block) {
 	if br, ok := b.(block.Breakable); ok && br.BreakInfo().Drops != nil {
 		for _, st := range br.BreakInfo().Drops(item.ToolNone{}, nil) {
-			s.dropAt(tx, pos.Vec3Centre(), st)
+			s.DropAt(tx, pos.Vec3Centre(), st)
 		}
 	}
 	tx.SetBlock(pos, after, nil)

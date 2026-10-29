@@ -315,7 +315,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			}
 		}
 		s.mixBarrel(tx, pos, b, out)
-		s.storeState()
+		s.MarkDirty()
 		return true
 	}
 	if stone {
@@ -336,7 +336,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			delete(s.state.Barrels, key)
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
-			s.storeState()
+			s.MarkDirty()
 		}
 		return true
 	case rec != nil && rec.Water:
@@ -359,7 +359,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 			delete(s.state.Barrels, key)
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})
-			s.storeState()
+			s.MarkDirty()
 			return true
 		}
 		p.SendTip(i18n.T(i18n.Of(p), "barrel.full.water"))
@@ -373,7 +373,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		s.state.Barrels[key] = &poured
 		s.showBarrel(tx, pos, b)
 		tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: liq})
-		s.storeState()
+		s.MarkDirty()
 		return true
 	case rec != nil && rec.Count >= capacity:
 		p.SendTip(i18n.T(i18n.Of(p), "barrel.busy"))
@@ -413,7 +413,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 		s.forgetEmptyStone(pos, rec)
 		s.showBarrel(tx, pos, b)
 		tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})
-		s.storeState()
+		s.MarkDirty()
 		return true
 	}
 	if wb, ok := held.Item().(sgitem.WoodenBucket); ok && !wb.Water {
@@ -432,7 +432,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 		rec.LavaMB += bucketMB
 		s.showBarrel(tx, pos, b)
 		tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Lava{}})
-		s.storeState()
+		s.MarkDirty()
 		return true
 	}
 	if barrelAccepts(b.Wood, held) {
@@ -541,7 +541,7 @@ func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack
 	tx.AddParticle(pos.Vec3Centre().Add([3]float64{0, 0.4, 0}), particle.BoneMeal{})
 	switch {
 	case rec.Count >= capacity:
-		now, _, _ := s.clock.Now()
+		now, _, _ := s.Clock.Now()
 		rec.ReadyAt = now + barrelWaterDelay
 		tx.PlaySound(pos.Vec3Centre(), sound.ComposterReady{})
 	case barrelStageOf(b.Wood, rec) != before:
@@ -550,7 +550,7 @@ func (s *session) fillBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.Stack
 		tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
 	}
 	s.showBarrel(tx, pos, b)
-	s.storeState()
+	s.MarkDirty()
 	return n
 }
 
@@ -572,12 +572,12 @@ func (s *session) fillStoneBarrel(tx *world.Tx, pos cube.Pos, b Barrel, st item.
 	rec := s.stoneBarrel(pos)
 	if rec.Solids == 0 {
 		// The melting is counted from now: solids that were not there did not melt.
-		rec.MeltAt, _, _ = s.clock.Now()
+		rec.MeltAt, _, _ = s.Clock.Now()
 	}
 	rec.Solids += n * stoneMeltMB
 	tx.PlaySound(pos.Vec3Centre(), sound.ComposterFill{})
 	s.showBarrel(tx, pos, b)
-	s.storeState()
+	s.MarkDirty()
 	return n
 }
 
@@ -595,7 +595,7 @@ func (s *session) soakDust(tx *world.Tx, pos cube.Pos, rec *BarrelRecord, st ite
 	}
 	rec.Clay += n
 	tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
-	s.storeState()
+	s.MarkDirty()
 	return n
 }
 
@@ -629,7 +629,7 @@ func (b Barrel) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.St
 	}
 	n = min(n, rec.Clay)
 	rec.Clay -= n
-	s.storeState()
+	s.MarkDirty()
 	return item.NewStack(block.Clay{}, n)
 }
 
@@ -648,7 +648,7 @@ func (s *session) tickBarrels(tx *world.Tx) {
 	if len(s.state.Barrels) == 0 {
 		return
 	}
-	now, _, _ := s.clock.Now()
+	now, _, _ := s.Clock.Now()
 	changed := false
 	for key, rec := range s.state.Barrels {
 		pos, ok := parseCropKey(key)
@@ -681,7 +681,7 @@ func (s *session) tickBarrels(tx *world.Tx) {
 		}
 	}
 	if changed {
-		s.storeState()
+		s.MarkDirty()
 	}
 }
 
@@ -760,7 +760,7 @@ func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string 
 	case rec != nil && rec.Witch:
 		return nil
 	case rec != nil && rec.Water && rec.WitchAt > 0:
-		now, _, _ := s.clock.Now()
+		now, _, _ := s.Clock.Now()
 		left := max(rec.WitchAt-now, 0).Round(time.Second)
 		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.toWitch"), int(left.Minutes()), int(left.Seconds())%60)}
 	case rec == nil || rec.Count == 0:
@@ -770,7 +770,7 @@ func (s *session) barrelLines(lang string, tx *world.Tx, pos cube.Pos) []string 
 	case rec.Water:
 		return nil
 	case rec.Count >= matterCapacity:
-		now, _, _ := s.clock.Now()
+		now, _, _ := s.Clock.Now()
 		left := max(rec.ReadyAt-now, 0).Round(time.Second)
 		return []string{fmt.Sprintf(i18n.T(lang, "barrel.lines.water"), int(left.Minutes()), int(left.Seconds())%60)}
 	}
@@ -842,7 +842,7 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 			rec.LavaMB -= n
 			s.forgetEmptyStone(pos, rec)
 			s.showBarrel(tx, pos, b)
-			s.storeState()
+			s.MarkDirty()
 		}
 		return fluidnet.Lava, n
 	}
@@ -853,7 +853,7 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 	if !simulate {
 		delete(s.state.Barrels, cropKey(pos))
 		s.showBarrel(tx, pos, b)
-		s.storeState()
+		s.MarkDirty()
 	}
 	return k, bucketMB
 }
