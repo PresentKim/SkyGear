@@ -2,9 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"strings"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/climate"
 
@@ -238,20 +240,20 @@ func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	if c.Level < 1 || c.Level > len(waveLevels) {
-		o.Errorf("level 1-%d", len(waveLevels))
+	if c.Level < 1 || c.Level > len(wave.Levels) {
+		o.Errorf("level 1-%d", len(wave.Levels))
 		return
 	}
 	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
 	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
 		tx.SetBlock(pos, machine.New(machine.KindGate, "", ""), nil)
 	}
-	s.state.GateTier = max(s.state.GateTier, c.Level-1)
-	if !s.startWave(tx, pos, p.Position(), c.Level) {
+	wave.StateOf(s.Session).GateTier = max(wave.StateOf(s.Session).GateTier, c.Level-1)
+	if !wave.Start(s.Session, tx, pos, p.Position(), c.Level) {
 		o.Error("a wave is already going on")
 		return
 	}
-	o.Printf("wave %d started with %d monsters", c.Level, len(s.wave.left)+len(s.wave.pending))
+	o.Printf("wave %d started with %d monsters", c.Level, len(wave.LocalOf(s.Session).Wave.Left)+len(wave.LocalOf(s.Session).Wave.Pending))
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random

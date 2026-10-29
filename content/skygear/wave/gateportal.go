@@ -1,4 +1,4 @@
-package skygear
+package wave
 
 import (
 	"math"
@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core"
 )
 
 // The gate: starting a wave opens a slowly turning round portal over the
@@ -13,38 +14,41 @@ import (
 // monsters come out of it every gatePortalEvery and walk out the way it faces
 // before going for the players. It closes when the wave ends.
 
-// gatePortalEvery is how many Fast calls (0.2 s each) pass between two
+// GatePortalEvery is how many Fast calls (0.2 s each) pass between two
 // monsters coming out of the gate.
-const gatePortalEvery = 1
+const GatePortalEvery = 1
 
-// gateExitTicks is how long a monster walks straight out of the gate.
-const gateExitTicks = 25
+// GateExitTicks is how long a monster walks straight out of the gate.
+const GateExitTicks = 25
 
 // GatePortal is the gate entity over the anchor. Variant is the wave level
 // minus one: the render controller picks the texture with it.
 type GatePortal struct {
 	tx     *world.Tx
-	handle *world.EntityHandle
-	data   *world.EntityData
+	Handle *world.EntityHandle
+	Data   *world.EntityData
 }
 
-type gatePortalData struct{ level int }
+type gatePortalData struct{ Level int }
 
-type gatePortalConfig struct{ level int }
+type gatePortalConfig struct{ Level int }
 
 func (c gatePortalConfig) Apply(data *world.EntityData) {
-	data.Data = &gatePortalData{level: c.level}
+	data.Data = &gatePortalData{Level: c.Level}
 }
 
-func (g *GatePortal) H() *world.EntityHandle  { return g.handle }
-func (g *GatePortal) Position() mgl64.Vec3    { return g.data.Pos }
-func (g *GatePortal) Rotation() cube.Rotation { return g.data.Rot }
-func (g *GatePortal) Variant() int32          { return int32(g.data.Data.(*gatePortalData).level - 1) }
+func (g *GatePortal) H() *world.EntityHandle { return g.Handle }
+
+func (g *GatePortal) Position() mgl64.Vec3 { return g.Data.Pos }
+
+func (g *GatePortal) Rotation() cube.Rotation { return g.Data.Rot }
+
+func (g *GatePortal) Variant() int32 { return int32(g.Data.Data.(*gatePortalData).Level - 1) }
 
 // Tick closes a gate that no wave holds (left from an earlier session).
 func (g *GatePortal) Tick(tx *world.Tx, _ int64) {
-	s, ok := activeGame.sessionOf(tx.World())
-	if !ok || s.wave == nil || s.wave.portal != g.handle {
+	s, ok := core.Of(tx)
+	if !ok || LocalOf(s).Wave == nil || LocalOf(s).Wave.Portal != g.Handle {
 		_ = g.Close()
 	}
 }
@@ -53,7 +57,7 @@ func (g *GatePortal) Tick(tx *world.Tx, _ int64) {
 // still in a world cannot close, as when its chunk unloads).
 func (g *GatePortal) Close() error {
 	g.tx.RemoveEntity(g)
-	return g.handle.Close()
+	return g.Handle.Close()
 }
 
 // GatePortalType is the world.EntityType of GatePortal.
@@ -63,15 +67,19 @@ type gatePortalType struct{}
 
 func (gatePortalType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
-		data.Data = &gatePortalData{level: 1}
+		data.Data = &gatePortalData{Level: 1}
 	}
-	return &GatePortal{tx: tx, handle: handle, data: data}
+	return &GatePortal{tx: tx, Handle: handle, Data: data}
 }
-func (gatePortalType) EncodeEntity() string        { return "skygear:gate_portal" }
+
+func (gatePortalType) EncodeEntity() string { return "skygear:gate_portal" }
+
 func (gatePortalType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
+
 func (gatePortalType) DecodeNBT(_ map[string]any, d *world.EntityData) {
-	d.Data = &gatePortalData{level: 1}
+	d.Data = &gatePortalData{Level: 1}
 }
+
 func (gatePortalType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
 // gateFacing is the way out of the gate at anchor towards a player at from:
@@ -91,54 +99,54 @@ func gateFacing(anchor cube.Pos, from mgl64.Vec3) mgl64.Vec3 {
 func dirYaw(dir mgl64.Vec3) float64 { return mgl64.RadToDeg(math.Atan2(-dir[0], dir[2])) }
 
 // openGatePortal opens the gate of a wave over its anchor, facing out.
-func (s *session) openGatePortal(tx *world.Tx, w *waveState) {
-	h := world.EntitySpawnOpts{Position: w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(w.out), 0}}.New(GatePortalType, gatePortalConfig{level: w.level})
+func openGatePortal(s *core.Session, tx *world.Tx, w *State) {
+	h := world.EntitySpawnOpts{Position: w.Gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(w.Out), 0}}.New(GatePortalType, gatePortalConfig{Level: w.Level})
 	tx.AddEntity(h)
-	w.portal = h
+	w.Portal = h
 }
 
-func (s *session) closeGatePortal(tx *world.Tx, w *waveState) {
-	if w.portal == nil {
+func closeGatePortal(s *core.Session, tx *world.Tx, w *State) {
+	if w.Portal == nil {
 		return
 	}
-	if e, ok := w.portal.Entity(tx); ok {
+	if e, ok := w.Portal.Entity(tx); ok {
 		tx.RemoveEntity(e)
 	}
-	_ = w.portal.Close()
-	w.portal = nil
+	_ = w.Portal.Close()
+	w.Portal = nil
 }
 
 // returnToGate takes back a monster of the wave that fell into the void: it
 // comes out of the gate again, unhurt by the fall and with the health it had.
-func (s *session) returnToGate(tx *world.Tx, m *Monster) {
-	w := s.wave
-	d := m.md()
+func returnToGate(s *core.Session, tx *world.Tx, m *Monster) {
+	w := LocalOf(s).Wave
+	d := m.Md()
 	d.vel, d.onGround = mgl64.Vec3{}, false
-	d.exit, d.exitTicks = w.out, gateExitTicks
-	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
-	m.data.Pos = w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.out.Mul(0.6)).Add(side)
-	m.data.Rot = cube.Rotation{dirYaw(w.out), 0}
-	for _, v := range tx.Viewers(m.data.Pos) {
-		v.ViewEntityTeleport(m, m.data.Pos)
+	d.exit, d.ExitTicks = w.Out, GateExitTicks
+	side := mgl64.Vec3{w.Out[2], 0, -w.Out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
+	m.Data.Pos = w.Gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.Out.Mul(0.6)).Add(side)
+	m.Data.Rot = cube.Rotation{dirYaw(w.Out), 0}
+	for _, v := range tx.Viewers(m.Data.Pos) {
+		v.ViewEntityTeleport(m, m.Data.Pos)
 	}
 }
 
-// emergeMonsters lets the next monster of the wave out of the gate, every
+// EmergeMonsters lets the next monster of the wave out of the gate, every
 // gatePortalEvery calls (Fast).
-func (s *session) emergeMonsters(tx *world.Tx) {
-	w := s.wave
-	if w == nil || len(w.pending) == 0 {
+func EmergeMonsters(s *core.Session, tx *world.Tx) {
+	w := LocalOf(s).Wave
+	if w == nil || len(w.Pending) == 0 {
 		return
 	}
-	if w.emerge++; w.emerge < gatePortalEvery {
+	if w.emerge++; w.emerge < GatePortalEvery {
 		return
 	}
 	w.emerge = 0
-	mob := w.pending[0]
-	w.pending = w.pending[1:]
-	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
-	at := w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.out.Mul(0.6)).Add(side)
-	h := world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{dirYaw(w.out), 0}}.New(monsterTypes[mob], monsterConfig{mob: mob, exit: w.out})
-	w.left[h] = mob
+	mob := w.Pending[0]
+	w.Pending = w.Pending[1:]
+	side := mgl64.Vec3{w.Out[2], 0, -w.Out[0]}.Mul(s.Rand.Float64()*1.2 - 0.6)
+	at := w.Gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.Out.Mul(0.6)).Add(side)
+	h := world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{dirYaw(w.Out), 0}}.New(MobTypes[mob], MonsterConfig{Mob: mob, exit: w.Out})
+	w.Left[h] = mob
 	tx.AddEntity(h)
 }

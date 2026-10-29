@@ -1,8 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/farm"
 
@@ -179,7 +181,7 @@ func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
-	if m, ok := e.(*Monster); ok {
+	if m, ok := e.(*wave.Monster); ok {
 		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
 		ctx.Cancel()
 		p := ctx.Player()

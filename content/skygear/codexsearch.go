@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"slices"
 	"strings"
 	"sync"
@@ -175,7 +176,7 @@ func codexRelevant() map[string]bool {
 			add(d.Item)
 		}
 	}
-	for _, w := range waveLevels {
+	for _, w := range wave.Levels {
 		for _, r := range w.Reward {
 			add(r.Item())
 		}

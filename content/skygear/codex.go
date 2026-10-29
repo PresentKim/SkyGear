@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -109,7 +110,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	for _, mob := range sgitem.MobKinds {
 		for _, d := range sgitem.SimDrops[mob] {
 			if naming.ItemKey(d.Item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), mobName(lang, mob), d.Chance))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), wave.MobName(lang, mob), d.Chance))
 			}
 		}
 	}
@@ -117,7 +118,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 		for _, in := range codexSieveInputs() {
 			for _, d := range sievetable.MagicThemes[mob].Adds[naming.ItemKey(in)] {
 				if naming.ItemKey(d.Item.Item()) == k {
-					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), mobName(lang, mob), n1(lang, in), textfmt.Permille(d.Permille)))
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), wave.MobName(lang, mob), n1(lang, in), textfmt.Permille(d.Permille)))
 				}
 			}
 		}
@@ -125,7 +126,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	if _, ok := it.Item().(sgitem.Essence); ok {
 		out = append(out, i18n.T(lang, "codex.src.waveDrop"))
 	}
-	for i, w := range waveLevels {
+	for i, w := range wave.Levels {
 		for _, r := range w.Reward {
 			if naming.ItemKey(r.Item()) == k {
 				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.wave"), i+1))
@@ -195,7 +196,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), naming.UIItemName(lang, got)))
 	}
 	if e, ok := it.Item().(sgitem.Essence); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), mobName(lang, e.Mob)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), wave.MobName(lang, e.Mob)))
 	}
 	if machine.FuelDuration(it) > 0 {
 		out = append(out, i18n.T(lang, "codex.use.fuel"))

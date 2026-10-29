@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/fairy"
 	"sync"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
 

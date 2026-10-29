@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"testing"
 	"time"
 
@@ -22,14 +23,14 @@ import (
 )
 
 // waveMonsters returns the live monsters of the wave.
-func waveMonsters(s *session, tx *world.Tx) []*Monster {
-	var out []*Monster
-	if s.wave == nil {
+func waveMonsters(s *session, tx *world.Tx) []*wave.Monster {
+	var out []*wave.Monster
+	if wave.LocalOf(s.Session).Wave == nil {
 		return out
 	}
-	for h := range s.wave.left {
+	for h := range wave.LocalOf(s.Session).Wave.Left {
 		if e, ok := h.Entity(tx); ok {
-			out = append(out, e.(*Monster))
+			out = append(out, e.(*wave.Monster))
 		}
 	}
 	return out
@@ -52,27 +53,27 @@ func TestWaveFlow(t *testing.T) {
 		}
 		placeTestMachine(s, gate, machine.KindGate, "")
 		p.Teleport(gate.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}))
-		if s.startWave(tx, gate, p.Position(), 2) {
+		if wave.Start(s.Session, tx, gate, p.Position(), 2) {
 			t.Fatal("level 2 started before level 1 was cleared")
 		}
-		if !s.startWave(tx, gate, p.Position(), 1) {
+		if !wave.Start(s.Session, tx, gate, p.Position(), 1) {
 			t.Fatal("level 1 did not start")
 		}
-		if s.startWave(tx, gate, p.Position(), 1) {
+		if wave.Start(s.Session, tx, gate, p.Position(), 1) {
 			t.Error("two waves at once")
 		}
-		if s.wave.portal == nil || len(s.wave.left) != 0 || len(s.wave.pending) != 4 {
-			t.Fatalf("the gate opened with %d monsters out and %d to come", len(s.wave.left), len(s.wave.pending))
+		if wave.LocalOf(s.Session).Wave.Portal == nil || len(wave.LocalOf(s.Session).Wave.Left) != 0 || len(wave.LocalOf(s.Session).Wave.Pending) != 4 {
+			t.Fatalf("the gate opened with %d monsters out and %d to come", len(wave.LocalOf(s.Session).Wave.Left), len(wave.LocalOf(s.Session).Wave.Pending))
 		}
-		if s.wave.out != (mgl64.Vec3{1, 0, 0}) {
-			t.Errorf("the gate faces %v, want east to the player", s.wave.out)
+		if wave.LocalOf(s.Session).Wave.Out != (mgl64.Vec3{1, 0, 0}) {
+			t.Errorf("the gate faces %v, want east to the player", wave.LocalOf(s.Session).Wave.Out)
 		}
-		s.tickWave(tx)
-		if s.wave == nil {
+		wave.Tick(s.Session, tx)
+		if wave.LocalOf(s.Session).Wave == nil {
 			t.Fatal("the wave ended before its monsters came out")
 		}
-		for range 4 * gatePortalEvery {
-			s.emergeMonsters(tx)
+		for range 4 * wave.GatePortalEvery {
+			wave.EmergeMonsters(s.Session, tx)
 		}
 		mons := waveMonsters(s, tx)
 		if len(mons) != 4 {
@@ -91,17 +92,17 @@ func TestWaveFlow(t *testing.T) {
 		// hurt, then die
 		p.Teleport(mons[0].Position())
 		mons[0].Hurt(tx, 5, p)
-		if mons[0].Health() != monsterTable[sgitem.MobZombie].health-5 {
+		if mons[0].Health() != wave.MonsterTable[sgitem.MobZombie].Health-5 {
 			t.Errorf("health %v after a hit of 5", mons[0].Health())
 		}
 		for _, m := range mons {
 			m.Hurt(tx, 1000, p)
 		}
-		if s.wave != nil {
+		if wave.LocalOf(s.Session).Wave != nil {
 			t.Fatal("the wave goes on with every monster dead")
 		}
-		if s.state.GateTier != 1 || !s.canStartWave(2) {
-			t.Errorf("tier %d, level 2 open %v", s.state.GateTier, s.canStartWave(2))
+		if wave.StateOf(s.Session).GateTier != 1 || !wave.CanStart(s.Session, 2) {
+			t.Errorf("tier %d, level 2 open %v", wave.StateOf(s.Session).GateTier, wave.CanStart(s.Session, 2))
 		}
 		if !progress.Advanced(s.Session, advancement.Wave1) {
 			t.Error("clearing level 1 did not do its advancement")
@@ -122,13 +123,13 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 			}
 		}
 		placeTestMachine(s, gate, machine.KindGate, "")
-		s.startWave(tx, gate, p.Position(), 1)
-		s.wave.deadline = s.wave.deadline.Add(-1000 * 1e9)
-		s.tickWave(tx)
-		if s.wave != nil {
+		wave.Start(s.Session, tx, gate, p.Position(), 1)
+		wave.LocalOf(s.Session).Wave.Deadline = wave.LocalOf(s.Session).Wave.Deadline.Add(-1000 * 1e9)
+		wave.Tick(s.Session, tx)
+		if wave.LocalOf(s.Session).Wave != nil {
 			t.Error("the wave outlived its time")
 		}
-		if s.state.GateTier != 0 {
+		if wave.StateOf(s.Session).GateTier != 0 {
 			t.Error("a failed wave opened a level")
 		}
 	})
@@ -148,20 +149,20 @@ func TestMonsterReturnsFromVoid(t *testing.T) {
 			}
 		}
 		placeTestMachine(s, gate, machine.KindGate, "")
-		if !s.startWave(tx, gate, p.Position(), 1) {
+		if !wave.Start(s.Session, tx, gate, p.Position(), 1) {
 			t.Fatal("level 1 did not start")
 		}
-		s.emergeMonsters(tx)
+		wave.EmergeMonsters(s.Session, tx)
 		mons := waveMonsters(s, tx)
-		if len(mons) != 1 || len(s.wave.pending) == 0 {
-			t.Fatalf("%d monsters out, %d to come", len(mons), len(s.wave.pending))
+		if len(mons) != 1 || len(wave.LocalOf(s.Session).Wave.Pending) == 0 {
+			t.Fatalf("%d monsters out, %d to come", len(mons), len(wave.LocalOf(s.Session).Wave.Pending))
 		}
 		m := mons[0]
 		m.Hurt(tx, 3, p)
 		health := m.Health()
-		m.data.Pos = mgl64.Vec3{m.data.Pos[0], island.IslandY - monsterVoid - 1, m.data.Pos[2]}
+		m.Data.Pos = mgl64.Vec3{m.Data.Pos[0], island.IslandY - wave.MonsterVoid - 1, m.Data.Pos[2]}
 		m.Tick(tx, 0)
-		if s.wave == nil || !s.wave.owns(m.handle) || m.handle.Closed() {
+		if wave.LocalOf(s.Session).Wave == nil || !wave.LocalOf(s.Session).Wave.Owns(m.Handle) || m.Handle.Closed() {
 			t.Fatal("a monster in the void left the wave")
 		}
 		if m.Health() != health {
@@ -170,25 +171,25 @@ func TestMonsterReturnsFromVoid(t *testing.T) {
 		if d := m.Position().Sub(gate.Vec3Middle()); d.Len() > 2.5 {
 			t.Errorf("the monster is %.1f blocks from the gate, want at its way out", d.Len())
 		}
-		if m.md().exitTicks != gateExitTicks {
+		if m.Md().ExitTicks != wave.GateExitTicks {
 			t.Error("the monster does not walk out of the gate again")
 		}
 	})
 }
 
 func TestWaveLevelsAreValid(t *testing.T) {
-	for i, def := range waveLevels {
+	for i, def := range wave.Levels {
 		if len(def.Groups) == 0 || def.Seconds <= 0 || len(def.Reward) == 0 {
 			t.Errorf("level %d is incomplete", i+1)
 		}
 		for _, g := range def.Groups {
-			if _, ok := monsterTable[g.Mob]; !ok || g.N <= 0 {
+			if _, ok := wave.MonsterTable[g.Mob]; !ok || g.N <= 0 {
 				t.Errorf("level %d: %+v", i+1, g)
 			}
 		}
 	}
 	for _, mob := range sgitem.MobKinds {
-		if _, ok := monsterTypes[mob]; !ok {
+		if _, ok := wave.MobTypes[mob]; !ok {
 			t.Errorf("no entity type for %s", mob)
 		}
 	}
@@ -208,13 +209,13 @@ func TestSkeletonShoots(t *testing.T) {
 			}
 		}
 		placeTestMachine(s, gate, machine.KindGate, "")
-		s.wave = &waveState{level: 1, gate: gate, left: map[*world.EntityHandle]string{}, deadline: time.Now().Add(time.Hour)}
+		wave.LocalOf(s.Session).Wave = &wave.State{Level: 1, Gate: gate, Left: map[*world.EntityHandle]string{}, Deadline: time.Now().Add(time.Hour)}
 		at := gate.Vec3Centre().Add(mgl64.Vec3{0, 0.5, 0})
 		p.Teleport(at.Add(mgl64.Vec3{8, 0, 0}))
-		hd := world.EntitySpawnOpts{Position: at}.New(monsterTypes[sgitem.MobSkeleton], monsterConfig{mob: sgitem.MobSkeleton})
-		s.wave.left[hd] = sgitem.MobSkeleton
+		hd := world.EntitySpawnOpts{Position: at}.New(wave.MobTypes[sgitem.MobSkeleton], wave.MonsterConfig{Mob: sgitem.MobSkeleton})
+		wave.LocalOf(s.Session).Wave.Left[hd] = sgitem.MobSkeleton
 		e := tx.AddEntity(hd)
-		m := e.(*Monster)
+		m := e.(*wave.Monster)
 		for range 60 {
 			m.Tick(tx, 0)
 		}
@@ -227,7 +228,7 @@ func TestSkeletonShoots(t *testing.T) {
 		if arrows == 0 {
 			t.Error("the skeleton shot no arrow")
 		}
-		if dist := m.Position().Sub(p.Position()).Len(); dist < monsterTable[sgitem.MobSkeleton].holdRange-1 {
+		if dist := m.Position().Sub(p.Position()).Len(); dist < wave.MonsterTable[sgitem.MobSkeleton].HoldRange-1 {
 			t.Errorf("the skeleton walked up to %.1f blocks", dist)
 		}
 	})

@@ -1,11 +1,7 @@
-package skygear
+package wave
 
 import (
 	"math"
-
-	"github.com/presentkim/skygear/content/skygear/core"
-
-	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -14,6 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -24,28 +22,28 @@ import (
 // monsterStats are the numbers of a mob, drafts.
 type monsterStats struct {
 	network       string  // the vanilla entity the client draws
-	health        float64 // half hearts
+	Health        float64 // half hearts
 	damage        float64 // per hit
 	speed         float64 // blocks per tick
 	width, height float64
 	// ranged is the damage of an arrow the mob shoots (0: melee only) from between
 	// holdRange and shootRange blocks away every shootEvery ticks.
-	ranged, holdRange, shootRange float64
+	ranged, HoldRange, shootRange float64
 	shootEvery                    int
 }
 
-var monsterTable = map[string]monsterStats{
-	sgitem.MobZombie:   {network: "minecraft:zombie", health: 12, damage: 3, speed: 0.15, width: 0.6, height: 1.95},
-	sgitem.MobSkeleton: {network: "minecraft:skeleton", health: 10, damage: 2, speed: 0.17, width: 0.6, height: 1.99, ranged: 2, holdRange: 6, shootRange: 14, shootEvery: 50},
-	sgitem.MobCreeper:  {network: "minecraft:creeper", health: 10, damage: 3, speed: 0.16, width: 0.6, height: 1.7},
-	sgitem.MobSpider:   {network: "minecraft:spider", health: 12, damage: 2, speed: 0.21, width: 1.4, height: 0.9},
-	sgitem.MobSlime:    {network: "minecraft:slime", health: 8, damage: 2, speed: 0.12, width: 0.52, height: 0.52},
-	sgitem.MobDrowned:  {network: "minecraft:drowned", health: 14, damage: 3, speed: 0.15, width: 0.6, height: 1.95},
-	sgitem.MobWitch:    {network: "minecraft:witch", health: 16, damage: 2, speed: 0.15, width: 0.6, height: 1.95, ranged: 3, holdRange: 6, shootRange: 12, shootEvery: 70},
-	sgitem.MobPiglin:   {network: "minecraft:piglin", health: 18, damage: 4, speed: 0.18, width: 0.6, height: 1.95},
-	sgitem.MobWither:   {network: "minecraft:wither_skeleton", health: 26, damage: 5, speed: 0.17, width: 0.7, height: 2.4},
-	sgitem.MobEnder:    {network: "minecraft:enderman", health: 30, damage: 4, speed: 0.19, width: 0.6, height: 2.9},
-	sgitem.MobBlaze:    {network: "minecraft:blaze", health: 20, damage: 3, speed: 0.15, width: 0.6, height: 1.8, ranged: 3, holdRange: 5, shootRange: 12, shootEvery: 60},
+var MonsterTable = map[string]monsterStats{
+	sgitem.MobZombie:   {network: "minecraft:zombie", Health: 12, damage: 3, speed: 0.15, width: 0.6, height: 1.95},
+	sgitem.MobSkeleton: {network: "minecraft:skeleton", Health: 10, damage: 2, speed: 0.17, width: 0.6, height: 1.99, ranged: 2, HoldRange: 6, shootRange: 14, shootEvery: 50},
+	sgitem.MobCreeper:  {network: "minecraft:creeper", Health: 10, damage: 3, speed: 0.16, width: 0.6, height: 1.7},
+	sgitem.MobSpider:   {network: "minecraft:spider", Health: 12, damage: 2, speed: 0.21, width: 1.4, height: 0.9},
+	sgitem.MobSlime:    {network: "minecraft:slime", Health: 8, damage: 2, speed: 0.12, width: 0.52, height: 0.52},
+	sgitem.MobDrowned:  {network: "minecraft:drowned", Health: 14, damage: 3, speed: 0.15, width: 0.6, height: 1.95},
+	sgitem.MobWitch:    {network: "minecraft:witch", Health: 16, damage: 2, speed: 0.15, width: 0.6, height: 1.95, ranged: 3, HoldRange: 6, shootRange: 12, shootEvery: 70},
+	sgitem.MobPiglin:   {network: "minecraft:piglin", Health: 18, damage: 4, speed: 0.18, width: 0.6, height: 1.95},
+	sgitem.MobWither:   {network: "minecraft:wither_skeleton", Health: 26, damage: 5, speed: 0.17, width: 0.7, height: 2.4},
+	sgitem.MobEnder:    {network: "minecraft:enderman", Health: 30, damage: 4, speed: 0.19, width: 0.6, height: 2.9},
+	sgitem.MobBlaze:    {network: "minecraft:blaze", Health: 20, damage: 3, speed: 0.15, width: 0.6, height: 1.8, ranged: 3, HoldRange: 5, shootRange: 12, shootEvery: 60},
 }
 
 const (
@@ -57,68 +55,72 @@ const (
 	monsterSight = 40.0
 	// monsterVoid is how far below the island a monster falls before the gate
 	// takes it back.
-	monsterVoid = 12.0
+	MonsterVoid = 12.0
 )
 
 // Monster is the entity of a mob of the gate.
 type Monster struct {
 	tx     *world.Tx
-	handle *world.EntityHandle
-	data   *world.EntityData
+	Handle *world.EntityHandle
+	Data   *world.EntityData
 	kind   string
 }
 
 type monsterData struct {
-	mob      string
-	health   float64
+	Mob      string
+	Health   float64
 	vel      mgl64.Vec3
 	cooldown int
 	onGround bool
 	// exit is the way out of the gate it walks for exitTicks more ticks
 	// before it goes for a player (gateportal.go).
 	exit      mgl64.Vec3
-	exitTicks int
+	ExitTicks int
 }
 
-type monsterConfig struct {
-	mob string
+type MonsterConfig struct {
+	Mob string
 	// exit is the way out of the gate the monster came out of.
 	exit mgl64.Vec3
 }
 
-func (c monsterConfig) Apply(data *world.EntityData) {
-	d := &monsterData{mob: c.mob, health: monsterTable[c.mob].health, exit: c.exit}
+func (c MonsterConfig) Apply(data *world.EntityData) {
+	d := &monsterData{Mob: c.Mob, Health: MonsterTable[c.Mob].Health, exit: c.exit}
 	if c.exit != (mgl64.Vec3{}) {
-		d.exitTicks = gateExitTicks
+		d.ExitTicks = GateExitTicks
 	}
 	data.Data = d
 }
 
-func (m *Monster) H() *world.EntityHandle  { return m.handle }
-func (m *Monster) Position() mgl64.Vec3    { return m.data.Pos }
-func (m *Monster) Rotation() cube.Rotation { return m.data.Rot }
-func (m *Monster) NameTag() string         { return m.data.Name }
+func (m *Monster) H() *world.EntityHandle { return m.Handle }
+
+func (m *Monster) Position() mgl64.Vec3 { return m.Data.Pos }
+
+func (m *Monster) Rotation() cube.Rotation { return m.Data.Rot }
+
+func (m *Monster) NameTag() string { return m.Data.Name }
+
 func (m *Monster) AlwaysShowNameTag() bool { return false }
 
 // Mob is the kind of the monster.
 func (m *Monster) Mob() string { return m.kind }
 
-func (m *Monster) md() *monsterData { return m.data.Data.(*monsterData) }
+func (m *Monster) Md() *monsterData { return m.Data.Data.(*monsterData) }
 
 // Health is what the monster has left.
-func (m *Monster) Health() float64 { return m.md().health }
+func (m *Monster) Health() float64 { return m.Md().Health }
 
 func (m *Monster) Close() error {
 	m.tx.RemoveEntity(m)
-	return m.handle.Close()
+	return m.Handle.Close()
 }
 
-// monsterTypes are the world.EntityTypes of the mobs, one each (an entity type
+// MobTypes are the world.EntityTypes of the mobs, one each (an entity type
 // has a single vanilla look).
-var monsterTypes = func() map[string]monsterType {
+var MobTypes = func() map[string]monsterType {
 	out := map[string]monsterType{}
-	for mob := range monsterTable {
-		out[mob] = monsterType{mob: mob}
+	for mob := range MonsterTable {
+		out[mob] = monsterType{Mob: mob}
 	}
 	return out
 }()
@@ -127,49 +129,54 @@ var monsterTypes = func() map[string]monsterType {
 func MonsterTypes() []world.EntityType {
 	var out []world.EntityType
 	for _, mob := range sgitem.MobKinds {
-		out = append(out, monsterTypes[mob])
+		out = append(out, MobTypes[mob])
 	}
 	return out
 }
 
-type monsterType struct{ mob string }
+type monsterType struct{ Mob string }
 
 func (t monsterType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
-		data.Data = &monsterData{mob: t.mob, health: monsterTable[t.mob].health}
+		data.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health}
 	}
-	return &Monster{tx: tx, handle: handle, data: data, kind: t.mob}
+	return &Monster{tx: tx, Handle: handle, Data: data, kind: t.Mob}
 }
-func (t monsterType) EncodeEntity() string        { return "skygear:monster_" + t.mob }
-func (t monsterType) NetworkEncodeEntity() string { return monsterTable[t.mob].network }
+
+func (t monsterType) EncodeEntity() string { return "skygear:monster_" + t.Mob }
+
+func (t monsterType) NetworkEncodeEntity() string { return MonsterTable[t.Mob].network }
+
 func (t monsterType) BBox(world.Entity) cube.BBox {
-	st := monsterTable[t.mob]
+	st := MonsterTable[t.Mob]
 	return cube.Box(-st.width/2, 0, -st.width/2, st.width/2, st.height, st.width/2)
 }
+
 func (t monsterType) DecodeNBT(_ map[string]any, d *world.EntityData) {
-	d.Data = &monsterData{mob: t.mob, health: monsterTable[t.mob].health}
+	d.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health}
 }
+
 func (monsterType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
 // Tick walks the monster towards the nearest player and hits when close.
 func (m *Monster) Tick(tx *world.Tx, _ int64) {
-	s, ok := activeGame.sessionOf(tx.World())
-	if !ok || s.wave == nil || !s.wave.owns(m.handle) {
+	s, ok := core.Of(tx)
+	if !ok || LocalOf(s).Wave == nil || !LocalOf(s).Wave.Owns(m.Handle) {
 		// from an earlier session or a finished wave
 		_ = m.Close()
 		return
 	}
-	d, st := m.md(), monsterTable[m.kind]
-	pos := m.data.Pos
-	if pos.Y() < island.IslandY-monsterVoid {
-		s.returnToGate(tx, m)
+	d, st := m.Md(), MonsterTable[m.kind]
+	pos := m.Data.Pos
+	if pos.Y() < island.IslandY-MonsterVoid {
+		returnToGate(s, tx, m)
 		return
 	}
-	if d.exitTicks > 0 {
+	if d.ExitTicks > 0 {
 		// still coming out of the gate
-		d.exitTicks--
-		m.data.Rot = cube.Rotation{dirYaw(d.exit), 0}
-		m.move(tx, pos, d.exit, monsterTable[m.kind])
+		d.ExitTicks--
+		m.Data.Rot = cube.Rotation{dirYaw(d.exit), 0}
+		m.move(tx, pos, d.exit, MonsterTable[m.kind])
 		return
 	}
 	var target *player.Player
@@ -192,7 +199,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		flat := mgl64.Vec3{to[0], 0, to[2]}
 		hold := monsterReach * 0.6
 		if st.ranged > 0 {
-			hold = st.holdRange
+			hold = st.HoldRange
 		}
 		if l := flat.Len(); l > hold {
 			dir = flat.Mul(1 / l)
@@ -201,12 +208,12 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 			d.cooldown = st.shootEvery
 			m.shoot(tx, pos, target, st)
 		}
-		m.data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-to[0], to[2])), 0}
+		m.Data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-to[0], to[2])), 0}
 		if flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
 			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
 				away := mgl64.Vec3{-to[0], 0, -to[2]}.Normalize()
-				target.KnockBack(m.data.Pos, 0.4, 0.3)
+				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				_ = away
 			}
 		}
@@ -216,7 +223,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 
 // move applies one tick of walking, jumping and falling.
 func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
-	d := m.md()
+	d := m.Md()
 	feet := func(p mgl64.Vec3) cube.Pos { return cube.PosFromVec3(p) }
 	// horizontal: blocked by a wall unless it can be stepped over
 	if dir.Len() > 0 {
@@ -249,36 +256,36 @@ func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	pos[0] += d.vel[0]
 	pos[2] += d.vel[2]
 	d.vel[0], d.vel[2] = d.vel[0]*0.7, d.vel[2]*0.7
-	m.data.Pos = pos
+	m.Data.Pos = pos
 	for _, v := range tx.Viewers(pos) {
-		v.ViewEntityMovement(m, pos, m.data.Rot, d.onGround)
+		v.ViewEntityMovement(m, pos, m.Data.Rot, d.onGround)
 	}
 }
 
 // Hurt takes the damage of an attack by p: it flinches, is thrown back and, at
 // no health, dies (the gate counts it, its drops fall).
 func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
-	d := m.md()
-	d.health -= dmg
-	away := m.data.Pos.Sub(from.Position())
+	d := m.Md()
+	d.Health -= dmg
+	away := m.Data.Pos.Sub(from.Position())
 	away[1] = 0
 	if away.Len() > 0 {
 		away = away.Normalize().Mul(0.35)
 	}
 	d.vel = mgl64.Vec3{away[0], 0.3, away[2]}
 	d.onGround = false
-	for _, v := range tx.Viewers(m.data.Pos) {
+	for _, v := range tx.Viewers(m.Data.Pos) {
 		v.ViewEntityAction(m, entity.HurtAction{})
 	}
-	tx.PlaySound(m.data.Pos, sound.Attack{Damage: true})
-	if d.health <= 0 {
-		if s, ok := activeGame.sessionOf(tx.World()); ok {
-			s.monsterGone(tx, m, from)
+	tx.PlaySound(m.Data.Pos, sound.Attack{Damage: true})
+	if d.Health <= 0 {
+		if s, ok := core.Of(tx); ok {
+			monsterGone(s, tx, m, from)
 		}
 	}
 }
 
-func mobName(lang, mob string) string { return i18n.T(lang, "mob."+mob) }
+func MobName(lang, mob string) string { return i18n.T(lang, "mob."+mob) }
 
 // canSee reports whether no solid block lies between the monster's eyes and p's.
 func (m *Monster) canSee(tx *world.Tx, pos mgl64.Vec3, p *player.Player) bool {
@@ -301,6 +308,6 @@ func (m *Monster) shoot(tx *world.Tx, pos mgl64.Vec3, p *player.Player, st monst
 	dist := dir.Len()
 	// aim a little high for the drop of the arrow over the distance
 	dir = dir.Add(mgl64.Vec3{0, dist * 0.04, 0}).Normalize().Mul(1.7)
-	tx.AddEntity(entity.NewArrowWithDamage(world.EntitySpawnOpts{Position: from, Velocity: dir, Rotation: m.data.Rot}, st.ranged, m))
+	tx.AddEntity(entity.NewArrowWithDamage(world.EntitySpawnOpts{Position: from, Velocity: dir, Rotation: m.Data.Rot}, st.ranged, m))
 	tx.PlaySound(from, sound.BowShoot{})
 }

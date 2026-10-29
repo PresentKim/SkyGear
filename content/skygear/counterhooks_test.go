@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -102,8 +103,8 @@ func TestCounterKindsExist(t *testing.T) {
 	}
 	for _, c := range achievement.Counters {
 		if rest, ok := strings.CutPrefix(c.Key, "wave_level_"); ok {
-			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(waveLevels) {
-				t.Errorf("counter %s: the gate has %d levels", c.Key, len(waveLevels))
+			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(wave.Levels) {
+				t.Errorf("counter %s: the gate has %d levels", c.Key, len(wave.Levels))
 			}
 			continue
 		}

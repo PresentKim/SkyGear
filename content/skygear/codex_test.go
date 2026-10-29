@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"strings"
 	"testing"
 
@@ -86,7 +87,7 @@ func TestCodexPagesAreWritten(t *testing.T) {
 			t.Errorf("process tab: no recipes of %s", naming.ItemKey(pr.head.Item()))
 		}
 	}
-	if cards := s.codexMobCards(lang); len(cards) < len(sgitem.MobKinds)+len(waveLevels) {
+	if cards := s.codexMobCards(lang); len(cards) < len(sgitem.MobKinds)+len(wave.Levels) {
 		t.Errorf("mobs tab: %d cards", len(cards))
 	}
 	for _, in := range codexSieveInputs() {

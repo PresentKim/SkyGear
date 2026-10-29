@@ -3,10 +3,12 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/farm"
 
@@ -173,8 +175,6 @@ type session struct {
 	// fastCount counts the Fast calls (an item step is every second one,
 	// conduit.go).
 	fastCount int
-	// wave is the wave of the dimension gate being fought (wave.go).
-	wave *waveState
 }
 
 // Spawn is where a player without a position starts (island.Spawn).
@@ -245,7 +245,7 @@ func init() {
 	ctl.Insert, ctl.Peek, ctl.Extract = storage.ControllerInsert, storage.ControllerPeek, storage.ControllerExtract
 	machine.Kinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		if !c.Debounced(p) {
-			sess(c).showGateForm(p, tx, pos)
+			wave.ShowGate(sess(c).Session, p, tx, pos)
 		}
 		return true
 	}
@@ -265,5 +265,5 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, wave.GatePortalType), wave.MonsterTypes()...)
 }

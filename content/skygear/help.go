@@ -2,9 +2,10 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/fairy"
 	"slices"
 	"strings"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
 

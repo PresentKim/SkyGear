@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"sort"
 	"strings"
 	"sync"
@@ -388,8 +389,8 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 	if _, ok := it.Item().(sgitem.Essence); ok {
 		cards = append(cards, noteCard(lang, machine.Item(machine.KindGate), i18n.T(lang, "codex.src.waveDrop")))
 	}
-	for i := range waveLevels {
-		for _, r := range waveLevels[i].Reward {
+	for i := range wave.Levels {
+		for _, r := range wave.Levels[i].Reward {
 			if naming.ItemKey(r.Item()) == k {
 				cards = append(cards, s.waveCard(lang, i)...)
 				break
@@ -564,7 +565,7 @@ func (s *session) themeCards(lang string, mob string) []codexCard {
 // waveCard is a gate level: its number and time, the arrow and the first
 // clear rewards, and under them the mobs that come.
 func (s *session) waveCard(lang string, i int) []codexCard {
-	w := waveLevels[i]
+	w := wave.Levels[i]
 	var outs []ui.BoardCell
 	for _, r := range w.Reward {
 		outs = append(outs, s.codexCell(lang, r, countLabel(r.Count())))
@@ -575,7 +576,7 @@ func (s *session) waveCard(lang string, i int) []codexCard {
 		if j > 0 {
 			groups += ", "
 		}
-		groups += fmt.Sprintf("%s ×%d", mobName(lang, g.Mob), g.N)
+		groups += fmt.Sprintf("%s ×%d", wave.MobName(lang, g.Mob), g.N)
 	}
 	row := blankRow()
 	row[0] = ui.TextCell("§8" + groups)
@@ -711,7 +712,7 @@ func (s *session) codexMobCards(lang string) []codexCard {
 	for _, mob := range sgitem.MobKinds {
 		cards = append(cards, s.themeCards(lang, mob)...)
 	}
-	for i := range waveLevels {
+	for i := range wave.Levels {
 		cards = append(cards, s.waveCard(lang, i)...)
 	}
 	return cards

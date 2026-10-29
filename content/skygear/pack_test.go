@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/wave"
 
 	"github.com/presentkim/skygear/content/skygear/conduit"
 
@@ -502,10 +503,10 @@ func TestGatePortalPack(t *testing.T) {
 	}
 	readPackJSON(t, "entity/gate_portal.entity.json", &ent)
 	d := ent.E.D
-	if d.Identifier != GatePortalType.EncodeEntity() {
+	if d.Identifier != wave.GatePortalType.EncodeEntity() {
 		t.Errorf("entity identifier %s", d.Identifier)
 	}
-	for level := 1; level <= len(waveLevels); level++ {
+	for level := 1; level <= len(wave.Levels); level++ {
 		path, ok := d.Textures[fmt.Sprintf("tier_%d", level)]
 		if !ok || !packFileExists(path+".png") {
 			t.Errorf("no texture for wave level %d (%q)", level, path)

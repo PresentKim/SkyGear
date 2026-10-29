@@ -2,9 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/wave"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/fairy"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -141,7 +143,7 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		network.Fluids(s.Session).Step(tx)
 	}
-	s.emergeMonsters(tx)
+	wave.EmergeMonsters(s.Session, tx)
 	s.updateLooks(tx)
 }
 
@@ -375,7 +377,7 @@ func machineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		}
 	}
 	if len(st.Def.Charge) > 0 && st.Charges > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), mobName(lang, st.Mob), st.Charges))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), wave.MobName(lang, st.Mob), st.Charges))
 	}
 	lines = append(lines, machine.ConsumerLines(lang, st)...)
 	lines = append(lines, machine.BlockedLines(lang, st)...)

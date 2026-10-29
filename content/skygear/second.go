@@ -10,6 +10,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
@@ -22,7 +23,7 @@ func (s *session) Second(tx *world.Tx) {
 	farm.TickComposters(s.Session, tx)
 	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
-	s.tickWave(tx)
+	wave.Tick(s.Session, tx)
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)
