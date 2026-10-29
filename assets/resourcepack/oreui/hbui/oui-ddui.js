@@ -523,7 +523,14 @@
         onPress(
           e,
           function () {
-            if (rec.n.id && rec.n.press !== false) send(rec.n.id, "click", null);
+            if (!rec.n.id || rec.n.press === false) return;
+            // A toggle row flips its switch at once, so the knob slides at the press; the screen
+            // the server sends back sets it as it is.
+            if (/(^| )mc-toggle-row( |$)/.test(e.className)) {
+              var sw = e.querySelector(".mc-switch");
+              if (sw) sw.className = /(^| )on( |$)/.test(sw.className) ? sw.className.replace(/ on\b/g, "") : sw.className + " on";
+            }
+            send(rec.n.id, "click", null);
           },
           function () {
             return rec.n;
@@ -948,7 +955,10 @@
     }
     var o = rec.n, e = rec.inner;
     rec.n = n;
-    if (!same(o["class"], n["class"]) || !same(o.on, n.on)) {
+    // A toggle row's switch, which the renderer flips at the press, takes the server's state again
+    // even when the node did not change (the press did not toggle).
+    var flipped = n.t === "box" && n["class"] === "mc-switch" && /(^| )on( |$)/.test(e.className) !== !!n.on;
+    if (!same(o["class"], n["class"]) || !same(o.on, n.on) || flipped) {
       var base = n.t === "img" ? "oui-img" : "oui-" + n.t;
       if (n.t === "box" && n.on) base += " on";
       e.className = base + (n["class"] ? " " + n["class"] : "");

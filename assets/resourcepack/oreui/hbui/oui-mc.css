@@ -348,40 +348,85 @@
   font-size: 1.4rem;
 }
 
-/* A toggle row (ui.Toggle): the label at the left, the switch at the right; "on" moves the knob
-   right over green. */
+/* A toggle row (ui.Toggle): the label at the left, the switch at the right, as in the game's
+   settings: off is a grey track with the knob at the left and an "O" at the right, on a green
+   track with an "|" at the left and the knob at the right. The knob slides (the renderer flips
+   "on" at the press, before the server answers). */
+.mc-toggle-row {
+  justify-content: flex-end;
+}
+
 .mc-toggle-row .mc-btn-text {
   left: 1.2rem;
-  right: 7.6rem;
+  right: 8.4rem;
 }
 
 .mc-switch {
-  margin-left: auto;
+  position: relative;
+  flex-shrink: 0;
   margin-right: 0.6rem;
-  width: 5.6rem;
-  height: 2.8rem;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0 0.2rem;
-  background-color: #58585a;
+  width: 6.4rem;
+  height: 3.2rem;
+  background-color: #8c8d90;
   border-style: solid;
   border-width: 0.2rem;
   border-color: #1e1e1f;
+  transition: background-color 0.12s;
 }
 
 .mc-switch.on {
-  justify-content: flex-end;
   background-color: #3c8527;
 }
 
+.mc-switch-on,
+.mc-switch-off {
+  position: absolute;
+  top: 0;
+  width: 2.8rem;
+  height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-switch-on {
+  left: 0;
+}
+
+.mc-switch-off {
+  right: 0;
+}
+
+.mc-switch-bar {
+  width: 0.3rem;
+  height: 1.4rem;
+  background-color: #ffffff;
+}
+
+.mc-switch-ring {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-style: solid;
+  border-width: 0.25rem;
+  border-color: #3c3c3d;
+  border-radius: 0.7rem;
+}
+
 .mc-switch-knob {
-  width: 2.2rem;
-  height: 2.2rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.8rem;
+  height: 2.8rem;
   background-color: #e6e8eb;
   border-style: solid;
-  border-width: 0 0 0.3rem 0;
-  border-color: #9a9ca0;
+  border-width: 0.2rem 0.3rem 0.3rem 0.2rem;
+  border-color: #ffffff #9a9ca0 #9a9ca0 #ffffff;
+  transition: left 0.12s;
+}
+
+.mc-switch.on .mc-switch-knob {
+  left: 3.2rem;
 }
 
 /* A research action: 17u high, 12u icon at 3u, text at 18u (scale 0.8). */

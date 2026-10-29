@@ -595,7 +595,11 @@ func (l *oreLayout) listButton(o Option) map[string]any {
 // toggleRow is a list row with the label at the left and a switch at the
 // right (Toggle).
 func (l *oreLayout) toggleRow(o Option) map[string]any {
-	sw := box("mc-switch", "children", []any{box("mc-switch-knob")})
+	sw := box("mc-switch", "children", []any{
+		box("mc-switch-on", "children", []any{box("mc-switch-bar")}),
+		box("mc-switch-off", "children", []any{box("mc-switch-ring")}),
+		box("mc-switch-knob"),
+	})
 	if o.on {
 		sw["on"] = true
 	}
