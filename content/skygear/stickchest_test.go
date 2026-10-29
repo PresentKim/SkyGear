@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -33,13 +35,13 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 		if !s.useStickOnChest(p, tx, pos, stick) {
 			t.Fatal("a sneaking stick use on a chest was not handled")
 		}
-		if got := countPlain(chest, block.Dirt{}); got != 41 {
+		if got := core.CountPlain(chest, block.Dirt{}); got != 41 {
 			t.Errorf("chest holds %d dirt, want 41", got)
 		}
-		if got := countPlain(chest, item.Stick{}); got != 4 {
+		if got := core.CountPlain(chest, item.Stick{}); got != 4 {
 			t.Errorf("chest holds %d sticks, want 4", got)
 		}
-		if got := countPlain(chest, block.Cobblestone{}); got != 0 {
+		if got := core.CountPlain(chest, block.Cobblestone{}); got != 0 {
 			t.Errorf("chest took %d cobblestone it did not hold", got)
 		}
 		if held, _ := p.HeldItems(); held.Count() != 1 {

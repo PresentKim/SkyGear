@@ -243,7 +243,7 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 	s.state.FairyDust = true
 	s.MarkDirty()
 	for left := dust; left > 0; left -= 64 {
-		s.giveItem(p, tx, p.Position(), item.NewStack(sgitem.FairyDust{}, min(left, 64)))
+		s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.FairyDust{}, min(left, 64)))
 	}
 	p.Messagef(i18n.T(i18n.Of(p), "skygear.fairy.backfill"), nights, dust)
 }

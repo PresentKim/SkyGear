@@ -4,6 +4,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -79,7 +81,7 @@ func barrelMixes() []barrelMixRecipe {
 // barrelMix is what the barrel of rec makes with held in a hand (ok false for
 // nothing) and what the hand holds afterwards when the item is a bucket.
 func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.Stack, ok bool) {
-	if rec == nil || held.Empty() || !plain(held) {
+	if rec == nil || held.Empty() || !core.Plain(held) {
 		return nil, item.Stack{}, false
 	}
 	for _, m := range barrelMixes() {

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -94,7 +96,7 @@ func (c configCard) describe(lang string) string {
 			return fmt.Sprintf(i18n.T(lang, "copier.card.crafter"), naming.ItemName(lang, cr.Out))
 		}
 	case cardDrawer:
-		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), naming.ItemName(lang, decodeItem(c.Item)))
+		return fmt.Sprintf(i18n.T(lang, "copier.card.drawer"), naming.ItemName(lang, core.DecodeItem(c.Item)))
 	}
 	return i18n.T(lang, "copier.empty")
 }
@@ -203,7 +205,7 @@ func readCard(tx *world.Tx, t copyTarget) (*configCard, bool) {
 		if d.Item.Empty() {
 			return nil, false
 		}
-		return &configCard{Kind: cardDrawer, Item: encodeItem(d.Item)}, true
+		return &configCard{Kind: cardDrawer, Item: core.EncodeItem(d.Item)}, true
 	}
 	return nil, false
 }
@@ -253,7 +255,7 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 		return true
 	case t.kind == cardDrawer && c.Kind == cardDrawer:
 		d := tx.Block(t.pos).(Drawer)
-		it := decodeItem(c.Item)
+		it := core.DecodeItem(c.Item)
 		if it.Empty() || (d.Count > 0 && !d.Item.Comparable(it)) {
 			return false
 		}

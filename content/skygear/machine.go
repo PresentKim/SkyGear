@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
@@ -545,7 +547,7 @@ func (st *machineState) inv() *inventory.Inventory { return st.storage.Inventory
 // accepts reports whether it may go into the input of the machine.
 // Time-limited items are never processed or sold.
 func (st *machineState) accepts(it item.Stack) bool {
-	if it.Empty() || !plain(it) {
+	if it.Empty() || !core.Plain(it) {
 		return false
 	}
 	switch st.kind.id {

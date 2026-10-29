@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -46,7 +48,7 @@ func storageNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 		queue = queue[1:]
 		for _, f := range cube.Faces() {
 			next := at.Side(f)
-			if seen[next] || abs(next.X()-pos.X()) > controllerReach || abs(next.Y()-pos.Y()) > controllerReach || abs(next.Z()-pos.Z()) > controllerReach {
+			if seen[next] || core.Abs(next.X()-pos.X()) > controllerReach || core.Abs(next.Y()-pos.Y()) > controllerReach || core.Abs(next.Z()-pos.Z()) > controllerReach {
 				continue
 			}
 			switch b := tx.Block(next).(type) {
@@ -335,7 +337,7 @@ func (s *session) storageSlots(lang string, pos cube.Pos, list []storageEntry, a
 			Run: func(p *player.Player, tx *world.Tx) {
 				got := controllerExtract(tx, pos, e.item, e.item.MaxCount())
 				if !got.Empty() {
-					s.giveItem(p, tx, p.Position(), got)
+					s.GiveItem(p, tx, p.Position(), got)
 				}
 				again(p, tx)
 			},

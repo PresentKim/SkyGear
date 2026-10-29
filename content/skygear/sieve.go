@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -201,7 +203,7 @@ func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
 
 // sieveHolds reports whether a held item is something a sieve sifts.
 func sieveHolds(it item.Stack) bool {
-	if it.Empty() || !plain(it) {
+	if it.Empty() || !core.Plain(it) {
 		return false
 	}
 	_, ok := sievetable.Tables["string"][naming.ItemKey(it.Item())]

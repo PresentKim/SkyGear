@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
@@ -92,7 +94,7 @@ func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inve
 			rows = append(rows, fmt.Sprintf("§f%s §e×%d", name, need))
 			continue
 		}
-		have, colour := min(countPlain(inv, c.Item), need), "§e"
+		have, colour := min(core.CountPlain(inv, c.Item), need), "§e"
 		if have >= need {
 			colour = "§a"
 		}

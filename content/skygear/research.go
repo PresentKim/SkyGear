@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -320,7 +322,7 @@ func (s *session) researchNeed(r *Research, c Requirement) int {
 func (s *session) researchMissing(p *player.Player, r *Research) []Requirement {
 	var missing []Requirement
 	for _, c := range r.Cost {
-		if short := s.researchNeed(r, c) - countPlain(p.Inventory(), c.Item); short > 0 {
+		if short := s.researchNeed(r, c) - core.CountPlain(p.Inventory(), c.Item); short > 0 {
 			missing = append(missing, Requirement{c.Item, short})
 		}
 	}
@@ -338,7 +340,7 @@ func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missi
 		return missing, false
 	}
 	for _, c := range r.Cost {
-		takePlain(p.Inventory(), c.Item, s.researchNeed(r, c))
+		core.TakePlain(p.Inventory(), c.Item, s.researchNeed(r, c))
 	}
 	pourEssences(tx, p, r.Cost)
 	s.completeResearch(tx, r)
@@ -678,7 +680,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 			mark, tip = "§a", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.uses"), naming.UIItemName(i18n.Of(p), st), c.Count)
 			need = c.Count
 		case p != nil:
-			have := countPlain(p.Inventory(), c.Item)
+			have := core.CountPlain(p.Inventory(), c.Item)
 			if have >= need {
 				mark = "§a"
 			}

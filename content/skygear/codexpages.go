@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -100,7 +102,7 @@ func (s *session) codexRawCard(p *player.Player, lang string, it item.Stack) (co
 		if i%ui.BoardColumns == 0 {
 			rows = append(rows, blankRow())
 		}
-		have := countPlain(p.Inventory(), l.stack.Item())
+		have := core.CountPlain(p.Inventory(), l.stack.Item())
 		colour := "§c"
 		if have >= max(1, l.count) {
 			colour = "§a"

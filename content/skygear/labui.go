@@ -207,7 +207,7 @@ func (s *session) labGive(p *player.Player, tx *world.Tx, st *machineState, slot
 	for _, slot := range slots {
 		if it, _ := st.inv().Item(slot); !it.Empty() {
 			_ = st.inv().SetItem(slot, item.Stack{})
-			s.giveItem(p, tx, p.Position(), it)
+			s.GiveItem(p, tx, p.Position(), it)
 		}
 	}
 }

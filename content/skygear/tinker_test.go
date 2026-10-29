@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -70,7 +72,7 @@ func TestTinkerTable(t *testing.T) {
 		if !s.makeTool(p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {
 			t.Fatal("could not make a pickaxe from 3 iron and a stick")
 		}
-		if countPlain(inv, item.IronIngot{}) != 0 || countPlain(inv, item.Stick{}) != 0 {
+		if core.CountPlain(inv, item.IronIngot{}) != 0 || core.CountPlain(inv, item.Stick{}) != 0 {
 			t.Error("the materials were not taken")
 		}
 		if s.makeTool(p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {

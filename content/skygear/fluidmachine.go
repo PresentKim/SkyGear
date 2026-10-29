@@ -141,7 +141,7 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 				p.SetHeldItems(item.NewStack(item.Bucket{}, 1), off)
 			} else {
 				ctx.SubtractFromCount(1)
-				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(item.Bucket{}, 1))
+				s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(item.Bucket{}, 1))
 			}
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 			return true
@@ -154,7 +154,7 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 				p.SetHeldItems(full, off)
 			} else {
 				ctx.SubtractFromCount(1)
-				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), full)
+				s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), full)
 			}
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
 			return true
@@ -183,7 +183,7 @@ func (s *session) swapBucket(p *player.Player, tx *world.Tx, pos cube.Pos, held 
 		return
 	}
 	ctx.SubtractFromCount(1)
-	s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), other)
+	s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), other)
 }
 
 // fluidLines are the WAILA lines of a machine with a tank.

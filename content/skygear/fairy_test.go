@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -232,7 +234,7 @@ func TestFairyScattersTheGift(t *testing.T) {
 		}
 	})
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		dust += countPlain(p.Inventory(), sgitem.FairyDust{})
+		dust += core.CountPlain(p.Inventory(), sgitem.FairyDust{})
 	})
 	if dust < fairyDustMin {
 		t.Errorf("%d fairy dust scattered", dust)
@@ -252,11 +254,11 @@ func TestFairyDustBackfill(t *testing.T) {
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.backfillFairyDust(p, tx)
-		if n := countPlain(p.Inventory(), sgitem.FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
+		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
 			t.Fatalf("%d dust for 5 nights", n)
 		}
 		s.backfillFairyDust(p, tx)
-		if n := countPlain(p.Inventory(), sgitem.FairyDust{}); n > 5*fairyDustMax {
+		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n > 5*fairyDustMax {
 			t.Fatalf("backfilled twice: %d dust", n)
 		}
 	})

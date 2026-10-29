@@ -99,7 +99,7 @@ type LostItem struct {
 // decoded is the stack of the entry, with count 1.
 func (l *LostItem) decoded() item.Stack {
 	if l.stack.Empty() {
-		l.stack = decodeItem(l.Item)
+		l.stack = core.DecodeItem(l.Item)
 	}
 	return l.stack
 }

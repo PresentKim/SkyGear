@@ -5,12 +5,13 @@ import (
 	"math"
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -50,38 +51,6 @@ func costText(lang string, r Requirement) string {
 	return fmt.Sprintf(i18n.T(lang, "island.chunk.cost"), naming.ItemName(lang, item.NewStack(r.Item, 1)), textfmt.Int(int64(r.Count)))
 }
 
-// countPlain counts the plain items of it in an inventory.
-func countPlain(inv *inventory.Inventory, it world.Item) int {
-	n, key := 0, naming.ItemKey(it)
-	for _, st := range inv.Slots() {
-		if !st.Empty() && plain(st) && naming.ItemKey(st.Item()) == key {
-			n += st.Count()
-		}
-	}
-	return n
-}
-
-// takePlain takes count plain items of it from an inventory if it holds
-// that many.
-func takePlain(inv *inventory.Inventory, it world.Item, count int) bool {
-	if countPlain(inv, it) < count {
-		return false
-	}
-	key := naming.ItemKey(it)
-	for slot, st := range inv.Slots() {
-		if count == 0 {
-			break
-		}
-		if st.Empty() || !plain(st) || naming.ItemKey(st.Item()) != key {
-			continue
-		}
-		n := min(count, st.Count())
-		_ = inv.SetItem(slot, st.Grow(-n))
-		count -= n
-	}
-	return true
-}
-
 // islandRadius is how far (in chunks from the centre) the island may grow.
 // Owned chunks outside the instance load radius get their own loaders
 // (instance.KeepLoaded). Balancing draft.
@@ -110,7 +79,7 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 		return
 	}
 	cost := chunkCost(len(s.state.Chunks))
-	if !takePlain(p.Inventory(), cost.Item, cost.Count) {
+	if !core.TakePlain(p.Inventory(), cost.Item, cost.Count) {
 		ui.Notify(p, i18n.T(i18n.Of(p), "island.chunk.needs"), costText(i18n.Of(p), cost))
 		return
 	}
@@ -165,7 +134,7 @@ func (s *session) nearestBlockColumn(tx *world.Tx, x, z int) (int, int, bool) {
 		var bx, bz int
 		for dx := -r; dx <= r; dx++ {
 			for dz := -r; dz <= r; dz++ {
-				if max(abs(dx), abs(dz)) != r || !has(x+dx, z+dz) {
+				if max(core.Abs(dx), core.Abs(dz)) != r || !has(x+dx, z+dz) {
 					continue
 				}
 				if d := dx*dx + dz*dz; !found || d < best {
@@ -178,12 +147,4 @@ func (s *session) nearestBlockColumn(tx *world.Tx, x, z int) (int, int, bool) {
 		}
 	}
 	return 0, 0, false
-}
-
-// abs is the absolute value of v.
-func abs[T int | int32](v T) T {
-	if v < 0 {
-		return -v
-	}
-	return v
 }

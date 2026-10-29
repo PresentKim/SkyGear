@@ -1,8 +1,8 @@
 package skygear
 
 import (
-	"bytes"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/common/ui"
-	"github.com/sandertv/gophertunnel/minecraft/nbt"
 )
 
 // worldHandler handles events of the instance world.
@@ -32,27 +31,13 @@ func (h *worldHandler) HandleEntityDespawn(tx *world.Tx, e world.Entity) {
 	}
 }
 
-func encodeItem(s item.Stack) []byte {
-	var b bytes.Buffer
-	_ = nbt.NewEncoderWithEncoding(&b, nbt.LittleEndian).Encode(item.WriteNBT(s.Grow(1-s.Count()), true))
-	return b.Bytes()
-}
-
-func decodeItem(b []byte) item.Stack {
-	var m map[string]any
-	if err := nbt.NewDecoderWithEncoding(bytes.NewReader(b), nbt.LittleEndian).Decode(&m); err != nil {
-		return item.Stack{}
-	}
-	return item.ReadNBT(m, nil)
-}
-
 // addLost merges a stack into the lost-and-found box, most recent first.
 func (s *session) addLost(it item.Stack) {
 	if it.Empty() || timed.Expired(it) {
 		return
 	}
 	now, _, _ := s.Clock.Now()
-	entry := &LostItem{Item: encodeItem(it)}
+	entry := &LostItem{Item: core.EncodeItem(it)}
 	for i, l := range s.state.Lost {
 		// Compare decoded stacks: encoded NBT bytes are not canonical.
 		if l.decoded().Comparable(it) {

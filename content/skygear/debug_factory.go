@@ -2,9 +2,11 @@ package skygear
 
 import (
 	"container/heap"
-	"github.com/presentkim/skygear/common/i18n"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -49,7 +51,7 @@ func (c debugFactory) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	for i := range n {
 		at := origin.Add(cube.Pos{(i % cols) * factoryModuleX, 0, (i / cols) * factoryModuleZ})
 		far := at.Add(cube.Pos{factoryModuleX, 0, factoryModuleZ})
-		if max(abs(at[0]-feet[0]), abs(far[0]-feet[0]), abs(at[2]-feet[2]), abs(far[2]-feet[2])) > reach {
+		if max(core.Abs(at[0]-feet[0]), core.Abs(far[0]-feet[0]), core.Abs(at[2]-feet[2]), core.Abs(far[2]-feet[2])) > reach {
 			outside++
 		}
 		s.buildFactoryModule(tx, at, instance.AccountID(p), p.Name(), &built)

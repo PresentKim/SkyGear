@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/df-mc/dragonfly/server/block/customblock"
 	"testing"
+
+	"github.com/df-mc/dragonfly/server/block/customblock"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"

@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -139,7 +141,7 @@ func TestResearchPaidWithEssences(t *testing.T) {
 		if missing, done := s.doResearch(p, tx, crusher); !done || len(missing) != 0 {
 			t.Fatalf("with every essence: done %v, missing %v", done, missing)
 		}
-		if got := countPlain(inv, sgitem.ResearchEssence{Kind: sgitem.EssenceEngineering}); got != 0 {
+		if got := core.CountPlain(inv, sgitem.ResearchEssence{Kind: sgitem.EssenceEngineering}); got != 0 {
 			t.Errorf("%d essences left", got)
 		}
 		if !s.advanced(advancement.EssenceResearch) {

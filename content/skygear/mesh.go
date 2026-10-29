@@ -24,7 +24,7 @@ func (s *session) equipMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *ma
 		return true
 	}
 	if old := st.mesh; old != "" {
-		s.giveItem(p, tx, p.Position(), item.NewStack(sgitem.Mesh{Tier: old}, 1))
+		s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.Mesh{Tier: old}, 1))
 	}
 	st.mesh = m.Tier
 	showSieve(tx, pos, st)
@@ -45,7 +45,7 @@ func (s *session) takeMesh(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 	if _, _, filled := st.firstInput(); filled {
 		return false
 	}
-	s.giveItem(p, tx, p.Position(), item.NewStack(sgitem.Mesh{Tier: st.mesh}, 1))
+	s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.Mesh{Tier: st.mesh}, 1))
 	st.mesh = ""
 	showSieve(tx, pos, st)
 	tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -286,12 +288,12 @@ func (FairyBoard) Use(tx *world.Tx, u item.User, _ *item.UseContext) bool {
 func (s *session) showFairyBoard(p *player.Player) {
 	lang := i18n.Of(p)
 	now, _, _ := s.Clock.Now()
-	emeralds := countPlain(p.Inventory(), sgitem.FairyEmerald{})
+	emeralds := core.CountPlain(p.Inventory(), sgitem.FairyEmerald{})
 	weather := s.weatherNow(now)
 	cast := func(do func(tx *world.Tx) bool) func(p *player.Player, tx *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
-			if countPlain(p.Inventory(), sgitem.FairyEmerald{}) > 0 && do(tx) {
-				takePlain(p.Inventory(), sgitem.FairyEmerald{}, 1)
+			if core.CountPlain(p.Inventory(), sgitem.FairyEmerald{}) > 0 && do(tx) {
+				core.TakePlain(p.Inventory(), sgitem.FairyEmerald{}, 1)
 				tx.PlaySound(p.Position(), sound.Experience{})
 			}
 			s.showFairyBoard(p)

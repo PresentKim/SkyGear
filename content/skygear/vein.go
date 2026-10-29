@@ -3,6 +3,8 @@ package skygear
 import (
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -37,7 +39,7 @@ func veinNeighbours(diagonal bool) []cube.Pos {
 	for x := -1; x <= 1; x++ {
 		for y := -1; y <= 1; y++ {
 			for z := -1; z <= 1; z++ {
-				if n := abs(x) + abs(y) + abs(z); n == 1 || (diagonal && n > 1) {
+				if n := core.Abs(x) + core.Abs(y) + core.Abs(z); n == 1 || (diagonal && n > 1) {
 					out = append(out, cube.Pos{x, y, z})
 				}
 			}

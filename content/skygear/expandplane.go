@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
@@ -48,7 +50,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			spots = append(spots, sp)
 		}
 	}
-	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
+	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(core.CountPlain(p.Inventory(), cost.Item))))
 	var actions []ui.Option
 	keys := map[ui.Key]func(p *player.Player, tx *world.Tx){
 		ui.KeyUp: s.expandStep(0, -1), ui.KeyDown: s.expandStep(0, 1), ui.KeyLeft: s.expandStep(-1, 0), ui.KeyRight: s.expandStep(1, 0),

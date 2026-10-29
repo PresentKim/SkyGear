@@ -2,8 +2,9 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
 	"time"
+
+	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -12,7 +13,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/go-gl/mathgl/mgl64"
 )
 
 // The composter is the vanilla block with the game's own rules: every plant
@@ -80,7 +80,7 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 	switch {
 	case n >= matterCapacity:
 		if dirt := s.emptyComposter(tx, pos, c); !dirt.Empty() {
-			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), dirt)
+			s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), dirt)
 			count(p, "compost_dirt", 1)
 		}
 		return true
@@ -210,13 +210,6 @@ func (c composterIO) ExtractItems(tx *world.Tx, pos cube.Pos, face cube.Face, st
 		return item.Stack{}
 	}
 	return c.s.emptyComposter(tx, pos, comp)
-}
-
-// giveItem gives p an item, dropping what does not fit at pos.
-func (s *session) giveItem(p *player.Player, tx *world.Tx, pos mgl64.Vec3, it item.Stack) {
-	if n, _ := p.Inventory().AddItem(it); n < it.Count() {
-		s.DropAt(tx, pos, it.Grow(-n))
-	}
 }
 
 // composterLines are the lines of the composter's WAILA panel.

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
@@ -50,7 +52,7 @@ func (s *session) showToolHeads(p *player.Player, tx *world.Tx, pos cube.Pos, ki
 		if !s.researched(h.Research) && !s.recipesFree {
 			continue
 		}
-		have := countPlain(p.Inventory(), h.Item)
+		have := core.CountPlain(p.Inventory(), h.Item)
 		need := tinker.ToolHeadCost[kind]
 		mark := "§f"
 		if have < need {
@@ -72,7 +74,7 @@ func (s *session) showToolHandles(p *player.Player, tx *world.Tx, pos cube.Pos, 
 	lang := i18n.Of(p)
 	var slots []ui.ItemSlot
 	for _, hd := range tinker.HandleMaterials {
-		have := countPlain(p.Inventory(), hd.Item)
+		have := core.CountPlain(p.Inventory(), hd.Item)
 		mark := "§f"
 		if have < 1 {
 			mark = "§c"
@@ -95,13 +97,13 @@ func (s *session) showToolHandles(p *player.Player, tx *world.Tx, pos cube.Pos, 
 func (s *session) makeTool(p *player.Player, tx *world.Tx, pos cube.Pos, kind string, head tinker.HeadMaterial, hd tinker.HandleMaterial) bool {
 	inv := p.Inventory()
 	need := tinker.ToolHeadCost[kind]
-	if countPlain(inv, head.Item) < need || countPlain(inv, hd.Item) < 1 {
+	if core.CountPlain(inv, head.Item) < need || core.CountPlain(inv, hd.Item) < 1 {
 		return false
 	}
-	takePlain(inv, head.Item, need)
-	takePlain(inv, hd.Item, 1)
+	core.TakePlain(inv, head.Item, need)
+	core.TakePlain(inv, hd.Item, 1)
 	tool := tinker.DescribeTool(item.NewStack(tinker.Tool{Kind: kind, Head: head.ID, Handle: hd.ID}, 1))
-	s.giveItem(p, tx, p.Position(), tool)
+	s.GiveItem(p, tx, p.Position(), tool)
 	s.advance(tx, advancement.ToolMade)
 	count(p, "tool_made", 1)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
@@ -123,7 +125,7 @@ func (s *session) showModifiers(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	var slots []ui.ItemSlot
 	for _, m := range tinker.ToolModifiers {
 		cur := mods[m.ID]
-		have := countPlain(p.Inventory(), m.Item)
+		have := core.CountPlain(p.Inventory(), m.Item)
 		mark := "§f"
 		if have < m.Cost {
 			mark = "§c"
@@ -151,7 +153,7 @@ func (s *session) applyModifier(p *player.Player, tx *world.Tx, pos cube.Pos, m 
 		return false
 	}
 	mods := tinker.ToolMods(held)
-	if mods[m.ID] >= m.Max || tinker.ModsUsed(mods) >= tinker.ToolSlots(tinker.ToolLevel(tinker.ToolXP(held))) || !takePlain(p.Inventory(), m.Item, m.Cost) {
+	if mods[m.ID] >= m.Max || tinker.ModsUsed(mods) >= tinker.ToolSlots(tinker.ToolLevel(tinker.ToolXP(held))) || !core.TakePlain(p.Inventory(), m.Item, m.Cost) {
 		return false
 	}
 	mods[m.ID]++

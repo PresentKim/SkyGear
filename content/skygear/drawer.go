@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -202,7 +204,7 @@ func (d Drawer) toItem() item.Stack {
 		WithValue(drawerLockedKey, boolByte(d.Locked)).WithValue(drawerVoidKey, boolByte(d.Void))
 	lore := []string{}
 	if !d.Item.Empty() {
-		st = st.WithValue(drawerItemKey, encodeItem(d.Item))
+		st = st.WithValue(drawerItemKey, core.EncodeItem(d.Item))
 		lore = append(lore, fmt.Sprintf("§f%s §7x%s", naming.ItemName(i18n.Default, d.Item), textfmt.Int(d.Count)))
 	}
 	lore = append(lore, fmt.Sprintf(i18n.T(i18n.Default, "drawer.lore.upgrades"), d.Capacity, onOff(d.Void)))
@@ -217,7 +219,7 @@ func drawerFromItem(st item.Stack, facing cube.Direction) Drawer {
 	d := Drawer{Facing: facing}
 	if v, ok := st.Value(drawerItemKey); ok {
 		if b, ok := v.([]byte); ok {
-			d.Item = decodeItem(b)
+			d.Item = core.DecodeItem(b)
 		}
 	}
 	if v, ok := st.Value(drawerCountKey); ok {

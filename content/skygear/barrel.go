@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemio"
@@ -102,7 +104,7 @@ func barrelCapacity(string) int { return matterCapacity }
 // a block to melt in a stone barrel.
 func barrelAccepts(wood string, st item.Stack) bool {
 	if wood == stoneWood {
-		if st.Empty() || !plain(st) {
+		if st.Empty() || !core.Plain(st) {
 			return false
 		}
 		for _, m := range stoneMelts {
@@ -311,7 +313,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		} else {
 			ctx.SubtractFromCount(1)
 			if !bucket.Empty() {
-				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), bucket)
+				s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), bucket)
 			}
 		}
 		s.mixBarrel(tx, pos, b, out)
@@ -331,7 +333,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 				p.SetHeldItems(filled, left)
 			} else {
 				ctx.SubtractFromCount(1)
-				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+				s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
 			}
 			delete(s.state.Barrels, key)
 			s.showBarrel(tx, pos, b)
@@ -343,7 +345,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 		if _, ok := held.Item().(sgitem.Dust); ok {
 			// Dust soaks into the water and makes a clay block.
 			ctx.SubtractFromCount(1)
-			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
+			s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 			return true
 		}
@@ -354,7 +356,7 @@ func (s *session) useBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b Barr
 				p.SetHeldItems(filled, left)
 			} else {
 				ctx.SubtractFromCount(1)
-				s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+				s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
 			}
 			delete(s.state.Barrels, key)
 			s.showBarrel(tx, pos, b)
@@ -407,7 +409,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 			p.SetHeldItems(filled, left)
 		} else {
 			ctx.SubtractFromCount(1)
-			s.giveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
+			s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
 		}
 		rec.LavaMB -= bucketMB
 		s.forgetEmptyStone(pos, rec)

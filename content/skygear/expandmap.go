@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/sghook"
+	"github.com/presentkim/skygear/content/skygear/core"
 )
 
 // The expansion map is a flattened copy of the island sent as fake chunks
@@ -39,7 +40,7 @@ func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
 	want := map[ChunkPos]world.Block{}
 	near := int32(expandMapReach)
 	add := func(c ChunkPos, b world.Block) {
-		if abs(c[0]-e.target[0]) <= near && abs(c[1]-e.target[1]) <= near {
+		if core.Abs(c[0]-e.target[0]) <= near && core.Abs(c[1]-e.target[1]) <= near {
 			want[c] = b
 		}
 	}

@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/core"
+
 	"github.com/df-mc/dragonfly/server/item/recipe"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -217,7 +219,7 @@ func TestSieveTopsUpTheHand(t *testing.T) {
 		if naming.ItemKey(held.Item()) != naming.ItemKey(block.Gravel{}) || held.Count() != 8 {
 			t.Errorf("held %d %s, want the 8 gravel left", held.Count(), naming.ItemKey(held.Item()))
 		}
-		if total := countPlain(p.Inventory(), block.Gravel{}); total != 8 {
+		if total := core.CountPlain(p.Inventory(), block.Gravel{}); total != 8 {
 			t.Errorf("%d gravel in the inventory, want 8", total)
 		}
 	})

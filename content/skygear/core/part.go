@@ -47,7 +47,9 @@ func (p *Part[T]) Of(s *Session) *T {
 
 // Players is a feature's data per player in each session. A player's entry
 // goes when the player leaves the session (Session.Leave).
-type Players[T any] struct{ part *Part[map[*world.EntityHandle]T] }
+type Players[T any] struct {
+	part *Part[map[*world.EntityHandle]T]
+}
 
 // NewPlayers declares a per-player part.
 func NewPlayers[T any]() *Players[T] {
