@@ -7,4 +7,4 @@ package sgitem
 
 import (
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
-) // this server's texts
+)
