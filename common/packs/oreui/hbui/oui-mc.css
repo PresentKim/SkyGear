@@ -840,6 +840,55 @@
   justify-content: flex-start;
 }
 
+/* --- the command console (ui.ConsoleScreen): the log fills the window and scrolls, kept at its end;
+   the input box and the run button (52u) are under it. ----------------------------------------- */
+
+.mc-console {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-console-log {
+  flex-grow: 1;
+  flex-basis: 0;
+  padding: 0.4rem;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.mc-console-line {
+  font-size: 1.12rem;
+  color: var(--mc-light-text);
+}
+
+.mc-console-input {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+.mc-console-input .mc-search {
+  flex-grow: 1;
+  margin-bottom: 0;
+  margin-right: 0.6rem;
+}
+
+.mc-console-input .mc-action {
+  width: 10.4rem;
+  margin-bottom: 0;
+  justify-content: center;
+}
+
+.mc-console-input .mc-action .mc-btn-text {
+  position: relative;
+  left: 0;
+}
+
+.mc-console-input .mc-action .mc-btn-text .oui-line {
+  justify-content: center;
+}
+
 /* --- quest book (FTB Quests, as ATM10 To The Sky shows it): chapters on the left, the quests of the
    chosen one on a plane the player drags around, the quest panel over it ------------------------ */
 

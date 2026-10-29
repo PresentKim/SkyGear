@@ -57,6 +57,8 @@ func forgetHome(p *player.Player) {
 	homes.Lock()
 	delete(homes.m, p.UUID())
 	homes.Unlock()
+	forgetFace(p)
+	forgetConsole(p)
 }
 
 // lobbyIdle is ui.Idle: p answered a screen and has none open, or closed one.
@@ -73,6 +75,7 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 	if !pf.m.InLobby(instance.AccountID(p)) {
 		return
 	}
+	closeConsole(p)
 	if !ui.OreUIFor(p) {
 		pf.showLobbyList(p)
 		return
@@ -122,6 +125,11 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 		{Icon: iconSettings, Label: i18n.T(lang, "platform.home.settings"), Run: homeRun(pf.showSettings)},
 		{Icon: iconExit, Label: i18n.T(lang, "platform.home.exit"), Run: pf.overlay(homeExit)},
 	}
+	operator := pf.isOperator != nil && pf.isOperator(p)
+	if operator {
+		console := ui.HomeButton{Icon: iconConsole, Label: i18n.T(lang, "platform.home.console"), Run: homeRun(pf.showConsole)}
+		h.Corner = append([]ui.HomeButton{console}, h.Corner...)
+	}
 	h.Side = []ui.HomeButton{
 		{Icon: "textures/ui/sg/icon_people", Label: i18n.T(lang, "platform.home.multi"), Run: homeRun(pf.showMultiplayer)},
 		{Icon: "textures/ui/sg/icon_person", Label: i18n.T(lang, "platform.home.friends"), Run: homeRun(pf.showFriends)},
@@ -144,6 +152,11 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 			{Label: i18n.T(lang, "platform.home.guide"), Run: homeRun(func(p *player.Player) { pf.showGuide(p, false) })},
 			{Label: i18n.T(lang, "platform.home.exit"), Run: pf.overlay(homeExit)},
 		}}
+		if operator {
+			last := len(h.Overlay.Buttons) - 1
+			h.Overlay.Buttons = append(h.Overlay.Buttons[:last:last],
+				ui.HomeButton{Label: i18n.T(lang, "platform.home.console"), Run: homeRun(pf.showConsole)}, h.Overlay.Buttons[last])
+		}
 	case homeExit:
 		h.Overlay = &ui.HomeOverlay{Title: i18n.T(lang, "platform.home.exit"), Body: i18n.T(lang, "platform.home.exit.ask"), Buttons: []ui.HomeButton{
 			{Label: i18n.T(lang, "platform.home.exit.yes"), Run: func(p *player.Player, _ *world.Tx) {
@@ -159,7 +172,7 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 func (pf *Platform) homeProfile(p *player.Player) ui.HomeProfile {
 	lang := i18n.Of(p)
 	id := instance.AccountID(p)
-	pr := ui.HomeProfile{Icon: iconHead, Name: p.Name(), Title: i18n.T(lang, "platform.home.noTitle"), Run: homeRun(pf.showCosmetics)}
+	pr := ui.HomeProfile{Face: faceOf(p), Icon: iconHead, Name: p.Name(), Title: i18n.T(lang, "platform.home.noTitle"), Run: homeRun(pf.showCosmetics)}
 	if acc, err := pf.db.Account(id); err == nil {
 		pr.Name = account.ColorOf(acc.NameColor).Code + p.Name()
 		if a, ok := account.Get(acc.Title); ok && a.Title(lang) != "" {

@@ -34,6 +34,8 @@
 // A region's children come from the variable "@<name>" (a node), so the server can replace one part of
 // the screen without resending the layout; the region is patched like the layout. `tip` shows a tooltip while the pointer is over the node.
 // `alt` on a box is the id its press with the right mouse button sends.
+// `end` on a scrolling box keeps it scrolled to its end after each draw (a log).
+// pixels (w, h, px: w*h colours "rrggbb", "" for none) is a small picture drawn as boxes (a skin's face).
 // `keys` on the root ({up, down, left, right, ok: id}) presses the id for the arrow keys or WASD, Enter or
 // the space bar (onKey).
 (function () {
@@ -500,6 +502,8 @@
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (n.on) e.className += " on";
+        // `end` keeps a scrolling box at its end (a log): scrollToEnds after each draw.
+        if (n.end) e.className += " oui-end";
         // `alt` is the id the right mouse button presses.
         e.addEventListener("mousedown", function (ev) {
           if (ev.button !== 2 || !rec.n.alt || claimed === ev) return;
@@ -541,6 +545,20 @@
         break;
       case "space":
         e = el("div", "oui-space");
+        break;
+      case "pixels":
+        // A row of boxes for each row of the picture: the page has no canvas (getContext).
+        e = el("div", "oui-pixels");
+        for (var py = 0; py < (n.h || 0); py++) {
+          var prow = el("div", "oui-pixels-row");
+          for (var px = 0; px < (n.w || 0); px++) {
+            var cell = el("div", "oui-pixel");
+            var colour = (n.px || [])[py * n.w + px];
+            if (colour) cell.style.backgroundColor = "#" + colour;
+            prow.appendChild(cell);
+          }
+          e.appendChild(prow);
+        }
         break;
       case "canvas":
         e = buildCanvas(n, rec);
@@ -1759,6 +1777,7 @@
       root.appendChild(tree.el);
     }
     keepFocus();
+    scrollToEnds();
     drawStatus();
   }
 
@@ -1772,7 +1791,18 @@
       tree = r;
     }
     prune();
+    scrollToEnds();
     drawStatus();
+  }
+
+  // scrollToEnds scrolls the boxes with `end` (oui-end) to their bottom, once the layout has its
+  // sizes.
+  function scrollToEnds() {
+    setTimeout(function () {
+      var ends = root ? root.querySelectorAll(".oui-end") : [];
+      for (var i = 0; i < ends.length; i++) ends[i].scrollTop = ends[i].scrollHeight;
+      bars.forEach(updateBar);
+    }, 0);
   }
 
   // The debug line shows while the variable __debug is true.

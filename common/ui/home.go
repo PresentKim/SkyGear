@@ -40,9 +40,11 @@ type HomeButton struct {
 	Run         func(p *player.Player, tx *world.Tx)
 }
 
-// HomeProfile is the player's card: its head picture, name, title, a bar
-// filled to Fill (0..1) and the line under it.
+// HomeProfile is the player's card: its face (Face, 8x8 colours "rrggbb"
+// row by row, "" for none; when not 64 colours, the picture Icon), name,
+// title, a bar filled to Fill (0..1) and the line under it.
 type HomeProfile struct {
+	Face              []string
 	Icon, Name, Title string
 	Fill              float64
 	Line              string
@@ -126,7 +128,11 @@ func homeProfile(l *oreLayout, pr HomeProfile) map[string]any {
 		box("mc-home-bar", "children", []any{box("mc-home-bar-fill", "style", map[string]any{"width": strconv.Itoa(int(fill*100+0.5)) + "%"})}),
 		txt("mc-home-bar-line", pr.Line),
 	)
-	n := box("mc-btn mc-home-profile", "children", []any{img("mc-home-head", pr.Icon), box("mc-home-info", "children", info)})
+	head := img("mc-home-head", pr.Icon)
+	if len(pr.Face) == 64 {
+		head = node("pixels", "class", "mc-home-head", "w", 8, "h", 8, "px", pr.Face)
+	}
+	n := box("mc-btn mc-home-profile", "children", []any{head, box("mc-home-info", "children", info)})
 	return l.press(n, pr.Run)
 }
 
