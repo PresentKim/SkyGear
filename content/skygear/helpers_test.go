@@ -9,6 +9,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
 
@@ -95,4 +96,10 @@ func tick(s *session, n int) {
 	for range n {
 		s.World.AdvanceTick()
 	}
+}
+
+// shapeAs is the shape s keeps under key (nil if none).
+func shapeAs(s *session, key any) debug.Shape {
+	sh, _ := s.Shape(key)
+	return sh
 }

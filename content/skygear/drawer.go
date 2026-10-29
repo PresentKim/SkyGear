@@ -608,12 +608,13 @@ func (s *session) showLabel(tx *world.Tx, pos cube.Pos, d Drawer) {
 // showFaceText shows the text made by f under key, hides it if text is
 // empty, and leaves it alone if it already shows text.
 func (s *session) showFaceText(tx *world.Tx, key any, text string, f func() *debug.Text) {
-	old, ok := s.shapes[key].(*debug.Text)
+	sh, _ := s.Shape(key)
+	old, ok := sh.(*debug.Text)
 	switch {
 	case text == "":
-		s.hideShape(tx, key)
+		s.HideShape(tx, key)
 	case !ok || old.Text != text:
-		s.showShape(tx, key, f())
+		s.ShowShape(tx, key, f())
 	}
 }
 
@@ -658,9 +659,9 @@ func (s *session) refreshDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
 	// The texts are hidden even without a display entity: an empty
 	// drawer has none but can still show its lock.
-	s.hideShape(tx, drawerLabelKey(pos))
-	s.hideShape(tx, drawerLockKey(pos))
-	s.hideShape(tx, drawerUpgradeKey(pos))
+	s.HideShape(tx, drawerLabelKey(pos))
+	s.HideShape(tx, drawerLockKey(pos))
+	s.HideShape(tx, drawerUpgradeKey(pos))
 	disp, ok := s.displays[pos]
 	if !ok {
 		return

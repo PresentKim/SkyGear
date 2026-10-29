@@ -22,7 +22,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/waila"
@@ -178,8 +177,6 @@ type session struct {
 	chestStreaks map[*world.EntityHandle]chestStreak
 	// boards are the HUDs players were last sent (hud.Board.Key).
 	boards map[*world.EntityHandle]string
-	// shapes are debug shapes shown to everyone in the instance (shapes.go).
-	shapes map[any]debug.Shape
 	// cropQueue holds the next growth update of every crop (crops.go).
 	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
@@ -205,7 +202,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	renameMenuItems(p)
 	s.backfillFairyDust(p, p.Tx())
 	s.showWeather(p)
-	s.sendShapes(p)
+	s.SendShapes(p)
 	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
 	delete(s.boards, p.H())

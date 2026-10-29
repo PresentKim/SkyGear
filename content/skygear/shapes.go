@@ -2,56 +2,10 @@ package skygear
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
-	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
-
-// Shapes and text drawn in the air with the client's debug shape packet
-// (PrimitiveShapes, Dragonfly's player/debug). They are client-side only and
-// per player: shapes for everyone in the instance are kept here and sent to
-// each player who joins, and removed from players who leave.
-
-// showShape shows a shape to every player in the instance, replacing the
-// shape stored under key.
-func (s *session) showShape(tx *world.Tx, key any, sh debug.Shape) {
-	if s.shapes == nil {
-		s.shapes = map[any]debug.Shape{}
-	}
-	if old, ok := s.shapes[key]; ok && old != sh {
-		s.forPlayers(tx, func(p *player.Player) { p.RemoveDebugShape(old) })
-	}
-	s.shapes[key] = sh
-	s.forPlayers(tx, func(p *player.Player) { p.AddDebugShape(sh) })
-}
-
-// hideShape removes the shape stored under key from every player.
-func (s *session) hideShape(tx *world.Tx, key any) {
-	sh, ok := s.shapes[key]
-	if !ok {
-		return
-	}
-	delete(s.shapes, key)
-	s.forPlayers(tx, func(p *player.Player) { p.RemoveDebugShape(sh) })
-}
-
-// sendShapes shows the instance shapes to a player who joined.
-func (s *session) sendShapes(p *player.Player) {
-	for _, sh := range s.shapes {
-		p.AddDebugShape(sh)
-	}
-}
-
-func (s *session) forPlayers(tx *world.Tx, f func(p *player.Player)) {
-	if tx == nil {
-		return
-	}
-	for e := range tx.Players() {
-		f(e.(*player.Player))
-	}
-}
 
 // drawerLabelKey, drawerLockKey and drawerUpgradeKey key the count, lock and
 // upgrade texts of a drawer.

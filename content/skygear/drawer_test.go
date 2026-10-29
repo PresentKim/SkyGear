@@ -108,7 +108,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		if main, _ := e.(*ItemHolder).HeldItems(); main.Empty() {
 			t.Fatal("display does not hold the stored item")
 		}
-		l, ok := s.shapes[drawerLabelKey(mid)].(*debug.Text)
+		l, ok := shapeAs(s, drawerLabelKey(mid)).(*debug.Text)
 		if !ok || l.Text != "10" {
 			t.Fatalf("count text = %+v", l)
 		}
@@ -129,7 +129,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 				t.Fatal("display entity outlived its drawer")
 			}
 		}
-		if _, ok := s.shapes[drawerLabelKey(mid)]; ok {
+		if _, ok := s.Shape(drawerLabelKey(mid)); ok {
 			t.Fatal("count text outlived its drawer")
 		}
 		tx.SetBlock(mid, Drawer{Facing: cube.North}, nil)
@@ -199,8 +199,8 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if it, _ := p.Inventory().Item(1); it.Count() != 10 {
 			t.Fatalf("slot 1 = %v, the repeats pulled it into the drawer", it)
 		}
-		if m, ok := s.shapes[drawerUpgradeKey(pos)].(*debug.Text); !ok || !strings.Contains(m.Text, textfmt.VoidGlyph) {
-			t.Fatalf("void mark not shown: %v", s.shapes[drawerUpgradeKey(pos)])
+		if m, ok := shapeAs(s, drawerUpgradeKey(pos)).(*debug.Text); !ok || !strings.Contains(m.Text, textfmt.VoidGlyph) {
+			t.Fatalf("void mark not shown: %v", shapeAs(s, drawerUpgradeKey(pos)))
 		}
 		// The key toggles the lock and stays in the hand.
 		p.SetHeldItems(item.NewStack(block.Dirt{}, 3), item.Stack{})
@@ -211,7 +211,7 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		if d := tx.Block(pos).(Drawer); !d.Locked {
 			t.Fatalf("not locked by the key: %+v", d)
 		}
-		if _, ok := s.shapes[drawerLockKey(pos)]; !ok {
+		if _, ok := s.Shape(drawerLockKey(pos)); !ok {
 			t.Fatal("no lock mark shown")
 		}
 		if held, _ := p.HeldItems(); !sgitem.IsDrawerKey(held) {
@@ -219,13 +219,13 @@ func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 		}
 		// Picking the drawer up removes both texts.
 		s.removeDisplay(tx, pos)
-		if _, ok := s.shapes[drawerLockKey(pos)]; ok {
+		if _, ok := s.Shape(drawerLockKey(pos)); ok {
 			t.Fatal("lock mark left after removal")
 		}
-		if _, ok := s.shapes[drawerLabelKey(pos)]; ok {
+		if _, ok := s.Shape(drawerLabelKey(pos)); ok {
 			t.Fatal("count text left after removal")
 		}
-		if _, ok := s.shapes[drawerUpgradeKey(pos)]; ok {
+		if _, ok := s.Shape(drawerUpgradeKey(pos)); ok {
 			t.Fatal("upgrade marks left after removal")
 		}
 	})
