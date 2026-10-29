@@ -3555,6 +3555,7 @@
  "setting.advancement.sound": "발전과제 달성 소리",
  "setting.advancement.panel": "화면에 발전과제 표시",
  "setting.vein.diagonal": "광맥 캐기 대각선 포함",
+ "setting.autotool": "블록에 맞는 도구 자동으로 들기",
  "setting.uimode": "메뉴를 JSON UI 폼으로 보기",
  "platform.uidebug.command": "메뉴 화면(Ore UI)의 디버그 정보를 켜고 끕니다",
  "platform.uidebug.on": "§e메뉴 화면 디버그 정보를 켰습니다. 메뉴를 열면 화면 위에 보입니다.",
