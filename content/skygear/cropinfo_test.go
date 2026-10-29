@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/look"
 	"strings"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestUsingCrops(t *testing.T) {
 			t.Fatal("using a crop was not cancelled (a block could be placed on it)")
 		}
 		// The WAILA panel shows the time left on a growing crop.
-		if info := s.lookInfo(p, tx, young, tx.Block(young)); info.Name != "밀" || len(info.Lines) != 1 || !strings.Contains(info.Lines[0], "남은 시간") {
+		if info := look.Info(s.Session, p, tx, young, tx.Block(young)); info.Name != "밀" || len(info.Lines) != 1 || !strings.Contains(info.Lines[0], "남은 시간") {
 			t.Fatalf("crop panel %+v", info)
 		}
 

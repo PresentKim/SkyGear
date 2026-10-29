@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/presentkim/skygear/content/skygear/catalog"
 	"github.com/presentkim/skygear/content/skygear/codex"
@@ -154,8 +153,6 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 // instance world.
 type session struct {
 	*core.Session
-	// lastLook is when each player's WAILA panel was last updated.
-	lastLook map[*world.EntityHandle]time.Time
 	// diedFood is the food level each player died with, given back when it
 	// respawns (handler.go).
 	diedFood map[*world.EntityHandle]int
@@ -197,7 +194,6 @@ func (s *session) Join(p *player.Player, first bool) {
 func (s *session) Leave(p *player.Player) {
 	s.Session.Leave(p)
 	expand.Stop(s.Session, p, p.Tx())
-	delete(s.lastLook, p.H())
 	delete(s.boards, p.H())
 	delete(s.helpTab, p.H())
 	delete(s.diedFood, p.H())

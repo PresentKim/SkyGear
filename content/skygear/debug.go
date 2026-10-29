@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/look"
 	"strings"
 	"time"
 
@@ -87,8 +88,8 @@ func (c debugLook) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		// Move does not turn the client's own camera; a teleport to the same
 		// spot sends it the rotation.
 		p.Teleport(p.Position())
-		s.updateLook(p, tx, p.Position(), p.Rotation(), true)
-		if at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+		look.Update(s.Session, p, tx, p.Position(), p.Rotation(), true)
+		if at, b, ok := look.LookedAt(p, tx, p.Position(), p.Rotation()); ok {
 			o.Printf(i18n.T(i18n.Default, "skygear.admin.lookingAt"), naming.BlockName(i18n.Default, b), at[0], at[1], at[2])
 		} else {
 			o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.lookingAtNone"))

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/look"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/expand"
@@ -249,7 +250,7 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 // HandleMove returns players that fall below the island into the void, and
 // keeps players in island expansion mode in place.
 func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
-	h.s.updateLook(ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
+	look.Update(h.s.Session, ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
 	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
 		ctx.Cancel()
 		return

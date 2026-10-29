@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/look"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/codex"
@@ -166,7 +167,7 @@ func (s *session) openCodex(p *player.Player) {
 		return
 	}
 	if tx := p.Tx(); tx != nil {
-		if _, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
+		if _, b, ok := look.LookedAt(p, tx, p.Position(), p.Rotation()); ok {
 			if it, isItem := b.(world.Item); isItem {
 				if e, found := codex.ItemByKey(naming.ItemKey(it)); found {
 					codex.ShowItem(s.Session, p, e)

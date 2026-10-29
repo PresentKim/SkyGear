@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/look"
 	"strings"
 	"testing"
 
@@ -41,13 +42,13 @@ func TestLookedAt(t *testing.T) {
 		tx.SetBlock(crop.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		tx.SetBlock(crop, block.WheatSeeds{}, nil)
 		pos, rot := eyeAt(p, target, 3)
-		if at, b, ok := lookedAt(p, tx, pos, rot); !ok || at != target {
+		if at, b, ok := look.LookedAt(p, tx, pos, rot); !ok || at != target {
 			t.Fatalf("looked at %v %T, want stone at %v", at, b, target)
 		}
 		// A young crop is low: aim near its bottom.
 		pos, rot = eyeAt(p, crop, 2)
 		pos = pos.Sub(mgl64.Vec3{0, 0.45, 0})
-		if at, _, ok := lookedAt(p, tx, pos, rot); !ok || at != crop {
+		if at, _, ok := look.LookedAt(p, tx, pos, rot); !ok || at != crop {
 			t.Fatalf("looked at %v, want the crop at %v", at, crop)
 		}
 		// Over a young (low) crop the view goes on to the block behind it.
@@ -55,11 +56,11 @@ func TestLookedAt(t *testing.T) {
 		tx.SetBlock(behind, block.Stone{}, nil)
 		pos, rot = eyeAt(p, behind, 2)
 		pos = pos.Add(mgl64.Vec3{0, 0.3, 0})
-		if at, _, ok := lookedAt(p, tx, pos, rot); !ok || at != behind {
+		if at, _, ok := look.LookedAt(p, tx, pos, rot); !ok || at != behind {
 			t.Fatalf("over a young crop looked at %v, want the block behind at %v", at, behind)
 		}
-		pos, rot = eyeAt(p, target, lookReach+2)
-		if _, b, ok := lookedAt(p, tx, pos, rot); ok {
+		pos, rot = eyeAt(p, target, look.Reach+2)
+		if _, b, ok := look.LookedAt(p, tx, pos, rot); ok {
 			t.Fatalf("found %T beyond the reach", b)
 		}
 	})
@@ -85,7 +86,7 @@ func TestLookedAtPlacedBarrel(t *testing.T) {
 		}
 		tx.SetBlock(below, block.Fire{}, nil)
 		pos, rot := eyeAt(p, target, 3)
-		if at, b, ok := lookedAt(p, tx, pos, rot); !ok || at != target {
+		if at, b, ok := look.LookedAt(p, tx, pos, rot); !ok || at != target {
 			t.Fatalf("looked at %v %T, want the barrel at %v", at, b, target)
 		}
 	})
@@ -102,25 +103,25 @@ func TestLookInfo(t *testing.T) {
 	drawerPos := cube.Pos{6, island.IslandY, 3}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		text := func(pos cube.Pos) string {
-			info := s.lookInfo(p, tx, pos, tx.Block(pos))
+			info := look.Info(s.Session, p, tx, pos, tx.Block(pos))
 			title, _ := waila.Format(info)
 			return title
 		}
 		if got := text(machinePos); !strings.Contains(got, "tile.skygear:crusher.name") || strings.Contains(got, "스카이기어") {
 			t.Errorf("crusher panel %q", got)
 		}
-		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Line == nil || info.Line.Name != "조약돌" || !info.Line.ShowGauge {
+		if info := look.Info(s.Session, p, tx, machinePos, tx.Block(machinePos)); info.Line == nil || info.Line.Name != "조약돌" || !info.Line.ShowGauge {
 			t.Errorf("crusher line %+v, want the cobblestone with a gauge", info.Line)
 		}
 		tx.SetBlock(drawerPos, storage.Drawer{Facing: cube.South, Item: item.NewStack(block.Dirt{}, 1), Count: 70, Locked: true}, nil)
-		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); info.Container == nil || len(info.Container.Items) != 1 ||
+		if info := look.Info(s.Session, p, tx, drawerPos, tx.Block(drawerPos)); info.Container == nil || len(info.Container.Items) != 1 ||
 			info.Container.Items[0].Count() != 70 || info.Line != nil || info.Marks != (waila.Marks{}) {
 			t.Errorf("drawer panel %+v, want the dirt in a slot with its count, as a chest shows it, and no marks", info)
 		} else if _, ok := info.Item.(storage.Drawer); !ok {
 			t.Errorf("drawer icon %v, want the drawer", info.Item)
 		}
 		p.StartSneaking()
-		if info := s.lookInfo(p, tx, drawerPos, tx.Block(drawerPos)); len(info.Lines) < 2 || !strings.Contains(info.Lines[len(info.Lines)-1], "잠김") {
+		if info := look.Info(s.Session, p, tx, drawerPos, tx.Block(drawerPos)); len(info.Lines) < 2 || !strings.Contains(info.Lines[len(info.Lines)-1], "잠김") {
 			t.Errorf("sneaking drawer lines %q, want the upgrades and the lock", info.Lines)
 		}
 		p.StopSneaking()
@@ -129,21 +130,21 @@ func TestLookInfo(t *testing.T) {
 		if c, ok := tx.Block(chestPos).(block.Chest); ok {
 			_, _ = c.Inventory(tx, chestPos).AddItem(item.NewStack(block.Dirt{}, 20))
 		}
-		if title, _ := waila.Format(s.lookInfo(p, tx, chestPos, tx.Block(chestPos))); !strings.Contains(title, "__waila:inv.chest__") {
+		if title, _ := waila.Format(look.Info(s.Session, p, tx, chestPos, tx.Block(chestPos))); !strings.Contains(title, "__waila:inv.chest__") {
 			t.Errorf("chest panel %q has no contents", title)
 		}
-		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
+		if info := look.Info(s.Session, p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
 			t.Errorf("crusher panel has slots: %+v", info.Container)
 		}
 		stone := cube.Pos{1, island.IslandY + 4, 1}
 		tx.SetBlock(stone, block.Stone{}, nil)
-		info := s.lookInfo(p, tx, stone, block.Stone{})
+		info := look.Info(s.Session, p, tx, stone, block.Stone{})
 		if info.Name != "돌" || info.Source != "" || len(info.Tools) == 0 || info.Item == nil {
 			t.Errorf("stone panel %+v", info)
 		}
 		fire := stone.Side(cube.FaceUp)
 		tx.SetBlock(fire, block.Fire{}, nil)
-		if info := s.lookInfo(p, tx, fire, block.Fire{}); info.Item != (item.FlintAndSteel{}) || info.NameKey != "tile.fire.name" {
+		if info := look.Info(s.Session, p, tx, fire, block.Fire{}); info.Item != (item.FlintAndSteel{}) || info.NameKey != "tile.fire.name" {
 			t.Errorf("fire panel %+v, want flint and steel as the icon", info)
 		}
 	})
@@ -151,24 +152,24 @@ func TestLookInfo(t *testing.T) {
 
 // TestFurnaceArrow: an unlit furnace shows an empty arrow.
 func TestFurnaceArrow(t *testing.T) {
-	it := furnaceArrow(block.NewFurnace(cube.North))
+	it := look.FurnaceArrow(block.NewFurnace(cube.North))
 	if a, ok := it.Item().(machine.ProgressArrow); !ok || a.Step != 0 {
 		t.Errorf("unlit furnace arrow %v, want an empty progress arrow", it)
 	}
-	if !furnaceArrow(block.Stone{}).Empty() {
+	if !look.FurnaceArrow(block.Stone{}).Empty() {
 		t.Errorf("stone has a furnace arrow")
 	}
 }
 
 // TestCustomTool: our blocks show a fitting tool, marked when held.
 func TestCustomTool(t *testing.T) {
-	if got := customTool(storage.Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
+	if got := look.CustomTool(storage.Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
 		t.Errorf("drawer by hand: %v", got)
 	}
-	if got := customTool(machine.Machine{Kind: machine.KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
+	if got := look.CustomTool(machine.Machine{Kind: machine.KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
 		t.Errorf("machine with a pickaxe: %v", got)
 	}
-	if got := customTool(block.Stone{}, item.Stack{}); got != nil {
+	if got := look.CustomTool(block.Stone{}, item.Stack{}); got != nil {
 		t.Errorf("stone: %v", got)
 	}
 }
@@ -205,10 +206,10 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 	st.Insert(item.NewStack(block.Cobblestone{}, 5))
 	tick(s, machine.Kinds[machine.KindCrusher].Interval/2+1)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		plain := len(s.lookInfo(p, tx, machinePos, tx.Block(machinePos)).Lines)
+		plain := len(look.Info(s.Session, p, tx, machinePos, tx.Block(machinePos)).Lines)
 		p.StartSneaking()
 		defer p.StopSneaking()
-		info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos))
+		info := look.Info(s.Session, p, tx, machinePos, tx.Block(machinePos))
 		if len(info.Lines) <= plain || !strings.Contains(strings.Join(info.Lines, "\n"), "주기") {
 			t.Errorf("sneaking lines %q, plain %d", info.Lines, plain)
 		}
