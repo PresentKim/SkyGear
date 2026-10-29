@@ -1,4 +1,4 @@
-package skygear
+package handwork
 
 import (
 	"cmp"
@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
 )
 
@@ -29,11 +30,11 @@ type chestStreak struct {
 	last time.Time
 }
 
-// useStickOnChest puts the items of p's inventory past the hotbar that the
+// UseStickOnChest puts the items of p's inventory past the hotbar that the
 // chest at pos already holds into it, when p uses a stick on it while sneaking; the
 // chestSortUses-th use in a row also sorts it. It reports whether the use
 // was a sneaking stick use on a chest.
-func (s *session) useStickOnChest(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
+func UseStickOnChest(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
 	if _, ok := held.Item().(item.Stick); !ok || !p.Sneaking() {
 		return false
 	}
@@ -41,13 +42,13 @@ func (s *session) useStickOnChest(p *player.Player, tx *world.Tx, pos cube.Pos, 
 	if !ok {
 		return false
 	}
-	if s.stickDebounced(p) {
+	if stickDebounced(s, p) {
 		return true
 	}
 	inv := c.Inventory(tx, pos)
 	depositMatching(p.Inventory(), inv)
-	if s.countChestUse(p, pos) >= chestSortUses {
-		delete(s.chestStreaks, p.H())
+	if countChestUse(s, p, pos) >= chestSortUses {
+		delete(chestStreaks.Of(s), p.H())
 		sortInventory(inv)
 	}
 	return true
@@ -55,17 +56,14 @@ func (s *session) useStickOnChest(p *player.Player, tx *world.Tx, pos cube.Pos, 
 
 // countChestUse records p's sneaking stick use on the chest at pos and
 // returns how many it made on it in a row.
-func (s *session) countChestUse(p *player.Player, pos cube.Pos) int {
-	if s.chestStreaks == nil {
-		s.chestStreaks = map[*world.EntityHandle]chestStreak{}
-	}
-	cur := s.chestStreaks[p.H()]
+func countChestUse(s *core.Session, p *player.Player, pos cube.Pos) int {
+	cur := chestStreaks.Of(s)[p.H()]
 	if cur.pos != pos || time.Since(cur.last) >= chestSortGap {
 		cur = chestStreak{pos: pos}
 	}
 	cur.uses++
 	cur.last = time.Now()
-	s.chestStreaks[p.H()] = cur
+	chestStreaks.Of(s)[p.H()] = cur
 	return cur.uses
 }
 

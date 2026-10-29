@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/handwork"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -30,11 +31,11 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 		_ = p.Inventory().SetItem(14, item.NewStack(block.Dirt{}, 40))
 		_ = p.Inventory().SetItem(15, item.NewStack(block.Cobblestone{}, 10))
 		_ = p.Inventory().SetItem(16, item.NewStack(item.Stick{}, 3))
-		if s.useStickOnChest(p, tx, pos, stick) {
+		if handwork.UseStickOnChest(s.Session, p, tx, pos, stick) {
 			t.Fatal("a stick use without sneaking was handled")
 		}
 		p.StartSneaking()
-		if !s.useStickOnChest(p, tx, pos, stick) {
+		if !handwork.UseStickOnChest(s.Session, p, tx, pos, stick) {
 			t.Fatal("a sneaking stick use on a chest was not handled")
 		}
 		if got := core.CountPlain(chest, block.Dirt{}); got != 41 {
@@ -71,8 +72,8 @@ func TestThreeSneakingStickUsesSortChest(t *testing.T) {
 		p.SetHeldItems(stick, item.Stack{})
 		p.StartSneaking()
 		use := func() {
-			delete(s.lastStick, p.H())
-			s.useStickOnChest(p, tx, pos, stick)
+			delete(handwork.LastStick.Of(s.Session), p.H())
+			handwork.UseStickOnChest(s.Session, p, tx, pos, stick)
 		}
 		use()
 		use()

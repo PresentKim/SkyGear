@@ -2,10 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/wave"
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/presentkim/skygear/content/skygear/wave"
 
 	"github.com/presentkim/skygear/content/skygear/farm"
 

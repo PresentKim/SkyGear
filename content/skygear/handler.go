@@ -1,8 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/wave"
+	"github.com/presentkim/skygear/content/skygear/handwork"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/wave"
 
 	"github.com/presentkim/skygear/content/skygear/fairy"
 
@@ -151,7 +153,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	if h.s.useStickOnChest(p, tx, pos, held) || h.s.useStick(p, tx, pos, face, held) {
+	if handwork.UseStickOnChest(h.s.Session, p, tx, pos, held) || handwork.UseStick(h.s.Session, p, tx, pos, face, held) {
 		ctx.Cancel()
 		return
 	}
@@ -159,8 +161,8 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	h.s.stripFiber(p, tx, pos, face, held)
-	h.s.tillSeeds(p, tx, pos, face, held)
+	handwork.StripFiber(h.s.Session, p, tx, pos, face, held)
+	handwork.TillSeeds(h.s.Session, p, tx, pos, face, held)
 	if fairy.UseFairyTime(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return

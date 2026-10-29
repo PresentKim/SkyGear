@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/handwork"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/fairy"
@@ -43,12 +44,12 @@ func TestStickKnocksPebbles(t *testing.T) {
 		tx.SetBlock(grass, block.Grass{}, nil)
 		tx.SetBlock(stone, block.Stone{}, nil)
 		stickStack := item.NewStack(item.Stick{}, 1)
-		if s.useStick(p, tx, stone, cube.FaceUp, stickStack) {
+		if handwork.UseStick(s.Session, p, tx, stone, cube.FaceUp, stickStack) {
 			t.Fatal("a stick on stone was handled")
 		}
 		for range 20 {
-			delete(s.lastStick, p.H())
-			if !s.useStick(p, tx, grass, cube.FaceUp, stickStack) {
+			delete(handwork.LastStick.Of(s.Session), p.H())
+			if !handwork.UseStick(s.Session, p, tx, grass, cube.FaceUp, stickStack) {
 				t.Fatal("a stick on grass was not handled")
 			}
 		}
@@ -60,8 +61,8 @@ func TestStickKnocksPebbles(t *testing.T) {
 			t.Fatalf("%d pebbles from 20 uses", total)
 		}
 		// A use right after the last one is the client's double click: ignored.
-		s.useStick(p, tx, grass, cube.FaceUp, stickStack)
-		s.useStick(p, tx, grass, cube.FaceUp, stickStack)
+		handwork.UseStick(s.Session, p, tx, grass, cube.FaceUp, stickStack)
+		handwork.UseStick(s.Session, p, tx, grass, cube.FaceUp, stickStack)
 		total2 := 0
 		for _, n := range droppedItems(tx) {
 			total2 += n
@@ -81,13 +82,13 @@ func TestAxeStripsFiber(t *testing.T) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, fairy.OakLog, nil)
 		for range 50 {
-			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
+			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		}
 		if droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})] != 0 {
 			t.Fatal("a wooden axe stripped fibers")
 		}
 		for range 50 {
-			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
+			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
 		}
 		if n := droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})]; n < 20 {
 			t.Fatalf("%d fibers from 50 stone axe strips", n)
@@ -147,7 +148,7 @@ func TestGrassSeeds(t *testing.T) {
 		hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
 		for range 200 {
 			tx.SetBlock(pos, block.Dirt{}, nil)
-			s.tillSeeds(p, tx, pos, cube.FaceUp, hoe)
+			handwork.TillSeeds(s.Session, p, tx, pos, cube.FaceUp, hoe)
 		}
 		if n := droppedKeys(tx)[naming.ItemKey(sgitem.GrassSeeds{})]; n < 5 || n > 40 {
 			t.Fatalf("200 tillings dropped %d seeds, want about 20", n)

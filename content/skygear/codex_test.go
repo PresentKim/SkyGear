@@ -1,9 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/wave"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/wave"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"

@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/handwork"
 
 	"github.com/presentkim/skygear/content/skygear/farm"
 
@@ -58,11 +59,11 @@ func (s *session) codexHandCards(lang string) []codexCard {
 		}
 	}
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1)
-	fiber := s.codexCell(lang, item.NewStack(sgitem.BarkFiber{}, 1), fmt.Sprintf("§f%d%%", fiberChance),
-		fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), textfmt.Range(1, 2), fiberChance))
+	fiber := s.codexCell(lang, item.NewStack(sgitem.BarkFiber{}, 1), fmt.Sprintf("§f%d%%", handwork.FiberChance),
+		fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), textfmt.Range(1, 2), handwork.FiberChance))
 	cards = append(cards, machineCard(lang, axe, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Log{Wood: block.OakWood()}, 1), "", i18n.T(lang, "codex.card.strip"))}, []ui.BoardCell{fiber}))
 	hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
-	seeds := s.codexCell(lang, item.NewStack(sgitem.GrassSeeds{}, 1), fmt.Sprintf("§f%d%%", grassSeedChance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), grassSeedChance))
+	seeds := s.codexCell(lang, item.NewStack(sgitem.GrassSeeds{}, 1), fmt.Sprintf("§f%d%%", handwork.GrassSeedChance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), handwork.GrassSeedChance))
 	cards = append(cards, machineCard(lang, hoe, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Dirt{}, 1), "", i18n.T(lang, "codex.card.till"))}, []ui.BoardCell{seeds}))
 	composter := item.NewStack(block.Composter{}, 1)
 	plants := s.codexCell(lang, item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(farm.MatterCapacity), i18n.T(lang, "codex.card.anyPlant"))

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/handwork"
 	"log/slog"
 	"path/filepath"
 	"slices"
@@ -87,7 +88,7 @@ func TestCountersCount(t *testing.T) {
 		}
 		pos := cube.Pos{1, island.IslandY - 1, 1}
 		tx.SetBlock(pos, block.Dirt{}, nil)
-		if !s.useStick(p, tx, pos, cube.FaceUp, item.NewStack(item.Stick{}, 1)) {
+		if !handwork.UseStick(s.Session, p, tx, pos, cube.FaceUp, item.NewStack(item.Stick{}, 1)) {
 			t.Fatal("stick on dirt must be used")
 		}
 		if got := account.Counter(acc, "stick_dirt"); got != 1 {

@@ -3,10 +3,11 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/wave"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/wave"
 
 	"github.com/presentkim/skygear/content/skygear/fairy"
 
@@ -160,11 +161,6 @@ type session struct {
 	g              *Game
 	// state is the saved state (savedState).
 	state *State
-	// lastStick is when each player last used a stick on the ground.
-	lastStick map[*world.EntityHandle]time.Time
-	// chestStreaks are each player's sneaking stick uses on a chest in a row
-	// (stickchest.go).
-	chestStreaks map[*world.EntityHandle]chestStreak
 	// boards are the HUDs players were last sent (hud.Board.Key).
 	boards map[*world.EntityHandle]string
 	// expanding are the players in island expansion mode (expand.go).
@@ -204,8 +200,6 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.codexRecent, p.H())
 	delete(s.helpTab, p.H())
 	delete(s.diedFood, p.H())
-	delete(s.lastStick, p.H())
-	delete(s.chestStreaks, p.H())
 	waila.Clear(p)
 	// Shapes are client-side: clear them before the player leaves the
 	// instance world.
