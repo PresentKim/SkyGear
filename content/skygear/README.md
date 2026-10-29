@@ -55,6 +55,11 @@
 - `core.NewSaved`: 저장되는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 필드들이고,
   필드 이름은 파트끼리 겹치지 않는다(겹치면 시작할 때 패닉). 그래서 기능을 옮겨도 세이브 형식은 그대로다.
 
+## 파일
+
+패키지로 옮길 때 파일 이름은 그대로 두었다. 문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다
+(예: `machine/sieve.go`, `codex/codexsearch.go`).
+
 ## 문서
 
 - 설계: [docs/design/02-skygear.md](../../docs/design/02-skygear.md) 이후의 `docs/design/*.md`
