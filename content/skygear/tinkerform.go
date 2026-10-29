@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -105,7 +107,7 @@ func (s *session) makeTool(p *player.Player, tx *world.Tx, pos cube.Pos, kind st
 	tool := tinker.DescribeTool(item.NewStack(tinker.Tool{Kind: kind, Head: head.ID, Handle: hd.ID}, 1))
 	s.GiveItem(p, tx, p.Position(), tool)
 	s.advance(tx, advancement.ToolMade)
-	count(p, "tool_made", 1)
+	achievement.Count(p, "tool_made", 1)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
 	return true
 }
@@ -159,7 +161,7 @@ func (s *session) applyModifier(p *player.Player, tx *world.Tx, pos cube.Pos, m 
 	mods[m.ID]++
 	p.SetHeldItems(tinker.DescribeTool(tinker.WithToolMods(held, mods)), off)
 	s.advance(tx, advancement.ToolMod)
-	count(p, "tool_mod", 1)
+	achievement.Count(p, "tool_mod", 1)
 	tx.PlaySound(pos.Vec3Centre(), sound.AnvilUse{})
 	return true
 }
@@ -181,7 +183,7 @@ func (s *session) gainToolXP(p *player.Player, n int) {
 	_, off := p.HeldItems()
 	p.SetHeldItems(next, off)
 	if up {
-		count(p, "tool_levelup", 1)
+		achievement.Count(p, "tool_levelup", 1)
 		s.advance(p.Tx(), advancement.ToolLevel)
 		if tinker.ToolLevel(tinker.ToolXP(next)) >= 5 {
 			s.advance(p.Tx(), advancement.Tool5)

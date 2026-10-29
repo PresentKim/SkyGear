@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -103,7 +105,7 @@ func (s *session) confirmLobby(p *player.Player) {
 // openMenu opens the game menu, or the expansion screen in expansion mode
 // (the camera looks down, so the menu item and /menu act on the mode).
 func (s *session) openMenu(p *player.Player) {
-	count(p, "menu_open", 1)
+	achievement.Count(p, "menu_open", 1)
 	if _, ok := s.expansionOf(p); ok {
 		s.showExpand(p)
 		return

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -213,7 +215,7 @@ const (
 // showStats opens the statistics screen on a page.
 func (s *session) showStats(p *player.Player, tab statsTab) {
 	s.initMonitor()
-	count(p, "stats_open", 1)
+	achievement.Count(p, "stats_open", 1)
 	s.showStatsPage(p, tab)
 }
 

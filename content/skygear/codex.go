@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
@@ -35,7 +37,7 @@ func codexSieveInputs() []world.Item {
 // openCodex opens the codex: the page of the item p holds, else the page of
 // the block p looks at (the one the WAILA panel shows), else the first page.
 func (s *session) openCodex(p *player.Player) {
-	count(p, "codex_open", 1)
+	achievement.Count(p, "codex_open", 1)
 	s.codexStart(p)
 	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
 		s.showCodexItem(p, held)

@@ -1,6 +1,7 @@
-// Package achievement lists the game's account achievements: the counter and
-// first-possession catalogs and the IDs of the other achievements. The game
-// package registers and grants them.
+// Package achievement is the game's account achievements: the counter and
+// first-possession catalogs, the IDs of the other achievements, their
+// registration with platform/account and the counting (Count, CountAll,
+// CountBreak, CountWalk, GrantCollection) the features call.
 package achievement
 
 import (

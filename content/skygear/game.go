@@ -176,9 +176,6 @@ type session struct {
 	// chestStreaks are each player's sneaking stick uses on a chest in a row
 	// (stickchest.go).
 	chestStreaks map[*world.EntityHandle]chestStreak
-	// walked is the part of a block each player walked since the last whole
-	// block was counted (counter.go).
-	walked map[*world.EntityHandle]float64
 	// boards are the HUDs players were last sent (hud.Board.Key).
 	boards map[*world.EntityHandle]string
 	// shapes are debug shapes shown to everyone in the instance (shapes.go).
@@ -261,7 +258,6 @@ func (s *session) Leave(p *player.Player) {
 	delete(s.codexNav, p.H())
 	delete(s.codexRecent, p.H())
 	delete(s.helpTab, p.H())
-	delete(s.walked, p.H())
 	delete(s.diedFood, p.H())
 	delete(s.lastStick, p.H())
 	delete(s.chestStreaks, p.H())

@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -35,8 +37,8 @@ func (s *session) useCrop(p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		return false
 	}
 	if after, ok := harvestable(b); ok {
-		count(p, "crop_harvest", 1)
-		count(p, "crop_"+kind, 1)
+		achievement.Count(p, "crop_harvest", 1)
+		achievement.Count(p, "crop_"+kind, 1)
 		s.harvestByHand(tx, pos, b, after)
 		return true
 	}

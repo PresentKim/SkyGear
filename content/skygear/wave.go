@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
@@ -112,8 +114,8 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	delete(w.left, m.handle)
 	if p != nil {
 		s.advance(tx, advancement.Kill)
-		count(p, "kill_total", 1)
-		count(p, "kill_"+m.kind, 1)
+		achievement.Count(p, "kill_total", 1)
+		achievement.Count(p, "kill_"+m.kind, 1)
 		looting := 0
 		if held, ok := toolOf(p); ok {
 			looting += tinker.ToolMods(held)["looting"]
@@ -165,8 +167,8 @@ func (s *session) winWave(tx *world.Tx) {
 		}
 	}
 	tx.PlaySound(w.gate.Vec3Centre(), sound.Experience{})
-	countAll(tx, "wave_win", 1)
-	countAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
+	achievement.CountAll(tx, "wave_win", 1)
+	achievement.CountAll(tx, fmt.Sprintf("wave_level_%d", w.level), 1)
 	s.Broadcast(tx, "gate.win", w.level)
 }
 
@@ -178,7 +180,7 @@ func (s *session) failWave(tx *world.Tx, key string) {
 	}
 	s.wave = nil
 	s.closeGatePortal(tx, w)
-	countAll(tx, "wave_fail", 1)
+	achievement.CountAll(tx, "wave_fail", 1)
 	for h := range w.left {
 		if e, ok := h.Entity(tx); ok {
 			_ = e.Close()

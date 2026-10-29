@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -81,14 +83,14 @@ func (s *session) useComposter(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 	case n >= matterCapacity:
 		if dirt := s.emptyComposter(tx, pos, c); !dirt.Empty() {
 			s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), dirt)
-			count(p, "compost_dirt", 1)
+			achievement.Count(p, "compost_dirt", 1)
 		}
 		return true
 	case plantMatter(held):
 		if s.fillComposter(tx, pos, c, held, 1) == 0 {
 			return false
 		}
-		count(p, "compost_fill", 1)
+		achievement.Count(p, "compost_fill", 1)
 		if s.composterCount(pos, c) >= matterCapacity {
 			p.SendTip(i18n.T(i18n.Of(p), "composter.full"))
 		}

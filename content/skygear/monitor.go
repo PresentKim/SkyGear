@@ -5,6 +5,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
@@ -144,7 +146,7 @@ func (s *session) tickMonitor(tx *world.Tx) {
 	s.now++
 	st := s.stats
 	for k, n := range st.fresh {
-		countAll(tx, k, n)
+		achievement.CountAll(tx, k, n)
 		delete(st.fresh, k)
 	}
 	working, newAlerts := 0, 0
@@ -163,7 +165,7 @@ func (s *session) tickMonitor(tx *world.Tx) {
 			working++
 			if m.alerted {
 				m.alerted = false
-				countAll(tx, "stall_fixed", 1)
+				achievement.CountAll(tx, "stall_fixed", 1)
 			}
 		case cur.alerts() && !m.alerted && s.now-m.since >= alertAfter && (m.lastAlert == 0 || s.now-m.lastAlert >= alertSpacing):
 			m.alerted, m.lastAlert = true, s.now
@@ -223,7 +225,7 @@ func (s *session) sendAlerts(tx *world.Tx, alerts []*alertLine) {
 			p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert"), a.st.kind.title(lang), a.pos.X(), a.pos.Y(), a.pos.Z(), i18n.T(lang, a.st.mon.status.reasonKey())))
 		}
 		p.PlaySound(sound.Note{Instrument: sound.Bass(), Pitch: 6})
-		count(p, "alerts_seen", int64(len(alerts)))
+		achievement.Count(p, "alerts_seen", int64(len(alerts)))
 	}
 }
 
@@ -240,7 +242,7 @@ func (s *session) tickRecords(tx *world.Tx, working, alerted int, alerting bool)
 	}
 	for _, m := range uptimeRecords {
 		if s.uptime == m*60 {
-			countAll(tx, fmt.Sprintf("uptime_%d", m), 1)
+			achievement.CountAll(tx, fmt.Sprintf("uptime_%d", m), 1)
 		}
 	}
 }
@@ -255,13 +257,13 @@ var (
 func (s *session) minuteRecords(tx *world.Tx, b statBucket) {
 	for _, r := range rateRecords {
 		if b.total >= r {
-			countAll(tx, fmt.Sprintf("rate_%d", r), 1)
+			achievement.CountAll(tx, fmt.Sprintf("rate_%d", r), 1)
 		}
 	}
 	avg := float64(b.gen) / 1200
 	for _, r := range powerRecords {
 		if avg >= float64(r) {
-			countAll(tx, fmt.Sprintf("power_%d", r), 1)
+			achievement.CountAll(tx, fmt.Sprintf("power_%d", r), 1)
 		}
 	}
 }

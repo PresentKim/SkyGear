@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -294,7 +296,7 @@ func (s *session) useCopier(p *player.Player, tx *world.Tx, pos cube.Pos, face c
 		p.SetHeldItems(withCard(held, c, lang), off)
 		tx.PlaySound(p.Position(), sound.ItemAdd{})
 		p.SendTip(c.describe(lang))
-		count(p, "copier_copy", 1)
+		achievement.Count(p, "copier_copy", 1)
 		return
 	}
 	c, have := cardOf(held)
@@ -309,9 +311,9 @@ func (s *session) useCopier(p *player.Player, tx *world.Tx, pos cube.Pos, face c
 	}
 	tx.PlaySound(p.Position(), sound.Experience{})
 	p.SendTip(fmt.Sprintf(i18n.T(lang, "copier.pasted"), c.describe(lang)))
-	count(p, "copier_paste", 1)
+	achievement.Count(p, "copier_paste", 1)
 	if t.kind == cardBundle {
-		count(p, "copier_conduit_all", 1)
+		achievement.Count(p, "copier_conduit_all", 1)
 	}
 }
 

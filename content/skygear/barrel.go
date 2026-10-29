@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -673,7 +675,7 @@ func (s *session) tickBarrels(tx *world.Tx) {
 		}
 		if !rec.Water && !rec.Witch && rec.Count >= matterCapacity && now >= rec.ReadyAt {
 			rec.Water = true
-			countAll(tx, "barrel_water", 1)
+			achievement.CountAll(tx, "barrel_water", 1)
 			s.showBarrel(tx, pos, b)
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
 			changed = true
@@ -716,7 +718,7 @@ func (s *session) meltBarrel(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRe
 	rec.LavaMB += n
 	rec.Made += n
 	for ; rec.Made >= bucketMB; rec.Made -= bucketMB {
-		countAll(tx, "barrel_lava", 1)
+		achievement.CountAll(tx, "barrel_lava", 1)
 	}
 	s.showBarrel(tx, pos, b)
 	if first {

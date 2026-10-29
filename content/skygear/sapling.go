@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -34,7 +36,7 @@ func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) err
 		return fmt.Errorf(i18n.T(i18n.Of(p), "sapling.wait"), int(wait.Minutes()), int(wait.Seconds())%60)
 	}
 	s.state.LastSapling = now
-	count(p, "sapling_cmd", 1)
+	achievement.Count(p, "sapling_cmd", 1)
 	s.MarkDirty()
 	st := item.NewStack(block.Sapling{Type: block.OakSapling()}, 1)
 	if added, _ := p.Inventory().AddItem(st); added < 1 {
@@ -57,7 +59,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				}
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
-				count(p, "sapling_grow", 1)
+				achievement.Count(p, "sapling_grow", 1)
 				s.advance(tx, advancement.GrowTree)
 			}
 		}

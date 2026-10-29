@@ -356,13 +356,13 @@ func (s *session) completeResearch(tx *world.Tx, r *Research) {
 		s.state.Researched = map[string]bool{}
 	}
 	s.state.Researched[r.ID] = true
-	countAll(tx, "research_done", 1)
+	achievement.CountAll(tx, "research_done", 1)
 	if spent := essencesIn(r.Cost); spent > 0 {
 		s.advance(tx, advancement.EssenceResearch)
-		countAll(tx, "essence_spent", int64(spent))
+		achievement.CountAll(tx, "essence_spent", int64(spent))
 	}
 	if strings.HasPrefix(r.ID, "project_") && r.ID != "project_dragon" {
-		countAll(tx, "project_done", 1)
+		achievement.CountAll(tx, "project_done", 1)
 	}
 	if len(s.state.Researched) >= len(researchTree) {
 		for e := range tx.Players() {
@@ -412,7 +412,7 @@ func researchIcon(r *Research) string {
 }
 
 func (s *session) showResearch(p *player.Player) {
-	count(p, "research_open", 1)
+	achievement.Count(p, "research_open", 1)
 	s.showResearchSplit(p, researchView{})
 }
 

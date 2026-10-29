@@ -94,11 +94,11 @@ func TestCountersCount(t *testing.T) {
 		if owned := account.Owned(acc); !slices.Contains(owned, achievement.CounterID("stick_dirt", 1)) {
 			t.Fatalf("owned %v", owned)
 		}
-		countBreak(p, block.Cobblestone{}, true)
+		achievement.CountBreak(p, block.Cobblestone{}, true)
 		if account.Counter(acc, "hammer_cobble") != 1 || account.Counter(acc, "block_break") != 1 {
 			t.Fatal("a hammered cobblestone counts as broken and as crushed")
 		}
-		countAll(tx, "jump", 3)
+		achievement.CountAll(tx, "jump", 3)
 		if account.Counter(acc, "jump") != 3 {
 			t.Fatal("countAll counts for the players of the world")
 		}

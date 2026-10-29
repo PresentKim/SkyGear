@@ -165,7 +165,7 @@ func (s *session) completeAdvancements(tx *world.Tx, as []*advancement.Advanceme
 		}
 	}
 	s.grantAdvancementAchievements(tx, newly)
-	countAll(tx, "adv_done", int64(len(newly)))
+	achievement.CountAll(tx, "adv_done", int64(len(newly)))
 	if len(s.state.Advancements) >= len(advancement.Tree) {
 		for e := range tx.Players() {
 			account.Grant(e.(*player.Player), achievement.AllAdvancements)

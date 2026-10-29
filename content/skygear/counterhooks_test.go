@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,16 +17,23 @@ import (
 // TestEveryCounterIsCounted: each key of the catalog is counted somewhere in
 // the game's code, so no achievement is out of reach. A key is counted if the
 // code has it as a string, or has a prefix of it that is joined to a kind
-// ("crop_"+kind, "place_"+kind, "wave_level_%d" …).
+// ("crop_"+kind, "place_"+kind, "wave_level_%d" …). The game's code is this
+// package and the packages under it, without the catalog.
 func TestEveryCounterIsCounted(t *testing.T) {
-	files, err := filepath.Glob("*.go")
+	var files []string
+	err := filepath.WalkDir(".", func(p string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() && strings.HasSuffix(p, ".go") {
+			files = append(files, p)
+		}
+		return err
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	literals := map[string]bool{}
 	fset := token.NewFileSet()
 	for _, f := range files {
-		if strings.HasSuffix(f, "_test.go") || f == "achcatalog.go" {
+		if strings.HasSuffix(f, "_test.go") || f == filepath.Join("achievement", "catalog.go") {
 			continue
 		}
 		file, err := parser.ParseFile(fset, f, nil, 0)

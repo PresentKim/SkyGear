@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -148,7 +150,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 		return false
 	}
 	d.gave = true
-	count(p, "fairy_gift", 1)
+	achievement.Count(p, "fairy_gift", 1)
 	s.advance(tx, advancement.FairyGift)
 	gift := s.fairyGift()
 	// Throw it to the player: a short arc that lands at their feet.

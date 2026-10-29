@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -676,7 +678,7 @@ func (s *session) removeDisplays(tx *world.Tx) {
 
 // placeDrawer restores a drawer placed from its item, facing the player.
 func (s *session) placeDrawer(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) {
-	count(p, "drawer_place", 1)
+	achievement.Count(p, "drawer_place", 1)
 	facing := p.Rotation().Direction().Opposite()
 	d := drawerFromItem(held, facing)
 	tx.Defer(func(tx *world.Tx) {

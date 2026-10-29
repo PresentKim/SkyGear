@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 )
 
 // What machines do, counted for the players of the island (counter.go).
@@ -24,16 +25,16 @@ func init() {
 // finished cycles at once, the RE it generated once a second.
 func (st *machineState) countWork(tx *world.Tx, kind string, tick int64) {
 	if st.done > 0 {
-		countAll(tx, "cycle_total", int64(st.done))
-		countAll(tx, "cycle_"+kind, int64(st.done))
+		achievement.CountAll(tx, "cycle_total", int64(st.done))
+		achievement.CountAll(tx, "cycle_"+kind, int64(st.done))
 		st.done = 0
 	}
 	for key, n := range st.tallyCounts {
-		countAll(tx, key, n)
+		achievement.CountAll(tx, key, n)
 		delete(st.tallyCounts, key)
 	}
 	if st.made > 0 && tick%20 == 0 {
-		countAll(tx, "energy_made", int64(st.made))
+		achievement.CountAll(tx, "energy_made", int64(st.made))
 		if st.sess != nil {
 			st.sess.stats.buckets[st.sess.stats.head].gen += st.made
 		}

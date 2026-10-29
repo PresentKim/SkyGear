@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -87,7 +89,7 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	case block.Grass, block.Dirt:
 	default:
 		if !s.stickDebounced(p) {
-			count(p, "stick_other", 1)
+			achievement.Count(p, "stick_other", 1)
 		}
 		return false
 	}
@@ -95,9 +97,9 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 		return true
 	}
 	if _, dirt := tx.Block(pos).(block.Dirt); dirt {
-		count(p, "stick_dirt", 1)
+		achievement.Count(p, "stick_dirt", 1)
 	} else {
-		count(p, "stick_grass", 1)
+		achievement.Count(p, "stick_grass", 1)
 	}
 	// Every use knocks a pebble out, with dirt chips and the small
 	// breaking sound of the block.
@@ -106,7 +108,7 @@ func (s *session) useStick(p *player.Player, tx *world.Tx, pos cube.Pos, face cu
 	tx.AddParticle(pos.Vec3Centre(), particle.BlockBreak{Block: b})
 	tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
 	pebble := s.rollPebble()
-	count(p, "pebble_"+pebble.Kind, 1)
+	achievement.Count(p, "pebble_"+pebble.Kind, 1)
 	s.DropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(pebble, 1))
 	return true
 }
@@ -121,7 +123,7 @@ func (s *session) stripFiber(p *player.Player, tx *world.Tx, pos cube.Pos, face 
 	if l, ok := tx.Block(pos).(block.Log); !ok || l.Stripped {
 		return
 	}
-	count(p, "strip_log", 1)
+	achievement.Count(p, "strip_log", 1)
 	if axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
 		return
 	}

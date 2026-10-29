@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
@@ -20,7 +22,7 @@ import (
 // showAdvancements opens the advancement screen on the chapter of the
 // advancement the quest panel follows.
 func (s *session) showAdvancements(p *player.Player) {
-	count(p, "adv_view", 1)
+	achievement.Count(p, "adv_view", 1)
 	tab := advancement.ChapterStart
 	if a, ok := s.nextAdvancement(); ok {
 		tab = a.Chapter
@@ -182,7 +184,7 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 		}
 		pn.Actions = append(pn.Actions, s.opt(label, formicon.Mission, func(p *player.Player, tx *world.Tx) {
 			if s.state.Tracked != a.ID {
-				count(p, "adv_track", 1)
+				achievement.Count(p, "adv_track", 1)
 			}
 			s.track(tx, a)
 			again(p)

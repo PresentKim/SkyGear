@@ -3,6 +3,8 @@ package skygear
 import (
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -171,7 +173,7 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		if !ok {
 			continue
 		}
-		countBreak(p, b, true)
+		achievement.CountBreak(p, b, true)
 		tx.SetBlock(at, nil, nil)
 		tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 		drops = addDrop(drops, drop)

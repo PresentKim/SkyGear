@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 )
 
@@ -20,8 +21,8 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickMonitor(tx)
 	s.tickPlants(tx)
 	s.updateBoards(tx)
-	countAll(tx, "play_seconds", 1)
-	grantCollection(held)
+	achievement.CountAll(tx, "play_seconds", 1)
+	achievement.GrantCollection(held)
 	if s.Dirty() {
 		s.Flush()
 	}

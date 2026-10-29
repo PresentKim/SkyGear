@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -52,7 +54,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	held, _ := ctx.Player().HeldItems()
 	broken := ctx.Player().Tx().Block(pos)
 	hammer := sgitem.IsHammer(held)
-	countBreak(ctx.Player(), broken, hammer)
+	achievement.CountBreak(ctx.Player(), broken, hammer)
 	if _, ok := toolOf(ctx.Player()); ok {
 		h.s.gainToolXP(ctx.Player(), 1)
 		h.s.reinforce(ctx.Player())
@@ -85,9 +87,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	if h.deny(ctx, pos) {
 		return
 	}
-	count(ctx.Player(), "block_place", 1)
+	achievement.Count(ctx.Player(), "block_place", 1)
 	if kind, _, ok := cropOf(b); ok {
-		count(ctx.Player(), "crop_plant", 1)
+		achievement.Count(ctx.Player(), "crop_plant", 1)
 		h.s.plantCrop(pos, kind)
 	}
 	held, _ := ctx.Player().HeldItems()
@@ -97,7 +99,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
 	case ConduitBundle:
-		count(ctx.Player(), "conduit_place", 1)
+		achievement.Count(ctx.Player(), "conduit_place", 1)
 	case block.DragonEgg:
 		h.s.completeDragon(ctx.Player(), ctx.Player().Tx(), pos)
 	}
@@ -186,7 +188,7 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 			p.SetHeldItems(tinker.DescribeTool(held.Damage(2)), off)
 			h.s.reinforce(p)
 		}
-		count(p, "hit_monster", 1)
+		achievement.Count(p, "hit_monster", 1)
 		m.Hurt(p.Tx(), dmg, p)
 		return
 	}
@@ -233,7 +235,7 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		ctx.Cancel()
 		return
 	}
-	h.s.countWalk(ctx.Player(), newPos)
+	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
 	if newPos.Y() < VoidY {
 		ctx.Cancel()
 		h.s.returnFromVoid(ctx.Player(), ctx.Player().Tx())
@@ -249,17 +251,17 @@ func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 		return
 	}
 	if after {
-		count(ctx.Player(), "sneak", 1)
+		achievement.Count(ctx.Player(), "sneak", 1)
 		h.s.crouchGrow(ctx.Player(), ctx.Player().Tx())
 	}
 }
 
 func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
 	if after {
-		count(ctx.Player(), "sprint", 1)
+		achievement.Count(ctx.Player(), "sprint", 1)
 	}
 }
-func (h *handler) HandleJump(p *player.Player) { count(p, "jump", 1) }
+func (h *handler) HandleJump(p *player.Player) { achievement.Count(p, "jump", 1) }
 
 // HandleItemDamage keeps the iron hammer whole: its vein mining costs food
 // instead (vein.go).
@@ -268,17 +270,23 @@ func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *i
 		*damage = 0
 	}
 }
-func (h *handler) HandlePunchAir(ctx *player.Context)                  { count(ctx.Player(), "punch_air", 1) }
-func (h *handler) HandleChat(ctx *player.Context, _ *string)           { count(ctx.Player(), "chat", 1) }
-func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) { count(ctx.Player(), "eat", 1) }
+func (h *handler) HandlePunchAir(ctx *player.Context) {
+	achievement.Count(ctx.Player(), "punch_air", 1)
+}
+func (h *handler) HandleChat(ctx *player.Context, _ *string) {
+	achievement.Count(ctx.Player(), "chat", 1)
+}
+func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) {
+	achievement.Count(ctx.Player(), "eat", 1)
+}
 func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
-	count(ctx.Player(), "pickup", int64(i.Count()))
+	achievement.Count(ctx.Player(), "pickup", int64(i.Count()))
 }
 
 // HandleDeath and HandleRespawn keep the food level through death: dying
 // does not fill the food bar (it would make vein mining's food cost free).
 func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
-	count(p, "death", 1)
+	achievement.Count(p, "death", 1)
 	if h.s.diedFood == nil {
 		h.s.diedFood = map[*world.EntityHandle]int{}
 	}
@@ -291,17 +299,17 @@ func (h *handler) HandleRespawn(p *player.Player, _ *mgl64.Vec3, _ **world.World
 	}
 }
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
-	count(ctx.Player(), "block_pick", 1)
+	achievement.Count(ctx.Player(), "block_pick", 1)
 }
 func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
-	count(ctx.Player(), "hotbar", 1)
+	achievement.Count(ctx.Player(), "hotbar", 1)
 }
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
-	count(ctx.Player(), "item_drop", 1)
+	achievement.Count(ctx.Player(), "item_drop", 1)
 }
 func (h *handler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
-	count(ctx.Player(), "hurt", 1)
+	achievement.Count(ctx.Player(), "hurt", 1)
 }
 func (h *handler) HandleCommandExecution(ctx *player.Context, _ cmd.Command, _ []string) {
-	count(ctx.Player(), "command", 1)
+	achievement.Count(ctx.Player(), "command", 1)
 }

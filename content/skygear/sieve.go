@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/achievement"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -290,7 +292,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 				swung = true
 			}
 			if s.siftStage(tx, sv.pos, sv.st, in) {
-				count(p, "sift_hand", 1)
+				achievement.Count(p, "sift_hand", 1)
 			}
 		}
 	}
@@ -394,7 +396,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
 	s.advance(tx, advancement.Sift)
-	countAll(tx, "sift_mesh_"+st.mesh, 1)
+	achievement.CountAll(tx, "sift_mesh_"+st.mesh, 1)
 	drops := s.siftDrops(st, in)
 	for _, it := range drops {
 		if !toOutput {

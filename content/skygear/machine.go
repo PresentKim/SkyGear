@@ -1447,8 +1447,8 @@ func viewCrack(tx *world.Tx, pos cube.Pos, a world.BlockAction) {
 func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kind string) {
 	m := newMachine(kind, instance.AccountID(p), p.Name())
 	account.Grant(p, achievement.FirstMachine)
-	count(p, "machine_place", 1)
-	count(p, "place_"+kind, 1)
+	achievement.Count(p, "machine_place", 1)
+	achievement.Count(p, "place_"+kind, 1)
 	if m.Kind != KindSieve {
 		s.advance(tx, advancement.Machine)
 	}
