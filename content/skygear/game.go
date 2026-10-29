@@ -11,10 +11,7 @@ import (
 
 	"github.com/presentkim/skygear/content/skygear/progress"
 
-	"github.com/presentkim/skygear/common/energy"
-	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -182,16 +179,11 @@ type session struct {
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
-	// grid shares out the energy of the island's conduits (conduit.go).
-	grid *energy.Grid
-	// items moves items over the item conduits; fastCount counts the Fast
-	// calls (an item step is every second one, conduit.go).
-	items     *itemnet.Grid
+	// fastCount counts the Fast calls (an item step is every second one,
+	// conduit.go).
 	fastCount int
 	// wave is the wave of the dimension gate being fought (wave.go).
 	wave *waveState
-	// fluids moves fluids over the fluid conduits (fluidmachine.go).
-	fluids *fluidnet.Grid
 	// visuals are the display entities of the conduit bundles by position
 	// (conduitvisual.go).
 	visuals map[cube.Pos]*world.EntityHandle

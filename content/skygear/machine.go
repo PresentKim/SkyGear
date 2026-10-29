@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -1278,7 +1279,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	switch st.kind.id {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker:
 		if st.kind.id == idEnergyCell && st.energy > 0 {
-			s.energyGrid().AddSource(pos)
+			network.Energy(s.Session).AddSource(pos)
 		}
 		return
 	}

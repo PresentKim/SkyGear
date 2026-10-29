@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/network"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
@@ -559,8 +560,8 @@ func TestFluidLine(t *testing.T) {
 	}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Fluid: 1}, nil)
-		s.fluidGrid().AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
-		if moved := s.fluidGrid().Step(tx); moved != 4*crucibleLava {
+		network.Fluids(s.Session).AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
+		if moved := network.Fluids(s.Session).Step(tx); moved != 4*crucibleLava {
 			t.Errorf("moved %d, want %d", moved, 4*crucibleLava)
 		}
 	})

@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -227,7 +228,7 @@ func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
 	} else if st.fluidAmt == 0 {
 		st.stuck = stuckFuel
 	}
-	s.energyGrid().AddSource(pos)
+	network.Energy(s.Session).AddSource(pos)
 }
 
 // washerWater is the mB of water washing one raw ore takes.

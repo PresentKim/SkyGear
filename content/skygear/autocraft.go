@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -185,7 +187,7 @@ func (s *session) showCrafterRecipes(p *player.Player, tx *world.Tx, pos cube.Po
 			count = fmt.Sprint(cr.Out.Count())
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: formicon.Of(cr.Out), Count: count, Tip: tipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n"),
+			Icon: formicon.Of(cr.Out), Count: count, Tip: decor.TipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n"),
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() != s.World {
 					return

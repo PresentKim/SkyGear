@@ -1,4 +1,9 @@
-package skygear
+// Package decor is the slot decoration of items: the rarity and the tier
+// of an item show as a coloured slot background and tier pips on its slot.
+// The marks are part of the item's name: texts/*.lang for items that have no
+// custom name of their own (tools/slotmarks writes them from ItemDecor), the
+// custom name for stacks that have one (tinker.DescribeTool).
+package decor
 
 import (
 	"github.com/df-mc/dragonfly/server/item"
@@ -8,12 +13,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
-
-// Slot decoration: the rarity and the tier of an item
-// show as a coloured slot background and tier pips on its slot. The marks are
-// part of the item's name: texts/*.lang for items that have no custom name of
-// their own (tools/slotmarks writes them from ItemDecor), the custom name for
-// stacks that have one (tinker.DescribeTool).
 
 // ItemDecor returns the rarity and the tier badge of an item type: Common and
 // 0 for the many items that have none. Rarity grows with how far into the
@@ -55,16 +54,20 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 			return slotdeco.Epic, 0
 		}
 		return slotdeco.Rare, 0
-	case sgitem.FairyEmerald, FairyBoard, sgitem.FairyHourglass:
+	case sgitem.FairyEmerald, sgitem.FairyHourglass:
+		return slotdeco.Rare, 0
+	}
+	// the fairy board is the fairy package's
+	if name, _ := it.EncodeItem(); name == "skygear:fairy_board" {
 		return slotdeco.Rare, 0
 	}
 	return slotdeco.Common, 0
 }
 
-// tipName is the name of a stack for the first line of a screen slot's
+// TipName is the name of a stack for the first line of a screen slot's
 // tooltip: the slot marks in front and after (common/ui draws the rarity's
 // frame behind the slot from them), the name in the rarity colour.
-func tipName(lang string, st item.Stack) string {
+func TipName(lang string, st item.Stack) string {
 	if n := st.CustomName(); n != "" {
 		return n // stacks with a name of their own carry their marks already
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -121,15 +122,15 @@ func (s *session) updateLookAt(p *player.Player, tx *world.Tx, at cube.Pos, b wo
 // what changed).
 func (s *session) Fast(tx *world.Tx) {
 	// Energy moves every FastInterval (four ticks) over the conduits.
-	s.energyGrid().Step(tx, 4)
+	network.Energy(s.Session).Step(tx, 4)
 	// Items move every itemnet.StepTicks ticks and fluids every
 	// fluidnet.StepTicks ticks (a Fast call is four ticks).
 	s.fastCount++
 	if s.fastCount%(itemnet.StepTicks/4) == 0 {
-		s.itemGrid().Step(tx)
+		network.Items(s.Session).Step(tx)
 	}
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
-		s.fluidGrid().Step(tx)
+		network.Fluids(s.Session).Step(tx)
 	}
 	s.emergeMonsters(tx)
 	s.updateLooks(tx)

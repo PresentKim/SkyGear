@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -333,7 +335,7 @@ func (s *session) storageSlots(lang string, pos cube.Pos, list []storageEntry, a
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(e.item.Item()),
 			Count: "§f" + ui.CountText(int(e.count)),
-			Tip:   tipName(lang, e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
+			Tip:   decor.TipName(lang, e.item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.count),
 			Run: func(p *player.Player, tx *world.Tx) {
 				got := controllerExtract(tx, pos, e.item, e.item.MaxCount())
 				if !got.Empty() {

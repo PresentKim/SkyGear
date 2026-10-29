@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/network"
 )
 
 // The combustion generator: it
@@ -99,7 +100,7 @@ func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
 	if st.burnMax > 0 {
 		st.progress = st.burn * st.kind.interval / st.burnMax
 	}
-	s.energyGrid().AddSource(pos)
+	network.Energy(s.Session).AddSource(pos)
 }
 
 // EnergyPorts implements energy.Ports: a generator gives energy, a machine

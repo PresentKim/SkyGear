@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -69,7 +71,7 @@ func (s *session) codexCell(lang string, st item.Stack, count string, extra ...s
 		return ui.Blank()
 	}
 	st = item.NewStack(st.Item(), 1)
-	tip := tipName(lang, st)
+	tip := decor.TipName(lang, st)
 	for _, e := range extra {
 		tip += "\n§7" + e
 	}

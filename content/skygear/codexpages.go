@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -49,7 +51,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 	s.codexSeen(p, it)
 	s.codexAt(p, func(p *player.Player) { s.showCodexItemAt(p, it, mode) })
 	head := blankRow()
-	head[0] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(it), Tip: tipName(lang, it), Selected: true})
+	head[0] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(it), Tip: decor.TipName(lang, it), Selected: true})
 	head[1] = ui.TextCell("§l" + naming.UIItemName(lang, it))
 	modeSlot := func(m int, icon item.Stack, key string) ui.BoardCell {
 		sl := ui.ItemSlot{Icon: formicon.Of(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
@@ -127,7 +129,7 @@ func (s *session) showCodexSieveAt(p *player.Player, which int) {
 	var top []ui.BoardCell
 	for i, in := range ins {
 		st := item.NewStack(in, 1)
-		sl := ui.ItemSlot{Icon: formicon.Of(st), Tip: tipName(lang, st), Selected: i == which}
+		sl := ui.ItemSlot{Icon: formicon.Of(st), Tip: decor.TipName(lang, st), Selected: i == which}
 		if i != which {
 			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexSieveAt(p, i) }
 		}
@@ -152,9 +154,9 @@ func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []u
 	for _, c := range cards {
 		if k := naming.ItemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
 			lastHead = k
-			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: tipName(lang, c.head)}, Name: naming.UIItemName(lang, c.head)})
+			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: decor.TipName(lang, c.head)}, Name: naming.UIItemName(lang, c.head)})
 		}
-		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: formicon.Of(in), Tip: tipName(lang, in)}}
+		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: formicon.Of(in), Tip: decor.TipName(lang, in)}}
 		first := true
 		for _, row := range c.rows {
 			for _, cell := range row {
@@ -192,7 +194,7 @@ func (s *session) showCodexProcessAt(p *player.Player, which int) {
 	s.codexAt(p, func(p *player.Player) { s.showCodexProcessAt(p, which) })
 	var top []ui.BoardCell
 	for i, pr := range procs {
-		sl := ui.ItemSlot{Icon: formicon.Of(pr.head), Tip: tipName(lang, pr.head), Selected: i == which}
+		sl := ui.ItemSlot{Icon: formicon.Of(pr.head), Tip: decor.TipName(lang, pr.head), Selected: i == which}
 		if i != which {
 			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexProcessAt(p, i) }
 		}

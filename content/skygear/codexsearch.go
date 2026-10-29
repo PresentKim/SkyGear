@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -298,7 +300,7 @@ func (s *session) showCodexSearch(p *player.Player, query string) {
 		var slots []ui.ItemSlot
 		for _, e := range found {
 			slots = append(slots, ui.ItemSlot{
-				Icon: formicon.Of(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+				Icon: formicon.Of(e.stack), Tip: decor.TipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 				Run: func(p *player.Player, _ *world.Tx) {
 					s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
 				},
@@ -344,7 +346,7 @@ func (s *session) codexLinkSlots(lang string, links []codexLink) []ui.ItemSlot {
 			count = "§f" + ui.CountText(l.count)
 		}
 		slots = append(slots, ui.ItemSlot{
-			Icon: formicon.Of(st), Count: count, Tip: tipName(lang, st),
+			Icon: formicon.Of(st), Count: count, Tip: decor.TipName(lang, st),
 			Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) },
 		})
 	}

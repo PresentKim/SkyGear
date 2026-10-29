@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -504,7 +506,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 			continue
 		}
 		st := item.NewStack(it, 1)
-		tip := tipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "researchnode.unlocks")
+		tip := decor.TipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "researchnode.unlocks")
 		c := progress.RewardCount(r, n)
 		if c > 0 {
 			tip += "\n" + fmt.Sprintf(i18n.T(i18n.Of(p), "researchreward.tip"), c)

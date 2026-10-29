@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -174,7 +176,7 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 	}
 	if it, ok := advancement.Stack(a); ok {
 		pn.Rows = []ui.SlotRow{{Slots: []ui.ItemSlot{{
-			Icon: formicon.Of(it), Tip: tipName(lang, it),
+			Icon: formicon.Of(it), Tip: decor.TipName(lang, it),
 			Run: func(p *player.Player, _ *world.Tx) { s.codexFrom(p, again, it) },
 		}}}}
 	}

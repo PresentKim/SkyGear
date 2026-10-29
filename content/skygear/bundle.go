@@ -20,6 +20,7 @@ import (
 	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
@@ -245,13 +246,13 @@ func (b ConduitBundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	b.refresh(pos, tx)
 	if b.Energy > 0 {
-		s.energyGrid().AddConduit(pos)
+		network.Energy(s.Session).AddConduit(pos)
 	}
 	if b.Item > 0 {
-		s.itemGrid().AddConduit(pos)
+		network.Items(s.Session).AddConduit(pos)
 	}
 	if b.Fluid > 0 {
-		s.fluidGrid().AddConduit(pos)
+		network.Fluids(s.Session).AddConduit(pos)
 	}
 }
 
@@ -284,27 +285,6 @@ func itemsPerTick(tier int) float64 {
 }
 
 // energyGrid and itemGrid are the grids of the island, made when first used.
-func (s *session) energyGrid() *energy.Grid {
-	if s.grid == nil {
-		s.grid = energy.NewGrid()
-	}
-	return s.grid
-}
-
-func (s *session) fluidGrid() *fluidnet.Grid {
-	if s.fluids == nil {
-		s.fluids = fluidnet.NewGrid()
-	}
-	return s.fluids
-}
-
-func (s *session) itemGrid() *itemnet.Grid {
-	if s.items == nil {
-		s.items = itemnet.NewGrid()
-	}
-	return s.items
-}
-
 // EnergyConduit, ItemConduit and FluidConduit are the conduit items, of a tier
 // (1 to 3). They are blocks only to look like one in the inventory and the hand
 // (a short length of pipe, models/blocks/conduit_icon.geo.json): using one never

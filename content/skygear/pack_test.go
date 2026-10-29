@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"encoding/json"
@@ -70,7 +72,7 @@ func TestPackHasItemAssets(t *testing.T) {
 		} else if !vanillaTerrain[e.Textures] && !packFileExists(e.Textures+".png") {
 			t.Errorf("%s: missing %s.png", id, e.Textures)
 		}
-		r, tier := ItemDecor(it)
+		r, tier := decor.ItemDecor(it)
 		if got, want := lang["item."+id+".name"], slotdeco.Decorate(r, tier, it.Name()); got != want {
 			t.Errorf("%s: texts/ko_KR.lang name %q, want %q (go run ./tools/slotmarks assets/resourcepack/skygear writes the marks)", id, got, want)
 		}
@@ -476,10 +478,10 @@ func TestFlipbooksMatchTheAtlas(t *testing.T) {
 // theme reads them; common's slotdeco test checks the theme).
 func TestTipNameMarks(t *testing.T) {
 	kit := item.NewStack(sgitem.TierKit{Level: 2}, 1)
-	if r, tier := slotdeco.Of(tipName(i18n.Default, kit)); r != slotdeco.Rare || tier != 2 {
+	if r, tier := slotdeco.Of(decor.TipName(i18n.Default, kit)); r != slotdeco.Rare || tier != 2 {
 		t.Errorf("tipName of a kit marks %v, %d", r, tier)
 	}
-	if r, tier := slotdeco.Of(tipName(i18n.Default, item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
+	if r, tier := slotdeco.Of(decor.TipName(i18n.Default, item.NewStack(item.Stick{}, 1))); r != slotdeco.Common || tier != 0 {
 		t.Errorf("tipName of a stick marks %v, %d", r, tier)
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/decor"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -50,7 +52,7 @@ func (s *session) showLabOn(p *player.Player, pos cube.Pos, st *machineState, r 
 	var sp ui.Split
 	for _, o := range open {
 		out := item.NewStack(o.Out, 1)
-		tip := tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), o.OutCount, o.Ticks/20)
+		tip := decor.TipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), o.OutCount, o.Ticks/20)
 		sl := ui.ItemSlot{Icon: formicon.Of(out), Tip: tip, Selected: o == r, Run: again(o, func(*player.Player, *world.Tx) {})}
 		if o == st.lab {
 			sl.Count = "§a▶"
@@ -111,7 +113,7 @@ func (s *session) labDetail(lang string, st *machineState, r *machinerecipe.Lab,
 	var ins []ui.ItemSlot
 	for _, in := range r.In {
 		it := item.NewStack(in.Item, 1)
-		sl := ui.ItemSlot{Icon: formicon.Of(it), Count: fmt.Sprint(in.Count), Tip: tipName(lang, it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count)}
+		sl := ui.ItemSlot{Icon: formicon.Of(it), Count: fmt.Sprint(in.Count), Tip: decor.TipName(lang, it) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.need"), in.Count)}
 		if running {
 			n := have[naming.ItemKey(in.Item)]
 			sl.Count = ui.CountText(n)
@@ -123,7 +125,7 @@ func (s *session) labDetail(lang string, st *machineState, r *machinerecipe.Lab,
 		}
 		ins = append(ins, sl)
 	}
-	made := ui.ItemSlot{Icon: formicon.Of(out), Count: fmt.Sprint(r.OutCount), Tip: tipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)}
+	made := ui.ItemSlot{Icon: formicon.Of(out), Count: fmt.Sprint(r.OutCount), Tip: decor.TipName(lang, out) + "\n" + fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)}
 	rows := []ui.SlotRow{{Heading: i18n.T(lang, "lab.ingredients"), Slots: ins}}
 	if !running {
 		d.Status = fmt.Sprintf(i18n.T(lang, "lab.makes"), r.OutCount, r.Ticks/20)
