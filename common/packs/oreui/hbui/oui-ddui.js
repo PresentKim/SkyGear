@@ -678,7 +678,38 @@
     view.appendChild(plane);
     appendChildren(plane, n.children, rec);
     var pan = pans[n.key];
+    var bounds = null; // {x1, y1, x2, y2}: the box around the plane's children (lines aside), unzoomed px
+    // measure finds bounds from where the children are drawn, once they are laid out.
+    function measure() {
+      var pr = plane.getBoundingClientRect();
+      var kids = plane.children;
+      for (var i = 0; i < kids.length; i++) {
+        if (/oui-line-seg/.test(kids[i].className)) continue;
+        var r = kids[i].getBoundingClientRect();
+        var x1 = (r.left - pr.left) / pan.z, y1 = (r.top - pr.top) / pan.z;
+        var x2 = (r.right - pr.left) / pan.z, y2 = (r.bottom - pr.top) / pan.z;
+        if (!bounds) bounds = { x1: x1, y1: y1, x2: x2, y2: y2 };
+        else {
+          bounds.x1 = Math.min(bounds.x1, x1);
+          bounds.y1 = Math.min(bounds.y1, y1);
+          bounds.x2 = Math.max(bounds.x2, x2);
+          bounds.y2 = Math.max(bounds.y2, y2);
+        }
+      }
+    }
+    // clamp keeps the plane from being dragged off: the children's box stays in the view (when it is
+    // larger than the view, its edges cannot come inside the view's edges), less a margin of 2.4rem.
+    function clamp() {
+      if (!bounds) return;
+      var m = 2.4 * (parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16);
+      var w = view.clientWidth, h = view.clientHeight;
+      var ax = m - bounds.x1 * pan.z, bx = w - m - bounds.x2 * pan.z;
+      var ay = m - bounds.y1 * pan.z, by = h - m - bounds.y2 * pan.z;
+      pan.x = Math.max(Math.min(ax, bx), Math.min(Math.max(ax, bx), pan.x));
+      pan.y = Math.max(Math.min(ay, by), Math.min(Math.max(ay, by), pan.y));
+    }
     function place() {
+      clamp();
       plane.style.left = pan.x + "px";
       plane.style.top = pan.y + "px";
       plane.style.transform = "scale(" + pan.z + ")";
@@ -708,6 +739,8 @@
         var z = lastZoom || (touchSeen ? ZOOM_STEP : 1);
         pan = pans[n.key] = { x: view.clientWidth / 2 - (n.focusX || 0) * rem * z, y: view.clientHeight / 2 - (n.focusY || 0) * rem * z, z: z };
       }
+      place();
+      measure();
       place();
     }, 0);
     onDragStart(view, function (ev) {
