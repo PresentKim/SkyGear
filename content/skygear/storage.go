@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/textfmt"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
@@ -206,9 +208,9 @@ func (s *session) useController(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		}
 		return
 	}
-	last := s.lastUse[p.H()]
+	last := lastUse.Of(s.Session)[p.H()]
 	double := last.pos == pos && time.Since(last.at) < 500*time.Millisecond
-	s.lastUse[p.H()] = drawerUse{pos: pos, at: time.Now()}
+	lastUse.Of(s.Session)[p.H()] = drawerUse{pos: pos, at: time.Now()}
 	held, off := p.HeldItems()
 	total := 0
 	if n := controllerInsert(tx, pos, held); n > 0 {
@@ -265,7 +267,7 @@ func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, quer
 	find := func(p *player.Player, query string) ui.SearchResult {
 		query = strings.TrimSpace(query)
 		all, drawers := storageContents(p.Tx(), pos)
-		list := sortStorage(lang, filterStorage(lang, all, query), s.storageOrders[p.H()])
+		list := sortStorage(lang, filterStorage(lang, all, query), storageOrders.Of(s.Session)[p.H()])
 		again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
 		return ui.SearchResult{Info: storageInfo(lang, all, drawers, query, len(list)), Sections: []ui.GridSection{{Slots: s.storageSlots(lang, pos, list, again)}}}
 	}
@@ -296,7 +298,7 @@ func sortStorage(lang string, list []storageEntry, o storageOrder) []storageEntr
 	}
 	out := make([]named, len(list))
 	for i, e := range list {
-		out[i] = named{e, plainName(naming.ItemName(lang, e.item))}
+		out[i] = named{e, textfmt.PlainName(naming.ItemName(lang, e.item))}
 	}
 	slices.SortStableFunc(out, func(a, b named) int {
 		switch o {
@@ -319,12 +321,9 @@ func sortStorage(lang string, list []storageEntry, o storageOrder) []storageEntr
 // storageOrderOption is the control bar button that names p's order and
 // switches to the next one.
 func (s *session) storageOrderOption(p *player.Player, again func(p *player.Player, tx *world.Tx)) ui.Option {
-	o := s.storageOrders[p.H()]
+	o := storageOrders.Of(s.Session)[p.H()]
 	return ui.BarButton(i18n.T(i18n.Of(p), storageOrderKeys[o]), "textures/ui/store_filter_icon", func(p *player.Player, tx *world.Tx) {
-		if s.storageOrders == nil {
-			s.storageOrders = map[*world.EntityHandle]storageOrder{}
-		}
-		s.storageOrders[p.H()] = (o + 1) % storageOrderCount
+		storageOrders.Of(s.Session)[p.H()] = (o + 1) % storageOrderCount
 		again(p, tx)
 	})
 }
@@ -376,3 +375,6 @@ func totalOf(list []storageEntry) int64 {
 	}
 	return t
 }
+
+// storageOrders are how each player sorts storage controller lists.
+var storageOrders = core.NewPlayers[storageOrder]()

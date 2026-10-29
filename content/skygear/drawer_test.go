@@ -97,7 +97,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		if d.Count != 10 {
 			t.Fatalf("drawer count = %d after hopper input, want 10", d.Count)
 		}
-		disp, ok := s.displays[mid]
+		disp, ok := drawersOf(s.Session).displays[mid]
 		if !ok {
 			t.Fatal("drawer has no display")
 		}
@@ -644,7 +644,7 @@ func TestStorageOrders(t *testing.T) {
 	names := func(l []storageEntry) []string {
 		var out []string
 		for _, e := range l {
-			out = append(out, plainName(naming.ItemName(i18n.Default, e.item)))
+			out = append(out, textfmt.PlainName(naming.ItemName(i18n.Default, e.item)))
 		}
 		return out
 	}
@@ -679,7 +679,7 @@ func TestStorageOrderButtonCycles(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for want := orderCountAsc; want <= storageOrderCount; want++ {
 			s.storageOrderOption(p, func(*player.Player, *world.Tx) {}).Run(p, tx)
-			if got := s.storageOrders[p.H()]; got != want%storageOrderCount {
+			if got := storageOrders.Of(s.Session)[p.H()]; got != want%storageOrderCount {
 				t.Fatalf("order %d, want %d", got, want%storageOrderCount)
 			}
 		}

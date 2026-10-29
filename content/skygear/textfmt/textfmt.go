@@ -5,6 +5,7 @@ package textfmt
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -78,4 +79,21 @@ func Int(v int64) string {
 		return "-" + string(out)
 	}
 	return string(out)
+}
+
+// PlainName is a name without colour codes.
+func PlainName(s string) string {
+	var b strings.Builder
+	skip := false
+	for _, r := range s {
+		switch {
+		case skip:
+			skip = false
+		case r == '§':
+			skip = true
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }

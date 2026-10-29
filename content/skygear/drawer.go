@@ -324,7 +324,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 	// inventory, whatever is held (e.g. a locked drawer and another item in
 	// hand). Only a drawer with an item type counts, so repeated use packets
 	// into an empty drawer never pull items from the inventory.
-	last := s.lastUse[p.H()]
+	last := lastUse.Of(s.Session)[p.H()]
 	double := last.pos == pos && time.Since(last.at) < 500*time.Millisecond && !d.Item.Empty()
 	total := 0
 	if n := d.insert(held, held.Count()); n > 0 {
@@ -332,7 +332,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 		total += n
 	}
 	if !d.Item.Empty() {
-		s.lastUse[p.H()] = drawerUse{pos: pos, at: time.Now()}
+		lastUse.Of(s.Session)[p.H()] = drawerUse{pos: pos, at: time.Now()}
 	}
 	if double {
 		inv := p.Inventory()
@@ -357,7 +357,7 @@ func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	if !ok || !ok2 || !island.CanBuild(s.Session, pos) {
 		return
 	}
-	s.lastPunch[p.H()] = drawerPunch{pos: pos, front: face == d.Facing.Face()}
+	lastPunch.Of(s.Session)[p.H()] = drawerPunch{pos: pos, front: face == d.Facing.Face()}
 	if face != d.Facing.Face() {
 		return
 	}
@@ -418,14 +418,6 @@ func (d Drawer) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.St
 		tx.SetBlockEntity(pos, d)
 	}
 	return out
-}
-
-// activeGameSession is the session of the world of tx, nil if it has none.
-func activeGameSession(tx *world.Tx) *session {
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		return s
-	}
-	return nil
 }
 
 // toggleLock locks or unlocks a drawer with a key.
@@ -589,7 +581,7 @@ type drawerDisplay struct {
 }
 
 func (s *session) ownsDisplay(pos cube.Pos, h *world.EntityHandle) bool {
-	d, ok := s.displays[pos]
+	d, ok := drawersOf(s.Session).displays[pos]
 	return ok && d.item == h
 }
 
@@ -625,7 +617,7 @@ func (s *session) setDrawer(tx *world.Tx, pos cube.Pos, d Drawer) {
 }
 
 func (s *session) ensureDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
-	if disp, ok := s.displays[pos]; ok {
+	if disp, ok := drawersOf(s.Session).displays[pos]; ok {
 		if _, ok := disp.item.Entity(tx); ok {
 			return
 		}
@@ -634,16 +626,16 @@ func (s *session) ensureDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
 	}
 	at, yaw := holderPosition(pos, d.Facing, d.Item)
 	disp := &drawerDisplay{
-		item:  world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{item: d.Item, owner: pos, pose: s.holderPose}),
+		item:  world.EntitySpawnOpts{Position: at, Rotation: cube.Rotation{yaw, 0}}.New(HolderType, holderConfig{item: d.Item, owner: pos, pose: drawersOf(s.Session).holderPose}),
 		shown: d.Item,
 	}
-	s.displays[pos] = disp
+	drawersOf(s.Session).displays[pos] = disp
 	tx.AddEntity(disp.item)
 	s.showLabel(tx, pos, d)
 }
 
 func (s *session) refreshDisplay(tx *world.Tx, pos cube.Pos, d Drawer) {
-	disp, ok := s.displays[pos]
+	disp, ok := drawersOf(s.Session).displays[pos]
 	if !ok {
 		s.ensureDisplay(tx, pos, d)
 		return
@@ -662,11 +654,11 @@ func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
 	s.HideShape(tx, drawerLabelKey(pos))
 	s.HideShape(tx, drawerLockKey(pos))
 	s.HideShape(tx, drawerUpgradeKey(pos))
-	disp, ok := s.displays[pos]
+	disp, ok := drawersOf(s.Session).displays[pos]
 	if !ok {
 		return
 	}
-	delete(s.displays, pos)
+	delete(drawersOf(s.Session).displays, pos)
 	if e, ok := disp.item.Entity(tx); ok {
 		_ = e.Close()
 	}
@@ -674,7 +666,7 @@ func (s *session) removeDisplay(tx *world.Tx, pos cube.Pos) {
 
 // removeDisplays removes every display entity before the world is saved.
 func (s *session) removeDisplays(tx *world.Tx) {
-	for pos := range s.displays {
+	for pos := range drawersOf(s.Session).displays {
 		s.removeDisplay(tx, pos)
 	}
 }
@@ -700,3 +692,22 @@ func init() {
 		world.RegisterItem(sgitem.DrawerUpgrade{Kind: k})
 	}
 }
+
+// lastUse is each player's last drawer or storage controller use.
+var lastUse = core.NewPlayers[drawerUse]()
+
+// lastPunch is each player's last drawer punch.
+var lastPunch = core.NewPlayers[drawerPunch]()
+
+// drawersLocal is what a running save keeps for its drawers.
+type drawersLocal struct {
+	// displays are the drawer display entities by drawer position.
+	displays map[cube.Pos]*drawerDisplay
+	// holderPose is the hand-equipped item pose tried on display entities.
+	holderPose holderPose
+}
+
+var drawersPart = core.NewPart(func() *drawersLocal { return &drawersLocal{displays: map[cube.Pos]*drawerDisplay{}} })
+
+// drawersOf is what the save of s keeps for its drawers.
+func drawersOf(s *core.Session) *drawersLocal { return drawersPart.Of(s) }

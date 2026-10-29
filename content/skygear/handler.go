@@ -74,7 +74,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	switch b := broken.(type) {
 	case Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
-		if lp, ok := h.s.lastPunch[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
+		if lp, ok := lastPunch.Of(h.s.Session)[ctx.Player().H()]; ok && lp.pos == pos && lp.front {
 			ctx.Cancel()
 			return
 		}

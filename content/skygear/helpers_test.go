@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/go-gl/mathgl/mgl64"
@@ -46,8 +45,7 @@ func testSession(t *testing.T) *session {
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
 	s := &session{
-		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{},
-		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
+		Session: c, g: g,
 	}
 	s.state = savedState.Of(c)
 	t.Cleanup(c.Close)

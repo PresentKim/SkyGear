@@ -20,6 +20,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -102,8 +103,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		Store: func(b []byte) error { return g.db.SetSaveState(saveID, stateKey, b) },
 	})
 	s := &session{
-		Session: c, g: g, displays: map[cube.Pos]*drawerDisplay{},
-		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
+		Session: c, g: g,
 	}
 	s.state = savedState.Of(c)
 	s.tickReach = inst.LoadRadius() * 16
@@ -160,16 +160,6 @@ type session struct {
 	snow     bool
 	// state is the saved state (savedState).
 	state *State
-	// displays are the drawer display entities by drawer position.
-	displays map[cube.Pos]*drawerDisplay
-	// holderPose is the hand-equipped item pose tried on display entities.
-	holderPose holderPose
-	// lastUse is each player's last drawer or storage controller use, and
-	// lastPunch the last drawer punch.
-	lastUse   map[*world.EntityHandle]drawerUse
-	lastPunch map[*world.EntityHandle]drawerPunch
-	// storageOrders are how each player sorts storage controller lists.
-	storageOrders map[*world.EntityHandle]storageOrder
 	// lastStick is when each player last used a stick on the ground.
 	lastStick map[*world.EntityHandle]time.Time
 	// chestStreaks are each player's sneaking stick uses on a chest in a row
@@ -211,9 +201,6 @@ func (s *session) Join(p *player.Player, first bool) {
 
 func (s *session) Leave(p *player.Player) {
 	s.Session.Leave(p)
-	delete(s.lastUse, p.H())
-	delete(s.lastPunch, p.H())
-	delete(s.storageOrders, p.H())
 	s.stopExpand(p, p.Tx())
 	delete(s.lastLook, p.H())
 	delete(s.boards, p.H())
@@ -270,4 +257,17 @@ func init() {
 		sess(c).runHarvester(st, pos, tx)
 	}
 	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }
+}
+
+// activeGameSession is the session of the world of tx, nil if it has none.
+func activeGameSession(tx *world.Tx) *session {
+	if s, ok := activeGame.sessionOf(tx.World()); ok {
+		return s
+	}
+	return nil
+}
+
+// EntityTypes returns the default entity types plus the game's own.
+func EntityTypes() []world.EntityType {
+	return append(append(entity.DefaultRegistry.Types(), HolderType, FairyType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
 }

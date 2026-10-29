@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/textfmt"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
@@ -86,7 +88,7 @@ func codexIndex(lang string) []codexEntry {
 		list[i] = codexEntry{stack: st, name: naming.ItemName(lang, st)}
 	}
 	slices.SortStableFunc(list, func(a, b codexEntry) int {
-		return strings.Compare(plainName(a.name), plainName(b.name))
+		return strings.Compare(textfmt.PlainName(a.name), textfmt.PlainName(b.name))
 	})
 	codexIndexByLang[lang] = list
 	return list
@@ -258,23 +260,6 @@ func codexOneOf(alts []item.Stack, rel map[string]bool) (item.Stack, bool) {
 		}
 	}
 	return best, true
-}
-
-// plainName is a name without colour codes.
-func plainName(s string) string {
-	var b strings.Builder
-	skip := false
-	for _, r := range s {
-		switch {
-		case skip:
-			skip = false
-		case r == '§':
-			skip = true
-		default:
-			b.WriteRune(r)
-		}
-	}
-	return b.String()
 }
 
 // codexFind returns the entries whose name matches query.
