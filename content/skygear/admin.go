@@ -2,10 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"maps"
 	"slices"
 	"strings"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 
@@ -84,7 +85,7 @@ func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 // and every machine, plus a water bucket.
 func giveItems() map[string]func() item.Stack {
 	out := map[string]func() item.Stack{
-		"research_table":   func() item.Stack { return item.NewStack(ResearchTable{}, 1) },
+		"research_table":   func() item.Stack { return item.NewStack(progress.ResearchTable{}, 1) },
 		"drawer":           func() item.Stack { return item.NewStack(storage.Drawer{}, 1) },
 		"drawer_key":       func() item.Stack { return item.NewStack(sgitem.DrawerKey{}, 1) },
 		"upgrade_capacity": func() item.Stack { return item.NewStack(sgitem.DrawerUpgrade{Kind: sgitem.UpgradeCapacity}, 1) },

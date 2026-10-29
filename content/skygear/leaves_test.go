@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -53,7 +54,7 @@ func TestLeavesDecayOnScheduledTick(t *testing.T) {
 		leaves := block.Leaves{Type: block.OakLeaves(), ShouldUpdate: true}
 		tx.SetBlock(alone, leaves, nil)
 		tx.SetBlock(near, leaves, nil)
-		tx.SetBlock(near.Add(cube.Pos{1, 0, 0}), oakLog, nil)
+		tx.SetBlock(near.Add(cube.Pos{1, 0, 0}), fairy.OakLog, nil)
 		leaves.ScheduledTick(alone, tx, nil)
 		leaves.ScheduledTick(near, tx, nil)
 		if _, ok := tx.Block(alone).(block.Leaves); ok {

@@ -1,8 +1,12 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"sync"
+
+	"github.com/presentkim/skygear/content/skygear/progress"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 
@@ -45,7 +49,7 @@ func registerCreativeItems() {
 		add := func(c creative.Category, it world.Item) {
 			creative.RegisterItem(creative.Item{Stack: item.NewStack(it, 1), Group: groupName(c)})
 		}
-		add(construction, ResearchTable{})
+		add(construction, progress.ResearchTable{})
 		add(construction, storage.Drawer{})
 		for _, w := range farm.BarrelWoods {
 			add(construction, farm.Barrel{Wood: w})
@@ -77,7 +81,7 @@ func registerCreativeItems() {
 		add(items, sgitem.BarkFiber{})
 		add(items, sgitem.FairyDust{})
 		add(items, sgitem.FairyEmerald{})
-		add(equipment, FairyBoard{})
+		add(equipment, fairy.Board{})
 		add(items, sgitem.FairyBoneMeal{})
 		add(items, sgitem.FairyHourglass{})
 		add(items, sgitem.GrassSeeds{})

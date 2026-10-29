@@ -1,9 +1,11 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"testing"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/climate"
 
@@ -22,14 +24,14 @@ func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
 	loadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	used := func() (ok bool) {
-		s.World.Do(func(tx *world.Tx) { ok = s.fairyBoneMeal(tx, cropPos) })
+		s.World.Do(func(tx *world.Tx) { ok = fairy.BoneMeal(s.Session, tx, cropPos) })
 		return ok
 	}
 	if !used() {
 		t.Fatal("fairy bone meal did nothing on a young carrot")
 	}
 	now := climate.GrowNow(s.Session)
-	if want := farm.StageAt(s.Session, "carrot", now-fairyBoneMealTime, now); stageOf(t, s, cropPos) != want {
+	if want := farm.StageAt(s.Session, "carrot", now-fairy.FairyBoneMealTime, now); stageOf(t, s, cropPos) != want {
 		t.Fatalf("stage %d after one use, want %d", stageOf(t, s, cropPos), want)
 	}
 	for used() {
@@ -53,12 +55,12 @@ func TestFairyBoneMealBringsFruitSooner(t *testing.T) {
 	r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]
 	before := r.NextFruit
 	s.World.Do(func(tx *world.Tx) {
-		if !s.fairyBoneMeal(tx, cropPos) {
+		if !fairy.BoneMeal(s.Session, tx, cropPos) {
 			t.Error("fairy bone meal did nothing on a grown stem")
 		}
 	})
-	if r.NextFruit != before-fairyBoneMealTime {
-		t.Fatalf("next fruit %v, want %v", r.NextFruit, before-fairyBoneMealTime)
+	if r.NextFruit != before-fairy.FairyBoneMealTime {
+		t.Fatalf("next fruit %v, want %v", r.NextFruit, before-fairy.FairyBoneMealTime)
 	}
 }
 
@@ -72,19 +74,19 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(pos, farm.MagicPlant{Kind: "flower_red"}, nil)
 		farm.StateOf(s.Session).Plants = map[string]*farm.PlantRecord{farm.CropKey(pos): {Kind: "flower_red", ReadyAt: climate.GrowNow(s.Session) + time.Minute}}
-		if !s.fairyBoneMeal(tx, pos) {
+		if !fairy.BoneMeal(s.Session, tx, pos) {
 			t.Error("fairy bone meal did nothing on a magic plant")
 		}
 		if b := tx.Block(pos).(farm.MagicPlant); !b.Bloom {
 			t.Error("the plant did not bloom a minute short of its time")
 		}
-		if s.fairyBoneMeal(tx, pos) {
+		if fairy.BoneMeal(s.Session, tx, pos) {
 			t.Error("fairy bone meal was spent on a bloom")
 		}
 
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Grass{}, nil)
 		tx.SetBlock(pos, block.Sapling{Type: block.OakSapling()}, nil)
-		if !s.fairyBoneMeal(tx, pos) {
+		if !fairy.BoneMeal(s.Session, tx, pos) {
 			t.Error("fairy bone meal did nothing on a sapling")
 		}
 		if _, still := tx.Block(pos).(block.Sapling); still {
@@ -115,7 +117,7 @@ func TestFairyHourglass(t *testing.T) {
 	if back.State.Boost != st.Boost {
 		t.Fatalf("boost %d after NBT, want %d", back.State.Boost, st.Boost)
 	}
-	if hourglassLine("ko_KR", st) == "" {
+	if fairy.HourglassLine("ko_KR", st) == "" {
 		t.Fatal("no WAILA line while the hourglass runs")
 	}
 	if machine.New(machine.KindGenerator, "", "").State.WindHourglass() {

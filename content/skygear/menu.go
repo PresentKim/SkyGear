@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"

@@ -3,10 +3,12 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/climate"
 
@@ -153,9 +155,7 @@ type session struct {
 	helpTab map[*world.EntityHandle]helpTab
 	// urgentBarShown is whether the urgent mission boss bar is up.
 	urgentBarShown bool
-	// fairy is the gift fairy visiting now, or nil.
-	fairy *world.EntityHandle
-	g     *Game
+	g              *Game
 	// state is the saved state (savedState).
 	state *State
 	// lastStick is when each player last used a stick on the ground.
@@ -186,7 +186,7 @@ func (s *session) Join(p *player.Player, first bool) {
 		_ = p.Inventory().SetItem(8, menuItem(i18n.Of(p)))
 	}
 	renameMenuItems(p)
-	s.backfillFairyDust(p, p.Tx())
+	fairy.BackfillDust(s.Session, p, p.Tx())
 	climate.ShowWeather(s.Session, p)
 	s.SendShapes(p)
 	island.PurgeLost(s.Session)
@@ -265,5 +265,5 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, FairyType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
 }

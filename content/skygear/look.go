@@ -2,9 +2,13 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/progress"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 
@@ -175,7 +179,7 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	switch b := b.(type) {
 	case machine.Machine:
 		info.Lines, info.Line = machineLines(lang, b)
-		if l := hourglassLine(lang, b.State); l != "" {
+		if l := fairy.HourglassLine(lang, b.State); l != "" {
 			info.Lines = append(info.Lines, l)
 		}
 		if b.State != nil && b.State.Def.Controller {
@@ -239,7 +243,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case storage.Drawer, ResearchTable, farm.Barrel:
+	case storage.Drawer, progress.ResearchTable, farm.Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case hopper.FlowHopper:
 		if h := b.(hopper.FlowHopper); h.Info().Wood {

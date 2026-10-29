@@ -1,7 +1,6 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 

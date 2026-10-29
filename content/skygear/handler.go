@@ -1,8 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 
@@ -157,7 +159,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	}
 	h.s.stripFiber(p, tx, pos, face, held)
 	h.s.tillSeeds(p, tx, pos, face, held)
-	if h.s.useFairyTime(p, tx, pos, held) {
+	if fairy.UseFairyTime(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
 	}
@@ -205,9 +207,9 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 }
 
 func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
-	if f, ok := h.s.fairyOf(e); ok {
+	if f, ok := fairy.Of(h.s.Session, e); ok {
 		ctx.Cancel()
-		f.gift(ctx.Player().Tx(), h.s, ctx.Player())
+		f.Gift(ctx.Player().Tx(), h.s.Session, ctx.Player())
 	}
 }
 

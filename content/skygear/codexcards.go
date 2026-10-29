@@ -2,10 +2,11 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 
@@ -437,7 +438,7 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 		cards = append(cards, s.simCard(lang, e.Mob, sgitem.SimDrops[e.Mob]))
 		cards = append(cards, s.themeCards(lang, e.Mob)...)
 	}
-	research := item.NewStack(ResearchTable{}, 1)
+	research := item.NewStack(progress.ResearchTable{}, 1)
 	for i := range progress.Tree {
 		r := &progress.Tree[i]
 		for _, c := range r.Cost {

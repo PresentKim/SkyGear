@@ -2,9 +2,10 @@ package skygear
 
 import (
 	"container/heap"
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/climate"
 

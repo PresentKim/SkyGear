@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -77,7 +78,7 @@ func TestAxeStripsFiber(t *testing.T) {
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
-		tx.SetBlock(pos, oakLog, nil)
+		tx.SetBlock(pos, fairy.OakLog, nil)
 		for range 50 {
 			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
 		}

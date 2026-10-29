@@ -5,6 +5,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -19,7 +20,7 @@ func (s *session) Second(tx *world.Tx) {
 	progress.CheckHeld(s.Session, tx, held)
 	farm.TickBarrels(s.Session, tx)
 	farm.TickComposters(s.Session, tx)
-	s.tickFairy(tx)
+	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
 	s.tickWave(tx)
 	tinker.TickEffects(s.Session, tx)

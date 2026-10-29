@@ -67,7 +67,7 @@ func TestResearchOpensRecipes(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		open := progress.RecipeFilter(s.Session)
-		for _, it := range []world.Item{oakPlanks, block.CraftingTable{}, ResearchTable{}} {
+		for _, it := range []world.Item{oakPlanks, block.CraftingTable{}, progress.ResearchTable{}} {
 			if !open(recipeFor(it)) {
 				t.Errorf("base recipe of %v is locked", it)
 			}
@@ -120,7 +120,7 @@ func TestResearchOpensRecipes(t *testing.T) {
 func TestResearchTableRecipe(t *testing.T) {
 	for _, r := range recipe.Recipes() {
 		for _, out := range r.Output() {
-			if _, ok := out.Item().(ResearchTable); ok && len(r.Input()) == 2 {
+			if _, ok := out.Item().(progress.ResearchTable); ok && len(r.Input()) == 2 {
 				return
 			}
 		}

@@ -1,16 +1,10 @@
-package skygear
+package fairy
 
 import (
 	"fmt"
 	"math"
 	"strings"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
-	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -20,11 +14,19 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/platform/instance"
 )
+
+func init() {
+	world.RegisterItem(sgitem.ResearchNote{})
+}
 
 // Gift fairy: every instance night a fairy (an allay on the client) visits a
 // player. Using it throws the gift to them; left alone for fairyStay it
@@ -32,22 +34,22 @@ import (
 const (
 	// fairyFrom and fairyTo bound when in the instance day the fairy comes,
 	// in percent of the day: about midnight, the day starting at sunrise.
-	fairyFrom = 75
-	fairyTo   = 85
+	FairyFrom = 75
+	FairyTo   = 85
 	// fairyStay is how long a fairy waits for a player before leaving.
-	fairyStay = time.Minute
+	FairyStay = time.Minute
 	// fairyLeaveTicks is how long the fly-away lasts.
-	fairyLeaveTicks = 60
+	FairyLeaveTicks = 60
 )
 
 // Fairy is the gift fairy entity.
 type Fairy struct {
 	tx     *world.Tx
 	handle *world.EntityHandle
-	data   *world.EntityData
+	Data   *world.EntityData
 }
 
-type fairyData struct {
+type FairyData struct {
 	// target is the account the fairy visits.
 	target string
 	ticks  int
@@ -58,17 +60,21 @@ type fairyData struct {
 	wayTicks int
 	// leaving counts the ticks since the fairy started to fly away.
 	leaving int
-	gave    bool
+	Gave    bool
 }
 
 type fairyConfig struct{ target string }
 
-func (c fairyConfig) Apply(data *world.EntityData) { data.Data = &fairyData{target: c.target} }
+func (c fairyConfig) Apply(data *world.EntityData) { data.Data = &FairyData{target: c.target} }
 
-func (f *Fairy) H() *world.EntityHandle  { return f.handle }
-func (f *Fairy) Position() mgl64.Vec3    { return f.data.Pos }
-func (f *Fairy) Rotation() cube.Rotation { return f.data.Rot }
-func (f *Fairy) NameTag() string         { return f.data.Name }
+func (f *Fairy) H() *world.EntityHandle { return f.handle }
+
+func (f *Fairy) Position() mgl64.Vec3 { return f.Data.Pos }
+
+func (f *Fairy) Rotation() cube.Rotation { return f.Data.Rot }
+
+func (f *Fairy) NameTag() string { return f.Data.Name }
+
 func (f *Fairy) AlwaysShowNameTag() bool { return false }
 
 func (f *Fairy) Close() error {
@@ -78,15 +84,15 @@ func (f *Fairy) Close() error {
 
 // Tick floats the fairy around its player, or flies it away.
 func (f *Fairy) Tick(tx *world.Tx, _ int64) {
-	d := f.data.Data.(*fairyData)
-	s, ok := activeGame.sessionOf(tx.World())
-	if !ok || s.fairy != f.handle {
+	d := f.Data.Data.(*FairyData)
+	s, ok := core.Of(tx)
+	if !ok || LocalOf(s).Fairy != f.handle {
 		// Saved with the world or replaced: not a visit of this session.
 		_ = f.Close()
 		return
 	}
 	d.ticks++
-	pos := f.data.Pos
+	pos := f.Data.Pos
 	var target *player.Player
 	for e := range tx.Players() {
 		if p := e.(*player.Player); instance.AccountID(p) == d.target {
@@ -100,26 +106,26 @@ func (f *Fairy) Tick(tx *world.Tx, _ int64) {
 		}
 		d.leaving++
 		pos = pos.Add(mgl64.Vec3{0, 0.05 + 0.01*float64(d.leaving), 0})
-		if d.leaving > fairyLeaveTicks {
-			s.fairy = nil
+		if d.leaving > FairyLeaveTicks {
+			LocalOf(s).Fairy = nil
 			_ = f.Close()
 			return
 		}
-	case time.Duration(d.ticks)*time.Second/20 > fairyStay:
+	case time.Duration(d.ticks)*time.Second/20 > FairyStay:
 		f.scatter(tx, s, target)
 	default:
 		pos = f.wander(s, d, pos, target)
 	}
-	f.data.Pos = pos
+	f.Data.Pos = pos
 	for _, v := range tx.Viewers(pos) {
-		v.ViewEntityMovement(f, pos, f.data.Rot, false)
+		v.ViewEntityMovement(f, pos, f.Data.Rot, false)
 	}
 }
 
 // wander flies the fairy about its player like a small bird: it picks a
 // waypoint around the player, eases towards it and, after a while or once
 // there, hovers a moment and picks another. It returns the new position.
-func (f *Fairy) wander(s *session, d *fairyData, pos mgl64.Vec3, target *player.Player) mgl64.Vec3 {
+func (f *Fairy) wander(s *core.Session, d *FairyData, pos mgl64.Vec3, target *player.Player) mgl64.Vec3 {
 	home := target.Position()
 	if d.wayTicks--; d.wayTicks <= 0 || home.Add(d.waypoint).Sub(pos).Len() < 0.3 {
 		a := s.Rand.Float64() * 2 * math.Pi
@@ -140,28 +146,28 @@ func (f *Fairy) wander(s *session, d *fairyData, pos mgl64.Vec3, target *player.
 	if look.Len() < 0.03 {
 		look = home.Sub(pos)
 	}
-	f.data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-look[0], look[2])), 0}
+	f.Data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-look[0], look[2])), 0}
 	return pos
 }
 
 // gift drops the fairy's gift for p and sends the fairy away. It returns
 // false if the fairy already gave its gift.
-func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
-	d := f.data.Data.(*fairyData)
-	if d.gave || d.leaving > 0 {
+func (f *Fairy) Gift(tx *world.Tx, s *core.Session, p *player.Player) bool {
+	d := f.Data.Data.(*FairyData)
+	if d.Gave || d.leaving > 0 {
 		return false
 	}
-	d.gave = true
+	d.Gave = true
 	achievement.Count(p, "fairy_gift", 1)
-	progress.Advance(s.Session, tx, advancement.FairyGift)
-	gift := s.fairyGift()
+	progress.Advance(s, tx, advancement.FairyGift)
+	gift := GiftOf(s)
 	// Throw it to the player: a short arc that lands at their feet.
-	to := p.Position().Sub(f.data.Pos)
+	to := p.Position().Sub(f.Data.Pos)
 	vel := mgl64.Vec3{to[0] * 0.09, 0.2 + max(0, to[1])*0.05, to[2] * 0.09}
 	for _, st := range gift {
-		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.data.Pos, Velocity: vel}, st))
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: f.Data.Pos, Velocity: vel}, st))
 	}
-	tx.PlaySound(f.data.Pos, sound.Pop{})
+	tx.PlaySound(f.Data.Pos, sound.Pop{})
 	p.Messagef(i18n.T(i18n.Of(p), "fairy.gift"), giftNames(p, gift))
 	d.leaving = 1
 	return true
@@ -169,17 +175,17 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 
 // scatter drops the gift about p, as items fall (dropAt), when nobody took
 // it in time, and sends the fairy away.
-func (f *Fairy) scatter(tx *world.Tx, s *session, p *player.Player) {
-	d := f.data.Data.(*fairyData)
-	if d.gave || d.leaving > 0 {
+func (f *Fairy) scatter(tx *world.Tx, s *core.Session, p *player.Player) {
+	d := f.Data.Data.(*FairyData)
+	if d.Gave || d.leaving > 0 {
 		return
 	}
-	d.gave, d.leaving = true, 1
-	gift := s.fairyGift()
+	d.Gave, d.leaving = true, 1
+	gift := GiftOf(s)
 	for _, st := range gift {
 		s.DropAt(tx, p.Position().Add(mgl64.Vec3{0, 1, 0}), st)
 	}
-	tx.PlaySound(f.data.Pos, sound.Pop{})
+	tx.PlaySound(f.Data.Pos, sound.Pop{})
 	p.Messagef(i18n.T(i18n.Of(p), "fairy.scatter"), giftNames(p, gift))
 }
 
@@ -202,49 +208,49 @@ const (
 
 // fairyDustMin and fairyDustMax bound the fairy dust of every gift.
 const (
-	fairyDustMin = 2
-	fairyDustMax = 3
+	FairyDustMin = 2
+	FairyDustMax = 3
 )
 
-// fairyGift is a visit's gift: rollGift and fairy dust.
-func (s *session) fairyGift() []item.Stack {
-	s.state.FairyDust = true
+// GiftOf is a visit's gift: rollGift and fairy dust.
+func GiftOf(s *core.Session) []item.Stack {
+	StateOf(s).FairyDust = true
 	s.MarkDirty()
-	return append(s.rollGift(), item.NewStack(sgitem.FairyDust{}, s.rollDust()))
+	return append(RollGift(s), item.NewStack(sgitem.FairyDust{}, rollDust(s)))
 }
 
 // rollDust is the fairy dust of one visit.
-func (s *session) rollDust() int {
-	return fairyDustMin + s.Rand.IntN(fairyDustMax-fairyDustMin+1)
+func rollDust(s *core.Session) int {
+	return FairyDustMin + s.Rand.IntN(FairyDustMax-FairyDustMin+1)
 }
 
-// pastNights counts the fairy's nights that are over in the save's play
+// PastNights counts the fairy's nights that are over in the save's play
 // time.
-func (s *session) pastNights() int {
+func PastNights(s *core.Session) int {
 	total, _, _ := s.Clock.Now()
 	day := s.Clock.DayLength()
-	if end := day * fairyTo / 100; day > 0 && total >= end {
+	if end := day * FairyTo / 100; day > 0 && total >= end {
 		return int((total-end)/day) + 1
 	}
 	return 0
 }
 
-// backfillFairyDust gives p the fairy dust of every night the save played
+// BackfillDust gives p the fairy dust of every night the save played
 // before the fairy brought any: a save from before the dust gets what its
 // fairies would have left, once.
-func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
-	if s.state.FairyDust {
+func BackfillDust(s *core.Session, p *player.Player, tx *world.Tx) {
+	if StateOf(s).FairyDust {
 		return
 	}
-	nights := s.pastNights()
+	nights := PastNights(s)
 	if nights == 0 {
 		return
 	}
 	dust := 0
 	for range nights {
-		dust += s.rollDust()
+		dust += rollDust(s)
 	}
-	s.state.FairyDust = true
+	StateOf(s).FairyDust = true
 	s.MarkDirty()
 	for left := dust; left > 0; left -= 64 {
 		s.GiveItem(p, tx, p.Position(), item.NewStack(sgitem.FairyDust{}, min(left, 64)))
@@ -252,23 +258,23 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 	p.Messagef(i18n.T(i18n.Of(p), "skygear.fairy.backfill"), nights, dust)
 }
 
-// rollGift picks a gift. It is now and then the research reward or half the
+// RollGift picks a gift. It is now and then the research reward or half the
 // cost of a done research, a deeper one more likely (giftResearch), and
 // otherwise oak logs, an oak sapling or pebbles.
-func (s *session) rollGift() []item.Stack {
+func RollGift(s *core.Session) []item.Stack {
 	roll := s.Rand.IntN(100)
 	if roll < giftRewardChance {
-		if r, ok := s.giftResearch(func(r *progress.Research) bool { return len(progress.Reward(r)) > 0 }); ok {
+		if r, ok := giftResearch(s, func(r *progress.Research) bool { return len(progress.Reward(r)) > 0 }); ok {
 			return progress.Reward(r)
 		}
 	}
 	if roll < giftRewardChance+giftCostChance {
-		if r, ok := s.giftResearch(func(r *progress.Research) bool { return len(r.Cost) > 0 }); ok {
-			return halfCost(r)
+		if r, ok := giftResearch(s, func(r *progress.Research) bool { return len(r.Cost) > 0 }); ok {
+			return HalfCost(r)
 		}
 	}
 	gifts := []item.Stack{
-		item.NewStack(oakLog, 6),
+		item.NewStack(OakLog, 6),
 		item.NewStack(block.Sapling{Type: block.OakSapling()}, 1),
 		item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 6),
 	}
@@ -278,16 +284,16 @@ func (s *session) rollGift() []item.Stack {
 // giftResearch picks a done research that keep accepts, weighted by
 // researchDepth so later research comes up more often. The projects (the
 // goals at the end of the tree) are never picked.
-func (s *session) giftResearch(keep func(*progress.Research) bool) (*progress.Research, bool) {
+func giftResearch(s *core.Session, keep func(*progress.Research) bool) (*progress.Research, bool) {
 	var picks []*progress.Research
 	var weights []int
 	total := 0
 	for i := range progress.Tree {
 		r := &progress.Tree[i]
-		if r.IsCopy() || strings.HasPrefix(r.ID, "project_") || !s.reachedResearch(r) || !keep(r) {
+		if r.IsCopy() || strings.HasPrefix(r.ID, "project_") || !ReachedResearch(s, r) || !keep(r) {
 			continue
 		}
-		w := researchDepth(r) + 1
+		w := ResearchDepth(r) + 1
 		picks, weights, total = append(picks, r), append(weights, w), total+w
 	}
 	if total == 0 {
@@ -303,24 +309,24 @@ func (s *session) giftResearch(keep func(*progress.Research) bool) (*progress.Re
 	return nil, false
 }
 
-// reachedResearch reports whether r and every research before it are done.
+// ReachedResearch reports whether r and every research before it are done.
 // The admin and debug commands can mark a research done out of order, and
 // such a one is no gift.
-func (s *session) reachedResearch(r *progress.Research) bool {
-	if !progress.Researched(s.Session, r.ID) {
+func ReachedResearch(s *core.Session, r *progress.Research) bool {
+	if !progress.Researched(s, r.ID) {
 		return false
 	}
 	for _, n := range r.Needs {
 		need, ok := progress.ByID(n)
-		if ok && !s.reachedResearch(need) {
+		if ok && !ReachedResearch(s, need) {
 			return false
 		}
 	}
 	return true
 }
 
-// researchDepth is how many researches must be done before r.
-func researchDepth(r *progress.Research) int {
+// ResearchDepth is how many researches must be done before r.
+func ResearchDepth(r *progress.Research) int {
 	seen := map[string]bool{}
 	var walk func(*progress.Research)
 	walk = func(r *progress.Research) {
@@ -335,8 +341,8 @@ func researchDepth(r *progress.Research) int {
 	return len(seen)
 }
 
-// halfCost is half of each item of r's cost (at least one), in stacks.
-func halfCost(r *progress.Research) []item.Stack {
+// HalfCost is half of each item of r's cost (at least one), in stacks.
+func HalfCost(r *progress.Research) []item.Stack {
 	var out []item.Stack
 	for _, c := range r.Cost {
 		st := item.NewStack(c.Item, 1)
@@ -347,35 +353,40 @@ func halfCost(r *progress.Research) []item.Stack {
 	return out
 }
 
-// FairyType is the world.EntityType of the gift fairy, shown as an allay.
-var FairyType fairyType
+// EntityType is the world.EntityType of the gift fairy, shown as an allay.
+var EntityType fairyType
 
 type fairyType struct{}
 
 func (fairyType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
-		data.Data = &fairyData{}
+		data.Data = &FairyData{}
 	}
-	return &Fairy{tx: tx, handle: handle, data: data}
+	return &Fairy{tx: tx, handle: handle, Data: data}
 }
-func (fairyType) EncodeEntity() string        { return "skygear:fairy" }
+
+func (fairyType) EncodeEntity() string { return "skygear:fairy" }
+
 func (fairyType) NetworkEncodeEntity() string { return "minecraft:allay" }
+
 func (fairyType) BBox(world.Entity) cube.BBox {
 	return cube.Box(-0.175, 0, -0.175, 0.175, 0.6, 0.175)
 }
-func (fairyType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &fairyData{} }
-func (fairyType) EncodeNBT(*world.EntityData) map[string]any      { return nil }
 
-// tickFairy schedules visits and sends a fairy to a random player when one
+func (fairyType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &FairyData{} }
+
+func (fairyType) EncodeNBT(*world.EntityData) map[string]any { return nil }
+
+// Tick schedules visits and sends a fairy to a random player when one
 // is due. It runs every second (session.Second).
-func (s *session) tickFairy(tx *world.Tx) {
+func Tick(s *core.Session, tx *world.Tx) {
 	now, _, _ := s.Clock.Now()
-	if s.state.NextFairy == 0 || s.state.NextFairy-now > 2*s.Clock.DayLength() {
+	if StateOf(s).NextFairy == 0 || StateOf(s).NextFairy-now > 2*s.Clock.DayLength() {
 		// New, or a visit planned by the old schedule days ahead.
-		s.scheduleFairy(false)
+		Schedule(s, false)
 		return
 	}
-	if now < s.state.NextFairy || s.fairy != nil {
+	if now < StateOf(s).NextFairy || LocalOf(s).Fairy != nil {
 		return
 	}
 	var players []*player.Player
@@ -385,44 +396,69 @@ func (s *session) tickFairy(tx *world.Tx) {
 	if len(players) == 0 {
 		return
 	}
-	s.spawnFairy(tx, players[s.Rand.IntN(len(players))])
-	s.scheduleFairy(true)
+	Spawn(s, tx, players[s.Rand.IntN(len(players))])
+	Schedule(s, true)
 }
 
-// scheduleFairy plans the next visit at a random time of a night: the next
+// Schedule plans the next visit at a random time of a night: the next
 // one after a visit, else this one (at once if it is under way) unless it is
 // over.
-func (s *session) scheduleFairy(next bool) {
+func Schedule(s *core.Session, next bool) {
 	now, _, dayTime := s.Clock.Now()
 	day := s.Clock.DayLength()
-	from, span := day*fairyFrom/100, day*(fairyTo-fairyFrom)/100
+	from, span := day*FairyFrom/100, day*(FairyTo-FairyFrom)/100
 	start := now - dayTime
 	if next || dayTime > from+span {
 		start += day
 	}
-	s.state.NextFairy = max(now, start+from+time.Duration(s.Rand.Int64N(int64(span)+1)))
+	StateOf(s).NextFairy = max(now, start+from+time.Duration(s.Rand.Int64N(int64(span)+1)))
 }
 
-func (s *session) spawnFairy(tx *world.Tx, p *player.Player) {
-	if s.fairy != nil {
-		if e, ok := s.fairy.Entity(tx); ok {
+func Spawn(s *core.Session, tx *world.Tx, p *player.Player) {
+	if LocalOf(s).Fairy != nil {
+		if e, ok := LocalOf(s).Fairy.Entity(tx); ok {
 			_ = e.(*Fairy).Close()
 		}
 	}
 	pos := p.Position().Add(mgl64.Vec3{2, 3, 0})
-	h := world.EntitySpawnOpts{Position: pos}.New(FairyType, fairyConfig{target: instance.AccountID(p)})
-	s.fairy = h
+	h := world.EntitySpawnOpts{Position: pos}.New(EntityType, fairyConfig{target: instance.AccountID(p)})
+	LocalOf(s).Fairy = h
 	tx.AddEntity(h)
 	tx.PlaySound(pos, sound.Experience{})
 	p.Message(i18n.T(i18n.Of(p), "fairy.arrived"))
 }
 
-// fairyOf returns e as this session's fairy.
-func (s *session) fairyOf(e world.Entity) (*Fairy, bool) {
+// Of returns e as this session's fairy.
+func Of(s *core.Session, e world.Entity) (*Fairy, bool) {
 	f, ok := e.(*Fairy)
-	return f, ok && s.fairy == f.handle
+	return f, ok && LocalOf(s).Fairy == f.handle
 }
 
-func init() {
-	world.RegisterItem(sgitem.ResearchNote{})
+// fairyState is what a save keeps of its fairy: its fields are part of the
+// save's state document (core.Saved).
+type fairyState struct {
+	// NextFairy is the instance time of the next gift fairy visit.
+	NextFairy time.Duration `json:"next_fairy,omitempty"`
+	// FairyDust is whether the fairy has given the save fairy dust; until
+	// then a joining player gets the dust of the nights before
+	// (backfillFairyDust).
+	FairyDust bool `json:"fairy_dust,omitempty"`
 }
+
+var fairySaved = core.NewSaved[fairyState](nil)
+
+// StateOf is what the save of s keeps of its fairy.
+func StateOf(s *core.Session) *fairyState { return fairySaved.Of(s) }
+
+// fairiesLocal is what a running save keeps for its fairies.
+type fairiesLocal struct {
+	// fairy is the gift fairy visiting now, or nil.
+	Fairy *world.EntityHandle
+}
+
+var fairiesPart = core.NewPart(func() *fairiesLocal { return &fairiesLocal{} })
+
+// LocalOf is what the save of s keeps for its fairies.
+func LocalOf(s *core.Session) *fairiesLocal { return fairiesPart.Of(s) }
+
+var OakLog = block.Log{Wood: block.OakWood()}

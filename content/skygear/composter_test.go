@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/island"
 

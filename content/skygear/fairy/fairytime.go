@@ -1,12 +1,7 @@
-package skygear
+package fairy
 
 import (
-	"github.com/presentkim/skygear/content/skygear/farm"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/climate"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -17,9 +12,19 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
+
+func init() {
+	world.RegisterItem(sgitem.FairyBoneMeal{})
+	world.RegisterItem(sgitem.FairyHourglass{})
+	FairyTimeRecipes()
+}
 
 // Fairy time: fairy dust makes things that cut waiting short. Fairy bone
 // meal grows a timed crop, the next fruit of a grown stem or a magic plant
@@ -28,14 +33,14 @@ import (
 // an energy machine twice as fast for hourglassTicks, the extra runs free
 // like the snow's, adding up to hourglassMaxTicks. Values are drafts.
 const (
-	fairyBoneMealTime = 2 * time.Minute
+	FairyBoneMealTime = 2 * time.Minute
 	fairyBoneMealMade = 4
 )
 
-// fairyTimeRecipes registers fairy bone meal (bone meal in the four corners,
+// FairyTimeRecipes registers fairy bone meal (bone meal in the four corners,
 // dust in the middle, four made) and the fairy hourglass (glass above and
 // below sand, dust either side).
-func fairyTimeRecipes() {
+func FairyTimeRecipes() {
 	var e item.Stack
 	d := item.NewStack(sgitem.FairyDust{}, 1)
 	b := item.NewStack(item.BoneMeal{}, 1)
@@ -45,23 +50,17 @@ func fairyTimeRecipes() {
 	recipe.Register(recipe.NewShaped([]recipe.Item{e, g, e, d, s, d, e, g, e}, item.NewStack(sgitem.FairyHourglass{}, 1), recipe.NewShape(3, 3), "crafting_table"))
 }
 
-func init() {
-	world.RegisterItem(sgitem.FairyBoneMeal{})
-	world.RegisterItem(sgitem.FairyHourglass{})
-	fairyTimeRecipes()
-}
-
-// useFairyTime uses a held fairy bone meal or hourglass, or keeps plain
+// UseFairyTime uses a held fairy bone meal or hourglass, or keeps plain
 // bone meal off a timed crop (a click without sneaking is useCrop's). It
 // reports whether the click was taken: an item that would change nothing
 // is not spent and leaves the click to the block.
-func (s *session) useFairyTime(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
+func UseFairyTime(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
 	switch held.Item().(type) {
 	case item.BoneMeal:
 		_, _, crop := farm.CropOf(tx.Block(pos))
 		return crop && p.Sneaking()
 	case sgitem.FairyBoneMeal:
-		if !s.fairyBoneMeal(tx, pos) {
+		if !BoneMeal(s, tx, pos) {
 			return false
 		}
 		spendHeld(p, held)
@@ -88,16 +87,16 @@ func spendHeld(p *player.Player, held item.Stack) {
 	p.SetHeldItems(held.Grow(-1), off)
 }
 
-// fairyBoneMeal grows the plant at pos ahead and reports whether it changed.
-func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
+// BoneMeal grows the plant at pos ahead and reports whether it changed.
+func BoneMeal(s *core.Session, tx *world.Tx, pos cube.Pos) bool {
 	switch b := tx.Block(pos).(type) {
 	case farm.MagicPlant:
-		r := farm.StateOf(s.Session).Plants[farm.CropKey(pos)]
+		r := farm.StateOf(s).Plants[farm.CropKey(pos)]
 		if b.Bloom || r == nil {
 			return false
 		}
-		r.ReadyAt -= fairyBoneMealTime
-		farm.TickPlants(s.Session, tx)
+		r.ReadyAt -= FairyBoneMealTime
+		farm.TickPlants(s, tx)
 		return true
 	case block.Sapling:
 		// Bone meal ages a sapling and then grows its tree, each by chance;
@@ -116,27 +115,27 @@ func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 	if !ok {
 		return false
 	}
-	now := climate.GrowNow(s.Session)
-	r := farm.StateOf(s.Session).Crops[farm.CropKey(pos)]
+	now := climate.GrowNow(s)
+	r := farm.StateOf(s).Crops[farm.CropKey(pos)]
 	if r == nil {
-		farm.PlantCrop(s.Session, pos, kind)
-		r = farm.StateOf(s.Session).Crops[farm.CropKey(pos)]
-		r.Planted = now - time.Duration(stage)*farm.GrowTime(s.Session, kind)/farm.MaxCropStage
+		farm.PlantCrop(s, pos, kind)
+		r = farm.StateOf(s).Crops[farm.CropKey(pos)]
+		r.Planted = now - time.Duration(stage)*farm.GrowTime(s, kind)/farm.MaxCropStage
 	}
 	switch {
 	case stage < farm.MaxCropStage:
-		r.Planted -= fairyBoneMealTime
+		r.Planted -= FairyBoneMealTime
 	case farm.CropKinds[kind].Stem && r.NextFruit > 0:
-		r.NextFruit -= fairyBoneMealTime
+		r.NextFruit -= FairyBoneMealTime
 	default:
 		return false
 	}
-	farm.GrowCrop(s.Session, tx, pos, r, now)
+	farm.GrowCrop(s, tx, pos, r, now)
 	return true
 }
 
-// hourglassLine is the WAILA line of the hourglass time left, or "".
-func hourglassLine(lang string, st *machine.State) string {
+// HourglassLine is the WAILA line of the hourglass time left, or "".
+func HourglassLine(lang string, st *machine.State) string {
 	if st == nil || st.Boost <= 0 {
 		return ""
 	}

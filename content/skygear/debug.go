@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"strings"
 	"time"
 
@@ -158,7 +159,7 @@ type debugFairy struct {
 
 func (c debugFairy) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if p, s, ok := c.session(src, o, tx); ok {
-		s.spawnFairy(tx, p)
+		fairy.Spawn(s.Session, tx, p)
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.fairy"))
 	}
 }

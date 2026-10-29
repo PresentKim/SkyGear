@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"testing"
 	"time"
 
@@ -37,13 +38,13 @@ func TestGiftsAreBasics(t *testing.T) {
 	s := testSession(t)
 	kinds := map[string]bool{}
 	for range 200 {
-		gift := s.rollGift()
+		gift := fairy.RollGift(s.Session)
 		if len(gift) != 1 {
 			t.Fatalf("gift = %v", gift)
 		}
 		kinds[naming.ItemKey(gift[0].Item())] = true
 	}
-	if len(kinds) != 3 || !kinds[naming.ItemKey(oakLog)] || !kinds[naming.ItemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[naming.ItemKey(sgitem.Pebble{Kind: sgitem.PebbleStone})] {
+	if len(kinds) != 3 || !kinds[naming.ItemKey(fairy.OakLog)] || !kinds[naming.ItemKey(block.Sapling{Type: block.OakSapling()})] || !kinds[naming.ItemKey(sgitem.Pebble{Kind: sgitem.PebbleStone})] {
 		t.Errorf("gifts = %v", kinds)
 	}
 }
@@ -63,11 +64,11 @@ func TestGiftsComeFromDoneResearch(t *testing.T) {
 	generator, _ := progress.ByID("generator")
 	costs, rewards := 0, 0
 	for range 1000 {
-		gift := s.rollGift()
+		gift := fairy.RollGift(s.Session)
 		switch {
 		case gift[0].Comparable(progress.Reward(generator)[0]):
 			rewards++
-		case gift[0].Comparable(halfCost(generator)[0]):
+		case gift[0].Comparable(fairy.HalfCost(generator)[0]):
 			costs++
 		}
 	}
@@ -80,7 +81,7 @@ func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
 	s := testSession(t)
 	progress.StateOf(s.Session).Researched = map[string]bool{"project_dragon": true, "iron_tools": true, "stick": true}
 	for range 500 {
-		gift := s.rollGift()
+		gift := fairy.RollGift(s.Session)
 		for _, st := range gift {
 			switch st.Item().(type) {
 			case item.Diamond, item.NetheriteIngot, item.Emerald, item.IronIngot:
@@ -89,11 +90,11 @@ func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
 		}
 	}
 	stick, _ := progress.ByID("stick")
-	if !s.reachedResearch(stick) {
+	if !fairy.ReachedResearch(s.Session, stick) {
 		t.Error("stick, done and needing nothing, is not reached")
 	}
 	project, _ := progress.ByID("project_dragon")
-	if s.reachedResearch(project) {
+	if fairy.ReachedResearch(s.Session, project) {
 		t.Error("project_dragon counted as reached without its needs")
 	}
 }
@@ -101,8 +102,8 @@ func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
 func TestDeeperResearchIsDeeper(t *testing.T) {
 	stick, _ := progress.ByID("stick")
 	generator, _ := progress.ByID("generator")
-	if researchDepth(stick) != 0 || researchDepth(generator) <= researchDepth(stick) {
-		t.Errorf("depths: stick %d, generator %d", researchDepth(stick), researchDepth(generator))
+	if fairy.ResearchDepth(stick) != 0 || fairy.ResearchDepth(generator) <= fairy.ResearchDepth(stick) {
+		t.Errorf("depths: stick %d, generator %d", fairy.ResearchDepth(stick), fairy.ResearchDepth(generator))
 	}
 }
 
@@ -113,29 +114,29 @@ func TestFairyVisitsAndGives(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	s.World.Do(func(tx *world.Tx) {
-		s.tickFairy(tx)
-		if day := s.Clock.DayLength(); s.state.NextFairy < day*fairyFrom/100 || s.state.NextFairy > day*fairyTo/100 {
-			t.Fatalf("next fairy at %v", s.state.NextFairy)
+		fairy.Tick(s.Session, tx)
+		if day := s.Clock.DayLength(); fairy.StateOf(s.Session).NextFairy < day*fairy.FairyFrom/100 || fairy.StateOf(s.Session).NextFairy > day*fairy.FairyTo/100 {
+			t.Fatalf("next fairy at %v", fairy.StateOf(s.Session).NextFairy)
 		}
-		s.state.NextFairy = -1 // due (0 means not scheduled)
-		s.tickFairy(tx)
-		if s.fairy == nil {
+		fairy.StateOf(s.Session).NextFairy = -1 // due (0 means not scheduled)
+		fairy.Tick(s.Session, tx)
+		if fairy.LocalOf(s.Session).Fairy == nil {
 			t.Fatal("no fairy came when due")
 		}
 	})
 	tick(s, 20)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		e, ok := s.fairy.Entity(tx)
+		e, ok := fairy.LocalOf(s.Session).Fairy.Entity(tx)
 		if !ok {
 			t.Fatal("fairy entity is gone")
 		}
-		f, _ := s.fairyOf(e)
-		if !f.gift(tx, s, p) || f.gift(tx, s, p) {
+		f, _ := fairy.Of(s.Session, e)
+		if !f.Gift(tx, s.Session, p) || f.Gift(tx, s.Session, p) {
 			t.Fatal("a fairy must give exactly one gift")
 		}
 	})
-	tick(s, fairyLeaveTicks+5)
-	if s.fairy != nil {
+	tick(s, fairy.FairyLeaveTicks+5)
+	if fairy.LocalOf(s.Session).Fairy != nil {
 		t.Fatal("the fairy did not fly away")
 	}
 }
@@ -147,17 +148,17 @@ func TestHittingTheFairyGivesTheGift(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.spawnFairy(tx, p)
+		fairy.Spawn(s.Session, tx, p)
 	})
 	tick(s, 2)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		e, _ := s.fairy.Entity(tx)
-		if e.(*Fairy).NameTag() != "" {
-			t.Errorf("fairy has a name tag %q", e.(*Fairy).NameTag())
+		e, _ := fairy.LocalOf(s.Session).Fairy.Entity(tx)
+		if e.(*fairy.Fairy).NameTag() != "" {
+			t.Errorf("fairy has a name tag %q", e.(*fairy.Fairy).NameTag())
 		}
 		ctx := player.NewEventContext(tx, p)
 		(&handler{s: s}).HandleAttackEntity(ctx, e, nil, nil, nil)
-		if !ctx.Cancelled() || !e.(*Fairy).data.Data.(*fairyData).gave {
+		if !ctx.Cancelled() || !e.(*fairy.Fairy).Data.Data.(*fairy.FairyData).Gave {
 			t.Fatal("hitting the fairy did not give the gift instead of a hit")
 		}
 	})
@@ -168,26 +169,26 @@ func TestHittingTheFairyGivesTheGift(t *testing.T) {
 func TestFairyComesEveryNight(t *testing.T) {
 	s := testSession(t)
 	day := s.Clock.DayLength()
-	s.scheduleFairy(false)
+	fairy.Schedule(s.Session, false)
 	for n := range 20 {
-		at := s.state.NextFairy
-		if want := time.Duration(n) * day; at < want+day*fairyFrom/100 || at > want+day*fairyTo/100 {
+		at := fairy.StateOf(s.Session).NextFairy
+		if want := time.Duration(n) * day; at < want+day*fairy.FairyFrom/100 || at > want+day*fairy.FairyTo/100 {
 			t.Fatalf("visit %d at %v, want in night %d", n, at, n)
 		}
 		now, _, _ := s.Clock.Now()
 		s.Clock.Advance(at - now)
-		s.scheduleFairy(true)
+		fairy.Schedule(s.Session, true)
 	}
 	s = testSession(t)
 	s.Clock.Advance(day * 80 / 100)
-	s.scheduleFairy(false)
-	if now, _, _ := s.Clock.Now(); s.state.NextFairy > now+day*5/100 {
-		t.Errorf("opened at 80%% of the day, visit at %v (now %v)", s.state.NextFairy, now)
+	fairy.Schedule(s.Session, false)
+	if now, _, _ := s.Clock.Now(); fairy.StateOf(s.Session).NextFairy > now+day*5/100 {
+		t.Errorf("opened at 80%% of the day, visit at %v (now %v)", fairy.StateOf(s.Session).NextFairy, now)
 	}
 	s.Clock.Advance(day * 10 / 100)
-	s.scheduleFairy(false)
-	if s.state.NextFairy < day+day*fairyFrom/100 {
-		t.Errorf("opened after the night, visit at %v", s.state.NextFairy)
+	fairy.Schedule(s.Session, false)
+	if fairy.StateOf(s.Session).NextFairy < day+day*fairy.FairyFrom/100 {
+		t.Errorf("opened after the night, visit at %v", fairy.StateOf(s.Session).NextFairy)
 	}
 }
 
@@ -195,9 +196,9 @@ func TestFairyComesEveryNight(t *testing.T) {
 func TestFairyGiftHasDust(t *testing.T) {
 	s := testSession(t)
 	for range 100 {
-		gift := s.fairyGift()
+		gift := fairy.GiftOf(s.Session)
 		last := gift[len(gift)-1]
-		if _, ok := last.Item().(sgitem.FairyDust); !ok || last.Count() < fairyDustMin || last.Count() > fairyDustMax {
+		if _, ok := last.Item().(sgitem.FairyDust); !ok || last.Count() < fairy.FairyDustMin || last.Count() > fairy.FairyDustMax {
 			t.Fatalf("gift = %v", gift)
 		}
 	}
@@ -216,10 +217,10 @@ func TestFairyScattersTheGift(t *testing.T) {
 				tx.SetBlock(cube.Pos{x, 63, z}, block.Stone{}, nil)
 			}
 		}
-		s.spawnFairy(tx, p)
+		fairy.Spawn(s.Session, tx, p)
 	})
-	tick(s, int(fairyStay/(time.Second/20))+fairyLeaveTicks+10)
-	if s.fairy != nil {
+	tick(s, int(fairy.FairyStay/(time.Second/20))+fairy.FairyLeaveTicks+10)
+	if fairy.LocalOf(s.Session).Fairy != nil {
 		t.Fatal("the fairy did not fly away")
 	}
 	dust := 0
@@ -237,7 +238,7 @@ func TestFairyScattersTheGift(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		dust += core.CountPlain(p.Inventory(), sgitem.FairyDust{})
 	})
-	if dust < fairyDustMin {
+	if dust < fairy.FairyDustMin {
 		t.Errorf("%d fairy dust scattered", dust)
 	}
 }
@@ -249,24 +250,24 @@ func TestFairyDustBackfill(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	day := s.Clock.DayLength()
-	s.Clock.Advance(4*day + day*fairyTo/100)
-	if n := s.pastNights(); n != 5 {
+	s.Clock.Advance(4*day + day*fairy.FairyTo/100)
+	if n := fairy.PastNights(s.Session); n != 5 {
 		t.Fatalf("%d nights past", n)
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.backfillFairyDust(p, tx)
-		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n < 5*fairyDustMin || n > 5*fairyDustMax {
+		fairy.BackfillDust(s.Session, p, tx)
+		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n < 5*fairy.FairyDustMin || n > 5*fairy.FairyDustMax {
 			t.Fatalf("%d dust for 5 nights", n)
 		}
-		s.backfillFairyDust(p, tx)
-		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n > 5*fairyDustMax {
+		fairy.BackfillDust(s.Session, p, tx)
+		if n := core.CountPlain(p.Inventory(), sgitem.FairyDust{}); n > 5*fairy.FairyDustMax {
 			t.Fatalf("backfilled twice: %d dust", n)
 		}
 	})
 	s = testSession(t)
 	s.Clock.Advance(3 * day)
-	s.fairyGift()
-	if !s.state.FairyDust {
+	fairy.GiftOf(s.Session)
+	if !fairy.StateOf(s.Session).FairyDust {
 		t.Fatal("the fairy's dust did not mark the save")
 	}
 }

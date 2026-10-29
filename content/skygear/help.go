@@ -2,8 +2,11 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/fairy"
 	"slices"
 	"strings"
+
+	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 
@@ -65,12 +68,12 @@ var helpTopics = []struct {
 	{"start", helpStartTab, func() string { return formicon.Mission }, nil},
 	{"goal", helpStartTab, func() string { return formicon.Of(item.NewStack(block.DragonEgg{}, 1)) }, nil},
 	{"quest", helpStartTab, func() string { return formicon.Mission }, nil},
-	{"research", helpStartTab, func() string { return formicon.Of(item.NewStack(ResearchTable{}, 1)) }, nil},
+	{"research", helpStartTab, func() string { return formicon.Of(item.NewStack(progress.ResearchTable{}, 1)) }, nil},
 	{"island", helpStartTab, func() string { return formicon.Island }, nil},
 	{"handwork", helpHandTab, func() string { return formicon.Of(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1)) }, nil},
 	{"sieve", helpHandTab, func() string { return formicon.Of(machine.Item(machine.KindSieve)) }, nil},
 	{"water", helpHandTab, func() string { return formicon.Of(item.NewStack(item.Bucket{}, 1)) }, nil},
-	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(FairyBoard{}, 1)) }, nil},
+	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(fairy.Board{}, 1)) }, nil},
 	{"power", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindGenerator)) }, nil},
 	{"conduit", helpAutoTab, func() string { return formicon.Of(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
 	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(storage.Drawer{}, 1)) }, nil},
