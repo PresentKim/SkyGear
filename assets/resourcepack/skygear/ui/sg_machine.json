@@ -1,4 +1,4 @@
-// Machine windows (content/skygear/machine.go): the vanilla
+// Machine windows (content/skygear/machine/machine.go): the vanilla
 // small chest screen with only the machine's slots, placed per machine.
 // Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
 // The vanilla window and slot pictures with the vanilla dark grey title, as

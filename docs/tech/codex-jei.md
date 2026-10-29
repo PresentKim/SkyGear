@@ -1,6 +1,6 @@
 # 도감과 JEI
 
-도감(`/도감`, [codex.go](../../content/skygear/codex.go), [codexsearch.go](../../content/skygear/codexsearch.go))을 레시피 뷰어(JEI)처럼 쓰게 하는 방법과, JEI 가 수백 개 칸을 렉 없이 그리는 이유, 그것이 Bedrock JSON UI 에 주는 교훈을 정리한다.
+도감(`/도감`, [codex.go](../../content/skygear/codex/codex.go), [codexsearch.go](../../content/skygear/codex/codexsearch.go))을 레시피 뷰어(JEI)처럼 쓰게 하는 방법과, JEI 가 수백 개 칸을 렉 없이 그리는 이유, 그것이 Bedrock JSON UI 에 주는 교훈을 정리한다.
 JEI(Just Enough Items, MIT)는 소스(`Gui/src/main/java/mezz/jei/gui` 아래)를 읽어 확인한 내용만 적었고, 코드는 가져오지 않았다. "추정"이라고 적은 것은 실기로 재야 한다.
 
 ## JEI 가 렉이 덜 걸리는 이유
