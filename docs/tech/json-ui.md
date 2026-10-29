@@ -1,7 +1,7 @@
 # JSON UI (HUD·창고 창)
 
 JSON UI 는 HUD 와 아이템이 오가는 창(인벤토리·상자·기계 창)에만 쓴다. 메뉴는 모두 Ore UI DDUI 화면이다([oreui.md](oreui.md)).
-HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `assets/resourcepack/inventoryui` 에, 기계 창처럼 이 게임에만 있는 것은 `skygear` 팩에 있다. `main.go` 가 `skygear` 를 공통 팩보다 먼저(스택 위에) 싣는다.
+HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `assets/resourcepack/inventoryui` 에, 기계 창처럼 이 게임에만 있는 것은 `skygear` 팩에 있다. `cmd/skygear/main.go` 가 `skygear` 를 공통 팩보다 먼저(스택 위에) 싣는다.
 
 ## 파일
 

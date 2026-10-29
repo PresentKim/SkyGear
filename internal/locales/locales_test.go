@@ -9,15 +9,18 @@ import (
 
 func TestCatalogs(t *testing.T) { i18ntest.Catalogs(t) }
 
-// TestKeysInCode: the literal keys of internal/ and main.go.
+// TestKeysInCode: the literal keys of the platform, the content and the
+// command.
 func TestKeysInCode(t *testing.T) {
-	i18ntest.KeysInCode(t, "..", 100, nil)
-	i18ntest.KeysInCode(t, "../../main.go", 1, nil)
+	i18ntest.KeysInCode(t, "../../platform", 50, nil)
+	i18ntest.KeysInCode(t, "../../content", 100, nil)
+	i18ntest.KeysInCode(t, "../../cmd", 1, nil)
 }
 
 // TestNoKoreanInCode: what stays in code is command names (skygear
 // menu.go).
 func TestNoKoreanInCode(t *testing.T) {
-	i18ntest.NoKoreanInCode(t, "..", nil, "skygear/menu.go")
-	i18ntest.NoKoreanInCode(t, "../../main.go", nil)
+	i18ntest.NoKoreanInCode(t, "../../platform", nil)
+	i18ntest.NoKoreanInCode(t, "../../content", nil, "skygear/menu.go")
+	i18ntest.NoKoreanInCode(t, "../../cmd", nil)
 }

@@ -13,7 +13,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/slotdeco"
-	"github.com/presentkim/skygear/internal/skygear"
+	"github.com/presentkim/skygear/content/skygear"
 )
 
 func main() {

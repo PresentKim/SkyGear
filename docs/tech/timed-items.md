@@ -1,6 +1,6 @@
 # 기간제 아이템
 
-코드: `common/timed` (플랫폼 공용), 적용: `internal/instance`(정리·사용 차단), 각 게임(보관 규칙).
+코드: `common/timed` (플랫폼 공용), 적용: `platform/instance`(정리·사용 차단), 각 게임(보관 규칙).
 
 ## 원칙
 

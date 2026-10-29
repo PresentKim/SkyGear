@@ -16,7 +16,7 @@
 - 달성 토스트를 HUD 제목 표식으로 그릴지 검토(지금은 엔진 토스트).
 
 ### 정리
-- Sky Gear 이름 변경 세이브 변환(`internal/nsmigrate`)과 그 호출(`main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
+- Sky Gear 이름 변경 세이브 변환(`content/skygear/nsmigrate`)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
 
 ### 시나리오
 - 시나리오 봇은 JSON UI 폼만 읽는데, 메뉴는 모두 DDUI 화면이 되었다(팩 암호화는 늘 켬). 메뉴를 거치는 시나리오(로비의 안내·세이브 선택부터)가 돌지 않는다. DDUI 화면(데이터 저장소 `custom_form_data_1`·`oui_event`)을 읽고 누르는 봇이 필요하다.

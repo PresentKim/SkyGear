@@ -14,7 +14,7 @@ command -v cygpath > /dev/null && WORK=$(cygpath -m "$WORK")
 # The server is built at one fixed path (the repo's own build output), so a
 # firewall rule allowing it keeps working for every work dir.
 server=$root/skygear$(go env GOEXE)
-(cd "$root" && go build -o "$server" . && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
+(cd "$root" && go build -o "$server" ./cmd/skygear && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
 # stop interrupts the server so it saves, and kills it if it is still
 # running after 15s (Git Bash on Windows cannot interrupt a native process).
 stop() {

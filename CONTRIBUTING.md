@@ -39,13 +39,13 @@ Thanks for your interest. These are the rules the project follows; the full
   rules (lobby, saves, account storage, Sky Gear content) do not go there.
 - Player moves and state saving always go through `instance.Manager`
   (`Enter`/`ToLobby`). The instance package reaches Sky Gear only
-  through the `instance.Game`/`Session` interfaces (`internal/skygear`
-  imports `internal/instance`, not the other way round).
+  through the `instance.Game`/`Session` interfaces (`content/skygear`
+  imports `platform/instance`, not the other way round).
 - Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).
 - Database schema changes add a new entry to `migrations` in
-  `internal/db/db.go`; existing entries are never edited.
+  `platform/db/db.go`; existing entries are never edited.
 
 ## Text and translations
 

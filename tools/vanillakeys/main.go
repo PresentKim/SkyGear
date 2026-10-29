@@ -5,7 +5,7 @@
 // "tile.<id>.name" (items, and legacy keys like "tile.planks.oak.name"),
 // matched by its English name in Dragonfly.
 //
-//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/skygear/naming/vanillakeys.json internal/locales
+//	go run ./tools/vanillakeys en_US.lang ko_KR.lang content/skygear/naming/vanillakeys.json internal/locales
 package main
 
 import (

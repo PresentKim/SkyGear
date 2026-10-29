@@ -57,7 +57,7 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 ## 6. 리소스팩 운영 방식
 
 Dragonfly 는 **행동팩 역할만** 한다(블록·아이템 정의, 동작). 보이는 것은 전부 손으로 쓰는 리소스팩에 둔다.
-Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `main.go` 에서 끈다(`DisableResourceBuilding`).
+Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `cmd/skygear/main.go` 에서 끈다(`DisableResourceBuilding`).
 리소스팩만 따로 고쳐 시험하기 쉽고, Blockbench 같은 도구로 모델을 바로 열 수 있다.
 
 - **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/ko_KR.lang`·`en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
@@ -81,7 +81,7 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 | 애드온에서 하던 것 | 여기서 할 곳 |
 |---|---|
-| `blocks/*.json` | `internal/skygear/...` Go 블록 타입 |
+| `blocks/*.json` | `content/skygear/...` Go 블록 타입 |
 | `items/*.json` | Go 아이템 타입 |
 | `entities/*.json` (BP) | Go `EntityType` + 동작 코드 |
 | `entity/*.entity.json` (RP), 모델, 애니메이션 | `assets/resourcepack/skygear/` |

@@ -24,9 +24,9 @@ feature list is in [docs/features.md](docs/features.md).
 ## Build and run
 
 ```sh
-go run .
+go run ./cmd/skygear
 # or
-go build -o skygear . && ./skygear
+go build -o skygear ./cmd/skygear && ./skygear
 ```
 
 On the first run the server writes its configuration files in the working
@@ -68,31 +68,24 @@ the commands.
 
 ## Repository layout
 
+The code is in three layers, each importing only the ones above it:
+
+| Layer | Folder | What it holds |
+|---|---|---|
+| Common | `common/` | Game-independent packages any Dragonfly server can use (menus as DDUI screens, entity chests, WAILA, HUD, i18n, resource pack loader, backups, item I/O, energy/item/fluid networks; see [common/README.md](common/README.md)) |
+| Platform | `platform/` | The server around the games: lobby, accounts, saves, friends, instances (see [platform/README.md](platform/README.md)) |
+| Content | `content/skygear/` | Sky Gear itself: blocks, items, machines, research, codex, waves, … (see [content/skygear/README.md](content/skygear/README.md)) |
+
 ```
-main.go                         Server bootstrap; saves instances on shutdown
-internal/db/                    SQLite access and schema migrations
-internal/instance/              Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
-                                Game/Session interfaces the manager calls Sky Gear through
-internal/platform/              Lobby, server guide, save selection, friends, invites, members, titles, commands
-internal/account/               Achievements, titles, name colours, per-account settings
-internal/locales/               This server's text catalogs (ko/en, vanilla names), merged into common/i18n
-internal/skygear/               Sky Gear: session-bound code (game, state, handlers, machine/drawer/barrel/
-                                conduit blocks, research, advancement screens, codex, island expansion, waves, …)
-  sgitem/                       Session-free items and simple blocks (pebbles, dust, ores, metals, meshes, hammers, …)
-  naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)
-  textfmt/                      Number and duration formatting, pack font glyphs
-  blockmodel/                   Custom block materials and cube properties
-  formicon/                     Menu button icons
-  wintext/                      Texts of machine window items, localised per viewer
-  sievetable/                   Sieve drop tables and magic sieve themes
-  machinerecipe/                Alloy smelter, essence extractor and auto crafter recipes
-  tinker/                       Tinkers'-style tool materials, levels, experience and modifiers
-  hopper/                       Wooden and reverse hoppers
-  advancement/                  Advancement tree, chapters and layout
-  achievement/                  Account achievement catalog and IDs
-common/                         Game-independent packages (menus as DDUI screens, entity chests, WAILA,
-                                HUD, i18n, resource pack loader, backups, item I/O and the energy, item
-                                and fluid networks, …; see common/README.md)
+cmd/skygear/                    The server command: wires the layers together, loads the packs, saves on shutdown
+common/                         Common layer
+platform/                       Platform layer: lobby, server guide, save selection, friends, invites, members, commands
+  account/                      Achievements, titles, name colours, per-account settings
+  db/                           SQLite access and schema migrations
+  instance/                     Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
+                                Game/Session interfaces the manager calls a game through
+content/skygear/                Content layer: Sky Gear (sub-packages in content/skygear/README.md)
+internal/locales/               Text catalogs (ko/en, vanilla names), merged into common/i18n
 assets/                         The resource packs, embedded in the binary (assets.Pack): resourcepack/skygear
                                 is the game's pack (textures, models, names, entities, JSON UI), the others
                                 (inventoryui, waila, slotdeco, sgui, oreui) are drawn on by common/
