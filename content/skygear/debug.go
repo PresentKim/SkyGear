@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -234,8 +236,8 @@ func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
-	if _, isGate := tx.Block(pos).(Machine); !isGate {
-		tx.SetBlock(pos, newMachine(KindGate, "", ""), nil)
+	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
+		tx.SetBlock(pos, machine.NewMachine(machine.KindGate, "", ""), nil)
 	}
 	s.state.GateTier = max(s.state.GateTier, c.Level-1)
 	if !s.startWave(tx, pos, p.Position(), c.Level) {

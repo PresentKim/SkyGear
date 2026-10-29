@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/decor"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -215,10 +217,10 @@ func codexRelevant() map[string]bool {
 		if in, ok := codexOneOf(codexSmeltInputs(st), rel); ok {
 			add(in.Item())
 		}
-		if out, ok := smeltOf(st); ok {
+		if out, ok := machine.SmeltOf(st); ok {
 			add(out.Item())
 		}
-		if out, ok := crusherOutput(st); ok {
+		if out, ok := machine.CrusherOutput(st); ok {
 			add(out.Item())
 		}
 	}

@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"fmt"
@@ -13,27 +13,27 @@ import (
 // front texture (a flipbook strip in the pack, textures/flipbook_textures.json).
 // The server only changes the state when the machine starts or stops working.
 
-// animatedMachines are the machines with a working look.
-var animatedMachines = map[string]bool{
+func init() {
+	for kind := range AnimatedMachines {
+		MachineKinds[kind].Animated = true
+	}
+}
+
+// AnimatedMachines are the machines with a working look.
+var AnimatedMachines = map[string]bool{
 	KindFurnace: true, KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true,
 	KindCrucible: true, KindCrafter: true, KindLab: true,
 	KindMiner: true, KindHarvester: true, KindGenerator: true, KindLavaGenerator: true,
 	KindVacuum: true, KindFeller: true,
 }
 
-func init() {
-	for kind := range animatedMachines {
-		machineKinds[kind].animated = true
-	}
-}
-
 // activeState is the block state of an animated machine.
 const activeState = "skygear:active"
 
-// activeHold is how many ticks a machine keeps showing as working after its
+// ActiveHold is how many ticks a machine keeps showing as working after its
 // last work, so that a machine that waits a moment for its input does not
 // flicker.
-const activeHold = 40
+const ActiveHold = 40
 
 func activeValue(on bool) string {
 	if on {
@@ -58,15 +58,15 @@ func activePermutations(kind string) []customblock.Permutation {
 
 // showActive sets the block of an animated machine to its working or resting
 // look when that changed.
-func showActive(tx *world.Tx, pos cube.Pos, st *machineState, tick int64) {
+func showActive(tx *world.Tx, pos cube.Pos, st *MachineState, tick int64) {
 	if st.worked != st.seenWorked {
 		st.seenWorked, st.lastWorkTick = st.worked, tick
 	}
-	want := st.worked > 0 && tick-st.lastWorkTick < activeHold
+	want := st.worked > 0 && tick-st.lastWorkTick < ActiveHold
 	m, ok := tx.Block(pos).(Machine)
-	if !ok || m.st != st || m.active == want {
+	if !ok || m.State != st || m.Active == want {
 		return
 	}
-	m.active = want
+	m.Active = want
 	tx.SetBlock(pos, m, nil)
 }

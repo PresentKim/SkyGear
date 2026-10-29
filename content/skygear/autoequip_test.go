@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -21,13 +23,13 @@ import (
 func TestElectricFurnace(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFurnace, "")
-	if !st.accepts(item.NewStack(block.Cobblestone{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
+	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	if !st.Accepts(item.NewStack(block.Cobblestone{}, 1)) || st.Accepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Fatal("the furnace takes the wrong inputs")
 	}
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
-	tick(s, 2*(machineKinds[KindFurnace].interval+2))
-	if outputCount(st, block.Stone{}) == 0 {
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
+	tick(s, 2*(machine.MachineKinds[machine.KindFurnace].Interval+2))
+	if machine.OutputCount(st, block.Stone{}) == 0 {
 		t.Fatal("nothing was smelted")
 	}
 }
@@ -37,14 +39,14 @@ func TestElectricFurnace(t *testing.T) {
 func TestItemVacuum(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindVacuum, "")
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
 	near, far := machinePos.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{30, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: near}, item.NewStack(block.Cobblestone{}, 5)))
 		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: far}, item.NewStack(block.Cobblestone{}, 7)))
 	})
-	tick(s, 2*(machineKinds[KindVacuum].interval+2))
-	if got := outputCount(st, block.Cobblestone{}); got != 5 {
+	tick(s, 2*(machine.MachineKinds[machine.KindVacuum].Interval+2))
+	if got := machine.OutputCount(st, block.Cobblestone{}); got != 5 {
 		t.Fatalf("collected %d, want the 5 in reach", got)
 	}
 	left := 0
@@ -67,7 +69,7 @@ func TestItemVacuum(t *testing.T) {
 func TestTreeFeller(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
 	log := func() world.Block { return block.Log{Wood: block.OakWood()} }
 	trunk := machinePos.Add(cube.Pos{2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
@@ -84,17 +86,17 @@ func TestTreeFeller(t *testing.T) {
 			}
 		}
 	})
-	_ = st.inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
-	tick(s, 3*(machineKinds[KindFeller].interval+2))
+	_ = st.Inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
+	tick(s, 3*(machine.MachineKinds[machine.KindFeller].Interval+2))
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(trunk.Add(cube.Pos{0, 2, 0})).(block.Log); ok {
 			t.Error("the top log was not felled first")
 		}
 	})
-	if outputCount(st, block.Log{Wood: block.OakWood()}) < 2 {
-		t.Fatalf("logs collected: %d", outputCount(st, block.Log{Wood: block.OakWood()}))
+	if machine.OutputCount(st, block.Log{Wood: block.OakWood()}) < 2 {
+		t.Fatalf("logs collected: %d", machine.OutputCount(st, block.Log{Wood: block.OakWood()}))
 	}
-	tick(s, 6*(machineKinds[KindFeller].interval+2))
+	tick(s, 6*(machine.MachineKinds[machine.KindFeller].Interval+2))
 	planted := 0
 	s.World.Do(func(tx *world.Tx) {
 		for dx := -3; dx <= 3; dx += 3 {
@@ -113,24 +115,24 @@ func TestTreeFeller(t *testing.T) {
 func TestTreeFellerBoneMealsSaplings(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
 	sapling := machinePos.Add(cube.Pos{2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(sapling.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(sapling, block.Sapling{Type: block.OakSapling()}, nil)
 	})
-	if !st.insert(item.NewStack(item.BoneMeal{}, 1)) {
+	if !st.Insert(item.NewStack(item.BoneMeal{}, 1)) {
 		t.Fatal("feller took no bone meal")
 	}
-	if got, _ := st.inv().Item(st.kind.charge[0]); got.Count() != 1 {
+	if got, _ := st.Inv().Item(st.Def.Charge[0]); got.Count() != 1 {
 		t.Fatalf("bone meal slot holds %v", got)
 	}
-	_ = st.inv().SetItem(st.kind.charge[0], item.NewStack(item.BoneMeal{}, 64))
-	tick(s, 40*(machineKinds[KindFeller].interval+2))
-	if got, _ := st.inv().Item(st.kind.charge[0]); got.Count() == 64 {
+	_ = st.Inv().SetItem(st.Def.Charge[0], item.NewStack(item.BoneMeal{}, 64))
+	tick(s, 40*(machine.MachineKinds[machine.KindFeller].Interval+2))
+	if got, _ := st.Inv().Item(st.Def.Charge[0]); got.Count() == 64 {
 		t.Fatal("no bone meal was used")
 	}
-	if outputCount(st, block.Log{Wood: block.OakWood()}) == 0 {
+	if machine.OutputCount(st, block.Log{Wood: block.OakWood()}) == 0 {
 		t.Fatal("the sapling did not grow into a tree that was felled")
 	}
 }
@@ -138,7 +140,7 @@ func TestTreeFellerBoneMealsSaplings(t *testing.T) {
 func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFeller, "")
+	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
 	grassy := machinePos.Add(cube.Pos{2, 1, 1})
 	bare := machinePos.Add(cube.Pos{-4, -1, 2})
 	s.World.Do(func(tx *world.Tx) {
@@ -147,8 +149,8 @@ func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 		tx.SetBlock(bare.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(bare, block.Air{}, nil)
 	})
-	_ = st.inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
-	tick(s, 3*(machineKinds[KindFeller].interval+2))
+	_ = st.Inv().SetItem(10, item.NewStack(block.Sapling{Type: block.OakSapling()}, 2))
+	tick(s, 3*(machine.MachineKinds[machine.KindFeller].Interval+2))
 	s.World.Do(func(tx *world.Tx) {
 		for _, at := range []cube.Pos{grassy, bare} {
 			if _, ok := tx.Block(at).(block.Sapling); !ok {
@@ -164,51 +166,51 @@ func TestAutoCrafterMakesARecipe(t *testing.T) {
 	s := testSession(t)
 	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrafter, "")
-	h := st.inv().Handler()
-	if st.accepts(item.NewStack(block.Cobblestone{}, 1)) {
+	st := placeTestMachine(s, machinePos, machine.KindCrafter, "")
+	h := st.Inv().Handler()
+	if st.Accepts(item.NewStack(block.Cobblestone{}, 1)) {
 		t.Fatal("the store takes items before a recipe is chosen")
 	}
 	// A sample put on the recipe slot goes back to the player and chooses.
 	ctx := event.C(inventory.Holder(nil))
-	h.HandlePlace(ctx, crafterRecipeSlot, machineItem(KindCrusher))
+	h.HandlePlace(ctx, machine.CrafterRecipeSlot, machine.MachineItem(machine.KindCrusher))
 	if !ctx.Cancelled() {
 		t.Fatal("the recipe slot kept the sample")
 	}
 	tick(s, 2)
-	if st.recipe == nil {
+	if st.Recipe == nil {
 		t.Fatal("the sample did not choose a recipe")
 	}
-	if !st.accepts(item.NewStack(block.Cobblestone{}, 1)) || !st.accepts(item.NewStack(item.IronIngot{}, 1)) || st.accepts(item.NewStack(block.Dirt{}, 1)) {
+	if !st.Accepts(item.NewStack(block.Cobblestone{}, 1)) || !st.Accepts(item.NewStack(item.IronIngot{}, 1)) || st.Accepts(item.NewStack(block.Dirt{}, 1)) {
 		t.Fatal("the store takes the wrong items")
 	}
-	if shown, _ := st.inv().Item(crafterRecipeSlot); naming.ItemKey(shown.Item()) != naming.ItemKey(Machine{Kind: KindCrusher}) {
+	if shown, _ := st.Inv().Item(machine.CrafterRecipeSlot); naming.ItemKey(shown.Item()) != naming.ItemKey(machine.Machine{Kind: machine.KindCrusher}) {
 		t.Fatalf("the recipe slot shows %v", shown)
 	}
 	// Not enough yet: nothing is made.
-	_ = st.inv().SetItem(0, item.NewStack(block.Cobblestone{}, 6))
-	_ = st.inv().SetItem(1, item.NewStack(item.IronIngot{}, 2))
-	tick(s, 2*(machineKinds[KindCrafter].interval+2))
-	if outputCount(st, Machine{Kind: KindCrusher}) != 0 {
+	_ = st.Inv().SetItem(0, item.NewStack(block.Cobblestone{}, 6))
+	_ = st.Inv().SetItem(1, item.NewStack(item.IronIngot{}, 2))
+	tick(s, 2*(machine.MachineKinds[machine.KindCrafter].Interval+2))
+	if machine.OutputCount(st, machine.Machine{Kind: machine.KindCrusher}) != 0 {
 		t.Fatal("it made the result without all the ingredients")
 	}
-	_ = st.inv().SetItem(2, item.NewStack(item.IronIngot{}, 1))
-	tick(s, 2*(machineKinds[KindCrafter].interval+2))
-	if outputCount(st, Machine{Kind: KindCrusher}) != 1 {
-		t.Fatalf("made %d crushers, want 1", outputCount(st, Machine{Kind: KindCrusher}))
+	_ = st.Inv().SetItem(2, item.NewStack(item.IronIngot{}, 1))
+	tick(s, 2*(machine.MachineKinds[machine.KindCrafter].Interval+2))
+	if machine.OutputCount(st, machine.Machine{Kind: machine.KindCrusher}) != 1 {
+		t.Fatalf("made %d crushers, want 1", machine.OutputCount(st, machine.Machine{Kind: machine.KindCrusher}))
 	}
-	if left, _ := st.inv().Item(0); !left.Empty() {
+	if left, _ := st.Inv().Item(0); !left.Empty() {
 		t.Errorf("cobblestone left: %v", left)
 	}
 	// The recipe is saved with the machine; taking it off the slot clears it.
-	back := Machine{Kind: KindCrafter}.DecodeNBT(Machine{Kind: KindCrafter, st: st}.EncodeNBT()).(Machine)
-	if back.st.recipeID == "" || back.st.recipeID != st.recipeID {
-		t.Fatalf("recipe after NBT: %q", back.st.recipeID)
+	back := machine.Machine{Kind: machine.KindCrafter}.DecodeNBT(machine.Machine{Kind: machine.KindCrafter, State: st}.EncodeNBT()).(machine.Machine)
+	if back.State.RecipeID == "" || back.State.RecipeID != st.RecipeID {
+		t.Fatalf("recipe after NBT: %q", back.State.RecipeID)
 	}
 	ctx = event.C(inventory.Holder(nil))
-	h.HandleTake(ctx, crafterRecipeSlot, item.Stack{})
+	h.HandleTake(ctx, machine.CrafterRecipeSlot, item.Stack{})
 	tick(s, 2)
-	if !ctx.Cancelled() || st.recipe != nil {
+	if !ctx.Cancelled() || st.Recipe != nil {
 		t.Fatal("taking the recipe did not clear it")
 	}
 }
@@ -218,16 +220,16 @@ func TestAutoCrafterMakesARecipe(t *testing.T) {
 func TestAutoCrafterOnlyMakesResearchedRecipes(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrafter, "")
-	st.sample = machineItem(KindCrusher)
+	st := placeTestMachine(s, machinePos, machine.KindCrafter, "")
+	st.Sample = machine.MachineItem(machine.KindCrusher)
 	tick(s, 2)
-	if st.recipe != nil {
+	if st.Recipe != nil {
 		t.Fatal("chose a recipe that is not researched")
 	}
 	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true, "pebbles": true, "furnace": true, "hammer": true, "iron": true, "generator": true, "crusher": true}
-	st.sample = machineItem(KindCrusher)
+	st.Sample = machine.MachineItem(machine.KindCrusher)
 	tick(s, 2)
-	if st.recipe == nil {
+	if st.Recipe == nil {
 		t.Fatal("did not choose the researched recipe")
 	}
 }
@@ -237,17 +239,17 @@ func TestMachineStatusLines(t *testing.T) {
 	s := testSession(t)
 	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
-	crusher := placeTestMachine(s, machinePos, KindCrusher, "")
-	crusher.progress = crusher.kind.interval
-	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrusher, st: crusher}); !hasLine(lines, "출력 슬롯 부족") {
+	crusher := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	crusher.Progress = crusher.Def.Interval
+	if lines, _ := machineLines(i18n.Default, machine.Machine{Kind: machine.KindCrusher, State: crusher}); !hasLine(lines, "출력 슬롯 부족") {
 		t.Errorf("a blocked crusher says %q", lines)
 	}
-	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrafter, "")
-	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "조합법 미설정") {
+	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrafter, "")
+	if lines, _ := machineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "조합법 미설정") {
 		t.Errorf("a crafter without a recipe says %q", lines)
 	}
-	crafter.setRecipe(s.crafterCandidates(machineItem(KindCrusher))[0])
-	if lines, _ := machineLines(i18n.Default, Machine{Kind: KindCrafter, st: crafter}); !hasLine(lines, "재료 부족") {
+	crafter.SetRecipe(machine.CrafterCandidates(s.Session, machine.MachineItem(machine.KindCrusher))[0])
+	if lines, _ := machineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "재료 부족") {
 		t.Errorf("a crafter without ingredients says %q", lines)
 	}
 }

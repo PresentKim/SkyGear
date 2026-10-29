@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"fmt"
@@ -11,9 +11,12 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
+
+var _ fluidnet.Holder = Machine{}
 
 // Machines with a tank: the fluid
 // tank, the electric crucible (cobblestone into lava) and the lava generator.
@@ -21,19 +24,19 @@ import (
 // carry the fluid (common/fluidnet), and their WAILA panel shows the tank.
 const (
 	// bucketMB is the mB of a bucket.
-	bucketMB = 1000
+	BucketMB = 1000
 	// crucibleLava is the mB of lava a cobblestone melts into.
-	crucibleLava = 250
+	CrucibleLava = 250
 	// lavaGenOutput is the RE per tick the lava generator makes; it burns one
 	// mB every lavaGenBurn ticks.
-	lavaGenOutput = 80
-	lavaGenBurn   = 2
+	LavaGenOutput = 80
+	LavaGenBurn   = 2
 	// tankCapacity is the mB of a fluid tank.
 	tankCapacity = 16000
 )
 
-// fluidOfBucket returns the fluid of a bucket's content.
-func fluidOfBucket(b item.Bucket) fluidnet.Kind {
+// FluidOfBucket returns the fluid of a bucket's content.
+func FluidOfBucket(b item.Bucket) fluidnet.Kind {
 	liq, ok := b.Content.Liquid()
 	if !ok {
 		return fluidnet.None
@@ -47,8 +50,8 @@ func fluidOfBucket(b item.Bucket) fluidnet.Kind {
 	return fluidnet.None
 }
 
-// bucketOf returns the full bucket of a fluid.
-func bucketOf(k fluidnet.Kind) item.Stack {
+// BucketOf returns the full bucket of a fluid.
+func BucketOf(k fluidnet.Kind) item.Stack {
 	var liq world.Liquid = block.Water{Depth: 8, Still: true}
 	if k == fluidnet.Lava {
 		liq = block.Lava{Depth: 8, Still: true}
@@ -65,78 +68,76 @@ func fluidName(lang string, k fluidnet.Kind) string {
 
 // FluidRoles implements fluidnet.Holder.
 func (m Machine) FluidRoles() (source, sink bool) {
-	if m.st == nil {
+	if m.State == nil {
 		return false, false
 	}
-	return m.st.kind.fluidSource, m.st.kind.fluidSink
+	return m.State.Def.fluidSource, m.State.Def.fluidSink
 }
 
 // FillFluid implements fluidnet.Holder.
 func (m Machine) FillFluid(_ fluidnet.World, _ cube.Pos, k fluidnet.Kind, mB int, simulate bool) int {
-	if m.st == nil || !m.st.kind.fluidSink || k == fluidnet.None {
+	if m.State == nil || !m.State.Def.fluidSink || k == fluidnet.None {
 		return 0
 	}
-	if only := m.st.kind.fluidOnly; only != fluidnet.None && only != k {
+	if only := m.State.Def.fluidOnly; only != fluidnet.None && only != k {
 		return 0
 	}
-	if m.st.fluidAmt > 0 && m.st.fluid != k {
+	if m.State.FluidAmt > 0 && m.State.Fluid != k {
 		return 0
 	}
-	n := min(mB, m.st.kind.fluidCap-m.st.fluidAmt)
+	n := min(mB, m.State.Def.FluidCap-m.State.FluidAmt)
 	if n <= 0 {
 		return 0
 	}
 	if !simulate {
-		m.st.fluid, m.st.fluidAmt = k, m.st.fluidAmt+n
+		m.State.Fluid, m.State.FluidAmt = k, m.State.FluidAmt+n
 	}
 	return n
 }
 
 // DrainFluid implements fluidnet.Holder.
 func (m Machine) DrainFluid(_ fluidnet.World, _ cube.Pos, max int, simulate bool) (fluidnet.Kind, int) {
-	if m.st == nil || !m.st.kind.fluidSource || m.st.fluidAmt == 0 {
+	if m.State == nil || !m.State.Def.fluidSource || m.State.FluidAmt == 0 {
 		return fluidnet.None, 0
 	}
-	n := min(max, m.st.fluidAmt)
-	k := m.st.fluid
+	n := min(max, m.State.FluidAmt)
+	k := m.State.Fluid
 	if !simulate {
-		if m.st.fluidAmt -= n; m.st.fluidAmt == 0 {
-			m.st.fluid = fluidnet.None
+		if m.State.FluidAmt -= n; m.State.FluidAmt == 0 {
+			m.State.Fluid = fluidnet.None
 		}
 	}
 	return k, n
 }
 
-var _ fluidnet.Holder = Machine{}
-
-// useFluidMachine handles a player using a machine with a tank: a full bucket
+// UseFluidMachine handles a player using a machine with a tank: a full bucket
 // pours into the tank, an empty one takes a bucket's worth out, and the
 // crucible takes its cobblestone. It returns whether the click was used.
-func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
-	st := m.st
+func UseFluidMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, m Machine, held item.Stack, ctx *item.UseContext) bool {
+	st := m.State
 	if wb, ok := held.Item().(sgitem.WoodenBucket); ok {
 		// A wooden bucket carries water only.
 		switch {
 		case wb.Water:
-			if m.FillFluid(tx, pos, fluidnet.Water, bucketMB, true) < bucketMB {
+			if m.FillFluid(tx, pos, fluidnet.Water, BucketMB, true) < BucketMB {
 				return true
 			}
-			m.FillFluid(tx, pos, fluidnet.Water, bucketMB, false)
-			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(sgitem.WoodenBucket{}, 1))
+			m.FillFluid(tx, pos, fluidnet.Water, BucketMB, false)
+			swapBucket(s, p, tx, pos, held, ctx, item.NewStack(sgitem.WoodenBucket{}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
-		case st.kind.fluidSource && st.fluid == fluidnet.Water && st.fluidAmt >= bucketMB:
-			m.DrainFluid(tx, pos, bucketMB, false)
-			s.swapBucket(p, tx, pos, held, ctx, item.NewStack(sgitem.WoodenBucket{Water: true}, 1))
+		case st.Def.fluidSource && st.Fluid == fluidnet.Water && st.FluidAmt >= BucketMB:
+			m.DrainFluid(tx, pos, BucketMB, false)
+			swapBucket(s, p, tx, pos, held, ctx, item.NewStack(sgitem.WoodenBucket{Water: true}, 1))
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
 		}
 		return true
 	}
 	if b, ok := held.Item().(item.Bucket); ok {
-		if k := fluidOfBucket(b); k != fluidnet.None {
-			if m.FillFluid(tx, pos, k, bucketMB, true) < bucketMB {
+		if k := FluidOfBucket(b); k != fluidnet.None {
+			if m.FillFluid(tx, pos, k, BucketMB, true) < BucketMB {
 				return true
 			}
-			m.FillFluid(tx, pos, k, bucketMB, false)
+			m.FillFluid(tx, pos, k, BucketMB, false)
 			if held.Count() == 1 {
 				_, off := p.HeldItems()
 				p.SetHeldItems(item.NewStack(item.Bucket{}, 1), off)
@@ -147,9 +148,9 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 			tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Water{}})
 			return true
 		}
-		if b.Empty() && st.kind.fluidSource && st.fluidAmt >= bucketMB {
-			k, _ := m.DrainFluid(tx, pos, bucketMB, false)
-			full := bucketOf(k)
+		if b.Empty() && st.Def.fluidSource && st.FluidAmt >= BucketMB {
+			k, _ := m.DrainFluid(tx, pos, BucketMB, false)
+			full := BucketOf(k)
 			if held.Count() == 1 {
 				_, off := p.HeldItems()
 				p.SetHeldItems(full, off)
@@ -162,9 +163,9 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 		}
 		return true
 	}
-	if st.kind.marker == "" && len(st.kind.input) > 0 && st.accepts(held) {
+	if st.Def.Marker == "" && len(st.Def.Input) > 0 && st.Accepts(held) {
 		put := 0
-		for put < held.Count() && st.insert(held) {
+		for put < held.Count() && st.Insert(held) {
 			put++
 		}
 		if put > 0 {
@@ -177,7 +178,7 @@ func (s *session) useFluidMachine(p *player.Player, tx *world.Tx, pos cube.Pos, 
 
 // swapBucket replaces one bucket of the held stack with other: in the hand if
 // it was the only one, else the rest stays and other goes to the inventory.
-func (s *session) swapBucket(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack, ctx *item.UseContext, other item.Stack) {
+func swapBucket(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack, ctx *item.UseContext, other item.Stack) {
 	if held.Count() == 1 {
 		_, off := p.HeldItems()
 		p.SetHeldItems(other, off)
@@ -187,48 +188,48 @@ func (s *session) swapBucket(p *player.Player, tx *world.Tx, pos cube.Pos, held 
 	s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), other)
 }
 
-// fluidLines are the WAILA lines of a machine with a tank.
-func fluidLines(lang string, st *machineState) []string {
-	if st.fluidAmt == 0 {
-		return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.empty"), st.kind.fluidCap)}
+// FluidLines are the WAILA lines of a machine with a tank.
+func FluidLines(lang string, st *MachineState) []string {
+	if st.FluidAmt == 0 {
+		return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.empty"), st.Def.FluidCap)}
 	}
-	return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.tank"), fluidName(lang, st.fluid), st.fluidAmt, st.kind.fluidCap)}
+	return []string{fmt.Sprintf(i18n.T(lang, "fluid.lines.tank"), fluidName(lang, st.Fluid), st.FluidAmt, st.Def.FluidCap)}
 }
 
 // runCrucible melts the cobblestone in the input of an electric crucible into
 // lava, every interval one block, while the tank has room.
-func (st *machineState) runCrucible() {
-	slot, in, ok := st.firstInput()
-	if !ok || !st.accepts(in) || st.fluidAmt+crucibleLava > st.kind.fluidCap || (st.fluidAmt > 0 && st.fluid != fluidnet.Lava) {
-		st.progress = 0
+func (st *MachineState) runCrucible() {
+	slot, in, ok := st.FirstInput()
+	if !ok || !st.Accepts(in) || st.FluidAmt+CrucibleLava > st.Def.FluidCap || (st.FluidAmt > 0 && st.Fluid != fluidnet.Lava) {
+		st.Progress = 0
 		return
 	}
-	if st.progress < st.kind.interval {
-		st.tickWork()
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
-	_ = st.inv().SetItem(slot, in.Grow(-1))
-	st.fluid, st.fluidAmt = fluidnet.Lava, st.fluidAmt+crucibleLava
-	st.progress = 0
+	_ = st.Inv().SetItem(slot, in.Grow(-1))
+	st.Fluid, st.FluidAmt = fluidnet.Lava, st.FluidAmt+CrucibleLava
+	st.Progress = 0
 }
 
 // runLavaGenerator burns the lava in its tank into energy while the buffer has room.
-func (s *session) runLavaGenerator(st *machineState, pos cube.Pos) {
-	gen := st.genRate()
-	if st.fluidAmt > 0 && st.energy+gen <= st.energyCap() {
-		if st.progress += st.burnRate(); st.progress >= lavaGenBurn {
-			st.progress = 0
-			if st.fluidAmt--; st.fluidAmt == 0 {
-				st.fluid = fluidnet.None
+func runLavaGenerator(s *core.Session, st *MachineState, pos cube.Pos) {
+	gen := st.GenRate()
+	if st.FluidAmt > 0 && st.Energy+gen <= st.EnergyCap() {
+		if st.Progress += st.BurnRate(); st.Progress >= LavaGenBurn {
+			st.Progress = 0
+			if st.FluidAmt--; st.FluidAmt == 0 {
+				st.Fluid = fluidnet.None
 			}
 		}
-		st.energy += gen
+		st.Energy += gen
 		st.made += gen
 		st.markWorked()
-	} else if st.fluidAmt == 0 {
-		st.stuck = stuckFuel
+	} else if st.FluidAmt == 0 {
+		st.Stuck = stuckFuel
 	}
-	network.Energy(s.Session).AddSource(pos)
+	network.Energy(s).AddSource(pos)
 }
 
 // washerWater is the mB of water washing one raw ore takes.
@@ -236,24 +237,24 @@ const washerWater = 250
 
 // runWasher washes the raw ore in the input: with enough water in the tank it
 // works an interval, and gives washerDust dusts of the metal (ore.go).
-func (st *machineState) runWasher() {
-	slot, in, ok := st.firstInput()
-	if !ok || !st.accepts(in) || st.fluidAmt < washerWater || st.fluid != fluidnet.Water {
-		st.progress = 0
+func (st *MachineState) runWasher() {
+	slot, in, ok := st.FirstInput()
+	if !ok || !st.Accepts(in) || st.FluidAmt < washerWater || st.Fluid != fluidnet.Water {
+		st.Progress = 0
 		return
 	}
-	if st.progress < st.kind.interval {
-		st.tickWork()
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
 	out, _ := sgitem.WasherOutput(in)
-	if !st.roomFor([]item.Stack{out}) {
+	if !st.RoomFor([]item.Stack{out}) {
 		return
 	}
-	_ = st.inv().SetItem(slot, in.Grow(-1))
-	st.emit(out)
-	if st.fluidAmt -= washerWater; st.fluidAmt == 0 {
-		st.fluid = fluidnet.None
+	_ = st.Inv().SetItem(slot, in.Grow(-1))
+	st.Emit(out)
+	if st.FluidAmt -= washerWater; st.FluidAmt == 0 {
+		st.Fluid = fluidnet.None
 	}
-	st.progress = 0
+	st.Progress = 0
 }

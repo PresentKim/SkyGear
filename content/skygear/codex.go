@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -85,7 +87,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 		}
 	}
 	for _, in := range crushInputs() {
-		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && naming.ItemKey(got.Item()) == k {
+		if got, ok := machine.CrusherOutput(item.NewStack(in, 1)); ok && naming.ItemKey(got.Item()) == k {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.crusher"), n1(lang, in)))
 		}
 	}
@@ -187,16 +189,16 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 			}
 		}
 	}
-	if got, ok := crusherOutput(it); ok {
+	if got, ok := machine.CrusherOutput(it); ok {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), naming.UIItemName(lang, got)))
 	}
 	if e, ok := it.Item().(sgitem.Essence); ok {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), mobName(lang, e.Mob)))
 	}
-	if fuelDuration(it) > 0 {
+	if machine.FuelDuration(it) > 0 {
 		out = append(out, i18n.T(lang, "codex.use.fuel"))
 	}
-	if sm, ok := smeltOf(it); ok {
+	if sm, ok := machine.SmeltOf(it); ok {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), naming.UIItemName(lang, sm)))
 	}
 	if plantMatter(it) {

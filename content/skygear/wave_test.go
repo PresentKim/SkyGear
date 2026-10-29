@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -48,7 +50,7 @@ func TestWaveFlow(t *testing.T) {
 				tx.SetBlock(gate.Add(cube.Pos{x, -1, z}), block.Stone{}, nil)
 			}
 		}
-		placeTestMachine(s, gate, KindGate, "")
+		placeTestMachine(s, gate, machine.KindGate, "")
 		p.Teleport(gate.Vec3Centre().Add(mgl64.Vec3{3, 0, 0}))
 		if s.startWave(tx, gate, p.Position(), 2) {
 			t.Fatal("level 2 started before level 1 was cleared")
@@ -119,7 +121,7 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 				tx.SetBlock(gate.Add(cube.Pos{x, -1, z}), block.Stone{}, nil)
 			}
 		}
-		placeTestMachine(s, gate, KindGate, "")
+		placeTestMachine(s, gate, machine.KindGate, "")
 		s.startWave(tx, gate, p.Position(), 1)
 		s.wave.deadline = s.wave.deadline.Add(-1000 * 1e9)
 		s.tickWave(tx)
@@ -145,7 +147,7 @@ func TestMonsterReturnsFromVoid(t *testing.T) {
 				tx.SetBlock(gate.Add(cube.Pos{x, -1, z}), block.Stone{}, nil)
 			}
 		}
-		placeTestMachine(s, gate, KindGate, "")
+		placeTestMachine(s, gate, machine.KindGate, "")
 		if !s.startWave(tx, gate, p.Position(), 1) {
 			t.Fatal("level 1 did not start")
 		}
@@ -205,7 +207,7 @@ func TestSkeletonShoots(t *testing.T) {
 				tx.SetBlock(gate.Add(cube.Pos{x, -1, z}), block.Stone{}, nil)
 			}
 		}
-		placeTestMachine(s, gate, KindGate, "")
+		placeTestMachine(s, gate, machine.KindGate, "")
 		s.wave = &waveState{level: 1, gate: gate, left: map[*world.EntityHandle]string{}, deadline: time.Now().Add(time.Hour)}
 		at := gate.Vec3Centre().Add(mgl64.Vec3{0, 0.5, 0})
 		p.Teleport(at.Add(mgl64.Vec3{8, 0, 0}))

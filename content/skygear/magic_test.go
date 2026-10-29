@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -118,7 +120,7 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 func TestHarvesterPicksBloomingPlants(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindHarvester, "")
+	st := placeTestMachine(s, machinePos, machine.KindHarvester, "")
 	bloom, bud := machinePos.Add(cube.Pos{2, 0, 0}), machinePos.Add(cube.Pos{-2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		for _, at := range []cube.Pos{bloom, bud} {
@@ -127,13 +129,13 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 		tx.SetBlock(bloom, MagicPlant{Kind: "ore_iron", Bloom: true}, nil)
 		tx.SetBlock(bud, MagicPlant{Kind: "ore_iron"}, nil)
 	})
-	tick(s, 2*(machineKinds[KindHarvester].interval+1))
+	tick(s, 2*(machine.MachineKinds[machine.KindHarvester].Interval+1))
 	s.World.Do(func(tx *world.Tx) {
 		if mp, ok := tx.Block(bloom).(MagicPlant); !ok || mp.Bloom {
 			t.Fatalf("the bloom was not picked: %#v", tx.Block(bloom))
 		}
 	})
-	if outputCount(st, sgitem.OreChunk{Ore: sgitem.OreIron}) == 0 && outputCount(st, PlantSeed{Seed: "ore_iron"}) == 0 {
+	if machine.OutputCount(st, sgitem.OreChunk{Ore: sgitem.OreIron}) == 0 && machine.OutputCount(st, PlantSeed{Seed: "ore_iron"}) == 0 {
 		t.Error("the harvester has no yield of the plant")
 	}
 }

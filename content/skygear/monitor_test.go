@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/platform/instance"
 
@@ -15,7 +17,7 @@ import (
 // runSeconds runs the monitor's second n times.
 func runSeconds(s *session, n int) {
 	for range n {
-		s.World.Do(func(tx *world.Tx) { s.tickMonitor(tx) })
+		s.World.Do(func(tx *world.Tx) { machine.TickMonitor(s.Session, tx) })
 	}
 }
 
@@ -24,49 +26,49 @@ func runSeconds(s *session, n int) {
 func TestProductionRecorded(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFurnace, "")
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
-	tick(s, 3*(machineKinds[KindFurnace].interval+2))
-	made := outputCount(st, block.Stone{})
+	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
+	tick(s, 3*(machine.MachineKinds[machine.KindFurnace].Interval+2))
+	made := machine.OutputCount(st, block.Stone{})
 	if made == 0 {
 		t.Fatal("nothing was smelted")
 	}
 	key := naming.ItemKey(block.Stone{})
-	if got := factorySaved.Of(s.Session).Produced[key]; got != int64(made) {
+	if got := machine.FactorySaved.Of(s.Session).Produced[key]; got != int64(made) {
 		t.Fatalf("saved total %d, want %d", got, made)
 	}
-	items, _ := factoryOf(s.Session).stats.window(1)
+	items, _ := machine.FactoryOf(s.Session).Stats.Window(1)
 	if items[key] != made {
 		t.Fatalf("window has %d, want %d", items[key], made)
 	}
-	if got := s.keyStack(key); got.Empty() || naming.ItemKey(got.Item()) != key {
+	if got := machine.KeyStack(s.Session, key); got.Empty() || naming.ItemKey(got.Item()) != key {
 		t.Fatalf("key %q does not give its item back: %v", key, got)
 	}
 }
 
 // TestMinuteWindows: the minutes rotate and the windows cover the right time.
 func TestMinuteWindows(t *testing.T) {
-	p := newProdStats()
-	state := &factoryState{}
-	p.add(state, item.NewStack(block.Cobblestone{}, 1), 60, true)
+	p := machine.NewProdStats()
+	state := &machine.FactoryState{}
+	p.Add(state, item.NewStack(block.Cobblestone{}, 1), 60, true)
 	for range 60 {
-		p.secs++
+		p.Secs++
 	}
-	p.rotate()
-	p.add(state, item.NewStack(block.Cobblestone{}, 1), 30, true)
-	p.secs = 30
-	items, minutes := p.window(5)
+	p.Rotate()
+	p.Add(state, item.NewStack(block.Cobblestone{}, 1), 30, true)
+	p.Secs = 30
+	items, minutes := p.Window(5)
 	key := naming.ItemKey(block.Cobblestone{})
 	if items[key] != 90 || minutes != 1.5 {
 		t.Fatalf("5 minute window: %d items over %v minutes", items[key], minutes)
 	}
-	if got := perMinute(items[key], minutes); got != 60 {
+	if got := machine.PerMinute(items[key], minutes); got != 60 {
 		t.Fatalf("rate %v, want 60", got)
 	}
-	for range statMinutes + 3 {
-		p.rotate()
+	for range machine.StatMinutes + 3 {
+		p.Rotate()
 	}
-	if items, _ := p.window(15); len(items) != 0 {
+	if items, _ := p.Window(15); len(items) != 0 {
 		t.Fatalf("old minutes were not forgotten: %v", items)
 	}
 	if state.Produced[key] != 90 {
@@ -79,43 +81,43 @@ func TestMinuteWindows(t *testing.T) {
 func TestStallAlert(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFurnace, "")
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 64))
-	for _, slot := range st.kind.output {
-		_ = st.inv().SetItem(slot, item.NewStack(block.Dirt{}, 64))
+	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 64))
+	for _, slot := range st.Def.Output {
+		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64))
 	}
 	// A worked-before furnace: it finished one, then the output filled.
-	tick(s, machineKinds[KindFurnace].interval+5)
+	tick(s, machine.MachineKinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
 	tick(s, 5)
 	runSeconds(s, 1)
-	if st.mon.status != statusOutput {
-		t.Fatalf("status %v, want output blocked", st.mon.status)
+	if st.Mon.Status != machine.StatusOutput {
+		t.Fatalf("status %v, want output blocked", st.Mon.Status)
 	}
-	runSeconds(s, alertAfter-2)
-	if st.mon.alerted {
+	runSeconds(s, machine.AlertAfter-2)
+	if st.Mon.Alerted {
 		t.Fatal("alerted too early")
 	}
 	runSeconds(s, 3)
-	if !st.mon.alerted {
+	if !st.Mon.Alerted {
 		t.Fatal("not alerted after the wait")
 	}
-	first := st.mon.lastAlert
+	first := st.Mon.LastAlert
 	runSeconds(s, 40)
-	if st.mon.lastAlert != first {
+	if st.Mon.LastAlert != first {
 		t.Fatal("alerted again for the same stall")
 	}
-	if n := s.stalledCount(); n != 1 {
+	if n := machine.StalledCount(s.Session); n != 1 {
 		t.Fatalf("%d machines stalled, want 1", n)
 	}
 	// Free the output: the machine works and the alert ends.
-	for _, slot := range st.kind.output {
-		_ = st.inv().SetItem(slot, item.Stack{})
+	for _, slot := range st.Def.Output {
+		_ = st.Inv().SetItem(slot, item.Stack{})
 	}
 	tick(s, 10)
 	runSeconds(s, 1)
-	if st.mon.alerted || st.mon.status != statusWorking {
-		t.Fatalf("alerted %v status %v after freeing the output", st.mon.alerted, st.mon.status)
+	if st.Mon.Alerted || st.Mon.Status != machine.StatusWorking {
+		t.Fatalf("alerted %v status %v after freeing the output", st.Mon.Alerted, st.Mon.Status)
 	}
 }
 
@@ -123,16 +125,16 @@ func TestStallAlert(t *testing.T) {
 func TestStarvedIsQuiet(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFurnace, "")
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 1))
-	tick(s, machineKinds[KindFurnace].interval+5)
+	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 1))
+	tick(s, machine.MachineKinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
-	runSeconds(s, 2*alertAfter)
-	if st.mon.alerted {
+	runSeconds(s, 2*machine.AlertAfter)
+	if st.Mon.Alerted {
 		t.Fatal("a machine without input was alerted")
 	}
-	if st.mon.status != statusStarved {
-		t.Fatalf("status %v, want starved", st.mon.status)
+	if st.Mon.Status != machine.StatusStarved {
+		t.Fatalf("status %v, want starved", st.Mon.Status)
 	}
 }
 
@@ -141,26 +143,26 @@ func TestStarvedIsQuiet(t *testing.T) {
 func TestStatsScreens(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindFurnace, "")
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
+	st := placeTestMachine(s, machinePos, machine.KindFurnace, "")
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		for _, tab := range []statsTab{statsItems, statsPower, statsStalls} {
-			s.showStats(p, tab)
+		for _, tab := range []machine.StatsTab{machine.StatsItems, machine.StatsPower, machine.StatsStalls} {
+			machine.ShowStats(s.Session, p, tab)
 		}
 	})
-	tick(s, 2*(machineKinds[KindFurnace].interval+2))
+	tick(s, 2*(machine.MachineKinds[machine.KindFurnace].Interval+2))
 	runSeconds(s, 3)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		for _, tab := range []statsTab{statsItems, statsPower, statsStalls} {
-			s.showStats(p, tab)
+		for _, tab := range []machine.StatsTab{machine.StatsItems, machine.StatsPower, machine.StatsStalls} {
+			machine.ShowStats(s.Session, p, tab)
 		}
-		body, opts := s.stallOptions(p)
+		body, opts := machine.StallOptions(s.Session, p)
 		if body == "" || len(opts) == 0 {
 			t.Fatal("empty stall page")
 		}
 		opts[0].Run(p, tx)
-		if !factorySaved.Of(s.Session).AlertsOn[instance.AccountID(p)] {
+		if !machine.FactorySaved.Of(s.Session).AlertsOn[instance.AccountID(p)] {
 			t.Fatal("the alert switch was not saved")
 		}
 	})

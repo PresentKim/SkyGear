@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -58,7 +60,7 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 			t.Errorf("hammer cell %d is %s, want %s", i, name(in), want[i])
 		}
 	}
-	sieve := find(Machine{Kind: KindSieve})
+	sieve := find(machine.Machine{Kind: machine.KindSieve})
 	if sieve.Shape() != recipe.NewShape(3, 2) || !sieve.NoMirror() {
 		t.Errorf("sieve shape %v", sieve.Shape())
 	}
@@ -166,11 +168,11 @@ func TestAutoSieveRecipeTakesAnySieve(t *testing.T) {
 	var found bool
 	for _, r := range recipe.Recipes() {
 		out := r.Output()
-		if len(out) != 1 || out[0].Item() != (Machine{Kind: KindAutoSieve}) {
+		if len(out) != 1 || out[0].Item() != (machine.Machine{Kind: machine.KindAutoSieve}) {
 			continue
 		}
 		for _, in := range r.Input() {
-			if s, ok := in.(item.Stack); ok && s.Item() == (Machine{Kind: KindSieve}) {
+			if s, ok := in.(item.Stack); ok && s.Item() == (machine.Machine{Kind: machine.KindSieve}) {
 				_, any := s.Value("variants")
 				found = any
 			}

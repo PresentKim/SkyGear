@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/decor"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -614,11 +616,11 @@ func gameRecipes() {
 		nil, planks, nil)
 	// The sieve: a row of planks on two stick legs. The mesh is made and
 	// fitted separately (sieve.go).
-	shaped(machineItem(KindSieve), 3, 2,
+	shaped(machine.MachineItem(machine.KindSieve), 3, 2,
 		planks, planks, planks,
 		stick, nil, stick)
 	// The combustion generator and the first energy conduit.
-	add(machineItem(KindGenerator), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
+	add(machine.MachineItem(machine.KindGenerator), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
 	// The conduits: sand and gravel in a checkerboard make the binder mix, a
 	// furnace bakes it into the binder; the basic conduits are binders above
 	// and below a row of redstone (energy), an iron nugget, a chest and an
@@ -641,27 +643,27 @@ func gameRecipes() {
 		binder, binder, binder,
 		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
-	add(machineItem(KindCrusher), n(cobble, 6), n(iron, 3))
+	add(machine.MachineItem(machine.KindCrusher), n(cobble, 6), n(iron, 3))
 	// The alloy smelter and the energy cell.
-	add(machineItem(KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindEnergyCell), n(sgitem.Ingot{Metal: sgitem.MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
-	add(machineItem(KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
-	add(machineItem(KindCrucible), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
-	add(machineItem(KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
-	add(machineItem(KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
-	add(machineItem(KindGate), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
-	add(machineItem(KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
-	add(item.NewStack(Machine{Kind: KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
-	add(machineItem(KindTinker), n(item.IronIngot{}, 6), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
-	add(machineItem(KindSimulator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
+	add(machine.MachineItem(machine.KindAlloy), n(iron, 6), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
+	add(machine.MachineItem(machine.KindEnergyCell), n(sgitem.Ingot{Metal: sgitem.MetalLead}, 3), n(item.RedstoneWire{}, 4), n(iron, 2))
+	add(machine.MachineItem(machine.KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
+	add(machine.MachineItem(machine.KindCrucible), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
+	add(machine.MachineItem(machine.KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
+	add(machine.MachineItem(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
+	add(machine.MachineItem(machine.KindGate), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
+	add(machine.MachineItem(machine.KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(item.NewStack(machine.Machine{Kind: machine.KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
+	add(machine.MachineItem(machine.KindTinker), n(item.IronIngot{}, 6), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
+	add(machine.MachineItem(machine.KindSimulator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// The dragon egg, the last project's prize (project.go).
 	add(item.NewStack(block.DragonEgg{}, 1), n(item.EnderEye{}, 1), n(block.Obsidian{}, 8))
 	// The automation equipment.
-	add(machineItem(KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
-	add(machineItem(KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
-	add(machineItem(KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
-	add(machineItem(KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 3), n(item.RedstoneWire{}, 3))
-	add(machineItem(KindLab), n(iron, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
+	add(machine.MachineItem(machine.KindFurnace), n(iron, 5), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 2))
+	add(machine.MachineItem(machine.KindVacuum), n(iron, 4), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(machine.MachineItem(machine.KindFeller), n(iron, 4), n(item.Axe{Tier: item.ToolTierIron}, 1), n(block.NewHopper(), 1))
+	add(machine.MachineItem(machine.KindCrafter), n(block.CraftingTable{}, 1), n(block.NewHopper(), 2), n(iron, 3), n(item.RedstoneWire{}, 3))
+	add(machine.MachineItem(machine.KindLab), n(iron, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// Better conduits: a conduit of the tier below with an electrum ingot (2) or,
 	// for the third tier, a steel ingot and a diamond (3).
 	for _, tier := range []int{2, 3} {
@@ -677,8 +679,8 @@ func gameRecipes() {
 	// The sieve is a block with many states (how full it is); the recipe takes it
 	// whatever its state, as the client matches recipe blocks by the meta it is
 	// told (any), not by the one state an empty sieve has.
-	anySieve := []recipe.Item{st(Machine{Kind: KindSieve}).WithValue("variants", true)}
-	add(machineItem(KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
+	anySieve := []recipe.Item{st(machine.Machine{Kind: machine.KindSieve}).WithValue("variants", true)}
+	add(machine.MachineItem(machine.KindAutoSieve), n(iron, 4), anySieve, n(block.NewHopper(), 1))
 	// The machine tiers' circuits and kits.
 	steel, electrum := sgitem.Ingot{Metal: sgitem.MetalSteel}, sgitem.Ingot{Metal: sgitem.MetalElectrum}
 	infused, reinforced, atomic := sgitem.TierAlloy{Kind: "infused"}, sgitem.TierAlloy{Kind: "reinforced"}, sgitem.TierAlloy{Kind: "atomic"}
@@ -692,7 +694,7 @@ func gameRecipes() {
 		atomic, nil, atomic)
 	shaped(st(sgitem.TierKit{Level: 1}), 3, 3,
 		steel, c2, steel,
-		electrum, Machine{Kind: KindEnergyCell}, electrum,
+		electrum, machine.Machine{Kind: machine.KindEnergyCell}, electrum,
 		steel, c2, steel)
 	shaped(st(sgitem.TierKit{Level: 2}), 3, 3,
 		item.Diamond{}, c3, item.Diamond{},
@@ -708,9 +710,9 @@ func gameRecipes() {
 		nil, item.Stick{}, nil)
 	// The magic sieve: an auto sieve (in any state) with eyes of ender, diamonds
 	// and amethyst.
-	add(machineItem(KindMagicSieve), []recipe.Item{st(Machine{Kind: KindAutoSieve}).WithValue("variants", true)}, n(item.EnderEye{}, 2), n(item.Diamond{}, 2), n(item.AmethystShard{}, 4))
-	add(machineItem(KindMiner), n(iron, 6), n(block.NewHopper(), 1))
-	add(machineItem(KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
+	add(machine.MachineItem(machine.KindMagicSieve), []recipe.Item{st(machine.Machine{Kind: machine.KindAutoSieve}).WithValue("variants", true)}, n(item.EnderEye{}, 2), n(item.Diamond{}, 2), n(item.AmethystShard{}, 4))
+	add(machine.MachineItem(machine.KindMiner), n(iron, 6), n(block.NewHopper(), 1))
+	add(machine.MachineItem(machine.KindHarvester), n(iron, 5), n(block.NewHopper(), 1), n(block.NewChest(), 1))
 	// The drawer: a ring of planks round a chest.
 	shaped(st(Drawer{}), 3, 3,
 		planks, planks, planks,

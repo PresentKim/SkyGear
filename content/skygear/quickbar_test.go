@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strconv"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
 // machinePanels are the layouts of sg_machine.json by window title marker,
@@ -45,18 +47,18 @@ func TestQuickBarTakesEveryOutputAndNothingElse(t *testing.T) {
 		return out
 	}
 	takeable := map[string][]int{}
-	for name, k := range machineKinds {
-		panel, ok := machinePanels[k.marker]
+	for name, k := range machine.MachineKinds {
+		panel, ok := machinePanels[k.Marker]
 		if !ok {
 			continue
 		}
 		filter := filterOf(panel)
-		for _, s := range k.output {
+		for _, s := range k.Output {
 			if !slices.Contains(filter, s) {
 				t.Errorf("%s: take all skips output %d", name, s)
 			}
 		}
-		takeable[panel] = append(append(append(takeable[panel], k.output...), k.input...), k.charge...)
+		takeable[panel] = append(append(append(takeable[panel], k.Output...), k.Input...), k.Charge...)
 	}
 	for panel, slots := range takeable {
 		for _, s := range filterOf(panel) {

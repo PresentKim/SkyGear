@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
@@ -20,7 +21,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickEnvironment(tx)
 	s.tickWave(tx)
 	tinker.TickEffects(s.Session, tx)
-	s.tickMonitor(tx)
+	machine.TickMonitor(s.Session, tx)
 	s.tickPlants(tx)
 	s.updateBoards(tx)
 	achievement.CountAll(tx, "play_seconds", 1)

@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -92,9 +94,9 @@ func TestWitchWater(t *testing.T) {
 		// lava + witch water bucket → blackstone, lava + glowstone → end stone
 		stone := Barrel{Wood: stoneWood}
 		tx.SetBlock(pos, stone, nil)
-		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: machine.BucketMB}
 		s.useBarrel(p, tx, pos, stone, item.NewStack(sgitem.WitchWaterBucket{}, 1), &item.UseContext{})
-		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: bucketMB}
+		s.state.Barrels[cropKey(pos)] = &BarrelRecord{LavaMB: machine.BucketMB}
 		s.useBarrel(p, tx, pos, stone, item.NewStack(item.GlowstoneDust{}, 1), &item.UseContext{})
 		got := droppedKeys(tx)
 		if got[naming.ItemKey(block.Blackstone{})] != 1 || got[naming.ItemKey(block.EndStone{})] != 1 {
@@ -137,7 +139,7 @@ func TestBarrelLiquidIcon(t *testing.T) {
 	for kind, rec := range map[string]*BarrelRecord{
 		sgitem.LiquidWater:      {Count: matterCapacity, Water: true},
 		sgitem.LiquidWitchWater: {Count: matterCapacity, Witch: true},
-		sgitem.LiquidLava:       {LavaMB: bucketMB},
+		sgitem.LiquidLava:       {LavaMB: machine.BucketMB},
 	} {
 		s.state.Barrels[cropKey(pos)] = rec
 		line := s.barrelLiquid(i18n.Default, pos)

@@ -1,16 +1,8 @@
-package skygear
+package machine
 
 import (
 	"fmt"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
-	"github.com/presentkim/skygear/content/skygear/core"
-
-	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -20,8 +12,12 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 )
@@ -32,32 +28,33 @@ import (
 // products on top; the auto sieve takes stacks, sifts on its own and puts
 // its products into its output slots.
 
-func isSieve(kind string) bool {
+func IsSieve(kind string) bool {
 	return kind == KindSieve || kind == KindAutoSieve || kind == KindMagicSieve
 }
 
-// sieveStages is the number of uses that sift one block by hand, and the
+// SieveStages is the number of uses that sift one block by hand, and the
 // heights the content shows (half a pixel each).
-const sieveStages = 8
+const SieveStages = 8
 
 // sieveCooldown is the least time between counted uses (clients repeat the
 // use packet while the button is held).
 const sieveCooldown = 150 * time.Millisecond
 
-// sieveLookState is the one block state of a sieve: the content shown on
+// SieveLookState is the one block state of a sieve: the content shown on
 // the mesh and its height, as lookValue(content, fill). One state with
 // values in registration order that also sort alphabetically: with two
 // states (content, fill) the client paired runtime IDs with permutations in
 // another order, and the hand sieve showed a different block at every use.
-const sieveLookState = "skygear:look"
+const SieveLookState = "skygear:look"
 
 // lookIndex numbers the look of a sieve: the mesh fitted (0 none, 1 to
 // len(sgitem.MeshTiers) the tier), the content and the fill; lookValue is its state
 // value.
 func lookIndex(mesh, content, fill int) int {
-	return (mesh*len(sieveContents)+content)*(sieveStages+1) + fill
+	return (mesh*len(SieveContents)+content)*(SieveStages+1) + fill
 }
-func lookValue(mesh, content, fill int) string {
+
+func LookValue(mesh, content, fill int) string {
 	return fmt.Sprintf("%03d", lookIndex(mesh, content, fill))
 }
 
@@ -71,14 +68,14 @@ func meshLookOf(tier string) int {
 	return 0
 }
 
-// sieveLooks are the looks a sieve can have besides the bare one: each mesh
+// SieveLooks are the looks a sieve can have besides the bare one: each mesh
 // with nothing on it (fill 1) and with each content at each fill.
-func sieveLooks() [][3]int {
+func SieveLooks() [][3]int {
 	var out [][3]int
 	for mesh := 1; mesh <= len(sgitem.MeshTiers); mesh++ {
 		out = append(out, [3]int{mesh, 0, 1})
-		for c := 1; c < len(sieveContents); c++ {
-			for fill := 1; fill <= sieveStages; fill++ {
+		for c := 1; c < len(SieveContents); c++ {
+			for fill := 1; fill <= SieveStages; fill++ {
 				out = append(out, [3]int{mesh, c, fill})
 			}
 		}
@@ -86,9 +83,9 @@ func sieveLooks() [][3]int {
 	return out
 }
 
-// sieveContents are the contents a sieve shows, with their vanilla terrain
+// SieveContents are the contents a sieve shows, with their vanilla terrain
 // textures (index 0 is empty).
-var sieveContents = []struct {
+var SieveContents = []struct {
 	name string
 	item world.Item
 }{
@@ -100,11 +97,11 @@ var sieveContents = []struct {
 	{"skygear_crushed_end_stone", sgitem.CrushedBlock{Kind: sgitem.CrushedEndStone}},
 }
 
-func sieveContentOf(it item.Stack) int {
+func SieveContentOf(it item.Stack) int {
 	if it.Empty() {
 		return 0
 	}
-	for i, c := range sieveContents[1:] {
+	for i, c := range SieveContents[1:] {
 		if naming.ItemKey(c.item) == naming.ItemKey(it.Item()) {
 			return i + 1
 		}
@@ -124,7 +121,7 @@ func sieveMaterials(kind string, content, mesh int) map[string]customblock.Mater
 		"mesh": customblock.NewMaterial(meshTexture, customblock.AlphaTestRenderMethod()),
 	}
 	if content > 0 {
-		m["content"] = customblock.NewMaterial(sieveContents[content].name, customblock.AlphaTestRenderMethod())
+		m["content"] = customblock.NewMaterial(SieveContents[content].name, customblock.AlphaTestRenderMethod())
 	}
 	return m
 }
@@ -133,20 +130,20 @@ func sieveProperties(kind string) customblock.Properties {
 	return customblock.Properties{Geometry: "geometry.skygear_" + kind + "_0", Textures: sieveMaterials(kind, 0, 0)}
 }
 
-func sieveStates() map[string][]any {
-	values := []any{lookValue(0, 0, 0)}
-	for _, l := range sieveLooks() {
-		values = append(values, lookValue(l[0], l[1], l[2]))
+func SieveStates() map[string][]any {
+	values := []any{LookValue(0, 0, 0)}
+	for _, l := range SieveLooks() {
+		values = append(values, LookValue(l[0], l[1], l[2]))
 	}
-	return map[string][]any{sieveLookState: values}
+	return map[string][]any{SieveLookState: values}
 }
 
 func sievePermutations(kind string) []customblock.Permutation {
 	var out []customblock.Permutation
-	for _, l := range sieveLooks() {
+	for _, l := range SieveLooks() {
 		mesh, c, fill := l[0], l[1], l[2]
 		out = append(out, customblock.Permutation{
-			Condition: fmt.Sprintf("q.block_state('%s') == '%s'", sieveLookState, lookValue(mesh, c, fill)),
+			Condition: fmt.Sprintf("q.block_state('%s') == '%s'", SieveLookState, LookValue(mesh, c, fill)),
 			Properties: customblock.Properties{
 				Geometry: fmt.Sprintf("geometry.skygear_%s_%d", kind, fill*min(c, 1)),
 				Textures: sieveMaterials(kind, c, mesh),
@@ -156,39 +153,39 @@ func sievePermutations(kind string) []customblock.Permutation {
 	return out
 }
 
-// sieveLook returns the mesh, content and fill a sieve shows for its state:
+// SieveLook returns the mesh, content and fill a sieve shows for its state:
 // no mesh (0, 0, 0), a mesh and nothing on it (mesh, 0, 1).
-func sieveLook(st *machineState) (mesh, content, fill int) {
-	if mesh = meshLookOf(st.mesh); mesh == 0 {
+func SieveLook(st *MachineState) (mesh, content, fill int) {
+	if mesh = meshLookOf(st.Mesh); mesh == 0 {
 		return 0, 0, 0
 	}
-	_, in, ok := st.firstInput()
+	_, in, ok := st.FirstInput()
 	if !ok {
 		return mesh, 0, 1
 	}
-	if content = sieveContentOf(in); content == 0 {
+	if content = SieveContentOf(in); content == 0 {
 		return mesh, 0, 1
 	}
-	fill = sieveStages - st.progress*sieveStages/st.kind.interval
-	return mesh, content, max(1, min(sieveStages, fill))
+	fill = SieveStages - st.Progress*SieveStages/st.Def.Interval
+	return mesh, content, max(1, min(SieveStages, fill))
 }
 
 // showSieve sets the sieve block to show its content when it changed.
-func showSieve(tx *world.Tx, pos cube.Pos, st *machineState) {
+func showSieve(tx *world.Tx, pos cube.Pos, st *MachineState) {
 	m, ok := tx.Block(pos).(Machine)
-	if !ok || m.st != st {
+	if !ok || m.State != st {
 		return
 	}
-	mesh, content, fill := sieveLook(st)
-	if m.meshLook == mesh && m.content == content && m.fill == fill {
+	mesh, content, fill := SieveLook(st)
+	if m.MeshLook == mesh && m.Content == content && m.Fill == fill {
 		return
 	}
-	m.meshLook, m.content, m.fill = mesh, content, fill
+	m.MeshLook, m.Content, m.Fill = mesh, content, fill
 	tx.SetBlock(pos, m, nil)
 }
 
 // sieveDrops rolls the products of sifting one in.
-func (s *session) sieveDrops(in item.Stack, mesh string) []item.Stack {
+func sieveDrops(s *core.Session, in item.Stack, mesh string) []item.Stack {
 	var out []item.Stack
 	for _, d := range sievetable.Tables[mesh][naming.ItemKey(in.Item())] {
 		// every item of the drop's stack is its own roll
@@ -220,19 +217,19 @@ const sieveReach = 2
 
 // sieveAt is a sieve block of the game with its state.
 type sieveAt struct {
-	pos cube.Pos
-	st  *machineState
+	pos   cube.Pos
+	State *MachineState
 }
 
 // sievesAround are the sieves in the 5×5 on the level of pos, the clicked
 // one first.
-func sievesAround(tx *world.Tx, pos cube.Pos, clicked *machineState) []sieveAt {
+func sievesAround(tx *world.Tx, pos cube.Pos, clicked *MachineState) []sieveAt {
 	out := []sieveAt{{pos, clicked}}
 	for x := -sieveReach; x <= sieveReach; x++ {
 		for z := -sieveReach; z <= sieveReach; z++ {
 			other := pos.Add(cube.Pos{x, 0, z})
-			if m, ok := tx.Block(other).(Machine); ok && other != pos && isSieve(m.Kind) && m.st != nil {
-				out = append(out, sieveAt{other, m.st})
+			if m, ok := tx.Block(other).(Machine); ok && other != pos && IsSieve(m.Kind) && m.State != nil {
+				out = append(out, sieveAt{other, m.State})
 			}
 		}
 	}
@@ -246,18 +243,18 @@ func sievesAround(tx *world.Tx, pos cube.Pos, clicked *machineState) []sieveAt {
 // blocks than the empty hand sieves of the group take, more of the same
 // block comes into the hand from the inventory, and a hand left empty is
 // filled again with it.
-func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *machineState) {
+func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *MachineState) {
 	held, off := p.HeldItems()
 	group := sievesAround(tx, pos, st)
 	// Fitting and taking out a mesh work on the clicked sieve only.
 	if _, ok := held.Item().(sgitem.Mesh); ok {
-		s.equipMesh(p, tx, pos, st, held, off)
+		equipMesh(s, p, tx, pos, st, held, off)
 		return
 	}
-	if held.Empty() && p.Sneaking() && s.takeMesh(p, tx, pos, st) {
+	if held.Empty() && p.Sneaking() && takeMesh(s, p, tx, pos, st) {
 		return
 	}
-	if st.mesh == "" && sieveHolds(held) {
+	if st.Mesh == "" && sieveHolds(held) {
 		p.SendTip(i18n.T(i18n.Of(p), "sieve.needMesh"))
 		return
 	}
@@ -269,7 +266,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 			if held, off = p.HeldItems(); held.Empty() {
 				break
 			}
-			put += s.putIntoSieve(p, tx, sv, held, off)
+			put += putIntoSieve(s, p, tx, sv, held, off)
 		}
 		if held, _ = p.HeldItems(); held.Empty() {
 			topUpHand(p, proto, proto.MaxCount())
@@ -278,22 +275,22 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 			return
 		}
 	}
-	if st.kind.autoSieve {
+	if st.Def.autoSieve {
 		// it sifts on its own, a click only opens its window
-		st.openWindow(p)
+		st.OpenWindow(p)
 		return
 	}
 	swung := false
 	for _, sv := range group {
-		if sv.st.kind.autoSieve {
+		if sv.State.Def.autoSieve {
 			continue
 		}
-		if _, in, ok := sv.st.firstInput(); ok && time.Since(sv.st.lastUse) >= sieveCooldown {
+		if _, in, ok := sv.State.FirstInput(); ok && time.Since(sv.State.LastUse) >= sieveCooldown {
 			if !swung {
 				p.SwingArm()
 				swung = true
 			}
-			if s.siftStage(tx, sv.pos, sv.st, in) {
+			if siftStage(s, tx, sv.pos, sv.State, in) {
 				achievement.Count(p, "sift_hand", 1)
 			}
 		}
@@ -305,7 +302,7 @@ func (s *session) useSieve(p *player.Player, tx *world.Tx, pos cube.Pos, st *mac
 func emptyHandSieves(group []sieveAt, it item.Stack) int {
 	n := 0
 	for _, sv := range group {
-		if _, _, filled := sv.st.firstInput(); !filled && !sv.st.kind.autoSieve && sv.st.accepts(it) {
+		if _, _, filled := sv.State.FirstInput(); !filled && !sv.State.Def.autoSieve && sv.State.Accepts(it) {
 			n++
 		}
 	}
@@ -349,18 +346,18 @@ func topUpHand(p *player.Player, proto item.Stack, want int) {
 // putIntoSieve puts the held item into one sieve (the hand sieve takes one
 // block while it is empty, the auto sieve the held stack) and returns how
 // many it put.
-func (s *session) putIntoSieve(p *player.Player, tx *world.Tx, sv sieveAt, held, off item.Stack) int {
-	st := sv.st
-	_, _, filled := st.firstInput()
-	if !st.accepts(held) || (filled && !st.kind.autoSieve) {
+func putIntoSieve(s *core.Session, p *player.Player, tx *world.Tx, sv sieveAt, held, off item.Stack) int {
+	st := sv.State
+	_, _, filled := st.FirstInput()
+	if !st.Accepts(held) || (filled && !st.Def.autoSieve) {
 		return 0
 	}
 	n := 1
-	if st.kind.autoSieve {
+	if st.Def.autoSieve {
 		n = held.Count()
 	}
 	put := 0
-	for put < n && st.insert(held) {
+	for put < n && st.Insert(held) {
 		put++
 	}
 	if put > 0 {
@@ -373,14 +370,14 @@ func (s *session) putIntoSieve(p *player.Player, tx *world.Tx, sv sieveAt, held,
 
 // siftStage sifts one stage of in by hand. The last stage drops the
 // products on top of the sieve.
-func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in item.Stack) (finished bool) {
-	st.lastUse = time.Now()
+func siftStage(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState, in item.Stack) (finished bool) {
+	st.LastUse = time.Now()
 	if b, ok := in.Item().(world.Block); ok {
 		tx.PlaySound(pos.Vec3Centre(), sound.BlockBreaking{Block: b})
 	}
-	st.progress += (st.kind.interval + sieveStages - 1) / sieveStages
-	if st.progress >= st.kind.interval {
-		s.finishSifting(tx, pos, st, false)
+	st.Progress += (st.Def.Interval + SieveStages - 1) / SieveStages
+	if st.Progress >= st.Def.Interval {
+		finishSifting(s, tx, pos, st, false)
 		finished = true
 	}
 	showSieve(tx, pos, st)
@@ -390,22 +387,22 @@ func (s *session) siftStage(tx *world.Tx, pos cube.Pos, st *machineState, in ite
 // finishSifting uses up one input block and gives its products: dropped on
 // top of a hand sieve, or into the output slots of an auto sieve (toOutput),
 // what does not fit waits in pending.
-func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, toOutput bool) {
-	st.progress = 0
-	slot, in, ok := st.firstInput()
+func finishSifting(s *core.Session, tx *world.Tx, pos cube.Pos, st *MachineState, toOutput bool) {
+	st.Progress = 0
+	slot, in, ok := st.FirstInput()
 	if !ok {
 		return
 	}
-	_ = st.inv().SetItem(slot, in.Grow(-1))
-	progress.Advance(s.Session, tx, advancement.Sift)
-	achievement.CountAll(tx, "sift_mesh_"+st.mesh, 1)
-	drops := s.siftDrops(st, in)
+	_ = st.Inv().SetItem(slot, in.Grow(-1))
+	progress.Advance(s, tx, advancement.Sift)
+	achievement.CountAll(tx, "sift_mesh_"+st.Mesh, 1)
+	drops := SiftDrops(s, st, in)
 	for _, it := range drops {
 		if !toOutput {
-			s.recordMade(it)
+			recordMade(s, it)
 			s.DropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.6, 0}), it)
-		} else if st.roomFor([]item.Stack{it}) {
-			st.emit(it)
+		} else if st.RoomFor([]item.Stack{it}) {
+			st.Emit(it)
 		} else {
 			st.pending = append(st.pending, it)
 		}
@@ -413,9 +410,9 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 }
 
 // outputHasRoom reports whether an output slot is empty or not yet full.
-func outputHasRoom(st *machineState) bool {
-	for _, slot := range st.kind.output {
-		if it, _ := st.inv().Item(slot); it.Empty() || it.Count() < it.MaxCount() {
+func outputHasRoom(st *MachineState) bool {
+	for _, slot := range st.Def.Output {
+		if it, _ := st.Inv().Item(slot); it.Empty() || it.Count() < it.MaxCount() {
 			return true
 		}
 	}
@@ -423,29 +420,29 @@ func outputHasRoom(st *machineState) bool {
 }
 
 // runAutoSieve sifts the input of an auto sieve on its own.
-func (s *session) runAutoSieve(st *machineState, pos cube.Pos, tx *world.Tx) {
+func runAutoSieve(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
 	// products that did not fit go first; while any is left the sieve waits
 	for len(st.pending) > 0 {
-		if !st.roomFor(st.pending[:1]) {
+		if !st.RoomFor(st.pending[:1]) {
 			return
 		}
-		st.emit(st.pending[0])
+		st.Emit(st.pending[0])
 		st.pending = st.pending[1:]
 	}
-	if _, _, ok := st.firstInput(); !ok {
-		st.progress = 0
+	if _, _, ok := st.FirstInput(); !ok {
+		st.Progress = 0
 		return
 	}
 	if !outputHasRoom(st) {
-		st.stuck = stuckOutput
+		st.Stuck = StuckOutput
 		return
 	}
-	s.chargeSieve(st)
-	if !st.tickWork() {
+	ChargeSieve(s, st)
+	if !st.TickWork() {
 		return
 	}
-	if st.progress >= st.kind.interval {
-		s.finishSifting(tx, pos, st, true)
-		st.done++
+	if st.Progress >= st.Def.Interval {
+		finishSifting(s, tx, pos, st, true)
+		st.Done++
 	}
 }

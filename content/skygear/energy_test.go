@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block/customblock"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -31,34 +33,34 @@ func runSteps(s *session, n int) {
 func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindGenerator, "")
-	st.unlimited = false
-	if !st.insert(item.NewStack(item.Coal{}, 2)) {
+	st := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	st.Unlimited = false
+	if !st.Insert(item.NewStack(item.Coal{}, 2)) {
 		t.Fatal("coal was not taken as fuel")
 	}
-	if st.insert(item.NewStack(block.Stone{}, 1)) {
+	if st.Insert(item.NewStack(block.Stone{}, 1)) {
 		t.Fatal("stone was taken as fuel")
 	}
 	tick(s, 10)
-	if st.energy != 10*generatorOutput {
-		t.Fatalf("%d RE after 10 ticks, want %d", st.energy, 10*generatorOutput)
+	if st.Energy != 10*machine.GeneratorOutput {
+		t.Fatalf("%d RE after 10 ticks, want %d", st.Energy, 10*machine.GeneratorOutput)
 	}
-	if st.burn != 1600-10 {
-		t.Errorf("burn %d, want %d", st.burn, 1600-10)
+	if st.Burn != 1600-10 {
+		t.Errorf("burn %d, want %d", st.Burn, 1600-10)
 	}
 	// With a full buffer nothing burns.
-	st.energy = st.kind.energyCap
-	burn := st.burn
+	st.Energy = st.Def.EnergyCap
+	burn := st.Burn
 	tick(s, 10)
-	if st.energy != st.kind.energyCap || st.burn != burn {
-		t.Errorf("a full generator burned: energy %d burn %d", st.energy, st.burn)
+	if st.Energy != st.Def.EnergyCap || st.Burn != burn {
+		t.Errorf("a full generator burned: energy %d burn %d", st.Energy, st.Burn)
 	}
 	// The generator gives it away and burns on.
-	if got := (Machine{Kind: KindGenerator, st: st}).ExtractEnergy(nil, machinePos, cube.FaceEast, 500, false); got != 500 {
+	if got := (machine.Machine{Kind: machine.KindGenerator, State: st}).ExtractEnergy(nil, machinePos, cube.FaceEast, 500, false); got != 500 {
 		t.Errorf("extracted %d", got)
 	}
 	tick(s, 5)
-	if st.burn >= burn {
+	if st.Burn >= burn {
 		t.Error("the generator did not burn on after room came")
 	}
 }
@@ -68,29 +70,29 @@ func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 func TestPowerLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	gen := placeTestMachine(s, machinePos, KindGenerator, "")
-	gen.unlimited = false
-	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), KindCrusher, "")
-	crusher.unlimited = false
+	gen := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	gen.Unlimited = false
+	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher, "")
+	crusher.Unlimited = false
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Energy: 1}, nil)
 		tx.SetBlock(machinePos.Add(cube.Pos{2, 0, 0}), ConduitBundle{Energy: 1}, nil)
 	})
-	_ = crusher.insert(item.NewStack(block.Cobblestone{}, 3))
+	_ = crusher.Insert(item.NewStack(block.Cobblestone{}, 3))
 	runSteps(s, 30)
-	if outputCount(crusher, block.Gravel{}) != 0 || crusher.energy != 0 {
-		t.Fatalf("the crusher worked without a generator: %d gravel, %d RE", outputCount(crusher, block.Gravel{}), crusher.energy)
+	if machine.OutputCount(crusher, block.Gravel{}) != 0 || crusher.Energy != 0 {
+		t.Fatalf("the crusher worked without a generator: %d gravel, %d RE", machine.OutputCount(crusher, block.Gravel{}), crusher.Energy)
 	}
-	if !crusher.stalled {
+	if !crusher.Stalled {
 		t.Error("a crusher without energy does not say it is stalled")
 	}
-	_ = gen.insert(item.NewStack(item.Coal{}, 1))
+	_ = gen.Insert(item.NewStack(item.Coal{}, 1))
 	runSteps(s, 120)
-	if crusher.energy == 0 && outputCount(crusher, block.Gravel{}) == 0 {
+	if crusher.Energy == 0 && machine.OutputCount(crusher, block.Gravel{}) == 0 {
 		t.Fatal("no energy reached the crusher")
 	}
-	if outputCount(crusher, block.Gravel{}) == 0 {
-		t.Errorf("the powered crusher made no gravel (energy %d, progress %d)", crusher.energy, crusher.progress)
+	if machine.OutputCount(crusher, block.Gravel{}) == 0 {
+		t.Errorf("the powered crusher made no gravel (energy %d, progress %d)", crusher.Energy, crusher.Progress)
 	}
 	// The conduits showed their arms.
 	s.World.Do(func(tx *world.Tx) {
@@ -108,8 +110,8 @@ func TestPowerLine(t *testing.T) {
 func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), KindCrusher, "")
-	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), KindSieve, "")
+	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher, "")
+	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve, "")
 	s.World.Do(func(tx *world.Tx) {
 		if joinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
 			t.Error("a conduit joins a hand sieve")
@@ -120,7 +122,7 @@ func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 		if joinsEnergy(block.Stone{}) {
 			t.Error("a conduit joins stone")
 		}
-		if src, snk := energy.RolesOf(Machine{Kind: KindCrusher}); src != nil || snk != nil {
+		if src, snk := energy.RolesOf(machine.Machine{Kind: machine.KindCrusher}); src != nil || snk != nil {
 			t.Error("a machine item has energy ports")
 		}
 	})

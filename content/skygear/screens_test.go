@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -133,7 +135,7 @@ func TestExpansionMode(t *testing.T) {
 
 func TestGiveItems(t *testing.T) {
 	items := giveItems()
-	for _, id := range []string{"drawer", "upgrade_capacity", "research_table", KindMiner, KindCrusher} {
+	for _, id := range []string{"drawer", "upgrade_capacity", "research_table", machine.KindMiner, machine.KindCrusher} {
 		if f, ok := items[id]; !ok || f().Empty() {
 			t.Errorf("give item %q missing", id)
 		}

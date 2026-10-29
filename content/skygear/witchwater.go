@@ -4,6 +4,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -85,7 +87,7 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 		return nil, item.Stack{}, false
 	}
 	for _, m := range barrelMixes() {
-		if (m.lava && rec.LavaMB < bucketMB) || (!m.lava && !rec.Witch) || naming.ItemKey(held.Item()) != naming.ItemKey(m.in) {
+		if (m.lava && rec.LavaMB < machine.BucketMB) || (!m.lava && !rec.Witch) || naming.ItemKey(held.Item()) != naming.ItemKey(m.in) {
 			continue
 		}
 		switch m.in.(type) {
@@ -156,7 +158,7 @@ func (s *session) mixBarrel(tx *world.Tx, pos cube.Pos, b Barrel, out world.Item
 	switch {
 	case b.Wood == stoneWood && rec != nil:
 		// A stone barrel uses up a bucket's worth of its lava.
-		rec.LavaMB -= bucketMB
+		rec.LavaMB -= machine.BucketMB
 		s.forgetEmptyStone(pos, rec)
 	default:
 		if rec != nil && rec.Clay > 0 {

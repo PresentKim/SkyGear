@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -262,20 +264,20 @@ func (s *session) Close(tx *world.Tx) {
 // The machine kinds of other parts of the game.
 func init() {
 	sess := func(c *core.Session) *session { s, _ := activeGame.sessionOf(c.World); return s }
-	ctl := machineKinds[KindStorageController]
-	ctl.click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	ctl := machine.MachineKinds[machine.KindStorageController]
+	ctl.Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		sess(c).useController(p, tx, pos)
 		return true
 	}
-	ctl.insert, ctl.peek, ctl.extract = controllerInsert, controllerPeek, controllerExtract
-	machineKinds[KindGate].click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	ctl.Insert, ctl.Peek, ctl.Extract = controllerInsert, controllerPeek, controllerExtract
+	machine.MachineKinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 		if !c.Debounced(p) {
 			sess(c).showGateForm(p, tx, pos)
 		}
 		return true
 	}
-	machineKinds[KindHarvester].run = func(c *core.Session, st *machineState, pos cube.Pos, tx *world.Tx) {
+	machine.MachineKinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.MachineState, pos cube.Pos, tx *world.Tx) {
 		sess(c).runHarvester(st, pos, tx)
 	}
-	extraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }
+	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return sess(c).snowReps(reps, tick) }
 }

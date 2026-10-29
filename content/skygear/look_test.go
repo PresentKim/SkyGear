@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -90,9 +92,9 @@ func TestLookInfo(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	st.insert(item.NewStack(block.Cobblestone{}, 5))
-	tick(s, machineKinds[KindCrusher].interval/2+1)
+	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st.Insert(item.NewStack(block.Cobblestone{}, 5))
+	tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2+1)
 	drawerPos := cube.Pos{6, island.IslandY, 3}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		text := func(pos cube.Pos) string {
@@ -146,7 +148,7 @@ func TestLookInfo(t *testing.T) {
 // TestFurnaceArrow: an unlit furnace shows an empty arrow.
 func TestFurnaceArrow(t *testing.T) {
 	it := furnaceArrow(block.NewFurnace(cube.North))
-	if a, ok := it.Item().(ProgressArrow); !ok || a.Step != 0 {
+	if a, ok := it.Item().(machine.ProgressArrow); !ok || a.Step != 0 {
 		t.Errorf("unlit furnace arrow %v, want an empty progress arrow", it)
 	}
 	if !furnaceArrow(block.Stone{}).Empty() {
@@ -159,7 +161,7 @@ func TestCustomTool(t *testing.T) {
 	if got := customTool(Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
 		t.Errorf("drawer by hand: %v", got)
 	}
-	if got := customTool(Machine{Kind: KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
+	if got := customTool(machine.Machine{Kind: machine.KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
 		t.Errorf("machine with a pickaxe: %v", got)
 	}
 	if got := customTool(block.Stone{}, item.Stack{}); got != nil {
@@ -181,7 +183,7 @@ func TestBlockNameKeys(t *testing.T) {
 		block.Grass{}:                                    "tile.grass.name",
 		block.Water{Still: true, Depth: 8}:               "tile.water.name",
 		block.Lava{Still: true, Depth: 8}:                "tile.lava.name",
-		Machine{Kind: KindSieve}:                         "tile.skygear:sieve.name",
+		machine.Machine{Kind: machine.KindSieve}:         "tile.skygear:sieve.name",
 	} {
 		if got := naming.BlockNameKey(b); got != want {
 			t.Errorf("%T: %s, want %s", b, got, want)
@@ -195,9 +197,9 @@ func TestLookDetailWhileSneaking(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	st.insert(item.NewStack(block.Cobblestone{}, 5))
-	tick(s, machineKinds[KindCrusher].interval/2+1)
+	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	st.Insert(item.NewStack(block.Cobblestone{}, 5))
+	tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2+1)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		plain := len(s.lookInfo(p, tx, machinePos, tx.Block(machinePos)).Lines)
 		p.StartSneaking()

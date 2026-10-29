@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
@@ -70,7 +72,7 @@ func (s *session) codexWorkCards(lang string) []codexCard {
 	cards := s.codexHandCards(lang)
 	for _, pr := range codexProcesses() {
 		_, barrel := pr.head.Item().(Barrel)
-		if m, ok := pr.head.Item().(Machine); barrel || ok && m.Kind == KindCrucible {
+		if m, ok := pr.head.Item().(machine.Machine); barrel || ok && m.Kind == machine.KindCrucible {
 			cards = append(cards, pr.cards(s, lang)...)
 		}
 	}

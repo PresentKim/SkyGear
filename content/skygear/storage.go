@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/decor"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -58,8 +60,8 @@ func storageNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 				seen[next] = true
 				out = append(out, storageDrawer{next, b})
 				queue = append(queue, next)
-			case Machine:
-				if b.Kind == KindStorageLink {
+			case machine.Machine:
+				if b.Kind == machine.KindStorageLink {
 					seen[next] = true
 					queue = append(queue, next)
 				}
@@ -190,8 +192,8 @@ func storageLines(lang string, tx *world.Tx, pos cube.Pos) []string {
 }
 
 func isStorageController(b world.Block) bool {
-	m, ok := b.(Machine)
-	return ok && m.Kind == KindStorageController
+	m, ok := b.(machine.Machine)
+	return ok && m.Kind == machine.KindStorageController
 }
 
 // useController handles a click on a controller: a sneaking click opens the

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -198,7 +200,7 @@ func (s *session) tickWave(tx *world.Tx) {
 	if w == nil {
 		return
 	}
-	if m, ok := tx.Block(w.gate).(Machine); !ok || m.Kind != KindGate {
+	if m, ok := tx.Block(w.gate).(machine.Machine); !ok || m.Kind != machine.KindGate {
 		s.failWave(tx, "gate.gone")
 		return
 	}

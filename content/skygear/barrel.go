@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -192,10 +194,10 @@ func stoneRecord(r *BarrelRecord) {
 	}
 	if r.Lava {
 		// Its cobblestone had turned into the lava.
-		r.LavaMB, r.Lava, r.Count = min(r.LavaMB+bucketMB, stoneLavaMax), false, 0
+		r.LavaMB, r.Lava, r.Count = min(r.LavaMB+machine.BucketMB, stoneLavaMax), false, 0
 	}
 	if r.Count > 0 {
-		r.Solids, r.Count = min(r.Solids+r.Count*bucketMB/legacyStoneCount, stoneSolidsMax), 0
+		r.Solids, r.Count = min(r.Solids+r.Count*machine.BucketMB/legacyStoneCount, stoneSolidsMax), 0
 	}
 	r.Heat, r.HeatAt = 0, 0
 }
@@ -403,7 +405,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 	key := cropKey(pos)
 	rec := s.state.Barrels[key]
 	if filled, fill, ok := emptyBucketFill(held, true); ok {
-		if rec == nil || rec.LavaMB < bucketMB {
+		if rec == nil || rec.LavaMB < machine.BucketMB {
 			return true
 		}
 		if held.Count() == 1 {
@@ -413,7 +415,7 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 			ctx.SubtractFromCount(1)
 			s.GiveItem(p, tx, pos.Side(cube.FaceUp).Vec3Middle(), filled)
 		}
-		rec.LavaMB -= bucketMB
+		rec.LavaMB -= machine.BucketMB
 		s.forgetEmptyStone(pos, rec)
 		s.showBarrel(tx, pos, b)
 		tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: fill})
@@ -426,14 +428,14 @@ func (s *session) useStoneBarrel(p *player.Player, tx *world.Tx, pos cube.Pos, b
 		}
 		return true
 	}
-	if bk, ok := held.Item().(item.Bucket); ok && fluidOfBucket(bk) == fluidnet.Lava {
-		if rec != nil && rec.LavaMB+bucketMB > stoneLavaMax {
+	if bk, ok := held.Item().(item.Bucket); ok && machine.FluidOfBucket(bk) == fluidnet.Lava {
+		if rec != nil && rec.LavaMB+machine.BucketMB > stoneLavaMax {
 			return true
 		}
 		_, left := p.HeldItems()
 		p.SetHeldItems(item.NewStack(item.Bucket{}, 1), left)
 		rec = s.stoneBarrel(pos)
-		rec.LavaMB += bucketMB
+		rec.LavaMB += machine.BucketMB
 		s.showBarrel(tx, pos, b)
 		tx.PlaySound(pos.Vec3Centre(), sound.BucketEmpty{Liquid: block.Lava{}})
 		s.MarkDirty()
@@ -499,7 +501,7 @@ func pourBucket(wood string, held item.Stack) (rec BarrelRecord, empty item.Stac
 	stone := wood == stoneWood
 	switch b := held.Item().(type) {
 	case item.Bucket:
-		switch fluidOfBucket(b) {
+		switch machine.FluidOfBucket(b) {
 		case fluidnet.Water:
 			if !stone {
 				return BarrelRecord{Water: true}, item.NewStack(item.Bucket{}, 1), block.Water{}, true
@@ -717,7 +719,7 @@ func (s *session) meltBarrel(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRe
 	rec.Solids -= n
 	rec.LavaMB += n
 	rec.Made += n
-	for ; rec.Made >= bucketMB; rec.Made -= bucketMB {
+	for ; rec.Made >= machine.BucketMB; rec.Made -= machine.BucketMB {
 		achievement.CountAll(tx, "barrel_lava", 1)
 	}
 	s.showBarrel(tx, pos, b)
@@ -739,7 +741,7 @@ func (s *session) breakBarrel(pos cube.Pos, drops *[]item.Stack) {
 // water, lava), nil when it holds none.
 func (s *session) barrelLiquid(lang string, pos cube.Pos) *waila.ItemLine {
 	rec := s.barrelAt(pos)
-	bucket := fmt.Sprintf(i18n.T(lang, "barrel.lines.mb"), bucketMB)
+	bucket := fmt.Sprintf(i18n.T(lang, "barrel.lines.mb"), machine.BucketMB)
 	switch {
 	case rec == nil:
 		return nil
@@ -850,7 +852,7 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 		}
 		return fluidnet.Lava, n
 	}
-	if rec == nil || !rec.Water || max < bucketMB {
+	if rec == nil || !rec.Water || max < machine.BucketMB {
 		return fluidnet.None, 0
 	}
 	k := fluidnet.Water
@@ -859,7 +861,7 @@ func (b Barrel) DrainFluid(w fluidnet.World, pos cube.Pos, max int, simulate boo
 		s.showBarrel(tx, pos, b)
 		s.MarkDirty()
 	}
-	return k, bucketMB
+	return k, machine.BucketMB
 }
 
 var _ fluidnet.Holder = Barrel{}

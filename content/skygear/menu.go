@@ -3,6 +3,7 @@ package skygear
 import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -124,5 +125,5 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	progress.Advance(s.Session, tx, advancement.Stats)
-	s.showStats(p, statsItems)
+	machine.ShowStats(s.Session, p, machine.StatsItems)
 }

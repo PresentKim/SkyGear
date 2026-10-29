@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/network"
 
@@ -31,52 +33,52 @@ import (
 var machinePos = cube.Pos{3, island.IslandY, 3}
 
 // placeTestMachine places a machine and returns its state.
-func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineState {
-	m := newMachine(kind, owner, owner)
+func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machine.MachineState {
+	m := machine.NewMachine(kind, owner, owner)
 	// These tests are about the work itself, not about energy (energy_test.go).
-	m.st.unlimited = true
-	if isSieve(kind) {
+	m.State.Unlimited = true
+	if machine.IsSieve(kind) {
 		// The tests sift with the string mesh fitted.
-		m.st.mesh = "string"
+		m.State.Mesh = "string"
 	}
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
-	return m.st
+	return m.State
 }
 
 func TestMachineIDsDistinct(t *testing.T) {
-	seen := map[machineID]string{}
-	for kind, k := range machineKinds {
-		if k.id == 0 {
+	seen := map[machine.MachineID]string{}
+	for kind, k := range machine.MachineKinds {
+		if k.Id == 0 {
 			t.Errorf("%s has no id", kind)
 		}
-		if other, ok := seen[k.id]; ok {
-			t.Errorf("%s and %s share id %d", kind, other, k.id)
+		if other, ok := seen[k.Id]; ok {
+			t.Errorf("%s and %s share id %d", kind, other, k.Id)
 		}
-		seen[k.id] = kind
+		seen[k.Id] = kind
 	}
 }
 
 func TestCrusher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	if st.insert(item.NewStack(block.Dirt{}, 1)) {
+	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	if st.Insert(item.NewStack(block.Dirt{}, 1)) {
 		t.Fatal("crusher took dirt")
 	}
 	for range 2 {
-		if !st.insert(item.NewStack(block.Cobblestone{}, 5)) {
+		if !st.Insert(item.NewStack(block.Cobblestone{}, 5)) {
 			t.Fatal("crusher refused cobblestone")
 		}
 	}
-	tick(s, machineKinds[KindCrusher].interval+1)
-	if n := outputCount(st, block.Gravel{}); n != 1 {
+	tick(s, machine.MachineKinds[machine.KindCrusher].Interval+1)
+	if n := machine.OutputCount(st, block.Gravel{}); n != 1 {
 		t.Fatalf("gravel after one interval = %d", n)
 	}
-	tick(s, machineKinds[KindCrusher].interval+1)
-	if n := outputCount(st, block.Gravel{}); n != 2 {
+	tick(s, machine.MachineKinds[machine.KindCrusher].Interval+1)
+	if n := machine.OutputCount(st, block.Gravel{}); n != 2 {
 		t.Fatalf("gravel after two intervals = %d", n)
 	}
-	if _, _, ok := st.firstInput(); ok {
+	if _, _, ok := st.FirstInput(); ok {
 		t.Fatal("input not consumed")
 	}
 }
@@ -87,21 +89,21 @@ func TestCrusher(t *testing.T) {
 func TestAutoSieveKeepsProductsAndStopsWhenFull(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
-	if len(st.kind.output) != 4 {
-		t.Fatalf("%d output slots, want 4", len(st.kind.output))
+	st := placeTestMachine(s, machinePos, machine.KindAutoSieve, "")
+	if len(st.Def.Output) != 4 {
+		t.Fatalf("%d output slots, want 4", len(st.Def.Output))
 	}
 	// gravel gives many kinds (ATM10 table): it sifts until its four slots
 	// hold four kinds, so a hopper or conduit must carry them away
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 64))
-	tick(s, 64*(st.kind.interval+1))
-	left, _ := st.inv().Item(st.kind.input[0])
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(block.Gravel{}, 64))
+	tick(s, 64*(st.Def.Interval+1))
+	left, _ := st.Inv().Item(st.Def.Input[0])
 	if left.Count() == 64 {
 		t.Fatal("the auto sieve sifted no gravel")
 	}
 	products := 0
-	for _, slot := range st.kind.output {
-		if it, _ := st.inv().Item(slot); !it.Empty() {
+	for _, slot := range st.Def.Output {
+		if it, _ := st.Inv().Item(slot); !it.Empty() {
 			products += it.Count()
 		}
 	}
@@ -109,12 +111,12 @@ func TestAutoSieveKeepsProductsAndStopsWhenFull(t *testing.T) {
 		t.Fatal("no products in the output slots")
 	}
 	// every output slot full of something it cannot stack with: it stops
-	for i, slot := range st.kind.output {
-		_ = st.inv().SetItem(slot, item.NewStack(block.Dirt{}, 64).WithValue("fill", i))
+	for i, slot := range st.Def.Output {
+		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64).WithValue("fill", i))
 	}
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 5))
-	tick(s, 5*(st.kind.interval+1))
-	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 5 {
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(block.Gravel{}, 5))
+	tick(s, 5*(st.Def.Interval+1))
+	if left, _ := st.Inv().Item(st.Def.Input[0]); left.Count() != 5 {
 		t.Fatalf("a full auto sieve sifted: %v left", left)
 	}
 }
@@ -122,10 +124,10 @@ func TestAutoSieveKeepsProductsAndStopsWhenFull(t *testing.T) {
 func TestHandSieveDoesNotSiftAlone(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindSieve, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 1))
-	tick(s, 3*(st.kind.interval+1))
-	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 1 {
+	st := placeTestMachine(s, machinePos, machine.KindSieve, "")
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(block.Gravel{}, 1))
+	tick(s, 3*(st.Def.Interval+1))
+	if left, _ := st.Inv().Item(st.Def.Input[0]); left.Count() != 1 {
 		t.Fatalf("hand sieve sifted alone: %v left", left)
 	}
 }
@@ -141,13 +143,13 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 		tx.SetBlock(below, block.Stone{}, nil)
 		tx.SetBlock(above, block.NewChest(), nil)
 	})
-	st := placeTestMachine(s, machinePos, KindMiner, "")
-	tick(s, machineKinds[KindMiner].interval+10)
+	st := placeTestMachine(s, machinePos, machine.KindMiner, "")
+	tick(s, machine.MachineKinds[machine.KindMiner].Interval+10)
 	s.World.Do(func(tx *world.Tx) {
 		if _, air := tx.Block(below).(block.Air); !air {
 			t.Fatalf("stone not mined: %v", tx.Block(below))
 		}
-		if outputCount(st, block.Cobblestone{}) != 1 {
+		if machine.OutputCount(st, block.Cobblestone{}) != 1 {
 			t.Fatal("cobblestone not in the output slot")
 		}
 		chest := tx.Block(above).(block.Chest)
@@ -157,7 +159,7 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 		// Special blocks are never mined.
 		tx.SetBlock(below, Drawer{Facing: cube.South}, nil)
 	})
-	tick(s, 2*machineKinds[KindMiner].interval)
+	tick(s, 2*machine.MachineKinds[machine.KindMiner].Interval)
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(below).(Drawer); !ok {
 			t.Fatal("auto miner mined a drawer")
@@ -166,9 +168,9 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 }
 
 func TestMachineWindowAndNBT(t *testing.T) {
-	m := newMachine(KindCrusher, "a", "A")
-	st := m.st
-	h := st.inv().Handler()
+	m := machine.NewMachine(machine.KindCrusher, "a", "A")
+	st := m.State
+	h := st.Inv().Handler()
 	for _, c := range []struct {
 		name   string
 		f      func(*inventory.Context, int, item.Stack)
@@ -180,7 +182,7 @@ func TestMachineWindowAndNBT(t *testing.T) {
 		{"place dirt in input", h.HandlePlace, 11, item.NewStack(block.Dirt{}, 1), true},
 		{"place in output", h.HandlePlace, 15, item.NewStack(block.Cobblestone{}, 1), true},
 		{"take output", h.HandleTake, 15, item.NewStack(block.Gravel{}, 1), false},
-		{"take filler", h.HandleTake, 0, filler(), true},
+		{"take filler", h.HandleTake, 0, machine.Filler(), true},
 		{"take indicator", h.HandleTake, 13, item.Stack{}, true},
 	} {
 		ctx := event.C(inventory.Holder(nil))
@@ -190,18 +192,18 @@ func TestMachineWindowAndNBT(t *testing.T) {
 		}
 	}
 
-	_ = st.inv().SetItem(11, item.NewStack(block.Cobblestone{}, 7))
-	_ = st.inv().SetItem(15, item.NewStack(block.Gravel{}, 3))
-	st.progress = 40
-	back := Machine{Kind: KindCrusher}.DecodeNBT(m.EncodeNBT()).(Machine)
-	if in, _ := back.st.inv().Item(11); in.Count() != 7 {
+	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 7))
+	_ = st.Inv().SetItem(15, item.NewStack(block.Gravel{}, 3))
+	st.Progress = 40
+	back := machine.Machine{Kind: machine.KindCrusher}.DecodeNBT(m.EncodeNBT()).(machine.Machine)
+	if in, _ := back.State.Inv().Item(11); in.Count() != 7 {
 		t.Fatalf("input after NBT = %v", in)
 	}
-	if out, _ := back.st.inv().Item(15); out.Count() != 3 {
+	if out, _ := back.State.Inv().Item(15); out.Count() != 3 {
 		t.Fatalf("output after NBT = %v", out)
 	}
-	if back.st.progress != 40 || back.st.owner != "a" {
-		t.Fatalf("state after NBT = %d %q", back.st.progress, back.st.owner)
+	if back.State.Progress != 40 || back.State.Owner != "a" {
+		t.Fatalf("state after NBT = %d %q", back.State.Progress, back.State.Owner)
 	}
 	if drops := back.BreakInfo().Drops(nil, nil); len(drops) != 3 {
 		t.Fatalf("drops = %v, want machine + input + output", drops)
@@ -215,9 +217,9 @@ func TestMineable(t *testing.T) {
 	}{
 		{block.Stone{}, true}, {block.Log{Wood: block.OakWood()}, true}, {block.CoalOre{}, true},
 		{block.Air{}, false}, {block.Bedrock{}, false},
-		{Machine{Kind: KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
+		{machine.Machine{Kind: machine.KindCrusher}, false}, {Drawer{}, false}, {block.NewChest(), false},
 	} {
-		if _, got := mineable(c.b); got != c.want {
+		if _, got := machine.Mineable(c.b); got != c.want {
 			t.Errorf("mineable(%T) = %v, want %v", c.b, got, c.want)
 		}
 	}
@@ -244,8 +246,8 @@ func TestHandsFreeLine(t *testing.T) {
 		c.Modes[cube.FaceEast] = itemnet.Output
 		tx.SetBlock(conduitPos, c, nil)
 	})
-	placeTestMachine(s, minerPos, KindMiner, "")
-	placeTestMachine(s, crusherPos, KindCrusher, "")
+	placeTestMachine(s, minerPos, machine.KindMiner, "")
+	placeTestMachine(s, crusherPos, machine.KindCrusher, "")
 	runSteps(s, 120)
 	s.World.Do(func(tx *world.Tx) {
 		inv := tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos)
@@ -260,7 +262,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{Machine{Kind: KindCrusher}, Drawer{}, Barrel{}} {
+	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, Drawer{}, Barrel{}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {
@@ -308,18 +310,18 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 func TestMinerLegacySlots(t *testing.T) {
 	old := item.WriteNBT(item.NewStack(block.Cobblestone{}, 5), true)
 	old["Slot"] = byte(14)
-	m := Machine{Kind: KindMiner}.DecodeNBT(map[string]any{"Items": []any{old}}).(Machine)
-	if len(m.st.legacy) != 1 {
-		t.Fatalf("legacy %v, want the slot 14 stack", m.st.legacy)
+	m := machine.Machine{Kind: machine.KindMiner}.DecodeNBT(map[string]any{"Items": []any{old}}).(machine.Machine)
+	if len(m.State.Legacy) != 1 {
+		t.Fatalf("legacy %v, want the slot 14 stack", m.State.Legacy)
 	}
 	saved := m.EncodeNBT()["Items"].([]any)
-	again := Machine{Kind: KindMiner}.DecodeNBT(map[string]any{"Items": saved}).(Machine)
-	if len(again.st.legacy) != 1 {
-		t.Fatalf("legacy after a save %v", again.st.legacy)
+	again := machine.Machine{Kind: machine.KindMiner}.DecodeNBT(map[string]any{"Items": saved}).(machine.Machine)
+	if len(again.State.Legacy) != 1 {
+		t.Fatalf("legacy after a save %v", again.State.Legacy)
 	}
-	again.st.drainLegacy()
-	if it, _ := again.st.inv().Item(13); it.Count() != 5 || len(again.st.legacy) != 0 {
-		t.Errorf("output %v legacy %v, want the stack moved into slot 13", it, again.st.legacy)
+	again.State.DrainLegacy()
+	if it, _ := again.State.Inv().Item(13); it.Count() != 5 || len(again.State.Legacy) != 0 {
+		t.Errorf("output %v legacy %v, want the stack moved into slot 13", it, again.State.Legacy)
 	}
 }
 
@@ -329,15 +331,15 @@ func TestMinerLegacySlots(t *testing.T) {
 func TestHopperFillsHandSieve(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindSieve, "")
-	st.mesh = ""
-	m := Machine{Kind: KindSieve, st: st}
+	st := placeTestMachine(s, machinePos, machine.KindSieve, "")
+	st.Mesh = ""
+	m := machine.Machine{Kind: machine.KindSieve, State: st}
 	gravel := item.NewStack(block.Gravel{}, 5)
 	s.World.Do(func(tx *world.Tx) {
 		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 0 {
 			t.Errorf("a sieve without a mesh took %d", n)
 		}
-		st.mesh = "string"
+		st.Mesh = "string"
 		if n := m.InsertItems(tx, machinePos, cube.FaceUp, gravel); n != 1 {
 			t.Errorf("hand sieve took %d, want 1", n)
 		}
@@ -355,13 +357,13 @@ func TestHopperFillsHandSieve(t *testing.T) {
 func TestRingGaugesInTheWindows(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	for _, kind := range []string{KindGenerator, KindMiner, KindHarvester} {
+	for _, kind := range []string{machine.KindGenerator, machine.KindMiner, machine.KindHarvester} {
 		st := placeTestMachine(s, machinePos.Add(cube.Pos{3 * len(kind) % 7, 0, 0}), kind, "")
-		st.progress = st.kind.interval / 2
-		st.shownPct = -1
-		st.showProgress()
-		got, _ := st.inv().Item(st.kind.indicator)
-		if _, ok := got.Item().(CycleGauge); !ok {
+		st.Progress = st.Def.Interval / 2
+		st.ShownPct = -1
+		st.ShowProgress()
+		got, _ := st.Inv().Item(st.Def.Indicator)
+		if _, ok := got.Item().(machine.CycleGauge); !ok {
 			t.Errorf("%s shows %T, want a ring gauge", kind, got.Item())
 		}
 	}
@@ -372,21 +374,21 @@ func TestRingGaugesInTheWindows(t *testing.T) {
 func TestEnergyGauge(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	for _, kind := range []string{KindGenerator, KindCrusher, KindMiner, KindHarvester} {
+	for _, kind := range []string{machine.KindGenerator, machine.KindCrusher, machine.KindMiner, machine.KindHarvester} {
 		st := placeTestMachine(s, machinePos.Add(cube.Pos{3 * len(kind) % 7, 0, 0}), kind, "")
-		st.unlimited = false
-		st.energy = st.kind.energyCap / 2
-		st.showEnergy()
-		got, _ := st.inv().Item(energyGaugeSlot)
-		g, ok := got.Item().(EnergyGauge)
+		st.Unlimited = false
+		st.Energy = st.Def.EnergyCap / 2
+		st.ShowEnergy()
+		got, _ := st.Inv().Item(machine.EnergyGaugeSlot)
+		g, ok := got.Item().(machine.EnergyGauge)
 		if !ok || g.Step != 5 {
-			t.Fatalf("%s: slot %d holds %v", kind, energyGaugeSlot, got)
+			t.Fatalf("%s: slot %d holds %v", kind, machine.EnergyGaugeSlot, got)
 		}
-		want := fmt.Sprintf("%d", st.energy)
-		if name := got.CustomName(); !strings.Contains(name, want) || !strings.Contains(name, fmt.Sprint(st.kind.energyCap)) {
-			t.Errorf("%s: hover name %q lacks %s and %d", kind, name, want, st.kind.energyCap)
+		want := fmt.Sprintf("%d", st.Energy)
+		if name := got.CustomName(); !strings.Contains(name, want) || !strings.Contains(name, fmt.Sprint(st.Def.EnergyCap)) {
+			t.Errorf("%s: hover name %q lacks %s and %d", kind, name, want, st.Def.EnergyCap)
 		}
-		if role := st.role(energyGaugeSlot); role != roleNone {
+		if role := st.Role(machine.EnergyGaugeSlot); role != machine.RoleNone {
 			t.Errorf("%s: the gauge slot is a %v slot", kind, role)
 		}
 	}
@@ -398,18 +400,18 @@ func TestEnergyGauge(t *testing.T) {
 func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindAutoSieve, "")
-	st.mesh = "iron"
+	st := placeTestMachine(s, machinePos, machine.KindAutoSieve, "")
+	st.Mesh = "iron"
 	kinds := map[string]bool{}
-	for _, d := range sievetable.Tables[st.mesh][naming.ItemKey(block.Gravel{})] {
+	for _, d := range sievetable.Tables[st.Mesh][naming.ItemKey(block.Gravel{})] {
 		kinds[naming.ItemKey(d.Item.Item())] = true
 	}
-	if len(kinds) <= len(st.kind.output) {
+	if len(kinds) <= len(st.Def.Output) {
 		t.Skipf("only %d kinds of products", len(kinds))
 	}
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.Gravel{}, 16))
-	tick(s, 16*(st.kind.interval+1))
-	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() == 16 {
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(block.Gravel{}, 16))
+	tick(s, 16*(st.Def.Interval+1))
+	if left, _ := st.Inv().Item(st.Def.Input[0]); left.Count() == 16 {
 		t.Fatal("the auto sieve never started")
 	}
 }
@@ -420,14 +422,14 @@ func TestAutoSieveWithManyPossibleDrops(t *testing.T) {
 func TestCrusherOre(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	if st.accepts(item.NewStack(sgitem.OreChunk{Ore: sgitem.OreIron}, 1)) {
+	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	if st.Accepts(item.NewStack(sgitem.OreChunk{Ore: sgitem.OreIron}, 1)) {
 		t.Fatal("the crusher takes ore chunks")
 	}
-	if out, _ := crusherOutput(item.NewStack(sgitem.OreBlock{Metal: sgitem.MetalTin}, 1)); out.Count() != sgitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(sgitem.RawOre{Metal: sgitem.MetalTin}) {
+	if out, _ := machine.CrusherOutput(item.NewStack(sgitem.OreBlock{Metal: sgitem.MetalTin}, 1)); out.Count() != sgitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(sgitem.RawOre{Metal: sgitem.MetalTin}) {
 		t.Fatalf("a tin ore crushes into %v", out)
 	}
-	if out, _ := crusherOutput(item.NewStack(block.IronOre{}, 1)); out.Count() != sgitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(item.RawIron{}) {
+	if out, _ := machine.CrusherOutput(item.NewStack(block.IronOre{}, 1)); out.Count() != sgitem.CrusherRaw || naming.ItemKey(out.Item()) != naming.ItemKey(item.RawIron{}) {
 		t.Fatalf("an iron ore crushes into %v", out)
 	}
 	// the bonus: 400 ores × 2 rolls at 50 % ≈ 400 more
@@ -444,7 +446,7 @@ func TestCrusherOre(t *testing.T) {
 		if info := (sgitem.MetalDust{Metal: m}).SmeltInfo(); info.Product.Empty() || naming.ItemKey(info.Product.Item()) != naming.ItemKey(sgitem.IngotOf(m)) {
 			t.Errorf("%s dust smelts into %v", m, info.Product.Item())
 		}
-		if got, ok := smeltOf(item.NewStack(sgitem.RawOf(m), 1)); !ok || naming.ItemKey(got.Item()) != naming.ItemKey(sgitem.IngotOf(m)) {
+		if got, ok := machine.SmeltOf(item.NewStack(sgitem.RawOf(m), 1)); !ok || naming.ItemKey(got.Item()) != naming.ItemKey(sgitem.IngotOf(m)) {
 			t.Errorf("raw %s smelts into %v", m, got)
 		}
 	}
@@ -454,10 +456,10 @@ func TestCrusherOre(t *testing.T) {
 func TestCrusherBonusRolls(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindCrusher, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(block.IronOre{}, 1))
-	tick(s, st.kind.interval+2)
-	if n := outputCount(st, item.RawIron{}); n < sgitem.CrusherRaw || n > sgitem.CrusherRaw+sgitem.CrusherBonus {
+	st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(block.IronOre{}, 1))
+	tick(s, st.Def.Interval+2)
+	if n := machine.OutputCount(st, item.RawIron{}); n < sgitem.CrusherRaw || n > sgitem.CrusherRaw+sgitem.CrusherBonus {
 		t.Fatalf("raw iron from one ore = %d, want 3 to 5", n)
 	}
 }
@@ -467,21 +469,21 @@ func TestCrusherBonusRolls(t *testing.T) {
 func TestAlloySmelter(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindAlloy, "")
-	a, b := st.kind.input[0], st.kind.input[1]
+	st := placeTestMachine(s, machinePos, machine.KindAlloy, "")
+	a, b := st.Def.Input[0], st.Def.Input[1]
 	// copper in the second slot, tin in the first: bronze, whichever way round
-	_ = st.inv().SetItem(a, item.NewStack(sgitem.Ingot{Metal: sgitem.MetalTin}, 2))
-	_ = st.inv().SetItem(b, item.NewStack(item.CopperIngot{}, 6))
-	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, sgitem.Ingot{Metal: sgitem.MetalBronze}); n != 8 {
+	_ = st.Inv().SetItem(a, item.NewStack(sgitem.Ingot{Metal: sgitem.MetalTin}, 2))
+	_ = st.Inv().SetItem(b, item.NewStack(item.CopperIngot{}, 6))
+	tick(s, 2*(st.Def.Interval+1))
+	if n := machine.OutputCount(st, sgitem.Ingot{Metal: sgitem.MetalBronze}); n != 8 {
 		t.Fatalf("bronze from 6 copper and 2 tin = %d, want 8", n)
 	}
 	// steel: one iron and four coal
-	st2 := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), KindAlloy, "")
-	_ = st2.inv().SetItem(a, item.NewStack(item.IronIngot{}, 1))
-	_ = st2.inv().SetItem(b, item.NewStack(item.Coal{}, 3))
-	tick(s, st2.kind.interval+2)
-	if n := outputCount(st2, sgitem.Ingot{Metal: sgitem.MetalSteel}); n != 0 {
+	st2 := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindAlloy, "")
+	_ = st2.Inv().SetItem(a, item.NewStack(item.IronIngot{}, 1))
+	_ = st2.Inv().SetItem(b, item.NewStack(item.Coal{}, 3))
+	tick(s, st2.Def.Interval+2)
+	if n := machine.OutputCount(st2, sgitem.Ingot{Metal: sgitem.MetalSteel}); n != 0 {
 		t.Fatalf("steel from three coal = %d", n)
 	}
 	if !machinerecipe.AlloyAccepts(item.NewStack(item.Coal{}, 1)) || machinerecipe.AlloyAccepts(item.NewStack(block.Dirt{}, 1)) {
@@ -494,9 +496,9 @@ func TestAlloySmelter(t *testing.T) {
 func TestEnergyCell(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindEnergyCell, "")
-	st.unlimited = false
-	m := Machine{Kind: KindEnergyCell, st: st}
+	st := placeTestMachine(s, machinePos, machine.KindEnergyCell, "")
+	st.Unlimited = false
+	m := machine.Machine{Kind: machine.KindEnergyCell, State: st}
 	src, snk := energy.RolesOf(m)
 	if src == nil || snk == nil {
 		t.Fatal("a cell is not both a source and a sink")
@@ -504,11 +506,11 @@ func TestEnergyCell(t *testing.T) {
 	if got := m.ReceiveEnergy(nil, cube.Pos{}, cube.FaceUp, 500, false); got != 500 {
 		t.Fatalf("received %d of 500", got)
 	}
-	if got := m.ReceiveEnergy(nil, cube.Pos{}, cube.FaceUp, 1<<30, false); got != cellCapacity-500 {
+	if got := m.ReceiveEnergy(nil, cube.Pos{}, cube.FaceUp, 1<<30, false); got != machine.CellCapacity-500 {
 		t.Errorf("a cell took %d past its capacity", got)
 	}
-	if got := m.ExtractEnergy(nil, cube.Pos{}, cube.FaceUp, 200, false); got != 200 || st.energy != cellCapacity-200 {
-		t.Errorf("gave %d, holds %d", got, st.energy)
+	if got := m.ExtractEnergy(nil, cube.Pos{}, cube.FaceUp, 200, false); got != 200 || st.Energy != machine.CellCapacity-200 {
+		t.Errorf("gave %d, holds %d", got, st.Energy)
 	}
 }
 
@@ -518,22 +520,22 @@ func TestEnergyCell(t *testing.T) {
 func TestMobSimulator(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindSimulator, "")
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(sgitem.Essence{Mob: sgitem.MobZombie}, 2))
-	tick(s, (st.kind.interval+1)*3)
-	if st.mob != sgitem.MobZombie || st.charges != sgitem.SimCharges-3 {
-		t.Fatalf("mob %q charges %d after three runs", st.mob, st.charges)
+	st := placeTestMachine(s, machinePos, machine.KindSimulator, "")
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(sgitem.Essence{Mob: sgitem.MobZombie}, 2))
+	tick(s, (st.Def.Interval+1)*3)
+	if st.Mob != sgitem.MobZombie || st.Charges != sgitem.SimCharges-3 {
+		t.Fatalf("mob %q charges %d after three runs", st.Mob, st.Charges)
 	}
-	if n := outputCount(st, item.RottenFlesh{}); n < 3 {
+	if n := machine.OutputCount(st, item.RottenFlesh{}); n < 3 {
 		t.Errorf("rotten flesh after three runs = %d", n)
 	}
-	if left, _ := st.inv().Item(st.kind.input[0]); left.Count() != 1 {
+	if left, _ := st.Inv().Item(st.Def.Input[0]); left.Count() != 1 {
 		t.Errorf("essence left: %v", left)
 	}
-	m := Machine{Kind: KindSimulator, st: st}
-	back := m.DecodeNBT(m.EncodeNBT()).(Machine)
-	if back.st.mob != sgitem.MobZombie || back.st.charges != st.charges {
-		t.Errorf("NBT round trip: %q %d", back.st.mob, back.st.charges)
+	m := machine.Machine{Kind: machine.KindSimulator, State: st}
+	back := m.DecodeNBT(m.EncodeNBT()).(machine.Machine)
+	if back.State.Mob != sgitem.MobZombie || back.State.Charges != st.Charges {
+		t.Errorf("NBT round trip: %q %d", back.State.Mob, back.State.Charges)
 	}
 	for _, mob := range sgitem.MobKinds {
 		if len(sgitem.SimDrops[mob]) == 0 {
@@ -550,37 +552,37 @@ func TestMobSimulator(t *testing.T) {
 func TestFluidLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	crucible := placeTestMachine(s, machinePos, KindCrucible, "")
-	gen := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), KindLavaGenerator, "")
-	gen.unlimited = false
-	_ = crucible.inv().SetItem(crucible.kind.input[0], item.NewStack(block.Cobblestone{}, 4))
-	tick(s, 4*(crucible.kind.interval+1))
-	if crucible.fluid != fluidnet.Lava || crucible.fluidAmt != 4*crucibleLava {
-		t.Fatalf("crucible holds %v %d, want %d lava", crucible.fluid, crucible.fluidAmt, 4*crucibleLava)
+	crucible := placeTestMachine(s, machinePos, machine.KindCrucible, "")
+	gen := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindLavaGenerator, "")
+	gen.Unlimited = false
+	_ = crucible.Inv().SetItem(crucible.Def.Input[0], item.NewStack(block.Cobblestone{}, 4))
+	tick(s, 4*(crucible.Def.Interval+1))
+	if crucible.Fluid != fluidnet.Lava || crucible.FluidAmt != 4*machine.CrucibleLava {
+		t.Fatalf("crucible holds %v %d, want %d lava", crucible.Fluid, crucible.FluidAmt, 4*machine.CrucibleLava)
 	}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Fluid: 1}, nil)
 		network.Fluids(s.Session).AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
-		if moved := network.Fluids(s.Session).Step(tx); moved != 4*crucibleLava {
-			t.Errorf("moved %d, want %d", moved, 4*crucibleLava)
+		if moved := network.Fluids(s.Session).Step(tx); moved != 4*machine.CrucibleLava {
+			t.Errorf("moved %d, want %d", moved, 4*machine.CrucibleLava)
 		}
 	})
-	if gen.fluid != fluidnet.Lava || gen.fluidAmt != 4*crucibleLava || crucible.fluidAmt != 0 {
-		t.Fatalf("generator %v %d, crucible %d", gen.fluid, gen.fluidAmt, crucible.fluidAmt)
+	if gen.Fluid != fluidnet.Lava || gen.FluidAmt != 4*machine.CrucibleLava || crucible.FluidAmt != 0 {
+		t.Fatalf("generator %v %d, crucible %d", gen.Fluid, gen.FluidAmt, crucible.FluidAmt)
 	}
 	tick(s, 20)
-	if gen.energy != 20*lavaGenOutput {
-		t.Errorf("energy %d after 20 ticks, want %d", gen.energy, 20*lavaGenOutput)
+	if gen.Energy != 20*machine.LavaGenOutput {
+		t.Errorf("energy %d after 20 ticks, want %d", gen.Energy, 20*machine.LavaGenOutput)
 	}
-	if gen.fluidAmt != 4*crucibleLava-10 {
-		t.Errorf("lava %d, want %d (one mB every %d ticks)", gen.fluidAmt, 4*crucibleLava-10, lavaGenBurn)
+	if gen.FluidAmt != 4*machine.CrucibleLava-10 {
+		t.Errorf("lava %d, want %d (one mB every %d ticks)", gen.FluidAmt, 4*machine.CrucibleLava-10, machine.LavaGenBurn)
 	}
 	// the generator takes no water, the tank takes both
-	m := Machine{Kind: KindLavaGenerator, st: gen}
+	m := machine.Machine{Kind: machine.KindLavaGenerator, State: gen}
 	if m.FillFluid(nil, cube.Pos{}, fluidnet.Water, 100, true) != 0 {
 		t.Error("a lava generator takes water")
 	}
-	tank := Machine{Kind: KindTank, st: placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 2}), KindTank, "")}
+	tank := machine.Machine{Kind: machine.KindTank, State: placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 2}), machine.KindTank, "")}
 	if tank.FillFluid(nil, cube.Pos{}, fluidnet.Water, 100, false) != 100 || tank.FillFluid(nil, cube.Pos{}, fluidnet.Lava, 100, true) != 0 {
 		t.Error("a tank mixes fluids")
 	}
@@ -591,22 +593,22 @@ func TestFluidLine(t *testing.T) {
 func TestOreWasher(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindWasher, "")
-	if st.accepts(item.NewStack(block.IronOre{}, 1)) || st.accepts(item.NewStack(sgitem.OreChunk{Ore: sgitem.OreIron}, 1)) {
+	st := placeTestMachine(s, machinePos, machine.KindWasher, "")
+	if st.Accepts(item.NewStack(block.IronOre{}, 1)) || st.Accepts(item.NewStack(sgitem.OreChunk{Ore: sgitem.OreIron}, 1)) {
 		t.Fatal("the washer takes ore blocks or chunks")
 	}
-	_ = st.inv().SetItem(st.kind.input[0], item.NewStack(sgitem.RawOre{Metal: sgitem.MetalLead}, 2))
-	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, sgitem.MetalDust{Metal: sgitem.MetalLead}); n != 0 {
+	_ = st.Inv().SetItem(st.Def.Input[0], item.NewStack(sgitem.RawOre{Metal: sgitem.MetalLead}, 2))
+	tick(s, 2*(st.Def.Interval+1))
+	if n := machine.OutputCount(st, sgitem.MetalDust{Metal: sgitem.MetalLead}); n != 0 {
 		t.Fatalf("dust without water = %d", n)
 	}
-	st.fluid, st.fluidAmt = fluidnet.Water, 500
-	tick(s, 2*(st.kind.interval+1))
-	if n := outputCount(st, sgitem.MetalDust{Metal: sgitem.MetalLead}); n != 4 {
+	st.Fluid, st.FluidAmt = fluidnet.Water, 500
+	tick(s, 2*(st.Def.Interval+1))
+	if n := machine.OutputCount(st, sgitem.MetalDust{Metal: sgitem.MetalLead}); n != 4 {
 		t.Errorf("dust from two raw ores = %d, want 4", n)
 	}
-	if st.fluidAmt != 0 || st.fluid != fluidnet.None {
-		t.Errorf("tank %v %d", st.fluid, st.fluidAmt)
+	if st.FluidAmt != 0 || st.Fluid != fluidnet.None {
+		t.Errorf("tank %v %d", st.Fluid, st.FluidAmt)
 	}
 }
 
@@ -616,47 +618,47 @@ func TestTankBuckets(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := placeTestMachine(s, machinePos, KindTank, "")
+	st := placeTestMachine(s, machinePos, machine.KindTank, "")
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		m := tx.Block(machinePos).(Machine)
+		m := tx.Block(machinePos).(machine.Machine)
 		use := func(held item.Stack) {
 			p.SetHeldItems(held, item.Stack{})
-			s.useFluidMachine(p, tx, machinePos, m, held, &item.UseContext{})
+			machine.UseFluidMachine(s.Session, p, tx, machinePos, m, held, &item.UseContext{})
 		}
-		use(bucketOf(fluidnet.Lava))
-		if st.fluid != fluidnet.Lava || st.fluidAmt != bucketMB {
-			t.Fatalf("tank %v %d after a bucket of lava", st.fluid, st.fluidAmt)
+		use(machine.BucketOf(fluidnet.Lava))
+		if st.Fluid != fluidnet.Lava || st.FluidAmt != machine.BucketMB {
+			t.Fatalf("tank %v %d after a bucket of lava", st.Fluid, st.FluidAmt)
 		}
 		if held, _ := p.HeldItems(); !held.Item().(item.Bucket).Empty() {
 			t.Errorf("the bucket stayed full: %v", held)
 		}
-		use(bucketOf(fluidnet.Water))
-		if st.fluid != fluidnet.Lava || st.fluidAmt != bucketMB {
-			t.Errorf("the tank took water into lava: %v %d", st.fluid, st.fluidAmt)
+		use(machine.BucketOf(fluidnet.Water))
+		if st.Fluid != fluidnet.Lava || st.FluidAmt != machine.BucketMB {
+			t.Errorf("the tank took water into lava: %v %d", st.Fluid, st.FluidAmt)
 		}
 		use(item.NewStack(item.Bucket{}, 1))
-		if st.fluidAmt != 0 {
-			t.Errorf("tank still has %d", st.fluidAmt)
+		if st.FluidAmt != 0 {
+			t.Errorf("tank still has %d", st.FluidAmt)
 		}
-		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
+		if held, _ := p.HeldItems(); machine.FluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
 			t.Errorf("did not get a bucket of lava: %v", held)
 		}
 	})
 }
 
 func TestMachineFillTakesOnlyWhatFits(t *testing.T) {
-	st := newMachine(KindCrusher, "", "").st
-	in := st.kind.input[0]
-	if n := st.fill(item.NewStack(item.Stick{}, 5)); n != 0 {
+	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	in := st.Def.Input[0]
+	if n := st.Fill(item.NewStack(item.Stick{}, 5)); n != 0 {
 		t.Errorf("filled %d sticks the crusher does not take", n)
 	}
-	if n := st.fill(item.NewStack(block.Cobblestone{}, 50)); n != 50 {
+	if n := st.Fill(item.NewStack(block.Cobblestone{}, 50)); n != 50 {
 		t.Errorf("filled %d of 50 cobblestone", n)
 	}
-	if n := st.fill(item.NewStack(block.Cobblestone{}, 30)); n != 14 {
+	if n := st.Fill(item.NewStack(block.Cobblestone{}, 30)); n != 14 {
 		t.Errorf("filled %d cobblestone onto 50, want 14", n)
 	}
-	if got, _ := st.inv().Item(in); got.Count() != 64 {
+	if got, _ := st.Inv().Item(in); got.Count() != 64 {
 		t.Errorf("input holds %v", got)
 	}
 }
@@ -665,14 +667,14 @@ func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	st := newMachine(KindCrusher, "", "").st
-	out, in := st.kind.output[0], st.kind.input[0]
+	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	out, in := st.Def.Output[0], st.Def.Input[0]
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_ = p.Inventory().SetItem(0, item.NewStack(block.Cobblestone{}, 20))
 		_ = p.Inventory().SetItem(1, item.NewStack(item.Stick{}, 5))
 		for _, it := range []item.Stack{item.NewStack(block.Cobblestone{}, 20), item.NewStack(item.Stick{}, 5)} {
 			ctx := event.C(inventory.Holder(p))
-			st.inv().Handler().HandlePlace(ctx, out, it)
+			st.Inv().Handler().HandlePlace(ctx, out, it)
 			if !ctx.Cancelled() {
 				t.Errorf("%v was placed on the output", it)
 			}
@@ -680,7 +682,7 @@ func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 	})
 	<-h.Do(func(*world.Tx, world.Entity) {}).Done()
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if got, _ := st.inv().Item(in); got.Count() != 20 {
+		if got, _ := st.Inv().Item(in); got.Count() != 20 {
 			t.Errorf("input holds %v, want the 20 cobblestone", got)
 		}
 		if p.Inventory().ContainsItem(item.NewStack(block.Cobblestone{}, 1)) {
@@ -695,15 +697,15 @@ func TestQuickMoveIntoMachineGoesToInput(t *testing.T) {
 // TestMachineInfoWarnsWhenStalled: the info icon of a machine window carries
 // the warning badge mark while the machine is stuck, and not otherwise.
 func TestMachineInfoWarnsWhenStalled(t *testing.T) {
-	st := newMachine(KindCrusher, "", "").st
-	if _, tier := slotdeco.Of(st.infoItem().CustomName()); tier != 0 {
+	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	if _, tier := slotdeco.Of(st.InfoItem().CustomName()); tier != 0 {
 		t.Errorf("a working machine shows badge %d", tier)
 	}
-	st.stuck = stuckOutput
-	if _, tier := slotdeco.Of(st.infoItem().CustomName()); tier != slotdeco.BadgeWarn {
+	st.Stuck = machine.StuckOutput
+	if _, tier := slotdeco.Of(st.InfoItem().CustomName()); tier != slotdeco.BadgeWarn {
 		t.Errorf("a stuck machine shows badge %d, want the warning", tier)
 	}
-	if !st.shownStuck {
+	if !st.ShownStuck {
 		t.Error("the window state was not recorded")
 	}
 }

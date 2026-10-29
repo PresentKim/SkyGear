@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -86,12 +88,12 @@ func TestSnowRunsMachinesFaster(t *testing.T) {
 		if snow {
 			cast(t, s, weatherSnow)
 		}
-		st := placeTestMachine(s, machinePos, KindCrusher, "")
-		st.unlimited = false
-		st.energy = 1000
-		st.insert(item.NewStack(block.Cobblestone{}, 1))
-		tick(s, machineKinds[KindCrusher].interval/2)
-		return st.progress, 1000 - st.energy
+		st := placeTestMachine(s, machinePos, machine.KindCrusher, "")
+		st.Unlimited = false
+		st.Energy = 1000
+		st.Insert(item.NewStack(block.Cobblestone{}, 1))
+		tick(s, machine.MachineKinds[machine.KindCrusher].Interval/2)
+		return st.Progress, 1000 - st.Energy
 	}
 	p, e := run(false)
 	sp, se := run(true)

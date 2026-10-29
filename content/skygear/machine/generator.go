@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"fmt"
@@ -9,7 +9,14 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/network"
+)
+
+var (
+	_ energy.Ports  = Machine{}
+	_ energy.Source = Machine{}
+	_ energy.Sink   = Machine{}
 )
 
 // The combustion generator: it
@@ -18,15 +25,15 @@ import (
 // buffer gives its energy to the conduits and blocks that touch it. When the
 // buffer is full the fuel is not burned.
 const (
-	generatorOutput = 20
+	GeneratorOutput = 20
 	generatorBuffer = 10000
 )
 
-// consumerBuffer is the RE buffer of a machine that uses energy.
-const consumerBuffer = 2000
+// ConsumerBuffer is the RE buffer of a machine that uses energy.
+const ConsumerBuffer = 2000
 
-// cellCapacity is the RE an energy cell holds.
-const cellCapacity = 100000
+// CellCapacity is the RE an energy cell holds.
+const CellCapacity = 100000
 
 // stallShow is how many ticks in a row a machine has no energy before it shows
 // as stopped (2 seconds).
@@ -35,33 +42,33 @@ const stallShow = 40
 // consume takes the energy of one tick of work from the buffer and reports
 // whether there was enough; a machine without need (or an unlimited one)
 // always works.
-func (st *machineState) consume() bool {
+func (st *MachineState) consume() bool {
 	u := st.useCost()
-	if u == 0 || st.unlimited {
+	if u == 0 || st.Unlimited {
 		return true
 	}
 	if st.free {
 		// a run the snow adds: free, but only while there is energy
-		return st.energy >= u
+		return st.Energy >= u
 	}
-	if st.energy < u {
+	if st.Energy < u {
 		// a stop shows after stallShow ticks in a row: a machine that gets
 		// energy as it uses it does not flicker "stopped"
 		if st.stallTicks++; st.stallTicks >= stallShow {
-			st.stalled, st.stuck = true, stuckPower
+			st.Stalled, st.Stuck = true, stuckPower
 		}
 		return false
 	}
-	st.energy -= u
-	st.stalled, st.stallTicks = false, 0
-	if st.sess != nil {
-		factoryOf(st.sess.Session).stats.buckets[factoryOf(st.sess.Session).stats.head].use += u
+	st.Energy -= u
+	st.Stalled, st.stallTicks = false, 0
+	if st.Sess != nil {
+		FactoryOf(st.Sess).Stats.Buckets[FactoryOf(st.Sess).Stats.Head].Use += u
 	}
 	return true
 }
 
-// fuelDuration is the ticks an item burns for as fuel (0: not a fuel).
-func fuelDuration(st item.Stack) int {
+// FuelDuration is the ticks an item burns for as fuel (0: not a fuel).
+func FuelDuration(st item.Stack) int {
 	f, ok := st.Item().(item.Fuel)
 	if !ok {
 		return 0
@@ -70,87 +77,81 @@ func fuelDuration(st item.Stack) int {
 }
 
 // runGenerator burns fuel and fills the buffer; it runs every tick.
-func (s *session) runGenerator(st *machineState, pos cube.Pos, tx *world.Tx) {
-	gen, energyCap := st.genRate(), st.energyCap()
-	if st.burn == 0 && st.energy+gen <= energyCap {
-		slot, fuel, ok := st.firstInput()
+func runGenerator(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+	gen, energyCap := st.GenRate(), st.EnergyCap()
+	if st.Burn == 0 && st.Energy+gen <= energyCap {
+		slot, fuel, ok := st.FirstInput()
 		if !ok {
-			st.progress = 0
-			st.stuck = stuckFuel
+			st.Progress = 0
+			st.Stuck = stuckFuel
 			return
 		}
-		if d := fuelDuration(fuel); d > 0 {
+		if d := FuelDuration(fuel); d > 0 {
 			residue := fuel.Item().(item.Fuel).FuelInfo().Residue
-			_ = st.inv().SetItem(slot, fuel.Grow(-1))
+			_ = st.Inv().SetItem(slot, fuel.Grow(-1))
 			if !residue.Empty() {
-				if left, _ := st.inv().AddItem(residue); left < residue.Count() {
+				if left, _ := st.Inv().AddItem(residue); left < residue.Count() {
 					s.DropAt(tx, pos.Vec3Centre(), residue)
 				}
 			}
-			st.burn, st.burnMax = d, d
+			st.Burn, st.burnMax = d, d
 		}
 	}
-	if st.burn > 0 && st.energy+gen <= energyCap {
-		st.energy += gen
+	if st.Burn > 0 && st.Energy+gen <= energyCap {
+		st.Energy += gen
 		st.made += gen
-		st.burn = max(0, st.burn-st.burnRate())
+		st.Burn = max(0, st.Burn-st.BurnRate())
 		st.markWorked()
 	}
-	st.progress = 0
+	st.Progress = 0
 	if st.burnMax > 0 {
-		st.progress = st.burn * st.kind.interval / st.burnMax
+		st.Progress = st.Burn * st.Def.Interval / st.burnMax
 	}
-	network.Energy(s.Session).AddSource(pos)
+	network.Energy(s).AddSource(pos)
 }
 
 // EnergyPorts implements energy.Ports: a generator gives energy, a machine
 // that uses it takes energy.
 func (m Machine) EnergyPorts() (source, sink bool) {
-	if m.st == nil {
+	if m.State == nil {
 		return false, false
 	}
-	return m.st.kind.generates > 0 || m.st.kind.cell, m.st.kind.use > 0 || m.st.kind.cell
+	return m.State.Def.Generates > 0 || m.State.Def.Cell, m.State.Def.Use > 0 || m.State.Def.Cell
 }
 
 // ExtractEnergy implements energy.Source.
 func (m Machine) ExtractEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int, simulate bool) int {
-	if m.st == nil || (m.st.kind.generates == 0 && !m.st.kind.cell) {
+	if m.State == nil || (m.State.Def.Generates == 0 && !m.State.Def.Cell) {
 		return 0
 	}
-	n := min(max, m.st.energy)
+	n := min(max, m.State.Energy)
 	if !simulate {
-		m.st.energy -= n
+		m.State.Energy -= n
 	}
 	return max0(n)
 }
 
 // ReceiveEnergy implements energy.Sink.
 func (m Machine) ReceiveEnergy(_ energy.World, _ cube.Pos, _ cube.Face, max int, simulate bool) int {
-	if m.st == nil || (m.st.kind.use == 0 && !m.st.kind.cell) {
+	if m.State == nil || (m.State.Def.Use == 0 && !m.State.Def.Cell) {
 		return 0
 	}
-	n := min(max, m.st.energyCap()-m.st.energy)
+	n := min(max, m.State.EnergyCap()-m.State.Energy)
 	if !simulate && n > 0 {
-		m.st.energy += n
+		m.State.Energy += n
 	}
 	return max0(n)
 }
 
 func max0(n int) int { return max(n, 0) }
 
-var (
-	_ energy.Ports  = Machine{}
-	_ energy.Source = Machine{}
-	_ energy.Sink   = Machine{}
-)
-
-// generatorLines are the lines of a generator's WAILA panel.
-func generatorLines(lang string, st *machineState) []string {
-	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.energy, st.energyCap())}
+// GeneratorLines are the lines of a generator's WAILA panel.
+func GeneratorLines(lang string, st *MachineState) []string {
+	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap())}
 	switch {
-	case st.burn > 0:
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.burning"), st.genRate()))
-	case st.energy+st.genRate() > st.energyCap():
+	case st.Burn > 0:
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.burning"), st.GenRate()))
+	case st.Energy+st.GenRate() > st.EnergyCap():
 		lines = append(lines, i18n.T(lang, "generator.lines.full"))
 	default:
 		lines = append(lines, i18n.T(lang, "generator.lines.noFuel"))
@@ -158,13 +159,13 @@ func generatorLines(lang string, st *machineState) []string {
 	return lines
 }
 
-// consumerLines are the energy lines of a machine that uses energy.
-func consumerLines(lang string, st *machineState) []string {
-	if st.kind.use == 0 || st.unlimited {
+// ConsumerLines are the energy lines of a machine that uses energy.
+func ConsumerLines(lang string, st *MachineState) []string {
+	if st.Def.Use == 0 || st.Unlimited {
 		return nil
 	}
-	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.consumer"), st.energy, st.energyCap(), st.useTotal())}
-	if st.stalled {
+	lines := []string{fmt.Sprintf(i18n.T(lang, "generator.lines.consumer"), st.Energy, st.EnergyCap(), st.UseTotal())}
+	if st.Stalled {
 		lines = append(lines, i18n.T(lang, "generator.lines.stalled"))
 	}
 	return lines

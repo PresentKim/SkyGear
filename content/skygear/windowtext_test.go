@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -13,14 +15,14 @@ import (
 )
 
 func TestWindowItemTextsInDefaultLanguage(t *testing.T) {
-	st := newMachine(KindCrusher, "", "").st
-	st.tier = 2
-	info := st.infoItem()
+	st := machine.NewMachine(machine.KindCrusher, "", "").State
+	st.Tier = 2
+	info := st.InfoItem()
 	name, lore, ok := wintext.Localize(i18n.Default, info)
 	if !ok || name != info.CustomName() || strings.Join(lore, "\n") != strings.Join(info.Lore(), "\n") {
 		t.Fatalf("localized %q %q, item %q %q", name, lore, info.CustomName(), info.Lore())
 	}
-	if !strings.Contains(name, tierName(i18n.Default, 2)) || !strings.Contains(lore[len(lore)-1], tierName(i18n.Default, 2)) {
+	if !strings.Contains(name, machine.TierName(i18n.Default, 2)) || !strings.Contains(lore[len(lore)-1], machine.TierName(i18n.Default, 2)) {
 		t.Errorf("tier missing in %q %q", name, lore)
 	}
 	if _, _, ok := wintext.Localize(i18n.Default, item.NewStack(item.Apple{}, 1)); ok {

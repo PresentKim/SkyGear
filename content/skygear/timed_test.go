@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -35,9 +37,9 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	if (Drawer{Item: plainLog.Grow(-31), Count: 1}).accepts(log) {
 		t.Error("a drawer of plain logs takes timed logs")
 	}
-	crusher := newMachine(KindCrusher, "", "").st
+	crusher := machine.NewMachine(machine.KindCrusher, "", "").State
 	cobble := item.NewStack(block.Cobblestone{}, 1)
-	if crusher.insert(timed.For(cobble, time.Hour)) || !crusher.insert(cobble) {
+	if crusher.Insert(timed.For(cobble, time.Hour)) || !crusher.Insert(cobble) {
 		t.Error("a crusher takes an item with extra NBT or refuses a plain one")
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {

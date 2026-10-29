@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"slices"
@@ -9,14 +9,15 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/skygear/content/skygear/core"
 )
 
 // The automation equipment: the
 // electric furnace, the item vacuum and the tree feller. The auto crafter is
 // in autocraft.go.
 
-// smeltOf is what a furnace makes of an item.
-func smeltOf(in item.Stack) (item.Stack, bool) {
+// SmeltOf is what a furnace makes of an item.
+func SmeltOf(in item.Stack) (item.Stack, bool) {
 	sm, ok := in.Item().(item.Smeltable)
 	if !ok {
 		return item.Stack{}, false
@@ -26,9 +27,9 @@ func smeltOf(in item.Stack) (item.Stack, bool) {
 }
 
 // runFurnace smelts the input into the output slot without fuel.
-func (st *machineState) runFurnace() {
+func (st *MachineState) runFurnace() {
 	st.process(func(in item.Stack) []item.Stack {
-		out, _ := smeltOf(in)
+		out, _ := SmeltOf(in)
 		return []item.Stack{out}
 	}, nil)
 }
@@ -42,14 +43,14 @@ const (
 
 // runVacuum collects one stack of the dropped items around it every
 // interval. A stack that does not fit the output is left lying.
-func (s *session) runVacuum(st *machineState, pos cube.Pos, tx *world.Tx) {
-	if st.progress < st.kind.interval {
-		st.tickWork()
+func runVacuum(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
-	st.progress = 0
+	st.Progress = 0
 	x, y, z := float64(pos.X()), float64(pos.Y()), float64(pos.Z())
-	reach := float64(st.reach(KindVacuum))
+	reach := float64(st.Reach(KindVacuum))
 	box := cube.Box(x-reach, y-vacuumDown, z-reach, x+reach+1, y+vacuumUp+1, z+reach+1)
 	for e := range tx.EntitiesWithin(box) {
 		ent, ok := e.(*entity.Ent)
@@ -61,11 +62,11 @@ func (s *session) runVacuum(st *machineState, pos cube.Pos, tx *world.Tx) {
 			continue
 		}
 		stack := ib.Item()
-		if stack.Empty() || !fits(st.inv(), st.kind.output, []item.Stack{stack}) {
+		if stack.Empty() || !Fits(st.Inv(), st.Def.Output, []item.Stack{stack}) {
 			continue
 		}
-		put(st.inv(), st.kind.output, stack)
-		st.done++
+		put(st.Inv(), st.Def.Output, stack)
+		st.Done++
 		tx.AddParticle(ent.Position(), particle.EndermanTeleport{})
 		_ = ent.Close()
 		return
@@ -84,14 +85,14 @@ const (
 
 // runFeller fells the highest log in reach every interval; with no log left
 // it plants a sapling from its input.
-func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
-	if st.progress < st.kind.interval {
-		st.tickWork()
+func runFeller(s *core.Session, st *MachineState, pos cube.Pos, tx *world.Tx) {
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
 	var logAt cube.Pos
 	found := false
-	reach := st.reach(KindFeller)
+	reach := st.Reach(KindFeller)
 	for dy := fellerUp; dy >= -fellerDown && !found; dy-- {
 		for dx := -reach; dx <= reach && !found; dx++ {
 			for dz := -reach; dz <= reach && !found; dz++ {
@@ -108,21 +109,21 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 		if br, ok := b.(block.Breakable); ok && br.BreakInfo().Drops != nil {
 			drops = br.BreakInfo().Drops(item.ToolNone{}, nil)
 		}
-		if !st.roomFor(drops) {
+		if !st.RoomFor(drops) {
 			return
 		}
 		tx.SetBlock(logAt, block.Air{}, nil)
 		tx.AddParticle(logAt.Vec3Centre(), particle.BlockBreak{Block: b})
 		for _, it := range drops {
 			if !it.Empty() {
-				st.emit(it)
+				st.Emit(it)
 			}
 		}
-		st.progress = 0
-		st.done++
+		st.Progress = 0
+		st.Done++
 		return
 	}
-	st.progress = 0
+	st.Progress = 0
 	if !st.plantSapling(tx, pos, reach) {
 		st.boneMealSapling(tx, pos, reach)
 	}
@@ -130,8 +131,8 @@ func (s *session) runFeller(st *machineState, pos cube.Pos, tx *world.Tx) {
 
 // plantSapling plants a sapling from the input of the feller at pos,
 // reporting whether it did.
-func (st *machineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
-	slot, in, ok := st.firstInput()
+func (st *MachineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
+	slot, in, ok := st.FirstInput()
 	if !ok {
 		return false
 	}
@@ -144,22 +145,22 @@ func (st *machineState) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool
 		return false
 	}
 	tx.SetBlock(at, sap, nil)
-	_ = st.inv().SetItem(slot, in.Grow(-1))
+	_ = st.Inv().SetItem(slot, in.Grow(-1))
 	return true
 }
 
 // boneMealSapling uses one bone meal of the feller at pos on the nearest
 // sapling in reach that it works on, as a player using it would.
-func (st *machineState) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
-	slot := st.kind.charge[0]
-	meal, _ := st.inv().Item(slot)
+func (st *MachineState) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
+	slot := st.Def.Charge[0]
+	meal, _ := st.Inv().Item(slot)
 	if _, ok := meal.Item().(item.BoneMeal); !ok {
 		return
 	}
 	for _, at := range saplingsNear(tx, pos, reach) {
 		if tx.Block(at).(block.Sapling).BoneMeal(at, tx) != item.BoneMealResultNone {
 			tx.AddParticle(at.Vec3(), particle.BoneMeal{})
-			_ = st.inv().SetItem(slot, meal.Grow(-1))
+			_ = st.Inv().SetItem(slot, meal.Grow(-1))
 			return
 		}
 	}

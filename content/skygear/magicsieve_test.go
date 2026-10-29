@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
@@ -78,42 +80,42 @@ func TestThemeChance(t *testing.T) {
 func TestMagicSieveCharging(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindMagicSieve, "")
+	st := placeTestMachine(s, machinePos, machine.KindMagicSieve, "")
 	ess := item.NewStack(sgitem.Essence{Mob: sgitem.MobPiglin}, 2)
-	if st.slotAccepts(10, ess) || !st.slotAccepts(11, ess) {
+	if st.SlotAccepts(10, ess) || !st.SlotAccepts(11, ess) {
 		t.Fatal("the essence belongs in the essence slot only")
 	}
-	if st.slotAccepts(11, item.NewStack(block.Sand{}, 1)) || !st.slotAccepts(10, item.NewStack(block.Sand{}, 1)) {
+	if st.SlotAccepts(11, item.NewStack(block.Sand{}, 1)) || !st.SlotAccepts(10, item.NewStack(block.Sand{}, 1)) {
 		t.Fatal("the essence slot takes only essences")
 	}
-	if !st.insert(ess) || !st.insert(ess) {
+	if !st.Insert(ess) || !st.Insert(ess) {
 		t.Fatal("essences were refused")
 	}
-	if got, _ := st.inv().Item(11); got.Count() != 2 {
+	if got, _ := st.Inv().Item(11); got.Count() != 2 {
 		t.Fatalf("%d essences in the essence slot, want 2", got.Count())
 	}
 	in := item.NewStack(block.Sand{}, 1)
-	s.chargeSieve(st)
-	if st.charges != sievetable.MagicCharges || st.mob != sgitem.MobPiglin {
-		t.Fatalf("charged with %d of %q", st.charges, st.mob)
+	machine.ChargeSieve(s.Session, st)
+	if st.Charges != sievetable.MagicCharges || st.Mob != sgitem.MobPiglin {
+		t.Fatalf("charged with %d of %q", st.Charges, st.Mob)
 	}
 	for range sievetable.MagicCharges {
-		s.siftDrops(st, in)
+		machine.SiftDrops(s.Session, st, in)
 	}
-	if st.charges != 0 || st.mob != "" {
-		t.Fatalf("after %d sifts: %d charges of %q", sievetable.MagicCharges, st.charges, st.mob)
+	if st.Charges != 0 || st.Mob != "" {
+		t.Fatalf("after %d sifts: %d charges of %q", sievetable.MagicCharges, st.Charges, st.Mob)
 	}
-	s.chargeSieve(st)
-	if st.charges != sievetable.MagicCharges {
+	machine.ChargeSieve(s.Session, st)
+	if st.Charges != sievetable.MagicCharges {
 		t.Fatal("the second essence did not charge")
 	}
-	if got, _ := st.inv().Item(11); !got.Empty() {
+	if got, _ := st.Inv().Item(11); !got.Empty() {
 		t.Fatal("both essences should be used")
 	}
 	// no charge left: the mesh table
-	st.charges, st.mob = 0, ""
+	st.Charges, st.Mob = 0, ""
 	for range 200 {
-		for _, d := range s.siftDrops(st, in) {
+		for _, d := range machine.SiftDrops(s.Session, st, in) {
 			if _, ok := d.Item().(block.SoulSand); ok {
 				t.Fatal("a theme drop came out of an uncharged sieve")
 			}
@@ -132,7 +134,7 @@ func TestMagicThemeReplaces(t *testing.T) {
 	}
 	var sawSoul, sawBase bool
 	for range 3000 {
-		drops, _ := s.magicDrops(sand, "string", sgitem.MobPiglin)
+		drops, _ := machine.MagicDrops(s.Session, sand, "string", sgitem.MobPiglin)
 		for _, d := range drops {
 			if _, ok := d.Item().(block.SoulSand); ok {
 				sawSoul = true
@@ -146,7 +148,7 @@ func TestMagicThemeReplaces(t *testing.T) {
 		t.Fatal("the piglin theme gave no soul sand from sand")
 	}
 	for range 3000 {
-		drops, _ := s.magicDrops(sand, "string", sgitem.MobZombie)
+		drops, _ := machine.MagicDrops(s.Session, sand, "string", sgitem.MobZombie)
 		for _, d := range drops {
 			if base[naming.ItemKey(d.Item())] {
 				sawBase = true
@@ -162,16 +164,16 @@ func TestMagicThemeReplaces(t *testing.T) {
 func TestMagicSieveWorks(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	st := placeTestMachine(s, machinePos, KindMagicSieve, "")
-	_ = st.insert(item.NewStack(sgitem.Essence{Mob: sgitem.MobEnder}, 1))
+	st := placeTestMachine(s, machinePos, machine.KindMagicSieve, "")
+	_ = st.Insert(item.NewStack(sgitem.Essence{Mob: sgitem.MobEnder}, 1))
 	for range 3 {
-		_ = st.insert(item.NewStack(block.Gravel{}, 1))
+		_ = st.Insert(item.NewStack(block.Gravel{}, 1))
 	}
-	tick(s, 3*(machineKinds[KindMagicSieve].interval+3))
-	if st.charges >= sievetable.MagicCharges {
-		t.Fatalf("no charge was used (%d left)", st.charges)
+	tick(s, 3*(machine.MachineKinds[machine.KindMagicSieve].Interval+3))
+	if st.Charges >= sievetable.MagicCharges {
+		t.Fatalf("no charge was used (%d left)", st.Charges)
 	}
-	if st.mob != sgitem.MobEnder {
-		t.Fatalf("charged with %q", st.mob)
+	if st.Mob != sgitem.MobEnder {
+		t.Fatalf("charged with %q", st.Mob)
 	}
 }

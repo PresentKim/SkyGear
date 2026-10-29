@@ -5,6 +5,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
 
@@ -73,12 +75,12 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		n.blocks++
 		return pos
 	}
-	machine := func(dx, dy, dz int, kind string) {
-		m := newMachine(kind, owner, ownerName)
+	placeMachine := func(dx, dy, dz int, kind string) {
+		m := machine.NewMachine(kind, owner, ownerName)
 		// Test factories run without energy.
-		m.st.unlimited = true
-		if isSieve(kind) {
-			m.st.mesh = "string"
+		m.State.Unlimited = true
+		if machine.IsSieve(kind) {
+			m.State.Mesh = "string"
 		}
 		set(dx, dy, dz, m)
 		n.machines++
@@ -100,8 +102,8 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 	// and a drawer below).
 	set(1, 1, 2, block.Cobblestone{})
 	set(1, 2, 2, block.Cobblestone{})
-	machine(1, 4, 2, KindMiner)
-	machine(2, 4, 2, KindCrusher)
+	placeMachine(1, 4, 2, machine.KindMiner)
+	placeMachine(2, 4, 2, machine.KindCrusher)
 	hopper(2, 3, 2, cube.FaceDown)
 	drawerPos := set(2, 2, 2, Drawer{Facing: cube.South})
 	s.setDrawer(tx, drawerPos, Drawer{Facing: cube.South})
@@ -117,7 +119,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 		}
 	}
 	hopper(1, 2, 6, cube.FaceEast)
-	machine(2, 2, 6, KindAutoSieve)
+	placeMachine(2, 2, 6, machine.KindAutoSieve)
 	set(3, 2, 6, block.NewChest())
 	set(2, 1, 6, block.NewChest())
 
@@ -150,7 +152,7 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 			n.crops++
 		}
 	}
-	machine(fx+4, 2, fz+4, KindHarvester)
+	placeMachine(fx+4, 2, fz+4, machine.KindHarvester)
 	set(fx+4, 3, fz+4, block.NewChest())
 }
 
@@ -202,8 +204,8 @@ func (c debugDense) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		set(1, 0, block.Stone{})
 		set(0, 1, block.Cobblestone{})
 		set(0, 2, block.Cobblestone{})
-		miner, crusher := newMachine(KindMiner, owner, name), newMachine(KindCrusher, owner, name)
-		miner.st.unlimited, crusher.st.unlimited = true, true
+		miner, crusher := machine.NewMachine(machine.KindMiner, owner, name), machine.NewMachine(machine.KindCrusher, owner, name)
+		miner.State.Unlimited, crusher.State.Unlimited = true, true
 		set(0, 4, miner)
 		set(1, 4, crusher)
 		h := block.NewHopper()

@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -127,10 +129,10 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	progress.LocalOf(s.Session).RecipesFree = true
-	crafterA := placeTestMachine(s, machinePos, KindCrafter, "")
-	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), KindCrafter, "")
+	crafterA := placeTestMachine(s, machinePos, machine.KindCrafter, "")
+	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), machine.KindCrafter, "")
 	cr := machinerecipe.Crafters()[0]
-	crafterA.setRecipe(cr)
+	crafterA.SetRecipe(cr)
 	s.World.Do(func(tx *world.Tx) {
 		src, ok := targetOf(tx, machinePos, cube.FaceNorth, mgl64Centre())
 		if !ok || src.kind != cardCrafter {
@@ -141,11 +143,11 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 			t.Fatal("no recipe read")
 		}
 		dst, _ := targetOf(tx, machinePos.Add(cube.Pos{0, 0, 3}), cube.FaceNorth, mgl64Centre())
-		if !s.pasteCard(tx, dst, *card) || crafterB.recipeID != cr.ID {
-			t.Fatalf("recipe %q, want %q", crafterB.recipeID, cr.ID)
+		if !s.pasteCard(tx, dst, *card) || crafterB.RecipeID != cr.ID {
+			t.Fatalf("recipe %q, want %q", crafterB.RecipeID, cr.ID)
 		}
 		// an auto crafter with no recipe has nothing to copy
-		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), KindCrafter, "")
+		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), machine.KindCrafter, "")
 		_ = empty
 		blank, _ := targetOf(tx, machinePos.Add(cube.Pos{0, 0, 6}), cube.FaceNorth, mgl64Centre())
 		if _, ok := readCard(tx, blank); ok {

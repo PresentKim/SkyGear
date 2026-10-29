@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/decor"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -317,7 +319,7 @@ func codexSmeltInputs(it item.Stack) []item.Stack {
 		smeltFrom = map[string][]item.Stack{}
 		for _, w := range world.Items() {
 			st := item.NewStack(w, 1)
-			if got, ok := smeltOf(st); ok {
+			if got, ok := machine.SmeltOf(st); ok {
 				k := naming.ItemKey(got.Item())
 				smeltFrom[k] = append(smeltFrom[k], st)
 			}
@@ -353,14 +355,14 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 		}
 	}
 	for _, in := range crushInputs() {
-		if got, ok := crusherOutput(item.NewStack(in, 1)); ok && naming.ItemKey(got.Item()) == k {
+		if got, ok := machine.CrusherOutput(item.NewStack(in, 1)); ok && naming.ItemKey(got.Item()) == k {
 			cards = append(cards, s.crushCard(lang, in, got))
 		}
 	}
 	if _, ok := it.Item().(sgitem.MetalDust); ok {
-		cards = append(cards, noteCard(lang, machineItem(KindWasher), i18n.T(lang, "codex.src.washer")))
+		cards = append(cards, noteCard(lang, machine.MachineItem(machine.KindWasher), i18n.T(lang, "codex.src.washer")))
 	}
-	sieve := machineItem(KindSieve)
+	sieve := machine.MachineItem(machine.KindSieve)
 	for _, in := range codexSieveInputs() {
 		for _, t := range sgitem.MeshTiers {
 			if d, ok := sieveDropOf(t.Tier, in, k); ok {
@@ -382,7 +384,7 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 		for _, in := range codexSieveInputs() {
 			for _, d := range sievetable.MagicThemes[mob].Adds[naming.ItemKey(in)] {
 				if naming.ItemKey(d.Item.Item()) == k {
-					cards = append(cards, machineCard(lang, machineItem(KindMagicSieve),
+					cards = append(cards, machineCard(lang, machine.MachineItem(machine.KindMagicSieve),
 						[]ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), ""), s.codexCell(lang, item.NewStack(in, 1), "")},
 						[]ui.BoardCell{s.chanceCell(lang, d.Item, d.Permille)}))
 				}
@@ -390,7 +392,7 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 		}
 	}
 	if _, ok := it.Item().(sgitem.Essence); ok {
-		cards = append(cards, noteCard(lang, machineItem(KindGate), i18n.T(lang, "codex.src.waveDrop")))
+		cards = append(cards, noteCard(lang, machine.MachineItem(machine.KindGate), i18n.T(lang, "codex.src.waveDrop")))
 	}
 	for i := range waveLevels {
 		for _, r := range waveLevels[i].Reward {
@@ -419,7 +421,7 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 			cards = append(cards, s.craftCard(lang, cr))
 		}
 	}
-	if sm, ok := smeltOf(it); ok {
+	if sm, ok := machine.SmeltOf(it); ok {
 		cards = append(cards, machineCard(lang, item.NewStack(block.Furnace{}, 1), []ui.BoardCell{s.codexCell(lang, it, "")}, []ui.BoardCell{s.codexCell(lang, sm, countLabel(sm.Count()))}))
 	}
 	for _, r := range machinerecipe.Alloys {
@@ -435,7 +437,7 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 			}
 		}
 	}
-	if got, ok := crusherOutput(it); ok {
+	if got, ok := machine.CrusherOutput(it); ok {
 		cards = append(cards, s.crushCard(lang, it.Item(), got))
 	}
 	if e, ok := it.Item().(sgitem.Essence); ok {
@@ -451,13 +453,13 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 			}
 		}
 	}
-	if fuelDuration(it) > 0 {
-		cards = append(cards, noteCard(lang, machineItem(KindGenerator), i18n.T(lang, "codex.use.fuel")))
+	if machine.FuelDuration(it) > 0 {
+		cards = append(cards, noteCard(lang, machine.MachineItem(machine.KindGenerator), i18n.T(lang, "codex.use.fuel")))
 	}
 	if plantMatter(it) {
 		cards = append(cards, noteCard(lang, item.NewStack(block.Composter{}, 1), i18n.T(lang, "codex.use.compost")))
 	}
-	tinkerTable := machineItem(KindTinker)
+	tinkerTable := machine.MachineItem(machine.KindTinker)
 	for _, h := range tinker.HeadMaterials {
 		if naming.ItemKey(h.Item) == k {
 			cards = append(cards, noteCard(lang, tinkerTable, fmt.Sprintf(i18n.T(lang, "codex.use.tool"), i18n.T(lang, "tmat."+h.ID), i18n.T(lang, "codex.use.head"))))
@@ -506,7 +508,7 @@ func (s *session) chanceCell(lang string, st item.Stack, permille int) ui.BoardC
 }
 
 func (s *session) alloyCard(lang string, r machinerecipe.Alloy) codexCard {
-	return machineCard(lang, machineItem(KindAlloy),
+	return machineCard(lang, machine.MachineItem(machine.KindAlloy),
 		[]ui.BoardCell{s.codexCell(lang, item.NewStack(r.A, 1), countLabel(r.CountA)), s.codexCell(lang, item.NewStack(r.B, 1), countLabel(r.CountB))},
 		[]ui.BoardCell{s.codexCell(lang, item.NewStack(r.Out, 1), countLabel(r.OutCount))})
 }
@@ -516,17 +518,17 @@ func (s *session) labCard(lang string, r *machinerecipe.Lab) codexCard {
 	for _, in := range r.In {
 		ins = append(ins, s.codexCell(lang, item.NewStack(in.Item, 1), countLabel(in.Count)))
 	}
-	return machineCard(lang, machineItem(KindLab), ins, []ui.BoardCell{s.codexCell(lang, item.NewStack(r.Out, 1), countLabel(r.OutCount))})
+	return machineCard(lang, machine.MachineItem(machine.KindLab), ins, []ui.BoardCell{s.codexCell(lang, item.NewStack(r.Out, 1), countLabel(r.OutCount))})
 }
 
 func (s *session) crushCard(lang string, in world.Item, out item.Stack) codexCard {
 	outs := []ui.BoardCell{s.codexCell(lang, out, countLabel(out.Count()))}
-	if bonus, ok := crusherBonusOf(item.NewStack(in, 1)); ok {
+	if bonus, ok := machine.CrusherBonusOf(item.NewStack(in, 1)); ok {
 		for range sgitem.CrusherBonus {
 			outs = append(outs, s.codexCell(lang, bonus, fmt.Sprintf("§f%d%%", sgitem.CrusherBonusChance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), sgitem.CrusherBonusChance)))
 		}
 	}
-	return machineCard(lang, machineItem(KindCrusher), []ui.BoardCell{s.codexCell(lang, item.NewStack(in, 1), "")}, outs)
+	return machineCard(lang, machine.MachineItem(machine.KindCrusher), []ui.BoardCell{s.codexCell(lang, item.NewStack(in, 1), "")}, outs)
 }
 
 // simCard is the drops of a mob's essence in the simulator.
@@ -536,7 +538,7 @@ func (s *session) simCard(lang string, mob string, drops []sgitem.SimDrop) codex
 		outs = append(outs, s.codexCell(lang, item.NewStack(d.Item, 1), fmt.Sprintf("§f%d%%", d.Chance),
 			fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), rangeText(d.Min, d.Max), d.Chance)))
 	}
-	return machineCard(lang, machineItem(KindSimulator), []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), "")}, outs)
+	return machineCard(lang, machine.MachineItem(machine.KindSimulator), []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), "")}, outs)
 }
 
 // themeCards are what a mob's essence adds to each block in the magic sieve.
@@ -560,7 +562,7 @@ func (s *session) themeCards(lang string, mob string) []codexCard {
 		if th.Replace[naming.ItemKey(in)] {
 			block = s.codexCell(lang, item.NewStack(in, 1), "", i18n.T(lang, "codex.card.replace"))
 		}
-		cards = append(cards, machineCard(lang, machineItem(KindMagicSieve), []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), ""), block}, outs))
+		cards = append(cards, machineCard(lang, machine.MachineItem(machine.KindMagicSieve), []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), ""), block}, outs))
 	}
 	return cards
 }
@@ -573,7 +575,7 @@ func (s *session) waveCard(lang string, i int) []codexCard {
 	for _, r := range w.Reward {
 		outs = append(outs, s.codexCell(lang, r, countLabel(r.Count())))
 	}
-	c := machineCard(lang, machineItem(KindGate), []ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.wave"), i+1, w.Seconds))}, outs)
+	c := machineCard(lang, machine.MachineItem(machine.KindGate), []ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.wave"), i+1, w.Seconds))}, outs)
 	var groups string
 	for j, g := range w.Groups {
 		if j > 0 {
@@ -612,51 +614,51 @@ func codexProcesses() []codexProcess {
 	water := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
 	lava := item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}, 1)
 	return []codexProcess{
-		{machineItem(KindCrusher), func(s *session, lang string) []codexCard {
+		{machine.MachineItem(machine.KindCrusher), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			for _, in := range crushInputs() {
-				if got, ok := crusherOutput(item.NewStack(in, 1)); ok {
+				if got, ok := machine.CrusherOutput(item.NewStack(in, 1)); ok {
 					cards = append(cards, s.crushCard(lang, in, got))
 				}
 			}
 			return cards
 		}},
-		{machineItem(KindWasher), func(s *session, lang string) []codexCard {
+		{machine.MachineItem(machine.KindWasher), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			for _, k := range sgitem.OreKinds {
 				in := item.NewStack(sgitem.RawOf(k.Ore), 1)
 				out, _ := sgitem.WasherOutput(in)
-				cards = append(cards, machineCard(lang, machineItem(KindWasher), []ui.BoardCell{s.codexCell(lang, in, ""), s.codexCell(lang, water, "", i18n.T(lang, "codex.card.water"))}, []ui.BoardCell{s.codexCell(lang, out, countLabel(out.Count()))}))
+				cards = append(cards, machineCard(lang, machine.MachineItem(machine.KindWasher), []ui.BoardCell{s.codexCell(lang, in, ""), s.codexCell(lang, water, "", i18n.T(lang, "codex.card.water"))}, []ui.BoardCell{s.codexCell(lang, out, countLabel(out.Count()))}))
 			}
 			return cards
 		}},
-		{machineItem(KindFurnace), func(s *session, lang string) []codexCard {
+		{machine.MachineItem(machine.KindFurnace), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			// from every registered item (the index is built once the
 			// registry is complete; this may run before)
 			for _, in := range smeltables() {
-				got, _ := smeltOf(in)
-				cards = append(cards, machineCard(lang, machineItem(KindFurnace), []ui.BoardCell{s.codexCell(lang, in, "")}, []ui.BoardCell{s.codexCell(lang, got, countLabel(got.Count()))}))
+				got, _ := machine.SmeltOf(in)
+				cards = append(cards, machineCard(lang, machine.MachineItem(machine.KindFurnace), []ui.BoardCell{s.codexCell(lang, in, "")}, []ui.BoardCell{s.codexCell(lang, got, countLabel(got.Count()))}))
 			}
 			return cards
 		}},
-		{machineItem(KindAlloy), func(s *session, lang string) []codexCard {
+		{machine.MachineItem(machine.KindAlloy), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			for _, r := range machinerecipe.Alloys {
 				cards = append(cards, s.alloyCard(lang, r))
 			}
 			return cards
 		}},
-		{machineItem(KindLab), func(s *session, lang string) []codexCard {
+		{machine.MachineItem(machine.KindLab), func(s *session, lang string) []codexCard {
 			var cards []codexCard
 			for i := range machinerecipe.Labs {
 				cards = append(cards, s.labCard(lang, &machinerecipe.Labs[i]))
 			}
 			return cards
 		}},
-		{machineItem(KindCrucible), func(s *session, lang string) []codexCard {
-			return []codexCard{machineCard(lang, machineItem(KindCrucible), []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Cobblestone{}, 1), "")},
-				[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), crucibleLava))})}
+		{machine.MachineItem(machine.KindCrucible), func(s *session, lang string) []codexCard {
+			return []codexCard{machineCard(lang, machine.MachineItem(machine.KindCrucible), []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Cobblestone{}, 1), "")},
+				[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), machine.CrucibleLava))})}
 		}},
 		{item.NewStack(Barrel{Wood: "oak"}, 1), func(s *session, lang string) []codexCard {
 			barrel := item.NewStack(Barrel{Wood: "oak"}, 1)
@@ -678,14 +680,14 @@ func codexProcesses() []codexProcess {
 			}
 			return append(cards, s.barrelMixCards(lang, barrel, true)...)
 		}},
-		{machineItem(KindTinker), func(s *session, lang string) []codexCard { return s.codexGearCards(lang) }},
+		{machine.MachineItem(machine.KindTinker), func(s *session, lang string) []codexCard { return s.codexGearCards(lang) }},
 	}
 }
 
 // codexGearCards are the tinker table's head and handle materials and
 // modifiers: the material's slot with what it gives.
 func (s *session) codexGearCards(lang string) []codexCard {
-	tinkerTable := machineItem(KindTinker)
+	tinkerTable := machine.MachineItem(machine.KindTinker)
 	var cards []codexCard
 	gear := func(it world.Item, text string) {
 		row := blankRow()
@@ -732,7 +734,7 @@ func (s *session) codexSieveCards(lang string, in world.Item) []codexCard {
 		for _, d := range drops {
 			outs = append(outs, s.chanceCell(lang, d.Item, d.Permille))
 		}
-		cards = append(cards, machineCard(lang, machineItem(KindSieve),
+		cards = append(cards, machineCard(lang, machine.MachineItem(machine.KindSieve),
 			[]ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Mesh{Tier: t.Tier}, 1), "")}, outs))
 	}
 	return cards
@@ -745,7 +747,7 @@ func smeltables() []item.Stack {
 	for _, w := range world.Items() {
 		st := item.NewStack(w, 1)
 		k := naming.ItemKey(w)
-		if _, ok := smeltOf(st); ok && !seen[k] {
+		if _, ok := machine.SmeltOf(st); ok && !seen[k] {
 			seen[k] = true
 			out = append(out, st)
 		}

@@ -6,15 +6,13 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
 // The auto harvester harvests the grown crops around it on its own level,
 // harvestRadius blocks each way: crops are left as young plants, stem fruits
 // are cut and blooming magic plants go back to buds. The products go to its
 // output slots.
-
-// harvestRadius is how far the harvester reaches in x and z.
-const harvestRadius = 4
 
 // harvestable reports whether b at pos is ready to harvest, and returns the
 // block to leave in its place (a replanted crop or air).
@@ -49,13 +47,13 @@ func harvestable(b world.Block) (world.Block, bool) {
 // runHarvester harvests one grown crop per interval.
 // The cycle runs on whether or not a crop is ready, so the gauge keeps
 // turning.
-func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
-	if st.progress < st.kind.interval {
-		st.tickWork()
+func (s *session) runHarvester(st *machine.MachineState, pos cube.Pos, tx *world.Tx) {
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
-	st.progress = 0
-	radius := st.reach(KindHarvester)
+	st.Progress = 0
+	radius := st.Reach(machine.KindHarvester)
 	for x := -radius; x <= radius; x++ {
 		for z := -radius; z <= radius; z++ {
 			at := pos.Add(cube.Pos{x, 0, z})
@@ -68,7 +66,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			}
 			if mp, isPlant := b.(MagicPlant); isPlant && mp.Bloom {
 				if s.harvestMagicPlant(st, tx, at, mp) {
-					st.done++
+					st.Done++
 					return
 				}
 				continue
@@ -81,7 +79,7 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			if br, ok := b.(block.Breakable); ok && br.BreakInfo().Drops != nil {
 				drops = br.BreakInfo().Drops(item.ToolNone{}, nil)
 			}
-			if !st.roomFor(drops) {
+			if !st.RoomFor(drops) {
 				return
 			}
 			after, drops = replantSeed(st, after, drops)
@@ -92,10 +90,10 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 			tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 			for _, it := range drops {
 				if !it.Empty() {
-					st.emit(it)
+					st.Emit(it)
 				}
 			}
-			st.done++
+			st.Done++
 			return
 		}
 	}
@@ -104,14 +102,14 @@ func (s *session) runHarvester(st *machineState, pos cube.Pos, tx *world.Tx) {
 // harvestMagicPlant picks a blooming magic plant: the yield goes to the
 // harvester's output and the plant goes back to a bud. A plant whose yield
 // does not fit is left for the next cycle.
-func (s *session) harvestMagicPlant(st *machineState, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
+func (s *session) harvestMagicPlant(st *machine.MachineState, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
 	drops, ok := s.plantDrops(mp)
-	if !ok || !st.roomFor(drops) {
+	if !ok || !st.RoomFor(drops) {
 		return false
 	}
 	for _, it := range drops {
 		if !it.Empty() {
-			st.emit(it)
+			st.Emit(it)
 		}
 	}
 	s.resetPlant(tx, at, mp)
@@ -121,7 +119,7 @@ func (s *session) harvestMagicPlant(st *machineState, tx *world.Tx, at cube.Pos,
 // replantSeed takes the seed a harvested crop is replanted with: one from
 // its drops, else one from the harvester's output. Without a seed the crop
 // is not replanted (after becomes air). Stems (melon, pumpkin) need none.
-func replantSeed(st *machineState, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
+func replantSeed(st *machine.MachineState, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
 	if _, _, crop := cropOf(after); !crop {
 		return after, drops
 	}
@@ -136,9 +134,9 @@ func replantSeed(st *machineState, after world.Block, drops []item.Stack) (world
 			return after, drops
 		}
 	}
-	for _, slot := range st.kind.output {
-		if it, _ := st.inv().Item(slot); !it.Empty() && it.Comparable(seed) {
-			_ = st.inv().SetItem(slot, it.Grow(-1))
+	for _, slot := range st.Def.Output {
+		if it, _ := st.Inv().Item(slot); !it.Empty() && it.Comparable(seed) {
+			_ = st.Inv().SetItem(slot, it.Grow(-1))
 			return after, drops
 		}
 	}

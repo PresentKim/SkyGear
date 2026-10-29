@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -93,7 +95,7 @@ func TestCounterKindsExist(t *testing.T) {
 		prefix string
 		kinds  []string
 	}{
-		{"place_", machineOrder}, {"cycle_", machineOrder}, {"kill_", sgitem.MobKinds}, {"crop_", crops},
+		{"place_", machine.MachineOrder}, {"cycle_", machine.MachineOrder}, {"kill_", sgitem.MobKinds}, {"crop_", crops},
 		{"sift_mesh_", meshes}, {"pebble_", pebbles}, {"lab_", sgitem.ResearchEssenceKinds},
 	}
 	for _, c := range achievement.Counters {
@@ -111,8 +113,8 @@ func TestCounterKindsExist(t *testing.T) {
 		}
 	}
 	// and the other way round: every machine can be placed for an achievement
-	for _, k := range machineOrder {
-		if k == KindSellBox {
+	for _, k := range machine.MachineOrder {
+		if k == machine.KindSellBox {
 			continue
 		}
 		found := false

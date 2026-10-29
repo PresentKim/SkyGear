@@ -4,6 +4,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
@@ -26,9 +28,9 @@ func (windowKindEnum) Options(cmd.Source) []string { return windowKinds() }
 // windowKinds returns the machine kinds whose use opens a machine window.
 func windowKinds() []string {
 	var out []string
-	for _, k := range machineOrder {
+	for _, k := range machine.MachineOrder {
 		// the laboratory's use opens its screen (labui.go), not the window
-		if machineKinds[k].marker != "" && k != KindSieve && k != KindLab {
+		if machine.MachineKinds[k].Marker != "" && k != machine.KindSieve && k != machine.KindLab {
 			out = append(out, k)
 		}
 	}
@@ -64,7 +66,7 @@ func (c debugUI) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func showWindowPicker(p *player.Player) {
 	var opts []ui.Option
 	for _, k := range windowKinds() {
-		opts = append(opts, ui.Option{Label: naming.ItemName(i18n.Of(p), machineItem(k)) + "\n§8" + k, Icon: formicon.Of(machineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
+		opts = append(opts, ui.Option{Label: naming.ItemName(i18n.Of(p), machine.MachineItem(k)) + "\n§8" + k, Icon: formicon.Of(machine.MachineItem(k)), Run: func(p *player.Player, _ *world.Tx) {
 			previewLater(p, k)
 		}})
 	}
@@ -85,23 +87,23 @@ func previewLater(p *player.Player, kind string) {
 
 // previewWindow opens a sample window of the machine kind.
 func previewWindow(p *player.Player, kind string) {
-	m := newMachine(kind, "", "")
-	st := m.st
-	inv := st.inv()
-	for i, s := range st.kind.input {
+	m := machine.NewMachine(kind, "", "")
+	st := m.State
+	inv := st.Inv()
+	for i, s := range st.Def.Input {
 		_ = inv.SetItem(s, item.NewStack(block.Cobblestone{}, 16+i))
 	}
-	for _, s := range st.kind.charge {
+	for _, s := range st.Def.Charge {
 		_ = inv.SetItem(s, item.NewStack(sgitem.Essence{Mob: sgitem.MobKinds[0]}, 4))
 	}
-	for i, s := range st.kind.output {
+	for i, s := range st.Def.Output {
 		_ = inv.SetItem(s, item.NewStack(block.Gravel{}, 8+i))
 	}
-	st.progress = st.cycleLen() / 2
-	st.showProgress()
-	if st.kind.energyCap > 0 {
-		st.energy = st.energyCap() / 2
-		st.showEnergy()
+	st.Progress = st.CycleLen() / 2
+	st.ShowProgress()
+	if st.Def.EnergyCap > 0 {
+		st.Energy = st.EnergyCap() / 2
+		st.ShowEnergy()
 	}
-	st.openWindow(p)
+	st.OpenWindow(p)
 }

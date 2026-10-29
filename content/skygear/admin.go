@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -98,8 +100,8 @@ func giveItems() map[string]func() item.Stack {
 			return item.NewStack(item.Bucket{Content: item.LiquidBucketContent(block.Water{Depth: 8, Still: true})}, 1)
 		},
 	}
-	for _, k := range machineOrder {
-		out[k] = func() item.Stack { return machineItem(k) }
+	for _, k := range machine.MachineOrder {
+		out[k] = func() item.Stack { return machine.MachineItem(k) }
 	}
 	for t := 1; t <= conduitTiers; t++ {
 		out[fmt.Sprintf("energy_conduit_%d", t)] = func() item.Stack { return item.NewStack(EnergyConduit{Tier: t}, 1) }
@@ -146,7 +148,7 @@ func giveItems() map[string]func() item.Stack {
 	for l := 1; l <= 4; l++ {
 		out[fmt.Sprintf("circuit_%d", l)] = func() item.Stack { return item.NewStack(sgitem.Circuit{Level: l}, 1) }
 	}
-	for l := 1; l <= maxTier; l++ {
+	for l := 1; l <= machine.MaxTier; l++ {
 		out[fmt.Sprintf("kit_%d", l)] = func() item.Stack { return item.NewStack(sgitem.TierKit{Level: l}, 1) }
 	}
 	for _, k := range sgitem.ResearchEssenceKinds {

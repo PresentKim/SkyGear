@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"github.com/df-mc/dragonfly/server/item"
@@ -13,34 +13,34 @@ import (
 
 // runAlloy works on the recipe the two input slots make: it needs energy every
 // tick of the interval, and finishes when the output has room.
-func (st *machineState) runAlloy() {
-	a, _ := st.inv().Item(st.kind.input[0])
-	b, _ := st.inv().Item(st.kind.input[1])
+func (st *MachineState) runAlloy() {
+	a, _ := st.Inv().Item(st.Def.Input[0])
+	b, _ := st.Inv().Item(st.Def.Input[1])
 	r, ok := machinerecipe.MatchAlloy(a, b)
 	if !ok {
-		st.progress = 0
+		st.Progress = 0
 		return
 	}
-	if st.progress < st.kind.interval {
-		st.tickWork()
+	if st.Progress < st.Def.Interval {
+		st.TickWork()
 		return
 	}
 	out := item.NewStack(r.Out, r.OutCount)
-	if !st.roomFor([]item.Stack{out}) {
+	if !st.RoomFor([]item.Stack{out}) {
 		return
 	}
 	// take the ingredients out of the slot that holds each
 	take := func(want world.Item, n int) {
-		for _, slot := range st.kind.input {
-			it, _ := st.inv().Item(slot)
+		for _, slot := range st.Def.Input {
+			it, _ := st.Inv().Item(slot)
 			if !it.Empty() && naming.ItemKey(it.Item()) == naming.ItemKey(want) && it.Count() >= n {
-				_ = st.inv().SetItem(slot, it.Grow(-n))
+				_ = st.Inv().SetItem(slot, it.Grow(-n))
 				return
 			}
 		}
 	}
 	take(r.A, r.CountA)
 	take(r.B, r.CountB)
-	st.emit(out)
-	st.progress = 0
+	st.Emit(out)
+	st.Progress = 0
 }

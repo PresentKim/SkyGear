@@ -3,6 +3,8 @@ package skygear
 import (
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -36,11 +38,11 @@ func codexTabIcon(t codexTab) string {
 	case codexSearchTab:
 		return formicon.Of(item.NewStack(item.Compass{}, 1))
 	case codexSieveTab:
-		return formicon.Of(machineItem(KindSieve))
+		return formicon.Of(machine.MachineItem(machine.KindSieve))
 	case codexProcessTab:
-		return formicon.Of(machineItem(KindAlloy))
+		return formicon.Of(machine.MachineItem(machine.KindAlloy))
 	case codexMobsTab:
-		return formicon.Of(machineItem(KindGate))
+		return formicon.Of(machine.MachineItem(machine.KindGate))
 	}
 	return formicon.Of(item.NewStack(sgitem.Petal{Colour: "red"}, 1))
 }

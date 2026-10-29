@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
@@ -91,29 +93,29 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 // TestFairyHourglass: it winds an energy machine up to the cap, doubles its
 // runs while it lasts, and stays on the machine's NBT; a generator takes none.
 func TestFairyHourglass(t *testing.T) {
-	m := newMachine(KindCrusher, "", "")
-	st := m.st
-	if st.hourglassReps(2) != 0 {
+	m := machine.NewMachine(machine.KindCrusher, "", "")
+	st := m.State
+	if st.HourglassReps(2) != 0 {
 		t.Fatal("extra runs without an hourglass")
 	}
 	n := 0
-	for st.windHourglass() {
+	for st.WindHourglass() {
 		n++
 	}
-	if n != hourglassMaxTicks/hourglassTicks || st.boost != hourglassMaxTicks {
-		t.Fatalf("%d hourglasses wound %d ticks", n, st.boost)
+	if n != machine.HourglassMaxTicks/machine.HourglassTicks || st.Boost != machine.HourglassMaxTicks {
+		t.Fatalf("%d hourglasses wound %d ticks", n, st.Boost)
 	}
-	if st.hourglassReps(2) != 2 {
+	if st.HourglassReps(2) != 2 {
 		t.Fatal("an hourglass does not double the runs")
 	}
-	back := Machine{Kind: KindCrusher}.DecodeNBT(m.EncodeNBT()).(Machine)
-	if back.st.boost != st.boost {
-		t.Fatalf("boost %d after NBT, want %d", back.st.boost, st.boost)
+	back := machine.Machine{Kind: machine.KindCrusher}.DecodeNBT(m.EncodeNBT()).(machine.Machine)
+	if back.State.Boost != st.Boost {
+		t.Fatalf("boost %d after NBT, want %d", back.State.Boost, st.Boost)
 	}
 	if hourglassLine("ko_KR", st) == "" {
 		t.Fatal("no WAILA line while the hourglass runs")
 	}
-	if newMachine(KindGenerator, "", "").st.windHourglass() {
+	if machine.NewMachine(machine.KindGenerator, "", "").State.WindHourglass() {
 		t.Fatal("a generator took an hourglass")
 	}
 }

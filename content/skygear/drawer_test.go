@@ -4,6 +4,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"slices"
 	"strings"
@@ -454,13 +455,13 @@ func TestStorageController(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, Drawer{Facing: cube.South}, nil)
 		// a link joins a drawer that does not touch
-		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), newMachine(KindStorageLink, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.NewMachine(machine.KindStorageLink, "", ""), nil)
 		c := ctl.Add(cube.Pos{0, 0, 2})
 		tx.SetBlock(c, Drawer{Facing: cube.South}, nil)
 		// out of reach and unconnected
@@ -498,7 +499,7 @@ func TestStorageController(t *testing.T) {
 			t.Errorf("contents %v in %d drawers", list, drawers)
 		}
 		// through the Machine itemio methods too
-		m := tx.Block(ctl).(Machine)
+		m := tx.Block(ctl).(machine.Machine)
 		if n := m.InsertItems(tx, ctl, cube.FaceUp, item.NewStack(block.Cobblestone{}, 2)); n != 2 {
 			t.Errorf("hopper insert took %d", n)
 		}
@@ -512,7 +513,7 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, Drawer{Facing: cube.South}, nil)
@@ -561,7 +562,7 @@ func TestControllerSneakClickOpensList(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
@@ -584,7 +585,7 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
@@ -610,7 +611,7 @@ func TestStorageLiveSearch(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)
@@ -689,7 +690,7 @@ func TestControllerDoubleClickInsertsInventory(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindStorageController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), Drawer{Facing: cube.South}, nil)

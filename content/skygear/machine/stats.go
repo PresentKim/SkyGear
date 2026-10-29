@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"fmt"
@@ -6,15 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/presentkim/skygear/content/skygear/achievement"
-	"github.com/presentkim/skygear/content/skygear/core"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -26,23 +25,23 @@ import (
 // use. The last statMinutes minutes are kept in one-minute buckets; the
 // totals are saved in the state.
 
-// statMinutes is how many one-minute buckets are kept.
-const statMinutes = 15
+// StatMinutes is how many one-minute buckets are kept.
+const StatMinutes = 15
 
 // statBucket is one minute of production.
 type statBucket struct {
 	items map[string]int
-	total int
+	Total int
 	// gen and use are the RE made and used.
-	gen, use int
+	gen, Use int
 }
 
 // prodStats is the production record of a session, owned by its world.
 type prodStats struct {
-	buckets [statMinutes]statBucket
+	Buckets [StatMinutes]statBucket
 	// head is the bucket of the minute now; secs the seconds it has run;
 	// filled the minutes finished (up to statMinutes).
-	head, secs, filled int
+	Head, Secs, filled int
 	// samples are a stack of each item key made, for the screens.
 	samples map[string]item.Stack
 	// fresh are the items made since the last second, by counter key, passed
@@ -50,9 +49,9 @@ type prodStats struct {
 	fresh map[string]int64
 }
 
-func newProdStats() *prodStats {
+func NewProdStats() *prodStats {
 	p := &prodStats{samples: map[string]item.Stack{}, fresh: map[string]int64{}}
-	p.buckets[0].items = map[string]int{}
+	p.Buckets[0].items = map[string]int{}
 	return p
 }
 
@@ -79,14 +78,14 @@ func madeCategory(it world.Item) string {
 }
 
 // add records n items made.
-func (p *prodStats) add(state *factoryState, st item.Stack, n int, counted bool) {
+func (p *prodStats) Add(state *FactoryState, st item.Stack, n int, counted bool) {
 	if n <= 0 || st.Empty() {
 		return
 	}
 	key := naming.ItemKey(st.Item())
-	b := &p.buckets[p.head]
+	b := &p.Buckets[p.Head]
 	b.items[key] += n
-	b.total += n
+	b.Total += n
 	if _, ok := p.samples[key]; !ok {
 		p.samples[key] = item.NewStack(st.Item(), 1)
 	}
@@ -104,42 +103,42 @@ func (p *prodStats) add(state *factoryState, st item.Stack, n int, counted bool)
 }
 
 // rotate closes the minute that ran out and returns its bucket.
-func (p *prodStats) rotate() statBucket {
-	done := p.buckets[p.head]
-	p.head = (p.head + 1) % statMinutes
-	p.buckets[p.head] = statBucket{items: map[string]int{}}
-	p.secs = 0
-	p.filled = min(p.filled+1, statMinutes-1)
+func (p *prodStats) Rotate() statBucket {
+	done := p.Buckets[p.Head]
+	p.Head = (p.Head + 1) % StatMinutes
+	p.Buckets[p.Head] = statBucket{items: map[string]int{}}
+	p.Secs = 0
+	p.filled = min(p.filled+1, StatMinutes-1)
 	return done
 }
 
 // window sums the minute running and the last n minutes before it, and
 // returns the minutes they cover.
-func (p *prodStats) window(n int) (items map[string]int, minutes float64) {
+func (p *prodStats) Window(n int) (items map[string]int, minutes float64) {
 	items = map[string]int{}
 	done := min(n, p.filled)
 	for i := 0; i <= done; i++ {
-		for k, v := range p.buckets[(p.head-i+statMinutes)%statMinutes].items {
+		for k, v := range p.Buckets[(p.Head-i+StatMinutes)%StatMinutes].items {
 			items[k] += v
 		}
 	}
-	return items, float64(done) + float64(p.secs)/60
+	return items, float64(done) + float64(p.Secs)/60
 }
 
 // energyWindow sums the RE made and used in the last n minutes.
 func (p *prodStats) energyWindow(n int) (gen, use int, ticks float64) {
 	for i := 0; i <= min(n, p.filled); i++ {
-		b := p.buckets[(p.head-i+statMinutes)%statMinutes]
+		b := p.Buckets[(p.Head-i+StatMinutes)%StatMinutes]
 		gen += b.gen
-		use += b.use
+		use += b.Use
 	}
-	_, minutes := p.window(n)
+	_, minutes := p.Window(n)
 	return gen, use, minutes * 1200
 }
 
-// perMinute is the average per minute of count items over minutes (0 while
+// PerMinute is the average per minute of count items over minutes (0 while
 // less than ten seconds are recorded).
-func perMinute(count int, minutes float64) float64 {
+func PerMinute(count int, minutes float64) float64 {
 	if minutes < 1.0/6 {
 		return 0
 	}
@@ -148,29 +147,29 @@ func perMinute(count int, minutes float64) float64 {
 
 // roomFor reports whether stacks fit in the output; when they do not, the
 // machine is stuck on its output.
-func (st *machineState) roomFor(stacks []item.Stack) bool {
-	if fits(st.inv(), st.kind.output, stacks) {
+func (st *MachineState) RoomFor(stacks []item.Stack) bool {
+	if Fits(st.Inv(), st.Def.Output, stacks) {
 		return true
 	}
-	st.stuck = stuckOutput
+	st.Stuck = StuckOutput
 	return false
 }
 
 // emit puts a product in the output and records it as made by the island.
-func (st *machineState) emit(it item.Stack) {
-	put(st.inv(), st.kind.output, it)
-	if st.sess != nil {
-		factoryOf(st.sess.Session).stats.add(factorySaved.Of(st.sess.Session), it, it.Count(), true)
+func (st *MachineState) Emit(it item.Stack) {
+	put(st.Inv(), st.Def.Output, it)
+	if st.Sess != nil {
+		FactoryOf(st.Sess).Stats.Add(FactorySaved.Of(st.Sess), it, it.Count(), true)
 	}
 }
 
 // tickWork spends one tick of energy and advances the work; it reports
 // whether the machine could work.
-func (st *machineState) tickWork() bool {
+func (st *MachineState) TickWork() bool {
 	if !st.consume() {
 		return false
 	}
-	st.progress = min(st.progress+1, st.cycleLen())
+	st.Progress = min(st.Progress+1, st.CycleLen())
 	st.markWorked()
 	return true
 }
@@ -178,13 +177,13 @@ func (st *machineState) tickWork() bool {
 // recordMade records items a player's work made, such as the hand sieve's:
 // the statistics show them, the achievements for what machines make do not
 // count them.
-func (s *session) recordMade(it item.Stack) {
-	factoryOf(s.Session).stats.add(factorySaved.Of(s.Session), it, it.Count(), false)
+func recordMade(s *core.Session, it item.Stack) {
+	FactoryOf(s).Stats.Add(FactorySaved.Of(s), it, it.Count(), false)
 }
 
-// keyStack returns a stack of a saved item key.
-func (s *session) keyStack(key string) item.Stack {
-	if st, ok := factoryOf(s.Session).stats.samples[key]; ok {
+// KeyStack returns a stack of a saved item key.
+func KeyStack(s *core.Session, key string) item.Stack {
+	if st, ok := FactoryOf(s).Stats.samples[key]; ok {
 		return st
 	}
 	i := strings.LastIndex(key, ":")
@@ -197,84 +196,84 @@ func (s *session) keyStack(key string) item.Stack {
 	}
 	if it, ok := world.ItemByName(key[:i], int16(meta)); ok {
 		st := item.NewStack(it, 1)
-		factoryOf(s.Session).stats.samples[key] = st
+		FactoryOf(s).Stats.samples[key] = st
 		return st
 	}
 	return item.Stack{}
 }
 
-// statsTab is a page of the statistics screen.
-type statsTab int
+// StatsTab is a page of the statistics screen.
+type StatsTab int
 
 const (
-	statsItems statsTab = iota
-	statsPower
-	statsStalls
+	StatsItems StatsTab = iota
+	StatsPower
+	StatsStalls
 )
 
-// showStats opens the statistics screen on a page.
-func (s *session) showStats(p *player.Player, tab statsTab) {
+// ShowStats opens the statistics screen on a page.
+func ShowStats(s *core.Session, p *player.Player, tab StatsTab) {
 	achievement.Count(p, "stats_open", 1)
-	s.showStatsPage(p, tab)
+	showStatsPage(s, p, tab)
 }
 
-func (s *session) statsTabs(p *player.Player, tab statsTab) []ui.Option {
+func statsTabs(s *core.Session, p *player.Player, tab StatsTab) []ui.Option {
 	lang := i18n.Of(p)
 	// Tabs carry an icon, like the tabs of the creative inventory.
-	icons := map[statsTab]string{
-		statsItems:  formicon.Of(machineItem(KindCrusher)),
-		statsPower:  formicon.Of(machineItem(KindGenerator)),
-		statsStalls: formicon.Locked,
+	icons := map[StatsTab]string{
+		StatsItems:  formicon.Of(MachineItem(KindCrusher)),
+		StatsPower:  formicon.Of(MachineItem(KindGenerator)),
+		StatsStalls: formicon.Locked,
 	}
-	mk := func(label string, t statsTab) ui.Option {
+	mk := func(label string, t StatsTab) ui.Option {
 		return ui.Tab(label, icons[t], tab == t, func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.World {
-				s.showStatsPage(p, t)
+				showStatsPage(s, p, t)
 			}
 		})
 	}
 	return []ui.Option{
-		mk(i18n.T(lang, "monitor.tab.items"), statsItems),
-		mk(i18n.T(lang, "monitor.tab.power"), statsPower),
-		mk(fmt.Sprintf(i18n.T(lang, "monitor.tab.stalls"), s.stalledCount()), statsStalls),
+		mk(i18n.T(lang, "monitor.tab.items"), StatsItems),
+		mk(i18n.T(lang, "monitor.tab.power"), StatsPower),
+		mk(fmt.Sprintf(i18n.T(lang, "monitor.tab.stalls"), StalledCount(s)), StatsStalls),
 		s.BackOption(lang),
 	}
 }
 
 // showStatsPage shows one page without counting an opening.
-func (s *session) showStatsPage(p *player.Player, tab statsTab) {
+func showStatsPage(s *core.Session, p *player.Player, tab StatsTab) {
 	lang := i18n.Of(p)
 	title := i18n.T(lang, "monitor.title")
 	switch tab {
-	case statsPower:
-		ui.Menu(p, title, s.powerText(lang), s.statsTabs(p, tab)...)
-	case statsStalls:
-		body, opts := s.stallOptions(p)
-		ui.Menu(p, title, body, append(opts, s.statsTabs(p, tab)...)...)
+	case StatsPower:
+		ui.Menu(p, title, powerText(s, lang), statsTabs(s, p, tab)...)
+	case StatsStalls:
+		body, opts := StallOptions(s, p)
+		ui.Menu(p, title, body, append(opts, statsTabs(s, p, tab)...)...)
 	default:
-		body, slots := s.itemSlots(lang)
-		ui.ItemGrid(p, title, body, slots, s.statsTabs(p, tab)...)
+		body, slots := itemSlots(s, lang)
+		ui.ItemGrid(p, title, body, slots, statsTabs(s, p, tab)...)
 	}
 }
 
 // itemSlots are the item slots of the production page and its heading.
-func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
-	m1, t1 := factoryOf(s.Session).stats.window(1)
-	m5, t5 := factoryOf(s.Session).stats.window(5)
-	m15, t15 := factoryOf(s.Session).stats.window(15)
+func itemSlots(s *core.Session, lang string) (string, []ui.ItemSlot) {
+	m1, t1 := FactoryOf(s).Stats.Window(1)
+	m5, t5 := FactoryOf(s).Stats.Window(5)
+	m15, t15 := FactoryOf(s).Stats.Window(15)
 	type row struct {
 		key         string
 		r1, r5, r15 float64
 		total       int64
 	}
 	keys := map[string]bool{}
-	for k := range factorySaved.Of(s.Session).Produced {
+	for k := range FactorySaved.Of(s).Produced {
 		keys[k] = true
 	}
 	var rows []row
 	var sum float64
 	for k := range keys {
-		r := row{key: k, r1: perMinute(m1[k], t1), r5: perMinute(m5[k], t5), r15: perMinute(m15[k], t15), total: factorySaved.Of(s.Session).Produced[k]}
+		r := row{key: k, r1: PerMinute(m1[k], t1), r5: PerMinute(m5[k], t5), r15: PerMinute(m15[k], t15), total: FactorySaved.Of(s).Produced[k]}
 		sum += r.r5
 		rows = append(rows, r)
 	}
@@ -290,7 +289,7 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 	body := fmt.Sprintf(i18n.T(lang, "monitor.items.head"), textfmt.PerMin(sum), len(rows))
 	var slots []ui.ItemSlot
 	for _, r := range rows {
-		st := s.keyStack(r.key)
+		st := KeyStack(s, r.key)
 		if st.Empty() || len(slots) >= 99 {
 			continue
 		}
@@ -304,21 +303,21 @@ func (s *session) itemSlots(lang string) (string, []ui.ItemSlot) {
 }
 
 // powerText is the energy page.
-func (s *session) powerText(lang string) string {
-	gen, use, ticks := factoryOf(s.Session).stats.energyWindow(5)
+func powerText(s *core.Session, lang string) string {
+	gen, use, ticks := FactoryOf(s).Stats.energyWindow(5)
 	var genRate, useRate float64
 	if ticks >= 200 {
 		genRate, useRate = float64(gen)/ticks, float64(use)/ticks
 	}
 	var stored, capacity, generators, running int
-	for _, st := range factoryOf(s.Session).machines {
+	for _, st := range FactoryOf(s).machines {
 		switch {
-		case st.kind.cell:
-			stored += st.energy
-			capacity += st.energyCap()
-		case st.kind.generates > 0:
+		case st.Def.Cell:
+			stored += st.Energy
+			capacity += st.EnergyCap()
+		case st.Def.Generates > 0:
 			generators++
-			if st.mon.status == statusWorking {
+			if st.Mon.Status == StatusWorking {
 				running++
 			}
 		}
@@ -331,14 +330,14 @@ func (s *session) powerText(lang string) string {
 }
 
 // markWorked notes that the machine did its work this tick.
-func (st *machineState) markWorked() {
+func (st *MachineState) markWorked() {
 	st.didWork = true
 	st.worked++
 }
 
-// factoryState is what a save keeps of its machines: the stall alerts
+// FactoryState is what a save keeps of its machines: the stall alerts
 // settings and the production totals.
-type factoryState struct {
+type FactoryState struct {
 	// Produced counts the items the machines made, by item key.
 	Produced map[string]int64 `json:"produced,omitempty"`
 	// AlertsOn are the accounts that turned the stall alerts on; they are
@@ -346,4 +345,4 @@ type factoryState struct {
 	AlertsOn map[string]bool `json:"alerts_on,omitempty"`
 }
 
-var factorySaved = core.NewSaved[factoryState](nil)
+var FactorySaved = core.NewSaved[FactoryState](nil)

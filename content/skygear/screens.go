@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -106,7 +108,7 @@ func (s *session) mainMenu(p *player.Player) []ui.Option {
 		s.Opt(i18n.T(i18n.Of(p), "menu.cosmetics"), formicon.Title, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.Opt(i18n.T(i18n.Of(p), "monitor.menu"), formicon.Stats, func(p *player.Player, tx *world.Tx) {
 			progress.Advance(s.Session, tx, advancement.Stats)
-			s.showStats(p, statsItems)
+			machine.ShowStats(s.Session, p, machine.StatsItems)
 		}),
 		s.Opt(i18n.T(i18n.Of(p), "menu.settings"), formicon.Settings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
 		s.helpOption(p),

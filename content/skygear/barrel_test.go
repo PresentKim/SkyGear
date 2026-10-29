@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -197,22 +199,22 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 		}
 		rec.MeltAt -= time.Second
 		s.tickBarrels(tx)
-		if rec.LavaMB != bucketMB || rec.Solids != 0 {
+		if rec.LavaMB != machine.BucketMB || rec.Solids != 0 {
 			t.Fatalf("%d mB of lava and %d solids after 500 s", rec.LavaMB, rec.Solids)
 		}
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(item.Bucket{}, 1), &ctx) {
 			t.Fatal("the bucket did not answer")
 		}
-		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava || s.barrelAt(pos) != nil {
+		if held, _ := p.HeldItems(); machine.FluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava || s.barrelAt(pos) != nil {
 			t.Fatalf("held %v, barrel %+v: want a lava bucket and an empty barrel", held, s.barrelAt(pos))
 		}
 		if tx.Block(pos).(Barrel).Stage != 0 {
 			t.Fatal("the empty barrel still shows lava")
 		}
 		// The lava bucket pours back in, up to 4000 mB.
-		for i := range stoneLavaMax / bucketMB {
+		for i := range stoneLavaMax / machine.BucketMB {
 			held, _ := p.HeldItems()
-			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), held, &item.UseContext{}) || s.barrelAt(pos).LavaMB != (i+1)*bucketMB {
+			if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), held, &item.UseContext{}) || s.barrelAt(pos).LavaMB != (i+1)*machine.BucketMB {
 				t.Fatalf("lava bucket %d was not poured in", i+1)
 			}
 			p.SetHeldItems(item.NewStack(lavaBucket, 1), item.Stack{})
@@ -220,7 +222,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 		if !s.useBarrel(p, tx, pos, tx.Block(pos).(Barrel), item.NewStack(lavaBucket, 1), &item.UseContext{}) || s.barrelAt(pos).LavaMB != stoneLavaMax {
 			t.Fatal("lava went over 4000 mB")
 		}
-		if held, _ := p.HeldItems(); fluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
+		if held, _ := p.HeldItems(); machine.FluidOfBucket(held.Item().(item.Bucket)) != fluidnet.Lava {
 			t.Fatal("the bucket of a full barrel was emptied")
 		}
 		// Full of lava, the solids wait.
@@ -256,7 +258,7 @@ func TestStoneBarrelOldSave(t *testing.T) {
 			cropKey(cobble): {Count: 4, Heat: 10 * time.Second},
 		}
 		s.tickBarrels(tx)
-		if r := s.barrelAt(lava); r.LavaMB != bucketMB || r.Solids != 0 || r.Lava || r.Count != 0 || r.Heat != 0 {
+		if r := s.barrelAt(lava); r.LavaMB != machine.BucketMB || r.Solids != 0 || r.Lava || r.Count != 0 || r.Heat != 0 {
 			t.Errorf("old lava barrel: %+v", r)
 		}
 		if r := s.barrelAt(cobble); r.Solids != 500 || r.LavaMB != 0 || r.Count != 0 {
@@ -314,7 +316,7 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 		{"oak", water, BarrelRecord{Water: true}, item.Bucket{}},
 		{"oak", item.NewStack(sgitem.WoodenBucket{Water: true}, 1), BarrelRecord{Water: true}, sgitem.WoodenBucket{}},
 		{"oak", item.NewStack(sgitem.WitchWaterBucket{}, 1), BarrelRecord{Witch: true}, item.Bucket{}},
-		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{LavaMB: bucketMB}, item.Bucket{}},
+		{stoneWood, item.NewStack(lavaBucket, 1), BarrelRecord{LavaMB: machine.BucketMB}, item.Bucket{}},
 		{stoneWood, water, BarrelRecord{}, nil},
 		{"oak", item.NewStack(lavaBucket, 1), BarrelRecord{}, nil},
 	}
@@ -418,7 +420,7 @@ func TestWoodenBucket(t *testing.T) {
 		// Lava stays in the barrel.
 		stone := cube.Pos{6, island.IslandY + 3, 4}
 		tx.SetBlock(stone, Barrel{Wood: stoneWood}, nil)
-		s.state.Barrels[cropKey(stone)] = &BarrelRecord{LavaMB: bucketMB}
+		s.state.Barrels[cropKey(stone)] = &BarrelRecord{LavaMB: machine.BucketMB}
 		p.SetHeldItems(empty, item.Stack{})
 		if !s.useBarrel(p, tx, stone, tx.Block(stone).(Barrel), empty, &item.UseContext{}) {
 			t.Fatal("the click on the lava barrel was not used")
@@ -426,7 +428,7 @@ func TestWoodenBucket(t *testing.T) {
 		if held, _ := p.HeldItems(); !held.Comparable(empty) {
 			t.Fatalf("a wooden bucket took lava: %v", held)
 		}
-		if rec := s.barrelAt(stone); rec == nil || rec.LavaMB != bucketMB {
+		if rec := s.barrelAt(stone); rec == nil || rec.LavaMB != machine.BucketMB {
 			t.Fatal("the lava went")
 		}
 		// A water source fills the bucket and the full bucket pours it out.

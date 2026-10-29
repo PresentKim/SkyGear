@@ -1,15 +1,9 @@
-package skygear
+package machine
 
 import (
 	"fmt"
 	"math"
 	"sort"
-
-	"github.com/presentkim/skygear/content/skygear/core"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
@@ -18,6 +12,9 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -31,10 +28,10 @@ type machineStatus int
 
 const (
 	statusIdle machineStatus = iota
-	statusWorking
-	statusStarved
+	StatusWorking
+	StatusStarved
 	statusPower
-	statusOutput
+	StatusOutput
 	statusFuel
 )
 
@@ -45,13 +42,13 @@ type stuckKind int
 const (
 	stuckNone stuckKind = iota
 	stuckPower
-	stuckOutput
+	StuckOutput
 	stuckFuel
 )
 
 // Timings of the alerts, in seconds.
 const (
-	alertAfter     = 30
+	AlertAfter     = 30
 	alertSpacing   = 300
 	starvedWindow  = 300
 	alertLines     = 3
@@ -62,30 +59,30 @@ const (
 
 // monitor is the state of a machine for the stall alerts.
 type monitor struct {
-	status machineStatus
+	Status machineStatus
 	// since is when the status began, lastWork when the machine last
 	// worked, lastAlert when it was last alerted (seconds of the island's
 	// clock; 0: never).
-	since, lastWork, lastAlert int
-	alerted                    bool
+	since, lastWork, LastAlert int
+	Alerted                    bool
 	// seen is the tick it last ran.
 	seen int64
 }
 
 func (s machineStatus) alerts() bool {
-	return s == statusPower || s == statusOutput || s == statusFuel
+	return s == statusPower || s == StatusOutput || s == statusFuel
 }
 
 // reasonKey is the text key of a status.
 func (s machineStatus) reasonKey() string {
 	switch s {
-	case statusWorking:
+	case StatusWorking:
 		return "monitor.reason.working"
-	case statusStarved:
+	case StatusStarved:
 		return "monitor.reason.starved"
 	case statusPower:
 		return "monitor.reason.power"
-	case statusOutput:
+	case StatusOutput:
 		return "monitor.reason.output"
 	case statusFuel:
 		return "monitor.reason.fuel"
@@ -94,116 +91,116 @@ func (s machineStatus) reasonKey() string {
 }
 
 // judge decides what the machine did in the last second.
-func (st *machineState) judge(now int) machineStatus {
-	m := &st.mon
+func (st *MachineState) judge(now int) machineStatus {
+	m := &st.Mon
 	var cur machineStatus
 	switch {
 	case st.didWork:
-		cur = statusWorking
+		cur = StatusWorking
 		m.lastWork = now
-	case st.stuck == stuckPower:
+	case st.Stuck == stuckPower:
 		cur = statusPower
-	case st.stuck == stuckOutput:
-		cur = statusOutput
-	case st.stuck == stuckFuel && m.lastWork > 0:
+	case st.Stuck == StuckOutput:
+		cur = StatusOutput
+	case st.Stuck == stuckFuel && m.lastWork > 0:
 		cur = statusFuel
 	case m.lastWork > 0 && now-m.lastWork < starvedWindow:
-		cur = statusStarved
+		cur = StatusStarved
 	}
 	st.didWork = false
-	if cur != m.status {
-		m.status, m.since = cur, now
+	if cur != m.Status {
+		m.Status, m.since = cur, now
 	}
 	return cur
 }
 
 // reason is the status of a machine in words; a starved crafter says what it
 // misses.
-func (st *machineState) reason(lang string) string {
-	text := i18n.T(lang, st.mon.status.reasonKey())
-	if st.mon.status == statusStarved && st.kind.crafter && st.recipe != nil {
-		if missing := crafterMissing(lang, st); missing != "" {
+func (st *MachineState) reason(lang string) string {
+	text := i18n.T(lang, st.Mon.Status.reasonKey())
+	if st.Mon.Status == StatusStarved && st.Def.Crafter && st.Recipe != nil {
+		if missing := CrafterMissing(lang, st); missing != "" {
 			text += ": " + missing
 		}
 	}
 	return text
 }
 
-// stalledCount is the number of machines on the island's list that are stuck
+// StalledCount is the number of machines on the island's list that are stuck
 // or starved.
-func (s *session) stalledCount() int {
+func StalledCount(s *core.Session) int {
 	n := 0
-	for _, st := range factoryOf(s.Session).machines {
-		if st.mon.status.alerts() {
+	for _, st := range FactoryOf(s).machines {
+		if st.Mon.Status.alerts() {
 			n++
 		}
 	}
 	return n
 }
 
-// tickMonitor runs every second: it judges the machines, sends the alerts
+// TickMonitor runs every second: it judges the machines, sends the alerts
 // and passes the production to the players' counters.
-func (s *session) tickMonitor(tx *world.Tx) {
-	factoryOf(s.Session).now++
-	st := factoryOf(s.Session).stats
+func TickMonitor(s *core.Session, tx *world.Tx) {
+	FactoryOf(s).now++
+	st := FactoryOf(s).Stats
 	for k, n := range st.fresh {
 		achievement.CountAll(tx, k, n)
 		delete(st.fresh, k)
 	}
 	working, newAlerts := 0, 0
 	var alerts []*alertLine
-	for pos, ms := range factoryOf(s.Session).machines {
-		if factoryOf(s.Session).lastTick-ms.mon.seen > machineStale*20 {
-			if factoryOf(s.Session).lastTick-ms.mon.seen > machineForget*20 {
-				delete(factoryOf(s.Session).machines, pos)
+	for pos, ms := range FactoryOf(s).machines {
+		if FactoryOf(s).lastTick-ms.Mon.seen > machineStale*20 {
+			if FactoryOf(s).lastTick-ms.Mon.seen > machineForget*20 {
+				delete(FactoryOf(s).machines, pos)
 			}
 			continue
 		}
-		cur := ms.judge(factoryOf(s.Session).now)
-		m := &ms.mon
+		cur := ms.judge(FactoryOf(s).now)
+		m := &ms.Mon
 		switch {
-		case cur == statusWorking:
+		case cur == StatusWorking:
 			working++
-			if m.alerted {
-				m.alerted = false
+			if m.Alerted {
+				m.Alerted = false
 				achievement.CountAll(tx, "stall_fixed", 1)
 			}
-		case cur.alerts() && !m.alerted && factoryOf(s.Session).now-m.since >= alertAfter && (m.lastAlert == 0 || factoryOf(s.Session).now-m.lastAlert >= alertSpacing):
-			m.alerted, m.lastAlert = true, factoryOf(s.Session).now
-			alerts = append(alerts, &alertLine{pos: pos, st: ms})
-		case !cur.alerts() && m.alerted:
-			m.alerted = false
+		case cur.alerts() && !m.Alerted && FactoryOf(s).now-m.since >= AlertAfter && (m.LastAlert == 0 || FactoryOf(s).now-m.LastAlert >= alertSpacing):
+			m.Alerted, m.LastAlert = true, FactoryOf(s).now
+			alerts = append(alerts, &alertLine{pos: pos, State: ms})
+		case !cur.alerts() && m.Alerted:
+			m.Alerted = false
 		}
 	}
-	for _, ms := range factoryOf(s.Session).machines {
-		if ms.mon.alerted {
+	for _, ms := range FactoryOf(s).machines {
+		if ms.Mon.Alerted {
 			newAlerts++
 		}
 	}
-	s.sendAlerts(tx, alerts)
-	s.tickRecords(tx, working, newAlerts, len(alerts) > 0)
-	if st.secs++; st.secs >= 60 {
-		done := st.rotate()
-		s.minuteRecords(tx, done)
+	sendAlerts(s, tx, alerts)
+	tickRecords(s, tx, working, newAlerts, len(alerts) > 0)
+	if st.Secs++; st.Secs >= 60 {
+		done := st.Rotate()
+		minuteRecords(s, tx, done)
 	}
 }
 
 // alertLine is one machine to alert.
 type alertLine struct {
-	pos cube.Pos
-	st  *machineState
+	pos   cube.Pos
+	State *MachineState
 }
 
 // sendAlerts tells the players with alerts on about stuck machines: a line
 // each for the first few, the rest together.
-func (s *session) sendAlerts(tx *world.Tx, alerts []*alertLine) {
+func sendAlerts(s *core.Session, tx *world.Tx, alerts []*alertLine) {
 	if len(alerts) == 0 {
 		return
 	}
-	sort.Slice(alerts, func(i, j int) bool { return alerts[i].st.mon.since < alerts[j].st.mon.since })
+	sort.Slice(alerts, func(i, j int) bool { return alerts[i].State.Mon.since < alerts[j].State.Mon.since })
 	for e := range tx.Players() {
 		p := e.(*player.Player)
-		if !factorySaved.Of(s.Session).AlertsOn[instance.AccountID(p)] {
+		if !FactorySaved.Of(s).AlertsOn[instance.AccountID(p)] {
 			continue
 		}
 		lang := i18n.Of(p)
@@ -212,7 +209,7 @@ func (s *session) sendAlerts(tx *world.Tx, alerts []*alertLine) {
 				p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert.more"), len(alerts)-alertLines))
 				break
 			}
-			p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert"), a.st.kind.title(lang), a.pos.X(), a.pos.Y(), a.pos.Z(), i18n.T(lang, a.st.mon.status.reasonKey())))
+			p.Message(fmt.Sprintf(i18n.T(lang, "monitor.alert"), a.State.Def.Title(lang), a.pos.X(), a.pos.Y(), a.pos.Z(), i18n.T(lang, a.State.Mon.Status.reasonKey())))
 		}
 		p.PlaySound(sound.Note{Instrument: sound.Bass(), Pitch: 6})
 		achievement.Count(p, "alerts_seen", int64(len(alerts)))
@@ -224,14 +221,14 @@ var uptimeRecords = []int{30, 60, 180}
 
 // tickRecords runs the per-second records that are not about a minute: the
 // time the factory ran without a stall.
-func (s *session) tickRecords(tx *world.Tx, working, alerted int, alerting bool) {
+func tickRecords(s *core.Session, tx *world.Tx, working, alerted int, alerting bool) {
 	if working >= uptimeMachines && alerted == 0 && !alerting {
-		factoryOf(s.Session).uptime++
+		FactoryOf(s).uptime++
 	} else {
-		factoryOf(s.Session).uptime = 0
+		FactoryOf(s).uptime = 0
 	}
 	for _, m := range uptimeRecords {
-		if factoryOf(s.Session).uptime == m*60 {
+		if FactoryOf(s).uptime == m*60 {
 			achievement.CountAll(tx, fmt.Sprintf("uptime_%d", m), 1)
 		}
 	}
@@ -244,9 +241,9 @@ var (
 )
 
 // minuteRecords passes the records of a finished minute to the players.
-func (s *session) minuteRecords(tx *world.Tx, b statBucket) {
+func minuteRecords(s *core.Session, tx *world.Tx, b statBucket) {
 	for _, r := range rateRecords {
-		if b.total >= r {
+		if b.Total >= r {
 			achievement.CountAll(tx, fmt.Sprintf("rate_%d", r), 1)
 		}
 	}
@@ -258,24 +255,24 @@ func (s *session) minuteRecords(tx *world.Tx, b statBucket) {
 	}
 }
 
-// stallOptions are the page of the stuck machines: a button each that takes
+// StallOptions are the page of the stuck machines: a button each that takes
 // the player there, the alert switch above.
-func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
+func StallOptions(s *core.Session, p *player.Player) (string, []ui.Option) {
 	lang := i18n.Of(p)
 	id := instance.AccountID(p)
 	state := "monitor.alerts.off"
-	if factorySaved.Of(s.Session).AlertsOn[id] {
+	if FactorySaved.Of(s).AlertsOn[id] {
 		state = "monitor.alerts.on"
 	}
-	var list []*machineState
-	for _, st := range factoryOf(s.Session).machines {
-		if st.mon.status.alerts() {
+	var list []*MachineState
+	for _, st := range FactoryOf(s).machines {
+		if st.Mon.Status.alerts() {
 			list = append(list, st)
 		}
 	}
 	sort.Slice(list, func(i, j int) bool {
-		if list[i].mon.since != list[j].mon.since {
-			return list[i].mon.since < list[j].mon.since
+		if list[i].Mon.since != list[j].Mon.since {
+			return list[i].Mon.since < list[j].Mon.since
 		}
 		return list[i].pos.X() < list[j].pos.X()
 	})
@@ -284,38 +281,38 @@ func (s *session) stallOptions(p *player.Player) (string, []ui.Option) {
 		body += "\n" + i18n.T(lang, "monitor.stalls.none")
 	}
 	opts := []ui.Option{s.Opt(i18n.T(lang, "monitor.alerts.toggle"), "textures/ui/icon_bell", func(p *player.Player, _ *world.Tx) {
-		if factorySaved.Of(s.Session).AlertsOn == nil {
-			factorySaved.Of(s.Session).AlertsOn = map[string]bool{}
+		if FactorySaved.Of(s).AlertsOn == nil {
+			FactorySaved.Of(s).AlertsOn = map[string]bool{}
 		}
-		if factorySaved.Of(s.Session).AlertsOn[id] {
-			delete(factorySaved.Of(s.Session).AlertsOn, id)
+		if FactorySaved.Of(s).AlertsOn[id] {
+			delete(FactorySaved.Of(s).AlertsOn, id)
 		} else {
-			factorySaved.Of(s.Session).AlertsOn[id] = true
+			FactorySaved.Of(s).AlertsOn[id] = true
 		}
 		s.MarkDirty()
-		s.showStatsPage(p, statsStalls)
+		showStatsPage(s, p, StatsStalls)
 	})}
 	for i, st := range list {
 		if i >= 40 {
 			break
 		}
 		pos := st.pos
-		secs := factoryOf(s.Session).now - st.mon.since
-		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.kind.title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), textfmt.Span(lang, secs))
-		opts = append(opts, s.Opt(label, "", func(p *player.Player, tx *world.Tx) { s.goToMachine(p, tx, pos) }))
+		secs := FactoryOf(s).now - st.Mon.since
+		label := fmt.Sprintf("%s (%d, %d, %d)\n§7%s · %s", st.Def.Title(lang), pos.X(), pos.Y(), pos.Z(), st.reason(lang), textfmt.Span(lang, secs))
+		opts = append(opts, s.Opt(label, "", func(p *player.Player, tx *world.Tx) { goToMachine(s, p, tx, pos) }))
 	}
 	return body, opts
 }
 
 // goToMachine moves p next to the machine at pos: a free spot of two blocks
 // high around it, inside the island.
-func (s *session) goToMachine(p *player.Player, tx *world.Tx, pos cube.Pos) {
+func goToMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 	for _, d := range []cube.Pos{{0, 1, 0}, {1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {1, 1, 0}, {-1, 1, 0}, {0, 1, 1}, {0, 1, -1}} {
 		at := pos.Add(d)
 		if core.SolidAt(tx, at) || core.SolidAt(tx, at.Add(cube.Pos{0, 1, 0})) {
 			continue
 		}
-		if !island.Owns(s.Session, island.ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {
+		if !island.Owns(s, island.ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {
 			continue
 		}
 		from := mgl64.Vec3{float64(at.X()) + 0.5, float64(at.Y()), float64(at.Z()) + 0.5}
@@ -339,16 +336,16 @@ func faceTowards(p *player.Player, eyes, target mgl64.Vec3) {
 // island ran (now), the last machine tick seen and the seconds without a
 // stall (uptime).
 type factory struct {
-	stats    *prodStats
-	machines map[cube.Pos]*machineState
+	Stats    *prodStats
+	machines map[cube.Pos]*MachineState
 	now      int
 	lastTick int64
 	uptime   int
 }
 
 var factoryPart = core.NewPart(func() *factory {
-	return &factory{stats: newProdStats(), machines: map[cube.Pos]*machineState{}}
+	return &factory{Stats: NewProdStats(), machines: map[cube.Pos]*MachineState{}}
 })
 
-// factoryOf is what the save of s knows of its machines.
-func factoryOf(s *core.Session) *factory { return factoryPart.Of(s) }
+// FactoryOf is what the save of s knows of its machines.
+func FactoryOf(s *core.Session) *factory { return factoryPart.Of(s) }

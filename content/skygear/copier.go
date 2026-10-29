@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -171,8 +173,8 @@ func targetOf(tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) (
 				return copyTarget{cardBundle, pos, 0}, true
 			}
 		}
-	case Machine:
-		if b.st != nil && b.st.kind.crafter {
+	case machine.Machine:
+		if b.State != nil && b.State.Def.Crafter {
 			return copyTarget{cardCrafter, pos, 0}, true
 		}
 	case Drawer:
@@ -197,11 +199,11 @@ func readCard(tx *world.Tx, t copyTarget) (*configCard, bool) {
 		}
 		return c, true
 	case cardCrafter:
-		m := tx.Block(t.pos).(Machine)
-		if m.st.recipeID == "" {
+		m := tx.Block(t.pos).(machine.Machine)
+		if m.State.RecipeID == "" {
 			return nil, false
 		}
-		return &configCard{Kind: cardCrafter, Recipe: m.st.recipeID}, true
+		return &configCard{Kind: cardCrafter, Recipe: m.State.RecipeID}, true
 	case cardDrawer:
 		d := tx.Block(t.pos).(Drawer)
 		if d.Item.Empty() {
@@ -248,12 +250,12 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 		}
 		return changed
 	case t.kind == cardCrafter && c.Kind == cardCrafter:
-		m := tx.Block(t.pos).(Machine)
+		m := tx.Block(t.pos).(machine.Machine)
 		cr := machinerecipe.CrafterByID(c.Recipe)
-		if cr == nil || !s.crafterOpen(cr) {
+		if cr == nil || !machine.CrafterOpen(s.Session, cr) {
 			return false
 		}
-		m.st.setRecipe(cr)
+		m.State.SetRecipe(cr)
 		return true
 	case t.kind == cardDrawer && c.Kind == cardDrawer:
 		d := tx.Block(t.pos).(Drawer)

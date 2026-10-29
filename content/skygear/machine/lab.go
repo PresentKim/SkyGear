@@ -1,4 +1,4 @@
-package skygear
+package machine
 
 import (
 	"fmt"
@@ -20,20 +20,20 @@ const labCheckEvery = 10
 
 // setLab makes the laboratory brew r (nil: nothing), from the start of a
 // cycle.
-func (st *machineState) setLab(r *machinerecipe.Lab) {
-	st.lab, st.recipeID, st.progress, st.period = r, "", 0, 0
+func (st *MachineState) SetLab(r *machinerecipe.Lab) {
+	st.Lab, st.RecipeID, st.Progress, st.period = r, "", 0, 0
 	if r != nil {
-		st.recipeID, st.period = r.Out.Kind, r.Ticks
+		st.RecipeID, st.period = r.Out.Kind, r.Ticks
 	}
 }
 
 // labAccepts reports whether the laboratory takes an item: an ingredient of
 // the recipe it brews.
-func (st *machineState) labAccepts(it item.Stack) bool {
-	if st.lab == nil {
+func (st *MachineState) labAccepts(it item.Stack) bool {
+	if st.Lab == nil {
 		return false
 	}
-	_, ok := st.lab.Ingredient(it)
+	_, ok := st.Lab.Ingredient(it)
 	return ok
 }
 
@@ -44,22 +44,22 @@ const labFeedCycles = 8
 // labFeedCap is how many of an ingredient the feed puts in the laboratory:
 // what the recipe takes of it for labFeedCycles cycles. A feed of one
 // ingredient cannot fill the nine slots and crowd the others out.
-func (st *machineState) labFeedCap(it item.Stack) int {
-	in, _ := st.lab.Ingredient(it)
+func (st *MachineState) LabFeedCap(it item.Stack) int {
+	in, _ := st.Lab.Ingredient(it)
 	return max(1, in.Count) * labFeedCycles
 }
 
 // labHandCap is how many of an ingredient a player puts in by hand: the
 // stacks of the input slots shared out among the ingredients.
-func (st *machineState) labHandCap(it item.Stack) int {
-	return it.MaxCount() * max(1, len(st.kind.input)/len(st.lab.In))
+func (st *MachineState) LabHandCap(it item.Stack) int {
+	return it.MaxCount() * max(1, len(st.Def.Input)/len(st.Lab.In))
 }
 
 // labHave counts what the input slots hold by item key.
-func (st *machineState) labHave() map[string]int {
+func (st *MachineState) LabHave() map[string]int {
 	have := map[string]int{}
-	for _, slot := range st.kind.input {
-		if it, _ := st.inv().Item(slot); !it.Empty() {
+	for _, slot := range st.Def.Input {
+		if it, _ := st.Inv().Item(slot); !it.Empty() {
 			have[naming.ItemKey(it.Item())] += it.Count()
 		}
 	}
@@ -69,8 +69,8 @@ func (st *machineState) labHave() map[string]int {
 // labClosest is the recipe the input slots are closest to: the one with the
 // most of its ingredients started, none if no ingredient is in them. A
 // laboratory saved before it was chosen on its screen brews this one.
-func (st *machineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingredient) {
-	have := st.labHave()
+func (st *MachineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingredient) {
+	have := st.LabHave()
 	var best *machinerecipe.Lab
 	var bestMissing []machinerecipe.Ingredient
 	bestHave := 0
@@ -93,35 +93,35 @@ func (st *machineState) labClosest() (*machinerecipe.Lab, []machinerecipe.Ingred
 // ingredients are there, and when the cycle is out and the essences fit the
 // output, takes the ingredients and makes them. Without an ingredient the
 // cycle starts over.
-func (st *machineState) runLab() {
-	r := st.lab
+func (st *MachineState) runLab() {
+	r := st.Lab
 	if r == nil {
-		st.progress, st.period = 0, 0
+		st.Progress, st.period = 0, 0
 		return
 	}
 	st.period = r.Ticks
 	// Mid-cycle the ingredients are looked at once every labCheckEvery ticks,
 	// not every tick: it counts the input slots.
-	if st.progress%labCheckEvery != 0 && st.progress < r.Ticks {
-		st.tickWork()
+	if st.Progress%labCheckEvery != 0 && st.Progress < r.Ticks {
+		st.TickWork()
 		return
 	}
-	if len(machinerecipe.LabMissing(r, st.labHave())) > 0 {
-		st.progress = 0
+	if len(machinerecipe.LabMissing(r, st.LabHave())) > 0 {
+		st.Progress = 0
 		return
 	}
-	if st.progress < r.Ticks {
-		st.tickWork()
+	if st.Progress < r.Ticks {
+		st.TickWork()
 		return
 	}
 	out := item.NewStack(r.Out, r.OutCount)
-	if !st.roomFor([]item.Stack{out}) {
+	if !st.RoomFor([]item.Stack{out}) {
 		return
 	}
 	for _, in := range r.In {
 		left := in.Count
-		for _, slot := range st.kind.input {
-			cur, _ := st.inv().Item(slot)
+		for _, slot := range st.Def.Input {
+			cur, _ := st.Inv().Item(slot)
 			if left == 0 {
 				break
 			}
@@ -129,30 +129,30 @@ func (st *machineState) runLab() {
 				continue
 			}
 			take := min(left, cur.Count())
-			_ = st.inv().SetItem(slot, cur.Grow(-take))
+			_ = st.Inv().SetItem(slot, cur.Grow(-take))
 			left -= take
 		}
 	}
-	st.emit(out)
-	st.progress = 0
-	st.done++
+	st.Emit(out)
+	st.Progress = 0
+	st.Done++
 	st.tally("lab_"+r.Out.Kind, int64(r.OutCount))
 }
 
-// labLines say in lang what the laboratory brews and what it lacks for it.
-func labLines(lang string, st *machineState) []string {
-	r := st.lab
+// LabLines say in lang what the laboratory brews and what it lacks for it.
+func LabLines(lang string, st *MachineState) []string {
+	r := st.Lab
 	if r == nil {
 		return []string{i18n.T(lang, "lab.none")}
 	}
 	lines := []string{"§f" + naming.ItemName(lang, item.NewStack(r.Out, r.OutCount))}
-	if missing := machinerecipe.LabMissing(r, st.labHave()); len(missing) > 0 {
+	if missing := machinerecipe.LabMissing(r, st.LabHave()); len(missing) > 0 {
 		var parts []string
 		for _, m := range missing {
 			parts = append(parts, fmt.Sprintf("%s ×%d", naming.ItemName(lang, item.NewStack(m.Item, 1)), m.Count))
 		}
 		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), strings.Join(parts, ", ")))
 	}
-	lines = append(lines, consumerLines(lang, st)...)
-	return append(lines, blockedLines(lang, st)...)
+	lines = append(lines, ConsumerLines(lang, st)...)
+	return append(lines, BlockedLines(lang, st)...)
 }

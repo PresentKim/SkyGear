@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
@@ -25,7 +27,7 @@ func TestAdminDense(t *testing.T) {
 		feet := cube.PosFromVec3(p.Position())
 		cols, rows := 2, 4
 		at := feet.Add(cube.Pos{-cols, -1, -rows / 2})
-		if m, ok := tx.Block(at.Add(cube.Pos{0, 4, 0})).(Machine); !ok || m.Kind != KindMiner {
+		if m, ok := tx.Block(at.Add(cube.Pos{0, 4, 0})).(machine.Machine); !ok || m.Kind != machine.KindMiner {
 			t.Errorf("no miner in the first cell")
 		}
 		if _, ok := tx.Block(at.Add(cube.Pos{1, 2, 0})).(Drawer); !ok {
@@ -52,9 +54,9 @@ func TestDebugPlace(t *testing.T) {
 			t.Fatalf("cobblestone not placed: %T, %v", tx.Block(cube.Pos{2, 64, 2}), o.Errors())
 		}
 		c = base
-		c.Item, c.DX, c.DZ = KindCrusher, 2, 1
+		c.Item, c.DX, c.DZ = machine.KindCrusher, 2, 1
 		c.Run(p, &o, tx)
-		if m, ok := tx.Block(cube.Pos{2, 64, 3}).(Machine); !ok || m.Kind != KindCrusher {
+		if m, ok := tx.Block(cube.Pos{2, 64, 3}).(machine.Machine); !ok || m.Kind != machine.KindCrusher {
 			t.Fatalf("crusher not placed: %T, %v", tx.Block(cube.Pos{2, 64, 3}), o.Errors())
 		}
 		if held, _ := p.HeldItems(); !held.Empty() {

@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -25,13 +27,6 @@ import (
 const (
 	fairyBoneMealTime = 2 * time.Minute
 	fairyBoneMealMade = 4
-)
-
-// hourglassTicks is how long one fairy hourglass boosts a machine, and
-// hourglassMaxTicks how much boost a machine holds.
-const (
-	hourglassTicks    = 10 * 60 * 20
-	hourglassMaxTicks = 60 * 60 * 20
 )
 
 // fairyTimeRecipes registers fairy bone meal (bone meal in the four corners,
@@ -70,8 +65,8 @@ func (s *session) useFairyTime(p *player.Player, tx *world.Tx, pos cube.Pos, hel
 		tx.AddParticle(pos.Vec3(), particle.BoneMeal{})
 		return true
 	case sgitem.FairyHourglass:
-		m, ok := tx.Block(pos).(Machine)
-		if !ok || m.st == nil || !m.st.windHourglass() {
+		m, ok := tx.Block(pos).(machine.Machine)
+		if !ok || m.State == nil || !m.State.WindHourglass() {
 			return false
 		}
 		spendHeld(p, held)
@@ -137,36 +132,11 @@ func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 	return true
 }
 
-// hourglassable reports whether the hourglass speeds the machine: one that
-// works on energy, like the snow (no generator or energy cell).
-func (st *machineState) hourglassable() bool {
-	return st.kind.use > 0 && st.kind.generates == 0 && !st.kind.cell
-}
-
-// windHourglass adds an hourglass's time to the machine and reports whether
-// it took it (not past hourglassMaxTicks).
-func (st *machineState) windHourglass() bool {
-	if !st.hourglassable() || st.boost+hourglassTicks > hourglassMaxTicks {
-		return false
-	}
-	st.boost += hourglassTicks
-	return true
-}
-
-// hourglassReps is how many runs a machine that runs reps times a tick makes
-// on top of them while an hourglass runs: as many again.
-func (st *machineState) hourglassReps(reps int) int {
-	if st.boost <= 0 {
-		return 0
-	}
-	return reps
-}
-
 // hourglassLine is the WAILA line of the hourglass time left, or "".
-func hourglassLine(lang string, st *machineState) string {
-	if st == nil || st.boost <= 0 {
+func hourglassLine(lang string, st *machine.MachineState) string {
+	if st == nil || st.Boost <= 0 {
 		return ""
 	}
-	left := time.Duration(st.boost) * time.Second / 20
+	left := time.Duration(st.Boost) * time.Second / 20
 	return i18n.T(lang, "fairy.hourglass.left") + textfmt.Duration(lang, left.Round(time.Second))
 }

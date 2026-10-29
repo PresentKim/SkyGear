@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -87,7 +89,7 @@ func TestItemNamesInPlayerLanguage(t *testing.T) {
 	if got := naming.ItemName("en", item.NewStack(item.Diamond{}, 1)); got != "Diamond" {
 		t.Errorf("english vanilla name %q", got)
 	}
-	if got := naming.BlockName("en", Machine{Kind: KindCrusher}); got == naming.BlockName(i18n.Default, Machine{Kind: KindCrusher}) {
+	if got := naming.BlockName("en", machine.Machine{Kind: machine.KindCrusher}); got == naming.BlockName(i18n.Default, machine.Machine{Kind: machine.KindCrusher}) {
 		t.Errorf("crusher block name %q in both languages", got)
 	}
 }

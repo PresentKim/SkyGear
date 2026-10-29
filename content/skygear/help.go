@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -37,11 +39,11 @@ func helpTabIcon(t helpTab) string {
 	case helpHandTab:
 		return formicon.Of(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
 	case helpAutoTab:
-		return formicon.Of(machineItem(KindGenerator))
+		return formicon.Of(machine.MachineItem(machine.KindGenerator))
 	case helpMetalTab:
-		return formicon.Of(machineItem(KindAlloy))
+		return formicon.Of(machine.MachineItem(machine.KindAlloy))
 	case helpFightTab:
-		return formicon.Of(machineItem(KindGate))
+		return formicon.Of(machine.MachineItem(machine.KindGate))
 	}
 	return formicon.Mission
 }
@@ -64,25 +66,25 @@ var helpTopics = []struct {
 	{"research", helpStartTab, func() string { return formicon.Of(item.NewStack(ResearchTable{}, 1)) }, nil},
 	{"island", helpStartTab, func() string { return formicon.Island }, nil},
 	{"handwork", helpHandTab, func() string { return formicon.Of(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1)) }, nil},
-	{"sieve", helpHandTab, func() string { return formicon.Of(machineItem(KindSieve)) }, nil},
+	{"sieve", helpHandTab, func() string { return formicon.Of(machine.MachineItem(machine.KindSieve)) }, nil},
 	{"water", helpHandTab, func() string { return formicon.Of(item.NewStack(item.Bucket{}, 1)) }, nil},
 	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(FairyBoard{}, 1)) }, nil},
-	{"power", helpAutoTab, func() string { return formicon.Of(machineItem(KindGenerator)) }, nil},
+	{"power", helpAutoTab, func() string { return formicon.Of(machine.MachineItem(machine.KindGenerator)) }, nil},
 	{"conduit", helpAutoTab, func() string { return formicon.Of(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
 	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(Drawer{}, 1)) }, nil},
-	{"lines", helpAutoTab, func() string { return formicon.Of(machineItem(KindMiner)) }, nil},
-	{"monitor", helpAutoTab, func() string { return formicon.Of(machineItem(KindCrusher)) }, nil},
+	{"lines", helpAutoTab, func() string { return formicon.Of(machine.MachineItem(machine.KindMiner)) }, nil},
+	{"monitor", helpAutoTab, func() string { return formicon.Of(machine.MachineItem(machine.KindCrusher)) }, nil},
 	{"copier", helpAutoTab, func() string { return formicon.Of(item.NewStack(sgitem.ConfigCopier{}, 1)) }, nil},
 	{"essence", helpAutoTab, func() string {
 		return formicon.Of(item.NewStack(sgitem.ResearchEssence{Kind: sgitem.EssenceEngineering}, 1))
 	}, helpEssenceText},
-	{"fluid", helpAutoTab, func() string { return formicon.Of(machineItem(KindTank)) }, nil},
-	{"metal", helpMetalTab, func() string { return formicon.Of(machineItem(KindAlloy)) }, nil},
+	{"fluid", helpAutoTab, func() string { return formicon.Of(machine.MachineItem(machine.KindTank)) }, nil},
+	{"metal", helpMetalTab, func() string { return formicon.Of(machine.MachineItem(machine.KindAlloy)) }, nil},
 	{"tier", helpMetalTab, func() string { return formicon.Of(item.NewStack(sgitem.TierKit{Level: 1}, 1)) }, nil},
-	{"wave", helpFightTab, func() string { return formicon.Of(machineItem(KindGate)) }, nil},
-	{"gear", helpFightTab, func() string { return formicon.Of(machineItem(KindTinker)) }, nil},
+	{"wave", helpFightTab, func() string { return formicon.Of(machine.MachineItem(machine.KindGate)) }, nil},
+	{"gear", helpFightTab, func() string { return formicon.Of(machine.MachineItem(machine.KindTinker)) }, nil},
 	{"magic", helpFightTab, func() string { return formicon.Of(item.NewStack(sgitem.Petal{Colour: "red"}, 1)) }, nil},
-	{"magicsieve", helpFightTab, func() string { return formicon.Of(machineItem(KindMagicSieve)) }, nil},
+	{"magicsieve", helpFightTab, func() string { return formicon.Of(machine.MachineItem(machine.KindMagicSieve)) }, nil},
 }
 
 // helpTopicsOf are the indexes in helpTopics of the topics of a tab.

@@ -3,6 +3,8 @@ package skygear
 import (
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/machine"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
@@ -48,9 +50,9 @@ func registerCreativeItems() {
 			add(construction, ItemConduit{Tier: t})
 			add(construction, FluidConduit{Tier: t})
 		}
-		for _, k := range machineOrder {
-			if k != KindSellBox {
-				add(construction, Machine{Kind: k})
+		for _, k := range machine.MachineOrder {
+			if k != machine.KindSellBox {
+				add(construction, machine.Machine{Kind: k})
 			}
 		}
 		add(construction, sgitem.Dust{})
@@ -112,7 +114,7 @@ func registerCreativeItems() {
 		for l := 1; l <= 4; l++ {
 			add(items, sgitem.Circuit{Level: l})
 		}
-		for l := 1; l <= maxTier; l++ {
+		for l := 1; l <= machine.MaxTier; l++ {
 			add(items, sgitem.TierKit{Level: l})
 		}
 		add(equipment, sgitem.ConfigCopier{})
