@@ -279,3 +279,13 @@ var wavesPart = core.NewPart(func() *wavesLocal { return &wavesLocal{} })
 
 // LocalOf is what the save of s keeps for its waves.
 func LocalOf(s *core.Session) *wavesLocal { return wavesPart.Of(s) }
+
+// The dimension gate is a machine kind whose click opens the gate screen.
+func init() {
+	machine.Kinds[machine.KindGate].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		if !s.Debounced(p) {
+			ShowGate(s, p, tx, pos)
+		}
+		return true
+	}
+}

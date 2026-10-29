@@ -23,7 +23,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -44,25 +43,6 @@ type Game struct {
 	// by every block tick and written only when an instance starts or stops,
 	// so reads take no lock.
 	sessions sync.Map // *world.World -> *session
-}
-
-func init() {
-	core.ShowMenu = func(c *core.Session, p *player.Player) {
-		if s, ok := activeGame.sessionOf(c.World); ok {
-			screens.ShowMenu(s.Session, p)
-		}
-	}
-	core.UpdateBoard = func(c *core.Session, p *player.Player) {
-		if s, ok := activeGame.sessionOf(c.World); ok {
-			screens.UpdateBoard(s.Session, p)
-		}
-	}
-	// The quest panel follows the progress.
-	progress.OnChange = func(c *core.Session, tx *world.Tx) {
-		if s, ok := activeGame.sessionOf(c.World); ok {
-			screens.UpdateBoards(s.Session, tx)
-		}
-	}
 }
 
 // activeGame is the game used by blocks, whose methods have no other way to
@@ -203,27 +183,6 @@ func (s *session) Close(tx *world.Tx) {
 	s.Session.Close()
 	core.Unregister(s.Session)
 	s.g.sessions.Delete(s.World)
-}
-
-// The machine kinds of other parts of the game.
-func init() {
-	sess := func(c *core.Session) *session { s, _ := activeGame.sessionOf(c.World); return s }
-	ctl := machine.Kinds[machine.KindStorageController]
-	ctl.Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		storage.UseController(sess(c).Session, p, tx, pos)
-		return true
-	}
-	ctl.Insert, ctl.Peek, ctl.Extract = storage.ControllerInsert, storage.ControllerPeek, storage.ControllerExtract
-	machine.Kinds[machine.KindGate].Click = func(c *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !c.Debounced(p) {
-			wave.ShowGate(sess(c).Session, p, tx, pos)
-		}
-		return true
-	}
-	machine.Kinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx) {
-		farm.RunHarvester(sess(c).Session, st, pos, tx)
-	}
-	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return climate.SnowReps(sess(c).Session, reps, tick) }
 }
 
 // activeGameSession is the session of the world of tx, nil if it has none.

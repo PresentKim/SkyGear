@@ -22,6 +22,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
+	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
@@ -1348,7 +1349,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.DrainLegacy()
 	reps := st.Reps()
 	if st.hourglassable() {
-		reps += ExtraReps(s, reps, currentTick) + st.HourglassReps(reps)
+		reps += climate.SnowReps(s, reps, currentTick) + st.HourglassReps(reps)
 	}
 	if st.Boost > 0 {
 		st.Boost--
@@ -1449,10 +1450,6 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 		}
 	}
 }
-
-// ExtraReps are the runs a tick of a machine gets on top of its own reps
-// (the fairy's snow; the fairy sets it).
-var ExtraReps = func(s *core.Session, reps int, tick int64) int { return 0 }
 
 // process advances an input → output operation on accepted inputs.
 // possible returns every product one input item may give; a completed

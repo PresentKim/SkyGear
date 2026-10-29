@@ -374,3 +374,14 @@ func totalOf(list []Entry) int64 {
 
 // Orders are how each player sorts storage controller lists.
 var Orders = core.NewPlayers[storageOrder]()
+
+// The storage controller is a machine kind whose clicks and item I/O are the
+// storage's.
+func init() {
+	ctl := machine.Kinds[machine.KindStorageController]
+	ctl.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		UseController(s, p, tx, pos)
+		return true
+	}
+	ctl.Insert, ctl.Peek, ctl.Extract = ControllerInsert, ControllerPeek, ControllerExtract
+}
