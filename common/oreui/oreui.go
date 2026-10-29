@@ -17,6 +17,7 @@ package oreui
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -132,6 +133,9 @@ func init() {
 			}
 			formsMu.Unlock()
 			if f != nil && pk.FormID == f.id {
+				// The reason tells how the client closed it (a phone's back
+				// button, the client's own menu, ...).
+				slog.Info("ore ui screen closed by client", "player", c.IdentityData().DisplayName, "reason", pk.CloseReason)
 				f.closedByClient()
 			}
 			return true

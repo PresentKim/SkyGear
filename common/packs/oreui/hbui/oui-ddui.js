@@ -724,12 +724,14 @@
       zoomTo(ev.deltaY < 0 ? pan.z * ZOOM_STEP : pan.z / ZOOM_STEP, at.x, at.y);
       if (ev.preventDefault) ev.preventDefault();
     });
-    // A second finger, wherever it lands in the view, turns the drag into a pinch.
-    view.addEventListener("touchstart", function (ev) {
-      if (!pan || !ev.touches || ev.touches.length < 2) return;
+    // A second finger, wherever it lands in the view and however long after the first, turns the drag
+    // into a pinch. The fingers come from trackFingers, as a touch event may list only its own touch.
+    view.addEventListener("touchstart", function () {
+      var f = fingerPoints();
+      if (!pan || f.length < 2) return;
       panning = null;
       if (tip) tip.style.display = "none";
-      pinching = { zoomTo: zoomTo, inView: inView, d: fingerGap(ev.touches) || 1, z: pan.z };
+      pinching = { zoomTo: zoomTo, inView: inView, d: fingerGap(f) || 1, z: pan.z };
     });
     var zoom = el("div", "oui-canvas-zoom");
     [["+", ZOOM_STEP], ["-", 1 / ZOOM_STEP]].forEach(function (b) {
@@ -748,15 +750,51 @@
   var panning = null; // {pan, place, x, y, px, py}: the canvas being dragged
   var pinching = null; // {zoomTo, inView, d, z}: the canvas being pinched, from the finger gap d at zoom z
 
-  function fingerGap(touches) {
-    return Math.sqrt(Math.pow(touches[1].clientX - touches[0].clientX, 2) + Math.pow(touches[1].clientY - touches[0].clientY, 2));
+  // fingers are the fingers on the screen by touch id ({clientX, clientY, at}), kept from the touch
+  // events of the whole page before any other listener (capture): Gameface may list only the touch that
+  // changed in an event's touches, so a second finger that lands after the first is not in the first
+  // one's list. A finger whose end was missed is dropped when all fingers are up, or once it has not
+  // moved for FINGER_STALE.
+  var fingers = {};
+  var FINGER_STALE = 3000;
+
+  function trackFingers(ev) {
+    var ending = ev.type === "touchend" || ev.type === "touchcancel";
+    var lists = ending ? [ev.changedTouches || ev.touches] : [ev.touches, ev.changedTouches];
+    var now = Date.now();
+    lists.forEach(function (ts) {
+      for (var i = 0; ts && i < ts.length; i++) {
+        var t = ts[i];
+        var id = t.identifier === undefined ? i : t.identifier;
+        if (ending) delete fingers[id];
+        else fingers[id] = { clientX: t.clientX, clientY: t.clientY, at: now };
+      }
+    });
+    if (ending && (!ev.touches || ev.touches.length === 0) && !ev.changedTouches) fingers = {};
+    if (ending && fingerPoints().length < 2) pinching = null;
+  }
+
+  // fingerPoints are the fingers on the screen, the first down first.
+  function fingerPoints() {
+    var now = Date.now();
+    var out = [];
+    for (var id in fingers) {
+      if (now - fingers[id].at > FINGER_STALE && !pinching) delete fingers[id];
+      else out.push(fingers[id]);
+    }
+    return out;
+  }
+
+  function fingerGap(f) {
+    return Math.sqrt(Math.pow(f[1].clientX - f[0].clientX, 2) + Math.pow(f[1].clientY - f[0].clientY, 2));
   }
 
   function dragCanvas(ev) {
     if (pinching) {
-      if (!ev.touches || ev.touches.length < 2) return;
-      var mid = pinching.inView((ev.touches[0].clientX + ev.touches[1].clientX) / 2, (ev.touches[0].clientY + ev.touches[1].clientY) / 2);
-      pinching.zoomTo((pinching.z * fingerGap(ev.touches)) / pinching.d, mid.x, mid.y);
+      var f = fingerPoints();
+      if (f.length < 2) return;
+      var mid = pinching.inView((f[0].clientX + f[1].clientX) / 2, (f[0].clientY + f[1].clientY) / 2);
+      pinching.zoomTo((pinching.z * fingerGap(f)) / pinching.d, mid.x, mid.y);
       return;
     }
     if (!panning) return;
@@ -1161,6 +1199,12 @@
 
   function probeLive() {
     return probeEl && root && root.contains(probeEl);
+  }
+
+  // isBack reports whether a key event is Esc or a phone's back button: Android's KEYCODE_BACK (4) or
+  // the browser back key (166, "GoBack", "BrowserBack"), whichever the page is given.
+  function isBack(ev) {
+    return ev.keyCode === 27 || ev.keyCode === 4 || ev.keyCode === 166 || ev.key === "Escape" || ev.key === "GoBack" || ev.key === "BrowserBack";
   }
 
   function probeEvent(ev) {
@@ -2038,10 +2082,13 @@
         win.__lobbyFit = false;
       }
     });
+    ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (type) {
+      document.addEventListener(type, trackFingers, true);
+    });
     function drop(ev) {
       dragging = null;
       panning = null;
-      if (!ev.touches || ev.touches.length < 2) pinching = null;
+      if (fingerPoints().length < 2) pinching = null;
     }
     ["mousemove", "touchmove"].forEach(function (type) {
       document.addEventListener(type, dragBar);
@@ -2065,7 +2112,7 @@
       window.addEventListener(type, probeEvent);
     });
     document.addEventListener("keydown", function (ev) {
-      if (hoverSlot && ev.keyCode !== 27 && state.screen === SCREEN) send(hoverSlot, "slotkey", { k: ev.keyCode, shift: !!ev.shiftKey, ctrl: !!ev.ctrlKey });
+      if (hoverSlot && !isBack(ev) && state.screen === SCREEN) send(hoverSlot, "slotkey", { k: ev.keyCode, shift: !!ev.shiftKey, ctrl: !!ev.ctrlKey });
     });
     // The vanilla inventory takes half a stack with the right button, which must not open a menu.
     document.addEventListener("contextmenu", function (ev) {
@@ -2083,9 +2130,10 @@
       if (!envSent && probeLive()) drawProbe();
       if (probeLive()) probeGamepads();
     }, 100);
-    // The vanilla form is hidden, so Esc would do nothing: report it and let the server close the form.
+    // The vanilla form is hidden, so Esc (or a phone's back button) would do nothing: report it and let
+    // the server close the form.
     document.addEventListener("keydown", function (ev) {
-      if (ev.keyCode === 27 && state.screen === SCREEN && state.layout) send("close", "key", null);
+      if (isBack(ev) && state.screen === SCREEN && state.layout) send("close", "key", null);
     });
     document.addEventListener("keydown", onKey);
     if (!engine) {
