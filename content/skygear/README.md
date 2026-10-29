@@ -20,6 +20,7 @@
 | `hopper` | 나무·역방향 호퍼 |
 | `advancement` | 발전과제 트리·장·배치 |
 | `achievement` | 계정 업적 목록과 ID |
+| `locales` | 게임 글 카탈로그(`<언어>[.<부분>].json`, 바닐라 이름 `<언어>.vanilla.json`) |
 | `nsmigrate` | 이름 변경(DragonFactory → Sky Gear) 전 세이브의 한 번짜리 변환 |
 
 ## 문서

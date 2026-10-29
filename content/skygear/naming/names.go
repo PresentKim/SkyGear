@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"

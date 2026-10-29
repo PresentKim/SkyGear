@@ -50,13 +50,13 @@ Thanks for your interest. These are the rules the project follows; the full
 ## Text and translations
 
 - Text shown to players goes in a catalog and is read with `i18n.T`:
-  `internal/locales/` for this server, `common/i18n/locales/` for `common/`
-  packages. Do not put Korean string literals in `common/` code (a test checks
+  `content/skygear/locales/` for the game, `platform/locales/` for the
+  platform, `common/i18n/locales/` for `common/` packages. Do not put Korean string literals in `common/` code (a test checks
   this).
 - Block and item names are client translation keys in the resource pack, in
   both `texts/ko_KR.lang` and `texts/en_US.lang`.
 - New research entries need a name, short description and description under
-  `research.<id>.*` in `internal/locales/ko.json`.
+  `research.<id>.*` in `content/skygear/locales/ko.json`.
 - Keep player-facing text short. Do not announce unfinished features
   ("coming soon"), and do not send messages for results the player can already
   see.

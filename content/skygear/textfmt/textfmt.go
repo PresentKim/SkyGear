@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/presentkim/skygear/common/i18n"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 )
 
 // Rate writes a rate without trailing zeros.

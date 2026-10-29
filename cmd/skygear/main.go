@@ -23,9 +23,9 @@ import (
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/nsmigrate"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"github.com/presentkim/skygear/platform"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
@@ -74,7 +74,7 @@ func run(log *slog.Logger) error {
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
 	// The disconnect screen shows text as it is (no translation keys, no
 	// colour codes), so the shutdown message is written out in plain text.
-	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "main.shutdown") }
+	conf.ShutdownKick = func(p *player.Player) string { return i18n.T(i18n.Of(p), "platform.shutdown") }
 	// No server-wide join and quit lines: the lobby has no chat, and a save's
 	// players hear of each other only (instance.Manager).
 	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}

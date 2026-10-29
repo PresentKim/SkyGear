@@ -82,10 +82,11 @@ common/                         Common layer
 platform/                       Platform layer: lobby, server guide, save selection, friends, invites, members, commands
   account/                      Achievements, titles, name colours, per-account settings
   db/                           SQLite access and schema migrations
+  locales/                      The platform's text catalogs (ko/en)
   instance/                     Instance manager (activate/close, lobby ↔ instance moves, clock, base handlers),
                                 Game/Session interfaces the manager calls a game through
-content/skygear/                Content layer: Sky Gear (sub-packages in content/skygear/README.md)
-internal/locales/               Text catalogs (ko/en, vanilla names), merged into common/i18n
+content/skygear/                Content layer: Sky Gear (sub-packages in content/skygear/README.md), its text
+                                catalogs in content/skygear/locales
 assets/                         The resource packs, embedded in the binary (assets.Pack): resourcepack/skygear
                                 is the game's pack (textures, models, names, entities, JSON UI), the others
                                 (inventoryui, waila, slotdeco, sgui, oreui) are drawn on by common/

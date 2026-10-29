@@ -11,8 +11,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/naming"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 )
 
 // The items of machine windows (progress, energy, info, buttons, the recipe

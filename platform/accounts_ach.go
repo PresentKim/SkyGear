@@ -1,8 +1,8 @@
 package platform
 
 import (
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"github.com/presentkim/skygear/platform/account"
+	_ "github.com/presentkim/skygear/platform/locales" // the platform's texts
 )
 
 // The achievements of the account itself, not of a game: coming back.

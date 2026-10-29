@@ -19,8 +19,8 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/content/skygear/naming"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 )
 
 // The game's own hoppers:

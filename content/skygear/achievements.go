@@ -2,7 +2,7 @@ package skygear
 
 import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
+	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
 	"github.com/presentkim/skygear/platform/account"
 )
 

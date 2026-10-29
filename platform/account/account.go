@@ -5,7 +5,7 @@ package account
 import (
 	"fmt"
 	"github.com/presentkim/skygear/common/i18n"
-	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
+	_ "github.com/presentkim/skygear/platform/locales" // the platform's texts
 	"log/slog"
 	"slices"
 	"strings"

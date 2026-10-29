@@ -55,9 +55,9 @@ cmd/skygear/                   서버 명령: 층을 잇고 팩을 불러오고,
 platform/                      접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
   account/                     업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
   db/                          SQLite 접근 계층 (버전별 마이그레이션)
+  locales/                     플랫폼 문구 카탈로그(불러오면 `common/i18n` 에 더해진다)
   instance/                    인스턴스 매니저, 게임을 부르는 Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
-content/skygear/               스카이기어(기능별 하위 패키지는 content/skygear/README.md)
-internal/locales/              문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
+content/skygear/               스카이기어(기능별 하위 패키지는 content/skygear/README.md), 문구 카탈로그는 content/skygear/locales
 common/                        공통 층(common/README.md)
 assets/                        리소스팩(실행 파일에 들어간다, `assets.Pack`)
 ```

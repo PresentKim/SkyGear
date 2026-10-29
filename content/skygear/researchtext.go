@@ -8,7 +8,7 @@ import (
 
 // ResearchText explains what a research is for in its screen; where to get
 // the cost and what to do next is the advancements' job. The texts are in
-// internal/locales under "research.<id>.short|about".
+// content/skygear/locales under "research.<id>.short|about".
 type ResearchText struct {
 	// Short is one line shown under the name in the hover text of the list.
 	Short string

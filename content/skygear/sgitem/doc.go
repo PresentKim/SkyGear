@@ -5,4 +5,4 @@
 // functions, keeping the registration order (and so the item runtime IDs).
 package sgitem
 
-import _ "github.com/presentkim/skygear/internal/locales" // this server's texts
+import _ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
