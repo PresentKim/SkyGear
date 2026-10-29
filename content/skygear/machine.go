@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/tinker"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -1129,7 +1131,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	}
 	if m.Kind == KindTinker {
 		if !s.Debounced(p) {
-			s.showTinker(p, tx, pos)
+			tinker.ShowTable(s.Session, p, tx, pos)
 		}
 		return true
 	}

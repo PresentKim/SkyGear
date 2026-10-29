@@ -1,13 +1,7 @@
-package skygear
+package tinker
 
 import (
 	"slices"
-
-	"github.com/presentkim/skygear/content/skygear/island"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
-	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -17,6 +11,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/sghook"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
@@ -26,15 +23,12 @@ import (
 // Vein mining (like the VeinMiner mod): mining a block the iron hammer
 // crushes while sneaking also breaks the connected blocks of the same kind,
 // up to veinLimit and what the player's food pays for (veinFoodCost a
-// block; fractions carry over in session.veinFood).
+// block; fractions carry over in veinFood).
 
-// veinLimit is the most blocks one vein mining breaks, the mined one
-// included. Each block past the mined one also costs veinFoodCost food
-// points: a full food bar (20) pays for veinLimit blocks.
-const (
-	veinLimit    = 256
-	veinFoodCost = 20.0 / veinLimit
-)
+// The vein preview tints every block the hammer would break with stained
+// glass on its liquid layer, sent only to that player (an edge outline goes
+// off screen up close). It is removed before the blocks break, or glass
+// would be left floating where they were.
 
 // veinNeighbours are the offsets vein mining follows: the six faces, and
 // with diagonal also the blocks that touch only at an edge or a corner.
@@ -52,53 +46,14 @@ func veinNeighbours(diagonal bool) []cube.Pos {
 	return out
 }
 
-// veinBlocks are the blocks of the same kind as the one at start connected
-// to it face to face (with diagonal also edge to edge and corner to corner),
-// start first, up to limit; none when the hammer does not crush it. canBuild
-// filters the blocks a player may break.
-func veinBlocks(tx *world.Tx, start cube.Pos, limit int, diagonal bool, canBuild func(cube.Pos) bool) []cube.Pos {
-	b := tx.Block(start)
-	it, ok := b.(world.Item)
-	if _, crushable := sgitem.HammerDrop(b); !ok || !crushable {
-		return nil
-	}
-	name, meta := it.EncodeItem()
-	same := func(pos cube.Pos) bool {
-		other, ok := tx.Block(pos).(world.Item)
-		if !ok {
-			return false
-		}
-		otherName, otherMeta := other.EncodeItem()
-		return otherName == name && otherMeta == meta && canBuild(pos)
-	}
-	out := []cube.Pos{start}
-	seen := map[cube.Pos]bool{start: true}
-	neighbours := veinNeighbours(diagonal)
-	for i := 0; i < len(out) && len(out) < limit; i++ {
-		for _, d := range neighbours {
-			n := out[i].Add(d)
-			if seen[n] || n.OutOfBounds(tx.Range()) {
-				continue
-			}
-			seen[n] = true
-			if same(n) {
-				if out = append(out, n); len(out) >= limit {
-					break
-				}
-			}
-		}
-	}
-	return out
-}
-
-// veinDiagonalSetting is the player setting (account.Setting) that makes a
+// VeinDiagonalSetting is the player setting (account.Setting) that makes a
 // player's vein mining follow diagonal neighbours.
-const veinDiagonalSetting = "vein_diagonal"
+const VeinDiagonalSetting = "vein_diagonal"
 
-// toggleVeinDiagonal switches p's diagonal vein mining, stores it and tells p
+// ToggleVeinDiagonal switches p's diagonal vein mining, stores it and tells p
 // which it is now: nothing on screen shows it otherwise.
-func (s *session) toggleVeinDiagonal(p *player.Player) {
-	on, err := account.Toggle(p, veinDiagonalSetting)
+func ToggleVeinDiagonal(s *core.Session, p *player.Player) {
+	on, err := account.Toggle(p, VeinDiagonalSetting)
 	if err != nil {
 		s.Log.Error("store setting", "player", p.Name(), "err", err)
 	}
@@ -106,61 +61,43 @@ func (s *session) toggleVeinDiagonal(p *player.Player) {
 	if on {
 		key = "hammer.diagonal.on"
 	}
-	s.hideVeinOutline(p)
+	HideVeinOutline(s, p)
 	p.SendTip(i18n.T(i18n.Of(p), key))
-}
-
-// veinBudget is how many blocks past the mined one p can break with held.
-func (s *session) veinBudget(p *player.Player, held item.Stack) int {
-	return max(0, min(s.veinToolBudget(held), s.veinFoodBudget(p)))
 }
 
 // veinToolBudget is how many blocks past the mined one held can break
 // whatever the food: veinLimit (the iron hammer does not wear).
-func (s *session) veinToolBudget(held item.Stack) int {
-	return veinLimit - 1
+func veinToolBudget(s *core.Session, held item.Stack) int {
+	return VeinLimit - 1
 }
 
 // veinFoodBudget is how many blocks past the mined one p's food pays for.
-func (s *session) veinFoodBudget(p *player.Player) int {
-	food := float64(p.Food()) - s.veinFood[p.H()]
+func veinFoodBudget(s *core.Session, p *player.Player) int {
+	food := float64(p.Food()) - VeinFood.Of(s)[p.H()]
 	return max(0, int(food/veinFoodCost+1e-9))
 }
 
-// payVeinFood takes the food of n vein mined blocks from p.
-func (s *session) payVeinFood(p *player.Player, n int) {
-	if s.veinFood == nil {
-		s.veinFood = map[*world.EntityHandle]float64{}
-	}
-	owed := s.veinFood[p.H()] + float64(n)*veinFoodCost
-	whole := int(owed + 1e-9)
-	s.veinFood[p.H()] = max(0, owed-float64(whole))
-	if whole > 0 {
-		p.SetFood(p.Food() - whole)
-	}
-}
-
-// veinMine breaks the blocks connected to the one at pos p mines with an
+// VeinMine breaks the blocks connected to the one at pos p mines with an
 // iron hammer while sneaking (pos itself is broken by the game): each costs
 // veinFoodCost food, and what the hammer makes of them
 // drops together at pos.
-func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
+func VeinMine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 	held, _ := p.HeldItems()
 	if !sgitem.IsIronHammer(held) || !p.Sneaking() {
 		return
 	}
 	// the preview goes first, or its glass would stay where blocks were
-	s.hideVeinOutline(p)
-	left := s.veinBudget(p, held)
-	diagonal := account.On(p, veinDiagonalSetting)
-	if tool := s.veinToolBudget(held); s.veinFoodBudget(p) < tool {
+	HideVeinOutline(s, p)
+	left := VeinBudget(s, p, held)
+	diagonal := account.On(p, VeinDiagonalSetting)
+	if tool := veinToolBudget(s, held); veinFoodBudget(s, p) < tool {
 		// The food stops the vein short of what the hammer would break: the
 		// player sees fewer blocks go and nothing else says why.
-		if len(veinBlocks(tx, pos, tool+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }))-1 > left {
+		if len(VeinBlocks(tx, pos, tool+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s, p) }))-1 > left {
 			p.SendTip(i18n.T(i18n.Of(p), "hammer.vein.hungry"))
 		}
 	}
-	blocks := veinBlocks(tx, pos, left+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) })
+	blocks := VeinBlocks(tx, pos, left+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s, p) })
 	if len(blocks) < 2 || left <= 0 {
 		return
 	}
@@ -187,7 +124,7 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		}
 	}
 	if broken > 0 {
-		s.payVeinFood(p, broken)
+		PayVeinFood(s, p, broken)
 	}
 }
 
@@ -200,11 +137,6 @@ func addDrop(drops []item.Stack, drop item.Stack) []item.Stack {
 	return append(drops, drop)
 }
 
-// The vein preview tints every block the hammer would break with stained
-// glass on its liquid layer, sent only to that player (an edge outline goes
-// off screen up close). It is removed before the blocks break, or glass
-// would be left floating where they were.
-
 // veinPreviewBlock is the block the preview puts on the liquid layer.
 var veinPreviewBlock world.Block = block.StainedGlass{Colour: item.ColourLightBlue()}
 
@@ -216,23 +148,23 @@ type veinOutline struct {
 	blocks []cube.Pos
 }
 
-// showVeinOutline shows p, sneaking with the iron hammer, the blocks it
+// ShowVeinOutline shows p, sneaking with the iron hammer, the blocks it
 // would break mining the block at pos (hiding them otherwise).
-func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if held, _ := p.HeldItems(); !sgitem.IsIronHammer(held) || !p.Sneaking() || !island.CanBuild(s.Session, pos) {
-		s.hideVeinOutline(p)
+func ShowVeinOutline(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
+	if held, _ := p.HeldItems(); !sgitem.IsIronHammer(held) || !p.Sneaking() || !island.CanBuild(s, pos) {
+		HideVeinOutline(s, p)
 		return
 	}
 	held, _ := p.HeldItems()
-	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, account.On(p, veinDiagonalSetting), func(p cube.Pos) bool { return island.CanBuild(s.Session, p) })
+	blocks := VeinBlocks(tx, pos, VeinBudget(s, p, held)+1, account.On(p, VeinDiagonalSetting), func(p cube.Pos) bool { return island.CanBuild(s, p) })
 	if len(blocks) == 0 {
-		s.hideVeinOutline(p)
+		HideVeinOutline(s, p)
 		return
 	}
-	if cur, ok := s.veinOutlines[p.H()]; ok && cur.size == len(blocks) && slices.Contains(blocks, cur.start) {
+	if cur, ok := veinOutlines.Of(s)[p.H()]; ok && cur.size == len(blocks) && slices.Contains(blocks, cur.start) {
 		return
 	}
-	old := s.veinOutlines[p.H()].blocks
+	old := veinOutlines.Of(s)[p.H()].blocks
 	tinted := map[cube.Pos]bool{}
 	for _, b := range blocks {
 		tinted[b] = true
@@ -252,19 +184,16 @@ func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) 
 			sendLiquidLayer(p, b, veinPreviewBlock)
 		}
 	}
-	if s.veinOutlines == nil {
-		s.veinOutlines = map[*world.EntityHandle]veinOutline{}
-	}
-	s.veinOutlines[p.H()] = veinOutline{start: pos, size: len(blocks), blocks: blocks}
+	veinOutlines.Of(s)[p.H()] = veinOutline{start: pos, size: len(blocks), blocks: blocks}
 }
 
-// hideVeinOutline removes the preview p is shown, if any.
-func (s *session) hideVeinOutline(p *player.Player) {
-	o, ok := s.veinOutlines[p.H()]
+// HideVeinOutline removes the preview p is shown, if any.
+func HideVeinOutline(s *core.Session, p *player.Player) {
+	o, ok := veinOutlines.Of(s)[p.H()]
 	if !ok {
 		return
 	}
-	delete(s.veinOutlines, p.H())
+	delete(veinOutlines.Of(s), p.H())
 	if tx := p.Tx(); tx != nil {
 		restoreLiquidLayer(p, tx, o.blocks)
 	}
@@ -290,3 +219,6 @@ func restoreLiquidLayer(p *player.Player, tx *world.Tx, at []cube.Pos) {
 		sendLiquidLayer(p, pos, b)
 	}
 }
+
+// veinOutlines are the vein outlines players are shown.
+var veinOutlines = core.NewPlayers[veinOutline]()

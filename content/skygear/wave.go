@@ -119,9 +119,9 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 		achievement.Count(p, "kill_total", 1)
 		achievement.Count(p, "kill_"+m.kind, 1)
 		looting := 0
-		if held, ok := toolOf(p); ok {
+		if held, ok := tinker.ToolOf(p); ok {
 			looting += tinker.ToolMods(held)["looting"]
-			s.gainToolXP(p, int(monsterTable[m.kind].health/2)+1)
+			tinker.GainXP(s.Session, p, int(monsterTable[m.kind].health/2)+1)
 		}
 		for _, v := range tx.Viewers(pos) {
 			v.ViewEntityAction(m, entity.DeathAction{})

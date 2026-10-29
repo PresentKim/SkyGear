@@ -5,6 +5,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/progress"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
@@ -18,7 +19,7 @@ func (s *session) Second(tx *world.Tx) {
 	s.tickFairy(tx)
 	s.tickEnvironment(tx)
 	s.tickWave(tx)
-	s.tickToolEffects(tx)
+	tinker.TickEffects(s.Session, tx)
 	s.tickMonitor(tx)
 	s.tickPlants(tx)
 	s.updateBoards(tx)

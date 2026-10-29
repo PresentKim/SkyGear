@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/tinker"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -28,7 +30,7 @@ func TestEquipToolFor(t *testing.T) {
 		_ = inv.SetItem(20, stone)
 		p.SetHeldItems(dirt, item.Stack{})
 
-		equipToolFor(p, block.Planks{})
+		tinker.EquipToolFor(p, block.Planks{})
 		if held, _ := p.HeldItems(); !held.Equal(axe) {
 			t.Fatalf("holding %v on planks, want the axe", held)
 		}
@@ -38,22 +40,22 @@ func TestEquipToolFor(t *testing.T) {
 
 		// Iron ore needs a stone pickaxe: the wooden one does not fit, and
 		// the hammer is never picked.
-		equipToolFor(p, block.IronOre{})
+		tinker.EquipToolFor(p, block.IronOre{})
 		if held, _ := p.HeldItems(); !held.Equal(stone) {
 			t.Fatalf("holding %v on iron ore, want the stone pickaxe", held)
 		}
-		equipToolFor(p, block.Stone{})
+		tinker.EquipToolFor(p, block.Stone{})
 		if held, _ := p.HeldItems(); !held.Equal(stone) {
 			t.Fatalf("a fitting pickaxe was swapped for %v", held)
 		}
 
 		p.SetHeldItems(hammer, item.Stack{})
-		equipToolFor(p, block.Gravel{})
+		tinker.EquipToolFor(p, block.Gravel{})
 		if held, _ := p.HeldItems(); !sgitem.IsHammer(held) {
 			t.Fatalf("the hammer on gravel was swapped for %v", held)
 		}
 		p.SetHeldItems(dirt, item.Stack{})
-		equipToolFor(p, block.Air{})
+		tinker.EquipToolFor(p, block.Air{})
 		if held, _ := p.HeldItems(); !held.Equal(dirt) {
 			t.Fatalf("swapped to %v for air", held)
 		}

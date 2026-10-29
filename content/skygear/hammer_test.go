@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/tinker"
+
 	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -128,10 +130,10 @@ func TestVeinDiagonalSetting(t *testing.T) {
 		tx.SetBlock(base, block.Gravel{}, nil)
 		tx.SetBlock(base.Add(cube.Pos{1, 1, 0}), block.Gravel{}, nil)
 		tx.SetBlock(base.Add(cube.Pos{2, 2, 1}), block.Gravel{}, nil)
-		if got := veinBlocks(tx, base, veinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 1 {
+		if got := tinker.VeinBlocks(tx, base, tinker.VeinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 1 {
 			t.Fatalf("face vein of %d blocks, want 1", len(got))
 		}
-		if got := veinBlocks(tx, base, veinLimit, true, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
+		if got := tinker.VeinBlocks(tx, base, tinker.VeinLimit, true, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
 			t.Fatalf("diagonal vein of %d blocks, want 3", len(got))
 		}
 		if _, err := s.g.db.TouchAccount(instance.AccountID(p), "", p.Name()); err != nil {
@@ -139,12 +141,12 @@ func TestVeinDiagonalSetting(t *testing.T) {
 		}
 		account.Init(s.g.db, slog.Default())
 		t.Cleanup(func() { account.Init(nil, slog.Default()) })
-		if account.On(p, veinDiagonalSetting) {
+		if account.On(p, tinker.VeinDiagonalSetting) {
 			t.Fatal("diagonal on before it was switched")
 		}
-		s.toggleVeinDiagonal(p)
+		tinker.ToggleVeinDiagonal(s.Session, p)
 		account.Forget(p) // read it again from the database
-		if !account.On(p, veinDiagonalSetting) {
+		if !account.On(p, tinker.VeinDiagonalSetting) {
 			t.Fatal("the switched setting was not stored")
 		}
 	})
@@ -164,20 +166,20 @@ func TestVeinMine(t *testing.T) {
 			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Gravel{}, nil)
 		}
 		tx.SetBlock(base.Add(cube.Pos{0, 0, 1}), block.Sand{}, nil)
-		if got := veinBlocks(tx, base, veinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 5 {
+		if got := tinker.VeinBlocks(tx, base, tinker.VeinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 5 {
 			t.Fatalf("vein of %d blocks, want 5", len(got))
 		}
-		if got := veinBlocks(tx, base, 3, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
+		if got := tinker.VeinBlocks(tx, base, 3, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
 			t.Fatalf("limited vein of %d blocks, want 3", len(got))
 		}
 		p.StartSneaking()
 		p.SetHeldItems(item.NewStack(sgitem.Hammer{Stone: true}, 1), item.Stack{})
-		s.veinMine(p, tx, base)
+		tinker.VeinMine(s.Session, p, tx, base)
 		if _, ok := tx.Block(base.Add(cube.Pos{1, 0, 0})).(block.Gravel); !ok {
 			t.Fatal("the stone hammer vein mined")
 		}
 		p.SetHeldItems(item.NewStack(sgitem.Hammer{}, 1), item.Stack{})
-		s.veinMine(p, tx, base)
+		tinker.VeinMine(s.Session, p, tx, base)
 		for i := 1; i < 5; i++ {
 			if _, ok := tx.Block(base.Add(cube.Pos{i, 0, 0})).(block.Gravel); ok {
 				t.Fatalf("gravel %d is still there", i)
@@ -220,11 +222,11 @@ func TestVeinMineFood(t *testing.T) {
 		held := item.NewStack(sgitem.Hammer{}, 1)
 		oneFood := 12 // 1 / veinFoodCost = 12.8
 		p.SetFood(20)
-		if got := s.veinBudget(p, held); got != veinLimit-1 {
-			t.Fatalf("full food budget %d, want %d", got, veinLimit-1)
+		if got := tinker.VeinBudget(s.Session, p, held); got != tinker.VeinLimit-1 {
+			t.Fatalf("full food budget %d, want %d", got, tinker.VeinLimit-1)
 		}
 		p.SetFood(1)
-		if got := s.veinBudget(p, held); got != oneFood {
+		if got := tinker.VeinBudget(s.Session, p, held); got != oneFood {
 			t.Fatalf("one food budget %d, want %d", got, oneFood)
 		}
 		// a line of 15 cobblestone (in the owned chunk; gravel would fall) with one
@@ -235,20 +237,20 @@ func TestVeinMineFood(t *testing.T) {
 		}
 		p.StartSneaking()
 		p.SetHeldItems(held, item.Stack{})
-		s.veinMine(p, tx, base)
+		tinker.VeinMine(s.Session, p, tx, base)
 		if broken := droppedKeys(tx)[naming.ItemKey(block.Gravel{})]; broken != oneFood {
 			t.Fatalf("broke %d with one food point, want %d", broken, oneFood)
 		}
 		// 12 blocks cost 0.9375 food: the bar keeps its point, the fraction
 		// is owed, and nothing is left for another block
-		if p.Food() != 1 || s.veinBudget(p, held) != 0 {
-			t.Fatalf("food %d budget %d after 12 blocks, want 1 and 0", p.Food(), s.veinBudget(p, held))
+		if p.Food() != 1 || tinker.VeinBudget(s.Session, p, held) != 0 {
+			t.Fatalf("food %d budget %d after 12 blocks, want 1 and 0", p.Food(), tinker.VeinBudget(s.Session, p, held))
 		}
 		// fractions carry over
 		p.SetFood(20)
-		s.veinFood[p.H()] = 0
-		s.payVeinFood(p, 6)
-		s.payVeinFood(p, 7)
+		tinker.VeinFood.Of(s.Session)[p.H()] = 0
+		tinker.PayVeinFood(s.Session, p, 6)
+		tinker.PayVeinFood(s.Session, p, 7)
 		if p.Food() != 19 {
 			t.Fatalf("13 blocks cost %d food, want 1", 20-p.Food())
 		}

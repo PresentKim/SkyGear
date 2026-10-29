@@ -47,7 +47,7 @@ func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
 	if h.deny(ctx, pos) {
 		return
 	}
-	autoTool(ctx.Player(), ctx.Player().Tx().Block(pos))
+	tinker.AutoTool(ctx.Player(), ctx.Player().Tx().Block(pos))
 }
 func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
 	if h.deny(ctx, pos) {
@@ -57,15 +57,15 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	broken := ctx.Player().Tx().Block(pos)
 	hammer := sgitem.IsHammer(held)
 	achievement.CountBreak(ctx.Player(), broken, hammer)
-	if _, ok := toolOf(ctx.Player()); ok {
-		h.s.gainToolXP(ctx.Player(), 1)
-		h.s.reinforce(ctx.Player())
+	if _, ok := tinker.ToolOf(ctx.Player()); ok {
+		tinker.GainXP(h.s.Session, ctx.Player(), 1)
+		tinker.Reinforce(h.s.Session, ctx.Player())
 	}
 	if hammer {
 		if into, ok := sgitem.HammerDrop(broken); ok {
 			*drops = []item.Stack{into}
 		}
-		h.s.veinMine(ctx.Player(), ctx.Player().Tx(), pos)
+		tinker.VeinMine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos)
 	}
 	switch b := broken.(type) {
 	case Drawer:
@@ -188,7 +188,7 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 			// a use costs the tool durability and gives it experience
 			_, off := p.HeldItems()
 			p.SetHeldItems(tinker.DescribeTool(held.Damage(2)), off)
-			h.s.reinforce(p)
+			tinker.Reinforce(h.s.Session, p)
 		}
 		achievement.Count(p, "hit_monster", 1)
 		m.Hurt(p.Tx(), dmg, p)
@@ -216,7 +216,7 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
 	if sgitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
-		h.s.toggleVeinDiagonal(ctx.Player())
+		tinker.ToggleVeinDiagonal(h.s.Session, ctx.Player())
 	}
 }
 

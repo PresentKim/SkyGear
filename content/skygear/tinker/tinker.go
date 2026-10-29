@@ -1,5 +1,8 @@
-// Package tinker defines the gear crafted at the tinker table: tools made of
-// a head and a handle material, their levels, XP and modifiers.
+// Package tinker is the gear of the game, after Tinkers' Construct: tools
+// made at the tinker table (table.go) of a head and a handle material, which
+// keep their modifiers and experience in their stack, level up as they are
+// used and get more modifier slots with every level; vein mining with the
+// hammer (vein.go) and picking the right tool for a block (autotool.go).
 package tinker
 
 import (
@@ -318,4 +321,15 @@ func RarityColour(r slotdeco.Rarity) string {
 		return "§6"
 	}
 	return "§f"
+}
+
+// The tools register as items: every kind with every head and handle.
+func init() {
+	for _, k := range ToolKinds {
+		for _, h := range HeadMaterials {
+			for _, hd := range HandleMaterials {
+				world.RegisterItem(Tool{Kind: k, Head: h.ID, Handle: hd.ID})
+			}
+		}
+	}
 }

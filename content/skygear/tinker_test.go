@@ -71,13 +71,13 @@ func TestTinkerTable(t *testing.T) {
 		_, _ = inv.AddItem(item.NewStack(item.Stick{}, 1))
 		iron, _ := tinker.HeadOf("iron")
 		wood, _ := tinker.HandleOf("wood")
-		if !s.makeTool(p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {
+		if !tinker.MakeTool(s.Session, p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {
 			t.Fatal("could not make a pickaxe from 3 iron and a stick")
 		}
 		if core.CountPlain(inv, item.IronIngot{}) != 0 || core.CountPlain(inv, item.Stick{}) != 0 {
 			t.Error("the materials were not taken")
 		}
-		if s.makeTool(p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {
+		if tinker.MakeTool(s.Session, p, tx, machinePos, tinker.ToolPickaxe, iron, wood) {
 			t.Error("made a tool from nothing")
 		}
 		var tool item.Stack
@@ -93,14 +93,14 @@ func TestTinkerTable(t *testing.T) {
 		sharp := tinker.ToolModifiers[slices.IndexFunc(tinker.ToolModifiers, func(m tinker.ToolModifier) bool { return m.ID == "sharp" })]
 		_, _ = inv.AddItem(item.NewStack(item.NetherQuartz{}, 2*tinker.ToolSlots(0)+2))
 		for range tinker.ToolSlots(0) {
-			if !s.applyModifier(p, tx, machinePos, sharp) {
+			if !tinker.ApplyModifier(s.Session, p, tx, machinePos, sharp) {
 				t.Fatal("could not apply sharp")
 			}
 		}
-		if s.applyModifier(p, tx, machinePos, sharp) {
+		if tinker.ApplyModifier(s.Session, p, tx, machinePos, sharp) {
 			t.Error("applied a modifier without a free slot")
 		}
-		held, _ := toolOf(p)
+		held, _ := tinker.ToolOf(p)
 		if tinker.ToolMods(held)["sharp"] != tinker.ToolSlots(0) {
 			t.Errorf("mods %v", tinker.ToolMods(held))
 		}
@@ -108,8 +108,8 @@ func TestTinkerTable(t *testing.T) {
 			t.Error("the modifier advancement is not done")
 		}
 		// xp from use raises the level and opens a slot
-		s.gainToolXP(p, 40)
-		if !s.applyModifier(p, tx, machinePos, sharp) {
+		tinker.GainXP(s.Session, p, 40)
+		if !tinker.ApplyModifier(s.Session, p, tx, machinePos, sharp) {
 			t.Error("the level up opened no slot")
 		}
 	})

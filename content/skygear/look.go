@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/tinker"
+
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemnet"
@@ -140,9 +142,9 @@ func (s *session) updateLooks(tx *world.Tx) {
 		at, b, ok := lookedAt(p, tx, p.Position(), p.Rotation())
 		s.updateLookAt(p, tx, at, b, ok)
 		if ok {
-			s.showVeinOutline(p, tx, at)
+			tinker.ShowVeinOutline(s.Session, p, tx, at)
 		} else {
-			s.hideVeinOutline(p)
+			tinker.HideVeinOutline(s.Session, p)
 		}
 	}
 }
