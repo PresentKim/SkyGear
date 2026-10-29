@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"slices"
 	"strconv"
 	"strings"
@@ -172,9 +173,9 @@ var baseResearchTree = []progress.Research{
 		Unlocks: []string{"skygear:tree_feller"}},
 	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:auto_crafter"}},
-	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "flower_red"}, Count: 1}, {Item: PlantSeed{Seed: "flower_yellow"}, Count: 1}, {Item: PlantSeed{Seed: "flower_blue"}, Count: 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
-	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "ore_gold"}, Count: 2}}, Unlocks: []string{"skygear:seed_gem_lapis", "skygear:seed_gem_redstone", "skygear:seed_gem_quartz", "skygear:seed_gem_coal", "skygear:seed_gem_diamond", "skygear:seed_gem_emerald"}},
-	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "gem_redstone"}, Count: 2}}, Unlocks: []string{"skygear:seed_ess_zombie", "skygear:seed_ess_skeleton", "skygear:seed_ess_creeper", "skygear:seed_ess_spider", "skygear:seed_ess_slime", "skygear:seed_ess_enderman", "skygear:seed_ess_blaze"}},
+	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "flower_red"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_yellow"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_blue"}, Count: 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
+	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "ore_gold"}, Count: 2}}, Unlocks: []string{"skygear:seed_gem_lapis", "skygear:seed_gem_redstone", "skygear:seed_gem_quartz", "skygear:seed_gem_coal", "skygear:seed_gem_diamond", "skygear:seed_gem_emerald"}},
+	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "gem_redstone"}, Count: 2}}, Unlocks: []string{"skygear:seed_ess_zombie", "skygear:seed_ess_skeleton", "skygear:seed_ess_creeper", "skygear:seed_ess_spider", "skygear:seed_ess_slime", "skygear:seed_ess_enderman", "skygear:seed_ess_blaze"}},
 	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}, {Item: item.EnderPearl{}, Count: 8}},
 		Unlocks: []string{"skygear:magic_sieve"}},
 	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 16}, {Item: item.Diamond{}, Count: 4}},
@@ -196,7 +197,7 @@ var baseResearchTree = []progress.Research{
 	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension_gate", "tinker_table", "diamond_armor", "blaze_craft"},
 		Cost: []progress.Requirement{{Item: item.BlazeRod{}, Count: 16}, {Item: item.EnderPearl{}, Count: 16}, {Item: item.Slimeball{}, Count: 16}, {Item: item.SpiderEye{}, Count: 16}, {Item: item.Bone{}, Count: 32}}},
 	{ID: "project_botanist", Icon: "skygear:petal_red", Needs: []string{"magic_essence", "dyeing"},
-		Cost: []progress.Requirement{{Item: PlantSeed{Seed: "ess_enderman"}, Count: 2}, {Item: PlantSeed{Seed: "ess_blaze"}, Count: 2}, {Item: PlantSeed{Seed: "gem_diamond"}, Count: 2}, {Item: PlantSeed{Seed: "gem_emerald"}, Count: 2}, {Item: sgitem.Essence{Mob: sgitem.MobEnder}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobBlaze}, Count: 8}}},
+		Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "ess_enderman"}, Count: 2}, {Item: farm.PlantSeed{Seed: "ess_blaze"}, Count: 2}, {Item: farm.PlantSeed{Seed: "gem_diamond"}, Count: 2}, {Item: farm.PlantSeed{Seed: "gem_emerald"}, Count: 2}, {Item: sgitem.Essence{Mob: sgitem.MobEnder}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobBlaze}, Count: 8}}},
 	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
 		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
@@ -722,9 +723,9 @@ func gameRecipes() {
 		planks, planks, planks,
 		planks, block.NewChest(), planks,
 		planks, planks, planks)
-	add(st(Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
+	add(st(farm.Barrel{Wood: "oak"}), n(planks, 6), n(stick, 2))
 	// The stone barrel; a torch under it is the least heat for it.
-	add(st(Barrel{Wood: stoneWood}), n(block.Stone{}, 6), n(stick, 2))
+	add(st(farm.Barrel{Wood: farm.StoneWood}), n(block.Stone{}, 6), n(stick, 2))
 	// Hoppers: the wood hopper from planks and a chest; each hopper and its
 	// reverse turn into one another when crafted alone.
 	woodHopper, woodReverse := hopper.NewFlowHopper("wood_hopper", cube.FaceDown), hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp)

@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"maps"
 	"slices"
 	"strings"
@@ -91,8 +92,8 @@ func giveItems() map[string]func() item.Stack {
 		"hammer":           func() item.Stack { return item.NewStack(sgitem.Hammer{}, 1) },
 		"stone_hammer":     func() item.Stack { return item.NewStack(sgitem.Hammer{Stone: true}, 1) },
 		"string_mesh":      func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
-		"barrel":           func() item.Stack { return item.NewStack(Barrel{Wood: "oak"}, 1) },
-		"stone_barrel":     func() item.Stack { return item.NewStack(Barrel{Wood: stoneWood}, 1) },
+		"barrel":           func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
+		"stone_barrel":     func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
 		"wood_hopper":      func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {
 			return item.NewStack(hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
@@ -139,8 +140,8 @@ func giveItems() map[string]func() item.Stack {
 	for _, c := range sgitem.PetalColours {
 		out["petal_"+c] = func() item.Stack { return item.NewStack(sgitem.Petal{Colour: c}, 1) }
 	}
-	for _, sd := range plantSeeds {
-		out["seed_"+sd] = func() item.Stack { return item.NewStack(PlantSeed{Seed: sd}, 1) }
+	for _, sd := range farm.PlantSeeds {
+		out["seed_"+sd] = func() item.Stack { return item.NewStack(farm.PlantSeed{Seed: sd}, 1) }
 	}
 	for _, m := range sgitem.MobKinds {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(sgitem.Essence{Mob: m}, 1) }

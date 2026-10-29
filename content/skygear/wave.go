@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -46,7 +47,7 @@ type waveDef struct {
 // waveLevels are the levels of the gate, easiest first.
 var waveLevels = []waveDef{
 	{[]waveGroup{{sgitem.MobZombie, 4}}, 90, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobZombie}, 3)}},
-	{[]waveGroup{{sgitem.MobZombie, 4}, {sgitem.MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobSkeleton}, 3), item.NewStack(sgitem.Essence{Mob: sgitem.MobCreeper}, 1), item.NewStack(PlantSeed{Seed: "flower_red"}, 1)}},
+	{[]waveGroup{{sgitem.MobZombie, 4}, {sgitem.MobSkeleton, 3}}, 100, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobSkeleton}, 3), item.NewStack(sgitem.Essence{Mob: sgitem.MobCreeper}, 1), item.NewStack(farm.PlantSeed{Seed: "flower_red"}, 1)}},
 	{[]waveGroup{{sgitem.MobSpider, 4}, {sgitem.MobCreeper, 3}, {sgitem.MobZombie, 3}, {sgitem.MobWitch, 2}}, 130, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobSpider}, 3), item.NewStack(sgitem.Essence{Mob: sgitem.MobCreeper}, 3), item.NewStack(sgitem.Essence{Mob: sgitem.MobWitch}, 2)}},
 	{[]waveGroup{{sgitem.MobSlime, 6}, {sgitem.MobSkeleton, 4}, {sgitem.MobZombie, 4}, {sgitem.MobDrowned, 3}}, 130, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobSlime}, 4), item.NewStack(sgitem.Essence{Mob: sgitem.MobDrowned}, 3)}},
 	{[]waveGroup{{sgitem.MobEnder, 2}, {sgitem.MobZombie, 6}, {sgitem.MobSkeleton, 4}}, 150, []item.Stack{item.NewStack(sgitem.Essence{Mob: sgitem.MobEnder}, 3)}},
@@ -134,7 +135,7 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 			}
 		}
 		if w.level >= 2 && s.Rand.IntN(100) < 4 {
-			s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(PlantSeed{Seed: "flower_" + sgitem.PetalColours[s.Rand.IntN(len(sgitem.PetalColours))]}, 1))
+			s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(farm.PlantSeed{Seed: "flower_" + sgitem.PetalColours[s.Rand.IntN(len(sgitem.PetalColours))]}, 1))
 		}
 		if s.Rand.IntN(100) < waveEssenceChance+looting*4 {
 			s.DropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(sgitem.Essence{Mob: m.kind}, 1))

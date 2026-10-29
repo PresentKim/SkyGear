@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -84,9 +85,9 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	case machine.Machine:
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
-		h.s.breakComposter(pos, b, drops)
-	case Barrel:
-		h.s.breakBarrel(pos, drops)
+		farm.BreakComposter(h.s.Session, pos, b, drops)
+	case farm.Barrel:
+		farm.BreakBarrel(h.s.Session, pos, drops)
 	case conduit.Bundle:
 		conduit.RemoveVisual(h.s.Session, ctx.Player().Tx(), pos)
 	}
@@ -96,9 +97,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		return
 	}
 	achievement.Count(ctx.Player(), "block_place", 1)
-	if kind, _, ok := cropOf(b); ok {
+	if kind, _, ok := farm.CropOf(b); ok {
 		achievement.Count(ctx.Player(), "crop_plant", 1)
-		h.s.plantCrop(pos, kind)
+		farm.PlantCrop(h.s.Session, pos, kind)
 	}
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
@@ -150,7 +151,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	if !p.Sneaking() && h.s.useComposter(p, tx, pos, held) {
+	if !p.Sneaking() && farm.UseComposter(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
 	}
@@ -162,7 +163,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	}
 	// Using a crop shows its time or harvests it, and places nothing;
 	// sneaking uses it as usual (placing blocks, bone meal).
-	if !ctx.Player().Sneaking() && h.s.useCrop(ctx.Player(), ctx.Player().Tx(), pos) {
+	if !ctx.Player().Sneaking() && farm.UseCrop(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos) {
 		ctx.Cancel()
 		return
 	}
@@ -260,7 +261,7 @@ func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	}
 	if after {
 		achievement.Count(ctx.Player(), "sneak", 1)
-		h.s.crouchGrow(ctx.Player(), ctx.Player().Tx())
+		farm.CrouchGrow(h.s.Session, ctx.Player(), ctx.Player().Tx())
 	}
 }
 

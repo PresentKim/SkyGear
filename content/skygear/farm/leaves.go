@@ -1,4 +1,4 @@
-package skygear
+package farm
 
 import (
 	"time"

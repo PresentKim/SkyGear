@@ -1,19 +1,16 @@
-package skygear
+package farm
 
 import (
 	"slices"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -28,6 +25,11 @@ import (
 //   - lava + glowstone dust → end stone
 //
 // The result drops on top of the barrel, which is empty again.
+
+func init() {
+	world.RegisterItem(sgitem.MyceliumSpores{})
+	world.RegisterItem(sgitem.WitchWaterBucket{})
+}
 
 // witchWaterDelay is how long water on mycelium takes to turn (Ex Deorum:
 // 1,700 ticks).
@@ -64,16 +66,16 @@ func (tubModel) FaceSolid(_ cube.Pos, face cube.Face, _ world.BlockSource) bool 
 // barrelMixRecipe is a mixing: a barrel of witch water (lava) and in make out;
 // a bucket in comes back empty.
 type barrelMixRecipe struct {
-	lava    bool
-	in, out world.Item
+	Lava    bool
+	In, Out world.Item
 }
 
-var lavaBucket = item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}
+var LavaBucket = item.Bucket{Content: item.LiquidBucketContent(block.Lava{Depth: 8, Still: true})}
 
-// barrelMixes are the mixings of Ex Deorum's barrels.
-func barrelMixes() []barrelMixRecipe {
+// BarrelMixes are the mixings of Ex Deorum's barrels.
+func BarrelMixes() []barrelMixRecipe {
 	return []barrelMixRecipe{
-		{false, lavaBucket, block.Netherrack{}},
+		{false, LavaBucket, block.Netherrack{}},
 		{false, block.Sand{}, block.SoulSand{}},
 		{true, sgitem.WitchWaterBucket{}, block.Blackstone{}},
 		{true, item.GlowstoneDust{}, block.EndStone{}},
@@ -86,46 +88,28 @@ func barrelMix(rec *BarrelRecord, held item.Stack) (out world.Item, bucket item.
 	if rec == nil || held.Empty() || !core.Plain(held) {
 		return nil, item.Stack{}, false
 	}
-	for _, m := range barrelMixes() {
-		if (m.lava && rec.LavaMB < machine.BucketMB) || (!m.lava && !rec.Witch) || naming.ItemKey(held.Item()) != naming.ItemKey(m.in) {
+	for _, m := range BarrelMixes() {
+		if (m.Lava && rec.LavaMB < machine.BucketMB) || (!m.Lava && !rec.Witch) || naming.ItemKey(held.Item()) != naming.ItemKey(m.In) {
 			continue
 		}
-		switch m.in.(type) {
+		switch m.In.(type) {
 		case item.Bucket, sgitem.WitchWaterBucket:
 			bucket = item.NewStack(item.Bucket{}, 1)
 		}
-		return m.out, bucket, true
+		return m.Out, bucket, true
 	}
 	return nil, item.Stack{}, false
-}
-
-// barrelMixCards are the codex cards of the mixings of a barrel of witch
-// water (lava).
-func (s *session) barrelMixCards(lang string, barrel item.Stack, lava bool) []codexCard {
-	liquid := item.NewStack(sgitem.WitchWaterBucket{}, 1)
-	if lava {
-		liquid = item.NewStack(lavaBucket, 1)
-	}
-	var cards []codexCard
-	for _, m := range barrelMixes() {
-		if m.lava == lava {
-			cards = append(cards, machineCard(lang, barrel,
-				[]ui.BoardCell{s.codexCell(lang, liquid, ""), s.codexCell(lang, item.NewStack(m.in, 1), "")},
-				[]ui.BoardCell{s.codexCell(lang, item.NewStack(m.out, 1), "")}))
-		}
-	}
-	return cards
 }
 
 // tickWitchWater turns an oak barrel of water on mycelium into witch water
 // once its time is up, and makes netherrack of a barrel of witch water with a
 // lava source on top (which the mixing uses up). It reports whether the
 // barrel changed.
-func (s *session) tickWitchWater(tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRecord, now time.Duration) bool {
+func tickWitchWater(s *core.Session, tx *world.Tx, pos cube.Pos, b Barrel, rec *BarrelRecord, now time.Duration) bool {
 	if rec.Witch {
 		if l, ok := tx.Block(pos.Side(cube.FaceUp)).(block.Lava); ok && l.Depth == 8 && !l.Falling {
 			tx.SetBlock(pos.Side(cube.FaceUp), nil, nil)
-			s.mixBarrel(tx, pos, b, block.Netherrack{})
+			mixBarrel(s, tx, pos, b, block.Netherrack{})
 			return true
 		}
 		return false
@@ -146,32 +130,27 @@ func (s *session) tickWitchWater(tx *world.Tx, pos cube.Pos, b Barrel, rec *Barr
 		return false
 	}
 	rec.Water, rec.Witch, rec.WitchAt = false, true, 0
-	s.showBarrel(tx, pos, b)
+	showBarrel(s, tx, pos, b)
 	tx.PlaySound(pos.Vec3Centre(), sound.BucketFill{Liquid: block.Water{}})
 	return true
 }
 
 // mixBarrel empties the barrel at pos (uses up a bucket's worth of the lava
 // of a stone barrel) and drops out on top.
-func (s *session) mixBarrel(tx *world.Tx, pos cube.Pos, b Barrel, out world.Item) {
-	rec := s.barrelAt(pos)
+func mixBarrel(s *core.Session, tx *world.Tx, pos cube.Pos, b Barrel, out world.Item) {
+	rec := BarrelAt(s, pos)
 	switch {
-	case b.Wood == stoneWood && rec != nil:
+	case b.Wood == StoneWood && rec != nil:
 		// A stone barrel uses up a bucket's worth of its lava.
 		rec.LavaMB -= machine.BucketMB
-		s.forgetEmptyStone(pos, rec)
+		forgetEmptyStone(s, pos, rec)
 	default:
 		if rec != nil && rec.Clay > 0 {
 			s.DropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(block.Clay{}, rec.Clay))
 		}
-		delete(s.state.Barrels, cropKey(pos))
+		delete(StateOf(s).Barrels, CropKey(pos))
 	}
-	s.showBarrel(tx, pos, b)
+	showBarrel(s, tx, pos, b)
 	s.DropAt(tx, pos.Side(cube.FaceUp).Vec3Middle(), item.NewStack(out, 1))
 	tx.PlaySound(pos.Vec3Centre(), sound.Fizz{})
-}
-
-func init() {
-	world.RegisterItem(sgitem.MyceliumSpores{})
-	world.RegisterItem(sgitem.WitchWaterBucket{})
 }

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/climate"
@@ -57,7 +58,7 @@ func init() {
 func (s *session) useFairyTime(p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
 	switch held.Item().(type) {
 	case item.BoneMeal:
-		_, _, crop := cropOf(tx.Block(pos))
+		_, _, crop := farm.CropOf(tx.Block(pos))
 		return crop && p.Sneaking()
 	case sgitem.FairyBoneMeal:
 		if !s.fairyBoneMeal(tx, pos) {
@@ -90,13 +91,13 @@ func spendHeld(p *player.Player, held item.Stack) {
 // fairyBoneMeal grows the plant at pos ahead and reports whether it changed.
 func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 	switch b := tx.Block(pos).(type) {
-	case MagicPlant:
-		r := s.state.Plants[cropKey(pos)]
+	case farm.MagicPlant:
+		r := farm.StateOf(s.Session).Plants[farm.CropKey(pos)]
 		if b.Bloom || r == nil {
 			return false
 		}
 		r.ReadyAt -= fairyBoneMealTime
-		s.tickPlants(tx)
+		farm.TickPlants(s.Session, tx)
 		return true
 	case block.Sapling:
 		// Bone meal ages a sapling and then grows its tree, each by chance;
@@ -111,26 +112,26 @@ func (s *session) fairyBoneMeal(tx *world.Tx, pos cube.Pos) bool {
 		}
 		return false
 	}
-	kind, stage, ok := cropOf(tx.Block(pos))
+	kind, stage, ok := farm.CropOf(tx.Block(pos))
 	if !ok {
 		return false
 	}
 	now := climate.GrowNow(s.Session)
-	r := s.state.Crops[cropKey(pos)]
+	r := farm.StateOf(s.Session).Crops[farm.CropKey(pos)]
 	if r == nil {
-		s.plantCrop(pos, kind)
-		r = s.state.Crops[cropKey(pos)]
-		r.Planted = now - time.Duration(stage)*s.growTime(kind)/maxCropStage
+		farm.PlantCrop(s.Session, pos, kind)
+		r = farm.StateOf(s.Session).Crops[farm.CropKey(pos)]
+		r.Planted = now - time.Duration(stage)*farm.GrowTime(s.Session, kind)/farm.MaxCropStage
 	}
 	switch {
-	case stage < maxCropStage:
+	case stage < farm.MaxCropStage:
 		r.Planted -= fairyBoneMealTime
-	case cropKinds[kind].stem && r.NextFruit > 0:
+	case farm.CropKinds[kind].Stem && r.NextFruit > 0:
 		r.NextFruit -= fairyBoneMealTime
 	default:
 		return false
 	}
-	s.growCrop(tx, pos, r, now)
+	farm.GrowCrop(s.Session, tx, pos, r, now)
 	return true
 }
 

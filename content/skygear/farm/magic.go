@@ -1,15 +1,9 @@
-package skygear
+package farm
 
 import (
 	"fmt"
 	"math/rand/v2"
 	"time"
-
-	"github.com/presentkim/skygear/content/skygear/climate"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -22,9 +16,13 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
+	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
@@ -34,33 +32,12 @@ import (
 // better seeds are crafted from a lower seed, a vanilla plant, petals and a
 // material (ore, gem and essence blooms).
 
-// plantYield is what a bloom gives: Min to Max of an item.
-type plantYield struct {
-	item     world.Item
-	min, max int
-}
-
-type plantKind struct {
-	id   string
-	tier int
-	// seed is the id of the seed that grows it.
-	seed  string
-	grow  time.Duration
-	yield []plantYield
-}
-
-// plantKinds are the kinds of plants in a fixed order (the block's states follow it).
-var plantKinds []plantKind
-
-// plantSeeds are the ids of the seeds in order.
-var plantSeeds []string
-
 func init() {
 	for _, c := range sgitem.PetalColours {
-		plantKinds = append(plantKinds, plantKind{id: "flower_" + c, tier: 1, seed: "flower_" + c, grow: 90 * time.Second, yield: []plantYield{{sgitem.Petal{Colour: c}, 2, 3}}})
+		PlantKinds = append(PlantKinds, PlantKind{ID: "flower_" + c, tier: 1, Seed: "flower_" + c, Grow: 90 * time.Second, Yield: []PlantYield{{sgitem.Petal{Colour: c}, 2, 3}}})
 	}
 	for _, m := range []string{sgitem.OreIron, sgitem.OreGold, sgitem.OreCopper, sgitem.MetalTin, sgitem.MetalLead, sgitem.MetalSilver, sgitem.MetalNickel} {
-		plantKinds = append(plantKinds, plantKind{id: "ore_" + m, tier: 2, seed: "ore_" + m, grow: 180 * time.Second, yield: []plantYield{{sgitem.OreChunk{Ore: m}, 1, 2}}})
+		PlantKinds = append(PlantKinds, PlantKind{ID: "ore_" + m, tier: 2, Seed: "ore_" + m, Grow: 180 * time.Second, Yield: []PlantYield{{sgitem.OreChunk{Ore: m}, 1, 2}}})
 	}
 	gems := []struct {
 		id       string
@@ -71,23 +48,58 @@ func init() {
 		{"coal", item.Coal{}, 2, 3}, {"diamond", item.Diamond{}, 1, 1}, {"emerald", item.Emerald{}, 1, 1},
 	}
 	for _, g := range gems {
-		plantKinds = append(plantKinds, plantKind{id: "gem_" + g.id, tier: 3, seed: "gem_" + g.id, grow: 300 * time.Second, yield: []plantYield{{g.it, g.min, g.max}}})
+		PlantKinds = append(PlantKinds, PlantKind{ID: "gem_" + g.id, tier: 3, Seed: "gem_" + g.id, Grow: 300 * time.Second, Yield: []PlantYield{{g.it, g.min, g.max}}})
 	}
 	for _, mob := range sgitem.FlowerMobKinds {
-		plantKinds = append(plantKinds, plantKind{id: "ess_" + mob, tier: 4, seed: "ess_" + mob, grow: 480 * time.Second, yield: []plantYield{{sgitem.Essence{Mob: mob}, 1, 1}}})
+		PlantKinds = append(PlantKinds, PlantKind{ID: "ess_" + mob, tier: 4, Seed: "ess_" + mob, Grow: 480 * time.Second, Yield: []PlantYield{{sgitem.Essence{Mob: mob}, 1, 1}}})
 	}
 	seen := map[string]bool{}
-	for _, k := range plantKinds {
-		if !seen[k.seed] {
-			seen[k.seed] = true
-			plantSeeds = append(plantSeeds, k.seed)
+	for _, k := range PlantKinds {
+		if !seen[k.Seed] {
+			seen[k.Seed] = true
+			PlantSeeds = append(PlantSeeds, k.Seed)
 		}
 	}
 }
 
-func plantKindIndex(id string) int {
-	for i, k := range plantKinds {
-		if k.id == id {
+func init() {
+	for _, c := range sgitem.PetalColours {
+		world.RegisterItem(sgitem.Petal{Colour: c})
+	}
+	for _, s := range PlantSeeds {
+		world.RegisterItem(PlantSeed{Seed: s})
+	}
+	for _, k := range PlantKinds {
+		world.RegisterBlock(MagicPlant{Kind: k.ID})
+		world.RegisterBlock(MagicPlant{Kind: k.ID, Bloom: true})
+	}
+	PlantRecipes()
+}
+
+// PlantYield is what a bloom gives: Min to Max of an item.
+type PlantYield struct {
+	Item     world.Item
+	Min, Max int
+}
+
+type PlantKind struct {
+	ID   string
+	tier int
+	// seed is the id of the seed that grows it.
+	Seed  string
+	Grow  time.Duration
+	Yield []PlantYield
+}
+
+// PlantKinds are the kinds of plants in a fixed order (the block's states follow it).
+var PlantKinds []PlantKind
+
+// PlantSeeds are the ids of the seeds in order.
+var PlantSeeds []string
+
+func PlantKindIndex(id string) int {
+	for i, k := range PlantKinds {
+		if k.ID == id {
 			return i
 		}
 	}
@@ -98,9 +110,11 @@ func plantKindIndex(id string) int {
 type PlantSeed struct{ Seed string }
 
 func (s PlantSeed) EncodeItem() (string, int16) { return "skygear:seed_" + s.Seed, 0 }
+
 func (s PlantSeed) Name() string {
 	return i18n.T(i18n.Default, "pseed."+s.Seed) + i18n.T(i18n.Default, "name.PlantSeed.suffix")
 }
+
 func (PlantSeed) Category() category.Category { return category.Items() }
 
 // UseOnBlock plants the seed on dirt or grass.
@@ -117,20 +131,20 @@ func (s PlantSeed) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *wo
 	if _, air := tx.Block(at).(block.Air); !air {
 		return false
 	}
-	sess, ok := activeGame.sessionOf(tx.World())
+	sess, ok := core.Of(tx)
 	if !ok {
 		return false
 	}
 	id := s.Seed
-	if plantKindIndex(id) < 0 {
+	if PlantKindIndex(id) < 0 {
 		return false
 	}
 	tx.SetBlock(at, MagicPlant{Kind: id}, nil)
-	now := climate.GrowNow(sess.Session)
-	if sess.state.Plants == nil {
-		sess.state.Plants = map[string]*PlantRecord{}
+	now := climate.GrowNow(sess)
+	if StateOf(sess).Plants == nil {
+		StateOf(sess).Plants = map[string]*PlantRecord{}
 	}
-	sess.state.Plants[cropKey(at)] = &PlantRecord{Kind: id, ReadyAt: now + plantKinds[plantKindIndex(id)].grow}
+	StateOf(sess).Plants[CropKey(at)] = &PlantRecord{Kind: id, ReadyAt: now + PlantKinds[PlantKindIndex(id)].Grow}
 	tx.PlaySound(at.Vec3Centre(), sound.BlockPlace{Block: block.Grass{}})
 	ctx.SubtractFromCount(1)
 	return true
@@ -165,7 +179,7 @@ func (b MagicPlant) EncodeBlock() (string, map[string]any) {
 
 // index is the number of the state of a plant.
 func (b MagicPlant) index() uint64 {
-	i := plantKindIndex(b.Kind)
+	i := PlantKindIndex(b.Kind)
 	if i < 0 {
 		i = 0
 	}
@@ -177,12 +191,15 @@ func (b MagicPlant) index() uint64 {
 }
 
 func (b MagicPlant) Hash() (uint64, uint64) { return plantHash, b.index() }
-func (MagicPlant) Model() world.BlockModel  { return model.Empty{} }
-func (MagicPlant) Name() string             { return i18n.T(i18n.Default, "name.MagicPlant") }
+
+func (MagicPlant) Model() world.BlockModel { return model.Empty{} }
+
+func (MagicPlant) Name() string { return i18n.T(i18n.Default, "name.MagicPlant") }
+
 func (MagicPlant) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.skygear_magic_plant",
-		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_plant_" + plantKinds[0].id + "_0")},
+		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_plant_" + PlantKinds[0].ID + "_0")},
 		CollisionBox: cube.Box(0.45, 0, 0.45, 0.55, 0.01, 0.55),
 		SelectionBox: cube.Box(0.15, 0, 0.15, 0.85, 0.7, 0.85),
 	}
@@ -191,8 +208,8 @@ func (MagicPlant) Properties() customblock.Properties {
 // States implements block.Permutable: one state with the kind and stage.
 func (MagicPlant) States() map[string][]any {
 	var values []any
-	for _, k := range plantKinds {
-		values = append(values, plantValue(k.id, false), plantValue(k.id, true))
+	for _, k := range PlantKinds {
+		values = append(values, plantValue(k.ID, false), plantValue(k.ID, true))
 	}
 	return map[string][]any{plantState: values}
 }
@@ -200,17 +217,17 @@ func (MagicPlant) States() map[string][]any {
 // Permutations implements block.Permutable: one texture per kind and stage.
 func (MagicPlant) Permutations() []customblock.Permutation {
 	var out []customblock.Permutation
-	for _, k := range plantKinds {
+	for _, k := range PlantKinds {
 		for _, bloom := range []bool{false, true} {
 			stage := 0
 			if bloom {
 				stage = 1
 			}
 			out = append(out, customblock.Permutation{
-				Condition: fmt.Sprintf("q.block_state('%s') == '%s'", plantState, plantValue(k.id, bloom)),
+				Condition: fmt.Sprintf("q.block_state('%s') == '%s'", plantState, plantValue(k.ID, bloom)),
 				Properties: customblock.Properties{
 					Geometry: "geometry.skygear_magic_plant",
-					Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial(fmt.Sprintf("skygear_plant_%s_%d", k.id, stage))},
+					Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial(fmt.Sprintf("skygear_plant_%s_%d", k.ID, stage))},
 				},
 			})
 		}
@@ -219,7 +236,7 @@ func (MagicPlant) Permutations() []customblock.Permutation {
 }
 
 // seedStack returns the seed that grows kind.
-func (k plantKind) seedStack() item.Stack { return item.NewStack(PlantSeed{Seed: k.seed}, 1) }
+func (k PlantKind) SeedStack() item.Stack { return item.NewStack(PlantSeed{Seed: k.Seed}, 1) }
 
 func (b MagicPlant) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
@@ -227,13 +244,13 @@ func (b MagicPlant) BreakInfo() block.BreakInfo {
 		Harvestable: func(item.Tool) bool { return true },
 		Effective:   func(item.Tool) bool { return false },
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
-			i := plantKindIndex(b.Kind)
+			i := PlantKindIndex(b.Kind)
 			if i < 0 {
 				return nil
 			}
-			out := []item.Stack{plantKinds[i].seedStack()}
+			out := []item.Stack{PlantKinds[i].SeedStack()}
 			if b.Bloom {
-				out = append(out, rollYield(plantKinds[i])...)
+				out = append(out, rollYield(PlantKinds[i])...)
 			}
 			return out
 		},
@@ -241,14 +258,14 @@ func (b MagicPlant) BreakInfo() block.BreakInfo {
 }
 
 // rollYield rolls what a bloom of kind gives.
-func rollYield(k plantKind) []item.Stack {
+func rollYield(k PlantKind) []item.Stack {
 	var out []item.Stack
-	for _, y := range k.yield {
-		n := y.min
-		if y.max > y.min {
-			n += rollN(y.max - y.min + 1)
+	for _, y := range k.Yield {
+		n := y.Min
+		if y.Max > y.Min {
+			n += rollN(y.Max - y.Min + 1)
 		}
-		out = append(out, item.NewStack(y.item, n))
+		out = append(out, item.NewStack(y.Item, n))
 	}
 	return out
 }
@@ -262,8 +279,8 @@ func (b MagicPlant) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
 		return
 	}
 	tx.SetBlock(pos, nil, nil)
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		delete(s.state.Plants, cropKey(pos))
+	if s, ok := core.Of(tx); ok {
+		delete(StateOf(s).Plants, CropKey(pos))
 		for _, d := range b.BreakInfo().Drops(nil, nil) {
 			s.DropAt(tx, pos.Vec3Centre(), d)
 		}
@@ -275,99 +292,99 @@ func (b MagicPlant) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, _ item.Use
 	if !b.Bloom {
 		return true
 	}
-	s, ok := activeGame.sessionOf(tx.World())
+	s, ok := core.Of(tx)
 	if !ok {
 		return false
 	}
-	s.harvestPlant(tx, pos, b)
+	harvestPlant(s, tx, pos, b)
 	return true
 }
 
 // harvestPlant gives a bloom's yield and sets the plant back to a bud.
-func (s *session) harvestPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
-	drops, ok := s.plantDrops(b)
+func harvestPlant(s *core.Session, tx *world.Tx, pos cube.Pos, b MagicPlant) {
+	drops, ok := plantDrops(s, b)
 	if !ok {
 		return
 	}
 	for _, st := range drops {
 		s.DropAt(tx, pos.Vec3Centre().Add(mgl64.Vec3{0, 0.4, 0}), st)
 	}
-	s.resetPlant(tx, pos, b)
+	resetPlant(s, tx, pos, b)
 }
 
 // plantDrops rolls what harvesting a bloom gives: its yield, and a seed now
 // and then.
-func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
-	i := plantKindIndex(b.Kind)
+func plantDrops(s *core.Session, b MagicPlant) ([]item.Stack, bool) {
+	i := PlantKindIndex(b.Kind)
 	if i < 0 {
 		return nil, false
 	}
-	k := plantKinds[i]
-	out := s.rollPlantYield(k)
+	k := PlantKinds[i]
+	out := rollPlantYield(s, k)
 	if s.Rand.IntN(100) < 6 {
-		out = append(out, k.seedStack())
+		out = append(out, k.SeedStack())
 	}
 	return out, true
 }
 
 // resetPlant sets a harvested plant back to a bud, starts its next growth
 // and reports the harvest to the advancements.
-func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
-	k := plantKinds[plantKindIndex(b.Kind)]
-	progress.Advance(s.Session, tx, advancement.Bloom)
+func resetPlant(s *core.Session, tx *world.Tx, pos cube.Pos, b MagicPlant) {
+	k := PlantKinds[PlantKindIndex(b.Kind)]
+	progress.Advance(s, tx, advancement.Bloom)
 	achievement.CountAll(tx, "bloom_total", 1)
 	switch k.tier {
 	case 2:
-		progress.Advance(s.Session, tx, advancement.OreHarvest)
+		progress.Advance(s, tx, advancement.OreHarvest)
 		achievement.CountAll(tx, "bloom_ore", 1)
 	case 3:
-		progress.Advance(s.Session, tx, advancement.GemHarvest)
+		progress.Advance(s, tx, advancement.GemHarvest)
 		achievement.CountAll(tx, "bloom_gem", 1)
 	case 4:
-		progress.Advance(s.Session, tx, advancement.EssHarvest)
+		progress.Advance(s, tx, advancement.EssHarvest)
 		achievement.CountAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)
-	now := climate.GrowNow(s.Session)
-	if r := s.state.Plants[cropKey(pos)]; r != nil {
-		r.ReadyAt = now + k.grow
+	now := climate.GrowNow(s)
+	if r := StateOf(s).Plants[CropKey(pos)]; r != nil {
+		r.ReadyAt = now + k.Grow
 	} else {
-		if s.state.Plants == nil {
-			s.state.Plants = map[string]*PlantRecord{}
+		if StateOf(s).Plants == nil {
+			StateOf(s).Plants = map[string]*PlantRecord{}
 		}
-		s.state.Plants[cropKey(pos)] = &PlantRecord{Kind: b.Kind, ReadyAt: now + k.grow}
+		StateOf(s).Plants[CropKey(pos)] = &PlantRecord{Kind: b.Kind, ReadyAt: now + k.Grow}
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.BlockPlace{Block: block.Grass{}})
 }
 
 // rollPlantYield rolls the yield with the session's random source.
-func (s *session) rollPlantYield(k plantKind) []item.Stack {
+func rollPlantYield(s *core.Session, k PlantKind) []item.Stack {
 	var out []item.Stack
-	for _, y := range k.yield {
-		n := y.min
-		if y.max > y.min {
-			n += s.Rand.IntN(y.max - y.min + 1)
+	for _, y := range k.Yield {
+		n := y.Min
+		if y.Max > y.Min {
+			n += s.Rand.IntN(y.Max - y.Min + 1)
 		}
-		out = append(out, item.NewStack(y.item, n))
+		out = append(out, item.NewStack(y.Item, n))
 	}
 	return out
 }
 
-// tickPlants blooms the plants whose time has come (every second).
-func (s *session) tickPlants(tx *world.Tx) {
-	if len(s.state.Plants) == 0 {
+// TickPlants blooms the plants whose time has come (every second).
+func TickPlants(s *core.Session, tx *world.Tx) {
+	if len(StateOf(s).Plants) == 0 {
 		return
 	}
-	now := climate.GrowNow(s.Session)
-	for key, r := range s.state.Plants {
+	now := climate.GrowNow(s)
+	for key, r := range StateOf(s).Plants {
 		pos, ok := parseCropKey(key)
 		if !ok {
-			delete(s.state.Plants, key)
+			delete(StateOf(s).Plants, key)
 			continue
 		}
 		b, isPlant := tx.Block(pos).(MagicPlant)
 		if !isPlant {
-			delete(s.state.Plants, key)
+			delete(StateOf(s).Plants, key)
 			continue
 		}
 		if !b.Bloom && now >= r.ReadyAt {
@@ -376,8 +393,8 @@ func (s *session) tickPlants(tx *world.Tx) {
 	}
 }
 
-// plantRecipes registers the recipes of the better seeds.
-func plantRecipes() {
+// PlantRecipes registers the recipes of the better seeds.
+func PlantRecipes() {
 	st := func(it world.Item, n int) []recipe.Item {
 		out := make([]recipe.Item, n)
 		for i := range out {
@@ -445,34 +462,20 @@ func plantRecipes() {
 	}
 }
 
-func init() {
-	for _, c := range sgitem.PetalColours {
-		world.RegisterItem(sgitem.Petal{Colour: c})
-	}
-	for _, s := range plantSeeds {
-		world.RegisterItem(PlantSeed{Seed: s})
-	}
-	for _, k := range plantKinds {
-		world.RegisterBlock(MagicPlant{Kind: k.id})
-		world.RegisterBlock(MagicPlant{Kind: k.id, Bloom: true})
-	}
-	plantRecipes()
-}
-
-// plantLines are the WAILA lines of the plant b of kind k at pos: the time
+// PlantLines are the WAILA lines of the plant b of kind k at pos: the time
 // left until it blooms, or that it has and what harvesting it gives.
-func (s *session) plantLines(lang string, pos cube.Pos, b MagicPlant, k plantKind) []string {
+func PlantLines(s *core.Session, lang string, pos cube.Pos, b MagicPlant, k PlantKind) []string {
 	if !b.Bloom {
-		r := s.state.Plants[cropKey(pos)]
+		r := StateOf(s).Plants[CropKey(pos)]
 		if r == nil {
 			return nil
 		}
-		now := climate.GrowNow(s.Session)
-		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, climate.RealLeft(s.Session, max(0, r.ReadyAt-now)).Round(time.Second))}
+		now := climate.GrowNow(s)
+		return []string{i18n.T(lang, "crop.lines.left") + textfmt.Duration(lang, climate.RealLeft(s, max(0, r.ReadyAt-now)).Round(time.Second))}
 	}
 	lines := []string{i18n.T(lang, "plant.waila.bloom")}
-	for _, y := range k.yield {
-		lines = append(lines, fmt.Sprintf("§f%s §7×%s", naming.ItemName(lang, item.NewStack(y.item, 1)), rangeText(y.min, y.max)))
+	for _, y := range k.Yield {
+		lines = append(lines, fmt.Sprintf("§f%s §7×%s", naming.ItemName(lang, item.NewStack(y.Item, 1)), textfmt.Range(y.Min, y.Max)))
 	}
 	return lines
 }

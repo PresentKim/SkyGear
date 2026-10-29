@@ -1,4 +1,4 @@
-package skygear
+package farm
 
 import (
 	"github.com/df-mc/dragonfly/server/block"
@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
 
@@ -44,10 +45,10 @@ func harvestable(b world.Block) (world.Block, bool) {
 	return nil, false
 }
 
-// runHarvester harvests one grown crop per interval.
+// RunHarvester harvests one grown crop per interval.
 // The cycle runs on whether or not a crop is ready, so the gauge keeps
 // turning.
-func (s *session) runHarvester(st *machine.State, pos cube.Pos, tx *world.Tx) {
+func RunHarvester(s *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx) {
 	if st.Progress < st.Def.Interval {
 		st.TickWork()
 		return
@@ -58,14 +59,14 @@ func (s *session) runHarvester(st *machine.State, pos cube.Pos, tx *world.Tx) {
 		for z := -radius; z <= radius; z++ {
 			at := pos.Add(cube.Pos{x, 0, z})
 			b := tx.Block(at)
-			if kind, _, ok := cropOf(b); ok {
-				if _, known := s.state.Crops[cropKey(at)]; !known {
+			if kind, _, ok := CropOf(b); ok {
+				if _, known := StateOf(s).Crops[CropKey(at)]; !known {
 					// Planted before crops were scheduled: start its timer.
-					s.plantCrop(at, kind)
+					PlantCrop(s, at, kind)
 				}
 			}
 			if mp, isPlant := b.(MagicPlant); isPlant && mp.Bloom {
-				if s.harvestMagicPlant(st, tx, at, mp) {
+				if harvestMagicPlant(s, st, tx, at, mp) {
 					st.Done++
 					return
 				}
@@ -82,10 +83,10 @@ func (s *session) runHarvester(st *machine.State, pos cube.Pos, tx *world.Tx) {
 			if !st.RoomFor(drops) {
 				return
 			}
-			after, drops = replantSeed(st, after, drops)
+			after, drops = ReplantSeed(st, after, drops)
 			tx.SetBlock(at, after, nil)
-			if kind, _, ok := cropOf(after); ok {
-				s.plantCrop(at, kind)
+			if kind, _, ok := CropOf(after); ok {
+				PlantCrop(s, at, kind)
 			}
 			tx.AddParticle(at.Vec3Centre(), particle.BlockBreak{Block: b})
 			for _, it := range drops {
@@ -102,8 +103,8 @@ func (s *session) runHarvester(st *machine.State, pos cube.Pos, tx *world.Tx) {
 // harvestMagicPlant picks a blooming magic plant: the yield goes to the
 // harvester's output and the plant goes back to a bud. A plant whose yield
 // does not fit is left for the next cycle.
-func (s *session) harvestMagicPlant(st *machine.State, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
-	drops, ok := s.plantDrops(mp)
+func harvestMagicPlant(s *core.Session, st *machine.State, tx *world.Tx, at cube.Pos, mp MagicPlant) bool {
+	drops, ok := plantDrops(s, mp)
 	if !ok || !st.RoomFor(drops) {
 		return false
 	}
@@ -112,15 +113,15 @@ func (s *session) harvestMagicPlant(st *machine.State, tx *world.Tx, at cube.Pos
 			st.Emit(it)
 		}
 	}
-	s.resetPlant(tx, at, mp)
+	resetPlant(s, tx, at, mp)
 	return true
 }
 
-// replantSeed takes the seed a harvested crop is replanted with: one from
+// ReplantSeed takes the seed a harvested crop is replanted with: one from
 // its drops, else one from the harvester's output. Without a seed the crop
 // is not replanted (after becomes air). Stems (melon, pumpkin) need none.
-func replantSeed(st *machine.State, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
-	if _, _, crop := cropOf(after); !crop {
+func ReplantSeed(st *machine.State, after world.Block, drops []item.Stack) (world.Block, []item.Stack) {
+	if _, _, crop := CropOf(after); !crop {
 		return after, drops
 	}
 	seedItem, ok := after.(world.Item)

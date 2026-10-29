@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"strings"
 	"testing"
 	"time"
@@ -266,7 +267,7 @@ func TestHandsFreeLine(t *testing.T) {
 func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
-	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, storage.Drawer{}, Barrel{}} {
+	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, storage.Drawer{}, farm.Barrel{}} {
 		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
 		for _, tool := range []item.Stack{pick, axe} {
 			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {

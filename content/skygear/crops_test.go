@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"math/rand/v2"
 	"testing"
 	"time"
@@ -20,8 +21,8 @@ func plantAt(s *session, pos cube.Pos, b world.Block) {
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		tx.SetBlock(pos, b, nil)
-		kind, _, _ := cropOf(b)
-		s.plantCrop(pos, kind)
+		kind, _, _ := farm.CropOf(b)
+		farm.PlantCrop(s.Session, pos, kind)
 	})
 }
 
@@ -29,7 +30,7 @@ func stageOf(t *testing.T, s *session, pos cube.Pos) int {
 	t.Helper()
 	stage := -1
 	s.World.Do(func(tx *world.Tx) {
-		if _, g, ok := cropOf(tx.Block(pos)); ok {
+		if _, g, ok := farm.CropOf(tx.Block(pos)); ok {
 			stage = g
 		}
 	})
@@ -39,7 +40,7 @@ func stageOf(t *testing.T, s *session, pos cube.Pos) int {
 // advance moves instance time on and runs the per-second update.
 func advance(s *session, d time.Duration) {
 	s.Clock.Advance(d)
-	s.World.Do(func(tx *world.Tx) { s.growCrops(tx) })
+	s.World.Do(func(tx *world.Tx) { farm.GrowCrops(s.Session, tx) })
 }
 
 func TestCropsGrowOnInstanceTime(t *testing.T) {
@@ -47,7 +48,7 @@ func TestCropsGrowOnInstanceTime(t *testing.T) {
 	loadAround(s)
 	plantAt(s, cropPos, block.WheatSeeds{})
 	// One stage, rounded up to the nanosecond as the queue schedules it.
-	step := (s.growTime("wheat") + maxCropStage - 1) / maxCropStage
+	step := (farm.GrowTime(s.Session, "wheat") + farm.MaxCropStage - 1) / farm.MaxCropStage
 	advance(s, step-time.Second)
 	if g := stageOf(t, s, cropPos); g != 0 {
 		t.Fatalf("stage %d before the first stage time", g)
@@ -58,15 +59,15 @@ func TestCropsGrowOnInstanceTime(t *testing.T) {
 	}
 	// Nothing is due until the next stage: the queue head is in the future.
 	now, _, _ := s.Clock.Now()
-	if s.cropQueue.Len() != 1 || s.cropQueue[0].at <= now {
-		t.Fatalf("queue %v at %v", s.cropQueue, now)
+	if farm.LocalOf(s.Session).CropQueue.Len() != 1 || farm.LocalOf(s.Session).CropQueue[0].At <= now {
+		t.Fatalf("queue %v at %v", farm.LocalOf(s.Session).CropQueue, now)
 	}
 	// A long pause (inactive instance) does not grow it; instance time does.
-	advance(s, s.growTime("wheat"))
-	if g := stageOf(t, s, cropPos); g != maxCropStage {
+	advance(s, farm.GrowTime(s.Session, "wheat"))
+	if g := stageOf(t, s, cropPos); g != farm.MaxCropStage {
 		t.Fatalf("stage %d after the full growth time", g)
 	}
-	if s.cropQueue.Len() != 0 {
+	if farm.LocalOf(s.Session).CropQueue.Len() != 0 {
 		t.Fatal("a grown crop is still queued")
 	}
 }
@@ -91,8 +92,8 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 	loadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	// Bone meal took it to stage 5: it continues from there.
-	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, withGrowth(block.Carrot{}, 5), nil) })
-	step := (s.growTime("carrot") + maxCropStage - 1) / maxCropStage
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, farm.WithGrowth(block.Carrot{}, 5), nil) })
+	step := (farm.GrowTime(s.Session, "carrot") + farm.MaxCropStage - 1) / farm.MaxCropStage
 	advance(s, step)
 	if g := stageOf(t, s, cropPos); g != 5 {
 		t.Fatalf("stage %d after bone meal", g)
@@ -103,9 +104,9 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 	}
 	// A crop that was broken is forgotten.
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, nil, nil) })
-	advance(s, s.growTime("carrot"))
-	if len(s.state.Crops) != 0 {
-		t.Fatalf("records left: %v", s.state.Crops)
+	advance(s, farm.GrowTime(s.Session, "carrot"))
+	if len(farm.StateOf(s.Session).Crops) != 0 {
+		t.Fatalf("records left: %v", farm.StateOf(s.Session).Crops)
 	}
 }
 
@@ -118,8 +119,8 @@ func TestStemGrowsFruit(t *testing.T) {
 		}
 	})
 	plantAt(s, cropPos, block.MelonSeeds{})
-	advance(s, s.growTime("melon"))
-	advance(s, s.stemFruitTime())
+	advance(s, farm.GrowTime(s.Session, "melon"))
+	advance(s, farm.StemFruitTime(s.Session))
 	found := false
 	s.World.Do(func(tx *world.Tx) {
 		for _, d := range cube.Directions() {
@@ -137,14 +138,14 @@ func TestCropsLoadFromState(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	plantAt(s, cropPos, block.Potato{})
-	s.cropQueue = nil
-	advance(s, s.growTime("potato"))
+	farm.LocalOf(s.Session).CropQueue = nil
+	advance(s, farm.GrowTime(s.Session, "potato"))
 	if g := stageOf(t, s, cropPos); g != 0 {
 		t.Fatal("grew without being queued")
 	}
-	s.loadCrops()
+	farm.LoadCrops(s.Session)
 	advance(s, 0)
-	if g := stageOf(t, s, cropPos); g != maxCropStage {
+	if g := stageOf(t, s, cropPos); g != farm.MaxCropStage {
 		t.Fatalf("stage %d after loading", g)
 	}
 }
@@ -156,7 +157,7 @@ func TestPlantingRecordsCrop(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		ctx := player.NewEventContext(tx, p)
 		(&handler{s: s}).HandleBlockPlace(ctx, cropPos, block.BeetrootSeeds{})
-		if r := s.state.Crops[cropKey(cropPos)]; ctx.Cancelled() || r == nil || r.Kind != "beetroot" {
+		if r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]; ctx.Cancelled() || r == nil || r.Kind != "beetroot" {
 			t.Fatalf("record %+v cancelled %v", r, ctx.Cancelled())
 		}
 	})

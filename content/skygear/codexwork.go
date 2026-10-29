@@ -2,6 +2,9 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
+
+	"github.com/presentkim/skygear/content/skygear/textfmt"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 
@@ -55,13 +58,13 @@ func (s *session) codexHandCards(lang string) []codexCard {
 	}
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1)
 	fiber := s.codexCell(lang, item.NewStack(sgitem.BarkFiber{}, 1), fmt.Sprintf("§f%d%%", fiberChance),
-		fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), rangeText(1, 2), fiberChance))
+		fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), textfmt.Range(1, 2), fiberChance))
 	cards = append(cards, machineCard(lang, axe, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Log{Wood: block.OakWood()}, 1), "", i18n.T(lang, "codex.card.strip"))}, []ui.BoardCell{fiber}))
 	hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
 	seeds := s.codexCell(lang, item.NewStack(sgitem.GrassSeeds{}, 1), fmt.Sprintf("§f%d%%", grassSeedChance), fmt.Sprintf(i18n.T(lang, "codex.card.chance"), grassSeedChance))
 	cards = append(cards, machineCard(lang, hoe, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Dirt{}, 1), "", i18n.T(lang, "codex.card.till"))}, []ui.BoardCell{seeds}))
 	composter := item.NewStack(block.Composter{}, 1)
-	plants := s.codexCell(lang, item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(matterCapacity), i18n.T(lang, "codex.card.anyPlant"))
+	plants := s.codexCell(lang, item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(farm.MatterCapacity), i18n.T(lang, "codex.card.anyPlant"))
 	cards = append(cards, machineCard(lang, composter, []ui.BoardCell{plants}, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Dirt{}, 1), "")}))
 	return cards
 }
@@ -71,7 +74,7 @@ func (s *session) codexHandCards(lang string) []codexCard {
 func (s *session) codexWorkCards(lang string) []codexCard {
 	cards := s.codexHandCards(lang)
 	for _, pr := range codexProcesses() {
-		_, barrel := pr.head.Item().(Barrel)
+		_, barrel := pr.head.Item().(farm.Barrel)
 		if m, ok := pr.head.Item().(machine.Machine); barrel || ok && m.Kind == machine.KindCrucible {
 			cards = append(cards, pr.cards(s, lang)...)
 		}

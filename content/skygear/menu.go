@@ -1,6 +1,9 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"time"
+
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -126,4 +129,24 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	progress.Advance(s.Session, tx, advancement.Stats)
 	machine.ShowStats(s.Session, p, machine.StatsItems)
+}
+
+// saplingCmd is /묘목 (and /sapling).
+type saplingCmd struct{ g *Game }
+
+func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, ok := src.(*player.Player)
+	if !ok {
+		return
+	}
+	s, ok := c.g.sessionOf(tx.World())
+	if !ok {
+		o.Error(i18n.T(i18n.Of(p), "sapling.needIsland"))
+		return
+	}
+	if err := farm.GiveSapling(s.Session, p, tx, time.Now()); err != nil {
+		o.Errorf(i18n.T(i18n.Of(p), "sapling.cooldown"), err.Error())
+		return
+	}
+	o.Printf("%s", i18n.T(i18n.Of(p), "sapling.given"))
 }

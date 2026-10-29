@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"testing"
 	"time"
 
@@ -56,13 +57,13 @@ func TestSaplingCommandCooldown(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		now := time.Now()
 		sapling := item.NewStack(block.Sapling{Type: block.OakSapling()}, 1)
-		if err := s.giveSapling(p, tx, now); err != nil || !p.Inventory().ContainsItem(sapling) {
+		if err := farm.GiveSapling(s.Session, p, tx, now); err != nil || !p.Inventory().ContainsItem(sapling) {
 			t.Fatalf("first sapling: %v", err)
 		}
-		if err := s.giveSapling(p, tx, now.Add(9*time.Minute)); err == nil {
+		if err := farm.GiveSapling(s.Session, p, tx, now.Add(9*time.Minute)); err == nil {
 			t.Fatal("a second sapling within 10 minutes")
 		}
-		if err := s.giveSapling(p, tx, now.Add(10*time.Minute)); err != nil || !p.Inventory().ContainsItem(sapling.Grow(1)) {
+		if err := farm.GiveSapling(s.Session, p, tx, now.Add(10*time.Minute)); err != nil || !p.Inventory().ContainsItem(sapling.Grow(1)) {
 			t.Fatalf("sapling after 10 minutes: %v", err)
 		}
 	})
@@ -79,7 +80,7 @@ func TestCrouchGrowsSaplings(t *testing.T) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
 		tx.SetBlock(pos, block.Sapling{Type: block.OakSapling()}, nil)
 		for range 200 {
-			s.crouchGrow(p, tx)
+			farm.CrouchGrow(s.Session, p, tx)
 			if _, ok := tx.Block(pos).(block.Sapling); !ok {
 				break
 			}

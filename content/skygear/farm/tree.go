@@ -1,4 +1,4 @@
-package skygear
+package farm
 
 import (
 	"github.com/df-mc/dragonfly/server/block"
@@ -6,9 +6,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// growTreeAt grows an oak tree at pos (on dirt or grass) the way bone meal
+// GrowTreeAt grows an oak tree at pos (on dirt or grass) the way bone meal
 // on a sapling does.
-func growTreeAt(tx *world.Tx, pos cube.Pos) {
+func GrowTreeAt(tx *world.Tx, pos cube.Pos) {
 	sapling := block.Sapling{Type: block.OakSapling()}
 	tx.SetBlock(pos, sapling, nil)
 	for range 200 {

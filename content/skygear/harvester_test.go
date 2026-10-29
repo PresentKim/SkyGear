@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -81,12 +82,12 @@ func TestHarvestedCropsAreYoung(t *testing.T) {
 func TestReplantUsesSeeds(t *testing.T) {
 	st := machine.New(machine.KindHarvester, "", "").State
 	young := block.WheatSeeds{}
-	after, drops := replantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1), item.NewStack(block.WheatSeeds{}, 2)})
+	after, drops := farm.ReplantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1), item.NewStack(block.WheatSeeds{}, 2)})
 	if _, ok := after.(block.WheatSeeds); !ok || drops[1].Count() != 1 {
 		t.Errorf("seed from drops: %T, drops %v", after, drops)
 	}
 	_ = st.Inv().SetItem(st.Def.Output[0], item.NewStack(block.WheatSeeds{}, 1))
-	if after, _ := replantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1)}); after == nil {
+	if after, _ := farm.ReplantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1)}); after == nil {
 		t.Fatal("nil block")
 	} else if _, ok := after.(block.WheatSeeds); !ok {
 		t.Errorf("seed from output: %T", after)
@@ -94,10 +95,10 @@ func TestReplantUsesSeeds(t *testing.T) {
 	if it, _ := st.Inv().Item(st.Def.Output[0]); !it.Empty() {
 		t.Errorf("output seed not used: %v", it)
 	}
-	if after, _ := replantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1)}); after != (block.Air{}) {
+	if after, _ := farm.ReplantSeed(st, young, []item.Stack{item.NewStack(item.Wheat{}, 1)}); after != (block.Air{}) {
 		t.Errorf("no seed: %T, want air", after)
 	}
-	if after, _ := replantSeed(st, block.Air{}, nil); after != (block.Air{}) {
+	if after, _ := farm.ReplantSeed(st, block.Air{}, nil); after != (block.Air{}) {
 		t.Errorf("melon cut: %T", after)
 	}
 }

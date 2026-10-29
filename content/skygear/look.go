@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"math"
 	"time"
 
@@ -64,8 +65,8 @@ func lookedAt(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot cube.Rotation)
 		if _, liquid := b.(world.Liquid); liquid {
 			return true
 		}
-		if _, stage, crop := cropOf(b); crop {
-			h := float64(stage+1) / float64(maxCropStage+1)
+		if _, stage, crop := farm.CropOf(b); crop {
+			h := float64(stage+1) / float64(farm.MaxCropStage+1)
 			if !trace.BBoxIntersects(cube.Box(0, 0, 0, 1, h, 1).Translate(pos.Vec3()), eye, end) {
 				return true
 			}
@@ -201,29 +202,29 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 			info.Lines = append(info.Lines, drawerDetail(lang, b)...)
 		}
 	case block.Composter:
-		info.Lines = s.composterLines(lang, pos, b)
+		info.Lines = farm.ComposterLines(s.Session, lang, pos, b)
 	case conduit.Bundle:
 		info.Lines = conduit.BundleLines(lang, tx, pos, b)
-	case Barrel:
-		info.Lines = s.barrelLines(lang, tx, pos)
-		info.Line = s.barrelLiquid(lang, pos)
+	case farm.Barrel:
+		info.Lines = farm.BarrelLines(s.Session, lang, tx, pos)
+		info.Line = farm.BarrelLiquid(s.Session, lang, pos)
 	case hopper.FlowHopper:
 		info.Lines = hopper.HopperLines(lang, b)
-	case MagicPlant:
-		if i := plantKindIndex(b.Kind); i >= 0 {
-			k := plantKinds[i]
-			seed := k.seedStack()
+	case farm.MagicPlant:
+		if i := farm.PlantKindIndex(b.Kind); i >= 0 {
+			k := farm.PlantKinds[i]
+			seed := k.SeedStack()
 			info.Item, info.NameKey = seed.Item(), ""
-			info.Name = i18n.T(lang, "pseed."+k.seed)
+			info.Name = i18n.T(lang, "pseed."+k.Seed)
 			info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
-			info.Lines = s.plantLines(lang, pos, b, k)
+			info.Lines = farm.PlantLines(s.Session, lang, pos, b, k)
 		}
 	}
-	if kind, _, ok := cropOf(b); ok {
-		info.Name = i18n.T(lang, cropNameKeys[kind])
+	if kind, _, ok := farm.CropOf(b); ok {
+		info.Name = i18n.T(lang, farm.CropNameKeys[kind])
 		info.Tools = []waila.ToolIcon{{Tool: waila.Crops, Mark: waila.MarkNone}}
-		if r, ok := s.state.Crops[cropKey(pos)]; ok {
-			info.Lines = s.cropLines(lang, r, tx, pos)
+		if r, ok := farm.StateOf(s.Session).Crops[farm.CropKey(pos)]; ok {
+			info.Lines = farm.CropLines(s.Session, lang, r, tx, pos)
 		}
 	}
 	return info
@@ -238,7 +239,7 @@ func customTool(b world.Block, held item.Stack) []waila.ToolIcon {
 		typ  item.ToolType
 	)
 	switch b.(type) {
-	case storage.Drawer, ResearchTable, Barrel:
+	case storage.Drawer, ResearchTable, farm.Barrel:
 		icon, typ = waila.AxeWood, item.TypeAxe
 	case hopper.FlowHopper:
 		if h := b.(hopper.FlowHopper); h.Info().Wood {

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"strings"
 	"testing"
 
@@ -75,10 +76,10 @@ func TestLookedAtPlacedBarrel(t *testing.T) {
 		tx.SetBlock(below.Side(cube.FaceDown), block.Netherrack{}, nil)
 		tx.SetBlock(below, block.Stone{}, nil)
 		held, off := p.HeldItems()
-		p.SetHeldItems(item.NewStack(Barrel{Wood: stoneWood}, 1), off)
+		p.SetHeldItems(item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1), off)
 		p.UseItemOnBlock(below, cube.FaceUp, mgl64.Vec3{0.5, 1, 0.5})
 		p.SetHeldItems(held, off)
-		if _, ok := tx.Block(target).(Barrel); !ok {
+		if _, ok := tx.Block(target).(farm.Barrel); !ok {
 			t.Fatalf("placed %T, want a barrel", tx.Block(target))
 		}
 		tx.SetBlock(below, block.Fire{}, nil)

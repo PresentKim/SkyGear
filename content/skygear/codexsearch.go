@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"slices"
 	"strings"
 	"sync"
@@ -154,9 +155,9 @@ func codexRelevant() map[string]bool {
 	for _, in := range crushInputs() {
 		add(in)
 	}
-	for _, m := range barrelMixes() {
-		add(m.in)
-		add(m.out)
+	for _, m := range farm.BarrelMixes() {
+		add(m.In)
+		add(m.Out)
 	}
 	for _, r := range machinerecipe.Alloys {
 		add(r.A)
@@ -178,9 +179,9 @@ func codexRelevant() map[string]bool {
 			add(r.Item())
 		}
 	}
-	for _, pk := range plantKinds {
-		for _, y := range pk.yield {
-			add(y.item)
+	for _, pk := range farm.PlantKinds {
+		for _, y := range pk.Yield {
+			add(y.Item)
 		}
 	}
 	for _, h := range tinker.HeadMaterials {

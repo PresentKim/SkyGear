@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"strings"
 	"testing"
 
@@ -166,7 +167,7 @@ func TestLabAccepts(t *testing.T) {
 // what the six crops of the island give.
 func TestFarmingIngredientsGrow(t *testing.T) {
 	grown := map[string]bool{}
-	for _, b := range []world.Block{withGrowth(block.WheatSeeds{}, 7), withGrowth(block.Carrot{}, 7), withGrowth(block.Potato{}, 7), withGrowth(block.BeetrootSeeds{}, 7), block.Melon{}, block.Pumpkin{}} {
+	for _, b := range []world.Block{farm.WithGrowth(block.WheatSeeds{}, 7), farm.WithGrowth(block.Carrot{}, 7), farm.WithGrowth(block.Potato{}, 7), farm.WithGrowth(block.BeetrootSeeds{}, 7), block.Melon{}, block.Pumpkin{}} {
 		for _, st := range b.(block.Breakable).BreakInfo().Drops(item.ToolNone{}, nil) {
 			grown[naming.ItemKey(st.Item())] = true
 		}

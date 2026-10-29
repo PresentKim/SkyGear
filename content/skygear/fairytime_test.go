@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"testing"
 	"time"
 
@@ -28,18 +29,18 @@ func TestFairyBoneMealGrowsCropsAhead(t *testing.T) {
 		t.Fatal("fairy bone meal did nothing on a young carrot")
 	}
 	now := climate.GrowNow(s.Session)
-	if want := s.stageAt("carrot", now-fairyBoneMealTime, now); stageOf(t, s, cropPos) != want {
+	if want := farm.StageAt(s.Session, "carrot", now-fairyBoneMealTime, now); stageOf(t, s, cropPos) != want {
 		t.Fatalf("stage %d after one use, want %d", stageOf(t, s, cropPos), want)
 	}
 	for used() {
 	}
-	if g := stageOf(t, s, cropPos); g != maxCropStage {
+	if g := stageOf(t, s, cropPos); g != farm.MaxCropStage {
 		t.Fatalf("stage %d when fairy bone meal stopped working", g)
 	}
 	// The updates queued before the uses are stale and fall away.
-	advance(s, s.growTime("carrot"))
-	if s.cropQueue.Len() != 0 {
-		t.Fatalf("queue left: %v", s.cropQueue)
+	advance(s, farm.GrowTime(s.Session, "carrot"))
+	if farm.LocalOf(s.Session).CropQueue.Len() != 0 {
+		t.Fatalf("queue left: %v", farm.LocalOf(s.Session).CropQueue)
 	}
 }
 
@@ -48,8 +49,8 @@ func TestFairyBoneMealBringsFruitSooner(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	plantAt(s, cropPos, block.PumpkinSeeds{})
-	advance(s, s.growTime("pumpkin"))
-	r := s.state.Crops[cropKey(cropPos)]
+	advance(s, farm.GrowTime(s.Session, "pumpkin"))
+	r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]
 	before := r.NextFruit
 	s.World.Do(func(tx *world.Tx) {
 		if !s.fairyBoneMeal(tx, cropPos) {
@@ -69,12 +70,12 @@ func TestFairyBoneMealOnPlantsAndSaplings(t *testing.T) {
 	pos := cropPos
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Dirt{}, nil)
-		tx.SetBlock(pos, MagicPlant{Kind: "flower_red"}, nil)
-		s.state.Plants = map[string]*PlantRecord{cropKey(pos): {Kind: "flower_red", ReadyAt: climate.GrowNow(s.Session) + time.Minute}}
+		tx.SetBlock(pos, farm.MagicPlant{Kind: "flower_red"}, nil)
+		farm.StateOf(s.Session).Plants = map[string]*farm.PlantRecord{farm.CropKey(pos): {Kind: "flower_red", ReadyAt: climate.GrowNow(s.Session) + time.Minute}}
 		if !s.fairyBoneMeal(tx, pos) {
 			t.Error("fairy bone meal did nothing on a magic plant")
 		}
-		if b := tx.Block(pos).(MagicPlant); !b.Bloom {
+		if b := tx.Block(pos).(farm.MagicPlant); !b.Bloom {
 			t.Error("the plant did not bloom a minute short of its time")
 		}
 		if s.fairyBoneMeal(tx, pos) {

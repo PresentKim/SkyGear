@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -130,10 +131,10 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			}
 		}
 	}
-	for _, pk := range plantKinds {
-		for _, y := range pk.yield {
-			if naming.ItemKey(y.item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), naming.UIItemName(lang, item.NewStack(PlantSeed{Seed: pk.seed}, 1))))
+	for _, pk := range farm.PlantKinds {
+		for _, y := range pk.Yield {
+			if naming.ItemKey(y.Item) == k {
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), naming.UIItemName(lang, item.NewStack(farm.PlantSeed{Seed: pk.Seed}, 1))))
 			}
 		}
 	}
@@ -201,7 +202,7 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	if sm, ok := machine.SmeltOf(it); ok {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.smelt"), naming.UIItemName(lang, sm)))
 	}
-	if plantMatter(it) {
+	if farm.PlantMatter(it) {
 		out = append(out, i18n.T(lang, "codex.use.compost"))
 	}
 	for _, h := range tinker.HeadMaterials {

@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"sort"
 	"strings"
 	"sync"
@@ -56,14 +57,6 @@ func countLabel(n int) string {
 		return "§f" + ui.CountText(n)
 	}
 	return ""
-}
-
-// rangeText writes min~max.
-func rangeText(lo, hi int) string {
-	if hi > lo {
-		return fmt.Sprintf("%d~%d", lo, hi)
-	}
-	return fmt.Sprint(lo)
 }
 
 // codexCell is a slot showing st that opens its codex page. extra lines go
@@ -402,9 +395,9 @@ func (s *session) codexSourceCards(lang string, it item.Stack) []codexCard {
 			}
 		}
 	}
-	for _, pk := range plantKinds {
-		for _, y := range pk.yield {
-			if naming.ItemKey(y.item) == k {
+	for _, pk := range farm.PlantKinds {
+		for _, y := range pk.Yield {
+			if naming.ItemKey(y.Item) == k {
 				cards = append(cards, s.plantCard(lang, pk))
 			}
 		}
@@ -456,7 +449,7 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 	if machine.FuelDuration(it) > 0 {
 		cards = append(cards, noteCard(lang, machine.Item(machine.KindGenerator), i18n.T(lang, "codex.use.fuel")))
 	}
-	if plantMatter(it) {
+	if farm.PlantMatter(it) {
 		cards = append(cards, noteCard(lang, item.NewStack(block.Composter{}, 1), i18n.T(lang, "codex.use.compost")))
 	}
 	tinkerTable := machine.Item(machine.KindTinker)
@@ -536,7 +529,7 @@ func (s *session) simCard(lang string, mob string, drops []sgitem.SimDrop) codex
 	var outs []ui.BoardCell
 	for _, d := range drops {
 		outs = append(outs, s.codexCell(lang, item.NewStack(d.Item, 1), fmt.Sprintf("§f%d%%", d.Chance),
-			fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), rangeText(d.Min, d.Max), d.Chance)))
+			fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), textfmt.Range(d.Min, d.Max), d.Chance)))
 	}
 	return machineCard(lang, machine.Item(machine.KindSimulator), []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.Essence{Mob: mob}, 1), "")}, outs)
 }
@@ -590,11 +583,11 @@ func (s *session) waveCard(lang string, i int) []codexCard {
 }
 
 // plantCard is a magic plant: its seed, the arrow and what it yields.
-func (s *session) plantCard(lang string, pk plantKind) codexCard {
-	seed := item.NewStack(PlantSeed{Seed: pk.seed}, 1)
+func (s *session) plantCard(lang string, pk farm.PlantKind) codexCard {
+	seed := item.NewStack(farm.PlantSeed{Seed: pk.Seed}, 1)
 	var outs []ui.BoardCell
-	for _, y := range pk.yield {
-		outs = append(outs, s.codexCell(lang, item.NewStack(y.item, 1), "§f"+rangeText(y.min, y.max)))
+	for _, y := range pk.Yield {
+		outs = append(outs, s.codexCell(lang, item.NewStack(y.Item, 1), "§f"+textfmt.Range(y.Min, y.Max)))
 	}
 	head := seed
 	c := machineCard(lang, head, []ui.BoardCell{s.codexCell(lang, seed, "")}, outs)
@@ -660,23 +653,23 @@ func codexProcesses() []codexProcess {
 			return []codexCard{machineCard(lang, machine.Item(machine.KindCrucible), []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Cobblestone{}, 1), "")},
 				[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), machine.CrucibleLava))})}
 		}},
-		{item.NewStack(Barrel{Wood: "oak"}, 1), func(s *session, lang string) []codexCard {
-			barrel := item.NewStack(Barrel{Wood: "oak"}, 1)
-			plants := s.codexCell(lang, item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(barrelCapacity("oak")), i18n.T(lang, "codex.card.anyPlant"))
+		{item.NewStack(farm.Barrel{Wood: "oak"}, 1), func(s *session, lang string) []codexCard {
+			barrel := item.NewStack(farm.Barrel{Wood: "oak"}, 1)
+			plants := s.codexCell(lang, item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1), countLabel(farm.BarrelCapacity("oak")), i18n.T(lang, "codex.card.anyPlant"))
 			return append([]codexCard{
 				machineCard(lang, barrel, []ui.BoardCell{plants}, []ui.BoardCell{s.codexCell(lang, water, "")}),
 				machineCard(lang, barrel, []ui.BoardCell{s.codexCell(lang, water, ""), s.codexCell(lang, item.NewStack(sgitem.Dust{}, 1), "")}, []ui.BoardCell{s.codexCell(lang, item.NewStack(block.Clay{}, 1), "")}),
 				machineCard(lang, barrel, []ui.BoardCell{s.codexCell(lang, water, ""), s.codexCell(lang, item.NewStack(block.Mycelium{}, 1), "", i18n.T(lang, "codex.card.under"))}, []ui.BoardCell{s.codexCell(lang, item.NewStack(sgitem.WitchWaterBucket{}, 1), "")}),
 			}, s.barrelMixCards(lang, barrel, false)...)
 		}},
-		{item.NewStack(Barrel{Wood: stoneWood}, 1), func(s *session, lang string) []codexCard {
-			barrel := item.NewStack(Barrel{Wood: stoneWood}, 1)
+		{item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1), func(s *session, lang string) []codexCard {
+			barrel := item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1)
 			heat := s.codexCell(lang, item.NewStack(block.Torch{}, 1), "", i18n.T(lang, "codex.card.heat"))
 			var cards []codexCard
-			for _, m := range stoneMelts {
+			for _, m := range farm.StoneMelts {
 				cards = append(cards, machineCard(lang, barrel,
 					[]ui.BoardCell{s.codexCell(lang, item.NewStack(m, 1), ""), heat},
-					[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), stoneMeltMB))}))
+					[]ui.BoardCell{s.codexCell(lang, lava, "", fmt.Sprintf(i18n.T(lang, "codex.card.mb"), farm.StoneMeltMB))}))
 			}
 			return append(cards, s.barrelMixCards(lang, barrel, true)...)
 		}},
@@ -754,4 +747,22 @@ func smeltables() []item.Stack {
 	}
 	sort.Slice(out, func(i, j int) bool { return naming.ItemKey(out[i].Item()) < naming.ItemKey(out[j].Item()) })
 	return out
+}
+
+// barrelMixCards are the codex cards of the mixings of a barrel of witch
+// water (lava).
+func (s *session) barrelMixCards(lang string, barrel item.Stack, lava bool) []codexCard {
+	liquid := item.NewStack(sgitem.WitchWaterBucket{}, 1)
+	if lava {
+		liquid = item.NewStack(farm.LavaBucket, 1)
+	}
+	var cards []codexCard
+	for _, m := range farm.BarrelMixes() {
+		if m.Lava == lava {
+			cards = append(cards, machineCard(lang, barrel,
+				[]ui.BoardCell{s.codexCell(lang, liquid, ""), s.codexCell(lang, item.NewStack(m.In, 1), "")},
+				[]ui.BoardCell{s.codexCell(lang, item.NewStack(m.Out, 1), "")}))
+		}
+	}
+	return cards
 }

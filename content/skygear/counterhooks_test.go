@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -88,7 +89,7 @@ func TestCounterKindsExist(t *testing.T) {
 	for _, p := range sgitem.PebbleKinds {
 		pebbles = append(pebbles, p.Kind)
 	}
-	for k := range cropKinds {
+	for k := range farm.CropKinds {
 		crops = append(crops, k)
 	}
 	rules := []struct {

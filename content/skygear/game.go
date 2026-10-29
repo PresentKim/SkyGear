@@ -3,6 +3,7 @@ package skygear
 
 import (
 	"errors"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"log/slog"
 	"sync"
 	"time"
@@ -91,7 +92,7 @@ func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
 			tx.SetBlock(cube.Pos{x, island.IslandY - 1, z}, block.Grass{}, nil)
 		}
 	}
-	growTreeAt(tx, cube.Pos{island.Centre, island.IslandY, island.Centre})
+	farm.GrowTreeAt(tx, cube.Pos{island.Centre, island.IslandY, island.Centre})
 }
 
 // Start begins a session for an activated save.
@@ -111,7 +112,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	}
 	s.state = savedState.Of(c)
 	s.tickReach = inst.LoadRadius() * 16
-	s.loadCrops()
+	farm.LoadCrops(s.Session)
 	island.SetKeep(c, func(tx *world.Tx, c island.ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) })
 	inst.World.Do(func(tx *world.Tx) {
 		for _, c := range island.StateOf(s.Session).Chunks {
@@ -164,8 +165,6 @@ type session struct {
 	chestStreaks map[*world.EntityHandle]chestStreak
 	// boards are the HUDs players were last sent (hud.Board.Key).
 	boards map[*world.EntityHandle]string
-	// cropQueue holds the next growth update of every crop (crops.go).
-	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
@@ -251,7 +250,7 @@ func init() {
 		return true
 	}
 	machine.Kinds[machine.KindHarvester].Run = func(c *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx) {
-		sess(c).runHarvester(st, pos, tx)
+		farm.RunHarvester(sess(c).Session, st, pos, tx)
 	}
 	machine.ExtraReps = func(c *core.Session, reps int, tick int64) int { return climate.SnowReps(sess(c).Session, reps, tick) }
 }

@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"container/heap"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"math"
 	"time"
 
@@ -145,14 +146,14 @@ func (s *session) buildFactoryModule(tx *world.Tx, o cube.Pos, owner, ownerName 
 			set(fx+x, 1, fz+z, block.Farmland{Hydration: 7})
 			kind := kinds[(x+z)%len(kinds)]
 			pos := set(fx+x, 2, fz+z, cropBlock(kind))
-			if s.state.Crops == nil {
-				s.state.Crops = map[string]*CropRecord{}
+			if farm.StateOf(s.Session).Crops == nil {
+				farm.StateOf(s.Session).Crops = map[string]*farm.CropRecord{}
 			}
-			grow := s.growTime(kind)
-			r := &CropRecord{Kind: kind, Planted: now - time.Duration(s.Rand.Int64N(int64(grow)+1))}
-			s.state.Crops[cropKey(pos)] = r
+			grow := farm.GrowTime(s.Session, kind)
+			r := &farm.CropRecord{Kind: kind, Planted: now - time.Duration(s.Rand.Int64N(int64(grow)+1))}
+			farm.StateOf(s.Session).Crops[farm.CropKey(pos)] = r
 			// Due at once: the first update brings the block to its stage.
-			heap.Push(&s.cropQueue, cropDue{at: now, pos: pos, rec: r})
+			heap.Push(&farm.LocalOf(s.Session).CropQueue, farm.CropDue{At: now, Pos: pos, Rec: r})
 			n.crops++
 		}
 	}

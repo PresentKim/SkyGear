@@ -97,3 +97,11 @@ func PlainName(s string) string {
 	}
 	return b.String()
 }
+
+// Range writes min~max.
+func Range(lo, hi int) string {
+	if hi > lo {
+		return fmt.Sprintf("%d~%d", lo, hi)
+	}
+	return fmt.Sprint(lo)
+}

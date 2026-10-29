@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/farm"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
 
@@ -225,7 +226,7 @@ func (s *session) showCodexPlants(p *player.Player) {
 	lang := i18n.Of(p)
 	s.codexAt(p, func(p *player.Player) { s.showCodexPlants(p) })
 	var cards []codexCard
-	for _, pk := range plantKinds {
+	for _, pk := range farm.PlantKinds {
 		cards = append(cards, s.plantCard(lang, pk))
 	}
 	chrome := append(s.codexTabs(p, codexPlantsTab), s.codexBack(p))

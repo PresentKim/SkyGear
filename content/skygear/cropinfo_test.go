@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestUsingCrops(t *testing.T) {
 			tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		}
 		tx.SetBlock(young, block.WheatSeeds{}, nil)
-		tx.SetBlock(grown, withGrowth(block.WheatSeeds{}, 7), nil)
+		tx.SetBlock(grown, farm.WithGrowth(block.WheatSeeds{}, 7), nil)
 
 		ctx := player.NewEventContext(tx, p)
 		(&handler{s: s}).HandleItemUseOnBlock(ctx, young, cube.FaceUp, mgl64.Vec3{})
@@ -35,13 +36,13 @@ func TestUsingCrops(t *testing.T) {
 			t.Fatalf("crop panel %+v", info)
 		}
 
-		if !s.useCrop(p, tx, grown) {
+		if !farm.UseCrop(s.Session, p, tx, grown) {
 			t.Fatal("grown crop not harvested")
 		}
-		if _, g, ok := cropOf(tx.Block(grown)); !ok || g != 0 {
+		if _, g, ok := farm.CropOf(tx.Block(grown)); !ok || g != 0 {
 			t.Fatalf("after harvest: %#v", tx.Block(grown))
 		}
-		if s.state.Crops[cropKey(grown)] == nil {
+		if farm.StateOf(s.Session).Crops[farm.CropKey(grown)] == nil {
 			t.Fatal("replanted crop not scheduled")
 		}
 	})

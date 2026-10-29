@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -18,7 +19,7 @@ import (
 func TestComposterLevels(t *testing.T) {
 	want := map[int]int{0: 0, 4: 0, 5: 1, 9: 1, 10: 2, 14: 3, 19: 4, 23: 5, 28: 6, 31: 6, 32: 7}
 	for n, level := range want {
-		if got := composterLevel(n); got != level {
+		if got := farm.ComposterLevel(n); got != level {
 			t.Errorf("%d items: level %d, want %d", n, got, level)
 		}
 	}
@@ -35,40 +36,40 @@ func TestComposterFillsToDirt(t *testing.T) {
 		pos := cube.Pos{3, island.IslandY, 3}
 		tx.SetBlock(pos, block.Composter{}, nil)
 		sapling := item.NewStack(block.Sapling{Type: block.OakSapling()}, 64)
-		if s.useComposter(p, tx, pos, item.NewStack(item.Stick{}, 1)) {
+		if farm.UseComposter(s.Session, p, tx, pos, item.NewStack(item.Stick{}, 1)) {
 			t.Fatal("a stick was put in a composter")
 		}
 		_ = p.Inventory().SetItem(0, sapling)
 		p.SetHeldItems(sapling, item.Stack{})
-		for i := 1; i <= matterCapacity; i++ {
+		for i := 1; i <= farm.MatterCapacity; i++ {
 			held, _ := p.HeldItems()
-			if !s.useComposter(p, tx, pos, held) {
+			if !farm.UseComposter(s.Session, p, tx, pos, held) {
 				t.Fatalf("item %d was not taken", i)
 			}
-			if c := tx.Block(pos).(block.Composter); c.Level != composterLevel(i) {
-				t.Fatalf("after %d items the level is %d, want %d", i, c.Level, composterLevel(i))
+			if c := tx.Block(pos).(block.Composter); c.Level != farm.ComposterLevel(i) {
+				t.Fatalf("after %d items the level is %d, want %d", i, c.Level, farm.ComposterLevel(i))
 			}
 		}
-		if held, _ := p.HeldItems(); held.Count() != 64-matterCapacity {
-			t.Fatalf("%d saplings left, want %d", held.Count(), 64-matterCapacity)
+		if held, _ := p.HeldItems(); held.Count() != 64-farm.MatterCapacity {
+			t.Fatalf("%d saplings left, want %d", held.Count(), 64-farm.MatterCapacity)
 		}
 		held, _ := p.HeldItems()
 		// full: the dirt takes composterDelay
-		if !s.useComposter(p, tx, pos, held) {
+		if !farm.UseComposter(s.Session, p, tx, pos, held) {
 			t.Fatal("the full composter did not answer")
 		}
-		if p.Inventory().ContainsItem(item.NewStack(block.Dirt{}, 1)) || s.composterCount(pos, tx.Block(pos).(block.Composter)) != matterCapacity {
+		if p.Inventory().ContainsItem(item.NewStack(block.Dirt{}, 1)) || farm.ComposterCount(s.Session, pos, tx.Block(pos).(block.Composter)) != farm.MatterCapacity {
 			t.Fatal("a full composter gave dirt at once")
 		}
-		s.state.ComposterReady[cropKey(pos)] = -1 // the time is up
-		s.tickComposters(tx)
-		if c := tx.Block(pos).(block.Composter); c.Level != composterReadyLevel {
+		farm.StateOf(s.Session).ComposterReady[farm.CropKey(pos)] = -1 // the time is up
+		farm.TickComposters(s.Session, tx)
+		if c := tx.Block(pos).(block.Composter); c.Level != farm.ComposterReadyLevel {
 			t.Fatalf("ready composter shows level %d", c.Level)
 		}
-		if !s.useComposter(p, tx, pos, held) {
+		if !farm.UseComposter(s.Session, p, tx, pos, held) {
 			t.Fatal("the ready composter did not answer")
 		}
-		if c := tx.Block(pos).(block.Composter); c.Level != 0 || s.composterCount(pos, c) != 0 {
+		if c := tx.Block(pos).(block.Composter); c.Level != 0 || farm.ComposterCount(s.Session, pos, c) != 0 {
 			t.Errorf("the composter is not empty: %+v", c)
 		}
 		if !p.Inventory().ContainsItem(item.NewStack(block.Dirt{}, 1)) {
@@ -79,10 +80,10 @@ func TestComposterFillsToDirt(t *testing.T) {
 
 // TestBarkFiberIsPlantMatter: the bark fiber goes into the composter.
 func TestBarkFiberIsPlantMatter(t *testing.T) {
-	if !plantMatter(item.NewStack(sgitem.BarkFiber{}, 1)) || !plantMatter(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)) {
+	if !farm.PlantMatter(item.NewStack(sgitem.BarkFiber{}, 1)) || !farm.PlantMatter(item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)) {
 		t.Error("fibers or leaves are not plant matter")
 	}
-	if plantMatter(item.NewStack(item.Stick{}, 1)) || plantMatter(item.Stack{}) {
+	if farm.PlantMatter(item.NewStack(item.Stick{}, 1)) || farm.PlantMatter(item.Stack{}) {
 		t.Error("a stick or nothing is plant matter")
 	}
 }
@@ -102,24 +103,24 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 	}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(compPos, block.Composter{}, nil)
-		tx.SetBlock(barrelPos, Barrel{Wood: "oak"}, nil)
+		tx.SetBlock(barrelPos, farm.Barrel{Wood: "oak"}, nil)
 		hopperAt(tx, compPos.Side(cube.FaceUp), item.NewStack(block.Leaves{Type: block.OakLeaves()}, 3))
 		hopperAt(tx, barrelPos.Side(cube.FaceUp), item.NewStack(sgitem.BarkFiber{}, 2))
 	})
 	tick(s, 20*3)
 	s.World.Do(func(tx *world.Tx) {
-		if n := s.composterCount(compPos, tx.Block(compPos).(block.Composter)); n != 3 {
+		if n := farm.ComposterCount(s.Session, compPos, tx.Block(compPos).(block.Composter)); n != 3 {
 			t.Errorf("the composter holds %d, want 3", n)
 		}
-		if rec := s.barrelAt(barrelPos); rec == nil || rec.Count != 2 {
+		if rec := farm.BarrelAt(s.Session, barrelPos); rec == nil || rec.Count != 2 {
 			t.Errorf("the barrel holds %v, want 2", rec)
 		}
 	})
 	// A full composter with a hopper under it and a chest under that.
 	full, chestPos := cube.Pos{10, island.IslandY + 3, 2}, cube.Pos{10, island.IslandY + 1, 2}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(full, block.Composter{Level: composterLevels}, nil)
-		s.setComposterCount(full, matterCapacity)
+		tx.SetBlock(full, block.Composter{Level: farm.ComposterLevels}, nil)
+		farm.SetComposterCount(s.Session, full, farm.MatterCapacity)
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
 		tx.SetBlock(full.Side(cube.FaceDown), h, nil)
@@ -130,7 +131,7 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		if !tx.Block(chestPos).(block.Chest).Inventory(tx, chestPos).ContainsItem(item.NewStack(block.Dirt{}, 1)) {
 			t.Error("the hopper did not take the dirt out of the full composter")
 		}
-		if c := tx.Block(full).(block.Composter); c.Level != 0 || s.composterCount(full, c) != 0 {
+		if c := tx.Block(full).(block.Composter); c.Level != 0 || farm.ComposterCount(s.Session, full, c) != 0 {
 			t.Errorf("the composter was not emptied: %+v", c)
 		}
 	})

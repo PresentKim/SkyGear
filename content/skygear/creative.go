@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"sync"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -46,8 +47,8 @@ func registerCreativeItems() {
 		}
 		add(construction, ResearchTable{})
 		add(construction, storage.Drawer{})
-		for _, w := range barrelWoods {
-			add(construction, Barrel{Wood: w})
+		for _, w := range farm.BarrelWoods {
+			add(construction, farm.Barrel{Wood: w})
 		}
 		for t := 1; t <= conduit.Tiers; t++ {
 			add(construction, conduit.EnergyConduit{Tier: t})
@@ -100,8 +101,8 @@ func registerCreativeItems() {
 		for _, c := range sgitem.PetalColours {
 			add(items, sgitem.Petal{Colour: c})
 		}
-		for _, sd := range plantSeeds {
-			add(items, PlantSeed{Seed: sd})
+		for _, sd := range farm.PlantSeeds {
+			add(items, farm.PlantSeed{Seed: sd})
 		}
 		for _, m := range sgitem.MobKinds {
 			add(items, sgitem.Essence{Mob: m})

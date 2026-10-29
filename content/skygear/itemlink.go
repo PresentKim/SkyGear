@@ -5,6 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/itemio"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 )
 
@@ -21,7 +22,7 @@ func registerItemIO() {
 		itemio.RegisterAdapter(func(tx *world.Tx, _ cube.Pos, b world.Block) (itemio.Inserter, itemio.Extractor) {
 			if _, ok := b.(block.Composter); ok {
 				if s := activeGameSession(tx); s != nil {
-					return composterIO{s}, composterIO{s}
+					return farm.ComposterIO{S: s.Session}, farm.ComposterIO{S: s.Session}
 				}
 			}
 			return nil, nil

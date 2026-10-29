@@ -1,23 +1,20 @@
-package skygear
+package farm
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
-	"github.com/presentkim/skygear/common/i18n"
-
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // Tree safety nets of the start: /묘목
@@ -32,12 +29,12 @@ const (
 	crouchGrowChance = 30
 )
 
-// giveSapling gives p an oak sapling if the cooldown has passed.
-func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) error {
-	if wait := s.state.LastSapling.Add(saplingCooldown).Sub(now); wait > 0 {
+// GiveSapling gives p an oak sapling if the cooldown has passed.
+func GiveSapling(s *core.Session, p *player.Player, tx *world.Tx, now time.Time) error {
+	if wait := StateOf(s).LastSapling.Add(saplingCooldown).Sub(now); wait > 0 {
 		return fmt.Errorf(i18n.T(i18n.Of(p), "sapling.wait"), int(wait.Minutes()), int(wait.Seconds())%60)
 	}
-	s.state.LastSapling = now
+	StateOf(s).LastSapling = now
 	achievement.Count(p, "sapling_cmd", 1)
 	s.MarkDirty()
 	st := item.NewStack(block.Sapling{Type: block.OakSapling()}, 1)
@@ -47,9 +44,9 @@ func (s *session) giveSapling(p *player.Player, tx *world.Tx, now time.Time) err
 	return nil
 }
 
-// crouchGrow bone meals saplings around p by chance (crouching again and
+// CrouchGrow bone meals saplings around p by chance (crouching again and
 // again grows trees).
-func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
+func CrouchGrow(s *core.Session, p *player.Player, tx *world.Tx) {
 	feet := cube.PosFromVec3(p.Position())
 	for x := -crouchGrowReach; x <= crouchGrowReach; x++ {
 		for z := -crouchGrowReach; z <= crouchGrowReach; z++ {
@@ -62,28 +59,8 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
 				achievement.Count(p, "sapling_grow", 1)
-				progress.Advance(s.Session, tx, advancement.GrowTree)
+				progress.Advance(s, tx, advancement.GrowTree)
 			}
 		}
 	}
-}
-
-// saplingCmd is /묘목 (and /sapling).
-type saplingCmd struct{ g *Game }
-
-func (c saplingCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
-	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "sapling.needIsland"))
-		return
-	}
-	if err := s.giveSapling(p, tx, time.Now()); err != nil {
-		o.Errorf(i18n.T(i18n.Of(p), "sapling.cooldown"), err.Error())
-		return
-	}
-	o.Printf("%s", i18n.T(i18n.Of(p), "sapling.given"))
 }
