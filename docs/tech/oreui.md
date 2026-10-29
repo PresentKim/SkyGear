@@ -39,7 +39,7 @@
 - 클라이언트는 한 프레임 안에서 속성의 가장 새 값만 준다. 한 속성에 연달아 쓰면 앞 값이 사라지므로 값 패치는 순번을 올리며 여러 속성(`varsSlots`)을 돌아 쓰고, 10ms 안의 변경은 한 패치로 합친다.
 - 모든 쓰기는 `Change` 로 보내고 `UpdateCount` 는 서버 전체에서 하나씩 올린다. 클라이언트는 속성의 마지막 판보다 큰 판만 받는다. 경로 하나만 바꾸는 `Update` 를 쓰려면 `PropertyUpdateCount` 를 그 속성의 마지막 `Change.UpdateCount` 와 같게 두고 `PathUpdateCount` 만 올린다.
 - Gameface 는 일반 `div` 에 `click` 을 보내지 않으므로 렌더러는 `mousedown` 으로 누름을 받는다.
-- 렌더러는 Esc 와 함께 휴대폰 뒤로 버튼으로 올 수 있는 키(Android `KEYCODE_BACK` 4, 브라우저 뒤로 166·`GoBack`·`BrowserBack`)를 닫기로 보낸다(`oui-ddui.js` `isBack`). 클라이언트가 화면을 스스로 닫으면 서버 로그에 그 사유(`ore ui screen closed by client`, `reason`)가 남는다. 휴대폰 뒤로 버튼이 페이지에 어떤 키로 오는지는 확인 안 됨(`/sgdebug oreinput` 으로 본다).
+- 렌더러는 Esc 와 함께 휴대폰 뒤로 버튼으로 올 수 있는 키(Android `KEYCODE_BACK` 4, 브라우저 뒤로 166·`GoBack`·`BrowserBack`)를 닫기로 보낸다(`oui-ddui.js` `isBack`). 클라이언트가 화면을 스스로 닫으면 서버 로그에 그 사유(`ore ui screen closed by client`, `reason`)가 남는다. 휴대폰 뒤로 버튼은 페이지에 키로 오지 않는다(`/sgdebug oreinput` 에 줄이 없다) [실측]. 숨긴 바닐라 폼(`custom_form` 루트)이 `oui_event` 밖의 경로에 쓰는 것(닫기 버튼 누름 등)은 서버 로그(`ore ui vanilla form write`)에 남기고, 경로에 `close` 가 들어 있으면 Esc 로 받는다(`common/oreui`). 뒤로 버튼이 그 길로 오는지는 확인 안 됨.
 - 팩으로 할 수 없는 것: 바닐라 DDUI 레이아웃(`ddui/root`) 바꾸기, 진짜 컨테이너(상자·화로·인벤토리)를 Ore UI 로 열기, HUD(HUD 는 Ore UI 가 아니다). 컨테이너 화면은 JSON UI 로 꾸민다([chestui.md](chestui.md)).
 
 ## 클라이언트 설정

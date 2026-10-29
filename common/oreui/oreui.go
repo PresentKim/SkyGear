@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -117,12 +118,23 @@ func init() {
 	sghook.OnClientPacket(func(c *sghook.Conn, pk packet.Packet) bool {
 		switch pk := pk.(type) {
 		case *packet.ServerBoundDataStore:
-			if f := formOf(c); f != nil && pk.Update.Property == property && pk.Update.Path == "oui_event" &&
-				pk.Update.ControlType == protocol.DataStoreControlString {
+			f := formOf(c)
+			if f == nil || pk.Update.Property != property || f.onEvent == nil {
+				return true
+			}
+			if pk.Update.Path == "oui_event" && pk.Update.ControlType == protocol.DataStoreControlString {
 				var ev Event
-				if json.Unmarshal([]byte(pk.Update.StringValue), &ev) == nil && f.onEvent != nil {
+				if json.Unmarshal([]byte(pk.Update.StringValue), &ev) == nil {
 					f.onEvent(ev)
 				}
+				return true
+			}
+			// Other writes come from the vanilla custom_form root under the
+			// hidden form: its close button, which the client may press for
+			// the back button of a phone. That is Esc.
+			slog.Info("ore ui vanilla form write", "player", c.IdentityData().DisplayName, "path", pk.Update.Path, "type", pk.Update.ControlType, "string", pk.Update.StringValue, "bool", pk.Update.BoolValue)
+			if strings.Contains(strings.ToLower(pk.Update.Path), "close") {
+				f.onEvent(Event{ID: "close", Kind: "key"})
 			}
 			return true
 		case *packet.ServerBoundDataDrivenScreenClosed:
