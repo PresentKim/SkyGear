@@ -10,8 +10,7 @@ import (
 	"github.com/presentkim/skygear/internal/instance"
 )
 
-// showSettings is the settings screen: a toggle per account.Settings entry
-// and the menu style (uimode).
+// showSettings is the settings screen: a toggle per account.Settings entry.
 func (pf *Platform) showSettings(p *player.Player) {
 	lang := i18n.Of(p)
 	row := func(name string, on bool, toggle func(p *player.Player)) ui.Option {
@@ -32,8 +31,6 @@ func (pf *Platform) showSettings(p *player.Player) {
 			}
 		}))
 	}
-	_, json := jsonUI.Load(p.UUID())
-	opts = append(opts, row(i18n.T(lang, "setting.uimode"), json, func(p *player.Player) { pf.setUIMode(p, !json) }))
 	opts = append(opts, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenSettings) }))
 	ui.Menu(p, i18n.T(lang, "setting.title"), "", opts...)
 }

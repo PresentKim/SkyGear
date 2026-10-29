@@ -1,4 +1,4 @@
-// Machine windows (internal/games/skygear/machine.go): the vanilla
+// Machine windows (internal/skygear/machine.go): the vanilla
 // small chest screen with only the machine's slots, placed per machine.
 // Routed from inventoryui's chest_screen.json by the title marker §d§m§<n>.
 // The vanilla window and slot pictures with the vanilla dark grey title, as
@@ -795,7 +795,7 @@
     "enable_profanity_filter": true
   },
   // The dark rounded bar above the window's top right corner holds the info
-  // icon left of the close button, like the forms' bar (sg_form.control_bar).
+  // icon left of the close button, like the control bar of the DDUI windows.
   // The icon is window slot 26 of the machine (infoSlot in machine.go) drawn
   // here instead of in a slot layout, so every machine window has it in the
   // same place.

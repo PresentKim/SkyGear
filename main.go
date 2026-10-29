@@ -1,4 +1,4 @@
-// Command skygear runs the multi game island server.
+// Command skygear runs the Sky Gear island server.
 package main
 
 import (
@@ -23,15 +23,14 @@ import (
 	"github.com/presentkim/skygear/common/packs"
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/internal/account"
 	"github.com/presentkim/skygear/internal/db"
-	"github.com/presentkim/skygear/internal/games/skygear"
-	"github.com/presentkim/skygear/internal/games/skygear/naming"
 	"github.com/presentkim/skygear/internal/instance"
 	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"github.com/presentkim/skygear/internal/nsmigrate"
 	"github.com/presentkim/skygear/internal/platform"
+	"github.com/presentkim/skygear/internal/skygear"
+	"github.com/presentkim/skygear/internal/skygear/naming"
 )
 
 func main() {
@@ -81,15 +80,15 @@ func run(log *slog.Logger) error {
 	// players hear of each other only (instance.Manager).
 	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}
 	conf.Entities = entity.DefaultRegistry.Config().New(skygear.EntityTypes())
-	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: pconf.ResourcePack.Encrypt}
-	if packOpt.Encrypt {
-		if packOpt.Secret, err = resourcepack.LoadSecret(filepath.Join(pconf.Data.Dir, "resourcepack.secret")); err != nil {
-			return fmt.Errorf("resource pack secret: %w", err)
-		}
+	// The packs are always encrypted: the game takes its in-game Ore UI page,
+	// where the menus are drawn (DDUI), from an encrypted pack only.
+	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: true}
+	if packOpt.Secret, err = resourcepack.LoadSecret(filepath.Join(pconf.Data.Dir, "resourcepack.secret")); err != nil {
+		return fmt.Errorf("resource pack secret: %w", err)
 	}
-	// This server's pack, then the common packs (form and HUD theme,
-	// chest windows, WAILA, slot decorations). The first pack is the top of
-	// the stack: this server's pack fills the hooks of the sgui theme.
+	// This server's pack, then the common packs (HUD and menu textures,
+	// chest windows, WAILA, slot decorations, the Ore UI page of the menus).
+	// The first pack is the top of the stack.
 	sgPack, err := fs.Sub(packFS, "assets/resourcepack/skygear")
 	if err != nil {
 		return fmt.Errorf("resource pack skygear: %w", err)
@@ -97,20 +96,14 @@ func run(log *slog.Logger) error {
 	if err := naming.LoadNames(sgPack); err != nil {
 		return fmt.Errorf("resource pack skygear names: %w", err)
 	}
-	packDirs := map[string]fs.FS{"skygear": sgPack}
 	packNames := []string{"skygear", "sgui", "inventoryui", "waila"}
 	if pconf.ResourcePack.SlotDeco {
 		packNames = append(packNames, "slotdeco")
 	}
-	// The game takes its in-game Ore UI page from an encrypted pack only, so
-	// the menus are drawn there (DDUI) when the packs are encrypted.
-	if packOpt.Encrypt {
-		packNames = append(packNames, "oreui")
-		ui.OreUI = true
-	}
+	packNames = append(packNames, "oreui")
 	for _, name := range packNames {
-		dir, ok := packDirs[name]
-		if !ok {
+		dir := sgPack
+		if name != "skygear" {
 			if dir, err = packs.Sub(name); err != nil {
 				return fmt.Errorf("resource pack %s: %w", name, err)
 			}
@@ -149,6 +142,7 @@ func run(log *slog.Logger) error {
 		}
 	}
 
+	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
 	var pf *platform.Platform
 	m := instance.NewManager(log, d, instance.Config{
 		AfterClose:        afterClose,
@@ -159,9 +153,8 @@ func run(log *slog.Logger) error {
 		AutosaveInterval:  time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
 		WorldSaveInterval: time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
 		Entities:          conf.Entities,
-	}, platform.Lobby(lobby, &pf))
-	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
-	pf = platform.New(log, d, m, skygear.New(log, d, isOperator), srv.Player, isOperator)
+	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator))
+	pf = platform.New(log, d, m, srv.Player, isOperator)
 	// Operators who turn it on (/sgadmin tps) see the server load.
 	stopLoad := make(chan struct{})
 	go platform.ShowLoad(lobby, isOperator, stopLoad)

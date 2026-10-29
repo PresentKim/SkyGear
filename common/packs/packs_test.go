@@ -89,10 +89,9 @@ var (
 	textureRe = regexp.MustCompile(`textures/ui/sg/(\w+)`)
 )
 
-// TestThemeStandsAlone: the sgui theme refers only to its own namespaces
-// (the game namespaces of a server pack fill sgui_hooks instead) and to
-// pictures it has. Pictures picked by a binding (a name ending in "_") are
-// checked by tree pictures here and by the slotdeco test.
+// TestThemeStandsAlone: the sgui UI files refer only to their own
+// namespaces (not to the game namespaces of a server pack) and to pictures
+// they have.
 func TestThemeStandsAlone(t *testing.T) {
 	dir := sub(t, "sgui")
 	files, err := fs.Glob(dir, "ui/*.json")
@@ -109,11 +108,6 @@ func TestThemeStandsAlone(t *testing.T) {
 			own[m[1]] = true
 		}
 	}
-	for _, ns := range []string{"sg_form", "sgui_hooks"} {
-		if !own[ns] {
-			t.Errorf("no file has namespace %s", ns)
-		}
-	}
 	for f, text := range texts {
 		for _, m := range refRe.FindAllStringSubmatch(text, -1) {
 			if !own[m[1]] {
@@ -121,64 +115,28 @@ func TestThemeStandsAlone(t *testing.T) {
 			}
 		}
 		for _, m := range textureRe.FindAllStringSubmatch(text, -1) {
-			if strings.HasSuffix(m[1], "_") {
-				continue
-			}
 			if _, err := fs.Stat(dir, "textures/ui/sg/"+m[1]+".png"); err != nil {
 				t.Errorf("%s: %v", f, err)
 			}
 		}
 	}
-	for c := 'a'; c <= 'i'; c++ {
-		if _, err := fs.Stat(dir, "textures/ui/sg/tree_node_"+string(c)+".png"); err != nil {
-			t.Error(err)
-		}
-	}
-	for c := 'b'; c <= 'p'; c++ {
-		if _, err := fs.Stat(dir, "textures/ui/sg/tree_strip_"+string(c)+".png"); err != nil {
-			t.Error(err)
-		}
-	}
 }
 
-// TestThemeTexts: every language of the theme names the same keys, and the
-// keys the theme's labels show are among them.
-func TestThemeTexts(t *testing.T) {
-	dir := sub(t, "sgui")
-	var langs []string
-	readJSON(t, dir, "texts/languages.json", &langs)
-	keys := map[string]map[string]bool{}
-	for _, lang := range langs {
-		b, err := fs.ReadFile(dir, "texts/"+lang+".lang")
-		if err != nil {
-			t.Fatal(err)
-		}
-		keys[lang] = map[string]bool{}
-		for _, l := range strings.Split(string(b), "\n") {
-			if k, _, ok := strings.Cut(l, "="); ok {
-				keys[lang][strings.TrimSpace(k)] = true
-			}
-		}
-	}
-	b, err := fs.ReadFile(dir, "ui/sg_form.json")
+// TestScreenTextures: the pictures the oreui pack's CSS takes from the sgui
+// pack exist.
+func TestScreenTextures(t *testing.T) {
+	oreui, sgui := sub(t, "oreui"), sub(t, "sgui")
+	css, err := fs.ReadFile(oreui, "hbui/oui-mc.css")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, m := range regexp.MustCompile(`"text"\s*:\s*"(sgui\.[\w.]+)"`).FindAllStringSubmatch(string(b), -1) {
-		for _, lang := range langs {
-			if !keys[lang][m[1]] {
-				t.Errorf("%s has no %s", lang, m[1])
-			}
-		}
+	refs := regexp.MustCompile(`pack://(textures/ui/sg/\w+\.png)`).FindAllStringSubmatch(string(css), -1)
+	if len(refs) == 0 {
+		t.Fatal("the CSS takes no pictures from the sgui pack")
 	}
-	for _, lang := range langs {
-		for k := range keys[langs[0]] {
-			if !keys[lang][k] {
-				t.Errorf("%s has no %s", lang, k)
-			}
-		}
-		if len(keys[lang]) != len(keys[langs[0]]) {
-			t.Errorf("%s has %d keys, %s %d", lang, len(keys[lang]), langs[0], len(keys[langs[0]]))
+	for _, m := range refs {
+		if _, err := fs.Stat(sgui, m[1]); err != nil {
+			t.Error(err)
 		}
 	}
 }

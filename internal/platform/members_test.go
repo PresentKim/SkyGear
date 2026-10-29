@@ -47,9 +47,9 @@ func TestStoredInvSee(t *testing.T) {
 	defer d.Close()
 	_, _ = d.TouchAccount("h", "", "h")
 	_, _ = d.TouchAccount("g", "", "g")
-	s, _ := d.CreateSave("h", "test", 1, "s")
+	s, _ := d.CreateSave("h", 1, "s")
 	_ = d.AddMember(s.ID, "g", db.RoleGuest)
-	m := instance.NewManager(slog.Default(), d, instance.Config{}, instance.Lobby{})
+	m := instance.NewManager(slog.Default(), d, instance.Config{}, instance.Lobby{}, nil)
 	pf := &Platform{log: slog.Default(), db: d, m: m}
 
 	w := world.Config{Synchronous: true, Entities: entity.DefaultRegistry}.New()

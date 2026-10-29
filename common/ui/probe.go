@@ -8,8 +8,7 @@ import (
 // ProbeScreen shows the renderer's test nodes (oui-ddui.js: probe for the
 // input events, restest for loading resources) in a window, under the text
 // SetProbeInfo sets. The lines the nodes report go to report in p's world,
-// and closed runs when the player closes the screen. It is a DDUI screen only
-// (OreUIFor).
+// and closed runs when the player closes the screen.
 func ProbeScreen(p *player.Player, title string, nodes []any, report func(p *player.Player, tx *world.Tx, id, line string), closed func(p *player.Player, tx *world.Tx)) {
 	l := newOreLayout()
 	l.probe = report

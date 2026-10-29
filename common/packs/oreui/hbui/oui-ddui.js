@@ -26,7 +26,7 @@
 // groups) and engine (slots [[container, index]], sizes, calls [{label, cmd, args}]: the vanilla
 // container queries and commands).
 // `ink: "panel"` on a node makes the text under it the dark variant of its § colours (text drawn right on
-// the grey window, like common ui.OnPanel); buttons, slot counts and tooltips keep the colours.
+// the grey window); buttons, slot counts and tooltips keep the colours.
 // The body gets mc-w-s / mc-w-m / mc-w-l for the window width, so the CSS can lay out by size.
 // `bind` names a variable that replaces the text, or the value of a bar. Text may carry § colour codes.
 // An icon is "geo:<item name>" (drawn by the engine through geo-item://, the URL the vanilla container
@@ -34,6 +34,8 @@
 // A region's children come from the variable "@<name>" (a node), so the server can replace one part of
 // the screen without resending the layout; the region is patched like the layout. `tip` shows a tooltip while the pointer is over the node.
 // `alt` on a box is the id its press with the right mouse button sends.
+// `end` on a scrolling box keeps it scrolled to its end after each draw (a log).
+// pixels (w, h, px: w*h colours "rrggbb", "" for none) is a small picture drawn as boxes (a skin's face).
 // `keys` on the root ({up, down, left, right, ok: id}) presses the id for the arrow keys or WASD, Enter or
 // the space bar (onKey).
 (function () {
@@ -500,6 +502,8 @@
           bind({ el: e, key: n.activeBind, kind: "on" });
         }
         if (n.on) e.className += " on";
+        // `end` keeps a scrolling box at its end (a log): scrollToEnds after each draw.
+        if (n.end) e.className += " oui-end";
         // `alt` is the id the right mouse button presses.
         e.addEventListener("mousedown", function (ev) {
           if (ev.button !== 2 || !rec.n.alt || claimed === ev) return;
@@ -541,6 +545,20 @@
         break;
       case "space":
         e = el("div", "oui-space");
+        break;
+      case "pixels":
+        // A row of boxes for each row of the picture: the page has no canvas (getContext).
+        e = el("div", "oui-pixels");
+        for (var py = 0; py < (n.h || 0); py++) {
+          var prow = el("div", "oui-pixels-row");
+          for (var px = 0; px < (n.w || 0); px++) {
+            var cell = el("div", "oui-pixel");
+            var colour = (n.px || [])[py * n.w + px];
+            if (colour) cell.style.backgroundColor = "#" + colour;
+            prow.appendChild(cell);
+          }
+          e.appendChild(prow);
+        }
         break;
       case "canvas":
         e = buildCanvas(n, rec);
@@ -1696,29 +1714,36 @@
     document.body.classList.add(cls);
   }
 
-  // fitLobbyHead keeps the game's name at the top left of a lobby screen (ui.lobbySkin) clear of
-  // the window: where the window, its tabs or its control bar would cover the name (34x10rem,
-  // oui-mc.css .mc-lobby-head), the window moves down when the screen has room below it, and the
+  // fitLobbyHead keeps the game's name at the top middle of a lobby screen (ui.lobbySkin) clear of
+  // the window: where the window, its tabs or its control bar would cover the logo and the name (what
+  // oui-mc.css .mc-lobby-head holds), the window moves down when the screen has room below it, and the
   // name is hidden when it has not (a short screen). It runs once for each window drawn.
   function fitLobbyHead() {
     var head = root && root.querySelector(".mc-lobby-head");
     var win = root && root.querySelector(".mc-window");
     if (!head || !win || win.__lobbyFit) return;
     win.__lobbyFit = true;
-    var rem = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+    var left = Infinity, right = -Infinity, bottom = -Infinity;
+    for (var i = 0; i < head.children.length; i++) {
+      var h = head.children[i].getBoundingClientRect();
+      left = Math.min(left, h.left);
+      right = Math.max(right, h.right);
+      bottom = Math.max(bottom, h.bottom);
+    }
+    if (bottom < 0) return;
     var top = Infinity;
     [win, root.querySelector(".mc-tabs"), root.querySelector(".mc-toolbar")].forEach(function (e) {
       if (!e) return;
       var r = e.getBoundingClientRect();
-      if (r.width > 0 && r.left < 34 * rem) top = Math.min(top, r.top);
+      if (r.width > 0 && r.left < right && r.right > left) top = Math.min(top, r.top);
     });
-    var need = 10 * rem - top;
+    var need = bottom - top;
     if (need <= 0) return;
     if (need <= window.innerHeight - win.getBoundingClientRect().bottom) {
       // the window is centred, so a margin moves it down by half of itself
       win.style.marginTop = Math.ceil(2 * need) + "px";
     } else {
-      head.style.display = "none";
+      head.style.visibility = "hidden";
     }
   }
 
@@ -1752,6 +1777,7 @@
       root.appendChild(tree.el);
     }
     keepFocus();
+    scrollToEnds();
     drawStatus();
   }
 
@@ -1765,7 +1791,18 @@
       tree = r;
     }
     prune();
+    scrollToEnds();
     drawStatus();
+  }
+
+  // scrollToEnds scrolls the boxes with `end` (oui-end) to their bottom, once the layout has its
+  // sizes.
+  function scrollToEnds() {
+    setTimeout(function () {
+      var ends = root ? root.querySelectorAll(".oui-end") : [];
+      for (var i = 0; i < ends.length; i++) ends[i].scrollTop = ends[i].scrollHeight;
+      bars.forEach(updateBar);
+    }, 0);
   }
 
   // The debug line shows while the variable __debug is true.
@@ -1993,7 +2030,7 @@
       var head = root && root.querySelector(".mc-lobby-head");
       var win = root && root.querySelector(".mc-window");
       if (head && win) {
-        head.style.display = "";
+        head.style.visibility = "";
         win.style.marginTop = "";
         win.__lobbyFit = false;
       }

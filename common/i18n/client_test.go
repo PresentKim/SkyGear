@@ -1,7 +1,6 @@
 package i18n
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 )
@@ -14,10 +13,5 @@ func TestPlain(t *testing.T) {
 	}
 	if got := ClientKey("", "x"); got != "x" {
 		t.Fatalf("ClientKey without key = %q", got)
-	}
-	data, _ := json.Marshal(map[string]string{"title": s})
-	var back map[string]string
-	if err := json.Unmarshal(PlainBytes(data), &back); err != nil || back["title"] != Plain(s) {
-		t.Fatalf("PlainBytes = %s (%v)", PlainBytes(data), err)
 	}
 }

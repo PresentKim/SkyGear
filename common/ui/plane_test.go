@@ -13,9 +13,7 @@ func TestPlaneKeys(t *testing.T) {
 	var got *oreLayout
 	var layout any
 	oreShown = func(l *oreLayout, lay any) { got, layout = l, lay }
-	oldOre := OreUI
-	OreUI = true
-	defer func() { oreShown, OreUI = nil, oldOre }()
+	defer func() { oreShown = nil }()
 
 	var pressed Key
 	key := func(k Key) func(*player.Player, *world.Tx) {

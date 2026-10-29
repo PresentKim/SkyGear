@@ -1,6 +1,6 @@
 # 업적·칭호·카운터
 
-기획: [01-platform.md §5](../design/01-platform.md). 코드: `internal/account`(엔진), `internal/platform/cosmetics.go`(화면), `internal/games/skygear/`의 `counter*.go`·`collect.go`·`machinecount.go`·`achievement/catalog.go`(스카이기어의 카탈로그와 집계).
+기획: [01-platform.md §5](../design/01-platform.md). 코드: `internal/account`(엔진), `internal/platform/cosmetics.go`(화면), `internal/skygear/`의 `counter*.go`·`collect.go`·`machinecount.go`·`achievement/catalog.go`(스카이기어의 카탈로그와 집계).
 
 ## 구조
 

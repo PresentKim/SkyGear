@@ -1,8 +1,8 @@
 // Command slotdecotex writes placeholder textures of the slotdeco pack:
 // rarity backgrounds (rarity_1..4), tier pips and badges (front_1..6) and
-// bubble frames (tip_1..4). The optional second pack gets the 22×22 form slot
-// pictures deco_<rarity>_<front>.png (frame and badge in one, so a form slot
-// needs one control). Run it from common/:
+// bubble frames (tip_1..4). The optional second pack gets the 22×22 rarity
+// frames deco_<rarity>_0.png that the DDUI screens put behind an item slot
+// (common/ui slotDeco). Run it from common/:
 //
 //	go run ./tools/slotdecotex packs/slotdeco packs/sgui
 package main
@@ -162,43 +162,19 @@ func write(dir, name string, img image.Image, nineslice int) {
 	}
 }
 
-// frontImage is the front image n (0: none): tier pips 1 to 4, the warning 5
-// and the lock 6, each 16×16 at the top left or right of a larger picture.
-func frontImage(n int) image.Image {
-	switch {
-	case n >= 1 && n <= 4:
-		return pips(n)
-	case n == 5:
-		return warnBadge()
-	case n == 6:
-		return lockBadge()
-	}
-	return image.NewNRGBA(image.Rect(0, 0, 16, 16))
-}
-
-// formDeco is a 22×22 form slot picture: the frame of the rarity (0: none)
-// and the front image n over it.
-func formDeco(r, n int) image.Image {
+// formDeco is the 22×22 rarity frame of rarity r behind a slot of the DDUI
+// screens.
+func formDeco(r int) image.Image {
 	const size = 22
 	img := image.NewNRGBA(image.Rect(0, 0, size, size))
-	if r > 0 {
-		c := rarityColours[r-1]
-		for x := range size {
-			for y := range size {
-				switch min(x, y, size-1-x, size-1-y) {
-				case 0:
-					img.SetNRGBA(x, y, withAlpha(c, 255))
-				case 1:
-					img.SetNRGBA(x, y, withAlpha(c, 90))
-				}
-			}
-		}
-	}
-	front := frontImage(n)
-	for x := range 16 {
-		for y := range 16 {
-			if c := front.At(x, y).(color.NRGBA); c.A > 0 {
-				img.SetNRGBA(x+3, y+2, c)
+	c := rarityColours[r-1]
+	for x := range size {
+		for y := range size {
+			switch min(x, y, size-1-x, size-1-y) {
+			case 0:
+				img.SetNRGBA(x, y, withAlpha(c, 255))
+			case 1:
+				img.SetNRGBA(x, y, withAlpha(c, 90))
 			}
 		}
 	}
@@ -212,12 +188,8 @@ func main() {
 	}
 	if len(os.Args) == 3 {
 		formDir := filepath.Join(os.Args[2], "textures", "ui", "sg")
-		for r := 0; r <= 4; r++ {
-			for n := 0; n <= 6; n++ {
-				if r > 0 || n > 0 {
-					write(formDir, fmt.Sprintf("deco_%d_%d", r, n), formDeco(r, n), 0)
-				}
-			}
+		for r := 1; r <= 4; r++ {
+			write(formDir, fmt.Sprintf("deco_%d_0", r), formDeco(r), 0)
 		}
 	}
 	dir := filepath.Join(os.Args[1], "textures", "ui", "sg")

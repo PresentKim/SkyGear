@@ -59,17 +59,14 @@ func (pf *Platform) cosmeticsStatus(p *player.Player, owned int) string {
 
 // menuBack goes back to the menu a screen that opens in both places (from,
 // instance.ScreenFriends, ...) came from: the lobby menu in the lobby, the
-// game's screen it opens from in a save (the game's menu, /menu, when the
-// game names none).
+// game's screen it opens from in a save.
 func (pf *Platform) menuBack(p *player.Player, from string) {
 	inst := pf.m.Location(instance.AccountID(p))
 	if inst == nil {
 		pf.showLobbyMenu(p)
 		return
 	}
-	if !inst.MenuBack(p, from) {
-		p.ExecuteCommand("/menu")
-	}
+	inst.MenuBack(p, from)
 }
 
 // pageSize is how many buttons a page of titles has.

@@ -15,7 +15,7 @@ import (
 
 // convertDB rewrites the old names in every text and blob column of the
 // platform database: item names in player states, the game's JSON state
-// (with the NBT of its lost items), counters and settings, and the game ID.
+// (with the NBT of its lost items), counters and settings.
 func convertDB(log *slog.Logger, path string) (int, error) {
 	d, err := sql.Open("sqlite", "file:"+path+"?_pragma=busy_timeout(5000)")
 	if err != nil {
@@ -30,7 +30,6 @@ func convertDB(log *slog.Logger, path string) (int, error) {
 
 	changed := 0
 	for _, q := range []string{
-		`UPDATE saves SET game_type = 'skygear' WHERE game_type = 'dragonfactory'`,
 		`UPDATE save_state SET key = 'skygear.state' WHERE key = 'dragonfactory.state'`,
 	} {
 		res, err := tx.Exec(q)

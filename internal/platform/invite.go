@@ -170,12 +170,12 @@ func (pf *Platform) join(p *player.Player, saveID int64) {
 }
 
 // showMultiplayer is the lobby's multiplayer screen: a row that asks for an
-// invite code, then the invites received and the saves p joined as a guest.
+// invite code, then the saves p joined as a guest. The invites p got are
+// notices (notify.go).
 func (pf *Platform) showMultiplayer(p *player.Player) { pf.showMultiplayerAt(p, "") }
 
-// showMultiplayerAt shows the screen with the row sel chosen: "i<save>" for
-// an invite or "s<save>" for a joined save; the first invite, else the first
-// save when empty.
+// showMultiplayerAt shows the screen with the row sel chosen ("s<save>"; the
+// first save when empty).
 func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 	lang := i18n.Of(p)
 	acc := instance.AccountID(p)
@@ -184,14 +184,8 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 		pf.fail(p, i18n.T(lang, "platform.invite.load"), err)
 		return
 	}
-	invites := pf.invites.list(acc)
-	if sel == "" {
-		switch {
-		case len(invites) > 0:
-			sel = fmt.Sprintf("i%d", invites[0].saveID)
-		case len(saves) > 0:
-			sel = fmt.Sprintf("s%d", saves[0].ID)
-		}
+	if sel == "" && len(saves) > 0 {
+		sel = fmt.Sprintf("s%d", saves[0].ID)
 	}
 	again := func(id string) func(p *player.Player, _ *world.Tx) {
 		return func(p *player.Player, _ *world.Tx) { pf.showMultiplayerAt(p, id) }
@@ -200,27 +194,8 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 		Label: ui.ListRowText(i18n.T(lang, "platform.invite.code.enter"), ""), Icon: iconCode,
 		Run: func(p *player.Player, _ *world.Tx) { pf.askInviteCode(p) },
 	}}}
-	if len(invites) == 0 && len(saves) == 0 {
+	if len(saves) == 0 {
 		sp.Body = i18n.T(lang, "platform.invite.code.body")
-	}
-	for _, in := range invites {
-		id := fmt.Sprintf("i%d", in.saveID)
-		left := max(1, int((inviteTTL-time.Since(in.at)).Minutes()+0.5))
-		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label:    ui.ListRowText(in.saveName, fmt.Sprintf(i18n.T(lang, "platform.invite.row"), in.from, left)),
-			Icon:     iconInvite,
-			Selected: sel == id, Run: again(id),
-		})
-		if sel == id {
-			sp.Body = fmt.Sprintf(i18n.T(lang, "platform.invite.body"), in.from, in.saveName)
-			sp.Actions = []ui.Option{
-				{Label: i18n.T(lang, "platform.invite.accept"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.join(p, in.saveID) }},
-				{Label: i18n.T(lang, "platform.invite.decline"), Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
-					pf.invites.remove(instance.AccountID(p), in.saveID)
-					pf.showMultiplayerAt(p, "")
-				}},
-			}
-		}
 	}
 	hosts := map[string]db.Account{}
 	for _, s := range saves {
@@ -263,22 +238,6 @@ func (pf *Platform) showMultiplayerAt(p *player.Player, sel string) {
 	ui.ListSplitMenu(p, i18n.T(lang, "platform.invite.title"), sp)
 }
 
-// askAcceptInvite asks p in the lobby to join the save they were invited to;
-// not now keeps the invite on the multiplayer screen.
-func (pf *Platform) askAcceptInvite(p *player.Player, in invite) {
-	lang := i18n.Of(p)
-	ui.Menu(p, i18n.T(lang, "platform.invite.title"), fmt.Sprintf(i18n.T(lang, "platform.invite.body"), in.from, in.saveName),
-		ui.Option{Label: i18n.T(lang, "platform.invite.accept"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
-			if pf.m.Location(instance.AccountID(p)) == nil {
-				pf.join(p, in.saveID)
-			}
-		}},
-		ui.Option{Label: i18n.T(lang, "platform.invite.later"), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) {
-			pf.showMultiplayerAt(p, fmt.Sprintf("i%d", in.saveID))
-		}},
-	)
-}
-
 // inviteCmd opens the friends screen inside the save p hosts, where an online
 // friend is invited and the invite code shows.
 type inviteCmd struct {
@@ -295,19 +254,12 @@ func (c inviteCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 	c.pf.showFriendsAt(p, friendsTab, codeRow)
 }
 
-// sendInvite invites a friend to the save p hosts: in the lobby they are
-// asked at once, in a save they are told it waits on the multiplayer screen.
+// sendInvite invites a friend to the save p hosts: it waits in their notices.
 func (pf *Platform) sendInvite(p *player.Player, inst *instance.Instance, f db.Account) {
 	in := invite{saveID: inst.Save.ID, saveName: inst.Save.Name, from: p.Name(), at: time.Now()}
 	pf.invites.add(f.ID, in)
 	ui.Flash(p, i18n.T(i18n.Of(p), "platform.invite.sent"), f.Name)
-	pf.with(f.ID, func(fp *player.Player) {
-		if pf.m.Location(f.ID) == nil {
-			pf.askAcceptInvite(fp, in)
-			return
-		}
-		ui.Tell(fp, "", fmt.Sprintf(i18n.T(i18n.Of(fp), "platform.invite.received"), p.Name(), inst.Save.Name))
-	})
+	pf.notified(f.ID, "platform.invite.received", p.Name(), inst.Save.Name)
 }
 
 // joinCmd joins a save with an invite code: /join [code].

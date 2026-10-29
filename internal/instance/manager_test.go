@@ -23,8 +23,6 @@ import (
 
 type testGame struct{ joins, firsts, closes int }
 
-func (*testGame) ID() string         { return "test" }
-func (*testGame) Name(string) string { return "Test" }
 func (*testGame) Init(tx *world.Tx, _ *Instance) {
 	tx.SetBlock(cube.Pos{0, 63, 0}, block.Stone{}, nil)
 }
@@ -43,6 +41,9 @@ func (s *testSession) Join(p *player.Player, first bool) {
 func (*testSession) Leave(*player.Player)                  {}
 func (*testSession) Handler(*player.Player) player.Handler { return nil }
 func (*testSession) NewDay(*world.Tx, int)                 {}
+func (*testSession) Second(*world.Tx)                      {}
+func (*testSession) Fast(*world.Tx)                        {}
+func (*testSession) MenuBack(*player.Player, string)       {}
 func (*testSession) Autosave(*world.Tx)                    {}
 func (s *testSession) Close(*world.Tx)                     { s.g.closes++ }
 
@@ -63,14 +64,13 @@ func setup(t *testing.T) fixture {
 	t.Cleanup(func() { _ = d.Close() })
 	lobby := world.Config{Entities: entity.DefaultRegistry}.New()
 	t.Cleanup(func() { _ = lobby.Close() })
+	g := &testGame{}
 	m := NewManager(slog.Default(), d, Config{
 		Dir: filepath.Join(dir, "saves"), DayLength: time.Hour, LoadRadius: 2, Entities: entity.DefaultRegistry,
 	}, Lobby{World: lobby, Spawn: mgl64.Vec3{0, 100, 0}, Arrive: func(p *player.Player) {
 		_, _ = p.Inventory().AddItem(item.NewStack(item.Compass{}, 1))
-	}})
+	}}, g)
 	t.Cleanup(m.CloseAll)
-	g := &testGame{}
-	m.Register(g)
 	return fixture{m: m, d: d, lobby: lobby, game: g}
 }
 
@@ -126,7 +126,7 @@ func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
 	acc := host.UUID().String()
-	save, err := f.d.CreateSave(acc, "test", 1, "s")
+	save, err := f.d.CreateSave(acc, 1, "s")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +192,7 @@ func TestEnterLeaveRestoresPerSaveState(t *testing.T) {
 func TestGuestNeedsHost(t *testing.T) {
 	f := setup(t)
 	host, guest := f.spawn(t, "host"), f.spawn(t, "guest")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 
 	in(t, guest, func(p *player.Player) {
 		if err := f.m.Enter(p, save.ID); !errors.Is(err, ErrNotMember) {
@@ -229,7 +229,7 @@ func TestEnterWhileClosing(t *testing.T) {
 	f := setup(t)
 	unblock, _ := blockClose(t, f)
 	host, guest := f.spawn(t, "host"), f.spawn(t, "guest")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 	if err := addGuest(f.d, save.ID, guest.UUID().String()); err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +266,7 @@ func waitInactive(t *testing.T, m *Manager, saveID int64) {
 func TestClockStoredOnDeactivate(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 	f.enter(t, host, save.ID)
 	time.Sleep(1500 * time.Millisecond)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
@@ -281,7 +281,7 @@ func TestLockStateBlocksEnter(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
 	acc := host.UUID().String()
-	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	save, _ := f.d.CreateSave(acc, 1, "s")
 	unlock, ok := f.m.LockState(save.ID, acc)
 	if !ok {
 		t.Fatal("lock refused for a player in the lobby")
@@ -323,7 +323,7 @@ func TestEnterTwiceWhileActivating(t *testing.T) {
 	var entered atomic.Int32
 	f.m.lobby.Entered = func(*player.Player) { entered.Add(1) }
 	host := f.spawn(t, "host")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	in(t, host, func(p *player.Player) {
@@ -348,7 +348,7 @@ func TestHostQuitWhileActivating(t *testing.T) {
 	f := setup(t)
 	unblock, closed := blockClose(t, f)
 	host := f.spawn(t, "host")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	in(t, host, func(p *player.Player) {
@@ -372,7 +372,7 @@ func TestLockStateRefusedWhileEntering(t *testing.T) {
 	unblock, _ := blockClose(t, f)
 	host := f.spawn(t, "host")
 	acc := host.UUID().String()
-	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	save, _ := f.d.CreateSave(acc, 1, "s")
 	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	time.Sleep(100 * time.Millisecond)
@@ -399,7 +399,7 @@ func TestNotInLobbyWhileEntering(t *testing.T) {
 	unblock, _ := blockClose(t, f)
 	host := f.spawn(t, "host")
 	acc := host.UUID().String()
-	save, _ := f.d.CreateSave(acc, "test", 1, "s")
+	save, _ := f.d.CreateSave(acc, 1, "s")
 	f.enter(t, host, save.ID)
 	in(t, host, func(p *player.Player) { f.m.ToLobby(p) })
 	if !f.m.InLobby(acc) {
@@ -423,7 +423,7 @@ func TestNotInLobbyWhileEntering(t *testing.T) {
 func TestKeepLoadedOutsideRadius(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
-	save, _ := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, _ := f.d.CreateSave(host.UUID().String(), 1, "s")
 	f.enter(t, host, save.ID)
 	inst := f.m.Active(save.ID)
 	if inst == nil {
@@ -447,7 +447,7 @@ func TestKeepLoadedOutsideRadius(t *testing.T) {
 func TestTimedItemsExpireInInstance(t *testing.T) {
 	f := setup(t)
 	host := f.spawn(t, "host")
-	save, err := f.d.CreateSave(host.UUID().String(), "test", 1, "s")
+	save, err := f.d.CreateSave(host.UUID().String(), 1, "s")
 	if err != nil {
 		t.Fatal(err)
 	}

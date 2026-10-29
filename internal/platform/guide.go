@@ -63,7 +63,7 @@ func (pf *Platform) showGuide(p *player.Player, first bool) {
 	if !first && pf.m.Location(instance.AccountID(p)) == nil {
 		opts = append(opts, pf.lobbyBack(p, pf.showLobbyMenu))
 	}
-	body := fmt.Sprintf(i18n.T(lang, "platform.guide.intro"), pf.game.Name(lang))
+	body := fmt.Sprintf(i18n.T(lang, "platform.guide.intro"), i18n.T(lang, "name.Game"))
 	ui.Menu(p, i18n.T(lang, "platform.guide.title"), body, opts...)
 }
 

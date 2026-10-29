@@ -1,10 +1,11 @@
-// Command uitextures writes the flat textures of the grey JSON UI theme
-// (packs/sgui/textures/ui/sg). Run it from common/: go run ./tools/uitextures
-// writes the missing pictures, -f writes all.
+// Command uitextures writes the textures of the menus' DDUI screens
+// (packs/sgui/textures/ui/sg: buttons, the window, page arrows, chevrons, the
+// chosen slot, the lobby's buttons and icons), which the oreui pack's CSS and
+// common/ui draw. Run it from common/: go run ./tools/uitextures writes the
+// missing pictures, -f writes all.
 package main
 
 import (
-	"encoding/json"
 	"image"
 	"image/color"
 	"image/png"
@@ -16,7 +17,7 @@ const dir = "packs/sgui/textures/ui/sg"
 
 // The theme is the grey look of the game's own screens: a light grey window
 // with a white edge at the top left and a dark one at the bottom right, mid
-// grey buttons, dark inset item slots.
+// grey buttons.
 var (
 	black       = color.RGBA{16, 16, 16, 255}
 	white       = color.RGBA{255, 255, 255, 255}
@@ -28,10 +29,7 @@ var (
 	hoverFill   = color.RGBA{84, 84, 128, 255}
 	hoverLo     = color.RGBA{56, 56, 92, 255}
 	pressedFill = color.RGBA{48, 48, 48, 255}
-	slotFill    = color.RGBA{139, 139, 139, 255}
-	slotDark    = color.RGBA{55, 55, 55, 255}
 	arrowColor  = color.RGBA{245, 245, 245, 255}
-	dim         = color.RGBA{0, 0, 0, 140}
 )
 
 // bevelBox draws a size×size square with a black edge, a light line inside
@@ -80,25 +78,6 @@ func roundCorners(img image.Image, top, bottom bool) image.Image {
 	return out
 }
 
-// insetBox is an item slot: dark along the top and left, white along the
-// bottom and right, so it looks pressed in.
-func insetBox(size int, fill color.RGBA) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	for x := range size {
-		for y := range size {
-			c := fill
-			switch {
-			case x == size-1 || y == size-1:
-				c = white
-			case x == 0 || y == 0:
-				c = slotDark
-			}
-			img.Set(x, y, c)
-		}
-	}
-	return img
-}
-
 // chosenBox is a slot with a two pixel gold frame and a lighter field.
 func chosenBox(size int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
@@ -116,10 +95,6 @@ func chosenBox(size int) image.Image {
 	}
 	return img
 }
-
-// bevel is the window's inner edge layer; the window picture draws its own
-// bevel, so it is clear.
-func bevel() image.Image { return image.NewNRGBA(image.Rect(0, 0, 16, 16)) }
 
 // arrow draws a 16×16 arrow pointing right, rotated by quarter turns.
 func arrow(turns int) image.Image {
@@ -214,7 +189,7 @@ func mirror(src image.Image) image.Image {
 	return img
 }
 
-func write(name string, img image.Image, nineslice int) {
+func write(name string, img image.Image) {
 	// What is there stays (the pictures may have been changed by hand);
 	// run with -f to write everything again.
 	if _, err := os.Stat(filepath.Join(dir, name+".png")); err == nil && !force {
@@ -228,12 +203,6 @@ func write(name string, img image.Image, nineslice int) {
 	if err := png.Encode(f, img); err != nil {
 		panic(err)
 	}
-	if nineslice > 0 {
-		b, _ := json.MarshalIndent(map[string]any{"nineslice_size": nineslice, "base_size": []int{img.Bounds().Dx(), img.Bounds().Dy()}}, "", "  ")
-		if err := os.WriteFile(filepath.Join(dir, name+".json"), b, 0o644); err != nil {
-			panic(err)
-		}
-	}
 }
 
 var force = len(os.Args) > 1 && os.Args[1] == "-f"
@@ -242,40 +211,25 @@ func main() {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		panic(err)
 	}
-	write("panel", roundCorners(bevelBox(16, panelFill, white, panelShade), true, true), 4)
-	// the window has no title bar of its own: the picture is clear
-	write("title", bevel(), 2)
-	write("clear", bevel(), 0)
-	write("button", bevelBox(16, buttonFill, buttonHi, buttonLo), 3)
-	write("button_hover", bevelBox(16, hoverFill, white, hoverLo), 3)
-	write("button_pressed", bevelBox(16, pressedFill, buttonLo, buttonFill), 3)
-	write("panel_bevel", bevel(), 5)
-	write("slot", insetBox(18, slotFill), 1)
+	write("panel", roundCorners(bevelBox(16, panelFill, white, panelShade), true, true))
+	write("button", bevelBox(16, buttonFill, buttonHi, buttonLo))
+	write("button_hover", bevelBox(16, hoverFill, white, hoverLo))
+	write("button_pressed", bevelBox(16, pressedFill, buttonLo, buttonFill))
 	// the chosen slot of a row (the research or recipe shown): a gold frame,
 	// so it does not read as a slot under the mouse
-	write("slot_chosen", chosenBox(18), 0)
-	// the dark field the game's own input forms are drawn in
-	write("inset", insetBox(8, color.RGBA{60, 60, 60, 255}), 1)
-	dimImg := image.NewRGBA(image.Rect(0, 0, 4, 4))
-	for x := range 4 {
-		for y := range 4 {
-			dimImg.Set(x, y, dim)
-		}
-	}
-	write("dim", dimImg, 0)
-	write("chevron_left", chevron(), 0)
-	write("hover_flat", flat(150), 0)
-	write("press_flat", flat(112), 0)
-	write("arrow_right", arrow(0), 0)
-	write("arrow_down", arrow(1), 0)
-	write("arrow_left", arrow(2), 0)
-	write("arrow_up", arrow(3), 0)
-	write("chevron_right", mirror(chevron()), 0)
+	write("slot_chosen", chosenBox(18))
+	write("chevron_left", chevron())
+	write("hover_flat", flat(150))
+	write("press_flat", flat(112))
+	write("arrow_right", arrow(0))
+	write("arrow_down", arrow(1))
+	write("arrow_left", arrow(2))
+	write("chevron_right", mirror(chevron()))
 
-	// the lobby's launcher menu (ui.LauncherMenu)
-	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1), 4)
-	write("launcher_button_hover", launcherBox(color.NRGBA{34, 60, 98, 220}, color.NRGBA{150, 210, 255, 255}, 2), 4)
-	write("launcher_button_pressed", launcherBox(color.NRGBA{14, 22, 38, 235}, color.NRGBA{120, 170, 220, 255}, 2), 4)
+	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)
+	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))
+	write("launcher_button_hover", launcherBox(color.NRGBA{34, 60, 98, 220}, color.NRGBA{150, 210, 255, 255}, 2))
+	write("launcher_button_pressed", launcherBox(color.NRGBA{14, 22, 38, 235}, color.NRGBA{120, 170, 220, 255}, 2))
 	write("icon_cube", glyph(
 		".......##.......",
 		".....##..##.....",
@@ -292,7 +246,7 @@ func main() {
 		"...##..##..##...",
 		".....##..##.....",
 		".......##.......",
-	), 0)
+	))
 	write("icon_people", glyph(
 		"................",
 		"................",
@@ -308,7 +262,7 @@ func main() {
 		"#........#....#.",
 		"##########....#.",
 		".........######.",
-	), 0)
+	))
 	write("icon_person", glyph(
 		"................",
 		"......####......",
@@ -322,7 +276,7 @@ func main() {
 		"..#..........#..",
 		"..#..........#..",
 		"..############..",
-	), 0)
+	))
 	write("icon_crown", glyph(
 		"................",
 		"................",
@@ -336,7 +290,7 @@ func main() {
 		"..############..",
 		"................",
 		"..############..",
-	), 0)
+	))
 	write("icon_help", glyph(
 		"................",
 		".....######.....",
@@ -352,5 +306,5 @@ func main() {
 		"..#..........#..",
 		"...##......##...",
 		".....######.....",
-	), 0)
+	))
 }

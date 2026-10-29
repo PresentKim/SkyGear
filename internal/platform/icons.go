@@ -20,5 +20,9 @@ const (
 	iconInvSee   = "textures/blocks/chest_front"
 	iconKick     = "textures/ui/sg/icon_kick"
 	iconAccept   = "textures/ui/sg/icon_accept"
+	iconSettings = "textures/ui/sg/menu_settings"
+	iconExit     = "textures/ui/sg/icon_exit"
+	iconHead     = "textures/ui/icon_steve"
+	iconConsole  = "textures/items/book_writable"
 	iconDecline  = "textures/ui/sg/icon_decline"
 )

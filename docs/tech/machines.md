@@ -1,19 +1,19 @@
 # 기계
 
-기획: [02-skygear.md §11](../design/02-skygear.md). 코드: `internal/games/skygear/machine.go`.
+기획: [02-skygear.md §11](../design/02-skygear.md). 코드: `internal/skygear/machine.go`.
 
 ## 구조
 
 - `Machine{Kind}` 하나의 블록 타입이 종류(`crusher`, `sieve`, `auto_sieve`, `auto_miner`, `harvester`, `alloy_smelter` …)마다 따로 등록된다.
   식별자는 `skygear:<종류>`. 모델·텍스처는 리소스팩 `assets/resourcepack/skygear/`(`models/blocks/`, `textures/`), Go 는 식별자·재질 이름만(`blockmodel/models.go`·`sieve.go`).
-- 체 세 종류는 상태 하나(`skygear:look`, 끼운 메쉬 단계×내용물×높이의 번호 `000`~)가 있는 블록이라 메쉬(여섯 단계, 단계마다 색이 다른 `sieve_mesh_<단계>` 텍스처를 입힌 가로세로 막대 여덟 개)와 내용물·진행(8단계, 높이 6픽셀에서 1픽셀까지)이 모델에 보인다. 모델과 메쉬 텍스처는 Ex Nihilo Fabrico 의 체·메쉬 모델에서 `tools/fabricotex` 가 만든다(창 없음, [sieve.go](../../internal/games/skygear/sieve.go)). 상태를 하나로 둔 것은 클라이언트가 런타임 ID를 상태 순서대로 짝짓기 때문이다.
+- 체 세 종류는 상태 하나(`skygear:look`, 끼운 메쉬 단계×내용물×높이의 번호 `000`~)가 있는 블록이라 메쉬(여섯 단계, 단계마다 색이 다른 `sieve_mesh_<단계>` 텍스처를 입힌 가로세로 막대 여덟 개)와 내용물·진행(8단계, 높이 6픽셀에서 1픽셀까지)이 모델에 보인다. 모델과 메쉬 텍스처는 Ex Nihilo Fabrico 의 체·메쉬 모델에서 `tools/fabricotex` 가 만든다(창 없음, [sieve.go](../../internal/skygear/sieve.go)). 상태를 하나로 둔 것은 클라이언트가 런타임 ID를 상태 순서대로 짝짓기 때문이다.
 - 설치된 기계는 `machineState`(포인터)를 가진다. Dragonfly 상자처럼 블록 값이 상태를 가리키고,
   블록 엔티티 NBT(`Items`, `Progress`, `Owner`, `OwnerName`)로 월드와 함께 저장된다.
   설치는 `HandleBlockPlace` → `placeMachine` 이 새 상태로 바꿔 놓는다.
 - 기계 인벤토리 = 27칸 `chestui.Storage` 그 자체. 창의 칸이 곧 입력·출력 칸이고, 나머지는 회색 판유리(조작 불가).
   창 제목의 표식(`§d§m§<n>`)으로 리소스팩이 기계별 레이아웃을 골라 필요한 칸만 보여 준다([json-ui.md](json-ui.md)). 자동 농작물 수확기는 채굴기 레이아웃(`§d§m§3`)을 같이 쓴다. `§d§m§2`는 링·출력 4칸·게이지가 있는 레이아웃이다.
 - 진행도 칸에는 진행 화살표 아이템(`progress_0`~`progress_10`)이 10% 단위로 들어간다.
-- 26번 칸은 **정보 아이콘**(`skygear:machine_info`)이다: 이름은 기계 이름, 설명(툴팁)은 하는 일. 칸 배치가 아니라 창 오른쪽 위 모서리 위의 어두운 컨트롤 막대(`sg_machine.control_bar`, 폼의 `sg_form.control_bar` 와 같음)에 닫기 버튼 왼쪽으로 그려지고, 모든 기계 창에서 같은 자리에 있다.
+- 26번 칸은 **정보 아이콘**(`skygear:machine_info`)이다: 이름은 기계 이름, 설명(툴팁)은 하는 일. 칸 배치가 아니라 창 오른쪽 위 모서리 위의 어두운 컨트롤 막대(`sg_machine.control_bar`, 메뉴 화면의 컨트롤 막대와 같은 모양)에 닫기 버튼 왼쪽으로 그려지고, 모든 기계 창에서 같은 자리에 있다.
 - **모두 꺼내기·모두 넣기**는 모든 창고와 같은, 창 오른쪽 바깥의 세로 버튼 줄이다(common inventoryui `ui/sg_quick.json`, [chestui.md](chestui.md)). 클라이언트가 칸마다 빠른 이동(쉬프트 클릭)을 하므로 서버 버튼이 없다. 기계 창에서는 레이아웃마다 꺼낼 칸을 출력 칸으로 거르고(`sg_machine.json` `$sg_machine_outputs`, `quickbar_test.go` 가 `machineKinds` 와 맞는지 본다), 넣기는 핫바까지 옮긴다. 클라이언트는 빈 칸 아무 데나 넣으려 하므로, 입력이 아닌 칸에 놓이는 아이템을 서버가 취소하고 기계가 받는 것이면 같은 월드 작업으로 입력 칸에 채운다(`machineHandler.HandlePlace`, `putFrom`: 같은 종류가 있는 칸에 먼저, 없으면 빈 칸 하나에, 안 들어가는 것은 플레이어에게 남음). 손으로 하는 쉬프트 클릭도 같다.
 - 진행 칸(화살표)에는 진행도만 쓴다. 기계는 블록을 부수면 내용물과 함께 나온다. 여러 명이 같이 열어도 같은 내용이 보인다.
 - 블록 `Tick`(20틱/초)으로 동작한다. 인스턴스가 활성인 동안만 돈다. 로드 반경 밖의 소유 청크는 청크별 로더로 계속 돈다.

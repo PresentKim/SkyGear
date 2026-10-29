@@ -16,19 +16,9 @@ import (
 // lobbyHandler protects the lobby: no building, damage, dropping or PvP.
 type lobbyHandler struct {
 	player.NopHandler
-	pf *Platform
 }
 
-// A click, a hotbar slot or a jump opens the main menu again (lobbywake.go).
-func (h lobbyHandler) HandleStartBreak(ctx *player.Context, _ cube.Pos) {
-	ctx.Cancel()
-	h.pf.wakeLobbyMenu(ctx.Player())
-}
-func (h lobbyHandler) HandlePunchAir(ctx *player.Context) { h.pf.wakeLobbyMenu(ctx.Player()) }
-func (h lobbyHandler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
-	h.pf.wakeLobbyMenu(ctx.Player())
-}
-func (h lobbyHandler) HandleJump(p *player.Player) { h.pf.wakeLobbyMenu(p) }
+func (lobbyHandler) HandleStartBreak(ctx *player.Context, _ cube.Pos) { ctx.Cancel() }
 func (lobbyHandler) HandleBlockBreak(ctx *player.Context, _ cube.Pos, _ *[]item.Stack, _ *int) {
 	ctx.Cancel()
 }
@@ -39,18 +29,12 @@ func (lobbyHandler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.
 	ctx.Cancel()
 }
 func (lobbyHandler) HandleFoodLoss(ctx *player.Context, _ int, _ *int) { ctx.Cancel() }
-func (h lobbyHandler) HandleAttackEntity(ctx *player.Context, _ world.Entity, _, _ *float64, _ *bool) {
+func (lobbyHandler) HandleAttackEntity(ctx *player.Context, _ world.Entity, _, _ *float64, _ *bool) {
 	ctx.Cancel()
-	h.pf.wakeLobbyMenu(ctx.Player())
 }
-func (h lobbyHandler) HandleItemUse(ctx *player.Context) {
-	if h.pf.useLobbyItem(ctx.Player()) {
-		ctx.Cancel()
-	}
-}
-func (h lobbyHandler) HandleItemUseOnBlock(ctx *player.Context, _ cube.Pos, _ cube.Face, _ mgl64.Vec3) {
+func (lobbyHandler) HandleItemUse(ctx *player.Context) { ctx.Cancel() }
+func (lobbyHandler) HandleItemUseOnBlock(ctx *player.Context, _ cube.Pos, _ cube.Face, _ mgl64.Vec3) {
 	ctx.Cancel()
-	h.pf.useLobbyItem(ctx.Player())
 }
 
 // HandleMove keeps the body in place: the lobby is seen through a fixed
@@ -62,8 +46,8 @@ func (lobbyHandler) HandleMove(ctx *player.Context, pos mgl64.Vec3, _ cube.Rotat
 	}
 }
 
-// The lobby looks like a game launcher: a fixed camera on a small sky island,
-// with the pack's launcher frame drawn behind forms and on the HUD.
+// The lobby looks like a game's lobby: a camera on a small sky island with
+// the player's character, under the main screen (ui.HomeScreen).
 var (
 	// lobbyCamera is where the camera looks from: south of the island,
 	// slightly above, towards north (yaw 180) and a little down.
@@ -82,9 +66,8 @@ const lobbyLocks = packet.ClientInputLockCamera | packet.ClientInputLockMovement
 	packet.ClientInputLockMoveLeft | packet.ClientInputLockMoveRight
 
 // showLobbyScene sets p's lobby view: the camera on the lobby island, the
-// vanilla HUD hidden (the pack's frame stays), the inputs locked but jumping
-// and sneaking, and the other players hidden both ways. It runs in the lobby
-// transaction.
+// vanilla HUD hidden, the inputs locked but jumping and sneaking, and the
+// other players hidden both ways. It runs in the lobby transaction.
 func showLobbyScene(p *player.Player, tx *world.Tx) {
 	sghook.SetCamera(p, lobbyCamera, lobbyPitch, lobbyYaw, 0)
 	sghook.HideHUD(p, true)

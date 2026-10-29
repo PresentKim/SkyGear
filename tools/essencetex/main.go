@@ -1,5 +1,5 @@
 // Command essencetex writes the item textures of the research essences
-// (internal/games/skygear/researchessence.go): a glass bottle filled
+// (internal/skygear/researchessence.go): a glass bottle filled
 // with a liquid of the colour of each essence. They are temporary pictures,
 // drawn from the colour of each essence.
 //

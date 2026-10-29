@@ -94,7 +94,7 @@ type Manager struct {
 	db    *db.DB
 	conf  Config
 	lobby Lobby
-	games map[string]Game
+	game  Game
 
 	mu     sync.Mutex
 	active map[int64]*Instance
@@ -113,25 +113,16 @@ type stateKey struct {
 	acc  string
 }
 
-func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby) *Manager {
+func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby, game Game) *Manager {
 	if conf.AutosaveInterval <= 0 {
 		conf.AutosaveInterval = 30 * time.Second
 	}
 	if conf.WorldSaveInterval <= 0 {
 		conf.WorldSaveInterval = time.Minute
 	}
-	return &Manager{log: log, db: d, conf: conf, lobby: lobby, games: map[string]Game{},
+	return &Manager{log: log, db: d, conf: conf, lobby: lobby, game: game,
 		active: map[int64]*Instance{}, location: map[string]*Instance{}, locked: map[stateKey]bool{}, entering: map[string]int64{},
 		activating: map[int64]chan struct{}{}}
-}
-
-// Register adds a game type.
-func (m *Manager) Register(g Game) { m.games[g.ID()] = g }
-
-// Game returns a registered game type.
-func (m *Manager) Game(id string) (Game, bool) {
-	g, ok := m.games[id]
-	return g, ok
 }
 
 // AccountID is the account key of a player.
@@ -535,7 +526,7 @@ func (m *Manager) activate(saveID int64, host string) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	m.log.Info("instance activated", "save", saveID, "game", inst.Game.ID(), "host", host)
+	m.log.Info("instance activated", "save", saveID, "host", host)
 	return inst, nil
 }
 
@@ -544,9 +535,5 @@ func (m *Manager) open(saveID int64, host string) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	g, ok := m.games[save.GameType]
-	if !ok {
-		return nil, fmt.Errorf("instance: unknown game type %q", save.GameType)
-	}
-	return newInstance(m, save, g, host)
+	return newInstance(m, save, host)
 }

@@ -38,8 +38,9 @@ Thanks for your interest. These are the rules the project follows; the full
 - Game-independent code lives in `common/` (same Go module). Platform and game
   rules (lobby, saves, account storage, Sky Gear content) do not go there.
 - Player moves and state saving always go through `instance.Manager`
-  (`Enter`/`ToLobby`). Games connect to the platform only through the
-  `instance.Game`/`Session` interfaces.
+  (`Enter`/`ToLobby`). The instance package reaches Sky Gear only
+  through the `instance.Game`/`Session` interfaces (`internal/skygear`
+  imports `internal/instance`, not the other way round).
 - Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).

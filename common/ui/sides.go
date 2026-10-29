@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -11,8 +10,7 @@ import (
 )
 
 // PortChoice is one value a SidePort can take: drawn as a square of Colour
-// ("#rrggbb") in DDUI, or as Icon when it has no colour and in JSON UI. Run
-// sets it.
+// ("#rrggbb"), or as Icon when it has no colour. Run sets it.
 type PortChoice struct {
 	Colour, Icon, Tip string
 	Run               func(p *player.Player, tx *world.Tx)
@@ -98,13 +96,8 @@ type sidePicker struct{ side, port int }
 // neighbouring block and a box per port that cycles its choice when pressed
 // (back with the right mouse button),
 // with a plus button that opens all choices beside the card. A change redraws
-// only the ports. Without DDUI it is an ItemBoard with a row per side and the
-// choices in an ItemGrid.
+// only the ports.
 func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
-	if !OreUIFor(p) {
-		ItemBoard(p, title, "", sideRows(title, b, actions), actions...)
-		return
-	}
 	l := newOreLayout()
 	tabs, bar, _ := l.chrome(actions)
 	cx, cy := sidesW/2, sidesH/2
@@ -242,46 +235,4 @@ func pickerNode(l *oreLayout, side int, port SidePort, choose func(func(p *playe
 		y += cardH + 2
 	}
 	return box("mc-port-picker", "style", map[string]any{"left": gu(x), "top": gu(y), "width": gu(w)}, "children", choices)
-}
-
-// sideRows are the ItemBoard rows of a SidesMenu shown with actions: the
-// block beside each side and a slot for each port showing its choice. A port
-// opens its choices in an ItemGrid; a choice shows the menu again from
-// b.Refresh.
-func sideRows(title string, b SideBoard, actions []Option) [][]BoardCell {
-	again := func(p *player.Player, tx *world.Tx) {
-		if b.Refresh != nil {
-			SidesMenu(p, title, b.Refresh(p, tx), actions...)
-		}
-	}
-	var rows [][]BoardCell
-	for i, s := range b.Sides {
-		row := []BoardCell{SlotCell(ItemSlot{Icon: s.Icon, Tip: s.Name + ": " + s.Tip, Selected: i == b.Focus}), Blank()}
-		for _, port := range s.Ports {
-			var shown PortChoice
-			if port.Chosen >= 0 && port.Chosen < len(port.Choices) {
-				shown = port.Choices[port.Chosen]
-			}
-			choices := port.Choices
-			row = append(row, SlotCell(ItemSlot{
-				Icon: shown.Icon,
-				Tip:  fmt.Sprintf("%s: %s", port.Label, shown.Tip),
-				Run: func(p *player.Player, tx *world.Tx) {
-					var grid []ItemSlot
-					for _, c := range choices {
-						run := c.Run
-						grid = append(grid, ItemSlot{Icon: c.Icon, Tip: c.Tip, Run: func(p *player.Player, tx *world.Tx) {
-							if run != nil {
-								run(p, tx)
-							}
-							again(p, tx)
-						}})
-					}
-					ItemGrid(p, title, "", grid, Back(i18n.T(i18n.Of(p), "ui.sides.back"), again))
-				},
-			}))
-		}
-		rows = append(rows, row)
-	}
-	return rows
 }
