@@ -8,10 +8,10 @@ import (
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/energy"
+	"github.com/presentkim/skygear/common/fluidnet"
+	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/common/slotdeco"
-	"github.com/presentkim/skygear/internal/energy"
-	"github.com/presentkim/skygear/internal/fluidnet"
-	"github.com/presentkim/skygear/internal/itemnet"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"

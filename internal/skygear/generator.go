@@ -7,8 +7,8 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/energy"
 )
 
 // The combustion generator: it

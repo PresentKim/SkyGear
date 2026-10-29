@@ -90,10 +90,9 @@ internal/skygear/               Sky Gear: session-bound code (game, state, handl
   hopper/                       Wooden and reverse hoppers
   advancement/                  Advancement tree, chapters and layout
   achievement/                  Account achievement catalog and IDs
-internal/itemio/                Item input/output interface used by hoppers and conduits
-internal/energy, itemnet, fluidnet/  Energy, item and fluid networks
 common/                         Game-independent packages (menus as DDUI screens, entity chests, WAILA,
-                                HUD, i18n, resource pack loader, backups, …; see common/README.md)
+                                HUD, i18n, resource pack loader, backups, item I/O and the energy, item
+                                and fluid networks, …; see common/README.md)
 assets/                         The resource packs, embedded in the binary (assets.Pack): resourcepack/skygear
                                 is the game's pack (textures, models, names, entities, JSON UI), the others
                                 (inventoryui, waila, slotdeco, sgui, oreui) are drawn on by common/

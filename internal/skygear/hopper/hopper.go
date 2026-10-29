@@ -17,7 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/itemio"
+	"github.com/presentkim/skygear/common/itemio"
 	_ "github.com/presentkim/skygear/internal/locales" // this server's texts
 	"github.com/presentkim/skygear/internal/skygear/blockmodel"
 	"github.com/presentkim/skygear/internal/skygear/naming"

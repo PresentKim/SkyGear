@@ -11,7 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/itemnet"
+	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/internal/skygear/machinerecipe"
 	"github.com/presentkim/skygear/internal/skygear/naming"
 	"github.com/presentkim/skygear/internal/skygear/sgitem"

@@ -9,15 +9,15 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/fluidnet"
 	"github.com/presentkim/skygear/internal/skygear/sgitem"
 )
 
 // Machines with a tank: the fluid
 // tank, the electric crucible (cobblestone into lava) and the lava generator.
 // They have no window: a bucket fills or empties them by hand, fluid conduits
-// carry the fluid (internal/fluidnet), and their WAILA panel shows the tank.
+// carry the fluid (common/fluidnet), and their WAILA panel shows the tank.
 const (
 	// bucketMB is the mB of a bucket.
 	bucketMB = 1000

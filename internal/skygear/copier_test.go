@@ -9,7 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/skygear/internal/itemnet"
+	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/internal/skygear/machinerecipe"
 	"github.com/presentkim/skygear/internal/skygear/naming"
 	"github.com/presentkim/skygear/internal/skygear/sgitem"

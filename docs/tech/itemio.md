@@ -1,4 +1,4 @@
-# 아이템 입출력 인터페이스 (`internal/itemio`)
+# 아이템 입출력 인터페이스 (`common/itemio`)
 
 블록이 아이템을 주고받는 **하나의 길**이다. 호퍼와 아이템 도관이 이 길을 쓴다.
 블록은 호퍼 같은 특정 이동 블록의 종류를 알 필요 없이 이 인터페이스만 구현하면 된다.
@@ -58,4 +58,4 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 
 ## 아이템 도관
 
-도관(`internal/itemnet`, 기획 [06](../design/06-power-and-conduits.md) §3.3)도 같은 길을 쓴다: 이웃 블록의 `itemio.IO` 가 비어 있지 않으면 끝점이 되고, `itemio.Transfer` 로 꺼내는 면에서 넣는 면으로 옮긴다.
+도관(`common/itemnet`, 기획 [06](../design/06-power-and-conduits.md) §3.3)도 같은 길을 쓴다: 이웃 블록의 `itemio.IO` 가 비어 있지 않으면 끝점이 되고, `itemio.Transfer` 로 꺼내는 면에서 넣는 면으로 옮긴다.

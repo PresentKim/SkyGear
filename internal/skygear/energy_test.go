@@ -10,10 +10,10 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/energy"
+	"github.com/presentkim/skygear/common/fluidnet"
+	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/common/ui"
-	"github.com/presentkim/skygear/internal/energy"
-	"github.com/presentkim/skygear/internal/fluidnet"
-	"github.com/presentkim/skygear/internal/itemnet"
 )
 
 // run advances n steps of four ticks, calling Fast (which moves the energy)

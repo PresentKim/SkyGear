@@ -1,6 +1,6 @@
 # 06. 에너지(RE)와 도관
 
-> 수치는 모두 초안이다([open-questions.md](open-questions.md)). 구조는 EnderIO(Unlicense)의 도관 시스템을 참고해 우리 틀(`internal/itemio`, 표시 엔티티가 모양을 그리는 방식)에 맞췄다.
+> 수치는 모두 초안이다([open-questions.md](open-questions.md)). 구조는 EnderIO(Unlicense)의 도관 시스템을 참고해 우리 틀(`common/itemio`, 표시 엔티티가 모양을 그리는 방식)에 맞췄다.
 
 돌과 물·용암([02 §5](02-skygear.md))까지 자동화되면 다음은 **전면 자동화**다. 기계에 **에너지**(RedstoneEnergy, **RE**)를 넣고, 아이템과 에너지를 **도관(conduit)** 으로 나른다.
 
@@ -43,11 +43,11 @@
 
 ### 3.3 아이템 도관
 
-- 이웃한 **아이템을 가진 블록**(상자·서랍·기계·화로·배럴…, `internal/itemio` 가 아는 모든 블록)과 저절로 이어진다. 도관의 **면마다 연결 모드**가 있다: **양쪽**(꺼내고 넣음) → **꺼내기만** → **넣기만** → **꺼짐**(팔이 사라지고 이어지지 않음). **도관을 우클릭**하면 설정 창이 열려 면마다 모드를 정한다. 면별 모드는 연결부 화살표로 보인다. 새로 놓은 아이템 도관의 면은 모두 **꺼짐**으로 시작한다(설정 창에서 켠다).
+- 이웃한 **아이템을 가진 블록**(상자·서랍·기계·화로·배럴…, `common/itemio` 가 아는 모든 블록)과 저절로 이어진다. 도관의 **면마다 연결 모드**가 있다: **양쪽**(꺼내고 넣음) → **꺼내기만** → **넣기만** → **꺼짐**(팔이 사라지고 이어지지 않음). **도관을 우클릭**하면 설정 창이 열려 면마다 모드를 정한다. 면별 모드는 연결부 화살표로 보인다. 새로 놓은 아이템 도관의 면은 모두 **꺼짐**으로 시작한다(설정 창에서 켠다).
 - 1초(20틱)마다 한 번 옮긴다: 꺼낼 수 있는 면에서 넣을 수 있는 면으로 **단계별 개수**만큼. 받는 쪽은 **라운드 로빈**으로 한 개씩 번갈아 고르고(꺼내는 면마다 마지막으로 준 곳을 기억), 한 블록이 자기에게 도로 넣지는 않으며, 한 단계에서 받은 블록이 같은 단계에 다시 내주지도 않는다.
 - 단계별 개수는 1초에 32·64·128개(연결망 안의 가장 낮은 단계)다. 에너지는 필요 없다.
 - 기계는 `itemio` 규칙을 따른다: 재료는 아래 면을 뺀 면으로 들어가고, 결과는 어느 면에서든 도관이 꺼낸다.
-- 코드: `internal/itemnet`(`Grid`, `Network`, `Mode`), 블록 `bundle.go`(`ConduitBundle`, `ItemConduit`).
+- 코드: `common/itemnet`(`Grid`, `Network`, `Mode`), 블록 `bundle.go`(`ConduitBundle`, `ItemConduit`).
 
 ### 3.3.1 면 설정과 채널 (EnderIO 포팅)
 
@@ -95,7 +95,7 @@ EnderIO처럼 **한 블록에 에너지·아이템·액체 도관을 함께** �
 
 ## 6. 구현 메모
 
-- 코드: `internal/energy`(`Grid`, `Network`, 인터페이스 `Source`·`Sink`·`Conduit`·`Ports`), 도관 `conduit.go`, 발전기·에너지 소비 `generator.go`. 기계 종류는 `machineKind`의 `generates`·`use`·`energyCap`으로 정한다.
+- 코드: `common/energy`(`Grid`, `Network`, 인터페이스 `Source`·`Sink`·`Conduit`·`Ports`), 도관 `conduit.go`, 발전기·에너지 소비 `generator.go`. 기계 종류는 `machineKind`의 `generates`·`use`·`energyCap`으로 정한다.
 - 도관은 **블록 엔티티**(NBT 없는 내용)다. Dragonfly는 NBT가 있는 블록에만 틱을 주기 때문이다. 틱마다 자기를 격자에 등록하고(10번 안 등록되면 빠진다), 0.2초(`Fast`)마다 격자가 연결망을 새로 찾아 에너지를 나눈다.
 - 모양은 표시 엔티티(`conduitvisual.go`, [conduits.md](../tech/conduits.md))가 그린다.
 - 운영자 시험 공장(`/sgdebug factory`·`dense`)의 기계는 에너지 없이 돈다(`unlimited`).

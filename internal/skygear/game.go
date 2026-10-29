@@ -3,10 +3,10 @@ package skygear
 
 import (
 	"encoding/json"
+	"github.com/presentkim/skygear/common/energy"
+	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/energy"
-	"github.com/presentkim/skygear/internal/fluidnet"
-	"github.com/presentkim/skygear/internal/itemnet"
+	"github.com/presentkim/skygear/common/itemnet"
 	"log/slog"
 	"math"
 	"math/rand/v2"

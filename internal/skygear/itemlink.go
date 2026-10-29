@@ -4,12 +4,12 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/internal/itemio"
+	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/internal/skygear/hopper"
 )
 
 // How the game's blocks move items: everything goes
-// through internal/itemio. Machines, drawers and barrels implement its
+// through common/itemio. Machines, drawers and barrels implement its
 // interfaces; the composter (a vanilla block) is served by an adapter; hoppers
 // of every kind (the vanilla one through a Dragonfly patch hook, ours in
 // hopper.go) move one item per step with hopper.StepHopper.

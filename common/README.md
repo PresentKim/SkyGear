@@ -21,6 +21,10 @@
 | `resourcepack` | 리소스팩 읽기(내용 해시로 버전 부여, 압축·암호화) |
 | `backup` | 폴더 백업 |
 | `textsearch` | 한글 초성 등 글 검색 |
+| `itemio` | 블록이 아이템을 주고받는 방법(호퍼·도관) |
+| `energy` | RE 에너지를 공급원에서 소비처로 나르는 망 |
+| `itemnet` | 맞닿은 아이템 도관 망의 아이템 이동 |
+| `fluidnet` | 맞닿은 유체 도관 망의 유체 이동 |
 
 패키지들이 그리는 리소스팩(`inventoryui`, `waila`, `slotdeco`, `sgui`, `oreui`)은 `assets/resourcepack/` 에 있다(`assets` 패키지가 실행 파일에 넣는다). `assets/resourcepack/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을, `assets/resourcepack/waila` 는 [r4isen1920/WAILA](https://github.com/r4isen1920/WAILA)(MIT)를 바탕으로 한다.
 

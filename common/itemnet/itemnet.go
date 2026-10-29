@@ -6,7 +6,7 @@ package itemnet
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/internal/itemio"
+	"github.com/presentkim/skygear/common/itemio"
 )
 
 // Mode is what a conduit does with the block at one of its sides.

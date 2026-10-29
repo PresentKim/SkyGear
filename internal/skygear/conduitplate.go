@@ -8,7 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
-	"github.com/presentkim/skygear/internal/energy"
+	"github.com/presentkim/skygear/common/energy"
 )
 
 // ConduitPlate is the EnderIO-style connector plate on a side of a bundle that

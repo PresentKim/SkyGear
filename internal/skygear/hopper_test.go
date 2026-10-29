@@ -8,7 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/internal/itemio"
+	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/internal/skygear/hopper"
 )
 

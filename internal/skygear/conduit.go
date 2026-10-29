@@ -5,8 +5,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// Conduits carry energy (internal/energy), items (internal/itemnet) and
-// fluids (internal/fluidnet). Every conduit in the world is part of a
+// Conduits carry energy (common/energy), items (common/itemnet) and
+// fluids (common/fluidnet). Every conduit in the world is part of a
 // ConduitBundle (bundle.go); the conduit items only go into bundles.
 
 // conduitFaces are the six sides in the bit order of a connection set.

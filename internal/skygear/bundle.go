@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/sghook"
-	"github.com/presentkim/skygear/internal/fluidnet"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -15,10 +15,10 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/energy"
-	"github.com/presentkim/skygear/internal/itemio"
-	"github.com/presentkim/skygear/internal/itemnet"
+	"github.com/presentkim/skygear/common/itemio"
+	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/internal/skygear/blockmodel"
 	"github.com/presentkim/skygear/internal/skygear/textfmt"
 )

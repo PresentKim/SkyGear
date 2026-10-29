@@ -8,7 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/internal/itemio"
+	"github.com/presentkim/skygear/common/itemio"
 )
 
 var RegisterItemIOOnce sync.Once

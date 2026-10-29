@@ -52,7 +52,7 @@ internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등).
 internal/skygear/              스카이기어: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
                                세션이 필요 없는 하위 패키지(sgitem, naming, textfmt, blockmodel, formicon, wintext,
                                sievetable, machinerecipe, tinker, hopper, advancement, achievement)
-internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
+common/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
 common/                        게임과 상관없는 공통 패키지와 팩(같은 모듈, common/README.md)
 ```
 

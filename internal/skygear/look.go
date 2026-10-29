@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/internal/fluidnet"
-	"github.com/presentkim/skygear/internal/itemnet"
+	"github.com/presentkim/skygear/common/itemnet"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
