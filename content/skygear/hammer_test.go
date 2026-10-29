@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -21,7 +23,7 @@ import (
 func TestHammerDropsCrushedBlock(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 1}
+	pos := cube.Pos{0, island.IslandY, 1}
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		mine := func(b world.Block, held item.Stack) []item.Stack {
@@ -121,15 +123,15 @@ func TestVeinDiagonalSetting(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	base := cube.Pos{4, IslandY + 3, 4}
+	base := cube.Pos{4, island.IslandY + 3, 4}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(base, block.Gravel{}, nil)
 		tx.SetBlock(base.Add(cube.Pos{1, 1, 0}), block.Gravel{}, nil)
 		tx.SetBlock(base.Add(cube.Pos{2, 2, 1}), block.Gravel{}, nil)
-		if got := veinBlocks(tx, base, veinLimit, false, s.canBuild); len(got) != 1 {
+		if got := veinBlocks(tx, base, veinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 1 {
 			t.Fatalf("face vein of %d blocks, want 1", len(got))
 		}
-		if got := veinBlocks(tx, base, veinLimit, true, s.canBuild); len(got) != 3 {
+		if got := veinBlocks(tx, base, veinLimit, true, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
 			t.Fatalf("diagonal vein of %d blocks, want 3", len(got))
 		}
 		if _, err := s.g.db.TouchAccount(instance.AccountID(p), "", p.Name()); err != nil {
@@ -155,17 +157,17 @@ func TestVeinMine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	base := cube.Pos{4, IslandY + 3, 4}
+	base := cube.Pos{4, island.IslandY + 3, 4}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		// a line of five gravel and one sand touching it
 		for i := 0; i < 5; i++ {
 			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Gravel{}, nil)
 		}
 		tx.SetBlock(base.Add(cube.Pos{0, 0, 1}), block.Sand{}, nil)
-		if got := veinBlocks(tx, base, veinLimit, false, s.canBuild); len(got) != 5 {
+		if got := veinBlocks(tx, base, veinLimit, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 5 {
 			t.Fatalf("vein of %d blocks, want 5", len(got))
 		}
-		if got := veinBlocks(tx, base, 3, false, s.canBuild); len(got) != 3 {
+		if got := veinBlocks(tx, base, 3, false, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }); len(got) != 3 {
 			t.Fatalf("limited vein of %d blocks, want 3", len(got))
 		}
 		p.StartSneaking()
@@ -227,7 +229,7 @@ func TestVeinMineFood(t *testing.T) {
 		}
 		// a line of 15 cobblestone (in the owned chunk; gravel would fall) with one
 		// food point: only 12 more break
-		base := cube.Pos{0, IslandY + 3, 4}
+		base := cube.Pos{0, island.IslandY + 3, 4}
 		for i := 0; i < 15; i++ {
 			tx.SetBlock(base.Add(cube.Pos{i, 0, 0}), block.Cobblestone{}, nil)
 		}

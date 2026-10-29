@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -33,7 +35,7 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		h.s.restoreMapNear(ctx.Player(), pos)
 		return true
 	}
-	if h.s.canBuild(pos) {
+	if island.CanBuild(h.s.Session, pos) {
 		return false
 	}
 	ctx.Cancel()
@@ -236,9 +238,9 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		return
 	}
 	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
-	if newPos.Y() < VoidY {
+	if newPos.Y() < island.VoidY {
 		ctx.Cancel()
-		h.s.returnFromVoid(ctx.Player(), ctx.Player().Tx())
+		island.ReturnFromVoid(h.s.Session, ctx.Player(), ctx.Player().Tx())
 	}
 }
 

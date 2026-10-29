@@ -5,6 +5,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -327,7 +329,7 @@ func (s *session) goToMachine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 		if solidAt(tx, at) || solidAt(tx, at.Add(cube.Pos{0, 1, 0})) {
 			continue
 		}
-		if !s.owns(ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {
+		if !island.Owns(s.Session, island.ChunkPos{int32(at.X() >> 4), int32(at.Z() >> 4)}) {
 			continue
 		}
 		from := mgl64.Vec3{float64(at.X()) + 0.5, float64(at.Y()), float64(at.Z()) + 0.5}

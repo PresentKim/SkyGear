@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -290,7 +292,7 @@ func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
-	if !ok || !ok2 || !s.canBuild(pos) {
+	if !ok || !ok2 || !island.CanBuild(s.Session, pos) {
 		return false
 	}
 	held, off := p.HeldItems()
@@ -352,7 +354,7 @@ func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User
 func (d Drawer) Punch(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User) {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
-	if !ok || !ok2 || !s.canBuild(pos) {
+	if !ok || !ok2 || !island.CanBuild(s.Session, pos) {
 		return
 	}
 	s.lastPunch[p.H()] = drawerPunch{pos: pos, front: face == d.Facing.Face()}
@@ -487,7 +489,7 @@ func (s *session) showDrawer(p *player.Player, pos cube.Pos) {
 	// act runs f on the drawer at pos and shows the menu again.
 	act := func(f func(p *player.Player, tx *world.Tx, d *Drawer)) func(*player.Player, *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
-			if d, ok := tx.Block(pos).(Drawer); ok && s.canBuild(pos) {
+			if d, ok := tx.Block(pos).(Drawer); ok && island.CanBuild(s.Session, pos) {
 				f(p, tx, &d)
 				s.showDrawer(p, pos)
 			}

@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -30,7 +32,7 @@ func TestComposterFillsToDirt(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{3, IslandY, 3}
+		pos := cube.Pos{3, island.IslandY, 3}
 		tx.SetBlock(pos, block.Composter{}, nil)
 		sapling := item.NewStack(block.Sapling{Type: block.OakSapling()}, 64)
 		if s.useComposter(p, tx, pos, item.NewStack(item.Stick{}, 1)) {
@@ -91,7 +93,7 @@ func TestBarkFiberIsPlantMatter(t *testing.T) {
 func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	compPos, barrelPos := cube.Pos{2, IslandY + 1, 2}, cube.Pos{6, IslandY + 1, 6}
+	compPos, barrelPos := cube.Pos{2, island.IslandY + 1, 2}, cube.Pos{6, island.IslandY + 1, 6}
 	hopperAt := func(tx *world.Tx, pos cube.Pos, it item.Stack) {
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown
@@ -114,7 +116,7 @@ func TestHoppersFeedComposterAndBarrel(t *testing.T) {
 		}
 	})
 	// A full composter with a hopper under it and a chest under that.
-	full, chestPos := cube.Pos{10, IslandY + 3, 2}, cube.Pos{10, IslandY + 1, 2}
+	full, chestPos := cube.Pos{10, island.IslandY + 3, 2}, cube.Pos{10, island.IslandY + 1, 2}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(full, block.Composter{Level: composterLevels}, nil)
 		s.setComposterCount(full, matterCapacity)

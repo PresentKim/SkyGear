@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -18,20 +20,20 @@ func TestStartIsland(t *testing.T) {
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		(&Game{}).Init(tx, nil)
-		for x := islandCentre - 1; x <= islandCentre+1; x++ {
-			for z := islandCentre - 1; z <= islandCentre+1; z++ {
-				if _, ok := tx.Block(cube.Pos{x, IslandY - 3, z}).(block.Bedrock); !ok {
+		for x := island.Centre - 1; x <= island.Centre+1; x++ {
+			for z := island.Centre - 1; z <= island.Centre+1; z++ {
+				if _, ok := tx.Block(cube.Pos{x, island.IslandY - 3, z}).(block.Bedrock); !ok {
 					t.Fatalf("no bedrock at %d,%d", x, z)
 				}
-				if _, ok := tx.Block(cube.Pos{x, IslandY - 1, z}).(block.Grass); !ok && (x != islandCentre || z != islandCentre) {
+				if _, ok := tx.Block(cube.Pos{x, island.IslandY - 1, z}).(block.Grass); !ok && (x != island.Centre || z != island.Centre) {
 					t.Fatalf("no grass at %d,%d", x, z)
 				}
 			}
 		}
-		if _, ok := tx.Block(cube.Pos{islandCentre, IslandY, islandCentre}).(block.Log); !ok {
-			t.Fatalf("no tree in the middle: %T", tx.Block(cube.Pos{islandCentre, IslandY, islandCentre}))
+		if _, ok := tx.Block(cube.Pos{island.Centre, island.IslandY, island.Centre}).(block.Log); !ok {
+			t.Fatalf("no tree in the middle: %T", tx.Block(cube.Pos{island.Centre, island.IslandY, island.Centre}))
 		}
-		if _, ok := tx.Block(cube.Pos{islandCentre + 2, IslandY - 1, islandCentre}).(block.Air); !ok {
+		if _, ok := tx.Block(cube.Pos{island.Centre + 2, island.IslandY - 1, island.Centre}).(block.Air); !ok {
 			t.Fatal("the island is wider than 3")
 		}
 		// A new save spawns on the grass beside the trunk, not inside it.

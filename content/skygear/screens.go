@@ -3,6 +3,7 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -126,7 +127,7 @@ func (s *session) mainMenu(p *player.Player) []ui.Option {
 		s.opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
 		s.opt(i18n.T(i18n.Of(p), "menu.advancements"), formicon.Advances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.opt(i18n.T(i18n.Of(p), "island.manage"), formicon.Manage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
-		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(s.state.Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
+		s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(island.StateOf(s.Session).Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),
 		s.opt(i18n.T(i18n.Of(p), "menu.friends"), formicon.Friends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
 		s.opt(i18n.T(i18n.Of(p), "menu.cosmetics"), formicon.Title, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), formicon.Stats, func(p *player.Player, tx *world.Tx) {
@@ -174,11 +175,11 @@ func (s *session) showLostPage(p *player.Player, page int) {
 }
 
 func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
-	s.purgeLost()
+	island.PurgeLost(s.Session)
 	body := i18n.T(lang, "lost.body")
 	var slots []ui.ItemSlot
-	for _, l := range s.state.Lost {
-		it := l.decoded()
+	for _, l := range island.StateOf(s.Session).Lost {
+		it := l.Decoded()
 		if it.Empty() {
 			continue
 		}
@@ -190,7 +191,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 				if tx.World() != s.World {
 					return
 				}
-				if s.takeLost(p, l) {
+				if island.TakeLost(s.Session, p, l) {
 					progress.Advance(s.Session, tx, advancement.Lost)
 				}
 				s.showLost(p)

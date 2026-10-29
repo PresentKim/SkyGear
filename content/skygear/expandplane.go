@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -28,13 +30,13 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 	lang := i18n.Of(p)
 	t := e.target
 	cx, cz := float64(t[0])*16+8, float64(t[1])*16+8
-	buyable := s.purchasableChunks()
-	cost := chunkCost(len(s.state.Chunks))
-	r := int32(islandRadius)
+	buyable := island.Purchasable(s.Session)
+	cost := island.ChunkCost(len(island.StateOf(s.Session).Chunks))
+	r := int32(island.Radius)
 	var spots []ui.PlaneSpot
 	for dz := int32(-expandPlaneReach); dz <= expandPlaneReach; dz++ {
 		for dx := int32(-expandPlaneReach); dx <= expandPlaneReach; dx++ {
-			c := ChunkPos{t[0] + dx, t[1] + dz}
+			c := island.ChunkPos{t[0] + dx, t[1] + dz}
 			if c[0] < -r || c[0] > r || c[1] < -r || c[1] > r {
 				continue
 			}
@@ -50,14 +52,14 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 			spots = append(spots, sp)
 		}
 	}
-	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(s.state.Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), costText(lang, cost), textfmt.Int(int64(core.CountPlain(p.Inventory(), cost.Item))))
+	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(island.StateOf(s.Session).Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), island.CostText(lang, cost), textfmt.Int(int64(core.CountPlain(p.Inventory(), cost.Item))))
 	var actions []ui.Option
 	keys := map[ui.Key]func(p *player.Player, tx *world.Tx){
 		ui.KeyUp: s.expandStep(0, -1), ui.KeyDown: s.expandStep(0, 1), ui.KeyLeft: s.expandStep(-1, 0), ui.KeyRight: s.expandStep(1, 0),
 	}
 	if slices.Contains(buyable, t) {
 		buy := func(p *player.Player, tx *world.Tx) {
-			s.buyChunk(p, tx, t)
+			island.Buy(s.Session, p, tx, t)
 			if e, ok := s.expansionOf(p); ok {
 				s.drawMap(p, e, true)
 				s.showExpandPlane(p, e)
@@ -81,7 +83,7 @@ func (s *session) showExpandPlane(p *player.Player, e *expansion) {
 func (s *session) expandStep(dx, dz int32) func(p *player.Player, tx *world.Tx) {
 	return func(p *player.Player, tx *world.Tx) {
 		if e, ok := s.expansionOf(p); ok && tx.World() == s.World {
-			s.moveCursor(p, e, ChunkPos{e.target[0] + dx, e.target[1] + dz})
+			s.moveCursor(p, e, island.ChunkPos{e.target[0] + dx, e.target[1] + dz})
 			s.showExpandPlane(p, e)
 		}
 	}
@@ -89,9 +91,9 @@ func (s *session) expandStep(dx, dz int32) func(p *player.Player, tx *world.Tx) 
 
 // chunkLabel is whether chunk c is owned, can be bought (buyable) or has no
 // owned chunk beside it.
-func (s *session) chunkLabel(lang string, c ChunkPos, buyable []ChunkPos) string {
+func (s *session) chunkLabel(lang string, c island.ChunkPos, buyable []island.ChunkPos) string {
 	switch {
-	case s.owns(c):
+	case island.Owns(s.Session, c):
 		return i18n.T(lang, "expand.plane.ownedChunk")
 	case slices.Contains(buyable, c):
 		return i18n.T(lang, "expand.plane.buyable")

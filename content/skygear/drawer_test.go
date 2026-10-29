@@ -3,6 +3,7 @@ package skygear
 import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/island"
 
 	"slices"
 	"strings"
@@ -151,7 +152,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	drawerPos := cube.Pos{0, IslandY, 0}
+	drawerPos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(drawerPos, Drawer{Facing: cube.South}, nil)
 	})
@@ -172,7 +173,7 @@ func TestUseOnBlockConsumesHeldItems(t *testing.T) {
 func TestDrawerToolsUpgradesAndKey(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 0}
+	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, Drawer{Facing: cube.South}, nil) })
 	h := spawnPlayer(s)
 	use := func(p *player.Player) { p.UseItemOnBlock(pos, cube.FaceSouth, mgl64.Vec3{0.5, 0.5, 1}) }
@@ -250,7 +251,7 @@ func TestDrawerUpgradeMarks(t *testing.T) {
 func TestDrawerDoubleUseAndPunch(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 0}
+	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Locked: true}, nil)
 	})
@@ -290,7 +291,7 @@ func TestDrawerDoubleUseAndPunch(t *testing.T) {
 func TestDrawerFrontPunchIsPerPlayer(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	d1, d2 := cube.Pos{0, IslandY, 0}, cube.Pos{2, IslandY, 0}
+	d1, d2 := cube.Pos{0, island.IslandY, 0}, cube.Pos{2, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(d1, Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(d2, Drawer{Facing: cube.South}, nil)
@@ -345,7 +346,7 @@ func TestDrawerStatesMatchRuntimeIDs(t *testing.T) {
 func TestDrawerPunchFullInventoryDrops(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 0}
+	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South, Item: item.NewStack(block.Cobblestone{}, 1), Count: 10}, nil)
 	})
@@ -399,7 +400,7 @@ func TestLockedEmptyDrawer(t *testing.T) {
 func TestDrawerMenuSlots(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 0}
+	pos := cube.Pos{0, island.IslandY, 0}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
 	})

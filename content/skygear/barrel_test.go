@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -38,7 +40,7 @@ func TestBarrelMakesWater(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{4, IslandY, 4}
+		pos := cube.Pos{4, island.IslandY, 4}
 		barrel := Barrel{Wood: "oak"}
 		tx.SetBlock(pos, barrel, nil)
 		leaves := item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)
@@ -101,7 +103,7 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
-		pos := cube.Pos{5, IslandY, 5}
+		pos := cube.Pos{5, island.IslandY, 5}
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
 		s.state.Barrels = map[string]*BarrelRecord{cropKey(pos): {Count: 3}}
 		tx.SetBlock(pos, block.Air{}, nil)
@@ -139,7 +141,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 		{"nothing", block.Air{}, 0},
 	} {
 		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-			pos := cube.Pos{4, IslandY + 3, 4}
+			pos := cube.Pos{4, island.IslandY + 3, 4}
 			barrel := Barrel{Wood: stoneWood}
 			delete(s.state.Barrels, cropKey(pos))
 			tx.SetBlock(pos.Side(cube.FaceDown), c.below, nil)
@@ -171,7 +173,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 		})
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{8, IslandY + 3, 8}
+		pos := cube.Pos{8, island.IslandY + 3, 8}
 		barrel := Barrel{Wood: stoneWood}
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, nil)
 		tx.SetBlock(pos, barrel, nil)
@@ -246,7 +248,7 @@ func TestStoneBarrelOldSave(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		lava, cobble := cube.Pos{4, IslandY + 3, 4}, cube.Pos{6, IslandY + 3, 4}
+		lava, cobble := cube.Pos{4, island.IslandY + 3, 4}, cube.Pos{6, island.IslandY + 3, 4}
 		tx.SetBlock(lava, Barrel{Wood: stoneWood, Stage: barrelWater}, nil)
 		tx.SetBlock(cobble, Barrel{Wood: stoneWood, Stage: 3}, nil)
 		s.state.Barrels = map[string]*BarrelRecord{
@@ -353,7 +355,7 @@ func TestBarrelClayByHopper(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{4, IslandY + 3, 4}
+		pos := cube.Pos{4, island.IslandY + 3, 4}
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
 		dust := item.NewStack(sgitem.Dust{}, 40)
 		if n := itemio.Insert(tx, pos, cube.FaceUp, dust); n != 0 {
@@ -396,7 +398,7 @@ func TestWoodenBucket(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{4, IslandY + 3, 4}
+		pos := cube.Pos{4, island.IslandY + 3, 4}
 		tx.SetBlock(pos, Barrel{Wood: "oak"}, nil)
 		if s.state.Barrels == nil {
 			s.state.Barrels = map[string]*BarrelRecord{}
@@ -414,7 +416,7 @@ func TestWoodenBucket(t *testing.T) {
 			t.Fatal("the barrel kept its water")
 		}
 		// Lava stays in the barrel.
-		stone := cube.Pos{6, IslandY + 3, 4}
+		stone := cube.Pos{6, island.IslandY + 3, 4}
 		tx.SetBlock(stone, Barrel{Wood: stoneWood}, nil)
 		s.state.Barrels[cropKey(stone)] = &BarrelRecord{LavaMB: bucketMB}
 		p.SetHeldItems(empty, item.Stack{})
@@ -428,7 +430,7 @@ func TestWoodenBucket(t *testing.T) {
 			t.Fatal("the lava went")
 		}
 		// A water source fills the bucket and the full bucket pours it out.
-		src := cube.Pos{8, IslandY + 3, 8}
+		src := cube.Pos{8, island.IslandY + 3, 8}
 		tx.SetLiquid(src, block.Water{Depth: 8, Still: true})
 		var ctx item.UseContext
 		if !(sgitem.WoodenBucket{}).UseOnBlock(src, cube.FaceUp, mgl64.Vec3{}, tx, p, &ctx) || ctx.NewItem.Empty() {

@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -47,7 +49,7 @@ func TestLeavesDecayOnScheduledTick(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
-		alone, near := cube.Pos{6, IslandY + 5, 6}, cube.Pos{9, IslandY + 5, 9}
+		alone, near := cube.Pos{6, island.IslandY + 5, 6}, cube.Pos{9, island.IslandY + 5, 9}
 		leaves := block.Leaves{Type: block.OakLeaves(), ShouldUpdate: true}
 		tx.SetBlock(alone, leaves, nil)
 		tx.SetBlock(near, leaves, nil)

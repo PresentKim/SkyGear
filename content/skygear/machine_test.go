@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/energy"
@@ -25,7 +27,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 )
 
-var machinePos = cube.Pos{3, IslandY, 3}
+var machinePos = cube.Pos{3, island.IslandY, 3}
 
 // placeTestMachine places a machine and returns its state.
 func placeTestMachine(s *session, pos cube.Pos, kind, owner string) *machineState {
@@ -226,7 +228,7 @@ func TestMineable(t *testing.T) {
 func TestHandsFreeLine(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	minerPos := cube.Pos{0, IslandY + 2, 0}
+	minerPos := cube.Pos{0, island.IslandY + 2, 0}
 	conduitPos := minerPos.Side(cube.FaceEast)
 	crusherPos := conduitPos.Side(cube.FaceEast)
 	hopperPos, chestPos := crusherPos.Side(cube.FaceDown), crusherPos.Add(cube.Pos{0, -2, 0})
@@ -276,13 +278,13 @@ func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
 func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	pos := cube.Pos{0, IslandY, 1}
+	pos := cube.Pos{0, island.IslandY, 1}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(cube.Pos{0, IslandY, 2}, block.Stone{}, nil)
+		tx.SetBlock(cube.Pos{0, island.IslandY, 2}, block.Stone{}, nil)
 	})
 	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.Teleport(mgl64.Vec3{0.5, IslandY + 1, 2.5}) })
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.Teleport(mgl64.Vec3{0.5, island.IslandY + 1, 2.5}) })
 	tick(s, 2) // land
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
 	tick(s, 2)

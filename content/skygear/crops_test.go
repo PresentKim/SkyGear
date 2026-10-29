@@ -5,13 +5,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-var cropPos = cube.Pos{4, IslandY, 4}
+var cropPos = cube.Pos{4, island.IslandY, 4}
 
 // plantAt puts a crop on farmland and records it as planted now.
 func plantAt(s *session, pos cube.Pos, b world.Block) {

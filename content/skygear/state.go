@@ -3,7 +3,6 @@ package skygear
 import (
 	"time"
 
-	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/content/skygear/core"
 )
 
@@ -19,11 +18,6 @@ const stateVersion = 1
 // world: it may only be read or changed from that world's transactions.
 type State struct {
 	Version int `json:"version"`
-	// Chunks are the owned island chunks.
-	Chunks []ChunkPos `json:"chunks"`
-	// Home is where the island's players start (x, z); zero for a save made
-	// when the island was around the origin.
-	Home [2]float64 `json:"home,omitempty"`
 	// NextFairy is the instance time of the next gift fairy visit.
 	NextFairy time.Duration `json:"next_fairy,omitempty"`
 	// FairyDust is whether the fairy has given the save fairy dust; until
@@ -42,8 +36,6 @@ type State struct {
 	// BaseBiome is the island's biome an old save's snow changed, given back
 	// at the next start (restoreBiome).
 	BaseBiome *uint32 `json:"base_biome,omitempty"`
-	// Lost is the lost-and-found box, most recent first.
-	Lost []*LostItem `json:"lost,omitempty"`
 	// Crops are the planted crops by position ("x,y,z", crops.go).
 	Crops map[string]*CropRecord `json:"crops,omitempty"`
 	// Composters are the plant items in each composter by position
@@ -71,35 +63,8 @@ type State struct {
 	LastSapling time.Time `json:"last_sapling,omitempty"`
 }
 
-// ChunkPos is a chunk coordinate.
-type ChunkPos [2]int32
-
-// LostItem is a stack type in the lost-and-found box.
-type LostItem struct {
-	// Item is the little endian NBT of the item with count 1. Drops are
-	// merged when the decoded stacks are Comparable (same item and NBT).
-	Item  []byte `json:"item"`
-	Count int    `json:"count"`
-	// LastDropped is the instance time of the most recent drop.
-	LastDropped time.Duration `json:"last_dropped"`
-	// stack is Item decoded, once it was needed (decoded).
-	stack item.Stack
-}
-
-// decoded is the stack of the entry, with count 1.
-func (l *LostItem) decoded() item.Stack {
-	if l.stack.Empty() {
-		l.stack = core.DecodeItem(l.Item)
-	}
-	return l.stack
-}
-
 func newState() *State {
 	return &State{
 		Version: stateVersion,
-		// The starting island covers one chunk, with the 3×3×3 island in its
-		// centre.
-		Chunks: []ChunkPos{{0, 0}},
-		Home:   [2]float64{islandCentre + 0.5, islandCentre + 0.5},
 	}
 }

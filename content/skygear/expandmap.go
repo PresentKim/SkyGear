@@ -10,6 +10,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 )
 
 // The expansion map is a flattened copy of the island sent as fake chunks
@@ -25,7 +26,7 @@ const mapBodyAbove = 4
 const mapOffset = 1875
 
 // mapChunk is where island chunk c is shown on the map.
-func mapChunk(c ChunkPos) world.ChunkPos {
+func mapChunk(c island.ChunkPos) world.ChunkPos {
 	return world.ChunkPos{c[0] + mapOffset, c[1] + mapOffset}
 }
 
@@ -36,22 +37,22 @@ func mapShift(v mgl64.Vec3) mgl64.Vec3 {
 
 // mapKinds returns the glass of each chunk drawn near the cursor: owned
 // chunks in the two greens, buyable ones yellow.
-func (s *session) mapKinds(e *expansion) map[ChunkPos]world.Block {
-	want := map[ChunkPos]world.Block{}
+func (s *session) mapKinds(e *expansion) map[island.ChunkPos]world.Block {
+	want := map[island.ChunkPos]world.Block{}
 	near := int32(expandMapReach)
-	add := func(c ChunkPos, b world.Block) {
+	add := func(c island.ChunkPos, b world.Block) {
 		if core.Abs(c[0]-e.target[0]) <= near && core.Abs(c[1]-e.target[1]) <= near {
 			want[c] = b
 		}
 	}
-	for _, c := range s.state.Chunks {
+	for _, c := range island.StateOf(s.Session).Chunks {
 		b := world.Block(floorOwned)
 		if (c[0]+c[1])%2 != 0 {
 			b = floorOwnedAlt
 		}
 		add(c, b)
 	}
-	for _, c := range s.purchasableChunks() {
+	for _, c := range island.Purchasable(s.Session) {
 		add(c, floorBuyable)
 	}
 	return want
@@ -72,7 +73,7 @@ func (s *session) drawMap(p *player.Player, e *expansion, on bool) {
 		return
 	}
 	if e.mapShown == nil {
-		e.mapShown = map[ChunkPos]world.Block{}
+		e.mapShown = map[island.ChunkPos]world.Block{}
 	}
 	tx := p.Tx()
 	// The body goes over the cursor first; the client takes chunks around
@@ -95,11 +96,11 @@ func (s *session) drawMap(p *player.Player, e *expansion, on bool) {
 // light passes through (torch, crop, slab, glass, our own models) gets the
 // next block below it underneath, so the map has no holes. Only owned
 // chunks are read (others are empty void and may not be loaded).
-func (s *session) mapColumn(tx *world.Tx, c ChunkPos, glass world.Block) *chunk.Chunk {
+func (s *session) mapColumn(tx *world.Tx, c island.ChunkPos, glass world.Block) *chunk.Chunk {
 	reg := tx.World().BlockRegistry()
 	col := chunk.New(reg, tx.Range())
 	glassID := reg.BlockRuntimeID(glass)
-	owned := s.owns(c)
+	owned := island.Owns(s.Session, c)
 	low := tx.Range().Min()
 	for x := range 16 {
 		for z := range 16 {

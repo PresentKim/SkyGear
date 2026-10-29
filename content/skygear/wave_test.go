@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/entity"
@@ -155,7 +157,7 @@ func TestMonsterReturnsFromVoid(t *testing.T) {
 		m := mons[0]
 		m.Hurt(tx, 3, p)
 		health := m.Health()
-		m.data.Pos = mgl64.Vec3{m.data.Pos[0], IslandY - monsterVoid - 1, m.data.Pos[2]}
+		m.data.Pos = mgl64.Vec3{m.data.Pos[0], island.IslandY - monsterVoid - 1, m.data.Pos[2]}
 		m.Tick(tx, 0)
 		if s.wave == nil || !s.wave.owns(m.handle) || m.handle.Closed() {
 			t.Fatal("a monster in the void left the wave")

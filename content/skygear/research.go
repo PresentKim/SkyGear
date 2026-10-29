@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/progress"
 
@@ -444,7 +446,7 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 			case len(missing) > 0:
 				var names []string
 				for _, m := range missing {
-					names = append(names, costText(i18n.Of(p), m))
+					names = append(names, island.CostText(i18n.Of(p), m))
 				}
 				ui.Notify(p, i18n.T(i18n.Of(p), "researchnode.missing"), strings.Join(names, ", "))
 			}

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -83,7 +85,7 @@ func TestCountersCount(t *testing.T) {
 		if _, err := d.TouchAccount(acc, "", p.Name()); err != nil {
 			t.Fatal(err)
 		}
-		pos := cube.Pos{1, IslandY - 1, 1}
+		pos := cube.Pos{1, island.IslandY - 1, 1}
 		tx.SetBlock(pos, block.Dirt{}, nil)
 		if !s.useStick(p, tx, pos, cube.FaceUp, item.NewStack(item.Stick{}, 1)) {
 			t.Fatal("stick on dirt must be used")

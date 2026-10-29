@@ -3,6 +3,8 @@ package skygear
 import (
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -154,11 +156,11 @@ func (s *session) veinMine(p *player.Player, tx *world.Tx, pos cube.Pos) {
 	if tool := s.veinToolBudget(held); s.veinFoodBudget(p) < tool {
 		// The food stops the vein short of what the hammer would break: the
 		// player sees fewer blocks go and nothing else says why.
-		if len(veinBlocks(tx, pos, tool+1, diagonal, s.canBuild))-1 > left {
+		if len(veinBlocks(tx, pos, tool+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) }))-1 > left {
 			p.SendTip(i18n.T(i18n.Of(p), "hammer.vein.hungry"))
 		}
 	}
-	blocks := veinBlocks(tx, pos, left+1, diagonal, s.canBuild)
+	blocks := veinBlocks(tx, pos, left+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s.Session, p) })
 	if len(blocks) < 2 || left <= 0 {
 		return
 	}
@@ -217,12 +219,12 @@ type veinOutline struct {
 // showVeinOutline shows p, sneaking with the iron hammer, the blocks it
 // would break mining the block at pos (hiding them otherwise).
 func (s *session) showVeinOutline(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if held, _ := p.HeldItems(); !sgitem.IsIronHammer(held) || !p.Sneaking() || !s.canBuild(pos) {
+	if held, _ := p.HeldItems(); !sgitem.IsIronHammer(held) || !p.Sneaking() || !island.CanBuild(s.Session, pos) {
 		s.hideVeinOutline(p)
 		return
 	}
 	held, _ := p.HeldItems()
-	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, account.On(p, veinDiagonalSetting), s.canBuild)
+	blocks := veinBlocks(tx, pos, s.veinBudget(p, held)+1, account.On(p, veinDiagonalSetting), func(p cube.Pos) bool { return island.CanBuild(s.Session, p) })
 	if len(blocks) == 0 {
 		s.hideVeinOutline(p)
 		return

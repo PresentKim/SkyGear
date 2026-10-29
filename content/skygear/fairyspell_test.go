@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -121,14 +123,14 @@ func TestSunSpells(t *testing.T) {
 func TestRestoreBiome(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.state.Chunks = []ChunkPos{{0, 0}}
+	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
 	snowy, plains := uint32(biome.SnowyPlains{}.EncodeBiome()), uint32(biome.Plains{}.EncodeBiome())
 	s.state.BaseBiome = &plains
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBiome(cube.Pos{3, IslandY, 3}, biome.SnowyPlains{})
-		tx.SetBiome(cube.Pos{-5, IslandY, 20}, biome.SnowyPlains{})
+		tx.SetBiome(cube.Pos{3, island.IslandY, 3}, biome.SnowyPlains{})
+		tx.SetBiome(cube.Pos{-5, island.IslandY, 20}, biome.SnowyPlains{})
 		s.applyEnvironment(tx)
-		for _, pos := range []cube.Pos{{3, IslandY, 3}, {-5, IslandY, 20}} {
+		for _, pos := range []cube.Pos{{3, island.IslandY, 3}, {-5, island.IslandY, 20}} {
 			if got := uint32(tx.Biome(pos).EncodeBiome()); got != plains || got == snowy {
 				t.Errorf("biome at %v is %d", pos, got)
 			}

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/common/energy"
@@ -27,9 +29,6 @@ import (
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )
-
-// IslandY is the Y level of the island surface.
-const IslandY = 64
 
 // Game is the skygear game type.
 type Game struct {
@@ -72,22 +71,18 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	return g
 }
 
-// islandCentre is the block (x and z) at the middle of the starting chunk,
-// where the starting island is built.
-const islandCentre = 8
-
 // Init builds the starting island: a
 // 3×3×3 sky island in the middle of the first chunk, bedrock at the bottom,
 // dirt, grass on top, with an oak tree in the middle.
 func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
-	for x := islandCentre - 1; x <= islandCentre+1; x++ {
-		for z := islandCentre - 1; z <= islandCentre+1; z++ {
-			tx.SetBlock(cube.Pos{x, IslandY - 3, z}, block.Bedrock{}, nil)
-			tx.SetBlock(cube.Pos{x, IslandY - 2, z}, block.Dirt{}, nil)
-			tx.SetBlock(cube.Pos{x, IslandY - 1, z}, block.Grass{}, nil)
+	for x := island.Centre - 1; x <= island.Centre+1; x++ {
+		for z := island.Centre - 1; z <= island.Centre+1; z++ {
+			tx.SetBlock(cube.Pos{x, island.IslandY - 3, z}, block.Bedrock{}, nil)
+			tx.SetBlock(cube.Pos{x, island.IslandY - 2, z}, block.Dirt{}, nil)
+			tx.SetBlock(cube.Pos{x, island.IslandY - 1, z}, block.Grass{}, nil)
 		}
 	}
-	growTreeAt(tx, cube.Pos{islandCentre, IslandY, islandCentre})
+	growTreeAt(tx, cube.Pos{island.Centre, island.IslandY, island.Centre})
 }
 
 // Start begins a session for an activated save.
@@ -107,13 +102,12 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		lastUse: map[*world.EntityHandle]drawerUse{}, lastPunch: map[*world.EntityHandle]drawerPunch{},
 	}
 	s.state = savedState.Of(c)
-	st := s.state
 	s.tickReach = inst.LoadRadius() * 16
 	s.loadCrops()
-	s.keep = func(tx *world.Tx, c ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) }
+	island.SetKeep(c, func(tx *world.Tx, c island.ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) })
 	inst.World.Do(func(tx *world.Tx) {
-		for _, c := range st.Chunks {
-			s.keepLoaded(tx, c)
+		for _, c := range island.StateOf(s.Session).Chunks {
+			island.KeepLoaded(s.Session, tx, c)
 		}
 		s.applyEnvironment(tx)
 	})
@@ -164,8 +158,6 @@ type session struct {
 	growAt   time.Duration
 	rain     bool
 	snow     bool
-	// keep keeps an owned chunk loaded (instance.KeepLoaded); nil in tests.
-	keep func(tx *world.Tx, c ChunkPos)
 	// state is the saved state (savedState).
 	state *State
 	// displays are the drawer display entities by drawer position.
@@ -223,16 +215,8 @@ type session struct {
 	uptime   int
 }
 
-// Spawn is next to the tree of the starting island: Home is the island's
-// centre, where the trunk grows, so the spawn is one block east of it. An old
-// save without Home has its island around the origin.
-func (s *session) Spawn() mgl64.Vec3 {
-	home := [2]float64{1.5, 1.5}
-	if s.state != nil && s.state.Home != ([2]float64{}) {
-		home = s.state.Home
-	}
-	return mgl64.Vec3{home[0] + 1, IslandY, home[1]}
-}
+// Spawn is where a player without a position starts (island.Spawn).
+func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 
 func (s *session) Join(p *player.Player, first bool) {
 	if first {
@@ -243,7 +227,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.backfillFairyDust(p, p.Tx())
 	s.showWeather(p)
 	s.sendShapes(p)
-	s.purgeLost()
+	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
 	delete(s.boards, p.H())
 	s.updateBoard(p)
@@ -277,7 +261,7 @@ func (s *session) Leave(p *player.Player) {
 func (s *session) Handler(*player.Player) player.Handler { return &handler{s: s} }
 
 func (s *session) NewDay(tx *world.Tx, day int) {
-	s.purgeLost()
+	island.PurgeLost(s.Session)
 	s.Broadcast(tx, "game.newDay", day)
 }
 

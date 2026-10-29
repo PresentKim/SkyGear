@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/common/i18n"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -38,7 +40,7 @@ func TestWitchWater(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{4, IslandY + 2, 4}
+		pos := cube.Pos{4, island.IslandY + 2, 4}
 		under := pos.Side(cube.FaceDown)
 		tx.SetBlock(under, block.Dirt{}, nil)
 		ctx := &item.UseContext{}

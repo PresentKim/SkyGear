@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
@@ -35,7 +37,7 @@ func TestStickKnocksPebbles(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		grass, stone := cube.Pos{1, IslandY - 1, 1}, cube.Pos{2, IslandY - 1, 1}
+		grass, stone := cube.Pos{1, island.IslandY - 1, 1}, cube.Pos{2, island.IslandY - 1, 1}
 		tx.SetBlock(grass, block.Grass{}, nil)
 		tx.SetBlock(stone, block.Stone{}, nil)
 		stickStack := item.NewStack(item.Stick{}, 1)
@@ -74,7 +76,7 @@ func TestAxeStripsFiber(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
-		pos := cube.Pos{1, IslandY, 1}
+		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, oakLog, nil)
 		for range 50 {
 			s.stripFiber(nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
@@ -97,7 +99,7 @@ func TestDropsHaveMotion(t *testing.T) {
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		for range 20 {
-			s.DropAt(tx, cube.Pos{1, IslandY + 2, 1}.Vec3Centre(), item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
+			s.DropAt(tx, cube.Pos{1, island.IslandY + 2, 1}.Vec3Centre(), item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
 		}
 		n := 0
 		for e := range tx.Entities() {
@@ -139,7 +141,7 @@ func TestGrassSeeds(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{4, IslandY + 2, 4}
+		pos := cube.Pos{4, island.IslandY + 2, 4}
 		hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
 		for range 200 {
 			tx.SetBlock(pos, block.Dirt{}, nil)

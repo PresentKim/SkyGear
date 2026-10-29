@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/sghook"
 
@@ -25,7 +27,7 @@ const (
 	expandMapFOV          = 30
 	expandMapCameraHeight = 65
 	// expandFloorY is the height of the map's glass (the island surface).
-	expandFloorY = IslandY - 1
+	expandFloorY = island.IslandY - 1
 	// expandRestore is how long after a click on the map its chunk is sent
 	// again (restoreMapNear).
 	expandRestore = 50 * time.Millisecond
@@ -56,16 +58,16 @@ func (viewOnlyMode) Visible() bool             { return true }
 func (viewOnlyMode) InstantPortalTravel() bool { return false }
 
 type expansion struct {
-	target ChunkPos
+	target island.ChunkPos
 	// mode is the game mode to restore.
 	mode world.GameMode
 	// body is the chunk the frozen body stands in.
-	body ChunkPos
+	body island.ChunkPos
 	// started tells apart a later expansion from this one in delayed tasks.
 	started time.Time
 	// mapShown is the glass of each map chunk sent in the "map" view
 	// (expandmap.go); home is where the body stood, to go back to.
-	mapShown map[ChunkPos]world.Block
+	mapShown map[island.ChunkPos]world.Block
 	home     mgl64.Vec3
 }
 
@@ -84,7 +86,7 @@ func (s *session) showExpand(p *player.Player) {
 	if s.expanding == nil {
 		s.expanding = map[*world.EntityHandle]*expansion{}
 	}
-	at := chunkOf(cube.PosFromVec3(p.Position()))
+	at := island.ChunkOf(cube.PosFromVec3(p.Position()))
 	e := &expansion{target: at, body: at, started: time.Now(), mode: p.GameMode(), home: p.Position()}
 	s.expanding[p.H()] = e
 	p.SetImmobile()
@@ -112,13 +114,13 @@ func (s *session) stopExpand(p *player.Player, tx *world.Tx) {
 }
 
 // cursorPos is the centre of chunk c at the island surface.
-func cursorPos(c ChunkPos) mgl64.Vec3 {
-	return mgl64.Vec3{float64(c[0])*16 + 8, IslandY, float64(c[1])*16 + 8}
+func cursorPos(c island.ChunkPos) mgl64.Vec3 {
+	return mgl64.Vec3{float64(c[0])*16 + 8, island.IslandY, float64(c[1])*16 + 8}
 }
 
 // moveCursor moves the cursor to chunk c if it is within the island range.
-func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
-	r := int32(islandRadius)
+func (s *session) moveCursor(p *player.Player, e *expansion, c island.ChunkPos) {
+	r := int32(island.Radius)
 	switch {
 	case c == e.target:
 		return
@@ -153,8 +155,8 @@ func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
 		if !ok || tx.World() != s.World {
 			return
 		}
-		c := chunkOf(pos)
-		c = ChunkPos{c[0] - mapOffset, c[1] - mapOffset}
+		c := island.ChunkOf(pos)
+		c = island.ChunkPos{c[0] - mapOffset, c[1] - mapOffset}
 		if glass, ok := e.mapShown[c]; ok {
 			p.ViewFakeChunk(mapChunk(c), s.mapColumn(tx, c, glass))
 		}

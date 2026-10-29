@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -1104,7 +1106,7 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := activeGame.sessionOf(tx.World())
-	if !ok || !ok2 || !s.canBuild(pos) || m.st == nil {
+	if !ok || !ok2 || !island.CanBuild(s.Session, pos) || m.st == nil {
 		return false
 	}
 	m.st.pos = pos

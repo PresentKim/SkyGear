@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -17,7 +19,7 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{1, IslandY, 1}
+		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, block.NewChest(), nil)
 		chest := tx.Block(pos).(block.Chest).Inventory(tx, pos)
 		_ = chest.SetItem(0, item.NewStack(block.Dirt{}, 1))
@@ -58,7 +60,7 @@ func TestThreeSneakingStickUsesSortChest(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		pos := cube.Pos{1, IslandY, 1}
+		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, block.NewChest(), nil)
 		chest := tx.Block(pos).(block.Chest).Inventory(tx, pos)
 		_ = chest.SetItem(3, item.NewStack(block.Stone{}, 40))

@@ -3,6 +3,8 @@ package skygear
 import (
 	"math"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
@@ -166,7 +168,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	}
 	d, st := m.md(), monsterTable[m.kind]
 	pos := m.data.Pos
-	if pos.Y() < IslandY-monsterVoid {
+	if pos.Y() < island.IslandY-monsterVoid {
 		s.returnToGate(tx, m)
 		return
 	}

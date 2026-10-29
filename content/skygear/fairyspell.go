@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
@@ -187,7 +188,7 @@ func (s *session) restoreBiome(tx *world.Tx) {
 		return
 	}
 	want, r := *s.state.BaseBiome, tx.Range()
-	for _, c := range s.state.Chunks {
+	for _, c := range island.StateOf(s.Session).Chunks {
 		for dx := int32(-1); dx <= 1; dx++ {
 			for dz := int32(-1); dz <= 1; dz++ {
 				ch := sghook.Column(tx, world.ChunkPos{c[0] + dx, c[1] + dz}).Chunk

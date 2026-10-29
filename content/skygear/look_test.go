@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -27,7 +29,7 @@ func TestLookedAt(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	target, crop := cube.Pos{4, IslandY + 3, 8}, cube.Pos{8, IslandY + 3, 8}
+	target, crop := cube.Pos{4, island.IslandY + 3, 8}, cube.Pos{8, island.IslandY + 3, 8}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(target, block.Stone{}, nil)
 		tx.SetBlock(crop.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
@@ -63,7 +65,7 @@ func TestLookedAtPlacedBarrel(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	target := cube.Pos{2, IslandY + 3, 5}
+	target := cube.Pos{2, island.IslandY + 3, 5}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		below := target.Side(cube.FaceDown)
 		tx.SetBlock(below.Side(cube.FaceDown), block.Netherrack{}, nil)
@@ -91,7 +93,7 @@ func TestLookInfo(t *testing.T) {
 	st := placeTestMachine(s, machinePos, KindCrusher, "")
 	st.insert(item.NewStack(block.Cobblestone{}, 5))
 	tick(s, machineKinds[KindCrusher].interval/2+1)
-	drawerPos := cube.Pos{6, IslandY, 3}
+	drawerPos := cube.Pos{6, island.IslandY, 3}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		text := func(pos cube.Pos) string {
 			info := s.lookInfo(p, tx, pos, tx.Block(pos))
@@ -116,7 +118,7 @@ func TestLookInfo(t *testing.T) {
 			t.Errorf("sneaking drawer lines %q, want the upgrades and the lock", info.Lines)
 		}
 		p.StopSneaking()
-		chestPos := cube.Pos{11, IslandY, 3}
+		chestPos := cube.Pos{11, island.IslandY, 3}
 		tx.SetBlock(chestPos, block.NewChest(), nil)
 		if c, ok := tx.Block(chestPos).(block.Chest); ok {
 			_, _ = c.Inventory(tx, chestPos).AddItem(item.NewStack(block.Dirt{}, 20))
@@ -127,7 +129,7 @@ func TestLookInfo(t *testing.T) {
 		if info := s.lookInfo(p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
 			t.Errorf("crusher panel has slots: %+v", info.Container)
 		}
-		stone := cube.Pos{1, IslandY + 4, 1}
+		stone := cube.Pos{1, island.IslandY + 4, 1}
 		tx.SetBlock(stone, block.Stone{}, nil)
 		info := s.lookInfo(p, tx, stone, block.Stone{})
 		if info.Name != "돌" || info.Source != "" || len(info.Tools) == 0 || info.Item == nil {

@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/island"
+
 	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -29,7 +31,7 @@ func chestCount(tx *world.Tx, pos cube.Pos, it item.Stack) int {
 func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	top, mid, bottom := cube.Pos{2, IslandY + 4, 2}, cube.Pos{2, IslandY + 3, 2}, cube.Pos{2, IslandY + 2, 2}
+	top, mid, bottom := cube.Pos{2, island.IslandY + 4, 2}, cube.Pos{2, island.IslandY + 3, 2}, cube.Pos{2, island.IslandY + 2, 2}
 	wheat := item.NewStack(item.Wheat{}, 1)
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(top, block.NewChest(), nil)
@@ -64,8 +66,8 @@ func TestWoodHopperIsSlowAndOneSlot(t *testing.T) {
 func TestReverseHopperMovesUp(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	below, mid, above := cube.Pos{4, IslandY + 2, 4}, cube.Pos{4, IslandY + 3, 4}, cube.Pos{4, IslandY + 4, 4}
-	side := cube.Pos{5, IslandY + 3, 4}
+	below, mid, above := cube.Pos{4, island.IslandY + 2, 4}, cube.Pos{4, island.IslandY + 3, 4}, cube.Pos{4, island.IslandY + 4, 4}
+	side := cube.Pos{5, island.IslandY + 3, 4}
 	wheat := item.NewStack(item.Wheat{}, 1)
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(below, block.NewChest(), nil)
@@ -134,7 +136,7 @@ func TestHopperTurnRecipes(t *testing.T) {
 func TestVanillaHopperFeedsWoodHopper(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	vanilla, wood := cube.Pos{8, IslandY + 3, 8}, cube.Pos{8, IslandY + 2, 8}
+	vanilla, wood := cube.Pos{8, island.IslandY + 3, 8}, cube.Pos{8, island.IslandY + 2, 8}
 	s.World.Do(func(tx *world.Tx) {
 		h := block.NewHopper()
 		h.Facing = cube.FaceDown

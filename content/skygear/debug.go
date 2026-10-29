@@ -13,6 +13,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
@@ -211,7 +212,7 @@ type debugStatus struct {
 
 func (c debugStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		o.Printf("researched=%d chunks=%d advanced=%d", len(progress.StateOf(s.Session).Researched), len(s.state.Chunks), len(progress.StateOf(s.Session).Advancements))
+		o.Printf("researched=%d chunks=%d advanced=%d", len(progress.StateOf(s.Session).Researched), len(island.StateOf(s.Session).Chunks), len(progress.StateOf(s.Session).Advancements))
 	}
 }
 
