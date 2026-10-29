@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -110,10 +112,10 @@ func (s *session) crafterOpen(cr *machinerecipe.Crafter) bool {
 
 // crafterOpener returns crafterOpen for the researches done now.
 func (s *session) crafterOpener() func(*machinerecipe.Crafter) bool {
-	if s.recipesFree {
+	if progress.LocalOf(s.Session).RecipesFree {
 		return func(*machinerecipe.Crafter) bool { return true }
 	}
-	filter := s.recipeFilter()
+	filter := progress.RecipeFilter(s.Session)
 	return func(cr *machinerecipe.Crafter) bool { return filter(cr.Recipe) }
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -49,22 +50,22 @@ func TestGiftsAreBasics(t *testing.T) {
 
 func TestGiftsComeFromDoneResearch(t *testing.T) {
 	s := testSession(t)
-	s.state.Researched = map[string]bool{}
+	progress.StateOf(s.Session).Researched = map[string]bool{}
 	var reach func(id string)
 	reach = func(id string) {
-		s.state.Researched[id] = true
-		r, _ := researchByID(id)
+		progress.StateOf(s.Session).Researched[id] = true
+		r, _ := progress.ByID(id)
 		for _, n := range r.Needs {
 			reach(n)
 		}
 	}
 	reach("generator")
-	generator, _ := researchByID("generator")
+	generator, _ := progress.ByID("generator")
 	costs, rewards := 0, 0
 	for range 1000 {
 		gift := s.rollGift()
 		switch {
-		case gift[0].Comparable(researchReward(generator)[0]):
+		case gift[0].Comparable(progress.Reward(generator)[0]):
 			rewards++
 		case gift[0].Comparable(halfCost(generator)[0]):
 			costs++
@@ -77,7 +78,7 @@ func TestGiftsComeFromDoneResearch(t *testing.T) {
 
 func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
 	s := testSession(t)
-	s.state.Researched = map[string]bool{"project_dragon": true, "iron_tools": true, "stick": true}
+	progress.StateOf(s.Session).Researched = map[string]bool{"project_dragon": true, "iron_tools": true, "stick": true}
 	for range 500 {
 		gift := s.rollGift()
 		for _, st := range gift {
@@ -87,19 +88,19 @@ func TestGiftsSkipProjectsAndResearchDoneOutOfOrder(t *testing.T) {
 			}
 		}
 	}
-	stick, _ := researchByID("stick")
+	stick, _ := progress.ByID("stick")
 	if !s.reachedResearch(stick) {
 		t.Error("stick, done and needing nothing, is not reached")
 	}
-	project, _ := researchByID("project_dragon")
+	project, _ := progress.ByID("project_dragon")
 	if s.reachedResearch(project) {
 		t.Error("project_dragon counted as reached without its needs")
 	}
 }
 
 func TestDeeperResearchIsDeeper(t *testing.T) {
-	stick, _ := researchByID("stick")
-	generator, _ := researchByID("generator")
+	stick, _ := progress.ByID("stick")
+	generator, _ := progress.ByID("generator")
 	if researchDepth(stick) != 0 || researchDepth(generator) <= researchDepth(stick) {
 		t.Errorf("depths: stick %d, generator %d", researchDepth(stick), researchDepth(generator))
 	}

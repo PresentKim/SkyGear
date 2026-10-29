@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -47,9 +49,9 @@ func (s *session) updateBoard(p *player.Player) {
 }
 
 // nextResearch is the first research in tree order that can be done now.
-func (s *session) nextResearch() (*Research, bool) {
-	for i := range researchTree {
-		if r := &researchTree[i]; s.researchOpen(r) {
+func (s *session) nextResearch() (*progress.Research, bool) {
+	for i := range progress.Tree {
+		if r := &progress.Tree[i]; progress.Open(s.Session, r) {
 			return r, true
 		}
 	}
@@ -61,13 +63,13 @@ func (s *session) nextResearch() (*Research, bool) {
 // advancement is done the next research and its cost. The cost rows count
 // what inv holds of each item, when inv is not nil.
 func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []string) {
-	if a, ok := s.nextAdvancement(); ok {
+	if a, ok := progress.NextAdvancement(s.Session); ok {
 		rows := strings.Split(a.HintText(lang), "\n")
 		for i := range rows {
 			rows[i] = "§f" + rows[i]
 		}
-		if g, ok := goalResearch(a); ok {
-			if r, ok := s.researchStep(g); ok {
+		if g, ok := progress.GoalResearch(a); ok {
+			if r, ok := progress.Step(s.Session, g); ok {
 				if r != g || a.Research == "" {
 					rows = append(rows, fmt.Sprintf(i18n.T(lang, "sidebar.quest.research"), r.Title(lang)))
 				}
@@ -86,10 +88,10 @@ func (s *session) questRows(lang string, inv *inventory.Inventory) (string, []st
 // researchCostRows are what a research spends, one row per item: how many
 // of it inv holds out of the number still needed (green once there are
 // enough), or the number alone when inv is nil.
-func (s *session) researchCostRows(lang string, r *Research, inv *inventory.Inventory) []string {
+func (s *session) researchCostRows(lang string, r *progress.Research, inv *inventory.Inventory) []string {
 	var rows []string
 	for _, c := range r.Cost {
-		name, need := naming.ItemName(lang, item.NewStack(c.Item, 1)), s.researchNeed(r, c)
+		name, need := naming.ItemName(lang, item.NewStack(c.Item, 1)), progress.Need(s.Session, r, c)
 		if inv == nil {
 			rows = append(rows, fmt.Sprintf("§f%s §e×%d", name, need))
 			continue

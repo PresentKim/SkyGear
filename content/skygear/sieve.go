@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -395,7 +397,7 @@ func (s *session) finishSifting(tx *world.Tx, pos cube.Pos, st *machineState, to
 		return
 	}
 	_ = st.inv().SetItem(slot, in.Grow(-1))
-	s.advance(tx, advancement.Sift)
+	progress.Advance(s.Session, tx, advancement.Sift)
 	achievement.CountAll(tx, "sift_mesh_"+st.mesh, 1)
 	drops := s.siftDrops(st, in)
 	for _, it := range drops {

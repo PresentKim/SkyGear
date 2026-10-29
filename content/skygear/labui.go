@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -88,11 +90,11 @@ func (s *session) labStill(tx *world.Tx, pos cube.Pos, st *machineState) bool {
 // recipe makes: a research that costs it is done or can be done (or every
 // recipe is open).
 func (s *session) labOpen(r *machinerecipe.Lab) bool {
-	if s.recipesFree {
+	if progress.LocalOf(s.Session).RecipesFree {
 		return true
 	}
-	for i := range researchTree {
-		if rr := &researchTree[i]; essenceCostOf(rr, r.Out.Kind) > 0 && (s.researched(rr.ID) || s.researchOpen(rr)) {
+	for i := range progress.Tree {
+		if rr := &progress.Tree[i]; progress.EssenceCost(rr, r.Out.Kind) > 0 && (progress.Researched(s.Session, rr.ID) || progress.Open(s.Session, rr)) {
 			return true
 		}
 	}

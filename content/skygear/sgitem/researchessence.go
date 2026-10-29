@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/df-mc/dragonfly/server/item/category"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 )
 
@@ -40,4 +41,10 @@ func (ResearchEssence) Category() category.Category { return category.Items() }
 var EssenceColours = map[string]color.RGBA{
 	EssenceEngineering: {214, 52, 52, 255}, EssenceAlchemy: {236, 140, 36, 255}, EssenceFarming: {232, 202, 48, 255},
 	EssenceHunting: {64, 172, 72, 255}, EssenceMagic: {156, 76, 214, 255},
+}
+
+func init() {
+	for _, k := range ResearchEssenceKinds {
+		world.RegisterItem(ResearchEssence{Kind: k})
+	}
 }

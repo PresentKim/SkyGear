@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/entity"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -97,7 +99,7 @@ func TestWaveFlow(t *testing.T) {
 		if s.state.GateTier != 1 || !s.canStartWave(2) {
 			t.Errorf("tier %d, level 2 open %v", s.state.GateTier, s.canStartWave(2))
 		}
-		if !s.advanced(advancement.Wave1) {
+		if !progress.Advanced(s.Session, advancement.Wave1) {
 			t.Error("clearing level 1 did not do its advancement")
 		}
 	})

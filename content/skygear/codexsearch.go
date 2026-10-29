@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -92,11 +94,11 @@ func codexIndex(lang string) []codexEntry {
 // the raw materials. Vanilla items the game never asks for are left out.
 func codexRelevant() map[string]bool {
 	open := map[string]bool{}
-	for _, n := range baseUnlocks {
+	for _, n := range progress.BaseUnlocks {
 		open[naming.UnlockName(n)] = true
 	}
-	for i := range researchTree {
-		for _, n := range researchTree[i].Unlocks {
+	for i := range progress.Tree {
+		for _, n := range progress.Tree[i].Unlocks {
 			open[naming.UnlockName(n)] = true
 		}
 	}
@@ -113,7 +115,7 @@ func codexRelevant() map[string]bool {
 	}
 	pick := func(it world.Item) {
 		name, _ := it.EncodeItem()
-		if strings.HasPrefix(name, "skygear:") || open[recipeKey(it)] {
+		if strings.HasPrefix(name, "skygear:") || open[progress.RecipeKey(it)] {
 			add(it)
 		}
 	}
@@ -125,8 +127,8 @@ func codexRelevant() map[string]bool {
 			pick(c.Stack.Item())
 		}
 	}
-	for i := range researchTree {
-		for _, c := range researchTree[i].Cost {
+	for i := range progress.Tree {
+		for _, c := range progress.Tree[i].Cost {
 			add(c.Item)
 		}
 	}
@@ -188,7 +190,7 @@ func codexRelevant() map[string]bool {
 	for len(queue) > 0 {
 		st := queue[0]
 		queue = queue[1:]
-		if open[recipeKey(st.Item())] {
+		if open[progress.RecipeKey(st.Item())] {
 			k := naming.ItemKey(st.Item())
 			for _, cr := range machinerecipe.Crafters() {
 				if cr.OutKey != k {

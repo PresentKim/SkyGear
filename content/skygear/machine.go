@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -1450,7 +1452,7 @@ func (s *session) placeMachine(p *player.Player, tx *world.Tx, pos cube.Pos, kin
 	achievement.Count(p, "machine_place", 1)
 	achievement.Count(p, "place_"+kind, 1)
 	if m.Kind != KindSieve {
-		s.advance(tx, advancement.Machine)
+		progress.Advance(s.Session, tx, advancement.Machine)
 	}
 	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
 }

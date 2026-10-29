@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // TestAdvancementTreeIsValid: ids are unique, parents come before their
@@ -36,7 +37,7 @@ func TestAdvancementTreeIsValid(t *testing.T) {
 				t.Errorf("%s: no item %s", a.ID, n)
 			}
 		}
-		if _, ok := researchByID(a.Research); a.Research != "" && !ok {
+		if _, ok := progress.ByID(a.Research); a.Research != "" && !ok {
 			t.Errorf("%s: no research %s", a.ID, a.Research)
 		}
 		if a.Item == "" && a.Research == "" && !a.Event {
@@ -52,27 +53,27 @@ func TestAdvancementsFromItems(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if a, _ := s.nextAdvancement(); a.ID != "wood" {
+		if a, _ := progress.NextAdvancement(s.Session); a.ID != "wood" {
 			t.Fatalf("first advancement %s", a.ID)
 		}
 		_, _ = p.Inventory().AddItem(item.NewStack(block.CraftingTable{}, 1))
-		s.checkAdvancementsHeld(tx, advancement.InventoryNames(tx))
-		if !s.advanced("crafting_table") {
+		progress.CheckHeld(s.Session, tx, advancement.InventoryNames(tx))
+		if !progress.Advanced(s.Session, "crafting_table") {
 			t.Error("crafting_table not done")
 		}
 		for _, id := range []string{"wood", "planks"} {
-			if s.advanced(id) {
+			if progress.Advanced(s.Session, id) {
 				t.Errorf("%s done by the crafting table", id)
 			}
 		}
-		if a, _ := s.nextAdvancement(); a.ID != "wood" {
+		if a, _ := progress.NextAdvancement(s.Session); a.ID != "wood" {
 			t.Errorf("next advancement %s", a.ID)
 		}
-		s.advance(tx, advancement.Sift)
-		if !s.advanced(advancement.Sift) || s.advanced("sieve") {
-			t.Errorf("sift must complete itself alone: %v", s.state.Advancements)
+		progress.Advance(s.Session, tx, advancement.Sift)
+		if !progress.Advanced(s.Session, advancement.Sift) || progress.Advanced(s.Session, "sieve") {
+			t.Errorf("sift must complete itself alone: %v", progress.StateOf(s.Session).Advancements)
 		}
-		if s.advanced(advancement.GrowTree) {
+		if progress.Advanced(s.Session, advancement.GrowTree) {
 			t.Error("grow tree done without growing")
 		}
 	})
@@ -83,7 +84,7 @@ func TestAdvancementsFromItems(t *testing.T) {
 // it; every advancement is in one chapter.
 func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 	s := testSession(t)
-	s.state.Advancements = map[string]bool{}
+	progress.StateOf(s.Session).Advancements = map[string]bool{}
 	l := advancement.LayoutOf(advancement.ChapterStart)
 	for _, a := range advancement.In(advancement.ChapterStart) {
 		if _, ok := l.Pos[a.ID]; !ok {
@@ -160,9 +161,9 @@ func TestAdvancementLayout(t *testing.T) {
 // within its bands' height.
 func TestAdvancementTreeFits(t *testing.T) {
 	s := testSession(t)
-	s.state.Advancements = map[string]bool{}
+	progress.StateOf(s.Session).Advancements = map[string]bool{}
 	for _, a := range advancement.Tree {
-		s.state.Advancements[a.ID] = true
+		progress.StateOf(s.Session).Advancements[a.ID] = true
 	}
 	for tab := advancement.Chapter(0); tab < advancement.ChapterCount; tab++ {
 		l := advancement.LayoutOf(tab)
@@ -195,23 +196,23 @@ func TestTrackedAdvancement(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		s.advance(tx, "research_table")
+		progress.Advance(s.Session, tx, "research_table")
 		chest, _ := advancement.ByID("chest")
-		s.state.Advancements["first_research"] = true
-		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+		progress.StateOf(s.Session).Advancements["first_research"] = true
+		if next, _ := progress.NextAdvancement(s.Session); next.ID == "chest" {
 			t.Fatal("chest is not first in the tree order")
 		}
-		s.track(tx, chest)
-		if next, _ := s.nextAdvancement(); next.ID != "chest" {
+		progress.Track(s.Session, tx, chest)
+		if next, _ := progress.NextAdvancement(s.Session); next.ID != "chest" {
 			t.Fatalf("tracked chest, panel follows %q", next.ID)
 		}
-		s.track(tx, chest)
-		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+		progress.Track(s.Session, tx, chest)
+		if next, _ := progress.NextAdvancement(s.Session); next.ID == "chest" {
 			t.Fatal("untracked chest must go back to the tree order")
 		}
-		s.track(tx, chest)
-		s.state.Advancements["chest"] = true
-		if next, _ := s.nextAdvancement(); next.ID == "chest" {
+		progress.Track(s.Session, tx, chest)
+		progress.StateOf(s.Session).Advancements["chest"] = true
+		if next, _ := progress.NextAdvancement(s.Session); next.ID == "chest" {
 			t.Fatal("a done advancement is not followed")
 		}
 	})
@@ -225,7 +226,7 @@ func TestAdvancementGuides(t *testing.T) {
 		advancement.Stats: true, advancement.FairyGift: true, advancement.Favourite: true, advancement.Lost: true}
 	for i := range advancement.Tree {
 		a := &advancement.Tree[i]
-		if _, ok := goalResearch(a); !ok && !free[a.ID] {
+		if _, ok := progress.GoalResearch(a); !ok && !free[a.ID] {
 			t.Errorf("%s leads to no research", a.ID)
 		}
 	}

@@ -24,11 +24,6 @@ type State struct {
 	// Home is where the island's players start (x, z); zero for a save made
 	// when the island was around the origin.
 	Home [2]float64 `json:"home,omitempty"`
-	// Researched are the done researches (research.go).
-	Researched map[string]bool `json:"researched,omitempty"`
-	// ResearchPaid counts the items delivered for researches not done yet,
-	// by research and item key.
-	ResearchPaid map[string]map[string]int `json:"research_paid,omitempty"`
 	// NextFairy is the instance time of the next gift fairy visit.
 	NextFairy time.Duration `json:"next_fairy,omitempty"`
 	// FairyDust is whether the fairy has given the save fairy dust; until
@@ -51,11 +46,6 @@ type State struct {
 	Lost []*LostItem `json:"lost,omitempty"`
 	// Crops are the planted crops by position ("x,y,z", crops.go).
 	Crops map[string]*CropRecord `json:"crops,omitempty"`
-	// Advancements are the done advancements (advancement.go).
-	Advancements map[string]bool `json:"advancements,omitempty"`
-	// Tracked is the advancement the quest panel follows instead of the
-	// first open one (advancement.go).
-	Tracked string `json:"tracked,omitempty"`
 	// Composters are the plant items in each composter by position
 	// ("x,y,z", composter.go).
 	Composters map[string]int `json:"composters,omitempty"`

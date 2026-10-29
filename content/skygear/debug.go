@@ -14,6 +14,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
@@ -210,7 +211,7 @@ type debugStatus struct {
 
 func (c debugStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
-		o.Printf("researched=%d chunks=%d advanced=%d", len(s.state.Researched), len(s.state.Chunks), len(s.state.Advancements))
+		o.Printf("researched=%d chunks=%d advanced=%d", len(progress.StateOf(s.Session).Researched), len(s.state.Chunks), len(progress.StateOf(s.Session).Advancements))
 	}
 }
 
@@ -259,21 +260,21 @@ func (c debugResearchRandom) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	pct := max(0, min(100, c.Percent.LoadOr(50)))
-	s.state.Researched, s.state.ResearchPaid = nil, nil
+	progress.StateOf(s.Session).Researched, progress.StateOf(s.Session).ResearchPaid = nil, nil
 	n := 0
-	for i := range researchTree {
+	for i := range progress.Tree {
 		if s.Rand.IntN(100) < pct {
-			s.completeResearch(tx, &researchTree[i])
+			progress.Complete(s.Session, tx, &progress.Tree[i])
 			n++
 		}
 	}
-	for _, r := range s.copies {
-		s.copiesDone[r.ID] = s.Rand.IntN(100) < pct
+	for _, r := range progress.LocalOf(s.Session).Copies {
+		progress.LocalOf(s.Session).CopiesDone[r.ID] = s.Rand.IntN(100) < pct
 	}
 	s.MarkDirty()
-	s.sendRecipes(tx)
+	progress.SendRecipes(s.Session, tx)
 	s.updateBoards(tx)
-	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchRandom"), n, len(researchTree), pct)
+	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchRandom"), n, len(progress.Tree), pct)
 }
 
 // debugResearchLoad makes count test copies of the researches (0 removes them)
@@ -291,15 +292,15 @@ func (c debugResearchLoad) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	s.copies, s.copiesDone = nil, map[string]bool{}
+	progress.LocalOf(s.Session).Copies, progress.LocalOf(s.Session).CopiesDone = nil, map[string]bool{}
 	for i := range max(0, min(c.Count, 2000)) {
-		r := researchTree[i%len(researchTree)]
+		r := progress.Tree[i%len(progress.Tree)]
 		r.ID = fmt.Sprintf("%s#%d", r.ID, i+1)
 		r.Needs = nil
-		s.copies = append(s.copies, &r)
-		s.copiesDone[r.ID] = s.Rand.IntN(2) == 0
+		progress.LocalOf(s.Session).Copies = append(progress.LocalOf(s.Session).Copies, &r)
+		progress.LocalOf(s.Session).CopiesDone[r.ID] = s.Rand.IntN(2) == 0
 	}
-	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchLoad"), len(s.copies))
+	o.Printf(i18n.T(i18n.Default, "skygear.admin.researchLoad"), len(progress.LocalOf(s.Session).Copies))
 }
 
 // debugPlace places a block dx, dy, dz from the operator's feet as the

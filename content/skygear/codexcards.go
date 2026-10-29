@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -439,8 +441,8 @@ func (s *session) codexUseCards(lang string, it item.Stack) []codexCard {
 		cards = append(cards, s.themeCards(lang, e.Mob)...)
 	}
 	research := item.NewStack(ResearchTable{}, 1)
-	for i := range researchTree {
-		r := &researchTree[i]
+	for i := range progress.Tree {
+		r := &progress.Tree[i]
 		for _, c := range r.Cost {
 			if naming.ItemKey(c.Item) == k {
 				cards = append(cards, noteCard(lang, research, fmt.Sprintf(i18n.T(lang, "codex.use.research"), r.Title(lang), c.Count)))

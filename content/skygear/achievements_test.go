@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -26,9 +28,9 @@ func TestFirstResearchGrantsAchievement(t *testing.T) {
 		if _, err := s.g.db.TouchAccount(p.UUID().String(), "", p.Name()); err != nil {
 			t.Fatal(err)
 		}
-		sticks, _ := researchByID("stick")
+		sticks, _ := progress.ByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
-		s.doResearch(p, tx, sticks)
+		progress.Do(s.Session, p, tx, sticks)
 		if got := account.Owned(p.UUID().String()); !slices.Contains(got, achievement.FirstResearch) {
 			t.Fatalf("achievements %v", got)
 		}

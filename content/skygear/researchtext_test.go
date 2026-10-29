@@ -8,13 +8,14 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // TestEveryResearchIsExplained: every research has its texts.
 func TestEveryResearchIsExplained(t *testing.T) {
-	for _, r := range researchTree {
-		for _, f := range append([]string{"name"}, researchTextFields...) {
+	for _, r := range progress.Tree {
+		for _, f := range append([]string{"name"}, progress.TextFields...) {
 			if !i18n.Has("research." + r.ID + "." + f) {
 				t.Errorf("research %s lacks its %s text", r.ID, f)
 			}
@@ -25,7 +26,7 @@ func TestEveryResearchIsExplained(t *testing.T) {
 		for _, key := range i18n.Keys(l) {
 			if id, ok := strings.CutPrefix(key, "research."); ok {
 				id, _, _ = strings.Cut(id, ".")
-				if _, ok := researchByID(id); !ok {
+				if _, ok := progress.ByID(id); !ok {
 					t.Errorf("%s: text %s for an unknown research", l, key)
 				}
 			}
@@ -53,7 +54,7 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 	if open != 2 || grey != 4 { // the stick and fairy magic researches; pebbles, wood tools, chest, fairy time a step away
 		t.Fatalf("at the start: %d open, %d grey", open, grey)
 	}
-	s.state.Researched = map[string]bool{"stick": true}
+	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
 	open, grey = split()
 	if open != 4 { // pebbles, wood tools, chest, fairy magic
 		t.Fatalf("%d researches after the stick research", open)
@@ -76,8 +77,8 @@ func TestResearchListHidesLockedResearches(t *testing.T) {
 // research button but one that goes to the research it needs first.
 func TestResearchPreviewButton(t *testing.T) {
 	s := testSession(t)
-	r, _ := researchByID("wood_tools")
-	need, ok := s.researchBlocker(r)
+	r, _ := progress.ByID("wood_tools")
+	need, ok := progress.Blocker(s.Session, r)
 	if !ok || need.ID != "stick" {
 		t.Fatalf("blocker %v %v", need, ok)
 	}
@@ -95,9 +96,9 @@ func TestResearchPreviewButton(t *testing.T) {
 		t.Fatalf("no button to the research needed first: %+v", opts)
 	}
 	// a research two steps away is not a preview
-	far, _ := researchByID("pebbles")
+	far, _ := progress.ByID("pebbles")
 	_ = far
-	if _, ok := s.researchBlocker(&Research{ID: "x", Needs: []string{"wood_tools"}}); ok {
+	if _, ok := progress.Blocker(s.Session, &progress.Research{ID: "x", Needs: []string{"wood_tools"}}); ok {
 		t.Fatal("a research behind one that is not open is a preview")
 	}
 }
@@ -109,7 +110,7 @@ func TestResearchListSections(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	s.state.Researched = map[string]bool{"stick": true}
+	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		todo, done, todoN, doneN := s.researchSlots(p)
 		if todoN != 4 || doneN != 1 || len(done) != 1 || len(todo) < todoN {
@@ -131,8 +132,8 @@ func TestResearchListSections(t *testing.T) {
 // done one shows 연구 완료 and no button.
 func TestResearchScreen(t *testing.T) {
 	s := testSession(t)
-	r, _ := researchByID("wood_tools")
-	s.state.Researched = map[string]bool{"stick": true}
+	r, _ := progress.ByID("wood_tools")
+	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true}
 	d, rows, opts := s.researchNode(nil, r)
 	if len(opts) != 2 || !strings.Contains(opts[0].Label, "연구 진행") {
 		t.Fatalf("options %+v", opts)
@@ -146,7 +147,7 @@ func TestResearchScreen(t *testing.T) {
 	if rows[0].Slots[0].Count != "§f8" || rows[0].Slots[1].Count != "§f4" {
 		t.Errorf("material counts %q %q", rows[0].Slots[0].Count, rows[0].Slots[1].Count)
 	}
-	s.state.Researched["wood_tools"] = true
+	progress.StateOf(s.Session).Researched["wood_tools"] = true
 	d, _, opts = s.researchNode(nil, r)
 	if len(opts) != 1 || !strings.Contains(d.Status, "연구 완료") {
 		t.Errorf("done research: status %q options %+v", d.Status, opts)

@@ -5,6 +5,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -348,7 +350,7 @@ func (c statsCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
 		return
 	}
-	s.advance(tx, advancement.Stats)
+	progress.Advance(s.Session, tx, advancement.Stats)
 	s.showStats(p, statsItems)
 }
 

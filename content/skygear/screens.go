@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -128,7 +130,7 @@ func (s *session) mainMenu(p *player.Player) []ui.Option {
 		s.opt(i18n.T(i18n.Of(p), "menu.friends"), formicon.Friends, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/friends") }),
 		s.opt(i18n.T(i18n.Of(p), "menu.cosmetics"), formicon.Title, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/title") }),
 		s.opt(i18n.T(i18n.Of(p), "monitor.menu"), formicon.Stats, func(p *player.Player, tx *world.Tx) {
-			s.advance(tx, advancement.Stats)
+			progress.Advance(s.Session, tx, advancement.Stats)
 			s.showStats(p, statsItems)
 		}),
 		s.opt(i18n.T(i18n.Of(p), "menu.settings"), formicon.Settings, func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/settings") }),
@@ -189,7 +191,7 @@ func (s *session) lostMenu(lang string) (string, []ui.ItemSlot, ui.Option) {
 					return
 				}
 				if s.takeLost(p, l) {
-					s.advance(tx, advancement.Lost)
+					progress.Advance(s.Session, tx, advancement.Lost)
 				}
 				s.showLost(p)
 			},

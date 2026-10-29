@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -60,7 +62,7 @@ func (s *session) crouchGrow(p *player.Player, tx *world.Tx) {
 				sp.BoneMeal(pos, tx)
 				tx.AddParticle(pos.Vec3Centre(), particle.BoneMeal{})
 				achievement.Count(p, "sapling_grow", 1)
-				s.advance(tx, advancement.GrowTree)
+				progress.Advance(s.Session, tx, advancement.GrowTree)
 			}
 		}
 	}

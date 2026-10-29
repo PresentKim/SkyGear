@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/item/recipe"
@@ -133,7 +135,7 @@ func TestSieveTablesGiveOreChunks(t *testing.T) {
 		}
 		found := false
 		for _, r := range recipe.Recipes() {
-			if out := r.Output(); len(out) == 1 && recipeKey(out[0].Item()) == recipeKey(k.Block) && len(r.Input()) == 4 {
+			if out := r.Output(); len(out) == 1 && progress.RecipeKey(out[0].Item()) == progress.RecipeKey(k.Block) && len(r.Input()) == 4 {
 				found = true
 			}
 		}

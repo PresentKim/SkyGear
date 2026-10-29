@@ -1,4 +1,4 @@
-package skygear
+package progress
 
 import (
 	"strings"
@@ -16,12 +16,12 @@ type ResearchText struct {
 	About string
 }
 
-// researchTextFields are the text parts of every research.
-var researchTextFields = []string{"short", "about"}
+// TextFields are the text parts of every research.
+var TextFields = []string{"short", "about"}
 
-// researchText returns a research's text in lang (a missing text shows the
+// Text returns a research's text in lang (a missing text shows the
 // default language's, a missing research its keys).
-func researchText(lang, id string) ResearchText {
+func Text(lang, id string) ResearchText {
 	id, _, _ = strings.Cut(id, "#") // a test copy reads its original's texts
 	t := func(field string) string { return i18n.T(lang, "research."+id+"."+field) }
 	return ResearchText{Short: t("short"), About: t("about")}

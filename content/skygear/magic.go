@@ -5,6 +5,8 @@ import (
 	"math/rand/v2"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -310,17 +312,17 @@ func (s *session) plantDrops(b MagicPlant) ([]item.Stack, bool) {
 // and reports the harvest to the advancements.
 func (s *session) resetPlant(tx *world.Tx, pos cube.Pos, b MagicPlant) {
 	k := plantKinds[plantKindIndex(b.Kind)]
-	s.advance(tx, advancement.Bloom)
+	progress.Advance(s.Session, tx, advancement.Bloom)
 	achievement.CountAll(tx, "bloom_total", 1)
 	switch k.tier {
 	case 2:
-		s.advance(tx, advancement.OreHarvest)
+		progress.Advance(s.Session, tx, advancement.OreHarvest)
 		achievement.CountAll(tx, "bloom_ore", 1)
 	case 3:
-		s.advance(tx, advancement.GemHarvest)
+		progress.Advance(s.Session, tx, advancement.GemHarvest)
 		achievement.CountAll(tx, "bloom_gem", 1)
 	case 4:
-		s.advance(tx, advancement.EssHarvest)
+		progress.Advance(s.Session, tx, advancement.EssHarvest)
 		achievement.CountAll(tx, "bloom_ess", 1)
 	}
 	tx.SetBlock(pos, MagicPlant{Kind: b.Kind}, nil)

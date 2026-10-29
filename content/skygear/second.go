@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
@@ -11,7 +12,7 @@ import (
 func (s *session) Second(tx *world.Tx) {
 	s.growCrops(tx)
 	held := advancement.InventoryNames(tx)
-	s.checkAdvancementsHeld(tx, held)
+	progress.CheckHeld(s.Session, tx, held)
 	s.tickBarrels(tx)
 	s.tickComposters(tx)
 	s.tickFairy(tx)

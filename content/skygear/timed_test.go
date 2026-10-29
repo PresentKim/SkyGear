@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -39,8 +41,8 @@ func TestStorageTellsItemsApartByNBT(t *testing.T) {
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16).WithLore("x"))
-		sticks, _ := researchByID("stick")
-		if _, done := s.doResearch(p, tx, sticks); done {
+		sticks, _ := progress.ByID("stick")
+		if _, done := progress.Do(s.Session, p, tx, sticks); done {
 			t.Error("a research was done with planks that have extra NBT")
 		}
 	})

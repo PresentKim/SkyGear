@@ -18,6 +18,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
@@ -229,7 +230,7 @@ type researchEnum string
 func (researchEnum) Type() string { return "sg_research" }
 func (researchEnum) Options(cmd.Source) []string {
 	opts := []string{"all", "reset", "free"}
-	for _, r := range researchTree {
+	for _, r := range progress.Tree {
 		opts = append(opts, r.ID)
 	}
 	return opts
@@ -251,33 +252,33 @@ func (c adminResearch) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	switch c.Research {
 	case "all":
-		for i := range researchTree {
-			if !s.researched(researchTree[i].ID) {
-				s.completeResearch(tx, &researchTree[i])
+		for i := range progress.Tree {
+			if !progress.Researched(s.Session, progress.Tree[i].ID) {
+				progress.Complete(s.Session, tx, &progress.Tree[i])
 			}
 		}
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.research.all"))
 	case "reset":
-		s.state.Researched, s.state.ResearchPaid = nil, nil
+		progress.StateOf(s.Session).Researched, progress.StateOf(s.Session).ResearchPaid = nil, nil
 		s.MarkDirty()
-		s.sendRecipes(tx)
+		progress.SendRecipes(s.Session, tx)
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.research.cleared"))
 	case "free":
-		s.recipesFree = !s.recipesFree
-		s.sendRecipes(tx)
-		if s.recipesFree {
+		progress.LocalOf(s.Session).RecipesFree = !progress.LocalOf(s.Session).RecipesFree
+		progress.SendRecipes(s.Session, tx)
+		if progress.LocalOf(s.Session).RecipesFree {
 			o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.recipes.unlocked"))
 		} else {
 			o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.recipes.locked"))
 		}
 	default:
-		r, ok := researchByID(string(c.Research))
+		r, ok := progress.ByID(string(c.Research))
 		if !ok {
 			o.Errorf(i18n.T(i18n.Default, "skygear.admin.research.unknown"), c.Research)
 			return
 		}
-		if !s.researched(r.ID) {
-			s.completeResearch(tx, r)
+		if !progress.Researched(s.Session, r.ID) {
+			progress.Complete(s.Session, tx, r)
 		}
 		o.Printf(i18n.T(i18n.Default, "skygear.admin.research.done"), r.Title(i18n.Default))
 	}
@@ -312,16 +313,16 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	case "all":
 		var as []*advancement.Advancement
 		for i := range advancement.Tree {
-			if !s.advanced(advancement.Tree[i].ID) {
+			if !progress.Advanced(s.Session, advancement.Tree[i].ID) {
 				as = append(as, &advancement.Tree[i])
 			}
 		}
 		if len(as) > 0 {
-			s.completeAdvancements(tx, as)
+			progress.CompleteAdvancements(s.Session, tx, as)
 		}
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.advancement.all"))
 	case "reset":
-		s.state.Advancements = nil
+		progress.StateOf(s.Session).Advancements = nil
 		s.MarkDirty()
 		s.updateBoards(tx)
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.advancement.cleared"))
@@ -333,12 +334,12 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		}
 		var as []*advancement.Advancement
 		for _, b := range advancement.WithAncestors(a) {
-			if !s.advanced(b.ID) {
+			if !progress.Advanced(s.Session, b.ID) {
 				as = append(as, b)
 			}
 		}
 		if len(as) > 0 {
-			s.completeAdvancements(tx, as)
+			progress.CompleteAdvancements(s.Session, tx, as)
 		}
 		o.Printf(i18n.T(i18n.Default, "skygear.admin.advancement.done"), a.Title(i18n.Default))
 	}

@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -67,7 +69,7 @@ func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
 			if tx.World() == s.World {
 				s.toggleFavourite(p, it)
 				if s.isFavourite(p, it) {
-					s.advance(tx, advancement.Favourite)
+					progress.Advance(s.Session, tx, advancement.Favourite)
 				}
 			}
 			s.showCodexItemAt(p, it, mode)

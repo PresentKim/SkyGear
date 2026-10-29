@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -151,7 +153,7 @@ func (s *session) useKit(p *player.Player, tx *world.Tx, pos cube.Pos, m Machine
 		tx.PlaySound(pos.Vec3Centre(), sound.Experience{})
 		tx.AddParticle(pos.Vec3Centre(), particle.HugeExplosion{})
 		achievement.Count(p, "tier_up", 1)
-		s.advance(tx, advancement.MachineTier)
+		progress.Advance(s.Session, tx, advancement.MachineTier)
 		achievement.Count(p, fmt.Sprintf("tier_up_%d", st.tier), 1)
 	}
 }

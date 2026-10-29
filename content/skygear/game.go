@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/common/energy"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
@@ -41,6 +43,15 @@ type Game struct {
 	// by every block tick and written only when an instance starts or stops,
 	// so reads take no lock.
 	sessions sync.Map // *world.World -> *session
+}
+
+func init() {
+	// The quest panel follows the progress.
+	progress.OnChange = func(c *core.Session, tx *world.Tx) {
+		if s, ok := activeGame.sessionOf(c.World); ok {
+			s.updateBoards(tx)
+		}
+	}
 }
 
 // activeGame is the game used by blocks, whose methods have no other way to
@@ -137,11 +148,7 @@ type session struct {
 	diedFood map[*world.EntityHandle]int
 	// codexNav is where each player is in the codex and came from, and
 	// codexRecent the items they looked at last (codextabs.go).
-	codexNav map[*world.EntityHandle]*codexNav
-	// copies are test copies of researches for the research screen and
-	// copiesDone the ones marked done (research.go isCopy).
-	copies      []*Research
-	copiesDone  map[string]bool
+	codexNav    map[*world.EntityHandle]*codexNav
 	codexRecent map[*world.EntityHandle][]item.Stack
 	// helpTab is the help tab each player looked at last (help.go).
 	helpTab map[*world.EntityHandle]helpTab
@@ -184,9 +191,6 @@ type session struct {
 	cropQueue cropQueue
 	// expanding are the players in island expansion mode (expand.go).
 	expanding map[*world.EntityHandle]*expansion
-	// recipesFree opens every recipe until the instance closes
-	// (/sgadmin research free, recipes.go).
-	recipesFree bool
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
@@ -240,7 +244,7 @@ func (s *session) Join(p *player.Player, first bool) {
 	s.showWeather(p)
 	s.sendShapes(p)
 	s.purgeLost()
-	s.sendRecipesTo(p)
+	progress.SendRecipesTo(s.Session, p)
 	delete(s.boards, p.H())
 	s.updateBoard(p)
 }

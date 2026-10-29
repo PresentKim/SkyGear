@@ -1,4 +1,4 @@
-package skygear
+package progress
 
 import (
 	"fmt"
@@ -9,16 +9,13 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
 )
 
-// Research rewards: a research that opens a facility or a machine gives the
-// player who did it some of what it opens, so the research and the first
-// machine are not paid for twice. The amounts are drafts.
-
-// researchRewards are the rewards by research: how many of each item it
+// Rewards are the rewards by research: how many of each item it
 // opens (unlock name) the researcher gets.
-var researchRewards = map[string]map[string]int{
+var Rewards = map[string]map[string]int{
 	"chest":              {"chest": 2},
 	"compost":            {"composter": 1},
 	"barrel":             {"skygear:barrel_oak": 1},
@@ -56,11 +53,11 @@ var researchRewards = map[string]map[string]int{
 	"fairy_magic":        {"skygear:fairy_board": 1},
 }
 
-// researchReward is what a research gives the researcher, in the order of
+// Reward is what a research gives the researcher, in the order of
 // its unlocks.
-func researchReward(r *Research) []item.Stack {
+func Reward(r *Research) []item.Stack {
 	id, _, _ := strings.Cut(r.ID, "#")
-	counts := researchRewards[id]
+	counts := Rewards[id]
 	var out []item.Stack
 	for _, n := range r.Unlocks {
 		c, ok := counts[n]
@@ -74,15 +71,15 @@ func researchReward(r *Research) []item.Stack {
 	return out
 }
 
-// rewardCount is how many of an unlocked item a research gives (0: none).
-func rewardCount(r *Research, unlock string) int {
+// RewardCount is how many of an unlocked item a research gives (0: none).
+func RewardCount(r *Research, unlock string) int {
 	id, _, _ := strings.Cut(r.ID, "#")
-	return researchRewards[id][unlock]
+	return Rewards[id][unlock]
 }
 
-// giveResearchReward gives p the reward of r and tells what it got.
-func (s *session) giveResearchReward(p *player.Player, tx *world.Tx, r *Research) {
-	reward := researchReward(r)
+// GiveReward gives p the reward of r and tells what it got.
+func GiveReward(s *core.Session, p *player.Player, tx *world.Tx, r *Research) {
+	reward := Reward(r)
 	if len(reward) == 0 {
 		return
 	}

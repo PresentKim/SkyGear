@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -114,7 +116,7 @@ func TestHopperTurnRecipes(t *testing.T) {
 				continue
 			}
 			i, ok := r.Input()[0].(item.Stack)
-			if ok && recipeKey(i.Item()) == recipeKey(in) && recipeKey(r.Output()[0].Item()) == recipeKey(out) {
+			if ok && progress.RecipeKey(i.Item()) == progress.RecipeKey(in) && progress.RecipeKey(r.Output()[0].Item()) == progress.RecipeKey(out) {
 				return true
 			}
 		}
@@ -122,7 +124,7 @@ func TestHopperTurnRecipes(t *testing.T) {
 	}
 	for _, p := range pairs {
 		if !has(p[0], p[1]) || !has(p[1], p[0]) {
-			t.Errorf("no turn recipes between %s and %s", recipeKey(p[0]), recipeKey(p[1]))
+			t.Errorf("no turn recipes between %s and %s", progress.RecipeKey(p[0]), progress.RecipeKey(p[1]))
 		}
 	}
 }

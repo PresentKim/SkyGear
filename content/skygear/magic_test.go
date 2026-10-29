@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
@@ -62,7 +64,7 @@ func TestMagicPlantLifecycle(t *testing.T) {
 		if got := tx.Block(at).(MagicPlant); got.Bloom {
 			t.Error("a harvested plant is still in bloom")
 		}
-		if !s.advanced(advancement.Bloom) {
+		if !progress.Advanced(s.Session, advancement.Bloom) {
 			t.Error("harvesting did not do the advancement")
 		}
 		// without ground it drops
@@ -94,7 +96,7 @@ func TestMagicSeedsAndRecipes(t *testing.T) {
 		}
 	}
 	unlocked := map[string]string{}
-	for _, r := range researchTree {
+	for _, r := range progress.Tree {
 		for _, u := range r.Unlocks {
 			unlocked[u] = r.ID
 		}

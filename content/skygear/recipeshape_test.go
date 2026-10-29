@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
@@ -17,17 +19,17 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 	find := func(it world.Item) recipe.Shaped {
 		for _, r := range recipe.Recipes() {
 			for _, out := range r.Output() {
-				if recipeKey(out.Item()) != recipeKey(it) {
+				if progress.RecipeKey(out.Item()) != progress.RecipeKey(it) {
 					continue
 				}
 				sh, ok := r.(recipe.Shaped)
 				if !ok {
-					t.Fatalf("the recipe of %s is not shaped", recipeKey(it))
+					t.Fatalf("the recipe of %s is not shaped", progress.RecipeKey(it))
 				}
 				return sh
 			}
 		}
-		t.Fatalf("no recipe of %s", recipeKey(it))
+		t.Fatalf("no recipe of %s", progress.RecipeKey(it))
 		return recipe.Shaped{}
 	}
 	// An empty cell is an empty stack, never a nil input (the recipe list
@@ -44,7 +46,7 @@ func TestToolAndMachineRecipesAreShaped(t *testing.T) {
 		if !ok || st.Empty() {
 			return "."
 		}
-		return recipeKey(st.Item())
+		return progress.RecipeKey(st.Item())
 	}
 	hammer := find(sgitem.Hammer{Stone: true})
 	if hammer.Shape() != recipe.NewShape(3, 3) || !hammer.NoMirror() {
@@ -78,7 +80,7 @@ func TestConduitRecipes(t *testing.T) {
 	cells := func(it world.Item) (string, int, []string) {
 		for _, r := range recipe.Recipes() {
 			for _, out := range r.Output() {
-				if recipeKey(out.Item()) != recipeKey(it) {
+				if progress.RecipeKey(out.Item()) != progress.RecipeKey(it) {
 					continue
 				}
 				var names []string
@@ -88,7 +90,7 @@ func TestConduitRecipes(t *testing.T) {
 						names = append(names, ".")
 						continue
 					}
-					names = append(names, recipeKey(st.Item()))
+					names = append(names, progress.RecipeKey(st.Item()))
 				}
 				return "found", out.Count(), names
 			}
@@ -144,10 +146,10 @@ func TestConduitRecipes(t *testing.T) {
 // basic fluid conduits; the research that unlocks it opens after the item conduit
 // and glasswork researches.
 func TestFluidConduitRecipe(t *testing.T) {
-	var r *Research
-	for i := range researchTree {
-		if researchTree[i].ID == "fluid_conduit" {
-			r = &researchTree[i]
+	var r *progress.Research
+	for i := range progress.Tree {
+		if progress.Tree[i].ID == "fluid_conduit" {
+			r = &progress.Tree[i]
 		}
 	}
 	if r == nil || len(r.Unlocks) == 0 || r.Unlocks[0] != "skygear:conduit_fluid_1" {

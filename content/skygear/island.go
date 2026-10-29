@@ -5,6 +5,8 @@ import (
 	"math"
 	"slices"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -42,12 +44,12 @@ func (s *session) canBuild(pos cube.Pos) bool { return s.owns(chunkOf(pos)) }
 // chunkCost is what the next chunk costs when n chunks are owned: items
 // from the buyer's inventory. 1 chunk to start:
 // 64 cobblestone for each of the next four, 64 more for each after. Draft.
-func chunkCost(n int) Requirement {
-	return Requirement{block.Cobblestone{}, 64 * max(1, n-3)}
+func chunkCost(n int) progress.Requirement {
+	return progress.Requirement{Item: block.Cobblestone{}, Count: 64 * max(1, n-3)}
 }
 
 // costText describes a cost, e.g. "조약돌 128개".
-func costText(lang string, r Requirement) string {
+func costText(lang string, r progress.Requirement) string {
 	return fmt.Sprintf(i18n.T(lang, "island.chunk.cost"), naming.ItemName(lang, item.NewStack(r.Item, 1)), textfmt.Int(int64(r.Count)))
 }
 
@@ -90,12 +92,12 @@ func (s *session) buyChunk(p *player.Player, tx *world.Tx, c ChunkPos) {
 	}
 	s.keepLoaded(tx, c)
 	s.MarkDirty()
-	s.advance(tx, advancement.Chunk)
+	progress.Advance(s.Session, tx, advancement.Chunk)
 	if len(s.state.Chunks) >= 8 {
-		s.advance(tx, advancement.Chunks8)
+		progress.Advance(s.Session, tx, advancement.Chunks8)
 	}
 	if len(s.state.Chunks) >= 16 {
-		s.advance(tx, advancement.Chunks16)
+		progress.Advance(s.Session, tx, advancement.Chunks16)
 	}
 	s.Broadcast(tx, "island.chunk.bought", p.Name(), c[0], c[1], len(s.state.Chunks))
 }

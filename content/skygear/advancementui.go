@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -24,7 +25,7 @@ import (
 func (s *session) showAdvancements(p *player.Player) {
 	achievement.Count(p, "adv_view", 1)
 	tab := advancement.ChapterStart
-	if a, ok := s.nextAdvancement(); ok {
+	if a, ok := progress.NextAdvancement(s.Session); ok {
 		tab = a.Chapter
 	}
 	s.showQuestBook(p, tab, nil)
@@ -34,9 +35,9 @@ func (s *session) showAdvancements(p *player.Player) {
 // its hint; a locked one also names the parents left.
 func (s *session) advancementTip(lang string, a *advancement.Advancement) string {
 	switch {
-	case s.advanced(a.ID):
+	case progress.Advanced(s.Session, a.ID):
 		return "§a" + a.Title(lang) + "\n§7" + advancement.FlatHint(lang, a)
-	case s.advancementOpen(a):
+	case progress.AdvancementOpen(s.Session, a):
 		return "§e" + a.Title(lang) + "\n§7" + advancement.FlatHint(lang, a)
 	}
 	return "§7" + a.Title(lang) + "\n§8" + advancement.FlatHint(lang, a) + "\n" + s.advancementBefore(lang, a)
@@ -46,7 +47,7 @@ func (s *session) advancementTip(lang string, a *advancement.Advancement) string
 func (s *session) advancementBefore(lang string, a *advancement.Advancement) string {
 	var names []string
 	for _, id := range a.Parents {
-		if p, ok := advancement.ByID(id); ok && !s.advanced(id) {
+		if p, ok := advancement.ByID(id); ok && !progress.Advanced(s.Session, id) {
 			names = append(names, p.Title(lang))
 		}
 	}
@@ -56,9 +57,9 @@ func (s *session) advancementBefore(lang string, a *advancement.Advancement) str
 // advQuestState is the state of a node in the quest book.
 func (s *session) advQuestState(a *advancement.Advancement) string {
 	switch {
-	case s.advanced(a.ID):
+	case progress.Advanced(s.Session, a.ID):
 		return ui.QuestDone
-	case s.advancementOpen(a):
+	case progress.AdvancementOpen(s.Session, a):
 		return ui.QuestOpen
 	}
 	return ui.QuestLocked
@@ -73,7 +74,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 	for t := advancement.Chapter(0); t < advancement.ChapterCount; t++ {
 		done, list := 0, advancement.In(t)
 		for _, a := range list {
-			if s.advanced(a.ID) {
+			if progress.Advanced(s.Session, a.ID) {
 				done++
 			}
 		}
@@ -90,14 +91,14 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 		}
 	}
 	l := advancement.LayoutOf(tab)
-	if next, ok := s.nextAdvancement(); ok && next.Chapter == tab {
+	if next, ok := progress.NextAdvancement(s.Session); ok && next.Chapter == tab {
 		b.Focus = next.ID
 	} else if len(l.Order) > 0 {
 		b.Focus = l.Order[0].ID
 	}
 	for _, a := range l.Order {
 		pos := l.Pos[a.ID]
-		q := ui.QuestNode{ID: a.ID, X: advancement.QuestX(pos.X), Y: float64(pos.Y), Shape: advancement.Shapes[advancement.Frame(a)], Tracked: s.state.Tracked == a.ID}
+		q := ui.QuestNode{ID: a.ID, X: advancement.QuestX(pos.X), Y: float64(pos.Y), Shape: advancement.Shapes[advancement.Frame(a)], Tracked: progress.StateOf(s.Session).Tracked == a.ID}
 		q.Icon, q.Tip, q.State = advancement.Icon(a), s.advancementTip(lang, a), s.advQuestState(a)
 		for _, id := range a.Parents {
 			par, ok := advancement.ByID(id)
@@ -161,10 +162,10 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 	again := func(p *player.Player) { s.showQuestBook(p, tab, a) }
 	pn := &ui.QuestPanel{Icon: advancement.Icon(a), Title: a.Title(lang), Close: back}
 	switch {
-	case s.advanced(a.ID):
+	case progress.Advanced(s.Session, a.ID):
 		pn.Status = "§2" + i18n.T(lang, "advancement.node.done")
 		pn.Body = advancement.FlatHint(lang, a)
-	case s.advancementOpen(a):
+	case progress.AdvancementOpen(s.Session, a):
 		pn.Status = "§1" + i18n.T(lang, "advancement.node.progress")
 		pn.Body = advancement.FlatHint(lang, a)
 	default:
@@ -177,16 +178,16 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 			Run: func(p *player.Player, _ *world.Tx) { s.codexFrom(p, again, it) },
 		}}}}
 	}
-	if !s.advanced(a.ID) {
+	if !progress.Advanced(s.Session, a.ID) {
 		label := i18n.T(lang, "advancement.node.track")
-		if s.state.Tracked == a.ID {
+		if progress.StateOf(s.Session).Tracked == a.ID {
 			label = i18n.T(lang, "advancement.node.untrack")
 		}
 		pn.Actions = append(pn.Actions, s.opt(label, formicon.Mission, func(p *player.Player, tx *world.Tx) {
-			if s.state.Tracked != a.ID {
+			if progress.StateOf(s.Session).Tracked != a.ID {
 				achievement.Count(p, "adv_track", 1)
 			}
-			s.track(tx, a)
+			progress.Track(s.Session, tx, a)
 			again(p)
 		}))
 	}

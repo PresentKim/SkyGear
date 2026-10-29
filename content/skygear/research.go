@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -20,13 +21,11 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/achievement"
-	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/platform/account"
 )
 
 // Research: every crafting recipe but baseUnlocks is locked. A research,
@@ -34,371 +33,176 @@ import (
 // results for everyone on the island (recipes.go). Researches form a tree;
 // trees and costs are drafts.
 
-// Research is one node of the research tree.
-type Research struct {
-	ID string
-	// Needs are the researches that must be done first.
-	Needs []string
-	// Cost are the items to deliver.
-	Cost []Requirement
-	// Unlocks are the item names (without "minecraft:") whose recipes the
-	// research opens; every variant of a name opens together.
-	Unlocks []string
-	// Icon is the item shown for a research that opens no recipe (a project,
-	// project.go).
-	Icon string
-}
-
 var (
 	oakPlanks = block.Planks{Wood: block.OakWood()}
 	stick     = item.Stick{}
 )
 
-// Title is the name of the research in lang. A test copy (isCopy) has its
-// original's name and its number.
-func (r *Research) Title(lang string) string {
-	id, n, copied := strings.Cut(r.ID, "#")
-	name := i18n.T(lang, "research."+id+".name")
-	if copied {
-		name += " #" + n
-	}
-	return name
-}
-
-// isCopy reports whether the research is a test copy of another one: the
-// operator's /sgdebug research load makes hundreds of them to try the research
-// screen with a long list. They live in the session only, are never saved and
-// cost nothing.
-func (r *Research) isCopy() bool { return strings.Contains(r.ID, "#") }
-
-// researchTree is every research in menu order (a research's needs come
-// before it), with the essence costs of researchEssenceCosts added.
-var researchTree = withEssenceCosts(baseResearchTree)
+// researchTreeSet fills researchTree before any init function runs.
+var researchTreeSet = progress.SetTree(progress.WithEssenceCosts(baseResearchTree))
 
 // baseResearchTree are the researches with their material costs.
-var baseResearchTree = []Research{
-	{ID: "stick", Cost: []Requirement{{oakPlanks, 4}}, Unlocks: []string{"stick"}},
-	{ID: "pebbles", Needs: []string{"stick"}, Cost: []Requirement{{sgitem.Pebble{Kind: sgitem.PebbleStone}, 4}},
+var baseResearchTree = []progress.Research{
+	{ID: "stick", Cost: []progress.Requirement{{Item: oakPlanks, Count: 4}}, Unlocks: []string{"stick"}},
+	{ID: "pebbles", Needs: []string{"stick"}, Cost: []progress.Requirement{{Item: sgitem.Pebble{Kind: sgitem.PebbleStone}, Count: 4}},
 		Unlocks: []string{"cobblestone", "cobbled_deepslate", "blackstone", "basalt", "tuff", "calcite", "andesite", "granite", "diorite"}},
-	{ID: "wood_tools", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 8}, {stick, 4}},
+	{ID: "wood_tools", Needs: []string{"stick"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 8}, {Item: stick, Count: 4}},
 		Unlocks: []string{"wooden_pickaxe", "wooden_axe", "wooden_shovel", "wooden_hoe", "wooden_sword"}},
-	{ID: "chest", Needs: []string{"stick"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"chest"}},
-	{ID: "wood_hopper", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 32}},
+	{ID: "chest", Needs: []string{"stick"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 32}}, Unlocks: []string{"chest"}},
+	{ID: "wood_hopper", Needs: []string{"chest"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 32}},
 		Unlocks: []string{"skygear:wood_hopper", "skygear:wood_hopper_reverse"}},
-	{ID: "slab", Needs: []string{"wood_tools"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"oak_slab"}},
-	{ID: "compost", Needs: []string{"slab"}, Cost: []Requirement{{oakPlanks, 32}}, Unlocks: []string{"composter"}},
-	{ID: "barrel", Needs: []string{"compost"}, Cost: []Requirement{{oakPlanks, 32}, {stick, 4}}, Unlocks: []string{"skygear:barrel_oak"}},
-	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}}, Unlocks: []string{"furnace"}},
-	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 8}},
+	{ID: "slab", Needs: []string{"wood_tools"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 16}}, Unlocks: []string{"oak_slab"}},
+	{ID: "compost", Needs: []string{"slab"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 32}}, Unlocks: []string{"composter"}},
+	{ID: "barrel", Needs: []string{"compost"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 32}, {Item: stick, Count: 4}}, Unlocks: []string{"skygear:barrel_oak"}},
+	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}}, Unlocks: []string{"furnace"}},
+	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: stick, Count: 8}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
-	{ID: "string", Needs: []string{"stone_tools"}, Cost: []Requirement{{sgitem.BarkFiber{}, 8}}, Unlocks: []string{"string"}},
-	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []Requirement{{block.Cobblestone{}, 16}, {stick, 4}}, Unlocks: []string{"skygear:stone_hammer"}},
-	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []Requirement{{block.String{}, 8}, {oakPlanks, 16}}, Unlocks: []string{"skygear:sieve", "skygear:mesh_string", "skygear:mesh_flint"}},
-	{ID: "torch", Needs: []string{"furnace"}, Cost: []Requirement{{item.Charcoal{}, 8}, {stick, 8}}, Unlocks: []string{"torch"}},
-	{ID: "woodwork", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 64}, {stick, 16}},
+	{ID: "string", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: sgitem.BarkFiber{}, Count: 8}}, Unlocks: []string{"string"}},
+	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: stick, Count: 4}}, Unlocks: []string{"skygear:stone_hammer"}},
+	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 8}, {Item: oakPlanks, Count: 16}}, Unlocks: []string{"skygear:sieve", "skygear:mesh_string", "skygear:mesh_flint"}},
+	{ID: "torch", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.Charcoal{}, Count: 8}, {Item: stick, Count: 8}}, Unlocks: []string{"torch"}},
+	{ID: "woodwork", Needs: []string{"chest"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 64}, {Item: stick, Count: 16}},
 		Unlocks: []string{"oak_stairs", "oak_fence", "fence_gate", "wooden_door", "trapdoor", "ladder", "bowl"}},
-	{ID: "masonry", Needs: []string{"furnace"}, Cost: []Requirement{{block.Stone{}, 32}, {block.Cobblestone{}, 32}},
+	{ID: "masonry", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: block.Stone{}, Count: 32}, {Item: block.Cobblestone{}, Count: 32}},
 		Unlocks: []string{"cobblestone_slab", "stone_stairs", "cobblestone_wall", "normal_stone_slab", "normal_stone_stairs", "stone_bricks"}},
-	{ID: "glasswork", Needs: []string{"furnace"}, Cost: []Requirement{{block.Glass{}, 16}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
-	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.OreIron}, 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "skygear:mesh_iron"}},
-	{ID: "wooden_bucket", Needs: []string{"barrel"}, Cost: []Requirement{{oakPlanks, 16}}, Unlocks: []string{"skygear:wooden_bucket"}},
-	{ID: "bucket", Needs: []string{"iron", "barrel"}, Cost: []Requirement{{item.IronIngot{}, 6}}, Unlocks: []string{"bucket"}},
-	{ID: "shears", Needs: []string{"iron", "wood_tools"}, Cost: []Requirement{{item.IronIngot{}, 4}}, Unlocks: []string{"shears"}},
-	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket", "torch"}, Cost: []Requirement{{block.Stone{}, 32}}, Unlocks: []string{"skygear:barrel_stone"}},
-	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []Requirement{{item.IronIngot{}, 10}, {block.NewChest(), 4}}, Unlocks: []string{"hopper", "skygear:iron_hopper_reverse"}},
-	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"skygear:generator"}},
-	{ID: "laboratory", Needs: []string{"generator", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}, {item.RedstoneWire{}, 8}},
+	{ID: "glasswork", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: block.Glass{}, Count: 16}}, Unlocks: []string{"glass_pane", "glass_bottle"}},
+	{ID: "iron", Needs: []string{"furnace", "sieve"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.OreIron}, Count: 16}}, Unlocks: []string{"iron_ore", "iron_ingot", "iron_block", "iron_nugget", "skygear:mesh_iron"}},
+	{ID: "wooden_bucket", Needs: []string{"barrel"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 16}}, Unlocks: []string{"skygear:wooden_bucket"}},
+	{ID: "bucket", Needs: []string{"iron", "barrel"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 6}}, Unlocks: []string{"bucket"}},
+	{ID: "shears", Needs: []string{"iron", "wood_tools"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 4}}, Unlocks: []string{"shears"}},
+	{ID: "stone_barrel", Needs: []string{"barrel", "furnace", "bucket", "torch"}, Cost: []progress.Requirement{{Item: block.Stone{}, Count: 32}}, Unlocks: []string{"skygear:barrel_stone"}},
+	{ID: "hopper", Needs: []string{"iron", "chest"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 10}, {Item: block.NewChest(), Count: 4}}, Unlocks: []string{"hopper", "skygear:iron_hopper_reverse"}},
+	{ID: "generator", Needs: []string{"iron", "furnace"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:generator"}},
+	{ID: "laboratory", Needs: []string{"generator", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:laboratory"}},
-	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"skygear:conduit_energy_1", "skygear:conduit_binder_mix"}},
-	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"skygear:conduit_item_1", "skygear:conduit_binder_mix"}},
-	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"skygear:conduit_fluid_1", "skygear:conduit_binder_mix"}},
-	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.String{}, 8}}, Unlocks: []string{"skygear:auto_sieve"}},
-	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []Requirement{{item.IronIngot{}, 32}},
+	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_energy_1", "skygear:conduit_binder_mix"}},
+	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_item_1", "skygear:conduit_binder_mix"}},
+	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}}, Unlocks: []string{"skygear:conduit_fluid_1", "skygear:conduit_binder_mix"}},
+	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.String{}, Count: 8}}, Unlocks: []string{"skygear:auto_sieve"}},
+	{ID: "iron_tools", Needs: []string{"iron", "stone_tools"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 32}},
 		Unlocks: []string{"iron_pickaxe", "iron_axe", "iron_shovel", "iron_hoe", "iron_sword"}},
-	{ID: "iron_hammer", Needs: []string{"hammer", "iron"}, Cost: []Requirement{{item.IronIngot{}, 8}}, Unlocks: []string{"skygear:hammer"}},
-	{ID: "auto_miner", Needs: []string{"iron_tools", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.NewHopper(), 2}}, Unlocks: []string{"skygear:auto_miner"}},
-	{ID: "crusher", Needs: []string{"hammer", "generator", "auto_miner"}, Cost: []Requirement{{block.Cobblestone{}, 64}, {item.IronIngot{}, 8}}, Unlocks: []string{"skygear:crusher"}},
-	{ID: "drawer", Needs: []string{"chest"}, Cost: []Requirement{{oakPlanks, 32}, {block.NewChest(), 2}}, Unlocks: []string{"skygear:drawer", "skygear:drawer_key"}},
-	{ID: "drawer_upgrades", Needs: []string{"drawer", "iron"}, Cost: []Requirement{{item.IronIngot{}, 16}},
+	{ID: "iron_hammer", Needs: []string{"hammer", "iron"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 8}}, Unlocks: []string{"skygear:hammer"}},
+	{ID: "auto_miner", Needs: []string{"iron_tools", "hopper", "generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.NewHopper(), Count: 2}}, Unlocks: []string{"skygear:auto_miner"}},
+	{ID: "crusher", Needs: []string{"hammer", "generator", "auto_miner"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 64}, {Item: item.IronIngot{}, Count: 8}}, Unlocks: []string{"skygear:crusher"}},
+	{ID: "drawer", Needs: []string{"chest"}, Cost: []progress.Requirement{{Item: oakPlanks, Count: 32}, {Item: block.NewChest(), Count: 2}}, Unlocks: []string{"skygear:drawer", "skygear:drawer_key"}},
+	{ID: "drawer_upgrades", Needs: []string{"drawer", "iron"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}},
 		Unlocks: []string{"skygear:drawer_upgrade_capacity", "skygear:drawer_upgrade_void"}},
-	{ID: "farming", Needs: []string{"wood_tools"}, Cost: []Requirement{{item.Wheat{}, 16}}, Unlocks: []string{"bread", "hay_block"}},
-	{ID: "harvester", Needs: []string{"farming", "hopper", "generator"}, Cost: []Requirement{{item.IronIngot{}, 16}}, Unlocks: []string{"skygear:harvester"}},
-	{ID: "clay", Needs: []string{"furnace", "barrel"}, Cost: []Requirement{{block.Clay{}, 4}}, Unlocks: []string{"clay", "brick_block"}},
-	{ID: "gold", Needs: []string{"iron"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.OreGold}, 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "skygear:mesh_gold"}},
-	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []Requirement{{item.Diamond{}, 4}}, Unlocks: []string{"skygear:mesh_diamond"}},
-	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []Requirement{{item.NetheriteScrap{}, 4}}, Unlocks: []string{"skygear:mesh_netherite", "netherite_ingot"}},
-	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.OreCopper}, 16}}, Unlocks: []string{"copper_ore", "copper_ingot", "copper_block", "copper_nugget"}},
-	{ID: "tin", Needs: []string{"copper"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.MetalTin}, 16}}, Unlocks: []string{"skygear:tin_ore", "skygear:metal_dust_tin"}},
-	{ID: "lead", Needs: []string{"tin", "iron"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.MetalLead}, 16}}, Unlocks: []string{"skygear:lead_ore", "skygear:metal_dust_lead"}},
-	{ID: "silver", Needs: []string{"gold"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.MetalSilver}, 16}}, Unlocks: []string{"skygear:silver_ore", "skygear:metal_dust_silver"}},
-	{ID: "nickel", Needs: []string{"gold"}, Cost: []Requirement{{sgitem.OreChunk{Ore: sgitem.MetalNickel}, 16}}, Unlocks: []string{"skygear:nickel_ore", "skygear:metal_dust_nickel"}},
-	{ID: "alloy_smelter", Needs: []string{"generator", "tin", "crusher"}, Cost: []Requirement{{item.IronIngot{}, 16}, {sgitem.Ingot{Metal: sgitem.MetalTin}, 8}}, Unlocks: []string{"skygear:alloy_smelter"}},
-	{ID: "energy_cell", Needs: []string{"generator", "lead"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalLead}, 8}, {item.IronIngot{}, 8}}, Unlocks: []string{"skygear:energy_cell"}},
-	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalElectrum}, 8}}, Unlocks: []string{"skygear:conduit_energy_2", "skygear:conduit_item_2", "skygear:conduit_fluid_2"}},
-	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 8}, {item.Diamond{}, 4}}, Unlocks: []string{"skygear:conduit_energy_3", "skygear:conduit_item_3", "skygear:conduit_fluid_3"}},
-	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalBronze}, 8}, {sgitem.Essence{Mob: sgitem.MobZombie}, 4}, {sgitem.Essence{Mob: sgitem.MobSkeleton}, 4}}, Unlocks: []string{"skygear:mob_simulator"}},
-	{ID: "fluid_tank", Needs: []string{"fluid_conduit", "bucket"}, Cost: []Requirement{{item.IronIngot{}, 16}, {block.Glass{}, 8}}, Unlocks: []string{"skygear:fluid_tank"}},
-	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {sgitem.Ingot{Metal: sgitem.MetalBronze}, 8}}, Unlocks: []string{"skygear:crucible"}},
-	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 8}}, Unlocks: []string{"skygear:lava_generator"}},
-	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []Requirement{{item.IronIngot{}, 12}, {sgitem.Ingot{Metal: sgitem.MetalBronze}, 4}}, Unlocks: []string{"skygear:ore_washer"}},
-	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 8}, {sgitem.Essence{Mob: sgitem.MobZombie}, 8}, {sgitem.Essence{Mob: sgitem.MobSkeleton}, 8}}, Unlocks: []string{"skygear:dimension_gate"}},
-	{ID: "diamond_tools", Needs: []string{"iron_tools", "mesh_diamond"}, Cost: []Requirement{{item.Diamond{}, 8}},
+	{ID: "farming", Needs: []string{"wood_tools"}, Cost: []progress.Requirement{{Item: item.Wheat{}, Count: 16}}, Unlocks: []string{"bread", "hay_block"}},
+	{ID: "harvester", Needs: []string{"farming", "hopper", "generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:harvester"}},
+	{ID: "clay", Needs: []string{"furnace", "barrel"}, Cost: []progress.Requirement{{Item: block.Clay{}, Count: 4}}, Unlocks: []string{"clay", "brick_block"}},
+	{ID: "gold", Needs: []string{"iron"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.OreGold}, Count: 16}}, Unlocks: []string{"gold_ore", "gold_ingot", "gold_block", "gold_nugget", "skygear:mesh_gold"}},
+	{ID: "mesh_diamond", Needs: []string{"gold"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 4}}, Unlocks: []string{"skygear:mesh_diamond"}},
+	{ID: "mesh_netherite", Needs: []string{"mesh_diamond"}, Cost: []progress.Requirement{{Item: item.NetheriteScrap{}, Count: 4}}, Unlocks: []string{"skygear:mesh_netherite", "netherite_ingot"}},
+	{ID: "copper", Needs: []string{"furnace", "sieve"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.OreCopper}, Count: 16}}, Unlocks: []string{"copper_ore", "copper_ingot", "copper_block", "copper_nugget"}},
+	{ID: "tin", Needs: []string{"copper"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.MetalTin}, Count: 16}}, Unlocks: []string{"skygear:tin_ore", "skygear:metal_dust_tin"}},
+	{ID: "lead", Needs: []string{"tin", "iron"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.MetalLead}, Count: 16}}, Unlocks: []string{"skygear:lead_ore", "skygear:metal_dust_lead"}},
+	{ID: "silver", Needs: []string{"gold"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.MetalSilver}, Count: 16}}, Unlocks: []string{"skygear:silver_ore", "skygear:metal_dust_silver"}},
+	{ID: "nickel", Needs: []string{"gold"}, Cost: []progress.Requirement{{Item: sgitem.OreChunk{Ore: sgitem.MetalNickel}, Count: 16}}, Unlocks: []string{"skygear:nickel_ore", "skygear:metal_dust_nickel"}},
+	{ID: "alloy_smelter", Needs: []string{"generator", "tin", "crusher"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalTin}, Count: 8}}, Unlocks: []string{"skygear:alloy_smelter"}},
+	{ID: "energy_cell", Needs: []string{"generator", "lead"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalLead}, Count: 8}, {Item: item.IronIngot{}, Count: 8}}, Unlocks: []string{"skygear:energy_cell"}},
+	{ID: "conduit_upgrade_2", Needs: []string{"alloy_smelter", "silver", "energy_conduit", "item_conduit"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 8}}, Unlocks: []string{"skygear:conduit_energy_2", "skygear:conduit_item_2", "skygear:conduit_fluid_2"}},
+	{ID: "conduit_upgrade_3", Needs: []string{"conduit_upgrade_2"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: item.Diamond{}, Count: 4}}, Unlocks: []string{"skygear:conduit_energy_3", "skygear:conduit_item_3", "skygear:conduit_fluid_3"}},
+	{ID: "mob_simulator", Needs: []string{"alloy_smelter", "crusher"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobZombie}, Count: 4}, {Item: sgitem.Essence{Mob: sgitem.MobSkeleton}, Count: 4}}, Unlocks: []string{"skygear:mob_simulator"}},
+	{ID: "fluid_tank", Needs: []string{"fluid_conduit", "bucket"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}}, Unlocks: []string{"skygear:fluid_tank"}},
+	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 8}}, Unlocks: []string{"skygear:crucible"}},
+	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}}, Unlocks: []string{"skygear:lava_generator"}},
+	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 4}}, Unlocks: []string{"skygear:ore_washer"}},
+	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobZombie}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSkeleton}, Count: 8}}, Unlocks: []string{"skygear:dimension_gate"}},
+	{ID: "diamond_tools", Needs: []string{"iron_tools", "mesh_diamond"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}},
 		Unlocks: []string{"diamond_pickaxe", "diamond_axe", "diamond_shovel", "diamond_hoe", "diamond_sword"}},
-	{ID: "storage_controller", Needs: []string{"drawer_upgrades", "item_conduit", "tin"}, Cost: []Requirement{{item.IronIngot{}, 16}, {sgitem.Ingot{Metal: sgitem.MetalBronze}, 8}}, Unlocks: []string{"skygear:storage_controller", "skygear:storage_link"}},
-	{ID: "tinker_table", Needs: []string{"iron_tools", "tin"}, Cost: []Requirement{{item.IronIngot{}, 24}, {item.Flint{}, 8}}, Unlocks: []string{"skygear:tinker_table"}},
-	{ID: "copper_tools", Needs: []string{"copper", "iron_tools"}, Cost: []Requirement{{item.CopperIngot{}, 12}},
+	{ID: "storage_controller", Needs: []string{"drawer_upgrades", "item_conduit", "tin"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 8}}, Unlocks: []string{"skygear:storage_controller", "skygear:storage_link"}},
+	{ID: "tinker_table", Needs: []string{"iron_tools", "tin"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 24}, {Item: item.Flint{}, Count: 8}}, Unlocks: []string{"skygear:tinker_table"}},
+	{ID: "copper_tools", Needs: []string{"copper", "iron_tools"}, Cost: []progress.Requirement{{Item: item.CopperIngot{}, Count: 12}},
 		Unlocks: []string{"copper_pickaxe", "copper_axe", "copper_shovel", "copper_hoe", "copper_sword"}},
-	{ID: "copper_armor", Needs: []string{"copper_tools"}, Cost: []Requirement{{item.CopperIngot{}, 12}},
+	{ID: "copper_armor", Needs: []string{"copper_tools"}, Cost: []progress.Requirement{{Item: item.CopperIngot{}, Count: 12}},
 		Unlocks: []string{"copper_helmet", "copper_chestplate", "copper_leggings", "copper_boots"}},
-	{ID: "iron_armor", Needs: []string{"iron_tools"}, Cost: []Requirement{{item.IronIngot{}, 16}},
+	{ID: "iron_armor", Needs: []string{"iron_tools"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}},
 		Unlocks: []string{"iron_helmet", "iron_chestplate", "iron_leggings", "iron_boots"}},
-	{ID: "gold_tools", Needs: []string{"gold", "iron_tools"}, Cost: []Requirement{{item.GoldIngot{}, 10}},
+	{ID: "gold_tools", Needs: []string{"gold", "iron_tools"}, Cost: []progress.Requirement{{Item: item.GoldIngot{}, Count: 10}},
 		Unlocks: []string{"golden_pickaxe", "golden_axe", "golden_shovel", "golden_hoe", "golden_sword"}},
-	{ID: "gold_armor", Needs: []string{"gold_tools"}, Cost: []Requirement{{item.GoldIngot{}, 12}},
+	{ID: "gold_armor", Needs: []string{"gold_tools"}, Cost: []progress.Requirement{{Item: item.GoldIngot{}, Count: 12}},
 		Unlocks: []string{"golden_helmet", "golden_chestplate", "golden_leggings", "golden_boots"}},
-	{ID: "diamond_armor", Needs: []string{"diamond_tools", "iron_armor"}, Cost: []Requirement{{item.Diamond{}, 12}},
+	{ID: "diamond_armor", Needs: []string{"diamond_tools", "iron_armor"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 12}},
 		Unlocks: []string{"diamond_helmet", "diamond_chestplate", "diamond_leggings", "diamond_boots"}},
-	{ID: "archery", Needs: []string{"stone_tools", "string"}, Cost: []Requirement{{block.String{}, 6}, {stick, 6}},
+	{ID: "archery", Needs: []string{"stone_tools", "string"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 6}, {Item: stick, Count: 6}},
 		Unlocks: []string{"bow"}},
-	{ID: "ironwork", Needs: []string{"iron_tools", "torch"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+	{ID: "ironwork", Needs: []string{"iron_tools", "torch"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"iron_bars", "iron_chain", "lantern", "flint_and_steel"}},
-	{ID: "workbenches", Needs: []string{"iron", "woodwork", "masonry"}, Cost: []Requirement{{item.IronIngot{}, 8}, {oakPlanks, 16}, {item.Flint{}, 4}},
+	{ID: "workbenches", Needs: []string{"iron", "woodwork", "masonry"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 8}, {Item: oakPlanks, Count: 16}, {Item: item.Flint{}, Count: 4}},
 		Unlocks: []string{"stonecutter_block", "grindstone", "fletching_table", "loom", "smithing_table"}},
-	{ID: "anvil", Needs: []string{"ironwork", "masonry"}, Cost: []Requirement{{item.IronIngot{}, 24}},
+	{ID: "anvil", Needs: []string{"ironwork", "masonry"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 24}},
 		Unlocks: []string{"anvil"}},
-	{ID: "smelters", Needs: []string{"iron_tools", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 12}, {block.Stone{}, 8}},
+	{ID: "smelters", Needs: []string{"iron_tools", "furnace"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}, {Item: block.Stone{}, Count: 8}},
 		Unlocks: []string{"blast_furnace", "smoker", "campfire"}},
-	{ID: "redstone_work", Needs: []string{"iron", "generator"}, Cost: []Requirement{{item.RedstoneWire{}, 16}},
+	{ID: "redstone_work", Needs: []string{"iron", "generator"}, Cost: []progress.Requirement{{Item: item.RedstoneWire{}, Count: 16}},
 		Unlocks: []string{"redstone", "redstone_torch", "redstone_block", "lever", "noteblock"}},
-	{ID: "compression", Needs: []string{"mesh_diamond", "furnace"}, Cost: []Requirement{{item.Coal{}, 32}, {item.LapisLazuli{}, 8}},
+	{ID: "compression", Needs: []string{"mesh_diamond", "furnace"}, Cost: []progress.Requirement{{Item: item.Coal{}, Count: 32}, {Item: item.LapisLazuli{}, Count: 8}},
 		Unlocks: []string{"coal", "coal_block", "lapis_lazuli", "lapis_block", "emerald", "emerald_block", "diamond", "diamond_block"}},
-	{ID: "quartz_work", Needs: []string{"masonry", "sieve"}, Cost: []Requirement{{item.NetherQuartz{}, 8}},
+	{ID: "quartz_work", Needs: []string{"masonry", "sieve"}, Cost: []progress.Requirement{{Item: item.NetherQuartz{}, Count: 8}},
 		Unlocks: []string{"quartz_block", "quartz_bricks", "quartz_pillar", "chiseled_quartz_block", "quartz_slab", "quartz_stairs"}},
-	{ID: "sandstone", Needs: []string{"masonry"}, Cost: []Requirement{{block.Sand{}, 32}},
+	{ID: "sandstone", Needs: []string{"masonry"}, Cost: []progress.Requirement{{Item: block.Sand{}, Count: 32}},
 		Unlocks: []string{"sandstone", "cut_sandstone", "chiseled_sandstone", "sandstone_slab", "sandstone_stairs"}},
-	{ID: "crystals", Needs: []string{"glasswork", "sieve"}, Cost: []Requirement{{item.AmethystShard{}, 8}},
+	{ID: "crystals", Needs: []string{"glasswork", "sieve"}, Cost: []progress.Requirement{{Item: item.AmethystShard{}, Count: 8}},
 		Unlocks: []string{"amethyst_block", "tinted_glass"}},
-	{ID: "navigation", Needs: []string{"copper", "gold", "redstone_work"}, Cost: []Requirement{{item.CopperIngot{}, 4}, {item.GoldIngot{}, 4}, {item.RedstoneWire{}, 4}},
+	{ID: "navigation", Needs: []string{"copper", "gold", "redstone_work"}, Cost: []progress.Requirement{{Item: item.CopperIngot{}, Count: 4}, {Item: item.GoldIngot{}, Count: 4}, {Item: item.RedstoneWire{}, Count: 4}},
 		Unlocks: []string{"compass", "clock", "spyglass"}},
-	{ID: "bone_craft", Needs: []string{"mob_simulator"}, Cost: []Requirement{{item.Bone{}, 8}},
+	{ID: "bone_craft", Needs: []string{"mob_simulator"}, Cost: []progress.Requirement{{Item: item.Bone{}, Count: 8}},
 		Unlocks: []string{"bone_meal", "bone_block"}},
-	{ID: "slime_block", Needs: []string{"mob_simulator"}, Cost: []Requirement{{item.Slimeball{}, 9}},
+	{ID: "slime_block", Needs: []string{"mob_simulator"}, Cost: []progress.Requirement{{Item: item.Slimeball{}, Count: 9}},
 		Unlocks: []string{"slime", "slime_ball"}},
-	{ID: "blaze_craft", Needs: []string{"mob_simulator", "mesh_netherite"}, Cost: []Requirement{{item.BlazeRod{}, 4}},
+	{ID: "blaze_craft", Needs: []string{"mob_simulator", "mesh_netherite"}, Cost: []progress.Requirement{{Item: item.BlazeRod{}, Count: 4}},
 		Unlocks: []string{"blaze_powder", "magma_cream", "magma", "ender_eye", "fire_charge"}},
-	{ID: "ender_chest", Needs: []string{"blaze_craft", "diamond_tools"}, Cost: []Requirement{{item.EnderPearl{}, 4}, {block.Obsidian{}, 4}},
+	{ID: "ender_chest", Needs: []string{"blaze_craft", "diamond_tools"}, Cost: []progress.Requirement{{Item: item.EnderPearl{}, Count: 4}, {Item: block.Obsidian{}, Count: 4}},
 		Unlocks: []string{"ender_chest"}},
-	{ID: "electric_furnace", Needs: []string{"generator", "furnace"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+	{ID: "electric_furnace", Needs: []string{"generator", "furnace"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"skygear:electric_furnace"}},
-	{ID: "item_vacuum", Needs: []string{"generator", "hopper"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+	{ID: "item_vacuum", Needs: []string{"generator", "hopper"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"skygear:item_vacuum"}},
-	{ID: "tree_feller", Needs: []string{"generator", "iron_tools"}, Cost: []Requirement{{item.IronIngot{}, 12}},
+	{ID: "tree_feller", Needs: []string{"generator", "iron_tools"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"skygear:tree_feller"}},
-	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []Requirement{{item.IronIngot{}, 16}, {item.RedstoneWire{}, 8}},
+	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:auto_crafter"}},
-	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []Requirement{{PlantSeed{Seed: "flower_red"}, 1}, {PlantSeed{Seed: "flower_yellow"}, 1}, {PlantSeed{Seed: "flower_blue"}, 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
-	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []Requirement{{PlantSeed{Seed: "ore_gold"}, 2}}, Unlocks: []string{"skygear:seed_gem_lapis", "skygear:seed_gem_redstone", "skygear:seed_gem_quartz", "skygear:seed_gem_coal", "skygear:seed_gem_diamond", "skygear:seed_gem_emerald"}},
-	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []Requirement{{PlantSeed{Seed: "gem_redstone"}, 2}}, Unlocks: []string{"skygear:seed_ess_zombie", "skygear:seed_ess_skeleton", "skygear:seed_ess_creeper", "skygear:seed_ess_spider", "skygear:seed_ess_slime", "skygear:seed_ess_enderman", "skygear:seed_ess_blaze"}},
-	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []Requirement{{item.Diamond{}, 8}, {item.EnderPearl{}, 8}},
+	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "flower_red"}, Count: 1}, {Item: PlantSeed{Seed: "flower_yellow"}, Count: 1}, {Item: PlantSeed{Seed: "flower_blue"}, Count: 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
+	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "ore_gold"}, Count: 2}}, Unlocks: []string{"skygear:seed_gem_lapis", "skygear:seed_gem_redstone", "skygear:seed_gem_quartz", "skygear:seed_gem_coal", "skygear:seed_gem_diamond", "skygear:seed_gem_emerald"}},
+	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []progress.Requirement{{Item: PlantSeed{Seed: "gem_redstone"}, Count: 2}}, Unlocks: []string{"skygear:seed_ess_zombie", "skygear:seed_ess_skeleton", "skygear:seed_ess_creeper", "skygear:seed_ess_spider", "skygear:seed_ess_slime", "skygear:seed_ess_enderman", "skygear:seed_ess_blaze"}},
+	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}, {Item: item.EnderPearl{}, Count: 8}},
 		Unlocks: []string{"skygear:magic_sieve"}},
-	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 16}, {sgitem.Ingot{Metal: sgitem.MetalElectrum}, 16}, {item.Diamond{}, 4}},
+	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 16}, {Item: item.Diamond{}, Count: 4}},
 		Unlocks: []string{"skygear:circuit_1", "skygear:circuit_2", "skygear:kit_1"}},
-	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []Requirement{{item.Diamond{}, 16}, {sgitem.Ingot{Metal: sgitem.MetalInvar}, 16}},
+	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 16}},
 		Unlocks: []string{"skygear:circuit_3", "skygear:kit_2"}},
-	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []Requirement{{item.NetheriteIngot{}, 2}},
+	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []progress.Requirement{{Item: item.NetheriteIngot{}, Count: 2}},
 		Unlocks: []string{"skygear:circuit_4", "skygear:kit_3"}},
-	{ID: "config_copier", Needs: []string{"machine_tier_1", "item_conduit", "auto_crafter"}, Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 8}, {item.LapisLazuli{}, 8}},
+	{ID: "config_copier", Needs: []string{"machine_tier_1", "item_conduit", "auto_crafter"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: item.LapisLazuli{}, Count: 8}},
 		Unlocks: []string{"skygear:config_copier"}},
-	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []Requirement{{sgitem.Petal{Colour: "red"}, 4}, {sgitem.Petal{Colour: "yellow"}, 4}, {sgitem.Petal{Colour: "blue"}, 4}},
+	{ID: "dyeing", Needs: []string{"magic_botany", "glasswork"}, Cost: []progress.Requirement{{Item: sgitem.Petal{Colour: "red"}, Count: 4}, {Item: sgitem.Petal{Colour: "yellow"}, Count: 4}, {Item: sgitem.Petal{Colour: "blue"}, Count: 4}},
 		Unlocks: dyeUnlocks()},
-	{ID: "harvest", Needs: []string{"farming"}, Cost: []Requirement{{item.MelonSlice{}, 16}, {block.Pumpkin{}, 4}},
+	{ID: "harvest", Needs: []string{"farming"}, Cost: []progress.Requirement{{Item: item.MelonSlice{}, Count: 16}, {Item: block.Pumpkin{}, Count: 4}},
 		Unlocks: []string{"melon_block", "pumpkin_pie", "melon_seeds", "pumpkin_seeds"}},
-	{ID: "golden_food", Needs: []string{"gold", "harvest"}, Cost: []Requirement{{item.GoldIngot{}, 8}, {block.Carrot{}, 4}},
+	{ID: "golden_food", Needs: []string{"gold", "harvest"}, Cost: []progress.Requirement{{Item: item.GoldIngot{}, Count: 8}, {Item: block.Carrot{}, Count: 4}},
 		Unlocks: []string{"golden_apple", "golden_carrot", "glistering_melon_slice"}},
 	{ID: "project_industry", Icon: "skygear:storage_controller", Needs: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"},
-		Cost: []Requirement{{sgitem.Ingot{Metal: sgitem.MetalSteel}, 32}, {sgitem.Ingot{Metal: sgitem.MetalElectrum}, 32}, {sgitem.Ingot{Metal: sgitem.MetalInvar}, 32}, {sgitem.Ingot{Metal: sgitem.MetalBronze}, 32}, {item.Diamond{}, 16}}},
+		Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 32}, {Item: item.Diamond{}, Count: 16}}},
 	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension_gate", "tinker_table", "diamond_armor", "blaze_craft"},
-		Cost: []Requirement{{item.BlazeRod{}, 16}, {item.EnderPearl{}, 16}, {item.Slimeball{}, 16}, {item.SpiderEye{}, 16}, {item.Bone{}, 32}}},
+		Cost: []progress.Requirement{{Item: item.BlazeRod{}, Count: 16}, {Item: item.EnderPearl{}, Count: 16}, {Item: item.Slimeball{}, Count: 16}, {Item: item.SpiderEye{}, Count: 16}, {Item: item.Bone{}, Count: 32}}},
 	{ID: "project_botanist", Icon: "skygear:petal_red", Needs: []string{"magic_essence", "dyeing"},
-		Cost: []Requirement{{PlantSeed{Seed: "ess_enderman"}, 2}, {PlantSeed{Seed: "ess_blaze"}, 2}, {PlantSeed{Seed: "gem_diamond"}, 2}, {PlantSeed{Seed: "gem_emerald"}, 2}, {sgitem.Essence{Mob: sgitem.MobEnder}, 8}, {sgitem.Essence{Mob: sgitem.MobBlaze}, 8}}},
+		Cost: []progress.Requirement{{Item: PlantSeed{Seed: "ess_enderman"}, Count: 2}, {Item: PlantSeed{Seed: "ess_blaze"}, Count: 2}, {Item: PlantSeed{Seed: "gem_diamond"}, Count: 2}, {Item: PlantSeed{Seed: "gem_emerald"}, Count: 2}, {Item: sgitem.Essence{Mob: sgitem.MobEnder}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobBlaze}, Count: 8}}},
 	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
-		Cost:    []Requirement{{item.Diamond{}, 32}, {item.Emerald{}, 32}, {item.NetheriteIngot{}, 4}, {sgitem.Ingot{Metal: sgitem.MetalSteel}, 32}},
+		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
-	{ID: "kelp", Needs: []string{"furnace"}, Cost: []Requirement{{item.DriedKelp{}, 16}}, Unlocks: []string{"dried_kelp_block"}},
+	{ID: "kelp", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.DriedKelp{}, Count: 16}}, Unlocks: []string{"dried_kelp_block"}},
 	// The fairy magic (fairymagic.go): dust from the nightly fairy and a
 	// research table; it gives the board at once.
-	{ID: "fairy_magic", Cost: []Requirement{{sgitem.FairyDust{}, 2}, {ResearchTable{}, 1}},
+	{ID: "fairy_magic", Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 2}, {Item: ResearchTable{}, Count: 1}},
 		Unlocks: []string{"skygear:fairy_emerald", "skygear:fairy_board"}},
 	// Fairy time (fairytime.go): dust and bone meal for the things that
 	// cut waiting short.
-	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []Requirement{{sgitem.FairyDust{}, 4}, {item.BoneMeal{}, 8}},
+	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 4}, {Item: item.BoneMeal{}, Count: 8}},
 		Unlocks: []string{"skygear:fairy_bone_meal", "skygear:fairy_hourglass"}},
 }
 
-// baseUnlocks are the results open without research.
-var baseUnlocks = []string{"oak_planks", "crafting_table", "skygear:research_table"}
-
-// researchIndex is the index in researchTree of each ID's first research.
-var researchIndex = func() map[string]int {
-	m := map[string]int{}
-	for i := range researchTree {
-		if _, ok := m[researchTree[i].ID]; !ok {
-			m[researchTree[i].ID] = i
-		}
-	}
-	return m
-}()
-
-func researchByID(id string) (*Research, bool) {
-	if i, ok := researchIndex[id]; ok {
-		return &researchTree[i], true
-	}
-	return nil, false
-}
-
-// researched reports whether the save has done a research.
-func (s *session) researched(id string) bool {
-	if strings.Contains(id, "#") {
-		return s.copiesDone[id]
-	}
-	return s.state.Researched[id]
-}
-
-// researchOpen reports whether a research can be done: not done yet and
-// everything it needs is done.
-func (s *session) researchOpen(r *Research) bool {
-	if s.researched(r.ID) {
-		return false
-	}
-	for _, n := range r.Needs {
-		if !s.researched(n) {
-			return false
-		}
-	}
-	return true
-}
-
-// researchBlocker returns the one research that is still to do before r
-// when r is only one step from open: that research is open itself, and it is
-// the only one r needs that is not done.
-func (s *session) researchBlocker(r *Research) (*Research, bool) {
-	if s.researched(r.ID) {
-		return nil, false
-	}
-	var left *Research
-	for _, n := range r.Needs {
-		if s.researched(n) {
-			continue
-		}
-		if left != nil {
-			return nil, false
-		}
-		need, ok := researchByID(n)
-		if !ok {
-			return nil, false
-		}
-		left = need
-	}
-	if left == nil || !s.researchOpen(left) {
-		return nil, false
-	}
-	return left, true
-}
-
-// researchPaid is how many of an item of a research's cost the save records
-// as delivered in parts. Research is paid whole; only old saves hold parts.
-func (s *session) researchPaid(r *Research, it world.Item) int {
-	return s.state.ResearchPaid[r.ID][naming.ItemKey(it)]
-}
-
-// researchNeed is how many of an item of a research's cost are still to be
-// spent.
-func (s *session) researchNeed(r *Research, c Requirement) int {
-	return max(0, c.Count-s.researchPaid(r, c.Item))
-}
-
-// researchMissing lists what p lacks to do a research now: the cost items
-// with how many more they need.
-func (s *session) researchMissing(p *player.Player, r *Research) []Requirement {
-	var missing []Requirement
-	for _, c := range r.Cost {
-		if short := s.researchNeed(r, c) - core.CountPlain(p.Inventory(), c.Item); short > 0 {
-			missing = append(missing, Requirement{c.Item, short})
-		}
-	}
-	return missing
-}
-
-// doResearch spends the whole cost from p's inventory and completes the
-// research. A research is never paid in parts: when p lacks anything it
-// takes nothing and returns what is missing.
-func (s *session) doResearch(p *player.Player, tx *world.Tx, r *Research) (missing []Requirement, done bool) {
-	if !s.researchOpen(r) {
-		return nil, false
-	}
-	if missing = s.researchMissing(p, r); len(missing) > 0 {
-		return missing, false
-	}
-	for _, c := range r.Cost {
-		core.TakePlain(p.Inventory(), c.Item, s.researchNeed(r, c))
-	}
-	pourEssences(tx, p, r.Cost)
-	s.completeResearch(tx, r)
-	s.giveResearchReward(p, tx, r)
-	account.Grant(p, achievement.FirstResearch)
-	return nil, true
-}
-
-// completeResearch marks a research done and opens its recipes for
-// everyone on the island.
-func (s *session) completeResearch(tx *world.Tx, r *Research) {
-	if s.state.Researched == nil {
-		s.state.Researched = map[string]bool{}
-	}
-	s.state.Researched[r.ID] = true
-	achievement.CountAll(tx, "research_done", 1)
-	if spent := essencesIn(r.Cost); spent > 0 {
-		s.advance(tx, advancement.EssenceResearch)
-		achievement.CountAll(tx, "essence_spent", int64(spent))
-	}
-	if strings.HasPrefix(r.ID, "project_") && r.ID != "project_dragon" {
-		achievement.CountAll(tx, "project_done", 1)
-	}
-	if len(s.state.Researched) >= len(researchTree) {
-		for e := range tx.Players() {
-			account.Grant(e.(*player.Player), achievement.AllResearch)
-		}
-	}
-	delete(s.state.ResearchPaid, r.ID)
-	s.MarkDirty()
-	s.sendRecipes(tx)
-	s.updateBoards(tx)
-	for e := range tx.Players() {
-		p := e.(*player.Player)
-		if len(r.Unlocks) == 0 {
-			// a project: it opens no recipe of its own
-			p.Messagef(i18n.T(i18n.Of(p), "researchdone.plain"), r.Title(i18n.Of(p)))
-			continue
-		}
-		p.Messagef(i18n.T(i18n.Of(p), "researchdone.unlocks"), r.Title(i18n.Of(p)), s.unlockNames(i18n.Of(p), r))
-	}
-}
-
-// unlockNames lists a research's results in lang.
-func (s *session) unlockNames(lang string, r *Research) string {
-	var names []string
-	for _, n := range r.Unlocks {
-		if it, ok := world.ItemByName(naming.UnlockName(n), 0); ok {
-			names = append(names, naming.ItemName(lang, item.NewStack(it, 1)))
-		} else {
-			names = append(names, n)
-		}
-	}
-	return strings.Join(names, ", ")
-}
-
 // researchIcon is a research's form icon: its first result.
-func researchIcon(r *Research) string {
+func researchIcon(r *progress.Research) string {
 	if len(r.Unlocks) == 0 {
 		if it, ok := world.ItemByName(naming.UnlockName(r.Icon), 0); ok {
 			return formicon.Of(item.NewStack(it, 1))
@@ -435,7 +239,7 @@ const (
 
 // researchEntry is a research with how it stands.
 type researchEntry struct {
-	r    *Research
+	r    *progress.Research
 	kind researchKind
 }
 
@@ -445,22 +249,22 @@ type researchEntry struct {
 // is found step by step. openN is how many are to do without the grey ones.
 func (s *session) researchEntries() (todo, done []researchEntry, openN int) {
 	var previews []researchEntry
-	for i := range researchTree {
-		r := &researchTree[i]
+	for i := range progress.Tree {
+		r := &progress.Tree[i]
 		switch {
-		case s.researched(r.ID):
+		case progress.Researched(s.Session, r.ID):
 			done = append(done, researchEntry{r, researchDone})
-		case s.researchOpen(r):
+		case progress.Open(s.Session, r):
 			openN++
 			todo = append(todo, researchEntry{r, researchTodo})
 		default:
-			if _, ok := s.researchBlocker(r); ok {
+			if _, ok := progress.Blocker(s.Session, r); ok {
 				previews = append(previews, researchEntry{r, researchPreview})
 			}
 		}
 	}
-	for _, r := range s.copies {
-		if s.researched(r.ID) {
+	for _, r := range progress.LocalOf(s.Session).Copies {
+		if progress.Researched(s.Session, r.ID) {
 			done = append(done, researchEntry{r, researchDone})
 		} else {
 			openN++
@@ -481,7 +285,7 @@ func (s *session) researchSlot(p *player.Player, e researchEntry, show func(p *p
 		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), "§7", r), Run: show}
 	case researchTodo:
 		colour := "§e"
-		if p != nil && len(s.researchMissing(p, r)) == 0 {
+		if p != nil && len(progress.Missing(s.Session, p, r)) == 0 {
 			colour = "§a"
 		}
 		return ui.ItemSlot{Icon: researchIcon(r), Tip: researchTip(i18n.Of(p), colour, r), Run: show}
@@ -552,7 +356,7 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 	if idx >= 0 {
 		again := func(p *player.Player) { s.showResearchSplit(p, v) }
 		finished := func(p *player.Player) { s.showResearchSplit(p, researchView{tab: v.tab, page: v.page}) }
-		goTo := func(p *player.Player, r *Research) { s.showResearchAt(p, r) }
+		goTo := func(p *player.Player, r *progress.Research) { s.showResearchAt(p, r) }
 		d, rows, opts := s.researchNodeWith(p, list[idx].r, again, finished, goTo)
 		sp.Detail, sp.Rows, sp.Actions = d, rows, opts
 	}
@@ -563,9 +367,9 @@ func (s *session) showResearchSplit(p *player.Player, v researchView) {
 
 // showResearchAt shows the research screen with a research chosen, on the tab
 // it belongs to.
-func (s *session) showResearchAt(p *player.Player, r *Research) {
+func (s *session) showResearchAt(p *player.Player, r *progress.Research) {
 	v := researchView{sel: r.ID}
-	if s.researched(r.ID) {
+	if progress.Researched(s.Session, r.ID) {
 		v.tab = 1
 	}
 	s.showResearchSplit(p, v)
@@ -589,9 +393,9 @@ func (s *session) researchSlots(p *player.Player) (todo, done []ui.ItemSlot, tod
 
 // researchTip is the hover text of a research in the list: its name in
 // colour and the short description.
-func researchTip(lang, colour string, r *Research) string {
+func researchTip(lang, colour string, r *progress.Research) string {
 	tip := colour + r.Title(lang)
-	if short := researchText(lang, r.ID).Short; short != "" {
+	if short := progress.Text(lang, r.ID).Short; short != "" {
 		tip += "\n§7" + short
 	}
 	return tip
@@ -599,11 +403,11 @@ func researchTip(lang, colour string, r *Research) string {
 
 // researchNode builds the screen of a research with a way back to the
 // research screen. p may be nil (the owned counts are then left out).
-func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
+func (s *session) researchNode(p *player.Player, r *progress.Research) (ui.Detail, []ui.SlotRow, []ui.Option) {
 	d, rows, opts := s.researchNodeWith(p, r,
 		func(p *player.Player) { s.showResearchAt(p, r) },
 		func(p *player.Player) { s.showResearch(p) },
-		func(p *player.Player, n *Research) { s.showResearchAt(p, n) })
+		func(p *player.Player, n *progress.Research) { s.showResearchAt(p, n) })
 	back := ui.Back(i18n.T(i18n.Of(p), "researchnode.back"), func(p *player.Player, _ *world.Tx) { s.showResearch(p) })
 	return d, rows, append(opts, s.opt(back.Label, back.Icon, back.Run))
 }
@@ -612,9 +416,9 @@ func (s *session) researchNode(p *player.Player, r *Research) (ui.Detail, []ui.S
 // materials and the recipes it opens, and the buttons to do it and to go to
 // what it needs. redo shows the screen again, finished shows it after the
 // research was done, goTo shows another research. p may be nil.
-func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
-	txt := researchText(i18n.Of(p), r.ID)
-	done := s.researched(r.ID)
+func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo, finished func(p *player.Player), goTo func(p *player.Player, r *progress.Research)) (ui.Detail, []ui.SlotRow, []ui.Option) {
+	txt := progress.Text(i18n.Of(p), r.ID)
+	done := progress.Researched(s.Session, r.ID)
 	var b strings.Builder
 	if txt.About != "" {
 		fmt.Fprintf(&b, "§f%s\n", txt.About)
@@ -624,14 +428,14 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	switch {
 	case done:
 		d.Status = i18n.T(i18n.Of(p), "researchnode.complete")
-	case s.researchOpen(r):
+	case progress.Open(s.Session, r):
 		opts = append(opts, s.opt(i18n.T(i18n.Of(p), "researchnode.start"), formicon.Mission, func(p *player.Player, tx *world.Tx) {
-			if r.isCopy() {
-				s.copiesDone[r.ID] = true
+			if r.IsCopy() {
+				progress.LocalOf(s.Session).CopiesDone[r.ID] = true
 				finished(p)
 				return
 			}
-			missing, ok := s.doResearch(p, tx, r)
+			missing, ok := progress.Do(s.Session, p, tx, r)
 			switch {
 			case ok:
 				ui.Flash(p, "%s", i18n.T(i18n.Of(p), "researchnode.finished"))
@@ -649,7 +453,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	}
 	// What is still to do before it: a button that goes to that research.
 	for _, n := range r.Needs {
-		if need, ok := researchByID(n); ok && !done && !s.researched(n) {
+		if need, ok := progress.ByID(n); ok && !done && !progress.Researched(s.Session, n) {
 			opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "researchneeds.button"), need.Title(i18n.Of(p))), researchIcon(need), func(p *player.Player, _ *world.Tx) { goTo(p, need) }))
 		}
 	}
@@ -672,7 +476,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 	// p has.
 	var cost []ui.ItemSlot
 	for _, c := range r.Cost {
-		need := s.researchNeed(r, c)
+		need := progress.Need(s.Session, r, c)
 		st := item.NewStack(c.Item, 1)
 		mark, tip := "§f", fmt.Sprintf(i18n.T(i18n.Of(p), "researchnode.cost.need"), naming.UIItemName(i18n.Of(p), st), need)
 		switch {
@@ -699,7 +503,7 @@ func (s *session) researchNodeWith(p *player.Player, r *Research, redo, finished
 		}
 		st := item.NewStack(it, 1)
 		tip := tipName(i18n.Of(p), st) + i18n.T(i18n.Of(p), "researchnode.unlocks")
-		c := rewardCount(r, n)
+		c := progress.RewardCount(r, n)
 		if c > 0 {
 			tip += "\n" + fmt.Sprintf(i18n.T(i18n.Of(p), "researchreward.tip"), c)
 		}

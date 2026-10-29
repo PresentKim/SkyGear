@@ -12,6 +12,7 @@ import (
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -125,7 +126,7 @@ func TestCopierWholeBundle(t *testing.T) {
 func TestCopierCrafterAndDrawer(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	s.recipesFree = true
+	progress.LocalOf(s.Session).RecipesFree = true
 	crafterA := placeTestMachine(s, machinePos, KindCrafter, "")
 	crafterB := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 3}), KindCrafter, "")
 	cr := machinerecipe.Crafters()[0]

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -151,7 +153,7 @@ func (f *Fairy) gift(tx *world.Tx, s *session, p *player.Player) bool {
 	}
 	d.gave = true
 	achievement.Count(p, "fairy_gift", 1)
-	s.advance(tx, advancement.FairyGift)
+	progress.Advance(s.Session, tx, advancement.FairyGift)
 	gift := s.fairyGift()
 	// Throw it to the player: a short arc that lands at their feet.
 	to := p.Position().Sub(f.data.Pos)
@@ -256,12 +258,12 @@ func (s *session) backfillFairyDust(p *player.Player, tx *world.Tx) {
 func (s *session) rollGift() []item.Stack {
 	roll := s.Rand.IntN(100)
 	if roll < giftRewardChance {
-		if r, ok := s.giftResearch(func(r *Research) bool { return len(researchReward(r)) > 0 }); ok {
-			return researchReward(r)
+		if r, ok := s.giftResearch(func(r *progress.Research) bool { return len(progress.Reward(r)) > 0 }); ok {
+			return progress.Reward(r)
 		}
 	}
 	if roll < giftRewardChance+giftCostChance {
-		if r, ok := s.giftResearch(func(r *Research) bool { return len(r.Cost) > 0 }); ok {
+		if r, ok := s.giftResearch(func(r *progress.Research) bool { return len(r.Cost) > 0 }); ok {
 			return halfCost(r)
 		}
 	}
@@ -276,13 +278,13 @@ func (s *session) rollGift() []item.Stack {
 // giftResearch picks a done research that keep accepts, weighted by
 // researchDepth so later research comes up more often. The projects (the
 // goals at the end of the tree) are never picked.
-func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
-	var picks []*Research
+func (s *session) giftResearch(keep func(*progress.Research) bool) (*progress.Research, bool) {
+	var picks []*progress.Research
 	var weights []int
 	total := 0
-	for i := range researchTree {
-		r := &researchTree[i]
-		if r.isCopy() || strings.HasPrefix(r.ID, "project_") || !s.reachedResearch(r) || !keep(r) {
+	for i := range progress.Tree {
+		r := &progress.Tree[i]
+		if r.IsCopy() || strings.HasPrefix(r.ID, "project_") || !s.reachedResearch(r) || !keep(r) {
 			continue
 		}
 		w := researchDepth(r) + 1
@@ -304,12 +306,12 @@ func (s *session) giftResearch(keep func(*Research) bool) (*Research, bool) {
 // reachedResearch reports whether r and every research before it are done.
 // The admin and debug commands can mark a research done out of order, and
 // such a one is no gift.
-func (s *session) reachedResearch(r *Research) bool {
-	if !s.researched(r.ID) {
+func (s *session) reachedResearch(r *progress.Research) bool {
+	if !progress.Researched(s.Session, r.ID) {
 		return false
 	}
 	for _, n := range r.Needs {
-		need, ok := researchByID(n)
+		need, ok := progress.ByID(n)
 		if ok && !s.reachedResearch(need) {
 			return false
 		}
@@ -318,12 +320,12 @@ func (s *session) reachedResearch(r *Research) bool {
 }
 
 // researchDepth is how many researches must be done before r.
-func researchDepth(r *Research) int {
+func researchDepth(r *progress.Research) int {
 	seen := map[string]bool{}
-	var walk func(*Research)
-	walk = func(r *Research) {
+	var walk func(*progress.Research)
+	walk = func(r *progress.Research) {
 		for _, n := range r.Needs {
-			if need, ok := researchByID(n); ok && !seen[n] {
+			if need, ok := progress.ByID(n); ok && !seen[n] {
 				seen[n] = true
 				walk(need)
 			}
@@ -334,7 +336,7 @@ func researchDepth(r *Research) int {
 }
 
 // halfCost is half of each item of r's cost (at least one), in stacks.
-func halfCost(r *Research) []item.Stack {
+func halfCost(r *progress.Research) []item.Stack {
 	var out []item.Stack
 	for _, c := range r.Cost {
 		st := item.NewStack(c.Item, 1)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -113,7 +115,7 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	pos := m.data.Pos
 	delete(w.left, m.handle)
 	if p != nil {
-		s.advance(tx, advancement.Kill)
+		progress.Advance(s.Session, tx, advancement.Kill)
 		achievement.Count(p, "kill_total", 1)
 		achievement.Count(p, "kill_"+m.kind, 1)
 		looting := 0
@@ -156,13 +158,13 @@ func (s *session) winWave(tx *world.Tx) {
 		for _, r := range def.Reward {
 			s.DropAt(tx, w.gate.Vec3Centre().Add(mgl64.Vec3{0, 1.2, 0}), r)
 		}
-		s.advance(tx, advancement.Wave1)
+		progress.Advance(s.Session, tx, advancement.Wave1)
 		for _, a := range []struct {
 			level int
 			id    string
 		}{{3, advancement.Wave3}, {5, advancement.Wave5}, {8, advancement.Wave8}} {
 			if w.level >= a.level {
-				s.advance(tx, a.id)
+				progress.Advance(s.Session, tx, a.id)
 			}
 		}
 	}

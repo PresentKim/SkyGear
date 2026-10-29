@@ -8,12 +8,13 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/hopper"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 func logRecipeFor(out world.Item, count int) (recipe.Shaped, bool) {
 	for _, r := range recipe.Recipes() {
 		sh, ok := r.(recipe.Shaped)
-		if !ok || len(r.Output()) != 1 || recipeKey(r.Output()[0].Item()) != recipeKey(out) || r.Output()[0].Count() != count {
+		if !ok || len(r.Output()) != 1 || progress.RecipeKey(r.Output()[0].Item()) != progress.RecipeKey(out) || r.Output()[0].Count() != count {
 			continue
 		}
 		for _, in := range r.Input() {
@@ -39,17 +40,17 @@ func TestLogRecipesOpenWithTheirResults(t *testing.T) {
 	for _, c := range cases {
 		r, ok := logRecipeFor(c.out, c.count)
 		if !ok {
-			t.Errorf("no log recipe for %d %s", c.count, recipeKey(c.out))
+			t.Errorf("no log recipe for %d %s", c.count, progress.RecipeKey(c.out))
 			continue
 		}
 		s := testSession(t)
-		s.state.Researched = map[string]bool{}
-		if s.recipeFilter()(r) {
-			t.Errorf("%s open before %s", recipeKey(c.out), c.research)
+		progress.StateOf(s.Session).Researched = map[string]bool{}
+		if progress.RecipeFilter(s.Session)(r) {
+			t.Errorf("%s open before %s", progress.RecipeKey(c.out), c.research)
 		}
-		s.state.Researched[c.research] = true
-		if !s.recipeFilter()(r) {
-			t.Errorf("%s not opened by %s", recipeKey(c.out), c.research)
+		progress.StateOf(s.Session).Researched[c.research] = true
+		if !progress.RecipeFilter(s.Session)(r) {
+			t.Errorf("%s not opened by %s", progress.RecipeKey(c.out), c.research)
 		}
 	}
 	if !recipe.NewItemTag("minecraft:logs", 1).Contains("minecraft:stripped_oak_log") {

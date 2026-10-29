@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
@@ -20,7 +22,7 @@ import (
 // texts has a Korean name.
 func TestGameItemsHaveKoreanNames(t *testing.T) {
 	var items []world.Item
-	for _, r := range researchTree {
+	for _, r := range progress.Tree {
 		for _, c := range r.Cost {
 			items = append(items, c.Item)
 		}

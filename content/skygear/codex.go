@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/achievement"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -151,8 +153,8 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 func (s *session) codexUses(lang string, it item.Stack) []string {
 	k := naming.ItemKey(it.Item())
 	var out []string
-	for i := range researchTree {
-		r := &researchTree[i]
+	for i := range progress.Tree {
+		r := &progress.Tree[i]
 		for _, c := range r.Cost {
 			if naming.ItemKey(c.Item) == k {
 				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.research"), r.Title(lang), c.Count))

@@ -10,7 +10,20 @@ import (
 // The code that counts sits next to what it counts; counter.go has the
 // shared parts.
 
+// The achievements register in the order the achievement screen lists them
+// in their groups.
 func init() {
+	account.Register(
+		account.Keyed(FirstMachine, Group("factory")),
+		account.Keyed(Chunks10, Group("island")),
+		account.Keyed(FirstResearch, Group("progress")),
+	)
+	for _, h := range Haves {
+		account.Register(account.Keyed("sg_have_"+h.Short, Group("collect")))
+	}
+	for _, id := range []string{AllResearch, AllAdvancements} {
+		account.Register(account.Keyed(id, Group("progress")))
+	}
 	account.SetGroupOrder(Group("hand"), Group("farm"), Group("sift"),
 		Group("factory"), Group("energy"), Group("gear"), Group("combat"),
 		Group("progress"), Group("island"), Group("collect"), Group("life"), Group("account"))
@@ -23,15 +36,9 @@ func init() {
 		}
 		account.RegisterCounter(c.Key, tiers...)
 	}
-	for _, h := range Haves {
-		account.Register(account.Keyed("sg_have_"+h.Short, Group("collect")))
-	}
-	for _, id := range []string{AllResearch, AllAdvancements} {
-		account.Register(account.Keyed(id, Group("progress")))
-	}
 	account.Register(
-		account.Keyed(FirstMachine, Group("factory")),
-		account.Keyed(Chunks10, Group("island")),
-		account.Keyed(FirstResearch, Group("progress")),
+		account.Keyed(Wave1, Group("combat")), account.Keyed(Wave8, Group("combat")),
+		account.Keyed(Tinker, Group("gear")), account.Keyed(Bloom, Group("farm")),
+		account.Keyed(Dragon, Group("progress")),
 	)
 }

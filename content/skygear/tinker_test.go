@@ -4,6 +4,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/progress"
+
 	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/item"
@@ -102,7 +104,7 @@ func TestTinkerTable(t *testing.T) {
 		if tinker.ToolMods(held)["sharp"] != tinker.ToolSlots(0) {
 			t.Errorf("mods %v", tinker.ToolMods(held))
 		}
-		if !s.advanced(advancement.ToolMod) {
+		if !progress.Advanced(s.Session, advancement.ToolMod) {
 			t.Error("the modifier advancement is not done")
 		}
 		// xp from use raises the level and opens a slot

@@ -1,4 +1,4 @@
-package skygear
+package progress
 
 import (
 	"slices"
@@ -11,16 +11,10 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-func init() {
-	for _, k := range sgitem.ResearchEssenceKinds {
-		world.RegisterItem(sgitem.ResearchEssence{Kind: k})
-	}
-}
-
-// researchEssenceCosts are the research essences the researches cost next to
+// EssenceCosts are the research essences the researches cost next to
 // their materials, by research: how many of the essence of each kind.
 // Researches before the laboratory, and the tools and armour, cost none.
-var researchEssenceCosts = map[string]map[string]int{
+var EssenceCosts = map[string]map[string]int{
 	// the first machines and conduits
 	"energy_conduit": {sgitem.EssenceEngineering: 2}, "item_conduit": {sgitem.EssenceEngineering: 2}, "drawer_upgrades": {sgitem.EssenceEngineering: 2},
 	// automation
@@ -57,10 +51,10 @@ var researchEssenceCosts = map[string]map[string]int{
 	"project_dragon":   {sgitem.EssenceEngineering: 32, sgitem.EssenceAlchemy: 32, sgitem.EssenceFarming: 32, sgitem.EssenceHunting: 32, sgitem.EssenceMagic: 32},
 }
 
-// withEssenceCosts returns the researches with the essence costs added after
+// WithEssenceCosts returns the researches with the essence costs added after
 // their materials, and the laboratory among what they need unless something
 // they already need leads to it: the essences come from the laboratory.
-func withEssenceCosts(base []Research) []Research {
+func WithEssenceCosts(base []Research) []Research {
 	out := slices.Clone(base)
 	byID := map[string]*Research{}
 	for i := range out {
@@ -85,7 +79,7 @@ func withEssenceCosts(base []Research) []Research {
 	}
 	for i := range out {
 		r := &out[i]
-		costs, ok := researchEssenceCosts[r.ID]
+		costs, ok := EssenceCosts[r.ID]
 		if !ok {
 			continue
 		}
@@ -107,8 +101,8 @@ func withEssenceCosts(base []Research) []Research {
 	return out
 }
 
-// essencesIn counts the research essences in a cost.
-func essencesIn(cost []Requirement) int {
+// EssencesIn counts the research essences in a cost.
+func EssencesIn(cost []Requirement) int {
 	n := 0
 	for _, c := range cost {
 		if _, ok := c.Item.(sgitem.ResearchEssence); ok {
@@ -118,9 +112,9 @@ func essencesIn(cost []Requirement) int {
 	return n
 }
 
-// pourEssences shows the essences of a cost being poured into a research:
+// PourEssences shows the essences of a cost being poured into a research:
 // a brewing sound and a splash of the colour of each kind.
-func pourEssences(tx *world.Tx, p *player.Player, cost []Requirement) {
+func PourEssences(tx *world.Tx, p *player.Player, cost []Requirement) {
 	poured := false
 	at := p.Position().Add(mgl64.Vec3{0, 1, 0})
 	for _, c := range cost {
@@ -134,8 +128,8 @@ func pourEssences(tx *world.Tx, p *player.Player, cost []Requirement) {
 	}
 }
 
-// essenceCostOf is how many essences of a kind a research costs.
-func essenceCostOf(r *Research, kind string) int {
+// EssenceCost is how many essences of a kind a research costs.
+func EssenceCost(r *Research, kind string) int {
 	n := 0
 	for _, c := range r.Cost {
 		if e, ok := c.Item.(sgitem.ResearchEssence); ok && e.Kind == kind {

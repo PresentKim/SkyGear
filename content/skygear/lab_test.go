@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -226,10 +227,10 @@ func TestLabScreen(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindLab, "")
-	conduit, _ := researchByID("energy_conduit")
-	s.state.Researched = map[string]bool{}
+	conduit, _ := progress.ByID("energy_conduit")
+	progress.StateOf(s.Session).Researched = map[string]bool{}
 	for _, id := range conduit.Needs {
-		s.state.Researched[id] = true
+		progress.StateOf(s.Session).Researched[id] = true
 	}
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {

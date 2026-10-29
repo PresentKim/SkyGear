@@ -11,13 +11,14 @@ import (
 	"github.com/presentkim/skygear/common/hud"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/platform/account"
 )
 
 func TestCostRowsCountTheInventory(t *testing.T) {
 	s := testSession(t)
-	s.state.Researched = map[string]bool{}
-	r, _ := researchByID("chest")
+	progress.StateOf(s.Session).Researched = map[string]bool{}
+	r, _ := progress.ByID("chest")
 	inv := inventory.New(36, nil)
 	_, _ = inv.AddItem(item.NewStack(oakPlanks, 10))
 	rows := s.researchCostRows(i18n.Default, r, inv)
@@ -43,21 +44,21 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 		}
 		rt, _ := advancement.ByID("research_table")
 		for _, a := range advancement.WithAncestors(rt) {
-			s.advance(tx, a.ID)
+			progress.Advance(s.Session, tx, a.ID)
 		}
 		title, rows := s.questRows(i18n.Default, nil)
 		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
-		sticks, _ := researchByID("stick")
+		sticks, _ := progress.ByID("stick")
 		_, _ = p.Inventory().AddItem(item.NewStack(oakPlanks, 16))
-		s.doResearch(p, tx, sticks)
-		s.checkAdvancementsHeld(tx, advancement.InventoryNames(tx))
+		progress.Do(s.Session, p, tx, sticks)
+		progress.CheckHeld(s.Session, tx, advancement.InventoryNames(tx))
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌멩이") {
 			t.Fatalf("quest after sticks %q", title)
 		}
 		for _, a := range advancement.Tree {
-			s.state.Advancements[a.ID] = true
+			progress.StateOf(s.Session).Advancements[a.ID] = true
 		}
 		if title, _ := s.questRows(i18n.Default, nil); !strings.Contains(title, "돌 다지기") {
 			t.Fatalf("quest after every advancement %q", title)
@@ -70,18 +71,18 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 func TestQuestShowsResearchStep(t *testing.T) {
 	s := testSession(t)
 	a, _ := advancement.ByID("alloy_smelter")
-	g, ok := goalResearch(a)
+	g, ok := progress.GoalResearch(a)
 	if !ok || g.ID != "alloy_smelter" {
 		t.Fatalf("goal %v %v", g, ok)
 	}
-	step, ok := s.researchStep(g)
-	if !ok || step.ID == g.ID || !s.researchOpen(step) {
+	step, ok := progress.Step(s.Session, g)
+	if !ok || step.ID == g.ID || !progress.Open(s.Session, step) {
 		t.Fatalf("step %v %v", step, ok)
 	}
-	s.state.Advancements = map[string]bool{}
+	progress.StateOf(s.Session).Advancements = map[string]bool{}
 	for _, x := range advancement.Tree {
 		if x.ID != a.ID {
-			s.state.Advancements[x.ID] = true
+			progress.StateOf(s.Session).Advancements[x.ID] = true
 		}
 	}
 	_, rows := s.questRows(i18n.Default, nil)

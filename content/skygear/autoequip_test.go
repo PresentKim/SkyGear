@@ -14,6 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // TestElectricFurnace: it smelts what a furnace smelts and takes nothing else.
@@ -161,7 +162,7 @@ func TestTreeFellerPlantsOnAnySoilInReach(t *testing.T) {
 // the store takes only its ingredients, and the result comes out.
 func TestAutoCrafterMakesARecipe(t *testing.T) {
 	s := testSession(t)
-	s.recipesFree = true
+	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, KindCrafter, "")
 	h := st.inv().Handler()
@@ -223,7 +224,7 @@ func TestAutoCrafterOnlyMakesResearchedRecipes(t *testing.T) {
 	if st.recipe != nil {
 		t.Fatal("chose a recipe that is not researched")
 	}
-	s.state.Researched = map[string]bool{"stick": true, "pebbles": true, "furnace": true, "hammer": true, "iron": true, "generator": true, "crusher": true}
+	progress.StateOf(s.Session).Researched = map[string]bool{"stick": true, "pebbles": true, "furnace": true, "hammer": true, "iron": true, "generator": true, "crusher": true}
 	st.sample = machineItem(KindCrusher)
 	tick(s, 2)
 	if st.recipe == nil {
@@ -234,7 +235,7 @@ func TestAutoCrafterOnlyMakesResearchedRecipes(t *testing.T) {
 // TestMachineStatusLines: the panel says why a machine does not go on.
 func TestMachineStatusLines(t *testing.T) {
 	s := testSession(t)
-	s.recipesFree = true
+	progress.LocalOf(s.Session).RecipesFree = true
 	loadAround(s)
 	crusher := placeTestMachine(s, machinePos, KindCrusher, "")
 	crusher.progress = crusher.kind.interval
