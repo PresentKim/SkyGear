@@ -249,30 +249,12 @@ func filterStorage(lang string, list []storageEntry, query string) []storageEntr
 }
 
 // showStorage lists all the items of the network whose name matches query
-// (all when it is empty) in one scrolling grid; pressing one takes a stack.
+// (all when it is empty) in one scrolling grid under a search box in the
+// window, drawn again as the player types; pressing one takes a stack.
 func (s *session) showStorage(p *player.Player, tx *world.Tx, pos cube.Pos, query string) {
-	lang := i18n.Of(p)
-	all, drawers := storageContents(tx, pos)
-	if drawers == 0 {
+	if _, drawers := storageContents(tx, pos); drawers == 0 {
 		return
 	}
-	if ui.OreUIFor(p) {
-		s.showStorageLive(p, pos, query)
-		return
-	}
-	list := sortStorage(lang, filterStorage(lang, all, query), s.storageOrders[p.H()])
-	again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
-	actions := []ui.Option{s.depositAllOption(lang, pos, again), s.storageOrderOption(p, again), {Label: i18n.T(lang, "storage.search"), Run: s.askStorageSearch(pos, query, again)}}
-	if query != "" {
-		actions = append(actions, ui.Option{Label: fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), Run: func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, "") }})
-	}
-	ui.ItemGrid(p, i18n.T(lang, "storage.title"), storageInfo(lang, all, drawers, query, len(list)), s.storageSlots(lang, pos, list, again), actions...)
-}
-
-// showStorageLive is the list as a DDUI screen: the search box in the window
-// over the matching items, all of them in one scrolling grid, drawn again as
-// the player types.
-func (s *session) showStorageLive(p *player.Player, pos cube.Pos, query string) {
 	lang := i18n.Of(p)
 	find := func(p *player.Player, query string) ui.SearchResult {
 		query = strings.TrimSpace(query)
@@ -283,7 +265,7 @@ func (s *session) showStorageLive(p *player.Player, pos cube.Pos, query string) 
 	}
 	again := func(p *player.Player, tx *world.Tx) { s.showStorage(p, tx, pos, query) }
 	ui.SearchGrid(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, find,
-		s.askStorageSearch(pos, query, again), s.depositAllOption(lang, pos, again), s.storageOrderOption(p, again))
+		s.depositAllOption(lang, pos, again), s.storageOrderOption(p, again))
 }
 
 // storageOrder is how a controller list is sorted; the zero value is the
@@ -360,17 +342,6 @@ func (s *session) storageSlots(lang string, pos cube.Pos, list []storageEntry, a
 		})
 	}
 	return slots
-}
-
-// askStorageSearch asks for the words to search the list for; going back
-// runs back.
-func (s *session) askStorageSearch(pos cube.Pos, query string, back func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
-	return func(p *player.Player, tx *world.Tx) {
-		lang := i18n.Of(p)
-		ui.Input(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, func(p *player.Player, tx *world.Tx, value string) {
-			s.showStorage(p, tx, pos, strings.TrimSpace(value))
-		}, back)
-	}
 }
 
 func (s *session) depositAllOption(lang string, pos cube.Pos, again func(p *player.Player, tx *world.Tx)) ui.Option {

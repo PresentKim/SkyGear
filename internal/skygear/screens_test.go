@@ -82,8 +82,7 @@ func TestExpansionMode(t *testing.T) {
 		if _, ok := p.GameMode().(viewOnlyMode); !ok {
 			t.Fatalf("game mode %T in expansion mode", p.GameMode())
 		}
-		// The body is frozen; the right key (X -1) moves the cursor east to
-		// (1, 0).
+		// The body is frozen; the right key moves the cursor east to (1, 0).
 		if !p.Immobile() {
 			t.Fatal("player can still move")
 		}
@@ -92,22 +91,15 @@ func TestExpansionMode(t *testing.T) {
 		if !move.Cancelled() {
 			t.Fatal("movement not cancelled in expansion mode")
 		}
-		s.expandInput(p, e, mgl64.Vec2{-1, 0})
+		s.expandStep(1, 0)(p, tx)
 		if e.target != (ChunkPos{1, 0}) || e.mapShown[ChunkPos{1, 0}] != world.Block(floorBuyable) {
 			t.Fatalf("target = %v, glass %v", e.target, e.mapShown[ChunkPos{1, 0}])
 		}
-		// A key held on does not move again at once; a new press does.
-		s.expandInput(p, e, mgl64.Vec2{-1, 0})
-		if e.target != (ChunkPos{1, 0}) {
-			t.Fatalf("held key moved at once to %v", e.target)
-		}
-		s.expandInput(p, e, mgl64.Vec2{})
-		s.expandInput(p, e, mgl64.Vec2{0, 1}) // forward: north
+		s.expandStep(0, -1)(p, tx) // up: north
 		if e.target != (ChunkPos{1, -1}) {
-			t.Fatalf("forward moved to %v", e.target)
+			t.Fatalf("up moved to %v", e.target)
 		}
-		s.expandInput(p, e, mgl64.Vec2{})
-		s.expandInput(p, e, mgl64.Vec2{0, -1})
+		s.expandStep(0, 1)(p, tx)
 		// Building is off.
 		ctx := player.NewEventContext(tx, p)
 		(&handler{s: s}).HandleBlockPlace(ctx, cube.Pos{1, 64, 1}, block.Dirt{})
@@ -119,8 +111,7 @@ func TestExpansionMode(t *testing.T) {
 		if b := e.mapShown[ChunkPos{1, 0}]; b != world.Block(floorOwnedAlt) {
 			t.Fatalf("owned chunk (1, 0) floor = %v, want the other green of the checkerboard", b)
 		}
-		s.expandInput(p, e, mgl64.Vec2{})
-		s.expandInput(p, e, mgl64.Vec2{1, 0}) // back west to (0, 0)
+		s.expandStep(-1, 0)(p, tx) // back west to (0, 0)
 		if b := e.mapShown[ChunkPos{2, 0}]; b != world.Block(floorBuyable) {
 			t.Fatalf("chunk (2, 0) not buyable after buying (1, 0): %v", b)
 		}
@@ -186,8 +177,7 @@ func TestExpansionMap(t *testing.T) {
 			t.Fatalf("camera %v, body %v: not over the map", cam, p.Position())
 		}
 		for range expandMapReach + 4 {
-			s.expandInput(p, e, mgl64.Vec2{})
-			s.expandInput(p, e, mgl64.Vec2{-1, 0})
+			s.expandStep(1, 0)(p, tx)
 		}
 		if e.target[0] < e.body[0]+expandMapReach+4 {
 			t.Fatalf("cursor stopped at %v on the map", e.target)
@@ -202,20 +192,18 @@ func TestExpansionMap(t *testing.T) {
 	})
 }
 
-// TestExpansionPlane: a player who sees DDUI screens gets the expansion
-// screen instead of the keys, with no quest panel meanwhile, and its arrow
-// keys move the selection; leaving the mode brings the quest panel back.
+// TestExpansionPlane: the expansion screen shows with no quest panel
+// meanwhile, and its arrow keys move the selection; leaving the mode brings
+// the quest panel back.
 func TestExpansionPlane(t *testing.T) {
-	defer func(on bool) { ui.OreUI = on }(ui.OreUI)
-	ui.OreUI = true
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		s.showExpand(p)
 		e, ok := s.expansionOf(p)
-		if !ok || !e.plane {
-			t.Fatalf("expansion %v, plane %v", ok, ok && e.plane)
+		if !ok {
+			t.Fatal("not in expansion mode")
 		}
 		if strings.Contains(s.boards[p.H()], hud.QuestTitle) {
 			t.Error("the quest panel shows in expansion mode")

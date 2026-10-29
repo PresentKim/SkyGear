@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 )
@@ -42,42 +40,10 @@ type Choice struct {
 	Run                      func(p *player.Player, tx *world.Tx)
 }
 
-// ChoiceMenu shows a ChoiceBoard. Like every form, a press closes it, so a
-// Run shows the board again. As a JSON UI form it is a list: the figures and
-// the note in the body, a button per choice.
+// ChoiceMenu shows a ChoiceBoard. A press that shows nothing closes it, so a
+// Run shows the board again.
 func ChoiceMenu(p *player.Player, title string, b ChoiceBoard) {
-	if OreUIFor(p) {
-		oreChoices(p, title, b)
-		return
-	}
-	var body []string
-	for _, s := range b.Stats {
-		body = append(body, "§7"+s.Label+": §f"+s.Value)
-	}
-	if b.Note != "" {
-		body = append(body, "§7"+b.Note)
-	}
-	var opts []Option
-	for _, g := range b.Groups {
-		for _, c := range g.Choices {
-			label := c.Label
-			switch {
-			case c.On:
-				label = "§a" + label + " " + c.Badge
-			case c.Dim:
-				label = "§8" + label
-			}
-			if c.Info != "" {
-				label += "\n§7" + c.Info
-			}
-			run := c.Run
-			if c.On {
-				run = func(p *player.Player, tx *world.Tx) { ChoiceMenu(p, title, b) }
-			}
-			opts = append(opts, Option{Label: label, Icon: c.Icon, Run: run})
-		}
-	}
-	Menu(p, title, strings.Join(body, "\n"), append(opts, b.Actions...)...)
+	oreChoices(p, title, b)
 }
 
 // oreChoices is the DDUI ChoiceBoard: the figures in a panel, an icon and a

@@ -8,7 +8,7 @@ import (
 )
 
 // TestIconsInTheme: the icons this package puts on its own buttons (page
-// arrows, back) are pictures of the sgui theme.
+// arrows, back) are pictures of the sgui pack.
 func TestIconsInTheme(t *testing.T) {
 	b, err := os.ReadFile("ui.go")
 	if err != nil {

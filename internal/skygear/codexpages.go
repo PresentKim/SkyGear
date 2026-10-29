@@ -134,14 +134,9 @@ func (s *session) showCodexSieveAt(p *player.Player, which int) {
 		cards[i].name = ""
 	}
 	chrome := append(s.codexTabs(p, codexSieveTab), s.codexBack(p))
-	if ui.OreUIFor(p) {
-		in := item.NewStack(ins[which], 1)
-		ui.SieveBoard(p, codexPickTitle(lang, "codex.sieve", in), [][]ui.BoardCell{centredRow(top)},
-			s.sieveGroups(lang, in, cards), chrome...)
-		return
-	}
-	s.showCodexBoard(p, codexPickTitle(lang, "codex.sieve", item.NewStack(ins[which], 1)), [][]ui.BoardCell{centredRow(top)},
-		cards, chrome)
+	in := item.NewStack(ins[which], 1)
+	ui.SieveBoard(p, codexPickTitle(lang, "codex.sieve", in), [][]ui.BoardCell{centredRow(top)},
+		s.sieveGroups(lang, in, cards), chrome...)
 }
 
 // sieveGroups are the sieve cards of in as recipes (ui.SieveBoard), each

@@ -26,7 +26,7 @@
 // groups) and engine (slots [[container, index]], sizes, calls [{label, cmd, args}]: the vanilla
 // container queries and commands).
 // `ink: "panel"` on a node makes the text under it the dark variant of its § colours (text drawn right on
-// the grey window, like common ui.OnPanel); buttons, slot counts and tooltips keep the colours.
+// the grey window); buttons, slot counts and tooltips keep the colours.
 // The body gets mc-w-s / mc-w-m / mc-w-l for the window width, so the CSS can lay out by size.
 // `bind` names a variable that replaces the text, or the value of a bar. Text may carry § colour codes.
 // An icon is "geo:<item name>" (drawn by the engine through geo-item://, the URL the vanilla container

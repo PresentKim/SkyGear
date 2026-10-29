@@ -795,7 +795,7 @@
     "enable_profanity_filter": true
   },
   // The dark rounded bar above the window's top right corner holds the info
-  // icon left of the close button, like the forms' bar (sg_form.control_bar).
+  // icon left of the close button, like the control bar of the DDUI windows.
   // The icon is window slot 26 of the machine (infoSlot in machine.go) drawn
   // here instead of in a slot layout, so every machine window has it in the
   // same place.

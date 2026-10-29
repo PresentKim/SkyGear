@@ -9,18 +9,11 @@ import (
 )
 
 // BoardColumns is how many cells a row of an ItemBoard holds.
-const BoardColumns = gridColumns
+const BoardColumns = 11
 
-const (
-	// arrowToken marks the arrow cell of a board.
-	arrowToken = "§0§w§r"
-	// barPagerToken marks a small icon button of the control bar: a page
-	// arrow (BarPager) or a BarButton.
-	barPagerToken = "§0§j§r"
-	// miniToken marks a small icon without a slot frame (the header of a group
-	// of recipes: the machine they are made in).
-	miniToken = "§0§7§r"
-)
+// barPagerToken marks a small icon button of the control bar: a page arrow
+// (BarPager) or a BarButton.
+const barPagerToken = "§0§j§r"
 
 // cellKind is what a BoardCell draws.
 type cellKind int
@@ -59,53 +52,12 @@ func MiniCell(sl ItemSlot) BoardCell { return BoardCell{kind: cellMini, slot: sl
 // TextCell is a line of small text that runs over the blank cells after it.
 func TextCell(s string) BoardCell { return BoardCell{kind: cellText, text: s} }
 
-// ItemBoard sends a form with the body text and rows of cells, BoardColumns
-// to a row, drawn like a recipe viewer: slots, empty frames, arrows and
-// lines of text. A row shorter than
-// BoardColumns is filled with blank cells; a longer one is cut. Any press
-// of a slot answers the form: its Run must show a form again.
+// ItemBoard shows the body text and rows of cells, BoardColumns to a row,
+// drawn like a recipe viewer: slots, empty frames, arrows and lines of text.
+// A row shorter than BoardColumns is filled with blank cells; a longer one is
+// cut.
 func ItemBoard(p *player.Player, title, body string, rows [][]BoardCell, actions ...Option) {
-	if OreUIFor(p) {
-		oreBoard(p, title, body, rows, actions)
-		return
-	}
-	opts := boardOptions(rows)
-	cells := len(opts)
-	opts = append(opts, actionOptions(actions)...)
-	wrapMenu(p, title, body, cells, opts)
-}
-
-// boardOptions are the buttons of the cells of rows.
-func boardOptions(rows [][]BoardCell) []Option {
-	nop := func(*player.Player, *world.Tx) {}
-	opts := make([]Option, 0, len(rows)*BoardColumns)
-	for _, row := range rows {
-		for i := range BoardColumns {
-			c := BoardCell{}
-			if i < len(row) {
-				c = row[i]
-			}
-			switch c.kind {
-			case cellSlot:
-				marker := slotWToken
-				if c.slot.Selected {
-					marker = slotSelToken
-				}
-				opts = append(opts, slotOption(marker, i >= gridTipLeft, c.slot))
-			case cellFrame:
-				opts = append(opts, Option{Label: slotEmptyToken, Run: nop})
-			case cellArrow:
-				opts = append(opts, Option{Label: arrowToken, Run: nop})
-			case cellMini:
-				opts = append(opts, slotOption(miniToken, i >= gridTipLeft, c.slot))
-			case cellText:
-				opts = append(opts, Option{Label: head1Token + c.text, Run: nop})
-			default:
-				opts = append(opts, Option{Label: padToken, Run: nop})
-			}
-		}
-	}
-	return opts
+	oreBoard(p, title, body, rows, actions)
 }
 
 // BarPager returns the page arrows drawn in the control bar left of the help

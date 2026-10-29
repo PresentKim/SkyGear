@@ -37,9 +37,8 @@ type Plane struct {
 
 // PlaneMenu shows buttons over the ground the player's camera looks straight
 // down on, each the size of its place on the screen, with a panel of text and
-// buttons at the bottom; the screen is not darkened, so the world shows. It
-// is a DDUI screen only (OreUIFor). A spot or button that shows PlaneMenu
-// again updates the screen open.
+// buttons at the bottom; the screen is not darkened, so the world shows. A
+// spot or button that shows PlaneMenu again updates the screen open.
 func PlaneMenu(p *player.Player, v Plane) {
 	l := newOreLayout()
 	l.size = "plane"

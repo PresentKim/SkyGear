@@ -13,9 +13,7 @@ import (
 func TestHomeScreen(t *testing.T) {
 	var got *oreLayout
 	oreShown = func(l *oreLayout, _ any) { got = l }
-	oldOre := OreUI
-	OreUI = true
-	defer func() { oreShown, OreUI = nil, oldOre }()
+	defer func() { oreShown = nil }()
 
 	run := func(*player.Player, *world.Tx) {}
 	HomeScreen(nil, Home{

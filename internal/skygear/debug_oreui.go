@@ -145,15 +145,6 @@ func (g *Game) openProbe(p *player.Player, title string, nodes []any, closed fun
 	return pr
 }
 
-// oreUIOnly tells whether p sees DDUI screens, writing an error to o if not.
-func oreUIOnly(p *player.Player, o *cmd.Output) bool {
-	if !ui.OreUIFor(p) {
-		o.Errorf("Ore UI screens are off for %s ([ResourcePack] Encrypt)", p.Name())
-		return false
-	}
-	return true
-}
-
 type debugOreInput struct {
 	adminBase
 	Sub cmd.SubCommand `cmd:"oreinput"`
@@ -165,7 +156,7 @@ type debugOreInput struct {
 // client sent meanwhile (a ScriptMessage among them is shown in full).
 func (c debugOreInput) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, _, ok := c.session(src, o, tx)
-	if !ok || !oreUIOnly(p, o) {
+	if !ok {
 		return
 	}
 	c.g.openProbe(p, "/sgdebug oreinput", []any{
@@ -187,7 +178,7 @@ type debugOreRes struct {
 // requests they get.
 func (c debugOreRes) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, _, ok := c.session(src, o, tx)
-	if !ok || !oreUIOnly(p, o) {
+	if !ok {
 		return
 	}
 	conn := sghook.Of(p)

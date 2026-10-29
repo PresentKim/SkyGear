@@ -606,8 +606,6 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 }
 
 func TestStorageLiveSearch(t *testing.T) {
-	defer func(on bool) { ui.OreUI = on }(ui.OreUI)
-	ui.OreUI = true
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos

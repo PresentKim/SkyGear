@@ -282,84 +282,16 @@ func codexFind(lang, query string) []codexEntry {
 	return out
 }
 
-// codexPage is how many results a page of the search shows.
-const codexPage = 44
-
-// askCodexSearch asks for the words to search for; going back shows the
-// search with query again.
-func (s *session) askCodexSearch(p *player.Player, query string) {
-	lang := i18n.Of(p)
-	ui.Input(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search")), i18n.T(lang, "codex.search.label"), query,
-		func(p *player.Player, _ *world.Tx, value string) { s.showCodexSearch(p, strings.TrimSpace(value), 0) },
-		func(p *player.Player, tx *world.Tx) {
-			if tx.World() == s.world {
-				s.showCodexSearch(p, query, 0)
-			}
-		})
-}
-
-// showCodexSearch is the search tab: the items matching query (all when it is
-// empty) a page at a time, and above the first page the items looked at last.
-// Pressing one opens its page.
-func (s *session) showCodexSearch(p *player.Player, query string, page int) {
-	lang := i18n.Of(p)
-	if ui.OreUIFor(p) {
-		s.showCodexSearchLive(p, query)
-		return
-	}
-	s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, page) })
-	found := codexFind(lang, query)
-	pages := max(1, (len(found)+codexPage-1)/codexPage)
-	page = max(0, min(page, pages-1))
-	var slots []ui.ItemSlot
-	for _, e := range found[page*codexPage : min(len(found), (page+1)*codexPage)] {
-		slots = append(slots, ui.ItemSlot{
-			Icon: formicon.Of(e.stack), Tip: tipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
-			Run: func(p *player.Player, _ *world.Tx) {
-				s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
-			},
-		})
-	}
-	actions := s.guard(ui.Pager(p, page, pages, func(p *player.Player, _ *world.Tx, to int) { s.showCodexSearch(p, query, to) }))
-	actions = append(actions, s.opt(i18n.T(lang, "codex.search.again"), "", func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, query) }))
-	if query != "" {
-		actions = append(actions, s.opt(fmt.Sprintf(i18n.T(lang, "storage.search.clear"), query), "", func(p *player.Player, _ *world.Tx) { s.showCodexSearch(p, "", 0) }))
-	}
-	actions = append(actions, s.codexTabs(p, codexSearchTab)...)
-	actions = append(actions, s.codexBack(p))
-	body := fmt.Sprintf(i18n.T(lang, "codex.search.all"), len(found))
-	if query != "" {
-		body = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
-	}
-	title := i18n.T(lang, "codex.title")
-	var sections []ui.GridSection
-	if query == "" && page == 0 {
-		if favs := s.favouriteSlots(p, lang); len(favs) > 0 {
-			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.favourites"), Slots: favs})
-		}
-		if recent := s.codexRecent[p.H()]; len(recent) > 0 {
-			var links []codexLink
-			for _, st := range recent {
-				links = append(links, codexLink{stack: st})
-			}
-			sections = append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(lang, links)})
-		}
-	}
-	if len(sections) > 0 {
-		ui.ItemGridSections(p, title, body, append(sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.list"), Slots: slots}), actions...)
-		return
-	}
-	ui.ItemGrid(p, title, body, slots, actions...)
-}
-
-// showCodexSearchLive is the search tab as a DDUI screen: the search box in
-// the window and the results, all of them in one scrolling grid, drawn again
-// as the player types. Going back from an item returns to the last query.
-func (s *session) showCodexSearchLive(p *player.Player, query string) {
+// showCodexSearch is the search tab: the search box in the window and the
+// items matching query (all when it is empty), all of them in one scrolling
+// grid, drawn again as the player types; with an empty query the favourites
+// and the items looked at last come first. Pressing one opens its page, and
+// going back from it returns to the last query.
+func (s *session) showCodexSearch(p *player.Player, query string) {
 	lang := i18n.Of(p)
 	find := func(p *player.Player, query string) ui.SearchResult {
 		query = strings.TrimSpace(query)
-		s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query, 0) })
+		s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query) })
 		found := codexFind(lang, query)
 		var slots []ui.ItemSlot
 		for _, e := range found {
@@ -389,8 +321,7 @@ func (s *session) showCodexSearchLive(p *player.Player, query string) {
 		return r
 	}
 	actions := append(s.codexTabs(p, codexSearchTab), s.codexBack(p))
-	ui.SearchGrid(p, i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search.label"), query, find,
-		func(p *player.Player, _ *world.Tx) { s.askCodexSearch(p, query) }, actions...)
+	ui.SearchGrid(p, i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search.label"), query, find, actions...)
 }
 
 // codexLink is an item linked from a page with how many of it the recipe

@@ -55,7 +55,7 @@ func (s *session) openCodex(p *player.Player) {
 }
 
 // showCodex is the front page of the codex: the search tab.
-func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "", 0) }
+func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "") }
 
 func n1(lang string, w world.Item) string { return naming.UIItemName(lang, item.NewStack(w, 1)) }
 

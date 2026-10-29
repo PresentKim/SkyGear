@@ -69,17 +69,12 @@ func (pf *Platform) lobbyIdle(p *player.Player, _ *world.Tx, _ string, _ bool) {
 	}
 }
 
-// showLobbyMenu shows p the lobby's main screen. A player who does not see
-// DDUI screens (the pack is not encrypted) gets its buttons as a menu.
+// showLobbyMenu shows p the lobby's main screen.
 func (pf *Platform) showLobbyMenu(p *player.Player) {
 	if !pf.m.InLobby(instance.AccountID(p)) {
 		return
 	}
 	closeConsole(p)
-	if !ui.OreUIFor(p) {
-		pf.showLobbyList(p)
-		return
-	}
 	ui.HomeScreen(p, pf.home(p))
 }
 
@@ -261,24 +256,4 @@ func (pf *Platform) homeSaves(h *ui.Home, lang string, saves []db.Save, sel int6
 	h.Play = ui.HomeButton{Label: i18n.T(lang, "platform.home.play"), Run: homeRun(func(p *player.Player) { pf.enter(p, s.ID) })}
 	h.PlaySub = s.Name
 	h.Manage.Run = homeRun(func(p *player.Player) { pf.showSaves(p, s.ID) })
-}
-
-// showLobbyList is the main screen as a menu, for a player who does not see
-// DDUI screens.
-func (pf *Platform) showLobbyList(p *player.Player) {
-	lang := i18n.Of(p)
-	again := func(p *player.Player, _ *world.Tx) { pf.showLobbyMenu(p) }
-	ui.Menu(p, i18n.T(lang, "name.Game"), "",
-		ui.Option{Label: i18n.T(lang, "platform.home.single"), Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, _ *world.Tx) { pf.showSaves(p, 0) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.multi"), Icon: "textures/ui/sg/icon_people", Run: func(p *player.Player, _ *world.Tx) { pf.showMultiplayer(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.friends"), Icon: "textures/ui/sg/icon_person", Run: func(p *player.Player, _ *world.Tx) { pf.showFriends(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.cosmetics"), Icon: "textures/ui/sg/icon_crown", Run: func(p *player.Player, _ *world.Tx) { pf.showCosmetics(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.help"), Icon: "textures/ui/sg/icon_help", Run: func(p *player.Player, _ *world.Tx) { pf.showGuide(p, false) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.settings"), Icon: iconSettings, Run: func(p *player.Player, _ *world.Tx) { pf.showSettings(p) }},
-		ui.Option{Label: i18n.T(lang, "platform.home.exit"), Icon: iconExit, Run: func(p *player.Player, _ *world.Tx) {
-			pf.confirm(p, i18n.T(lang, "platform.home.exit"), i18n.T(lang, "platform.home.exit.ask"), i18n.T(lang, "platform.home.exit.yes"), func(p *player.Player, _ *world.Tx) {
-				p.Disconnect(i18n.T(i18n.Of(p), "platform.home.exit.bye"))
-			}, again)
-		}},
-	)
 }

@@ -235,7 +235,7 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 	}
 }
 
-// HandleToggleSneak opens the island expansion actions when sneaking in
+// HandleToggleSneak shows the island expansion screen again when sneaking in
 // expansion mode, and otherwise grows saplings nearby by chance
 // (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {

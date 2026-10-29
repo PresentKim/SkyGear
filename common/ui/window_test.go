@@ -10,17 +10,15 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// shownLayouts runs show with the DDUI screens on and returns the layouts it
+// shownLayouts runs show and returns the layouts it
 // showed with their window sizes.
 func shownLayouts(t *testing.T, show func()) (sizes []string, layouts []any) {
 	t.Helper()
-	was := OreUI
-	OreUI = true
 	oreShown = func(l *oreLayout, layout any) {
 		sizes = append(sizes, l.size)
 		layouts = append(layouts, layout)
 	}
-	defer func() { OreUI, oreShown = was, nil }()
+	defer func() { oreShown = nil }()
 	show()
 	return sizes, layouts
 }
@@ -71,7 +69,7 @@ func windowScreens() map[string]func() {
 		"search": func() {
 			SearchGrid(p, "검색", "찾기", "", func(*player.Player, string) SearchResult {
 				return SearchResult{Sections: []GridSection{{Slots: slots}}}
-			}, nil)
+			})
 		},
 	}
 }

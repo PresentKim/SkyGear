@@ -36,7 +36,6 @@
  "research.laboratory.about": "The Essence Extractor fills Glass Bottles with one era's materials to make research essences. Higher research asks for essences along with materials, so an essence line is how you prepare for the next research. Running one essence type per Essence Extractor is easiest.",
  "advancement.node.track": "Track",
  "advancement.node.untrack": "Untrack",
- "advancement.node.codex": "Codex",
  "advancement.alloy_smelter.hint": "Research \"Alloy Smelter\"\n(Tin and Crusher come first)\nIt mixes two metals into an alloy",
  "advancement.alloy_smelter.name": "Mix It Up",
  "advancement.auto_miner.hint": "Research \"Auto Miner\" and\nplace it on a cobblestone generator\nIt keeps mining the block below",
@@ -652,6 +651,5 @@
  "researchnode.cost.need": "§f%s\n§7Need %d",
  "researchnode.cost.uses": "§f%s\n§aUses %d",
  "researchnode.cost.have": "\n%sHave %d",
- "researchlist.title": "Research",
- "advancement.node.title": "Advancement · "
+ "researchlist.title": "Research"
 }

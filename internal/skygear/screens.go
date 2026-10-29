@@ -100,7 +100,7 @@ func (s *session) confirmLobby(p *player.Player) {
 	)
 }
 
-// openMenu opens the game menu, or the expansion actions in expansion mode
+// openMenu opens the game menu, or the expansion screen in expansion mode
 // (the camera looks down, so the menu item and /menu act on the mode).
 func (s *session) openMenu(p *player.Player) {
 	count(p, "menu_open", 1)

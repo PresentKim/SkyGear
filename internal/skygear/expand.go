@@ -1,8 +1,6 @@
 package skygear
 
 import (
-	"fmt"
-	"slices"
 	"time"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -14,15 +12,12 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/skygear/common/ui"
-	"github.com/presentkim/skygear/internal/skygear/formicon"
-	"github.com/presentkim/skygear/internal/skygear/textfmt"
 )
 
 // Island expansion mode (섬 확장): the body is frozen and the camera looks
-// down on the selected chunk of the map (expandmap.go); the movement keys
-// move the selection a chunk at a time and sneaking opens buy and exit. A
-// view-only game mode keeps the client from breaking or placing blocks.
+// down on the selected chunk of the map (expandmap.go), under the expansion
+// screen (expandplane.go) that moves the selection and buys. A view-only game
+// mode keeps the client from breaking or placing blocks.
 
 const (
 	// The camera looks down on the map with a narrow field of view from high
@@ -31,17 +26,12 @@ const (
 	expandMapCameraHeight = 65
 	// expandFloorY is the height of the map's glass (the island surface).
 	expandFloorY = IslandY - 1
-	// expandStepEvery is how often a held movement key moves the cursor on
-	// by a chunk; expandPoll is how often the keys are read.
-	expandStepEvery = 350 * time.Millisecond
-	expandPoll      = 50 * time.Millisecond
+	// expandRestore is how long after a click on the map its chunk is sent
+	// again (restoreMapNear).
+	expandRestore = 50 * time.Millisecond
 	// expandMapReach is how far around the cursor (in chunks) the map is
 	// drawn.
 	expandMapReach = 4
-	// expandKeySign turns the keys into map directions: forward is north
-	// (-z, the top of the screen) and left is west (-x). Flip if the cursor
-	// moves the wrong way on real clients.
-	expandKeySign = -1
 )
 
 var (
@@ -71,19 +61,12 @@ type expansion struct {
 	mode world.GameMode
 	// body is the chunk the frozen body stands in.
 	body ChunkPos
-	// lastStep is when the cursor last moved; a key held from before waits
-	// expandStepEvery, a new key press moves at once.
-	lastStep time.Time
-	held     bool
 	// started tells apart a later expansion from this one in delayed tasks.
 	started time.Time
 	// mapShown is the glass of each map chunk sent in the "map" view
 	// (expandmap.go); home is where the body stood, to go back to.
 	mapShown map[ChunkPos]world.Block
 	home     mgl64.Vec3
-	// plane is set while the mode is shown as the DDUI screen
-	// (expandplane.go) instead of the movement keys and the tip.
-	plane bool
 }
 
 func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
@@ -91,14 +74,11 @@ func (s *session) expansionOf(p *player.Player) (*expansion, bool) {
 	return e, ok
 }
 
-// showExpand starts expansion mode, or opens its actions if already in it.
+// showExpand starts expansion mode, or shows its screen again if already in
+// it.
 func (s *session) showExpand(p *player.Player) {
 	if e, ok := s.expansionOf(p); ok {
-		if e.plane {
-			s.showExpandPlane(p, e)
-			return
-		}
-		s.showExpandActions(p)
+		s.showExpandPlane(p, e)
 		return
 	}
 	if s.expanding == nil {
@@ -112,15 +92,7 @@ func (s *session) showExpand(p *player.Player) {
 	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0)
 	s.updateBoard(p)
-	if ui.OreUIFor(p) {
-		e.plane = true
-		s.showExpandPlane(p, e)
-		return
-	}
-	p.Message(i18n.T(i18n.Of(p), "expand.enter"))
-	s.expandTip(p, e)
-	s.repeatExpandTip(p, e)
-	s.pollExpand(p, e)
+	s.showExpandPlane(p, e)
 }
 
 // stopExpand leaves expansion mode: the camera, the real blocks and the
@@ -144,48 +116,6 @@ func cursorPos(c ChunkPos) mgl64.Vec3 {
 	return mgl64.Vec3{float64(c[0])*16 + 8, IslandY, float64(c[1])*16 + 8}
 }
 
-// pollExpand reads the movement keys while the mode lasts and moves the
-// cursor.
-func (s *session) pollExpand(p *player.Player, e *expansion) {
-	p.H().DoAfter(expandPoll, func(tx *world.Tx, ent world.Entity) {
-		if tx.World() != s.world {
-			return
-		}
-		p := ent.(*player.Player)
-		if cur, ok := s.expansionOf(p); !ok || cur.started != e.started {
-			return
-		}
-		s.expandInput(p, e, sghook.MoveInput(p))
-		s.pollExpand(p, e)
-	})
-}
-
-// expandInput moves the cursor by the held keys (forward/back in Y,
-// left/right in X).
-func (s *session) expandInput(p *player.Player, e *expansion, keys mgl64.Vec2) {
-	dx, dz := keyStep(keys.X()), keyStep(keys.Y())
-	if dx == 0 && dz == 0 {
-		e.held = false
-		return
-	}
-	if e.held && time.Since(e.lastStep) < expandStepEvery {
-		return
-	}
-	e.held, e.lastStep = true, time.Now()
-	s.moveCursor(p, e, ChunkPos{e.target[0] + int32(expandKeySign*dx), e.target[1] + int32(expandKeySign*dz)})
-}
-
-// keyStep turns an analogue key value into -1, 0 or 1.
-func keyStep(v float64) int {
-	switch {
-	case v > 0.5:
-		return 1
-	case v < -0.5:
-		return -1
-	}
-	return 0
-}
-
 // moveCursor moves the cursor to chunk c if it is within the island range.
 func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	r := int32(islandRadius)
@@ -200,9 +130,6 @@ func (s *session) moveCursor(p *player.Player, e *expansion, c ChunkPos) {
 	// The map first: the body moves over the cursor with it.
 	s.drawMap(p, e, true)
 	s.moveExpandCamera(p, e, 0.2)
-	if !e.plane {
-		s.expandTip(p, e)
-	}
 }
 
 func (s *session) moveExpandCamera(p *player.Player, e *expansion, ease float64) {
@@ -220,7 +147,7 @@ func (s *session) expandCamera(e *expansion) mgl64.Vec3 {
 // restoreMapNear shows the map chunk at pos again after the client clicked
 // it: the click made the server resend the real (empty) blocks there.
 func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
-	p.H().DoAfter(expandPoll, func(tx *world.Tx, ent world.Entity) {
+	p.H().DoAfter(expandRestore, func(tx *world.Tx, ent world.Entity) {
 		p := ent.(*player.Player)
 		e, ok := s.expansionOf(p)
 		if !ok || tx.World() != s.world {
@@ -232,65 +159,4 @@ func (s *session) restoreMapNear(p *player.Player, pos cube.Pos) {
 			p.ViewFakeChunk(mapChunk(c), s.mapColumn(tx, c, glass))
 		}
 	})
-}
-
-// expandTip shows the target chunk's state and price above the hotbar.
-func (s *session) expandTip(p *player.Player, e *expansion) {
-	c := e.target
-	switch {
-	case s.owns(c):
-		p.SendTip(i18n.T(i18n.Of(p), "expand.tip.owned"))
-	case slices.Contains(s.purchasableChunks(), c):
-		cost := chunkCost(len(s.state.Chunks))
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.tip.buyable"), costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item)))))
-	default:
-		p.SendTip(i18n.T(i18n.Of(p), "expand.tip.none"))
-	}
-}
-
-// repeatExpandTip keeps the tip on screen while the mode lasts.
-func (s *session) repeatExpandTip(p *player.Player, e *expansion) {
-	p.H().DoAfter(time.Second, func(tx *world.Tx, ent world.Entity) {
-		if tx.World() != s.world {
-			return
-		}
-		p := ent.(*player.Player)
-		if cur, ok := s.expansionOf(p); !ok || cur.started != e.started {
-			return
-		}
-		s.expandTip(p, e)
-		s.repeatExpandTip(p, e)
-	})
-}
-
-// showExpandActions offers buying the target chunk and leaving the mode.
-func (s *session) showExpandActions(p *player.Player) {
-	e, ok := s.expansionOf(p)
-	if !ok {
-		return
-	}
-	c := e.target
-	cost := chunkCost(len(s.state.Chunks))
-	var opts []ui.Option
-	body := fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.chunk"), len(s.state.Chunks))
-	if slices.Contains(s.purchasableChunks(), c) {
-		body += fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.cost"), costText(i18n.Of(p), cost), textfmt.Int(int64(countPlain(p.Inventory(), cost.Item))))
-		opts = append(opts, s.opt(fmt.Sprintf(i18n.T(i18n.Of(p), "expand.menu.buy"), costText(i18n.Of(p), cost)), formicon.Island, func(p *player.Player, tx *world.Tx) {
-			s.buyChunk(p, tx, c)
-			if e, ok := s.expansionOf(p); ok {
-				s.drawMap(p, e, true)
-				s.expandTip(p, e)
-			}
-		}))
-	} else {
-		body += i18n.T(i18n.Of(p), "expand.menu.notBuyable")
-	}
-	opts = append(opts,
-		s.opt(i18n.T(i18n.Of(p), "expand.menu.keepLooking"), formicon.Lobby, func(*player.Player, *world.Tx) {}),
-		s.opt(i18n.T(i18n.Of(p), "expand.menu.stop"), formicon.Back, func(p *player.Player, tx *world.Tx) {
-			s.stopExpand(p, tx)
-			p.Message(i18n.T(i18n.Of(p), "expand.left"))
-		}),
-	)
-	ui.Menu(p, i18n.T(i18n.Of(p), "expand.menu.title"), body, opts...)
 }

@@ -12,125 +12,20 @@ import (
 	"github.com/presentkim/skygear/internal/skygear/formicon"
 )
 
-// The advancement screen: a tab per chapter with its tree laid out left to
-// right by the server (advancement.LayoutOf). A parent in another chapter is
-// an entrance that leads there; pressing a node opens its detail.
+// The advancement screen: a quest book with a chapter per category and its
+// tree laid out left to right by the server (advancement.LayoutOf). A parent
+// in another chapter is an entrance that leads there; pressing a node opens
+// its quest panel.
 
-// showAdvancements opens the advancement screen on the tab of the advancement
-// the quest panel follows.
+// showAdvancements opens the advancement screen on the chapter of the
+// advancement the quest panel follows.
 func (s *session) showAdvancements(p *player.Player) {
 	count(p, "adv_view", 1)
-	var v advancement.View
+	tab := advancement.ChapterStart
 	if a, ok := s.nextAdvancement(); ok {
-		v.Tab = a.Chapter
+		tab = a.Chapter
 	}
-	s.showAdvancementView(p, v)
-}
-
-// advancementTree builds the form's tree of a view: every row of the tab's
-// layout.
-func (s *session) advancementTree(p *player.Player, v advancement.View) ui.Tree {
-	lang := i18n.Of(p)
-	l := advancement.LayoutOf(v.Tab)
-	var t ui.Tree
-	byPos := map[advancement.Pos]*advancement.Advancement{}
-	gateAt := map[advancement.Pos]*advancement.Advancement{}
-	for _, a := range l.Order {
-		byPos[l.Pos[a.ID]] = a
-	}
-	for _, g := range l.Gates {
-		gateAt[l.Pos[advancement.GateID(g.ID)]] = g
-	}
-	for y := range min(l.H, ui.TreeRows) {
-		for x := range ui.TreeCols {
-			ps := advancement.Pos{X: x, Y: y}
-			c := ui.TreeCell{Strip: l.Strips[ps]}
-			if a := byPos[ps]; a != nil {
-				c.Frame = advancement.Frame(a)
-				c.Icon, c.Tip = advancement.Icon(a), s.advancementTip(lang, a)
-				if len(a.Parents) > 1 && (s.advanced(a.ID) || s.advancementOpen(a)) {
-					c.Tip += "\n" + advancement.Parents(lang, a)
-				}
-				c.State = s.advTreeState(a)
-				c.Run = func(p *player.Player, tx *world.Tx) {
-					if tx.World() == s.world {
-						s.showAdvancementNode(p, a)
-					}
-				}
-			} else if g := gateAt[ps]; g != nil {
-				c.Frame, c.State = ui.FrameTask, s.advTreeState(g)
-				c.Icon, c.Tip = advancement.Icon(g), advancement.GateTip(lang, g)
-				c.Run = func(p *player.Player, tx *world.Tx) {
-					if tx.World() == s.world {
-						s.showAdvancementView(p, advancement.View{Tab: g.Chapter})
-					}
-				}
-			}
-			t.Cells = append(t.Cells, c)
-		}
-	}
-	for tab := advancement.Chapter(0); tab < advancement.ChapterCount; tab++ {
-		o := ui.Tab(i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[tab]), advancement.ChapterIcon(tab), tab == v.Tab, nil)
-		t.Tabs = append(t.Tabs, s.opt(o.Label, o.Icon, func(p *player.Player, _ *world.Tx) {
-			s.showAdvancementView(p, advancement.View{Tab: tab})
-		}))
-	}
-	done := 0
-	list := advancement.In(v.Tab)
-	for _, a := range list {
-		if s.advanced(a.ID) {
-			done++
-		}
-	}
-	t.Body = fmt.Sprintf(i18n.T(lang, "advancement.progress"), i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[v.Tab]), done, len(list))
-	t.Actions = []ui.Option{s.backOption(lang)}
-	return t
-}
-
-func (s *session) showAdvancementView(p *player.Player, v advancement.View) {
-	if ui.OreUIFor(p) {
-		s.showQuestBook(p, v.Tab, nil)
-		return
-	}
-	t := s.advancementTree(p, v)
-	ui.TreeMenu(p, i18n.T(i18n.Of(p), "advancement.title"), t)
-}
-
-// showAdvancementNode shows one advancement with its buttons (track, codex,
-// back to its chapter); a locked one also names the parents left.
-func (s *session) showAdvancementNode(p *player.Player, a *advancement.Advancement) {
-	lang := i18n.Of(p)
-	title, body := a.Title(lang), ""
-	switch {
-	case s.advanced(a.ID):
-		body = i18n.T(lang, "advancement.node.done") + advancement.FlatHint(lang, a)
-	case s.advancementOpen(a):
-		body = i18n.T(lang, "advancement.node.progress") + advancement.FlatHint(lang, a)
-	default:
-		body = i18n.T(lang, "advancement.node.progress") + advancement.FlatHint(lang, a) + "\n\n" + s.advancementBefore(lang, a)
-	}
-	var opts []ui.Option
-	if !s.advanced(a.ID) {
-		label := i18n.T(lang, "advancement.node.track")
-		if s.state.Tracked == a.ID {
-			label = i18n.T(lang, "advancement.node.untrack")
-		}
-		opts = append(opts, s.opt(label, formicon.Mission, func(p *player.Player, tx *world.Tx) {
-			if s.state.Tracked != a.ID {
-				count(p, "adv_track", 1)
-			}
-			s.track(tx, a)
-			s.showAdvancementNode(p, a)
-		}))
-	}
-	if it, ok := advancement.Stack(a); ok {
-		opts = append(opts, s.opt(i18n.T(lang, "advancement.node.codex"), formicon.Of(it), func(p *player.Player, _ *world.Tx) {
-			s.codexFrom(p, func(p *player.Player) { s.showAdvancementNode(p, a) }, it)
-		}))
-	}
-	back := ui.Back(i18n.T(lang, "codex.back"), func(p *player.Player, _ *world.Tx) { s.showAdvancementView(p, advancement.View{Tab: a.Chapter}) })
-	opts = append(opts, s.opt(back.Label, back.Icon, back.Run))
-	ui.Menu(p, i18n.T(lang, "advancement.node.title")+title, body, opts...)
+	s.showQuestBook(p, tab, nil)
 }
 
 // advancementTip is a node's tooltip: its name, coloured by its state, and
@@ -156,17 +51,6 @@ func (s *session) advancementBefore(lang string, a *advancement.Advancement) str
 	return i18n.T(lang, "advancement.node.before") + strings.Join(names, ", ")
 }
 
-// advTreeState is the state letter of a node in the tree form.
-func (s *session) advTreeState(a *advancement.Advancement) byte {
-	switch {
-	case s.advanced(a.ID):
-		return ui.StateDone
-	case s.advancementOpen(a):
-		return ui.StateOpen
-	}
-	return ui.StateLocked
-}
-
 // advQuestState is the state of a node in the quest book.
 func (s *session) advQuestState(a *advancement.Advancement) string {
 	switch {
@@ -178,9 +62,9 @@ func (s *session) advQuestState(a *advancement.Advancement) string {
 	return ui.QuestLocked
 }
 
-// showQuestBook shows the advancement screen as a quest book (DDUI): the
-// categories as chapters, the tab's tree on a plane (the same places as the
-// tree form) and, when open is set, its quest panel over it.
+// showQuestBook shows the advancement screen as a quest book: the categories
+// as chapters, the tab's tree on a plane and, when open is set, its quest
+// panel over it.
 func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open *advancement.Advancement) {
 	lang := i18n.Of(p)
 	b := ui.QuestBook{Key: "adv_" + advancement.ChapterKeys[tab]}
@@ -264,8 +148,7 @@ func (s *session) showQuestBook(p *player.Player, tab advancement.Chapter, open 
 }
 
 // questPanel is an advancement's quest panel: its state and hint, the item
-// it asks for (pressing it opens the codex) and the track and codex buttons,
-// like showAdvancementNode.
+// it asks for (pressing it opens the codex) and the track button.
 func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advancement.Advancement) *ui.QuestPanel {
 	lang := i18n.Of(p)
 	back := func(p *player.Player, tx *world.Tx) {

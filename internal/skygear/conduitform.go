@@ -161,8 +161,8 @@ func (s *session) conduitSideBoard(p *player.Player, tx *world.Tx, pos cube.Pos,
 	return board
 }
 
-// channelItem is the item that shows a side state in JSON UI: a barrier for
-// off, concrete in the channel's colour for on.
+// channelItem is the item icon of a side state: a barrier for off (drawn,
+// having no colour square), concrete in the channel's colour for on.
 func channelItem(state int) world.Item {
 	if state == 0 {
 		return block.Barrier{}

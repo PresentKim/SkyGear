@@ -70,7 +70,7 @@ func (s *session) showCodexTab(p *player.Player, t codexTab) {
 	case codexPlantsTab:
 		s.showCodexPlants(p)
 	default:
-		s.showCodexSearch(p, "", 0)
+		s.showCodexSearch(p, "")
 	}
 }
 

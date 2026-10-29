@@ -35,7 +35,7 @@ directory and stores its data under `data/`:
 | File | Contents |
 |---|---|
 | `config.toml` | Dragonfly server settings: network address (default `:19132`), server name, Xbox Live authentication, … |
-| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `Encrypt`, `SlotDeco`), operators (`Admin.Operators`) |
+| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `SlotDeco`; the packs are always encrypted, since the game takes the Ore UI page the menus are drawn on from an encrypted pack only), operators (`Admin.Operators`) |
 | `data/platform.db` | SQLite database: accounts, friends, saves, per-save player state, game state |
 | `data/saves/<save id>/world` | One world per save |
 | `data/backups/` | Automatic database and world backups ([docs/tech/backup.md](docs/tech/backup.md)) |
@@ -83,7 +83,7 @@ internal/skygear/               Sky Gear: session-bound code (game, state, handl
   naming/                       Item and block name keys and names (catalog, pack texts, vanillakeys.json)
   textfmt/                      Number and duration formatting, pack font glyphs
   blockmodel/                   Custom block materials and cube properties
-  formicon/                     Form button icons
+  formicon/                     Menu button icons
   wintext/                      Texts of machine window items, localised per viewer
   sievetable/                   Sieve drop tables and magic sieve themes
   machinerecipe/                Alloy smelter, essence extractor and auto crafter recipes
@@ -93,7 +93,7 @@ internal/skygear/               Sky Gear: session-bound code (game, state, handl
   achievement/                  Account achievement catalog and IDs
 internal/itemio/                Item input/output interface used by hoppers and conduits
 internal/energy, itemnet, fluidnet/  Energy, item and fluid networks
-common/                         Game-independent packages and packs (forms, DDUI screens, entity chests, WAILA,
+common/                         Game-independent packages and packs (menus as DDUI screens, entity chests, WAILA,
                                 HUD, i18n, resource pack loader, backups, …; see common/README.md)
 assets/resourcepack/skygear/  The game's resource pack: textures, models, names, entities, JSON UI
 tools/                          Generators for textures, models and data files used by the packs
@@ -118,7 +118,9 @@ shuts everything down, failing if the server log has an `ERROR` or a panic.
 spike/scenarios/run.sh spike/scenarios/advanced.sh
 ```
 
-Each `spike/scenarios/*.sh` file is one scenario.
+Each `spike/scenarios/*.sh` file is one scenario. The bot reads JSON UI forms only, and the menus are now
+DDUI screens, so scenarios that go through a menu need a bot that drives DDUI screens first
+([docs/TODO.md](docs/TODO.md)).
 
 ## Documentation
 

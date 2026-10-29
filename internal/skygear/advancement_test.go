@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/internal/skygear/advancement"
 	"github.com/presentkim/skygear/internal/skygear/naming"
 )
@@ -80,8 +79,8 @@ func TestAdvancementsFromItems(t *testing.T) {
 }
 
 // TestAdvancementTreeShowsEveryNode: a new save shows every node of a
-// chapter; a child sits one column right of its parent with connector lines
-// between them; every advancement is in one chapter.
+// chapter; a child sits one column right of its parent with its line from
+// it; every advancement is in one chapter.
 func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 	s := testSession(t)
 	s.state.Advancements = map[string]bool{}
@@ -95,8 +94,8 @@ func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 	if planks.X != wood.X+1 {
 		t.Errorf("planks at column %d beside wood at %d", planks.X, wood.X)
 	}
-	if l.Strips[planks]&ui.StripRight == 0 || l.Strips[advancement.Pos{X: planks.X, Y: wood.Y}]&ui.StripLeft == 0 {
-		t.Errorf("no connector between wood and planks: %v", l.Strips)
+	if l.Line["planks"] != "wood" {
+		t.Errorf("the line of planks comes from %q, want wood", l.Line["planks"])
 	}
 	seen := map[advancement.Pos]string{}
 	for id, ps := range l.Pos {
@@ -121,7 +120,7 @@ func TestAdvancementTreeShowsEveryNode(t *testing.T) {
 // TestAdvancementLayout: in every chapter a node sits right of each of its
 // parents, a parent in another chapter is an entrance left of its children,
 // no two places share a cell and every node with parents has the line of
-// one in the tree form.
+// one.
 func TestAdvancementLayout(t *testing.T) {
 	for ch := range advancement.ChapterCount {
 		l := advancement.LayoutOf(ch)
@@ -157,8 +156,8 @@ func TestAdvancementLayout(t *testing.T) {
 	}
 }
 
-// TestAdvancementTreeFits: with everything done every tab's tree fits the
-// grid of the form.
+// TestAdvancementTreeFits: with everything done every chapter's tree stays
+// within its bands' height.
 func TestAdvancementTreeFits(t *testing.T) {
 	s := testSession(t)
 	s.state.Advancements = map[string]bool{}
@@ -167,8 +166,8 @@ func TestAdvancementTreeFits(t *testing.T) {
 	}
 	for tab := advancement.Chapter(0); tab < advancement.ChapterCount; tab++ {
 		l := advancement.LayoutOf(tab)
-		if l.W > ui.TreeCols || l.H > ui.TreeRows {
-			t.Errorf("tab %s is %d×%d, the grid %d×%d", advancement.ChapterKeys[tab], l.W, l.H, ui.TreeCols, ui.TreeRows)
+		if l.H > advancement.Rows {
+			t.Errorf("tab %s is %d rows high, more than %d", advancement.ChapterKeys[tab], l.H, advancement.Rows)
 		}
 	}
 }

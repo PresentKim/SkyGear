@@ -12,12 +12,10 @@ import (
 	"github.com/presentkim/skygear/internal/skygear/textfmt"
 )
 
-// Island expansion as a DDUI screen (ui.PlaneMenu) for Ore UI clients: each
-// chunk near the selected one is a button over the map (pressing selects it
+// The island expansion screen (ui.PlaneMenu): each chunk near the selected one is a button over the map (pressing selects it
 // and the camera follows), with the price and buy/exit in a bottom panel.
 // The arrow keys and WASD move the selection a chunk, Enter and the space bar
 // buy it.
-// JSON UI clients use the movement keys and the sneak menu (expand.go).
 
 // expandPlaneReach is how many chunks around the selected one have a
 // button: more than the camera shows, so a wide screen has them all.

@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
@@ -57,23 +56,30 @@ var advChapterLists = func() [ChapterCount][]*Advancement {
 	return lists
 }()
 
-// View is what the advancement screen shows: the tab.
-type View struct{ Tab Chapter }
-
 // Pos is a cell of a chapter's tree grid.
 type Pos struct{ X, Y int }
 
+// Rows is how many rows a band of a chapter's layout takes: a connected group
+// that would pass it starts a new band to the right.
+const Rows = 21
+
+// Frame letters of a node: the quest shape it is drawn with (Shapes).
+const (
+	FrameTask      = 't'
+	FrameGoal      = 'g'
+	FrameChallenge = 'c'
+)
+
 // Layout is the placed tree of a chapter: where each node and each
-// entrance is, the parent each node's connector comes from in the tree form,
-// the connector lines of every cell's strip, and the size. order lists the
-// nodes in tree order and gates the entrances top to bottom.
+// entrance is, the parent in the column before each node's own (its line),
+// and the size. order lists the nodes in tree order and gates the entrances
+// top to bottom.
 type Layout struct {
-	Pos    map[string]Pos
-	Line   map[string]string
-	Strips map[Pos]int
-	W, H   int
-	Order  []*Advancement
-	Gates  []*Advancement
+	Pos   map[string]Pos
+	Line  map[string]string
+	W, H  int
+	Order []*Advancement
+	Gates []*Advancement
 	// Vias are the places a line passes in the columns between a parent and
 	// a node further than the next column, by ViaKey: kept free, so the
 	// quest book's line goes around the nodes between.
@@ -100,9 +106,9 @@ func LayoutOf(ch Chapter) Layout { return advLayouts[ch] }
 // column is one more than its latest parent's, and a parent in another
 // chapter is an entrance right before its first child. Connected groups
 // (layoutGroup) stack in tree order, starting a new band to the right when
-// one would pass the bottom of the grid.
+// one would pass Rows.
 func layoutChapter(ch Chapter) Layout {
-	l := Layout{Pos: map[string]Pos{}, Line: map[string]string{}, Strips: map[Pos]int{}, Vias: map[string][]string{}}
+	l := Layout{Pos: map[string]Pos{}, Line: map[string]string{}, Vias: map[string][]string{}}
 	l.Order = In(ch)
 	g := advGraph{col: map[string]int{}, parents: map[string][]string{}, children: map[string][]string{}}
 	var keys []string
@@ -172,7 +178,7 @@ func layoutChapter(ch Chapter) Layout {
 	x0, y0, band := 0, 0, 0
 	for _, r := range roots {
 		pos, w, h := g.layoutGroup(members[r])
-		if y0 > 0 && y0+h > ui.TreeRows {
+		if y0 > 0 && y0+h > Rows {
 			x0, y0, band = x0+band, 0, 0
 		}
 		for k, p := range pos {
@@ -194,20 +200,6 @@ func layoutChapter(ch Chapter) Layout {
 			continue
 		}
 		l.Line[a.ID] = from
-		p := l.Pos[from]
-		l.Strips[Pos{c.X, p.Y}] |= ui.StripLeft
-		l.Strips[c] |= ui.StripRight
-		switch {
-		case c.Y > p.Y:
-			l.Strips[Pos{c.X, p.Y}] |= ui.StripDown
-			l.Strips[c] |= ui.StripUp
-		case c.Y < p.Y:
-			l.Strips[Pos{c.X, p.Y}] |= ui.StripUp
-			l.Strips[c] |= ui.StripDown
-		}
-		for y := min(c.Y, p.Y) + 1; y < max(c.Y, p.Y); y++ {
-			l.Strips[Pos{c.X, y}] |= ui.StripUp | ui.StripDown
-		}
 	}
 	return l
 }
@@ -389,11 +381,11 @@ var advChallenges = map[string]bool{
 func Frame(a *Advancement) byte {
 	switch {
 	case advChallenges[a.ID]:
-		return ui.FrameChallenge
+		return FrameChallenge
 	case a.Research != "":
-		return ui.FrameGoal
+		return FrameGoal
 	}
-	return ui.FrameTask
+	return FrameTask
 }
 
 // GateTip is the tooltip of the entrance of an advancement of another
@@ -402,20 +394,8 @@ func GateTip(lang string, a *Advancement) string {
 	return "§7" + i18n.T(lang, "advancement.tab."+ChapterKeys[a.Chapter]) + " · §f" + a.Title(lang)
 }
 
-// Parents names every parent of an advancement (the tree form
-// draws the line of one).
-func Parents(lang string, a *Advancement) string {
-	var names []string
-	for _, id := range a.Parents {
-		if p, ok := ByID(id); ok {
-			names = append(names, p.Title(lang))
-		}
-	}
-	return i18n.T(lang, "advancement.node.parents") + strings.Join(names, ", ")
-}
-
 // Shapes are the quest shapes of the frames in the quest book.
-var Shapes = map[byte]string{ui.FrameTask: ui.ShapeDiamond, ui.FrameGoal: ui.ShapeSquare, ui.FrameChallenge: ui.ShapeCircle}
+var Shapes = map[byte]string{FrameTask: ui.ShapeDiamond, FrameGoal: ui.ShapeSquare, FrameChallenge: ui.ShapeCircle}
 
 // QuestX is the place on the quest book's plane of a column: wider apart
 // than the rows, so the lines between columns have room to turn.

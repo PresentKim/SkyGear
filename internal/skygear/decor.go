@@ -61,9 +61,9 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 	return slotdeco.Common, 0
 }
 
-// tipName is the name of a stack for the first line of a form slot's
-// tooltip: the slot marks in front and after (the pack draws a frame and
-// badge from them, sg_form.json gslot_deco), the name in the rarity colour.
+// tipName is the name of a stack for the first line of a screen slot's
+// tooltip: the slot marks in front and after (common/ui draws the rarity's
+// frame behind the slot from them), the name in the rarity colour.
 func tipName(lang string, st item.Stack) string {
 	if n := st.CustomName(); n != "" {
 		return n // stacks with a name of their own carry their marks already

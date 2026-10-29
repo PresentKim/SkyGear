@@ -73,7 +73,7 @@ type HomeOverlay struct {
 // at the bottom right, leaving the middle to the lobby island. It has the
 // size of the windows, so the screens its buttons show take its place in the
 // open screen and come back to it the same way, without the screen closing
-// in between. It is a DDUI screen only (OreUIFor).
+// in between.
 func HomeScreen(p *player.Player, h Home) {
 	l := newOreLayout()
 	l.size = fmt.Sprintf("%dx%d", windowW, windowH)

@@ -89,8 +89,7 @@ func rem(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) + "rem" 
 
 // QuestBookMenu shows a quest book in the style of FTB Quests: chapters on
 // the left, the chapter's quests on a draggable, zoomable plane with lines
-// from their dependencies, and an open quest's panel over it. It is DDUI
-// only (OreUIFor).
+// from their dependencies, and an open quest's panel over it.
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
 	_, bar, _ := l.chrome(actions)

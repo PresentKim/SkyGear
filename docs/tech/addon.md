@@ -49,8 +49,8 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 | 방식 | 용도 | 비고 |
 |---|---|---|
-| 폼(`common/ui`, Dragonfly `form`) | 메뉴, 설정, 세이브 선택 | 기본 수단 |
-| JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적 |
+| Ore UI DDUI 화면(`common/ui`, `common/oreui`) | 메뉴, 설정, 세이브 선택 | 기본 수단. 암호화한 팩의 `hbui/` 가 게임 중 Ore UI 페이지를 바꾼다([oreui.md](oreui.md)) |
+| JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적. 이 서버는 쓰지 않는다(JSON UI 는 HUD·창고 창만) |
 | 상자형 인벤토리 UI | 인벤토리 보기, 기계 창 | 보이지 않는 엔티티를 상자로 여는 `common/chestui`([chestui.md](chestui.md)) |
 | 사이드바, 보스바, 타이틀, 액션바 | 퀘스트 창·HUD 표시 | Dragonfly API 지원 |
 
