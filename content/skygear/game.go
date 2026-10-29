@@ -3,10 +3,12 @@ package skygear
 
 import (
 	"errors"
-	"github.com/presentkim/skygear/content/skygear/expand"
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/wave"
 
@@ -32,7 +34,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
-	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -88,7 +89,7 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	registerItemIO()
 	registerAdmin(g)
 	registerDebug(g)
-	go codexIndex(i18n.Default)
+	go codex.Index(i18n.Default)
 	return g
 }
 
@@ -156,10 +157,6 @@ type session struct {
 	// diedFood is the food level each player died with, given back when it
 	// respawns (handler.go).
 	diedFood map[*world.EntityHandle]int
-	// codexNav is where each player is in the codex and came from, and
-	// codexRecent the items they looked at last (codextabs.go).
-	codexNav    map[*world.EntityHandle]*codexNav
-	codexRecent map[*world.EntityHandle][]item.Stack
 	// helpTab is the help tab each player looked at last (help.go).
 	helpTab map[*world.EntityHandle]helpTab
 	// urgentBarShown is whether the urgent mission boss bar is up.
@@ -200,8 +197,6 @@ func (s *session) Leave(p *player.Player) {
 	expand.Stop(s.Session, p, p.Tx())
 	delete(s.lastLook, p.H())
 	delete(s.boards, p.H())
-	delete(s.codexNav, p.H())
-	delete(s.codexRecent, p.H())
 	delete(s.helpTab, p.H())
 	delete(s.diedFood, p.H())
 	waila.Clear(p)

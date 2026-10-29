@@ -1,40 +1,36 @@
-package skygear
+// Package codex is the game's recipe viewer: where an item comes from, what
+// it is for, what a mesh sifts. It reads the same tables the machines use, so
+// it cannot disagree with them. The front page searches (codexsearch.go),
+// the tabs list items by kind (codextabs.go) and an item's page shows its
+// cards (codexpages.go, codexcards.go, codexwork.go); favourites and goals
+// are kept per account (codexgoal.go).
+package codex
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/presentkim/skygear/content/skygear/wave"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/achievement"
-
 	"github.com/df-mc/dragonfly/server/block"
-	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/farm"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
-// The codex is the game's recipe viewer: where an item comes from, what it is
-// for, what a mesh sifts. It reads the same tables the machines use, so it
-// cannot disagree with them.
-
-// codexSieveInputs are the blocks a sieve takes, in the order the codex shows
+// SieveInputs are the blocks a sieve takes, in the order the codex shows
 // them.
-func codexSieveInputs() []world.Item {
+func SieveInputs() []world.Item {
 	return []world.Item{
 		block.Gravel{}, block.Sand{}, block.Dirt{}, sgitem.Dust{}, block.Sand{Red: true}, block.SoulSand{},
 		sgitem.CrushedBlock{Kind: sgitem.CrushedDeepslate}, sgitem.CrushedBlock{Kind: sgitem.CrushedNetherrack},
@@ -42,40 +38,18 @@ func codexSieveInputs() []world.Item {
 	}
 }
 
-// openCodex opens the codex: the page of the item p holds, else the page of
-// the block p looks at (the one the WAILA panel shows), else the first page.
-func (s *session) openCodex(p *player.Player) {
-	achievement.Count(p, "codex_open", 1)
-	s.codexStart(p)
-	if held, _ := p.HeldItems(); !held.Empty() && !isMenuItem(held) {
-		s.showCodexItem(p, held)
-		return
-	}
-	if tx := p.Tx(); tx != nil {
-		if _, b, ok := lookedAt(p, tx, p.Position(), p.Rotation()); ok {
-			if it, isItem := b.(world.Item); isItem {
-				if e, found := codexItemByKey(naming.ItemKey(it)); found {
-					s.showCodexItem(p, e)
-					return
-				}
-			}
-		}
-	}
-	s.showCodex(p)
-}
-
-// showCodex is the front page of the codex: the search tab.
-func (s *session) showCodex(p *player.Player) { s.showCodexSearch(p, "") }
+// Show is the front page of the codex: the search tab.
+func Show(s *core.Session, p *player.Player) { showCodexSearch(s, p, "") }
 
 func n1(lang string, w world.Item) string { return naming.UIItemName(lang, item.NewStack(w, 1)) }
 
-// codexSources lists where an item comes from, read from the tables of the
+// Sources lists where an item comes from, read from the tables of the
 // game.
-func (s *session) codexSources(lang string, it item.Stack) []string {
+func Sources(s *core.Session, lang string, it item.Stack) []string {
 	k := naming.ItemKey(it.Item())
 	var out []string
 	// the sieve: the first mesh that finds it, per block
-	for _, in := range codexSieveInputs() {
+	for _, in := range SieveInputs() {
 		for _, t := range sgitem.MeshTiers {
 			found := false
 			for _, d := range sievetable.Tables[t.Tier][naming.ItemKey(in)] {
@@ -90,7 +64,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 			}
 		}
 	}
-	for _, in := range crushInputs() {
+	for _, in := range CrushInputs() {
 		if got, ok := machine.CrusherOutput(item.NewStack(in, 1)); ok && naming.ItemKey(got.Item()) == k {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.crusher"), n1(lang, in)))
 		}
@@ -116,7 +90,7 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 		}
 	}
 	for _, mob := range sgitem.MobKinds {
-		for _, in := range codexSieveInputs() {
+		for _, in := range SieveInputs() {
 			for _, d := range sievetable.MagicThemes[mob].Adds[naming.ItemKey(in)] {
 				if naming.ItemKey(d.Item.Item()) == k {
 					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), wave.MobName(lang, mob), n1(lang, in), textfmt.Permille(d.Permille)))
@@ -155,8 +129,8 @@ func (s *session) codexSources(lang string, it item.Stack) []string {
 	return out
 }
 
-// codexUses lists what an item is for.
-func (s *session) codexUses(lang string, it item.Stack) []string {
+// Uses lists what an item is for.
+func Uses(s *core.Session, lang string, it item.Stack) []string {
 	k := naming.ItemKey(it.Item())
 	var out []string
 	for i := range progress.Tree {
@@ -231,18 +205,21 @@ func (s *session) codexUses(lang string, it item.Stack) []string {
 	return out
 }
 
-// codexCmd is /도감 (and /codex).
-type codexCmd struct{ g *Game }
-
-func (c codexCmd) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, ok := src.(*player.Player)
-	if !ok || tx == nil {
-		return
-	}
-	s, ok := c.g.sessionOf(tx.World())
-	if !ok {
-		o.Error(i18n.T(i18n.Of(p), "menu.needSave"))
-		return
-	}
-	s.openCodex(p)
+// codexState is what a save keeps of its codex: its fields are part of the
+// save's state document (core.Saved).
+type codexState struct {
+	// Favourites are each account's favourite item keys in the codex,
+	// oldest first (codexgoal.go).
+	Favourites map[string][]string `json:"favourites,omitempty"`
 }
+
+var codexSaved = core.NewSaved[codexState](nil)
+
+// codexStateOf is what the save of s keeps of its codex.
+func codexStateOf(s *core.Session) *codexState { return codexSaved.Of(s) }
+
+// codexNavs is where each player is in the codex and came from.
+var codexNavs = core.NewPlayers[*codexNav]()
+
+// codexRecent are the items each player looked at last in the codex.
+var codexRecent = core.NewPlayers[[]item.Stack]()

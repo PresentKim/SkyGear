@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/expand"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/handwork"

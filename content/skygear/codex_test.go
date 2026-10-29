@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"strings"
 	"testing"
 
@@ -49,7 +50,7 @@ func TestCodexSourcesAndUses(t *testing.T) {
 		{item.NewStack(sgitem.MetalDust{Metal: sgitem.MetalTin}, 1), []string{"광석 세척기"}, []string{"화로"}},
 	}
 	for _, c := range cases {
-		src, use := s.codexSources(lang, c.it), s.codexUses(lang, c.it)
+		src, use := codex.Sources(s.Session, lang, c.it), codex.Uses(s.Session, lang, c.it)
 		for _, want := range c.sources {
 			if !hasLine(src, want) {
 				t.Errorf("%s: no source with %q in %q", naming.ItemName(i18n.Default, c.it), want, src)
@@ -65,10 +66,10 @@ func TestCodexSourcesAndUses(t *testing.T) {
 
 // cardsHave reports whether a slot of the cards shows the item with the count
 // label (any count when count is "-").
-func cardsHave(cards []codexCard, w world.Item, count string) bool {
+func cardsHave(cards []codex.Card, w world.Item, count string) bool {
 	icon := formicon.Of(item.NewStack(w, 1))
 	for _, c := range cards {
-		for _, row := range c.rows {
+		for _, row := range c.Rows {
 			for _, cell := range row {
 				if sl, ok := cell.SlotOf(); ok && sl.Icon == icon && (count == "-" || sl.Count == count) {
 					return true
@@ -83,20 +84,20 @@ func cardsHave(cards []codexCard, w world.Item, count string) bool {
 func TestCodexPagesAreWritten(t *testing.T) {
 	s := testSession(t)
 	lang := i18n.Default
-	for _, pr := range codexProcesses() {
-		if cards := pr.cards(s, lang); len(cards) == 0 {
-			t.Errorf("process tab: no recipes of %s", naming.ItemKey(pr.head.Item()))
+	for _, pr := range codex.Processes() {
+		if cards := pr.Cards(s.Session, lang); len(cards) == 0 {
+			t.Errorf("process tab: no recipes of %s", naming.ItemKey(pr.Head.Item()))
 		}
 	}
-	if cards := s.codexMobCards(lang); len(cards) < len(sgitem.MobKinds)+len(wave.Levels) {
+	if cards := codex.MobCards(s.Session, lang); len(cards) < len(sgitem.MobKinds)+len(wave.Levels) {
 		t.Errorf("mobs tab: %d cards", len(cards))
 	}
-	for _, in := range codexSieveInputs() {
-		if cards := s.codexSieveCards(lang, in); len(cards) != len(sgitem.MeshTiers) {
+	for _, in := range codex.SieveInputs() {
+		if cards := codex.SieveCards(s.Session, lang, in); len(cards) != len(sgitem.MeshTiers) {
 			t.Errorf("%s: %d mesh cards", naming.ItemKey(in), len(cards))
 		}
 	}
-	for _, in := range codexSieveInputs() {
+	for _, in := range codex.SieveInputs() {
 		for _, tier := range sgitem.MeshTiers {
 			if len(sievetable.Tables[tier.Tier][naming.ItemKey(in)]) == 0 {
 				t.Errorf("no drops of %s in the %s table", naming.ItemKey(in), tier.Tier)
@@ -110,13 +111,13 @@ func TestCodexPagesAreWritten(t *testing.T) {
 func TestCodexKnowsTheLab(t *testing.T) {
 	s := testSession(t)
 	essence := item.NewStack(sgitem.ResearchEssence{Kind: sgitem.EssenceHunting}, 1)
-	if src := strings.Join(s.codexSources(i18n.Default, essence), "\n"); !strings.Contains(src, "정수 추출기") || !strings.Contains(src, "화약 ×2") {
+	if src := strings.Join(codex.Sources(s.Session, i18n.Default, essence), "\n"); !strings.Contains(src, "정수 추출기") || !strings.Contains(src, "화약 ×2") {
 		t.Errorf("sources %q", src)
 	}
-	if uses := strings.Join(s.codexUses(i18n.Default, item.NewStack(item.SpiderEye{}, 1)), "\n"); !strings.Contains(uses, "사냥의 정수") {
+	if uses := strings.Join(codex.Uses(s.Session, i18n.Default, item.NewStack(item.SpiderEye{}, 1)), "\n"); !strings.Contains(uses, "사냥의 정수") {
 		t.Errorf("uses %q", uses)
 	}
-	if !cardsHave(s.codexSourceCards(i18n.Default, essence), item.Gunpowder{}, "§f2") {
+	if !cardsHave(codex.SourceCards(s.Session, i18n.Default, essence), item.Gunpowder{}, "§f2") {
 		t.Error("the lab card of the hunting essence lacks 2 gunpowder")
 	}
 }
@@ -125,30 +126,30 @@ func TestCodexKnowsTheLab(t *testing.T) {
 // one row of three ingredients, then the arrow and the result with its count.
 func TestCodexCraftCard(t *testing.T) {
 	s := testSession(t)
-	var c codexCard
+	var c codex.Card
 	found := false
 	for _, cr := range machinerecipe.Crafters() {
 		if naming.ItemKey(cr.Out.Item()) == naming.ItemKey(block.String{}) {
 			if sh, ok := cr.Recipe.(interface{ Input() []recipe.Item }); ok && len(sh.Input()) == 3 {
-				c, found = s.craftCard(i18n.Default, cr), true
+				c, found = codex.CraftCard(s.Session, i18n.Default, cr), true
 			}
 		}
 	}
 	if !found {
 		t.Fatal("no 3-fibre string recipe")
 	}
-	if len(c.rows) != 1 {
-		t.Fatalf("a 3×1 recipe takes %d rows", len(c.rows))
+	if len(c.Rows) != 1 {
+		t.Fatalf("a 3×1 recipe takes %d rows", len(c.Rows))
 	}
 	for x := range 3 {
-		if _, ok := c.rows[0][x].SlotOf(); !ok {
+		if _, ok := c.Rows[0][x].SlotOf(); !ok {
 			t.Errorf("cell %d of the grid is not an ingredient", x)
 		}
 	}
-	if !c.rows[0][craftArrow].IsArrow() {
+	if !c.Rows[0][codex.CraftArrow].IsArrow() {
 		t.Error("no arrow before the result")
 	}
-	if sl, ok := c.rows[0][craftArrow+1].SlotOf(); !ok || sl.Count != "§f3" {
+	if sl, ok := c.Rows[0][codex.CraftArrow+1].SlotOf(); !ok || sl.Count != "§f3" {
 		t.Errorf("the result slot is %+v, want 3 string", sl)
 	}
 }
@@ -157,11 +158,11 @@ func TestCodexCraftCard(t *testing.T) {
 // its machine.
 func TestCodexBoard(t *testing.T) {
 	s := testSession(t)
-	cards := s.codexMobCards(i18n.Default)
-	rows := s.codexBoard(i18n.Default, cards)
+	cards := codex.MobCards(s.Session, i18n.Default)
+	rows := codex.Board(s.Session, i18n.Default, cards)
 	cardRows := 0
-	for _, b := range codexBlocks(cards) {
-		cardRows += len(b.rows)
+	for _, b := range codex.Blocks(cards) {
+		cardRows += len(b.Rows)
 	}
 	if len(rows) < cardRows {
 		t.Fatalf("%d rows for %d card rows", len(rows), cardRows)
@@ -181,27 +182,27 @@ func TestCodexBoard(t *testing.T) {
 // TestCodexBlocks: narrow cards go two to a row, centred, the same columns
 // for every row of a machine; a wide card is alone.
 func TestCodexBlocks(t *testing.T) {
-	narrow := func() codexCard {
-		row := blankRow()
+	narrow := func() codex.Card {
+		row := codex.BlankRow()
 		row[0], row[1], row[2] = ui.Frame(), ui.Arrow(), ui.Frame()
-		return codexCard{rows: [][]ui.BoardCell{row}}
+		return codex.Card{Rows: [][]ui.BoardCell{row}}
 	}
-	blocks := codexBlocks([]codexCard{narrow(), narrow(), narrow()})
+	blocks := codex.Blocks([]codex.Card{narrow(), narrow(), narrow()})
 	if len(blocks) != 2 {
 		t.Fatalf("%d blocks for three narrow cards, want 2", len(blocks))
 	}
 	// 3 + 3 gap + 3 = 9 of 11 columns: one blank column on each side
 	for _, at := range []int{1, 7} {
-		if !blocks[0].rows[0][at+1].IsArrow() {
-			t.Errorf("no arrow at column %d of %v", at+1, blocks[0].rows[0])
+		if !blocks[0].Rows[0][at+1].IsArrow() {
+			t.Errorf("no arrow at column %d of %v", at+1, blocks[0].Rows[0])
 		}
 	}
-	if !blocks[1].rows[0][2].IsArrow() || !blocks[1].rows[0][8].IsBlank() {
-		t.Errorf("the last card is not in the left place alone: %v", blocks[1].rows[0])
+	if !blocks[1].Rows[0][2].IsArrow() || !blocks[1].Rows[0][8].IsBlank() {
+		t.Errorf("the last card is not in the left place alone: %v", blocks[1].Rows[0])
 	}
-	wide := blankRow()
+	wide := codex.BlankRow()
 	wide[0], wide[7] = ui.Frame(), ui.Frame()
-	if b := codexBlocks([]codexCard{{rows: [][]ui.BoardCell{wide}}}); len(b) != 1 || b[0].offset != 1 {
+	if b := codex.Blocks([]codex.Card{{Rows: [][]ui.BoardCell{wide}}}); len(b) != 1 || b[0].Offset != 1 {
 		t.Errorf("a card 8 wide: %+v, want one block at column 1", b)
 	}
 }
@@ -215,18 +216,18 @@ func TestCodexSearchAndLinks(t *testing.T) {
 	steel := sgitem.Ingot{Metal: sgitem.MetalSteel}
 	steelName := naming.ItemName(i18n.Default, item.NewStack(steel, 1))
 	found := false
-	for _, e := range codexFind(i18n.Default, steelName) {
-		found = found || naming.ItemKey(e.stack.Item()) == naming.ItemKey(steel)
+	for _, e := range codex.Find(i18n.Default, steelName) {
+		found = found || naming.ItemKey(e.Stack.Item()) == naming.ItemKey(steel)
 	}
 	if !found {
-		t.Fatalf("searching %q does not find the steel ingot (%d entries in the index)", steelName, len(codexIndex(i18n.Default)))
+		t.Fatalf("searching %q does not find the steel ingot (%d entries in the index)", steelName, len(codex.Index(i18n.Default)))
 	}
-	if n := len(codexFind(i18n.Default, "")); n < 50 {
+	if n := len(codex.Find(i18n.Default, "")); n < 50 {
 		t.Errorf("an empty search lists %d items, want the whole index", n)
 	}
 	// what the game uses: its own items, what research opens and what those
 	// are made of
-	in := codexRelevant()
+	in := codex.Relevant()
 	sieve, _ := world.ItemByName("skygear:sieve", 0)
 	for _, it := range []world.Item{steel, sieve, item.IronIngot{}, block.Furnace{}, item.Stick{}, block.Log{Wood: block.OakWood()}} {
 		if !in[naming.ItemKey(it)] {
@@ -234,14 +235,14 @@ func TestCodexSearchAndLinks(t *testing.T) {
 		}
 	}
 	t.Logf("%d items play a part in the game", len(in))
-	if n := len(codexFind(i18n.Default, "ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
+	if n := len(codex.Find(i18n.Default, "ㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎㅎ")); n != 0 {
 		t.Errorf("a nonsense search found %d", n)
 	}
-	from := s.codexSourceCards(i18n.Default, item.NewStack(steel, 1))
+	from := codex.SourceCards(s.Session, i18n.Default, item.NewStack(steel, 1))
 	if !cardsHave(from, item.IronIngot{}, "-") || !cardsHave(from, item.Coal{}, "§f4") {
 		t.Error("steel is made from iron and 4 coal")
 	}
-	if !cardsHave(s.codexUseCards(i18n.Default, item.NewStack(block.Cobblestone{}, 1)), block.Gravel{}, "-") {
+	if !cardsHave(codex.UseCards(s.Session, i18n.Default, item.NewStack(block.Cobblestone{}, 1)), block.Gravel{}, "-") {
 		t.Error("cobblestone is crushed into gravel")
 	}
 }
@@ -255,32 +256,32 @@ func TestCodexRawAndFavourites(t *testing.T) {
 	registerCreativeItems()
 	steel := item.NewStack(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1)
 	counts := map[string]int{}
-	for _, l := range codexRaw(steel, 3) {
-		counts[naming.ItemKey(l.stack.Item())] = l.count
+	for _, l := range codex.Raw(steel, 3) {
+		counts[naming.ItemKey(l.Stack.Item())] = l.Count
 	}
 	if counts[naming.ItemKey(item.IronIngot{})] != 3 || counts[naming.ItemKey(item.Coal{})] != 12 {
 		t.Errorf("3 steel need %v, want 3 iron and 12 coal", counts)
 	}
 	// an item no recipe makes is its own raw material
-	if raw := codexRaw(item.NewStack(item.Coal{}, 1), 5); len(raw) != 1 || raw[0].count != 5 {
+	if raw := codex.Raw(item.NewStack(item.Coal{}, 1), 5); len(raw) != 1 || raw[0].Count != 5 {
 		t.Errorf("coal is raw: %v", raw)
 	}
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		bronze := item.NewStack(sgitem.Ingot{Metal: sgitem.MetalBronze}, 1)
-		s.toggleFavourite(p, steel)
-		s.toggleFavourite(p, bronze)
-		if favs := s.favourites(p); len(favs) != 2 || naming.ItemKey(favs[0].Item()) != naming.ItemKey(steel.Item()) {
+		codex.ToggleFavourite(s.Session, p, steel)
+		codex.ToggleFavourite(s.Session, p, bronze)
+		if favs := codex.Favourites(s.Session, p); len(favs) != 2 || naming.ItemKey(favs[0].Item()) != naming.ItemKey(steel.Item()) {
 			t.Fatalf("favourites %v", favs)
 		}
-		s.toggleFavourite(p, steel)
-		if s.isFavourite(p, steel) || !s.isFavourite(p, bronze) {
+		codex.ToggleFavourite(s.Session, p, steel)
+		if codex.IsFavourite(s.Session, p, steel) || !codex.IsFavourite(s.Session, p, bronze) {
 			t.Error("starring again did not take the star off")
 		}
 	})
-	for tab := codexTab(0); tab < codexTabCount; tab++ {
-		if !i18n.Has(codexTabKeys[tab]) {
+	for tab := codex.Tab(0); tab < codex.CodexTabCount; tab++ {
+		if !i18n.Has(codex.TabKeys[tab]) {
 			t.Errorf("codex tab %d has no name", tab)
 		}
 	}
@@ -294,8 +295,8 @@ func TestCodexRawPicksTheUsualRecipe(t *testing.T) {
 	registerCreativeItems()
 	registerVanillaRecipes()
 	counts := map[string]int{}
-	for _, l := range codexRaw(item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1), 1) {
-		counts[naming.ItemKey(l.stack.Item())] = l.count
+	for _, l := range codex.Raw(item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1), 1) {
+		counts[naming.ItemKey(l.Stack.Item())] = l.Count
 	}
 	if counts[naming.ItemKey(item.Diamond{})] != 3 {
 		t.Errorf("a diamond pickaxe takes %d diamonds: %v", counts[naming.ItemKey(item.Diamond{})], counts)
@@ -310,7 +311,7 @@ func TestCodexRawPicksTheUsualRecipe(t *testing.T) {
 // TestCrushInputsCoverRecipes: the codex lists every block the crusher takes.
 func TestCrushInputsCoverRecipes(t *testing.T) {
 	listed := map[string]bool{}
-	for _, in := range crushInputs() {
+	for _, in := range codex.CrushInputs() {
 		listed[naming.ItemKey(in)] = true
 	}
 	for k := range sgitem.CrushRecipes {
@@ -325,8 +326,10 @@ func TestCrushInputsCoverRecipes(t *testing.T) {
 func TestCodexHandWork(t *testing.T) {
 	s := testSession(t)
 	lang := i18n.Default
-	src := func(w world.Item) []codexCard { return s.codexSourceCards(lang, item.NewStack(w, 1)) }
-	use := func(w world.Item) []codexCard { return s.codexUseCards(lang, item.NewStack(w, 1)) }
+	src := func(w world.Item) []codex.Card {
+		return codex.SourceCards(s.Session, lang, item.NewStack(w, 1))
+	}
+	use := func(w world.Item) []codex.Card { return codex.UseCards(s.Session, lang, item.NewStack(w, 1)) }
 	if !cardsHave(src(sgitem.Pebble{Kind: sgitem.PebbleStone}), block.Grass{}, "-") || !cardsHave(src(sgitem.Pebble{Kind: sgitem.PebbleStone}), block.Dirt{}, "-") {
 		t.Error("a stick on grass or dirt gives pebbles")
 	}
@@ -357,8 +360,8 @@ func TestCodexHandWork(t *testing.T) {
 		t.Error("a stick gives a pebble kind it never drops")
 	}
 	idx := map[string]bool{}
-	for _, st := range codexIndex(lang) {
-		idx[naming.ItemKey(st.stack.Item())] = true
+	for _, st := range codex.Index(lang) {
+		idx[naming.ItemKey(st.Stack.Item())] = true
 	}
 	if !idx[naming.ItemKey(sgitem.GrassSeeds{})] {
 		t.Error("grass seeds are not in the codex search")

@@ -2,9 +2,10 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/expand"
 	"math"
 	"time"
+
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/wave"
 

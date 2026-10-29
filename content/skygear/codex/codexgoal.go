@@ -1,4 +1,4 @@
-package skygear
+package codex
 
 import (
 	"slices"
@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform/instance"
@@ -57,7 +58,7 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 				step.ins = nil
 				break
 			}
-			step.ins = append(step.ins, codexLink{stack: item.NewStack(st.Item(), 1), count: req.Count})
+			step.ins = append(step.ins, codexLink{Stack: item.NewStack(st.Item(), 1), Count: req.Count})
 			ins += req.Count
 		}
 		if len(step.ins) == 0 || codexReverses(step, k) {
@@ -73,14 +74,14 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 	for _, r := range machinerecipe.Alloys {
 		if naming.ItemKey(r.Out) == k {
 			return recipeStep{out: max(1, r.OutCount), ins: []codexLink{
-				{stack: item.NewStack(r.A, 1), count: r.CountA}, {stack: item.NewStack(r.B, 1), count: r.CountB}}}, true
+				{Stack: item.NewStack(r.A, 1), Count: r.CountA}, {Stack: item.NewStack(r.B, 1), Count: r.CountB}}}, true
 		}
 	}
 	for i := range machinerecipe.Labs {
 		if naming.ItemKey(machinerecipe.Labs[i].Out) == k {
 			step := recipeStep{out: max(1, machinerecipe.Labs[i].OutCount)}
 			for _, in := range machinerecipe.Labs[i].In {
-				step.ins = append(step.ins, codexLink{stack: item.NewStack(in.Item, 1), count: in.Count})
+				step.ins = append(step.ins, codexLink{Stack: item.NewStack(in.Item, 1), Count: in.Count})
 			}
 			return step, true
 		}
@@ -88,10 +89,10 @@ func codexRecipeOf(it item.Stack) (recipeStep, bool) {
 	return recipeStep{}, false
 }
 
-// codexRaw is what n of an item takes in raw materials: the items that no
+// Raw is what n of an item takes in raw materials: the items that no
 // recipe makes, after following the recipes down. An item made by a recipe
 // that loops back to it counts as raw.
-func codexRaw(it item.Stack, n int) []codexLink {
+func Raw(it item.Stack, n int) []codexLink {
 	var order []string
 	total := map[string]*codexLink{}
 	var walk func(it item.Stack, n, depth int, path map[string]bool)
@@ -100,16 +101,16 @@ func codexRaw(it item.Stack, n int) []codexLink {
 		step, ok := codexRecipeOf(it)
 		if !ok || depth >= goalChainDepth || path[k] {
 			if total[k] == nil {
-				total[k] = &codexLink{stack: it}
+				total[k] = &codexLink{Stack: it}
 				order = append(order, k)
 			}
-			total[k].count += n
+			total[k].Count += n
 			return
 		}
 		path[k] = true
 		crafts := (n + step.out - 1) / step.out
 		for _, in := range step.ins {
-			walk(in.stack, crafts*max(1, in.count), depth+1, path)
+			walk(in.Stack, crafts*max(1, in.Count), depth+1, path)
 		}
 		delete(path, k)
 	}
@@ -121,35 +122,35 @@ func codexRaw(it item.Stack, n int) []codexLink {
 	return out
 }
 
-// codexItemByKey finds the indexed item with the key.
-func codexItemByKey(key string) (item.Stack, bool) {
-	codexIndex(i18n.Default)
+// ItemByKey finds the indexed item with the key.
+func ItemByKey(key string) (item.Stack, bool) {
+	Index(i18n.Default)
 	st, ok := codexIndexByKey[key]
 	return st, ok
 }
 
-// favourites are p's favourite items, oldest first.
-func (s *session) favourites(p *player.Player) []item.Stack {
+// Favourites are p's favourite items, oldest first.
+func Favourites(s *core.Session, p *player.Player) []item.Stack {
 	var out []item.Stack
-	for _, k := range s.state.Favourites[instance.AccountID(p)] {
-		if st, ok := codexItemByKey(k); ok {
+	for _, k := range codexStateOf(s).Favourites[instance.AccountID(p)] {
+		if st, ok := ItemByKey(k); ok {
 			out = append(out, st)
 		}
 	}
 	return out
 }
 
-func (s *session) isFavourite(p *player.Player, it item.Stack) bool {
-	return slices.Contains(s.state.Favourites[instance.AccountID(p)], naming.ItemKey(it.Item()))
+func IsFavourite(s *core.Session, p *player.Player, it item.Stack) bool {
+	return slices.Contains(codexStateOf(s).Favourites[instance.AccountID(p)], naming.ItemKey(it.Item()))
 }
 
-// toggleFavourite stars it for p, or takes the star off.
-func (s *session) toggleFavourite(p *player.Player, it item.Stack) {
+// ToggleFavourite stars it for p, or takes the star off.
+func ToggleFavourite(s *core.Session, p *player.Player, it item.Stack) {
 	acc, k := instance.AccountID(p), naming.ItemKey(it.Item())
-	if s.state.Favourites == nil {
-		s.state.Favourites = map[string][]string{}
+	if codexStateOf(s).Favourites == nil {
+		codexStateOf(s).Favourites = map[string][]string{}
 	}
-	list := s.state.Favourites[acc]
+	list := codexStateOf(s).Favourites[acc]
 	if i := slices.Index(list, k); i >= 0 {
 		list = slices.Delete(list, i, i+1)
 	} else {
@@ -159,19 +160,19 @@ func (s *session) toggleFavourite(p *player.Player, it item.Stack) {
 		}
 	}
 	if len(list) == 0 {
-		delete(s.state.Favourites, acc)
+		delete(codexStateOf(s).Favourites, acc)
 		return
 	}
-	s.state.Favourites[acc] = list
+	codexStateOf(s).Favourites[acc] = list
 }
 
 // favouriteSlots are p's favourites as slots that open their pages.
-func (s *session) favouriteSlots(p *player.Player, lang string) []ui.ItemSlot {
+func favouriteSlots(s *core.Session, p *player.Player, lang string) []ui.ItemSlot {
 	var links []codexLink
-	for _, it := range s.favourites(p) {
-		links = append(links, codexLink{stack: it})
+	for _, it := range Favourites(s, p) {
+		links = append(links, codexLink{Stack: it})
 	}
-	return s.codexLinkSlots(lang, links)
+	return codexLinkSlots(s, lang, links)
 }
 
 // codexReverses reports whether a recipe takes an ingredient that a crafting
@@ -179,7 +180,7 @@ func (s *session) favouriteSlots(p *player.Player, lang string) []ui.ItemSlot {
 // from a block of diamonds, which is made of diamonds).
 func codexReverses(step recipeStep, key string) bool {
 	for _, in := range step.ins {
-		ik := naming.ItemKey(in.stack.Item())
+		ik := naming.ItemKey(in.Stack.Item())
 		for _, cr := range machinerecipe.Crafters() {
 			if cr.OutKey != ik || len(cr.Reqs) != 1 {
 				continue

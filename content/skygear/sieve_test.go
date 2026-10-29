@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"testing"
 	"time"
 
@@ -303,7 +304,7 @@ func TestSieveShowsItsMesh(t *testing.T) {
 // TestSieveTakesCrushedBlocks: every crushed block, soul sand and red sand is
 // sifted, shows on the mesh, and its pebbles make their stone.
 func TestSieveTakesCrushedBlocks(t *testing.T) {
-	for _, in := range codexSieveInputs() {
+	for _, in := range codex.SieveInputs() {
 		if len(sievetable.Tables["string"][naming.ItemKey(in)]) == 0 {
 			t.Errorf("%s is not sifted on the string mesh", naming.ItemKey(in))
 		}

@@ -16,9 +16,6 @@ const stateVersion = 1
 // world: it may only be read or changed from that world's transactions.
 type State struct {
 	Version int `json:"version"`
-	// Favourites are each account's favourite item keys in the codex,
-	// oldest first (codexgoal.go).
-	Favourites map[string][]string `json:"favourites,omitempty"`
 }
 
 func newState() *State {

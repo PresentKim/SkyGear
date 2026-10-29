@@ -2,8 +2,9 @@ package skygear
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/content/skygear/expand"
 	"strings"
+
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
 

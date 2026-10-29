@@ -1,15 +1,7 @@
-package skygear
+package codex
 
 import (
 	"fmt"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/decor"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
-
-	"github.com/presentkim/skygear/content/skygear/core"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
@@ -18,8 +10,12 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
 // Modes of an item's page, like a recipe viewer's R and U.
@@ -30,137 +26,137 @@ const (
 
 // showCodexBoard shows the rows of top, a blank row and under them all the
 // cards; the window scrolls when they do not fit.
-func (s *session) showCodexBoard(p *player.Player, title string, top [][]ui.BoardCell, cards []codexCard, chrome []ui.Option) {
+func showCodexBoard(s *core.Session, p *player.Player, title string, top [][]ui.BoardCell, cards []Card, chrome []ui.Option) {
 	var rows [][]ui.BoardCell
 	if len(top) > 0 {
-		rows = append(append(rows, top...), blankRow())
+		rows = append(append(rows, top...), BlankRow())
 	}
-	rows = append(rows, s.codexBoard(i18n.Of(p), cards)...)
+	rows = append(rows, Board(s, i18n.Of(p), cards)...)
 	ui.ItemBoard(p, title, "", rows, chrome...)
 }
 
-// showCodexItem shows how an item is made.
-func (s *session) showCodexItem(p *player.Player, it item.Stack) {
-	s.showCodexItemAt(p, it, codexSourcesMode)
+// ShowItem shows how an item is made.
+func ShowItem(s *core.Session, p *player.Player, it item.Stack) {
+	showCodexItemAt(s, p, it, codexSourcesMode)
 }
 
 // showCodexItemAt shows an item's page: a row with the item, its name and
 // the buttons that switch between how it is made and what it is for (and
 // make it a goal), then the recipes of that mode as cards.
-func (s *session) showCodexItemAt(p *player.Player, it item.Stack, mode int) {
+func showCodexItemAt(s *core.Session, p *player.Player, it item.Stack, mode int) {
 	lang := i18n.Of(p)
 	it = item.NewStack(it.Item(), 1)
-	s.codexSeen(p, it)
-	s.codexAt(p, func(p *player.Player) { s.showCodexItemAt(p, it, mode) })
-	head := blankRow()
+	codexSeen(s, p, it)
+	codexAt(s, p, func(p *player.Player) { showCodexItemAt(s, p, it, mode) })
+	head := BlankRow()
 	head[0] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(it), Tip: decor.TipName(lang, it), Selected: true})
 	head[1] = ui.TextCell("§l" + naming.UIItemName(lang, it))
 	modeSlot := func(m int, icon item.Stack, key string) ui.BoardCell {
 		sl := ui.ItemSlot{Icon: formicon.Of(icon), Tip: "§f" + i18n.T(lang, key), Selected: m == mode}
 		if m != mode {
-			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexItemAt(p, it, m) }
+			sl.Run = func(p *player.Player, _ *world.Tx) { showCodexItemAt(s, p, it, m) }
 		}
 		return ui.SlotCell(sl)
 	}
 	head[8] = modeSlot(codexSourcesMode, item.NewStack(block.CraftingTable{}, 1), "codex.item.sources")
 	head[9] = modeSlot(codexUsesMode, item.NewStack(block.Chest{}, 1), "codex.item.uses")
 	favMark, favKey := "", "codex.fav.add"
-	if s.isFavourite(p, it) {
+	if IsFavourite(s, p, it) {
 		favMark, favKey = "§e★", "codex.fav.remove"
 	}
 	head[10] = ui.SlotCell(ui.ItemSlot{Icon: formicon.Of(item.NewStack(item.NetherStar{}, 1)), Tip: "§f" + i18n.T(lang, favKey), Count: favMark,
 		Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.World {
-				s.toggleFavourite(p, it)
-				if s.isFavourite(p, it) {
-					progress.Advance(s.Session, tx, advancement.Favourite)
+				ToggleFavourite(s, p, it)
+				if IsFavourite(s, p, it) {
+					progress.Advance(s, tx, advancement.Favourite)
 				}
 			}
-			s.showCodexItemAt(p, it, mode)
+			showCodexItemAt(s, p, it, mode)
 		}})
-	var cards []codexCard
+	var cards []Card
 	if mode == codexUsesMode {
-		cards = s.codexUseCards(lang, it)
+		cards = UseCards(s, lang, it)
 	} else {
-		cards = s.codexSourceCards(lang, it)
-		if raw, ok := s.codexRawCard(p, lang, it); ok {
+		cards = SourceCards(s, lang, it)
+		if raw, ok := codexRawCard(s, p, lang, it); ok {
 			cards = append(cards, raw)
 		}
 	}
 	if len(cards) == 0 {
-		row := blankRow()
+		row := BlankRow()
 		row[0] = ui.TextCell("§7" + i18n.T(lang, "codex.item.nothing"))
-		cards = []codexCard{{name: i18n.T(lang, "codex.item."+map[int]string{codexSourcesMode: "sources", codexUsesMode: "uses"}[mode]), rows: [][]ui.BoardCell{row}}}
+		cards = []Card{{name: i18n.T(lang, "codex.item."+map[int]string{codexSourcesMode: "sources", codexUsesMode: "uses"}[mode]), Rows: [][]ui.BoardCell{row}}}
 	}
-	chrome := append(s.codexTabs(p, codexNoTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), naming.UIItemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
+	chrome := append(codexTabs(s, p, codexNoTab), codexBack(s, p))
+	showCodexBoard(s, p, ui.SubTitle(i18n.T(lang, "codex.title"), naming.UIItemName(lang, it)), [][]ui.BoardCell{head}, cards, chrome)
 }
 
 // codexRawCard is what an item takes in raw materials, down the recipe
 // chain: each with how many it takes on the slot and how many p holds in the
 // tooltip.
-func (s *session) codexRawCard(p *player.Player, lang string, it item.Stack) (codexCard, bool) {
+func codexRawCard(s *core.Session, p *player.Player, lang string, it item.Stack) (Card, bool) {
 	if _, ok := codexRecipeOf(it); !ok {
-		return codexCard{}, false
+		return Card{}, false
 	}
 	var rows [][]ui.BoardCell
-	for i, l := range codexRaw(it, 1) {
+	for i, l := range Raw(it, 1) {
 		if i%ui.BoardColumns == 0 {
-			rows = append(rows, blankRow())
+			rows = append(rows, BlankRow())
 		}
-		have := core.CountPlain(p.Inventory(), l.stack.Item())
+		have := core.CountPlain(p.Inventory(), l.Stack.Item())
 		colour := "§c"
-		if have >= max(1, l.count) {
+		if have >= max(1, l.Count) {
 			colour = "§a"
 		}
-		rows[len(rows)-1][i%ui.BoardColumns] = s.codexCell(lang, l.stack, countLabel(l.count), colour+fmt.Sprintf(i18n.T(lang, "codex.card.have"), have))
+		rows[len(rows)-1][i%ui.BoardColumns] = codexCell(s, lang, l.Stack, countLabel(l.Count), colour+fmt.Sprintf(i18n.T(lang, "codex.card.have"), have))
 	}
-	return codexCard{name: i18n.T(lang, "codex.card.raw"), rows: rows}, len(rows) > 0
+	return Card{name: i18n.T(lang, "codex.card.raw"), Rows: rows}, len(rows) > 0
 }
 
 // showCodexSieve is the sieve tab: the first block's drops.
-func (s *session) showCodexSieve(p *player.Player) { s.showCodexSieveAt(p, 0) }
+func showCodexSieve(s *core.Session, p *player.Player) { showCodexSieveAt(s, p, 0) }
 
 // showCodexSieveAt shows a row of the blocks a sieve takes, the chosen one
 // lit, and under it the drops of every mesh for that block.
-func (s *session) showCodexSieveAt(p *player.Player, which int) {
+func showCodexSieveAt(s *core.Session, p *player.Player, which int) {
 	lang := i18n.Of(p)
-	ins := codexSieveInputs()
+	ins := SieveInputs()
 	which = max(0, min(which, len(ins)-1))
-	s.codexAt(p, func(p *player.Player) { s.showCodexSieveAt(p, which) })
+	codexAt(s, p, func(p *player.Player) { showCodexSieveAt(s, p, which) })
 	var top []ui.BoardCell
 	for i, in := range ins {
 		st := item.NewStack(in, 1)
 		sl := ui.ItemSlot{Icon: formicon.Of(st), Tip: decor.TipName(lang, st), Selected: i == which}
 		if i != which {
-			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexSieveAt(p, i) }
+			sl.Run = func(p *player.Player, _ *world.Tx) { showCodexSieveAt(s, p, i) }
 		}
 		top = append(top, ui.SlotCell(sl))
 	}
-	cards := s.codexSieveCards(lang, ins[which])
+	cards := SieveCards(s, lang, ins[which])
 	for i := range cards {
 		cards[i].name = ""
 	}
-	chrome := append(s.codexTabs(p, codexSieveTab), s.codexBack(p))
+	chrome := append(codexTabs(s, p, codexSieveTab), codexBack(s, p))
 	in := item.NewStack(ins[which], 1)
 	ui.SieveBoard(p, codexPickTitle(lang, "codex.sieve", in), [][]ui.BoardCell{centredRow(top)},
-		s.sieveGroups(lang, in, cards), chrome...)
+		sieveGroups(s, lang, in, cards), chrome...)
 }
 
 // sieveGroups are the sieve cards of in as recipes (ui.SieveBoard), each
 // sieve's under it: a card's first slot is its mesh, the other slots are the
 // drops.
-func (s *session) sieveGroups(lang string, in item.Stack, cards []codexCard) []ui.SieveGroup {
+func sieveGroups(s *core.Session, lang string, in item.Stack, cards []Card) []ui.SieveGroup {
 	var groups []ui.SieveGroup
 	lastHead := ""
 	for _, c := range cards {
-		if k := naming.ItemKey(c.head.Item()); len(groups) == 0 || k != lastHead {
+		if k := naming.ItemKey(c.Head.Item()); len(groups) == 0 || k != lastHead {
 			lastHead = k
-			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.head), Tip: decor.TipName(lang, c.head)}, Name: naming.UIItemName(lang, c.head)})
+			groups = append(groups, ui.SieveGroup{Head: ui.ItemSlot{Icon: formicon.Of(c.Head), Tip: decor.TipName(lang, c.Head)}, Name: naming.UIItemName(lang, c.Head)})
 		}
 		r := ui.SieveRecipe{Input: ui.ItemSlot{Icon: formicon.Of(in), Tip: decor.TipName(lang, in)}}
 		first := true
-		for _, row := range c.rows {
+		for _, row := range c.Rows {
 			for _, cell := range row {
 				sl, ok := cell.SlotOf()
 				switch {
@@ -185,51 +181,51 @@ func codexPickTitle(lang, tab string, pick item.Stack) string {
 }
 
 // showCodexProcess is the process tab: the first machine's recipes.
-func (s *session) showCodexProcess(p *player.Player) { s.showCodexProcessAt(p, 0) }
+func showCodexProcess(s *core.Session, p *player.Player) { showCodexProcessAt(s, p, 0) }
 
 // showCodexProcessAt shows a row of the machines that process items, the
 // chosen one lit, and under it that machine's recipes.
-func (s *session) showCodexProcessAt(p *player.Player, which int) {
+func showCodexProcessAt(s *core.Session, p *player.Player, which int) {
 	lang := i18n.Of(p)
-	procs := codexProcesses()
+	procs := Processes()
 	which = max(0, min(which, len(procs)-1))
-	s.codexAt(p, func(p *player.Player) { s.showCodexProcessAt(p, which) })
+	codexAt(s, p, func(p *player.Player) { showCodexProcessAt(s, p, which) })
 	var top []ui.BoardCell
 	for i, pr := range procs {
-		sl := ui.ItemSlot{Icon: formicon.Of(pr.head), Tip: decor.TipName(lang, pr.head), Selected: i == which}
+		sl := ui.ItemSlot{Icon: formicon.Of(pr.Head), Tip: decor.TipName(lang, pr.Head), Selected: i == which}
 		if i != which {
-			sl.Run = func(p *player.Player, _ *world.Tx) { s.showCodexProcessAt(p, i) }
+			sl.Run = func(p *player.Player, _ *world.Tx) { showCodexProcessAt(s, p, i) }
 		}
 		top = append(top, ui.SlotCell(sl))
 	}
-	cards := procs[which].cards(s, lang)
+	cards := procs[which].Cards(s, lang)
 	for i := range cards {
 		// the machine is the one chosen above: no header
 		cards[i].name = ""
 	}
-	chrome := append(s.codexTabs(p, codexProcessTab), s.codexBack(p))
-	s.showCodexBoard(p, codexPickTitle(lang, "codex.process", procs[which].head), [][]ui.BoardCell{centredRow(top)},
+	chrome := append(codexTabs(s, p, codexProcessTab), codexBack(s, p))
+	showCodexBoard(s, p, codexPickTitle(lang, "codex.process", procs[which].Head), [][]ui.BoardCell{centredRow(top)},
 		cards, chrome)
 }
 
 // showCodexMobs is the mobs tab: the simulator, the magic sieve's themes and
 // the gate's levels.
-func (s *session) showCodexMobs(p *player.Player) {
+func showCodexMobs(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
-	s.codexAt(p, func(p *player.Player) { s.showCodexMobs(p) })
-	chrome := append(s.codexTabs(p, codexMobsTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.mobs")), nil,
-		s.codexMobCards(lang), chrome)
+	codexAt(s, p, func(p *player.Player) { showCodexMobs(s, p) })
+	chrome := append(codexTabs(s, p, codexMobsTab), codexBack(s, p))
+	showCodexBoard(s, p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.mobs")), nil,
+		MobCards(s, lang), chrome)
 }
 
 // showCodexPlants is the plants tab: each seed and what it yields.
-func (s *session) showCodexPlants(p *player.Player) {
+func showCodexPlants(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
-	s.codexAt(p, func(p *player.Player) { s.showCodexPlants(p) })
-	var cards []codexCard
+	codexAt(s, p, func(p *player.Player) { showCodexPlants(s, p) })
+	var cards []Card
 	for _, pk := range farm.PlantKinds {
-		cards = append(cards, s.plantCard(lang, pk))
+		cards = append(cards, plantCard(s, lang, pk))
 	}
-	chrome := append(s.codexTabs(p, codexPlantsTab), s.codexBack(p))
-	s.showCodexBoard(p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.plants")), nil, cards, chrome)
+	chrome := append(codexTabs(s, p, codexPlantsTab), codexBack(s, p))
+	showCodexBoard(s, p, ui.SubTitle(i18n.T(lang, "codex.title"), i18n.T(lang, "codex.plants")), nil, cards, chrome)
 }

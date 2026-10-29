@@ -1,9 +1,10 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/expand"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 

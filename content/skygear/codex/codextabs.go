@@ -1,16 +1,16 @@
-package skygear
+package codex
 
 import (
 	"slices"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -19,21 +19,21 @@ import (
 // gear, mobs and waves, plants) that stays visible on every page, also the
 // deeper ones, so the player moves between them in one press.
 
-type codexTab int
+type Tab int
 
 const (
-	codexNoTab codexTab = iota - 1
+	codexNoTab Tab = iota - 1
 	codexSearchTab
 	codexSieveTab
 	codexProcessTab
 	codexMobsTab
 	codexPlantsTab
-	codexTabCount
+	CodexTabCount
 )
 
-var codexTabKeys = [codexTabCount]string{"codex.tab.search", "codex.tab.sieve", "codex.tab.process", "codex.tab.mobs", "codex.tab.plants"}
+var TabKeys = [CodexTabCount]string{"codex.tab.search", "codex.tab.sieve", "codex.tab.process", "codex.tab.mobs", "codex.tab.plants"}
 
-func codexTabIcon(t codexTab) string {
+func codexTabIcon(t Tab) string {
 	switch t {
 	case codexSearchTab:
 		return formicon.Of(item.NewStack(item.Compass{}, 1))
@@ -48,31 +48,31 @@ func codexTabIcon(t codexTab) string {
 }
 
 // codexTabs is the tab strip with cur selected (codexNoTab: none).
-func (s *session) codexTabs(p *player.Player, cur codexTab) []ui.Option {
+func codexTabs(s *core.Session, p *player.Player, cur Tab) []ui.Option {
 	lang := i18n.Of(p)
 	var out []ui.Option
-	for t := codexTab(0); t < codexTabCount; t++ {
+	for t := Tab(0); t < CodexTabCount; t++ {
 		t := t
-		o := ui.Tab(i18n.T(lang, codexTabKeys[t]), codexTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { s.showCodexTab(p, t) })
+		o := ui.Tab(i18n.T(lang, TabKeys[t]), codexTabIcon(t), t == cur, func(p *player.Player, _ *world.Tx) { showCodexTab(s, p, t) })
 		out = append(out, s.Opt(o.Label, o.Icon, o.Run))
 	}
 	return out
 }
 
 // showCodexTab shows the first page of a tab.
-func (s *session) showCodexTab(p *player.Player, t codexTab) {
-	s.codexStart(p)
+func showCodexTab(s *core.Session, p *player.Player, t Tab) {
+	Start(s, p)
 	switch t {
 	case codexSieveTab:
-		s.showCodexSieve(p)
+		showCodexSieve(s, p)
 	case codexProcessTab:
-		s.showCodexProcess(p)
+		showCodexProcess(s, p)
 	case codexMobsTab:
-		s.showCodexMobs(p)
+		showCodexMobs(s, p)
 	case codexPlantsTab:
-		s.showCodexPlants(p)
+		showCodexPlants(s, p)
 	default:
-		s.showCodexSearch(p, "")
+		showCodexSearch(s, p, "")
 	}
 }
 
@@ -89,26 +89,23 @@ type codexNav struct {
 // codexHistMax is how many pages back a player can go.
 const codexHistMax = 32
 
-func (s *session) codexNavOf(p *player.Player) *codexNav {
-	if s.codexNav == nil {
-		s.codexNav = map[*world.EntityHandle]*codexNav{}
-	}
-	n := s.codexNav[p.H()]
+func codexNavOf(s *core.Session, p *player.Player) *codexNav {
+	n := codexNavs.Of(s)[p.H()]
 	if n == nil {
 		n = &codexNav{}
-		s.codexNav[p.H()] = n
+		codexNavs.Of(s)[p.H()] = n
 	}
 	return n
 }
 
 // codexAt records the page p is shown now.
-func (s *session) codexAt(p *player.Player, show func(p *player.Player)) {
-	s.codexNavOf(p).cur = show
+func codexAt(s *core.Session, p *player.Player, show func(p *player.Player)) {
+	codexNavOf(s, p).cur = show
 }
 
 // codexGo shows next and keeps the page p is on to go back to.
-func (s *session) codexGo(p *player.Player, next func(p *player.Player)) {
-	n := s.codexNavOf(p)
+func codexGo(s *core.Session, p *player.Player, next func(p *player.Player)) {
+	n := codexNavOf(s, p)
 	if n.cur != nil {
 		n.hist = append(n.hist, n.cur)
 		if len(n.hist) > codexHistMax {
@@ -118,31 +115,31 @@ func (s *session) codexGo(p *player.Player, next func(p *player.Player)) {
 	next(p)
 }
 
-// codexStart forgets where p came from: a tab or /도감 starts over.
-func (s *session) codexStart(p *player.Player) {
-	n := s.codexNavOf(p)
+// Start forgets where p came from: a tab or /도감 starts over.
+func Start(s *core.Session, p *player.Player) {
+	n := codexNavOf(s, p)
 	n.cur, n.hist = nil, nil
 }
 
-// codexFrom shows an item's page with back as the page to go back to (the
+// From shows an item's page with back as the page to go back to (the
 // research screen).
-func (s *session) codexFrom(p *player.Player, back func(p *player.Player), it item.Stack) {
-	n := s.codexNavOf(p)
+func From(s *core.Session, p *player.Player, back func(p *player.Player), it item.Stack) {
+	n := codexNavOf(s, p)
 	n.cur, n.hist = nil, []func(*player.Player){back}
-	s.showCodexItem(p, it)
+	ShowItem(s, p, it)
 }
 
 // codexBack is the back button of a codex page: to the page p came from, or
 // to the game's menu when p came from nowhere.
-func (s *session) codexBack(p *player.Player) ui.Option {
-	n := s.codexNavOf(p)
+func codexBack(s *core.Session, p *player.Player) ui.Option {
+	n := codexNavOf(s, p)
 	if len(n.hist) == 0 {
 		return s.BackOption(i18n.Of(p))
 	}
 	b := ui.Back(i18n.T(i18n.Of(p), "codex.back"), func(p *player.Player, _ *world.Tx) {
-		n := s.codexNavOf(p)
+		n := codexNavOf(s, p)
 		if len(n.hist) == 0 {
-			s.showMenu(p)
+			core.ShowMenu(s, p)
 			return
 		}
 		prev := n.hist[len(n.hist)-1]
@@ -156,15 +153,12 @@ func (s *session) codexBack(p *player.Player) ui.Option {
 const codexRecentMax = 11
 
 // codexSeen records that p looked at an item's page.
-func (s *session) codexSeen(p *player.Player, st item.Stack) {
-	if s.codexRecent == nil {
-		s.codexRecent = map[*world.EntityHandle][]item.Stack{}
-	}
+func codexSeen(s *core.Session, p *player.Player, st item.Stack) {
 	k := naming.ItemKey(st.Item())
-	list := slices.DeleteFunc(slices.Clone(s.codexRecent[p.H()]), func(o item.Stack) bool { return naming.ItemKey(o.Item()) == k })
+	list := slices.DeleteFunc(slices.Clone(codexRecent.Of(s)[p.H()]), func(o item.Stack) bool { return naming.ItemKey(o.Item()) == k })
 	list = append([]item.Stack{st}, list...)
 	if len(list) > codexRecentMax {
 		list = list[:codexRecentMax]
 	}
-	s.codexRecent[p.H()] = list
+	codexRecent.Of(s)[p.H()] = list
 }

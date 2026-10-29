@@ -2,6 +2,8 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/codex"
+
 	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -101,7 +103,7 @@ func (s *session) showMenu(p *player.Player) {
 // last, then the help button (the control bar's "?") and the lobby exit.
 func (s *session) mainMenu(p *player.Player) []ui.Option {
 	return []ui.Option{
-		s.Opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { s.showCodex(p) }),
+		s.Opt("§e"+i18n.T(i18n.Of(p), "codex.title"), formicon.Codex, func(p *player.Player, _ *world.Tx) { codex.Show(s.Session, p) }),
 		s.Opt(i18n.T(i18n.Of(p), "menu.advancements"), formicon.Advances, func(p *player.Player, _ *world.Tx) { s.showAdvancements(p) }),
 		s.Opt(i18n.T(i18n.Of(p), "island.manage"), formicon.Manage, func(p *player.Player, _ *world.Tx) { s.showIslandManage(p) }),
 		s.Opt(fmt.Sprintf(i18n.T(i18n.Of(p), "menu.lost"), len(island.StateOf(s.Session).Lost)), formicon.Lost, func(p *player.Player, _ *world.Tx) { s.showLost(p) }),

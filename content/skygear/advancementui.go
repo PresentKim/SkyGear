@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
@@ -177,7 +178,7 @@ func (s *session) questPanel(p *player.Player, tab advancement.Chapter, a *advan
 	if it, ok := advancement.Stack(a); ok {
 		pn.Rows = []ui.SlotRow{{Slots: []ui.ItemSlot{{
 			Icon: formicon.Of(it), Tip: decor.TipName(lang, it),
-			Run: func(p *player.Player, _ *world.Tx) { s.codexFrom(p, again, it) },
+			Run: func(p *player.Player, _ *world.Tx) { codex.From(s.Session, p, again, it) },
 		}}}}
 	}
 	if !progress.Advanced(s.Session, a.ID) {

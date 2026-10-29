@@ -1,22 +1,10 @@
-package skygear
+package codex
 
 import (
 	"fmt"
 	"slices"
 	"strings"
 	"sync"
-
-	"github.com/presentkim/skygear/content/skygear/wave"
-
-	"github.com/presentkim/skygear/content/skygear/farm"
-
-	"github.com/presentkim/skygear/content/skygear/textfmt"
-
-	"github.com/presentkim/skygear/content/skygear/machine"
-
-	"github.com/presentkim/skygear/content/skygear/decor"
-
-	"github.com/presentkim/skygear/content/skygear/progress"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
@@ -26,12 +14,19 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/textsearch"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
+	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // The codex as a recipe viewer: an index of every
@@ -41,7 +36,7 @@ import (
 
 // codexEntry is one item of the index.
 type codexEntry struct {
-	stack item.Stack
+	Stack item.Stack
 	name  string
 }
 
@@ -53,15 +48,15 @@ var (
 	codexIndexByLang = map[string][]codexEntry{}
 )
 
-// codexIndex lists the items the codex knows something about (a source or a
+// Index lists the items the codex knows something about (a source or a
 // use) that play a part in Sky Gear (codexRelevant), by their name in
 // lang. The items are found once, from the creative inventory: every item
 // and block of the game is registered there, and so are the vanilla ones the
 // game's tables use; each language's list is sorted once.
-func codexIndex(lang string) []codexEntry {
+func Index(lang string) []codexEntry {
 	codexIndexOnce.Do(func() {
-		var s *session // the lookups read static tables, not session state
-		relevant := codexRelevant()
+		var s *core.Session // the lookups read static tables, not session state
+		relevant := Relevant()
 		seen := map[string]bool{}
 		for _, c := range creative.Items() {
 			st := c.Stack
@@ -74,8 +69,8 @@ func codexIndex(lang string) []codexEntry {
 			}
 			seen[k] = true
 			st = st.Grow(1 - st.Count())
-			if len(s.codexSources(i18n.Default, st)) == 0 && len(s.codexUses(i18n.Default, st)) == 0 &&
-				len(s.codexWorkFor(i18n.Default, st, true)) == 0 && len(s.codexWorkFor(i18n.Default, st, false)) == 0 {
+			if len(Sources(s, i18n.Default, st)) == 0 && len(Uses(s, i18n.Default, st)) == 0 &&
+				len(codexWorkFor(s, i18n.Default, st, true)) == 0 && len(codexWorkFor(s, i18n.Default, st, false)) == 0 {
 				continue
 			}
 			codexIndexStacks = append(codexIndexStacks, st)
@@ -89,7 +84,7 @@ func codexIndex(lang string) []codexEntry {
 	}
 	list := make([]codexEntry, len(codexIndexStacks))
 	for i, st := range codexIndexStacks {
-		list[i] = codexEntry{stack: st, name: naming.ItemName(lang, st)}
+		list[i] = codexEntry{Stack: st, name: naming.ItemName(lang, st)}
 	}
 	slices.SortStableFunc(list, func(a, b codexEntry) int {
 		return strings.Compare(textfmt.PlainName(a.name), textfmt.PlainName(b.name))
@@ -98,11 +93,11 @@ func codexIndex(lang string) []codexEntry {
 	return list
 }
 
-// codexRelevant are the items (naming.ItemKey) a player meets in Dragon
+// Relevant are the items (naming.ItemKey) a player meets in Dragon
 // Factory: the game's own items, what its tables take and give, the results
 // of the recipes research opens, and everything those are made of down to
 // the raw materials. Vanilla items the game never asks for are left out.
-func codexRelevant() map[string]bool {
+func Relevant() map[string]bool {
 	open := map[string]bool{}
 	for _, n := range progress.BaseUnlocks {
 		open[naming.UnlockName(n)] = true
@@ -142,7 +137,7 @@ func codexRelevant() map[string]bool {
 			add(c.Item)
 		}
 	}
-	for _, in := range codexSieveInputs() {
+	for _, in := range SieveInputs() {
 		add(in)
 		for _, t := range sgitem.MeshTiers {
 			for _, d := range sievetable.Tables[t.Tier][naming.ItemKey(in)] {
@@ -155,7 +150,7 @@ func codexRelevant() map[string]bool {
 			}
 		}
 	}
-	for _, in := range crushInputs() {
+	for _, in := range CrushInputs() {
 		add(in)
 	}
 	for _, m := range farm.BarrelMixes() {
@@ -266,10 +261,10 @@ func codexOneOf(alts []item.Stack, rel map[string]bool) (item.Stack, bool) {
 	return best, true
 }
 
-// codexFind returns the entries whose name matches query.
-func codexFind(lang, query string) []codexEntry {
+// Find returns the entries whose name matches query.
+func Find(lang, query string) []codexEntry {
 	var out []codexEntry
-	for _, e := range codexIndex(lang) {
+	for _, e := range Index(lang) {
 		if textsearch.Match(query, e.name) {
 			out = append(out, e)
 		}
@@ -282,18 +277,18 @@ func codexFind(lang, query string) []codexEntry {
 // grid, drawn again as the player types; with an empty query the favourites
 // and the items looked at last come first. Pressing one opens its page, and
 // going back from it returns to the last query.
-func (s *session) showCodexSearch(p *player.Player, query string) {
+func showCodexSearch(s *core.Session, p *player.Player, query string) {
 	lang := i18n.Of(p)
 	find := func(p *player.Player, query string) ui.SearchResult {
 		query = strings.TrimSpace(query)
-		s.codexAt(p, func(p *player.Player) { s.showCodexSearch(p, query) })
-		found := codexFind(lang, query)
+		codexAt(s, p, func(p *player.Player) { showCodexSearch(s, p, query) })
+		found := Find(lang, query)
 		var slots []ui.ItemSlot
 		for _, e := range found {
 			slots = append(slots, ui.ItemSlot{
-				Icon: formicon.Of(e.stack), Tip: decor.TipName(lang, e.stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
+				Icon: formicon.Of(e.Stack), Tip: decor.TipName(lang, e.Stack) + "\n§7" + i18n.T(lang, "codex.search.tip"),
 				Run: func(p *player.Player, _ *world.Tx) {
-					s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, e.stack) })
+					codexGo(s, p, func(p *player.Player) { ShowItem(s, p, e.Stack) })
 				},
 			})
 		}
@@ -301,44 +296,44 @@ func (s *session) showCodexSearch(p *player.Player, query string) {
 		if query != "" {
 			r.Info = fmt.Sprintf(i18n.T(lang, "codex.search.found"), query, len(found))
 		} else {
-			if favs := s.favouriteSlots(p, lang); len(favs) > 0 {
+			if favs := favouriteSlots(s, p, lang); len(favs) > 0 {
 				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.favourites"), Slots: favs})
 			}
-			if recent := s.codexRecent[p.H()]; len(recent) > 0 {
+			if recent := codexRecent.Of(s)[p.H()]; len(recent) > 0 {
 				var links []codexLink
 				for _, st := range recent {
-					links = append(links, codexLink{stack: st})
+					links = append(links, codexLink{Stack: st})
 				}
-				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: s.codexLinkSlots(lang, links)})
+				r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.recent"), Slots: codexLinkSlots(s, lang, links)})
 			}
 		}
 		r.Sections = append(r.Sections, ui.GridSection{Heading: i18n.T(lang, "codex.search.list"), Slots: slots})
 		return r
 	}
-	actions := append(s.codexTabs(p, codexSearchTab), s.codexBack(p))
+	actions := append(codexTabs(s, p, codexSearchTab), codexBack(s, p))
 	ui.SearchGrid(p, i18n.T(lang, "codex.title"), i18n.T(lang, "codex.search.label"), query, find, actions...)
 }
 
 // codexLink is an item linked from a page with how many of it the recipe
 // uses or makes (0 when it is not a recipe: the item a machine turns it into).
 type codexLink struct {
-	stack item.Stack
-	count int
+	Stack item.Stack
+	Count int
 }
 
 // codexLinkSlots are slots that open the codex page of each linked item. A
 // recipe count shows on the slot like a stack size.
-func (s *session) codexLinkSlots(lang string, links []codexLink) []ui.ItemSlot {
+func codexLinkSlots(s *core.Session, lang string, links []codexLink) []ui.ItemSlot {
 	var slots []ui.ItemSlot
 	for _, l := range links {
-		st := l.stack
+		st := l.Stack
 		count := ""
-		if l.count > 1 {
-			count = "§f" + ui.CountText(l.count)
+		if l.Count > 1 {
+			count = "§f" + ui.CountText(l.Count)
 		}
 		slots = append(slots, ui.ItemSlot{
 			Icon: formicon.Of(st), Count: count, Tip: decor.TipName(lang, st),
-			Run: func(p *player.Player, _ *world.Tx) { s.codexGo(p, func(p *player.Player) { s.showCodexItem(p, st) }) },
+			Run: func(p *player.Player, _ *world.Tx) { codexGo(s, p, func(p *player.Player) { ShowItem(s, p, st) }) },
 		})
 	}
 	return slots

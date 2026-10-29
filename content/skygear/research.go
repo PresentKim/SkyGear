@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/codex"
 	"slices"
 	"strconv"
 	"strings"
@@ -470,12 +471,12 @@ func (s *session) researchNodeWith(p *player.Player, r *progress.Research, redo,
 	// button comes back here; an item the codex does not know cannot be
 	// pressed.
 	toCodex := func(st item.Stack, tip string) ui.ItemSlot {
-		if _, ok := codexItemByKey(naming.ItemKey(st.Item())); !ok {
+		if _, ok := codex.ItemByKey(naming.ItemKey(st.Item())); !ok {
 			return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.none")}
 		}
 		return ui.ItemSlot{Icon: formicon.Of(st), Tip: tip + "\n§8" + i18n.T(i18n.Of(p), "codex.fromResearch.go"), Run: func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.World {
-				s.codexFrom(p, redo, st)
+				codex.From(s.Session, p, redo, st)
 			}
 		}}
 	}
