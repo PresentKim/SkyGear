@@ -128,6 +128,59 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 	})
 }
 
+// TestMonsterDiesInVoid: a monster that falls into the void dies there: it
+// leaves the wave at once, does not come back, and is gone once its death is
+// over. The wave goes on while monsters are still to come out of the gate.
+func TestMonsterDiesInVoid(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	gate := machinePos
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		for x := -8; x <= 8; x++ {
+			for z := -8; z <= 8; z++ {
+				tx.SetBlock(gate.Add(cube.Pos{x, -1, z}), block.Stone{}, nil)
+			}
+		}
+		placeTestMachine(s, gate, KindGate, "")
+		if !s.startWave(tx, gate, p.Position(), 1) {
+			t.Fatal("level 1 did not start")
+		}
+		s.emergeMonsters(tx)
+		mons := waveMonsters(s, tx)
+		if len(mons) != 1 || len(s.wave.pending) == 0 {
+			t.Fatalf("%d monsters out, %d to come", len(mons), len(s.wave.pending))
+		}
+		m := mons[0]
+		m.data.Pos = mgl64.Vec3{m.data.Pos[0], IslandY - monsterVoid - 1, m.data.Pos[2]}
+		m.Tick(tx, 0)
+		if s.wave == nil {
+			t.Fatal("the wave ended with monsters still to come")
+		}
+		if s.wave.owns(m.handle) || m.Health() > 0 {
+			t.Errorf("a monster in the void is still in the wave (health %v)", m.Health())
+		}
+		if m.handle.Closed() {
+			t.Error("the monster was gone before its death")
+		}
+		for range monsterDeathTicks {
+			m.Tick(tx, 0)
+		}
+		if !m.handle.Closed() {
+			t.Error("the monster stayed after its death")
+		}
+		for range len(s.wave.pending) * gatePortalEvery {
+			s.emergeMonsters(tx)
+		}
+		for _, o := range waveMonsters(s, tx) {
+			o.Hurt(tx, 1000, p)
+		}
+		if s.wave != nil {
+			t.Error("the wave goes on with the rest dead")
+		}
+	})
+}
+
 func TestWaveLevelsAreValid(t *testing.T) {
 	for i, def := range waveLevels {
 		if len(def.Groups) == 0 || def.Seconds <= 0 || len(def.Reward) == 0 {
