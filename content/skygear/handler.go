@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"time"
 
@@ -134,7 +135,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		ctx.Cancel()
 		_, off := p.HeldItems()
-		h.s.useCopier(p, tx, pos, face, clickPos, held, off)
+		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
 		return
 	}
 	// Dragonfly places the held item instead of calling Activate when the
@@ -224,7 +225,7 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 		h.useHeldScreen(ctx.Player(), held)
 	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
-		h.s.clearCopier(ctx.Player(), held, off)
+		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/copier"
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -37,22 +38,22 @@ func chestWithBundle(tx *world.Tx, pos cube.Pos, mode itemnet.Mode, extract, ins
 
 // TestCopierCardOnItem: the settings live on the item and survive its NBT.
 func TestCopierCardOnItem(t *testing.T) {
-	c := &configCard{Kind: cardSide, Side: 4, Sides: []*conduitCard{{Mode: int(itemnet.Input), Extract: 5, Insert: 9}}}
-	st := withCard(item.NewStack(sgitem.ConfigCopier{}, 1), c, "ko")
-	back, ok := cardOf(st)
-	if !ok || back.Kind != cardSide || back.Sides[0].Extract != 5 || back.Sides[0].Insert != 9 {
+	c := &copier.ConfigCard{Kind: copier.CardSide, Side: 4, Sides: []*copier.ConduitCard{{Mode: int(itemnet.Input), Extract: 5, Insert: 9}}}
+	st := copier.WithCard(item.NewStack(sgitem.ConfigCopier{}, 1), c, "ko")
+	back, ok := copier.CardOf(st)
+	if !ok || back.Kind != copier.CardSide || back.Sides[0].Extract != 5 || back.Sides[0].Insert != 9 {
 		t.Fatalf("card back: %+v %v", back, ok)
 	}
 	saved := item.WriteNBT(st, true)
-	again, ok := cardOf(item.ReadNBT(saved, nil))
+	again, ok := copier.CardOf(item.ReadNBT(saved, nil))
 	if !ok || again.Sides[0].Mode != int(itemnet.Input) {
 		t.Fatalf("card after NBT: %+v %v", again, ok)
 	}
 	if len(st.Lore()) == 0 {
 		t.Fatal("the copier does not say what it holds")
 	}
-	empty := withCard(st, nil, "ko")
-	if _, ok := cardOf(empty); ok {
+	empty := copier.WithCard(st, nil, "ko")
+	if _, ok := copier.CardOf(empty); ok {
 		t.Fatal("an emptied copier still holds settings")
 	}
 }
@@ -66,16 +67,16 @@ func TestCopierConduitSide(t *testing.T) {
 		a := chestWithBundle(tx, machinePos, itemnet.Input, 5, 9)
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		// a click on the bundle's west face finds its side
-		tg, ok := targetOf(tx, a, cube.FaceWest, mgl64Centre())
-		if !ok || tg.kind != cardSide || tg.pos != a || tg.side != conduit.FaceIndex(cube.FaceWest) {
+		tg, ok := copier.TargetOf(tx, a, cube.FaceWest, mgl64Centre())
+		if !ok || tg.Kind != copier.CardSide || tg.Pos != a || tg.Side != conduit.FaceIndex(cube.FaceWest) {
 			t.Fatalf("target %+v %v", tg, ok)
 		}
-		card, ok := readCard(tx, tg)
+		card, ok := copier.ReadCard(tx, tg)
 		if !ok {
 			t.Fatal("nothing read")
 		}
-		dst, _ := targetOf(tx, b, cube.FaceWest, mgl64Centre())
-		if !s.pasteCard(tx, dst, *card) {
+		dst, _ := copier.TargetOf(tx, b, cube.FaceWest, mgl64Centre())
+		if !copier.PasteCard(s.Session, tx, dst, *card) {
 			t.Fatal("not pasted")
 		}
 		got := tx.Block(b).(conduit.Bundle)
@@ -85,8 +86,8 @@ func TestCopierConduitSide(t *testing.T) {
 		// a side card does not fit a drawer
 		drawer := machinePos.Add(cube.Pos{0, 0, 8})
 		tx.SetBlock(drawer, storage.Drawer{}, nil)
-		dt, ok := targetOf(tx, drawer, cube.FaceNorth, mgl64Centre())
-		if !ok || s.pasteCard(tx, dt, *card) {
+		dt, ok := copier.TargetOf(tx, drawer, cube.FaceNorth, mgl64Centre())
+		if !ok || copier.PasteCard(s.Session, tx, dt, *card) {
 			t.Fatalf("a conduit side was pasted on a drawer (target %v)", ok)
 		}
 	})
@@ -103,13 +104,13 @@ func TestCopierWholeBundle(t *testing.T) {
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		northBefore := tx.Block(b).(conduit.Bundle).Modes[cube.FaceNorth]
 		// a click on a face with no plate takes the whole bundle
-		tg, ok := targetOf(tx, a, cube.FaceUp, mgl64Centre())
-		if !ok || tg.kind != cardBundle {
+		tg, ok := copier.TargetOf(tx, a, cube.FaceUp, mgl64Centre())
+		if !ok || tg.Kind != copier.CardBundle {
 			t.Fatalf("target %+v %v", tg, ok)
 		}
-		card, _ := readCard(tx, tg)
-		dst, _ := targetOf(tx, b, cube.FaceUp, mgl64Centre())
-		if !s.pasteCard(tx, dst, *card) {
+		card, _ := copier.ReadCard(tx, tg)
+		dst, _ := copier.TargetOf(tx, b, cube.FaceUp, mgl64Centre())
+		if !copier.PasteCard(s.Session, tx, dst, *card) {
 			t.Fatal("not pasted")
 		}
 		got := tx.Block(b).(conduit.Bundle)
@@ -120,8 +121,8 @@ func TestCopierWholeBundle(t *testing.T) {
 			t.Fatal("a side without a plate changed")
 		}
 		// a bundle card on a single side takes the first side's settings
-		side, _ := targetOf(tx, b, cube.FaceWest, mgl64Centre())
-		if !s.pasteCard(tx, side, *card) {
+		side, _ := copier.TargetOf(tx, b, cube.FaceWest, mgl64Centre())
+		if !copier.PasteCard(s.Session, tx, side, *card) {
 			t.Fatal("a bundle card was not pasted on a side")
 		}
 	})
@@ -138,23 +139,23 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 	cr := machinerecipe.Crafters()[0]
 	crafterA.SetRecipe(cr)
 	s.World.Do(func(tx *world.Tx) {
-		src, ok := targetOf(tx, machinePos, cube.FaceNorth, mgl64Centre())
-		if !ok || src.kind != cardCrafter {
+		src, ok := copier.TargetOf(tx, machinePos, cube.FaceNorth, mgl64Centre())
+		if !ok || src.Kind != copier.CardCrafter {
 			t.Fatalf("crafter target %+v %v", src, ok)
 		}
-		card, ok := readCard(tx, src)
+		card, ok := copier.ReadCard(tx, src)
 		if !ok {
 			t.Fatal("no recipe read")
 		}
-		dst, _ := targetOf(tx, machinePos.Add(cube.Pos{0, 0, 3}), cube.FaceNorth, mgl64Centre())
-		if !s.pasteCard(tx, dst, *card) || crafterB.RecipeID != cr.ID {
+		dst, _ := copier.TargetOf(tx, machinePos.Add(cube.Pos{0, 0, 3}), cube.FaceNorth, mgl64Centre())
+		if !copier.PasteCard(s.Session, tx, dst, *card) || crafterB.RecipeID != cr.ID {
 			t.Fatalf("recipe %q, want %q", crafterB.RecipeID, cr.ID)
 		}
 		// an auto crafter with no recipe has nothing to copy
 		empty := placeTestMachine(s, machinePos.Add(cube.Pos{0, 0, 6}), machine.KindCrafter, "")
 		_ = empty
-		blank, _ := targetOf(tx, machinePos.Add(cube.Pos{0, 0, 6}), cube.FaceNorth, mgl64Centre())
-		if _, ok := readCard(tx, blank); ok {
+		blank, _ := copier.TargetOf(tx, machinePos.Add(cube.Pos{0, 0, 6}), cube.FaceNorth, mgl64Centre())
+		if _, ok := copier.ReadCard(tx, blank); ok {
 			t.Fatal("copied a recipe that is not there")
 		}
 		// drawers
@@ -162,20 +163,20 @@ func TestCopierCrafterAndDrawer(t *testing.T) {
 		tx.SetBlock(d1, storage.Drawer{Item: item.NewStack(block.Dirt{}, 1), Count: 5}, nil)
 		tx.SetBlock(d2, storage.Drawer{}, nil)
 		tx.SetBlock(d3, storage.Drawer{Item: item.NewStack(block.Stone{}, 1), Count: 4}, nil)
-		from, _ := targetOf(tx, d1, cube.FaceNorth, mgl64Centre())
-		dcard, ok := readCard(tx, from)
+		from, _ := copier.TargetOf(tx, d1, cube.FaceNorth, mgl64Centre())
+		dcard, ok := copier.ReadCard(tx, from)
 		if !ok {
 			t.Fatal("no drawer item read")
 		}
-		to, _ := targetOf(tx, d2, cube.FaceNorth, mgl64Centre())
-		if !s.pasteCard(tx, to, *dcard) {
+		to, _ := copier.TargetOf(tx, d2, cube.FaceNorth, mgl64Centre())
+		if !copier.PasteCard(s.Session, tx, to, *dcard) {
 			t.Fatal("not pasted on the empty drawer")
 		}
 		if got := tx.Block(d2).(storage.Drawer); !got.Locked || naming.ItemKey(got.Item.Item()) != naming.ItemKey(block.Dirt{}) {
 			t.Fatalf("empty drawer after pasting: %+v", got)
 		}
-		other, _ := targetOf(tx, d3, cube.FaceNorth, mgl64Centre())
-		if s.pasteCard(tx, other, *dcard) {
+		other, _ := copier.TargetOf(tx, d3, cube.FaceNorth, mgl64Centre())
+		if copier.PasteCard(s.Session, tx, other, *dcard) {
 			t.Fatal("pasted on a drawer holding another item")
 		}
 	})
@@ -192,24 +193,24 @@ func TestCopierHandler(t *testing.T) {
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		p.SetHeldItems(item.NewStack(sgitem.ConfigCopier{}, 1), item.Stack{})
 		held, off := p.HeldItems()
-		s.useCopier(p, tx, a, cube.FaceWest, mgl64Centre(), held, off)
+		copier.UseCopier(s.Session, p, tx, a, cube.FaceWest, mgl64Centre(), held, off)
 		held, _ = p.HeldItems()
-		if _, ok := cardOf(held); !ok {
+		if _, ok := copier.CardOf(held); !ok {
 			t.Fatal("a click did not copy")
 		}
 		s.ForgetOpens()
 		p.StartSneaking()
 		held, off = p.HeldItems()
-		s.useCopier(p, tx, b, cube.FaceWest, mgl64Centre(), held, off)
+		copier.UseCopier(s.Session, p, tx, b, cube.FaceWest, mgl64Centre(), held, off)
 		if got := tx.Block(b).(conduit.Bundle); got.Extract[cube.FaceWest] != 5 {
 			t.Fatalf("a sneaking click did not paste: %v", got.Extract)
 		}
 		p.StopSneaking()
 		s.ForgetOpens()
 		held, off = p.HeldItems()
-		s.clearCopier(p, held, off)
+		copier.ClearCopier(s.Session, p, held, off)
 		held, _ = p.HeldItems()
-		if _, ok := cardOf(held); ok {
+		if _, ok := copier.CardOf(held); ok {
 			t.Fatal("a click on the air did not empty the copier")
 		}
 	})
