@@ -58,8 +58,9 @@
         }
       },
       {
-        // A touch screen shows the chat at the top left, so there the top left rows go to the top right,
-        // over the top right rows.
+        // A touch screen shows the chat at the top left and its jump and sneak buttons at the right
+        // middle, so there the top left rows go to the top right, over the top right rows, and the
+        // quest panel under them.
         "top_right": {
           "type": "stack_panel",
           "orientation": "vertical",
@@ -81,12 +82,30 @@
             },
             {
               "top_right@scoreboard.sg_top_right_stack": {}
+            },
+            {
+              "quest_gap": {
+                "type": "panel",
+                "ignored": "(not $touch)",
+                "size": [
+                  0,
+                  4
+                ]
+              }
+            },
+            {
+              "quest_touch@scoreboard.sg_quest": {
+                "ignored": "(not $touch)",
+                "anchor_from": "top_right",
+                "anchor_to": "top_right"
+              }
             }
           ]
         }
       },
       {
         "quest@scoreboard.sg_quest": {
+          "ignored": "$touch",
           "offset": [
             -4,
             -10
