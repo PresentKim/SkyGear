@@ -1,9 +1,11 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/expand"
+	"time"
+
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/handwork"
-	"time"
 
 	"github.com/presentkim/skygear/content/skygear/wave"
 
@@ -41,12 +43,12 @@ type handler struct {
 }
 
 func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
-	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
+	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
 		// No building or clicking in island expansion mode. A click on the
 		// map makes the server resend the real blocks, so the map chunk is
 		// shown again.
 		ctx.Cancel()
-		h.s.restoreMapNear(ctx.Player(), pos)
+		expand.RestoreMapNear(h.s.Session, ctx.Player(), pos)
 		return true
 	}
 	if island.CanBuild(h.s.Session, pos) {
@@ -247,7 +249,7 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 // keeps players in island expansion mode in place.
 func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube.Rotation) {
 	h.s.updateLook(ctx.Player(), ctx.Player().Tx(), newPos, newRot, false)
-	if _, expanding := h.s.expansionOf(ctx.Player()); expanding {
+	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
 		ctx.Cancel()
 		return
 	}
@@ -262,8 +264,8 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 // expansion mode, and otherwise grows saplings nearby by chance
 // (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
-	if _, ok := h.s.expansionOf(ctx.Player()); ok && after {
-		h.s.showExpand(ctx.Player())
+	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
+		expand.Show(h.s.Session, ctx.Player())
 		return
 	}
 	if after {

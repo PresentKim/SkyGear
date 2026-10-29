@@ -3,6 +3,7 @@ package skygear
 
 import (
 	"errors"
+	"github.com/presentkim/skygear/content/skygear/expand"
 	"log/slog"
 	"sync"
 	"time"
@@ -58,6 +59,11 @@ func init() {
 	core.ShowMenu = func(c *core.Session, p *player.Player) {
 		if s, ok := activeGame.sessionOf(c.World); ok {
 			s.showMenu(p)
+		}
+	}
+	core.UpdateBoard = func(c *core.Session, p *player.Player) {
+		if s, ok := activeGame.sessionOf(c.World); ok {
+			s.updateBoard(p)
 		}
 	}
 	// The quest panel follows the progress.
@@ -163,8 +169,6 @@ type session struct {
 	state *State
 	// boards are the HUDs players were last sent (hud.Board.Key).
 	boards map[*world.EntityHandle]string
-	// expanding are the players in island expansion mode (expand.go).
-	expanding map[*world.EntityHandle]*expansion
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
@@ -193,7 +197,7 @@ func (s *session) Join(p *player.Player, first bool) {
 
 func (s *session) Leave(p *player.Player) {
 	s.Session.Leave(p)
-	s.stopExpand(p, p.Tx())
+	expand.Stop(s.Session, p, p.Tx())
 	delete(s.lastLook, p.H())
 	delete(s.boards, p.H())
 	delete(s.codexNav, p.H())

@@ -45,3 +45,6 @@ func (s *Session) BackOption(lang string) ui.Option {
 
 // ShowMenu shows the game menu (the game sets it).
 var ShowMenu = func(s *Session, p *player.Player) {}
+
+// UpdateBoard redraws p's sidebar (the game sets it).
+var UpdateBoard = func(s *Session, p *player.Player) {}

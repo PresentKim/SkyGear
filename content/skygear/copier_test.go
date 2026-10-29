@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/copier"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/copier"
 
 	"github.com/presentkim/skygear/content/skygear/storage"
 

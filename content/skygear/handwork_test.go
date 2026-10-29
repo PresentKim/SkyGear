@@ -1,8 +1,9 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/handwork"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/handwork"
 
 	"github.com/presentkim/skygear/content/skygear/fairy"
 

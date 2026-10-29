@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/expand"
 	"strings"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -32,7 +33,7 @@ func (s *session) updateBoard(p *player.Player) {
 	if s.showsLoad(p) {
 		b.Add(hud.TopLeft, perf.Line(s.World))
 	}
-	if _, expanding := s.expansionOf(p); !expanding && account.On(p, advancement.SettingQuestPanel) {
+	if _, expanding := expand.Of(s.Session, p); !expanding && account.On(p, advancement.SettingQuestPanel) {
 		title, rows := s.questRows(lang, p.Inventory())
 		b.Add(hud.QuestTitle, title)
 		for _, r := range rows {

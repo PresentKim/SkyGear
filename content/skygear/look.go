@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/expand"
 	"math"
 	"time"
 
@@ -98,7 +99,7 @@ func (s *session) updateLook(p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 		return
 	}
 	s.lastLook[p.H()] = now
-	if _, expanding := s.expansionOf(p); expanding {
+	if _, expanding := expand.Of(s.Session, p); expanding {
 		waila.Clear(p)
 		return
 	}
@@ -122,7 +123,7 @@ func (s *session) updateLookAt(p *player.Player, tx *world.Tx, at cube.Pos, b wo
 		s.lastLook = map[*world.EntityHandle]time.Time{}
 	}
 	s.lastLook[p.H()] = time.Now()
-	if _, expanding := s.expansionOf(p); expanding {
+	if _, expanding := expand.Of(s.Session, p); expanding {
 		waila.Clear(p)
 		return
 	}

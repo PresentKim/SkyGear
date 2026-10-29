@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"fmt"
+	"github.com/presentkim/skygear/content/skygear/expand"
 
 	"github.com/presentkim/skygear/content/skygear/machine"
 
@@ -51,7 +52,7 @@ func (s *session) showIslandManage(p *player.Player) {
 	if host || s.isOperator(p) {
 		opts = append(opts, s.Opt(i18n.T(lang, "island.manage.members"), "textures/ui/sg/icon_members", func(p *player.Player, _ *world.Tx) { p.ExecuteCommand("/members") }))
 	}
-	opts = append(opts, s.Opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { s.showExpand(p) }), s.BackOption(lang))
+	opts = append(opts, s.Opt(i18n.T(lang, "menu.expand"), formicon.Expand, func(p *player.Player, _ *world.Tx) { expand.Show(s.Session, p) }), s.BackOption(lang))
 	ui.CardMenu(p, i18n.T(lang, "island.manage.title"), "", opts...)
 }
 
@@ -85,8 +86,8 @@ func (s *session) confirmLobby(p *player.Player) {
 // (the camera looks down, so the menu item and /menu act on the mode).
 func (s *session) openMenu(p *player.Player) {
 	achievement.Count(p, "menu_open", 1)
-	if _, ok := s.expansionOf(p); ok {
-		s.showExpand(p)
+	if _, ok := expand.Of(s.Session, p); ok {
+		expand.Show(s.Session, p)
 		return
 	}
 	s.showMenu(p)

@@ -1,12 +1,13 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/handwork"
 	"log/slog"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/presentkim/skygear/content/skygear/handwork"
 
 	"github.com/presentkim/skygear/content/skygear/island"
 
