@@ -80,11 +80,11 @@ func run(log *slog.Logger) error {
 	// players hear of each other only (instance.Manager).
 	conf.JoinMessage, conf.QuitMessage = chat.Translation{}, chat.Translation{}
 	conf.Entities = entity.DefaultRegistry.Config().New(skygear.EntityTypes())
-	// The packs are always encrypted: the game takes its in-game Ore UI page,
-	// where the menus are drawn (DDUI), from an encrypted pack only.
-	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: true}
-	if packOpt.Secret, err = resourcepack.LoadSecret(filepath.Join(pconf.Data.Dir, "resourcepack.secret")); err != nil {
-		return fmt.Errorf("resource pack secret: %w", err)
+	packOpt := resourcepack.Options{Minify: pconf.ResourcePack.Minify, Encrypt: pconf.ResourcePack.Encrypt}
+	if packOpt.Encrypt {
+		if packOpt.Secret, err = resourcepack.LoadSecret(filepath.Join(pconf.Data.Dir, "resourcepack.secret")); err != nil {
+			return fmt.Errorf("resource pack secret: %w", err)
+		}
 	}
 	// This server's pack, then the common packs (HUD and menu textures,
 	// chest windows, WAILA, slot decorations, the Ore UI page of the menus).

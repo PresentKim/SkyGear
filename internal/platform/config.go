@@ -42,11 +42,12 @@ type Config struct {
 		WorldKeep       int
 	}
 	ResourcePack struct {
-		// Minify strips comments and white space from the packs' JSON. It is
-		// on by default; turn it off to read what the client receives. The
-		// packs are always encrypted: the game takes the Ore UI page the
-		// menus are drawn on from an encrypted pack only.
-		Minify bool
+		// Minify strips comments and white space from the packs' JSON, and
+		// Encrypt encrypts the packs. Both are on by default; turn them off
+		// to read what the client receives (an unencrypted pack carries an
+		// empty contents.zip, so the game still takes the Ore UI page the
+		// menus are drawn on).
+		Minify, Encrypt bool
 		// SlotDeco adds the slotdeco pack: slot backgrounds by item rarity
 		// and tier badges. It changes the vanilla
 		// item slot template of every container screen; turn it off if the
@@ -128,6 +129,7 @@ func DefaultConfig() Config {
 	c.Backup.WorldKeep = 5
 	c.ChestUI.Ride = true
 	c.ResourcePack.Minify = true
+	c.ResourcePack.Encrypt = true
 	c.ResourcePack.SlotDeco = true
 	return c
 }

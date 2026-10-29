@@ -35,7 +35,7 @@ directory and stores its data under `data/`:
 | File | Contents |
 |---|---|
 | `config.toml` | Dragonfly server settings: network address (default `:19132`), server name, Xbox Live authentication, … |
-| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `SlotDeco`; the packs are always encrypted, since the game takes the Ore UI page the menus are drawn on from an encrypted pack only), operators (`Admin.Operators`) |
+| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `Encrypt`, `SlotDeco`; an unencrypted pack carries an empty `contents.zip`, so the game still takes the Ore UI page the menus are drawn on), operators (`Admin.Operators`) |
 | `data/platform.db` | SQLite database: accounts, friends, saves, per-save player state, game state |
 | `data/saves/<save id>/world` | One world per save |
 | `data/backups/` | Automatic database and world backups ([docs/tech/backup.md](docs/tech/backup.md)) |

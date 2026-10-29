@@ -6,8 +6,9 @@
 //   - slotdeco: slot decorations (slotdeco)
 //   - sgui: the HUD theme (hud) and the textures of the menus (ui).
 //   - oreui: the renderer of server-driven DDUI screens (oreui, ui). Its hbui/gameplay.html replaces the game's own in-game Ore
-//     UI page, which the client takes from an encrypted pack only, so the pack
-//     must be loaded with Encrypt.
+//     UI page, which the client takes from a pack that is encrypted or carries
+//     a contents.zip (resourcepack.LoadFS gives an unencrypted pack an empty
+//     one).
 //
 // A server loads each with resourcepack.LoadFS(packs.Sub(name), name, opt).
 package packs

@@ -1,10 +1,10 @@
 # Ore UI 화면 (DDUI)
 
-섬과 로비의 메뉴는 모두 게임의 Ore UI에 그린 서버 주도 DDUI 화면이다. 리소스팩은 늘 암호화한다: 게임은 Ore UI 페이지를 암호화 팩에서만 가져간다. 로비는 화면 전체를 채우는 메인 화면(`ui.HomeScreen`) 하나로 그린다. JSON UI 는 HUD 와 창고 창에만 남는다([json-ui.md](json-ui.md)).
+섬과 로비의 메뉴는 모두 게임의 Ore UI에 그린 서버 주도 DDUI 화면이다. 게임은 Ore UI 페이지를 암호화되었거나 `contents.zip` 이 있는 팩에서만 가져가므로, 암호화를 끄면 팩에 빈 `contents.zip` 을 넣는다([resourcepack.md](resourcepack.md)). 로비는 화면 전체를 채우는 메인 화면(`ui.HomeScreen`) 하나로 그린다. JSON UI 는 HUD 와 창고 창에만 남는다([json-ui.md](json-ui.md)).
 
 ## 구성
 
-- `common/packs/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화 팩에서만** 가져가므로 팩은 늘 암호화한다(`main.go`).
+- `common/packs/oreui`: Ore UI 게임 중 페이지(`hbui/gameplay.html`)를 바꾸는 팩. 바닐라 번들을 그대로 불러온 뒤 렌더러(`oui-ddui.js`)와 모양(`oui-mc.css`)을 더한다. 클라이언트는 이 페이지를 **암호화되었거나 `contents.zip` 이 있는 팩에서만** 가져간다. 암호화하지 않은 팩에는 로더가 빈 `contents.zip` 을 넣는다(`common/resourcepack`).
 - `common/oreui`: DDUI 화면을 열고, 레이아웃과 값을 데이터 저장소로 보내고, 누름을 받는다. 클라이언트의 DDUI 패킷은 `sghook`에서 가로챈다.
 - `common/ui`: `Menu`(`Confirm`), `CardMenu`, `ItemBoard`, `SplitMenu`, `SieveBoard`, `ListSplitMenu`, `Input`, `ItemGrid`, `ItemGridSections`, `SearchGrid`, `SlotMenu`, `ChoiceMenu`, `SidesMenu`, `PlaneMenu`, `QuestBookMenu` 가 DDUI 화면을 그린다(`ui/oreui.go`, `ui/oreforms.go` 등). 버튼의 `Run`은 그 플레이어 월드에서 돈다. 탭·뒤로·도움말·쪽 버튼은 라벨 앞 표식(`ui.Tab`, `ui.Back`, `ui.Help`, `ui.BarPager`)으로 창 위·컨트롤 막대에 놓이고, 표식은 글에서 빠진다(`chrome`, `untoken`). 누름 뒤에 새 화면을 보이지 않으면 화면이 닫힌다(폼 버튼을 누르면 폼이 닫히는 것과 같다).
 - 창은 퀘스트 책까지 모두 바닐라 인벤토리 크기(326×166) 하나다. 그래서 한 화면에서 다른 화면으로 가는 누름(정수 추출기의 정수 고르기, 도움말 주제, 치장 탭, 친구 줄에서 확인 질문, 통계 탭)은 열린 화면 안에서 바뀐다.

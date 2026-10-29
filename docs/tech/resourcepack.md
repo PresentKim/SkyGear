@@ -4,7 +4,7 @@
 
 1. **버전**: 내용 해시로 `manifest.json` 버전을 자동으로 정한다(손대지 않는다). 비밀값도 해시에 들어간다.
 2. **JSON minify**(`[ResourcePack] Minify`, 기본 켬): `.json` 파일의 `//`·`/* */` 주석과 공백을 지운다(키 순서·문자열은 그대로). `manifest.json` 은 건드리지 않는다. 주석을 지운 뒤에도 올바른 JSON 이 아니면 서버가 켜지지 않는다(그런 파일은 게임도 못 읽는다). JSON UI 파일에 주석이 많아 용량이 꽤 준다.
-3. **암호화**(늘 켬): 바닐라 마켓 팩과 같은 방식이다. 게임은 게임 중 Ore UI 페이지를 암호화 팩에서만 가져가므로, 메뉴(DDUI 화면, [oreui.md](oreui.md))를 그리려면 끌 수 없다.
+3. **암호화**(`[ResourcePack] Encrypt`, 기본 켬): 바닐라 마켓 팩과 같은 방식이다. 게임은 게임 중 Ore UI 페이지를 암호화되었거나 `contents.zip` 이 있는 팩에서만 가져간다. 그래서 암호화를 끄면 팩마다 빈 `contents.zip` 을 넣어 보낸다(메뉴의 DDUI 화면, [oreui.md](oreui.md), 이 그대로 그려진다) [실측].
    - 파일마다 32글자 키로 AES-256-CFB8(IV = 키 앞 16바이트)로 암호화한다. `manifest.json`·`pack_icon.png` 는 그대로 둔다.
    - `contents.json` 에 경로와 키를 적고(앞 256바이트는 머리: 버전 0, 매직 `FC B9 CF 9B`, 팩 UUID), 목록은 팩의 **콘텐츠 키**로 같은 방식으로 암호화한다. 콘텐츠 키는 접속할 때 서버가 클라이언트에 준다(gophertunnel `Pack.WithContentKey`).
    - 키는 비밀값에서 HMAC 으로 만든다(같은 내용 = 같은 키·같은 버전, 클라이언트 캐시가 유지된다). 비밀값은 `data/resourcepack.secret`(처음 켤 때 만들어짐, 권한 0600). **이 파일을 잃거나 바꾸면 모든 팩의 키·버전이 바뀌어 클라이언트가 팩을 다시 받는다.** 저장소에 넣지 않는다(`/data/` 는 무시됨).
@@ -19,6 +19,7 @@
 ```toml
 [ResourcePack]
 Minify = true
+Encrypt = true
 ```
 
-암호화는 설정이 없다. 예전 `platform.toml` 의 `Encrypt` 줄은 읽을 때 무시된다.
+`Encrypt = false` 면 비밀값 파일도 읽지 않는다.
