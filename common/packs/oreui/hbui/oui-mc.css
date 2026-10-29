@@ -1529,6 +1529,17 @@
   justify-content: center;
 }
 
+/* The lobby's windows are see-through, so its tabs end at the window's top edge instead of reaching
+   under it (they would show through). */
+.mc-lobby .mc-tab-bg {
+  height: 4.8rem;
+}
+
+.mc-lobby .mc-tab-front {
+  bottom: 0;
+  height: 4.4rem;
+}
+
 .mc-lobby .mc-input {
   background-color: rgba(10, 16, 30, 0.85);
   border-color: rgba(110, 135, 170, 0.9);
