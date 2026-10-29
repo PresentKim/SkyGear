@@ -146,6 +146,7 @@ func init() {
 		account.Setting{Key: advancement.SettingSound, NameKey: "setting.advancement.sound", Default: true},
 		account.Setting{Key: advancement.SettingQuestPanel, NameKey: "setting.advancement.panel", Default: true},
 		account.Setting{Key: veinDiagonalSetting, NameKey: "setting.vein.diagonal"},
+		account.Setting{Key: autoToolSetting, NameKey: "setting.autotool"},
 	)
 }
 
