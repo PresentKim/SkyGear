@@ -25,8 +25,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-
-
 func init() { world.RegisterItem(sgitem.ConfigCopier{}) }
 
 // cardKey is the item value that holds the copied settings (JSON).
