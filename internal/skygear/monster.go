@@ -51,12 +51,9 @@ const (
 	monsterCooldown = 20
 	// monsterSight is how far a monster notices a player.
 	monsterSight = 40.0
-	// monsterVoid is how far below the island a monster falls before the void
-	// kills it.
+	// monsterVoid is how far below the island a monster falls before the gate
+	// takes it back.
 	monsterVoid = 12.0
-	// monsterDeathTicks is how long a monster the void killed keeps falling
-	// in its death before it is gone.
-	monsterDeathTicks = 20
 )
 
 // Monster is the entity of a mob of the gate.
@@ -73,9 +70,6 @@ type monsterData struct {
 	vel      mgl64.Vec3
 	cooldown int
 	onGround bool
-	// dying counts down the ticks of a monster the void killed: it has left
-	// the wave and falls in its death until it is gone.
-	dying int
 	// exit is the way out of the gate it walks for exitTicks more ticks
 	// before it goes for a player (gateportal.go).
 	exit      mgl64.Vec3
@@ -164,14 +158,6 @@ func solidAt(tx *world.Tx, p cube.Pos) bool {
 
 // Tick walks the monster towards the nearest player and hits when close.
 func (m *Monster) Tick(tx *world.Tx, _ int64) {
-	if d := m.md(); d.dying > 0 {
-		if d.dying--; d.dying == 0 {
-			_ = m.Close()
-			return
-		}
-		m.move(tx, m.data.Pos, mgl64.Vec3{}, monsterTable[m.kind])
-		return
-	}
 	s, ok := activeGame.sessionOf(tx.World())
 	if !ok || s.wave == nil || !s.wave.owns(m.handle) {
 		// from an earlier session or a finished wave
@@ -181,7 +167,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	d, st := m.md(), monsterTable[m.kind]
 	pos := m.data.Pos
 	if pos.Y() < IslandY-monsterVoid {
-		m.dieInVoid(tx, s)
+		s.returnToGate(tx, m)
 		return
 	}
 	if d.exitTicks > 0 {
@@ -295,20 +281,6 @@ func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
 			s.monsterGone(tx, m, from)
 		}
 	}
-}
-
-// dieInVoid kills the monster in the void: it takes the hit and dies (the
-// gate counts it, nothing drops) and falls in its death for a moment.
-func (m *Monster) dieInVoid(tx *world.Tx, s *session) {
-	d := m.md()
-	d.health = 0
-	d.dying = monsterDeathTicks
-	for _, v := range tx.Viewers(m.data.Pos) {
-		v.ViewEntityAction(m, entity.HurtAction{})
-		v.ViewEntityAction(m, entity.DeathAction{})
-	}
-	tx.PlaySound(m.data.Pos, sound.Attack{Damage: true})
-	s.monsterGone(tx, m, nil)
 }
 
 func mobName(lang, mob string) string { return i18n.T(lang, "mob."+mob) }

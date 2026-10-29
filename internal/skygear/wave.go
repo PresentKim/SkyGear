@@ -99,10 +99,9 @@ func (s *session) startWave(tx *world.Tx, pos cube.Pos, from mgl64.Vec3, level i
 	return true
 }
 
-// monsterGone handles a monster that died to p (or to the void when p is
-// nil, with no loot): it leaves the wave, drops its loot and ends the wave
-// when no monster is left out or to come. A monster dying in the void stays
-// until its death is over (Monster.Tick).
+// monsterGone handles a monster that died to p (or was lost when p is nil,
+// with no loot): it leaves the wave, drops its loot and ends the wave when no
+// monster is left out or to come.
 func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 	w := s.wave
 	if w == nil || !w.owns(m.handle) {
@@ -135,9 +134,7 @@ func (s *session) monsterGone(tx *world.Tx, m *Monster, p *player.Player) {
 			s.dropAt(tx, pos.Add(mgl64.Vec3{0, 0.5, 0}), item.NewStack(sgitem.Essence{Mob: m.kind}, 1))
 		}
 	}
-	if m.md().dying == 0 {
-		_ = m.Close()
-	}
+	_ = m.Close()
 	if len(w.left) == 0 && len(w.pending) == 0 {
 		s.winWave(tx)
 	}

@@ -128,10 +128,9 @@ func TestWaveFailsOnTimeout(t *testing.T) {
 	})
 }
 
-// TestMonsterDiesInVoid: a monster that falls into the void dies there: it
-// leaves the wave at once, does not come back, and is gone once its death is
-// over. The wave goes on while monsters are still to come out of the gate.
-func TestMonsterDiesInVoid(t *testing.T) {
+// TestMonsterReturnsFromVoid: a monster that falls into the void comes out of
+// the gate again with the health it had: it stays in the wave, which goes on.
+func TestMonsterReturnsFromVoid(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
@@ -152,31 +151,21 @@ func TestMonsterDiesInVoid(t *testing.T) {
 			t.Fatalf("%d monsters out, %d to come", len(mons), len(s.wave.pending))
 		}
 		m := mons[0]
+		m.Hurt(tx, 3, p)
+		health := m.Health()
 		m.data.Pos = mgl64.Vec3{m.data.Pos[0], IslandY - monsterVoid - 1, m.data.Pos[2]}
 		m.Tick(tx, 0)
-		if s.wave == nil {
-			t.Fatal("the wave ended with monsters still to come")
+		if s.wave == nil || !s.wave.owns(m.handle) || m.handle.Closed() {
+			t.Fatal("a monster in the void left the wave")
 		}
-		if s.wave.owns(m.handle) || m.Health() > 0 {
-			t.Errorf("a monster in the void is still in the wave (health %v)", m.Health())
+		if m.Health() != health {
+			t.Errorf("health %v after the void, want %v", m.Health(), health)
 		}
-		if m.handle.Closed() {
-			t.Error("the monster was gone before its death")
+		if d := m.Position().Sub(gate.Vec3Middle()); d.Len() > 2.5 {
+			t.Errorf("the monster is %.1f blocks from the gate, want at its way out", d.Len())
 		}
-		for range monsterDeathTicks {
-			m.Tick(tx, 0)
-		}
-		if !m.handle.Closed() {
-			t.Error("the monster stayed after its death")
-		}
-		for range len(s.wave.pending) * gatePortalEvery {
-			s.emergeMonsters(tx)
-		}
-		for _, o := range waveMonsters(s, tx) {
-			o.Hurt(tx, 1000, p)
-		}
-		if s.wave != nil {
-			t.Error("the wave goes on with the rest dead")
+		if m.md().exitTicks != gateExitTicks {
+			t.Error("the monster does not walk out of the gate again")
 		}
 	})
 }

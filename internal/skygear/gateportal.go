@@ -108,6 +108,21 @@ func (s *session) closeGatePortal(tx *world.Tx, w *waveState) {
 	w.portal = nil
 }
 
+// returnToGate takes back a monster of the wave that fell into the void: it
+// comes out of the gate again, unhurt by the fall and with the health it had.
+func (s *session) returnToGate(tx *world.Tx, m *Monster) {
+	w := s.wave
+	d := m.md()
+	d.vel, d.onGround = mgl64.Vec3{}, false
+	d.exit, d.exitTicks = w.out, gateExitTicks
+	side := mgl64.Vec3{w.out[2], 0, -w.out[0]}.Mul(s.rand.Float64()*1.2 - 0.6)
+	m.data.Pos = w.gate.Vec3Middle().Add(mgl64.Vec3{0, 1, 0}).Add(w.out.Mul(0.6)).Add(side)
+	m.data.Rot = cube.Rotation{dirYaw(w.out), 0}
+	for _, v := range tx.Viewers(m.data.Pos) {
+		v.ViewEntityTeleport(m, m.data.Pos)
+	}
+}
+
 // emergeMonsters lets the next monster of the wave out of the gate, every
 // gatePortalEvery calls (Fast).
 func (s *session) emergeMonsters(tx *world.Tx) {
