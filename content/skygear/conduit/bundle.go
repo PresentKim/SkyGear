@@ -1,11 +1,8 @@
-package skygear
+package conduit
 
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/presentkim/skygear/common/fluidnet"
-	"github.com/presentkim/skygear/common/sghook"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -15,11 +12,15 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/google/uuid"
 	"github.com/presentkim/skygear/common/energy"
+	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/common/itemnet"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
@@ -29,11 +30,25 @@ import (
 // The block is a block entity with one state and an invisible model; its data
 // lives in its NBT and the display entity of conduitvisual.go draws it.
 
-// ConduitBundle is the conduit block. Energy, Item and Fluid are the tiers of
+var _ fluidnet.Conduit = Bundle{}
+
+func init() {
+	world.RegisterBlock(Bundle{})
+	for t := 1; t <= Tiers; t++ {
+		world.RegisterBlock(EnergyConduit{Tier: t})
+		world.RegisterBlock(ItemConduit{Tier: t})
+		world.RegisterBlock(FluidConduit{Tier: t})
+		world.RegisterItem(EnergyConduit{Tier: t})
+		world.RegisterItem(ItemConduit{Tier: t})
+		world.RegisterItem(FluidConduit{Tier: t})
+	}
+}
+
+// Bundle is the conduit block. Energy, Item and Fluid are the tiers of
 // the conduits in it (0 for none), EConn, IConn and FConn the sides each of
 // them connects to (bit i is conduitFaces[i]) and Modes the connection mode of
 // each side for the item conduit (indexed by cube.Face).
-type ConduitBundle struct {
+type Bundle struct {
 	Energy, Item, Fluid int
 	EConn, IConn, FConn int
 	Modes               [6]itemnet.Mode
@@ -44,29 +59,32 @@ type ConduitBundle struct {
 
 var bundleHash = block.NextHash()
 
-func (ConduitBundle) EncodeBlock() (string, map[string]any) {
+func (Bundle) EncodeBlock() (string, map[string]any) {
 	return "skygear:conduit_node", nil
 }
-func (ConduitBundle) Hash() (uint64, uint64)    { return bundleHash, 0 }
-func (b ConduitBundle) Model() world.BlockModel { return conduitModel{b.EConn | b.IConn | b.FConn} }
-func (ConduitBundle) Name() string              { return i18n.T(i18n.Default, "name.ConduitBundle") }
 
-// bundleSelection is the space the conduits take: the cores of the three lanes
+func (Bundle) Hash() (uint64, uint64) { return bundleHash, 0 }
+
+func (b Bundle) Model() world.BlockModel { return conduitModel{b.EConn | b.IConn | b.FConn} }
+
+func (Bundle) Name() string { return i18n.T(i18n.Default, "name.ConduitBundle") }
+
+// BundleSelection is the space the conduits take: the cores of the three lanes
 // (shifted 3 pixels either way, 3 pixels across) fit in 9 pixels, 3.5 to
 // 12.5. It is what the client lets the player point at and the shape of the
 // block (conduit_node.geo.json).
-var bundleSelection = cube.Box(3.5/16, 3.5/16, 3.5/16, 12.5/16, 12.5/16, 12.5/16)
+var BundleSelection = cube.Box(3.5/16, 3.5/16, 3.5/16, 12.5/16, 12.5/16, 12.5/16)
 
-func (ConduitBundle) Properties() customblock.Properties {
+func (Bundle) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.skygear_conduit_node",
 		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_conduit_node")},
-		SelectionBox: bundleSelection,
-		CollisionBox: bundleSelection,
+		SelectionBox: BundleSelection,
+		CollisionBox: BundleSelection,
 	}
 }
 
-func (b ConduitBundle) BreakInfo() block.BreakInfo {
+func (b Bundle) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 3,
 		Harvestable: func(item.Tool) bool { return true },
@@ -88,20 +106,21 @@ func (b ConduitBundle) BreakInfo() block.BreakInfo {
 }
 
 // EnergyTier implements energy.Conduit (0: no energy conduit in the bundle).
-func (b ConduitBundle) EnergyTier() int { return b.Energy }
+func (b Bundle) EnergyTier() int { return b.Energy }
 
 // ItemTier and ItemMode implement itemnet.Conduit (tier 0: no item conduit).
-func (b ConduitBundle) ItemTier() int                     { return b.Item }
-func (b ConduitBundle) ItemMode(f cube.Face) itemnet.Mode { return b.Modes[f] }
+func (b Bundle) ItemTier() int { return b.Item }
+
+func (b Bundle) ItemMode(f cube.Face) itemnet.Mode { return b.Modes[f] }
 
 // ItemChannels implements itemnet.Conduit.
-func (b ConduitBundle) ItemChannels(f cube.Face) (extract, insert int) {
+func (b Bundle) ItemChannels(f cube.Face) (extract, insert int) {
 	return b.Extract[f], b.Insert[f]
 }
 
 // EncodeNBT and DecodeNBT keep everything the bundle holds (and make it a
 // block entity, which is what gets ticked).
-func (b ConduitBundle) EncodeNBT() map[string]any {
+func (b Bundle) EncodeNBT() map[string]any {
 	modes := make([]byte, len(b.Modes))
 	for i, m := range b.Modes {
 		modes[i] = '0' + byte(m)
@@ -120,12 +139,12 @@ func (b ConduitBundle) EncodeNBT() map[string]any {
 	}
 }
 
-func (b ConduitBundle) DecodeNBT(data map[string]any) any {
+func (b Bundle) DecodeNBT(data map[string]any) any {
 	num := func(key string) int {
 		n, _ := data[key].(int32)
 		return int(n)
 	}
-	b.Energy, b.Item, b.Fluid = min(num("Energy"), conduitTiers), min(num("Item"), conduitTiers), min(num("Fluid"), conduitTiers)
+	b.Energy, b.Item, b.Fluid = min(num("Energy"), Tiers), min(num("Item"), Tiers), min(num("Fluid"), Tiers)
 	b.EConn, b.IConn, b.FConn = num("EConn")&63, num("IConn")&63, num("FConn")&63
 	for key, dst := range map[string]*[6]int{"Extract": &b.Extract, "Insert": &b.Insert} {
 		if v, ok := data[key].(string); ok && len(v) == 6 {
@@ -144,9 +163,9 @@ func (b ConduitBundle) DecodeNBT(data map[string]any) any {
 	return b
 }
 
-// joinsEnergy reports whether an energy conduit connects to b: another energy
+// JoinsEnergy reports whether an energy conduit connects to b: another energy
 // conduit or a block that gives or takes energy.
-func joinsEnergy(b world.Block) bool {
+func JoinsEnergy(b world.Block) bool {
 	if _, ok := energy.IsConduit(b); ok {
 		return true
 	}
@@ -157,7 +176,7 @@ func joinsEnergy(b world.Block) bool {
 // joinsFluid reports whether the fluid conduit connects to b: another fluid
 // conduit, or a block that holds fluid.
 func joinsFluid(b world.Block) bool {
-	if o, ok := b.(ConduitBundle); ok {
+	if o, ok := b.(Bundle); ok {
 		return o.Fluid > 0
 	}
 	if h, ok := b.(fluidnet.Holder); ok {
@@ -176,8 +195,8 @@ type bundleSide struct {
 }
 
 // sides reads the six neighbours of the bundle at pos.
-func (b ConduitBundle) sides(tx *world.Tx, pos cube.Pos) (out [6]bundleSide) {
-	for i, f := range conduitFaces {
+func (b Bundle) sides(tx *world.Tx, pos cube.Pos) (out [6]bundleSide) {
+	for i, f := range Faces {
 		at := pos.Side(f)
 		out[i].block = tx.Block(at)
 		if b.Item == 0 {
@@ -192,7 +211,7 @@ func (b ConduitBundle) sides(tx *world.Tx, pos cube.Pos) (out [6]bundleSide) {
 }
 
 // connections returns the sides the energy, item and fluid conduit connect to.
-func (b ConduitBundle) connections(tx *world.Tx, pos cube.Pos) (e, i, f int) {
+func (b Bundle) connections(tx *world.Tx, pos cube.Pos) (e, i, f int) {
 	return b.connectionsFrom(b.sides(tx, pos))
 }
 
@@ -200,14 +219,14 @@ func (b ConduitBundle) connections(tx *world.Tx, pos cube.Pos) (e, i, f int) {
 // or a block that gives or takes energy), the item conduit (another item
 // conduit, or a block that holds items unless that side is off) and the fluid
 // conduit connect to.
-func (b ConduitBundle) connectionsFrom(sides [6]bundleSide) (e, i, f int) {
+func (b Bundle) connectionsFrom(sides [6]bundleSide) (e, i, f int) {
 	for side, s := range sides {
 		bit := 1 << side
-		if b.Energy > 0 && joinsEnergy(s.block) {
+		if b.Energy > 0 && JoinsEnergy(s.block) {
 			e |= bit
 		}
 		if b.Item > 0 {
-			if _, ok := itemnet.IsConduit(s.block); ok || (b.Modes[conduitFaces[side]] != itemnet.Off && s.holdsItems) {
+			if _, ok := itemnet.IsConduit(s.block); ok || (b.Modes[Faces[side]] != itemnet.Off && s.holdsItems) {
 				i |= bit
 			}
 		}
@@ -219,51 +238,49 @@ func (b ConduitBundle) connectionsFrom(sides [6]bundleSide) (e, i, f int) {
 }
 
 // refresh sets the block to show the sides it connects to, and shows it.
-func (b ConduitBundle) refresh(pos cube.Pos, tx *world.Tx) {
+func (b Bundle) Refresh(pos cube.Pos, tx *world.Tx) {
 	sides := b.sides(tx, pos)
 	e, i, f := b.connectionsFrom(sides)
 	if e != b.EConn || i != b.IConn || f != b.FConn {
 		b.EConn, b.IConn, b.FConn = e, i, f
 		tx.SetBlock(pos, b, nil)
 	}
-	if s, ok := activeGame.sessionOf(tx.World()); ok {
-		s.showConduitWith(tx, pos, b, b.plugsFrom(pos, sides))
+	if s, ok := core.Of(tx); ok {
+		showConduitWith(s, tx, pos, b, b.plugsFrom(pos, sides))
 	}
 }
 
 // NeighbourUpdateTick keeps the arms up to date.
-func (b ConduitBundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.refresh(pos, tx) }
+func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.Refresh(pos, tx) }
 
 // Tick registers the bundle with the grids of its conduits every few ticks
 // (and keeps its display entity there).
-func (b ConduitBundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
+func (b Bundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if currentTick%4 != 0 {
 		return
 	}
-	s, ok := activeGame.sessionOf(tx.World())
+	s, ok := core.Of(tx)
 	if !ok {
 		return
 	}
-	b.refresh(pos, tx)
+	b.Refresh(pos, tx)
 	if b.Energy > 0 {
-		network.Energy(s.Session).AddConduit(pos)
+		network.Energy(s).AddConduit(pos)
 	}
 	if b.Item > 0 {
-		network.Items(s.Session).AddConduit(pos)
+		network.Items(s).AddConduit(pos)
 	}
 	if b.Fluid > 0 {
-		network.Fluids(s.Session).AddConduit(pos)
+		network.Fluids(s).AddConduit(pos)
 	}
 }
 
 // FluidTier implements fluidnet.Conduit.
-func (b ConduitBundle) FluidTier() int { return b.Fluid }
+func (b Bundle) FluidTier() int { return b.Fluid }
 
-var _ fluidnet.Conduit = ConduitBundle{}
-
-// bundleLines are the lines of a bundle's WAILA panel: the conduits in it
+// BundleLines are the lines of a bundle's WAILA panel: the conduits in it
 // and the mode of every side that has a block with items.
-func bundleLines(lang string, tx *world.Tx, pos cube.Pos, b ConduitBundle) []string {
+func BundleLines(lang string, tx *world.Tx, pos cube.Pos, b Bundle) []string {
 	var lines []string
 	if b.Energy > 0 {
 		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.EnergyConduit.%d", b.Energy))+
@@ -290,15 +307,17 @@ func itemsPerTick(tier int) float64 {
 // (a short length of pipe, models/blocks/conduit_icon.geo.json): using one never
 // places the block but puts the conduit into a bundle (see placeConduit).
 type EnergyConduit struct{ Tier int }
+
 type ItemConduit struct{ Tier int }
+
 type FluidConduit struct{ Tier int }
 
 // conduitKinds are the kinds in the order of conduitItemHashes.
 var conduitKinds = [3]string{"energy", "item", "fluid"}
 
-var conduitItemHashes = func() (h [3][conduitTiers + 1]uint64) {
+var conduitItemHashes = func() (h [3][Tiers + 1]uint64) {
 	for k := range h {
-		for t := 1; t <= conduitTiers; t++ {
+		for t := 1; t <= Tiers; t++ {
 			h[k][t] = block.NextHash()
 		}
 	}
@@ -318,49 +337,67 @@ func conduitIconProperties(kind string, tier int) customblock.Properties {
 }
 
 func (c EnergyConduit) EncodeItem() (string, int16) { return conduitItemID("energy", c.Tier), 0 }
+
 func (c EnergyConduit) EncodeBlock() (string, map[string]any) {
 	return conduitItemID("energy", c.Tier), nil
 }
+
 func (c EnergyConduit) Hash() (uint64, uint64) { return conduitItemHashes[0][c.Tier], 0 }
-func (EnergyConduit) Model() world.BlockModel  { return conduitModel{} }
+
+func (EnergyConduit) Model() world.BlockModel { return conduitModel{} }
+
 func (c EnergyConduit) Name() string {
 	return i18n.T(i18n.Default, fmt.Sprintf("name.EnergyConduit.%d", c.Tier))
 }
+
 func (EnergyConduit) Category() category.Category { return category.Construction() }
+
 func (c EnergyConduit) Properties() customblock.Properties {
 	return conduitIconProperties("energy", c.Tier)
 }
 
 func (c ItemConduit) EncodeItem() (string, int16) { return conduitItemID("item", c.Tier), 0 }
+
 func (c ItemConduit) EncodeBlock() (string, map[string]any) {
 	return conduitItemID("item", c.Tier), nil
 }
+
 func (c ItemConduit) Hash() (uint64, uint64) { return conduitItemHashes[1][c.Tier], 0 }
-func (ItemConduit) Model() world.BlockModel  { return conduitModel{} }
+
+func (ItemConduit) Model() world.BlockModel { return conduitModel{} }
+
 func (c ItemConduit) Name() string {
 	return i18n.T(i18n.Default, fmt.Sprintf("name.ItemConduit.%d", c.Tier))
 }
+
 func (ItemConduit) Category() category.Category { return category.Construction() }
+
 func (c ItemConduit) Properties() customblock.Properties {
 	return conduitIconProperties("item", c.Tier)
 }
 
 func (c FluidConduit) EncodeItem() (string, int16) { return conduitItemID("fluid", c.Tier), 0 }
+
 func (c FluidConduit) EncodeBlock() (string, map[string]any) {
 	return conduitItemID("fluid", c.Tier), nil
 }
+
 func (c FluidConduit) Hash() (uint64, uint64) { return conduitItemHashes[2][c.Tier], 0 }
-func (FluidConduit) Model() world.BlockModel  { return conduitModel{} }
+
+func (FluidConduit) Model() world.BlockModel { return conduitModel{} }
+
 func (c FluidConduit) Name() string {
 	return i18n.T(i18n.Default, fmt.Sprintf("name.FluidConduit.%d", c.Tier))
 }
+
 func (FluidConduit) Category() category.Category { return category.Construction() }
+
 func (c FluidConduit) Properties() customblock.Properties {
 	return conduitIconProperties("fluid", c.Tier)
 }
 
 func (c EnergyConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
-	return placeConduit(pos, face, tx, user, ctx, func(b *ConduitBundle) bool {
+	return placeConduit(pos, face, tx, user, ctx, func(b *Bundle) bool {
 		if b.Energy != 0 {
 			return false
 		}
@@ -370,7 +407,7 @@ func (c EnergyConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx
 }
 
 func (c ItemConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
-	return placeConduit(pos, face, tx, user, ctx, func(b *ConduitBundle) bool {
+	return placeConduit(pos, face, tx, user, ctx, func(b *Bundle) bool {
 		if b.Item != 0 {
 			return false
 		}
@@ -384,7 +421,7 @@ func (c ItemConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *
 }
 
 func (c FluidConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
-	return placeConduit(pos, face, tx, user, ctx, func(b *ConduitBundle) bool {
+	return placeConduit(pos, face, tx, user, ctx, func(b *Bundle) bool {
 		if b.Fluid != 0 {
 			return false
 		}
@@ -401,19 +438,19 @@ func (c FluidConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx 
 //     into the bundle on the clicked side if it has room, or a new one there;
 //   - and when a block behind a thin conduit was clicked and the conduit stands
 //     on the clicked side, into that bundle if it has room.
-func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ctx *item.UseContext, add func(*ConduitBundle) bool) bool {
+func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ctx *item.UseContext, add func(*Bundle) bool) bool {
 	sneaking := false
 	if p, ok := user.(*player.Player); ok {
 		sneaking = p.Sneaking()
 	}
 	var target cube.Pos
-	var b ConduitBundle
+	var b Bundle
 	found := false
 	try := func(at cube.Pos) bool {
 		if at.OutOfBounds(tx.Range()) {
 			return false
 		}
-		if cur, ok := tx.Block(at).(ConduitBundle); ok {
+		if cur, ok := tx.Block(at).(Bundle); ok {
 			if !add(&cur) {
 				return false
 			}
@@ -423,12 +460,12 @@ func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ct
 		if !replaceableByConduit(tx.Block(at)) {
 			return false
 		}
-		var fresh ConduitBundle
+		var fresh Bundle
 		add(&fresh)
 		target, b, found = at, fresh, true
 		return true
 	}
-	_, clickedBundle := tx.Block(pos).(ConduitBundle)
+	_, clickedBundle := tx.Block(pos).(Bundle)
 	switch {
 	case clickedBundle && !sneaking:
 		try(pos)
@@ -452,9 +489,9 @@ func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ct
 		tx.SetBlock(target, b, nil)
 		ctx.SubtractFromCount(1)
 	}
-	if got, ok := tx.Block(target).(ConduitBundle); ok {
-		if s, ok := activeGame.sessionOf(tx.World()); ok {
-			s.showConduit(tx, target, got)
+	if got, ok := tx.Block(target).(Bundle); ok {
+		if s, ok := core.Of(tx); ok {
+			showConduit(s, tx, target, got)
 		}
 	}
 	if side := pos.Side(face); target != side {
@@ -471,21 +508,28 @@ func replaceableByConduit(b world.Block) bool {
 		return true
 	}
 	r, ok := b.(block.Replaceable)
-	return ok && r.ReplaceableBy(ConduitBundle{Energy: 1})
-}
-
-func init() {
-	world.RegisterBlock(ConduitBundle{})
-	for t := 1; t <= conduitTiers; t++ {
-		world.RegisterBlock(EnergyConduit{Tier: t})
-		world.RegisterBlock(ItemConduit{Tier: t})
-		world.RegisterBlock(FluidConduit{Tier: t})
-		world.RegisterItem(EnergyConduit{Tier: t})
-		world.RegisterItem(ItemConduit{Tier: t})
-		world.RegisterItem(FluidConduit{Tier: t})
-	}
+	return ok && r.ReplaceableBy(Bundle{Energy: 1})
 }
 
 // LightDiffusionLevel makes a bundle transparent to light: a chest under it
 // opens only if the block above diffuses little light (block.Chest.Activate).
-func (ConduitBundle) LightDiffusionLevel() uint8 { return 0 }
+func (Bundle) LightDiffusionLevel() uint8 { return 0 }
+
+// conduitsLocal is what a running save keeps for its conduits.
+type conduitsLocal struct {
+	// visuals are the display entities of the conduit bundles by position
+	// (conduitvisual.go).
+	Visuals map[cube.Pos]*world.EntityHandle
+	// plates are the connector plate entities of the bundles (conduitplate.go).
+	Plates map[PlateKey]*world.EntityHandle
+	// plateTurn is the side of the last connector plate form each player was
+	// shown by clicking a conduit where no plate sits (nextPlateSide).
+	plateTurn map[uuid.UUID]int
+}
+
+var conduitsPart = core.NewPart(func() *conduitsLocal {
+	return &conduitsLocal{Visuals: map[cube.Pos]*world.EntityHandle{}, Plates: map[PlateKey]*world.EntityHandle{}, plateTurn: map[uuid.UUID]int{}}
+})
+
+// LocalOf is what the save of s keeps for its conduits.
+func LocalOf(s *core.Session) *conduitsLocal { return conduitsPart.Of(s) }

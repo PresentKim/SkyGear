@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
@@ -86,7 +88,7 @@ func withCard(st item.Stack, c *configCard, lang string) item.Stack {
 func (c configCard) describe(lang string) string {
 	switch c.Kind {
 	case cardSide:
-		return fmt.Sprintf(i18n.T(lang, "copier.card.side"), i18n.T(lang, "conduitplate.side."+sideName(conduitFaces[c.Side])), conduitSummary(lang, c.Sides[0]))
+		return fmt.Sprintf(i18n.T(lang, "copier.card.side"), i18n.T(lang, "conduitplate.side."+conduit.SideName(conduit.Faces[c.Side])), conduitSummary(lang, c.Sides[0]))
 	case cardBundle:
 		n := 0
 		for _, s := range c.Sides {
@@ -110,10 +112,10 @@ func conduitSummary(lang string, c *conduitCard) string {
 	mode := itemnet.Mode(c.Mode)
 	var parts []string
 	if mode.Gives() {
-		parts = append(parts, i18n.T(lang, "conduitplate.extract")+" "+channelName(lang, c.Extract))
+		parts = append(parts, i18n.T(lang, "conduitplate.extract")+" "+conduit.ChannelName(lang, c.Extract))
 	}
 	if mode.Takes() {
-		parts = append(parts, i18n.T(lang, "conduitplate.insert")+" "+channelName(lang, c.Insert))
+		parts = append(parts, i18n.T(lang, "conduitplate.insert")+" "+conduit.ChannelName(lang, c.Insert))
 	}
 	if len(parts) == 0 {
 		return i18n.T(lang, "conduitplate.off")
@@ -133,15 +135,15 @@ func joinDot(parts []string) string {
 }
 
 // sideCard reads the settings of a side of a bundle.
-func sideCard(b ConduitBundle, side int) *conduitCard {
-	f := conduitFaces[side]
+func sideCard(b conduit.Bundle, side int) *conduitCard {
+	f := conduit.Faces[side]
 	return &conduitCard{Mode: int(b.Modes[f]), Extract: b.Extract[f], Insert: b.Insert[f]}
 }
 
 // hasItemPlate reports whether a side of the bundle has an item conduit
 // connected to something: the sides that have settings.
-func hasItemPlate(tx *world.Tx, pos cube.Pos, b ConduitBundle, side int) bool {
-	for _, k := range plateKinds(tx, pos, b, side) {
+func hasItemPlate(tx *world.Tx, pos cube.Pos, b conduit.Bundle, side int) bool {
+	for _, k := range conduit.PlateKinds(tx, pos, b, side) {
 		if k == 1 {
 			return true
 		}
@@ -160,15 +162,15 @@ type copyTarget struct {
 // plate or a side of a bundle that has one, the body of a bundle, an auto
 // crafter or a drawer.
 func targetOf(tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) (copyTarget, bool) {
-	if at, b, side, ok := plateHit(tx, pos, face, clickPos); ok && hasItemPlate(tx, at, b, side) {
+	if at, b, side, ok := conduit.PlateHit(tx, pos, face, clickPos); ok && hasItemPlate(tx, at, b, side) {
 		return copyTarget{cardSide, at, side}, true
 	}
 	switch b := tx.Block(pos).(type) {
-	case ConduitBundle:
-		if side := faceIndex(face); hasItemPlate(tx, pos, b, side) {
+	case conduit.Bundle:
+		if side := conduit.FaceIndex(face); hasItemPlate(tx, pos, b, side) {
 			return copyTarget{cardSide, pos, side}, true
 		}
-		for side := range conduitFaces {
+		for side := range conduit.Faces {
 			if hasItemPlate(tx, pos, b, side) {
 				return copyTarget{cardBundle, pos, 0}, true
 			}
@@ -187,12 +189,12 @@ func targetOf(tx *world.Tx, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) (
 func readCard(tx *world.Tx, t copyTarget) (*configCard, bool) {
 	switch t.kind {
 	case cardSide:
-		b := tx.Block(t.pos).(ConduitBundle)
+		b := tx.Block(t.pos).(conduit.Bundle)
 		return &configCard{Kind: cardSide, Side: t.side, Sides: []*conduitCard{sideCard(b, t.side)}}, true
 	case cardBundle:
-		b := tx.Block(t.pos).(ConduitBundle)
+		b := tx.Block(t.pos).(conduit.Bundle)
 		c := &configCard{Kind: cardBundle, Sides: make([]*conduitCard, 6)}
-		for side := range conduitFaces {
+		for side := range conduit.Faces {
 			if hasItemPlate(tx, t.pos, b, side) {
 				c.Sides[side] = sideCard(b, side)
 			}
@@ -232,12 +234,12 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 		if src == nil {
 			return false
 		}
-		b := tx.Block(t.pos).(ConduitBundle)
+		b := tx.Block(t.pos).(conduit.Bundle)
 		setSide(&b, t.side, src)
-		s.storeConduitSide(tx, t.pos, b)
+		conduit.StoreSide(s.Session, tx, t.pos, b)
 		return true
 	case t.kind == cardBundle && c.Kind == cardBundle:
-		b := tx.Block(t.pos).(ConduitBundle)
+		b := tx.Block(t.pos).(conduit.Bundle)
 		changed := false
 		for side, sd := range c.Sides {
 			if sd != nil && hasItemPlate(tx, t.pos, b, side) {
@@ -246,7 +248,7 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 			}
 		}
 		if changed {
-			s.storeConduitSide(tx, t.pos, b)
+			conduit.StoreSide(s.Session, tx, t.pos, b)
 		}
 		return changed
 	case t.kind == cardCrafter && c.Kind == cardCrafter:
@@ -271,8 +273,8 @@ func (s *session) pasteCard(tx *world.Tx, t copyTarget, c configCard) bool {
 }
 
 // setSide writes the settings of a side to a bundle.
-func setSide(b *ConduitBundle, side int, c *conduitCard) {
-	f := conduitFaces[side]
+func setSide(b *conduit.Bundle, side int, c *conduitCard) {
+	f := conduit.Faces[side]
 	b.Modes[f] = itemnet.Mode(c.Mode)
 	b.Extract[f], b.Insert[f] = c.Extract, c.Insert
 }

@@ -1,4 +1,4 @@
-package skygear
+package conduit
 
 import (
 	"github.com/df-mc/dragonfly/server/world"

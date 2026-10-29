@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -103,10 +105,10 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range machine.Order {
 		out[k] = func() item.Stack { return machine.Item(k) }
 	}
-	for t := 1; t <= conduitTiers; t++ {
-		out[fmt.Sprintf("energy_conduit_%d", t)] = func() item.Stack { return item.NewStack(EnergyConduit{Tier: t}, 1) }
-		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(ItemConduit{Tier: t}, 1) }
-		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(FluidConduit{Tier: t}, 1) }
+	for t := 1; t <= conduit.Tiers; t++ {
+		out[fmt.Sprintf("energy_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.EnergyConduit{Tier: t}, 1) }
+		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.ItemConduit{Tier: t}, 1) }
+		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.FluidConduit{Tier: t}, 1) }
 	}
 	out["mycelium_spores"] = func() item.Stack { return item.NewStack(sgitem.MyceliumSpores{}, 1) }
 	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(sgitem.WitchWaterBucket{}, 1) }

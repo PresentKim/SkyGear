@@ -3,6 +3,8 @@ package skygear
 import (
 	"sync"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -45,10 +47,10 @@ func registerCreativeItems() {
 		for _, w := range barrelWoods {
 			add(construction, Barrel{Wood: w})
 		}
-		for t := 1; t <= conduitTiers; t++ {
-			add(construction, EnergyConduit{Tier: t})
-			add(construction, ItemConduit{Tier: t})
-			add(construction, FluidConduit{Tier: t})
+		for t := 1; t <= conduit.Tiers; t++ {
+			add(construction, conduit.EnergyConduit{Tier: t})
+			add(construction, conduit.ItemConduit{Tier: t})
+			add(construction, conduit.FluidConduit{Tier: t})
 		}
 		for _, k := range machine.Order {
 			if k != machine.KindSellBox {

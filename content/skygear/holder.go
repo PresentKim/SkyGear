@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 )
 
 // ItemHolder is the display entity of drawers: it holds
@@ -154,5 +155,5 @@ func (holderType) EncodeNBT(*world.EntityData) map[string]any      { return nil 
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), HolderType, FairyType, VisualType, PlateType, GatePortalType), MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), HolderType, FairyType, conduit.VisualType, conduit.PlateType, GatePortalType), MonsterTypes()...)
 }

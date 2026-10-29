@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -241,7 +243,7 @@ func TestHandsFreeLine(t *testing.T) {
 		h.Facing = cube.FaceDown
 		tx.SetBlock(hopperPos, h, nil)
 		tx.SetBlock(chestPos, block.NewChest(), nil)
-		c := ConduitBundle{Item: 1}
+		c := conduit.Bundle{Item: 1}
 		c.Modes[cube.FaceWest] = itemnet.Input
 		c.Modes[cube.FaceEast] = itemnet.Output
 		tx.SetBlock(conduitPos, c, nil)
@@ -561,7 +563,7 @@ func TestFluidLine(t *testing.T) {
 		t.Fatalf("crucible holds %v %d, want %d lava", crucible.Fluid, crucible.FluidAmt, 4*machine.CrucibleLava)
 	}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Fluid: 1}, nil)
+		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), conduit.Bundle{Fluid: 1}, nil)
 		network.Fluids(s.Session).AddConduit(machinePos.Add(cube.Pos{1, 0, 0}))
 		if moved := network.Fluids(s.Session).Step(tx); moved != 4*machine.CrucibleLava {
 			t.Errorf("moved %d, want %d", moved, 4*machine.CrucibleLava)

@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/decor"
@@ -631,15 +633,15 @@ func gameRecipes() {
 		gravel, sand, gravel,
 		sand, gravel, sand)
 	redstone, nugget := item.RedstoneWire{}, item.IronNugget{}
-	shaped(item.NewStack(EnergyConduit{Tier: 1}, 8), 3, 3,
+	shaped(item.NewStack(conduit.EnergyConduit{Tier: 1}, 8), 3, 3,
 		binder, binder, binder,
 		redstone, redstone, redstone,
 		binder, binder, binder)
-	shaped(item.NewStack(ItemConduit{Tier: 1}, 8), 3, 3,
+	shaped(item.NewStack(conduit.ItemConduit{Tier: 1}, 8), 3, 3,
 		binder, binder, binder,
 		nugget, block.NewChest(), nugget,
 		binder, binder, binder)
-	shaped(item.NewStack(FluidConduit{Tier: 1}, 8), 3, 3,
+	shaped(item.NewStack(conduit.FluidConduit{Tier: 1}, 8), 3, 3,
 		binder, binder, binder,
 		block.Glass{}, block.Glass{}, block.Glass{},
 		binder, binder, binder)
@@ -668,11 +670,11 @@ func gameRecipes() {
 	// for the third tier, a steel ingot and a diamond (3).
 	for _, tier := range []int{2, 3} {
 		for _, kind := range []string{"energy", "item", "fluid"} {
-			below := conduitOf(kind, tier-1)
+			below := conduit.Of(kind, tier-1)
 			if tier == 2 {
-				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(sgitem.Ingot{Metal: sgitem.MetalElectrum}, 1))
+				add(st(conduit.Of(kind, tier)), []recipe.Item{st(below)}, n(sgitem.Ingot{Metal: sgitem.MetalElectrum}, 1))
 			} else {
-				add(st(conduitOf(kind, tier)), []recipe.Item{st(below)}, n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1), n(item.Diamond{}, 1))
+				add(st(conduit.Of(kind, tier)), []recipe.Item{st(below)}, n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1), n(item.Diamond{}, 1))
 			}
 		}
 	}

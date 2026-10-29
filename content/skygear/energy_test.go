@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -75,8 +77,8 @@ func TestPowerLine(t *testing.T) {
 	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher, "")
 	crusher.Unlimited = false
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), ConduitBundle{Energy: 1}, nil)
-		tx.SetBlock(machinePos.Add(cube.Pos{2, 0, 0}), ConduitBundle{Energy: 1}, nil)
+		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), conduit.Bundle{Energy: 1}, nil)
+		tx.SetBlock(machinePos.Add(cube.Pos{2, 0, 0}), conduit.Bundle{Energy: 1}, nil)
 	})
 	_ = crusher.Insert(item.NewStack(block.Cobblestone{}, 3))
 	runSteps(s, 30)
@@ -96,7 +98,7 @@ func TestPowerLine(t *testing.T) {
 	}
 	// The conduits showed their arms.
 	s.World.Do(func(tx *world.Tx) {
-		c := tx.Block(machinePos.Add(cube.Pos{1, 0, 0})).(ConduitBundle)
+		c := tx.Block(machinePos.Add(cube.Pos{1, 0, 0})).(conduit.Bundle)
 		want := 1<<4 | 1<<5 // west (the generator) and east (the next conduit)
 		if c.EConn != want || c.IConn != 0 {
 			t.Errorf("conduit connections %b %b, want %b", c.EConn, c.IConn, want)
@@ -113,13 +115,13 @@ func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher, "")
 	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve, "")
 	s.World.Do(func(tx *world.Tx) {
-		if joinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
+		if conduit.JoinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
 			t.Error("a conduit joins a hand sieve")
 		}
-		if !joinsEnergy(tx.Block(machinePos.Add(cube.Pos{1, 0, 0}))) {
+		if !conduit.JoinsEnergy(tx.Block(machinePos.Add(cube.Pos{1, 0, 0}))) {
 			t.Error("a conduit does not join a crusher")
 		}
-		if joinsEnergy(block.Stone{}) {
+		if conduit.JoinsEnergy(block.Stone{}) {
 			t.Error("a conduit joins stone")
 		}
 		if src, snk := energy.RolesOf(machine.Machine{Kind: machine.KindCrusher}); src != nil || snk != nil {
@@ -133,23 +135,23 @@ func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
 // client's float32 molang exactly.
 func TestConduitLookCodes(t *testing.T) {
 	seen := map[[2]int32]bool{}
-	for e := 0; e <= conduitTiers; e++ {
-		for i := 0; i <= conduitTiers; i++ {
+	for e := 0; e <= conduit.Tiers; e++ {
+		for i := 0; i <= conduit.Tiers; i++ {
 			for ec := range 64 {
 				for ic := range 64 {
-					b := ConduitBundle{Energy: e, Item: i}
+					b := conduit.Bundle{Energy: e, Item: i}
 					if e > 0 {
 						b.EConn = ec
 					}
 					if i > 0 {
 						b.IConn = ic
 					}
-					v, m := conduitLook(b)
-					if v < 0 || v >= conduitCodes*conduitCodes || m != 0 {
+					v, m := conduit.Look(b)
+					if v < 0 || v >= conduit.Codes*conduit.Codes || m != 0 {
 						t.Fatalf("look %d %d out of range", v, m)
 					}
 					// the render controller's way of taking it apart
-					ecode, icode := v%conduitCodes, v/conduitCodes
+					ecode, icode := v%conduit.Codes, v/conduit.Codes
 					if (ecode > 0) != (e > 0) || (icode > 0) != (i > 0) {
 						t.Fatalf("presence lost in %d for %d %d", v, e, i)
 					}
@@ -183,7 +185,7 @@ func TestItemConduitMovesItems(t *testing.T) {
 		tx.SetBlock(from, block.NewChest(), nil)
 		tx.SetBlock(to, block.NewChest(), nil)
 		_, _ = tx.Block(from).(block.Chest).Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 64))
-		c := ConduitBundle{Item: 1}
+		c := conduit.Bundle{Item: 1}
 		c.Modes[cube.FaceWest] = itemnet.Input
 		c.Modes[cube.FaceEast] = itemnet.Output
 		tx.SetBlock(mid, c, nil)
@@ -197,7 +199,7 @@ func TestItemConduitMovesItems(t *testing.T) {
 		if got != itemnet.RateOf(1) {
 			t.Errorf("%d stone moved in one second, want %d", got, itemnet.RateOf(1))
 		}
-		c := tx.Block(mid).(ConduitBundle)
+		c := tx.Block(mid).(conduit.Bundle)
 		if c.Modes[cube.FaceWest] != itemnet.Input || c.Modes[cube.FaceEast] != itemnet.Output {
 			t.Errorf("modes after refreshing: %v", c.Modes)
 		}
@@ -223,21 +225,21 @@ func TestConduitsShareABundle(t *testing.T) {
 			ctx := &item.UseContext{}
 			return it.(item.UsableOnBlock).UseOnBlock(at, face, mgl64.Vec3{}, tx, p, ctx)
 		}
-		if !use(EnergyConduit{Tier: 2}, pos.Side(cube.FaceWest), cube.FaceEast) {
+		if !use(conduit.EnergyConduit{Tier: 2}, pos.Side(cube.FaceWest), cube.FaceEast) {
 			t.Fatal("the energy conduit was not placed")
 		}
-		b, ok := tx.Block(pos).(ConduitBundle)
+		b, ok := tx.Block(pos).(conduit.Bundle)
 		if !ok || b.Energy != 2 || b.Item != 0 {
 			t.Fatalf("placed %#v", tx.Block(pos))
 		}
-		if !use(ItemConduit{Tier: 3}, pos, cube.FaceUp) {
+		if !use(conduit.ItemConduit{Tier: 3}, pos, cube.FaceUp) {
 			t.Fatal("the item conduit was not put into the bundle")
 		}
-		b = tx.Block(pos).(ConduitBundle)
+		b = tx.Block(pos).(conduit.Bundle)
 		if b.Energy != 2 || b.Item != 3 || tx.Block(pos.Side(cube.FaceUp)) != (block.Air{}) {
 			t.Fatalf("bundle %#v, above %#v", b, tx.Block(pos.Side(cube.FaceUp)))
 		}
-		if use(EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
+		if use(conduit.EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
 			t.Error("a second energy conduit went into a full bundle")
 		}
 		if _, ok := energy.IsConduit(b); !ok {
@@ -246,10 +248,10 @@ func TestConduitsShareABundle(t *testing.T) {
 		if _, ok := itemnet.IsConduit(b); !ok {
 			t.Error("the bundle is no item conduit")
 		}
-		if _, ok := energy.IsConduit(ConduitBundle{Item: 1}); ok {
+		if _, ok := energy.IsConduit(conduit.Bundle{Item: 1}); ok {
 			t.Error("a bundle with only an item conduit carries energy")
 		}
-		if _, ok := itemnet.IsConduit(ConduitBundle{Energy: 1}); ok {
+		if _, ok := itemnet.IsConduit(conduit.Bundle{Energy: 1}); ok {
 			t.Error("a bundle with only an energy conduit carries items")
 		}
 		if drops := b.BreakInfo().Drops(item.Tool(nil), nil); len(drops) != 2 {
@@ -267,7 +269,7 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 	h := spawnPlayer(s)
 	pos := machinePos.Add(cube.Pos{1, 0, 0})
 	look := func(tx *world.Tx) (int32, bool) {
-		handle, ok := s.visuals[pos]
+		handle, ok := conduit.LocalOf(s.Session).Visuals[pos]
 		if !ok {
 			return 0, false
 		}
@@ -275,7 +277,7 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 		if !ok {
 			return 0, false
 		}
-		return e.(*ConduitVisual).Variant(), true
+		return e.(*conduit.Visual).Variant(), true
 	}
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		use := func(it world.Item, at cube.Pos, face cube.Face) {
@@ -283,33 +285,33 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 			ctx := &item.UseContext{}
 			it.(item.UsableOnBlock).UseOnBlock(at, face, mgl64.Vec3{}, tx, p, ctx)
 		}
-		use(EnergyConduit{Tier: 2}, pos.Side(cube.FaceWest), cube.FaceEast)
-		if v, ok := look(tx); !ok || v != conduitCode(2, 0) {
-			t.Fatalf("look %d (%v) after placing an energy conduit, want %d", v, ok, conduitCode(2, 0))
+		use(conduit.EnergyConduit{Tier: 2}, pos.Side(cube.FaceWest), cube.FaceEast)
+		if v, ok := look(tx); !ok || v != conduit.Code(2, 0) {
+			t.Fatalf("look %d (%v) after placing an energy conduit, want %d", v, ok, conduit.Code(2, 0))
 		}
-		use(ItemConduit{Tier: 1}, pos, cube.FaceUp)
-		if v, ok := look(tx); !ok || v != conduitCode(2, 0)+conduitCodes*conduitCode(1, 0) {
+		use(conduit.ItemConduit{Tier: 1}, pos, cube.FaceUp)
+		if v, ok := look(tx); !ok || v != conduit.Code(2, 0)+conduit.Codes*conduit.Code(1, 0) {
 			t.Fatalf("look %d (%v) after adding an item conduit", v, ok)
 		}
 		// A chest beside it: the item conduit reaches for it, the energy one does not.
 		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), nil)
-		b := tx.Block(pos).(ConduitBundle)
-		b.refresh(pos, tx)
-		b = tx.Block(pos).(ConduitBundle)
+		b := tx.Block(pos).(conduit.Bundle)
+		b.Refresh(pos, tx)
+		b = tx.Block(pos).(conduit.Bundle)
 		if b.Modes[cube.FaceEast] != itemnet.Off || b.IConn != 0 {
 			t.Fatalf("a new item conduit reaches the chest: mode %v, connections %b", b.Modes[cube.FaceEast], b.IConn)
 		}
 		b.Modes[cube.FaceEast] = itemnet.Both
 		tx.SetBlock(pos, b, nil)
-		b.refresh(pos, tx)
-		b = tx.Block(pos).(ConduitBundle)
+		b.Refresh(pos, tx)
+		b = tx.Block(pos).(conduit.Bundle)
 		if b.EConn != 0 || b.IConn != 1<<5 {
 			t.Fatalf("connections energy %b item %b, want only the item conduit towards the chest", b.EConn, b.IConn)
 		}
-		if v, _ := look(tx); v != conduitCode(2, 0)+conduitCodes*conduitCode(1, 1<<5) {
+		if v, _ := look(tx); v != conduit.Code(2, 0)+conduit.Codes*conduit.Code(1, 1<<5) {
 			t.Errorf("look %d after the chest came", v)
 		}
-		s.removeVisual(tx, pos)
+		conduit.RemoveVisual(s.Session, tx, pos)
 		if _, ok := look(tx); ok {
 			t.Error("the entity stayed after the bundle was removed")
 		}
@@ -331,27 +333,27 @@ func TestConduitPlacementWays(t *testing.T) {
 			p.SetHeldItems(item.NewStack(it, 8), item.Stack{})
 			return it.(item.UsableOnBlock).UseOnBlock(at, face, mgl64.Vec3{}, tx, p, &item.UseContext{})
 		}
-		tx.SetBlock(pos, ConduitBundle{Energy: 1}, nil)
+		tx.SetBlock(pos, conduit.Bundle{Energy: 1}, nil)
 		// the same kind on the bundle does nothing
-		if use(EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
+		if use(conduit.EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
 			t.Fatal("an energy conduit went into a bundle that has one")
 		}
-		if _, ok := tx.Block(pos.Side(cube.FaceUp)).(ConduitBundle); ok {
+		if _, ok := tx.Block(pos.Side(cube.FaceUp)).(conduit.Bundle); ok {
 			t.Fatal("a conduit was placed above while standing")
 		}
 		// sneaking: the bundle is the ground
 		p.StartSneaking()
-		if !use(EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
+		if !use(conduit.EnergyConduit{Tier: 1}, pos, cube.FaceUp) {
 			t.Fatal("a sneaking player could not place on a bundle")
 		}
-		if b, ok := tx.Block(pos.Side(cube.FaceUp)).(ConduitBundle); !ok || b.Energy != 1 {
+		if b, ok := tx.Block(pos.Side(cube.FaceUp)).(conduit.Bundle); !ok || b.Energy != 1 {
 			t.Fatalf("above the bundle: %#v", tx.Block(pos.Side(cube.FaceUp)))
 		}
 		// sneaking with a kind the bundle lacks still places beside it
-		if !use(ItemConduit{Tier: 1}, pos, cube.FaceNorth) {
+		if !use(conduit.ItemConduit{Tier: 1}, pos, cube.FaceNorth) {
 			t.Fatal("could not place beside while sneaking")
 		}
-		if b, ok := tx.Block(pos.Side(cube.FaceNorth)).(ConduitBundle); !ok || b.Item != 1 || b.Energy != 0 {
+		if b, ok := tx.Block(pos.Side(cube.FaceNorth)).(conduit.Bundle); !ok || b.Item != 1 || b.Energy != 0 {
 			t.Fatalf("beside the bundle: %#v", tx.Block(pos.Side(cube.FaceNorth)))
 		}
 		p.StopSneaking()
@@ -359,14 +361,14 @@ func TestConduitPlacementWays(t *testing.T) {
 		// on its west face, puts the conduit into the bundle in front of it
 		stone := pos.Side(cube.FaceEast)
 		tx.SetBlock(stone, block.Stone{}, nil)
-		if !use(FluidConduit{Tier: 1}, stone, cube.FaceWest) {
+		if !use(conduit.FluidConduit{Tier: 1}, stone, cube.FaceWest) {
 			t.Fatal("clicking the block behind a conduit placed nothing")
 		}
-		if b := tx.Block(pos).(ConduitBundle); b.Fluid != 1 || b.Energy != 1 {
+		if b := tx.Block(pos).(conduit.Bundle); b.Fluid != 1 || b.Energy != 1 {
 			t.Fatalf("the bundle in front of the block: %#v", b)
 		}
 		// and with no room there nothing is placed
-		if use(FluidConduit{Tier: 1}, stone, cube.FaceWest) {
+		if use(conduit.FluidConduit{Tier: 1}, stone, cube.FaceWest) {
 			t.Error("a second fluid conduit went into the bundle")
 		}
 	})
@@ -382,21 +384,21 @@ func TestConduitPlates(t *testing.T) {
 	pos := machinePos.Add(cube.Pos{1, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(machinePos, block.NewChest(), nil)
-		b := ConduitBundle{Item: 1, Energy: 1}
+		b := conduit.Bundle{Item: 1, Energy: 1}
 		b.Modes[cube.FaceWest] = itemnet.Input
 		b.Extract[cube.FaceWest], b.Insert[cube.FaceWest] = 5, 9
 		tx.SetBlock(pos, b, nil)
-		b.refresh(pos, tx)
-		west := plateKey{pos, 4}
-		h, ok := s.plates[west]
-		if !ok || len(s.plates) != 1 {
-			t.Fatalf("plates %v, want one on the west side", s.plates)
+		b.Refresh(pos, tx)
+		west := conduit.PlateKey{Pos: pos, Side: 4}
+		h, ok := conduit.LocalOf(s.Session).Plates[west]
+		if !ok || len(conduit.LocalOf(s.Session).Plates) != 1 {
+			t.Fatalf("plates %v, want one on the west side", conduit.LocalOf(s.Session).Plates)
 		}
 		e, alive := h.Entity(tx)
 		if !alive {
 			t.Fatal("the plate entity is gone")
 		}
-		plate := e.(*ConduitPlate)
+		plate := e.(*conduit.Plate)
 		want := int32(4 + 6*2 + 48*int(itemnet.Input) + 192*5 + 3072*9)
 		if plate.Variant() != want || plate.MarkVariant() != 1+4*1 {
 			t.Errorf("look %d %d, want %d %d", plate.Variant(), plate.MarkVariant(), want, 5)
@@ -405,30 +407,30 @@ func TestConduitPlates(t *testing.T) {
 			t.Errorf("the plate stands at %v", plate.Position())
 		}
 		// a click on the chest's east face in the middle is on the plate, one near the edge is not
-		if _, _, side, ok := plateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.55}); !ok || side != 4 {
+		if _, _, side, ok := conduit.PlateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.55}); !ok || side != 4 {
 			t.Errorf("a click in the middle missed the plate (side %d, %v)", side, ok)
 		}
-		if _, _, _, ok := plateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.95}); ok {
+		if _, _, _, ok := conduit.PlateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.95}); ok {
 			t.Error("a click near the edge hit the plate")
 		}
-		if _, _, _, ok := plateHit(tx, machinePos, cube.FaceNorth, mgl64.Vec3{0.5, 0.5, 0}); ok {
+		if _, _, _, ok := conduit.PlateHit(tx, machinePos, cube.FaceNorth, mgl64.Vec3{0.5, 0.5, 0}); ok {
 			t.Error("a click on a face with no conduit hit a plate")
 		}
 		// the settings survive the NBT
-		back := ConduitBundle{}.DecodeNBT(b.EncodeNBT()).(ConduitBundle)
+		back := conduit.Bundle{}.DecodeNBT(b.EncodeNBT()).(conduit.Bundle)
 		if back.Extract[cube.FaceWest] != 5 || back.Insert[cube.FaceWest] != 9 || back.Modes[cube.FaceWest] != itemnet.Input {
 			t.Errorf("after NBT: %v %v %v", back.Extract, back.Insert, back.Modes)
 		}
 		// switching the side off keeps its plate
 		b.Modes[cube.FaceWest] = itemnet.Off
 		tx.SetBlock(pos, b, nil)
-		b.refresh(pos, tx)
-		if _, ok := s.plates[west]; !ok {
+		b.Refresh(pos, tx)
+		if _, ok := conduit.LocalOf(s.Session).Plates[west]; !ok {
 			t.Error("an off side lost its plate")
 		}
-		s.removeVisual(tx, pos)
-		if len(s.plates) != 0 {
-			t.Errorf("plates left after the bundle went: %v", s.plates)
+		conduit.RemoveVisual(s.Session, tx, pos)
+		if len(conduit.LocalOf(s.Session).Plates) != 0 {
+			t.Errorf("plates left after the bundle went: %v", conduit.LocalOf(s.Session).Plates)
 		}
 	})
 }
@@ -455,31 +457,31 @@ func TestPlateFormsOpen(t *testing.T) {
 	pos := machinePos.Add(cube.Pos{1, 0, 0})
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(machinePos, block.NewChest(), nil)
-		tx.SetBlock(pos, ConduitBundle{Item: 1, Energy: 1}, nil)
-		b := tx.Block(pos).(ConduitBundle)
-		b.refresh(pos, tx)
-		s.showPlateForm(p, tx, pos, 4)
-		s.showConduitSides(p, tx, pos, 4)
-		board := s.conduitSideBoard(p, tx, pos, 4)
+		tx.SetBlock(pos, conduit.Bundle{Item: 1, Energy: 1}, nil)
+		b := tx.Block(pos).(conduit.Bundle)
+		b.Refresh(pos, tx)
+		conduit.ShowPlateForm(s.Session, p, tx, pos, 4)
+		conduit.ShowSides(s.Session, p, tx, pos, 4)
+		board := conduit.SideBoard(s.Session, p, tx, pos, 4)
 		west := board.Sides[cube.FaceWest].Ports
 		if len(west) != 2 || len(west[1].Choices) != itemnet.Channels+1 || west[1].Choices[0].Colour != "" || west[1].Choices[1].Colour == "" {
 			t.Fatalf("west side ports %v", west)
 		}
 		west[1].Choices[2].Run(p, tx)
-		if got := tx.Block(pos).(ConduitBundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
+		if got := tx.Block(pos).(conduit.Bundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
 			t.Errorf("chose extract channel: %v %v", got.Modes, got.Extract)
 		}
-		s.showPlateForm(p, tx, pos, 0) // no plate below
-		s.setPlateState(tx, pos, cube.FaceWest, true, 2)
-		if got := tx.Block(pos).(ConduitBundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
+		conduit.ShowPlateForm(s.Session, p, tx, pos, 0) // no plate below
+		conduit.SetPlateState(s.Session, tx, pos, cube.FaceWest, true, 2)
+		if got := tx.Block(pos).(conduit.Bundle); !got.Modes[cube.FaceWest].Gives() || got.Extract[cube.FaceWest] != 1 {
 			t.Errorf("set extract channel: %v %v", got.Modes, got.Extract)
 		}
 		// the form's changes are stored as modes and channels
-		b = tx.Block(pos).(ConduitBundle)
+		b = tx.Block(pos).(conduit.Bundle)
 		b.Modes[cube.FaceWest] = itemnet.ModeOf(false, true)
 		b.Insert[cube.FaceWest] = 3
-		s.storeConduitSide(tx, pos, b)
-		got := tx.Block(pos).(ConduitBundle)
+		conduit.StoreSide(s.Session, tx, pos, b)
+		got := tx.Block(pos).(conduit.Bundle)
 		if got.Modes[cube.FaceWest] != itemnet.Output || got.Insert[cube.FaceWest] != 3 {
 			t.Errorf("stored %v %v", got.Modes, got.Insert)
 		}
@@ -490,12 +492,12 @@ func TestPlateFormsOpen(t *testing.T) {
 // shaped like the 9 pixels its conduits take, not a full block; fluid conduits
 // move EnderIO's 200, 1000 and 8000 mB a tick.
 func TestConduitBlockSizes(t *testing.T) {
-	for name, props := range map[string]customblock.Properties{"bundle": ConduitBundle{}.Properties()} {
-		if props.CollisionBox != bundleSelection || props.SelectionBox != bundleSelection {
-			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, bundleSelection)
+	for name, props := range map[string]customblock.Properties{"bundle": conduit.Bundle{}.Properties()} {
+		if props.CollisionBox != conduit.BundleSelection || props.SelectionBox != conduit.BundleSelection {
+			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, conduit.BundleSelection)
 		}
 	}
-	box := bundleSelection
+	box := conduit.BundleSelection
 	if w := (box.Max()[0] - box.Min()[0]) * 16; w < 8.99 || w > 9.01 {
 		t.Errorf("the box is %v pixels wide", w)
 	}
@@ -516,9 +518,9 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 	pos := machinePos.Add(cube.Pos{1, 0, 0})
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(machinePos, block.NewChest(), nil)
-		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
-		b := tx.Block(pos).(ConduitBundle)
-		b.refresh(pos, tx)
+		tx.SetBlock(pos, conduit.Bundle{Item: 1}, nil)
+		b := tx.Block(pos).(conduit.Bundle)
+		b.Refresh(pos, tx)
 		click := func(at cube.Pos, face cube.Face, held item.Stack, sneak bool) bool {
 			p.SetHeldItems(held, item.Stack{})
 			if sneak {
@@ -545,10 +547,10 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 		if !click(pos, cube.FaceUp, stone, false) {
 			t.Error("a block in hand: the conduit did not open the settings")
 		}
-		if !click(pos, cube.FaceUp, item.NewStack(ItemConduit{Tier: 1}, 1), false) {
+		if !click(pos, cube.FaceUp, item.NewStack(conduit.ItemConduit{Tier: 1}, 1), false) {
 			t.Error("an item conduit in hand: the conduit that has one did not open the settings")
 		}
-		if click(pos, cube.FaceUp, item.NewStack(EnergyConduit{Tier: 1}, 1), false) {
+		if click(pos, cube.FaceUp, item.NewStack(conduit.EnergyConduit{Tier: 1}, 1), false) {
 			t.Error("an energy conduit in hand did not go into the conduit")
 		}
 		if click(pos, cube.FaceUp, stone, true) || click(machinePos, cube.FaceEast, pick, true) {
@@ -561,19 +563,19 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 // channel's colour when on; every state has an icon and every channel its own
 // colour square.
 func TestChannelItems(t *testing.T) {
-	if _, ok := channelItem(0).(block.Barrier); !ok {
-		t.Errorf("off shows %T", channelItem(0))
+	if _, ok := conduit.ChannelItem(0).(block.Barrier); !ok {
+		t.Errorf("off shows %T", conduit.ChannelItem(0))
 	}
 	colours := map[string]bool{}
 	for c := range itemnet.Channels {
-		got, ok := channelItem(1 + c).(block.Concrete)
-		if !ok || got.Colour != channelColours[c] {
-			t.Errorf("channel %d shows %v", c, channelItem(1+c))
+		got, ok := conduit.ChannelItem(1 + c).(block.Concrete)
+		if !ok || got.Colour != conduit.ChannelColours[c] {
+			t.Errorf("channel %d shows %v", c, conduit.ChannelItem(1+c))
 		}
-		if ui.ItemIcon(channelItem(1+c)) == "" {
+		if ui.ItemIcon(conduit.ChannelItem(1+c)) == "" {
 			t.Errorf("channel %d has no icon", c)
 		}
-		colours[channelColour(c)] = true
+		colours[conduit.ChannelColour(c)] = true
 	}
 	if len(colours) != itemnet.Channels {
 		t.Errorf("%d colour squares for %d channels", len(colours), itemnet.Channels)
@@ -590,27 +592,27 @@ func TestNextPlateSide(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceWest), block.NewChest(), nil)
 		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), nil)
-		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
-		b := tx.Block(pos).(ConduitBundle)
-		b.refresh(pos, tx)
-		b = tx.Block(pos).(ConduitBundle)
+		tx.SetBlock(pos, conduit.Bundle{Item: 1}, nil)
+		b := tx.Block(pos).(conduit.Bundle)
+		b.Refresh(pos, tx)
+		b = tx.Block(pos).(conduit.Bundle)
 		var got []int
 		for range 3 {
-			side, ok := s.nextPlateSide(p, tx, pos, b)
+			side, ok := conduit.NextPlateSide(s.Session, p, tx, pos, b)
 			if !ok {
 				t.Fatal("no plate side")
 			}
 			got = append(got, side)
 		}
-		west, east := faceIndex(cube.FaceWest), faceIndex(cube.FaceEast)
+		west, east := conduit.FaceIndex(cube.FaceWest), conduit.FaceIndex(cube.FaceEast)
 		first, second := min(west, east), max(west, east)
 		if got[0] != first || got[1] != second || got[2] != first {
 			t.Errorf("sides %v, want %d %d %d", got, first, second, first)
 		}
-		tx.SetBlock(pos, ConduitBundle{Item: 1}, nil)
+		tx.SetBlock(pos, conduit.Bundle{Item: 1}, nil)
 		tx.SetBlock(pos.Side(cube.FaceWest), block.Air{}, nil)
 		tx.SetBlock(pos.Side(cube.FaceEast), block.Air{}, nil)
-		if _, ok := s.nextPlateSide(p, tx, pos, ConduitBundle{Item: 1}); ok {
+		if _, ok := conduit.NextPlateSide(s.Session, p, tx, pos, conduit.Bundle{Item: 1}); ok {
 			t.Error("a side without targets was found")
 		}
 	})
@@ -619,8 +621,8 @@ func TestNextPlateSide(t *testing.T) {
 // TestChestOpensUnderConduit: a chest with a conduit bundle above it opens (the
 // block above must diffuse little light).
 func TestChestOpensUnderConduit(t *testing.T) {
-	var _ block.LightDiffuser = ConduitBundle{}
-	if (ConduitBundle{}).LightDiffusionLevel() > 2 {
+	var _ block.LightDiffuser = conduit.Bundle{}
+	if (conduit.Bundle{}).LightDiffusionLevel() > 2 {
 		t.Error("a bundle blocks light")
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/network"
@@ -198,8 +200,8 @@ func (s *session) lookInfo(p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	case block.Composter:
 		info.Lines = s.composterLines(lang, pos, b)
-	case ConduitBundle:
-		info.Lines = bundleLines(lang, tx, pos, b)
+	case conduit.Bundle:
+		info.Lines = conduit.BundleLines(lang, tx, pos, b)
 	case Barrel:
 		info.Lines = s.barrelLines(lang, tx, pos)
 		info.Line = s.barrelLiquid(lang, pos)

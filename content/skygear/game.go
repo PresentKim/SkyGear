@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -23,7 +25,6 @@ import (
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/google/uuid"
 	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
@@ -191,14 +192,6 @@ type session struct {
 	fastCount int
 	// wave is the wave of the dimension gate being fought (wave.go).
 	wave *waveState
-	// visuals are the display entities of the conduit bundles by position
-	// (conduitvisual.go).
-	visuals map[cube.Pos]*world.EntityHandle
-	// plates are the connector plate entities of the bundles (conduitplate.go).
-	plates map[plateKey]*world.EntityHandle
-	// plateTurn is the side of the last connector plate form each player was
-	// shown by clicking a conduit where no plate sits (nextPlateSide).
-	plateTurn map[uuid.UUID]int
 }
 
 // Spawn is where a player without a position starts (island.Spawn).
@@ -255,7 +248,7 @@ func (s *session) Autosave(tx *world.Tx) {
 
 func (s *session) Close(tx *world.Tx) {
 	s.removeDisplays(tx)
-	s.removeVisuals(tx)
+	conduit.RemoveVisuals(s.Session, tx)
 	s.Session.Close()
 	core.Unregister(s.Session)
 	s.g.sessions.Delete(s.World)

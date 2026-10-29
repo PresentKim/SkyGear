@@ -1,4 +1,4 @@
-package skygear
+package conduit
 
 import (
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -9,11 +9,11 @@ import (
 // fluids (common/fluidnet). Every conduit in the world is part of a
 // ConduitBundle (bundle.go); the conduit items only go into bundles.
 
-// conduitFaces are the six sides in the bit order of a connection set.
-var conduitFaces = [6]cube.Face{cube.FaceDown, cube.FaceUp, cube.FaceNorth, cube.FaceSouth, cube.FaceWest, cube.FaceEast}
+// Faces are the six sides in the bit order of a connection set.
+var Faces = [6]cube.Face{cube.FaceDown, cube.FaceUp, cube.FaceNorth, cube.FaceSouth, cube.FaceWest, cube.FaceEast}
 
-// conduitTiers is how many tiers conduits have.
-const conduitTiers = 3
+// Tiers is how many tiers conduits have.
+const Tiers = 3
 
 // conduitCore is the box conduit item blocks are pointed at with.
 var conduitCore = cube.Box(5.0/16, 5.0/16, 5.0/16, 11.0/16, 11.0/16, 11.0/16)
@@ -24,7 +24,7 @@ var conduitCore = cube.Box(5.0/16, 5.0/16, 5.0/16, 11.0/16, 11.0/16, 11.0/16)
 type conduitModel struct{ conn int }
 
 func (m conduitModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {
-	return []cube.BBox{bundleSelection}
+	return []cube.BBox{BundleSelection}
 }
 
 func (conduitModel) FaceSolid(cube.Pos, cube.Face, world.BlockSource) bool { return false }

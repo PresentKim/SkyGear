@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -22,12 +24,12 @@ import (
 // whose west side is set.
 func chestWithBundle(tx *world.Tx, pos cube.Pos, mode itemnet.Mode, extract, insert int) cube.Pos {
 	tx.SetBlock(pos, block.NewChest(), nil)
-	b := ConduitBundle{Item: 1}
+	b := conduit.Bundle{Item: 1}
 	b.Modes[cube.FaceWest] = mode
 	b.Extract[cube.FaceWest], b.Insert[cube.FaceWest] = extract, insert
 	at := pos.Add(cube.Pos{1, 0, 0})
 	tx.SetBlock(at, b, nil)
-	b.refresh(at, tx)
+	b.Refresh(at, tx)
 	return at
 }
 
@@ -63,7 +65,7 @@ func TestCopierConduitSide(t *testing.T) {
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
 		// a click on the bundle's west face finds its side
 		tg, ok := targetOf(tx, a, cube.FaceWest, mgl64Centre())
-		if !ok || tg.kind != cardSide || tg.pos != a || tg.side != faceIndex(cube.FaceWest) {
+		if !ok || tg.kind != cardSide || tg.pos != a || tg.side != conduit.FaceIndex(cube.FaceWest) {
 			t.Fatalf("target %+v %v", tg, ok)
 		}
 		card, ok := readCard(tx, tg)
@@ -74,7 +76,7 @@ func TestCopierConduitSide(t *testing.T) {
 		if !s.pasteCard(tx, dst, *card) {
 			t.Fatal("not pasted")
 		}
-		got := tx.Block(b).(ConduitBundle)
+		got := tx.Block(b).(conduit.Bundle)
 		if got.Modes[cube.FaceWest] != itemnet.Input || got.Extract[cube.FaceWest] != 5 || got.Insert[cube.FaceWest] != 9 {
 			t.Fatalf("pasted side: %v %v %v", got.Modes, got.Extract, got.Insert)
 		}
@@ -97,7 +99,7 @@ func TestCopierWholeBundle(t *testing.T) {
 	s.World.Do(func(tx *world.Tx) {
 		a := chestWithBundle(tx, machinePos, itemnet.Both, 2, 3)
 		b := chestWithBundle(tx, machinePos.Add(cube.Pos{0, 0, 4}), itemnet.Off, 0, 0)
-		northBefore := tx.Block(b).(ConduitBundle).Modes[cube.FaceNorth]
+		northBefore := tx.Block(b).(conduit.Bundle).Modes[cube.FaceNorth]
 		// a click on a face with no plate takes the whole bundle
 		tg, ok := targetOf(tx, a, cube.FaceUp, mgl64Centre())
 		if !ok || tg.kind != cardBundle {
@@ -108,7 +110,7 @@ func TestCopierWholeBundle(t *testing.T) {
 		if !s.pasteCard(tx, dst, *card) {
 			t.Fatal("not pasted")
 		}
-		got := tx.Block(b).(ConduitBundle)
+		got := tx.Block(b).(conduit.Bundle)
 		if got.Modes[cube.FaceWest] != itemnet.Both || got.Extract[cube.FaceWest] != 2 || got.Insert[cube.FaceWest] != 3 {
 			t.Fatalf("pasted: %v %v %v", got.Modes, got.Extract, got.Insert)
 		}
@@ -197,7 +199,7 @@ func TestCopierHandler(t *testing.T) {
 		p.StartSneaking()
 		held, off = p.HeldItems()
 		s.useCopier(p, tx, b, cube.FaceWest, mgl64Centre(), held, off)
-		if got := tx.Block(b).(ConduitBundle); got.Extract[cube.FaceWest] != 5 {
+		if got := tx.Block(b).(conduit.Bundle); got.Extract[cube.FaceWest] != 5 {
 			t.Fatalf("a sneaking click did not paste: %v", got.Extract)
 		}
 		p.StopSneaking()

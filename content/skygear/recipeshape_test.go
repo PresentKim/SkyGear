@@ -3,6 +3,8 @@ package skygear
 import (
 	"testing"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -112,17 +114,17 @@ func TestConduitRecipes(t *testing.T) {
 		t.Errorf("mix: %d from %s", count, join(in))
 	}
 	b := "skygear:conduit_binder"
-	_, count, in = cells(EnergyConduit{Tier: 1})
+	_, count, in = cells(conduit.EnergyConduit{Tier: 1})
 	want = b + " " + b + " " + b + " minecraft:redstone minecraft:redstone minecraft:redstone " + b + " " + b + " " + b + " "
 	if count != 8 || join(in) != want {
 		t.Errorf("energy conduit: %d from %s", count, join(in))
 	}
-	_, count, in = cells(ItemConduit{Tier: 1})
+	_, count, in = cells(conduit.ItemConduit{Tier: 1})
 	want = b + " " + b + " " + b + " minecraft:iron_nugget minecraft:chest minecraft:iron_nugget " + b + " " + b + " " + b + " "
 	if count != 8 || join(in) != want {
 		t.Errorf("item conduit: %d from %s", count, join(in))
 	}
-	_, count, in = cells(FluidConduit{Tier: 1})
+	_, count, in = cells(conduit.FluidConduit{Tier: 1})
 	want = b + " " + b + " " + b + " minecraft:glass minecraft:glass minecraft:glass " + b + " " + b + " " + b + " "
 	if count != 8 || join(in) != want {
 		t.Errorf("fluid conduit: %d from %s", count, join(in))
@@ -130,11 +132,11 @@ func TestConduitRecipes(t *testing.T) {
 	// the better tiers are made from the tier below: electrum for the second,
 	// steel and a diamond for the third
 	for _, kind := range []string{"energy", "item", "fluid"} {
-		_, count, in = cells(conduitOf(kind, 2))
+		_, count, in = cells(conduit.Of(kind, 2))
 		if count != 1 || join(in) != "skygear:conduit_"+kind+"_1 skygear:ingot_electrum " {
 			t.Errorf("%s conduit tier 2: %d from %s", kind, count, join(in))
 		}
-		_, count, in = cells(conduitOf(kind, 3))
+		_, count, in = cells(conduit.Of(kind, 3))
 		if count != 1 || join(in) != "skygear:conduit_"+kind+"_2 skygear:ingot_steel minecraft:diamond " {
 			t.Errorf("%s conduit tier 3: %d from %s", kind, count, join(in))
 		}

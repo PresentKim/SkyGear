@@ -3,6 +3,8 @@ package skygear
 import (
 	"time"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/machine"
 
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -83,8 +85,8 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		h.s.breakComposter(pos, b, drops)
 	case Barrel:
 		h.s.breakBarrel(pos, drops)
-	case ConduitBundle:
-		h.s.removeVisual(ctx.Player().Tx(), pos)
+	case conduit.Bundle:
+		conduit.RemoveVisual(h.s.Session, ctx.Player().Tx(), pos)
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
@@ -102,7 +104,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case Drawer:
 		h.s.placeDrawer(ctx.Player(), ctx.Player().Tx(), pos, held)
-	case ConduitBundle:
+	case conduit.Bundle:
 		achievement.Count(ctx.Player(), "conduit_place", 1)
 	case block.DragonEgg:
 		h.s.completeDragon(ctx.Player(), ctx.Player().Tx(), pos)
@@ -138,7 +140,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	// opens its settings, whatever they hold, unless the held conduit goes into
 	// that conduit (a click on the conduit itself is ConduitBundle.Activate).
 	// Sneaking places blocks instead.
-	if !p.Sneaking() && h.s.usePlate(p, tx, pos, face, clickPos, held) {
+	if !p.Sneaking() && conduit.UsePlate(h.s.Session, p, tx, pos, face, clickPos, held) {
 		ctx.Cancel()
 		return
 	}

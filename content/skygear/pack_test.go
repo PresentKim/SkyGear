@@ -3,6 +3,8 @@ package skygear
 import (
 	"fmt"
 
+	"github.com/presentkim/skygear/content/skygear/conduit"
+
 	"github.com/presentkim/skygear/content/skygear/decor"
 
 	"github.com/presentkim/skygear/common/i18n"
@@ -251,7 +253,7 @@ func TestConduitVisualPack(t *testing.T) {
 	}
 	readPackJSON(t, "entity/conduit_visual.entity.json", &ent)
 	d := ent.Entity.Description
-	if d.Identifier != "skygear:conduit_visual" || d.Identifier != mustEncode(VisualType) {
+	if d.Identifier != "skygear:conduit_visual" || d.Identifier != mustEncode(conduit.VisualType) {
 		t.Errorf("entity identifier %s", d.Identifier)
 	}
 	var geo struct {
@@ -377,7 +379,7 @@ func TestConduitPlatePack(t *testing.T) {
 	}
 	readPackJSON(t, "entity/conduit_plate.entity.json", &ent)
 	d := ent.Entity.Description
-	if d.Identifier != PlateType.EncodeEntity() {
+	if d.Identifier != conduit.PlateType.EncodeEntity() {
 		t.Errorf("entity identifier %s", d.Identifier)
 	}
 	for key, path := range d.Textures {
