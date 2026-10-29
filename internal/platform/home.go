@@ -27,10 +27,12 @@ const (
 )
 
 // homeState is what one player's main screen shows: the save chosen on its
-// card (0: the last one played) and the overlay.
+// card (0: the last one played) and the overlay, and whether it is the
+// screen shown (not one of its buttons' screens).
 type homeState struct {
 	save    int64
 	overlay int
+	shown   bool
 }
 
 var homes = struct {
@@ -75,14 +77,23 @@ func (pf *Platform) showLobbyMenu(p *player.Player) {
 		return
 	}
 	closeConsole(p)
+	setHome(p, func(s *homeState) { s.shown = true })
 	ui.HomeScreen(p, pf.home(p))
+}
+
+// refreshHome draws p's main screen again (a notice came) when p is looking
+// at it.
+func (pf *Platform) refreshHome(p *player.Player) {
+	if homeOf(p).shown {
+		pf.showLobbyMenu(p)
+	}
 }
 
 // homeRun is the run of a button that leaves the main screen: the overlay is
 // gone when the screen comes back.
 func homeRun(f func(p *player.Player)) func(p *player.Player, tx *world.Tx) {
 	return func(p *player.Player, _ *world.Tx) {
-		setHome(p, func(s *homeState) { s.overlay = homeNoOverlay })
+		setHome(p, func(s *homeState) { s.overlay, s.shown = homeNoOverlay, false })
 		f(p)
 	}
 }
@@ -112,11 +123,9 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 		},
 	}
 
-	requests, _ := pf.db.FriendRequests(id)
-	invites := pf.invites.list(id)
+	notices := pf.notices(p)
 	h.Corner = []ui.HomeButton{
-		{Icon: iconFriend, Label: i18n.T(lang, "platform.home.friends"), Badge: len(requests), Run: homeRun(pf.showFriends)},
-		{Icon: iconRequests, Label: i18n.T(lang, "platform.home.invites"), Badge: len(invites), Run: homeRun(pf.showMultiplayer)},
+		{Icon: iconRequests, Label: i18n.T(lang, "platform.notice.title"), Badge: len(notices), Run: homeRun(func(p *player.Player) { pf.showNotices(p, "") })},
 		{Icon: iconSettings, Label: i18n.T(lang, "platform.home.settings"), Run: homeRun(pf.showSettings)},
 		{Icon: iconExit, Label: i18n.T(lang, "platform.home.exit"), Run: pf.overlay(homeExit)},
 	}
@@ -131,7 +140,7 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 		{Icon: "textures/ui/sg/icon_crown", Label: i18n.T(lang, "platform.home.cosmetics"), Run: homeRun(pf.showCosmetics)},
 		{Icon: "textures/ui/sg/icon_help", Label: i18n.T(lang, "platform.home.help"), Run: homeRun(func(p *player.Player) { pf.showGuide(p, false) })},
 	}
-	h.Feed = pf.homeFeed(lang, id, invites, len(requests))
+	h.Feed = pf.homeFeed(lang, id, notices)
 
 	saves, err := pf.db.SavesOf(id)
 	if err != nil {
@@ -182,15 +191,14 @@ func (pf *Platform) homeProfile(p *player.Player) ui.HomeProfile {
 	return pr
 }
 
-// homeFeed are the recent lines: the invites p got, its friend requests and
-// the friends online, at most homeFeedLines, oldest first.
-func (pf *Platform) homeFeed(lang, id string, invites []invite, requests int) []string {
+// homeFeed are the recent lines: p's newest notices, then the friends
+// online, at most homeFeedLines, oldest first.
+func (pf *Platform) homeFeed(lang, id string, notices []Notice) []string {
 	var lines []string
-	for _, in := range invites {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "platform.home.feed.invite"), in.from, in.saveName))
-	}
-	if requests > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "platform.home.feed.requests"), requests))
+	for _, n := range notices {
+		if n.Feed != "" {
+			lines = append(lines, n.Feed)
+		}
 	}
 	friends, _ := pf.db.Friends(id)
 	for _, f := range friends {

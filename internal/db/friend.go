@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"time"
 )
 
 var (
@@ -64,6 +65,32 @@ func (d *DB) SendFriendRequest(from, to string) (accepted bool, err error) {
 // FriendRequests returns the accounts that sent `to` a friend request.
 func (d *DB) FriendRequests(to string) ([]Account, error) {
 	return d.accounts(`SELECT `+accountColumns+` FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
+}
+
+// FriendRequest is a friend request someone sent: who and when.
+type FriendRequest struct {
+	From Account
+	At   time.Time
+}
+
+// FriendRequestsTo returns the friend requests sent to `to`, oldest first.
+func (d *DB) FriendRequestsTo(to string) ([]FriendRequest, error) {
+	rows, err := d.sql.Query(`SELECT `+accountColumns+`, r.created_at FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []FriendRequest{}
+	for rows.Next() {
+		var r FriendRequest
+		var created, seen, at int64
+		if err := rows.Scan(&r.From.ID, &r.From.XUID, &r.From.Name, &r.From.GuideVersion, &r.From.Title, &r.From.NameColor, &created, &seen, &at); err != nil {
+			return nil, err
+		}
+		r.From.CreatedAt, r.From.LastSeen, r.At = time.UnixMilli(created), time.UnixMilli(seen), time.UnixMilli(at)
+		out = append(out, r)
+	}
+	return out, rows.Err()
 }
 
 // AcceptFriend accepts from's request to `to`.

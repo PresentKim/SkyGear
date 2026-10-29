@@ -13,10 +13,10 @@ import (
 	"github.com/presentkim/skygear/internal/instance"
 )
 
-// The tabs of the friends screen.
+// The tabs of the friends screen. The friend requests are notices
+// (notice.go), which a tab between them opens.
 const (
 	friendsTab = iota
-	requestsTab
 	blockedTab
 )
 
@@ -24,24 +24,17 @@ const (
 // inside the host's save.
 const codeRow = "+code"
 
-// showFriends is the friends screen: tabs for friends, requests and blocked
-// players. Inside a save the host invites an online friend from here.
+// showFriends is the friends screen: tabs for friends, the notices and
+// blocked players. Inside a save the host invites an online friend from here.
 func (pf *Platform) showFriends(p *player.Player) { pf.showFriendsAt(p, friendsTab, "") }
 
 // showFriendsAt shows the tab with the row sel chosen (an account ID or
 // codeRow; the first one when empty).
 func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 	lang := i18n.Of(p)
-	acc := instance.AccountID(p)
-	reqs, err := pf.db.FriendRequests(acc)
-	if err != nil {
-		pf.fail(p, i18n.T(lang, "platform.friends.load"), err)
-		return
-	}
 	var sp ui.ListSplit
+	var err error
 	switch tab {
-	case requestsTab:
-		sp = pf.requestList(p, reqs, sel)
 	case blockedTab:
 		sp, err = pf.blockedList(p, sel)
 	default:
@@ -51,18 +44,16 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 		pf.fail(p, i18n.T(lang, "platform.friends.load"), err)
 		return
 	}
-	tabLabel := func(key string, n int) string {
-		if n > 0 {
-			return fmt.Sprintf("%s §e%d", i18n.T(lang, key), n)
-		}
-		return i18n.T(lang, key)
+	notices := i18n.T(lang, "platform.notice.title")
+	if n := len(pf.notices(p)); n > 0 {
+		notices = fmt.Sprintf("%s §e%d", notices, n)
 	}
 	tabTo := func(t int) func(p *player.Player, _ *world.Tx) {
 		return func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, t, "") }
 	}
 	sp.Actions = append(sp.Actions,
 		ui.Tab(i18n.T(lang, "platform.friends.tab.friends"), iconFriend, tab == friendsTab, tabTo(friendsTab)),
-		ui.Tab(tabLabel("platform.friends.tab.requests", len(reqs)), iconRequests, tab == requestsTab, tabTo(requestsTab)),
+		ui.Tab(notices, iconRequests, false, func(p *player.Player, _ *world.Tx) { pf.showNotices(p, "") }),
 		ui.Tab(i18n.T(lang, "platform.friends.tab.blocked"), iconBlocked, tab == blockedTab, tabTo(blockedTab)),
 	)
 	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
@@ -183,62 +174,24 @@ func (pf *Platform) friendActions(p *player.Player, f db.Account, host *instance
 				pf.showFriendsAt(p, friendsTab, "")
 			}, back)
 		}},
-		pf.blockOption(p, f, friendsTab),
+		pf.blockOption(lang, f, func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, friendsTab, "") },
+			func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, friendsTab, f.ID) }),
 	)
 	return opts
 }
 
-// blockOption blocks the account after asking, then shows the tab again.
-func (pf *Platform) blockOption(p *player.Player, a db.Account, tab int) ui.Option {
-	lang := i18n.Of(p)
+// blockOption blocks a after asking; done runs after blocking, back on
+// cancel.
+func (pf *Platform) blockOption(lang string, a db.Account, done, back func(p *player.Player, tx *world.Tx)) ui.Option {
 	return ui.Option{Label: i18n.T(lang, "platform.friends.block"), Icon: iconBlocked, Run: func(p *player.Player, _ *world.Tx) {
-		pf.confirm(p, i18n.T(lang, "platform.friends.block"), fmt.Sprintf(i18n.T(lang, "platform.friends.block.ask"), a.Name), i18n.T(lang, "platform.friends.block"), func(p *player.Player, _ *world.Tx) {
+		pf.confirm(p, i18n.T(lang, "platform.friends.block"), fmt.Sprintf(i18n.T(lang, "platform.friends.block.ask"), a.Name), i18n.T(lang, "platform.friends.block"), func(p *player.Player, tx *world.Tx) {
 			if err := pf.db.Block(instance.AccountID(p), a.ID); err != nil {
 				pf.fail(p, i18n.T(lang, "platform.friends.block"), err)
 				return
 			}
-			pf.showFriendsAt(p, tab, "")
-		}, func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, tab, a.ID) })
+			done(p, tx)
+		}, back)
 	}}
-}
-
-// requestList is the requests tab: accept, decline or block the chosen one.
-func (pf *Platform) requestList(p *player.Player, reqs []db.Account, sel string) ui.ListSplit {
-	lang := i18n.Of(p)
-	var sp ui.ListSplit
-	var chosen db.Account
-	for i, r := range reqs {
-		if r.ID == sel || (sel == "" && i == 0) {
-			chosen = r
-		}
-	}
-	for _, r := range reqs {
-		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(r.Name, pf.status(lang, r.ID)), Icon: iconFriend,
-			Selected: r.ID == chosen.ID,
-			Run:      func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, requestsTab, r.ID) },
-		})
-	}
-	if chosen.ID == "" {
-		sp.Body = i18n.T(lang, "platform.friends.requests.none")
-		return sp
-	}
-	sp.Actions = []ui.Option{
-		{Label: i18n.T(lang, "platform.friends.accept"), Icon: iconAccept, Run: func(p *player.Player, _ *world.Tx) {
-			if err := pf.db.AcceptFriend(instance.AccountID(p), chosen.ID); err != nil {
-				pf.fail(p, i18n.T(lang, "platform.friends.accept"), err)
-				return
-			}
-			pf.tell(chosen.ID, "platform.friends.accepted", p.Name())
-			pf.showFriendsAt(p, requestsTab, "")
-		}},
-		{Label: i18n.T(lang, "platform.friends.decline"), Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
-			_ = pf.db.DeclineFriend(instance.AccountID(p), chosen.ID)
-			pf.showFriendsAt(p, requestsTab, "")
-		}},
-		pf.blockOption(p, chosen, requestsTab),
-	}
-	return sp
 }
 
 // blockedList is the blocked tab: unblock the chosen one.
@@ -311,7 +264,7 @@ func (pf *Platform) addFriend(p *player.Player, name string) {
 		pf.tell(target.ID, "platform.friends.accepted", p.Name())
 	default:
 		ui.Flash(p, i18n.T(lang, "platform.friends.add.sent"), target.Name)
-		pf.tell(target.ID, "platform.friends.add.received", p.Name())
+		pf.noticed(target.ID, "platform.friends.add.received", p.Name())
 	}
 }
 
@@ -324,9 +277,9 @@ func (pf *Platform) confirm(p *player.Player, title, body, yes string, f, back f
 	)
 }
 
-// notifyRequests tells p about pending friend requests on join.
-func (pf *Platform) notifyRequests(p *player.Player) {
-	if reqs, err := pf.db.FriendRequests(instance.AccountID(p)); err == nil && len(reqs) > 0 {
-		ui.Tell(p, "", fmt.Sprintf(i18n.T(i18n.Of(p), "platform.friends.pending"), len(reqs)))
+// notifyNotices tells p on join how many notices wait.
+func (pf *Platform) notifyNotices(p *player.Player) {
+	if n := len(pf.notices(p)); n > 0 {
+		ui.Tell(p, i18n.T(i18n.Of(p), "platform.notice.title"), fmt.Sprintf(i18n.T(i18n.Of(p), "platform.notice.pending"), n))
 	}
 }

@@ -62,4 +62,5 @@ const (
 	ScreenMembers  = "members"
 	ScreenTitles   = "titles"
 	ScreenSettings = "settings"
+	ScreenNotices  = "notices"
 )

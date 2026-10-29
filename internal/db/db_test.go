@@ -149,6 +149,9 @@ func TestFriends(t *testing.T) {
 	if len(reqs) != 1 || reqs[0].ID != "a" {
 		t.Fatalf("requests = %v", reqs)
 	}
+	if to, _ := d.FriendRequestsTo("b"); len(to) != 1 || to[0].From.ID != "a" || to[0].At.IsZero() {
+		t.Fatalf("requests to b = %v", to)
+	}
 	// b asking back accepts.
 	if acc, err := d.SendFriendRequest("b", "a"); err != nil || !acc {
 		t.Fatalf("mutual request: %v %v", acc, err)
