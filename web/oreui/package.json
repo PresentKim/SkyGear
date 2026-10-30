@@ -1,0 +1,26 @@
+{
+  "name": "skygear-oreui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@react-facet/core": "18.6.0",
+    "@react-facet/dom-fiber": "18.6.0",
+    "ore-ui-react": "github:PresentKim/ore-ui-react#5a4594b048ba6d97cf60b2740a225b052dfb8243",
+    "react": "18.3.1"
+  },
+  "devDependencies": {
+    "@react-facet/dom-fiber-testing-library": "18.6.0",
+    "@types/react": "~18.3.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.3",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^5.0.5"
+  }
+}

@@ -41,7 +41,7 @@ flowchart LR
 - `web/oreui/src/runtime/`: engine bridge, doc state, client settings (T3)
 - `web/oreui/src/text/`: § colours, client spans (T4)
 - `web/oreui/src/interact/`: presses, tooltips (T5), keyboard (T6)
-- `web/oreui/src/components/`: Icon, Slot, buttons (T7), Window, ScreenRoot (T8), Scroll, Field (T9b), Canvas, Line (T14)
+- `web/oreui/src/components/`: Icon, Slot, buttons (T7), Window, ScreenRoot (T8), Scroll, Field (T27), Canvas, Line (T14)
 - `web/oreui/src/screens/`: one file per screen group (T10-T13, T15-T18)
 - `web/oreui/src/{main.tsx,App.tsx,Status.tsx,screens/registry.ts,app.css}`: page (T19)
 - `common/ui/screen.go`: data builder (T9); per-screen Go data (T20-T22, T24); legacy removal (T25)
@@ -61,7 +61,7 @@ flowchart LR
   T6[keyboard]
   T7[icon slot buttons]
   T8[window root]
-  T9b[scroll field]
+  T27[scroll field]
   T10[menu cards grid slotmenu]
   T11[board sieve search]
   T12[split listsplit input console]
@@ -149,7 +149,7 @@ gantt
   T17 home :t17, 133, 125s
   section lane 10
   T8 window root :t8, 0, 129s
-  T9b scroll field :t9b, 129, 126s
+  T27 scroll field :t9b, 129, 126s
 ```
 
 critical path: T1 → T9 → T20 → T25 → T23 → T26 (13.9 min) · peak width 10 · predicted build 16.4 min · predicted total ≈ 27.3 min (target ✓)
@@ -223,10 +223,11 @@ e.g. send('o1', 'click') with registerInput('text', () => 'hi') -> setDataStoreP
 **LOC owned:** 190
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** engine.command(group: string, name: string) -> ((...a: unknown[]) => unknown) | null (T3)
 **Produces:** localize.localize(s: string) -> string · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element · Rich.InkContext: React.Context<Ink> · Rich.Ink = 'panel' | 'dark'
 e.g. localize('﷐key:item.stone.name﷑Stone﷒') -> 'Stone' (no translate command)
-e.g. <Rich text="§aHi"/> in ink 'dark' -> the elements `rich(e, '§aHi')` builds for a dark node
+e.g. Rich({text: '§aHi'}) in ink 'dark' -> the elements legacy `rich(e, '§aHi')` builds for a dark node
+e.g. Rich({text: '', className: 'mc-title'}) -> an empty element of class mc-title
+**Notes:** reads translations through `command` of `web/oreui/src/runtime/engine.ts` (T3: `command(group, name)` returns the callable or null).
 **Review Focus:** `bold_reset`: '§lA§rB' bolds only A; `panel_ink`: the same text in 'panel' gets the dark variant colours; `span_unclosed`: a span without U+FDD2 stays as text
 **Test code:** the examples; fmtDate/fmtAgo spans fall back to their fallback text without engine answers; `Rich` output equals the legacy `rich()` DOM for '§6Gold §7grey §lbold' in both inks (copy the legacy function into the test as the oracle).
 **Steps:** port `engineText`, `tr`, `fmtDate`, `fmtAgo`, `localize`, `rich` (and its colour tables); default ink 'dark'.
@@ -275,11 +276,14 @@ App type: web UI. Categories: encoding (rendering), state.
 **LOC owned:** 230
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4) · Rich.InkContext: React.Context<Ink> (T4)
+**Consumes:** press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4) · Rich.InkContext: React.Context<Ink> (T4)
 **Produces:** Icon.iconSrc(icon: Icon, size: number) -> string · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element · Slot.Frame() -> JSX.Element · Slot.Gap(props: { size?: 3 | 6 }) -> JSX.Element · Buttons.McButton(props: { id: Id; className: string; tip?: Text; quick?: boolean; children?: ReactNode }) -> JSX.Element · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element · Buttons.ActionButton(props: { button: Button }) -> JSX.Element · Buttons.Card(props: { button: Button }) -> JSX.Element
 e.g. iconSrc('tex:textures/ui/confirm', 32) -> 'pack://textures/ui/confirm.png?filtering=point'
 e.g. iconSrc('aux:65536', 32) -> 'geo-item://stone?width=32&height=32&bag=%7B%22%23item_id_aux%22%3A65536%7D'
-e.g. <SlotView slot={{id:'o1',icon:'tex:a',count:'3',tip:'t',deco:'',selected:false}}/> -> div.mc-slot.pressable with img.mc-chosen, img.mc-icon, text.mc-count
+e.g. Icon({icon: ''}) -> null; Icon({icon: 'tex:a', className: 'mc-icon'}) -> img.mc-icon with src 'pack://a.png?filtering=point'
+e.g. SlotView({slot: {id: 'o1', icon: 'tex:a', count: '3', tip: 't', deco: '', selected: false}}) -> div.mc-slot.pressable with img.mc-chosen, img.mc-icon, text.mc-count
+e.g. ListButton({item: {id: 'o2', label: 'A', icon: ''}}) -> div.mc-btn.mc-list-row > text.mc-btn-text 'A'; ActionButton({button}) -> div.mc-btn.mc-action; Card({button}) -> div.mc-card-cell > div.mc-btn.mc-card
+e.g. McButton({id: 'o3', className: 'mc-btn mc-home-sq', children: x}) -> div.mc-btn.mc-home-sq holding x; mousedown sends ('o3', 'click')
 **Review Focus:** `selected_not_pressable`; `toggle_row`: `{toggle: true, on: true}` renders `.mc-toggle-row` with the switch marked on; `empty_icon`: Icon with '' renders nothing
 **Test code:** the examples; each component's DOM matches the legacy nodes `slotNode`, `button`, `listButton`, `toggleRow`, `actionButton`, `card`, `box("mc-frame")`, `box("mc-gap-N")` (classes, order) — fake `usePressable` returns `{'data-oui-press': ''}` when id.
 **Steps:** read the legacy builders in `common/ui/oreui.go` and how `oui-ddui.js` `buildNode` turns each node into DOM; reproduce that DOM.
@@ -290,26 +294,29 @@ e.g. <SlotView slot={{id:'o1',icon:'tex:a',count:'3',tip:'t',deco:'',selected:fa
 **LOC owned:** 230
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4) · Rich.InkContext: React.Context<Ink> (T4) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7)
+**Consumes:** press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4) · Rich.InkContext: React.Context<Ink> (T4) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7)
 **Produces:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element · Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element · Window.LobbyContext: React.Context<Lobby | null> · Window.BarRow(props: { bar: BarButton[] }) -> JSX.Element
-e.g. <Window chrome={{title:'T',tabs:[],bar:[]}}>x</Window> -> div.mc-screen > div.mc-window(326x166 in rem) > .mc-toolbar(.mc-toolbar-bg, .mc-toolbar-row > .mc-close#close), .mc-title, .mc-content > x
+e.g. ScreenRoot({className: 'mc-screen mc-home', children: x}) outside the lobby -> div.mc-screen.mc-home holding x only
+e.g. BarRow({bar: [{id: 'o1', tip: 'Back', icon: 'tex:b', glyph: '', quick: true}]}) -> div.mc-icon-button with an img; mousedown sends ('o1', 'click')
+e.g. Window({chrome: {title: 'T', tabs: [], bar: []}, children: x}) -> div.mc-screen > div.mc-window(326x166 in rem) > .mc-toolbar(.mc-toolbar-bg, .mc-toolbar-row > .mc-close#close), .mc-title, .mc-content > x
 e.g. ScreenRoot in LobbyContext {title:'Sky',logo:'tex:l',touch:true} -> root classes '<className> mc-lobby mc-touch', first children the two preloads, shade and head
 **Review Focus:** `close_sends_close`: the close button sends ('close','click'); `tab_on_not_pressable`; `lobby_dark_ink`: inside a lobby root InkContext is 'dark'; `fit_lobby_head`: the head hides when the window overlaps it and there is no room (port `fitLobbyHead`)
 **Test code:** the examples; tabs render `.mc-tabs > .mc-tab(.mc-tab-bg,.mc-tab-front,img)`; a BarButton with glyph '?' renders text '?'.
 **Steps:** port `window`, `tab`, `iconButton`, `lobbySkin`, `darkInk` (as InkContext) and `fitLobbyHead`; window content gets ink 'panel', buttons 'dark'.
 
-### T9b scroll field · Complexity 4 · Est. context 40k
+### T27 scroll field · Complexity 4 · Est. context 40k
 **Owns:** web/oreui/src/components/Scroll.tsx, web/oreui/src/components/Field.tsx, web/oreui/src/components/scroll.test.tsx
 **Components:** 2
 **LOC owned:** 200
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** engine.send(id: string, kind: string, value?: unknown) -> void (T3) · engine.registerInput(id: string, read: () => string) -> () => void (T3)
+**Consumes:** engine.send(id: string, kind: string, value?: unknown) -> void (T3)
 **Produces:** Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element
-e.g. <Scroll>x</Scroll> -> div.mc-scroll.mc-col with the legacy scrollbar elements
-e.g. <Field id="search" value="" delay={250}/> typing 'ab' -> one send('search', 'change', 'ab') 250 ms after the last key
+e.g. Scroll({children: x}) -> div.mc-scroll.mc-col holding x, with the legacy scrollbar elements
+e.g. Field({id: 'search', value: '', delay: 250}) typing 'ab' -> one send('search', 'change', 'ab') 250 ms after the last key
 **Review Focus:** `field_keeps_text`: a re-render with the same id keeps typed text; `field_new_id_clears`; `enter_presses`: Enter sends (enter, 'click'); `end_scrolls`: end keeps it scrolled to the bottom after children change
 **Test code:** the examples and review cases with fake timers.
+**Notes:** each Field registers its text with `registerInput` of `web/oreui/src/runtime/engine.ts` (T3: `registerInput(id, read)` returns the unregister function).
 **Steps:** port `withScrollbar`, `dragBar`, `updateBar`, `scrollToEnds` (thumb math may use `thumbOf` from `@ore-ui-react/core`), `buildInput`.
 
 ## Package screens (TS)
@@ -317,7 +324,7 @@ e.g. <Field id="search" value="" delay={250}/> typing 'ab' -> one send('search',
 App type: web UI. Categories: encoding (rendering), state.
 **Probe entry:** call=web/oreui/src/screens/menus.MenuScreen
 
-Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Element` from the contract, built from the components (import them; until they land, tests may `vi.mock` them with the producers' examples); its DOM matches `web/oreui/visual/baseline/<fixture>.html` for its fixtures (compare the structure in a test with a fixture data object written by hand from the contract). Read the legacy Go builder named in Steps for order and classes.
+Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Element` from the contract, built from the components (import them; until they land, tests may `vi.mock` them with the producers' examples); its DOM matches `web/oreui/visual/baseline/<fixture>.html` for its fixtures (compare the structure in a test with a fixture data object written by hand from the contract). Read the legacy Go builder named in Steps for order and classes. Action buttons and cards are `ActionButton({button})` and `Card({button})` from `web/oreui/src/components/Buttons.tsx` (done: `div.mc-btn.mc-action`, `div.mc-card-cell > div.mc-btn.mc-card`). Legacy Go builders are being rewritten in parallel: read them as `git show HEAD~0:common/ui/<file>` from the plan's start commit (`git log --format=%H -1 -- docs/plans/2026-10-30-react-screens.contract.md`).
 
 ### T10 menu cards grid slotmenu · Complexity 4 · Est. context 45k
 **Owns:** web/oreui/src/screens/menus.tsx, web/oreui/src/screens/menus.test.tsx
@@ -325,7 +332,7 @@ Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Eleme
 **LOC owned:** 200
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7) · Buttons.Card(props: { button: Button }) -> JSX.Element (T7)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7)
 **Produces:** menus.MenuScreen(props: { data: MenuData }) -> JSX.Element · menus.CardsScreen(props: { data: CardsData }) -> JSX.Element · menus.GridScreen(props: { data: GridData }) -> JSX.Element · menus.SlotMenuScreen(props: { data: SlotMenuData }) -> JSX.Element
 **Review Focus:** `empty_body_no_gap`: body '' draws no text and no gap
 **Test code:** per screen one structure test against its baseline fixture; the review case.
@@ -337,7 +344,7 @@ Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Eleme
 **LOC owned:** 220
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T9b) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T27) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7)
 **Produces:** boards.BoardScreen(props: { data: BoardData }) -> JSX.Element · boards.SieveScreen(props: { data: SieveData }) -> JSX.Element · boards.SearchScreen(props: { data: SearchData }) -> JSX.Element
 **Review Focus:** `text_span_width`: a text cell of span 3 has width 10.8rem and flexShrink 0; `drops_padded`: a recipe with 2 drops and lines 2 draws 16 frames; `search_keeps_typing`: new data with other results keeps the typed query
 **Test code:** structure tests for board, sieve, search; the review cases.
@@ -349,7 +356,7 @@ Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Eleme
 **LOC owned:** 230
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T9b) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ActionButton(props: { button: Button }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7) · Buttons.McButton(props: { id: Id; className: string; tip?: Text; quick?: boolean; children?: ReactNode }) -> JSX.Element (T7)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T27) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7) · Buttons.McButton(props: { id: Id; className: string; tip?: Text; quick?: boolean; children?: ReactNode }) -> JSX.Element (T7)
 **Produces:** splits.SplitScreen(props: { data: SplitData }) -> JSX.Element · splits.ListSplitScreen(props: { data: ListSplitData }) -> JSX.Element · splits.InputScreen(props: { data: InputData }) -> JSX.Element · splits.ConsoleScreen(props: { data: ConsoleData }) -> JSX.Element
 **Review Focus:** `split_48_cells`: 5 slots draw 5 slots and 43 frames; `pager_off`: prev '' draws `mc-btn off`; `pairs`: 4 actions -> one full and two pairs plus one; `console_end`: the log is an end scroll
 **Test code:** structure tests per screen; the review cases.
@@ -361,7 +368,7 @@ Shared for T10-T18: each screen is `XScreen(props: { data: XData }) -> JSX.Eleme
 **LOC owned:** 230
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7) · Buttons.ActionButton(props: { button: Button }) -> JSX.Element (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · Buttons.ListButton(props: { item: ListItem }) -> JSX.Element (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5)
 **Produces:** boards2.ChoiceScreen(props: { data: ChoiceData }) -> JSX.Element · boards2.LoadingScreen(props: { data: LoadingData }) -> JSX.Element · boards2.PlaneScreen(props: { data: PlaneData }) -> JSX.Element
 **Review Focus:** `plane_projection`: a spot at [0,0,1,1] with fov 70 dist 10 on a 1280x720 viewport lands where the legacy `layoutPlanes` puts it; `choice_on_not_pressable`; `plane_resize`: spots move on window resize
 **Test code:** structure tests; the projection case with numbers from running the legacy function in the test.
@@ -385,10 +392,11 @@ e.g. clampPan({x: -500, y: 0}, {w: 100, h: 100}, {w: 300, h: 200}, 24) -> {x: 24
 **LOC owned:** 170
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Line.Line(props: { x1: number; y1: number; x2: number; y2: number; className: string }) -> JSX.Element (T14) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5)
 **Produces:** sides.SidesScreen(props: { data: SidesData }) -> JSX.Element
 **Review Focus:** `swatch_alt`: the swatch's right press sends its alt; `no_ports`: a card with no ports shows `none`; `picker_null`: no picker draws an empty box
 **Test code:** structure test against `sides` and `sides-open`; the review cases.
+**Notes:** draws lines with `Line` from `web/oreui/src/components/Line.tsx` (T14: `Line({x1, y1, x2, y2, className})` in rem, the legacy `line` node DOM).
 **Steps:** legacy `SidesMenu`, `sidesVars`, `pickerNode`, `choiceNode` (regions become plain children).
 
 ### T16 quest · Complexity 4 · Est. context 44k
@@ -397,10 +405,11 @@ e.g. clampPan({x: -500, y: 0}, {w: 100, h: 100}, {w: 300, h: 200}, 24) -> {x: 24
 **LOC owned:** 170
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Canvas.Canvas(props: { planeKey: string; focusX: number; focusY: number; children?: ReactNode }) -> JSX.Element (T14) · Line.Line(props: { x1: number; y1: number; x2: number; y2: number; className: string }) -> JSX.Element (T14) · Window.BarRow(props: { bar: BarButton[] }) -> JSX.Element (T8) · Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Buttons.ActionButton(props: { button: Button }) -> JSX.Element (T7) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5)
+**Consumes:** Window.BarRow(props: { bar: BarButton[] }) -> JSX.Element (T8) · Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Slot.SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-mesh' }) -> JSX.Element (T7) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5)
 **Produces:** quest.QuestScreen(props: { data: QuestData }) -> JSX.Element
 **Review Focus:** `chapter_on_not_pressable`; `panel_close`: the panel's close sends panel.close; `node_classes`: 'mc-quest diamond open tracked'
 **Test code:** structure tests against `quest` and `quest-panel`; the review cases.
+**Notes:** the plane is `Canvas` from `web/oreui/src/components/Canvas.tsx` (T14: `Canvas({planeKey, focusX, focusY, children})`), lines are `Line` from `Line.tsx` (T14: `Line({x1, y1, x2, y2, className})`).
 **Steps:** legacy `QuestBookMenu` (lines and positions arrive computed).
 
 ### T17 home · Complexity 4 · Est. context 42k
@@ -409,7 +418,7 @@ e.g. clampPan({x: -500, y: 0}, {w: 100, h: 100}, {w: 300, h: 200}, 24) -> {x: 24
 **LOC owned:** 190
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4)
+**Consumes:** Window.ScreenRoot(props: { className: string; children?: ReactNode }) -> JSX.Element (T8) · Icon.Icon(props: { icon: Icon; className?: string; size?: number }) -> JSX.Element | null (T7) · press.usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean }) -> PressProps (spread on the element; sets `data-oui-press` when id is set) (T5) · Rich.Rich(props: { text: Text; className?: string }) -> JSX.Element (T4)
 **Produces:** home.HomeScreen(props: { data: HomeData }) -> JSX.Element · home.Pixels(props: { w: number; h: number; px: string[]; className?: string }) -> JSX.Element
 **Review Focus:** `face_64`: a 64-colour face draws the 8x8 pixels box, else the icon; `badge_zero_hidden`; `arrow_off`: next '' draws `mc-home-arrow off`
 **Test code:** structure tests against `home` and `home-overlay`; the review cases.
@@ -421,7 +430,7 @@ e.g. clampPan({x: -500, y: 0}, {w: 100, h: 100}, {w: 300, h: 200}, 24) -> {x: 24
 **LOC owned:** 280
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T9b) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T9b) · engine.send(id: string, kind: string, value?: unknown) -> void (T3) · engine.command(group: string, name: string) -> ((...a: unknown[]) => unknown) | null (T3)
+**Consumes:** Window.Window(props: { chrome: Chrome; className?: string; children?: ReactNode }) -> JSX.Element (T8) · Scroll.Scroll(props: { className?: string; end?: boolean; children?: ReactNode }) -> JSX.Element (T27) · Field.Field(props: { id: Id; value: Text; placeholder?: Text; enter?: Id; delay?: number }) -> JSX.Element (T27) · engine.send(id: string, kind: string, value?: unknown) -> void (T3)
 **Produces:** probe.ProbeScreen(props: { data: ProbeData }) -> JSX.Element
 **Review Focus:** `probe_lines`: a keydown on the page sends one ('probe-0', 'probe', line) in the legacy line format; `restest_result`: a restest whose image loads reports ok
 **Test code:** the review cases; nodes `input` and `box` render like the legacy ones.
@@ -433,10 +442,11 @@ e.g. clampPan({x: -500, y: 0}, {w: 100, h: 100}, {w: 300, h: 200}, 24) -> {x: 24
 **LOC owned:** 220
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** doc.startDoc() -> void (T3) · doc.docFacet: Facet<DocState> (T3) · settings.keepSettings(list: Setting[] | undefined) -> void (T3) · keys.useKeyboard(keys: Keys | undefined) -> void (T6) · Tooltip.TooltipHost() -> JSX.Element (T5) · Window.LobbyContext: React.Context<Lobby | null> (T8) · every XScreen of T10-T18
+**Consumes:** doc.startDoc() -> void (T3) · doc.docFacet: Facet<DocState> (T3) · settings.keepSettings(list: Setting[] | undefined) -> void (T3) · keys.useKeyboard(keys: Keys | undefined) -> void (T6) · Window.LobbyContext: React.Context<Lobby | null> (T8) · every XScreen of T10-T18
 **Produces:** App.App() -> JSX.Element · registry.screens: Record<ScreenName, (props: { data: any }) -> JSX.Element> · Status.Status(props: { doc: DocState; on: boolean }) -> JSX.Element | null
 **Review Focus:** `form_change_remounts`: a new form id remounts the screen (fresh state), the same form keeps it; `unknown_screen`: an unknown name draws nothing and the status says so; `inactive_hides`: screenId other than custom_form draws nothing and drops `oui-active`
 **Test code:** the review cases with fake doc states.
+**Notes:** renders `TooltipHost()` from `web/oreui/src/interact/Tooltip.tsx` (T5) once at the top; probe's engine commands come from `command` in `runtime/engine.ts` (T3).
 **Steps:** main.tsx creates `div#oui-ddui`, starts the doc and renders App; App keys the screen by form, provides LobbyContext, runs `useKeyboard(root.keys)` and `keepSettings`; Status ports `drawStatus`, `cssVar`, `fontOf`, `remPx`, `fontFaces` (shown when `root.debug`).
 
 ## Package Go screens
@@ -529,7 +539,7 @@ App type: file I/O / generator. Categories: file, encoding.
 **LOC owned:** 90
 **Tests:** fast
 **Model:** sonnet
-**Consumes:** T19 (the page), T25 (Go on the new contract)
+**Notes:** runs once the page (T19) and the Go side (T25) are in.
 **Produces:** gameplay.html loads `/hbui/oui-ddui.css`, `/hbui/oui-mc.css`, `/hbui/oui-app.css` and `/hbui/oui-app.js` (deferred), not `oui-ddui.js`, which is deleted · TestOreUIBundleFresh
 **Review Focus:** `bundle_fresh`: changing any byte under web/oreui/src makes TestOreUIBundleFresh fail with "run npm run build in web/oreui"; `vanilla_names_kept`: the vanilla bundle tags in gameplay.html are unchanged
 **Test code:** TestOreUIBundleFresh recomputes the hash per the Bundle constraint and compares it with line 1 of oui-app.js.
@@ -545,6 +555,7 @@ App type: file I/O / generator. Categories: file, encoding.
 **Produces:** a parity report (fixture and diff %) in the DONE reply · docs/tech/oreui.md describing the React page, the contract, `web/oreui` and its build, the parity harness (Korean, current state only) · CONTRIBUTING.md: run `npm run build` in web/oreui after changing it
 **Review Focus:** `parity_all_under`: every fixture under 0.5% against the baseline, or listed with its diff for a fix task
 **Test code:** `OREUI_FIXTURES=visual/out/fx go test ./common/ui -run TestDumpFixtures` then `node visual/capture.mjs --renderer app --fixtures visual/out/fx --out visual/out --compare visual/baseline`.
+**Notes:** the parity run is the end-to-end check of the contract's 'Rules the two sides share'.
 **Steps:** run the parity check, report fixtures over the limit with what differs (do not fix screen code), rewrite the docs.
 
 ## Review Focus

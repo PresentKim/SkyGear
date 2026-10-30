@@ -1,0 +1,4 @@
+/* Page-level rules only: the screens are styled by oui-ddui.css and oui-mc.css. */
+#oui-ddui:empty {
+  display: none;
+}

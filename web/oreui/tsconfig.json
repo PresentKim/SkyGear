@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "lib": ["dom", "es2017"],
+    "skipLibCheck": true,
+    "paths": {
+      "@ore-ui-react/*": ["./node_modules/ore-ui-react/packages/*/src/index.ts"]
+    }
+  },
+  "include": ["src", "test", "visual/*.ts"]
+}
