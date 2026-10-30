@@ -129,7 +129,9 @@ function SpotView(props: { spot: Spot; fov: number; dist: number; size: { w: num
       className={'oui-box' + (spot.on ? ' on' : '') + ' mc-spot'}
       style={projectSpot(spot.at, props.fov, props.dist, size.w, size.h)}
       {...press}
-    />
+    >
+      {spot.on ? <div className="oui-box mc-spot-frame" /> : null}
+    </div>
   );
 }
 

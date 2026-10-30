@@ -106,6 +106,9 @@ describe('plane', () => {
     expect(place(container, 0)).toEqual({ left: '640px', top: '360px', width: '51px', height: '51px' });
     expect(place(container, 1)).toEqual(legacyPlace(data, [1, -2, 2, 1], 1280, 720));
     expect(container.querySelector('.mc-spot.on')).not.toBeNull();
+    const spots = container.querySelectorAll('.mc-spot');
+    expect(spots[0].querySelector('.mc-spot-frame')).not.toBeNull();
+    expect(spots[1].querySelector('.mc-spot-frame')).toBeNull();
     expect(container.querySelector('.mc-plane-corner')).toBeNull();
     expect(container.querySelector('.mc-plane-panel .mc-action')!.textContent).toBe('OK');
   });
