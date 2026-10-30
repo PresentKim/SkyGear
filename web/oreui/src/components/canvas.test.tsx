@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { showTip } from '../interact/Tooltip';
 import { render } from '@react-facet/dom-fiber-testing-library';
 import { Canvas, clampPan } from './Canvas';
 import { Line } from './Line';
@@ -87,5 +88,17 @@ describe('Canvas', () => {
     document.body.classList.add('mc-touch');
     const { container } = render(<fresh.Canvas planeKey="ts" focusX={0} focusY={0} />);
     expect(zoomOf(container)).toBeCloseTo(1.25);
+  });
+});
+
+describe('tooltip while panning', () => {
+  it('a drag start hides the tooltip', () => {
+    const { container } = render(<Canvas planeKey="tip" focusX={0} focusY={0}><div /></Canvas>);
+    const view = container.querySelector('.oui-canvas') as HTMLElement;
+    showTip(view, 'T');
+    const t = document.getElementById('oui-tip') as HTMLElement;
+    expect(t.style.display).toBe('flex');
+    view.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+    expect(t.style.display).toBe('none');
   });
 });

@@ -4,6 +4,7 @@ import { Rich } from '../text/Rich';
 
 let tip: HTMLElement | null = null;
 let touch = false;
+let owner: HTMLElement | null = null;
 
 // setTipTouch makes the tooltip a step larger (#oui-tip.touch) while the presses come from a finger.
 export function setTipTouch(on: boolean): void {
@@ -38,6 +39,7 @@ export function TooltipHost(): JSX.Element {
 // right, kept inside the screen.
 export function showTip(el: HTMLElement, text: Text): void {
   const t = ensureTip();
+  owner = el;
   t.className = touch ? 'touch' : '';
   let root = roots.get(t);
   if (!root) {
@@ -66,4 +68,10 @@ export function showTip(el: HTMLElement, text: Text): void {
 // hideTip puts the tooltip away.
 export function hideTip(): void {
   if (tip) tip.style.display = 'none';
+  owner = null;
+}
+
+/** tipOwner is the element whose tooltip shows. */
+export function tipOwner(): HTMLElement | null {
+  return owner;
 }

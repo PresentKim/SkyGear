@@ -1,8 +1,8 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { isPrimaryPress } from '@ore-ui-react/core';
 import type { Id, Text } from '../protocol';
 import * as engine from '../runtime/engine';
-import { hideTip, setTipTouch, showTip } from './Tooltip';
+import { hideTip, setTipTouch, showTip, tipOwner } from './Tooltip';
 
 export type PressProps = Record<string, unknown>;
 
@@ -56,6 +56,23 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
   listen();
   const cur = useRef(p);
   cur.current = p;
+  const elRef = useRef<Element | null>(null);
+  // An element that leaves the screen takes its tooltip (and a tap's arming) with it; one whose tip
+  // text changes while it shows redraws the tooltip, or hides it when the tip goes.
+  useEffect(
+    () => () => {
+      const el = elRef.current;
+      if (el && tipOwner() === el) hideTip();
+      if (armed === el) armed = null;
+    },
+    [],
+  );
+  useEffect(() => {
+    const el = elRef.current as HTMLElement | null;
+    if (!el || tipOwner() !== el) return;
+    if (p.tip) showTip(el, p.tip);
+    else hideTip();
+  }, [p.tip]);
   const props: PressProps = {
     onMouseDown: (ev: MouseEvent) => {
       const { id, alt } = cur.current;
@@ -83,7 +100,8 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
           }
           armed = null;
           if (t) hideTip();
-          engine.send(now.id ?? id, 'click');
+          const sendId = now.id ?? id;
+          if (sendId) engine.send(sendId, 'click');
         },
         touchSeen ? 0 : 40,
       );
@@ -100,6 +118,7 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
   // dom-fiber only passes a fixed set of data-* props, so the attribute goes on through a ref.
   props.ref = (e: Element | null) => {
     if (!e) return;
+    elRef.current = e;
     if (cur.current.id) e.setAttribute('data-oui-press', '');
     else e.removeAttribute('data-oui-press');
   };

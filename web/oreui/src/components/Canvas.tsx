@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
+import { hideTip } from '../interact/Tooltip';
 
 type Pan = { x: number; y: number; z: number };
 type Finger = { clientX: number; clientY: number; at: number };
@@ -215,6 +216,7 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
       const t = ev.target as HTMLElement;
       if (t !== view && t !== plane && !/oui-line-seg|oui-canvas-deco/.test(t.className)) return;
       if (!pan) return;
+      hideTip();
       const at = pointOf(ev);
       panning = { pan, place: place.current, x: at.clientX, y: at.clientY, px: pan.x, py: pan.y };
     };

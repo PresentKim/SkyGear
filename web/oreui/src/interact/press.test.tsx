@@ -167,3 +167,28 @@ describe('tooltip text', () => {
     expect(span.style.color).not.toBe('');
   });
 });
+
+describe('tooltip lifetime', () => {
+  it('unmount hides the tip the element showed', () => {
+    const r = render(<Btn id="o1" tip="T" />);
+    r.container.querySelector('#b')!.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tipEl().style.display).toBe('flex');
+    r.unmount();
+    expect(tipEl().style.display).toBe('none');
+  });
+  it('a changed tip redraws and a removed tip hides', () => {
+    const r = render(<Btn id="o1" tip="One" />);
+    r.container.querySelector('#b')!.dispatchEvent(new MouseEvent('mouseenter'));
+    r.rerender(<Btn id="o1" tip="Two" />);
+    expect(tipEl().textContent).toBe('Two');
+    r.rerender(<Btn id="o1" />);
+    expect(tipEl().style.display).toBe('none');
+  });
+  it('an id that went away by the delay sends nothing', () => {
+    const r = render(<Btn id="o1" />);
+    down(r.container.querySelector('#b')!);
+    r.rerender(<Btn id="" />);
+    vi.advanceTimersByTime(50);
+    expect(send).not.toHaveBeenCalled();
+  });
+});
