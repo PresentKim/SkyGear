@@ -26,11 +26,14 @@ import (
 	"github.com/presentkim/skygear/platform/account"
 )
 
+// The advancement settings. Chat lines are off unless chosen: an advancement
+// whose toast was missed is marked new on the advancement screen.
 func init() {
+	const group = "setting.group.advancement"
 	account.RegisterSetting(
-		account.Setting{Key: advancement.SettingToast, NameKey: "setting.advancement.toast", Default: true},
-		account.Setting{Key: advancement.SettingChat, NameKey: "setting.advancement.chat", Default: true},
-		account.Setting{Key: advancement.SettingSound, NameKey: "setting.advancement.sound", Default: true},
-		account.Setting{Key: advancement.SettingQuestPanel, NameKey: "setting.advancement.panel", Default: true},
+		account.Setting{Key: advancement.SettingToast, NameKey: "setting.advancement.toast", Default: true, Group: group},
+		account.Setting{Key: advancement.SettingChat, NameKey: "setting.advancement.chat", Group: group},
+		account.Setting{Key: advancement.SettingSound, NameKey: "setting.advancement.sound", Default: true, Group: group},
+		account.Setting{Key: advancement.SettingQuestPanel, NameKey: "setting.advancement.panel", Default: true, Group: group},
 	)
 }

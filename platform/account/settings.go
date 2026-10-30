@@ -16,13 +16,17 @@ type Setting struct {
 	NameKey string
 	// Default is the choice of a player who never changed it.
 	Default bool
+	// Group is the catalog key of the heading the settings screen lists the
+	// setting under; the settings of a group are registered together.
+	Group string
 }
 
 // Name is the setting's name in lang.
 func (s Setting) Name(lang string) string { return i18n.T(lang, s.NameKey) }
 
 // The settings of the platform: how an achievement earned is told (a toast,
-// chat lines, the sound).
+// chat lines, the sound). Chat lines are off unless chosen: the toast tells
+// it already.
 const (
 	SettingAchievementToast = "notify_achievement_toast"
 	SettingAchievementChat  = "notify_achievement_chat"
@@ -38,9 +42,9 @@ var (
 
 func init() {
 	RegisterSetting(
-		Setting{Key: SettingAchievementToast, NameKey: "setting.achievement.toast", Default: true},
-		Setting{Key: SettingAchievementChat, NameKey: "setting.achievement.chat", Default: true},
-		Setting{Key: SettingAchievementSound, NameKey: "setting.achievement.sound", Default: true},
+		Setting{Key: SettingAchievementToast, NameKey: "setting.achievement.toast", Default: true, Group: "setting.group.achievement"},
+		Setting{Key: SettingAchievementChat, NameKey: "setting.achievement.chat", Group: "setting.group.achievement"},
+		Setting{Key: SettingAchievementSound, NameKey: "setting.achievement.sound", Default: true, Group: "setting.group.achievement"},
 	)
 }
 
