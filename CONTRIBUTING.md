@@ -76,6 +76,17 @@ Thanks for your interest. These are the rules the project follows; the full
   inventory; a test checks this).
 - Before JSON UI or modelling work, check the reference repositories listed in
 
+## Ore UI page
+
+- The DDUI screens are drawn by the React page in `web/oreui` (see
+  `docs/tech/oreui.md`). After changing anything under `web/oreui/src` or its
+  `package-lock.json`, run `npm ci --ignore-scripts` once and `npm run build`
+  in `web/oreui`, and commit the rebuilt `oui-app.js` and `oui-app.css` in
+  `assets/resourcepack/oreui/hbui/`. `TestOreUIBundleFresh` fails when the
+  bundle does not match the sources.
+- Always install with `--ignore-scripts`. Run the page's tests with
+  `npx vitest run` and `npm run typecheck`.
+
 ## Patched Dragonfly
 
 The server uses the patched copy in `third_party/dragonfly`. Keep the patch

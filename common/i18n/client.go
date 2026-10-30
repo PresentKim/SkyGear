@@ -7,7 +7,7 @@ import (
 )
 
 // A client span is a piece of a text that the Ore UI page puts in the
-// client's own language (assets/resourcepack/oreui/hbui/oui-ddui.js localize): a
+// client's own language (web/oreui/src/text/localize.ts): a
 // translation key the client knows (the vanilla and the pack's texts/*.lang),
 // a date or the time since a moment. It carries the server's text in the
 // player's language for where the page does not draw it (chat, titles),

@@ -2,20 +2,15 @@
 <html>
 <head>
 <meta charset="utf-8">
-<script>
-  var q = new URLSearchParams(location.search);
-  var renderer = q.get("renderer") === "app" ? "app" : "legacy";
-  var base = "../../../assets/resourcepack/oreui/hbui/";
-  function css(h) { document.write('<link rel="stylesheet" href="' + h + '">'); }
-  function js(h) { document.write('<script src="' + h + '"><\/script>'); }
-  css(base + "oui-ddui.css");
-  css(base + "oui-mc.css");
-  if (renderer === "app") css(base + "oui-app.css");
-  js("fixture.js");
-  js("mock-engine.js");
-  js(base + (renderer === "app" ? "oui-app.js" : "oui-ddui.js"));
-</script>
+<link rel="stylesheet" href="../../../assets/resourcepack/oreui/hbui/oui-ddui.css">
+<link rel="stylesheet" href="../../../assets/resourcepack/oreui/hbui/oui-mc.css">
+<link rel="stylesheet" href="../../../assets/resourcepack/oreui/hbui/oui-app.css">
 <style>html{font-size:10px}body{margin:0}</style>
 </head>
-<body><div id="root"></div></body>
+<body>
+<div id="root"></div>
+<script src="fixture.js"></script>
+<script src="mock-engine.js"></script>
+<script src="../../../assets/resourcepack/oreui/hbui/oui-app.js"></script>
+</body>
 </html>

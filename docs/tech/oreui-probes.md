@@ -1,6 +1,6 @@
 # Ore UI 시험 화면
 
-Ore UI(Gameface) 페이지가 무엇을 받고 무엇을 불러오는지 실제 클라이언트에서 보는 운영자 명령이다([admin.md](admin.md)). 화면은 `common/ui.ProbeScreen` 의 창이고, 렌더러(`oui-ddui.js`)의 시험 노드가 결과를 그린 뒤 줄마다 서버로 보낸다(이벤트 종류 `probe`, 서버 로그 `ore ui probe`). 창 위의 줄은 서버가 받은 것이다: 받은 줄 수와 마지막 줄, 화면이 열린 동안 클라이언트가 보낸 패킷 종류와 수(늘 오는 `PlayerAuthInput`·`NetworkStackLatency`·`SubChunkRequest`·`Animate` 는 뺀다). 코드는 `content/skygear/debug_oreui.go` 다.
+Ore UI(Gameface) 페이지가 무엇을 받고 무엇을 불러오는지 실제 클라이언트에서 보는 운영자 명령이다([admin.md](admin.md)). 화면은 `common/ui.ProbeScreen` 의 창이고, 페이지의 시험 화면(`web/oreui/src/screens/probe.tsx`)이 결과를 그린 뒤 줄마다 서버로 보낸다(이벤트 종류 `probe`, 서버 로그 `ore ui probe`). 창 위의 줄은 서버가 받은 것이다: 받은 줄 수와 마지막 줄, 화면이 열린 동안 클라이언트가 보낸 패킷 종류와 수(늘 오는 `PlayerAuthInput`·`NetworkStackLatency`·`SubChunkRequest`·`Animate` 는 뺀다). 코드는 `content/skygear/debug_oreui.go` 다.
 
 표기: **[실측]** 게임에서 확인, **[코드]** 설치본 번들에서 읽음, **[문서]** 외부 문서, **[추론]** 위 근거로 판단, **확인 안 됨** 근거 없음.
 

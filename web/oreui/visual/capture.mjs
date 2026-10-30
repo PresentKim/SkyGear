@@ -1,5 +1,5 @@
-// Draws Go-dumped fixtures with the legacy renderer or the React page.
-// node visual/capture.mjs --renderer legacy|app --fixtures DIR --out DIR [--compare DIR] [--max PCT]
+// Draws Go-dumped fixtures with the React page and compares them with the baseline.
+// node visual/capture.mjs --renderer app --fixtures DIR --out DIR [--compare DIR] [--max PCT]
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import http from "node:http";
@@ -17,8 +17,8 @@ const repo = path.resolve(here, "../../..");
 const args = {};
 for (let i = 2; i < process.argv.length; i += 2) args[process.argv[i].replace(/^--/, "")] = process.argv[i + 1];
 const renderer = args.renderer;
-if (!["legacy", "app"].includes(renderer) || !args.fixtures || !args.out) {
-  console.error("usage: capture.mjs --renderer legacy|app --fixtures DIR --out DIR [--compare DIR] [--max PCT]");
+if (renderer !== "app" || !args.fixtures || !args.out) {
+  console.error("usage: capture.mjs --renderer app --fixtures DIR --out DIR [--compare DIR] [--max PCT]");
   process.exit(2);
 }
 const max = args.max === undefined ? 0.5 : Number(args.max);
@@ -49,7 +49,7 @@ let failed = false;
 for (const name of names) {
   fixture = fs.readFileSync(path.join(args.fixtures, name + ".json"), "utf8");
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-  await page.goto(`http://127.0.0.1:${port}/web/oreui/visual/harness.html?renderer=${renderer}`);
+  await page.goto(`http://127.0.0.1:${port}/web/oreui/visual/harness.html`);
   await page.addStyleTag({ content: "*{animation:none!important;transition:none!important}" });
   await page.waitForTimeout(600);
   const png = path.join(args.out, name + ".png");

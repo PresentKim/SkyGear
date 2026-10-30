@@ -42,7 +42,7 @@ type Platform struct {
 // New creates the platform. The lobby world must already be built.
 func New(log *slog.Logger, d *db.DB, m *instance.Manager, online Online, isOperator func(*player.Player) bool) *Platform {
 	pf := &Platform{log: log, db: d, m: m, online: online, isOperator: isOperator}
-	// The DDUI screens shown in the lobby take its look (ui.lobbySkin).
+	// The DDUI screens shown in the lobby take its look (the lobby skin of the React page).
 	ui.InLobby = func(p *player.Player) bool { return m.Location(instance.AccountID(p)) == nil }
 	ui.Idle = pf.lobbyIdle
 	// The game's name and logo at the top of every lobby screen.
