@@ -161,7 +161,13 @@ func (uc UserConfig) netherNetListenerFunc(conf Config) (Listener, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse UDP port range: %w", err)
 	}
-	return NetherNetConfig{Address: address, Key: key, Domain: nn.Domain, UDPPorts: r}.Listener(conf)
+	var localIP net.IP
+	if nn.LocalIP != "" {
+		if localIP = net.ParseIP(nn.LocalIP); localIP == nil {
+			return nil, fmt.Errorf("parse local IP: %q", nn.LocalIP)
+		}
+	}
+	return NetherNetConfig{Address: address, Key: key, Domain: nn.Domain, UDPPorts: r, LocalIP: localIP, PublicIP: nn.PublicIP}.Listener(conf)
 }
 
 // ListenNetwork returns a Listener accepting connections for conf over any
@@ -203,6 +209,12 @@ type NetherNetConfig struct {
 	// UDPPorts is the UDP port range used for player connections. See PortRange
 	// for how single ports and zero bounds behave.
 	UDPPorts PortRange
+	// LocalIP, if set, is the only local address player connections are bound to and
+	// offered on.
+	LocalIP net.IP
+	// PublicIP, if set, is offered to players in place of the local addresses, for
+	// servers reached through a 1:1 NAT or a forwarding tunnel.
+	PublicIP string
 }
 
 // parsePortRange parses "port" or "min-max" as a PortRange. An empty string
@@ -282,8 +294,24 @@ func (nc NetherNetConfig) Listener(conf Config) (Listener, error) {
 
 	var deferred closeFuncs
 	settingEngine := webrtc.SettingEngine{}
+	var muxOpts []ice.UDPMuxFromPortOption
+	if nc.LocalIP != nil {
+		isLocalIP := func(ip net.IP) bool { return ip.Equal(nc.LocalIP) }
+		settingEngine.SetIPFilter(isLocalIP)
+		muxOpts = append(muxOpts, ice.UDPMuxFromPortWithIPFilter(isLocalIP))
+	}
+	if nc.PublicIP != "" {
+		err := settingEngine.SetICEAddressRewriteRules(webrtc.ICEAddressRewriteRule{
+			External:        []string{nc.PublicIP},
+			AsCandidateType: webrtc.ICECandidateTypeHost,
+			Mode:            webrtc.ICEAddressRewriteReplace,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("configure public IP: %w", err)
+		}
+	}
 	if ports := nc.UDPPorts; ports.Min != 0 && ports.Min == ports.Max {
-		mux, err := ice.NewMultiUDPMuxFromPort(int(ports.Min))
+		mux, err := ice.NewMultiUDPMuxFromPort(int(ports.Min), muxOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("allocate UDP mux: %w", err)
 		}

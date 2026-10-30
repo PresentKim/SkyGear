@@ -251,6 +251,13 @@ type UserConfig struct {
 			// connections use. A single port is shared by all connections. If
 			// empty, the operating system picks the ports.
 			UDPPorts string
+			// LocalIP is the only local address player connections are bound to
+			// and offered on. If empty, every interface address is used.
+			LocalIP string
+			// PublicIP is offered to players in place of the local addresses, for
+			// servers reached through a 1:1 NAT or a forwarding tunnel. If empty,
+			// the local addresses are offered as they are.
+			PublicIP string
 		}
 	}
 	Server struct {
