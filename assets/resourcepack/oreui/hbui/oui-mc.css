@@ -2010,8 +2010,20 @@
 }
 
 .mc-spot.on {
+  z-index: 1;
+}
+
+/* The chosen frame goes outside the spot so it does not cover the chunk's edge blocks. */
+.mc-spot-frame {
+  position: absolute;
+  left: -0.8rem;
+  top: -0.8rem;
+  right: -0.8rem;
+  bottom: -0.8rem;
+  border-style: solid;
   border-width: 0.6rem;
   border-color: #ffd34d;
+  pointer-events: none;
 }
 
 .mc-plane-panel {
