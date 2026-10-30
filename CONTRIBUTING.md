@@ -6,6 +6,8 @@ Thanks for your interest. These are the rules the project follows; the full
 
 - Work on the `dev` branch and open pull requests against `dev`. `main` is the
   branch the live server runs.
+- AI agents (Claude Code and the like) commit and push straight to `dev`
+  unless the request names another branch.
 - Before committing, these must be clean:
 
   ```sh
