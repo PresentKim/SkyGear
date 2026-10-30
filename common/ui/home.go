@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"fmt"
-	"strconv"
+	"slices"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -65,6 +64,77 @@ type HomeOverlay struct {
 	Buttons     []HomeButton
 }
 
+// homeData is the data of the home screen.
+type homeData struct {
+	Profile homeProfileD  `json:"profile"`
+	Corner  []homeButtonD `json:"corner"`
+	Side    []homeButtonD `json:"side"`
+	Feed    []string      `json:"feed"`
+	Save    homeSaveD     `json:"save"`
+	Play    homePlayD     `json:"play"`
+	Manage  *homeManageD  `json:"manage"`
+	Overlay *homeOverlayD `json:"overlay"`
+}
+
+// homeProfileD is the player's card.
+type homeProfileD struct {
+	ID    string   `json:"id"`
+	Face  []string `json:"face"`
+	Icon  string   `json:"icon"`
+	Name  string   `json:"name"`
+	Title string   `json:"title"`
+	Fill  float64  `json:"fill"`
+	Line  string   `json:"line"`
+}
+
+// homeButtonD is an icon button of the home screen.
+type homeButtonD struct {
+	ID    string `json:"id"`
+	Icon  string `json:"icon"`
+	Label string `json:"label"`
+	Badge int    `json:"badge"`
+}
+
+// homeSaveD is the card of the chosen save.
+type homeSaveD struct {
+	Head   string   `json:"head"`
+	Name   string   `json:"name"`
+	Icon   string   `json:"icon"`
+	Lines  []string `json:"lines"`
+	Arrows bool     `json:"arrows"`
+	Prev   string   `json:"prev"`
+	Next   string   `json:"next"`
+}
+
+// homePlayD is the play button.
+type homePlayD struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Sub   string `json:"sub"`
+}
+
+// homeManageD is the manage button.
+type homeManageD struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// homeOverlayD is the panel over the dimmed screen.
+type homeOverlayD struct {
+	Title   string        `json:"title"`
+	Body    string        `json:"body"`
+	Buttons []homeManageD `json:"buttons"`
+}
+
+// homeButtonsOf is the data of icon buttons, [] when there are none.
+func homeButtonsOf(l *oreLayout, bs []HomeButton) []homeButtonD {
+	out := make([]homeButtonD, 0, len(bs))
+	for _, b := range bs {
+		out = append(out, homeButtonD{ID: l.id(b.Run), Icon: oreIcon(b.Icon), Label: b.Label, Badge: b.Badge})
+	}
+	return out
+}
+
 // HomeScreen shows p the lobby's main screen, like a game's lobby: the
 // profile at the top left, icon buttons at the top right and down the left,
 // recent lines at the bottom left and the chosen save with the play button
@@ -74,105 +144,31 @@ type HomeOverlay struct {
 // in between.
 func HomeScreen(p *player.Player, h Home) {
 	l := newOreLayout()
-	l.size = fmt.Sprintf("%dx%d", windowW, windowH)
 	l.close = h.Close
-	children := []any{
-		homeProfile(l, h.Profile),
-		box("mc-home-corner", "children", homeButtons(l, "mc-home-sq", h.Corner, false)),
-		box("mc-home-side", "children", homeButtons(l, "mc-home-tile", h.Side, true)),
+	pr := h.Profile
+	d := homeData{
+		Profile: homeProfileD{ID: l.id(pr.Run), Face: []string{}, Icon: oreIcon(pr.Icon), Name: pr.Name, Title: pr.Title,
+			Fill: min(max(pr.Fill, 0), 1), Line: pr.Line},
+		Corner: homeButtonsOf(l, h.Corner),
+		Side:   homeButtonsOf(l, h.Side),
+		Feed:   append([]string{}, h.Feed...),
 	}
-	if len(h.Feed) > 0 {
-		var feed []any
-		for _, line := range h.Feed {
-			feed = append(feed, txt("mc-home-feed-line", line))
-		}
-		children = append(children, box("mc-home-feed", "children", feed))
-	}
-	play := []any{homeSave(l, h.Save)}
-	label := []any{txt("mc-home-play-label", h.Play.Label)}
-	if h.PlaySub != "" {
-		label = append(label, txt("mc-home-play-sub", h.PlaySub))
-	}
-	play = append(play, l.press(box("mc-home-play", "children", label), h.Play.Run))
-	if h.Manage.Run != nil {
-		play = append(play, l.press(box("mc-btn mc-home-manage", "children", []any{txt("mc-btn-text", h.Manage.Label)}), h.Manage.Run))
-	}
-	children = append(children, box("mc-home-start", "children", play))
-	if o := h.Overlay; o != nil {
-		panel := []any{txt("mc-home-ov-title", o.Title)}
-		if o.Body != "" {
-			panel = append(panel, txt("mc-home-ov-body", o.Body))
-		}
-		for _, b := range o.Buttons {
-			panel = append(panel, l.press(box("mc-btn mc-home-ov-btn", "children", []any{txt("mc-btn-text", b.Label)}), b.Run))
-		}
-		children = append(children, box("mc-home-ov", "children", []any{box("mc-home-ov-panel", "children", panel)}))
-	}
-	showOre(p, l, box("mc-screen mc-home", "children", children))
-}
-
-// homeProfile is the player's card: the head, then the name, the title, the
-// bar and its line.
-func homeProfile(l *oreLayout, pr HomeProfile) map[string]any {
-	fill := min(max(pr.Fill, 0), 1)
-	info := []any{txt("mc-home-name", pr.Name)}
-	if pr.Title != "" {
-		info = append(info, txt("mc-home-title", pr.Title))
-	}
-	info = append(info,
-		box("mc-home-bar", "children", []any{box("mc-home-bar-fill", "style", map[string]any{"width": strconv.Itoa(int(fill*100+0.5)) + "%"})}),
-		txt("mc-home-bar-line", pr.Line),
-	)
-	head := img("mc-home-head", pr.Icon)
 	if len(pr.Face) == 64 {
-		head = node("pixels", "class", "mc-home-head", "w", 8, "h", 8, "px", pr.Face)
+		d.Profile.Face, d.Profile.Icon = slices.Clone(pr.Face), ""
 	}
-	n := box("mc-btn mc-home-profile", "children", []any{head, box("mc-home-info", "children", info)})
-	return l.press(n, pr.Run)
-}
-
-// homeButtons are icon buttons of class: the label under the icon (labelled)
-// or as the tooltip, and the badge.
-func homeButtons(l *oreLayout, class string, bs []HomeButton, labelled bool) []any {
-	var out []any
-	for _, b := range bs {
-		ch := []any{img("mc-home-ic", b.Icon)}
-		if labelled {
-			ch = append(ch, txt("mc-home-tile-label", b.Label))
+	s := h.Save
+	d.Save = homeSaveD{Head: s.Head, Name: s.Name, Icon: oreIcon(s.Icon), Lines: append([]string{}, s.Lines...),
+		Arrows: s.Prev != nil || s.Next != nil, Prev: l.id(s.Prev), Next: l.id(s.Next)}
+	d.Play = homePlayD{ID: l.id(h.Play.Run), Label: h.Play.Label, Sub: h.PlaySub}
+	if h.Manage.Run != nil {
+		d.Manage = &homeManageD{ID: l.id(h.Manage.Run), Label: h.Manage.Label}
+	}
+	if o := h.Overlay; o != nil {
+		ov := &homeOverlayD{Title: o.Title, Body: o.Body, Buttons: []homeManageD{}}
+		for _, b := range o.Buttons {
+			ov.Buttons = append(ov.Buttons, homeManageD{ID: l.id(b.Run), Label: b.Label})
 		}
-		if b.Badge > 0 {
-			ch = append(ch, txt("mc-home-badge", strconv.Itoa(b.Badge)))
-		}
-		n := box("mc-btn "+class, "children", ch)
-		if !labelled {
-			n["tip"] = b.Label
-			quick(n)
-		}
-		out = append(out, l.press(n, b.Run))
+		d.Overlay = ov
 	}
-	return out
-}
-
-// homeSave is the save card: the picture, the lines and the arrows.
-func homeSave(l *oreLayout, s HomeSave) map[string]any {
-	text := []any{txt("mc-home-save-head", s.Head), txt("mc-home-save-name", s.Name)}
-	for _, line := range s.Lines {
-		text = append(text, txt("mc-home-save-line", line))
-	}
-	ch := []any{img("mc-home-save-pic", s.Icon), box("mc-home-save-text", "children", text)}
-	if s.Prev != nil || s.Next != nil {
-		ch = append(ch, box("mc-home-arrows", "children", []any{
-			homeArrow(l, "textures/ui/sg/chevron_left", s.Prev),
-			homeArrow(l, "textures/ui/sg/chevron_right", s.Next),
-		}))
-	}
-	return box("mc-panel mc-home-save", "children", ch)
-}
-
-func homeArrow(l *oreLayout, icon string, run func(p *player.Player, tx *world.Tx)) map[string]any {
-	class := "mc-btn mc-home-arrow"
-	if run == nil {
-		class += " off"
-	}
-	return quick(l.press(box(class, "children", []any{img("", icon)}), run))
+	showScreen(p, l, "home", d)
 }

@@ -12,52 +12,62 @@ import (
 // They share the common window size, so moving between them updates the open
 // screen in place.
 
-// oreListSplit is a ListSplitMenu: icon tabs over the window, the rows in a
-// scrolling panel on the left, and on the right the body and the actions,
-// the first full width and the rest two to a row.
+// dListRow is a row of the list of a list-split screen.
+type dListRow struct {
+	ID       string `json:"id"`
+	Icon     string `json:"icon"`
+	Name     string `json:"name"`
+	Info     string `json:"info"`
+	Selected bool   `json:"selected"`
+}
+
+// listSplitData is the data of the listsplit screen.
+type listSplitData struct {
+	Chrome  dChrome    `json:"chrome"`
+	Rows    []dListRow `json:"rows"`
+	Body    string     `json:"body"`
+	Actions []dButton  `json:"actions"`
+}
+
+// inputData is the data of the input screen; Field is the id of the input
+// box and Submit the button that sends its text.
+type inputData struct {
+	Chrome dChrome `json:"chrome"`
+	Label  string  `json:"label"`
+	Field  string  `json:"field"`
+	Value  string  `json:"value"`
+	Submit dButton `json:"submit"`
+}
+
+// gridData is the data of the grid screen.
+type gridData struct {
+	Chrome   dChrome    `json:"chrome"`
+	Body     string     `json:"body"`
+	Sections []dSlotRow `json:"sections"`
+	Items    []dItem    `json:"items"`
+}
+
+// slotMenuData is the data of the slotmenu screen.
+type slotMenuData struct {
+	Chrome dChrome `json:"chrome"`
+	Store  dSlot   `json:"store"`
+	Info   string  `json:"info"`
+	Left   []dSlot `json:"left"`
+	Right  []dSlot `json:"right"`
+	Items  []dItem `json:"items"`
+}
+
+// oreListSplit is a ListSplitMenu: the rows in a list on the left, and on the
+// right the body and the actions.
 func oreListSplit(p *player.Player, title string, sp ListSplit) {
 	l := newOreLayout()
-	tabs, bar, actions := l.chrome(sp.Actions)
-	var rows []any
+	chrome, actions := l.chromeOf(title, sp.Actions)
+	rows := make([]dListRow, 0, len(sp.Rows))
 	for _, r := range sp.Rows {
 		name, info := listRowParts(r.Label)
-		text := []any{txt("mc-lrow-name", name)}
-		if info != "" {
-			text = append(text, txt("mc-lrow-info", info))
-		}
-		ch := []any{}
-		if r.Icon != "" {
-			ch = append(ch, img("", r.Icon))
-		}
-		ch = append(ch, box("mc-lrow-text", "children", text))
-		class := "mc-btn mc-lrow"
-		if r.Selected {
-			class += " on"
-		}
-		rows = append(rows, l.press(box(class, "ink", "dark", "children", ch), r.Run))
+		rows = append(rows, dListRow{ID: l.id(r.Run), Icon: oreIcon(r.Icon), Name: name, Info: info, Selected: r.Selected})
 	}
-	right := []any{}
-	if sp.Body != "" {
-		right = append(right, txt("mc-small-text", sp.Body), box("mc-gap-6"))
-	}
-	for i := 0; i < len(actions); {
-		if i == 0 {
-			right = append(right, l.actionButton(actions[0]))
-			i++
-			continue
-		}
-		pair := []any{l.actionButton(actions[i])}
-		if i+1 < len(actions) {
-			pair = append(pair, l.actionButton(actions[i+1]))
-		}
-		right = append(right, box("mc-lsplit-pair", "children", pair))
-		i += 2
-	}
-	content := box("mc-row", "style", map[string]any{"height": "100%"}, "children", []any{
-		box("mc-panel mc-lsplit-left", "children", []any{scroll(rows...)}),
-		box("mc-lsplit-right", "children", []any{scroll(right...)}),
-	})
-	showOre(p, l, l.window(title, tabs, bar, content))
+	showScreen(p, l, "listsplit", listSplitData{Chrome: chrome, Rows: rows, Body: sp.Body, Actions: l.buttonsOf(actions)})
 }
 
 // listRowParts cuts a ListRowText label into the name (the padding taken
@@ -84,77 +94,51 @@ func oreInput(p *player.Player, title, label, def string, f func(p *player.Playe
 	if back != nil {
 		opts = append(opts, Back(i18n.T(lang, "ui.input.back"), back))
 	}
-	_, bar, _ := l.chrome(opts)
+	chrome, _ := l.chromeOf(title, opts)
 	submit := i18n.T(lang, "ui.input.ok")
 	if strings.Contains(title, CreateToken) {
 		submit = i18n.T(lang, "ui.input.create")
 	}
-	const id = "text"
-	ok := l.listButton(Option{Label: submit, Icon: "textures/ui/confirm", Run: func(p *player.Player, tx *world.Tx) {
-		f(p, tx, l.value(id))
+	const field = "text"
+	l.values[field] = def
+	ok := l.buttonOf(Option{Label: submit, Icon: "textures/ui/confirm", Run: func(p *player.Player, tx *world.Tx) {
+		f(p, tx, l.value(field))
 	}})
-	content := []any{}
-	if label != "" {
-		content = append(content, txt("mc-body-text", label), box("mc-gap-3"))
-	}
-	enter, _ := ok["id"].(string)
-	content = append(content, box("mc-search", "children", []any{l.field(id, def, "", enter)}), box("mc-gap-6"), ok)
-	showOre(p, l, l.window(title, nil, bar, scroll(box("mc-board", "children", content))))
+	showScreen(p, l, "input", inputData{Chrome: chrome, Label: label, Field: field, Value: def, Submit: ok})
 }
 
 // oreItemGrid is an ItemGrid or ItemGridSections: the body text, the headed
-// sections of slots wrapping in the window's width, and the actions (tabs
-// and the control bar's buttons in their places, the rest as list buttons).
+// sections of slots, and the actions (tabs and the control bar's buttons in
+// their places, the rest as list rows).
 func oreItemGrid(p *player.Player, title, body string, sections []GridSection, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions)
-	content := []any{}
-	if body != "" {
-		content = append(content, txt("mc-body-text", body), box("mc-gap-3"))
-	}
+	chrome, rest := l.chromeOf(title, actions)
+	rows := make([]SlotRow, 0, len(sections))
 	for _, sec := range sections {
-		var slots []any
-		for _, sl := range sec.Slots {
-			slots = append(slots, l.slotNode(sl))
-		}
-		if sec.Heading != "" {
-			content = append(content, txt("mc-head", sec.Heading))
-		}
-		content = append(content, box("mc-grid", "children", slots), box("mc-gap-3"))
+		rows = append(rows, SlotRow{Heading: sec.Heading, Slots: sec.Slots})
 	}
-	for _, o := range rest {
-		content = append(content, l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
+	showScreen(p, l, "grid", gridData{Chrome: chrome, Body: body, Sections: l.rowsOf(rows), Items: l.itemsOf(rest)})
 }
 
-// oreSlotMenu is a SlotMenu: the storage slot with the
-// info text beside it, under them the left slots at the left and the right
-// slots at the right, and the actions as list buttons. A slot's text is its
-// tooltip; the storage slot's is its count.
+// oreSlotMenu is a SlotMenu: the storage slot with the info text beside it,
+// under them the left slots and the right slots, and the actions as list
+// rows. A slot's text is its tooltip; the storage slot's is its count.
 func oreSlotMenu(p *player.Player, title string, store Slot, info string, left, right []Slot, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions)
-	slots := func(list []Slot) []any {
-		var out []any
+	chrome, rest := l.chromeOf(title, actions)
+	slots := func(list []Slot) []dSlot {
+		out := make([]dSlot, 0, len(list))
 		for _, sl := range list {
-			out = append(out, l.slotNode(ItemSlot{Icon: sl.Icon, Tip: sl.Text, Run: sl.Run}))
+			out = append(out, l.slotOf(ItemSlot{Icon: sl.Icon, Tip: sl.Text, Run: sl.Run}))
 		}
 		return out
 	}
-	content := []any{
-		box("mc-row", "children", []any{
-			l.slotNode(ItemSlot{Icon: store.Icon, Count: store.Text}, "mc-big"),
-			box("mc-slotmenu-info", "children", []any{txt("mc-body-text", info)}),
-		}),
-		box("mc-gap-6"),
-		box("mc-slotmenu-slots", "children", []any{
-			box("mc-row", "children", slots(left)),
-			box("mc-row", "children", slots(right)),
-		}),
-	}
-	for _, o := range rest {
-		content = append(content, box("mc-gap-6"), l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(box("mc-board", "children", content))))
+	showScreen(p, l, "slotmenu", slotMenuData{
+		Chrome: chrome,
+		Store:  l.slotOf(ItemSlot{Icon: store.Icon, Count: store.Text}),
+		Info:   info,
+		Left:   slots(left),
+		Right:  slots(right),
+		Items:  l.itemsOf(rest),
+	})
 }

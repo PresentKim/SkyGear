@@ -57,50 +57,133 @@ func TestUntoken(t *testing.T) {
 	}
 }
 
-// TestLobbySkin: a screen in the lobby is marked for the lobby's look, has
-// the lobby buttons' pictures kept loaded, the shade and the game's name at
-// the top left and keeps its text colours.
-func TestLobbySkin(t *testing.T) {
-	old := LobbyHeader
-	LobbyHeader = func(*player.Player) (string, string) { return "game", "textures/blocks/grass_side_carried" }
-	defer func() { LobbyHeader = old }()
-	l := newOreLayout()
-	layout := lobbySkin(nil, l.window("title", nil, nil, txt("", "x")))
-	root := layout.(map[string]any)
-	if root["class"] != "mc-screen mc-lobby" {
-		t.Fatalf("class %q", root["class"])
+// shown runs show with oreShown set and returns the layout and root of each
+// screen it showed.
+func shown(show func()) (ls []*oreLayout, roots []any) {
+	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
+	defer func() { oreShown = nil }()
+	show()
+	return ls, roots
+}
+
+// listOf is the array data[key] as objects.
+func listOf(t *testing.T, data map[string]any, key string) []any {
+	t.Helper()
+	v, ok := data[key].([]any)
+	if !ok {
+		t.Fatalf("%s = %v, want an array", key, data[key])
 	}
-	kids := root["children"].([]any)
-	for i, want := range []string{"mc-lobby-preload mc-lobby-preload-hover", "mc-lobby-preload mc-lobby-preload-pressed"} {
-		if c := kids[i].(map[string]any); c["class"] != want {
-			t.Fatalf("child %d %v", i, c)
+	return v
+}
+
+// TestMenuScreens: menu, cards and board send the chrome, the body and their
+// items.
+func TestMenuScreens(t *testing.T) {
+	opts := []Option{Back("뒤로", nopRun), {Label: "a", Icon: "textures/x", Run: nopRun}, Toggle("t", true, nopRun)}
+	_, roots := shown(func() { oreMenu(nil, "제목", "본문", opts) })
+	name, d := screenRoot(roots[0])
+	items := listOf(t, d, "items")
+	if name != "menu" || d["body"] != "본문" || len(items) != 2 || items[1].(map[string]any)["toggle"] != true {
+		t.Errorf("menu %s %v", name, d)
+	}
+	if bar := listOf(t, d["chrome"].(map[string]any), "bar"); len(bar) != 1 {
+		t.Errorf("bar %v", bar)
+	}
+	_, roots = shown(func() { oreCardMenu(nil, "제목", "", opts[1:2]) })
+	name, d = screenRoot(roots[0])
+	if items := listOf(t, d, "items"); name != "cards" || len(items) != 1 || items[0].(map[string]any)["icon"] != "tex:textures/x" {
+		t.Errorf("cards %s %v", name, d)
+	}
+	_, roots = shown(func() { oreBoard(nil, "제목", "b", [][]BoardCell{{TextCell("t"), Blank()}}, opts[1:2]) })
+	name, d = screenRoot(roots[0])
+	rows := listOf(t, d, "rows")
+	if cells := rows[0].([]any); name != "board" || len(rows) != 1 || len(cells) != 1 || cells[0].(map[string]any)["span"] != float64(BoardColumns) {
+		t.Errorf("board %s %v", name, d)
+	}
+	_, roots = shown(func() { oreBoard(nil, "제목", "", nil, nil) })
+	_, d = screenRoot(roots[0])
+	listOf(t, d, "rows")
+	listOf(t, d, "items")
+}
+
+// TestSieveData: the drops lose their counts, the lines count the longest
+// recipe and the group name is bold.
+func TestSieveData(t *testing.T) {
+	drops := make([]ItemSlot, 10)
+	for i := range drops {
+		drops[i] = ItemSlot{Icon: "1", Count: "5"}
+	}
+	g := SieveGroup{Head: ItemSlot{Icon: "1"}, Name: "체", Recipes: []SieveRecipe{{Input: ItemSlot{Icon: "2"}, Mesh: ItemSlot{Icon: "3"}, Drops: drops}}}
+	_, roots := shown(func() { SieveBoard(nil, "t", nil, []SieveGroup{g}) })
+	name, d := screenRoot(roots[0])
+	groups := listOf(t, d, "groups")
+	rec := groups[0].(map[string]any)["recipes"].([]any)[0].(map[string]any)
+	if name != "sieve" || d["lines"] != float64(2) || groups[0].(map[string]any)["name"] != "§l체" || len(rec["drops"].([]any)) != 10 || rec["drops"].([]any)[0].(map[string]any)["count"] != "" {
+		t.Errorf("sieve %s %v", name, d)
+	}
+	listOf(t, d, "top")
+	listOf(t, d, "items")
+}
+
+// TestSplitPrevOff: page 0 has prev "", the last page next "", and the
+// arrows press Turn.
+func TestSplitPrevOff(t *testing.T) {
+	var went []int
+	turn := func(_ *player.Player, _ *world.Tx, page int) { went = append(went, page) }
+	slots := make([]ItemSlot, 60)
+	for page, want := range []struct{ prev, next bool }{{false, true}, {true, true}, {true, false}} {
+		ls, roots := shown(func() {
+			oreSplit(nil, "t", Split{Slots: slots, Page: page, Pages: 3, Turn: turn, Detail: Detail{Icon: "1", Name: "n"}})
+		})
+		name, d := screenRoot(roots[0])
+		if name != "split" || (d["prev"] != "") != want.prev || (d["next"] != "") != want.next || len(listOf(t, d, "slots")) != 48 {
+			t.Fatalf("page %d: %s prev %q next %q", page, name, d["prev"], d["next"])
+		}
+		listOf(t, d, "actions")
+		listOf(t, d, "rows")
+		if want.next {
+			ls[0].runs[d["next"].(string)](nil, nil)
 		}
 	}
-	kids = kids[2:]
-	if shade := kids[0].(map[string]any); shade["class"] != "mc-lobby-shade" {
-		t.Fatalf("first child %v", shade)
-	}
-	if head := kids[1].(map[string]any); head["class"] != "mc-lobby-head" {
-		t.Fatalf("second child %v", head)
-	}
-	if win := kids[2].(map[string]any); win["ink"] != "dark" {
-		t.Errorf("window ink %v", win["ink"])
+	if len(went) != 2 || went[0] != 1 || went[1] != 2 {
+		t.Errorf("turned to %v", went)
 	}
 }
 
-// TestToggleRow: a Toggle option is a pressable row holding the label and a
-// switch, marked on when the option is.
-func TestToggleRow(t *testing.T) {
-	for _, on := range []bool{false, true} {
-		l := newOreLayout()
-		row := l.listButton(Toggle("x", on, func(*player.Player, *world.Tx) {}))
-		if row["class"] != "mc-btn mc-list-row mc-toggle-row" || row["id"] == nil {
-			t.Fatalf("row %v", row)
+// TestSearchRedraw: typing shows the whole search screen again with the new
+// results, whose slots press, and the form's data again can be typed into.
+func TestSearchRedraw(t *testing.T) {
+	var picked []string
+	find := func(_ *player.Player, q string) SearchResult {
+		return SearchResult{Info: "결과 " + q, Sections: []GridSection{{Heading: "h", Slots: []ItemSlot{{Icon: "1", Run: func(*player.Player, *world.Tx) { picked = append(picked, q) }}}}}}
+	}
+	var ls []*oreLayout
+	var roots []any
+	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
+	defer func() { oreShown = nil }()
+	SearchGrid(nil, "검색", "찾기", "a", find, Back("뒤로", nopRun))
+	name, d := screenRoot(roots[0])
+	if name != "search" || d["field"] != "search" || d["query"] != "a" || d["placeholder"] != "찾기" || d["info"] != "결과 a" {
+		t.Fatalf("search %s %v", name, d)
+	}
+	ls[0].input(nil, nil, "b")
+	ls[len(ls)-1].input(nil, nil, "c")
+	if len(roots) != 3 {
+		t.Fatalf("%d screens shown", len(roots))
+	}
+	for i, q := range []string{"b", "c"} {
+		name, d = screenRoot(roots[i+1])
+		sec := listOf(t, d, "sections")[0].(map[string]any)
+		id := sec["slots"].([]any)[0].(map[string]any)["id"].(string)
+		ls[i+1].runs[id](nil, nil)
+		if name != "search" || d["query"] != q || d["info"] != "결과 "+q || picked[len(picked)-1] != q {
+			t.Errorf("redraw %d: %s %v picked %v", i, name, d, picked)
 		}
-		kids := row["children"].([]any)
-		sw := kids[len(kids)-1].(map[string]any)
-		if sw["class"] != "mc-switch" || (sw["on"] == true) != on {
-			t.Errorf("on %v: switch %v", on, sw)
+		if len(listOf(t, d["chrome"].(map[string]any), "bar")) != 1 {
+			t.Errorf("redraw %d lost the bar", i)
 		}
+	}
+	if ls[1].input == nil {
+		t.Error("the redrawn screen cannot be typed into")
 	}
 }

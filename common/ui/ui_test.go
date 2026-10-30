@@ -75,3 +75,23 @@ func TestPager(t *testing.T) {
 		t.Errorf("the buttons went to pages %v", went)
 	}
 }
+
+// TestConfirmItems: Confirm sends a menu with two items, the first one
+// running f.
+func TestConfirmItems(t *testing.T) {
+	ran := false
+	var ls []*oreLayout
+	var roots []any
+	oreShown = func(l *oreLayout, root any) { ls, roots = append(ls, l), append(roots, root) }
+	defer func() { oreShown = nil }()
+	Confirm(nil, "t", "b", "예", func(*player.Player, *world.Tx) { ran = true })
+	name, d := screenRoot(roots[0])
+	items, _ := d["items"].([]any)
+	if name != "menu" || len(items) != 2 {
+		t.Fatalf("confirm %s %v", name, d)
+	}
+	ls[0].runs[items[0].(map[string]any)["id"].(string)](nil, nil)
+	if !ran || items[0].(map[string]any)["label"] != "예" {
+		t.Errorf("ran %v, items %v", ran, items)
+	}
+}

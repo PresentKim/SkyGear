@@ -24,35 +24,6 @@ import (
 // DDUI screens of the lobby draw at the top middle. The platform sets it.
 var LobbyHeader func(p *player.Player) (title, logo string)
 
-// lobbySkin restyles a layout for p in the lobby (.mc-lobby): the lobby
-// island seen clear (through a shade behind a window), the game's name at the top middle, navy windows
-// with light text. The main screen (HomeScreen) and the screens it opens have
-// the same shade and name, so going between them changes only what is over
-// the island.
-func lobbySkin(p *player.Player, layout any) any {
-	darkInk(layout)
-	root, ok := layout.(map[string]any)
-	if !ok {
-		return layout
-	}
-	root["class"] = fmt.Sprint(root["class"]) + " mc-lobby"
-	if touchDevice(p) {
-		root["class"] = fmt.Sprint(root["class"]) + " mc-touch"
-	}
-	skin := []any{
-		box("mc-lobby-preload mc-lobby-preload-hover"),
-		box("mc-lobby-preload mc-lobby-preload-pressed"),
-		box("mc-lobby-shade"),
-	}
-	if LobbyHeader != nil {
-		title, logo := LobbyHeader(p)
-		skin = append(skin, box("mc-lobby-head", "children", []any{img("mc-lobby-logo", logo), txt("mc-lobby-title", title)}))
-	}
-	kids, _ := root["children"].([]any)
-	root["children"] = append(skin, kids...)
-	return layout
-}
-
 // touchDevice reports whether p plays on a phone or tablet (Android, iOS,
 // Fire OS), whose screen edges may hold a camera cutout or a system handle
 // that takes touches: the lobby keeps its buttons larger and away from the
@@ -70,23 +41,6 @@ func touchDevice(p *player.Player) bool {
 		return true
 	}
 	return false
-}
-
-// darkInk turns the panel ink of a layout's nodes into the dark one.
-func darkInk(n any) {
-	switch v := n.(type) {
-	case map[string]any:
-		if v["ink"] == "panel" {
-			v["ink"] = "dark"
-		}
-		for _, c := range v {
-			darkInk(c)
-		}
-	case []any:
-		for _, c := range v {
-			darkInk(c)
-		}
-	}
 }
 
 // oreOpen reports whether p has a DDUI screen open.
@@ -155,19 +109,13 @@ var oreScreens = struct {
 	m map[uuid.UUID]*oreScreen
 }{m: map[uuid.UUID]*oreScreen{}}
 
-// showOre shows the layout l built to p, reusing p's open screen (the
-// renderer redraws only changed nodes) when its window is the same size.
-// Gameface hit-tests presses at the old places after a window resizes, so a
-// window of another size is opened anew.
-func showOre(p *player.Player, l *oreLayout, layout any) {
-	if InLobby != nil && InLobby(p) {
-		layout = lobbySkin(p, layout)
-	}
-	if root, ok := layout.(map[string]any); ok && len(l.keys) > 0 {
-		root["keys"] = l.keys
-	}
+// openOre sends root (a screen's root) to p, reusing p's open screen when its
+// window is the same size: it opens the screen or replaces the one open, and
+// takes the layout's runs. Gameface hit-tests presses at the old places after
+// a window resizes, so a window of another size is opened anew.
+func openOre(p *player.Player, l *oreLayout, root any) {
 	if oreShown != nil {
-		oreShown(l, layout)
+		oreShown(l, root)
 		return
 	}
 	oreScreens.Lock()
@@ -187,14 +135,14 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 	}
 	if st.form != nil && !st.form.Closed() {
 		if st.size == l.size {
-			_ = st.form.SetLayout(layout)
+			_ = st.form.SetLayout(root)
 			return
 		}
 		_ = st.form.Close()
 	}
 	st.size = l.size
 	h := p.H()
-	f, err := oreui.Open(p, layout, func(ev oreui.Event) { oreEvent(h, st, ev) }, func() {
+	f, err := oreui.Open(p, root, func(ev oreui.Event) { oreEvent(h, st, ev) }, func() {
 		oreScreens.Lock()
 		if oreScreens.m[p.UUID()] == st {
 			st.form = nil
@@ -207,9 +155,6 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 		return
 	}
 	st.form = f
-	if OreDebug(p) {
-		f.SetVars(map[string]any{"__debug": true})
-	}
 }
 
 // oreDebug holds the players whose DDUI screens show the renderer's debug
@@ -217,15 +162,14 @@ func showOre(p *player.Player, l *oreLayout, layout any) {
 var oreDebug sync.Map
 
 // SetOreDebug shows or hides the debug line of p's DDUI screens: what the
-// renderer knows of the screen and the fonts (assets/resourcepack/oreui/hbui/oui-ddui.js
-// drawStatus), over the top of the screen, for a screenshot from a device.
+// page knows of the screen and the fonts, over the top of the screen, for a
+// screenshot from a device. It applies from the next screen shown.
 func SetOreDebug(p *player.Player, on bool) {
 	if on {
 		oreDebug.Store(p.UUID(), true)
 	} else {
 		oreDebug.Delete(p.UUID())
 	}
-	withScreen(p, func(st *oreScreen) { st.form.SetVars(map[string]any{"__debug": on}) })
 }
 
 // OreDebug reports whether p's DDUI screens show the debug line.
@@ -234,22 +178,9 @@ func OreDebug(p *player.Player) bool {
 	return ok
 }
 
-// withScreen runs f, holding the lock, with the DDUI screen p has open (none:
-// f does not run).
-func withScreen(p *player.Player, f func(st *oreScreen)) {
-	if oreShown != nil {
-		return
-	}
-	oreScreens.Lock()
-	defer oreScreens.Unlock()
-	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil {
-		f(st)
-	}
-}
-
-// oreShown, when set (tests), takes the layouts showOre is given instead of
+// oreShown, when set (tests), takes the roots showScreen is given instead of
 // the players' screens.
-var oreShown func(l *oreLayout, layout any)
+var oreShown func(l *oreLayout, root any)
 
 // oreEvent runs what the pressed element does in the player's world. Esc
 // and the close button run the layout's close run, or Idle, and close the
@@ -367,15 +298,15 @@ func oreEnd(p *player.Player, tx *world.Tx, st *oreScreen, gen int, closed bool)
 	oreScreens.Unlock()
 }
 
-// oreLayout builds a layout: the renderer's nodes and the runs of the
-// elements that can be pressed.
+// oreLayout builds a screen: the runs of the elements that can be pressed
+// and what the screen does on input and on closing.
 type oreLayout struct {
 	runs  map[string]func(p *player.Player, tx *world.Tx)
 	input func(p *player.Player, tx *world.Tx, value string)
-	// values keep the texts of the input boxes made by field, guarded by
+	// values keep the texts of the screen's input boxes, guarded by
 	// oreScreens.
 	values map[string]string
-	// size is the window's size, set by window.
+	// size is the window's size (showScreen sets it).
 	size string
 	// prefix starts the ids of the elements, so the parts drawn again into a
 	// region do not reuse the ids of the screen around them.
@@ -396,7 +327,7 @@ type oreLayout struct {
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
 // WASD for the directions, Enter and the space bar for KeyOK. A key the
 // screen does not answer moves and presses the keyboard selection
-// (oui-ddui.js navKey).
+// (the page's keyboard handling).
 type Key string
 
 const (
@@ -427,21 +358,6 @@ func newOreLayout() *oreLayout {
 	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, values: map[string]string{}, prefix: "o"}
 }
 
-// field is an input box with the text def whose text the presses of the
-// screen read with value. enter is the id of the button Enter presses ("":
-// none).
-func (l *oreLayout) field(id, def, placeholder, enter string) map[string]any {
-	l.values[id] = def
-	n := node("input", "id", id, "value", def, "class", "mc-input")
-	if placeholder != "" {
-		n["placeholder"] = placeholder
-	}
-	if enter != "" {
-		n["enter"] = enter
-	}
-	return n
-}
-
 // value is the text of the input box id as the player left it.
 func (l *oreLayout) value(id string) string {
 	oreScreens.Lock()
@@ -449,29 +365,7 @@ func (l *oreLayout) value(id string) string {
 	return l.values[id]
 }
 
-// press gives a node an id that runs run when pressed (nil: not pressable).
-func (l *oreLayout) press(n map[string]any, run func(p *player.Player, tx *world.Tx)) map[string]any {
-	if run == nil {
-		return n
-	}
-	id := l.prefix + strconv.Itoa(len(l.runs))
-	l.runs[id] = run
-	n["id"] = id
-	return n
-}
-
-// alt gives a pressable node an id that runs run when it is pressed with the
-// right mouse button (nil: the right button does nothing).
-func (l *oreLayout) alt(n map[string]any, run func(p *player.Player, tx *world.Tx)) map[string]any {
-	if run == nil {
-		return n
-	}
-	id := l.prefix + strconv.Itoa(len(l.runs))
-	l.runs[id] = run
-	n["alt"] = id
-	return n
-}
-
+// node is a raw probe node of type t with the fields kv (ProbeNode).
 func node(t string, kv ...any) map[string]any {
 	n := map[string]any{"t": t}
 	for i := 0; i+1 < len(kv); i += 2 {
@@ -479,20 +373,6 @@ func node(t string, kv ...any) map[string]any {
 	}
 	return n
 }
-
-func box(class string, kv ...any) map[string]any {
-	return node("box", append([]any{"class", class}, kv...)...)
-}
-
-func txt(class, text string) map[string]any { return node("text", "class", class, "text", text) }
-
-func img(class, icon string) map[string]any {
-	return node("img", "class", class, "icon", oreIcon(icon))
-}
-
-// gu is n GUI pixels in Ore UI units: the html font size is 5 x the GUI
-// scale, so a GUI pixel is 0.2rem.
-func gu(n int) string { return strconv.FormatFloat(float64(n)*0.2, 'f', -1, 64) + "rem" }
 
 // oreIcon is the renderer's icon of an Option or slot icon: an ItemIcon (runtime id
 // times 65536) is drawn by the game's item renderer, a texture path from the
@@ -526,34 +406,6 @@ func untoken(s string) string {
 	return s
 }
 
-// slotNode is an item slot: cell_image, the rarity behind it (the slotdeco
-// marks a tooltip starts with), the chosen frame, the icon and the count.
-func (l *oreLayout) slotNode(sl ItemSlot, extra ...string) map[string]any {
-	tip, deco := slotDeco(sl.Tip)
-	var ch []any
-	if deco != "" {
-		ch = append(ch, node("img", "class", "mc-deco", "icon", deco))
-	}
-	// slot_chosen has an opaque middle, so it goes under the icon.
-	ch = append(ch, node("img", "class", "mc-chosen", "icon", "tex:textures/ui/sg/slot_chosen"))
-	if sl.Icon != "" {
-		ch = append(ch, img("mc-icon", sl.Icon))
-	}
-	if sl.Count != "" {
-		ch = append(ch, node("text", "class", "mc-count", "text", sl.Count, "ink", "dark"))
-	}
-	class := strings.Join(append([]string{"mc-slot"}, extra...), " ")
-	if sl.Selected {
-		class += " on"
-	}
-	n := box(class, "children", ch, "tip", tip)
-	if sl.Run != nil && !sl.Selected {
-		n["class"] = class + " pressable"
-		l.press(n, sl.Run)
-	}
-	return n
-}
-
 // slotDeco reads the rarity marks of a slot's tooltip ("§k§r§a" and the like,
 // slotdeco): it returns the tooltip without the hidden part and the texture
 // of the rarity.
@@ -575,214 +427,63 @@ var rarityDecos = func() (decos []rarityDeco) {
 	return decos
 }()
 
-func (l *oreLayout) button(class string, o Option) map[string]any {
-	ch := []any{}
-	if o.Icon != "" {
-		ch = append(ch, img("", o.Icon))
-	}
-	ch = append(ch, txt("mc-btn-text", untoken(o.Label)))
-	return l.press(box("mc-btn "+class, "ink", "dark", "children", ch), o.Run)
-}
-
-// listButton is a list button: 30u high, a 20u icon and the text.
-func (l *oreLayout) listButton(o Option) map[string]any {
-	if o.toggle {
-		return l.toggleRow(o)
-	}
-	return l.button("mc-list-row", o)
-}
-
-// toggleRow is a list row with the label at the left and a switch at the
-// right (Toggle).
-func (l *oreLayout) toggleRow(o Option) map[string]any {
-	sw := box("mc-switch", "children", []any{
-		box("mc-switch-on", "children", []any{box("mc-switch-bar")}),
-		box("mc-switch-off", "children", []any{box("mc-switch-ring")}),
-		box("mc-switch-knob"),
-	})
-	if o.on {
-		sw["on"] = true
-	}
-	ch := []any{txt("mc-btn-text", untoken(o.Label)), sw}
-	return l.press(box("mc-btn mc-list-row mc-toggle-row", "ink", "dark", "children", ch), o.Run)
-}
-
-// actionButton is the split screen's 17u action button.
-func (l *oreLayout) actionButton(o Option) map[string]any { return l.button("mc-action", o) }
-
-// card is a card button: 72x46 in a 76x50 cell.
-func (l *oreLayout) card(o Option) map[string]any {
-	return box("mc-card-cell", "children", []any{l.button("mc-card", o)})
-}
-
-// chrome sorts the buttons of a screen: tabs over the window, the control bar
-// (page arrows, help, back) and the rest.
-func (l *oreLayout) chrome(opts []Option) (tabs, bar []any, rest []Option) {
-	var pagers, help, back []any
-	for _, o := range opts {
-		switch {
-		case strings.HasPrefix(o.Label, TabToken), strings.HasPrefix(o.Label, TabOnToken):
-			tabs = append(tabs, l.tab(o))
-		case strings.HasPrefix(o.Label, barPagerToken):
-			pagers = append(pagers, quick(l.iconButton(o, o.Icon, "")))
-		case strings.HasPrefix(o.Label, HelpToken):
-			help = append(help, l.iconButton(o, "", "?"))
-		case strings.HasPrefix(o.Label, BackToken):
-			back = append(back, quick(l.iconButton(o, "textures/ui/sg/chevron_left", "")))
-		default:
-			rest = append(rest, o)
-		}
-	}
-	bar = append(append(pagers, help...), back...)
-	return tabs, bar, rest
-}
-
-// quick makes a tap on n press it at once on a touch screen: its tooltip is
-// only its name. A tap on another node with a tooltip shows the tooltip
-// first and presses at the second tap (oui-ddui.js onPress), so the help
-// text, an item's tooltip and the like can be read.
-func quick(n map[string]any) map[string]any {
-	n["quick"] = true
-	return n
-}
-
-// iconButton is a 15x15 button of the control bar with an icon or a glyph;
-// the label is its tooltip.
-func (l *oreLayout) iconButton(o Option, icon, glyph string) map[string]any {
-	var ch []any
-	if icon != "" {
-		ch = append(ch, img("", icon))
-	} else {
-		ch = append(ch, node("text", "text", glyph, "ink", "dark"))
-	}
-	n := box("mc-icon-button", "children", ch)
-	if tip := untoken(o.Label); tip != "" {
-		n["tip"] = tip
-	}
-	return l.press(n, o.Run)
-}
-
-// tab is a creative inventory tab (24x22) whose name is its tooltip.
-func (l *oreLayout) tab(o Option) map[string]any {
-	on := strings.HasPrefix(o.Label, TabOnToken)
-	n := box("mc-tab", "on", on, "tip", untoken(o.Label), "children", []any{box("mc-tab-bg"), box("mc-tab-front"), img("", o.Icon)})
-	quick(n)
-	if !on {
-		l.press(n, o.Run)
-	}
-	return n
-}
-
 // windowW by windowH is the size of every DDUI window but the quest book's,
 // in GUI pixels: the vanilla inventory's, the largest that fits a phone. One
 // size lets showOre switch screens in place.
 const windowW, windowH = 326, 166
 
-// window is the window of a screen: the tabs over its top left, the control bar
-// over its top right (with the close button), the title and the content.
-func (l *oreLayout) window(title string, tabs, bar []any, content any) any {
-	w, h := windowW, windowH
-	l.size = fmt.Sprintf("%dx%d", w, h)
-	bar = append(bar, box("mc-close", "id", "close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}))
-	var children []any
-	if len(tabs) > 0 {
-		children = append(children, box("mc-tabs", "children", tabs))
-	}
-	children = append(children,
-		box("mc-toolbar", "children", []any{box("mc-toolbar-bg"), box("mc-toolbar-row", "children", bar)}),
-		txt("mc-title", untoken(title)),
-		box("mc-content", "children", []any{content}),
-	)
-	win := box("mc-window", "ink", "panel", "style", map[string]any{"width": gu(w), "height": gu(h)}, "children", children)
-	return box("mc-screen", "children", []any{win})
+// menuData is the data of the menu screen: the body text and a row per option.
+type menuData struct {
+	Chrome dChrome `json:"chrome"`
+	Body   string  `json:"body"`
+	Items  []dItem `json:"items"`
 }
-
-func scroll(children ...any) map[string]any { return box("mc-scroll mc-col", "children", children) }
 
 // oreMenu is a plain menu: the body text and a list button per option.
 func oreMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(opts)
-	content := []any{}
-	if body != "" {
-		content = append(content, txt("mc-body-text", body), box("mc-gap-6"))
-	}
-	for _, o := range rest {
-		content = append(content, l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
+	chrome, rest := l.chromeOf(title, opts)
+	showScreen(p, l, "menu", menuData{Chrome: chrome, Body: body, Items: l.itemsOf(rest)})
+}
+
+// cardsData is the data of the cards screen: the body text and four cards to
+// a row.
+type cardsData struct {
+	Chrome dChrome   `json:"chrome"`
+	Body   string    `json:"body"`
+	Items  []dButton `json:"items"`
 }
 
 // oreCardMenu is a card menu: the body text and four cards to a row.
 func oreCardMenu(p *player.Player, title, body string, opts []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(opts)
-	var cards []any
-	for _, o := range rest {
-		cards = append(cards, l.card(o))
-	}
-	content := []any{}
-	if body != "" {
-		content = append(content, txt("mc-body-text", body), box("mc-gap-6"))
-	}
-	content = append(content, box("mc-cards", "children", cards))
-	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
+	chrome, rest := l.chromeOf(title, opts)
+	showScreen(p, l, "cards", cardsData{Chrome: chrome, Body: body, Items: l.buttonsOf(rest)})
 }
 
-// boardRow is a row of board cells (BoardColumns to a row, 18u each).
-func (l *oreLayout) boardRow(row []BoardCell) any {
-	var cells []any
-	at := func(i int) BoardCell {
-		if i < len(row) {
-			return row[i]
-		}
-		return BoardCell{}
+// boardData is the data of the board screen: the body text, the rows of
+// cells and the list rows for the actions.
+type boardData struct {
+	Chrome dChrome   `json:"chrome"`
+	Body   string    `json:"body"`
+	Rows   [][]dCell `json:"rows"`
+	Items  []dItem   `json:"items"`
+}
+
+// rowsOfCells is the data of board rows, [] when there are none.
+func (l *oreLayout) rowsOfCells(rows [][]BoardCell) [][]dCell {
+	out := make([][]dCell, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, l.cellsOf(r))
 	}
-	for i := 0; i < BoardColumns; i++ {
-		c := at(i)
-		switch c.kind {
-		case cellSlot:
-			cells = append(cells, l.slotNode(c.slot))
-		case cellMini:
-			cells = append(cells, l.slotNode(c.slot, "mc-mini"))
-		case cellFrame:
-			cells = append(cells, box("mc-frame"))
-		case cellArrow:
-			cells = append(cells, box("mc-arrow", "children", []any{box("mc-arrow-img")}))
-		case cellText:
-			// The text runs over the blank cells after it, so the cells after
-			// those stay in their columns.
-			span := 1
-			for i+span < BoardColumns && at(i+span).kind == cellBlank {
-				span++
-			}
-			n := txt("mc-cell-text", c.text)
-			n["style"] = map[string]any{"width": gu(18 * span), "flexShrink": "0"}
-			cells = append(cells, n)
-			i += span - 1
-		default:
-			cells = append(cells, box("mc-gap"))
-		}
-	}
-	return box("mc-board-row", "children", cells)
+	return out
 }
 
 // oreBoard is an ItemBoard: the body text, the rows and list buttons for the actions that are not tabs or bar buttons.
 func oreBoard(p *player.Player, title, body string, rows [][]BoardCell, actions []Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions)
-	var board []any
-	if body != "" {
-		board = append(board, txt("mc-body-text", body), box("mc-gap-3"))
-	}
-	for _, r := range rows {
-		board = append(board, l.boardRow(r))
-	}
-	content := []any{box("mc-board", "children", board)}
-	for _, o := range rest {
-		content = append(content, box("mc-gap-3"), l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
+	chrome, rest := l.chromeOf(title, actions)
+	showScreen(p, l, "board", boardData{Chrome: chrome, Body: body, Rows: l.rowsOfCells(rows), Items: l.itemsOf(rest)})
 }
 
 // SieveRecipe is one recipe of a sieve: the block that goes in, the mesh and
@@ -799,44 +500,75 @@ type SieveGroup struct {
 	Recipes []SieveRecipe
 }
 
+// sieveRecipeData is a recipe of the sieve screen.
+type sieveRecipeData struct {
+	Input dSlot   `json:"input"`
+	Mesh  dSlot   `json:"mesh"`
+	Drops []dSlot `json:"drops"`
+}
+
+// sieveGroupData is the recipes of one sieve under its heading.
+type sieveGroupData struct {
+	Head    dSlot             `json:"head"`
+	Name    string            `json:"name"`
+	Recipes []sieveRecipeData `json:"recipes"`
+}
+
+// sieveData is the data of the sieve screen; Lines is the number of rows of
+// nine drops every recipe is drawn with.
+type sieveData struct {
+	Chrome dChrome          `json:"chrome"`
+	Top    [][]dCell        `json:"top"`
+	Groups []sieveGroupData `json:"groups"`
+	Lines  int              `json:"lines"`
+	Items  []dItem          `json:"items"`
+}
+
 // SieveBoard shows rows of top (the blocks to pick) and under them the
 // recipes of groups laid out like Ex Deorum's JEI sieve category: input and
 // mesh on top, drops in rows of 9 (counts in the tooltips).
 func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []SieveGroup, actions ...Option) {
 	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions)
-	var board []any
-	for _, r := range top {
-		board = append(board, l.boardRow(r))
-	}
-	lines := 1
+	chrome, rest := l.chromeOf(title, actions)
+	d := sieveData{Chrome: chrome, Top: l.rowsOfCells(top), Groups: []sieveGroupData{}, Lines: 1}
 	for _, g := range groups {
 		for _, r := range g.Recipes {
-			lines = max(lines, (len(r.Drops)+8)/9)
+			d.Lines = max(d.Lines, (len(r.Drops)+8)/9)
 		}
 	}
 	for _, g := range groups {
-		board = append(board, box("mc-gap-6"), box("mc-board-row", "children", []any{l.slotNode(g.Head), txt("mc-cell-text", "§l"+g.Name)}), box("mc-gap-3"))
+		gd := sieveGroupData{Head: l.slotOf(g.Head), Name: "§l" + g.Name, Recipes: []sieveRecipeData{}}
 		for _, r := range g.Recipes {
-			var cells []any
-			for _, d := range r.Drops {
-				d.Count = ""
-				cells = append(cells, l.slotNode(d))
+			drops := append([]ItemSlot(nil), r.Drops...)
+			for i := range drops {
+				drops[i].Count = ""
 			}
-			for len(cells) < lines*9 {
-				cells = append(cells, box("mc-frame"))
-			}
-			board = append(board, box("mc-jei-recipe", "children", []any{
-				box("mc-jei-top", "children", []any{l.slotNode(r.Input), l.slotNode(r.Mesh, "mc-jei-mesh")}),
-				box("mc-jei-drops", "children", cells),
-			}), box("mc-gap-6"))
+			gd.Recipes = append(gd.Recipes, sieveRecipeData{Input: l.slotOf(r.Input), Mesh: l.slotOf(r.Mesh), Drops: l.slotsOf(drops)})
 		}
+		d.Groups = append(d.Groups, gd)
 	}
-	content := []any{box("mc-board", "children", board)}
-	for _, o := range rest {
-		content = append(content, box("mc-gap-3"), l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(content...)))
+	d.Items = l.itemsOf(rest)
+	showScreen(p, l, "sieve", d)
+}
+
+// splitDetail is the chosen slot's card of the split screen.
+type splitDetail struct {
+	Icon   string `json:"icon"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Body   string `json:"body"`
+}
+
+// splitData is the data of the split screen: the grid of slots with the
+// ids of the pager arrows ("": dimmed), and the detail of the chosen slot.
+type splitData struct {
+	Chrome  dChrome     `json:"chrome"`
+	Slots   []dSlot     `json:"slots"`
+	Prev    string      `json:"prev"`
+	Next    string      `json:"next"`
+	Detail  splitDetail `json:"detail"`
+	Actions []dButton   `json:"actions"`
+	Rows    []dSlotRow  `json:"rows"`
 }
 
 // oreSplit is a SplitMenu: icon tabs over the
@@ -846,66 +578,25 @@ func SieveBoard(p *player.Player, title string, top [][]BoardCell, groups []Siev
 // rows of slots.
 func oreSplit(p *player.Player, title string, sp Split) {
 	l := newOreLayout()
-	tabs, bar, actions := l.chrome(append(append([]Option(nil), sp.Tabs...), sp.Actions...))
-	var cells []any
-	for i := range SplitCells {
-		if i < len(sp.Slots) {
-			cells = append(cells, l.slotNode(sp.Slots[i]))
-		} else {
-			cells = append(cells, box("mc-frame"))
-		}
-	}
+	chrome, actions := l.chromeOf(title, append(append([]Option(nil), sp.Tabs...), sp.Actions...))
 	pages := max(1, sp.Pages)
 	page := min(max(sp.Page, 0), pages-1)
-	pager := func(on bool, icon string, to int) any {
-		n := box("mc-btn", "children", []any{img("", icon)})
+	pager := func(on bool, to int) string {
 		if !on || sp.Turn == nil {
-			n["class"] = "mc-btn off"
-			return n
+			return ""
 		}
-		return l.press(n, func(p *player.Player, tx *world.Tx) { sp.Turn(p, tx, to) })
+		return l.id(func(p *player.Player, tx *world.Tx) { sp.Turn(p, tx, to) })
 	}
-	left := box("mc-panel mc-split-left", "children", []any{box("mc-col", "children", []any{
-		box("mc-split-grid", "children", cells),
-		box("mc-pager", "children", []any{
-			pager(page > 0, "textures/ui/sg/arrow_left", page-1),
-			pager(page < pages-1, "textures/ui/sg/arrow_right", page+1),
-		}),
-	})})
-	head := []any{}
-	for i, line := range strings.Split(sp.Detail.Name, "\n") {
-		if i > 0 {
-			head = append(head, box("mc-gap-3"))
-		}
-		head = append(head, txt("mc-small-text", line))
+	d := splitData{
+		Chrome:  chrome,
+		Slots:   l.slotsOf(sp.Slots[:min(len(sp.Slots), SplitCells)]),
+		Prev:    pager(page > 0, page-1),
+		Next:    pager(page < pages-1, page+1),
+		Detail:  splitDetail{Icon: oreIcon(sp.Detail.Icon), Name: sp.Detail.Name, Status: sp.Detail.Status, Body: sp.Detail.Body},
+		Actions: l.buttonsOf(actions),
+		Rows:    l.rowsOf(sp.Rows),
 	}
-	if sp.Detail.Status != "" {
-		head = append(head, box("mc-gap-3"), txt("mc-small-text", sp.Detail.Status))
-	}
-	for _, a := range actions {
-		head = append(head, box("mc-gap-3"), l.actionButton(a))
-	}
-	detail := []any{box("mc-row", "children", []any{
-		l.slotNode(ItemSlot{Icon: sp.Detail.Icon}, "mc-big"),
-		box("mc-col", "style", map[string]any{"marginLeft": gu(4), "flexGrow": "1"}, "children", head),
-	})}
-	if sp.Detail.Body != "" {
-		detail = append(detail, box("mc-gap-3"), txt("mc-small-text", sp.Detail.Body))
-	}
-	for _, r := range sp.Rows {
-		var slots []any
-		for _, sl := range r.Slots {
-			slots = append(slots, l.slotNode(sl))
-		}
-		detail = append(detail, box("mc-gap-3"))
-		if r.Heading != "" {
-			detail = append(detail, txt("mc-head", r.Heading))
-		}
-		detail = append(detail, box("mc-grid", "children", slots))
-	}
-	right := box("mc-panel mc-split-right", "children", []any{scroll(box("mc-col", "children", detail))})
-	content := box("mc-row", "style", map[string]any{"height": "100%"}, "children", []any{left, right})
-	showOre(p, l, l.window(title, tabs, bar, content))
+	showScreen(p, l, "split", d)
 }
 
 // SearchResult is what a search shows for a query: a line about it and the
@@ -915,55 +606,41 @@ type SearchResult struct {
 	Sections []GridSection
 }
 
-// SearchGrid shows an input box over the results of find, redrawn in place
-// as the player types. find runs in the player's world.
+// searchData is the data of the search screen: the input box with the
+// query, a line about the results and the sections of slots.
+type searchData struct {
+	Chrome      dChrome    `json:"chrome"`
+	Field       string     `json:"field"`
+	Query       string     `json:"query"`
+	Placeholder string     `json:"placeholder"`
+	Info        string     `json:"info"`
+	Sections    []dSlotRow `json:"sections"`
+	Items       []dItem    `json:"items"`
+}
+
+// SearchGrid shows an input box over the results of find, shown again as
+// the player types (a new layout of the same screen, so the slots of the new
+// results press). find runs in the player's world.
 func SearchGrid(p *player.Player, title, label, query string, find func(p *player.Player, query string) SearchResult, actions ...Option) {
-	l := newOreLayout()
-	tabs, bar, rest := l.chrome(actions)
-	results := func(p *player.Player, query string, prefix string) (any, string, map[string]func(p *player.Player, tx *world.Tx)) {
-		sub := newOreLayout()
-		sub.prefix = prefix
-		r := find(p, query)
-		var parts []any
-		for _, sec := range r.Sections {
-			var slots []any
-			for _, sl := range sec.Slots {
-				slots = append(slots, sub.slotNode(sl))
-			}
-			if sec.Heading != "" {
-				parts = append(parts, txt("mc-head", sec.Heading))
-			}
-			parts = append(parts, box("mc-grid", "children", slots), box("mc-gap-3"))
-		}
-		return box("mc-col", "children", parts), r.Info, sub.runs
-	}
-	first, info, runs := results(p, query, "r0_")
-	for k, v := range runs {
-		l.runs[k] = v
-	}
 	turn := 0
-	l.input = func(p *player.Player, _ *world.Tx, value string) {
-		turn++
-		n, info, runs := results(p, value, "r"+strconv.Itoa(turn)+"_")
-		withScreen(p, func(st *oreScreen) {
-			for k, v := range runs {
-				st.runs[k] = v
-			}
-			st.form.SetVars(map[string]any{"@results": n, "searchInfo": info})
+	var show func(p *player.Player, query, prefix string)
+	show = func(p *player.Player, query, prefix string) {
+		l := newOreLayout()
+		l.prefix = prefix
+		l.input = func(p *player.Player, _ *world.Tx, value string) {
+			turn++
+			show(p, value, "r"+strconv.Itoa(turn)+"_")
+		}
+		chrome, rest := l.chromeOf(title, actions)
+		r := find(p, query)
+		sections := make([]SlotRow, 0, len(r.Sections))
+		for _, sec := range r.Sections {
+			sections = append(sections, SlotRow{Heading: sec.Heading, Slots: sec.Slots})
+		}
+		showScreen(p, l, "search", searchData{
+			Chrome: chrome, Field: "search", Query: query, Placeholder: label, Info: r.Info,
+			Sections: l.rowsOf(sections), Items: l.itemsOf(rest),
 		})
 	}
-	content := []any{
-		box("mc-search", "children", []any{
-			node("img", "icon", "tex:textures/ui/magnifyingGlass"),
-			node("input", "id", "search", "value", query, "placeholder", label, "delay", 250, "class", "mc-input"),
-		}),
-		node("text", "class", "mc-body-text", "bind", "searchInfo"),
-		box("mc-gap-3"),
-		node("region", "name", "results"),
-	}
-	for _, o := range rest {
-		content = append(content, box("mc-gap-3"), l.listButton(o))
-	}
-	showOre(p, l, l.window(title, tabs, bar, scroll(box("mc-board", "children", content))))
-	withScreen(p, func(st *oreScreen) { st.form.SetVars(map[string]any{"@results": first, "searchInfo": info}) })
+	show(p, query, "o")
 }

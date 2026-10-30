@@ -93,19 +93,6 @@ func TestWindowSize(t *testing.T) {
 	}
 }
 
-// TestQuestBookToolbar: the quest book's control bar is a child of its
-// window, like window's, so it sits over the window's top right.
-func TestQuestBookToolbar(t *testing.T) {
-	_, layouts := shownLayouts(t, windowScreens()["quest"])
-	win := childWithClass(layouts[0].(map[string]any), "mc-quest-window")
-	if win == nil {
-		t.Fatal("no quest window")
-	}
-	if childWithClass(win, "mc-toolbar") == nil {
-		t.Error("the control bar is not a child of the window")
-	}
-}
-
 // childWithClass is the first child of n whose class is class.
 func childWithClass(n map[string]any, class string) map[string]any {
 	kids, _ := n["children"].([]any)

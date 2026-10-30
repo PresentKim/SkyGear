@@ -46,23 +46,29 @@ func PlaneMenu(p *player.Player, v Plane) {
 	for _, k := range keyOrder {
 		l.key(k, v.Keys[k])
 	}
-	var spots []any
+	d := planeData{FOV: v.FOV, Dist: v.Distance, Spots: make([]dSpot, 0, len(v.Spots)), Info: v.Info, Corner: v.Corner}
 	for _, sp := range v.Spots {
-		n := box("mc-spot", "on", sp.On, "at", []float64{sp.X, sp.Z, sp.W, sp.H})
-		if sp.Tip != "" {
-			n["tip"] = sp.Tip
-			quick(n)
-		}
-		spots = append(spots, l.press(n, sp.Run))
+		d.Spots = append(d.Spots, dSpot{ID: l.id(sp.Run), At: [4]float64{sp.X, sp.Z, sp.W, sp.H}, On: sp.On, Tip: sp.Tip})
 	}
-	var buttons []any
-	for _, a := range v.Actions {
-		buttons = append(buttons, l.actionButton(a))
-	}
-	panel := box("mc-plane-panel", "ink", "dark", "children", append([]any{txt("mc-plane-info", v.Info)}, buttons...))
-	children := []any{node("plane", "fov", v.FOV, "dist", v.Distance, "children", spots), panel}
-	if v.Corner != "" {
-		children = append(children, box("mc-plane-panel mc-plane-corner", "ink", "dark", "children", []any{txt("mc-plane-info", v.Corner)}))
-	}
-	showOre(p, l, box("mc-screen mc-plane-screen", "children", children))
+	d.Actions = l.buttonsOf(v.Actions)
+	showScreen(p, l, "plane", d)
+}
+
+// planeData is the data of the plane screen.
+type planeData struct {
+	FOV     float64   `json:"fov"`
+	Dist    float64   `json:"dist"`
+	Spots   []dSpot   `json:"spots"`
+	Info    string    `json:"info"`
+	Actions []dButton `json:"actions"`
+	Corner  string    `json:"corner"`
+}
+
+// dSpot is a button over a place of the ground: its rectangle in blocks
+// (x, z, width, height).
+type dSpot struct {
+	ID  string     `json:"id"`
+	At  [4]float64 `json:"at"`
+	On  bool       `json:"on"`
+	Tip string     `json:"tip"`
 }

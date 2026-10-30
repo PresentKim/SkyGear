@@ -1,14 +1,15 @@
 // Package oreui opens server-driven DDUI screens that the oreui pack's
-// renderer (hbui/oui-ddui.js) draws in Ore UI from a layout tree.
+// React page (hbui/oui-app.js) draws in Ore UI from a screen name and its
+// data.
 //
 // The vanilla root minecraft:custom_form reads data store "minecraft",
-// property custom_form_data_<instance id>; the renderer reads these extra
+// property custom_form_data_<instance id>; the page reads these extra
 // fields instead of drawing the vanilla form:
 //
-//	custom_form_data_1.oui        JSON {"form": nonce, "root": layout, "settings": [Setting]}
-//	custom_form_data_1.oui_event  JSON written by the client: {"seq", "id", "kind", "value"}
-//	oui_vars_1_<n>.v              JSON {"f": nonce, "s": seq, "p": patch}: changed
-//	                              variables, rotating over varsSlots properties
+//	custom_form_data_1.oui        JSON {"form": nonce, "root": Root, "settings": [Setting]}
+//	custom_form_data_1.oui_event  JSON written by the client: {"seq", "id", "kind", "value", "inputs"}
+//
+// A change of the screen is a whole new root of the same form.
 //
 // Connections must pass sghook (sghook.Wrap), which takes the client's DDUI
 // packets the session does not handle.
@@ -34,16 +35,11 @@ const (
 	screen   = "minecraft:custom_form"
 	instance = 1
 	property = "custom_form_data_1"
-	// varsSlots is how many properties the variable patches rotate through.
-	// The client keeps only the newest value of a property in a frame, so two
-	// patches to one property lose the first; the renderer reads every slot
-	// and applies the patches in seq order.
-	varsSlots = 8
 )
 
-// Event is one interaction the renderer reports: Kind "click" with the ID of
+// Event is one interaction the page reports: Kind "click" with the ID of
 // the pressed element and the text of the screen's input boxes by their IDs
-// (Inputs), "change" with an input's Value, or "key" with ID "close" for Esc.
+// (Inputs), "change" with an input's Value, "key" with ID "close" for Esc, or "probe" with a probe line.
 type Event struct {
 	Seq    int               `json:"seq"`
 	ID     string            `json:"id"`
@@ -64,14 +60,12 @@ type Form struct {
 	closed  bool
 	onEvent func(Event)
 	onClose func()
-	pending map[string]any
-	seq     int
-	// nonce tells this form's layout and patches from those of a form before
-	// it in the same properties.
+	// nonce tells this form's roots from those of a form before it in the
+	// same property.
 	nonce string
 }
 
-// Setting is a client setting the renderer keeps at Value while the page is
+// Setting is a client setting the page keeps at Value while the page is
 // open (SetClientSettings): ID as the game's settings screen names it
 // (video.ui_profile), Kind "bool", "option", "number" or "string".
 type Setting struct {
@@ -85,7 +79,7 @@ var (
 	settings   = map[*sghook.Conn][]Setting{}
 )
 
-// SetClientSettings makes the renderer of p's client keep s: it writes each
+// SetClientSettings makes the page of p's client keep s: it writes each
 // setting when it differs and again whenever the player changes it. The
 // settings go with the layout of the next screen opened; they stay in the
 // client's options after p leaves.
@@ -215,39 +209,6 @@ func (f *Form) SetLayout(layout any) error {
 		{Key: "oui", Value: str(string(b))},
 		{Key: "oui_event", Value: str("")},
 	}})
-}
-
-// SetVars sends changed variables of the layout (its bindings) in small
-// properties of their own, so frequent updates do not resend the layout.
-// Calls within 10ms are merged into one send.
-func (f *Form) SetVars(vars map[string]any) {
-	f.mu.Lock()
-	first := f.pending == nil
-	if first {
-		f.pending = map[string]any{}
-	}
-	for k, v := range vars {
-		f.pending[k] = v
-	}
-	f.mu.Unlock()
-	if first {
-		time.AfterFunc(10*time.Millisecond, f.flushVars)
-	}
-}
-
-func (f *Form) flushVars() {
-	f.mu.Lock()
-	patch := f.pending
-	f.pending = nil
-	f.seq++
-	seq := f.seq
-	f.mu.Unlock()
-	b, err := json.Marshal(map[string]any{"f": f.nonce, "s": seq, "p": patch})
-	if err != nil {
-		return
-	}
-	_ = f.change(fmt.Sprintf("oui_vars_%d_%d", instance, seq%varsSlots), protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap,
-		MapValue: []protocol.DataStoreMapEntry{{Key: "v", Value: str(string(b))}}})
 }
 
 // Close closes the screen on the client. onClose does not run.
