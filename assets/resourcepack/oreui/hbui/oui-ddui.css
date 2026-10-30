@@ -1,4 +1,4 @@
-/* Styles for the server-driven DDUI renderer (oui-ddui.js). */
+/* Styles for the server-driven DDUI page (web/oreui). */
 body.oui-active #root {
   visibility: hidden;
 }
@@ -22,7 +22,7 @@ body.oui-active #root {
   pointer-events: auto;
 }
 
-/* The debug line (the variable __debug, common ui.SetOreDebug): over the top of the screen, so a
+/* The debug line (the root's debug flag, common ui.SetOreDebug; web/oreui/src/Status.tsx): over the top of the screen, so a
    screenshot carries it. */
 #oui-ddui-status {
   position: absolute;
@@ -328,7 +328,7 @@ body.oui-active #root {
 }
 
 /* The tooltip is in the body, outside #oui-ddui, so it names the font stack itself. Its text is the
-   window's size; on a touch screen (oui-ddui.js showTip) one step larger, as a finger is over it. */
+   window's size; on a touch screen (web/oreui/src/interact/Tooltip.tsx showTip) one step larger, as a finger is over it. */
 #oui-tip {
   position: absolute;
   display: none;

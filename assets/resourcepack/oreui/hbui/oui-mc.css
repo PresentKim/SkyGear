@@ -1091,7 +1091,7 @@
   transform-origin: 0 0;
 }
 
-/* The zoom buttons at the bottom right of the canvas (oui-ddui.js buildCanvas). */
+/* The zoom buttons at the bottom right of the canvas (web/oreui/src/components/Canvas.tsx). */
 .oui-canvas-zoom {
   position: absolute;
   right: 0.8rem;
@@ -1376,13 +1376,6 @@
   border-color: #8b8b8b;
 }
 
-/* The ports' region takes the rest of the row, so the ports sit at its right. */
-.mc-side-body > .oui-region {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: row;
-}
-
 .mc-side-ports {
   flex-grow: 1;
   display: flex;
@@ -1521,7 +1514,7 @@
   height: 1.8rem;
 }
 
-/* --- the lobby (ui.lobbySkin): the main screen shows the lobby island clear, the screens over it a
+/* --- the lobby (web/oreui/src/components/Window.tsx ScreenRoot): the main screen shows the lobby island clear, the screens over it a
    shade; the game's logo and name are at the top middle (16u down); the
    windows, panels, buttons, tabs and control bar take the navy launcher button pictures (sgui
    launcher_button, 16x16, slice 4) and the text is light. ----------------------------------------- */
@@ -1547,7 +1540,7 @@
 }
 
 /* The head spans the screen to centre the logo and the name; the renderer measures what it holds
-   (oui-ddui.js fitLobbyHead). */
+   (web/oreui/src/components/Window.tsx fitLobbyHead). */
 .mc-lobby-head {
   position: absolute;
   left: 0;
@@ -1629,7 +1622,7 @@
   border-image-width: 0.8rem;
 }
 
-/* Text lines are rows of spans (oui-ddui.js rich): centred text centres them. */
+/* Text lines are rows of spans (web/oreui/src/text/Rich.tsx): centred text centres them. */
 .mc-home-badge .oui-line,
 .mc-home-ov-title .oui-line,
 .mc-home-ov-body .oui-line,
