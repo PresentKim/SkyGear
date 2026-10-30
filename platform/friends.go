@@ -14,9 +14,10 @@ import (
 )
 
 // The tabs of the friends screen. The friend requests are notices
-// (notify.go), which a tab between them opens.
+// (notify.go), whose screen the tab between them opens with the tabs kept.
 const (
 	friendsTab = iota
+	noticesTab
 	blockedTab
 )
 
@@ -44,6 +45,15 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 		pf.fail(p, i18n.T(lang, "platform.friends.load"), err)
 		return
 	}
+	sp.Actions = append(sp.Actions, pf.friendTabs(p, tab)...)
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
+	ui.ListSplitMenu(p, i18n.T(lang, "platform.friends.title"), sp)
+}
+
+// friendTabs are the tabs of the friends screen with on chosen; the notices
+// tab shows how many there are.
+func (pf *Platform) friendTabs(p *player.Player, on int) []ui.Option {
+	lang := i18n.Of(p)
 	notices := i18n.T(lang, "platform.notify.title")
 	if n := len(pf.notifies(p)); n > 0 {
 		notices = fmt.Sprintf("%s §e%d", notices, n)
@@ -51,13 +61,11 @@ func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 	tabTo := func(t int) func(p *player.Player, _ *world.Tx) {
 		return func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, t, "") }
 	}
-	sp.Actions = append(sp.Actions,
-		ui.Tab(i18n.T(lang, "platform.friends.tab.friends"), iconFriend, tab == friendsTab, tabTo(friendsTab)),
-		ui.Tab(notices, iconRequests, false, func(p *player.Player, _ *world.Tx) { pf.showNotify(p, "") }),
-		ui.Tab(i18n.T(lang, "platform.friends.tab.blocked"), iconBlocked, tab == blockedTab, tabTo(blockedTab)),
-	)
-	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenFriends) }))
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.friends.title"), sp)
+	return []ui.Option{
+		ui.Tab(i18n.T(lang, "platform.friends.tab.friends"), iconFriend, on == friendsTab, tabTo(friendsTab)),
+		ui.Tab(notices, iconRequests, on == noticesTab, func(p *player.Player, _ *world.Tx) { pf.openNotify(p, true) }),
+		ui.Tab(i18n.T(lang, "platform.friends.tab.blocked"), iconBlocked, on == blockedTab, tabTo(blockedTab)),
+	}
 }
 
 // hostedSave is the save p is hosting and playing in, nil in the lobby or

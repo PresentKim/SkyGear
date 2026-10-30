@@ -61,11 +61,21 @@ func (pf *Platform) notifiesOf(accountID, lang string) []Notify {
 	return out
 }
 
+// openNotify opens the notice screen with the newest notice chosen;
+// inFriends when it is the tab of the friends screen, whose tabs it keeps.
+func (pf *Platform) openNotify(p *player.Player, inFriends bool) {
+	pf.notifyInFriends.Store(instance.AccountID(p), inFriends)
+	pf.showNotify(p, "")
+}
+
 // showNotify is the notice screen: the notices on the left, newest first,
 // and the chosen one (sel, a Key; the newest when not found) with its
-// actions on the right.
+// actions on the right. Opened from the friends screen (openNotify), it has
+// that screen's tabs and goes back where that screen does.
 func (pf *Platform) showNotify(p *player.Player, sel string) {
 	lang := i18n.Of(p)
+	v, _ := pf.notifyInFriends.Load(instance.AccountID(p))
+	inFriends, _ := v.(bool)
 	list := pf.notifies(p)
 	var sp ui.ListSplit
 	chosen := -1
@@ -89,8 +99,13 @@ func (pf *Platform) showNotify(p *player.Player, sel string) {
 		sp.Body = list[chosen].Body
 		sp.Actions = list[chosen].Actions
 	}
-	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenNotify) }))
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.notify.title"), sp)
+	from, title := instance.ScreenNotify, i18n.T(lang, "platform.notify.title")
+	if inFriends {
+		from, title = instance.ScreenFriends, i18n.T(lang, "platform.friends.title")
+		sp.Actions = append(sp.Actions, pf.friendTabs(p, noticesTab)...)
+	}
+	sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, from) }))
+	ui.ListSplitMenu(p, title, sp)
 }
 
 // notified tells the account, online, about a new notice: a toast with line, and the
@@ -187,5 +202,5 @@ type notifyCmd struct {
 }
 
 func (c notifyCmd) Run(src cmd.Source, _ *cmd.Output, _ *world.Tx) {
-	c.pf.showNotify(src.(*player.Player), "")
+	c.pf.openNotify(src.(*player.Player), false)
 }

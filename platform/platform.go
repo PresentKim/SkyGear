@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -34,6 +35,9 @@ type Platform struct {
 	m       *instance.Manager
 	online  Online
 	invites invites
+	// notifyInFriends holds the accounts whose notice screen was opened from
+	// the tab of the friends screen, and so keeps its tabs (account ID: true).
+	notifyInFriends sync.Map
 	// isOperator reports whether a player is a server operator (platform.toml
 	// [Admin]); operators manage the members of any save they are in.
 	isOperator func(p *player.Player) bool

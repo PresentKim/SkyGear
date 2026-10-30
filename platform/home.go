@@ -124,7 +124,7 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 
 	notices := pf.notifies(p)
 	h.Corner = []ui.HomeButton{
-		{Icon: iconRequests, Label: i18n.T(lang, "platform.notify.title"), Badge: len(notices), Run: homeRun(func(p *player.Player) { pf.showNotify(p, "") })},
+		{Icon: iconRequests, Label: i18n.T(lang, "platform.notify.title"), Badge: len(notices), Run: homeRun(func(p *player.Player) { pf.openNotify(p, false) })},
 		{Icon: iconSettings, Label: i18n.T(lang, "platform.home.settings"), Run: homeRun(pf.showSettings)},
 		{Icon: iconExit, Label: i18n.T(lang, "platform.home.exit"), Run: pf.overlay(homeExit)},
 	}
