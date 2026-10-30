@@ -102,6 +102,8 @@ type oreScreen struct {
 	// loading is when the loading screen shown came up (zero: the screen is
 	// not a loading screen, LoadingScreen).
 	loading time.Time
+	// root is the root last sent, which SetOreDebug sends again.
+	root any
 }
 
 var oreScreens = struct {
@@ -127,6 +129,7 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 	}
 	st.gen++
 	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
+	st.root = root
 	switch {
 	case !l.loading:
 		st.loading = time.Time{}
@@ -163,13 +166,41 @@ var oreDebug sync.Map
 
 // SetOreDebug shows or hides the debug line of p's DDUI screens: what the
 // page knows of the screen and the fonts, over the top of the screen, for a
-// screenshot from a device. It applies from the next screen shown.
+// screenshot from a device. It applies to the screen open at once and to the
+// screens shown after.
 func SetOreDebug(p *player.Player, on bool) {
 	if on {
 		oreDebug.Store(p.UUID(), true)
 	} else {
 		oreDebug.Delete(p.UUID())
 	}
+	if oreShown != nil {
+		return
+	}
+	oreScreens.Lock()
+	defer oreScreens.Unlock()
+	if st := oreScreens.m[p.UUID()]; st != nil && st.form != nil && !st.form.Closed() && st.root != nil {
+		st.root = rootDebug(st.root, on)
+		_ = st.form.SetLayout(st.root)
+	}
+}
+
+// rootDebug is root with its debug line on or off.
+func rootDebug(root any, on bool) any {
+	m, ok := root.(map[string]any)
+	if !ok {
+		return root
+	}
+	out := make(map[string]any, len(m)+1)
+	for k, v := range m {
+		out[k] = v
+	}
+	if on {
+		out["debug"] = true
+	} else {
+		delete(out, "debug")
+	}
+	return out
 }
 
 // OreDebug reports whether p's DDUI screens show the debug line.

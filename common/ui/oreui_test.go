@@ -187,3 +187,17 @@ func TestSearchRedraw(t *testing.T) {
 		t.Error("the redrawn screen cannot be typed into")
 	}
 }
+
+func TestRootDebugToggle(t *testing.T) {
+	root := rootOf("menu", menuData{}, nil, nil, false)
+	on := rootDebug(root, true).(map[string]any)
+	if on["debug"] != true || on["screen"] != "menu" {
+		t.Errorf("on = %v", on)
+	}
+	if _, ok := root["debug"]; ok {
+		t.Error("rootDebug changed its argument")
+	}
+	if _, ok := rootDebug(on, false).(map[string]any)["debug"]; ok {
+		t.Error("debug kept after off")
+	}
+}
