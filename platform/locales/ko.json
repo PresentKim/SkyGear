@@ -255,6 +255,7 @@
  "platform.saves.none": "§7세이브가 없습니다.",
  "setting.title": "설정",
  "setting.command": "플레이어 설정을 엽니다",
+ "setting.group.achievement": "업적",
  "setting.achievement.toast": "업적 달성 화면 알림",
  "setting.achievement.chat": "업적 달성 채팅 메시지",
  "setting.achievement.sound": "업적 달성 소리",

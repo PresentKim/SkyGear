@@ -21,8 +21,8 @@ function Body(props: { text: string; gap: 3 | 6 }): JSX.Element | null {
 function ListButtons(props: { items: ListItem[]; gap?: boolean }): JSX.Element {
   return (
     <>
-      {props.items.map((item) => (
-        <Fragment key={item.id}>
+      {props.items.map((item, i) => (
+        <Fragment key={item.id || 'row' + i}>
           {props.gap ? <Gap size={6} /> : null}
           <ListButton item={item} />
         </Fragment>

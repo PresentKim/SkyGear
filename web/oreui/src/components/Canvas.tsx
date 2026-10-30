@@ -123,8 +123,8 @@ function remPx(): number {
   return parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
 }
 
-/** A pannable, zoomable plane; pan and zoom are kept per planeKey across remounts. */
-export function Canvas(props: { planeKey: string; focusX: number; focusY: number; children?: ReactNode }): JSX.Element {
+/** A pannable, zoomable plane; pan and zoom are kept per planeKey across remounts, unless recenter centres it on the focus again (the zoom kept). */
+export function Canvas(props: { planeKey: string; focusX: number; focusY: number; recenter?: boolean; children?: ReactNode }): JSX.Element {
   const viewRef = useRef<HTMLDivElement>(null);
   const planeRef = useRef<HTMLDivElement>(null);
   const boundsRef = useRef<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
@@ -133,13 +133,14 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
   const place = useRef<() => void>(() => {});
   const zoomTo = useRef<(z: number, cx?: number, cy?: number) => void>(() => {});
   const inView = useRef<(x: number, y: number) => { x: number; y: number }>((x, y) => ({ x, y }));
-  const { planeKey, focusX, focusY } = props;
+  const { planeKey, focusX, focusY, recenter } = props;
 
   useLayoutEffect(() => {
     const view = viewRef.current!;
     const plane = planeRef.current!;
     boundsRef.current = null;
-    let pan: Pan | null = pans.get(planeKey) ?? null;
+    const kept = pans.get(planeKey) ?? null;
+    let pan: Pan | null = recenter ? null : kept;
     panRef.current = pan;
 
     const measure = () => {
@@ -196,7 +197,7 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
 
     if (!pan) {
       const touch = !!view.closest('.mc-touch') || document.body.classList.contains('mc-touch');
-      const z = lastZoom || (touch ? ZOOM_STEP : 1);
+      const z = kept?.z || lastZoom || (touch ? ZOOM_STEP : 1);
       const rem = remPx();
       pan = { x: view.clientWidth / 2 - (focusX || 0) * rem * z, y: view.clientHeight / 2 - (focusY || 0) * rem * z, z };
       pans.set(planeKey, pan);
@@ -251,9 +252,9 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
       view.removeEventListener('wheel', onWheel);
       stop();
     };
-    // focusX/focusY only place a new key; new data with the same key keeps the pan.
+    // focusX/focusY only place a new key or a recenter; new data with the same key keeps the pan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planeKey]);
+  }, [planeKey, recenter]);
 
   // New children under the same key: measure again, keep the pan.
   useEffect(() => {

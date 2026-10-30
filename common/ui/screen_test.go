@@ -125,6 +125,15 @@ func TestItemsOf(t *testing.T) {
 	}
 }
 
+// TestHeadingDivider: a heading and a divider are rows that are no button.
+func TestHeadingDivider(t *testing.T) {
+	l := newOreLayout()
+	it := l.itemsOf([]Option{Heading("h"), Divider(), {Label: "a", Run: nopRun}})
+	if it[0].Kind != "heading" || it[0].Label != "h" || it[0].ID != "" || it[1].Kind != "divider" || it[1].ID != "" || it[2].Kind != "" {
+		t.Errorf("items %+v", it)
+	}
+}
+
 // TestIDsUnique: ids from one layout never repeat.
 func TestIDsUnique(t *testing.T) {
 	l := newOreLayout()

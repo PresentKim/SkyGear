@@ -255,6 +255,7 @@
  "platform.saves.none": "§7No saves.",
  "setting.title": "Settings",
  "setting.command": "Opens the player settings",
+ "setting.group.achievement": "Achievements",
  "setting.achievement.toast": "Achievement on-screen notice",
  "setting.achievement.chat": "Achievement chat message",
  "setting.achievement.sound": "Achievement sound",

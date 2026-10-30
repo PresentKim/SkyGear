@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ToggleButton } from '@ore-ui-react/oreui/ToggleButton/ToggleButton';
 import type React from 'react';
 import type { ReactNode } from 'react';
 import type { Button, Id, ListItem, Text } from '../protocol';
@@ -25,10 +26,11 @@ function Face(props: { button: Button }): JSX.Element {
   );
 }
 
+// ToggleRow is a setting's row: the label at the left, ore-ui-react's ToggleButton at the right. The
+// whole row presses; the row flips the switch at the press, so the knob slides at once, and the screen
+// the server sends back sets it as it is.
 function ToggleRow(props: { item: ListItem }): JSX.Element {
   const { item } = props;
-  // The row flips its switch at the press, so the knob slides at once; the screen the server sends
-  // back sets it as it is.
   const [flipped, setFlipped] = useState(false);
   useEffect(() => setFlipped(false), [item]);
   const press = usePressable({ id: item.id });
@@ -46,20 +48,16 @@ function ToggleRow(props: { item: ListItem }): JSX.Element {
       <InkContext.Provider value="dark">
         <Rich text={item.label} className="oui-text mc-btn-text" />
       </InkContext.Provider>
-      <div className={on ? 'oui-box on mc-switch' : 'oui-box mc-switch'}>
-        <div className="oui-box mc-switch-on">
-          <div className="oui-box mc-switch-bar" />
-        </div>
-        <div className="oui-box mc-switch-off">
-          <div className="oui-box mc-switch-ring" />
-        </div>
-        <div className="oui-box mc-switch-knob" />
+      <div className="oui-box mc-switch">
+        <ToggleButton value={on} />
       </div>
     </div>
   );
 }
 
 export function ListButton(props: { item: ListItem }): JSX.Element {
+  if (props.item.kind === 'heading') return <Rich text={props.item.label} className="oui-text mc-head mc-list-heading" />;
+  if (props.item.kind === 'divider') return <div className="oui-box mc-divider" />;
   if (props.item.toggle) return <ToggleRow item={props.item} />;
   return (
     <McButton id={props.item.id} className="mc-btn mc-list-row">

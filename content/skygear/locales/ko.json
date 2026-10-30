@@ -3294,6 +3294,8 @@
  "skygear.admin.researchLoad": "연구 시험 복사본 %d개를 만들었습니다(저장 안 됨).",
  "advancement.progress": "%s 달성 %d/%d",
  "menu.settings": "§7설정",
+ "setting.group.advancement": "발전과제",
+ "setting.group.play": "게임 플레이",
  "setting.advancement.toast": "발전과제 달성 화면 알림",
  "setting.advancement.chat": "발전과제 달성 채팅 메시지",
  "setting.advancement.sound": "발전과제 달성 소리",

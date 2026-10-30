@@ -61,10 +61,12 @@ type dButton struct {
 }
 
 // dItem is a list row; Toggle makes it a row with a switch, On its state.
+// Kind "heading" or "divider" is a row that is no button.
 type dItem struct {
 	dButton
-	Toggle bool `json:"toggle,omitempty"`
-	On     bool `json:"on,omitempty"`
+	Toggle bool   `json:"toggle,omitempty"`
+	On     bool   `json:"on,omitempty"`
+	Kind   string `json:"kind,omitempty"`
 }
 
 // dSlot is an item slot.
@@ -168,7 +170,7 @@ func (l *oreLayout) buttonOf(o Option) dButton {
 
 // itemOf is the data of a list row.
 func (l *oreLayout) itemOf(o Option) dItem {
-	return dItem{dButton: l.buttonOf(o), Toggle: o.toggle, On: o.toggle && o.on}
+	return dItem{dButton: l.buttonOf(o), Toggle: o.toggle, On: o.toggle && o.on, Kind: o.row}
 }
 
 // buttonsOf is the data of buttons, [] when there are none.

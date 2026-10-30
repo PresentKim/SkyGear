@@ -2,3 +2,44 @@
 #oui-ddui:empty {
   display: none;
 }
+
+/* A list's heading (ui.Heading) over a group of rows, and the divider (ui.Divider) between groups. */
+.mc-list-heading {
+  padding-left: 0.4rem;
+}
+
+.mc-divider {
+  height: 0.2rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+  background-color: #8b8b8b;
+}
+
+/* The NEW tag of a quest done but not looked at yet, over its top right corner, and the dot of a
+   chapter that has such quests. */
+.mc-new-tag {
+  position: absolute;
+  top: -0.4rem;
+  right: -1rem;
+  z-index: 3;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+  background-color: #e5302a;
+  border-style: solid;
+  border-width: 0.1rem;
+  border-color: #6b0f0c;
+  color: #ffffff;
+  font-size: 0.8rem;
+  line-height: 1.2rem;
+}
+
+.mc-new-dot {
+  flex-shrink: 0;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-right: 0.4rem;
+  background-color: #e5302a;
+  border-style: solid;
+  border-width: 0.1rem;
+  border-color: #6b0f0c;
+}

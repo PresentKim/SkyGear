@@ -9,6 +9,7 @@
     "lib": ["dom", "es2017"],
     "skipLibCheck": true,
     "paths": {
+      "@ore-ui-react/oreui/*": ["./node_modules/ore-ui-react/packages/oreui/src/*"],
       "@ore-ui-react/*": ["./node_modules/ore-ui-react/packages/*/src/index.ts"]
     }
   },

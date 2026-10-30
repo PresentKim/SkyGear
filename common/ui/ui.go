@@ -62,7 +62,16 @@ type Option struct {
 	Run   func(p *player.Player, tx *world.Tx)
 	// toggle draws the option as a row with a switch, on when on (Toggle).
 	toggle, on bool
+	// row is how a list draws an option that is no button (Heading,
+	// Divider); "" is a button.
+	row string
 }
+
+// Heading is a list's heading over the rows after it, not pressable.
+func Heading(label string) Option { return Option{Label: label, row: "heading"} }
+
+// Divider is a line across a list between two groups of rows.
+func Divider() Option { return Option{row: "divider"} }
 
 // Toggle is a menu option drawn as a row with an Ore UI switch on its right,
 // on when on. Pressing the row runs run, which should change the setting and

@@ -740,6 +740,8 @@
  "skygear.admin.researchRandom": "Randomly completed %d/%d research (%d%%).",
  "skygear.admin.researchLoad": "Created %d research test copies (not saved).",
  "menu.settings": "§7Settings",
+ "setting.group.advancement": "Advancements",
+ "setting.group.play": "Gameplay",
  "setting.advancement.toast": "Advancement on-screen notice",
  "setting.advancement.chat": "Advancement chat message",
  "setting.advancement.sound": "Advancement sound",

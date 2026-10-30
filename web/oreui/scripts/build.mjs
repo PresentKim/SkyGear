@@ -30,7 +30,11 @@ function sourceHash() {
 const oreUi = {
   name: 'ore-ui-react',
   setup(build) {
-    build.onResolve({ filter: /^@ore-ui-react\// }, (args) => ({
+    // A single component of the oreui package (its own file, so only its CSS comes along).
+    build.onResolve({ filter: /^@ore-ui-react\/oreui\/./ }, (args) => ({
+      path: resolve(web, 'node_modules/ore-ui-react/packages/oreui/src', args.path.slice('@ore-ui-react/oreui/'.length) + '.tsx'),
+    }));
+    build.onResolve({ filter: /^@ore-ui-react\/[^/]+$/ }, (args) => ({
       path: resolve(web, 'node_modules/ore-ui-react/packages', args.path.slice('@ore-ui-react/'.length), 'src/index.ts'),
     }));
   },

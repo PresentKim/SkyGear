@@ -81,9 +81,16 @@ describe('buttons', () => {
     const { container } = render(<ListButton item={{ id: 'o4', label: 'V', icon: '', toggle: true, on: true }} />);
     const b = container.firstElementChild!;
     expect(b.className).toBe('oui-box mc-btn mc-list-row mc-toggle-row');
-    expect(b.querySelector('.mc-switch')!.classList.contains('on')).toBe(true);
+    expect(b.querySelector('.mc-switch > .oui-toggle-button .oui-toggle-button-thumb')!.classList.contains('on')).toBe(true);
     const off = render(<ListButton item={{ id: 'o4', label: 'V', icon: '', toggle: true, on: false }} />);
-    expect(off.container.querySelector('.mc-switch')!.classList.contains('on')).toBe(false);
+    expect(off.container.querySelector('.oui-toggle-button-thumb')!.classList.contains('off')).toBe(true);
+  });
+  it('heading_and_divider_rows', () => {
+    const h = render(<ListButton item={{ id: '', label: 'Group', icon: '', kind: 'heading' }} />);
+    expect(h.container.firstElementChild!.className).toBe('oui-text mc-head mc-list-heading');
+    expect(h.container.firstElementChild!.hasAttribute('data-oui-press')).toBe(false);
+    const d = render(<ListButton item={{ id: '', label: '', icon: '', kind: 'divider' }} />);
+    expect(d.container.firstElementChild!.className).toBe('oui-box mc-divider');
   });
   it('McButton holds its children', () => {
     const { container } = render(
