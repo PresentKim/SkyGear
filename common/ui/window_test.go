@@ -10,17 +10,15 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// shownLayouts runs show with the DDUI screens on and returns the layouts it
+// shownLayouts runs show and returns the layouts it
 // showed with their window sizes.
 func shownLayouts(t *testing.T, show func()) (sizes []string, layouts []any) {
 	t.Helper()
-	was := OreUI
-	OreUI = true
 	oreShown = func(l *oreLayout, layout any) {
 		sizes = append(sizes, l.size)
 		layouts = append(layouts, layout)
 	}
-	defer func() { OreUI, oreShown = was, nil }()
+	defer func() { oreShown = nil }()
 	show()
 	return sizes, layouts
 }
@@ -71,7 +69,7 @@ func windowScreens() map[string]func() {
 		"search": func() {
 			SearchGrid(p, "검색", "찾기", "", func(*player.Player, string) SearchResult {
 				return SearchResult{Sections: []GridSection{{Slots: slots}}}
-			}, nil)
+			})
 		},
 	}
 }
@@ -92,19 +90,6 @@ func TestWindowSize(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-	}
-}
-
-// TestQuestBookToolbar: the quest book's control bar is a child of its
-// window, like window's, so it sits over the window's top right.
-func TestQuestBookToolbar(t *testing.T) {
-	_, layouts := shownLayouts(t, windowScreens()["quest"])
-	win := childWithClass(layouts[0].(map[string]any), "mc-quest-window")
-	if win == nil {
-		t.Fatal("no quest window")
-	}
-	if childWithClass(win, "mc-toolbar") == nil {
-		t.Error("the control bar is not a child of the window")
 	}
 }
 

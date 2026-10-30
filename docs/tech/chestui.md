@@ -28,7 +28,7 @@ Dragonfly 를 패치하지 않고 `common/sghook` 으로 세션에 닿는다([be
 | `Retry` | 클라이언트가 초과 열기에 대한 `PacketViolationWarning`(type -1)으로 확인할 때까지 매 틱 닫기+열기 재전송(최대 20회). 그동안 그 창의 닫기는 무시 |
 | `Debug` | 열기·닫기·클라이언트 닫기·위반 경고를 INFO 로그로 남긴다 |
 
-6. 리소스팩 `common/packs/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
+6. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
    제목 앞의 `§{줄 수 1~6}§{스크롤 0/1}` + `§r` 9개를 읽어 창 크기를 정한다.
    54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로.
 7. 세션의 열린 창(`openedWindow`)을 그 인벤토리로 두므로 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
@@ -40,7 +40,7 @@ Dragonfly 를 패치하지 않고 `common/sghook` 으로 세션에 닿는다([be
 
 리소스팩은 필수(`ResourcesRequired`)로 보낸다. 팩이 없으면 27칸 상자로만 보인다.
 
-같은 팩의 `ui/sg_quick.json` 은 모든 창고 창(바닐라 상자·큰 상자·엔더 상자·셜커 상자·통, chestui 세로·스크롤 창, 기계 창) 오른쪽 바깥에 **모두 꺼내기·모두 넣기** 버튼을 세로로 붙인다. 버튼 밑에 칸 수만큼 보이지 않는 버튼이 겹쳐 있고, 누름을 각 칸의 바닐라 빠른 이동(쉬프트 클릭)으로 바꾼다. 그래서 서버에는 평범한 아이템 이동 요청이 칸마다 오고 서버 코드는 없다. 꺼내기는 창고 칸(`$quick_container_size`, 창 표식마다 `chest_screen.json` 이 정함), 넣기는 인벤토리 27칸(`$quick_put_hotbar` 면 핫바까지)을 옮긴다. 세 번째 **있는 것만 넣기**는 넣기와 같되, 창고 앞 54칸 중 어느 칸에 같은 아이템(`#item_id_aux`)이 있는 인벤토리 칸만 옮긴다. JSON UI 에는 반복이 없어 창고 칸마다 이름 붙은 컨트롤(`sg_quick_c<n>`)과 인벤토리 칸마다 54개의 비교 바인딩을 `common/tools/quickmatch` 가 `ui/sg_quick_match.json` 으로 써 둔다. 아이콘은 바닐라 `up_arrow`·`down_arrow`(어둡게 칠함)·`store_filter_icon` 이다.
+같은 팩의 `ui/sg_quick.json` 은 모든 창고 창(바닐라 상자·큰 상자·엔더 상자·셜커 상자·통, chestui 세로·스크롤 창, 기계 창) 오른쪽 바깥에 **모두 꺼내기·모두 넣기** 버튼을 세로로 붙인다. 버튼 밑에 칸 수만큼 보이지 않는 버튼이 겹쳐 있고, 누름을 각 칸의 바닐라 빠른 이동(쉬프트 클릭)으로 바꾼다. 그래서 서버에는 평범한 아이템 이동 요청이 칸마다 오고 서버 코드는 없다. 꺼내기는 창고 칸(`$quick_container_size`, 창 표식마다 `chest_screen.json` 이 정함), 넣기는 인벤토리 27칸(`$quick_put_hotbar` 면 핫바까지)을 옮긴다. 세 번째 **있는 것만 넣기**는 넣기와 같되, 창고 앞 54칸 중 어느 칸에 같은 아이템(`#item_id_aux`)이 있는 인벤토리 칸만 옮긴다. JSON UI 에는 반복이 없어 창고 칸마다 이름 붙은 컨트롤(`sg_quick_c<n>`)과 인벤토리 칸마다 54개의 비교 바인딩을 `tools/quickmatch` 가 `ui/sg_quick_match.json` 으로 써 둔다. 아이콘은 바닐라 `up_arrow`·`down_arrow`(어둡게 칠함)·`store_filter_icon` 이다.
 
 ## 사용
 

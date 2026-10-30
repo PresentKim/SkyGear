@@ -1,7 +1,6 @@
 package hud
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -45,19 +44,6 @@ func TestSentRowsAlwaysFull(t *testing.T) {
 	}
 	var empty Board
 	if len(empty.sentRows()) != maxRows {
-		t.Fatal("an empty frame board is not full")
-	}
-}
-
-// TestFrameBoard: a frame board is told apart by its key even with no rows,
-// and the same rows with and without the frame differ.
-func TestFrameBoard(t *testing.T) {
-	var plain, frame Board
-	frame.Frame = true
-	if !strings.HasPrefix(frame.Key(), FrameTitle) || plain.Key() == frame.Key() {
-		t.Fatalf("keys %q and %q", plain.Key(), frame.Key())
-	}
-	if !strings.HasPrefix(FrameTitle, Title) {
-		t.Fatal("the frame title must still start the HUD")
+		t.Fatal("an empty board is not full")
 	}
 }

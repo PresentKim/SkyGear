@@ -1,0 +1,560 @@
+/* Styles for the server-driven DDUI page (web/oreui). */
+body.oui-active #root {
+  visibility: hidden;
+}
+
+/* The screen-sized boxes take the viewport's size (vw, vh), not a percentage of the body: the body
+   has no size of its own on some devices (iPad: the window folded into a strip at the top, with the
+   panels and the dark backdrop gone, while the fixed-size slot grid still showed). */
+#oui-ddui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#oui-ddui > * {
+  pointer-events: auto;
+}
+
+/* The debug line (the root's debug flag, common ui.SetOreDebug; web/oreui/src/Status.tsx): over the top of the screen, so a
+   screenshot carries it. */
+#oui-ddui-status {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  width: 96vw;
+  padding: 0.4rem;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  font-family: "Minecraft Seven v2";
+  font-size: 1rem;
+}
+
+.oui-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.oui-scroll {
+  overflow-y: auto;
+}
+
+.window {
+  width: 80vw;
+  height: 85vh;
+  padding: 0.8rem;
+  background-color: rgba(16, 18, 30, 0.94);
+  border: 0.15rem solid rgb(255, 200, 0);
+  border-radius: 0.5rem;
+  color: rgb(255, 255, 255);
+  font-size: 0.85rem;
+}
+
+.title {
+  font-size: 1.3rem;
+  color: rgb(255, 200, 0);
+  margin-bottom: 0.4rem;
+}
+
+.tabs {
+  margin-bottom: 0.5rem;
+}
+
+.body {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0;
+  padding: 0.4rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 0.3rem;
+}
+
+.h {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.dim {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.4rem;
+}
+
+.oui-text {
+  margin: 0.15rem 0;
+}
+
+.oui-space {
+  flex-grow: 1;
+}
+
+.oui-button {
+  padding: 0.3rem 0.7rem;
+  margin: 0.1rem 0.2rem 0.1rem 0;
+  background-color: rgb(60, 66, 90);
+  border-radius: 0.2rem;
+  text-align: center;
+}
+
+.oui-button:hover,
+.oui-button.oui-kb {
+  background-color: rgb(90, 98, 130);
+}
+
+.oui-button.on {
+  background-color: rgb(60, 150, 70);
+}
+
+.oui-button.on:hover,
+.oui-button.on.oui-kb {
+  background-color: rgb(80, 185, 90);
+}
+
+.oui-button.danger {
+  background-color: rgb(150, 50, 50);
+}
+
+.oui-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.oui-cell {
+  padding: 0.08rem;
+}
+
+.oui-cell .oui-button {
+  margin: 0;
+  padding: 0.25rem 0;
+  font-size: 0.7rem;
+}
+
+.oui-bar {
+  height: 0.6rem;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 0.3rem;
+  margin: 0.2rem 0 0.4rem 0;
+}
+
+.oui-bar-fill {
+  height: 100%;
+  width: 0%;
+  background-color: rgb(220, 70, 70);
+  border-radius: 0.3rem;
+}
+
+.blue .oui-bar-fill {
+  background-color: rgb(80, 170, 255);
+}
+
+.oui-field {
+  margin: 0.35rem 0;
+}
+
+.oui-label {
+  width: 7rem;
+}
+
+.oui-switch {
+  width: 2.4rem;
+  height: 1.2rem;
+  border-radius: 0.6rem;
+  background-color: rgb(80, 80, 90);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0.1rem;
+}
+
+.oui-switch.on {
+  background-color: rgb(60, 150, 70);
+  justify-content: flex-end;
+}
+
+.oui-knob {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.5rem;
+  background-color: rgb(255, 255, 255);
+}
+
+.oui-track {
+  width: 14rem;
+  height: 0.8rem;
+  border-radius: 0.4rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  margin-right: 0.6rem;
+}
+
+.oui-track-fill {
+  height: 100%;
+  border-radius: 0.4rem;
+  background-color: rgb(255, 200, 0);
+}
+
+.oui-input {
+  width: 16rem;
+  padding: 0.3rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 0.1rem solid rgba(255, 255, 255, 0.4);
+  color: rgb(255, 255, 255);
+  font-size: 0.85rem;
+}
+
+.oui-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.3rem;
+  margin: 0.15rem;
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 0.3rem;
+}
+
+.oui-item:hover,
+.oui-item.oui-kb {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.oui-item-count {
+  font-size: 0.75rem;
+  color: rgb(255, 230, 120);
+}
+
+.oui-item-label {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 7rem;
+  text-align: center;
+}
+
+#oui-ddui-probe {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  width: 45%;
+  padding: 0.4rem;
+  font-size: 0.55rem;
+  color: rgb(200, 255, 200);
+  background-color: rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.oui-slot {
+  position: relative;
+  width: 3.1rem;
+  height: 3.1rem;
+  margin: 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 0.08rem solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.25rem;
+}
+
+.oui-slot:hover,
+.oui-slot.oui-kb {
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 200, 0, 0.7);
+}
+
+.oui-slot-count {
+  position: absolute;
+  right: 0.2rem;
+  bottom: 0.05rem;
+  font-size: 0.75rem;
+  color: rgb(255, 255, 255);
+}
+
+.oui-cursor {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.oui-probe,
+.oui-engine-list,
+.oui-engine-result {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: rgb(255, 255, 255);
+}
+
+.oui-engine {
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-engine-calls {
+  flex-wrap: wrap;
+}
+
+/* Shared pieces of the renderer. */
+.oui-line {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.oui-line.oui-wide {
+  font-family: "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
+}
+
+.oui-button.disabled {
+  opacity: 0.4;
+}
+
+.oui-item.pressable:hover,
+.oui-item.pressable.oui-kb {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* The tooltip is in the body, outside #oui-ddui, so it names the font stack itself. Its text is the
+   window's size; on a touch screen (web/oreui/src/interact/Tooltip.tsx showTip) one step larger, as a finger is over it. */
+#oui-tip {
+  position: absolute;
+  display: none;
+  flex-direction: column;
+  max-width: 50rem;
+  padding: 0.7rem;
+  background-color: rgba(16, 0, 16, 0.94);
+  border: 0.2rem solid rgb(80, 0, 160);
+  border-radius: 0.2rem;
+  color: rgb(255, 255, 255);
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
+  font-size: 1.4rem;
+  pointer-events: none;
+  z-index: 100;
+}
+
+#oui-tip.touch {
+  max-width: 60vw;
+  padding: 0.9rem;
+  font-size: 1.8rem;
+}
+
+/* The Sky Gear research screen (ouitest research.go). */
+.rs-window {
+  width: 88vw;
+  height: 88vh;
+  padding: 0.6rem 0.8rem;
+  background-color: rgba(18, 16, 26, 0.96);
+  border: 0.12rem solid rgb(196, 150, 60);
+  border-radius: 0.5rem;
+  color: rgb(235, 235, 240);
+  font-size: 0.8rem;
+}
+
+.rs-header {
+  padding-bottom: 0.4rem;
+  border-bottom: 0.08rem solid rgba(196, 150, 60, 0.4);
+  margin-bottom: 0.5rem;
+}
+
+.rs-header-icon {
+  background-color: transparent;
+  padding: 0;
+  margin: 0 0.4rem 0 0;
+}
+
+.rs-title {
+  font-size: 1.25rem;
+  color: rgb(255, 210, 110);
+}
+
+.rs-tab {
+  padding: 0.3rem 0.8rem;
+  margin-left: 0.3rem;
+  background-color: rgb(48, 44, 62);
+}
+
+.rs-tab.on {
+  background-color: rgb(150, 110, 40);
+}
+
+.rs-icon-button {
+  width: 1.8rem;
+  padding: 0.3rem 0;
+  margin-left: 0.3rem;
+  background-color: rgb(48, 44, 62);
+}
+
+.rs-icon-button.on {
+  background-color: rgb(70, 110, 160);
+}
+
+.rs-body {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.rs-list {
+  width: 55%;
+  padding: 0.3rem;
+  margin-right: 0.6rem;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 0.35rem;
+}
+
+.rs-detail {
+  flex-grow: 1;
+  padding: 0.5rem 0.7rem;
+  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: 0.35rem;
+}
+
+.rs-cell {
+  margin: 0.12rem;
+  padding: 0.25rem;
+  border: 0.1rem solid transparent;
+  border-radius: 0.3rem;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.rs-cell.rs-ready {
+  border-color: rgba(85, 255, 85, 0.55);
+  background-color: rgba(60, 140, 60, 0.25);
+}
+
+.rs-cell.rs-todo {
+  border-color: rgba(255, 255, 85, 0.35);
+}
+
+.rs-cell.rs-preview {
+  opacity: 0.45;
+}
+
+.rs-cell.rs-done {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.rs-cell.on {
+  border-color: rgb(255, 210, 110);
+  background-color: rgba(255, 210, 110, 0.22);
+}
+
+.rs-card {
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.rs-card-icon {
+  margin-right: 0.6rem;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.rs-name {
+  font-size: 1.1rem;
+}
+
+.rs-status {
+  font-size: 0.8rem;
+}
+
+.rs-about {
+  margin: 0.2rem 0 0.4rem 0;
+  color: rgb(220, 220, 225);
+}
+
+.rs-help {
+  padding: 0.4rem;
+  margin-bottom: 0.4rem;
+  background-color: rgba(70, 110, 160, 0.25);
+  border-radius: 0.25rem;
+}
+
+.rs-heading {
+  margin-top: 0.5rem;
+  padding-bottom: 0.15rem;
+  border-bottom: 0.06rem solid rgba(255, 255, 255, 0.15);
+  color: rgb(255, 210, 110);
+}
+
+.rs-slots {
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+.rs-slot {
+  margin: 0.12rem;
+  padding: 0.25rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 0.25rem;
+}
+
+.rs-slot .oui-item-count {
+  font-size: 0.8rem;
+}
+
+.rs-actions {
+  margin-top: 0.7rem;
+}
+
+.rs-primary {
+  padding: 0.5rem 1rem;
+  background-color: rgb(50, 130, 60);
+  font-size: 0.9rem;
+}
+
+.rs-primary:hover,
+.rs-primary.oui-kb {
+  background-color: rgb(70, 165, 80);
+}
+
+.rs-secondary {
+  margin-top: 0.3rem;
+  background-color: rgb(60, 56, 78);
+}
+
+.rs-footer {
+  margin-top: 0.4rem;
+}
+
+.rs-toast {
+  font-size: 0.8rem;
+}
+
+.rs-small {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  margin-left: 0.3rem;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* pixels: a small picture as rows of boxes (a skin's face). */
+.oui-pixels {
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-pixels-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.oui-pixel {
+  height: 100%;
+  flex-shrink: 0;
+}

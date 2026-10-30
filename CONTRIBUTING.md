@@ -6,6 +6,8 @@ Thanks for your interest. These are the rules the project follows; the full
 
 - Work on the `dev` branch and open pull requests against `dev`. `main` is the
   branch the live server runs.
+- AI agents (Claude Code and the like) commit and push straight to `dev`
+  unless the request names another branch.
 - Before committing, these must be clean:
 
   ```sh
@@ -20,6 +22,15 @@ Thanks for your interest. These are the rules the project follows; the full
 - Write commit messages in English.
 - One commit per change: when a piece of work covers several requests or
   fixes, commit each one separately.
+
+## Versions and releases
+
+- The server is versioned `year.month.build` (`26.10.1`): the two-digit year,
+  the month, and a build number that starts again at 1 each month.
+- `main` moves only by merging `dev` into it. Each merge is a release: raise
+  `Version` in `cmd/skygear/version.go`, add an entry for it on top of
+  `CHANGELOG.md` with what changed since the last release, and tag the merge
+  `v<version>`. A test checks that the newest changelog entry is `Version`.
 
 ## Design and documentation
 
@@ -38,24 +49,25 @@ Thanks for your interest. These are the rules the project follows; the full
 - Game-independent code lives in `common/` (same Go module). Platform and game
   rules (lobby, saves, account storage, Sky Gear content) do not go there.
 - Player moves and state saving always go through `instance.Manager`
-  (`Enter`/`ToLobby`). Games connect to the platform only through the
-  `instance.Game`/`Session` interfaces.
+  (`Enter`/`ToLobby`). The instance package reaches Sky Gear only
+  through the `instance.Game`/`Session` interfaces (`content/skygear`
+  imports `platform/instance`, not the other way round).
 - Sky Gear session state belongs to its instance world: read and write it
   only inside that world's transactions (handlers, form submits, block ticks,
   `w.Do`).
 - Database schema changes add a new entry to `migrations` in
-  `internal/db/db.go`; existing entries are never edited.
+  `platform/db/db.go`; existing entries are never edited.
 
 ## Text and translations
 
 - Text shown to players goes in a catalog and is read with `i18n.T`:
-  `internal/locales/` for this server, `common/i18n/locales/` for `common/`
-  packages. Do not put Korean string literals in `common/` code (a test checks
+  `content/skygear/locales/` for the game, `platform/locales/` for the
+  platform, `common/i18n/locales/` for `common/` packages. Do not put Korean string literals in `common/` code (a test checks
   this).
 - Block and item names are client translation keys in the resource pack, in
   both `texts/ko_KR.lang` and `texts/en_US.lang`.
 - New research entries need a name, short description and description under
-  `research.<id>.*` in `internal/locales/ko.json`.
+  `research.<id>.*` in `content/skygear/locales/ko.json`.
 - Keep player-facing text short. Do not announce unfinished features
   ("coming soon"), and do not send messages for results the player can already
   see.
@@ -68,12 +80,23 @@ Thanks for your interest. These are the rules the project follows; the full
   material key; Dragonfly's automatic pack generation is turned off.
 - Do not edit the version in a pack's `manifest.json`;
   `common/resourcepack.Load` derives it from the content hash.
-- Do not change the UUIDs of the packs under `common/packs/` (clients have them
+- Do not change the UUIDs of the packs under `assets/resourcepack/` (clients have them
   cached).
 - New craftable items and blocks must also be registered in `creative.go`
   (the client recipe book only lists results that are in the creative
   inventory; a test checks this).
 - Before JSON UI or modelling work, check the reference repositories listed in
+
+## Ore UI page
+
+- The DDUI screens are drawn by the React page in `web/oreui` (see
+  `docs/tech/oreui.md`). After changing anything under `web/oreui/src` or its
+  `package-lock.json`, run `npm ci --ignore-scripts` once and `npm run build`
+  in `web/oreui`, and commit the rebuilt `oui-app.js` and `oui-app.css` in
+  `assets/resourcepack/oreui/hbui/`. `TestOreUIBundleFresh` fails when the
+  bundle does not match the sources.
+- Always install with `--ignore-scripts`. Run the page's tests with
+  `npx vitest run` and `npm run typecheck`.
 
 ## Patched Dragonfly
 

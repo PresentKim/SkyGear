@@ -1,0 +1,2311 @@
+/*
+ * The Sky Gear JSON UI forms (common packs/sgui ui/sg_form.json) redrawn in Ore UI
+ * (ore-ui-loading/마인크래프트-UI-스타일.md). Sizes are JSON UI GUI pixels: Ore UI sets the html
+ * font size to 5 x the GUI scale, so one GUI pixel is 0.2rem; a value Nu below is written as N*0.2rem.
+ * Pictures are the same textures the JSON UI uses, as nine-slices: the vanilla window, toolbar, tabs
+ * and slots, and the sgui pack's buttons, panels and chosen slot (the server sends the sgui pack).
+ * Gameface ignores calc() inside shorthands with several values, so margins and paddings are one side
+ * at a time.
+ */
+/* The fonts are declared here from the game's own files (ui://hbui/fonts, the names of the vanilla
+   gameplay CSS of the game version gameplay.html loads) and named in the font stacks directly. On iOS
+   the vanilla CSS gameplay.html links is not loaded (the pack's hbui folder stands in for the game's
+   there), so neither its @font-face rules nor --localeSpecificNotoSansFonts, which its bundle sets,
+   exist: Hangul showed as boxes and the Minecraft font as a plain one. When the game updates, the
+   file names follow gameplay.html's. */
+@font-face {
+  font-family: "Minecraft Seven v2";
+  src: url(ui://hbui/fonts/Minecraft-Seven-66398119c2c20ee73019.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url(ui://hbui/fonts/NotoSansMerged-Regular-5df70ade1ecaa8cdc5e2.ttf);
+}
+
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url(ui://hbui/fonts/NotoSansKR-Regular-8625bb7c3e1813759ad0.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url(ui://hbui/fonts/NotoSansJP-Regular-aaed512b00984a945133.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  src: url(ui://hbui/fonts/NotoSansSC-Regular-a4317c614d07055b56ed.otf);
+}
+
+@font-face {
+  font-family: "Noto Sans TC";
+  src: url(ui://hbui/fonts/NotoSansTC-Regular-2eeafb04c562f274e44b.otf);
+}
+
+#oui-ddui {
+  --mc-ink: #333333;
+  --mc-title: #404040;
+  --mc-head: #4d4d4d;
+  --mc-light-text: #f2f2f7;
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
+}
+
+/* --- screen ----------------------------------------------------------------------------- */
+
+/* The screen and the windows are sized by the viewport (vw, vh), like #oui-ddui (oui-ddui.css). */
+.mc-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* The window: vanilla dialog_background_opaque (16x16, slice 4). Its size comes from the server
+   (style width/height in u), like $sg_window_size. Title at 6u from the top, content from 18u. */
+.mc-window {
+  position: relative;
+  max-width: 96vw;
+  max-height: 96vh;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: var(--mc-ink);
+  font-size: 1.4rem;
+}
+
+.mc-title {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.8rem;
+  right: 0.8rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mc-title);
+  font-size: 1.4rem;
+}
+
+.mc-content {
+  position: absolute;
+  top: 2.8rem;
+  left: 0.4rem;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-scroll {
+  overflow-y: auto;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  padding-right: 1.6rem;
+}
+
+/* The vanilla mouse scrollbar (ui_common scrolling_panel): a 4u bar with 2u on each side, the track
+   ScrollRail (1x1, 3u wide) and the box ScrollHandle (3x5, nine-slice 1 2 1 2, 5u wide). */
+.mc-scroll-wrap {
+  position: relative;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-scrollbar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0.4rem;
+  width: 0.8rem;
+  display: none;
+}
+
+.mc-scroll-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.1rem;
+  width: 0.6rem;
+  background-image: url("pack://textures/ui/ScrollRail.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-scroll-handle {
+  position: absolute;
+  left: -0.1rem;
+  width: 1rem;
+  min-height: 1rem;
+  border-style: solid;
+  border-top-width: 0.4rem;
+  border-bottom-width: 0.4rem;
+  border-left-width: 0.2rem;
+  border-right-width: 0.2rem;
+  border-image-source: url("pack://textures/ui/ScrollHandle.png?filtering=point");
+  border-image-slice: 2 1 2 1 fill;
+}
+
+/* --- toolbar: vanilla toolbar_background (10x9, slice 4), 25u high, 22u above the window -------- */
+
+.mc-toolbar {
+  position: absolute;
+  top: -5.2rem;
+  right: -0.8rem;
+  height: 5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  padding-left: 1.4rem;
+  padding-right: 1.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+/* Only the background goes behind the window: Gameface does not hit-test anything inside an element
+   with a negative z-index, so the buttons stay above it (like .mc-tab-bg). */
+.mc-toolbar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/toolbar_background.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  z-index: -1;
+}
+
+.mc-toolbar-row {
+  height: 4.4rem;
+  margin-top: -0.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-icon-button {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.4rem;
+}
+
+.mc-icon-button:hover,
+.mc-icon-button.oui-kb {
+  background-image: url("pack://textures/ui/sg/hover_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-icon-button:active {
+  background-image: url("pack://textures/ui/sg/press_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-icon-button img {
+  width: 3rem;
+  height: 3rem;
+}
+
+.mc-close {
+  width: 3.4rem;
+  height: 4.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-close img {
+  width: 3rem;
+  height: 3rem;
+}
+
+.mc-close:hover,
+.mc-close.oui-kb {
+  background-image: url("pack://textures/ui/sg/hover_flat.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+/* --- tabs: vanilla TabTopBack / TabTopBackHover / TabTopFront (12x11, slice 4) ------------------ */
+
+.mc-tabs {
+  position: absolute;
+  top: -5.2rem;
+  left: 0.8rem;
+  height: 4.8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.mc-tab {
+  position: relative;
+  width: 4.8rem;
+  height: 4.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-tab-bg,
+.mc-tab-front {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-tab-bg {
+  top: 0;
+  height: 5.6rem;
+  border-image-source: url("pack://textures/ui/TabTopBack.png?filtering=point");
+  z-index: -2;
+}
+
+.mc-tab:hover .mc-tab-bg,
+.mc-tab.oui-kb .mc-tab-bg {
+  border-image-source: url("pack://textures/ui/TabTopBackHover.png?filtering=point");
+}
+
+.mc-tab-front {
+  bottom: -0.4rem;
+  height: 4.8rem;
+  border-image-source: url("pack://textures/ui/TabTopFront.png?filtering=point");
+  display: none;
+}
+
+.mc-tab.on .mc-tab-front {
+  display: flex;
+}
+
+.mc-tab img {
+  position: relative;
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+/* --- buttons: sgui button / button_hover / button_pressed (16x16, slice 3) --------------------- */
+
+.mc-btn {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-style: solid;
+  border-width: 0.6rem;
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
+  border-image-slice: 3 fill;
+  border-image-width: 0.6rem;
+  border-color: transparent;
+  color: var(--mc-light-text);
+}
+
+.mc-btn:hover,
+.mc-btn.oui-kb {
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
+}
+
+.mc-btn:active {
+  border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
+}
+
+/* A list row: 32u high cell, 30u button, 20u icon at 6u, text at 32u. */
+.mc-list-row {
+  height: 6rem;
+  margin-bottom: 0.4rem;
+}
+
+.mc-list-row img {
+  position: absolute;
+  left: 0.6rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-list-row .mc-btn-text {
+  position: absolute;
+  left: 5.8rem;
+  right: 0.6rem;
+  font-size: 1.4rem;
+}
+
+/* A toggle row (ui.Toggle): the label at the left, ore-ui-react's ToggleButton at the right
+   (.mc-switch holds it; its look is the library's toggle-button.css). */
+.mc-toggle-row {
+  justify-content: flex-end;
+}
+
+.mc-toggle-row .mc-btn-text {
+  left: 1.2rem;
+  right: 8.4rem;
+}
+
+.mc-switch {
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 0.6rem;
+}
+
+/* A research action: 17u high, 12u icon at 3u, text at 18u (scale 0.8). */
+.mc-action {
+  height: 3.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.mc-action img {
+  position: absolute;
+  left: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-action .mc-btn-text {
+  position: absolute;
+  left: 3rem;
+  right: 0;
+  font-size: 1.12rem;
+}
+
+/* A card: 76x50 cell, 72x46 button, 22u icon 5u above the middle, label 3u from the bottom (0.8),
+   four to a row. */
+.mc-cards {
+  width: 60.8rem;
+  align-self: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-card-cell {
+  width: 15.2rem;
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-card {
+  width: 14.4rem;
+  height: 9.2rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-card img {
+  position: absolute;
+  top: 1.6rem;
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.mc-card .mc-btn-text {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  font-size: 1.12rem;
+}
+
+/* --- slots: vanilla cell_image (10x10 at base 5, slice 1 base = 2 image px), 18u ---------------- */
+
+.mc-slot,
+.mc-frame {
+  position: relative;
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-image-source: url("pack://textures/ui/cell_image.png?filtering=point");
+  border-image-slice: 2 fill;
+  border-image-width: 0.2rem;
+}
+
+.mc-slot img.mc-icon {
+  position: relative;
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-slot.pressable:hover,
+.mc-slot.pressable.oui-kb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.mc-slot .mc-deco,
+.mc-slot .mc-chosen {
+  position: absolute;
+  top: -0.2rem;
+  left: -0.2rem;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+.mc-slot .mc-chosen {
+  display: none;
+}
+
+.mc-slot.on .mc-chosen {
+  display: flex;
+}
+
+.mc-count {
+  position: absolute;
+  right: 0;
+  bottom: -0.2rem;
+  color: #ffffff;
+  font-size: 1.2rem;
+  text-shadow: 0.2rem 0.2rem 0 #3f3f3f;
+}
+
+/* The detail icons: 28u cell with a 22u icon (research), 36u with 28u (codex item). */
+.mc-slot.mc-big {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+.mc-slot.mc-big img.mc-icon {
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.mc-slot.mc-huge {
+  width: 7.2rem;
+  height: 7.2rem;
+}
+
+.mc-slot.mc-huge img.mc-icon {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+/* A board cell is 18x18; the arrow is the vanilla arrow_large at 15x10 in it. */
+.mc-arrow {
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-arrow-img {
+  width: 3rem;
+  height: 2rem;
+  background-image: url("pack://textures/ui/arrow_large.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-gap {
+  width: 3.6rem;
+  height: 3.6rem;
+  flex-shrink: 0;
+}
+
+.mc-cell-text {
+  height: 3.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 0.4rem;
+  font-size: 0.98rem;
+  color: var(--mc-ink);
+}
+
+.mc-board {
+  width: 39.6rem;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-board-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* Ex Deorum's JEI sieve recipe (compat/jei/SieveCategory): 162u wide, the input and the mesh slot at
+   x 58 and 86, the drops from y 28 in rows of 9 slots. */
+.mc-jei-recipe {
+  width: 32.4rem;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-jei-top {
+  height: 5.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding-left: 11.6rem;
+}
+
+/* A board's mini cell: a small icon without the slot frame (the machine heading a group of recipes). */
+.mc-slot.mc-mini {
+  border-image-source: none;
+  border-width: 0;
+}
+
+.mc-slot.mc-mini img.mc-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-jei-mesh {
+  margin-left: 2rem;
+}
+
+.mc-jei-drops {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+/* --- panels and text --------------------------------------------------------------------- */
+
+.mc-panel {
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/sg/panel.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-body-text {
+  padding-left: 0.4rem;
+  color: var(--mc-ink);
+  font-size: 1.4rem;
+}
+
+.mc-small-text {
+  color: var(--mc-ink);
+  font-size: 1.12rem;
+}
+
+.mc-head {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  color: var(--mc-head);
+  font-size: 1.12rem;
+}
+
+.mc-gap-6 {
+  height: 1.2rem;
+  flex-shrink: 0;
+}
+
+.mc-gap-3 {
+  height: 0.6rem;
+  flex-shrink: 0;
+}
+
+.mc-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.mc-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-toast {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3.4rem;
+  display: flex;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.12rem;
+  text-shadow: 0.2rem 0.2rem 0 #3f3f3f;
+}
+
+.mc-search {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 3.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.mc-search img {
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-right: 0.8rem;
+}
+
+.mc-input {
+  flex-grow: 1;
+  height: 3.2rem;
+  padding-left: 0.8rem;
+  background-color: #3c3c3c;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1e #a0a0a0 #a0a0a0 #1e1e1e;
+  color: #ffffff;
+  font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
+  font-size: 1.4rem;
+}
+
+/* The research split: the left panel 152u wide with the 8x6 grid (144x108) and the page row. */
+.mc-split-left {
+  width: 30.4rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-split-grid {
+  width: 28.8rem;
+  height: 21.6rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.mc-pager {
+  margin-top: 0.4rem;
+  height: 3.6rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mc-pager .mc-btn {
+  width: 3.6rem;
+  height: 3.6rem;
+  justify-content: center;
+}
+
+.mc-pager .mc-btn img {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-pager .mc-btn.off {
+  opacity: 0.4;
+}
+
+/* Gameface ignores min-width: 0, so long text would stretch a flex-grown panel: the width is fixed
+   (content 314u - left 152u - gap 6u = 156u). */
+.mc-split-right {
+  width: 31.2rem;
+  flex-shrink: 0;
+  margin-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ListSplitMenu (sg_form list_split_form): the list in a 156u panel on the left, the body and the
+   actions in the 154u right of it (content 314u - 156u - 4u gap). A row is a 30u button with a 20u
+   icon at 6u, the name at 30u and the information line under it (0.7); the chosen row is lit. Both
+   sides stretch to the row's height (a height of 100% would add the panel's border to it). */
+.mc-lsplit-left {
+  width: 31.2rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lsplit-right {
+  width: 30.8rem;
+  flex-shrink: 0;
+  margin-left: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lrow {
+  height: 6rem;
+  flex-shrink: 0;
+  margin-bottom: 0.4rem;
+}
+
+.mc-lrow.on {
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
+}
+
+.mc-lrow img {
+  position: absolute;
+  left: 0.6rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.mc-lrow-text {
+  position: absolute;
+  left: 5.4rem;
+  right: 0.6rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-lrow-name {
+  font-size: 1.4rem;
+}
+
+.mc-lrow-name .oui-line,
+.mc-lrow-info .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-lrow-info {
+  color: #ccccd1;
+  font-size: 0.98rem;
+}
+
+/* The actions after the first, two to a row. */
+.mc-lsplit-pair {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mc-lsplit-pair .mc-action {
+  width: 15rem;
+}
+
+/* SlotMenu (sg_form slot_form): the storage slot with its info beside it, the slots under them. */
+.mc-slotmenu-info {
+  margin-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-slotmenu-info .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-slotmenu-slots {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* oui-ddui.css styles the plain renderer; the mc classes start from nothing. */
+.mc-btn.oui-button,
+.mc-slot.oui-item,
+.mc-tab.oui-button,
+.mc-icon-button.oui-button,
+.mc-close.oui-button {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.mc-btn.oui-button:hover,
+.mc-btn.oui-button.oui-kb,
+.mc-btn.oui-button.on,
+.mc-tab.oui-button:hover,
+.mc-tab.oui-button.oui-kb,
+.mc-tab.oui-button.on {
+  background-color: transparent;
+}
+
+.mc-slot.oui-item:hover,
+.mc-slot.oui-item.oui-kb {
+  background-color: transparent;
+}
+
+#oui-ddui .mc-window .oui-text {
+  margin: 0;
+}
+
+.mc-card .oui-line,
+.mc-btn-text .oui-line {
+  justify-content: center;
+}
+
+.mc-list-row .mc-btn-text .oui-line,
+.mc-action .mc-btn-text .oui-line {
+  justify-content: flex-start;
+}
+
+/* --- the command console (ui.ConsoleScreen): the log fills the window and scrolls, kept at its end;
+   the input box and the run button (52u) are under it. ----------------------------------------- */
+
+.mc-console {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-console-log {
+  flex-grow: 1;
+  flex-basis: 0;
+  padding: 0.4rem;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.mc-console-line {
+  font-size: 1.12rem;
+  color: var(--mc-light-text);
+}
+
+.mc-console-input {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+.mc-console-input .mc-search {
+  flex-grow: 1;
+  margin-bottom: 0;
+  margin-right: 0.6rem;
+}
+
+.mc-console-input .mc-action {
+  width: 10.4rem;
+  margin-bottom: 0;
+  justify-content: center;
+}
+
+.mc-console-input .mc-action .mc-btn-text {
+  position: relative;
+  left: 0;
+}
+
+.mc-console-input .mc-action .mc-btn-text .oui-line {
+  justify-content: center;
+}
+
+/* --- quest book (FTB Quests, as ATM10 To The Sky shows it): chapters on the left, the quests of the
+   chosen one on a plane the player drags around, the quest panel over it ------------------------ */
+
+/* The window is the size of every other (its style, from ui.windowW and windowH) and its control bar
+   sits over its top right like .mc-window's. */
+.mc-quest-window {
+  position: relative;
+  max-width: 96vw;
+  max-height: 96vh;
+  display: flex;
+  flex-direction: row;
+  padding: 0.4rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: var(--mc-ink);
+  font-size: 1.4rem;
+}
+
+/* The chapters: an 80u column, so the plane keeps most of the window. */
+.mc-chapters {
+  width: 16rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.8rem;
+}
+
+.mc-chapter {
+  height: 4.8rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 0.4rem;
+  border-style: solid;
+  border-width: 0.6rem;
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
+  border-image-slice: 3 fill;
+  border-image-width: 0.6rem;
+  color: var(--mc-light-text);
+  font-size: 1.2rem;
+}
+
+.mc-chapter:hover,
+.mc-chapter.oui-kb {
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
+}
+
+.mc-chapter.on {
+  border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
+  color: #ffd34d;
+}
+
+/* The name over the count, so a long name keeps the column's width. */
+.mc-chapter .mc-chapter-text {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-chapter img {
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  margin-right: 0.4rem;
+}
+
+.mc-chapter .mc-chapter-count {
+  font-size: 1rem;
+  color: #a0a0a0;
+}
+
+.mc-quest-main {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-quest-head {
+  height: 2.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 1.4rem;
+  color: var(--mc-title);
+}
+
+.mc-quest-head .mc-quest-progress {
+  margin-left: auto;
+  margin-right: 0.8rem;
+  font-size: 1.4rem;
+  color: var(--mc-head);
+}
+
+.oui-canvas {
+  position: relative;
+  flex-grow: 1;
+  overflow: hidden;
+  background-color: #1c1c22;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #373737 #ffffff #ffffff #373737;
+}
+
+.oui-canvas-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+/* The zoom buttons at the bottom right of the canvas (web/oreui/src/components/Canvas.tsx). */
+.oui-canvas-zoom {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.oui-canvas-zoom-button {
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.55);
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #8a8a9a;
+  color: #ffffff;
+  font-size: 2rem;
+}
+
+.oui-canvas-zoom-button:hover,
+.oui-canvas-zoom-button.oui-kb {
+  background-color: rgba(90, 90, 110, 0.8);
+}
+
+.oui-line-seg {
+  position: absolute;
+  height: 0.4rem;
+  margin-top: -0.2rem;
+  transform-origin: 0 50%;
+  background-color: #8a8a9a;
+}
+
+.oui-line-seg.done {
+  background-color: #59c84a;
+}
+
+.oui-line-seg.locked {
+  background-color: #45454f;
+}
+
+/* A quest node: 24u, its centre on its place. Shapes as FTB draws them: square, diamond, circle. */
+.mc-quest {
+  position: absolute;
+  width: 4.8rem;
+  height: 4.8rem;
+  margin-left: -2.4rem;
+  margin-top: -2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-quest-shape {
+  position: absolute;
+  left: 0.4rem;
+  top: 0.4rem;
+  width: 4rem;
+  height: 4rem;
+  background-color: #3b3b46;
+  border-style: solid;
+  border-width: 0.3rem;
+  border-color: #9a9aa8;
+}
+
+.mc-quest.diamond .mc-quest-shape {
+  transform: rotate(45deg) scale(0.82);
+}
+
+.mc-quest.circle .mc-quest-shape {
+  border-radius: 50%;
+}
+
+/* An entrance of a quest of another chapter: smaller, a dashed circle with that quest's icon. */
+.mc-quest.gate .mc-quest-shape {
+  left: 0.9rem;
+  top: 0.9rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border-style: dashed;
+  border-width: 0.2rem;
+}
+
+.mc-quest.gate img {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.mc-quest.open .mc-quest-shape {
+  border-color: #e8e8f0;
+}
+
+.mc-quest.done .mc-quest-shape {
+  background-color: #2f4a2c;
+  border-color: #59c84a;
+}
+
+/* A quest whose parents are not all done: a little darker than an open one, its icon still clear. */
+.mc-quest.locked .mc-quest-shape {
+  background-color: #2c2c34;
+  border-color: #5c5c66;
+}
+
+.mc-quest.tracked .mc-quest-shape {
+  border-color: #ffd34d;
+}
+
+.mc-quest:hover .mc-quest-shape,
+.mc-quest.oui-kb .mc-quest-shape {
+  background-color: #55556a;
+}
+
+.mc-quest img {
+  position: relative;
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-quest.locked img {
+  opacity: 0.6;
+}
+
+/* The quest panel over the plane. */
+.mc-quest-panel {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 8%;
+  bottom: 8%;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1.2rem;
+  padding-right: 0.4rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-quest-panel-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+/* The title and status take the room left by the icon and the close button and wrap in it. */
+.mc-quest-panel-head .mc-col {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  margin-left: 0.8rem;
+  margin-right: 0.8rem;
+}
+
+.mc-quest-panel-head .mc-close,
+.mc-quest-panel-head .mc-slot {
+  flex-shrink: 0;
+}
+
+.mc-quest-panel-head .mc-quest-title {
+  font-size: 1.8rem;
+  color: var(--mc-title);
+}
+
+.mc-quest-panel .mc-small-text,
+.mc-quest-panel .mc-head {
+  font-size: 1.4rem;
+}
+
+/* --- sides of a block (ui.SidesMenu), in a window of the vanilla inventory's size: the block in the
+   middle, in a dark frame, joined by lines to a card for each side (96x56u, placed by the server) with
+   the side's arrow and name, the block beside it (an empty diamond when there is none) and, at the
+   right, a 32x28u box for each port side by side: its label at the top right, the square of its
+   choice filling the rest and the plus button on the square's bottom right corner. A side without
+   ports has a dashed box in their place. The choices open in a panel. Sizes are border-box, as
+   Gameface lays boxes out. ------------------------------------------------------------------------ */
+
+.mc-sides {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.mc-side-line {
+  background-color: #8b8b8b;
+}
+
+.mc-side-centre {
+  position: absolute;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2b2b2b;
+  border-style: solid;
+  border-width: 0.4rem;
+  border-color: #1a1a1a #6a6a6a #6a6a6a #1a1a1a;
+}
+
+.mc-side-centre img {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.mc-side-card {
+  position: absolute;
+  width: 19.2rem;
+  height: 11.2rem;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.8rem;
+  padding-right: 0.6rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.6rem;
+  background-color: #d6d6d6;
+  border-style: solid;
+  border-width: 0.4rem;
+  border-color: #8b8b8b;
+}
+
+.mc-side-card.on {
+  border-color: #ffffff;
+  background-color: #e4e4e4;
+}
+
+.mc-side-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 2.6rem;
+}
+
+.mc-side-arrow {
+  width: 1.8rem;
+  font-size: 1.4rem;
+  color: var(--mc-head);
+}
+
+.mc-side-name {
+  font-size: 1.2rem;
+  color: var(--mc-title);
+}
+
+.mc-side-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.mc-side-block {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-side-block img {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+/* No block beside the side: a small diamond outline. */
+.mc-side-empty {
+  width: 1.8rem;
+  height: 1.8rem;
+  transform: rotate(45deg);
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #8b8b8b;
+}
+
+.mc-side-ports {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.mc-port {
+  position: relative;
+  width: 6.4rem;
+  height: 5.6rem;
+  margin-left: 0.5rem;
+  background-color: #ececec;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #a8a8a8;
+}
+
+.mc-port-label {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.4rem;
+  font-size: 1rem;
+  color: var(--mc-ink);
+}
+
+.mc-port-swatch {
+  position: absolute;
+  left: 0.4rem;
+  top: 1.6rem;
+  width: 5.2rem;
+  height: 3.2rem;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #3a3a3a #1e1e1e #1e1e1e #3a3a3a;
+}
+
+.mc-port-swatch:hover,
+.mc-port-swatch.oui-kb {
+  border-color: #ffffff;
+}
+
+.mc-port-swatch.icon,
+.mc-choice-swatch.icon {
+  border-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-port-swatch.icon img {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+/* The plus button sits on the bottom right corner of the square. */
+.mc-port-plus {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #ffffff;
+  background-color: #6f6f6f;
+  border-style: solid;
+  border-width: 0.1rem;
+  border-color: #3a3a3a;
+}
+
+.mc-port-plus:hover,
+.mc-port-plus.oui-kb,
+.mc-port-plus.on {
+  background-color: #3a3a3a;
+}
+
+.mc-port-none {
+  width: 13.3rem;
+  margin-left: auto;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #8a8a8a;
+  border-style: dashed;
+  border-width: 0.2rem;
+  border-color: #a8a8a8;
+}
+
+.mc-port-picker {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 0.6rem;
+  background-color: #f2f2f2;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #6f6f6f;
+}
+
+.mc-port-choice {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: transparent;
+}
+
+.mc-port-choice:hover,
+.mc-port-choice.oui-kb {
+  background-color: #d6d6d6;
+}
+
+.mc-port-choice.on {
+  border-color: #333333;
+}
+
+.mc-choice-swatch {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-style: solid;
+  border-width: 0.1rem;
+  border-color: #3a3a3a;
+}
+
+.mc-choice-swatch.icon img {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* --- the lobby (web/oreui/src/components/Window.tsx ScreenRoot): the main screen shows the lobby island clear, the screens over it a
+   shade; the game's logo and name are at the top middle (16u down); the
+   windows, panels, buttons, tabs and control bar take the navy launcher button pictures (sgui
+   launcher_button, 16x16, slice 4) and the text is light. ----------------------------------------- */
+
+.mc-screen.mc-lobby {
+  background-color: rgba(0, 0, 0, 0);
+  --mc-ink: #f2f2f7;
+  --mc-title: #ffffff;
+  --mc-head: #c3d2ea;
+}
+
+.mc-lobby-shade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(4, 7, 16, 0.5);
+}
+
+.mc-home .mc-lobby-shade {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+/* The head spans the screen to centre the logo and the name; the renderer measures what it holds
+   (web/oreui/src/components/Window.tsx fitLobbyHead). */
+.mc-lobby-head {
+  position: absolute;
+  left: 0;
+  top: 1.6rem;
+  width: 100vw;
+  height: 3.6rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-lobby-logo {
+  width: 3.2rem;
+  height: 3.2rem;
+  margin-right: 1rem;
+}
+
+.mc-lobby-title {
+  color: #ffffff;
+  font-size: 2.6rem;
+  text-shadow: 0 0.3rem 0 #2a3a56;
+}
+
+.mc-lobby .mc-window,
+.mc-lobby .mc-panel,
+.mc-lobby .mc-toolbar-bg,
+.mc-lobby .mc-btn,
+.mc-lobby .mc-tab-bg,
+.mc-lobby .mc-tab-front {
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-color: transparent;
+}
+
+/* The hover and pressed pictures are drawn all the time, under the shade, so the engine keeps them
+   loaded: one loaded only when the pointer comes left a frame of the button without its picture, the
+   border in the text colour (a white flash). */
+.mc-lobby-preload {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0.8rem;
+  height: 0.8rem;
+  opacity: 0.01;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: transparent;
+  border-image-slice: 4 fill;
+  border-image-width: 0.2rem;
+}
+
+.mc-lobby-preload-hover {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_hover.png?filtering=point");
+}
+
+.mc-lobby-preload-pressed {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_pressed.png?filtering=point");
+}
+
+.mc-lobby .mc-btn:hover,
+.mc-lobby .mc-btn.oui-kb,
+.mc-lobby .mc-lrow.on,
+.mc-lobby .mc-tab:hover .mc-tab-bg,
+.mc-lobby .mc-tab.oui-kb .mc-tab-bg {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_hover.png?filtering=point");
+}
+
+.mc-lobby .mc-btn:active,
+.mc-lobby .mc-tab.on .mc-tab-front {
+  border-image-source: url("pack://textures/ui/sg/launcher_button_pressed.png?filtering=point");
+}
+
+.mc-lobby .mc-window,
+.mc-home .mc-btn,
+.mc-home .mc-panel {
+  border-width: 0.8rem;
+  border-image-width: 0.8rem;
+}
+
+/* Text lines are rows of spans (web/oreui/src/text/Rich.tsx): centred text centres them. */
+.mc-home-badge .oui-line,
+.mc-home-ov-title .oui-line,
+.mc-home-ov-body .oui-line,
+.mc-home-play .oui-line,
+.mc-home-tile .oui-line {
+  justify-content: center;
+}
+
+/* The lobby's windows are see-through, so its tabs end at the window's top edge instead of reaching
+   under it (they would show through). */
+.mc-lobby .mc-tab-bg {
+  height: 4.8rem;
+}
+
+.mc-lobby .mc-tab-front {
+  bottom: 0;
+  height: 4.4rem;
+}
+
+.mc-lobby .mc-input {
+  background-color: rgba(10, 16, 30, 0.85);
+  border-color: rgba(110, 135, 170, 0.9);
+}
+
+/* --- the lobby's main screen (ui.HomeScreen), a game lobby around the character on the island:
+   the profile card at the top left (135x37u), icon buttons at the top right (22u, 4u apart) and down
+   the left (38x28u, 4u apart), the recent lines at the bottom left, and at the bottom right (156u wide)
+   the save card over the green play button and the save button. The middle is left to the island. */
+
+.mc-home-profile {
+  position: absolute;
+  left: 1.6rem;
+  top: 1.4rem;
+  width: 27rem;
+  height: 7.4rem;
+}
+
+.mc-home-head {
+  width: 4.6rem;
+  height: 4.6rem;
+  margin-left: 0.2rem;
+  flex-shrink: 0;
+}
+
+.mc-home-info {
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-name {
+  font-size: 1.6rem;
+}
+
+.mc-home-title {
+  font-size: 1.12rem;
+}
+
+.mc-home-bar {
+  height: 0.8rem;
+  margin-top: 0.4rem;
+  margin-right: 0.4rem;
+  background-color: #0b1020;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+}
+
+.mc-home-bar-fill {
+  height: 100%;
+  background-color: #62c240;
+}
+
+.mc-home-bar-line {
+  font-size: 1rem;
+  color: #aab6d0;
+}
+
+.mc-home-corner {
+  position: absolute;
+  right: 1.6rem;
+  top: 1.8rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.mc-home-sq {
+  width: 4.4rem;
+  height: 4.4rem;
+  margin-left: 0.8rem;
+  justify-content: center;
+}
+
+.mc-home-ic {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.mc-home-badge {
+  position: absolute;
+  top: -1.4rem;
+  right: -1.4rem;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  padding: 0 0.3rem;
+  background-color: #d83a3a;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+  color: #ffffff;
+  font-size: 1.1rem;
+  line-height: 1.4rem;
+  text-align: center;
+}
+
+.mc-home-side {
+  position: absolute;
+  left: 1.6rem;
+  top: 10.6rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-tile {
+  width: 7.6rem;
+  height: 5.6rem;
+  margin-bottom: 0.8rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-home-tile .mc-home-ic {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.mc-home-tile-label {
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.mc-home-feed {
+  position: absolute;
+  left: 1.6rem;
+  bottom: 1.8rem;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-feed-line {
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  background-color: rgba(5, 9, 20, 0.55);
+  border-left-style: solid;
+  border-left-width: 0.3rem;
+  border-left-color: #4f6ea8;
+  font-size: 1.2rem;
+}
+
+/* A phone or tablet (.mc-touch, ui.touchDevice): the screen edges may hold a camera cutout or a system
+   handle that takes touches, so the buttons keep 8rem from the sides, and the side tiles and the corner
+   buttons are larger. */
+.mc-touch .mc-home-profile,
+.mc-touch .mc-home-side,
+.mc-touch .mc-home-feed {
+  left: 8rem;
+}
+
+.mc-touch .mc-home-corner,
+.mc-touch .mc-home-start {
+  right: 8rem;
+}
+
+.mc-touch .mc-home-side {
+  top: 9.8rem;
+}
+
+.mc-touch .mc-home-sq {
+  width: 5.6rem;
+  height: 5.6rem;
+}
+
+.mc-touch .mc-home-tile {
+  width: 9.6rem;
+  height: 6.8rem;
+}
+
+.mc-touch .mc-home-tile .mc-home-ic {
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.mc-touch .mc-home-tile-label {
+  font-size: 1.3rem;
+}
+
+.mc-home-start {
+  position: absolute;
+  right: 1.6rem;
+  bottom: 1.6rem;
+  width: 31.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-save {
+  height: 9.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-home-save-pic {
+  width: 6rem;
+  height: 6rem;
+  flex-shrink: 0;
+}
+
+.mc-home-save-text {
+  flex-grow: 1;
+  margin-left: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-save-head {
+  font-size: 1rem;
+  color: #8fb8ff;
+}
+
+.mc-home-save-name {
+  font-size: 1.6rem;
+  color: #ffffff;
+}
+
+.mc-home-save-line {
+  font-size: 1.1rem;
+  color: #aab6d0;
+}
+
+.mc-home-arrows {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-home-arrow {
+  width: 2.8rem;
+  height: 2.8rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  justify-content: center;
+}
+
+.mc-home-arrow img {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.mc-home-arrow.off {
+  opacity: 0.35;
+}
+
+/* The play button: Bedrock's green button, a light top edge and a dark bottom one. */
+.mc-home-play {
+  height: 6rem;
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #3c8527;
+  border-style: solid;
+  border-width: 0.4rem 0.2rem 0.6rem 0.2rem;
+  border-color: #6cc44a #1e1e1f #1d4d13 #1e1e1f;
+  color: #ffffff;
+}
+
+.mc-home-play:hover,
+.mc-home-play.oui-kb {
+  background-color: #4a9b31;
+}
+
+.mc-home-play:active {
+  border-width: 0.6rem 0.2rem 0.4rem 0.2rem;
+  border-color: #1d4d13 #1e1e1f #1d4d13 #1e1e1f;
+}
+
+.mc-home-play-label {
+  font-size: 2rem;
+  text-shadow: 0.2rem 0.2rem 0 rgba(0, 0, 0, 0.35);
+}
+
+.mc-home-play-sub {
+  font-size: 1.1rem;
+  color: #e3f5da;
+}
+
+.mc-home-manage {
+  height: 3.6rem;
+  margin-top: 0.8rem;
+  justify-content: center;
+}
+
+.mc-home-manage .mc-btn-text,
+.mc-home-ov-btn .mc-btn-text {
+  font-size: 1.3rem;
+}
+
+/* The overlay (the system menu, a question): a panel in the middle over the dimmed screen. */
+.mc-home-ov {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(4, 7, 16, 0.55);
+}
+
+.mc-home-ov-panel {
+  width: 30rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  border-color: transparent;
+  color: var(--mc-light-text);
+}
+
+.mc-home-ov-title {
+  font-size: 1.6rem;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+.mc-home-ov-body {
+  font-size: 1.3rem;
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+.mc-home-ov-btn {
+  height: 4rem;
+  margin-top: 0.8rem;
+  justify-content: center;
+}
+
+/* --- the plane (ui.PlaneMenu): buttons over the ground a straight-down camera shows, placed by the
+   renderer (layoutPlanes), a panel at the bottom of the screen and one at the top left. The screen is
+   not darkened. --- */
+
+.mc-screen.mc-plane-screen {
+  background-color: rgba(0, 0, 0, 0);
+  align-items: flex-end;
+}
+
+.oui-plane {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.mc-spot {
+  position: absolute;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.mc-spot:hover,
+.mc-spot.oui-kb {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.mc-spot.on {
+  z-index: 1;
+}
+
+/* The chosen frame goes outside the spot so it does not cover the chunk's edge blocks. */
+.mc-spot-frame {
+  position: absolute;
+  left: -0.8rem;
+  top: -0.8rem;
+  right: -0.8rem;
+  bottom: -0.8rem;
+  border-style: solid;
+  border-width: 0.6rem;
+  border-color: #ffd34d;
+  pointer-events: none;
+}
+
+.mc-plane-panel {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 1rem;
+  padding-right: 0.6rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/sg/launcher_button.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+  color: #f2f2f7;
+  font-size: 1.12rem;
+}
+
+.mc-plane-info {
+  margin-right: 1rem;
+}
+
+.mc-plane-panel .mc-action {
+  min-width: 8rem;
+  height: 2.8rem;
+  margin-bottom: 0;
+  margin-left: 0.4rem;
+}
+
+.mc-plane-panel.mc-plane-corner {
+  position: absolute;
+  left: 1.6rem;
+  top: 1.6rem;
+  margin-bottom: 0;
+  padding-right: 1rem;
+}
+
+.mc-plane-corner .mc-plane-info {
+  margin-right: 0;
+}
+
+/* --- ChoiceBoard (common ui ChoiceMenu): a panel of figures (an icon and a value, the label in the
+   tooltip) over a row per group: its title in 46u on the left, then its tiles (58x40, 3u apart: a 18u icon
+   over the name, what it does in the tooltip). The current tile has a green ring and does not
+   press, a dim one is greyed. ------------------------------------------------------------------ */
+
+.mc-stats {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  padding: 0.4rem 0.2rem;
+}
+
+.mc-stat {
+  flex-grow: 1;
+  flex-basis: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-stat-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mc-stat-icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  flex-shrink: 0;
+  margin-right: 0.8rem;
+}
+
+.mc-stat-value {
+  color: #1e1e1e;
+  font-size: 1.4rem;
+}
+
+.mc-pick-title .oui-line,
+.mc-pick-note .oui-line {
+  justify-content: flex-start;
+}
+
+.mc-pick-note {
+  margin-top: 0.6rem;
+  padding-left: 0.4rem;
+  color: #5a5a5a;
+  font-size: 0.98rem;
+  flex-shrink: 0;
+}
+
+.mc-pick-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 1.2rem;
+}
+
+.mc-pick-title {
+  width: 9.2rem;
+  flex-shrink: 0;
+  padding-left: 0.4rem;
+  color: var(--mc-head);
+  font-size: 1.12rem;
+}
+
+.mc-picks {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-pick {
+  box-sizing: border-box;
+  width: 11.6rem;
+  height: 8rem;
+  margin-right: 0.6rem;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mc-pick img {
+  position: absolute;
+  top: 0.6rem;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+.mc-pick-name {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  font-size: 1.12rem;
+}
+
+.mc-pick-name .oui-line {
+  justify-content: center;
+}
+
+.mc-pick-ring {
+  position: absolute;
+  top: -0.6rem;
+  left: -0.6rem;
+  right: -0.6rem;
+  bottom: -0.6rem;
+  border-style: solid;
+  border-width: 0.4rem;
+  border-color: #4fd64f;
+}
+
+.mc-pick.on:hover,
+.mc-pick.on.oui-kb {
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
+}
+
+.mc-pick.dim {
+  opacity: 0.55;
+}
+
+/* --- the loading screen (ui.LoadingScreen): an opaque sky over the whole screen with blocky clouds
+   drifting across, the save's picture bobbing over a pulsing glow in the middle, its name and day,
+   a bar with a sliding fill and a line whose dots blink in turn, and the tip at the bottom. --------- */
+
+.mc-load {
+  overflow: hidden;
+  flex-direction: column;
+  background-color: #10204a;
+  animation: mc-load-in 0.35s ease-out;
+}
+
+.mc-load-sky {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: linear-gradient(to bottom, #13245a 0%, #2f5aa3 50%, #7fb3e6 85%, #b9dcf7 100%);
+}
+
+.mc-load-clouds {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.mc-load-cloud {
+  position: absolute;
+  left: -40vw;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom-style: solid;
+  border-bottom-width: 0.6rem;
+  border-bottom-color: rgba(200, 218, 240, 0.8);
+  animation-name: mc-load-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.mc-load-cloud-0 { top: 10vh; width: 26rem; height: 3.2rem; animation-duration: 21s; animation-delay: -4s; }
+.mc-load-cloud-1 { top: 24vh; width: 16rem; height: 2.4rem; animation-duration: 15s; animation-delay: -11s; opacity: 0.75; }
+.mc-load-cloud-2 { top: 64vh; width: 34rem; height: 4rem; animation-duration: 26s; animation-delay: -17s; }
+.mc-load-cloud-3 { top: 78vh; width: 20rem; height: 2.8rem; animation-duration: 18s; animation-delay: -2s; opacity: 0.85; }
+.mc-load-cloud-4 { top: 42vh; width: 12rem; height: 2rem; animation-duration: 12s; animation-delay: -7s; opacity: 0.6; }
+
+.mc-load-mid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-load-isle {
+  position: relative;
+  width: 12rem;
+  height: 12rem;
+  margin-bottom: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-load-glow {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 5rem;
+  background-color: rgba(255, 244, 196, 0.22);
+  animation: mc-load-pulse 1.8s ease-in-out infinite alternate;
+}
+
+.mc-load-icon {
+  position: relative;
+  width: 7.2rem;
+  height: 7.2rem;
+  animation: mc-load-bob 1.6s ease-in-out infinite alternate;
+}
+
+.mc-load-title {
+  color: #ffffff;
+  font-size: 2.8rem;
+  text-shadow: 0 0.3rem 0 #1a2a4a;
+}
+
+.mc-load-sub {
+  margin-top: 0.4rem;
+  font-size: 1.3rem;
+  color: #d6e4fb;
+  text-shadow: 0 0.15rem 0 rgba(20, 30, 50, 0.6);
+}
+
+.mc-load-bar {
+  position: relative;
+  overflow: hidden;
+  width: 28rem;
+  height: 1rem;
+  margin-top: 2rem;
+  background-color: rgba(5, 9, 20, 0.6);
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #1e1e1f;
+}
+
+.mc-load-bar-fill {
+  position: absolute;
+  top: 0;
+  left: -35%;
+  width: 35%;
+  height: 100%;
+  background-color: #62c240;
+  border-top-style: solid;
+  border-top-width: 0.2rem;
+  border-top-color: #8fe36a;
+  animation: mc-load-slide 1.3s ease-in-out infinite;
+}
+
+.mc-load-line {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.8rem;
+  font-size: 1.3rem;
+  color: #ffffff;
+  text-shadow: 0 0.15rem 0 rgba(20, 30, 50, 0.6);
+}
+
+.mc-load-dot {
+  animation: mc-load-blink 1.2s linear infinite;
+}
+
+.mc-load-dot-1 { animation-delay: 0.2s; }
+.mc-load-dot-2 { animation-delay: 0.4s; }
+
+.mc-load-tip {
+  position: absolute;
+  left: 0;
+  bottom: 2.4rem;
+  width: 100vw;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #1a2a4a;
+}
+
+@keyframes mc-load-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mc-load-drift {
+  from { left: -40vw; }
+  to { left: 110vw; }
+}
+
+@keyframes mc-load-bob {
+  from { transform: translateY(0.8rem); }
+  to { transform: translateY(-0.8rem); }
+}
+
+@keyframes mc-load-pulse {
+  from { opacity: 0.5; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes mc-load-slide {
+  from { left: -35%; }
+  to { left: 100%; }
+}
+
+@keyframes mc-load-blink {
+  0% { opacity: 0.2; }
+  30% { opacity: 1; }
+  60% { opacity: 0.2; }
+  100% { opacity: 0.2; }
+}
+
+.mc-load-title .oui-line,
+.mc-load-sub .oui-line,
+.mc-load-tip .oui-line {
+  justify-content: center;
+}

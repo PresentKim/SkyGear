@@ -7,11 +7,11 @@ import (
 )
 
 // A client span is a piece of a text that the Ore UI page puts in the
-// client's own language (packs/oreui/hbui/oui-ddui.js localize): a
+// client's own language (web/oreui/src/text/localize.ts): a
 // translation key the client knows (the vanilla and the pack's texts/*.lang),
 // a date or the time since a moment. It carries the server's text in the
-// player's language for the screens that cannot translate it (the JSON UI
-// forms), Plain. The marks are Unicode noncharacters, which no font or text
+// player's language for where the page does not draw it (chat, titles),
+// Plain. The marks are Unicode noncharacters, which no font or text
 // uses:
 //
 //	U+FDD0 <kind>:<value> U+FDD1 <fallback> U+FDD2
@@ -65,13 +65,4 @@ func Plain(s string) string {
 		}
 	}
 	return strings.ReplaceAll(b.String(), spanClose, "")
-}
-
-// PlainBytes is Plain for a JSON text (a form): the marks and keys need no
-// escaping, so the result stays valid JSON.
-func PlainBytes(data []byte) []byte {
-	if !strings.Contains(string(data), spanOpen) {
-		return data
-	}
-	return []byte(Plain(string(data)))
 }

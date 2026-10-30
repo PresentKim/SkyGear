@@ -49,15 +49,15 @@ Go에서 `world.CustomBlock`을 구현하면 Dragonfly가 블록 정의를 클�
 
 | 방식 | 용도 | 비고 |
 |---|---|---|
-| 폼(`common/ui`, Dragonfly `form`) | 메뉴, 설정, 세이브 선택 | 기본 수단 |
-| JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적 |
+| Ore UI DDUI 화면(`common/ui`, `common/oreui`) | 메뉴, 설정, 세이브 선택 | 기본 수단. 암호화한 팩의 `hbui/` 가 게임 중 Ore UI 페이지를 바꾼다([oreui.md](oreui.md)) |
+| JSON UI로 폼 꾸미기 | 메뉴를 게임 UI처럼 표현 | RP의 `ui/server_form.json` 등을 수정. 폼 제목에 태그를 넣어 화면별로 다른 레이아웃을 적용하는 방식이 일반적. 이 서버는 쓰지 않는다(JSON UI 는 HUD·창고 창만) |
 | 상자형 인벤토리 UI | 인벤토리 보기, 기계 창 | 보이지 않는 엔티티를 상자로 여는 `common/chestui`([chestui.md](chestui.md)) |
 | 사이드바, 보스바, 타이틀, 액션바 | 퀘스트 창·HUD 표시 | Dragonfly API 지원 |
 
 ## 6. 리소스팩 운영 방식
 
 Dragonfly 는 **행동팩 역할만** 한다(블록·아이템 정의, 동작). 보이는 것은 전부 손으로 쓰는 리소스팩에 둔다.
-Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `main.go` 에서 끈다(`DisableResourceBuilding`).
+Dragonfly 의 자동 팩 생성(커스텀 블록·아이템의 텍스처/모델/이름으로 서버 시작 시 생성)은 `cmd/skygear/main.go` 에서 끈다(`DisableResourceBuilding`).
 리소스팩만 따로 고쳐 시험하기 쉽고, Blockbench 같은 도구로 모델을 바로 열 수 있다.
 
 - **리소스팩**: 블록·아이템 텍스처와 아틀라스, 블록 모델, 이름(`texts/ko_KR.lang`·`en_US.lang`: `item.<id>.name`, `tile.<id>.name`), 엔티티 모델, 애니메이션, 사운드, JSON UI, 파티클.
@@ -81,7 +81,7 @@ Dragonfly에 없는 바닐라 블록: 피스톤, 옵저버, 드로퍼, 디스펜
 
 | 애드온에서 하던 것 | 여기서 할 곳 |
 |---|---|
-| `blocks/*.json` | `internal/games/skygear/...` Go 블록 타입 |
+| `blocks/*.json` | `content/skygear/...` Go 블록 타입 |
 | `items/*.json` | Go 아이템 타입 |
 | `entities/*.json` (BP) | Go `EntityType` + 동작 코드 |
 | `entity/*.entity.json` (RP), 모델, 애니메이션 | `assets/resourcepack/skygear/` |

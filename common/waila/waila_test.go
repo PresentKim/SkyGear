@@ -160,7 +160,7 @@ func TestPrecomputedFields(t *testing.T) {
 
 // TestPackFields: the pack cuts the subtitle where Format puts the fields.
 func TestPackFields(t *testing.T) {
-	data, err := os.ReadFile("../packs/waila/ui/waila/tile.json")
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,7 +210,7 @@ func TestTail(t *testing.T) {
 		t.Errorf("marks only: %q %q", title, sub)
 	}
 	// The pack cuts the same places.
-	data, err := os.ReadFile("../packs/waila/ui/waila/tile.json")
+	data, err := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +230,7 @@ func TestFurnaceProgress(t *testing.T) {
 	if got := sub[start : start+iconWidth]; got == empty || got != itemField(item.NewStack(block.Stone{}, 1)) {
 		t.Errorf("progress slot %q", got)
 	}
-	data, _ := os.ReadFile("../packs/waila/ui/waila/tile.json")
+	data, _ := os.ReadFile("../../assets/resourcepack/waila/ui/waila/tile.json")
 	if !strings.Contains(string(data), fmt.Sprintf(`"$index": %d`, progressSlot)) {
 		t.Errorf("tile.json draws no slot %d", progressSlot)
 	}

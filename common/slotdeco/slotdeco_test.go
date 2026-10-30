@@ -102,7 +102,7 @@ func TestStripOfMatchSequentialReplace(t *testing.T) {
 	}
 }
 
-const packDir = "../packs/slotdeco"
+const packDir = "../../assets/resourcepack/slotdeco"
 
 func stripComments(s string) string {
 	var out []string
@@ -177,34 +177,13 @@ func TestPackMatchesMarks(t *testing.T) {
 	}
 }
 
-// TestFormDecoMatchesMarks: the form slot decoration of the sgui theme looks
-// for exactly the marks of this package and every picture it can pick exists.
-func TestFormDecoMatchesMarks(t *testing.T) {
-	const sgui = "../packs/sgui"
-	b, err := os.ReadFile(filepath.Join(sgui, "ui/sg_form.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	ui := string(b)
+// TestScreenDecoPictures: every rarity has the frame the DDUI screens put
+// behind an item slot (common/ui slotDeco: deco_<rarity>_0 of the sgui pack).
+func TestScreenDecoPictures(t *testing.T) {
 	for r := Uncommon; r <= Legendary; r++ {
-		if !strings.Contains(ui, "'"+r.Mark()+"'") {
-			t.Errorf("sg_form.json does not look for the mark of rarity %d", r)
-		}
-	}
-	for n := 1; n <= MaxFront; n++ {
-		if !strings.Contains(ui, "'"+TierMark(n)+"'") {
-			t.Errorf("sg_form.json does not look for the mark of front image %d", n)
-		}
-	}
-	for r := 0; r <= int(Legendary); r++ {
-		for n := 0; n <= MaxFront; n++ {
-			if r == 0 && n == 0 {
-				continue
-			}
-			name := "deco_" + string(rune('0'+r)) + "_" + string(rune('0'+n)) + ".png"
-			if _, err := os.Stat(filepath.Join(sgui, "textures/ui/sg", name)); err != nil {
-				t.Error(err)
-			}
+		name := "deco_" + string(rune('0'+int(r))) + "_0.png"
+		if _, err := os.Stat(filepath.Join("../../assets/resourcepack/sgui/textures/ui/sg", name)); err != nil {
+			t.Error(err)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -11,8 +10,7 @@ import (
 )
 
 // PortChoice is one value a SidePort can take: drawn as a square of Colour
-// ("#rrggbb") in DDUI, or as Icon when it has no colour and in JSON UI. Run
-// sets it.
+// ("#rrggbb"), or as Icon when it has no colour. Run sets it.
 type PortChoice struct {
 	Colour, Icon, Tip string
 	Run               func(p *player.Player, tx *world.Tx)
@@ -97,140 +95,145 @@ type sidePicker struct{ side, port int }
 // SidesMenu shows a block with a card for each of its six sides: the
 // neighbouring block and a box per port that cycles its choice when pressed
 // (back with the right mouse button),
-// with a plus button that opens all choices beside the card. A change redraws
-// only the ports. Without DDUI it is an ItemBoard with a row per side and the
-// choices in an ItemGrid.
+// with a plus button that opens all choices beside the card. A press shows
+// the whole screen again.
 func SidesMenu(p *player.Player, title string, b SideBoard, actions ...Option) {
-	if !OreUIFor(p) {
-		ItemBoard(p, title, "", sideRows(title, b, actions), actions...)
-		return
-	}
-	l := newOreLayout()
-	tabs, bar, _ := l.chrome(actions)
-	cx, cy := sidesW/2, sidesH/2
-	pos := func(x, y int) map[string]any { return map[string]any{"left": gu(x), "top": gu(y)} }
-	var view []any
-	for i := range b.Sides {
-		x, y, _ := sideCard(cube.Face(i))
-		view = append(view, node("line", "class", "oui-line-seg mc-side-line",
-			"x1", float64(cx)*0.2, "y1", float64(cy)*0.2, "x2", float64(x+cardW/2)*0.2, "y2", float64(y+cardH/2)*0.2))
-	}
-	view = append(view, box("mc-side-centre", "style", pos(cx-centreSize/2, cy-centreSize/2), "children", []any{img("", b.Center)}))
-	for i, s := range b.Sides {
-		x, y, _ := sideCard(cube.Face(i))
-		class := "mc-side-card"
-		if i == b.Focus {
-			class += " on"
-		}
-		block := box("mc-side-block", "children", []any{box("mc-side-empty")})
-		if s.Icon != "" {
-			block = box("mc-side-block", "tip", s.Tip, "children", []any{img("", s.Icon)})
-		}
-		view = append(view, box(class, "style", pos(x, y), "children", []any{
-			box("mc-side-head", "children", []any{txt("mc-side-arrow", sideArrow(cube.Face(i))), txt("mc-side-name", s.Name)}),
-			box("mc-side-body", "children", []any{block, node("region", "name", sideRegion(i))}),
-		}))
-	}
-	view = append(view, node("region", "name", "picker"))
-	content := box("mc-sides", "style", map[string]any{"width": gu(sidesW), "height": gu(sidesH)}, "children", view)
-	showOre(p, l, l.window(title, tabs, bar, content))
-	updateSides(p, b, nil)
+	updateSides(p, title, b, nil, actions)
 }
-
-func sideRegion(side int) string { return "side" + strconv.Itoa(side) }
 
 // sidesTurn counts the redrawn ports of SidesMenu screens, so their ids do
 // not reuse the ids of the ports before them.
 var sidesTurn int
 
-// choiceNode is the square of a choice: its colour, or its icon.
-func choiceNode(class string, c PortChoice) map[string]any {
-	if c.Colour != "" {
-		return box(class, "style", map[string]any{"backgroundColor": c.Colour})
-	}
-	return box(class+" icon", "children", []any{img("", c.Icon)})
+// sidesData is the data of the sides screen.
+type sidesData struct {
+	Chrome dChrome     `json:"chrome"`
+	Center string      `json:"center"`
+	Cards  []dSideCard `json:"cards"`
+	Picker *dPicker    `json:"picker"`
 }
 
-// updateSides draws the ports of the sides of b into the screen p has open,
-// and the choices of open (nil: none) beside its card, keeping the screen
-// open after the press that changed them.
-func updateSides(p *player.Player, b SideBoard, open *sidePicker) {
+// dSideCard is the card of a side, at x, y in GUI pixels.
+type dSideCard struct {
+	X     int     `json:"x"`
+	Y     int     `json:"y"`
+	Arrow string  `json:"arrow"`
+	Name  string  `json:"name"`
+	Icon  string  `json:"icon"`
+	Tip   string  `json:"tip"`
+	Focus bool    `json:"focus"`
+	Ports []dPort `json:"ports"`
+	None  string  `json:"none"`
+}
+
+// dPort is a port of a side: its swatch (nil: no choices) and plus button.
+type dPort struct {
+	Label  string   `json:"label"`
+	Swatch *dSwatch `json:"swatch"`
+	Plus   dPlus    `json:"plus"`
+}
+
+// dSwatch is the current choice of a port; ID presses to the next choice and
+// Alt to the one before.
+type dSwatch struct {
+	ID     string `json:"id"`
+	Alt    string `json:"alt"`
+	Colour string `json:"colour"`
+	Icon   string `json:"icon"`
+	Tip    string `json:"tip"`
+}
+
+// dPlus is the plus button of a port; On when its choices are open.
+type dPlus struct {
+	ID string `json:"id"`
+	On bool   `json:"on"`
+}
+
+// dPicker is the panel of the open choices of a port.
+type dPicker struct {
+	X       int           `json:"x"`
+	Y       int           `json:"y"`
+	W       int           `json:"w"`
+	Choices []dPickChoice `json:"choices"`
+}
+
+// dPickChoice is a choice in a dPicker.
+type dPickChoice struct {
+	ID     string `json:"id"`
+	Colour string `json:"colour"`
+	Icon   string `json:"icon"`
+	Tip    string `json:"tip"`
+	On     bool   `json:"on"`
+}
+
+// updateSides shows the whole sides screen of b to p, with the choices of
+// open (nil: none) beside its card, keeping the screen open after the press
+// that changed it.
+func updateSides(p *player.Player, title string, b SideBoard, open *sidePicker, actions []Option) {
 	oreScreens.Lock()
 	sidesTurn++
 	l := newOreLayout()
 	l.prefix = "s" + strconv.Itoa(sidesTurn) + "_"
 	oreScreens.Unlock()
-	vars := sidesVars(p, l, b, open)
-	withScreen(p, func(st *oreScreen) {
-		st.gen++
-		for k, v := range l.runs {
-			st.runs[k] = v
-		}
-		st.form.SetVars(vars)
-	})
-}
-
-// sidesVars are the regions of a SidesMenu screen: the ports of each side
-// ("@side<n>") and the open choices ("@picker"), their presses in l.
-func sidesVars(p *player.Player, l *oreLayout, b SideBoard, open *sidePicker) map[string]any {
+	chrome, _ := l.chromeOf(title, actions)
+	d := sidesData{Chrome: chrome, Center: oreIcon(b.Center), Cards: make([]dSideCard, 0, len(b.Sides))}
+	again := func(b SideBoard, open *sidePicker) func(p *player.Player, _ *world.Tx) {
+		return func(p *player.Player, _ *world.Tx) { updateSides(p, title, b, open, actions) }
+	}
 	choose := func(run func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx) {
 		return func(p *player.Player, tx *world.Tx) {
 			if run != nil {
 				run(p, tx)
 			}
+			nb := b
 			if b.Refresh != nil {
-				updateSides(p, b.Refresh(p, tx), nil)
+				nb = b.Refresh(p, tx)
 			}
+			updateSides(p, title, nb, nil, actions)
 		}
 	}
-	vars := map[string]any{"@picker": box("")}
 	for i, s := range b.Sides {
-		if len(s.Ports) == 0 {
-			vars["@"+sideRegion(i)] = box("mc-side-ports", "children", []any{
-				box("mc-port-none", "children", []any{txt("", i18n.T(i18n.Of(p), "ui.sides.none"))}),
-			})
-			continue
+		x, y, _ := sideCard(cube.Face(i))
+		c := dSideCard{X: x, Y: y, Arrow: sideArrow(cube.Face(i)), Name: s.Name, Icon: oreIcon(s.Icon), Tip: s.Tip,
+			Focus: i == b.Focus, Ports: []dPort{}}
+		if s.Icon == "" {
+			c.Tip = ""
 		}
-		var ports []any
+		if len(s.Ports) == 0 {
+			c.None = i18n.T(i18n.Of(p), "ui.sides.none")
+		}
 		for j, port := range s.Ports {
-			var children []any
+			dp := dPort{Label: port.Label}
 			if n := len(port.Choices); n > 0 {
 				at := min(max(port.Chosen, 0), n-1)
 				cur := port.Choices[at]
-				swatch := choiceNode("mc-port-swatch", cur)
-				swatch["tip"] = cur.Tip
-				l.press(swatch, choose(port.Choices[(port.Chosen+1)%n].Run))
-				children = append(children, l.alt(swatch, choose(port.Choices[(at+n-1)%n].Run)))
+				dp.Swatch = &dSwatch{
+					ID:     l.id(choose(port.Choices[(at+1)%n].Run)),
+					Alt:    l.id(choose(port.Choices[(at+n-1)%n].Run)),
+					Colour: cur.Colour, Icon: oreIcon(cur.Icon), Tip: cur.Tip,
+				}
 			}
-			plus := box("mc-port-plus", "children", []any{txt("", "+")})
-			at := sidePicker{i, j}
-			if open != nil && *open == at {
-				plus["class"] = "mc-port-plus on"
-				l.press(plus, func(p *player.Player, _ *world.Tx) { updateSides(p, b, nil) })
-				vars["@picker"] = pickerNode(l, i, port, choose)
+			here := sidePicker{i, j}
+			if open != nil && *open == here {
+				dp.Plus = dPlus{ID: l.id(again(b, nil)), On: true}
+				d.Picker = pickerOf(l, i, port, choose)
 			} else {
-				l.press(plus, func(p *player.Player, _ *world.Tx) { updateSides(p, b, &at) })
+				dp.Plus = dPlus{ID: l.id(again(b, &here))}
 			}
-			children = append(children, txt("mc-port-label", port.Label), plus)
-			ports = append(ports, box("mc-port", "children", children))
+			c.Ports = append(c.Ports, dp)
 		}
-		vars["@"+sideRegion(i)] = box("mc-side-ports", "children", ports)
+		d.Cards = append(d.Cards, c)
 	}
-	return vars
+	showScreen(p, l, "sides", d)
 }
 
-// pickerNode is the panel of the choices of port, on the card of side: under
+// pickerOf is the panel of the choices of port, on the card of side: under
 // the card, or over it for a card on the bottom row. choose makes the run of
 // a choice from the choice's Run.
-func pickerNode(l *oreLayout, side int, port SidePort, choose func(func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx)) map[string]any {
-	var choices []any
+func pickerOf(l *oreLayout, side int, port SidePort, choose func(func(p *player.Player, tx *world.Tx)) func(p *player.Player, tx *world.Tx)) *dPicker {
+	choices := make([]dPickChoice, 0, len(port.Choices))
 	for k, c := range port.Choices {
-		class := "mc-port-choice"
-		if k == port.Chosen {
-			class += " on"
-		}
-		n := box(class, "tip", c.Tip, "children", []any{choiceNode("mc-choice-swatch", c)})
-		choices = append(choices, l.press(n, choose(c.Run)))
+		choices = append(choices, dPickChoice{ID: l.id(choose(c.Run)), Colour: c.Colour, Icon: oreIcon(c.Icon), Tip: c.Tip, On: k == port.Chosen})
 	}
 	rows := (len(port.Choices) + pickerCols - 1) / pickerCols
 	w, h := pickerCols*choiceSize+2*pickerPad, rows*choiceSize+2*pickerPad
@@ -241,47 +244,5 @@ func pickerNode(l *oreLayout, side int, port SidePort, choose func(func(p *playe
 	} else {
 		y += cardH + 2
 	}
-	return box("mc-port-picker", "style", map[string]any{"left": gu(x), "top": gu(y), "width": gu(w)}, "children", choices)
-}
-
-// sideRows are the ItemBoard rows of a SidesMenu shown with actions: the
-// block beside each side and a slot for each port showing its choice. A port
-// opens its choices in an ItemGrid; a choice shows the menu again from
-// b.Refresh.
-func sideRows(title string, b SideBoard, actions []Option) [][]BoardCell {
-	again := func(p *player.Player, tx *world.Tx) {
-		if b.Refresh != nil {
-			SidesMenu(p, title, b.Refresh(p, tx), actions...)
-		}
-	}
-	var rows [][]BoardCell
-	for i, s := range b.Sides {
-		row := []BoardCell{SlotCell(ItemSlot{Icon: s.Icon, Tip: s.Name + ": " + s.Tip, Selected: i == b.Focus}), Blank()}
-		for _, port := range s.Ports {
-			var shown PortChoice
-			if port.Chosen >= 0 && port.Chosen < len(port.Choices) {
-				shown = port.Choices[port.Chosen]
-			}
-			choices := port.Choices
-			row = append(row, SlotCell(ItemSlot{
-				Icon: shown.Icon,
-				Tip:  fmt.Sprintf("%s: %s", port.Label, shown.Tip),
-				Run: func(p *player.Player, tx *world.Tx) {
-					var grid []ItemSlot
-					for _, c := range choices {
-						run := c.Run
-						grid = append(grid, ItemSlot{Icon: c.Icon, Tip: c.Tip, Run: func(p *player.Player, tx *world.Tx) {
-							if run != nil {
-								run(p, tx)
-							}
-							again(p, tx)
-						}})
-					}
-					ItemGrid(p, title, "", grid, Back(i18n.T(i18n.Of(p), "ui.sides.back"), again))
-				},
-			}))
-		}
-		rows = append(rows, row)
-	}
-	return rows
+	return &dPicker{X: x, Y: y, W: w, Choices: choices}
 }

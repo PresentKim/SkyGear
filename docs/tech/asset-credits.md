@@ -37,15 +37,15 @@
 
 | 저장소 | 확인한 커밋 | 라이선스 | 쓴 곳 |
 |---|---|---|---|
-| https://github.com/tedo0627/InventoryUIResourcePack | `394fb0a935` | MIT (`third_party/licenses/InventoryUIResourcePack-MIT.txt`) | `common/packs/inventoryui/ui/` 상자 화면 JSON UI |
-| https://github.com/r4isen1920/WAILA | | MIT (`third_party/licenses/WAILA-MIT.txt`) | `common/packs/waila/` WAILA 패널 JSON UI·테두리 |
+| https://github.com/tedo0627/InventoryUIResourcePack | `394fb0a935` | MIT (`third_party/licenses/InventoryUIResourcePack-MIT.txt`) | `assets/resourcepack/inventoryui/ui/` 상자 화면 JSON UI |
+| https://github.com/r4isen1920/WAILA | | MIT (`third_party/licenses/WAILA-MIT.txt`) | `assets/resourcepack/waila/` WAILA 패널 JSON UI·테두리 |
 
 ## 바닐라 텍스처
 
 마인크래프트 바닐라 텍스처는 팩에 복사하지 않는다. 클라이언트가 가진 그림을 경로로 가리킨다.
 
 - 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 통(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
-- WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`common/packs/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
+- WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`assets/resourcepack/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
 
 ## 생성한 그림
 

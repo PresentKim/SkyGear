@@ -5,13 +5,13 @@ package timed
 
 import (
 	"fmt"
-	"github.com/presentkim/skygear/common/i18n"
 	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/presentkim/skygear/common/i18n"
 )
 
 // key is the item stack value holding the expiry as Unix seconds. Stack

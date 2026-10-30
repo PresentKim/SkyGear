@@ -1,11 +1,11 @@
 // Command vanillakeys builds from the official texts (Mojang/bedrock-samples
-// en_US.lang, ko_KR.lang) internal/locales/{en,ko}.vanilla.json, the names of
+// en_US.lang, ko_KR.lang) content/skygear/locales/{en,ko}.vanilla.json, the names of
 // every vanilla block and item as "vanilla.<id>", and naming/vanillakeys.json,
 // the client's key of each block and item named by another key than
 // "tile.<id>.name" (items, and legacy keys like "tile.planks.oak.name"),
 // matched by its English name in Dragonfly.
 //
-//	go run ./tools/vanillakeys en_US.lang ko_KR.lang internal/games/skygear/naming/vanillakeys.json internal/locales
+//	go run ./tools/vanillakeys en_US.lang ko_KR.lang content/skygear/naming/vanillakeys.json content/skygear/locales
 package main
 
 import (

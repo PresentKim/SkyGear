@@ -1,6 +1,8 @@
 package perf
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestToggle(t *testing.T) {
 	if Shown("a") || !Toggle("a") || !Shown("a") || Toggle("a") || Shown("a") {

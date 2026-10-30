@@ -2,7 +2,6 @@ package ui
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -10,16 +9,13 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-// TestChoiceMenu: the DDUI board has the figures, a heading per group and a
-// card per choice; the current card is ringed and does not press, the others
-// do.
+// TestChoiceMenu: the screen has the figures, a group per heading and a tile
+// per choice; the current tile has no id, the others do.
 func TestChoiceMenu(t *testing.T) {
 	var got *oreLayout
 	var layout any
 	oreShown = func(l *oreLayout, lay any) { got, layout = l, lay }
-	oldOre := OreUI
-	OreUI = true
-	defer func() { oreShown, OreUI = nil, oldOre }()
+	defer func() { oreShown = nil }()
 
 	run := func(*player.Player, *world.Tx) {}
 	ChoiceMenu(nil, "board", ChoiceBoard{
@@ -29,24 +25,31 @@ func TestChoiceMenu(t *testing.T) {
 			{Title: "g1", Choices: []Choice{{Label: "x", Badge: "now", On: true, Run: run}, {Label: "y", Info: "why", Dim: true, Run: run}}},
 			{Title: "g2", Choices: []Choice{{Label: "z", Run: run}}},
 		},
+		Actions: []Option{{Label: "more", Run: run}},
 	})
-	if got == nil {
-		t.Fatal("nothing shown")
+	name, _ := screenRoot(layout)
+	if name != "choice" {
+		t.Fatalf("screen %q", name)
 	}
-	if len(got.runs) != 2 {
-		t.Errorf("%d pressable, want 2", len(got.runs))
+	if len(got.runs) != 3 {
+		t.Errorf("%d pressable, want 3", len(got.runs))
 	}
-	b, _ := json.Marshal(layout)
-	s := string(b)
-	for _, want := range []string{"mc-stats", "mc-pick-note", `"g1"`, `"g2"`, "mc-btn mc-pick on", "mc-pick-ring", "mc-btn mc-pick dim", "now", "why"} {
-		if !strings.Contains(s, want) {
-			t.Errorf("layout has no %s", want)
-		}
+	b, _ := json.Marshal(layout.(map[string]any)["data"])
+	var d choiceData
+	if err := json.Unmarshal(b, &d); err != nil {
+		t.Fatal(err)
 	}
-	if strings.Count(s, "mc-pick-ring") != 1 {
-		t.Errorf("rings: %d", strings.Count(s, "mc-pick-ring"))
+	if len(d.Stats) != 2 || d.Note != "note" || len(d.Groups) != 2 || len(d.Items) != 1 {
+		t.Fatalf("data %s", b)
 	}
-	if out := os.Getenv("CHOICE_LAYOUT"); out != "" {
-		_ = os.WriteFile(out, b, 0o644)
+	x, y := d.Groups[0].Choices[0], d.Groups[0].Choices[1]
+	if !x.On || x.ID != "" || !strings.Contains(x.Tip, "now") {
+		t.Errorf("current %+v", x)
+	}
+	if y.On || y.ID == "" || !y.Dim || !strings.Contains(y.Tip, "why") {
+		t.Errorf("other %+v", y)
+	}
+	if strings.Contains(string(b), "null") {
+		t.Errorf("null in %s", b)
 	}
 }

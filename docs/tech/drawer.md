@@ -1,6 +1,6 @@
 # 서랍 구현
 
-기획: [02-skygear.md](../design/02-skygear.md) §15. 코드: `internal/games/skygear/drawer.go`, `holder.go`.
+기획: [02-skygear.md](../design/02-skygear.md) §15. 코드: `content/skygear/storage/drawer.go`, `holder.go`.
 
 ## 블록
 - `world.CustomBlock` + `CustomItem`(서랍 아이템) + `NBTer`. 비바닐라 블록은 `CustomBlock`과 `CustomItem`을 구현해야 등록된다.

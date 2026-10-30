@@ -9,7 +9,7 @@
 | 인스턴스별 인벤토리·상태 | 기본 `playerdb`는 플레이어당 1벌이라 사용하지 않음. 이동 시 직접 직렬화/복원 |
 | 기계 | `world.CustomBlock` + `NBTer`(블록 엔티티) + `TickerBlock`. 모양·텍스처·이름은 리소스팩 파일(`assets/resourcepack/skygear/`), Go는 모델 식별자와 재질 키만 적는다 |
 | 아이템 값 | `item.Stack` 값(`WithValue`)에 서랍 내용, 도구 경험·강화 같은 값을 저장 |
-| 메뉴 | 폼(`common/ui`, 리소스팩 JSON UI 테마), 아이템이 오가는 창은 엔티티 상자(`common/chestui`) |
+| 메뉴 | Ore UI 에 그리는 서버 주도 DDUI 화면(`common/ui`, `common/oreui`, 암호화한 `oreui` 팩), 아이템이 오가는 창은 엔티티 상자(`common/chestui`, JSON UI) |
 | 시간 기반 이벤트 | 인스턴스 시간(활성 누적 시간) 기준 스케줄러. 비활성화 시 멈춤 |
 | 소유 청크 상시 틱 | 인스턴스별 `world.NewLoader(r, w, world.NopViewer{})`. 로더 반경과 `TickRange`가 소유 청크 전체를 덮도록 설정(월드는 로더가 있을 때만, 블록 엔티티는 로더의 `TickRange` 안에서만 틱한다. 동기 테스트 월드는 로드된 청크를 모두 틱하므로 이 동작은 비동기 월드로 검증한다) |
 | 분실물 수집 | 인스턴스 월드 핸들러 `HandleEntityDespawn`에서 Y < 월드 최저 높이인 아이템 엔티티 → 분실물 목록에 병합 |
@@ -26,44 +26,48 @@
 | 계정, 친구, 업적, 세이브 메타, 세이브 × 플레이어 상태, 세이브 상태 | **SQLite** (`modernc.org/sqlite`, CGO 불필요) |
 | 월드 블록 | 세이브별 `mcdb` (LevelDB) 폴더: `saves/<saveID>/world` |
 
-- 테이블(`internal/db/db.go`):
+- 테이블(`platform/db/db.go`):
 
 | 테이블 | 내용 |
 |---|---|
 | `accounts` | 계정(XUID), 이름, 칭호, 이름 색, 안내 확인 버전, 접속 시각 |
 | `friends`, `friend_requests`, `blocks` | 친구 관계, 요청, 차단 |
 | `achievements` | 계정별 획득한 업적 |
-| `saves`, `save_members` | 세이브 메타(게임 종류, 소유자, 슬롯, 이름, 초대 코드, 인스턴스 시간, 일수)와 참여자(역할 `host/cohost/guest`, 탈퇴·추방 뒤에도 행 유지) |
+| `saves`, `save_members` | 세이브 메타(소유자, 슬롯, 이름, 초대 코드, 인스턴스 시간, 일수)와 참여자(역할 `host/cohost/guest`, 탈퇴·추방 뒤에도 행 유지) |
 | `save_players` | 세이브 × 플레이어 상태(인벤토리·위치·체력 등 직렬화) |
-| `save_state` | 게임 종류별 키-값 상태(연구, 발전과제, 청크, 분실물 …) |
+| `save_state` | 세이브별 게임 키-값 상태(연구, 발전과제, 청크, 분실물 …) |
 
-- `save_state`는 게임 종류가 자유롭게 쓰는 키-값이라 플랫폼이 게임 내용을 몰라도 된다.
-- 스키마 변경은 `internal/db/db.go`의 `migrations`에 새 항목을 더하는 방식으로 하고, 기존 항목은 고치지 않는다.
+- `save_state`는 게임이 자유롭게 쓰는 키-값이라 플랫폼이 게임 내용을 몰라도 된다.
+- 스키마 변경은 `platform/db/db.go`의 `migrations`에 새 항목을 더하는 방식으로 하고, 기존 항목은 고치지 않는다.
 
 ## 3. 패키지 구조
 
+코드는 세 층이다. 아래 층은 위 층만 import 한다(공통 ← 플랫폼 ← 콘텐츠).
+
+| 층 | 폴더 | 내용 |
+|---|---|---|
+| 공통 | `common/` | 어느 Dragonfly 서버에서나 쓰는 패키지(DDUI 메뉴, 엔티티 상자, WAILA, HUD, i18n, 리소스팩 로더, 백업, 아이템 입출력, 에너지·아이템·유체 연결망) |
+| 플랫폼 | `platform/` | 게임을 둘러싼 서버: 로비, 계정, 세이브, 친구, 인스턴스 |
+| 콘텐츠 | `content/skygear/` | 스카이기어 게임 자체 |
+
 ```
-main.go                        서버 부트스트랩, 종료 시 인스턴스 저장
-internal/db/                   SQLite 접근 계층 (버전별 마이그레이션)
-internal/instance/             인스턴스 매니저, Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
-internal/platform/             접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
-internal/account/              업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
-internal/locales/              이 서버의 문구 카탈로그(`ko.json` 등). 불러오면 `common/i18n` 에 더해진다
-internal/games/skygear/  스카이기어: 세션에 묶인 코드(게임·상태·핸들러, 기계·서랍·배럴·도관 블록, 연구, 발전과제 화면, 도감, 섬 확장, 웨이브 …)와
-                               세션이 필요 없는 하위 패키지(sgitem, naming, textfmt, blockmodel, formicon, wintext,
-                               sievetable, machinerecipe, tinker, hopper, advancement, achievement)
-internal/energy, itemio, itemnet, fluidnet/  에너지·아이템·액체 연결망과 아이템 입출력 인터페이스
-common/                        게임과 상관없는 공통 패키지와 팩(같은 모듈, common/README.md)
+cmd/skygear/                   서버 명령: 층을 잇고 팩을 불러오고, 종료 시 인스턴스 저장
+platform/                      접속 흐름, 로비, 서버 안내, 세이브 슬롯 UI, 친구·초대, 칭호·치장 메뉴, 명령어
+  account/                     업적 등록·지급(게임이 호출), 칭호·이름 색 표시, 계정 설정
+  db/                          SQLite 접근 계층 (버전별 마이그레이션)
+  locales/                     플랫폼 문구 카탈로그(불러오면 `common/i18n` 에 더해진다)
+  instance/                    인스턴스 매니저, 게임을 부르는 Game/Session 인터페이스, 기본 플레이어 핸들러, 인스턴스 시계
+content/skygear/               스카이기어(기능별 하위 패키지는 content/skygear/README.md), 문구 카탈로그는 content/skygear/locales
+common/                        공통 층(common/README.md)
+assets/                        리소스팩(실행 파일에 들어간다, `assets.Pack`)
 ```
 
-공통 패키지(`sghook`, `chestui`, `ui`, `oreui`, `hud`, `waila`, `slotdeco`, `i18n`, `timed`, `perf`, `playerstate`, `resourcepack`, `backup`, `textsearch`)는 같은 모듈의 `common/` 에 있고, 게임·플랫폼 규칙은 넣지 않는다. 하위 패키지별 설명은 저장소 루트의 README.md 에 있다.
+공통 패키지에는 게임·플랫폼 규칙을 넣지 않고, 플랫폼 패키지에는 스카이기어 규칙을 넣지 않는다. 그래서 다른 콘텐츠 서버는 `common/` 과 `platform/` 을 그대로 쓰고 자기 `content/<게임>/` 과 `cmd/<게임>/` 만 만든다.
 
-게임 종류 인터페이스(`internal/instance/game.go`):
+게임 인터페이스(`platform/instance/game.go`): `content/skygear` 가 `platform/instance` 를 쓰므로, 인스턴스 매니저는 스카이기어를 이 인터페이스로만 부른다(구현은 `skygear.Game` 하나).
 
 ```go
 type Game interface {
-    ID() string                         // "skygear"
-    Name(lang string) string            // 플레이어 언어의 게임 이름
     Init(tx *world.Tx, inst *Instance)  // 새 세이브의 월드를 처음 한 번 만든다
     Start(inst *Instance) Session       // 인스턴스 활성화 시 게임 로직 시작
 }
@@ -74,10 +78,25 @@ type Session interface {
     Leave(p *player.Player)                     // 퇴장 전(상태 저장 전)
     Handler(p *player.Player) player.Handler    // 인스턴스 안에서의 게임 이벤트 핸들러
     NewDay(tx *world.Tx, day int)               // 인스턴스 날짜가 바뀔 때
+    Second(tx *world.Tx)                        // 약 1초마다(작물, 요정, 발전과제, 웨이브 …)
+    Fast(tx *world.Tx)                          // 0.2초마다(연결망, WAILA 게이지)
+    MenuBack(p *player.Player, from string)     // 플랫폼 화면의 뒤로 버튼이 돌아갈 게임 화면
     Autosave(tx *world.Tx)                      // 자동 저장 주기마다
     Close(tx *world.Tx)                         // 월드 저장·종료 전
 }
 ```
+
+### 콘텐츠 안의 구조
+
+`content/skygear` 는 기능마다 패키지가 하나다(목록과 층은 [content/skygear/README.md](../../content/skygear/README.md)).
+
+- 바닥은 `core` 다. `core.Session` 은 세이브 하나의 실행 상태(월드, 시계, 난수, 세이브 정보)이고, 기능은 여기에 필드를 더하지 않고
+  자기 패키지에 파트를 둔다: 실행 중 데이터 `core.NewPart`, 플레이어별 데이터 `core.NewPlayers`(퇴장 때 지워짐),
+  저장 데이터 `core.NewSaved`(모든 저장 파트가 세이브 상태 문서 하나의 필드들이라 기능을 옮겨도 세이브 형식이 그대로다).
+- 패키지는 자기보다 아래 층만 import 한다(데이터 → 핵심 → 진행 → 기능 → 내용 목록 → 화면 → 게임). 위로 불러야 할 때는
+  아래 패키지가 함수 변수(훅)를 두고 위 패키지가 `init` 에서 채운다. `layers_test.go` 가 이 방향을 검사한다.
+- 루트 패키지 `skygear` 는 잇기만 한다: 플랫폼 인터페이스 구현(`Game`, `session`), 이벤트 핸들러가 이벤트를 기능에 나눠 주고,
+  `second.go` 의 `Second`·`Fast` 가 기능의 틱을 차례로 부른다. 명령어와 운영자 도구도 여기 있다.
 
 ### 플레이어 이벤트 흐름
 모든 플레이어는 접속 내내 `instance.Handler` 하나를 가진다. 이 핸들러는 플랫폼 공통 규칙(낙하 피해 제거, 사망 시 인벤토리 유지, 보이드 복귀, 접속 종료 시 저장)을 처리하고,

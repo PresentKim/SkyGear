@@ -2,10 +2,8 @@ package ui
 
 import (
 	"cmp"
-	"fmt"
 	"math"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -34,25 +32,29 @@ const (
 
 // QuestChapter is a chapter in the list left of the quests: its name and
 // icon, the count beside it ("3/12") and what choosing it does. On is the
-// chapter shown.
+// chapter shown, New that it has quests tagged new.
 type QuestChapter struct {
 	Name, Icon, Count string
-	On                bool
+	On, New           bool
 	Run               func(p *player.Player, tx *world.Tx)
 }
 
 // QuestNode is a quest on the plane: its place (1 is a node's width), icon,
 // shape, state and tooltip, the quests it follows (lines are drawn from
-// them) and what pressing it does.
+// them) and what pressing it does. A New quest wears a NEW tag until the
+// player looks at it (hovers it, or taps it on a touch screen): Seen runs
+// then, without showing a screen.
 type QuestNode struct {
 	ID          string
 	X, Y        float64
 	Icon, Shape string
 	State       string
 	Tracked     bool
+	New         bool
 	Tip         string
 	Deps        []string
 	Run         func(p *player.Player, tx *world.Tx)
+	Seen        func(p *player.Player, tx *world.Tx)
 }
 
 // QuestPanel is an open quest over the plane: the big icon, title and status,
@@ -73,8 +75,10 @@ type QuestBook struct {
 	Heading, Progress string
 	Nodes             []QuestNode
 	// Focus is the quest the plane is centred on the first time a chapter
-	// is shown; the player's dragging is kept after that.
-	Focus string
+	// is shown; the player's dragging is kept after that, unless Recenter
+	// centres it on Focus again.
+	Focus    string
+	Recenter bool
 	// Key tells the planes apart (the chapter), so each keeps where it was
 	// dragged to.
 	Key   string
@@ -85,38 +89,91 @@ type QuestBook struct {
 // is 24.
 const questUnit = 36
 
-func rem(v float64) string { return strconv.FormatFloat(v, 'f', -1, 64) + "rem" }
+// questData is the data of the quest screen: positions are in rem.
+type questData struct {
+	Bar      []dBarButton   `json:"bar"`
+	Chapters []questChapter `json:"chapters"`
+	Heading  string         `json:"heading"`
+	Progress string         `json:"progress"`
+	Key      string         `json:"key"`
+	FocusX   float64        `json:"focusX"`
+	FocusY   float64        `json:"focusY"`
+	Recenter bool           `json:"recenter"`
+	Lines    []questLine    `json:"lines"`
+	Nodes    []questNodeD   `json:"nodes"`
+	Panel    *questPanelD   `json:"panel"`
+}
+
+// questChapter is a chapter of the list; the chapter shown has no id.
+type questChapter struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Icon  string `json:"icon"`
+	Count string `json:"count"`
+	On    bool   `json:"on"`
+	New   bool   `json:"new"`
+}
+
+// questLine is a piece of a line on the plane.
+type questLine struct {
+	X1  float64 `json:"x1"`
+	Y1  float64 `json:"y1"`
+	X2  float64 `json:"x2"`
+	Y2  float64 `json:"y2"`
+	Cls string  `json:"cls"`
+}
+
+// questNodeD is a quest on the plane.
+type questNodeD struct {
+	ID      string  `json:"id"`
+	X       float64 `json:"x"`
+	Y       float64 `json:"y"`
+	Shape   string  `json:"shape"`
+	State   string  `json:"state"`
+	Tracked bool    `json:"tracked"`
+	New     bool    `json:"new"`
+	Seen    string  `json:"seen"`
+	Tip     string  `json:"tip"`
+	Icon    string  `json:"icon"`
+}
+
+// questPanelD is the panel of an open quest.
+type questPanelD struct {
+	Icon    string     `json:"icon"`
+	Title   string     `json:"title"`
+	Status  string     `json:"status"`
+	Body    string     `json:"body"`
+	Rows    []dSlotRow `json:"rows"`
+	Actions []dButton  `json:"actions"`
+	Close   string     `json:"close"`
+}
 
 // QuestBookMenu shows a quest book in the style of FTB Quests: chapters on
 // the left, the chapter's quests on a draggable, zoomable plane with lines
-// from their dependencies, and an open quest's panel over it. It is DDUI
-// only (OreUIFor).
+// from their dependencies, and an open quest's panel over it.
 func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Option) {
 	l := newOreLayout()
-	_, bar, _ := l.chrome(actions)
-	var chapters []any
+	chrome, _ := l.chromeOf(title, actions)
+	d := questData{Bar: chrome.Bar, Chapters: []questChapter{}, Heading: b.Heading, Progress: b.Progress, Key: b.Key,
+		Lines: []questLine{}, Nodes: []questNodeD{}, Recenter: b.Recenter}
+	if d.Heading == "" {
+		d.Heading = untoken(title)
+	}
 	for _, c := range b.Chapters {
-		n := box("mc-chapter", "on", c.On, "ink", "dark", "children", []any{
-			img("", c.Icon), box("mc-chapter-text", "children", []any{txt("mc-chapter-name", c.Name), txt("mc-chapter-count", c.Count)}),
-		})
+		ch := questChapter{Name: c.Name, Icon: oreIcon(c.Icon), Count: c.Count, On: c.On, New: c.New}
 		if !c.On {
-			l.press(n, c.Run)
+			ch.ID = l.id(c.Run)
 		}
-		chapters = append(chapters, n)
+		d.Chapters = append(d.Chapters, ch)
 	}
-	at := map[string]QuestNode{}
-	for _, q := range b.Nodes {
-		at[q.ID] = q
-	}
+	// pos is a place in rem.
 	pos := func(v float64) float64 { return v * questUnit * 0.2 }
-	var plane []any
 	for _, sg := range questLines(b.Nodes) {
-		plane = append(plane, node("line", "class", sg.class, "x1", pos(sg.x1), "y1", pos(sg.y1), "x2", pos(sg.x2), "y2", pos(sg.y2)))
+		d.Lines = append(d.Lines, questLine{pos(sg.x1), pos(sg.y1), pos(sg.x2), pos(sg.y2), sg.class})
 	}
-	focusX, focusY := 0.0, 0.0
 	for _, q := range b.Nodes {
 		if q.ID == b.Focus {
-			focusX, focusY = pos(q.X), pos(q.Y)
+			d.FocusX, d.FocusY = pos(q.X), pos(q.Y)
 		}
 		if q.Shape == ShapeVia {
 			continue
@@ -125,57 +182,18 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 		if shape == "" {
 			shape = ShapeSquare
 		}
-		class := strings.Join([]string{"mc-quest", shape, q.State}, " ")
-		if q.Tracked {
-			class += " tracked"
+		n := questNodeD{ID: l.id(q.Run), X: pos(q.X), Y: pos(q.Y), Shape: shape, State: q.State,
+			Tracked: q.Tracked, New: q.New, Tip: q.Tip, Icon: oreIcon(q.Icon)}
+		if q.New {
+			n.Seen = l.id(q.Seen)
 		}
-		n := box(class, "tip", q.Tip, "style", map[string]any{"left": rem(pos(q.X)), "top": rem(pos(q.Y))},
-			"children", []any{box("mc-quest-shape"), img("", q.Icon)})
-		plane = append(plane, l.press(n, q.Run))
-	}
-	bar = append(bar, box("mc-close", "id", "close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}))
-	heading := b.Heading
-	if heading == "" {
-		heading = untoken(title)
-	}
-	main := []any{
-		box("mc-quest-head", "children", []any{txt("", heading), txt("mc-quest-progress", b.Progress)}),
-		node("canvas", "key", b.Key, "focusX", focusX, "focusY", focusY, "children", plane),
+		d.Nodes = append(d.Nodes, n)
 	}
 	if pn := b.Panel; pn != nil {
-		head := []any{l.slotNode(ItemSlot{Icon: pn.Icon}, "mc-big"), box("mc-col", "children", []any{txt("mc-quest-title", pn.Title), txt("mc-small-text", pn.Status)})}
-		head = append(head, l.press(box("mc-close", "children", []any{node("img", "icon", "tex:textures/ui/close_button_default_light")}), pn.Close))
-		body := []any{}
-		if pn.Body != "" {
-			body = append(body, txt("mc-small-text", pn.Body))
-		}
-		for _, r := range pn.Rows {
-			var slots []any
-			for _, sl := range r.Slots {
-				slots = append(slots, l.slotNode(sl))
-			}
-			body = append(body, box("mc-gap-3"))
-			if r.Heading != "" {
-				body = append(body, txt("mc-head", r.Heading))
-			}
-			body = append(body, box("mc-grid", "children", slots))
-		}
-		for _, a := range pn.Actions {
-			body = append(body, box("mc-gap-3"), l.actionButton(a))
-		}
-		main = append(main, box("mc-quest-panel", "children", []any{
-			box("mc-quest-panel-head", "children", head),
-			scroll(box("mc-col", "children", body)),
-		}))
+		d.Panel = &questPanelD{Icon: oreIcon(pn.Icon), Title: pn.Title, Status: pn.Status, Body: pn.Body,
+			Rows: l.rowsOf(pn.Rows), Actions: l.buttonsOf(pn.Actions), Close: l.id(pn.Close)}
 	}
-	w, h := windowW, windowH
-	l.size = fmt.Sprintf("%dx%d", w, h)
-	win := box("mc-quest-window", "ink", "panel", "style", map[string]any{"width": gu(w), "height": gu(h)}, "children", []any{
-		box("mc-toolbar", "children", []any{box("mc-toolbar-bg"), box("mc-toolbar-row", "children", bar)}),
-		box("mc-chapters", "children", []any{scroll(box("mc-col", "children", chapters))}),
-		box("mc-quest-main", "children", main),
-	})
-	showOre(p, l, box("mc-screen", "children", []any{win}))
+	showScreen(p, l, "quest", d)
 }
 
 // questSeg is a straight piece of a line on the plane, in places.

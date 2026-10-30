@@ -14,7 +14,7 @@ command -v cygpath > /dev/null && WORK=$(cygpath -m "$WORK")
 # The server is built at one fixed path (the repo's own build output), so a
 # firewall rule allowing it keeps working for every work dir.
 server=$root/skygear$(go env GOEXE)
-(cd "$root" && go build -o "$server" . && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
+(cd "$root" && go build -o "$server" ./cmd/skygear && go build -o "$WORK/bin/platformbot" ./spike/cmd/platformbot) || exit 1
 # stop interrupts the server so it saves, and kills it if it is still
 # running after 15s (Git Bash on Windows cannot interrupt a native process).
 stop() {
@@ -30,9 +30,6 @@ if [ ! -f config.toml ]; then
   sed -i 's/AuthEnabled = true/AuthEnabled = false/' config.toml
   # The host bot may use the operator tools.
   sed -i 's/^\(\s*\)Operators = \[\]/\1Operators = ["Hana"]/' platform.toml
-  # The bots read JSON UI forms only: unencrypted packs leave the menus JSON
-  # UI (the DDUI screens need the encrypted oreui pack, main.go).
-  sed -i 's/^\(\s*\)Encrypt = true/\1Encrypt = false/' platform.toml
 fi
 # PORT runs the server and the bots on another port (another server on 19132).
 port=${PORT:-19132}

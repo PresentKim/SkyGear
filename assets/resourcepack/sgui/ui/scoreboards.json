@@ -1,0 +1,497 @@
+{
+  "namespace": "scoreboard",
+  "scoreboard_sidebar": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "controls": [
+      {
+        "sg_plain@scoreboard.sg_plain_sidebar": {
+          "bindings": [
+            {
+              "binding_name": "#objective_sidebar_name",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "((#objective_sidebar_name - '§d§h§u§d') = #objective_sidebar_name)",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      },
+      {
+        "sg_hud@scoreboard.sg_hud": {
+          "bindings": [
+            {
+              "binding_name": "#objective_sidebar_name",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#objective_sidebar_name - '§d§h§u§d') = #objective_sidebar_name))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "sg_hud": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "controls": [
+      {
+        "top_left@scoreboard.sg_top_left_stack": {
+          "ignored": "$touch",
+          "offset": [
+            4,
+            4
+          ]
+        }
+      },
+      {
+        // A touch screen shows the chat at the top left and its jump and sneak buttons at the right
+        // middle, so there the top left rows go to the top right, over the top right rows, and the
+        // quest panel under them.
+        "top_right": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "size": [
+            "100%cm",
+            "100%c"
+          ],
+          "anchor_from": "top_right",
+          "anchor_to": "top_right",
+          "offset": [
+            -4,
+            4
+          ],
+          "controls": [
+            {
+              "top_left_touch@scoreboard.sg_top_left_touch_stack": {
+                "ignored": "(not $touch)"
+              }
+            },
+            {
+              "top_right@scoreboard.sg_top_right_stack": {}
+            },
+            {
+              "quest_gap": {
+                "type": "panel",
+                "ignored": "(not $touch)",
+                "size": [
+                  0,
+                  4
+                ]
+              }
+            },
+            {
+              "quest_touch@scoreboard.sg_quest": {
+                "ignored": "(not $touch)",
+                "anchor_from": "top_right",
+                "anchor_to": "top_right"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "quest@scoreboard.sg_quest": {
+          "ignored": "$touch",
+          "offset": [
+            -4,
+            -10
+          ]
+        }
+      }
+    ]
+  },
+  "sg_top_left_stack": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [
+      "100%cm",
+      "100%c"
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "use_child_anchors": true,
+    "collection_name": "scoreboard_players",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_top_left"
+    },
+    "bindings": [
+      {
+        "binding_name": "#scoreboard_sidebar_size",
+        "binding_type": "global",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "sg_top_left_touch_stack@scoreboard.sg_top_left_stack": {
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_top_left_touch"
+    }
+  },
+  "sg_top_right_stack": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [
+      "100%cm",
+      "100%c"
+    ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "use_child_anchors": true,
+    "collection_name": "scoreboard_players",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_top_right"
+    },
+    "bindings": [
+      {
+        "binding_name": "#scoreboard_sidebar_size",
+        "binding_type": "global",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "sg_row_top_left": {
+    "type": "label",
+    "layer": 2,
+    "localize": false,
+    "locked_alpha": 1.0,
+    "size": [
+      "default",
+      10
+    ],
+    "max_size": [
+      260,
+      10
+    ],
+    "text": "#text",
+    "text_alignment": "left",
+    "shadow": true,
+    "bindings": [
+      {
+        "binding_name": "#player_name_sidebar",
+        "binding_type": "collection",
+        "binding_collection_name": "scoreboard_players"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#player_name_sidebar - '§d§1')",
+        "target_property_name": "#text"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#player_name_sidebar - '§d§1') = #player_name_sidebar))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left"
+  },
+  "sg_row_top_left_touch@scoreboard.sg_row_top_left": {
+    "text_alignment": "right",
+    "anchor_from": "top_right",
+    "anchor_to": "top_right"
+  },
+  "sg_row_top_right": {
+    "type": "label",
+    "layer": 2,
+    "localize": false,
+    "locked_alpha": 1.0,
+    "size": [
+      "default",
+      10
+    ],
+    "max_size": [
+      260,
+      10
+    ],
+    "text": "#text",
+    "text_alignment": "right",
+    "shadow": true,
+    "bindings": [
+      {
+        "binding_name": "#player_name_sidebar",
+        "binding_type": "collection",
+        "binding_collection_name": "scoreboard_players"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#player_name_sidebar - '§d§2')",
+        "target_property_name": "#text"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#player_name_sidebar - '§d§2') = #player_name_sidebar))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "anchor_from": "top_right",
+    "anchor_to": "top_right"
+  },
+  "sg_quest": {
+    "type": "image",
+    "texture": "textures/ui/Black",
+    "alpha": 0.45,
+    "anchor_from": "right_middle",
+    "anchor_to": "right_middle",
+    "size": [
+      "100%c + 10px",
+      "100%c + 8px"
+    ],
+    "controls": [
+      {
+        "rows": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "size": [
+            "100%cm",
+            "100%c"
+          ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "controls": [
+            {
+              "title@scoreboard.sg_quest_title_stack": {}
+            },
+            {
+              "gap": {
+                "type": "panel",
+                "size": [
+                  0,
+                  3
+                ]
+              }
+            },
+            {
+              "lines@scoreboard.sg_quest_line_stack": {}
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "sg_quest_title_stack": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [
+      "100%cm",
+      "100%c"
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "use_child_anchors": true,
+    "collection_name": "scoreboard_players",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_quest_title"
+    },
+    "bindings": [
+      {
+        "binding_name": "#scoreboard_sidebar_size",
+        "binding_type": "global",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "sg_quest_line_stack": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "size": [
+      "100%cm",
+      "100%c"
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "use_child_anchors": true,
+    "collection_name": "scoreboard_players",
+    "factory": {
+      "name": "player_list_factory",
+      "control_name": "scoreboard.sg_row_quest"
+    },
+    "bindings": [
+      {
+        "binding_name": "#scoreboard_sidebar_size",
+        "binding_type": "global",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "sg_row_quest_title": {
+    "type": "label",
+    "layer": 2,
+    "localize": false,
+    "locked_alpha": 1.0,
+    "size": [
+      "default",
+      10
+    ],
+    "max_size": [
+      260,
+      10
+    ],
+    "text": "#text",
+    "text_alignment": "left",
+    "shadow": true,
+    "bindings": [
+      {
+        "binding_name": "#player_name_sidebar",
+        "binding_type": "collection",
+        "binding_collection_name": "scoreboard_players"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#player_name_sidebar - '§d§3')",
+        "target_property_name": "#text"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#player_name_sidebar - '§d§3') = #player_name_sidebar))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left"
+  },
+  "sg_row_quest": {
+    "type": "label",
+    "layer": 2,
+    "localize": false,
+    "locked_alpha": 1.0,
+    "size": [
+      "default",
+      10
+    ],
+    "max_size": [
+      180,
+      10
+    ],
+    "text": "#text",
+    "text_alignment": "left",
+    "shadow": true,
+    "bindings": [
+      {
+        "binding_name": "#player_name_sidebar",
+        "binding_type": "collection",
+        "binding_collection_name": "scoreboard_players"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(#player_name_sidebar - '§d§4')",
+        "target_property_name": "#text"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#player_name_sidebar - '§d§4') = #player_name_sidebar))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left"
+  },
+  "sg_plain_sidebar": {
+    "type": "image",
+    "texture": "textures/ui/Black",
+    "alpha": 0.4,
+    "anchor_from": "right_middle",
+    "anchor_to": "right_middle",
+    "size": [
+      "100%c + 8px",
+      "100%c + 6px"
+    ],
+    "controls": [
+      {
+        "rows": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "size": [
+            "100%cm",
+            "100%c"
+          ],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "controls": [
+            {
+              "objective": {
+                "type": "label",
+                "layer": 2,
+                "localize": false,
+                "size": [
+                  "default",
+                  10
+                ],
+                "text": "#objective_sidebar_name",
+                "bindings": [
+                  {
+                    "binding_name": "#objective_sidebar_name",
+                    "binding_type": "global"
+                  }
+                ]
+              }
+            },
+            {
+              "players": {
+                "type": "stack_panel",
+                "orientation": "vertical",
+                "size": [
+                  "100%cm",
+                  "100%c"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "use_child_anchors": true,
+                "collection_name": "scoreboard_players",
+                "factory": {
+                  "name": "player_list_factory",
+                  "control_name": "scoreboard.sg_row_plain"
+                },
+                "bindings": [
+                  {
+                    "binding_name": "#scoreboard_sidebar_size",
+                    "binding_type": "global",
+                    "binding_name_override": "#collection_length"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "sg_row_plain": {
+    "type": "label",
+    "layer": 2,
+    "localize": false,
+    "size": [
+      "default",
+      10
+    ],
+    "text": "#player_name_sidebar",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "bindings": [
+      {
+        "binding_name": "#player_name_sidebar",
+        "binding_type": "collection",
+        "binding_collection_name": "scoreboard_players"
+      }
+    ]
+  }
+}

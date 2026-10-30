@@ -9,7 +9,7 @@
 - **월드 하나 = 논리 고루틴 하나.** 월드 상태는 `handleTransactions`(world/world.go) 한 고루틴이 큐(`queue`, 버퍼 128)에서 트랜잭션을 하나씩 실행할 때만 바뀐다. `w.Do`/`w.Exec`, 패킷 처리, 틱 모두 이 큐에 들어간다.
   - 틱도 트랜잭션이다: `tickLoop` 가 50ms 티커마다 `<-w.exec(t.tick)`(world/tick.go). 틱이 50ms 를 넘기면 놓친 틱은 건너뛰고(따라잡지 않음) TPS 가 떨어진다.
   - 한 틱: 엔티티 틱(보는 사람이 있는 청크), 예약 틱, 무작위 틱, **틱 범위 안 모든 청크의 블록 엔티티 `Tick` 을 매 틱**(world/tick.go `tickBlocksRandomly`), 이웃 갱신, 레드스톤.
-  - 틱 범위: 뷰어(플레이어·로더)마다 `tickRange` 청크 반경(world/world.go). 이 서버는 인스턴스마다 `SetTickRange(LoadRadius)`(기본 4청크, internal/instance/instance.go)이고, 섬 중심 `NopViewer` 로더와 산 청크마다 1청크 로더(`KeepLoaded`)가 뷰어로 쳐서 **섬은 사람이 없어도 계속 돈다**. 산 청크마다 로더가 있으니 섬 전체(최대 반경 12청크)가 틱 범위다.
+  - 틱 범위: 뷰어(플레이어·로더)마다 `tickRange` 청크 반경(world/world.go). 이 서버는 인스턴스마다 `SetTickRange(LoadRadius)`(기본 4청크, platform/instance/instance.go)이고, 섬 중심 `NopViewer` 로더와 산 청크마다 1청크 로더(`KeepLoaded`)가 뷰어로 쳐서 **섬은 사람이 없어도 계속 돈다**. 산 청크마다 로더가 있으니 섬 전체(최대 반경 12청크)가 틱 범위다.
 - **청크 읽기·생성**은 청크 작업자 고루틴(기본 1개, `ChunkLoadWorkers`, world/chunk_request.go)이 하고, 결과 반영·조명은 월드 고루틴. **저장은 월드 고루틴에서 동기**(LevelDB 쓰기, world/world.go `save`).
 - **접속**: 세션마다 고루틴 3개(쓰기, 패킷 읽기, 20Hz 백그라운드). 패킷 처리는 결국 그 플레이어가 있는 **월드 트랜잭션 안**에서(session/session.go `handlePackets`). 보내는 패킷은 채널(256)로 넘기고 gophertunnel 이 50ms 마다 묶어 보낸다.
 - **월드끼리는 병렬**: 월드마다 큐·고루틴이 따로라 Go 스케줄러가 여러 코어에 나눈다. GOMAXPROCS 를 따로 정하지 않아 모든 코어를 쓴다. 블록 레지스트리 잠금은 등록 때만.

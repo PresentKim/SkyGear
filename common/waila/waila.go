@@ -18,7 +18,7 @@ import (
 )
 
 // Tool is a tool icon code of the panel; the pack maps each code to a
-// vanilla item texture (block_tags in packs/waila/ui/waila/tile.json).
+// vanilla item texture (block_tags in assets/resourcepack/waila/ui/waila/tile.json).
 type Tool string
 
 const (
