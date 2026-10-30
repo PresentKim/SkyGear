@@ -35,3 +35,29 @@ func TestQuestDataRem(t *testing.T) {
 		t.Errorf("chapters %v panel %v", ch, data["panel"])
 	}
 }
+
+// TestQuestNew: a new quest carries its NEW tag and the id its look sends, an
+// old one neither; Recenter and a chapter's New go through.
+func TestQuestNew(t *testing.T) {
+	var root any
+	oreShown = func(_ *oreLayout, r any) { root = r }
+	defer func() { oreShown = nil }()
+
+	QuestBookMenu(nil, "q", QuestBook{
+		Chapters: []QuestChapter{{Name: "a", On: true, New: true}},
+		Nodes: []QuestNode{
+			{ID: "a", Run: nopRun, Seen: nopRun},
+			{ID: "b", Run: nopRun, New: true, Seen: nopRun},
+		},
+		Focus: "b", Recenter: true,
+	})
+	_, data := screenRoot(root)
+	nodes := data["nodes"].([]any)
+	a, b := nodes[0].(map[string]any), nodes[1].(map[string]any)
+	if a["new"] != false || a["seen"] != "" || b["new"] != true || b["seen"] == "" || b["seen"] == b["id"] {
+		t.Errorf("nodes %v", nodes)
+	}
+	if data["recenter"] != true || data["chapters"].([]any)[0].(map[string]any)["new"] != true {
+		t.Errorf("recenter %v chapters %v", data["recenter"], data["chapters"])
+	}
+}

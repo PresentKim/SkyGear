@@ -17,6 +17,9 @@ type State struct {
 	// Tracked is the advancement the quest panel follows instead of the
 	// first open one.
 	Tracked string `json:"tracked,omitempty"`
+	// Unseen are the done advancements nobody has looked at on the
+	// advancement screen yet, in the order they were done (NEW tag).
+	Unseen []string `json:"unseen_advancements,omitempty"`
 }
 
 var saved = core.NewSaved[State](nil)

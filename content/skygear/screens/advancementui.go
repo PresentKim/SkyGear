@@ -22,10 +22,16 @@ import (
 // in another chapter is an entrance that leads there; pressing a node opens
 // its quest panel.
 
-// showAdvancements opens the advancement screen on the chapter of the
-// advancement the quest panel follows.
+// showAdvancements opens the advancement screen on the advancement done last
+// of those still tagged new, its chapter and the plane centred on it, so one
+// whose toast was missed is found there; with none tagged, on the chapter of
+// the advancement the quest panel follows.
 func showAdvancements(s *core.Session, p *player.Player) {
 	achievement.Count(p, "adv_view", 1)
+	if a, ok := progress.LatestUnseen(s); ok {
+		questBook(s, p, a.Chapter, nil, a.ID)
+		return
+	}
 	tab := advancement.ChapterStart
 	if a, ok := progress.NextAdvancement(s); ok {
 		tab = a.Chapter
@@ -71,17 +77,24 @@ func advQuestState(s *core.Session, a *advancement.Advancement) string {
 // as chapters, the tab's tree on a plane and, when open is set, its quest
 // panel over it.
 func showQuestBook(s *core.Session, p *player.Player, tab advancement.Chapter, open *advancement.Advancement) {
+	questBook(s, p, tab, open, "")
+}
+
+// questBook is showQuestBook; a focus id centres the plane on that
+// advancement again, however it was dragged.
+func questBook(s *core.Session, p *player.Player, tab advancement.Chapter, open *advancement.Advancement, focus string) {
 	lang := i18n.Of(p)
 	b := ui.QuestBook{Key: "adv_" + advancement.ChapterKeys[tab]}
 	for t := advancement.Chapter(0); t < advancement.ChapterCount; t++ {
-		done, list := 0, advancement.In(t)
+		done, unseen, list := 0, false, advancement.In(t)
 		for _, a := range list {
 			if progress.Advanced(s, a.ID) {
 				done++
 			}
+			unseen = unseen || progress.Unseen(s, a.ID)
 		}
 		b.Chapters = append(b.Chapters, ui.QuestChapter{
-			Name: i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[t]), Icon: advancement.ChapterIcon(t), Count: fmt.Sprintf("%d/%d", done, len(list)), On: t == tab,
+			Name: i18n.T(lang, "advancement.tab."+advancement.ChapterKeys[t]), Icon: advancement.ChapterIcon(t), Count: fmt.Sprintf("%d/%d", done, len(list)), On: t == tab, New: unseen,
 			Run: func(p *player.Player, tx *world.Tx) {
 				if tx.World() == s.World {
 					showQuestBook(s, p, t, nil)
@@ -93,7 +106,9 @@ func showQuestBook(s *core.Session, p *player.Player, tab advancement.Chapter, o
 		}
 	}
 	l := advancement.LayoutOf(tab)
-	if next, ok := progress.NextAdvancement(s); ok && next.Chapter == tab {
+	if focus != "" {
+		b.Focus, b.Recenter = focus, true
+	} else if next, ok := progress.NextAdvancement(s); ok && next.Chapter == tab {
 		b.Focus = next.ID
 	} else if len(l.Order) > 0 {
 		b.Focus = l.Order[0].ID
@@ -102,6 +117,14 @@ func showQuestBook(s *core.Session, p *player.Player, tab advancement.Chapter, o
 		pos := l.Pos[a.ID]
 		q := ui.QuestNode{ID: a.ID, X: advancement.QuestX(pos.X), Y: float64(pos.Y), Shape: advancement.Shapes[advancement.Frame(a)], Tracked: progress.StateOf(s).Tracked == a.ID}
 		q.Icon, q.Tip, q.State = advancement.Icon(a), advancementTip(s, lang, a), advQuestState(s, a)
+		if progress.Unseen(s, a.ID) {
+			q.New = true
+			q.Seen = func(_ *player.Player, tx *world.Tx) {
+				if tx.World() == s.World {
+					progress.See(s, a.ID)
+				}
+			}
+		}
 		for _, id := range a.Parents {
 			par, ok := advancement.ByID(id)
 			if !ok {
@@ -129,6 +152,7 @@ func showQuestBook(s *core.Session, p *player.Player, tab advancement.Chapter, o
 		}
 		q.Run = func(p *player.Player, tx *world.Tx) {
 			if tx.World() == s.World {
+				progress.See(s, a.ID)
 				showQuestBook(s, p, tab, a)
 			}
 		}

@@ -6,7 +6,7 @@ The server (Go, `common/ui`) sends a screen name and its data; the page (React, 
 
 `custom_form_data_1.oui` stays `{"form": nonce, "root": Root, "settings": [Setting]}` (common/oreui). The variable patches (`oui_vars_1_<n>`, `Form.SetVars`) are gone: every change is a whole new Root of the same form, and the client keeps the newest one. A Root of the same form keeps the page's state (scroll, typed text, the quest plane's drag and zoom); another form's is mounted anew.
 
-Events are unchanged: `oui_event` = `{seq, id, kind, value, inputs, at}` with kind `click` (also for the right-button `alt` id), `change` (an input's text, `value`), `key` (`id: "close"` for Esc and the phone's back key), `probe` (probe screen lines). Every `click` carries `inputs`: the text of each input box on the screen by its field id.
+Events are unchanged: `oui_event` = `{seq, id, kind, value, inputs, at}` with kind `click` (also for the right-button `alt` id), `change` (an input's text, `value`), `key` (`id: "close"` for Esc and the phone's back key), `probe` (probe screen lines), `seen` (a quest node's `seen` id, once it is looked at: it records and shows no screen). Every `click` carries `inputs`: the text of each input box on the screen by its field id.
 
 ## protocol.ts
 
@@ -30,7 +30,7 @@ export interface Keys { up?: Id; down?: Id; left?: Id; right?: Id; ok?: Id }
 export interface Lobby { title: Text; logo: Icon; touch: boolean }
 
 export interface Button { id: Id; label: Text; icon: Icon }
-export interface ListItem extends Button { toggle?: boolean; on?: boolean } // toggle: a row with a switch
+export interface ListItem extends Button { toggle?: boolean; on?: boolean; kind?: 'heading' | 'divider' } // toggle: a row with a switch; kind: a row that is no button
 export interface Tab { id: Id; tip: Text; icon: Icon; on: boolean } // on: the selected tab, not pressable
 export interface BarButton { id: Id; tip: Text; icon: Icon; glyph: string; quick: boolean } // icon or glyph ('?')
 export interface Chrome { title: Text; tabs: Tab[]; bar: BarButton[] } // bar: pagers, help, back (left to right); the close button is always last
@@ -63,11 +63,11 @@ export interface Picker { x: number; y: number; w: number; choices: { id: Id; co
 export interface SidesData { chrome: Chrome; center: Icon; cards: SideCard[]; picker: Picker | null } // x, y, w in GUI px
 export interface Spot { id: Id; at: [number, number, number, number]; on: boolean; tip: Text }
 export interface PlaneData { fov: number; dist: number; spots: Spot[]; info: Text; actions: Button[]; corner: Text }
-export interface Chapter { id: Id; name: Text; icon: Icon; count: Text; on: boolean }
+export interface Chapter { id: Id; name: Text; icon: Icon; count: Text; on: boolean; new: boolean } // new: it has quests tagged new
 export interface QuestLine { x1: number; y1: number; x2: number; y2: number; cls: string } // rem
-export interface QuestNode { id: Id; x: number; y: number; shape: string; state: string; tracked: boolean; tip: Text; icon: Icon } // rem
+export interface QuestNode { id: Id; x: number; y: number; shape: string; state: string; tracked: boolean; new: boolean; seen: Id; tip: Text; icon: Icon } // rem; new: the NEW tag, seen: sent ('seen') once it is looked at
 export interface QuestPanel { icon: Icon; title: Text; status: Text; body: Text; rows: SlotRow[]; actions: Button[]; close: Id }
-export interface QuestData { bar: BarButton[]; chapters: Chapter[]; heading: Text; progress: Text; key: string; focusX: number; focusY: number; lines: QuestLine[]; nodes: QuestNode[]; panel: QuestPanel | null }
+export interface QuestData { bar: BarButton[]; chapters: Chapter[]; heading: Text; progress: Text; key: string; focusX: number; focusY: number; recenter: boolean; lines: QuestLine[]; nodes: QuestNode[]; panel: QuestPanel | null }
 export interface HomeButton { id: Id; icon: Icon; label: Text; badge: number }
 export interface HomeProfile { id: Id; face: string[]; icon: Icon; name: Text; title: Text; fill: number; line: Text } // face: 64 'rrggbb' ('' none) or []
 export interface HomeSave { head: Text; name: Text; icon: Icon; lines: Text[]; arrows: boolean; prev: Id; next: Id }

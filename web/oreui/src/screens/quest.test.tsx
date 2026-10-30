@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@react-facet/dom-fiber-testing-library';
+import { act } from 'react';
 import type { ReactNode } from 'react';
 import type { QuestData } from '../protocol';
 
@@ -40,18 +41,19 @@ import { QuestScreen } from './quest';
 const data: QuestData = {
   bar: [],
   chapters: [
-    { id: 'c1', name: 'One', icon: 'tex:a', count: '3/5', on: true },
-    { id: 'c2', name: 'Two', icon: 'tex:b', count: '0/8', on: false },
+    { id: 'c1', name: 'One', icon: 'tex:a', count: '3/5', on: true, new: false },
+    { id: 'c2', name: 'Two', icon: 'tex:b', count: '0/8', on: false, new: false },
   ],
   heading: 'One',
   progress: '3/5',
   key: 'k',
   focusX: 0,
   focusY: 0,
+  recenter: false,
   lines: [{ x1: 0, y1: 7.2, x2: 3.6, y2: 7.2, cls: 'done' }],
   nodes: [
-    { id: 'n1', x: 0, y: 7.2, shape: 'diamond', state: 'open', tracked: true, tip: 't', icon: 'tex:a' },
-    { id: 'n2', x: 7.2, y: 0, shape: '', state: 'locked', tracked: false, tip: '', icon: 'tex:a' },
+    { id: 'n1', x: 0, y: 7.2, shape: 'diamond', state: 'open', tracked: true, new: false, seen: '', tip: 't', icon: 'tex:a' },
+    { id: 'n2', x: 7.2, y: 0, shape: '', state: 'locked', tracked: false, new: true, seen: 'o9', tip: 'u', icon: 'tex:a' },
   ],
   panel: null,
 };
@@ -104,6 +106,30 @@ describe('quest', () => {
     expect(sent.length).toBe(0);
     down(off);
     expect(sent).toEqual([['c2', 'click']]);
+  });
+
+  it('new_tag_goes_at_the_first_look', () => {
+    sent.length = 0;
+    const { container } = render(<QuestScreen data={data} />);
+    const n = container.querySelectorAll('.mc-quest');
+    expect(n[0].querySelector('.mc-new-tag')).toBeNull();
+    expect(n[1].querySelector('.mc-new-tag')!.textContent).toBe('NEW');
+    act(() => {
+      n[1].dispatchEvent(new MouseEvent('mouseenter'));
+    });
+    expect(n[1].querySelector('.mc-new-tag')).toBeNull();
+    expect(sent).toEqual([['o9', 'seen']]);
+    act(() => {
+      n[1].dispatchEvent(new MouseEvent('mouseenter'));
+    });
+    expect(sent).toEqual([['o9', 'seen']]);
+  });
+
+  it('chapter_new_dot', () => {
+    const { container } = render(<QuestScreen data={{ ...data, chapters: [data.chapters[0], { ...data.chapters[1], new: true }] }} />);
+    const [one, two] = Array.from(container.querySelectorAll('.mc-chapter'));
+    expect(one.querySelector('.mc-new-dot')).toBeNull();
+    expect(two.querySelector('.mc-new-dot')).not.toBeNull();
   });
 
   it('panel_close', () => {

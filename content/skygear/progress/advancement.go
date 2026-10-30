@@ -1,6 +1,7 @@
 package progress
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -152,6 +153,7 @@ func CompleteAdvancements(s *core.Session, tx *world.Tx, as []*advancement.Advan
 			newly = append(newly, a.ID)
 		}
 	}
+	StateOf(s).Unseen = append(StateOf(s).Unseen, newly...)
 	grantAdvancementAchievements(s, tx, newly)
 	achievement.CountAll(tx, "adv_done", int64(len(newly)))
 	if len(StateOf(s).Advancements) >= len(advancement.Tree) {
@@ -177,6 +179,32 @@ func CompleteAdvancements(s *core.Session, tx *world.Tx, as []*advancement.Advan
 		if account.On(p, advancement.SettingSound) {
 			p.PlaySound(sound.LevelUp{})
 		}
+	}
+}
+
+// Unseen reports whether an advancement is done and was not looked at yet on
+// the advancement screen.
+func Unseen(s *core.Session, id string) bool {
+	return slices.Contains(StateOf(s).Unseen, id)
+}
+
+// LatestUnseen is the advancement done last of those not looked at yet.
+func LatestUnseen(s *core.Session) (*advancement.Advancement, bool) {
+	u := StateOf(s).Unseen
+	for i := len(u) - 1; i >= 0; i-- {
+		if a, ok := advancement.ByID(u[i]); ok {
+			return a, true
+		}
+	}
+	return nil, false
+}
+
+// See marks an advancement looked at: its NEW tag goes.
+func See(s *core.Session, id string) {
+	st := StateOf(s)
+	if i := slices.Index(st.Unseen, id); i >= 0 {
+		st.Unseen = slices.Delete(st.Unseen, i, i+1)
+		s.MarkDirty()
 	}
 }
 

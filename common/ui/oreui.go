@@ -285,6 +285,27 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		}
 		return
 	}
+	if ev.Kind == "seen" {
+		// A look at an element (QuestNode.Seen): its run records it and
+		// shows no screen.
+		oreScreens.Lock()
+		run, gen := st.runs[ev.ID], st.gen
+		oreScreens.Unlock()
+		if run == nil {
+			return
+		}
+		h.Do(func(tx *world.Tx, e world.Entity) {
+			oreScreens.Lock()
+			same := st.gen == gen
+			oreScreens.Unlock()
+			if same {
+				p := e.(*player.Player)
+				defer recoverForm(p)
+				run(p, tx)
+			}
+		})
+		return
+	}
 	if ev.Kind != "click" {
 		return
 	}

@@ -327,6 +327,7 @@ func (c adminAdvance) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.advancement.all"))
 	case "reset":
 		progress.StateOf(s.Session).Advancements = nil
+		progress.StateOf(s.Session).Unseen = nil
 		s.MarkDirty()
 		screens.UpdateBoards(s.Session, tx)
 		o.Printf("%s", i18n.T(i18n.Default, "skygear.admin.advancement.cleared"))

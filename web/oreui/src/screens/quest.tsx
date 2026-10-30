@@ -1,6 +1,7 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import type { Chapter, QuestData, QuestNode, QuestPanel } from '../protocol';
 import { usePressable } from '../interact/press';
+import * as engine from '../runtime/engine';
 import { Canvas } from '../components/Canvas';
 import { Line } from '../components/Line';
 import { Scroll } from '../components/Scroll';
@@ -30,6 +31,7 @@ function ChapterView(props: { chapter: Chapter }): JSX.Element {
           <Rich text={c.name} className="oui-text mc-chapter-name" />
           <Rich text={c.count} className="oui-text mc-chapter-count" />
         </div>
+        {c.new && <div className="oui-box mc-new-dot" />}
       </div>
     </InkContext.Provider>
   );
@@ -37,12 +39,23 @@ function ChapterView(props: { chapter: Chapter }): JSX.Element {
 
 function NodeView(props: { node: QuestNode }): JSX.Element {
   const n = props.node;
-  const press = usePressable({ id: n.id, tip: n.tip });
+  // The NEW tag goes at the first look (the tooltip shown), before the server's next screen.
+  const [seen, setSeen] = useState(false);
+  useEffect(() => setSeen(false), [n.seen]);
+  const press = usePressable({
+    id: n.id,
+    tip: n.tip,
+    onTip: n.new && n.seen && !seen ? () => {
+      setSeen(true);
+      engine.send(n.seen, 'seen');
+    } : undefined,
+  });
   const cls = ['oui-box mc-quest', n.shape || 'square', n.state, n.tracked ? 'tracked' : ''].filter(Boolean).join(' ');
   return (
     <div className={cls} style={{ left: n.x + 'rem', top: n.y + 'rem' }} {...press}>
       <div className="oui-box mc-quest-shape" />
       <Icon icon={n.icon} />
+      {n.new && !seen && <div className="oui-box mc-new-tag">NEW</div>}
     </div>
   );
 }
@@ -126,7 +139,7 @@ export function QuestScreen(props: { data: QuestData }): JSX.Element {
               <Rich text={d.heading} className="oui-text" />
               <Rich text={d.progress} className="oui-text mc-quest-progress" />
             </div>
-            <Canvas planeKey={d.key} focusX={d.focusX} focusY={d.focusY}>
+            <Canvas planeKey={d.key} focusX={d.focusX} focusY={d.focusY} recenter={d.recenter}>
               {d.lines.map((l, i) => (
                 <Line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} className={l.cls} />
               ))}

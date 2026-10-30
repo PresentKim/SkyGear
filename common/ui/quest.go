@@ -32,25 +32,29 @@ const (
 
 // QuestChapter is a chapter in the list left of the quests: its name and
 // icon, the count beside it ("3/12") and what choosing it does. On is the
-// chapter shown.
+// chapter shown, New that it has quests tagged new.
 type QuestChapter struct {
 	Name, Icon, Count string
-	On                bool
+	On, New           bool
 	Run               func(p *player.Player, tx *world.Tx)
 }
 
 // QuestNode is a quest on the plane: its place (1 is a node's width), icon,
 // shape, state and tooltip, the quests it follows (lines are drawn from
-// them) and what pressing it does.
+// them) and what pressing it does. A New quest wears a NEW tag until the
+// player looks at it (hovers it, or taps it on a touch screen): Seen runs
+// then, without showing a screen.
 type QuestNode struct {
 	ID          string
 	X, Y        float64
 	Icon, Shape string
 	State       string
 	Tracked     bool
+	New         bool
 	Tip         string
 	Deps        []string
 	Run         func(p *player.Player, tx *world.Tx)
+	Seen        func(p *player.Player, tx *world.Tx)
 }
 
 // QuestPanel is an open quest over the plane: the big icon, title and status,
@@ -71,8 +75,10 @@ type QuestBook struct {
 	Heading, Progress string
 	Nodes             []QuestNode
 	// Focus is the quest the plane is centred on the first time a chapter
-	// is shown; the player's dragging is kept after that.
-	Focus string
+	// is shown; the player's dragging is kept after that, unless Recenter
+	// centres it on Focus again.
+	Focus    string
+	Recenter bool
 	// Key tells the planes apart (the chapter), so each keeps where it was
 	// dragged to.
 	Key   string
@@ -92,6 +98,7 @@ type questData struct {
 	Key      string         `json:"key"`
 	FocusX   float64        `json:"focusX"`
 	FocusY   float64        `json:"focusY"`
+	Recenter bool           `json:"recenter"`
 	Lines    []questLine    `json:"lines"`
 	Nodes    []questNodeD   `json:"nodes"`
 	Panel    *questPanelD   `json:"panel"`
@@ -104,6 +111,7 @@ type questChapter struct {
 	Icon  string `json:"icon"`
 	Count string `json:"count"`
 	On    bool   `json:"on"`
+	New   bool   `json:"new"`
 }
 
 // questLine is a piece of a line on the plane.
@@ -123,6 +131,8 @@ type questNodeD struct {
 	Shape   string  `json:"shape"`
 	State   string  `json:"state"`
 	Tracked bool    `json:"tracked"`
+	New     bool    `json:"new"`
+	Seen    string  `json:"seen"`
 	Tip     string  `json:"tip"`
 	Icon    string  `json:"icon"`
 }
@@ -145,12 +155,12 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 	l := newOreLayout()
 	chrome, _ := l.chromeOf(title, actions)
 	d := questData{Bar: chrome.Bar, Chapters: []questChapter{}, Heading: b.Heading, Progress: b.Progress, Key: b.Key,
-		Lines: []questLine{}, Nodes: []questNodeD{}}
+		Lines: []questLine{}, Nodes: []questNodeD{}, Recenter: b.Recenter}
 	if d.Heading == "" {
 		d.Heading = untoken(title)
 	}
 	for _, c := range b.Chapters {
-		ch := questChapter{Name: c.Name, Icon: oreIcon(c.Icon), Count: c.Count, On: c.On}
+		ch := questChapter{Name: c.Name, Icon: oreIcon(c.Icon), Count: c.Count, On: c.On, New: c.New}
 		if !c.On {
 			ch.ID = l.id(c.Run)
 		}
@@ -172,8 +182,12 @@ func QuestBookMenu(p *player.Player, title string, b QuestBook, actions ...Optio
 		if shape == "" {
 			shape = ShapeSquare
 		}
-		d.Nodes = append(d.Nodes, questNodeD{ID: l.id(q.Run), X: pos(q.X), Y: pos(q.Y), Shape: shape, State: q.State,
-			Tracked: q.Tracked, Tip: q.Tip, Icon: oreIcon(q.Icon)})
+		n := questNodeD{ID: l.id(q.Run), X: pos(q.X), Y: pos(q.Y), Shape: shape, State: q.State,
+			Tracked: q.Tracked, New: q.New, Tip: q.Tip, Icon: oreIcon(q.Icon)}
+		if q.New {
+			n.Seen = l.id(q.Seen)
+		}
+		d.Nodes = append(d.Nodes, n)
 	}
 	if pn := b.Panel; pn != nil {
 		d.Panel = &questPanelD{Icon: oreIcon(pn.Icon), Title: pn.Title, Status: pn.Status, Body: pn.Body,
