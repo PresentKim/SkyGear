@@ -31,6 +31,14 @@ const set = (v: Partial<DocState>) =>
   });
 
 describe('app', () => {
+  it('tooltip_renders_last', () => {
+    const { container } = render(<App />);
+    set({});
+    const kids = Array.from(container.children);
+    expect(kids[kids.length - 1].id).toBe('oui-tip');
+    expect(kids.length).toBeGreaterThan(1);
+  });
+
   it('form_change_remounts', () => {
     const { container } = render(<App />);
     set({});

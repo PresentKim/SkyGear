@@ -342,6 +342,7 @@ body.oui-active #root {
   font-family: "Minecraft Seven v2", "Noto Sans KR", "Noto Sans", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC";
   font-size: 1.4rem;
   pointer-events: none;
+  z-index: 100;
 }
 
 #oui-tip.touch {

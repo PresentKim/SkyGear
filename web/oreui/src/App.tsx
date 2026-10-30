@@ -26,9 +26,10 @@ export function App(): JSX.Element {
   const root = doc && doc.active ? doc.root : null;
   return (
     <>
-      <TooltipHost />
       {root ? <Screen key={doc!.form} root={root} /> : null}
       {doc ? <Status doc={doc} on={!!(root && root.debug)} /> : null}
+      {/* Last: Gameface paints later positioned siblings over earlier ones, so the tooltip must follow the screen's control bar. */}
+      <TooltipHost />
     </>
   );
 }
