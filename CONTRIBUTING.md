@@ -23,6 +23,15 @@ Thanks for your interest. These are the rules the project follows; the full
 - One commit per change: when a piece of work covers several requests or
   fixes, commit each one separately.
 
+## Versions and releases
+
+- The server is versioned `year.month.build` (`26.10.1`): the two-digit year,
+  the month, and a build number that starts again at 1 each month.
+- `main` moves only by merging `dev` into it. Each merge is a release: raise
+  `Version` in `cmd/skygear/version.go`, add an entry for it on top of
+  `CHANGELOG.md` with what changed since the last release, and tag the merge
+  `v<version>`. A test checks that the newest changelog entry is `Version`.
+
 ## Design and documentation
 
 - `docs/design/` is the source of truth for game design. Read the relevant

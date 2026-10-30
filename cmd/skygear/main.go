@@ -42,6 +42,7 @@ func main() {
 }
 
 func run(log *slog.Logger) error {
+	log.Info("Sky Gear", "version", Version)
 	pconf, err := platform.LoadConfig("platform.toml")
 	if err != nil {
 		return err
