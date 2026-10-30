@@ -36,7 +36,9 @@ export function TooltipHost(): JSX.Element {
 }
 
 // showTip shows text as the tooltip of el, right of it, or left of it when there is no room at the
-// right, kept inside the screen.
+// right, kept inside the screen. Gameface lays the page out once a frame, so the tip measured right
+// after its text changes still has the size of the text before (nothing at all, or the last tip). It
+// waits invisible at the corner, where nothing narrows it, and is measured and placed two frames on.
 export function showTip(el: HTMLElement, text: Text): void {
   const t = ensureTip();
   owner = el;
@@ -47,11 +49,29 @@ export function showTip(el: HTMLElement, text: Text): void {
     roots.set(t, root);
   }
   const fiber = root;
-  // flushSync: the tip is measured right below, so its content must be in the DOM by then.
   reconciler.flushSync(() => reconciler.updateContainer(<Rich text={text} />, fiber, null, () => {}));
   t.style.left = '0px';
   t.style.top = '0px';
   t.style.display = 'flex';
+  t.style.visibility = 'hidden';
+  const n = ++shown;
+  nextFrame(() =>
+    nextFrame(() => {
+      if (n !== shown) return;
+      place(t, el);
+      t.style.visibility = '';
+    }),
+  );
+}
+
+let shown = 0; // counts the tips shown and hidden, so a late placement knows it is out of date
+
+function nextFrame(f: () => void): void {
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(f);
+  else setTimeout(f, 16);
+}
+
+function place(t: HTMLElement, el: HTMLElement): void {
   const r = el.getBoundingClientRect();
   const b = t.getBoundingClientRect();
   const vw = window.innerWidth;
@@ -69,6 +89,7 @@ export function showTip(el: HTMLElement, text: Text): void {
 export function hideTip(): void {
   if (tip) tip.style.display = 'none';
   owner = null;
+  shown++;
 }
 
 /** tipOwner is the element whose tooltip shows. */

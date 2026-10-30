@@ -82,9 +82,50 @@ describe('placement', () => {
     b.getBoundingClientRect = () => ({ left: 1000, right: 1020, top: 0, bottom: 10, width: 20, height: 10 }) as DOMRect;
     Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
     b.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tipEl().style.visibility).toBe('hidden');
+    vi.advanceTimersToNextFrame();
+    vi.advanceTimersToNextFrame();
     // tooltip is 0 wide in jsdom: right side x=1026 > 1024-6, so it goes left of the element
     expect(tipEl().style.left).toBe('994px');
     expect(tipEl().style.top).toBe('6px');
+    expect(tipEl().style.visibility).toBe('');
+  });
+  it('measures the tip after the layout of its new text', () => {
+    // Gameface: right after the text changes the tip still has the last size, here none
+    const { container } = render(<Btn id="o1" tip="tip" />);
+    const b = container.querySelector('#b')!;
+    b.getBoundingClientRect = () => ({ left: 900, right: 920, top: 50, bottom: 60, width: 20, height: 10 }) as DOMRect;
+    Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
+    let w = 0;
+    tipEl().getBoundingClientRect = () => ({ left: 0, right: w, top: 0, bottom: 20, width: w, height: 20 }) as DOMRect;
+    b.dispatchEvent(new MouseEvent('mouseenter'));
+    w = 300; // laid out
+    vi.advanceTimersToNextFrame();
+    vi.advanceTimersToNextFrame();
+    expect(tipEl().style.left).toBe('594px');
+    expect(tipEl().style.top).toBe('50px');
+  });
+  it('a placement left from an earlier tip does not move the next one', () => {
+    const { container } = render(
+      <div>
+        <Btn id="a" name="a" tip="A" />
+        <Btn id="c" name="c" tip="C" />
+      </div>,
+    );
+    const a = container.querySelector('#a')!;
+    const c = container.querySelector('#c')!;
+    a.getBoundingClientRect = () => ({ left: 10, right: 30, top: 0, bottom: 10, width: 20, height: 10 }) as DOMRect;
+    c.getBoundingClientRect = () => ({ left: 100, right: 120, top: 0, bottom: 10, width: 20, height: 10 }) as DOMRect;
+    Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true });
+    a.dispatchEvent(new MouseEvent('mouseenter'));
+    vi.advanceTimersToNextFrame();
+    a.dispatchEvent(new MouseEvent('mouseleave'));
+    c.dispatchEvent(new MouseEvent('mouseenter'));
+    vi.advanceTimersToNextFrame();
+    expect(tipEl().style.visibility).toBe('hidden');
+    vi.advanceTimersToNextFrame();
+    expect(tipEl().style.left).toBe('126px');
+    expect(tipEl().style.visibility).toBe('');
   });
 });
 
