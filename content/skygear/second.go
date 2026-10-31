@@ -59,5 +59,6 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		network.Fluids(s.Session).Step(tx)
 	}
+	dimension.Watchdog(s.Session, tx)
 	look.UpdateAll(s.Session, tx)
 }

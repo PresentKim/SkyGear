@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
@@ -51,6 +52,8 @@ type gear struct {
 	level int
 	gems  []mgl64.Vec3
 	regen float64
+	// speed is the speed factor the gear applies now.
+	speed float64
 	// was is how the hunter was before the run, given back after it.
 	was struct {
 		maxHealth, speed float64
@@ -161,14 +164,22 @@ func (g *gear) dress(p *player.Player) {
 	p.Heal(p.MaxHealth(), entity.FoodHealingSource{})
 }
 
-// refit applies the gear's health and speed to p.
+// refit applies the gear's health and speed to p. The speed changes by the
+// factor, so an effect on it (slowness) undoes itself rightly later.
 func (g *gear) refit(p *player.Player) {
 	p.SetMaxHealth(g.maxHealth())
-	p.SetSpeed(g.was.speed * g.speedMul())
+	if g.speed == 0 {
+		g.speed = 1
+	}
+	p.SetSpeed(p.Speed() * g.speedMul() / g.speed)
+	g.speed = g.speedMul()
 }
 
-// undress gives p back how it was before the run.
+// undress gives p back how it was before the run. The effects that change
+// the speed end first, or their end would change the speed given back.
 func (g *gear) undress(p *player.Player) {
+	p.RemoveEffect(effect.Slowness)
+	p.RemoveEffect(effect.Speed)
 	p.SetMaxHealth(g.was.maxHealth)
 	p.SetSpeed(g.was.speed)
 	p.SetExperienceLevel(g.was.xpLevel)
@@ -240,13 +251,15 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 	}
 	r.gear.level++
 	r.paused, r.pauseTicks = true, 0
+	r.pauses++
+	pause := r.pauses
 	r.choices = r.offer(r.sess)
 	tx.PlaySound(p.Position(), sound.LevelUp{})
 	lang := i18n.Of(p)
 	var opts []ui.Option
 	for _, c := range r.choices {
 		opts = append(opts, r.sess.Opt(c.label(lang, r.gear), "", func(p *player.Player, tx *world.Tx) {
-			if RunOf(r.sess) == r && r.paused {
+			if RunOf(r.sess) == r && r.paused && r.pauses == pause {
 				r.choose(tx, p, c)
 			}
 		}))

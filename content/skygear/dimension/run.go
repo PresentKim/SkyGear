@@ -121,8 +121,11 @@ type Run struct {
 	gear       *gear
 	paused     bool
 	pauseTicks int
-	choices    []choice
-	sess       *core.Session
+	// pauses counts the level-ups, so a late answer to an old one is not
+	// taken for the next.
+	pauses  int
+	choices []choice
+	sess    *core.Session
 }
 
 // monsters are the run's monsters out now.
@@ -428,6 +431,9 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	}
 	switch {
 	case how == endDied:
+		// the inventory is kept through death: the rewards go in now, the
+		// result shows once the hunter is back
+		deliver(s, tx, p, res)
 		if l.results == nil {
 			l.results = map[*world.EntityHandle]result{}
 		}
@@ -456,7 +462,6 @@ func Respawned(s *core.Session, p *player.Player, pos *mgl64.Vec3) {
 	*pos = island.Spawn(s)
 	p.H().DoAfter(500*time.Millisecond, func(tx *world.Tx, e world.Entity) {
 		if c, ok := core.Of(tx); ok && c == s {
-			deliver(s, tx, e.(*player.Player), res)
 			showResult(e.(*player.Player), res)
 		}
 	})
@@ -479,13 +484,34 @@ func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
 	delete(runPart.Of(s).results, p.H())
 }
 
-// Joined brings back a player that comes into the save standing in the
-// hunting ground (the server stopped during its run).
+// Joined gives a player that watched a run when the server stopped its game
+// mode back; the session already moved it out of the hunting ground
+// (session.Relocate).
 func Joined(s *core.Session, p *player.Player) {
-	if core.InArena(p.Position()) && !Hunting(s, p) && !Watching(s, p) {
-		p.Teleport(island.Spawn(s))
-		if p.GameMode() == world.GameModeSpectator {
-			p.SetGameMode(world.GameModeSurvival)
+	if p.GameMode() == world.GameModeSpectator && !Watching(s, p) {
+		p.SetGameMode(world.GameModeSurvival)
+	}
+}
+
+// Watchdog ends the run of a hunter that is no longer in the hunting ground
+// (moved out by something else than the run: the gate stops ticking when no
+// one views its chunk) and sends back any other player that ended up there
+// without hunting or watching (session.Fast).
+func Watchdog(s *core.Session, tx *world.Tx) {
+	if r := RunOf(s); r != nil {
+		e, ok := r.Hunter.Entity(tx)
+		switch {
+		case !ok:
+			r.end(s, tx, nil, endGone)
+		case !core.InArena(e.(*player.Player).Position()):
+			r.end(s, tx, e.(*player.Player), endGone)
+		}
+	}
+	for e := range tx.Players() {
+		p := e.(*player.Player)
+		if core.InArena(p.Position()) && !p.Dead() && !Hunting(s, p) && !Watching(s, p) {
+			p.Teleport(island.Spawn(s))
+			instance.PlaceAt(p, island.Spawn(s), island.Spawn(s))
 		}
 	}
 }

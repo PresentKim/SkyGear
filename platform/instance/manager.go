@@ -274,6 +274,9 @@ func (m *Manager) join(p *player.Player, inst *Instance) error {
 	pos := inst.session.Spawn()
 	if !first {
 		pos = state.Position()
+		if r, ok := inst.session.(Relocator); ok && r.Relocate(pos) {
+			pos = inst.session.Spawn()
+		}
 	}
 
 	chestui.Close(p)

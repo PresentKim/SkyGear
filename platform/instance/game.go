@@ -20,6 +20,13 @@ type Game interface {
 	Start(inst *Instance) Session
 }
 
+// Relocator is a Session that may refuse a stored position: a player whose
+// position it relocates enters at Spawn instead. Relocate must only look at
+// pos (it runs outside the instance world).
+type Relocator interface {
+	Relocate(pos mgl64.Vec3) bool
+}
+
 // FastInterval is how often Session.Fast is called.
 const FastInterval = 200 * time.Millisecond
 

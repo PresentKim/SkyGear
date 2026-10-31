@@ -513,3 +513,32 @@ func TestRetiredGate(t *testing.T) {
 		}
 	})
 }
+
+// TestWatchdog: a hunter moved out of the hunting ground by something else
+// than the run (a member's "bring") ends its run and gets its health back,
+// a player moved into it without hunting is sent back, and a player stored
+// there enters the save at the island instead.
+func TestWatchdog(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h1, h2 := spawnPlayer(s), spawnPlayer(s)
+	withPlayer(t, s, h1, func(p *player.Player, tx *world.Tx) {
+		e, _ := h2.Entity(tx)
+		other := e.(*player.Player)
+		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicLife, 1))
+		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
+		p.Teleport(island.Spawn(s.Session))
+		dimension.Watchdog(s.Session, tx)
+		if dimension.RunOf(s.Session) != nil || p.MaxHealth() != 20 {
+			t.Errorf("run %v, max health %v after the hunter left the ground", dimension.RunOf(s.Session) != nil, p.MaxHealth())
+		}
+		other.Teleport(core.ArenaCentre.Vec3Middle())
+		dimension.Watchdog(s.Session, tx)
+		if core.InArena(other.Position()) {
+			t.Error("a player who does not hunt stays in the ground")
+		}
+	})
+	if !s.Relocate(core.ArenaCentre.Vec3Middle()) || s.Relocate(island.Spawn(s.Session)) {
+		t.Error("Relocate should move players stored in the ground only")
+	}
+}
