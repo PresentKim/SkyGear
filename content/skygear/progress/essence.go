@@ -33,6 +33,7 @@ var EssenceCosts = map[string]map[string]int{
 	"bone_craft": {sgitem.EssenceHunting: 2}, "slime_block": {sgitem.EssenceHunting: 2},
 	"blaze_craft": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4}, "ender_chest": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4},
 	"diamond_armor":  {sgitem.EssenceAlchemy: 2, sgitem.EssenceHunting: 4},
+	"dimension":      {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
 	"dimension_gate": {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4},
 	// magic plants
 	"magic_botany": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceFarming: 4}, "dyeing": {sgitem.EssenceMagic: 4},

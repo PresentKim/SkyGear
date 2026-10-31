@@ -76,6 +76,7 @@ func RegisterCreativeItems() {
 		add(items, sgitem.BarkFiber{})
 		add(items, sgitem.FairyDust{})
 		add(items, sgitem.FairyEmerald{})
+		add(items, sgitem.DimensionStone{})
 		add(equipment, fairy.Board{})
 		add(items, sgitem.FairyBoneMeal{})
 		add(items, sgitem.FairyHourglass{})

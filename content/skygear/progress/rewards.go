@@ -49,6 +49,7 @@ var Rewards = map[string]map[string]int{
 	"storage_controller": {"skygear:storage_controller": 1, "skygear:storage_link": 2},
 	"tinker_table":       {"skygear:tinker_table": 1},
 	"magic_sieve":        {"skygear:magic_sieve": 1},
+	"dimension":          {"skygear:dimension_stone": 1},
 	"dimension_gate":     {"skygear:dimension_gate": 1},
 	"fairy_magic":        {"skygear:fairy_board": 1},
 }

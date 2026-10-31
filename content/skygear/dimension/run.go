@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/bossbar"
 	"github.com/df-mc/dragonfly/server/player/title"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
@@ -79,6 +80,9 @@ const (
 	// comes; every gateEvery-th comes out of the gate instead.
 	spawnNear, spawnFar = 12.0, 18.0
 	gateEvery           = 5
+	// secondShare and eliteShare are the percent of monsters that come as
+	// the variant (from the second stage) and the elite (in the last).
+	secondShare, eliteShare = 30, 15
 	// huntSight is how far a monster of a run sees the hunter: across the
 	// whole ground.
 	huntSight = 3 * core.ArenaRadius
@@ -96,14 +100,18 @@ func stageBuff(n int) (health, damage, speed float64) {
 type Run struct {
 	Mob  string
 	Hunt hunt
-	// Hunter is the player hunting, Return where it goes back to.
+	// Hunter is the player hunting, name its name, Return where it goes
+	// back to.
 	Hunter *world.EntityHandle
+	name   string
 	Return mgl64.Vec3
 	// Portal is the gate the run's monsters come out of; it drives the run.
 	Portal *world.EntityHandle
 	// Alive are the run's monsters out now.
 	Alive          map[*world.EntityHandle]bool
 	Spawned, Kills int
+	// Elite is the hunt's last monster while it is out (its health bar).
+	Elite *world.EntityHandle
 	// ticks counts the run's ticks from its start, the countdown included.
 	ticks int
 	blade blade
@@ -120,6 +128,8 @@ type runLocal struct {
 	Run *Run
 	// results wait for hunters that died to show once they are back.
 	results map[*world.EntityHandle]result
+	// watchers are the players watching the run (window.go).
+	watchers map[*world.EntityHandle]watcher
 }
 
 var runPart = core.NewPart(func() *runLocal { return &runLocal{} })
@@ -141,7 +151,10 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 		return false
 	}
 	buildArena(tx)
-	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}}
+	if Watching(s, p) {
+		return false
+	}
+	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), name: p.Name(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}}
 	if core.InArena(r.Return) {
 		r.Return = island.Spawn(s)
 	}
@@ -196,6 +209,9 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 			r.Spawned--
 		}
 	}
+	if r.fightTicks()%10 == 0 {
+		r.showElite(tx, p)
+	}
 	if r.fightTicks()%20 == 0 {
 		if r.fightTicks() >= r.Hunt.Seconds*20 {
 			r.end(s, tx, p, endTime)
@@ -225,17 +241,74 @@ func (r *Run) spawn(s *core.Session, tx *world.Tx, p *player.Player) {
 			at = insideArena(p.Position().Add(mgl64.Vec3{math.Cos(a) * d, 0, math.Sin(a) * d}), 3)
 		}
 		at[1] = float64(core.ArenaCentre.Y())
-		h := world.EntitySpawnOpts{Position: at}.New(MobTypes[r.Mob], MonsterConfig{Mob: r.Mob, exit: exit, HealthMul: hp, DamageMul: dmg, SpeedMul: speed})
+		v, elite := r.pickVariant(s, stage)
+		h := world.EntitySpawnOpts{Position: at}.New(VariantType(r.Mob, v), MonsterConfig{Mob: r.Mob, exit: exit, HealthMul: hp, DamageMul: dmg, SpeedMul: speed, Variant: v, Elite: elite})
+		r.Alive[h] = true
+		r.Spawned++
+		if elite {
+			r.Elite = h
+		}
+		tx.AddEntity(h)
+	}
+}
+
+// pickVariant picks the variant of the next monster of a stage: the base one
+// at first, variants from the second stage and elites in the last; the last
+// monster of the hunt is its elite, with a health bar.
+func (r *Run) pickVariant(s *core.Session, stage int) (v int, elite bool) {
+	if r.Spawned == r.Hunt.Count-1 {
+		return VariantElite, true
+	}
+	n := s.Rand.IntN(100)
+	switch {
+	case stage == stages-1 && n < eliteShare:
+		return VariantElite, false
+	case stage >= 1 && n < eliteShare+secondShare:
+		return VariantSecond, false
+	}
+	return VariantBase, false
+}
+
+// split lets a monster that falls apart (a big slime) leave base monsters
+// where it died, as many as the hunt still has room for: they count among the
+// hunt's monsters.
+func (r *Run) split(tx *world.Tx, m *Monster) {
+	n := min(m.variant().Split, r.Hunt.Count-r.Spawned)
+	stage := min(stages-1, r.Spawned*stages/r.Hunt.Count)
+	hp, dmg, speed := stageBuff(stage)
+	for i := range n {
+		a := float64(i) * 2 * math.Pi / float64(n)
+		at := insideArena(m.Position().Add(mgl64.Vec3{math.Cos(a) * 0.6, 0.2, math.Sin(a) * 0.6}), 1)
+		h := world.EntitySpawnOpts{Position: at}.New(VariantType(r.Mob, VariantBase), MonsterConfig{Mob: r.Mob, HealthMul: hp, DamageMul: dmg, SpeedMul: speed})
 		r.Alive[h] = true
 		r.Spawned++
 		tx.AddEntity(h)
 	}
 }
 
+// showElite keeps the elite's health on the hunter's boss bar.
+func (r *Run) showElite(tx *world.Tx, p *player.Player) {
+	if r.Elite == nil {
+		return
+	}
+	e, ok := r.Elite.Entity(tx)
+	if !ok {
+		r.Elite = nil
+		p.RemoveBossBar()
+		return
+	}
+	m := e.(*Monster)
+	p.SendBossBar(bossbar.New(fmt.Sprintf(i18n.T(i18n.Of(p), "dimension.elite"), MobName(i18n.Of(p), r.Mob))).
+		WithHealthPercentage(max(0, m.Health()/m.Md().MaxHealth)).WithColour(bossbar.Red()))
+}
+
 // killed counts a monster of the run p killed; the last one clears the hunt.
 func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player) {
 	delete(r.Alive, m.Handle)
 	r.Kills++
+	if m.variant().Split > 0 {
+		r.split(tx, m)
+	}
 	for _, v := range tx.Viewers(m.Data.Pos) {
 		v.ViewEntityAction(m, entity.DeathAction{})
 	}
@@ -267,6 +340,9 @@ type result struct {
 	Kills   int
 	Count   int
 	Seconds int
+	// What the run gave (records.go).
+	Essences, Dust, NewStars int
+	FirstClear, NewBest      bool
 }
 
 // end finishes the run: its monsters and gate go, the hunter (nil when gone)
@@ -286,7 +362,12 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	if e, ok := r.Portal.Entity(tx); ok {
 		_ = e.(*GatePortal).Close()
 	}
+	if p != nil && r.Elite != nil {
+		p.RemoveBossBar()
+	}
+	releaseWatchers(s, tx)
 	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
+	record(s, &res)
 	if p == nil {
 		return
 	}
@@ -302,9 +383,11 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	case how == endQuit:
 		// leaving the save: back on the island before the state is stored
 		p.Teleport(r.Return)
+		deliver(s, tx, p, res)
 	default:
 		p.Teleport(r.Return)
 		instance.PlaceAt(p, r.Return, island.Spawn(s))
+		deliver(s, tx, p, res)
 		showResult(p, res)
 	}
 }
@@ -321,6 +404,7 @@ func Respawned(s *core.Session, p *player.Player, pos *mgl64.Vec3) {
 	*pos = island.Spawn(s)
 	p.H().DoAfter(500*time.Millisecond, func(tx *world.Tx, e world.Entity) {
 		if c, ok := core.Of(tx); ok && c == s {
+			deliver(s, tx, e.(*player.Player), res)
 			showResult(e.(*player.Player), res)
 		}
 	})
@@ -333,19 +417,24 @@ func Died(s *core.Session, tx *world.Tx, p *player.Player) {
 	}
 }
 
-// Leave ends the run of a hunter leaving the save and brings it back first.
+// Leave ends the run of a hunter leaving the save, or the watching of a
+// watcher, and brings it back first.
 func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
 	if r := RunOf(s); r != nil && r.Hunter == p.H() {
 		r.end(s, tx, p, endQuit)
 	}
+	StopWatching(s, p)
 	delete(runPart.Of(s).results, p.H())
 }
 
 // Joined brings back a player that comes into the save standing in the
 // hunting ground (the server stopped during its run).
 func Joined(s *core.Session, p *player.Player) {
-	if core.InArena(p.Position()) && !Hunting(s, p) {
+	if core.InArena(p.Position()) && !Hunting(s, p) && !Watching(s, p) {
 		p.Teleport(island.Spawn(s))
+		if p.GameMode() == world.GameModeSpectator {
+			p.SetGameMode(world.GameModeSurvival)
+		}
 	}
 }
 
@@ -371,5 +460,17 @@ func showResult(p *player.Player, res result) {
 		body = i18n.T(lang, "dimension.result."+res.How)
 	}
 	body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.kills"), res.Kills, res.Count)
+	if res.NewBest && !res.FirstClear {
+		body += "\n" + i18n.T(lang, "dimension.result.best")
+	}
+	if res.NewStars > 0 {
+		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.stars"), res.NewStars)
+	}
+	if res.Essences > 0 {
+		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.essences"), MobName(lang, res.Mob), res.Essences)
+	}
+	if res.Dust > 0 {
+		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.dust"), res.Dust)
+	}
 	ui.Menu(p, i18n.T(lang, "dimension.result.title"), body, ui.Option{Label: i18n.T(lang, "dimension.result.ok"), Run: func(*player.Player, *world.Tx) {}})
 }

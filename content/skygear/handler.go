@@ -131,6 +131,10 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
 	// The configuration copier copies and pastes settings and does nothing else.
+	if _, ok := held.Item().(sgitem.DimensionStone); ok && !h.s.Debounced(ctx.Player()) {
+		ctx.Cancel()
+		dimension.ShowWindow(h.s.Session, ctx.Player(), "")
+	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		ctx.Cancel()
 		_, off := p.HeldItems()
@@ -246,6 +250,10 @@ func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 	}
 	if dimension.Hunting(h.s.Session, p) {
 		dimension.ShowRunMenu(h.s.Session, p)
+		return
+	}
+	if dimension.Watching(h.s.Session, p) {
+		dimension.ShowWatchMenu(h.s.Session, p)
 		return
 	}
 	screens.OpenMenu(h.s.Session, p)

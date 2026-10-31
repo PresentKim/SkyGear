@@ -174,4 +174,5 @@ var baseResearchTree = []progress.Research{
 	// cut waiting short.
 	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 4}, {Item: item.BoneMeal{}, Count: 8}},
 		Unlocks: []string{"skygear:fairy_bone_meal", "skygear:fairy_hourglass"}},
+	{ID: "dimension", Needs: []string{"fairy_magic", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.FairyDust{}, Count: 4}}, Unlocks: []string{"skygear:dimension_stone"}},
 }

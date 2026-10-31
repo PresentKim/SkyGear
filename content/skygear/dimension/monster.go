@@ -1,12 +1,17 @@
 package dimension
 
 import (
+	"fmt"
+	"image/color"
 	"math"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/entity/effect"
+	"github.com/df-mc/dragonfly/server/item/potion"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
@@ -80,6 +85,16 @@ type monsterData struct {
 	// damageMul and speedMul make a monster of a later stage of a run
 	// stronger (0 counts as 1).
 	damageMul, speedMul float64
+	// Variant is which of its mob's variants it is (variants.go), Elite
+	// whether it is the hunt's last, strongest monster.
+	Variant int
+	Elite   bool
+	// MaxHealth is what a mending monster heals it up to; fuse counts the
+	// ticks it hissed beside the hunter, beat its ticks for blinking and
+	// mending.
+	MaxHealth float64
+	fuse      int
+	beat      int
 }
 
 type MonsterConfig struct {
@@ -89,10 +104,27 @@ type MonsterConfig struct {
 	// HealthMul, DamageMul and SpeedMul scale the mob's numbers (0 counts
 	// as 1): a run's later stages are stronger.
 	HealthMul, DamageMul, SpeedMul float64
+	// Variant and Elite are as in monsterData; the variant must be the one
+	// of the entity type.
+	Variant int
+	Elite   bool
 }
 
+// eliteHealth and eliteScale make a hunt's elite stronger and bigger than
+// its variant.
+const (
+	eliteHealth = 3.0
+	eliteScale  = 1.3
+)
+
 func (c MonsterConfig) Apply(data *world.EntityData) {
-	d := &monsterData{Mob: c.Mob, Health: MonsterTable[c.Mob].Health * orOne(c.HealthMul), exit: c.exit, damageMul: c.DamageMul, speedMul: c.SpeedMul}
+	v := variantOf(c.Mob, c.Variant)
+	health := MonsterTable[c.Mob].Health * orOne(v.Health) * orOne(c.HealthMul)
+	if c.Elite {
+		health *= eliteHealth
+	}
+	d := &monsterData{Mob: c.Mob, Health: health, MaxHealth: health, exit: c.exit,
+		damageMul: orOne(c.DamageMul) * orOne(v.Damage), speedMul: orOne(c.SpeedMul) * orOne(v.Speed), Variant: c.Variant, Elite: c.Elite}
 	if c.exit != (mgl64.Vec3{}) {
 		d.ExitTicks = GateExitTicks
 	}
@@ -125,13 +157,27 @@ func (m *Monster) Md() *monsterData { return m.Data.Data.(*monsterData) }
 // Health is what the monster has left.
 func (m *Monster) Health() float64 { return m.Md().Health }
 
+// variant is the monster's variant.
+func (m *Monster) variant() variant { return variantOf(m.kind, m.Md().Variant) }
+
+// Scale is how big the client draws the monster.
+func (m *Monster) Scale() float64 {
+	sc := orOne(m.variant().Scale)
+	if m.Md().Elite {
+		sc *= eliteScale
+	}
+	return sc
+}
+
+// Baby reports whether the client draws the small model.
+func (m *Monster) Baby() bool { return m.variant().Baby }
+
 func (m *Monster) Close() error {
 	m.tx.RemoveEntity(m)
 	return m.Handle.Close()
 }
 
-// MobTypes are the world.EntityTypes of the mobs, one each (an entity type
-// has a single vanilla look).
+// MobTypes are the world.EntityTypes of the mobs' base variants.
 var MobTypes = func() map[string]monsterType {
 	out := map[string]monsterType{}
 	for mob := range MonsterTable {
@@ -140,35 +186,59 @@ var MobTypes = func() map[string]monsterType {
 	return out
 }()
 
-// MonsterTypes returns the entity types of the monsters.
+// VariantType is the world.EntityType of variant v of mob: an entity type has
+// a single vanilla look, so every variant has its own.
+func VariantType(mob string, v int) monsterType { return monsterType{Mob: mob, Variant: v} }
+
+// MonsterTypes returns the entity types of the monsters, every variant.
 func MonsterTypes() []world.EntityType {
 	var out []world.EntityType
 	for _, mob := range sgitem.MobKinds {
-		out = append(out, MobTypes[mob])
+		for v := range variantCount {
+			out = append(out, VariantType(mob, v))
+		}
 	}
 	return out
 }
 
-type monsterType struct{ Mob string }
+type monsterType struct {
+	Mob     string
+	Variant int
+}
 
 func (t monsterType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
 	if data.Data == nil {
-		data.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health}
+		data.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health, Variant: t.Variant}
 	}
 	return &Monster{tx: tx, Handle: handle, Data: data, kind: t.Mob}
 }
 
-func (t monsterType) EncodeEntity() string { return "skygear:monster_" + t.Mob }
+func (t monsterType) EncodeEntity() string {
+	if t.Variant == VariantBase {
+		return "skygear:monster_" + t.Mob
+	}
+	return fmt.Sprintf("skygear:monster_%s_%d", t.Mob, t.Variant)
+}
 
-func (t monsterType) NetworkEncodeEntity() string { return MonsterTable[t.Mob].network }
+func (t monsterType) NetworkEncodeEntity() string {
+	if look := variantOf(t.Mob, t.Variant).Look; look != "" {
+		return look
+	}
+	return MonsterTable[t.Mob].network
+}
 
-func (t monsterType) BBox(world.Entity) cube.BBox {
+func (t monsterType) BBox(e world.Entity) cube.BBox {
 	st := MonsterTable[t.Mob]
-	return cube.Box(-st.width/2, 0, -st.width/2, st.width/2, st.height, st.width/2)
+	sc := orOne(variantOf(t.Mob, t.Variant).Scale)
+	if m, ok := e.(*Monster); ok {
+		sc = m.Scale()
+	}
+	w, h := st.width*sc/2, st.height*sc
+	return cube.Box(-w, 0, -w, w, h, w)
 }
 
 func (t monsterType) DecodeNBT(_ map[string]any, d *world.EntityData) {
-	d.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health}
+	d.Data = &monsterData{Mob: t.Mob, Health: MonsterTable[t.Mob].Health, Variant: t.Variant}
 }
 
 func (monsterType) EncodeNBT(*world.EntityData) map[string]any { return nil }
@@ -187,9 +257,17 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		_ = m.Close()
 		return
 	}
-	d, st := m.Md(), MonsterTable[m.kind]
+	d, st, v := m.Md(), MonsterTable[m.kind], m.variant()
 	st.speed *= orOne(d.speedMul)
 	st.damage *= orOne(d.damageMul)
+	if v.Ranged > 0 {
+		st.ranged = v.Ranged
+		if st.shootEvery == 0 {
+			st.HoldRange, st.shootRange, st.shootEvery = 6, 14, 50
+		}
+	}
+	st.width *= m.Scale()
+	d.beat++
 	pos := m.Data.Pos
 	sight := monsterSight
 	if hunting {
@@ -237,19 +315,77 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		}
 		if st.ranged > 0 && d.cooldown == 0 && to.Len() <= st.shootRange && m.canSee(tx, pos, target) {
 			d.cooldown = st.shootEvery
-			m.shoot(tx, pos, target, st)
+			for i := range max(1, v.Shots) {
+				m.shoot(tx, pos, target, st, float64(i)-float64(max(1, v.Shots)-1)/2)
+			}
 		}
 		m.Data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-to[0], to[2])), 0}
-		if flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
+		if hunting && m.trick(s, tx, pos, target, flat.Len(), st) {
+			return
+		}
+		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
 			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
-				away := mgl64.Vec3{-to[0], 0, -to[2]}.Normalize()
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
-				_ = away
+				if v.Hit != nil {
+					target.AddEffect(*v.Hit)
+				}
 			}
 		}
 	}
 	m.move(tx, pos, dir, st)
+}
+
+// trick does what the monster's variant does besides walking and hitting:
+// a fuse beside the hunter that blows up, a jump beside the hunter, mending
+// the monsters near. It reports whether the monster is gone.
+func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *player.Player, dist float64, st monsterStats) bool {
+	d, v := m.Md(), m.variant()
+	if v.Fuse > 0 {
+		if dist < monsterReach+0.5 {
+			d.fuse++
+		} else if d.fuse > 0 {
+			d.fuse--
+		}
+		if d.fuse >= v.Fuse {
+			tx.AddParticle(pos, particle.HugeExplosion{})
+			tx.PlaySound(pos, sound.Explosion{})
+			if target.Position().Sub(pos).Len() < blastRange {
+				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), entity.AttackDamageSource{Attacker: m})
+				target.KnockBack(pos, 0.8, 0.4)
+			}
+			monsterGone(s, tx, m, nil)
+			return true
+		}
+	}
+	if v.Blink > 0 && d.beat%v.Blink == 0 && dist > 4 {
+		a := s.Rand.Float64() * 2 * math.Pi
+		to := insideArena(target.Position().Add(mgl64.Vec3{math.Cos(a) * 3, 0, math.Sin(a) * 3}), 2)
+		tx.AddParticle(pos, particle.EndermanTeleport{})
+		m.Data.Pos = to
+		for _, vw := range tx.Viewers(to) {
+			vw.ViewEntityTeleport(m, to)
+		}
+		tx.AddParticle(to, particle.EndermanTeleport{})
+		tx.PlaySound(to, sound.Teleport{})
+		return true
+	}
+	if v.Mend > 0 && d.beat%mendEvery == 0 {
+		if r := RunOf(s); r != nil {
+			for h := range r.Alive {
+				e, ok := h.Entity(tx)
+				if !ok || h == m.Handle {
+					continue
+				}
+				o := e.(*Monster)
+				if od := o.Md(); od.Health < od.MaxHealth && o.Position().Sub(pos).Len() < mendRange {
+					od.Health = min(od.MaxHealth, od.Health+v.Mend)
+					tx.AddParticle(o.Position().Add(mgl64.Vec3{0, 1, 0}), particle.Effect{Colour: mendColour})
+				}
+			}
+		}
+	}
+	return false
 }
 
 // move applies one tick of walking, jumping and falling.
@@ -331,14 +467,40 @@ func (m *Monster) canSee(tx *world.Tx, pos mgl64.Vec3, p *player.Player) bool {
 	return true
 }
 
-// shoot lets a ranged mob shoot an arrow at p.
-func (m *Monster) shoot(tx *world.Tx, pos mgl64.Vec3, p *player.Player, st monsterStats) {
+// shoot lets a ranged mob shoot an arrow at p, spread sideways by spread
+// (one for each step of a volley). A variant whose hit gives an effect shoots
+// arrows tipped with it.
+func (m *Monster) shoot(tx *world.Tx, pos mgl64.Vec3, p *player.Player, st monsterStats, spread float64) {
 	from := pos.Add(mgl64.Vec3{0, 1.5, 0})
 	to := p.Position().Add(mgl64.Vec3{0, 1.2, 0})
 	dir := to.Sub(from)
 	dist := dir.Len()
+	if spread != 0 {
+		dir = dir.Add(mgl64.Vec3{-dir[2], 0, dir[0]}.Normalize().Mul(spread * 1.2))
+	}
 	// aim a little high for the drop of the arrow over the distance
 	dir = dir.Add(mgl64.Vec3{0, dist * 0.04, 0}).Normalize().Mul(1.7)
-	tx.AddEntity(entity.NewArrowWithDamage(world.EntitySpawnOpts{Position: from, Velocity: dir, Rotation: m.Data.Rot}, st.ranged, m))
+	opts := world.EntitySpawnOpts{Position: from, Velocity: dir, Rotation: m.Data.Rot}
+	if tip, ok := arrowTip(m.variant().Hit); ok {
+		tx.AddEntity(entity.NewTippedArrowWithDamage(opts, st.ranged, m, tip))
+	} else {
+		tx.AddEntity(entity.NewArrowWithDamage(opts, st.ranged, m))
+	}
 	tx.PlaySound(from, sound.BowShoot{})
 }
+
+// arrowTip is the potion an arrow carries for a hit effect.
+func arrowTip(e *effect.Effect) (potion.Potion, bool) {
+	if e == nil {
+		return potion.Potion{}, false
+	}
+	switch e.Type() {
+	case effect.Slowness:
+		return potion.Slowness(), true
+	case effect.Poison:
+		return potion.Poison(), true
+	}
+	return potion.Potion{}, false
+}
+
+var mendColour = color.RGBA{R: 255, G: 90, B: 160, A: 255}

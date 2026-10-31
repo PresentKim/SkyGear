@@ -7,6 +7,9 @@
     "skygear:fairy_emerald": {
       "textures": "textures/items/fairy_emerald"
     },
+    "skygear:dimension_stone": {
+      "textures": "textures/items/dimension_stone"
+    },
     "skygear:fairy_board": {
       "textures": "textures/items/fairy_board"
     },
