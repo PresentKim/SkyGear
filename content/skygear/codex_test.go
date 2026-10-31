@@ -13,12 +13,12 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/catalog"
 	"github.com/presentkim/skygear/content/skygear/codex"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 func hasLine(lines []string, part string) bool {
@@ -89,7 +89,7 @@ func TestCodexPagesAreWritten(t *testing.T) {
 			t.Errorf("process tab: no recipes of %s", naming.ItemKey(pr.Head.Item()))
 		}
 	}
-	if cards := codex.MobCards(s.Session, lang); len(cards) < len(sgitem.MobKinds)+len(wave.Levels) {
+	if cards := codex.MobCards(s.Session, lang); len(cards) < len(sgitem.MobKinds)+len(dimension.Levels) {
 		t.Errorf("mobs tab: %d cards", len(cards))
 	}
 	for _, in := range codex.SieveInputs() {

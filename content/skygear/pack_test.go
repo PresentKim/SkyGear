@@ -17,9 +17,9 @@ import (
 	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // packDir is the resource pack that draws the custom blocks and items.
@@ -499,10 +499,10 @@ func TestGatePortalPack(t *testing.T) {
 	}
 	readPackJSON(t, "entity/gate_portal.entity.json", &ent)
 	d := ent.E.D
-	if d.Identifier != wave.GatePortalType.EncodeEntity() {
+	if d.Identifier != dimension.GatePortalType.EncodeEntity() {
 		t.Errorf("entity identifier %s", d.Identifier)
 	}
-	for level := 1; level <= len(wave.Levels); level++ {
+	for level := 1; level <= len(dimension.Levels); level++ {
 		path, ok := d.Textures[fmt.Sprintf("tier_%d", level)]
 		if !ok || !packFileExists(path+".png") {
 			t.Errorf("no texture for wave level %d (%q)", level, path)

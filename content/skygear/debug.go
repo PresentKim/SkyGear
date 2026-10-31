@@ -14,6 +14,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
@@ -23,7 +24,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -238,20 +238,20 @@ func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	if c.Level < 1 || c.Level > len(wave.Levels) {
-		o.Errorf("level 1-%d", len(wave.Levels))
+	if c.Level < 1 || c.Level > len(dimension.Levels) {
+		o.Errorf("level 1-%d", len(dimension.Levels))
 		return
 	}
 	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
 	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
 		tx.SetBlock(pos, machine.New(machine.KindGate, "", ""), nil)
 	}
-	wave.StateOf(s.Session).GateTier = max(wave.StateOf(s.Session).GateTier, c.Level-1)
-	if !wave.Start(s.Session, tx, pos, p.Position(), c.Level) {
+	dimension.StateOf(s.Session).GateTier = max(dimension.StateOf(s.Session).GateTier, c.Level-1)
+	if !dimension.Start(s.Session, tx, pos, p.Position(), c.Level) {
 		o.Error("a wave is already going on")
 		return
 	}
-	o.Printf("wave %d started with %d monsters", c.Level, len(wave.LocalOf(s.Session).Wave.Left)+len(wave.LocalOf(s.Session).Wave.Pending))
+	o.Printf("wave %d started with %d monsters", c.Level, len(dimension.LocalOf(s.Session).Wave.Left)+len(dimension.LocalOf(s.Session).Wave.Pending))
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random

@@ -1,4 +1,4 @@
-package wave
+package dimension
 
 import (
 	"fmt"
@@ -260,7 +260,7 @@ func ShowGate(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 // gateState is what a save keeps of its dimension gate: its fields are part of the
 // save's state document (core.Saved).
 type gateState struct {
-	// GateTier is the highest level of the dimension gate cleared (wave.go).
+	// GateTier is the highest level of the dimension gate cleared (gate.go).
 	GateTier int `json:"gate_tier,omitempty"`
 }
 
@@ -271,7 +271,7 @@ func StateOf(s *core.Session) *gateState { return gateSaved.Of(s) }
 
 // wavesLocal is what a running save keeps for its waves.
 type wavesLocal struct {
-	// wave is the wave of the dimension gate being fought (wave.go).
+	// wave is the wave of the dimension gate being fought (gate.go).
 	Wave *State
 }
 

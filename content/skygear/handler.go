@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -26,7 +27,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // handler handles a player's events inside a skygear instance.
@@ -179,7 +179,7 @@ func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
-	if m, ok := e.(*wave.Monster); ok {
+	if m, ok := e.(*dimension.Monster); ok {
 		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
 		ctx.Cancel()
 		p := ctx.Player()

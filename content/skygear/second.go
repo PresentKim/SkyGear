@@ -7,6 +7,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/look"
@@ -15,7 +16,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
@@ -28,7 +28,7 @@ func (s *session) Second(tx *world.Tx) {
 	farm.TickComposters(s.Session, tx)
 	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
-	wave.Tick(s.Session, tx)
+	dimension.Tick(s.Session, tx)
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)
@@ -55,6 +55,6 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		network.Fluids(s.Session).Step(tx)
 	}
-	wave.EmergeMonsters(s.Session, tx)
+	dimension.EmergeMonsters(s.Session, tx)
 	look.UpdateAll(s.Session, tx)
 }

@@ -1,4 +1,4 @@
-package wave
+package dimension
 
 import (
 	"math"

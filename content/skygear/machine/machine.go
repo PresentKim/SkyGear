@@ -154,7 +154,7 @@ const (
 	KindStorageLink       = "storage_link"
 	// KindTinker is the tinker table (tinkerform.go).
 	KindTinker = "tinker_table"
-	// KindGate is the dimension gate (wave.go).
+	// KindGate is the dimension gate (dimension/gate.go).
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
@@ -227,7 +227,7 @@ type Def struct {
 	fluidOnly              fluidnet.Kind
 	// controller marks the storage controller (storage.go).
 	Controller bool
-	// gate marks the dimension gate (wave.go): using it opens its form.
+	// gate marks the dimension gate (dimension/gate.go): using it opens its form.
 	Gate bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).

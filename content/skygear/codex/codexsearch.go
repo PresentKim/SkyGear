@@ -16,6 +16,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -26,7 +27,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // The codex as a recipe viewer: an index of every
@@ -172,7 +172,7 @@ func Relevant() map[string]bool {
 			add(d.Item)
 		}
 	}
-	for _, w := range wave.Levels {
+	for _, w := range dimension.Levels {
 		for _, r := range w.Reward {
 			add(r.Item())
 		}

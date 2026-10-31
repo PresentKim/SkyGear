@@ -18,7 +18,7 @@ var layers = []string{
 	// progress
 	"progress", "island", "climate",
 	// features
-	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "wave", "handwork", "expand", "copier",
+	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier",
 	// content lists
 	"catalog",
 	// screens

@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -25,7 +26,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // The codex draws each recipe as a card of item slots on a board
@@ -386,8 +386,8 @@ func SourceCards(s *core.Session, lang string, it item.Stack) []Card {
 	if _, ok := it.Item().(sgitem.Essence); ok {
 		cards = append(cards, noteCard(lang, machine.Item(machine.KindGate), i18n.T(lang, "codex.src.waveDrop")))
 	}
-	for i := range wave.Levels {
-		for _, r := range wave.Levels[i].Reward {
+	for i := range dimension.Levels {
+		for _, r := range dimension.Levels[i].Reward {
 			if naming.ItemKey(r.Item()) == k {
 				cards = append(cards, waveCard(s, lang, i)...)
 				break
@@ -562,7 +562,7 @@ func themeCards(s *core.Session, lang string, mob string) []Card {
 // waveCard is a gate level: its number and time, the arrow and the first
 // clear rewards, and under them the mobs that come.
 func waveCard(s *core.Session, lang string, i int) []Card {
-	w := wave.Levels[i]
+	w := dimension.Levels[i]
 	var outs []ui.BoardCell
 	for _, r := range w.Reward {
 		outs = append(outs, codexCell(s, lang, r, countLabel(r.Count())))
@@ -573,7 +573,7 @@ func waveCard(s *core.Session, lang string, i int) []Card {
 		if j > 0 {
 			groups += ", "
 		}
-		groups += fmt.Sprintf("%s ×%d", wave.MobName(lang, g.Mob), g.N)
+		groups += fmt.Sprintf("%s ×%d", dimension.MobName(lang, g.Mob), g.N)
 	}
 	row := BlankRow()
 	row[0] = ui.TextCell("§8" + groups)
@@ -709,7 +709,7 @@ func MobCards(s *core.Session, lang string) []Card {
 	for _, mob := range sgitem.MobKinds {
 		cards = append(cards, themeCards(s, lang, mob)...)
 	}
-	for i := range wave.Levels {
+	for i := range dimension.Levels {
 		cards = append(cards, waveCard(s, lang, i)...)
 	}
 	return cards

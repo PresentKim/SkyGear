@@ -21,6 +21,7 @@ import (
 	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -32,7 +33,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Reach is how far a player looks for a block, in blocks.
@@ -342,7 +342,7 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		}
 	}
 	if len(st.Def.Charge) > 0 && st.Charges > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), wave.MobName(lang, st.Mob), st.Charges))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), dimension.MobName(lang, st.Mob), st.Charges))
 	}
 	lines = append(lines, machine.ConsumerLines(lang, st)...)
 	lines = append(lines, machine.BlockedLines(lang, st)...)

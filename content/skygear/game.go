@@ -19,6 +19,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/codex"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -26,7 +27,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
-	"github.com/presentkim/skygear/content/skygear/wave"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -195,7 +195,7 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, wave.GatePortalType), wave.MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType), dimension.MonsterTypes()...)
 }
 
 // MenuBack shows the game screen a platform screen opened in the save goes
