@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/itemnet"
@@ -28,8 +29,10 @@ func (s *session) Second(tx *world.Tx) {
 	farm.TickComposters(s.Session, tx)
 	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
-	dimension.Tick(s.Session, tx)
 	dimension.TickCollectors(s.Session, tx)
+	for e := range tx.Players() {
+		dimension.RetireItems(s.Session, tx, e.(*player.Player))
+	}
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)
@@ -56,6 +59,5 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		network.Fluids(s.Session).Step(tx)
 	}
-	dimension.EmergeMonsters(s.Session, tx)
 	look.UpdateAll(s.Session, tx)
 }

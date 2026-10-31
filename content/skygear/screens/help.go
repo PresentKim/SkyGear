@@ -46,7 +46,7 @@ func helpTabIcon(t HelpTab) string {
 	case helpMetalTab:
 		return formicon.Of(machine.Item(machine.KindAlloy))
 	case helpFightTab:
-		return formicon.Of(machine.Item(machine.KindGate))
+		return formicon.Of(item.NewStack(sgitem.DimensionStone{}, 1))
 	}
 	return formicon.Mission
 }
@@ -84,7 +84,7 @@ var HelpTopics = []struct {
 	{"fluid", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindTank)) }, nil},
 	{"metal", helpMetalTab, func() string { return formicon.Of(machine.Item(machine.KindAlloy)) }, nil},
 	{"tier", helpMetalTab, func() string { return formicon.Of(item.NewStack(sgitem.TierKit{Level: 1}, 1)) }, nil},
-	{"wave", helpFightTab, func() string { return formicon.Of(machine.Item(machine.KindGate)) }, nil},
+	{"dimension", helpFightTab, func() string { return formicon.Of(item.NewStack(sgitem.DimensionStone{}, 1)) }, nil},
 	{"gear", helpFightTab, func() string { return formicon.Of(machine.Item(machine.KindTinker)) }, nil},
 	{"magic", helpFightTab, func() string { return formicon.Of(item.NewStack(sgitem.Petal{Colour: "red"}, 1)) }, nil},
 	{"magicsieve", helpFightTab, func() string { return formicon.Of(machine.Item(machine.KindMagicSieve)) }, nil},

@@ -16,14 +16,13 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// Monsters of the second dimension (and the gate's waves). Dragonfly has no
+// Monsters of the second dimension. Dragonfly has no
 // mobs, so they are ours: an entity the client draws as the vanilla mob that
 // walks to the nearest player and hits when close. A monster not in its
-// session's current run or wave is removed.
+// session's current run is removed.
 
 // monsterStats are the numbers of a mob, drafts.
 type monsterStats struct {
@@ -57,8 +56,6 @@ const (
 	monsterReach = 1.5
 	// monsterCooldown is the ticks between two hits.
 	monsterCooldown = 20
-	// monsterSight is how far a monster notices a player.
-	monsterSight = 40.0
 	// monsterVoid is how far below the island a monster falls before the gate
 	// takes it back.
 	MonsterVoid = 12.0
@@ -266,8 +263,8 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	if hunting && run.paused {
 		return // the hunter is choosing an upgrade
 	}
-	if !hunting && (LocalOf(s).Wave == nil || !LocalOf(s).Wave.Owns(m.Handle)) {
-		// from an earlier session or a finished run or wave
+	if !hunting {
+		// from an earlier session or a finished run
 		_ = m.Close()
 		return
 	}
@@ -287,16 +284,10 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		st.speed *= 0.5
 	}
 	pos := m.Data.Pos
-	sight := monsterSight
-	if hunting {
-		sight = huntSight
-		if pos.Y() < float64(core.ArenaCentre.Y())-MonsterVoid {
-			// cannot happen on the flat ground, but never lose a monster
-			m.Data.Pos = insideArena(arenaGate(), 1)
-			return
-		}
-	} else if pos.Y() < island.IslandY-MonsterVoid {
-		returnToGate(s, tx, m)
+	sight := float64(huntSight)
+	if pos.Y() < float64(core.ArenaCentre.Y())-MonsterVoid {
+		// cannot happen on the flat ground, but never lose a monster
+		m.Data.Pos = insideArena(arenaGate(), 1)
 		return
 	}
 	if d.ExitTicks > 0 {
@@ -338,16 +329,12 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 			}
 		}
 		m.Data.Rot = cube.Rotation{mgl64.RadToDeg(math.Atan2(-to[0], to[2])), 0}
-		if hunting && m.trick(s, tx, pos, target, flat.Len(), st) {
+		if m.trick(s, tx, pos, target, flat.Len(), st) {
 			return
 		}
 		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
-			var src world.DamageSource = entity.AttackDamageSource{Attacker: m}
-			if hunting {
-				src = huntHit{m}
-			}
-			if _, hurt := target.Hurt(st.damage, src); hurt {
+			if _, hurt := target.Hurt(st.damage, huntHit{m}); hurt {
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				if v.Hit != nil {
 					target.AddEffect(*v.Hit)

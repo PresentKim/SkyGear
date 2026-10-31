@@ -1,6 +1,8 @@
-// Package dimension holds the game's monsters and, for now, the dimension gate: a machine kind whose screen opens a
-// gate and starts a wave of monsters the players must all kill before the
-// time runs out (gate.go). The monsters come out of a portal at the gate
-// (gateportal.go) and are the package's own entities (monster.go). Clearing
-// the highest level opens the next; first clears give essences.
+// Package dimension is the second dimension: hunts of one kind of monster at
+// a time on a grassland far from the island (arena.go, run.go), fought with
+// relics (gear.go, relic.go) by monsters of three variants (monster.go,
+// variants.go). The island keeps each monster's records and stars, which
+// open the next monster (records.go, window.go), and cleared monsters keep
+// giving essences through the collectors (collector.go). The old dimension
+// gate breaks into its materials (retired.go).
 package dimension

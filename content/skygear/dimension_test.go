@@ -486,3 +486,30 @@ func TestLoadoutAndLevels(t *testing.T) {
 		}
 	})
 }
+
+// TestRetiredGate: a dimension gate on the island breaks into its materials
+// when it ticks, and one a player carries turns into them.
+func TestRetiredGate(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	placeTestMachine(s, machinePos, machine.KindGate, "")
+	tick(s, 2)
+	s.World.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(machinePos).(machine.Machine); ok {
+			t.Error("the gate is still there")
+		}
+	})
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, _ = p.Inventory().AddItem(item.NewStack(machine.Machine{Kind: machine.KindGate}, 2))
+		dimension.RetireItems(s.Session, tx, p)
+		if n := core.CountPlain(p.Inventory(), sgitem.Ingot{Metal: sgitem.MetalSteel}); n != 8 {
+			t.Errorf("%d steel for two gates, want 8", n)
+		}
+		for _, it := range p.Inventory().Items() {
+			if m, ok := it.Item().(machine.Machine); ok && m.Kind == machine.KindGate {
+				t.Error("a gate item is left")
+			}
+		}
+	})
+}

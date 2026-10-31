@@ -36,7 +36,6 @@ var EssenceCosts = map[string]map[string]int{
 	"dimension":         {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
 	"essence_collector": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 6},
 	"relics":            {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
-	"dimension_gate":    {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4},
 	// magic plants
 	"magic_botany": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceFarming: 4}, "dyeing": {sgitem.EssenceMagic: 4},
 	"magic_gems":    {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceMagic: 4},

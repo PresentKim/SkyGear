@@ -37,7 +37,6 @@
 | `/sgdebug weather <clear\|rain\|snow>` | 요정의 에메랄드 없이 날씨 마법을 씀(같은 날씨면 3일 더함) |
 | `/sgdebug sun <flow\|day\|dusk\|night>` | 요정의 에메랄드 없이 해를 고정하거나 흐르게 함 |
 | `/sgdebug hunt [몬스터]` | 해금 없이 그 몬스터(기본 슬라임)의 이차원 사냥을 바로 시작 ([17](../design/17-dimension.md)) |
-| `/sgdebug wave <단계>` | 옆에 차원 게이트를 놓고 그 단계의 웨이브를 바로 시작(아래 단계는 열어 준다) |
 | `/sgdebug research random [퍼센트]` | 연구를 무작위로 그만큼 완료(연구 화면의 두 탭 채우기, [research-screen.md](research-screen.md)) |
 | `/sgdebug research load <개수>` | 연구 복사본을 개수만큼 만든다(긴 목록 시험, 저장하지 않음, 0 이면 없앰) |
 | `/sgdebug factory <개수>`, `/sgdebug dense <개수>` | 부하 시험용 공장을 짓는다(아래) |

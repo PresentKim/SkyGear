@@ -18,7 +18,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
@@ -34,7 +33,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugWave{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -224,35 +223,6 @@ func (c debugStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if _, s, ok := c.session(src, o, tx); ok {
 		o.Printf("researched=%d chunks=%d advanced=%d", len(progress.StateOf(s.Session).Researched), len(island.StateOf(s.Session).Chunks), len(progress.StateOf(s.Session).Advancements))
 	}
-}
-
-// debugWave places a dimension gate beside the operator and starts a level of
-// it, opening the levels below (for testing the waves).
-type debugWave struct {
-	adminBase
-	Sub   cmd.SubCommand `cmd:"wave"`
-	Level int            `cmd:"level"`
-}
-
-func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, s, ok := c.session(src, o, tx)
-	if !ok {
-		return
-	}
-	if c.Level < 1 || c.Level > len(dimension.Levels) {
-		o.Errorf("level 1-%d", len(dimension.Levels))
-		return
-	}
-	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
-	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
-		tx.SetBlock(pos, machine.New(machine.KindGate, "", ""), nil)
-	}
-	dimension.StateOf(s.Session).GateTier = max(dimension.StateOf(s.Session).GateTier, c.Level-1)
-	if !dimension.Start(s.Session, tx, pos, p.Position(), c.Level) {
-		o.Error("a wave is already going on")
-		return
-	}
-	o.Printf("wave %d started with %d monsters", c.Level, len(dimension.LocalOf(s.Session).Wave.Left)+len(dimension.LocalOf(s.Session).Wave.Pending))
 }
 
 // debugHunt sends the operator into the second dimension to hunt a kind of

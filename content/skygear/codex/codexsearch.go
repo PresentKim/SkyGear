@@ -16,7 +16,6 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
-	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -170,11 +169,6 @@ func Relevant() map[string]bool {
 	for _, mob := range sgitem.MobKinds {
 		for _, d := range sgitem.SimDrops[mob] {
 			add(d.Item)
-		}
-	}
-	for _, w := range dimension.Levels {
-		for _, r := range w.Reward {
-			add(r.Item())
 		}
 	}
 	for _, pk := range farm.PlantKinds {

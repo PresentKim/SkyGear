@@ -44,7 +44,7 @@ func init() {
 		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(Info{})
-	for _, k := range Order {
+	for _, k := range append(Order[:len(Order):len(Order)], Retired...) {
 		Kinds[k].Hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
@@ -154,7 +154,8 @@ const (
 	KindStorageLink       = "storage_link"
 	// KindTinker is the tinker table (tinkerform.go).
 	KindTinker = "tinker_table"
-	// KindGate is the dimension gate (dimension/gate.go).
+	// KindGate is the retired dimension gate: it breaks into its materials
+	// (dimension/retired.go).
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
@@ -234,8 +235,6 @@ type Def struct {
 	fluidOnly              fluidnet.Kind
 	// controller marks the storage controller (storage.go).
 	Controller bool
-	// gate marks the dimension gate (dimension/gate.go): using it opens its form.
-	Gate bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	Cell bool
@@ -329,8 +328,8 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.relictable.help.1"},
 	},
 	KindGate: {
-		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10, Gate: true,
-		helpKeys: []string{"machine.gate.help.1", "machine.gate.help.2"},
+		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.gate.help.1"},
 	},
 	KindWasher: {
 		ID: idWasher, nameKey: "machine.washer.name", Marker: "§d§m§2", Interval: 60, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
@@ -399,8 +398,12 @@ var Kinds = map[string]*Def{
 	},
 }
 
+// Retired are the kinds that are registered (old islands load) but never
+// shown or made.
+var Retired = []string{KindGate}
+
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores

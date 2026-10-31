@@ -43,7 +43,7 @@ func TestCodexSourcesAndUses(t *testing.T) {
 		{item.NewStack(sgitem.OreBlock{Metal: sgitem.MetalTin}, 1), []string{"조합"}, []string{"분쇄기", "화로"}},
 		{item.NewStack(sgitem.RawOre{Metal: sgitem.MetalTin}, 1), []string{"분쇄기"}, []string{"화로"}},
 		{item.NewStack(sgitem.Ingot{Metal: sgitem.MetalSteel}, 1), []string{"합금로"}, []string{"연구", "장비"}},
-		{item.NewStack(sgitem.Essence{Mob: sgitem.MobZombie}, 1), []string{"체", "웨이브"}, []string{"몬스터 시뮬레이터"}},
+		{item.NewStack(sgitem.Essence{Mob: sgitem.MobZombie}, 1), []string{"체", "이차원"}, []string{"몬스터 시뮬레이터"}},
 		{item.NewStack(item.Bone{}, 1), []string{"몬스터 시뮬레이터"}, []string{"장비"}},
 		{item.NewStack(item.Coal{}, 1), []string{"체"}, []string{"연료"}},
 		{item.NewStack(block.Cobblestone{}, 1), []string{"분쇄기"}, []string{"연구", "분쇄기", "화로"}},
@@ -89,7 +89,7 @@ func TestCodexPagesAreWritten(t *testing.T) {
 			t.Errorf("process tab: no recipes of %s", naming.ItemKey(pr.Head.Item()))
 		}
 	}
-	if cards := codex.MobCards(s.Session, lang); len(cards) < len(sgitem.MobKinds)+len(dimension.Levels) {
+	if cards := codex.MobCards(s.Session, lang); len(cards) < len(sgitem.MobKinds)+len(dimension.Hunts) {
 		t.Errorf("mobs tab: %d cards", len(cards))
 	}
 	for _, in := range codex.SieveInputs() {

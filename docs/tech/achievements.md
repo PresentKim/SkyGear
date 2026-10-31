@@ -19,12 +19,12 @@
 - 업적 ID는 `sg_<키>_<횟수>`(예: `sg_stick_dirt_100`). 글은 `ko.json`의 `achievement.<ID>.name|desc|title`, 분류 이름은 `achgroup.<분류>`이다.
 - 이름은 "<행동> 첫 경험"이거나 "<행동> <횟수><단위>"이고, 설명은 "…을 N번 …한다"로 쓴다. 칭호는 닉네임 앞에 붙는 **수식어**다(관형형: "흙을좋아하는", "도끼를든", "공장을돌린"). 달성 조건의 숫자나 이름을 그대로 쓰지 않고, 14자 이하이며 전체에서 겹치지 않는다(`TestCounterCatalog`). 채팅에는 `<[칭호] 이름>`으로 나온다.
 - 분류: 손작업(`hand`), 농사와 식물(`farm`), 체질(`sift`), 기계와 공장(`factory`), 에너지(`energy`), 장비(`gear`), 전투(`combat`), 성장(`progress`), 섬(`island`), 수집(`collect`), 생활(`life`), 계정(`account`, 플랫폼의 접속 일수).
-- 카운터 없이 직접 주는 업적: 첫 기계·청크 10개·첫 연구·웨이브·장비·꽃·용의 알(`achievements.go`, `project.go`), 연구 전부·발전과제 전부(`collect.go`), 아이템을 처음 가질 때(`achievement.Haves`, 1초마다 인벤토리를 본다).
+- 카운터 없이 직접 주는 업적: 첫 기계·청크 10개·첫 연구·이차원 첫 클리어·이차원 별 전부·장비·꽃·용의 알(`achievements.go`, `project.go`), 연구 전부·발전과제 전부(`collect.go`), 아이템을 처음 가질 때(`achievement.Haves`, 1초마다 인벤토리를 본다).
 
 ## 카운터를 더하는 법
 
 1. 행동이 일어나는 곳에서 `count(p, "키", n)`(그 플레이어) 또는 `countAll(tx, "키", n)`(기계·식물이 스스로 한 일: 섬에 접속한 모든 플레이어)을 부른다. 기계 안에서는 `st.done++`(주기 하나), `st.made += re`(발전), `st.tally("키", n)`을 쓰면 `Tick` 끝에서 한꺼번에 센다(`machinecount.go`).
-2. `achievement/catalog.go` 의 `Counters` 에 `{"키", "분류", []int64{횟수…}}`를 더한다. 종류별로 같은 규칙인 키(`place_<기계>`, `cycle_<기계>`, `kill_<몹>`, `crop_<작물>`, `sift_mesh_<메쉬>`, `pebble_<돌>`, `lab_<정수>`, `wave_level_<단계>`, `magic_sift_<몹>`, `tier_up_<단계>`, `rate_<N>`, `power_<N>`, `uptime_<분>`)는 접두사로 센다.
+2. `achievement/catalog.go` 의 `Counters` 에 `{"키", "분류", []int64{횟수…}}`를 더한다. 종류별로 같은 규칙인 키(`place_<기계>`, `cycle_<기계>`, `kill_<몹>`, `crop_<작물>`, `sift_mesh_<메쉬>`, `pebble_<돌>`, `lab_<정수>`, `wave_level_<몬스터 순서>`, `magic_sift_<몹>`, `tier_up_<단계>`, `rate_<N>`, `power_<N>`, `uptime_<분>`)는 접두사로 센다.
 3. `ko.json`에 단계마다 `achievement.sg_<키>_<횟수>.name|desc|title`을 쓴다.
 4. 검사가 막아 준다: 모든 글이 있는지·칭호가 겹치지 않는지(`TestCounterCatalog`), 키가 코드 어딘가에서 세어지는지·종류 이름이 실제로 있는지(`counterhooks_test.go`).
 
@@ -53,7 +53,7 @@
 | `tier_up`·`tier_up_<단계>` | `tier.go` `useKit` |
 | `copier_copy`·`copier_paste`·`copier_conduit_all` | `copier.go` |
 | `tool_made`·`tool_mod`·`tool_levelup` | `tinkerform.go` |
-| `kill_total`·`kill_<몹>`·`wave_win`·`wave_fail`·`wave_level_N` | `dimension/gate.go` |
+| `kill_total`·`kill_<몹>`·`wave_win`(이차원 클리어)·`wave_fail`(이차원 실패)·`wave_level_N`(N번째 몬스터 클리어, 옛 게이트의 키를 이어 쓴다) | `dimension/run.go` |
 | `research_done`·`project_done`·`essence_spent`·`adv_done` | `research.go`, `advancement.go` |
 | `research_open`·`adv_view`·`adv_track`·`codex_open`·`menu_open` | 각 화면 |
 | `chunk_buy`·`void_return` | `island.go` |

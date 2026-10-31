@@ -311,7 +311,7 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
 	case st.Def == machine.Kinds[machine.KindGenerator]:
 		return machine.GeneratorLines(lang, st), nil
-	case st.Def.Gate, m.Kind == machine.KindStorageLink, m.Kind == machine.KindTinker:
+	case m.Kind == machine.KindGate, m.Kind == machine.KindStorageLink, m.Kind == machine.KindTinker, m.Kind == machine.KindRelicTable:
 		return nil, nil
 	case st.Def.Controller:
 		return nil, nil

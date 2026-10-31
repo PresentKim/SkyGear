@@ -101,13 +101,6 @@ func Sources(s *core.Session, lang string, it item.Stack) []string {
 	if _, ok := it.Item().(sgitem.Essence); ok {
 		out = append(out, i18n.T(lang, "codex.src.waveDrop"))
 	}
-	for i, w := range dimension.Levels {
-		for _, r := range w.Reward {
-			if naming.ItemKey(r.Item()) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.wave"), i+1))
-			}
-		}
-	}
 	for _, pk := range farm.PlantKinds {
 		for _, y := range pk.Yield {
 			if naming.ItemKey(y.Item) == k {

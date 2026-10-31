@@ -101,8 +101,8 @@ func TestCounterKindsExist(t *testing.T) {
 	}
 	for _, c := range achievement.Counters {
 		if rest, ok := strings.CutPrefix(c.Key, "wave_level_"); ok {
-			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(dimension.Levels) {
-				t.Errorf("counter %s: the gate has %d levels", c.Key, len(dimension.Levels))
+			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(dimension.Hunts) {
+				t.Errorf("counter %s: the second dimension has %d hunts", c.Key, len(dimension.Hunts))
 			}
 			continue
 		}

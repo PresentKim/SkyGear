@@ -17,8 +17,10 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -177,7 +179,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	}
 	gate, start := arenaGate(), arenaStart()
 	out := start.Sub(gate).Normalize()
-	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: 1})
+	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: huntIndex(mob)%PortalLooks + 1})
 	tx.AddEntity(r.Portal)
 	runPart.Of(s).Run = r
 	r.gear.dress(p)
@@ -338,6 +340,7 @@ func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player
 	if p != nil {
 		achievement.Count(p, "kill_total", 1)
 		achievement.Count(p, "kill_"+m.kind, 1)
+		progress.Advance(s, tx, advancement.Kill)
 	}
 	if e, ok := r.Hunter.Entity(tx); ok {
 		r.gear.drop(tx, e.(*player.Player), r, m.Position())
@@ -397,11 +400,31 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	releaseWatchers(s, tx)
 	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
 	record(s, &res)
+	if how == endClear {
+		progress.Advance(s, tx, advancement.Wave1)
+	}
+	stars := 0
+	for _, h := range Hunts {
+		stars += StarCount(s, h.Mob)
+	}
+	for _, a := range []struct {
+		stars int
+		id    string
+	}{{3, advancement.Wave3}, {9, advancement.Wave5}, {3 * len(Hunts), advancement.Wave8}} {
+		if stars >= a.stars {
+			progress.Advance(s, tx, a.id)
+		}
+	}
 	if p == nil {
 		return
 	}
+	// the counters keep the old gate's keys: a clear is a win, the first
+	// clear of the n-th monster its level n
 	if how == endClear {
-		achievement.Count(p, "dimension_clear", 1)
+		achievement.Count(p, "wave_win", 1)
+		achievement.Count(p, fmt.Sprintf("wave_level_%d", huntIndex(r.Mob)+1), 1)
+	} else {
+		achievement.Count(p, "wave_fail", 1)
 	}
 	switch {
 	case how == endDied:

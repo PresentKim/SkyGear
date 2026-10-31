@@ -52,7 +52,6 @@ var Rewards = map[string]map[string]int{
 	"dimension":          {"skygear:dimension_stone": 1, "skygear:relic_spin_blade": 1},
 	"relics":             {"skygear:relic_table": 1},
 	"essence_collector":  {"skygear:essence_collector": 1},
-	"dimension_gate":     {"skygear:dimension_gate": 1},
 	"fairy_magic":        {"skygear:fairy_board": 1},
 }
 

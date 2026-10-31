@@ -486,7 +486,7 @@ func TestTipNameMarks(t *testing.T) {
 }
 
 // TestGatePortalPack: the gate entity names its geometry, a texture for every
-// wave level and the render controller that picks one by the level.
+// look and the render controller that picks one by the level.
 func TestGatePortalPack(t *testing.T) {
 	var ent struct {
 		E struct {
@@ -502,10 +502,10 @@ func TestGatePortalPack(t *testing.T) {
 	if d.Identifier != dimension.GatePortalType.EncodeEntity() {
 		t.Errorf("entity identifier %s", d.Identifier)
 	}
-	for level := 1; level <= len(dimension.Levels); level++ {
+	for level := 1; level <= dimension.PortalLooks; level++ {
 		path, ok := d.Textures[fmt.Sprintf("tier_%d", level)]
 		if !ok || !packFileExists(path+".png") {
-			t.Errorf("no texture for wave level %d (%q)", level, path)
+			t.Errorf("no texture for look %d (%q)", level, path)
 		}
 	}
 	var geo struct {

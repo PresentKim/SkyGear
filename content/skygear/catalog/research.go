@@ -82,7 +82,6 @@ var baseResearchTree = []progress.Research{
 	{ID: "crucible", Needs: []string{"stone_barrel", "generator", "fluid_tank", "tin"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 8}}, Unlocks: []string{"skygear:crucible"}},
 	{ID: "lava_generator", Needs: []string{"crucible", "alloy_smelter"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}}, Unlocks: []string{"skygear:lava_generator"}},
 	{ID: "ore_washer", Needs: []string{"fluid_tank", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 4}}, Unlocks: []string{"skygear:ore_washer"}},
-	{ID: "dimension_gate", Needs: []string{"mob_simulator", "lava_generator"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobZombie}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSkeleton}, Count: 8}}, Unlocks: []string{"skygear:dimension_gate"}},
 	{ID: "diamond_tools", Needs: []string{"iron_tools", "mesh_diamond"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}},
 		Unlocks: []string{"diamond_pickaxe", "diamond_axe", "diamond_shovel", "diamond_hoe", "diamond_sword"}},
 	{ID: "storage_controller", Needs: []string{"drawer_upgrades", "item_conduit", "tin"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 8}}, Unlocks: []string{"skygear:storage_controller", "skygear:storage_link"}},
@@ -137,14 +136,25 @@ var baseResearchTree = []progress.Research{
 		Unlocks: []string{"skygear:tree_feller"}},
 	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:auto_crafter"}},
-	{ID: "magic_botany", Needs: []string{"dimension_gate"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "flower_red"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_yellow"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_blue"}, Count: 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
+	// The fairy magic (fairymagic.go): dust from the nightly fairy and a
+	// research table; it gives the board at once.
+	{ID: "fairy_magic", Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 2}, {Item: progress.ResearchTable{}, Count: 1}},
+		Unlocks: []string{"skygear:fairy_emerald", "skygear:fairy_board"}},
+	// Fairy time (fairytime.go): dust and bone meal for the things that
+	// cut waiting short.
+	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 4}, {Item: item.BoneMeal{}, Count: 8}},
+		Unlocks: []string{"skygear:fairy_bone_meal", "skygear:fairy_hourglass"}},
+	{ID: "dimension", Needs: []string{"fairy_magic", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.FairyDust{}, Count: 4}}, Unlocks: []string{"skygear:dimension_stone", "skygear:relic_spin_blade"}},
+	{ID: "relics", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSlime}, Count: 8}}, Unlocks: []string{"skygear:relic_table"}},
+	{ID: "essence_collector", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSlime}, Count: 16}}, Unlocks: []string{"skygear:essence_collector"}},
+	{ID: "magic_botany", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "flower_red"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_yellow"}, Count: 1}, {Item: farm.PlantSeed{Seed: "flower_blue"}, Count: 1}}, Unlocks: []string{"skygear:seed_ore_iron", "skygear:seed_ore_gold", "skygear:seed_ore_copper", "skygear:seed_ore_tin", "skygear:seed_ore_lead", "skygear:seed_ore_silver", "skygear:seed_ore_nickel"}},
 	{ID: "magic_gems", Needs: []string{"magic_botany"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "ore_gold"}, Count: 2}}, Unlocks: []string{"skygear:seed_gem_lapis", "skygear:seed_gem_redstone", "skygear:seed_gem_quartz", "skygear:seed_gem_coal", "skygear:seed_gem_diamond", "skygear:seed_gem_emerald"}},
 	{ID: "magic_essence", Needs: []string{"magic_gems", "blaze_craft"}, Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "gem_redstone"}, Count: 2}}, Unlocks: []string{"skygear:seed_ess_zombie", "skygear:seed_ess_skeleton", "skygear:seed_ess_creeper", "skygear:seed_ess_spider", "skygear:seed_ess_slime", "skygear:seed_ess_enderman", "skygear:seed_ess_blaze"}},
 	{ID: "magic_sieve", Needs: []string{"auto_sieve", "mob_simulator", "magic_botany"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}, {Item: item.EnderPearl{}, Count: 8}},
 		Unlocks: []string{"skygear:magic_sieve"}},
 	{ID: "machine_tier_1", Needs: []string{"auto_crafter", "energy_cell", "conduit_upgrade_2"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 16}, {Item: item.Diamond{}, Count: 4}},
 		Unlocks: []string{"skygear:circuit_1", "skygear:circuit_2", "skygear:kit_1"}},
-	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension_gate", "lava_generator"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 16}},
+	{ID: "machine_tier_2", Needs: []string{"machine_tier_1", "dimension", "lava_generator"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 16}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 16}},
 		Unlocks: []string{"skygear:circuit_3", "skygear:kit_2"}},
 	{ID: "machine_tier_3", Needs: []string{"machine_tier_2", "magic_essence", "magic_sieve"}, Cost: []progress.Requirement{{Item: item.NetheriteIngot{}, Count: 2}},
 		Unlocks: []string{"skygear:circuit_4", "skygear:kit_3"}},
@@ -158,7 +168,7 @@ var baseResearchTree = []progress.Research{
 		Unlocks: []string{"golden_apple", "golden_carrot", "glistering_melon_slice"}},
 	{ID: "project_industry", Icon: "skygear:storage_controller", Needs: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"},
 		Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 32}, {Item: item.Diamond{}, Count: 16}}},
-	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension_gate", "tinker_table", "diamond_armor", "blaze_craft"},
+	{ID: "project_hunter", Icon: "diamond_sword", Needs: []string{"dimension", "relics", "blaze_craft"},
 		Cost: []progress.Requirement{{Item: item.BlazeRod{}, Count: 16}, {Item: item.EnderPearl{}, Count: 16}, {Item: item.Slimeball{}, Count: 16}, {Item: item.SpiderEye{}, Count: 16}, {Item: item.Bone{}, Count: 32}}},
 	{ID: "project_botanist", Icon: "skygear:petal_red", Needs: []string{"magic_essence", "dyeing"},
 		Cost: []progress.Requirement{{Item: farm.PlantSeed{Seed: "ess_enderman"}, Count: 2}, {Item: farm.PlantSeed{Seed: "ess_blaze"}, Count: 2}, {Item: farm.PlantSeed{Seed: "gem_diamond"}, Count: 2}, {Item: farm.PlantSeed{Seed: "gem_emerald"}, Count: 2}, {Item: sgitem.Essence{Mob: sgitem.MobEnder}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobBlaze}, Count: 8}}},
@@ -166,15 +176,4 @@ var baseResearchTree = []progress.Research{
 		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.DriedKelp{}, Count: 16}}, Unlocks: []string{"dried_kelp_block"}},
-	// The fairy magic (fairymagic.go): dust from the nightly fairy and a
-	// research table; it gives the board at once.
-	{ID: "fairy_magic", Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 2}, {Item: progress.ResearchTable{}, Count: 1}},
-		Unlocks: []string{"skygear:fairy_emerald", "skygear:fairy_board"}},
-	// Fairy time (fairytime.go): dust and bone meal for the things that
-	// cut waiting short.
-	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 4}, {Item: item.BoneMeal{}, Count: 8}},
-		Unlocks: []string{"skygear:fairy_bone_meal", "skygear:fairy_hourglass"}},
-	{ID: "dimension", Needs: []string{"fairy_magic", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.FairyDust{}, Count: 4}}, Unlocks: []string{"skygear:dimension_stone", "skygear:relic_spin_blade"}},
-	{ID: "relics", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSlime}, Count: 8}}, Unlocks: []string{"skygear:relic_table"}},
-	{ID: "essence_collector", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSlime}, Count: 16}}, Unlocks: []string{"skygear:essence_collector"}},
 }
