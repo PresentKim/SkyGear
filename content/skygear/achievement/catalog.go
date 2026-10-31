@@ -60,6 +60,7 @@ var Counters = []CounterDef{
 	{"place_storage_link", "factory", []int64{1, 10}},
 	{"place_tinker_table", "factory", []int64{1, 10}},
 	{"place_dimension_gate", "factory", []int64{1, 10}},
+	{"place_essence_collector", "factory", []int64{1, 10}},
 	{"place_crucible", "factory", []int64{1, 10}},
 	{"place_lava_generator", "factory", []int64{1, 10}},
 	{"place_mob_simulator", "factory", []int64{1, 10}},

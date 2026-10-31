@@ -94,6 +94,7 @@ func gameRecipes() {
 	add(machine.Item(machine.KindCrucible), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
 	add(machine.Item(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
+	add(machine.Item(machine.KindCollector), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(item.Diamond{}, 2), n(sgitem.FairyEmerald{}, 1))
 	add(machine.Item(machine.KindGate), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.Obsidian{}, 3), n(item.EnderPearl{}, 2))
 	add(machine.Item(machine.KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(storage.Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
 	add(item.NewStack(machine.Machine{Kind: machine.KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))

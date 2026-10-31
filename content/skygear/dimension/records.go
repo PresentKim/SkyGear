@@ -29,6 +29,9 @@ type Record struct {
 type dimensionState struct {
 	// Hunts are the records by mob.
 	Hunts map[string]*Record `json:"hunts,omitempty"`
+	// Pool are the essences waiting for the collectors, by mob
+	// (collector.go).
+	Pool map[string]float64 `json:"essence_pool,omitempty"`
 }
 
 var dimensionSaved = core.NewSaved[dimensionState](nil)

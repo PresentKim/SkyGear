@@ -175,4 +175,5 @@ var baseResearchTree = []progress.Research{
 	{ID: "fairy_time", Needs: []string{"fairy_magic"}, Cost: []progress.Requirement{{Item: sgitem.FairyDust{}, Count: 4}, {Item: item.BoneMeal{}, Count: 8}},
 		Unlocks: []string{"skygear:fairy_bone_meal", "skygear:fairy_hourglass"}},
 	{ID: "dimension", Needs: []string{"fairy_magic", "alloy_smelter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: sgitem.FairyDust{}, Count: 4}}, Unlocks: []string{"skygear:dimension_stone"}},
+	{ID: "essence_collector", Needs: []string{"dimension"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 8}, {Item: sgitem.Essence{Mob: sgitem.MobSlime}, Count: 16}}, Unlocks: []string{"skygear:essence_collector"}},
 }

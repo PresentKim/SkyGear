@@ -29,6 +29,7 @@ func (s *session) Second(tx *world.Tx) {
 	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
 	dimension.Tick(s.Session, tx)
+	dimension.TickCollectors(s.Session, tx)
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)

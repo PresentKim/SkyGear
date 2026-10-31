@@ -14,6 +14,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -324,6 +325,57 @@ func TestWatch(t *testing.T) {
 		dimension.Died(s.Session, tx, hunter)
 		if dimension.Watching(s.Session, w) || w.GameMode() == world.GameModeSpectator || w.Position() != from {
 			t.Errorf("after the run the watcher is at %v in mode %v", w.Position(), w.GameMode())
+		}
+	})
+}
+
+// TestCollectors: a cleared monster's pool fills by its best time and hands
+// its essences to the collectors of that monster in turn; more collectors
+// split them, and with none the pool keeps at most a stack.
+func TestCollectors(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	a := placeTestMachine(s, machinePos, machine.KindCollector, "")
+	b := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindCollector, "")
+	tick(s, 2) // the collectors tick, so the island knows them
+	s.World.Do(func(tx *world.Tx) {
+		slime := sgitem.MobSlime
+		if dimension.PerMinute(s.Session, slime) != 0 {
+			t.Fatal("essences before the first clear")
+		}
+		// 60 slimes in 6 s: 600 a minute, 30 essences a minute
+		dimension.RecordOf(s.Session, slime).Best = 6
+		if got := dimension.PerMinute(s.Session, slime); math.Abs(got-30) > 1e-9 {
+			t.Fatalf("%v essences a minute, want 30", got)
+		}
+		a.SetMob(slime)
+		b.SetMob(slime)
+		for range 60 {
+			dimension.TickCollectors(s.Session, tx)
+		}
+		count := func(st *machine.State) int {
+			n := 0
+			for _, it := range st.Inv().Items() {
+				if e, ok := it.Item().(sgitem.Essence); ok && e.Mob == slime {
+					n += it.Count()
+				}
+			}
+			return n
+		}
+		na, nb := count(a), count(b)
+		if na+nb < 29 || na+nb > 30 {
+			t.Errorf("%d essences in a minute, want 30", na+nb)
+		}
+		if math.Abs(float64(na-nb)) > 1 {
+			t.Errorf("the collectors got %d and %d, not in turn", na, nb)
+		}
+		a.SetMob("")
+		b.SetMob("")
+		for range 600 {
+			dimension.TickCollectors(s.Session, tx)
+		}
+		if p := dimension.Pool(s.Session, slime); p > 64 {
+			t.Errorf("the pool holds %v with no collector, want at most 64", p)
 		}
 	})
 }
