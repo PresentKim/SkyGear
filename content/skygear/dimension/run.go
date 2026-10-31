@@ -114,7 +114,24 @@ type Run struct {
 	Elite *world.EntityHandle
 	// ticks counts the run's ticks from its start, the countdown included.
 	ticks int
-	blade blade
+	// gear is what the hunter fights with (gear.go); while paused the hunt
+	// waits for the hunter's level-up choice among choices.
+	gear       *gear
+	paused     bool
+	pauseTicks int
+	choices    []choice
+	sess       *core.Session
+}
+
+// monsters are the run's monsters out now.
+func (r *Run) monsters(tx *world.Tx) []*Monster {
+	out := make([]*Monster, 0, len(r.Alive))
+	for h := range r.Alive {
+		if e, ok := h.Entity(tx); ok {
+			out = append(out, e.(*Monster))
+		}
+	}
+	return out
 }
 
 func (r *Run) Owns(h *world.EntityHandle) bool { return r.Alive[h] }
@@ -154,7 +171,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	if Watching(s, p) {
 		return false
 	}
-	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), name: p.Name(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}}
+	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), name: p.Name(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}, gear: gearOf(s, p), sess: s}
 	if core.InArena(r.Return) {
 		r.Return = island.Spawn(s)
 	}
@@ -163,7 +180,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: 1})
 	tx.AddEntity(r.Portal)
 	runPart.Of(s).Run = r
-	p.Heal(p.MaxHealth(), entity.FoodHealingSource{})
+	r.gear.dress(p)
 	p.SetFood(20)
 	// PlaceAt holds the hunter on its spot until the client has the ground.
 	p.Teleport(start)
@@ -184,6 +201,12 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 		r.end(s, tx, p, endGone)
 		return
 	}
+	if r.paused {
+		if r.pauseTicks++; r.pauseTicks >= pauseLimit && len(r.choices) > 0 {
+			r.choose(tx, p, r.choices[0])
+		}
+		return
+	}
 	r.ticks++
 	if r.ticks <= countdownTicks {
 		if r.ticks%20 == 1 {
@@ -198,9 +221,9 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 		return
 	}
 	r.spawn(s, tx, p)
-	r.blade.tick(tx, p, r)
+	r.gear.tick(s, tx, p, r)
 	if RunOf(s) != r {
-		return // the blades killed the last monster
+		return // the weapons killed the last monster
 	}
 	// monsters closed elsewhere (an unloaded chunk) do not count
 	for h := range r.Alive {
@@ -316,6 +339,9 @@ func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player
 		achievement.Count(p, "kill_total", 1)
 		achievement.Count(p, "kill_"+m.kind, 1)
 	}
+	if e, ok := r.Hunter.Entity(tx); ok {
+		r.gear.drop(tx, e.(*player.Player), r, m.Position())
+	}
 	_ = m.Close()
 	if r.Kills >= r.Hunt.Count {
 		if e, ok := r.Hunter.Entity(tx); ok {
@@ -364,6 +390,9 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	}
 	if p != nil && r.Elite != nil {
 		p.RemoveBossBar()
+	}
+	if p != nil {
+		r.gear.undress(p)
 	}
 	releaseWatchers(s, tx)
 	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}

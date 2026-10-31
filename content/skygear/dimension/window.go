@@ -55,7 +55,10 @@ func ShowWindow(s *core.Session, p *player.Player, mob string) {
 			if !Begin(s, tx, p, mob) {
 				ShowWindow(s, p, mob)
 			}
+		}), s.Opt(i18n.T(lang, "dimension.window.loadout"), "", func(p *player.Player, _ *world.Tx) {
+			ShowLoadout(s, p, mob)
 		}))
+		sp.Body += "\n\n" + loadoutLine(s, p, lang)
 	case CanOpen(s, mob):
 		sp.Actions = append(sp.Actions, s.Opt(i18n.T(lang, "dimension.window.open"), formicon.Of(item.NewStack(sgitem.FairyEmerald{}, 1)), func(p *player.Player, tx *world.Tx) {
 			if !Open(s, p, mob) {
@@ -101,6 +104,19 @@ func windowBody(s *core.Session, lang, mob string) string {
 		b.WriteString("\n" + fmt.Sprintf(i18n.T(lang, "dimension.window.opens"), MobName(lang, prev)))
 	}
 	return strings.TrimRight(b.String(), "\n")
+}
+
+// loadoutLine names the relics p would hunt with now.
+func loadoutLine(s *core.Session, p *player.Player, lang string) string {
+	var names []string
+	for _, kind := range Loadout(s, p) {
+		g, _ := carried(p, kind)
+		names = append(names, fmt.Sprintf("%s%s", i18n.T(lang, "relic."+kind), strings.Repeat("★", g)))
+	}
+	if len(names) == 0 {
+		return i18n.T(lang, "dimension.window.noRelics")
+	}
+	return fmt.Sprintf(i18n.T(lang, "dimension.window.relics"), strings.Join(names, ", "))
 }
 
 // starText draws three stars, the earned ones lit.

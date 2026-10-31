@@ -77,6 +77,9 @@ func RegisterCreativeItems() {
 		add(items, sgitem.FairyDust{})
 		add(items, sgitem.FairyEmerald{})
 		add(items, sgitem.DimensionStone{})
+		for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+			add(equipment, sgitem.Relic{Kind: kind})
+		}
 		add(equipment, fairy.Board{})
 		add(items, sgitem.FairyBoneMeal{})
 		add(items, sgitem.FairyHourglass{})

@@ -32,6 +32,9 @@ type dimensionState struct {
 	// Pool are the essences waiting for the collectors, by mob
 	// (collector.go).
 	Pool map[string]float64 `json:"essence_pool,omitempty"`
+	// Loadouts are the relics each account picked to hunt with, by account
+	// (relic.go).
+	Loadouts map[string][]string `json:"relic_loadouts,omitempty"`
 }
 
 var dimensionSaved = core.NewSaved[dimensionState](nil)

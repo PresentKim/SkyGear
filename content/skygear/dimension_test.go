@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"fmt"
 	"math"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -148,13 +150,14 @@ func TestHuntFails(t *testing.T) {
 	})
 }
 
-// TestBladesHit: the blades turning around the hunter hurt a monster beside
-// it within a turn.
+// TestBladesHit: the blades of a hunter carrying the spinning blade hurt a
+// monster beside it within a turn.
 func TestBladesHit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicBlade, 1))
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
 		for range 100 {
 			runTick(t, s, tx)
@@ -376,6 +379,110 @@ func TestCollectors(t *testing.T) {
 		}
 		if p := dimension.Pool(s.Session, slime); p > 64 {
 			t.Errorf("the pool holds %v with no collector, want at most 64", p)
+		}
+	})
+}
+
+// TestRelicTable: after the research the relic table makes a relic for its
+// materials and raises it a grade for more of them and essences of any
+// monster.
+func TestRelicTable(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		give := func(it world.Item, n int) { _, _ = p.Inventory().AddItem(item.NewStack(it, n)) }
+		give(item.IronIngot{}, 12)
+		give(item.RedstoneWire{}, 4)
+		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
+		if _, ok := dimension.Carried(p, sgitem.RelicMagnet); ok {
+			t.Fatal("a relic was made before the research")
+		}
+		if progress.StateOf(s.Session).Researched == nil {
+			progress.StateOf(s.Session).Researched = map[string]bool{}
+		}
+		progress.StateOf(s.Session).Researched[dimension.RelicsResearch] = true
+		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
+		if g, ok := dimension.Carried(p, sgitem.RelicMagnet); !ok || g != 1 {
+			t.Fatalf("made grade %d (%v), want 1", g, ok)
+		}
+		if n := core.CountPlain(p.Inventory(), item.IronIngot{}); n != 4 {
+			t.Errorf("%d iron left, want 4", n)
+		}
+		// grade 1 → 2: the materials once more and 4 essences
+		give(item.IronIngot{}, 4)
+		give(item.RedstoneWire{}, 4)
+		give(sgitem.Essence{Mob: sgitem.MobSlime}, 3)
+		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
+		if g, _ := dimension.Carried(p, sgitem.RelicMagnet); g != 1 {
+			t.Fatal("raised without enough essences")
+		}
+		give(sgitem.Essence{Mob: sgitem.MobZombie}, 1)
+		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
+		if g, _ := dimension.Carried(p, sgitem.RelicMagnet); g != 2 {
+			t.Fatalf("grade %d after raising, want 2", g)
+		}
+		if n := core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobSlime}) + core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobZombie}); n != 0 {
+			t.Errorf("%d essences left, want 0", n)
+		}
+	})
+}
+
+// TestLoadoutAndLevels: a hunter brings its best relics (two weapons, three
+// charms) unless it picked others; a life charm raises its health for the run
+// only; gems level it up, which stops the hunt until it picks an upgrade.
+func TestLoadoutAndLevels(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		for _, k := range []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicFlameRing, sgitem.RelicLife} {
+			_, _ = p.Inventory().AddItem(sgitem.RelicStack(k, 1))
+		}
+		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicLife, 3))
+		got := dimension.Loadout(s.Session, p)
+		want := []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicLife}
+		if fmt.Sprint(got) != fmt.Sprint(want) {
+			t.Errorf("loadout %v, want %v", got, want)
+		}
+		dimension.ToggleLoadout(s.Session, p, sgitem.RelicCrossbow)
+		dimension.ToggleLoadout(s.Session, p, sgitem.RelicFlameRing)
+		want = []string{sgitem.RelicBlade, sgitem.RelicLife, sgitem.RelicFlameRing}
+		if got := dimension.Loadout(s.Session, p); fmt.Sprint(got) != fmt.Sprint(want) {
+			t.Errorf("loadout %v after the changes, want %v", got, want)
+		}
+
+		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
+		// a grade 3 life charm: 4 + 2 + 2
+		if p.MaxHealth() != 28 {
+			t.Errorf("max health %v in the run, want 28", p.MaxHealth())
+		}
+		for range 101 {
+			runTick(t, s, tx)
+		}
+		r := dimension.RunOf(s.Session)
+		dimension.GiveGems(r, tx, p, 4) // 8 experience: level 1
+		if !r.Paused() {
+			t.Fatal("a level did not stop the hunt")
+		}
+		ticks := r.Ticks()
+		runTick(t, s, tx)
+		if r.Ticks() != ticks {
+			t.Error("the hunt went on while paused")
+		}
+		dimension.ChooseFirst(r, tx, p)
+		if r.Paused() {
+			t.Error("still paused after the choice")
+		}
+		dimension.GiveGems(r, tx, p, 10) // two more levels: the second waits for the first choice
+		dimension.ChooseFirst(r, tx, p)
+		if !r.Paused() {
+			t.Error("the second level of a batch of gems did not stop the hunt")
+		}
+		dimension.ChooseFirst(r, tx, p)
+		dimension.Died(s.Session, tx, p)
+		if p.MaxHealth() != 20 || p.ExperienceLevel() != 0 {
+			t.Errorf("after the run max health %v, level %d, want 20 and 0", p.MaxHealth(), p.ExperienceLevel())
 		}
 	})
 }

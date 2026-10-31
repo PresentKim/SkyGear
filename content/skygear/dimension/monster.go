@@ -95,6 +95,8 @@ type monsterData struct {
 	MaxHealth float64
 	fuse      int
 	beat      int
+	// slow counts down the ticks a frost hit slows it.
+	slow int
 }
 
 type MonsterConfig struct {
@@ -130,6 +132,15 @@ func (c MonsterConfig) Apply(data *world.EntityData) {
 	}
 	data.Data = d
 }
+
+// huntHit is the damage a monster of a run does: the hunter's armour does not
+// count in the hunting ground.
+type huntHit struct{ Attacker world.Entity }
+
+func (huntHit) ReducedByArmour() bool     { return false }
+func (huntHit) ReducedByResistance() bool { return true }
+func (huntHit) Fire() bool                { return false }
+func (huntHit) IgnoreTotem() bool         { return false }
 
 // orOne is v, or 1 when v is unset.
 func orOne(v float64) float64 {
@@ -252,6 +263,9 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	}
 	run := RunOf(s)
 	hunting := run != nil && run.Owns(m.Handle)
+	if hunting && run.paused {
+		return // the hunter is choosing an upgrade
+	}
 	if !hunting && (LocalOf(s).Wave == nil || !LocalOf(s).Wave.Owns(m.Handle)) {
 		// from an earlier session or a finished run or wave
 		_ = m.Close()
@@ -268,6 +282,10 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	}
 	st.width *= m.Scale()
 	d.beat++
+	if d.slow > 0 {
+		d.slow--
+		st.speed *= 0.5
+	}
 	pos := m.Data.Pos
 	sight := monsterSight
 	if hunting {
@@ -325,7 +343,11 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		}
 		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
-			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
+			var src world.DamageSource = entity.AttackDamageSource{Attacker: m}
+			if hunting {
+				src = huntHit{m}
+			}
+			if _, hurt := target.Hurt(st.damage, src); hurt {
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				if v.Hit != nil {
 					target.AddEffect(*v.Hit)
@@ -351,7 +373,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 			tx.AddParticle(pos, particle.HugeExplosion{})
 			tx.PlaySound(pos, sound.Explosion{})
 			if target.Position().Sub(pos).Len() < blastRange {
-				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), entity.AttackDamageSource{Attacker: m})
+				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), huntHit{m})
 				target.KnockBack(pos, 0.8, 0.4)
 			}
 			monsterGone(s, tx, m, nil)

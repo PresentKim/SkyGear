@@ -170,6 +170,8 @@ const (
 	// KindCollector receives the essences of a monster the island hunted
 	// (dimension/collector.go).
 	KindCollector = "essence_collector"
+	// KindRelicTable makes and raises the relics (dimension/relic.go).
+	KindRelicTable = "relic_table"
 )
 
 type ID int
@@ -200,6 +202,7 @@ const (
 	idCrafter
 	idLab
 	idCollector
+	idRelicTable
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -321,6 +324,10 @@ var Kinds = map[string]*Def{
 		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		helpKeys: []string{"machine.collector.help.1", "machine.collector.help.2"},
 	},
+	KindRelicTable: {
+		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.relictable.help.1"},
+	},
 	KindGate: {
 		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10, Gate: true,
 		helpKeys: []string{"machine.gate.help.1", "machine.gate.help.2"},
@@ -393,7 +400,7 @@ var Kinds = map[string]*Def{
 }
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -1054,7 +1061,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true, KindCollector: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true, KindCollector: true, KindRelicTable: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true}
 )
 
@@ -1397,7 +1404,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		showActive(tx, pos, st, currentTick)
 	}
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
