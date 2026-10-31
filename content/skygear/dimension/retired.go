@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -44,9 +45,10 @@ func retireGate(s *core.Session, tx *world.Tx, pos cube.Pos) {
 	}
 }
 
-// RetireItems turns the gates p carries into their materials (session.Second
-// and Join).
+// RetireItems turns the gates p carries into their materials and the seeds
+// of essence blooms into redstone bloom seeds (session.Second and Join).
 func RetireItems(s *core.Session, tx *world.Tx, p *player.Player) {
+	farm.RetireSeeds(p)
 	inv := p.Inventory()
 	for slot, it := range inv.Slots() {
 		m, ok := it.Item().(machine.Machine)

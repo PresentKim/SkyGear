@@ -67,7 +67,6 @@ const (
 	Tool5      = "tool_level_5"
 	OreHarvest = "ore_harvest"
 	GemHarvest = "gem_harvest"
-	EssHarvest = "ess_harvest"
 	Chunks8    = "chunks_8"
 	Chunks16   = "chunks_16"
 	// EssenceResearch is done by a research that cost research essences.
@@ -200,7 +199,6 @@ var Tree = []Advancement{
 	{ID: "ore_bloom", Chapter: ChapterMagic, Parents: []string{Bloom}, NameKey: "advancement.ore_bloom.name", HintKey: "advancement.ore_bloom.hint", Item: "skygear:seed_ore_iron"},
 	{ID: "magic_sieve", Chapter: ChapterMagic, Parents: []string{"auto_sieve", "ore_bloom"}, NameKey: "advancement.magic_sieve.name", HintKey: "advancement.magic_sieve.hint", Research: "magic_sieve", Icon: "skygear:magic_sieve"},
 	{ID: "gem_bloom", Chapter: ChapterMagic, Parents: []string{"ore_bloom"}, NameKey: "advancement.gem_bloom.name", HintKey: "advancement.gem_bloom.hint", Item: "skygear:seed_gem_diamond"},
-	{ID: "essence_bloom", Chapter: ChapterMagic, Parents: []string{"gem_bloom"}, NameKey: "advancement.essence_bloom.name", HintKey: "advancement.essence_bloom.hint", Item: "skygear:seed_ess_enderman"},
 	{ID: Chunk, Chapter: ChapterStart, Parents: []string{"cobble"}, Event: true, NameKey: "advancement.chunk.name", HintKey: "advancement.chunk.hint", Icon: "grass_block"},
 	{ID: "shears", Chapter: ChapterGear, Parents: []string{"iron"}, NameKey: "advancement.shears.name", HintKey: "advancement.shears.hint", Item: "shears"},
 	{ID: "iron_armor", Chapter: ChapterGear, Parents: []string{"iron"}, NameKey: "advancement.iron_armor.name", HintKey: "advancement.iron_armor.hint", Item: "iron_chestplate"},
@@ -227,12 +225,11 @@ var Tree = []Advancement{
 	{ID: "tool_level_5", Chapter: ChapterGear, Parents: []string{ToolLevel}, NameKey: "advancement.tool_level_5.name", HintKey: "advancement.tool_level_5.hint", Event: true, Icon: "diamond_pickaxe", Guide: "tinker_table"},
 	{ID: "ore_harvest", Chapter: ChapterMagic, Parents: []string{"ore_bloom"}, NameKey: "advancement.ore_harvest.name", HintKey: "advancement.ore_harvest.hint", Event: true, Icon: "iron_ingot", Guide: "magic_botany"},
 	{ID: "gem_harvest", Chapter: ChapterMagic, Parents: []string{"gem_bloom"}, NameKey: "advancement.gem_harvest.name", HintKey: "advancement.gem_harvest.hint", Event: true, Icon: "diamond", Guide: "magic_gems"},
-	{ID: "ess_harvest", Chapter: ChapterMagic, Parents: []string{"essence_bloom"}, NameKey: "advancement.ess_harvest.name", HintKey: "advancement.ess_harvest.hint", Event: true, Icon: "ender_pearl", Guide: "magic_essence"},
 	{ID: "chunks_8", Chapter: ChapterExtra, Parents: []string{Chunk}, NameKey: "advancement.chunks_8.name", HintKey: "advancement.chunks_8.hint", Event: true, Icon: "grass_block"},
 	{ID: "chunks_16", Chapter: ChapterExtra, Parents: []string{Chunks8}, NameKey: "advancement.chunks_16.name", HintKey: "advancement.chunks_16.hint", Event: true, Icon: "grass_block"},
 	{ID: "project_industry", Chapter: ChapterProject, Parents: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"}, NameKey: "advancement.project_industry.name", HintKey: "advancement.project_industry.hint", Research: "project_industry", Icon: "skygear:storage_controller"},
 	{ID: "project_hunter", Chapter: ChapterProject, Parents: []string{Wave5, "relics", "blaze_rod"}, NameKey: "advancement.project_hunter.name", HintKey: "advancement.project_hunter.hint", Research: "project_hunter", Icon: "diamond_sword"},
-	{ID: "project_botanist", Chapter: ChapterProject, Parents: []string{"essence_bloom", "dye"}, NameKey: "advancement.project_botanist.name", HintKey: "advancement.project_botanist.hint", Research: "project_botanist", Icon: "skygear:petal_red"},
+	{ID: "project_botanist", Chapter: ChapterProject, Parents: []string{"gem_bloom", "dye"}, NameKey: "advancement.project_botanist.name", HintKey: "advancement.project_botanist.hint", Research: "project_botanist", Icon: "skygear:petal_red"},
 	{ID: "project_dragon", Chapter: ChapterProject, Parents: []string{"project_industry", "project_hunter", "project_botanist"}, NameKey: "advancement.project_dragon.name", HintKey: "advancement.project_dragon.hint", Research: "project_dragon", Icon: "ender_eye"},
 	{ID: Dragon, Chapter: ChapterProject, Parents: []string{"project_dragon"}, NameKey: "advancement.dragon_egg.name", HintKey: "advancement.dragon_egg.hint", Event: true, Icon: "dragon_egg", Guide: "project_dragon"},
 	{ID: "wood_hopper", Chapter: ChapterLogistics, NameKey: "advancement.wood_hopper.name", Parents: []string{"chest"}, HintKey: "advancement.wood_hopper.hint", Item: "skygear:wood_hopper"},

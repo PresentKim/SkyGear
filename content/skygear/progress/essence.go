@@ -37,9 +37,9 @@ var EssenceCosts = map[string]map[string]int{
 	"essence_collector": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 6},
 	"relics":            {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
 	// magic plants
+	"magic_seed":   {sgitem.EssenceAlchemy: 4},
 	"magic_botany": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceFarming: 4}, "dyeing": {sgitem.EssenceMagic: 4},
 	"magic_gems":    {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceMagic: 4},
-	"magic_essence": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 6, sgitem.EssenceMagic: 6},
 	"magic_sieve":   {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 8, sgitem.EssenceHunting: 6, sgitem.EssenceMagic: 6},
 	"config_copier": {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 6},
 	// machine tiers

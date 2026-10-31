@@ -391,7 +391,7 @@ func SourceCards(s *core.Session, lang string, it item.Stack) []Card {
 			}
 		}
 	}
-	for _, pk := range farm.PlantKinds {
+	for _, pk := range farm.LivePlantKinds() {
 		for _, y := range pk.Yield {
 			if naming.ItemKey(y.Item) == k {
 				cards = append(cards, plantCard(s, lang, pk))
@@ -677,7 +677,7 @@ func codexGearCards(s *core.Session, lang string) []Card {
 		cards = append(cards, Card{Head: tinkerTable, name: naming.UIItemName(lang, tinkerTable), Rows: [][]ui.BoardCell{row}})
 	}
 	for _, h := range tinker.HeadMaterials {
-		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.head"), i18n.T(lang, "tmat."+h.ID), h.Dur, h.Eff, h.Attack))
+		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.head"), i18n.T(lang, "tmat."+h.ID), h.Dur, h.Eff))
 	}
 	for _, h := range tinker.HandleMaterials {
 		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.handle"), i18n.T(lang, "thandle."+h.ID)))

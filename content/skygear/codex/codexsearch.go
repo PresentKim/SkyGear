@@ -171,7 +171,7 @@ func Relevant() map[string]bool {
 			add(d.Item)
 		}
 	}
-	for _, pk := range farm.PlantKinds {
+	for _, pk := range farm.LivePlantKinds() {
 		for _, y := range pk.Yield {
 			add(y.Item)
 		}

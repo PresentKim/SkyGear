@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -77,12 +78,16 @@ func TickCollectors(s *core.Session, tx *world.Tx) {
 		return
 	}
 	l.seconds = 0
-	handOut(s)
+	// the old essence bloom harvest counter counts the essences collected
+	if n := handOut(s); n > 0 {
+		achievement.CountAll(tx, "bloom_ess", int64(n))
+	}
 }
 
 // handOut gives the pools' whole essences to the collectors, one essence to
-// each in turn.
-func handOut(s *core.Session) {
+// each in turn, and reports how many it gave.
+func handOut(s *core.Session) int {
+	given := 0
 	st := dimensionSaved.Of(s)
 	byMob := map[string][]*machine.State{}
 	collectors := machine.Ticking(s, machine.KindCollector)
@@ -95,23 +100,25 @@ func handOut(s *core.Session) {
 	for mob, cs := range byMob {
 		one := []item.Stack{item.NewStack(sgitem.Essence{Mob: mob}, 1)}
 		for st.Pool[mob] >= 1 {
-			given := false
+			gave := false
 			for range cs {
 				c := cs[l.next[mob]%len(cs)]
 				l.next[mob] = (l.next[mob] + 1) % len(cs)
 				if c.RoomFor(one) {
 					c.Emit(one[0])
 					st.Pool[mob]--
-					given = true
+					gave = true
+					given++
 					break
 				}
 			}
-			if !given {
+			if !gave {
 				break // every collector of the monster is full
 			}
 		}
 		s.MarkDirty()
 	}
+	return given
 }
 
 // collectorAt is the state of the essence collector at pos.

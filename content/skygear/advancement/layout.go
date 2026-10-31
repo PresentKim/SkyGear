@@ -374,7 +374,7 @@ func (g advGraph) layoutGroup(keys []string) (pos map[string]Pos, w, h int) {
 // advancements of a research get the goal frame, the rest the task frame.
 var advChallenges = map[string]bool{
 	Dragon: true, Wave8: true, "chunks_16": true,
-	Tool5: true, "project_dragon": true, "ess_harvest": true, "gem_harvest": true,
+	Tool5: true, "project_dragon": true, "gem_harvest": true,
 }
 
 // Frame is the frame letter of a node.

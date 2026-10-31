@@ -6,7 +6,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
-	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -188,32 +187,12 @@ func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
 	if m, ok := e.(*dimension.Monster); ok {
-		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
+		// the monsters are ours: a hunter's bare hit, no vanilla hit
 		ctx.Cancel()
-		p := ctx.Player()
-		if dimension.Hunting(h.s.Session, p) {
-			// a hunter fights with its relics; a bare hit does little
+		if p := ctx.Player(); dimension.Hunting(h.s.Session, p) {
+			achievement.Count(p, "hit_monster", 1)
 			m.Hurt(p.Tx(), dimension.HandDamage, p)
-			return
 		}
-		held, _ := p.HeldItems()
-		dmg := 2.0
-		if w, ok := held.Item().(item.Weapon); ok {
-			dmg = w.AttackDamage()
-		}
-		if td, ok := tinker.TinkerDamage(held); ok {
-			dmg = td
-			mods := tinker.ToolMods(held)
-			if v := mods["vampiric"]; v > 0 {
-				p.Heal(0.5*float64(v), entity.FoodHealingSource{})
-			}
-			// a use costs the tool durability and gives it experience
-			_, off := p.HeldItems()
-			p.SetHeldItems(tinker.DescribeTool(held.Damage(2)), off)
-			tinker.Reinforce(h.s.Session, p)
-		}
-		achievement.Count(p, "hit_monster", 1)
-		m.Hurt(p.Tx(), dmg, p)
 		return
 	}
 	h.touchFairy(ctx, e)
