@@ -78,7 +78,7 @@ type Session interface {
     Leave(p *player.Player)                     // 퇴장 전(상태 저장 전)
     Handler(p *player.Player) player.Handler    // 인스턴스 안에서의 게임 이벤트 핸들러
     NewDay(tx *world.Tx, day int)               // 인스턴스 날짜가 바뀔 때
-    Second(tx *world.Tx)                        // 약 1초마다(작물, 요정, 발전과제, 웨이브 …)
+    Second(tx *world.Tx)                        // 약 1초마다(작물, 요정, 발전과제, 에센스 수집기 …)
     Fast(tx *world.Tx)                          // 0.2초마다(연결망, WAILA 게이지)
     MenuBack(p *player.Player, from string)     // 플랫폼 화면의 뒤로 버튼이 돌아갈 게임 화면
     Autosave(tx *world.Tx)                      // 자동 저장 주기마다
