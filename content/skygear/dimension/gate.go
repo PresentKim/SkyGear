@@ -108,6 +108,10 @@ func Start(s *core.Session, tx *world.Tx, pos cube.Pos, from mgl64.Vec3, level i
 // with no loot): it leaves the wave, drops its loot and ends the wave when no
 // monster is left out or to come.
 func monsterGone(s *core.Session, tx *world.Tx, m *Monster, p *player.Player) {
+	if r := RunOf(s); r != nil && r.Owns(m.Handle) {
+		r.killed(s, tx, m, p)
+		return
+	}
 	w := LocalOf(s).Wave
 	if w == nil || !w.Owns(m.Handle) {
 		_ = m.Close()

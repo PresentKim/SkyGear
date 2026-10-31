@@ -151,9 +151,11 @@ func (s *session) Join(p *player.Player, first bool) {
 	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
 	screens.UpdateBoard(s.Session, p)
+	dimension.Joined(s.Session, p)
 }
 
 func (s *session) Leave(p *player.Player) {
+	dimension.Leave(s.Session, p.Tx(), p)
 	s.Session.Leave(p)
 	expand.Stop(s.Session, p, p.Tx())
 	delete(s.diedFood, p.H())

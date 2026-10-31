@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
@@ -48,6 +49,9 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		return false
 	}
 	ctx.Cancel()
+	if core.InArena(pos.Vec3()) {
+		return true // the hunting ground is no one's to build on
+	}
 	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
 	return true
 }
@@ -183,6 +187,11 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
 		ctx.Cancel()
 		p := ctx.Player()
+		if dimension.Hunting(h.s.Session, p) {
+			// a hunter fights with its relics; a bare hit does little
+			m.Hurt(p.Tx(), dimension.HandDamage, p)
+			return
+		}
 		held, _ := p.HeldItems()
 		dmg := 2.0
 		if w, ok := held.Item().(item.Weapon); ok {
@@ -233,6 +242,10 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 // while the button is held, so repeats are ignored.
 func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 	if h.s.Debounced(p) {
+		return
+	}
+	if dimension.Hunting(h.s.Session, p) {
+		dimension.ShowRunMenu(h.s.Session, p)
 		return
 	}
 	screens.OpenMenu(h.s.Session, p)
@@ -298,12 +311,14 @@ func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 // does not fill the food bar (it would make vein mining's food cost free).
 func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
 	achievement.Count(p, "death", 1)
+	dimension.Died(h.s.Session, p.Tx(), p)
 	if h.s.diedFood == nil {
 		h.s.diedFood = map[*world.EntityHandle]int{}
 	}
 	h.s.diedFood[p.H()] = p.Food()
 }
-func (h *handler) HandleRespawn(p *player.Player, _ *mgl64.Vec3, _ **world.World) {
+func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.World) {
+	dimension.Respawned(h.s.Session, p, pos)
 	if food, ok := h.s.diedFood[p.H()]; ok {
 		delete(h.s.diedFood, p.H())
 		p.SetFood(food)

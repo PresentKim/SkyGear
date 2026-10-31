@@ -45,10 +45,19 @@ func (g *GatePortal) Rotation() cube.Rotation { return g.Data.Rot }
 
 func (g *GatePortal) Variant() int32 { return int32(g.Data.Data.(*gatePortalData).Level - 1) }
 
-// Tick closes a gate that no wave holds (left from an earlier session).
+// Tick drives the run whose gate it is, and closes a gate that no run or
+// wave holds (left from an earlier session).
 func (g *GatePortal) Tick(tx *world.Tx, _ int64) {
 	s, ok := core.Of(tx)
-	if !ok || LocalOf(s).Wave == nil || LocalOf(s).Wave.Portal != g.Handle {
+	if !ok {
+		_ = g.Close()
+		return
+	}
+	if r := RunOf(s); r != nil && r.Portal == g.Handle {
+		r.tick(s, tx)
+		return
+	}
+	if LocalOf(s).Wave == nil || LocalOf(s).Wave.Portal != g.Handle {
 		_ = g.Close()
 	}
 }

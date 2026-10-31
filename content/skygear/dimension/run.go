@@ -1,0 +1,375 @@
+package dimension
+
+import (
+	"fmt"
+	"math"
+	"time"
+
+	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/title"
+	"github.com/df-mc/dragonfly/server/world"
+	"github.com/df-mc/dragonfly/server/world/sound"
+	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/common/waila"
+	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/platform/instance"
+)
+
+// A run is one hunt in the second dimension: one player, one kind of
+// monster. After a countdown the monsters come in growing stronger stage by
+// stage; killing them all within the time is a clear, dying, running out of
+// time or leaving is a failure. Either way the hunter goes back to where it
+// entered from. The gate entity of the run drives it every tick (Tick).
+
+// hunt is what a kind of monster's hunt asks. Values are drafts.
+type hunt struct {
+	// Count monsters must die within Seconds.
+	Count, Seconds int
+	// Star2 is the time (seconds) a clear must beat for the second star,
+	// Star3 the total kills for the third.
+	Star2, Star3 int
+}
+
+// Hunts are the hunts in the order the monsters open.
+var Hunts = []struct {
+	Mob string
+	hunt
+}{
+	{sgitem.MobSlime, hunt{60, 180, 120, 300}},
+	{sgitem.MobZombie, hunt{80, 200, 140, 400}},
+	{sgitem.MobSkeleton, hunt{80, 210, 150, 400}},
+	{sgitem.MobSpider, hunt{90, 210, 150, 450}},
+	{sgitem.MobCreeper, hunt{90, 220, 160, 450}},
+	{sgitem.MobDrowned, hunt{100, 230, 170, 500}},
+	{sgitem.MobWitch, hunt{100, 240, 180, 500}},
+	{sgitem.MobPiglin, hunt{110, 240, 180, 550}},
+	{sgitem.MobEnder, hunt{110, 250, 190, 550}},
+	{sgitem.MobBlaze, hunt{120, 260, 200, 600}},
+	{sgitem.MobWither, hunt{120, 280, 210, 600}},
+}
+
+// huntOf is the hunt of mob.
+func huntOf(mob string) (hunt, bool) {
+	for _, h := range Hunts {
+		if h.Mob == mob {
+			return h.hunt, true
+		}
+	}
+	return hunt{}, false
+}
+
+const (
+	// countdownTicks is how long the hunter waits before the first monster.
+	countdownTicks = 5 * 20
+	// stages is how many stages the time is cut into; each makes the
+	// monsters stronger.
+	stages = 4
+	// spawnShare is the share of the time over which all the monsters come.
+	spawnShare = 0.6
+	// MaxAlive is how many monsters may be out at once; the rest wait.
+	MaxAlive = 60
+	// spawnNear and spawnFar bound how far from the hunter a monster
+	// comes; every gateEvery-th comes out of the gate instead.
+	spawnNear, spawnFar = 12.0, 18.0
+	gateEvery           = 5
+	// huntSight is how far a monster of a run sees the hunter: across the
+	// whole ground.
+	huntSight = 3 * core.ArenaRadius
+	// HandDamage is what a hunter's bare hit does.
+	HandDamage = 1.0
+)
+
+// stageBuff is how much stronger a monster of stage n (from 0) is.
+func stageBuff(n int) (health, damage, speed float64) {
+	f := float64(n)
+	return 1 + 0.25*f, 1 + 0.15*f, 1 + 0.05*f
+}
+
+// Run is a hunt being fought.
+type Run struct {
+	Mob  string
+	Hunt hunt
+	// Hunter is the player hunting, Return where it goes back to.
+	Hunter *world.EntityHandle
+	Return mgl64.Vec3
+	// Portal is the gate the run's monsters come out of; it drives the run.
+	Portal *world.EntityHandle
+	// Alive are the run's monsters out now.
+	Alive          map[*world.EntityHandle]bool
+	Spawned, Kills int
+	// ticks counts the run's ticks from its start, the countdown included.
+	ticks int
+	blade blade
+}
+
+func (r *Run) Owns(h *world.EntityHandle) bool { return r.Alive[h] }
+
+// fightTicks is how long the hunt has gone after the countdown.
+func (r *Run) fightTicks() int { return max(0, r.ticks-countdownTicks) }
+
+// runLocal is what a running save keeps for its second dimension.
+type runLocal struct {
+	// Run is the hunt being fought, nil when none.
+	Run *Run
+	// results wait for hunters that died to show once they are back.
+	results map[*world.EntityHandle]result
+}
+
+var runPart = core.NewPart(func() *runLocal { return &runLocal{} })
+
+// RunOf is the hunt being fought in the save of s, nil when none.
+func RunOf(s *core.Session) *Run { return runPart.Of(s).Run }
+
+// Hunting reports whether p is the hunter of the save's run.
+func Hunting(s *core.Session, p *player.Player) bool {
+	r := RunOf(s)
+	return r != nil && r.Hunter == p.H()
+}
+
+// Begin sends p into the hunting ground to hunt mob. It fails when a run is
+// under way or mob has no hunt.
+func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
+	h, ok := huntOf(mob)
+	if !ok || RunOf(s) != nil {
+		return false
+	}
+	buildArena(tx)
+	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}}
+	if core.InArena(r.Return) {
+		r.Return = island.Spawn(s)
+	}
+	gate, start := arenaGate(), arenaStart()
+	out := start.Sub(gate).Normalize()
+	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: 1})
+	tx.AddEntity(r.Portal)
+	runPart.Of(s).Run = r
+	p.Heal(p.MaxHealth(), entity.FoodHealingSource{})
+	p.SetFood(20)
+	// PlaceAt holds the hunter on its spot until the client has the ground.
+	p.Teleport(start)
+	instance.PlaceAt(p, start, start)
+	achievement.Count(p, "dimension_enter", 1)
+	return true
+}
+
+// tick advances the run one tick (the gate's Tick).
+func (r *Run) tick(s *core.Session, tx *world.Tx) {
+	e, ok := r.Hunter.Entity(tx)
+	if !ok {
+		r.end(s, tx, nil, endGone)
+		return
+	}
+	p := e.(*player.Player)
+	if !core.InArena(p.Position()) {
+		r.end(s, tx, p, endGone)
+		return
+	}
+	r.ticks++
+	if r.ticks <= countdownTicks {
+		if r.ticks%20 == 1 {
+			n := (countdownTicks - r.ticks + 1 + 19) / 20
+			waila.SendTitle(p, title.New(fmt.Sprintf("§e%d", n)).WithFadeInDuration(0).WithDuration(900*time.Millisecond).WithFadeOutDuration(100*time.Millisecond))
+			tx.PlaySound(p.Position(), sound.Click{})
+		}
+		if r.ticks == countdownTicks {
+			waila.SendTitle(p, title.New(i18n.T(i18n.Of(p), "dimension.go")).WithFadeInDuration(0).WithDuration(time.Second).WithFadeOutDuration(300*time.Millisecond))
+			tx.PlaySound(p.Position(), sound.Explosion{})
+		}
+		return
+	}
+	r.spawn(s, tx, p)
+	r.blade.tick(tx, p, r)
+	if RunOf(s) != r {
+		return // the blades killed the last monster
+	}
+	// monsters closed elsewhere (an unloaded chunk) do not count
+	for h := range r.Alive {
+		if h.Closed() {
+			delete(r.Alive, h)
+			r.Spawned--
+		}
+	}
+	if r.fightTicks()%20 == 0 {
+		if r.fightTicks() >= r.Hunt.Seconds*20 {
+			r.end(s, tx, p, endTime)
+			return
+		}
+		left := r.Hunt.Seconds - r.fightTicks()/20
+		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dimension.tip"), MobName(i18n.Of(p), r.Mob), r.Kills, r.Hunt.Count, left/60, left%60))
+	}
+}
+
+// spawn brings the monsters due by now, as many as may be out.
+func (r *Run) spawn(s *core.Session, tx *world.Tx, p *player.Player) {
+	window := float64(r.Hunt.Seconds*20) * spawnShare
+	due := min(r.Hunt.Count, int(math.Ceil(float64(r.Hunt.Count)*float64(r.fightTicks())/window)))
+	for r.Spawned < due && len(r.Alive) < MaxAlive {
+		stage := min(stages-1, r.Spawned*stages/r.Hunt.Count)
+		hp, dmg, speed := stageBuff(stage)
+		var at mgl64.Vec3
+		var exit mgl64.Vec3
+		if r.Spawned%gateEvery == 0 {
+			gate := arenaGate()
+			exit = arenaStart().Sub(gate).Normalize()
+			at = gate.Add(mgl64.Vec3{0, 0, s.Rand.Float64()*2 - 1}).Add(exit.Mul(0.6))
+		} else {
+			a := s.Rand.Float64() * 2 * math.Pi
+			d := spawnNear + s.Rand.Float64()*(spawnFar-spawnNear)
+			at = insideArena(p.Position().Add(mgl64.Vec3{math.Cos(a) * d, 0, math.Sin(a) * d}), 3)
+		}
+		at[1] = float64(core.ArenaCentre.Y())
+		h := world.EntitySpawnOpts{Position: at}.New(MobTypes[r.Mob], MonsterConfig{Mob: r.Mob, exit: exit, HealthMul: hp, DamageMul: dmg, SpeedMul: speed})
+		r.Alive[h] = true
+		r.Spawned++
+		tx.AddEntity(h)
+	}
+}
+
+// killed counts a monster of the run p killed; the last one clears the hunt.
+func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player) {
+	delete(r.Alive, m.Handle)
+	r.Kills++
+	for _, v := range tx.Viewers(m.Data.Pos) {
+		v.ViewEntityAction(m, entity.DeathAction{})
+	}
+	if p != nil {
+		achievement.Count(p, "kill_total", 1)
+		achievement.Count(p, "kill_"+m.kind, 1)
+	}
+	_ = m.Close()
+	if r.Kills >= r.Hunt.Count {
+		if e, ok := r.Hunter.Entity(tx); ok {
+			r.end(s, tx, e.(*player.Player), endClear)
+		}
+	}
+}
+
+// How a run ended.
+const (
+	endClear = "clear"
+	endTime  = "time"
+	endDied  = "died"
+	endGone  = "gone"
+	endQuit  = "quit"
+)
+
+// result is what a finished run shows its hunter.
+type result struct {
+	Mob     string
+	How     string
+	Kills   int
+	Count   int
+	Seconds int
+}
+
+// end finishes the run: its monsters and gate go, the hunter (nil when gone)
+// goes back and sees how it went. A dead hunter sees it when it is back
+// (Respawned).
+func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
+	l := runPart.Of(s)
+	if l.Run != r {
+		return
+	}
+	l.Run = nil
+	for h := range r.Alive {
+		if e, ok := h.Entity(tx); ok {
+			_ = e.Close()
+		}
+	}
+	if e, ok := r.Portal.Entity(tx); ok {
+		_ = e.(*GatePortal).Close()
+	}
+	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
+	if p == nil {
+		return
+	}
+	if how == endClear {
+		achievement.Count(p, "dimension_clear", 1)
+	}
+	switch {
+	case how == endDied:
+		if l.results == nil {
+			l.results = map[*world.EntityHandle]result{}
+		}
+		l.results[p.H()] = res
+	case how == endQuit:
+		// leaving the save: back on the island before the state is stored
+		p.Teleport(r.Return)
+	default:
+		p.Teleport(r.Return)
+		instance.PlaceAt(p, r.Return, island.Spawn(s))
+		showResult(p, res)
+	}
+}
+
+// Respawned sends p, a hunter that died, back where it came from and shows
+// how the run went. It runs in HandleRespawn.
+func Respawned(s *core.Session, p *player.Player, pos *mgl64.Vec3) {
+	l := runPart.Of(s)
+	res, ok := l.results[p.H()]
+	if !ok {
+		return
+	}
+	delete(l.results, p.H())
+	*pos = island.Spawn(s)
+	p.H().DoAfter(500*time.Millisecond, func(tx *world.Tx, e world.Entity) {
+		if c, ok := core.Of(tx); ok && c == s {
+			showResult(e.(*player.Player), res)
+		}
+	})
+}
+
+// Died ends the run of a hunter that died.
+func Died(s *core.Session, tx *world.Tx, p *player.Player) {
+	if r := RunOf(s); r != nil && r.Hunter == p.H() {
+		r.end(s, tx, p, endDied)
+	}
+}
+
+// Leave ends the run of a hunter leaving the save and brings it back first.
+func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
+	if r := RunOf(s); r != nil && r.Hunter == p.H() {
+		r.end(s, tx, p, endQuit)
+	}
+	delete(runPart.Of(s).results, p.H())
+}
+
+// Joined brings back a player that comes into the save standing in the
+// hunting ground (the server stopped during its run).
+func Joined(s *core.Session, p *player.Player) {
+	if core.InArena(p.Position()) && !Hunting(s, p) {
+		p.Teleport(island.Spawn(s))
+	}
+}
+
+// ShowRunMenu is the menu a hunter opens: give up and go back.
+func ShowRunMenu(s *core.Session, p *player.Player) {
+	lang := i18n.Of(p)
+	ui.Menu(p, i18n.T(lang, "dimension.title"), i18n.T(lang, "dimension.giveUp.body"),
+		s.Opt(i18n.T(lang, "dimension.giveUp"), "", func(p *player.Player, tx *world.Tx) {
+			if r := RunOf(s); r != nil && r.Hunter == p.H() {
+				r.end(s, tx, p, endGone)
+			}
+		}))
+}
+
+// showResult shows a hunter how its run went.
+func showResult(p *player.Player, res result) {
+	lang := i18n.Of(p)
+	mob := MobName(lang, res.Mob)
+	var body string
+	if res.How == endClear {
+		body = fmt.Sprintf(i18n.T(lang, "dimension.result.clear"), mob, res.Seconds/60, res.Seconds%60)
+	} else {
+		body = i18n.T(lang, "dimension.result."+res.How)
+	}
+	body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.kills"), res.Kills, res.Count)
+	ui.Menu(p, i18n.T(lang, "dimension.result.title"), body, ui.Option{Label: i18n.T(lang, "dimension.result.ok"), Run: func(*player.Player, *world.Tx) {}})
+}

@@ -15,9 +15,10 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// Monsters of the dimension gate. Dragonfly has no mobs, so they are ours: an
-// entity the client draws as the vanilla mob that walks to the nearest player
-// and hits when close. A monster not in its session's current wave is removed.
+// Monsters of the second dimension (and the gate's waves). Dragonfly has no
+// mobs, so they are ours: an entity the client draws as the vanilla mob that
+// walks to the nearest player and hits when close. A monster not in its
+// session's current run or wave is removed.
 
 // monsterStats are the numbers of a mob, drafts.
 type monsterStats struct {
@@ -76,20 +77,34 @@ type monsterData struct {
 	// before it goes for a player (gateportal.go).
 	exit      mgl64.Vec3
 	ExitTicks int
+	// damageMul and speedMul make a monster of a later stage of a run
+	// stronger (0 counts as 1).
+	damageMul, speedMul float64
 }
 
 type MonsterConfig struct {
 	Mob string
 	// exit is the way out of the gate the monster came out of.
 	exit mgl64.Vec3
+	// HealthMul, DamageMul and SpeedMul scale the mob's numbers (0 counts
+	// as 1): a run's later stages are stronger.
+	HealthMul, DamageMul, SpeedMul float64
 }
 
 func (c MonsterConfig) Apply(data *world.EntityData) {
-	d := &monsterData{Mob: c.Mob, Health: MonsterTable[c.Mob].Health, exit: c.exit}
+	d := &monsterData{Mob: c.Mob, Health: MonsterTable[c.Mob].Health * orOne(c.HealthMul), exit: c.exit, damageMul: c.DamageMul, speedMul: c.SpeedMul}
 	if c.exit != (mgl64.Vec3{}) {
 		d.ExitTicks = GateExitTicks
 	}
 	data.Data = d
+}
+
+// orOne is v, or 1 when v is unset.
+func orOne(v float64) float64 {
+	if v == 0 {
+		return 1
+	}
+	return v
 }
 
 func (m *Monster) H() *world.EntityHandle { return m.Handle }
@@ -161,14 +176,30 @@ func (monsterType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 // Tick walks the monster towards the nearest player and hits when close.
 func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	s, ok := core.Of(tx)
-	if !ok || LocalOf(s).Wave == nil || !LocalOf(s).Wave.Owns(m.Handle) {
-		// from an earlier session or a finished wave
+	if !ok {
+		_ = m.Close()
+		return
+	}
+	run := RunOf(s)
+	hunting := run != nil && run.Owns(m.Handle)
+	if !hunting && (LocalOf(s).Wave == nil || !LocalOf(s).Wave.Owns(m.Handle)) {
+		// from an earlier session or a finished run or wave
 		_ = m.Close()
 		return
 	}
 	d, st := m.Md(), MonsterTable[m.kind]
+	st.speed *= orOne(d.speedMul)
+	st.damage *= orOne(d.damageMul)
 	pos := m.Data.Pos
-	if pos.Y() < island.IslandY-MonsterVoid {
+	sight := monsterSight
+	if hunting {
+		sight = huntSight
+		if pos.Y() < float64(core.ArenaCentre.Y())-MonsterVoid {
+			// cannot happen on the flat ground, but never lose a monster
+			m.Data.Pos = insideArena(arenaGate(), 1)
+			return
+		}
+	} else if pos.Y() < island.IslandY-MonsterVoid {
 		returnToGate(s, tx, m)
 		return
 	}
@@ -180,7 +211,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		return
 	}
 	var target *player.Player
-	best := monsterSight
+	best := sight
 	for e := range tx.Players() {
 		p := e.(*player.Player)
 		if p.Dead() || !p.GameMode().AllowsTakingDamage() {
