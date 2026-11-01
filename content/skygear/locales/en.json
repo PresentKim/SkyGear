@@ -391,7 +391,7 @@
  "dimension.window.kit": "Hunting Kit",
  "dimension.window.noKit": "§cYour hunting kit is empty (you go in bare-handed).",
  "dimension.window.kitLine": "§7Kit: §f%s",
- "dimension.levelUp.body": "§7Pick an upgrade. The hunt waits while you choose.",
+ "dimension.levelUp.body": "§7Pick an upgrade. The hunt waits while you choose. A number key chooses a card; the same key again, Enter or Space takes it.",
  "dimension.levelUp.title": "Level %d!",
  "dimension.relic.essences": "Any monster essence ×%d",
  "dimension.relic.locked": "§7Research \"Relics\" to make them.",

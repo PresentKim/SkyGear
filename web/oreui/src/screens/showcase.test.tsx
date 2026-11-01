@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createContext } from 'react';
-import { render } from '@react-facet/dom-fiber-testing-library';
+import { act, render } from '@react-facet/dom-fiber-testing-library';
 import type { ReactNode } from 'react';
 import type { Chrome, Slot } from '../protocol';
 
@@ -12,6 +12,8 @@ vi.mock('../components/Window', () => ({
   Window: (p: { children?: ReactNode }) => <div className="mc-window">{p.children}</div>,
   ScreenRoot: (p: { className: string; children?: ReactNode }) => <div className={p.className}>{p.children}</div>,
 }));
+const sent: [string, string][] = [];
+vi.mock('../runtime/engine', () => ({ send: (id: string, kind: string) => sent.push([id, kind]) }));
 vi.mock('../components/Scroll', () => ({
   Scroll: (p: { children?: ReactNode }) => <div className="mc-scroll">{p.children}</div>,
 }));
@@ -35,6 +37,15 @@ describe('showcase', () => {
     expect(cards[1].className).toContain('mc-cardpick-common');
     expect((container.querySelectorAll('.mc-cardpick-cell')[1] as HTMLElement).style.animationDelay).toBe('0.08s');
     expect(container.querySelector('.mc-window')).toBeNull();
+    // the number key chooses a card, the same key again picks it
+    const key = (keyCode: number) => window.dispatchEvent(new KeyboardEvent('keydown', { keyCode } as KeyboardEventInit));
+    act(() => key(50));
+    expect(container.querySelectorAll('.mc-cardpick-card')[1].className).toContain('mc-cardpick-on');
+    act(() => key(50));
+    expect(sent).toEqual([['b', 'click']]);
+    act(() => key(49));
+    act(() => key(13));
+    expect(sent).toEqual([['b', 'click'], ['a', 'click']]);
     expect(container.querySelector('.mc-cardpick-head')!.textContent).toBe('T');
   });
   it('result: the headline, a star each (new ones marked) and the rewards after the stars', () => {

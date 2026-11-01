@@ -2547,7 +2547,7 @@
  "dimension.window.kit": "이차원 장비",
  "dimension.window.noKit": "§c이차원 장비가 비어 있습니다(맨손으로 들어갑니다).",
  "dimension.window.kitLine": "§7가져갈 장비: §f%s",
- "dimension.levelUp.body": "§7강화 하나를 고르세요. 고르는 동안 사냥이 멈춥니다.",
+ "dimension.levelUp.body": "§7강화 하나를 고르세요. 고르는 동안 사냥이 멈춥니다. 숫자 키로 고르고, 같은 키를 한 번 더 누르거나 Enter·Space로 정합니다.",
  "dimension.levelUp.title": "레벨 %d!",
  "dimension.relic.essences": "아무 몬스터 에센스 ×%d",
  "dimension.relic.locked": "§7\"보구\" 연구를 마치면 만들 수 있습니다.",
