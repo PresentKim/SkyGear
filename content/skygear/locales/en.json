@@ -798,7 +798,7 @@
  "codex.src.sim": "Mob Simulator: %s (%d%% chance per run)",
  "codex.card.hunt": "%d. %s ×%d · %d:%02d",
  "codex.card.huntStars": "§8Stars: clear within %d:%02d · %d kills in all",
- "codex.src.waveDrop": "Second dimension hunts (5 percent of kills, 8 for the first clear) and the dimension essence collector",
+ "codex.src.waveDrop": "Second dimension hunts (75 percent of kills, 8 for the first clear) and, a little at a time, the dimension essence collector",
  "codex.src.plant": "Magic plant harvest: %s",
  "codex.src.craft": "Crafting: %s",
  "codex.use.research": "Research \"%s\" costs %d",

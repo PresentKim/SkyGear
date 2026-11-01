@@ -19,17 +19,19 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// The essence collectors: what the island hunts well keeps coming. Every
-// cleared monster fills a pool of its essences by its best time, whether or
-// not a collector takes them; every collectEvery the pool hands its whole
+// The essence collectors: what the island hunts well keeps coming, a little
+// of it. Every cleared monster fills a pool of its essences by its best time
+// (a share of what hunting at that pace gives), whether or not a collector
+// takes them; every collectEvery the pool hands its whole
 // essences out one by one to the collectors that receive that monster, in
 // turn, skipping full ones. More collectors of a monster split its essences;
 // they do not make more. Values are drafts.
 
 const (
-	// collectShare is the share of the best run's kills per minute that
-	// comes as essences per minute.
-	collectShare = 0.05
+	// collectShare is the share of the essences a minute of hunting at the
+	// best run's pace gives (kills a minute times the kill chance) that the
+	// pool gets a minute: hunting gives many, the collectors a trickle.
+	collectShare = 0.1
 	// collectEvery is how often (seconds) the pools hand out essences.
 	collectEvery = 15
 	// poolMax is the most essences a pool keeps waiting.
@@ -44,7 +46,7 @@ func PerMinute(s *core.Session, mob string) float64 {
 	if !ok || rec.Best <= 0 {
 		return 0
 	}
-	return float64(h.Count) / (float64(rec.Best) / 60) * collectShare
+	return float64(h.Count) / (float64(rec.Best) / 60) * killEssence / 100 * collectShare
 }
 
 // Pool is how many essences of mob wait in the island's pool.

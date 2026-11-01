@@ -3348,7 +3348,7 @@
  "codex.src.sim": "몬스터 시뮬레이터: %s (한 번에 나올 확률 %d%%)",
  "codex.card.hunt": "%d. %s %d마리 · %d:%02d",
  "codex.card.huntStars": "§8별: %d:%02d 안 클리어 · 누적 %d마리",
- "codex.src.waveDrop": "이차원 사냥(처치의 5퍼센트, 첫 클리어 8개)과 이차원 에센스 수집기",
+ "codex.src.waveDrop": "이차원 사냥(처치의 75퍼센트, 첫 클리어 8개)과 이차원 에센스 수집기(조금씩)",
  "codex.src.plant": "마법 식물 수확: %s",
  "codex.src.craft": "조합: %s",
  "codex.use.research": "연구 \"%s\" 비용 %d개",

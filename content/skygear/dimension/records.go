@@ -108,8 +108,9 @@ func Open(s *core.Session, p *player.Player, mob string) bool {
 }
 
 const (
-	// killEssence is the percent chance a kill gives the monster's essence.
-	killEssence = 5
+	// killEssence is the percent chance a kill gives the monster's essence:
+	// about three essences for four kills, the main way to get them.
+	killEssence = 75
 	// firstClearEssence is how many essences the first clear gives.
 	firstClearEssence = 8
 	// starDust is how much fairy dust a star gives the first time.

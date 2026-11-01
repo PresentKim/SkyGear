@@ -349,10 +349,11 @@ func TestCollectors(t *testing.T) {
 		if dimension.PerMinute(s.Session, slime) != 0 {
 			t.Fatal("essences before the first clear")
 		}
-		// 60 slimes in 6 s: 600 a minute, 30 essences a minute
-		dimension.RecordOf(s.Session, slime).Best = 6
-		if got := dimension.PerMinute(s.Session, slime); math.Abs(got-30) > 1e-9 {
-			t.Fatalf("%v essences a minute, want 30", got)
+		// 90 slimes in 9 s: 600 a minute, 450 essences a minute hunting
+		// (3 in 4 kills), a tenth of it to the collectors
+		dimension.RecordOf(s.Session, slime).Best = 9
+		if got := dimension.PerMinute(s.Session, slime); math.Abs(got-45) > 1e-9 {
+			t.Fatalf("%v essences a minute, want 45", got)
 		}
 		a.SetMob(slime)
 		b.SetMob(slime)
@@ -369,8 +370,8 @@ func TestCollectors(t *testing.T) {
 			return n
 		}
 		na, nb := count(a), count(b)
-		if na+nb < 29 || na+nb > 30 {
-			t.Errorf("%d essences in a minute, want 30", na+nb)
+		if na+nb < 44 || na+nb > 45 {
+			t.Errorf("%d essences in a minute, want 45", na+nb)
 		}
 		if math.Abs(float64(na-nb)) > 1 {
 			t.Errorf("the collectors got %d and %d, not in turn", na, nb)
