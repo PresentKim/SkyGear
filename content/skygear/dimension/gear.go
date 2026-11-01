@@ -184,6 +184,7 @@ func (g *gear) refit(p *player.Player) {
 // undress gives p back how it was before the run. The effects that change
 // the speed end first, or their end would change the speed given back.
 func (g *gear) undress(p *player.Player) {
+	p.SetMobile() // a run that ends during a level-up choice
 	p.RemoveEffect(effect.Slowness)
 	p.RemoveEffect(effect.Speed)
 	p.SetMaxHealth(g.was.maxHealth)
@@ -366,6 +367,8 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 	r.gear.level++
 	r.paused, r.pauseTicks = true, 0
 	r.pauses++
+	p.SetImmobile() // everything stops: the hunter too
+	p.SetVelocity(mgl64.Vec3{})
 	pause := r.pauses
 	r.choices = r.offer(r.sess)
 	tx.PlaySound(p.Position(), sound.LevelUp{})
@@ -445,6 +448,7 @@ func (r *Run) choose(tx *world.Tx, p *player.Player, c choice) {
 		}
 	}
 	r.paused, r.choices = false, nil
+	p.SetMobile()
 	if p.ExperienceLevel() > r.gear.level {
 		r.levelUp(tx, p)
 	}

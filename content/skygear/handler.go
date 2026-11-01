@@ -350,6 +350,10 @@ func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	achievement.Count(ctx.Player(), "item_drop", 1)
 }
 func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
+	if dimension.Frozen(h.s.Session, ctx.Player()) {
+		ctx.Cancel() // the hunt waits while the hunter chooses an upgrade
+		return
+	}
 	achievement.Count(ctx.Player(), "hurt", 1)
 	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
 		ctx.Cancel()

@@ -495,6 +495,13 @@ func Fallen(s *core.Session, tx *world.Tx, p *player.Player, dmg float64) bool {
 	return true
 }
 
+// Frozen reports whether p is a hunter whose hunt waits for its level-up
+// choice: it cannot move or be hurt meanwhile.
+func Frozen(s *core.Session, p *player.Player) bool {
+	r := RunOf(s)
+	return r != nil && r.Hunter == p.H() && r.paused
+}
+
 // showTip shows the hunter how the hunt goes: the kills, the time left and
 // what it has earned so far.
 func (r *Run) showTip(s *core.Session, p *player.Player) {

@@ -474,13 +474,16 @@ func TestKitAndLevels(t *testing.T) {
 		if !r.Paused() {
 			t.Fatal("a level did not stop the hunt")
 		}
+		if !p.Immobile() || !dimension.Frozen(s.Session, p) {
+			t.Error("the hunter can move while it chooses an upgrade")
+		}
 		ticks := r.Ticks()
 		runTick(t, s, tx)
 		if r.Ticks() != ticks {
 			t.Error("the hunt went on while paused")
 		}
 		dimension.ChooseFirst(r, tx, p)
-		if r.Paused() {
+		if r.Paused() || p.Immobile() {
 			t.Error("still paused after the choice")
 		}
 		dimension.GiveGems(r, tx, p, 10) // two more levels: the second waits for the first choice
