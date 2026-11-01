@@ -197,7 +197,9 @@ export function EquipScreen(props: { data: EquipData }): JSX.Element {
               ))}
             </div>
             <Gap size={3} />
-            <Body text={data.note} gap={3} />
+            <div className="oui-box mc-equip-note">
+              <Body text={data.note} gap={3} />
+            </div>
             <ListButtons items={data.items} />
           </Scroll>
         </div>

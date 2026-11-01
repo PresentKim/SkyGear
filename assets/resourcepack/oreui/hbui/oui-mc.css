@@ -2346,6 +2346,16 @@
   margin-top: 1.2rem;
 }
 
+.mc-equip-note {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The kit screen's info: its lines (the name, the kind, what it does, the numbers) apart. */
+.mc-equip-note .oui-line {
+  margin-bottom: 0.7rem;
+}
+
 .mc-cardpick-row {
   display: flex;
   flex-direction: row;

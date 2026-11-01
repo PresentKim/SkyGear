@@ -32,7 +32,7 @@ func describe(lang string, it item.Stack) string {
 
 // gradeStars is grade as filled stars out of the highest grade.
 func gradeStars(grade int) string {
-	return "§e" + strings.Repeat("★", grade) + "§8" + strings.Repeat("★", sgitem.RelicMaxGrade-grade)
+	return "§g" + strings.Repeat("★", grade) + "§8" + strings.Repeat("★", sgitem.RelicMaxGrade-grade)
 }
 
 // describeRelic is what a relic of kind does at grade.
