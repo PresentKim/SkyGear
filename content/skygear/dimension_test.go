@@ -557,3 +557,41 @@ func TestWatchdog(t *testing.T) {
 		t.Error("Relocate should move players stored in the ground only")
 	}
 }
+
+// TestSwing: the kit's weapon swings forward on its own, hurting a monster
+// ahead of the hunter by the weapon's damage and not one behind it.
+func TestSwing(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		sword := item.Sword{Tier: item.ToolTierDiamond}
+		dimension.SetKit(s.Session, p, dimension.KitWeapon, item.NewStack(sword, 1))
+		dimension.Begin(s.Session, tx, p, sgitem.MobZombie)
+		for range 101 {
+			runTick(t, s, tx)
+		}
+		r := dimension.RunOf(s.Session)
+		ahead := p.Rotation().Vec3()
+		ahead = mgl64.Vec3{ahead[0], 0, ahead[2]}.Normalize()
+		spawn := func(at mgl64.Vec3) *dimension.Monster {
+			hd := world.EntitySpawnOpts{Position: at}.New(dimension.VariantType(sgitem.MobZombie, dimension.VariantBase), dimension.MonsterConfig{Mob: sgitem.MobZombie, HealthMul: 100})
+			r.Alive[hd] = true
+			tx.AddEntity(hd)
+			e, _ := hd.Entity(tx)
+			return e.(*dimension.Monster)
+		}
+		front, back := spawn(p.Position().Add(ahead.Mul(2))), spawn(p.Position().Sub(ahead.Mul(2)))
+		f0, b0 := front.Health(), back.Health()
+		for range 20 {
+			front.Data.Pos, back.Data.Pos = p.Position().Add(ahead.Mul(2)), p.Position().Sub(ahead.Mul(2))
+			runTick(t, s, tx)
+		}
+		if lost := f0 - front.Health(); lost < sword.AttackDamage() {
+			t.Errorf("the monster ahead lost %v health, want at least a sword hit (%v)", lost, sword.AttackDamage())
+		}
+		if back.Health() != b0 {
+			t.Errorf("the monster behind lost %v health", b0-back.Health())
+		}
+	})
+}

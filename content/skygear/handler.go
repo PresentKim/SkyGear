@@ -119,6 +119,10 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	held, _ := ctx.Player().HeldItems()
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
@@ -182,23 +186,17 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 // HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting
 // fairy, whichever way the player touches it.
 func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	h.touchFairy(ctx, e)
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
-	if m, ok := e.(*dimension.Monster); ok {
-		// the monsters are ours: a hunter's bare hit, no vanilla hit
+	if _, ok := e.(*dimension.Monster); ok || dimension.Hunting(h.s.Session, ctx.Player()) {
+		// a hunter only moves: its weapons strike on their own (dimension/gear.go)
 		ctx.Cancel()
-		if p := ctx.Player(); dimension.Hunting(h.s.Session, p) {
-			achievement.Count(p, "hit_monster", 1)
-			dmg := dimension.HandDamage
-			if held, _ := p.HeldItems(); !held.Empty() {
-				if w, ok := held.Item().(item.Weapon); ok {
-					dmg = w.AttackDamage()
-				}
-			}
-			m.Hurt(p.Tx(), dmg, p)
-		}
 		return
 	}
 	h.touchFairy(ctx, e)
@@ -216,6 +214,12 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
+		return
+	}
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		// a hunter only moves; the menu item is the way out
+		ctx.Cancel()
+		return
 	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
@@ -324,6 +328,10 @@ func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
 }
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	achievement.Count(ctx.Player(), "item_drop", 1)
 }
 func (h *handler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.Duration, _ world.DamageSource) {

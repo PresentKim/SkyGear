@@ -8,6 +8,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/entity/effect"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -39,8 +41,12 @@ const (
 
 // gear is what a hunter brings into a run and gains in it.
 type gear struct {
-	weapons []*weapon
-	charms  map[string]int
+	// melee is the weapon of the kit's hand slot (empty: a bare hand), swung
+	// forward on its own every swing ticks; swingCool counts down to it.
+	melee     item.Stack
+	swingCool int
+	weapons   []*weapon
+	charms    map[string]int
 	// picks count the common upgrades chosen at level-ups.
 	picks map[string]int
 	// level is the hunter's level in the run; gems are the experience
@@ -124,7 +130,7 @@ func (g *gear) regenPerSecond() float64 {
 // gearOf is the gear p brings: the relics of its kit (kit.go). Two of a
 // kind count once, the higher grade.
 func gearOf(s *core.Session, p *player.Player) *gear {
-	g := &gear{charms: map[string]int{}, picks: map[string]int{}}
+	g := &gear{charms: map[string]int{}, picks: map[string]int{}, melee: Kit(s, p)[KitWeapon]}
 	weapons := map[string]*weapon{}
 	for _, it := range kitRelicStacks(s, p) {
 		r, grade := it.Item().(sgitem.Relic), sgitem.RelicGrade(it)
@@ -188,6 +194,11 @@ func (g *gear) undress(p *player.Player) {
 // tick strikes with the weapons, heals, draws and picks up the gems.
 func (g *gear) tick(s *core.Session, tx *world.Tx, p *player.Player, r *Run) {
 	mons := r.monsters(tx)
+	g.swing(tx, p, mons)
+	if RunOf(s) != r {
+		return
+	}
+	mons = slices.DeleteFunc(mons, func(m *Monster) bool { return !r.Owns(m.Handle) })
 	for _, w := range g.weapons {
 		for h, n := range w.hit {
 			if n <= 1 {
@@ -207,6 +218,78 @@ func (g *gear) tick(s *core.Session, tx *world.Tx, p *player.Player, r *Run) {
 		g.regen = 0
 	}
 	g.collect(tx, p, r)
+}
+
+const (
+	// swingReach is how far ahead (blocks) a swing reaches and swingArc
+	// half the angle (degrees) of the sweep in front of the hunter.
+	swingReach = 3.0
+	swingArc   = 60.0
+)
+
+// swingTicks is how often the held weapon swings: a sword quickly, an axe
+// slowly, anything else and a bare hand in between.
+func swingTicks(it item.Stack) int {
+	switch it.Item().(type) {
+	case item.Sword:
+		return 12
+	case item.Axe:
+		return 20
+	}
+	return 16
+}
+
+// swing sweeps the held weapon in front of the hunter (the way it faces,
+// which is the way it walks) when it is ready, hurting every monster in the
+// arc by the weapon's damage (1 for a bare hand or a tool that does not
+// fight).
+func (g *gear) swing(tx *world.Tx, p *player.Player, mons []*Monster) {
+	if g.swingCool > 0 {
+		g.swingCool--
+		return
+	}
+	g.swingCool = max(1, int(float64(swingTicks(g.melee))*g.cooldown()))
+	dmg := 1.0
+	if w, ok := g.melee.Item().(item.Weapon); ok && !g.melee.Empty() {
+		dmg = w.AttackDamage()
+	}
+	dmg *= g.attack()
+	look := p.Rotation().Vec3()
+	ahead := mgl64.Vec3{look[0], 0, look[2]}
+	if ahead.Len() < 0.01 {
+		ahead = mgl64.Vec3{0, 0, 1}
+	}
+	ahead = ahead.Normalize()
+	reach := swingReach * g.reach()
+	p.SwingArm()
+	centre := p.Position().Add(mgl64.Vec3{0, 1, 0})
+	for a := -swingArc; a <= swingArc; a += swingArc / 3 {
+		tx.AddParticle(centre.Add(rotateY(ahead, a).Mul(reach*0.8)), particle.Dust{Colour: swingColour})
+	}
+	cos := math.Cos(swingArc * math.Pi / 180)
+	for _, m := range mons {
+		off := m.Position().Sub(p.Position())
+		flat := mgl64.Vec3{off[0], 0, off[2]}
+		d := flat.Len()
+		if d > reach+MonsterTable[m.kind].width*m.Scale()/2 || math.Abs(off[1]) > 2.5 {
+			continue
+		}
+		if d > 0.5 && flat.Mul(1/d).Dot(ahead) < cos {
+			continue
+		}
+		achievement.Count(p, "hit_monster", 1)
+		m.Hurt(tx, dmg, p)
+	}
+	tx.PlaySound(centre, sound.Attack{Damage: false})
+}
+
+var swingColour = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+
+// rotateY turns v by deg degrees around the vertical.
+func rotateY(v mgl64.Vec3, deg float64) mgl64.Vec3 {
+	r := deg * math.Pi / 180
+	c, s := math.Cos(r), math.Sin(r)
+	return mgl64.Vec3{v[0]*c - v[2]*s, v[1], v[0]*s + v[2]*c}
 }
 
 // drop leaves a gem where a monster died, or gives it at once when the hunter

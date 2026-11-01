@@ -88,8 +88,6 @@ const (
 	// huntSight is how far a monster of a run sees the hunter: across the
 	// whole ground.
 	huntSight = 3 * core.ArenaRadius
-	// HandDamage is what a hunter's bare hit does.
-	HandDamage = 1.0
 )
 
 // stageBuff is how much stronger a monster of stage n (from 0) is.
