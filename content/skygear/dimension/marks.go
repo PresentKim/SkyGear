@@ -38,8 +38,25 @@ func (m *mark) md() *runMark            { return m.Data.Data.(*runMark) }
 func (m *mark) NameTag() string         { return m.Data.Name }
 func (m *mark) AlwaysShowNameTag() bool { return true }
 
-// Experience sizes a gem's orb.
-func (m *mark) Experience() int { return gemXP }
+// Experience sizes a gem's orb: the client draws an orb by the experience
+// it holds, so a gem says it holds gemLook (its worth is gemXP, gear.go).
+func (m *mark) Experience() int { return gemLook }
+
+// Scale draws a gem bigger still, to be seen from the hunt's high camera.
+func (m *mark) Scale() float64 {
+	if m.gem {
+		return gemScale
+	}
+	return 1
+}
+
+const (
+	// gemLook is the experience whose orb a gem looks like (the client's
+	// orb sizes step at 3, 7, 17, 37, 73, 149, 307...); gemScale how much
+	// bigger it is drawn.
+	gemLook  = 150
+	gemScale = 1.8
+)
 
 // Tick lets a damage number rise and go, and closes a mark whose run is
 // over.

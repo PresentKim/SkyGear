@@ -2,7 +2,6 @@ package dimension
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 	"slices"
 
@@ -266,7 +265,7 @@ func (g *gear) swing(tx *world.Tx, p *player.Player, mons []*Monster) {
 	p.SwingArm()
 	centre := p.Position().Add(mgl64.Vec3{0, 1, 0})
 	for a := -swingArc; a <= swingArc; a += swingArc / 3 {
-		tx.AddParticle(centre.Add(rotateY(ahead, a).Mul(reach*0.8)), particle.Dust{Colour: swingColour})
+		spark(tx, centre.Add(rotateY(ahead, a).Mul(reach*0.8)), sparkSwing)
 	}
 	cos := math.Cos(swingArc * math.Pi / 180)
 	for _, m := range mons {
@@ -284,8 +283,6 @@ func (g *gear) swing(tx *world.Tx, p *player.Player, mons []*Monster) {
 	}
 	tx.PlaySound(centre, sound.Attack{Damage: false})
 }
-
-var swingColour = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 
 // rotateY turns v by deg degrees around the vertical.
 func rotateY(v mgl64.Vec3, deg float64) mgl64.Vec3 {
@@ -483,7 +480,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 			n++
 		}
 		for _, m := range nearest(mons, p.Position(), 16*g.reach(), n) {
-			line(tx, eye, m.Position().Add(mgl64.Vec3{0, 0.6, 0}), boltColour)
+			line(tx, eye, m.Position().Add(mgl64.Vec3{0, 0.6, 0}), sparkBolt)
 			m.Hurt(tx, dmg(6), p)
 		}
 		tx.PlaySound(eye, sound.BowShoot{})
@@ -514,7 +511,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 		s.Rand.Shuffle(len(near), func(i, j int) { near[i], near[j] = near[j], near[i] })
 		for _, m := range near[:min(len(near), 2+w.level)] {
 			at := m.Position()
-			line(tx, at.Add(mgl64.Vec3{0, 6, 0}), at, boltColour)
+			line(tx, at.Add(mgl64.Vec3{0, 6, 0}), at, sparkBolt)
 			tx.PlaySound(at, sound.Thunder{})
 			m.Hurt(tx, dmg(8), p)
 		}
@@ -522,11 +519,6 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 		w.fly(tx, p, g, mons, dmg(5))
 	}
 }
-
-var (
-	boltColour  = color.RGBA{R: 255, G: 240, B: 120, A: 255}
-	frostColour = color.RGBA{R: 160, G: 220, B: 255, A: 255}
-)
 
 // spin turns the blades around the hunter and cuts the monsters they pass:
 // two, three from level 3, four at level 5.
@@ -545,8 +537,8 @@ func (w *weapon) spin(tx *world.Tx, p *player.Player, g *gear, mons []*Monster, 
 	for i := range count {
 		a := w.angle + float64(i)*2*math.Pi/float64(count)
 		dirs[i] = mgl64.Vec3{math.Cos(a), 0, math.Sin(a)}
-		for _, d := range []float64{inner, (inner + outer) / 2, outer} {
-			tx.AddParticle(centre.Add(dirs[i].Mul(d)), particle.Dust{Colour: bladeColour})
+		for k := range bladeSparks {
+			spark(tx, centre.Add(dirs[i].Mul(inner+(outer-inner)*float64(k)/(bladeSparks-1))), sparkBlade)
 		}
 	}
 	for _, m := range mons {
@@ -593,7 +585,7 @@ func (w *weapon) fly(tx *world.Tx, p *player.Player, g *gear, mons []*Monster, d
 	span := (9 + float64(w.level-1)) * g.reach()
 	along := span * (1 - math.Abs(float64(w.out)-flight/2)/(flight/2))
 	at := p.Position().Add(mgl64.Vec3{0, 1, 0}).Add(w.dir.Mul(along))
-	tx.AddParticle(at, particle.Dust{Colour: frostColour})
+	spark(tx, at, sparkFrost)
 	for _, m := range mons {
 		if w.hit[m.Handle] == 0 && m.Position().Add(mgl64.Vec3{0, 0.5, 0}).Sub(at).Len() <= 1.4 {
 			w.hit[m.Handle] = 10
@@ -623,11 +615,11 @@ func nearest(mons []*Monster, pos mgl64.Vec3, reach float64, n int) []*Monster {
 
 func flatDist(a, b mgl64.Vec3) float64 { return math.Hypot(a[0]-b[0], a[2]-b[2]) }
 
-// line draws a straight bolt of particles from a to b.
-func line(tx *world.Tx, a, b mgl64.Vec3, c color.RGBA) {
+// line draws a straight bolt of sparks from a to b.
+func line(tx *world.Tx, a, b mgl64.Vec3, kind string) {
 	d := b.Sub(a)
 	steps := max(1, int(d.Len()*2))
 	for i := range steps + 1 {
-		tx.AddParticle(a.Add(d.Mul(float64(i)/float64(steps))), particle.Dust{Colour: c})
+		spark(tx, a.Add(d.Mul(float64(i)/float64(steps))), kind)
 	}
 }
