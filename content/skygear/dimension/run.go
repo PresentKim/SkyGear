@@ -123,9 +123,8 @@ type Run struct {
 	// waits for the hunter's level-up choice among choices.
 	gear *gear
 	// popups are the damage numbers up now (marks.go).
-	popups     []*world.EntityHandle
-	paused     bool
-	pauseTicks int
+	popups []*world.EntityHandle
+	paused bool
 	// pauses counts the level-ups, so a late answer to an old one is not
 	// taken for the next.
 	pauses  int
@@ -212,18 +211,12 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 		r.end(s, tx, p, endGone)
 		return
 	}
-	if r.ticks%2 == 0 {
-		followCamera(p, true)
-	}
 	if e, ok := r.Portal.Entity(tx); ok {
 		// the driver stays under the hunter, so its chunk always ticks
 		e.(*GatePortal).Data.Pos = p.Position().Sub(mgl64.Vec3{0, driverDepth, 0})
 	}
 	if r.paused {
-		if r.pauseTicks++; r.pauseTicks >= pauseLimit && len(r.choices) > 0 {
-			r.choose(tx, p, r.choices[0])
-		}
-		return
+		return // the hunter is choosing an upgrade
 	}
 	r.ticks++
 	if r.ticks <= countdownTicks {

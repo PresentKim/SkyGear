@@ -478,8 +478,10 @@ func TestKitAndLevels(t *testing.T) {
 			t.Error("the hunter can move while it chooses an upgrade")
 		}
 		ticks := r.Ticks()
-		runTick(t, s, tx)
-		if r.Ticks() != ticks {
+		for range 30 * 20 {
+			runTick(t, s, tx) // however long the choice takes
+		}
+		if r.Ticks() != ticks || !r.Paused() {
 			t.Error("the hunt went on while paused")
 		}
 		dimension.ChooseFirst(r, tx, p)

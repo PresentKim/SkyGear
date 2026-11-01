@@ -34,9 +34,6 @@ const (
 	// gems are picked up from.
 	gemXP      = 2
 	baseMagnet = 3.0
-	// pauseLimit is how long a level-up choice waits before the first
-	// upgrade is taken for the hunter.
-	pauseLimit = 10 * 20
 )
 
 // gear is what a hunter brings into a run and gains in it.
@@ -362,13 +359,19 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 		return // the next one comes after this choice
 	}
 	r.gear.level++
-	r.paused, r.pauseTicks = true, 0
+	r.paused = true
 	r.pauses++
 	p.SetImmobile() // everything stops: the hunter too
 	p.SetVelocity(mgl64.Vec3{})
-	pause := r.pauses
 	r.choices = r.offer(r.sess)
 	tx.PlaySound(p.Position(), sound.LevelUp{})
+	r.showChoices(p)
+}
+
+// showChoices shows the hunter the cards of the level-up it waits on. The
+// hunt waits as long as it takes; closing the cards shows them again.
+func (r *Run) showChoices(p *player.Player) {
+	pause := r.pauses
 	lang := i18n.Of(p)
 	var cards []ui.PickCard
 	for _, c := range r.choices {
@@ -380,7 +383,12 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 		}
 		cards = append(cards, card)
 	}
-	ui.PickCards(p, fmt.Sprintf(i18n.T(lang, "dimension.levelUp.title"), r.gear.level), i18n.T(lang, "dimension.levelUp.body"), cards)
+	ui.PickCardsModal(p, fmt.Sprintf(i18n.T(lang, "dimension.levelUp.title"), r.gear.level), i18n.T(lang, "dimension.levelUp.body"), cards,
+		func(p *player.Player, tx *world.Tx) {
+			if sess, ok := core.Of(tx); ok && sess == r.sess && RunOf(r.sess) == r && r.paused && r.pauses == pause {
+				r.showChoices(p)
+			}
+		})
 }
 
 // card draws a choice as a card: a weapon's next level, or a common upgrade.

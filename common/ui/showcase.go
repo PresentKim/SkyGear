@@ -36,7 +36,18 @@ type pickData struct {
 // PickCards shows big cards side by side to pick one of, the body over them
 // and the options under them.
 func PickCards(p *player.Player, title, body string, cards []PickCard, opts ...Option) {
+	pickCards(p, title, body, cards, nil, opts)
+}
+
+// PickCardsModal is PickCards that cannot be closed without a pick: Esc and
+// the close button run reopen (which should show the cards again).
+func PickCardsModal(p *player.Player, title, body string, cards []PickCard, reopen func(p *player.Player, tx *world.Tx)) {
+	pickCards(p, title, body, cards, reopen, nil)
+}
+
+func pickCards(p *player.Player, title, body string, cards []PickCard, reopen func(p *player.Player, tx *world.Tx), opts []Option) {
 	l := newOreLayout()
+	l.close = reopen
 	chrome, rest := l.chromeOf(title, opts)
 	d := pickData{Chrome: chrome, Body: body, Cards: []dPickCard{}, Items: l.itemsOf(rest)}
 	for _, c := range cards {
