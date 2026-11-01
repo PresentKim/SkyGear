@@ -5,7 +5,6 @@ import (
 	"math"
 	"slices"
 
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
@@ -223,9 +222,6 @@ type gem struct {
 	h      *world.EntityHandle
 	caught bool
 	speed  float64
-	// age bobs and turns a lying gem around its ground height y.
-	age int
-	y   float64
 }
 
 const (
@@ -235,19 +231,16 @@ const (
 	gemPull   = 0.25
 	gemPullUp = 0.05
 	gemTake   = 0.8
-	// gemHeight is how high over the ground a gem lies, gemBob how high it
-	// bobs, every gemBobEvery ticks a step.
-	gemHeight   = 1.05
-	gemBob      = 0.3
-	gemBobEvery = 2
+	// gemHeight is how high over the ground a gem lies.
+	gemHeight = 1.0
 )
 
 // drop leaves a gem on the ground where a monster died.
 func (g *gear) drop(tx *world.Tx, p *player.Player, r *Run, at mgl64.Vec3) {
 	at[1] = float64(core.ArenaCentre.Y()) + gemHeight
-	h := world.EntitySpawnOpts{Position: at}.New(gemTypeOf(r.Mob), markConfig{run: r})
+	h := world.EntitySpawnOpts{Position: at}.New(GemType, markConfig{run: r})
 	tx.AddEntity(h)
-	g.gems = append(g.gems, &gem{h: h, y: at[1], age: int(at[0]*7+at[2]*13) & 63})
+	g.gems = append(g.gems, &gem{h: h})
 	g.collect(tx, p, r)
 }
 
@@ -266,14 +259,7 @@ func (g *gear) collect(tx *world.Tx, p *player.Player, r *Run) {
 		way := to.Sub(m.Data.Pos)
 		dist := way.Len()
 		if !gm.caught && dist > reach {
-			// lying: it bobs up and down and turns, to be seen
-			if gm.age++; gm.age%gemBobEvery == 0 {
-				pos := m.Data.Pos
-				pos[1] = gm.y + gemBob*(1+math.Sin(float64(gm.age)/10))/2
-				m.Data.Rot = cube.Rotation{float64(gm.age*6%360) - 180, 0}
-				m.moveTo(tx, pos)
-			}
-			return false
+			return false // lying where it fell (the client turns and bobs it)
 		}
 		if !gm.caught {
 			gm.caught, gm.speed = true, gemPull

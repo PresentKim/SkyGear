@@ -9,11 +9,10 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// What a run leaves lying about: the experience gems on the ground (drawn as
-// small slimes that bob and turn; the gear moves them, gear.go) and the damage numbers that
+// What a run leaves lying about: the experience gems on the ground (the
+// pack's glowing crystal, gemType; the gear moves them, gear.go) and the damage numbers that
 // rise over a hit monster for a moment. Both belong to their run: one whose
 // run is over (or that was saved with its chunk) closes itself.
 
@@ -38,24 +37,6 @@ func (m *mark) Rotation() cube.Rotation { return m.Data.Rot }
 func (m *mark) md() *runMark            { return m.Data.Data.(*runMark) }
 func (m *mark) NameTag() string         { return m.Data.Name }
 func (m *mark) AlwaysShowNameTag() bool { return true }
-
-// Scale draws a gem as a small cube (marks are drawn at full size).
-func (m *mark) Scale() float64 {
-	if m.gem {
-		return gemScale
-	}
-	return 1
-}
-
-// Immobile keeps the client from moving or animating a gem's slime on its
-// own: the server bobs and turns it.
-func (m *mark) Immobile() bool { return m.gem }
-
-const (
-	// gemScale is how big a gem's slime is drawn: a cube about a quarter
-	// block across, seen well from the hunt's high camera.
-	gemScale = 0.5
-)
 
 // Tick lets a damage number rise and go, and closes a mark whose run is
 // over.
@@ -102,21 +83,17 @@ func (c markConfig) Apply(data *world.EntityData) {
 // markType is what the gems' and the numbers' entity types share.
 type markType struct{ gem bool }
 
-// gemType draws a gem as a small slime, or as a small magma cube (in the
-// slime hunt, where a slime would look like a monster).
-type gemType struct {
-	markType
-	magma bool
-}
+// gemType draws a gem with the pack's own entity (skygear:hunt_gem): a
+// small glowing green crystal that the client turns and bobs.
+type gemType struct{ markType }
 
 type popupType struct{ markType }
 
-// GemType, GemMagmaType and PopupType are the world.EntityTypes of the gems and the damage
+// GemType and PopupType are the world.EntityTypes of the gems and the damage
 // numbers.
 var (
-	GemType      = gemType{markType: markType{gem: true}}
-	GemMagmaType = gemType{markType: markType{gem: true}, magma: true}
-	PopupType    = popupType{}
+	GemType   = gemType{markType{gem: true}}
+	PopupType = popupType{}
 )
 
 func (t markType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.EntityData) world.Entity {
@@ -126,27 +103,7 @@ func (t markType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Ent
 	return &mark{tx: tx, Handle: handle, Data: data, gem: t.gem}
 }
 
-func (t gemType) EncodeEntity() string {
-	if t.magma {
-		return "skygear:hunt_gem_magma"
-	}
-	return "skygear:hunt_gem"
-}
-
-func (t gemType) NetworkEncodeEntity() string {
-	if t.magma {
-		return "minecraft:magma_cube"
-	}
-	return "minecraft:slime"
-}
-
-// gemTypeOf is the gem type of a hunt of mob.
-func gemTypeOf(mob string) gemType {
-	if mob == sgitem.MobSlime {
-		return GemMagmaType
-	}
-	return GemType
-}
+func (gemType) EncodeEntity() string { return "skygear:hunt_gem" }
 
 func (popupType) EncodeEntity() string        { return "skygear:hunt_popup" }
 func (popupType) NetworkEncodeEntity() string { return "minecraft:falling_block" }

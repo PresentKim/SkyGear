@@ -1,0 +1,28 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "skygear:hunt_gem",
+      "materials": {
+        "default": "entity_emissive_alpha"
+      },
+      "textures": {
+        "default": "textures/entity/skygear/hunt_gem"
+      },
+      "geometry": {
+        "default": "geometry.skygear.hunt_gem"
+      },
+      "animations": {
+        "float": "animation.skygear.hunt_gem.float"
+      },
+      "scripts": {
+        "animate": [
+          "float"
+        ]
+      },
+      "render_controllers": [
+        "controller.render.skygear_hunt_gem"
+      ]
+    }
+  }
+}
