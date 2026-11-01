@@ -51,9 +51,9 @@ type gear struct {
 	// picks count the common upgrades chosen at level-ups.
 	picks map[string]int
 	// level is the hunter's level in the run; gems are the experience
-	// gems lying on the ground.
+	// gems lying on the ground (marks.go).
 	level int
-	gems  []mgl64.Vec3
+	gems  []*gem
 	regen float64
 	// speed is the speed factor the gear applies now.
 	speed float64
@@ -293,24 +293,60 @@ func rotateY(v mgl64.Vec3, deg float64) mgl64.Vec3 {
 	return mgl64.Vec3{v[0]*c - v[2]*s, v[1], v[0]*s + v[2]*c}
 }
 
-// drop leaves a gem where a monster died, or gives it at once when the hunter
-// is within reach.
+// gem is an experience gem on the ground: its entity, and whether the
+// hunter's magnet caught it (then it flies to the hunter, however far it
+// gets).
+type gem struct {
+	h      *world.EntityHandle
+	caught bool
+	speed  float64
+}
+
+const (
+	// gemPull is how fast (blocks a tick) a caught gem starts flying,
+	// gemPullUp how much faster it gets each tick; within gemTake of the
+	// hunter it is picked up.
+	gemPull   = 0.25
+	gemPullUp = 0.05
+	gemTake   = 0.8
+)
+
+// drop leaves a gem on the ground where a monster died.
 func (g *gear) drop(tx *world.Tx, p *player.Player, r *Run, at mgl64.Vec3) {
-	g.gems = append(g.gems, at)
+	at[1] = float64(core.ArenaCentre.Y()) + 1.1
+	h := world.EntitySpawnOpts{Position: at}.New(GemType, markConfig{run: r})
+	tx.AddEntity(h)
+	g.gems = append(g.gems, &gem{h: h})
 	g.collect(tx, p, r)
 }
 
-var gemColour = color.RGBA{R: 90, G: 255, B: 120, A: 255}
-
-// collect picks up the gems within the magnet's reach and draws the others.
+// collect lets the magnet catch the gems within its reach, flies the caught
+// ones to the hunter and picks up those that reach it. The others lie still.
 func (g *gear) collect(tx *world.Tx, p *player.Player, r *Run) {
 	reach := g.magnet()
+	to := p.Position().Add(mgl64.Vec3{0, 0.6, 0})
 	got := 0
-	g.gems = slices.DeleteFunc(g.gems, func(at mgl64.Vec3) bool {
-		if at.Sub(p.Position()).Len() <= reach {
+	g.gems = slices.DeleteFunc(g.gems, func(gm *gem) bool {
+		e, ok := gm.h.Entity(tx)
+		if !ok {
+			return true
+		}
+		m := e.(*mark)
+		way := to.Sub(m.Data.Pos)
+		dist := way.Len()
+		if !gm.caught && dist > reach {
+			return false
+		}
+		if !gm.caught {
+			gm.caught, gm.speed = true, gemPull
+		}
+		if dist <= gemTake+gm.speed {
+			_ = m.Close()
 			got++
 			return true
 		}
+		m.moveTo(tx, m.Data.Pos.Add(way.Mul(gm.speed/dist)))
+		gm.speed += gemPullUp
 		return false
 	})
 	if got > 0 {
@@ -318,11 +354,6 @@ func (g *gear) collect(tx *world.Tx, p *player.Player, r *Run) {
 		tx.PlaySound(p.Position(), sound.Experience{})
 		if p.ExperienceLevel() > g.level {
 			r.levelUp(tx, p)
-		}
-	}
-	if r.ticks%10 == 0 {
-		for _, at := range g.gems {
-			tx.AddParticle(at.Add(mgl64.Vec3{0, 0.3, 0}), particle.Dust{Colour: gemColour})
 		}
 	}
 }

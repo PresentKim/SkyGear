@@ -75,10 +75,6 @@ type monsterData struct {
 	vel      mgl64.Vec3
 	cooldown int
 	onGround bool
-	// exit is the way out of the gate it walks for exitTicks more ticks
-	// before it goes for a player (gateportal.go).
-	exit      mgl64.Vec3
-	ExitTicks int
 	// damageMul and speedMul make a monster of a later stage of a run
 	// stronger (0 counts as 1).
 	damageMul, speedMul float64
@@ -98,8 +94,6 @@ type monsterData struct {
 
 type MonsterConfig struct {
 	Mob string
-	// exit is the way out of the gate the monster came out of.
-	exit mgl64.Vec3
 	// HealthMul, DamageMul and SpeedMul scale the mob's numbers (0 counts
 	// as 1): a run's later stages are stronger.
 	HealthMul, DamageMul, SpeedMul float64
@@ -122,11 +116,8 @@ func (c MonsterConfig) Apply(data *world.EntityData) {
 	if c.Elite {
 		health *= eliteHealth
 	}
-	d := &monsterData{Mob: c.Mob, Health: health, MaxHealth: health, exit: c.exit,
+	d := &monsterData{Mob: c.Mob, Health: health, MaxHealth: health,
 		damageMul: orOne(c.DamageMul) * orOne(v.Damage), speedMul: orOne(c.SpeedMul) * orOne(v.Speed), Variant: c.Variant, Elite: c.Elite}
-	if c.exit != (mgl64.Vec3{}) {
-		d.ExitTicks = GateExitTicks
-	}
 	data.Data = d
 }
 
@@ -144,9 +135,16 @@ func (m *Monster) Position() mgl64.Vec3 { return m.Data.Pos }
 
 func (m *Monster) Rotation() cube.Rotation { return m.Data.Rot }
 
-func (m *Monster) NameTag() string { return m.Data.Name }
+// NameTag is the monster's health bar once it is hurt (the elite has the
+// boss bar instead), else its name.
+func (m *Monster) NameTag() string {
+	if d := m.Md(); !d.Elite && d.Health > 0 && d.Health < d.MaxHealth {
+		return healthBar(d.Health, d.MaxHealth)
+	}
+	return m.Data.Name
+}
 
-func (m *Monster) AlwaysShowNameTag() bool { return false }
+func (m *Monster) AlwaysShowNameTag() bool { return true }
 
 // Mob is the kind of the monster.
 func (m *Monster) Mob() string { return m.kind }
@@ -278,14 +276,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 	sight := float64(huntSight)
 	if pos.Y() < float64(core.ArenaCentre.Y())-MonsterVoid {
 		// cannot happen on the flat ground, but never lose a monster
-		m.Data.Pos = insideArena(arenaGate(), 1)
-		return
-	}
-	if d.ExitTicks > 0 {
-		// still coming out of the gate
-		d.ExitTicks--
-		m.Data.Rot = cube.Rotation{dirYaw(d.exit), 0}
-		m.move(tx, pos, d.exit, MonsterTable[m.kind])
+		m.Data.Pos = insideArena(arenaStart(), 1)
 		return
 	}
 	var target *player.Player
@@ -443,8 +434,15 @@ func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
 	d.onGround = false
 	for _, v := range tx.Viewers(m.Data.Pos) {
 		v.ViewEntityAction(m, entity.HurtAction{})
+		v.ViewEntityState(m)
 	}
 	tx.PlaySound(m.Data.Pos, sound.Attack{Damage: true})
+	if s, ok := core.Of(tx); ok && dmg > 0 {
+		if r := RunOf(s); r != nil && r.Owns(m.Handle) {
+			top := m.H().Type().BBox(m).Height()
+			r.popup(tx, m.Data.Pos.Add(mgl64.Vec3{(s.Rand.Float64() - 0.5) * 0.6, top + 0.3, (s.Rand.Float64() - 0.5) * 0.6}), dmg)
+		}
+	}
 	if d.Health <= 0 {
 		if s, ok := core.Of(tx); ok {
 			monsterGone(s, tx, m, from)

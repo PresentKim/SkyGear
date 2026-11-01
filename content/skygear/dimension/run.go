@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -81,9 +80,10 @@ const (
 	// MaxAlive is how many monsters may be out at once; the rest wait.
 	MaxAlive = 60
 	// spawnNear and spawnFar bound how far from the hunter a monster
-	// comes; every gateEvery-th comes out of the gate instead.
+	// comes.
 	spawnNear, spawnFar = 12.0, 18.0
-	gateEvery           = 5
+	// driverDepth is how far under the hunter the run's driver follows it.
+	driverDepth = 3.0
 	// secondShare and eliteShare are the percent of monsters that come as
 	// the variant (from the second stage) and the elite (in the last).
 	secondShare, eliteShare = 30, 15
@@ -121,7 +121,9 @@ type Run struct {
 	ticks int
 	// gear is what the hunter fights with (gear.go); while paused the hunt
 	// waits for the hunter's level-up choice among choices.
-	gear       *gear
+	gear *gear
+	// popups are the damage numbers up now (marks.go).
+	popups     []*world.EntityHandle
 	paused     bool
 	pauseTicks int
 	// pauses counts the level-ups, so a late answer to an old one is not
@@ -183,9 +185,8 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	if core.InArena(r.Return) {
 		r.Return = island.Spawn(s)
 	}
-	gate, start := arenaGate(), arenaStart()
-	out := start.Sub(gate).Normalize()
-	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: huntIndex(mob)%PortalLooks + 1})
+	start := arenaStart()
+	r.Portal = world.EntitySpawnOpts{Position: start.Sub(mgl64.Vec3{0, driverDepth, 0})}.New(GatePortalType, gatePortalConfig{Level: 1})
 	tx.AddEntity(r.Portal)
 	runPart.Of(s).Run = r
 	dressForHunt(s, p)
@@ -213,6 +214,10 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 	}
 	if r.ticks%2 == 0 {
 		followCamera(p, true)
+	}
+	if e, ok := r.Portal.Entity(tx); ok {
+		// the driver stays under the hunter, so its chunk always ticks
+		e.(*GatePortal).Data.Pos = p.Position().Sub(mgl64.Vec3{0, driverDepth, 0})
 	}
 	if r.paused {
 		if r.pauseTicks++; r.pauseTicks >= pauseLimit && len(r.choices) > 0 {
@@ -264,20 +269,12 @@ func (r *Run) spawn(s *core.Session, tx *world.Tx, p *player.Player) {
 	for r.Spawned < due && len(r.Alive) < MaxAlive {
 		stage := min(stages-1, r.Spawned*stages/r.Hunt.Count)
 		hp, dmg, speed := stageBuff(stage)
-		var at mgl64.Vec3
-		var exit mgl64.Vec3
-		if r.Spawned%gateEvery == 0 {
-			gate := arenaGate()
-			exit = arenaStart().Sub(gate).Normalize()
-			at = gate.Add(mgl64.Vec3{0, 0, s.Rand.Float64()*2 - 1}).Add(exit.Mul(0.6))
-		} else {
-			a := s.Rand.Float64() * 2 * math.Pi
-			d := spawnNear + s.Rand.Float64()*(spawnFar-spawnNear)
-			at = insideArena(p.Position().Add(mgl64.Vec3{math.Cos(a) * d, 0, math.Sin(a) * d}), 3)
-		}
+		a := s.Rand.Float64() * 2 * math.Pi
+		d := spawnNear + s.Rand.Float64()*(spawnFar-spawnNear)
+		at := insideArena(p.Position().Add(mgl64.Vec3{math.Cos(a) * d, 0, math.Sin(a) * d}), 3)
 		at[1] = float64(core.ArenaCentre.Y())
 		v, elite := r.pickVariant(s, stage)
-		h := world.EntitySpawnOpts{Position: at}.New(VariantType(r.Mob, v), MonsterConfig{Mob: r.Mob, exit: exit, HealthMul: hp, DamageMul: dmg, SpeedMul: speed, Variant: v, Elite: elite})
+		h := world.EntitySpawnOpts{Position: at}.New(VariantType(r.Mob, v), MonsterConfig{Mob: r.Mob, HealthMul: hp, DamageMul: dmg, SpeedMul: speed, Variant: v, Elite: elite})
 		r.Alive[h] = true
 		r.Spawned++
 		if elite {
@@ -406,6 +403,7 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	if e, ok := r.Portal.Entity(tx); ok {
 		_ = e.(*GatePortal).Close()
 	}
+	r.closeMarks(tx)
 	if p != nil && r.Elite != nil {
 		p.RemoveBossBar()
 	}

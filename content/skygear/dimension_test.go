@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -595,6 +596,18 @@ func TestSwing(t *testing.T) {
 		if back.Health() != b0 {
 			t.Errorf("the monster behind lost %v health", b0-back.Health())
 		}
+		if !strings.Contains(front.NameTag(), "|") || back.NameTag() != "" {
+			t.Errorf("name tags %q and %q, want a health bar over the hurt monster alone", front.NameTag(), back.NameTag())
+		}
+		popups := 0
+		for e := range tx.Entities() {
+			if e.H().Type() == dimension.PopupType {
+				popups++
+			}
+		}
+		if popups == 0 {
+			t.Error("no damage number over the hit")
+		}
 	})
 }
 
@@ -629,6 +642,49 @@ func TestKitMoves(t *testing.T) {
 		dimension.KitTake(s.Session, tx, p, dimension.KitWeapon)
 		if !dimension.Kit(s.Session, p)[dimension.KitWeapon].Empty() || core.CountPlain(inv, item.Sword{Tier: item.ToolTierDiamond}) != 1 {
 			t.Error("clearing the slot did not give the diamond sword back")
+		}
+	})
+}
+
+// TestGemsMagnet: a gem lies where it fell until the hunter's magnet reaches
+// it, then flies to the hunter and is picked up; the run's end clears the
+// rest.
+func TestGemsMagnet(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		sword := item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1)
+		dimension.SetKit(s.Session, p, dimension.KitWeapon, sword)
+		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
+		for range 101 {
+			runTick(t, s, tx) // past the countdown, before the monsters come near
+		}
+		r := dimension.RunOf(s.Session)
+		far := p.Position().Add(mgl64.Vec3{6, 0, 0})
+		dimension.DropGem(r, tx, p, far)
+		dimension.DropGem(r, tx, p, p.Position().Add(mgl64.Vec3{-8, 0, 0}))
+		for range 10 {
+			runTick(t, s, tx)
+		}
+		if n := dimension.Gems(r); n != 2 {
+			t.Fatalf("%d gems lie about, want the 2 out of reach", n)
+		}
+		p.Teleport(far.Sub(mgl64.Vec3{2.5, 0, 0}))
+		runTick(t, s, tx)
+		if n := dimension.Gems(r); n != 2 {
+			t.Errorf("%d gems after one tick in reach, want the caught one still flying", n)
+		}
+		p.Teleport(far.Add(mgl64.Vec3{12, 0, 0}))
+		for range 30 {
+			runTick(t, s, tx)
+		}
+		if n := dimension.Gems(r); n != 1 || p.Experience() == 0 {
+			t.Errorf("%d gems and %d experience, want the caught one picked up though the hunter ran", n, p.Experience())
+		}
+		dimension.Died(s.Session, tx, p)
+		if n := dimension.Gems(r); n != 0 {
+			t.Errorf("%d gems left after the run", n)
 		}
 	})
 }

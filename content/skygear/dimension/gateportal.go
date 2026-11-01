@@ -9,17 +9,13 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 )
 
-// The gate of the hunting ground: a slowly turning round portal facing the
-// hunter's start. Some of a run's monsters come out of it and walk out the
-// way it faces before going for the hunter; it drives the run every tick and
-// closes when the run ends.
+// The run's driver: an entity no one sees that follows the hunter (so its
+// chunk always ticks) and drives the run every tick; it closes when the run
+// ends. It is the old gate entity, whose look the pack still has.
 
 // PortalLooks is how many looks (textures) the gate has; each hunt's gate
 // takes one by the monster's place in the order.
 const PortalLooks = 8
-
-// GateExitTicks is how long a monster walks straight out of the gate.
-const GateExitTicks = 25
 
 // GatePortal is the gate entity. Variant picks its texture in the render
 // controller (the level minus one).
@@ -44,6 +40,9 @@ func (g *GatePortal) Position() mgl64.Vec3 { return g.Data.Pos }
 func (g *GatePortal) Rotation() cube.Rotation { return g.Data.Rot }
 
 func (g *GatePortal) Variant() int32 { return int32(g.Data.Data.(*gatePortalData).Level - 1) }
+
+// Invisible keeps the driver out of sight.
+func (g *GatePortal) Invisible() bool { return true }
 
 // Tick drives the run whose gate it is, and closes a gate that no run
 // holds (left from an earlier session).

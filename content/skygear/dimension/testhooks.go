@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
 )
 
@@ -46,3 +47,7 @@ func KitPut(s *core.Session, tx *world.Tx, p *player.Player, i, from int) bool {
 
 // KitTake gives the item of kit slot i back.
 func KitTake(s *core.Session, tx *world.Tx, p *player.Player, i int) { kitTake(s, tx, p, i) }
+
+// DropGem leaves a gem at at; Gems is how many lie about.
+func DropGem(r *Run, tx *world.Tx, p *player.Player, at mgl64.Vec3) { r.gear.drop(tx, p, r, at) }
+func Gems(r *Run) int                                               { return len(r.gear.gems) }

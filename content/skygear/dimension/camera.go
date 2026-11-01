@@ -51,6 +51,9 @@ func huntCamera(p *player.Player) {
 	}
 	_ = c.WritePacket(&packet.CameraPresets{Presets: huntPresets})
 	followCamera(p, false)
+	// the keys move the hunter the way the screen shows, and it turns to face
+	// where it walks (the preset's scheme alone is not applied)
+	_ = c.WritePacket(&packet.ClientBoundControlSchemeSet{ControlScheme: packet.ControlSchemeCameraRelative})
 }
 
 // followCamera moves p's hunt camera over p, gliding unless at once.
@@ -79,5 +82,6 @@ func followCamera(p *player.Player, glide bool) {
 func plainCamera(p *player.Player) {
 	if c := sghook.Of(p); c != nil {
 		_ = c.WritePacket(&packet.CameraInstruction{Clear: protocol.Option(true)})
+		_ = c.WritePacket(&packet.ClientBoundControlSchemeSet{ControlScheme: packet.ControlSchemeLockedPlayerRelativeStrafe})
 	}
 }
