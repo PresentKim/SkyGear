@@ -2461,8 +2461,9 @@
   animation: mc-result-drop 0.45s ease-out both;
 }
 
-.mc-result-head.win { color: #ffcf3a; }
-.mc-result-head.lose { color: #b8b8b8; }
+/* On the light window the headline needs its shadow: bright gold with a dark drop, or dark grey. */
+.mc-result-head.win { color: #f2b800; text-shadow: 0.25rem 0.25rem 0 #4a3200; }
+.mc-result-head.lose { color: #4a4a4a; }
 
 .mc-result-stars {
   display: flex;

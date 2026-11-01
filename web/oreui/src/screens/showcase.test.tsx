@@ -46,6 +46,13 @@ describe('showcase', () => {
     act(() => key(49));
     act(() => key(13));
     expect(sent).toEqual([['b', 'click'], ['a', 'click']]);
+    // the arrows and WASD move the choice, wrapping round
+    act(() => key(37));
+    expect(container.querySelectorAll('.mc-cardpick-card')[1].className).toContain('mc-cardpick-on');
+    act(() => key(68));
+    expect(container.querySelectorAll('.mc-cardpick-card')[0].className).toContain('mc-cardpick-on');
+    act(() => key(32));
+    expect(sent[sent.length - 1]).toEqual(['a', 'click']);
     expect(container.querySelector('.mc-cardpick-head')!.textContent).toBe('T');
   });
   it('result: the headline, a star each (new ones marked) and the rewards after the stars', () => {

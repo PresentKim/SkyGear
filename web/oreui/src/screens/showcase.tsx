@@ -21,10 +21,28 @@ export function pickKey(ev: KeyboardEvent): number {
   return -1;
 }
 
+/** pickStep is how a key moves the chosen card: -1 for left (←, A, ↑, W), 1 for right (→, D, ↓, S), else 0. */
+export function pickStep(ev: KeyboardEvent): number {
+  switch (ev.keyCode) {
+    case 37:
+    case 65:
+    case 38:
+    case 87:
+      return -1;
+    case 39:
+    case 68:
+    case 40:
+    case 83:
+      return 1;
+  }
+  return 0;
+}
+
 /**
  * PickScreen is the cards alone over the dimmed game, no window: the title and the body over them,
  * the list buttons (if any) under them. A card rises and glows while it is chosen: under the pointer,
- * or by its number key (1, 2, 3...). The chosen card's number again, Enter or Space picks it.
+ * by its number key (1, 2, 3...) or by the arrows and WASD. The chosen card's number again, Enter or
+ * Space picks it.
  */
 export function PickScreen(props: { data: PickData }): JSX.Element {
   const { data } = props;
@@ -37,7 +55,14 @@ export function PickScreen(props: { data: PickData }): JSX.Element {
       const cur = onRef.current;
       const k = pickKey(ev);
       const ok = ev.keyCode === 13 || ev.keyCode === 32 || ev.key === 'Enter' || ev.key === ' ';
-      if (k >= 0 && k < data.cards.length) {
+      const step = pickStep(ev);
+      if (step !== 0 && data.cards.length > 0) {
+        // the arrows and WASD move the choice along the cards (from none: the first or the last)
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        const n = data.cards.length;
+        setOn(cur < 0 ? (step > 0 ? 0 : n - 1) : (cur + step + n) % n);
+      } else if (k >= 0 && k < data.cards.length) {
         ev.preventDefault();
         if (k === cur) send(data.cards[k].id, 'click');
         else setOn(k);
