@@ -2516,6 +2516,8 @@
 .mc-equip-left {
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
+  width: 19.2rem;
   align-items: flex-start;
   padding-right: 1.2rem;
   margin-right: 1.2rem;
@@ -2528,13 +2530,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-right: 0.8rem;
+  width: 6.4rem;
 }
 
 .mc-equip-head {
+  width: 6.4rem;
   font-size: 1.2rem;
   color: #404040;
   margin-bottom: 0.4rem;
+}
+
+.mc-equip-head .oui-line {
+  justify-content: center;
 }
 
 .mc-equip-slot {
@@ -2557,8 +2564,13 @@
 .mc-equip-right {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex-shrink: 0;
+  width: 37.6rem;
   align-self: stretch;
+}
+
+.mc-equip-right .mc-body-text {
+  width: 35.6rem;
 }
 
 .mc-equip-bag {
