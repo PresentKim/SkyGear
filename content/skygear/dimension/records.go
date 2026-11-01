@@ -135,9 +135,11 @@ func record(s *core.Session, res *result) {
 		}
 	}
 	after := Stars(s, res.Mob)
+	res.Stars = after
 	for i := range after {
 		if after[i] && !before[i] {
 			res.NewStars++
+			res.New[i] = true
 		}
 		if after[i] && rec.Given&(1<<i) == 0 {
 			rec.Given |= 1 << i

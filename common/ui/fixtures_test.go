@@ -150,6 +150,30 @@ func fixtureScreens() map[string]func() {
 			}
 			CardMenu(p, "카드", "골라 보세요", append(chrome(), cards...)...)
 		},
+		"pick": func() {
+			PickCards(p, "레벨 3!", "§7강화 하나를 고르세요. 고르는 동안 사냥이 멈춥니다.", []PickCard{
+				{Icon: "textures/items/iron_sword", Title: "회전 검", Text: "Lv.2 → 3\n칼날 하나가 더 돕니다", Tag: "§b무기", Rarity: "rare", Run: nop},
+				{Icon: "textures/items/apple", Title: "최대 체력 +4", Text: "§7체력이 늘고 4만큼 채워집니다", Tag: "§a강화", Rarity: "common", Run: nop},
+				{Icon: "textures/items/blaze_powder", Title: "화염 고리", Text: "Lv.4 → 5\n불길이 더 넓어집니다", Tag: "§d무기", Rarity: "epic", Run: nop},
+			})
+		},
+		"result": func() {
+			Result(p, ResultScreen{Title: "사냥 결과", Headline: "클리어!", Win: true,
+				Lines:   []ResultLine{{"몬스터", "슬라임"}, {"처치", "60 / 60"}, {"기록", "1:52 §e새 기록!"}},
+				Stars:   [3]bool{true, true, false}, New: [3]bool{false, true, false},
+				Rewards: []ItemSlot{{Icon: "textures/items/slime_ball", Count: "11", Tip: "슬라임 에센스"}, {Icon: "textures/items/sugar", Count: "2", Tip: "요정의 날개가루"}},
+				OK:      Option{Label: "확인", Run: nop}})
+		},
+		"equip": func() {
+			bag := slots(20)
+			Equip(p, EquipScreen{Title: "이차원 장비", Note: "§7칸을 고르고 가방에서 넣을 것을 누르세요",
+				Groups: []EquipGroup{
+					{Heading: "갑옷", Slots: []EquipSlot{{Item: ItemSlot{Icon: "textures/items/iron_helmet", Tip: "철 투구", Run: nop}}, {Empty: "textures/ui/empty_armor_slot_chestplate", Item: ItemSlot{Tip: "갑옷", Selected: true}}, {Empty: "textures/ui/empty_armor_slot_leggings", Item: ItemSlot{Tip: "바지", Run: nop}}, {Empty: "textures/ui/empty_armor_slot_boots", Item: ItemSlot{Tip: "신발", Run: nop}}}},
+					{Heading: "무기", Slots: []EquipSlot{{Item: ItemSlot{Icon: "textures/items/diamond_sword", Tip: "다이아몬드 검", Run: nop}}}},
+					{Heading: "보구", Slots: []EquipSlot{{Empty: "textures/ui/empty_armor_slot_shield", Item: ItemSlot{Tip: "보구", Run: nop}}, {Empty: "textures/ui/empty_armor_slot_shield", Item: ItemSlot{Tip: "보구", Run: nop}}, {Empty: "textures/ui/empty_armor_slot_shield", Item: ItemSlot{Tip: "보구", Run: nop}}}},
+				},
+				BagHeading: "가방", Bag: bag, Options: chrome(Option{Label: "칸 비우기", Run: nop})})
+		},
 		"grid": func() {
 			ItemGrid(p, "목록", "아이템 §7(30)", slots(30), chrome(Option{Label: "닫기", Run: nop})...)
 		},
@@ -278,7 +302,7 @@ func runFixture(t *testing.T, name string) (roots []any) {
 
 // fixtureNames are the screens the visual baseline must cover.
 var fixtureNames = []string{
-	"menu", "confirm", "cards", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
+	"menu", "confirm", "cards", "pick", "result", "equip", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
 	"slotmenu", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
 	"lobby-menu", "loading", "console", "probe",
 }

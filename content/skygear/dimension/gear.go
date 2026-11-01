@@ -18,6 +18,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -338,15 +339,43 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 	r.choices = r.offer(r.sess)
 	tx.PlaySound(p.Position(), sound.LevelUp{})
 	lang := i18n.Of(p)
-	var opts []ui.Option
+	var cards []ui.PickCard
 	for _, c := range r.choices {
-		opts = append(opts, r.sess.Opt(c.label(lang, r.gear), "", func(p *player.Player, tx *world.Tx) {
-			if RunOf(r.sess) == r && r.paused && r.pauses == pause {
+		card := c.card(lang)
+		card.Run = func(p *player.Player, tx *world.Tx) {
+			if sess, ok := core.Of(tx); ok && sess == r.sess && RunOf(r.sess) == r && r.paused && r.pauses == pause {
 				r.choose(tx, p, c)
 			}
-		}))
+		}
+		cards = append(cards, card)
 	}
-	ui.Menu(p, fmt.Sprintf(i18n.T(lang, "dimension.levelUp.title"), r.gear.level), i18n.T(lang, "dimension.levelUp.body"), opts...)
+	ui.PickCards(p, fmt.Sprintf(i18n.T(lang, "dimension.levelUp.title"), r.gear.level), i18n.T(lang, "dimension.levelUp.body"), cards)
+}
+
+// card draws a choice as a card: a weapon's next level, or a common upgrade.
+func (c choice) card(lang string) ui.PickCard {
+	if c.weapon != nil {
+		rarity := "rare"
+		if c.weapon.level+1 >= weaponMaxLevel {
+			rarity = "epic"
+		}
+		return ui.PickCard{
+			Icon: formicon.Of(item.NewStack(sgitem.Relic{Kind: c.weapon.kind}, 1)), Tag: i18n.T(lang, "dimension.card.weapon"),
+			Title: i18n.T(lang, "relic."+c.weapon.kind), Rarity: rarity,
+			Text: fmt.Sprintf(i18n.T(lang, "dimension.card.level"), c.weapon.level, c.weapon.level+1),
+		}
+	}
+	return ui.PickCard{
+		Icon: formicon.Of(item.NewStack(upIcons[c.common], 1)), Tag: i18n.T(lang, "dimension.card.common"),
+		Title: i18n.T(lang, "dimension.up."+c.common), Rarity: "common",
+		Text: i18n.T(lang, "dimension.up."+c.common+".about"),
+	}
+}
+
+// upIcons are the items the common upgrades' cards show.
+var upIcons = map[string]world.Item{
+	upAttack: item.Sword{Tier: item.ToolTierIron}, upSpeed: item.Feather{}, upHealth: item.GoldenApple{},
+	upRegen: item.GlisteringMelonSlice{}, upMagnet: item.Compass{},
 }
 
 // choice is an upgrade offered at a level-up: a weapon's next level or a
@@ -354,13 +383,6 @@ func (r *Run) levelUp(tx *world.Tx, p *player.Player) {
 type choice struct {
 	weapon *weapon
 	common string
-}
-
-func (c choice) label(lang string, g *gear) string {
-	if c.weapon != nil {
-		return fmt.Sprintf(i18n.T(lang, "dimension.levelUp.weapon"), i18n.T(lang, "relic."+c.weapon.kind), c.weapon.level, c.weapon.level+1)
-	}
-	return i18n.T(lang, "dimension.up."+c.common)
 }
 
 // offer picks three upgrades at random among the weapons' next levels and

@@ -209,54 +209,80 @@ func decodeStack(b []byte) item.Stack {
 // kitSlotKeys are the names of the kit's slots.
 var kitSlotKeys = [KitSlots]string{"helmet", "chestplate", "leggings", "boots", "weapon.slot", "relic", "relic", "relic"}
 
-// ShowKit is the kit screen: its slots, each pressed to set or clear.
+// kitEmpty are the silhouettes of the kit's empty slots, as the vanilla
+// inventory draws them.
+var kitEmpty = [KitSlots]string{
+	"textures/ui/empty_armor_slot_helmet", "textures/ui/empty_armor_slot_chestplate",
+	"textures/ui/empty_armor_slot_leggings", "textures/ui/empty_armor_slot_boots",
+	"textures/ui/empty_armor_slot_shield", "textures/ui/empty_armor_slot_shield",
+	"textures/ui/empty_armor_slot_shield", "textures/ui/empty_armor_slot_shield",
+}
+
+// kitChosen is the kit slot each player has chosen on the kit screen.
+var kitChosen = core.NewPlayers[int]()
+
+// ShowKit is the kit screen, laid out like the vanilla inventory: the
+// armour, the weapon and the relics in columns, the bag under them. Pressing
+// a slot chooses it; pressing something in the bag that fits puts a copy of
+// it in the chosen slot.
 func ShowKit(s *core.Session, p *player.Player, back string) {
 	lang := i18n.Of(p)
 	kit := Kit(s, p)
-	slot := func(i int) ui.ItemSlot {
-		sl := ui.ItemSlot{Tip: i18n.T(lang, "dimension.kit."+kitSlotKeys[i]), Run: func(p *player.Player, _ *world.Tx) { showKitPick(s, p, i, back) }}
+	chosen := kitChosen.Of(s)[p.H()]
+	slot := func(i int) ui.EquipSlot {
+		sl := ui.ItemSlot{Tip: i18n.T(lang, "dimension.kit."+kitSlotKeys[i]), Selected: i == chosen}
 		if !kit[i].Empty() {
 			sl.Icon = formicon.Of(kit[i])
 			sl.Tip = fmt.Sprintf("§f%s\n§7%s", naming.ItemName(lang, kit[i]), sl.Tip)
 		}
-		return sl
+		if !sl.Selected {
+			sl.Run = func(p *player.Player, _ *world.Tx) {
+				kitChosen.Of(s)[p.H()] = i
+				ShowKit(s, p, back)
+			}
+		}
+		return ui.EquipSlot{Item: sl, Empty: kitEmpty[i]}
 	}
-	var armour, weapon, relics []ui.ItemSlot
-	for i := KitHelmet; i <= KitBoots; i++ {
-		armour = append(armour, slot(i))
+	group := func(key string, from, to int) ui.EquipGroup {
+		g := ui.EquipGroup{Heading: i18n.T(lang, "dimension.kit."+key)}
+		for i := from; i < to; i++ {
+			g.Slots = append(g.Slots, slot(i))
+		}
+		return g
 	}
-	weapon = append(weapon, slot(KitWeapon))
-	for i := KitRelic; i < KitSlots; i++ {
-		relics = append(relics, slot(i))
-	}
-	ui.ItemGridSections(p, i18n.T(lang, "dimension.kit.title"), i18n.T(lang, "dimension.kit.body"), []ui.GridSection{
-		{Heading: i18n.T(lang, "dimension.kit.armour"), Slots: armour},
-		{Heading: i18n.T(lang, "dimension.kit.weapon"), Slots: weapon},
-		{Heading: i18n.T(lang, "dimension.kit.relics"), Slots: relics},
-	}, ui.Back(i18n.T(lang, "dimension.back"), func(p *player.Player, _ *world.Tx) { ShowWindow(s, p, back) }))
-}
-
-// showKitPick lists what p carries that slot i takes; a pick puts a copy in.
-func showKitPick(s *core.Session, p *player.Player, i int, back string) {
-	lang := i18n.Of(p)
-	var slots []ui.ItemSlot
+	var bag []ui.ItemSlot
 	for _, it := range append(p.Inventory().Slots(), p.Armour().Slots()...) {
-		if !kitAccepts(i, it) {
+		if it.Empty() {
 			continue
 		}
-		slots = append(slots, ui.ItemSlot{Icon: formicon.Of(it), Tip: naming.ItemName(lang, it), Run: func(p *player.Player, _ *world.Tx) {
-			setKit(s, p, i, it)
-			ShowKit(s, p, back)
-		}})
+		sl := ui.ItemSlot{Icon: formicon.Of(it), Tip: naming.ItemName(lang, it)}
+		if it.Count() > 1 {
+			sl.Count = fmt.Sprint(it.Count())
+		}
+		if kitAccepts(chosen, it) {
+			sl.Run = func(p *player.Player, _ *world.Tx) {
+				setKit(s, p, chosen, it)
+				ShowKit(s, p, back)
+			}
+		} else {
+			sl.Tip = "§8" + sl.Tip
+		}
+		bag = append(bag, sl)
 	}
-	body := i18n.T(lang, "dimension.kit.pick")
-	if len(slots) == 0 {
-		body = i18n.T(lang, "dimension.kit.nothing")
-	}
-	ui.ItemGrid(p, i18n.T(lang, "dimension.kit."+kitSlotKeys[i]), body, slots,
-		s.Opt(i18n.T(lang, "dimension.kit.clear"), "", func(p *player.Player, _ *world.Tx) {
-			setKit(s, p, i, item.Stack{})
-			ShowKit(s, p, back)
-		}),
-		ui.Back(i18n.T(lang, "dimension.back"), func(p *player.Player, _ *world.Tx) { ShowKit(s, p, back) }))
+	ui.Equip(p, ui.EquipScreen{
+		Title: i18n.T(lang, "dimension.kit.title"),
+		Note:  fmt.Sprintf(i18n.T(lang, "dimension.kit.note"), i18n.T(lang, "dimension.kit."+kitSlotKeys[chosen])),
+		Groups: []ui.EquipGroup{
+			group("armour", KitHelmet, KitWeapon), group("weapon", KitWeapon, KitRelic), group("relics", KitRelic, KitSlots),
+		},
+		BagHeading: i18n.T(lang, "dimension.kit.bag"),
+		Bag:        bag,
+		Options: []ui.Option{
+			ui.Back(i18n.T(lang, "dimension.back"), func(p *player.Player, _ *world.Tx) { ShowWindow(s, p, back) }),
+			s.Opt(i18n.T(lang, "dimension.kit.clear"), "", func(p *player.Player, _ *world.Tx) {
+				setKit(s, p, chosen, item.Stack{})
+				ShowKit(s, p, back)
+			}),
+		},
+	})
 }

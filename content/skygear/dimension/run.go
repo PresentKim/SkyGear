@@ -7,6 +7,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/bossbar"
 	"github.com/df-mc/dragonfly/server/player/title"
@@ -19,6 +20,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -383,6 +385,8 @@ type result struct {
 	// What the run gave (records.go).
 	Essences, Dust, NewStars int
 	FirstClear, NewBest      bool
+	// Stars are the monster's stars after the run, New the ones it earned.
+	Stars, New [3]bool
 }
 
 // end finishes the run: its monsters and gate go, the hunter (nil when gone)
@@ -570,28 +574,38 @@ func ShowRunMenu(s *core.Session, p *player.Player) {
 		}))
 }
 
-// showResult shows a hunter how its run went.
+// showResult shows a hunter how its run went: the headline, the stars
+// (the new ones flaring), the figures and the rewards coming in.
 func showResult(p *player.Player, res result) {
 	lang := i18n.Of(p)
-	mob := MobName(lang, res.Mob)
-	var body string
-	if res.How == endClear {
-		body = fmt.Sprintf(i18n.T(lang, "dimension.result.clear"), mob, res.Seconds/60, res.Seconds%60)
-	} else {
-		body = i18n.T(lang, "dimension.result."+res.How)
-	}
-	body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.kills"), res.Kills, res.Count)
+	head := i18n.T(lang, "dimension.result.head."+res.How)
+	time := fmt.Sprintf("%d:%02d", res.Seconds/60, res.Seconds%60)
 	if res.NewBest && !res.FirstClear {
-		body += "\n" + i18n.T(lang, "dimension.result.best")
+		time += " " + i18n.T(lang, "dimension.result.best")
 	}
-	if res.NewStars > 0 {
-		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.stars"), res.NewStars)
+	lines := []ui.ResultLine{
+		{Label: i18n.T(lang, "dimension.result.mob"), Value: MobName(lang, res.Mob)},
+		{Label: i18n.T(lang, "dimension.result.killsLabel"), Value: fmt.Sprintf("%d / %d", res.Kills, res.Count)},
+		{Label: i18n.T(lang, "dimension.result.timeLabel"), Value: time},
 	}
+	if res.How != endClear {
+		lines = append(lines, ui.ResultLine{Label: i18n.T(lang, "dimension.result.why"), Value: i18n.T(lang, "dimension.result."+res.How)})
+	}
+	var rewards []ui.ItemSlot
 	if res.Essences > 0 {
-		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.essences"), MobName(lang, res.Mob), res.Essences)
+		ess := item.NewStack(sgitem.Essence{Mob: res.Mob}, res.Essences)
+		rewards = append(rewards, ui.ItemSlot{Icon: formicon.Of(ess), Count: fmt.Sprint(res.Essences), Tip: fmt.Sprintf(i18n.T(lang, "dimension.result.essences"), MobName(lang, res.Mob), res.Essences)})
 	}
 	if res.Dust > 0 {
-		body += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.result.dust"), res.Dust)
+		dust := item.NewStack(sgitem.FairyDust{}, res.Dust)
+		rewards = append(rewards, ui.ItemSlot{Icon: formicon.Of(dust), Count: fmt.Sprint(res.Dust), Tip: fmt.Sprintf(i18n.T(lang, "dimension.result.dust"), res.Dust)})
 	}
-	ui.Menu(p, i18n.T(lang, "dimension.result.title"), body, ui.Option{Label: i18n.T(lang, "dimension.result.ok"), Run: func(*player.Player, *world.Tx) {}})
+	ui.Result(p, ui.ResultScreen{
+		Title: i18n.T(lang, "dimension.result.title"), Headline: head, Win: res.How == endClear,
+		Lines: lines, Stars: res.Stars, New: res.New, Rewards: rewards,
+		OK: ui.Option{Label: i18n.T(lang, "dimension.result.ok"), Run: func(*player.Player, *world.Tx) {}},
+	})
+	if res.How == endClear {
+		p.PlaySound(sound.LevelUp{})
+	}
 }
