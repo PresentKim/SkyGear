@@ -19,17 +19,13 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// A hunter fights with its relics: up to two weapons that strike on their own
-// and three charms that make it stronger. Kills leave experience gems; the
+// A hunter fights with what it holds and the relics of its kit (kit.go):
+// weapon relics strike on their own, charms make it stronger. Kills leave experience gems; the
 // hunter picks them up within its magnet's reach, and every level stops the
 // hunt for a choice of three upgrades. What the relics and the levels give
-// lasts the run. In the hunting ground the hunter's armour counts for
-// nothing. Values are drafts.
+// lasts the run. Values are drafts.
 
 const (
-	// MaxWeapons and MaxCharms are how many relics of each sort go along.
-	MaxWeapons = 2
-	MaxCharms  = 3
 	// weaponMaxLevel is the highest level a weapon reaches in a run.
 	weaponMaxLevel = 5
 	// gemXP is the experience a gem gives; baseMagnet is the reach (blocks)
@@ -125,19 +121,22 @@ func (g *gear) regenPerSecond() float64 {
 	return g.charmBonus(sgitem.RelicRegen, 0.3, 0.15) + 0.2*float64(g.picks[upRegen])
 }
 
-// gearOf is the gear p brings: the relics of its loadout it carries, the
-// highest grade of each kind.
+// gearOf is the gear p brings: the relics of its kit (kit.go). Two of a
+// kind count once, the higher grade.
 func gearOf(s *core.Session, p *player.Player) *gear {
 	g := &gear{charms: map[string]int{}, picks: map[string]int{}}
-	for _, kind := range Loadout(s, p) {
-		grade, ok := carried(p, kind)
-		if !ok {
-			continue
-		}
-		if (sgitem.Relic{Kind: kind}).IsWeapon() {
-			g.weapons = append(g.weapons, &weapon{kind: kind, grade: grade, level: 1, hit: map[*world.EntityHandle]int{}})
-		} else {
-			g.charms[kind] = grade
+	weapons := map[string]*weapon{}
+	for _, it := range kitRelicStacks(s, p) {
+		r, grade := it.Item().(sgitem.Relic), sgitem.RelicGrade(it)
+		switch {
+		case !r.IsWeapon():
+			g.charms[r.Kind] = max(g.charms[r.Kind], grade)
+		case weapons[r.Kind] != nil:
+			weapons[r.Kind].grade = max(weapons[r.Kind].grade, grade)
+		default:
+			w := &weapon{kind: r.Kind, grade: grade, level: 1, hit: map[*world.EntityHandle]int{}}
+			weapons[r.Kind] = w
+			g.weapons = append(g.weapons, w)
 		}
 	}
 	return g

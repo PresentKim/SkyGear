@@ -281,7 +281,7 @@
  "research.essence_collector.about": "Sneak and use it to pick a monster you cleared in the second dimension: its essences pile up every 15 seconds by that monster's best time (a twentieth of its kills a minute). More collectors of the same monster share them; they do not make more. Hoppers and item conduits take them out, and it needs no energy.",
  "research.relics.name": "Relics",
  "research.relics.short": "Weapons and charms for the second dimension",
- "research.relics.about": "At the relic table, make the weapons (repeating crossbow, flame ring, lightning staff, frost boomerang) and charms (life charm, wind boots, magnet ring, hourglass, magnifier, regeneration necklace) you bring into the second dimension's hunts, and raise them to grade 5 with materials and monster essences. Pick two weapons and three charms in the second dimension window's loadout.",
+ "research.relics.about": "At the relic table, make the weapons (repeating crossbow, flame ring, lightning staff, frost boomerang) and charms (life charm, wind boots, magnet ring, hourglass, magnifier, regeneration necklace) you bring into the second dimension's hunts, and raise them to grade 5 with materials and monster essences. Put three of them in the relic slots of your hunting kit in the second dimension window.",
  "research.mob_simulator.about": "There are no mobs on the island, so put monster essences from the second dimension in the simulator: each essence makes what that monster drops, eight times.",
  "research.mob_simulator.name": "Mob Simulator",
  "research.mob_simulator.short": "A machine that makes mob drops from essence",

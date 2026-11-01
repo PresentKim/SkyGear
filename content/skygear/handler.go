@@ -191,7 +191,13 @@ func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *
 		ctx.Cancel()
 		if p := ctx.Player(); dimension.Hunting(h.s.Session, p) {
 			achievement.Count(p, "hit_monster", 1)
-			m.Hurt(p.Tx(), dimension.HandDamage, p)
+			dmg := dimension.HandDamage
+			if held, _ := p.HeldItems(); !held.Empty() {
+				if w, ok := held.Item().(item.Weapon); ok {
+					dmg = w.AttackDamage()
+				}
+			}
+			m.Hurt(p.Tx(), dmg, p)
 		}
 		return
 	}

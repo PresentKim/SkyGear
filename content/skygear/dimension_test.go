@@ -1,7 +1,6 @@
 package skygear
 
 import (
-	"fmt"
 	"math"
 	"testing"
 
@@ -157,7 +156,7 @@ func TestBladesHit(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicBlade, 1))
+		dimension.SetKit(s.Session, p, dimension.KitRelic, sgitem.RelicStack(sgitem.RelicBlade, 1))
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
 		for range 100 {
 			runTick(t, s, tx)
@@ -428,31 +427,38 @@ func TestRelicTable(t *testing.T) {
 	})
 }
 
-// TestLoadoutAndLevels: a hunter brings its best relics (two weapons, three
-// charms) unless it picked others; a life charm raises its health for the run
-// only; gems level it up, which stops the hunt until it picks an upgrade.
-func TestLoadoutAndLevels(t *testing.T) {
+// TestKitAndLevels: going in, the hunter's inventory and armour are put away
+// and it wears and holds copies of its kit; a life charm in the kit raises its
+// health for the run only; gems level it up, which stops the hunt until it
+// picks an upgrade; coming back it has exactly what it carried.
+func TestKitAndLevels(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		for _, k := range []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicFlameRing, sgitem.RelicLife} {
-			_, _ = p.Inventory().AddItem(sgitem.RelicStack(k, 1))
-		}
-		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicLife, 3))
-		got := dimension.Loadout(s.Session, p)
-		want := []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicLife}
-		if fmt.Sprint(got) != fmt.Sprint(want) {
-			t.Errorf("loadout %v, want %v", got, want)
-		}
-		dimension.ToggleLoadout(s.Session, p, sgitem.RelicCrossbow)
-		dimension.ToggleLoadout(s.Session, p, sgitem.RelicFlameRing)
-		want = []string{sgitem.RelicBlade, sgitem.RelicLife, sgitem.RelicFlameRing}
-		if got := dimension.Loadout(s.Session, p); fmt.Sprint(got) != fmt.Sprint(want) {
-			t.Errorf("loadout %v after the changes, want %v", got, want)
+		sword := item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1)
+		helmet := item.NewStack(item.Helmet{Tier: item.ArmourTierIron{}}, 1)
+		_, _ = p.Inventory().AddItem(sword)
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 10))
+		p.Armour().SetHelmet(helmet)
+		dimension.SetKit(s.Session, p, dimension.KitWeapon, sword)
+		dimension.SetKit(s.Session, p, dimension.KitHelmet, helmet)
+		dimension.SetKit(s.Session, p, dimension.KitRelic, sgitem.RelicStack(sgitem.RelicLife, 3))
+		dimension.SetKit(s.Session, p, dimension.KitRelic+1, sgitem.RelicStack(sgitem.RelicBlade, 1))
+		if !dimension.KitAccepts(dimension.KitWeapon, sword) || dimension.KitAccepts(dimension.KitWeapon, item.NewStack(block.Dirt{}, 1)) || !dimension.KitAccepts(dimension.KitHelmet, helmet) || dimension.KitAccepts(dimension.KitRelic, sword) {
+			t.Error("the kit slots take the wrong things")
 		}
 
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
+		if n := core.CountPlain(p.Inventory(), block.Dirt{}); n != 0 {
+			t.Errorf("%d dirt taken into the hunt", n)
+		}
+		if held, _ := p.HeldItems(); held.Empty() || held.Item() != sword.Item() {
+			t.Errorf("holding %v in the hunt, want the kit's sword", held)
+		}
+		if p.Armour().Helmet().Empty() {
+			t.Error("the kit's helmet is not worn")
+		}
 		// a grade 3 life charm: 4 + 2 + 2
 		if p.MaxHealth() != 28 {
 			t.Errorf("max health %v in the run, want 28", p.MaxHealth())
@@ -483,6 +489,15 @@ func TestLoadoutAndLevels(t *testing.T) {
 		dimension.Died(s.Session, tx, p)
 		if p.MaxHealth() != 20 || p.ExperienceLevel() != 0 {
 			t.Errorf("after the run max health %v, level %d, want 20 and 0", p.MaxHealth(), p.ExperienceLevel())
+		}
+		if n := core.CountPlain(p.Inventory(), block.Dirt{}); n != 10 {
+			t.Errorf("%d dirt back after the run, want 10", n)
+		}
+		if n := core.CountPlain(p.Inventory(), item.Sword{Tier: item.ToolTierDiamond}); n != 1 {
+			t.Errorf("%d swords after the run, want the 1 carried (the kit's is a copy)", n)
+		}
+		if p.Armour().Helmet().Empty() {
+			t.Error("the helmet worn before the run is gone")
 		}
 	})
 }
@@ -525,7 +540,7 @@ func TestWatchdog(t *testing.T) {
 	withPlayer(t, s, h1, func(p *player.Player, tx *world.Tx) {
 		e, _ := h2.Entity(tx)
 		other := e.(*player.Player)
-		_, _ = p.Inventory().AddItem(sgitem.RelicStack(sgitem.RelicLife, 1))
+		dimension.SetKit(s.Session, p, dimension.KitRelic, sgitem.RelicStack(sgitem.RelicLife, 1))
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
 		p.Teleport(island.Spawn(s.Session))
 		dimension.Watchdog(s.Session, tx)

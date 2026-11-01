@@ -185,6 +185,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	r.Portal = world.EntitySpawnOpts{Position: gate.Add(mgl64.Vec3{0, 1, 0}), Rotation: cube.Rotation{dirYaw(out), 0}}.New(GatePortalType, gatePortalConfig{Level: huntIndex(mob)%PortalLooks + 1})
 	tx.AddEntity(r.Portal)
 	runPart.Of(s).Run = r
+	dressForHunt(s, p)
 	r.gear.dress(p)
 	p.SetFood(20)
 	// PlaceAt holds the hunter on its spot until the client has the ground.
@@ -399,6 +400,7 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	}
 	if p != nil {
 		r.gear.undress(p)
+		undressFromHunt(s, p)
 	}
 	releaseWatchers(s, tx)
 	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
@@ -484,12 +486,16 @@ func Leave(s *core.Session, tx *world.Tx, p *player.Player) {
 	delete(runPart.Of(s).results, p.H())
 }
 
-// Joined gives a player that watched a run when the server stopped its game
-// mode back; the session already moved it out of the hunting ground
-// (session.Relocate).
+// Joined gives a player that was in a run when the server stopped what it
+// had: a watcher its game mode, a hunter what it carried; the session already
+// moved it out of the hunting ground (session.Relocate).
 func Joined(s *core.Session, p *player.Player) {
 	if p.GameMode() == world.GameModeSpectator && !Watching(s, p) {
 		p.SetGameMode(world.GameModeSurvival)
+	}
+	// the server stopped during its run: what it carried comes back
+	if !Hunting(s, p) {
+		undressFromHunt(s, p)
 	}
 }
 

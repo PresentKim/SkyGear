@@ -130,15 +130,6 @@ func (c MonsterConfig) Apply(data *world.EntityData) {
 	data.Data = d
 }
 
-// huntHit is the damage a monster of a run does: the hunter's armour does not
-// count in the hunting ground.
-type huntHit struct{ Attacker world.Entity }
-
-func (huntHit) ReducedByArmour() bool     { return false }
-func (huntHit) ReducedByResistance() bool { return true }
-func (huntHit) Fire() bool                { return false }
-func (huntHit) IgnoreTotem() bool         { return false }
-
 // orOne is v, or 1 when v is unset.
 func orOne(v float64) float64 {
 	if v == 0 {
@@ -334,7 +325,7 @@ func (m *Monster) Tick(tx *world.Tx, _ int64) {
 		}
 		if v.Fuse == 0 && flat.Len() < monsterReach && math.Abs(to[1]) < 2 && d.cooldown == 0 {
 			d.cooldown = monsterCooldown
-			if _, hurt := target.Hurt(st.damage, huntHit{m}); hurt {
+			if _, hurt := target.Hurt(st.damage, entity.AttackDamageSource{Attacker: m}); hurt {
 				target.KnockBack(m.Data.Pos, 0.4, 0.3)
 				if v.Hit != nil {
 					target.AddEffect(*v.Hit)
@@ -360,7 +351,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 			tx.AddParticle(pos, particle.HugeExplosion{})
 			tx.PlaySound(pos, sound.Explosion{})
 			if target.Position().Sub(pos).Len() < blastRange {
-				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), huntHit{m})
+				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), entity.ExplosionDamageSource{})
 				target.KnockBack(pos, 0.8, 0.4)
 			}
 			monsterGone(s, tx, m, nil)

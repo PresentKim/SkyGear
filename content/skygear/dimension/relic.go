@@ -19,7 +19,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/platform/instance"
 )
 
 // The relics: made and raised a grade at the relic table (after the research
@@ -73,102 +72,6 @@ func init() {
 // relicKinds are every relic, the weapons first.
 func relicKinds() []string {
 	return append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...)
-}
-
-// Loadout is what p goes hunting with: the relics it picked that it
-// carries, or, when it picked none, its best ones.
-func Loadout(s *core.Session, p *player.Player) []string {
-	picked, ok := dimensionSaved.Of(s).Loadouts[instance.AccountID(p)]
-	var out []string
-	if ok {
-		for _, kind := range picked {
-			if _, has := carried(p, kind); has {
-				out = append(out, kind)
-			}
-		}
-		return out
-	}
-	for _, sort := range []struct {
-		kinds []string
-		limit int
-	}{{sgitem.RelicWeapons, MaxWeapons}, {sgitem.RelicCharms, MaxCharms}} {
-		n := 0
-		for _, kind := range sort.kinds {
-			if _, has := carried(p, kind); has && n < sort.limit {
-				out = append(out, kind)
-				n++
-			}
-		}
-	}
-	return out
-}
-
-// toggleLoadout puts kind in p's loadout or takes it out; a full sort keeps
-// its relics.
-func toggleLoadout(s *core.Session, p *player.Player, kind string) {
-	cur := Loadout(s, p)
-	var next []string
-	found := false
-	weapons, charms := 0, 0
-	for _, k := range cur {
-		if k == kind {
-			found = true
-			continue
-		}
-		next = append(next, k)
-		if (sgitem.Relic{Kind: k}).IsWeapon() {
-			weapons++
-		} else {
-			charms++
-		}
-	}
-	if !found {
-		if (sgitem.Relic{Kind: kind}).IsWeapon() && weapons >= MaxWeapons || !(sgitem.Relic{Kind: kind}).IsWeapon() && charms >= MaxCharms {
-			ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dimension.loadout.full"))
-			return
-		}
-		next = append(next, kind)
-	}
-	st := dimensionSaved.Of(s)
-	if st.Loadouts == nil {
-		st.Loadouts = map[string][]string{}
-	}
-	st.Loadouts[instance.AccountID(p)] = append([]string{}, next...)
-	s.MarkDirty()
-}
-
-// ShowLoadout lets p pick the relics it hunts with among those it carries.
-func ShowLoadout(s *core.Session, p *player.Player, back string) {
-	lang := i18n.Of(p)
-	in := map[string]bool{}
-	for _, k := range Loadout(s, p) {
-		in[k] = true
-	}
-	var rows []ui.ListRow
-	for _, kind := range relicKinds() {
-		grade, ok := carried(p, kind)
-		if !ok {
-			continue
-		}
-		info := strings.Repeat("§e★", grade)
-		if in[kind] {
-			info = i18n.T(lang, "dimension.loadout.on") + " " + info
-		}
-		rows = append(rows, ui.ListRow{
-			Label: ui.ListRowText(i18n.T(lang, "relic."+kind), info), Icon: formicon.Of(item.NewStack(sgitem.Relic{Kind: kind}, 1)), Selected: in[kind],
-			Run: func(p *player.Player, _ *world.Tx) {
-				toggleLoadout(s, p, kind)
-				ShowLoadout(s, p, back)
-			},
-		})
-	}
-	body := fmt.Sprintf(i18n.T(lang, "dimension.loadout.body"), MaxWeapons, MaxCharms)
-	if len(rows) == 0 {
-		body = i18n.T(lang, "dimension.loadout.none")
-	}
-	ui.ListSplitMenu(p, i18n.T(lang, "dimension.loadout.title"), ui.ListSplit{Rows: rows, Body: body, Actions: []ui.Option{
-		ui.Back(i18n.T(lang, "dimension.back"), func(p *player.Player, _ *world.Tx) { ShowWindow(s, p, back) }),
-	}})
 }
 
 // relicCost is what raising a relic of kind from grade (0: making it) costs:
