@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -699,4 +700,29 @@ func TestOldKit(t *testing.T) {
 			t.Error("a kit with a weapon relic may not go in")
 		}
 	})
+}
+
+// TestGiveRelics: /sgadmin give hands out every relic at every grade, and the
+// dimension's own items.
+func TestGiveRelics(t *testing.T) {
+	_ = testSession(t)
+	items := giveItems()
+	for _, k := range append(append([]string{}, sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+		for g := 1; g <= sgitem.RelicMaxGrade; g++ {
+			f, ok := items[fmt.Sprintf("relic_%s_%d", k, g)]
+			if !ok || sgitem.RelicGrade(f()) != g {
+				t.Errorf("no relic_%s_%d of that grade", k, g)
+			}
+		}
+	}
+	for _, id := range []string{"dimension_stone", "fairy_emerald", "fairy_dust", "relic_table", "essence_collector"} {
+		if _, ok := items[id]; !ok {
+			t.Errorf("no %s to give", id)
+		}
+	}
+	for id := range items {
+		if strings.HasPrefix(id, "progress_") || id == "dimension_gate" {
+			t.Errorf("%s is given", id)
+		}
+	}
 }
