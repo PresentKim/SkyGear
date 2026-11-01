@@ -2547,7 +2547,6 @@
  "dimension.window.kitLine": "§7가져갈 장비: §f%s",
  "dimension.levelUp.body": "§7강화 하나를 고르세요. 고르는 동안 사냥이 멈춥니다.",
  "dimension.levelUp.title": "레벨 %d!",
- "dimension.relic.essences": "아무 몬스터 에센스 ×%d",
  "dimension.relic.locked": "§7\"보구\" 연구를 마치면 만들 수 있습니다.",
  "dimension.relic.make": "%d등급 만들기",
  "dimension.relic.make.cost": "§7재료: §f%s",

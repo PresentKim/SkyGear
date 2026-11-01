@@ -46,11 +46,30 @@ var relicMaterials = map[string][]item.Stack{
 	sgitem.RelicRegen:     {item.NewStack(sgitem.Petal{Colour: "pink"}, 8), item.NewStack(item.GoldIngot{}, 2)},
 }
 
-// gradeEssences is how many monster essences (of any monster) raising a relic
-// from grade g costs: gradeEssences[g-1]. A run gives about three essences
-// for four kills (records.go), so the first raise takes some five hunts of the
-// first monster, and each next one doubles.
-var gradeEssences = []int{320, 640, 1280, 2560}
+// Raising a relic takes the essences of its own monsters: its early one for
+// every grade, and from grade 3 its late one too, so every relic can be
+// raised a little soon and only the hunts far along raise it all the way.
+// A run gives about three essences for four kills (records.go): a raise is
+// two or three hunts of that monster.
+
+// relicMobs are each relic's early and late monster.
+var relicMobs = map[string][2]string{
+	sgitem.RelicBlade:     {sgitem.MobZombie, sgitem.MobWither},
+	sgitem.RelicCrossbow:  {sgitem.MobSkeleton, sgitem.MobPiglin},
+	sgitem.RelicFlameRing: {sgitem.MobCreeper, sgitem.MobBlaze},
+	sgitem.RelicLightning: {sgitem.MobCreeper, sgitem.MobWitch},
+	sgitem.RelicBoomerang: {sgitem.MobDrowned, sgitem.MobEnder},
+	sgitem.RelicLife:      {sgitem.MobZombie, sgitem.MobWitch},
+	sgitem.RelicWind:      {sgitem.MobSpider, sgitem.MobEnder},
+	sgitem.RelicMagnet:    {sgitem.MobSlime, sgitem.MobPiglin},
+	sgitem.RelicHourglass: {sgitem.MobSlime, sgitem.MobEnder},
+	sgitem.RelicLens:      {sgitem.MobSpider, sgitem.MobBlaze},
+	sgitem.RelicRegen:     {sgitem.MobSlime, sgitem.MobWither},
+}
+
+// gradeEssences are how many essences of the early and the late monster
+// raising a relic from grade g costs: gradeEssences[g-1].
+var gradeEssences = [][2]int{{150, 0}, {300, 0}, {400, 200}, {600, 400}}
 
 func init() {
 	for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
@@ -77,56 +96,37 @@ func relicKinds() []string {
 }
 
 // relicCost is what raising a relic of kind from grade (0: making it) costs:
-// the materials and the essences of any monster.
-func relicCost(kind string, grade int) ([]item.Stack, int) {
+// the materials and the essences of its monsters.
+func relicCost(kind string, grade int) []item.Stack {
 	times := max(1, grade)
 	var mats []item.Stack
 	for _, m := range relicMaterials[kind] {
 		mats = append(mats, m.Grow(m.Count()*(times-1)))
 	}
-	ess := 0
 	if grade >= 1 {
-		ess = gradeEssences[grade-1]
-	}
-	return mats, ess
-}
-
-// essences counts the monster essences in p's inventory.
-func essences(p *player.Player) int {
-	n := 0
-	for _, it := range p.Inventory().Items() {
-		if _, ok := it.Item().(sgitem.Essence); ok {
-			n += it.Count()
+		for i, n := range gradeEssences[grade-1] {
+			if n > 0 {
+				mats = append(mats, item.NewStack(sgitem.Essence{Mob: relicMobs[kind][i]}, n))
+			}
 		}
 	}
-	return n
+	return mats
 }
 
-// afford reports whether p has the materials and essences.
-func afford(p *player.Player, mats []item.Stack, ess int) bool {
-	for _, m := range mats {
+// afford reports whether p has all of cost.
+func afford(p *player.Player, cost []item.Stack) bool {
+	for _, m := range cost {
 		if core.CountPlain(p.Inventory(), m.Item()) < m.Count() {
 			return false
 		}
 	}
-	return essences(p) >= ess
+	return true
 }
 
-// pay takes the materials and essences from p (afford must hold).
-func pay(p *player.Player, mats []item.Stack, ess int) {
-	for _, m := range mats {
+// pay takes cost from p (afford must hold).
+func pay(p *player.Player, cost []item.Stack) {
+	for _, m := range cost {
 		core.TakePlain(p.Inventory(), m.Item(), m.Count())
-	}
-	inv := p.Inventory()
-	for slot, it := range inv.Slots() {
-		if ess == 0 {
-			break
-		}
-		if _, ok := it.Item().(sgitem.Essence); ok {
-			n := min(ess, it.Count())
-			_ = inv.SetItem(slot, it.Grow(-n))
-			ess -= n
-		}
 	}
 }
 
@@ -149,16 +149,18 @@ func ShowRelicTable(s *core.Session, p *player.Player, sel string) {
 		})
 	}
 	grade, has := carried(p, sel)
-	mats, ess := relicCost(sel, grade)
+	mats := relicCost(sel, grade)
 	// the numbers are those of the grade carried, or of grade 1
 	var b strings.Builder
-	b.WriteString(i18n.T(lang, "relic."+sel+".about") + "\n" + describeRelic(lang, sel, max(grade, 1)) + "\n\n")
+	b.WriteString(describeRelic(lang, sel, max(grade, 1)) + "\n\n")
+	// each cost with what the hunter has of it, red while short
 	var costs []string
 	for _, m := range mats {
-		costs = append(costs, fmt.Sprintf("%s ×%d", naming.ItemName(lang, m), m.Count()))
-	}
-	if ess > 0 {
-		costs = append(costs, fmt.Sprintf(i18n.T(lang, "dimension.relic.essences"), ess))
+		have, col := core.CountPlain(p.Inventory(), m.Item()), "§a"
+		if have < m.Count() {
+			col = "§c"
+		}
+		costs = append(costs, fmt.Sprintf("%s %s%d§7/%d", naming.ItemName(lang, m), col, have, m.Count()))
 	}
 	var actions []ui.Option
 	switch {
@@ -186,12 +188,12 @@ func craftRelic(s *core.Session, p *player.Player, tx *world.Tx, kind string) {
 	if !progress.Researched(s, RelicsResearch) || grade >= sgitem.RelicMaxGrade {
 		return
 	}
-	mats, ess := relicCost(kind, grade)
-	if !afford(p, mats, ess) {
+	mats := relicCost(kind, grade)
+	if !afford(p, mats) {
 		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "dimension.relic.short"))
 		return
 	}
-	pay(p, mats, ess)
+	pay(p, mats)
 	next := sgitem.RelicStack(kind, grade+1)
 	if has {
 		inv := p.Inventory()

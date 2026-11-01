@@ -413,21 +413,26 @@ func TestRelicTable(t *testing.T) {
 		if n := core.CountPlain(p.Inventory(), item.IronIngot{}); n != 4 {
 			t.Errorf("%d iron left, want 4", n)
 		}
-		// grade 1 → 2: the materials once more and 320 essences (some five hunts)
+		// grade 1 → 2: the materials once more and 150 essences of its early
+		// monster (the slime); others do not count
 		give(item.IronIngot{}, 4)
 		give(item.RedstoneWire{}, 4)
-		give(sgitem.Essence{Mob: sgitem.MobSlime}, 319)
+		give(sgitem.Essence{Mob: sgitem.MobZombie}, 200)
+		give(sgitem.Essence{Mob: sgitem.MobSlime}, 149)
 		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
 		if g, _ := dimension.Carried(p, sgitem.RelicMagnet); g != 1 {
-			t.Fatal("raised without enough essences")
+			t.Fatal("raised without enough slime essences")
 		}
-		give(sgitem.Essence{Mob: sgitem.MobZombie}, 1)
+		give(sgitem.Essence{Mob: sgitem.MobSlime}, 1)
 		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
 		if g, _ := dimension.Carried(p, sgitem.RelicMagnet); g != 2 {
 			t.Fatalf("grade %d after raising, want 2", g)
 		}
-		if n := core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobSlime}) + core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobZombie}); n != 0 {
-			t.Errorf("%d essences left, want 0", n)
+		if n := core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobSlime}); n != 0 {
+			t.Errorf("%d slime essences left, want 0", n)
+		}
+		if n := core.CountPlain(p.Inventory(), sgitem.Essence{Mob: sgitem.MobZombie}); n != 200 {
+			t.Errorf("%d zombie essences left, want the 200 untouched", n)
 		}
 	})
 }

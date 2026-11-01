@@ -391,7 +391,6 @@
  "dimension.window.kitLine": "§7Kit: §f%s",
  "dimension.levelUp.body": "§7Pick an upgrade. The hunt waits while you choose.",
  "dimension.levelUp.title": "Level %d!",
- "dimension.relic.essences": "Any monster essence ×%d",
  "dimension.relic.locked": "§7Research \"Relics\" to make them.",
  "dimension.relic.make": "Make grade %d",
  "dimension.relic.make.cost": "§7Materials: §f%s",
