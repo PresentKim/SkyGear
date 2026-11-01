@@ -413,10 +413,10 @@ func TestRelicTable(t *testing.T) {
 		if n := core.CountPlain(p.Inventory(), item.IronIngot{}); n != 4 {
 			t.Errorf("%d iron left, want 4", n)
 		}
-		// grade 1 → 2: the materials once more and 4 essences
+		// grade 1 → 2: the materials once more and 320 essences (some five hunts)
 		give(item.IronIngot{}, 4)
 		give(item.RedstoneWire{}, 4)
-		give(sgitem.Essence{Mob: sgitem.MobSlime}, 3)
+		give(sgitem.Essence{Mob: sgitem.MobSlime}, 319)
 		dimension.CraftRelic(s.Session, p, tx, sgitem.RelicMagnet)
 		if g, _ := dimension.Carried(p, sgitem.RelicMagnet); g != 1 {
 			t.Fatal("raised without enough essences")

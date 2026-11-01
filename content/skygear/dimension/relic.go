@@ -47,8 +47,10 @@ var relicMaterials = map[string][]item.Stack{
 }
 
 // gradeEssences is how many monster essences (of any monster) raising a relic
-// from grade g costs: gradeEssences[g-1].
-var gradeEssences = []int{4, 8, 16, 32}
+// from grade g costs: gradeEssences[g-1]. A run gives about three essences
+// for four kills (records.go), so the first raise takes some five hunts of the
+// first monster, and each next one doubles.
+var gradeEssences = []int{320, 640, 1280, 2560}
 
 func init() {
 	for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
