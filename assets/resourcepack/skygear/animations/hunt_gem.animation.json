@@ -17,6 +17,15 @@
           ]
         }
       }
+    },
+    "animation.skygear.hunt_gem.glow": {
+      "loop": false,
+      "animation_length": 0.05,
+      "particle_effects": {
+        "0.0": {
+          "effect": "glow"
+        }
+      }
     }
   }
 }

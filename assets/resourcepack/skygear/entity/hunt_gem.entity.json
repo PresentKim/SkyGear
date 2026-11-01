@@ -13,16 +13,21 @@
         "default": "geometry.skygear.hunt_gem"
       },
       "animations": {
-        "float": "animation.skygear.hunt_gem.float"
+        "float": "animation.skygear.hunt_gem.float",
+        "glow": "animation.skygear.hunt_gem.glow"
       },
       "scripts": {
         "animate": [
-          "float"
+          "float",
+          "glow"
         ]
       },
       "render_controllers": [
         "controller.render.skygear_hunt_gem"
-      ]
+      ],
+      "particle_effects": {
+        "glow": "skygear:hunt_gem_glow"
+      }
     }
   }
 }
