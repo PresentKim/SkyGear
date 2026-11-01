@@ -23,7 +23,7 @@
       "minecraft:emitter_shape_point": {
         "offset": [
           0,
-          0.45,
+          0.35,
           0
         ]
       },
@@ -33,8 +33,8 @@
       "minecraft:particle_initial_speed": 0,
       "minecraft:particle_appearance_billboard": {
         "size": [
-          "0.45 + math.sin(variable.particle_age * 240) * 0.08",
-          "0.45 + math.sin(variable.particle_age * 240) * 0.08"
+          "0.25 + math.sin(variable.particle_age * 240) * 0.04",
+          "0.25 + math.sin(variable.particle_age * 240) * 0.04"
         ],
         "facing_camera_mode": "rotate_xyz",
         "uv": {
