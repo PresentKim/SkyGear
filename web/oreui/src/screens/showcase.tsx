@@ -17,7 +17,7 @@ export function PickScreen(props: { data: PickData }): JSX.Element {
     <Window chrome={data.chrome}>
       <Scroll>
         <Body text={data.body} gap={6} />
-        <div className="oui-box mc-pick-row">
+        <div className="oui-box mc-cardpick-row">
           {data.cards.map((c, i) => (
             <PickCardView key={c.id || 'c' + i} card={c} index={i} />
           ))}
@@ -31,14 +31,14 @@ export function PickScreen(props: { data: PickData }): JSX.Element {
 function PickCardView(props: { card: PickCard; index: number }): JSX.Element {
   const { card } = props;
   return (
-    <div className="oui-box mc-pick-cell" style={{ animationDelay: props.index * 0.08 + 's' }}>
-      <McButton id={card.id} className={'mc-pick-card mc-pick-' + (card.rarity || 'common')}>
-        <Rich text={card.tag} className="oui-text mc-pick-tag" />
-        <div className="oui-box mc-pick-icon">
+    <div className="oui-box mc-cardpick-cell" style={{ animationDelay: props.index * 0.08 + 's' }}>
+      <McButton id={card.id} className={'mc-cardpick-card mc-cardpick-' + (card.rarity || 'common')}>
+        <Rich text={card.tag} className="oui-text mc-cardpick-tag" />
+        <div className="oui-box mc-cardpick-icon">
           <Icon icon={card.icon} />
         </div>
-        <Rich text={card.title} className="oui-text mc-pick-title" />
-        <Rich text={card.text} className="oui-text mc-pick-text" />
+        <Rich text={card.title} className="oui-text mc-cardpick-title" />
+        <Rich text={card.text} className="oui-text mc-cardpick-text" />
       </McButton>
     </div>
   );
@@ -92,31 +92,37 @@ export function ResultScreen(props: { data: ResultData }): JSX.Element {
   );
 }
 
-/** EquipScreen is the equipment groups side by side over the bag, as in the vanilla inventory. */
+/** EquipScreen is the equipment columns at the left, as in the vanilla inventory, and at the right
+ * what can go in the chosen slot, the note and the list buttons. */
 export function EquipScreen(props: { data: EquipData }): JSX.Element {
   const { data } = props;
   return (
     <Window chrome={data.chrome}>
-      <Scroll>
-        <div className="oui-box mc-equip">
+      <div className="oui-box mc-equip">
+        <div className="oui-box mc-equip-left">
           {data.groups.map((g, i) => (
             <div key={i} className="oui-box mc-equip-group">
-              <Rich text={g.heading} className="oui-text mc-head" />
+              <Rich text={g.heading} className="oui-text mc-equip-head" />
               {g.slots.map((s, j) => (
                 <EquipSlotView key={s.id || 'e' + j} slot={s} />
               ))}
             </div>
           ))}
         </div>
-        <Body text={data.note} gap={3} />
-        {data.bagHeading ? <Rich text={data.bagHeading} className="oui-text mc-head" /> : null}
-        <div className="oui-box mc-equip-bag">
-          {data.bag.map((s, i) => (
-            <SlotView key={s.id || 'b' + i} slot={s} />
-          ))}
+        <div className="oui-box mc-equip-right">
+          <Scroll>
+            {data.bagHeading ? <Rich text={data.bagHeading} className="oui-text mc-head" /> : null}
+            <div className="oui-box mc-equip-bag">
+              {data.bag.map((s, i) => (
+                <SlotView key={s.id || 'b' + i} slot={s} />
+              ))}
+            </div>
+            <Gap size={3} />
+            <Body text={data.note} gap={3} />
+            <ListButtons items={data.items} />
+          </Scroll>
         </div>
-        <ListButtons items={data.items} gap />
-      </Scroll>
+      </div>
     </Window>
   );
 }
@@ -125,7 +131,7 @@ function EquipSlotView(props: { slot: EquipSlot }): JSX.Element {
   const { slot } = props;
   return (
     <div className="oui-box mc-equip-slot">
-      <SlotView slot={slot} variant="big" />
+      <SlotView slot={slot} />
       {slot.icon ? null : <Icon icon={slot.empty} className="mc-equip-empty" />}
     </div>
   );

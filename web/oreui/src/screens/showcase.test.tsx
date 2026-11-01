@@ -28,11 +28,11 @@ describe('showcase', () => {
         { id: 'b', icon: '', title: 'B', text: '', tag: '', rarity: '' },
       ] }} />,
     );
-    const cards = container.querySelectorAll('.mc-pick-card');
+    const cards = container.querySelectorAll('.mc-cardpick-card');
     expect(cards.length).toBe(2);
-    expect(cards[0].className).toContain('mc-pick-rare');
-    expect(cards[1].className).toContain('mc-pick-common');
-    expect((container.querySelectorAll('.mc-pick-cell')[1] as HTMLElement).style.animationDelay).toBe('0.08s');
+    expect(cards[0].className).toContain('mc-cardpick-rare');
+    expect(cards[1].className).toContain('mc-cardpick-common');
+    expect((container.querySelectorAll('.mc-cardpick-cell')[1] as HTMLElement).style.animationDelay).toBe('0.08s');
   });
   it('result: the headline, a star each (new ones marked) and the rewards after the stars', () => {
     const { container } = render(

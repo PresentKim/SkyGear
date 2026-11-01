@@ -597,3 +597,38 @@ func TestSwing(t *testing.T) {
 		}
 	})
 }
+
+// TestKitMoves: putting an item in a kit slot takes it out of the inventory,
+// a second one in the same slot gives the first back, and clearing the slot
+// gives it back; what does not fit is refused.
+func TestKitMoves(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		inv := p.Inventory()
+		_ = inv.SetItem(0, item.NewStack(item.Sword{Tier: item.ToolTierIron}, 1))
+		_ = inv.SetItem(1, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1))
+		_ = inv.SetItem(2, item.NewStack(block.Dirt{}, 5))
+		if dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 2) {
+			t.Fatal("dirt went into the weapon slot")
+		}
+		if !dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 0) {
+			t.Fatal("the iron sword did not go in")
+		}
+		if it, _ := inv.Item(0); !it.Empty() {
+			t.Errorf("the iron sword is still in the inventory: %v", it)
+		}
+		dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 1)
+		if k := dimension.Kit(s.Session, p)[dimension.KitWeapon]; k.Item() != (item.Sword{Tier: item.ToolTierDiamond}) {
+			t.Errorf("the kit holds %v, want the diamond sword", k)
+		}
+		if core.CountPlain(inv, item.Sword{Tier: item.ToolTierIron}) != 1 || core.CountPlain(inv, item.Sword{Tier: item.ToolTierDiamond}) != 0 {
+			t.Error("swapping did not give the iron sword back")
+		}
+		dimension.KitTake(s.Session, tx, p, dimension.KitWeapon)
+		if !dimension.Kit(s.Session, p)[dimension.KitWeapon].Empty() || core.CountPlain(inv, item.Sword{Tier: item.ToolTierDiamond}) != 1 {
+			t.Error("clearing the slot did not give the diamond sword back")
+		}
+	})
+}

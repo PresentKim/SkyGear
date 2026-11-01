@@ -37,3 +37,12 @@ func ChooseFirst(r *Run, tx *world.Tx, p *player.Player) { r.choose(tx, p, r.cho
 
 // KitAccepts reports whether slot i of a kit takes it.
 func KitAccepts(i int, it item.Stack) bool { return kitAccepts(i, it) }
+
+// KitPut moves one item from inventory slot from into kit slot i.
+func KitPut(s *core.Session, tx *world.Tx, p *player.Player, i, from int) bool {
+	it, _ := p.Inventory().Item(from)
+	return kitPut(s, tx, p, i, from, it)
+}
+
+// KitTake gives the item of kit slot i back.
+func KitTake(s *core.Session, tx *world.Tx, p *player.Player, i int) { kitTake(s, tx, p, i) }

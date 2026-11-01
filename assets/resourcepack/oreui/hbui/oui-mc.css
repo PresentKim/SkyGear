@@ -2310,24 +2310,24 @@
   justify-content: center;
 }
 
-/* The pick screen (ui.PickCards): big cards side by side, coloured by rarity, rising in one after
+/* The card pick screen (ui.PickCards): big cards side by side, coloured by rarity, rising in one after
    another. */
-.mc-pick-row {
+.mc-cardpick-row {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.mc-pick-cell {
+.mc-cardpick-cell {
   display: flex;
   width: 20rem;
   height: 23rem;
   align-items: center;
   justify-content: center;
-  animation: mc-pick-rise 0.35s ease-out both;
+  animation: mc-cardpick-rise 0.35s ease-out both;
 }
 
-.mc-pick-card {
+.mc-cardpick-card {
   display: flex;
   width: 18.8rem;
   height: 22rem;
@@ -2341,21 +2341,21 @@
   border-radius: 0.6rem;
 }
 
-.mc-pick-card.pressable:hover,
-.mc-pick-card.mc-hover {
+.mc-cardpick-card.pressable:hover,
+.mc-cardpick-card.mc-hover {
   background-color: #3a3a46;
 }
 
-.mc-pick-common { border-color: #9a9a9a; }
-.mc-pick-rare { border-color: #4fa3ff; }
-.mc-pick-epic { border-color: #c45cff; }
+.mc-cardpick-common { border-color: #9a9a9a; }
+.mc-cardpick-rare { border-color: #4fa3ff; }
+.mc-cardpick-epic { border-color: #c45cff; }
 
-.mc-pick-tag {
+.mc-cardpick-tag {
   font-size: 1.4rem;
   color: #d0d0d0;
 }
 
-.mc-pick-icon {
+.mc-cardpick-icon {
   display: flex;
   width: 7.2rem;
   height: 7.2rem;
@@ -2367,18 +2367,18 @@
   border-radius: 3.6rem;
 }
 
-.mc-pick-icon img {
+.mc-cardpick-icon img {
   width: 4.8rem;
   height: 4.8rem;
 }
 
-.mc-pick-title {
+.mc-cardpick-title {
   font-size: 1.8rem;
   color: #ffffff;
   text-align: center;
 }
 
-.mc-pick-text {
+.mc-cardpick-text {
   margin-top: 0.6rem;
   width: 16.4rem;
   font-size: 1.3rem;
@@ -2386,7 +2386,7 @@
   text-align: center;
 }
 
-@keyframes mc-pick-rise {
+@keyframes mc-cardpick-rise {
   from { opacity: 0; transform: translateY(3rem); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -2502,50 +2502,73 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* The equip screen (ui.Equip): the equipment columns side by side, an empty slot showing its
-   silhouette as the vanilla inventory does, and the bag under them nine to a row. */
+/* The equip screen (ui.Equip): the equipment columns at the left with vanilla-sized slots whose
+   empty ones show their silhouettes, as the vanilla inventory does, and at the right what can go in
+   the chosen slot. */
 .mc-equip {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  flex-grow: 1;
+  align-self: stretch;
+  height: 100%;
+}
+
+.mc-equip-left {
+  display: flex;
+  flex-direction: row;
   align-items: flex-start;
+  padding-right: 1.2rem;
+  margin-right: 1.2rem;
+  border-right-width: 0.2rem;
+  border-right-style: solid;
+  border-right-color: rgba(0, 0, 0, 0.25);
 }
 
 .mc-equip-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 1.6rem;
-  margin-right: 1.6rem;
+  margin-right: 0.8rem;
+}
+
+.mc-equip-head {
+  font-size: 1.2rem;
+  color: #404040;
+  margin-bottom: 0.4rem;
 }
 
 .mc-equip-slot {
   display: flex;
   position: relative;
-  width: 5.6rem;
-  height: 5.6rem;
+  width: 3.6rem;
+  height: 3.6rem;
 }
 
 .mc-equip-empty {
   position: absolute;
   pointer-events: none;
-  left: 0.6rem;
-  top: 0.6rem;
-  width: 4.4rem;
-  height: 4.4rem;
+  left: 0.2rem;
+  top: 0.2rem;
+  width: 3.2rem;
+  height: 3.2rem;
   opacity: 0.55;
+}
+
+.mc-equip-right {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-self: stretch;
 }
 
 .mc-equip-bag {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  width: 32.4rem;
-  align-self: center;
 }
 
-.mc-pick-title .oui-line,
-.mc-pick-text .oui-line,
-.mc-pick-tag .oui-line {
+.mc-cardpick-title .oui-line,
+.mc-cardpick-text .oui-line,
+.mc-cardpick-tag .oui-line {
   justify-content: center;
 }

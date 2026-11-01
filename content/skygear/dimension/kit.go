@@ -19,8 +19,9 @@ import (
 
 // The second dimension's kit: every account keeps its own slots for the
 // hunts (four armour pieces, a weapon in hand and three relics), set in the
-// dimension window from what it carries. A slot keeps a copy: the island's
-// item stays where it is, and nothing the hunt does to the copy (wear) lasts.
+// dimension window from what it carries. Putting an item in a slot takes it
+// out of the inventory (the item the slot held comes back); taking it out
+// gives it back. The hunt wears a copy, so the kit's items do not wear.
 // Going in, the hunter's inventory and armour are put away and it wears and
 // holds its kit; coming back, they are given back as they were.
 
@@ -54,8 +55,8 @@ func Kit(s *core.Session, p *player.Player) []item.Stack {
 	return out
 }
 
-// setKit puts a copy of it (one item) in slot i of p's kit; an empty stack
-// clears the slot.
+// setKit stores it (one item) in slot i of p's kit, or clears the slot for
+// an empty stack; what was there is dropped (kitPut and kitTake move items).
 func setKit(s *core.Session, p *player.Player, i int, it item.Stack) {
 	st := dimensionSaved.Of(s)
 	if st.Kits == nil {
@@ -72,6 +73,29 @@ func setKit(s *core.Session, p *player.Player, i int, it item.Stack) {
 	}
 	st.Kits[acc] = kit
 	s.MarkDirty()
+}
+
+// kitPut moves one item from inventory slot from of p into kit slot i; the
+// item the kit slot held goes back into the inventory. It fails when the
+// slot no longer holds what fits (the inventory changed meanwhile).
+func kitPut(s *core.Session, tx *world.Tx, p *player.Player, i, from int, want item.Stack) bool {
+	inv := p.Inventory()
+	it, err := inv.Item(from)
+	if err != nil || it.Empty() || !it.Comparable(want) || !kitAccepts(i, it) {
+		return false
+	}
+	_ = inv.SetItem(from, it.Grow(-1))
+	kitTake(s, tx, p, i)
+	setKit(s, p, i, it)
+	return true
+}
+
+// kitTake gives the item in kit slot i back to p and clears the slot.
+func kitTake(s *core.Session, tx *world.Tx, p *player.Player, i int) {
+	if old := Kit(s, p)[i]; !old.Empty() {
+		setKit(s, p, i, item.Stack{})
+		s.GiveItem(p, tx, p.Position(), old)
+	}
 }
 
 // kitAccepts reports whether slot i of a kit takes it.
@@ -251,36 +275,36 @@ func ShowKit(s *core.Session, p *player.Player, back string) {
 		return g
 	}
 	var bag []ui.ItemSlot
-	for _, it := range append(p.Inventory().Slots(), p.Armour().Slots()...) {
-		if it.Empty() {
+	for from, it := range p.Inventory().Slots() {
+		if !kitAccepts(chosen, it) {
 			continue
 		}
 		sl := ui.ItemSlot{Icon: formicon.Of(it), Tip: naming.ItemName(lang, it)}
 		if it.Count() > 1 {
 			sl.Count = fmt.Sprint(it.Count())
 		}
-		if kitAccepts(chosen, it) {
-			sl.Run = func(p *player.Player, _ *world.Tx) {
-				setKit(s, p, chosen, it)
-				ShowKit(s, p, back)
-			}
-		} else {
-			sl.Tip = "§8" + sl.Tip
+		sl.Run = func(p *player.Player, tx *world.Tx) {
+			kitPut(s, tx, p, chosen, from, it)
+			ShowKit(s, p, back)
 		}
 		bag = append(bag, sl)
 	}
+	note := i18n.T(lang, "dimension.kit.note")
+	if len(bag) == 0 {
+		note = i18n.T(lang, "dimension.kit.none")
+	}
 	ui.Equip(p, ui.EquipScreen{
 		Title: i18n.T(lang, "dimension.kit.title"),
-		Note:  fmt.Sprintf(i18n.T(lang, "dimension.kit.note"), i18n.T(lang, "dimension.kit."+kitSlotKeys[chosen])),
+		Note:  note,
 		Groups: []ui.EquipGroup{
 			group("armour", KitHelmet, KitWeapon), group("weapon", KitWeapon, KitRelic), group("relics", KitRelic, KitSlots),
 		},
-		BagHeading: i18n.T(lang, "dimension.kit.bag"),
+		BagHeading: fmt.Sprintf(i18n.T(lang, "dimension.kit.fits"), i18n.T(lang, "dimension.kit."+kitSlotKeys[chosen])),
 		Bag:        bag,
 		Options: []ui.Option{
 			ui.Back(i18n.T(lang, "dimension.back"), func(p *player.Player, _ *world.Tx) { ShowWindow(s, p, back) }),
-			s.Opt(i18n.T(lang, "dimension.kit.clear"), "", func(p *player.Player, _ *world.Tx) {
-				setKit(s, p, chosen, item.Stack{})
+			s.Opt(i18n.T(lang, "dimension.kit.clear"), "", func(p *player.Player, tx *world.Tx) {
+				kitTake(s, tx, p, chosen)
 				ShowKit(s, p, back)
 			}),
 		},
