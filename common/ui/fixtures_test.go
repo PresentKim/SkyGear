@@ -159,8 +159,8 @@ func fixtureScreens() map[string]func() {
 		},
 		"result": func() {
 			Result(p, ResultScreen{Title: "사냥 결과", Headline: "클리어!", Win: true,
-				Lines:   []ResultLine{{"몬스터", "슬라임"}, {"처치", "60 / 60"}, {"기록", "1:52 §e새 기록!"}},
-				Stars:   [3]bool{true, true, false}, New: [3]bool{false, true, false},
+				Lines: []ResultLine{{"몬스터", "슬라임"}, {"처치", "60 / 60"}, {"기록", "1:52 §e새 기록!"}},
+				Stars: [3]bool{true, true, false}, New: [3]bool{false, true, false},
 				Rewards: []ItemSlot{{Icon: "textures/items/slime_ball", Count: "11", Tip: "슬라임 에센스"}, {Icon: "textures/items/sugar", Count: "2", Tip: "요정의 날개가루"}},
 				OK:      Option{Label: "확인", Run: nop}})
 		},
