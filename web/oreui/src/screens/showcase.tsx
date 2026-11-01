@@ -1,30 +1,38 @@
 import type { EquipData, EquipSlot, PickCard, PickData, ResultData } from '../protocol';
-import { Window } from '../components/Window';
+import { ScreenRoot, Window } from '../components/Window';
 import { Scroll } from '../components/Scroll';
 import { ActionButton, McButton } from '../components/Buttons';
 import { Gap, SlotView } from '../components/Slot';
 import { Icon } from '../components/Icon';
-import { Rich } from '../text/Rich';
+import { InkContext, Rich } from '../text/Rich';
 import { Body, ListButtons } from './menus';
 
 // Screens that show something off: big cards to pick one of, a result that comes in piece by piece
 // (CSS animations, staggered by an inline delay) and equipment laid out like the vanilla inventory.
 
-/** PickScreen is the body, the cards side by side (one pick each) and the list buttons. */
+/** PickScreen is the cards alone over the dimmed game, no window: the title and the body over them,
+ * the list buttons (if any) under them. */
 export function PickScreen(props: { data: PickData }): JSX.Element {
   const { data } = props;
   return (
-    <Window chrome={data.chrome}>
-      <Scroll>
-        <Body text={data.body} gap={6} />
-        <div className="oui-box mc-cardpick-row">
-          {data.cards.map((c, i) => (
-            <PickCardView key={c.id || 'c' + i} card={c} index={i} />
-          ))}
+    <ScreenRoot className="mc-screen mc-cardpick-screen">
+      <InkContext.Provider value="dark">
+        <div className="oui-box mc-cardpick-wrap">
+          <Rich text={data.chrome.title} className="oui-text mc-cardpick-head" />
+          {data.body ? <Rich text={data.body} className="oui-text mc-cardpick-body" /> : null}
+          <div className="oui-box mc-cardpick-row">
+            {data.cards.map((c, i) => (
+              <PickCardView key={c.id || 'c' + i} card={c} index={i} />
+            ))}
+          </div>
+          {data.items.length > 0 ? (
+            <div className="oui-box mc-cardpick-items">
+              <ListButtons items={data.items} gap />
+            </div>
+          ) : null}
         </div>
-        <ListButtons items={data.items} gap />
-      </Scroll>
-    </Window>
+      </InkContext.Provider>
+    </ScreenRoot>
   );
 }
 

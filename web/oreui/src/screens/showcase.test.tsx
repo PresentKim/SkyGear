@@ -10,6 +10,7 @@ vi.mock('../text/Rich', () => ({
 }));
 vi.mock('../components/Window', () => ({
   Window: (p: { children?: ReactNode }) => <div className="mc-window">{p.children}</div>,
+  ScreenRoot: (p: { className: string; children?: ReactNode }) => <div className={p.className}>{p.children}</div>,
 }));
 vi.mock('../components/Scroll', () => ({
   Scroll: (p: { children?: ReactNode }) => <div className="mc-scroll">{p.children}</div>,
@@ -33,6 +34,8 @@ describe('showcase', () => {
     expect(cards[0].className).toContain('mc-cardpick-rare');
     expect(cards[1].className).toContain('mc-cardpick-common');
     expect((container.querySelectorAll('.mc-cardpick-cell')[1] as HTMLElement).style.animationDelay).toBe('0.08s');
+    expect(container.querySelector('.mc-window')).toBeNull();
+    expect(container.querySelector('.mc-cardpick-head')!.textContent).toBe('T');
   });
   it('result: the headline, a star each (new ones marked) and the rewards after the stars', () => {
     const { container } = render(
