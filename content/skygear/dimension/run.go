@@ -46,17 +46,17 @@ var Hunts = []struct {
 	Mob string
 	hunt
 }{
-	{sgitem.MobSlime, hunt{60, 180, 120, 300}},
-	{sgitem.MobZombie, hunt{80, 200, 140, 400}},
-	{sgitem.MobSkeleton, hunt{80, 210, 150, 400}},
-	{sgitem.MobSpider, hunt{90, 210, 150, 450}},
-	{sgitem.MobCreeper, hunt{90, 220, 160, 450}},
-	{sgitem.MobDrowned, hunt{100, 230, 170, 500}},
-	{sgitem.MobWitch, hunt{100, 240, 180, 500}},
-	{sgitem.MobPiglin, hunt{110, 240, 180, 550}},
-	{sgitem.MobEnder, hunt{110, 250, 190, 550}},
-	{sgitem.MobBlaze, hunt{120, 260, 200, 600}},
-	{sgitem.MobWither, hunt{120, 280, 210, 600}},
+	{sgitem.MobSlime, hunt{90, 180, 120, 450}},
+	{sgitem.MobZombie, hunt{120, 200, 140, 600}},
+	{sgitem.MobSkeleton, hunt{120, 210, 150, 600}},
+	{sgitem.MobSpider, hunt{135, 210, 150, 675}},
+	{sgitem.MobCreeper, hunt{135, 220, 160, 675}},
+	{sgitem.MobDrowned, hunt{150, 230, 170, 750}},
+	{sgitem.MobWitch, hunt{150, 240, 180, 750}},
+	{sgitem.MobPiglin, hunt{165, 240, 180, 825}},
+	{sgitem.MobEnder, hunt{165, 250, 190, 825}},
+	{sgitem.MobBlaze, hunt{180, 260, 200, 900}},
+	{sgitem.MobWither, hunt{180, 280, 210, 900}},
 }
 
 // huntOf is the hunt of mob.
@@ -76,7 +76,7 @@ const (
 	// monsters stronger.
 	stages = 4
 	// spawnShare is the share of the time over which all the monsters come.
-	spawnShare = 0.6
+	spawnShare = 0.3
 	// MaxAlive is how many monsters may be out at once; the rest wait.
 	MaxAlive = 60
 	// spawnNear and spawnFar bound how far from the hunter a monster
