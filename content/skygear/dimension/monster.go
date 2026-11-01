@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -425,6 +426,7 @@ func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 func (m *Monster) Hurt(tx *world.Tx, dmg float64, from *player.Player) {
 	d := m.Md()
 	d.Health -= dmg
+	achievement.Count(from, "hit_monster", 1)
 	away := m.Data.Pos.Sub(from.Position())
 	away[1] = 0
 	if away.Len() > 0 {

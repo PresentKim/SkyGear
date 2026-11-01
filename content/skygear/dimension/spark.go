@@ -17,7 +17,6 @@ import (
 // The kinds of sparks: their colour.
 const (
 	sparkBlade = "skygear:hunt_blade"
-	sparkSwing = "skygear:hunt_swing"
 	sparkFrost = "skygear:hunt_frost"
 	sparkBolt  = "skygear:hunt_bolt"
 )

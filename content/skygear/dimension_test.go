@@ -444,11 +444,10 @@ func TestKitAndLevels(t *testing.T) {
 		_, _ = p.Inventory().AddItem(sword)
 		_, _ = p.Inventory().AddItem(item.NewStack(block.Dirt{}, 10))
 		p.Armour().SetHelmet(helmet)
-		dimension.SetKit(s.Session, p, dimension.KitWeapon, sword)
 		dimension.SetKit(s.Session, p, dimension.KitHelmet, helmet)
 		dimension.SetKit(s.Session, p, dimension.KitRelic, sgitem.RelicStack(sgitem.RelicLife, 3))
 		dimension.SetKit(s.Session, p, dimension.KitRelic+1, sgitem.RelicStack(sgitem.RelicBlade, 1))
-		if !dimension.KitAccepts(dimension.KitWeapon, sword) || dimension.KitAccepts(dimension.KitWeapon, item.NewStack(block.Dirt{}, 1)) || !dimension.KitAccepts(dimension.KitHelmet, helmet) || dimension.KitAccepts(dimension.KitRelic, sword) {
+		if dimension.KitAccepts(dimension.KitRelic, sword) || dimension.KitAccepts(dimension.KitRelic, item.NewStack(block.Dirt{}, 1)) || !dimension.KitAccepts(dimension.KitHelmet, helmet) || !dimension.KitAccepts(dimension.KitRelic+3, sgitem.RelicStack(sgitem.RelicWind, 1)) {
 			t.Error("the kit slots take the wrong things")
 		}
 
@@ -456,8 +455,11 @@ func TestKitAndLevels(t *testing.T) {
 		if n := core.CountPlain(p.Inventory(), block.Dirt{}); n != 0 {
 			t.Errorf("%d dirt taken into the hunt", n)
 		}
-		if held, _ := p.HeldItems(); held.Empty() || held.Item() != sword.Item() {
-			t.Errorf("holding %v in the hunt, want the kit's sword", held)
+		if held, _ := p.HeldItems(); !held.Empty() {
+			t.Errorf("holding %v in the hunt, want an empty hand", held)
+		}
+		if it, _ := p.Inventory().Item(1); it.Empty() || it.Item() != (sgitem.Relic{Kind: sgitem.RelicBlade}) {
+			t.Errorf("hotbar slot 2 holds %v, want the kit's second relic", it)
 		}
 		if p.Armour().Helmet().Empty() {
 			t.Error("the kit's helmet is not worn")
@@ -502,7 +504,7 @@ func TestKitAndLevels(t *testing.T) {
 			t.Errorf("%d dirt back after the run, want 10", n)
 		}
 		if n := core.CountPlain(p.Inventory(), item.Sword{Tier: item.ToolTierDiamond}); n != 1 {
-			t.Errorf("%d swords after the run, want the 1 carried (the kit's is a copy)", n)
+			t.Errorf("%d swords after the run, want the 1 carried", n)
 		}
 		if p.Armour().Helmet().Empty() {
 			t.Error("the helmet worn before the run is gone")
@@ -566,56 +568,6 @@ func TestWatchdog(t *testing.T) {
 	}
 }
 
-// TestSwing: the kit's weapon swings forward on its own, hurting a monster
-// ahead of the hunter by the weapon's damage and not one behind it.
-func TestSwing(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		sword := item.Sword{Tier: item.ToolTierDiamond}
-		dimension.SetKit(s.Session, p, dimension.KitWeapon, item.NewStack(sword, 1))
-		dimension.Begin(s.Session, tx, p, sgitem.MobZombie)
-		for range 101 {
-			runTick(t, s, tx)
-		}
-		r := dimension.RunOf(s.Session)
-		ahead := p.Rotation().Vec3()
-		ahead = mgl64.Vec3{ahead[0], 0, ahead[2]}.Normalize()
-		spawn := func(at mgl64.Vec3) *dimension.Monster {
-			hd := world.EntitySpawnOpts{Position: at}.New(dimension.VariantType(sgitem.MobZombie, dimension.VariantBase), dimension.MonsterConfig{Mob: sgitem.MobZombie, HealthMul: 100})
-			r.Alive[hd] = true
-			tx.AddEntity(hd)
-			e, _ := hd.Entity(tx)
-			return e.(*dimension.Monster)
-		}
-		front, back := spawn(p.Position().Add(ahead.Mul(2))), spawn(p.Position().Sub(ahead.Mul(2)))
-		f0, b0 := front.Health(), back.Health()
-		for range 20 {
-			front.Data.Pos, back.Data.Pos = p.Position().Add(ahead.Mul(2)), p.Position().Sub(ahead.Mul(2))
-			runTick(t, s, tx)
-		}
-		if lost := f0 - front.Health(); lost < sword.AttackDamage() {
-			t.Errorf("the monster ahead lost %v health, want at least a sword hit (%v)", lost, sword.AttackDamage())
-		}
-		if back.Health() != b0 {
-			t.Errorf("the monster behind lost %v health", b0-back.Health())
-		}
-		if !strings.Contains(front.NameTag(), "|") || back.NameTag() != "" {
-			t.Errorf("name tags %q and %q, want a health bar over the hurt monster alone", front.NameTag(), back.NameTag())
-		}
-		popups := 0
-		for e := range tx.Entities() {
-			if e.H().Type() == dimension.PopupType {
-				popups++
-			}
-		}
-		if popups == 0 {
-			t.Error("no damage number over the hit")
-		}
-	})
-}
-
 // TestKitMoves: putting an item in a kit slot takes it out of the inventory,
 // a second one in the same slot gives the first back, and clearing the slot
 // gives it back; what does not fit is refused.
@@ -625,28 +577,38 @@ func TestKitMoves(t *testing.T) {
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		inv := p.Inventory()
-		_ = inv.SetItem(0, item.NewStack(item.Sword{Tier: item.ToolTierIron}, 1))
-		_ = inv.SetItem(1, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1))
-		_ = inv.SetItem(2, item.NewStack(block.Dirt{}, 5))
-		if dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 2) {
-			t.Fatal("dirt went into the weapon slot")
+		blade, bow := sgitem.Relic{Kind: sgitem.RelicBlade}, sgitem.Relic{Kind: sgitem.RelicCrossbow}
+		_ = inv.SetItem(0, sgitem.RelicStack(sgitem.RelicBlade, 1))
+		_ = inv.SetItem(1, sgitem.RelicStack(sgitem.RelicCrossbow, 1))
+		_ = inv.SetItem(2, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1))
+		if dimension.KitPut(s.Session, tx, p, dimension.KitRelic, 2) {
+			t.Fatal("a sword went into a relic slot")
 		}
-		if !dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 0) {
-			t.Fatal("the iron sword did not go in")
+		if !dimension.KitPut(s.Session, tx, p, dimension.KitRelic, 0) {
+			t.Fatal("the blade did not go in")
 		}
 		if it, _ := inv.Item(0); !it.Empty() {
-			t.Errorf("the iron sword is still in the inventory: %v", it)
+			t.Errorf("the blade is still in the inventory: %v", it)
 		}
-		dimension.KitPut(s.Session, tx, p, dimension.KitWeapon, 1)
-		if k := dimension.Kit(s.Session, p)[dimension.KitWeapon]; k.Item() != (item.Sword{Tier: item.ToolTierDiamond}) {
-			t.Errorf("the kit holds %v, want the diamond sword", k)
+		dimension.KitPut(s.Session, tx, p, dimension.KitRelic, 1)
+		if k := dimension.Kit(s.Session, p)[dimension.KitRelic]; k.Item() != bow {
+			t.Errorf("the kit holds %v, want the crossbow", k)
 		}
-		if core.CountPlain(inv, item.Sword{Tier: item.ToolTierIron}) != 1 || core.CountPlain(inv, item.Sword{Tier: item.ToolTierDiamond}) != 0 {
-			t.Error("swapping did not give the iron sword back")
+		count := func(r sgitem.Relic) int {
+			n := 0
+			for _, it := range inv.Items() {
+				if it.Item() == r {
+					n += it.Count()
+				}
+			}
+			return n
 		}
-		dimension.KitTake(s.Session, tx, p, dimension.KitWeapon)
-		if !dimension.Kit(s.Session, p)[dimension.KitWeapon].Empty() || core.CountPlain(inv, item.Sword{Tier: item.ToolTierDiamond}) != 1 {
-			t.Error("clearing the slot did not give the diamond sword back")
+		if count(blade) != 1 || count(bow) != 0 {
+			t.Error("swapping did not give the blade back")
+		}
+		dimension.KitTake(s.Session, tx, p, dimension.KitRelic)
+		if !dimension.Kit(s.Session, p)[dimension.KitRelic].Empty() || count(bow) != 1 {
+			t.Error("clearing the slot did not give the crossbow back")
 		}
 	})
 }
@@ -659,8 +621,7 @@ func TestGemsMagnet(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		sword := item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1)
-		dimension.SetKit(s.Session, p, dimension.KitWeapon, sword)
+		dimension.SetKit(s.Session, p, dimension.KitRelic, sgitem.RelicStack(sgitem.RelicBlade, 1))
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
 		for range 101 {
 			runTick(t, s, tx) // past the countdown, before the monsters come near
@@ -706,12 +667,36 @@ func TestDescribe(t *testing.T) {
 				}
 			}
 		}
-		d := dimension.Describe(lang, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1))
-		if !strings.Contains(d, "0.6") || strings.Contains(d, "%!") {
+		if d := dimension.Describe(lang, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1)); d == "" || strings.Contains(d, "%!") {
 			t.Errorf("%s sword: %q", lang, d)
 		}
 	}
-	if d := dimension.Describe("ko", sgitem.RelicStack(sgitem.RelicBlade, 3)); !strings.Contains(d, "피해 6") {
+	if d := dimension.Describe("ko", sgitem.RelicStack(sgitem.RelicBlade, 3)); !strings.Contains(d, "피해 §f6") {
 		t.Errorf("a grade 3 blade: %q, want damage 6", d)
 	}
+}
+
+// TestOldKit: a kit from before the hand weapon slot went, with a sword where
+// the first relic now is, gives the sword back; a kit without a weapon relic
+// cannot go in.
+func TestOldKit(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		sword := item.Sword{Tier: item.ToolTierDiamond}
+		dimension.SetKit(s.Session, p, dimension.KitRelic, item.NewStack(sword, 1))
+		dimension.SetKit(s.Session, p, dimension.KitRelic+1, sgitem.RelicStack(sgitem.RelicLife, 1))
+		if dimension.CanEnter(s.Session, p) {
+			t.Error("a kit with a charm alone may go in")
+		}
+		dimension.ShowKit(s.Session, p, sgitem.MobSlime)
+		if !dimension.Kit(s.Session, p)[dimension.KitRelic].Empty() || core.CountPlain(p.Inventory(), sword) != 1 {
+			t.Error("the old kit's sword was not given back")
+		}
+		dimension.SetKit(s.Session, p, dimension.KitRelic+2, sgitem.RelicStack(sgitem.RelicFlameRing, 1))
+		if !dimension.CanEnter(s.Session, p) {
+			t.Error("a kit with a weapon relic may not go in")
+		}
+	})
 }

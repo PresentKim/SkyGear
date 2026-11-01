@@ -18,12 +18,13 @@ import (
 )
 
 // The second dimension's kit: every account keeps its own slots for the
-// hunts (four armour pieces, a weapon in hand and three relics), set in the
+// hunts (four armour pieces and four relics), set in the
 // dimension window from what it carries. Putting an item in a slot takes it
 // out of the inventory (the item the slot held comes back); taking it out
 // gives it back. The hunt wears a copy, so the kit's items do not wear.
-// Going in, the hunter's inventory and armour are put away and it wears and
-// holds its kit; coming back, they are given back as they were.
+// Going in, the hunter's inventory and armour are put away and it wears its
+// kit (the relics in the hotbar, its hand empty: the relics fight, it only
+// walks); coming back, they are given back as they were.
 
 // The kit's slots.
 const (
@@ -31,9 +32,8 @@ const (
 	KitChestplate
 	KitLeggings
 	KitBoots
-	KitWeapon
 	KitRelic
-	kitRelics = 3
+	kitRelics = 4
 	KitSlots  = KitRelic + kitRelics
 )
 
@@ -117,16 +117,30 @@ func kitAccepts(i int, it item.Stack) bool {
 	case KitBoots:
 		_, ok := it.Item().(item.BootsType)
 		return ok
-	case KitWeapon:
-		_, ok := it.Item().(item.Weapon)
-		return ok && !relic
 	}
 	return relic
 }
 
-// CanEnter reports whether p may go hunting: its kit has a weapon in hand.
+// CanEnter reports whether p may go hunting: its kit has a weapon relic
+// (else nothing would fight).
 func CanEnter(s *core.Session, p *player.Player) bool {
-	return !Kit(s, p)[KitWeapon].Empty()
+	for _, it := range kitRelicStacks(s, p) {
+		if it.Item().(sgitem.Relic).IsWeapon() {
+			return true
+		}
+	}
+	return false
+}
+
+// fixKit gives p back what its kit holds in a slot that does not take it:
+// a kit from before the hand weapon slot went has a weapon where the first
+// relic now is.
+func fixKit(s *core.Session, tx *world.Tx, p *player.Player) {
+	for i, it := range Kit(s, p) {
+		if !it.Empty() && !kitAccepts(i, it) {
+			kitTake(s, tx, p, i)
+		}
+	}
 }
 
 // kitRelicStacks are the relics in p's kit.
@@ -141,8 +155,8 @@ func kitRelicStacks(s *core.Session, p *player.Player) []item.Stack {
 }
 
 // dressForHunt puts p's inventory and armour away and gives it its kit: the
-// armour on, the weapon in the first hotbar slot, the relics beside it (to
-// see) and the menu item where it was.
+// armour on, the relics in the first hotbar slots (to see), the hand on an
+// empty slot and the menu item where it was.
 func dressForHunt(s *core.Session, p *player.Player) {
 	acc := instance.AccountID(p)
 	st := dimensionSaved.Of(s)
@@ -171,12 +185,11 @@ func dressForHunt(s *core.Session, p *player.Player) {
 	p.SetHeldItems(main, item.Stack{})
 	kit := Kit(s, p)
 	armour.Set(kit[KitHelmet], kit[KitChestplate], kit[KitLeggings], kit[KitBoots])
-	_ = inv.SetItem(0, kit[KitWeapon])
 	for i, it := range kit[KitRelic:] {
-		_ = inv.SetItem(1+i, it)
+		_ = inv.SetItem(i, it)
 	}
 	_ = inv.SetItem(8, menu)
-	_ = p.SetHeldSlot(0)
+	_ = p.SetHeldSlot(kitRelics)
 }
 
 // undressFromHunt gives p back what it carried before the hunt, if it was
@@ -231,7 +244,7 @@ func decodeStack(b []byte) item.Stack {
 }
 
 // kitSlotKeys are the names of the kit's slots.
-var kitSlotKeys = [KitSlots]string{"helmet", "chestplate", "leggings", "boots", "weapon.slot", "relic", "relic", "relic"}
+var kitSlotKeys = [KitSlots]string{"helmet", "chestplate", "leggings", "boots", "relic", "relic", "relic", "relic"}
 
 // kitEmpty are the silhouettes of the kit's empty slots, as the vanilla
 // inventory draws them.
@@ -246,18 +259,21 @@ var kitEmpty = [KitSlots]string{
 var kitChosen = core.NewPlayers[int]()
 
 // ShowKit is the kit screen, laid out like the vanilla inventory: the
-// armour, the weapon and the relics in columns, the bag under them. Pressing
-// a slot chooses it; pressing something in the bag that fits puts a copy of
-// it in the chosen slot.
+// armour and the relics in columns, at the right what of the inventory fits
+// the chosen slot. Pressing a slot chooses it; pressing an item at the right
+// moves it into the chosen slot.
 func ShowKit(s *core.Session, p *player.Player, back string) {
 	lang := i18n.Of(p)
+	if tx := p.Tx(); tx != nil {
+		fixKit(s, tx, p)
+	}
 	kit := Kit(s, p)
 	chosen := kitChosen.Of(s)[p.H()]
 	slot := func(i int) ui.EquipSlot {
 		sl := ui.ItemSlot{Tip: i18n.T(lang, "dimension.kit."+kitSlotKeys[i]), Selected: i == chosen}
 		if !kit[i].Empty() {
 			sl.Icon = formicon.Of(kit[i])
-			sl.Tip = fmt.Sprintf("§f%s\n§7%s\n%s", naming.ItemName(lang, kit[i]), sl.Tip, describe(lang, kit[i]))
+			sl.Tip = "§f" + naming.ItemName(lang, kit[i]) + "\n" + describe(lang, kit[i])
 		}
 		if !sl.Selected {
 			sl.Run = func(p *player.Player, _ *world.Tx) {
@@ -302,7 +318,7 @@ func ShowKit(s *core.Session, p *player.Player, back string) {
 		Title: i18n.T(lang, "dimension.kit.title"),
 		Note:  note,
 		Groups: []ui.EquipGroup{
-			group("armour", KitHelmet, KitWeapon), group("weapon", KitWeapon, KitRelic), group("relics", KitRelic, KitSlots),
+			group("armour", KitHelmet, KitRelic), group("relics", KitRelic, KitSlots),
 		},
 		BagHeading: fmt.Sprintf(i18n.T(lang, "dimension.kit.fits"), i18n.T(lang, "dimension.kit."+kitSlotKeys[chosen])),
 		Bag:        bag,

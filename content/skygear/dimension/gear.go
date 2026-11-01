@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
@@ -15,13 +16,12 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
-	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// A hunter fights with what it holds and the relics of its kit (kit.go):
+// A hunter fights with the relics of its kit (kit.go) and only walks:
 // weapon relics strike on their own, charms make it stronger. Kills leave experience gems; the
 // hunter picks them up within its magnet's reach, and every level stops the
 // hunt for a choice of three upgrades. What the relics and the levels give
@@ -38,12 +38,8 @@ const (
 
 // gear is what a hunter brings into a run and gains in it.
 type gear struct {
-	// melee is the weapon of the kit's hand slot (empty: a bare hand), swung
-	// forward on its own every swing ticks; swingCool counts down to it.
-	melee     item.Stack
-	swingCool int
-	weapons   []*weapon
-	charms    map[string]int
+	weapons []*weapon
+	charms  map[string]int
 	// picks count the common upgrades chosen at level-ups.
 	picks map[string]int
 	// level is the hunter's level in the run; gems are the experience
@@ -127,7 +123,7 @@ func (g *gear) regenPerSecond() float64 {
 // gearOf is the gear p brings: the relics of its kit (kit.go). Two of a
 // kind count once, the higher grade.
 func gearOf(s *core.Session, p *player.Player) *gear {
-	g := &gear{charms: map[string]int{}, picks: map[string]int{}, melee: Kit(s, p)[KitWeapon]}
+	g := &gear{charms: map[string]int{}, picks: map[string]int{}}
 	weapons := map[string]*weapon{}
 	for _, it := range kitRelicStacks(s, p) {
 		r, grade := it.Item().(sgitem.Relic), sgitem.RelicGrade(it)
@@ -192,11 +188,6 @@ func (g *gear) undress(p *player.Player) {
 // tick strikes with the weapons, heals, draws and picks up the gems.
 func (g *gear) tick(s *core.Session, tx *world.Tx, p *player.Player, r *Run) {
 	mons := r.monsters(tx)
-	g.swing(tx, p, mons)
-	if RunOf(s) != r {
-		return
-	}
-	mons = slices.DeleteFunc(mons, func(m *Monster) bool { return !r.Owns(m.Handle) })
 	for _, w := range g.weapons {
 		for h, n := range w.hit {
 			if n <= 1 {
@@ -218,69 +209,6 @@ func (g *gear) tick(s *core.Session, tx *world.Tx, p *player.Player, r *Run) {
 	g.collect(tx, p, r)
 }
 
-const (
-	// swingReach is how far ahead (blocks) a swing reaches and swingArc
-	// half the angle (degrees) of the sweep in front of the hunter.
-	swingReach = 3.0
-	swingArc   = 60.0
-)
-
-// swingTicks is how often the held weapon swings: a sword quickly, an axe
-// slowly, anything else and a bare hand in between.
-func swingTicks(it item.Stack) int {
-	switch it.Item().(type) {
-	case item.Sword:
-		return 12
-	case item.Axe:
-		return 20
-	}
-	return 16
-}
-
-// swing sweeps the held weapon in front of the hunter (the way it faces,
-// which is the way it walks) when it is ready, hurting every monster in the
-// arc by the weapon's damage (1 for a bare hand or a tool that does not
-// fight).
-func (g *gear) swing(tx *world.Tx, p *player.Player, mons []*Monster) {
-	if g.swingCool > 0 {
-		g.swingCool--
-		return
-	}
-	g.swingCool = max(1, int(float64(swingTicks(g.melee))*g.cooldown()))
-	dmg := 1.0
-	if w, ok := g.melee.Item().(item.Weapon); ok && !g.melee.Empty() {
-		dmg = w.AttackDamage()
-	}
-	dmg *= g.attack()
-	look := p.Rotation().Vec3()
-	ahead := mgl64.Vec3{look[0], 0, look[2]}
-	if ahead.Len() < 0.01 {
-		ahead = mgl64.Vec3{0, 0, 1}
-	}
-	ahead = ahead.Normalize()
-	reach := swingReach * g.reach()
-	p.SwingArm()
-	centre := p.Position().Add(mgl64.Vec3{0, 1, 0})
-	for a := -swingArc; a <= swingArc; a += swingArc / 3 {
-		spark(tx, centre.Add(rotateY(ahead, a).Mul(reach*0.8)), sparkSwing)
-	}
-	cos := math.Cos(swingArc * math.Pi / 180)
-	for _, m := range mons {
-		off := m.Position().Sub(p.Position())
-		flat := mgl64.Vec3{off[0], 0, off[2]}
-		d := flat.Len()
-		if d > reach+MonsterTable[m.kind].width*m.Scale()/2 || math.Abs(off[1]) > 2.5 {
-			continue
-		}
-		if d > 0.5 && flat.Mul(1/d).Dot(ahead) < cos {
-			continue
-		}
-		achievement.Count(p, "hit_monster", 1)
-		m.Hurt(tx, dmg, p)
-	}
-	tx.PlaySound(centre, sound.Attack{Damage: false})
-}
-
 // rotateY turns v by deg degrees around the vertical.
 func rotateY(v mgl64.Vec3, deg float64) mgl64.Vec3 {
 	r := deg * math.Pi / 180
@@ -295,6 +223,9 @@ type gem struct {
 	h      *world.EntityHandle
 	caught bool
 	speed  float64
+	// age bobs and turns a lying gem around its ground height y.
+	age int
+	y   float64
 }
 
 const (
@@ -304,14 +235,19 @@ const (
 	gemPull   = 0.25
 	gemPullUp = 0.05
 	gemTake   = 0.8
+	// gemHeight is how high over the ground a gem lies, gemBob how high it
+	// bobs, every gemBobEvery ticks a step.
+	gemHeight   = 1.05
+	gemBob      = 0.3
+	gemBobEvery = 2
 )
 
 // drop leaves a gem on the ground where a monster died.
 func (g *gear) drop(tx *world.Tx, p *player.Player, r *Run, at mgl64.Vec3) {
-	at[1] = float64(core.ArenaCentre.Y()) + 1.1
-	h := world.EntitySpawnOpts{Position: at}.New(GemType, markConfig{run: r})
+	at[1] = float64(core.ArenaCentre.Y()) + gemHeight
+	h := world.EntitySpawnOpts{Position: at}.New(gemTypeOf(r.Mob), markConfig{run: r})
 	tx.AddEntity(h)
-	g.gems = append(g.gems, &gem{h: h})
+	g.gems = append(g.gems, &gem{h: h, y: at[1], age: int(at[0]*7+at[2]*13) & 63})
 	g.collect(tx, p, r)
 }
 
@@ -330,6 +266,13 @@ func (g *gear) collect(tx *world.Tx, p *player.Player, r *Run) {
 		way := to.Sub(m.Data.Pos)
 		dist := way.Len()
 		if !gm.caught && dist > reach {
+			// lying: it bobs up and down and turns, to be seen
+			if gm.age++; gm.age%gemBobEvery == 0 {
+				pos := m.Data.Pos
+				pos[1] = gm.y + gemBob*(1+math.Sin(float64(gm.age)/10))/2
+				m.Data.Rot = cube.Rotation{float64(gm.age*6%360) - 180, 0}
+				m.moveTo(tx, pos)
+			}
 			return false
 		}
 		if !gm.caught {
@@ -399,9 +342,10 @@ func (c choice) card(lang string) ui.PickCard {
 			rarity = "epic"
 		}
 		return ui.PickCard{
-			Icon: formicon.Of(item.NewStack(sgitem.Relic{Kind: c.weapon.kind}, 1)), Tag: i18n.T(lang, "dimension.card.weapon"),
+			Icon:  formicon.Of(item.NewStack(sgitem.Relic{Kind: c.weapon.kind}, 1)),
+			Tag:   fmt.Sprintf(i18n.T(lang, "dimension.card.level"), c.weapon.level+1),
 			Title: i18n.T(lang, "relic."+c.weapon.kind), Rarity: rarity,
-			Text: fmt.Sprintf(i18n.T(lang, "dimension.card.level"), c.weapon.level, c.weapon.level+1),
+			Text: levelGains(lang, c.weapon.kind, c.weapon.level+1),
 		}
 	}
 	return ui.PickCard{
@@ -475,7 +419,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 	eye := p.Position().Add(mgl64.Vec3{0, 1.2, 0})
 	switch w.kind {
 	case sgitem.RelicBlade:
-		w.spin(tx, p, g, mons, dmg(bladeDamage))
+		w.spin(tx, p, g, mons, dmg(weaponDamage(w.kind)))
 	case sgitem.RelicCrossbow:
 		if !ready(20) {
 			return
@@ -489,7 +433,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 		}
 		for _, m := range nearest(mons, p.Position(), 16*g.reach(), n) {
 			line(tx, eye, m.Position().Add(mgl64.Vec3{0, 0.6, 0}), sparkBolt)
-			m.Hurt(tx, dmg(6), p)
+			m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
 		}
 		tx.PlaySound(eye, sound.BowShoot{})
 	case sgitem.RelicFlameRing:
@@ -503,7 +447,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 		}
 		for _, m := range mons {
 			if flatDist(m.Position(), p.Position()) <= radius {
-				m.Hurt(tx, dmg(2), p)
+				m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
 			}
 		}
 	case sgitem.RelicLightning:
@@ -521,10 +465,10 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 			at := m.Position()
 			line(tx, at.Add(mgl64.Vec3{0, 6, 0}), at, sparkBolt)
 			tx.PlaySound(at, sound.Thunder{})
-			m.Hurt(tx, dmg(8), p)
+			m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
 		}
 	case sgitem.RelicBoomerang:
-		w.fly(tx, p, g, mons, dmg(5))
+		w.fly(tx, p, g, mons, dmg(weaponDamage(w.kind)))
 	}
 }
 

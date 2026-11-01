@@ -180,6 +180,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	if Watching(s, p) {
 		return false
 	}
+	fixKit(s, tx, p)
 	r := &Run{Mob: mob, Hunt: h, Hunter: p.H(), name: p.Name(), Return: p.Position(), Alive: map[*world.EntityHandle]bool{}, gear: gearOf(s, p), sess: s}
 	if core.InArena(r.Return) {
 		r.Return = island.Spawn(s)

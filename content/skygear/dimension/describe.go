@@ -3,15 +3,18 @@ package dimension
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// What an item does in a hunt, with its numbers, for the kit screen and the
-// relic table. The numbers come from the same constants as the fight
-// (gear.go): a weapon relic's at its grade and run level 1.
+// What an item does in a hunt, the way survivor games put it: the kind and
+// grade, one line of what it does, then its numbers in a row ("Damage 4 ·
+// Every 1 s"). A level-up card says only what the next level adds (gear.go).
+// The numbers come from the same constants as the fight: a weapon relic's at
+// its grade and run level 1.
 
 // describe is what it does in a hunt, in lines.
 func describe(lang string, it item.Stack) string {
@@ -24,18 +27,20 @@ func describe(lang string, it item.Stack) string {
 	if a, ok := it.Item().(item.Armour); ok {
 		return fmt.Sprintf(i18n.T(lang, "dimension.desc.armour"), num(a.DefencePoints()))
 	}
-	if w, ok := it.Item().(item.Weapon); ok {
-		return fmt.Sprintf(i18n.T(lang, "dimension.desc.melee"), num(w.AttackDamage()), num(float64(swingTicks(it))/20), num(swingReach))
-	}
 	return i18n.T(lang, "dimension.desc.other")
+}
+
+// gradeStars is grade as filled stars out of the highest grade.
+func gradeStars(grade int) string {
+	return "§e" + strings.Repeat("★", grade) + "§8" + strings.Repeat("★", sgitem.RelicMaxGrade-grade)
 }
 
 // describeRelic is what a relic of kind does at grade.
 func describeRelic(lang, kind string, grade int) string {
 	r := sgitem.Relic{Kind: kind}
 	g := float64(grade - 1)
+	about := "§7" + i18n.T(lang, "relic."+kind+".about")
 	if !r.IsWeapon() {
-		head := fmt.Sprintf(i18n.T(lang, "dimension.desc.charm"), grade)
 		var v float64
 		switch kind {
 		case sgitem.RelicLife:
@@ -51,23 +56,75 @@ func describeRelic(lang, kind string, grade int) string {
 		case sgitem.RelicRegen:
 			v = 0.3 + 0.15*g
 		}
-		return head + "\n" + fmt.Sprintf(i18n.T(lang, "relic."+kind+".stats"), num(v))
+		return fmt.Sprintf(i18n.T(lang, "dimension.desc.charm"), gradeStars(grade)) + "\n" + about + "\n" +
+			fmt.Sprintf(i18n.T(lang, "relic."+kind+".stats"), num(v))
 	}
-	dmg := func(base float64) string { return num(base * (1 + 0.25*g)) }
-	stats := i18n.T(lang, "relic."+kind+".stats")
+	dmg := num(weaponDamage(kind) * (1 + 0.25*g))
+	sec := func(f float64) string { return fmt.Sprintf(i18n.T(lang, "dimension.stat.sec"), num(f)) }
+	blocks := func(f float64) string { return fmt.Sprintf(i18n.T(lang, "dimension.stat.blocks"), num(f)) }
+	count := func(n int) string { return fmt.Sprintf(i18n.T(lang, "dimension.stat.count"), n) }
+	stats := [][2]string{{"damage", dmg}}
 	switch kind {
 	case sgitem.RelicBlade:
-		stats = fmt.Sprintf(stats, 2, num(bladeInner), num(bladeOuter), dmg(bladeDamage))
+		stats = append(stats, [2]string{"blades", count(2)}, [2]string{"area", blocks(bladeOuter)})
 	case sgitem.RelicCrossbow:
-		stats = fmt.Sprintf(stats, num(16), dmg(6))
+		stats = append(stats, [2]string{"every", sec(1)}, [2]string{"reach", blocks(16)})
 	case sgitem.RelicFlameRing:
-		stats = fmt.Sprintf(stats, num(3), dmg(2))
+		stats = append(stats, [2]string{"every", sec(0.5)}, [2]string{"area", blocks(3)})
 	case sgitem.RelicLightning:
-		stats = fmt.Sprintf(stats, num(12), 3, dmg(8))
+		stats = append(stats, [2]string{"every", sec(2)}, [2]string{"bolts", count(3)})
 	case sgitem.RelicBoomerang:
-		stats = fmt.Sprintf(stats, num(9), dmg(5))
+		stats = append(stats, [2]string{"every", sec(3)}, [2]string{"far", blocks(9)})
 	}
-	return fmt.Sprintf(i18n.T(lang, "dimension.desc.weapon"), grade) + "\n" + stats + "\n" + i18n.T(lang, "dimension.desc.growth")
+	var parts []string
+	for _, st := range stats {
+		parts = append(parts, "§7"+i18n.T(lang, "dimension.stat."+st[0])+" §f"+st[1])
+	}
+	return fmt.Sprintf(i18n.T(lang, "dimension.desc.weapon"), gradeStars(grade)) + "\n" + about + "\n" + strings.Join(parts, " §8· ")
+}
+
+// weaponDamage is a weapon relic's damage at grade 1, run level 1.
+func weaponDamage(kind string) float64 {
+	switch kind {
+	case sgitem.RelicBlade:
+		return bladeDamage
+	case sgitem.RelicCrossbow:
+		return 6
+	case sgitem.RelicFlameRing:
+		return 2
+	case sgitem.RelicLightning:
+		return 8
+	case sgitem.RelicBoomerang:
+		return 5
+	}
+	return 0
+}
+
+// levelGains is what level of a weapon relic of kind adds over the one
+// before: more damage, and for some levels more blades, arrows and so on.
+func levelGains(lang, kind string, level int) string {
+	gains := []string{i18n.T(lang, "dimension.lv.damage")}
+	extra := ""
+	switch kind {
+	case sgitem.RelicBlade:
+		if level == 3 || level == 5 {
+			extra = "blades"
+		}
+	case sgitem.RelicCrossbow:
+		if level == 2 || level == 4 {
+			extra = "arrows"
+		}
+	case sgitem.RelicFlameRing:
+		extra = "area"
+	case sgitem.RelicLightning:
+		extra = "bolts"
+	case sgitem.RelicBoomerang:
+		extra = "far"
+	}
+	if extra != "" {
+		gains = append(gains, i18n.T(lang, "dimension.lv."+extra))
+	}
+	return "§f" + strings.Join(gains, "\n§f")
 }
 
 // num is f with at most one decimal, none when whole.
