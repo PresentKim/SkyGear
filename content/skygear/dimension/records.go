@@ -134,11 +134,6 @@ func record(s *core.Session, res *result) {
 			res.NewBest = true
 		}
 	}
-	for range res.Kills {
-		if s.Rand.IntN(100) < killEssence {
-			res.Essences++
-		}
-	}
 	after := Stars(s, res.Mob)
 	for i := range after {
 		if after[i] && !before[i] {

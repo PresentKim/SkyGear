@@ -129,15 +129,14 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		h.useHeldScreen(ctx.Player(), held)
 		return
 	}
+	if h.useStone(ctx, held) {
+		return
+	}
 	if h.deny(ctx, pos) {
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
 	// The configuration copier copies and pastes settings and does nothing else.
-	if _, ok := held.Item().(sgitem.DimensionStone); ok && !h.s.Debounced(ctx.Player()) {
-		ctx.Cancel()
-		dimension.ShowWindow(h.s.Session, ctx.Player(), "")
-	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		ctx.Cancel()
 		_, off := p.HeldItems()
@@ -221,6 +220,9 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 		ctx.Cancel()
 		return
 	}
+	if h.useStone(ctx, held) {
+		return
+	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
 	}
@@ -229,6 +231,19 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if sgitem.IsIronHammer(held) && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
 		tinker.ToggleVeinDiagonal(h.s.Session, ctx.Player())
 	}
+}
+
+// useStone opens the second dimension's window for a held teleport stone,
+// on a block or the air; it reports whether held is one.
+func (h *handler) useStone(ctx *player.Context, held item.Stack) bool {
+	if _, ok := held.Item().(sgitem.DimensionStone); !ok {
+		return false
+	}
+	ctx.Cancel()
+	if !h.s.Debounced(ctx.Player()) {
+		dimension.ShowWindow(h.s.Session, ctx.Player(), "")
+	}
+	return true
 }
 
 // useHeldScreen opens the menu held by p. The client repeats use packets
@@ -334,8 +349,11 @@ func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	}
 	achievement.Count(ctx.Player(), "item_drop", 1)
 }
-func (h *handler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
+func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
 	achievement.Count(ctx.Player(), "hurt", 1)
+	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
+		ctx.Cancel()
+	}
 }
 func (h *handler) HandleCommandExecution(ctx *player.Context, _ cmd.Command, _ []string) {
 	achievement.Count(ctx.Player(), "command", 1)

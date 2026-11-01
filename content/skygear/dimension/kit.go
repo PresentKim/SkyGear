@@ -100,6 +100,11 @@ func kitAccepts(i int, it item.Stack) bool {
 	return relic
 }
 
+// CanEnter reports whether p may go hunting: its kit has a weapon in hand.
+func CanEnter(s *core.Session, p *player.Player) bool {
+	return !Kit(s, p)[KitWeapon].Empty()
+}
+
 // kitRelicStacks are the relics in p's kit.
 func kitRelicStacks(s *core.Session, p *player.Player) []item.Stack {
 	var out []item.Stack

@@ -52,11 +52,15 @@ func ShowWindow(s *core.Session, p *player.Player, mob string) {
 			Watch(s, tx, p)
 		}))
 	case IsOpen(s, mob):
-		sp.Actions = append(sp.Actions, s.Opt(i18n.T(lang, "dimension.window.enter"), "", func(p *player.Player, tx *world.Tx) {
-			if !Begin(s, tx, p, mob) {
+		enter := s.Opt(i18n.T(lang, "dimension.window.enter"), "", func(p *player.Player, tx *world.Tx) {
+			if !CanEnter(s, p) || !Begin(s, tx, p, mob) {
 				ShowWindow(s, p, mob)
 			}
-		}), s.Opt(i18n.T(lang, "dimension.window.kit"), "", func(p *player.Player, _ *world.Tx) {
+		})
+		if !CanEnter(s, p) {
+			enter = s.Opt(i18n.T(lang, "dimension.window.needKit"), "", func(p *player.Player, _ *world.Tx) { ShowKit(s, p, mob) })
+		}
+		sp.Actions = append(sp.Actions, enter, s.Opt(i18n.T(lang, "dimension.window.kit"), "", func(p *player.Player, _ *world.Tx) {
 			ShowKit(s, p, mob)
 		}))
 		sp.Body += "\n\n" + kitLine(s, p, lang)

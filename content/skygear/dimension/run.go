@@ -110,6 +110,9 @@ type Run struct {
 	// Alive are the run's monsters out now.
 	Alive          map[*world.EntityHandle]bool
 	Spawned, Kills int
+	// Essences are the monster's essences the kills gave so far (each kill
+	// rolls killEssence when it falls, so the hunter sees them as it goes).
+	Essences int
 	// Elite is the hunt's last monster while it is out (its health bar).
 	Elite *world.EntityHandle
 	// ticks counts the run's ticks from its start, the countdown included.
@@ -206,6 +209,9 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 		r.end(s, tx, p, endGone)
 		return
 	}
+	if r.ticks%2 == 0 {
+		followCamera(p, true)
+	}
 	if r.paused {
 		if r.pauseTicks++; r.pauseTicks >= pauseLimit && len(r.choices) > 0 {
 			r.choose(tx, p, r.choices[0])
@@ -245,8 +251,7 @@ func (r *Run) tick(s *core.Session, tx *world.Tx) {
 			r.end(s, tx, p, endTime)
 			return
 		}
-		left := r.Hunt.Seconds - r.fightTicks()/20
-		p.SendTip(fmt.Sprintf(i18n.T(i18n.Of(p), "dimension.tip"), MobName(i18n.Of(p), r.Mob), r.Kills, r.Hunt.Count, left/60, left%60))
+		r.showTip(s, p)
 	}
 }
 
@@ -334,6 +339,9 @@ func (r *Run) showElite(tx *world.Tx, p *player.Player) {
 func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player) {
 	delete(r.Alive, m.Handle)
 	r.Kills++
+	if p != nil && s.Rand.IntN(100) < killEssence {
+		r.Essences++
+	}
 	if m.variant().Split > 0 {
 		r.split(tx, m)
 	}
@@ -403,7 +411,7 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 		plainCamera(p)
 	}
 	releaseWatchers(s, tx)
-	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
+	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20, Essences: r.Essences}
 	record(s, &res)
 	if how == endClear {
 		progress.Advance(s, tx, advancement.Wave1)
@@ -431,8 +439,12 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	} else {
 		achievement.Count(p, "wave_fail", 1)
 	}
+	if how == endDied && !p.Dead() {
+		// fallen (Fallen): no death screen, straight back and healed
+		p.Heal(p.MaxHealth(), entity.FoodHealingSource{})
+	}
 	switch {
-	case how == endDied:
+	case how == endDied && p.Dead():
 		// the inventory is kept through death: the rewards go in now, the
 		// result shows once the hunter is back
 		deliver(s, tx, p, res)
@@ -467,6 +479,31 @@ func Respawned(s *core.Session, p *player.Player, pos *mgl64.Vec3) {
 			showResult(e.(*player.Player), res)
 		}
 	})
+}
+
+// Fallen ends the run of a hunter a hit of dmg would kill, before it dies:
+// there is no death screen, it goes straight back and sees the result. It
+// reports whether the hit is to be cancelled (HandleHurt).
+func Fallen(s *core.Session, tx *world.Tx, p *player.Player, dmg float64) bool {
+	r := RunOf(s)
+	if r == nil || r.Hunter != p.H() || p.Health()+p.Absorption()-dmg > 1e-6 {
+		return false
+	}
+	r.end(s, tx, p, endDied)
+	return true
+}
+
+// showTip shows the hunter how the hunt goes: the kills, the time left and
+// what it has earned so far.
+func (r *Run) showTip(s *core.Session, p *player.Player) {
+	lang := i18n.Of(p)
+	left := r.Hunt.Seconds - r.fightTicks()/20
+	tip := fmt.Sprintf(i18n.T(lang, "dimension.tip"), MobName(lang, r.Mob), r.Kills, r.Hunt.Count, left/60, left%60)
+	tip += "\n" + fmt.Sprintf(i18n.T(lang, "dimension.tip.reward"), MobName(lang, r.Mob), r.Essences)
+	if RecordOf(s, r.Mob).Clears == 0 {
+		tip += fmt.Sprintf(i18n.T(lang, "dimension.tip.first"), firstClearEssence)
+	}
+	p.SendTip(tip)
 }
 
 // Died ends the run of a hunter that died.
