@@ -1,7 +1,9 @@
 package sgitem
 
 import (
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
+	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 )
 
@@ -16,3 +18,7 @@ func (DimensionStone) Name() string { return i18n.T(i18n.Default, "name.Dimensio
 func (DimensionStone) Category() category.Category { return category.Equipment() }
 
 func (DimensionStone) MaxCount() int { return 1 }
+
+// Use does nothing itself (the game's handler opens the window first): being
+// usable makes the client send a use on the air at all.
+func (DimensionStone) Use(*world.Tx, item.User, *item.UseContext) bool { return false }

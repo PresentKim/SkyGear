@@ -187,6 +187,7 @@ func Begin(s *core.Session, tx *world.Tx, p *player.Player, mob string) bool {
 	runPart.Of(s).Run = r
 	dressForHunt(s, p)
 	r.gear.dress(p)
+	huntCamera(p)
 	p.SetFood(20)
 	// PlaceAt holds the hunter on its spot until the client has the ground.
 	p.Teleport(start)
@@ -401,6 +402,7 @@ func (r *Run) end(s *core.Session, tx *world.Tx, p *player.Player, how string) {
 	if p != nil {
 		r.gear.undress(p)
 		undressFromHunt(s, p)
+		plainCamera(p)
 	}
 	releaseWatchers(s, tx)
 	res := result{Mob: r.Mob, How: how, Kills: r.Kills, Count: r.Hunt.Count, Seconds: r.fightTicks() / 20}
