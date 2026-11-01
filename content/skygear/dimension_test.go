@@ -691,3 +691,25 @@ func TestGemsMagnet(t *testing.T) {
 		}
 	})
 }
+
+// TestDescribe: every relic and the hand weapon say what they do with their
+// numbers, in every language (no format verb left over).
+func TestDescribe(t *testing.T) {
+	for _, lang := range []string{"ko", "en"} {
+		for _, kind := range append(append([]string{}, sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+			for _, g := range []int{1, 5} {
+				d := dimension.Describe(lang, sgitem.RelicStack(kind, g))
+				if strings.Contains(d, "%!") || strings.Contains(d, "relic.") || !strings.ContainsAny(d, "0123456789") {
+					t.Errorf("%s %s grade %d: %q", lang, kind, g, d)
+				}
+			}
+		}
+		d := dimension.Describe(lang, item.NewStack(item.Sword{Tier: item.ToolTierDiamond}, 1))
+		if !strings.Contains(d, "0.6") || strings.Contains(d, "%!") {
+			t.Errorf("%s sword: %q", lang, d)
+		}
+	}
+	if d := dimension.Describe("ko", sgitem.RelicStack(sgitem.RelicBlade, 3)); !strings.Contains(d, "피해 6") {
+		t.Errorf("a grade 3 blade: %q, want damage 6", d)
+	}
+}

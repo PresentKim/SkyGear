@@ -51,3 +51,6 @@ func KitTake(s *core.Session, tx *world.Tx, p *player.Player, i int) { kitTake(s
 // DropGem leaves a gem at at; Gems is how many lie about.
 func DropGem(r *Run, tx *world.Tx, p *player.Player, at mgl64.Vec3) { r.gear.drop(tx, p, r, at) }
 func Gems(r *Run) int                                               { return len(r.gear.gems) }
+
+// Describe is what it does in a hunt.
+func Describe(lang string, it item.Stack) string { return describe(lang, it) }

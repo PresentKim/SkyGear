@@ -148,8 +148,9 @@ func ShowRelicTable(s *core.Session, p *player.Player, sel string) {
 	}
 	grade, has := carried(p, sel)
 	mats, ess := relicCost(sel, grade)
+	// the numbers are those of the grade carried, or of grade 1
 	var b strings.Builder
-	b.WriteString(i18n.T(lang, "relic."+sel+".about") + "\n\n")
+	b.WriteString(i18n.T(lang, "relic."+sel+".about") + "\n" + describeRelic(lang, sel, max(grade, 1)) + "\n\n")
 	var costs []string
 	for _, m := range mats {
 		costs = append(costs, fmt.Sprintf("%s ×%d", naming.ItemName(lang, m), m.Count()))

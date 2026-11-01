@@ -257,7 +257,7 @@ func ShowKit(s *core.Session, p *player.Player, back string) {
 		sl := ui.ItemSlot{Tip: i18n.T(lang, "dimension.kit."+kitSlotKeys[i]), Selected: i == chosen}
 		if !kit[i].Empty() {
 			sl.Icon = formicon.Of(kit[i])
-			sl.Tip = fmt.Sprintf("§f%s\n§7%s", naming.ItemName(lang, kit[i]), sl.Tip)
+			sl.Tip = fmt.Sprintf("§f%s\n§7%s\n%s", naming.ItemName(lang, kit[i]), sl.Tip, describe(lang, kit[i]))
 		}
 		if !sl.Selected {
 			sl.Run = func(p *player.Player, _ *world.Tx) {
@@ -279,7 +279,7 @@ func ShowKit(s *core.Session, p *player.Player, back string) {
 		if !kitAccepts(chosen, it) {
 			continue
 		}
-		sl := ui.ItemSlot{Icon: formicon.Of(it), Tip: naming.ItemName(lang, it)}
+		sl := ui.ItemSlot{Icon: formicon.Of(it), Tip: "§f" + naming.ItemName(lang, it) + "\n" + describe(lang, it)}
 		if it.Count() > 1 {
 			sl.Count = fmt.Sprint(it.Count())
 		}
@@ -289,9 +289,14 @@ func ShowKit(s *core.Session, p *player.Player, back string) {
 		}
 		bag = append(bag, sl)
 	}
-	note := i18n.T(lang, "dimension.kit.note")
+	// the note says what the chosen slot's item does, else what the slots
+	// are for
+	note := i18n.T(lang, "dimension.kit.role") + "\n" + i18n.T(lang, "dimension.kit.note")
+	if it := kit[chosen]; !it.Empty() {
+		note = "§f" + naming.ItemName(lang, it) + "\n" + describe(lang, it)
+	}
 	if len(bag) == 0 {
-		note = i18n.T(lang, "dimension.kit.none")
+		note += "\n" + i18n.T(lang, "dimension.kit.none")
 	}
 	ui.Equip(p, ui.EquipScreen{
 		Title: i18n.T(lang, "dimension.kit.title"),
