@@ -49,7 +49,7 @@ func Kit(s *core.Session, p *player.Player) []item.Stack {
 	out := make([]item.Stack, KitSlots)
 	for i, b := range dimensionSaved.Of(s).Kits[instance.AccountID(p)] {
 		if i < KitSlots && len(b) > 0 {
-			out[i] = core.DecodeItem(b)
+			out[i] = sgitem.FixRelic(core.DecodeItem(b))
 		}
 	}
 	return out

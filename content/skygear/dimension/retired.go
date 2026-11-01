@@ -51,6 +51,10 @@ func RetireItems(s *core.Session, tx *world.Tx, p *player.Player) {
 	farm.RetireSeeds(p)
 	inv := p.Inventory()
 	for slot, it := range inv.Slots() {
+		if fixed := sgitem.FixRelic(it); !it.Empty() && !fixed.Equal(it) {
+			_ = inv.SetItem(slot, fixed)
+			continue
+		}
 		m, ok := it.Item().(machine.Machine)
 		if !ok || m.Kind != machine.KindGate {
 			continue

@@ -1,7 +1,7 @@
 package sgitem
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
@@ -77,13 +77,33 @@ func RelicGrade(st item.Stack) int {
 	return 1
 }
 
-// RelicStack is a relic of kind at grade, named with its grade.
+// RelicStack is a relic of kind at grade. Its name comes from the pack's
+// language files (in each player's language); its grade is the lore's stars,
+// which need no language. What it does is told in each player's language on
+// the kit screen and the relic table.
 func RelicStack(kind string, grade int) item.Stack {
 	grade = max(1, min(grade, RelicMaxGrade))
-	r := Relic{Kind: kind}
-	return item.NewStack(r, 1).WithValue(relicGradeKey, grade).
-		WithCustomName(fmt.Sprintf("§r§d%s §e%s", r.Name(), stars(grade))).
-		WithLore(i18n.T(i18n.Default, "relic."+kind+".about"))
+	return item.NewStack(Relic{Kind: kind}, 1).WithValue(relicGradeKey, grade).WithLore(relicLore(grade))
+}
+
+// relicLore is the lore of a relic of grade: its stars out of the highest.
+func relicLore(grade int) string {
+	return "§e" + stars(grade) + "§8" + strings.Repeat("★", RelicMaxGrade-grade)
+}
+
+// FixRelic is st made again when it is a relic made before relics were
+// named by the players' languages (a custom name and lore in the server's
+// language), else st.
+func FixRelic(st item.Stack) item.Stack {
+	r, ok := st.Item().(Relic)
+	if !ok {
+		return st
+	}
+	grade := RelicGrade(st)
+	if lore := st.Lore(); st.CustomName() == "" && len(lore) == 1 && lore[0] == relicLore(grade) {
+		return st
+	}
+	return RelicStack(r.Kind, grade)
 }
 
 // stars draws a grade as filled stars.
