@@ -2,6 +2,7 @@ package tinker
 
 import (
 	"slices"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -146,7 +147,15 @@ type veinOutline struct {
 	start  cube.Pos
 	size   int
 	blocks []cube.Pos
+	// budget and diagonal are what the blocks were found with; at is when.
+	budget   int
+	diagonal bool
+	at       time.Time
 }
+
+// veinReuse is how long a preview is kept for the same target, tool and
+// budget without searching the vein again.
+const veinReuse = time.Second
 
 // ShowVeinOutline shows p, sneaking with the iron hammer, the blocks it
 // would break mining the block at pos (hiding them otherwise).
@@ -156,12 +165,20 @@ func ShowVeinOutline(s *core.Session, p *player.Player, tx *world.Tx, pos cube.P
 		return
 	}
 	held, _ := p.HeldItems()
-	blocks := VeinBlocks(tx, pos, VeinBudget(s, p, held)+1, account.On(p, VeinDiagonalSetting), func(p cube.Pos) bool { return island.CanBuild(s, p) })
+	budget, diagonal, now := VeinBudget(s, p, held), account.On(p, VeinDiagonalSetting), time.Now()
+	// the same target, budget and setting within a second keeps the preview
+	cur, shown := veinOutlines.Of(s)[p.H()]
+	if shown && cur.start == pos && cur.budget == budget && cur.diagonal == diagonal && now.Sub(cur.at) < veinReuse {
+		return
+	}
+	blocks := VeinBlocks(tx, pos, budget+1, diagonal, func(p cube.Pos) bool { return island.CanBuild(s, p) })
 	if len(blocks) == 0 {
 		HideVeinOutline(s, p)
 		return
 	}
-	if cur, ok := veinOutlines.Of(s)[p.H()]; ok && cur.size == len(blocks) && slices.Contains(blocks, cur.start) {
+	if shown && cur.size == len(blocks) && slices.Contains(blocks, cur.start) {
+		cur.budget, cur.diagonal, cur.at = budget, diagonal, now
+		veinOutlines.Of(s)[p.H()] = cur
 		return
 	}
 	old := veinOutlines.Of(s)[p.H()].blocks
@@ -184,7 +201,7 @@ func ShowVeinOutline(s *core.Session, p *player.Player, tx *world.Tx, pos cube.P
 			sendLiquidLayer(p, b, veinPreviewBlock)
 		}
 	}
-	veinOutlines.Of(s)[p.H()] = veinOutline{start: pos, size: len(blocks), blocks: blocks}
+	veinOutlines.Of(s)[p.H()] = veinOutline{start: pos, size: len(blocks), blocks: blocks, budget: budget, diagonal: diagonal, at: now}
 }
 
 // HideVeinOutline removes the preview p is shown, if any.
