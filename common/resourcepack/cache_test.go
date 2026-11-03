@@ -140,3 +140,27 @@ func TestPackBuildTiming(t *testing.T) {
 	}
 	t.Logf("full build %v, cache hit %v", full, time.Since(t0))
 }
+
+func TestPruneCacheRemovesOnlyStale(t *testing.T) {
+	dir := t.TempDir()
+	old := time.Now().Add(-40 * 24 * time.Hour)
+	mk := func(name string, mt time.Time) string {
+		p := filepath.Join(dir, name)
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		os.Chtimes(p, mt, mt)
+		return p
+	}
+	stale := mk("a-1.mcpack", old)
+	fresh := mk("a-2.mcpack", time.Now())
+	keep := mk("a-3.mcpack", old)
+	tmp := mk(".tmp-1", time.Now().Add(-2*time.Hour))
+	other := mk("notes.txt", old)
+	pruneCache(dir, keep)
+	for p, want := range map[string]bool{stale: false, fresh: true, keep: true, tmp: false, other: true} {
+		if _, err := os.Stat(p); (err == nil) != want {
+			t.Errorf("%s exists=%v, want %v", filepath.Base(p), err == nil, want)
+		}
+	}
+}

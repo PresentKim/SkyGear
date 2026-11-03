@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/sandertv/gophertunnel/minecraft/resource"
 )
@@ -49,6 +50,8 @@ func readCache(path string) (*resource.Pack, bool) {
 	if err != nil {
 		return nil, false
 	}
+	now := time.Now()
+	os.Chtimes(path, now, now) // mark as used for pruneCache
 	zr, err := zip.NewReader(bytes.NewReader(b), int64(len(b)))
 	if err != nil {
 		return nil, false
@@ -76,7 +79,9 @@ func writeCache(path string, zipped []byte) {
 	_, werr := tmp.Write(zipped)
 	if cerr := tmp.Close(); werr != nil || cerr != nil || os.Rename(tmp.Name(), path) != nil {
 		os.Remove(tmp.Name())
+		return
 	}
+	pruneCache(filepath.Dir(path), path)
 }
 
 // zipDir zips dir in memory, in path order with a fixed time so the bytes
@@ -124,4 +129,36 @@ func zipDir(dir string, encrypted bool, comment string) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// pruneAge is how long a cache file may go unused before it is removed.
+const pruneAge = 30 * 24 * time.Hour
+
+// pruneCache removes cache files not used for pruneAge and abandoned temp
+// files, so keys of old pack versions do not pile up. keep is never removed.
+func pruneCache(dir, keep string) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	now := time.Now()
+	for _, e := range entries {
+		name := e.Name()
+		p := filepath.Join(dir, name)
+		if p == keep || e.IsDir() {
+			continue
+		}
+		stale := strings.HasSuffix(name, ".mcpack")
+		tmp := strings.HasPrefix(name, ".tmp-")
+		if !stale && !tmp {
+			continue
+		}
+		limit := pruneAge
+		if tmp {
+			limit = time.Hour
+		}
+		if info, err := e.Info(); err == nil && now.Sub(info.ModTime()) > limit {
+			os.Remove(p)
+		}
+	}
 }

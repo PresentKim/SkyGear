@@ -30,6 +30,7 @@ func (t ticker) tickLoop(w *World) {
 			w.tickStats.add(at, time.Since(at))
 		case <-w.closing:
 			// World is being closed: Stop ticking and get rid of a task.
+			lastWeather.Delete(w) // skygear patch: do not keep the world alive
 			w.running.Done()
 			return
 		}
