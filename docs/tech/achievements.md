@@ -6,10 +6,10 @@
 
 | 층 | 하는 일 |
 |---|---|
-| `account.Register` / `account.Grant` | 업적을 등록하고 계정에 한 번만 준다. 준 업적은 메모리에 캐시해(`granted`) 같은 업적을 또 줄 때 DB를 부르지 않는다. 새로 얻으면 메시지·소리, 칭호가 있으면 칭호 안내 |
+| `account.Register` / `account.Grant` | 업적을 등록하고 계정에 한 번만 준다. 준 업적은 메모리에 캐시해(`granted`) 같은 업적을 또 줄 때 DB를 부르지 않는다. 새로 얻으면 메시지와 소리를 내고, 칭호가 있으면 칭호를 안내한다 |
 | `account.RegisterCounter` / `account.Count` | 키마다 단계(`Tier{Need, ID}`)를 두고, 횟수가 단계를 넘는 순간 그 업적을 준다. 등록되지 않은 키는 무시한다 |
-| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. `Count` 가 마지막 저장에서 20초가 지났을 때 따로 돌리고, 서버를 끌 때(`cmd/skygear/main.go`) 부른다. 접속을 떠날 때는 `Forget` 이 그 계정 것만 쓴다. DB에 없는 계정의 횟수는 버린다 |
-| `account.Groups` / `SetGroupOrder` | 칭호 고르기와 업적 목록의 분류와 순서 |
+| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. 마지막 저장 뒤 20초가 지나면 `Count` 가 따로 돌리고, 서버를 끌 때(`cmd/skygear/main.go`) 부른다. 접속을 떠날 때는 `Forget` 이 그 계정 것만 쓴다. DB에 없는 계정의 횟수는 버린다 |
+| `account.Groups` / `SetGroupOrder` | 칭호 고르기와 업적 목록의 분류와 순서를 정한다 |
 | 게임의 `achievement.Counters` | 키, 분류, 단계(횟수)의 표. 시작할 때 모두 등록한다 |
 
 횟수는 계정 단위이고 세이브와 무관하다. 읽을 때(`Counter`, `Progress`)는 처음 한 번 DB에서 메모리로 불러온다.
@@ -19,7 +19,7 @@
 - 업적 ID는 `sg_<키>_<횟수>`(예: `sg_stick_dirt_100`). 글은 `ko.json`의 `achievement.<ID>.name|desc|title`, 분류 이름은 `achgroup.<분류>`이다.
 - 이름은 "<행동> 첫 경험"이거나 "<행동> <횟수><단위>"이고, 설명은 "…을 N번 …한다"로 쓴다. 칭호는 닉네임 앞에 붙는 **수식어**다(관형형: "흙을좋아하는", "도끼를든", "공장을돌린"). 달성 조건의 숫자나 이름을 그대로 쓰지 않고, 14자 이하이며 전체에서 겹치지 않는다(`TestCounterCatalog`). 채팅에는 `<[칭호] 이름>`으로 나온다.
 - 분류: 손작업(`hand`), 농사와 식물(`farm`), 체질(`sift`), 기계와 공장(`factory`), 에너지(`energy`), 장비(`gear`), 전투(`combat`), 성장(`progress`), 섬(`island`), 수집(`collect`), 생활(`life`), 계정(`account`, 플랫폼의 접속 일수).
-- 카운터 없이 직접 주는 업적: 첫 기계·청크 10개·첫 연구·이차원 첫 클리어·이차원 별 전부·장비·꽃·용의 알(`achievements.go`, `project.go`), 연구 전부·발전과제 전부(`collect.go`), 아이템을 처음 가질 때(`achievement.Haves`, 1초마다 인벤토리를 본다).
+- 카운터 없이 직접 주는 업적: 첫 기계·청크 10개·첫 연구·이차원 첫 클리어·이차원 별 전부·장비·꽃·드래곤 알(`achievements.go`, `project.go`), 연구 전부·발전과제 전부(`collect.go`), 아이템을 처음 가질 때(`achievement.Haves`, 1초마다 인벤토리를 본다).
 
 ## 카운터를 더하는 법
 
@@ -62,7 +62,7 @@
 
 ## 화면
 
-칭호 고르기와 업적 목록은 분류를 먼저 고른다(`cosmetics.go`). 칭호는 분류마다 한 쪽 24개씩 쪽을 넘긴다. 못 얻은 카운터 업적은 `지금/목표`를 보인다. 이름 색은 업적 수로 열린다(`account.Colors`).
+칭호 고르기와 업적 목록은 분류를 먼저 고른다(`cosmetics.go`). 칭호는 분류마다 한 쪽에 24개씩 보이고 쪽을 넘긴다. 못 얻은 카운터 업적은 `지금/목표`를 보인다. 이름 색은 업적 수로 열린다(`account.Colors`).
 
 ## 성능
 

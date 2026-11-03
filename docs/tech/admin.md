@@ -24,15 +24,15 @@
 |---|---|
 | `/sgdebug oreinput` | Ore UI 페이지가 받는 입력 이벤트(마우스, 휠, 키, 터치, 포인터, 포커스, 글 입력, 게임패드)를 화면에 줄로 보이고 서버로 보낸다. 서버가 받은 줄과 그동안 클라이언트가 보낸 패킷(`ScriptMessage` 는 내용까지)이 창 위에 보인다([oreui-probes.md](oreui-probes.md)) |
 | `/sgdebug oreres` | 서버가 Ore UI 페이지에 화면 리소스를 줄 수 있는 길을 차례로 시험한다([oreui-probes.md](oreui-probes.md)) |
-| `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다, 게임 메뉴에는 연구 카드가 없다). 시나리오용 |
+| `/sgdebug research` | 연구 화면을 연다(연구대를 쓴 것과 같다. 게임 메뉴에는 연구 카드가 없다). 시나리오용 |
 | `/sgdebug ui [기계]` | 기계를 놓지 않고 그 기계 창을 연다(입력·출력 칸에 예시 아이템, 진행도·에너지 절반). 기계 없이 쓰면 창이 있는 기계 목록 폼이 열리고 버튼으로 차례로 본다. 창 모양 확인용(시나리오 `window_preview.sh`) |
 | `/sgdebug place <아이템> <dx> <dy> <dz>` | 내 발 위치에서 그만큼 떨어진 칸에 블록을 놓는다. 그 아이템을 든 채 아래 블록 윗면을 누른 것처럼 게임의 놓기 처리를 그대로 거친다(기계 상태·방향). 아이템은 `give` ID 나 바닐라 이름. 조준 없이 짓는 용도 |
 | `/sgdebug floor <반지름>` | 발밑 높이에 반지름만큼 돌 바닥을 깐다(있는 블록은 그대로). 빈 공간에 시험할 자리를 만든다 |
-| `/sgdebug look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신, 보는 블록 출력 |
+| `/sgdebug look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신한 뒤 보는 블록을 출력 |
 | `/sgdebug status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
 | `/sgdebug skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
-| `/sgdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로. 0 이면 기간 해제 ([기간제 아이템](timed-items.md)) |
-| `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` | 서랍 앞면의 손에 쥐는 모양 아이템(막대기·뼈) 보정 회전·크기·위치를 팩을 다시 받지 않고 바꿔 본다([drawer.md](drawer.md) '손에 쥐는 모양 아이템') |
+| `/sgdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로 만든다. 0 이면 기간을 푼다 ([기간제 아이템](timed-items.md)) |
+| `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` | 서랍 앞면의 손에 쥐는 모양 아이템(막대기·뼈다귀)의 보정 회전·크기·위치를 팩을 다시 받지 않고 바꿔 본다([drawer.md](drawer.md) '손에 쥐는 모양 아이템') |
 | `/sgdebug fairy` | 선물 요정을 지금 나에게 부름 |
 | `/sgdebug weather <clear\|rain\|snow>` | 요정의 에메랄드 없이 날씨 마법을 씀(같은 날씨면 3일 더함) |
 | `/sgdebug sun <flow\|day\|dusk\|night>` | 요정의 에메랄드 없이 해를 고정하거나 흐르게 함 |
@@ -56,6 +56,6 @@
 
 ## 부하 시험
 
-`/sgdebug factory <개수>`(1~100): 운영자를 가운데로 공장 모듈(채굴기 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/sgadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
+`/sgdebug factory <개수>`(1~100): 운영자를 가운데 두고 공장 모듈(채굴기 줄·체 줄·농장과 수확기)을 지어 부하를 본다(`/sgadmin tps` 로 켜고). 결과와 Dragonfly 스레딩은 [performance.md](performance.md).
 
-`/sgdebug dense <개수>`(1~4000): 운영자를 가운데로 2×1 칸짜리 밀집 셀(자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 기계를 많이 둘 때의 부하를 게임 안에서 잰다(결과는 [performance.md](performance.md)).
+`/sgdebug dense <개수>`(1~4000): 운영자를 가운데 두고 2×1 칸짜리 밀집 셀(자동 자원 채굴기, 옆 분쇄기 → 호퍼 → 서랍)을 빽빽하게 짓는다. 기계를 많이 둘 때의 부하를 게임 안에서 잰다(결과는 [performance.md](performance.md)).

@@ -66,7 +66,7 @@ Windows 클라이언트에서 본 결과(2026-10-27) [실측]:
 
 게임 중 Ore UI 페이지(`hbui/gameplay.html`)에서 서버가 보낸 JS 로 불러 본 결과다(Windows 1.26.60.5, 2026-10-28).
 
-- **설정**: 게임 설정 화면의 설정을 읽고(`vanilla.menus.settings{Boolean,Option,Number,String}Query(id)`) 쓴다(`vanilla_menus_update_settings` 의 `updateBoolean`·`updateOption`·`updateNumber`·`updateString`(id, 값)) [실측]. 트리는 `vanilla.menus.settingsGroupQuery("settings-tabs-groups")` 아래 설정 664개다. 서버가 쓰는 방식은 [oreui.md](oreui.md) 클라이언트 설정.
+- **설정**: 게임 설정 화면의 설정을 읽고(`vanilla.menus.settings{Boolean,Option,Number,String}Query(id)`) 쓴다(`vanilla_menus_update_settings` 의 `updateBoolean`·`updateOption`·`updateNumber`·`updateString`(id, 값)) [실측]. 트리는 `vanilla.menus.settingsGroupQuery("settings-tabs-groups")` 아래 설정 664개다. 서버가 쓰는 방식은 [oreui.md](oreui.md) 의 클라이언트 설정에 있다.
 - **효과음**: `soundCommandGroup.play(이름, 볼륨, 피치)` 가 소리를 낸다(`random.click`, `note.bass`, `ui.drawer_open`) [실측]. 팩 사운드 이름은 확인 안 됨.
 - **번역**: `coreTranslateCommandGroup.translate(키)` 가 클라이언트 언어의 글을 돌려준다(`item.diamond.name`, 팩 `texts/*.lang` 키 모두) [실측]. 인자 배열을 둘째로 준 호출은 `undefined` 였다. `formatDate(초)` 는 `10/28/26`, `getHowLongAgoAsString(초)` 는 `1h ago` 를 돌려준다 [실측].
 - **클립보드**: facet `vanilla.clipboard` 의 `copyToClipboard(글)` 이 복사한다(Windows) [실측]. 다른 기기는 확인 안 됨.

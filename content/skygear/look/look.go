@@ -296,7 +296,7 @@ func FurnaceArrow(b world.Block) item.Stack {
 
 // MachineLines are a machine's lines and item line: what it holds, with
 // its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"),
-// grey "비어있음" when empty, and what waits in its output.
+// grey "비어 있음" when empty, and what waits in its output.
 func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	st := m.State
 	if st == nil {

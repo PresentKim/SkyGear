@@ -18,6 +18,9 @@ below are third-party work and keep their own licences:
   Ex Nihilo Fabrico) — each under its own licence in `third_party/licenses/`;
   which texture or model comes from where is listed in
   `docs/tech/asset-credits.md`.
+- `.claude/skills/korean-humanizer/` — Korean writing guide adapted from
+  [k-skill](https://github.com/NomaDamas/k-skill) `korean-humanizer` by
+  NomaDamas, MIT License, see `.claude/skills/korean-humanizer/LICENSE`.
 
 The resource packs reference vanilla Minecraft textures by path only; those
 textures are supplied by the player's game client and are not part of this

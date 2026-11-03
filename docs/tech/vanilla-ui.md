@@ -1,6 +1,6 @@
 # 바닐라 UI에서 배운 것
 
-게임 기본 화면(인벤토리·제작·화로)의 모양은 `Mojang/bedrock-samples` 의 `resource_pack/ui` 를 읽어 확인했다(`furnace_screen_pocket.json`, `inventory_screen.json`, `ui_common.json`, `ui_template_tabs.json`, `_global_variables.json`). **그림은 클라이언트에 이미 있으므로 우리 팩은 `textures/ui/...` 경로로 가리키기만 한다**(파일을 복사하지 않는다). 작은 설명은 [ui-style.md](ui-style.md).
+게임 기본 화면(인벤토리·제작·화로)의 모양은 `Mojang/bedrock-samples` 의 `resource_pack/ui` 를 읽어 확인했다(`furnace_screen_pocket.json`, `inventory_screen.json`, `ui_common.json`, `ui_template_tabs.json`, `_global_variables.json`). **그림은 클라이언트에 이미 있으므로 우리 팩은 `textures/ui/...` 경로로 가리키기만 한다**(파일을 복사하지 않는다). 작은 설명은 [ui-style.md](ui-style.md)에 있다.
 
 ## 화면 조각과 그림
 
@@ -27,10 +27,10 @@
 ## 구조에서 배운 것
 
 - **탭은 토글이다**(`common_tabs.base_tab` 안의 `common.toggle`): 상태마다(unchecked, unchecked_hover, locked, checked …) 같은 `tab_panel` 에 그림과 글자색·아이콘색 변수만 바꿔 넣는다. 우리 화면은 서버가 탭을 다시 보내므로 토글 대신 선택된 탭(`ui.Tab` 의 selected, `.mc-tab.on`)으로 같은 모양을 낸다.
-- 컨트롤 막대는 가로 스택에 `패딩 → 레이아웃 토글들 → 도움말 → 닫기 → 패딩` 순서다(`inventory_screen.json` 의 toolbar_panel). 닫기 버튼 칸 폭 15, 도움말은 `100%c`.
-- 창 위 제목은 `anchor center` 로 가운데에 쓴다. 헤더 높이는 28(`furnace_screen_pocket.json` 의 `header`).
+- 컨트롤 막대는 가로 스택에 `패딩 → 레이아웃 토글들 → 도움말 → 닫기 → 패딩` 순서다(`inventory_screen.json` 의 toolbar_panel). 닫기 버튼 칸 폭은 15, 도움말은 `100%c` 다.
+- 창 위 제목은 `anchor center` 로 가운데에 쓴다. 헤더 높이는 28이다(`furnace_screen_pocket.json` 의 `header`).
 - 슬롯은 `common.pocket_ui_container_item` 로 `$background_images` 에 `cell_image` 를 둔다. 이름 지을 때 `$item_collection_name` 으로 컬렉션을 가리킨다(상자 UI는 [chestui.md](chestui.md)).
 
 ## 우리 화면에 적용한 것
 
-메뉴 화면의 창(`oui-mc.css` `.mc-window`)·기계 창 배경(`sg_machine.dark_bg`)은 `dialog_background_opaque`, 컨트롤 막대는 `toolbar_background`, 닫기는 `light_close_button`, 도움말은 `how_to_play_button_*_light`, 위 탭은 `TabTopBack`/`TabTopFront`, 아이템 칸은 `cell_image`. 안쪽 판(연구 분할의 왼쪽·오른쪽 등)은 우리 그림 `textures/ui/sg/panel`(회색 판)이다.
+메뉴 화면의 창(`oui-mc.css` `.mc-window`)·기계 창 배경(`sg_machine.dark_bg`)은 `dialog_background_opaque`, 컨트롤 막대는 `toolbar_background`, 닫기는 `light_close_button`, 도움말은 `how_to_play_button_*_light`, 위 탭은 `TabTopBack`/`TabTopFront`, 아이템 칸은 `cell_image` 다. 안쪽 판(연구 분할의 왼쪽·오른쪽 등)은 우리 그림 `textures/ui/sg/panel`(회색 판)이다.
