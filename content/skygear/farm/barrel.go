@@ -674,7 +674,7 @@ func TickBarrels(s *core.Session, tx *world.Tx) {
 	now, _, _ := s.Clock.Now()
 	changed := false
 	for key, rec := range StateOf(s).Barrels {
-		pos, ok := parseCropKey(key)
+		pos, ok := keyPos(key)
 		if !ok {
 			delete(StateOf(s).Barrels, key)
 			changed = true
