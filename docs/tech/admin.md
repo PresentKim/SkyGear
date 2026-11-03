@@ -32,7 +32,7 @@
 | `/sgdebug status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
 | `/sgdebug skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/sgdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로 만든다. 0 이면 기간을 푼다 ([기간제 아이템](timed-items.md)) |
-| `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` | 서랍 앞면의 손에 쥐는 모양 아이템(막대기·뼈)의 보정 회전·크기·위치를 팩을 다시 받지 않고 바꿔 본다([drawer.md](drawer.md) '손에 쥐는 모양 아이템') |
+| `/sgdebug holderpose <x> <y> <z> <크기%> [dx dy dz]` | 서랍 앞면의 손에 쥐는 모양 아이템(막대기·뼈다귀)의 보정 회전·크기·위치를 팩을 다시 받지 않고 바꿔 본다([drawer.md](drawer.md) '손에 쥐는 모양 아이템') |
 | `/sgdebug fairy` | 선물 요정을 지금 나에게 부름 |
 | `/sgdebug weather <clear\|rain\|snow>` | 요정의 에메랄드 없이 날씨 마법을 씀(같은 날씨면 3일 더함) |
 | `/sgdebug sun <flow\|day\|dusk\|night>` | 요정의 에메랄드 없이 해를 고정하거나 흐르게 함 |
