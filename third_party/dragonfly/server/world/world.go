@@ -87,6 +87,13 @@ type World struct {
 
 	viewerMu sync.Mutex
 	viewers  map[*Loader]Viewer
+
+	// skygear patch: cached set of chunks that are ticked each tick. It is
+	// recomputed when tickDirty is set (loader added/removed/moved, chunk
+	// added/removed, tick range changed) and every tickSetRefresh ticks as a
+	// safety net.
+	tickDirty atomic.Bool
+	tickSet   tickSetCache
 }
 
 // transaction is a type that may be added to the transaction queue of a World.
@@ -1071,6 +1078,7 @@ func (w *World) SetTickRange(v int) {
 	w.set.Lock()
 	defer w.set.Unlock()
 	w.set.TickRange = int32(v)
+	w.tickDirty.Store(true) // skygear patch
 }
 
 // tickRange returns the tick range around each Viewer.
@@ -1233,6 +1241,7 @@ func (w *World) closeChunk(tx *Tx, pos ChunkPos, c *Column) {
 	}
 	clear(c.Entities)
 	delete(w.chunks, pos)
+	w.tickDirty.Store(true) // skygear patch
 }
 
 // Close closes the world and saves all chunks currently loaded.
@@ -1302,6 +1311,7 @@ func (w *World) addWorldViewer(l *Loader) {
 	w.viewerMu.Lock()
 	w.viewers[l] = l.viewer
 	w.viewerMu.Unlock()
+	w.tickDirty.Store(true) // skygear patch
 
 	l.viewer.ViewTime(w.Time())
 	l.viewer.ViewTimeCycle(w.TimeCycle())
@@ -1444,6 +1454,7 @@ func (w *World) loadChunkAsync(tx *Tx, pos ChunkPos, callback chunkCallback) boo
 func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
 	column := w.columnFrom(c, pos)
 	w.chunks[pos] = column
+	w.tickDirty.Store(true) // skygear patch
 	for _, e := range column.Entities {
 		w.entities[e] = pos
 		e.setAndUnlockWorld(w)

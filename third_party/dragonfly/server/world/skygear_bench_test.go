@@ -56,7 +56,11 @@ func skygearRun(w *world.World, f func(*world.Tx)) {
 // skygearBenchWorld returns a synchronous world with 600 loaded chunks, loaders radius-0 loaders and tickers
 // ticking block entities spread over the chunks.
 func skygearBenchWorld(loaders, tickers int) (*world.World, []*world.Loader) {
-	w := world.Config{Synchronous: true, Blocks: skygearRegistry()}.New()
+	return skygearBenchWorldSync(true, loaders, tickers)
+}
+
+func skygearBenchWorldSync(synchronous bool, loaders, tickers int) (*world.World, []*world.Loader) {
+	w := world.Config{Synchronous: synchronous, Blocks: skygearRegistry()}.New()
 	var ls []*world.Loader
 	skygearRun(w, func(tx *world.Tx) {
 		for i := range skygearBenchChunksX * skygearBenchChunksZ {
@@ -97,6 +101,24 @@ func BenchmarkSkygearTickLoaders(b *testing.B) {
 func BenchmarkSkygearBlockEntityTick(b *testing.B) {
 	w, _ := skygearBenchWorld(skygearBenchLoaders, skygearBenchTickers)
 	defer w.Close()
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		w.AdvanceTick()
+	}
+}
+
+// BenchmarkSkygearTickLoadersRange ticks a non-synchronous-position world: 450 radius-0 loaders at distinct
+// chunks and one loader with a 12 chunk simulation distance over 600 loaded chunks.
+func BenchmarkSkygearTickLoadersRange(b *testing.B) {
+	w, _ := skygearBenchWorldSync(false, skygearBenchLoaders, skygearBenchTickers)
+	defer w.Close()
+	w.SetTickRange(12)
+	var big *world.Loader
+	skygearRun(w, func(tx *world.Tx) {
+		big = world.NewLoader(12, w, skygearLoader{})
+		big.Move(tx, mgl64.Vec3{15 * 16, 64, 10 * 16})
+	})
 	b.ReportAllocs()
 	b.ResetTimer()
 	for range b.N {

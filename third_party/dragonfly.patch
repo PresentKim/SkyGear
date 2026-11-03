@@ -1182,10 +1182,37 @@ diff -ruN -x pack_icon.png a/server/world/item.go b/server/world/item.go
  // RegisterItem registers an item with the ID and meta passed. Once registered, items may be obtained from an
  // ID and metadata value using itemByID().
  // If an item with the ID and meta passed already exists, RegisterItem panics.
+diff -ruN -x pack_icon.png a/server/world/loader.go b/server/world/loader.go
+--- a/server/world/loader.go	2026-10-28 22:00:38.083414652 +0000
++++ b/server/world/loader.go	2026-11-03 09:43:20.934983357 +0000
+@@ -59,6 +59,7 @@
+ 	l.w.viewerMu.Lock()
+ 	delete(l.w.viewers, l)
+ 	l.w.viewerMu.Unlock()
++	l.w.tickDirty.Store(true) // skygear patch
+ 
+ 	l.world(new)
+ }
+@@ -83,6 +84,7 @@
+ 		return
+ 	}
+ 	l.pos = chunkPos
++	l.w.tickDirty.Store(true) // skygear patch
+ 	l.evictUnused(tx)
+ 	l.populateLoadQueue()
+ }
+@@ -171,6 +173,7 @@
+ 	l.w.viewerMu.Lock()
+ 	delete(l.w.viewers, l)
+ 	l.w.viewerMu.Unlock()
++	l.w.tickDirty.Store(true) // skygear patch
+ 
+ 	l.closed = true
+ 	l.viewer = nil
 diff -ruN -x pack_icon.png a/server/world/skygear_bench_test.go b/server/world/skygear_bench_test.go
 --- a/server/world/skygear_bench_test.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/world/skygear_bench_test.go	2026-11-03 09:32:46.922053452 +0000
-@@ -0,0 +1,154 @@
++++ b/server/world/skygear_bench_test.go	2026-11-03 09:42:36.722519117 +0000
+@@ -0,0 +1,176 @@
 +package world_test
 +
 +import (
@@ -1244,7 +1271,11 @@ diff -ruN -x pack_icon.png a/server/world/skygear_bench_test.go b/server/world/s
 +// skygearBenchWorld returns a synchronous world with 600 loaded chunks, loaders radius-0 loaders and tickers
 +// ticking block entities spread over the chunks.
 +func skygearBenchWorld(loaders, tickers int) (*world.World, []*world.Loader) {
-+	w := world.Config{Synchronous: true, Blocks: skygearRegistry()}.New()
++	return skygearBenchWorldSync(true, loaders, tickers)
++}
++
++func skygearBenchWorldSync(synchronous bool, loaders, tickers int) (*world.World, []*world.Loader) {
++	w := world.Config{Synchronous: synchronous, Blocks: skygearRegistry()}.New()
 +	var ls []*world.Loader
 +	skygearRun(w, func(tx *world.Tx) {
 +		for i := range skygearBenchChunksX * skygearBenchChunksZ {
@@ -1285,6 +1316,24 @@ diff -ruN -x pack_icon.png a/server/world/skygear_bench_test.go b/server/world/s
 +func BenchmarkSkygearBlockEntityTick(b *testing.B) {
 +	w, _ := skygearBenchWorld(skygearBenchLoaders, skygearBenchTickers)
 +	defer w.Close()
++	b.ReportAllocs()
++	b.ResetTimer()
++	for range b.N {
++		w.AdvanceTick()
++	}
++}
++
++// BenchmarkSkygearTickLoadersRange ticks a non-synchronous-position world: 450 radius-0 loaders at distinct
++// chunks and one loader with a 12 chunk simulation distance over 600 loaded chunks.
++func BenchmarkSkygearTickLoadersRange(b *testing.B) {
++	w, _ := skygearBenchWorldSync(false, skygearBenchLoaders, skygearBenchTickers)
++	defer w.Close()
++	w.SetTickRange(12)
++	var big *world.Loader
++	skygearRun(w, func(tx *world.Tx) {
++		big = world.NewLoader(12, w, skygearLoader{})
++		big.Move(tx, mgl64.Vec3{15 * 16, 64, 10 * 16})
++	})
 +	b.ReportAllocs()
 +	b.ResetTimer()
 +	for range b.N {
@@ -1362,7 +1411,7 @@ diff -ruN -x pack_icon.png a/server/world/task_test.go b/server/world/task_test.
 +}
 diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
 --- a/server/world/tick.go	2026-11-03 09:29:14.478390733 +0000
-+++ b/server/world/tick.go	2026-10-28 22:00:38.092137951 +0000
++++ b/server/world/tick.go	2026-11-03 09:43:20.922602568 +0000
 @@ -23,8 +23,10 @@
  	defer tc.Stop()
  	for {
@@ -1375,6 +1424,251 @@ diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
  		case <-w.closing:
  			// World is being closed: Stop ticking and get rid of a task.
  			w.running.Done()
+@@ -126,36 +128,25 @@
+ // tickBlocksRandomly executes random block ticks in loaded chunks within range of loaders.
+ func (t ticker) tickBlocksRandomly(tx *Tx, loaders []*Loader, tick int64) {
+ 	var (
+-		r             = int32(tx.World().tickRange())
+-		g             randUint4
+-		blockEntities []cube.Pos
+-		randomBlocks  []cube.Pos
++		w            = tx.World()
++		r            = int32(w.tickRange())
++		g            randUint4
++		randomBlocks []cube.Pos
+ 	)
+ 	if r == 0 {
+ 		// NOP if the simulation distance is 0.
+ 		return
+ 	}
+ 
+-	loaded := make([]ChunkPos, 0, len(loaders))
+-	if tx.World().conf.Synchronous {
+-		loaded = slices.Collect(maps.Keys(tx.World().chunks))
+-	} else {
+-		for _, loader := range loaders {
+-			loader.mu.RLock()
+-			pos := loader.pos
+-			loader.mu.RUnlock()
+-
+-			loaded = append(loaded, pos)
++	// skygear patch: use the cached tick set, and a reusable buffer of block
++	// entity positions.
++	set := w.tickSet.get(w, r)
++	blockEntities := w.tickSet.beBuf[:0]
++	for _, tc := range set {
++		pos, c := tc.pos, tc.col
++		for bp := range c.BlockEntities {
++			blockEntities = append(blockEntities, bp)
+ 		}
+-	}
+-
+-	for pos, c := range tx.World().chunks {
+-		if !t.anyWithinDistance(pos, loaded, r) {
+-			// No loaders in this chunk that are within the simulation distance, so proceed to the next.
+-			continue
+-		}
+-		blockEntities = append(blockEntities, slices.Collect(maps.Keys(c.BlockEntities))...)
+-
+ 		cx, cz := int(pos[0]<<4), int(pos[1]<<4)
+ 
+ 		// We generate up to j random positions for every sub chunk.
+@@ -188,10 +179,102 @@
+ 		}
+ 	}
+ 	for _, pos := range blockEntities {
+-		if tb, ok := tx.Block(pos).(TickerBlock); ok {
++		// skygear patch: read the block entity directly, skipping chunks that
++		// were unloaded in the meantime.
++		c, ok := w.chunks[chunkPosFromBlockPos(pos)]
++		if !ok {
++			continue
++		}
++		if tb, ok := c.BlockEntities[pos].(TickerBlock); ok {
+ 			tb.Tick(tick, pos, tx)
+ 		}
+ 	}
++	clear(blockEntities)
++	w.tickSet.beBuf = blockEntities[:0]
++}
++
++// tickChunk is a loaded chunk that is ticked.
++type tickChunk struct {
++	pos ChunkPos
++	col *Column
++}
++
++// tickSetRefresh is the number of ticks after which the tick set is
++// recomputed even if nothing marked it dirty.
++const tickSetRefresh = 100
++
++// tickSetCache caches the chunks within the tick range of any loader.
++type tickSetCache struct {
++	chunks []tickChunk
++	r      int32
++	age    int
++	valid  bool
++	beBuf  []cube.Pos
++	seen   map[ChunkPos]struct{}
++	pos    []ChunkPos
++}
++
++// get returns the chunks to tick, recomputing them if needed.
++func (c *tickSetCache) get(w *World, r int32) []tickChunk {
++	c.age++
++	if w.tickDirty.Swap(false) || !c.valid || c.r != r || c.age >= tickSetRefresh {
++		c.compute(w, r)
++	}
++	return c.chunks
++}
++
++// compute rebuilds the tick set by walking the radius of every loader.
++func (c *tickSetCache) compute(w *World, r int32) {
++	c.age, c.r, c.valid = 0, r, true
++	clear(c.chunks)
++	c.chunks = c.chunks[:0]
++	if w.conf.Synchronous {
++		for pos, col := range w.chunks {
++			c.chunks = append(c.chunks, tickChunk{pos, col})
++		}
++		return
++	}
++	c.pos = c.pos[:0]
++	w.viewerMu.Lock()
++	for l := range w.viewers {
++		l.mu.RLock()
++		c.pos = append(c.pos, l.pos)
++		l.mu.RUnlock()
++	}
++	w.viewerMu.Unlock()
++
++	if len(c.pos)*int(2*r+1)*int(2*r+1) >= len(w.chunks) {
++		// Cheaper to test every loaded chunk against the loaders.
++		for pos, col := range w.chunks {
++			if (ticker{}).anyWithinDistance(pos, c.pos, r) {
++				c.chunks = append(c.chunks, tickChunk{pos, col})
++			}
++		}
++		return
++	}
++	if c.seen == nil {
++		c.seen = make(map[ChunkPos]struct{})
++	}
++	clear(c.seen)
++	for _, lp := range c.pos {
++		for x := -r; x <= r; x++ {
++			for z := -r; z <= r; z++ {
++				if x*x+z*z > r*r {
++					continue
++				}
++				pos := ChunkPos{lp[0] + x, lp[1] + z}
++				col, ok := w.chunks[pos]
++				if !ok {
++					continue
++				}
++				if _, dup := c.seen[pos]; dup {
++					continue
++				}
++				c.seen[pos] = struct{}{}
++				c.chunks = append(c.chunks, tickChunk{pos, col})
++			}
++		}
++	}
+ }
+ 
+ // anyWithinDistance checks if any of the ChunkPos loaded are within the distance r of the ChunkPos pos.
+diff -ruN -x pack_icon.png a/server/world/tick_cache_test.go b/server/world/tick_cache_test.go
+--- a/server/world/tick_cache_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/tick_cache_test.go	2026-11-03 09:43:20.939265605 +0000
+@@ -0,0 +1,88 @@
++package world
++
++import (
++	"maps"
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/go-gl/mathgl/mgl64"
++)
++
++// skygear patch: tests for the cached tick set.
++
++// oldTickSet computes the tick set the way the uncached tick did.
++func oldTickSet(w *World, r int32) map[ChunkPos]*Column {
++	var loaded []ChunkPos
++	_, loaders := w.allViewers()
++	for _, l := range loaders {
++		l.mu.RLock()
++		loaded = append(loaded, l.pos)
++		l.mu.RUnlock()
++	}
++	out := map[ChunkPos]*Column{}
++	for pos, c := range w.chunks {
++		if (ticker{}).anyWithinDistance(pos, loaded, r) {
++			out[pos] = c
++		}
++	}
++	return out
++}
++
++// TestTickSetMatchesFresh verifies the cached tick set equals the freshly
++// computed one after every kind of mutation.
++func TestTickSetMatchesFresh(t *testing.T) {
++	w := Config{Synchronous: true}.New()
++	defer w.Close()
++
++	runWorld(w, func(tx *Tx) {
++		w.conf.Synchronous = false // use the loader-based path; no ticking happens here.
++		defer func() { w.conf.Synchronous = true }()
++
++		check := func(step string, r int32) {
++			t.Helper()
++			got := map[ChunkPos]*Column{}
++			for _, tc := range w.tickSet.get(w, r) {
++				if _, dup := got[tc.pos]; dup {
++					t.Fatalf("%s: duplicate chunk %v", step, tc.pos)
++				}
++				got[tc.pos] = tc.col
++			}
++			if want := oldTickSet(w, r); !maps.Equal(got, want) {
++				t.Fatalf("%s: cached %d chunks, fresh %d", step, len(got), len(want))
++			}
++		}
++		load := func(cx, cz int) { tx.Block(cube.Pos{cx * 16, 64, cz * 16}) }
++
++		for x := -20; x < 20; x++ {
++			for z := -20; z < 20; z++ {
++				load(x, z)
++			}
++		}
++		check("no loaders", 3)
++
++		a := NewLoader(0, w, NopViewer{})
++		b := NewLoader(0, w, NopViewer{})
++		check("add", 3)
++		a.Move(tx, mgl64.Vec3{5 * 16, 64, 5 * 16})
++		check("move a", 3)
++		b.Move(tx, mgl64.Vec3{-8 * 16, 64, 2 * 16})
++		check("move b", 3)
++		check("range", 6)
++		w.SetTickRange(2)
++		check("set range", 2)
++		a.Move(tx, mgl64.Vec3{100 * 16, 64, 0})
++		check("move out of loaded", 3)
++		a.Move(tx, mgl64.Vec3{19 * 16, 64, 19 * 16})
++		check("move to edge", 3)
++		load(30, 30)
++		check("chunk added", 3)
++		a.Move(tx, mgl64.Vec3{30 * 16, 64, 30 * 16})
++		check("chunk added near", 3)
++		w.closeChunk(tx, ChunkPos{30, 30}, w.chunks[ChunkPos{30, 30}])
++		check("chunk closed", 3)
++		b.Close(tx)
++		check("loader closed", 3)
++		a.Close(tx)
++		check("all closed", 3)
++	})
++}
 diff -ruN -x pack_icon.png a/server/world/tick_stats.go b/server/world/tick_stats.go
 --- a/server/world/tick_stats.go	1970-01-01 00:00:00.000000000 +0000
 +++ b/server/world/tick_stats.go	2026-10-28 22:00:38.092137951 +0000
@@ -1508,7 +1802,7 @@ diff -ruN -x pack_icon.png a/server/world/tx.go b/server/world/tx.go
  	}
 diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
 --- a/server/world/world.go	2026-11-03 09:29:14.478795117 +0000
-+++ b/server/world/world.go	2026-10-28 22:00:38.092137951 +0000
++++ b/server/world/world.go	2026-11-03 09:43:20.931000360 +0000
 @@ -30,6 +30,9 @@
  	conf Config
  	ra   cube.Range
@@ -1519,3 +1813,49 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  	queue        chan transaction
  	queueClosing chan struct{}
  	queueing     sync.WaitGroup
+@@ -84,6 +87,13 @@
+ 
+ 	viewerMu sync.Mutex
+ 	viewers  map[*Loader]Viewer
++
++	// skygear patch: cached set of chunks that are ticked each tick. It is
++	// recomputed when tickDirty is set (loader added/removed/moved, chunk
++	// added/removed, tick range changed) and every tickSetRefresh ticks as a
++	// safety net.
++	tickDirty atomic.Bool
++	tickSet   tickSetCache
+ }
+ 
+ // transaction is a type that may be added to the transaction queue of a World.
+@@ -1068,6 +1078,7 @@
+ 	w.set.Lock()
+ 	defer w.set.Unlock()
+ 	w.set.TickRange = int32(v)
++	w.tickDirty.Store(true) // skygear patch
+ }
+ 
+ // tickRange returns the tick range around each Viewer.
+@@ -1230,6 +1241,7 @@
+ 	}
+ 	clear(c.Entities)
+ 	delete(w.chunks, pos)
++	w.tickDirty.Store(true) // skygear patch
+ }
+ 
+ // Close closes the world and saves all chunks currently loaded.
+@@ -1299,6 +1311,7 @@
+ 	w.viewerMu.Lock()
+ 	w.viewers[l] = l.viewer
+ 	w.viewerMu.Unlock()
++	w.tickDirty.Store(true) // skygear patch
+ 
+ 	l.viewer.ViewTime(w.Time())
+ 	l.viewer.ViewTimeCycle(w.TimeCycle())
+@@ -1441,6 +1454,7 @@
+ func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
+ 	column := w.columnFrom(c, pos)
+ 	w.chunks[pos] = column
++	w.tickDirty.Store(true) // skygear patch
+ 	for _, e := range column.Entities {
+ 		w.entities[e] = pos
+ 		e.setAndUnlockWorld(w)
