@@ -31,6 +31,18 @@ func NewFlate(level int) Flate {
 	}}}
 }
 
+// Install returns a Flate of the level and registers it under the Flate ID,
+// so it is the one a connection uses as its compression. Gophertunnel's
+// decoder looks up the algorithm of every incoming batch by its ID and drops
+// the connection when that is not the configured compression: without the
+// registration the lookup finds packet.FlateCompression and every client is
+// cut off at its first compressed packet (Login).
+func Install(level int) Flate {
+	f := NewFlate(level)
+	packet.RegisterCompression(f)
+	return f
+}
+
 // Level returns the compression level.
 func (f Flate) Level() int { return f.level }
 

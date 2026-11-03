@@ -77,3 +77,28 @@ func BenchmarkFlateLevels(b *testing.B) {
 		})
 	}
 }
+
+// A batch compressed by a client with the Flate ID decodes on a connection
+// whose compression is an installed Flate (the decoder checks that the
+// algorithm found by the ID is the connection's own).
+func TestInstalledFlateDecodesClientBatch(t *testing.T) {
+	c := Install(3)
+	defer packet.RegisterCompression(packet.FlateCompression)
+
+	var buf bytes.Buffer
+	enc := packet.NewEncoder(&buf)
+	enc.EnableCompression(packet.FlateCompression, 0)
+	want := []byte("login packet payload")
+	if err := enc.Encode([][]byte{want}); err != nil {
+		t.Fatal(err)
+	}
+	dec := packet.NewDecoder(&buf)
+	dec.EnableCompression(c, 1<<20)
+	got, err := dec.Decode()
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("decoded %q, want %q", got, want)
+	}
+}
