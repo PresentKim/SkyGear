@@ -779,8 +779,16 @@ diff -ruN -x pack_icon.png a/server/server.go b/server/server.go
  
 diff -ruN -x pack_icon.png a/server/session/chunk.go b/server/session/chunk.go
 --- a/server/session/chunk.go	2026-11-03 09:29:14.477081356 +0000
-+++ b/server/session/chunk.go	2026-10-28 22:00:38.014954925 +0000
-@@ -18,6 +18,10 @@
++++ b/server/session/chunk.go	2026-11-03 10:03:10.211045003 +0000
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"bytes"
++	"slices"
+ 
+ 	"github.com/cespare/xxhash/v2"
+ 	"github.com/df-mc/dragonfly/server/block/cube"
+@@ -18,6 +19,10 @@
  
  // ViewChunk ...
  func (s *Session) ViewChunk(pos world.ChunkPos, dim world.Dimension, blockEntities map[cube.Pos]world.Block, c *chunk.Chunk) {
@@ -791,17 +799,140 @@ diff -ruN -x pack_icon.png a/server/session/chunk.go b/server/session/chunk.go
  	if !s.conn.ClientCacheEnabled() {
  		s.sendNetworkChunk(pos, dim, c, blockEntities)
  		return
-@@ -41,6 +45,10 @@
+@@ -37,15 +42,20 @@
+ 			entries = append(entries, protocol.SubChunkEntry{Result: protocol.SubChunkResultIndexOutOfBounds, Offset: offset})
+ 			continue
+ 		}
++		cacheable := true // skygear patch: fake chunks bypass the sub chunk cache
+ 		col, ok := s.chunkLoader.Chunk(world.ChunkPos{
  			centre.X() + int32(offset[0]),
  			centre.Z() + int32(offset[2]),
  		})
 +		// skygear patch: answer from a chunk shown with ViewFakeChunk.
 +		if fake, faked := s.fakeChunk(world.ChunkPos{centre.X() + int32(offset[0]), centre.Z() + int32(offset[2])}); faked {
-+			col, ok = fake, true
++			col, ok, cacheable = fake, true, false
 +		}
  		if !ok {
  			entries = append(entries, protocol.SubChunkEntry{Result: protocol.SubChunkResultChunkNotFound, Offset: offset})
  			continue
+ 		}
+-		entries = append(entries, s.subChunkEntry(offset, ind, col, transaction))
++		entries = append(entries, s.subChunkEntry(offset, ind, col, transaction, cacheable))
+ 	}
+ 	if s.conn.ClientCacheEnabled() && len(transaction) > 0 {
+ 		s.blobMu.Lock()
+@@ -61,9 +71,27 @@
+ 	})
+ }
+ 
+-func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *world.Column, transaction map[uint64]struct{}) protocol.SubChunkEntry {
++// subChunkNet is the part of a sub chunk entry that only depends on the blocks
++// of the column. skygear patch
++type subChunkNet struct {
++	allAir  bool
++	payload []byte
++	hash    uint64
++	mapType byte
++	mapData protocol.Optional[protocol.HeightMap]
++}
++
++// subChunkNetData returns the network form of sub chunk ind of col, from the
++// column's cache if cacheable and unchanged. Fake chunks are not cacheable.
++func subChunkNetData(col *world.Column, ind int16, cacheable bool) *subChunkNet {
++	if cacheable {
++		if v, ok := col.SubCache(int(ind)); ok {
++			return v.(*subChunkNet)
++		}
++	}
+ 	chunkMap := col.HeightMap()
+-	subMapType, subMap := byte(protocol.HeightMapDataHasData), protocol.HeightMap{}
++	n := &subChunkNet{mapType: byte(protocol.HeightMapDataHasData)}
++	subMap := protocol.HeightMap{}
+ 	higher, lower := true, true
+ 	for z := uint8(0); z < 16; z++ {
+ 		for x := uint8(0); x < 16; x++ {
+@@ -79,30 +107,42 @@
+ 			}
+ 		}
+ 	}
+-	var subMapData protocol.Optional[protocol.HeightMap]
+ 	switch {
+ 	case higher:
+-		subMapType = protocol.HeightMapDataTooHigh
++		n.mapType = protocol.HeightMapDataTooHigh
+ 	case lower:
+-		subMapType = protocol.HeightMapDataTooLow
++		n.mapType = protocol.HeightMapDataTooLow
+ 	default:
+-		subMapData = protocol.Option(subMap)
++		n.mapData = protocol.Option(subMap)
++	}
++	if col.Sub()[ind].Empty() {
++		n.allAir = true
++	} else {
++		n.payload = chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))
++		n.hash = xxhash.Sum64(n.payload)
++	}
++	if cacheable {
++		col.SetSubCache(int(ind), n)
+ 	}
++	return n
++}
+ 
+-	sub := col.Sub()[ind]
+-	if sub.Empty() {
++func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *world.Column, transaction map[uint64]struct{}, cacheable bool) protocol.SubChunkEntry {
++	n := subChunkNetData(col, ind, cacheable)
++	if n.allAir {
+ 		return protocol.SubChunkEntry{
+ 			Result:              protocol.SubChunkResultSuccessAllAir,
+-			HeightMapType:       subMapType,
+-			HeightMapData:       subMapData,
+-			RenderHeightMapType: subMapType,
+-			RenderHeightMapData: subMapData,
++			HeightMapType:       n.mapType,
++			HeightMapData:       n.mapData,
++			RenderHeightMapType: n.mapType,
++			RenderHeightMapData: n.mapData,
+ 			Offset:              offset,
+ 		}
+ 	}
++	serialisedSubChunk := n.payload
+ 
+-	serialisedSubChunk := chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))
+-
++	// Block entities are encoded per request: their data may change without
++	// a block change.
+ 	blockEntityBuf := bytes.NewBuffer(nil)
+ 	enc := nbt.NewEncoderWithEncoding(blockEntityBuf, nbt.NetworkLittleEndian)
+ 	for pos, b := range col.BlockEntities {
+@@ -115,18 +155,18 @@
+ 
+ 	entry := protocol.SubChunkEntry{
+ 		Result:              protocol.SubChunkResultSuccess,
+-		RawPayload:          protocol.Option(append(serialisedSubChunk, blockEntityBuf.Bytes()...)),
+-		HeightMapType:       subMapType,
+-		HeightMapData:       subMapData,
+-		RenderHeightMapType: subMapType,
+-		RenderHeightMapData: subMapData,
++		RawPayload:          protocol.Option(slices.Concat(serialisedSubChunk, blockEntityBuf.Bytes())),
++		HeightMapType:       n.mapType,
++		HeightMapData:       n.mapData,
++		RenderHeightMapType: n.mapType,
++		RenderHeightMapData: n.mapData,
+ 		Offset:              offset,
+ 	}
+ 	if s.conn.ClientCacheEnabled() {
+-		if hash := xxhash.Sum64(serialisedSubChunk); s.trackBlob(hash, serialisedSubChunk) {
+-			transaction[hash] = struct{}{}
++		if s.trackBlob(n.hash, serialisedSubChunk) {
++			transaction[n.hash] = struct{}{}
+ 
+-			entry.BlobHash = protocol.Option(hash)
++			entry.BlobHash = protocol.Option(n.hash)
+ 			entry.RawPayload = protocol.Option(blockEntityBuf.Bytes())
+ 		}
+ 	}
 diff -ruN -x pack_icon.png a/server/session/fake_chunk.go b/server/session/fake_chunk.go
 --- a/server/session/fake_chunk.go	1970-01-01 00:00:00.000000000 +0000
 +++ b/server/session/fake_chunk.go	2026-10-28 22:00:38.015668661 +0000
@@ -947,57 +1078,259 @@ diff -ruN -x pack_icon.png a/server/session/handler_crafting.go b/server/session
 +}
 diff -ruN -x pack_icon.png a/server/session/player.go b/server/session/player.go
 --- a/server/session/player.go	2026-11-03 09:29:14.477455479 +0000
-+++ b/server/session/player.go	2026-10-28 22:00:38.015668661 +0000
-@@ -123,8 +123,15 @@
- 		potionContainerChange    []protocol.PotionContainerChangeRecipe
- 	)
++++ b/server/session/player.go	2026-11-03 09:53:29.148305926 +0000
+@@ -8,6 +8,8 @@
+ 	"math"
+ 	"net"
+ 	"slices"
++	"strconv"
++	"sync"
+ 	"time"
+ 	_ "unsafe" // Imported for compiler directives.
  
-+	// skygear patch: only the recipes the filter keeps are sent and
-+	// accepted. Network IDs stay the index in the full list.
-+	clear(s.recipes)
-+	fit := creativeBlockFitter(s.br)
- 	for index, i := range recipe.Recipes() {
+@@ -28,7 +30,6 @@
+ 	"github.com/df-mc/dragonfly/server/world/sound"
+ 	"github.com/go-gl/mathgl/mgl32"
+ 	"github.com/go-gl/mathgl/mgl64"
+-	"github.com/google/uuid"
+ 	"github.com/sandertv/gophertunnel/minecraft/protocol"
+ 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
+ )
+@@ -110,117 +111,185 @@
+ 	})
+ }
+ 
+-// sendRecipes sends the current crafting recipes to the session.
+-func (s *Session) sendRecipes() {
+-	var (
+-		shapedRecipes            []protocol.ShapedRecipe
+-		shapelessRecipes         []protocol.ShapelessRecipe
+-		userDataShapelessRecipes []protocol.UserDataShapelessRecipe
+-		multiRecipes             []protocol.MultiRecipe
+-		smithingTransformRecipes []protocol.SmithingTransformRecipe
+-		smithingTrimRecipes      []protocol.SmithingTrimRecipe
+-		potionRecipes            []protocol.PotionRecipe
+-		potionContainerChange    []protocol.PotionContainerChangeRecipe
+-	)
++// recipeEntry is the protocol form of one recipe, built once. The network ID
++// is the recipe's index in the full list plus one and never changes.
++// (skygear patch)
++type recipeEntry struct {
++	recipe recipe.Recipe
++	id     uint32
++
++	shaped      *protocol.ShapedRecipe
++	shapeless   *protocol.ShapelessRecipe
++	userData    *protocol.UserDataShapelessRecipe
++	multi       *protocol.MultiRecipe
++	smithing    *protocol.SmithingTransformRecipe
++	trim        *protocol.SmithingTrimRecipe
++	potion      *protocol.PotionRecipe
++	containerCh *protocol.PotionContainerChangeRecipe
++}
++
++// recipeCache holds the recipe entries for a block registry. (skygear patch)
++type recipeCache struct {
++	entries []recipeEntry
++}
++
++var (
++	recipeCacheMu sync.Mutex
++	recipeCaches  = map[world.BlockRegistry]*recipeCache{}
++)
+ 
+-	for index, i := range recipe.Recipes() {
++// recipeEntries returns the protocol entries of every recipe, building them on
++// the first call for the registry (and again if recipes were registered since).
++func recipeEntries(br world.BlockRegistry) []recipeEntry {
++	all := recipe.Recipes()
++	recipeCacheMu.Lock()
++	defer recipeCacheMu.Unlock()
++	if c, ok := recipeCaches[br]; ok && len(c.entries) == len(all) {
++		return c.entries
++	}
++	c := &recipeCache{entries: buildRecipeEntries(br, all)}
++	recipeCaches[br] = c
++	return c.entries
++}
++
++func buildRecipeEntries(br world.BlockRegistry, all []recipe.Recipe) []recipeEntry {
++	fit := creativeBlockFitter(br)
++	entries := make([]recipeEntry, len(all))
++	for index, r := range all {
  		networkID := uint32(index) + 1
-+		if s.recipeFilter != nil && !s.recipeFilter(i) {
-+			continue
-+		}
- 		s.recipes[networkID] = i
- 
- 		switch i := i.(type) {
-@@ -133,7 +140,7 @@
- 				RecipeID:        uuid.New().String(),
+-		s.recipes[networkID] = i
+-
+-		switch i := i.(type) {
++		recipeID := "skygear:recipe_" + strconv.Itoa(int(networkID))
++		e := recipeEntry{recipe: r, id: networkID}
++		switch i := r.(type) {
+ 		case recipe.Shapeless:
+-			shapelessRecipes = append(shapelessRecipes, protocol.ShapelessRecipe{
+-				RecipeID:        uuid.New().String(),
++			e.shapeless = &protocol.ShapelessRecipe{
++				RecipeID:        recipeID,
  				Priority:        int32(i.Priority()),
- 				Input:           stacksToIngredientItems(s.br, i.Input()),
+-				Input:           stacksToIngredientItems(s.br, i.Input()),
 -				Output:          stacksToRecipeStacks(s.br, i.Output()),
-+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
++				Input:           stacksToIngredientItems(br, i.Input()),
++				Output:          fit(stacksToRecipeStacks(br, i.Output())),
  				Block:           i.Block(),
  				RecipeNetworkID: networkID,
- 			})
-@@ -142,7 +149,7 @@
- 				RecipeID:        uuid.New().String(),
+-			})
++			}
+ 		case recipe.UserDataShapeless:
+-			userDataShapelessRecipes = append(userDataShapelessRecipes, protocol.UserDataShapelessRecipe{ShapelessRecipe: protocol.ShapelessRecipe{
+-				RecipeID:        uuid.New().String(),
++			e.userData = &protocol.UserDataShapelessRecipe{ShapelessRecipe: protocol.ShapelessRecipe{
++				RecipeID:        recipeID,
  				Priority:        int32(i.Priority()),
- 				Input:           stacksToIngredientItems(s.br, i.Input()),
+-				Input:           stacksToIngredientItems(s.br, i.Input()),
 -				Output:          stacksToRecipeStacks(s.br, i.Output()),
-+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
++				Input:           stacksToIngredientItems(br, i.Input()),
++				Output:          fit(stacksToRecipeStacks(br, i.Output())),
  				Block:           i.Block(),
  				RecipeNetworkID: networkID,
- 			}})
-@@ -158,9 +165,9 @@
+-			}})
++			}}
+ 		case recipe.Multi:
+-			multiRecipes = append(multiRecipes, protocol.MultiRecipe{
+-				UUID:            i.UUID(),
+-				RecipeNetworkID: networkID,
+-			})
++			e.multi = &protocol.MultiRecipe{UUID: i.UUID(), RecipeNetworkID: networkID}
+ 		case recipe.Shaped:
+-			shapedRecipes = append(shapedRecipes, protocol.ShapedRecipe{
+-				RecipeID:        uuid.New().String(),
++			e.shaped = &protocol.ShapedRecipe{
++				RecipeID:        recipeID,
+ 				Priority:        int32(i.Priority()),
  				Width:           int32(i.Shape().Width()),
  				Height:          int32(i.Shape().Height()),
- 				Input:           stacksToIngredientItems(s.br, i.Input()),
+-				Input:           stacksToIngredientItems(s.br, i.Input()),
 -				Output:          stacksToRecipeStacks(s.br, i.Output()),
-+				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
++				Input:           stacksToIngredientItems(br, i.Input()),
++				Output:          fit(stacksToRecipeStacks(br, i.Output())),
  				Block:           i.Block(),
 -				AssumeSymmetry:  true,
 +				AssumeSymmetry:  !i.NoMirror(),
  				RecipeNetworkID: networkID,
- 			})
+-			})
++			}
  		case recipe.SmithingTransform:
-@@ -223,6 +230,18 @@
- 	})
- }
- 
+-			input, output := stacksToIngredientItems(s.br, i.Input()), stacksToRecipeStacks(s.br, i.Output())
+-			smithingTransformRecipes = append(smithingTransformRecipes, protocol.SmithingTransformRecipe{
+-				RecipeID:        uuid.New().String(),
++			input, output := stacksToIngredientItems(br, i.Input()), stacksToRecipeStacks(br, i.Output())
++			e.smithing = &protocol.SmithingTransformRecipe{
++				RecipeID:        recipeID,
+ 				Base:            input[0],
+ 				Addition:        input[1],
+ 				Template:        input[2],
+ 				Result:          output[0],
+ 				Block:           i.Block(),
+ 				RecipeNetworkID: networkID,
+-			})
++			}
+ 		case recipe.SmithingTrim:
+-			input := stacksToIngredientItems(s.br, i.Input())
+-			smithingTrimRecipes = append(smithingTrimRecipes, protocol.SmithingTrimRecipe{
+-				RecipeID:        uuid.New().String(),
++			input := stacksToIngredientItems(br, i.Input())
++			e.trim = &protocol.SmithingTrimRecipe{
++				RecipeID:        recipeID,
+ 				Base:            input[0],
+ 				Addition:        input[1],
+ 				Template:        input[2],
+ 				Block:           i.Block(),
+ 				RecipeNetworkID: networkID,
+-			})
++			}
+ 		case recipe.Potion:
+ 			inputRuntimeID, inputMeta, _ := world.ItemRuntimeID(i.Input()[0].(item.Stack).Item())
+ 			reagentRuntimeID, reagentMeta, _ := world.ItemRuntimeID(i.Input()[1].(item.Stack).Item())
+ 			outputRuntimeID, outputMeta, _ := world.ItemRuntimeID(i.Output()[0].Item())
+-
+-			potionRecipes = append(potionRecipes, protocol.PotionRecipe{
++			e.potion = &protocol.PotionRecipe{
+ 				InputPotionID:        inputRuntimeID,
+ 				InputPotionMetadata:  int32(inputMeta),
+ 				ReagentItemID:        reagentRuntimeID,
+ 				ReagentItemMetadata:  int32(reagentMeta),
+ 				OutputPotionID:       outputRuntimeID,
+ 				OutputPotionMetadata: int32(outputMeta),
+-			})
+-
++			}
+ 		case recipe.PotionContainerChange:
+ 			inputRuntimeID, _, _ := world.ItemRuntimeID(i.Input()[0].(item.Stack).Item())
+ 			reagentRuntimeID, _, _ := world.ItemRuntimeID(i.Input()[1].(item.Stack).Item())
+ 			outputRuntimeID, _, _ := world.ItemRuntimeID(i.Output()[0].Item())
+-
+-			potionContainerChange = append(potionContainerChange, protocol.PotionContainerChangeRecipe{
++			e.containerCh = &protocol.PotionContainerChangeRecipe{
+ 				InputItemID:   inputRuntimeID,
+ 				ReagentItemID: reagentRuntimeID,
+ 				OutputItemID:  outputRuntimeID,
+-			})
++			}
+ 		}
++		entries[index] = e
+ 	}
+-	s.writePacket(&packet.CraftingData{
+-		ShapedRecipes:                shapedRecipes,
+-		ShapelessRecipes:             shapelessRecipes,
+-		MultiRecipes:                 multiRecipes,
+-		UserDataShapelessRecipes:     userDataShapelessRecipes,
+-		SmithingTransformRecipes:     smithingTransformRecipes,
+-		SmithingTrimRecipes:          smithingTrimRecipes,
+-		PotionRecipes:                potionRecipes,
+-		PotionContainerChangeRecipes: potionContainerChange,
+-		ClearRecipes:                 true,
+-	})
++	return entries
++}
++
++// craftingData selects the cached entries f keeps (all if f is nil) and fills
++// accepted with them by network ID. (skygear patch)
++func craftingData(br world.BlockRegistry, f func(recipe.Recipe) bool, accepted map[uint32]recipe.Recipe) *packet.CraftingData {
++	pk := &packet.CraftingData{ClearRecipes: true}
++	clear(accepted)
++	for _, e := range recipeEntries(br) {
++		if f != nil && !f(e.recipe) {
++			continue
++		}
++		accepted[e.id] = e.recipe
++		switch {
++		case e.shapeless != nil:
++			pk.ShapelessRecipes = append(pk.ShapelessRecipes, *e.shapeless)
++		case e.userData != nil:
++			pk.UserDataShapelessRecipes = append(pk.UserDataShapelessRecipes, *e.userData)
++		case e.multi != nil:
++			pk.MultiRecipes = append(pk.MultiRecipes, *e.multi)
++		case e.shaped != nil:
++			pk.ShapedRecipes = append(pk.ShapedRecipes, *e.shaped)
++		case e.smithing != nil:
++			pk.SmithingTransformRecipes = append(pk.SmithingTransformRecipes, *e.smithing)
++		case e.trim != nil:
++			pk.SmithingTrimRecipes = append(pk.SmithingTrimRecipes, *e.trim)
++		case e.potion != nil:
++			pk.PotionRecipes = append(pk.PotionRecipes, *e.potion)
++		case e.containerCh != nil:
++			pk.PotionContainerChangeRecipes = append(pk.PotionContainerChangeRecipes, *e.containerCh)
++		}
++	}
++	return pk
++}
++
++// sendRecipes sends the current crafting recipes to the session.
++func (s *Session) sendRecipes() {
++	// skygear patch: only the recipes the filter keeps are sent and
++	// accepted. Network IDs stay the index in the full list. The protocol
++	// entries are built once per registry; the filter only selects.
++	s.writePacket(craftingData(s.br, s.recipeFilter, s.recipes))
++}
++
 +// SetRecipeFilter limits the player's recipes to those f keeps (all if f
 +// is nil) and sends the new list at once: the client replaces its recipes
 +// (recipe book, crafting grid output), and crafting a recipe left out is
@@ -1008,12 +1341,10 @@ diff -ruN -x pack_icon.png a/server/session/player.go b/server/session/player.go
 +	}
 +	s.recipeFilter = f
 +	s.sendRecipes()
-+}
-+
+ }
+ 
  // sendArmourTrimData sends the armour trim data.
- func (s *Session) sendArmourTrimData() {
- 	var trimPatterns []protocol.TrimPattern
-@@ -471,6 +490,9 @@
+@@ -471,6 +540,9 @@
  // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
  // client submits the form.
  func (s *Session) SendForm(f form.Form) {
@@ -1023,7 +1354,46 @@ diff -ruN -x pack_icon.png a/server/session/player.go b/server/session/player.go
  	b, _ := json.Marshal(f)
  
  	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)
-@@ -1061,6 +1083,35 @@
+@@ -719,10 +791,37 @@
+ 				s.sendEnchantmentOptions(tx, c, pos, after)
+ 			}
+ 		}
+-		s.sendInv(s.ui, protocol.WindowIDUI)
++		// skygear patch: several slot changes in one transaction send the
++		// UI inventory once, after the transaction's callback.
++		if _, queued := uiSendPending.LoadOrStore(s, true); queued {
++			return
++		}
++		if !deferUISend(tx, func() {
++			uiSendPending.Delete(s)
++			s.sendInv(s.ui, protocol.WindowIDUI)
++		}) {
++			uiSendPending.Delete(s)
++			s.sendInv(s.ui, protocol.WindowIDUI)
++		}
+ 	}
+ }
+ 
++// uiSendPending holds the sessions with a UI inventory send already queued.
++// (skygear patch)
++var uiSendPending sync.Map
++
++// deferUISend runs f after tx's callback, returning false if tx is already
++// finished (the slot func may outlive the transaction it was made in).
++func deferUISend(tx *world.Tx, f func()) (ok bool) {
++	defer func() {
++		if recover() != nil {
++			ok = false
++		}
++	}()
++	tx.Defer(func(*world.Tx) { f() })
++	return true
++}
++
+ // SendHeldSlot sends the currently held hotbar slot.
+ func (s *Session) SendHeldSlot(slot int, c Controllable, force bool) {
+ 	if s.changingSlot.Load() && !force {
+@@ -1061,6 +1160,35 @@
  	return items
  }
  
@@ -1059,9 +1429,175 @@ diff -ruN -x pack_icon.png a/server/session/player.go b/server/session/player.go
  // stacksToIngredientItems converts a list of item.Stacks to recipe ingredient items used over the network.
  func stacksToIngredientItems(_ world.BlockRegistry, inputs []recipe.Item) []protocol.ItemDescriptorCount {
  	items := make([]protocol.ItemDescriptorCount, 0, len(inputs))
+@@ -1093,6 +1221,31 @@
+ 
+ // creativeContent returns all creative groups, and creative inventory items as protocol item stacks.
+ func creativeContent(br world.BlockRegistry) ([]protocol.CreativeGroup, []protocol.CreativeItem) {
++	// skygear patch: the content is built once per registry and shared
++	// read-only; it is rebuilt if the creative lists changed in size.
++	nGroups, nItems := len(creative.Groups()), len(creative.Items())
++	creativeCacheMu.Lock()
++	defer creativeCacheMu.Unlock()
++	if c, ok := creativeCaches[br]; ok && c.nGroups == nGroups && c.nItems == nItems {
++		return c.groups, c.items
++	}
++	groups, items := buildCreativeContent(br)
++	creativeCaches[br] = creativeCache{nGroups: nGroups, nItems: nItems, groups: groups, items: items}
++	return groups, items
++}
++
++type creativeCache struct {
++	nGroups, nItems int
++	groups          []protocol.CreativeGroup
++	items           []protocol.CreativeItem
++}
++
++var (
++	creativeCacheMu sync.Mutex
++	creativeCaches  = map[world.BlockRegistry]creativeCache{}
++)
++
++func buildCreativeContent(br world.BlockRegistry) ([]protocol.CreativeGroup, []protocol.CreativeItem) {
+ 	groups := make([]protocol.CreativeGroup, 0, len(creative.Groups()))
+ 	for _, group := range creative.Groups() {
+ 		groups = append(groups, protocol.CreativeGroup{
+diff -ruN -x pack_icon.png a/server/session/recipes_cache_test.go b/server/session/recipes_cache_test.go
+--- a/server/session/recipes_cache_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/session/recipes_cache_test.go	2026-11-03 09:53:44.743983341 +0000
+@@ -0,0 +1,130 @@
++package session
++
++import (
++	"reflect"
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block"
++	"github.com/df-mc/dragonfly/server/item"
++	"github.com/df-mc/dragonfly/server/item/recipe"
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/sandertv/gophertunnel/minecraft/protocol"
++	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
++)
++
++var testRecipesRegistered bool
++
++func registerTestRecipes() {
++	if testRecipesRegistered {
++		return
++	}
++	testRecipesRegistered = true
++	world.DefaultBlockRegistry.Finalize()
++	c, s := item.NewStack(block.Cobblestone{}, 1), item.NewStack(item.Stick{}, 1)
++	e := item.Stack{}
++	recipe.Register(recipe.NewShaped([]recipe.Item{c, c, e, c, s, e, e, s, e}, item.NewStack(item.Stick{}, 2), recipe.NewShape(3, 3), "crafting_table"))
++	recipe.Register(recipe.NewShapeless([]recipe.Item{c, s}, item.NewStack(item.Stick{}, 1), "crafting_table"))
++	recipe.Register(recipe.NewShaped([]recipe.Item{s, s}, item.NewStack(block.Cobblestone{}, 1), recipe.NewShape(1, 2), "crafting_table").WithoutMirror())
++	recipe.Register(recipe.NewShapeless([]recipe.Item{s}, item.NewStack(block.Cobblestone{}, 3), "crafting_table"))
++}
++
++// legacyCraftingData is the pre-cache construction, with recipe IDs blanked.
++func legacyCraftingData(br world.BlockRegistry, filter func(recipe.Recipe) bool) (*packet.CraftingData, map[uint32]recipe.Recipe) {
++	pk := &packet.CraftingData{ClearRecipes: true}
++	accepted := map[uint32]recipe.Recipe{}
++	fit := creativeBlockFitter(br)
++	for index, r := range recipe.Recipes() {
++		networkID := uint32(index) + 1
++		if filter != nil && !filter(r) {
++			continue
++		}
++		accepted[networkID] = r
++		switch i := r.(type) {
++		case recipe.Shapeless:
++			pk.ShapelessRecipes = append(pk.ShapelessRecipes, protocol.ShapelessRecipe{
++				Priority: int32(i.Priority()), Input: stacksToIngredientItems(br, i.Input()),
++				Output: fit(stacksToRecipeStacks(br, i.Output())), Block: i.Block(), RecipeNetworkID: networkID,
++			})
++		case recipe.Shaped:
++			pk.ShapedRecipes = append(pk.ShapedRecipes, protocol.ShapedRecipe{
++				Priority: int32(i.Priority()), Width: int32(i.Shape().Width()), Height: int32(i.Shape().Height()),
++				Input:  stacksToIngredientItems(br, i.Input()),
++				Output: fit(stacksToRecipeStacks(br, i.Output())), Block: i.Block(),
++				AssumeSymmetry: !i.NoMirror(), RecipeNetworkID: networkID,
++			})
++		}
++	}
++	return pk, accepted
++}
++
++func blankIDs(pk *packet.CraftingData) {
++	for i := range pk.ShapedRecipes {
++		pk.ShapedRecipes[i].RecipeID = ""
++	}
++	for i := range pk.ShapelessRecipes {
++		pk.ShapelessRecipes[i].RecipeID = ""
++	}
++}
++
++// TestRecipeFilterSameEntries: the cached build gives the old output for no
++// filter and for a filter (same network IDs, same recipes).
++func TestRecipeFilterSameEntries(t *testing.T) {
++	registerTestRecipes()
++	br := world.DefaultBlockRegistry
++	all := recipe.Recipes()
++	if len(all) < 4 {
++		t.Fatal("no recipes registered")
++	}
++	odd := func(r recipe.Recipe) bool {
++		return r.Block() == "crafting_table" && len(r.Output()) > 0 && r.Output()[0].Count()%2 == 1
++	}
++	for name, f := range map[string]func(recipe.Recipe) bool{"nil": nil, "odd": odd} {
++		want, wantAcc := legacyCraftingData(br, f)
++		acc := map[uint32]recipe.Recipe{}
++		got := craftingData(br, f, acc)
++		for _, r := range got.ShapedRecipes {
++			if r.RecipeID == "" {
++				t.Errorf("%s: empty recipe ID", name)
++			}
++		}
++		blankIDs(got)
++		if !reflect.DeepEqual(got, want) {
++			t.Errorf("%s: crafting data differs", name)
++		}
++		if !reflect.DeepEqual(acc, wantAcc) {
++			t.Errorf("%s: accepted recipes differ", name)
++		}
++		again := craftingData(br, f, map[uint32]recipe.Recipe{})
++		ids := func(p *packet.CraftingData) (n []string) {
++			for _, r := range p.ShapedRecipes {
++				n = append(n, r.RecipeID)
++			}
++			return
++		}
++		blankedAgain := ids(again)
++		if len(blankedAgain) > 0 && blankedAgain[0] == "" {
++			t.Errorf("%s: id lost", name)
++		}
++	}
++	if odd(all[0]) == odd(all[1]) && odd(all[1]) == odd(all[2]) && odd(all[2]) == odd(all[3]) {
++		t.Error("filter does not discriminate")
++	}
++}
++
++func BenchmarkSendRecipes(b *testing.B) {
++	registerTestRecipes()
++	br := world.DefaultBlockRegistry
++	acc := map[uint32]recipe.Recipe{}
++	b.ReportAllocs()
++	for b.Loop() {
++		craftingData(br, nil, acc)
++	}
++}
++
++func BenchmarkSendRecipesLegacy(b *testing.B) {
++	registerTestRecipes()
++	b.ReportAllocs()
++	for b.Loop() {
++		legacyCraftingData(world.DefaultBlockRegistry, nil)
++	}
++}
 diff -ruN -x pack_icon.png a/server/session/session.go b/server/session/session.go
 --- a/server/session/session.go	2026-11-03 09:29:14.477709168 +0000
-+++ b/server/session/session.go	2026-10-28 22:00:38.015668661 +0000
++++ b/server/session/session.go	2026-11-03 09:56:35.538111644 +0000
 @@ -60,6 +60,10 @@
  	entities         map[uint64]*world.EntityHandle
  	hiddenEntities   map[uuid.UUID]struct{}
@@ -1095,6 +1631,19 @@ diff -ruN -x pack_icon.png a/server/session/session.go b/server/session/session.
  			return
  		}
  	}
+@@ -501,7 +511,11 @@
+ 	const maxChunkTransactions = 8
+ 	toLoad := maxChunkTransactions - len(s.openChunkTransactions)
+ 	s.blobMu.Unlock()
+-	if toLoad > 4 {
++	// skygear patch: while the client is loading (few open blob
++	// transactions) up to 16 chunks go out per tick, otherwise 4.
++	if loading := toLoad >= maxChunkTransactions-2; loading {
++		toLoad = 16
++	} else if toLoad > 4 {
+ 		toLoad = 4
+ 	}
+ 	s.chunkLoader.Load(tx, toLoad)
 diff -ruN -x pack_icon.png a/server/session/shaped_arrangement_test.go b/server/session/shaped_arrangement_test.go
 --- a/server/session/shaped_arrangement_test.go	1970-01-01 00:00:00.000000000 +0000
 +++ b/server/session/shaped_arrangement_test.go	2026-10-28 22:00:38.015668661 +0000
@@ -1136,6 +1685,98 @@ diff -ruN -x pack_icon.png a/server/session/shaped_arrangement_test.go b/server/
 +		t.Error("a row does not craft anywhere in the grid")
 +	}
 +}
+diff -ruN -x pack_icon.png a/server/session/subchunk_cache_test.go b/server/session/subchunk_cache_test.go
+--- a/server/session/subchunk_cache_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/session/subchunk_cache_test.go	2026-11-03 10:04:57.759694288 +0000
+@@ -0,0 +1,88 @@
++package session
++
++import (
++	"bytes"
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block"
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/df-mc/dragonfly/server/world/biome"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++	"github.com/go-gl/mathgl/mgl64"
++)
++
++func subCacheWorld(t *testing.T) *world.World {
++	registerTestRecipes()
++	w := world.Config{Synchronous: true}.New()
++	t.Cleanup(func() { _ = w.Close() })
++	return w
++}
++
++func loadedColumn(tx *world.Tx) *world.Column {
++	l := world.NewLoader(1, tx.World(), world.NopViewer{})
++	l.Move(tx, mgl64.Vec3{8, 64, 8})
++	l.Load(tx, 10)
++	c, _ := l.Chunk(world.ChunkPos{})
++	return c
++}
++
++func TestSubChunkCacheInvalidatedOnSetBlock(t *testing.T) {
++	w := subCacheWorld(t)
++	w.Do(func(tx *world.Tx) {
++		col := loadedColumn(tx)
++		ind := int16(col.SubIndex(64))
++		tx.SetBlock(cube.Pos{1, 64, 1}, block.Stone{}, nil)
++		a := subChunkNetData(col, ind, true)
++		if b := subChunkNetData(col, ind, true); b != a {
++			t.Fatal("unchanged column did not hit the cache")
++		}
++		tx.SetBlock(cube.Pos{2, 64, 2}, block.Dirt{}, nil)
++		c := subChunkNetData(col, ind, true)
++		if c == a || bytes.Equal(c.payload, a.payload) {
++			t.Fatal("block change served stale bytes")
++		}
++		want := chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))
++		if !bytes.Equal(c.payload, want) {
++			t.Fatal("cached payload differs from a fresh encode")
++		}
++		// A biome change through the column keeps the entry consistent.
++		col.SetBiome(1, 64, 1, uint32(biome.Desert{}.EncodeBiome()))
++		d := subChunkNetData(col, ind, true)
++		if !bytes.Equal(d.payload, chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))) {
++			t.Fatal("payload stale after biome change")
++		}
++		// State derivation writes through Column.SetBlock, which must invalidate.
++		col.SetBlock(3, 64, 3, 0, world.DefaultBlockRegistry.BlockRuntimeID(block.Gold{}))
++		e := subChunkNetData(col, ind, true)
++		if bytes.Equal(e.payload, d.payload) {
++			t.Fatal("Column.SetBlock did not invalidate")
++		}
++		// Fake chunks bypass the cache.
++		f1, f2 := subChunkNetData(col, ind, false), subChunkNetData(col, ind, false)
++		if f1 == f2 {
++			t.Fatal("uncached entry was shared")
++		}
++	})
++}
++
++func BenchmarkSubChunkEntry(b *testing.B) {
++	registerTestRecipes()
++	w := world.Config{Synchronous: true}.New()
++	defer w.Close()
++	w.Do(func(tx *world.Tx) {
++		col := loadedColumn(tx)
++		for x := range 16 {
++			for z := range 16 {
++				tx.SetBlock(cube.Pos{x, 60, z}, block.Stone{}, nil)
++			}
++		}
++		ind := int16(col.SubIndex(60))
++		b.ReportAllocs()
++		b.ResetTimer()
++		for range b.N {
++			subChunkNetData(col, ind, true) // viewer 1
++			subChunkNetData(col, ind, true) // viewer 2
++		}
++	})
++}
 diff -ruN -x pack_icon.png a/server/session/world.go b/server/session/world.go
 --- a/server/session/world.go	2026-11-03 09:29:14.477964098 +0000
 +++ b/server/session/world.go	2026-11-01 01:19:12.713445264 +0000
@@ -1156,6 +1797,323 @@ diff -ruN -x pack_icon.png a/server/session/world.go b/server/session/world.go
  	blockPos := protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])}
  	s.writePacket(&packet.UpdateBlock{
  		Position:          blockPos,
+diff -ruN -x pack_icon.png a/server/world/block_registry.go b/server/world/block_registry.go
+--- a/server/world/block_registry.go	2026-10-28 22:00:38.023552307 +0000
++++ b/server/world/block_registry.go	2026-11-03 09:55:27.327138408 +0000
+@@ -8,6 +8,7 @@
+ 	"slices"
+ 	"sort"
+ 	"sync"
++	"sync/atomic"
+ 
+ 	"github.com/brentp/intintmap"
+ 	"github.com/df-mc/dragonfly/server/world/chunk"
+@@ -133,9 +134,31 @@
+ 
+ 	blockInfos []blockInfo
+ 
++	// paletteEntries holds the NBT encoding of each runtime ID's palette entry, filled lazily after Finalize.
++	// skygear patch
++	paletteEntries []atomic.Pointer[[]byte]
++
+ 	airRID uint32
+ }
+ 
++// CachedPaletteEntry returns the stored palette entry encoding of the runtime ID, or nil. skygear patch
++func (br *BasicBlockRegistry) CachedPaletteEntry(rid uint32) []byte {
++	if int(rid) >= len(br.paletteEntries) {
++		return nil
++	}
++	if p := br.paletteEntries[rid].Load(); p != nil {
++		return *p
++	}
++	return nil
++}
++
++// StorePaletteEntry stores the palette entry encoding of the runtime ID if the registry is finalized. skygear patch
++func (br *BasicBlockRegistry) StorePaletteEntry(rid uint32, entry []byte) {
++	if int(rid) < len(br.paletteEntries) {
++		br.paletteEntries[rid].Store(&entry)
++	}
++}
++
+ func (br *BasicBlockRegistry) BitSize() int {
+ 	if !br.finalized {
+ 		panic("BlockRegistry.BitSize called on non finalized BlockRegistry")
+@@ -253,6 +276,7 @@
+ 		br2.networkhashToRids = make(map[uint32]uint32, len(br.networkhashToRids))
+ 		maps.Copy(br2.networkhashToRids, br.networkhashToRids)
+ 		br2.ridsToNetworkhash = append([]uint32(nil), br.ridsToNetworkhash...)
++		br2.paletteEntries = make([]atomic.Pointer[[]byte], len(br2.blocks)) // skygear patch
+ 	}
+ 
+ 	return br2
+@@ -419,6 +443,7 @@
+ 	if !foundAir {
+ 		panic("BlockRegistry.Finalize: no minecraft:air block state registered")
+ 	}
++	br.paletteEntries = make([]atomic.Pointer[[]byte], len(br.blocks)) // skygear patch
+ 	br.finalized = true
+ }
+ 
+diff -ruN -x pack_icon.png a/server/world/chunk/encoding.go b/server/world/chunk/encoding.go
+--- a/server/world/chunk/encoding.go	2026-10-28 22:00:38.079905975 +0000
++++ b/server/world/chunk/encoding.go	2026-11-03 09:55:23.660544086 +0000
+@@ -58,7 +58,30 @@
+ 	legacy *bool
+ }
+ 
++// PaletteEntryCache is implemented by a finalized BlockRegistry that keeps the NBT encoding of each palette
++// entry by runtime ID, so that saving a chunk does not encode the same block state over and over.
++// skygear patch
++type PaletteEntryCache interface {
++	// CachedPaletteEntry returns the stored encoding of the runtime ID, or nil if there is none.
++	CachedPaletteEntry(rid uint32) []byte
++	// StorePaletteEntry stores the encoding of the runtime ID. The slice must not be changed afterwards.
++	StorePaletteEntry(rid uint32, entry []byte)
++}
++
+ func (bpe BlockPaletteEncoding) encode(buf *bytes.Buffer, v uint32) {
++	// skygear patch: palette entries are encoded once per runtime ID and reused (also makes saves deterministic).
++	cache, _ := bpe.Blocks.(PaletteEntryCache)
++	if cache != nil {
++		if entry := cache.CachedPaletteEntry(v); entry != nil {
++			buf.Write(entry)
++			return
++		}
++		var b bytes.Buffer
++		_ = nbt.NewEncoderWithEncoding(&b, nbt.LittleEndian).Encode(bpe.EncodeBlockState(v))
++		cache.StorePaletteEntry(v, b.Bytes())
++		buf.Write(b.Bytes())
++		return
++	}
+ 	_ = nbt.NewEncoderWithEncoding(buf, nbt.LittleEndian).Encode(bpe.EncodeBlockState(v))
+ }
+ func (bpe BlockPaletteEncoding) decode(buf *bytes.Buffer) (uint32, error) {
+diff -ruN -x pack_icon.png a/server/world/chunk/palette_cache_test.go b/server/world/chunk/palette_cache_test.go
+--- a/server/world/chunk/palette_cache_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/chunk/palette_cache_test.go	2026-11-03 09:55:13.251988602 +0000
+@@ -0,0 +1,62 @@
++package chunk_test
++
++import (
++	"bytes"
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++)
++
++var cacheRange = cube.Range{-64, 319}
++
++func mixedChunk(br world.BlockRegistry) *chunk.Chunk {
++	c := chunk.New(br, cacheRange)
++	n := uint32(len(br.Blocks()))
++	// Sub chunk 0 stays air only; the others mix several palette entries.
++	for y := int16(0); y < 200; y += 3 {
++		c.SetBlock(uint8(y%16), y, uint8((y/16)%16), 0, uint32(y)%n)
++	}
++	return c
++}
++
++func TestDiskEncodeDeterministic(t *testing.T) {
++	br := world.NewBlockRegistry()
++	br.Finalize()
++	c := mixedChunk(br)
++	a := chunk.Encode(c, chunk.DiskEncoding)
++	b := chunk.Encode(c, chunk.DiskEncoding)
++	if len(a.SubChunks) != len(b.SubChunks) {
++		t.Fatalf("sub chunk counts differ")
++	}
++	for i := range a.SubChunks {
++		if !bytes.Equal(a.SubChunks[i], b.SubChunks[i]) {
++			t.Fatalf("sub chunk %d differs between two encodings", i)
++		}
++	}
++}
++
++func TestDiskEncodeRoundTrip(t *testing.T) {
++	br := world.NewBlockRegistry()
++	br.Finalize()
++	c := mixedChunk(br)
++	d := chunk.Encode(c, chunk.DiskEncoding)
++	got, err := chunk.DiskDecode(br, d, cacheRange)
++	if err != nil {
++		t.Fatal(err)
++	}
++	for y := cacheRange[0]; y <= cacheRange[1]; y += 1 {
++		for x := uint8(0); x < 16; x += 5 {
++			if want, have := c.Block(x, int16(y), 3, 0), got.Block(x, int16(y), 3, 0); want != have {
++				t.Fatalf("block at %d,%d: %d != %d", x, y, have, want)
++			}
++		}
++	}
++	for y := int16(0); y < 200; y += 3 {
++		x, z := uint8(y%16), uint8((y/16)%16)
++		if want, have := c.Block(x, y, z, 0), got.Block(x, y, z, 0); want != have {
++			t.Fatalf("block at %d,%d,%d: %d != %d", x, y, z, have, want)
++		}
++	}
++}
+diff -ruN -x pack_icon.png a/server/world/concurrent_test.go b/server/world/concurrent_test.go
+--- a/server/world/concurrent_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/concurrent_test.go	2026-11-03 09:56:54.505548202 +0000
+@@ -0,0 +1,107 @@
++package world_test
++
++import (
++	"sync/atomic"
++	"testing"
++	"time"
++
++	"github.com/df-mc/dragonfly/server/block"
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++	"github.com/df-mc/dragonfly/server/world/mcdb"
++	"github.com/go-gl/mathgl/mgl64"
++)
++
++const loadRadius = 7 // (2*7+1)^2 = 225 columns
++
++type countViewer struct {
++	world.NopViewer
++	n atomic.Int32
++}
++
++func (v *countViewer) ViewChunk(world.ChunkPos, world.Dimension, map[cube.Pos]world.Block, *chunk.Chunk) {
++	v.n.Add(1)
++}
++
++func markerY(x, z int32) int { return int((x*7+z)%20+20) % 20 }
++
++func loadAll(t *testing.T, dir string, workers int) map[world.ChunkPos]int {
++	t.Helper()
++	db, err := mcdb.Config{}.Open(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	w := world.Config{Provider: db, ChunkLoadWorkers: workers, SaveInterval: -1}.New()
++	defer w.Close()
++	v := &countViewer{}
++	n := (2*loadRadius + 1) * (2*loadRadius + 1)
++	<-w.Do(func(tx *world.Tx) {
++		l := world.NewLoader(loadRadius, w, v)
++		l.Move(tx, mgl64.Vec3{})
++		l.Load(tx, n)
++	}).Done()
++	// The loader views the chunks within its circle; wait until that settles.
++	deadline := time.Now().Add(20 * time.Second)
++	for last, stable := int32(-1), 0; stable < 10 && time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
++		if cur := v.n.Load(); cur == last && cur > 0 {
++			stable++
++		} else {
++			last, stable = cur, 0
++		}
++	}
++	got := map[world.ChunkPos]int{}
++	<-w.Do(func(tx *world.Tx) {
++		for x := int32(-loadRadius); x <= loadRadius; x++ {
++			for z := int32(-loadRadius); z <= loadRadius; z++ {
++				got[world.ChunkPos{x, z}] = -1
++				for y := 0; y < 20; y++ {
++					if _, ok := tx.Block(cube.Pos{int(x) * 16, y, int(z) * 16}).(block.Stone); ok {
++						got[world.ChunkPos{x, z}] = y
++					}
++				}
++			}
++		}
++	}).Done()
++	return got
++}
++
++// TestConcurrentLoadSameColumns: loading with 4 workers through mcdb gives the
++// same columns as with 1 worker.
++func TestConcurrentLoadSameColumns(t *testing.T) {
++	var p world.Provider = (*mcdb.DB)(nil)
++	if c, ok := p.(world.ConcurrentProvider); !ok || !c.Concurrent() {
++		t.Fatal("mcdb.DB is not a ConcurrentProvider")
++	}
++	dir := t.TempDir()
++	db, err := mcdb.Config{}.Open(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	stone := world.BlockRuntimeID(block.Stone{})
++	for x := int32(-loadRadius); x <= loadRadius; x++ {
++		for z := int32(-loadRadius); z <= loadRadius; z++ {
++			c := chunk.New(world.DefaultBlockRegistry, world.Overworld.Range())
++			c.SetBlock(0, int16(markerY(x, z)), 0, 0, stone)
++			if err := db.StoreColumn(world.ChunkPos{x, z}, world.Overworld, &chunk.Column{Chunk: c}); err != nil {
++				t.Fatal(err)
++			}
++		}
++	}
++	if err := db.Close(); err != nil {
++		t.Fatal(err)
++	}
++	one := loadAll(t, dir, 1)
++	four := loadAll(t, dir, 4)
++	if len(one) != 225 || len(four) != 225 {
++		t.Fatalf("columns: %d, %d", len(one), len(four))
++	}
++	for pos, y := range one {
++		if y != markerY(pos[0], pos[1]) {
++			t.Fatalf("1 worker: %v marker %d, want %d", pos, y, markerY(pos[0], pos[1]))
++		}
++		if four[pos] != y {
++			t.Fatalf("%v: 4 workers %d, 1 worker %d", pos, four[pos], y)
++		}
++	}
++}
+diff -ruN -x pack_icon.png a/server/world/conf.go b/server/world/conf.go
+--- a/server/world/conf.go	2026-10-28 22:00:38.083414652 +0000
++++ b/server/world/conf.go	2026-11-03 09:54:06.103235927 +0000
+@@ -141,7 +141,10 @@
+ 	// Serialise Provider calls (made by both the owner and the chunk load workers)
+ 	// and, with a single worker, Generator calls, for implementations that aren't
+ 	// concurrency-safe.
+-	conf.Provider = &lockedProvider{p: conf.Provider}
++	// skygear patch (S7): providers that are safe for concurrent use are not wrapped.
++	if cp, ok := conf.Provider.(ConcurrentProvider); !ok || !cp.Concurrent() {
++		conf.Provider = &lockedProvider{p: conf.Provider}
++	}
+ 	if conf.ChunkLoadWorkers == 1 {
+ 		conf.Generator = &lockedGenerator{g: conf.Generator}
+ 	}
+@@ -184,3 +187,9 @@
+ 	<-w.exec(t.tick)
+ 	return w
+ }
++
++// skygear patch (S7): ConcurrentProvider is implemented by providers whose
++// LoadColumn and StoreColumn may be called from several goroutines at once.
++type ConcurrentProvider interface {
++	Concurrent() bool
++}
+diff -ruN -x pack_icon.png a/server/world/entity.go b/server/world/entity.go
+--- a/server/world/entity.go	2026-10-28 22:00:38.083414652 +0000
++++ b/server/world/entity.go	2026-11-03 09:58:22.472711468 +0000
+@@ -35,6 +35,18 @@
+ 	EncodeNBT(data *EntityData) map[string]any
+ }
+ 
++// TransientEntityType is an optional interface of an EntityType. Entities of a
++// type that returns true are never written to disk and do not mark their
++// column as modified. skygear patch
++type TransientEntityType interface {
++	Transient() bool
++}
++
++func isTransient(t EntityType) bool {
++	tt, ok := t.(TransientEntityType)
++	return ok && tt.Transient()
++}
++
+ // EntityConfig is used to configure the initial settings of an Entity upon
+ // creation using NewEntity.
+ type EntityConfig interface {
 diff -ruN -x pack_icon.png a/server/world/item.go b/server/world/item.go
 --- a/server/world/item.go	2026-11-03 09:29:14.478136165 +0000
 +++ b/server/world/item.go	2026-10-28 22:00:38.083414652 +0000
@@ -1209,6 +2167,487 @@ diff -ruN -x pack_icon.png a/server/world/loader.go b/server/world/loader.go
  
  	l.closed = true
  	l.viewer = nil
+diff -ruN -x pack_icon.png a/server/world/mcdb/conf.go b/server/world/mcdb/conf.go
+--- a/server/world/mcdb/conf.go	2026-10-28 22:00:38.083414652 +0000
++++ b/server/world/mcdb/conf.go	2026-11-03 09:54:06.103600299 +0000
+@@ -70,3 +70,8 @@
+ 	db.ldb = ldb
+ 	return db, nil
+ }
++
++// Concurrent reports that LoadColumn and StoreColumn are safe for concurrent
++// use (LevelDB is), so the world need not serialise provider calls.
++// skygear patch (S7).
++func (db *DB) Concurrent() bool { return true }
+diff -ruN -x pack_icon.png a/server/world/mcdb/db.go b/server/world/mcdb/db.go
+--- a/server/world/mcdb/db.go	2026-10-28 22:00:38.088785930 +0000
++++ b/server/world/mcdb/db.go	2026-11-03 10:00:03.895830860 +0000
+@@ -9,8 +9,10 @@
+ 	"os"
+ 	"path/filepath"
+ 	"slices"
++	"sync"
+ 	"time"
+ 
++	"github.com/cespare/xxhash/v2"
+ 	"github.com/df-mc/dragonfly/server/block/cube"
+ 	"github.com/df-mc/dragonfly/server/world"
+ 	"github.com/df-mc/dragonfly/server/world/chunk"
+@@ -28,6 +30,59 @@
+ 	dir  string
+ 	ldat *leveldat.Data
+ 	set  *world.Settings
++
++	// skygear patch: written remembers the hash of the last value stored per chunk key (or that the key
++	// was deleted), so unchanged values are not written again. It is only filled after a batch was
++	// written successfully, and the database is exclusive to one world. entityIDs holds the entity IDs
++	// last stored per chunk.
++	writeMu   sync.Mutex
++	written   map[string]written
++	entityIDs map[string][]int64
++	// onBatch, if set, is called with each batch before it is written (tests).
++	onBatch func(*leveldb.Batch)
++}
++
++// written is the state of a key as last written by storeColumn.
++type written struct {
++	hash    uint64
++	deleted bool
++}
++
++// skygear patch
++type pendingWrite struct {
++	key string
++	w   written
++}
++
++// skygear patch
++type pendingIDs struct {
++	key string
++	ids []int64
++}
++
++// skygear patch: batchState collects the cache updates of a batch, to be applied once it was written.
++type batchState struct {
++	writes []pendingWrite
++	ids    []pendingIDs
++}
++
++// put adds a Put to the batch unless the key was last written with the same value.
++func (db *DB) put(batch *leveldb.Batch, st *batchState, key, value []byte) {
++	h := xxhash.Sum64(value)
++	if w, ok := db.written[string(key)]; ok && !w.deleted && w.hash == h {
++		return
++	}
++	batch.Put(key, value)
++	st.writes = append(st.writes, pendingWrite{string(key), written{hash: h}})
++}
++
++// del adds a Delete to the batch unless the key was last deleted by this DB.
++func (db *DB) del(batch *leveldb.Batch, st *batchState, key []byte) {
++	if w, ok := db.written[string(key)]; ok && w.deleted {
++		return
++	}
++	batch.Delete(key)
++	st.writes = append(st.writes, pendingWrite{string(key), written{deleted: true}})
+ }
+ 
+ // Open creates a new provider reading and writing from/to files under the path
+@@ -367,41 +422,68 @@
+ 
+ func (db *DB) storeColumn(k dbKey, col *chunk.Column) error {
+ 	data := chunk.Encode(col.Chunk, chunk.DiskEncoding)
++	db.writeMu.Lock()
++	defer db.writeMu.Unlock()
++	if db.written == nil {
++		db.written = make(map[string]written)
++		db.entityIDs = make(map[string][]int64)
++	}
++	st := &batchState{}
+ 	n := 8 + len(data.SubChunks) + len(col.Entities)
+ 	batch := leveldb.MakeBatch(n)
+ 
+-	db.storeVersion(batch, k, chunkVersion)
+-	db.storeBiomes(batch, k, data.Biomes)
+-	db.storeSubChunks(batch, k, data.SubChunks, col.Chunk.Range())
+-	db.storeFinalisation(batch, k, finalisationPopulated)
++	db.storeVersion(batch, st, k, chunkVersion)
++	db.storeBiomes(batch, st, k, data.Biomes)
++	db.storeSubChunks(batch, st, k, data.SubChunks, col.Chunk.Range())
++	db.storeFinalisation(batch, st, k, finalisationPopulated)
+ 	db.storeLegacyStates(batch, k, col.Chunk.LegacyStates())
+-	db.storeEntities(batch, k, col.Entities)
++	db.storeEntities(batch, st, k, col.Entities)
+ 	db.storeBlockEntities(batch, k, col.BlockEntities)
+ 	db.storeScheduledUpdates(batch, k, col.Tick, col.ScheduledBlocks)
+ 
+-	return db.ldb.Write(batch, nil)
++	if db.onBatch != nil {
++		db.onBatch(batch)
++	}
++	if batch.Len() > 0 {
++		if err := db.ldb.Write(batch, nil); err != nil {
++			return err
++		}
++	}
++	for _, p := range st.writes {
++		db.written[p.key] = p.w
++	}
++	for _, p := range st.ids {
++		db.entityIDs[p.key] = p.ids
++	}
++	return nil
+ }
+ 
+-func (db *DB) storeVersion(batch *leveldb.Batch, k dbKey, ver uint8) {
+-	batch.Put(k.Sum(keyVersion), []byte{ver})
++func (db *DB) storeVersion(batch *leveldb.Batch, st *batchState, k dbKey, ver uint8) {
++	db.put(batch, st, k.Sum(keyVersion), []byte{ver})
+ }
+ 
+ var emptyHeightmap = make([]byte, 512)
+ 
+-func (db *DB) storeBiomes(batch *leveldb.Batch, k dbKey, biomes []byte) {
+-	batch.Put(k.Sum(key3DData), append(emptyHeightmap, biomes...))
++func (db *DB) storeBiomes(batch *leveldb.Batch, st *batchState, k dbKey, biomes []byte) {
++	db.put(batch, st, k.Sum(key3DData), append(emptyHeightmap[:512:512], biomes...))
+ }
+ 
+-func (db *DB) storeSubChunks(batch *leveldb.Batch, k dbKey, subChunks [][]byte, r cube.Range) {
++func (db *DB) storeSubChunks(batch *leveldb.Batch, st *batchState, k dbKey, subChunks [][]byte, r cube.Range) {
+ 	for i, sub := range subChunks {
+-		batch.Put(k.Sum(keySubChunkData, byte(i+(r[0]>>4))), sub)
++		key := k.Sum(keySubChunkData, byte(i+(r[0]>>4)))
++		if len(sub) == 0 {
++			// An empty sub chunk is removed; a missing sub chunk reads back as empty.
++			db.del(batch, st, key)
++			continue
++		}
++		db.put(batch, st, key, sub)
+ 	}
+ }
+ 
+-func (db *DB) storeFinalisation(batch *leveldb.Batch, k dbKey, finalisation uint32) {
++func (db *DB) storeFinalisation(batch *leveldb.Batch, st *batchState, k dbKey, finalisation uint32) {
+ 	p := make([]byte, 4)
+ 	binary.LittleEndian.PutUint32(p, finalisation)
+-	batch.Put(k.Sum(keyFinalisation), p)
++	db.put(batch, st, k.Sum(keyFinalisation), p)
+ }
+ 
+ // storeLegacyStates keeps keyLegacyStates while the chunk's derived states are still pending and removes
+@@ -415,18 +497,20 @@
+ 	batch.Put(key, []byte{1})
+ }
+ 
+-func (db *DB) storeEntities(batch *leveldb.Batch, k dbKey, entities []chunk.Entity) {
++func (db *DB) storeEntities(batch *leveldb.Batch, st *batchState, k dbKey, entities []chunk.Entity) {
+ 	idsKey := append([]byte(keyEntityIdentifiers), index(k.pos, k.dim)...)
+ 
+-	// load the ids of the previous entities
+-	var previousIDs []int64
+-	digpPrev, err := db.ldb.Get(idsKey, nil)
+-	if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
+-		db.conf.Log.Error("store entities: read chunk entity IDs: " + err.Error())
+-	}
+-	if err == nil {
+-		for i := 0; i < len(digpPrev); i += 8 {
+-			previousIDs = append(previousIDs, int64(binary.LittleEndian.Uint64(digpPrev[i:])))
++	// load the ids of the previous entities; skygear patch: remembered from the last store of the chunk.
++	previousIDs, known := db.entityIDs[string(idsKey)]
++	if !known {
++		digpPrev, err := db.ldb.Get(idsKey, nil)
++		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
++			db.conf.Log.Error("store entities: read chunk entity IDs: " + err.Error())
++		}
++		if err == nil {
++			for i := 0; i < len(digpPrev); i += 8 {
++				previousIDs = append(previousIDs, int64(binary.LittleEndian.Uint64(digpPrev[i:])))
++			}
+ 		}
+ 	}
+ 
+@@ -461,6 +545,7 @@
+ 
+ 	// Remove old entity data for this chunk.
+ 	batch.Delete(k.Sum(keyEntitiesOld))
++	st.ids = append(st.ids, pendingIDs{string(idsKey), newIDs})
+ }
+ 
+ func entityIndex(id int64) []byte {
+diff -ruN -x pack_icon.png a/server/world/mcdb/skipwrite_test.go b/server/world/mcdb/skipwrite_test.go
+--- a/server/world/mcdb/skipwrite_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/mcdb/skipwrite_test.go	2026-11-03 09:58:51.373475375 +0000
+@@ -0,0 +1,138 @@
++package mcdb
++
++import (
++	"bytes"
++	"sync"
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/world"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++	"github.com/df-mc/goleveldb/leveldb"
++)
++
++type batchOps struct{ puts, dels [][]byte }
++
++func (o *batchOps) Put(k, v []byte) { o.puts = append(o.puts, bytes.Clone(k)) }
++func (o *batchOps) Delete(k []byte) { o.dels = append(o.dels, bytes.Clone(k)) }
++
++func openTest(t *testing.T, dir string) (*DB, *[]batchOps) {
++	t.Helper()
++	br := world.NewBlockRegistry()
++	br.Finalize()
++	db, err := Config{Blocks: br}.Open(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	var seen []batchOps
++	db.onBatch = func(b *leveldb.Batch) {
++		var o batchOps
++		_ = b.Replay(&o)
++		seen = append(seen, o)
++	}
++	return db, &seen
++}
++
++func column(db *DB, fill uint32) *chunk.Column {
++	c := chunk.New(db.conf.Blocks, world.Overworld.Range())
++	if fill != 0 {
++		c.SetBlock(1, 10, 1, 0, fill)
++	}
++	return &chunk.Column{Chunk: c, BlockEntities: []chunk.BlockEntity{{Pos: [3]int{1, 10, 1}, Data: map[string]any{"id": "X"}}}}
++}
++
++func TestSecondStoreNoPuts(t *testing.T) {
++	db, seen := openTest(t, t.TempDir())
++	defer db.Close()
++	col := column(db, 5)
++	if err := db.StoreColumn(world.ChunkPos{1, 2}, world.Overworld, col); err != nil {
++		t.Fatal(err)
++	}
++	if err := db.StoreColumn(world.ChunkPos{1, 2}, world.Overworld, col); err != nil {
++		t.Fatal(err)
++	}
++	first, second := (*seen)[0], (*seen)[1]
++	if len(first.puts) < 4 {
++		t.Fatalf("first store has %d puts", len(first.puts))
++	}
++	// Only the block entities are written again.
++	if len(second.puts) != 1 {
++		t.Fatalf("second store has %d puts, want 1 (block entities)", len(second.puts))
++	}
++}
++
++func TestChangedSubchunkWritten(t *testing.T) {
++	dir := t.TempDir()
++	db, seen := openTest(t, dir)
++	pos := world.ChunkPos{0, 0}
++	_ = db.StoreColumn(pos, world.Overworld, column(db, 5))
++	_ = db.StoreColumn(pos, world.Overworld, column(db, 6))
++	if len((*seen)[1].puts) < 2 {
++		t.Fatalf("changed column wrote %d puts", len((*seen)[1].puts))
++	}
++	db.Close()
++	db2, _ := openTest(t, dir)
++	defer db2.Close()
++	got, err := db2.LoadColumn(pos, world.Overworld)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got.Chunk.Block(1, 10, 1, 0) != 6 {
++		t.Fatalf("block after reopen = %d, want 6", got.Chunk.Block(1, 10, 1, 0))
++	}
++}
++
++func TestEmptySubchunkDeleted(t *testing.T) {
++	dir := t.TempDir()
++	db, seen := openTest(t, dir)
++	pos := world.ChunkPos{3, 3}
++	_ = db.StoreColumn(pos, world.Overworld, column(db, 5))
++	_ = db.StoreColumn(pos, world.Overworld, column(db, 0))
++	second := (*seen)[1]
++	if len(second.dels) == 0 {
++		t.Fatal("emptied sub chunk was not deleted")
++	}
++	// Store the empty column again: nothing but the block entities is written, deletes are not repeated for sub chunks.
++	_ = db.StoreColumn(pos, world.Overworld, column(db, 0))
++	db.Close()
++	db2, _ := openTest(t, dir)
++	defer db2.Close()
++	got, err := db2.LoadColumn(pos, world.Overworld)
++	if err != nil {
++		t.Fatal(err)
++	}
++	air := db2.conf.Blocks.BlockRuntimeID(db2.conf.Blocks.Air())
++	if got.Chunk.Block(1, 10, 1, 0) != air {
++		t.Fatalf("block after reopen = %d, want air %d", got.Chunk.Block(1, 10, 1, 0), air)
++	}
++}
++
++func TestConcurrentStoreLoad(t *testing.T) {
++	db, _ := openTest(t, t.TempDir())
++	defer db.Close()
++	db.onBatch = nil
++	var wg sync.WaitGroup
++	for g := range 6 {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			for i := range 20 {
++				pos := world.ChunkPos{int32(g), int32(i % 3)}
++				col := column(db, uint32(5+i%2))
++				if err := db.StoreColumn(pos, world.Overworld, col); err != nil {
++					t.Error(err)
++					return
++				}
++				got, err := db.LoadColumn(pos, world.Overworld)
++				if err != nil {
++					t.Error(err)
++					return
++				}
++				if b := got.Chunk.Block(1, 10, 1, 0); b != uint32(5+i%2) {
++					t.Errorf("loaded block %d, want %d", b, 5+i%2)
++					return
++				}
++			}
++		}()
++	}
++	wg.Wait()
++}
+diff -ruN -x pack_icon.png a/server/world/save_test.go b/server/world/save_test.go
+--- a/server/world/save_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/save_test.go	2026-11-03 09:52:47.009841186 +0000
+@@ -0,0 +1,127 @@
++package world
++
++import (
++	"sync"
++	"testing"
++	"time"
++
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++)
++
++// countProvider counts StoreColumn calls per position.
++type countProvider struct {
++	NopProvider
++	mu     sync.Mutex
++	stored map[ChunkPos]int
++}
++
++func (p *countProvider) StoreColumn(pos ChunkPos, _ Dimension, _ *chunk.Column) error {
++	p.mu.Lock()
++	defer p.mu.Unlock()
++	p.stored[pos]++
++	return nil
++}
++
++func (p *countProvider) count(pos ChunkPos) int {
++	p.mu.Lock()
++	defer p.mu.Unlock()
++	return p.stored[pos]
++}
++
++func (p *countProvider) total() (n int) {
++	p.mu.Lock()
++	defer p.mu.Unlock()
++	for _, c := range p.stored {
++		n += c
++	}
++	return
++}
++
++func saveWorld(t *testing.T) (*World, *countProvider) {
++	p := &countProvider{stored: map[ChunkPos]int{}}
++	w := Config{Synchronous: true, Provider: p, SaveInterval: 60 * time.Second}.New()
++	return w, p
++}
++
++func addCols(w *World, n int, modified bool) {
++	<-w.exec(func(tx *Tx) {
++		for i := range n {
++			w.chunks[ChunkPos{int32(i), 0}] = &Column{
++				Chunk:         chunk.New(w.conf.Blocks, w.Range()),
++				BlockEntities: map[cube.Pos]Block{},
++				modified:      modified,
++			}
++		}
++	})
++}
++
++func step(w *World, now time.Time) {
++	<-w.exec(func(tx *Tx) { w.incrementalSave(tx, now) })
++}
++
++func TestIncrementalSaveCoversAll(t *testing.T) {
++	w, p := saveWorld(t)
++	defer w.Close()
++	const n = 100
++	addCols(w, n, true)
++	start := time.Now()
++	// One tick per second for one SaveInterval.
++	for s := 0; s <= 60; s++ {
++		step(w, start.Add(time.Duration(s)*time.Second))
++		if s == 0 && p.total() > saveBatch {
++			t.Fatalf("first step stored %d columns, want <= %d", p.total(), saveBatch)
++		}
++	}
++	for i := range n {
++		if p.count(ChunkPos{int32(i), 0}) == 0 {
++			t.Fatalf("column %d not stored within one interval", i)
++		}
++	}
++}
++
++func TestCloseSavesEverything(t *testing.T) {
++	w, p := saveWorld(t)
++	addCols(w, 100, true)
++	_ = w.Close()
++	for i := range 100 {
++		if p.count(ChunkPos{int32(i), 0}) == 0 {
++			t.Fatalf("column %d missed save on Close", i)
++		}
++	}
++}
++
++func TestSaveStoresAllModified(t *testing.T) {
++	w, p := saveWorld(t)
++	defer w.Close()
++	addCols(w, 40, true)
++	w.Save()
++	if p.total() != 40 {
++		t.Fatalf("Save stored %d columns, want 40", p.total())
++	}
++}
++
++func TestModifiedResetOnlyWithoutBlockEntities(t *testing.T) {
++	w, p := saveWorld(t)
++	defer w.Close()
++	addCols(w, 2, true)
++	<-w.exec(func(tx *Tx) {
++		w.chunks[ChunkPos{1, 0}].BlockEntities[cube.Pos{1, 1, 1}] = saveTestBE{}
++	})
++	w.Save()
++	w.Save()
++	if got := p.count(ChunkPos{0, 0}); got != 1 {
++		t.Fatalf("plain column stored %d times, want 1", got)
++	}
++	if got := p.count(ChunkPos{1, 0}); got != 2 {
++		t.Fatalf("block entity column stored %d times, want 2", got)
++	}
++}
++
++type saveTestBE struct{}
++
++func (saveTestBE) EncodeBlock() (string, map[string]any) { return "minecraft:chest", nil }
++func (saveTestBE) Hash() (uint64, uint64)                { return 1, 0 }
++func (saveTestBE) Model() BlockModel                     { return nil }
++func (saveTestBE) DecodeNBT(map[string]any) any          { return saveTestBE{} }
++func (saveTestBE) EncodeNBT() map[string]any             { return map[string]any{"id": "Chest"} }
 diff -ruN -x pack_icon.png a/server/world/skygear_bench_test.go b/server/world/skygear_bench_test.go
 --- a/server/world/skygear_bench_test.go	1970-01-01 00:00:00.000000000 +0000
 +++ b/server/world/skygear_bench_test.go	2026-11-03 09:42:36.722519117 +0000
@@ -1411,8 +2850,16 @@ diff -ruN -x pack_icon.png a/server/world/task_test.go b/server/world/task_test.
 +}
 diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
 --- a/server/world/tick.go	2026-11-03 09:29:14.478390733 +0000
-+++ b/server/world/tick.go	2026-11-03 09:43:20.922602568 +0000
-@@ -23,8 +23,10 @@
++++ b/server/world/tick.go	2026-11-03 10:05:53.009022282 +0000
+@@ -4,6 +4,7 @@
+ 	"maps"
+ 	"math/rand/v2"
+ 	"slices"
++	"sync"
+ 	"time"
+ 
+ 	"github.com/df-mc/dragonfly/server/block/cube"
+@@ -23,10 +24,13 @@
  	defer tc.Stop()
  	for {
  		select {
@@ -1423,8 +2870,28 @@ diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
 +			w.tickStats.add(at, time.Since(at))
  		case <-w.closing:
  			// World is being closed: Stop ticking and get rid of a task.
++			lastWeather.Delete(w) // skygear patch: do not keep the world alive
  			w.running.Done()
-@@ -126,36 +128,25 @@
+ 			return
+ 		}
+@@ -83,12 +87,15 @@
+ 		t.tryAdvanceDay(tx, cycle)
+ 	}
+ 
++	// skygear patch: weather goes out only when it changed since the last
++	// send; viewers that join get it when they load (Loader.Load).
++	sendWeather := tick%20 == 0 && w.Dimension().WeatherCycle() && weatherChanged(w, rain, thunder)
+ 	if tick%20 == 0 {
+ 		for _, viewer := range viewers {
+ 			if w.Dimension().TimeCycle() && cycle {
+ 				viewer.ViewTime(tim)
+ 			}
+-			if w.Dimension().WeatherCycle() {
++			if sendWeather {
+ 				viewer.ViewWeather(rain, thunder)
+ 			}
+ 		}
+@@ -126,36 +133,25 @@
  // tickBlocksRandomly executes random block ticks in loaded chunks within range of loaders.
  func (t ticker) tickBlocksRandomly(tx *Tx, loaders []*Loader, tick int64) {
  	var (
@@ -1473,7 +2940,7 @@ diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
  		cx, cz := int(pos[0]<<4), int(pos[1]<<4)
  
  		// We generate up to j random positions for every sub chunk.
-@@ -188,10 +179,102 @@
+@@ -188,10 +184,102 @@
  		}
  	}
  	for _, pos := range blockEntities {
@@ -1577,6 +3044,25 @@ diff -ruN -x pack_icon.png a/server/world/tick.go b/server/world/tick.go
  }
  
  // anyWithinDistance checks if any of the ChunkPos loaded are within the distance r of the ChunkPos pos.
+@@ -381,3 +469,18 @@
+ 		}
+ 	}
+ }
++
++// lastWeather holds the weather last sent to the viewers of each world.
++// (skygear patch)
++var lastWeather sync.Map // *World -> [2]bool
++
++// weatherChanged reports whether the weather differs from the one last
++// sent for w, and records it as sent.
++func weatherChanged(w *World, rain, thunder bool) bool {
++	cur := [2]bool{rain, thunder}
++	if prev, ok := lastWeather.Load(w); ok && prev.([2]bool) == cur {
++		return false
++	}
++	lastWeather.Store(w, cur)
++	return true
++}
 diff -ruN -x pack_icon.png a/server/world/tick_cache_test.go b/server/world/tick_cache_test.go
 --- a/server/world/tick_cache_test.go	1970-01-01 00:00:00.000000000 +0000
 +++ b/server/world/tick_cache_test.go	2026-11-03 09:45:58.652790331 +0000
@@ -1802,6 +3288,124 @@ diff -ruN -x pack_icon.png a/server/world/tick_stats.go b/server/world/tick_stat
 +	}
 +	return out
 +}
+diff -ruN -x pack_icon.png a/server/world/transient_test.go b/server/world/transient_test.go
+--- a/server/world/transient_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/transient_test.go	2026-11-03 09:56:59.097112800 +0000
+@@ -0,0 +1,114 @@
++package world
++
++import (
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/world/chunk"
++	"github.com/go-gl/mathgl/mgl64"
++)
++
++type transientType struct{ testEntityType }
++
++func (transientType) Transient() bool { return true }
++
++type colStore struct {
++	NopProvider
++	last *chunk.Column
++}
++
++func (p *colStore) StoreColumn(_ ChunkPos, _ Dimension, c *chunk.Column) error {
++	p.last = c
++	return nil
++}
++
++func spawnAt(w *World, t EntityType) *EntityHandle {
++	h := EntitySpawnOpts{Position: mgl64.Vec3{1, 4, 1}}.New(t, testEntityConfig{})
++	<-w.exec(func(tx *Tx) { tx.AddEntity(h) })
++	return h
++}
++
++func TestTransientNotStored(t *testing.T) {
++	p := &colStore{}
++	w := Config{Synchronous: true, Provider: p}.New()
++	defer w.Close()
++	addCols(w, 1, false)
++	h := spawnAt(w, transientType{})
++	<-w.exec(func(tx *Tx) {
++		if w.chunks[ChunkPos{0, 0}].modified {
++			t.Error("adding a transient entity set modified")
++		}
++	})
++	<-w.exec(func(tx *Tx) { w.chunks[ChunkPos{0, 0}].modified = true })
++	w.Save()
++	if p.last == nil {
++		t.Fatal("column not stored")
++	}
++	if len(p.last.Entities) != 0 {
++		t.Fatalf("stored %d entities, want 0 transient", len(p.last.Entities))
++	}
++	<-w.exec(func(tx *Tx) {
++		w.chunks[ChunkPos{0, 0}].modified = false
++		e, _ := h.Entity(tx)
++		tx.RemoveEntity(e)
++		if w.chunks[ChunkPos{0, 0}].modified {
++			t.Error("removing a transient entity set modified")
++		}
++	})
++	// A normal entity is still stored and marks the column.
++	p.last = nil
++	spawnAt(w, testEntityType{})
++	w.Save()
++	if p.last == nil || len(p.last.Entities) != 1 {
++		t.Fatalf("normal entity not stored: %+v", p.last)
++	}
++}
++
++func TestPlayersIndex(t *testing.T) {
++	w := Config{Synchronous: true}.New()
++	defer w.Close()
++	addCols(w, 1, false)
++	pl := spawnAt(w, playerLikeType{})
++	spawnAt(w, testEntityType{})
++	count := func() (n int) {
++		<-w.exec(func(tx *Tx) {
++			for range tx.Players() {
++				n++
++			}
++		})
++		return
++	}
++	if n := count(); n != 1 {
++		t.Fatalf("players = %d, want 1", n)
++	}
++	<-w.exec(func(tx *Tx) { e, _ := pl.Entity(tx); tx.RemoveEntity(e) })
++	if n := count(); n != 0 {
++		t.Fatalf("players after remove = %d, want 0", n)
++	}
++	_ = cube.Pos{}
++}
++
++type playerLikeType struct{ testEntityType }
++
++func (playerLikeType) EncodeEntity() string { return "minecraft:player" }
++
++func BenchmarkEntitiesWithin(b *testing.B) {
++	w := Config{Synchronous: true}.New()
++	defer w.Close()
++	addCols(w, 1, false)
++	for range 200 {
++		spawnAt(w, testEntityType{})
++	}
++	for range 500 {
++		spawnAt(w, transientType{})
++	}
++	box := cube.Box(0, 0, 0, 16, 16, 16)
++	b.ReportAllocs()
++	b.ResetTimer()
++	<-w.exec(func(tx *Tx) {
++		for range b.N {
++			for range w.entitiesWithin(tx, box) {
++			}
++		}
++	})
++}
 diff -ruN -x pack_icon.png a/server/world/tx.go b/server/world/tx.go
 --- a/server/world/tx.go	2026-11-03 09:29:14.478623028 +0000
 +++ b/server/world/tx.go	2026-10-28 22:00:38.092137951 +0000
@@ -1848,20 +3452,53 @@ diff -ruN -x pack_icon.png a/server/world/tx.go b/server/world/tx.go
  		tx.close()
  		tx.runDeferred()
  	}
+diff -ruN -x pack_icon.png a/server/world/weather_leak_test.go b/server/world/weather_leak_test.go
+--- a/server/world/weather_leak_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/weather_leak_test.go	2026-11-03 10:05:53.013909489 +0000
+@@ -0,0 +1,15 @@
++package world
++
++import "testing"
++
++func TestWeatherChangedForgottenOnDelete(t *testing.T) {
++	w := &World{}
++	if !weatherChanged(w, true, false) || weatherChanged(w, true, false) {
++		t.Fatal("first call must report a change, the repeat must not")
++	}
++	lastWeather.Delete(w)
++	if !weatherChanged(w, true, false) {
++		t.Fatal("after Delete the weather must be sent again")
++	}
++	lastWeather.Delete(w)
++}
 diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
 --- a/server/world/world.go	2026-11-03 09:29:14.478795117 +0000
-+++ b/server/world/world.go	2026-11-03 09:43:20.931000360 +0000
-@@ -30,6 +30,9 @@
- 	conf Config
- 	ra   cube.Range
++++ b/server/world/world.go	2026-11-03 10:03:53.491146768 +0000
+@@ -14,7 +14,6 @@
+ 	"time"
  
+ 	"github.com/df-mc/dragonfly/server/block/cube"
+-	"github.com/df-mc/dragonfly/server/internal/sliceutil"
+ 	"github.com/df-mc/dragonfly/server/world/chunk"
+ 	"github.com/df-mc/goleveldb/leveldb"
+ 	"github.com/go-gl/mathgl/mgl64"
+@@ -27,8 +26,13 @@
+ // world, so World ensures that all its methods will always be safe for
+ // simultaneous calls. A nil *World is safe to use but not functional.
+ type World struct {
+-	conf Config
+-	ra   cube.Range
++	conf         Config
++	lastSettings time.Time                  // skygear patch
++	players      map[*EntityHandle]struct{} // skygear patch: player index for tx.Players
++	ra           cube.Range
++
 +	// skygear patch: timing of recent ticks (TickStats).
 +	tickStats tickStats
-+
+ 
  	queue        chan transaction
  	queueClosing chan struct{}
- 	queueing     sync.WaitGroup
-@@ -84,6 +87,13 @@
+@@ -84,6 +88,13 @@
  
  	viewerMu sync.Mutex
  	viewers  map[*Loader]Viewer
@@ -1875,7 +3512,123 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  }
  
  // transaction is a type that may be added to the transaction queue of a World.
-@@ -1068,6 +1078,7 @@
+@@ -253,6 +264,7 @@
+ 		// stored NBT yet. We add it here and update the block.
+ 		nbtB := w.conf.Blocks.BlockByRuntimeIDOrAir(rid).(NBTer).DecodeNBT(map[string]any{}).(Block)
+ 		c.BlockEntities[pos] = nbtB
++		c.version++ // skygear patch
+ 		for _, v := range c.viewers {
+ 			v.ViewBlockUpdate(pos, nbtB, 0)
+ 		}
+@@ -390,7 +402,7 @@
+ 	}
+ 
+ 	c.modified = true
+-	c.SetBlock(x, y, z, 0, rid)
++	c.SetBlock(x, y, z, 0, rid) // skygear patch: Column.SetBlock bumps the version
+ 	if w.conf.Blocks.NBTBlock(rid) {
+ 		c.BlockEntities[pos] = b
+ 	} else {
+@@ -462,6 +474,7 @@
+ 	}
+ 	c.BlockEntities[pos] = b
+ 	c.modified = true
++	c.version++ // skygear patch
+ }
+ 
+ // setBiome sets the Biome at the position passed. If a chunk is not yet loaded
+@@ -474,6 +487,7 @@
+ 	}
+ 	c := tx.chunk(chunkPosFromBlockPos(pos))
+ 	c.modified = true
++	c.version++ // skygear patch
+ 	c.SetBiome(uint8(pos[0]), int16(pos[1]), uint8(pos[2]), uint32(b.EncodeBiome()))
+ }
+ 
+@@ -554,6 +568,7 @@
+ 			}
+ 			c.SetBlock(0, 0, 0, 0, c.Block(0, 0, 0, 0)) // Make sure the heightmap is recalculated.
+ 			c.modified = true
++			c.version++ // skygear patch: sub chunks were written directly
+ 
+ 			// After setting all blocks of the structure within a single chunk,
+ 			// we show the new chunk to all viewers once.
+@@ -629,7 +644,7 @@
+ 			v.ViewBlockUpdate(pos, b, 0)
+ 		}
+ 	} else {
+-		c.SetBlock(x, y, z, 1, rid)
++		c.SetBlock(x, y, z, 1, rid) // skygear patch: bumps the version
+ 		for _, v := range c.viewers {
+ 			v.ViewBlockUpdate(pos, b, 1)
+ 		}
+@@ -864,7 +879,18 @@
+ 	w.entities[handle] = chunkPos
+ 
+ 	c := tx.chunk(chunkPos)
+-	c.Entities, c.modified = append(c.Entities, handle), true
++	c.Entities = append(c.Entities, handle)
++	// skygear patch: transient entities are not stored, so they never mark
++	// the column modified.
++	if !isTransient(handle.t) {
++		c.modified = true
++	}
++	if handle.t.EncodeEntity() == "minecraft:player" {
++		if w.players == nil { // lazily made: the World literal lives in conf.go
++			w.players = make(map[*EntityHandle]struct{})
++		}
++		w.players[handle] = struct{}{}
++	}
+ 
+ 	e := handle.mustEntity(tx)
+ 	for _, v := range c.viewers {
+@@ -890,7 +916,17 @@
+ 	w.Handler().HandleEntityDespawn(tx, e)
+ 
+ 	c := tx.chunk(pos)
+-	c.Entities, c.modified = sliceutil.DeleteVal(c.Entities, handle), true
++	// skygear patch: copy on write, so entitiesWithin may iterate c.Entities
++	// without cloning while callbacks remove entities.
++	if i := slices.Index(c.Entities, handle); i >= 0 {
++		n := make([]*EntityHandle, 0, len(c.Entities)-1)
++		n = append(append(n, c.Entities[:i]...), c.Entities[i+1:]...)
++		c.Entities = n
++	}
++	if !isTransient(handle.t) {
++		c.modified = true
++	}
++	delete(w.players, handle)
+ 
+ 	w.removeEntityFromViewLayers(e)
+ 	for _, v := range c.viewers {
+@@ -930,7 +966,7 @@
+ 					// The chunk wasn't loaded, so there are no entities here.
+ 					continue
+ 				}
+-				for _, handle := range slices.Clone(c.Entities) {
++				for _, handle := range c.Entities { // skygear patch: no clone, removal is copy on write
+ 					if !box.Vec3Within(handle.data.Pos) {
+ 						continue
+ 					}
+@@ -956,13 +992,12 @@
+ }
+ 
+ // allPlayers returns an iterator that yields all player entities in the World.
++// skygear patch: uses the player index instead of scanning every entity.
+ func (w *World) allPlayers(tx *Tx) iter.Seq[Entity] {
+ 	return func(yield func(Entity) bool) {
+-		for e := range w.entities {
+-			if e.t.EncodeEntity() == "minecraft:player" {
+-				if ent := e.mustEntity(tx); !yield(ent) {
+-					return
+-				}
++		for e := range w.players {
++			if ent := e.mustEntity(tx); !yield(ent) {
++				return
+ 			}
+ 		}
+ 	}
+@@ -1068,6 +1103,7 @@
  	w.set.Lock()
  	defer w.set.Unlock()
  	w.set.TickRange = int32(v)
@@ -1883,7 +3636,71 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  }
  
  // tickRange returns the tick range around each Viewer.
-@@ -1230,6 +1241,7 @@
+@@ -1207,12 +1243,59 @@
+ 
+ // saveChunk saves a chunk and its entities to disk after compacting the chunk.
+ func (w *World) saveChunk(_ *Tx, pos ChunkPos, c *Column) {
+-	if !w.conf.ReadOnly && c.modified {
+-		c.Compact()
+-		if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
+-			w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
++	w.storeChunk(pos, c, time.Now()) // skygear patch
++}
++
++// storeChunk stores a modified column and clears its modified flag when that
++// is safe. // skygear patch
++func (w *World) storeChunk(pos ChunkPos, c *Column, now time.Time) {
++	if w.conf.ReadOnly || !c.modified {
++		return
++	}
++	c.Compact()
++	if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
++		w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
++		return
++	}
++	c.lastSaved = now
++	// Columns with block entities, entities or scheduled updates change
++	// without marking the column modified, so they stay modified.
++	if len(c.BlockEntities) == 0 && len(c.Entities) == 0 && len(w.scheduledUpdates.fromChunk(pos)) == 0 {
++		c.modified = false
++	}
++}
++
++// saveBatch is the maximum number of columns stored per incremental save step.
++const saveBatch = 16 // skygear patch
++
++// incrementalSave stores up to saveBatch modified columns that were last saved
++// at least SaveInterval ago, oldest first. Close and Save remain full saves.
++// skygear patch
++func (w *World) incrementalSave(_ *Tx, now time.Time) {
++	if w.conf.ReadOnly {
++		return
++	}
++	type cand struct {
++		pos ChunkPos
++		c   *Column
++	}
++	var due []cand
++	for pos, c := range w.chunks {
++		if c.modified && now.Sub(c.lastSaved) >= w.conf.SaveInterval {
++			due = append(due, cand{pos, c})
+ 		}
+ 	}
++	if len(due) > saveBatch {
++		slices.SortFunc(due, func(a, b cand) int { return a.c.lastSaved.Compare(b.c.lastSaved) })
++		due = due[:saveBatch]
++	}
++	for _, d := range due {
++		w.storeChunk(d.pos, d.c, now)
++	}
++	if now.Sub(w.lastSettings) >= w.conf.SaveInterval {
++		w.lastSettings = now
++		w.conf.Provider.SaveSettings(w.set)
++	}
+ }
+ 
+ // closeChunk saves a chunk and its entities to disk after compacting the chunk.
+@@ -1230,6 +1313,7 @@
  	}
  	clear(c.Entities)
  	delete(w.chunks, pos)
@@ -1891,7 +3708,7 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  }
  
  // Close closes the world and saves all chunks currently loaded.
-@@ -1299,6 +1311,7 @@
+@@ -1299,6 +1383,7 @@
  	w.viewerMu.Lock()
  	w.viewers[l] = l.viewer
  	w.viewerMu.Unlock()
@@ -1899,7 +3716,7 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  
  	l.viewer.ViewTime(w.Time())
  	l.viewer.ViewTimeCycle(w.TimeCycle())
-@@ -1441,6 +1454,7 @@
+@@ -1441,6 +1526,7 @@
  func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
  	column := w.columnFrom(c, pos)
  	w.chunks[pos] = column
@@ -1907,3 +3724,76 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
  	for _, e := range column.Entities {
  		w.entities[e] = pos
  		e.setAndUnlockWorld(w)
+@@ -1503,7 +1589,8 @@
+ func (w *World) autoSave() {
+ 	save := &time.Ticker{C: make(<-chan time.Time)}
+ 	if w.conf.SaveInterval > 0 {
+-		save = time.NewTicker(w.conf.SaveInterval)
++		// skygear patch: step every second, storing at most saveBatch columns.
++		save = time.NewTicker(min(time.Second, w.conf.SaveInterval))
+ 		defer save.Stop()
+ 	}
+ 	closeUnused := time.NewTicker(w.conf.ChunkUnloadInterval)
+@@ -1534,7 +1621,12 @@
+ // Column represents the data of a chunk including the (block) entities and
+ // viewers and loaders.
+ type Column struct {
+-	modified bool
++	modified  bool
++	lastSaved time.Time // skygear patch
++	// version changes with every block, block entity or biome change; it is
++	// the change signal of the sub chunk cache and is not reset by saving.
++	version  uint64      // skygear patch
++	subCache []subCached // skygear patch
+ 
+ 	*chunk.Chunk
+ 	Entities      []*EntityHandle
+@@ -1556,6 +1648,9 @@
+ 		Tick:            w.scheduledUpdates.currentTick,
+ 	}
+ 	for _, e := range col.Entities {
++		if isTransient(e.t) { // skygear patch
++			continue
++		}
+ 		data := e.encodeNBT()
+ 		maps.Copy(data, e.t.EncodeNBT(&e.data))
+ 		data["identifier"] = e.t.EncodeEntity()
+@@ -1618,3 +1713,38 @@
+ 	w.scheduledUpdates.add(scheduled)
+ 	return col
+ }
++
++// skygear patch: sub chunk network cache support.
++
++type subCached struct {
++	version uint64
++	v       any
++}
++
++// SetBlock sets a block of the column and invalidates its cached sub chunks.
++func (c *Column) SetBlock(x uint8, y int16, z uint8, layer uint8, block uint32) {
++	c.version++
++	c.Chunk.SetBlock(x, y, z, layer, block)
++}
++
++// SubCache returns the value stored by SetSubCache for sub chunk ind if the
++// column did not change since. It must only be used inside the world's
++// transaction.
++func (c *Column) SubCache(ind int) (any, bool) {
++	if ind < 0 || ind >= len(c.subCache) {
++		return nil, false
++	}
++	e := c.subCache[ind]
++	return e.v, e.v != nil && e.version == c.version
++}
++
++// SetSubCache stores v as the cached network form of sub chunk ind.
++func (c *Column) SetSubCache(ind int, v any) {
++	if ind < 0 {
++		return
++	}
++	if ind >= len(c.subCache) {
++		c.subCache = append(c.subCache, make([]subCached, ind+1-len(c.subCache))...)
++	}
++	c.subCache[ind] = subCached{version: c.version, v: v}
++}
