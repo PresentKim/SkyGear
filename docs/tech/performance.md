@@ -53,11 +53,6 @@
 - 부하율 ≈ 틱 ÷ 50ms. 6ms 는 약 12%, 9ms 는 약 18%. 이 월드 고루틴이 1초 중 그만큼만 일하고 나머지는 쉰다(그 섬은 CPU 코어 하나에서만 도니, 코어 하나의 12~18%).
 - 대략: 25ms(50%) 아래는 여유, 25~40ms 는 다른 일(저장·청크 전송)이 겹치면 가끔 튀고, 40ms 를 넘으면 TPS 하락이 보이기 시작한다.
 
-## perf/dev 변경 (릴리스 노트 후보)
-
-- `platform.toml` 에 `Debug.Pprof`, `Runtime.MemoryLimitMB`, `Runtime.GCPercent`, `Instance.StateFlushSeconds` 를 더했다.
-- `ResourcePack.Encrypt` 기본값이 켬에서 끔으로 바뀌었다. 이미 있는 `platform.toml` 은 예전 값을 그대로 유지한다.
-
 ## perf/dev 측정 (2026-11)
 
 벤치마크(`go test -bench`, `-benchtime 2s`). 이전은 따로 적지 않으면 첫 측정(wave-0)의 값이다.
