@@ -23,6 +23,7 @@ import (
 	"github.com/presentkim/skygear/common/backup"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/netcompress"
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
@@ -136,6 +137,8 @@ func run(log *slog.Logger) error {
 	conf.DisableResourceBuilding = true
 	// Chest windows, item holders and custom blocks look wrong without the packs.
 	conf.ResourcesRequired = true
+	// Same Flate ID as vanilla, at the configured level.
+	conf.Compression = netcompress.NewFlate(pconf.Network.CompressionLevel)
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
 	srv := conf.New()

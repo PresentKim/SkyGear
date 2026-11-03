@@ -25,7 +25,7 @@ func TestOperatorByXUIDOrName(t *testing.T) {
 func TestDefaultConfigPerf(t *testing.T) {
 	c := DefaultConfig()
 	if c.Debug.Pprof != "" || c.Runtime.MemoryLimitMB != 0 || c.Runtime.GCPercent != 0 ||
-		c.Instance.StateFlushSeconds != 10 || c.ResourcePack.Encrypt {
+		c.Instance.StateFlushSeconds != 10 || c.ResourcePack.Encrypt || c.Network.CompressionLevel != 3 {
 		t.Fatalf("unexpected perf defaults: %+v", c)
 	}
 }

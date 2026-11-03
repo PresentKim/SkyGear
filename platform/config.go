@@ -24,6 +24,13 @@ type Config struct {
 		MemoryLimitMB int
 		GCPercent     int
 	}
+	Network struct {
+		// CompressionLevel is the Flate level (1 fastest to 9 smallest) of
+		// the packets sent to players. Clients read every level the same.
+		// The default 3 costs a third of level 6's CPU for about 12% more
+		// bytes on chunk data (docs/tech/performance.md).
+		CompressionLevel int
+	}
 	Data struct {
 		// Dir holds the database and the save worlds.
 		Dir string
@@ -131,6 +138,7 @@ func (c Config) DayLength() time.Duration {
 // DefaultConfig returns the default configuration.
 func DefaultConfig() Config {
 	var c Config
+	c.Network.CompressionLevel = 3
 	c.Data.Dir = "data"
 	c.Instance.DayLengthMinutes = 20
 	c.Instance.LoadRadius = 4
@@ -165,6 +173,9 @@ func LoadConfig(path string) (Config, error) {
 	}
 	if c.Instance.DayLengthMinutes <= 0 || c.Instance.LoadRadius <= 0 {
 		return c, errors.New("platform config: DayLengthMinutes and LoadRadius must be positive")
+	}
+	if c.Network.CompressionLevel < 1 || c.Network.CompressionLevel > 9 {
+		return c, errors.New("platform config: Network.CompressionLevel must be 1 to 9")
 	}
 	if c.Backup.Enabled && (c.Backup.DatabaseMinutes <= 0 || c.Backup.Dir == "") {
 		return c, errors.New("platform config: Backup.DatabaseMinutes must be positive and Backup.Dir set")
