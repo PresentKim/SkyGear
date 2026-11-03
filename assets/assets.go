@@ -10,7 +10,7 @@
 //   - oreui: the renderer of server-driven DDUI screens (common/oreui,
 //     common/ui). Its hbui/gameplay.html replaces the game's own in-game Ore
 //     UI page, which the client takes from a pack that is encrypted or
-//     carries a contents.zip (resourcepack.LoadFS gives an unencrypted pack
+//     carries a contents.zipe (resourcepack.LoadFS gives an unencrypted pack
 //     an empty one).
 //
 // A server loads each with resourcepack.LoadFS(assets.Pack(name), name, opt).
