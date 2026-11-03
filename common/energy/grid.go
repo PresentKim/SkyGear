@@ -12,12 +12,21 @@ const registrationTTL = 10
 // networkLimit is the most conduits one network is followed over.
 const networkLimit = 2048
 
+// rescanSteps is the most Steps a discovered topology is reused for before it
+// is found again, in case a change was not announced with Invalidate.
+const rescanSteps = 20
+
 // Grid shares out the energy of one world.
 type Grid struct {
 	conduits map[cube.Pos]int64
 	sources  map[cube.Pos]int64
 	// step counts the Steps; registrations carry the step they were made in.
 	step int64
+	// nets are the networks found by the last scan, reused until the set of
+	// conduits changes, Invalidate is called or rescanSteps Steps passed.
+	nets    []*Network
+	dirty   bool
+	scanned int64
 }
 
 func NewGrid() *Grid {
@@ -28,7 +37,16 @@ func NewGrid() *Grid {
 func (g *Grid) Conduits() int { return len(g.conduits) }
 
 // AddConduit registers the conduit at pos; call it whenever the block ticks.
-func (g *Grid) AddConduit(pos cube.Pos) { g.conduits[pos] = g.step }
+func (g *Grid) AddConduit(pos cube.Pos) {
+	if _, known := g.conduits[pos]; !known {
+		g.dirty = true
+	}
+	g.conduits[pos] = g.step
+}
+
+// Invalidate makes the next Step find the networks again; call it when a
+// block beside a conduit was placed, broken or changed.
+func (g *Grid) Invalidate() { g.dirty = true }
 
 // AddSource registers a source that touches sinks without a conduit (a
 // generator next to a machine); a source next to a conduit needs no
@@ -50,6 +68,7 @@ func (g *Grid) Step(w World, ticks int) Stats {
 	for pos, seen := range g.conduits {
 		if g.step-seen > registrationTTL {
 			delete(g.conduits, pos)
+			g.dirty = true
 		}
 	}
 	for pos, seen := range g.sources {
@@ -57,22 +76,13 @@ func (g *Grid) Step(w World, ticks int) Stats {
 			delete(g.sources, pos)
 		}
 	}
-	done := map[cube.Pos]bool{}
-	for pos := range g.conduits {
-		if done[pos] {
-			continue
-		}
-		n := Discover(w, pos, networkLimit)
-		if n == nil {
-			delete(g.conduits, pos)
-			continue
-		}
-		for _, c := range n.Conduits {
-			done[c] = true
-		}
+	if g.dirty || g.nets == nil || g.step-g.scanned >= rescanSteps {
+		g.rescan(w)
+	}
+	for _, n := range g.nets {
 		st.Networks++
 		st.Conduits += len(n.Conduits)
-		st.Moved += n.Transfer(w, n.Rate*ticks)
+		st.Moved += n.live(w).Transfer(w, n.Rate*ticks)
 	}
 	for pos := range g.sources {
 		if src, _ := RolesOf(w.Block(pos)); src == nil {
@@ -93,6 +103,48 @@ func (g *Grid) Step(w World, ticks int) Stats {
 		st.Moved += n.transferDirect(w, pos, DirectRate*ticks)
 	}
 	return st
+}
+
+// live is n without the endpoints that stopped being a Source or a Sink since
+// the scan that found them (the topology is cached between scans).
+func (n *Network) live(w World) *Network {
+	out := &Network{Conduits: n.Conduits, Rate: n.Rate}
+	for _, e := range n.Sources {
+		if _, ok := w.Block(e.Pos).(Source); ok {
+			out.Sources = append(out.Sources, e)
+		}
+	}
+	for _, e := range n.Sinks {
+		if _, ok := w.Block(e.Pos).(Sink); ok {
+			out.Sinks = append(out.Sinks, e)
+		}
+	}
+	return out
+}
+
+// rescan finds the networks of the registered conduits.
+func (g *Grid) rescan(w World) {
+	g.dirty, g.scanned = false, g.step
+	g.nets = g.nets[:0:0]
+	if len(g.conduits) == 0 {
+		g.nets = nil
+		return
+	}
+	done := map[cube.Pos]bool{}
+	for pos := range g.conduits {
+		if done[pos] {
+			continue
+		}
+		n := Discover(w, pos, networkLimit)
+		if n == nil {
+			delete(g.conduits, pos)
+			continue
+		}
+		for _, c := range n.Conduits {
+			done[c] = true
+		}
+		g.nets = append(g.nets, n)
+	}
 }
 
 // transferDirect moves energy from the source at pos to the sinks of n.

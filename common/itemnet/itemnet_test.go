@@ -221,3 +221,80 @@ func TestRoundRobinWithinAStep(t *testing.T) {
 		}
 	})
 }
+
+func itemLine(tx *world.Tx) (from, to cube.Pos) {
+	from, to = cube.Pos{0, 64, 0}, cube.Pos{2, 64, 0}
+	src := chestAt(tx, from)
+	_, _ = src.Inventory(tx, from).AddItem(item.NewStack(block.Stone{}, 640))
+	c := testConduit{tier: 3}
+	c.modes[cube.FaceWest] = Input
+	c.modes[cube.FaceEast] = Output
+	c.modes[cube.FaceUp] = Output
+	tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
+	return from, to
+}
+
+func TestPlacedChestJoinsNextStep(t *testing.T) {
+	stone := item.NewStack(block.Stone{}, 1)
+	withWorld(t, func(tx *world.Tx) {
+		from, _ := itemLine(tx)
+		_ = from
+		g := NewGrid()
+		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Step(tx)
+		up := cube.Pos{1, 65, 0}
+		chestAt(tx, up)
+		g.Invalidate()
+		g.Step(tx)
+		if count(tx, up, stone) == 0 {
+			t.Error("the placed chest got nothing")
+		}
+	})
+}
+
+func TestBrokenChestLeavesNextStep(t *testing.T) {
+	withWorld(t, func(tx *world.Tx) {
+		itemLine(tx)
+		to := cube.Pos{2, 64, 0}
+		chestAt(tx, to)
+		g := NewGrid()
+		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Step(tx)
+		tx.SetBlock(to, block.Air{}, nil)
+		g.Invalidate()
+		g.Step(tx)
+	})
+}
+
+func TestStaleCacheNoPanic(t *testing.T) {
+	withWorld(t, func(tx *world.Tx) {
+		itemLine(tx)
+		to := cube.Pos{2, 64, 0}
+		chestAt(tx, to)
+		g := NewGrid()
+		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Step(tx)
+		tx.SetBlock(to, block.Stone{}, nil)
+		tx.SetBlock(cube.Pos{0, 64, 0}, block.Stone{}, nil)
+		g.Step(tx)
+	})
+}
+
+func TestCachedEqualsFresh(t *testing.T) {
+	withWorld(t, func(tx *world.Tx) {
+		itemLine(tx)
+		chestAt(tx, cube.Pos{2, 64, 0})
+		g := NewGrid()
+		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Step(tx)
+		fresh := Discover(tx, cube.Pos{1, 64, 0}, 2048)
+		if len(g.nets) != 1 {
+			t.Fatalf("%d cached networks", len(g.nets))
+		}
+		for _, n := range g.nets {
+			if len(n.Conduits) != len(fresh.Conduits) || len(n.Ends) != len(fresh.Ends) {
+				t.Errorf("cached %+v, fresh %+v", n, fresh)
+			}
+		}
+	})
+}

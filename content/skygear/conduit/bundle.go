@@ -248,6 +248,7 @@ func (b Bundle) refresh(pos cube.Pos, tx *world.Tx, verify bool) {
 	if e != b.EConn || i != b.IConn || f != b.FConn {
 		b.EConn, b.IConn, b.FConn = e, i, f
 		tx.SetBlock(pos, b, nil)
+		invalidateNets(tx)
 	}
 	if s, ok := core.Of(tx); ok {
 		showConduitWith(s, tx, pos, b, b.plugsFrom(sides), verify)
@@ -255,7 +256,29 @@ func (b Bundle) refresh(pos cube.Pos, tx *world.Tx, verify bool) {
 }
 
 // NeighbourUpdateTick keeps the arms up to date.
-func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.refresh(pos, tx, false) }
+func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	b.refresh(pos, tx, false)
+	// A block beside the conduits was placed, broken or changed.
+	invalidateNets(tx)
+}
+
+// invalidateNets makes the grids of the world find their networks again.
+func invalidateNets(tx *world.Tx) {
+	if s, ok := core.Of(tx); ok {
+		network.Energy(s).Invalidate()
+		network.Items(s).Invalidate()
+		network.Fluids(s).Invalidate()
+	}
+}
+
+// settingsSig is a signature of the side settings of the item conduit.
+func (b Bundle) settingsSig() uint64 {
+	h := uint64(b.Item)
+	for i := range b.Modes {
+		h = h*131 + uint64(b.Modes[i]) + 4*uint64(b.Extract[i]) + 64*uint64(b.Insert[i])
+	}
+	return h
+}
 
 // Tick registers the bundle with the grids of its conduits every few ticks
 // (and keeps its display entity there).
@@ -277,7 +300,7 @@ func (b Bundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		network.Energy(s).AddConduit(pos)
 	}
 	if b.Item > 0 {
-		network.Items(s).AddConduit(pos)
+		network.Items(s).AddConduitSig(pos, b.settingsSig())
 	}
 	if b.Fluid > 0 {
 		network.Fluids(s).AddConduit(pos)

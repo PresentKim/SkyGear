@@ -47,6 +47,9 @@ func IO(tx *world.Tx, pos cube.Pos) (Inserter, Extractor) {
 	in, _ := b.(Inserter)
 	ex, _ := b.(Extractor)
 	for _, a := range adapters {
+		if in != nil && ex != nil {
+			break
+		}
 		i, e := a(tx, pos, b)
 		if in == nil {
 			in = i

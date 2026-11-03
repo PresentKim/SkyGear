@@ -165,3 +165,80 @@ func TestSeparateNetworksDoNotMix(t *testing.T) {
 		t.Errorf("machines got %d and %d: the second network has an empty generator", h1, h2)
 	}
 }
+
+// TestPlacedMachineJoinsNextStep: a sink placed beside a cached network gets
+// energy on the next Step after Invalidate.
+func TestPlacedMachineJoinsNextStep(t *testing.T) {
+	store, h1, h2 := 10000000, 0, 0
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}}
+	g := NewGrid()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	w[cube.Pos{1, 0, 1}] = machine{have: &h2, room: 1000000}
+	g.Invalidate()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	if h2 == 0 {
+		t.Error("the placed machine got nothing")
+	}
+}
+
+// TestBrokenMachineLeavesNextStep: a removed sink takes nothing after Invalidate.
+func TestBrokenMachineLeavesNextStep(t *testing.T) {
+	store, h1, h2 := 10000000, 0, 0
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}, {1, 0, 1}: machine{have: &h2, room: 1000000}}
+	g := NewGrid()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	if h2 == 0 {
+		t.Fatal("setup: no energy")
+	}
+	delete(w, cube.Pos{1, 0, 1})
+	g.Invalidate()
+	before := h2
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	if h2 != before {
+		t.Error("the broken machine still got energy")
+	}
+}
+
+// TestStaleCacheNoPanic: a cached endpoint that is no longer a Sink or Source
+// is skipped, without Invalidate.
+func TestStaleCacheNoPanic(t *testing.T) {
+	store, h1 := 10000000, 0
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}}
+	g := NewGrid()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	w[cube.Pos{2, 0, 0}] = block.Stone{}
+	w[cube.Pos{0, 0, 0}] = block.Stone{}
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+}
+
+// TestCachedEqualsFresh: the cached networks match a fresh discovery, and a
+// forced rescan happens within rescanSteps.
+func TestCachedEqualsFresh(t *testing.T) {
+	store, h1 := 100000000, 0
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: cable{tier: 2}, {3, 0, 0}: machine{have: &h1, room: 10000000}}
+	g := NewGrid()
+	for range 3 {
+		g.AddConduit(cube.Pos{1, 0, 0})
+		g.Step(w, 1)
+	}
+	fresh := Discover(w, cube.Pos{1, 0, 0}, networkLimit)
+	if len(g.nets) != 1 || len(g.nets[0].Conduits) != len(fresh.Conduits) || len(g.nets[0].Sinks) != len(fresh.Sinks) || g.nets[0].Rate != fresh.Rate {
+		t.Fatalf("cached %+v, fresh %+v", g.nets, fresh)
+	}
+	// a machine placed without Invalidate joins within rescanSteps
+	h2 := 0
+	w[cube.Pos{2, 0, 1}] = machine{have: &h2, room: 10000000}
+	for range rescanSteps + 1 {
+		g.AddConduit(cube.Pos{1, 0, 0})
+		g.Step(w, 1)
+	}
+	if h2 == 0 {
+		t.Error("the safety rescan did not find the machine")
+	}
+}
