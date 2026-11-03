@@ -1,6 +1,6 @@
 # 슬롯 장식 (등급 배경과 전면 배지)
 
-아이템 칸 뒤에 등급 배경, 앞에 단계 점·경고·잠금 배지를 그린다. 리소스팩 `assets/resourcepack/slotdeco/`, 서버 쪽 표시는 `common/slotdeco`.
+아이템 칸 뒤에 등급 배경, 앞에 단계 점·경고·잠금 배지를 그린다. 리소스팩은 `assets/resourcepack/slotdeco/`, 서버 쪽 표시는 `common/slotdeco` 다.
 
 ## 원리
 
@@ -13,7 +13,7 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 
 - `§k`(깜빡이는 글자)는 바로 `§r` 로 풀려 화면에 아무것도 남지 않는다. 표식끼리는 서로의 일부가 아니다(`slotdeco_test.go`).
 - 바인딩: `(not ((#hover_text - '표식') = #hover_text)) * 번호` 를 더해 번호 하나를 만들고(`#sg_rarity`, `#sg_tier`), `('textures/ui/sg/rarity_' + 번호)` 로 텍스처를 고르고, `번호 > 0` 일 때만 보인다. 칸 하나에 컨트롤 둘(뒤·앞), 바인딩 여섯이다. 식에 변수를 넣지 않고 표식을 글자로 적는다([json-ui.md](json-ui.md)).
-- 칸 템플릿 두 곳에 `insert_front` 로 끼운다: `container_item`(상자·기계 창·인벤토리 보기, `ui/ui_common.json`)과 `inventory_container_item`(가방·조합 칸, `ui/inventory_screen.json`; 따로 `controls` 를 가져 앞의 수정이 미치지 않는다). 뒤 이미지는 층 6(칸 배경 1 위, 아이템 7 아래), 앞 이미지는 층 9.
+- 칸 템플릿 두 곳에 `insert_front` 로 끼운다: `container_item`(상자·기계 창·인벤토리 보기, `ui/ui_common.json`)과 `inventory_container_item`(가방·조합 칸, `ui/inventory_screen.json`; 따로 `controls` 를 가져 앞의 수정이 미치지 않는다). 뒤 이미지는 층 6(칸 배경 1 위, 아이템 7 아래), 앞 이미지는 층 9다.
 - 선택한 아이템 말풍선(`item_panel_image`, 터치 UI)에는 등급 테두리(`tip_N`)를 위에 얹는다. PC 의 호버 상자는 엔진이 그려 틀을 바꿀 수 없고, 이름 색만 등급 색이 된다.
 
 ## 서버 쪽
@@ -46,5 +46,5 @@ JSON UI 는 칸의 아이템 데이터를 읽지 못하고, 칸 컬렉션의 `#h
 ## 이 방식의 한계와 확장
 
 - 칸 컬렉션이 있는 화면은 위의 팩이 맡고, 메뉴 화면(DDUI)의 칸(도감·스토리지 목록·분실물·자동 제작기 조합법·연구 보상)은 따로 한다: 칸의 툴팁 첫 줄에 같은 희귀도 표식을 넣으면(`tipName`) `common/ui` 가 표식을 떼고 칸 뒤에 그 희귀도의 테두리(`textures/ui/sg/deco_<등급>_0.png`, 22×22)를 그린다(`slotDeco`). 단계 점·배지는 그리지 않는다. 이 그림은 `slotdeco` 팩이 아니라 `assets/resourcepack/sgui` 에 있어 `SlotDeco` 설정과 상관없다. 그림은 위의 `slotdecotex` 가 함께 만든다.
-- 한 칸에 컨트롤 둘이 늘어 칸 수에 비례해 비용이 든다. 인벤토리 보기(72칸)처럼 칸이 많은 창은 열림 시간을 잰다.
+- 한 칸에 컨트롤 둘이 늘어 칸 수에 비례해 비용이 든다. 인벤토리 보기(72칸)처럼 칸이 많은 창은 여는 시간을 잰다.
 - 새 값(배지)을 늘리려면 `slotdeco` 의 번호와 `front_N.png`, 팩의 식 두 곳을 같이 늘린다.
