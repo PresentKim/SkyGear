@@ -147,7 +147,17 @@ func RemoveVisuals(s *core.Session, tx *world.Tx) {
 	for pos := range LocalOf(s).Visuals {
 		RemoveVisual(s, tx, pos)
 	}
-	for k := range LocalOf(s).Plates {
-		removePlates(s, tx, k.Pos)
+	// The plates of a bundle that has no display entity.
+	for pos := range platePositions(LocalOf(s).Plates) {
+		removePlates(s, tx, pos)
 	}
+}
+
+// platePositions are the positions of the bundles that have a plate.
+func platePositions(plates map[PlateKey]*world.EntityHandle) map[cube.Pos]struct{} {
+	out := map[cube.Pos]struct{}{}
+	for k := range plates {
+		out[k.Pos] = struct{}{}
+	}
+	return out
 }

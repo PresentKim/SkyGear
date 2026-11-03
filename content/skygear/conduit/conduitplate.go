@@ -205,11 +205,14 @@ func syncPlates(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs map
 
 // removePlates removes the plates of the bundle at pos.
 func removePlates(s *core.Session, tx *world.Tx, pos cube.Pos) {
-	for k, h := range LocalOf(s).Plates {
-		if k.Pos != pos {
+	plates := LocalOf(s).Plates
+	for side := range Faces {
+		k := PlateKey{pos, side}
+		h, ok := plates[k]
+		if !ok {
 			continue
 		}
-		delete(LocalOf(s).Plates, k)
+		delete(plates, k)
 		if e, ok := h.Entity(tx); ok {
 			_ = e.Close()
 		}

@@ -2,6 +2,7 @@ package machine
 
 import (
 	"slices"
+	"sync/atomic"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -83,6 +84,21 @@ const (
 	plantRise = 1
 )
 
+// fellerLocal is what a running save keeps for its tree fellers: the log each
+// stuck feller found, by the position of the feller.
+type fellerLocal struct{ logAt map[cube.Pos]cube.Pos }
+
+var fellerPart = core.NewPart(func() *fellerLocal { return &fellerLocal{logAt: map[cube.Pos]cube.Pos{}} })
+
+// FellerScans counts the scans of the feller area for a log (a test hook).
+var FellerScans atomic.Int64
+
+// inFellerReach reports whether at is in the area of the feller at pos.
+func inFellerReach(pos, at cube.Pos, reach int) bool {
+	d := at.Sub(pos)
+	return d[0] >= -reach && d[0] <= reach && d[2] >= -reach && d[2] <= reach && d[1] >= -fellerDown && d[1] <= fellerUp
+}
+
 // runFeller fells the highest log in reach every interval; with no log left
 // it plants a sapling from its input.
 func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
@@ -93,6 +109,19 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	var logAt cube.Pos
 	found := false
 	reach := st.Reach(KindFeller)
+	// A feller that is stuck (its output is full) re-checks the log it found
+	// instead of scanning the whole area every tick.
+	rem := fellerPart.Of(s)
+	if at, ok := rem.logAt[pos]; ok {
+		if _, isLog := tx.Block(at).(block.Log); isLog && inFellerReach(pos, at, reach) {
+			logAt, found = at, true
+		} else {
+			delete(rem.logAt, pos)
+		}
+	}
+	if !found {
+		FellerScans.Add(1)
+	}
 	for dy := fellerUp; dy >= -fellerDown && !found; dy-- {
 		for dx := -reach; dx <= reach && !found; dx++ {
 			for dz := -reach; dz <= reach && !found; dz++ {
@@ -110,8 +139,10 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 			drops = br.BreakInfo().Drops(item.ToolNone{}, nil)
 		}
 		if !st.RoomFor(drops) {
+			rem.logAt[pos] = logAt
 			return
 		}
+		delete(rem.logAt, pos)
 		tx.SetBlock(logAt, block.Air{}, nil)
 		tx.AddParticle(logAt.Vec3Centre(), particle.BlockBreak{Block: b})
 		for _, it := range drops {
