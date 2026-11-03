@@ -3,11 +3,13 @@ package instance
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/mcdb"
+	"github.com/df-mc/goleveldb/leveldb/opt"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/playerstate"
@@ -46,16 +48,24 @@ type Instance struct {
 }
 
 func newInstance(m *Manager, save db.Save, host string) (*Instance, error) {
-	prov, err := mcdb.Config{Log: m.log}.Open(m.worldDir(save.ID))
+	// perf S6: small caches for the many small instance DBs
+	// (Flate compression stays, so vanilla and old code read the files).
+	prov, err := mcdb.Config{Log: m.log, LDBOptions: &opt.Options{
+		BlockCacheCapacity:     1 * opt.MiB,
+		WriteBuffer:            2 * opt.MiB,
+		OpenFilesCacheCapacity: 64,
+	}}.Open(m.worldDir(save.ID))
 	if err != nil {
 		return nil, err
 	}
 	w := world.Config{
-		Log:       m.log,
-		Dim:       world.Overworld,
-		Provider:  prov,
-		Generator: world.NopGenerator{},
-		Entities:  m.conf.Entities,
+		Log:      m.log,
+		Dim:      world.Overworld,
+		Provider: prov,
+		// S7: mcdb is a ConcurrentProvider, so the workers load in parallel.
+		ChunkLoadWorkers: 4,
+		Generator:        world.NopGenerator{},
+		Entities:         m.conf.Entities,
 		// Blocks and block entities (drawers, machines) live only in the
 		// world files, while the game state is stored every autosave.
 		SaveInterval: m.conf.WorldSaveInterval,
@@ -101,6 +111,9 @@ func (inst *Instance) run() {
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 	fast := time.NewTicker(FastInterval)
+	// fastBusy is set while a Fast task is queued or running: the next Fast
+	// is skipped then, so a slow world does not pile them up (P8).
+	var fastBusy atomic.Bool
 	defer fast.Stop()
 	last := time.Now()
 	lastSave := last
@@ -110,7 +123,12 @@ func (inst *Instance) run() {
 			inst.Clock.Advance(time.Since(last))
 			return
 		case <-fast.C:
-			inst.World.Do(inst.session.Fast)
+			if fastBusy.CompareAndSwap(false, true) {
+				inst.World.Do(func(tx *world.Tx) {
+					defer fastBusy.Store(false)
+					inst.session.Fast(tx)
+				})
+			}
 		case now := <-tick.C:
 			for _, day := range inst.Clock.Advance(now.Sub(last)) {
 				inst.World.Do(func(tx *world.Tx) { inst.session.NewDay(tx, day) })

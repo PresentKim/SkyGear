@@ -70,3 +70,8 @@ func (conf Config) Open(dir string) (*DB, error) {
 	db.ldb = ldb
 	return db, nil
 }
+
+// Concurrent reports that LoadColumn and StoreColumn are safe for concurrent
+// use (LevelDB is), so the world need not serialise provider calls.
+// skygear patch (S7).
+func (db *DB) Concurrent() bool { return true }
