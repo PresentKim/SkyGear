@@ -31,13 +31,10 @@ func oldTickSet(w *World, r int32) map[ChunkPos]*Column {
 // TestTickSetMatchesFresh verifies the cached tick set equals the freshly
 // computed one after every kind of mutation.
 func TestTickSetMatchesFresh(t *testing.T) {
-	w := Config{Synchronous: true}.New()
+	w := Config{}.New()
 	defer w.Close()
 
 	runWorld(w, func(tx *Tx) {
-		w.conf.Synchronous = false // use the loader-based path; no ticking happens here.
-		defer func() { w.conf.Synchronous = true }()
-
 		check := func(step string, r int32) {
 			t.Helper()
 			got := map[ChunkPos]*Column{}
@@ -84,5 +81,56 @@ func TestTickSetMatchesFresh(t *testing.T) {
 		check("loader closed", 3)
 		a.Close(tx)
 		check("all closed", 3)
+	})
+}
+
+// TestTickSetPeriodicRefresh verifies a mutation that bypasses the dirty flag
+// is picked up by the forced recompute after tickSetRefresh ticks, and that a
+// closed chunk is dropped from the set.
+func TestTickSetPeriodicRefresh(t *testing.T) {
+	w := Config{}.New()
+	defer w.Close()
+
+	runWorld(w, func(tx *Tx) {
+		tx.Block(cube.Pos{0, 64, 0})
+		l := NewLoader(0, w, NopViewer{})
+		defer l.Close(tx)
+		if n := len(w.tickSet.get(w, 2)); n != 1 {
+			t.Fatalf("got %d chunks, want 1", n)
+		}
+		// Bypass every dirty marker.
+		col := w.chunks[ChunkPos{}]
+		delete(w.chunks, ChunkPos{})
+		w.tickDirty.Store(false)
+		for i := 1; i < tickSetRefresh-1; i++ {
+			w.tickSet.get(w, 2)
+		}
+		if n := len(w.tickSet.get(w, 2)); n != 1 {
+			t.Fatalf("set refreshed early: %d chunks", n)
+		}
+		if n := len(w.tickSet.get(w, 2)); n != 0 {
+			t.Fatalf("forced recompute did not run: %d chunks", n)
+		}
+		_ = col
+	})
+}
+
+// TestTickSetClosedChunkDropped verifies a chunk closed via closeChunk is
+// never returned afterwards.
+func TestTickSetClosedChunkDropped(t *testing.T) {
+	w := Config{}.New()
+	defer w.Close()
+
+	runWorld(w, func(tx *Tx) {
+		tx.Block(cube.Pos{0, 64, 0})
+		l := NewLoader(0, w, NopViewer{})
+		defer l.Close(tx)
+		w.tickSet.get(w, 2)
+		w.closeChunk(tx, ChunkPos{}, w.chunks[ChunkPos{}])
+		for _, tc := range w.tickSet.get(w, 2) {
+			if tc.pos == (ChunkPos{}) {
+				t.Fatal("closed chunk still in tick set")
+			}
+		}
 	})
 }
