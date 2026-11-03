@@ -64,3 +64,20 @@ func TestSettingsOneQuery(t *testing.T) {
 		t.Fatalf("Settings = %v, %v", got, err)
 	}
 }
+
+func TestMembersTieBreakInsertionOrder(t *testing.T) {
+	d := open(t)
+	_, _ = d.TouchAccount("h", "", "h")
+	_, _ = d.TouchAccount("a", "", "a")
+	s, _ := d.CreateSave("h", 1, "s")
+	if _, err := d.sql.Exec(`UPDATE save_members SET joined_at = 1000 WHERE save_id = ?`, s.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := d.sql.Exec(`INSERT INTO save_members (save_id, account_id, role, joined_at) VALUES (?, 'a', ?, 1000)`, s.ID, RoleGuest); err != nil {
+		t.Fatal(err)
+	}
+	m, err := d.Members(s.ID)
+	if err != nil || len(m) != 2 || m[0].Role != RoleHost {
+		t.Fatalf("members = %+v %v", m, err)
+	}
+}
