@@ -134,8 +134,6 @@ func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby, game Game)
 // AccountID is the account key of a player.
 func AccountID(p *player.Player) string { return p.UUID().String() }
 
-// Join sets up a player that just connected to the server, in the lobby.
-// It must be called in the lobby world transaction of p.
 // StateFlushInterval returns how often dirty states are written to the
 // database.
 func (m *Manager) StateFlushInterval() time.Duration { return m.conf.StateFlushInterval }
@@ -144,6 +142,8 @@ func (m *Manager) StateFlushInterval() time.Duration { return m.conf.StateFlushI
 // database.
 func (inst *Instance) StateFlushInterval() time.Duration { return inst.m.StateFlushInterval() }
 
+// Join sets up a player that just connected to the server, in the lobby.
+// It must be called in the lobby world transaction of p.
 func (m *Manager) Join(p *player.Player) {
 	h := &Handler{m: m}
 	p.Handle(h)

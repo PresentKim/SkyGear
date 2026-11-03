@@ -2,7 +2,6 @@ package machine
 
 import (
 	"slices"
-	"sync/atomic"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -90,9 +89,6 @@ type fellerLocal struct{ logAt map[cube.Pos]cube.Pos }
 
 var fellerPart = core.NewPart(func() *fellerLocal { return &fellerLocal{logAt: map[cube.Pos]cube.Pos{}} })
 
-// FellerScans counts the scans of the feller area for a log (a test hook).
-var FellerScans atomic.Int64
-
 // inFellerReach reports whether at is in the area of the feller at pos.
 func inFellerReach(pos, at cube.Pos, reach int) bool {
 	d := at.Sub(pos)
@@ -118,9 +114,6 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 		} else {
 			delete(rem.logAt, pos)
 		}
-	}
-	if !found {
-		FellerScans.Add(1)
 	}
 	for dy := fellerUp; dy >= -fellerDown && !found; dy-- {
 		for dx := -reach; dx <= reach && !found; dx++ {

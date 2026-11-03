@@ -38,6 +38,23 @@ func TestSavedRoundTrip(t *testing.T) {
 	}
 }
 
+// TestLoadIgnoresUnknownAndOtherFields: fields no part owns are skipped, a
+// part whose omitempty fields are absent keeps its zero values, and a null
+// document loads nothing.
+func TestLoadIgnoresUnknownAndOtherFields(t *testing.T) {
+	s := New(Config{State: []byte(`{"a":7,"zzz":{"x":[1,2]},"c":[4]}`)})
+	if a := partA.Of(s); a.A != 7 || a.B != "" {
+		t.Fatalf("part A = %+v", *a)
+	}
+	if c := partB.Of(s).C; len(c) != 1 || c[0] != 4 {
+		t.Fatalf("part B = %v", c)
+	}
+	s = New(Config{State: []byte(`null`)})
+	if a := partA.Of(s); a.A != 0 {
+		t.Fatalf("null document loaded %+v", *a)
+	}
+}
+
 // TestFlushEveryInterval: with an interval of 10s and a change every second,
 // FlushIfDue flushes once per 10 calls.
 func TestFlushEveryInterval(t *testing.T) {

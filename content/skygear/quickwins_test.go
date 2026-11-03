@@ -58,26 +58,38 @@ func TestRemovePlatesLeavesNone(t *testing.T) {
 	}
 }
 
-// TestStuckFellerScansOnce: a feller with a full output scans its area for
-// a log once, then re-checks that log only.
-func TestStuckFellerScansOnce(t *testing.T) {
+// TestStuckFellerKeepsItsLog: a feller with a full output keeps the log it
+// found instead of scanning its area again, so a higher log placed meanwhile
+// is not taken before it; it fells that one once the output has room.
+func TestStuckFellerKeepsItsLog(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	st := placeTestMachine(s, machinePos, machine.KindFeller, "")
 	oak := block.Log{Wood: block.OakWood()}
-	s.World.Do(func(tx *world.Tx) { tx.SetBlock(machinePos.Add(cube.Pos{2, 1, 0}), oak, nil) })
-	for _, slot := range machine.Kinds[machine.KindFeller].Output {
+	low, high := machinePos.Add(cube.Pos{2, 1, 0}), machinePos.Add(cube.Pos{2, 3, 0})
+	s.World.Do(func(tx *world.Tx) { tx.SetBlock(low, oak, nil) })
+	out := machine.Kinds[machine.KindFeller].Output
+	for _, slot := range out {
 		_ = st.Inv().SetItem(slot, item.NewStack(oak, 64))
 	}
 	tick(s, machine.Kinds[machine.KindFeller].Interval+2)
-	before := machine.FellerScans.Load()
-	tick(s, 20)
-	if got := machine.FellerScans.Load() - before; got > 1 {
-		t.Fatalf("%d scans in 20 stuck ticks, want at most 1", got)
-	}
 	s.World.Do(func(tx *world.Tx) {
-		if _, ok := tx.Block(machinePos.Add(cube.Pos{2, 1, 0})).(block.Log); !ok {
+		if _, ok := tx.Block(low).(block.Log); !ok {
 			t.Error("the log was felled with a full output")
+		}
+		tx.SetBlock(high, oak, nil)
+	})
+	tick(s, 20)
+	for _, slot := range out {
+		_ = st.Inv().SetItem(slot, item.Stack{})
+	}
+	tick(s, 5)
+	s.World.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(low).(block.Log); ok {
+			t.Error("the log it kept was not felled once there was room")
+		}
+		if _, ok := tx.Block(high).(block.Log); !ok {
+			t.Error("the feller rescanned and took the higher log")
 		}
 	})
 }

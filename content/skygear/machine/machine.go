@@ -537,12 +537,13 @@ type State struct {
 // differ from the last one.
 type stateSig struct {
 	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
+	unlimited                                                               bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.

@@ -154,6 +154,10 @@ func (inst *Instance) autosave() {
 		inst.session.Autosave(tx)
 	})
 	<-task.Done()
+	if task.Err() != nil {
+		// The world closed or the task failed: states may be incomplete.
+		return
+	}
 	if err := inst.m.db.SetPlayerStates(inst.Save.ID, states); err != nil {
 		inst.m.log.Error("store player states", "save", inst.Save.ID, "err", err)
 	}
