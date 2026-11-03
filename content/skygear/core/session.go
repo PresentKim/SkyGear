@@ -30,13 +30,18 @@ type Session struct {
 	Log      *slog.Logger
 	// IsOperator reports whether a player may use the operator tools.
 	IsOperator func(*player.Player) bool
+	// FlushInterval is the least time between two FlushIfDue flushes; 0
+	// means 10 seconds.
+	FlushInterval time.Duration
 
 	parts map[int]any
 	// dirty is whether the saved parts changed since they were last handed
 	// to writer, which stores them (MarkDirty).
 	dirty  bool
 	writer *stateWriter
-	store  func([]byte) error
+	// lastFlush is when the saved parts were last handed to the writer.
+	lastFlush time.Time
+	store     func([]byte) error
 	// lastOpen is when each player last opened a screen (Debounced).
 	lastOpen map[*world.EntityHandle]time.Time
 }
@@ -149,6 +154,24 @@ func (s *Session) MarkDirty() { s.dirty = true }
 // Dirty reports whether the saved parts changed since the last Flush.
 func (s *Session) Dirty() bool { return s.dirty }
 
+// FlushIfDue flushes when the saved parts changed and at least FlushInterval
+// has passed since the last flush; it reports whether it did.
+func (s *Session) FlushIfDue(now time.Time) bool {
+	if !s.dirty {
+		return false
+	}
+	iv := s.FlushInterval
+	if iv <= 0 {
+		iv = 10 * time.Second
+	}
+	if now.Sub(s.lastFlush) < iv {
+		return false
+	}
+	s.Flush()
+	s.lastFlush = now
+	return true
+}
+
 // Flush hands the saved parts to the writer, which stores them outside the
 // world.
 func (s *Session) Flush() {
@@ -158,6 +181,7 @@ func (s *Session) Flush() {
 		return
 	}
 	s.dirty = false
+	s.lastFlush = time.Now()
 	if s.writer == nil {
 		s.writer = newStateWriter(s.write)
 	}
