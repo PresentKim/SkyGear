@@ -14,22 +14,25 @@ export function Scroll(props: { className?: string; end?: boolean; children?: Re
   const bar = useRef<HTMLDivElement>(null);
   const handle = useRef<HTMLDivElement>(null);
   const stuck = useRef(!!props.end);
+  // The last values written: a style is set only when its value changes.
+  const shown = useRef({ display: '', height: '', top: '' });
 
   // Gameface draws no scrollbar of its own; the bar shows only while the content is taller than the box.
   const update = () => {
     const c = sc.current, b = bar.current, h = handle.current;
     if (!c || !b || !h) return;
     const view = c.clientHeight, full = c.scrollHeight;
-    if (full <= view + 1) {
-      b.style.display = 'none';
-      return;
-    }
-    b.style.display = 'flex';
+    const s = shown.current;
+    const display = full <= view + 1 ? 'none' : 'flex';
+    if (display !== s.display) b.style.display = s.display = display;
+    if (display === 'none') return;
     const track = b.clientHeight;
     const min = parseFloat(getComputedStyle(h).minHeight) || 0;
-    h.style.height = Math.round(thumbOf(c.scrollTop, view, full, track, min).height) + 'px';
+    const height = Math.round(thumbOf(c.scrollTop, view, full, track, min).height) + 'px';
+    if (height !== s.height) h.style.height = s.height = height;
     const hh = h.offsetHeight;
-    h.style.top = Math.round(((track - hh) * c.scrollTop) / (full - view)) + 'px';
+    const top = Math.round(((track - hh) * c.scrollTop) / (full - view)) + 'px';
+    if (top !== s.top) h.style.top = s.top = top;
   };
 
   useEffect(() => {
@@ -67,7 +70,7 @@ export function Scroll(props: { className?: string; end?: boolean; children?: Re
     document.addEventListener('mouseup', onUp);
     document.addEventListener('touchend', onUp);
     // Content changes (images loading) fire no scroll event, so the bar is also checked on a timer.
-    const timer = setInterval(update, 100);
+    const timer = setInterval(update, 250);
     return () => {
       c.removeEventListener('scroll', onScroll);
       b.removeEventListener('mousedown', onBar);
