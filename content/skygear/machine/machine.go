@@ -1295,8 +1295,11 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	if p, ok := data["Progress"].(int32); ok {
 		n.State.Progress = min(int(p), n.State.Def.Interval)
 	}
-	if v, ok := data["Unlimited"].(bool); ok {
+	switch v := data["Unlimited"].(type) {
+	case bool:
 		n.State.Unlimited = v
+	case uint8:
+		n.State.Unlimited = v != 0
 	}
 	for key, dst := range map[string]*int{"Energy": &n.State.Energy, "Burn": &n.State.Burn, "BurnMax": &n.State.burnMax, "Boost": &n.State.Boost} {
 		if v, ok := data[key].(int32); ok {
