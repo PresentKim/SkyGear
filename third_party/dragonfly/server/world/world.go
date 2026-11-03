@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/internal/sliceutil"
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/df-mc/goleveldb/leveldb"
 	"github.com/go-gl/mathgl/mgl64"
@@ -27,8 +26,10 @@ import (
 // world, so World ensures that all its methods will always be safe for
 // simultaneous calls. A nil *World is safe to use but not functional.
 type World struct {
-	conf Config
-	ra   cube.Range
+	conf         Config
+	lastSettings time.Time                  // skygear patch
+	players      map[*EntityHandle]struct{} // skygear patch: player index for tx.Players
+	ra           cube.Range
 
 	// skygear patch: timing of recent ticks (TickStats).
 	tickStats tickStats
@@ -87,6 +88,13 @@ type World struct {
 
 	viewerMu sync.Mutex
 	viewers  map[*Loader]Viewer
+
+	// skygear patch: cached set of chunks that are ticked each tick. It is
+	// recomputed when tickDirty is set (loader added/removed/moved, chunk
+	// added/removed, tick range changed) and every tickSetRefresh ticks as a
+	// safety net.
+	tickDirty atomic.Bool
+	tickSet   tickSetCache
 }
 
 // transaction is a type that may be added to the transaction queue of a World.
@@ -256,6 +264,7 @@ func (w *World) blockInChunk(c *Column, pos cube.Pos) Block {
 		// stored NBT yet. We add it here and update the block.
 		nbtB := w.conf.Blocks.BlockByRuntimeIDOrAir(rid).(NBTer).DecodeNBT(map[string]any{}).(Block)
 		c.BlockEntities[pos] = nbtB
+		c.version++ // skygear patch
 		for _, v := range c.viewers {
 			v.ViewBlockUpdate(pos, nbtB, 0)
 		}
@@ -393,7 +402,7 @@ func (tx *Tx) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 	}
 
 	c.modified = true
-	c.SetBlock(x, y, z, 0, rid)
+	c.SetBlock(x, y, z, 0, rid) // skygear patch: Column.SetBlock bumps the version
 	if w.conf.Blocks.NBTBlock(rid) {
 		c.BlockEntities[pos] = b
 	} else {
@@ -465,6 +474,7 @@ func (tx *Tx) setBlockEntity(pos cube.Pos, b Block) {
 	}
 	c.BlockEntities[pos] = b
 	c.modified = true
+	c.version++ // skygear patch
 }
 
 // setBiome sets the Biome at the position passed. If a chunk is not yet loaded
@@ -477,6 +487,7 @@ func (tx *Tx) setBiome(pos cube.Pos, b Biome) {
 	}
 	c := tx.chunk(chunkPosFromBlockPos(pos))
 	c.modified = true
+	c.version++ // skygear patch
 	c.SetBiome(uint8(pos[0]), int16(pos[1]), uint8(pos[2]), uint32(b.EncodeBiome()))
 }
 
@@ -557,6 +568,7 @@ func (tx *Tx) buildStructure(pos cube.Pos, s Structure) {
 			}
 			c.SetBlock(0, 0, 0, 0, c.Block(0, 0, 0, 0)) // Make sure the heightmap is recalculated.
 			c.modified = true
+			c.version++ // skygear patch: sub chunks were written directly
 
 			// After setting all blocks of the structure within a single chunk,
 			// we show the new chunk to all viewers once.
@@ -632,7 +644,7 @@ func (tx *Tx) setLiquid(pos cube.Pos, b Liquid) {
 			v.ViewBlockUpdate(pos, b, 0)
 		}
 	} else {
-		c.SetBlock(x, y, z, 1, rid)
+		c.SetBlock(x, y, z, 1, rid) // skygear patch: bumps the version
 		for _, v := range c.viewers {
 			v.ViewBlockUpdate(pos, b, 1)
 		}
@@ -867,7 +879,18 @@ func (w *World) addEntityAt(tx *Tx, handle *EntityHandle, pos mgl64.Vec3) Entity
 	w.entities[handle] = chunkPos
 
 	c := tx.chunk(chunkPos)
-	c.Entities, c.modified = append(c.Entities, handle), true
+	c.Entities = append(c.Entities, handle)
+	// skygear patch: transient entities are not stored, so they never mark
+	// the column modified.
+	if !isTransient(handle.t) {
+		c.modified = true
+	}
+	if handle.t.EncodeEntity() == "minecraft:player" {
+		if w.players == nil { // lazily made: the World literal lives in conf.go
+			w.players = make(map[*EntityHandle]struct{})
+		}
+		w.players[handle] = struct{}{}
+	}
 
 	e := handle.mustEntity(tx)
 	for _, v := range c.viewers {
@@ -893,7 +916,17 @@ func (w *World) removeEntity(e Entity, tx *Tx) *EntityHandle {
 	w.Handler().HandleEntityDespawn(tx, e)
 
 	c := tx.chunk(pos)
-	c.Entities, c.modified = sliceutil.DeleteVal(c.Entities, handle), true
+	// skygear patch: copy on write, so entitiesWithin may iterate c.Entities
+	// without cloning while callbacks remove entities.
+	if i := slices.Index(c.Entities, handle); i >= 0 {
+		n := make([]*EntityHandle, 0, len(c.Entities)-1)
+		n = append(append(n, c.Entities[:i]...), c.Entities[i+1:]...)
+		c.Entities = n
+	}
+	if !isTransient(handle.t) {
+		c.modified = true
+	}
+	delete(w.players, handle)
 
 	w.removeEntityFromViewLayers(e)
 	for _, v := range c.viewers {
@@ -933,7 +966,7 @@ func (w *World) entitiesWithin(tx *Tx, box cube.BBox) iter.Seq[Entity] {
 					// The chunk wasn't loaded, so there are no entities here.
 					continue
 				}
-				for _, handle := range slices.Clone(c.Entities) {
+				for _, handle := range c.Entities { // skygear patch: no clone, removal is copy on write
 					if !box.Vec3Within(handle.data.Pos) {
 						continue
 					}
@@ -959,13 +992,12 @@ func (w *World) allEntities(tx *Tx) iter.Seq[Entity] {
 }
 
 // allPlayers returns an iterator that yields all player entities in the World.
+// skygear patch: uses the player index instead of scanning every entity.
 func (w *World) allPlayers(tx *Tx) iter.Seq[Entity] {
 	return func(yield func(Entity) bool) {
-		for e := range w.entities {
-			if e.t.EncodeEntity() == "minecraft:player" {
-				if ent := e.mustEntity(tx); !yield(ent) {
-					return
-				}
+		for e := range w.players {
+			if ent := e.mustEntity(tx); !yield(ent) {
+				return
 			}
 		}
 	}
@@ -1071,6 +1103,7 @@ func (w *World) SetTickRange(v int) {
 	w.set.Lock()
 	defer w.set.Unlock()
 	w.set.TickRange = int32(v)
+	w.tickDirty.Store(true) // skygear patch
 }
 
 // tickRange returns the tick range around each Viewer.
@@ -1210,11 +1243,58 @@ func (w *World) save(f func(*Tx, ChunkPos, *Column)) execFunc {
 
 // saveChunk saves a chunk and its entities to disk after compacting the chunk.
 func (w *World) saveChunk(_ *Tx, pos ChunkPos, c *Column) {
-	if !w.conf.ReadOnly && c.modified {
-		c.Compact()
-		if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
-			w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
+	w.storeChunk(pos, c, time.Now()) // skygear patch
+}
+
+// storeChunk stores a modified column and clears its modified flag when that
+// is safe. // skygear patch
+func (w *World) storeChunk(pos ChunkPos, c *Column, now time.Time) {
+	if w.conf.ReadOnly || !c.modified {
+		return
+	}
+	c.Compact()
+	if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
+		w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
+		return
+	}
+	c.lastSaved = now
+	// Columns with block entities, entities or scheduled updates change
+	// without marking the column modified, so they stay modified.
+	if len(c.BlockEntities) == 0 && len(c.Entities) == 0 && len(w.scheduledUpdates.fromChunk(pos)) == 0 {
+		c.modified = false
+	}
+}
+
+// saveBatch is the maximum number of columns stored per incremental save step.
+const saveBatch = 16 // skygear patch
+
+// incrementalSave stores up to saveBatch modified columns that were last saved
+// at least SaveInterval ago, oldest first. Close and Save remain full saves.
+// skygear patch
+func (w *World) incrementalSave(_ *Tx, now time.Time) {
+	if w.conf.ReadOnly {
+		return
+	}
+	type cand struct {
+		pos ChunkPos
+		c   *Column
+	}
+	var due []cand
+	for pos, c := range w.chunks {
+		if c.modified && now.Sub(c.lastSaved) >= w.conf.SaveInterval {
+			due = append(due, cand{pos, c})
 		}
+	}
+	if len(due) > saveBatch {
+		slices.SortFunc(due, func(a, b cand) int { return a.c.lastSaved.Compare(b.c.lastSaved) })
+		due = due[:saveBatch]
+	}
+	for _, d := range due {
+		w.storeChunk(d.pos, d.c, now)
+	}
+	if now.Sub(w.lastSettings) >= w.conf.SaveInterval {
+		w.lastSettings = now
+		w.conf.Provider.SaveSettings(w.set)
 	}
 }
 
@@ -1233,6 +1313,7 @@ func (w *World) closeChunk(tx *Tx, pos ChunkPos, c *Column) {
 	}
 	clear(c.Entities)
 	delete(w.chunks, pos)
+	w.tickDirty.Store(true) // skygear patch
 }
 
 // Close closes the world and saves all chunks currently loaded.
@@ -1302,6 +1383,7 @@ func (w *World) addWorldViewer(l *Loader) {
 	w.viewerMu.Lock()
 	w.viewers[l] = l.viewer
 	w.viewerMu.Unlock()
+	w.tickDirty.Store(true) // skygear patch
 
 	l.viewer.ViewTime(w.Time())
 	l.viewer.ViewTimeCycle(w.TimeCycle())
@@ -1444,6 +1526,7 @@ func (w *World) loadChunkAsync(tx *Tx, pos ChunkPos, callback chunkCallback) boo
 func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
 	column := w.columnFrom(c, pos)
 	w.chunks[pos] = column
+	w.tickDirty.Store(true) // skygear patch
 	for _, e := range column.Entities {
 		w.entities[e] = pos
 		e.setAndUnlockWorld(w)
@@ -1506,7 +1589,8 @@ func (w *World) spreadLight(pos ChunkPos) {
 func (w *World) autoSave() {
 	save := &time.Ticker{C: make(<-chan time.Time)}
 	if w.conf.SaveInterval > 0 {
-		save = time.NewTicker(w.conf.SaveInterval)
+		// skygear patch: step every second, storing at most saveBatch columns.
+		save = time.NewTicker(min(time.Second, w.conf.SaveInterval))
 		defer save.Stop()
 	}
 	closeUnused := time.NewTicker(w.conf.ChunkUnloadInterval)
@@ -1537,7 +1621,12 @@ func (w *World) closeUnusedChunks(tx *Tx) {
 // Column represents the data of a chunk including the (block) entities and
 // viewers and loaders.
 type Column struct {
-	modified bool
+	modified  bool
+	lastSaved time.Time // skygear patch
+	// version changes with every block, block entity or biome change; it is
+	// the change signal of the sub chunk cache and is not reset by saving.
+	version  uint64      // skygear patch
+	subCache []subCached // skygear patch
 
 	*chunk.Chunk
 	Entities      []*EntityHandle
@@ -1559,6 +1648,9 @@ func (w *World) columnTo(col *Column, pos ChunkPos) *chunk.Column {
 		Tick:            w.scheduledUpdates.currentTick,
 	}
 	for _, e := range col.Entities {
+		if isTransient(e.t) { // skygear patch
+			continue
+		}
 		data := e.encodeNBT()
 		maps.Copy(data, e.t.EncodeNBT(&e.data))
 		data["identifier"] = e.t.EncodeEntity()
@@ -1620,4 +1712,39 @@ func (w *World) columnFrom(c *chunk.Column, _ ChunkPos) *Column {
 	}
 	w.scheduledUpdates.add(scheduled)
 	return col
+}
+
+// skygear patch: sub chunk network cache support.
+
+type subCached struct {
+	version uint64
+	v       any
+}
+
+// SetBlock sets a block of the column and invalidates its cached sub chunks.
+func (c *Column) SetBlock(x uint8, y int16, z uint8, layer uint8, block uint32) {
+	c.version++
+	c.Chunk.SetBlock(x, y, z, layer, block)
+}
+
+// SubCache returns the value stored by SetSubCache for sub chunk ind if the
+// column did not change since. It must only be used inside the world's
+// transaction.
+func (c *Column) SubCache(ind int) (any, bool) {
+	if ind < 0 || ind >= len(c.subCache) {
+		return nil, false
+	}
+	e := c.subCache[ind]
+	return e.v, e.v != nil && e.version == c.version
+}
+
+// SetSubCache stores v as the cached network form of sub chunk ind.
+func (c *Column) SetSubCache(ind int, v any) {
+	if ind < 0 {
+		return
+	}
+	if ind >= len(c.subCache) {
+		c.subCache = append(c.subCache, make([]subCached, ind+1-len(c.subCache))...)
+	}
+	c.subCache[ind] = subCached{version: c.version, v: v}
 }

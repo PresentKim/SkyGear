@@ -1,0 +1,31 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.skygear.hunt_gem.float": {
+      "loop": true,
+      "bones": {
+        "gem": {
+          "rotation": [
+            0,
+            "query.anim_time * 120",
+            0
+          ],
+          "position": [
+            0,
+            "math.sin(query.anim_time * 180) * 1.5 + 1.5",
+            0
+          ]
+        }
+      }
+    },
+    "animation.skygear.hunt_gem.glow": {
+      "loop": false,
+      "animation_length": 0.05,
+      "particle_effects": {
+        "0.0": {
+          "effect": "glow"
+        }
+      }
+    }
+  }
+}

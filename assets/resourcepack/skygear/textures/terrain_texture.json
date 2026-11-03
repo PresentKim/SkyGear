@@ -403,6 +403,24 @@
     "skygear_dimension_gate_up": {
       "textures": "textures/blocks/portal_placeholder"
     },
+    "skygear_essence_collector_down": {
+      "textures": "textures/blocks/essence_collector_down"
+    },
+    "skygear_essence_collector_side": {
+      "textures": "textures/blocks/essence_collector_side"
+    },
+    "skygear_essence_collector_up": {
+      "textures": "textures/blocks/essence_collector_up"
+    },
+    "skygear_relic_table_down": {
+      "textures": "textures/blocks/relic_table_down"
+    },
+    "skygear_relic_table_side": {
+      "textures": "textures/blocks/relic_table_side"
+    },
+    "skygear_relic_table_up": {
+      "textures": "textures/blocks/relic_table_up"
+    },
     "skygear_drawer_front": {
       "textures": "textures/blocks/drawer_front"
     },

@@ -7,12 +7,16 @@ import { SidesScreen } from './sides';
 import { QuestScreen } from './quest';
 import { HomeScreen } from './home';
 import { ProbeScreen } from './probe';
+import { EquipScreen, PickScreen, ResultScreen } from './showcase';
 
 /** screens maps a screen name to its component; the data's type follows the name (Confirm is a menu). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const screens: Record<ScreenName, (props: { data: any }) => JSX.Element> = {
   menu: MenuScreen,
   cards: CardsScreen,
+  pick: PickScreen,
+  result: ResultScreen,
+  equip: EquipScreen,
   grid: GridScreen,
   board: BoardScreen,
   sieve: SieveScreen,

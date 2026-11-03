@@ -72,7 +72,7 @@ func TestEssencesCanBeMade(t *testing.T) {
 		sgitem.EssenceAlchemy:     {"laboratory", "alloy_smelter", "tin", "nickel", "copper"},
 		sgitem.EssenceFarming:     {"laboratory", "farming", "harvest"},
 		sgitem.EssenceHunting:     {"laboratory", "mob_simulator"},
-		sgitem.EssenceMagic:       {"laboratory", "dimension_gate"},
+		sgitem.EssenceMagic:       {"laboratory", "magic_seed"},
 	}
 	for _, kind := range sgitem.ResearchEssenceKinds {
 		ids, ok := makers[kind]

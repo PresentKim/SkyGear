@@ -1,12 +1,16 @@
 package skygear
 
 import (
+	"time"
+
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/look"
@@ -15,7 +19,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Second runs the crops, the fairy, the advancements and the operators'
@@ -28,16 +31,19 @@ func (s *session) Second(tx *world.Tx) {
 	farm.TickComposters(s.Session, tx)
 	fairy.Tick(s.Session, tx)
 	climate.Tick(s.Session, tx)
-	wave.Tick(s.Session, tx)
+	dimension.TickCollectors(s.Session, tx)
+	for e := range tx.Players() {
+		dimension.RetireItems(s.Session, tx, e.(*player.Player))
+	}
 	tinker.TickEffects(s.Session, tx)
 	machine.TickMonitor(s.Session, tx)
 	farm.TickPlants(s.Session, tx)
 	screens.UpdateBoards(s.Session, tx)
 	achievement.CountAll(tx, "play_seconds", 1)
 	achievement.GrantCollection(held)
-	if s.Dirty() {
-		s.Flush()
-	}
+	// Changes are stored every FlushInterval, not every second; Autosave and
+	// Close store whatever is left.
+	s.FlushIfDue(time.Now())
 }
 
 // Fast updates every player's panel (instance.Session.Fast, every 0.2
@@ -55,6 +61,6 @@ func (s *session) Fast(tx *world.Tx) {
 	if s.fastCount%(fluidnet.StepTicks/4) == 0 {
 		network.Fluids(s.Session).Step(tx)
 	}
-	wave.EmergeMonsters(s.Session, tx)
+	dimension.Watchdog(s.Session, tx)
 	look.UpdateAll(s.Session, tx)
 }

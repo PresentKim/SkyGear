@@ -3,7 +3,7 @@ export type Icon = string // '' none, 'tex:<texture path>', 'aux:<runtime id * 6
 export type Text = string // may carry § colour codes and client spans (U+FDD0 kind:value U+FDD1 fallback U+FDD2)
 
 export type ScreenName =
-  | 'menu' | 'cards' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
+  | 'menu' | 'cards' | 'pick' | 'result' | 'equip' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
   | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe'
 
 export interface Root {
@@ -27,6 +27,13 @@ export interface Cell { k: 'blank' | 'slot' | 'mini' | 'frame' | 'arrow' | 'text
 
 export interface MenuData { chrome: Chrome; body: Text; items: ListItem[] }
 export interface CardsData { chrome: Chrome; body: Text; items: Button[] }
+export interface PickCard { id: Id; icon: Icon; title: Text; text: Text; tag: Text; rarity: 'common' | 'rare' | 'epic' | '' }
+export interface PickData { chrome: Chrome; body: Text; cards: PickCard[]; items: ListItem[] }
+export interface ResultLine { label: Text; value: Text }
+export interface ResultData { chrome: Chrome; headline: Text; win: boolean; lines: ResultLine[]; stars: { on: boolean; new: boolean }[]; rewards: Slot[]; ok: Button }
+export interface EquipSlot extends Slot { empty: Icon } // empty: the slot's silhouette, shown while icon is ''
+export interface EquipGroup { heading: Text; slots: EquipSlot[] }
+export interface EquipData { chrome: Chrome; note: Text; groups: EquipGroup[]; bagHeading: Text; bag: Slot[]; items: ListItem[] }
 export interface GridData { chrome: Chrome; body: Text; sections: SlotRow[]; items: ListItem[] }
 export interface BoardData { chrome: Chrome; body: Text; rows: Cell[][]; items: ListItem[] }
 export interface SieveRecipe { input: Slot; mesh: Slot; drops: Slot[] }
@@ -66,7 +73,7 @@ export interface ProbeNode { t: 'input' | 'box' | 'probe' | 'restest'; [field: s
 export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 
 export interface ScreenData {
-  menu: MenuData; cards: CardsData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
+  menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
   search: SearchData; listsplit: ListSplitData; input: InputData; slotmenu: SlotMenuData; choice: ChoiceData
   sides: SidesData; plane: PlaneData; quest: QuestData; home: HomeData; loading: LoadingData
   console: ConsoleData; probe: ProbeData

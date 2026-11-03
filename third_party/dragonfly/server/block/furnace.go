@@ -44,6 +44,10 @@ func (f Furnace) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	}); f.Lit != lit {
 		f.Lit = lit
 		tx.SetBlock(pos, f, nil)
+	} else if lit {
+		// skygear patch: smelting changes the inventory and durations in
+		// place, so the column is saved.
+		tx.MarkModified(pos)
 	}
 }
 

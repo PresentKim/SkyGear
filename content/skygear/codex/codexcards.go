@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -25,7 +26,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // The codex draws each recipe as a card of item slots on a board
@@ -383,18 +383,15 @@ func SourceCards(s *core.Session, lang string, it item.Stack) []Card {
 			}
 		}
 	}
-	if _, ok := it.Item().(sgitem.Essence); ok {
-		cards = append(cards, noteCard(lang, machine.Item(machine.KindGate), i18n.T(lang, "codex.src.waveDrop")))
-	}
-	for i := range wave.Levels {
-		for _, r := range wave.Levels[i].Reward {
-			if naming.ItemKey(r.Item()) == k {
-				cards = append(cards, waveCard(s, lang, i)...)
-				break
+	if e, ok := it.Item().(sgitem.Essence); ok {
+		cards = append(cards, noteCard(lang, item.NewStack(sgitem.DimensionStone{}, 1), i18n.T(lang, "codex.src.waveDrop")))
+		for i, h := range dimension.Hunts {
+			if h.Mob == e.Mob {
+				cards = append(cards, huntCard(s, lang, i))
 			}
 		}
 	}
-	for _, pk := range farm.PlantKinds {
+	for _, pk := range farm.LivePlantKinds() {
 		for _, y := range pk.Yield {
 			if naming.ItemKey(y.Item) == k {
 				cards = append(cards, plantCard(s, lang, pk))
@@ -559,26 +556,18 @@ func themeCards(s *core.Session, lang string, mob string) []Card {
 	return cards
 }
 
-// waveCard is a gate level: its number and time, the arrow and the first
-// clear rewards, and under them the mobs that come.
-func waveCard(s *core.Session, lang string, i int) []Card {
-	w := wave.Levels[i]
-	var outs []ui.BoardCell
-	for _, r := range w.Reward {
-		outs = append(outs, codexCell(s, lang, r, countLabel(r.Count())))
-	}
-	c := machineCard(lang, machine.Item(machine.KindGate), []ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.wave"), i+1, w.Seconds))}, outs)
-	var groups string
-	for j, g := range w.Groups {
-		if j > 0 {
-			groups += ", "
-		}
-		groups += fmt.Sprintf("%s ×%d", wave.MobName(lang, g.Mob), g.N)
-	}
+// huntCard is a hunt of the second dimension: its monster, count and time,
+// the arrow and its essence, and under them the star goals.
+func huntCard(s *core.Session, lang string, i int) Card {
+	h := dimension.Hunts[i]
+	ess := item.NewStack(sgitem.Essence{Mob: h.Mob}, 1)
+	c := machineCard(lang, item.NewStack(sgitem.DimensionStone{}, 1),
+		[]ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.hunt"), i+1, dimension.MobName(lang, h.Mob), h.Count, h.Seconds/60, h.Seconds%60))},
+		[]ui.BoardCell{codexCell(s, lang, ess, "")})
 	row := BlankRow()
-	row[0] = ui.TextCell("§8" + groups)
+	row[0] = ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.huntStars"), h.Star2/60, h.Star2%60, h.Star3))
 	c.Rows = append(c.Rows, row)
-	return []Card{c}
+	return c
 }
 
 // plantCard is a magic plant: its seed, the arrow and what it yields.
@@ -688,7 +677,7 @@ func codexGearCards(s *core.Session, lang string) []Card {
 		cards = append(cards, Card{Head: tinkerTable, name: naming.UIItemName(lang, tinkerTable), Rows: [][]ui.BoardCell{row}})
 	}
 	for _, h := range tinker.HeadMaterials {
-		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.head"), i18n.T(lang, "tmat."+h.ID), h.Dur, h.Eff, h.Attack))
+		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.head"), i18n.T(lang, "tmat."+h.ID), h.Dur, h.Eff))
 	}
 	for _, h := range tinker.HandleMaterials {
 		gear(h.Item, fmt.Sprintf(i18n.T(lang, "codex.card.handle"), i18n.T(lang, "thandle."+h.ID)))
@@ -700,7 +689,7 @@ func codexGearCards(s *core.Session, lang string) []Card {
 }
 
 // MobCards are the mobs tab: the simulator, the magic sieve's themes
-// and the gate's levels.
+// and the second dimension's hunts.
 func MobCards(s *core.Session, lang string) []Card {
 	var cards []Card
 	for _, mob := range sgitem.MobKinds {
@@ -709,8 +698,8 @@ func MobCards(s *core.Session, lang string) []Card {
 	for _, mob := range sgitem.MobKinds {
 		cards = append(cards, themeCards(s, lang, mob)...)
 	}
-	for i := range wave.Levels {
-		cards = append(cards, waveCard(s, lang, i)...)
+	for i := range dimension.Hunts {
+		cards = append(cards, huntCard(s, lang, i))
 	}
 	return cards
 }

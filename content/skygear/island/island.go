@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"sync/atomic"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -73,6 +74,15 @@ type State struct {
 	Home [2]float64 `json:"home,omitempty"`
 	// Lost is the lost-and-found box, most recent first.
 	Lost []*LostItem `json:"lost,omitempty"`
+
+	// owned caches Chunks as a set (Owns); it is rebuilt when the length
+	// changes, as the chunks are only ever appended.
+	owned atomic.Pointer[ownedSet]
+}
+
+type ownedSet struct {
+	n   int
+	set map[ChunkPos]struct{}
 }
 
 var saved = core.NewSaved(func() *State {
@@ -111,7 +121,17 @@ func Spawn(s *core.Session) mgl64.Vec3 {
 }
 
 func Owns(s *core.Session, c ChunkPos) bool {
-	return slices.Contains(StateOf(s).Chunks, c)
+	st := StateOf(s)
+	o := st.owned.Load()
+	if o == nil || o.n != len(st.Chunks) {
+		o = &ownedSet{n: len(st.Chunks), set: make(map[ChunkPos]struct{}, len(st.Chunks))}
+		for _, k := range st.Chunks {
+			o.set[k] = struct{}{}
+		}
+		st.owned.Store(o)
+	}
+	_, ok := o.set[c]
+	return ok
 }
 
 // CanBuild reports if blocks at pos may be changed.

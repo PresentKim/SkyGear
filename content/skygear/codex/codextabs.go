@@ -42,7 +42,7 @@ func codexTabIcon(t Tab) string {
 	case codexProcessTab:
 		return formicon.Of(machine.Item(machine.KindAlloy))
 	case codexMobsTab:
-		return formicon.Of(machine.Item(machine.KindGate))
+		return formicon.Of(item.NewStack(sgitem.DimensionStone{}, 1))
 	}
 	return formicon.Of(item.NewStack(sgitem.Petal{Colour: "red"}, 1))
 }

@@ -80,4 +80,7 @@ func DecodeItem(b []byte) item.Stack {
 // name, lore, values such as a time-limited item's expiry). Research,
 // machine recipes and prices ask for plain items; anything else is a
 // different item to them.
-func Plain(st item.Stack) bool { return st.Comparable(item.NewStack(st.Item(), 1)) }
+func Plain(st item.Stack) bool {
+	return st.Empty() || (st.CustomName() == "" && len(st.Lore()) == 0 && st.AnvilCost() == 0 &&
+		len(st.Enchantments()) == 0 && len(st.Values()) == 0)
+}

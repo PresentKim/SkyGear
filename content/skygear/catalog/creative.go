@@ -76,6 +76,10 @@ func RegisterCreativeItems() {
 		add(items, sgitem.BarkFiber{})
 		add(items, sgitem.FairyDust{})
 		add(items, sgitem.FairyEmerald{})
+		add(items, sgitem.DimensionStone{})
+		for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+			add(equipment, sgitem.Relic{Kind: kind})
+		}
 		add(equipment, fairy.Board{})
 		add(items, sgitem.FairyBoneMeal{})
 		add(items, sgitem.FairyHourglass{})
@@ -100,7 +104,7 @@ func RegisterCreativeItems() {
 		for _, c := range sgitem.PetalColours {
 			add(items, sgitem.Petal{Colour: c})
 		}
-		for _, sd := range farm.PlantSeeds {
+		for _, sd := range farm.LivePlantSeeds() {
 			add(items, farm.PlantSeed{Seed: sd})
 		}
 		for _, m := range sgitem.MobKinds {

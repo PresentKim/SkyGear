@@ -18,9 +18,19 @@ let screen = '';
 let text = '';
 let cur: DocState = empty;
 
+/**
+ * publish sends a new state only when a field changed. `updates` is a debug counter: it is
+ * bumped on the current object without publishing, and only the Status line reads it.
+ */
 function publish(patch: Partial<DocState>): void {
-  const next = { ...cur, ...patch };
+  const next = { ...cur, ...patch, updates: cur.updates };
   next.active = screen === SCREEN && next.root !== null;
+  if (
+    next.active === cur.active && next.form === cur.form && next.root === cur.root &&
+    next.error === cur.error && next.bytes === cur.bytes
+  ) {
+    return;
+  }
   cur = next;
   if (document.body) document.body.classList.toggle('oui-active', next.active);
   setDoc(next);
@@ -30,8 +40,8 @@ function publish(patch: Partial<DocState>): void {
 export function startDoc(): void {
   screen = '';
   text = '';
-  cur = empty;
-  setDoc(empty);
+  cur = { ...empty };
+  setDoc(cur);
   onError((message) => publish({ error: message }));
   if (!hasEngine()) {
     publish({ error: 'no window.engine' });
@@ -44,18 +54,15 @@ export function startDoc(): void {
   });
   subscribe('vanilla.ddui.string', [STORE_NAME, FORM_PROPERTY, 'oui', false], (v) => {
     v = unwrap(v);
-    const updates = cur.updates + 1;
-    if (typeof v !== 'string' || v === '' || v === text) {
-      publish({ updates });
-      return;
-    }
+    cur.updates++;
+    if (typeof v !== 'string' || v === '' || v === text) return;
     try {
       const doc = JSON.parse(v) as { form: string; root: Root; settings?: Parameters<typeof keepSettings>[0] };
       text = v;
       keepSettings(doc.settings);
-      publish({ updates, form: doc.form, root: doc.root, error: '', bytes: v.length });
+      publish({ form: doc.form, root: doc.root, error: '', bytes: v.length });
     } catch (e) {
-      publish({ updates, error: 'layout: ' + e });
+      publish({ error: 'layout: ' + e });
     }
   });
 }

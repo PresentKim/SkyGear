@@ -4,9 +4,13 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
+	_ "net/http/pprof" // serves /debug/pprof on Debug.Pprof only
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/debug"
+	"sync"
 	"syscall"
 	"time"
 
@@ -20,6 +24,7 @@ import (
 	"github.com/presentkim/skygear/common/backup"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/netcompress"
 	"github.com/presentkim/skygear/common/resourcepack"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
@@ -30,6 +35,7 @@ import (
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
+	"github.com/sandertv/gophertunnel/minecraft/resource"
 )
 
 func main() {
@@ -46,6 +52,20 @@ func run(log *slog.Logger) error {
 	pconf, err := platform.LoadConfig("platform.toml")
 	if err != nil {
 		return err
+	}
+	if _, set := os.LookupEnv("GOMEMLIMIT"); !set && pconf.Runtime.MemoryLimitMB > 0 {
+		debug.SetMemoryLimit(int64(pconf.Runtime.MemoryLimitMB) << 20)
+	}
+	if _, set := os.LookupEnv("GOGC"); !set && pconf.Runtime.GCPercent > 0 {
+		debug.SetGCPercent(pconf.Runtime.GCPercent)
+	}
+	if addr := pconf.Debug.Pprof; addr != "" {
+		go func() {
+			log.Info("pprof listening", "addr", addr)
+			if err := http.ListenAndServe(addr, nil); err != nil {
+				log.Error("pprof", "err", err)
+			}
+		}()
 	}
 	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
 		return err
@@ -101,24 +121,38 @@ func run(log *slog.Logger) error {
 		packNames = append(packNames, "slotdeco")
 	}
 	packNames = append(packNames, "oreui")
-	for _, name := range packNames {
+	packOpt.CacheDir = filepath.Join(pconf.Data.Dir, "packcache")
+	// The packs build concurrently; conf.Resources keeps the list order.
+	base := len(conf.Resources)
+	conf.Resources = append(conf.Resources, make([]*resource.Pack, len(packNames))...)
+	packErrs := make([]error, len(packNames))
+	var packWG sync.WaitGroup
+	for i, name := range packNames {
 		dir := sgPack
 		if name != "skygear" {
 			if dir, err = assets.Pack(name); err != nil {
 				return fmt.Errorf("resource pack %s: %w", name, err)
 			}
 		}
-		pack, err := resourcepack.LoadFS(dir, name, packOpt)
-		if err != nil {
-			return fmt.Errorf("load resource pack: %w", err)
+		packWG.Add(1)
+		go func() {
+			defer packWG.Done()
+			conf.Resources[base+i], packErrs[i] = resourcepack.LoadFS(dir, name, packOpt)
+		}()
+	}
+	packWG.Wait()
+	for _, perr := range packErrs {
+		if perr != nil {
+			return fmt.Errorf("load resource pack: %w", perr)
 		}
-		conf.Resources = append(conf.Resources, pack)
 	}
 	// Textures, models and names of custom blocks and items come from the
 	// packs above; Dragonfly does not build its own.
 	conf.DisableResourceBuilding = true
 	// Chest windows, item holders and custom blocks look wrong without the packs.
 	conf.ResourcesRequired = true
+	// Same Flate ID as vanilla, at the configured level.
+	conf.Compression = netcompress.NewFlate(pconf.Network.CompressionLevel)
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
 	srv := conf.New()
@@ -145,14 +179,15 @@ func run(log *slog.Logger) error {
 	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
 	var pf *platform.Platform
 	m := instance.NewManager(log, d, instance.Config{
-		AfterClose:        afterClose,
-		Dir:               filepath.Join(pconf.Data.Dir, "saves"),
-		DayLength:         pconf.DayLength(),
-		LoadRadius:        pconf.Instance.LoadRadius,
-		MaxActive:         pconf.Instance.MaxActive,
-		AutosaveInterval:  time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
-		WorldSaveInterval: time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
-		Entities:          conf.Entities,
+		AfterClose:         afterClose,
+		Dir:                filepath.Join(pconf.Data.Dir, "saves"),
+		DayLength:          pconf.DayLength(),
+		LoadRadius:         pconf.Instance.LoadRadius,
+		MaxActive:          pconf.Instance.MaxActive,
+		AutosaveInterval:   time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
+		StateFlushInterval: time.Duration(pconf.Instance.StateFlushSeconds) * time.Second,
+		WorldSaveInterval:  time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
+		Entities:           conf.Entities,
 	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator))
 	pf = platform.New(log, d, m, srv.Player, isOperator)
 	// Operators who turn it on (/sgadmin tps) see the server load.

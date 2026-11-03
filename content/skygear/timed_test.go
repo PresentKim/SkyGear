@@ -67,7 +67,8 @@ func TestExpiredDrawerEmpties(t *testing.T) {
 	})
 	tick(s, 2)
 	timed.Now = func() time.Time { return start.Add(time.Minute) }
-	tick(s, 2)
+	// Timed expiry runs every 20 ticks (phased), so cover the window.
+	tick(s, 41)
 	s.World.Do(func(tx *world.Tx) {
 		if d := tx.Block(pos).(storage.Drawer); !d.Item.Empty() || d.Count != 0 {
 			t.Fatalf("expired drawer holds %v x%d", d.Item, d.Count)

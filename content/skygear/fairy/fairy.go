@@ -367,6 +367,9 @@ func (fairyType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Enti
 
 func (fairyType) EncodeEntity() string { return "skygear:fairy" }
 
+// Transient: never saved with the world.
+func (fairyType) Transient() bool { return true }
+
 func (fairyType) NetworkEncodeEntity() string { return "minecraft:allay" }
 
 func (fairyType) BBox(world.Entity) cube.BBox {
@@ -391,7 +394,9 @@ func Tick(s *core.Session, tx *world.Tx) {
 	}
 	var players []*player.Player
 	for e := range tx.Players() {
-		players = append(players, e.(*player.Player))
+		if p := e.(*player.Player); !core.InArena(p.Position()) {
+			players = append(players, p)
+		}
 	}
 	if len(players) == 0 {
 		return

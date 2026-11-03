@@ -16,6 +16,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
@@ -25,7 +26,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // SieveInputs are the blocks a sieve takes, in the order the codex shows
@@ -85,7 +85,7 @@ func Sources(s *core.Session, lang string, it item.Stack) []string {
 	for _, mob := range sgitem.MobKinds {
 		for _, d := range sgitem.SimDrops[mob] {
 			if naming.ItemKey(d.Item) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), wave.MobName(lang, mob), d.Chance))
+				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.sim"), dimension.MobName(lang, mob), d.Chance))
 			}
 		}
 	}
@@ -93,7 +93,7 @@ func Sources(s *core.Session, lang string, it item.Stack) []string {
 		for _, in := range SieveInputs() {
 			for _, d := range sievetable.MagicThemes[mob].Adds[naming.ItemKey(in)] {
 				if naming.ItemKey(d.Item.Item()) == k {
-					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), wave.MobName(lang, mob), n1(lang, in), textfmt.Permille(d.Permille)))
+					out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.magic"), dimension.MobName(lang, mob), n1(lang, in), textfmt.Permille(d.Permille)))
 				}
 			}
 		}
@@ -101,14 +101,7 @@ func Sources(s *core.Session, lang string, it item.Stack) []string {
 	if _, ok := it.Item().(sgitem.Essence); ok {
 		out = append(out, i18n.T(lang, "codex.src.waveDrop"))
 	}
-	for i, w := range wave.Levels {
-		for _, r := range w.Reward {
-			if naming.ItemKey(r.Item()) == k {
-				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.wave"), i+1))
-			}
-		}
-	}
-	for _, pk := range farm.PlantKinds {
+	for _, pk := range farm.LivePlantKinds() {
 		for _, y := range pk.Yield {
 			if naming.ItemKey(y.Item) == k {
 				out = append(out, fmt.Sprintf(i18n.T(lang, "codex.src.plant"), naming.UIItemName(lang, item.NewStack(farm.PlantSeed{Seed: pk.Seed}, 1))))
@@ -171,7 +164,7 @@ func Uses(s *core.Session, lang string, it item.Stack) []string {
 		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.crusher"), naming.UIItemName(lang, got)))
 	}
 	if e, ok := it.Item().(sgitem.Essence); ok {
-		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), wave.MobName(lang, e.Mob)))
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.sim"), dimension.MobName(lang, e.Mob)))
 	}
 	if machine.FuelDuration(it) > 0 {
 		out = append(out, i18n.T(lang, "codex.use.fuel"))

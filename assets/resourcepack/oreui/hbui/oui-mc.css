@@ -2309,3 +2309,348 @@
 .mc-load-tip .oui-line {
   justify-content: center;
 }
+
+/* The card pick screen (ui.PickCards): big cards side by side, coloured by rarity, rising in one after
+   another. */
+.mc-screen.mc-cardpick-screen {
+  background-color: rgba(0, 0, 0, 0.45);
+  --mc-ink: #e6e6e6;
+  --mc-title: #ffe66b;
+}
+
+.mc-cardpick-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-cardpick-head {
+  font-size: 2.4rem;
+  color: #ffe66b;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.mc-cardpick-body {
+  width: 60rem;
+  font-size: 1.4rem;
+  color: #e6e6e6;
+  text-align: center;
+  margin-bottom: 2.4rem;
+}
+
+.mc-cardpick-items {
+  display: flex;
+  width: 30rem;
+  flex-direction: column;
+  margin-top: 1.2rem;
+}
+
+.mc-equip-note {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The kit screen's info: its lines (the name, the kind, what it does, the numbers) apart. */
+.mc-equip-note .oui-line {
+  margin-bottom: 0.7rem;
+}
+
+.mc-cardpick-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.mc-cardpick-cell {
+  display: flex;
+  width: 20rem;
+  height: 23rem;
+  align-items: center;
+  justify-content: center;
+  animation: mc-cardpick-rise 0.35s ease-out both;
+}
+
+.mc-cardpick-card {
+  display: flex;
+  width: 18.8rem;
+  height: 22rem;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1.2rem;
+  background-color: #2b2b33;
+  border-width: 0.4rem;
+  border-style: solid;
+  border-color: #8b8b8b;
+  border-radius: 0.6rem;
+}
+
+/* The chosen card (under the pointer or by its number key) rises, grows and glows. */
+.mc-cardpick-card {
+  position: relative;
+  transition: transform 0.12s ease-out, background-color 0.12s ease-out, border-color 0.12s ease-out;
+}
+
+.mc-cardpick-card.mc-cardpick-on {
+  transform: translateY(-1.2rem) scale(1.06);
+  background-color: #3c3c4c;
+  box-shadow: 0 0 1.6rem rgba(255, 255, 255, 0.35);
+}
+
+.mc-cardpick-common.mc-cardpick-on { border-color: #ffffff; }
+.mc-cardpick-rare.mc-cardpick-on { border-color: #9fd0ff; box-shadow: 0 0 1.6rem rgba(79, 163, 255, 0.6); }
+.mc-cardpick-epic.mc-cardpick-on { border-color: #e2a8ff; box-shadow: 0 0 1.6rem rgba(196, 92, 255, 0.6); }
+
+.mc-cardpick-key {
+  position: absolute;
+  left: 0.8rem;
+  top: 0.6rem;
+  font-size: 1.4rem;
+  color: #8a8a96;
+}
+
+.mc-cardpick-on .mc-cardpick-key {
+  color: #ffe66b;
+}
+
+.mc-cardpick-common { border-color: #9a9a9a; }
+.mc-cardpick-rare { border-color: #4fa3ff; }
+.mc-cardpick-epic { border-color: #c45cff; }
+
+.mc-cardpick-tag {
+  font-size: 1.4rem;
+  color: #d0d0d0;
+}
+
+.mc-cardpick-icon {
+  display: flex;
+  width: 7.2rem;
+  height: 7.2rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.35);
+  border-radius: 3.6rem;
+}
+
+.mc-cardpick-icon img {
+  width: 4.8rem;
+  height: 4.8rem;
+}
+
+.mc-cardpick-title {
+  font-size: 1.8rem;
+  color: #ffffff;
+  text-align: center;
+}
+
+.mc-cardpick-text {
+  margin-top: 0.6rem;
+  width: 16.4rem;
+  font-size: 1.3rem;
+  color: #c8c8c8;
+  text-align: center;
+}
+
+@keyframes mc-cardpick-rise {
+  from { opacity: 0; transform: translateY(3rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The result screen (ui.Result): the headline drops in, the lines slide, the stars pop one by one
+   (a new one glows), the rewards bounce in and the button comes last. */
+.mc-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-result-head {
+  font-size: 3.2rem;
+  animation: mc-result-drop 0.45s ease-out both;
+}
+
+/* On the light window the headline needs its shadow: bright gold with a dark drop, or dark grey. */
+.mc-result-head.win { color: #f2b800; text-shadow: 0.25rem 0.25rem 0 #4a3200; }
+.mc-result-head.lose { color: #4a4a4a; }
+
+.mc-result-stars {
+  display: flex;
+  flex-direction: row;
+  margin-top: 0.2rem;
+}
+
+.mc-result-star {
+  display: flex;
+  width: 4.4rem;
+  height: 4.4rem;
+  align-items: center;
+  justify-content: center;
+  animation: mc-result-pop 0.35s ease-out both;
+}
+
+.mc-result-star-glyph {
+  font-size: 3.6rem;
+  color: #4a4a4a;
+}
+
+.mc-result-star.on .mc-result-star-glyph { color: #ffd23f; }
+.mc-result-star.new { animation-name: mc-result-pop-new; }
+
+.mc-result-lines {
+  display: flex;
+  flex-direction: column;
+  width: 40rem;
+  margin-top: 0.2rem;
+}
+
+.mc-result-line {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  border-bottom-width: 0.1rem;
+  border-bottom-style: solid;
+  border-bottom-color: rgba(0, 0, 0, 0.25);
+  animation: mc-result-slide 0.3s ease-out both;
+}
+
+.mc-result-label { color: #3f3f3f; }
+.mc-result-value { color: #1e1e1e; }
+
+.mc-result-rewards {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 0.6rem;
+}
+
+.mc-result-reward {
+  display: flex;
+  margin-left: 0.4rem;
+  margin-right: 0.4rem;
+  animation: mc-result-bounce 0.45s ease-out both;
+}
+
+.mc-result-ok {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  width: 30rem;
+  animation: mc-load-in 0.3s ease-out both;
+}
+
+@keyframes mc-result-drop {
+  from { opacity: 0; transform: translateY(-3rem) scale(1.4); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mc-result-pop {
+  from { opacity: 0; transform: scale(0.2); }
+  70% { opacity: 1; transform: scale(1.25); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mc-result-pop-new {
+  from { opacity: 0; transform: scale(0.2) rotate(-90deg); }
+  60% { opacity: 1; transform: scale(1.6) rotate(10deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes mc-result-slide {
+  from { opacity: 0; transform: translateX(-3rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mc-result-bounce {
+  from { opacity: 0; transform: translateY(2rem) scale(0.5); }
+  60% { opacity: 1; transform: translateY(-0.8rem) scale(1.15); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* The equip screen (ui.Equip): the equipment columns at the left with vanilla-sized slots whose
+   empty ones show their silhouettes, as the vanilla inventory does, and at the right what can go in
+   the chosen slot. */
+.mc-equip {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-self: stretch;
+  height: 100%;
+}
+
+.mc-equip-left {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  width: 19.2rem;
+  align-items: flex-start;
+  padding-right: 1.2rem;
+  margin-right: 1.2rem;
+  border-right-width: 0.2rem;
+  border-right-style: solid;
+  border-right-color: rgba(0, 0, 0, 0.25);
+}
+
+.mc-equip-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 6.4rem;
+}
+
+.mc-equip-head {
+  width: 6.4rem;
+  font-size: 1.2rem;
+  color: #404040;
+  margin-bottom: 0.4rem;
+}
+
+.mc-equip-head .oui-line {
+  justify-content: center;
+}
+
+.mc-equip-slot {
+  display: flex;
+  position: relative;
+  width: 3.6rem;
+  height: 3.6rem;
+}
+
+.mc-equip-empty {
+  position: absolute;
+  pointer-events: none;
+  left: 0.2rem;
+  top: 0.2rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  opacity: 0.55;
+}
+
+.mc-equip-right {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 37.6rem;
+  align-self: stretch;
+}
+
+.mc-equip-right .mc-body-text {
+  width: 35.6rem;
+}
+
+.mc-equip-bag {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.mc-cardpick-head .oui-line,
+.mc-cardpick-body .oui-line,
+.mc-cardpick-title .oui-line,
+.mc-cardpick-text .oui-line,
+.mc-cardpick-tag .oui-line {
+  justify-content: center;
+}

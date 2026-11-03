@@ -2,7 +2,6 @@ package farm
 
 import (
 	"container/heap"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -128,7 +127,15 @@ func nextDue(s *core.Session, r *CropRecord, stage int) time.Duration {
 }
 
 // CropKey is the state key of a crop position.
-func CropKey(pos cube.Pos) string { return fmt.Sprintf("%d,%d,%d", pos[0], pos[1], pos[2]) }
+func CropKey(pos cube.Pos) string {
+	b := make([]byte, 0, 24)
+	b = strconv.AppendInt(b, int64(pos[0]), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(pos[1]), 10)
+	b = append(b, ',')
+	b = strconv.AppendInt(b, int64(pos[2]), 10)
+	return string(b)
+}
 
 func parseCropKey(k string) (cube.Pos, bool) {
 	parts := strings.Split(k, ",")

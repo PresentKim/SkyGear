@@ -75,17 +75,15 @@ func On(p *player.Player, key string) bool {
 	mu.Unlock()
 	if !ok {
 		set = map[string]bool{}
-		for _, s := range all {
-			if d == nil {
-				break
-			}
-			v, err := d.Setting(acc, s.Key)
+		if d != nil {
+			vals, err := d.Settings(acc)
 			if err != nil {
-				log.Error("read setting", "account", acc, "key", s.Key, "err", err)
-				continue
+				log.Error("read settings", "account", acc, "err", err)
 			}
-			if v != "" {
-				set[s.Key] = v == "1"
+			for _, s := range all {
+				if v := vals[s.Key]; v != "" {
+					set[s.Key] = v == "1"
+				}
 			}
 		}
 		mu.Lock()

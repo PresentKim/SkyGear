@@ -19,6 +19,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/codex"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -26,7 +27,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
-	"github.com/presentkim/skygear/content/skygear/wave"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -89,6 +89,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		Log: g.log, IsOperator: g.isOperator, State: doc,
 		Store: func(b []byte) error { return g.db.SetSaveState(saveID, stateKey, b) },
 	})
+	c.FlushInterval = inst.StateFlushInterval()
 	s := &session{
 		Session: c, g: g,
 	}
@@ -139,6 +140,10 @@ type session struct {
 // Spawn is where a player without a position starts (island.Spawn).
 func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 
+// Relocate sends a player stored in the hunting ground (the server stopped
+// during its run) to the island instead (instance.Relocator).
+func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
+
 func (s *session) Join(p *player.Player, first bool) {
 	if first {
 		// Bare hands: only the menu item.
@@ -151,9 +156,12 @@ func (s *session) Join(p *player.Player, first bool) {
 	island.PurgeLost(s.Session)
 	progress.SendRecipesTo(s.Session, p)
 	screens.UpdateBoard(s.Session, p)
+	dimension.Joined(s.Session, p)
+	dimension.RetireItems(s.Session, p.Tx(), p)
 }
 
 func (s *session) Leave(p *player.Player) {
+	dimension.Leave(s.Session, p.Tx(), p)
 	s.Session.Leave(p)
 	expand.Stop(s.Session, p, p.Tx())
 	delete(s.diedFood, p.H())
@@ -195,7 +203,7 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, wave.GatePortalType), wave.MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.GemType, dimension.PopupType), dimension.MonsterTypes()...)
 }
 
 // MenuBack shows the game screen a platform screen opened in the save goes

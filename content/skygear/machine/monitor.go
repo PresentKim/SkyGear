@@ -349,3 +349,16 @@ var factoryPart = core.NewPart(func() *factory {
 
 // FactoryOf is what the save of s knows of its machines.
 func FactoryOf(s *core.Session) *factory { return factoryPart.Of(s) }
+
+// Ticking returns the machines of kind that ticked lately (their chunk is
+// loaded), by position.
+func Ticking(s *core.Session, kind string) map[cube.Pos]*State {
+	f := FactoryOf(s)
+	out := map[cube.Pos]*State{}
+	for pos, st := range f.machines {
+		if st.Def == Kinds[kind] && f.lastTick-st.Mon.seen <= machineStale*20 {
+			out[pos] = st
+		}
+	}
+	return out
+}

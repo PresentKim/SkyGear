@@ -30,7 +30,7 @@ Dragonfly 를 패치하지 않고 `common/sghook` 으로 세션에 닿는다([be
 
 6. 리소스팩 `assets/resourcepack/inventoryui` (tedo0627/InventoryUIResourcePack, MIT)가
    제목 앞의 `§{줄 수 1~6}§{스크롤 0/1}` + `§r` 9개를 읽어 창 크기를 정한다.
-   54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로.
+   54칸을 넘으면 6줄 높이로 스크롤한다. 접두어 없는 일반 상자는 바닐라 화면 그대로다.
 7. 세션의 열린 창(`openedWindow`)을 그 인벤토리로 두므로 아이템 이동은 Dragonfly 의 `ContainerLevelEntity → openedWindow` 경로를 그대로 탄다.
    창이 닫히면 엔티티를 지우고 닫힘 콜백을 부른다. 서버가 닫으면(`chestui.Close`, 다른 창 열기) 그 트랜잭션에서,
    Dragonfly 가 닫으면(클라이언트 닫기 응답 `ContainerClose` 를 훅이 봄) 플레이어 트랜잭션(`Do`)에서, 접속이 끊기면 닫힘 훅에서 플레이어 없이 부른다.
@@ -52,13 +52,13 @@ Dragonfly 를 패치하지 않고 `common/sghook` 으로 세션에 닿는다([be
   그 세션 월드인지 확인한다(스카이기어 `session.button`).
 - 닫힘 콜백의 `p`·`tx` 는 접속이 끊겨 닫힌 경우 nil 이다.
 - 열린 창(상자든 블록 컨테이너든)은 `chestui.Close(p)` 로 닫는다. 인스턴스 이동(`instance.Manager` Enter/leave) 전에 닫는다.
-- 클라이언트가 보낸 것을 다 처리한 뒤에 할 일은 `sghook.AfterClientSync`(NetworkStackLatency 왕복, 최대 1초).
+- 클라이언트가 보낸 것을 다 처리한 뒤에 할 일은 `sghook.AfterClientSync`(NetworkStackLatency 왕복, 최대 1초)로 한다.
 
 ## 적용 화면
 
 메뉴(넣고 빼는 것이 없는 화면)는 상자가 아니라 폼이다([json-ui.md](json-ui.md)). 상자는 실제 아이템이 오가는 곳에만 쓴다.
 
-- **인벤토리 보기(InvSee)** — 72칸(8줄, 스크롤): 인벤 27 + 핫바 9 / 갑옷 4 + 보조손 1 / 엔더상자 27.
+- **인벤토리 보기(InvSee)**(72칸, 8줄, 스크롤): 인벤 27 + 핫바 9 / 갑옷 4 + 보조손 1 / 엔더상자 27.
   같은 세이브 월드에 있는 대상은 실시간(1초마다 + 이동 직전 동기화, 화면과 대상이 다르면 그 이동은 취소),
   그 외에는 저장된 상태를 `LockState` 로 잠그고 바뀔 때마다 DB 에 쓴다. 잠글 수 없으면 읽기 전용.
 - **기계 창**([machines](machines.md)): 기계별 레이아웃은 [json-ui.md](json-ui.md).

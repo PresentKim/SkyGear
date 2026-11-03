@@ -230,19 +230,25 @@ func (h FlowHopper) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		tx.SetBlock(pos, NewFlowHopper(h.Kind, h.Facing), nil)
 		return
 	}
-	if currentTick%int64(h.Info().interval) != 0 {
+	if (currentTick+int64(pos[0]*31+pos[1]*17+pos[2]*7)&0xffff)%int64(h.Info().interval) != 0 {
 		return
 	}
 	out, in := h.sides()
-	StepHopper(tx, pos, h.Inv, out, in)
+	if inserted, extracted := StepHopper(tx, pos, h.Inv, out, in); inserted || extracted {
+		// The items changed by pointer: mark the chunk so a save keeps them.
+		tx.SetBlockEntity(pos, h)
+	}
 }
 
 // InsertItems implements itemio.Inserter: any face fills the hopper.
-func (h FlowHopper) InsertItems(_ *world.Tx, _ cube.Pos, _ cube.Face, st item.Stack) int {
+func (h FlowHopper) InsertItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack) int {
 	if h.Inv == nil {
 		return 0
 	}
 	n, _ := h.Inv.AddItem(st)
+	if n > 0 {
+		tx.SetBlockEntity(pos, h)
+	}
 	return n
 }
 
@@ -260,7 +266,7 @@ func (h FlowHopper) PeekItems(_ *world.Tx, _ cube.Pos, _ cube.Face, want func(it
 }
 
 // ExtractItems implements itemio.Extractor.
-func (h FlowHopper) ExtractItems(_ *world.Tx, _ cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
+func (h FlowHopper) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
 	if h.Inv == nil {
 		return item.Stack{}
 	}
@@ -274,6 +280,9 @@ func (h FlowHopper) ExtractItems(_ *world.Tx, _ cube.Pos, _ cube.Face, st item.S
 		_ = h.Inv.SetItem(slot, cur.Grow(-take))
 		got += take
 		out = cur.Grow(got - cur.Count())
+	}
+	if got > 0 {
+		tx.SetBlockEntity(pos, h)
 	}
 	return out
 }

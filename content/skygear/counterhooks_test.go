@@ -11,10 +11,10 @@ import (
 	"testing"
 
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // TestEveryCounterIsCounted: each key of the catalog is counted somewhere in
@@ -101,8 +101,8 @@ func TestCounterKindsExist(t *testing.T) {
 	}
 	for _, c := range achievement.Counters {
 		if rest, ok := strings.CutPrefix(c.Key, "wave_level_"); ok {
-			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(wave.Levels) {
-				t.Errorf("counter %s: the gate has %d levels", c.Key, len(wave.Levels))
+			if n, err := strconv.Atoi(rest); err != nil || n < 1 || n > len(dimension.Hunts) {
+				t.Errorf("counter %s: the second dimension has %d hunts", c.Key, len(dimension.Hunts))
 			}
 			continue
 		}

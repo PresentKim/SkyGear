@@ -32,12 +32,14 @@ var EssenceCosts = map[string]map[string]int{
 	// monsters
 	"bone_craft": {sgitem.EssenceHunting: 2}, "slime_block": {sgitem.EssenceHunting: 2},
 	"blaze_craft": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4}, "ender_chest": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4},
-	"diamond_armor":  {sgitem.EssenceAlchemy: 2, sgitem.EssenceHunting: 4},
-	"dimension_gate": {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4},
+	"diamond_armor":     {sgitem.EssenceAlchemy: 2, sgitem.EssenceHunting: 4},
+	"dimension":         {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
+	"essence_collector": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 6},
+	"relics":            {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
 	// magic plants
+	"magic_seed":   {sgitem.EssenceAlchemy: 4},
 	"magic_botany": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceFarming: 4}, "dyeing": {sgitem.EssenceMagic: 4},
 	"magic_gems":    {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 4, sgitem.EssenceMagic: 4},
-	"magic_essence": {sgitem.EssenceAlchemy: 6, sgitem.EssenceHunting: 6, sgitem.EssenceMagic: 6},
 	"magic_sieve":   {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 8, sgitem.EssenceHunting: 6, sgitem.EssenceMagic: 6},
 	"config_copier": {sgitem.EssenceEngineering: 8, sgitem.EssenceAlchemy: 6},
 	// machine tiers

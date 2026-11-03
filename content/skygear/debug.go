@@ -14,16 +14,16 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -33,7 +33,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugWave{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -225,33 +225,36 @@ func (c debugStatus) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
-// debugWave places a dimension gate beside the operator and starts a level of
-// it, opening the levels below (for testing the waves).
-type debugWave struct {
+// debugHunt sends the operator into the second dimension to hunt a kind of
+// monster (slime by default), with no unlock asked (for testing the runs).
+type debugHunt struct {
 	adminBase
-	Sub   cmd.SubCommand `cmd:"wave"`
-	Level int            `cmd:"level"`
+	Sub cmd.SubCommand         `cmd:"hunt"`
+	Mob cmd.Optional[huntEnum] `cmd:"mob"`
 }
 
-func (c debugWave) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+type huntEnum string
+
+func (huntEnum) Type() string { return "sg_hunt" }
+func (huntEnum) Options(cmd.Source) []string {
+	var out []string
+	for _, h := range dimension.Hunts {
+		out = append(out, h.Mob)
+	}
+	return out
+}
+
+func (c debugHunt) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	p, s, ok := c.session(src, o, tx)
 	if !ok {
 		return
 	}
-	if c.Level < 1 || c.Level > len(wave.Levels) {
-		o.Errorf("level 1-%d", len(wave.Levels))
+	mob := string(c.Mob.LoadOr(huntEnum(sgitem.MobSlime)))
+	if !dimension.Begin(s.Session, tx, p, mob) {
+		o.Error("a hunt is already going on")
 		return
 	}
-	pos := cube.PosFromVec3(p.Position()).Add(cube.Pos{2, 0, 0})
-	if _, isGate := tx.Block(pos).(machine.Machine); !isGate {
-		tx.SetBlock(pos, machine.New(machine.KindGate, "", ""), nil)
-	}
-	wave.StateOf(s.Session).GateTier = max(wave.StateOf(s.Session).GateTier, c.Level-1)
-	if !wave.Start(s.Session, tx, pos, p.Position(), c.Level) {
-		o.Error("a wave is already going on")
-		return
-	}
-	o.Printf("wave %d started with %d monsters", c.Level, len(wave.LocalOf(s.Session).Wave.Left)+len(wave.LocalOf(s.Session).Wave.Pending))
+	o.Printf("hunting %s", mob)
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random

@@ -511,7 +511,11 @@ func (s *Session) sendChunks(tx *world.Tx, c Controllable) {
 	const maxChunkTransactions = 8
 	toLoad := maxChunkTransactions - len(s.openChunkTransactions)
 	s.blobMu.Unlock()
-	if toLoad > 4 {
+	// skygear patch: while the client is loading (few open blob
+	// transactions) up to 16 chunks go out per tick, otherwise 4.
+	if loading := toLoad >= maxChunkTransactions-2; loading {
+		toLoad = 16
+	} else if toLoad > 4 {
 		toLoad = 4
 	}
 	s.chunkLoader.Load(tx, toLoad)

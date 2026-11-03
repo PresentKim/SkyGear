@@ -44,7 +44,7 @@ func init() {
 		world.RegisterItem(EnergyGauge{Step: i})
 	}
 	world.RegisterItem(Info{})
-	for _, k := range Order {
+	for _, k := range append(Order[:len(Order):len(Order)], Retired...) {
 		Kinds[k].Hash = block.NextHash()
 		world.RegisterBlock(Machine{Kind: k})
 		world.RegisterItem(Machine{Kind: k})
@@ -154,7 +154,8 @@ const (
 	KindStorageLink       = "storage_link"
 	// KindTinker is the tinker table (tinkerform.go).
 	KindTinker = "tinker_table"
-	// KindGate is the dimension gate (wave.go).
+	// KindGate is the retired dimension gate: it breaks into its materials
+	// (dimension/retired.go).
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
@@ -167,6 +168,11 @@ const (
 	KindFeller  = "tree_feller"
 	KindCrafter = "auto_crafter"
 	KindLab     = "laboratory"
+	// KindCollector receives the essences of a monster the island hunted
+	// (dimension/collector.go).
+	KindCollector = "essence_collector"
+	// KindRelicTable makes and raises the relics (dimension/relic.go).
+	KindRelicTable = "relic_table"
 )
 
 type ID int
@@ -196,6 +202,8 @@ const (
 	idFeller
 	idCrafter
 	idLab
+	idCollector
+	idRelicTable
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -227,8 +235,6 @@ type Def struct {
 	fluidOnly              fluidnet.Kind
 	// controller marks the storage controller (storage.go).
 	Controller bool
-	// gate marks the dimension gate (wave.go): using it opens its form.
-	Gate bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
 	Cell bool
@@ -312,9 +318,18 @@ var Kinds = map[string]*Def{
 		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
+	KindCollector: {
+		// The harvester's window: four output slots, no energy.
+		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10,
+		helpKeys: []string{"machine.collector.help.1", "machine.collector.help.2"},
+	},
+	KindRelicTable: {
+		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.relictable.help.1"},
+	},
 	KindGate: {
-		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10, Gate: true,
-		helpKeys: []string{"machine.gate.help.1", "machine.gate.help.2"},
+		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.gate.help.1"},
 	},
 	KindWasher: {
 		ID: idWasher, nameKey: "machine.washer.name", Marker: "§d§m§2", Interval: 60, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
@@ -383,8 +398,12 @@ var Kinds = map[string]*Def{
 	},
 }
 
+// Retired are the kinds that are registered (old islands load) but never
+// shown or made.
+var Retired = []string{KindGate}
+
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindGate, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -506,6 +525,62 @@ type State struct {
 	// seenWorked and lastWorkTick tell when the machine last worked (animate.go).
 	seenWorked   int
 	lastWorkTick int64
+	// dirty is set when a saved slot changed; saved is the saved scalars as
+	// the chunk was last marked. Dragonfly writes only the chunks marked
+	// modified, and a machine changes its State by pointer, so Tick marks
+	// the chunk itself (persistState).
+	dirty bool
+	saved stateSig
+	// invVer counts the changes of the input and output slots. A machine
+	// that found its output full (process) skips the work while invVer is
+	// still stuckVer, rechecking after stuckRecheck ticks anyway. curTick is
+	// the tick being run.
+	invVer, stuckVer uint64
+	stuckOn          bool
+	stuckTick        int64
+	curTick          int64
+}
+
+// stuckRecheck is how many ticks a stuck machine trusts that nothing changed.
+const stuckRecheck = 100
+
+// stateSig is the saved scalars of a State, to tell whether a save would
+// differ from the last one.
+type stateSig struct {
+	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
+	unlimited                                                               bool
+	fluid                                                                   fluidnet.Kind
+	mob, mesh, recipe                                                       string
+}
+
+func (st *State) sig() stateSig {
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+}
+
+// persistInterval is how many ticks apart a changed machine marks its chunk.
+const persistInterval = 100
+
+// persistState marks the chunk of a machine whose saved state changed, at
+// most once per persistInterval ticks (staggered by position), without a
+// block update or a packet.
+func (st *State) persistState(currentTick int64, pos cube.Pos, tx *world.Tx) {
+	if (currentTick+int64(posHash(pos)))%persistInterval != 0 {
+		return
+	}
+	sig := st.sig()
+	if !st.dirty && sig == st.saved {
+		return
+	}
+	// Read the block again: the tick may have changed its look.
+	if m, ok := tx.Block(pos).(Machine); ok && m.State == st {
+		tx.SetBlockEntity(pos, m)
+	}
+	st.dirty, st.saved = false, sig
+}
+
+// posHash spreads machines over the ticks of persistInterval.
+func posHash(pos cube.Pos) int {
+	return (pos[0]*31 + pos[1]*17 + pos[2]*7) & 0x7fffffff
 }
 
 // cycleLen is the ticks of the cycle the machine is on.
@@ -542,6 +617,12 @@ func New(kind, owner, ownerName string) Machine {
 	}
 	_ = inv.SetItem(infoSlot, st.InfoItem())
 	inv.Handle(machineHandler{State: st})
+	st.storage.OnChange(func(slot int, _, _ item.Stack) {
+		if st.Role(slot) != RoleNone {
+			st.dirty = true
+			st.invVer++
+		}
+	})
 	st.shownRecipe = "\x00"
 	if k.Crafter {
 		st.showRecipe()
@@ -581,6 +662,7 @@ func (k *Def) windowTitle(lang string) string { return k.Marker + "§r" + k.Titl
 
 func (st *State) OpenWindow(p *player.Player) {
 	st.storage.SetTitle(st.Def.windowTitle(i18n.Of(p)))
+	st.prepareDisplay()
 	st.storage.Open(p, nil)
 }
 
@@ -590,6 +672,13 @@ func (st *State) InfoItem() item.Stack {
 	var lore []wintext.Text
 	for _, k := range st.Def.helpKeys {
 		lore = append(lore, wintext.Text{wintext.Key(k)})
+	}
+	if st.Def.ID == idCollector {
+		if st.Mob != "" {
+			lore = append(lore, wintext.Text{wintext.Key("machine.collector.mob", wintext.Key("mob."+st.Mob))})
+		} else {
+			lore = append(lore, wintext.Text{wintext.Key("machine.collector.none")})
+		}
 	}
 	if st.Def.ID == idSellBox && st.ownerName != "" {
 		lore = append(lore, wintext.Text{wintext.Key("machine.info.owner"), wintext.Raw(st.ownerName)})
@@ -609,6 +698,13 @@ func (st *State) InfoItem() item.Stack {
 	}
 	name = append(name, wintext.Raw(slotdeco.TierMark(badge)))
 	return wintext.With(item.NewStack(Info{}, 1), name, lore...)
+}
+
+// SetMob sets what the machine works with (the monster an essence
+// collector receives) and shows it in its window.
+func (st *State) SetMob(mob string) {
+	st.Mob = mob
+	_ = st.Inv().SetItem(infoSlot, st.InfoItem())
 }
 
 // Info is the info icon item of machine windows. It only ever sits
@@ -810,9 +906,14 @@ func (st *State) Fill(it item.Stack) int {
 
 // Fits reports whether every stack fits into slots together.
 func Fits(inv *inventory.Inventory, slots []int, stacks []item.Stack) bool {
-	room := make([]item.Stack, len(slots))
-	for i, s := range slots {
-		room[i], _ = inv.Item(s)
+	var buf [8]item.Stack
+	room := buf[:0]
+	if len(slots) > len(buf) {
+		room = make([]item.Stack, 0, len(slots))
+	}
+	for _, s := range slots {
+		it, _ := inv.Item(s)
+		room = append(room, it)
 	}
 	for _, it := range stacks {
 		left := it.Count()
@@ -994,19 +1095,35 @@ func (CycleGauge) Category() category.Category { return category.Items() }
 
 func (m Machine) Def() *Def { return Kinds[m.Kind] }
 
-func (m Machine) EncodeItem() (string, int16) { return "skygear:" + m.Kind, 0 }
+func (m Machine) EncodeItem() (string, int16) { return encodedName(m.Kind), 0 }
+
+// encodedNames are the item names of the kinds, built once.
+var encodedNames = func() map[string]string {
+	names := make(map[string]string, len(Kinds))
+	for k := range Kinds {
+		names[k] = "skygear:" + k
+	}
+	return names
+}()
+
+func encodedName(kind string) string {
+	if n, ok := encodedNames[kind]; ok {
+		return n
+	}
+	return "skygear:" + kind
+}
 
 func (m Machine) EncodeBlock() (string, map[string]any) {
 	if IsSieve(m.Kind) {
-		return "skygear:" + m.Kind, map[string]any{SieveLookState: LookValue(m.MeshLook, m.Content, m.Fill)}
+		return encodedName(m.Kind), map[string]any{SieveLookState: LookValue(m.MeshLook, m.Content, m.Fill)}
 	}
 	if TierLook(m.Kind) {
-		return "skygear:" + m.Kind, map[string]any{TierState: TierValue(m.Kind, m.Tier, m.Active)}
+		return encodedName(m.Kind), map[string]any{TierState: TierValue(m.Kind, m.Tier, m.Active)}
 	}
 	if AnimatedKinds[m.Kind] {
-		return "skygear:" + m.Kind, map[string]any{activeState: activeValue(m.Active)}
+		return encodedName(m.Kind), map[string]any{activeState: activeValue(m.Active)}
 	}
-	return "skygear:" + m.Kind, nil
+	return encodedName(m.Kind), nil
 }
 
 func (m Machine) Hash() (uint64, uint64) {
@@ -1031,7 +1148,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (north), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true, KindCollector: true, KindRelicTable: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true}
 )
 
@@ -1178,8 +1295,11 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	if p, ok := data["Progress"].(int32); ok {
 		n.State.Progress = min(int(p), n.State.Def.Interval)
 	}
-	if v, ok := data["Unlimited"].(bool); ok {
+	switch v := data["Unlimited"].(type) {
+	case bool:
 		n.State.Unlimited = v
+	case uint8:
+		n.State.Unlimited = v != 0
 	}
 	for key, dst := range map[string]*int{"Energy": &n.State.Energy, "Burn": &n.State.Burn, "BurnMax": &n.State.burnMax, "Boost": &n.State.Boost} {
 		if v, ok := data[key].(int32); ok {
@@ -1206,7 +1326,8 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 			n.State.SetLab(r)
 		}
 	}
-	n.State.ShowProgress()
+	// What was just loaded is what the chunk holds.
+	n.State.dirty, n.State.saved = false, n.State.sig()
 	return n
 }
 
@@ -1343,7 +1464,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st := m.State
-	st.Sess, st.pos, st.Stuck = s, pos, stuckNone
+	st.Sess, st.pos, st.Stuck, st.curTick = s, pos, stuckNone, currentTick
 	st.Mon.seen, FactoryOf(s).lastTick = currentTick, currentTick
 	FactoryOf(s).machines[pos] = st
 	st.DrainLegacy()
@@ -1371,30 +1492,56 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
 	if st.Def.Animated {
-		showActive(tx, pos, st, currentTick)
+		showActiveOf(tx, pos, m, st, currentTick)
 	}
+	st.persistState(currentTick, pos, tx)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
 		return
 	}
-	if currentTick%10 == 0 {
-		st.ShowEnergy()
-		if (st.Stuck != stuckNone) != st.ShownStuck {
-			_ = st.Inv().SetItem(infoSlot, st.InfoItem())
-		}
-	}
 	if IsSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
-		showSieve(tx, pos, st)
-		if st.Def.autoSieve {
-			st.ShowProgress()
-		}
+		st.tickDisplay(currentTick+int64(posHash(pos)), true)
+		showSieveOf(tx, pos, m, st)
 		return
 	}
+	st.tickDisplay(currentTick+int64(posHash(pos)), false)
+}
+
+// tickDisplay keeps the window's progress arrow, energy gauge and info icon
+// current, but only while someone has the window open: OpenWindow
+// (prepareDisplay) brings them up to date when one opens. A sieve shows its
+// progress on the model, so only the auto sieve has an arrow.
+func (st *State) tickDisplay(currentTick int64, sieve bool) {
+	if !st.storage.HasViewers() {
+		return
+	}
+	if currentTick%10 == 0 {
+		st.ShowEnergy()
+		st.showStuck()
+	}
+	if !sieve || st.Def.autoSieve {
+		st.ShowProgress()
+	}
+}
+
+// showStuck redraws the info icon when its stuck badge is out of date.
+func (st *State) showStuck() {
+	if (st.Stuck != stuckNone) != st.ShownStuck {
+		_ = st.Inv().SetItem(infoSlot, st.InfoItem())
+	}
+}
+
+// prepareDisplay brings the display items up to date; a machine that worked
+// unwatched did not keep them.
+func (st *State) prepareDisplay() {
+	st.ShownPct, st.shownEnergy = -1, -1
 	st.ShowProgress()
+	st.ShowEnergy()
+	st.showStuck()
 }
 
 // runMachine runs the work of a machine once.
@@ -1456,6 +1603,13 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 // operation waits until they all fit. roll, if not nil, picks the actual
 // products (otherwise all possible ones are given).
 func (st *State) process(possible, roll func(in item.Stack) []item.Stack) {
+	if st.stuckOn {
+		if st.stuckVer == st.invVer && st.Progress >= st.Def.Interval && st.curTick-st.stuckTick < stuckRecheck {
+			st.Stuck = StuckOutput
+			return
+		}
+		st.stuckOn = false
+	}
 	slot, in, ok := st.FirstInput()
 	if !ok || !st.Accepts(in) {
 		st.Progress = 0
@@ -1467,6 +1621,7 @@ func (st *State) process(possible, roll func(in item.Stack) []item.Stack) {
 	}
 	out := possible(in)
 	if !st.RoomFor(out) {
+		st.stuckOn, st.stuckVer, st.stuckTick = true, st.invVer, st.curTick
 		return
 	}
 	if roll != nil {

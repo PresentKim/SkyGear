@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -13,6 +14,8 @@ type savedPart struct {
 	// new makes the data of a new save, zero the data a save's document is
 	// read into.
 	new, zero func() any
+	// fields are the JSON fields the part owns.
+	fields []string
 }
 
 var (
@@ -38,7 +41,8 @@ func NewSaved[T any](mk func() *T) *Saved[T] {
 	}
 	partsMu.Lock()
 	defer partsMu.Unlock()
-	for _, f := range jsonFields(t) {
+	fields := jsonFields(t)
+	for _, f := range fields {
 		if other, ok := savedField[f]; ok {
 			panic(fmt.Sprintf("core.NewSaved: field %q of %s is also %s's", f, t, other))
 		}
@@ -46,7 +50,7 @@ func NewSaved[T any](mk func() *T) *Saved[T] {
 	}
 	nParts++
 	p := &Saved[T]{id: nParts - 1}
-	saved = append(saved, savedPart{id: p.id, new: func() any { return mk() }, zero: func() any { return new(T) }})
+	saved = append(saved, savedPart{id: p.id, fields: fields, new: func() any { return mk() }, zero: func() any { return new(T) }})
 	return p
 }
 
@@ -74,38 +78,61 @@ func jsonFields(t reflect.Type) []string {
 }
 
 // loadSaved makes every saved part of s and fills it from doc (nil: a new
-// save).
+// save). The document is parsed once into its top-level fields.
 func (s *Session) loadSaved(doc []byte) error {
+	var fields map[string]json.RawMessage
+	if doc != nil {
+		if err := json.Unmarshal(doc, &fields); err != nil {
+			return err
+		}
+	}
 	for _, p := range saved {
 		if doc == nil {
-			s.parts[p.id] = p.new()
+			s.setPart(p.id, p.new())
 			continue
 		}
 		v := p.zero()
-		if err := json.Unmarshal(doc, v); err != nil {
+		// A part reads only its own fields, so hand it just those.
+		own := map[string]json.RawMessage{}
+		for _, f := range p.fields {
+			if raw, ok := fields[f]; ok {
+				own[f] = raw
+			}
+		}
+		b, err := json.Marshal(own)
+		if err != nil {
 			return err
 		}
-		s.parts[p.id] = v
+		if err := json.Unmarshal(b, v); err != nil {
+			return err
+		}
+		s.setPart(p.id, v)
 	}
 	return nil
 }
 
 // marshalSaved is the state document of s: the fields of every saved part
-// in one object.
+// in one object. Each part is marshalled once and its object spliced in.
 func (s *Session) marshalSaved() ([]byte, error) {
-	doc := map[string]json.RawMessage{}
+	var buf bytes.Buffer
+	buf.WriteByte('{')
 	for _, p := range saved {
 		b, err := json.Marshal(s.parts[p.id])
 		if err != nil {
 			return nil, err
 		}
-		var fields map[string]json.RawMessage
-		if err := json.Unmarshal(b, &fields); err != nil {
-			return nil, err
+		if len(b) < 2 || b[0] != '{' || b[len(b)-1] != '}' {
+			return nil, fmt.Errorf("saved part %d is not a JSON object", p.id)
 		}
-		for k, v := range fields {
-			doc[k] = v
+		b = b[1 : len(b)-1]
+		if len(b) == 0 {
+			continue
 		}
+		if buf.Len() > 1 {
+			buf.WriteByte(',')
+		}
+		buf.Write(b)
 	}
-	return json.Marshal(doc)
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
 }

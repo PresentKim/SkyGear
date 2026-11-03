@@ -62,7 +62,10 @@ func (v *Visual) Variant() int32 { return v.data.Data.(*visualData).variant }
 func (v *Visual) MarkVariant() int32 { return v.data.Data.(*visualData).mark }
 
 // Tick removes visuals that no longer belong to a bundle.
-func (v *Visual) Tick(tx *world.Tx, _ int64) {
+func (v *Visual) Tick(tx *world.Tx, current int64) {
+	if !checkTurn(v.handle, current) {
+		return
+	}
 	d := v.data.Data.(*visualData)
 	s, ok := core.Of(tx)
 	_, isBundle := tx.Block(d.owner).(Bundle)
@@ -92,6 +95,9 @@ func (visualType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Ent
 
 func (visualType) EncodeEntity() string { return "skygear:conduit_visual" }
 
+// Transient: never saved with the world.
+func (visualType) Transient() bool { return true }
+
 func (visualType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (visualType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &visualData{} }
@@ -105,14 +111,25 @@ func ownsVisual(s *core.Session, pos cube.Pos, h *world.EntityHandle) bool {
 // showConduit makes sure the bundle at pos has a display entity that shows
 // what it holds now: one that is out of date is made again.
 func showConduit(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle) {
-	showConduitWith(s, tx, pos, b, plugsOf(tx, pos, b))
+	showConduitWith(s, tx, pos, b, plugsOf(tx, pos, b), true)
 }
 
-// showConduitWith is showConduit for a bundle whose plugs are known.
-func showConduitWith(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs map[plugKey]int) {
-	syncPlates(s, tx, pos, b, plugs)
+// checkTurn is true once every 20 ticks for a display entity, phased by its
+// handle, so owner checks do not all run on the same tick.
+func checkTurn(h *world.EntityHandle, current int64) bool {
+	return (int64(h.UUID()[0])+current)%20 == 0
+}
+
+// showConduitWith is showConduit for a bundle whose plugs are known. Unless
+// verify is set, entities whose remembered look is right are taken as alive.
+func showConduitWith(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs plugs, verify bool) {
+	syncPlates(s, tx, pos, b, plugs, verify)
 	variant, mark := Look(b)
 	if h, ok := LocalOf(s).Visuals[pos]; ok {
+		if !verify && LocalOf(s).looks[h] == [2]int32{variant, mark} {
+			return
+		}
+		delete(LocalOf(s).looks, h)
 		if e, ok := h.Entity(tx); ok {
 			if d := e.(*Visual).data.Data.(*visualData); d.variant == variant && d.mark == mark {
 				return
@@ -126,17 +143,21 @@ func showConduitWith(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plug
 	h := world.EntitySpawnOpts{Position: mgl64.Vec3{float64(pos[0]) + 0.5, float64(pos[1]), float64(pos[2]) + 0.5}}.
 		New(VisualType, visualConfig{owner: pos, variant: variant, mark: mark})
 	LocalOf(s).Visuals[pos] = h
+	LocalOf(s).looks[h] = [2]int32{variant, mark}
 	tx.AddEntity(h)
 }
 
 // RemoveVisual removes the display entity and the plates of the bundle at pos.
 func RemoveVisual(s *core.Session, tx *world.Tx, pos cube.Pos) {
+	// A lone conduit has no bundle beside it to hear of its removal.
+	invalidateNets(tx)
 	removePlates(s, tx, pos)
 	h, ok := LocalOf(s).Visuals[pos]
 	if !ok {
 		return
 	}
 	delete(LocalOf(s).Visuals, pos)
+	delete(LocalOf(s).looks, h)
 	if e, ok := h.Entity(tx); ok {
 		_ = e.Close()
 	}
@@ -147,7 +168,17 @@ func RemoveVisuals(s *core.Session, tx *world.Tx) {
 	for pos := range LocalOf(s).Visuals {
 		RemoveVisual(s, tx, pos)
 	}
-	for k := range LocalOf(s).Plates {
-		removePlates(s, tx, k.Pos)
+	// The plates of a bundle that has no display entity.
+	for pos := range platePositions(LocalOf(s).Plates) {
+		removePlates(s, tx, pos)
 	}
+}
+
+// platePositions are the positions of the bundles that have a plate.
+func platePositions(plates map[PlateKey]*world.EntityHandle) map[cube.Pos]struct{} {
+	out := map[cube.Pos]struct{}{}
+	for k := range plates {
+		out[k.Pos] = struct{}{}
+	}
+	return out
 }

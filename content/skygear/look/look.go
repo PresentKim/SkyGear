@@ -21,6 +21,7 @@ import (
 	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -32,7 +33,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // Reach is how far a player looks for a block, in blocks.
@@ -40,6 +40,9 @@ const Reach = 6
 
 // lookInterval limits how often moving or turning updates the panel.
 const lookInterval = 100 * time.Millisecond
+
+// updateAllSkip is how recent a panel update makes UpdateAll leave a player be.
+const updateAllSkip = 50 * time.Millisecond
 
 // LookedAt returns the block a player at pos with rotation rot looks at.
 // Crops count where the view crosses their height (it grows with the
@@ -114,8 +117,13 @@ func updateLookAt(s *core.Session, p *player.Player, tx *world.Tx, at cube.Pos, 
 
 // UpdateAll updates every player's panel.
 func UpdateAll(s *core.Session, tx *world.Tx) {
+	now := time.Now()
 	for e := range tx.Players() {
 		p := e.(*player.Player)
+		// a move updated the panel just now
+		if now.Sub(lastLook.Of(s)[p.H()]) < updateAllSkip {
+			continue
+		}
 		at, b, ok := LookedAt(p, tx, p.Position(), p.Rotation())
 		updateLookAt(s, p, tx, at, b, ok)
 		if ok {
@@ -288,7 +296,7 @@ func FurnaceArrow(b world.Block) item.Stack {
 
 // MachineLines are a machine's lines and item line: what it holds, with
 // its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"),
-// grey "비어있음" when empty, and what waits in its output.
+// grey "비어 있음" when empty, and what waits in its output.
 func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	st := m.State
 	if st == nil {
@@ -311,7 +319,7 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
 	case st.Def == machine.Kinds[machine.KindGenerator]:
 		return machine.GeneratorLines(lang, st), nil
-	case st.Def.Gate, m.Kind == machine.KindStorageLink, m.Kind == machine.KindTinker:
+	case m.Kind == machine.KindGate, m.Kind == machine.KindStorageLink, m.Kind == machine.KindTinker, m.Kind == machine.KindRelicTable:
 		return nil, nil
 	case st.Def.Controller:
 		return nil, nil
@@ -342,7 +350,7 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 		}
 	}
 	if len(st.Def.Charge) > 0 && st.Charges > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), wave.MobName(lang, st.Mob), st.Charges))
+		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), dimension.MobName(lang, st.Mob), st.Charges))
 	}
 	lines = append(lines, machine.ConsumerLines(lang, st)...)
 	lines = append(lines, machine.BlockedLines(lang, st)...)

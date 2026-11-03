@@ -8,6 +8,8 @@ import (
 	"math"
 	"net"
 	"slices"
+	"strconv"
+	"sync"
 	"time"
 	_ "unsafe" // Imported for compiler directives.
 
@@ -28,7 +30,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/google/uuid"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
@@ -110,124 +111,173 @@ func (s *Session) sendBiomes() {
 	})
 }
 
-// sendRecipes sends the current crafting recipes to the session.
-func (s *Session) sendRecipes() {
-	var (
-		shapedRecipes            []protocol.ShapedRecipe
-		shapelessRecipes         []protocol.ShapelessRecipe
-		userDataShapelessRecipes []protocol.UserDataShapelessRecipe
-		multiRecipes             []protocol.MultiRecipe
-		smithingTransformRecipes []protocol.SmithingTransformRecipe
-		smithingTrimRecipes      []protocol.SmithingTrimRecipe
-		potionRecipes            []protocol.PotionRecipe
-		potionContainerChange    []protocol.PotionContainerChangeRecipe
-	)
+// recipeEntry is the protocol form of one recipe, built once. The network ID
+// is the recipe's index in the full list plus one and never changes.
+// (skygear patch)
+type recipeEntry struct {
+	recipe recipe.Recipe
+	id     uint32
 
-	// skygear patch: only the recipes the filter keeps are sent and
-	// accepted. Network IDs stay the index in the full list.
-	clear(s.recipes)
-	fit := creativeBlockFitter(s.br)
-	for index, i := range recipe.Recipes() {
+	shaped      *protocol.ShapedRecipe
+	shapeless   *protocol.ShapelessRecipe
+	userData    *protocol.UserDataShapelessRecipe
+	multi       *protocol.MultiRecipe
+	smithing    *protocol.SmithingTransformRecipe
+	trim        *protocol.SmithingTrimRecipe
+	potion      *protocol.PotionRecipe
+	containerCh *protocol.PotionContainerChangeRecipe
+}
+
+// recipeCache holds the recipe entries for a block registry. (skygear patch)
+type recipeCache struct {
+	entries []recipeEntry
+}
+
+var (
+	recipeCacheMu sync.Mutex
+	recipeCaches  = map[world.BlockRegistry]*recipeCache{}
+)
+
+// recipeEntries returns the protocol entries of every recipe, building them on
+// the first call for the registry (and again if recipes were registered since).
+func recipeEntries(br world.BlockRegistry) []recipeEntry {
+	all := recipe.Recipes()
+	recipeCacheMu.Lock()
+	defer recipeCacheMu.Unlock()
+	if c, ok := recipeCaches[br]; ok && len(c.entries) == len(all) {
+		return c.entries
+	}
+	c := &recipeCache{entries: buildRecipeEntries(br, all)}
+	recipeCaches[br] = c
+	return c.entries
+}
+
+func buildRecipeEntries(br world.BlockRegistry, all []recipe.Recipe) []recipeEntry {
+	fit := creativeBlockFitter(br)
+	entries := make([]recipeEntry, len(all))
+	for index, r := range all {
 		networkID := uint32(index) + 1
-		if s.recipeFilter != nil && !s.recipeFilter(i) {
-			continue
-		}
-		s.recipes[networkID] = i
-
-		switch i := i.(type) {
+		recipeID := "skygear:recipe_" + strconv.Itoa(int(networkID))
+		e := recipeEntry{recipe: r, id: networkID}
+		switch i := r.(type) {
 		case recipe.Shapeless:
-			shapelessRecipes = append(shapelessRecipes, protocol.ShapelessRecipe{
-				RecipeID:        uuid.New().String(),
+			e.shapeless = &protocol.ShapelessRecipe{
+				RecipeID:        recipeID,
 				Priority:        int32(i.Priority()),
-				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
+				Input:           stacksToIngredientItems(br, i.Input()),
+				Output:          fit(stacksToRecipeStacks(br, i.Output())),
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
-			})
+			}
 		case recipe.UserDataShapeless:
-			userDataShapelessRecipes = append(userDataShapelessRecipes, protocol.UserDataShapelessRecipe{ShapelessRecipe: protocol.ShapelessRecipe{
-				RecipeID:        uuid.New().String(),
+			e.userData = &protocol.UserDataShapelessRecipe{ShapelessRecipe: protocol.ShapelessRecipe{
+				RecipeID:        recipeID,
 				Priority:        int32(i.Priority()),
-				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
+				Input:           stacksToIngredientItems(br, i.Input()),
+				Output:          fit(stacksToRecipeStacks(br, i.Output())),
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
-			}})
+			}}
 		case recipe.Multi:
-			multiRecipes = append(multiRecipes, protocol.MultiRecipe{
-				UUID:            i.UUID(),
-				RecipeNetworkID: networkID,
-			})
+			e.multi = &protocol.MultiRecipe{UUID: i.UUID(), RecipeNetworkID: networkID}
 		case recipe.Shaped:
-			shapedRecipes = append(shapedRecipes, protocol.ShapedRecipe{
-				RecipeID:        uuid.New().String(),
+			e.shaped = &protocol.ShapedRecipe{
+				RecipeID:        recipeID,
 				Priority:        int32(i.Priority()),
 				Width:           int32(i.Shape().Width()),
 				Height:          int32(i.Shape().Height()),
-				Input:           stacksToIngredientItems(s.br, i.Input()),
-				Output:          fit(stacksToRecipeStacks(s.br, i.Output())),
+				Input:           stacksToIngredientItems(br, i.Input()),
+				Output:          fit(stacksToRecipeStacks(br, i.Output())),
 				Block:           i.Block(),
 				AssumeSymmetry:  !i.NoMirror(),
 				RecipeNetworkID: networkID,
-			})
+			}
 		case recipe.SmithingTransform:
-			input, output := stacksToIngredientItems(s.br, i.Input()), stacksToRecipeStacks(s.br, i.Output())
-			smithingTransformRecipes = append(smithingTransformRecipes, protocol.SmithingTransformRecipe{
-				RecipeID:        uuid.New().String(),
+			input, output := stacksToIngredientItems(br, i.Input()), stacksToRecipeStacks(br, i.Output())
+			e.smithing = &protocol.SmithingTransformRecipe{
+				RecipeID:        recipeID,
 				Base:            input[0],
 				Addition:        input[1],
 				Template:        input[2],
 				Result:          output[0],
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
-			})
+			}
 		case recipe.SmithingTrim:
-			input := stacksToIngredientItems(s.br, i.Input())
-			smithingTrimRecipes = append(smithingTrimRecipes, protocol.SmithingTrimRecipe{
-				RecipeID:        uuid.New().String(),
+			input := stacksToIngredientItems(br, i.Input())
+			e.trim = &protocol.SmithingTrimRecipe{
+				RecipeID:        recipeID,
 				Base:            input[0],
 				Addition:        input[1],
 				Template:        input[2],
 				Block:           i.Block(),
 				RecipeNetworkID: networkID,
-			})
+			}
 		case recipe.Potion:
 			inputRuntimeID, inputMeta, _ := world.ItemRuntimeID(i.Input()[0].(item.Stack).Item())
 			reagentRuntimeID, reagentMeta, _ := world.ItemRuntimeID(i.Input()[1].(item.Stack).Item())
 			outputRuntimeID, outputMeta, _ := world.ItemRuntimeID(i.Output()[0].Item())
-
-			potionRecipes = append(potionRecipes, protocol.PotionRecipe{
+			e.potion = &protocol.PotionRecipe{
 				InputPotionID:        inputRuntimeID,
 				InputPotionMetadata:  int32(inputMeta),
 				ReagentItemID:        reagentRuntimeID,
 				ReagentItemMetadata:  int32(reagentMeta),
 				OutputPotionID:       outputRuntimeID,
 				OutputPotionMetadata: int32(outputMeta),
-			})
-
+			}
 		case recipe.PotionContainerChange:
 			inputRuntimeID, _, _ := world.ItemRuntimeID(i.Input()[0].(item.Stack).Item())
 			reagentRuntimeID, _, _ := world.ItemRuntimeID(i.Input()[1].(item.Stack).Item())
 			outputRuntimeID, _, _ := world.ItemRuntimeID(i.Output()[0].Item())
-
-			potionContainerChange = append(potionContainerChange, protocol.PotionContainerChangeRecipe{
+			e.containerCh = &protocol.PotionContainerChangeRecipe{
 				InputItemID:   inputRuntimeID,
 				ReagentItemID: reagentRuntimeID,
 				OutputItemID:  outputRuntimeID,
-			})
+			}
+		}
+		entries[index] = e
+	}
+	return entries
+}
+
+// craftingData selects the cached entries f keeps (all if f is nil) and fills
+// accepted with them by network ID. (skygear patch)
+func craftingData(br world.BlockRegistry, f func(recipe.Recipe) bool, accepted map[uint32]recipe.Recipe) *packet.CraftingData {
+	pk := &packet.CraftingData{ClearRecipes: true}
+	clear(accepted)
+	for _, e := range recipeEntries(br) {
+		if f != nil && !f(e.recipe) {
+			continue
+		}
+		accepted[e.id] = e.recipe
+		switch {
+		case e.shapeless != nil:
+			pk.ShapelessRecipes = append(pk.ShapelessRecipes, *e.shapeless)
+		case e.userData != nil:
+			pk.UserDataShapelessRecipes = append(pk.UserDataShapelessRecipes, *e.userData)
+		case e.multi != nil:
+			pk.MultiRecipes = append(pk.MultiRecipes, *e.multi)
+		case e.shaped != nil:
+			pk.ShapedRecipes = append(pk.ShapedRecipes, *e.shaped)
+		case e.smithing != nil:
+			pk.SmithingTransformRecipes = append(pk.SmithingTransformRecipes, *e.smithing)
+		case e.trim != nil:
+			pk.SmithingTrimRecipes = append(pk.SmithingTrimRecipes, *e.trim)
+		case e.potion != nil:
+			pk.PotionRecipes = append(pk.PotionRecipes, *e.potion)
+		case e.containerCh != nil:
+			pk.PotionContainerChangeRecipes = append(pk.PotionContainerChangeRecipes, *e.containerCh)
 		}
 	}
-	s.writePacket(&packet.CraftingData{
-		ShapedRecipes:                shapedRecipes,
-		ShapelessRecipes:             shapelessRecipes,
-		MultiRecipes:                 multiRecipes,
-		UserDataShapelessRecipes:     userDataShapelessRecipes,
-		SmithingTransformRecipes:     smithingTransformRecipes,
-		SmithingTrimRecipes:          smithingTrimRecipes,
-		PotionRecipes:                potionRecipes,
-		PotionContainerChangeRecipes: potionContainerChange,
-		ClearRecipes:                 true,
-	})
+	return pk
+}
+
+// sendRecipes sends the current crafting recipes to the session.
+func (s *Session) sendRecipes() {
+	// skygear patch: only the recipes the filter keeps are sent and
+	// accepted. Network IDs stay the index in the full list. The protocol
+	// entries are built once per registry; the filter only selects.
+	s.writePacket(craftingData(s.br, s.recipeFilter, s.recipes))
 }
 
 // SetRecipeFilter limits the player's recipes to those f keeps (all if f
@@ -741,8 +791,35 @@ func (s *Session) uiInventoryFunc(tx *world.Tx, c Controllable) inventory.SlotFu
 				s.sendEnchantmentOptions(tx, c, pos, after)
 			}
 		}
-		s.sendInv(s.ui, protocol.WindowIDUI)
+		// skygear patch: several slot changes in one transaction send the
+		// UI inventory once, after the transaction's callback.
+		if _, queued := uiSendPending.LoadOrStore(s, true); queued {
+			return
+		}
+		if !deferUISend(tx, func() {
+			uiSendPending.Delete(s)
+			s.sendInv(s.ui, protocol.WindowIDUI)
+		}) {
+			uiSendPending.Delete(s)
+			s.sendInv(s.ui, protocol.WindowIDUI)
+		}
 	}
+}
+
+// uiSendPending holds the sessions with a UI inventory send already queued.
+// (skygear patch)
+var uiSendPending sync.Map
+
+// deferUISend runs f after tx's callback, returning false if tx is already
+// finished (the slot func may outlive the transaction it was made in).
+func deferUISend(tx *world.Tx, f func()) (ok bool) {
+	defer func() {
+		if recover() != nil {
+			ok = false
+		}
+	}()
+	tx.Defer(func(*world.Tx) { f() })
+	return true
 }
 
 // SendHeldSlot sends the currently held hotbar slot.
@@ -1144,6 +1221,31 @@ func stacksToIngredientItems(_ world.BlockRegistry, inputs []recipe.Item) []prot
 
 // creativeContent returns all creative groups, and creative inventory items as protocol item stacks.
 func creativeContent(br world.BlockRegistry) ([]protocol.CreativeGroup, []protocol.CreativeItem) {
+	// skygear patch: the content is built once per registry and shared
+	// read-only; it is rebuilt if the creative lists changed in size.
+	nGroups, nItems := len(creative.Groups()), len(creative.Items())
+	creativeCacheMu.Lock()
+	defer creativeCacheMu.Unlock()
+	if c, ok := creativeCaches[br]; ok && c.nGroups == nGroups && c.nItems == nItems {
+		return c.groups, c.items
+	}
+	groups, items := buildCreativeContent(br)
+	creativeCaches[br] = creativeCache{nGroups: nGroups, nItems: nItems, groups: groups, items: items}
+	return groups, items
+}
+
+type creativeCache struct {
+	nGroups, nItems int
+	groups          []protocol.CreativeGroup
+	items           []protocol.CreativeItem
+}
+
+var (
+	creativeCacheMu sync.Mutex
+	creativeCaches  = map[world.BlockRegistry]creativeCache{}
+)
+
+func buildCreativeContent(br world.BlockRegistry) ([]protocol.CreativeGroup, []protocol.CreativeItem) {
 	groups := make([]protocol.CreativeGroup, 0, len(creative.Groups()))
 	for _, group := range creative.Groups() {
 		groups = append(groups, protocol.CreativeGroup{

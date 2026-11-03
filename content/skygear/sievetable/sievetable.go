@@ -185,8 +185,8 @@ var sieveRows = []sieveRow{
 	{block.Sand{Red: true}, stack(item.RawGold{}), [6]int{30, 40, 60, 110, 80, 100}},
 
 	// Dust: ATM10: To the Sky (Ex Deorum without the gold nuggets; the
-	// pack's additions are mod items). Monster essences are added on top
-	// (essenceExtra).
+	// pack's additions are mod items). Monster essences come only from the
+	// second dimension.
 	{sgitem.Dust{}, stack(item.Gunpowder{}), [6]int{100, 110, 130, 130, 140, 140}},
 	{sgitem.Dust{}, stack(item.BoneMeal{}), [6]int{100, 110, 120, 110, 100, 130}},
 	{sgitem.Dust{}, stack(item.RedstoneWire{}), [6]int{60, 90, 100, 120, 120, 140}},
@@ -194,11 +194,6 @@ var sieveRows = []sieveRow{
 	{sgitem.Dust{}, stack(item.BlazePowder{}), [6]int{30, 40, 50, 60, 60, 100}},
 	{sgitem.Dust{}, stack(item.IronNugget{}), [6]int{0, 0, 60, 0, 0, 80}},
 	{sgitem.Dust{}, stack(item.RawGold{}), from(3, 20)},
-}
-
-// essenceDrop makes a sieve drop of an essence; chance is a percent.
-func essenceDrop(mob string, chance int) Drop {
-	return Drop{item.NewStack(sgitem.Essence{Mob: mob}, 1), chance * 10}
 }
 
 // Tables are the drops of every kind of block sifted, by mesh tier.
@@ -214,19 +209,7 @@ func buildSieveTables() map[string]map[string][]Drop {
 				table[key] = append(table[key], Drop{r.drop, r.per[i]})
 			}
 		}
-		for key, drops := range essenceExtra[t.Tier] {
-			table[key] = append(table[key], drops...)
-		}
 		out[t.Tier] = table
 	}
 	return out
-}
-
-// essenceExtra is what the meshes find in dust: the essences of weak mobs from
-// the iron mesh on, of the rarer ones from the better meshes.
-var essenceExtra = map[string]map[string][]Drop{
-	"iron":      {naming.ItemKey(sgitem.Dust{}): {essenceDrop(sgitem.MobZombie, 4), essenceDrop(sgitem.MobSkeleton, 4), essenceDrop(sgitem.MobSpider, 3), essenceDrop(sgitem.MobCreeper, 3)}},
-	"gold":      {naming.ItemKey(sgitem.Dust{}): {essenceDrop(sgitem.MobZombie, 5), essenceDrop(sgitem.MobSkeleton, 5), essenceDrop(sgitem.MobSpider, 4), essenceDrop(sgitem.MobCreeper, 4), essenceDrop(sgitem.MobSlime, 3)}},
-	"diamond":   {naming.ItemKey(sgitem.Dust{}): {essenceDrop(sgitem.MobZombie, 5), essenceDrop(sgitem.MobSkeleton, 5), essenceDrop(sgitem.MobSpider, 5), essenceDrop(sgitem.MobCreeper, 5), essenceDrop(sgitem.MobSlime, 5), essenceDrop(sgitem.MobEnder, 3), essenceDrop(sgitem.MobDrowned, 3), essenceDrop(sgitem.MobWitch, 3), essenceDrop(sgitem.MobPiglin, 2)}},
-	"netherite": {naming.ItemKey(sgitem.Dust{}): {essenceDrop(sgitem.MobSkeleton, 6), essenceDrop(sgitem.MobCreeper, 6), essenceDrop(sgitem.MobSlime, 6), essenceDrop(sgitem.MobEnder, 5), essenceDrop(sgitem.MobBlaze, 4), essenceDrop(sgitem.MobDrowned, 5), essenceDrop(sgitem.MobWitch, 5), essenceDrop(sgitem.MobPiglin, 4), essenceDrop(sgitem.MobWither, 3)}},
 }

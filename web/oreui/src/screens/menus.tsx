@@ -8,7 +8,7 @@ import { Gap, SlotView } from '../components/Slot';
 import { Rich } from '../text/Rich';
 
 /** Body is the body text and the gap under it; an empty body draws neither. */
-function Body(props: { text: string; gap: 3 | 6 }): JSX.Element | null {
+export function Body(props: { text: string; gap: 3 | 6 }): JSX.Element | null {
   if (!props.text) return null;
   return (
     <>
@@ -18,7 +18,7 @@ function Body(props: { text: string; gap: 3 | 6 }): JSX.Element | null {
   );
 }
 
-function ListButtons(props: { items: ListItem[]; gap?: boolean }): JSX.Element {
+export function ListButtons(props: { items: ListItem[]; gap?: boolean }): JSX.Element {
   return (
     <>
       {props.items.map((item, i) => (

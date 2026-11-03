@@ -7,6 +7,42 @@
     "skygear:fairy_emerald": {
       "textures": "textures/items/fairy_emerald"
     },
+    "skygear:dimension_stone": {
+      "textures": "textures/items/dimension_stone"
+    },
+    "skygear:relic_spin_blade": {
+      "textures": "textures/items/relic_spin_blade"
+    },
+    "skygear:relic_crossbow": {
+      "textures": "textures/items/relic_crossbow"
+    },
+    "skygear:relic_flame_ring": {
+      "textures": "textures/items/relic_flame_ring"
+    },
+    "skygear:relic_lightning_staff": {
+      "textures": "textures/items/relic_lightning_staff"
+    },
+    "skygear:relic_frost_boomerang": {
+      "textures": "textures/items/relic_frost_boomerang"
+    },
+    "skygear:relic_life_charm": {
+      "textures": "textures/items/relic_life_charm"
+    },
+    "skygear:relic_wind_boots": {
+      "textures": "textures/items/relic_wind_boots"
+    },
+    "skygear:relic_magnet_ring": {
+      "textures": "textures/items/relic_magnet_ring"
+    },
+    "skygear:relic_hourglass_charm": {
+      "textures": "textures/items/relic_hourglass_charm"
+    },
+    "skygear:relic_magnifier": {
+      "textures": "textures/items/relic_magnifier"
+    },
+    "skygear:relic_regen_necklace": {
+      "textures": "textures/items/relic_regen_necklace"
+    },
     "skygear:fairy_board": {
       "textures": "textures/items/fairy_board"
     },

@@ -10,22 +10,22 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 | `assets/resourcepack/sgui/ui/scoreboards.json` | 사이드바 한 장을 HUD 부분으로 나눠 그린다(아래 "HUD") |
 | `assets/resourcepack/sgui/ui/hud_screen.json` | 터치 포켓 배치에서 하트·배고픔을 핫바 위로(아래) |
 | `assets/resourcepack/sgui/textures/ui/sg/*` | 메뉴(DDUI 화면)가 쓰는 그림: 버튼·창·로비 버튼(`oui-mc.css`), 쪽 화살표·꺾쇠·고른 칸·로비 아이콘(`common/ui`), 희귀도 테두리 `deco_<희귀도>_0`(`common/ui` `slotDeco`). `common/` 에서 `go run ./tools/uitextures`, `go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)·메뉴 아이콘(`menu_*`)·플랫폼 아이콘은 `skygear` 팩에 있다 |
-| `assets/resourcepack/skygear/ui/sg_machine.json` | 기계 창 레이아웃(`sg_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 |
+| `assets/resourcepack/skygear/ui/sg_machine.json` | 기계 창 레이아웃(`sg_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 놓는다 |
 | `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§<n>` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
 
 ## 기계 창
 
-- 기계 인벤토리는 그대로 엔티티 상자(`chestui.Storage`, 27칸). 제목 표식으로 기계별 레이아웃을 골라 입력·진행·출력·회수 칸만 보인다.
+- 기계 인벤토리는 그대로 엔티티 상자(`chestui.Storage`, 27칸)다. 제목 표식으로 기계별 레이아웃을 골라 입력·진행·출력·회수 칸만 보인다.
 - 진행도 칸에는 `skygear:progress_0`~`progress_10` 아이템(채워지는 화살표)이 들어가 화살표가 차오르는 것처럼 보인다.
 - 창 오른쪽 위 어두운 컨트롤 막대(`sg_machine.control_bar`)에 닫기 버튼 왼쪽으로 26번(정보 아이콘, 툴팁이 기계 설명)이 칸 배경 없이 18×18로 놓인다.
 - 모두 꺼내기·모두 넣기는 모든 창고와 같이 창 오른쪽 바깥의 세로 버튼 줄(common inventoryui `sg_quick.side_bar`)이다. 버튼 밑에 칸마다 보이지 않는 버튼을 겹쳐 두고, 각각 누름을 그 칸의 바닐라 빠른 이동(`button.container_auto_place`, `consume_event: false`)으로 바꾸므로 클릭 한 번이 모든 칸의 쉬프트 클릭이 된다(Quick Container 팩의 기법, 코드는 쓰지 않음). 기계 창은 `$sg_machine_outputs` 식으로 꺼낼 칸을 거른다. 있는 것만 넣기는 인벤토리 칸의 숨은 버튼이 이름 붙은 창고 칸 컨트롤(`sg_quick_c<n>`)의 `#item_id_aux` 를 `source_control_name` 으로 읽어(화면 루트부터 첫 일치) 같은 것이 있을 때만 보인다(`#visible`). 툴팁은 버튼 hover 상태 안의 라벨이라 번역 키가 풀린다(`common.hover_text` 의 `#hover_text` 는 번역되지 않음).
   - `collection_index` 는 `collection_name` 을 가진 요소의 바로 아래 자식에서만 먹는다. `collection_panel` 안의 `stack_panel` 자식에 쓰면 "Unknown property [collection_index]" 오류가 나므로, `stack_panel` 자체에 `"collection_name": "container_items"` 를 준다.
-- 모양은 바닐라 화로 화면과 같다: 밝은 회색 창(`textures/ui/dialog_background_opaque`), 바닐라 칸(`textures/ui/cell_image`), 진한 회색 제목(바닐라 `$title_text_color` 그대로)은 화로 화면(`furnace_label`)처럼 창 위 가운데 4px 아래. 제목 표식 `§d§m§<n>` 의 마지막 코드는 색 코드라 Go 가 표식 뒤에 `§r` 을 붙인다. 출력이 하나인 기계(분쇄기·전기 화로·합금로)의 출력 칸은 화로 결과 칸처럼 26×26. 진행도 칸은 칸 배경 없이 그림만이고, 화살표·링·배터리의 빈 부분은 바닐라 화로 화살표(`arrow_inactive`)와 같은 밝은 회색, 찬 부분은 흰색·주황이다. 정보 아이콘은 창 오른쪽 위 어두운 컨트롤 막대에 흰 그림으로, 모두 꺼내기·모두 넣기는 창 오른쪽 바깥에 바닐라 밝은 버튼으로 있다.
+- 모양은 바닐라 화로 화면과 같다: 밝은 회색 창(`textures/ui/dialog_background_opaque`), 바닐라 칸(`textures/ui/cell_image`), 진한 회색 제목(바닐라 `$title_text_color` 그대로)은 화로 화면(`furnace_label`)처럼 창 위 가운데 4px 아래에 있다. 제목 표식 `§d§m§<n>` 의 마지막 코드는 색 코드라 Go 가 표식 뒤에 `§r` 을 붙인다. 출력이 하나인 기계(분쇄기·전기 화로·합금로)의 출력 칸은 화로 결과 칸처럼 26×26이다. 진행도 칸은 칸 배경 없이 그림만이고, 화살표·링·배터리의 빈 부분은 바닐라 화로 화살표(`arrow_inactive`)와 같은 밝은 회색, 찬 부분은 흰색·주황이다. 정보 아이콘은 창 오른쪽 위 어두운 컨트롤 막대에 흰 그림으로, 모두 꺼내기·모두 넣기는 창 오른쪽 바깥에 바닐라 밝은 버튼으로 있다.
 - 기계 창 레이아웃은 PC 화면에만 있다. 모바일은 크기 지정 상자 그대로 보인다.
 
 ## 요령
 
-- 팩토리 `control_ids` 에 변수를 쓰면 "UI control reference not found". 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 이므로 크기는 배열 전체를 변수로(`"size": "$size"`) 둔다. `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의한다.
+- 팩토리 `control_ids` 에 변수를 쓰면 "UI control reference not found" 오류가 난다. 크기 배열 안의 숫자 변수(`[ "$w", "100%c" ]`)는 "Dangling number" 오류가 나므로 크기는 배열 전체를 변수로(`"size": "$size"`) 둔다. `grid_item_template`·상속한 `$scrolling_content` 같은 자리도 변수 대신 컨트롤을 따로 정의한다.
 - 가로 스택의 `100%c` 는 자식 높이를 모두 더한다. 높이를 가장 큰 자식에 맞추려면 `100%cm`, 왼쪽·오른쪽 판을 나란히 둘 때는 `panel` 안에 `offset` 으로 둔다.
 - 글자 비교로 보이기를 정할 때는 먼저 글자를 `#변수`에 담고 `(not (#변수 = 'z'))` 로 비교한다. `(not ((A - B) = 'z'))` 처럼 식 안에서 바로 비교하면 참·거짓이 뒤집힌다.
 - 표식은 식에 글자로 적는다(변수는 식 안에서 바뀌지 않는다). 판단은 Go 가 표식으로 미리 정하고 UI 는 단순 비교만 한다.

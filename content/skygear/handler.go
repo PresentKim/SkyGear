@@ -6,7 +6,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
-	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -15,6 +14,8 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -26,7 +27,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // handler handles a player's events inside a skygear instance.
@@ -48,6 +48,9 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		return false
 	}
 	ctx.Cancel()
+	if core.InArena(pos.Vec3()) {
+		return true // the hunting ground is no one's to build on
+	}
 	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
 	return true
 }
@@ -85,6 +88,9 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
 	case machine.Machine:
+		if b.Kind == machine.KindStorageLink {
+			storage.InvalidateNetworks(h.s.Session)
+		}
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
 		farm.BreakComposter(h.s.Session, pos, b, drops)
@@ -106,6 +112,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case machine.Machine:
+		if b.Kind == machine.KindStorageLink {
+			storage.InvalidateNetworks(h.s.Session)
+		}
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case storage.Drawer:
 		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
@@ -116,10 +125,17 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	}
 }
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	held, _ := ctx.Player().HeldItems()
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
+		return
+	}
+	if h.useStone(ctx, held) {
 		return
 	}
 	if h.deny(ctx, pos) {
@@ -175,32 +191,17 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 // HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting
 // fairy, whichever way the player touches it.
 func (h *handler) HandleItemUseOnEntity(ctx *player.Context, e world.Entity) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	h.touchFairy(ctx, e)
 }
 
 func (h *handler) HandleAttackEntity(ctx *player.Context, e world.Entity, _, _ *float64, _ *bool) {
-	if m, ok := e.(*wave.Monster); ok {
-		// the monsters are ours: the damage of the weapon in hand, no vanilla hit
+	if _, ok := e.(*dimension.Monster); ok || dimension.Hunting(h.s.Session, ctx.Player()) {
+		// a hunter only moves: its weapons strike on their own (dimension/gear.go)
 		ctx.Cancel()
-		p := ctx.Player()
-		held, _ := p.HeldItems()
-		dmg := 2.0
-		if w, ok := held.Item().(item.Weapon); ok {
-			dmg = w.AttackDamage()
-		}
-		if td, ok := tinker.TinkerDamage(held); ok {
-			dmg = td
-			mods := tinker.ToolMods(held)
-			if v := mods["vampiric"]; v > 0 {
-				p.Heal(0.5*float64(v), entity.FoodHealingSource{})
-			}
-			// a use costs the tool durability and gives it experience
-			_, off := p.HeldItems()
-			p.SetHeldItems(tinker.DescribeTool(held.Damage(2)), off)
-			tinker.Reinforce(h.s.Session, p)
-		}
-		achievement.Count(p, "hit_monster", 1)
-		m.Hurt(p.Tx(), dmg, p)
 		return
 	}
 	h.touchFairy(ctx, e)
@@ -218,6 +219,15 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
+		return
+	}
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		// a hunter only moves; the menu item is the way out
+		ctx.Cancel()
+		return
+	}
+	if h.useStone(ctx, held) {
+		return
 	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
@@ -229,10 +239,31 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	}
 }
 
+// useStone opens the second dimension's window for a held teleport stone,
+// on a block or the air; it reports whether held is one.
+func (h *handler) useStone(ctx *player.Context, held item.Stack) bool {
+	if _, ok := held.Item().(sgitem.DimensionStone); !ok {
+		return false
+	}
+	ctx.Cancel()
+	if !h.s.Debounced(ctx.Player()) {
+		dimension.ShowWindow(h.s.Session, ctx.Player(), "")
+	}
+	return true
+}
+
 // useHeldScreen opens the menu held by p. The client repeats use packets
 // while the button is held, so repeats are ignored.
 func (h *handler) useHeldScreen(p *player.Player, _ item.Stack) {
 	if h.s.Debounced(p) {
+		return
+	}
+	if dimension.Hunting(h.s.Session, p) {
+		dimension.ShowRunMenu(h.s.Session, p)
+		return
+	}
+	if dimension.Watching(h.s.Session, p) {
+		dimension.ShowWatchMenu(h.s.Session, p)
 		return
 	}
 	screens.OpenMenu(h.s.Session, p)
@@ -298,12 +329,14 @@ func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 // does not fill the food bar (it would make vein mining's food cost free).
 func (h *handler) HandleDeath(p *player.Player, _ world.DamageSource, _ *bool) {
 	achievement.Count(p, "death", 1)
+	dimension.Died(h.s.Session, p.Tx(), p)
 	if h.s.diedFood == nil {
 		h.s.diedFood = map[*world.EntityHandle]int{}
 	}
 	h.s.diedFood[p.H()] = p.Food()
 }
-func (h *handler) HandleRespawn(p *player.Player, _ *mgl64.Vec3, _ **world.World) {
+func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.World) {
+	dimension.Respawned(h.s.Session, p, pos)
 	if food, ok := h.s.diedFood[p.H()]; ok {
 		delete(h.s.diedFood, p.H())
 		p.SetFood(food)
@@ -316,10 +349,21 @@ func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
 }
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
+	if dimension.Hunting(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	achievement.Count(ctx.Player(), "item_drop", 1)
 }
-func (h *handler) HandleHurt(ctx *player.Context, _ *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
+func (h *handler) HandleHurt(ctx *player.Context, dmg *float64, _ bool, _ *time.Duration, _ world.DamageSource) {
+	if dimension.Frozen(h.s.Session, ctx.Player()) {
+		ctx.Cancel() // the hunt waits while the hunter chooses an upgrade
+		return
+	}
 	achievement.Count(ctx.Player(), "hurt", 1)
+	if dimension.Fallen(h.s.Session, ctx.Player().Tx(), ctx.Player(), *dmg) {
+		ctx.Cancel()
+	}
 }
 func (h *handler) HandleCommandExecution(ctx *player.Context, _ cmd.Command, _ []string) {
 	achievement.Count(ctx.Player(), "command", 1)

@@ -35,6 +35,18 @@ type EntityType interface {
 	EncodeNBT(data *EntityData) map[string]any
 }
 
+// TransientEntityType is an optional interface of an EntityType. Entities of a
+// type that returns true are never written to disk and do not mark their
+// column as modified. skygear patch
+type TransientEntityType interface {
+	Transient() bool
+}
+
+func isTransient(t EntityType) bool {
+	tt, ok := t.(TransientEntityType)
+	return ok && tt.Transient()
+}
+
 // EntityConfig is used to configure the initial settings of an Entity upon
 // creation using NewEntity.
 type EntityConfig interface {

@@ -141,7 +141,10 @@ func (conf Config) New() *World {
 	// Serialise Provider calls (made by both the owner and the chunk load workers)
 	// and, with a single worker, Generator calls, for implementations that aren't
 	// concurrency-safe.
-	conf.Provider = &lockedProvider{p: conf.Provider}
+	// skygear patch (S7): providers that are safe for concurrent use are not wrapped.
+	if cp, ok := conf.Provider.(ConcurrentProvider); !ok || !cp.Concurrent() {
+		conf.Provider = &lockedProvider{p: conf.Provider}
+	}
 	if conf.ChunkLoadWorkers == 1 {
 		conf.Generator = &lockedGenerator{g: conf.Generator}
 	}
@@ -183,4 +186,10 @@ func (conf Config) New() *World {
 
 	<-w.exec(t.tick)
 	return w
+}
+
+// skygear patch (S7): ConcurrentProvider is implemented by providers whose
+// LoadColumn and StoreColumn may be called from several goroutines at once.
+type ConcurrentProvider interface {
+	Concurrent() bool
 }

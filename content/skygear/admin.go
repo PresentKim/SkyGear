@@ -125,7 +125,7 @@ func giveItems() map[string]func() item.Stack {
 		out[m+"_ore"] = func() item.Stack { return item.NewStack(sgitem.OreBlock{Metal: m}, 1) }
 		out["raw_"+m] = func() item.Stack { return item.NewStack(sgitem.RawOre{Metal: m}, 1) }
 	}
-	for _, k := range tinker.ToolKinds {
+	for _, k := range tinker.MadeKinds {
 		for _, h := range tinker.HeadMaterials {
 			for _, hd := range tinker.HandleMaterials {
 				out[fmt.Sprintf("tool_%s_%s_%s", k, h.ID, hd.ID)] = func() item.Stack {
@@ -137,7 +137,7 @@ func giveItems() map[string]func() item.Stack {
 	for _, c := range sgitem.PetalColours {
 		out["petal_"+c] = func() item.Stack { return item.NewStack(sgitem.Petal{Colour: c}, 1) }
 	}
-	for _, sd := range farm.PlantSeeds {
+	for _, sd := range farm.LivePlantSeeds() {
 		out["seed_"+sd] = func() item.Stack { return item.NewStack(farm.PlantSeed{Seed: sd}, 1) }
 	}
 	for _, m := range sgitem.MobKinds {
@@ -162,7 +162,32 @@ func giveItems() map[string]func() item.Stack {
 	for _, m := range sgitem.IngotMetals {
 		out["ingot_"+m] = func() item.Stack { return item.NewStack(sgitem.Ingot{Metal: m}, 1) }
 	}
+	// the relics at every grade: relic_<kind> is grade 1, relic_<kind>_<grade>
+	for _, k := range append(append([]string{}, sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+		out["relic_"+k] = func() item.Stack { return sgitem.RelicStack(k, 1) }
+		for g := 1; g <= sgitem.RelicMaxGrade; g++ {
+			out[fmt.Sprintf("relic_%s_%d", k, g)] = func() item.Stack { return sgitem.RelicStack(k, g) }
+		}
+	}
+	// every other item of the game, by its id without the skygear: prefix,
+	// but the screens' icons, the retired items and those listed above
+	// under another id
+	for _, it := range world.CustomItems() {
+		name, meta := it.EncodeItem()
+		id, ok := strings.CutPrefix(name, "skygear:")
+		if !ok || meta != 0 || out[id] != nil || slices.ContainsFunc(giveSkip, func(pre string) bool { return strings.HasPrefix(id, pre) }) {
+			continue
+		}
+		out[id] = func() item.Stack { return item.NewStack(it, 1) }
+	}
 	return out
+}
+
+// giveSkip are the id prefixes of the custom items /sgadmin give leaves out.
+var giveSkip = []string{
+	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
+	"dimension_gate", "seed_ess_", // retired
+	"tool_", "conduit_", "drawer_upgrade_", "barrel_", // listed under other ids
 }
 
 type giveEnum string

@@ -27,13 +27,16 @@ const (
 	ToolShovel  = "shovel"
 )
 
-var ToolKinds = []string{ToolSword, ToolPickaxe, ToolAxe, ToolShovel}
+// ToolKinds are every kind of tool, registered so old ones load; the tools
+// are the island's and do not fight (the second dimension's relics do), so
+// MadeKinds, the ones the table makes, have no sword.
+var (
+	ToolKinds = []string{ToolSword, ToolPickaxe, ToolAxe, ToolShovel}
+	MadeKinds = []string{ToolPickaxe, ToolAxe, ToolShovel}
+)
 
 // ToolHeadCost is the ingots a head of a kind takes.
 var ToolHeadCost = map[string]int{ToolSword: 2, ToolPickaxe: 3, ToolAxe: 3, ToolShovel: 1}
-
-// ToolAttackBonus is what a kind adds to the attack of the head.
-var ToolAttackBonus = map[string]float64{ToolSword: 3, ToolPickaxe: 1, ToolAxe: 2.5, ToolShovel: 0.5}
 
 // HeadMaterial is a metal a tool head is made of.
 type HeadMaterial struct {
@@ -45,17 +48,16 @@ type HeadMaterial struct {
 	harvest  int
 	Dur      int
 	Eff      float64
-	Attack   float64
 }
 
 var HeadMaterials = []HeadMaterial{
-	{"flint", item.Flint{}, "tinker_table", 2, 110, 4, 2},
-	{"iron", item.IronIngot{}, "tinker_table", 3, 250, 6, 3},
-	{"bronze", sgitem.Ingot{Metal: sgitem.MetalBronze}, "alloy_smelter", 3, 300, 6, 3},
-	{"electrum", sgitem.Ingot{Metal: sgitem.MetalElectrum}, "alloy_smelter", 2, 70, 13, 2},
-	{"invar", sgitem.Ingot{Metal: sgitem.MetalInvar}, "alloy_smelter", 3, 480, 6, 3.5},
-	{"steel", sgitem.Ingot{Metal: sgitem.MetalSteel}, "alloy_smelter", 3, 700, 7.5, 4},
-	{"diamond", item.Diamond{}, "diamond_tools", 4, 1561, 8, 4.5},
+	{"flint", item.Flint{}, "tinker_table", 2, 110, 4},
+	{"iron", item.IronIngot{}, "tinker_table", 3, 250, 6},
+	{"bronze", sgitem.Ingot{Metal: sgitem.MetalBronze}, "alloy_smelter", 3, 300, 6},
+	{"electrum", sgitem.Ingot{Metal: sgitem.MetalElectrum}, "alloy_smelter", 2, 70, 13},
+	{"invar", sgitem.Ingot{Metal: sgitem.MetalInvar}, "alloy_smelter", 3, 480, 6},
+	{"steel", sgitem.Ingot{Metal: sgitem.MetalSteel}, "alloy_smelter", 3, 700, 7.5},
+	{"diamond", item.Diamond{}, "diamond_tools", 4, 1561, 8},
 }
 
 // HandleMaterial is what a tool's handle is made of.
@@ -64,14 +66,12 @@ type HandleMaterial struct {
 	Item world.Item
 	// DurMul and SpeedMul scale the head's durability and mining speed.
 	DurMul, SpeedMul float64
-	// Attack is added to the attack.
-	Attack float64
 }
 
 var HandleMaterials = []HandleMaterial{
-	{"wood", item.Stick{}, 1, 1, 0},
-	{"bone", item.Bone{}, 0.85, 1.12, 0.5},
-	{"blaze", item.BlazeRod{}, 1.4, 0.92, 0},
+	{"wood", item.Stick{}, 1, 1},
+	{"bone", item.Bone{}, 0.85, 1.12},
+	{"blaze", item.BlazeRod{}, 1.4, 0.92},
 }
 
 func HeadOf(id string) (HeadMaterial, bool) {
@@ -146,11 +146,8 @@ func (t Tool) speed() float64 { return t.head().Eff * t.handle().SpeedMul }
 
 func (t Tool) BaseMiningEfficiency(world.Block) float64 { return t.speed() }
 
-// AttackDamage is the damage of the bare tool; TinkerDamage adds what the stack
-// has gained.
-func (t Tool) AttackDamage() float64 {
-	return t.head().Attack + ToolAttackBonus[t.Kind] + t.handle().Attack
-}
+// AttackDamage is a tool's hit: no more than a hand's, the tools do not fight.
+func (t Tool) AttackDamage() float64 { return 1 }
 
 // toolBlocks are the blocks the client is told a kind of tool mines faster.
 var toolBlocks = map[string][]string{
@@ -178,13 +175,22 @@ type ToolModifier struct {
 	Max  int
 }
 
+// ToolModifiers are the modifiers a tool takes. The fighting ones (sharpness,
+// fire, looting, vampiric) are gone: ToolMods drops them from old tools, which
+// frees their slots.
 var ToolModifiers = []ToolModifier{
-	{"sharp", item.NetherQuartz{}, 2, 5},
 	{"haste", item.RedstoneWire{}, 4, 5},
 	{"reinforced", sgitem.Ingot{Metal: sgitem.MetalSteel}, 1, 5},
-	{"fiery", item.BlazePowder{}, 2, 3},
-	{"looting", item.LapisLazuli{}, 4, 3},
-	{"vampiric", item.SpiderEye{}, 2, 3},
+}
+
+// isToolModifier reports whether id is a modifier tools still take.
+func isToolModifier(id string) bool {
+	for _, m := range ToolModifiers {
+		if m.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 const (
@@ -207,7 +213,7 @@ func ToolMods(st item.Stack) map[string]int {
 	for _, part := range strings.Split(str, ",") {
 		id, lv, found := strings.Cut(part, ":")
 		var n int
-		if _, err := fmt.Sscanf(lv, "%d", &n); found && err == nil && n > 0 {
+		if _, err := fmt.Sscanf(lv, "%d", &n); found && err == nil && n > 0 && isToolModifier(id) {
 			out[id] = n
 		}
 	}
@@ -247,17 +253,6 @@ func ModsUsed(mods map[string]int) int {
 		n += l
 	}
 	return n
-}
-
-// TinkerDamage is the damage of an attack with the stack: the bare tool, plus
-// sharpness, plus a bit for the tool's level.
-func TinkerDamage(st item.Stack) (float64, bool) {
-	t, ok := st.Item().(Tool)
-	if !ok {
-		return 0, false
-	}
-	mods := ToolMods(st)
-	return t.AttackDamage() + float64(mods["sharp"]) + 0.3*float64(ToolLevel(ToolXP(st))) + 1.5*float64(mods["fiery"]), true
 }
 
 // DescribeTool is the name and lore of a tool stack: its level and xp, its

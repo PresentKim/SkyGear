@@ -58,7 +58,30 @@ type BlockPaletteEncoding struct {
 	legacy *bool
 }
 
+// PaletteEntryCache is implemented by a finalized BlockRegistry that keeps the NBT encoding of each palette
+// entry by runtime ID, so that saving a chunk does not encode the same block state over and over.
+// skygear patch
+type PaletteEntryCache interface {
+	// CachedPaletteEntry returns the stored encoding of the runtime ID, or nil if there is none.
+	CachedPaletteEntry(rid uint32) []byte
+	// StorePaletteEntry stores the encoding of the runtime ID. The slice must not be changed afterwards.
+	StorePaletteEntry(rid uint32, entry []byte)
+}
+
 func (bpe BlockPaletteEncoding) encode(buf *bytes.Buffer, v uint32) {
+	// skygear patch: palette entries are encoded once per runtime ID and reused (also makes saves deterministic).
+	cache, _ := bpe.Blocks.(PaletteEntryCache)
+	if cache != nil {
+		if entry := cache.CachedPaletteEntry(v); entry != nil {
+			buf.Write(entry)
+			return
+		}
+		var b bytes.Buffer
+		_ = nbt.NewEncoderWithEncoding(&b, nbt.LittleEndian).Encode(bpe.EncodeBlockState(v))
+		cache.StorePaletteEntry(v, b.Bytes())
+		buf.Write(b.Bytes())
+		return
+	}
 	_ = nbt.NewEncoderWithEncoding(buf, nbt.LittleEndian).Encode(bpe.EncodeBlockState(v))
 }
 func (bpe BlockPaletteEncoding) decode(buf *bytes.Buffer) (uint32, error) {

@@ -54,7 +54,9 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 			return slotdeco.Epic, 0
 		}
 		return slotdeco.Rare, 0
-	case sgitem.FairyEmerald, sgitem.FairyHourglass:
+	case sgitem.Relic:
+		return slotdeco.Epic, 0
+	case sgitem.FairyEmerald, sgitem.FairyHourglass, sgitem.DimensionStone:
 		return slotdeco.Rare, 0
 	}
 	// the fairy board is the fairy package's

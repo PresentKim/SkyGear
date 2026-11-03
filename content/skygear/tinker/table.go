@@ -58,7 +58,7 @@ func ShowTable(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 func showToolKinds(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 	lang := i18n.Of(p)
 	var slots []ui.ItemSlot
-	for _, k := range ToolKinds {
+	for _, k := range MadeKinds {
 		slots = append(slots, ui.ItemSlot{
 			Icon: ui.ItemIcon(Tool{Kind: k, Head: "iron", Handle: "wood"}),
 			Tip:  "§f" + i18n.T(lang, "tool."+k) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.headCost"), ToolHeadCost[k]),
@@ -85,7 +85,7 @@ func showToolHeads(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(h.Item),
 			Count: mark + fmt.Sprint(have),
-			Tip: "§f" + i18n.T(lang, "tmat."+h.ID) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.headStats"), h.Dur, h.Eff, h.Attack+ToolAttackBonus[kind]) +
+			Tip: "§f" + i18n.T(lang, "tmat."+h.ID) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.headStats"), h.Dur, h.Eff) +
 				"\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.need"), need),
 			Run: func(p *player.Player, tx *world.Tx) { showToolHandles(s, p, tx, pos, kind, h) },
 		})
@@ -106,7 +106,7 @@ func showToolHandles(s *core.Session, p *player.Player, tx *world.Tx, pos cube.P
 		slots = append(slots, ui.ItemSlot{
 			Icon:  ui.ItemIcon(hd.Item),
 			Count: mark + fmt.Sprint(have),
-			Tip:   "§f" + i18n.T(lang, "thandle."+hd.ID) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.handleStats"), hd.DurMul*100, hd.SpeedMul*100, hd.Attack),
+			Tip:   "§f" + i18n.T(lang, "thandle."+hd.ID) + "\n§7" + fmt.Sprintf(i18n.T(lang, "tinker.handleStats"), hd.DurMul*100, hd.SpeedMul*100),
 			Run: func(p *player.Player, tx *world.Tx) {
 				MakeTool(s, p, tx, pos, kind, head, hd)
 				showToolHandles(s, p, tx, pos, kind, head)

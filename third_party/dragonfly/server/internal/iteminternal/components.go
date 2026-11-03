@@ -49,6 +49,16 @@ func Components(it world.CustomItem) map[string]any {
 			builder.AddProperty("use_animation", int32(1))
 		}
 	}
+	if _, ok := it.(item.Usable); ok {
+		if _, food := it.(item.Consumable); !food {
+			// skygear patch: the client sends a use on the air only for an item
+			// it knows to be usable.
+			builder.AddComponent("minecraft:use_modifiers", map[string]any{
+				"use_duration":      float32(0.05),
+				"movement_modifier": float32(1),
+			})
+		}
+	}
 	if x, ok := it.(item.Cooldown); ok {
 		builder.AddComponent("minecraft:cooldown", map[string]any{
 			"category": name,

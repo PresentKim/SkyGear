@@ -215,16 +215,43 @@ const registrationTTL = 10
 // Grid steps the item networks of one world.
 type Grid struct {
 	conduits map[cube.Pos]int64
+	sigs     map[cube.Pos]uint64
 	nets     map[cube.Pos]*Network
 	step     int64
+	// the nets are reused until the set of conduits changes, Invalidate is
+	// called or rescanSteps Steps passed.
+	dirty   bool
+	scanned int64
 }
 
+// rescanSteps is the most Steps the networks are reused for without a scan.
+const rescanSteps = 20
+
+// Invalidate makes the next Step find the networks again; call it when a
+// block beside a conduit was placed, broken or changed.
+func (g *Grid) Invalidate() { g.dirty = true }
+
 func NewGrid() *Grid {
-	return &Grid{conduits: map[cube.Pos]int64{}, nets: map[cube.Pos]*Network{}}
+	return &Grid{conduits: map[cube.Pos]int64{}, sigs: map[cube.Pos]uint64{}, nets: map[cube.Pos]*Network{}}
 }
 
 // AddConduit registers the conduit at pos; call it whenever the block ticks.
-func (g *Grid) AddConduit(pos cube.Pos) { g.conduits[pos] = g.step }
+func (g *Grid) AddConduit(pos cube.Pos) {
+	if _, known := g.conduits[pos]; !known {
+		g.dirty = true
+	}
+	g.conduits[pos] = g.step
+}
+
+// AddConduitSig is AddConduit for a conduit that also says a signature of its
+// settings (modes, channels); a changed signature invalidates the networks.
+func (g *Grid) AddConduitSig(pos cube.Pos, sig uint64) {
+	if old, ok := g.sigs[pos]; ok && old != sig {
+		g.dirty = true
+	}
+	g.sigs[pos] = sig
+	g.AddConduit(pos)
+}
 
 // Conduits is how many conduits are registered.
 func (g *Grid) Conduits() int { return len(g.conduits) }
@@ -236,8 +263,18 @@ func (g *Grid) Step(tx *world.Tx) int {
 	for pos, seen := range g.conduits {
 		if g.step-seen > registrationTTL {
 			delete(g.conduits, pos)
+			delete(g.sigs, pos)
+			g.dirty = true
 		}
 	}
+	if !g.dirty && g.nets != nil && g.step-g.scanned < rescanSteps {
+		moved := 0
+		for _, n := range g.nets {
+			moved += n.Step(tx)
+		}
+		return moved
+	}
+	g.dirty, g.scanned = false, g.step
 	done := map[cube.Pos]bool{}
 	keep := map[cube.Pos]*Network{}
 	moved := 0

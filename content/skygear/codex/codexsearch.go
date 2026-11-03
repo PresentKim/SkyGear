@@ -26,7 +26,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sievetable"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
-	"github.com/presentkim/skygear/content/skygear/wave"
 )
 
 // The codex as a recipe viewer: an index of every
@@ -172,12 +171,7 @@ func Relevant() map[string]bool {
 			add(d.Item)
 		}
 	}
-	for _, w := range wave.Levels {
-		for _, r := range w.Reward {
-			add(r.Item())
-		}
-	}
-	for _, pk := range farm.PlantKinds {
+	for _, pk := range farm.LivePlantKinds() {
 		for _, y := range pk.Yield {
 			add(y.Item)
 		}

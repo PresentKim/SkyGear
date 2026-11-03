@@ -59,6 +59,7 @@ func (l *Loader) ChangeWorld(tx *Tx, new *World) {
 	l.w.viewerMu.Lock()
 	delete(l.w.viewers, l)
 	l.w.viewerMu.Unlock()
+	l.w.tickDirty.Store(true) // skygear patch
 
 	l.world(new)
 }
@@ -83,6 +84,7 @@ func (l *Loader) Move(tx *Tx, pos mgl64.Vec3) {
 		return
 	}
 	l.pos = chunkPos
+	l.w.tickDirty.Store(true) // skygear patch
 	l.evictUnused(tx)
 	l.populateLoadQueue()
 }
@@ -171,6 +173,7 @@ func (l *Loader) Close(tx *Tx) {
 	l.w.viewerMu.Lock()
 	delete(l.w.viewers, l)
 	l.w.viewerMu.Unlock()
+	l.w.tickDirty.Store(true) // skygear patch
 
 	l.closed = true
 	l.viewer = nil

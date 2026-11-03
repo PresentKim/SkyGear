@@ -48,7 +48,9 @@ const (
 	Sift     = "sift"
 	Machine  = "machine"
 	Chunk    = "chunk"
-	// Wave1 and Wave5 are done by clearing levels 1 and 5 of the gate.
+	// Wave1 is done by the island's first clear in the second dimension;
+	// Wave3, Wave5 and Wave8 by 3, 9 and 33 stars there (the IDs are the old
+	// gate waves').
 	Wave1 = "wave_1"
 	// ToolMod and ToolLevel are done by putting a modifier on a tool and
 	// by a tool reaching level 1.
@@ -65,7 +67,6 @@ const (
 	Tool5      = "tool_level_5"
 	OreHarvest = "ore_harvest"
 	GemHarvest = "gem_harvest"
-	EssHarvest = "ess_harvest"
 	Chunks8    = "chunks_8"
 	Chunks16   = "chunks_16"
 	// EssenceResearch is done by a research that cost research essences.
@@ -178,22 +179,26 @@ var Tree = []Advancement{
 	{ID: "lab_hunting", Chapter: ChapterLab, Parents: []string{"lab_engineering", "mob_simulator"}, NameKey: "advancement.lab_hunting.name", HintKey: "advancement.lab_hunting.hint", Item: "skygear:research_essence_hunting", Guide: "laboratory"},
 	{ID: "diamond_tools", Chapter: ChapterGear, Parents: []string{"iron_pickaxe", "diamond"}, NameKey: "advancement.diamond_tools.name", HintKey: "advancement.diamond_tools.hint", Item: "diamond_pickaxe"},
 	{ID: "obsidian", Chapter: ChapterFarming, Parents: []string{"lava"}, NameKey: "advancement.obsidian.name", HintKey: "advancement.obsidian.hint", Item: "obsidian", Guide: "diamond_tools"},
-	{ID: "dimension_gate", Chapter: ChapterHunting, Parents: []string{"ender_pearl", "obsidian"}, NameKey: "advancement.dimension_gate.name", HintKey: "advancement.dimension_gate.hint", Research: "dimension_gate", Icon: "skygear:dimension_gate"},
-	{ID: "first_kill", Chapter: ChapterHunting, Parents: []string{"dimension_gate"}, NameKey: "advancement.first_kill.name", HintKey: "advancement.first_kill.hint", Event: true, Icon: "iron_sword", Guide: "dimension_gate"},
-	{ID: Wave1, Chapter: ChapterHunting, Parents: []string{Kill}, Event: true, NameKey: "advancement.wave_1.name", HintKey: "advancement.wave_1.hint", Icon: "iron_sword", Guide: "dimension_gate"},
-	{ID: "wave_3", Chapter: ChapterHunting, Parents: []string{Wave1}, NameKey: "advancement.wave_3.name", HintKey: "advancement.wave_3.hint", Event: true, Icon: "iron_sword", Guide: "dimension_gate"},
-	{ID: Wave5, Chapter: ChapterHunting, Parents: []string{Wave3}, Event: true, NameKey: "advancement.wave_5.name", HintKey: "advancement.wave_5.hint", Icon: "diamond_sword", Guide: "dimension_gate"},
+	{ID: FairyGift, Chapter: ChapterFairy, Event: true, NameKey: "advancement.fairy_gift.name", Parents: []string{"wood"}, HintKey: "advancement.fairy_gift.hint", Icon: "cake"},
+	{ID: "fairy_dust", Chapter: ChapterFairy, Parents: []string{FairyGift}, NameKey: "advancement.fairy_dust.name", HintKey: "advancement.fairy_dust.hint", Item: "skygear:fairy_dust", Guide: "fairy_magic"},
+	{ID: "fairy_emerald", Chapter: ChapterFairy, Parents: []string{"fairy_dust"}, NameKey: "advancement.fairy_emerald.name", HintKey: "advancement.fairy_emerald.hint", Item: "skygear:fairy_emerald", Guide: "fairy_magic"},
+	{ID: "dimension", Chapter: ChapterHunting, Parents: []string{"fairy_emerald"}, NameKey: "advancement.dimension.name", HintKey: "advancement.dimension.hint", Research: "dimension", Icon: "skygear:dimension_stone"},
+	{ID: "first_kill", Chapter: ChapterHunting, Parents: []string{"dimension"}, NameKey: "advancement.first_kill.name", HintKey: "advancement.first_kill.hint", Event: true, Icon: "skygear:relic_spin_blade", Guide: "dimension"},
+	{ID: Wave1, Chapter: ChapterHunting, Parents: []string{Kill}, Event: true, NameKey: "advancement.wave_1.name", HintKey: "advancement.wave_1.hint", Icon: "skygear:essence_slime", Guide: "dimension"},
+	{ID: "relics", Chapter: ChapterHunting, Parents: []string{Wave1}, NameKey: "advancement.relics.name", HintKey: "advancement.relics.hint", Research: "relics", Icon: "skygear:relic_table"},
+	{ID: "essence_collector", Chapter: ChapterHunting, Parents: []string{Wave1}, NameKey: "advancement.essence_collector.name", HintKey: "advancement.essence_collector.hint", Research: "essence_collector", Icon: "skygear:essence_collector"},
+	{ID: "wave_3", Chapter: ChapterHunting, Parents: []string{Wave1}, NameKey: "advancement.wave_3.name", HintKey: "advancement.wave_3.hint", Event: true, Icon: "nether_star", Guide: "dimension"},
+	{ID: Wave5, Chapter: ChapterHunting, Parents: []string{Wave3}, Event: true, NameKey: "advancement.wave_5.name", HintKey: "advancement.wave_5.hint", Icon: "nether_star", Guide: "dimension"},
 	{ID: "tinker_table", Chapter: ChapterGear, Parents: []string{"iron_pickaxe", "bronze_ingot"}, NameKey: "advancement.tinker_table.name", HintKey: "advancement.tinker_table.hint", Research: "tinker_table", Icon: "skygear:tinker_table"},
 	{ID: "tool_made", Chapter: ChapterGear, Parents: []string{"tinker_table"}, NameKey: "advancement.tool_made.name", HintKey: "advancement.tool_made.hint", Event: true, Icon: "iron_pickaxe", Guide: "tinker_table"},
 	{ID: ToolMod, Chapter: ChapterGear, Parents: []string{ToolMade}, Event: true, NameKey: "advancement.tool_modifier.name", HintKey: "advancement.tool_modifier.hint", Icon: "redstone", Guide: "tinker_table"},
 	{ID: ToolLevel, Chapter: ChapterGear, Parents: []string{ToolMade}, Event: true, NameKey: "advancement.tool_level.name", HintKey: "advancement.tool_level.hint", Icon: "experience_bottle", Guide: "tinker_table"},
-	{ID: "magic_seed", Chapter: ChapterMagic, Parents: []string{Wave1}, NameKey: "advancement.magic_seed.name", HintKey: "advancement.magic_seed.hint", Item: "skygear:seed_flower_red", Guide: "dimension_gate"},
+	{ID: "magic_seed", Chapter: ChapterMagic, Parents: []string{Wave1}, NameKey: "advancement.magic_seed.name", HintKey: "advancement.magic_seed.hint", Item: "skygear:seed_flower_red", Guide: "dimension"},
 	{ID: Bloom, Chapter: ChapterMagic, Parents: []string{"magic_seed"}, Event: true, NameKey: "advancement.first_bloom.name", HintKey: "advancement.first_bloom.hint", Icon: "skygear:petal_red"},
 	{ID: "lab_magic", Chapter: ChapterLab, Parents: []string{"lab_engineering", Bloom}, NameKey: "advancement.lab_magic.name", HintKey: "advancement.lab_magic.hint", Item: "skygear:research_essence_magic", Guide: "laboratory"},
 	{ID: "ore_bloom", Chapter: ChapterMagic, Parents: []string{Bloom}, NameKey: "advancement.ore_bloom.name", HintKey: "advancement.ore_bloom.hint", Item: "skygear:seed_ore_iron"},
 	{ID: "magic_sieve", Chapter: ChapterMagic, Parents: []string{"auto_sieve", "ore_bloom"}, NameKey: "advancement.magic_sieve.name", HintKey: "advancement.magic_sieve.hint", Research: "magic_sieve", Icon: "skygear:magic_sieve"},
 	{ID: "gem_bloom", Chapter: ChapterMagic, Parents: []string{"ore_bloom"}, NameKey: "advancement.gem_bloom.name", HintKey: "advancement.gem_bloom.hint", Item: "skygear:seed_gem_diamond"},
-	{ID: "essence_bloom", Chapter: ChapterMagic, Parents: []string{"gem_bloom"}, NameKey: "advancement.essence_bloom.name", HintKey: "advancement.essence_bloom.hint", Item: "skygear:seed_ess_enderman"},
 	{ID: Chunk, Chapter: ChapterStart, Parents: []string{"cobble"}, Event: true, NameKey: "advancement.chunk.name", HintKey: "advancement.chunk.hint", Icon: "grass_block"},
 	{ID: "shears", Chapter: ChapterGear, Parents: []string{"iron"}, NameKey: "advancement.shears.name", HintKey: "advancement.shears.hint", Item: "shears"},
 	{ID: "iron_armor", Chapter: ChapterGear, Parents: []string{"iron"}, NameKey: "advancement.iron_armor.name", HintKey: "advancement.iron_armor.hint", Item: "iron_chestplate"},
@@ -216,23 +221,19 @@ var Tree = []Advancement{
 	{ID: "diamond_armor", Chapter: ChapterGear, Parents: []string{"iron_armor", "diamond"}, NameKey: "advancement.diamond_armor.name", HintKey: "advancement.diamond_armor.hint", Item: "diamond_chestplate"},
 	{ID: "dye", Chapter: ChapterMagic, Parents: []string{Bloom}, NameKey: "advancement.dye.name", HintKey: "advancement.dye.hint", Item: "red_dye"},
 	{ID: "stained_glass", Chapter: ChapterMagic, Parents: []string{"dye", "glass"}, NameKey: "advancement.stained_glass.name", HintKey: "advancement.stained_glass.hint", Item: "blue_stained_glass"},
-	{ID: "wave_8", Chapter: ChapterHunting, Parents: []string{Wave5}, NameKey: "advancement.wave_8.name", HintKey: "advancement.wave_8.hint", Event: true, Icon: "netherite_sword", Guide: "dimension_gate"},
+	{ID: "wave_8", Chapter: ChapterHunting, Parents: []string{Wave5}, NameKey: "advancement.wave_8.name", HintKey: "advancement.wave_8.hint", Event: true, Icon: "nether_star", Guide: "dimension"},
 	{ID: "tool_level_5", Chapter: ChapterGear, Parents: []string{ToolLevel}, NameKey: "advancement.tool_level_5.name", HintKey: "advancement.tool_level_5.hint", Event: true, Icon: "diamond_pickaxe", Guide: "tinker_table"},
 	{ID: "ore_harvest", Chapter: ChapterMagic, Parents: []string{"ore_bloom"}, NameKey: "advancement.ore_harvest.name", HintKey: "advancement.ore_harvest.hint", Event: true, Icon: "iron_ingot", Guide: "magic_botany"},
 	{ID: "gem_harvest", Chapter: ChapterMagic, Parents: []string{"gem_bloom"}, NameKey: "advancement.gem_harvest.name", HintKey: "advancement.gem_harvest.hint", Event: true, Icon: "diamond", Guide: "magic_gems"},
-	{ID: "ess_harvest", Chapter: ChapterMagic, Parents: []string{"essence_bloom"}, NameKey: "advancement.ess_harvest.name", HintKey: "advancement.ess_harvest.hint", Event: true, Icon: "ender_pearl", Guide: "magic_essence"},
 	{ID: "chunks_8", Chapter: ChapterExtra, Parents: []string{Chunk}, NameKey: "advancement.chunks_8.name", HintKey: "advancement.chunks_8.hint", Event: true, Icon: "grass_block"},
 	{ID: "chunks_16", Chapter: ChapterExtra, Parents: []string{Chunks8}, NameKey: "advancement.chunks_16.name", HintKey: "advancement.chunks_16.hint", Event: true, Icon: "grass_block"},
 	{ID: "project_industry", Chapter: ChapterProject, Parents: []string{"conduit_upgrade_3", "storage_controller", "auto_crafter", "lava_generator"}, NameKey: "advancement.project_industry.name", HintKey: "advancement.project_industry.hint", Research: "project_industry", Icon: "skygear:storage_controller"},
-	{ID: "project_hunter", Chapter: ChapterProject, Parents: []string{Wave5, ToolMade, "diamond_armor", "blaze_rod"}, NameKey: "advancement.project_hunter.name", HintKey: "advancement.project_hunter.hint", Research: "project_hunter", Icon: "diamond_sword"},
-	{ID: "project_botanist", Chapter: ChapterProject, Parents: []string{"essence_bloom", "dye"}, NameKey: "advancement.project_botanist.name", HintKey: "advancement.project_botanist.hint", Research: "project_botanist", Icon: "skygear:petal_red"},
+	{ID: "project_hunter", Chapter: ChapterProject, Parents: []string{Wave5, "relics", "blaze_rod"}, NameKey: "advancement.project_hunter.name", HintKey: "advancement.project_hunter.hint", Research: "project_hunter", Icon: "diamond_sword"},
+	{ID: "project_botanist", Chapter: ChapterProject, Parents: []string{"gem_bloom", "dye"}, NameKey: "advancement.project_botanist.name", HintKey: "advancement.project_botanist.hint", Research: "project_botanist", Icon: "skygear:petal_red"},
 	{ID: "project_dragon", Chapter: ChapterProject, Parents: []string{"project_industry", "project_hunter", "project_botanist"}, NameKey: "advancement.project_dragon.name", HintKey: "advancement.project_dragon.hint", Research: "project_dragon", Icon: "ender_eye"},
 	{ID: Dragon, Chapter: ChapterProject, Parents: []string{"project_dragon"}, NameKey: "advancement.dragon_egg.name", HintKey: "advancement.dragon_egg.hint", Event: true, Icon: "dragon_egg", Guide: "project_dragon"},
 	{ID: "wood_hopper", Chapter: ChapterLogistics, NameKey: "advancement.wood_hopper.name", Parents: []string{"chest"}, HintKey: "advancement.wood_hopper.hint", Item: "skygear:wood_hopper"},
 	{ID: Lost, Chapter: ChapterExtra, Event: true, NameKey: "advancement.lost_found.name", Parents: []string{"chest"}, HintKey: "advancement.lost_found.hint", Icon: "chest"},
-	{ID: FairyGift, Chapter: ChapterFairy, Event: true, NameKey: "advancement.fairy_gift.name", Parents: []string{"wood"}, HintKey: "advancement.fairy_gift.hint", Icon: "cake"},
-	{ID: "fairy_dust", Chapter: ChapterFairy, Parents: []string{FairyGift}, NameKey: "advancement.fairy_dust.name", HintKey: "advancement.fairy_dust.hint", Item: "skygear:fairy_dust", Guide: "fairy_magic"},
-	{ID: "fairy_emerald", Chapter: ChapterFairy, Parents: []string{"fairy_dust"}, NameKey: "advancement.fairy_emerald.name", HintKey: "advancement.fairy_emerald.hint", Item: "skygear:fairy_emerald", Guide: "fairy_magic"},
 	{ID: "fairy_board", Chapter: ChapterFairy, Parents: []string{"fairy_dust"}, NameKey: "advancement.fairy_board.name", HintKey: "advancement.fairy_board.hint", Item: "skygear:fairy_board", Guide: "fairy_magic"},
 	{ID: Favourite, Chapter: ChapterExtra, Event: true, NameKey: "advancement.codex_favourite.name", Parents: []string{"wood"}, HintKey: "advancement.codex_favourite.hint", Icon: "book"},
 	{ID: "witch_water", Chapter: ChapterFarming, NameKey: "advancement.witch_water.name", Parents: []string{"barrel", Sift}, HintKey: "advancement.witch_water.hint", Item: "skygear:witch_water_bucket", Guide: "sieve"},

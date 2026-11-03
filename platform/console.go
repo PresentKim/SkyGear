@@ -48,6 +48,14 @@ var consoles = struct {
 
 func init() {
 	sghook.OnServerPacket(func(c *sghook.Conn, pk packet.Packet) bool {
+		// skygear perf P10: look for an open console before building lines.
+		consoles.Lock()
+		con := consoles.byConn[c]
+		isOpen := con != nil && con.open
+		consoles.Unlock()
+		if !isOpen {
+			return false
+		}
 		var lines []string
 		switch pk := pk.(type) {
 		case *packet.Text:
@@ -64,8 +72,7 @@ func init() {
 			return false
 		}
 		consoles.Lock()
-		con := consoles.byConn[c]
-		if con == nil || !con.open {
+		if !con.open {
 			consoles.Unlock()
 			return false
 		}
