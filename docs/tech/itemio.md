@@ -46,7 +46,7 @@ type Adapter func(tx, pos, b) (Inserter, Extractor) // 메서드를 못 붙이�
 
 ## 호퍼
 
-- 바닐라 호퍼는 Dragonfly 패치의 `block.HopperTransfer` 훅(`dragonfly.patch`, `third_party/README.md`)으로 **같은 길**을 탄다: 한 걸음마다 자기 칸의 아이템 하나를 바라보는 블록에 넣고(`Insert`), 위 블록에서 하나를 꺼낸다(`Peek` → `Extract`). 쿨타임은 바닐라 8틱.
+- 바닐라 호퍼는 Dragonfly 패치의 `block.HopperTransfer` 훅(`dragonfly.patch`, `third_party/README.md`)으로 **같은 길**을 탄다: 한 걸음마다 자기 칸의 아이템 하나를 바라보는 블록에 넣고(`Insert`), 위 블록에서 하나를 꺼낸다(`Peek` → `Extract`). 쿨타임은 바닐라처럼 8틱이다.
 - 이동 한 걸음은 `hopper.StepHopper`(`hopper/itemlink.go`) 하나이고 우리 호퍼들도 이것을 쓴다. 방향만 다르다: 바닐라·나무 호퍼는 `out = 바라보는 면`, `in = 위`; 역방향 호퍼는 `out = 위`, `in = 아래`.
 
 ## 새 블록을 붙이려면

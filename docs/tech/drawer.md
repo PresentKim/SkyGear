@@ -5,17 +5,17 @@
 ## 블록
 - `world.CustomBlock` + `CustomItem`(서랍 아이템) + `NBTer`. 비바닐라 블록은 `CustomBlock`과 `CustomItem`을 구현해야 등록된다.
 - 블록 엔티티 NBT에 수량(int64)과 아이템 NBT를 저장한다.
-- 호퍼 연동: `block.HopperInsertable`(`InsertItem`), `block.HopperExtractable`(`ExtractItem`). 한 번에 1개씩 이동(바닐라 호퍼 속도), 다른 아이템은 거부한다.
+- 호퍼 연동: `block.HopperInsertable`(`InsertItem`), `block.HopperExtractable`(`ExtractItem`). 한 번에 1개씩 옮기고(바닐라 호퍼 속도), 다른 아이템은 거부한다.
 - 앞면 방향: 방향 상태(`States()`/`Permutations()`)로 앞면 텍스처를 돌린다.
 
 ## 조작
-- 넣기: `Activatable.Activate`(면 정보 포함). 앞면일 때만 처리, 같은 플레이어의 직전 사용 시각으로 더블 클릭 판정.
-- 꺼내기: `Punchable.Punch(pos, face, tx, user)`. 앞면이면 꺼내고 "앞면을 때림"을 플레이어별로 기록.
+- 넣기: `Activatable.Activate`(면 정보 포함). 앞면일 때만 처리하고, 같은 플레이어의 직전 사용 시각으로 더블 클릭을 판정한다.
+- 꺼내기: `Punchable.Punch(pos, face, tx, user)`. 앞면이면 꺼내고 "앞면을 때림"을 플레이어별로 기록한다.
 - 앞면 파괴 방지: `HandleBlockBreak`에는 면 정보가 없으므로, 위 기록을 보고 앞면이었으면 파괴를 취소한다.
 
 ## 표시: 아이템 홀더 엔티티
 
-아이템 엔티티는 클라이언트에서 항상 회전·흔들리고, 근처에 떨어진 같은 아이템과 합쳐지며, 아래 칸 호퍼에 흡수된다. 그래서 **아이템을 손에 든 커스텀 엔티티**로 표시한다. 아이템 엔티티가 아니므로 합쳐짐·호퍼 흡수 문제가 없다.
+아이템 엔티티는 클라이언트에서 항상 회전하며 흔들리고, 근처에 떨어진 같은 아이템과 합쳐지며, 아래 칸 호퍼에 흡수된다. 그래서 **아이템을 손에 든 커스텀 엔티티**로 표시한다. 아이템 엔티티가 아니므로 합쳐짐·호퍼 흡수 문제가 없다.
 
 - 서버(Go, `holder.go`)
   - 엔티티 타입 `skygear:item_holder`, 히트박스 없음, 저장하지 않음(`EncodeNBT` → nil, 서랍이 다시 생성).

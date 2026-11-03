@@ -6,10 +6,10 @@
 
 | 층 | 하는 일 |
 |---|---|
-| `account.Register` / `account.Grant` | 업적을 등록하고 계정에 한 번만 준다. 준 업적은 메모리에 캐시해(`granted`) 같은 업적을 또 줄 때 DB를 부르지 않는다. 새로 얻으면 메시지·소리, 칭호가 있으면 칭호 안내 |
+| `account.Register` / `account.Grant` | 업적을 등록하고 계정에 한 번만 준다. 준 업적은 메모리에 캐시해(`granted`) 같은 업적을 또 줄 때 DB를 부르지 않는다. 새로 얻으면 메시지와 소리를 내고, 칭호가 있으면 칭호를 안내한다 |
 | `account.RegisterCounter` / `account.Count` | 키마다 단계(`Tier{Need, ID}`)를 두고, 횟수가 단계를 넘는 순간 그 업적을 준다. 등록되지 않은 키는 무시한다 |
-| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. `Count` 가 마지막 저장에서 20초가 지났을 때 따로 돌리고, 서버를 끌 때(`cmd/skygear/main.go`) 부른다. 접속을 떠날 때는 `Forget` 이 그 계정 것만 쓴다. DB에 없는 계정의 횟수는 버린다 |
-| `account.Groups` / `SetGroupOrder` | 칭호 고르기와 업적 목록의 분류와 순서 |
+| `account.Flush` | 쌓인 횟수를 DB `counters`(계정, 키, 값)에 더한다. 마지막 저장 뒤 20초가 지나면 `Count` 가 따로 돌리고, 서버를 끌 때(`cmd/skygear/main.go`) 부른다. 접속을 떠날 때는 `Forget` 이 그 계정 것만 쓴다. DB에 없는 계정의 횟수는 버린다 |
+| `account.Groups` / `SetGroupOrder` | 칭호 고르기와 업적 목록의 분류와 순서를 정한다 |
 | 게임의 `achievement.Counters` | 키, 분류, 단계(횟수)의 표. 시작할 때 모두 등록한다 |
 
 횟수는 계정 단위이고 세이브와 무관하다. 읽을 때(`Counter`, `Progress`)는 처음 한 번 DB에서 메모리로 불러온다.
@@ -62,7 +62,7 @@
 
 ## 화면
 
-칭호 고르기와 업적 목록은 분류를 먼저 고른다(`cosmetics.go`). 칭호는 분류마다 한 쪽 24개씩 쪽을 넘긴다. 못 얻은 카운터 업적은 `지금/목표`를 보인다. 이름 색은 업적 수로 열린다(`account.Colors`).
+칭호 고르기와 업적 목록은 분류를 먼저 고른다(`cosmetics.go`). 칭호는 분류마다 한 쪽에 24개씩 보이고 쪽을 넘긴다. 못 얻은 카운터 업적은 `지금/목표`를 보인다. 이름 색은 업적 수로 열린다(`account.Colors`).
 
 ## 성능
 
