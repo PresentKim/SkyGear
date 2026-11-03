@@ -1,3 +1,16 @@
+diff -ruN -x pack_icon.png a/server/block/barrel.go b/server/block/barrel.go
+--- a/server/block/barrel.go	2026-10-28 22:00:37.935389020 +0000
++++ b/server/block/barrel.go	2026-11-03 10:17:31.684078565 +0000
+@@ -53,7 +53,8 @@
+ func (Barrel) ContainerSize() int { return 27 }
+ 
+ // Inventory returns the inventory of the barrel. The size of the inventory will be 27.
+-func (b Barrel) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
++func (b Barrel) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
++	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
+ 	return b.inventory
+ }
+ 
 diff -ruN -x pack_icon.png a/server/block/beetroot_seeds.go b/server/block/beetroot_seeds.go
 --- a/server/block/beetroot_seeds.go	2026-11-03 09:29:14.473739518 +0000
 +++ b/server/block/beetroot_seeds.go	2026-10-28 22:00:37.935389020 +0000
@@ -21,6 +34,20 @@ diff -ruN -x pack_icon.png a/server/block/beetroot_seeds.go b/server/block/beetr
  	if tx.Light(pos) < 8 {
  		breakBlock(b, pos, tx)
  	} else if b.Growth < 7 && r.IntN(3) > 0 && r.Float64() <= b.CalculateGrowthChance(pos, tx) {
+diff -ruN -x pack_icon.png a/server/block/blast_furnace.go b/server/block/blast_furnace.go
+--- a/server/block/blast_furnace.go	2026-10-28 22:00:37.935389020 +0000
++++ b/server/block/blast_furnace.go	2026-11-03 10:20:11.553381412 +0000
+@@ -45,6 +45,10 @@
+ 	}); b.Lit != lit {
+ 		b.Lit = lit
+ 		tx.SetBlock(pos, b, nil)
++	} else if lit {
++		// skygear patch: smelting changes the inventory and durations in
++		// place, so the column is saved.
++		tx.MarkModified(pos)
+ 	}
+ }
+ 
 diff -ruN -x pack_icon.png a/server/block/carrot.go b/server/block/carrot.go
 --- a/server/block/carrot.go	2026-11-03 09:29:14.473920773 +0000
 +++ b/server/block/carrot.go	2026-10-28 22:00:37.935414655 +0000
@@ -51,6 +78,22 @@ diff -ruN -x pack_icon.png a/server/block/carrot.go b/server/block/carrot.go
  	if tx.Light(pos) < 8 {
  		breakBlock(c, pos, tx)
  	} else if c.Growth < 7 && r.Float64() <= c.CalculateGrowthChance(pos, tx) {
+diff -ruN -x pack_icon.png a/server/block/chest.go b/server/block/chest.go
+--- a/server/block/chest.go	2026-10-28 22:00:37.935414655 +0000
++++ b/server/block/chest.go	2026-11-03 10:17:31.683510717 +0000
+@@ -66,6 +66,12 @@
+ // whether the chest is single or double.
+ func (c Chest) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
+ 	inv, _ := c.tryPair(tx, pos)
++	// skygear patch: the inventory changes in place, so the columns of both
++	// halves are saved.
++	tx.MarkModified(pos)
++	if c.paired {
++		tx.MarkModified(c.pairPos(pos))
++	}
+ 	return inv
+ }
+ 
 diff -ruN -x pack_icon.png a/server/block/composter.go b/server/block/composter.go
 --- a/server/block/composter.go	2026-11-03 09:29:14.474067973 +0000
 +++ b/server/block/composter.go	2026-10-28 22:00:37.935414655 +0000
@@ -166,9 +209,23 @@ diff -ruN -x pack_icon.png a/server/block/dirt.go b/server/block/dirt.go
  // supportsVegetation checks if the vegetation can exist on the block.
  func supportsVegetation(vegetation, block world.Block) bool {
  	soil, ok := block.(Soil)
+diff -ruN -x pack_icon.png a/server/block/furnace.go b/server/block/furnace.go
+--- a/server/block/furnace.go	2026-10-28 22:00:37.940775278 +0000
++++ b/server/block/furnace.go	2026-11-03 10:20:11.552876571 +0000
+@@ -44,6 +44,10 @@
+ 	}); f.Lit != lit {
+ 		f.Lit = lit
+ 		tx.SetBlock(pos, f, nil)
++	} else if lit {
++		// skygear patch: smelting changes the inventory and durations in
++		// place, so the column is saved.
++		tx.MarkModified(pos)
+ 	}
+ }
+ 
 diff -ruN -x pack_icon.png a/server/block/hopper.go b/server/block/hopper.go
 --- a/server/block/hopper.go	2026-11-03 09:29:14.474584107 +0000
-+++ b/server/block/hopper.go	2026-10-28 22:00:37.940775278 +0000
++++ b/server/block/hopper.go	2026-11-03 10:17:42.174052415 +0000
 @@ -13,6 +13,11 @@
  	"sync"
  )
@@ -181,7 +238,17 @@ diff -ruN -x pack_icon.png a/server/block/hopper.go b/server/block/hopper.go
  // Hopper is a low-capacity storage block that can be used to collect item entities directly above it, as well as to
  // transfer items into and out of other containers.
  type Hopper struct {
-@@ -144,8 +149,12 @@
+@@ -82,7 +87,8 @@
+ }
+ 
+ // Inventory returns the inventory of the hopper.
+-func (h Hopper) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
++func (h Hopper) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
++	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
+ 	return h.inventory
+ }
+ 
+@@ -144,8 +150,12 @@
  	}
  
  	if !h.Powered && h.TransferCooldown <= 0 {
@@ -386,6 +453,33 @@ diff -ruN -x pack_icon.png a/server/block/pumpkin_seeds.go b/server/block/pumpki
  	if r.Float64() <= p.CalculateGrowthChance(pos, tx) && tx.Light(pos) >= 8 {
  		if p.Growth < 7 {
  			p.Growth++
+diff -ruN -x pack_icon.png a/server/block/smelter.go b/server/block/smelter.go
+--- a/server/block/smelter.go	2026-10-28 22:00:37.951414655 +0000
++++ b/server/block/smelter.go	2026-11-03 10:17:31.684495121 +0000
+@@ -136,7 +136,8 @@
+ }
+ 
+ // Inventory returns the inventory of the furnace.
+-func (s *smelter) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
++func (s *smelter) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
++	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
+ 	return s.inventory
+ }
+ 
+diff -ruN -x pack_icon.png a/server/block/smoker.go b/server/block/smoker.go
+--- a/server/block/smoker.go	2026-10-28 22:00:37.951414655 +0000
++++ b/server/block/smoker.go	2026-11-03 10:20:11.553742515 +0000
+@@ -45,6 +45,10 @@
+ 	}); s.Lit != lit {
+ 		s.Lit = lit
+ 		tx.SetBlock(pos, s, nil)
++	} else if lit {
++		// skygear patch: smelting changes the inventory and durations in
++		// place, so the column is saved.
++		tx.MarkModified(pos)
+ 	}
+ }
+ 
 diff -ruN -x pack_icon.png a/server/block/wheat_seeds.go b/server/block/wheat_seeds.go
 --- a/server/block/wheat_seeds.go	2026-11-03 09:29:14.475218545 +0000
 +++ b/server/block/wheat_seeds.go	2026-10-28 22:00:37.951414655 +0000
@@ -2826,6 +2920,27 @@ diff -ruN -x pack_icon.png a/server/world/skygear_bench_test.go b/server/world/s
 +		if d := chunk.Encode(col.Chunk, chunk.DiskEncoding); len(d.SubChunks) != 24 {
 +			b.Fatalf("sub chunks = %d", len(d.SubChunks))
 +		}
++	}
++}
+diff -ruN -x pack_icon.png a/server/world/skygear_modified.go b/server/world/skygear_modified.go
+--- a/server/world/skygear_modified.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/world/skygear_modified.go	2026-11-03 10:17:31.652068160 +0000
+@@ -0,0 +1,17 @@
++package world
++
++import "github.com/df-mc/dragonfly/server/block/cube"
++
++// MarkModified marks the loaded column holding pos modified, so that the next
++// save stores it, without sending anything to viewers, updating neighbouring
++// blocks or loading the column. Block entities whose data changes in place,
++// such as the inventories of containers, use it. A nil Tx does nothing.
++// skygear patch
++func (tx *Tx) MarkModified(pos cube.Pos) {
++	if tx == nil {
++		return
++	}
++	if c, ok := tx.World().chunks[chunkPosFromBlockPos(pos)]; ok {
++		c.modified = true
 +	}
 +}
 diff -ruN -x pack_icon.png a/server/world/task_test.go b/server/world/task_test.go
