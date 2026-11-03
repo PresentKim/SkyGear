@@ -110,12 +110,12 @@ func (g *Grid) Step(w World, ticks int) Stats {
 func (n *Network) live(w World) *Network {
 	out := &Network{Conduits: n.Conduits, Rate: n.Rate}
 	for _, e := range n.Sources {
-		if _, ok := w.Block(e.Pos).(Source); ok {
+		if src, _ := RolesOf(w.Block(e.Pos)); src != nil {
 			out.Sources = append(out.Sources, e)
 		}
 	}
 	for _, e := range n.Sinks {
-		if _, ok := w.Block(e.Pos).(Sink); ok {
+		if _, snk := RolesOf(w.Block(e.Pos)); snk != nil {
 			out.Sinks = append(out.Sinks, e)
 		}
 	}

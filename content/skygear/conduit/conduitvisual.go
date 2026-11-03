@@ -146,6 +146,8 @@ func showConduitWith(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plug
 
 // RemoveVisual removes the display entity and the plates of the bundle at pos.
 func RemoveVisual(s *core.Session, tx *world.Tx, pos cube.Pos) {
+	// A lone conduit has no bundle beside it to hear of its removal.
+	invalidateNets(tx)
 	removePlates(s, tx, pos)
 	h, ok := LocalOf(s).Visuals[pos]
 	if !ok {

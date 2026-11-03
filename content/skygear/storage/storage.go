@@ -88,6 +88,9 @@ var networkTick = func() int64 { return time.Now().UnixMilli() / 50 }
 // placed or broken).
 func invalidateNetworks(s *core.Session) { clear(LocalOf(s).networks) }
 
+// InvalidateNetworks is invalidateNetworks for a storage link placed or broken.
+func InvalidateNetworks(s *core.Session) { invalidateNetworks(s) }
+
 func findNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 	seen := map[cube.Pos]bool{pos: true}
 	queue := []cube.Pos{pos}

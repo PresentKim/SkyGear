@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/platform/instance"
 )
 
@@ -78,6 +79,26 @@ func TestOrphanVisualClosed(t *testing.T) {
 	s.World.Do(func(tx *world.Tx) {
 		if _, alive := h.Entity(tx); alive {
 			t.Fatal("orphan visual still open")
+		}
+	})
+}
+
+// TestBrokenLoneConduitLeavesGrids: a conduit with no bundle beside it is
+// dropped from the networks at once when it is broken.
+func TestBrokenLoneConduitLeavesGrids(t *testing.T) {
+	s := refreshSession(t)
+	pos := cube.Pos{3, 64, 3}
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, Bundle{Energy: 1}, nil)
+		network.Energy(s).AddConduit(pos)
+		if st := network.Energy(s).Step(tx, 4); st.Networks != 1 {
+			t.Fatalf("setup: %d networks", st.Networks)
+		}
+		tx.SetBlock(pos, block.Air{}, &world.SetOpts{DisableBlockUpdates: true})
+		RemoveVisual(s, tx, pos)
+		network.Energy(s).AddConduit(pos)
+		if st := network.Energy(s).Step(tx, 4); st.Networks != 0 {
+			t.Fatalf("broken conduit still a network (%d)", st.Networks)
 		}
 	})
 }

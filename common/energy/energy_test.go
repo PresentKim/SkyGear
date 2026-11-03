@@ -242,3 +242,32 @@ func TestCachedEqualsFresh(t *testing.T) {
 		t.Error("the safety rescan did not find the machine")
 	}
 }
+
+// portsMachine is a sink whose ports can be switched off.
+type portsMachine struct {
+	machine
+	sink *bool
+}
+
+func (p portsMachine) EnergyPorts() (bool, bool) { return false, *p.sink }
+
+// TestCachedEndpointHonoursPorts: a cached sink whose ports closed since the
+// scan gets nothing, without Invalidate.
+func TestCachedEndpointHonoursPorts(t *testing.T) {
+	store, h1 := 10000000, 0
+	open := true
+	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: portsMachine{machine{have: &h1, room: 1000000}, &open}}
+	g := NewGrid()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	if h1 == 0 {
+		t.Fatal("setup: no energy")
+	}
+	open = false
+	before := h1
+	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Step(w, 1)
+	if h1 != before {
+		t.Error("a sink with closed ports still got energy")
+	}
+}
