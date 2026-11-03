@@ -138,8 +138,8 @@ func (inst *Instance) sweepTimed(tx *world.Tx) {
 
 func (inst *Instance) autosave() {
 	inst.storeClock()
-	inst.World.Do(func(tx *world.Tx) {
-		states := map[string][]byte{}
+	states := map[string][]byte{}
+	task := inst.World.Do(func(tx *world.Tx) {
 		for _, h := range inst.handles() {
 			if e, ok := h.Entity(tx); ok {
 				p := e.(*player.Player)
@@ -151,11 +151,12 @@ func (inst *Instance) autosave() {
 				states[AccountID(p)] = b
 			}
 		}
-		if err := inst.m.db.SetPlayerStates(inst.Save.ID, states); err != nil {
-			inst.m.log.Error("store player states", "save", inst.Save.ID, "err", err)
-		}
 		inst.session.Autosave(tx)
 	})
+	<-task.Done()
+	if err := inst.m.db.SetPlayerStates(inst.Save.ID, states); err != nil {
+		inst.m.log.Error("store player states", "save", inst.Save.ID, "err", err)
+	}
 }
 
 // KeepLoaded keeps the chunk (x, z) loaded and ticking while the instance

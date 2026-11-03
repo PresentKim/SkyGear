@@ -23,7 +23,7 @@ type DB struct {
 const memoryPath = ":memory:"
 
 func fileDSN(path string) string {
-	return "file:" + path + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
+	return "file:" + path + "?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)"
 }
 
 // Open opens (and migrates) the database at path. ":memory:" opens a
@@ -172,6 +172,9 @@ var migrations = []string{
 	DROP TABLE saves;
 	ALTER TABLE saves_new RENAME TO saves;
 	CREATE UNIQUE INDEX saves_invite_code ON saves(invite_code) WHERE invite_code IS NOT NULL;`,
+	// 8: indexes for the lookups by member account and by request target.
+	`CREATE INDEX save_members_account ON save_members(account_id);
+	CREATE INDEX friend_requests_to ON friend_requests(to_id);`,
 }
 
 func (d *DB) migrate() error {
