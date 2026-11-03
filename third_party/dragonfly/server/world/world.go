@@ -264,6 +264,7 @@ func (w *World) blockInChunk(c *Column, pos cube.Pos) Block {
 		// stored NBT yet. We add it here and update the block.
 		nbtB := w.conf.Blocks.BlockByRuntimeIDOrAir(rid).(NBTer).DecodeNBT(map[string]any{}).(Block)
 		c.BlockEntities[pos] = nbtB
+		c.version++ // skygear patch
 		for _, v := range c.viewers {
 			v.ViewBlockUpdate(pos, nbtB, 0)
 		}
@@ -401,7 +402,7 @@ func (tx *Tx) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 	}
 
 	c.modified = true
-	c.SetBlock(x, y, z, 0, rid)
+	c.SetBlock(x, y, z, 0, rid) // skygear patch: Column.SetBlock bumps the version
 	if w.conf.Blocks.NBTBlock(rid) {
 		c.BlockEntities[pos] = b
 	} else {
@@ -473,6 +474,7 @@ func (tx *Tx) setBlockEntity(pos cube.Pos, b Block) {
 	}
 	c.BlockEntities[pos] = b
 	c.modified = true
+	c.version++ // skygear patch
 }
 
 // setBiome sets the Biome at the position passed. If a chunk is not yet loaded
@@ -485,6 +487,7 @@ func (tx *Tx) setBiome(pos cube.Pos, b Biome) {
 	}
 	c := tx.chunk(chunkPosFromBlockPos(pos))
 	c.modified = true
+	c.version++ // skygear patch
 	c.SetBiome(uint8(pos[0]), int16(pos[1]), uint8(pos[2]), uint32(b.EncodeBiome()))
 }
 
@@ -565,6 +568,7 @@ func (tx *Tx) buildStructure(pos cube.Pos, s Structure) {
 			}
 			c.SetBlock(0, 0, 0, 0, c.Block(0, 0, 0, 0)) // Make sure the heightmap is recalculated.
 			c.modified = true
+			c.version++ // skygear patch: sub chunks were written directly
 
 			// After setting all blocks of the structure within a single chunk,
 			// we show the new chunk to all viewers once.
@@ -640,7 +644,7 @@ func (tx *Tx) setLiquid(pos cube.Pos, b Liquid) {
 			v.ViewBlockUpdate(pos, b, 0)
 		}
 	} else {
-		c.SetBlock(x, y, z, 1, rid)
+		c.SetBlock(x, y, z, 1, rid) // skygear patch: bumps the version
 		for _, v := range c.viewers {
 			v.ViewBlockUpdate(pos, b, 1)
 		}
@@ -1619,6 +1623,10 @@ func (w *World) closeUnusedChunks(tx *Tx) {
 type Column struct {
 	modified  bool
 	lastSaved time.Time // skygear patch
+	// version changes with every block, block entity or biome change; it is
+	// the change signal of the sub chunk cache and is not reset by saving.
+	version  uint64      // skygear patch
+	subCache []subCached // skygear patch
 
 	*chunk.Chunk
 	Entities      []*EntityHandle
@@ -1704,4 +1712,39 @@ func (w *World) columnFrom(c *chunk.Column, _ ChunkPos) *Column {
 	}
 	w.scheduledUpdates.add(scheduled)
 	return col
+}
+
+// skygear patch: sub chunk network cache support.
+
+type subCached struct {
+	version uint64
+	v       any
+}
+
+// SetBlock sets a block of the column and invalidates its cached sub chunks.
+func (c *Column) SetBlock(x uint8, y int16, z uint8, layer uint8, block uint32) {
+	c.version++
+	c.Chunk.SetBlock(x, y, z, layer, block)
+}
+
+// SubCache returns the value stored by SetSubCache for sub chunk ind if the
+// column did not change since. It must only be used inside the world's
+// transaction.
+func (c *Column) SubCache(ind int) (any, bool) {
+	if ind < 0 || ind >= len(c.subCache) {
+		return nil, false
+	}
+	e := c.subCache[ind]
+	return e.v, e.v != nil && e.version == c.version
+}
+
+// SetSubCache stores v as the cached network form of sub chunk ind.
+func (c *Column) SetSubCache(ind int, v any) {
+	if ind < 0 {
+		return
+	}
+	if ind >= len(c.subCache) {
+		c.subCache = append(c.subCache, make([]subCached, ind+1-len(c.subCache))...)
+	}
+	c.subCache[ind] = subCached{version: c.version, v: v}
 }
