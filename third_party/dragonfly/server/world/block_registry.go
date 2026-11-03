@@ -8,6 +8,7 @@ import (
 	"slices"
 	"sort"
 	"sync"
+	"sync/atomic"
 
 	"github.com/brentp/intintmap"
 	"github.com/df-mc/dragonfly/server/world/chunk"
@@ -133,7 +134,29 @@ type BasicBlockRegistry struct {
 
 	blockInfos []blockInfo
 
+	// paletteEntries holds the NBT encoding of each runtime ID's palette entry, filled lazily after Finalize.
+	// skygear patch
+	paletteEntries []atomic.Pointer[[]byte]
+
 	airRID uint32
+}
+
+// CachedPaletteEntry returns the stored palette entry encoding of the runtime ID, or nil. skygear patch
+func (br *BasicBlockRegistry) CachedPaletteEntry(rid uint32) []byte {
+	if int(rid) >= len(br.paletteEntries) {
+		return nil
+	}
+	if p := br.paletteEntries[rid].Load(); p != nil {
+		return *p
+	}
+	return nil
+}
+
+// StorePaletteEntry stores the palette entry encoding of the runtime ID if the registry is finalized. skygear patch
+func (br *BasicBlockRegistry) StorePaletteEntry(rid uint32, entry []byte) {
+	if int(rid) < len(br.paletteEntries) {
+		br.paletteEntries[rid].Store(&entry)
+	}
 }
 
 func (br *BasicBlockRegistry) BitSize() int {
@@ -253,6 +276,7 @@ func (br *BasicBlockRegistry) Clone() *BasicBlockRegistry {
 		br2.networkhashToRids = make(map[uint32]uint32, len(br.networkhashToRids))
 		maps.Copy(br2.networkhashToRids, br.networkhashToRids)
 		br2.ridsToNetworkhash = append([]uint32(nil), br.ridsToNetworkhash...)
+		br2.paletteEntries = make([]atomic.Pointer[[]byte], len(br2.blocks)) // skygear patch
 	}
 
 	return br2
@@ -419,6 +443,7 @@ func (br *BasicBlockRegistry) Finalize() {
 	if !foundAir {
 		panic("BlockRegistry.Finalize: no minecraft:air block state registered")
 	}
+	br.paletteEntries = make([]atomic.Pointer[[]byte], len(br.blocks)) // skygear patch
 	br.finalized = true
 }
 
