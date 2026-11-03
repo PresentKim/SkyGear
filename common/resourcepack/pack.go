@@ -40,7 +40,10 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 	if opt.Encrypt {
 		sum = sha256.Sum256(append(sum[:], opt.Secret...))
 	}
-	version := Version(sum)
+	// The builder version goes into the pack version too: clients keep a
+	// pack by UUID and version, so a pack built differently from the same
+	// files must get a new version to be downloaded again.
+	version := Version(sha256.Sum256(append(sum[:], byte(builderVersion))))
 
 	var cpath string
 	if opt.CacheDir != "" {
@@ -71,9 +74,9 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 		if key, err = encryptDir(tmp, packUUID(tmp), opt.Secret); err != nil {
 			return nil, fmt.Errorf("encrypt resource pack %s: %w", dir, err)
 		}
-	} else if err := os.WriteFile(filepath.Join(tmp, "contents.zip"), nil, 0o644); err != nil {
+	} else if err := os.WriteFile(filepath.Join(tmp, "content.zipe"), nil, 0o644); err != nil {
 		// The game takes its in-game Ore UI page from a pack that is
-		// encrypted or carries a contents.zip, so an unencrypted pack gets an
+		// encrypted or carries a content.zipe, so an unencrypted pack gets an
 		// empty one.
 		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
 	}

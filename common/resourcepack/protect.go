@@ -26,7 +26,7 @@ type Options struct {
 	// encrypt). Secret must then be set: the keys are derived from it, so
 	// the same pack content always gets the same keys, and the pack version
 	// follows the secret too (clients cache a pack by UUID and version).
-	// Without it the pack gets an empty contents.zip, which lets the game
+	// Without it the pack gets an empty content.zipe, which lets the game
 	// take an Ore UI page from it as from an encrypted pack.
 	Encrypt bool
 	Secret  []byte

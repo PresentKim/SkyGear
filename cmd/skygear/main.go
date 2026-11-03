@@ -151,8 +151,9 @@ func run(log *slog.Logger) error {
 	conf.DisableResourceBuilding = true
 	// Chest windows, item holders and custom blocks look wrong without the packs.
 	conf.ResourcesRequired = true
-	// Same Flate ID as vanilla, at the configured level.
-	conf.Compression = netcompress.NewFlate(pconf.Network.CompressionLevel)
+	// Same Flate ID as vanilla, at the configured level. Installed so incoming
+	// batches with that ID decode with it too.
+	conf.Compression = netcompress.Install(pconf.Network.CompressionLevel)
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
 	srv := conf.New()
