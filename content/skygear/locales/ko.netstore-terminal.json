@@ -1,0 +1,9 @@
+{
+ "netstore.terminal.title": "네트워크 터미널",
+ "netstore.terminal.lines": "§7%d종 §f%d§7개 보관 중",
+ "netstore.terminal.cap": "§e%d칸까지만 보입니다. 이름을 검색해 좁혀 보세요.",
+ "netstore.terminal.offline": "§c네트워크가 꺼져 있습니다. 컨트롤러에 에너지를 넣어 주세요.",
+ "netstore.terminal.craftable": "제작 가능",
+ "netstore.terminal.craftTip": "§7눌러서 제작 요청",
+ "netstore.terminal.monitor": "제작 작업"
+}

@@ -161,6 +161,7 @@ var Tree = []Advancement{
 	{ID: "tree_feller", Chapter: ChapterAutomation, Parents: []string{"generator", GrowTree}, NameKey: "advancement.tree_feller.name", HintKey: "advancement.tree_feller.hint", Item: "skygear:tree_feller"},
 	{ID: "redstone", Chapter: ChapterAutomation, Parents: []string{"generator"}, NameKey: "advancement.redstone.name", HintKey: "advancement.redstone.hint", Item: "lever"},
 	{ID: "auto_crafter", Chapter: ChapterLogistics, Parents: []string{"hopper", "redstone"}, NameKey: "advancement.auto_crafter.name", HintKey: "advancement.auto_crafter.hint", Item: "skygear:auto_crafter"},
+	{ID: "storage_network", Chapter: ChapterLogistics, Parents: []string{"storage_controller", "auto_crafter"}, NameKey: "advancement.storage_network.name", HintKey: "advancement.storage_network.hint", Research: "storage_network", Icon: "skygear:net_controller"},
 	{ID: "conduit_upgrade_2", Chapter: ChapterAutomation, Parents: []string{"electrum_ingot", "energy_conduit"}, NameKey: "advancement.conduit_upgrade_2.name", HintKey: "advancement.conduit_upgrade_2.hint", Item: "skygear:conduit_energy_2"},
 	{ID: "conduit_upgrade_3", Chapter: ChapterAutomation, Parents: []string{"steel_ingot", "conduit_upgrade_2"}, NameKey: "advancement.conduit_upgrade_3.name", HintKey: "advancement.conduit_upgrade_3.hint", Item: "skygear:conduit_energy_3"},
 	{ID: "mesh_diamond", Chapter: ChapterSieve, Parents: []string{"mesh_string"}, NameKey: "advancement.mesh_diamond.name", HintKey: "advancement.mesh_diamond.hint", Item: "skygear:mesh_diamond", Icon: "skygear:mesh_diamond"},

@@ -23,6 +23,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -91,6 +92,13 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		if b.Kind == machine.KindStorageLink {
 			storage.InvalidateNetworks(h.s.Session)
 		}
+		if netstore.IsNode(b.Kind) {
+			// The block goes after this handler: drop the network once it is gone.
+			ctx.Player().Tx().Defer(func(tx *world.Tx) {
+				netstore.Invalidate(tx, pos)
+				netstore.Forget(h.s.Session, pos)
+			})
+		}
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
 		farm.BreakComposter(h.s.Session, pos, b, drops)
@@ -116,6 +124,11 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 			storage.InvalidateNetworks(h.s.Session)
 		}
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
+		if netstore.IsNode(b.Kind) {
+			netstore.Forget(h.s.Session, pos) // a node broken by an explosion left its setting
+			// machine.Place sets the block in a deferred call; this one runs after it.
+			ctx.Player().Tx().Defer(func(tx *world.Tx) { netstore.Invalidate(tx, pos) })
+		}
 	case storage.Drawer:
 		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
 	case conduit.Bundle:

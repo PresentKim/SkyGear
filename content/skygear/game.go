@@ -24,6 +24,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -182,12 +183,16 @@ func (s *session) NewDay(tx *world.Tx, day int) {
 }
 
 func (s *session) Autosave(tx *world.Tx) {
+	// Disk contents changed since the controller last flushed them are part
+	// of the save.
+	netstore.Disks(s.Session).Flush()
 	s.Flush()
 }
 
 func (s *session) Close(tx *world.Tx) {
 	storage.RemoveDisplays(s.Session, tx)
 	conduit.RemoveVisuals(s.Session, tx)
+	netstore.Disks(s.Session).Flush()
 	s.Session.Close()
 	core.Unregister(s.Session)
 	s.g.sessions.Delete(s.World)

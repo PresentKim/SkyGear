@@ -20,6 +20,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -110,6 +111,10 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.FluidConduit{Tier: t}, 1) }
 	}
+	for t, n := range []string{"1k", "4k", "16k", "64k"} {
+		out["storage_disk_"+n] = func() item.Stack { return item.NewStack(netstore.Disk{Tier: t}, 1) }
+	}
+	out["pattern"] = func() item.Stack { return item.NewStack(netstore.Pattern{}, 1) }
 	out["mycelium_spores"] = func() item.Stack { return item.NewStack(sgitem.MyceliumSpores{}, 1) }
 	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(sgitem.WitchWaterBucket{}, 1) }
 	for _, k := range sgitem.CrushedKinds {

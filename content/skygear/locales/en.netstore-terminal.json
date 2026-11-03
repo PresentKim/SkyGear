@@ -1,0 +1,9 @@
+{
+ "netstore.terminal.title": "Network Terminal",
+ "netstore.terminal.lines": "§7%d kinds, §f%d§7 items stored",
+ "netstore.terminal.cap": "§eOnly %d slots are shown. Search by name to narrow the list.",
+ "netstore.terminal.offline": "§cThe network is off. Give the controller energy.",
+ "netstore.terminal.craftable": "Craftable",
+ "netstore.terminal.craftTip": "§7Press to request a craft",
+ "netstore.terminal.monitor": "Crafting tasks"
+}
