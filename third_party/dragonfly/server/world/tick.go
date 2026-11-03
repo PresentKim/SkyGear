@@ -4,6 +4,7 @@ import (
 	"maps"
 	"math/rand/v2"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -85,12 +86,15 @@ func (t ticker) tick(tx *Tx) {
 		t.tryAdvanceDay(tx, cycle)
 	}
 
+	// skygear patch: weather goes out only when it changed since the last
+	// send; viewers that join get it when they load (Loader.Load).
+	sendWeather := tick%20 == 0 && w.Dimension().WeatherCycle() && weatherChanged(w, rain, thunder)
 	if tick%20 == 0 {
 		for _, viewer := range viewers {
 			if w.Dimension().TimeCycle() && cycle {
 				viewer.ViewTime(tim)
 			}
-			if w.Dimension().WeatherCycle() {
+			if sendWeather {
 				viewer.ViewWeather(rain, thunder)
 			}
 		}
@@ -463,4 +467,19 @@ func (queue *scheduledTickQueue) add(ticks []scheduledTick) {
 			queue.furthestTicks[index] = t.t
 		}
 	}
+}
+
+// lastWeather holds the weather last sent to the viewers of each world.
+// (skygear patch)
+var lastWeather sync.Map // *World -> [2]bool
+
+// weatherChanged reports whether the weather differs from the one last
+// sent for w, and records it as sent.
+func weatherChanged(w *World, rain, thunder bool) bool {
+	cur := [2]bool{rain, thunder}
+	if prev, ok := lastWeather.Load(w); ok && prev.([2]bool) == cur {
+		return false
+	}
+	lastWeather.Store(w, cur)
+	return true
 }
