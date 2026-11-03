@@ -57,3 +57,36 @@
 
 - `platform.toml` 에 `Debug.Pprof`, `Runtime.MemoryLimitMB`, `Runtime.GCPercent`, `Instance.StateFlushSeconds` 를 더했다.
 - `ResourcePack.Encrypt` 기본값이 켬에서 끔으로 바뀌었다. 이미 있는 `platform.toml` 은 예전 값을 그대로 유지한다.
+
+## perf/dev 측정 (2026-11)
+
+벤치마크(`go test -bench`, `-benchtime 2s`). 이전은 따로 적지 않으면 첫 측정(wave-0)의 값이다.
+
+| 항목 | 이전 | 이후 |
+|---|---|---|
+| BlockEntityTick (블록 엔티티 5000) | 6.92ms, 4670 allocs | 3.29ms, 161 allocs |
+| TickLoadersRange (로더 450, 청크 600) | 6.30ms, 5040 allocs | 3.22ms, 52 allocs |
+| DiskEncode (서브청크 24) | 116µs, 266 allocs | 27µs, 122 allocs |
+| SaveColumn, 안 바뀐 칼럼 다시 저장 (100칼럼) | 11.8ms, 11.7MB | 4.9ms, 3.5MB |
+| SubChunkEntry (뷰어 2) | 4249ns, 8 allocs | 7ns, 0 allocs |
+| SendRecipes (레시피 4) | 6173ns, 41 allocs | 1859ns, 6 allocs |
+| MarshalSaved (작물 2000) | 2.23ms, 38 allocs | 0.41ms, 5 allocs |
+| MachineTick | 6645ns, 14 allocs | 3791ns, 8 allocs |
+| MachineTickStuck | 5717ns, 15 allocs | 3055ns, 5 allocs |
+| BundleTick (묶음 100) | 58.7µs, 130 allocs (강제 갱신) | 30.7µs, 107 allocs |
+| ControllerPeek (서랍 50) | 58.5µs, 34 allocs (캐시 끔) | 10.9µs, 6 allocs |
+| 팩 빌드, 팩 하나 | 9.9ms | 1.5ms (캐시 적중) |
+
+Flate 압축 수준 (128KB): 1단계 1.17ms 16952B, 3단계 1.82ms 15553B, 6단계 5.50ms 13903B. 기본값은 3단계(`Network.CompressionLevel = 3`).
+
+더한 설정(`platform.toml`): `Debug.Pprof`, `Runtime.MemoryLimitMB`, `Runtime.GCPercent`, `Instance.StateFlushSeconds`(기본 10), `Network.CompressionLevel`(기본 3), `ResourcePack.Encrypt`(기본 끔). 빌드한 리소스팩은 `data/packcache` 에 캐시한다.
+
+프로파일: `platform.toml` 에 `[Debug]` `Pprof = "127.0.0.1:6060"` 을 적고 서버를 띄운 뒤
+`go tool pprof http://127.0.0.1:6060/debug/pprof/profile?seconds=30`(CPU), `.../debug/pprof/heap`(메모리)을 연다.
+
+재지 않은 것: 네트워크 토폴로지 캐시(벤치마크가 도관을 등록하지 않음), 증분 저장 중 멈춤, 모든 팩을 켠 시작 시간, 클라이언트 FPS.
+
+알려진 한계:
+- 수정된 칼럼이 `16 × SaveInterval` 개를 넘으면 일부 저장이 한 주기를 넘겨 늦어진다(`Close` 는 전부 저장).
+- 블록 엔티티는 아직 서브청크 요청마다 인코딩한다.
+- N3 은 하지 않았다.
