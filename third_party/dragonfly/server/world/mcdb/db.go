@@ -9,8 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/chunk"
@@ -28,6 +30,59 @@ type DB struct {
 	dir  string
 	ldat *leveldat.Data
 	set  *world.Settings
+
+	// skygear patch: written remembers the hash of the last value stored per chunk key (or that the key
+	// was deleted), so unchanged values are not written again. It is only filled after a batch was
+	// written successfully, and the database is exclusive to one world. entityIDs holds the entity IDs
+	// last stored per chunk.
+	writeMu   sync.Mutex
+	written   map[string]written
+	entityIDs map[string][]int64
+	// onBatch, if set, is called with each batch before it is written (tests).
+	onBatch func(*leveldb.Batch)
+}
+
+// written is the state of a key as last written by storeColumn.
+type written struct {
+	hash    uint64
+	deleted bool
+}
+
+// skygear patch
+type pendingWrite struct {
+	key string
+	w   written
+}
+
+// skygear patch
+type pendingIDs struct {
+	key string
+	ids []int64
+}
+
+// skygear patch: batchState collects the cache updates of a batch, to be applied once it was written.
+type batchState struct {
+	writes []pendingWrite
+	ids    []pendingIDs
+}
+
+// put adds a Put to the batch unless the key was last written with the same value.
+func (db *DB) put(batch *leveldb.Batch, st *batchState, key, value []byte) {
+	h := xxhash.Sum64(value)
+	if w, ok := db.written[string(key)]; ok && !w.deleted && w.hash == h {
+		return
+	}
+	batch.Put(key, value)
+	st.writes = append(st.writes, pendingWrite{string(key), written{hash: h}})
+}
+
+// del adds a Delete to the batch unless the key was last deleted by this DB.
+func (db *DB) del(batch *leveldb.Batch, st *batchState, key []byte) {
+	if w, ok := db.written[string(key)]; ok && w.deleted {
+		return
+	}
+	batch.Delete(key)
+	st.writes = append(st.writes, pendingWrite{string(key), written{deleted: true}})
 }
 
 // Open creates a new provider reading and writing from/to files under the path
@@ -367,41 +422,68 @@ func (db *DB) StoreColumn(pos world.ChunkPos, dim world.Dimension, col *chunk.Co
 
 func (db *DB) storeColumn(k dbKey, col *chunk.Column) error {
 	data := chunk.Encode(col.Chunk, chunk.DiskEncoding)
+	db.writeMu.Lock()
+	defer db.writeMu.Unlock()
+	if db.written == nil {
+		db.written = make(map[string]written)
+		db.entityIDs = make(map[string][]int64)
+	}
+	st := &batchState{}
 	n := 8 + len(data.SubChunks) + len(col.Entities)
 	batch := leveldb.MakeBatch(n)
 
-	db.storeVersion(batch, k, chunkVersion)
-	db.storeBiomes(batch, k, data.Biomes)
-	db.storeSubChunks(batch, k, data.SubChunks, col.Chunk.Range())
-	db.storeFinalisation(batch, k, finalisationPopulated)
+	db.storeVersion(batch, st, k, chunkVersion)
+	db.storeBiomes(batch, st, k, data.Biomes)
+	db.storeSubChunks(batch, st, k, data.SubChunks, col.Chunk.Range())
+	db.storeFinalisation(batch, st, k, finalisationPopulated)
 	db.storeLegacyStates(batch, k, col.Chunk.LegacyStates())
-	db.storeEntities(batch, k, col.Entities)
+	db.storeEntities(batch, st, k, col.Entities)
 	db.storeBlockEntities(batch, k, col.BlockEntities)
 	db.storeScheduledUpdates(batch, k, col.Tick, col.ScheduledBlocks)
 
-	return db.ldb.Write(batch, nil)
+	if db.onBatch != nil {
+		db.onBatch(batch)
+	}
+	if batch.Len() > 0 {
+		if err := db.ldb.Write(batch, nil); err != nil {
+			return err
+		}
+	}
+	for _, p := range st.writes {
+		db.written[p.key] = p.w
+	}
+	for _, p := range st.ids {
+		db.entityIDs[p.key] = p.ids
+	}
+	return nil
 }
 
-func (db *DB) storeVersion(batch *leveldb.Batch, k dbKey, ver uint8) {
-	batch.Put(k.Sum(keyVersion), []byte{ver})
+func (db *DB) storeVersion(batch *leveldb.Batch, st *batchState, k dbKey, ver uint8) {
+	db.put(batch, st, k.Sum(keyVersion), []byte{ver})
 }
 
 var emptyHeightmap = make([]byte, 512)
 
-func (db *DB) storeBiomes(batch *leveldb.Batch, k dbKey, biomes []byte) {
-	batch.Put(k.Sum(key3DData), append(emptyHeightmap, biomes...))
+func (db *DB) storeBiomes(batch *leveldb.Batch, st *batchState, k dbKey, biomes []byte) {
+	db.put(batch, st, k.Sum(key3DData), append(emptyHeightmap[:512:512], biomes...))
 }
 
-func (db *DB) storeSubChunks(batch *leveldb.Batch, k dbKey, subChunks [][]byte, r cube.Range) {
+func (db *DB) storeSubChunks(batch *leveldb.Batch, st *batchState, k dbKey, subChunks [][]byte, r cube.Range) {
 	for i, sub := range subChunks {
-		batch.Put(k.Sum(keySubChunkData, byte(i+(r[0]>>4))), sub)
+		key := k.Sum(keySubChunkData, byte(i+(r[0]>>4)))
+		if len(sub) == 0 {
+			// An empty sub chunk is removed; a missing sub chunk reads back as empty.
+			db.del(batch, st, key)
+			continue
+		}
+		db.put(batch, st, key, sub)
 	}
 }
 
-func (db *DB) storeFinalisation(batch *leveldb.Batch, k dbKey, finalisation uint32) {
+func (db *DB) storeFinalisation(batch *leveldb.Batch, st *batchState, k dbKey, finalisation uint32) {
 	p := make([]byte, 4)
 	binary.LittleEndian.PutUint32(p, finalisation)
-	batch.Put(k.Sum(keyFinalisation), p)
+	db.put(batch, st, k.Sum(keyFinalisation), p)
 }
 
 // storeLegacyStates keeps keyLegacyStates while the chunk's derived states are still pending and removes
@@ -415,18 +497,20 @@ func (db *DB) storeLegacyStates(batch *leveldb.Batch, k dbKey, legacy bool) {
 	batch.Put(key, []byte{1})
 }
 
-func (db *DB) storeEntities(batch *leveldb.Batch, k dbKey, entities []chunk.Entity) {
+func (db *DB) storeEntities(batch *leveldb.Batch, st *batchState, k dbKey, entities []chunk.Entity) {
 	idsKey := append([]byte(keyEntityIdentifiers), index(k.pos, k.dim)...)
 
-	// load the ids of the previous entities
-	var previousIDs []int64
-	digpPrev, err := db.ldb.Get(idsKey, nil)
-	if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
-		db.conf.Log.Error("store entities: read chunk entity IDs: " + err.Error())
-	}
-	if err == nil {
-		for i := 0; i < len(digpPrev); i += 8 {
-			previousIDs = append(previousIDs, int64(binary.LittleEndian.Uint64(digpPrev[i:])))
+	// load the ids of the previous entities; skygear patch: remembered from the last store of the chunk.
+	previousIDs, known := db.entityIDs[string(idsKey)]
+	if !known {
+		digpPrev, err := db.ldb.Get(idsKey, nil)
+		if err != nil && !errors.Is(err, leveldb.ErrNotFound) {
+			db.conf.Log.Error("store entities: read chunk entity IDs: " + err.Error())
+		}
+		if err == nil {
+			for i := 0; i < len(digpPrev); i += 8 {
+				previousIDs = append(previousIDs, int64(binary.LittleEndian.Uint64(digpPrev[i:])))
+			}
 		}
 	}
 
@@ -461,6 +545,7 @@ func (db *DB) storeEntities(batch *leveldb.Batch, k dbKey, entities []chunk.Enti
 
 	// Remove old entity data for this chunk.
 	batch.Delete(k.Sum(keyEntitiesOld))
+	st.ids = append(st.ids, pendingIDs{string(idsKey), newIDs})
 }
 
 func entityIndex(id int64) []byte {
