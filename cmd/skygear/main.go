@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/debug"
+	"sync"
 	"syscall"
 	"time"
 
@@ -34,6 +35,7 @@ import (
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
+	"github.com/sandertv/gophertunnel/minecraft/resource"
 )
 
 func main() {
@@ -119,18 +121,30 @@ func run(log *slog.Logger) error {
 		packNames = append(packNames, "slotdeco")
 	}
 	packNames = append(packNames, "oreui")
-	for _, name := range packNames {
+	packOpt.CacheDir = filepath.Join(pconf.Data.Dir, "packcache")
+	// The packs build concurrently; conf.Resources keeps the list order.
+	base := len(conf.Resources)
+	conf.Resources = append(conf.Resources, make([]*resource.Pack, len(packNames))...)
+	packErrs := make([]error, len(packNames))
+	var packWG sync.WaitGroup
+	for i, name := range packNames {
 		dir := sgPack
 		if name != "skygear" {
 			if dir, err = assets.Pack(name); err != nil {
 				return fmt.Errorf("resource pack %s: %w", name, err)
 			}
 		}
-		pack, err := resourcepack.LoadFS(dir, name, packOpt)
-		if err != nil {
-			return fmt.Errorf("load resource pack: %w", err)
+		packWG.Add(1)
+		go func() {
+			defer packWG.Done()
+			conf.Resources[base+i], packErrs[i] = resourcepack.LoadFS(dir, name, packOpt)
+		}()
+	}
+	packWG.Wait()
+	for _, perr := range packErrs {
+		if perr != nil {
+			return fmt.Errorf("load resource pack: %w", perr)
 		}
-		conf.Resources = append(conf.Resources, pack)
 	}
 	// Textures, models and names of custom blocks and items come from the
 	// packs above; Dragonfly does not build its own.
