@@ -87,7 +87,8 @@ func (h Hopper) BreakInfo() BreakInfo {
 }
 
 // Inventory returns the inventory of the hopper.
-func (h Hopper) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
+func (h Hopper) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
+	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
 	return h.inventory
 }
 

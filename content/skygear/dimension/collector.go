@@ -71,8 +71,12 @@ func TickCollectors(s *core.Session, tx *world.Tx) {
 			if st.Pool == nil {
 				st.Pool = map[string]float64{}
 			}
-			st.Pool[h.Mob] = min(poolMax, st.Pool[h.Mob]+per/60)
-			s.MarkDirty()
+			// A pool that is full stays as it is, so the save is not
+			// marked changed every second.
+			if v := min(poolMax, st.Pool[h.Mob]+per/60); v != st.Pool[h.Mob] {
+				st.Pool[h.Mob] = v
+				s.MarkDirty()
+			}
 		}
 	}
 	l := collectPart.Of(s)

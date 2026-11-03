@@ -30,6 +30,10 @@ type Options struct {
 	// take an Ore UI page from it as from an encrypted pack.
 	Encrypt bool
 	Secret  []byte
+	// CacheDir, if set, keeps built packs (data/packcache) keyed by content,
+	// options, secret and builder version, so an unchanged pack is not built
+	// again at startup. Empty means no cache.
+	CacheDir string
 }
 
 // minifyJSON removes // and /* */ comments (JSON UI files have them) and
@@ -133,19 +137,26 @@ func cfb8(data, key []byte, decrypt bool) error {
 	if err != nil {
 		return err
 	}
-	shift := make([]byte, 16)
-	copy(shift, key[:16])
-	tmp := make([]byte, 16)
-	for i := range data {
-		block.Encrypt(tmp, shift)
-		in := data[i]
-		data[i] ^= tmp[0]
-		cipherByte := data[i]
-		if decrypt {
-			cipherByte = in
+	// The shift register is a window over buf: block i is buf[i:i+16] and
+	// the cipher byte of step i lands at buf[i+16]. After each chunk the last
+	// 16 bytes move to the front, so no byte is copied per step.
+	const chunk = 4096
+	buf := make([]byte, 16+min(chunk, len(data)))
+	copy(buf, key[:16])
+	var tmp [16]byte
+	for off := 0; off < len(data); off += chunk {
+		part := data[off:min(off+chunk, len(data))]
+		for j := range part {
+			block.Encrypt(tmp[:], buf[j:j+16])
+			in := part[j]
+			part[j] ^= tmp[0]
+			if decrypt {
+				buf[16+j] = in
+			} else {
+				buf[16+j] = part[j]
+			}
 		}
-		copy(shift, shift[1:])
-		shift[15] = cipherByte
+		copy(buf, buf[len(part):len(part)+16])
 	}
 	return nil
 }

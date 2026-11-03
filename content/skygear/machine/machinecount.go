@@ -25,8 +25,15 @@ var CycleOnReset = map[string]bool{
 // finished cycles at once, the RE it generated once a second.
 func (st *State) countWork(tx *world.Tx, kind string, tick int64) {
 	if st.Done > 0 {
-		achievement.CountAll(tx, "cycle_total", int64(st.Done))
-		achievement.CountAll(tx, "cycle_"+kind, int64(st.Done))
+		// batched per island, passed on in TickMonitor
+		if st.Sess != nil {
+			fresh := FactoryOf(st.Sess).Stats.fresh
+			fresh["cycle_total"] += int64(st.Done)
+			fresh["cycle_"+kind] += int64(st.Done)
+		} else {
+			achievement.CountAll(tx, "cycle_total", int64(st.Done))
+			achievement.CountAll(tx, "cycle_"+kind, int64(st.Done))
+		}
 		st.Done = 0
 	}
 	for key, n := range st.tallyCounts {

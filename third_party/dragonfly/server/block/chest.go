@@ -66,6 +66,12 @@ func (c Chest) ContainerSize() int {
 // whether the chest is single or double.
 func (c Chest) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
 	inv, _ := c.tryPair(tx, pos)
+	// skygear patch: the inventory changes in place, so the columns of both
+	// halves are saved.
+	tx.MarkModified(pos)
+	if c.paired {
+		tx.MarkModified(c.pairPos(pos))
+	}
 	return inv
 }
 

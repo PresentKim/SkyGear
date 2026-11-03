@@ -3,12 +3,14 @@ package platform
 import (
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -61,10 +63,30 @@ func (pf *Platform) notifiesOf(accountID, lang string) []Notify {
 	return out
 }
 
+// notifyOwners finds the platform holding an account's notifyInFriends entry,
+// so the entry goes when the connection closes (skygear perf P11).
+var notifyOwners sync.Map
+
+func init() {
+	sghook.OnClose(func(c *sghook.Conn) {
+		if id := c.IdentityData().Identity; id != "" {
+			forgetNotify(id)
+		}
+	})
+}
+
+// forgetNotify removes the notice state of an account.
+func forgetNotify(accountID string) {
+	if v, ok := notifyOwners.LoadAndDelete(accountID); ok {
+		v.(*Platform).notifyInFriends.Delete(accountID)
+	}
+}
+
 // openNotify opens the notice screen with the newest notice chosen;
 // inFriends when it is the tab of the friends screen, whose tabs it keeps.
 func (pf *Platform) openNotify(p *player.Player, inFriends bool) {
 	pf.notifyInFriends.Store(instance.AccountID(p), inFriends)
+	notifyOwners.Store(instance.AccountID(p), pf)
 	pf.showNotify(p, "")
 }
 

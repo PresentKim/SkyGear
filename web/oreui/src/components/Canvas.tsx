@@ -139,12 +139,30 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
     const view = viewRef.current!;
     const plane = planeRef.current!;
     boundsRef.current = null;
+    // Layout is read on mount, measure and resize only; a drag places the plane from these.
+    let size = { w: view.clientWidth, h: view.clientHeight };
+    let rem = remPx();
+    const readLayout = () => {
+      size = { w: view.clientWidth, h: view.clientHeight };
+      rem = remPx();
+    };
+    // Drag moves are batched: one placement per frame.
+    let frame = 0;
+    const later = () => {
+      if (frame) return;
+      const run = () => {
+        frame = 0;
+        place.current();
+      };
+      frame = window.requestAnimationFrame ? window.requestAnimationFrame(run) : (setTimeout(run, 16) as unknown as number);
+    };
     const kept = pans.get(planeKey) ?? null;
     let pan: Pan | null = recenter ? null : kept;
     panRef.current = pan;
 
     const measure = () => {
       if (!panRef.current) return;
+      readLayout();
       const pan = panRef.current;
       const pr = plane.getBoundingClientRect();
       const kids = plane.children;
@@ -168,22 +186,21 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
         const c = clampPan(
           pan,
           { x: b.x1 * pan.z, y: b.y1 * pan.z, w: (b.x2 - b.x1) * pan.z, h: (b.y2 - b.y1) * pan.z },
-          { w: view.clientWidth, h: view.clientHeight },
-          MARGIN_REM * remPx(),
+          size,
+          MARGIN_REM * rem,
         );
         pan.x = c.x;
         pan.y = c.y;
       }
-      plane.style.left = `${pan.x}px`;
-      plane.style.top = `${pan.y}px`;
-      plane.style.transform = `scale(${pan.z})`;
+      // The plane sits at left/top 0 (CSS); the pan is a transform, which needs no layout.
+      plane.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${pan.z})`;
     };
     zoomTo.current = (z, cx, cy) => {
       if (!pan) return;
       z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
       if (cx === undefined || cy === undefined) {
-        cx = view.clientWidth / 2;
-        cy = view.clientHeight / 2;
+        cx = size.w / 2;
+        cy = size.h / 2;
       }
       pan.x = cx - ((cx - pan.x) * z) / pan.z;
       pan.y = cy - ((cy - pan.y) * z) / pan.z;
@@ -198,8 +215,8 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
     if (!pan) {
       const touch = !!view.closest('.mc-touch') || document.body.classList.contains('mc-touch');
       const z = kept?.z || lastZoom || (touch ? ZOOM_STEP : 1);
-      const rem = remPx();
-      pan = { x: view.clientWidth / 2 - (focusX || 0) * rem * z, y: view.clientHeight / 2 - (focusY || 0) * rem * z, z };
+      readLayout();
+      pan = { x: size.w / 2 - (focusX || 0) * rem * z, y: size.h / 2 - (focusY || 0) * rem * z, z };
       pans.set(planeKey, pan);
       panRef.current = pan;
     }
@@ -219,7 +236,7 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
       if (!pan) return;
       hideTip();
       const at = pointOf(ev);
-      panning = { pan, place: place.current, x: at.clientX, y: at.clientY, px: pan.x, py: pan.y };
+      panning = { pan, place: later, x: at.clientX, y: at.clientY, px: pan.x, py: pan.y };
     };
     const onMouseDown = (ev: Event) => {
       if ((ev as MouseEvent).button === 0) startDrag(ev);
@@ -244,9 +261,18 @@ export function Canvas(props: { planeKey: string; focusX: number; focusY: number
     view.addEventListener('mousedown', onMouseDown);
     view.addEventListener('touchstart', onTouchStart);
     view.addEventListener('wheel', onWheel);
+    const onResize = () => {
+      readLayout();
+      measure();
+      place.current();
+    };
+    window.addEventListener('resize', onResize);
     const stop = listen();
     return () => {
       clearTimeout(timer);
+      window.removeEventListener('resize', onResize);
+      if (frame && window.cancelAnimationFrame) window.cancelAnimationFrame(frame);
+      frame = 0;
       view.removeEventListener('mousedown', onMouseDown);
       view.removeEventListener('touchstart', onTouchStart);
       view.removeEventListener('wheel', onWheel);

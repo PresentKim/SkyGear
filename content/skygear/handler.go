@@ -88,6 +88,9 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
 	case machine.Machine:
+		if b.Kind == machine.KindStorageLink {
+			storage.InvalidateNetworks(h.s.Session)
+		}
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
 		farm.BreakComposter(h.s.Session, pos, b, drops)
@@ -109,6 +112,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case machine.Machine:
+		if b.Kind == machine.KindStorageLink {
+			storage.InvalidateNetworks(h.s.Session)
+		}
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
 	case storage.Drawer:
 		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)

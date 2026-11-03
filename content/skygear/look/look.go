@@ -41,6 +41,9 @@ const Reach = 6
 // lookInterval limits how often moving or turning updates the panel.
 const lookInterval = 100 * time.Millisecond
 
+// updateAllSkip is how recent a panel update makes UpdateAll leave a player be.
+const updateAllSkip = 50 * time.Millisecond
+
 // LookedAt returns the block a player at pos with rotation rot looks at.
 // Crops count where the view crosses their height (it grows with the
 // stage; the client targets what is behind the empty space above a low
@@ -114,8 +117,13 @@ func updateLookAt(s *core.Session, p *player.Player, tx *world.Tx, at cube.Pos, 
 
 // UpdateAll updates every player's panel.
 func UpdateAll(s *core.Session, tx *world.Tx) {
+	now := time.Now()
 	for e := range tx.Players() {
 		p := e.(*player.Player)
+		// a move updated the panel just now
+		if now.Sub(lastLook.Of(s)[p.H()]) < updateAllSkip {
+			continue
+		}
 		at, b, ok := LookedAt(p, tx, p.Position(), p.Rotation())
 		updateLookAt(s, p, tx, at, b, ok)
 		if ok {

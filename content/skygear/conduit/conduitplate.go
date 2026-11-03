@@ -45,27 +45,30 @@ func FaceIndex(f cube.Face) int {
 // in it and side where the kind meets a block that is not a conduit of its
 // kind, the tier of the conduit. An item conduit also has its connector where
 // the side is switched off (the plate is how it is switched on again).
-func plugsOf(tx *world.Tx, pos cube.Pos, b Bundle) map[plugKey]int {
-	return b.plugsFrom(pos, b.sides(tx, pos))
+func plugsOf(tx *world.Tx, pos cube.Pos, b Bundle) plugs {
+	return b.plugsFrom(b.sides(tx, pos))
 }
 
-// plugsFrom is plugsOf for the neighbour sides of the bundle at pos.
-func (b Bundle) plugsFrom(pos cube.Pos, sides [6]bundleSide) map[plugKey]int {
-	out := map[plugKey]int{}
+// plugs are the tiers of the connectors by side and kind (0 energy, 1 item,
+// 2 fluid); 0 is no connector.
+type plugs [6][3]int
+
+// plugsFrom is plugsOf for the neighbour sides of a bundle.
+func (b Bundle) plugsFrom(sides [6]bundleSide) (out plugs) {
 	for side, s := range sides {
 		other := s.block
 		if b.Energy > 0 {
 			if _, isConduit := energy.IsConduit(other); !isConduit && JoinsEnergy(other) {
-				out[plugKey{pos, side, 0}] = b.Energy
+				out[side][0] = b.Energy
 			}
 		}
 		if b.Item > 0 && s.holdsItems {
-			out[plugKey{pos, side, 1}] = b.Item
+			out[side][1] = b.Item
 		}
 		if b.Fluid > 0 {
 			if o, isBundle := other.(Bundle); !isBundle || o.Fluid == 0 {
 				if joinsFluid(other) {
-					out[plugKey{pos, side, 2}] = b.Fluid
+					out[side][2] = b.Fluid
 				}
 			}
 		}
@@ -73,20 +76,12 @@ func (b Bundle) plugsFrom(pos cube.Pos, sides [6]bundleSide) map[plugKey]int {
 	return out
 }
 
-// plugKey identifies the connector of a kind (0 energy, 1 item, 2 fluid) on a
-// side of the bundle at pos.
-type plugKey struct {
-	pos  cube.Pos
-	side int
-	kind int
-}
-
 // PlateKinds are the kinds that have a connector on the side of the bundle.
 func PlateKinds(tx *world.Tx, pos cube.Pos, b Bundle, side int) []int {
 	var out []int
 	plugs := plugsOf(tx, pos, b)
 	for k := range 3 {
-		if _, ok := plugs[plugKey{pos, side, k}]; ok {
+		if plugs[side][k] != 0 {
 			out = append(out, k)
 		}
 	}
@@ -95,10 +90,10 @@ func PlateKinds(tx *world.Tx, pos cube.Pos, b Bundle, side int) []int {
 
 // plateLook returns the two numbers of the plate on a side of a bundle, and
 // whether it needs a plate at all.
-func plateLook(plugs map[plugKey]int, pos cube.Pos, b Bundle, side int) (variant, mark int32, any bool) {
+func plateLook(plugs plugs, b Bundle, side int) (variant, mark int32, any bool) {
 	kinds := 0
 	for k := range 3 {
-		if _, ok := plugs[plugKey{pos, side, k}]; ok {
+		if plugs[side][k] != 0 {
 			kinds |= 1 << k
 		}
 	}
@@ -142,7 +137,10 @@ func (p *Plate) Variant() int32 { return p.data.Data.(*plateData).variant }
 func (p *Plate) MarkVariant() int32 { return p.data.Data.(*plateData).mark }
 
 // Tick removes plates that no longer belong to a bundle.
-func (p *Plate) Tick(tx *world.Tx, _ int64) {
+func (p *Plate) Tick(tx *world.Tx, current int64) {
+	if !checkTurn(p.handle, current) {
+		return
+	}
 	d := p.data.Data.(*plateData)
 	s, ok := core.Of(tx)
 	_, isBundle := tx.Block(d.key.Pos).(Bundle)
@@ -171,6 +169,9 @@ func (plateType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Enti
 
 func (plateType) EncodeEntity() string { return "skygear:conduit_plate" }
 
+// Transient: never saved with the world.
+func (plateType) Transient() bool { return true }
+
 func (plateType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (plateType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &plateData{} }
@@ -178,11 +179,16 @@ func (plateType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &pl
 func (plateType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
 // syncPlates makes the plates of the bundle at pos what its plugs say.
-func syncPlates(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs map[plugKey]int) {
+// Unless verify is set, a plate whose look is as remembered is taken as alive.
+func syncPlates(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs plugs, verify bool) {
 	for side := range Faces {
 		key := PlateKey{pos, side}
-		variant, mark, need := plateLook(plugs, pos, b, side)
+		variant, mark, need := plateLook(plugs, b, side)
 		if h, ok := LocalOf(s).Plates[key]; ok {
+			if !verify && need && LocalOf(s).looks[h] == [2]int32{variant, mark} {
+				continue
+			}
+			delete(LocalOf(s).looks, h)
 			if e, alive := h.Entity(tx); alive {
 				d := e.(*Plate).data.Data.(*plateData)
 				if need && d.variant == variant && d.mark == mark {
@@ -199,17 +205,22 @@ func syncPlates(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle, plugs map
 		h := world.EntitySpawnOpts{Position: mgl64.Vec3{float64(pos[0]) + 0.5, float64(pos[1]), float64(pos[2]) + 0.5}}.
 			New(PlateType, plateConfig{key: key, variant: variant, mark: mark})
 		LocalOf(s).Plates[key] = h
+		LocalOf(s).looks[h] = [2]int32{variant, mark}
 		tx.AddEntity(h)
 	}
 }
 
 // removePlates removes the plates of the bundle at pos.
 func removePlates(s *core.Session, tx *world.Tx, pos cube.Pos) {
-	for k, h := range LocalOf(s).Plates {
-		if k.Pos != pos {
+	plates := LocalOf(s).Plates
+	for side := range Faces {
+		k := PlateKey{pos, side}
+		h, ok := plates[k]
+		if !ok {
 			continue
 		}
-		delete(LocalOf(s).Plates, k)
+		delete(plates, k)
+		delete(LocalOf(s).looks, h)
 		if e, ok := h.Entity(tx); ok {
 			_ = e.Close()
 		}

@@ -53,7 +53,8 @@ func NewBarrel() Barrel {
 func (Barrel) ContainerSize() int { return 27 }
 
 // Inventory returns the inventory of the barrel. The size of the inventory will be 27.
-func (b Barrel) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
+func (b Barrel) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
+	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
 	return b.inventory
 }
 

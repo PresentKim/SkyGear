@@ -80,3 +80,58 @@ func TestRates(t *testing.T) {
 		t.Errorf("rates %v", Rates)
 	}
 }
+
+func fluidSetup() (fakeWorld, *tank, *tank, *Grid) {
+	src := &tank{kind: Lava, amount: 100000, cap: 100000, source: true}
+	a := &tank{cap: 100000, sink: true}
+	w := fakeWorld{{0, 0, 0}: src, {1, 0, 0}: pipe{}, {1, 0, 1}: a}
+	g := NewGrid()
+	g.AddConduit(cube.Pos{1, 0, 0})
+	return w, src, a, g
+}
+
+func TestPlacedTankJoinsNextStep(t *testing.T) {
+	w, _, _, g := fluidSetup()
+	g.Step(w)
+	b := &tank{cap: 100000, sink: true}
+	w[cube.Pos{1, 0, -1}] = b
+	g.Invalidate()
+	g.Step(w)
+	if b.amount == 0 {
+		t.Error("the placed tank got nothing")
+	}
+}
+
+func TestBrokenTankLeavesNextStep(t *testing.T) {
+	w, _, a, g := fluidSetup()
+	g.Step(w)
+	delete(w, cube.Pos{1, 0, 1})
+	g.Invalidate()
+	before := a.amount
+	g.Step(w)
+	if a.amount != before {
+		t.Error("the broken tank still got fluid")
+	}
+}
+
+func TestStaleCacheNoPanic(t *testing.T) {
+	w, _, _, g := fluidSetup()
+	g.Step(w)
+	delete(w, cube.Pos{1, 0, 1})
+	delete(w, cube.Pos{0, 0, 0})
+	g.Step(w)
+}
+
+func TestCachedEqualsFresh(t *testing.T) {
+	w, _, _, g := fluidSetup()
+	g.Step(w)
+	fresh := Discover(w, cube.Pos{1, 0, 0}, 2048)
+	if len(g.nets) != 1 {
+		t.Fatalf("%d cached networks", len(g.nets))
+	}
+	for _, n := range g.nets {
+		if len(n.Conduits) != len(fresh.Conduits) || len(n.Ends) != len(fresh.Ends) || n.Tier != fresh.Tier {
+			t.Errorf("cached %+v, fresh %+v", n, fresh)
+		}
+	}
+}

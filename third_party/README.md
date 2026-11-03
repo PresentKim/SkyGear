@@ -40,6 +40,17 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/block/composter.go` | `ComposterVanillaRules`(기본 켬)를 끄면 퇴비통이 호퍼로 넣고 빼지 않고 우클릭도 하지 않음(게임이 자기 규칙으로 처리: 고정 개수, 흙) |
 | `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 로그를 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
 | `server/world/tick_stats.go` (신규), `tick.go`, `world.go` | 월드 틱마다 걸린 시간(틱 예정 시각부터 끝날 때까지)을 최근 5초만 기록하고 `World.TickStats()`(TPS, 평균·최대 틱 시간)로 돌려줌. 운영자 사이드바의 서버 부하 표시용(`common/perf`) |
+| `server/world/tick.go`, `world.go`, `loader.go`, `tick_cache_test.go` (신규) | 무작위·블록 엔티티 틱 대상 청크 목록을 캐시(`tickSetCache`). 로더 추가·제거·이동, 청크 추가·삭제, `SetTickRange` 때 갱신 표시를 하고, 안전망으로 100틱마다 강제 재계산. 블록 엔티티 위치 버퍼를 재사용하고 `tx.Block` 대신 `c.BlockEntities` 를 직접 읽음(언로드된 청크는 건너뜀). 날씨 패킷은 값이 바뀔 때만 보냄(월드별로 기억하고 월드가 닫히면 잊음. 접속한 뷰어는 `Loader.Load` 에서 받음) |
+| `server/world/world.go`, `tx.go` 관련, `save_test.go`, `transient_test.go`, `concurrent_test.go` (신규) | 증분 저장: 1초마다 수정된 칼럼을 최대 16개(`saveBatch`)까지 오래된 순으로 저장(`Save`/`Close` 는 전체 저장). `modified` 는 저장 뒤 블록 엔티티·엔티티·예약 틱이 없는 칼럼만 지움. `Column.version` 과 서브청크 캐시. 임시 엔티티는 저장하지 않고 칼럼을 수정됨으로 표시하지도 않음. `tx.Players()` 는 플레이어 색인을 씀. `entitiesWithin` 은 청크마다 복제하지 않음(쓸 때 복사) |
+| `server/world/entity.go` | `TransientEntityType`: 저장하지 않는 임시 엔티티 종류(표시용 등) |
+| `server/world/chunk/encoding.go`, `server/world/block_registry.go`, `chunk/palette_cache_test.go` (신규) | 팔레트 항목 NBT 를 런타임 ID 별로 한 번만 인코딩해 재사용(저장 결과도 항상 같음) |
+| `server/world/mcdb/db.go`, `skipwrite_test.go` (신규) | 값이 안 바뀐 `Put` 은 건너뜀(키별 xxhash, 배치 쓰기 성공 뒤에 갱신). 빈 서브청크는 삭제. 칼럼의 엔티티 ID 목록을 기억해 다시 읽지 않음 |
+| `server/world/conf.go`, `server/world/mcdb/conf.go` | `ConcurrentProvider`: 동시 호출이 안전한 저장소는 `lockedProvider` 로 감싸지 않음(mcdb 가 해당) |
+| `server/session/chunk.go`, `subchunk_cache_test.go` (신규) | 서브청크 네트워크 데이터를 칼럼 `version` 별로 캐시. 가짜 청크는 캐시를 거치지 않음 |
+| `server/session/player.go`, `recipes_cache_test.go` (신규) | 레시피·창작 데이터를 블록 레지스트리당 한 번만 만들어 공유하고 레시피 네트워크 ID 를 고정함. 한 트랜잭션에서 슬롯이 여러 번 바뀌어도 UI 인벤토리는 한 번만 보냄 |
+| `server/session/session.go` | 클라이언트가 청크를 받는 중(열린 blob 트랜잭션이 적음)이면 틱마다 청크를 최대 16개 보냄(그 외 4개) |
+| `server/world/skygear_modified.go` (신규), `server/block/chest.go`, `barrel.go`, `hopper.go`, `smelter.go`, `furnace.go`, `blast_furnace.go`, `smoker.go` | **컨테이너 내용 저장**: 인벤토리 변경은 청크를 바뀜으로 표시하지 않아, 같은 청크에 다른 변경이 없으면 상자·통·호퍼·화로 내용이 저장되지 않았다. `Tx.MarkModified(pos)`(로드된 청크만, 패킷·이웃 갱신 없음)를 두고 각 컨테이너의 `Inventory(tx, pos)` 와 불이 켜진 화로의 `Tick` 에서 부른다 |
+| `server/world/skygear_bench_test.go` (신규) | 위 패치의 벤치마크(`BlockEntityTick`, `TickLoadersRange`, `DiskEncode`, `SaveColumn` 등). 수치는 [docs/tech/performance.md](../docs/tech/performance.md) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 흙으로 퍼지지 않고, 그 아래 잔디는 흙으로 돌아감(바닐라와 같게). 업스트림은 빛만 봐서 빛을 막지 않는 커스텀 블록(코어 등) 아래 흙이 잔디가 된다 |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
 | `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(업스트림은 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사된다). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트는 금 가기를 끝내도 파괴 동작을 보내지 않는다). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |

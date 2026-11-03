@@ -16,6 +16,7 @@
 package oreui
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -63,6 +64,19 @@ type Form struct {
 	// nonce tells this form's roots from those of a form before it in the
 	// same property.
 	nonce string
+
+	// lastLayout is the JSON of the layout last sent: the same bytes are not
+	// sent twice (skygear perf O4).
+	lastLayout []byte
+	// write sends a packet; nil sends it on conn (tests set it).
+	write func(packet.Packet) error
+}
+
+func (f *Form) send(pk packet.Packet) error {
+	if f.write != nil {
+		return f.write(pk)
+	}
+	return f.conn.WritePacket(pk)
 }
 
 // Setting is a client setting the page keeps at Value while the page is
@@ -199,7 +213,13 @@ func (f *Form) SetLayout(layout any) error {
 	if err != nil {
 		return err
 	}
-	return f.change(property, protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
+	f.mu.Lock()
+	same := bytes.Equal(f.lastLayout, b)
+	f.mu.Unlock()
+	if same {
+		return nil
+	}
+	err = f.change(property, protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
 		{Key: "title", Value: str("")},
 		{Key: "closeButton", Value: protocol.DataStorePropertyValue{Type: protocol.DataStorePropertyTypeMap, MapValue: []protocol.DataStoreMapEntry{
 			{Key: "label", Value: str("")},
@@ -209,6 +229,12 @@ func (f *Form) SetLayout(layout any) error {
 		{Key: "oui", Value: str(string(b))},
 		{Key: "oui_event", Value: str("")},
 	}})
+	if err == nil {
+		f.mu.Lock()
+		f.lastLayout = b
+		f.mu.Unlock()
+	}
+	return err
 }
 
 // Close closes the screen on the client. onClose does not run.
@@ -249,7 +275,7 @@ func (f *Form) change(prop string, v protocol.DataStorePropertyValue) error {
 	if f.Closed() {
 		return nil
 	}
-	return f.conn.WritePacket(&packet.ClientBoundDataStore{Updates: []protocol.DataStoreChangeEntry{{
+	return f.send(&packet.ClientBoundDataStore{Updates: []protocol.DataStoreChangeEntry{{
 		ChangeType: protocol.DataStoreChangeTypeChange,
 		Change:     protocol.DataStoreChange{DataStoreName: store, Property: prop, UpdateCount: updateCount.Add(1), NewValue: v},
 	}}})

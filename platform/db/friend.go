@@ -64,7 +64,7 @@ func (d *DB) SendFriendRequest(from, to string) (accepted bool, err error) {
 
 // FriendRequests returns the accounts that sent `to` a friend request.
 func (d *DB) FriendRequests(to string) ([]Account, error) {
-	return d.accounts(`SELECT `+accountColumns+` FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
+	return d.accounts(`SELECT `+accountColumns+` FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at, r.rowid`, to)
 }
 
 // FriendRequest is a friend request someone sent: who and when.
@@ -75,7 +75,7 @@ type FriendRequest struct {
 
 // FriendRequestsTo returns the friend requests sent to `to`, oldest first.
 func (d *DB) FriendRequestsTo(to string) ([]FriendRequest, error) {
-	rows, err := d.sql.Query(`SELECT `+accountColumns+`, r.created_at FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at`, to)
+	rows, err := d.sql.Query(`SELECT `+accountColumns+`, r.created_at FROM friend_requests r JOIN accounts a ON a.id = r.from_id WHERE r.to_id = ? ORDER BY r.created_at, r.rowid`, to)
 	if err != nil {
 		return nil, err
 	}

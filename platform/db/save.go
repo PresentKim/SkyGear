@@ -174,7 +174,7 @@ type Member struct {
 // Members returns all members of a save, including ones that left.
 func (d *DB) Members(saveID int64) ([]Member, error) {
 	rows, err := d.sql.Query(`SELECT m.account_id, a.name, m.role, m.joined_at, m.left_at IS NOT NULL
-		FROM save_members m JOIN accounts a ON a.id = m.account_id WHERE m.save_id = ? ORDER BY m.joined_at`, saveID)
+		FROM save_members m JOIN accounts a ON a.id = m.account_id WHERE m.save_id = ? ORDER BY m.joined_at, m.rowid`, saveID)
 	if err != nil {
 		return nil, err
 	}

@@ -121,7 +121,8 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		// Removing the drawer by other means makes its display clean up.
 		tx.SetBlock(mid, nil, nil)
 	})
-	tick(s, 2)
+	// Display and timed upkeep run every 20 ticks (phased), so cover the window.
+	tick(s, 41)
 	s.World.Do(func(tx *world.Tx) {
 		for e := range tx.Entities() {
 			if _, ok := e.(*storage.ItemHolder); ok {
@@ -133,7 +134,7 @@ func TestDrawerHopperAndDisplay(t *testing.T) {
 		}
 		tx.SetBlock(mid, storage.Drawer{Facing: cube.North}, nil)
 	})
-	tick(s, 2)
+	tick(s, 41)
 	s.World.Do(func(tx *world.Tx) {
 		n := 0
 		for e := range tx.Entities() {

@@ -2,6 +2,7 @@ package session
 
 import (
 	"bytes"
+	"slices"
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -41,19 +42,20 @@ func (s *Session) ViewSubChunks(centre world.SubChunkPos, offsets []protocol.Sub
 			entries = append(entries, protocol.SubChunkEntry{Result: protocol.SubChunkResultIndexOutOfBounds, Offset: offset})
 			continue
 		}
+		cacheable := true // skygear patch: fake chunks bypass the sub chunk cache
 		col, ok := s.chunkLoader.Chunk(world.ChunkPos{
 			centre.X() + int32(offset[0]),
 			centre.Z() + int32(offset[2]),
 		})
 		// skygear patch: answer from a chunk shown with ViewFakeChunk.
 		if fake, faked := s.fakeChunk(world.ChunkPos{centre.X() + int32(offset[0]), centre.Z() + int32(offset[2])}); faked {
-			col, ok = fake, true
+			col, ok, cacheable = fake, true, false
 		}
 		if !ok {
 			entries = append(entries, protocol.SubChunkEntry{Result: protocol.SubChunkResultChunkNotFound, Offset: offset})
 			continue
 		}
-		entries = append(entries, s.subChunkEntry(offset, ind, col, transaction))
+		entries = append(entries, s.subChunkEntry(offset, ind, col, transaction, cacheable))
 	}
 	if s.conn.ClientCacheEnabled() && len(transaction) > 0 {
 		s.blobMu.Lock()
@@ -69,9 +71,27 @@ func (s *Session) ViewSubChunks(centre world.SubChunkPos, offsets []protocol.Sub
 	})
 }
 
-func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *world.Column, transaction map[uint64]struct{}) protocol.SubChunkEntry {
+// subChunkNet is the part of a sub chunk entry that only depends on the blocks
+// of the column. skygear patch
+type subChunkNet struct {
+	allAir  bool
+	payload []byte
+	hash    uint64
+	mapType byte
+	mapData protocol.Optional[protocol.HeightMap]
+}
+
+// subChunkNetData returns the network form of sub chunk ind of col, from the
+// column's cache if cacheable and unchanged. Fake chunks are not cacheable.
+func subChunkNetData(col *world.Column, ind int16, cacheable bool) *subChunkNet {
+	if cacheable {
+		if v, ok := col.SubCache(int(ind)); ok {
+			return v.(*subChunkNet)
+		}
+	}
 	chunkMap := col.HeightMap()
-	subMapType, subMap := byte(protocol.HeightMapDataHasData), protocol.HeightMap{}
+	n := &subChunkNet{mapType: byte(protocol.HeightMapDataHasData)}
+	subMap := protocol.HeightMap{}
 	higher, lower := true, true
 	for z := uint8(0); z < 16; z++ {
 		for x := uint8(0); x < 16; x++ {
@@ -87,30 +107,42 @@ func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *
 			}
 		}
 	}
-	var subMapData protocol.Optional[protocol.HeightMap]
 	switch {
 	case higher:
-		subMapType = protocol.HeightMapDataTooHigh
+		n.mapType = protocol.HeightMapDataTooHigh
 	case lower:
-		subMapType = protocol.HeightMapDataTooLow
+		n.mapType = protocol.HeightMapDataTooLow
 	default:
-		subMapData = protocol.Option(subMap)
+		n.mapData = protocol.Option(subMap)
 	}
+	if col.Sub()[ind].Empty() {
+		n.allAir = true
+	} else {
+		n.payload = chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))
+		n.hash = xxhash.Sum64(n.payload)
+	}
+	if cacheable {
+		col.SetSubCache(int(ind), n)
+	}
+	return n
+}
 
-	sub := col.Sub()[ind]
-	if sub.Empty() {
+func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *world.Column, transaction map[uint64]struct{}, cacheable bool) protocol.SubChunkEntry {
+	n := subChunkNetData(col, ind, cacheable)
+	if n.allAir {
 		return protocol.SubChunkEntry{
 			Result:              protocol.SubChunkResultSuccessAllAir,
-			HeightMapType:       subMapType,
-			HeightMapData:       subMapData,
-			RenderHeightMapType: subMapType,
-			RenderHeightMapData: subMapData,
+			HeightMapType:       n.mapType,
+			HeightMapData:       n.mapData,
+			RenderHeightMapType: n.mapType,
+			RenderHeightMapData: n.mapData,
 			Offset:              offset,
 		}
 	}
+	serialisedSubChunk := n.payload
 
-	serialisedSubChunk := chunk.EncodeSubChunk(col.Chunk, chunk.NetworkEncoding, int(ind))
-
+	// Block entities are encoded per request: their data may change without
+	// a block change.
 	blockEntityBuf := bytes.NewBuffer(nil)
 	enc := nbt.NewEncoderWithEncoding(blockEntityBuf, nbt.NetworkLittleEndian)
 	for pos, b := range col.BlockEntities {
@@ -123,18 +155,18 @@ func (s *Session) subChunkEntry(offset protocol.SubChunkOffset, ind int16, col *
 
 	entry := protocol.SubChunkEntry{
 		Result:              protocol.SubChunkResultSuccess,
-		RawPayload:          protocol.Option(append(serialisedSubChunk, blockEntityBuf.Bytes()...)),
-		HeightMapType:       subMapType,
-		HeightMapData:       subMapData,
-		RenderHeightMapType: subMapType,
-		RenderHeightMapData: subMapData,
+		RawPayload:          protocol.Option(slices.Concat(serialisedSubChunk, blockEntityBuf.Bytes())),
+		HeightMapType:       n.mapType,
+		HeightMapData:       n.mapData,
+		RenderHeightMapType: n.mapType,
+		RenderHeightMapData: n.mapData,
 		Offset:              offset,
 	}
 	if s.conn.ClientCacheEnabled() {
-		if hash := xxhash.Sum64(serialisedSubChunk); s.trackBlob(hash, serialisedSubChunk) {
-			transaction[hash] = struct{}{}
+		if s.trackBlob(n.hash, serialisedSubChunk) {
+			transaction[n.hash] = struct{}{}
 
-			entry.BlobHash = protocol.Option(hash)
+			entry.BlobHash = protocol.Option(n.hash)
 			entry.RawPayload = protocol.Option(blockEntityBuf.Bytes())
 		}
 	}

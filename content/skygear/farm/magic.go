@@ -3,6 +3,7 @@ package farm
 import (
 	"fmt"
 	"math/rand/v2"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -194,6 +195,11 @@ func (s PlantSeed) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *wo
 type PlantRecord struct {
 	Kind    string        `json:"kind"`
 	ReadyAt time.Duration `json:"ready_at"`
+	// next is the instance time the tick looks at this plant again (not
+	// saved: zero checks it on the first tick).
+	next time.Duration
+	// bloomed is set once the tick saw the plant in bloom.
+	bloomed bool
 }
 
 const plantState = "skygear:plant"
@@ -385,6 +391,7 @@ func resetPlant(s *core.Session, tx *world.Tx, pos cube.Pos, b MagicPlant) {
 	now := climate.GrowNow(s)
 	if r := StateOf(s).Plants[CropKey(pos)]; r != nil {
 		r.ReadyAt = now + k.Grow
+		r.next, r.bloomed = 0, false
 	} else {
 		if StateOf(s).Plants == nil {
 			StateOf(s).Plants = map[string]*PlantRecord{}
@@ -407,14 +414,53 @@ func rollPlantYield(s *core.Session, k PlantKind) []item.Stack {
 	return out
 }
 
-// TickPlants blooms the plants whose time has come (every second).
+// plantSweep is how often a plant that is not ripening is checked to still
+// be there.
+const plantSweep = time.Minute
+
+// posCache keeps the parsed position of every crop key seen (keys are
+// parsed every second otherwise).
+var posCache sync.Map // string -> cube.Pos
+
+// keyPos is parseCropKey with a cache.
+func keyPos(key string) (cube.Pos, bool) {
+	if v, ok := posCache.Load(key); ok {
+		return v.(cube.Pos), true
+	}
+	pos, ok := parseCropKey(key)
+	if ok {
+		posCache.Store(key, pos)
+	}
+	return pos, ok
+}
+
+// plantCheckDue reports whether the tick must look at r at time now.
+func plantCheckDue(r *PlantRecord, now time.Duration) bool {
+	return now >= r.next || (!r.bloomed && now >= r.ReadyAt)
+}
+
+// scheduleCheck sets when r is looked at next: when it ripens, or after a
+// sweep interval to notice a plant that is gone.
+func scheduleCheck(r *PlantRecord, now time.Duration) {
+	r.next = now + plantSweep
+	if r.ReadyAt > now && r.ReadyAt < r.next {
+		r.next = r.ReadyAt
+	}
+}
+
+// TickPlants blooms the plants whose time has come (every second). Plants
+// are scheduled by their ReadyAt like crops: a plant is looked at when it
+// ripens or on a sweep, not every second.
 func TickPlants(s *core.Session, tx *world.Tx) {
 	if len(StateOf(s).Plants) == 0 {
 		return
 	}
 	now := climate.GrowNow(s)
 	for key, r := range StateOf(s).Plants {
-		pos, ok := parseCropKey(key)
+		if !plantCheckDue(r, now) {
+			continue
+		}
+		pos, ok := keyPos(key)
 		if !ok {
 			delete(StateOf(s).Plants, key)
 			continue
@@ -433,6 +479,8 @@ func TickPlants(s *core.Session, tx *world.Tx) {
 		if !b.Bloom && now >= r.ReadyAt {
 			tx.SetBlock(pos, MagicPlant{Kind: b.Kind, Bloom: true}, nil)
 		}
+		r.bloomed = b.Bloom || now >= r.ReadyAt
+		scheduleCheck(r, now)
 	}
 }
 

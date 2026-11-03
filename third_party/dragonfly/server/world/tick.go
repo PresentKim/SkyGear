@@ -4,6 +4,7 @@ import (
 	"maps"
 	"math/rand/v2"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -29,6 +30,7 @@ func (t ticker) tickLoop(w *World) {
 			w.tickStats.add(at, time.Since(at))
 		case <-w.closing:
 			// World is being closed: Stop ticking and get rid of a task.
+			lastWeather.Delete(w) // skygear patch: do not keep the world alive
 			w.running.Done()
 			return
 		}
@@ -85,12 +87,15 @@ func (t ticker) tick(tx *Tx) {
 		t.tryAdvanceDay(tx, cycle)
 	}
 
+	// skygear patch: weather goes out only when it changed since the last
+	// send; viewers that join get it when they load (Loader.Load).
+	sendWeather := tick%20 == 0 && w.Dimension().WeatherCycle() && weatherChanged(w, rain, thunder)
 	if tick%20 == 0 {
 		for _, viewer := range viewers {
 			if w.Dimension().TimeCycle() && cycle {
 				viewer.ViewTime(tim)
 			}
-			if w.Dimension().WeatherCycle() {
+			if sendWeather {
 				viewer.ViewWeather(rain, thunder)
 			}
 		}
@@ -128,36 +133,25 @@ func (t ticker) performNeighbourUpdates(tx *Tx) {
 // tickBlocksRandomly executes random block ticks in loaded chunks within range of loaders.
 func (t ticker) tickBlocksRandomly(tx *Tx, loaders []*Loader, tick int64) {
 	var (
-		r             = int32(tx.World().tickRange())
-		g             randUint4
-		blockEntities []cube.Pos
-		randomBlocks  []cube.Pos
+		w            = tx.World()
+		r            = int32(w.tickRange())
+		g            randUint4
+		randomBlocks []cube.Pos
 	)
 	if r == 0 {
 		// NOP if the simulation distance is 0.
 		return
 	}
 
-	loaded := make([]ChunkPos, 0, len(loaders))
-	if tx.World().conf.Synchronous {
-		loaded = slices.Collect(maps.Keys(tx.World().chunks))
-	} else {
-		for _, loader := range loaders {
-			loader.mu.RLock()
-			pos := loader.pos
-			loader.mu.RUnlock()
-
-			loaded = append(loaded, pos)
+	// skygear patch: use the cached tick set, and a reusable buffer of block
+	// entity positions.
+	set := w.tickSet.get(w, r)
+	blockEntities := w.tickSet.beBuf[:0]
+	for _, tc := range set {
+		pos, c := tc.pos, tc.col
+		for bp := range c.BlockEntities {
+			blockEntities = append(blockEntities, bp)
 		}
-	}
-
-	for pos, c := range tx.World().chunks {
-		if !t.anyWithinDistance(pos, loaded, r) {
-			// No loaders in this chunk that are within the simulation distance, so proceed to the next.
-			continue
-		}
-		blockEntities = append(blockEntities, slices.Collect(maps.Keys(c.BlockEntities))...)
-
 		cx, cz := int(pos[0]<<4), int(pos[1]<<4)
 
 		// We generate up to j random positions for every sub chunk.
@@ -190,8 +184,100 @@ func (t ticker) tickBlocksRandomly(tx *Tx, loaders []*Loader, tick int64) {
 		}
 	}
 	for _, pos := range blockEntities {
-		if tb, ok := tx.Block(pos).(TickerBlock); ok {
+		// skygear patch: read the block entity directly, skipping chunks that
+		// were unloaded in the meantime.
+		c, ok := w.chunks[chunkPosFromBlockPos(pos)]
+		if !ok {
+			continue
+		}
+		if tb, ok := c.BlockEntities[pos].(TickerBlock); ok {
 			tb.Tick(tick, pos, tx)
+		}
+	}
+	clear(blockEntities)
+	w.tickSet.beBuf = blockEntities[:0]
+}
+
+// tickChunk is a loaded chunk that is ticked.
+type tickChunk struct {
+	pos ChunkPos
+	col *Column
+}
+
+// tickSetRefresh is the number of ticks after which the tick set is
+// recomputed even if nothing marked it dirty.
+const tickSetRefresh = 100
+
+// tickSetCache caches the chunks within the tick range of any loader.
+type tickSetCache struct {
+	chunks []tickChunk
+	r      int32
+	age    int
+	valid  bool
+	beBuf  []cube.Pos
+	seen   map[ChunkPos]struct{}
+	pos    []ChunkPos
+}
+
+// get returns the chunks to tick, recomputing them if needed.
+func (c *tickSetCache) get(w *World, r int32) []tickChunk {
+	c.age++
+	if w.tickDirty.Swap(false) || !c.valid || c.r != r || c.age >= tickSetRefresh {
+		c.compute(w, r)
+	}
+	return c.chunks
+}
+
+// compute rebuilds the tick set by walking the radius of every loader.
+func (c *tickSetCache) compute(w *World, r int32) {
+	c.age, c.r, c.valid = 0, r, true
+	clear(c.chunks)
+	c.chunks = c.chunks[:0]
+	if w.conf.Synchronous {
+		for pos, col := range w.chunks {
+			c.chunks = append(c.chunks, tickChunk{pos, col})
+		}
+		return
+	}
+	c.pos = c.pos[:0]
+	w.viewerMu.Lock()
+	for l := range w.viewers {
+		l.mu.RLock()
+		c.pos = append(c.pos, l.pos)
+		l.mu.RUnlock()
+	}
+	w.viewerMu.Unlock()
+
+	if len(c.pos)*int(2*r+1)*int(2*r+1) >= len(w.chunks) {
+		// Cheaper to test every loaded chunk against the loaders.
+		for pos, col := range w.chunks {
+			if (ticker{}).anyWithinDistance(pos, c.pos, r) {
+				c.chunks = append(c.chunks, tickChunk{pos, col})
+			}
+		}
+		return
+	}
+	if c.seen == nil {
+		c.seen = make(map[ChunkPos]struct{})
+	}
+	clear(c.seen)
+	for _, lp := range c.pos {
+		for x := -r; x <= r; x++ {
+			for z := -r; z <= r; z++ {
+				if x*x+z*z > r*r {
+					continue
+				}
+				pos := ChunkPos{lp[0] + x, lp[1] + z}
+				col, ok := w.chunks[pos]
+				if !ok {
+					continue
+				}
+				if _, dup := c.seen[pos]; dup {
+					continue
+				}
+				c.seen[pos] = struct{}{}
+				c.chunks = append(c.chunks, tickChunk{pos, col})
+			}
 		}
 	}
 }
@@ -382,4 +468,19 @@ func (queue *scheduledTickQueue) add(ticks []scheduledTick) {
 			queue.furthestTicks[index] = t.t
 		}
 	}
+}
+
+// lastWeather holds the weather last sent to the viewers of each world.
+// (skygear patch)
+var lastWeather sync.Map // *World -> [2]bool
+
+// weatherChanged reports whether the weather differs from the one last
+// sent for w, and records it as sent.
+func weatherChanged(w *World, rain, thunder bool) bool {
+	cur := [2]bool{rain, thunder}
+	if prev, ok := lastWeather.Load(w); ok && prev.([2]bool) == cur {
+		return false
+	}
+	lastWeather.Store(w, cur)
+	return true
 }

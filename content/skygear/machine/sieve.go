@@ -172,8 +172,14 @@ func SieveLook(st *State) (mesh, content, fill int) {
 
 // showSieve sets the sieve block to show its content when it changed.
 func showSieve(tx *world.Tx, pos cube.Pos, st *State) {
-	m, ok := tx.Block(pos).(Machine)
-	if !ok || m.State != st {
+	m, _ := tx.Block(pos).(Machine)
+	showSieveOf(tx, pos, m, st)
+}
+
+// showSieveOf is showSieve for a caller that already holds the block at pos
+// (a ticked machine), saving the lookup.
+func showSieveOf(tx *world.Tx, pos cube.Pos, m Machine, st *State) {
+	if m.State != st {
 		return
 	}
 	mesh, content, fill := SieveLook(st)

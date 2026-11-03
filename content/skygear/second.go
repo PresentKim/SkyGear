@@ -1,6 +1,8 @@
 package skygear
 
 import (
+	"time"
+
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/fluidnet"
@@ -39,9 +41,9 @@ func (s *session) Second(tx *world.Tx) {
 	screens.UpdateBoards(s.Session, tx)
 	achievement.CountAll(tx, "play_seconds", 1)
 	achievement.GrantCollection(held)
-	if s.Dirty() {
-		s.Flush()
-	}
+	// Changes are stored every FlushInterval, not every second; Autosave and
+	// Close store whatever is left.
+	s.FlushIfDue(time.Now())
 }
 
 // Fast updates every player's panel (instance.Session.Fast, every 0.2

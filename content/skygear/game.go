@@ -89,6 +89,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 		Log: g.log, IsOperator: g.isOperator, State: doc,
 		Store: func(b []byte) error { return g.db.SetSaveState(saveID, stateKey, b) },
 	})
+	c.FlushInterval = inst.StateFlushInterval()
 	s := &session{
 		Session: c, g: g,
 	}

@@ -80,6 +80,9 @@ func (gatePortalType) Open(tx *world.Tx, handle *world.EntityHandle, data *world
 
 func (gatePortalType) EncodeEntity() string { return "skygear:gate_portal" }
 
+// Transient: never saved with the world.
+func (gatePortalType) Transient() bool { return true }
+
 func (gatePortalType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (gatePortalType) DecodeNBT(_ map[string]any, d *world.EntityData) {
