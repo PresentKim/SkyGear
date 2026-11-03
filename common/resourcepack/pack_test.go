@@ -62,9 +62,9 @@ func TestRepositoryPack(t *testing.T) {
 	t.Logf("inventoryui pack version %s", p.Version())
 }
 
-// TestContentsZip: an unencrypted pack carries an empty contents.zip (the
+// TestContentsZipe: an unencrypted pack carries an empty contents.zipe (the
 // game then takes an Ore UI page from it); an encrypted one does not.
-func TestContentsZip(t *testing.T) {
+func TestContentsZipe(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(manifest), 0o644); err != nil {
 		t.Fatal(err)
@@ -84,17 +84,17 @@ func TestContentsZip(t *testing.T) {
 		}
 		var found *zip.File
 		for _, f := range z.File {
-			if f.Name == "contents.zip" {
+			if f.Name == "contents.zipe" {
 				found = f
 			}
 		}
 		switch {
 		case opt.Encrypt && found != nil:
-			t.Error("encrypted pack has a contents.zip")
+			t.Error("encrypted pack has a contents.zipe")
 		case !opt.Encrypt && found == nil:
-			t.Error("unencrypted pack has no contents.zip")
+			t.Error("unencrypted pack has no contents.zipe")
 		case !opt.Encrypt && found.UncompressedSize64 != 0:
-			t.Errorf("contents.zip has %d bytes", found.UncompressedSize64)
+			t.Errorf("contents.zipe has %d bytes", found.UncompressedSize64)
 		}
 	}
 }
