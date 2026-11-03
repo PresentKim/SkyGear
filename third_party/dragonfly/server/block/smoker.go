@@ -45,6 +45,10 @@ func (s Smoker) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
 	}); s.Lit != lit {
 		s.Lit = lit
 		tx.SetBlock(pos, s, nil)
+	} else if lit {
+		// skygear patch: smelting changes the inventory and durations in
+		// place, so the column is saved.
+		tx.MarkModified(pos)
 	}
 }
 

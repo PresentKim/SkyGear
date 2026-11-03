@@ -136,7 +136,8 @@ func (s *smelter) ResetExperience() int {
 }
 
 // Inventory returns the inventory of the furnace.
-func (s *smelter) Inventory(*world.Tx, cube.Pos) *inventory.Inventory {
+func (s *smelter) Inventory(tx *world.Tx, pos cube.Pos) *inventory.Inventory {
+	tx.MarkModified(pos) // skygear patch: the inventory changes in place.
 	return s.inventory
 }
 
