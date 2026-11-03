@@ -4,9 +4,12 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
+	_ "net/http/pprof" // serves /debug/pprof on Debug.Pprof only
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -46,6 +49,20 @@ func run(log *slog.Logger) error {
 	pconf, err := platform.LoadConfig("platform.toml")
 	if err != nil {
 		return err
+	}
+	if _, set := os.LookupEnv("GOMEMLIMIT"); !set && pconf.Runtime.MemoryLimitMB > 0 {
+		debug.SetMemoryLimit(int64(pconf.Runtime.MemoryLimitMB) << 20)
+	}
+	if _, set := os.LookupEnv("GOGC"); !set && pconf.Runtime.GCPercent > 0 {
+		debug.SetGCPercent(pconf.Runtime.GCPercent)
+	}
+	if addr := pconf.Debug.Pprof; addr != "" {
+		go func() {
+			log.Info("pprof listening", "addr", addr)
+			if err := http.ListenAndServe(addr, nil); err != nil {
+				log.Error("pprof", "err", err)
+			}
+		}()
 	}
 	if err := os.MkdirAll(pconf.Data.Dir, 0o755); err != nil {
 		return err
@@ -145,14 +162,15 @@ func run(log *slog.Logger) error {
 	isOperator := func(p *player.Player) bool { return pconf.IsOperator(p.Name(), p.XUID()) }
 	var pf *platform.Platform
 	m := instance.NewManager(log, d, instance.Config{
-		AfterClose:        afterClose,
-		Dir:               filepath.Join(pconf.Data.Dir, "saves"),
-		DayLength:         pconf.DayLength(),
-		LoadRadius:        pconf.Instance.LoadRadius,
-		MaxActive:         pconf.Instance.MaxActive,
-		AutosaveInterval:  time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
-		WorldSaveInterval: time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
-		Entities:          conf.Entities,
+		AfterClose:         afterClose,
+		Dir:                filepath.Join(pconf.Data.Dir, "saves"),
+		DayLength:          pconf.DayLength(),
+		LoadRadius:         pconf.Instance.LoadRadius,
+		MaxActive:          pconf.Instance.MaxActive,
+		AutosaveInterval:   time.Duration(pconf.Instance.AutosaveSeconds) * time.Second,
+		StateFlushInterval: time.Duration(pconf.Instance.StateFlushSeconds) * time.Second,
+		WorldSaveInterval:  time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
+		Entities:           conf.Entities,
 	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator))
 	pf = platform.New(log, d, m, srv.Player, isOperator)
 	// Operators who turn it on (/sgadmin tps) see the server load.

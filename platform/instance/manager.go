@@ -34,6 +34,9 @@ type Config struct {
 	MaxActive int
 	// AutosaveInterval is how often the clock and player states are stored.
 	AutosaveInterval time.Duration
+	// StateFlushInterval is how often dirty states are written to the
+	// database.
+	StateFlushInterval time.Duration
 	// WorldSaveInterval is how often an instance world writes its modified
 	// chunks to disk. It is short so that a crash rolls back the blocks about
 	// as little as it does the database state (Dragonfly's default is 10
@@ -117,6 +120,9 @@ func NewManager(log *slog.Logger, d *db.DB, conf Config, lobby Lobby, game Game)
 	if conf.AutosaveInterval <= 0 {
 		conf.AutosaveInterval = 30 * time.Second
 	}
+	if conf.StateFlushInterval <= 0 {
+		conf.StateFlushInterval = 10 * time.Second
+	}
 	if conf.WorldSaveInterval <= 0 {
 		conf.WorldSaveInterval = time.Minute
 	}
@@ -130,6 +136,14 @@ func AccountID(p *player.Player) string { return p.UUID().String() }
 
 // Join sets up a player that just connected to the server, in the lobby.
 // It must be called in the lobby world transaction of p.
+// StateFlushInterval returns how often dirty states are written to the
+// database.
+func (m *Manager) StateFlushInterval() time.Duration { return m.conf.StateFlushInterval }
+
+// StateFlushInterval returns how often dirty states are written to the
+// database.
+func (inst *Instance) StateFlushInterval() time.Duration { return inst.m.StateFlushInterval() }
+
 func (m *Manager) Join(p *player.Player) {
 	h := &Handler{m: m}
 	p.Handle(h)

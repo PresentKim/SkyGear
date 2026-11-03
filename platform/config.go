@@ -12,6 +12,18 @@ import (
 
 // Config is the platform configuration, stored in platform.toml.
 type Config struct {
+	Debug struct {
+		// Pprof is the address (such as "localhost:6060") that serves
+		// net/http/pprof. Empty turns it off.
+		Pprof string
+	}
+	Runtime struct {
+		// MemoryLimitMB is the soft memory limit of the Go runtime in MiB,
+		// and GCPercent the GC target percentage. 0 keeps the runtime
+		// default. The GOMEMLIMIT and GOGC environment variables win.
+		MemoryLimitMB int
+		GCPercent     int
+	}
 	Data struct {
 		// Dir holds the database and the save worlds.
 		Dir string
@@ -29,6 +41,9 @@ type Config struct {
 		// WorldSaveSeconds is how often active instances write their world
 		// chunks to disk.
 		WorldSaveSeconds int
+		// StateFlushSeconds is how often the states marked dirty are
+		// written to the database.
+		StateFlushSeconds int
 	}
 	Backup struct {
 		// Enabled turns the backups on. Dir is where they go. The database
@@ -43,10 +58,9 @@ type Config struct {
 	}
 	ResourcePack struct {
 		// Minify strips comments and white space from the packs' JSON, and
-		// Encrypt encrypts the packs. Both are on by default; turn them off
-		// to read what the client receives (an unencrypted pack carries an
-		// empty contents.zip, so the game still takes the Ore UI page the
-		// menus are drawn on).
+		// Encrypt encrypts the packs. Minify is on by default and Encrypt
+		// is off; an unencrypted pack carries an empty contents.zip, so the
+		// game still takes the Ore UI page the menus are drawn on.
 		Minify, Encrypt bool
 		// SlotDeco adds the slotdeco pack: slot backgrounds by item rarity
 		// and tier badges. It changes the vanilla
@@ -122,6 +136,7 @@ func DefaultConfig() Config {
 	c.Instance.LoadRadius = 4
 	c.Instance.AutosaveSeconds = 30
 	c.Instance.WorldSaveSeconds = 60
+	c.Instance.StateFlushSeconds = 10
 	c.Backup.Enabled = true
 	c.Backup.Dir = "data/backups"
 	c.Backup.DatabaseMinutes = 60
@@ -129,7 +144,6 @@ func DefaultConfig() Config {
 	c.Backup.WorldKeep = 5
 	c.ChestUI.Ride = true
 	c.ResourcePack.Minify = true
-	c.ResourcePack.Encrypt = true
 	c.ResourcePack.SlotDeco = true
 	return c
 }

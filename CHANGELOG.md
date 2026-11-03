@@ -3,6 +3,12 @@
 버전은 `연.월.빌드`(예: `26.10.1`)다. 빌드 번호는 달마다 1부터 다시 센다.
 `dev` 를 `main` 에 머지할 때마다 버전을 올리고 맨 위에 항목을 더한다.
 
+## 미출시
+
+### 플랫폼
+- `platform.toml` 에 `Debug.Pprof`, `Runtime.MemoryLimitMB`, `Runtime.GCPercent`, `Instance.StateFlushSeconds` 를 더했다.
+- `ResourcePack.Encrypt` 기본값이 켬에서 끔으로 바뀌었다. 이미 있는 `platform.toml` 은 예전 값을 그대로 유지한다.
+
 ## 26.10.1 (2026-10-30)
 
 버전으로 관리하는 첫 릴리스. 이전 `main` 이후의 변경을 모았다.
