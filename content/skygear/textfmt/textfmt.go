@@ -63,20 +63,21 @@ func PerMin(v float64) string {
 
 // Int formats a number with thousands separators, e.g. 12,400.
 func Int(v int64) string {
-	s := fmt.Sprint(v)
+	var buf [20]byte
+	d := strconv.AppendInt(buf[:0], v, 10)
 	neg := v < 0
 	if neg {
-		s = s[1:]
+		d = d[1:]
 	}
-	var out []byte
-	for i := range s {
-		if i > 0 && (len(s)-i)%3 == 0 {
+	out := make([]byte, 0, len(d)+len(d)/3+1)
+	if neg {
+		out = append(out, '-')
+	}
+	for i, c := range d {
+		if i > 0 && (len(d)-i)%3 == 0 {
 			out = append(out, ',')
 		}
-		out = append(out, s[i])
-	}
-	if neg {
-		return "-" + string(out)
+		out = append(out, c)
 	}
 	return string(out)
 }
