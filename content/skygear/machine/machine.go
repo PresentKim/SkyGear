@@ -650,6 +650,7 @@ func (k *Def) windowTitle(lang string) string { return k.Marker + "§r" + k.Titl
 
 func (st *State) OpenWindow(p *player.Player) {
 	st.storage.SetTitle(st.Def.windowTitle(i18n.Of(p)))
+	st.prepareDisplay()
 	st.storage.Open(p, nil)
 }
 
@@ -1289,7 +1290,6 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 			n.State.SetLab(r)
 		}
 	}
-	n.State.ShowProgress()
 	// What was just loaded is what the chunk holds.
 	n.State.dirty, n.State.saved = false, n.State.sig()
 	return n
@@ -1466,21 +1466,46 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		}
 		return
 	}
-	if currentTick%10 == 0 {
-		st.ShowEnergy()
-		if (st.Stuck != stuckNone) != st.ShownStuck {
-			_ = st.Inv().SetItem(infoSlot, st.InfoItem())
-		}
-	}
 	if IsSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
+		st.tickDisplay(currentTick, true)
 		showSieve(tx, pos, st)
-		if st.Def.autoSieve {
-			st.ShowProgress()
-		}
 		return
 	}
+	st.tickDisplay(currentTick, false)
+}
+
+// tickDisplay keeps the window's progress arrow, energy gauge and info icon
+// current, but only while someone has the window open: OpenWindow
+// (prepareDisplay) brings them up to date when one opens. A sieve shows its
+// progress on the model, so only the auto sieve has an arrow.
+func (st *State) tickDisplay(currentTick int64, sieve bool) {
+	if !st.storage.HasViewers() {
+		return
+	}
+	if currentTick%10 == 0 {
+		st.ShowEnergy()
+		st.showStuck()
+	}
+	if !sieve || st.Def.autoSieve {
+		st.ShowProgress()
+	}
+}
+
+// showStuck redraws the info icon when its stuck badge is out of date.
+func (st *State) showStuck() {
+	if (st.Stuck != stuckNone) != st.ShownStuck {
+		_ = st.Inv().SetItem(infoSlot, st.InfoItem())
+	}
+}
+
+// prepareDisplay brings the display items up to date; a machine that worked
+// unwatched did not keep them.
+func (st *State) prepareDisplay() {
+	st.ShownPct, st.shownEnergy = -1, -1
 	st.ShowProgress()
+	st.ShowEnergy()
+	st.showStuck()
 }
 
 // runMachine runs the work of a machine once.
