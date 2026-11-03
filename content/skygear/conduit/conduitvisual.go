@@ -95,6 +95,9 @@ func (visualType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Ent
 
 func (visualType) EncodeEntity() string { return "skygear:conduit_visual" }
 
+// Transient: never saved with the world.
+func (visualType) Transient() bool { return true }
+
 func (visualType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (visualType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &visualData{} }

@@ -160,6 +160,9 @@ func (holderType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Ent
 
 func (holderType) EncodeEntity() string { return "skygear:item_holder" }
 
+// Transient: holders are re-created by their drawer, never saved. skygear patch
+func (holderType) Transient() bool { return true }
+
 func (holderType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (holderType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &HolderData{} }

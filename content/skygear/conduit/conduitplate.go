@@ -169,6 +169,9 @@ func (plateType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Enti
 
 func (plateType) EncodeEntity() string { return "skygear:conduit_plate" }
 
+// Transient: never saved with the world.
+func (plateType) Transient() bool { return true }
+
 func (plateType) BBox(world.Entity) cube.BBox { return cube.BBox{} }
 
 func (plateType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = &plateData{} }

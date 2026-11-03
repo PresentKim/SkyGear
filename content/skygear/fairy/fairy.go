@@ -367,6 +367,9 @@ func (fairyType) Open(tx *world.Tx, handle *world.EntityHandle, data *world.Enti
 
 func (fairyType) EncodeEntity() string { return "skygear:fairy" }
 
+// Transient: never saved with the world.
+func (fairyType) Transient() bool { return true }
+
 func (fairyType) NetworkEncodeEntity() string { return "minecraft:allay" }
 
 func (fairyType) BBox(world.Entity) cube.BBox {

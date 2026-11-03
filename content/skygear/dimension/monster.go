@@ -76,6 +76,7 @@ type monsterData struct {
 	vel      mgl64.Vec3
 	cooldown int
 	onGround bool
+	sentRot  cube.Rotation // skygear patch: rotation last sent to viewers
 	// damageMul and speedMul make a monster of a later stage of a run
 	// stronger (0 counts as 1).
 	damageMul, speedMul float64
@@ -217,6 +218,9 @@ func (t monsterType) EncodeEntity() string {
 	}
 	return fmt.Sprintf("skygear:monster_%s_%d", t.Mob, t.Variant)
 }
+
+// Transient: monsters are never saved with the world. skygear patch
+func (monsterType) Transient() bool { return true }
 
 func (t monsterType) NetworkEncodeEntity() string {
 	if look := variantOf(t.Mob, t.Variant).Look; look != "" {
@@ -383,6 +387,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 // move applies one tick of walking, jumping and falling.
 func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	d := m.Md()
+	oldPos, oldGround := m.Data.Pos, d.onGround // skygear patch: X2 send only changes
 	feet := func(p mgl64.Vec3) cube.Pos { return cube.PosFromVec3(p) }
 	// horizontal: blocked by a wall unless it can be stepped over
 	if dir.Len() > 0 {
@@ -416,6 +421,10 @@ func (m *Monster) move(tx *world.Tx, pos, dir mgl64.Vec3, st monsterStats) {
 	pos[2] += d.vel[2]
 	d.vel[0], d.vel[2] = d.vel[0]*0.7, d.vel[2]*0.7
 	m.Data.Pos = pos
+	if pos == oldPos && d.onGround == oldGround && m.Data.Rot == d.sentRot {
+		return
+	}
+	d.sentRot = m.Data.Rot
 	for _, v := range tx.Viewers(pos) {
 		v.ViewEntityMovement(m, pos, m.Data.Rot, d.onGround)
 	}

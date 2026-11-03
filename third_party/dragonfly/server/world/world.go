@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/internal/sliceutil"
 	"github.com/df-mc/dragonfly/server/world/chunk"
 	"github.com/df-mc/goleveldb/leveldb"
 	"github.com/go-gl/mathgl/mgl64"
@@ -28,7 +27,8 @@ import (
 // simultaneous calls. A nil *World is safe to use but not functional.
 type World struct {
 	conf         Config
-	lastSettings time.Time // skygear patch
+	lastSettings time.Time                  // skygear patch
+	players      map[*EntityHandle]struct{} // skygear patch: player index for tx.Players
 	ra           cube.Range
 
 	// skygear patch: timing of recent ticks (TickStats).
@@ -875,7 +875,18 @@ func (w *World) addEntityAt(tx *Tx, handle *EntityHandle, pos mgl64.Vec3) Entity
 	w.entities[handle] = chunkPos
 
 	c := tx.chunk(chunkPos)
-	c.Entities, c.modified = append(c.Entities, handle), true
+	c.Entities = append(c.Entities, handle)
+	// skygear patch: transient entities are not stored, so they never mark
+	// the column modified.
+	if !isTransient(handle.t) {
+		c.modified = true
+	}
+	if handle.t.EncodeEntity() == "minecraft:player" {
+		if w.players == nil { // lazily made: the World literal lives in conf.go
+			w.players = make(map[*EntityHandle]struct{})
+		}
+		w.players[handle] = struct{}{}
+	}
 
 	e := handle.mustEntity(tx)
 	for _, v := range c.viewers {
@@ -901,7 +912,17 @@ func (w *World) removeEntity(e Entity, tx *Tx) *EntityHandle {
 	w.Handler().HandleEntityDespawn(tx, e)
 
 	c := tx.chunk(pos)
-	c.Entities, c.modified = sliceutil.DeleteVal(c.Entities, handle), true
+	// skygear patch: copy on write, so entitiesWithin may iterate c.Entities
+	// without cloning while callbacks remove entities.
+	if i := slices.Index(c.Entities, handle); i >= 0 {
+		n := make([]*EntityHandle, 0, len(c.Entities)-1)
+		n = append(append(n, c.Entities[:i]...), c.Entities[i+1:]...)
+		c.Entities = n
+	}
+	if !isTransient(handle.t) {
+		c.modified = true
+	}
+	delete(w.players, handle)
 
 	w.removeEntityFromViewLayers(e)
 	for _, v := range c.viewers {
@@ -941,7 +962,7 @@ func (w *World) entitiesWithin(tx *Tx, box cube.BBox) iter.Seq[Entity] {
 					// The chunk wasn't loaded, so there are no entities here.
 					continue
 				}
-				for _, handle := range slices.Clone(c.Entities) {
+				for _, handle := range c.Entities { // skygear patch: no clone, removal is copy on write
 					if !box.Vec3Within(handle.data.Pos) {
 						continue
 					}
@@ -967,13 +988,12 @@ func (w *World) allEntities(tx *Tx) iter.Seq[Entity] {
 }
 
 // allPlayers returns an iterator that yields all player entities in the World.
+// skygear patch: uses the player index instead of scanning every entity.
 func (w *World) allPlayers(tx *Tx) iter.Seq[Entity] {
 	return func(yield func(Entity) bool) {
-		for e := range w.entities {
-			if e.t.EncodeEntity() == "minecraft:player" {
-				if ent := e.mustEntity(tx); !yield(ent) {
-					return
-				}
+		for e := range w.players {
+			if ent := e.mustEntity(tx); !yield(ent) {
+				return
 			}
 		}
 	}
@@ -1620,6 +1640,9 @@ func (w *World) columnTo(col *Column, pos ChunkPos) *chunk.Column {
 		Tick:            w.scheduledUpdates.currentTick,
 	}
 	for _, e := range col.Entities {
+		if isTransient(e.t) { // skygear patch
+			continue
+		}
 		data := e.encodeNBT()
 		maps.Copy(data, e.t.EncodeNBT(&e.data))
 		data["identifier"] = e.t.EncodeEntity()
