@@ -5,6 +5,7 @@ package perf
 import (
 	"fmt"
 	"runtime"
+	"runtime/metrics"
 	"sync"
 	"time"
 
@@ -41,9 +42,14 @@ func ProcessStats() Process {
 	if !lastAt.IsZero() && now.Sub(lastAt) < time.Second {
 		return last
 	}
-	var mem runtime.MemStats
-	runtime.ReadMemStats(&mem)
-	p := Process{HeapMB: float64(mem.HeapAlloc) / (1 << 20), Goroutines: runtime.NumGoroutine()}
+	// skygear perf P9: runtime/metrics reads the heap without a stop-the-world.
+	heap := []metrics.Sample{{Name: "/memory/classes/heap/objects:bytes"}}
+	metrics.Read(heap)
+	var heapBytes uint64
+	if heap[0].Value.Kind() == metrics.KindUint64 {
+		heapBytes = heap[0].Value.Uint64()
+	}
+	p := Process{HeapMB: float64(heapBytes) / (1 << 20), Goroutines: runtime.NumGoroutine()}
 	if used, ok := cpuTime(); ok {
 		if cpuKnown && !lastAt.IsZero() {
 			p.CPU = float64(used-lastCPU) / float64(now.Sub(lastAt)) * 100
