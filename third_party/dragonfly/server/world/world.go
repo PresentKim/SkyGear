@@ -27,8 +27,9 @@ import (
 // world, so World ensures that all its methods will always be safe for
 // simultaneous calls. A nil *World is safe to use but not functional.
 type World struct {
-	conf Config
-	ra   cube.Range
+	conf         Config
+	lastSettings time.Time // skygear patch
+	ra           cube.Range
 
 	// skygear patch: timing of recent ticks (TickStats).
 	tickStats tickStats
@@ -1218,11 +1219,58 @@ func (w *World) save(f func(*Tx, ChunkPos, *Column)) execFunc {
 
 // saveChunk saves a chunk and its entities to disk after compacting the chunk.
 func (w *World) saveChunk(_ *Tx, pos ChunkPos, c *Column) {
-	if !w.conf.ReadOnly && c.modified {
-		c.Compact()
-		if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
-			w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
+	w.storeChunk(pos, c, time.Now()) // skygear patch
+}
+
+// storeChunk stores a modified column and clears its modified flag when that
+// is safe. // skygear patch
+func (w *World) storeChunk(pos ChunkPos, c *Column, now time.Time) {
+	if w.conf.ReadOnly || !c.modified {
+		return
+	}
+	c.Compact()
+	if err := w.conf.Provider.StoreColumn(pos, w.conf.Dim, w.columnTo(c, pos)); err != nil {
+		w.conf.Log.Error("save chunk: "+err.Error(), "X", pos[0], "Z", pos[1])
+		return
+	}
+	c.lastSaved = now
+	// Columns with block entities, entities or scheduled updates change
+	// without marking the column modified, so they stay modified.
+	if len(c.BlockEntities) == 0 && len(c.Entities) == 0 && len(w.scheduledUpdates.fromChunk(pos)) == 0 {
+		c.modified = false
+	}
+}
+
+// saveBatch is the maximum number of columns stored per incremental save step.
+const saveBatch = 16 // skygear patch
+
+// incrementalSave stores up to saveBatch modified columns that were last saved
+// at least SaveInterval ago, oldest first. Close and Save remain full saves.
+// skygear patch
+func (w *World) incrementalSave(_ *Tx, now time.Time) {
+	if w.conf.ReadOnly {
+		return
+	}
+	type cand struct {
+		pos ChunkPos
+		c   *Column
+	}
+	var due []cand
+	for pos, c := range w.chunks {
+		if c.modified && now.Sub(c.lastSaved) >= w.conf.SaveInterval {
+			due = append(due, cand{pos, c})
 		}
+	}
+	if len(due) > saveBatch {
+		slices.SortFunc(due, func(a, b cand) int { return a.c.lastSaved.Compare(b.c.lastSaved) })
+		due = due[:saveBatch]
+	}
+	for _, d := range due {
+		w.storeChunk(d.pos, d.c, now)
+	}
+	if now.Sub(w.lastSettings) >= w.conf.SaveInterval {
+		w.lastSettings = now
+		w.conf.Provider.SaveSettings(w.set)
 	}
 }
 
@@ -1517,7 +1565,8 @@ func (w *World) spreadLight(pos ChunkPos) {
 func (w *World) autoSave() {
 	save := &time.Ticker{C: make(<-chan time.Time)}
 	if w.conf.SaveInterval > 0 {
-		save = time.NewTicker(w.conf.SaveInterval)
+		// skygear patch: step every second, storing at most saveBatch columns.
+		save = time.NewTicker(min(time.Second, w.conf.SaveInterval))
 		defer save.Stop()
 	}
 	closeUnused := time.NewTicker(w.conf.ChunkUnloadInterval)
@@ -1548,7 +1597,8 @@ func (w *World) closeUnusedChunks(tx *Tx) {
 // Column represents the data of a chunk including the (block) entities and
 // viewers and loaders.
 type Column struct {
-	modified bool
+	modified  bool
+	lastSaved time.Time // skygear patch
 
 	*chunk.Chunk
 	Entities      []*EntityHandle
