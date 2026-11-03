@@ -4,6 +4,7 @@
 package resourcepack
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
@@ -41,6 +42,14 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 	}
 	version := Version(sum)
 
+	var cpath string
+	if opt.CacheDir != "" {
+		cpath = cachePath(opt.CacheDir, dir, cacheKey(sum, opt))
+		if pack, ok := readCache(cpath); ok {
+			return pack, nil
+		}
+	}
+
 	tmp, err := os.MkdirTemp("", "sg-resourcepack-")
 	if err != nil {
 		return nil, err
@@ -68,12 +77,20 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 		// empty one.
 		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
 	}
-	pack, err := resource.ReadPath(tmp)
+	// skygear patch: zip in memory (stored png and ciphertext) and cache the result.
+	zipped, err := zipDir(tmp, opt.Encrypt, key)
+	if err != nil {
+		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
+	}
+	pack, err := resource.Read(bytes.NewReader(zipped))
 	if err != nil {
 		return nil, err
 	}
 	if key != "" {
 		pack = pack.WithContentKey(key)
+	}
+	if cpath != "" {
+		writeCache(cpath, zipped)
 	}
 	return pack, nil
 }
