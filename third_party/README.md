@@ -38,7 +38,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/world/tx.go`, `server/world/task_test.go` | 월드 트랜잭션(블록 틱, 이벤트·패킷 핸들러)의 panic 을 잡아 ERROR 로그(스택 포함)로 남기고 월드는 계속 돈다(업스트림은 프로세스가 죽어 모든 섬이 멈춘다). `Do`/`DoAfter` 작업은 업스트림도 잡는다 |
 | `server/block/hopper.go` | `HopperTransfer` 훅(`Tick` 에서 바닐라 이동 규칙 대신 부름). 게임이 모든 호퍼를 자기 아이템 입출력 인터페이스(`internal/itemio`)로 움직이게 함 |
 | `server/block/composter.go` | `ComposterVanillaRules`(기본 켬)를 끄면 퇴비통이 호퍼로 넣고 빼지 않고 우클릭도 하지 않음(게임이 자기 규칙으로 처리: 고정 개수, 흙) |
-| `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 로그를 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
+| `server/block/leaves.go` | 나뭇잎 묘목·막대기 드롭 확률(`LeavesSaplingChances`, `JungleLeavesSaplingChances`, `LeavesStickChances`)을 상수 대신 변수로, 원목을 잃은 나뭇잎의 시듦을 무작위 틱 대신 예약 틱으로 앞당길 수 있게 함(`LeavesDecayDelayMin/Jitter`, `ScheduledTick`; 시듦 처리는 `decay` 로 합침). 기본값은 바닐라 그대로, 게임이 바꿈 |
 | `server/world/tick_stats.go` (신규), `tick.go`, `world.go` | 월드 틱마다 걸린 시간(틱 예정 시각부터 끝날 때까지)을 최근 5초만 기록하고 `World.TickStats()`(TPS, 평균·최대 틱 시간)로 돌려줌. 운영자 사이드바의 서버 부하 표시용(`common/perf`) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 흙으로 퍼지지 않고, 그 아래 잔디는 흙으로 돌아감(바닐라와 같게). 업스트림은 빛만 봐서 빛을 막지 않는 커스텀 블록(코어 등) 아래 흙이 잔디가 된다 |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
@@ -50,8 +50,8 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 
 1. 새 버전을 받는다: `go mod download -json github.com/df-mc/dragonfly@vX.Y.Z` 의 `Dir` 을 복사(릴리스 전 PR 은 `git fetch https://github.com/df-mc/dragonfly refs/pull/<번호>/head` 후 `git archive`).
 2. `.github` 를 지우고 `third_party/dragonfly` 를 교체한다.
-3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` — 충돌은 손으로 고친다.
-4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...`, 시나리오 실행.
+3. `cd third_party/dragonfly && patch -p1 < ../dragonfly.patch` 로 패치를 얹고, 충돌은 손으로 고친다.
+4. 루트 `go.mod` 의 `require` 버전을 맞추고 `go mod tidy`, `go vet ./...`, `go test ./...`, 시나리오를 돌린다.
 5. 원본과 다시 비교해 `dragonfly.patch` 를 갱신한다(`diff -ruN a b`, a=원본, b=패치본).
 
 ## EnderIO 리소스 (도관 텍스처)
@@ -63,4 +63,4 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 
 ## licenses
 
-`licenses/` 는 리소스팩 텍스처를 가져온 모드의 라이선스 전문이다(Mekanism, Tinkers' Construct, Storage Drawers, Refined Storage 2 는 MIT, Ender IO 는 Unlicense). 출처와 쓴 곳은 [docs/tech/asset-credits.md](../docs/tech/asset-credits.md).
+`licenses/` 는 리소스팩 텍스처를 가져온 모드의 라이선스 전문이다(Mekanism, Tinkers' Construct, Storage Drawers, Refined Storage 2 는 MIT, Ender IO 는 Unlicense). 출처와 쓴 곳은 [docs/tech/asset-credits.md](../docs/tech/asset-credits.md) 에 있다.

@@ -1,13 +1,13 @@
 # content/skygear
 
 스카이기어 게임 자체(import 경로 `github.com/presentkim/skygear/content/skygear/...`). `platform/instance` 의
-`Game`·`Session` 을 구현해 플랫폼에 붙고, `common/` 과 `platform/` 을 쓴다. 리소스팩은 `assets/resourcepack/skygear`.
+`Game`·`Session` 을 구현해 플랫폼에 붙고, `common/` 과 `platform/` 을 쓴다. 리소스팩은 `assets/resourcepack/skygear` 에 있다.
 
 ## 구조
 
 기능마다 패키지가 하나다. 패키지는 아래 표에서 **자기보다 위 칸**의 패키지만 import 한다(같은 칸끼리는 표의 순서대로).
 위 칸이 아래 칸을 불러야 할 때(메뉴 열기, 사이드바 갱신, 다른 기능의 기계 종류)는 위 칸이 함수 변수(훅)를 두고,
-아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindGate].Click` 는 `wave` 가).
+아래 칸이 `init` 에서 채운다(예: `core.ShowMenu` 는 `screens` 가, `machine.Kinds[KindGate].Click` 은 `wave` 가).
 
 | 층 | 패키지 | 내용 |
 |---|---|---|
@@ -52,7 +52,7 @@
 
 - `core.NewPart`: 세이브가 도는 동안의 데이터(예: `network` 의 연결망, `conduit` 의 표시 엔티티).
 - `core.NewPlayers`: 플레이어별 데이터. 플레이어가 나가면 지워진다(예: `tinker` 의 광맥 미리보기).
-- `core.NewSaved`: 저장되는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 필드들이고,
+- `core.NewSaved`: 저장되는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 필드이고,
   필드 이름은 파트끼리 겹치지 않는다(겹치면 시작할 때 패닉). 그래서 기능을 옮겨도 세이브 형식은 그대로다.
 
 ## 파일
