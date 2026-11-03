@@ -238,7 +238,11 @@ func (b Bundle) connectionsFrom(sides [6]bundleSide) (e, i, f int) {
 }
 
 // refresh sets the block to show the sides it connects to, and shows it.
-func (b Bundle) Refresh(pos cube.Pos, tx *world.Tx) {
+func (b Bundle) Refresh(pos cube.Pos, tx *world.Tx) { b.refresh(pos, tx, true) }
+
+// refresh is Refresh; without verify the display entities are not looked up
+// when their remembered look is still right.
+func (b Bundle) refresh(pos cube.Pos, tx *world.Tx, verify bool) {
 	sides := b.sides(tx, pos)
 	e, i, f := b.connectionsFrom(sides)
 	if e != b.EConn || i != b.IConn || f != b.FConn {
@@ -246,12 +250,12 @@ func (b Bundle) Refresh(pos cube.Pos, tx *world.Tx) {
 		tx.SetBlock(pos, b, nil)
 	}
 	if s, ok := core.Of(tx); ok {
-		showConduitWith(s, tx, pos, b, b.plugsFrom(pos, sides))
+		showConduitWith(s, tx, pos, b, b.plugsFrom(sides), verify)
 	}
 }
 
 // NeighbourUpdateTick keeps the arms up to date.
-func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.Refresh(pos, tx) }
+func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.refresh(pos, tx, false) }
 
 // Tick registers the bundle with the grids of its conduits every few ticks
 // (and keeps its display entity there).
@@ -263,7 +267,12 @@ func (b Bundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if !ok {
 		return
 	}
-	b.Refresh(pos, tx)
+	// A neighbour change without an update event is found by the full
+	// refresh every 40 ticks, phased by position; in between only a missing
+	// display entity is made again.
+	if _, shown := LocalOf(s).Visuals[pos]; !shown || (currentTick/4+int64(posPhase(pos)))%10 == 0 {
+		b.refresh(pos, tx, true)
+	}
 	if b.Energy > 0 {
 		network.Energy(s).AddConduit(pos)
 	}
@@ -273,6 +282,12 @@ func (b Bundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if b.Fluid > 0 {
 		network.Fluids(s).AddConduit(pos)
 	}
+}
+
+// posPhase spreads periodic work of blocks over ticks.
+func posPhase(pos cube.Pos) int {
+	h := uint32(pos[0])*73856093 ^ uint32(pos[1])*19349663 ^ uint32(pos[2])*83492791
+	return int(h >> 8 & 0xffff)
 }
 
 // FluidTier implements fluidnet.Conduit.
@@ -525,10 +540,13 @@ type conduitsLocal struct {
 	// plateTurn is the side of the last connector plate form each player was
 	// shown by clicking a conduit where no plate sits (nextPlateSide).
 	plateTurn map[uuid.UUID]int
+	// looks are the variant and mark the entities above were made with, so a
+	// bundle that did not change needs no Entity(tx) lookup.
+	looks map[*world.EntityHandle][2]int32
 }
 
 var conduitsPart = core.NewPart(func() *conduitsLocal {
-	return &conduitsLocal{Visuals: map[cube.Pos]*world.EntityHandle{}, Plates: map[PlateKey]*world.EntityHandle{}, plateTurn: map[uuid.UUID]int{}}
+	return &conduitsLocal{Visuals: map[cube.Pos]*world.EntityHandle{}, Plates: map[PlateKey]*world.EntityHandle{}, plateTurn: map[uuid.UUID]int{}, looks: map[*world.EntityHandle][2]int32{}}
 })
 
 // LocalOf is what the save of s keeps for its conduits.

@@ -230,7 +230,7 @@ func (h FlowHopper) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		tx.SetBlock(pos, NewFlowHopper(h.Kind, h.Facing), nil)
 		return
 	}
-	if currentTick%int64(h.Info().interval) != 0 {
+	if (currentTick+int64(pos[0]*31+pos[1]*17+pos[2]*7)&0xffff)%int64(h.Info().interval) != 0 {
 		return
 	}
 	out, in := h.sides()

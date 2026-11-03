@@ -88,7 +88,11 @@ func (h *ItemHolder) HeldItems() (item.Stack, item.Stack) {
 }
 
 // Tick removes holders that no longer belong to a drawer display.
-func (h *ItemHolder) Tick(tx *world.Tx, _ int64) {
+func (h *ItemHolder) Tick(tx *world.Tx, current int64) {
+	// Once every 20 ticks, phased by handle.
+	if (int64(h.handle.UUID()[0])+current)%20 != 0 {
+		return
+	}
 	d := h.Data.Data.(*HolderData)
 	s, ok := core.Of(tx)
 	_, isDrawer := tx.Block(d.owner).(Drawer)
