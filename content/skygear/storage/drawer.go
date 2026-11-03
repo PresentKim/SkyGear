@@ -286,9 +286,22 @@ func (d Drawer) DecodeNBT(data map[string]any) any {
 
 // Tick keeps the display of the drawer present and empties a drawer whose
 // time-limited items expired, lock included (the item is gone).
-func (d Drawer) Tick(_ int64, pos cube.Pos, tx *world.Tx) {
+func (d Drawer) Tick(tick int64, pos cube.Pos, tx *world.Tx) {
 	s, ok := core.Of(tx)
 	if !ok {
+		return
+	}
+	l := LocalOf(s)
+	if tick > l.tick {
+		l.tick = tick
+	}
+	// A label held back by the batching goes out once its interval is over.
+	if disp, ok := l.Displays[pos]; ok && disp.labelDirty && l.tick-disp.labelAt >= labelInterval {
+		showLabel(s, tx, pos, d)
+	}
+	// Expiry and the display check run once every checkInterval ticks, each
+	// drawer at its own phase.
+	if (tick+int64(pos.X()*31+pos.Y()*7+pos.Z()*17))%checkInterval != 0 {
 		return
 	}
 	if timed.Expired(d.Item) {
@@ -591,7 +604,18 @@ type drawerPunch struct {
 type drawerDisplay struct {
 	Item  *world.EntityHandle
 	shown item.Stack
+	// labelAt is the tick the count label was last sent, labelDirty whether
+	// a newer count waits for labelInterval to pass.
+	labelAt    int64
+	labelDirty bool
 }
+
+const (
+	// labelInterval is the least ticks between two count label updates.
+	labelInterval = 20
+	// checkInterval is how often a drawer checks expiry and its display.
+	checkInterval = 20
+)
 
 func ownsDisplay(s *core.Session, pos cube.Pos, h *world.EntityHandle) bool {
 	d, ok := LocalOf(s).Displays[pos]
@@ -601,13 +625,31 @@ func ownsDisplay(s *core.Session, pos cube.Pos, h *world.EntityHandle) bool {
 // showLabel shows (or hides) the count text, the lock mark and the upgrade
 // marks of a drawer.
 func showLabel(s *core.Session, tx *world.Tx, pos cube.Pos, d Drawer) {
-	showFaceText(s, tx, DrawerLabelKey(pos), d.label(), func() *debug.Text { return drawerLabel(pos, d) })
+	showCountLabel(s, tx, pos, d)
 	lock := ""
 	if d.Locked {
 		lock = textfmt.LockGlyph
 	}
 	showFaceText(s, tx, DrawerLockKey(pos), lock, func() *debug.Text { return drawerLock(pos, d) })
 	showFaceText(s, tx, DrawerUpgradeKey(pos), d.UpgradeMarks(), func() *debug.Text { return drawerUpgrades(pos, d) })
+}
+
+// showCountLabel shows the count text. A change of a shown count is sent at
+// most once per labelInterval ticks; the newest count follows from Tick.
+func showCountLabel(s *core.Session, tx *world.Tx, pos cube.Pos, d Drawer) {
+	text := d.label()
+	l := LocalOf(s)
+	disp := l.Displays[pos]
+	if disp != nil {
+		sh, _ := s.Shape(DrawerLabelKey(pos))
+		if old, ok := sh.(*debug.Text); ok && text != "" && old.Text != text && l.tick-disp.labelAt < labelInterval {
+			disp.labelDirty = true
+			return
+		}
+		disp.labelDirty = false
+		disp.labelAt = l.tick
+	}
+	showFaceText(s, tx, DrawerLabelKey(pos), text, func() *debug.Text { return drawerLabel(pos, d) })
 }
 
 // showFaceText shows the text made by f under key, hides it if text is
@@ -662,6 +704,7 @@ func refreshDisplay(s *core.Session, tx *world.Tx, pos cube.Pos, d Drawer) {
 }
 
 func RemoveDisplay(s *core.Session, tx *world.Tx, pos cube.Pos) {
+	invalidateNetworks(s)
 	// The texts are hidden even without a display entity: an empty
 	// drawer has none but can still show its lock.
 	s.HideShape(tx, DrawerLabelKey(pos))
@@ -690,6 +733,7 @@ func PlaceDrawer(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 	facing := p.Rotation().Direction().Opposite()
 	d := DrawerFromItem(held, facing)
 	tx.Defer(func(tx *world.Tx) {
+		invalidateNetworks(s)
 		tx.SetBlock(pos, d, nil)
 		refreshDisplay(s, tx, pos, d)
 	})
@@ -707,6 +751,10 @@ type drawersLocal struct {
 	Displays map[cube.Pos]*drawerDisplay
 	// holderPose is the hand-equipped item pose tried on display entities.
 	HolderPose holderPose
+	// tick is the newest tick a drawer was ticked at.
+	tick int64
+	// networks are the controller network position lists (storage.go).
+	networks map[cube.Pos]networkCache
 }
 
 var drawersPart = core.NewPart(func() *drawersLocal { return &drawersLocal{Displays: map[cube.Pos]*drawerDisplay{}} })

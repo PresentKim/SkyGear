@@ -42,6 +42,53 @@ type storageDrawer struct {
 // Network finds the drawers of the controller at pos: the drawers and
 // links connected to it by touching sides, within controllerReach, nearest first.
 func Network(tx *world.Tx, pos cube.Pos) []storageDrawer {
+	s := core.At(tx)
+	if s == nil {
+		return findNetwork(tx, pos)
+	}
+	l := LocalOf(s)
+	now := networkTick()
+	if c, ok := l.networks[pos]; ok && c.tick == now {
+		out := make([]storageDrawer, 0, len(c.pos))
+		for _, p := range c.pos {
+			d, ok := tx.Block(p).(Drawer)
+			if !ok {
+				out = nil
+				break
+			}
+			out = append(out, storageDrawer{p, d})
+		}
+		if out != nil || len(c.pos) == 0 {
+			return out
+		}
+	}
+	out := findNetwork(tx, pos)
+	ps := make([]cube.Pos, len(out))
+	for i, sd := range out {
+		ps[i] = sd.Pos
+	}
+	if l.networks == nil {
+		l.networks = map[cube.Pos]networkCache{}
+	}
+	l.networks[pos] = networkCache{now, ps}
+	return out
+}
+
+// networkCache is the drawer positions of a controller found at a tick.
+// The drawer values are always read again.
+type networkCache struct {
+	tick int64
+	pos  []cube.Pos
+}
+
+// networkTick is the tick (50 ms step) the network lists are kept for.
+var networkTick = func() int64 { return time.Now().UnixMilli() / 50 }
+
+// invalidateNetworks forgets the cached network lists (a drawer or link was
+// placed or broken).
+func invalidateNetworks(s *core.Session) { clear(LocalOf(s).networks) }
+
+func findNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
 	seen := map[cube.Pos]bool{pos: true}
 	queue := []cube.Pos{pos}
 	var out []storageDrawer
