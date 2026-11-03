@@ -21,7 +21,7 @@ import (
 
 // testSession returns a session over a synchronous world, without an
 // instance manager.
-func testSession(t *testing.T) *session {
+func testSession(t testing.TB) *session {
 	t.Helper()
 	d, err := db.Open(filepath.Join(t.TempDir(), "db.sqlite"))
 	if err != nil {
@@ -76,7 +76,7 @@ func spawnPlayer(s *session) *world.EntityHandle {
 
 // withPlayer runs f with the player in a transaction. A panic in f fails
 // the test (Dragonfly would only log it).
-func withPlayer(t *testing.T, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
+func withPlayer(t testing.TB, s *session, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
 	t.Helper()
 	finished := false
 	s.World.Do(func(tx *world.Tx) {
