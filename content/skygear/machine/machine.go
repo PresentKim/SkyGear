@@ -531,7 +531,18 @@ type State struct {
 	// the chunk itself (persistState).
 	dirty bool
 	saved stateSig
+	// invVer counts the changes of the input and output slots. A machine
+	// that found its output full (process) skips the work while invVer is
+	// still stuckVer, rechecking after stuckRecheck ticks anyway. curTick is
+	// the tick being run.
+	invVer, stuckVer uint64
+	stuckOn          bool
+	stuckTick        int64
+	curTick          int64
 }
+
+// stuckRecheck is how many ticks a stuck machine trusts that nothing changed.
+const stuckRecheck = 100
 
 // stateSig is the saved scalars of a State, to tell whether a save would
 // differ from the last one.
@@ -609,6 +620,7 @@ func New(kind, owner, ownerName string) Machine {
 	st.storage.OnChange(func(slot int, _, _ item.Stack) {
 		if st.Role(slot) != RoleNone {
 			st.dirty = true
+			st.invVer++
 		}
 	})
 	st.shownRecipe = "\x00"
@@ -894,9 +906,14 @@ func (st *State) Fill(it item.Stack) int {
 
 // Fits reports whether every stack fits into slots together.
 func Fits(inv *inventory.Inventory, slots []int, stacks []item.Stack) bool {
-	room := make([]item.Stack, len(slots))
-	for i, s := range slots {
-		room[i], _ = inv.Item(s)
+	var buf [8]item.Stack
+	room := buf[:0]
+	if len(slots) > len(buf) {
+		room = make([]item.Stack, 0, len(slots))
+	}
+	for _, s := range slots {
+		it, _ := inv.Item(s)
+		room = append(room, it)
 	}
 	for _, it := range stacks {
 		left := it.Count()
@@ -1078,19 +1095,35 @@ func (CycleGauge) Category() category.Category { return category.Items() }
 
 func (m Machine) Def() *Def { return Kinds[m.Kind] }
 
-func (m Machine) EncodeItem() (string, int16) { return "skygear:" + m.Kind, 0 }
+func (m Machine) EncodeItem() (string, int16) { return encodedName(m.Kind), 0 }
+
+// encodedNames are the item names of the kinds, built once.
+var encodedNames = func() map[string]string {
+	names := make(map[string]string, len(Kinds))
+	for k := range Kinds {
+		names[k] = "skygear:" + k
+	}
+	return names
+}()
+
+func encodedName(kind string) string {
+	if n, ok := encodedNames[kind]; ok {
+		return n
+	}
+	return "skygear:" + kind
+}
 
 func (m Machine) EncodeBlock() (string, map[string]any) {
 	if IsSieve(m.Kind) {
-		return "skygear:" + m.Kind, map[string]any{SieveLookState: LookValue(m.MeshLook, m.Content, m.Fill)}
+		return encodedName(m.Kind), map[string]any{SieveLookState: LookValue(m.MeshLook, m.Content, m.Fill)}
 	}
 	if TierLook(m.Kind) {
-		return "skygear:" + m.Kind, map[string]any{TierState: TierValue(m.Kind, m.Tier, m.Active)}
+		return encodedName(m.Kind), map[string]any{TierState: TierValue(m.Kind, m.Tier, m.Active)}
 	}
 	if AnimatedKinds[m.Kind] {
-		return "skygear:" + m.Kind, map[string]any{activeState: activeValue(m.Active)}
+		return encodedName(m.Kind), map[string]any{activeState: activeValue(m.Active)}
 	}
-	return "skygear:" + m.Kind, nil
+	return encodedName(m.Kind), nil
 }
 
 func (m Machine) Hash() (uint64, uint64) {
@@ -1428,7 +1461,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		return
 	}
 	st := m.State
-	st.Sess, st.pos, st.Stuck = s, pos, stuckNone
+	st.Sess, st.pos, st.Stuck, st.curTick = s, pos, stuckNone, currentTick
 	st.Mon.seen, FactoryOf(s).lastTick = currentTick, currentTick
 	FactoryOf(s).machines[pos] = st
 	st.DrainLegacy()
@@ -1456,7 +1489,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	st.countWork(tx, m.Kind, currentTick)
 	st.pos = pos
 	if st.Def.Animated {
-		showActive(tx, pos, st, currentTick)
+		showActiveOf(tx, pos, m, st, currentTick)
 	}
 	st.persistState(currentTick, pos, tx)
 	switch st.Def.ID {
@@ -1468,11 +1501,11 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	if IsSieve(m.Kind) {
 		// The sieve shows its content and progress on the model.
-		st.tickDisplay(currentTick, true)
-		showSieve(tx, pos, st)
+		st.tickDisplay(currentTick+int64(posHash(pos)), true)
+		showSieveOf(tx, pos, m, st)
 		return
 	}
-	st.tickDisplay(currentTick, false)
+	st.tickDisplay(currentTick+int64(posHash(pos)), false)
 }
 
 // tickDisplay keeps the window's progress arrow, energy gauge and info icon
@@ -1567,6 +1600,13 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 // operation waits until they all fit. roll, if not nil, picks the actual
 // products (otherwise all possible ones are given).
 func (st *State) process(possible, roll func(in item.Stack) []item.Stack) {
+	if st.stuckOn {
+		if st.stuckVer == st.invVer && st.Progress >= st.Def.Interval && st.curTick-st.stuckTick < stuckRecheck {
+			st.Stuck = StuckOutput
+			return
+		}
+		st.stuckOn = false
+	}
 	slot, in, ok := st.FirstInput()
 	if !ok || !st.Accepts(in) {
 		st.Progress = 0
@@ -1578,6 +1618,7 @@ func (st *State) process(possible, roll func(in item.Stack) []item.Stack) {
 	}
 	out := possible(in)
 	if !st.RoomFor(out) {
+		st.stuckOn, st.stuckVer, st.stuckTick = true, st.invVer, st.curTick
 		return
 	}
 	if roll != nil {

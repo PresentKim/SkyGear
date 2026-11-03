@@ -56,13 +56,6 @@ func activePermutations(kind string) []customblock.Permutation {
 	}}
 }
 
-// showActive sets the block of an animated machine to its working or resting
-// look when that changed.
-func showActive(tx *world.Tx, pos cube.Pos, st *State, tick int64) {
-	m, _ := tx.Block(pos).(Machine)
-	showActiveOf(tx, pos, m, st, tick)
-}
-
 // showActiveOf is showActive for a caller that already holds the block at
 // pos (a ticked machine), saving the lookup. A zero m (no machine there) does
 // nothing but track the work.
