@@ -525,6 +525,50 @@ type State struct {
 	// seenWorked and lastWorkTick tell when the machine last worked (animate.go).
 	seenWorked   int
 	lastWorkTick int64
+	// dirty is set when a saved slot changed; saved is the saved scalars as
+	// the chunk was last marked. Dragonfly writes only the chunks marked
+	// modified, and a machine changes its State by pointer, so Tick marks
+	// the chunk itself (persistState).
+	dirty bool
+	saved stateSig
+}
+
+// stateSig is the saved scalars of a State, to tell whether a save would
+// differ from the last one.
+type stateSig struct {
+	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
+	fluid                                                                   fluidnet.Kind
+	mob, mesh, recipe                                                       string
+}
+
+func (st *State) sig() stateSig {
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+}
+
+// persistInterval is how many ticks apart a changed machine marks its chunk.
+const persistInterval = 100
+
+// persistState marks the chunk of a machine whose saved state changed, at
+// most once per persistInterval ticks (staggered by position), without a
+// block update or a packet.
+func (st *State) persistState(currentTick int64, pos cube.Pos, tx *world.Tx) {
+	if (currentTick+int64(posHash(pos)))%persistInterval != 0 {
+		return
+	}
+	sig := st.sig()
+	if !st.dirty && sig == st.saved {
+		return
+	}
+	// Read the block again: the tick may have changed its look.
+	if m, ok := tx.Block(pos).(Machine); ok && m.State == st {
+		tx.SetBlockEntity(pos, m)
+	}
+	st.dirty, st.saved = false, sig
+}
+
+// posHash spreads machines over the ticks of persistInterval.
+func posHash(pos cube.Pos) int {
+	return (pos[0]*31 + pos[1]*17 + pos[2]*7) & 0x7fffffff
 }
 
 // cycleLen is the ticks of the cycle the machine is on.
@@ -561,6 +605,11 @@ func New(kind, owner, ownerName string) Machine {
 	}
 	_ = inv.SetItem(infoSlot, st.InfoItem())
 	inv.Handle(machineHandler{State: st})
+	st.storage.OnChange(func(slot int, _, _ item.Stack) {
+		if st.Role(slot) != RoleNone {
+			st.dirty = true
+		}
+	})
 	st.shownRecipe = "\x00"
 	if k.Crafter {
 		st.showRecipe()
@@ -1240,6 +1289,8 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 		}
 	}
 	n.State.ShowProgress()
+	// What was just loaded is what the chunk holds.
+	n.State.dirty, n.State.saved = false, n.State.sig()
 	return n
 }
 
@@ -1406,6 +1457,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if st.Def.Animated {
 		showActive(tx, pos, st, currentTick)
 	}
+	st.persistState(currentTick, pos, tx)
 	switch st.Def.ID {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
