@@ -20,6 +20,23 @@ func newPartID() int {
 	return nParts - 1
 }
 
+// newParts makes the part slots of a session, one per declared part.
+func newParts() []any {
+	partsMu.Lock()
+	defer partsMu.Unlock()
+	return make([]any, nParts)
+}
+
+// setPart stores v as part id, growing the slots if id was declared after s.
+func (s *Session) setPart(id int, v any) {
+	if id >= len(s.parts) {
+		s.parts = append(s.parts, make([]any, id+1-len(s.parts))...)
+	}
+	s.parts[id] = v
+}
+
+func (s *Session) hasPart(id int) bool { return id < len(s.parts) && s.parts[id] != nil }
+
 // Part is a feature's runtime data in each session, made by its new function
 // the first time Of asks for it. Declare one as a package variable.
 type Part[T any] struct {
@@ -37,11 +54,13 @@ func NewPart[T any](mk func() *T) *Part[T] {
 
 // Of is the part's data in s.
 func (p *Part[T]) Of(s *Session) *T {
-	if v, ok := s.parts[p.id]; ok {
-		return v.(*T)
+	if p.id < len(s.parts) {
+		if v := s.parts[p.id]; v != nil {
+			return v.(*T)
+		}
 	}
 	v := p.new()
-	s.parts[p.id] = v
+	s.setPart(p.id, v)
 	return v
 }
 
@@ -59,7 +78,7 @@ func NewPlayers[T any]() *Players[T] {
 	})}
 	partsMu.Lock()
 	leaving = append(leaving, func(s *Session, h *world.EntityHandle) {
-		if _, ok := s.parts[p.part.id]; ok {
+		if s.hasPart(p.part.id) {
 			delete(*p.part.Of(s), h)
 		}
 	})

@@ -88,7 +88,7 @@ func (s *Session) loadSaved(doc []byte) error {
 	}
 	for _, p := range saved {
 		if doc == nil {
-			s.parts[p.id] = p.new()
+			s.setPart(p.id, p.new())
 			continue
 		}
 		v := p.zero()
@@ -106,7 +106,7 @@ func (s *Session) loadSaved(doc []byte) error {
 		if err := json.Unmarshal(b, v); err != nil {
 			return err
 		}
-		s.parts[p.id] = v
+		s.setPart(p.id, v)
 	}
 	return nil
 }

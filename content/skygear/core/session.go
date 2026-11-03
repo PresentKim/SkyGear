@@ -34,7 +34,7 @@ type Session struct {
 	// means 10 seconds.
 	FlushInterval time.Duration
 
-	parts map[int]any
+	parts []any
 	// dirty is whether the saved parts changed since they were last handed
 	// to writer, which stores them (MarkDirty).
 	dirty  bool
@@ -67,7 +67,7 @@ type Config struct {
 func New(c Config) *Session {
 	s := &Session{
 		World: c.World, Clock: c.Clock, SaveID: c.SaveID, SaveName: c.SaveName, HostID: c.HostID,
-		Log: c.Log, IsOperator: c.IsOperator, store: c.Store, parts: map[int]any{},
+		Log: c.Log, IsOperator: c.IsOperator, store: c.Store, parts: newParts(),
 		Rand: rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(c.SaveID))),
 	}
 	if s.Log == nil {
