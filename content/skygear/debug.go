@@ -25,6 +25,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
+	"github.com/presentkim/skygear/platform/instance"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -34,7 +35,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b}, debugNet{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -234,6 +235,36 @@ func (c debugTerminal) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	p.StartSneaking()
 	netstore.ShowTerminal(s.Session, p, tx, at)
+	p.StopSneaking()
+}
+
+// debugNet builds an always powered network filled with count kinds of
+// items in the air two blocks north of the operator and up blocks above its
+// feet, and opens its terminal window; if that terminal is already there it
+// only opens the window (scenarios).
+type debugNet struct {
+	adminBase
+	Sub   cmd.SubCommand    `cmd:"net"`
+	Count int               `cmd:"count"`
+	Up    cmd.Optional[int] `cmd:"up"`
+}
+
+func (c debugNet) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	up, _ := c.Up.Load()
+	at := cube.PosFromVec3(p.Position()).Add(cube.Pos{-1, up, -2})
+	term := at.Add(cube.Pos{1, 0, 0})
+	if !netstore.IsTerminal(tx.Block(term)) {
+		if _, ok := netstore.BuildTestNet(tx, at, instance.AccountID(p), p.Name(), max(0, c.Count)); !ok {
+			o.Errorf("blocks in the way at %d %d %d", at[0], at[1], at[2])
+			return
+		}
+	}
+	p.StartSneaking()
+	netstore.ShowTerminal(s.Session, p, tx, term)
 	p.StopSneaking()
 }
 
