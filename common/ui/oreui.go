@@ -99,6 +99,10 @@ type oreScreen struct {
 	// probe is the layout's run for the lines its test nodes report
 	// (oreLayout.probe).
 	probe func(p *player.Player, tx *world.Tx, id, line string)
+	// slot and drag are the layout's runs for the clicks and drags on the
+	// slots of an inventory screen (ShowInventory).
+	slot func(p *player.Player, tx *world.Tx, a SlotAct)
+	drag func(p *player.Player, tx *world.Tx, d DragAct)
 	// loading is when the loading screen shown came up (zero: the screen is
 	// not a loading screen, LoadingScreen).
 	loading time.Time
@@ -127,8 +131,12 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 		st = &oreScreen{}
 		oreScreens.m[p.UUID()] = st
 	}
+	if !l.inventory && p != nil {
+		ReturnCarried(p)
+	}
 	st.gen++
 	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
+	st.slot, st.drag = l.slot, l.drag
 	st.root = root
 	switch {
 	case !l.loading:
@@ -275,6 +283,30 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		})
 		return
 	}
+	if ev.Kind == "slot" || ev.Kind == "drag" {
+		oreScreens.Lock()
+		slot, drag, gen := st.slot, st.drag, st.gen
+		oreScreens.Unlock()
+		a, aok := slotEvent(ev.ID, ev.Value)
+		d, dok := dragEvent(ev.Value)
+		h.Do(func(tx *world.Tx, e world.Entity) {
+			oreScreens.Lock()
+			same := st.gen == gen
+			oreScreens.Unlock()
+			if !same {
+				return
+			}
+			p := e.(*player.Player)
+			defer recoverForm(p)
+			switch {
+			case ev.Kind == "slot" && aok && slot != nil:
+				slot(p, tx, a)
+			case ev.Kind == "drag" && dok && drag != nil:
+				drag(p, tx, d)
+			}
+		})
+		return
+	}
 	if ev.Kind == "probe" {
 		oreScreens.Lock()
 		run := st.probe
@@ -374,6 +406,11 @@ type oreLayout struct {
 	// loading marks a loading screen (LoadingScreen), which CloseLoading
 	// closes.
 	loading bool
+	// inventory marks an inventory screen, which keeps the cursor stack
+	// (Carried); any other screen gives it back.
+	inventory bool
+	slot      func(p *player.Player, tx *world.Tx, a SlotAct)
+	drag      func(p *player.Player, tx *world.Tx, d DragAct)
 }
 
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
