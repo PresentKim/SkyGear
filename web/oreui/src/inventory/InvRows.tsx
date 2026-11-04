@@ -39,8 +39,8 @@ function Part(props: { part: InvPart }): JSX.Element {
   return <div className="oui-box mc-inv-part">{rows}</div>;
 }
 
-function Row(props: { row: InvRow }): JSX.Element {
-  const { row } = props;
+function Row(props: { row: InvRow; info?: string }): JSX.Element {
+  const { row, info } = props;
   const parts = row.parts.filter((p) => p.arrow || p.button || p.slots.length > 0);
   const body =
     parts.length === 0 && row.note ? (
@@ -54,18 +54,26 @@ function Row(props: { row: InvRow }): JSX.Element {
     );
   return (
     <>
-      {row.heading ? <Rich text={row.heading} className="oui-text mc-inv-heading" /> : null}
+      {row.heading || info ? (
+        <div className="oui-box mc-inv-heading-row">
+          <Rich text={row.heading} className="oui-text mc-inv-heading" />
+          {info ? <Rich text={info} className="oui-text mc-inv-info" /> : null}
+        </div>
+      ) : null}
       {row.grow ? <Scroll className="mc-inv-grow">{body}</Scroll> : body}
     </>
   );
 }
 
-/** InvRows draws the rows of an inventory screen top to bottom; a grow row fills the height left and scrolls. */
-export function InvRows(props: { rows: InvRow[] }): JSX.Element {
+/** InvRows draws the rows of an inventory screen top to bottom; a grow row fills the height left and scrolls. The info line goes right of the first heading under the grow row, which is about the rows above it. */
+export function InvRows(props: { rows: InvRow[]; info?: string }): JSX.Element {
+  const grow = props.rows.findIndex((r) => r.grow);
+  const infoAt = props.info ? props.rows.findIndex((r, i) => i > grow && !!r.heading) : -1;
   return (
     <>
+      {infoAt < 0 && props.info ? <Rich text={props.info} className="oui-text mc-inv-info" /> : null}
       {props.rows.map((r, i) => (
-        <Row key={i} row={r} />
+        <Row key={i} row={r} info={i === infoAt ? props.info : undefined} />
       ))}
     </>
   );

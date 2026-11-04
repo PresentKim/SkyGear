@@ -75,7 +75,8 @@ export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 // An inventory screen: slots worked like the vanilla inventory. A slot id is "<area>:<index>"; a click
 // sends 'slot' {b: 0 left | 1 right, shift, dbl} and a drag 'drag' {b, ids}.
 export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; deco: Icon; empty: Icon; dim?: boolean } // empty: shown while icon is ''; dim: drawn faded
-export interface InvBook { title: Text; filter: BarButton | null; cols: number; slots: InvSlot[]; note: Text } // the recipe book left of the window (slots "book:<i>")
+export interface InvTab { id: Id; tip: Text; icon: Icon; on: boolean; end: boolean } // end: at the right end of the tabs
+export interface InvBook { tabs: InvTab[]; title: Text; field: Id; query: Text; placeholder: Text; filter: BarButton | null; slots: InvSlot[]; note: Text } // the vanilla recipe book left of the window (slots "book:<i>"); field: the search tab's box ('' none)
 export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null }
 export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text } // grow: takes the height left and scrolls
 export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null } // quick: the tip of the quick move switch ('' none)

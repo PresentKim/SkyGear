@@ -31,15 +31,26 @@ type InvSlot struct {
 	Dim bool
 }
 
-// InvBook is the recipe book panel beside the window's left edge: a title,
-// a filter button and a scrolling grid of slots (area "book").
+// InvBook is the recipe book panel beside the window's left edge, laid out
+// like the vanilla one: tabs over its top, the open tab's label (Title) and
+// the filter switch, or on a search tab the search box and the switch, and a
+// scrolling grid of recipe slots (area "book"). A Dim slot is a recipe that
+// cannot be made now.
 type InvBook struct {
+	Tabs   []InvTab
 	Title  string
+	Search *InvSearch
 	Filter *Option
-	Cols   int
 	Slots  []InvSlot
 	// Note is drawn in place of the slots when there are none.
 	Note string
+}
+
+// InvTab is a tab of the recipe book; End puts it at the right end.
+type InvTab struct {
+	Label, Icon string
+	On, End     bool
+	Run         func(p *player.Player, tx *world.Tx)
 }
 
 // StackSlot is the slot of an item stack, with tip its tooltip.
@@ -151,11 +162,22 @@ type dInvSlot struct {
 }
 
 type dInvBook struct {
-	Title  string      `json:"title"`
-	Filter *dBarButton `json:"filter"`
-	Cols   int         `json:"cols"`
-	Slots  []dInvSlot  `json:"slots"`
-	Note   string      `json:"note"`
+	Tabs        []dInvTab   `json:"tabs"`
+	Title       string      `json:"title"`
+	Field       string      `json:"field"`
+	Query       string      `json:"query"`
+	Placeholder string      `json:"placeholder"`
+	Filter      *dBarButton `json:"filter"`
+	Slots       []dInvSlot  `json:"slots"`
+	Note        string      `json:"note"`
+}
+
+type dInvTab struct {
+	ID   string `json:"id"`
+	Tip  string `json:"tip"`
+	Icon string `json:"icon"`
+	On   bool   `json:"on"`
+	End  bool   `json:"end"`
 }
 
 type dInvPart struct {
@@ -243,7 +265,20 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		d.Side = append(d.Side, dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Icon: oreIcon(o.Icon), Quick: true})
 	}
 	if b := s.Book; b != nil {
-		db := dInvBook{Title: untoken(b.Title), Cols: max(1, b.Cols), Slots: []dInvSlot{}, Note: b.Note}
+		db := dInvBook{Tabs: []dInvTab{}, Title: untoken(b.Title), Slots: []dInvSlot{}, Note: b.Note}
+		for _, t := range b.Tabs {
+			tab := dInvTab{Tip: untoken(t.Label), Icon: oreIcon(t.Icon), On: t.On, End: t.End}
+			if !t.On && t.Run != nil {
+				tab.ID = l.id(t.Run)
+			}
+			db.Tabs = append(db.Tabs, tab)
+		}
+		if b.Search != nil {
+			db.Field, db.Query, db.Placeholder = bookField, b.Search.Query, b.Search.Placeholder
+			if b.Search.Change != nil {
+				l.inputs[bookField] = b.Search.Change
+			}
+		}
 		if b.Filter != nil {
 			db.Filter = &dBarButton{ID: l.id(b.Filter.Run), Tip: untoken(b.Filter.Label), Icon: oreIcon(b.Filter.Icon), Quick: true}
 		}
@@ -262,6 +297,9 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 	}
 	showScreen(p, l, "inventory", d)
 }
+
+// bookField is the id of the recipe book's search box.
+const bookField = "booksearch"
 
 func invSlotData(id string, sl InvSlot) dInvSlot {
 	tip, deco := slotDeco(sl.Tip)

@@ -76,7 +76,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
     };
   }, []);
   return (
-    <Window chrome={data.chrome} className="mc-inventory" size={[INV_W, INV_H]}>
+    <Window chrome={data.chrome} className={data.book ? 'mc-inventory mc-with-book' : 'mc-inventory'} size={[INV_W, INV_H]}>
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (
           <SideButton key={b.id} button={b} />
@@ -89,9 +89,8 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
           <Field id={data.field} value={typed.current} placeholder={data.placeholder} delay={250} />
         </div>
       ) : null}
-      {data.info ? <Rich text={data.info} className="oui-text mc-body-text mc-inv-info" /> : null}
       <TouchTip />
-      <InvRows rows={data.rows} />
+      <InvRows rows={data.rows} info={data.info} />
       {data.book ? <RecipeBook book={data.book} /> : null}
       <CursorStack slot={data.cursor} />
     </Window>

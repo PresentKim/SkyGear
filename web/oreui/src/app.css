@@ -26,6 +26,12 @@
   margin-top: 8vh;
 }
 
+/* With the recipe book the window and the book are centred together, as in vanilla: the window
+   moves right by half the book and its gap (146u + 5u). */
+.mc-inventory.mc-with-book .mc-window {
+  left: 15.1rem;
+}
+
 .mc-inv-side {
   position: absolute;
   top: 0;
@@ -69,8 +75,9 @@
   flex-direction: row;
 }
 
+/* The grow row has no min-height: Gameface takes a growing box's min-height out of the room it
+   gives it, so the rows would stop short of the window's bottom. */
 .mc-inventory .mc-scroll-wrap {
-  min-height: 3.6rem;
   margin-bottom: 0.4rem;
 }
 
@@ -83,9 +90,42 @@
   font-size: 1.2rem;
 }
 
+.mc-inventory .mc-title {
+  right: 20.4rem;
+}
+
+/* The search box sits in the right half of the title row (above the content box), as in the
+   storage mods' grids, so the rows keep the window's height. */
 .mc-inv-search {
+  position: absolute;
+  top: -2.6rem;
+  right: 0;
+  width: 19rem;
+  height: 2.4rem;
+  margin-bottom: 0;
+}
+
+.mc-inv-search img {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.4rem;
+}
+
+.mc-inv-search .mc-input {
+  height: 2.2rem;
+  font-size: 1.2rem;
+}
+
+.mc-inv-heading-row {
   flex-shrink: 0;
-  margin-bottom: 0.4rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mc-inv-info {
+  padding-right: 1.6rem;
 }
 
 .mc-inv-note {
@@ -101,29 +141,67 @@
   opacity: 0.35;
 }
 
-/* The recipe book: a dialog panel against the window's left edge, five slots wide. */
+/* The recipe book (vanilla inventory_screen.json recipe_book): a 146u panel 5u left of the window and
+   as tall as it, the tabs over its top, a 10u label row (or the 16u search row) with the 29x17
+   filter switch, and the scroll grid of 18u cells (the panel's window picture is in oui-mc.css).
+   The window's outer edge is 1.2rem left of and 3.6rem above the content box. */
 .mc-inv-book {
   position: absolute;
-  top: -0.8rem;
-  bottom: -0.8rem;
-  left: -21.2rem;
-  width: 20rem;
+  top: -3.6rem;
+  bottom: -1.2rem;
+  left: -31.4rem;
+  width: 26.8rem;
   padding: 0.4rem;
   display: flex;
   flex-direction: column;
-  background-color: #c6c6c6;
-  border-style: solid;
-  border-width: 0.2rem;
-  border-color: #555555;
+}
+
+.mc-inv-book-tabs {
+  position: absolute;
+  top: -5.2rem;
+  left: 0;
+  right: 0;
+  height: 4.8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.mc-inv-book-fill {
+  flex-grow: 1;
 }
 
 .mc-inv-book-head {
   flex-shrink: 0;
+  height: 3.4rem;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.4rem;
+}
+
+.mc-inv-book-label {
+  padding-left: 0.6rem;
+  font-size: 1.4rem;
+}
+
+.mc-inv-book-search {
+  flex-grow: 1;
+  height: 3.2rem;
+  margin-bottom: 0;
+  margin-right: 0.2rem;
+}
+
+.mc-inv-book-filter,
+.mc-inv-book-filter img {
+  flex-shrink: 0;
+  width: 5.8rem;
+  height: 3.4rem;
+}
+
+.mc-inv-book .mc-inv-dim img.mc-icon {
+  opacity: 1;
 }
 
 .mc-inv-button {

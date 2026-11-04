@@ -2,8 +2,10 @@ package netstore
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
@@ -19,17 +21,72 @@ import (
 )
 
 // The recipe book of the terminal window (after Bedrock's): the island's
-// open crafting-table recipes that match the search, those the network,
-// the inventory and the grid can make first. A left click lays a recipe's
-// ingredients into the grid from the network, then the inventory; shift
-// crafts up to a stack into the inventory, and a right click with nothing
-// held crafts once into it.
+// open crafting-table recipes of the open tab (the creative category of the
+// result) or, on the search tab, of every category matching the book's
+// search, those the network, the inventory and the grid can make first. A
+// left click lays a recipe's ingredients into the grid from the network,
+// then the inventory; shift crafts up to a stack into the inventory, and a
+// right click with nothing held crafts once into it.
 
 // bookSlots is how many recipes the book shows.
 const bookSlots = 240
 
-// bookAll are the players whose book shows the recipes they cannot make too.
-var bookAll = core.NewPlayers[bool]()
+// bookTabs are the book's tabs in the vanilla order; the last is the search
+// tab.
+var bookTabs = []struct {
+	cat       creative.Category
+	key, icon string
+}{
+	{creative.ConstructionCategory(), "netstore.terminal.tab.construction", "textures/ui/icon_recipe_construction"},
+	{creative.EquipmentCategory(), "netstore.terminal.tab.equipment", "textures/ui/icon_recipe_equipment"},
+	{creative.ItemsCategory(), "netstore.terminal.tab.items", "textures/ui/icon_recipe_item"},
+	{creative.NatureCategory(), "netstore.terminal.tab.nature", "textures/ui/icon_recipe_nature"},
+	{key: "netstore.terminal.tab.search", icon: "textures/ui/magnifyingGlass"},
+}
+
+// searchTab is the index of the search tab in bookTabs.
+var searchTab = len(bookTabs) - 1
+
+var (
+	// bookAll are the players whose book shows the recipes they cannot make
+	// too.
+	bookAll = core.NewPlayers[bool]()
+	// bookTab is the tab each player's book shows (bookTabs).
+	bookTab = core.NewPlayers[int]()
+	// bookQuery is the search of each player's search tab.
+	bookQuery = core.NewPlayers[string]()
+)
+
+var (
+	categoriesOnce sync.Once
+	categories     map[string]creative.Category
+)
+
+// categoryOf is the creative category of it: that of its creative group, or
+// the items category when it has none.
+func categoryOf(it world.Item) creative.Category {
+	categoriesOnce.Do(func() {
+		groups := map[string]creative.Category{}
+		for _, g := range creative.Groups() {
+			if _, ok := groups[g.Name]; !ok {
+				groups[g.Name] = g.Category
+			}
+		}
+		categories = map[string]creative.Category{}
+		for _, c := range creative.Items() {
+			k := naming.ItemKey(c.Stack.Item())
+			if _, ok := categories[k]; !ok {
+				if cat, ok := groups[c.Group]; ok {
+					categories[k] = cat
+				}
+			}
+		}
+	})
+	if cat, ok := categories[naming.ItemKey(it)]; ok {
+		return cat
+	}
+	return creative.ItemsCategory()
+}
 
 // stock counts the items the book may use, by item key and by name.
 type stock struct {
@@ -113,19 +170,25 @@ func gridRecipe(s *core.Session, grid invclick.Area) (*machinerecipe.Crafter, bo
 	return cr, true
 }
 
-// bookOf lists the recipes the book shows to p: open ones whose result
-// matches query, the makeable first; only those unless p shows all.
-func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area, query string) []bookEntry {
+// bookOf lists the recipes the book shows to p: open ones of the open tab,
+// or on the search tab those whose result matches the book's search, the
+// makeable first; only those unless p shows all.
+func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area) []bookEntry {
 	lang := i18n.Of(p)
 	inv := p.Inventory()
 	st := newStock(n, invclick.Hotbar(inv), invclick.Main(inv), grid)
 	all := bookAll.Of(s)[p.H()]
+	tab := bookTab.Of(s)[p.H()]
+	query := strings.TrimSpace(bookQuery.Of(s)[p.H()])
 	var can, cannot []bookEntry
 	for _, cr := range machinerecipe.Crafters() {
 		if _, ok := gridPattern(cr); !ok || !openRecipe(s, cr.Recipe) {
 			continue
 		}
-		if query != "" && !textsearch.Match(query, naming.ItemName(lang, cr.Out)) {
+		if tab != searchTab && categoryOf(cr.Out.Item()) != bookTabs[tab].cat {
+			continue
+		}
+		if tab == searchTab && query != "" && !textsearch.Match(query, naming.ItemName(lang, cr.Out)) {
 			continue
 		}
 		if st.makes(cr) {
@@ -143,7 +206,22 @@ func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area, q
 
 func bookPanel(s *core.Session, p *player.Player, book []bookEntry, again func(p *player.Player, tx *world.Tx)) *ui.InvBook {
 	lang := i18n.Of(p)
-	b := &ui.InvBook{Title: i18n.T(lang, "netstore.terminal.book"), Cols: 5}
+	open := bookTab.Of(s)[p.H()]
+	b := &ui.InvBook{}
+	for i, t := range bookTabs {
+		b.Tabs = append(b.Tabs, ui.InvTab{Label: i18n.T(lang, t.key), Icon: t.icon, On: i == open, End: i == searchTab, Run: func(p *player.Player, tx *world.Tx) {
+			bookTab.Of(s)[p.H()] = i
+			again(p, tx)
+		}})
+	}
+	if open == searchTab {
+		b.Search = &ui.InvSearch{Query: bookQuery.Of(s)[p.H()], Placeholder: i18n.T(lang, "storage.search.label"), Change: func(p *player.Player, tx *world.Tx, q string) {
+			bookQuery.Of(s)[p.H()] = q
+			again(p, tx)
+		}}
+	} else {
+		b.Title = i18n.T(lang, bookTabs[open].key)
+	}
 	key, icon := "netstore.terminal.bookCan", "textures/ui/craft_toggle_on"
 	if bookAll.Of(s)[p.H()] {
 		key, icon = "netstore.terminal.bookAll", "textures/ui/craft_toggle_off"

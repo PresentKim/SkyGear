@@ -99,7 +99,7 @@ func openTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 	}
 	if g, ok := gridOf(tx, pos); ok && craftShown.Of(s)[p.H()] {
 		t.grid = g
-		t.book = bookOf(s, p, t.n, g, t.query)
+		t.book = bookOf(s, p, t.n, g)
 	}
 	return t
 }

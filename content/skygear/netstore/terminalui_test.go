@@ -6,6 +6,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/invclick"
@@ -98,6 +99,17 @@ func TestGridRefusesALockedRecipe(t *testing.T) {
 			t.Errorf("crafted %v from a locked recipe", out)
 		}
 	})
+}
+
+func TestCategoryOfFollowsTheCreativeTabs(t *testing.T) {
+	creative.RegisterGroup(creative.Group{Category: creative.EquipmentCategory(), Name: "netstore.test"})
+	creative.RegisterItem(creative.Item{Stack: item.NewStack(block.Glowstone{}, 1), Group: "netstore.test"})
+	if got := categoryOf(block.Glowstone{}); got != creative.EquipmentCategory() {
+		t.Errorf("glowstone in %v, want the equipment tab", got)
+	}
+	if got := categoryOf(Disk{}); got != creative.ItemsCategory() {
+		t.Errorf("an item of no creative group in %v, want the items tab", got)
+	}
 }
 
 func TestStockMakes(t *testing.T) {

@@ -566,6 +566,25 @@
   padding-left: 11.6rem;
 }
 
+/* The inventory screens' recipe book: the vanilla window picture, and its cells (recipe_book_item_bg,
+   5x5 slice 1; a recipe that cannot be made recipe_book_red_button, 3x3 slice 1). */
+.mc-inv-book {
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-inv-book .mc-slot {
+  border-image-source: url("pack://textures/ui/recipe_book_item_bg.png?filtering=point");
+  border-image-slice: 1 fill;
+}
+
+.mc-inv-book .mc-slot.mc-inv-dim {
+  border-image-source: url("pack://textures/ui/recipe_book_red_button.png?filtering=point");
+}
+
 /* A board's mini cell: a small icon without the slot frame (the machine heading a group of recipes). */
 .mc-slot.mc-mini {
   border-image-source: none;

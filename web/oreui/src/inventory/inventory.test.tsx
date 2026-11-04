@@ -105,13 +105,41 @@ describe('inventory mouse', () => {
     mouse(container.querySelector('.mc-title')!, 'mousedown');
     expect(send).not.toHaveBeenCalled();
   });
+  const book = (field = '') => ({
+    tabs: [
+      { id: '', tip: 'Construction', icon: '', on: true, end: false },
+      { id: 't1', tip: 'Equipment', icon: '', on: false, end: false },
+      { id: 't4', tip: 'All recipes', icon: '', on: false, end: true },
+    ],
+    title: 'Construction', field, query: '', placeholder: '',
+    filter: { id: 'f', tip: 'All', icon: '', glyph: '', quick: true }, note: '',
+    slots: [{ ...slot('book:0', 'stick'), dim: true }],
+  });
   it('draws the recipe book and presses its recipes like slots', () => {
-    const book = { title: 'Recipes', filter: { id: 'f', tip: 'All', icon: '', glyph: '', quick: true }, cols: 5, note: '', slots: [{ ...slot('book:0', 'stick'), dim: true }] };
-    const { container } = render(<InventoryScreen data={{ ...data(null), book }} />);
+    const { container } = render(<InventoryScreen data={{ ...data(null), book: book() }} />);
     const recipe = container.querySelector('.mc-inv-book .mc-inv-slot')!;
     expect(recipe.className).toContain('mc-inv-dim');
     mouse(recipe, 'mousedown', 0, true);
     expect(send).toHaveBeenCalledWith('book:0', 'slot', click(0, true));
+  });
+  it('draws the book tabs with the search tab last and the open tab label', () => {
+    const { container } = render(<InventoryScreen data={{ ...data(null), book: book() }} />);
+    const tabs = container.querySelectorAll('.mc-inv-book-tabs > *');
+    expect(tabs[0].className).toContain('on');
+    expect(tabs[2].className).toContain('mc-inv-book-fill');
+    expect(container.querySelector('.mc-inv-book-label')!.textContent).toBe('Construction');
+    expect(container.querySelector('.mc-inv-book input')).toBeNull();
+  });
+  it('a search tab draws the book search box', () => {
+    const { container } = render(<InventoryScreen data={{ ...data(null), book: book('booksearch') }} />);
+    expect(container.querySelector('.mc-inv-book input')).not.toBeNull();
+    expect(container.querySelector('.mc-inv-book-label')).toBeNull();
+  });
+  it('puts the info line beside the first heading under the grow row', () => {
+    const { container } = render(<InventoryScreen data={{ ...data(null), info: '3 kinds' }} />);
+    const row = container.querySelector('.mc-inv-heading-row')!;
+    expect(row.textContent).toContain('Inventory');
+    expect(row.querySelector('.mc-inv-info')!.textContent).toBe('3 kinds');
   });
   it('draws the cursor stack', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);

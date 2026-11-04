@@ -89,6 +89,8 @@ type oreScreen struct {
 	runs map[string]func(p *player.Player, tx *world.Tx)
 	// input runs when the text of the screen's input box changes (SearchGrid).
 	input func(p *player.Player, tx *world.Tx, value string)
+	// inputs run instead of input for the input boxes they are kept by.
+	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
 	// values are the layout's input boxes' texts by their ids (oreLayout).
 	values map[string]string
 	gen    int
@@ -136,7 +138,7 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 		ReturnCarried(p)
 	}
 	st.gen++
-	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
+	st.runs, st.input, st.inputs, st.values, st.close, st.probe = l.runs, l.input, l.inputs, l.values, l.close, l.probe
 	st.slot, st.drag, st.drop = l.slot, l.drag, l.drop
 	st.root = root
 	switch {
@@ -262,6 +264,9 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 	if ev.Kind == "change" {
 		oreScreens.Lock()
 		in, gen := st.input, st.gen
+		if f, ok := st.inputs[ev.ID]; ok {
+			in = f
+		}
 		if v, ok := ev.Value.(string); ok {
 			if _, kept := st.values[ev.ID]; kept {
 				st.values[ev.ID] = v
@@ -390,6 +395,8 @@ func oreEnd(p *player.Player, tx *world.Tx, st *oreScreen, gen int, closed bool)
 type oreLayout struct {
 	runs  map[string]func(p *player.Player, tx *world.Tx)
 	input func(p *player.Player, tx *world.Tx, value string)
+	// inputs run instead of input for the input boxes they are kept by.
+	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
 	// values keep the texts of the screen's input boxes, guarded by
 	// oreScreens.
 	values map[string]string
@@ -448,7 +455,7 @@ func (l *oreLayout) key(k Key, run func(p *player.Player, tx *world.Tx)) {
 }
 
 func newOreLayout() *oreLayout {
-	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, values: map[string]string{}, prefix: "o"}
+	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, inputs: map[string]func(p *player.Player, tx *world.Tx, value string){}, values: map[string]string{}, prefix: "o"}
 }
 
 // value is the text of the input box id as the player left it.
