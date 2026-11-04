@@ -29,6 +29,7 @@ import (
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
+	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/nsmigrate"
 	"github.com/presentkim/skygear/platform"
@@ -90,6 +91,9 @@ func run(log *slog.Logger) error {
 		return err
 	}
 	defer d.Close()
+	if err := migrate.Run(log, filepath.Join(pconf.Data.Dir, "platform.db"), filepath.Join(pconf.Data.Dir, "saves"), pconf.Backup.Dir, Version); err != nil {
+		return err
+	}
 
 	// Every world is an empty void; the lobby and islands are built on demand.
 	conf.Generator = func(world.Dimension) world.Generator { return world.NopGenerator{} }
@@ -189,7 +193,7 @@ func run(log *slog.Logger) error {
 		StateFlushInterval: time.Duration(pconf.Instance.StateFlushSeconds) * time.Second,
 		WorldSaveInterval:  time.Duration(pconf.Instance.WorldSaveSeconds) * time.Second,
 		Entities:           conf.Entities,
-	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator))
+	}, platform.Lobby(lobby, &pf), skygear.New(log, d, isOperator, Version))
 	pf = platform.New(log, d, m, srv.Player, isOperator)
 	// Operators who turn it on (/sgadmin tps) see the server load.
 	stopLoad := make(chan struct{})
