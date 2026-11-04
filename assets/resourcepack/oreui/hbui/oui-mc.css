@@ -66,6 +66,52 @@
   background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* The safe zone of the video settings (safe area, screen position) as margins in px, which
+   web/oreui/src/runtime/safezone.ts sets on the body. The backdrop still covers the whole screen; what
+   the screen lays out stays inside the margins: the centred windows through the padding, the boxes
+   placed at the screen edges through their margins. */
+body {
+  --oui-safe-top: 0px;
+  --oui-safe-right: 0px;
+  --oui-safe-bottom: 0px;
+  --oui-safe-left: 0px;
+}
+
+.mc-screen,
+.mc-home-ov {
+  box-sizing: border-box;
+  padding-top: var(--oui-safe-top);
+  padding-right: var(--oui-safe-right);
+  padding-bottom: var(--oui-safe-bottom);
+  padding-left: var(--oui-safe-left);
+}
+
+.mc-home-profile,
+.mc-home-corner,
+.mc-home-side,
+.mc-lobby-head,
+.mc-plane-panel.mc-plane-corner {
+  margin-top: var(--oui-safe-top);
+}
+
+.mc-home-corner,
+.mc-home-start {
+  margin-right: var(--oui-safe-right);
+}
+
+.mc-home-feed,
+.mc-home-start,
+.mc-load-tip {
+  margin-bottom: var(--oui-safe-bottom);
+}
+
+.mc-home-profile,
+.mc-home-side,
+.mc-home-feed,
+.mc-plane-panel.mc-plane-corner {
+  margin-left: var(--oui-safe-left);
+}
+
 /* The window: vanilla dialog_background_opaque (16x16, slice 4). Its size comes from the server
    (style width/height in u), like $sg_window_size. Title at 6u from the top, content from 18u. */
 .mc-window {

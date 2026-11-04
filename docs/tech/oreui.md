@@ -75,7 +75,13 @@ Ore UI 페이지는 게임의 설정 화면이 쓰는 설정을 읽고 바꿀 �
 로비의 메인 화면(`ui.HomeScreen`, `platform/home.go`)은 게임 로비처럼 화면 전체를 채우고, 로비에 있는 동안 닫히지 않는다. 하위 DDUI 화면(세이브 선택, 멀티 플레이, 친구, 칭호·치장, 설정, 안내, 입력·확인)은 같은 모양으로 그 자리에 열린다. 로비에 있는 동안 루트에 `lobby` 가 실려, 페이지가 화면 루트에 `mc-lobby`(터치 기기는 `mc-touch`)와 그늘·머리(로고·이름)를 더하고 모든 글을 밝은 색으로 그린다(`oui-mc.css` `.mc-lobby`, `.mc-home-*`).
 
 - 로비 섬(천천히 도는 카메라와 손 흔드는 캐릭터)이 가운데에 보이도록 버튼은 가장자리에 둔다. 메인 화면은 그늘 없이 섬이 그대로 보이고(`.mc-home .mc-lobby-shade`), 하위 화면은 전체가 어두워진다. 위 가운데에 게임 로고·이름(`ui.LobbyHeader`, 플랫폼이 `name.Game` 과 풀 블록 옆면으로 채운다)이 있다.
-- 휴대폰·태블릿(접속 기기 OS 가 Android·iOS·Fire OS, `common/ui.touchDevice`)에서는 루트에 `mc-touch` 를 붙여, 화면 가장자리의 카메라 구멍·시스템 핸들(엣지 패널 등)이 누름을 가로채지 않게 버튼을 양옆에서 8rem 안쪽에 두고 왼쪽 타일·오른쪽 위 아이콘 버튼을 크게 그린다. 게임 페이지의 안전 영역 쿼리(`core.safeZone`)는 답이 오지 않아 쓰지 않는다([oreui-probes.md](oreui-probes.md)).
+- 휴대폰·태블릿(접속 기기 OS 가 Android·iOS·Fire OS, `common/ui.touchDevice`)에서는 루트에 `mc-touch` 를 붙여, 화면 가장자리의 카메라 구멍·시스템 핸들(엣지 패널 등)이 누름을 가로채지 않게 버튼을 양옆에서 8rem 안쪽에 두고 왼쪽 타일·오른쪽 위 아이콘 버튼을 크게 그린다.
+
+### GUI 배율과 안전 영역
+
+- GUI 배율: 바닐라 게임 페이지가 html 글자 크기를 5 x GUI 배율(px)로 정한다(게임 번들 `gameplay-*.js` 의 `guiScale` 공급자). 화면의 크기는 모두 rem(1 GUI 픽셀 = 0.2rem)이라 비디오 설정의 GUI 배율을 따로 읽지 않아도 따라간다.
+- 안전 영역: 비디오 설정의 안전 영역(가로·세로 0.9~1)과 화면 위치(가로·세로 -0.1~0.1)는 facet `core.safeZone` 으로 온다(`facet:request` 를 보내고 `facet:updated:core.safeZone` 을 받는다. 질의 `query:subscribe/core.safeZone` 로는 답이 없다). `src/runtime/safezone.ts` 가 바닐라와 같은 식으로 네 변의 여백(px)을 구해 body 의 `--oui-safe-top`·`right`·`bottom`·`left` 에 두고, 창 크기가 바뀌면 다시 구한다.
+- `oui-mc.css`: 화면(`.mc-screen`, 로비 오버레이 `.mc-home-ov`)은 화면 전체를 어둡게 하고, 그 여백만큼 안쪽 여백을 두어 가운데 창이 안전 영역의 가운데에 온다. 화면 가장자리에 붙은 상자(로비 프로필·오른쪽 위 버튼·왼쪽 타일·최근 줄·세이브 카드, 로비 제목, 불러오기 화면의 팁, 평면 화면의 왼쪽 위 판)는 같은 여백을 바깥 여백(margin)으로 더한다. 디버그 줄(`/uidebug`)의 `safe=` 가 받은 여백이다(받지 못했으면 `-`).
 - 왼쪽 위: 프로필(얼굴, 이름 색을 입힌 이름, 칭호, 업적 수 막대). 누르면 칭호·치장이 열린다. 얼굴은 플레이어 스킨의 머리 앞면(모자 겹 포함, 8×8)을 서버가 읽어 `home` 화면 데이터의 픽셀 목록으로 보낸다(`platform/skinface.go`). 스킨 모델(Persona·사용자 모델)이 있으면 `head`·`hat` 뼈의 첫 큐브 박스 UV 에서, 없으면 표준 스킨 자리(64px 기준 (8,8), 모자 (40,8))에서 읽는다. 얼굴이 비어 있으면 바닐라 `textures/ui/icon_steve` 를 그린다. 페이지에 캔버스(`getContext`)가 없어 그림은 8줄×8칸 상자다(`src/screens/home.tsx`). Gameface 는 빈 flex 항목을 늘리지 않으므로 줄과 칸의 크기는 퍼센트로 정한다.
 - 오른쪽 위: 알림(친구 요청·세이브 초대 등 알림 수, `platform/notify.go`), 설정, 서버 나가기 아이콘. 이름은 툴팁, 수는 빨간 표시(`ui.HomeButton.Badge`).
 - 운영자에게는 오른쪽 위 맨 앞과 시스템 메뉴에 **명령어**가 더 있다. 로비에서는 메인 화면이 늘 열려 있고 페이지에서 게임 채팅창을 여는 엔진 명령도 없어([oreui-probes.md](oreui-probes.md)), 명령은 콘솔 화면(`ui.ConsoleScreen`, `platform/console.go`)에 친다. 입력칸에 친 명령(앞의 `/` 는 없어도 된다)을 그 플레이어로 실행하고(`ExecuteCommand`), 콘솔이 열린 동안 그 연결로 가는 명령 결과(`CommandOutput`)와 채팅 줄(`Text`)을 기록(최근 80줄)에 더해 다시 그린다. 번역 키는 클라이언트 표식으로 바꾼다. 기록은 접속한 동안 남는다. 기록 상자는 늘 끝으로 스크롤된다(`Scroll` 의 `end`).
