@@ -92,12 +92,17 @@ describe('inventory mouse', () => {
   });
   it('a press outside the window drops the held stack', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
-    mouse(container.querySelector('.mc-backdrop')!, 'mousedown', 2);
+    mouse(container.querySelector('.mc-screen')!, 'mousedown', 2);
     expect(send).toHaveBeenCalledWith('drop', 'drop', { b: 1 });
   });
   it('a press outside with nothing held drops nothing', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
-    mouse(container.querySelector('.mc-backdrop')!, 'mousedown');
+    mouse(container.querySelector('.mc-screen')!, 'mousedown');
+    expect(send).not.toHaveBeenCalled();
+  });
+  it('a press inside the window drops nothing', () => {
+    const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
+    mouse(container.querySelector('.mc-title')!, 'mousedown');
     expect(send).not.toHaveBeenCalled();
   });
   it('draws the recipe book and presses its recipes like slots', () => {

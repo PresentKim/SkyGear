@@ -144,9 +144,9 @@ func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area, q
 func bookPanel(s *core.Session, p *player.Player, book []bookEntry, again func(p *player.Player, tx *world.Tx)) *ui.InvBook {
 	lang := i18n.Of(p)
 	b := &ui.InvBook{Title: i18n.T(lang, "netstore.terminal.book"), Cols: 5}
-	key, icon := "netstore.terminal.bookCan", "textures/ui/filter_off"
+	key, icon := "netstore.terminal.bookCan", "textures/ui/craft_toggle_on"
 	if bookAll.Of(s)[p.H()] {
-		key, icon = "netstore.terminal.bookAll", "textures/ui/filter_on"
+		key, icon = "netstore.terminal.bookAll", "textures/ui/craft_toggle_off"
 	}
 	b.Filter = &ui.Option{Label: i18n.T(lang, key), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
 		bookAll.Of(s)[p.H()] = !bookAll.Of(s)[p.H()]

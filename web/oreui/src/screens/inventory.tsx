@@ -58,12 +58,25 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
   gesture.setCarrying(!!data.cursor);
   const typed = useRef(data.query);
   useEffect(() => () => gesture.reset(), []);
-  const outside: Record<string, unknown> = {
-    onMouseDown: (ev: MouseEvent) => gesture.pressOutside(ev.button),
-    onTouchStart: () => gesture.touchOutside(),
-  };
+  // Gameface hit-tests no empty transparent element, so presses outside the window are found on the
+  // document: every press whose target is not inside the window (its side column and book included).
+  useEffect(() => {
+    const outside = (ev: Event) => !(ev.target instanceof Element && ev.target.closest('.mc-window'));
+    const onDown = (ev: MouseEvent) => {
+      if (outside(ev)) gesture.pressOutside(ev.button);
+    };
+    const onTouch = (ev: TouchEvent) => {
+      if (outside(ev)) gesture.touchOutside();
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onTouch);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onTouch);
+    };
+  }, []);
   return (
-    <Window chrome={data.chrome} className="mc-inventory" size={[INV_W, INV_H]} backdrop={outside}>
+    <Window chrome={data.chrome} className="mc-inventory" size={[INV_W, INV_H]}>
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (
           <SideButton key={b.id} button={b} />

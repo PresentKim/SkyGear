@@ -21,15 +21,6 @@
   overflow: visible;
 }
 
-/* Presses on it are presses outside the window (Window backdrop). */
-.mc-backdrop {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
 .mc-inventory .mc-window {
   max-height: 84vh;
   margin-top: 8vh;

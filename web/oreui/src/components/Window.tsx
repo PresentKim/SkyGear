@@ -119,7 +119,7 @@ export function ScreenRoot(props: { className: string; children?: ReactNode }): 
 }
 
 /** Window is the window of a screen: tabs over its top left, the control bar with the close button over its top right, the title and the content. */
-export function Window(props: { chrome: Chrome; className?: string; size?: [number, number]; backdrop?: Record<string, unknown>; children?: ReactNode }): JSX.Element {
+export function Window(props: { chrome: Chrome; className?: string; size?: [number, number]; children?: ReactNode }): JSX.Element {
   const { chrome } = props;
   const lobby = useContext(LobbyContext);
   const win = useRef<HTMLDivElement>(null);
@@ -131,7 +131,6 @@ export function Window(props: { chrome: Chrome; className?: string; size?: [numb
   return (
     <ScreenRoot className={props.className ? 'mc-screen ' + props.className : 'mc-screen'}>
       <InkContext.Provider value={lobby ? 'dark' : 'panel'}>
-        {props.backdrop ? <div className="oui-box mc-backdrop" {...props.backdrop} /> : null}
         <div ref={win} className="oui-box mc-window" style={{ width: gu(props.size ? props.size[0] : WINDOW_W), height: gu(props.size ? props.size[1] : WINDOW_H) }}>
           {chrome.tabs.length > 0 && (
             <div className="oui-box mc-tabs">

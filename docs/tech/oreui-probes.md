@@ -47,6 +47,7 @@ Windows 클라이언트에서 본 결과(2026-10-27) [실측]:
 - Windows 클라이언트에서 본 결과(2026-10-27, 마우스·키보드) [실측]:
   - `mousemove` 는 온다(2371회). `pointermove` 는 0회라 포인터 이벤트는 오지 않는 것으로 보인다. `scroll` 은 온다.
   - `click` 이 온다(`button=0 buttons=0 detail=undefined`, 스크롤 손잡이). 렌더러는 `click` 이 일반 `div` 에 오지 않는다고 보고 `mousedown` 으로 누름을 받는다(`onPress`). 어느 요소에 `click` 이 오는지는 확인 안 됨.
+  - 오른쪽 버튼은 `mousedown`·`mouseup` 에 `button=2` 로 온다(2026-11-04). `contextmenu` 줄은 없었다.
   - Alt 를 누르고 있으면 `keydown key= code=Alt keyCode=18 repeat=true` 가 이어진다. `key` 는 비어 있다.
   - 휠, 포커스, 글 입력·IME 조합, 터치, 게임패드는 Alt 반복 줄에 밀려 결과가 남지 않았다(확인 안 됨).
   - 서버가 받은 줄 수가 이벤트와 함께 늘었다(700줄). 페이지의 이벤트를 서버로 보내는 길은 된다.
