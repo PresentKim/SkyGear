@@ -18,7 +18,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
@@ -79,6 +78,7 @@ type terminal struct {
 	craft []storagenet.Key
 	found int
 	grid  invclick.Area
+	book  []bookEntry
 }
 
 func openTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, query string) terminal {
@@ -99,6 +99,7 @@ func openTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 	}
 	if g, ok := gridOf(tx, pos); ok && craftShown.Of(s)[p.H()] {
 		t.grid = g
+		t.book = bookOf(s, p, t.n, g, t.query)
 	}
 	return t
 }
@@ -144,7 +145,7 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			grid[i] = ui.StackSlot(c, tipOf(c))
 		}
 		result := ui.InvSlot{}
-		if cr, ok := machinerecipe.MatchGrid(cells); ok {
+		if cr, ok := gridRecipe(s, t.grid); ok {
 			result = ui.StackSlot(cr.Out, tipOf(cr.Out))
 		}
 		clear := ui.Option{Label: i18n.T(lang, "netstore.terminal.clear"), Icon: "textures/ui/close_button_default_light", Run: func(p *player.Player, tx *world.Tx) {
@@ -173,7 +174,12 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		info = terminalInfo(lang, len(entriesOf(t.n)), items, t.query, t.found)
 	}
 	again := func(p *player.Player, tx *world.Tx) { showTerminal(s, p, tx, pos, query) }
+	var book *ui.InvBook
+	if t.grid != nil {
+		book = bookPanel(s, p, t.book, again)
+	}
 	ui.ShowInventory(p, ui.InventoryScreen{
+		Book:   book,
 		Title:  i18n.T(lang, "netstore.terminal.title"),
 		Search: &ui.InvSearch{Query: query, Placeholder: i18n.T(lang, "storage.search.label"), Change: func(p *player.Player, tx *world.Tx, q string) { showTerminal(s, p, tx, pos, q) }},
 		Info:   info,
@@ -189,7 +195,8 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			openTerminal(s, p, tx, pos, query).drag(p, d)
 			again(p, tx)
 		},
-		Size: "terminal",
+		Again: again,
+		Size:  "terminal",
 	})
 }
 
@@ -269,18 +276,33 @@ func (t terminal) slot(p *player.Player, a ui.SlotAct) bool {
 		if t.grid == nil {
 			return true
 		}
-		cur = craftClick(t.n, t.grid, cur, a.Shift, p)
+		cur = craftClick(t.s, t.n, t.grid, cur, a.Shift, p)
+	case "book":
+		if t.grid == nil || a.Index >= len(t.book) {
+			return true
+		}
+		cur = bookClick(t.s, t.n, t.grid, t.book[a.Index].cr, cur, a.Right, a.Shift, p)
 	default:
 		area, ok := t.area(p, a.Area)
 		if !ok || a.Index >= area.Len() {
 			return true
 		}
+		delete(splits.Of(t.s), p.H())
 		switch {
+		case a.Shift && a.Double && !cur.Empty() && a.Area != "craft":
+			focus := area.Item(a.Index)
+			if f, ok := shiftFocus.Of(t.s)[p.H()]; ok && f.ref == (ui.SlotRef{Area: a.Area, Index: a.Index}) {
+				focus = f.item
+			}
+			if !focus.Empty() && t.n != nil {
+				invclick.MoveAll(focus, func(st item.Stack) item.Stack { return st.Grow(-int(netInsert(t.n, st))) }, hot, main)
+			}
 		case a.Shift:
 			st := area.Item(a.Index)
 			if st.Empty() {
 				break
 			}
+			shiftFocus.Of(t.s)[p.H()] = focusSlot{ui.SlotRef{Area: a.Area, Index: a.Index}, st}
 			switch {
 			case a.Area == "craft":
 				st = invclick.Move(st, hot, main)
@@ -292,29 +314,54 @@ func (t terminal) slot(p *player.Player, a ui.SlotAct) bool {
 				st = invclick.Move(st, hot)
 			}
 			area.Set(a.Index, st)
-		case a.Double && !a.Right:
+		case a.Double && !a.Right && !cur.Empty():
 			areas := []invclick.Area{hot, main}
 			if t.grid != nil {
 				areas = append(areas, t.grid)
 			}
-			cur = invclick.DoubleClick(area, a.Index, cur, areas...)
+			cur = invclick.Collect(cur, areas...)
 		default:
+			var sp *invclick.Split
+			if a.Split && !cur.Empty() {
+				sp = invclick.StartSplit(invclick.Ref{Name: a.Area, A: area, I: a.Index}, cur, a.Right)
+			}
 			cur = invclick.Click(area, a.Index, cur, a.Right)
+			if sp != nil && sp.Placed() {
+				splits.Of(t.s)[p.H()] = sp
+			}
 		}
 	}
 	ui.SetCarried(p, cur)
 	return true
 }
 
+// drag spreads the stack held when the drag's press came over the slots it
+// reached (invclick.Split); a press that started no split leaves it.
 func (t terminal) drag(p *player.Player, d ui.DragAct) {
+	sp := splits.Of(t.s)[p.H()]
+	if sp == nil {
+		return
+	}
 	var refs []invclick.Ref
 	for _, r := range d.Slots {
 		if area, ok := t.area(p, r.Area); ok && r.Index < area.Len() {
-			refs = append(refs, invclick.Ref{A: area, I: r.Index})
+			refs = append(refs, invclick.Ref{Name: r.Area, A: area, I: r.Index})
 		}
 	}
-	ui.SetCarried(p, invclick.Drag(refs, ui.Carried(p), d.Right))
+	ui.SetCarried(p, sp.Spread(refs))
 }
+
+// focusSlot is the stack a shift click took out of a slot: a shift double
+// click on that slot moves every stack of the same item.
+type focusSlot struct {
+	ref  ui.SlotRef
+	item item.Stack
+}
+
+var (
+	splits     = core.NewPlayers[*invclick.Split]()
+	shiftFocus = core.NewPlayers[focusSlot]()
+)
 
 // netClick is a click on a network slot holding key ("" an empty slot)
 // with cur on the cursor: with nothing held, a stack (left), half a stack
@@ -347,11 +394,11 @@ func netClick(n *Network, key storagenet.Key, cur item.Stack, right, shift bool,
 	return netExtract(n, key, stack)
 }
 
-// craftOnce makes the grid's recipe once: one item leaves each cell, and a
-// cell left empty takes the same item from the network again (n may be
-// nil). It returns what was made.
-func craftOnce(n *Network, grid invclick.Area) (item.Stack, bool) {
-	cr, ok := machinerecipe.MatchGrid(gridCells(grid))
+// craftOnce makes the grid's recipe once if the island of s has it open:
+// one item leaves each cell, and a cell left empty takes the same item from
+// the network again (n may be nil). It returns what was made.
+func craftOnce(s *core.Session, n *Network, grid invclick.Area) (item.Stack, bool) {
+	cr, ok := gridRecipe(s, grid)
 	if !ok {
 		return item.Stack{}, false
 	}
@@ -370,11 +417,11 @@ func craftOnce(n *Network, grid invclick.Area) (item.Stack, bool) {
 
 // craftClick is a click on the result slot: one craft onto the cursor when
 // it can hold the result, or with shift as many as the inventory takes.
-func craftClick(n *Network, grid invclick.Area, cur item.Stack, shift bool, p *player.Player) item.Stack {
+func craftClick(s *core.Session, n *Network, grid invclick.Area, cur item.Stack, shift bool, p *player.Player) item.Stack {
 	if shift {
 		inv := p.Inventory()
 		for range 64 {
-			out, ok := craftOnce(n, grid)
+			out, ok := craftOnce(s, n, grid)
 			if !ok {
 				break
 			}
@@ -390,14 +437,14 @@ func craftClick(n *Network, grid invclick.Area, cur item.Stack, shift bool, p *p
 		}
 		return cur
 	}
-	cr, ok := machinerecipe.MatchGrid(gridCells(grid))
+	cr, ok := gridRecipe(s, grid)
 	if !ok {
 		return cur
 	}
 	if !cur.Empty() && (!cur.Comparable(cr.Out) || cur.Count()+cr.Out.Count() > cur.MaxCount()) {
 		return cur
 	}
-	out, _ := craftOnce(n, grid)
+	out, _ := craftOnce(s, n, grid)
 	if cur.Empty() {
 		return out
 	}

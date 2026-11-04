@@ -10,5 +10,10 @@
  "netstore.terminal.craftShow": "제작 칸 보이기",
  "netstore.terminal.craftHide": "제작 칸 숨기기",
  "netstore.terminal.clear": "제작 칸의 아이템을 네트워크로 돌려보내기",
- "netstore.terminal.quick": "빠른 이동: 탭할 때마다 쉬프트 클릭처럼 묶음을 옮깁니다"
+ "netstore.terminal.quick": "빠른 이동: 탭할 때마다 쉬프트 클릭처럼 묶음을 옮깁니다",
+ "netstore.terminal.book": "레시피",
+ "netstore.terminal.bookCan": "만들 수 있는 것만 보입니다. 누르면 모든 레시피를 봅니다",
+ "netstore.terminal.bookAll": "모든 레시피가 보입니다. 누르면 만들 수 있는 것만 봅니다",
+ "netstore.terminal.bookTip": "클릭: 제작 칸에 놓기 · 쉬프트: 한 묶음 만들기 · 우클릭: 하나 만들기",
+ "netstore.terminal.bookNone": "§7네트워크와 인벤토리로 만들 수 있는 것이 없습니다"
 }
