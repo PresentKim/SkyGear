@@ -10,7 +10,7 @@ import * as engine from '../runtime/engine';
 
 const send = engine.send as unknown as ReturnType<typeof vi.fn>;
 const chrome: Chrome = { title: 'Terminal', tabs: [], bar: [] };
-const slot = (id: string, icon = ''): InvSlot => ({ id, icon, count: '', tip: 'Dirt', deco: '', empty: '' });
+const slot = (id: string, icon = ''): InvSlot => ({ id, icon, count: '', tip: 'Dirt', rare: 0, empty: '' });
 
 function data(cursor: InvSlot | null): InventoryData {
   return {

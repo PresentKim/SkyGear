@@ -351,6 +351,23 @@ body.oui-active #root {
   font-size: 1.8rem;
 }
 
+/* An item's rarity (slotdeco) as the border, in the colour its name has (§a §b §d §6). */
+#oui-tip.rare-1 {
+  border-color: rgb(85, 255, 85);
+}
+
+#oui-tip.rare-2 {
+  border-color: rgb(85, 255, 255);
+}
+
+#oui-tip.rare-3 {
+  border-color: rgb(255, 85, 255);
+}
+
+#oui-tip.rare-4 {
+  border-color: rgb(255, 170, 0);
+}
+
 /* The Sky Gear research screen (ouitest research.go). */
 .rs-window {
   width: 88vw;

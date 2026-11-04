@@ -1,6 +1,7 @@
 // Slot decoration (docs/tech/slotdeco.md). The marks in an item's name
-// (internal/slotdeco) choose a background (rarity) and a front badge (tier
-// pips) for every slot that shows the item. Generated shape; edit by hand.
+// (common/slotdeco) choose a front badge (tier pips) for every slot that
+// shows the item and the rarity frame of the selected-item bubble. Edit by
+// hand.
 {
   "namespace": "sg_slot",
   "deco": {
@@ -11,41 +12,7 @@
     ],
     "controls": [
       {
-        "back@sg_slot.back": {}
-      },
-      {
         "front@sg_slot.front": {}
-      }
-    ]
-  },
-  "back": {
-    "type": "image",
-    "layer": 6,
-    "size": [
-      "100%",
-      "100%"
-    ],
-    "texture": "#texture",
-    "bindings": [
-      {
-        "binding_name": "#hover_text",
-        "binding_type": "collection",
-        "binding_collection_name": "$item_collection_name"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "((not ((#hover_text - '§k§r§a') = #hover_text)) * 1 + (not ((#hover_text - '§k§r§b') = #hover_text)) * 2 + (not ((#hover_text - '§k§r§d') = #hover_text)) * 3 + (not ((#hover_text - '§k§r§6') = #hover_text)) * 4)",
-        "target_property_name": "#sg_rarity"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "('textures/ui/sg/rarity_' + #sg_rarity)",
-        "target_property_name": "#texture"
-      },
-      {
-        "binding_type": "view",
-        "source_property_name": "(#sg_rarity > 0)",
-        "target_property_name": "#visible"
       }
     ]
   },

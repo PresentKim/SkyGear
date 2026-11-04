@@ -156,7 +156,7 @@ type dInvSlot struct {
 	Icon  string `json:"icon"`
 	Count string `json:"count"`
 	Tip   string `json:"tip"`
-	Deco  string `json:"deco"`
+	Rare  int    `json:"rare"`
 	Empty string `json:"empty"`
 	Dim   bool   `json:"dim"`
 }
@@ -302,8 +302,8 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 const bookField = "booksearch"
 
 func invSlotData(id string, sl InvSlot) dInvSlot {
-	tip, deco := slotDeco(sl.Tip)
-	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Deco: deco, Empty: oreIcon(sl.Empty), Dim: sl.Dim}
+	tip, rare := slotDeco(sl.Tip)
+	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Empty: oreIcon(sl.Empty), Dim: sl.Dim}
 }
 
 // parseSlotRef reads an Area:index slot id.

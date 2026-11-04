@@ -75,7 +75,7 @@ func TestChromeOf(t *testing.T) {
 func TestSlotOf(t *testing.T) {
 	l := newOreLayout()
 	got := l.slotOf(ItemSlot{Icon: "1", Tip: "§k§r§a돌", Run: nopRun})
-	want := dSlot{ID: "o0", Icon: "aux:1", Tip: "§a돌", Deco: "tex:textures/ui/sg/deco_1_0"}
+	want := dSlot{ID: "o0", Icon: "aux:1", Tip: "§a돌", Rare: 1}
 	if got != want {
 		t.Errorf("slot %+v", got)
 	}

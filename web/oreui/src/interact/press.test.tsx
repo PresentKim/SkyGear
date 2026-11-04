@@ -5,7 +5,7 @@ import { usePressable } from './press';
 vi.mock('../runtime/engine', () => ({ send: vi.fn(), notePress: vi.fn() }));
 import * as engine from '../runtime/engine';
 
-function Btn(p: { id?: string; alt?: string; tip?: string; quick?: boolean; name?: string }) {
+function Btn(p: { id?: string; alt?: string; tip?: string; rare?: number; quick?: boolean; name?: string }) {
   const props = usePressable(p);
   return <div id={p.name ?? 'b'} {...props} />;
 }
@@ -60,6 +60,18 @@ describe('mouse', () => {
     expect(tipEl().textContent).toBe('Hello world');
     b.dispatchEvent(new MouseEvent('mouseleave'));
     expect(tipEl().style.display).toBe('none');
+  });
+  it('a rare item tints the tip border, a plain one does not', () => {
+    const { container } = render(
+      <div>
+        <Btn id="r" name="r" tip="Sword" rare={3} />
+        <Btn id="p" name="p" tip="Stick" />
+      </div>,
+    );
+    container.querySelector('#r')!.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tipEl().className).toContain('rare-3');
+    container.querySelector('#p')!.dispatchEvent(new MouseEvent('mouseenter'));
+    expect(tipEl().className).not.toContain('rare');
   });
   it('each mousedown presses once', () => {
     const { container } = render(

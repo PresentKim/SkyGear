@@ -76,7 +76,7 @@ type dSlot struct {
 	Icon     string `json:"icon"`
 	Count    string `json:"count"`
 	Tip      string `json:"tip"`
-	Deco     string `json:"deco"`
+	Rare     int    `json:"rare"`
 	Selected bool   `json:"selected"`
 }
 
@@ -155,8 +155,8 @@ func (l *oreLayout) chromeOf(title string, opts []Option) (dChrome, []Option) {
 // slotOf is the data of an item slot: its rarity and tooltip from slotDeco,
 // and no id when it has no Run or is selected.
 func (l *oreLayout) slotOf(sl ItemSlot) dSlot {
-	tip, deco := slotDeco(sl.Tip)
-	s := dSlot{Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Deco: deco, Selected: sl.Selected}
+	tip, rare := slotDeco(sl.Tip)
+	s := dSlot{Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Selected: sl.Selected}
 	if !sl.Selected {
 		s.ID = l.id(sl.Run)
 	}

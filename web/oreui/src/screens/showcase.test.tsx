@@ -21,7 +21,7 @@ vi.mock('../components/Scroll', () => ({
 import { EquipScreen, PickScreen, ResultScreen } from './showcase';
 
 const chrome: Chrome = { title: 'T', tabs: [], bar: [] };
-const slot = (id: string, icon = 'tex:a'): Slot => ({ id, icon, count: '', tip: '', deco: '', selected: false });
+const slot = (id: string, icon = 'tex:a'): Slot => ({ id, icon, count: '', tip: '', rare: 0, selected: false });
 
 describe('showcase', () => {
   it('pick: a card per choice, coloured by rarity, rising one after another', () => {

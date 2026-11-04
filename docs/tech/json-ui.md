@@ -9,7 +9,7 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 |---|---|
 | `assets/resourcepack/sgui/ui/scoreboards.json` | 사이드바 한 장을 HUD 부분으로 나눠 그린다(아래 "HUD") |
 | `assets/resourcepack/sgui/ui/hud_screen.json` | 터치 포켓 배치에서 하트·배고픔을 핫바 위로(아래) |
-| `assets/resourcepack/sgui/textures/ui/sg/*` | 메뉴(DDUI 화면)가 쓰는 그림: 버튼·창·로비 버튼(`oui-mc.css`), 쪽 화살표·꺾쇠·고른 칸·로비 아이콘(`common/ui`), 희귀도 테두리 `deco_<희귀도>_0`(`common/ui` `slotDeco`). `common/` 에서 `go run ./tools/uitextures`, `go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)·메뉴 아이콘(`menu_*`)·플랫폼 아이콘은 `skygear` 팩에 있다 |
+| `assets/resourcepack/sgui/textures/ui/sg/*` | 메뉴(DDUI 화면)가 쓰는 그림: 버튼·창·로비 버튼(`oui-mc.css`), 쪽 화살표·꺾쇠·고른 칸·로비 아이콘(`common/ui`). `common/` 에서 `go run ./tools/uitextures` 로 다시 만든다(색은 그 파일 위쪽). 서랍 업그레이드 빈 칸(`slot_empty_*`)·메뉴 아이콘(`menu_*`)·플랫폼 아이콘은 `skygear` 팩에 있다 |
 | `assets/resourcepack/skygear/ui/sg_machine.json` | 기계 창 레이아웃(`sg_machine`): 바닐라 작은 상자 화면에서 그 기계의 칸만 정해진 위치에 놓는다 |
 | `assets/resourcepack/inventoryui/ui/chest_screen.json` | 제목 표식 `§d§m§<n>` 이면 기계 창으로 분기(PC 화면만, 모바일은 크기 지정 상자 그대로) |
 

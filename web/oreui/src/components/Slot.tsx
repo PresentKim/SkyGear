@@ -9,13 +9,12 @@ export function SlotView(props: { slot: Slot; variant?: 'big' | 'mini' | 'jei-me
   const { slot } = props;
   // A selected slot is not pressable.
   const id = slot.selected ? '' : slot.id;
-  const press = usePressable({ id, alt: slot.selected ? '' : slot.alt, tip: slot.tip });
+  const press = usePressable({ id, alt: slot.selected ? '' : slot.alt, tip: slot.tip, rare: slot.rare });
   let cls = 'oui-box mc-slot' + (props.variant ? VARIANTS[props.variant] : '');
   if (slot.selected) cls += ' on';
   else if (slot.id) cls += ' pressable';
   return (
     <div className={cls} {...press}>
-      <Icon icon={slot.deco} className="mc-deco" />
       <Icon icon="tex:textures/ui/sg/slot_chosen" className="mc-chosen" />
       <Icon icon={slot.icon} className="mc-icon" />
       {slot.count ? (

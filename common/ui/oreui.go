@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -506,26 +505,17 @@ func untoken(s string) string {
 	return s
 }
 
-// slotDeco reads the rarity marks of a slot's tooltip ("§k§r§a" and the like,
-// slotdeco): it returns the tooltip without the hidden part and the texture
-// of the rarity.
-func slotDeco(tip string) (string, string) {
-	for _, d := range rarityDecos {
-		if strings.HasPrefix(tip, d.mark) {
-			return tip[len(d.mark)-len("§a"):], d.texture
+// slotDeco reads the rarity mark of a slot's tooltip ("§k§r§a" and the like,
+// slotdeco): it returns the tooltip without the hidden part and the rarity,
+// which the page draws as the tooltip's border.
+func slotDeco(tip string) (string, slotdeco.Rarity) {
+	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
+		if m := r.Mark(); strings.HasPrefix(tip, m) {
+			return tip[len(m)-len("§a"):], r
 		}
 	}
-	return tip, ""
+	return tip, slotdeco.Common
 }
-
-type rarityDeco struct{ mark, texture string }
-
-var rarityDecos = func() (decos []rarityDeco) {
-	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
-		decos = append(decos, rarityDeco{r.Mark(), fmt.Sprintf("tex:textures/ui/sg/deco_%d_0", r)})
-	}
-	return decos
-}()
 
 // windowW by windowH is the size of every DDUI window but the quest book's,
 // in GUI pixels: the vanilla inventory's, the largest that fits a phone. One

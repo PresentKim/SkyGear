@@ -41,7 +41,7 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
     },
     onMouseEnter: (ev: MouseEvent) => {
       gesture.mouseEnter(cur.current.id);
-      if (cur.current.tip) showTip(ev.currentTarget as HTMLElement, cur.current.tip);
+      if (cur.current.tip) showTip(ev.currentTarget as HTMLElement, cur.current.tip, cur.current.rare);
     },
     onMouseLeave: () => hideTip(),
     onTouchStart: (ev: TouchEvent) => gesture.touchStart(cur.current.id, cur.current.tip, ev),
@@ -49,7 +49,6 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
   };
   return (
     <div className={cls} ref={el} {...handlers}>
-      <Icon icon={slot.deco} className="mc-deco" />
       <Icon icon={slot.icon || slot.empty} className={slot.icon ? 'mc-icon' : 'mc-icon mc-inv-empty'} />
       {slot.count ? (
         <InkContext.Provider value="dark">

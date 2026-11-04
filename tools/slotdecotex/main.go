@@ -1,10 +1,8 @@
-// Command slotdecotex writes placeholder textures of the slotdeco pack:
-// rarity backgrounds (rarity_1..4), tier pips and badges (front_1..6) and
-// bubble frames (tip_1..4). The optional second pack gets the 22×22 rarity
-// frames deco_<rarity>_0.png that the DDUI screens put behind an item slot
-// (common/ui slotDeco). Run it from common/:
+// Command slotdecotex writes placeholder textures of the slotdeco pack: tier
+// pips and badges (front_1..6) and the rarity frames of the selected-item
+// bubble (tip_1..4). Run it from common/:
 //
-//	go run ./tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui
+//	go run ./tools/slotdecotex assets/resourcepack/slotdeco
 package main
 
 import (
@@ -37,27 +35,6 @@ var tierColours = [4]color.NRGBA{
 }
 
 func withAlpha(c color.NRGBA, a uint8) color.NRGBA { c.A = a; return c }
-
-// background is a 16×16 slot background: a bright 1px edge, a fainter ring
-// inside it and a light fill, so that the item on it stays easy to read.
-func background(c color.NRGBA) image.Image {
-	const n = 16
-	img := image.NewNRGBA(image.Rect(0, 0, n, n))
-	for x := range n {
-		for y := range n {
-			edge := min(x, y, n-1-x, n-1-y)
-			switch edge {
-			case 0:
-				img.SetNRGBA(x, y, withAlpha(c, 235))
-			case 1:
-				img.SetNRGBA(x, y, withAlpha(c, 120))
-			default:
-				img.SetNRGBA(x, y, withAlpha(c, 64))
-			}
-		}
-	}
-	return img
-}
 
 // frame is a 16×16 frame with a transparent middle, for the bubble.
 func frame(c color.NRGBA) image.Image {
@@ -162,42 +139,16 @@ func write(dir, name string, img image.Image, nineslice int) {
 	}
 }
 
-// formDeco is the 22×22 rarity frame of rarity r behind a slot of the DDUI
-// screens.
-func formDeco(r int) image.Image {
-	const size = 22
-	img := image.NewNRGBA(image.Rect(0, 0, size, size))
-	c := rarityColours[r-1]
-	for x := range size {
-		for y := range size {
-			switch min(x, y, size-1-x, size-1-y) {
-			case 0:
-				img.SetNRGBA(x, y, withAlpha(c, 255))
-			case 1:
-				img.SetNRGBA(x, y, withAlpha(c, 90))
-			}
-		}
-	}
-	return img
-}
-
 func main() {
-	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: slotdecotex <slotdeco pack dir> [<sgui pack dir>]")
+	if len(os.Args) != 2 {
+		fmt.Fprintln(os.Stderr, "usage: slotdecotex <slotdeco pack dir>")
 		os.Exit(2)
-	}
-	if len(os.Args) == 3 {
-		formDir := filepath.Join(os.Args[2], "textures", "ui", "sg")
-		for r := 1; r <= 4; r++ {
-			write(formDir, fmt.Sprintf("deco_%d_0", r), formDeco(r), 0)
-		}
 	}
 	dir := filepath.Join(os.Args[1], "textures", "ui", "sg")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		panic(err)
 	}
 	for i, c := range rarityColours {
-		write(dir, fmt.Sprintf("rarity_%d", i+1), background(c), 3)
 		write(dir, fmt.Sprintf("tip_%d", i+1), frame(c), 3)
 	}
 	for tier := 1; tier <= 4; tier++ {
