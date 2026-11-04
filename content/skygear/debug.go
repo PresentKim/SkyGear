@@ -19,6 +19,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -33,7 +34,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -212,6 +213,28 @@ func (c debugSun) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		climate.CastSun(s.Session, tx, m)
 		o.Printf(i18n.T(i18n.Default, "skygear.admin.sun"), i18n.T(i18n.Default, "fairy.sun."+climate.SunKey(m)))
 	}
+}
+
+// debugTerminal opens the terminal window of the terminal or network
+// controller the operator looks at, like a sneaking click (scenarios).
+type debugTerminal struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"terminal"`
+}
+
+func (c debugTerminal) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	at, b, ok := look.LookedAt(p, tx, p.Position(), p.Rotation())
+	if !ok || !netstore.IsTerminal(b) {
+		o.Errorf("%s", i18n.T(i18n.Default, "skygear.admin.lookingAtNone"))
+		return
+	}
+	p.StartSneaking()
+	netstore.ShowTerminal(s.Session, p, tx, at)
+	p.StopSneaking()
 }
 
 type debugStatus struct {

@@ -3,7 +3,12 @@
  "netstore.terminal.lines": "§7%d kinds, §f%d§7 items stored",
  "netstore.terminal.cap": "§eOnly %d slots are shown. Search by name to narrow the list.",
  "netstore.terminal.offline": "§cThe network is off. Give the controller energy.",
- "netstore.terminal.craftable": "Craftable",
+ "netstore.terminal.craftTag": "Craft",
  "netstore.terminal.craftTip": "§7Press to request a craft",
- "netstore.terminal.monitor": "Crafting tasks"
+ "netstore.terminal.monitor": "Crafting tasks",
+ "netstore.terminal.inventory": "Inventory",
+ "netstore.terminal.craftShow": "Show the crafting grid",
+ "netstore.terminal.craftHide": "Hide the crafting grid",
+ "netstore.terminal.clear": "Put the crafting grid back into the network",
+ "netstore.terminal.quick": "Quick move: every tap moves the stack like a shift-click"
 }

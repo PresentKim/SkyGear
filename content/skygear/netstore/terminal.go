@@ -3,7 +3,6 @@ package netstore
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -14,16 +13,13 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/storagenet"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-// The terminal (spec §5): the list of everything the network holds, in one
-// scrolling grid under a search box, like the storage controller's. The
-// controller opens the same list.
+// The terminal (spec §5): putting items in with a click, and the terminal
+// window (terminalui.go). The controller opens the same window.
 
 // terminalSlots is how many kinds a terminal list shows.
 const terminalSlots = 240
@@ -141,22 +137,23 @@ var (
 )
 
 // ShowTerminal handles a click on a terminal or controller: a sneaking click
-// opens the list, any other deposits the held stack, and a second click within
-// 500ms also deposits the inventory kinds the network holds.
+// opens the terminal window (terminalui.go), also while the network is off,
+// any other deposits the held stack, and a second click within 500ms also
+// deposits the inventory kinds the network holds.
 func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
 	lang := i18n.Of(p)
 	n := At(tx, pos)
 	if n == nil {
 		return
 	}
-	if !n.Online() {
-		p.Message(i18n.T(lang, "netstore.terminal.offline"))
-		return
-	}
 	if p.Sneaking() {
 		if !s.Debounced(p) {
-			openList(s, p, pos, "")
+			showTerminal(s, p, tx, pos, "")
 		}
+		return
+	}
+	if !n.Online() {
+		p.Message(i18n.T(lang, "netstore.terminal.offline"))
 		return
 	}
 	last := lastUse.Of(s)[p.H()]
@@ -176,51 +173,11 @@ func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos)
 	}
 }
 
-func openList(s *core.Session, p *player.Player, pos cube.Pos, query string) {
-	lang := i18n.Of(p)
-	again := func(p *player.Player, tx *world.Tx) { openList(s, p, pos, query) }
-	find := func(p *player.Player, q string) ui.SearchResult {
-		q = strings.TrimSpace(q)
-		n := At(p.Tx(), pos)
-		if n == nil || !n.Online() {
-			return ui.SearchResult{Info: i18n.T(lang, "netstore.terminal.offline")}
-		}
-		list, keys, found := terminalList(n, lang, q, orders.Of(s)[p.H()])
-		var items int64
-		n.Root.Each(func(_ storagenet.Key, c int64) { items += c })
-		kinds := len(entriesOf(n))
-		re := func(p *player.Player, tx *world.Tx) { openList(s, p, pos, q) }
-		res := ui.SearchResult{
-			Info:     terminalInfo(lang, kinds, items, q, found),
-			Sections: []ui.GridSection{{Slots: terminalItemSlots(s, n, lang, list, keys, re)}},
-		}
-		if CraftableHook != nil && RequestHook != nil {
-			if cs := craftSlots(s, n, lang, re); len(cs) > 0 {
-				res.Sections = append(res.Sections, ui.GridSection{Heading: i18n.T(lang, "netstore.terminal.craftable"), Slots: cs})
-			}
-		}
-		return res
-	}
-	opts := []ui.Option{
-		ui.BarButton(i18n.T(lang, "storage.depositAll"), "textures/ui/sg/arrow_down", func(p *player.Player, tx *world.Tx) {
-			if n := At(tx, pos); n != nil && depositKinds(n, p.Inventory()) > 0 {
-				tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
-			}
-			again(p, tx)
-		}),
-		ui.BarButton(i18n.T(lang, orderKeys[orders.Of(s)[p.H()]]), "textures/ui/store_filter_icon", func(p *player.Player, tx *world.Tx) {
-			orders.Of(s)[p.H()] = (orders.Of(s)[p.H()] + 1) % len(orderKeys)
-			again(p, tx)
-		}),
-	}
-	if MonitorHook != nil {
-		opts = append(opts, ui.BarButton(i18n.T(lang, "netstore.terminal.monitor"), "textures/ui/sg/arrow_down", func(p *player.Player, tx *world.Tx) {
-			if n := At(tx, pos); n != nil {
-				MonitorHook(s, p, n)
-			}
-		}))
-	}
-	ui.SearchGrid(p, i18n.T(lang, "netstore.terminal.title"), i18n.T(lang, "storage.search.label"), query, find, opts...)
+// IsTerminal reports whether b opens the terminal window: a terminal or a
+// network controller.
+func IsTerminal(b world.Block) bool {
+	m, ok := b.(machine.Machine)
+	return ok && (m.Kind == machine.KindNetTerminal || m.Kind == machine.KindNetController)
 }
 
 var orderKeys = []string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
@@ -241,43 +198,6 @@ func entriesOf(n *Network) []storage.Entry {
 		}
 	}
 	return out
-}
-
-func terminalItemSlots(s *core.Session, n *Network, lang string, list []storage.Entry, keys []storagenet.Key, again func(p *player.Player, tx *world.Tx)) []ui.ItemSlot {
-	var slots []ui.ItemSlot
-	for i, e := range list {
-		k := keys[i]
-		slots = append(slots, ui.ItemSlot{
-			Icon:  ui.ItemIcon(e.Item.Item()),
-			Count: "§f" + ui.CountText(int(e.Count)),
-			Tip:   decor.TipName(lang, e.Item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.Count),
-			Run: func(p *player.Player, tx *world.Tx) {
-				if got := netExtract(n, k, e.Item.MaxCount()); !got.Empty() {
-					s.GiveItem(p, tx, p.Position(), got)
-				}
-				again(p, tx)
-			},
-		})
-	}
-	return slots
-}
-
-func craftSlots(s *core.Session, n *Network, lang string, again func(p *player.Player, tx *world.Tx)) []ui.ItemSlot {
-	var slots []ui.ItemSlot
-	for _, k := range CraftableHook(n) {
-		st := Proto(n.Sess, k)
-		if st.Empty() {
-			continue
-		}
-		slots = append(slots, ui.ItemSlot{
-			Icon: ui.ItemIcon(st.Item()),
-			Tip:  decor.TipName(lang, st) + "\n§7" + i18n.T(lang, "netstore.terminal.craftTip"),
-			Run: func(p *player.Player, tx *world.Tx) {
-				RequestHook(s, p, n, k)
-			},
-		})
-	}
-	return slots
 }
 
 // The terminal and the controller open the list on a click, and take and give

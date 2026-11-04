@@ -371,7 +371,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.disk_drive.help.1"},
 	},
 	KindNetTerminal: {
-		ID: idNetTerminal, nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10,
+		ID: idNetTerminal, nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
 		helpKeys: []string{"machine.net_terminal.help.1"},
 	},
 	KindNetImporter: {
