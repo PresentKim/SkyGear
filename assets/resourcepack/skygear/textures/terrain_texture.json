@@ -427,6 +427,24 @@
     "skygear_drawer_side": {
       "textures": "textures/blocks/drawer_side"
     },
+    "skygear_drawer_controller_down": {
+      "textures": "textures/blocks/drawer_controller_down"
+    },
+    "skygear_drawer_controller_side": {
+      "textures": "textures/blocks/drawer_controller_side"
+    },
+    "skygear_drawer_controller_up": {
+      "textures": "textures/blocks/drawer_controller_up"
+    },
+    "skygear_drawer_interface_down": {
+      "textures": "textures/blocks/drawer_interface_down"
+    },
+    "skygear_drawer_interface_side": {
+      "textures": "textures/blocks/drawer_interface_side"
+    },
+    "skygear_drawer_interface_up": {
+      "textures": "textures/blocks/drawer_interface_up"
+    },
     "skygear_crushed_deepslate": {
       "textures": "textures/blocks/crushed_deepslate"
     },
@@ -1251,24 +1269,6 @@
     },
     "skygear_sieve_nomesh": {
       "textures": "textures/blocks/sieve_nomesh"
-    },
-    "skygear_storage_controller_down": {
-      "textures": "textures/blocks/storage_controller_down"
-    },
-    "skygear_storage_controller_side": {
-      "textures": "textures/blocks/storage_controller_side"
-    },
-    "skygear_storage_controller_up": {
-      "textures": "textures/blocks/storage_controller_up"
-    },
-    "skygear_storage_link_down": {
-      "textures": "textures/blocks/storage_link_down"
-    },
-    "skygear_storage_link_side": {
-      "textures": "textures/blocks/storage_link_side"
-    },
-    "skygear_storage_link_up": {
-      "textures": "textures/blocks/storage_link_up"
     },
     "skygear_tinker_table_down": {
       "textures": "textures/blocks/tinker_table_down"

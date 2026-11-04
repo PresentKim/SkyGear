@@ -46,7 +46,7 @@ var Rewards = map[string]map[string]int{
 	"lava_generator":     {"skygear:lava_generator": 1},
 	"ore_washer":         {"skygear:ore_washer": 1},
 	"mob_simulator":      {"skygear:mob_simulator": 1},
-	"storage_controller": {"skygear:storage_controller": 1, "skygear:storage_link": 2},
+	"storage_controller": {"skygear:drawer_controller": 1, "skygear:drawer_trim": 2},
 	"tinker_table":       {"skygear:tinker_table": 1},
 	"magic_sieve":        {"skygear:magic_sieve": 1},
 	"dimension":          {"skygear:dimension_stone": 1, "skygear:relic_spin_blade": 1},

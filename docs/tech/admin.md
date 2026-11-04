@@ -10,7 +10,7 @@
 
 | 명령 | 하는 일 |
 |---|---|
-| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `storage_controller`, `tinker_table`, `relic_table`, `essence_collector`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘과 없어진 아이템만 빠진다. 자동 완성에 전체 목록이 나온다) |
+| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `drawer_controller`, `tinker_table`, `relic_table`, `essence_collector`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘과 없어진 아이템만 빠진다. 자동 완성에 전체 목록이 나온다) |
 | `/sgadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/sgadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free`는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금) |
 | `/sgadmin advance <발전과제 ID\|all\|reset>` | 발전과제 하나(앞 단계 포함)·전부 달성, 모두 지우기 |

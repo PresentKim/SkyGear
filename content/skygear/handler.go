@@ -89,7 +89,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
 	case machine.Machine:
-		if b.Kind == machine.KindStorageLink {
+		if storage.IsSetMachine(b.Kind) {
 			storage.InvalidateNetworks(h.s.Session)
 		}
 		if netstore.IsNode(b.Kind) {
@@ -120,7 +120,7 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case machine.Machine:
-		if b.Kind == machine.KindStorageLink {
+		if storage.IsSetMachine(b.Kind) {
 			storage.InvalidateNetworks(h.s.Session)
 		}
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
@@ -160,14 +160,6 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		_, off := p.HeldItems()
 		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
-		return
-	}
-	// Dragonfly places the held item instead of calling Activate when the
-	// player sneaks, so the sneaking click that opens a storage controller's
-	// list whatever is held is handled here.
-	if p.Sneaking() && !held.Empty() && storage.IsStorageController(tx.Block(pos)) {
-		ctx.Cancel()
-		storage.UseController(h.s.Session, p, tx, pos)
 		return
 	}
 	// A player who clicks a conduit's connector plate on the block it touches

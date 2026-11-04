@@ -148,10 +148,11 @@ const (
 	// The fluid machines (fluidmachine.go).
 	KindTank   = "fluid_tank"
 	KindWasher = "ore_washer"
-	// KindStorageController and KindStorageLink make the drawers one storage
-	// (storage.go).
-	KindStorageController = "storage_controller"
-	KindStorageLink       = "storage_link"
+	// KindDrawerController, KindDrawerTrim and KindDrawerInterface make the
+	// drawers one storage (storage.go).
+	KindDrawerController = "drawer_controller"
+	KindDrawerTrim       = "drawer_trim"
+	KindDrawerInterface  = "drawer_interface"
 	// KindTinker is the tinker table (tinkerform.go).
 	KindTinker = "tinker_table"
 	// KindGate is the retired dimension gate: it breaks into its materials
@@ -199,8 +200,8 @@ const (
 	idAlloy
 	idTank
 	idWasher
-	idStorageController
-	idStorageLink
+	idDrawerController
+	idDrawerTrim
 	idTinker
 	idGate
 	idCrucible
@@ -223,6 +224,7 @@ const (
 	idNetExternal
 	idPatternEncoder
 	idNetAutocrafter
+	idDrawerInterface
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -252,7 +254,8 @@ type Def struct {
 	FluidCap               int
 	fluidSource, fluidSink bool
 	fluidOnly              fluidnet.Kind
-	// controller marks the storage controller (storage.go).
+	// Controller marks the drawer controller and the drawer interface, which
+	// show the controller's storage (storage.go).
 	Controller bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
@@ -329,13 +332,17 @@ var Kinds = map[string]*Def{
 		Use: 20, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
-	KindStorageController: {
-		ID: idStorageController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
+	KindDrawerController: {
+		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
-	KindStorageLink: {
-		ID: idStorageLink, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
+	KindDrawerTrim: {
+		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.link.help.1"},
+	},
+	KindDrawerInterface: {
+		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true,
+		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
 		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10,
@@ -464,7 +471,7 @@ var Kinds = map[string]*Def{
 var Retired = []string{KindGate}
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -1215,7 +1222,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindNetCable: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindNetCable: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetImporter: true, KindNetExporter: true, KindNetExternal: true, KindNetAutocrafter: true}
 )
 
@@ -1248,6 +1255,9 @@ func (m Machine) Permutations() []customblock.Permutation {
 }
 
 func (m Machine) Properties() customblock.Properties {
+	if m.Kind == KindDrawerTrim {
+		return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_drawer_side")}}
+	}
 	if cubeMachines[m.Kind] {
 		return blockmodel.CubeProperties(m.Kind)
 	}
@@ -1419,7 +1429,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
 		return true
 	}
-	if m.Kind == KindStorageLink {
+	if m.Kind == KindDrawerTrim {
 		return true
 	}
 	if m.Kind == KindTinker {
@@ -1563,7 +1573,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.persistState(currentTick, pos, tx)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector, idRelicTable:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}

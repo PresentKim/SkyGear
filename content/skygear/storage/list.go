@@ -15,7 +15,8 @@ func (d Drawer) ListItems(*world.Tx, cube.Pos, cube.Face) []item.Stack {
 	return []item.Stack{d.Item.Grow(int(d.Count) - d.Item.Count())}
 }
 
-// controllerLister lists everything the drawers of a controller hold. The
+// controllerLister lists everything the drawers of a controller (or of the
+// controller of a drawer interface) hold. The
 // drawers are not listed on their own: a storage network mirroring a
 // controller sees them through it only.
 type controllerLister struct{}
@@ -33,7 +34,7 @@ func (controllerLister) ListItems(tx *world.Tx, pos cube.Pos, _ cube.Face) []ite
 
 func init() {
 	itemio.RegisterLister(func(_ *world.Tx, _ cube.Pos, b world.Block) itemio.Lister {
-		if IsStorageController(b) {
+		if IsDrawerController(b) {
 			return controllerLister{}
 		}
 		return nil

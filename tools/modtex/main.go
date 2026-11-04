@@ -97,10 +97,12 @@ var entries = func() []entry {
 	add(machine("crucible", "mek", mekFaces("fuelwood_heater", "left"), nil)...)
 	// storage, energy, fluids, crafting station.
 	for _, f := range []string{"side", "up", "down"} {
-		add(entry{dst: "blocks/storage_controller_" + f, src: "drawr:block/drawers_controller_front"})
-		add(entry{dst: "blocks/storage_link_" + f, src: "rs:block/network_transmitter/base"})
+		add(entry{dst: "blocks/drawer_controller_" + f, src: "drawr:block/drawers_controller_front"})
 		add(entry{dst: "blocks/energy_cell_" + f, src: "eio:block/basic_capacitor_bank"})
 	}
+	add(entry{dst: "blocks/drawer_interface_side", src: "drawr:block/drawers_comp_side_2"},
+		entry{dst: "blocks/drawer_interface_up", src: "drawr:block/drawers_comp_side"},
+		entry{dst: "blocks/drawer_interface_down", src: "drawr:block/drawers_comp_side"})
 	add(entry{dst: "blocks/fluid_tank_side", src: "mek:block/models/fluid_tank", over: "block/dynamic_tank"},
 		entry{dst: "blocks/fluid_tank_up", src: "mek:block/models/fluid_tank_top"},
 		entry{dst: "blocks/fluid_tank_down", src: "mek:block/models/fluid_tank_top"},

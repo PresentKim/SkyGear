@@ -15,20 +15,20 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/textsearch"
-	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
-// The storage controller (after FunctionalStorage's): it
-// makes the drawers that touch it, directly or through each other and the storage
-// links (blocks that only connect), up to controllerReach blocks away, one
-// storage: hoppers and conduits put items into it and take them out through the
-// controller, a click deposits the held stack and a sneaking click opens a
-// list to take from or deposit into.
+// The drawer controller (after Storage Drawers'): it makes the drawers that
+// touch it, directly or through each other, the drawer trims (blocks that
+// only connect) and the drawer interfaces, up to controllerReach blocks
+// away, one storage: hoppers and conduits put items into it and take them
+// out through the controller, a click deposits the held stack and a second
+// click the inventory. A drawer interface in the set does what the
+// controller does. A set holds one controller: when two touch it, neither
+// works.
 
 // controllerReach is how far (in blocks, each axis) from the controller a block
 // still belongs to its network.
@@ -39,9 +39,27 @@ type storageDrawer struct {
 	D   Drawer
 }
 
-// Network finds the drawers of the controller at pos: the drawers and
-// links connected to it by touching sides, within controllerReach, nearest first.
+// network is what a controller reaches: its drawers, nearest first, and
+// its drawer interfaces.
+type network struct {
+	drawers []storageDrawer
+	ifaces  []cube.Pos
+}
+
+// Network finds the drawers of the controller at pos, or of the controller
+// of the drawer interface at pos.
 func Network(tx *world.Tx, pos cube.Pos) []storageDrawer {
+	if isInterface(tx.Block(pos)) {
+		ctl, ok := interfaceController(tx, pos)
+		if !ok {
+			return nil
+		}
+		pos = ctl
+	}
+	return controllerNetwork(tx, pos).drawers
+}
+
+func controllerNetwork(tx *world.Tx, pos cube.Pos) network {
 	s := core.At(tx)
 	if s == nil {
 		return findNetwork(tx, pos)
@@ -49,75 +67,168 @@ func Network(tx *world.Tx, pos cube.Pos) []storageDrawer {
 	l := LocalOf(s)
 	now := networkTick()
 	if c, ok := l.networks[pos]; ok && c.tick == now {
-		out := make([]storageDrawer, 0, len(c.pos))
-		for _, p := range c.pos {
-			d, ok := tx.Block(p).(Drawer)
-			if !ok {
-				out = nil
-				break
-			}
-			out = append(out, storageDrawer{p, d})
-		}
-		if out != nil || len(c.pos) == 0 {
-			return out
+		if ds, ok := drawersAt(tx, c.pos); ok {
+			return network{ds, c.ifaces}
 		}
 	}
-	out := findNetwork(tx, pos)
-	ps := make([]cube.Pos, len(out))
-	for i, sd := range out {
+	n := findNetwork(tx, pos)
+	ps := make([]cube.Pos, len(n.drawers))
+	for i, sd := range n.drawers {
 		ps[i] = sd.Pos
 	}
 	if l.networks == nil {
 		l.networks = map[cube.Pos]networkCache{}
 	}
-	l.networks[pos] = networkCache{now, ps}
-	return out
+	l.networks[pos] = networkCache{now, ps, n.ifaces}
+	return n
 }
 
-// networkCache is the drawer positions of a controller found at a tick.
-// The drawer values are always read again.
+// drawersAt reads the drawers at ps; ok is false when one is gone.
+func drawersAt(tx *world.Tx, ps []cube.Pos) ([]storageDrawer, bool) {
+	out := make([]storageDrawer, 0, len(ps))
+	for _, p := range ps {
+		d, ok := tx.Block(p).(Drawer)
+		if !ok {
+			return nil, false
+		}
+		out = append(out, storageDrawer{p, d})
+	}
+	return out, true
+}
+
+// networkCache is the drawer and interface positions of a controller found
+// at a tick. The drawer values are always read again.
 type networkCache struct {
+	tick   int64
+	pos    []cube.Pos
+	ifaces []cube.Pos
+}
+
+// interfaceCache is the controller of a drawer interface found at a tick.
+type interfaceCache struct {
 	tick int64
-	pos  []cube.Pos
+	ctl  cube.Pos
+	ok   bool
 }
 
 // networkTick is the tick (50 ms step) the network lists are kept for.
 var networkTick = func() int64 { return time.Now().UnixMilli() / 50 }
 
-// invalidateNetworks forgets the cached network lists (a drawer or link was
-// placed or broken).
-func invalidateNetworks(s *core.Session) { clear(LocalOf(s).networks) }
+// invalidateNetworks forgets the cached network lists (a drawer, trim,
+// interface or controller was placed or broken).
+func invalidateNetworks(s *core.Session) {
+	clear(LocalOf(s).networks)
+	clear(LocalOf(s).interfaces)
+}
 
-// InvalidateNetworks is invalidateNetworks for a storage link placed or broken.
+// InvalidateNetworks is invalidateNetworks for a machine of a drawer set
+// placed or broken.
 func InvalidateNetworks(s *core.Session) { invalidateNetworks(s) }
 
-func findNetwork(tx *world.Tx, pos cube.Pos) []storageDrawer {
+// IsSetMachine reports whether kind is a machine of a drawer set: the
+// controller, the trim or the interface.
+func IsSetMachine(kind string) bool {
+	return kind == machine.KindDrawerController || kind == machine.KindDrawerTrim || kind == machine.KindDrawerInterface
+}
+
+func findNetwork(tx *world.Tx, pos cube.Pos) network {
 	seen := map[cube.Pos]bool{pos: true}
 	queue := []cube.Pos{pos}
-	var out []storageDrawer
+	var n network
 	for len(queue) > 0 {
 		at := queue[0]
 		queue = queue[1:]
 		for _, f := range cube.Faces() {
 			next := at.Side(f)
-			if seen[next] || core.Abs(next.X()-pos.X()) > controllerReach || core.Abs(next.Y()-pos.Y()) > controllerReach || core.Abs(next.Z()-pos.Z()) > controllerReach {
+			if seen[next] || !within(next, pos, controllerReach) {
 				continue
 			}
 			switch b := tx.Block(next).(type) {
 			case Drawer:
 				seen[next] = true
-				out = append(out, storageDrawer{next, b})
+				n.drawers = append(n.drawers, storageDrawer{next, b})
 				queue = append(queue, next)
 			case machine.Machine:
-				if b.Kind == machine.KindStorageLink {
+				switch b.Kind {
+				case machine.KindDrawerController:
+					return network{}
+				case machine.KindDrawerTrim, machine.KindDrawerInterface:
 					seen[next] = true
+					queue = append(queue, next)
+					if b.Kind == machine.KindDrawerInterface {
+						n.ifaces = append(n.ifaces, next)
+					}
+				}
+			}
+		}
+	}
+	sort.SliceStable(n.drawers, func(i, j int) bool { return distSq(n.drawers[i].Pos, pos) < distSq(n.drawers[j].Pos, pos) })
+	return n
+}
+
+func within(a, b cube.Pos, reach int) bool {
+	return core.Abs(a.X()-b.X()) <= reach && core.Abs(a.Y()-b.Y()) <= reach && core.Abs(a.Z()-b.Z()) <= reach
+}
+
+func isInterface(b world.Block) bool {
+	m, ok := b.(machine.Machine)
+	return ok && m.Kind == machine.KindDrawerInterface
+}
+
+// interfaceController finds the controller whose network holds the drawer
+// interface at pos.
+func interfaceController(tx *world.Tx, pos cube.Pos) (cube.Pos, bool) {
+	s := core.At(tx)
+	if s == nil {
+		return findInterfaceController(tx, pos)
+	}
+	l := LocalOf(s)
+	now := networkTick()
+	if c, ok := l.interfaces[pos]; ok && c.tick == now {
+		return c.ctl, c.ok
+	}
+	ctl, ok := findInterfaceController(tx, pos)
+	if l.interfaces == nil {
+		l.interfaces = map[cube.Pos]interfaceCache{}
+	}
+	l.interfaces[pos] = interfaceCache{now, ctl, ok}
+	return ctl, ok
+}
+
+// findInterfaceController walks the set from the interface at pos to the
+// controllers it touches, as far as a controller could reach past it, and
+// returns the one whose network holds the interface.
+func findInterfaceController(tx *world.Tx, pos cube.Pos) (cube.Pos, bool) {
+	seen := map[cube.Pos]bool{pos: true}
+	queue := []cube.Pos{pos}
+	var ctls []cube.Pos
+	for len(queue) > 0 {
+		at := queue[0]
+		queue = queue[1:]
+		for _, f := range cube.Faces() {
+			next := at.Side(f)
+			if seen[next] || !within(next, pos, 2*controllerReach) {
+				continue
+			}
+			seen[next] = true
+			switch b := tx.Block(next).(type) {
+			case Drawer:
+				queue = append(queue, next)
+			case machine.Machine:
+				if b.Kind == machine.KindDrawerController {
+					ctls = append(ctls, next)
+				} else if b.Kind == machine.KindDrawerTrim || b.Kind == machine.KindDrawerInterface {
 					queue = append(queue, next)
 				}
 			}
 		}
 	}
-	sort.SliceStable(out, func(i, j int) bool { return distSq(out[i].Pos, pos) < distSq(out[j].Pos, pos) })
-	return out
+	for _, c := range ctls {
+		if within(c, pos, controllerReach) && slices.Contains(controllerNetwork(tx, c).ifaces, pos) {
+			return c, true
+		}
+	}
+	return cube.Pos{}, false
 }
 
 func distSq(a, b cube.Pos) int {
@@ -229,7 +340,7 @@ func Contents(tx *world.Tx, pos cube.Pos) ([]Entry, int) {
 	return list, len(net)
 }
 
-// Lines are the WAILA lines of a controller.
+// Lines are the WAILA lines of a controller or drawer interface.
 func Lines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	list, drawers := Contents(tx, pos)
 	var total int64
@@ -239,21 +350,17 @@ func Lines(lang string, tx *world.Tx, pos cube.Pos) []string {
 	return []string{fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(list), total)}
 }
 
-func IsStorageController(b world.Block) bool {
+// IsDrawerController reports whether b is a drawer controller or a drawer
+// interface, the blocks that stand for a drawer set.
+func IsDrawerController(b world.Block) bool {
 	m, ok := b.(machine.Machine)
-	return ok && m.Kind == machine.KindStorageController
+	return ok && (m.Kind == machine.KindDrawerController || m.Kind == machine.KindDrawerInterface)
 }
 
-// UseController handles a click on a controller: a sneaking click opens the
-// list, any other deposits the held stack (all of it), and a second click
-// within 500ms of a click also deposits the inventory (depositAll).
+// UseController handles a click on a controller or drawer interface: it
+// deposits the held stack (all of it), and a second click within 500ms of
+// a click also deposits the inventory (depositAll).
 func UseController(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if p.Sneaking() {
-		if !s.Debounced(p) {
-			Show(s, p, tx, pos, "")
-		}
-		return
-	}
 	last := lastUse.Of(s)[p.H()]
 	double := last.Pos == pos && time.Since(last.at) < 500*time.Millisecond
 	lastUse.Of(s)[p.H()] = drawerUse{Pos: pos, at: time.Now()}
@@ -302,28 +409,8 @@ func Filter(lang string, list []Entry, query string) []Entry {
 	return out
 }
 
-// Show lists all the items of the network whose name matches query
-// (all when it is empty) in one scrolling grid under a search box in the
-// window, drawn again as the player types; pressing one takes a stack.
-func Show(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, query string) {
-	if _, drawers := Contents(tx, pos); drawers == 0 {
-		return
-	}
-	lang := i18n.Of(p)
-	find := func(p *player.Player, query string) ui.SearchResult {
-		query = strings.TrimSpace(query)
-		all, drawers := Contents(p.Tx(), pos)
-		list := Sort(lang, Filter(lang, all, query), Orders.Of(s)[p.H()])
-		again := func(p *player.Player, tx *world.Tx) { Show(s, p, tx, pos, query) }
-		return ui.SearchResult{Info: Info(lang, all, drawers, query, len(list)), Sections: []ui.GridSection{{Slots: Slots(s, lang, pos, list, again)}}}
-	}
-	again := func(p *player.Player, tx *world.Tx) { Show(s, p, tx, pos, query) }
-	ui.SearchGrid(p, i18n.T(lang, "storage.title"), i18n.T(lang, "storage.search.label"), query, find,
-		DepositAllOption(s, lang, pos, again), OrderOption(s, p, again))
-}
-
-// storageOrder is how a controller list is sorted; the zero value is the
-// most items first.
+// storageOrder is how a storage list is sorted; the zero value is the most
+// items first.
 type storageOrder int
 
 const (
@@ -331,10 +418,7 @@ const (
 	OrderCountAsc
 	OrderNameAsc
 	OrderNameDesc
-	StorageOrderCount
 )
-
-var storageOrderKeys = [StorageOrderCount]string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
 
 // Sort returns list sorted by o, names in lang.
 func Sort(lang string, list []Entry, o storageOrder) []Entry {
@@ -364,74 +448,15 @@ func Sort(lang string, list []Entry, o storageOrder) []Entry {
 	return sorted
 }
 
-// OrderOption is the control bar button that names p's order and
-// switches to the next one.
-func OrderOption(s *core.Session, p *player.Player, again func(p *player.Player, tx *world.Tx)) ui.Option {
-	o := Orders.Of(s)[p.H()]
-	return ui.BarButton(i18n.T(i18n.Of(p), storageOrderKeys[o]), "textures/ui/store_filter_icon", func(p *player.Player, tx *world.Tx) {
-		Orders.Of(s)[p.H()] = (o + 1) % StorageOrderCount
-		again(p, tx)
-	})
-}
-
-// Slots are the slots of list; pressing one takes a stack of it and
-// runs again.
-func Slots(s *core.Session, lang string, pos cube.Pos, list []Entry, again func(p *player.Player, tx *world.Tx)) []ui.ItemSlot {
-	var slots []ui.ItemSlot
-	for _, e := range list {
-		slots = append(slots, ui.ItemSlot{
-			Icon:  ui.ItemIcon(e.Item.Item()),
-			Count: "§f" + ui.CountText(int(e.Count)),
-			Tip:   decor.TipName(lang, e.Item) + "\n§7" + fmt.Sprintf(i18n.T(lang, "storage.tip"), e.Count),
-			Run: func(p *player.Player, tx *world.Tx) {
-				got := ControllerExtract(tx, pos, e.Item, e.Item.MaxCount())
-				if !got.Empty() {
-					s.GiveItem(p, tx, p.Position(), got)
-				}
-				again(p, tx)
-			},
-		})
-	}
-	return slots
-}
-
-func DepositAllOption(s *core.Session, lang string, pos cube.Pos, again func(p *player.Player, tx *world.Tx)) ui.Option {
-	return ui.BarButton(i18n.T(lang, "storage.depositAll"), "textures/ui/sg/arrow_down", func(p *player.Player, tx *world.Tx) {
-		if depositAll(tx, pos, p) > 0 {
-			tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
-		}
-		again(p, tx)
-	})
-}
-
-// Info is the line about the network over the list, and about the
-// search when there is a query.
-func Info(lang string, all []Entry, drawers int, query string, found int) string {
-	info := fmt.Sprintf(i18n.T(lang, "storage.lines"), drawers, len(all), totalOf(all))
-	if query != "" {
-		info += "\n" + fmt.Sprintf(i18n.T(lang, "storage.search.found"), query, found)
-	}
-	return info
-}
-
-func totalOf(list []Entry) int64 {
-	var t int64
-	for _, e := range list {
-		t += e.Count
-	}
-	return t
-}
-
-// Orders are how each player sorts storage controller lists.
-var Orders = core.NewPlayers[storageOrder]()
-
-// The storage controller is a machine kind whose clicks and item I/O are the
-// storage's.
+// The drawer controller and the drawer interface are machine kinds whose
+// clicks and item I/O are the storage's.
 func init() {
-	ctl := machine.Kinds[machine.KindStorageController]
-	ctl.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		UseController(s, p, tx, pos)
-		return true
+	for _, k := range []string{machine.KindDrawerController, machine.KindDrawerInterface} {
+		def := machine.Kinds[k]
+		def.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+			UseController(s, p, tx, pos)
+			return true
+		}
+		def.Insert, def.Peek, def.Extract = ControllerInsert, ControllerPeek, ControllerExtract
 	}
-	ctl.Insert, ctl.Peek, ctl.Extract = ControllerInsert, ControllerPeek, ControllerExtract
 }

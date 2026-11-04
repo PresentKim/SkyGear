@@ -210,7 +210,7 @@ func TestExternalDrawerController(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		put(tx, p(0), machine.KindNetController)
 		ctl := cube.Pos{1, 64, 1} // in front of the external storage at p(1)
-		tx.SetBlock(ctl, machine.New(machine.KindStorageController, "", ""), nil)
+		tx.SetBlock(ctl, machine.New(machine.KindDrawerController, "", ""), nil)
 		tx.SetBlock(ctl.Side(cube.FaceSouth), storage.Drawer{Item: stoneS, Count: 100}, nil)
 		tx.SetBlock(ctl.Side(cube.FaceWest), storage.Drawer{Item: stoneS, Count: 50}, nil)
 		n, ps := ioNet(tx, machine.KindNetExternal)
