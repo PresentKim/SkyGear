@@ -32,6 +32,7 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
   const dragged = gesture.dragIds().includes(slot.id);
   let cls = 'oui-box mc-slot mc-inv-slot pressable';
   if (props.big) cls += ' mc-big';
+  if (slot.dim) cls += ' mc-inv-dim';
   if (dragged) cls += ' mc-inv-dragged';
   const handlers: Record<string, unknown> = {
     onMouseDown: (ev: MouseEvent) => {

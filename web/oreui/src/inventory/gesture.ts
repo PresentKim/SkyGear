@@ -1,20 +1,22 @@
 import * as engine from '../runtime/engine';
 
-// The vanilla inventory's hands on the slots of an inventory screen, for the mouse and for touch.
+// The Bedrock inventory's hands on the slots of an inventory screen, for the mouse and for touch.
 //
-// Mouse: a press on a slot with nothing on the cursor (or with shift) is a click at once; with a stack
-// on the cursor the press waits for the release, and the slots the pointer crosses meanwhile make a
-// drag. The right button is the right click; a second left click on the same slot soon after is a
-// double click.
+// Mouse (as the Bedrock client does): every press acts at once. A press with a stack held is sent
+// as a split press; each further slot the pointer reaches before the release sends the whole drag
+// so far, which the server spreads again (evenly for the left button, one each for the right). A
+// second left press on the same slot within DOUBLE_MS, with the same shift state and no right
+// press between, is a double click (the server gathers when a stack is held, and with shift moves
+// every stack of the clicked item). A press outside the window drops the held stack (one item with
+// the right button).
 //
-// Touch: a tap is the left click and a touch held for HOLD_MS the right click (with nothing on the
-// cursor it fires while the finger is still down, like the game's split). With a stack on the cursor,
-// a finger moved across slots drags (one each when it was held first). A finger that moves with
-// nothing on the cursor scrolls and clicks nothing. The quick move switch makes every click a shift
-// click.
+// Touch: a tap is the left click and a touch held for HOLD_MS the right click (with nothing held it
+// fires while the finger is still down). With a stack held, a finger moved across slots drags, one
+// each when it was held first. A finger that moves with nothing held scrolls and clicks nothing.
+// The quick move switch makes every click a shift click.
 
 export const HOLD_MS = 400;
-export const DOUBLE_MS = 300;
+export const DOUBLE_MS = 250;
 const TOUCH_WINDOW = 700; // ms in which a mousedown belongs to the tap just made
 const MOVE_PX = 8;
 
@@ -27,11 +29,12 @@ interface Gesture {
   y: number;
   moved: boolean;
   fired: boolean;
+  split: boolean; // the press was sent as a split press
   timer: ReturnType<typeof setTimeout> | null;
 }
 
 let g: Gesture | null = null;
-let last = { id: '', at: -Infinity };
+let last: { id: string; at: number; shift: boolean } | null = null;
 let touchAt = -Infinity;
 let carrying = false;
 let quick = false;
@@ -90,55 +93,75 @@ function slotAt(x: number, y: number): string {
   return hit;
 }
 
-function click(id: string, b: 0 | 1, shift: boolean): void {
+// press sends one press on a slot; it reports whether it was a double click.
+function press(id: string, b: 0 | 1, shiftKey: boolean, split: boolean): boolean {
+  const shift = shiftKey || quick;
   const now = Date.now();
-  const dbl = b === 0 && !shift && last.id === id && now - last.at < DOUBLE_MS;
-  last = dbl ? { id: '', at: -Infinity } : { id, at: now };
-  engine.send(id, 'slot', { b, shift: shift || quick, dbl });
+  if (b === 1) {
+    last = null;
+    engine.send(id, 'slot', { b, shift, dbl: false, split: split && !shift });
+    return false;
+  }
+  const dbl = !!last && last.id === id && last.shift === shift && now - last.at <= DOUBLE_MS;
+  last = dbl ? null : { id, at: now, shift };
+  engine.send(id, 'slot', { b, shift, dbl, split: split && !shift && !dbl });
+  return dbl;
 }
 
-function end(cur: Gesture, b: 0 | 1): void {
-  if (cur.ids.length > 1) engine.send(cur.ids[0], 'drag', { b, ids: cur.ids });
-  else click(cur.ids[0], b, false);
+function sendDrag(cur: Gesture): void {
+  engine.send(cur.ids[0], 'drag', { b: cur.b, ids: cur.ids });
 }
 
 /** reset forgets any gesture under way (a new screen, a test). */
 export function reset(): void {
   if (g && g.timer) clearTimeout(g.timer);
   g = null;
-  last = { id: '', at: -Infinity };
+  last = null;
   touchAt = -Infinity;
   quick = false;
   touchTip = '';
   notify();
 }
 
-function onMouseUp(): void {
+function onMouseUp(ev: MouseEvent): void {
+  if (!g || g.touch || (ev.button === 2 ? 1 : 0) !== g.b) return;
   document.removeEventListener('mouseup', onMouseUp);
-  const cur = g;
-  if (!cur || cur.touch) return;
   g = null;
   notify();
-  end(cur, cur.b);
 }
 
 export function mouseDown(id: string, ev: MouseEvent): void {
   if (Date.now() - touchAt < TOUCH_WINDOW) return;
   if (ev.button !== 0 && ev.button !== 2) return;
   const b: 0 | 1 = ev.button === 2 ? 1 : 0;
-  if (!carrying || ev.shiftKey || quick) {
-    click(id, b, ev.shiftKey);
-    return;
+  const dbl = press(id, b, ev.shiftKey, carrying);
+  if (g) document.removeEventListener('mouseup', onMouseUp);
+  g = null;
+  if (carrying && !ev.shiftKey && !quick && !dbl) {
+    g = { b, ids: [id], touch: false, start: Date.now(), x: ev.clientX, y: ev.clientY, moved: false, fired: false, split: true, timer: null };
+    document.addEventListener('mouseup', onMouseUp);
   }
-  g = { b, ids: [id], touch: false, start: Date.now(), x: ev.clientX, y: ev.clientY, moved: false, fired: false, timer: null };
-  document.addEventListener('mouseup', onMouseUp);
+  notify();
 }
 
 export function mouseEnter(id: string): void {
   if (g && !g.touch && !g.ids.includes(id)) {
     g.ids.push(id);
+    sendDrag(g);
     notify();
   }
+}
+
+/** pressOutside is a press outside the window: a held stack is dropped, one item with the right button. */
+export function pressOutside(button: number): void {
+  if (Date.now() - touchAt < TOUCH_WINDOW || !carrying) return;
+  engine.send('drop', 'drop', { b: button === 2 ? 1 : 0 });
+}
+
+/** touchOutside is a tap outside the window: a held stack is dropped. */
+export function touchOutside(): void {
+  touchAt = Date.now();
+  if (carrying) engine.send('drop', 'drop', { b: 0 });
 }
 
 function point(ev: TouchEvent): { x: number; y: number } | null {
@@ -153,10 +176,15 @@ function onTouchMove(ev: TouchEvent): void {
   if (Math.abs(at.x - cur.x) > MOVE_PX || Math.abs(at.y - cur.y) > MOVE_PX) cur.moved = true;
   if (!carrying || quick) return;
   const hit = slotAt(at.x, at.y);
-  if (hit && !cur.ids.includes(hit)) {
-    cur.ids.push(hit);
-    notify();
+  if (!hit || cur.ids.includes(hit)) return;
+  if (!cur.split) {
+    cur.b = Date.now() - cur.start >= HOLD_MS ? 1 : 0;
+    cur.split = true;
+    press(cur.ids[0], cur.b, false, true);
   }
+  cur.ids.push(hit);
+  sendDrag(cur);
+  notify();
 }
 
 function onTouchEnd(): void {
@@ -169,27 +197,21 @@ function onTouchEnd(): void {
   touchAt = Date.now();
   if (cur.timer) clearTimeout(cur.timer);
   notify();
-  if (cur.fired) return;
-  const long = Date.now() - cur.start >= HOLD_MS;
-  if (carrying && !quick && cur.ids.length > 1) {
-    end(cur, long ? 1 : 0);
-    return;
-  }
-  if (cur.moved) return;
-  click(cur.ids[0], long ? 1 : 0, false);
+  if (cur.fired || cur.split || cur.moved) return;
+  press(cur.ids[0], Date.now() - cur.start >= HOLD_MS ? 1 : 0, false, carrying);
 }
 
 export function touchStart(id: string, tip: string, ev: TouchEvent): void {
   touchAt = Date.now();
   const at = point(ev) || { x: 0, y: 0 };
   touchTip = tip;
-  const cur: Gesture = { b: 0, ids: [id], touch: true, start: Date.now(), x: at.x, y: at.y, moved: false, fired: false, timer: null };
+  const cur: Gesture = { b: 0, ids: [id], touch: true, start: Date.now(), x: at.x, y: at.y, moved: false, fired: false, split: false, timer: null };
   g = cur;
   if (!carrying && !quick) {
     cur.timer = setTimeout(() => {
       if (g === cur && !cur.moved) {
         cur.fired = true;
-        click(id, 1, false);
+        press(id, 1, false, false);
       }
     }, HOLD_MS);
   }

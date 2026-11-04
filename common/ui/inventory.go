@@ -27,6 +27,19 @@ type InvSlot struct {
 	Tip   string
 	// Empty is the icon shown while the slot is empty.
 	Empty string
+	// Dim draws the item faded (a recipe that cannot be made now).
+	Dim bool
+}
+
+// InvBook is the recipe book panel beside the window's left edge: a title,
+// a filter button and a scrolling grid of slots (area "book").
+type InvBook struct {
+	Title  string
+	Filter *Option
+	Cols   int
+	Slots  []InvSlot
+	// Note is drawn in place of the slots when there are none.
+	Note string
 }
 
 // StackSlot is the slot of an item stack, with tip its tooltip.
@@ -71,20 +84,24 @@ type InvSearch struct {
 	Change             func(p *player.Player, tx *world.Tx, query string)
 }
 
-// SlotAct is a click on a slot: the left button or the right (a long touch),
-// with shift (or the page's quick move switch), or the second click of a
-// double click.
+// SlotAct is a press on a slot: the left button or the right (a long touch),
+// with shift (or the page's quick move switch), or the second left press of
+// a double click on the same slot (with the same shift state, the right
+// button not pressed between). Split marks a press with a stack held, which
+// a DragAct may follow (invclick.StartSplit).
 type SlotAct struct {
 	Area         string
 	Index        int
 	Right, Shift bool
 	Double       bool
-	// Carried is the cursor stack when the click came.
+	Split        bool
+	// Carried is the cursor stack when the press came.
 	Carried item.Stack
 }
 
-// DragAct is a drag of the cursor stack across distinct slots with the left
-// button (spread evenly) or the right (one each).
+// DragAct is the drag that follows a Split press, sent each time it reaches
+// another slot: every distinct slot reached so far, the pressed one first,
+// with the left button (spread evenly) or the right (one each).
 type DragAct struct {
 	Right bool
 	Slots []SlotRef
@@ -102,8 +119,10 @@ type InventoryScreen struct {
 	Search *InvSearch
 	Info   string
 	Rows   []InvRow
-	// Side are the buttons in a column outside the window's left edge.
+	// Side are the buttons in a column outside the window's right edge.
 	Side []Option
+	// Book, if set, is the recipe book panel left of the window.
+	Book *InvBook
 	// Quick is the tooltip of the page's quick move switch under them,
 	// which makes every click a shift click (for touch); "" leaves it out.
 	Quick string
@@ -111,6 +130,9 @@ type InventoryScreen struct {
 	Options []Option
 	Slot    func(p *player.Player, tx *world.Tx, a SlotAct)
 	Drag    func(p *player.Player, tx *world.Tx, d DragAct)
+	// Again draws the screen again after a press outside the window dropped
+	// the cursor stack (DropCarried).
+	Again func(p *player.Player, tx *world.Tx)
 	// Close runs when the player closes the screen, after the cursor stack
 	// went back into the inventory.
 	Close func(p *player.Player, tx *world.Tx)
@@ -125,6 +147,15 @@ type dInvSlot struct {
 	Tip   string `json:"tip"`
 	Deco  string `json:"deco"`
 	Empty string `json:"empty"`
+	Dim   bool   `json:"dim"`
+}
+
+type dInvBook struct {
+	Title  string      `json:"title"`
+	Filter *dBarButton `json:"filter"`
+	Cols   int         `json:"cols"`
+	Slots  []dInvSlot  `json:"slots"`
+	Note   string      `json:"note"`
 }
 
 type dInvPart struct {
@@ -152,6 +183,7 @@ type inventoryData struct {
 	Rows        []dInvRow    `json:"rows"`
 	Side        []dBarButton `json:"side"`
 	Quick       string       `json:"quick"`
+	Book        *dInvBook    `json:"book"`
 	Cursor      *dInvSlot    `json:"cursor"`
 }
 
@@ -176,6 +208,12 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 	l.drag = func(p *player.Player, tx *world.Tx, d DragAct) {
 		if s.Drag != nil {
 			s.Drag(p, tx, d)
+		}
+	}
+	l.drop = func(p *player.Player, tx *world.Tx, one bool) {
+		DropCarried(p, one)
+		if s.Again != nil {
+			s.Again(p, tx)
 		}
 	}
 	chrome, _ := l.chromeOf(s.Title, s.Options)
@@ -204,6 +242,16 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 	for _, o := range s.Side {
 		d.Side = append(d.Side, dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Icon: oreIcon(o.Icon), Quick: true})
 	}
+	if b := s.Book; b != nil {
+		db := dInvBook{Title: untoken(b.Title), Cols: max(1, b.Cols), Slots: []dInvSlot{}, Note: b.Note}
+		if b.Filter != nil {
+			db.Filter = &dBarButton{ID: l.id(b.Filter.Run), Tip: untoken(b.Filter.Label), Icon: oreIcon(b.Filter.Icon), Quick: true}
+		}
+		for i, sl := range b.Slots {
+			db.Slots = append(db.Slots, invSlotData("book:"+strconv.Itoa(i), sl))
+		}
+		d.Book = &db
+	}
 	if p == nil {
 		showScreen(p, l, "inventory", d)
 		return
@@ -217,7 +265,7 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 
 func invSlotData(id string, sl InvSlot) dInvSlot {
 	tip, deco := slotDeco(sl.Tip)
-	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Deco: deco, Empty: oreIcon(sl.Empty)}
+	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Deco: deco, Empty: oreIcon(sl.Empty), Dim: sl.Dim}
 }
 
 // parseSlotRef reads an Area:index slot id.
@@ -243,7 +291,30 @@ func slotEvent(id string, v any) (SlotAct, bool) {
 	b, _ := m["b"].(float64)
 	shift, _ := m["shift"].(bool)
 	dbl, _ := m["dbl"].(bool)
-	return SlotAct{Area: ref.Area, Index: ref.Index, Right: b == 1, Shift: shift, Double: dbl}, true
+	split, _ := m["split"].(bool)
+	return SlotAct{Area: ref.Area, Index: ref.Index, Right: b == 1, Shift: shift, Double: dbl, Split: split}, true
+}
+
+// dropEvent reads the value of a "drop" event: {b: 0|1}, right is one item.
+func dropEvent(v any) bool {
+	m, _ := v.(map[string]any)
+	b, _ := m["b"].(float64)
+	return b == 1
+}
+
+// DropCarried drops the cursor stack of p at its feet, or one item of it
+// (a press outside the window with a stack held).
+func DropCarried(p *player.Player, one bool) {
+	st := Carried(p)
+	if st.Empty() {
+		return
+	}
+	n := st.Count()
+	if one {
+		n = 1
+	}
+	SetCarried(p, st.Grow(-n))
+	p.Drop(st.Grow(n - st.Count()))
 }
 
 // dragEvent reads the value of a "drag" event: {b: 0|1, ids}. Repeated

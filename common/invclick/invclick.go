@@ -18,14 +18,20 @@ type Area interface {
 	Accepts(i int, st item.Stack) bool
 }
 
-// Ref is one slot of an Area.
+// Ref is slot I of an Area named Name; refs to one slot share the name and
+// the index.
 type Ref struct {
-	A Area
-	I int
+	Name string
+	A    Area
+	I    int
 }
 
+func (r Ref) same(o Ref) bool { return r.Name == o.Name && r.I == o.I }
+
 // Click is a left click (right false) or a right click on slot i of a with
-// cursor held; it returns the stack held after it.
+// cursor held; it returns the stack held after it. As in Bedrock, a right
+// click with a stack held over another item does nothing; a left click
+// swaps them.
 func Click(a Area, i int, cursor item.Stack, right bool) item.Stack {
 	slot := a.Item(i)
 	switch {
@@ -52,6 +58,8 @@ func Click(a Area, i int, cursor item.Stack, right bool) item.Stack {
 		}
 		a.Set(i, cursor.Grow(slot.Count()+put-cursor.Count()))
 		return cursor.Grow(-put)
+	case right:
+		return cursor
 	default:
 		a.Set(i, cursor)
 		return slot
@@ -85,45 +93,90 @@ func Collect(cursor item.Stack, areas ...Area) item.Stack {
 	return cursor
 }
 
-// DoubleClick is the second left click of a double click on slot i of a:
-// with nothing held it picks the slot up first, then the cursor collects
-// the same item from the areas (Collect).
-func DoubleClick(a Area, i int, cursor item.Stack, areas ...Area) item.Stack {
-	if cursor.Empty() {
-		cursor = Click(a, i, cursor, false)
-	}
-	return Collect(cursor, areas...)
+// Split is a drag of a held stack across slots, spread as it goes like the
+// Bedrock inventory: the press places onto its slot at once (Click), and
+// each further slot reached spreads the stack held before the press again
+// over all of them, evenly (left) or one each (right), the rest staying
+// held.
+type Split struct {
+	right bool
+	start item.Stack
+	cells []splitCell
+	// swapped is set when the press's slot held another item.
+	swapped bool
 }
 
-// Drag spreads cursor over the distinct slots dragged across: evenly (right
-// false) or one each, onto empty slots and slots of the same item that take
-// it. It returns what stays on the cursor.
-func Drag(slots []Ref, cursor item.Stack, right bool) item.Stack {
-	var to []Ref
-	for _, r := range slots {
-		st := r.A.Item(r.I)
-		if !r.A.Accepts(r.I, cursor) || (!st.Empty() && !st.Comparable(cursor)) || st.Count() >= cursor.MaxCount() {
-			continue
+type splitCell struct {
+	Ref
+	base int
+}
+
+// StartSplit is the press of a drag on slot r with cursor held, before the
+// press's Click: it records what the slot and the cursor hold.
+func StartSplit(r Ref, cursor item.Stack, right bool) *Split {
+	st := r.A.Item(r.I)
+	return &Split{right: right, start: cursor, cells: []splitCell{{r, st.Count()}}, swapped: !st.Empty() && !st.Comparable(cursor)}
+}
+
+// Placed reports whether the press placed the held item on its slot, which
+// a drag needs (a swap starts none).
+func (s *Split) Placed() bool {
+	c := s.cells[0]
+	st := c.A.Item(c.I)
+	return !s.swapped && !st.Empty() && st.Comparable(s.start) && st.Count() > c.base
+}
+
+func (s *Split) takes(r Ref) bool {
+	st := r.A.Item(r.I)
+	return r.A.Accepts(r.I, s.start) && (st.Empty() || st.Comparable(s.start)) && st.Count() < s.start.MaxCount()
+}
+
+// Spread adds the slots in refs not reached yet that take the item and
+// spreads the stack held before the press over every slot reached. It
+// returns what stays held.
+func (s *Split) Spread(refs []Ref) item.Stack {
+	for _, r := range refs {
+		known := false
+		for _, c := range s.cells {
+			known = known || c.same(r)
 		}
-		to = append(to, r)
-	}
-	if cursor.Empty() || len(to) == 0 {
-		return cursor
+		if !known && s.takes(r) {
+			s.cells = append(s.cells, splitCell{r, r.A.Item(r.I).Count()})
+		}
 	}
 	each := 1
-	if !right {
-		each = max(1, cursor.Count()/len(to))
+	if !s.right {
+		each = max(1, s.start.Count()/len(s.cells))
 	}
-	for _, r := range to {
-		if cursor.Empty() {
-			break
+	left := s.start.Count()
+	for _, c := range s.cells {
+		n := max(0, min(each, left, s.start.MaxCount()-c.base))
+		left -= n
+		if c.base+n == 0 {
+			c.A.Set(c.I, item.Stack{})
+			continue
 		}
-		st := r.A.Item(r.I)
-		n := min(each, cursor.Count(), cursor.MaxCount()-st.Count())
-		r.A.Set(r.I, cursor.Grow(st.Count()+n-cursor.Count()))
-		cursor = cursor.Grow(-n)
+		c.A.Set(c.I, s.start.Grow(c.base+n-s.start.Count()))
 	}
-	return cursor
+	if left == 0 {
+		return item.Stack{}
+	}
+	return s.start.Grow(left - s.start.Count())
+}
+
+// MoveAll moves every stack of the item of focus out of the areas from with
+// put, which takes a stack and returns what it did not take: the Bedrock
+// shift double click.
+func MoveAll(focus item.Stack, put func(item.Stack) item.Stack, from ...Area) {
+	for _, a := range from {
+		for i := range a.Len() {
+			st := a.Item(i)
+			if st.Empty() || !st.Comparable(focus) {
+				continue
+			}
+			a.Set(i, put(st))
+		}
+	}
 }
 
 // Move puts st into the areas, in order: onto the stacks of the same item

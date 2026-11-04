@@ -88,28 +88,67 @@ func TestCollectTakesSmallStacksFirst(t *testing.T) {
 	}
 }
 
-func TestDoubleClickAfterAPlacingClick(t *testing.T) {
-	a := Slots{dirt(28), dirt(29), dirt(1)}
-	got := DoubleClick(a, 0, item.Stack{}, a)
-	if got.Count() != 58 || !same(counts(a), []int{0, 0, 0}) {
-		t.Errorf("cursor %d, slots %v", got.Count(), counts(a))
-	}
-	b := Slots{dirt(5), dirt(3)}
-	if got := DoubleClick(b, 0, dirt(2), b); got.Count() != 10 || b[0].Count() != 0 {
-		t.Errorf("with a held stack: cursor %d, slots %v", got.Count(), counts(b))
+func TestRightClickHoldingOverAnotherItemDoesNothing(t *testing.T) {
+	s := Slots{stone(3)}
+	if got := Click(s, 0, dirt(5), true); got.Count() != 5 || s[0].Count() != 3 {
+		t.Errorf("cursor %v, slot %v", got, s[0])
 	}
 }
 
-func TestDrag(t *testing.T) {
-	a := Slots{item.Stack{}, dirt(2), stone(1), item.Stack{}}
-	rest := Drag([]Ref{{a, 0}, {a, 1}, {a, 2}, {a, 3}}, dirt(10), false)
-	if rest.Count() != 1 || !same(counts(a), []int{3, 5, 1, 3}) {
-		t.Errorf("left drag: rest %d, slots %v", rest.Count(), counts(a))
+func split(a Slots, right bool, held item.Stack, cells ...int) (*Split, item.Stack) {
+	s := StartSplit(Ref{"a", a, cells[0]}, held, right)
+	cur := Click(a, cells[0], held, right)
+	for n := 2; n <= len(cells); n++ {
+		var refs []Ref
+		for _, c := range cells[:n] {
+			refs = append(refs, Ref{"a", a, c})
+		}
+		cur = s.Spread(refs)
 	}
-	b := Slots{item.Stack{}, item.Stack{}}
-	rest = Drag([]Ref{{b, 0}, {b, 1}}, dirt(5), true)
-	if rest.Count() != 3 || !same(counts(b), []int{1, 1}) {
-		t.Errorf("right drag: rest %d, slots %v", rest.Count(), counts(b))
+	return s, cur
+}
+
+func TestSplitSpreadsLiveAsSlotsAreReached(t *testing.T) {
+	a := Slots{item.Stack{}, dirt(2), stone(1), item.Stack{}}
+	s, cur := split(a, false, dirt(10), 0)
+	if !s.Placed() || !cur.Empty() || a[0].Count() != 10 {
+		t.Fatalf("the press placed %d, held %d", a[0].Count(), cur.Count())
+	}
+	c := Slots{item.Stack{}, dirt(2), stone(1), item.Stack{}}
+	_, cur = split(c, false, dirt(10), 0, 1)
+	if cur.Count() != 0 || !same(counts(c), []int{5, 7, 1, 0}) {
+		t.Errorf("two slots: held %d, slots %v", cur.Count(), counts(c))
+	}
+	b := Slots{item.Stack{}, dirt(2), stone(1), item.Stack{}}
+	_, cur = split(b, false, dirt(10), 0, 1, 2, 3)
+	if cur.Count() != 1 || !same(counts(b), []int{3, 5, 1, 3}) {
+		t.Errorf("four slots: held %d, slots %v", cur.Count(), counts(b))
+	}
+}
+
+func TestRightSplitPlacesOneEach(t *testing.T) {
+	a := Slots{item.Stack{}, item.Stack{}, item.Stack{}}
+	_, cur := split(a, true, dirt(5), 0, 1, 2)
+	if cur.Count() != 2 || !same(counts(a), []int{1, 1, 1}) {
+		t.Errorf("held %d, slots %v", cur.Count(), counts(a))
+	}
+}
+
+func TestSplitAfterASwapIsNoDrag(t *testing.T) {
+	a := Slots{stone(3)}
+	s := StartSplit(Ref{"a", a, 0}, dirt(5), false)
+	Click(a, 0, dirt(5), false)
+	if s.Placed() {
+		t.Error("a swap counts as a placing press")
+	}
+}
+
+func TestMoveAllTakesEveryStackOfTheItem(t *testing.T) {
+	a := Slots{dirt(3), stone(2), dirt(64)}
+	var got int
+	MoveAll(dirt(1), func(st item.Stack) item.Stack { got += st.Count(); return item.Stack{} }, a)
+	if got != 67 || !same(counts(a), []int{0, 2, 0}) {
+		t.Errorf("moved %d, slots %v", got, counts(a))
 	}
 }
 

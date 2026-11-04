@@ -29,6 +29,7 @@ function slotEl(container: HTMLElement, i: number): Element {
 const mouse = (el: Element, type: string, button = 0, shiftKey = false) =>
   el.dispatchEvent(new MouseEvent(type, { bubbles: true, button, shiftKey }));
 const touch = (el: Element, type: string) => el.dispatchEvent(new Event(type, { bubbles: true }));
+const click = (b: 0 | 1, shift = false, dbl = false, split = false) => ({ b, shift, dbl, split });
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -41,40 +42,71 @@ afterEach(() => {
 });
 
 describe('inventory mouse', () => {
-  it('clicks at once with nothing carried', () => {
+  it('presses at once', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
     mouse(slotEl(container, 0), 'mousedown', 2);
-    expect(send).toHaveBeenCalledWith('net:0', 'slot', { b: 1, shift: false, dbl: false });
+    expect(send).toHaveBeenCalledWith('net:0', 'slot', click(1));
   });
   it('sends shift', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
     mouse(slotEl(container, 1), 'mousedown', 0, true);
-    expect(send).toHaveBeenCalledWith('inv:0', 'slot', { b: 0, shift: true, dbl: false });
+    expect(send).toHaveBeenCalledWith('inv:0', 'slot', click(0, true));
   });
-  it('a second click soon after is a double click', () => {
+  it('a second left press within 250ms is a double click', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
     mouse(slotEl(container, 1), 'mousedown');
-    vi.advanceTimersByTime(100);
+    vi.advanceTimersByTime(200);
     mouse(slotEl(container, 1), 'mousedown');
-    expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', { b: 0, shift: false, dbl: true });
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0, false, true));
   });
-  it('drags across slots with a carried stack', () => {
+  it('a right press between breaks the double click', () => {
+    const { container } = render(<InventoryScreen data={data(null)} />);
+    mouse(slotEl(container, 1), 'mousedown');
+    mouse(slotEl(container, 1), 'mousedown', 2);
+    mouse(slotEl(container, 1), 'mousedown');
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0));
+  });
+  it('a shift double click keeps shift', () => {
+    const { container } = render(<InventoryScreen data={data(null)} />);
+    mouse(slotEl(container, 1), 'mousedown', 0, true);
+    mouse(slotEl(container, 1), 'mousedown', 0, true);
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0, true, true));
+  });
+  it('a held stack press places at once and the drag spreads live', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
     act(() => {
       mouse(slotEl(container, 1), 'mousedown');
+    });
+    expect(send).toHaveBeenCalledWith('inv:0', 'slot', click(0, false, false, true));
+    act(() => {
       mouse(slotEl(container, 2), 'mouseenter');
+    });
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'drag', { b: 0, ids: ['inv:0', 'inv:1'] });
+    act(() => {
       mouse(slotEl(container, 3), 'mouseenter');
     });
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'drag', { b: 0, ids: ['inv:0', 'inv:1', 'inv:2'] });
     expect(container.querySelectorAll('.mc-inv-dragged').length).toBe(3);
     document.dispatchEvent(new MouseEvent('mouseup'));
-    expect(send).toHaveBeenCalledWith('inv:0', 'drag', { b: 0, ids: ['inv:0', 'inv:1', 'inv:2'] });
+    expect(send).toHaveBeenCalledTimes(3);
   });
-  it('a press and release on one slot with a carried stack is a click', () => {
+  it('a press outside the window drops the held stack', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
-    mouse(slotEl(container, 2), 'mousedown', 2);
+    mouse(container.querySelector('.mc-backdrop')!, 'mousedown', 2);
+    expect(send).toHaveBeenCalledWith('drop', 'drop', { b: 1 });
+  });
+  it('a press outside with nothing held drops nothing', () => {
+    const { container } = render(<InventoryScreen data={data(null)} />);
+    mouse(container.querySelector('.mc-backdrop')!, 'mousedown');
     expect(send).not.toHaveBeenCalled();
-    document.dispatchEvent(new MouseEvent('mouseup'));
-    expect(send).toHaveBeenCalledWith('inv:1', 'slot', { b: 1, shift: false, dbl: false });
+  });
+  it('draws the recipe book and presses its recipes like slots', () => {
+    const book = { title: 'Recipes', filter: { id: 'f', tip: 'All', icon: '', glyph: '', quick: true }, cols: 5, note: '', slots: [{ ...slot('book:0', 'stick'), dim: true }] };
+    const { container } = render(<InventoryScreen data={{ ...data(null), book }} />);
+    const recipe = container.querySelector('.mc-inv-book .mc-inv-slot')!;
+    expect(recipe.className).toContain('mc-inv-dim');
+    mouse(recipe, 'mousedown', 0, true);
+    expect(send).toHaveBeenCalledWith('book:0', 'slot', click(0, true));
   });
   it('draws the cursor stack', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
@@ -88,13 +120,13 @@ describe('inventory touch', () => {
     touch(slotEl(container, 1), 'touchstart');
     vi.advanceTimersByTime(100);
     touch(document.body, 'touchend');
-    expect(send).toHaveBeenCalledWith('inv:0', 'slot', { b: 0, shift: false, dbl: false });
+    expect(send).toHaveBeenCalledWith('inv:0', 'slot', click(0));
   });
   it('a held touch is a right click at once', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
     touch(slotEl(container, 0), 'touchstart');
     vi.advanceTimersByTime(gesture.HOLD_MS + 10);
-    expect(send).toHaveBeenCalledWith('net:0', 'slot', { b: 1, shift: false, dbl: false });
+    expect(send).toHaveBeenCalledWith('net:0', 'slot', click(1));
     touch(document.body, 'touchend');
     expect(send).toHaveBeenCalledTimes(1);
   });
@@ -110,6 +142,12 @@ describe('inventory touch', () => {
     touch(container.querySelector('.mc-inv-quick')!, 'touchstart');
     touch(slotEl(container, 1), 'touchstart');
     touch(document.body, 'touchend');
-    expect(send).toHaveBeenCalledWith('inv:0', 'slot', { b: 0, shift: true, dbl: false });
+    expect(send).toHaveBeenCalledWith('inv:0', 'slot', click(0, true));
+  });
+  it('a tap with a held stack places it', () => {
+    const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
+    touch(slotEl(container, 2), 'touchstart');
+    touch(document.body, 'touchend');
+    expect(send).toHaveBeenCalledWith('inv:1', 'slot', click(0, false, false, true));
   });
 });

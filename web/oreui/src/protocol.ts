@@ -74,10 +74,11 @@ export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 
 // An inventory screen: slots worked like the vanilla inventory. A slot id is "<area>:<index>"; a click
 // sends 'slot' {b: 0 left | 1 right, shift, dbl} and a drag 'drag' {b, ids}.
-export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; deco: Icon; empty: Icon } // empty: shown while icon is ''
+export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; deco: Icon; empty: Icon; dim?: boolean } // empty: shown while icon is ''; dim: drawn faded
+export interface InvBook { title: Text; filter: BarButton | null; cols: number; slots: InvSlot[]; note: Text } // the recipe book left of the window (slots "book:<i>")
 export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null }
 export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text } // grow: takes the height left and scrolls
-export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; cursor: InvSlot | null } // quick: the tip of the quick move switch ('' none)
+export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null } // quick: the tip of the quick move switch ('' none)
 
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData

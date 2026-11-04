@@ -8,6 +8,7 @@ import { Field } from '../components/Field';
 import { Window } from '../components/Window';
 import { InvRows } from '../inventory/InvRows';
 import { CursorStack } from '../inventory/Cursor';
+import { RecipeBook } from '../inventory/RecipeBook';
 import { useGestureRedraw } from '../inventory/InvSlot';
 import * as gesture from '../inventory/gesture';
 
@@ -57,8 +58,12 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
   gesture.setCarrying(!!data.cursor);
   const typed = useRef(data.query);
   useEffect(() => () => gesture.reset(), []);
+  const outside: Record<string, unknown> = {
+    onMouseDown: (ev: MouseEvent) => gesture.pressOutside(ev.button),
+    onTouchStart: () => gesture.touchOutside(),
+  };
   return (
-    <Window chrome={data.chrome} className="mc-inventory" size={[INV_W, INV_H]}>
+    <Window chrome={data.chrome} className="mc-inventory" size={[INV_W, INV_H]} backdrop={outside}>
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (
           <SideButton key={b.id} button={b} />
@@ -74,6 +79,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
       {data.info ? <Rich text={data.info} className="oui-text mc-body-text mc-inv-info" /> : null}
       <TouchTip />
       <InvRows rows={data.rows} />
+      {data.book ? <RecipeBook book={data.book} /> : null}
       <CursorStack slot={data.cursor} />
     </Window>
   );
