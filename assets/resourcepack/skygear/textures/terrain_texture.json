@@ -1339,8 +1339,14 @@
     "skygear_net_cable": {
       "textures": "textures/blocks/net_cable"
     },
-    "skygear_net_cable_border": {
-      "textures": "textures/blocks/net_cable_border"
+    "skygear_net_importer_border": {
+      "textures": "textures/blocks/net_importer_border"
+    },
+    "skygear_net_exporter_border": {
+      "textures": "textures/blocks/net_exporter_border"
+    },
+    "skygear_net_external_border": {
+      "textures": "textures/blocks/net_external_border"
     },
     "skygear_disk_drive_down": {
       "textures": "textures/blocks/disk_drive_down"

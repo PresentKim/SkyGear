@@ -38,10 +38,12 @@ var repos = map[string]repo{
 }
 
 // entry is one pack texture: dst under textures/, src as "<repo>:<path>" (no
-// .png), over the optional chassis picture, tint the optional multiplier.
+// .png), over the optional chassis picture, tint the optional multiplier,
+// paint the optional colour a dark picture takes (its pattern kept as the
+// lightness around that colour).
 type entry struct {
 	dst, src, over string
-	tint           *color.RGBA
+	tint, paint    *color.RGBA
 }
 
 func c(r, g, b uint8) *color.RGBA { return &color.RGBA{r, g, b, 255} }
@@ -155,8 +157,12 @@ var entries = func() []entry {
 	rsCube("disk_drive", "block/disk_drive/front", "", "block/disk_drive/top", "")
 	rsCube("net_terminal", "block/grid/front", "block/grid/cutouts/light_blue", "block/grid/top", "")
 	rsCube("pattern_encoder", "block/pattern_grid/front", "block/pattern_grid/cutouts/light_blue", "block/pattern_grid/top", "")
+	// Refined Storage gives the three heads one border picture; here each
+	// is painted a colour so they tell apart (in, out, storage).
 	add(entry{dst: "blocks/net_cable", src: "rs:block/cable/gray"},
-		entry{dst: "blocks/net_cable_border", src: "rs:block/cable/part_border"})
+		entry{dst: "blocks/net_importer_border", src: "rs:block/cable/part_border", paint: c(0x3a, 0x6e, 0xc0)},
+		entry{dst: "blocks/net_exporter_border", src: "rs:block/cable/part_border", paint: c(0xd0, 0x7a, 0x22)},
+		entry{dst: "blocks/net_external_border", src: "rs:block/cable/part_border", paint: c(0x8a, 0x52, 0xc4)})
 	for _, f := range []string{"front", "back", "side"} {
 		add(entry{dst: "blocks/net_autocrafter_" + f, src: "rs:block/autocrafter/side", over: "block/autocrafter/cutouts/side/light_blue"})
 	}
@@ -216,6 +222,9 @@ func main() {
 			draw.Draw(base, base.Bounds(), img, image.Point{}, draw.Over)
 			img = base
 		}
+		if e.paint != nil {
+			paint(img, *e.paint)
+		}
 		if e.tint != nil {
 			for y := 0; y < img.Bounds().Dy(); y++ {
 				for x := 0; x < img.Bounds().Dx(); x++ {
@@ -230,6 +239,28 @@ func main() {
 		imgio.Save(out, img)
 	}
 	fmt.Println(n, "textures written")
+}
+
+// paint colours img c, each pixel as light against c as it is against the
+// picture's mean lightness.
+func paint(img *image.RGBA, c color.RGBA) {
+	sum, n := 0, 0
+	for i := 0; i < len(img.Pix); i += 4 {
+		if img.Pix[i+3] > 0 {
+			sum += (int(img.Pix[i]) + int(img.Pix[i+1]) + int(img.Pix[i+2])) / 3
+			n++
+		}
+	}
+	if n == 0 || sum == 0 {
+		return
+	}
+	mean := sum / n
+	for i := 0; i < len(img.Pix); i += 4 {
+		lum := (int(img.Pix[i]) + int(img.Pix[i+1]) + int(img.Pix[i+2])) / 3
+		for j, t := range []uint8{c.R, c.G, c.B} {
+			img.Pix[i+j] = uint8(min(255, int(t)*lum/mean))
+		}
+	}
 }
 
 func indexByte(s string, b byte) int {

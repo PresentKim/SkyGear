@@ -116,11 +116,15 @@ func NetBoxes(kind string, shape int) []netshape.Box { return netBoxes(kind, sha
 
 func netShapeName(shape int) string { return fmt.Sprintf("%03d", shape) }
 
-func netMaterials() map[string]customblock.Material {
-	return map[string]customblock.Material{
-		"*":      blockmodel.AlphaMaterial("skygear_net_cable"),
-		"border": blockmodel.AlphaMaterial("skygear_net_cable_border"),
+// netMaterials are the cable picture and the kind's head colour, with
+// ambient occlusion on, as Java Edition shades them: alpha test leaves it
+// off, and the dark faces then showed no edges.
+func netMaterials(kind string) map[string]customblock.Material {
+	out := map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_net_cable").WithAmbientOcclusion()}
+	if _, head := netHeads[kind]; head {
+		out["border"] = blockmodel.AlphaMaterial("skygear_" + kind + "_border").WithAmbientOcclusion()
 	}
+	return out
 }
 
 // clientBox is a box as the client's block components take it: like the
@@ -136,7 +140,7 @@ func netProperties(kind string, shape int) customblock.Properties {
 	for i, b := range boxes {
 		coll[i] = clientBox(b.BBox())
 	}
-	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
+	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(kind), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
 }
 
 func netStates(kind string) map[string][]any {
