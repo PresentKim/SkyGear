@@ -287,6 +287,8 @@
  "machine.crusher.name": "Crusher",
  "machine.miner.name": "Auto Miner",
  "machine.miner.help.1": "§7Mines the block right below every 2 seconds",
+ "machine.miner.target": "Mining: %s",
+ "machine.miner.noTarget": "§cNothing to mine below",
  "machine.harvester.name": "Auto Crop Harvester",
  "machine.harvester.help.1": "§7Harvests one fully grown crop in a 9×9 area at the same height every 2 seconds",
  "machine.sellbox.name": "Sell Box",

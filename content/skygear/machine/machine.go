@@ -531,6 +531,9 @@ type State struct {
 	shownEnergy int
 	// shownLook is what the machine's open Ore UI windows show (screen.go).
 	shownLook screenLook
+	// target is the block the auto miner's open window shows it mining
+	// (screen.go noteTarget).
+	target string
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
@@ -1515,7 +1518,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		return false
 	}
 	if !s.Debounced(p) {
-		ShowMachine(s, p, pos, m.State)
+		ShowMachine(s, p, tx, pos, m.State)
 	}
 	return true
 }

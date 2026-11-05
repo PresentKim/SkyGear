@@ -2488,6 +2488,8 @@
  "machine.crusher.name": "분쇄기",
  "machine.miner.name": "자동 자원 채굴기",
  "machine.miner.help.1": "§7바로 아래 블록을 2초마다 캡니다",
+ "machine.miner.target": "캐는 블록: %s",
+ "machine.miner.noTarget": "§c아래에 캘 블록이 없습니다",
  "machine.harvester.name": "자동 농작물 수확기",
  "machine.harvester.help.1": "§7같은 높이 9×9 안의 다 자란 작물을 2초마다 하나씩 거둡니다",
  "machine.sellbox.name": "판매함",

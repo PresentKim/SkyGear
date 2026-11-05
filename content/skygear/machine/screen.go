@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
@@ -13,6 +14,7 @@ import (
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
+	"github.com/presentkim/skygear/content/skygear/naming"
 )
 
 // The machine window as an Ore UI inventory screen, built from the machine's
@@ -70,10 +72,11 @@ type screenLook struct {
 	pct, energy, fluid int
 	ver                uint64
 	stuck              stuckKind
+	target             string
 }
 
 func (st *State) screenLook() screenLook {
-	l := screenLook{ver: st.invVer, stuck: st.Stuck}
+	l := screenLook{ver: st.invVer, stuck: st.Stuck, target: st.target}
 	if st.showsProgress() {
 		l.pct = st.progressPct() / 10
 	}
@@ -86,11 +89,48 @@ func (st *State) screenLook() screenLook {
 	return l
 }
 
+// minerTarget is the block the auto miner at pos mines next, as an item,
+// and false when the block below it cannot be mined.
+func minerTarget(tx *world.Tx, pos cube.Pos) (item.Stack, bool) {
+	b := tx.Block(pos.Side(cube.FaceDown))
+	it, isItem := b.(world.Item)
+	if _, ok := Mineable(b); !ok || !isItem {
+		return item.Stack{}, false
+	}
+	return item.NewStack(it, 1), true
+}
+
+// noteTarget keeps what the auto miner at pos would mine in st.target, so
+// the open window redraws when it changes.
+func (st *State) noteTarget(tx *world.Tx, pos cube.Pos) {
+	if st.Def.ID != idMiner {
+		return
+	}
+	st.target = ""
+	if it, ok := minerTarget(tx, pos); ok {
+		st.target = naming.ItemKey(it.Item())
+	}
+}
+
+// targetPart is the auto miner's slot showing the block it mines, a barrier
+// when there is none.
+func targetPart(lang string, tx *world.Tx, pos cube.Pos) ui.InvPart {
+	it, ok := minerTarget(tx, pos)
+	tip := i18n.T(lang, "machine.miner.noTarget")
+	if ok {
+		tip = fmt.Sprintf(i18n.T(lang, "machine.miner.target"), decor.TipName(lang, it))
+	} else {
+		it = item.NewStack(block.Barrier{}, 1)
+	}
+	return ui.InvPart{Area: "target", Cols: 1, Slots: []ui.InvSlot{ui.StackSlot(it, tip)}}
+}
+
 // ShowMachine shows p the window of the machine at pos.
-func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
+func ShowMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State) {
 	lang := i18n.Of(p)
 	st.pos = pos
 	watchers.Of(s)[p.H()] = pos
+	st.noteTarget(tx, pos)
 	st.shownLook = st.screenLook()
 	tipOf := func(it item.Stack) string {
 		if it.Empty() {
@@ -128,6 +168,9 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 			parts = append(parts, ui.InvPart{Area: a.name, Cols: cols(a.area.Len()), Slots: slotsOf(a.area)})
 		}
 	}
+	if st.Def.ID == idMiner {
+		parts = append(parts, targetPart(lang, tx, pos))
+	}
 	if st.showsProgress() {
 		ring, key, withPct := st.progressLook()
 		tip := i18n.T(lang, key)
@@ -142,7 +185,7 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 
 	again := func(p *player.Player, tx *world.Tx) {
 		if m, ok := tx.Block(pos).(Machine); ok && m.State == st {
-			ShowMachine(s, p, pos, st)
+			ShowMachine(s, p, tx, pos, st)
 		}
 	}
 	take := ui.TransferBar{All: ui.Option{Label: i18n.T(lang, "machine.screen.takeAll"), Icon: "textures/ui/sg/arrow_down", Run: func(p *player.Player, tx *world.Tx) {
@@ -212,6 +255,20 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 	})
 }
 
+// ShowPreview shows p the screen of a machine of kind with state st that is
+// not in the world, as if it stood at pos (/sgdebug ui): the screen draws,
+// its slots do nothing.
+func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind string, st *State) {
+	switch {
+	case kind == KindLab:
+		showLab(s, p, tx, pos, st)
+	case st.Def.Crafter:
+		showCrafter(s, p, pos, st)
+	default:
+		ShowMachine(s, p, tx, pos, st)
+	}
+}
+
 // holds reports whether one of the machine's input or charge slots holds
 // the kind of it.
 func (st *State) holds(it item.Stack) bool {
@@ -226,6 +283,7 @@ func (st *State) holds(it item.Stack) bool {
 // watchMachine draws the windows open on the machine at pos again when what
 // they show has changed; it runs from the machine's tick every few ticks.
 func watchMachine(s *core.Session, tx *world.Tx, pos cube.Pos, st *State) {
+	st.noteTarget(tx, pos)
 	if st.screenLook() == st.shownLook {
 		return
 	}
@@ -240,7 +298,7 @@ func watchMachine(s *core.Session, tx *world.Tx, pos cube.Pos, st *State) {
 			delete(watchers.Of(s), h)
 			continue
 		}
-		ShowMachine(s, p, pos, st)
+		ShowMachine(s, p, tx, pos, st)
 	}
 	st.shownLook = st.screenLook()
 }

@@ -47,6 +47,15 @@ func TestMachineScreenRedrawsOnlyOnVisibleChange(t *testing.T) {
 	}
 }
 
+func TestMachineScreenRedrawsOnTargetChange(t *testing.T) {
+	st := New(KindMiner, "", "").State
+	shown := st.screenLook()
+	st.target = "minecraft:stone"
+	if st.screenLook() == shown {
+		t.Fatal("a new miner target does not redraw the window")
+	}
+}
+
 func TestMachineScreenHolds(t *testing.T) {
 	st := New(KindCrusher, "", "").State
 	cobble := item.NewStack(block.Cobblestone{}, 1)
