@@ -117,6 +117,50 @@
   position: relative;
 }
 
+/* A machine's gauge (inventory/Gauge.tsx): a sunken bar three slots tall, filled from the bottom,
+   left of the machine's slots; and its progress arrow or ring between them. */
+.mc-gauge {
+  position: relative;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 10.8rem;
+  margin-right: 0.8rem;
+  background-color: #8b8b8b;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #373737 #ffffff #ffffff #373737;
+}
+
+.mc-gauge-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.mc-gauge.energy .mc-gauge-fill {
+  background-color: #d33a2c;
+}
+
+.mc-gauge.fluid .mc-gauge-fill {
+  background-color: #3b6fd8;
+}
+
+.mc-progress {
+  flex-shrink: 0;
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-right: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-progress img {
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
 /* A slot whose contents are not there (a network without power), dark as a disabled Java panel. */
 .mc-inv-slot.mc-inv-off {
   background-color: rgba(0, 0, 0, 0.45);

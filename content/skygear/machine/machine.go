@@ -529,6 +529,8 @@ type State struct {
 	ShownPct int
 	// shownEnergy is the buffer the energy gauge shows now (-1: nothing yet).
 	shownEnergy int
+	// shownLook is what the machine's open Ore UI windows show (screen.go).
+	shownLook screenLook
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
@@ -1095,22 +1097,37 @@ func (st *State) ShowProgress() {
 		return
 	}
 	st.ShownPct = pct
-	name := wintext.Key("machine.progress.percent", pct)
+	ring, key, withPct := st.progressLook()
+	name := wintext.Key(key)
+	if withPct {
+		name = wintext.Key(key, pct)
+	}
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
-	switch st.Def.ID {
-	case idSellBox:
-		// Machines that work in a repeating cycle, the auto miner and the generator
-		// show a ring that fills.
-		name, it = wintext.Key("machine.progress.sellCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
-		name, it = wintext.Key("machine.progress.mining", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idGenerator:
-		// The ring shows the fuel left in the one burning.
-		name, it = wintext.Key("machine.progress.fuel", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idHarvester:
-		name, it = wintext.Key("machine.progress.harvestCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+	if ring {
+		it = item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.Inv().SetItem(st.Def.Indicator, wintext.With(it, wintext.Text{wintext.Raw("§r"), name}))
+}
+
+// progressPct is the machine's progress in percent.
+func (st *State) progressPct() int { return min(100, st.Progress*100/max(1, st.CycleLen())) }
+
+// progressLook is how a machine shows its progress: an arrow that fills, or
+// the ring of a machine that works in a repeating cycle (the generator's
+// shows the fuel left in the one burning), and the text key of its tooltip,
+// which takes the percent when withPct is set.
+func (st *State) progressLook() (ring bool, key string, withPct bool) {
+	switch st.Def.ID {
+	case idSellBox:
+		return true, "machine.progress.sellCycle", false
+	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
+		return true, "machine.progress.mining", true
+	case idGenerator:
+		return true, "machine.progress.fuel", true
+	case idHarvester:
+		return true, "machine.progress.harvestCycle", false
+	}
+	return false, "machine.progress.percent", true
 }
 
 // EnergyGaugeSlot is the window slot of the energy gauge, in the column right
@@ -1497,7 +1514,9 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if m.State.Def.Cell || m.Kind == KindNetCable {
 		return false
 	}
-	m.State.OpenWindow(p)
+	if !s.Debounced(p) {
+		ShowMachine(s, p, pos, m.State)
+	}
 	return true
 }
 
@@ -1613,6 +1632,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		showActiveOf(tx, pos, m, st, currentTick)
 	}
 	st.persistState(currentTick, pos, tx)
+	if (currentTick+int64(posHash(pos)))%5 == 0 && len(watchers.Of(s)) > 0 {
+		watchMachine(s, tx, pos, st)
+	}
 	switch st.Def.ID {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {

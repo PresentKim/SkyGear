@@ -209,6 +209,17 @@ describe('inventory buttons', () => {
     vi.advanceTimersByTime(50);
     expect(send).toHaveBeenCalledWith('t1', 'click');
   });
+  it('draws a gauge filled from the bottom and the progress icon', () => {
+    const d = data(null);
+    d.rows[1].parts = [
+      { area: '', cols: 0, slots: [], big: false, arrow: false, button: null, gauge: { kind: 'energy', fill: 40, tip: '40 RE' } },
+      { area: '', cols: 0, slots: [], big: false, arrow: false, button: null, progress: { icon: 'tex:textures/items/progress_5', tip: '50%' } },
+    ];
+    const { container } = render(<InventoryScreen data={d} />);
+    const fill = container.querySelector('.mc-gauge.energy .mc-gauge-fill') as HTMLElement;
+    expect(fill.style.height).toBe('40%');
+    expect(container.querySelector('.mc-progress img')).not.toBeNull();
+  });
   it('a filler slot is dark and takes no presses', () => {
     const d = data(null);
     d.rows[1].parts[0].slots[2] = { ...slot('inv:2'), off: true };

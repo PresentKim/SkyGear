@@ -43,6 +43,19 @@ func touchDevice(p *player.Player) bool {
 }
 
 // oreOpen reports whether p has a DDUI screen open.
+// ShowingKey is the key of the screen p has open (InventoryScreen.Key), ""
+// when none is open or it has no key. A screen that redraws itself while open
+// (a machine's) checks it so it never replaces another.
+func ShowingKey(p *player.Player) string {
+	oreScreens.Lock()
+	defer oreScreens.Unlock()
+	st := oreScreens.m[p.UUID()]
+	if st == nil || st.form == nil || st.form.Closed() {
+		return ""
+	}
+	return st.key
+}
+
 func oreOpen(p *player.Player) bool {
 	oreScreens.Lock()
 	defer oreScreens.Unlock()
@@ -95,6 +108,8 @@ type oreScreen struct {
 	gen    int
 	// size is the window size of the layout shown.
 	size string
+	// key names what the screen shows (ShowingKey), "" for most screens.
+	key string
 	// close is the layout's run on closing (oreLayout.close).
 	close func(p *player.Player, tx *world.Tx)
 	// probe is the layout's run for the lines its test nodes report
@@ -138,6 +153,7 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 		ReturnCarried(p)
 	}
 	st.gen++
+	st.key = l.screenKey
 	st.runs, st.input, st.inputs, st.values, st.close, st.probe = l.runs, l.input, l.inputs, l.values, l.close, l.probe
 	st.slot, st.drag, st.drop, st.hold = l.slot, l.drag, l.drop, l.hold
 	st.root = root
@@ -405,6 +421,8 @@ type oreLayout struct {
 	values map[string]string
 	// size is the window's size (showScreen sets it).
 	size string
+	// screenKey is the screen's key (ShowingKey).
+	screenKey string
 	// prefix starts the ids of the elements, so the parts drawn again into a
 	// region do not reuse the ids of the screen around them.
 	prefix string

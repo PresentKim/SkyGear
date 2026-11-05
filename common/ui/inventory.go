@@ -83,6 +83,26 @@ type InvPart struct {
 	// Off draws the slots dark and takes no presses: what they would show
 	// is not there (a network without power).
 	Off bool
+	// Gauge draws a tall bar instead of slots (a machine's energy or fluid).
+	Gauge *InvGauge
+	// Progress draws a machine's progress instead of slots.
+	Progress *InvProgress
+}
+
+// InvGauge is a tall bar filled Value/Max from the bottom, in Kind's colour
+// ("energy" red, "fluid" blue), with Tip as its tooltip.
+type InvGauge struct {
+	Kind       string
+	Value, Max int
+	Tip        string
+}
+
+// InvProgress is a machine's progress in percent: the arrow that fills, or
+// the ring of a machine that works in cycles.
+type InvProgress struct {
+	Pct  int
+	Ring bool
+	Tip  string
 }
 
 // InvRow is a row of parts under an optional heading.
@@ -186,6 +206,8 @@ type InventoryScreen struct {
 	Close func(p *player.Player, tx *world.Tx)
 	// Size names the window size; screens of one size switch in place.
 	Size string
+	// Key names what the screen shows, for ShowingKey.
+	Key string
 }
 
 type dInvSlot struct {
@@ -219,13 +241,26 @@ type dInvTab struct {
 }
 
 type dInvPart struct {
-	Area   string      `json:"area"`
-	Cols   int         `json:"cols"`
-	Slots  []dInvSlot  `json:"slots"`
-	Big    bool        `json:"big"`
-	Arrow  bool        `json:"arrow"`
-	Button *dBarButton `json:"button"`
-	Off    bool        `json:"off"`
+	Area     string      `json:"area"`
+	Cols     int         `json:"cols"`
+	Slots    []dInvSlot  `json:"slots"`
+	Big      bool        `json:"big"`
+	Arrow    bool        `json:"arrow"`
+	Button   *dBarButton `json:"button"`
+	Off      bool        `json:"off"`
+	Gauge    *dGauge     `json:"gauge,omitempty"`
+	Progress *dProgress  `json:"progress,omitempty"`
+}
+
+type dGauge struct {
+	Kind string `json:"kind"`
+	Fill int    `json:"fill"`
+	Tip  string `json:"tip"`
+}
+
+type dProgress struct {
+	Icon string `json:"icon"`
+	Tip  string `json:"tip"`
 }
 
 type dInvRow struct {
@@ -282,6 +317,7 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		}
 	}
 	l.hold = s.Hold
+	l.screenKey = s.Key
 	chrome, _ := l.chromeOf(s.Title, s.Options)
 	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Tools: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil}
 	button := func(o Option) dBarButton {
@@ -303,6 +339,20 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		}
 		for _, part := range r.Parts {
 			dp := dInvPart{Area: part.Area, Cols: part.Cols, Slots: []dInvSlot{}, Big: part.Big, Arrow: part.Arrow, Off: part.Off}
+			if g := part.Gauge; g != nil {
+				fill := 0
+				if g.Max > 0 {
+					fill = min(100, max(0, g.Value*100/g.Max))
+				}
+				dp.Gauge = &dGauge{Kind: g.Kind, Fill: fill, Tip: untoken(g.Tip)}
+			}
+			if pr := part.Progress; pr != nil {
+				look := "progress"
+				if pr.Ring {
+					look = "cycle"
+				}
+				dp.Progress = &dProgress{Icon: oreIcon("textures/items/" + look + "_" + strconv.Itoa(min(10, max(0, pr.Pct/10)))), Tip: untoken(pr.Tip)}
+			}
 			if part.Button != nil {
 				b := dBarButton{ID: l.id(part.Button.Run), Tip: untoken(part.Button.Label), Icon: oreIcon(part.Button.Icon), Quick: true}
 				dp.Button = &b

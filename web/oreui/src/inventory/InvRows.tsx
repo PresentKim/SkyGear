@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon';
 import { Scroll } from '../components/Scroll';
 import { InvSlotView } from './InvSlot';
 import { ButtonColumn } from './ButtonColumn';
+import { Gauge, Progress } from './Gauge';
 
 function SmallButton(props: { button: BarButton }): JSX.Element {
   const b = props.button;
@@ -26,6 +27,8 @@ function Part(props: { part: InvPart }): JSX.Element {
     );
   }
   if (part.button) return <SmallButton button={part.button} />;
+  if (part.gauge) return <Gauge gauge={part.gauge} />;
+  if (part.progress) return <Progress progress={part.progress} />;
   const rows: JSX.Element[] = [];
   const cols = Math.max(1, part.cols);
   for (let i = 0; i < part.slots.length; i += cols) {
@@ -42,7 +45,7 @@ function Part(props: { part: InvPart }): JSX.Element {
 
 function Row(props: { row: InvRow; info?: string }): JSX.Element {
   const { row, info } = props;
-  const parts = row.parts.filter((p) => p.arrow || p.button || p.slots.length > 0);
+  const parts = row.parts.filter((p) => p.arrow || p.button || p.gauge || p.progress || p.slots.length > 0);
   const bar = row.bar && row.bar.length > 0 ? <ButtonColumn buttons={row.bar} place="bar" top={row.barTop} /> : null;
   const body =
     parts.length === 0 && row.note ? (
