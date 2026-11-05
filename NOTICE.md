@@ -21,6 +21,9 @@ below are third-party work and keep their own licences:
 - `.claude/skills/korean-humanizer/` — Korean writing guide adapted from
   [k-skill](https://github.com/NomaDamas/k-skill) `korean-humanizer` by
   NomaDamas, MIT License, see `.claude/skills/korean-humanizer/LICENSE`.
+- `.claude/skills/pixelfx/`: the pixelfx skill from
+  [pixelfx](https://github.com/patch-gg/pixelfx) by Patch and Hugo Duprez
+  (commit `a8415968`), MIT License, see `.claude/skills/pixelfx/LICENSE`.
 
 The resource packs reference vanilla Minecraft textures by path only; those
 textures are supplied by the player's game client and are not part of this
