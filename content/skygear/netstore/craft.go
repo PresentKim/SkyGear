@@ -502,7 +502,7 @@ func (e *craftEnv) Push(id string, in []storagenet.Stack) bool {
 		return false
 	}
 	pos := ready[0]
-	to, face := front(pos)
+	to, face := front(e.tx, pos)
 	if nodeAt(e.tx, to) != "" || !e.pushTo(to, face, in) {
 		return false
 	}

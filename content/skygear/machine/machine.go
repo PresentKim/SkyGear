@@ -64,6 +64,11 @@ func init() {
 			world.RegisterBlock(Machine{Kind: k, MeshLook: l[0], Content: l[1], Fill: l[2]})
 		}
 	}
+	for k, shapes := range NetShapes() {
+		for _, s := range shapes[1:] {
+			world.RegisterBlock(Machine{Kind: k, Shape: s})
+		}
+	}
 }
 
 // HourglassTicks is how long one fairy hourglass boosts a machine, and
@@ -510,6 +515,8 @@ type Machine struct {
 	Active bool
 	// tier is the tier look of the block (tierlook.go).
 	Tier int
+	// Shape is the look of a thin network block (netshape.go).
+	Shape int
 }
 
 // State is the inventory and progress of a placed machine. It is
@@ -523,6 +530,9 @@ type State struct {
 	shownEnergy int
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
+	// Facing is the side a network attachment acts on (south when it was
+	// placed without a clicked face).
+	Facing cube.Face
 	// pos is where the machine stands, set when it ticks or its window is
 	// opened.
 	pos cube.Pos
@@ -676,7 +686,7 @@ func (st *State) DrainLegacy() {
 
 func New(kind, owner, ownerName string) Machine {
 	k := Kinds[kind]
-	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1}
+	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.Role(slot) == RoleNone {
@@ -1197,17 +1207,28 @@ func (m Machine) EncodeBlock() (string, map[string]any) {
 	if AnimatedKinds[m.Kind] {
 		return encodedName(m.Kind), map[string]any{activeState: activeValue(m.Active)}
 	}
+	if NetShaped(m.Kind) {
+		return encodedName(m.Kind), map[string]any{NetShapeState: netShapeName(m.Shape)}
+	}
 	return encodedName(m.Kind), nil
 }
 
 func (m Machine) Hash() (uint64, uint64) {
+	if NetShaped(m.Kind) {
+		return m.Def().Hash, uint64(m.Shape)
+	}
 	if m.Active || m.Tier > 0 {
 		return m.Def().Hash, uint64(tierLookIndex(m.Kind, m.Tier, m.Active))
 	}
 	return m.Def().Hash, uint64(lookIndex(m.MeshLook, m.Content, m.Fill))
 }
 
-func (Machine) Model() world.BlockModel { return model.Solid{} }
+func (m Machine) Model() world.BlockModel {
+	if NetShaped(m.Kind) {
+		return netModel{netBoxes(m.Kind, m.Shape)}
+	}
+	return model.Solid{}
+}
 
 func (m Machine) Name() string {
 	if m.State != nil {
@@ -1222,8 +1243,8 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindNetCable: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetImporter: true, KindNetExporter: true, KindNetExternal: true, KindNetAutocrafter: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -1236,6 +1257,9 @@ func (m Machine) States() map[string][]any {
 	}
 	if AnimatedKinds[m.Kind] {
 		return activeStates()
+	}
+	if NetShaped(m.Kind) {
+		return netStates(m.Kind)
 	}
 	return nil
 }
@@ -1251,6 +1275,9 @@ func (m Machine) Permutations() []customblock.Permutation {
 	if AnimatedKinds[m.Kind] {
 		return activePermutations(m.Kind)
 	}
+	if NetShaped(m.Kind) {
+		return netPermutations(m.Kind)
+	}
 	return nil
 }
 
@@ -1263,6 +1290,9 @@ func (m Machine) Properties() customblock.Properties {
 	}
 	if frontMachines[m.Kind] {
 		return blockmodel.FrontCubeProperties(m.Kind)
+	}
+	if NetShaped(m.Kind) {
+		return netProperties(m.Kind, netItemShape(m.Kind))
 	}
 	return sieveProperties(m.Kind)
 }
@@ -1337,6 +1367,9 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
 	data["OwnerName"] = m.State.ownerName
+	if _, head := netHeads[m.Kind]; head {
+		data["Facing"] = int32(m.State.Facing)
+	}
 	return data
 }
 
@@ -1344,6 +1377,10 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	owner, _ := data["Owner"].(string)
 	ownerName, _ := data["OwnerName"].(string)
 	n := New(m.Kind, owner, ownerName)
+	n.Shape = m.Shape
+	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
+		n.State.Facing = cube.Face(f)
+	}
 	if f, ok := data["Fluid"].(int32); ok {
 		n.State.Fluid = fluidnet.Kind(f)
 	}
@@ -1539,6 +1576,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		// Placed without going through the place handler.
 		tx.SetBlock(pos, New(m.Kind, "", ""), nil)
 		return
+	}
+	if NetShaped(m.Kind) && currentTick%40 == 0 {
+		showNetShape(tx, pos, m)
 	}
 	st := m.State
 	st.Sess, st.pos, st.Stuck, st.curTick = s, pos, stuckNone, currentTick
@@ -1790,7 +1830,16 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind s
 	if m.Kind != KindSieve {
 		progress.Advance(s, tx, advancement.Machine)
 	}
-	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
+	face, clicked := takePlaceFace(s, p)
+	if _, head := netHeads[kind]; head && clicked {
+		m.State.Facing = face.Opposite()
+	}
+	tx.Defer(func(tx *world.Tx) {
+		if NetShaped(kind) {
+			m.Shape = netShapeAt(tx, pos, m)
+		}
+		tx.SetBlock(pos, m, nil)
+	})
 }
 
 // Break closes the windows of a machine being broken.

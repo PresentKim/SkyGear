@@ -155,6 +155,9 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
+	if m, ok := held.Item().(machine.Machine); ok && machine.NetShaped(m.Kind) {
+		machine.NotePlaceFace(h.s.Session, p, face)
+	}
 	// The configuration copier copies and pastes settings and does nothing else.
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		ctx.Cancel()

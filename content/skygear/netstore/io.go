@@ -104,13 +104,16 @@ func Touch(n *Network, tx *world.Tx) func() {
 }
 
 // front is the block a node acts on and the face of it the items pass
-// through. Machines have no facing of their own and blockmodel.FrontCubeProperties
-// puts the front texture on the "south" material (+Z), so the front is the
-// south side and the items pass through the north face of the block there.
-// Every node that acts on its front (importer, exporter, external storage,
-// autocrafter push) takes it from here.
-func front(pos cube.Pos) (cube.Pos, cube.Face) {
-	return pos.Side(cube.FaceSouth), cube.FaceNorth
+// through: the side the node faces (machine.State.Facing; the autocrafter's
+// front texture is on its south side, where it always faces). Every node that
+// acts on its front (importer, exporter, external storage, autocrafter push)
+// takes it from here.
+func front(tx *world.Tx, pos cube.Pos) (cube.Pos, cube.Face) {
+	f := cube.FaceSouth
+	if st := stateAt(tx, pos); st != nil {
+		f = st.Facing
+	}
+	return pos.Side(f), f.Opposite()
 }
 
 func jobID(pos cube.Pos) string { return "io@" + configKey(pos) }
@@ -203,7 +206,7 @@ func nodeRun(_ *core.Session, _ *machine.State, pos cube.Pos, tx *world.Tx) {
 // importWork moves up to ioItems items from the block in front into the
 // network; it reports whether any moved.
 func importWork(tx *world.Tx, n *Network, pos cube.Pos) bool {
-	target, face := front(pos)
+	target, face := front(tx, pos)
 	if nodeAt(tx, target) != "" {
 		return false
 	}
@@ -248,7 +251,7 @@ func exportWork(tx *world.Tx, n *Network, pos cube.Pos) bool {
 	if f == nil {
 		return false
 	}
-	target, face := front(pos)
+	target, face := front(tx, pos)
 	if nodeAt(tx, target) != "" {
 		return false
 	}

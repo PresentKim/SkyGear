@@ -234,8 +234,47 @@ func TestExternalDrawerController(t *testing.T) {
 	})
 }
 
-// The front texture (the "south" material) faces +Z: an importer takes from
-// the block south of it and ignores the one north of it.
+func TestImporterTakesFromItsFacing(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n, ps := ioNet(tx, machine.KindNetImporter)
+		stateAt(tx, ps[0]).Facing = cube.FaceNorth
+		north := ps[0].Side(cube.FaceNorth)
+		tx.SetBlock(north, block.NewChest(), nil)
+		_, _ = tx.Block(north).(block.Chest).Inventory(tx, north).AddItem(dirtS.Grow(8))
+		fill(tx, ps[0], stoneS.Grow(8))
+		for range 80 {
+			step(s, tx, n, ps...)
+		}
+		if n.Root.Count(KeyOf(dirtS)) != 9 || n.Root.Count(KeyOf(stoneS)) != 0 {
+			t.Fatalf("dirt %d, stone %d", n.Root.Count(KeyOf(dirtS)), n.Root.Count(KeyOf(stoneS)))
+		}
+	})
+}
+
+func TestCableArmsFollowNeighbours(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		update := func() {
+			tx.Block(p(1)).(machine.Machine).NeighbourUpdateTick(p(1), p(2), tx)
+		}
+		put(tx, p(1), machine.KindNetCable)
+		put(tx, p(0), machine.KindNetController)
+		imp := machine.New(machine.KindNetImporter, "", "")
+		imp.State.Facing = cube.FaceWest
+		tx.SetBlock(p(2), imp, nil)
+		update()
+		if got := tx.Block(p(1)).(machine.Machine).Shape; got != 1<<cube.FaceWest {
+			t.Fatalf("cable shape %06b, want an arm west only", got)
+		}
+		imp.State.Facing = cube.FaceUp
+		update()
+		if got := tx.Block(p(1)).(machine.Machine).Shape; got != 1<<cube.FaceWest|1<<cube.FaceEast {
+			t.Fatalf("cable shape %06b, want arms west and east", got)
+		}
+	})
+}
+
+// An attachment placed without a clicked face faces south: an importer takes
+// from the block south of it and ignores the one north of it.
 func TestFrontIsSouth(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n, ps := ioNet(tx, machine.KindNetImporter)

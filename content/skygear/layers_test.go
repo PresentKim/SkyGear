@@ -11,7 +11,7 @@ import (
 // imports only the packages before it, so the dependencies run one way.
 var layers = []string{
 	// data
-	"locales", "naming", "textfmt", "formicon", "blockmodel", "sgitem", "sievetable", "wintext", "machinerecipe",
+	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
 	"advancement", "hopper", "nsmigrate", "migrate",
 	// core
 	"core", "network", "achievement",
