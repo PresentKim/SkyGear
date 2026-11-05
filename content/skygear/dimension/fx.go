@@ -18,7 +18,7 @@ const flameGap = 1.2
 // turning blades leave their sweep behind them.
 func drawBlade(tx *world.Tx, centre, dir mgl64.Vec3, inner, outer float64) {
 	at := centre.Add(dir.Mul((inner + outer) / 2))
-	spark(tx, at, fxSlash, yawOf(dir), sparkVar{"len", (outer - inner) * 0.65})
+	spark(tx, at, fxSlash, yawOf(dir), sparkVar{"len", (outer - inner) * 1.1})
 }
 
 // drawBolt lays a crossbow bolt's tracer from a to b and strikes there.

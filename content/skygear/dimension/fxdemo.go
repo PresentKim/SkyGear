@@ -7,12 +7,14 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // The showcase (/sgdebug fx): a weapon's look played round a player for a
-// few seconds, at grade 1 and level 1, hitting nothing. An entity no one
-// sees draws it each tick and closes when it is done.
+// few seconds, at grade 1 and level 1, hitting nothing, seen through the
+// hunt camera as in a hunt. An entity no one sees draws it each tick and
+// closes when it is done.
 
 // fxDemoTicks is how long a showcase plays.
 const fxDemoTicks = 100
@@ -63,13 +65,27 @@ func (d *fxDemo) Close() error {
 func (d *fxDemo) Tick(tx *world.Tx, _ int64) {
 	md := d.md()
 	e, ok := md.viewer.Entity(tx)
-	if !ok || md.age >= fxDemoTicks {
+	if !ok {
 		_ = d.Close()
 		return
 	}
 	p := e.(*player.Player)
+	hunting := false
+	if s, ok := core.Of(tx); ok {
+		hunting = RunOf(s) != nil
+	}
+	if md.age >= fxDemoTicks {
+		if !hunting {
+			plainCamera(p)
+		}
+		_ = d.Close()
+		return
+	}
 	feet := p.Position()
 	if md.age == 0 {
+		if !hunting {
+			huntCamera(p)
+		}
 		look := p.Rotation().Vec3()
 		md.dir = mgl64.Vec3{look[0], 0, look[2]}
 		if md.dir.Len() < 0.01 {
