@@ -34,9 +34,10 @@ func TestRangeBoxFollowsKind(t *testing.T) {
 	}
 }
 
-func TestBoxEdgesCoverTwelveEdges(t *testing.T) {
-	if n := len(boxEdges(mgl64.Vec3{0, 0, 0}, mgl64.Vec3{2, 2, 2})); n != 12*5 {
-		t.Errorf("%d points", n)
+func TestBoxVariantPacksSize(t *testing.T) {
+	v := boxVariant(mgl64.Vec3{-16, 0, -16}, mgl64.Vec3{17, 15, 17}, 3)
+	if v%128 != 33 || v/128%128 != 15 || v/16384%128 != 33 || v/2097152 != 3 {
+		t.Errorf("variant %d", v)
 	}
 }
 

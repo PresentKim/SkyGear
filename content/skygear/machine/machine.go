@@ -537,9 +537,11 @@ type State struct {
 	// Range is the reach set on the screen of a machine with a range; 0 is
 	// all its tier gives (Reach).
 	Range int
-	// rangeUntil is the tick the outline of its range shows until
-	// (rangeview.go).
-	rangeUntil int64
+	// rangeUntil is the tick the box over its range shows until, and
+	// rangeEntity that box, rangeSize its size (rangeview.go).
+	rangeUntil  int64
+	rangeEntity *world.EntityHandle
+	rangeSize   int32
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
@@ -1653,7 +1655,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if (currentTick+int64(posHash(pos)))%5 == 0 && len(watchers.Of(s)) > 0 {
 		watchMachine(s, tx, pos, st)
 	}
-	st.showRange(tx, pos, currentTick)
+	st.showRange(tx, pos)
 	switch st.Def.ID {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {

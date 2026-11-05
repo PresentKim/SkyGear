@@ -1,0 +1,64 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.skygear.range_box.size": {
+      "loop": true,
+      "bones": {
+        "root": {
+          "position": [0, "-16 * variable.drop", 0]
+        },
+        "fill": {
+          "scale": ["variable.w", "variable.h", "variable.d"]
+        },
+        "ex_bn": {
+          "position": [0, 0, "-8 * variable.d"],
+          "scale": ["variable.w", 1, 1]
+        },
+        "ex_bs": {
+          "position": [0, 0, "8 * variable.d"],
+          "scale": ["variable.w", 1, 1]
+        },
+        "ex_tn": {
+          "position": [0, "16 * variable.h", "-8 * variable.d"],
+          "scale": ["variable.w", 1, 1]
+        },
+        "ex_ts": {
+          "position": [0, "16 * variable.h", "8 * variable.d"],
+          "scale": ["variable.w", 1, 1]
+        },
+        "ey_nw": {
+          "position": ["-8 * variable.w", 0, "-8 * variable.d"],
+          "scale": [1, "variable.h", 1]
+        },
+        "ey_ne": {
+          "position": ["8 * variable.w", 0, "-8 * variable.d"],
+          "scale": [1, "variable.h", 1]
+        },
+        "ey_sw": {
+          "position": ["-8 * variable.w", 0, "8 * variable.d"],
+          "scale": [1, "variable.h", 1]
+        },
+        "ey_se": {
+          "position": ["8 * variable.w", 0, "8 * variable.d"],
+          "scale": [1, "variable.h", 1]
+        },
+        "ez_bw": {
+          "position": ["-8 * variable.w", 0, 0],
+          "scale": [1, 1, "variable.d"]
+        },
+        "ez_be": {
+          "position": ["8 * variable.w", 0, 0],
+          "scale": [1, 1, "variable.d"]
+        },
+        "ez_tw": {
+          "position": ["-8 * variable.w", "16 * variable.h", 0],
+          "scale": [1, 1, "variable.d"]
+        },
+        "ez_te": {
+          "position": ["8 * variable.w", "16 * variable.h", 0],
+          "scale": [1, 1, "variable.d"]
+        }
+      }
+    }
+  }
+}
