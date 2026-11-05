@@ -96,6 +96,32 @@ func terminalList(n *Network, lang, query string, o int) (list []storage.Entry, 
 	return list, keys, found
 }
 
+// keepOrder is the list in the order of kept, each kind with what n holds
+// now (0 when it ran out), then the kinds of list not in kept, cut to the
+// terminal's slots.
+func keepOrder(n *Network, kept []storagenet.Key, list []storage.Entry) ([]storage.Entry, []storagenet.Key) {
+	var out []storage.Entry
+	var keys []storagenet.Key
+	in := map[storagenet.Key]bool{}
+	for _, k := range kept {
+		if p := Proto(n.Sess, k); !p.Empty() {
+			out = append(out, storage.Entry{Item: p, Count: n.Root.Count(k)})
+			keys = append(keys, k)
+			in[k] = true
+		}
+	}
+	for _, e := range list {
+		if k := KeyOf(e.Item); !in[k] {
+			out = append(out, e)
+			keys = append(keys, k)
+		}
+	}
+	if len(out) > terminalSlots {
+		out, keys = out[:terminalSlots], keys[:terminalSlots]
+	}
+	return out, keys
+}
+
 // terminalInfo is the line over the list: kind and item totals, the search
 // and the hint when the list is cut.
 func terminalInfo(lang string, kinds int, items int64, query string, found int) string {
@@ -134,6 +160,10 @@ var (
 	lastUse = core.NewPlayers[terminalUse]()
 	// orders are how each player sorts the list.
 	orders = core.NewPlayers[int]()
+	// keptOrders is the list order kept while the player holds a button, a
+	// finger or shift on the terminal window (nil until the first draw after
+	// the hold began).
+	keptOrders = core.NewPlayers[[]storagenet.Key]()
 )
 
 // ShowTerminal handles a click on a terminal or controller: a sneaking click
@@ -148,6 +178,7 @@ func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos)
 	}
 	if p.Sneaking() {
 		if !s.Debounced(p) {
+			delete(keptOrders.Of(s), p.H())
 			showTerminal(s, p, tx, pos, "")
 		}
 		return

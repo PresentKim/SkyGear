@@ -78,6 +78,27 @@ func TestTerminalCap240(t *testing.T) {
 	})
 }
 
+func TestTerminalKeepsOrderWhileHeld(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n := termNet(t, tx, 0)
+		stone, dirt, sand := item.NewStack(block.Stone{}, 30), item.NewStack(block.Dirt{}, 20), item.NewStack(block.Sand{}, 10)
+		netInsert(n, stone)
+		netInsert(n, dirt)
+		_, kept, _ := terminalList(n, "en_US", "", 0)
+		netExtract(n, KeyOf(stone), 30)
+		netInsert(n, sand)
+		list, _, _ := terminalList(n, "en_US", "", 0)
+		list, keys := keepOrder(n, kept, list)
+		want := []storagenet.Key{KeyOf(stone), KeyOf(dirt), KeyOf(sand)}
+		if fmt.Sprint(keys) != fmt.Sprint(want) {
+			t.Fatalf("keys %v, want %v", keys, want)
+		}
+		if list[0].Count != 0 || list[1].Count != 20 || list[2].Count != 10 {
+			t.Fatalf("counts %d %d %d", list[0].Count, list[1].Count, list[2].Count)
+		}
+	})
+}
+
 func TestTerminalTake(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n := termNet(t, tx, 0)

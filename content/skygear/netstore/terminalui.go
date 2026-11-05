@@ -87,6 +87,12 @@ func openTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		t.n = n
 		lang := i18n.Of(p)
 		t.list, t.keys, t.found = terminalList(n, lang, t.query, orders.Of(s)[p.H()])
+		if kept, ok := keptOrders.Of(s)[p.H()]; ok {
+			if kept != nil {
+				t.list, t.keys = keepOrder(n, kept, t.list)
+			}
+			keptOrders.Of(s)[p.H()] = t.keys
+		}
 		if CraftableHook != nil && RequestHook != nil {
 			for _, k := range CraftableHook(n) {
 				pr := Proto(n.Sess, k)
@@ -195,6 +201,16 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			openTerminal(s, p, tx, pos, query).drag(p, d)
 			again(p, tx)
 		},
+		Hold: func(p *player.Player, tx *world.Tx, on bool) {
+			_, was := keptOrders.Of(s)[p.H()]
+			switch {
+			case on && !was:
+				keptOrders.Of(s)[p.H()] = nil
+			case !on && was:
+				delete(keptOrders.Of(s), p.H())
+				again(p, tx)
+			}
+		},
 		Again: again,
 		Size:  "terminal",
 	})
@@ -215,7 +231,7 @@ func terminalSide(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			orders.Of(s)[p.H()] = (orders.Of(s)[p.H()] + 1) % len(orderKeys)
 			again(p, tx)
 		}},
-		{Label: i18n.T(lang, "storage.depositAll"), Icon: "textures/ui/sg/arrow_down", Run: func(p *player.Player, tx *world.Tx) {
+		{Label: i18n.T(lang, "storage.depositAll"), Icon: "textures/ui/sg/arrow_up", Run: func(p *player.Player, tx *world.Tx) {
 			if n := At(tx, pos); n != nil && n.Online() && depositKinds(n, p.Inventory()) > 0 {
 				tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 			}

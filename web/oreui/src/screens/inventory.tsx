@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { BarButton, InventoryData } from '../protocol';
+import type { BarButton, InventoryData, InvSlot } from '../protocol';
 import { usePressable } from '../interact/press';
 import { hideTip, showTip } from '../interact/Tooltip';
 import { Rich } from '../text/Rich';
@@ -52,12 +52,39 @@ function TouchTip(): JSX.Element | null {
   return tip ? <Rich text={tip.split('\n')[0]} className="oui-text mc-inv-touch-tip" /> : null;
 }
 
+// HeldCursor is the cursor stack; a drag that has placed all of it keeps it held at 0 until the
+// button or finger is let go, as the vanilla inventory does.
+function HeldCursor(props: { slot: InvSlot | null }): JSX.Element {
+  useGestureRedraw();
+  const last = useRef<InvSlot | null>(null);
+  if (props.slot) last.current = props.slot;
+  const ghost = !props.slot && gesture.splitHeld() && last.current ? { ...last.current, count: '0' } : null;
+  return <CursorStack slot={props.slot || ghost} />;
+}
+
+const isShift = (ev: KeyboardEvent) => ev.key === 'Shift' || ev.keyCode === 16;
+
 /** InventoryScreen draws an inventory screen: the search box, the rows, the side buttons and the cursor stack. */
 export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
   const { data } = props;
   gesture.setCarrying(!!data.cursor);
+  gesture.setReportHold(!!data.hold);
   const typed = useRef(data.query);
   useEffect(() => () => gesture.reset(), []);
+  useEffect(() => {
+    const down = (ev: KeyboardEvent) => {
+      if (isShift(ev)) gesture.setShift(true);
+    };
+    const up = (ev: KeyboardEvent) => {
+      if (isShift(ev)) gesture.setShift(false);
+    };
+    document.addEventListener('keydown', down);
+    document.addEventListener('keyup', up);
+    return () => {
+      document.removeEventListener('keydown', down);
+      document.removeEventListener('keyup', up);
+    };
+  }, []);
   // Gameface hit-tests no empty transparent element, so presses outside the window are found on the
   // document: every press whose target is not inside the window (its side column and book included).
   useEffect(() => {
@@ -92,7 +119,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
       <TouchTip />
       <InvRows rows={data.rows} info={data.info} />
       {data.book ? <RecipeBook book={data.book} /> : null}
-      <CursorStack slot={data.cursor} />
+      <HeldCursor slot={data.cursor} />
     </Window>
   );
 }

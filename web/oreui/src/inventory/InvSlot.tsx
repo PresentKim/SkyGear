@@ -45,7 +45,7 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
       gesture.mouseEnter(cur.current.id);
       if (gesture.touchedRecently()) return;
       setHover(true);
-      if (cur.current.tip) showTip(ev.currentTarget as HTMLElement, cur.current.tip, cur.current.rare);
+      if (cur.current.tip) showTip(ev.currentTarget as HTMLElement, cur.current.tip);
     },
     onMouseLeave: () => {
       setHover(false);

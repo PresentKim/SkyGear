@@ -28,6 +28,11 @@ function slotEl(container: HTMLElement, i: number): Element {
 
 const mouse = (el: Element, type: string, button = 0, shiftKey = false) =>
   el.dispatchEvent(new MouseEvent(type, { bubbles: true, button, shiftKey }));
+const clickOn = (el: Element, button = 0, shiftKey = false) => {
+  mouse(el, 'mousedown', button, shiftKey);
+  mouse(el, 'mouseup', button, shiftKey);
+};
+const key = (type: string, k: string) => document.dispatchEvent(new KeyboardEvent(type, { key: k }));
 const touch = (el: Element, type: string) => el.dispatchEvent(new Event(type, { bubbles: true }));
 const click = (b: 0 | 1, shift = false, dbl = false, split = false) => ({ b, shift, dbl, split });
 
@@ -54,23 +59,64 @@ describe('inventory mouse', () => {
   });
   it('a second left press within 250ms is a double click', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
-    mouse(slotEl(container, 1), 'mousedown');
+    clickOn(slotEl(container, 1));
     vi.advanceTimersByTime(200);
-    mouse(slotEl(container, 1), 'mousedown');
+    clickOn(slotEl(container, 1));
     expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0, false, true));
   });
   it('a right press between breaks the double click', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
-    mouse(slotEl(container, 1), 'mousedown');
-    mouse(slotEl(container, 1), 'mousedown', 2);
-    mouse(slotEl(container, 1), 'mousedown');
+    clickOn(slotEl(container, 1));
+    clickOn(slotEl(container, 1), 2);
+    clickOn(slotEl(container, 1));
     expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0));
   });
   it('a shift double click keeps shift', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);
-    mouse(slotEl(container, 1), 'mousedown', 0, true);
-    mouse(slotEl(container, 1), 'mousedown', 0, true);
+    clickOn(slotEl(container, 1), 0, true);
+    clickOn(slotEl(container, 1), 0, true);
     expect(send).toHaveBeenLastCalledWith('inv:0', 'slot', click(0, true, true));
+  });
+  it('a press of a button still down is the drag reaching that slot', () => {
+    const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
+    act(() => {
+      mouse(slotEl(container, 1), 'mousedown');
+    });
+    act(() => {
+      mouse(slotEl(container, 2), 'mousedown');
+    });
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'drag', { b: 0, ids: ['inv:0', 'inv:1'] });
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+  it('a drag that placed the whole stack keeps it held at 0 until release', () => {
+    const r = render(<InventoryScreen data={data(slot('', 'dirt'))} />);
+    act(() => {
+      mouse(slotEl(r.container, 1), 'mousedown');
+    });
+    r.rerender(<InventoryScreen data={data(null)} />);
+    expect(r.container.querySelector('.mc-inv-cursor .mc-count')!.textContent).toBe('0');
+    act(() => {
+      mouse(slotEl(r.container, 2), 'mouseenter');
+    });
+    expect(send).toHaveBeenLastCalledWith('inv:0', 'drag', { b: 0, ids: ['inv:0', 'inv:1'] });
+    act(() => {
+      document.dispatchEvent(new MouseEvent('mouseup'));
+    });
+    expect(r.container.querySelector('.mc-inv-cursor')).toBeNull();
+  });
+  it('a hold screen hears buttons and shift held and let go', () => {
+    const { container } = render(<InventoryScreen data={{ ...data(null), hold: true }} />);
+    key('keydown', 'Shift');
+    clickOn(slotEl(container, 1), 0, true);
+    clickOn(slotEl(container, 1), 0, true);
+    key('keyup', 'Shift');
+    expect(send.mock.calls.filter((c) => c[1] === 'hold')).toEqual([['hold', 'hold', true], ['hold', 'hold', false]]);
+    expect(send.mock.calls[0][1]).toBe('hold');
+  });
+  it('a click on a hold screen is held from before its press to the release', () => {
+    const { container } = render(<InventoryScreen data={{ ...data(null), hold: true }} />);
+    clickOn(slotEl(container, 1));
+    expect(send.mock.calls.map((c) => c[1])).toEqual(['hold', 'slot', 'hold']);
   });
   it('a held stack press places at once and the drag spreads live', () => {
     const { container } = render(<InventoryScreen data={data(slot('', 'dirt'))} />);

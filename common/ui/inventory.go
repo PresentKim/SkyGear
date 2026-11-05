@@ -141,6 +141,9 @@ type InventoryScreen struct {
 	Options []Option
 	Slot    func(p *player.Player, tx *world.Tx, a SlotAct)
 	Drag    func(p *player.Player, tx *world.Tx, d DragAct)
+	// Hold, if set, hears when the player starts holding a mouse button, a
+	// finger or shift on the screen (on) and when every one is let go.
+	Hold func(p *player.Player, tx *world.Tx, on bool)
 	// Again draws the screen again after a press outside the window dropped
 	// the cursor stack (DropCarried).
 	Again func(p *player.Player, tx *world.Tx)
@@ -207,6 +210,7 @@ type inventoryData struct {
 	Quick       string       `json:"quick"`
 	Book        *dInvBook    `json:"book"`
 	Cursor      *dInvSlot    `json:"cursor"`
+	Hold        bool         `json:"hold"`
 }
 
 // ShowInventory shows p an inventory screen. The cursor stack is drawn from
@@ -238,8 +242,9 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 			s.Again(p, tx)
 		}
 	}
+	l.hold = s.Hold
 	chrome, _ := l.chromeOf(s.Title, s.Options)
-	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Quick: untoken(s.Quick)}
+	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil}
 	if s.Search != nil {
 		d.Field, d.Query, d.Placeholder = "search", s.Search.Query, s.Search.Placeholder
 		if s.Search.Change != nil {

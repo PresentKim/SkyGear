@@ -105,6 +105,7 @@ type oreScreen struct {
 	slot func(p *player.Player, tx *world.Tx, a SlotAct)
 	drag func(p *player.Player, tx *world.Tx, d DragAct)
 	drop func(p *player.Player, tx *world.Tx, one bool)
+	hold func(p *player.Player, tx *world.Tx, on bool)
 	// loading is when the loading screen shown came up (zero: the screen is
 	// not a loading screen, LoadingScreen).
 	loading time.Time
@@ -138,7 +139,7 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 	}
 	st.gen++
 	st.runs, st.input, st.inputs, st.values, st.close, st.probe = l.runs, l.input, l.inputs, l.values, l.close, l.probe
-	st.slot, st.drag, st.drop = l.slot, l.drag, l.drop
+	st.slot, st.drag, st.drop, st.hold = l.slot, l.drag, l.drop, l.hold
 	st.root = root
 	switch {
 	case !l.loading:
@@ -288,9 +289,9 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 		})
 		return
 	}
-	if ev.Kind == "slot" || ev.Kind == "drag" || ev.Kind == "drop" {
+	if ev.Kind == "slot" || ev.Kind == "drag" || ev.Kind == "drop" || ev.Kind == "hold" {
 		oreScreens.Lock()
-		slot, drag, drop, gen := st.slot, st.drag, st.drop, st.gen
+		slot, drag, drop, hold, gen := st.slot, st.drag, st.drop, st.hold, st.gen
 		oreScreens.Unlock()
 		a, aok := slotEvent(ev.ID, ev.Value)
 		d, dok := dragEvent(ev.Value)
@@ -310,6 +311,9 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 				drag(p, tx, d)
 			case ev.Kind == "drop" && drop != nil:
 				drop(p, tx, dropEvent(ev.Value))
+			case ev.Kind == "hold" && hold != nil:
+				on, _ := ev.Value.(bool)
+				hold(p, tx, on)
 			}
 		})
 		return
@@ -421,6 +425,7 @@ type oreLayout struct {
 	slot      func(p *player.Player, tx *world.Tx, a SlotAct)
 	drag      func(p *player.Player, tx *world.Tx, d DragAct)
 	drop      func(p *player.Player, tx *world.Tx, one bool)
+	hold      func(p *player.Player, tx *world.Tx, on bool)
 }
 
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
