@@ -68,10 +68,13 @@ func showFilter(s *core.Session, p *player.Player, pos cube.Pos, kind string) {
 	if cfg.Allow {
 		mode, icon = "netstore.io.allow", "textures/ui/confirm"
 	}
-	side := []ui.Option{{Label: i18n.T(lang, mode), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
-		cfg.Allow = !cfg.Allow
-		again(p, tx)
-	}}}
+	var side []ui.Option
+	if kind != machine.KindNetExporter {
+		side = append(side, ui.Option{Label: i18n.T(lang, mode), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
+			cfg.Allow = !cfg.Allow
+			again(p, tx)
+		}})
+	}
 	info := i18n.T(lang, "netstore.io.body."+kind)
 	if kind == machine.KindNetExternal {
 		side = append(side,
