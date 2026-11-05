@@ -7,5 +7,7 @@
  "netstore.io.deny": "Mode: Blocklist\n§7All but the filtered items",
  "netstore.io.prioUp": "Raise priority",
  "netstore.io.prioDown": "Lower priority",
- "netstore.io.priority": "Priority: %d"
+ "netstore.io.priority": "Priority: %d",
+ "netstore.io.upgrades": "Upgrades",
+ "netstore.io.speed": "§7Every %d ticks: %d"
 }

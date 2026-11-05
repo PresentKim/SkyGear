@@ -413,3 +413,5 @@ item.skygear:storage_disk_4k.name=저장 디스크 (4k)
 item.skygear:storage_disk_16k.name=저장 디스크 (16k)
 item.skygear:storage_disk_64k.name=저장 디스크 (64k)
 item.skygear:pattern.name=패턴
+item.skygear:speed_upgrade.name=속도 업그레이드
+item.skygear:stack_upgrade.name=세트 업그레이드

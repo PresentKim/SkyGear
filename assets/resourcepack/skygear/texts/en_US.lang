@@ -413,3 +413,5 @@ item.skygear:storage_disk_4k.name=Storage Disk (4k)
 item.skygear:storage_disk_16k.name=Storage Disk (16k)
 item.skygear:storage_disk_64k.name=Storage Disk (64k)
 item.skygear:pattern.name=Pattern
+item.skygear:speed_upgrade.name=Speed Upgrade
+item.skygear:stack_upgrade.name=Stack Upgrade

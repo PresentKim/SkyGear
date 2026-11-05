@@ -169,6 +169,8 @@ var entries = func() []entry {
 		it("storage_disk_"+n, "rs:item/"+n+"_storage_disk", nil)
 	}
 	it("pattern", "rs:item/pattern/empty", nil)
+	it("speed_upgrade", "rs:item/speed_upgrade", nil)
+	it("stack_upgrade", "rs:item/stack_upgrade", nil)
 	return e
 }()
 

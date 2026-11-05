@@ -94,18 +94,73 @@ func showFilter(s *core.Session, p *player.Player, pos cube.Pos, kind string) {
 			cfg.Filter = append(cfg.Filter, k)
 		}
 	}
+	rows := []ui.InvRow{{Heading: i18n.T(lang, "netstore.io.title"), Parts: []ui.InvPart{{Area: "filter", Cols: filterSlots, Slots: filter}}}}
+	st := stateAt(p.Tx(), pos)
+	var ups invclick.Slots
+	if st != nil && len(st.Def.Input) > 0 {
+		ups = make(invclick.Slots, len(st.Def.Input))
+		for i, s := range st.Def.Input {
+			ups[i], _ = st.Inv().Item(s)
+		}
+		rows = append(rows, ui.InvRow{Heading: i18n.T(lang, "netstore.io.upgrades"), Parts: []ui.InvPart{{Area: "upgrade", Cols: len(ups), Slots: areaSlots(ups, tipOf)}}})
+		info += "\n" + fmt.Sprintf(i18n.T(lang, "netstore.io.speed"), ioRateOf(st), ioAmountOf(st))
+	}
+	rows = append(rows,
+		ui.InvRow{Heading: i18n.T(lang, "netstore.terminal.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: areaSlots(main, tipOf)}}},
+		ui.InvRow{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: areaSlots(hot, tipOf)}}},
+	)
+	// putUpgrade moves one upgrade of it into a free upgrade slot and reports
+	// whether it went in.
+	putUpgrade := func(tx *world.Tx, slot int, it item.Stack) bool {
+		st := stateAt(tx, pos)
+		if st == nil || slot < 0 || slot >= len(st.Def.Input) || !upgradeFits(st, it) {
+			return false
+		}
+		if cur, _ := st.Inv().Item(st.Def.Input[slot]); !cur.Empty() {
+			return false
+		}
+		_ = st.Inv().SetItem(st.Def.Input[slot], it.Grow(1-it.Count()))
+		return true
+	}
+	freeUpgradeSlot := func(tx *world.Tx) int {
+		if st := stateAt(tx, pos); st != nil {
+			for i, s := range st.Def.Input {
+				if cur, _ := st.Inv().Item(s); cur.Empty() {
+					return i
+				}
+			}
+		}
+		return -1
+	}
 	ui.ShowInventory(p, ui.InventoryScreen{
 		Title: machine.Kinds[kind].Title(lang),
 		Info:  info,
-		Rows: []ui.InvRow{
-			{Heading: i18n.T(lang, "netstore.io.title"), Parts: []ui.InvPart{{Area: "filter", Cols: filterSlots, Slots: filter}}},
-			{Heading: i18n.T(lang, "netstore.terminal.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: areaSlots(main, tipOf)}}},
-			{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: areaSlots(hot, tipOf)}}},
-		},
-		Side: side,
+		Rows:  rows,
+		Side:  side,
 		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
 			cur := a.Carried
 			switch a.Area {
+			case "upgrade":
+				st := stateAt(tx, pos)
+				if st == nil || a.Index >= len(st.Def.Input) {
+					break
+				}
+				in, _ := st.Inv().Item(st.Def.Input[a.Index])
+				switch {
+				case in.Empty() && !cur.Empty():
+					if putUpgrade(tx, a.Index, cur) {
+						ui.SetCarried(p, cur.Grow(-1))
+					}
+				case in.Empty():
+				case a.Shift:
+					if left := invclick.Move(in, hot, main); left.Empty() {
+						_ = st.Inv().SetItem(st.Def.Input[a.Index], item.Stack{})
+					}
+				case cur.Empty():
+					_ = st.Inv().SetItem(st.Def.Input[a.Index], item.Stack{})
+					ui.SetCarried(p, in)
+				}
+				Invalidate(tx, pos)
 			case "filter":
 				switch {
 				case !cur.Empty() && a.Index < len(cfg.Filter):
@@ -125,8 +180,15 @@ func showFilter(s *core.Session, p *player.Player, pos cube.Pos, kind string) {
 				if a.Index >= area.Len() {
 					break
 				}
-				if a.Shift {
-					add(area.Item(a.Index))
+				if it := area.Item(a.Index); a.Shift {
+					if _, up := it.Item().(Upgrade); up {
+						if putUpgrade(tx, freeUpgradeSlot(tx), it) {
+							area.Set(a.Index, it.Grow(-1))
+						}
+						Invalidate(tx, pos)
+						break
+					}
+					add(it)
 					break
 				}
 				ui.SetCarried(p, invclick.Click(area, a.Index, cur, a.Right))

@@ -145,16 +145,32 @@ func buildIO(tx *world.Tx, n *Network) {
 			return w
 		})
 	}
-	for _, pos := range n.Nodes(machine.KindNetImporter) {
-		add(pos, ioRate, ioRate)
-	}
-	for _, pos := range n.Nodes(machine.KindNetExporter) {
-		add(pos, ioRate, ioRate)
+	for _, k := range []string{machine.KindNetImporter, machine.KindNetExporter} {
+		for _, pos := range n.Nodes(k) {
+			rate := ioRateOf(stateAt(tx, pos))
+			add(pos, rate, rate)
+		}
 	}
 	for _, pos := range n.Nodes(machine.KindNetExternal) {
 		add(pos, extMin, extMax)
 		addExternal(tx, n, rt, pos)
 	}
+}
+
+// ioRateOf is the ticks between an importer's or exporter's operations: 9,
+// less 2 a speed upgrade (UpgradeContainer.updateTicker).
+func ioRateOf(st *machine.State) int64 {
+	speed, _ := upgradesOf(st)
+	return max(1, ioRate-2*int64(speed))
+}
+
+// ioAmountOf is how many items an importer or exporter moves an operation:
+// a stack with the stack upgrade (the transfer quota providers).
+func ioAmountOf(st *machine.State) int {
+	if _, stack := upgradesOf(st); stack > 0 {
+		return ioItems * 64
+	}
+	return ioItems
 }
 
 // mirrored reports whether an external storage of the network faces target:
@@ -197,13 +213,14 @@ func nodeRun(_ *core.Session, _ *machine.State, pos cube.Pos, tx *world.Tx) {
 	j.worked = did
 }
 
-// importWork moves up to ioItems items from the block in front into the
+// importWork moves up to ioAmountOf items from the block in front into the
 // network; it reports whether any moved.
 func importWork(tx *world.Tx, n *Network, rt *ioRT, pos cube.Pos) bool {
 	target, face := front(tx, pos)
 	if nodeAt(tx, target) != "" || rt.mirrored(target) {
 		return false
 	}
+	amount := ioAmountOf(stateAt(tx, pos))
 	f := Config(n.Sess, pos).filterOf()
 	var refused []item.Stack
 	for range 4 {
@@ -218,7 +235,7 @@ func importWork(tx *world.Tx, n *Network, rt *ioRT, pos cube.Pos) bool {
 		if peek.Empty() {
 			return false
 		}
-		got := itemio.Extract(tx, target, face, peek, min(ioItems, peek.Count()))
+		got := itemio.Extract(tx, target, face, peek, min(amount, peek.Count()))
 		if got.Empty() {
 			return false
 		}
@@ -237,7 +254,7 @@ func importWork(tx *world.Tx, n *Network, rt *ioRT, pos cube.Pos) bool {
 	return false
 }
 
-// exportWork moves up to ioItems items of the first kind of the filter, in
+// exportWork moves up to ioAmountOf items of the first kind of the filter, in
 // its order, that the network holds and the block in front takes, as
 // Refined Storage's exporter (its filter is the list to export, whatever the
 // mode). An empty filter exports nothing.
@@ -246,13 +263,18 @@ func exportWork(tx *world.Tx, n *Network, rt *ioRT, pos cube.Pos) bool {
 	if nodeAt(tx, target) != "" || rt.mirrored(target) {
 		return false
 	}
+	amount := ioAmountOf(stateAt(tx, pos))
 	for _, f := range Config(n.Sess, pos).Filter {
 		k := storagenet.Key(f)
 		proto := Proto(n.Sess, k)
-		if proto.Empty() || n.Root.Extract(k, ioItems, true) == 0 {
+		if proto.Empty() {
 			continue
 		}
-		got := int(n.Root.Extract(k, ioItems, false))
+		want := int64(min(amount, proto.MaxCount()))
+		if n.Root.Extract(k, want, true) == 0 {
+			continue
+		}
+		got := int(n.Root.Extract(k, want, false))
 		if got == 0 {
 			continue
 		}

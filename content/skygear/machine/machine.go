@@ -380,11 +380,12 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.net_terminal.help.1"},
 	},
 	KindNetImporter: {
-		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Indicator: 10,
+		// four upgrade slots (netstore.Upgrade)
+		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_importer.help.1"},
 	},
 	KindNetExporter: {
-		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Indicator: 10,
+		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_exporter.help.1"},
 	},
 	KindNetExternal: {

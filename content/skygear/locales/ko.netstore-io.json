@@ -7,5 +7,7 @@
  "netstore.io.deny": "모드: 블랙리스트\n§7필터의 아이템 빼고",
  "netstore.io.prioUp": "우선 순위 올리기",
  "netstore.io.prioDown": "우선 순위 내리기",
- "netstore.io.priority": "우선 순위: %d"
+ "netstore.io.priority": "우선 순위: %d",
+ "netstore.io.upgrades": "업그레이드",
+ "netstore.io.speed": "§7%d틱마다 %d개씩"
 }

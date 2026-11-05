@@ -111,6 +111,47 @@ func TestImporterMovesOneItemEveryNineTicks(t *testing.T) {
 	})
 }
 
+func TestUpgradesSpeedAndStack(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		st := machine.New(machine.KindNetImporter, "", "").State
+		for i, want := range []int64{9, 7, 5, 3, 1, 1} {
+			if got := ioRateOf(st); got != want {
+				t.Fatalf("%d speed upgrades: every %d ticks, want %d", i, got, want)
+			}
+			if i < 4 && !upgradeFits(st, item.NewStack(Upgrade{}, 1)) {
+				t.Fatalf("speed upgrade %d did not fit", i+1)
+			}
+			if i < len(st.Def.Input) {
+				_ = st.Inv().SetItem(st.Def.Input[i], item.NewStack(Upgrade{}, 1))
+			}
+		}
+		if upgradeFits(st, item.NewStack(Upgrade{}, 1)) {
+			t.Fatal("a fifth speed upgrade fits")
+		}
+		_ = st.Inv().SetItem(st.Def.Input[3], item.NewStack(Upgrade{Stack: true}, 1))
+		if ioAmountOf(st) != 64 || ioRateOf(st) != 3 {
+			t.Fatalf("stack upgrade: %d every %d ticks, want 64 every 3", ioAmountOf(st), ioRateOf(st))
+		}
+		if upgradeFits(st, item.NewStack(Upgrade{Stack: true}, 1)) {
+			t.Fatal("a second stack upgrade fits")
+		}
+	})
+}
+
+func TestStackUpgradeImportsAStack(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n, ps := ioNet(tx, machine.KindNetImporter)
+		_ = stateAt(tx, ps[0]).Inv().SetItem(0, item.NewStack(Upgrade{Stack: true}, 1))
+		fill(tx, ps[0], stoneS.Grow(63))
+		for range ioRate {
+			step(s, tx, n, ps...)
+		}
+		if got := n.Root.Count(KeyOf(stoneS)); got != 64 {
+			t.Fatalf("imported %d in one operation, want 64", got)
+		}
+	})
+}
+
 func TestExporterMovesOneFilteredItemEveryNineTicks(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		put(tx, p(0), machine.KindNetController)

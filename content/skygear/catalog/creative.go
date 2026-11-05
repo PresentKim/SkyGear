@@ -80,6 +80,8 @@ func RegisterCreativeItems() {
 			add(items, netstore.Disk{Tier: t})
 		}
 		add(items, netstore.Pattern{})
+		add(items, netstore.Upgrade{})
+		add(items, netstore.Upgrade{Stack: true})
 		add(items, sgitem.FairyEmerald{})
 		add(items, sgitem.DimensionStone{})
 		for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {

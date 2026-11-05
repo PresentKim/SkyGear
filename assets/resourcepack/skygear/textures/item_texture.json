@@ -16,6 +16,12 @@
     "skygear:pattern": {
       "textures": "textures/items/pattern"
     },
+    "skygear:speed_upgrade": {
+      "textures": "textures/items/speed_upgrade"
+    },
+    "skygear:stack_upgrade": {
+      "textures": "textures/items/stack_upgrade"
+    },
     "skygear:fairy_dust": {
       "textures": "textures/items/fairy_dust"
     },

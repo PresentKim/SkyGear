@@ -547,6 +547,8 @@
  "name.NetDisk16k": "Storage Disk (16k)",
  "name.NetDisk64k": "Storage Disk (64k)",
  "name.NetPattern": "Pattern",
+ "name.NetSpeedUpgrade": "Speed Upgrade",
+ "name.NetStackUpgrade": "Stack Upgrade",
  "machine.gate.help.1": "§7The old dimension gate. Placed, it turns back into its materials",
  "machine.gate.name": "Dimension Gate Anchor",
  "machine.lavagen.help.1": "§7Burns lava to make energy (80 RE/t)",

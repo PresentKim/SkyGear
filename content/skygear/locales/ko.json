@@ -2763,6 +2763,8 @@
  "name.NetDisk16k": "저장 디스크 (16k)",
  "name.NetDisk64k": "저장 디스크 (64k)",
  "name.NetPattern": "패턴",
+ "name.NetSpeedUpgrade": "속도 업그레이드",
+ "name.NetStackUpgrade": "세트 업그레이드",
  "machine.gate.help.1": "§7옛 차원 게이트입니다. 놓으면 재료로 돌아갑니다",
  "machine.gate.name": "차원 게이트 고정 앵커",
  "machine.lavagen.help.1": "§7용암을 태워 에너지를 만듭니다(80 RE/t)",

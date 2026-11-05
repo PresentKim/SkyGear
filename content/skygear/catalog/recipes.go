@@ -112,6 +112,10 @@ func gameRecipes() {
 	add(machine.Item(machine.KindNetImporter), n(iron, 2), n(block.NewHopper(), 1), n(redstone, 1))
 	add(machine.Item(machine.KindNetExporter), n(iron, 2), n(block.NewHopper(), 1), n(redstone, 2))
 	add(machine.Item(machine.KindNetExternal), n(sgitem.Ingot{Metal: sgitem.MetalInvar}, 2), n(block.NewChest(), 1), n(redstone, 2))
+	// Refined Storage 2's upgrades: the speed upgrade is iron and sugar
+	// round the base, the stack upgrade sugar and four speed upgrades.
+	add(item.NewStack(netstore.Upgrade{}, 1), n(sgitem.Ingot{Metal: sgitem.MetalInvar}, 5), n(item.Sugar{}, 3), n(redstone, 1))
+	add(item.NewStack(netstore.Upgrade{Stack: true}, 1), n(netstore.Upgrade{}, 4), n(item.Sugar{}, 5))
 	add(machine.Item(machine.KindPatternEncoder), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 2), n(block.CraftingTable{}, 1), n(redstone, 4))
 	add(item.NewStack(netstore.Pattern{}, 4), n(item.Paper{}, 2), n(redstone, 1))
 	add(machine.Item(machine.KindNetAutocrafter), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(sgitem.Ingot{Metal: sgitem.MetalElectrum}, 1), n(block.CraftingTable{}, 1), n(redstone, 3))
