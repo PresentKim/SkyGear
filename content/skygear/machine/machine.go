@@ -534,12 +534,14 @@ type State struct {
 	// target is the block the auto miner's open window shows it mining
 	// (screen.go noteTarget).
 	target string
-	// Range is the reach set on the screen of a machine with a range; 0 is
-	// all its tier gives (Reach).
-	Range int
-	// rangeUntil is the tick the box over its range shows until, and
-	// rangeEntity that box, rangeSize its size (rangeview.go).
+	// RangeX, RangeY and RangeZ are the reach set on the screen of a machine
+	// with a range; 0 is all its tier gives (Area).
+	RangeX, RangeY, RangeZ int
+	// rangeUntil is the tick the box over its range shows until (its button),
+	// peekUntil the same while a player sneaks and looks at it, rangeEntity
+	// that box and rangeSize its size (rangeview.go).
 	rangeUntil  int64
+	peekUntil   int64
 	rangeEntity *world.EntityHandle
 	rangeSize   int32
 	// owner is the account that placed a sell box and gets its money.
@@ -639,14 +641,15 @@ const stuckRecheck = 100
 // stateSig is the saved scalars of a State, to tell whether a save would
 // differ from the last one.
 type stateSig struct {
-	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy, reach int
-	unlimited                                                                      bool
+	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
+	reach                                                                   [3]int
+	unlimited                                                               bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Range, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [3]int{st.RangeX, st.RangeY, st.RangeZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.
@@ -1396,8 +1399,10 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["FluidAmt"] = int32(m.State.FluidAmt)
 	data["Charges"] = int32(m.State.Charges)
 	data["Boost"] = int32(m.State.Boost)
-	if m.State.Range > 0 {
-		data["Range"] = int32(m.State.Range)
+	for key, r := range map[string]int{"RangeX": m.State.RangeX, "RangeY": m.State.RangeY, "RangeZ": m.State.RangeZ} {
+		if r > 0 {
+			data[key] = int32(r)
+		}
 	}
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
@@ -1416,8 +1421,10 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
 		n.State.Facing = cube.Face(f)
 	}
-	if r, ok := data["Range"].(int32); ok && r > 0 {
-		n.State.Range = int(r)
+	for key, r := range map[string]*int{"RangeX": &n.State.RangeX, "RangeY": &n.State.RangeY, "RangeZ": &n.State.RangeZ} {
+		if v, ok := data[key].(int32); ok && v > 0 {
+			*r = int(v)
+		}
 	}
 	if f, ok := data["Fluid"].(int32); ok {
 		n.State.Fluid = fluidnet.Kind(f)

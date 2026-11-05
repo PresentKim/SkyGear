@@ -165,7 +165,7 @@ func TestTierRanges(t *testing.T) {
 	var last int
 	for tier := range machine.MaxTier + 1 {
 		st.Tier = tier
-		if r := st.Reach(machine.KindHarvester); r <= last {
+		if r := st.Area(machine.KindHarvester).X; r <= last {
 			t.Fatalf("tier %d reaches %d after %d", tier, r, last)
 		} else {
 			last = r

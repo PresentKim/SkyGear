@@ -44,15 +44,32 @@ func rangeHeight(kind string) (down, up int) {
 // rangeBox is the area of the machine of kind st at pos, from its first
 // block to past its last.
 func (st *State) rangeBox(kind string, pos cube.Pos) (lo, hi mgl64.Vec3) {
-	r := st.Reach(kind)
-	down, up := rangeHeight(kind)
-	lo = pos.Vec3().Sub(mgl64.Vec3{float64(r), float64(down), float64(r)})
-	hi = pos.Vec3().Add(mgl64.Vec3{float64(r + 1), float64(up + 1), float64(r + 1)})
+	a := st.Area(kind)
+	lo = pos.Vec3().Sub(mgl64.Vec3{float64(a.X), float64(a.Down), float64(a.Z)})
+	hi = pos.Vec3().Add(mgl64.Vec3{float64(a.X + 1), float64(a.Up + 1), float64(a.Z + 1)})
 	return lo, hi
 }
 
-// rangeShown reports whether the outline of the machine's area is on.
-func (st *State) rangeShown() bool { return st.rangeUntil > 0 && st.curTick <= st.rangeUntil }
+// rangeToggled reports whether the box is turned on by its button.
+func (st *State) rangeToggled() bool { return st.rangeUntil > 0 && st.curTick <= st.rangeUntil }
+
+// rangeShown reports whether the box over the machine's area shows: turned
+// on by its button, or a player sneaks and looks at the machine.
+func (st *State) rangeShown() bool { return st.rangeToggled() || st.curTick <= st.peekUntil }
+
+// peekTicks is how long the box stays after a sneaking player looked at the
+// machine; looking again keeps it.
+const peekTicks = 30
+
+// PeekRange shows the box over the area of the machine at pos for a moment
+// to a player who sneaks and looks at it (look.go).
+func PeekRange(tx *world.Tx, pos cube.Pos, b world.Block) {
+	if m, ok := b.(Machine); ok && m.State != nil {
+		if _, ok := m.State.rangeKind(); ok {
+			m.State.peekUntil = m.State.curTick + peekTicks
+		}
+	}
+}
 
 // boxVariant is the box from lo to hi as the range box entity's variant:
 // width, height and depth in blocks, 7 bits each, then how many blocks the
@@ -72,8 +89,7 @@ func (st *State) showRange(tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	lo, hi := st.rangeBox(kind, pos)
-	down, _ := rangeHeight(kind)
-	size := boxVariant(lo, hi, down)
+	size := boxVariant(lo, hi, st.Area(kind).Down)
 	if st.rangeShown() && st.rangeEntity != nil && st.rangeSize == size {
 		return
 	}
@@ -155,38 +171,91 @@ func (rangeBoxType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = 
 
 func (rangeBoxType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
-// rangeTools are the screen's buttons of a machine with a range: narrower,
-// wider, and the outline on or off.
+// sizeLine is the size of the machine's area, as JE Item Collectors shows
+// it: "범위 (11×5×7)".
+func (st *State) sizeLine(lang, kind string) string {
+	a := st.Area(kind)
+	return fmt.Sprintf(i18n.T(lang, "machine.range.size"), 2*a.X+1, a.Down+a.Up+1, 2*a.Z+1)
+}
+
+// toggleRange turns the box over the machine's area on for a while, or off.
+func (st *State) toggleRange() {
+	if st.rangeToggled() {
+		st.rangeUntil = 0
+	} else {
+		st.rangeUntil = st.curTick + rangeShowTicks
+	}
+}
+
+// rangeViewOption is the button that turns the box on or off, then runs
+// again.
+func (st *State) rangeViewOption(lang string, again func(p *player.Player, tx *world.Tx)) ui.Option {
+	key := "machine.range.show"
+	if st.rangeToggled() {
+		key = "machine.range.hide"
+	}
+	return ui.Option{Label: i18n.T(lang, key), Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, tx *world.Tx) {
+		st.toggleRange()
+		again(p, tx)
+	}}
+}
+
+// rangeTools are the machine screen's buttons of a machine with a range:
+// the range screen, and the box on or off.
 func (st *State) rangeTools(lang string, again func(p *player.Player, tx *world.Tx)) []ui.Option {
 	kind, ok := st.rangeKind()
 	if !ok {
 		return nil
 	}
-	reach, most := st.Reach(kind), st.MaxReach(kind)
-	set := func(r int) func(p *player.Player, tx *world.Tx) {
-		return func(p *player.Player, tx *world.Tx) {
-			st.Range = max(1, min(r, most))
-			if st.Range == most {
-				st.Range = 0
-			}
-			again(p, tx)
-		}
-	}
-	size := fmt.Sprintf(i18n.T(lang, "machine.range.size"), 2*reach+1, 2*reach+1, reach, most)
-	viewKey := "machine.range.show"
-	if st.rangeShown() {
-		viewKey = "machine.range.hide"
-	}
 	return []ui.Option{
-		{Label: i18n.T(lang, "machine.range.wider") + "\n" + size, Icon: "textures/ui/sg/arrow_right", Run: set(reach + 1)},
-		{Label: i18n.T(lang, "machine.range.narrower") + "\n" + size, Icon: "textures/ui/sg/arrow_left", Run: set(reach - 1)},
-		{Label: i18n.T(lang, viewKey), Icon: "textures/ui/sg/icon_cube", Run: func(p *player.Player, tx *world.Tx) {
-			if st.rangeShown() {
-				st.rangeUntil = 0
-			} else {
-				st.rangeUntil = st.curTick + rangeShowTicks
-			}
-			again(p, tx)
+		{Label: i18n.T(lang, "machine.range.title") + "\n§7" + st.sizeLine(lang, kind), Icon: "textures/ui/sg/menu_stats", Run: func(p *player.Player, _ *world.Tx) {
+			st.showRangeScreen(p, kind, again)
 		}},
+		st.rangeViewOption(lang, again),
 	}
+}
+
+// rangeAxis is one axis of the range screen: its name, the value set, the
+// most its tier gives and where the value is kept.
+type rangeAxis struct {
+	key       string
+	have, top int
+	set       *int
+}
+
+// showRangeScreen shows p the range screen of the machine of kind, as JE
+// Item Collectors lays it out: the size, then a line per axis with its
+// reach between a narrower and a wider button. back goes to the machine.
+func (st *State) showRangeScreen(p *player.Player, kind string, back func(p *player.Player, tx *world.Tx)) {
+	lang := i18n.Of(p)
+	again := func(p *player.Player, _ *world.Tx) { st.showRangeScreen(p, kind, back) }
+	a, most := st.Area(kind), st.MaxArea(kind)
+	axes := []rangeAxis{{"machine.range.x", a.X, most.X, &st.RangeX}}
+	if top := max(most.Down, most.Up); top > 0 {
+		axes = append(axes, rangeAxis{"machine.range.y", max(a.Down, a.Up), top, &st.RangeY})
+	}
+	axes = append(axes, rangeAxis{"machine.range.z", a.Z, most.Z, &st.RangeZ})
+	rows := [][]ui.BoardCell{{ui.TextCell(st.sizeLine(lang, kind))}}
+	for _, ax := range axes {
+		set := func(v int) func(p *player.Player, tx *world.Tx) {
+			return func(p *player.Player, tx *world.Tx) {
+				*ax.set = max(1, min(v, ax.top))
+				if *ax.set == ax.top {
+					*ax.set = 0
+				}
+				again(p, tx)
+			}
+		}
+		name := i18n.T(lang, ax.key)
+		tip := fmt.Sprintf(i18n.T(lang, "machine.range.axis"), name, ax.have, ax.top)
+		rows = append(rows, []ui.BoardCell{
+			ui.SlotCell(ui.ItemSlot{Icon: "textures/ui/sg/arrow_down", Tip: i18n.T(lang, "machine.range.narrower"), Run: set(ax.have - 1)}),
+			ui.SlotCell(ui.ItemSlot{Count: fmt.Sprint(ax.have), Tip: tip}),
+			ui.SlotCell(ui.ItemSlot{Icon: "textures/ui/sg/arrow_up", Tip: i18n.T(lang, "machine.range.wider"), Run: set(ax.have + 1)}),
+			ui.TextCell(tip),
+		})
+	}
+	ui.ItemBoard(p, i18n.T(lang, "machine.range.title"), "", rows,
+		st.rangeViewOption(lang, again),
+		ui.Back(i18n.T(lang, "machine.range.back"), back))
 }

@@ -9,24 +9,47 @@ import (
 
 func TestRangeSettingIsCappedByTier(t *testing.T) {
 	st := New(KindFeller, "", "").State
-	if st.Reach(KindFeller) != fellerReach {
-		t.Fatalf("unset range: %d", st.Reach(KindFeller))
+	if got := st.Area(KindFeller); got != (Area{fellerReach, fellerReach, fellerDown, fellerUp}) {
+		t.Fatalf("unset range: %+v", got)
 	}
-	st.Range = 2
-	if st.Reach(KindFeller) != 2 {
-		t.Errorf("set range: %d", st.Reach(KindFeller))
+	st.RangeX, st.RangeY, st.RangeZ = 2, 4, 99
+	if got := st.Area(KindFeller); got != (Area{2, fellerReach, fellerDown, 4}) {
+		t.Errorf("set range: %+v", got)
 	}
-	st.Range = 99
-	if st.Reach(KindFeller) != fellerReach {
-		t.Errorf("range over the tier: %d", st.Reach(KindFeller))
+}
+
+func TestPeekShowsRangeForAMoment(t *testing.T) {
+	m := New(KindHarvester, "", "")
+	m.State.curTick = 100
+	PeekRange(nil, cube.Pos{}, m)
+	if !m.State.rangeShown() || m.State.rangeToggled() {
+		t.Fatal("a peek does not show the range on its own")
+	}
+	m.State.curTick += peekTicks + 1
+	if m.State.rangeShown() {
+		t.Error("the peek outlasts its ticks")
+	}
+	crusher := New(KindCrusher, "", "")
+	PeekRange(nil, cube.Pos{}, crusher)
+	if crusher.State.peekUntil != 0 {
+		t.Error("a crusher peeks a range")
+	}
+}
+
+func TestRangeSettingIsSaved(t *testing.T) {
+	m := New(KindVacuum, "", "")
+	m.State.RangeX, m.State.RangeY, m.State.RangeZ = 3, 1, 2
+	back := m.DecodeNBT(m.EncodeNBT()).(Machine).State
+	if back.RangeX != 3 || back.RangeY != 1 || back.RangeZ != 2 {
+		t.Errorf("loaded range %d %d %d", back.RangeX, back.RangeY, back.RangeZ)
 	}
 }
 
 func TestRangeBoxFollowsKind(t *testing.T) {
 	st := New(KindVacuum, "", "").State
-	st.Range = 2
+	st.RangeX, st.RangeY, st.RangeZ = 2, 2, 4
 	lo, hi := st.rangeBox(KindVacuum, cube.Pos{0, 10, 0})
-	if lo != (mgl64.Vec3{-2, 10 - vacuumDown, -2}) || hi != (mgl64.Vec3{3, 11 + vacuumUp, 3}) {
+	if lo != (mgl64.Vec3{-2, 8, -4}) || hi != (mgl64.Vec3{3, 13, 5}) {
 		t.Errorf("box %v %v", lo, hi)
 	}
 	if _, ok := New(KindCrusher, "", "").State.rangeKind(); ok {

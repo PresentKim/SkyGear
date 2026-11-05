@@ -50,8 +50,9 @@ func runVacuum(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	}
 	st.Progress = 0
 	x, y, z := float64(pos.X()), float64(pos.Y()), float64(pos.Z())
-	reach := float64(st.Reach(KindVacuum))
-	box := cube.Box(x-reach, y-vacuumDown, z-reach, x+reach+1, y+vacuumUp+1, z+reach+1)
+	a := st.Area(KindVacuum)
+	ax, az := float64(a.X), float64(a.Z)
+	box := cube.Box(x-ax, y-float64(a.Down), z-az, x+ax+1, y+float64(a.Up)+1, z+az+1)
 	for e := range tx.EntitiesWithin(box) {
 		ent, ok := e.(*entity.Ent)
 		if !ok {
@@ -90,9 +91,9 @@ type fellerLocal struct{ logAt map[cube.Pos]cube.Pos }
 var fellerPart = core.NewPart(func() *fellerLocal { return &fellerLocal{logAt: map[cube.Pos]cube.Pos{}} })
 
 // inFellerReach reports whether at is in the area of the feller at pos.
-func inFellerReach(pos, at cube.Pos, reach int) bool {
+func inFellerReach(pos, at cube.Pos, a Area) bool {
 	d := at.Sub(pos)
-	return d[0] >= -reach && d[0] <= reach && d[2] >= -reach && d[2] <= reach && d[1] >= -fellerDown && d[1] <= fellerUp
+	return d[0] >= -a.X && d[0] <= a.X && d[2] >= -a.Z && d[2] <= a.Z && d[1] >= -a.Down && d[1] <= a.Up
 }
 
 // runFeller fells the highest log in reach every interval; with no log left
@@ -104,7 +105,7 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	}
 	var logAt cube.Pos
 	found := false
-	reach := st.Reach(KindFeller)
+	reach := st.Area(KindFeller)
 	// A feller that is stuck (its output is full) re-checks the log it found
 	// instead of scanning the whole area every tick.
 	rem := fellerPart.Of(s)
@@ -115,9 +116,9 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 			delete(rem.logAt, pos)
 		}
 	}
-	for dy := fellerUp; dy >= -fellerDown && !found; dy-- {
-		for dx := -reach; dx <= reach && !found; dx++ {
-			for dz := -reach; dz <= reach && !found; dz++ {
+	for dy := reach.Up; dy >= -reach.Down && !found; dy-- {
+		for dx := -reach.X; dx <= reach.X && !found; dx++ {
+			for dz := -reach.Z; dz <= reach.Z && !found; dz++ {
 				at := pos.Add(cube.Pos{dx, dy, dz})
 				if _, ok := tx.Block(at).(block.Log); ok {
 					logAt, found = at, true
@@ -155,7 +156,7 @@ func runFeller(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 
 // plantSapling plants a sapling from the input of the feller at pos,
 // reporting whether it did.
-func (st *State) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
+func (st *State) plantSapling(tx *world.Tx, pos cube.Pos, reach Area) bool {
 	slot, in, ok := st.FirstInput()
 	if !ok {
 		return false
@@ -175,7 +176,7 @@ func (st *State) plantSapling(tx *world.Tx, pos cube.Pos, reach int) bool {
 
 // boneMealSapling uses one bone meal of the feller at pos on the nearest
 // sapling in reach that it works on, as a player using it would.
-func (st *State) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
+func (st *State) boneMealSapling(tx *world.Tx, pos cube.Pos, reach Area) {
 	slot := st.Def.Charge[0]
 	meal, _ := st.Inv().Item(slot)
 	if _, ok := meal.Item().(item.BoneMeal); !ok {
@@ -191,10 +192,10 @@ func (st *State) boneMealSapling(tx *world.Tx, pos cube.Pos, reach int) {
 }
 
 // saplingsNear are the saplings in reach of the feller at pos, nearest first.
-func saplingsNear(tx *world.Tx, pos cube.Pos, reach int) []cube.Pos {
+func saplingsNear(tx *world.Tx, pos cube.Pos, reach Area) []cube.Pos {
 	var out []cube.Pos
-	for dx := -reach; dx <= reach; dx++ {
-		for dz := -reach; dz <= reach; dz++ {
+	for dx := -reach.X; dx <= reach.X; dx++ {
+		for dz := -reach.Z; dz <= reach.Z; dz++ {
 			for dy := -plantRise; dy <= plantRise; dy++ {
 				at := pos.Add(cube.Pos{dx, dy, dz})
 				if _, ok := tx.Block(at).(block.Sapling); ok {
@@ -211,11 +212,11 @@ func saplingsNear(tx *world.Tx, pos cube.Pos, reach int) []cube.Pos {
 // plantSpot is the nearest place in reach of the feller at pos where sap
 // grows: on soil, free or covered only by grass and the like, and with no
 // sapling or log next to it so the trees have room.
-func plantSpot(tx *world.Tx, pos cube.Pos, reach int, sap block.Sapling) (cube.Pos, bool) {
+func plantSpot(tx *world.Tx, pos cube.Pos, reach Area, sap block.Sapling) (cube.Pos, bool) {
 	var best cube.Pos
 	bestDist := -1
-	for dx := -reach; dx <= reach; dx++ {
-		for dz := -reach; dz <= reach; dz++ {
+	for dx := -reach.X; dx <= reach.X; dx++ {
+		for dz := -reach.Z; dz <= reach.Z; dz++ {
 			if dx == 0 && dz == 0 {
 				continue
 			}
