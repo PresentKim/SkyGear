@@ -15,7 +15,7 @@ below are third-party work and keep their own licences:
   see `third_party/licenses/WAILA-MIT.txt`.
 - Textures and models taken from open-source Minecraft mods (Mekanism,
   Ender IO, Tinkers' Construct, Storage Drawers, Refined Storage 2,
-  Ex Nihilo Fabrico) — each under its own licence in `third_party/licenses/`;
+  Ex Nihilo Fabrico) and Korean names from Refined Storage — each under its own licence in `third_party/licenses/`;
   which texture or model comes from where is listed in
   `docs/tech/asset-credits.md`.
 - `.claude/skills/korean-humanizer/` — Korean writing guide adapted from

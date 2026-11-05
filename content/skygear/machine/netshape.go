@@ -2,6 +2,7 @@ package machine
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -48,36 +49,48 @@ func takePlaceFace(s *core.Session, p *player.Player) (cube.Face, bool) {
 	return f, ok
 }
 
-// netShapeValue is the state number: the arm mask, plus 64 times the facing
-// for an attachment.
-func netShapeValue(kind string, facing cube.Face, mask int) int {
+// netRaw is a shape as the arm mask, plus 64 times the facing for an
+// attachment.
+func netRaw(kind string, facing cube.Face, mask int) int {
 	if _, head := netHeads[kind]; head {
 		return int(facing)*64 + mask&^(1<<facing)
 	}
 	return mask
 }
 
+// netItemRaw is the look of the item: a cable running east and west, the
+// head of an attachment facing north.
+func netItemRaw(kind string) int {
+	return netRaw(kind, cube.FaceNorth, 1<<cube.FaceEast|1<<cube.FaceWest)
+}
+
+// netShapeValue is the state number of a shape. The client draws a block's
+// item with its first state, so the item look is 0 (the raw shape XOR the
+// item's).
+func netShapeValue(kind string, facing cube.Face, mask int) int {
+	return netRaw(kind, facing, mask) ^ netItemRaw(kind)
+}
+
+// NetMask is the arms a thin network block draws (bit n: cube.Face(n)).
+func NetMask(m Machine) int { return (m.Shape ^ netItemRaw(m.Kind)) % 64 }
+
 func netShapes(kind string) []int {
 	var out []int
-	if _, head := netHeads[kind]; !head {
-		for mask := range 64 {
-			out = append(out, mask)
-		}
-		return out
-	}
 	for _, f := range cube.Faces() {
 		for mask := range 64 {
-			if mask&(1<<f) == 0 {
-				out = append(out, netShapeValue(kind, f, mask))
+			if v := netShapeValue(kind, f, mask); !slices.Contains(out, v) {
+				out = append(out, v)
 			}
 		}
 	}
+	slices.Sort(out)
 	return out
 }
 
 func netBoxes(kind string, shape int) []netshape.Box {
 	h, head := netHeads[kind]
-	return netshape.Of(head, h, cube.Face(shape/64), shape%64)
+	raw := shape ^ netItemRaw(kind)
+	return netshape.Of(head, h, cube.Face(raw/64), raw%64)
 }
 
 // NetGeometry is the geometry of a shape (tools/netgeo writes them).
@@ -113,12 +126,6 @@ func netProperties(kind string, shape int) customblock.Properties {
 		coll[i] = b.BBox()
 	}
 	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(), SelectionBox: netshape.Bounds(boxes), CollisionBoxes: coll}
-}
-
-// netItemShape is the look of the item: a cable running east and west, the
-// head of an attachment facing north.
-func netItemShape(kind string) int {
-	return netShapeValue(kind, cube.FaceNorth, 1<<cube.FaceEast|1<<cube.FaceWest)
 }
 
 func netStates(kind string) map[string][]any {

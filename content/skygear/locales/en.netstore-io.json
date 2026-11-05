@@ -1,12 +1,11 @@
 {
  "netstore.io.title": "Filter",
- "netstore.io.body.net_importer": "Pick what to import. With nothing picked it imports everything from the container in front.",
- "netstore.io.body.net_exporter": "Pick what to export. With nothing picked it exports nothing.",
- "netstore.io.body.net_external": "Pick what this storage takes and gives. With nothing picked it handles everything.",
- "netstore.io.allow": "Only the picked items",
- "netstore.io.deny": "All but the picked items",
+ "netstore.io.body.net_importer": "The items imported from the block its head is on. Empty imports everything",
+ "netstore.io.body.net_exporter": "The items exported into the block its head is on. Empty exports nothing",
+ "netstore.io.body.net_external": "The items this storage takes and gives. Empty handles everything",
+ "netstore.io.allow": "Mode: Allowlist\n§7Only the filtered items",
+ "netstore.io.deny": "Mode: Blocklist\n§7All but the filtered items",
  "netstore.io.prioUp": "Raise priority",
  "netstore.io.prioDown": "Lower priority",
- "netstore.io.priority": "Priority: %d",
- "netstore.io.empty": "§7Nothing picked"
+ "netstore.io.priority": "Priority: %d"
 }

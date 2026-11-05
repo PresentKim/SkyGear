@@ -262,12 +262,12 @@ func TestCableArmsFollowNeighbours(t *testing.T) {
 		imp.State.Facing = cube.FaceWest
 		tx.SetBlock(p(2), imp, nil)
 		update()
-		if got := tx.Block(p(1)).(machine.Machine).Shape; got != 1<<cube.FaceWest {
+		if got := machine.NetMask(tx.Block(p(1)).(machine.Machine)); got != 1<<cube.FaceWest {
 			t.Fatalf("cable shape %06b, want an arm west only", got)
 		}
 		imp.State.Facing = cube.FaceUp
 		update()
-		if got := tx.Block(p(1)).(machine.Machine).Shape; got != 1<<cube.FaceWest|1<<cube.FaceEast {
+		if got := machine.NetMask(tx.Block(p(1)).(machine.Machine)); got != 1<<cube.FaceWest|1<<cube.FaceEast {
 			t.Fatalf("cable shape %06b, want arms west and east", got)
 		}
 	})

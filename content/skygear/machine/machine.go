@@ -1292,7 +1292,7 @@ func (m Machine) Properties() customblock.Properties {
 		return blockmodel.FrontCubeProperties(m.Kind)
 	}
 	if NetShaped(m.Kind) {
-		return netProperties(m.Kind, netItemShape(m.Kind))
+		return netProperties(m.Kind, 0)
 	}
 	return sieveProperties(m.Kind)
 }
@@ -1493,7 +1493,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 			return true
 		}
 	}
-	if m.State.Def.Cell {
+	if m.State.Def.Cell || m.Kind == KindNetCable {
 		return false
 	}
 	m.State.OpenWindow(p)
