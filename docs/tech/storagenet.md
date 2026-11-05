@@ -37,7 +37,7 @@
 3. 컨트롤러가 틱마다 `runController`로 RE를 내고 망을 켠다. 켜져 있으면 드라이브를 다시 맞추고 스케줄러를 돌리고 변경분을 저장한다.
 4. 아이템은 모두 `netInsert`(`terminal.go`)로 들어간다. 제작 작업이 기다리는 결과는 `InsertHook`(`Intercept`)이 먼저 가져가고, 나머지는 `Root.Insert`로 간다. 꺼내기는 `Root.Extract`다.
 5. 입력기·출력기·외부 저장공간의 앞면은 설치할 때 누른 블록 쪽이다(`machine.State.Facing`, NBT `Facing`; 누른 면 없이 놓였거나 예전 세이브면 남쪽). 자동 제작 장치의 앞면은 앞면 텍스처가 있는 **남쪽 이웃**이다. 모두 `front` 에서 정한다.
-6. 케이블·입력기·출력기·외부 저장공간은 Refined Storage 2 모델을 옮긴 가는 모양이다(`netshape`): 4픽셀 케이블 심에 이웃한 망 블록마다 팔이 붙고, 장치는 바라보는 면에 머리가 있다. 블록 상태 `skygear:net_shape` 하나가 팔 6비트(장치는 바라보는 방향 ×64)를 담고, 모양마다 지오메트리(`models/blocks/net.geo.json`, `go run ./tools/netgeo assets/resourcepack/skygear/models/blocks/net.geo.json`)와 충돌·선택 상자가 있다. 이웃이 바뀌면(`NeighbourUpdateTick`)과 40틱마다(불러온 블록) 모양을 다시 맞춘다. 다른 망 블록에 머리를 댄 장치 쪽으로는 팔을 내지 않는다. 블록 끝에 닿는 면(팔 끝, 머리 판의 바깥면)은 그리지 않아 옆 블록 면과 겹치지 않는다.
+6. 케이블·입력기·출력기·외부 저장공간은 Refined Storage 2 모델을 옮긴 가는 모양이다(`netshape`): 4픽셀 케이블 심에 이웃한 망 블록마다 팔이 붙고, 장치는 바라보는 면에 머리가 있다. 블록 상태 `skygear:net_shape` 하나가 팔 6비트(장치는 바라보는 방향 ×64)를 담고, 모양마다 지오메트리(`models/blocks/net.geo.json`, `go run ./tools/netgeo assets/resourcepack/skygear/models/blocks/net.geo.json`)와 충돌·선택 상자가 있다. 이웃이 바뀌면(`NeighbourUpdateTick`)과 40틱마다(불러온 블록) 모양을 다시 맞춘다. 다른 망 블록에 머리를 댄 장치 쪽으로는 팔을 내지 않는다. 모든 상자의 여섯 면을 다 그린다(알파 테스트 재질은 뒷면도 그려서, 빠진 면은 모델을 뚫는 구멍이 된다). 블록 끝에 닿는 면(팔 끝, 머리 판의 바깥면)은 0.01픽셀 안쪽에 두어 옆 블록 면과 같은 평면에서 깜빡이지 않게 한다.
 
 오프라인 망(컨트롤러 없음·둘 이상·상한 초과·RE 부족)은 아이템을 그대로 두고 넣기·빼기만 거절한다.
 

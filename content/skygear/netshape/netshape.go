@@ -54,23 +54,35 @@ func faces(uv map[cube.Face][4]float64, tex Tex) map[cube.Face]Face {
 	return out
 }
 
-func core(open int) Box {
+func core() Box {
 	uv := map[cube.Face][4]float64{}
 	for _, f := range cube.Faces() {
-		if open&(1<<f) == 0 {
-			uv[f] = [4]float64{6, 6, 10, 10}
-		}
+		uv[f] = [4]float64{6, 6, 10, 10}
 	}
 	return Box{From: [3]float64{6, 6, 6}, To: [3]float64{10, 10, 10}, Faces: faces(uv, Cable)}
 }
 
-// northArm is the cable extension drawn toward north, without its end (it
-// meets the next block) and its inner face (it meets the core).
+// northArm is the cable extension drawn toward north.
 func northArm() Box {
 	return Box{From: [3]float64{6, 6, 0}, To: [3]float64{10, 10, 6}, Faces: faces(map[cube.Face][4]float64{
+		cube.FaceNorth: {6, 6, 10, 10}, cube.FaceSouth: {6, 6, 10, 10},
 		cube.FaceEast: {10, 6, 16, 10}, cube.FaceWest: {0, 6, 6, 10},
 		cube.FaceUp: {6, 0, 10, 6}, cube.FaceDown: {6, 10, 10, 16},
 	}, Cable)}
+}
+
+// edgeInset keeps a face on the block's edge just inside it, so it does not
+// lie in the plane of the neighbouring block's face (which flickers). Every
+// face is drawn: the blocks use alpha test, which draws back faces, so a
+// missing face is a hole through the model.
+const edgeInset = 0.01
+
+func inset(b Box) Box {
+	for i := range 3 {
+		b.From[i] = max(b.From[i], edgeInset)
+		b.To[i] = min(b.To[i], 16-edgeInset)
+	}
+	return b
 }
 
 func ring(from, to [3]float64, w, h, d float64) Box {
@@ -81,8 +93,7 @@ func ring(from, to [3]float64, w, h, d float64) Box {
 	}, Border)}
 }
 
-// northHead is the head drawn toward north. The face on the block's north
-// edge is left out: it lies on the face of the block the head is against.
+// northHead is the head drawn toward north.
 func northHead(h Head) []Box {
 	var out []Box
 	switch h {
@@ -100,15 +111,11 @@ func northHead(h Head) []Box {
 		}
 	case External:
 		stem := Box{From: [3]float64{7, 7, 2}, To: [3]float64{9, 9, 6}, Faces: faces(map[cube.Face][4]float64{
-			cube.FaceEast: {0, 0, 4, 2}, cube.FaceWest: {0, 0, 4, 2},
+			cube.FaceSouth: {0, 0, 4, 4},
+			cube.FaceEast:  {0, 0, 4, 2}, cube.FaceWest: {0, 0, 4, 2},
 			cube.FaceUp: {0, 0, 2, 4}, cube.FaceDown: {0, 0, 2, 4},
 		}, Border)}
 		out = []Box{stem, ring([3]float64{3, 3, 0}, [3]float64{13, 13, 2}, 10, 10, 2)}
-	}
-	for i := range out {
-		if out[i].From[2] == 0 {
-			delete(out[i].Faces, cube.FaceNorth)
-		}
 	}
 	return out
 }
@@ -167,15 +174,15 @@ func Of(head bool, h Head, f cube.Face, mask int) []Box {
 	if head {
 		mask &^= 1 << f
 	}
-	out := []Box{core(mask)}
+	out := []Box{core()}
 	for _, side := range cube.Faces() {
 		if mask&(1<<side) != 0 {
-			out = append(out, turnBox(side, northArm()))
+			out = append(out, inset(turnBox(side, northArm())))
 		}
 	}
 	if head {
 		for _, b := range northHead(h) {
-			out = append(out, turnBox(f, b))
+			out = append(out, inset(turnBox(f, b)))
 		}
 	}
 	return out
