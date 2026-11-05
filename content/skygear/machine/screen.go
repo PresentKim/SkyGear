@@ -89,10 +89,10 @@ func (st *State) screenLook() screenLook {
 	return l
 }
 
-// minerTarget is the block the auto miner at pos mines next, as an item,
-// and false when the block below it cannot be mined.
-func minerTarget(tx *world.Tx, pos cube.Pos) (item.Stack, bool) {
-	b := tx.Block(pos.Side(cube.FaceDown))
+// minerTarget is the block the auto miner st at pos mines next, as an item,
+// and false when the block it faces cannot be mined.
+func (st *State) minerTarget(tx *world.Tx, pos cube.Pos) (item.Stack, bool) {
+	b := tx.Block(pos.Side(st.Facing))
 	it, isItem := b.(world.Item)
 	if _, ok := Mineable(b); !ok || !isItem {
 		return item.Stack{}, false
@@ -107,15 +107,15 @@ func (st *State) noteTarget(tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	st.target = ""
-	if it, ok := minerTarget(tx, pos); ok {
+	if it, ok := st.minerTarget(tx, pos); ok {
 		st.target = naming.ItemKey(it.Item())
 	}
 }
 
 // targetPart is the auto miner's slot showing the block it mines, a barrier
 // when there is none.
-func targetPart(lang string, tx *world.Tx, pos cube.Pos) ui.InvPart {
-	it, ok := minerTarget(tx, pos)
+func (st *State) targetPart(lang string, tx *world.Tx, pos cube.Pos) ui.InvPart {
+	it, ok := st.minerTarget(tx, pos)
 	tip := i18n.T(lang, "machine.miner.noTarget")
 	if ok {
 		tip = fmt.Sprintf(i18n.T(lang, "machine.miner.target"), decor.TipName(lang, it))
@@ -169,7 +169,7 @@ func ShowMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 		}
 	}
 	if st.Def.ID == idMiner {
-		parts = append(parts, targetPart(lang, tx, pos))
+		parts = append(parts, st.targetPart(lang, tx, pos))
 	}
 	if st.showsProgress() {
 		ring, key, withPct := st.progressLook()
@@ -231,6 +231,7 @@ func ShowMachine(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 		Info:    strings.Join(info, "\n"),
 		Rows:    []ui.InvRow{machineRow, invRow, {Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: slotsOf(hot)}}}},
 		Options: []ui.Option{ui.Help(strings.Join(help, "\n"), nil)},
+		Tools:   st.rangeTools(lang, again),
 		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
 			if m, ok := tx.Block(pos).(Machine); tx.World() != s.World || !ok || m.State != st {
 				return

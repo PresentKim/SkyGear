@@ -534,6 +534,12 @@ type State struct {
 	// target is the block the auto miner's open window shows it mining
 	// (screen.go noteTarget).
 	target string
+	// Range is the reach set on the screen of a machine with a range; 0 is
+	// all its tier gives (Reach).
+	Range int
+	// rangeUntil is the tick the outline of its range shows until
+	// (rangeview.go).
+	rangeUntil int64
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
@@ -631,14 +637,14 @@ const stuckRecheck = 100
 // stateSig is the saved scalars of a State, to tell whether a save would
 // differ from the last one.
 type stateSig struct {
-	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
-	unlimited                                                               bool
+	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy, reach int
+	unlimited                                                                      bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Range, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.
@@ -693,6 +699,9 @@ func (st *State) DrainLegacy() {
 func New(kind, owner, ownerName string) Machine {
 	k := Kinds[kind]
 	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
+	if kind == KindMiner {
+		st.Facing = cube.FaceDown
+	}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.Role(slot) == RoleNone {
@@ -1385,10 +1394,13 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["FluidAmt"] = int32(m.State.FluidAmt)
 	data["Charges"] = int32(m.State.Charges)
 	data["Boost"] = int32(m.State.Boost)
+	if m.State.Range > 0 {
+		data["Range"] = int32(m.State.Range)
+	}
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
 	data["OwnerName"] = m.State.ownerName
-	if _, head := netHeads[m.Kind]; head {
+	if _, head := netHeads[m.Kind]; head || m.Kind == KindMiner {
 		data["Facing"] = int32(m.State.Facing)
 	}
 	return data
@@ -1401,6 +1413,9 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	n.Shape = m.Shape
 	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
 		n.State.Facing = cube.Face(f)
+	}
+	if r, ok := data["Range"].(int32); ok && r > 0 {
+		n.State.Range = int(r)
 	}
 	if f, ok := data["Fluid"].(int32); ok {
 		n.State.Fluid = fluidnet.Kind(f)
@@ -1638,6 +1653,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	if (currentTick+int64(posHash(pos)))%5 == 0 && len(watchers.Of(s)) > 0 {
 		watchMachine(s, tx, pos, st)
 	}
+	st.showRange(tx, pos, currentTick)
 	switch st.Def.ID {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
@@ -1800,9 +1816,10 @@ func Mineable(b world.Block) (block.BreakInfo, bool) {
 	return info, true
 }
 
-// runMiner mines the block below every interval while the drops fit.
+// runMiner mines the block it faces (the one clicked to place it, the block
+// below otherwise) every interval while the drops fit.
 func runMiner(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
-	below := pos.Side(cube.FaceDown)
+	below := pos.Side(st.Facing)
 	info, ok := Mineable(tx.Block(below))
 	if !ok {
 		if st.cracking {
@@ -1857,7 +1874,7 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind s
 		progress.Advance(s, tx, advancement.Machine)
 	}
 	face, clicked := takePlaceFace(s, p)
-	if _, head := netHeads[kind]; head && clicked {
+	if _, head := netHeads[kind]; (head || kind == KindMiner) && clicked {
 		m.State.Facing = face.Opposite()
 	}
 	tx.Defer(func(tx *world.Tx) {

@@ -111,8 +111,18 @@ func (st *State) GenRate() int { return st.Def.Generates * st.spec().gen }
 
 func (st *State) BurnRate() int { return st.spec().Burn }
 
-// reach is the reach of a machine with a range: sideways, in blocks.
+// Reach is the reach of a machine with a range, sideways in blocks: the
+// range set on its screen (Range), at most what its tier gives.
 func (st *State) Reach(kind string) int {
+	most := st.MaxReach(kind)
+	if st.Range > 0 && st.Range < most {
+		return st.Range
+	}
+	return most
+}
+
+// MaxReach is the reach the machine's tier gives, sideways in blocks.
+func (st *State) MaxReach(kind string) int {
 	if r, ok := tierRanges[kind]; ok {
 		return r[st.Tier]
 	}
