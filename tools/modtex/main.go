@@ -38,11 +38,10 @@ var repos = map[string]repo{
 }
 
 // entry is one pack texture: dst under textures/, src as "<repo>:<path>" (no
-// .png), over the optional chassis picture or the optional solid fill, tint
-// the optional multiplier.
+// .png), over the optional chassis picture, tint the optional multiplier.
 type entry struct {
 	dst, src, over string
-	fill, tint     *color.RGBA
+	tint           *color.RGBA
 }
 
 func c(r, g, b uint8) *color.RGBA { return &color.RGBA{r, g, b, 255} }
@@ -156,9 +155,7 @@ var entries = func() []entry {
 	rsCube("disk_drive", "block/disk_drive/front", "", "block/disk_drive/top", "")
 	rsCube("net_terminal", "block/grid/front", "block/grid/cutouts/light_blue", "block/grid/top", "")
 	rsCube("pattern_encoder", "block/pattern_grid/front", "block/pattern_grid/cutouts/light_blue", "block/pattern_grid/top", "")
-	// The cable's middle stripe is clear in RS2 (its colour layer shows
-	// there), so it is filled with the cable's own dark grey.
-	add(entry{dst: "blocks/net_cable", src: "rs:block/cable/gray", fill: c(0x4f, 0x4f, 0x4f)},
+	add(entry{dst: "blocks/net_cable", src: "rs:block/cable/gray"},
 		entry{dst: "blocks/net_cable_border", src: "rs:block/cable/part_border"})
 	for _, f := range []string{"front", "back", "side"} {
 		add(entry{dst: "blocks/net_autocrafter_" + f, src: "rs:block/autocrafter/side", over: "block/autocrafter/cutouts/side/light_blue"})
@@ -216,12 +213,6 @@ func main() {
 		if e.over != "" {
 			prefix := e.src[:indexByte(e.src, ':')]
 			base := square(imgio.Load(find(refs, prefix+":"+e.over)))
-			draw.Draw(base, base.Bounds(), img, image.Point{}, draw.Over)
-			img = base
-		}
-		if e.fill != nil {
-			base := image.NewRGBA(img.Bounds())
-			draw.Draw(base, base.Bounds(), &image.Uniform{C: *e.fill}, image.Point{}, draw.Src)
 			draw.Draw(base, base.Bounds(), img, image.Point{}, draw.Over)
 			img = base
 		}
