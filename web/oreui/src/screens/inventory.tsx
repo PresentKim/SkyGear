@@ -14,7 +14,7 @@ import * as gesture from '../inventory/gesture';
 
 // The inventory window is nine slots wide and about as tall as the vanilla double chest, capped so
 // the control bar above it stays on screen; the grow row takes what the other rows leave.
-const INV_W = 190;
+const INV_W = 182;
 const INV_H = 240;
 
 function SideButton(props: { button: BarButton }): JSX.Element {
@@ -112,7 +112,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
       </div>
       {data.field ? (
         <div className="oui-box mc-search mc-inv-search">
-          <Icon icon="tex:textures/ui/magnifyingGlass" />
+          <Icon icon="tex:textures/ui/magnifying_glass" />
           <Field id={data.field} value={typed.current} placeholder={data.placeholder} delay={250} />
         </div>
       ) : null}

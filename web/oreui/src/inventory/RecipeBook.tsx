@@ -7,7 +7,7 @@ import { Scroll } from '../components/Scroll';
 import { InvSlotView } from './InvSlot';
 
 // The recipe book's 18u cells across the panel's width, beside the scrollbar.
-const BOOK_COLS = 6;
+const BOOK_COLS = 7;
 
 function BookTab(props: { tab: InvTab }): JSX.Element {
   const { tab } = props;
@@ -58,6 +58,7 @@ export function RecipeBook(props: { book: InvBook }): JSX.Element {
       <div className="oui-box mc-inv-book-head">
         {book.field ? (
           <div className="oui-box mc-search mc-inv-book-search">
+            <Icon icon="tex:textures/ui/magnifying_glass" />
             <Field id={book.field} value={book.query} placeholder={book.placeholder} delay={250} />
           </div>
         ) : (

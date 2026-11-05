@@ -630,6 +630,30 @@ body {
   border-image-source: url("pack://textures/ui/recipe_book_red_button.png?filtering=point");
 }
 
+/* The inventory screens' scroll pane, scrollbar and search box: vanilla container_scroll_panel
+   (recipe_book_pane_bg, ScrollGutterWithBG and ScrollBox, 3x3 slice 1) and text_edit_control
+   (edit_box_indent, 6x6 slice 2). */
+.mc-inventory .mc-scroll-wrap {
+  background-image: url("pack://textures/ui/recipe_book_pane_bg.png?filtering=point");
+  background-size: 100% 100%;
+}
+
+.mc-inventory .mc-scroll-rail {
+  background-image: none;
+  border-image-source: url("pack://textures/ui/ScrollGutterWithBG.png?filtering=point");
+  border-image-slice: 1 fill;
+}
+
+.mc-inventory .mc-scroll-handle {
+  border-image-source: url("pack://textures/ui/ScrollBox.png?filtering=point");
+  border-image-slice: 1 fill;
+}
+
+.mc-inventory .mc-search {
+  border-image-source: url("pack://textures/ui/edit_box_indent.png?filtering=point");
+  border-image-slice: 2 fill;
+}
+
 /* A board's mini cell: a small icon without the slot frame (the machine heading a group of recipes). */
 .mc-slot.mc-mini {
   border-image-source: none;
