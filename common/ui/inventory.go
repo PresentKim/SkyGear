@@ -206,6 +206,9 @@ type InventoryScreen struct {
 	Close func(p *player.Player, tx *world.Tx)
 	// Size names the window size; screens of one size switch in place.
 	Size string
+	// Height is the window's height in GUI pixels; 0 is the vanilla
+	// inventory's. A screen of another height needs another Size.
+	Height int
 	// Key names what the screen shows, for ShowingKey.
 	Key string
 }
@@ -285,6 +288,7 @@ type inventoryData struct {
 	Book        *dInvBook    `json:"book"`
 	Cursor      *dInvSlot    `json:"cursor"`
 	Hold        bool         `json:"hold"`
+	Height      int          `json:"height,omitempty"`
 }
 
 // ShowInventory shows p an inventory screen. The cursor stack is drawn from
@@ -319,7 +323,7 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 	l.hold = s.Hold
 	l.screenKey = s.Key
 	chrome, _ := l.chromeOf(s.Title, s.Options)
-	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Tools: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil}
+	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Tools: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil, Height: s.Height}
 	button := func(o Option) dBarButton {
 		return dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Icon: oreIcon(o.Icon), Quick: true}
 	}

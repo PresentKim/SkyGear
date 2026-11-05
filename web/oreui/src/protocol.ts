@@ -81,7 +81,7 @@ export interface InvGauge { kind: string; fill: number; tip: Text } // a tall ba
 export interface InvProgress { icon: Icon; tip: Text } // a machine's progress arrow or ring
 export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null; off?: boolean; gauge?: InvGauge; progress?: InvProgress } // off: dark slots that take no presses
 export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text; bar?: BarButton[]; barTop?: boolean } // grow: takes the height left and scrolls; bar: buttons outside the right edge, level with the row's bottom (its top with barTop)
-export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; tools?: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go
+export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; tools?: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean; height?: number } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go; height: the window's height in GUI pixels (absent: the vanilla inventory's)
 
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData

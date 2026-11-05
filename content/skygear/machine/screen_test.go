@@ -5,6 +5,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/presentkim/skygear/common/ui"
 )
 
 func TestMachineScreenColumns(t *testing.T) {
@@ -12,6 +13,19 @@ func TestMachineScreenColumns(t *testing.T) {
 		if got := cols(n); got != want {
 			t.Errorf("%d slots: %d columns, want %d", n, got, want)
 		}
+	}
+}
+
+func TestMachineScreenHeight(t *testing.T) {
+	slots := func(n, cols int) ui.InvPart { return ui.InvPart{Cols: cols, Slots: make([]ui.InvSlot, n)} }
+	if got := windowHeight([]ui.InvPart{slots(1, 1), slots(1, 1)}); got != windowRest+slotH {
+		t.Errorf("one slot row: %d", got)
+	}
+	if got := windowHeight([]ui.InvPart{slots(9, 3), slots(4, 2)}); got != windowRest+3*slotH {
+		t.Errorf("3x3 input: %d", got)
+	}
+	if got := windowHeight([]ui.InvPart{{Gauge: &ui.InvGauge{}}, slots(1, 1)}); got != windowRest+gaugeH {
+		t.Errorf("gauge: %d", got)
 	}
 }
 

@@ -107,7 +107,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
     <Window
       chrome={data.chrome}
       className={'mc-inventory' + (data.book ? ' mc-with-book' : '') + (data.tools && data.tools.length > 0 ? ' mc-with-tools' : '')}
-      size={[INV_W, INV_H]}
+      size={[INV_W, data.height || INV_H]}
     >
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (

@@ -39,6 +39,25 @@ func cols(n int) int {
 	return max(1, n)
 }
 
+// In GUI pixels: a slot, a gauge with its border, and the window around the
+// machine row (title, inventory heading, inventory, hotbar, padding).
+const slotH, gaugeH, windowRest = 18, 56, 112
+
+// windowHeight is the height of a machine window whose machine row holds
+// parts, so the window ends under the hotbar.
+func windowHeight(parts []ui.InvPart) int {
+	row := slotH
+	for _, p := range parts {
+		switch {
+		case p.Gauge != nil:
+			row = max(row, gaugeH)
+		case len(p.Slots) > 0:
+			row = max(row, slotH*((len(p.Slots)+p.Cols-1)/p.Cols))
+		}
+	}
+	return windowRest + row
+}
+
 // showsEnergy reports whether the machine's window has an energy gauge.
 func (st *State) showsEnergy() bool { return st.Def.EnergyCap > 0 && (st.Def.Use > 0 || st.Def.Generates > 0) }
 
@@ -163,6 +182,7 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 		help = append(help, i18n.T(lang, k))
 	}
 	info := append(BlockedLines(lang, st), ConsumerLines(lang, st)...)
+	height := windowHeight(parts)
 	ui.ShowInventory(p, ui.InventoryScreen{
 		Title:   tierTitle(lang, st.Def.Title(lang), st.Tier),
 		Info:    strings.Join(info, "\n"),
@@ -186,8 +206,9 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 		},
 		Again: again,
 		Close: func(p *player.Player, _ *world.Tx) { delete(watchers.Of(s), p.H()) },
-		Size:  "machine",
-		Key:   machineKey(pos),
+		Size:   fmt.Sprintf("machine:%d", height),
+		Height: height,
+		Key:    machineKey(pos),
 	})
 }
 
