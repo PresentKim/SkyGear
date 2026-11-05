@@ -4,6 +4,7 @@ import { Rich } from '../text/Rich';
 import { Icon } from '../components/Icon';
 import { Scroll } from '../components/Scroll';
 import { InvSlotView } from './InvSlot';
+import { ButtonColumn } from './ButtonColumn';
 
 function SmallButton(props: { button: BarButton }): JSX.Element {
   const b = props.button;
@@ -31,17 +32,18 @@ function Part(props: { part: InvPart }): JSX.Element {
     rows.push(
       <div key={i} className="oui-box mc-inv-line">
         {part.slots.slice(i, i + cols).map((s) => (
-          <InvSlotView key={s.id} slot={s} big={part.big} />
+          <InvSlotView key={s.id} slot={s} big={part.big} off={part.off} />
         ))}
       </div>,
     );
   }
-  return <div className="oui-box mc-inv-part">{rows}</div>;
+  return <div className={part.off ? 'oui-box mc-inv-part off' : 'oui-box mc-inv-part'}>{rows}</div>;
 }
 
 function Row(props: { row: InvRow; info?: string }): JSX.Element {
   const { row, info } = props;
   const parts = row.parts.filter((p) => p.arrow || p.button || p.slots.length > 0);
+  const bar = row.bar && row.bar.length > 0 ? <ButtonColumn buttons={row.bar} place="bar" top={row.barTop} /> : null;
   const body =
     parts.length === 0 && row.note ? (
       <Rich text={row.note} className="oui-text mc-body-text mc-inv-note" />
@@ -50,6 +52,7 @@ function Row(props: { row: InvRow; info?: string }): JSX.Element {
         {parts.map((p, i) => (
           <Part key={p.area || 'p' + i} part={p} />
         ))}
+        {row.grow ? null : bar}
       </div>
     );
   return (
@@ -60,7 +63,14 @@ function Row(props: { row: InvRow; info?: string }): JSX.Element {
           {info ? <Rich text={info} className="oui-text mc-inv-info" /> : null}
         </div>
       ) : null}
-      {row.grow ? <Scroll className="mc-inv-grow">{body}</Scroll> : body}
+      {row.grow ? (
+        <div className="oui-box mc-inv-growbox">
+          <Scroll className="mc-inv-grow">{body}</Scroll>
+          {bar}
+        </div>
+      ) : (
+        body
+      )}
     </>
   );
 }

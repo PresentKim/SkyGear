@@ -133,6 +133,116 @@ func terminalInfo(lang string, kinds int, items int64, query string, found int) 
 	return info
 }
 
+// takeInto moves up to want items of k from n into inv, gives back what
+// does not fit, and returns how many moved.
+func takeInto(n *Network, inv *inventory.Inventory, k storagenet.Key, want int) int {
+	got := netExtract(n, k, want)
+	if got.Empty() {
+		return 0
+	}
+	added, _ := inv.AddItem(got)
+	if rest := got.Count() - added; rest > 0 {
+		netInsert(n, got.Grow(rest-got.Count()))
+	}
+	return added
+}
+
+// takeAll fills inv with stacks of list, in its order, until it is full, and
+// returns how many items moved.
+func takeAll(n *Network, inv *inventory.Inventory, list []storage.Entry) int {
+	total := 0
+	for _, e := range list {
+		k := KeyOf(e.Item)
+		for n.Root.Count(k) > 0 {
+			moved := takeInto(n, inv, k, e.Item.MaxCount())
+			total += moved
+			if moved < e.Item.MaxCount() {
+				if n.Root.Count(k) > 0 {
+					return total
+				}
+				break
+			}
+		}
+	}
+	return total
+}
+
+// takeMatching fills the stacks inv holds up to full stacks from n, and
+// returns how many items moved.
+func takeMatching(n *Network, inv *inventory.Inventory, _ []storage.Entry) int {
+	room := map[storagenet.Key]int{}
+	for _, st := range inv.Slots() {
+		if !st.Empty() {
+			room[KeyOf(st)] += st.MaxCount() - st.Count()
+		}
+	}
+	total := 0
+	for k, r := range room {
+		if r > 0 {
+			total += takeInto(n, inv, k, r)
+		}
+	}
+	return total
+}
+
+// putMain puts every stack of inv (not the hotbar) into n and returns how
+// many items went in.
+func putMain(n *Network, inv *inventory.Inventory) int64 {
+	var total int64
+	for slot := 9; slot < 36; slot++ {
+		st, _ := inv.Item(slot)
+		if st.Empty() {
+			continue
+		}
+		if got := netInsert(n, st); got > 0 {
+			_ = inv.SetItem(slot, st.Grow(-int(got)))
+			total += got
+		}
+	}
+	return total
+}
+
+// sortMain merges and sorts the stacks of inv (not the hotbar) by item and
+// puts them back from its first slot.
+func sortMain(inv *inventory.Inventory) {
+	var stacks []item.Stack
+	for slot := 9; slot < 36; slot++ {
+		st, _ := inv.Item(slot)
+		if st.Empty() {
+			continue
+		}
+		merged := false
+		for i, have := range stacks {
+			if room := have.MaxCount() - have.Count(); room > 0 && have.Comparable(st) {
+				put := min(room, st.Count())
+				stacks[i] = have.Grow(put)
+				st = st.Grow(-put)
+				merged = st.Empty()
+				if merged {
+					break
+				}
+			}
+		}
+		if !merged && !st.Empty() {
+			stacks = append(stacks, st)
+		}
+	}
+	sort.SliceStable(stacks, func(i, j int) bool {
+		a, b := string(KeyOf(stacks[i])), string(KeyOf(stacks[j]))
+		if a != b {
+			return a < b
+		}
+		return stacks[i].Count() > stacks[j].Count()
+	})
+	for slot := 9; slot < 36; slot++ {
+		st := item.Stack{}
+		if i := slot - 9; i < len(stacks) {
+			st = stacks[i]
+		}
+		_ = inv.SetItem(slot, st)
+	}
+}
+
 // depositKinds puts every stack of inv whose kind the network holds into it
 // and returns how many items went in.
 func depositKinds(n *Network, inv *inventory.Inventory) int64 {

@@ -54,6 +54,76 @@
   display: none;
 }
 
+/* ButtonColumn: Refined Storage's square side buttons, the tools left of the window's top and a row's
+   bar right of the window, level with the row's bottom (or top). The recipe book moves left past the
+   tools. */
+.mc-button-column {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-tools {
+  top: 0;
+  left: -5.2rem;
+}
+
+.mc-row-bar {
+  bottom: 0;
+  right: -5.2rem;
+}
+
+.mc-row-bar.top {
+  top: 0;
+  bottom: auto;
+}
+
+.mc-square-button {
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-row-bar .mc-square-button:last-child {
+  margin-bottom: 0;
+}
+
+.mc-square-button img {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-inventory.mc-with-tools .mc-inv-book {
+  left: -36.6rem;
+}
+
+.mc-inventory.mc-with-book.mc-with-tools .mc-window {
+  left: 17.6rem;
+}
+
+.mc-inv-growbox {
+  position: relative;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-inv-row {
+  position: relative;
+}
+
+/* A slot whose contents are not there (a network without power), dark as a disabled Java panel. */
+.mc-inv-slot.mc-inv-off {
+  background-color: rgba(0, 0, 0, 0.45);
+  border-image-source: none;
+  border-color: #2b2b2b #555555 #555555 #2b2b2b;
+}
+
 .mc-inv-quick.on {
   background-color: rgba(255, 255, 255, 0.35);
 }

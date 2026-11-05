@@ -193,6 +193,33 @@ describe('inventory mouse', () => {
   });
 });
 
+describe('inventory buttons', () => {
+  const btn = (id: string) => ({ id, tip: id, icon: '', glyph: '', quick: true });
+  it('draws the tools left and each row bar level with its row', () => {
+    const d = data(null);
+    d.tools = [btn('t1'), btn('t2')];
+    d.rows[0].bar = [btn('b1')];
+    d.rows[1].bar = [btn('b2'), btn('b3')];
+    d.rows[1].barTop = true;
+    const { container } = render(<InventoryScreen data={d} />);
+    expect(container.querySelectorAll('.mc-tools > .mc-square-button').length).toBe(2);
+    expect(container.querySelector('.mc-inv-growbox > .mc-row-bar:not(.top)')).not.toBeNull();
+    expect(container.querySelectorAll('.mc-inv-row > .mc-row-bar.top > .mc-square-button').length).toBe(2);
+    mouse(container.querySelectorAll('.mc-square-button')[0], 'mousedown');
+    vi.advanceTimersByTime(50);
+    expect(send).toHaveBeenCalledWith('t1', 'click');
+  });
+  it('off slots are dark and take no presses', () => {
+    const d = data(null);
+    d.rows[0].parts[0].off = true;
+    const { container } = render(<InventoryScreen data={d} />);
+    const off = container.querySelector('.mc-inv-part.off .mc-inv-slot')!;
+    expect(off.className).toContain('mc-inv-off');
+    mouse(off, 'mousedown');
+    expect(send).not.toHaveBeenCalled();
+  });
+});
+
 describe('inventory touch', () => {
   it('a tap is a left click', () => {
     const { container } = render(<InventoryScreen data={data(null)} />);

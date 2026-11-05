@@ -11,8 +11,13 @@ export function useGestureRedraw(): void {
   useEffect(() => gesture.subscribe(redraw), []);
 }
 
-/** InvSlotView is a slot the player works like a vanilla inventory slot (gesture.ts). */
-export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Element {
+/** InvSlotView is a slot the player works like a vanilla inventory slot (gesture.ts); an off slot is dark and takes no presses. */
+export function InvSlotView(props: { slot: InvSlot; big?: boolean; off?: boolean }): JSX.Element {
+  if (props.off) return <div className={props.big ? 'oui-box mc-slot mc-inv-slot mc-big mc-inv-off' : 'oui-box mc-slot mc-inv-slot mc-inv-off'} />;
+  return <LiveSlot slot={props.slot} big={props.big} />;
+}
+
+function LiveSlot(props: { slot: InvSlot; big?: boolean }): JSX.Element {
   const { slot } = props;
   const el = useRef<HTMLDivElement | null>(null);
   const cur = useRef(slot);

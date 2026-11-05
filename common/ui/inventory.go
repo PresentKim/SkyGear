@@ -77,6 +77,9 @@ type InvPart struct {
 	Arrow bool
 	// Button draws a small button (its label is the tooltip).
 	Button *Option
+	// Off draws the slots dark and takes no presses: what they would show
+	// is not there (a network without power).
+	Off bool
 }
 
 // InvRow is a row of parts under an optional heading.
@@ -87,6 +90,31 @@ type InvRow struct {
 	Grow bool
 	// Note is a line drawn in place of the parts when they are empty.
 	Note string
+	// Bar is a column of buttons outside the window's right edge beside the
+	// row (TransferBar): level with the row's bottom, or with its top when
+	// BarTop is set.
+	Bar    []Option
+	BarTop bool
+}
+
+// TransferBar is the buttons that move items between a container row and
+// the inventory below it, as the Java Edition inventory mods lay them out:
+// the container's (take all, take the kinds held, sort) beside its bottom
+// right, the inventory's (put all, put the kinds the container has, sort)
+// beside its top right. A nil run leaves its button out.
+type TransferBar struct {
+	All, Matching, Sort Option
+}
+
+// Options are the bar's buttons with a run, in order.
+func (b TransferBar) Options() []Option {
+	var out []Option
+	for _, o := range []Option{b.All, b.Matching, b.Sort} {
+		if o.Run != nil {
+			out = append(out, o)
+		}
+	}
+	return out
 }
 
 // InvSearch is the search box over an inventory screen.
@@ -132,6 +160,9 @@ type InventoryScreen struct {
 	Rows   []InvRow
 	// Side are the buttons in a column outside the window's right edge.
 	Side []Option
+	// Tools are square buttons in a column outside the window's left edge
+	// (Refined Storage's side buttons: sort direction, sort kind, ...).
+	Tools []Option
 	// Book, if set, is the recipe book panel left of the window.
 	Book *InvBook
 	// Quick is the tooltip of the page's quick move switch under them,
@@ -190,13 +221,16 @@ type dInvPart struct {
 	Big    bool        `json:"big"`
 	Arrow  bool        `json:"arrow"`
 	Button *dBarButton `json:"button"`
+	Off    bool        `json:"off"`
 }
 
 type dInvRow struct {
-	Heading string     `json:"heading"`
-	Parts   []dInvPart `json:"parts"`
-	Grow    bool       `json:"grow"`
-	Note    string     `json:"note"`
+	Heading string       `json:"heading"`
+	Parts   []dInvPart   `json:"parts"`
+	Grow    bool         `json:"grow"`
+	Note    string       `json:"note"`
+	Bar     []dBarButton `json:"bar"`
+	BarTop  bool         `json:"barTop"`
 }
 
 type inventoryData struct {
@@ -207,6 +241,7 @@ type inventoryData struct {
 	Info        string       `json:"info"`
 	Rows        []dInvRow    `json:"rows"`
 	Side        []dBarButton `json:"side"`
+	Tools       []dBarButton `json:"tools"`
 	Quick       string       `json:"quick"`
 	Book        *dInvBook    `json:"book"`
 	Cursor      *dInvSlot    `json:"cursor"`
@@ -244,7 +279,13 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 	}
 	l.hold = s.Hold
 	chrome, _ := l.chromeOf(s.Title, s.Options)
-	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil}
+	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Tools: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil}
+	button := func(o Option) dBarButton {
+		return dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Icon: oreIcon(o.Icon), Quick: true}
+	}
+	for _, o := range s.Tools {
+		d.Tools = append(d.Tools, button(o))
+	}
 	if s.Search != nil {
 		d.Field, d.Query, d.Placeholder = "search", s.Search.Query, s.Search.Placeholder
 		if s.Search.Change != nil {
@@ -252,9 +293,12 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		}
 	}
 	for _, r := range s.Rows {
-		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note}
+		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note, Bar: []dBarButton{}, BarTop: r.BarTop}
+		for _, o := range r.Bar {
+			dr.Bar = append(dr.Bar, button(o))
+		}
 		for _, part := range r.Parts {
-			dp := dInvPart{Area: part.Area, Cols: part.Cols, Slots: []dInvSlot{}, Big: part.Big, Arrow: part.Arrow}
+			dp := dInvPart{Area: part.Area, Cols: part.Cols, Slots: []dInvSlot{}, Big: part.Big, Arrow: part.Arrow, Off: part.Off}
 			if part.Button != nil {
 				b := dBarButton{ID: l.id(part.Button.Run), Tip: untoken(part.Button.Label), Icon: oreIcon(part.Button.Icon), Quick: true}
 				dp.Button = &b

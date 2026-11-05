@@ -99,6 +99,45 @@ func TestTerminalKeepsOrderWhileHeld(t *testing.T) {
 	})
 }
 
+func TestTransferBars(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n := termNet(t, tx, 0)
+		stone, dirt := item.NewStack(block.Stone{}, 1), item.NewStack(block.Dirt{}, 1)
+		netInsert(n, stone.Grow(199))
+		netInsert(n, dirt.Grow(9))
+		inv := inventory.New(36, nil)
+		_ = inv.SetItem(9, stone.Grow(9))
+		if got := takeMatching(n, inv, nil); got != 54 {
+			t.Fatalf("took %d matching, want 54 to fill the stone stack", got)
+		}
+		if c := n.Root.Count(KeyOf(dirt)); c != 10 {
+			t.Fatalf("take matching took dirt (%d left)", c)
+		}
+		_ = inv.SetItem(0, dirt.Grow(4))
+		if got := putMain(n, inv); got != 64 {
+			t.Fatalf("put %d, want 64 (the hotbar stays)", got)
+		}
+		if st, _ := inv.Item(0); st.Count() != 5 {
+			t.Fatalf("hotbar dirt %d, want 5", st.Count())
+		}
+		list, _, _ := terminalList(n, "en_US", "", 0)
+		if got := takeAll(n, inv, list); got != 220 {
+			t.Fatalf("took all %d, want 220", got)
+		}
+		inv = inventory.New(36, nil)
+		_ = inv.SetItem(12, stone.Grow(59))
+		_ = inv.SetItem(20, stone.Grow(9))
+		_ = inv.SetItem(30, dirt.Grow(2))
+		sortMain(inv)
+		want := []item.Stack{dirt.Grow(2), stone.Grow(63), stone.Grow(5), {}}
+		for i, w := range want {
+			if st, _ := inv.Item(9 + i); st.Count() != w.Count() || (!w.Empty() && !st.Comparable(w)) {
+				t.Fatalf("slot %d after sort %v, want %v", 9+i, st, w)
+			}
+		}
+	})
+}
+
 func TestTerminalTake(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n := termNet(t, tx, 0)

@@ -374,6 +374,25 @@ body {
   border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
 }
 
+/* The square side buttons of the inventory screens (web/oreui/src/inventory/ButtonColumn.tsx). */
+.mc-square-button {
+  border-style: solid;
+  border-width: 0.6rem;
+  border-image-source: url("pack://textures/ui/sg/button.png?filtering=point");
+  border-image-slice: 3 fill;
+  border-image-width: 0.6rem;
+  border-color: transparent;
+}
+
+.mc-square-button:hover,
+.mc-square-button.oui-kb {
+  border-image-source: url("pack://textures/ui/sg/button_hover.png?filtering=point");
+}
+
+.mc-square-button:active {
+  border-image-source: url("pack://textures/ui/sg/button_pressed.png?filtering=point");
+}
+
 /* A list row: 32u high cell, 30u button, 20u icon at 6u, text at 32u. */
 .mc-list-row {
   height: 6rem;

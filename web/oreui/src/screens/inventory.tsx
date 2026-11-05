@@ -10,6 +10,7 @@ import { InvRows } from '../inventory/InvRows';
 import { CursorStack } from '../inventory/Cursor';
 import { RecipeBook } from '../inventory/RecipeBook';
 import { useGestureRedraw } from '../inventory/InvSlot';
+import { ButtonColumn } from '../inventory/ButtonColumn';
 import * as gesture from '../inventory/gesture';
 
 // The inventory window is nine slots wide and about as tall as the vanilla double chest, capped so
@@ -103,7 +104,11 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
     };
   }, []);
   return (
-    <Window chrome={data.chrome} className={data.book ? 'mc-inventory mc-with-book' : 'mc-inventory'} size={[INV_W, INV_H]}>
+    <Window
+      chrome={data.chrome}
+      className={'mc-inventory' + (data.book ? ' mc-with-book' : '') + (data.tools && data.tools.length > 0 ? ' mc-with-tools' : '')}
+      size={[INV_W, INV_H]}
+    >
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (
           <SideButton key={b.id} button={b} />
@@ -117,6 +122,7 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
         </div>
       ) : null}
       <TouchTip />
+      <ButtonColumn buttons={data.tools || []} place="tools" />
       <InvRows rows={data.rows} info={data.info} />
       {data.book ? <RecipeBook book={data.book} /> : null}
       <HeldCursor slot={data.cursor} />

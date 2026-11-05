@@ -77,9 +77,9 @@ export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; rare: number; empty: Icon; dim?: boolean } // empty: shown while icon is ''; dim: drawn faded
 export interface InvTab { id: Id; tip: Text; icon: Icon; on: boolean; end: boolean } // end: at the right end of the tabs
 export interface InvBook { tabs: InvTab[]; title: Text; field: Id; query: Text; placeholder: Text; filter: BarButton | null; slots: InvSlot[]; note: Text } // the vanilla recipe book left of the window (slots "book:<i>"); field: the search tab's box ('' none)
-export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null }
-export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text } // grow: takes the height left and scrolls
-export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go
+export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null; off?: boolean } // off: dark slots that take no presses
+export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text; bar?: BarButton[]; barTop?: boolean } // grow: takes the height left and scrolls; bar: buttons outside the right edge, level with the row's bottom (its top with barTop)
+export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; tools?: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go
 
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
