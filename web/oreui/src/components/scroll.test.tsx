@@ -92,4 +92,22 @@ describe('Scroll', () => {
     expect(sc.scrollTop).toBe(500);
     expect(sc.className).toContain('oui-end');
   });
+  it('a handle dragged past the rail stops at its end', () => {
+    const r = render(<Scroll><i /></Scroll>);
+    const sc = r.container.querySelector('.mc-scroll') as HTMLElement;
+    const bar = r.container.querySelector('.mc-scrollbar') as HTMLElement;
+    const h = r.container.querySelector('.mc-scroll-handle') as HTMLElement;
+    let top = 0;
+    Object.defineProperty(sc, 'scrollTop', { configurable: true, get: () => top, set: (v: number) => (top = v) });
+    Object.defineProperty(sc, 'scrollHeight', { configurable: true, value: 500 });
+    Object.defineProperty(sc, 'clientHeight', { configurable: true, value: 100 });
+    Object.defineProperty(bar, 'clientHeight', { configurable: true, value: 100 });
+    Object.defineProperty(h, 'offsetHeight', { configurable: true, value: 20 });
+    h.dispatchEvent(new MouseEvent('mousedown', { clientY: 0 }));
+    document.dispatchEvent(new MouseEvent('mousemove', { clientY: 1000 }));
+    expect(sc.scrollTop).toBe(400);
+    expect(h.style.top).toBe('80px');
+    document.dispatchEvent(new MouseEvent('mousemove', { clientY: -1000 }));
+    expect(sc.scrollTop).toBe(0);
+  });
 });

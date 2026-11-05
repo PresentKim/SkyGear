@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { thumbOf } from '@ore-ui-react/core';
 
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v || 0));
+
 function pointY(ev: Event): number {
   const e = ev as MouseEvent & TouchEvent;
   const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
@@ -31,7 +33,7 @@ export function Scroll(props: { className?: string; end?: boolean; children?: Re
     const height = Math.round(thumbOf(c.scrollTop, view, full, track, min).height) + 'px';
     if (height !== s.height) h.style.height = s.height = height;
     const hh = h.offsetHeight;
-    const top = Math.round(((track - hh) * c.scrollTop) / (full - view)) + 'px';
+    const top = Math.round((track - hh) * clamp01(c.scrollTop / (full - view))) + 'px';
     if (top !== s.top) h.style.top = s.top = top;
   };
 
@@ -55,7 +57,8 @@ export function Scroll(props: { className?: string; end?: boolean; children?: Re
     const onMove = (ev: Event) => {
       if (!drag) return;
       const room = b.clientHeight - h.offsetHeight;
-      if (room > 0) c.scrollTop = drag.top + ((pointY(ev) - drag.y) * (c.scrollHeight - c.clientHeight)) / room;
+      const max = c.scrollHeight - c.clientHeight;
+      if (room > 0) c.scrollTop = max * clamp01((drag.top + ((pointY(ev) - drag.y) * max) / room) / max);
       update();
     };
     const onUp = () => {

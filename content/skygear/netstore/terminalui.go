@@ -162,9 +162,9 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		}}
 		rows = append(rows, ui.InvRow{Parts: []ui.InvPart{
 			{Area: "craft", Cols: 3, Slots: grid},
+			{Button: &clear},
 			{Arrow: true},
 			{Area: "result", Cols: 1, Big: true, Slots: []ui.InvSlot{result}},
-			{Button: &clear},
 		}})
 	}
 	main, hot := invclick.Main(inv), invclick.Hotbar(inv)

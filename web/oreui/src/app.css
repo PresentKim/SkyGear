@@ -216,8 +216,11 @@
 }
 
 .mc-inv-button {
+  align-self: flex-start;
   width: 2.4rem;
   height: 2.4rem;
+  margin-left: -0.6rem;
+  margin-right: 0.8rem;
 }
 
 .mc-inv-button img {
