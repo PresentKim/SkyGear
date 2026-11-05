@@ -2,7 +2,6 @@ package dimension
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -11,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/item/potion"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
@@ -344,7 +342,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 			d.fuse--
 		}
 		if d.fuse >= v.Fuse {
-			tx.AddParticle(pos, particle.HugeExplosion{})
+			drawBlast(tx, pos)
 			tx.PlaySound(pos, sound.Explosion{})
 			if target.Position().Sub(pos).Len() < blastRange {
 				target.Hurt(v.Blast*orOne(d.damageMul)/orOne(v.Damage), entity.ExplosionDamageSource{})
@@ -357,12 +355,12 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 	if v.Blink > 0 && d.beat%v.Blink == 0 && dist > 4 {
 		a := s.Rand.Float64() * 2 * math.Pi
 		to := insideArena(target.Position().Add(mgl64.Vec3{math.Cos(a) * 3, 0, math.Sin(a) * 3}), 2)
-		tx.AddParticle(pos, particle.EndermanTeleport{})
+		drawBlink(tx, pos)
 		m.Data.Pos = to
 		for _, vw := range tx.Viewers(to) {
 			vw.ViewEntityTeleport(m, to)
 		}
-		tx.AddParticle(to, particle.EndermanTeleport{})
+		drawBlink(tx, to)
 		tx.PlaySound(to, sound.Teleport{})
 		return true
 	}
@@ -376,7 +374,7 @@ func (m *Monster) trick(s *core.Session, tx *world.Tx, pos mgl64.Vec3, target *p
 				o := e.(*Monster)
 				if od := o.Md(); od.Health < od.MaxHealth && o.Position().Sub(pos).Len() < mendRange {
 					od.Health = min(od.MaxHealth, od.Health+v.Mend)
-					tx.AddParticle(o.Position().Add(mgl64.Vec3{0, 1, 0}), particle.Effect{Colour: mendColour})
+					drawMend(tx, o.Position())
 				}
 			}
 		}
@@ -511,5 +509,3 @@ func arrowTip(e *effect.Effect) (potion.Potion, bool) {
 	}
 	return potion.Potion{}, false
 }
-
-var mendColour = color.RGBA{R: 255, G: 90, B: 160, A: 255}

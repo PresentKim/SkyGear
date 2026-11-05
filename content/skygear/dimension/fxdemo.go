@@ -19,8 +19,9 @@ import (
 // fxDemoTicks is how long a showcase plays.
 const fxDemoTicks = 100
 
-// FxDemos are the looks a showcase plays: the weapons and a monster's death.
-var FxDemos = []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicFlameRing, sgitem.RelicLightning, sgitem.RelicBoomerang, "poof"}
+// FxDemos are the looks a showcase plays: the weapons, a monster's death and
+// the monsters' tricks.
+var FxDemos = []string{sgitem.RelicBlade, sgitem.RelicCrossbow, sgitem.RelicFlameRing, sgitem.RelicLightning, sgitem.RelicBoomerang, "poof", "blast", "blink", "mend"}
 
 // ShowFx plays the look of kind round p. It reports whether kind is one of
 // FxDemos.
@@ -134,6 +135,22 @@ func (d *fxDemo) Tick(tx *world.Tx, _ int64) {
 		if t%30 == 0 {
 			for _, at := range targets {
 				drawPoof(tx, at)
+			}
+		}
+	case "blast":
+		if t%50 == 0 {
+			drawBlast(tx, targets[0])
+		}
+	case "blink":
+		if t%25 == 0 {
+			from, to := targets[(t/25)%3], targets[(t/25+1)%3]
+			drawBlink(tx, from)
+			drawBlink(tx, to)
+		}
+	case "mend":
+		if t%40 == 0 {
+			for _, at := range targets {
+				drawMend(tx, at)
 			}
 		}
 	}

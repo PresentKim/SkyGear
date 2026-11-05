@@ -26,6 +26,9 @@ const (
 	fxLightning = "skygear:fx_lightning"
 	fxHit       = "skygear:fx_hit"
 	fxPoof      = "skygear:fx_poof"
+	fxBlast     = "skygear:fx_blast"
+	fxBlink     = "skygear:fx_blink"
+	fxMend      = "skygear:fx_mend"
 )
 
 // sparkSight is how far (blocks) from a particle a player sees it.

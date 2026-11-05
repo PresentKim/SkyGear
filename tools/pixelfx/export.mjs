@@ -18,6 +18,9 @@ const effects = [
   { name: "fx_poof", id: "spawn/poof", from: 0, to: 1.2, fps: 20 },
   { name: "fx_slash", id: "melee/sword-slash", from: 0.06, to: 0.4, fps: 30, crop: [0, 0, 136, 86] },
   { name: "fx_tracer", id: "projectiles/bullet-tracer", from: 0, to: 0.6, fps: 30 },
+  { name: "fx_blast", id: "explosions/small-explosion", from: 0.1, to: 2.4, fps: 10 },
+  { name: "fx_blink", id: "arcane/blink-out", from: 0.7, to: 1.45, fps: 20 },
+  { name: "fx_mend", id: "holy/heal-aoe", from: 0.4, to: 2.4, fps: 10 },
 ];
 
 const [lib, pack = "assets/resourcepack/skygear"] = process.argv.slice(2);

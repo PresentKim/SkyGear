@@ -55,3 +55,12 @@ func drawDisc(tx *world.Tx, at mgl64.Vec3) { spark(tx, at, fxDisc) }
 
 // drawPoof is a monster going up in smoke at feet.
 func drawPoof(tx *world.Tx, feet mgl64.Vec3) { spark(tx, feet, fxPoof) }
+
+// drawBlast is a monster blowing up at feet.
+func drawBlast(tx *world.Tx, feet mgl64.Vec3) { spark(tx, feet, fxBlast) }
+
+// drawBlink is a monster vanishing from or appearing at feet.
+func drawBlink(tx *world.Tx, feet mgl64.Vec3) { spark(tx, feet, fxBlink) }
+
+// drawMend is a monster at feet being mended.
+func drawMend(tx *world.Tx, feet mgl64.Vec3) { spark(tx, feet, fxMend) }
