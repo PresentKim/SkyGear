@@ -58,9 +58,13 @@ func netRaw(kind string, facing cube.Face, mask int) int {
 	return mask
 }
 
-// netItemRaw is the look of the item: a cable running east and west, the
-// head of an attachment facing north.
+// netItemRaw is the look of the item: a cable running east and west; an
+// attachment's bare head facing south, which the inventory shows to the
+// viewer, so the three heads tell apart.
 func netItemRaw(kind string) int {
+	if _, head := netHeads[kind]; head {
+		return netRaw(kind, cube.FaceSouth, 0)
+	}
 	return netRaw(kind, cube.FaceNorth, 1<<cube.FaceEast|1<<cube.FaceWest)
 }
 
@@ -119,13 +123,20 @@ func netMaterials() map[string]customblock.Material {
 	}
 }
 
+// clientBox is a box as the client's block components take it: like the
+// block geometry (tools/netgeo), their x axis is mirrored against the world's.
+func clientBox(b cube.BBox) cube.BBox {
+	lo, hi := b.Min(), b.Max()
+	return cube.Box(1-hi.X(), lo.Y(), lo.Z(), 1-lo.X(), hi.Y(), hi.Z())
+}
+
 func netProperties(kind string, shape int) customblock.Properties {
 	boxes := netBoxes(kind, shape)
 	coll := make([]cube.BBox, len(boxes))
 	for i, b := range boxes {
-		coll[i] = b.BBox()
+		coll[i] = clientBox(b.BBox())
 	}
-	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(), SelectionBox: netshape.Bounds(boxes), CollisionBoxes: coll}
+	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
 }
 
 func netStates(kind string) map[string][]any {
