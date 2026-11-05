@@ -78,6 +78,7 @@ func FuelDuration(st item.Stack) int {
 
 // runGenerator burns fuel and fills the buffer; it runs every tick.
 func runGenerator(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
+	defer network.Energy(s).AddSource(pos)
 	gen, energyCap := st.GenRate(), st.EnergyCap()
 	if st.Burn == 0 && st.Energy+gen <= energyCap {
 		slot, fuel, ok := st.FirstInput()
@@ -107,7 +108,6 @@ func runGenerator(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	if st.burnMax > 0 {
 		st.Progress = st.Burn * st.Def.Interval / st.burnMax
 	}
-	network.Energy(s).AddSource(pos)
 }
 
 // EnergyPorts implements energy.Ports: a generator gives energy, a machine
