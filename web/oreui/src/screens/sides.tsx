@@ -5,8 +5,8 @@ import { InkContext, Rich } from '../text/Rich';
 import { usePressable } from '../interact/press';
 
 // The window size in GUI pixels.
-const SIDES_W = 380;
-const SIDES_H = 232;
+const SIDES_W = 300;
+const SIDES_H = 172;
 
 /** Choice is the square of a choice: its colour, or its icon. */
 function Choice(props: { className: string; colour: string; icon: string }): JSX.Element {
@@ -73,7 +73,6 @@ function Card(props: { card: SideCard; last: boolean }): JSX.Element {
       <div className="oui-box mc-side-head">
         <SideBlock icon={card.icon} tip={card.tip} />
         <Rich text={card.name} className="oui-text mc-side-name" />
-        <Rich text={card.tip} className="oui-text mc-side-tip" />
       </div>
       <div className="oui-box mc-side-ports">
         {card.ports.length === 0 ? (

@@ -38,7 +38,7 @@ describe('sides', () => {
     const focused = rows[1].querySelectorAll('.mc-side-card')[1];
     expect(focused.className).toContain('on');
     expect(focused.querySelector('.mc-side-block img')).not.toBeNull();
-    expect(focused.querySelector('.mc-side-tip')!.textContent).toBe('Chest');
+    expect(focused.querySelector('.mc-side-tip')).toBeNull();
     expect(rows[1].querySelectorAll('.mc-side-card')[2].className).toContain('last');
     expect(container.querySelector('.mc-side-guide')!.textContent).toBe('guide');
   });

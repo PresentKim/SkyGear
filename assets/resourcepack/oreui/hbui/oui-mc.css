@@ -1348,12 +1348,12 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 3.2rem;
+  height: 2.4rem;
 }
 
 .mc-side-block {
-  width: 3.2rem;
-  height: 3.2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1365,20 +1365,14 @@ body {
 }
 
 .mc-side-block img {
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .mc-side-name {
-  margin-left: 0.8rem;
-  font-size: 1.6rem;
-  color: #ffffff;
-}
-
-.mc-side-tip {
   margin-left: 0.6rem;
-  font-size: 1.2rem;
-  color: #c6c6c6;
+  font-size: 1.4rem;
+  color: #ffffff;
 }
 
 .mc-side-ports {
@@ -1393,25 +1387,25 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 0.8rem;
-  margin-right: 0.8rem;
+  margin-left: 0.6rem;
+  margin-right: 0.6rem;
 }
 
 .mc-port-label {
-  margin-bottom: 0.4rem;
-  font-size: 1.4rem;
+  margin-bottom: 0.2rem;
+  font-size: 1.2rem;
   color: #ffffff;
 }
 
 .mc-port-slot {
   position: relative;
-  width: 8.8rem;
-  height: 8.8rem;
+  width: 5.2rem;
+  height: 5.2rem;
 }
 
 .mc-port-swatch {
-  width: 8.8rem;
-  height: 8.8rem;
+  width: 5.2rem;
+  height: 5.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1427,8 +1421,8 @@ body {
 }
 
 .mc-port-colour {
-  width: 6rem;
-  height: 6rem;
+  width: 3.6rem;
+  height: 3.6rem;
   border-style: solid;
   border-width: 0.2rem;
   border-color: #000000;
@@ -1443,8 +1437,8 @@ body {
 }
 
 .mc-port-colour.icon img {
-  width: 4.4rem;
-  height: 4.4rem;
+  width: 2.8rem;
+  height: 2.8rem;
 }
 
 /* The plus button sits over the bottom right corner of the square, like a vanilla button. */
@@ -1452,12 +1446,12 @@ body {
   position: absolute;
   right: -0.6rem;
   bottom: -0.6rem;
-  width: 3rem;
-  height: 3rem;
+  width: 2.2rem;
+  height: 2.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   color: #ffffff;
   background-color: #4a4a4a;
   border-style: solid;
@@ -1476,9 +1470,9 @@ body {
 }
 
 .mc-port-name {
-  height: 1.6rem;
-  margin-top: 0.4rem;
-  font-size: 1.2rem;
+  height: 1.4rem;
+  margin-top: 0.2rem;
+  font-size: 1.1rem;
   color: #c6c6c6;
 }
 
@@ -1488,12 +1482,13 @@ body {
 }
 
 .mc-side-guide {
-  height: 2.8rem;
+  min-height: 2.4rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 1rem;
   color: #c6c6c6;
   background-color: #1b1b1b;
   border-style: solid;
