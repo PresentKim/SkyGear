@@ -30,15 +30,15 @@
         ],
         "facing_camera_mode": "emitter_transform_xz",
         "uv": {
-          "texture_width": 156,
-          "texture_height": 558,
+          "texture_width": 78,
+          "texture_height": 288,
           "uv": [
             0,
-            "math.floor(variable.particle_random_1 * 18) * 31"
+            "math.floor(variable.particle_random_1 * 18) * 16"
           ],
           "uv_size": [
-            156,
-            31
+            78,
+            16
           ]
         }
       },

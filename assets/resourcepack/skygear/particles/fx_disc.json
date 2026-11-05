@@ -27,15 +27,15 @@
         ],
         "facing_camera_mode": "rotate_xyz",
         "uv": {
-          "texture_width": 38,
-          "texture_height": 630,
+          "texture_width": 19,
+          "texture_height": 315,
           "uv": [
             0,
-            "math.floor(variable.particle_random_1 * 15) * 42"
+            "math.floor(variable.particle_random_1 * 15) * 21"
           ],
           "uv_size": [
-            38,
-            42
+            19,
+            21
           ]
         }
       }

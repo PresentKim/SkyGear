@@ -33,20 +33,20 @@
         ],
         "facing_camera_mode": "rotate_xyz",
         "uv": {
-          "texture_width": 224,
-          "texture_height": 2160,
+          "texture_width": 38,
+          "texture_height": 360,
           "flipbook": {
             "base_UV": [
               0,
               0
             ],
             "size_UV": [
-              224,
-              108
+              38,
+              18
             ],
             "step_UV": [
               0,
-              108
+              18
             ],
             "max_frame": 20,
             "stretch_to_lifetime": true
