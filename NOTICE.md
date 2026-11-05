@@ -24,6 +24,9 @@ below are third-party work and keep their own licences:
 - `.claude/skills/pixelfx/`: the pixelfx skill from
   [pixelfx](https://github.com/patch-gg/pixelfx) by Patch and Hugo Duprez
   (commit `a8415968`), MIT License, see `.claude/skills/pixelfx/LICENSE`.
+- `assets/resourcepack/skygear/textures/particle/fx_*.png`: rendered from
+  [pixelfx](https://github.com/patch-gg/pixelfx) effects, MIT License, see
+  `third_party/licenses/pixelfx-MIT.txt`.
 
 The resource packs reference vanilla Minecraft textures by path only; those
 textures are supplied by the player's game client and are not part of this

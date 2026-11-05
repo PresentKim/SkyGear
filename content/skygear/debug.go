@@ -35,7 +35,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b}, debugNet{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugFx{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b}, debugNet{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -309,6 +309,31 @@ func (c debugHunt) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	o.Printf("hunting %s", mob)
+}
+
+// debugFx plays a second dimension weapon's look (or a monster's death)
+// round the operator for a few seconds, anywhere, hitting nothing.
+type debugFx struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"fx"`
+	Kind fxEnum         `cmd:"kind"`
+}
+
+type fxEnum string
+
+func (fxEnum) Type() string                { return "sg_fx" }
+func (fxEnum) Options(cmd.Source) []string { return dimension.FxDemos }
+
+func (c debugFx) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	if !dimension.ShowFx(tx, p, string(c.Kind)) {
+		o.Errorf("unknown effect %q", c.Kind)
+		return
+	}
+	o.Printf("showing %s", c.Kind)
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random

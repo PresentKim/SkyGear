@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
@@ -418,7 +417,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 			n++
 		}
 		for _, m := range nearest(mons, p.Position(), 16*g.reach(), n) {
-			line(tx, eye, m.Position().Add(mgl64.Vec3{0, 0.6, 0}), sparkBolt)
+			drawBolt(tx, eye, m.Position().Add(mgl64.Vec3{0, 0.6, 0}))
 			m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
 		}
 		tx.PlaySound(eye, sound.BowShoot{})
@@ -427,10 +426,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 			return
 		}
 		radius := (3 + 0.4*float64(w.level-1)) * g.reach()
-		for i := range 12 {
-			a := float64(i) * math.Pi / 6
-			tx.AddParticle(p.Position().Add(mgl64.Vec3{math.Cos(a) * radius, 0.3, math.Sin(a) * radius}), particle.Flame{})
-		}
+		drawFlameRing(tx, p.Position(), radius)
 		for _, m := range mons {
 			if flatDist(m.Position(), p.Position()) <= radius {
 				m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
@@ -449,7 +445,7 @@ func (w *weapon) strike(s *core.Session, tx *world.Tx, p *player.Player, g *gear
 		s.Rand.Shuffle(len(near), func(i, j int) { near[i], near[j] = near[j], near[i] })
 		for _, m := range near[:min(len(near), 2+w.level)] {
 			at := m.Position()
-			line(tx, at.Add(mgl64.Vec3{0, 6, 0}), at, sparkBolt)
+			drawLightning(tx, at)
 			tx.PlaySound(at, sound.Thunder{})
 			m.Hurt(tx, dmg(weaponDamage(w.kind)), p)
 		}
@@ -475,9 +471,7 @@ func (w *weapon) spin(tx *world.Tx, p *player.Player, g *gear, mons []*Monster, 
 	for i := range count {
 		a := w.angle + float64(i)*2*math.Pi/float64(count)
 		dirs[i] = mgl64.Vec3{math.Cos(a), 0, math.Sin(a)}
-		for k := range bladeSparks {
-			spark(tx, centre.Add(dirs[i].Mul(inner+(outer-inner)*float64(k)/(bladeSparks-1))), sparkBlade)
-		}
+		drawBlade(tx, centre, dirs[i], inner, outer)
 	}
 	for _, m := range mons {
 		if w.hit[m.Handle] > 0 {
@@ -523,7 +517,7 @@ func (w *weapon) fly(tx *world.Tx, p *player.Player, g *gear, mons []*Monster, d
 	span := (9 + float64(w.level-1)) * g.reach()
 	along := span * (1 - math.Abs(float64(w.out)-flight/2)/(flight/2))
 	at := p.Position().Add(mgl64.Vec3{0, 1, 0}).Add(w.dir.Mul(along))
-	spark(tx, at, sparkFrost)
+	drawDisc(tx, at)
 	for _, m := range mons {
 		if w.hit[m.Handle] == 0 && m.Position().Add(mgl64.Vec3{0, 0.5, 0}).Sub(at).Len() <= 1.4 {
 			w.hit[m.Handle] = 10
@@ -552,12 +546,3 @@ func nearest(mons []*Monster, pos mgl64.Vec3, reach float64, n int) []*Monster {
 }
 
 func flatDist(a, b mgl64.Vec3) float64 { return math.Hypot(a[0]-b[0], a[2]-b[2]) }
-
-// line draws a straight bolt of sparks from a to b.
-func line(tx *world.Tx, a, b mgl64.Vec3, kind string) {
-	d := b.Sub(a)
-	steps := max(1, int(d.Len()*2))
-	for i := range steps + 1 {
-		spark(tx, a.Add(d.Mul(float64(i)/float64(steps))), kind)
-	}
-}

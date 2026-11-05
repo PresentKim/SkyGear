@@ -9,16 +9,22 @@ import (
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
-// The weapons draw with the pack's sparks (particles/hunt_*.json): a dot that
-// stands still where it is put and is gone after 0.15 s, so a shape drawn
-// every tick around the hunter keeps its shape however the hunter walks or
-// turns (vanilla dust drifts and stays a second, smearing it).
-
-// The kinds of sparks: their colour.
+// The weapons draw with the pack's particles. The sparks (particles/hunt_*.json)
+// are dots that stand still where they are put and are gone in a moment, so a
+// shape drawn every tick around the hunter keeps its shape however the hunter
+// walks or turns (vanilla dust drifts and stays a second, smearing it). The
+// pictures (particles/fx_*.json) are pixelfx animations, written by
+// tools/pixelfx/export.mjs.
 const (
-	sparkBlade = "skygear:hunt_blade"
-	sparkFrost = "skygear:hunt_frost"
-	sparkBolt  = "skygear:hunt_bolt"
+	sparkBlade      = "skygear:hunt_blade"
+	sparkBladeTip   = "skygear:hunt_blade_tip"
+	sparkBladeTrail = "skygear:hunt_blade_trail"
+	sparkBolt       = "skygear:hunt_bolt"
+	fxFlame         = "skygear:fx_flame"
+	fxDisc          = "skygear:fx_disc"
+	fxLightning     = "skygear:fx_lightning"
+	fxHit           = "skygear:fx_hit"
+	fxPoof          = "skygear:fx_poof"
 )
 
 // sparkSight is how far (blocks) from a spark a player sees it.

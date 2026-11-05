@@ -523,3 +523,45 @@ func TestGatePortalPack(t *testing.T) {
 		t.Error("the gate's render controller or animation is missing")
 	}
 }
+
+func TestParticleTexturesMatchUV(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(packDir, "particles", "*.json"))
+	if err != nil || len(files) == 0 {
+		t.Fatalf("no particles: %v", err)
+	}
+	for _, f := range files {
+		var pe struct {
+			P struct {
+				D struct {
+					R struct {
+						Texture string `json:"texture"`
+					} `json:"basic_render_parameters"`
+				} `json:"description"`
+				C struct {
+					B struct {
+						UV struct {
+							W int `json:"texture_width"`
+							H int `json:"texture_height"`
+						} `json:"uv"`
+					} `json:"minecraft:particle_appearance_billboard"`
+				} `json:"components"`
+			} `json:"particle_effect"`
+		}
+		rel, _ := filepath.Rel(packDir, f)
+		readPackJSON(t, rel, &pe)
+		tex, err := os.Open(filepath.Join(packDir, pe.P.D.R.Texture+".png"))
+		if err != nil {
+			t.Errorf("%s: %v", rel, err)
+			continue
+		}
+		cfg, err := png.DecodeConfig(tex)
+		_ = tex.Close()
+		if err != nil {
+			t.Errorf("%s: %v", rel, err)
+			continue
+		}
+		if uv := pe.P.C.B.UV; cfg.Width != uv.W || cfg.Height != uv.H {
+			t.Errorf("%s: texture is %dx%d, uv says %dx%d", rel, cfg.Width, cfg.Height, uv.W, uv.H)
+		}
+	}
+}

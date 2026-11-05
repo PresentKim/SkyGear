@@ -15,6 +15,8 @@
 | Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 망의 컨트롤러·케이블·디스크 드라이브·단말·수입기·수출기·외부 저장소·패턴 인코더·자동 제작 장치 면, 저장 디스크 1k~64k, 패턴 (`MODTEX_ONLY=rs go run ./tools/modtex`) |
 | Ex Nihilo Fabrico | https://github.com/SirLyle/ExNihiloFabrico (기본 브랜치 `1.14.4-Fabric`) | `5224a14b7b` | MIT (`LICENSE`: 원작 MikeLydeamore, 이식·텍스처 기여자 포함) | 체 세 종류의 모델(다리·틀, 메쉬 막대 여덟 개, 내용물 높이)과 메쉬 텍스처(블록 `sieve_mesh*`, 아이템 `mesh_*`). `tools/fabricotex` 가 모델 JSON(`models/block/sieve.json`, `models/item/mesh.json`)에서 만든다 |
 
+이차원 무기 이펙트의 파티클 그림(`textures/particle/fx_*.png`)은 [pixelfx](https://github.com/patch-gg/pixelfx)(커밋 `a84159688a`, MIT, Patch·Hugo Duprez)의 이펙트를 `tools/pixelfx/export.mjs` 로 렌더해 잘라 붙인 것이다: 불꽃 `fire/torch`, 원반 `projectiles/energy-disc`, 번개 `lightning/lightning-strike`, 명중 `impacts/hit-spark`, 연기 `spawn/poof`. 라이선스 전문은 `third_party/licenses/pixelfx-MIT.txt`.
+
 주석: 은·니켈·인바·일렉트럼 주괴·가루·덩어리는 Mekanism의 회색 바탕 그림(`ingot`, `dust`, `clump`)에 색만 곱해 만든 파생물이다.
 
 주석: Ex Nihilo Fabrico 에는 메쉬 그림 파일이 없다(메쉬 모델이 바닐라 흰 양털에 메쉬마다 색을 입혀 그린다). 그래서 메쉬 모델의 막대 배치를 위에서 본 16×16 흰 바탕 그림(`sieve_mesh`)으로 옮기고 Fabrico 가 메쉬마다 주는 색(실 `FFFFFF`, 부싯돌 `555555`, 철 `777777`, 금 `FFAA00`, 다이아몬드 `00AAAA`)을 곱했다. 네더라이트 메쉬는 Fabrico 에 없어 같은 바탕에 우리 색(`524248`)을 곱했다. 체 틀은 Fabrico 처럼 바닐라 판자를 경로로 가리킨다.
