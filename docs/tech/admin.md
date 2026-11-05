@@ -10,7 +10,7 @@
 
 | 명령 | 하는 일 |
 |---|---|
-| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `storage_controller`, `tinker_table`, `relic_table`, `essence_collector`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘과 없어진 아이템만 빠진다. 자동 완성에 전체 목록이 나온다) |
+| `/sgadmin give <ID> [개수]` | 게임 아이템·기계·도구(`research_table`, `drawer`, `drawer_key`, `barrel`, `hammer`, `sieve`, `auto_sieve`, `crusher`, `auto_miner`, `harvester`, `drawer_controller`, `tinker_table`, `relic_table`, `essence_collector`, `dimension_stone`, `fairy_emerald`, `fairy_dust`, `ingot_<금속>`, `essence_<몹>`, `seed_<씨앗>`, `petal_<색>`, 보구 `relic_<종류>`(1등급)·`relic_<종류>_<등급 1~5>` 등. 따로 적지 않은 게임 아이템도 `skygear:` 를 뗀 ID로 모두 들어 있고, 화면용 아이콘과 없어진 아이템만 빠진다. 자동 완성에 전체 목록이 나온다) |
 | `/sgadmin item <이름> [개수]` | 아무 아이템(`iron_ore`, `minecraft:diamond` 등) |
 | `/sgadmin research <연구 ID\|all\|reset\|free>` | 연구 하나·전부 완료, 연구 모두 지우기, `free`는 모든 조합법을 인스턴스가 닫힐 때까지 열기(다시 하면 잠금) |
 | `/sgadmin advance <발전과제 ID\|all\|reset>` | 발전과제 하나(앞 단계 포함)·전부 달성, 모두 지우기 |
@@ -29,6 +29,7 @@
 | `/sgdebug place <아이템> <dx> <dy> <dz>` | 내 발 위치에서 그만큼 떨어진 칸에 블록을 놓는다. 그 아이템을 든 채 아래 블록 윗면을 누른 것처럼 게임의 놓기 처리를 그대로 거친다(기계 상태·방향). 아이템은 `give` ID 나 바닐라 이름. 조준 없이 짓는 용도 |
 | `/sgdebug floor <반지름>` | 발밑 높이에 반지름만큼 돌 바닥을 깐다(있는 블록은 그대로). 빈 공간에 시험할 자리를 만든다 |
 | `/sgdebug look <yaw> <pitch>` | 시선을 돌리고(yaw 0 남쪽, pitch 90 아래) WAILA 패널을 바로 갱신한 뒤 보는 블록을 출력 |
+| `/sgdebug terminal` | 보고 있는 망 단말·망 컨트롤러의 단말 창을 연다(웅크려 우클릭과 같다). 시나리오용 |
 | `/sgdebug status` | `researched= chunks= advanced=` 출력(시나리오 확인용) |
 | `/sgdebug skip <분>` | 인스턴스 시간을 n분 앞당김(날짜 변경·작물·분실물 만료 확인용) |
 | `/sgdebug timed <초>` | 손에 든 아이템을 지금부터 n초(현실 시간) 기간제로 만든다. 0 이면 기간을 푼다 ([기간제 아이템](timed-items.md)) |

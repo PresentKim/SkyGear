@@ -19,6 +19,7 @@ import (
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/playerstate"
+	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/platform/db"
 )
 
@@ -364,6 +365,7 @@ func (m *Manager) leave(inst *Instance, p *player.Player, toLobby bool) {
 	// Close a chest window first so its close callback runs while the
 	// player is still in the instance.
 	chestui.Close(p)
+	ui.ReturnCarried(p)
 	tellOthers(p.Tx(), p, "instance.left")
 	inst.session.Leave(p)
 	inst.storePlayer(p)

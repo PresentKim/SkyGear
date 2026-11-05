@@ -14,7 +14,7 @@ import { Icon, iconSrc } from './Icon';
 import { Frame, Gap, SlotView } from './Slot';
 import { ActionButton, Card, ListButton, McButton } from './Buttons';
 
-const slot = { id: 'o1', icon: 'tex:a', count: '3', tip: 't', deco: '', selected: false };
+const slot = { id: 'o1', icon: 'tex:a', count: '3', tip: 't', rare: 0, selected: false };
 
 describe('icon', () => {
   it('builds sources', () => {
@@ -41,11 +41,11 @@ describe('slot', () => {
     expect(Array.from(s.children).map((c) => c.className)).toEqual(['oui-img mc-chosen', 'oui-img mc-icon', 'oui-text mc-count']);
     expect(s.hasAttribute('data-oui-press')).toBe(true);
   });
-  it('deco goes first, variant after mc-slot', () => {
-    const { container } = render(<SlotView slot={{ ...slot, deco: 'tex:d' }} variant="mini" />);
+  it('a rare item draws no frame on its slot, variant after mc-slot', () => {
+    const { container } = render(<SlotView slot={{ ...slot, rare: 3 }} variant="mini" />);
     const s = container.firstElementChild!;
     expect(s.className).toBe('oui-box mc-slot mc-mini pressable');
-    expect(s.children[0].className).toBe('oui-img mc-deco');
+    expect(s.children[0].className).toBe('oui-img mc-chosen');
   });
   it('selected_not_pressable', () => {
     const { container } = render(<SlotView slot={{ ...slot, selected: true }} />);

@@ -57,6 +57,12 @@ Thanks for your interest. These are the rules the project follows; the full
   `w.Do`).
 - Database schema changes add a new entry to `migrations` in
   `platform/db/db.go`; existing entries are never edited.
+- Saves record the release their data is in (`save_state` key
+  `skygear.version`, `data_versions` for account data). A change that
+  existing data has to follow (a renamed block, item, counter or key) adds a
+  patch at the end of `Patches` in `content/skygear/migrate/patches.go` with
+  the release it ships in; at startup the server applies the patches newer
+  than each save's record after a backup. Released patches are never edited.
 
 ## Text and translations
 

@@ -11,7 +11,7 @@
 | 스카이블록 초반 | 3×3×3 섬, 손작업 자원, 연구, 발전과제, 퇴비통·배럴·체·망치, 서랍, 섬 확장, 안전 장치 | [02](02-skygear.md), [05](05-sky-progression.md) |
 | 자동화 | 호퍼·아이템 이동, 에너지와 도관, 분쇄기·자동 체·채굴기·수확기, 자동화 설비 | [06](06-power-and-conduits.md), [09](09-automation-equipment.md) |
 | 진행 확장 | 금속·합금로·에너지 셀, 액체 네트워크, 몬스터 시뮬레이터, 이차원(사냥 기록·보구·에센스 수집기), 연구 정수, 기계 강화 | [07](07-progression-expansion.md), [11](11-research-essences.md), [13](13-machine-tiers.md), [17](17-dimension.md) |
-| 저장·장비·마법 | 스토리지 컨트롤러, 장비 제작(팅커스풍), 마법 식물, 마법 체, 요정 마법 | [08](08-storage-gear-magic.md), [15](15-magic-sieve.md), [02 §19](02-skygear.md) |
+| 저장·장비·마법 | 스토리지 관리 블록, 장비 제작(팅커스풍), 마법 식물, 마법 체, 요정 마법 | [08](08-storage-gear-magic.md), [15](15-magic-sieve.md), [02 §19](02-skygear.md) |
 | 계정 요소 | 칭호, 이름 색, 업적, 설정 | [01 §5](01-platform.md) |
 
 ## 앞으로의 방향

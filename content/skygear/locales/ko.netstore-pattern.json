@@ -1,0 +1,11 @@
+{
+ "netstore.pattern.crafting": "제작: %s",
+ "netstore.pattern.processing": "처리: %s → %s",
+ "netstore.encoder.title": "패턴 인코더",
+ "netstore.encoder.body": "빈 패턴을 슬롯에 두거나 손에 들고, 조합법을 고르세요. 처리 패턴은 재료 칸과 결과 칸에 둔 견본으로 새깁니다.",
+ "netstore.encoder.processing": "처리 패턴 새기기",
+ "netstore.encoder.noBlank": "§c빈 패턴이 필요합니다",
+ "netstore.encoder.noSamples": "§c재료 칸과 결과 칸에 견본을 놓아 주세요",
+ "netstore.encoder.done": "§a패턴을 새겼습니다",
+ "netstore.encoder.page": "%d / %d쪽, 조합법 %d개"
+}

@@ -4,7 +4,7 @@ export type Text = string // may carry § colour codes and client spans (U+FDD0 
 
 export type ScreenName =
   | 'menu' | 'cards' | 'pick' | 'result' | 'equip' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
-  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe'
+  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory'
 
 export interface Root {
   screen: ScreenName
@@ -21,7 +21,7 @@ export interface ListItem extends Button { toggle?: boolean; on?: boolean; kind?
 export interface Tab { id: Id; tip: Text; icon: Icon; on: boolean } // on: the selected tab, not pressable
 export interface BarButton { id: Id; tip: Text; icon: Icon; glyph: string; quick: boolean } // icon or glyph ('?')
 export interface Chrome { title: Text; tabs: Tab[]; bar: BarButton[] } // bar: pagers, help, back (left to right); the close button is always last
-export interface Slot { id: Id; alt?: Id; icon: Icon; count: Text; tip: Text; deco: Icon; selected: boolean }
+export interface Slot { id: Id; alt?: Id; icon: Icon; count: Text; tip: Text; rare: number; selected: boolean } // rare: the item's rarity (0 common to 4 legendary), the tooltip's border
 export interface SlotRow { heading: Text; slots: Slot[] }
 export interface Cell { k: 'blank' | 'slot' | 'mini' | 'frame' | 'arrow' | 'text'; slot?: Slot; text?: Text; span?: number }
 
@@ -72,9 +72,18 @@ export interface ConsoleData { chrome: Chrome; lines: Text[]; field: Id; hint: T
 export interface ProbeNode { t: 'input' | 'box' | 'probe' | 'restest'; [field: string]: unknown } // the legacy node fields
 export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 
+// An inventory screen: slots worked like the vanilla inventory. A slot id is "<area>:<index>"; a click
+// sends 'slot' {b: 0 left | 1 right, shift, dbl} and a drag 'drag' {b, ids}.
+export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; rare: number; empty: Icon; dim?: boolean } // empty: shown while icon is ''; dim: drawn faded
+export interface InvTab { id: Id; tip: Text; icon: Icon; on: boolean; end: boolean } // end: at the right end of the tabs
+export interface InvBook { tabs: InvTab[]; title: Text; field: Id; query: Text; placeholder: Text; filter: BarButton | null; slots: InvSlot[]; note: Text } // the vanilla recipe book left of the window (slots "book:<i>"); field: the search tab's box ('' none)
+export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null }
+export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text } // grow: takes the height left and scrolls
+export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null } // quick: the tip of the quick move switch ('' none)
+
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
   search: SearchData; listsplit: ListSplitData; input: InputData; slotmenu: SlotMenuData; choice: ChoiceData
   sides: SidesData; plane: PlaneData; quest: QuestData; home: HomeData; loading: LoadingData
-  console: ConsoleData; probe: ProbeData
+  console: ConsoleData; probe: ProbeData; inventory: InventoryData
 }

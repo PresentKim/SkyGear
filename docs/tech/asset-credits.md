@@ -11,8 +11,8 @@
 | Mekanism | https://github.com/mekanism/Mekanism | `90bb3de4c7` | MIT (README: 모드 전체) | 합금(인퓨즈·강화·원자), 제어 회로 I~IV, 강화 키트(티어 인스톨러), 설정 복사기, 주괴·가루·덩어리(주석·납·청동·강철·구리·금·철), 전기 화로·전기 도가니·유체 탱크 면 |
 | Ender IO | https://github.com/Team-EnderIO/EnderIO | `a25cd60d65` | Unlicense, 외부 기여 그림은 CC0(`docs/license/`) | 합금로·자동 제작기·몬스터 시뮬레이터·광석 세척기·정수 추출기·발전기류·흡수기·벌목기·에너지 셀 면, 도관 접합제, 도관 텍스처(기존) |
 | Tinkers' Construct | https://github.com/SlimeKnights/TinkersConstruct | `f4e77d43f3` | MIT (README: 코드와 텍스처 모두) | 장비 제작대 |
-| Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 컨트롤러 |
-| Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 링크 |
+| Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 관리 블록, 서랍 인터페이스 |
+| Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 망의 컨트롤러·케이블·디스크 드라이브·단말·수입기·수출기·외부 저장소·패턴 인코더·자동 제작 장치 면, 저장 디스크 1k~64k, 패턴 (`MODTEX_ONLY=rs go run ./tools/modtex`) |
 | Ex Nihilo Fabrico | https://github.com/SirLyle/ExNihiloFabrico (기본 브랜치 `1.14.4-Fabric`) | `5224a14b7b` | MIT (`LICENSE`: 원작 MikeLydeamore, 이식·텍스처 기여자 포함) | 체 세 종류의 모델(다리·틀, 메쉬 막대 여덟 개, 내용물 높이)과 메쉬 텍스처(블록 `sieve_mesh*`, 아이템 `mesh_*`). `tools/fabricotex` 가 모델 JSON(`models/block/sieve.json`, `models/item/mesh.json`)에서 만든다 |
 
 주석: 은·니켈·인바·일렉트럼 주괴·가루·덩어리는 Mekanism의 회색 바탕 그림(`ingot`, `dust`, `clump`)에 색만 곱해 만든 파생물이다.

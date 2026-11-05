@@ -1,0 +1,11 @@
+{
+ "netstore.pattern.crafting": "Crafting: %s",
+ "netstore.pattern.processing": "Processing: %s → %s",
+ "netstore.encoder.title": "Pattern Encoder",
+ "netstore.encoder.body": "Put a blank pattern in its slot or hold it, then pick a recipe. A processing pattern is engraved from the samples in the input and output slots.",
+ "netstore.encoder.processing": "Engrave processing pattern",
+ "netstore.encoder.noBlank": "§cYou need a blank pattern",
+ "netstore.encoder.noSamples": "§cPut samples in the input and output slots",
+ "netstore.encoder.done": "§aPattern engraved",
+ "netstore.encoder.page": "Page %d / %d, %d recipes"
+}

@@ -9,6 +9,11 @@ function cssVar(name: string): string {
   }
 }
 
+function safeZone(): string {
+  const s = document.body.style;
+  return ['top', 'right', 'bottom', 'left'].map((side) => s.getPropertyValue('--oui-safe-' + side) || '-').join(' ');
+}
+
 function fontOf(e: Element | null): string {
   try {
     return e ? window.getComputedStyle(e).fontFamily || '-' : '-';
@@ -58,7 +63,7 @@ export function Status(props: { doc: DocState; on: boolean }): JSX.Element | nul
       (document.documentElement.className || '-') + ' body=' + (document.body.className || '-'),
     'rootFont=' + fontOf(document.getElementById('root')) + ' bodyFont=' + fontOf(document.body),
     'fontFaces=' + fontFaces(),
-    'w=' + window.innerWidth + ' h=' + window.innerHeight + ' rem=' + remPx() + ' ua=' + (navigator.userAgent || '-'),
+    'w=' + window.innerWidth + ' h=' + window.innerHeight + ' rem=' + remPx() + ' safe=' + safeZone() + ' ua=' + (navigator.userAgent || '-'),
   ];
   return (
     <div id="oui-ddui-status" style={{ display: 'flex' }}>

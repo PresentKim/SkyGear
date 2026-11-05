@@ -739,7 +739,7 @@ func PlaceDrawer(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, 
 	})
 }
 
-// lastUse is each player's last drawer or storage controller use.
+// lastUse is each player's last drawer or drawer controller use.
 var lastUse = core.NewPlayers[drawerUse]()
 
 // LastPunch is each player's last drawer punch.
@@ -753,8 +753,10 @@ type drawersLocal struct {
 	HolderPose holderPose
 	// tick is the newest tick a drawer was ticked at.
 	tick int64
-	// networks are the controller network position lists (storage.go).
-	networks map[cube.Pos]networkCache
+	// networks are the controller network position lists and interfaces the
+	// controllers of the drawer interfaces (storage.go).
+	networks   map[cube.Pos]networkCache
+	interfaces map[cube.Pos]interfaceCache
 }
 
 var drawersPart = core.NewPart(func() *drawersLocal { return &drawersLocal{Displays: map[cube.Pos]*drawerDisplay{}} })

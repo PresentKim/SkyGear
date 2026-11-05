@@ -51,8 +51,9 @@ function listen(): void {
 // `alt` (the right button). Gameface does not deliver click to plain divs, so presses fire on mousedown.
 // On a touch screen an element with a tip shows it at the first tap and presses at the second, unless
 // it is `quick`. Gameface sends a mousedown for a tap too, in an order the devices do not agree on, so
-// the decision waits a moment. `onTip` runs whenever the element shows its tooltip (hover or tap).
-export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean; onTip?: () => void }): PressProps {
+// the decision waits a moment. `onTip` runs whenever the element shows its tooltip (hover or tap);
+// `rare` is the rarity the tooltip's border shows.
+export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; rare?: number; quick?: boolean; onTip?: () => void }): PressProps {
   listen();
   const cur = useRef(p);
   cur.current = p;
@@ -70,9 +71,9 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
   useEffect(() => {
     const el = elRef.current as HTMLElement | null;
     if (!el || tipOwner() !== el) return;
-    if (p.tip) showTip(el, p.tip);
+    if (p.tip) showTip(el, p.tip, p.rare);
     else hideTip();
-  }, [p.tip]);
+  }, [p.tip, p.rare]);
   const props: PressProps = {
     onMouseDown: (ev: MouseEvent) => {
       const { id, alt } = cur.current;
@@ -95,7 +96,7 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
           const now = cur.current;
           if (t && now.tip && !now.quick && armed !== el) {
             armed = el;
-            showTip(el, now.tip);
+            showTip(el, now.tip, now.rare);
             now.onTip?.();
             return;
           }
@@ -108,9 +109,9 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; quick?: boolean
       );
     },
     onMouseEnter: (ev: MouseEvent) => {
-      const { tip, onTip } = cur.current;
+      const { tip, rare, onTip } = cur.current;
       if (tip) {
-        showTip(ev.currentTarget as HTMLElement, tip);
+        showTip(ev.currentTarget as HTMLElement, tip, rare);
         onTip?.();
       }
     },

@@ -24,6 +24,8 @@ import (
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/migrate"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -35,6 +37,8 @@ import (
 type Game struct {
 	log *slog.Logger
 	db  *db.DB
+	// release is the running server release, recorded in new saves.
+	release string
 
 	// isOperator reports whether a player may use the operator tools.
 	isOperator func(*player.Player) bool
@@ -51,8 +55,9 @@ var activeGame = &Game{}
 
 // New creates the game and registers its commands. There is one game per
 // process. isOperator, if not nil, allows players to use the operator tools.
-func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game {
-	g := &Game{log: log, db: d, isOperator: isOperator}
+// release is the running server release.
+func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool, release string) *Game {
+	g := &Game{log: log, db: d, isOperator: isOperator, release: release}
 	activeGame = g
 	registerCommands(g)
 	catalog.RegisterCreativeItems()
@@ -63,10 +68,18 @@ func New(log *slog.Logger, d *db.DB, isOperator func(*player.Player) bool) *Game
 	return g
 }
 
-// Init builds the starting island: a
-// 3×3×3 sky island in the middle of the first chunk, bedrock at the bottom,
-// dirt, grass on top, with an oak tree in the middle.
-func (*Game) Init(tx *world.Tx, _ *instance.Instance) {
+// Init starts a new save: it records the release the save's data is in, so
+// no migration patch applies to it, and builds the starting island.
+func (g *Game) Init(tx *world.Tx, inst *instance.Instance) {
+	if err := g.db.SetSaveState(inst.Save.ID, migrate.VersionKey, []byte(migrate.Stamp(g.release))); err != nil {
+		g.log.Error("record the save version", "save", inst.Save.ID, "err", err)
+	}
+	buildIsland(tx)
+}
+
+// buildIsland builds a 3×3×3 sky island in the middle of the first chunk,
+// bedrock at the bottom, dirt, grass on top, with an oak tree in the middle.
+func buildIsland(tx *world.Tx) {
 	for x := island.Centre - 1; x <= island.Centre+1; x++ {
 		for z := island.Centre - 1; z <= island.Centre+1; z++ {
 			tx.SetBlock(cube.Pos{x, island.IslandY - 3, z}, block.Bedrock{}, nil)
@@ -182,12 +195,16 @@ func (s *session) NewDay(tx *world.Tx, day int) {
 }
 
 func (s *session) Autosave(tx *world.Tx) {
+	// Disk contents changed since the controller last flushed them are part
+	// of the save.
+	netstore.Disks(s.Session).Flush()
 	s.Flush()
 }
 
 func (s *session) Close(tx *world.Tx) {
 	storage.RemoveDisplays(s.Session, tx)
 	conduit.RemoveVisuals(s.Session, tx)
+	netstore.Disks(s.Session).Flush()
 	s.Session.Close()
 	core.Unregister(s.Session)
 	s.g.sessions.Delete(s.World)

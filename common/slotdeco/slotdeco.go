@@ -1,12 +1,13 @@
 // Package slotdeco marks item names so that the slotdeco resource pack can
-// draw a background (rarity) and a front badge (tier pips) on the slots that
-// hold the item.
+// draw a front badge (tier pips) on the slots that hold the item and frame
+// the selected-item bubble in the item's rarity colour.
 //
 // The client's JSON UI (the container screens) cannot read an item's data,
 // only the text of its hover box (the name and lore); the DDUI screens draw
-// the rarity from the same marks (common/ui slotDeco). So the marks are invisible colour-code sequences
-// inside the name that the pack's bindings look for. A mark must not appear
-// anywhere else in item texts.
+// the rarity as the tooltip's border from the same marks (common/ui
+// slotDeco). So the marks are invisible colour-code sequences inside the
+// name that the pack's bindings look for. A mark must not appear anywhere
+// else in item texts.
 package slotdeco
 
 import (
@@ -14,8 +15,8 @@ import (
 	"strings"
 )
 
-// Rarity is the rarity level of an item, drawn as a coloured slot background
-// and a name colour.
+// Rarity is the rarity level of an item, drawn as a name colour and a
+// tooltip border.
 type Rarity int
 
 const (

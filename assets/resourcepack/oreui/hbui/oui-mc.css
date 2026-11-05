@@ -66,6 +66,52 @@
   background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* The safe zone of the video settings (safe area, screen position) as margins in px, which
+   web/oreui/src/runtime/safezone.ts sets on the body. The backdrop still covers the whole screen; what
+   the screen lays out stays inside the margins: the centred windows through the padding, the boxes
+   placed at the screen edges through their margins. */
+body {
+  --oui-safe-top: 0px;
+  --oui-safe-right: 0px;
+  --oui-safe-bottom: 0px;
+  --oui-safe-left: 0px;
+}
+
+.mc-screen,
+.mc-home-ov {
+  box-sizing: border-box;
+  padding-top: var(--oui-safe-top);
+  padding-right: var(--oui-safe-right);
+  padding-bottom: var(--oui-safe-bottom);
+  padding-left: var(--oui-safe-left);
+}
+
+.mc-home-profile,
+.mc-home-corner,
+.mc-home-side,
+.mc-lobby-head,
+.mc-plane-panel.mc-plane-corner {
+  margin-top: var(--oui-safe-top);
+}
+
+.mc-home-corner,
+.mc-home-start {
+  margin-right: var(--oui-safe-right);
+}
+
+.mc-home-feed,
+.mc-home-start,
+.mc-load-tip {
+  margin-bottom: var(--oui-safe-bottom);
+}
+
+.mc-home-profile,
+.mc-home-side,
+.mc-home-feed,
+.mc-plane-panel.mc-plane-corner {
+  margin-left: var(--oui-safe-left);
+}
+
 /* The window: vanilla dialog_background_opaque (16x16, slice 4). Its size comes from the server
    (style width/height in u), like $sg_window_size. Title at 6u from the top, content from 18u. */
 .mc-window {
@@ -455,7 +501,6 @@
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-.mc-slot .mc-deco,
 .mc-slot .mc-chosen {
   position: absolute;
   top: -0.2rem;
@@ -564,6 +609,25 @@
   flex-direction: row;
   align-items: flex-start;
   padding-left: 11.6rem;
+}
+
+/* The inventory screens' recipe book: the vanilla window picture, and its cells (recipe_book_item_bg,
+   5x5 slice 1; a recipe that cannot be made recipe_book_red_button, 3x3 slice 1). */
+.mc-inv-book {
+  border-style: solid;
+  border-width: 0.8rem;
+  border-image-source: url("pack://textures/ui/dialog_background_opaque.png?filtering=point");
+  border-image-slice: 4 fill;
+  border-image-width: 0.8rem;
+}
+
+.mc-inv-book .mc-slot {
+  border-image-source: url("pack://textures/ui/recipe_book_item_bg.png?filtering=point");
+  border-image-slice: 1 fill;
+}
+
+.mc-inv-book .mc-slot.mc-inv-dim {
+  border-image-source: url("pack://textures/ui/recipe_book_red_button.png?filtering=point");
 }
 
 /* A board's mini cell: a small icon without the slot frame (the machine heading a group of recipes). */

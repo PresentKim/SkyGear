@@ -47,6 +47,7 @@ Windows 클라이언트에서 본 결과(2026-10-27) [실측]:
 - Windows 클라이언트에서 본 결과(2026-10-27, 마우스·키보드) [실측]:
   - `mousemove` 는 온다(2371회). `pointermove` 는 0회라 포인터 이벤트는 오지 않는 것으로 보인다. `scroll` 은 온다.
   - `click` 이 온다(`button=0 buttons=0 detail=undefined`, 스크롤 손잡이). 렌더러는 `click` 이 일반 `div` 에 오지 않는다고 보고 `mousedown` 으로 누름을 받는다(`onPress`). 어느 요소에 `click` 이 오는지는 확인 안 됨.
+  - 오른쪽 버튼은 `mousedown`·`mouseup` 에 `button=2` 로 온다(2026-11-04). `contextmenu` 줄은 없었다.
   - Alt 를 누르고 있으면 `keydown key= code=Alt keyCode=18 repeat=true` 가 이어진다. `key` 는 비어 있다.
   - 휠, 포커스, 글 입력·IME 조합, 터치, 게임패드는 Alt 반복 줄에 밀려 결과가 남지 않았다(확인 안 됨).
   - 서버가 받은 줄 수가 이벤트와 함께 늘었다(700줄). 페이지의 이벤트를 서버로 보내는 길은 된다.
@@ -71,6 +72,6 @@ Windows 클라이언트에서 본 결과(2026-10-27) [실측]:
 - **번역**: `coreTranslateCommandGroup.translate(키)` 가 클라이언트 언어의 글을 돌려준다(`item.diamond.name`, 팩 `texts/*.lang` 키 모두) [실측]. 인자 배열을 둘째로 준 호출은 `undefined` 였다. `formatDate(초)` 는 `10/28/26`, `getHowLongAgoAsString(초)` 는 `1h ago` 를 돌려준다 [실측].
 - **클립보드**: facet `vanilla.clipboard` 의 `copyToClipboard(글)` 이 복사한다(Windows) [실측]. 다른 기기는 확인 안 됨.
 - **큰 UI**: `vanillaExtraLargeUICommandGroup.setExtraLargeUIEnabled(bool)` 이 바로 바꾼다 [실측].
-- **안 되는 것**: 화면 낭독 `coreScreenReaderCommandGroup.read`(TTS 꺼짐), 캔버스(`getContext` 없음)는 안 됐다. `core.input`·`core.device.display`·`core.locale`·`core.safeZone`·`core.deviceInformation` 쿼리와 `vanilla.userAccount`·`vanilla.editor`(`navigateUri`)·`vanilla.share`·`vanilla.webBrowserFacet` facet 은 답이 오지 않았다 [실측].
+- **안 되는 것**: 화면 낭독 `coreScreenReaderCommandGroup.read`(TTS 꺼짐), 캔버스(`getContext` 없음)는 안 됐다. `core.input`·`core.device.display`·`core.locale`·`core.safeZone`·`core.deviceInformation` 쿼리와(이 가운데 `core.safeZone` 은 게임 번들이 쿼리가 아니라 facet 으로 받는다 [코드], [oreui.md](oreui.md) "GUI 배율과 안전 영역") `vanilla.userAccount`·`vanilla.editor`(`navigateUri`)·`vanilla.share`·`vanilla.webBrowserFacet` facet 은 답이 오지 않았다 [실측].
 - **읽을 수 있는 것**: `core.device.platform` 은 `{type, inputMethods}`, `vanilla.inGame` 은 `isInGame`·`isInMultiplayerSession`, `vanilla.buildSettings` 는 게임 버전과 빌드 종류다. `core.staticFeatureFlag(id)` 는 `{enabled}` 를 돌려준다 [실측].
 - **페이지**: SVG 요소는 만들어진다. `requestAnimationFrame`·`performance.now` 가 있다. `localStorage` 는 서버를 나갔다 다시 들어와도 남지만 게임을 다시 켜면 사라진다 [실측]. `engine` 에는 `on`·`off`·`trigger`·`call`·`translate`·`createJSModel`·`updateWholeModel`·`synchronizeModels`·`createVirtualList`·`registerBindingAttribute` 등이 있다(Gameface 데이터 바인딩) [실측].

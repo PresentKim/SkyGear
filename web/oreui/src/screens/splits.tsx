@@ -55,7 +55,7 @@ export function SplitScreen(props: { data: SplitData }): JSX.Element {
           <Scroll>
             <div className="oui-box mc-col">
               <div className="oui-box mc-row">
-                <SlotView slot={{ id: '', icon: data.detail.icon, count: '', tip: '', deco: '', selected: false }} variant="big" />
+                <SlotView slot={{ id: '', icon: data.detail.icon, count: '', tip: '', rare: 0, selected: false }} variant="big" />
                 <div className="oui-box mc-col" style={{ flexGrow: 1, marginLeft: '0.8rem' }}>
                   {lines.map((line, i) => (
                     <Fragment key={i}>

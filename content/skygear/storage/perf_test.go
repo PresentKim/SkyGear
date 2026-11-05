@@ -36,7 +36,7 @@ func TestControllerSeesNewDrawer(t *testing.T) {
 	t.Cleanup(func() { networkTick = old })
 	ctl := cube.Pos{0, 64, 0}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(ctl, machine.New(machine.KindStorageController, "", ""), nil)
+		tx.SetBlock(ctl, machine.New(machine.KindDrawerController, "", ""), nil)
 		tx.SetBlock(ctl.Side(cube.FaceEast), Drawer{Facing: cube.South}, nil)
 		if n := len(Network(tx, ctl)); n != 1 {
 			t.Fatalf("%d drawers, want 1", n)

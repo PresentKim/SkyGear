@@ -4,6 +4,9 @@
 //
 //	go run ./tools/modtex <dir with the mod clones> assets/resourcepack/skygear
 //
+// MODTEX_ONLY=<repo key> (e.g. rs) redoes the pictures of that mod only, so
+// one clone is enough.
+//
 // The clones are named after `repos` (git clone --depth 1 <url> <name>). Run
 // tools/animtex and tools/tierblocks (after deleting the *_t1..t3 pictures)
 // afterwards: the working strips and tier textures are made from these.
@@ -16,6 +19,7 @@ import (
 	"image/draw"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/presentkim/skygear/tools/internal/imgio"
 )
@@ -93,10 +97,12 @@ var entries = func() []entry {
 	add(machine("crucible", "mek", mekFaces("fuelwood_heater", "left"), nil)...)
 	// storage, energy, fluids, crafting station.
 	for _, f := range []string{"side", "up", "down"} {
-		add(entry{dst: "blocks/storage_controller_" + f, src: "drawr:block/drawers_controller_front"})
-		add(entry{dst: "blocks/storage_link_" + f, src: "rs:block/network_transmitter/base"})
+		add(entry{dst: "blocks/drawer_controller_" + f, src: "drawr:block/drawers_controller_front"})
 		add(entry{dst: "blocks/energy_cell_" + f, src: "eio:block/basic_capacitor_bank"})
 	}
+	add(entry{dst: "blocks/drawer_interface_side", src: "drawr:block/drawers_comp_side_2"},
+		entry{dst: "blocks/drawer_interface_up", src: "drawr:block/drawers_comp_side"},
+		entry{dst: "blocks/drawer_interface_down", src: "drawr:block/drawers_comp_side"})
 	add(entry{dst: "blocks/fluid_tank_side", src: "mek:block/models/fluid_tank", over: "block/dynamic_tank"},
 		entry{dst: "blocks/fluid_tank_up", src: "mek:block/models/fluid_tank_top"},
 		entry{dst: "blocks/fluid_tank_down", src: "mek:block/models/fluid_tank_top"},
@@ -137,6 +143,32 @@ var entries = func() []entry {
 	}
 	it("ore_chunk_silver", "mek:item/clump", c(225, 235, 255))
 	it("ore_chunk_nickel", "mek:item/clump", c(215, 215, 195))
+	// The storage network (docs/design/18-storage-network.md): Refined Storage 2.
+	rsCube := func(name, side, up string) {
+		add(entry{dst: "blocks/" + name + "_side", src: "rs:" + side},
+			entry{dst: "blocks/" + name + "_up", src: "rs:" + up},
+			entry{dst: "blocks/" + name + "_down", src: "rs:block/bottom"})
+	}
+	rsCube("net_controller", "block/controller/on", "block/controller/on")
+	rsCube("net_cable", "block/cable/gray", "block/cable/gray")
+	rsCube("disk_drive", "block/disk_drive/front", "block/disk_drive/top")
+	rsCube("net_terminal", "block/grid/front", "block/grid/top")
+	rsCube("pattern_encoder", "block/pattern_grid/front", "block/pattern_grid/top")
+	rsFront := func(name, front, back, side, up string) {
+		add(entry{dst: "blocks/" + name + "_front", src: "rs:" + front},
+			entry{dst: "blocks/" + name + "_back", src: "rs:" + back},
+			entry{dst: "blocks/" + name + "_side", src: "rs:" + side},
+			entry{dst: "blocks/" + name + "_up", src: "rs:" + up},
+			entry{dst: "blocks/" + name + "_down", src: "rs:block/machine_casing/end"})
+	}
+	rsFront("net_importer", "block/destructor/front", "block/machine_casing/side", "block/machine_casing/side", "block/machine_casing/end")
+	rsFront("net_exporter", "block/constructor/front", "block/machine_casing/side", "block/machine_casing/side", "block/machine_casing/end")
+	rsFront("net_external", "block/disk_interface/front", "block/disk_interface/back", "block/disk_interface/left", "block/disk_interface/top")
+	rsFront("net_autocrafter", "block/autocrafter/side", "block/autocrafter/side", "block/autocrafter/side", "block/autocrafter/top")
+	for _, n := range []string{"1k", "4k", "16k", "64k"} {
+		it("storage_disk_"+n, "rs:item/"+n+"_storage_disk", nil)
+	}
+	it("pattern", "rs:item/pattern/empty", nil)
 	return e
 }()
 
@@ -171,7 +203,13 @@ func main() {
 		os.Exit(2)
 	}
 	refs, pack := os.Args[1], os.Args[2]
+	n := 0
 	for _, e := range entries {
+		// MODTEX_ONLY=<repo key> redoes the pictures of one mod
+		if only := os.Getenv("MODTEX_ONLY"); only != "" && !strings.HasPrefix(e.src, only+":") {
+			continue
+		}
+		n++
 		img := square(imgio.Load(find(refs, e.src)))
 		if e.over != "" {
 			prefix := e.src[:indexByte(e.src, ':')]
@@ -192,7 +230,7 @@ func main() {
 		out := filepath.Join(pack, "textures", e.dst+".png")
 		imgio.Save(out, img)
 	}
-	fmt.Println(len(entries), "textures written")
+	fmt.Println(n, "textures written")
 }
 
 func indexByte(s string, b byte) int {

@@ -32,7 +32,7 @@ vi.mock('../components/Buttons', () => ({
 import { BoardScreen, SearchScreen, SieveScreen } from './boards';
 
 const chrome: Chrome = { title: 'T', tabs: [], bar: [] };
-const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '2', tip: '', deco: '', selected: false });
+const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '2', tip: '', rare: 0, selected: false });
 const items: ListItem[] = [{ id: 'b1', label: 'Back', icon: '' }];
 
 describe('board', () => {

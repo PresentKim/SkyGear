@@ -16,7 +16,7 @@ timeout 90 "$BOT" -name Hana \
   'cmd:/sgadmin give dimension_gate 1' 'expect:차원 게이트 고정 앵커 x1' \
   'cmd:/sgadmin give tinker_table 1' 'expect:장비 제작대 x1' \
   'cmd:/sgadmin give tool_pickaxe_steel_bone 1' 'expect:강철 곡괭이' \
-  'cmd:/sgadmin give storage_controller 1' 'expect:스토리지 컨트롤러 x1' \
+  'cmd:/sgadmin give drawer_controller 1' 'expect:스토리지 관리 블록 x1' \
   'cmd:/sgadmin give seed_flower_red 2' 'expect:x2' \
   'cmd:/sgadmin give petal_red 2' 'expect:x2' \
   'cmd:/sgadmin give electric_furnace 1' 'expect:전기 화로 x1' \

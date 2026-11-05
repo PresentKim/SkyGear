@@ -26,7 +26,7 @@ vi.mock('../components/Buttons', () => ({
 import { CardsScreen, GridScreen, MenuScreen, SlotMenuScreen } from './menus';
 
 const chrome: Chrome = { title: 'T', tabs: [], bar: [] };
-const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '', tip: '', deco: '', selected: false });
+const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '', tip: '', rare: 0, selected: false });
 const items: ListItem[] = [{ id: 'b1', label: 'One', icon: '' }, { id: 'b2', label: 'Two', icon: '' }];
 const classes = (el: Element) => Array.from(el.children).map((c) => c.className.replace(/oui-(box|text) /, ''));
 

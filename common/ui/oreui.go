@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -89,6 +88,8 @@ type oreScreen struct {
 	runs map[string]func(p *player.Player, tx *world.Tx)
 	// input runs when the text of the screen's input box changes (SearchGrid).
 	input func(p *player.Player, tx *world.Tx, value string)
+	// inputs run instead of input for the input boxes they are kept by.
+	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
 	// values are the layout's input boxes' texts by their ids (oreLayout).
 	values map[string]string
 	gen    int
@@ -99,6 +100,11 @@ type oreScreen struct {
 	// probe is the layout's run for the lines its test nodes report
 	// (oreLayout.probe).
 	probe func(p *player.Player, tx *world.Tx, id, line string)
+	// slot and drag are the layout's runs for the clicks and drags on the
+	// slots of an inventory screen (ShowInventory).
+	slot func(p *player.Player, tx *world.Tx, a SlotAct)
+	drag func(p *player.Player, tx *world.Tx, d DragAct)
+	drop func(p *player.Player, tx *world.Tx, one bool)
 	// loading is when the loading screen shown came up (zero: the screen is
 	// not a loading screen, LoadingScreen).
 	loading time.Time
@@ -127,8 +133,12 @@ func openOre(p *player.Player, l *oreLayout, root any) {
 		st = &oreScreen{}
 		oreScreens.m[p.UUID()] = st
 	}
+	if !l.inventory && p != nil {
+		ReturnCarried(p)
+	}
 	st.gen++
-	st.runs, st.input, st.values, st.close, st.probe = l.runs, l.input, l.values, l.close, l.probe
+	st.runs, st.input, st.inputs, st.values, st.close, st.probe = l.runs, l.input, l.inputs, l.values, l.close, l.probe
+	st.slot, st.drag, st.drop = l.slot, l.drag, l.drop
 	st.root = root
 	switch {
 	case !l.loading:
@@ -253,6 +263,9 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 	if ev.Kind == "change" {
 		oreScreens.Lock()
 		in, gen := st.input, st.gen
+		if f, ok := st.inputs[ev.ID]; ok {
+			in = f
+		}
 		if v, ok := ev.Value.(string); ok {
 			if _, kept := st.values[ev.ID]; kept {
 				st.values[ev.ID] = v
@@ -271,6 +284,32 @@ func oreEvent(h *world.EntityHandle, st *oreScreen, ev oreui.Event) {
 				p := e.(*player.Player)
 				defer recoverForm(p)
 				in(p, tx, value)
+			}
+		})
+		return
+	}
+	if ev.Kind == "slot" || ev.Kind == "drag" || ev.Kind == "drop" {
+		oreScreens.Lock()
+		slot, drag, drop, gen := st.slot, st.drag, st.drop, st.gen
+		oreScreens.Unlock()
+		a, aok := slotEvent(ev.ID, ev.Value)
+		d, dok := dragEvent(ev.Value)
+		h.Do(func(tx *world.Tx, e world.Entity) {
+			oreScreens.Lock()
+			same := st.gen == gen
+			oreScreens.Unlock()
+			if !same {
+				return
+			}
+			p := e.(*player.Player)
+			defer recoverForm(p)
+			switch {
+			case ev.Kind == "slot" && aok && slot != nil:
+				slot(p, tx, a)
+			case ev.Kind == "drag" && dok && drag != nil:
+				drag(p, tx, d)
+			case ev.Kind == "drop" && drop != nil:
+				drop(p, tx, dropEvent(ev.Value))
 			}
 		})
 		return
@@ -355,6 +394,8 @@ func oreEnd(p *player.Player, tx *world.Tx, st *oreScreen, gen int, closed bool)
 type oreLayout struct {
 	runs  map[string]func(p *player.Player, tx *world.Tx)
 	input func(p *player.Player, tx *world.Tx, value string)
+	// inputs run instead of input for the input boxes they are kept by.
+	inputs map[string]func(p *player.Player, tx *world.Tx, value string)
 	// values keep the texts of the screen's input boxes, guarded by
 	// oreScreens.
 	values map[string]string
@@ -374,6 +415,12 @@ type oreLayout struct {
 	// loading marks a loading screen (LoadingScreen), which CloseLoading
 	// closes.
 	loading bool
+	// inventory marks an inventory screen, which keeps the cursor stack
+	// (Carried); any other screen gives it back.
+	inventory bool
+	slot      func(p *player.Player, tx *world.Tx, a SlotAct)
+	drag      func(p *player.Player, tx *world.Tx, d DragAct)
+	drop      func(p *player.Player, tx *world.Tx, one bool)
 }
 
 // Key is a key of the keyboard a DDUI screen can answer: the arrow keys and
@@ -407,7 +454,7 @@ func (l *oreLayout) key(k Key, run func(p *player.Player, tx *world.Tx)) {
 }
 
 func newOreLayout() *oreLayout {
-	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, values: map[string]string{}, prefix: "o"}
+	return &oreLayout{runs: map[string]func(p *player.Player, tx *world.Tx){}, inputs: map[string]func(p *player.Player, tx *world.Tx, value string){}, values: map[string]string{}, prefix: "o"}
 }
 
 // value is the text of the input box id as the player left it.
@@ -458,26 +505,17 @@ func untoken(s string) string {
 	return s
 }
 
-// slotDeco reads the rarity marks of a slot's tooltip ("§k§r§a" and the like,
-// slotdeco): it returns the tooltip without the hidden part and the texture
-// of the rarity.
-func slotDeco(tip string) (string, string) {
-	for _, d := range rarityDecos {
-		if strings.HasPrefix(tip, d.mark) {
-			return tip[len(d.mark)-len("§a"):], d.texture
+// slotDeco reads the rarity mark of a slot's tooltip ("§k§r§a" and the like,
+// slotdeco): it returns the tooltip without the hidden part and the rarity,
+// which the page draws as the tooltip's border.
+func slotDeco(tip string) (string, slotdeco.Rarity) {
+	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
+		if m := r.Mark(); strings.HasPrefix(tip, m) {
+			return tip[len(m)-len("§a"):], r
 		}
 	}
-	return tip, ""
+	return tip, slotdeco.Common
 }
-
-type rarityDeco struct{ mark, texture string }
-
-var rarityDecos = func() (decos []rarityDeco) {
-	for r := slotdeco.Uncommon; r <= slotdeco.Legendary; r++ {
-		decos = append(decos, rarityDeco{r.Mark(), fmt.Sprintf("tex:textures/ui/sg/deco_%d_0", r)})
-	}
-	return decos
-}()
 
 // windowW by windowH is the size of every DDUI window but the quest book's,
 // in GUI pixels: the vanilla inventory's, the largest that fits a phone. One

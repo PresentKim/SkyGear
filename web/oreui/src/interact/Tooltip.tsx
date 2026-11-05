@@ -39,10 +39,11 @@ export function TooltipHost(): JSX.Element {
 // right, kept inside the screen. Gameface lays the page out once a frame, so the tip measured right
 // after its text changes still has the size of the text before (nothing at all, or the last tip). It
 // waits invisible at the corner, where nothing narrows it, and is measured and placed two frames on.
-export function showTip(el: HTMLElement, text: Text): void {
+// An item's rarity (slotdeco, 1 uncommon to 4 legendary) colours the border (#oui-tip.rare-<n>).
+export function showTip(el: HTMLElement, text: Text, rare = 0): void {
   const t = ensureTip();
   owner = el;
-  t.className = touch ? 'touch' : '';
+  t.className = (touch ? 'touch' : '') + (rare > 0 ? ' rare-' + rare : '');
   let root = roots.get(t);
   if (!root) {
     root = createFiberRoot(reconciler)(t);
