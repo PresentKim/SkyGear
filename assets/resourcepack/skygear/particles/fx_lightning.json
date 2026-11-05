@@ -18,8 +18,8 @@
       "minecraft:emitter_shape_point": {
         "offset": [
           0,
-          2.88,
-          0
+          0.89,
+          2.74
         ]
       },
       "minecraft:particle_lifetime_expression": {
@@ -31,7 +31,7 @@
           2.27,
           3.5
         ],
-        "facing_camera_mode": "lookat_y",
+        "facing_camera_mode": "rotate_xyz",
         "uv": {
           "texture_width": 161,
           "texture_height": 3224,

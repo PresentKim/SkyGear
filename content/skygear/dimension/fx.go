@@ -13,27 +13,26 @@ import (
 // flameGap is about how far apart (blocks) the flames of the ring stand.
 const flameGap = 1.2
 
-// drawBlade draws a blade from inner to outer along dir from centre: the
-// steel cooling from a white tip to the hub, and an afterimage off its outer
-// half that fades behind it as it turns.
+// drawBlade lays a slash from inner to outer along dir from centre. One is
+// laid every tick and each cools from white to a dotted trace, so the
+// turning blades leave their sweep behind them.
 func drawBlade(tx *world.Tx, centre, dir mgl64.Vec3, inner, outer float64) {
-	for k := range bladeSparks {
-		at := centre.Add(dir.Mul(inner + (outer-inner)*float64(k)/(bladeSparks-1)))
-		kind := sparkBlade
-		if k == bladeSparks-1 {
-			kind = sparkBladeTip
-		}
-		spark(tx, at, kind)
-		if k >= bladeSparks/2 {
-			spark(tx, at, sparkBladeTrail)
-		}
-	}
+	at := centre.Add(dir.Mul((inner + outer) / 2))
+	spark(tx, at, fxSlash, yawOf(dir), sparkVar{"len", (outer - inner) * 0.65})
 }
 
-// drawBolt draws a crossbow bolt flying from a to b and striking there.
+// drawBolt lays a crossbow bolt's tracer from a to b and strikes there.
 func drawBolt(tx *world.Tx, a, b mgl64.Vec3) {
-	line(tx, a, b, sparkBolt)
+	d := b.Sub(a)
+	flat := mgl64.Vec3{d[0], 0, d[2]}
+	spark(tx, a.Add(d.Mul(0.5)), fxTracer, yawOf(flat), sparkVar{"len", flat.Len() / 2})
 	spark(tx, b, fxHit)
+}
+
+// yawOf is the turn (degrees) that lays a picture's right along dir on the
+// ground.
+func yawOf(dir mgl64.Vec3) sparkVar {
+	return sparkVar{"yaw", mgl64.RadToDeg(math.Atan2(dir[2], dir[0]))}
 }
 
 // drawFlameRing stands flames round feet at radius.
@@ -56,12 +55,3 @@ func drawDisc(tx *world.Tx, at mgl64.Vec3) { spark(tx, at, fxDisc) }
 
 // drawPoof is a monster going up in smoke at feet.
 func drawPoof(tx *world.Tx, feet mgl64.Vec3) { spark(tx, feet, fxPoof) }
-
-// line draws a straight line of sparks of kind from a to b.
-func line(tx *world.Tx, a, b mgl64.Vec3, kind string) {
-	d := b.Sub(a)
-	steps := max(1, int(d.Len()*2))
-	for i := range steps + 1 {
-		spark(tx, a.Add(d.Mul(float64(i)/float64(steps))), kind)
-	}
-}

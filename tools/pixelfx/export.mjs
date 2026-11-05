@@ -16,6 +16,8 @@ const effects = [
   { name: "fx_lightning", id: "lightning/lightning-strike", from: 0.8, to: 1.9, fps: 12, crop: [0, 0, 240, 250] },
   { name: "fx_hit", id: "impacts/hit-spark", from: 0, to: 0.34, fps: 30, opts: { aim: -1.2 }, crop: [0, 0, 136, 62] },
   { name: "fx_poof", id: "spawn/poof", from: 0, to: 1.2, fps: 20 },
+  { name: "fx_slash", id: "melee/sword-slash", from: 0.06, to: 0.4, fps: 30, crop: [0, 0, 136, 86] },
+  { name: "fx_tracer", id: "projectiles/bullet-tracer", from: 0, to: 0.6, fps: 30 },
 ];
 
 const [lib, pack = "assets/resourcepack/skygear"] = process.argv.slice(2);

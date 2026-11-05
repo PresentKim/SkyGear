@@ -18,8 +18,8 @@
       "minecraft:emitter_shape_point": {
         "offset": [
           0,
-          0.51,
-          0
+          0.16,
+          0.49
         ]
       },
       "minecraft:particle_lifetime_expression": {
