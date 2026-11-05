@@ -52,9 +52,9 @@ export interface ChoiceGroup { title: Text; choices: Choice[] }
 export interface ChoiceData { chrome: Chrome; stats: Stat[]; note: Text; groups: ChoiceGroup[]; items: ListItem[] }
 export interface Swatch { id: Id; alt: Id; colour: string; icon: Icon; tip: Text } // colour '#rrggbb', or '' and an icon
 export interface Port { label: Text; swatch: Swatch | null; plus: { id: Id; on: boolean } }
-export interface SideCard { x: number; y: number; arrow: string; name: Text; icon: Icon; tip: Text; focus: boolean; ports: Port[]; none: Text }
-export interface Picker { x: number; y: number; w: number; choices: { id: Id; colour: string; icon: Icon; tip: Text; on: boolean }[] }
-export interface SidesData { chrome: Chrome; center: Icon; cards: SideCard[]; picker: Picker | null } // x, y, w in GUI px
+export interface SideCard { name: Text; icon: Icon; tip: Text; focus: boolean; ports: Port[]; none: Text }
+export interface Picker { choices: { id: Id; colour: string; icon: Icon; tip: Text; on: boolean }[] }
+export interface SidesData { chrome: Chrome; cards: SideCard[]; guide: Text; picker: Picker | null } // cards three to a row
 export interface Spot { id: Id; at: [number, number, number, number]; on: boolean; tip: Text }
 export interface PlaneData { fov: number; dist: number; spots: Spot[]; info: Text; actions: Button[]; corner: Text }
 export interface Chapter { id: Id; name: Text; icon: Icon; count: Text; on: boolean; new: boolean } // new: it has quests tagged new

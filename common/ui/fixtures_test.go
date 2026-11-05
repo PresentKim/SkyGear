@@ -80,8 +80,8 @@ func fixtureScreens() map[string]func() {
 			{Colour: "#3060ff", Tip: "파랑", Run: nop}, {Icon: "textures/ui/confirm", Tip: "아이콘", Run: nop},
 		}
 		var b SideBoard
-		b.Center = "textures/ui/confirm"
 		b.Focus = 1
+		b.Guide = "색 칸 좌클릭: 다음 색 · 우클릭: 이전 색 · +: 색상표"
 		names := []string{"아래", "위", "북", "남", "서", "동"}
 		for i := range b.Sides {
 			b.Sides[i] = SideView{Name: names[i]}
