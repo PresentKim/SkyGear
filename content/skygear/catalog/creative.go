@@ -12,6 +12,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -75,6 +76,10 @@ func RegisterCreativeItems() {
 		add(items, sgitem.DrawerUpgrade{Kind: sgitem.UpgradeVoid})
 		add(items, sgitem.BarkFiber{})
 		add(items, sgitem.FairyDust{})
+		for t := range netstore.DiskCaps {
+			add(items, netstore.Disk{Tier: t})
+		}
+		add(items, netstore.Pattern{})
 		add(items, sgitem.FairyEmerald{})
 		add(items, sgitem.DimensionStone{})
 		for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {

@@ -61,7 +61,7 @@ const withPanel: QuestData = {
   ...data,
   panel: {
     icon: 'tex:a', title: 'Q', status: 'S', body: 'B',
-    rows: [{ heading: 'Bring', slots: [{ id: 's1', icon: 'tex:a', count: '1', tip: '', deco: '', selected: false }] }],
+    rows: [{ heading: 'Bring', slots: [{ id: 's1', icon: 'tex:a', count: '1', tip: '', rare: 0, selected: false }] }],
     actions: [{ id: 'a1', label: 'Go', icon: '' }],
     close: 'pc',
   },

@@ -1,6 +1,21 @@
 {
   "resource_pack_name": "vanilla",
   "texture_data": {
+    "skygear:storage_disk_1k": {
+      "textures": "textures/items/storage_disk_1k"
+    },
+    "skygear:storage_disk_4k": {
+      "textures": "textures/items/storage_disk_4k"
+    },
+    "skygear:storage_disk_16k": {
+      "textures": "textures/items/storage_disk_16k"
+    },
+    "skygear:storage_disk_64k": {
+      "textures": "textures/items/storage_disk_64k"
+    },
+    "skygear:pattern": {
+      "textures": "textures/items/pattern"
+    },
     "skygear:fairy_dust": {
       "textures": "textures/items/fairy_dust"
     },

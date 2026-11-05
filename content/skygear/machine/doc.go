@@ -24,7 +24,7 @@
 //     monitor.go): the achievement counts, the production record and the
 //     stall alerts.
 //
-// The kinds of other parts of the game (the storage controller, the
+// The kinds of other parts of the game (the drawer controller, the
 // dimension gate, the harvester) set the hooks of their Def: Click, Run,
 // Insert, Peek and Extract.
 package machine

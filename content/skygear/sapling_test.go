@@ -19,7 +19,7 @@ func TestStartIsland(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
-		(&Game{}).Init(tx, nil)
+		buildIsland(tx)
 		for x := island.Centre - 1; x <= island.Centre+1; x++ {
 			for z := island.Centre - 1; z <= island.Centre+1; z++ {
 				if _, ok := tx.Block(cube.Pos{x, island.IslandY - 3, z}).(block.Bedrock); !ok {

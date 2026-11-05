@@ -66,7 +66,7 @@ function PanelView(props: { panel: QuestPanel }): JSX.Element {
   return (
     <div className="oui-box mc-quest-panel">
       <div className="oui-box mc-quest-panel-head">
-        <SlotView slot={{ id: '', icon: pn.icon, count: '', tip: '', deco: '', selected: false }} variant="big" />
+        <SlotView slot={{ id: '', icon: pn.icon, count: '', tip: '', rare: 0, selected: false }} variant="big" />
         <div className="oui-box mc-col">
           <Rich text={pn.title} className="oui-text mc-quest-title" />
           <Rich text={pn.status} className="oui-text mc-small-text" />

@@ -69,8 +69,8 @@ type Config struct {
 		// is off; an unencrypted pack carries an empty content.zipe, so the
 		// game still takes the Ore UI page the menus are drawn on.
 		Minify, Encrypt bool
-		// SlotDeco adds the slotdeco pack: slot backgrounds by item rarity
-		// and tier badges. It changes the vanilla
+		// SlotDeco adds the slotdeco pack: tier badges on the slots and the
+		// selected-item bubble framed by item rarity. It changes the vanilla
 		// item slot template of every container screen; turn it off if the
 		// screens look wrong.
 		SlotDeco bool

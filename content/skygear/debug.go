@@ -19,11 +19,13 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
+	"github.com/presentkim/skygear/platform/instance"
 )
 
 // Debugging tools (/sgdebug): helpers for scenarios and manual tests that
@@ -33,7 +35,7 @@ import (
 func registerDebug(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgdebug", i18n.T(i18n.Default, "skygear.debug.register"), nil,
-		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b},
+		debugUI{adminBase: b}, debugLook{adminBase: b}, debugStatus{adminBase: b}, debugSkip{adminBase: b}, debugTimed{adminBase: b}, debugHolderPose{adminBase: b}, debugFairy{adminBase: b}, debugWeather{adminBase: b}, debugSun{adminBase: b}, debugHunt{adminBase: b}, debugFx{adminBase: b}, debugResearchRandom{adminBase: b}, debugResearchLoad{adminBase: b}, debugFactory{adminBase: b}, debugDense{adminBase: b}, debugPlace{adminBase: b}, debugFloor{adminBase: b}, debugTerminal{adminBase: b}, debugNet{adminBase: b},
 		debugResearchScreen{adminBase: b}, debugOreInput{adminBase: b}, debugOreRes{adminBase: b}))
 }
 
@@ -214,6 +216,58 @@ func (c debugSun) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 }
 
+// debugTerminal opens the terminal window of the terminal or network
+// controller the operator looks at, like a sneaking click (scenarios).
+type debugTerminal struct {
+	adminBase
+	Sub cmd.SubCommand `cmd:"terminal"`
+}
+
+func (c debugTerminal) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	at, b, ok := look.LookedAt(p, tx, p.Position(), p.Rotation())
+	if !ok || !netstore.IsTerminal(b) {
+		o.Errorf("%s", i18n.T(i18n.Default, "skygear.admin.lookingAtNone"))
+		return
+	}
+	p.StartSneaking()
+	netstore.ShowTerminal(s.Session, p, tx, at)
+	p.StopSneaking()
+}
+
+// debugNet builds an always powered network filled with count kinds of
+// items in the air two blocks north of the operator and up blocks above its
+// feet, and opens its terminal window; if that terminal is already there it
+// only opens the window (scenarios).
+type debugNet struct {
+	adminBase
+	Sub   cmd.SubCommand    `cmd:"net"`
+	Count int               `cmd:"count"`
+	Up    cmd.Optional[int] `cmd:"up"`
+}
+
+func (c debugNet) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, s, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	up, _ := c.Up.Load()
+	at := cube.PosFromVec3(p.Position()).Add(cube.Pos{-1, up, -2})
+	term := at.Add(cube.Pos{1, 0, 0})
+	if !netstore.IsTerminal(tx.Block(term)) {
+		if _, ok := netstore.BuildTestNet(tx, at, instance.AccountID(p), p.Name(), max(0, c.Count)); !ok {
+			o.Errorf("blocks in the way at %d %d %d", at[0], at[1], at[2])
+			return
+		}
+	}
+	p.StartSneaking()
+	netstore.ShowTerminal(s.Session, p, tx, term)
+	p.StopSneaking()
+}
+
 type debugStatus struct {
 	adminBase
 	Sub cmd.SubCommand `cmd:"status"`
@@ -255,6 +309,31 @@ func (c debugHunt) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	o.Printf("hunting %s", mob)
+}
+
+// debugFx plays a second dimension weapon's look (or a monster's death)
+// round the operator for a few seconds, anywhere, hitting nothing.
+type debugFx struct {
+	adminBase
+	Sub  cmd.SubCommand `cmd:"fx"`
+	Kind fxEnum         `cmd:"kind"`
+}
+
+type fxEnum string
+
+func (fxEnum) Type() string                { return "sg_fx" }
+func (fxEnum) Options(cmd.Source) []string { return dimension.FxDemos }
+
+func (c debugFx) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
+	p, _, ok := c.session(src, o, tx)
+	if !ok {
+		return
+	}
+	if !dimension.ShowFx(tx, p, string(c.Kind)) {
+		o.Errorf("unknown effect %q", c.Kind)
+		return
+	}
+	o.Printf("showing %s", c.Kind)
 }
 
 // debugResearchRandom marks a share of the researches done, picked at random

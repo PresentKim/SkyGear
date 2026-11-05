@@ -38,7 +38,7 @@ vi.mock('../components/Buttons', () => ({
 import { ConsoleScreen, InputScreen, ListSplitScreen, SplitScreen } from './splits';
 
 const chrome: Chrome = { title: 'T', tabs: [], bar: [] };
-const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '', tip: '', deco: '', selected: false });
+const slot = (id: string): Slot => ({ id, icon: 'tex:a', count: '', tip: '', rare: 0, selected: false });
 const btn = (id: string): Button => ({ id, label: id, icon: '' });
 
 const split = (over: Partial<SplitData> = {}): SplitData => ({

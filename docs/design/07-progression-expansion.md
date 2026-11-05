@@ -13,7 +13,7 @@
 | 에너지 | 다이나모, 에너지 셀, 덕트 | 발전기, 에너지 큐브 | 연소·용암 발전기, 에너지 셀, 도관 3단계(§5, [06](06-power-and-conduits.md)) |
 | 액체 | 도가니로 용암, 액체 덕트 | 도가니, 파이프 | 돌 배럴, 전기 도가니, 유체 탱크, 액체 도관(§6.1) |
 | 자동화 | Thermal/Forestry 기계, 호퍼 | Create·Industrial Foregoing | 자동 체·채굴기·수확기·퇴비통 |
-| 저장 | 서랍, Thermal 상자 | AE2 ME 시스템 | 서랍과 스토리지 컨트롤러([08 §1](08-storage-gear-magic.md)) |
+| 저장 | 서랍, Thermal 상자 | AE2 ME 시스템 | 서랍과 스토리지 관리 블록([08 §1](08-storage-gear-magic.md)) |
 | 몬스터 | 몬스터 게이트(SkyFactory 5) | 몬스터 팜 | 몬스터 시뮬레이터(§6), 이차원([17](17-dimension.md)) |
 
 ## 2. 금속

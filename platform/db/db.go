@@ -175,6 +175,12 @@ var migrations = []string{
 	// 8: indexes for the lookups by member account and by request target.
 	`CREATE INDEX save_members_account ON save_members(account_id);
 	CREATE INDEX friend_requests_to ON friend_requests(to_id);`,
+	// 9: the game release the data outside saves is in, by scope (saves
+	// keep theirs in save_state).
+	`CREATE TABLE data_versions (
+		scope   TEXT PRIMARY KEY,
+		version TEXT NOT NULL
+	);`,
 }
 
 func (d *DB) migrate() error {

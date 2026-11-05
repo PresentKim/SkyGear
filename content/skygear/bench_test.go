@@ -106,11 +106,11 @@ func BenchmarkEnergyStep(b *testing.B) {
 	}
 }
 
-// BenchmarkControllerPeek peeks into a storage controller with 50 drawers.
+// BenchmarkControllerPeek peeks into a drawer controller with 50 drawers.
 func BenchmarkControllerPeek(b *testing.B) {
 	s := benchSession(b)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
 	s.World.Do(func(tx *world.Tx) {
 		n := 0
 		for dy := 0; dy < 2 && n < 50; dy++ {

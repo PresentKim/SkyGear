@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -10,14 +9,14 @@ import (
 	"github.com/presentkim/skygear/common/slotdeco"
 )
 
-func referenceSlotDeco(tip string) (string, string) {
-	rarity := map[string]int{"§a": 1, "§b": 2, "§d": 3, "§6": 4}
+func referenceSlotDeco(tip string) (string, slotdeco.Rarity) {
+	rarity := map[string]slotdeco.Rarity{"§a": slotdeco.Uncommon, "§b": slotdeco.Rare, "§d": slotdeco.Epic, "§6": slotdeco.Legendary}
 	if rest, ok := strings.CutPrefix(tip, "§k§r"); ok && len(rest) >= len("§a") {
 		if r, ok := rarity[rest[:len("§a")]]; ok {
-			return rest, fmt.Sprintf("tex:textures/ui/sg/deco_%d_0", r)
+			return rest, r
 		}
 	}
-	return tip, ""
+	return tip, slotdeco.Common
 }
 
 func TestSlotDeco(t *testing.T) {
@@ -28,10 +27,10 @@ func TestSlotDeco(t *testing.T) {
 		}
 	}
 	for _, tip := range tips {
-		gotTip, gotTex := slotDeco(tip)
-		wantTip, wantTex := referenceSlotDeco(tip)
-		if gotTip != wantTip || gotTex != wantTex {
-			t.Errorf("slotDeco(%q) = %q, %q, want %q, %q", tip, gotTip, gotTex, wantTip, wantTex)
+		gotTip, gotRare := slotDeco(tip)
+		wantTip, wantRare := referenceSlotDeco(tip)
+		if gotTip != wantTip || gotRare != wantRare {
+			t.Errorf("slotDeco(%q) = %q, %d, want %q, %d", tip, gotTip, gotRare, wantTip, wantRare)
 		}
 	}
 }

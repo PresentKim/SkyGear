@@ -14,7 +14,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/common/itemio"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -448,20 +448,19 @@ func TestDrawerGivesThroughAnyFace(t *testing.T) {
 	}
 }
 
-// TestStorageController: drawers that touch the controller or each other, or are
-// joined by links, are one storage within 16 blocks; items go into the drawer
+// TestDrawerController: drawers that touch the controller or each other, or are
+// joined by trims, are one storage within 16 blocks; items go into the drawer
 // that holds them, come out of any, and a drawer that is out of reach is not part.
-func TestStorageController(t *testing.T) {
+func TestDrawerController(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
 		tx.SetBlock(b, storage.Drawer{Facing: cube.South}, nil)
-		// a link joins a drawer that does not touch
-		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindStorageLink, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim, "", ""), nil)
 		c := ctl.Add(cube.Pos{0, 0, 2})
 		tx.SetBlock(c, storage.Drawer{Facing: cube.South}, nil)
 		// out of reach and unconnected
@@ -513,7 +512,7 @@ func TestStorageSearchAndDeposit(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
 	s.World.Do(func(tx *world.Tx) {
 		a, b := ctl.Add(cube.Pos{1, 0, 0}), ctl.Add(cube.Pos{2, 0, 0})
 		tx.SetBlock(a, storage.Drawer{Facing: cube.South}, nil)
@@ -558,21 +557,19 @@ func useBlock(s *session, tx *world.Tx, p *player.Player, pos cube.Pos, held ite
 	return ok && (!sneak || held.Empty()) && act.Activate(pos, cube.FaceUp, tx, p, &item.UseContext{})
 }
 
-func TestControllerSneakClickOpensList(t *testing.T) {
+func TestControllerSneakClickOpensNoList(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
 		for _, held := range []item.Stack{item.NewStack(block.Stone{}, 5), {}} {
 			s.ForgetOpen(p)
-			if !useBlock(s, tx, p, ctl, held, true) {
-				t.Fatalf("sneaking with %v: the click was not taken", held)
-			}
-			if ok := s.Opened(p); !ok {
-				t.Errorf("sneaking with %v: the list did not open", held)
+			useBlock(s, tx, p, ctl, held, true)
+			if s.Opened(p) {
+				t.Errorf("sneaking with %v: a window opened", held)
 			}
 		}
 		if list, _ := storage.Contents(tx, ctl); len(list) != 0 {
@@ -585,7 +582,7 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
@@ -603,37 +600,6 @@ func TestControllerClickInsertsHeldItem(t *testing.T) {
 		}
 		if ok := s.Opened(p); ok {
 			t.Error("a click without sneaking opened the list")
-		}
-	})
-}
-
-func TestStorageLiveSearch(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
-		storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 100))
-		storage.Show(s.Session, p, tx, ctl, "")
-		all, drawers := storage.Contents(tx, ctl)
-		name := naming.ItemName(i18n.Default, item.NewStack(block.Cobblestone{}, 1))
-		if info := storage.Info(i18n.Default, all, drawers, name, 1); !strings.Contains(info, name) {
-			t.Errorf("info %q does not name the query", info)
-		}
-		shown := 0
-		slots := storage.Slots(s.Session, i18n.Default, ctl, all, func(*player.Player, *world.Tx) { shown++ })
-		slots[0].Run(p, tx)
-		if it, _ := p.Inventory().Item(0); it.Count() != 64 {
-			t.Errorf("pressing the slot gave %v, want a stack", it)
-		}
-		if shown != 1 {
-			t.Errorf("the list was shown again %d times", shown)
-		}
-		bar := ui.BarButton("", "", nil).Label
-		if o := storage.DepositAllOption(s.Session, i18n.Default, ctl, nil); !strings.HasPrefix(o.Label, bar) {
-			t.Errorf("deposit all %q is not a control bar button", o.Label)
 		}
 	})
 }
@@ -674,42 +640,99 @@ func TestStorageOrders(t *testing.T) {
 	}
 }
 
-func TestStorageOrderButtonCycles(t *testing.T) {
+func TestControllerDoubleClickInsertsInventory(t *testing.T) {
+	for _, kind := range []string{machine.KindDrawerController, machine.KindDrawerInterface} {
+		t.Run(kind, func(t *testing.T) {
+			s := testSession(t)
+			loadAround(s)
+			ctl := machinePos
+			placeTestMachine(s, ctl, machine.KindDrawerController, "")
+			used := ctl
+			if kind == machine.KindDrawerInterface {
+				used = ctl.Add(cube.Pos{3, 0, 0})
+				placeTestMachine(s, used, machine.KindDrawerInterface, "")
+			}
+			h := spawnPlayer(s)
+			withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+				tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+				tx.SetBlock(ctl.Add(cube.Pos{2, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+				storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1))
+				_ = p.Inventory().SetItem(3, item.NewStack(block.Cobblestone{}, 30))
+				_ = p.Inventory().SetItem(4, item.NewStack(block.Dirt{}, 7))
+				useBlock(s, tx, p, used, item.Stack{}, false)
+				if it, _ := p.Inventory().Item(3); it.Count() != 30 {
+					t.Fatalf("a single click took the inventory: %v", it)
+				}
+				useBlock(s, tx, p, used, item.Stack{}, false)
+				if it, _ := p.Inventory().Item(3); !it.Empty() {
+					t.Errorf("cobblestone left after a double click: %v", it)
+				}
+				if it, _ := p.Inventory().Item(4); it.Count() != 7 {
+					t.Errorf("a kind the storage does not hold went in: %v", it)
+				}
+			})
+		})
+	}
+}
+
+func TestDrawerInterfaceActsForItsController(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		for want := storage.OrderCountAsc; want <= storage.StorageOrderCount; want++ {
-			storage.OrderOption(s.Session, p, func(*player.Player, *world.Tx) {}).Run(p, tx)
-			if got := storage.Orders.Of(s.Session)[p.H()]; got != want%storage.StorageOrderCount {
-				t.Fatalf("order %d, want %d", got, want%storage.StorageOrderCount)
-			}
+	ctl := machinePos
+	iface := ctl.Add(cube.Pos{0, 0, 3})
+	placeTestMachine(s, iface, machine.KindDrawerInterface, "")
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 2}), storage.Drawer{Facing: cube.South}, nil)
+		if n := storage.ControllerInsert(tx, iface, item.NewStack(block.Cobblestone{}, 1)); n != 0 {
+			t.Errorf("an interface without a controller took %d", n)
+		}
+	})
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	s.World.Do(func(tx *world.Tx) {
+		storage.InvalidateNetworks(s.Session)
+		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 1}), machine.New(machine.KindDrawerTrim, "", ""), nil)
+		tx.SetBlock(ctl.Add(cube.Pos{0, 0, 2}), storage.Drawer{Facing: cube.South}, nil)
+		m := tx.Block(iface).(machine.Machine)
+		if n := m.InsertItems(tx, iface, cube.FaceUp, item.NewStack(block.Cobblestone{}, 10)); n != 10 {
+			t.Fatalf("the interface took %d of 10", n)
+		}
+		if list, drawers := storage.Contents(tx, ctl); drawers != 2 || len(list) != 1 || list[0].Count != 10 {
+			t.Errorf("controller contents %v in %d drawers", list, drawers)
+		}
+		if got := m.ExtractItems(tx, iface, cube.FaceDown, item.NewStack(block.Cobblestone{}, 1), 4); got.Count() != 4 {
+			t.Errorf("the interface gave %v, want 4", got)
+		}
+		if got := itemio.List(tx, iface, cube.FaceUp); len(got) != 1 || got[0].Count() != 6 {
+			t.Error("the interface does not list the controller's items")
 		}
 	})
 }
 
-func TestControllerDoubleClickInsertsInventory(t *testing.T) {
+func TestTwoControllersStopTheSet(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	ctl := machinePos
-	placeTestMachine(s, ctl, machine.KindStorageController, "")
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	other := ctl.Add(cube.Pos{2, 0, 0})
+	iface := ctl.Add(cube.Pos{1, 0, 1})
+	placeTestMachine(s, ctl, machine.KindDrawerController, "")
+	placeTestMachine(s, iface, machine.KindDrawerInterface, "")
+	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(ctl.Add(cube.Pos{1, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
-		tx.SetBlock(ctl.Add(cube.Pos{2, 0, 0}), storage.Drawer{Facing: cube.South}, nil)
-		storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1))
-		_ = p.Inventory().SetItem(3, item.NewStack(block.Cobblestone{}, 30))
-		_ = p.Inventory().SetItem(4, item.NewStack(block.Dirt{}, 7))
-		useBlock(s, tx, p, ctl, item.Stack{}, false)
-		if it, _ := p.Inventory().Item(3); it.Count() != 30 {
-			t.Fatalf("a single click took the inventory: %v", it)
+		if n := len(storage.Network(tx, ctl)); n != 1 {
+			t.Fatalf("%d drawers with one controller, want 1", n)
 		}
-		useBlock(s, tx, p, ctl, item.Stack{}, false)
-		if it, _ := p.Inventory().Item(3); !it.Empty() {
-			t.Errorf("cobblestone left after a double click: %v", it)
+	})
+	placeTestMachine(s, other, machine.KindDrawerController, "")
+	s.World.Do(func(tx *world.Tx) {
+		storage.InvalidateNetworks(s.Session)
+		for _, at := range []cube.Pos{ctl, other, iface} {
+			if n := len(storage.Network(tx, at)); n != 0 {
+				t.Errorf("%v reaches %d drawers in a set with two controllers", at, n)
+			}
 		}
-		if it, _ := p.Inventory().Item(4); it.Count() != 7 {
-			t.Errorf("a kind the storage does not hold went in: %v", it)
+		if n := storage.ControllerInsert(tx, ctl, item.NewStack(block.Cobblestone{}, 1)); n != 0 {
+			t.Errorf("a set with two controllers took %d", n)
 		}
 	})
 }

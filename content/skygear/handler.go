@@ -23,6 +23,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -88,8 +89,15 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
 	case machine.Machine:
-		if b.Kind == machine.KindStorageLink {
+		if storage.IsSetMachine(b.Kind) {
 			storage.InvalidateNetworks(h.s.Session)
+		}
+		if netstore.IsNode(b.Kind) {
+			// The block goes after this handler: drop the network once it is gone.
+			ctx.Player().Tx().Defer(func(tx *world.Tx) {
+				netstore.Invalidate(tx, pos)
+				netstore.Forget(h.s.Session, pos)
+			})
 		}
 		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
 	case block.Composter:
@@ -112,10 +120,15 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 	held, _ := ctx.Player().HeldItems()
 	switch b := b.(type) {
 	case machine.Machine:
-		if b.Kind == machine.KindStorageLink {
+		if storage.IsSetMachine(b.Kind) {
 			storage.InvalidateNetworks(h.s.Session)
 		}
 		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
+		if netstore.IsNode(b.Kind) {
+			netstore.Forget(h.s.Session, pos) // a node broken by an explosion left its setting
+			// machine.Place sets the block in a deferred call; this one runs after it.
+			ctx.Player().Tx().Defer(func(tx *world.Tx) { netstore.Invalidate(tx, pos) })
+		}
 	case storage.Drawer:
 		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
 	case conduit.Bundle:
@@ -150,11 +163,11 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		return
 	}
 	// Dragonfly places the held item instead of calling Activate when the
-	// player sneaks, so the sneaking click that opens a storage controller's
-	// list whatever is held is handled here.
-	if p.Sneaking() && !held.Empty() && storage.IsStorageController(tx.Block(pos)) {
+	// player sneaks, so the sneaking click that opens a terminal window
+	// whatever is held is handled here.
+	if p.Sneaking() && !held.Empty() && netstore.IsTerminal(tx.Block(pos)) {
 		ctx.Cancel()
-		storage.UseController(h.s.Session, p, tx, pos)
+		netstore.ShowTerminal(h.s.Session, p, tx, pos)
 		return
 	}
 	// A player who clicks a conduit's connector plate on the block it touches

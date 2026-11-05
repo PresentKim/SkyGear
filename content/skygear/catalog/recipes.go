@@ -12,6 +12,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
@@ -96,8 +97,25 @@ func gameRecipes() {
 	add(machine.Item(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindCollector), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(item.Diamond{}, 2), n(sgitem.FairyEmerald{}, 1))
 	add(machine.Item(machine.KindRelicTable), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.CraftingTable{}, 1), n(sgitem.FairyDust{}, 2))
-	add(machine.Item(machine.KindStorageController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(storage.Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
-	add(item.NewStack(machine.Machine{Kind: machine.KindStorageLink}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
+	add(machine.Item(machine.KindDrawerController), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(storage.Drawer{}, 1), n(block.NewHopper(), 1), n(item.RedstoneWire{}, 2))
+	add(machine.Item(machine.KindDrawerInterface), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(storage.Drawer{}, 1), n(block.NewHopper(), 1))
+	// The storage network (docs/design/18-storage-network.md §2).
+	bronze, redstone, glass := sgitem.Ingot{Metal: sgitem.MetalBronze}, item.RedstoneWire{}, block.Glass{}
+	add(machine.Item(machine.KindNetController), n(bronze, 2), n(iron, 2), n(redstone, 4))
+	add(item.NewStack(machine.Machine{Kind: machine.KindNetCable}, 4), n(iron, 1), n(redstone, 1), n(glass, 1))
+	add(machine.Item(machine.KindDiskDrive), n(iron, 4), n(bronze, 2), n(block.NewChest(), 1), n(redstone, 2))
+	add(machine.Item(machine.KindNetTerminal), n(bronze, 2), n(iron, 2), n(glass, 2), n(redstone, 2))
+	add(item.NewStack(netstore.Disk{Tier: 0}, 1), n(iron, 3), n(redstone, 2), n(glass, 2))
+	add(item.NewStack(netstore.Disk{Tier: 1}, 1), n(bronze, 3), n(redstone, 4), n(glass, 2))
+	add(item.NewStack(netstore.Disk{Tier: 2}, 1), n(sgitem.Ingot{Metal: sgitem.MetalInvar}, 2), n(redstone, 2), n(glass, 2), n(item.Diamond{}, 1))
+	add(item.NewStack(netstore.Disk{Tier: 3}, 1), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(sgitem.Ingot{Metal: sgitem.MetalElectrum}, 2), n(item.Diamond{}, 2), n(glass, 2))
+	add(machine.Item(machine.KindNetImporter), n(iron, 2), n(block.NewHopper(), 1), n(redstone, 1))
+	add(machine.Item(machine.KindNetExporter), n(iron, 2), n(block.NewHopper(), 1), n(redstone, 2))
+	add(machine.Item(machine.KindNetExternal), n(sgitem.Ingot{Metal: sgitem.MetalInvar}, 2), n(block.NewChest(), 1), n(redstone, 2))
+	add(machine.Item(machine.KindPatternEncoder), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 2), n(block.CraftingTable{}, 1), n(redstone, 4))
+	add(item.NewStack(netstore.Pattern{}, 4), n(item.Paper{}, 2), n(redstone, 1))
+	add(machine.Item(machine.KindNetAutocrafter), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(sgitem.Ingot{Metal: sgitem.MetalElectrum}, 1), n(block.CraftingTable{}, 1), n(redstone, 3))
+	add(item.NewStack(machine.Machine{Kind: machine.KindDrawerTrim}, 4), n(iron, 2), n(item.RedstoneWire{}, 1))
 	add(machine.Item(machine.KindTinker), n(item.IronIngot{}, 6), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 2), n(block.CraftingTable{}, 1))
 	add(machine.Item(machine.KindSimulator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.Glass{}, 3), n(item.RedstoneWire{}, 3))
 	// The dragon egg, the last project's prize (project.go).

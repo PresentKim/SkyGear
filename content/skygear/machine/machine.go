@@ -148,10 +148,11 @@ const (
 	// The fluid machines (fluidmachine.go).
 	KindTank   = "fluid_tank"
 	KindWasher = "ore_washer"
-	// KindStorageController and KindStorageLink make the drawers one storage
-	// (storage.go).
-	KindStorageController = "storage_controller"
-	KindStorageLink       = "storage_link"
+	// KindDrawerController, KindDrawerTrim and KindDrawerInterface make the
+	// drawers one storage (storage.go).
+	KindDrawerController = "drawer_controller"
+	KindDrawerTrim       = "drawer_trim"
+	KindDrawerInterface  = "drawer_interface"
 	// KindTinker is the tinker table (tinkerform.go).
 	KindTinker = "tinker_table"
 	// KindGate is the retired dimension gate: it breaks into its materials
@@ -173,6 +174,16 @@ const (
 	KindCollector = "essence_collector"
 	// KindRelicTable makes and raises the relics (dimension/relic.go).
 	KindRelicTable = "relic_table"
+	// The storage network (docs/design/18-storage-network.md; netstore).
+	KindNetController  = "net_controller"
+	KindNetCable       = "net_cable"
+	KindDiskDrive      = "disk_drive"
+	KindNetTerminal    = "net_terminal"
+	KindNetImporter    = "net_importer"
+	KindNetExporter    = "net_exporter"
+	KindNetExternal    = "net_external"
+	KindPatternEncoder = "pattern_encoder"
+	KindNetAutocrafter = "net_autocrafter"
 )
 
 type ID int
@@ -189,8 +200,8 @@ const (
 	idAlloy
 	idTank
 	idWasher
-	idStorageController
-	idStorageLink
+	idDrawerController
+	idDrawerTrim
 	idTinker
 	idGate
 	idCrucible
@@ -204,6 +215,16 @@ const (
 	idLab
 	idCollector
 	idRelicTable
+	idNetController
+	idNetCable
+	idDiskDrive
+	idNetTerminal
+	idNetImporter
+	idNetExporter
+	idNetExternal
+	idPatternEncoder
+	idNetAutocrafter
+	idDrawerInterface
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -233,7 +254,8 @@ type Def struct {
 	FluidCap               int
 	fluidSource, fluidSink bool
 	fluidOnly              fluidnet.Kind
-	// controller marks the storage controller (storage.go).
+	// Controller marks the drawer controller and the drawer interface, which
+	// show the controller's storage (storage.go).
 	Controller bool
 	// cell makes the machine an energy store: it takes energy from the network and
 	// gives it back, without working (energyCap is its capacity).
@@ -258,6 +280,10 @@ type Def struct {
 	Insert  func(tx *world.Tx, pos cube.Pos, st item.Stack) int
 	Peek    func(tx *world.Tx, pos cube.Pos, want func(item.Stack) bool) item.Stack
 	Extract func(tx *world.Tx, pos cube.Pos, st item.Stack, n int) item.Stack
+	// Accepts, if set, says which items an input slot takes (slot is -1 for
+	// "any input slot"); it replaces the machine's own rule, so the network
+	// kinds can hold items with stored values (disks, patterns).
+	Accepts func(slot int, st item.Stack) bool
 }
 
 var Kinds = map[string]*Def{
@@ -306,13 +332,17 @@ var Kinds = map[string]*Def{
 		Use: 20, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
-	KindStorageController: {
-		ID: idStorageController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
+	KindDrawerController: {
+		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
-	KindStorageLink: {
-		ID: idStorageLink, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
+	KindDrawerTrim: {
+		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.link.help.1"},
+	},
+	KindDrawerInterface: {
+		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true,
+		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
 		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10,
@@ -326,6 +356,44 @@ var Kinds = map[string]*Def{
 	KindRelicTable: {
 		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.relictable.help.1"},
+	},
+	KindNetController: {
+		ID: idNetController, nameKey: "machine.net_controller.name", Interval: 1, Indicator: 10,
+		Use: 8, EnergyCap: ConsumerBuffer,
+		helpKeys: []string{"machine.net_controller.help.1"},
+	},
+	KindNetCable: {
+		ID: idNetCable, nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.net_cable.help.1"},
+	},
+	KindDiskDrive: {
+		ID: idDiskDrive, nameKey: "machine.disk_drive.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7}, Indicator: 10,
+		helpKeys: []string{"machine.disk_drive.help.1"},
+	},
+	KindNetTerminal: {
+		ID: idNetTerminal, nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
+		helpKeys: []string{"machine.net_terminal.help.1"},
+	},
+	KindNetImporter: {
+		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.net_importer.help.1"},
+	},
+	KindNetExporter: {
+		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.net_exporter.help.1"},
+	},
+	KindNetExternal: {
+		ID: idNetExternal, nameKey: "machine.net_external.name", Interval: 1, Indicator: 10,
+		helpKeys: []string{"machine.net_external.help.1"},
+	},
+	KindPatternEncoder: {
+		// nine pattern slots and three sample slots
+		ID: idPatternEncoder, nameKey: "machine.pattern_encoder.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, Indicator: 13,
+		helpKeys: []string{"machine.pattern_encoder.help.1"},
+	},
+	KindNetAutocrafter: {
+		ID: idNetAutocrafter, nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
+		helpKeys: []string{"machine.net_autocrafter.help.1"},
 	},
 	KindGate: {
 		ID: idGate, nameKey: "machine.gate.name", Interval: 1, Indicator: 10,
@@ -403,7 +471,7 @@ var Kinds = map[string]*Def{
 var Retired = []string{KindGate}
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindStorageController, KindStorageLink, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -744,6 +812,9 @@ func (st *State) Inv() *inventory.Inventory { return st.storage.Inventory() }
 // accepts reports whether it may go into the input of the machine.
 // Time-limited items are never processed or sold.
 func (st *State) Accepts(it item.Stack) bool {
+	if st.Def.Accepts != nil {
+		return !it.Empty() && st.Def.Accepts(-1, it)
+	}
 	if it.Empty() || !core.Plain(it) {
 		return false
 	}
@@ -801,6 +872,9 @@ func (st *State) takesCharge(it item.Stack) bool {
 func (st *State) SlotAccepts(slot int, it item.Stack) bool {
 	switch st.Role(slot) {
 	case roleInput:
+		if st.Def.Accepts != nil {
+			return !it.Empty() && st.Def.Accepts(slot, it)
+		}
 		return st.Accepts(it) && !st.takesCharge(it)
 	case roleCharge:
 		return st.takesCharge(it)
@@ -1145,11 +1219,11 @@ func (m Machine) Name() string {
 func (Machine) Category() category.Category { return category.Items() }
 
 // cubeMachines are the machines drawn as plain cubes with one side texture;
-// frontMachines have a front (north), back and side textures. The sieves
+// frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindStorageController: true, KindStorageLink: true, KindTinker: true, KindCollector: true, KindRelicTable: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindNetCable: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetImporter: true, KindNetExporter: true, KindNetExternal: true, KindNetAutocrafter: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -1181,6 +1255,9 @@ func (m Machine) Permutations() []customblock.Permutation {
 }
 
 func (m Machine) Properties() customblock.Properties {
+	if m.Kind == KindDrawerTrim {
+		return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_drawer_side")}}
+	}
 	if cubeMachines[m.Kind] {
 		return blockmodel.CubeProperties(m.Kind)
 	}
@@ -1352,7 +1429,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
 		return true
 	}
-	if m.Kind == KindStorageLink {
+	if m.Kind == KindDrawerTrim {
 		return true
 	}
 	if m.Kind == KindTinker {
@@ -1496,7 +1573,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.persistState(currentTick, pos, tx)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idStorageController, idStorageLink, idTinker, idCollector, idRelicTable:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}

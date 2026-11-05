@@ -16,6 +16,4 @@ const (
 	// again after bladeCooldown ticks at the soonest.
 	bladeDamage   = 4.0
 	bladeCooldown = 10
-	// bladeSparks is how many sparks draw a blade each tick.
-	bladeSparks = 5
 )

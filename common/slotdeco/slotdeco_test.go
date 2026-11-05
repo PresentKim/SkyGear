@@ -143,10 +143,8 @@ func TestPackMatchesMarks(t *testing.T) {
 		if !strings.Contains(text, "'"+r.Mark()+"'") {
 			t.Errorf("slotdeco.json does not look for the mark of rarity %d", r)
 		}
-		for _, name := range []string{"rarity_", "tip_"} {
-			if _, err := os.Stat(filepath.Join(packDir, "textures/ui/sg", name+string(rune('0'+int(r)))+".png")); err != nil {
-				t.Error(err)
-			}
+		if _, err := os.Stat(filepath.Join(packDir, "textures/ui/sg", "tip_"+string(rune('0'+int(r)))+".png")); err != nil {
+			t.Error(err)
 		}
 	}
 	for tier := 1; tier <= MaxFront; tier++ {
@@ -173,17 +171,6 @@ func TestPackMatchesMarks(t *testing.T) {
 					}
 				}
 			}
-		}
-	}
-}
-
-// TestScreenDecoPictures: every rarity has the frame the DDUI screens put
-// behind an item slot (common/ui slotDeco: deco_<rarity>_0 of the sgui pack).
-func TestScreenDecoPictures(t *testing.T) {
-	for r := Uncommon; r <= Legendary; r++ {
-		name := "deco_" + string(rune('0'+int(r))) + "_0.png"
-		if _, err := os.Stat(filepath.Join("../../assets/resourcepack/sgui/textures/ui/sg", name)); err != nil {
-			t.Error(err)
 		}
 	}
 }

@@ -342,6 +342,7 @@ func (r *Run) killed(s *core.Session, tx *world.Tx, m *Monster, p *player.Player
 		v.ViewEntityAction(m, entity.DeathAction{})
 	}
 	if p != nil {
+		drawPoof(tx, m.Position())
 		achievement.Count(p, "kill_total", 1)
 		achievement.Count(p, "kill_"+m.kind, 1)
 		progress.Advance(s, tx, advancement.Kill)
