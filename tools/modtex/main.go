@@ -39,11 +39,10 @@ var repos = map[string]repo{
 
 // entry is one pack texture: dst under textures/, src as "<repo>:<path>" (no
 // .png), over the optional chassis picture, tint the optional multiplier,
-// paint the optional colour a dark picture takes (its pattern kept as the
-// lightness around that colour).
+// rim the optional light colour of the picture's one pixel outer edge.
 type entry struct {
 	dst, src, over string
-	tint, paint    *color.RGBA
+	tint, rim      *color.RGBA
 }
 
 func c(r, g, b uint8) *color.RGBA { return &color.RGBA{r, g, b, 255} }
@@ -158,11 +157,12 @@ var entries = func() []entry {
 	rsCube("net_terminal", "block/grid/front", "block/grid/cutouts/light_blue", "block/grid/top", "")
 	rsCube("pattern_encoder", "block/pattern_grid/front", "block/pattern_grid/cutouts/light_blue", "block/pattern_grid/top", "")
 	// Refined Storage gives the three heads one border picture; here each
-	// is painted a colour so they tell apart (in, out, storage).
+	// has a light edge of its own colour so they tell apart (in, out,
+	// storage). Every head face shows the whole picture (netshape.rimUV).
 	add(entry{dst: "blocks/net_cable", src: "rs:block/cable/gray"},
-		entry{dst: "blocks/net_importer_border", src: "rs:block/cable/part_border", paint: c(0x3a, 0x6e, 0xc0)},
-		entry{dst: "blocks/net_exporter_border", src: "rs:block/cable/part_border", paint: c(0xd0, 0x7a, 0x22)},
-		entry{dst: "blocks/net_external_border", src: "rs:block/cable/part_border", paint: c(0x8a, 0x52, 0xc4)})
+		entry{dst: "blocks/net_importer_border", src: "rs:block/cable/part_border", rim: c(0x9c, 0xc4, 0xff)},
+		entry{dst: "blocks/net_exporter_border", src: "rs:block/cable/part_border", rim: c(0xff, 0xc8, 0x8a)},
+		entry{dst: "blocks/net_external_border", src: "rs:block/cable/part_border", rim: c(0xd8, 0xb0, 0xff)})
 	for _, f := range []string{"front", "back", "side"} {
 		add(entry{dst: "blocks/net_autocrafter_" + f, src: "rs:block/autocrafter/side", over: "block/autocrafter/cutouts/side/light_blue"})
 	}
@@ -222,8 +222,8 @@ func main() {
 			draw.Draw(base, base.Bounds(), img, image.Point{}, draw.Over)
 			img = base
 		}
-		if e.paint != nil {
-			paint(img, *e.paint)
+		if e.rim != nil {
+			rim(img, *e.rim)
 		}
 		if e.tint != nil {
 			for y := 0; y < img.Bounds().Dy(); y++ {
@@ -241,24 +241,17 @@ func main() {
 	fmt.Println(n, "textures written")
 }
 
-// paint colours img c, each pixel as light against c as it is against the
-// picture's mean lightness.
-func paint(img *image.RGBA, c color.RGBA) {
-	sum, n := 0, 0
-	for i := 0; i < len(img.Pix); i += 4 {
-		if img.Pix[i+3] > 0 {
-			sum += (int(img.Pix[i]) + int(img.Pix[i+1]) + int(img.Pix[i+2])) / 3
-			n++
-		}
-	}
-	if n == 0 || sum == 0 {
-		return
-	}
-	mean := sum / n
-	for i := 0; i < len(img.Pix); i += 4 {
-		lum := (int(img.Pix[i]) + int(img.Pix[i+1]) + int(img.Pix[i+2])) / 3
-		for j, t := range []uint8{c.R, c.G, c.B} {
-			img.Pix[i+j] = uint8(min(255, int(t)*lum/mean))
+// rim mixes c into the one pixel edge of img, half and half, and leaves the
+// rest as it is.
+func rim(img *image.RGBA, c color.RGBA) {
+	b := img.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if x != b.Min.X && x != b.Max.X-1 && y != b.Min.Y && y != b.Max.Y-1 {
+				continue
+			}
+			p := img.RGBAAt(x, y)
+			img.SetRGBA(x, y, color.RGBA{uint8((int(p.R) + int(c.R)) / 2), uint8((int(p.G) + int(c.G)) / 2), uint8((int(p.B) + int(c.B)) / 2), p.A})
 		}
 	}
 }

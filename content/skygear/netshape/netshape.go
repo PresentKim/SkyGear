@@ -49,17 +49,29 @@ const (
 func faces(uv map[cube.Face][4]float64, tex Tex) map[cube.Face]Face {
 	out := map[cube.Face]Face{}
 	for f, u := range uv {
+		if tex == Border {
+			u = rimUV
+		}
 		out[f] = Face{UV: u, Tex: tex}
 	}
 	return out
 }
+
+// rimUV is the whole head picture: every head face shows all of it, so the
+// picture's tinted edge (tools/modtex) outlines each face.
+var rimUV = [4]float64{0, 0, 16, 16}
+
+// coreGrow makes the core a little larger than the arms and heads that meet
+// it, so their touching faces do not share a plane (the cable picture is
+// open in the middle, and faces in one plane flicker through it).
+const coreGrow = 0.05
 
 func core() Box {
 	uv := map[cube.Face][4]float64{}
 	for _, f := range cube.Faces() {
 		uv[f] = [4]float64{6, 6, 10, 10}
 	}
-	return Box{From: [3]float64{6, 6, 6}, To: [3]float64{10, 10, 10}, Faces: faces(uv, Cable)}
+	return Box{From: [3]float64{6 - coreGrow, 6 - coreGrow, 6 - coreGrow}, To: [3]float64{10 + coreGrow, 10 + coreGrow, 10 + coreGrow}, Faces: faces(uv, Cable)}
 }
 
 // northArm is the cable extension drawn toward north.
@@ -71,11 +83,11 @@ func northArm() Box {
 	}, Cable)}
 }
 
-// edgeInset keeps a face on the block's edge just inside it, so it does not
-// lie in the plane of the neighbouring block's face (which flickers). Every
-// face is drawn: the blocks use alpha test, which draws back faces, so a
-// missing face is a hole through the model.
-const edgeInset = 0.01
+// edgeInset keeps a face on the block's edge inside it, far enough from the
+// neighbouring block's face that the two do not flicker (0.01 pixels still
+// did). Every face is drawn: the blocks use alpha test, which draws back
+// faces, so a missing face is a hole through the model.
+const edgeInset = 0.1
 
 func inset(b Box) Box {
 	for i := range 3 {
