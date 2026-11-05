@@ -30,10 +30,13 @@ type Home struct {
 }
 
 // HomeButton is a button of the main screen. Badge, if above 0, is the red
-// count on its corner.
+// count on its corner. Leave, on an overlay button, makes the client leave
+// the server itself, as its own leave button does; Run runs only on a client
+// that cannot.
 type HomeButton struct {
 	Icon, Label string
 	Badge       int
+	Leave       bool
 	Run         func(p *player.Player, tx *world.Tx)
 }
 
@@ -123,7 +126,14 @@ type homeManageD struct {
 type homeOverlayD struct {
 	Title   string        `json:"title"`
 	Body    string        `json:"body"`
-	Buttons []homeManageD `json:"buttons"`
+	Buttons []homeOverlayButtonD `json:"buttons"`
+}
+
+// homeOverlayButtonD is a button of the overlay panel.
+type homeOverlayButtonD struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Leave bool   `json:"leave,omitempty"`
 }
 
 // homeButtonsOf is the data of icon buttons, [] when there are none.
@@ -164,9 +174,9 @@ func HomeScreen(p *player.Player, h Home) {
 		d.Manage = &homeManageD{ID: l.id(h.Manage.Run), Label: h.Manage.Label}
 	}
 	if o := h.Overlay; o != nil {
-		ov := &homeOverlayD{Title: o.Title, Body: o.Body, Buttons: []homeManageD{}}
+		ov := &homeOverlayD{Title: o.Title, Body: o.Body, Buttons: []homeOverlayButtonD{}}
 		for _, b := range o.Buttons {
-			ov.Buttons = append(ov.Buttons, homeManageD{ID: l.id(b.Run), Label: b.Label})
+			ov.Buttons = append(ov.Buttons, homeOverlayButtonD{ID: l.id(b.Run), Label: b.Label, Leave: b.Leave})
 		}
 		d.Overlay = ov
 	}

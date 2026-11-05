@@ -65,7 +65,7 @@ export interface QuestData { bar: BarButton[]; chapters: Chapter[]; heading: Tex
 export interface HomeButton { id: Id; icon: Icon; label: Text; badge: number }
 export interface HomeProfile { id: Id; face: string[]; icon: Icon; name: Text; title: Text; fill: number; line: Text } // face: 64 'rrggbb' ('' none) or []
 export interface HomeSave { head: Text; name: Text; icon: Icon; lines: Text[]; arrows: boolean; prev: Id; next: Id }
-export interface HomeOverlay { title: Text; body: Text; buttons: { id: Id; label: Text }[] }
+export interface HomeOverlay { title: Text; body: Text; buttons: { id: Id; label: Text; leave?: boolean }[] } // leave: the press leaves the server from the client
 export interface HomeData { profile: HomeProfile; corner: HomeButton[]; side: HomeButton[]; feed: Text[]; save: HomeSave; play: { id: Id; label: Text; sub: Text }; manage: { id: Id; label: Text } | null; overlay: HomeOverlay | null }
 export interface LoadingData { icon: Icon; title: Text; sub: Text; line: Text; tip: Text }
 export interface ConsoleData { chrome: Chrome; lines: Text[]; field: Id; hint: Text; submit: Button }

@@ -162,7 +162,7 @@ func (pf *Platform) home(p *player.Player) ui.Home {
 		}
 	case homeExit:
 		h.Overlay = &ui.HomeOverlay{Title: i18n.T(lang, "platform.home.exit"), Body: i18n.T(lang, "platform.home.exit.ask"), Buttons: []ui.HomeButton{
-			{Label: i18n.T(lang, "platform.home.exit.yes"), Run: func(p *player.Player, _ *world.Tx) {
+			{Label: i18n.T(lang, "platform.home.exit.yes"), Leave: true, Run: func(p *player.Player, _ *world.Tx) {
 				p.Disconnect(i18n.T(i18n.Of(p), "platform.home.exit.bye"))
 			}},
 			{Label: i18n.T(lang, "platform.home.exit.no"), Run: pf.overlay(homeNoOverlay)},

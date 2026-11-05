@@ -8,8 +8,8 @@ import { InkContext, Rich } from '../text/Rich';
 import { Icon } from './Icon';
 
 /** McButton is a pressable Minecraft button box; the text in it is dark. */
-export function McButton(props: { id: Id; className: string; tip?: Text; quick?: boolean; children?: ReactNode }): JSX.Element {
-  const press = usePressable({ id: props.id, tip: props.tip, quick: props.quick });
+export function McButton(props: { id: Id; className: string; tip?: Text; quick?: boolean; leave?: boolean; children?: ReactNode }): JSX.Element {
+  const press = usePressable({ id: props.id, tip: props.tip, quick: props.quick, leave: props.leave });
   return (
     <div className={'oui-box ' + props.className} {...press}>
       <InkContext.Provider value="dark">{props.children}</InkContext.Provider>

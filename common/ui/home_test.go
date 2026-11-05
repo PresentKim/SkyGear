@@ -59,11 +59,16 @@ func TestHomeData(t *testing.T) {
 		t.Errorf("profile %v", data)
 	}
 	h.Profile.Face = face[:3]
+	h.Overlay = &HomeOverlay{Buttons: []HomeButton{{Label: "stay", Run: nopRun}, {Label: "leave", Leave: true, Run: nopRun}}}
 	HomeScreen(nil, h)
 	_, data = screenRoot(root)
 	pr = data["profile"].(map[string]any)
 	if len(pr["face"].([]any)) != 0 || pr["icon"] != "tex:textures/x" || got.close == nil {
 		t.Errorf("profile %v", pr)
+	}
+	bs := data["overlay"].(map[string]any)["buttons"].([]any)
+	if _, ok := bs[0].(map[string]any)["leave"]; ok || bs[1].(map[string]any)["leave"] != true {
+		t.Errorf("overlay buttons %v", bs)
 	}
 }
 

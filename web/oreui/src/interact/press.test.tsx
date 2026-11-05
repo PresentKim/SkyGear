@@ -2,15 +2,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@react-facet/dom-fiber-testing-library';
 import { usePressable } from './press';
 
-vi.mock('../runtime/engine', () => ({ send: vi.fn(), notePress: vi.fn() }));
+vi.mock('../runtime/engine', () => ({ send: vi.fn(), notePress: vi.fn(), leaveGame: vi.fn() }));
 import * as engine from '../runtime/engine';
 
-function Btn(p: { id?: string; alt?: string; tip?: string; rare?: number; quick?: boolean; name?: string }) {
+function Btn(p: { id?: string; alt?: string; tip?: string; rare?: number; quick?: boolean; leave?: boolean; name?: string }) {
   const props = usePressable(p);
   return <div id={p.name ?? 'b'} {...props} />;
 }
 
 const send = engine.send as unknown as ReturnType<typeof vi.fn>;
+const leave = engine.leaveGame as unknown as ReturnType<typeof vi.fn>;
 const tipEl = () => document.getElementById('oui-tip') as HTMLElement;
 
 function down(el: Element, button = 0) {
@@ -47,6 +48,21 @@ describe('mouse', () => {
     down(container.querySelector('#b')!, 2);
     expect(send).toHaveBeenCalledWith('o2', 'click');
     expect(send).toHaveBeenCalledTimes(1);
+  });
+  it('a leave press leaves from the client and sends nothing', () => {
+    leave.mockReturnValue(true);
+    const { container } = render(<Btn id="o1" leave />);
+    down(container.querySelector('#b')!);
+    vi.advanceTimersByTime(50);
+    expect(leave).toHaveBeenCalledTimes(1);
+    expect(send).not.toHaveBeenCalled();
+  });
+  it('a leave press goes to the server when the client cannot leave', () => {
+    leave.mockReturnValue(false);
+    const { container } = render(<Btn id="o1" leave />);
+    down(container.querySelector('#b')!);
+    vi.advanceTimersByTime(50);
+    expect(send).toHaveBeenCalledWith('o1', 'click');
   });
   it('has no attribute without id', () => {
     const { container } = render(<Btn />);
@@ -142,19 +158,19 @@ describe('placement', () => {
 });
 
 describe('touch', () => {
-  it('touch_two_taps: first shows the tip, second presses', () => {
+  it('a tap presses and shows the tip', () => {
     const { container } = render(<Btn id="o1" tip="T" />);
     const b = container.querySelector('#b')!;
     touch(b);
     down(b);
     vi.advanceTimersByTime(50);
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledWith('o1', 'click');
     expect(tipEl().style.display).toBe('flex');
     touch(b);
     down(b);
     vi.advanceTimersByTime(50);
-    expect(send).toHaveBeenCalledWith('o1', 'click');
-    expect(tipEl().style.display).toBe('none');
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(tipEl().style.display).toBe('flex');
   });
   it('quick_touch: presses at the first tap', () => {
     const { container } = render(<Btn id="o1" tip="T" quick />);
@@ -164,7 +180,7 @@ describe('touch', () => {
     vi.advanceTimersByTime(50);
     expect(send).toHaveBeenCalledWith('o1', 'click');
   });
-  it('other_tap_hides: a tap elsewhere hides the tip and disarms', () => {
+  it('a tap elsewhere hides the tip', () => {
     const { container } = render(
       <div>
         <Btn id="o1" tip="T" name="a" />
@@ -178,10 +194,6 @@ describe('touch', () => {
     expect(tipEl().style.display).toBe('flex');
     touch(container.querySelector('#c')!);
     expect(tipEl().style.display).toBe('none');
-    touch(a);
-    down(a);
-    vi.advanceTimersByTime(50);
-    expect(send).not.toHaveBeenCalled();
   });
   it('mouse_after_touch: the mousedown after a touchstart is one press', () => {
     const { container } = render(<Btn id="o1" />);
@@ -197,7 +209,8 @@ describe('touch', () => {
     down(b);
     touch(b);
     vi.advanceTimersByTime(50);
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(tipEl().style.display).toBe('flex');
   });
   it('a key press after a touch makes the next mousedown a plain press', () => {
     const { container } = render(<Btn id="o1" tip="T" />);

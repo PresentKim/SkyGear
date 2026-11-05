@@ -57,7 +57,23 @@ export function command(group: string, name: string): ((...a: unknown[]) => unkn
   return (...a: unknown[]) => c.callable!(...a);
 }
 
-function inputValues(): Record<string, string> | null {
+/**
+ * leaveGame leaves the server the way the death screen's title screen button does, so the client
+ * closes the link itself; it reports whether the command was there.
+ */
+export function leaveGame(): boolean {
+  const leave = command('vanillaGameplayLeaveGameCommandGroup', 'leaveGame');
+  if (!leave) return false;
+  try {
+    leave();
+  } catch (e) {
+    errorSink('leaveGame: ' + e);
+    return false;
+  }
+  return true;
+}
+
+function inputValues():Record<string, string> | null {
   let out: Record<string, string> | null = null;
   inputs.forEach((read, id) => {
     out = out || {};

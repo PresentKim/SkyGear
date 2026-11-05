@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import type { InvSlot } from '../protocol';
 import { InkContext, Rich } from '../text/Rich';
 import { Icon } from '../components/Icon';
@@ -17,6 +17,7 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
   const el = useRef<HTMLDivElement | null>(null);
   const cur = useRef(slot);
   cur.current = slot;
+  const [hover, setHover] = useState(false);
   useGestureRedraw();
   useEffect(() => {
     const e = el.current;
@@ -34,6 +35,7 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
   if (props.big) cls += ' mc-big';
   if (slot.dim) cls += ' mc-inv-dim';
   if (dragged) cls += ' mc-inv-dragged';
+  else if (hover) cls += ' mc-inv-hover';
   const handlers: Record<string, unknown> = {
     onMouseDown: (ev: MouseEvent) => {
       ev.preventDefault?.();
@@ -41,10 +43,18 @@ export function InvSlotView(props: { slot: InvSlot; big?: boolean }): JSX.Elemen
     },
     onMouseEnter: (ev: MouseEvent) => {
       gesture.mouseEnter(cur.current.id);
+      if (gesture.touchedRecently()) return;
+      setHover(true);
       if (cur.current.tip) showTip(ev.currentTarget as HTMLElement, cur.current.tip, cur.current.rare);
     },
-    onMouseLeave: () => hideTip(),
-    onTouchStart: (ev: TouchEvent) => gesture.touchStart(cur.current.id, cur.current.tip, ev),
+    onMouseLeave: () => {
+      setHover(false);
+      hideTip();
+    },
+    onTouchStart: (ev: TouchEvent) => {
+      setHover(false);
+      gesture.touchStart(cur.current.id, cur.current.tip, ev);
+    },
     onContextMenu: (ev: Event) => ev.preventDefault?.(),
   };
   return (

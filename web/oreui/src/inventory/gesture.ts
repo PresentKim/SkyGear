@@ -66,6 +66,11 @@ export function toggleQuick(): void {
   notify();
 }
 
+/** touchedRecently tells whether a touch began within the time a tap's mouse events follow it. */
+export function touchedRecently(): boolean {
+  return Date.now() - touchAt < TOUCH_WINDOW;
+}
+
 /** lastTouchTip is the tooltip of the slot touched last (a touch screen shows no tooltips over slots). */
 export function lastTouchTip(): string {
   return touchTip;

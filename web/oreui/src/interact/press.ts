@@ -49,11 +49,12 @@ function listen(): void {
 
 // usePressable returns the props that make an element answer a press with `id` (the left button) or
 // `alt` (the right button). Gameface does not deliver click to plain divs, so presses fire on mousedown.
-// On a touch screen an element with a tip shows it at the first tap and presses at the second, unless
-// it is `quick`. Gameface sends a mousedown for a tap too, in an order the devices do not agree on, so
+// On a touch screen a tap presses and shows the element's tip until the next tap elsewhere, unless it
+// is `quick`. Gameface sends a mousedown for a tap too, in an order the devices do not agree on, so
 // the decision waits a moment. `onTip` runs whenever the element shows its tooltip (hover or tap);
-// `rare` is the rarity the tooltip's border shows.
-export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; rare?: number; quick?: boolean; onTip?: () => void }): PressProps {
+// `rare` is the rarity the tooltip's border shows. A `leave` press leaves the game from the client,
+// and is sent to the server only when the client has no such command.
+export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; rare?: number; quick?: boolean; leave?: boolean; onTip?: () => void }): PressProps {
   listen();
   const cur = useRef(p);
   cur.current = p;
@@ -94,16 +95,19 @@ export function usePressable(p: { id?: Id; alt?: Id; tip?: Text; rare?: number; 
         () => {
           const t = touchSeen || Math.abs(touchAt - at) < TOUCH_WINDOW;
           const now = cur.current;
-          if (t && now.tip && !now.quick && armed !== el) {
-            armed = el;
-            showTip(el, now.tip, now.rare);
-            now.onTip?.();
-            return;
+          if (t && now.tip && !now.quick) {
+            if (armed !== el) {
+              armed = el;
+              showTip(el, now.tip, now.rare);
+              now.onTip?.();
+            }
+          } else {
+            armed = null;
+            if (t) hideTip();
           }
-          armed = null;
-          if (t) hideTip();
           const sendId = now.id ?? id;
-          if (sendId) engine.send(sendId, 'click');
+          if (!sendId || (now.leave && engine.leaveGame())) return;
+          engine.send(sendId, 'click');
         },
         touchSeen ? 0 : 40,
       );

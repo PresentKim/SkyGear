@@ -123,7 +123,7 @@ export function HomeScreen(props: { data: HomeData }): JSX.Element {
             <Rich text={o.title} className="oui-text mc-home-ov-title" />
             {o.body ? <Rich text={o.body} className="oui-text mc-home-ov-body" /> : null}
             {o.buttons.map((b, i) => (
-              <McButton key={i} id={b.id} className="mc-btn mc-home-ov-btn">
+              <McButton key={i} id={b.id} leave={b.leave} className="mc-btn mc-home-ov-btn">
                 <Rich text={b.label} className="oui-text mc-btn-text" />
               </McButton>
             ))}
