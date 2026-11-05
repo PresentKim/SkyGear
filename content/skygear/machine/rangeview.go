@@ -218,44 +218,48 @@ func (st *State) rangeTools(lang string, again func(p *player.Player, tx *world.
 // rangeAxis is one axis of the range screen: its name, the value set, the
 // most its tier gives and where the value is kept.
 type rangeAxis struct {
-	key       string
+	name      string
 	have, top int
 	set       *int
 }
 
 // showRangeScreen shows p the range screen of the machine of kind, as JE
-// Item Collectors lays it out: the size, then a line per axis with its
-// reach between a narrower and a wider button. back goes to the machine.
+// Item Collectors lays it out: the size, an up arrow, "x: 5" and a down
+// arrow for each axis, and the box button. back goes to the machine.
 func (st *State) showRangeScreen(p *player.Player, kind string, back func(p *player.Player, tx *world.Tx)) {
 	lang := i18n.Of(p)
 	again := func(p *player.Player, _ *world.Tx) { st.showRangeScreen(p, kind, back) }
 	a, most := st.Area(kind), st.MaxArea(kind)
-	axes := []rangeAxis{{"machine.range.x", a.X, most.X, &st.RangeX}}
+	axes := []rangeAxis{{"x", a.X, most.X, &st.RangeX}}
 	if top := max(most.Down, most.Up); top > 0 {
-		axes = append(axes, rangeAxis{"machine.range.y", max(a.Down, a.Up), top, &st.RangeY})
+		axes = append(axes, rangeAxis{"y", max(a.Down, a.Up), top, &st.RangeY})
 	}
-	axes = append(axes, rangeAxis{"machine.range.z", a.Z, most.Z, &st.RangeZ})
-	rows := [][]ui.BoardCell{{ui.TextCell(st.sizeLine(lang, kind))}}
+	axes = append(axes, rangeAxis{"z", a.Z, most.Z, &st.RangeZ})
+	var steppers []ui.Stepper
 	for _, ax := range axes {
 		set := func(v int) func(p *player.Player, tx *world.Tx) {
+			if v < 1 || v > ax.top {
+				return nil
+			}
 			return func(p *player.Player, tx *world.Tx) {
-				*ax.set = max(1, min(v, ax.top))
-				if *ax.set == ax.top {
+				*ax.set = v
+				if v == ax.top {
 					*ax.set = 0
 				}
 				again(p, tx)
 			}
 		}
-		name := i18n.T(lang, ax.key)
-		tip := fmt.Sprintf(i18n.T(lang, "machine.range.axis"), name, ax.have, ax.top)
-		rows = append(rows, []ui.BoardCell{
-			ui.SlotCell(ui.ItemSlot{Icon: "textures/ui/sg/arrow_down", Tip: i18n.T(lang, "machine.range.narrower"), Run: set(ax.have - 1)}),
-			ui.SlotCell(ui.ItemSlot{Count: fmt.Sprint(ax.have), Tip: tip}),
-			ui.SlotCell(ui.ItemSlot{Icon: "textures/ui/sg/arrow_up", Tip: i18n.T(lang, "machine.range.wider"), Run: set(ax.have + 1)}),
-			ui.TextCell(tip),
+		steppers = append(steppers, ui.Stepper{
+			Label: ax.name, Value: fmt.Sprint(ax.have),
+			Up:   ui.Option{Label: fmt.Sprintf(i18n.T(lang, "machine.range.wider"), ax.top), Run: set(ax.have + 1)},
+			Down: ui.Option{Label: i18n.T(lang, "machine.range.narrower"), Run: set(ax.have - 1)},
 		})
 	}
-	ui.ItemBoard(p, i18n.T(lang, "machine.range.title"), "", rows,
-		st.rangeViewOption(lang, again),
-		ui.Back(i18n.T(lang, "machine.range.back"), back))
+	ui.ShowSteppers(p, ui.StepperScreen{
+		Title:    st.Def.Title(lang),
+		Line:     st.sizeLine(lang, kind),
+		Steppers: steppers,
+		Side:     []ui.Option{st.rangeViewOption(lang, again)},
+		Options:  []ui.Option{ui.Back(i18n.T(lang, "machine.range.back"), back)},
+	})
 }

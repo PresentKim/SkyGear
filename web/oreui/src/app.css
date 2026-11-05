@@ -467,3 +467,70 @@
   border-width: 0.1rem;
   border-color: #6b0f0c;
 }
+
+/* The stepper window (screens/stepper.tsx), as Item Collectors' range window: the size line at
+   the top left, then columns of a triangle arrow, "x: 5" and a triangle arrow, the square
+   buttons at the right. */
+.mc-stepper .mc-content {
+  left: 1.2rem;
+  right: 1.2rem;
+}
+
+.mc-step-line {
+  flex-shrink: 0;
+  height: 2rem;
+  font-size: 1.4rem;
+}
+
+.mc-step-row {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-step-col {
+  width: 6.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-step-arrow {
+  width: 3.2rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-step-arrow img {
+  width: 2.6rem;
+  height: 1.4rem;
+}
+
+.mc-step-arrow:hover img {
+  filter: brightness(1.25);
+}
+
+.mc-step-arrow.off img {
+  opacity: 0.35;
+}
+
+.mc-step-value {
+  height: 2.8rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+}
+
+.mc-step-side {
+  margin-left: 1.6rem;
+}
+
+.mc-step-side .mc-square-button {
+  margin-bottom: 0;
+}

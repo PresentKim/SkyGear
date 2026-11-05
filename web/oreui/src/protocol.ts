@@ -4,7 +4,7 @@ export type Text = string // may carry § colour codes and client spans (U+FDD0 
 
 export type ScreenName =
   | 'menu' | 'cards' | 'pick' | 'result' | 'equip' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
-  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory'
+  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory' | 'stepper'
 
 export interface Root {
   screen: ScreenName
@@ -83,9 +83,12 @@ export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: bo
 export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text; bar?: BarButton[]; barTop?: boolean; center?: boolean } // grow: takes the height left and scrolls; bar: buttons outside the right edge, level with the row's bottom (its top with barTop); center: the parts in the middle of the window, the gauges at its left edge
 export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; tools?: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean; height?: number } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go; height: the window's height in GUI pixels (absent: the vanilla inventory's)
 
+export interface StepperItem { label: Text; value: Text; up: BarButton; down: BarButton } // an arrow with id '' is dim
+export interface StepperData { chrome: Chrome; line: Text; steppers: StepperItem[]; side: BarButton[] }
+
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
   search: SearchData; listsplit: ListSplitData; input: InputData; slotmenu: SlotMenuData; choice: ChoiceData
   sides: SidesData; plane: PlaneData; quest: QuestData; home: HomeData; loading: LoadingData
-  console: ConsoleData; probe: ProbeData; inventory: InventoryData
+  console: ConsoleData; probe: ProbeData; inventory: InventoryData; stepper: StepperData
 }
