@@ -139,7 +139,7 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			slots = append(slots, ui.InvSlot{Icon: ui.ItemIcon(pr.Item()), Count: "§e" + i18n.T(lang, "netstore.terminal.craftTag"), Tip: tipOf(pr) + "\n" + i18n.T(lang, "netstore.terminal.craftTip")})
 		}
 		for len(slots) < minNetSlots || len(slots)%9 != 0 {
-			slots = append(slots, ui.InvSlot{})
+			slots = append(slots, ui.InvSlot{Off: true})
 		}
 		netRow.Parts = []ui.InvPart{{Area: "net", Cols: 9, Slots: slots}}
 	}

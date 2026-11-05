@@ -29,6 +29,9 @@ type InvSlot struct {
 	Empty string
 	// Dim draws the item faded (a recipe that cannot be made now).
 	Dim bool
+	// Off draws a slot that is not there (the filler after a list): dark,
+	// and it takes no presses.
+	Off bool
 }
 
 // InvBook is the recipe book panel beside the window's left edge, laid out
@@ -193,6 +196,7 @@ type dInvSlot struct {
 	Rare  int    `json:"rare"`
 	Empty string `json:"empty"`
 	Dim   bool   `json:"dim"`
+	Off   bool   `json:"off"`
 }
 
 type dInvBook struct {
@@ -352,7 +356,7 @@ const bookField = "booksearch"
 
 func invSlotData(id string, sl InvSlot) dInvSlot {
 	tip, rare := slotDeco(sl.Tip)
-	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Empty: oreIcon(sl.Empty), Dim: sl.Dim}
+	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Empty: oreIcon(sl.Empty), Dim: sl.Dim, Off: sl.Off}
 }
 
 // parseSlotRef reads an Area:index slot id.

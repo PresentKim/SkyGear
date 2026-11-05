@@ -32,7 +32,7 @@ function Part(props: { part: InvPart }): JSX.Element {
     rows.push(
       <div key={i} className="oui-box mc-inv-line">
         {part.slots.slice(i, i + cols).map((s) => (
-          <InvSlotView key={s.id} slot={s} big={part.big} off={part.off} />
+          <InvSlotView key={s.id} slot={s} big={part.big} off={part.off || s.off} />
         ))}
       </div>,
     );

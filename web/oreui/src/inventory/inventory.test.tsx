@@ -209,6 +209,15 @@ describe('inventory buttons', () => {
     vi.advanceTimersByTime(50);
     expect(send).toHaveBeenCalledWith('t1', 'click');
   });
+  it('a filler slot is dark and takes no presses', () => {
+    const d = data(null);
+    d.rows[1].parts[0].slots[2] = { ...slot('inv:2'), off: true };
+    const { container } = render(<InventoryScreen data={d} />);
+    const filler = container.querySelectorAll('.mc-inv-part')[1].querySelectorAll('.mc-inv-slot')[2];
+    expect(filler.className).toContain('mc-inv-off');
+    mouse(filler, 'mousedown');
+    expect(send).not.toHaveBeenCalled();
+  });
   it('off slots are dark and take no presses', () => {
     const d = data(null);
     d.rows[0].parts[0].off = true;
