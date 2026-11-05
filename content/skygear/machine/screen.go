@@ -168,7 +168,7 @@ func ShowMachine(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 		All:      ui.Option{Label: i18n.T(lang, "machine.screen.putAll"), Icon: "textures/ui/sg/arrow_up", Run: fill(false)},
 		Matching: ui.Option{Label: i18n.T(lang, "machine.screen.putMatching"), Icon: "textures/ui/store_filter_icon", Run: fill(true)},
 	}
-	machineRow := ui.InvRow{Parts: parts}
+	machineRow := ui.InvRow{Parts: parts, Center: true}
 	if out.Len() > 0 {
 		machineRow.Bar = take.Options()
 	}

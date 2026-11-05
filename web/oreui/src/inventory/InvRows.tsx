@@ -43,6 +43,27 @@ function Part(props: { part: InvPart }): JSX.Element {
   return <div className={part.off ? 'oui-box mc-inv-part off' : 'oui-box mc-inv-part'}>{rows}</div>;
 }
 
+/** CenteredParts keeps the gauges at the row's left edge and sets the other parts in the middle of the row; hidden gauges on the right balance the left ones. */
+function CenteredParts(props: { parts: InvPart[] }): JSX.Element {
+  const gauges = props.parts.filter((p) => p.gauge);
+  const rest = props.parts.filter((p) => !p.gauge);
+  return (
+    <>
+      {gauges.map((p, i) => (
+        <Part key={'g' + i} part={p} />
+      ))}
+      <div className="oui-box mc-inv-center">
+        {rest.map((p, i) => (
+          <Part key={p.area || 'p' + i} part={p} />
+        ))}
+      </div>
+      {gauges.map((_, i) => (
+        <div key={'s' + i} className="oui-box mc-gauge mc-gauge-spacer" />
+      ))}
+    </>
+  );
+}
+
 function Row(props: { row: InvRow; info?: string }): JSX.Element {
   const { row, info } = props;
   const parts = row.parts.filter((p) => p.arrow || p.button || p.gauge || p.progress || p.slots.length > 0);
@@ -52,9 +73,7 @@ function Row(props: { row: InvRow; info?: string }): JSX.Element {
       <Rich text={row.note} className="oui-text mc-body-text mc-inv-note" />
     ) : (
       <div className="oui-box mc-inv-row">
-        {parts.map((p, i) => (
-          <Part key={p.area || 'p' + i} part={p} />
-        ))}
+        {row.center ? <CenteredParts parts={parts} /> : parts.map((p, i) => <Part key={p.area || 'p' + i} part={p} />)}
         {row.grow ? null : bar}
       </div>
     );

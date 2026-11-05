@@ -220,6 +220,17 @@ describe('inventory buttons', () => {
     expect(fill.style.height).toBe('40%');
     expect(container.querySelector('.mc-progress img')).not.toBeNull();
   });
+  it('a centred row keeps its gauge left and balances it with a hidden one', () => {
+    const d = data(null);
+    d.rows[1].center = true;
+    d.rows[1].parts = [{ area: '', cols: 0, slots: [], big: false, arrow: false, button: null, gauge: { kind: 'energy', fill: 0, tip: '' } }, ...d.rows[1].parts];
+    const { container } = render(<InventoryScreen data={d} />);
+    const row = container.querySelectorAll('.mc-inv-row')[1];
+    expect(row.children[0].className).toContain('energy');
+    expect(row.children[1].className).toContain('mc-inv-center');
+    expect(row.children[1].querySelector('.mc-inv-slot')).not.toBeNull();
+    expect(row.children[2].className).toContain('mc-gauge-spacer');
+  });
   it('a filler slot is dark and takes no presses', () => {
     const d = data(null);
     d.rows[1].parts[0].slots[2] = { ...slot('inv:2'), off: true };

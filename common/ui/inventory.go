@@ -118,6 +118,9 @@ type InvRow struct {
 	// BarTop is set.
 	Bar    []Option
 	BarTop bool
+	// Center sets the parts in the middle of the window, as the vanilla
+	// furnace's slots; the gauges stay at the left edge.
+	Center bool
 }
 
 // TransferBar is the buttons that move items between a container row and
@@ -273,6 +276,7 @@ type dInvRow struct {
 	Note    string       `json:"note"`
 	Bar     []dBarButton `json:"bar"`
 	BarTop  bool         `json:"barTop"`
+	Center  bool         `json:"center,omitempty"`
 }
 
 type inventoryData struct {
@@ -337,7 +341,7 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		}
 	}
 	for _, r := range s.Rows {
-		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note, Bar: []dBarButton{}, BarTop: r.BarTop}
+		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note, Bar: []dBarButton{}, BarTop: r.BarTop, Center: r.Center}
 		for _, o := range r.Bar {
 			dr.Bar = append(dr.Bar, button(o))
 		}

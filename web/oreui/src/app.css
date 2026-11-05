@@ -131,6 +131,22 @@
   border-color: #373737 #ffffff #ffffff #373737;
 }
 
+.mc-gauge.mc-gauge-spacer {
+  visibility: hidden;
+}
+
+.mc-inv-center {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-inv-center > .oui-box:last-child {
+  margin-right: 0;
+}
+
 .mc-gauge-fill {
   position: absolute;
   left: 0;
@@ -265,6 +281,8 @@
 
 .mc-inventory .mc-title {
   right: 20.4rem;
+  display: block;
+  padding-top: 0.2rem;
 }
 
 /* The search box sits in the right half of the title row (above the content box), as in the
