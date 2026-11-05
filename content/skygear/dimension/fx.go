@@ -32,7 +32,7 @@ func drawBolt(tx *world.Tx, a, b mgl64.Vec3) {
 // yawOf is the turn (degrees) that lays a picture's right along dir on the
 // ground.
 func yawOf(dir mgl64.Vec3) sparkVar {
-	return sparkVar{"yaw", mgl64.RadToDeg(math.Atan2(dir[2], dir[0]))}
+	return sparkVar{"yaw", mgl64.RadToDeg(math.Atan2(-dir[2], dir[0]))}
 }
 
 // drawFlameRing stands flames round feet at radius.
