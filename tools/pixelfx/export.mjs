@@ -7,10 +7,15 @@
 // through. Shrinking keeps the strongest pixel of each k by k cell and makes
 // every pixel either clear or opaque; pixels fainter than cut are dropped.
 //
+// pixelfx draws every effect from the side. An effect laid flat on the floor
+// in game is drawn from above instead by patching its source (flat: the text
+// replacements) and cut square round its origin, so the origin is the
+// middle of the picture.
+//
 //	node tools/pixelfx/export.mjs <pixelfx checkout> [assets/resourcepack/skygear]
 
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const effects = [
@@ -23,7 +28,10 @@ const effects = [
   { name: "fx_tracer", id: "projectiles/bullet-tracer", from: 0, to: 0.6, fps: 30, k: 2 },
   { name: "fx_blast", id: "explosions/small-explosion", from: 0.1, to: 2.4, fps: 10, k: 3 },
   { name: "fx_blink", id: "arcane/blink-out", from: 0.7, to: 1.45, fps: 20, k: 4, cut: 0.5 },
-  { name: "fx_mend", id: "holy/heal-aoe", from: 0.4, to: 2.4, fps: 10, k: 6 },
+  {
+    name: "fx_mend", id: "holy/heal-aoe", from: 0.3, to: 2.4, fps: 10, k: 5, margin: 110,
+    flat: { "SY = 0.2,": "SY = 1,", "rise: R.range(18, 34)": "rise: 0", "const g = seg(t, SEED, SEED + 0.5);": "const g = 0;" },
+  },
 ];
 
 const [lib, pack = "assets/resourcepack/skygear"] = process.argv.slice(2);
@@ -76,12 +84,37 @@ function shrink(px, w, h, n, k, cut) {
   return { w: ow, h: oh, px: out };
 }
 
+async function load(e) {
+  const dir = join(resolve(lib), "src", "fx");
+  if (!e.flat) return fxlib.loadEffect(e.id, dir);
+  let src = readFileSync(join(dir, `${e.id}.js`), "utf8");
+  for (const [from, to] of Object.entries(e.flat)) {
+    if (!src.includes(from)) throw new Error(`${e.id}: no "${from}" to patch`);
+    src = src.replace(from, to);
+  }
+  const id = join(dirname(e.id), `.${e.name}-flat`);
+  writeFileSync(join(dir, `${id}.js`), src);
+  try {
+    return await fxlib.loadEffect(id, dir);
+  } finally {
+    rmSync(join(dir, `${id}.js`));
+  }
+}
+
+function square(b, ox, oy, w, h) {
+  const half = Math.max(ox - b.x, b.x + b.w - ox, oy - b.y, b.y + b.h - oy);
+  if (ox - half < 0 || oy - half < 0 || ox + half > w || oy + half > h) throw new Error("margin too small for a flat effect");
+  return { x: ox - half, y: oy - half, w: half * 2, h: half * 2 };
+}
+
 for (const e of effects) {
-  const fx = await fxlib.loadEffect(e.id, join(resolve(lib), "src", "fx"));
-  const r = fxlib.renderFrames(fx, { fps: e.fps, options: e.opts });
+  const fx = await load(e);
+  const m = e.margin ?? 0;
+  const r = fxlib.renderFrames(fx, { fps: e.fps, options: e.opts, margin: m });
   const frames = r.frames.filter((f) => f.t >= e.from - 1e-6 && f.t < e.to - 1e-6).map((f) => f.clear);
-  const b = bounds(frames, r.w, e.crop ?? [0, 0, r.w, r.h]);
-  const [ox, oy] = fx.meta.origin;
+  const [ox, oy] = [fx.meta.origin[0] + m, fx.meta.origin[1] + m];
+  const found = bounds(frames, r.w, e.crop ?? [0, 0, r.w, r.h]);
+  const b = e.flat ? square(found, ox, oy, r.w, r.h) : found;
   const s = shrink(strip(frames, r.w, b), b.w, b.h, frames.length, e.k, e.cut ?? 0.3);
   writeFileSync(join(outDir, `${e.name}.png`), encodePNG(s.w, s.h * frames.length, s.px));
   console.log(JSON.stringify({ name: e.name, frame: [s.w, s.h], frames: frames.length, fps: e.fps, origin: [(ox - b.x) / e.k, (oy - b.y) / e.k] }));
