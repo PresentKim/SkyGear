@@ -165,12 +165,8 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
 		return
 	}
-	// Dragonfly places the held item instead of calling Activate when the
-	// player sneaks, so the sneaking click that opens a terminal window
-	// whatever is held is handled here.
-	if p.Sneaking() && !held.Empty() && netstore.IsTerminal(tx.Block(pos)) {
+	if storage.SneakUse(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
-		netstore.ShowTerminal(h.s.Session, p, tx, pos)
 		return
 	}
 	// A player who clicks a conduit's connector plate on the block it touches

@@ -3,14 +3,12 @@ package netstore
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/storagenet"
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -18,8 +16,8 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 )
 
-// The terminal (spec §5): putting items in with a click, and the terminal
-// window (terminalui.go). The controller opens the same window.
+// The terminal (spec §5): a click opens the terminal window (terminalui.go);
+// a click on the controller lists the network (controllerui.go).
 
 // terminalSlots is how many kinds a terminal list shows.
 const terminalSlots = 240
@@ -151,13 +149,7 @@ func depositKinds(n *Network, inv *inventory.Inventory) int64 {
 	return total
 }
 
-type terminalUse struct {
-	Pos cube.Pos
-	at  time.Time
-}
-
 var (
-	lastUse = core.NewPlayers[terminalUse]()
 	// orders are how each player sorts the list.
 	orders = core.NewPlayers[int]()
 	// keptOrders is the list order kept while the player holds a button, a
@@ -166,49 +158,21 @@ var (
 	keptOrders = core.NewPlayers[[]storagenet.Key]()
 )
 
-// ShowTerminal handles a click on a terminal or controller: a sneaking click
-// opens the terminal window (terminalui.go), also while the network is off,
-// any other deposits the held stack, and a second click within 500ms also
-// deposits the inventory kinds the network holds.
-func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
-	lang := i18n.Of(p)
-	n := At(tx, pos)
-	if n == nil {
-		return
-	}
-	if p.Sneaking() {
-		if !s.Debounced(p) {
-			delete(keptOrders.Of(s), p.H())
-			showTerminal(s, p, tx, pos, "")
-		}
-		return
-	}
-	if !n.Online() {
-		p.Message(i18n.T(lang, "netstore.terminal.offline"))
-		return
-	}
-	last := lastUse.Of(s)[p.H()]
-	double := last.Pos == pos && time.Since(last.at) < 500*time.Millisecond
-	lastUse.Of(s)[p.H()] = terminalUse{pos, time.Now()}
-	held, off := p.HeldItems()
-	var total int64
-	if got := netInsert(n, held); got > 0 {
-		p.SetHeldItems(held.Grow(-int(got)), off)
-		total += got
-	}
-	if double {
-		total += depositKinds(n, p.Inventory())
-	}
-	if total > 0 {
-		tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
-	}
-}
-
-// IsTerminal reports whether b opens the terminal window: a terminal or a
-// network controller.
+// IsTerminal reports whether b is a terminal or a network controller, whose
+// network ShowTerminal can open.
 func IsTerminal(b world.Block) bool {
 	m, ok := b.(machine.Machine)
 	return ok && (m.Kind == machine.KindNetTerminal || m.Kind == machine.KindNetController)
+}
+
+// ShowTerminal opens the terminal window of the network at pos
+// (terminalui.go), also while the network is off.
+func ShowTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
+	if At(tx, pos) == nil || s.Debounced(p) {
+		return
+	}
+	delete(keptOrders.Of(s), p.H())
+	showTerminal(s, p, tx, pos, "")
 }
 
 var orderKeys = []string{"storage.order.countDesc", "storage.order.countAsc", "storage.order.nameAsc", "storage.order.nameDesc"}
@@ -231,15 +195,21 @@ func entriesOf(n *Network) []storage.Entry {
 	return out
 }
 
-// The terminal and the controller open the list on a click, and take and give
-// items through Root.
+// A click opens the terminal window on a terminal and the network's node list
+// on a controller; both take and give items through Root.
 func init() {
+	machine.Kinds[machine.KindNetController].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		if !s.Debounced(p) {
+			showController(s, p, tx, pos)
+		}
+		return true
+	}
+	machine.Kinds[machine.KindNetTerminal].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+		ShowTerminal(s, p, tx, pos)
+		return true
+	}
 	for _, kind := range []string{machine.KindNetTerminal, machine.KindNetController} {
 		d := machine.Kinds[kind]
-		d.Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-			ShowTerminal(s, p, tx, pos)
-			return true
-		}
 		d.Insert = func(tx *world.Tx, pos cube.Pos, st item.Stack) int {
 			return int(netInsert(At(tx, pos), st))
 		}

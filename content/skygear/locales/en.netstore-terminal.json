@@ -19,5 +19,13 @@
  "netstore.terminal.bookCan": "Showing what you can craft. Press to show every recipe",
  "netstore.terminal.bookAll": "Showing every recipe. Press to show only what you can craft",
  "netstore.terminal.bookTip": "Click: lay into the grid · Shift: craft a stack · Right-click: craft one",
- "netstore.terminal.bookNone": "§7Nothing to craft from what the network and inventory hold"
+ "netstore.terminal.bookNone": "§7Nothing to craft from what the network and inventory hold",
+ "netstore.controller.on": "§aThe network is on",
+ "netstore.controller.many": "§cThe network is off: it has more than one controller",
+ "netstore.controller.cap": "§cThe network is off: it has more than %d blocks",
+ "netstore.controller.use": "§7Use: §f%d RE/t",
+ "netstore.controller.energy": "§7Energy: §f%d / %d RE",
+ "netstore.controller.unlimited": "§7Energy: §fUnlimited",
+ "netstore.controller.nodes": "§7Connected blocks: §f%d / %d",
+ "netstore.controller.kindUse": "§7%d · %d RE/t"
 }

@@ -1481,9 +1481,9 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		}
 		return true
 	}
-	if m.State.Def.Crafter && p.Sneaking() {
+	if m.State.Def.Crafter {
 		if !s.Debounced(p) {
-			showCrafterRecipes(s, p, tx, pos, m.State, 0)
+			showCrafter(s, p, pos, m.State)
 		}
 		return true
 	}
