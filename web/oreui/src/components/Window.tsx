@@ -49,14 +49,15 @@ export function fitLobbyHead(win: HTMLElement): void {
   }
 }
 
-function TabView(props: { tab: Tab }): JSX.Element {
-  const { tab } = props;
-  const press = usePressable({ id: tab.on ? undefined : tab.id, tip: tab.tip, quick: true });
+function TabView(props: { tab: Tab; named: boolean }): JSX.Element {
+  const { tab, named } = props;
+  const press = usePressable({ id: tab.on ? undefined : tab.id, tip: named ? undefined : tab.tip, quick: true });
   return (
     <div className={'oui-box' + (tab.on ? ' on' : '') + ' mc-tab'} {...press}>
       <div className="oui-box mc-tab-bg" />
       <div className="oui-box mc-tab-front" />
       <Icon icon={tab.icon} />
+      {named ? <Rich text={tab.tip} className="oui-text mc-tab-label" /> : null}
     </div>
   );
 }
@@ -105,8 +106,6 @@ export function ScreenRoot(props: { className: string; children?: ReactNode }): 
   return (
     <InkContext.Provider value="dark">
       <div className={cls}>
-        <div className="oui-box mc-lobby-preload mc-lobby-preload-hover" />
-        <div className="oui-box mc-lobby-preload mc-lobby-preload-pressed" />
         <div className="oui-box mc-lobby-shade" />
         <div className="oui-box mc-lobby-head">
           <Icon icon={lobby.logo} className="mc-lobby-logo" />
@@ -135,7 +134,7 @@ export function Window(props: { chrome: Chrome; className?: string; size?: [numb
           {chrome.tabs.length > 0 && (
             <div className="oui-box mc-tabs">
               {chrome.tabs.map((t) => (
-                <TabView key={t.id} tab={t} />
+                <TabView key={t.id} tab={t} named={!!lobby} />
               ))}
             </div>
           )}
