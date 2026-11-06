@@ -29,8 +29,8 @@ Thanks for your interest. These are the rules the project follows; the full
   the month, and a build number that starts again at 1 each month.
 - `main` moves only by merging `dev` into it. Each merge is a release: raise
   `Version` in `cmd/skygear/version.go`, write what changed since the last
-  release in `change_logs/<version>.md` (first line `# <version> (<date>)`),
-  and tag the merge `v<version>`. A test checks that the newest change log is
+  release in `change_logs/<version>.md` (first line `# <version> (<date>)`,
+  Korean in the polite `~합니다` style), and tag the merge `v<version>`. A test checks that the newest change log is
   `Version`.
 - Pushing a `v<version>` tag runs `.github/workflows/release.yml`: it checks
   that the tag matches `Version`, builds the server for Windows and Linux
