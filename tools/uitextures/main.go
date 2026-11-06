@@ -224,6 +224,7 @@ func main() {
 	write("arrow_right", arrow(0))
 	write("arrow_down", arrow(1))
 	write("arrow_left", arrow(2))
+	write("arrow_up", arrow(3))
 	write("chevron_right", mirror(chevron()))
 
 	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)

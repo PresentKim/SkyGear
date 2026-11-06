@@ -578,6 +578,25 @@ func TestControllerSneakClickOpensNoList(t *testing.T) {
 	})
 }
 
+func TestDrawerSneakMenuOnlyWithoutABlockHeld(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(machinePos, storage.Drawer{Facing: cube.South}, nil)
+		for _, c := range []struct {
+			held item.Stack
+			menu bool
+		}{{item.Stack{}, true}, {item.NewStack(item.Stick{}, 1), true}, {item.NewStack(block.Stone{}, 1), false}} {
+			s.ForgetOpen(p)
+			useBlock(s, tx, p, machinePos, c.held, true)
+			if s.Opened(p) != c.menu {
+				t.Errorf("sneaking with %v: menu %v, want %v", c.held, s.Opened(p), c.menu)
+			}
+		}
+	})
+}
+
 func TestControllerClickInsertsHeldItem(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)

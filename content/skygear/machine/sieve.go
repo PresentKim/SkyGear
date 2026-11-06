@@ -283,7 +283,9 @@ func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st 
 	}
 	if st.Def.autoSieve {
 		// it sifts on its own, a click only opens its window
-		st.OpenWindow(p)
+		if !s.Debounced(p) {
+			ShowMachine(s, p, tx, pos, st)
+		}
 		return
 	}
 	swung := false

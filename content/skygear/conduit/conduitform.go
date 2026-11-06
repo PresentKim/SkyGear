@@ -128,9 +128,7 @@ func ShowSides(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, fo
 	if !ok || b.Item == 0 {
 		return
 	}
-	lang := i18n.Of(p)
-	// what the squares and the plus buttons do is the help button's tooltip
-	ui.SidesMenu(p, i18n.T(lang, fmt.Sprintf("name.ItemConduit.%d", b.Item)), SideBoard(s, p, tx, pos, focus), ui.Help(i18n.T(lang, "conduit.sides.help"), nil))
+	ui.SidesMenu(p, i18n.T(i18n.Of(p), "conduit.sides.title"), SideBoard(s, p, tx, pos, focus))
 }
 
 // SideBoard is the content of showConduitSides for the bundle at pos
@@ -145,7 +143,7 @@ func SideBoard(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, fo
 		return board
 	}
 	lang := i18n.Of(p)
-	board.Center = ui.ItemIcon(ItemConduit{Tier: b.Item})
+	board.Guide = i18n.T(lang, "conduit.sides.help")
 	for side, f := range Faces {
 		v := ui.SideView{Name: i18n.T(lang, "conduitplate.side."+SideName(f))}
 		if nb := tx.Block(pos.Side(f)); nb != (block.Air{}) {

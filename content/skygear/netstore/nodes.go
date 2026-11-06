@@ -13,11 +13,7 @@ import (
 // nodeKinds are the machine kinds that belong to a storage network: each
 // conducts to every side-adjacent node. The pattern encoder is not one; it
 // writes patterns and needs no network.
-var nodeKinds = map[string]bool{
-	machine.KindNetController: true, machine.KindNetCable: true, machine.KindDiskDrive: true,
-	machine.KindNetTerminal: true, machine.KindNetImporter: true, machine.KindNetExporter: true,
-	machine.KindNetExternal: true, machine.KindNetAutocrafter: true,
-}
+var nodeKinds = machine.NetNodes
 
 // IsNode reports whether kind is a storage network node.
 func IsNode(kind string) bool { return nodeKinds[kind] }

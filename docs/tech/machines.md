@@ -2,6 +2,13 @@
 
 기획: [02-skygear.md §11](../design/02-skygear.md). 코드: `content/skygear/machine/machine.go`.
 
+## 창 (Ore UI)
+
+- 기계를 우클릭하면 Ore UI 인벤토리 화면(`machine/screen.go` `ShowMachine`)이 열린다. 레이아웃은 기계 정의(`Def`)만으로 정해진다: 왼쪽에 에너지 게이지(`EnergyCap` 이 있고 쓰거나 만드는 기계, 빨강)와 액체 게이지(`FluidCap`, 파랑), 그 오른쪽에 넣는 칸(`Input`, 9칸이면 3×3)·충전 칸(`Charge`), 진행 화살표나 링(`progressLook`, 표식이 있는 기계), 결과 칸(`Output`, 4칸이면 2×2), 아래에 인벤토리와 핫바다. 결과 줄 오른쪽 아래에 결과 모두 꺼내기, 인벤토리 오른쪽 위에 모두 넣기·있는 것만 넣기(`ui.TransferBar`)가 있다. 기계마다 따로 만든 화면이 없어 레이아웃을 고치면 모든 기계에 한 번에 들어간다.
+- 화면 부품은 공용이다: 게이지 `ui.InvGauge`, 진행 `ui.InvProgress`(그림은 `progress_*`·`cycle_*` 아이템 텍스처), 버튼 줄 `InvRow.Bar`·`InventoryScreen.Tools`. 페이지는 `web/oreui/src/inventory/Gauge.tsx`, `ButtonColumn.tsx` 다.
+- 열린 동안 기계 틱이 5틱마다 화면에 보이는 것(진행 10% 단위, 에너지·액체 5% 단위, 칸 변경, 막힘)이 바뀌었는지 보고 다시 그린다(`watchMachine`). 다른 화면으로 바뀌었으면 그리지 않는다(`ui.ShowingKey`).
+- 아래의 상자 UI 레이아웃(`§d§m§<n>`, 진행·게이지 아이템)은 `/sgdebug` 의 창 미리보기(`previewWindow`)에만 남아 있다.
+
 ## 구조
 
 - 블록 타입 `Machine{Kind}` 하나가 종류(`crusher`, `sieve`, `auto_sieve`, `auto_miner`, `harvester`, `alloy_smelter` …)마다 따로 등록된다.

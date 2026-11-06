@@ -11,11 +11,13 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/invclick"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -140,44 +142,95 @@ func comparePos(a, b cube.Pos) int {
 	return cmp.Or(cmp.Compare(a.X(), b.X()), cmp.Compare(a.Y(), b.Y()), cmp.Compare(a.Z(), b.Z()))
 }
 
-// ShowCollector lets p pick the monster the collector at pos receives: the
-// cleared ones, with their essences a minute.
+// collectorOut is the collector's four output slots, which take nothing in.
+type collectorOut struct{ st *machine.State }
+
+func (o collectorOut) Len() int { return len(o.st.Def.Output) }
+func (o collectorOut) Item(i int) item.Stack {
+	st, _ := o.st.Inv().Item(o.st.Def.Output[i])
+	return st
+}
+func (o collectorOut) Set(i int, st item.Stack)     { _ = o.st.Inv().SetItem(o.st.Def.Output[i], st) }
+func (collectorOut) Accepts(int, item.Stack) bool { return false }
+
+// ShowCollector is the collector's window: the cleared monsters to pick the
+// one it receives (with their essences a minute), its output slots and the
+// player's inventory.
 func ShowCollector(s *core.Session, p *player.Player, pos cube.Pos) {
 	lang := i18n.Of(p)
 	st, ok := collectorAt(p.Tx(), pos)
 	if !ok {
 		return
 	}
-	var opts []ui.Option
+	var mobs []string
+	var mobSlots []ui.InvSlot
 	for _, h := range Hunts {
 		per := PerMinute(s, h.Mob)
 		if per == 0 {
 			continue
 		}
-		label := fmt.Sprintf(i18n.T(lang, "dimension.collector.row"), MobName(lang, h.Mob), per)
+		sl := ui.InvSlot{Icon: formicon.Of(item.NewStack(sgitem.Essence{Mob: h.Mob}, 1)), Tip: fmt.Sprintf(i18n.T(lang, "dimension.collector.row"), MobName(lang, h.Mob), per)}
 		if st.Mob == h.Mob {
-			label = "§a" + label
+			sl.Count, sl.Tip = "§a✔", "§a"+sl.Tip
 		}
-		opts = append(opts, s.Opt(label, formicon.Of(item.NewStack(sgitem.Essence{Mob: h.Mob}, 1)), func(p *player.Player, tx *world.Tx) {
-			if st, ok := collectorAt(tx, pos); ok {
-				st.SetMob(h.Mob)
+		mobs = append(mobs, h.Mob)
+		mobSlots = append(mobSlots, sl)
+	}
+	tipOf := func(it item.Stack) string {
+		if it.Empty() {
+			return ""
+		}
+		return naming.ItemName(lang, it)
+	}
+	out := collectorOut{st}
+	main, hot := invclick.Main(p.Inventory()), invclick.Hotbar(p.Inventory())
+	slotsOf := func(a invclick.Area) []ui.InvSlot {
+		sl := make([]ui.InvSlot, a.Len())
+		for i := range sl {
+			sl[i] = ui.StackSlot(a.Item(i), tipOf(a.Item(i)))
+		}
+		return sl
+	}
+	mobRow := ui.InvRow{Heading: i18n.T(lang, "dimension.collector.mobs"), Parts: []ui.InvPart{{Area: "mob", Cols: 9, Slots: mobSlots}}}
+	if len(mobSlots) == 0 {
+		mobRow.Note = i18n.T(lang, "dimension.collector.none")
+	}
+	again := func(p *player.Player, tx *world.Tx) { ShowCollector(s, p, pos) }
+	ui.ShowInventory(p, ui.InventoryScreen{
+		Title: i18n.T(lang, "machine.collector.name"),
+		Info:  i18n.T(lang, "dimension.collector.body"),
+		Rows: []ui.InvRow{
+			mobRow,
+			{Heading: i18n.T(lang, "dimension.collector.output"), Parts: []ui.InvPart{{Area: "out", Cols: 4, Slots: slotsOf(out)}}},
+			{Heading: i18n.T(lang, "dimension.collector.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: slotsOf(main)}}},
+			{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: slotsOf(hot)}}},
+		},
+		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
+			cur, ok := collectorAt(tx, pos)
+			if !ok || cur != st || tx.World() != s.World {
+				return
 			}
-		}))
-	}
-	body := i18n.T(lang, "dimension.collector.body")
-	if len(opts) == 0 {
-		body = i18n.T(lang, "dimension.collector.none")
-	}
-	ui.Menu(p, i18n.T(lang, "machine.collector.name"), body, opts...)
+			areas := map[string]invclick.Area{"out": out, "inv": main, "hotbar": hot}
+			switch area, ok := areas[a.Area]; {
+			case a.Area == "mob" && a.Index < len(mobs):
+				st.SetMob(mobs[a.Index])
+			case !ok || a.Index >= area.Len():
+			case a.Shift && a.Area == "out":
+				area.Set(a.Index, invclick.Move(area.Item(a.Index), hot, main))
+			case a.Shift:
+			default:
+				ui.SetCarried(p, invclick.Click(area, a.Index, a.Carried, a.Right))
+			}
+			again(p, tx)
+		},
+		Again: again,
+		Size:  "collector",
+	})
 }
 
-// The collector's sneaking click picks its monster; a plain click opens its
-// window.
+// A click opens the collector's window.
 func init() {
 	machine.Kinds[machine.KindCollector].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-		if !p.Sneaking() {
-			return false
-		}
 		if !s.Debounced(p) {
 			ShowCollector(s, p, pos)
 		}

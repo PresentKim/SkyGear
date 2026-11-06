@@ -233,9 +233,7 @@ func (c debugTerminal) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		o.Errorf("%s", i18n.T(i18n.Default, "skygear.admin.lookingAtNone"))
 		return
 	}
-	p.StartSneaking()
 	netstore.ShowTerminal(s.Session, p, tx, at)
-	p.StopSneaking()
 }
 
 // debugNet builds an always powered network filled with count kinds of
@@ -263,9 +261,7 @@ func (c debugNet) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			return
 		}
 	}
-	p.StartSneaking()
 	netstore.ShowTerminal(s.Session, p, tx, term)
-	p.StopSneaking()
 }
 
 type debugStatus struct {

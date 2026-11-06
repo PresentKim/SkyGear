@@ -33,6 +33,66 @@ func (Disk) Category() category.Category { return category.Items() }
 
 func (Disk) MaxCount() int { return 1 }
 
+// Upgrade is an upgrade of an importer or exporter, as Refined Storage 2's
+// (AbstractModInitializer.registerUpgradeMappings at d33a173017): up to
+// four speed upgrades, each taking 2 ticks off the 9 between operations,
+// and one stack upgrade, which moves a stack an operation instead of one.
+type Upgrade struct{ Stack bool }
+
+func (u Upgrade) EncodeItem() (string, int16) {
+	if u.Stack {
+		return "skygear:stack_upgrade", 0
+	}
+	return "skygear:speed_upgrade", 0
+}
+
+func (u Upgrade) Name() string {
+	if u.Stack {
+		return i18n.T(i18n.Default, "name.NetStackUpgrade")
+	}
+	return i18n.T(i18n.Default, "name.NetSpeedUpgrade")
+}
+
+func (Upgrade) Category() category.Category { return category.Items() }
+
+const (
+	maxSpeedUpgrades = 4
+	maxStackUpgrades = 1
+)
+
+// upgradesOf counts the speed and stack upgrades in an importer's or
+// exporter's slots.
+func upgradesOf(st *machine.State) (speed, stack int) {
+	if st == nil {
+		return 0, 0
+	}
+	for _, s := range st.Def.Input {
+		it, _ := st.Inv().Item(s)
+		if u, ok := it.Item().(Upgrade); ok {
+			if u.Stack {
+				stack++
+			} else {
+				speed++
+			}
+		}
+	}
+	return min(speed, maxSpeedUpgrades), min(stack, maxStackUpgrades)
+}
+
+// upgradeFits reports whether one more upgrade like it goes into an importer
+// or exporter holding st.
+func upgradeFits(st *machine.State, it item.Stack) bool {
+	u, ok := it.Item().(Upgrade)
+	if !ok {
+		return false
+	}
+	speed, stack := upgradesOf(st)
+	if u.Stack {
+		return stack < maxStackUpgrades
+	}
+	return speed < maxSpeedUpgrades
+}
+
 // Pattern is a crafting pattern, empty until the pattern encoder writes a
 // recipe on it (pattern.go).
 type Pattern struct{}
@@ -64,6 +124,14 @@ func init() {
 		world.RegisterItem(Disk{Tier: t})
 	}
 	world.RegisterItem(Pattern{})
+	world.RegisterItem(Upgrade{})
+	world.RegisterItem(Upgrade{Stack: true})
+	for _, k := range []string{machine.KindNetImporter, machine.KindNetExporter} {
+		machine.Kinds[k].Accepts = func(_ int, st item.Stack) bool {
+			_, ok := st.Item().(Upgrade)
+			return ok
+		}
+	}
 	machine.Kinds[machine.KindDiskDrive].Accepts = func(_ int, st item.Stack) bool {
 		_, ok := st.Item().(Disk)
 		return ok

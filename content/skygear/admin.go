@@ -115,6 +115,8 @@ func giveItems() map[string]func() item.Stack {
 		out["storage_disk_"+n] = func() item.Stack { return item.NewStack(netstore.Disk{Tier: t}, 1) }
 	}
 	out["pattern"] = func() item.Stack { return item.NewStack(netstore.Pattern{}, 1) }
+	out["speed_upgrade"] = func() item.Stack { return item.NewStack(netstore.Upgrade{}, 1) }
+	out["stack_upgrade"] = func() item.Stack { return item.NewStack(netstore.Upgrade{Stack: true}, 1) }
 	out["mycelium_spores"] = func() item.Stack { return item.NewStack(sgitem.MyceliumSpores{}, 1) }
 	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(sgitem.WitchWaterBucket{}, 1) }
 	for _, k := range sgitem.CrushedKinds {

@@ -24,6 +24,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/migrate"
 	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -220,7 +221,7 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.FxDemoType, dimension.GemType, dimension.PopupType), dimension.MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.FxDemoType, dimension.GemType, dimension.PopupType, machine.RangeBoxType),dimension.MonsterTypes()...)
 }
 
 // MenuBack shows the game screen a platform screen opened in the save goes

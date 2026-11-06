@@ -59,7 +59,7 @@ func TestEndToEnd(t *testing.T) {
 		// importer: a chest of stone and dirt goes into the disk
 		fill(tx, p(imp), stoneS.Grow(19)) // 20 stone
 		fill(tx, p(imp), dirtS.Grow(4))   // 5 dirt
-		for range 120 {
+		for range 50 * ioRate {
 			tick()
 		}
 		if held(tx, p(imp), stoneS) != 0 || held(tx, p(imp), dirtS) != 0 {

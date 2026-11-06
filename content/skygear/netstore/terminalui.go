@@ -87,6 +87,12 @@ func openTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		t.n = n
 		lang := i18n.Of(p)
 		t.list, t.keys, t.found = terminalList(n, lang, t.query, orders.Of(s)[p.H()])
+		if kept, ok := keptOrders.Of(s)[p.H()]; ok {
+			if kept != nil {
+				t.list, t.keys = keepOrder(n, kept, t.list)
+			}
+			keptOrders.Of(s)[p.H()] = t.keys
+		}
 		if CraftableHook != nil && RequestHook != nil {
 			for _, k := range CraftableHook(n) {
 				pr := Proto(n.Sess, k)
@@ -118,7 +124,7 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 
 	netRow := ui.InvRow{Grow: true}
 	if t.n == nil {
-		netRow.Note = i18n.T(lang, "netstore.terminal.offline")
+		netRow.Parts = []ui.InvPart{{Area: "net", Cols: 9, Slots: make([]ui.InvSlot, minNetSlots), Off: true}}
 	} else {
 		var slots []ui.InvSlot
 		for _, e := range t.list {
@@ -133,7 +139,7 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 			slots = append(slots, ui.InvSlot{Icon: ui.ItemIcon(pr.Item()), Count: "§e" + i18n.T(lang, "netstore.terminal.craftTag"), Tip: tipOf(pr) + "\n" + i18n.T(lang, "netstore.terminal.craftTip")})
 		}
 		for len(slots) < minNetSlots || len(slots)%9 != 0 {
-			slots = append(slots, ui.InvSlot{})
+			slots = append(slots, ui.InvSlot{Off: true})
 		}
 		netRow.Parts = []ui.InvPart{{Area: "net", Cols: 9, Slots: slots}}
 	}
@@ -156,16 +162,19 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		}}
 		rows = append(rows, ui.InvRow{Parts: []ui.InvPart{
 			{Area: "craft", Cols: 3, Slots: grid},
+			{Button: &clear},
 			{Arrow: true},
 			{Area: "result", Cols: 1, Big: true, Slots: []ui.InvSlot{result}},
-			{Button: &clear},
 		}})
 	}
 	main, hot := invclick.Main(inv), invclick.Hotbar(inv)
-	rows = append(rows,
-		ui.InvRow{Heading: i18n.T(lang, "netstore.terminal.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: areaSlots(main, tipOf)}}},
-		ui.InvRow{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: areaSlots(hot, tipOf)}}},
-	)
+	again := func(p *player.Player, tx *world.Tx) { showTerminal(s, p, tx, pos, query) }
+	if t.n != nil {
+		rows[0].Bar = netTakeBar(s, pos, lang, query, again).Options()
+	}
+	invRow := ui.InvRow{Heading: i18n.T(lang, "netstore.terminal.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: areaSlots(main, tipOf)}}, BarTop: true}
+	invRow.Bar = netPutBar(pos, lang, t.n != nil, again).Options()
+	rows = append(rows, invRow, ui.InvRow{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: areaSlots(hot, tipOf)}}})
 
 	info := ""
 	if t.n != nil {
@@ -173,7 +182,6 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		t.n.Root.Each(func(_ storagenet.Key, c int64) { items += c })
 		info = terminalInfo(lang, len(entriesOf(t.n)), items, t.query, t.found)
 	}
-	again := func(p *player.Player, tx *world.Tx) { showTerminal(s, p, tx, pos, query) }
 	var book *ui.InvBook
 	if t.grid != nil {
 		book = bookPanel(s, p, t.book, again)
@@ -184,7 +192,8 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		Search: &ui.InvSearch{Query: query, Placeholder: i18n.T(lang, "storage.search.label"), Change: func(p *player.Player, tx *world.Tx, q string) { showTerminal(s, p, tx, pos, q) }},
 		Info:   info,
 		Rows:   rows,
-		Side:   terminalSide(s, p, tx, pos, lang, again),
+		Tools:  terminalTools(s, p, tx, pos, lang, again),
+		Side:   terminalSide(s, pos, lang),
 		Quick:  i18n.T(lang, "netstore.terminal.quick"),
 		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
 			if openTerminal(s, p, tx, pos, query).slot(p, a) {
@@ -194,6 +203,16 @@ func showTerminal(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		Drag: func(p *player.Player, tx *world.Tx, d ui.DragAct) {
 			openTerminal(s, p, tx, pos, query).drag(p, d)
 			again(p, tx)
+		},
+		Hold: func(p *player.Player, tx *world.Tx, on bool) {
+			_, was := keptOrders.Of(s)[p.H()]
+			switch {
+			case on && !was:
+				keptOrders.Of(s)[p.H()] = nil
+			case !on && was:
+				delete(keptOrders.Of(s), p.H())
+				again(p, tx)
+			}
 		},
 		Again: again,
 		Size:  "terminal",
@@ -209,16 +228,28 @@ func areaSlots(a invclick.Area, tipOf func(item.Stack) string) []ui.InvSlot {
 	return out
 }
 
-func terminalSide(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, lang string, again func(p *player.Player, tx *world.Tx)) []ui.Option {
-	side := []ui.Option{
-		{Label: i18n.T(lang, orderKeys[orders.Of(s)[p.H()]]), Icon: "textures/ui/store_filter_icon", Run: func(p *player.Player, tx *world.Tx) {
-			orders.Of(s)[p.H()] = (orders.Of(s)[p.H()] + 1) % len(orderKeys)
+// terminalTools are the buttons left of the terminal window, as Refined
+// Storage's grid: the sort direction, the sort kind and the crafting grid.
+// The orders (orderKeys) are count high to low, count low to high, name
+// A to Z and name Z to A.
+func terminalTools(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, lang string, again func(p *player.Player, tx *world.Tx)) []ui.Option {
+	o := orders.Of(s)[p.H()]
+	desc := o == 0 || o == 3
+	dirKey, dirIcon := "netstore.terminal.sortAsc", "textures/ui/sg/arrow_up"
+	if desc {
+		dirKey, dirIcon = "netstore.terminal.sortDesc", "textures/ui/sg/arrow_down"
+	}
+	kindKey, kindIcon := "netstore.terminal.sortCount", "textures/ui/sg/menu_stats"
+	if o >= 2 {
+		kindKey, kindIcon = "netstore.terminal.sortName", "textures/ui/sg/menu_codex"
+	}
+	tools := []ui.Option{
+		{Label: i18n.T(lang, dirKey), Icon: dirIcon, Run: func(p *player.Player, tx *world.Tx) {
+			orders.Of(s)[p.H()] = [4]int{1, 0, 3, 2}[orders.Of(s)[p.H()]]
 			again(p, tx)
 		}},
-		{Label: i18n.T(lang, "storage.depositAll"), Icon: "textures/ui/sg/arrow_down", Run: func(p *player.Player, tx *world.Tx) {
-			if n := At(tx, pos); n != nil && n.Online() && depositKinds(n, p.Inventory()) > 0 {
-				tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
-			}
+		{Label: i18n.T(lang, kindKey), Icon: kindIcon, Run: func(p *player.Player, tx *world.Tx) {
+			orders.Of(s)[p.H()] = [4]int{3, 2, 1, 0}[orders.Of(s)[p.H()]]
 			again(p, tx)
 		}},
 	}
@@ -227,19 +258,65 @@ func terminalSide(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos,
 		if craftShown.Of(s)[p.H()] {
 			key = "netstore.terminal.craftHide"
 		}
-		side = append(side, ui.Option{Label: i18n.T(lang, key), Icon: ui.ItemIcon(block.CraftingTable{}), Run: func(p *player.Player, tx *world.Tx) {
+		tools = append(tools, ui.Option{Label: i18n.T(lang, key), Icon: ui.ItemIcon(block.CraftingTable{}), Run: func(p *player.Player, tx *world.Tx) {
 			craftShown.Of(s)[p.H()] = !craftShown.Of(s)[p.H()]
 			again(p, tx)
 		}})
 	}
-	if MonitorHook != nil {
-		side = append(side, ui.Option{Label: i18n.T(lang, "netstore.terminal.monitor"), Icon: "textures/ui/sg/menu_stats", Run: func(p *player.Player, tx *world.Tx) {
-			if n := At(tx, pos); n != nil {
-				MonitorHook(s, p, n)
-			}
-		}})
+	return tools
+}
+
+// terminalSide is the column right of the window: the crafting jobs.
+func terminalSide(s *core.Session, pos cube.Pos, lang string) []ui.Option {
+	if MonitorHook == nil {
+		return nil
 	}
-	return side
+	return []ui.Option{{Label: i18n.T(lang, "netstore.terminal.monitor"), Icon: "textures/ui/sg/menu_stats", Run: func(p *player.Player, tx *world.Tx) {
+		if n := At(tx, pos); n != nil {
+			MonitorHook(s, p, n)
+		}
+	}}}
+}
+
+// netTakeBar is the network list's transfer bar: take stacks of the list,
+// in its order, until the inventory is full; top up the kinds the
+// inventory holds. The list sorts itself, so it has no sort button.
+func netTakeBar(s *core.Session, pos cube.Pos, lang, query string, again func(p *player.Player, tx *world.Tx)) ui.TransferBar {
+	run := func(take func(n *Network, inv *inventory.Inventory, list []storage.Entry) int) func(p *player.Player, tx *world.Tx) {
+		return func(p *player.Player, tx *world.Tx) {
+			if t := openTerminal(s, p, tx, pos, query); t.n != nil && take(t.n, p.Inventory(), t.list) > 0 {
+				tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+			}
+			again(p, tx)
+		}
+	}
+	return ui.TransferBar{
+		All:      ui.Option{Label: i18n.T(lang, "netstore.terminal.takeAll"), Icon: "textures/ui/sg/arrow_down", Run: run(takeAll)},
+		Matching: ui.Option{Label: i18n.T(lang, "netstore.terminal.takeMatching"), Icon: "textures/ui/store_filter_icon", Run: run(takeMatching)},
+	}
+}
+
+// netPutBar is the inventory's transfer bar: put the inventory (not the
+// hotbar) into the network, put the kinds the network holds, sort the
+// inventory. The put buttons need a network that is on.
+func netPutBar(pos cube.Pos, lang string, online bool, again func(p *player.Player, tx *world.Tx)) ui.TransferBar {
+	put := func(f func(n *Network, inv *inventory.Inventory) int64) func(p *player.Player, tx *world.Tx) {
+		return func(p *player.Player, tx *world.Tx) {
+			if n := At(tx, pos); n != nil && n.Online() && f(n, p.Inventory()) > 0 {
+				tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
+			}
+			again(p, tx)
+		}
+	}
+	bar := ui.TransferBar{Sort: ui.Option{Label: i18n.T(lang, "netstore.terminal.sortInventory"), Icon: "textures/ui/sg/menu_codex", Run: func(p *player.Player, tx *world.Tx) {
+		sortMain(p.Inventory())
+		again(p, tx)
+	}}}
+	if online {
+		bar.All = ui.Option{Label: i18n.T(lang, "netstore.terminal.putAll"), Icon: "textures/ui/sg/arrow_up", Run: put(putMain)}
+		bar.Matching = ui.Option{Label: i18n.T(lang, "netstore.terminal.putMatching"), Icon: "textures/ui/store_filter_icon", Run: put(depositKinds)}
+	}
+	return bar
 }
 
 func (t terminal) area(p *player.Player, name string) (invclick.Area, bool) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { BarButton, InventoryData } from '../protocol';
+import type { BarButton, InventoryData, InvSlot } from '../protocol';
 import { usePressable } from '../interact/press';
 import { hideTip, showTip } from '../interact/Tooltip';
 import { Rich } from '../text/Rich';
@@ -10,11 +10,12 @@ import { InvRows } from '../inventory/InvRows';
 import { CursorStack } from '../inventory/Cursor';
 import { RecipeBook } from '../inventory/RecipeBook';
 import { useGestureRedraw } from '../inventory/InvSlot';
+import { ButtonColumn } from '../inventory/ButtonColumn';
 import * as gesture from '../inventory/gesture';
 
 // The inventory window is nine slots wide and about as tall as the vanilla double chest, capped so
 // the control bar above it stays on screen; the grow row takes what the other rows leave.
-const INV_W = 190;
+const INV_W = 182;
 const INV_H = 240;
 
 function SideButton(props: { button: BarButton }): JSX.Element {
@@ -52,12 +53,39 @@ function TouchTip(): JSX.Element | null {
   return tip ? <Rich text={tip.split('\n')[0]} className="oui-text mc-inv-touch-tip" /> : null;
 }
 
+// HeldCursor is the cursor stack; a drag that has placed all of it keeps it held at 0 until the
+// button or finger is let go, as the vanilla inventory does.
+function HeldCursor(props: { slot: InvSlot | null }): JSX.Element {
+  useGestureRedraw();
+  const last = useRef<InvSlot | null>(null);
+  if (props.slot) last.current = props.slot;
+  const ghost = !props.slot && gesture.splitHeld() && last.current ? { ...last.current, count: '0' } : null;
+  return <CursorStack slot={props.slot || ghost} />;
+}
+
+const isShift = (ev: KeyboardEvent) => ev.key === 'Shift' || ev.keyCode === 16;
+
 /** InventoryScreen draws an inventory screen: the search box, the rows, the side buttons and the cursor stack. */
 export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
   const { data } = props;
   gesture.setCarrying(!!data.cursor);
+  gesture.setReportHold(!!data.hold);
   const typed = useRef(data.query);
   useEffect(() => () => gesture.reset(), []);
+  useEffect(() => {
+    const down = (ev: KeyboardEvent) => {
+      if (isShift(ev)) gesture.setShift(true);
+    };
+    const up = (ev: KeyboardEvent) => {
+      if (isShift(ev)) gesture.setShift(false);
+    };
+    document.addEventListener('keydown', down);
+    document.addEventListener('keyup', up);
+    return () => {
+      document.removeEventListener('keydown', down);
+      document.removeEventListener('keyup', up);
+    };
+  }, []);
   // Gameface hit-tests no empty transparent element, so presses outside the window are found on the
   // document: every press whose target is not inside the window (its side column and book included).
   useEffect(() => {
@@ -76,7 +104,11 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
     };
   }, []);
   return (
-    <Window chrome={data.chrome} className={data.book ? 'mc-inventory mc-with-book' : 'mc-inventory'} size={[INV_W, INV_H]}>
+    <Window
+      chrome={data.chrome}
+      className={'mc-inventory' + (data.book ? ' mc-with-book' : '') + (data.tools && data.tools.length > 0 ? ' mc-with-tools' : '')}
+      size={[INV_W, data.height || INV_H]}
+    >
       <div className="oui-box mc-inv-side">
         {data.side.map((b) => (
           <SideButton key={b.id} button={b} />
@@ -85,14 +117,15 @@ export function InventoryScreen(props: { data: InventoryData }): JSX.Element {
       </div>
       {data.field ? (
         <div className="oui-box mc-search mc-inv-search">
-          <Icon icon="tex:textures/ui/magnifyingGlass" />
+          <Icon icon="tex:textures/ui/magnifying_glass" />
           <Field id={data.field} value={typed.current} placeholder={data.placeholder} delay={250} />
         </div>
       ) : null}
       <TouchTip />
+      <ButtonColumn buttons={data.tools || []} place="tools" />
       <InvRows rows={data.rows} info={data.info} />
       {data.book ? <RecipeBook book={data.book} /> : null}
-      <CursorStack slot={data.cursor} />
+      <HeldCursor slot={data.cursor} />
     </Window>
   );
 }

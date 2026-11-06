@@ -167,6 +167,27 @@ func TestAutoMinerKeepsItsOutput(t *testing.T) {
 	})
 }
 
+func TestAutoMinerMinesTheBlockItFaces(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	west, below := machinePos.Side(cube.FaceWest), machinePos.Side(cube.FaceDown)
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(west, block.Stone{}, nil)
+		tx.SetBlock(below, block.Stone{}, nil)
+	})
+	st := placeTestMachine(s, machinePos, machine.KindMiner, "")
+	st.Facing = cube.FaceWest
+	tick(s, machine.Kinds[machine.KindMiner].Interval+10)
+	s.World.Do(func(tx *world.Tx) {
+		if _, air := tx.Block(west).(block.Air); !air {
+			t.Errorf("the faced stone was not mined: %v", tx.Block(west))
+		}
+		if _, stone := tx.Block(below).(block.Stone); !stone {
+			t.Errorf("the stone below was mined: %v", tx.Block(below))
+		}
+	})
+}
+
 func TestMachineWindowAndNBT(t *testing.T) {
 	m := machine.New(machine.KindCrusher, "a", "A")
 	st := m.State

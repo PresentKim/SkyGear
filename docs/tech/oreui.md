@@ -32,11 +32,12 @@
     - 창 밖 누름: 든 묶음을 발밑에 떨어뜨린다(오른쪽은 하나, `DropCarried`).
   - 화면은 줄(`ui.InvRow`)마다 칸 묶음(`ui.InvPart`: 영역 이름·열 수·칸), 화살표, 작은 버튼을 놓고, `Grow` 줄이 남는 높이를 채워 스크롤된다. 창 왼쪽 바깥에 바닐라 모양의 레시피 책(`ui.InvBook`: 위쪽 탭 `ui.InvTab`, 끝 탭은 `End` 로 오른쪽 끝, 연 탭 이름이나 검색 탭의 입력칸 `Search`, 필터 스위치, 영역 `book` 의 6열 칸, 만들 수 없는 칸 `Dim` 은 빨간 칸)을, 오른쪽 바깥에 세로 버튼 줄을 둘 수 있다. 책이 있으면 창과 책을 함께 가운데에 놓는다. 검색칸은 제목 줄 오른쪽에, `Info` 는 `Grow` 줄 아래 첫 제목 오른쪽에 그린다. Gameface 는 자라는 상자의 `min-height` 를 받을 높이에서 빼므로 `Grow` 줄에는 `min-height` 를 두지 않는다. 칸 id 는 `영역:번호` 이고, 누름은 `SlotAct`(왼쪽·오른쪽, 쉬프트, 두 번 클릭, 끌기 시작 `Split`), 끌기는 닿은 칸이 늘 때마다 `DragAct` 로, 창 밖 누름은 `drop` 으로 온다. 게임은 칸을 바꾸고 화면을 다시 보낸다.
   - 커서 아이템은 서버가 플레이어마다 들고(`ui.Carried`, `ui.SetCarried`) 화면 데이터의 `cursor` 로 보낸다. 인벤토리 화면이 닫히거나 다른 화면이 열리거나 인스턴스를 떠나면 인벤토리로 돌아가고(`ui.ReturnCarried`), 자리가 없으면 발밑에 떨어진다.
+  - 버튼 줄: `InventoryScreen.Tools` 는 창 왼쪽 바깥 위의 사각 버튼 줄(Refined Storage 그리드의 옆 버튼), `InvRow.Bar` 는 그 줄 옆 창 오른쪽 바깥의 버튼 줄로, 줄의 아래끝에(`BarTop` 이면 위끝에) 맞춘다. `ui.TransferBar`(모두·있는 것만·정렬)가 컨테이너 줄과 인벤토리 줄의 버튼을 만든다. 페이지는 `src/inventory/ButtonColumn.tsx` 하나로 둘 다 그린다. `InvPart.Off` 는 내용이 없는 칸(전원 없는 망)을 어둡게 그리고 누름을 받지 않는다.
   - 페이지: `src/inventory/` 의 `InvSlotView`(칸), `InvRows`(줄), `RecipeBook`(레시피 책), `CursorStack`(포인터 옆의 커서 아이템), `gesture.ts`(입력). 마우스는 모든 누름이 누를 때 바로 가고, 아이템을 든 누름 뒤 놓기 전까지 닿은 칸이 끌기가 된다. 창(`.mc-window`) 밖을 누르면 창 밖 누름이다. Gameface 는 비어 있는 투명한 요소에 누름을 주지 않으므로 문서(`document`)의 `mousedown`·`touchstart` 에서 대상이 창 안인지 본다. 터치는 탭이 왼쪽 클릭, 400ms 길게 누르기가 오른쪽 클릭(빈 커서면 손가락을 떼기 전에), 아이템을 든 채 손가락을 끌면 끌기(길게 누른 뒤면 하나씩)이고, 빈 커서로 끌면 스크롤만 한다. 탭 뒤 700ms 안의 `mousedown` 은 같은 탭으로 보고 무시한다. 창 오른쪽 바깥 세로 버튼 줄의 빠른 이동 스위치(`InventoryScreen.Quick`)를 켜면 모든 클릭이 쉬프트 클릭이다. 터치 화면에는 칸 툴팁이 없어 마지막으로 닿은 칸의 이름을 창 위쪽 줄에 쓴다.
   - 쓰는 곳: 스토리지 망 단말([storagenet.md](storagenet.md)).
 - 화면은 키보드 키를 받을 수 있다(`ui.Key`, 루트의 `keys`). `keys`(`{up, down, left, right, ok: id}`)가 방향키·WASD, Enter·스페이스바를 그 id 의 누름으로 보낸다(`src/interact/keys.ts`, 같은 키는 120ms 에 한 번까지, 입력칸에 글을 칠 때는 받지 않는다). 섬 확장 화면(`ui.Plane.Keys`)이 청크 이동과 구매에 쓴다.
 - 화면이 받지 않는 방향키·WASD 는 키보드 선택을 옮긴다. 누를 수 있는 요소(버튼, 칸, 탭, 컨트롤 막대 버튼) 가운데 그 방향으로 가장 가까운 것이 마우스를 올린 것처럼 보이고(`oui-kb`, 툴팁도 뜬다), Enter·스페이스바가 그것을 누른다. 처음 누른 방향키는 왼쪽 위의 요소를 고르고, 스크롤 판 안의 요소는 보이게 스크롤한다. 누른 뒤 화면이 바뀌어 고른 요소가 없어지면 그 자리에서 가장 가까운 요소가 골라진다. 마우스를 움직이면 선택이 사라진다.
-- 아이템 도관 설정은 가운데 블록과 여섯 면의 카드를 선으로 이은 화면이다(`ui.SidesMenu`, `conduitform.go` `showConduitSides`). 카드 자리는 서버가 정하고(`sideCard`), 채널은 아이템이 아닌 색 네모(`PortChoice.Colour`)로 그린다. 색 네모를 우클릭하면 이전 값이 된다(`alt`).
+- 아이템 도관 설정은 여섯 면의 카드를 세 장씩 두 줄로 놓고 그 아래에 안내 줄(`SideBoard.Guide`)을 둔 화면이다(`ui.SidesMenu`, `conduitform.go` `showConduitSides`). 카드 순서는 서버가 정하고(`sideOrder`: 서·위·동, 북·아래·남), 채널은 아이템이 아닌 색 칸(`PortChoice.Colour`)으로 그린다. 색 네모를 우클릭하면 이전 값이 된다(`alt`).
 - 발전과제는 ATM10 To The Sky의 FTB Quests 퀘스트 책처럼 그린다(`ui.QuestBookMenu`, `advancementui.go` `showQuestBook`). 왼쪽은 챕터 목록(달성 수), 오른쪽은 끌어서 움직이는 어두운 판 위의 노드와 선행마다 오는 꺾은선(열 사이 틈에서 꺾여 노드 위를 지나지 않는다)이다. 노드 자리는 서버가 정하고(`advancement.LayoutOf`: 부모 다음 열, 연결된 묶음이 21줄을 넘으면 오른쪽에 새 띠), 모양은 과제 마름모·연구 네모·도전 원, 다른 챕터에서 오는 입구 표시는 작은 점선 원(그 선행 과제의 아이콘, 누르면 그 챕터의 그 과제 패널)이다. 선행이 남은 노드는 조금 어둡게 그리되 아이콘·툴팁은 그대로 보인다. 처음에는 다음 할 과제가 가운데에 오고, 끈 자리는 다시 그려도 남는다. 노드를 누르면 판 위에 과제 패널(상태, 힌트, 아이템, 추적)이 열린다. 창은 다른 창과 같은 크기이고 컨트롤 막대(뒤로·닫기)도 다른 창처럼 창 오른쪽 위 바깥에 있다. 챕터 목록은 80u 폭이고 줄마다 아이콘, 이름, 그 아래 달성 수를 둔다. 판은 마우스 휠, 두 손가락 벌리기·오므리기(두 번째 손가락이 나중에 닿아도 된다: 페이지 전체의 터치를 손가락 id 로 따로 모은다), 판 오른쪽 아래의 +·- 버튼으로 확대·축소한다(0.5~3배, 휠·손가락은 가리킨 자리를 중심으로). 판은 노드가 있는 곳까지만 끌린다: 노드를 감싼 상자가 판보다 작으면 판 안(가장자리 2.4rem 안쪽)에 머물고, 크면 그 가장자리가 판 가장자리 안으로 들어오지 않는다(`src/components/Canvas.tsx` `clampPan`, 확대·축소 뒤에도). 확대 배율과 끈 자리는 챕터마다 남고, 새로 여는 챕터는 마지막 배율로 시작한다(터치 화면은 처음부터 한 단계 확대).
 
 ## 패킷과 데이터 저장소
@@ -64,7 +65,7 @@
 
 Ore UI 페이지는 게임의 설정 화면이 쓰는 설정을 읽고 바꿀 수 있다(`vanilla.menus.settings*Query`, `vanilla_menus_update_settings`). 서버는 접속한 동안 몇 가지를 정해 둔다(`platform` `keepClientSettings`, `common/oreui.SetClientSettings`).
 
-- 모두: UI 프로필 클래식(`video.ui_profile` 0). 서버의 창과 화면은 클래식 UI 에 맞춰 그린다.
+- 동의한 플레이어: UI 프로필 클래식(`video.ui_profile` 0). 서버의 창과 화면은 클래식 UI 에 맞춰 그린다. 로그인 데이터의 `UIProfile` 이 클래식(0)이 아니면 접속할 때 클래식 UI 를 권하는 창을 안내서나 로비 화면보다 먼저 띄우고(`askClassicUI`), 동의하면 이 설정을 더하고 거부하면 그대로 둔다.
 - 운영자가 아닌 플레이어: 콘텐츠 로그 끔(`creator.contentLog.gui.enable`, `creator.contentLog.gui.showErrors`, `creator.contentLog.file.enable`, `creator.scriptDiagnostic.enableClient`).
 - 설정은 다음에 열리는 DDUI 화면의 루트와 함께 가고(`oui` 의 `settings`), 페이지가 값이 다를 때만 쓴다(`src/runtime/settings.ts` `keepSettings`). 쓴 뒤에도 값을 지켜보아, 플레이어가 접속 중에 바꾸면 되돌린다.
 - 설정은 기기에 저장되는 게임 옵션이라 서버를 나간 뒤에도 남는다.

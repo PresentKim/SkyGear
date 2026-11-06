@@ -64,6 +64,11 @@ func init() {
 			world.RegisterBlock(Machine{Kind: k, MeshLook: l[0], Content: l[1], Fill: l[2]})
 		}
 	}
+	for k, shapes := range NetShapes() {
+		for _, s := range shapes[1:] {
+			world.RegisterBlock(Machine{Kind: k, Shape: s})
+		}
+	}
 }
 
 // HourglassTicks is how long one fairy hourglass boosts a machine, and
@@ -375,11 +380,12 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.net_terminal.help.1"},
 	},
 	KindNetImporter: {
-		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Indicator: 10,
+		// four upgrade slots (netstore.Upgrade)
+		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_importer.help.1"},
 	},
 	KindNetExporter: {
-		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Indicator: 10,
+		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_exporter.help.1"},
 	},
 	KindNetExternal: {
@@ -510,6 +516,8 @@ type Machine struct {
 	Active bool
 	// tier is the tier look of the block (tierlook.go).
 	Tier int
+	// Shape is the look of a thin network block (netshape.go).
+	Shape int
 }
 
 // State is the inventory and progress of a placed machine. It is
@@ -521,8 +529,26 @@ type State struct {
 	ShownPct int
 	// shownEnergy is the buffer the energy gauge shows now (-1: nothing yet).
 	shownEnergy int
+	// shownLook is what the machine's open Ore UI windows show (screen.go).
+	shownLook screenLook
+	// target is the block the auto miner's open window shows it mining
+	// (screen.go noteTarget).
+	target string
+	// RangeX, RangeY and RangeZ are the reach set on the screen of a machine
+	// with a range; 0 is all its tier gives (Area).
+	RangeX, RangeY, RangeZ int
+	// rangeUntil is the tick the box over its range shows until (its button),
+	// peekUntil the same while a player sneaks and looks at it, rangeEntity
+	// that box and rangeSize its size (rangeview.go).
+	rangeUntil  int64
+	peekUntil   int64
+	rangeEntity *world.EntityHandle
+	rangeSize   int32
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
+	// Facing is the side a network attachment acts on (south when it was
+	// placed without a clicked face).
+	Facing cube.Face
 	// pos is where the machine stands, set when it ticks or its window is
 	// opened.
 	pos cube.Pos
@@ -616,13 +642,14 @@ const stuckRecheck = 100
 // differ from the last one.
 type stateSig struct {
 	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
+	reach                                                                   [3]int
 	unlimited                                                               bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [3]int{st.RangeX, st.RangeY, st.RangeZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.
@@ -676,7 +703,10 @@ func (st *State) DrainLegacy() {
 
 func New(kind, owner, ownerName string) Machine {
 	k := Kinds[kind]
-	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1}
+	st := &State{Def: k, storage: chestui.NewStorage(27, k.windowTitle(i18n.Default)), Owner: owner, ownerName: ownerName, ShownPct: -1, shownEnergy: -1, Facing: cube.FaceSouth}
+	if kind == KindMiner {
+		st.Facing = cube.FaceDown
+	}
 	inv := st.storage.Inventory()
 	for slot := range 27 {
 		if st.Role(slot) == RoleNone {
@@ -1084,22 +1114,37 @@ func (st *State) ShowProgress() {
 		return
 	}
 	st.ShownPct = pct
-	name := wintext.Key("machine.progress.percent", pct)
+	ring, key, withPct := st.progressLook()
+	name := wintext.Key(key)
+	if withPct {
+		name = wintext.Key(key, pct)
+	}
 	it := item.NewStack(ProgressArrow{Step: pct / 10}, 1)
-	switch st.Def.ID {
-	case idSellBox:
-		// Machines that work in a repeating cycle, the auto miner and the generator
-		// show a ring that fills.
-		name, it = wintext.Key("machine.progress.sellCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
-		name, it = wintext.Key("machine.progress.mining", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idGenerator:
-		// The ring shows the fuel left in the one burning.
-		name, it = wintext.Key("machine.progress.fuel", pct), item.NewStack(CycleGauge{Step: pct / 10}, 1)
-	case idHarvester:
-		name, it = wintext.Key("machine.progress.harvestCycle"), item.NewStack(CycleGauge{Step: pct / 10}, 1)
+	if ring {
+		it = item.NewStack(CycleGauge{Step: pct / 10}, 1)
 	}
 	_ = st.Inv().SetItem(st.Def.Indicator, wintext.With(it, wintext.Text{wintext.Raw("§r"), name}))
+}
+
+// progressPct is the machine's progress in percent.
+func (st *State) progressPct() int { return min(100, st.Progress*100/max(1, st.CycleLen())) }
+
+// progressLook is how a machine shows its progress: an arrow that fills, or
+// the ring of a machine that works in a repeating cycle (the generator's
+// shows the fuel left in the one burning), and the text key of its tooltip,
+// which takes the percent when withPct is set.
+func (st *State) progressLook() (ring bool, key string, withPct bool) {
+	switch st.Def.ID {
+	case idSellBox:
+		return true, "machine.progress.sellCycle", false
+	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
+		return true, "machine.progress.mining", true
+	case idGenerator:
+		return true, "machine.progress.fuel", true
+	case idHarvester:
+		return true, "machine.progress.harvestCycle", false
+	}
+	return false, "machine.progress.percent", true
 }
 
 // EnergyGaugeSlot is the window slot of the energy gauge, in the column right
@@ -1197,17 +1242,28 @@ func (m Machine) EncodeBlock() (string, map[string]any) {
 	if AnimatedKinds[m.Kind] {
 		return encodedName(m.Kind), map[string]any{activeState: activeValue(m.Active)}
 	}
+	if NetShaped(m.Kind) {
+		return encodedName(m.Kind), map[string]any{NetShapeState: netShapeName(m.Shape)}
+	}
 	return encodedName(m.Kind), nil
 }
 
 func (m Machine) Hash() (uint64, uint64) {
+	if NetShaped(m.Kind) {
+		return m.Def().Hash, uint64(m.Shape)
+	}
 	if m.Active || m.Tier > 0 {
 		return m.Def().Hash, uint64(tierLookIndex(m.Kind, m.Tier, m.Active))
 	}
 	return m.Def().Hash, uint64(lookIndex(m.MeshLook, m.Content, m.Fill))
 }
 
-func (Machine) Model() world.BlockModel { return model.Solid{} }
+func (m Machine) Model() world.BlockModel {
+	if NetShaped(m.Kind) {
+		return netModel{netBoxes(m.Kind, m.Shape)}
+	}
+	return model.Solid{}
+}
 
 func (m Machine) Name() string {
 	if m.State != nil {
@@ -1222,8 +1278,8 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindNetCable: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetImporter: true, KindNetExporter: true, KindNetExternal: true, KindNetAutocrafter: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
 // States implements block.Permutable: only the sieve has states.
@@ -1236,6 +1292,9 @@ func (m Machine) States() map[string][]any {
 	}
 	if AnimatedKinds[m.Kind] {
 		return activeStates()
+	}
+	if NetShaped(m.Kind) {
+		return netStates(m.Kind)
 	}
 	return nil
 }
@@ -1251,6 +1310,9 @@ func (m Machine) Permutations() []customblock.Permutation {
 	if AnimatedKinds[m.Kind] {
 		return activePermutations(m.Kind)
 	}
+	if NetShaped(m.Kind) {
+		return netPermutations(m.Kind)
+	}
 	return nil
 }
 
@@ -1263,6 +1325,9 @@ func (m Machine) Properties() customblock.Properties {
 	}
 	if frontMachines[m.Kind] {
 		return blockmodel.FrontCubeProperties(m.Kind)
+	}
+	if NetShaped(m.Kind) {
+		return netProperties(m.Kind, 0)
 	}
 	return sieveProperties(m.Kind)
 }
@@ -1334,9 +1399,17 @@ func (m Machine) EncodeNBT() map[string]any {
 	data["FluidAmt"] = int32(m.State.FluidAmt)
 	data["Charges"] = int32(m.State.Charges)
 	data["Boost"] = int32(m.State.Boost)
+	for key, r := range map[string]int{"RangeX": m.State.RangeX, "RangeY": m.State.RangeY, "RangeZ": m.State.RangeZ} {
+		if r > 0 {
+			data[key] = int32(r)
+		}
+	}
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
 	data["OwnerName"] = m.State.ownerName
+	if _, head := netHeads[m.Kind]; head || m.Kind == KindMiner {
+		data["Facing"] = int32(m.State.Facing)
+	}
 	return data
 }
 
@@ -1344,6 +1417,15 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	owner, _ := data["Owner"].(string)
 	ownerName, _ := data["OwnerName"].(string)
 	n := New(m.Kind, owner, ownerName)
+	n.Shape = m.Shape
+	if f, ok := data["Facing"].(int32); ok && f >= 0 && f < 6 {
+		n.State.Facing = cube.Face(f)
+	}
+	for key, r := range map[string]*int{"RangeX": &n.State.RangeX, "RangeY": &n.State.RangeY, "RangeZ": &n.State.RangeZ} {
+		if v, ok := data[key].(int32); ok && v > 0 {
+			*r = int(v)
+		}
+	}
 	if f, ok := data["Fluid"].(int32); ok {
 		n.State.Fluid = fluidnet.Kind(f)
 	}
@@ -1444,9 +1526,9 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		}
 		return true
 	}
-	if m.State.Def.Crafter && p.Sneaking() {
+	if m.State.Def.Crafter {
 		if !s.Debounced(p) {
-			showCrafterRecipes(s, p, tx, pos, m.State, 0)
+			showCrafter(s, p, pos, m.State)
 		}
 		return true
 	}
@@ -1456,10 +1538,12 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 			return true
 		}
 	}
-	if m.State.Def.Cell {
+	if m.State.Def.Cell || m.Kind == KindNetCable {
 		return false
 	}
-	m.State.OpenWindow(p)
+	if !s.Debounced(p) {
+		ShowMachine(s, p, tx, pos, m.State)
+	}
 	return true
 }
 
@@ -1540,6 +1624,9 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		tx.SetBlock(pos, New(m.Kind, "", ""), nil)
 		return
 	}
+	if NetShaped(m.Kind) && currentTick%40 == 0 {
+		showNetShape(tx, pos, m)
+	}
 	st := m.State
 	st.Sess, st.pos, st.Stuck, st.curTick = s, pos, stuckNone, currentTick
 	st.Mon.seen, FactoryOf(s).lastTick = currentTick, currentTick
@@ -1572,6 +1659,10 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		showActiveOf(tx, pos, m, st, currentTick)
 	}
 	st.persistState(currentTick, pos, tx)
+	if (currentTick+int64(posHash(pos)))%5 == 0 && len(watchers.Of(s)) > 0 {
+		watchMachine(s, tx, pos, st)
+	}
+	st.showRange(tx, pos)
 	switch st.Def.ID {
 	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
@@ -1734,9 +1825,10 @@ func Mineable(b world.Block) (block.BreakInfo, bool) {
 	return info, true
 }
 
-// runMiner mines the block below every interval while the drops fit.
+// runMiner mines the block it faces (the one clicked to place it, the block
+// below otherwise) every interval while the drops fit.
 func runMiner(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
-	below := pos.Side(cube.FaceDown)
+	below := pos.Side(st.Facing)
 	info, ok := Mineable(tx.Block(below))
 	if !ok {
 		if st.cracking {
@@ -1790,7 +1882,16 @@ func Place(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, kind s
 	if m.Kind != KindSieve {
 		progress.Advance(s, tx, advancement.Machine)
 	}
-	tx.Defer(func(tx *world.Tx) { tx.SetBlock(pos, m, nil) })
+	face, clicked := takePlaceFace(s, p)
+	if _, head := netHeads[kind]; (head || kind == KindMiner) && clicked {
+		m.State.Facing = face.Opposite()
+	}
+	tx.Defer(func(tx *world.Tx) {
+		if NetShaped(kind) {
+			m.Shape = netShapeAt(tx, pos, m)
+		}
+		tx.SetBlock(pos, m, nil)
+	})
 }
 
 // Break closes the windows of a machine being broken.

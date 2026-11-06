@@ -31,6 +31,39 @@ func TestDragEventDropsRepeats(t *testing.T) {
 	}
 }
 
+func TestInventoryGaugeProgressAndKey(t *testing.T) {
+	var got map[string]any
+	var layout *oreLayout
+	oreShown = func(l *oreLayout, root any) {
+		layout = l
+		b, _ := json.Marshal(root)
+		_ = json.Unmarshal(b, &got)
+	}
+	defer func() { oreShown = nil }()
+	ShowInventory(nil, InventoryScreen{
+		Rows: []InvRow{{Parts: []InvPart{
+			{Gauge: &InvGauge{Kind: "energy", Value: 30, Max: 120, Tip: "30 RE"}},
+			{Progress: &InvProgress{Pct: 47, Ring: true}},
+			{Progress: &InvProgress{Pct: 100}},
+		}}},
+		Key: "machine@1,2,3",
+	})
+	parts := got["data"].(map[string]any)["rows"].([]any)[0].(map[string]any)["parts"].([]any)
+	gauge := parts[0].(map[string]any)["gauge"].(map[string]any)
+	if gauge["fill"] != 25.0 || gauge["kind"] != "energy" || gauge["tip"] != "30 RE" {
+		t.Errorf("gauge %v", gauge)
+	}
+	if icon := parts[1].(map[string]any)["progress"].(map[string]any)["icon"]; icon != "tex:textures/items/cycle_4" {
+		t.Errorf("ring icon %v", icon)
+	}
+	if icon := parts[2].(map[string]any)["progress"].(map[string]any)["icon"]; icon != "tex:textures/items/progress_10" {
+		t.Errorf("arrow icon %v", icon)
+	}
+	if layout.screenKey != "machine@1,2,3" {
+		t.Errorf("key %q", layout.screenKey)
+	}
+}
+
 func TestShowInventoryData(t *testing.T) {
 	var got map[string]any
 	var layout *oreLayout

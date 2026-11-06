@@ -18,6 +18,8 @@
 /* Inventory screens (src/inventory): rows of slot blocks, a grow row that scrolls, the side buttons
    outside the window's left edge and the cursor stack beside the pointer. */
 .mc-inventory .mc-content {
+  left: 0.6rem;
+  right: 0.6rem;
   overflow: visible;
 }
 
@@ -35,7 +37,7 @@
 .mc-inv-side {
   position: absolute;
   top: 0;
-  right: -5.6rem;
+  right: -5.8rem;
   width: 4.4rem;
   padding-top: 0.7rem;
   padding-bottom: 0.7rem;
@@ -50,6 +52,136 @@
 
 .mc-inv-side:empty {
   display: none;
+}
+
+/* ButtonColumn: Refined Storage's square side buttons, the tools left of the window's top and a row's
+   bar right of the window, level with the row's bottom (or top). The recipe book moves left past the
+   tools. */
+.mc-button-column {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-tools {
+  top: 0;
+  left: -5.2rem;
+}
+
+.mc-row-bar {
+  bottom: 0;
+  right: -5.2rem;
+}
+
+.mc-row-bar.top {
+  top: 0;
+  bottom: auto;
+}
+
+.mc-square-button {
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-row-bar .mc-square-button:last-child {
+  margin-bottom: 0;
+}
+
+.mc-square-button img {
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.mc-inventory.mc-with-tools .mc-inv-book {
+  left: -36.6rem;
+}
+
+.mc-inventory.mc-with-book.mc-with-tools .mc-window {
+  left: 17.6rem;
+}
+
+.mc-inv-growbox {
+  position: relative;
+  min-height: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-inv-row {
+  position: relative;
+}
+
+/* A machine's gauge (inventory/Gauge.tsx): a sunken bar three slots tall, filled from the bottom,
+   left of the machine's slots; and its progress arrow or ring between them. */
+.mc-gauge {
+  position: relative;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 10.8rem;
+  margin-right: 0.8rem;
+  background-color: #2b2b2b;
+  border-style: solid;
+  border-width: 0.2rem;
+  border-color: #373737 #ffffff #ffffff #373737;
+}
+
+.mc-gauge.mc-gauge-spacer {
+  visibility: hidden;
+}
+
+.mc-inv-center {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-inv-center > .oui-box:last-child {
+  margin-right: 0;
+}
+
+.mc-gauge-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.mc-gauge.energy .mc-gauge-fill {
+  background-color: #d33a2c;
+}
+
+.mc-gauge.fluid .mc-gauge-fill {
+  background-color: #3b6fd8;
+}
+
+.mc-progress {
+  flex-shrink: 0;
+  width: 3.6rem;
+  height: 3.6rem;
+  margin-right: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-progress img {
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+/* A slot whose contents are not there (a network without power), dark as a disabled Java panel. */
+.mc-inv-slot.mc-inv-off {
+  background-color: rgba(0, 0, 0, 0.45);
+  border-image-source: none;
+  border-color: #2b2b2b #555555 #555555 #2b2b2b;
 }
 
 .mc-inv-quick.on {
@@ -76,9 +208,66 @@
 }
 
 /* The grow row has no min-height: Gameface takes a growing box's min-height out of the room it
-   gives it, so the rows would stop short of the window's bottom. */
+   gives it, so the rows would stop short of the window's bottom. It is the vanilla
+   container_scroll_panel (its pictures are in oui-mc.css) under a 2u shadow, the slots 1u inside
+   and the 4u scrollbar at its right edge. The shadow is the wrap's border: on the scrolling box
+   Gameface counts a border in scrollHeight, so the scrollbar would show on content that fits. */
 .mc-inventory .mc-scroll-wrap {
+  margin-left: -0.2rem;
   margin-bottom: 0.4rem;
+  border-style: solid;
+  border-width: 0;
+  border-top-width: 0.4rem;
+  border-color: #2f2f2f;
+}
+
+.mc-inventory .mc-scroll {
+  padding-left: 0.2rem;
+  padding-right: 1rem;
+}
+
+.mc-inventory .mc-scroll .mc-inv-row {
+  margin-right: -0.8rem;
+  margin-bottom: 0;
+}
+
+.mc-inventory .mc-scrollbar {
+  right: 0;
+  width: 0.8rem;
+}
+
+.mc-inventory .mc-scroll-rail {
+  left: 0;
+  width: 0.8rem;
+  border-style: solid;
+  border-width: 0.2rem;
+}
+
+.mc-inventory .mc-scroll-handle {
+  left: 0;
+  width: 0.8rem;
+  border-width: 0.2rem;
+}
+
+/* Search boxes are the vanilla text_edit_control with the 8u magnifying_glass inside its left edge. */
+.mc-inventory .mc-search {
+  border-style: solid;
+  border-width: 0.4rem;
+}
+
+.mc-inventory .mc-search img {
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+}
+
+.mc-inventory .mc-search .mc-input {
+  height: 100%;
+  padding-left: 0.2rem;
+  background-color: transparent;
+  border-width: 0;
 }
 
 .mc-inv-heading,
@@ -92,6 +281,8 @@
 
 .mc-inventory .mc-title {
   right: 20.4rem;
+  display: block;
+  padding-top: 0.2rem;
 }
 
 /* The search box sits in the right half of the title row (above the content box), as in the
@@ -105,14 +296,7 @@
   margin-bottom: 0;
 }
 
-.mc-inv-search img {
-  width: 1.6rem;
-  height: 1.6rem;
-  margin-right: 0.4rem;
-}
-
 .mc-inv-search .mc-input {
-  height: 2.2rem;
   font-size: 1.2rem;
 }
 
@@ -132,13 +316,18 @@
   padding-top: 0.8rem;
 }
 
-.mc-inv-slot.mc-inv-hover {
-  border-image-source: none;
-  border-color: #ffffff;
-  background-color: #6aad43;
+.mc-slot.pressable.mc-inv-slot:hover {
+  background-color: transparent;
 }
 
-.mc-inv-slot.mc-inv-dragged {
+/* vanilla textures/ui/highlight_slot */
+.mc-slot.pressable.mc-inv-slot.mc-inv-hover {
+  border-image-source: none;
+  border-color: #ffffff;
+  background-color: #62b531;
+}
+
+.mc-slot.pressable.mc-inv-slot.mc-inv-dragged {
   background-color: rgba(255, 255, 255, 0.45);
 }
 
@@ -150,13 +339,13 @@
 /* The recipe book (vanilla inventory_screen.json recipe_book): a 146u panel 5u left of the window and
    as tall as it, the tabs over its top, a 10u label row (or the 16u search row) with the 29x17
    filter switch, and the scroll grid of 18u cells (the panel's window picture is in oui-mc.css).
-   The window's outer edge is 1.2rem left of and 3.6rem above the content box. */
+   The window's outer edge is 1.4rem left of and 3.6rem above the content box; boxes are border-box. */
 .mc-inv-book {
   position: absolute;
   top: -3.6rem;
   bottom: -1.2rem;
-  left: -31.4rem;
-  width: 26.8rem;
+  left: -31.6rem;
+  width: 29.2rem;
   padding: 0.4rem;
   display: flex;
   flex-direction: column;
@@ -210,9 +399,22 @@
   opacity: 1;
 }
 
+.mc-inv-book .mc-scroll-wrap {
+  margin-left: 0;
+  margin-bottom: 0;
+}
+
+.mc-inv-book .mc-scroll {
+  padding-left: 0.8rem;
+  padding-right: 0.8rem;
+}
+
 .mc-inv-button {
+  align-self: flex-start;
   width: 2.4rem;
   height: 2.4rem;
+  margin-left: -0.6rem;
+  margin-right: 0.8rem;
 }
 
 .mc-inv-button img {
@@ -264,4 +466,71 @@
   border-style: solid;
   border-width: 0.1rem;
   border-color: #6b0f0c;
+}
+
+/* The stepper window (screens/stepper.tsx), as Item Collectors' range window: the size line at
+   the top left, then columns of a triangle arrow, "x: 5" and a triangle arrow, the square
+   buttons at the right. */
+.mc-stepper .mc-content {
+  left: 1.2rem;
+  right: 1.2rem;
+}
+
+.mc-step-line {
+  flex-shrink: 0;
+  height: 2rem;
+  font-size: 1.4rem;
+}
+
+.mc-step-row {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-step-col {
+  width: 6.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-step-arrow {
+  width: 3.2rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-step-arrow img {
+  width: 2.6rem;
+  height: 1.4rem;
+}
+
+.mc-step-arrow:hover img {
+  filter: brightness(1.25);
+}
+
+.mc-step-arrow.off img {
+  opacity: 0.35;
+}
+
+.mc-step-value {
+  height: 2.8rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+}
+
+.mc-step-side {
+  margin-left: 1.6rem;
+}
+
+.mc-step-side .mc-square-button {
+  margin-bottom: 0;
 }

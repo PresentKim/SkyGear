@@ -87,66 +87,104 @@ func TestListChest(t *testing.T) {
 func TestImporterMoves(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n, ps := ioNet(tx, machine.KindNetImporter)
-		fill(tx, ps[0], stoneS.Grow(19))
-		for range 100 {
+		fill(tx, ps[0], stoneS.Grow(4))
+		for range 5 * ioRate {
 			step(s, tx, n, ps...)
 		}
-		if got := n.Root.Count(KeyOf(stoneS)); got != 20 || held(tx, ps[0], stoneS) != 0 {
+		if got := n.Root.Count(KeyOf(stoneS)); got != 5 || held(tx, ps[0], stoneS) != 0 {
 			t.Fatalf("network %d chest %d", got, held(tx, ps[0], stoneS))
 		}
 	})
 }
 
-func TestImporterBackoff(t *testing.T) {
+func TestImporterMovesOneItemEveryNineTicks(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n, ps := ioNet(tx, machine.KindNetImporter)
-		for range 400 {
-			step(s, tx, n, ps...)
-		}
-		// idle: one run per 64 ticks
+		fill(tx, ps[0], stoneS.Grow(63))
 		ran := 0
-		for range 128 {
+		for range 10 * ioRate {
 			ran += step(s, tx, n, ps...)
 		}
-		if ran != 2 {
-			t.Fatalf("%d runs in 128 idle ticks, want 2", ran)
+		if ran != 10 || n.Root.Count(KeyOf(stoneS)) != 10 {
+			t.Fatalf("%d runs moved %d in %d ticks, want 10 and 10", ran, n.Root.Count(KeyOf(stoneS)), 10*ioRate)
 		}
-		// work found in the chest is taken within one interval
-		fill(tx, ps[0], stoneS.Grow(3))
-		for i := range 70 {
-			step(s, tx, n, ps...)
-			if held(tx, ps[0], stoneS) == 0 {
-				if i < 1 {
-					t.Fatal("took at once")
-				}
-				return
-			}
-		}
-		t.Fatal("never took")
 	})
 }
 
-func TestExporterWakesOnInsert(t *testing.T) {
+func TestUpgradesSpeedAndStack(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		st := machine.New(machine.KindNetImporter, "", "").State
+		for i, want := range []int64{9, 7, 5, 3, 1, 1} {
+			if got := ioRateOf(st); got != want {
+				t.Fatalf("%d speed upgrades: every %d ticks, want %d", i, got, want)
+			}
+			if i < 4 && !upgradeFits(st, item.NewStack(Upgrade{}, 1)) {
+				t.Fatalf("speed upgrade %d did not fit", i+1)
+			}
+			if i < len(st.Def.Input) {
+				_ = st.Inv().SetItem(st.Def.Input[i], item.NewStack(Upgrade{}, 1))
+			}
+		}
+		if upgradeFits(st, item.NewStack(Upgrade{}, 1)) {
+			t.Fatal("a fifth speed upgrade fits")
+		}
+		_ = st.Inv().SetItem(st.Def.Input[3], item.NewStack(Upgrade{Stack: true}, 1))
+		if ioAmountOf(st) != 64 || ioRateOf(st) != 3 {
+			t.Fatalf("stack upgrade: %d every %d ticks, want 64 every 3", ioAmountOf(st), ioRateOf(st))
+		}
+		if upgradeFits(st, item.NewStack(Upgrade{Stack: true}, 1)) {
+			t.Fatal("a second stack upgrade fits")
+		}
+	})
+}
+
+func TestStackUpgradeImportsAStack(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n, ps := ioNet(tx, machine.KindNetImporter)
+		_ = stateAt(tx, ps[0]).Inv().SetItem(0, item.NewStack(Upgrade{Stack: true}, 1))
+		fill(tx, ps[0], stoneS.Grow(63))
+		for range ioRate {
+			step(s, tx, n, ps...)
+		}
+		if got := n.Root.Count(KeyOf(stoneS)); got != 64 {
+			t.Fatalf("imported %d in one operation, want 64", got)
+		}
+	})
+}
+
+func TestExporterMovesOneFilteredItemEveryNineTicks(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		put(tx, p(0), machine.KindNetController)
 		Config(s, p(1)).Filter = []string{string(KeyOf(stoneS))}
-		Config(s, p(1)).Allow = true
 		n, ps := ioNet(tx, machine.KindNetExporter)
-		for range 400 {
-			step(s, tx, n, ps...)
-		}
 		n.Root.Insert(KeyOf(stoneS), 5, false)
-		step(s, tx, n, ps...)
-		if got := held(tx, ps[0], stoneS); got != 5 {
-			t.Fatalf("exported %d", got)
-		}
-		// a kind outside the filter does not wake it nor leave
 		n.Root.Insert(KeyOf(dirtS), 5, false)
-		for range 10 {
+		for range 3 * ioRate {
 			step(s, tx, n, ps...)
+		}
+		if got := held(tx, ps[0], stoneS); got != 3 {
+			t.Fatalf("exported %d stone in 3 runs, want 3", got)
 		}
 		if held(tx, ps[0], dirtS) != 0 {
 			t.Fatal("exported dirt")
+		}
+	})
+}
+
+func TestNoTransferIntoAnExternalStoragesBlock(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n, chest := extNet(s, tx)
+		rt := rtOf(n)
+		node := chest.Side(cube.FaceSouth)
+		for _, kind := range []string{machine.KindNetImporter, machine.KindNetExporter} {
+			m := machine.New(kind, "", "")
+			m.State.Facing = cube.FaceNorth
+			tx.SetBlock(node, m, nil)
+			Config(s, node).Filter = []string{string(KeyOf(stoneS))}
+			bind(n, tx)
+			if importWork(tx, n, rt, node) || exportWork(tx, n, rt, node) {
+				t.Errorf("%s moved items in and out of the mirrored chest", kind)
+			}
 		}
 	})
 }
@@ -234,8 +272,47 @@ func TestExternalDrawerController(t *testing.T) {
 	})
 }
 
-// The front texture (the "south" material) faces +Z: an importer takes from
-// the block south of it and ignores the one north of it.
+func TestImporterTakesFromItsFacing(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		n, ps := ioNet(tx, machine.KindNetImporter)
+		stateAt(tx, ps[0]).Facing = cube.FaceNorth
+		north := ps[0].Side(cube.FaceNorth)
+		tx.SetBlock(north, block.NewChest(), nil)
+		_, _ = tx.Block(north).(block.Chest).Inventory(tx, north).AddItem(dirtS.Grow(8))
+		fill(tx, ps[0], stoneS.Grow(8))
+		for range 80 {
+			step(s, tx, n, ps...)
+		}
+		if n.Root.Count(KeyOf(dirtS)) != 9 || n.Root.Count(KeyOf(stoneS)) != 0 {
+			t.Fatalf("dirt %d, stone %d", n.Root.Count(KeyOf(dirtS)), n.Root.Count(KeyOf(stoneS)))
+		}
+	})
+}
+
+func TestCableArmsFollowNeighbours(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		update := func() {
+			tx.Block(p(1)).(machine.Machine).NeighbourUpdateTick(p(1), p(2), tx)
+		}
+		put(tx, p(1), machine.KindNetCable)
+		put(tx, p(0), machine.KindNetController)
+		imp := machine.New(machine.KindNetImporter, "", "")
+		imp.State.Facing = cube.FaceWest
+		tx.SetBlock(p(2), imp, nil)
+		update()
+		if got := machine.NetMask(tx.Block(p(1)).(machine.Machine)); got != 1<<cube.FaceWest {
+			t.Fatalf("cable shape %06b, want an arm west only", got)
+		}
+		imp.State.Facing = cube.FaceUp
+		update()
+		if got := machine.NetMask(tx.Block(p(1)).(machine.Machine)); got != 1<<cube.FaceWest|1<<cube.FaceEast {
+			t.Fatalf("cable shape %06b, want arms west and east", got)
+		}
+	})
+}
+
+// An attachment placed without a clicked face faces south: an importer takes
+// from the block south of it and ignores the one north of it.
 func TestFrontIsSouth(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n, ps := ioNet(tx, machine.KindNetImporter)

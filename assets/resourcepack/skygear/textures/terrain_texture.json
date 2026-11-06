@@ -1336,14 +1336,17 @@
     "skygear_net_controller_up": {
       "textures": "textures/blocks/net_controller_up"
     },
-    "skygear_net_cable_down": {
-      "textures": "textures/blocks/net_cable_down"
+    "skygear_net_cable": {
+      "textures": "textures/blocks/net_cable"
     },
-    "skygear_net_cable_side": {
-      "textures": "textures/blocks/net_cable_side"
+    "skygear_net_importer_border": {
+      "textures": "textures/blocks/net_importer_border"
     },
-    "skygear_net_cable_up": {
-      "textures": "textures/blocks/net_cable_up"
+    "skygear_net_exporter_border": {
+      "textures": "textures/blocks/net_exporter_border"
+    },
+    "skygear_net_external_border": {
+      "textures": "textures/blocks/net_external_border"
     },
     "skygear_disk_drive_down": {
       "textures": "textures/blocks/disk_drive_down"
@@ -1371,51 +1374,6 @@
     },
     "skygear_pattern_encoder_up": {
       "textures": "textures/blocks/pattern_encoder_up"
-    },
-    "skygear_net_importer_back": {
-      "textures": "textures/blocks/net_importer_back"
-    },
-    "skygear_net_importer_down": {
-      "textures": "textures/blocks/net_importer_down"
-    },
-    "skygear_net_importer_front": {
-      "textures": "textures/blocks/net_importer_front"
-    },
-    "skygear_net_importer_side": {
-      "textures": "textures/blocks/net_importer_side"
-    },
-    "skygear_net_importer_up": {
-      "textures": "textures/blocks/net_importer_up"
-    },
-    "skygear_net_exporter_back": {
-      "textures": "textures/blocks/net_exporter_back"
-    },
-    "skygear_net_exporter_down": {
-      "textures": "textures/blocks/net_exporter_down"
-    },
-    "skygear_net_exporter_front": {
-      "textures": "textures/blocks/net_exporter_front"
-    },
-    "skygear_net_exporter_side": {
-      "textures": "textures/blocks/net_exporter_side"
-    },
-    "skygear_net_exporter_up": {
-      "textures": "textures/blocks/net_exporter_up"
-    },
-    "skygear_net_external_back": {
-      "textures": "textures/blocks/net_external_back"
-    },
-    "skygear_net_external_down": {
-      "textures": "textures/blocks/net_external_down"
-    },
-    "skygear_net_external_front": {
-      "textures": "textures/blocks/net_external_front"
-    },
-    "skygear_net_external_side": {
-      "textures": "textures/blocks/net_external_side"
-    },
-    "skygear_net_external_up": {
-      "textures": "textures/blocks/net_external_up"
     },
     "skygear_net_autocrafter_back": {
       "textures": "textures/blocks/net_autocrafter_back"

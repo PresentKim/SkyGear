@@ -111,12 +111,35 @@ func (st *State) GenRate() int { return st.Def.Generates * st.spec().gen }
 
 func (st *State) BurnRate() int { return st.spec().Burn }
 
-// reach is the reach of a machine with a range: sideways, in blocks.
-func (st *State) Reach(kind string) int {
-	if r, ok := tierRanges[kind]; ok {
-		return r[st.Tier]
+// Area is the box a machine with a range works on around itself, in blocks:
+// X and Z each way sideways, Down below it and Up above it.
+type Area struct{ X, Z, Down, Up int }
+
+// MaxArea is the area the machine's tier gives a machine of kind.
+func (st *State) MaxArea(kind string) Area {
+	r, ok := tierRanges[kind]
+	if !ok {
+		return Area{}
 	}
-	return 0
+	down, up := rangeHeight(kind)
+	return Area{X: r[st.Tier], Z: r[st.Tier], Down: down, Up: up}
+}
+
+// Area is the area a machine of kind works on: the range set on its screen
+// (RangeX, RangeY, RangeZ; 0 is all), at most what its tier gives. RangeY
+// limits the reach below and above alike.
+func (st *State) Area(kind string) Area {
+	a := st.MaxArea(kind)
+	if st.RangeX > 0 {
+		a.X = min(a.X, st.RangeX)
+	}
+	if st.RangeZ > 0 {
+		a.Z = min(a.Z, st.RangeZ)
+	}
+	if st.RangeY > 0 {
+		a.Down, a.Up = min(a.Down, st.RangeY), min(a.Up, st.RangeY)
+	}
+	return a
 }
 
 func tierNameKey(tier int) string { return fmt.Sprintf("tier.name.%d", tier) }

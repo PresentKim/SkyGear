@@ -14,6 +14,10 @@ import * as engine from '../runtime/engine';
 // fires while the finger is still down). With a stack held, a finger moved across slots drags, one
 // each when it was held first. A finger that moves with nothing held scrolls and clicks nothing.
 // The quick move switch makes every click a shift click.
+//
+// A screen that asks for it (InventoryData.hold) hears a 'hold' event when the player starts holding
+// a mouse button, a finger or shift, and another when every one is let go; it is sent before the
+// press that starts it.
 
 export const HOLD_MS = 400;
 export const DOUBLE_MS = 250;
@@ -39,6 +43,10 @@ let touchAt = -Infinity;
 let carrying = false;
 let quick = false;
 let touchTip = '';
+const buttons = new Set<number>();
+let shiftDown = false;
+let reportHold = false;
+let holdSent = false;
 const slots = new Map<string, Element>();
 const listeners = new Set<() => void>();
 
@@ -55,6 +63,35 @@ export function subscribe(f: () => void): () => void {
 /** setCarrying tells the gestures whether the server's cursor holds a stack. */
 export function setCarrying(v: boolean): void {
   carrying = v;
+}
+
+/** setReportHold tells whether the screen hears the hold events. */
+export function setReportHold(v: boolean): void {
+  reportHold = v;
+}
+
+function sendHold(): void {
+  const on = buttons.size > 0 || shiftDown || (!!g && g.touch);
+  if (!reportHold || on === holdSent) return;
+  holdSent = on;
+  engine.send('hold', 'hold', on);
+}
+
+/** setShift follows the shift key. */
+export function setShift(v: boolean): void {
+  shiftDown = v;
+  sendHold();
+}
+
+/** splitHeld tells whether a drag of a held stack is under way, which keeps the stack held at 0. */
+export function splitHeld(): boolean {
+  return !!g && g.split;
+}
+
+function onButtonUp(ev: MouseEvent): void {
+  buttons.delete(ev.button);
+  if (buttons.size === 0) document.removeEventListener('mouseup', onButtonUp);
+  sendHold();
 }
 
 export function isQuick(): boolean {
@@ -125,6 +162,11 @@ export function reset(): void {
   touchAt = -Infinity;
   quick = false;
   touchTip = '';
+  buttons.clear();
+  document.removeEventListener('mouseup', onButtonUp);
+  shiftDown = false;
+  reportHold = false;
+  holdSent = false;
   notify();
 }
 
@@ -138,6 +180,14 @@ function onMouseUp(ev: MouseEvent): void {
 export function mouseDown(id: string, ev: MouseEvent): void {
   if (Date.now() - touchAt < TOUCH_WINDOW) return;
   if (ev.button !== 0 && ev.button !== 2) return;
+  if (buttons.has(ev.button)) {
+    mouseEnter(id);
+    return;
+  }
+  if (buttons.size === 0) document.addEventListener('mouseup', onButtonUp);
+  buttons.add(ev.button);
+  shiftDown = ev.shiftKey;
+  sendHold();
   const b: 0 | 1 = ev.button === 2 ? 1 : 0;
   const dbl = press(id, b, ev.shiftKey, carrying);
   if (g) document.removeEventListener('mouseup', onMouseUp);
@@ -179,7 +229,7 @@ function onTouchMove(ev: TouchEvent): void {
   const at = point(ev);
   if (!cur || !cur.touch || !at) return;
   if (Math.abs(at.x - cur.x) > MOVE_PX || Math.abs(at.y - cur.y) > MOVE_PX) cur.moved = true;
-  if (!carrying || quick) return;
+  if (!(carrying || cur.split) || quick) return;
   const hit = slotAt(at.x, at.y);
   if (!hit || cur.ids.includes(hit)) return;
   if (!cur.split) {
@@ -202,8 +252,8 @@ function onTouchEnd(): void {
   touchAt = Date.now();
   if (cur.timer) clearTimeout(cur.timer);
   notify();
-  if (cur.fired || cur.split || cur.moved) return;
-  press(cur.ids[0], Date.now() - cur.start >= HOLD_MS ? 1 : 0, false, carrying);
+  if (!(cur.fired || cur.split || cur.moved)) press(cur.ids[0], Date.now() - cur.start >= HOLD_MS ? 1 : 0, false, carrying);
+  sendHold();
 }
 
 export function touchStart(id: string, tip: string, ev: TouchEvent): void {
@@ -212,6 +262,7 @@ export function touchStart(id: string, tip: string, ev: TouchEvent): void {
   touchTip = tip;
   const cur: Gesture = { b: 0, ids: [id], touch: true, start: Date.now(), x: at.x, y: at.y, moved: false, fired: false, split: false, timer: null };
   g = cur;
+  sendHold();
   if (!carrying && !quick) {
     cur.timer = setTimeout(() => {
       if (g === cur && !cur.moved) {

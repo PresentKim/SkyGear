@@ -29,6 +29,9 @@ type InvSlot struct {
 	Empty string
 	// Dim draws the item faded (a recipe that cannot be made now).
 	Dim bool
+	// Off draws a slot that is not there (the filler after a list): dark,
+	// and it takes no presses.
+	Off bool
 }
 
 // InvBook is the recipe book panel beside the window's left edge, laid out
@@ -77,6 +80,29 @@ type InvPart struct {
 	Arrow bool
 	// Button draws a small button (its label is the tooltip).
 	Button *Option
+	// Off draws the slots dark and takes no presses: what they would show
+	// is not there (a network without power).
+	Off bool
+	// Gauge draws a tall bar instead of slots (a machine's energy or fluid).
+	Gauge *InvGauge
+	// Progress draws a machine's progress instead of slots.
+	Progress *InvProgress
+}
+
+// InvGauge is a tall bar filled Value/Max from the bottom, in Kind's colour
+// ("energy" red, "fluid" blue), with Tip as its tooltip.
+type InvGauge struct {
+	Kind       string
+	Value, Max int
+	Tip        string
+}
+
+// InvProgress is a machine's progress in percent: the arrow that fills, or
+// the ring of a machine that works in cycles.
+type InvProgress struct {
+	Pct  int
+	Ring bool
+	Tip  string
 }
 
 // InvRow is a row of parts under an optional heading.
@@ -87,6 +113,34 @@ type InvRow struct {
 	Grow bool
 	// Note is a line drawn in place of the parts when they are empty.
 	Note string
+	// Bar is a column of buttons outside the window's right edge beside the
+	// row (TransferBar): level with the row's bottom, or with its top when
+	// BarTop is set.
+	Bar    []Option
+	BarTop bool
+	// Center sets the parts in the middle of the window, as the vanilla
+	// furnace's slots; the gauges stay at the left edge.
+	Center bool
+}
+
+// TransferBar is the buttons that move items between a container row and
+// the inventory below it, as the Java Edition inventory mods lay them out:
+// the container's (take all, take the kinds held, sort) beside its bottom
+// right, the inventory's (put all, put the kinds the container has, sort)
+// beside its top right. A nil run leaves its button out.
+type TransferBar struct {
+	All, Matching, Sort Option
+}
+
+// Options are the bar's buttons with a run, in order.
+func (b TransferBar) Options() []Option {
+	var out []Option
+	for _, o := range []Option{b.All, b.Matching, b.Sort} {
+		if o.Run != nil {
+			out = append(out, o)
+		}
+	}
+	return out
 }
 
 // InvSearch is the search box over an inventory screen.
@@ -132,6 +186,9 @@ type InventoryScreen struct {
 	Rows   []InvRow
 	// Side are the buttons in a column outside the window's right edge.
 	Side []Option
+	// Tools are square buttons in a column outside the window's left edge
+	// (Refined Storage's side buttons: sort direction, sort kind, ...).
+	Tools []Option
 	// Book, if set, is the recipe book panel left of the window.
 	Book *InvBook
 	// Quick is the tooltip of the page's quick move switch under them,
@@ -141,6 +198,9 @@ type InventoryScreen struct {
 	Options []Option
 	Slot    func(p *player.Player, tx *world.Tx, a SlotAct)
 	Drag    func(p *player.Player, tx *world.Tx, d DragAct)
+	// Hold, if set, hears when the player starts holding a mouse button, a
+	// finger or shift on the screen (on) and when every one is let go.
+	Hold func(p *player.Player, tx *world.Tx, on bool)
 	// Again draws the screen again after a press outside the window dropped
 	// the cursor stack (DropCarried).
 	Again func(p *player.Player, tx *world.Tx)
@@ -149,6 +209,11 @@ type InventoryScreen struct {
 	Close func(p *player.Player, tx *world.Tx)
 	// Size names the window size; screens of one size switch in place.
 	Size string
+	// Height is the window's height in GUI pixels; 0 is the vanilla
+	// inventory's. A screen of another height needs another Size.
+	Height int
+	// Key names what the screen shows, for ShowingKey.
+	Key string
 }
 
 type dInvSlot struct {
@@ -159,6 +224,7 @@ type dInvSlot struct {
 	Rare  int    `json:"rare"`
 	Empty string `json:"empty"`
 	Dim   bool   `json:"dim"`
+	Off   bool   `json:"off"`
 }
 
 type dInvBook struct {
@@ -181,19 +247,36 @@ type dInvTab struct {
 }
 
 type dInvPart struct {
-	Area   string      `json:"area"`
-	Cols   int         `json:"cols"`
-	Slots  []dInvSlot  `json:"slots"`
-	Big    bool        `json:"big"`
-	Arrow  bool        `json:"arrow"`
-	Button *dBarButton `json:"button"`
+	Area     string      `json:"area"`
+	Cols     int         `json:"cols"`
+	Slots    []dInvSlot  `json:"slots"`
+	Big      bool        `json:"big"`
+	Arrow    bool        `json:"arrow"`
+	Button   *dBarButton `json:"button"`
+	Off      bool        `json:"off"`
+	Gauge    *dGauge     `json:"gauge,omitempty"`
+	Progress *dProgress  `json:"progress,omitempty"`
+}
+
+type dGauge struct {
+	Kind string `json:"kind"`
+	Fill int    `json:"fill"`
+	Tip  string `json:"tip"`
+}
+
+type dProgress struct {
+	Icon string `json:"icon"`
+	Tip  string `json:"tip"`
 }
 
 type dInvRow struct {
-	Heading string     `json:"heading"`
-	Parts   []dInvPart `json:"parts"`
-	Grow    bool       `json:"grow"`
-	Note    string     `json:"note"`
+	Heading string       `json:"heading"`
+	Parts   []dInvPart   `json:"parts"`
+	Grow    bool         `json:"grow"`
+	Note    string       `json:"note"`
+	Bar     []dBarButton `json:"bar"`
+	BarTop  bool         `json:"barTop"`
+	Center  bool         `json:"center,omitempty"`
 }
 
 type inventoryData struct {
@@ -204,9 +287,12 @@ type inventoryData struct {
 	Info        string       `json:"info"`
 	Rows        []dInvRow    `json:"rows"`
 	Side        []dBarButton `json:"side"`
+	Tools       []dBarButton `json:"tools"`
 	Quick       string       `json:"quick"`
 	Book        *dInvBook    `json:"book"`
 	Cursor      *dInvSlot    `json:"cursor"`
+	Hold        bool         `json:"hold"`
+	Height      int          `json:"height,omitempty"`
 }
 
 // ShowInventory shows p an inventory screen. The cursor stack is drawn from
@@ -238,8 +324,16 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 			s.Again(p, tx)
 		}
 	}
+	l.hold = s.Hold
+	l.screenKey = s.Key
 	chrome, _ := l.chromeOf(s.Title, s.Options)
-	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Quick: untoken(s.Quick)}
+	d := inventoryData{Chrome: chrome, Info: s.Info, Rows: []dInvRow{}, Side: []dBarButton{}, Tools: []dBarButton{}, Quick: untoken(s.Quick), Hold: s.Hold != nil, Height: s.Height}
+	button := func(o Option) dBarButton {
+		return dBarButton{ID: l.id(o.Run), Tip: untoken(o.Label), Icon: oreIcon(o.Icon), Quick: true}
+	}
+	for _, o := range s.Tools {
+		d.Tools = append(d.Tools, button(o))
+	}
 	if s.Search != nil {
 		d.Field, d.Query, d.Placeholder = "search", s.Search.Query, s.Search.Placeholder
 		if s.Search.Change != nil {
@@ -247,9 +341,26 @@ func ShowInventory(p *player.Player, s InventoryScreen) {
 		}
 	}
 	for _, r := range s.Rows {
-		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note}
+		dr := dInvRow{Heading: r.Heading, Parts: []dInvPart{}, Grow: r.Grow, Note: r.Note, Bar: []dBarButton{}, BarTop: r.BarTop, Center: r.Center}
+		for _, o := range r.Bar {
+			dr.Bar = append(dr.Bar, button(o))
+		}
 		for _, part := range r.Parts {
-			dp := dInvPart{Area: part.Area, Cols: part.Cols, Slots: []dInvSlot{}, Big: part.Big, Arrow: part.Arrow}
+			dp := dInvPart{Area: part.Area, Cols: part.Cols, Slots: []dInvSlot{}, Big: part.Big, Arrow: part.Arrow, Off: part.Off}
+			if g := part.Gauge; g != nil {
+				fill := 0
+				if g.Max > 0 {
+					fill = min(100, max(0, g.Value*100/g.Max))
+				}
+				dp.Gauge = &dGauge{Kind: g.Kind, Fill: fill, Tip: untoken(g.Tip)}
+			}
+			if pr := part.Progress; pr != nil {
+				look := "progress"
+				if pr.Ring {
+					look = "cycle"
+				}
+				dp.Progress = &dProgress{Icon: oreIcon("textures/items/" + look + "_" + strconv.Itoa(min(10, max(0, pr.Pct/10)))), Tip: untoken(pr.Tip)}
+			}
 			if part.Button != nil {
 				b := dBarButton{ID: l.id(part.Button.Run), Tip: untoken(part.Button.Label), Icon: oreIcon(part.Button.Icon), Quick: true}
 				dp.Button = &b
@@ -303,7 +414,7 @@ const bookField = "booksearch"
 
 func invSlotData(id string, sl InvSlot) dInvSlot {
 	tip, rare := slotDeco(sl.Tip)
-	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Empty: oreIcon(sl.Empty), Dim: sl.Dim}
+	return dInvSlot{ID: id, Icon: oreIcon(sl.Icon), Count: sl.Count, Tip: tip, Rare: int(rare), Empty: oreIcon(sl.Empty), Dim: sl.Dim, Off: sl.Off}
 }
 
 // parseSlotRef reads an Area:index slot id.

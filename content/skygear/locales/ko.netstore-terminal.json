@@ -19,5 +19,22 @@
  "netstore.terminal.bookCan": "만들 수 있는 것만 보입니다. 누르면 모든 레시피를 봅니다",
  "netstore.terminal.bookAll": "모든 레시피가 보입니다. 누르면 만들 수 있는 것만 봅니다",
  "netstore.terminal.bookTip": "클릭: 제작 칸에 놓기 · 쉬프트: 한 묶음 만들기 · 우클릭: 하나 만들기",
- "netstore.terminal.bookNone": "§7네트워크와 인벤토리로 만들 수 있는 것이 없습니다"
+ "netstore.terminal.bookNone": "§7네트워크와 인벤토리로 만들 수 있는 것이 없습니다",
+ "netstore.terminal.sortDesc": "정렬 방향: 내림차순",
+ "netstore.terminal.sortAsc": "정렬 방향: 오름차순",
+ "netstore.terminal.sortCount": "정렬 기준: 개수",
+ "netstore.terminal.sortName": "정렬 기준: 이름",
+ "netstore.terminal.takeAll": "모두 꺼내기",
+ "netstore.terminal.takeMatching": "있는 것만 꺼내기\n§7인벤토리에 든 아이템을 한 묶음까지 채웁니다",
+ "netstore.terminal.putAll": "모두 넣기\n§7핫바는 빼고 넣습니다",
+ "netstore.terminal.putMatching": "있는 것만 넣기\n§7네트워크에 있는 아이템만 넣습니다",
+ "netstore.terminal.sortInventory": "인벤토리 정렬",
+ "netstore.controller.on": "§a네트워크가 켜져 있습니다",
+ "netstore.controller.many": "§c컨트롤러가 둘 이상이라 네트워크가 꺼져 있습니다",
+ "netstore.controller.cap": "§c블록이 %d개를 넘어 네트워크가 꺼져 있습니다",
+ "netstore.controller.use": "§7소모: §f%d RE/t",
+ "netstore.controller.energy": "§7에너지: §f%d / %d RE",
+ "netstore.controller.unlimited": "§7에너지: §f무한",
+ "netstore.controller.nodes": "§7연결된 블록: §f%d / %d",
+ "netstore.controller.kindUse": "§7%d개 · %d RE/t"
 }

@@ -102,6 +102,9 @@ func showLook(s *core.Session, p *player.Player, tx *world.Tx, at cube.Pos, b wo
 		waila.Clear(p)
 		return
 	}
+	if p.Sneaking() {
+		machine.PeekRange(tx, at, b)
+	}
 	waila.Show(p, Info(s, p, tx, at, b))
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/invclick"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/decor"
@@ -162,12 +163,42 @@ func runCrafter(s *core.Session, st *State) {
 	st.Progress = 0
 }
 
-// crafterPage is how many recipes the list shows at once.
-const crafterPage = 36
+// stateSlots is some of a machine's window slots, as an invclick area; put
+// tells which take an item put in (an input, or nothing for the outputs).
+type stateSlots struct {
+	st    *State
+	slots []int
+	put   bool
+}
 
-// showCrafterRecipes lists the researched recipes (a page of them) to pick
-// the one the crafter at pos makes.
-func showCrafterRecipes(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st *State, page int) {
+func (a stateSlots) Len() int { return len(a.slots) }
+func (a stateSlots) Item(i int) item.Stack {
+	it, _ := a.st.Inv().Item(a.slots[i])
+	return it
+}
+func (a stateSlots) Set(i int, it item.Stack) { _ = a.st.Inv().SetItem(a.slots[i], it) }
+func (a stateSlots) Accepts(i int, it item.Stack) bool {
+	return a.put && a.st.SlotAccepts(a.slots[i], it)
+}
+
+// crafterStatus says what the crafter does: its recipe and what it lacks,
+// and its energy.
+func crafterStatus(lang string, st *State) string {
+	line := i18n.T(lang, "crafter.status.none")
+	if st.Recipe != nil {
+		line = "§f" + naming.ItemName(lang, st.Recipe.Out) + " · "
+		if _, ok := st.CrafterPlan(st.Recipe); ok {
+			line += i18n.T(lang, "crafter.status.working")
+		} else {
+			line += fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), CrafterMissing(lang, st))
+		}
+	}
+	return strings.Join(append([]string{line}, ConsumerLines(lang, st)...), "\n")
+}
+
+// showCrafter is the crafter's window: the researched recipes to pick the
+// one it makes, its 3×3 store and outputs, and the player's inventory.
+func showCrafter(s *core.Session, p *player.Player, pos cube.Pos, st *State) {
 	lang := i18n.Of(p)
 	var all []*machinerecipe.Crafter
 	open := crafterOpener(s)
@@ -177,30 +208,78 @@ func showCrafterRecipes(s *core.Session, p *player.Player, tx *world.Tx, pos cub
 		}
 	}
 	sort.SliceStable(all, func(i, j int) bool { return naming.ItemName(lang, all[i].Out) < naming.ItemName(lang, all[j].Out) })
-	pages := max(1, (len(all)+crafterPage-1)/crafterPage)
-	page = min(max(page, 0), pages-1)
-	var slots []ui.ItemSlot
-	for _, cr := range all[min(page*crafterPage, len(all)):min((page+1)*crafterPage, len(all))] {
-		count := ""
+	recipes := make([]ui.InvSlot, len(all))
+	for i, cr := range all {
+		sl := ui.InvSlot{Icon: formicon.Of(cr.Out), Tip: decor.TipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n")}
 		if cr.Out.Count() > 1 {
-			count = fmt.Sprint(cr.Out.Count())
+			sl.Count = fmt.Sprint(cr.Out.Count())
 		}
-		slots = append(slots, ui.ItemSlot{
-			Icon: formicon.Of(cr.Out), Count: count, Tip: decor.TipName(lang, cr.Out) + "\n" + strings.Join(cr.Tip(lang), "\n"),
-			Run: func(p *player.Player, tx *world.Tx) {
-				if tx.World() != s.World {
-					return
-				}
-				st.SetRecipe(cr)
-			},
-		})
+		if st.Recipe == cr {
+			sl.Count = "§a✔"
+		}
+		recipes[i] = sl
 	}
-	actions := ui.Pager(p, page, pages, func(p *player.Player, tx *world.Tx, to int) { showCrafterRecipes(s, p, tx, pos, st, to) })
-	actions = append(actions, ui.Option{Label: i18n.T(lang, "crafter.clear"), Run: func(p *player.Player, tx *world.Tx) {
-		if tx.World() == s.World {
-			st.clearRecipe()
+	for len(recipes) < 9 || len(recipes)%9 != 0 {
+		recipes = append(recipes, ui.InvSlot{})
+	}
+	tipOf := func(it item.Stack) string {
+		if it.Empty() {
+			return ""
 		}
-	}})
-	body := fmt.Sprintf(i18n.T(lang, "crafter.body"), page+1, pages, len(all))
-	ui.ItemGrid(p, i18n.T(lang, "crafter.title"), body, slots, actions...)
+		return decor.TipName(lang, it)
+	}
+	in, out := stateSlots{st, st.Def.Input, true}, stateSlots{st, st.Def.Output, false}
+	main, hot := invclick.Main(p.Inventory()), invclick.Hotbar(p.Inventory())
+	slotsOf := func(a invclick.Area) []ui.InvSlot {
+		sl := make([]ui.InvSlot, a.Len())
+		for i := range sl {
+			sl[i] = ui.StackSlot(a.Item(i), tipOf(a.Item(i)))
+		}
+		return sl
+	}
+	result := ui.InvSlot{}
+	if st.Recipe != nil {
+		result = ui.StackSlot(st.Recipe.Out, tipOf(st.Recipe.Out))
+	}
+	clear := ui.Option{Label: i18n.T(lang, "crafter.clear"), Icon: "textures/ui/cancel", Run: func(p *player.Player, tx *world.Tx) {
+		st.clearRecipe()
+		showCrafter(s, p, pos, st)
+	}}
+	areas := map[string]invclick.Area{"in": in, "out": out, "inv": main, "hotbar": hot}
+	ui.ShowInventory(p, ui.InventoryScreen{
+		Title: i18n.T(lang, "machine.crafter.name"),
+		Info:  crafterStatus(lang, st),
+		Rows: []ui.InvRow{
+			{Grow: true, Parts: []ui.InvPart{{Area: "recipe", Cols: 9, Slots: recipes}}},
+			{Heading: i18n.T(lang, "crafter.window.store"), Parts: []ui.InvPart{
+				{Area: "in", Cols: 3, Slots: slotsOf(in)},
+				{Arrow: true},
+				{Area: "result", Cols: 1, Big: true, Slots: []ui.InvSlot{result}},
+				{Area: "out", Cols: 2, Slots: slotsOf(out)},
+				{Button: &clear},
+			}},
+			{Heading: i18n.T(lang, "crafter.window.inventory"), Parts: []ui.InvPart{{Area: "inv", Cols: 9, Slots: slotsOf(main)}}},
+			{Parts: []ui.InvPart{{Area: "hotbar", Cols: 9, Slots: slotsOf(hot)}}},
+		},
+		Slot: func(p *player.Player, tx *world.Tx, a ui.SlotAct) {
+			if m, ok := tx.Block(pos).(Machine); tx.World() != s.World || !ok || m.State != st {
+				return
+			}
+			switch area, ok := areas[a.Area]; {
+			case a.Area == "recipe" && a.Index < len(all):
+				st.SetRecipe(all[a.Index])
+			case !ok || a.Index >= area.Len():
+			case a.Shift && (a.Area == "in" || a.Area == "out"):
+				area.Set(a.Index, invclick.Move(area.Item(a.Index), hot, main))
+			case a.Shift:
+				it := area.Item(a.Index)
+				area.Set(a.Index, it.Grow(-st.Fill(it)))
+			default:
+				ui.SetCarried(p, invclick.Click(area, a.Index, a.Carried, a.Right))
+			}
+			showCrafter(s, p, pos, st)
+		},
+		Again: func(p *player.Player, tx *world.Tx) { showCrafter(s, p, pos, st) },
+		Size:  "crafter",
+	})
 }

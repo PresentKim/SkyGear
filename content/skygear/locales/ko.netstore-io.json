@@ -1,12 +1,13 @@
 {
  "netstore.io.title": "필터",
- "netstore.io.body.net_importer": "가져올 물건을 고르세요. 아무것도 고르지 않으면 앞에 있는 상자의 모든 물건을 가져옵니다.",
- "netstore.io.body.net_exporter": "내보낼 물건을 고르세요. 아무것도 고르지 않으면 아무것도 내보내지 않습니다.",
- "netstore.io.body.net_external": "이 저장소에 넣고 뺄 물건을 고르세요. 아무것도 고르지 않으면 모두 다룹니다.",
- "netstore.io.allow": "고른 물건만",
- "netstore.io.deny": "고른 물건 빼고",
- "netstore.io.prioUp": "우선순위 올리기",
- "netstore.io.prioDown": "우선순위 내리기",
- "netstore.io.priority": "우선순위: %d",
- "netstore.io.empty": "§7고른 물건이 없습니다"
+ "netstore.io.body.net_importer": "머리를 댄 칸에서 망으로 가져올 아이템. 비워 두면 모두 가져옵니다",
+ "netstore.io.body.net_exporter": "망에서 꺼내 머리를 댄 칸에 넣을 아이템. 비워 두면 내보내지 않습니다",
+ "netstore.io.body.net_external": "이 저장공간에 넣고 뺄 아이템. 비워 두면 모두 다룹니다",
+ "netstore.io.allow": "모드: 화이트리스트\n§7필터의 아이템만",
+ "netstore.io.deny": "모드: 블랙리스트\n§7필터의 아이템 빼고",
+ "netstore.io.prioUp": "우선 순위 올리기",
+ "netstore.io.prioDown": "우선 순위 내리기",
+ "netstore.io.priority": "우선 순위: %d",
+ "netstore.io.upgrades": "업그레이드",
+ "netstore.io.speed": "§7%d틱마다 %d개씩"
 }

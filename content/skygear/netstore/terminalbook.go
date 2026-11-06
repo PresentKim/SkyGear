@@ -48,10 +48,11 @@ var bookTabs = []struct {
 var searchTab = len(bookTabs) - 1
 
 var (
-	// bookAll are the players whose book shows the recipes they cannot make
-	// too.
-	bookAll = core.NewPlayers[bool]()
-	// bookTab is the tab each player's book shows (bookTabs).
+	// bookCanOnly are the players whose book hides the recipes they cannot
+	// make; every other book shows all of them.
+	bookCanOnly = core.NewPlayers[bool]()
+	// bookTab is the tab each player's book shows (bookTabs; the search tab,
+	// every recipe, until one is picked).
 	bookTab = core.NewPlayers[int]()
 	// bookQuery is the search of each player's search tab.
 	bookQuery = core.NewPlayers[string]()
@@ -177,8 +178,8 @@ func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area) [
 	lang := i18n.Of(p)
 	inv := p.Inventory()
 	st := newStock(n, invclick.Hotbar(inv), invclick.Main(inv), grid)
-	all := bookAll.Of(s)[p.H()]
-	tab := bookTab.Of(s)[p.H()]
+	all := !bookCanOnly.Of(s)[p.H()]
+	tab := openTab(s, p)
 	query := strings.TrimSpace(bookQuery.Of(s)[p.H()])
 	var can, cannot []bookEntry
 	for _, cr := range machinerecipe.Crafters() {
@@ -204,9 +205,16 @@ func bookOf(s *core.Session, p *player.Player, n *Network, grid invclick.Area) [
 	return out
 }
 
+func openTab(s *core.Session, p *player.Player) int {
+	if t, ok := bookTab.Of(s)[p.H()]; ok {
+		return t
+	}
+	return searchTab
+}
+
 func bookPanel(s *core.Session, p *player.Player, book []bookEntry, again func(p *player.Player, tx *world.Tx)) *ui.InvBook {
 	lang := i18n.Of(p)
-	open := bookTab.Of(s)[p.H()]
+	open := openTab(s, p)
 	b := &ui.InvBook{}
 	for i, t := range bookTabs {
 		b.Tabs = append(b.Tabs, ui.InvTab{Label: i18n.T(lang, t.key), Icon: t.icon, On: i == open, End: i == searchTab, Run: func(p *player.Player, tx *world.Tx) {
@@ -223,11 +231,11 @@ func bookPanel(s *core.Session, p *player.Player, book []bookEntry, again func(p
 		b.Title = i18n.T(lang, bookTabs[open].key)
 	}
 	key, icon := "netstore.terminal.bookCan", "textures/ui/craft_toggle_on"
-	if bookAll.Of(s)[p.H()] {
+	if !bookCanOnly.Of(s)[p.H()] {
 		key, icon = "netstore.terminal.bookAll", "textures/ui/craft_toggle_off"
 	}
 	b.Filter = &ui.Option{Label: i18n.T(lang, key), Icon: icon, Run: func(p *player.Player, tx *world.Tx) {
-		bookAll.Of(s)[p.H()] = !bookAll.Of(s)[p.H()]
+		bookCanOnly.Of(s)[p.H()] = !bookCanOnly.Of(s)[p.H()]
 		again(p, tx)
 	}}
 	for _, e := range book {

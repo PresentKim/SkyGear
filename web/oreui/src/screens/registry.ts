@@ -9,6 +9,7 @@ import { HomeScreen } from './home';
 import { ProbeScreen } from './probe';
 import { EquipScreen, PickScreen, ResultScreen } from './showcase';
 import { InventoryScreen } from './inventory';
+import { StepperScreen } from './stepper';
 
 /** screens maps a screen name to its component; the data's type follows the name (Confirm is a menu). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,4 +36,5 @@ export const screens: Record<ScreenName, (props: { data: any }) => JSX.Element> 
   console: ConsoleScreen,
   probe: ProbeScreen,
   inventory: InventoryScreen,
+  stepper: StepperScreen,
 };

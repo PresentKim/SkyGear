@@ -64,6 +64,20 @@ func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 	}
 }
 
+func TestGeneratorOutOfFuelPushesStoredEnergy(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	gen := placeTestMachine(s, machinePos, machine.KindGenerator, "")
+	gen.Unlimited = false
+	gen.Energy = 9605
+	sink := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher, "")
+	sink.Unlimited = false
+	runSteps(s, 20)
+	if sink.Energy == 0 || gen.Energy >= 9605 {
+		t.Fatalf("generator %d RE, neighbour %d RE", gen.Energy, sink.Energy)
+	}
+}
+
 // TestPowerLine: a generator, two conduits and a crusher: the crusher gets
 // energy and works; without the generator it stalls.
 func TestPowerLine(t *testing.T) {

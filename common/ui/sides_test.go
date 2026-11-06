@@ -10,35 +10,8 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 )
 
-func abs(n int) int { return max(n, -n) }
-
-func TestSideCardsStayApartInTheView(t *testing.T) {
-	seen := map[cube.Face][2]int{}
-	for _, f := range cube.Faces() {
-		x, y, _ := sideCard(f)
-		if x < 0 || y < 0 || x+cardW > sidesW || y+cardH > sidesH {
-			t.Errorf("%v at %d,%d is outside the view", f, x, y)
-		}
-		for other, o := range seen {
-			if abs(x-o[0]) < cardW && abs(y-o[1]) < cardH {
-				t.Errorf("%v at %d,%d overlaps %v at %v", f, x, y, other, o)
-			}
-		}
-		seen[f] = [2]int{x, y}
-	}
-	if sidesW > windowW-4 || sidesH > windowH-18 {
-		t.Errorf("view %dx%d does not fit a %dx%d window", sidesW, sidesH, windowW, windowH)
-	}
-	cx, cy := sidesW/2-centreSize/2, sidesH/2-centreSize/2
-	for f, o := range seen {
-		if cx < o[0]+cardW && o[0] < cx+centreSize && cy < o[1]+cardH && o[1] < cy+centreSize {
-			t.Errorf("%v covers the block in the middle", f)
-		}
-	}
-}
-
-// sidesBoard is a board whose sides all have one port of three choices;
-// chosen records the choice a Run set.
+// sidesBoard is a board whose sides all have one port of three choices and
+// are named by their cube.Face; chosen records the choice a Run set.
 func sidesBoard(chosen *int, chosenAt int) SideBoard {
 	choices := make([]PortChoice, 3)
 	for i := range choices {
@@ -46,9 +19,30 @@ func sidesBoard(chosen *int, chosenAt int) SideBoard {
 	}
 	var b SideBoard
 	for i := range b.Sides {
+		b.Sides[i].Name = cube.Face(i).String()
 		b.Sides[i].Ports = []SidePort{{Label: "port", Chosen: chosenAt, Choices: choices}}
 	}
 	return b
+}
+
+func TestSidesCardOrder(t *testing.T) {
+	var ls []*oreLayout
+	var lays []any
+	oreShown = func(l *oreLayout, lay any) { ls = append(ls, l); lays = append(lays, lay) }
+	defer func() { oreShown = nil }()
+	var chosen int
+	b := sidesBoard(&chosen, 0)
+	b.Guide = "guide"
+	SidesMenu(nil, "sides", b)
+	d := lastSides(t, ls[0], lays[0])
+	var got []string
+	for _, c := range d.Cards {
+		got = append(got, c.Name)
+	}
+	want := []string{"west", "up", "east", "north", "down", "south"}
+	if strings.Join(got, " ") != strings.Join(want, " ") || d.Guide != "guide" {
+		t.Errorf("cards %v guide %q", got, d.Guide)
+	}
 }
 
 func lastSides(t *testing.T, l *oreLayout, lay any) sidesData {
@@ -92,9 +86,9 @@ func TestSidesCycle(t *testing.T) {
 
 func mustJSON(v any) []byte { b, _ := json.Marshal(v); return b }
 
-// TestSidesPickerPlace (picker_place): a plus opens the picker of its port
-// and the picker of a bottom-row card is above it.
-func TestSidesPickerPlace(t *testing.T) {
+// TestSidesPicker (picker): a plus opens the picker of its port and a choice
+// in it closes it.
+func TestSidesPicker(t *testing.T) {
 	var chosen int
 	var ls []*oreLayout
 	var lays []any
@@ -105,19 +99,14 @@ func TestSidesPickerPlace(t *testing.T) {
 	if d.Picker != nil {
 		t.Fatal("picker open at first")
 	}
-	down := int(cube.FaceDown)
+	down := 4
 	ls[0].runs[d.Cards[down].Ports[0].Plus.ID](nil, nil)
 	d = lastSides(t, ls[1], lays[1])
 	if d.Picker == nil || !d.Cards[down].Ports[0].Plus.On {
 		t.Fatalf("picker %+v", d.Picker)
 	}
-	_, cy, _ := sideCard(cube.FaceDown)
-	h := choiceSize + 2*pickerPad
-	if d.Picker.Y != cy-h-2 || d.Picker.W != pickerCols*choiceSize+2*pickerPad || len(d.Picker.Choices) != 3 || !d.Picker.Choices[1].On {
-		t.Errorf("picker %+v, want y %d", d.Picker, cy-h-2)
-	}
-	if d.Cards[down].Y != cy {
-		t.Errorf("card y %d", d.Cards[down].Y)
+	if len(d.Picker.Choices) != 3 || !d.Picker.Choices[1].On {
+		t.Errorf("picker %+v", d.Picker)
 	}
 	ls[1].runs[d.Picker.Choices[2].ID](nil, nil)
 	if chosen != 2 || len(ls) != 3 || lastSides(t, ls[2], lays[2]).Picker != nil {

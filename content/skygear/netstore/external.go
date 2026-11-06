@@ -22,7 +22,7 @@ func extID(pos cube.Pos) string { return "ext@" + configKey(pos) }
 
 // addExternal puts the external storage at pos in n.Root.
 func addExternal(tx *world.Tx, n *Network, rt *ioRT, pos cube.Pos) {
-	target, face := front(pos)
+	target, face := front(tx, pos)
 	if nodeAt(tx, target) != "" {
 		return // a network node in front: nothing to mirror
 	}

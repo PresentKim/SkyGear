@@ -312,9 +312,27 @@ func (d Drawer) Tick(tick int64, pos cube.Pos, tx *world.Tx) {
 	ensureDisplay(s, tx, pos, d)
 }
 
+// SneakUse opens the drawer menu when p sneaks and uses the drawer at pos
+// holding an item that is not a block: Dragonfly places a held item instead
+// of calling Activate while the player sneaks, so this runs from the use
+// handler. It reports whether the menu took the click.
+func SneakUse(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, held item.Stack) bool {
+	if _, ok := tx.Block(pos).(Drawer); !ok || !p.Sneaking() || held.Empty() || !island.CanBuild(s, pos) {
+		return false
+	}
+	if _, block := held.Item().(world.Block); block {
+		return false
+	}
+	if !s.Debounced(p) {
+		showDrawer(s, p, pos)
+	}
+	return true
+}
+
 // Activate inserts the held stack (or all matching items on a double use)
 // when the front face is used, or applies an upgrade. Sneaking with an empty
-// hand opens the drawer menu from any face.
+// hand opens the drawer menu from any face (with another item that is not a
+// block, SneakUse does).
 func (d Drawer) Activate(pos cube.Pos, face cube.Face, tx *world.Tx, u item.User, _ *item.UseContext) bool {
 	p, ok := u.(*player.Player)
 	s, ok2 := core.Of(tx)

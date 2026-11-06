@@ -4,7 +4,7 @@ export type Text = string // may carry § colour codes and client spans (U+FDD0 
 
 export type ScreenName =
   | 'menu' | 'cards' | 'pick' | 'result' | 'equip' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
-  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory'
+  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory' | 'stepper'
 
 export interface Root {
   screen: ScreenName
@@ -52,9 +52,9 @@ export interface ChoiceGroup { title: Text; choices: Choice[] }
 export interface ChoiceData { chrome: Chrome; stats: Stat[]; note: Text; groups: ChoiceGroup[]; items: ListItem[] }
 export interface Swatch { id: Id; alt: Id; colour: string; icon: Icon; tip: Text } // colour '#rrggbb', or '' and an icon
 export interface Port { label: Text; swatch: Swatch | null; plus: { id: Id; on: boolean } }
-export interface SideCard { x: number; y: number; arrow: string; name: Text; icon: Icon; tip: Text; focus: boolean; ports: Port[]; none: Text }
-export interface Picker { x: number; y: number; w: number; choices: { id: Id; colour: string; icon: Icon; tip: Text; on: boolean }[] }
-export interface SidesData { chrome: Chrome; center: Icon; cards: SideCard[]; picker: Picker | null } // x, y, w in GUI px
+export interface SideCard { name: Text; icon: Icon; tip: Text; focus: boolean; ports: Port[]; none: Text }
+export interface Picker { choices: { id: Id; colour: string; icon: Icon; tip: Text; on: boolean }[] }
+export interface SidesData { chrome: Chrome; cards: SideCard[]; guide: Text; picker: Picker | null } // cards three to a row
 export interface Spot { id: Id; at: [number, number, number, number]; on: boolean; tip: Text }
 export interface PlaneData { fov: number; dist: number; spots: Spot[]; info: Text; actions: Button[]; corner: Text }
 export interface Chapter { id: Id; name: Text; icon: Icon; count: Text; on: boolean; new: boolean } // new: it has quests tagged new
@@ -74,16 +74,21 @@ export interface ProbeData { chrome: Chrome; info: Text; nodes: ProbeNode[] }
 
 // An inventory screen: slots worked like the vanilla inventory. A slot id is "<area>:<index>"; a click
 // sends 'slot' {b: 0 left | 1 right, shift, dbl} and a drag 'drag' {b, ids}.
-export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; rare: number; empty: Icon; dim?: boolean } // empty: shown while icon is ''; dim: drawn faded
+export interface InvSlot { id: Id; icon: Icon; count: Text; tip: Text; rare: number; empty: Icon; dim?: boolean; off?: boolean } // empty: shown while icon is ''; dim: drawn faded; off: a slot that is not there, dark and pressless
 export interface InvTab { id: Id; tip: Text; icon: Icon; on: boolean; end: boolean } // end: at the right end of the tabs
 export interface InvBook { tabs: InvTab[]; title: Text; field: Id; query: Text; placeholder: Text; filter: BarButton | null; slots: InvSlot[]; note: Text } // the vanilla recipe book left of the window (slots "book:<i>"); field: the search tab's box ('' none)
-export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null }
-export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text } // grow: takes the height left and scrolls
-export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null } // quick: the tip of the quick move switch ('' none)
+export interface InvGauge { kind: string; fill: number; tip: Text } // a tall bar filled fill% from the bottom: "energy" red, "fluid" blue
+export interface InvProgress { icon: Icon; tip: Text } // a machine's progress arrow or ring
+export interface InvPart { area: string; cols: number; slots: InvSlot[]; big: boolean; arrow: boolean; button: BarButton | null; off?: boolean; gauge?: InvGauge; progress?: InvProgress } // off: dark slots that take no presses
+export interface InvRow { heading: Text; parts: InvPart[]; grow: boolean; note: Text; bar?: BarButton[]; barTop?: boolean; center?: boolean } // grow: takes the height left and scrolls; bar: buttons outside the right edge, level with the row's bottom (its top with barTop); center: the parts in the middle of the window, the gauges at its left edge
+export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeholder: Text; info: Text; rows: InvRow[]; side: BarButton[]; tools?: BarButton[]; quick: Text; book?: InvBook | null; cursor: InvSlot | null; hold?: boolean; height?: number } // quick: the tip of the quick move switch ('' none); hold: the screen hears when buttons, fingers and shift are held and let go; height: the window's height in GUI pixels (absent: the vanilla inventory's)
+
+export interface StepperItem { label: Text; value: Text; up: BarButton; down: BarButton } // an arrow with id '' is dim
+export interface StepperData { chrome: Chrome; line: Text; steppers: StepperItem[]; side: BarButton[] }
 
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
   search: SearchData; listsplit: ListSplitData; input: InputData; slotmenu: SlotMenuData; choice: ChoiceData
   sides: SidesData; plane: PlaneData; quest: QuestData; home: HomeData; loading: LoadingData
-  console: ConsoleData; probe: ProbeData; inventory: InventoryData
+  console: ConsoleData; probe: ProbeData; inventory: InventoryData; stepper: StepperData
 }

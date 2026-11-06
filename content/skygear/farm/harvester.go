@@ -54,9 +54,9 @@ func RunHarvester(s *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx
 		return
 	}
 	st.Progress = 0
-	radius := st.Reach(machine.KindHarvester)
-	for x := -radius; x <= radius; x++ {
-		for z := -radius; z <= radius; z++ {
+	a := st.Area(machine.KindHarvester)
+	for x := -a.X; x <= a.X; x++ {
+		for z := -a.Z; z <= a.Z; z++ {
 			at := pos.Add(cube.Pos{x, 0, z})
 			b := tx.Block(at)
 			if kind, _, ok := CropOf(b); ok {
