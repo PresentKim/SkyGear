@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Check the tag against Version
+        id: version
+        run: |
+          version=$(sed -n 's/^const Version = "\(.*\)"$/\1/p' cmd/skygear/version.go)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "tag $GITHUB_REF_NAME does not match Version $version" >&2
+            exit 1
+          fi
+          if [ ! -f "change_logs/$version.md" ]; then
+            echo "change_logs/$version.md is missing" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: go test ./cmd/...
+
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p dist
+          for target in windows/amd64 linux/amd64; do
+            os=${target%/*}
+            arch=${target#*/}
+            name="skygear-$VERSION-$os-$arch"
+            exe=skygear
+            [ "$os" = windows ] && exe=skygear.exe
+            mkdir -p "build/$name"
+            GOOS=$os GOARCH=$arch go build -trimpath -ldflags "-s -w" -o "build/$name/$exe" ./cmd/skygear
+            cp LICENSE NOTICE.md README.md "build/$name/"
+            if [ "$os" = windows ]; then
+              (cd build && zip -qr "../dist/$name.zip" "$name")
+            else
+              tar -C build -czf "dist/$name.tar.gz" "$name"
+            fi
+          done
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tail -n +2 "change_logs/$VERSION.md" > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* --title "$VERSION" --notes-file notes.md --verify-tag
