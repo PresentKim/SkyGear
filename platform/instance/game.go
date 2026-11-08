@@ -55,6 +55,9 @@ type Session interface {
 	// platform screen from (ScreenFriends, ...) was opened from, for that
 	// screen's back button.
 	MenuBack(p *player.Player, from string)
+	// OpenScreen shows p, in the instance world, the game's screen named
+	// screen (ScreenExpand, ...), for a platform screen's tab that opens it.
+	OpenScreen(p *player.Player, screen string)
 	// Autosave is called in the instance world on every autosave, after the
 	// clock and player states were stored. The game stores its state here.
 	Autosave(tx *world.Tx)
@@ -65,8 +68,13 @@ type Session interface {
 // The platform screens that also open inside an instance, as
 // Session.MenuBack names them.
 const (
-	ScreenFriends  = "friends"
-	ScreenMembers  = "members"
+	ScreenFriends = "friends"
+	ScreenMembers = "members"
+	// ScreenIsland is the island management of the save (the invite code
+	// and the members); ScreenExpand is the game's island expansion, its
+	// last tab.
+	ScreenIsland   = "island"
+	ScreenExpand   = "expand"
 	ScreenTitles   = "titles"
 	ScreenSettings = "settings"
 	ScreenNotify   = "notify"

@@ -25,4 +25,5 @@ const (
 	iconHead     = "textures/ui/icon_steve"
 	iconConsole  = "textures/items/book_writable"
 	iconDecline  = "textures/ui/sg/icon_decline"
+	iconExpand   = "textures/ui/sg/menu_expand"
 )

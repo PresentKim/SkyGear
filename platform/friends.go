@@ -3,6 +3,7 @@ package platform
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -21,16 +22,13 @@ const (
 	blockedTab
 )
 
-// codeRow is the id of the row with the invite code, on the friends tab
-// inside the host's save.
-const codeRow = "+code"
-
 // showFriends is the friends screen: tabs for friends, the notices and
-// blocked players. Inside a save the host invites an online friend from here.
+// blocked players. Inside a save the host invites a friend from here, also
+// one who is offline (the invite waits in their notices).
 func (pf *Platform) showFriends(p *player.Player) { pf.showFriendsAt(p, friendsTab, "") }
 
-// showFriendsAt shows the tab with the row sel chosen (an account ID or
-// codeRow; the first one when empty).
+// showFriendsAt shows the tab with the row sel chosen (an account ID; the
+// first one when empty).
 func (pf *Platform) showFriendsAt(p *player.Player, tab int, sel string) {
 	lang := i18n.Of(p)
 	var sp ui.ListSplit
@@ -78,101 +76,100 @@ func (pf *Platform) hostedSave(p *player.Player) *instance.Instance {
 	return inst
 }
 
-// friendList is the friends tab: the invite code in the host's save, the
-// row that adds a friend (pressing it asks for the name at once: no button on
-// the right does the same), then the friends, online ones first.
+// friendList is the friends tab: the row that adds a friend (pressing it
+// asks for the name at once: no button on the right does the same), then the
+// friends, close friends first and online ones before offline ones.
 func (pf *Platform) friendList(p *player.Player, sel string) (ui.ListSplit, error) {
 	lang := i18n.Of(p)
-	friends, err := pf.db.Friends(instance.AccountID(p))
+	me := instance.AccountID(p)
+	friends, err := pf.db.Friends(me)
 	if err != nil {
 		return ui.ListSplit{}, err
 	}
-	var online, offline []db.Account
+	closeOf, err := pf.db.CloseFriends(me)
+	if err != nil {
+		return ui.ListSplit{}, err
+	}
 	isOnline := map[string]bool{}
 	for _, f := range friends {
 		isOnline[f.ID] = pf.isOnline(f.ID)
-		if isOnline[f.ID] {
-			online = append(online, f)
-		} else {
-			offline = append(offline, f)
-		}
 	}
-	friends = append(online, offline...)
-	host := pf.hostedSave(p)
-	if sel == "" {
-		switch {
-		case host != nil:
-			sel = codeRow
-		case len(friends) > 0:
-			sel = friends[0].ID
+	rank := func(f db.Account) int {
+		r := 0
+		if !closeOf[f.ID] {
+			r += 2
 		}
+		if !isOnline[f.ID] {
+			r++
+		}
+		return r
+	}
+	sort.SliceStable(friends, func(i, j int) bool { return rank(friends[i]) < rank(friends[j]) })
+	host := pf.hostedSave(p)
+	if sel == "" && len(friends) > 0 {
+		sel = friends[0].ID
 	}
 	again := func(id string) func(p *player.Player, _ *world.Tx) {
 		return func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, friendsTab, id) }
 	}
-	var sp ui.ListSplit
-	if host != nil {
-		code, err := pf.inviteCode(host.Save, false)
-		if err != nil {
-			return ui.ListSplit{}, err
-		}
-		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(i18n.T(lang, "platform.friends.code"), "§e"+code), Icon: iconCode,
-			Selected: sel == codeRow, Run: again(codeRow),
-		})
-	}
-	sp.Rows = append(sp.Rows, ui.ListRow{
+	sp := ui.ListSplit{Rows: []ui.ListRow{{
 		Label: ui.ListRowText(i18n.T(lang, "platform.friends.add"), ""), Icon: iconAdd,
 		Run: func(p *player.Player, _ *world.Tx) { pf.askAddFriend(p) },
-	})
+	}}}
 	var chosen db.Account
 	for _, f := range friends {
 		if f.ID == sel {
 			chosen = f
 		}
+		name := f.Name
+		if closeOf[f.ID] {
+			name = i18n.T(lang, "platform.friends.close.mark") + name
+		}
 		sp.Rows = append(sp.Rows, ui.ListRow{
-			Label: ui.ListRowText(f.Name, pf.statusOf(lang, f.ID, isOnline[f.ID])), Icon: iconFriend,
+			Label: ui.ListRowText(name, pf.statusOf(lang, f.ID, isOnline[f.ID])), Icon: iconFriend,
 			Selected: f.ID == sel, Run: again(f.ID),
 		})
 	}
-	switch {
-	case sel == codeRow && host != nil:
-		saveID := host.Save.ID
-		sp.Body = i18n.T(lang, "platform.friends.code.body")
-		sp.Actions = []ui.Option{{Label: i18n.T(lang, "platform.invite.renew"), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
-			pf.confirm(p, i18n.T(lang, "platform.invite.renew"), i18n.T(lang, "platform.invite.renew.ask"), i18n.T(lang, "platform.invite.renew"), func(p *player.Player, _ *world.Tx) {
-				s, err := pf.db.Save(saveID)
-				if err == nil {
-					_, err = pf.inviteCode(s, true)
-				}
-				if err != nil {
-					pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
-					return
-				}
-				pf.showFriendsAt(p, friendsTab, codeRow)
-			}, again(codeRow))
-		}}}
-	case chosen.ID != "":
-		sp.Actions = pf.friendActions(p, chosen, host)
-	default:
+	if chosen.ID == "" {
 		sp.Body = i18n.T(lang, "platform.friends.none")
+		return sp, nil
 	}
+	if closeOf[chosen.ID] {
+		sp.Body = fmt.Sprintf(i18n.T(lang, "platform.friends.close.body"), chosen.Name)
+	}
+	sp.Actions = pf.friendActions(p, chosen, host, closeOf[chosen.ID])
 	return sp, nil
 }
 
 // friendActions are what can be done with a friend: invite them to the save
-// p hosts (when they are online and not in it), remove and block.
-func (pf *Platform) friendActions(p *player.Player, f db.Account, host *instance.Instance) []ui.Option {
+// p hosts (when they are not in it; one who is offline finds the invite
+// later), enter the save they play in when they made p their close friend
+// (in the lobby), make them a close friend or not, remove and block.
+func (pf *Platform) friendActions(p *player.Player, f db.Account, host *instance.Instance, isClose bool) []ui.Option {
 	lang := i18n.Of(p)
+	me := instance.AccountID(p)
 	back := func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, friendsTab, f.ID) }
 	var opts []ui.Option
-	if host != nil && pf.isOnline(f.ID) && pf.m.Location(f.ID) != host {
+	if host != nil && pf.m.Location(f.ID) != host {
 		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.friends.invite"), Icon: iconInvite, Run: func(p *player.Player, _ *world.Tx) {
 			pf.sendInvite(p, host, f)
 			pf.showFriendsAt(p, friendsTab, f.ID)
 		}})
 	}
+	if pf.m.Location(me) == nil && pf.openCloseFriendSave(p, f.ID) != nil {
+		opts = append(opts, ui.Option{Label: i18n.T(lang, "platform.friends.close.join"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
+			pf.joinCloseFriend(p, f.ID)
+		}})
+	}
+	closeLabel, closeIcon := "platform.friends.close.set", iconAccept
+	if isClose {
+		closeLabel, closeIcon = "platform.friends.close.unset", iconDecline
+	}
 	opts = append(opts,
+		ui.Option{Label: i18n.T(lang, closeLabel), Icon: closeIcon, Run: func(p *player.Player, _ *world.Tx) {
+			pf.setCloseFriend(p, f, !isClose)
+			pf.showFriendsAt(p, friendsTab, f.ID)
+		}},
 		ui.Option{Label: i18n.T(lang, "platform.friends.remove"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) {
 			pf.confirm(p, i18n.T(lang, "platform.friends.remove"), fmt.Sprintf(i18n.T(lang, "platform.friends.remove.ask"), f.Name), i18n.T(lang, "platform.friends.remove"), func(p *player.Player, _ *world.Tx) {
 				if err := pf.db.RemoveFriend(instance.AccountID(p), f.ID); err != nil {
@@ -186,6 +183,23 @@ func (pf *Platform) friendActions(p *player.Player, f db.Account, host *instance
 			func(p *player.Player, _ *world.Tx) { pf.showFriendsAt(p, friendsTab, f.ID) }),
 	)
 	return opts
+}
+
+// setCloseFriend makes f p's close friend, or not. A close friend may enter
+// p's save while p plays in it, without an invite, and becomes a member
+// then; f is told.
+func (pf *Platform) setCloseFriend(p *player.Player, f db.Account, on bool) {
+	lang := i18n.Of(p)
+	if err := pf.db.SetCloseFriend(instance.AccountID(p), f.ID, on); err != nil {
+		pf.fail(p, i18n.T(lang, "platform.friends.close.set"), err)
+		return
+	}
+	if on {
+		ui.Flash(p, i18n.T(lang, "platform.friends.close.done"), f.Name)
+		pf.notified(f.ID, "platform.friends.close.received", p.Name())
+		return
+	}
+	ui.Flash(p, i18n.T(lang, "platform.friends.close.undone"), f.Name)
 }
 
 // blockOption blocks a after asking; done runs after blocking, back on

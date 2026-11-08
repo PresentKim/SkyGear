@@ -28,7 +28,8 @@ import (
 
 // ShowIslandManage is the island management screen: the invite code (the
 // host), the members in the save (the host, or an operator) and the island
-// expansion. The first two are the platform's screens (/invite, /members).
+// expansion. The first two open the platform's tabbed island screen on that
+// tab (/invite, /members), whose last tab is the island expansion.
 func ShowIslandManage(s *core.Session, p *player.Player) {
 	lang := i18n.Of(p)
 	var opts []ui.Option

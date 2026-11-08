@@ -231,6 +231,9 @@ func (inst *Instance) Host() string { return inst.host }
 // (Session.MenuBack). It must run in the instance world.
 func (inst *Instance) MenuBack(p *player.Player, from string) { inst.session.MenuBack(p, from) }
 
+// OpenScreen shows p the game's screen named screen (Session.OpenScreen).
+func (inst *Instance) OpenScreen(p *player.Player, screen string) { inst.session.OpenScreen(p, screen) }
+
 // Players returns the number of players in the instance.
 func (inst *Instance) Players() int {
 	inst.mu.Lock()

@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -26,7 +25,6 @@ type Save struct {
 	Owner        string
 	Slot         int
 	Name         string
-	InviteCode   string
 	InstanceTime time.Duration
 	Day          int
 	DayTime      time.Duration
@@ -34,12 +32,12 @@ type Save struct {
 	LastPlayed   time.Time
 }
 
-const saveColumns = `id, owner, slot, name, COALESCE(invite_code, ''), instance_time, day, day_time, created_at, last_played`
+const saveColumns = `id, owner, slot, name, instance_time, day, day_time, created_at, last_played`
 
 func scanSave(row interface{ Scan(...any) error }) (Save, error) {
 	var s Save
 	var it, dt, created, played int64
-	err := row.Scan(&s.ID, &s.Owner, &s.Slot, &s.Name, &s.InviteCode, &it, &s.Day, &dt, &created, &played)
+	err := row.Scan(&s.ID, &s.Owner, &s.Slot, &s.Name, &it, &s.Day, &dt, &created, &played)
 	if err != nil {
 		return Save{}, notFound(err)
 	}
@@ -294,22 +292,4 @@ func (d *DB) JoinedSaves(accountID string) ([]Save, error) {
 	return scanSaves(d.sql.Query(`SELECT `+saveColumns+`
 		FROM saves s JOIN save_members m ON m.save_id = s.id
 		WHERE m.account_id = ? AND m.left_at IS NULL AND m.role != ? ORDER BY s.last_played DESC`, accountID, RoleHost))
-}
-
-// SetInviteCode stores the invite code of a save. It returns ErrCodeTaken
-// if another save uses the code.
-func (d *DB) SetInviteCode(saveID int64, code string) error {
-	_, err := d.sql.Exec(`UPDATE saves SET invite_code = ? WHERE id = ?`, code, saveID)
-	if err != nil && strings.Contains(err.Error(), "UNIQUE") {
-		return ErrCodeTaken
-	}
-	return err
-}
-
-// ErrCodeTaken is returned when an invite code is already used.
-var ErrCodeTaken = errors.New("db: invite code taken")
-
-// SaveByInviteCode finds the save with an invite code.
-func (d *DB) SaveByInviteCode(code string) (Save, error) {
-	return scanSave(d.sql.QueryRow(`SELECT `+saveColumns+` FROM saves WHERE invite_code = ?`, code))
 }

@@ -84,3 +84,12 @@ func formatDuration(lang string, d time.Duration) string {
 	}
 	return fmt.Sprintf(i18n.T(lang, "platform.time.min"), m)
 }
+
+// formatLeft is how long is left of a wait: in days from a day on, else as
+// formatDuration.
+func formatLeft(lang string, d time.Duration) string {
+	if days := int(d.Hours()) / 24; days > 0 {
+		return fmt.Sprintf(i18n.T(lang, "platform.time.days"), days)
+	}
+	return formatDuration(lang, d)
+}

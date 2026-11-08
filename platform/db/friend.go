@@ -129,7 +129,8 @@ func (d *DB) RemoveFriend(a, b string) error {
 	return err
 }
 
-// Block makes a block b: their friendship and requests are removed.
+// Block makes a block b: their friendship, requests and invites to each
+// other's saves are removed.
 func (d *DB) Block(a, b string) error {
 	if a == b {
 		return ErrSelf
@@ -138,6 +139,10 @@ func (d *DB) Block(a, b string) error {
 		return err
 	}
 	if _, err := d.sql.Exec(`DELETE FROM friend_requests WHERE (from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)`, a, b, b, a); err != nil {
+		return err
+	}
+	if _, err := d.sql.Exec(`DELETE FROM save_invites WHERE (to_id = ? AND save_id IN (SELECT id FROM saves WHERE owner = ?))
+		OR (to_id = ? AND save_id IN (SELECT id FROM saves WHERE owner = ?))`, b, a, a, b); err != nil {
 		return err
 	}
 	_, err := d.sql.Exec(`INSERT INTO blocks (account_id, blocked_id, created_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING`, a, b, now())
@@ -170,4 +175,47 @@ func (d *DB) accounts(q string, args ...any) ([]Account, error) {
 		out = append(out, a)
 	}
 	return out, rows.Err()
+}
+
+// SetCloseFriend marks (or unmarks) the friend f as a's close friend: f may
+// enter a's open save without an invite. It returns ErrNotFound when they
+// are not friends.
+func (d *DB) SetCloseFriend(a, f string, on bool) error {
+	res, err := d.sql.Exec(`UPDATE friends SET close_friend = ? WHERE account_id = ? AND friend_id = ?`, on, a, f)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// IsCloseFriend reports if a marked f as a close friend.
+func (d *DB) IsCloseFriend(a, f string) (bool, error) {
+	return d.exists(`SELECT 1 FROM friends WHERE account_id = ? AND friend_id = ? AND close_friend != 0`, a, f)
+}
+
+// CloseFriends returns the IDs of the friends a marked as close friends.
+func (d *DB) CloseFriends(a string) (map[string]bool, error) {
+	rows, err := d.sql.Query(`SELECT friend_id FROM friends WHERE account_id = ? AND close_friend != 0`, a)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
+// CloseFriendOf returns the accounts that marked f as their close friend:
+// the hosts whose open saves f may enter. Ordered by name.
+func (d *DB) CloseFriendOf(f string) ([]Account, error) {
+	return d.accounts(`SELECT `+accountColumns+` FROM friends c JOIN accounts a ON a.id = c.account_id WHERE c.friend_id = ? AND c.close_friend != 0 ORDER BY a.name COLLATE NOCASE`, f)
 }
