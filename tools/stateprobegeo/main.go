@@ -15,7 +15,8 @@
 //   - state_probe_bones.geo.json (mode bones): 3 geometries,
 //     geometry.skygear.state_probe_bones_<kind>, with the core and all six
 //     arms as bones for bone_visibility to switch.
-//   - state_probe_four.geo.json (modes single4, same4, all4): the same with
+//   - state_probe_four.geo.json (modes single4, same4, all4, all4split, pair2;
+//     pair2 uses only state_probe_two_energy_item and _fluid_network): the same with
 //     four kinds (network added), bones named per kind and faces with a
 //     material instance per kind, for one kind (4) and for each pair (6)
 //     (fourGeometries).

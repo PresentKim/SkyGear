@@ -14,7 +14,8 @@ import (
 // permutations that switch the bones of one geometry; "single4", "same4" and
 // "all4" model four conduit kinds (network added) with the bones technique,
 // all4 drawing any two kinds in one block (443,906 states); "all4split" is
-// all4 with the states split over blocks of at most 65,536 states each.
+// all4 with the states split over blocks of at most 65,536 states each; "pair2"
+// is two blocks of two kinds each (any tier and faces), 74,498 states.
 const StateProbeEnv = "SKYGEAR_STATE_PROBE"
 
 // The probe modes.
@@ -30,6 +31,9 @@ const (
 	// StateProbeAll4Split is all4 with each layer split into 7 block names of
 	// at most 65,536 states (the client may know no more of a name).
 	StateProbeAll4Split = "all4split"
+	// StateProbePair2 is two fixed pair blocks (energy + item, fluid + network),
+	// each drawing its two kinds with any tier and faces (37,249 states a block).
+	StateProbePair2 = "pair2"
 )
 
 // stateProbeFiles are the pack files of the probe by mode, written by
@@ -43,6 +47,7 @@ var stateProbeFiles = map[string]string{
 	StateProbeAll4:    "models/blocks/state_probe_four.geo.json",
 
 	StateProbeAll4Split: "models/blocks/state_probe_four.geo.json",
+	StateProbePair2:     "models/blocks/state_probe_four.geo.json",
 }
 
 var stateProbeMode = sync.OnceValue(func() string { return parseStateProbeMode(os.Getenv(StateProbeEnv)) })
@@ -50,12 +55,12 @@ var stateProbeMode = sync.OnceValue(func() string { return parseStateProbeMode(o
 // StateProbeMode is the mode of the state count probe, read once from
 // SKYGEAR_STATE_PROBE: StateProbeOff (also for any other value),
 // StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4,
-// StateProbeAll4 or StateProbeAll4Split.
+// StateProbeAll4, StateProbeAll4Split or StateProbePair2.
 func StateProbeMode() string { return stateProbeMode() }
 
 func parseStateProbeMode(v string) string {
 	switch v = strings.ToLower(strings.TrimSpace(v)); v {
-	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split:
+	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split, StateProbePair2:
 		return v
 	}
 	return StateProbeOff

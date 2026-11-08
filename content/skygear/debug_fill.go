@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"slices"
 	"sync"
 	"time"
 
@@ -207,9 +208,23 @@ func probeLookOf(ks ...fillKind) probeLook {
 //     them, layer 0 one of the others (empty, value 0, when there is none),
 //     the rest are left out; with no such pair as single4.
 //   - all4, all4split: layer 0 the first two, layer 1 the others: all are drawn.
+//   - pair2: the looks are those of its two blocks, not of the storage layers:
+//     l0 the kinds energy and item (block 0), l1 fluid and network (block 1); all
+//     are drawn (cell puts the non-empty blocks on layer 0, then 1).
 func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
 	ks := l.k[:l.n]
 	switch mode {
+	case assets.StateProbePair2:
+		for _, k := range ks {
+			if k.kind < 2 {
+				l0.k[l0.n] = k
+				l0.n++
+			} else {
+				l1.k[l1.n] = k
+				l1.n++
+			}
+		}
+		return l0, l1, 0
 	case assets.StateProbeAll4, assets.StateProbeAll4Split:
 		if len(ks) <= 2 {
 			return probeLookOf(ks...), probeLook{}, 0
@@ -245,6 +260,9 @@ func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
 // always (value 0 when it draws nothing), layer 1 when it draws something;
 // lost is how many conduits are left out, false when the probe is off.
 func (l fillShape) cell(pos cube.Pos) (c fillCell, lost int, ok bool) {
+	if stateProbePair2(stateProbeMode) {
+		return l.cellPair2(pos)
+	}
 	l0, l1, lost := l.place(stateProbeMode)
 	v0, ok0 := stateProbeEncode(stateProbeMode, 0, l0)
 	b0, ok := stateProbeBlock(0, v0)
@@ -255,6 +273,42 @@ func (l fillShape) cell(pos cube.Pos) (c fillCell, lost int, ok bool) {
 	if l1.n > 0 {
 		v1, _ := stateProbeEncode(stateProbeMode, 1, l1)
 		c.b1, _ = stateProbeBlock(1, v1)
+	}
+	return c, lost, true
+}
+
+// cellPair2 is cell in mode pair2: the pair blocks that are non-empty fill
+// layer 0 first, then layer 1 (block 0 before block 1; block 1 alone goes on
+// layer 0, since layer 1 draws over a visible layer 0 only). lost counts the
+// conduits of the look that the blocks put, decoded again, do not draw.
+func (l fillShape) cellPair2(pos cube.Pos) (c fillCell, lost int, ok bool) {
+	l0, l1, _ := l.place(stateProbeMode)
+	c = fillCell{pos: pos}
+	var drawn []fillKind
+	for blk, pl := range []probeLook{l0, l1} {
+		if pl.n == 0 {
+			continue
+		}
+		v, ok := stateProbeEncode(stateProbeMode, blk, pl)
+		b, ok2 := stateProbeBlock(blk, v)
+		if !ok || !ok2 {
+			continue
+		}
+		if c.b0 == nil {
+			c.b0 = b
+		} else {
+			c.b1 = b
+		}
+		back, _ := stateProbeDecode(stateProbeMode, blk, v)
+		drawn = append(drawn, back.k[:back.n]...)
+	}
+	if c.b0 == nil {
+		return fillCell{}, 0, false
+	}
+	for _, k := range l.k[:l.n] {
+		if !slices.Contains(drawn, k) {
+			lost++
+		}
 	}
 	return c, lost, true
 }

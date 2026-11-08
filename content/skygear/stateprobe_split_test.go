@@ -339,7 +339,13 @@ func TestDebugLayersLook(t *testing.T) {
 			lines = append(lines, m.String())
 		}
 		text := strings.Join(lines, "\n")
-		for _, want := range []string{strconv.Itoa(info.index), info.name, strconv.Itoa(info.count)} {
+		wants := []string{strconv.Itoa(info.index), info.name, strconv.Itoa(info.count)}
+		if stateProbePair2(stateProbeMode) {
+			// pair2 says what the value draws: fluid and network, tier 3, all arms
+			last, _ := stateProbeDecode(stateProbeMode, 1, last)
+			wants = append(wants, stateProbeLookString(last))
+		}
+		for _, want := range wants {
 			if !strings.Contains(text, want) {
 				t.Errorf("look output misses %q:\n%s", want, text)
 			}

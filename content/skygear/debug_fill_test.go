@@ -431,7 +431,8 @@ func TestDebugFillEntityMatchesBlock(t *testing.T) {
 		probe := false
 		for layer := uint8(0); layer < 2; layer++ {
 			sp, ok := tx.BlockLayer(pos, layer).(StateProbe)
-			if !ok || sp.Layer != int(layer) {
+			// pair2 puts its block 1 on layer 0 when block 0 is empty
+			if !ok || (sp.Layer != int(layer) && !stateProbePair2(stateProbeMode)) {
 				continue
 			}
 			probe = true

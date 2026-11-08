@@ -641,7 +641,7 @@ func TestStateProbeNetworkHashes(t *testing.T) {
 	if len(others) < 10000 {
 		t.Fatalf("%d other states", len(others))
 	}
-	for _, mode := range probeModes {
+	for _, mode := range append(append([]string{}, probeModes...), assets.StateProbePair2) {
 		seen := map[uint32]bool{}
 		for l := range stateProbeLayers {
 			for blk := range stateProbeBlocks(mode, l) {
@@ -650,7 +650,7 @@ func TestStateProbeNetworkHashes(t *testing.T) {
 				for v := range n {
 					h := probeNetworkHash(name, map[string]any{stateProbeState: int32(v)})
 					if other, ok := others[h]; ok || seen[h] {
-						t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d, stateProbeSplitSalt %d)", mode, name, v, other, stateProbeSalt, stateProbeSplitSalt)
+						t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d, stateProbeSplitSalt %d, stateProbePair2Salt %d)", mode, name, v, other, stateProbeSalt, stateProbeSplitSalt, stateProbePair2Salt)
 					}
 					seen[h] = true
 				}

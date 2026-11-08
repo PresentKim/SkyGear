@@ -88,6 +88,19 @@ import (
 // v - the first value of the block (stateProbeLocate), so the Nth state of a
 // name (the order of its States, the order the client gets) is that state.
 
+// pair2 (see stateProbePair2) has two fixed blocks of two kinds each: block 0
+// energy + item (kinds 0 and 1), block 1 fluid + network (kinds 2 and 3), both
+// with the bones technique and the geometries two_energy_item and
+// two_fluid_network. Here StateProbe.Layer is the block, not the storage layer:
+// the cell puts the non-empty blocks on storage layer 0, then 1 (block 0 first;
+// block 1 alone goes on layer 0, as a layer 1 block draws over a visible layer
+// 0 only). A block's value is a*193 + b, 0 to 37,248 (37,249 states, under the
+// 65,536 of a name), a for its first kind and b for the second, each 0 (absent)
+// or 1 + (tier-1)*64 + faces (1 to 192). Value 0 (both absent) is never placed.
+// The 15 permutations of a block are (tier of a or absent) × (tier of b or
+// absent) less (absent, absent); a = floor(v/193) and b = mod(v, 193) are
+// decoded in Molang.
+
 const (
 	// stateProbeValues is the number of values of the state of a probe block
 	// in modes perm and bones.
@@ -121,6 +134,12 @@ const (
 	// stateProbeMaxBlocks is the number of block names of a layer in all4split:
 	// the singles and a block for each pair of kinds.
 	stateProbeMaxBlocks = 1 + len(stateProbeKindPairs)
+
+	// stateProbePair2Kind is the number of values of one kind of a pair2 block:
+	// absent and 3 × 64.
+	stateProbePair2Kind = 1 + stateProbeTiers*stateProbeFaces
+	// stateProbePair2Values is the number of values (states) of a pair2 block.
+	stateProbePair2Values = stateProbePair2Kind * stateProbePair2Kind
 )
 
 // stateProbeKindPairs are the pairs of kinds of the 4-kind modes, in the order
@@ -139,14 +158,17 @@ const (
 )
 
 // stateProbeFourKinds reports whether the mode is one of single4, same4, all4,
-// all4split.
+// all4split, pair2.
 func stateProbeFourKinds(mode string) bool {
 	switch mode {
-	case assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split:
+	case assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split, assets.StateProbePair2:
 		return true
 	}
 	return false
 }
+
+// stateProbePair2 reports whether the mode is pair2.
+func stateProbePair2(mode string) bool { return mode == assets.StateProbePair2 }
 
 // stateProbeSplit reports whether the mode splits a layer into several block
 // names.
@@ -210,6 +232,8 @@ func stateProbePairSpan(p probePairs) int {
 // a layer in the mode (0 when off).
 func stateProbeLayerValues(mode string, layer int) int {
 	switch {
+	case stateProbePair2(mode):
+		return stateProbePair2Values
 	case mode == assets.StateProbePerm || mode == assets.StateProbeBones:
 		return stateProbeValues
 	case stateProbeFourKinds(mode):
@@ -245,6 +269,9 @@ func stateProbeDecode(mode string, layer, v int) (probeLook, bool) {
 	if v < 0 || v >= stateProbeLayerValues(mode, layer) {
 		return probeLook{}, false
 	}
+	if stateProbePair2(mode) {
+		return stateProbePair2Decode(layer, v), true
+	}
 	if v == 0 {
 		return probeLook{}, true
 	}
@@ -270,6 +297,9 @@ func stateProbeDecode(mode string, layer, v int) (probeLook, bool) {
 // stateProbeEncode is the value of a look on the block of a layer in the mode
 // (the conduits in any order); false when that block cannot draw it.
 func stateProbeEncode(mode string, layer int, l probeLook) (int, bool) {
+	if stateProbePair2(mode) {
+		return stateProbePair2Encode(layer, l)
+	}
 	kinds := stateProbeModeKinds(mode)
 	for _, k := range l.k[:l.n] {
 		if k.kind < 0 || k.kind >= kinds || k.tier < 1 || k.tier > stateProbeTiers || k.faces < 0 || k.faces >= stateProbeFaces {
@@ -315,6 +345,68 @@ func stateProbeEncode(mode string, layer int, l probeLook) (int, bool) {
 		return 0, false
 	}
 	return v, true
+}
+
+// stateProbePair2Part is the value of one kind in a pair2 block: 0 when
+// absent, else 1 + (tier-1)*64 + faces.
+func stateProbePair2Part(k fillKind) int { return 1 + (k.tier-1)*stateProbeFaces + k.faces }
+
+// stateProbePair2Decode is the look of the value v (in range) of pair2 block
+// layer: its first kind (a) then its second (b), those present.
+func stateProbePair2Decode(layer, v int) probeLook {
+	var l probeLook
+	for i, x := range [2]int{v / stateProbePair2Kind, v % stateProbePair2Kind} {
+		if x == 0 {
+			continue
+		}
+		x--
+		l.k[l.n] = fillKind{kind: 2*layer + i, tier: x/stateProbeFaces + 1, faces: x % stateProbeFaces}
+		l.n++
+	}
+	return l
+}
+
+// stateProbePair2Encode is the value of a look (0 to 2 conduits, in any order)
+// on pair2 block layer; false when a conduit is not of the block's kinds, the
+// block has one kind twice or a tier or faces is out of range.
+func stateProbePair2Encode(layer int, l probeLook) (int, bool) {
+	if layer < 0 || layer >= stateProbeLayers || l.n < 0 || l.n > 2 {
+		return 0, false
+	}
+	var part [2]int
+	for _, k := range l.k[:l.n] {
+		i := k.kind - 2*layer
+		if i < 0 || i > 1 || part[i] != 0 || k.tier < 1 || k.tier > stateProbeTiers || k.faces < 0 || k.faces >= stateProbeFaces {
+			return 0, false
+		}
+		part[i] = stateProbePair2Part(k)
+	}
+	return part[0]*stateProbePair2Kind + part[1], true
+}
+
+// stateProbeLookString names a look for the console: "energy tier 2 down+north".
+func stateProbeLookString(l probeLook) string {
+	if l.n == 0 {
+		return "nothing"
+	}
+	var out string
+	for i, k := range l.k[:l.n] {
+		if i > 0 {
+			out += ", "
+		}
+		out += fmt.Sprintf("%s tier %d", stateProbeKindNames4[k.kind], k.tier)
+		sep := " "
+		for b, arm := range stateProbeArms {
+			if k.faces&(1<<b) != 0 {
+				out += sep + arm
+				sep = "+"
+			}
+		}
+		if k.faces == 0 {
+			out += " core only"
+		}
+	}
+	return out
 }
 
 // stateProbeMode is the mode read once at init (assets.StateProbeOff,
@@ -392,8 +484,9 @@ func stateProbeGeometries(mode string) int {
 	if mode == assets.StateProbeOff {
 		return 0
 	}
-	used := map[string]bool{stateProbeBase(mode).Geometry: true}
+	used := map[string]bool{}
 	for l := 0; l < stateProbeLayers; l++ {
+		used[stateProbeBaseOf(mode, l).Geometry] = true
 		for _, p := range stateProbePermutations(mode, l) {
 			used[p.Geometry] = true
 		}
@@ -434,15 +527,21 @@ const stateProbeSalt = 2
 // met the hash of skygear:auto_sieve, 1 meets none).
 const stateProbeSplitSalt = 1
 
+// stateProbePair2Salt is the same for the two names of pair2.
+const stateProbePair2Salt = 0
+
 // stateProbeName is the name of the first probe block of a layer in the mode.
 func stateProbeName(mode string, layer int) string { return stateProbeBlockName(mode, layer, 0) }
 
 // stateProbeBlockName is the name of block blk of the probe of a layer in the
 // mode: skygear:state_probe_<layer> (perm, bones),
-// skygear:state_probe4_<salt>_<layer> (other 4-kind modes) or
-// skygear:state_probe4s_<salt>_<layer>_<blk> (all4split).
+// skygear:state_probe4_<salt>_<layer> (other 4-kind modes),
+// skygear:state_probe4s_<salt>_<layer>_<blk> (all4split) or
+// skygear:state_probe2_<salt>_<block> (pair2).
 func stateProbeBlockName(mode string, layer, blk int) string {
 	switch {
+	case stateProbePair2(mode):
+		return fmt.Sprintf("skygear:state_probe2_%d_%d", stateProbePair2Salt, layer)
 	case stateProbeSplit(mode):
 		return fmt.Sprintf("skygear:state_probe4s_%d_%d_%d", stateProbeSplitSalt, layer, blk)
 	case stateProbeFourKinds(mode):
@@ -551,8 +650,21 @@ func stateProbeTwoGeometry(a, b int) string {
 // stateProbeBase is the look of the value 0, empty. Mode perm has no geometry
 // without a core to hide, so it takes the plain core and shrinks it out of
 // sight; the bones modes hide every bone.
-func stateProbeBase(mode string) customblock.Properties {
+func stateProbeBase(mode string) customblock.Properties { return stateProbeBaseOf(mode, 0) }
+
+// stateProbeBaseOf is the look of the value 0 of the block of a layer: the
+// same in every mode but pair2, where each block has its own geometry.
+func stateProbeBaseOf(mode string, layer int) customblock.Properties {
 	switch {
+	case stateProbePair2(mode):
+		p := stateProbePair2Look(layer, fillKind{kind: 2 * layer, tier: 1}, fillKind{kind: 2*layer + 1, tier: 1})
+		p.BoneVisibility = map[string]string{}
+		for i := range 2 {
+			for _, bone := range stateProbeKindBones(2*layer + i) {
+				p.BoneVisibility[bone] = "false"
+			}
+		}
+		return p
 	case mode == assets.StateProbeBones:
 		p := stateProbeLook(stateProbeBonesGeometry(1), 1, 1)
 		p.BoneVisibility = map[string]string{"core": "false"}
@@ -666,6 +778,8 @@ func stateProbePermutationsOf(mode string, layer, blk int) []customblock.Permuta
 				})
 			}
 		}
+	case stateProbePair2(mode):
+		out = stateProbePair2Permutations(layer)
 	case stateProbeFourKinds(mode):
 		shift := 0
 		if blk >= 0 {
@@ -708,6 +822,78 @@ func stateProbePermutationsOf(mode string, layer, blk int) []customblock.Permuta
 	return out
 }
 
+// stateProbePair2Look is the look of pair2 block layer with the textures of
+// its two kinds (kinds a and b, the tier of an absent one is a placeholder: the
+// geometry has the material instances of both kinds).
+func stateProbePair2Look(layer int, a, b fillKind) customblock.Properties {
+	return stateProbeFourLook(stateProbeTwoGeometry(2*layer, 2*layer+1), a, b)
+}
+
+// Molang parts of a pair2 value: a = floor(v/193), b = mod(v, 193).
+var (
+	stateProbePair2A = fmt.Sprintf("math.floor(%s / %d)", stateProbeShapeExpr, stateProbePair2Kind)
+	stateProbePair2B = fmt.Sprintf("math.mod(%s, %d)", stateProbeShapeExpr, stateProbePair2Kind)
+)
+
+// stateProbePair2Cond is the condition of one kind of a pair2 block being at
+// tier (0 absent), as a condition on the whole value: a is in 1+(tier-1)*64 to
+// +63 (the value in a range), b is the same on mod(v, 193).
+func stateProbePair2Cond(second bool, tier int) string {
+	lo, n := 0, 1
+	if tier > 0 {
+		lo, n = 1+(tier-1)*stateProbeFaces, stateProbeFaces
+	}
+	if !second {
+		return stateProbeRangeCond(lo*stateProbePair2Kind, n*stateProbePair2Kind)
+	}
+	if tier == 0 {
+		return stateProbePair2B + " == 0"
+	}
+	return fmt.Sprintf("%s >= %d && %s <= %d", stateProbePair2B, lo, stateProbePair2B, lo+n-1)
+}
+
+// stateProbePair2Visibility is the bone_visibility of a kind of a pair2 block:
+// hidden when absent, else the core and the arm of each bit of faces =
+// floor(part - lo) with part the Molang expression of a or b.
+func stateProbePair2Visibility(kind int, part string, tier int) map[string]string {
+	bones := stateProbeKindBones(kind)
+	out := map[string]string{}
+	if tier == 0 {
+		for _, b := range bones {
+			out[b] = "false"
+		}
+		return out
+	}
+	out[bones[0]] = "true"
+	lo := 1 + (tier-1)*stateProbeFaces
+	for i := range stateProbeArms {
+		out[bones[1+i]] = fmt.Sprintf("math.mod(math.floor((%s - %d) / %d), 2) == 1", part, lo, 1<<i)
+	}
+	return out
+}
+
+// stateProbePair2Permutations are the 15 permutations of pair2 block layer:
+// for the tier of each kind (0 absent) but both absent.
+func stateProbePair2Permutations(layer int) []customblock.Permutation {
+	ka, kb := 2*layer, 2*layer+1
+	var out []customblock.Permutation
+	for ta := 0; ta <= stateProbeTiers; ta++ {
+		for tb := 0; tb <= stateProbeTiers; tb++ {
+			if ta == 0 && tb == 0 {
+				continue
+			}
+			p := stateProbePair2Look(layer, fillKind{kind: ka, tier: max(ta, 1)}, fillKind{kind: kb, tier: max(tb, 1)})
+			p.BoneVisibility = stateProbePair2Visibility(ka, stateProbePair2A, ta)
+			maps.Copy(p.BoneVisibility, stateProbePair2Visibility(kb, stateProbePair2B, tb))
+			out = append(out, customblock.Permutation{
+				Condition:  stateProbePair2Cond(false, ta) + " && " + stateProbePair2Cond(true, tb),
+				Properties: p,
+			})
+		}
+	}
+	return out
+}
+
 // stateProbeKindVisibility is the bone_visibility of a kind whose faces are
 // floor((v - lo) / unit) mod 64: the core and the arm of each bit.
 func stateProbeKindVisibility(kind, lo, unit int) map[string]string {
@@ -720,7 +906,9 @@ func stateProbeKindVisibility(kind, lo, unit int) map[string]string {
 }
 
 // Properties is the look of the value 0; Permutations has the others.
-func (StateProbe) Properties() customblock.Properties { return stateProbeBase(stateProbeMode) }
+func (b StateProbe) Properties() customblock.Properties {
+	return stateProbeBaseOf(stateProbeMode, b.Layer)
+}
 
 // stateProbeStateValues are the values of skygear:shape of each block of each
 // layer, made once (all4 has 221,953 of them on a block).

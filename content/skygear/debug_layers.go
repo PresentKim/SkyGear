@@ -140,7 +140,13 @@ func (debugLayers) look(p *player.Player, o *cmd.Output, tx *world.Tx, lang stri
 			if info.index >= stateProbeNameCap {
 				key = "skygear.debug.layers.lookProbeBeyond"
 			}
-			o.Printf(i18n.T(lang, key), l, info.name, info.state, info.index, info.count, stateProbeNameCap)
+			text, args := i18n.T(lang, key), []any{l, info.name, info.state, info.index, info.count, stateProbeNameCap}
+			if sp := b.(StateProbe); stateProbePair2(stateProbeMode) {
+				// pair2: the same line says what the value draws
+				look, _ := stateProbeDecode(stateProbeMode, sp.Layer, sp.V)
+				text, args = text+i18n.T(lang, "skygear.debug.layers.lookPair2"), append(args, stateProbeLookString(look))
+			}
+			o.Printf(text, args...)
 			continue
 		}
 		o.Printf(i18n.T(lang, "skygear.debug.layers.lookOther"), l, layerLabel(b))
