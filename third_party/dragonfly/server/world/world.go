@@ -28,6 +28,7 @@ import (
 type World struct {
 	conf         Config
 	lastSettings time.Time                  // skygear patch
+	hookActive   map[cube.Pos]struct{}      // skygear patch: positions whose BlockChangeHook is running
 	players      map[*EntityHandle]struct{} // skygear patch: player index for tx.Players
 	ra           cube.Range
 
@@ -379,7 +380,8 @@ func (tx *Tx) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 
 	rid := w.conf.Blocks.BlockRuntimeID(b)
 	redstoneAfterRelevant := isRedstoneRelevant(b)
-	needOldBlock := !opts.DisableRedstoneUpdates || !redstoneAfterRelevant
+	// skygear patch: the old block is always read, BlockChangeHook needs it.
+	needOldBlock := true
 	needOldRID := needOldBlock || (rid != w.conf.Blocks.AirRuntimeID() && !opts.DisableLiquidDisplacement)
 
 	var oldRID uint32
@@ -456,6 +458,7 @@ func (tx *Tx) setBlock(pos cube.Pos, b Block, opts *SetOpts) {
 	if !opts.DisableRedstoneUpdates {
 		w.redstone.invalidateAroundBlockChange(pos, oldBlock, b, RedstoneUpdateCauseBlockUpdate, w.Range())
 	}
+	tx.blockChanged(pos, oldBlock, b) // skygear patch
 }
 
 // setBlockEntity updates block entity data without triggering block updates.
@@ -1302,6 +1305,7 @@ func (w *World) incrementalSave(_ *Tx, now time.Time) {
 // Afterwards, scheduled updates from that chunk are removed and all entities
 // in it are closed.
 func (w *World) closeChunk(tx *Tx, pos ChunkPos, c *Column) {
+	w.columnUnloaded(tx, pos, c) // skygear patch: before saveChunk, so the hook's block entity writes are saved.
 	w.saveChunk(tx, pos, c)
 	w.scheduledUpdates.removeChunk(pos)
 	w.redstone.removeChunk(pos)
@@ -1471,7 +1475,7 @@ func (tx *Tx) chunk(pos ChunkPos) *Column {
 	if col == nil {
 		return w.emptyColumn()
 	}
-	return w.addChunk(pos, col)
+	return w.addChunk(tx, pos, col)
 }
 
 // loadChunk loads a chunk from the provider, or generates a chunk if one
@@ -1523,7 +1527,7 @@ func (w *World) loadChunkAsync(tx *Tx, pos ChunkPos, callback chunkCallback) boo
 // addChunk adds a loaded or generated chunk to the world, spawning saved
 // entities and spreading light to neighbouring chunks. The chunk passed must
 // already have its own light calculated.
-func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
+func (w *World) addChunk(tx *Tx, pos ChunkPos, c *chunk.Column) *Column {
 	column := w.columnFrom(c, pos)
 	w.chunks[pos] = column
 	w.tickDirty.Store(true) // skygear patch
@@ -1534,6 +1538,7 @@ func (w *World) addChunk(pos ChunkPos, c *chunk.Column) *Column {
 	}
 	w.calculateLight(pos)
 	w.deriveStates(pos)
+	w.columnLoaded(tx, pos, column) // skygear patch
 	return column
 }
 

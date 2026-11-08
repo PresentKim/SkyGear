@@ -50,6 +50,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/session/player.go`, `recipes_cache_test.go` (신규) | 레시피·창작 데이터를 블록 레지스트리당 한 번만 만들어 공유하고 레시피 네트워크 ID 를 고정함. 한 트랜잭션에서 슬롯이 여러 번 바뀌어도 UI 인벤토리는 한 번만 보냄 |
 | `server/session/session.go` | 클라이언트가 청크를 받는 중(열린 blob 트랜잭션이 적음)이면 틱마다 청크를 최대 16개 보냄(그 외 4개) |
 | `server/world/skygear_modified.go` (신규), `server/block/chest.go`, `barrel.go`, `hopper.go`, `smelter.go`, `furnace.go`, `blast_furnace.go`, `smoker.go` | **컨테이너 내용 저장**: 인벤토리 변경은 청크를 바뀜으로 표시하지 않아, 같은 청크에 다른 변경이 없으면 상자·통·호퍼·화로 내용이 저장되지 않았다. `Tx.MarkModified(pos)`(로드된 청크만, 패킷·이웃 갱신 없음)를 두고 각 컨테이너의 `Inventory(tx, pos)` 와 불이 켜진 화로의 `Tick` 에서 부른다 |
+| `server/world/skygear_hooks.go`, `skygear_hooks_test.go` (신규), `world.go`, `chunk_request.go` | 도관 망 그래프용 훅 두 개. `BlockChangeHook`: `Tx.SetBlock` 이 블록을 저장한 뒤 이전 블록(아니면 새 블록)이 구현했으면 `BlockChanged(tx, pos, before, after)` 를 한 번 부름(값이 같으면 안 부름, 같은 칸의 훅 안에서 일어난 변경은 훅을 다시 부르지 않음). `ColumnHandler`(월드 `Handler` 가 구현하는 선택 인터페이스): 칼럼이 월드에 더해진 뒤(`addChunk`, 비동기 로드 포함) `HandleColumnLoad`, `closeChunk` 에서 저장 전에 `HandleColumnUnload`(훅이 블록 엔티티 맵에 쓴 값이 저장됨). 칼럼 훅의 panic 은 잡아 ERROR 로그로 남김 |
 | `server/world/skygear_bench_test.go` (신규) | 위 패치의 벤치마크(`BlockEntityTick`, `TickLoadersRange`, `DiskEncode`, `SaveColumn` 등). 수치는 [docs/tech/performance.md](../docs/tech/performance.md) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 흙으로 퍼지지 않고, 그 아래 잔디는 흙으로 돌아감(바닐라와 같게). 업스트림은 빛만 봐서 빛을 막지 않는 커스텀 블록(코어 등) 아래 흙이 잔디가 된다 |
 | `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
