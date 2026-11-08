@@ -922,5 +922,7 @@
  "menu.lobbyConfirm.title": "To lobby",
  "menu.lobbyConfirm.body": "Leave for the lobby?",
  "menu.lobbyConfirm.yes": "Leave for the lobby",
- "menu.lobbyConfirm.no": "Cancel"
+ "menu.lobbyConfirm.no": "Cancel",
+ "conduit.lines.buffer.energy": "§7Network buffer %d / %d RE",
+ "conduit.lines.buffer.fluid": "§7Network buffer %d / %d mB"
 }

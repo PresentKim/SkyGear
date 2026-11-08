@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/itemio"
+	"github.com/presentkim/skygear/common/netgraph"
 )
 
 // Mode is what a conduit does with the block at one of its sides.
@@ -208,114 +209,221 @@ type endKey struct {
 	face cube.Face
 }
 
-// registrationTTL is how many steps a conduit stays in the grid without
-// registering again.
-const registrationTTL = 10
-
-// Grid steps the item networks of one world.
-type Grid struct {
-	conduits map[cube.Pos]int64
-	sigs     map[cube.Pos]uint64
-	nets     map[cube.Pos]*Network
-	step     int64
-	// the nets are reused until the set of conduits changes, Invalidate is
-	// called or rescanSteps Steps passed.
-	dirty    bool
-	scanned  int64
-	counters Counters
-}
-
 // Counters say how much topology work a grid did since it was made.
 type Counters struct {
-	// Scans is how many times every network was found again.
+	// Scans is how many times a network was rebuilt because the world no
+	// longer matched the graph.
 	Scans int64
-	// Visited is how many conduits those scans walked over in all.
+	// Visited is how many conduits the walks passed over in all.
 	Visited int64
 }
 
-// Counters returns the topology work done so far.
-func (g *Grid) Counters() Counters { return g.counters }
+// verifySteps is how many Steps make about 60 seconds.
+const verifySteps = 60 * 20 / StepTicks
 
-// rescanSteps is the most Steps the networks are reused for without a scan.
-const rescanSteps = 20
+// Grid steps the item networks of one world. It is changed by events: Place,
+// Remove and Changed. A slow Verify catches what the events missed. Conduits
+// carry no buffer, so every node of the graph has weight 0.
+type Grid struct {
+	graph  *netgraph.Graph
+	nets   map[netgraph.NetID]*Network
+	dirty  map[netgraph.NetID]bool
+	credit int
+	cursor netgraph.NetID
+}
 
-// Invalidate makes the next Step find the networks again; call it when a
-// block beside a conduit was placed, broken or changed.
-func (g *Grid) Invalidate() { g.dirty = true }
-
+// NewGrid returns an empty grid.
 func NewGrid() *Grid {
-	return &Grid{conduits: map[cube.Pos]int64{}, sigs: map[cube.Pos]uint64{}, nets: map[cube.Pos]*Network{}}
+	return &Grid{
+		graph: netgraph.New(),
+		nets:  map[netgraph.NetID]*Network{},
+		dirty: map[netgraph.NetID]bool{},
+	}
 }
 
-// AddConduit registers the conduit at pos; call it whenever the block ticks.
-func (g *Grid) AddConduit(pos cube.Pos) {
-	if _, known := g.conduits[pos]; !known {
-		g.dirty = true
-	}
-	g.conduits[pos] = g.step
-}
-
-// AddConduitSig is AddConduit for a conduit that also says a signature of its
-// settings (modes, channels); a changed signature invalidates the networks.
-func (g *Grid) AddConduitSig(pos cube.Pos, sig uint64) {
-	if old, ok := g.sigs[pos]; ok && old != sig {
-		g.dirty = true
-	}
-	g.sigs[pos] = sig
-	g.AddConduit(pos)
-}
-
-// Conduits is how many conduits are registered.
-func (g *Grid) Conduits() int { return len(g.conduits) }
-
-// Step finds the networks of the registered conduits and lets each move its
-// items; call it every StepTicks ticks. It returns how many items moved.
-func (g *Grid) Step(tx *world.Tx) int {
-	g.step++
-	for pos, seen := range g.conduits {
-		if g.step-seen > registrationTTL {
-			delete(g.conduits, pos)
-			delete(g.sigs, pos)
-			g.dirty = true
-		}
-	}
-	if !g.dirty && g.nets != nil && g.step-g.scanned < rescanSteps {
-		moved := 0
-		for _, n := range g.nets {
-			moved += n.Step(tx)
-		}
-		return moved
-	}
-	g.dirty, g.scanned = false, g.step
-	g.counters.Scans++
-	done := map[cube.Pos]bool{}
-	keep := map[cube.Pos]*Network{}
-	moved := 0
-	for pos := range g.conduits {
-		if done[pos] {
-			continue
-		}
-		n := Discover(tx, pos, 2048)
-		if n == nil {
-			delete(g.conduits, pos)
-			continue
-		}
-		g.counters.Visited += int64(len(n.Conduits))
-		low := n.Conduits[0]
-		for _, c := range n.Conduits {
-			done[c] = true
-			if c.Y() < low.Y() || (c.Y() == low.Y() && (c.X() < low.X() || (c.X() == low.X() && c.Z() < low.Z()))) {
-				low = c
+func links(tx *world.Tx) netgraph.Links {
+	return func(pos cube.Pos) []cube.Pos {
+		var out []cube.Pos
+		for _, f := range cube.Faces() {
+			q := pos.Side(f)
+			if _, ok := IsConduit(tx.Block(q)); ok {
+				out = append(out, q)
 			}
 		}
-		// Keep the turn of a network between steps (keyed by its lowest
-		// conduit).
-		if old, ok := g.nets[low]; ok {
-			n.turn, n.next = old.turn, old.next
+		return out
+	}
+}
+
+// Conduits returns how many conduits the grid knows.
+func (g *Grid) Conduits() int { return g.graph.Len() }
+
+// Counters returns the topology work done so far.
+func (g *Grid) Counters() Counters {
+	return Counters{Scans: g.graph.Rebuilds(), Visited: g.graph.Visited()}
+}
+
+// forget drops the per-network state of a network that no longer exists.
+func (g *Grid) forget(id netgraph.NetID) {
+	delete(g.nets, id)
+	delete(g.dirty, id)
+}
+
+// Place adds the conduit block at pos (already in the world).
+func (g *Grid) Place(tx *world.Tx, pos cube.Pos) {
+	if _, ok := IsConduit(tx.Block(pos)); !ok {
+		return
+	}
+	var old []netgraph.NetID
+	seen := map[netgraph.NetID]bool{}
+	for _, q := range append([]cube.Pos{pos}, links(tx)(pos)...) {
+		if id, ok := g.graph.NetOf(q); ok && !seen[id] {
+			seen[id] = true
+			old = append(old, id)
 		}
-		keep[low] = n
+	}
+	id := g.graph.Add(pos, 0, netgraph.Store{}, links(tx))
+	for _, o := range old {
+		if o != id {
+			g.forget(o)
+		}
+	}
+	g.dirty[id] = true
+}
+
+// Remove takes the conduit at pos (already gone from the world) out. Other
+// networks are not touched; the pieces of a cut network read their blocks again.
+func (g *Grid) Remove(tx *world.Tx, pos cube.Pos) {
+	id, ok := g.graph.NetOf(pos)
+	if !ok {
+		return
+	}
+	_, parts := g.graph.Remove(pos, links(tx))
+	if len(parts) == 0 {
+		g.forget(id)
+	}
+	for _, p := range parts {
+		g.dirty[p] = true
+	}
+}
+
+// Changed tells the grid that the block at pos changed. A conduit reads its
+// sides (modes, channels) and tier again, a block that stopped being a conduit
+// leaves, and for any other block the conduits that touch it read it again.
+func (g *Grid) Changed(tx *world.Tx, pos cube.Pos) {
+	_, isC := IsConduit(tx.Block(pos))
+	id, known := g.graph.NetOf(pos)
+	switch {
+	case known && isC:
+		g.dirty[id] = true
+		return
+	case known:
+		g.Remove(tx, pos)
+		return
+	case isC:
+		g.Place(tx, pos)
+		return
+	}
+	for _, f := range cube.Faces() {
+		if nid, ok := g.graph.NetOf(pos.Side(f)); ok {
+			g.dirty[nid] = true
+		}
+	}
+}
+
+// refresh reads the conduits and endpoints of network id again, keeping turn
+// and next.
+func (g *Grid) refresh(tx *world.Tx, id netgraph.NetID) *Network {
+	n := g.nets[id]
+	if n == nil {
+		n = &Network{}
+		g.nets[id] = n
+	}
+	n.Conduits, n.Ends, n.Tier = g.graph.Nodes(id), nil, 0
+	for _, pos := range n.Conduits {
+		c, ok := IsConduit(tx.Block(pos))
+		if !ok {
+			continue
+		}
+		if n.Tier == 0 || c.ItemTier() < n.Tier {
+			n.Tier = c.ItemTier()
+		}
+		for _, f := range cube.Faces() {
+			next := pos.Side(f)
+			if _, ok := g.graph.NetOf(next); ok {
+				continue
+			}
+			mode := c.ItemMode(f)
+			if mode == Off {
+				continue
+			}
+			if in, ex := itemio.IO(tx, next); in == nil && ex == nil {
+				continue
+			}
+			ex, ins := c.ItemChannels(f)
+			n.Ends = append(n.Ends, Endpoint{Pos: next, Face: f.Opposite(), Mode: mode, Extract: ex, Insert: ins})
+		}
+	}
+	delete(g.dirty, id)
+	return n
+}
+
+// verify checks a slice of the networks against the world, about all of them
+// in 60 seconds worth of Steps.
+func (g *Grid) verify(tx *world.Tx) {
+	total := g.graph.Len()
+	if total == 0 {
+		g.credit = 0
+		return
+	}
+	g.credit += max(1, total/verifySteps)
+	ids := g.graph.Nets()
+	for tries := 0; tries < len(ids); tries++ {
+		i := 0
+		for i < len(ids) && ids[i] <= g.cursor {
+			i++
+		}
+		if i == len(ids) {
+			i = 0
+		}
+		id := ids[i]
+		size := len(g.graph.Nodes(id))
+		if g.credit < size {
+			return
+		}
+		g.credit -= size
+		g.cursor = id
+		g.verifyNet(tx, id)
+	}
+}
+
+func (g *Grid) verifyNet(tx *world.Tx, id netgraph.NetID) {
+	before := g.graph.Nodes(id)
+	changed := g.graph.Verify(id, links(tx), func(p cube.Pos) (int, bool) {
+		_, ok := IsConduit(tx.Block(p))
+		return 0, ok
+	})
+	if !changed {
+		return
+	}
+	g.forget(id)
+	for _, p := range before {
+		if nid, ok := g.graph.NetOf(p); ok {
+			g.dirty[nid] = true
+		}
+	}
+}
+
+// Step lets each network move its items; call it every StepTicks ticks. It
+// returns how many items moved.
+func (g *Grid) Step(tx *world.Tx) int {
+	g.verify(tx)
+	moved := 0
+	for _, id := range g.graph.Nets() {
+		n := g.nets[id]
+		if n == nil || g.dirty[id] {
+			n = g.refresh(tx, id)
+		}
 		moved += n.Step(tx)
 	}
-	g.nets = keep
 	return moved
 }

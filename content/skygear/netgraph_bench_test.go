@@ -71,30 +71,18 @@ func settle(tb testing.TB, s *session, want int) {
 	}
 }
 
-// register does what the bundles' ticks do for the grids, so a benchmark that
-// steps a grid without ticking the world keeps its conduits (a registration
-// lives 10 steps). It is called with the timer stopped.
-func register(s *session, ps []cube.Pos, b conduit.Bundle) {
-	for _, pos := range ps {
-		if b.Energy > 0 {
-			network.Energy(s.Session).AddConduit(pos)
-		}
-		if b.Item > 0 {
-			network.Items(s.Session).AddConduit(pos)
-		}
-		if b.Fluid > 0 {
-			network.Fluids(s.Session).AddConduit(pos)
-		}
-	}
+// replace breaks the bundle at pos and places it again: the remove and place
+// events of one change.
+func replace(tx *world.Tx, pos cube.Pos, b conduit.Bundle) {
+	tx.SetBlock(pos, block.Air{}, nil)
+	tx.SetBlock(pos, b, nil)
 }
 
-// reportScans adds the scans per step and the conduits walked per scan.
+// reportScans adds the full scans and the conduits walked per step.
 func reportScans(b *testing.B, before, after energyCounters) {
 	scans := after.Scans - before.Scans
 	b.ReportMetric(float64(scans)/float64(b.N), "scans/op")
-	if scans > 0 {
-		b.ReportMetric(float64(after.Visited-before.Visited)/float64(scans), "visited/scan")
-	}
+	b.ReportMetric(float64(after.Visited-before.Visited)/float64(b.N), "visited/op")
 }
 
 // energyCounters is the counters of any grid (they have the same fields).
@@ -120,20 +108,19 @@ func BenchmarkConduitTick(b *testing.B) {
 }
 
 // BenchmarkGridStep is one Step of each grid over a network of 1024 conduits,
-// on the cached topology and after an Invalidate (a full scan).
+// on the cached topology and after one bundle is broken and placed again.
 func BenchmarkGridStep(b *testing.B) {
 	type grid struct {
-		name       string
-		step       func(s *session, tx *world.Tx)
-		invalidate func(s *session)
-		counters   func(s *session) energyCounters
+		name     string
+		step     func(s *session, tx *world.Tx)
+		counters func(s *session) energyCounters
 	}
 	grids := []grid{
-		{"energy", func(s *session, tx *world.Tx) { network.Energy(s.Session).Step(tx, 4) }, func(s *session) { network.Energy(s.Session).Invalidate() },
+		{"energy", func(s *session, tx *world.Tx) { network.Energy(s.Session).Step(tx, 4) },
 			func(s *session) energyCounters { return energyCounters(network.Energy(s.Session).Counters()) }},
-		{"item", func(s *session, tx *world.Tx) { network.Items(s.Session).Step(tx) }, func(s *session) { network.Items(s.Session).Invalidate() },
+		{"item", func(s *session, tx *world.Tx) { network.Items(s.Session).Step(tx) },
 			func(s *session) energyCounters { return energyCounters(network.Items(s.Session).Counters()) }},
-		{"fluid", func(s *session, tx *world.Tx) { network.Fluids(s.Session).Step(tx) }, func(s *session) { network.Fluids(s.Session).Invalidate() },
+		{"fluid", func(s *session, tx *world.Tx) { network.Fluids(s.Session).Step(tx) },
 			func(s *session) energyCounters { return energyCounters(network.Fluids(s.Session).Counters()) }},
 	}
 	for _, g := range grids {
@@ -144,20 +131,19 @@ func BenchmarkGridStep(b *testing.B) {
 			}
 			b.Run(name, func(b *testing.B) {
 				s := benchSession(b)
-				ps := placePlane(s, 32, allKinds)
+				placePlane(s, 32, allKinds)
 				settle(b, s, 1024)
 				s.World.Do(func(tx *world.Tx) { g.step(s, tx) })
 				before := g.counters(s)
 				b.ReportAllocs()
 				b.ResetTimer()
 				for range b.N {
-					b.StopTimer()
-					register(s, ps, allKinds)
-					if scan {
-						g.invalidate(s)
-					}
-					b.StartTimer()
-					s.World.Do(func(tx *world.Tx) { g.step(s, tx) })
+					s.World.Do(func(tx *world.Tx) {
+						if scan {
+							replace(tx, cube.Pos{-16, netY, -16}, allKinds)
+						}
+						g.step(s, tx)
+					})
 				}
 				b.StopTimer()
 				reportScans(b, before, g.counters(s))
@@ -167,8 +153,8 @@ func BenchmarkGridStep(b *testing.B) {
 }
 
 // BenchmarkOneChange is the energy step after one change in a world of 16
-// separate networks of 64 conduits: today the whole world is scanned again,
-// against a cached step. An event-driven graph scans only the changed one.
+// separate networks of 64 conduits: one remove and one place on one line,
+// against a cached step. The graph walks only the changed network.
 func BenchmarkOneChange(b *testing.B) {
 	for _, scan := range []bool{false, true} {
 		name := "cached"
@@ -178,7 +164,7 @@ func BenchmarkOneChange(b *testing.B) {
 		b.Run(name, func(b *testing.B) {
 			s := benchSession(b)
 			energyOnly := conduit.Bundle{Energy: 1}
-			ps := placeLines(s, 16, 64, energyOnly)
+			placeLines(s, 16, 64, energyOnly)
 			settle(b, s, 1024)
 			g := network.Energy(s.Session)
 			s.World.Do(func(tx *world.Tx) { g.Step(tx, 4) })
@@ -186,13 +172,12 @@ func BenchmarkOneChange(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 			for range b.N {
-				b.StopTimer()
-				register(s, ps, energyOnly)
-				if scan {
-					g.Invalidate()
-				}
-				b.StartTimer()
-				s.World.Do(func(tx *world.Tx) { g.Step(tx, 4) })
+				s.World.Do(func(tx *world.Tx) {
+					if scan {
+						replace(tx, cube.Pos{-16, netY, -16}, energyOnly)
+					}
+					g.Step(tx, 4)
+				})
 			}
 			b.StopTimer()
 			reportScans(b, before, energyCounters(g.Counters()))
@@ -205,7 +190,7 @@ func BenchmarkOneChange(b *testing.B) {
 // everything again and how many conduits it walked: idle, and with a
 // crusher beside the network that starts and stops working (its working
 // look is a block change next to the conduits). Run with -v to see the
-// numbers; it checks nothing.
+// numbers; it checks that idle and machine runs scan nothing again.
 func TestMeasureNetworkScans(t *testing.T) {
 	if testing.Short() {
 		t.Skip("measurement")

@@ -77,7 +77,7 @@ func TestMergeBridgeKeepsTag(t *testing.T) {
 	g.Add(cube.Pos{0, 0, 0}, 1000, Store{1, 100}, l)
 	g.Add(cube.Pos{2, 0, 0}, 1000, Store{2, 40}, l)
 	id := g.Add(cube.Pos{1, 0, 0}, 1000, Store{}, l)
-	if s := g.Store(id); s != (Store{1, 140}) {
+	if s := g.Store(id); s != (Store{1, 100}) {
 		t.Fatalf("store = %+v", s)
 	}
 }
@@ -93,8 +93,14 @@ func TestMergeClampsAndTags(t *testing.T) {
 	g = New()
 	g.Add(cube.Pos{0, 0, 0}, 10, Store{1, 3}, l)
 	id = g.Add(cube.Pos{1, 0, 0}, 10, Store{2, 9}, l)
-	if s := g.Store(id); s != (Store{2, 12}) {
+	if s := g.Store(id); s != (Store{2, 9}) {
 		t.Fatalf("tags: %+v", s)
+	}
+	g = New()
+	g.Add(cube.Pos{0, 0, 0}, 200, Store{1, 100}, l)
+	id = g.Add(cube.Pos{1, 0, 0}, 200, Store{2, 40}, l)
+	if s := g.Store(id); s != (Store{1, 100}) {
+		t.Fatalf("larger first: %+v", s)
 	}
 }
 

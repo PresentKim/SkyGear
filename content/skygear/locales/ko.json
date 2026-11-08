@@ -3572,5 +3572,7 @@
  "menu.lobbyConfirm.title": "로비로",
  "menu.lobbyConfirm.body": "로비로 나가시겠습니까?",
  "menu.lobbyConfirm.yes": "로비로 나가기",
- "menu.lobbyConfirm.no": "취소"
+ "menu.lobbyConfirm.no": "취소",
+ "conduit.lines.buffer.energy": "§7망 저장량 %d / %d RE",
+ "conduit.lines.buffer.fluid": "§7망 저장량 %d / %d mB"
 }

@@ -64,19 +64,24 @@ func sortPos(ps []cube.Pos) {
 	sort.Slice(ps, func(i, j int) bool { return posLess(ps[i], ps[j]) })
 }
 
-// combine adds two stores. The side with more content decides the tag.
+// combine merges two stores. Equal tags add; an empty side or tag 0 merges
+// freely; different non-zero tags keep the larger store (tie: a).
 func combine(a, b Store) Store {
 	switch {
 	case a.Amount <= 0:
 		return norm(b)
 	case b.Amount <= 0:
 		return norm(a)
+	case a.Tag == b.Tag:
+		return Store{Tag: a.Tag, Amount: a.Amount + b.Amount}
+	case a.Tag == 0:
+		return Store{Tag: b.Tag, Amount: a.Amount + b.Amount}
+	case b.Tag == 0:
+		return Store{Tag: a.Tag, Amount: a.Amount + b.Amount}
+	case b.Amount > a.Amount:
+		return b
 	}
-	s := Store{Tag: a.Tag, Amount: a.Amount + b.Amount}
-	if b.Amount > a.Amount || (b.Amount == a.Amount && b.Tag < a.Tag) {
-		s.Tag = b.Tag
-	}
-	return s
+	return a
 }
 
 func norm(s Store) Store {

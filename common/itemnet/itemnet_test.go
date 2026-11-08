@@ -80,11 +80,12 @@ func TestItemsFlowBetweenChestsOverConduits(t *testing.T) {
 				tx.SetBlock(cube.Pos{x, 64, 0}, c, nil)
 			}
 			g := NewGrid()
-			g.AddConduit(cube.Pos{1, 64, 0})
+			for x := 1; x <= 3; x++ {
+				g.Place(tx, cube.Pos{x, 64, 0})
+			}
 			if got := g.Step(tx); got != RateOf(tier) {
 				t.Fatalf("tier %d moved %d per step, want %d", tier, got, RateOf(tier))
 			}
-			g.AddConduit(cube.Pos{1, 64, 0})
 			g.Step(tx)
 			if count(tx, to, stone) != 2*RateOf(tier) || count(tx, from, stone) != 640-2*RateOf(tier) {
 				t.Errorf("tier %d: %d in the target, %d left", tier, count(tx, to, stone), count(tx, from, stone))
@@ -163,7 +164,7 @@ func TestDestinationsTakeTurns(t *testing.T) {
 		c.modes[cube.FaceNorth], c.modes[cube.FaceSouth] = Output, Output
 		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
 		g := NewGrid()
-		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Place(tx, cube.Pos{1, 64, 0})
 		g.Step(tx)
 		half := RateOf(1) / 2
 		if count(tx, a, stone) != half || count(tx, b, stone) != half {
@@ -190,7 +191,7 @@ func TestChannelsKeepLinesApart(t *testing.T) {
 		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
 		g := NewGrid()
 		for range 3 {
-			g.AddConduit(cube.Pos{1, 64, 0})
+			g.Place(tx, cube.Pos{1, 64, 0})
 			g.Step(tx)
 		}
 		if count(tx, a, stone) != 3*RateOf(3) || count(tx, b, stone) != 0 {
@@ -240,11 +241,11 @@ func TestPlacedChestJoinsNextStep(t *testing.T) {
 		from, _ := itemLine(tx)
 		_ = from
 		g := NewGrid()
-		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Place(tx, cube.Pos{1, 64, 0})
 		g.Step(tx)
 		up := cube.Pos{1, 65, 0}
 		chestAt(tx, up)
-		g.Invalidate()
+		g.Changed(tx, up)
 		g.Step(tx)
 		if count(tx, up, stone) == 0 {
 			t.Error("the placed chest got nothing")
@@ -258,10 +259,10 @@ func TestBrokenChestLeavesNextStep(t *testing.T) {
 		to := cube.Pos{2, 64, 0}
 		chestAt(tx, to)
 		g := NewGrid()
-		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Place(tx, cube.Pos{1, 64, 0})
 		g.Step(tx)
 		tx.SetBlock(to, block.Air{}, nil)
-		g.Invalidate()
+		g.Changed(tx, to)
 		g.Step(tx)
 	})
 }
@@ -272,7 +273,7 @@ func TestStaleCacheNoPanic(t *testing.T) {
 		to := cube.Pos{2, 64, 0}
 		chestAt(tx, to)
 		g := NewGrid()
-		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Place(tx, cube.Pos{1, 64, 0})
 		g.Step(tx)
 		tx.SetBlock(to, block.Stone{}, nil)
 		tx.SetBlock(cube.Pos{0, 64, 0}, block.Stone{}, nil)
@@ -285,7 +286,7 @@ func TestCachedEqualsFresh(t *testing.T) {
 		itemLine(tx)
 		chestAt(tx, cube.Pos{2, 64, 0})
 		g := NewGrid()
-		g.AddConduit(cube.Pos{1, 64, 0})
+		g.Place(tx, cube.Pos{1, 64, 0})
 		g.Step(tx)
 		fresh := Discover(tx, cube.Pos{1, 64, 0}, 2048)
 		if len(g.nets) != 1 {
@@ -295,6 +296,73 @@ func TestCachedEqualsFresh(t *testing.T) {
 			if len(n.Conduits) != len(fresh.Conduits) || len(n.Ends) != len(fresh.Ends) {
 				t.Errorf("cached %+v, fresh %+v", n, fresh)
 			}
+		}
+	})
+}
+
+// TestModeChangeReadsSettings: a side set to Off and a Changed(conduit) later,
+// nothing goes that way.
+func TestModeChangeReadsSettings(t *testing.T) {
+	stone := item.NewStack(block.Stone{}, 1)
+	withWorld(t, func(tx *world.Tx) {
+		itemLine(tx)
+		to, up := cube.Pos{2, 64, 0}, cube.Pos{1, 65, 0}
+		chestAt(tx, to)
+		chestAt(tx, up)
+		g := NewGrid()
+		g.Place(tx, cube.Pos{1, 64, 0})
+		g.Step(tx)
+		if count(tx, up, stone) == 0 {
+			t.Fatal("the up chest got nothing before the change")
+		}
+		c := testConduit{tier: 3}
+		c.modes[cube.FaceWest] = Input
+		c.modes[cube.FaceEast] = Output
+		c.modes[cube.FaceUp] = Off
+		tx.SetBlock(cube.Pos{1, 64, 0}, c, nil)
+		g.Changed(tx, cube.Pos{1, 64, 0})
+		before := count(tx, up, stone)
+		g.Step(tx)
+		if count(tx, up, stone) != before {
+			t.Error("the Off side still got items")
+		}
+	})
+}
+
+// TestRemoveKeepsTurnOfOtherNets: removing a conduit of one network leaves the
+// turn of another network alone.
+func TestRemoveKeepsTurnOfOtherNets(t *testing.T) {
+	withWorld(t, func(tx *world.Tx) {
+		g := NewGrid()
+		a, b := cube.Pos{1, 64, 0}, cube.Pos{1, 64, 10}
+		for _, p := range []cube.Pos{a, b, {1, 64, 11}} {
+			tx.SetBlock(p, testConduit{tier: 1}, nil)
+			g.Place(tx, p)
+		}
+		g.Step(tx)
+		idB, _ := g.graph.NetOf(b)
+		g.nets[idB].turn = 7
+		tx.SetBlock(a, block.Air{}, nil)
+		g.Remove(tx, a)
+		g.Step(tx)
+		if g.Conduits() != 2 || g.nets[idB].turn != 7 {
+			t.Errorf("%d conduits, turn %d", g.Conduits(), g.nets[idB].turn)
+		}
+	})
+}
+
+func TestVerifyDropsVanishedLoneConduit(t *testing.T) {
+	withWorld(t, func(tx *world.Tx) {
+		p := cube.Pos{1, 64, 0}
+		tx.SetBlock(p, testConduit{tier: 1}, nil)
+		g := NewGrid()
+		g.Place(tx, p)
+		tx.SetBlock(p, block.Air{}, nil) // no event
+		for range verifySteps + 2 {
+			g.Step(tx)
+		}
+		if g.Conduits() != 0 {
+			t.Errorf("%d conduits left", g.Conduits())
 		}
 	})
 }

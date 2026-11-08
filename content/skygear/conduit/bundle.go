@@ -55,7 +55,15 @@ type Bundle struct {
 	// Extract and Insert are the channels (0 to 15) of each side of the item
 	// conduit (itemnet.Channels).
 	Extract, Insert [6]int
+	// Buf is this conduit's share of the buffer of its networks. It is a pointer
+	// so that a SetBlock of the same bundle with other connection bits keeps the
+	// cell; the grids hold the live amounts and write them here (WriteShares,
+	// UnloadColumn). A cell belongs to one position (events.go).
+	Buf *BufCell
 }
+
+// BufCell is the saved share of the energy and fluid buffer of a bundle.
+type BufCell struct{ Energy, FluidKind, Fluid int }
 
 var bundleHash = block.NextHash()
 
@@ -119,7 +127,7 @@ func (b Bundle) ItemChannels(f cube.Face) (extract, insert int) {
 }
 
 // EncodeNBT and DecodeNBT keep everything the bundle holds (and make it a
-// block entity, which is what gets ticked).
+// block entity).
 func (b Bundle) EncodeNBT() map[string]any {
 	modes := make([]byte, len(b.Modes))
 	for i, m := range b.Modes {
@@ -132,7 +140,12 @@ func (b Bundle) EncodeNBT() map[string]any {
 		}
 		return string(out)
 	}
+	var cell BufCell
+	if b.Buf != nil {
+		cell = *b.Buf
+	}
 	return map[string]any{
+		"EBuf": int32(cell.Energy), "FKind": int32(cell.FluidKind), "FBuf": int32(cell.Fluid),
 		"Extract": channels(b.Extract), "Insert": channels(b.Insert),
 		"id": "SkyGearConduitBundle", "Energy": int32(b.Energy), "Item": int32(b.Item), "Fluid": int32(b.Fluid),
 		"EConn": int32(b.EConn), "IConn": int32(b.IConn), "FConn": int32(b.FConn), "Modes": string(modes),
@@ -144,6 +157,7 @@ func (b Bundle) DecodeNBT(data map[string]any) any {
 		n, _ := data[key].(int32)
 		return int(n)
 	}
+	b.Buf = &BufCell{Energy: max(num("EBuf"), 0), FluidKind: max(num("FKind"), 0), Fluid: max(num("FBuf"), 0)}
 	b.Energy, b.Item, b.Fluid = min(num("Energy"), Tiers), min(num("Item"), Tiers), min(num("Fluid"), Tiers)
 	b.EConn, b.IConn, b.FConn = num("EConn")&63, num("IConn")&63, num("FConn")&63
 	for key, dst := range map[string]*[6]int{"Extract": &b.Extract, "Insert": &b.Insert} {
@@ -195,10 +209,24 @@ type bundleSide struct {
 }
 
 // sides reads the six neighbours of the bundle at pos.
-func (b Bundle) sides(tx *world.Tx, pos cube.Pos) (out [6]bundleSide) {
+func (b Bundle) sides(tx *world.Tx, pos cube.Pos) [6]bundleSide {
+	return b.sidesOf(tx, pos, false)
+}
+
+// sidesOf is sides; with loadedOnly a neighbour in a column that is not loaded
+// is not read (it counts as air), so it never loads that column.
+func (b Bundle) sidesOf(tx *world.Tx, pos cube.Pos, loadedOnly bool) (out [6]bundleSide) {
 	for i, f := range Faces {
 		at := pos.Side(f)
-		out[i].block = tx.Block(at)
+		if loadedOnly {
+			blk, ok := tx.BlockLoaded(at)
+			out[i].block = blk
+			if !ok {
+				continue
+			}
+		} else {
+			out[i].block = tx.Block(at)
+		}
 		if b.Item == 0 {
 			continue
 		}
@@ -243,31 +271,31 @@ func (b Bundle) Refresh(pos cube.Pos, tx *world.Tx) { b.refresh(pos, tx, true) }
 // refresh is Refresh; without verify the display entities are not looked up
 // when their remembered look is still right.
 func (b Bundle) refresh(pos cube.Pos, tx *world.Tx, verify bool) {
-	sides := b.sides(tx, pos)
+	b.refreshOf(pos, tx, verify, false)
+}
+
+// refreshOf is refresh; with loadedOnly it reads only neighbours in loaded
+// columns.
+func (b Bundle) refreshOf(pos cube.Pos, tx *world.Tx, verify, loadedOnly bool) {
+	sides := b.sidesOf(tx, pos, loadedOnly)
 	e, i, f := b.connectionsFrom(sides)
 	if e != b.EConn || i != b.IConn || f != b.FConn {
 		b.EConn, b.IConn, b.FConn = e, i, f
 		tx.SetBlock(pos, b, nil)
-		invalidateNets(tx)
 	}
 	if s, ok := core.Of(tx); ok {
 		showConduitWith(s, tx, pos, b, b.plugsFrom(sides), verify)
 	}
 }
 
-// NeighbourUpdateTick keeps the arms up to date.
-func (b Bundle) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+// NeighbourUpdateTick keeps the arms up to date and tells the grids that the
+// block beside it changed.
+func (b Bundle) NeighbourUpdateTick(pos, changed cube.Pos, tx *world.Tx) {
 	b.refresh(pos, tx, false)
-	// A block beside the conduits was placed, broken or changed.
-	invalidateNets(tx)
-}
-
-// invalidateNets makes the grids of the world find their networks again.
-func invalidateNets(tx *world.Tx) {
 	if s, ok := core.Of(tx); ok {
-		network.Energy(s).Invalidate()
-		network.Items(s).Invalidate()
-		network.Fluids(s).Invalidate()
+		network.Energy(s).Changed(tx, changed)
+		network.Items(s).Changed(tx, changed)
+		network.Fluids(s).Changed(tx, changed)
 	}
 }
 
@@ -278,39 +306,6 @@ func (b Bundle) settingsSig() uint64 {
 		h = h*131 + uint64(b.Modes[i]) + 4*uint64(b.Extract[i]) + 64*uint64(b.Insert[i])
 	}
 	return h
-}
-
-// Tick registers the bundle with the grids of its conduits every few ticks
-// (and keeps its display entity there).
-func (b Bundle) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
-	if currentTick%4 != 0 {
-		return
-	}
-	s, ok := core.Of(tx)
-	if !ok {
-		return
-	}
-	// A neighbour change without an update event is found by the full
-	// refresh every 40 ticks, phased by position; in between only a missing
-	// display entity is made again.
-	if _, shown := LocalOf(s).Visuals[pos]; !shown || (currentTick/4+int64(posPhase(pos)))%10 == 0 {
-		b.refresh(pos, tx, true)
-	}
-	if b.Energy > 0 {
-		network.Energy(s).AddConduit(pos)
-	}
-	if b.Item > 0 {
-		network.Items(s).AddConduitSig(pos, b.settingsSig())
-	}
-	if b.Fluid > 0 {
-		network.Fluids(s).AddConduit(pos)
-	}
-}
-
-// posPhase spreads periodic work of blocks over ticks.
-func posPhase(pos cube.Pos) int {
-	h := uint32(pos[0])*73856093 ^ uint32(pos[1])*19349663 ^ uint32(pos[2])*83492791
-	return int(h >> 8 & 0xffff)
 }
 
 // FluidTier implements fluidnet.Conduit.
@@ -330,6 +325,9 @@ func BundleLines(lang string, tx *world.Tx, pos cube.Pos, b Bundle) []string {
 	}
 	if b.Fluid > 0 {
 		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidnet.RateOf(b.Fluid)))
+	}
+	if sess, ok := core.Of(tx); ok {
+		lines = append(lines, BufferLines(lang, sess, pos, b)...)
 	}
 	return lines
 }
@@ -566,10 +564,13 @@ type conduitsLocal struct {
 	// looks are the variant and mark the entities above were made with, so a
 	// bundle that did not change needs no Entity(tx) lookup.
 	looks map[*world.EntityHandle][2]int32
+	// owners is the position each buffer cell belongs to, so that a bundle
+	// value copied to another position never shares its cell.
+	owners map[*BufCell]cube.Pos
 }
 
 var conduitsPart = core.NewPart(func() *conduitsLocal {
-	return &conduitsLocal{Visuals: map[cube.Pos]*world.EntityHandle{}, Plates: map[PlateKey]*world.EntityHandle{}, plateTurn: map[uuid.UUID]int{}, looks: map[*world.EntityHandle][2]int32{}}
+	return &conduitsLocal{Visuals: map[cube.Pos]*world.EntityHandle{}, Plates: map[PlateKey]*world.EntityHandle{}, plateTurn: map[uuid.UUID]int{}, looks: map[*world.EntityHandle][2]int32{}, owners: map[*BufCell]cube.Pos{}}
 })
 
 // LocalOf is what the save of s keeps for its conduits.
