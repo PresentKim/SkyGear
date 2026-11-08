@@ -1,9 +1,11 @@
 package energy
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/world"
 
 	"github.com/presentkim/skygear/common/netgraph"
 )
@@ -19,12 +21,14 @@ func BufferOf(tier int) int { return RateOf(tier) / 40 }
 type role struct{ src, snk bool }
 
 // netInfo is what the grid remembers about one network besides its buffer:
-// the blocks beside its conduits and its rate. It is rebuilt only when the
-// conduits of the network change, and edited in place when a block beside it
-// changes.
+// the blocks beside its conduits and its rate. It is edited in place when one
+// conduit joins or leaves the network without merging or cutting it, or a
+// block beside it changes, and rebuilt only after a merge, a cut or a tier
+// change.
 type netInfo struct {
 	ends    map[Endpoint]role
 	count   int
+	lowest  int // lowest conduit tier
 	rate    int
 	stale   bool // sources and sinks must be sorted out of ends again
 	sources []Endpoint
@@ -39,6 +43,7 @@ type Grid struct {
 	info     map[netgraph.NetID]*netInfo
 	sources  map[cube.Pos]struct{}
 	cursor   netgraph.NetID
+	credit   int // conduit-ticks earned towards verify
 	counters Counters
 }
 
@@ -85,9 +90,30 @@ func (g *Grid) Place(w World, pos cube.Pos, share int) {
 	if !ok {
 		return
 	}
+	_, known := g.tiers[pos]
+	var joins []netgraph.NetID
+	for _, q := range faceLinks(pos) {
+		if id, ok := g.graph.NetOf(q); ok && !slices.Contains(joins, id) {
+			joins = append(joins, id)
+		}
+	}
 	g.tiers[pos] = tier
 	id := g.graph.Add(pos, BufferOf(tier), netgraph.Store{Amount: share}, faceLinks)
-	delete(g.info, id)
+	ni := g.info[id]
+	if known || ni == nil || len(joins) != 1 || joins[0] != id {
+		delete(g.info, id)
+		return
+	}
+	// One new conduit joined one known network: edit its info in place.
+	ni.count++
+	ni.stale = true
+	if tier < ni.lowest {
+		ni.lowest, ni.rate = tier, RateOf(tier)
+	}
+	for _, f := range cube.Faces() {
+		delete(ni.ends, Endpoint{Pos: pos, Face: f})
+	}
+	ni.addEnds(w, pos)
 }
 
 // Remove takes the conduit at pos out of the grid and returns the buffer that
@@ -97,13 +123,47 @@ func (g *Grid) Remove(w World, pos cube.Pos) int {
 	if !ok {
 		return 0
 	}
+	tier := g.tiers[pos]
 	share, parts := g.graph.Remove(pos, faceLinks)
 	delete(g.tiers, pos)
-	delete(g.info, id)
-	for _, p := range parts {
-		delete(g.info, p)
+	ni := g.info[id]
+	if ni == nil || len(parts) != 1 || parts[0] != id {
+		delete(g.info, id)
+		for _, p := range parts {
+			delete(g.info, p)
+		}
+		return share.Amount
+	}
+	// The network lost one conduit and was not cut: edit its info in place.
+	ni.count--
+	ni.stale = true
+	for _, f := range cube.Faces() {
+		delete(ni.ends, Endpoint{Pos: pos.Side(f), Face: f.Opposite()})
+	}
+	if b := w.Block(pos); !isConduitBlock(b) {
+		if src, snk := RolesOf(b); src != nil || snk != nil {
+			for _, f := range cube.Faces() {
+				if nid, ok := g.graph.NetOf(pos.Side(f)); ok && nid == id {
+					ni.ends[Endpoint{Pos: pos, Face: f}] = role{src != nil, snk != nil}
+				}
+			}
+		}
+	}
+	if tier == ni.lowest {
+		ni.lowest = 0
+		g.graph.Each(id, func(p cube.Pos) {
+			if t := g.tiers[p]; ni.lowest == 0 || t < ni.lowest {
+				ni.lowest = t
+			}
+		})
+		ni.rate = RateOf(ni.lowest)
 	}
 	return share.Amount
+}
+
+func isConduitBlock(b world.Block) bool {
+	_, ok := IsConduit(b)
+	return ok
 }
 
 // Changed tells the grid that the block at pos changed. A conduit that
@@ -190,27 +250,32 @@ func (g *Grid) netInfoOf(w World, id netgraph.NetID) *netInfo {
 		return ni
 	}
 	ni := &netInfo{ends: map[Endpoint]role{}, stale: true}
-	lowest := 0
-	for _, pos := range g.graph.Nodes(id) {
+	g.graph.Each(id, func(pos cube.Pos) { // ends is a set and sorted later
 		ni.count++
-		if t := g.tiers[pos]; lowest == 0 || t < lowest {
-			lowest = t
+		if t := g.tiers[pos]; ni.lowest == 0 || t < ni.lowest {
+			ni.lowest = t
 		}
-		for _, f := range cube.Faces() {
-			next := pos.Side(f)
-			b := w.Block(next)
-			if _, isConduit := IsConduit(b); isConduit {
-				continue
-			}
-			src, snk := RolesOf(b)
-			if src != nil || snk != nil {
-				ni.ends[Endpoint{Pos: next, Face: f.Opposite()}] = role{src != nil, snk != nil}
-			}
-		}
-	}
-	ni.rate = RateOf(lowest)
+		ni.addEnds(w, pos)
+	})
+	ni.rate = RateOf(ni.lowest)
 	g.info[id] = ni
 	return ni
+}
+
+// addEnds puts the sources and sinks beside the conduit at pos in ends.
+func (ni *netInfo) addEnds(w World, pos cube.Pos) {
+	for _, f := range cube.Faces() {
+		next := pos.Side(f)
+		b := w.Block(next)
+		if isConduitBlock(b) {
+			continue
+		}
+		src, snk := RolesOf(b)
+		if src != nil || snk != nil {
+			ni.ends[Endpoint{Pos: next, Face: f.Opposite()}] = role{src != nil, snk != nil}
+			ni.stale = true
+		}
+	}
 }
 
 func (ni *netInfo) sort() {
@@ -243,8 +308,8 @@ func (ni *netInfo) sort() {
 // ticks into its sinks and up to the same out of its sources. Sources feed
 // sinks first; what the sinks did not take fills the buffer, and what the
 // sinks still want comes from the buffer. Every registered direct source
-// gives the sinks it touches up to DirectRate × ticks. At the end part of the
-// networks are checked against the world.
+// gives the sinks it touches up to DirectRate × ticks. At the end the networks
+// the verify credit pays for are checked against the world.
 func (g *Grid) Step(w World, ticks int) Stats {
 	var st Stats
 	ids := g.graph.Nets()
@@ -386,15 +451,17 @@ func fill(want []int, total int) []int {
 }
 
 // verify checks networks against the world, going round so that all of them
-// are seen about once in a minute: a Step checks up to conduits / (Steps in a
-// minute) conduits, and at least one network.
+// are seen about once in a minute. Every Step earns conduits × ticks of
+// credit; checking a network costs its conduits × verifyTicks, so a whole
+// round costs one minute of Steps. A network is only checked once the credit
+// pays for all of it, so a Step on unchanged networks usually walks nothing.
 func (g *Grid) verify(w World, ticks int) {
 	conduits := g.graph.Len()
 	if conduits == 0 {
+		g.credit = 0
 		return
 	}
-	perMinute := max(1, verifyTicks/max(1, ticks))
-	budget := max(1, conduits/perMinute)
+	g.credit = min(g.credit+conduits*max(1, ticks), conduits*verifyTicks)
 	ids := g.graph.Nets()
 	start := sort.Search(len(ids), func(i int) bool { return ids[i] > g.cursor })
 	isNode := func(p cube.Pos) (int, bool) {
@@ -405,15 +472,14 @@ func (g *Grid) verify(w World, ticks int) {
 		g.tiers[p] = tier
 		return BufferOf(tier), true
 	}
-	used := 0
-	for k := 0; k < len(ids) && used < budget; k++ {
+	for k := 0; k < len(ids); k++ {
 		id := ids[(start+k)%len(ids)]
-		g.cursor = id
-		size := 1
-		if ni := g.info[id]; ni != nil {
-			size = ni.count
+		cost := g.graph.Size(id) * verifyTicks
+		if g.credit < cost {
+			return
 		}
-		used += size
+		g.credit -= cost
+		g.cursor = id
 		before := g.graph.Nodes(id)
 		if g.graph.Verify(id, faceLinks, isNode) {
 			delete(g.info, id)

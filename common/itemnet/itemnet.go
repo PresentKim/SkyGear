@@ -386,7 +386,7 @@ func (g *Grid) verify(tx *world.Tx) {
 			i = 0
 		}
 		id := ids[i]
-		size := len(g.graph.Nodes(id))
+		size := g.graph.Size(id)
 		if g.credit < size {
 			return
 		}

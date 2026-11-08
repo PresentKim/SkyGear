@@ -6,6 +6,7 @@
 package netgraph
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -61,7 +62,15 @@ func posLess(a, b cube.Pos) bool {
 }
 
 func sortPos(ps []cube.Pos) {
-	sort.Slice(ps, func(i, j int) bool { return posLess(ps[i], ps[j]) })
+	slices.SortFunc(ps, func(a, b cube.Pos) int {
+		if posLess(a, b) {
+			return -1
+		}
+		if posLess(b, a) {
+			return 1
+		}
+		return 0
+	})
 }
 
 // combine merges two stores. Equal tags add; an empty side or tag 0 merges
@@ -161,13 +170,22 @@ func (g *Graph) Remove(pos cube.Pos, links Links) (Store, []NetID) {
 	if !ok {
 		return Store{}, nil
 	}
-	return g.resplit(nd.net, map[cube.Pos]struct{}{pos: {}}, links(pos), links)
+	return g.resplit(nd.net, map[cube.Pos]struct{}{pos: {}}, links(pos), links, true)
+}
+
+// comp is one connected piece of what is left of a network. pos is nil only
+// for a piece that keeps the network's ID, which needs no relabelling.
+type comp struct {
+	pos []cube.Pos
+	cap int
 }
 
 // resplit takes the removed nodes out of network id, finds the connected
-// pieces that remain by BFS inside the network and divides the buffer between
-// the pieces and the removed nodes by capacity.
-func (g *Graph) resplit(id NetID, removed map[cube.Pos]struct{}, seeds []cube.Pos, links Links) (Store, []NetID) {
+// pieces that remain and divides the buffer between the pieces and the
+// removed nodes by capacity. With local set (one node removed, seeds are its
+// links) the pieces are found by searching from the seeds only as far as
+// needed (see cut); otherwise every remaining node is walked.
+func (g *Graph) resplit(id NetID, removed map[cube.Pos]struct{}, seeds []cube.Pos, links Links, local bool) (Store, []NetID) {
 	n := g.nets[id]
 	remW := 0
 	for p := range removed {
@@ -175,54 +193,13 @@ func (g *Graph) resplit(id NetID, removed map[cube.Pos]struct{}, seeds []cube.Po
 		delete(n.nodes, p)
 		delete(g.nodes, p)
 	}
-	seen := make(map[cube.Pos]struct{}, len(n.nodes))
-	type comp struct {
-		pos []cube.Pos
-		cap int
-	}
 	var comps []comp
-	bfs := func(start cube.Pos) {
-		if _, ok := n.nodes[start]; !ok {
-			return
-		}
-		if _, ok := seen[start]; ok {
-			return
-		}
-		seen[start] = struct{}{}
-		c := comp{}
-		queue := []cube.Pos{start}
-		for head := 0; head < len(queue); head++ {
-			p := queue[head]
-			g.visited++
-			c.pos = append(c.pos, p)
-			c.cap += g.nodes[p].weight
-			for _, q := range links(p) {
-				if _, ok := n.nodes[q]; !ok {
-					continue
-				}
-				if _, ok := seen[q]; ok {
-					continue
-				}
-				seen[q] = struct{}{}
-				queue = append(queue, q)
-			}
-		}
-		comps = append(comps, c)
+	ok := false
+	if local {
+		comps, ok = g.cut(n, seeds, links, n.cap-remW)
 	}
-	for _, s := range seeds {
-		bfs(s)
-	}
-	if len(seen) < len(n.nodes) { // links were not symmetric: sweep the rest
-		rest := make([]cube.Pos, 0, len(n.nodes)-len(seen))
-		for p := range n.nodes {
-			if _, ok := seen[p]; !ok {
-				rest = append(rest, p)
-			}
-		}
-		sortPos(rest)
-		for _, p := range rest {
-			bfs(p)
-		}
+	if !ok {
+		comps = g.walk(n, seeds, links)
 	}
 
 	// Pieces: the components, then the removed nodes as the last one.
@@ -291,6 +268,205 @@ func (g *Graph) resplit(id NetID, removed map[cube.Pos]struct{}, seeds []cube.Po
 	return removedStore, parts
 }
 
+// walk finds every connected piece of n by BFS, from the seeds first and
+// then from any node they did not reach (links that were not symmetric).
+func (g *Graph) walk(n *net, seeds []cube.Pos, links Links) []comp {
+	seen := make(map[cube.Pos]struct{}, len(n.nodes))
+	var comps []comp
+	bfs := func(start cube.Pos) {
+		if _, ok := n.nodes[start]; !ok {
+			return
+		}
+		if _, ok := seen[start]; ok {
+			return
+		}
+		seen[start] = struct{}{}
+		c := comp{}
+		queue := []cube.Pos{start}
+		for head := 0; head < len(queue); head++ {
+			p := queue[head]
+			g.visited++
+			c.pos = append(c.pos, p)
+			c.cap += g.nodes[p].weight
+			for _, q := range links(p) {
+				if _, ok := n.nodes[q]; !ok {
+					continue
+				}
+				if _, ok := seen[q]; ok {
+					continue
+				}
+				seen[q] = struct{}{}
+				queue = append(queue, q)
+			}
+		}
+		comps = append(comps, c)
+	}
+	for _, s := range seeds {
+		bfs(s)
+	}
+	if len(seen) < len(n.nodes) { // links were not symmetric: sweep the rest
+		rest := make([]cube.Pos, 0, len(n.nodes)-len(seen))
+		for p := range n.nodes {
+			if _, ok := seen[p]; !ok {
+				rest = append(rest, p)
+			}
+		}
+		sortPos(rest)
+		for _, p := range rest {
+			bfs(p)
+		}
+	}
+	return comps
+}
+
+// cut finds the pieces left of connected network n after one node went,
+// given that node's links as seeds and restCap, the capacity left. It gives
+// the same pieces in the same order as walk, but walks only what it must: no
+// seed in n's nodes but one means no cut and no walk; otherwise one search
+// per seed takes a node in turn per group of searches that met, until all met
+// (no cut) or all groups but one ran out (those are the cut-off pieces, the
+// last one is the rest). The rest is walked out too only when it is not the
+// piece that keeps the network. It takes links to be symmetric, as Add
+// builds networks; it reports false when no seed is in n or a search finds
+// links that are not, and walk must be used.
+func (g *Graph) cut(n *net, seeds []cube.Pos, links Links, restCap int) ([]comp, bool) {
+	var starts []cube.Pos
+	for _, s := range seeds {
+		if _, ok := n.nodes[s]; !ok {
+			continue
+		}
+		dup := false
+		for _, t := range starts {
+			dup = dup || t == s
+		}
+		if !dup {
+			starts = append(starts, s)
+		}
+	}
+	switch len(starts) {
+	case 0:
+		return nil, false
+	case 1:
+		return []comp{{cap: restCap}}, true
+	}
+	m := len(starts)
+	parent := make([]int, m)        // union-find over searches; a root is its group's smallest index
+	members := make([][]int, m)     // searches of each root's group
+	queues := make([][]cube.Pos, m) // nodes each search took; heads[i] of them were expanded
+	heads := make([]int, m)
+	caps := make([]int, m)
+	done := make([]bool, m) // the root's group ran out
+	owner := map[cube.Pos]int{}
+	for i, s := range starts {
+		parent[i], members[i] = i, []int{i}
+		queues[i], caps[i] = []cube.Pos{s}, g.nodes[s].weight
+		owner[s] = i
+	}
+	find := func(i int) int {
+		for parent[i] != i {
+			parent[i] = parent[parent[i]]
+			i = parent[i]
+		}
+		return i
+	}
+	groups, open, odd := m, m, false
+	// step expands one node of root r's group and reports false if it had none.
+	step := func(r int) bool {
+		for _, i := range members[r] {
+			if heads[i] == len(queues[i]) {
+				continue
+			}
+			p := queues[i][heads[i]]
+			heads[i]++
+			g.visited++
+			for _, q := range links(p) {
+				if _, ok := n.nodes[q]; !ok {
+					continue
+				}
+				o, taken := owner[q]
+				if !taken {
+					owner[q] = i
+					queues[i] = append(queues[i], q)
+					caps[i] += g.nodes[q].weight
+					continue
+				}
+				a, b := find(o), find(i)
+				if a == b {
+					continue
+				}
+				if done[a] || done[b] { // a piece that ran out is linked to: links are not symmetric
+					odd = true
+					continue
+				}
+				if a > b {
+					a, b = b, a
+				}
+				parent[b] = a
+				members[a] = append(members[a], members[b]...)
+				members[b] = nil
+				groups--
+				open--
+			}
+			return true
+		}
+		return false
+	}
+	for groups > 1 && open > 1 {
+		for r := 0; r < m && groups > 1 && open > 1; r++ {
+			if parent[r] != r || done[r] {
+				continue
+			}
+			if !step(r) {
+				done[r] = true
+				open--
+			}
+		}
+	}
+	if odd {
+		return nil, false
+	}
+	if groups == 1 {
+		return []comp{{cap: restCap}}, true
+	}
+	var comps []comp
+	rest, restRoot, cut := -1, -1, 0
+	for r := 0; r < m; r++ {
+		if parent[r] != r {
+			continue
+		}
+		if !done[r] {
+			rest, restRoot = len(comps), r
+			comps = append(comps, comp{})
+			continue
+		}
+		c := comp{}
+		for _, i := range members[r] {
+			c.pos = append(c.pos, queues[i]...)
+			c.cap += caps[i]
+		}
+		cut += c.cap
+		comps = append(comps, c)
+	}
+	comps[rest].cap = restCap - cut
+	keep := 0
+	for i := 1; i < len(comps); i++ {
+		if comps[i].cap > comps[keep].cap {
+			keep = i
+		}
+	}
+	if keep != rest {
+		for step(restRoot) {
+		}
+		if odd {
+			return nil, false
+		}
+		for _, i := range members[restRoot] {
+			comps[rest].pos = append(comps[rest].pos, queues[i]...)
+		}
+	}
+	return comps, true
+}
+
 // SetWeight changes the weight of the node at pos. The buffer is cut to the
 // new capacity.
 func (g *Graph) SetWeight(pos cube.Pos, weight int) {
@@ -330,6 +506,16 @@ func (g *Graph) Nodes(id NetID) []cube.Pos {
 	return out
 }
 
+// Each calls yield for every node of network id in no fixed order; use it
+// when the order does not matter, since Nodes has to sort.
+func (g *Graph) Each(id NetID, yield func(pos cube.Pos)) {
+	if n, ok := g.nets[id]; ok {
+		for p := range n.nodes {
+			yield(p)
+		}
+	}
+}
+
 // Nets returns all network IDs in ascending order.
 func (g *Graph) Nets() []NetID {
 	out := make([]NetID, 0, len(g.nets))
@@ -356,6 +542,14 @@ func (g *Graph) SetStore(id NetID, s Store) {
 	}
 }
 
+// Size returns how many nodes network id has, without listing them.
+func (g *Graph) Size(id NetID) int {
+	if n, ok := g.nets[id]; ok {
+		return len(n.nodes)
+	}
+	return 0
+}
+
 // Capacity returns the sum of the node weights of network id.
 func (g *Graph) Capacity(id NetID) int {
 	if n, ok := g.nets[id]; ok {
@@ -378,7 +572,7 @@ func (g *Graph) Verify(id NetID, links Links, isNode func(cube.Pos) (int, bool))
 	}
 	changed := false
 	removed := map[cube.Pos]struct{}{}
-	for _, p := range g.Nodes(id) {
+	for p := range n.nodes { // order does not matter: removed is a set
 		w, ok := isNode(p)
 		if !ok {
 			removed[p] = struct{}{}
@@ -397,7 +591,7 @@ func (g *Graph) Verify(id NetID, links Links, isNode func(cube.Pos) (int, bool))
 	if len(removed) > 0 {
 		changed = true
 	}
-	_, parts := g.resplit(id, removed, nil, links)
+	_, parts := g.resplit(id, removed, nil, links, false)
 	if len(parts) > 1 {
 		changed = true
 	}

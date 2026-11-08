@@ -373,3 +373,123 @@ func TestDeepLine(t *testing.T) {
 		t.Fatalf("nets = %d", len(g.Nets()))
 	}
 }
+
+// F-T3-1: Remove searches only as far as it must, and gives exactly what the
+// full walk gives (pieces, IDs, buffers, capacities).
+func TestRemoveCutMatchesWalk(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+	fast, full := New(), New()
+	set := map[cube.Pos]bool{}
+	for i := 0; i < 3000; i++ {
+		p := cube.Pos{r.Intn(9), 0, r.Intn(9)}
+		if set[p] {
+			delete(set, p)
+			s1, p1 := fast.Remove(p, grid4)
+			nd := full.nodes[p]
+			s2, p2 := full.resplit(nd.net, map[cube.Pos]struct{}{p: {}}, grid4(p), grid4, false)
+			if s1 != s2 || len(p1) != len(p2) {
+				t.Fatalf("op %d: remove %v: %+v %v vs %+v %v", i, p, s1, p1, s2, p2)
+			}
+			for j := range p1 {
+				if p1[j] != p2[j] {
+					t.Fatalf("op %d: parts %v vs %v", i, p1, p2)
+				}
+			}
+		} else {
+			set[p] = true
+			w, share := r.Intn(4)*5, Store{byte(1 + r.Intn(2)), r.Intn(12)}
+			fast.Add(p, w, share, grid4)
+			full.Add(p, w, share, grid4)
+		}
+		ids := fast.Nets()
+		if len(ids) != len(full.Nets()) {
+			t.Fatalf("op %d: nets %d vs %d", i, len(ids), len(full.Nets()))
+		}
+		for j, id := range ids {
+			if full.Nets()[j] != id || fast.Store(id) != full.Store(id) || fast.Capacity(id) != full.Capacity(id) {
+				t.Fatalf("op %d: net %d differs", i, id)
+			}
+			a, b := fast.Nodes(id), full.Nodes(id)
+			if len(a) != len(b) || fast.Size(id) != len(a) {
+				t.Fatalf("op %d: net %d nodes %d vs %d (size %d)", i, id, len(a), len(b), fast.Size(id))
+			}
+			for k := range a {
+				if a[k] != b[k] {
+					t.Fatalf("op %d: net %d nodes differ", i, id)
+				}
+			}
+		}
+	}
+}
+
+// F-T3-1: taking a conduit off the end of a line or the corner of a plane
+// cannot cut the network, so it walks nothing or only the corner.
+func TestRemoveWalksOnlyWhatItMust(t *testing.T) {
+	g := New()
+	for x := 0; x < 64; x++ {
+		g.Add(cube.Pos{x, 0, 0}, 1, Store{}, grid4)
+	}
+	g.Remove(cube.Pos{0, 0, 0}, grid4)
+	if v := g.Visited(); v != 0 {
+		t.Fatalf("line end visited %d", v)
+	}
+	p := New()
+	for x := 0; x < 32; x++ {
+		for z := 0; z < 32; z++ {
+			p.Add(cube.Pos{x, 0, z}, 1, Store{}, grid4)
+		}
+	}
+	p.Remove(cube.Pos{0, 0, 0}, grid4)
+	if v := p.Visited(); v > 8 || len(p.Nets()) != 1 || p.Size(p.Nets()[0]) != 1023 {
+		t.Fatalf("plane corner visited %d nets %d", v, len(p.Nets()))
+	}
+	// A real cut walks about the cut-off piece per search, not the whole net.
+	p.Remove(cube.Pos{30, 0, 31}, grid4)
+	v0 := p.Visited()
+	p.Remove(cube.Pos{31, 0, 30}, grid4) // (31,0,31) is cut off alone
+	if v := p.Visited() - v0; v > 8 || len(p.Nets()) != 2 {
+		t.Fatalf("cut visited %d nets %d", v, len(p.Nets()))
+	}
+}
+
+// F-T3-1: with links that are not symmetric Remove still keeps the graph
+// whole (every node in exactly its net) and conserves the buffer.
+func TestRemoveOneWayLinksStayConsistent(t *testing.T) {
+	r := rand.New(rand.NewSource(5))
+	oneWay := func(p cube.Pos) []cube.Pos {
+		if (p[0]+p[2])%3 == 0 {
+			return []cube.Pos{p.Side(cube.FaceEast), p.Side(cube.FaceSouth)}
+		}
+		return grid4(p)
+	}
+	g := New()
+	set := map[cube.Pos]bool{}
+	gone := 0
+	for i := 0; i < 3000; i++ {
+		p := cube.Pos{r.Intn(9), 0, r.Intn(9)}
+		if set[p] {
+			delete(set, p)
+			s, _ := g.Remove(p, oneWay)
+			gone += s.Amount
+		} else {
+			set[p] = true
+			g.Add(p, 10, Store{1, 0}, oneWay)
+			g.SetStore(g.nodes[p].net, Store{1, g.Capacity(g.nodes[p].net)})
+		}
+		n := 0
+		for _, id := range g.Nets() {
+			for _, q := range g.Nodes(id) {
+				if g.nodes[q].net != id {
+					t.Fatalf("op %d: %v in net %d listed under %d", i, q, g.nodes[q].net, id)
+				}
+				n++
+			}
+			if g.Capacity(id) != 10*g.Size(id) {
+				t.Fatalf("op %d: cap %d size %d", i, g.Capacity(id), g.Size(id))
+			}
+		}
+		if n != len(set) || g.Len() != len(set) {
+			t.Fatalf("op %d: %d listed, %d nodes, %d set", i, n, g.Len(), len(set))
+		}
+	}
+}

@@ -1,6 +1,8 @@
 package energy
 
 import (
+	"math/rand"
+	"slices"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -195,5 +197,91 @@ func TestVerifySplitsCutNet(t *testing.T) {
 	}
 	if g.Conduits() != 2 || len(g.graph.Nets()) != 2 {
 		t.Fatalf("conduits %d nets %d", g.Conduits(), len(g.graph.Nets()))
+	}
+}
+
+// F-T3-1: a Step on an unchanged network walks no conduits and keeps its
+// endpoint info; the check against the world walks the network once a
+// minute of Steps, not once per Step.
+func TestStepOnUnchangedNetWalksOncePerMinute(t *testing.T) {
+	store, have := 1<<30, 0
+	w := buffered(64, &store, &have, 1<<30)
+	g := gridOf(w)
+	v0 := g.Counters().Visited
+	g.Step(w, 4)
+	ni := g.info[g.graph.Nets()[0]]
+	for i := 2; i < verifyTicks/4; i++ {
+		g.Step(w, 4)
+		if v := g.Counters().Visited - v0; v != 0 {
+			t.Fatalf("step %d walked %d conduits", i, v)
+		}
+	}
+	g.Step(w, 4) // the minute is full: one check of the whole net
+	if v := g.Counters().Visited - v0; v != 64 {
+		t.Fatalf("minute walked %d conduits, want 64", v)
+	}
+	if g.info[g.graph.Nets()[0]] != ni {
+		t.Fatal("endpoint info rebuilt for an unchanged net")
+	}
+}
+
+// F-T3-1: the endpoint info edited in place by Place and Remove is what
+// reading the network afresh gives. Other block changes drop the info of the
+// networks beside them here, so only the in-place edits are compared.
+func TestEditedInfoMatchesFresh(t *testing.T) {
+	r := rand.New(rand.NewSource(6))
+	w := fakeWorld{}
+	g := NewGrid()
+	have := 0
+	for op := 0; op < 4000; op++ {
+		p := cube.Pos{r.Intn(6), r.Intn(2), r.Intn(6)}
+		switch k := r.Intn(10); {
+		case k < 6:
+			w[p] = cable{tier: 1 + r.Intn(3)}
+		case k == 6:
+			w[p] = gen{store: &have}
+		case k == 7:
+			w[p] = machine{have: &have, room: 10}
+		default:
+			delete(w, p)
+		}
+		_, known := g.tiers[p]
+		_, isC := IsConduit(w.Block(p))
+		switch {
+		case isC && !known:
+			g.Place(w, p, 0)
+		case isC:
+			g.Changed(w, p) // tier change: rebuilt
+		case known:
+			g.Remove(w, p)
+		default:
+			for _, f := range cube.Faces() {
+				if id, ok := g.graph.NetOf(p.Side(f)); ok {
+					delete(g.info, id)
+				}
+			}
+		}
+		for _, id := range g.graph.Nets() {
+			old := g.info[id]
+			if old == nil {
+				g.netInfoOf(w, id)
+				continue
+			}
+			delete(g.info, id)
+			fresh := g.netInfoOf(w, id)
+			if old.count != fresh.count || old.lowest != fresh.lowest || old.rate != fresh.rate || len(old.ends) != len(fresh.ends) {
+				t.Fatalf("op %d net %d: count %d/%d lowest %d/%d ends %d/%d", op, id, old.count, fresh.count, old.lowest, fresh.lowest, len(old.ends), len(fresh.ends))
+			}
+			for e, ro := range fresh.ends {
+				if old.ends[e] != ro {
+					t.Fatalf("op %d net %d: end %v %v vs %v", op, id, e, old.ends[e], ro)
+				}
+			}
+			old.sort()
+			fresh.sort()
+			if !slices.Equal(old.sources, fresh.sources) || !slices.Equal(old.sinks, fresh.sinks) {
+				t.Fatalf("op %d net %d: sorted ends differ", op, id)
+			}
+		}
 	}
 }
