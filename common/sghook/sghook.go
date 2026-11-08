@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"sync"
 	"sync/atomic"
+	"time"
 	"unsafe"
 
 	"github.com/df-mc/dragonfly/server"
@@ -32,6 +33,7 @@ type Conn struct {
 	sess      atomic.Pointer[session.Session]
 	closeOnce sync.Once
 	moveInput atomic.Pointer[mgl64.Vec2]
+	join      joinMarks
 }
 
 // Session returns the session of the connection, once Of found it.
@@ -114,6 +116,7 @@ func OnClose(f func(c *Conn)) { closeHooks = append(closeHooks, f) }
 // Wrap makes the connections of conf's listeners pass the hooks. Call it
 // before conf.New.
 func Wrap(conf *server.Config) {
+	conf.Allower = timingAllower{conf.Allower} // login mark of the join timing
 	for i, l := range conf.Listeners {
 		conf.Listeners[i] = func(c server.Config) (server.Listener, error) {
 			orig, err := l(c)
@@ -133,7 +136,11 @@ func (l listener) Accept() (session.Conn, error) {
 		return nil, err
 	}
 	applyItemEdits()
-	return conn{&Conn{Conn: c}}, nil
+	w := &Conn{Conn: c}
+	// Accept hands the connection out right after the client's packs are done.
+	w.join.packs = time.Now()
+	w.join.login = pendingLogins.take(c.IdentityData().Identity)
+	return conn{w}, nil
 }
 
 func (l listener) Disconnect(c session.Conn, reason string) error {

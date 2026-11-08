@@ -98,3 +98,7 @@ Flate 압축 수준 (128KB): 1단계 1.17ms 16952B, 3단계 1.82ms 15553B, 6단�
 - 수정된 칼럼이 `16 × SaveInterval` 개를 넘으면 일부 저장이 한 주기를 넘겨 늦어진다(`Close` 는 전부 저장).
 - 블록 엔티티는 아직 서브청크 요청마다 인코딩한다.
 - N3 은 하지 않았다.
+
+## 접속 시간 기록 (join timing)
+
+플레이어가 접속해 클라이언트 로딩 화면이 닫히면 INFO 줄 하나를 남긴다: `msg="join timing" player=… probe=<off|perm|bones> total_ms=… connect_to_packs_ms=… to_start_game_ms=… client_load_ms=…`(`common/sghook/jointiming.go`). 표시는 Login 처리(`Allower`) → 리소스팩 완료(`Accept`) → StartGame 보냄(`StartGameContext` 시작) → 클라이언트의 SetLocalPlayerAsInitialised(`StartGameContext` 반환) 네 곳이고, `client_load_ms`(StartGame 보낸 뒤 로딩이 끝날 때까지)가 블록 상태·퍼뮤테이션 수에 따라 커지는 값이다. 팩 내려받기 단계는 gophertunnel 안에서 처리돼 따로 보이지 않아 `packs_ms` 는 없고 `connect_to_packs_ms` 에 로그인부터 팩 완료까지가 합쳐진다. 비교하려면 같은 클라이언트·같은 기기로 `SKYGEAR_STATE_PROBE` 를 비우고(off), `perm`, `bones` 로 서버를 다시 띄워 접속하고(캐시 영향을 줄이려면 매번 두 번째 접속 값을 쓰거나 클라이언트 팩 캐시를 비운다) 여러 번 잰 `client_load_ms` 를 견준다. 시작할 때 `custom blocks` 줄이 등록된 커스텀 블록·상태·퍼뮤테이션 수를 한 번 남긴다. 연결이 로딩 전에 끊기면 줄을 남기지 않는다.
