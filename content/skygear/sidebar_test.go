@@ -41,7 +41,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "자연을 파괴하다") || len(rows) != 5 {
+		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "자연을 파괴하다") || len(rows) != 5 || !strings.HasPrefix(rows[0], "§e[") || !strings.HasPrefix(rows[1], "§f") || !strings.HasPrefix(rows[3], "§7나뭇잎") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		rt, _ := advancement.ByID("research_table")

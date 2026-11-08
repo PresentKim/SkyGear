@@ -2,7 +2,6 @@ package screens
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
@@ -60,10 +59,7 @@ func nextResearch(s *core.Session) (*progress.Research, bool) {
 // what inv holds of each item, when inv is not nil.
 func QuestRows(s *core.Session, lang string, inv *inventory.Inventory) (string, []string) {
 	if a, ok := progress.NextAdvancement(s); ok {
-		rows := strings.Split(a.HintText(lang), "\n")
-		for i := range rows {
-			rows[i] = "§f" + rows[i]
-		}
+		rows := advancement.HintRows(lang, a)
 		if g, ok := progress.GoalResearch(a); ok {
 			if r, ok := progress.Step(s, g); ok {
 				if r != g || a.Research == "" {

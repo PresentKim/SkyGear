@@ -345,9 +345,34 @@ func (a *Advancement) Title(lang string) string { return i18n.T(lang, a.NameKey)
 // HintText is the advancement's hint in lang.
 func (a *Advancement) HintText(lang string) string { return i18n.T(lang, a.HintKey) }
 
+// tipMark starts a hint line that is a tip rather than a step.
+const tipMark = "> "
+
+// HintRows are an advancement's hint in lang, one HUD row per line: a
+// "[where]" step line in yellow, a tip line (tipMark) in grey and the rest in
+// white.
+func HintRows(lang string, a *Advancement) []string {
+	rows := strings.Split(a.HintText(lang), "\n")
+	for i, r := range rows {
+		switch {
+		case strings.HasPrefix(r, "["):
+			rows[i] = "§e" + r
+		case strings.HasPrefix(r, tipMark):
+			rows[i] = "§7" + strings.TrimPrefix(r, tipMark)
+		default:
+			rows[i] = "§f" + r
+		}
+	}
+	return rows
+}
+
 // FlatHint is an advancement's hint in lang on one line.
 func FlatHint(lang string, a *Advancement) string {
-	return strings.ReplaceAll(a.HintText(lang), "\n", " ")
+	rows := strings.Split(a.HintText(lang), "\n")
+	for i, r := range rows {
+		rows[i] = strings.TrimPrefix(r, tipMark)
+	}
+	return strings.Join(rows, " ")
 }
 
 // Icon is the icon of an advancement in the advancement screen.
