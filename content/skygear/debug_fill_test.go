@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 )
 
 // fillEntities counts the conduit display entities of tx.
@@ -105,10 +106,22 @@ func TestDebugFill(t *testing.T) {
 			t.Errorf("stop: the stone is %#v", tx.Block(stone))
 		}
 
-		// block: the state probe may be off, then the layer probe is used.
-		run(p, tx, 1, 600, "block")
-		if l0, _ := layers(tx); l0 != cube1-1 {
-			t.Errorf("block: %d on layer 0, want %d", l0, cube1-1)
+		// block: needs the state probe; off, it refuses and puts nothing.
+		o := run(p, tx, 1, 600, "block")
+		if _, on := stateProbeBlock(0, 1); on {
+			if len(o.Errors()) != 0 {
+				t.Errorf("block with the probe on: %v", o.Errors())
+			}
+		} else {
+			if len(o.Errors()) != 1 {
+				t.Errorf("block with the probe off: %v", o.Errors())
+			}
+			if l0, l1 := layers(tx); l0 != 0 || l1 != 0 {
+				t.Errorf("block refused but %d on layer 0, %d on layer 1", l0, l1)
+			}
+			if o := stop(p, tx); len(o.Errors()) != 1 {
+				t.Errorf("a refused block fill is running: %v", o.Errors())
+			}
 		}
 		stop(p, tx)
 		if l0, l1 := layers(tx); l0 != 0 || l1 != 0 {
@@ -263,5 +276,236 @@ func TestDebugFillBlockProbe(t *testing.T) {
 			// the player's own position may hold the player, not a block
 			t.Errorf("after restore %d of %d positions are air", air, total)
 		}
+	})
+}
+
+// TestFillLook: the look of a position is a function of the position, has one
+// or two conduits of different kinds with a tier 1 to 3 and a set of arms, and
+// varies over positions.
+func TestFillLook(t *testing.T) {
+	seen := map[fillShape]bool{}
+	var twos, kinds [3]int
+	for x := -8; x < 8; x++ {
+		for y := 60; y < 64; y++ {
+			for z := -8; z < 8; z++ {
+				pos := cube.Pos{x, y, z}
+				l := fillLook(pos)
+				if l != fillLook(pos) {
+					t.Fatalf("%v: the look changes between calls", pos)
+				}
+				if l.n < 1 || l.n > 2 {
+					t.Fatalf("%v: %d conduits", pos, l.n)
+				}
+				for i, k := range l.k[:l.n] {
+					if k.kind < 0 || k.kind > 2 || k.tier < 1 || k.tier > 3 || k.faces < 0 || k.faces > 63 {
+						t.Fatalf("%v: %+v", pos, k)
+					}
+					if v := k.probeValue(); v < 1 || v >= stateProbeValues {
+						t.Fatalf("%v: probe value %d", pos, v)
+					}
+					if i == 0 {
+						kinds[k.kind]++
+					}
+				}
+				if l.n == 2 {
+					twos[0]++
+					if l.k[0].kind == l.k[1].kind {
+						t.Fatalf("%v: two conduits of kind %d", pos, l.k[0].kind)
+					}
+				}
+				seen[l] = true
+			}
+		}
+	}
+	total := 16 * 4 * 16
+	if twos[0] < total/3 || twos[0] > total*2/3 {
+		t.Errorf("%d of %d looks have a second conduit", twos[0], total)
+	}
+	for k, n := range kinds {
+		if n < total/6 {
+			t.Errorf("kind %d is the first of only %d looks", k, n)
+		}
+	}
+	if len(seen) < total/2 {
+		t.Errorf("%d different looks over %d positions", len(seen), total)
+	}
+}
+
+// TestFillLookEncodings: the entity codes and the probe values of a look show
+// the same kinds, tiers and arms (stateProbeParts decodes the value; the entity
+// code is 1 + (tier-1)*64 + faces of conduit.Look).
+func TestFillLookEncodings(t *testing.T) {
+	for x := 0; x < 20; x++ {
+		for z := 0; z < 20; z++ {
+			l := fillLook(cube.Pos{x, 70, z})
+			variant, mark := l.visual()
+			codes := [3]int32{variant % conduit.Codes, variant / conduit.Codes, mark}
+			var want [3]int32
+			for _, k := range l.k[:l.n] {
+				kind, tier, faces := stateProbeParts(k.probeValue())
+				if kind != k.kind || tier != k.tier || faces != k.faces {
+					t.Fatalf("%+v: probe value decodes to %d %d %d", k, kind, tier, faces)
+				}
+				want[kind] = 1 + int32(tier-1)*64 + int32(faces)
+			}
+			if codes != want {
+				t.Fatalf("%v: entity codes %v, want %v", l, codes, want)
+			}
+			// faces are in the order of conduit.Faces for both: bit i is Faces[i]
+			if variant < 0 || variant >= conduit.Codes*conduit.Codes || mark < 0 || mark >= conduit.Codes {
+				t.Fatalf("variant %d mark %d out of range", variant, mark)
+			}
+		}
+	}
+}
+
+// fillEntityLooks reads the Variant and MarkVariant of every conduit display
+// entity by block position.
+func fillEntityLooks(tx *world.Tx) map[cube.Pos][2]int32 {
+	out := map[cube.Pos][2]int32{}
+	for e := range tx.Entities() {
+		if v, ok := e.(interface {
+			Variant() int32
+			MarkVariant() int32
+		}); ok {
+			out[cube.PosFromVec3(e.Position())] = [2]int32{v.Variant(), v.MarkVariant()}
+		}
+	}
+	return out
+}
+
+// TestDebugFillEntityMatchesBlock: with the state probe on, the entity mode
+// and the block mode of a position show the same kinds, tiers and arms, and the
+// pair mode puts the entity on even x and the block of the look of x-1 on odd
+// x. With the probe off, block and pair refuse.
+func TestDebugFillEntityMatchesBlock(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	centre := cube.Pos{0, 64, 2}
+	const r = 2
+	old := fillUnit
+	fillUnit = time.Millisecond
+	t.Cleanup(func() { fillUnit = old })
+	run := func(p *player.Player, tx *world.Tx, what string) *cmd.Output {
+		t.Helper()
+		var o cmd.Output
+		debugFill{adminBase: adminBase{g: s.g}, Radius: r, Seconds: 600, What: fillEnum(what)}.Run(p, &o, tx)
+		return &o
+	}
+	stop := func(p *player.Player, tx *world.Tx) {
+		var o cmd.Output
+		debugFillStop{adminBase: adminBase{g: s.g}}.Run(p, &o, tx)
+	}
+	_, probeOn := stateProbeBlock(0, 1)
+	if !probeOn {
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			for _, what := range []string{"block", "pair"} {
+				if o := run(p, tx, what); len(o.Errors()) != 1 {
+					t.Errorf("%s with the probe off: %v", what, o.Errors())
+				}
+				if n := fillEntities(tx); n != 0 {
+					t.Errorf("%s refused but %d entities", what, n)
+				}
+				var o cmd.Output
+				debugFillStop{adminBase: adminBase{g: s.g}}.Run(p, &o, tx)
+				if len(o.Errors()) != 1 {
+					t.Errorf("%s refused but a fill runs", what)
+				}
+			}
+		})
+		return
+	}
+	// shapeOf is the look a position holds in blocks: the conduits of the probe
+	// blocks on its two layers.
+	shapeOf := func(tx *world.Tx, pos cube.Pos) (fillShape, bool) {
+		var l fillShape
+		for layer := uint8(0); layer < 2; layer++ {
+			sp, ok := tx.BlockLayer(pos, layer).(StateProbe)
+			if !ok || sp.Layer != int(layer) || sp.V == 0 {
+				continue
+			}
+			kind, tier, faces := stateProbeParts(sp.V)
+			l.k[l.n] = fillKind{kind, tier, faces}
+			l.n++
+		}
+		return l, l.n > 0
+	}
+	positions := func() (out []cube.Pos) {
+		for x := -r; x <= r; x++ {
+			for y := -r; y <= r; y++ {
+				for z := -r; z <= r; z++ {
+					out = append(out, centre.Add(cube.Pos{x, y, z}))
+				}
+			}
+		}
+		return out
+	}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.Teleport(mgl64.Vec3{0.5, 64, 2.5})
+		// entity and block modes: the same look at the same position
+		if o := run(p, tx, "entity"); len(o.Errors()) != 0 {
+			t.Fatalf("entity: %v", o.Errors())
+		}
+		ents := fillEntityLooks(tx)
+		stop(p, tx)
+		if o := run(p, tx, "block"); len(o.Errors()) != 0 {
+			t.Fatalf("block: %v", o.Errors())
+		}
+		checked := 0
+		for _, pos := range positions() {
+			l, ok := shapeOf(tx, pos)
+			if !ok {
+				continue
+			}
+			want := fillLook(pos)
+			if l != want {
+				t.Fatalf("%v: block look %+v, want %+v", pos, l, want)
+			}
+			variant, mark := want.visual()
+			if got, ok := ents[pos]; !ok || got != [2]int32{variant, mark} {
+				t.Fatalf("%v: entity look %v (%v), want %d %d", pos, got, ok, variant, mark)
+			}
+			checked++
+		}
+		if checked < 50 {
+			t.Errorf("only %d positions compared", checked)
+		}
+		stop(p, tx)
+
+		// pair: even x the entity, odd x the block of the look of x-1
+		if o := run(p, tx, "pair"); len(o.Errors()) != 0 {
+			t.Fatalf("pair: %v", o.Errors())
+		}
+		ents = fillEntityLooks(tx)
+		pairs := 0
+		for _, pos := range positions() {
+			l, isBlock := shapeOf(tx, pos)
+			got, isEntity := ents[pos]
+			if isBlock == isEntity {
+				continue // not filled: it holds the player or a block
+			}
+			if pos[0]&1 == 0 {
+				variant, mark := fillLook(pos).visual()
+				if !isEntity || got != [2]int32{variant, mark} {
+					t.Fatalf("%v: even x is not the entity of its look", pos)
+				}
+				continue
+			}
+			if !isBlock || l != fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}) {
+				t.Fatalf("%v: odd x holds %+v, want the look of x-1", pos, l)
+			}
+			if even, ok := ents[cube.Pos{pos[0] - 1, pos[1], pos[2]}]; ok {
+				variant, mark := fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}).visual()
+				if even != [2]int32{variant, mark} {
+					t.Fatalf("%v: neighbour entity %v differs", pos, even)
+				}
+				pairs++
+			}
+		}
+		if pairs < 10 {
+			t.Errorf("only %d neighbouring pairs compared", pairs)
+		}
+		stop(p, tx)
 	})
 }

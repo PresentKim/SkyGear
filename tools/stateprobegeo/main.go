@@ -1,15 +1,20 @@
 // Command stateprobegeo writes the block geometries of the state count probe
 // (SKYGEAR_STATE_PROBE, content/skygear/stateprobe.go): a conduit that is a
 // 3×3×3 pixel core with a 2×2 pixel arm to each side, the proportions of
-// tools/conduitgeo and of EnderIO's, drawn as a block.
+// tools/conduitgeo and of EnderIO's, drawn as a block. Like the display
+// entity's geometries, each kind has its lane (energy -3, item 0, fluid +3
+// pixels on every axis) built into the geometry, the arms running from the
+// shifted core to the edge of the block (so an arm of a shifted lane is
+// longer or shorter by the shift, as in the entity), not as a block
+// translation, which would move the arms past the edge of the block.
 //
-//   - state_probe_shape.geo.json (mode perm): 64 geometries,
-//     geometry.skygear.state_probe_shape_<faces>, one for each set of arms
-//     (bit i of faces is the arm of directions[i]: down, up, north, south,
-//     west, east, the order of the game's conduit faces).
-//   - state_probe_bones.geo.json (mode bones): one geometry,
-//     geometry.skygear.state_probe_bones, with the core and all six arms as
-//     bones for bone_visibility to switch.
+//   - state_probe_shape.geo.json (mode perm): 3×64 geometries,
+//     geometry.skygear.state_probe_shape_<kind>_<faces>, one for each kind and
+//     set of arms (bit i of faces is the arm of directions[i]: down, up,
+//     north, south, west, east, the order of the game's conduit faces).
+//   - state_probe_bones.geo.json (mode bones): 3 geometries,
+//     geometry.skygear.state_probe_bones_<kind>, with the core and all six
+//     arms as bones for bone_visibility to switch.
 //
 // Both use the 64×64 conduit sheets of tools/conduittex (arm strip left, core
 // face beside it, turned strip below). The files ship in the pack only in the
@@ -29,6 +34,13 @@ const (
 	coreHalf = 1.5 // the core is 3 pixels
 	armHalf  = 1.0 // an arm is 2 pixels
 )
+
+// kinds are the lanes: the shift of each kind in pixels on every axis, as in
+// tools/conduitgeo.
+var kinds = []struct {
+	name  string
+	shift float64
+}{{"energy", -3}, {"item", 0}, {"fluid", 3}}
 
 // directions of the arms in the order of the game's bit set.
 var directions = []struct {
@@ -77,28 +89,26 @@ func bone(name string, cube map[string]any) map[string]any {
 	return map[string]any{"name": name, "pivot": []float64{0, 0, 0}, "cubes": []any{cube}}
 }
 
-func coreBone() map[string]any {
-	return bone("core", box([3]float64{-coreHalf, 8 - coreHalf, -coreHalf}, [3]float64{coreHalf, 8 + coreHalf, coreHalf}, coreFaces()))
+func coreBone(shift float64) map[string]any {
+	c := 8 + shift
+	return bone("core", box([3]float64{shift - coreHalf, c - coreHalf, shift - coreHalf}, [3]float64{shift + coreHalf, c + coreHalf, shift + coreHalf}, coreFaces()))
 }
 
-// armBone is the arm of direction d: from the core out to the edge of the block.
-func armBone(d int) map[string]any {
+// armBone is the arm of direction d of the lane at shift: from the core out to
+// the edge of the block.
+func armBone(d int, shift float64) map[string]any {
 	dir := directions[d]
-	min := [3]float64{-armHalf, 8 - armHalf, -armHalf}
-	max := [3]float64{armHalf, 8 + armHalf, armHalf}
+	centre := [3]float64{shift, 8 + shift, shift}
+	min := [3]float64{centre[0] - armHalf, centre[1] - armHalf, centre[2] - armHalf}
+	max := [3]float64{centre[0] + armHalf, centre[1] + armHalf, centre[2] + armHalf}
 	lo, hi := -8.0, 8.0
 	if dir.axis == 1 {
 		lo, hi = 0, 16
 	}
-	// the core spans -coreHalf..coreHalf around x and z, 8-coreHalf..8+coreHalf in y
-	mid := 0.0
-	if dir.axis == 1 {
-		mid = 8
-	}
 	if dir.low {
-		min[dir.axis], max[dir.axis] = lo, mid-coreHalf
+		min[dir.axis], max[dir.axis] = lo, centre[dir.axis]-coreHalf
 	} else {
-		min[dir.axis], max[dir.axis] = mid+coreHalf, hi
+		min[dir.axis], max[dir.axis] = centre[dir.axis]+coreHalf, hi
 	}
 	return bone(dir.name, box(min, max, armFaces(dir.axis)))
 }
@@ -117,37 +127,43 @@ func geometry(identifier string, bones []any) map[string]any {
 	}
 }
 
-// shape is the geometry of a set of arms (bit i of faces is directions[i]).
-func shape(faces int) map[string]any {
-	bones := []any{coreBone()}
+// shape is the geometry of a set of arms (bit i of faces is directions[i]) in
+// the lane of kind.
+func shape(kind, faces int) map[string]any {
+	shift := kinds[kind].shift
+	bones := []any{coreBone(shift)}
 	for d := range directions {
 		if faces&(1<<d) != 0 {
-			bones = append(bones, armBone(d))
+			bones = append(bones, armBone(d, shift))
 		}
 	}
-	return geometry(fmt.Sprintf("geometry.skygear.state_probe_shape_%d", faces), bones)
+	return geometry(fmt.Sprintf("geometry.skygear.state_probe_shape_%s_%d", kinds[kind].name, faces), bones)
 }
 
-// bones is the geometry with every arm, for bone_visibility.
-func bones() map[string]any {
-	b := []any{coreBone()}
+// bones is the geometry of a kind with every arm, for bone_visibility.
+func bones(kind int) map[string]any {
+	shift := kinds[kind].shift
+	b := []any{coreBone(shift)}
 	for d := range directions {
-		b = append(b, armBone(d))
+		b = append(b, armBone(d, shift))
 	}
-	return geometry("geometry.skygear.state_probe_bones", b)
+	return geometry("geometry.skygear.state_probe_bones_"+kinds[kind].name, b)
 }
 
 // files are the files written, by name: compact JSON, as the shape file has
 // 64 geometries.
 func files() map[string][]byte {
-	var shapes []any
-	for f := range 64 {
-		shapes = append(shapes, shape(f))
+	var shapes, boneGeos []any
+	for k := range kinds {
+		for f := range 64 {
+			shapes = append(shapes, shape(k, f))
+		}
+		boneGeos = append(boneGeos, bones(k))
 	}
 	out := map[string][]byte{}
 	for name, geos := range map[string][]any{
 		"state_probe_shape.geo.json": shapes,
-		"state_probe_bones.geo.json": {bones()},
+		"state_probe_bones.geo.json": boneGeos,
 	} {
 		data, err := json.Marshal(map[string]any{"format_version": "1.12.0", "minecraft:geometry": geos})
 		if err != nil {

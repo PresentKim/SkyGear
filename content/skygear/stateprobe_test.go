@@ -130,15 +130,6 @@ func TestStateProbeParts(t *testing.T) {
 	if k, tr, f := stateProbeParts(576); k != 2 || tr != 3 || f != 63 {
 		t.Errorf("v=576 is %d %d %d", k, tr, f)
 	}
-	if got := stateProbeLane(0); got != [3]float64{-3.0 / 16, -3.0 / 16, -3.0 / 16} {
-		t.Errorf("energy lane %v", got)
-	}
-	if got := stateProbeLane(1); got != [3]float64{} {
-		t.Errorf("item lane %v", got)
-	}
-	if got := stateProbeLane(2); got != [3]float64{3.0 / 16, 3.0 / 16, 3.0 / 16} {
-		t.Errorf("fluid lane %v", got)
-	}
 }
 
 // probeGeometryBones reads the pack file of a probe geometry: its bones by
@@ -181,11 +172,13 @@ var (
 func TestStateProbeModesDrawTheSame(t *testing.T) {
 	shapes := probeGeometryBones(t, "state_probe_shape.geo.json")
 	bones := probeGeometryBones(t, "state_probe_bones.geo.json")
-	if len(shapes) != 64 || len(bones) != 1 {
+	if len(shapes) != 3*64 || len(bones) != 3 {
 		t.Fatalf("%d shape geometries, %d bones geometries", len(shapes), len(bones))
 	}
-	if got := strings.Join(bones[stateProbeBonesGeometry], ","); got != "core,down,up,north,south,west,east" {
-		t.Fatalf("bones %s", got)
+	for kind := range conduitKindNames {
+		if got := strings.Join(bones[stateProbeBonesGeometry(kind)], ","); got != "core,down,up,north,south,west,east" {
+			t.Fatalf("bones %s", got)
+		}
 	}
 	perm := stateProbePermutations(assets.StateProbePerm)
 	bonesPerms := stateProbePermutations(assets.StateProbeBones)
@@ -213,8 +206,8 @@ func TestStateProbeModesDrawTheSame(t *testing.T) {
 		if cond := fmt.Sprintf("q.block_state('skygear:shape') == %d", v); perm[v-1].Condition != cond {
 			t.Fatalf("permutation %d: condition %s", v-1, perm[v-1].Condition)
 		}
-		if got := p.Textures["*"].Encode()["texture"]; got != wantTexture || p.Translation != stateProbeLane(kind) {
-			t.Fatalf("v=%d perm: texture %v lane %v", v, got, p.Translation)
+		if got := p.Textures["*"].Encode()["texture"]; got != wantTexture || p.Geometry != stateProbeShapeGeometry(kind, faces) {
+			t.Fatalf("v=%d perm: texture %v geometry %s", v, got, p.Geometry)
 		}
 		var drawn []string
 		for _, b := range shapes[p.Geometry] {
@@ -242,8 +235,8 @@ func TestStateProbeModesDrawTheSame(t *testing.T) {
 			t.Fatalf("v=%d matches permutations %v", v, matches)
 		}
 		bp := bonesPerms[matches[0]].Properties
-		if got := bp.Textures["*"].Encode()["texture"]; got != wantTexture || bp.Translation != stateProbeLane(kind) || bp.Geometry != stateProbeBonesGeometry {
-			t.Fatalf("v=%d bones: texture %v lane %v geometry %s", v, got, bp.Translation, bp.Geometry)
+		if got := bp.Textures["*"].Encode()["texture"]; got != wantTexture || bp.Geometry != stateProbeBonesGeometry(kind) {
+			t.Fatalf("v=%d bones: texture %v geometry %s", v, got, bp.Geometry)
 		}
 		if bp.BoneVisibility["core"] != "true" {
 			t.Fatalf("v=%d bones: core is %q", v, bp.BoneVisibility["core"])
@@ -278,7 +271,7 @@ func TestStateProbeEmptyLook(t *testing.T) {
 			t.Errorf("bone %s is %q", bone, v)
 		}
 	}
-	if p := stateProbeBase(assets.StateProbePerm); p.Geometry != stateProbeShapeGeometry(0) || p.Scale[0] >= 0.01 {
+	if p := stateProbeBase(assets.StateProbePerm); p.Geometry != stateProbeShapeGeometry(1, 0) || p.Scale[0] >= 0.01 {
 		t.Errorf("perm base %+v", p)
 	}
 }

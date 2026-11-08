@@ -23,10 +23,12 @@ import (
 //
 //   - unset or off (A): the game as it is.
 //   - perm (B): one permutation for each state, each with its own block
-//     geometry (state_probe_shape_<faces>, 64 of them), texture and lane.
-//   - bones (C): one geometry with a bone for the core and each arm, and one
-//     permutation for each kind and tier (9 a block) that sets the geometry,
-//     texture and lane and switches the arm bones by bone_visibility, a
+//     geometry (state_probe_shape_<kind>_<faces>, 3 × 64 of them, the lane of
+//     the kind built into it) and texture.
+//   - bones (C): a geometry for each kind (state_probe_bones_<kind>, the lane
+//     built into it) with a bone for the core and each arm, and one
+//     permutation for each kind and tier (9 a block) that sets the geometry
+//     and texture and switches the arm bones by bone_visibility, a
 //     Molang expression of the state (the Dragonfly patch
 //     customblock.Properties.BoneVisibility).
 //
@@ -36,7 +38,10 @@ import (
 // 1 + kind*192 + (tier-1)*64 + faces: kind 0 to 2 (energy, item, fluid), tier
 // 1 to 3 and faces the arms as a 6-bit set in the order of conduit.Faces
 // (down, up, north, south, west, east). The look is a conduit of the kind and
-// tier, in the lane of its kind, with the textures of the conduit items.
+// tier, in the lane of its kind (energy -3, item 0, fluid +3 pixels on every
+// axis, as the conduit visuals; tools/stateprobegeo builds it into the
+// geometry so the arms reach the edge of the block as the entity's do), with
+// the textures of the conduit items.
 
 const (
 	// stateProbeValues is the number of values of the state of a probe block.
@@ -115,22 +120,14 @@ func stateProbeParts(v int) (kind, tier, faces int) {
 	return n / (stateProbeTiers * stateProbeFaces), n%(stateProbeTiers*stateProbeFaces)/stateProbeFaces + 1, n % stateProbeFaces
 }
 
-// stateProbeLane is the shift of a kind in blocks, the same on every axis as
-// the lanes of the conduit visuals (energy -3, item 0, fluid +3 pixels).
-func stateProbeLane(kind int) mgl64.Vec3 {
-	s := float64(kind-1) * 3 / 16
-	return mgl64.Vec3{s, s, s}
-}
-
 // stateProbeCore is the selection box of every look: the core.
 var stateProbeCore = cube.Box(6.5/16, 6.5/16, 6.5/16, 9.5/16, 9.5/16, 9.5/16)
 
-// stateProbeLook is the look of a kind and tier: its texture, lane and core.
+// stateProbeLook is the look of a kind and tier: its texture and core.
 func stateProbeLook(geometry string, kind, tier int) customblock.Properties {
 	return customblock.Properties{
 		Geometry:     geometry,
 		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial(fmt.Sprintf("skygear_conduit_%s_%d", conduitKindNames[kind], tier))},
-		Translation:  stateProbeLane(kind),
 		SelectionBox: stateProbeCore,
 	}
 }
@@ -141,12 +138,16 @@ var conduitKindNames = [stateProbeKinds]string{"energy", "item", "fluid"}
 // faces being the arm i (the order of conduit.Faces).
 var stateProbeArms = [6]string{"down", "up", "north", "south", "west", "east"}
 
-// stateProbeShapeGeometry is the geometry of mode perm for a set of arms.
-func stateProbeShapeGeometry(faces int) string {
-	return fmt.Sprintf("geometry.skygear.state_probe_shape_%d", faces)
+// stateProbeShapeGeometry is the geometry of mode perm for a kind and a set of
+// arms.
+func stateProbeShapeGeometry(kind, faces int) string {
+	return fmt.Sprintf("geometry.skygear.state_probe_shape_%s_%d", conduitKindNames[kind], faces)
 }
 
-const stateProbeBonesGeometry = "geometry.skygear.state_probe_bones"
+// stateProbeBonesGeometry is the geometry of mode bones for a kind.
+func stateProbeBonesGeometry(kind int) string {
+	return "geometry.skygear.state_probe_bones_" + conduitKindNames[kind]
+}
 
 // stateProbeBase is the look of the value 0, empty. Mode perm has no geometry
 // without a core to hide, so it takes the plain core and shrinks it out of
@@ -154,14 +155,14 @@ const stateProbeBonesGeometry = "geometry.skygear.state_probe_bones"
 func stateProbeBase(mode string) customblock.Properties {
 	switch mode {
 	case assets.StateProbeBones:
-		p := stateProbeLook(stateProbeBonesGeometry, 1, 1)
+		p := stateProbeLook(stateProbeBonesGeometry(1), 1, 1)
 		p.BoneVisibility = map[string]string{"core": "false"}
 		for _, arm := range stateProbeArms {
 			p.BoneVisibility[arm] = "false"
 		}
 		return p
 	}
-	p := stateProbeLook(stateProbeShapeGeometry(0), 1, 1)
+	p := stateProbeLook(stateProbeShapeGeometry(1, 0), 1, 1)
 	p.Scale = mgl64.Vec3{0.001, 0.001, 0.001}
 	return p
 }
@@ -178,14 +179,14 @@ func stateProbePermutations(mode string) []customblock.Permutation {
 			kind, tier, faces := stateProbeParts(v)
 			out = append(out, customblock.Permutation{
 				Condition:  fmt.Sprintf("%s == %d", stateProbeShapeExpr, v),
-				Properties: stateProbeLook(stateProbeShapeGeometry(faces), kind, tier),
+				Properties: stateProbeLook(stateProbeShapeGeometry(kind, faces), kind, tier),
 			})
 		}
 	case assets.StateProbeBones:
 		for kind := 0; kind < stateProbeKinds; kind++ {
 			for tier := 1; tier <= stateProbeTiers; tier++ {
 				lo := 1 + kind*stateProbeTiers*stateProbeFaces + (tier-1)*stateProbeFaces
-				p := stateProbeLook(stateProbeBonesGeometry, kind, tier)
+				p := stateProbeLook(stateProbeBonesGeometry(kind), kind, tier)
 				p.BoneVisibility = map[string]string{"core": "true"}
 				for i, arm := range stateProbeArms {
 					// bit i of (v - lo): v is in lo..lo+63, so the faces are v - lo

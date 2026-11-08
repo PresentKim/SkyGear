@@ -162,7 +162,7 @@
  "skygear.debug.fill.none": "No fill is running.",
  "skygear.debug.fill.start": "Filled %d air positions with %s for %d seconds (radius %d). Server MSPT before: %.1f ms. Compare with /sgadmin tps and the client FPS.",
  "skygear.debug.fill.capped": "The cap of %d positions was hit: the rest of the cube is not filled.",
- "skygear.debug.fill.probeOff": "The state probe is off (set SKYGEAR_STATE_PROBE=perm or bones): the layer probe block was used on layer 0 instead.",
+ "skygear.debug.fill.noProbe": "Fill %s needs the state probe: start the server with SKYGEAR_STATE_PROBE=perm or bones.",
  "skygear.debug.fill.stop": "Restored %d positions and closed %d entities.",
  "skygear.admin.needSave": "Use this inside a save.",
  "skygear.admin.factory.built": "Built %d factory modules: %d machines, %d drawers, %d hoppers, %d crops, %d blocks (%d modules span outside the tick range)",
