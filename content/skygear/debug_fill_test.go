@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/assets"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 )
 
@@ -199,13 +200,16 @@ func TestDebugFillCap(t *testing.T) {
 }
 
 // TestDebugFillBlockProbe: with the state probe on (go test with
-// SKYGEAR_STATE_PROBE=bones or perm; the mode is read at init), the block mode
-// puts probe blocks on layer 0, a layer-1 probe block on about half of the
-// positions, and the timed restore leaves both layers air.
+// SKYGEAR_STATE_PROBE set; the mode is read at init), the block mode puts
+// probe blocks on layer 0, a layer-1 probe block on about half of the
+// positions (three quarters with four kinds, where layer 0 may be the empty
+// value under a same-faces pair), and the timed restore leaves both layers
+// air. With four kinds it reports the cells drawn whole.
 func TestDebugFillBlockProbe(t *testing.T) {
 	if stateProbeMode == "" || stateProbeMode == "off" {
-		t.Skip("SKYGEAR_STATE_PROBE is not bones or perm")
+		t.Skip("SKYGEAR_STATE_PROBE is off")
 	}
+	four := stateProbeFourKinds(stateProbeMode)
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
@@ -216,7 +220,7 @@ func TestDebugFillBlockProbe(t *testing.T) {
 			for y := -r; y <= r; y++ {
 				for z := -r; z <= r; z++ {
 					pos := centre.Add(cube.Pos{x, y, z})
-					if sp, ok := tx.BlockLayer(pos, 0).(StateProbe); ok && sp.Layer == 0 && sp.V > 0 {
+					if sp, ok := tx.BlockLayer(pos, 0).(StateProbe); ok && sp.Layer == 0 && (sp.V > 0 || four) {
 						l0++
 					}
 					if sp, ok := tx.BlockLayer(pos, 1).(StateProbe); ok && sp.Layer == 1 && sp.V > 0 {
@@ -243,6 +247,9 @@ func TestDebugFillBlockProbe(t *testing.T) {
 		if len(o.Errors()) != 0 {
 			t.Fatalf("fill: %v", o.Errors())
 		}
+		if want := map[bool]int{false: 1, true: 2}[four]; len(o.Messages()) != want {
+			t.Errorf("fill messages %v, want %d", o.Messages(), want)
+		}
 		_, _, air := count(tx)
 		l0, l1, _ := count(tx)
 		total = (2*r + 1) * (2*r + 1) * (2*r + 1)
@@ -252,8 +259,8 @@ func TestDebugFillBlockProbe(t *testing.T) {
 		if l0 == 0 || l0 > total {
 			t.Errorf("%d probe blocks on layer 0 of %d", l0, total)
 		}
-		if l1 < l0/4 || l1 > l0*3/4 {
-			t.Errorf("%d probe blocks on layer 1 of %d, want about half", l1, l0)
+		if hi := map[bool]int{false: l0 * 3 / 4, true: l0 * 7 / 8}[four]; l1 < l0/4 || l1 > hi {
+			t.Errorf("%d probe blocks on layer 1 of %d, want about half (3/4 with four kinds)", l1, l0)
 		}
 	})
 	deadline := time.Now().Add(5 * time.Second)
@@ -279,8 +286,9 @@ func TestDebugFillBlockProbe(t *testing.T) {
 	})
 }
 
-// TestFillLook: the look of a position is a function of the position, has one
-// or two conduits of different kinds with a tier 1 to 3 and a set of arms, and
+// TestFillLook: the 3-kind look of a position (fillLook3, the look of the
+// probe off, perm and bones) is a function of the position, has one or two
+// conduits of different kinds with a tier 1 to 3 and a set of arms, and
 // varies over positions.
 func TestFillLook(t *testing.T) {
 	seen := map[fillShape]bool{}
@@ -289,8 +297,8 @@ func TestFillLook(t *testing.T) {
 		for y := 60; y < 64; y++ {
 			for z := -8; z < 8; z++ {
 				pos := cube.Pos{x, y, z}
-				l := fillLook(pos)
-				if l != fillLook(pos) {
+				l := fillLook3(pos)
+				if l != fillLook3(pos) {
 					t.Fatalf("%v: the look changes between calls", pos)
 				}
 				if l.n < 1 || l.n > 2 {
@@ -337,7 +345,7 @@ func TestFillLook(t *testing.T) {
 func TestFillLookEncodings(t *testing.T) {
 	for x := 0; x < 20; x++ {
 		for z := 0; z < 20; z++ {
-			l := fillLook(cube.Pos{x, 70, z})
+			l := fillLook3(cube.Pos{x, 70, z})
 			variant, mark := l.visual()
 			codes := [3]int32{variant % conduit.Codes, variant / conduit.Codes, mark}
 			var want [3]int32
@@ -420,16 +428,32 @@ func TestDebugFillEntityMatchesBlock(t *testing.T) {
 	// blocks on its two layers.
 	shapeOf := func(tx *world.Tx, pos cube.Pos) (fillShape, bool) {
 		var l fillShape
+		probe := false
 		for layer := uint8(0); layer < 2; layer++ {
 			sp, ok := tx.BlockLayer(pos, layer).(StateProbe)
-			if !ok || sp.Layer != int(layer) || sp.V == 0 {
+			if !ok || sp.Layer != int(layer) {
 				continue
 			}
-			kind, tier, faces := stateProbeParts(sp.V)
-			l.k[l.n] = fillKind{kind, tier, faces}
-			l.n++
+			probe = true
+			look, _ := stateProbeDecode(stateProbeMode, sp.Layer, sp.V)
+			for _, k := range look.k[:look.n] {
+				l.k[l.n] = k
+				l.n++
+			}
 		}
-		return l, l.n > 0
+		if stateProbeFourKinds(stateProbeMode) {
+			l = sortedShape(l.k[:l.n])
+		}
+		return l, probe
+	}
+	// drawn is what of the look of a position its blocks draw (TestFillPlace
+	// checks place).
+	drawn := func(l fillShape) fillShape {
+		if !stateProbeFourKinds(stateProbeMode) {
+			return l
+		}
+		l0, l1, _ := l.place(stateProbeMode)
+		return sortedShape(append(append([]fillKind{}, l0.k[:l0.n]...), l1.k[:l1.n]...))
 	}
 	positions := func() (out []cube.Pos) {
 		for x := -r; x <= r; x++ {
@@ -459,8 +483,8 @@ func TestDebugFillEntityMatchesBlock(t *testing.T) {
 				continue
 			}
 			want := fillLook(pos)
-			if l != want {
-				t.Fatalf("%v: block look %+v, want %+v", pos, l, want)
+			if l != drawn(want) {
+				t.Fatalf("%v: block look %+v, want %+v", pos, l, drawn(want))
 			}
 			variant, mark := want.visual()
 			if got, ok := ents[pos]; !ok || got != [2]int32{variant, mark} {
@@ -492,7 +516,7 @@ func TestDebugFillEntityMatchesBlock(t *testing.T) {
 				}
 				continue
 			}
-			if !isBlock || l != fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}) {
+			if !isBlock || l != drawn(fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]})) {
 				t.Fatalf("%v: odd x holds %+v, want the look of x-1", pos, l)
 			}
 			if even, ok := ents[cube.Pos{pos[0] - 1, pos[1], pos[2]}]; ok {
@@ -508,4 +532,164 @@ func TestDebugFillEntityMatchesBlock(t *testing.T) {
 		}
 		stop(p, tx)
 	})
+}
+
+// sortedShape is the look of the conduits given, in the order of their kinds.
+func sortedShape(ks []fillKind) fillShape {
+	var l fillShape
+	for kind := range stateProbeKinds4 {
+		for _, k := range ks {
+			if k.kind == kind {
+				l.k[l.n] = k
+				l.n++
+			}
+		}
+	}
+	return l
+}
+
+// TestFillLook4: the 4-kind look of a position is a function of the position
+// with 1 to 4 conduits (about a quarter each) of different kinds in the order
+// of their kinds, every kind shows, some looks have two kinds with the same
+// faces, and the entity draws all but the network conduit.
+func TestFillLook4(t *testing.T) {
+	var ns [5]int
+	var kinds [4]int
+	same, total := 0, 0
+	for x := -10; x < 10; x++ {
+		for y := 60; y < 65; y++ {
+			for z := -10; z < 10; z++ {
+				pos := cube.Pos{x, y, z}
+				l := fillLook4(pos)
+				total++
+				if l != fillLook4(pos) {
+					t.Fatalf("%v: the look changes", pos)
+				}
+				if l.n < 1 || l.n > 4 {
+					t.Fatalf("%v: %d conduits", pos, l.n)
+				}
+				ns[l.n]++
+				hasSame := false
+				for i, k := range l.k[:l.n] {
+					if k.tier < 1 || k.tier > 3 || k.faces < 0 || k.faces > 63 {
+						t.Fatalf("%v: %+v", pos, l)
+					}
+					if i > 0 && l.k[i-1].kind >= k.kind {
+						t.Fatalf("%v: kinds out of order %+v", pos, l)
+					}
+					for _, o := range l.k[:i] {
+						if o.faces == k.faces {
+							hasSame = true
+						}
+					}
+					kinds[k.kind]++
+				}
+				if hasSame {
+					same++
+				}
+				variant, mark := l.visual()
+				var want fillShape
+				for _, k := range l.k[:l.n] {
+					if k.kind < 3 {
+						want.k[want.n] = k
+						want.n++
+					}
+				}
+				if wv, wm := want.visual(); wv != variant || wm != mark || l.entityLost() != l.n-want.n {
+					t.Fatalf("%v: entity look of %+v", pos, l)
+				}
+			}
+		}
+	}
+	for n := 1; n <= 4; n++ {
+		if ns[n] < total/6 || ns[n] > total/3 {
+			t.Errorf("%d of %d looks have %d conduits", ns[n], total, n)
+		}
+	}
+	for k, c := range kinds {
+		if c < total/3 {
+			t.Errorf("kind %d in only %d of %d looks", k, c, total)
+		}
+	}
+	if same < total/6 {
+		t.Errorf("%d of %d looks have two kinds with the same faces", same, total)
+	}
+}
+
+// TestFillPlace: in every mode, the looks place puts on the two layers encode
+// to values of their blocks and draw part of the look, the rest counted as
+// lost: perm and bones (3-kind looks) draw both conduits; single4 the first
+// two; same4 a same-faces pair on layer 1 when the look has one; all4
+// everything, up to two kinds a layer.
+func TestFillPlace(t *testing.T) {
+	for _, mode := range probeModes {
+		var cells, whole, pairs int
+		for x := -12; x < 12; x++ {
+			for z := -12; z < 12; z++ {
+				look := fillLook3(cube.Pos{x, 64, z})
+				if stateProbeFourKinds(mode) {
+					look = fillLook4(cube.Pos{x, 64, z})
+				}
+				l0, l1, lost := look.place(mode)
+				v0, ok0 := stateProbeEncode(mode, 0, l0)
+				v1, ok1 := stateProbeEncode(mode, 1, l1)
+				if !ok0 || !ok1 {
+					t.Fatalf("%s: %+v places %+v and %+v, not values (%d %v, %d %v)", mode, look, l0, l1, v0, ok0, v1, ok1)
+				}
+				got := append(append([]fillKind{}, l0.k[:l0.n]...), l1.k[:l1.n]...)
+				for _, k := range got {
+					found := false
+					for _, w := range look.k[:look.n] {
+						found = found || w == k
+					}
+					if !found {
+						t.Fatalf("%s: %+v draws %+v", mode, look, k)
+					}
+				}
+				if len(got)+lost != look.n {
+					t.Fatalf("%s: %+v draws %d, lost %d", mode, look, len(got), lost)
+				}
+				cells++
+				if lost == 0 {
+					whole++
+				}
+				hasSame := false
+				for i := range look.n {
+					for j := i + 1; j < look.n; j++ {
+						hasSame = hasSame || look.k[i].faces == look.k[j].faces
+					}
+				}
+				switch mode {
+				case assets.StateProbeAll4:
+					if lost != 0 || l0.n == 0 || (look.n > 2) != (l1.n > 0) {
+						t.Fatalf("all4: %+v placed %+v %+v", look, l0, l1)
+					}
+				case assets.StateProbeSame4:
+					if hasSame != (l1.n == 2) {
+						t.Fatalf("same4: %+v placed %+v on layer 1", look, l1)
+					}
+					if l1.n == 2 {
+						pairs++
+					}
+				case assets.StateProbeSingle4, assets.StateProbePerm, assets.StateProbeBones:
+					if l0.n != 1 || l0.k[0] != look.k[0] || (look.n > 1) != (l1.n == 1) || (l1.n == 1 && l1.k[0] != look.k[1]) {
+						t.Fatalf("%s: %+v placed %+v %+v", mode, look, l0, l1)
+					}
+				}
+			}
+		}
+		switch mode {
+		case assets.StateProbeAll4, assets.StateProbePerm, assets.StateProbeBones:
+			if whole != cells {
+				t.Errorf("%s: %d of %d cells whole", mode, whole, cells)
+			}
+		default:
+			if whole == cells || whole < cells/3 {
+				t.Errorf("%s: %d of %d cells whole", mode, whole, cells)
+			}
+		}
+		if mode == assets.StateProbeSame4 && pairs < cells/8 {
+			t.Errorf("same4: %d of %d cells with a pair", pairs, cells)
+		}
+	}
 }

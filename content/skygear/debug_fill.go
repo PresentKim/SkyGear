@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/assets"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 )
@@ -69,16 +70,18 @@ type fillState struct {
 // used inside the world's transactions only.
 var fills sync.Map
 
-// fillKind is one conduit of a look: kind 0 energy, 1 item, 2 fluid (the order
-// of the state probe), tier 1 to 3 and faces the arms as a 6-bit set in the
-// order of conduit.Faces, which is the order of both the entity's codes and
-// the probe's value, so no conversion is needed.
+// fillKind is one conduit of a look: kind 0 energy, 1 item, 2 fluid, 3 network
+// (4-kind probe modes only; the order of the state probe), tier 1 to 3 and
+// faces the arms as a 6-bit set in the order of conduit.Faces, which is the
+// order of both the entity's codes and the probe's value, so no conversion is
+// needed.
 type fillKind struct{ kind, tier, faces int }
 
-// fillShape is the look of a position: one or two conduits of different kinds.
+// fillShape is the look of a position: one to four conduits of different
+// kinds (at most two but in the 4-kind probe modes).
 type fillShape struct {
 	n int
-	k [2]fillKind
+	k [4]fillKind
 }
 
 // fillSeed is the fixed seed of fillLook.
@@ -92,15 +95,29 @@ func fillMix(x uint64) uint64 {
 	return x ^ x>>31
 }
 
-// fillLook is the look of pos, the same on every run: from a hash of pos with a
-// fixed seed, a first kind with a tier and faces, and half of the time a
-// second kind of another kind.
-func fillLook(pos cube.Pos) fillShape {
+// fillHash is the hash of pos with the fixed seed.
+func fillHash(pos cube.Pos) uint64 {
 	h := fillMix(fillSeed ^ uint64(int64(pos[0])))
 	h = fillMix(h ^ uint64(int64(pos[1])))
-	h = fillMix(h ^ uint64(int64(pos[2])))
+	return fillMix(h ^ uint64(int64(pos[2])))
+}
+
+// fillLook is the look of pos, the same on every run: fillLook4 in the 4-kind
+// probe modes, fillLook3 otherwise.
+func fillLook(pos cube.Pos) fillShape {
+	if stateProbeFourKinds(stateProbeMode) {
+		return fillLook4(pos)
+	}
+	return fillLook3(pos)
+}
+
+// fillLook3 is the look of pos with three kinds: from a hash of pos with a
+// fixed seed, a first kind with a tier and faces, and half of the time a
+// second kind of another kind.
+func fillLook3(pos cube.Pos) fillShape {
+	h := fillHash(pos)
 	first := fillKind{kind: int(h % 3), tier: 1 + int(h>>8%3), faces: int(h >> 16 % 64)}
-	l := fillShape{n: 1, k: [2]fillKind{first}}
+	l := fillShape{n: 1, k: [4]fillKind{first}}
 	if h>>24&1 == 0 {
 		return l
 	}
@@ -110,34 +127,154 @@ func fillLook(pos cube.Pos) fillShape {
 	return l
 }
 
-// probeValue is the value of the state probe block of a conduit: 1 + kind*192 +
-// (tier-1)*64 + faces.
+// fillLook4 is the look of pos with four kinds: 1 to 4 kinds (a quarter of the
+// positions each), each with a tier and faces, in the order of their kinds.
+// In a third of the looks of two kinds or more two of them have the same
+// faces, so same4's same-faces pairs show.
+func fillLook4(pos cube.Pos) fillShape {
+	h := fillHash(pos)
+	n := 1 + int(h%4)
+	order := [4]int{0, 1, 2, 3}
+	// a shuffle of the kinds by the hash: take the first n
+	for i, r := 3, h>>2; i > 0; i, r = i-1, r/uint64(i+1) {
+		j := int(r % uint64(i+1))
+		order[i], order[j] = order[j], order[i]
+	}
+	var kinds [4]bool
+	for _, k := range order[:n] {
+		kinds[k] = true
+	}
+	l := fillShape{}
+	for k := range kinds {
+		if !kinds[k] {
+			continue
+		}
+		hk := fillMix(h ^ uint64(k+1))
+		l.k[l.n] = fillKind{kind: k, tier: 1 + int(hk%3), faces: int(hk >> 8 % 64)}
+		l.n++
+	}
+	if l.n >= 2 && h>>16%3 == 0 {
+		hk := fillMix(h ^ 0x11)
+		i := int(hk % uint64(l.n))
+		j := (i + 1 + int(hk>>8%uint64(l.n-1))) % l.n
+		l.k[j].faces = l.k[i].faces
+	}
+	return l
+}
+
+// probeValue is the value of the state probe block of a conduit drawn alone:
+// 1 + kind*192 + (tier-1)*64 + faces.
 func (k fillKind) probeValue() int {
 	return 1 + k.kind*stateProbeTiers*stateProbeFaces + (k.tier-1)*stateProbeFaces + k.faces
 }
 
 // visual is the Variant and MarkVariant of the display entity of a look, with
-// the codes of conduit.Look: energy + Codes*item, and fluid.
+// the codes of conduit.Look: energy + Codes*item, and fluid. The entity has no
+// network conduit: it is left out (lost counts it).
 func (l fillShape) visual() (variant, mark int32) {
 	var codes [3]int32
 	for _, k := range l.k[:l.n] {
-		codes[k.kind] = conduit.Code(k.tier, k.faces)
+		if k.kind < 3 {
+			codes[k.kind] = conduit.Code(k.tier, k.faces)
+		}
 	}
 	return codes[0] + conduit.Codes*codes[1], codes[2]
 }
 
-// cell is the blocks of a look at pos: the state probe of the first conduit on
-// layer 0 and of the second, if any, on layer 1; false when the probe is off.
-func (l fillShape) cell(pos cube.Pos) (fillCell, bool) {
-	b0, ok := stateProbeBlock(0, l.k[0].probeValue())
-	if !ok {
-		return fillCell{}, false
+// entityLost is the number of conduits of the look the entity cannot draw.
+func (l fillShape) entityLost() (lost int) {
+	for _, k := range l.k[:l.n] {
+		if k.kind >= 3 {
+			lost++
+		}
 	}
-	c := fillCell{pos: pos, b0: b0}
-	if l.n == 2 {
-		c.b1, _ = stateProbeBlock(1, l.k[1].probeValue())
+	return lost
+}
+
+// probeLookOf is the look of the conduits given (at most two).
+func probeLookOf(ks ...fillKind) probeLook {
+	l := probeLook{n: len(ks)}
+	copy(l.k[:], ks)
+	return l
+}
+
+// place splits a look over the two probe blocks of the mode: the looks of
+// layer 0 and of layer 1 (n 0 when none) and how many conduits are left out.
+//
+//   - perm, bones: the first conduit on layer 0, the second on layer 1.
+//   - single4: the same; a third and fourth are left out.
+//   - same4: layer 1 takes two kinds with the same faces when the look has
+//     them, layer 0 one of the others (empty, value 0, when there is none),
+//     the rest are left out; with no such pair as single4.
+//   - all4: layer 0 the first two, layer 1 the others: all are drawn.
+func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
+	ks := l.k[:l.n]
+	switch mode {
+	case assets.StateProbeAll4:
+		if len(ks) <= 2 {
+			return probeLookOf(ks...), probeLook{}, 0
+		}
+		return probeLookOf(ks[:2]...), probeLookOf(ks[2:]...), 0
+	case assets.StateProbeSame4:
+		for i := range ks {
+			for j := i + 1; j < len(ks); j++ {
+				if ks[i].faces != ks[j].faces {
+					continue
+				}
+				var rest []fillKind
+				for x, k := range ks {
+					if x != i && x != j {
+						rest = append(rest, k)
+					}
+				}
+				if len(rest) == 0 {
+					return probeLook{}, probeLookOf(ks[i], ks[j]), 0
+				}
+				return probeLookOf(rest[0]), probeLookOf(ks[i], ks[j]), len(rest) - 1
+			}
+		}
 	}
-	return c, true
+	l0 = probeLookOf(ks[0])
+	if len(ks) >= 2 {
+		l1 = probeLookOf(ks[1])
+	}
+	return l0, l1, max(len(ks)-2, 0)
+}
+
+// cell is the blocks of a look at pos in the probe's mode (place): layer 0
+// always (value 0 when it draws nothing), layer 1 when it draws something;
+// lost is how many conduits are left out, false when the probe is off.
+func (l fillShape) cell(pos cube.Pos) (c fillCell, lost int, ok bool) {
+	l0, l1, lost := l.place(stateProbeMode)
+	v0, ok0 := stateProbeEncode(stateProbeMode, 0, l0)
+	b0, ok := stateProbeBlock(0, v0)
+	if !ok || !ok0 {
+		return fillCell{}, 0, false
+	}
+	c = fillCell{pos: pos, b0: b0}
+	if l1.n > 0 {
+		v1, _ := stateProbeEncode(stateProbeMode, 1, l1)
+		c.b1, _ = stateProbeBlock(1, v1)
+	}
+	return c, lost, true
+}
+
+// fillTally counts the cells of a fill drawn whole and with conduits left out,
+// as blocks and as entities.
+type fillTally struct{ blocks, blocksLost, ents, entsLost int }
+
+func (t *fillTally) block(lost int) {
+	t.blocks++
+	if lost > 0 {
+		t.blocksLost++
+	}
+}
+
+func (t *fillTally) entity(l fillShape) {
+	t.ents++
+	if l.entityLost() > 0 {
+		t.entsLost++
+	}
 }
 
 func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
@@ -162,21 +299,28 @@ func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	mspt := tx.World().TickStats().MSPT
 	st := &fillState{}
 	positions, capped := fillPositions(tx, cube.PosFromVec3(p.Position()), c.Radius)
+	var tally fillTally
 	for _, pos := range positions {
 		switch what {
 		case "entity":
-			st.entity(tx, pos, fillLook(pos))
+			l := fillLook(pos)
+			st.entity(tx, pos, l)
+			tally.entity(l)
 		case "block":
-			cell, _ := fillLook(pos).cell(pos)
+			cell, lost, _ := fillLook(pos).cell(pos)
 			st.put(tx, cell)
+			tally.block(lost)
 		case "pair":
 			// x even: the entity; x odd: the block of the look of the position
 			// before it, so the two neighbours show the same shape.
 			if pos[0]&1 == 0 {
-				st.entity(tx, pos, fillLook(pos))
+				l := fillLook(pos)
+				st.entity(tx, pos, l)
+				tally.entity(l)
 			} else {
-				cell, _ := fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}).cell(pos)
+				cell, lost, _ := fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}).cell(pos)
 				st.put(tx, cell)
+				tally.block(lost)
 			}
 		default:
 			st.put(tx, fillCell{pos: pos, b0: LayerProbe{Kind: 0}, b1: LayerProbe{Kind: 1}})
@@ -192,6 +336,14 @@ func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	o.Printf(i18n.T(lang, "skygear.debug.fill.start"), len(positions), what, c.Seconds, c.Radius, msptMillis(mspt))
 	if capped {
 		o.Printf(i18n.T(lang, "skygear.debug.fill.capped"), fillMaxPositions)
+	}
+	if stateProbeFourKinds(stateProbeMode) {
+		if tally.blocks > 0 {
+			o.Printf(i18n.T(lang, "skygear.debug.fill.blocks4"), stateProbeMode, tally.blocks-tally.blocksLost, tally.blocks, tally.blocksLost)
+		}
+		if tally.ents > 0 {
+			o.Printf(i18n.T(lang, "skygear.debug.fill.entity3"), tally.ents-tally.entsLost, tally.ents, tally.entsLost)
+		}
 	}
 }
 

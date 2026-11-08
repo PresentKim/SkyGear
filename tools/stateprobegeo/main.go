@@ -15,6 +15,10 @@
 //   - state_probe_bones.geo.json (mode bones): 3 geometries,
 //     geometry.skygear.state_probe_bones_<kind>, with the core and all six
 //     arms as bones for bone_visibility to switch.
+//   - state_probe_four.geo.json (modes single4, same4, all4): the same with
+//     four kinds (network added), bones named per kind and faces with a
+//     material instance per kind, for one kind (4) and for each pair (6)
+//     (fourGeometries).
 //
 // Both use the 64×64 conduit sheets of tools/conduittex (arm strip left, core
 // face beside it, turned strip below). The files ship in the pack only in the
@@ -35,12 +39,22 @@ const (
 	armHalf  = 1.0 // an arm is 2 pixels
 )
 
-// kinds are the lanes: the shift of each kind in pixels on every axis, as in
-// tools/conduitgeo.
+// kinds are the lanes: the shift of each kind in pixels on the x, y and z
+// axes, as in tools/conduitgeo for the first three. The fourth, network (the
+// logistics network conduit to come, 4-kind modes only), has the lane
+// (+6, -6, +6). Two lanes' arms along different axes cross unless the lanes
+// are 2 pixels or more apart on the third axis (arms are 2 wide), so a lane
+// must differ from every other on every axis: the three lanes take -3, 0 and
+// +3, leaving -6 or +6 (3 apart, the core of 3 inside the block). (+3, -3, 0)
+// would cross, e.g. energy's south arm and network's west arm at (-3, -3, 0).
+// TestLanesDoNotMeet checks every pair of bones.
 var kinds = []struct {
 	name  string
-	shift float64
-}{{"energy", -3}, {"item", 0}, {"fluid", 3}}
+	shift [3]float64
+}{{"energy", [3]float64{-3, -3, -3}}, {"item", [3]float64{0, 0, 0}}, {"fluid", [3]float64{3, 3, 3}}, {"network", [3]float64{6, -6, 6}}}
+
+// legacyKinds are the kinds of modes perm and bones (no network).
+const legacyKinds = 3
 
 // directions of the arms in the order of the game's bit set.
 var directions = []struct {
@@ -89,16 +103,19 @@ func bone(name string, cube map[string]any) map[string]any {
 	return map[string]any{"name": name, "pivot": []float64{0, 0, 0}, "cubes": []any{cube}}
 }
 
-func coreBone(shift float64) map[string]any {
-	c := 8 + shift
-	return bone("core", box([3]float64{shift - coreHalf, c - coreHalf, shift - coreHalf}, [3]float64{shift + coreHalf, c + coreHalf, shift + coreHalf}, coreFaces()))
+// centre is the middle of the core of a lane in geometry pixels.
+func centre(shift [3]float64) [3]float64 { return [3]float64{shift[0], 8 + shift[1], shift[2]} }
+
+func coreBone(shift [3]float64) map[string]any {
+	c := centre(shift)
+	return bone("core", box([3]float64{c[0] - coreHalf, c[1] - coreHalf, c[2] - coreHalf}, [3]float64{c[0] + coreHalf, c[1] + coreHalf, c[2] + coreHalf}, coreFaces()))
 }
 
 // armBone is the arm of direction d of the lane at shift: from the core out to
 // the edge of the block.
-func armBone(d int, shift float64) map[string]any {
+func armBone(d int, shift [3]float64) map[string]any {
 	dir := directions[d]
-	centre := [3]float64{shift, 8 + shift, shift}
+	centre := centre(shift)
 	min := [3]float64{centre[0] - armHalf, centre[1] - armHalf, centre[2] - armHalf}
 	max := [3]float64{centre[0] + armHalf, centre[1] + armHalf, centre[2] + armHalf}
 	lo, hi := -8.0, 8.0
@@ -150,11 +167,65 @@ func bones(kind int) map[string]any {
 	return geometry("geometry.skygear.state_probe_bones_"+kinds[kind].name, b)
 }
 
+// laneBones are the core and the six arms of a kind for the 4-kind modes:
+// bones named <kind>_core, <kind>_down ... and every face drawn with the
+// material instance named after the kind, so one geometry can show two kinds
+// with their own textures (the block's minecraft:material_instances maps the
+// kind's name to the texture of its tier).
+func laneBones(kind int) []any {
+	shift := kinds[kind].shift
+	b := []any{coreBone(shift)}
+	for d := range directions {
+		b = append(b, armBone(d, shift))
+	}
+	for _, x := range b {
+		bn := x.(map[string]any)
+		bn["name"] = kinds[kind].name + "_" + bn["name"].(string)
+		for _, c := range bn["cubes"].([]any) {
+			faces := c.(map[string]any)["uv"].(map[string]any)
+			for side, f := range faces {
+				g := map[string]any{"material_instance": kinds[kind].name}
+				for k, v := range f.(map[string]any) {
+					g[k] = v
+				}
+				faces[side] = g
+			}
+		}
+	}
+	return b
+}
+
+// kindPairs are the pairs of kinds of the 4-kind modes, in the order of the
+// probe's values (content/skygear/stateprobe.go): 01 02 03 12 13 23.
+func kindPairs() (out [][2]int) {
+	for a := range kinds {
+		for b := a + 1; b < len(kinds); b++ {
+			out = append(out, [2]int{a, b})
+		}
+	}
+	return out
+}
+
+// fourGeometries are the geometries of the 4-kind modes (single4, same4,
+// all4), in state_probe_four.geo.json: geometry.skygear.state_probe_one_<kind>
+// with the bones of one kind (4) and geometry.skygear.state_probe_two_<a>_<b>
+// with the bones of two (6).
+func fourGeometries() []any {
+	var out []any
+	for k := range kinds {
+		out = append(out, geometry("geometry.skygear.state_probe_one_"+kinds[k].name, laneBones(k)))
+	}
+	for _, p := range kindPairs() {
+		out = append(out, geometry(fmt.Sprintf("geometry.skygear.state_probe_two_%s_%s", kinds[p[0]].name, kinds[p[1]].name), append(laneBones(p[0]), laneBones(p[1])...)))
+	}
+	return out
+}
+
 // files are the files written, by name: compact JSON, as the shape file has
 // 64 geometries.
 func files() map[string][]byte {
 	var shapes, boneGeos []any
-	for k := range kinds {
+	for k := range legacyKinds {
 		for f := range 64 {
 			shapes = append(shapes, shape(k, f))
 		}
@@ -164,6 +235,7 @@ func files() map[string][]byte {
 	for name, geos := range map[string][]any{
 		"state_probe_shape.geo.json": shapes,
 		"state_probe_bones.geo.json": boneGeos,
+		"state_probe_four.geo.json":  fourGeometries(),
 	} {
 		data, err := json.Marshal(map[string]any{"format_version": "1.12.0", "minecraft:geometry": geos})
 		if err != nil {

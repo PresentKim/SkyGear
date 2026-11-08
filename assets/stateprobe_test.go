@@ -28,6 +28,7 @@ func fileList(t *testing.T, fsys fs.FS) map[string]bool {
 func TestParseStateProbeMode(t *testing.T) {
 	for in, want := range map[string]string{
 		"": StateProbeOff, "off": StateProbeOff, "perm": StateProbePerm, " Bones ": StateProbeBones, "x": StateProbeOff,
+		"single4": StateProbeSingle4, "SAME4": StateProbeSame4, "all4": StateProbeAll4, "all": StateProbeOff,
 	} {
 		if got := parseStateProbeMode(in); got != want {
 			t.Errorf("parseStateProbeMode(%q) = %q, want %q", in, got, want)
@@ -45,10 +46,15 @@ func TestStateProbeFilesOnlyInTheirMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	all := fileList(t, raw)
+	probeFiles := map[string]bool{}
 	for _, name := range stateProbeFiles {
 		if !all[name] {
 			t.Fatalf("%s is not in the pack folder", name)
 		}
+		probeFiles[name] = true
+	}
+	if len(probeFiles) != 3 {
+		t.Fatalf("probe files %v", probeFiles)
 	}
 	rest := map[string]bool{}
 	for p := range all {
@@ -56,10 +62,10 @@ func TestStateProbeFilesOnlyInTheirMode(t *testing.T) {
 			rest[p] = true
 		}
 	}
-	if len(rest) != len(all)-len(stateProbeFiles) {
+	if len(rest) != len(all)-len(probeFiles) {
 		t.Fatalf("state_probe files other than %v", stateProbeFiles)
 	}
-	for _, mode := range []string{StateProbeOff, StateProbePerm, StateProbeBones} {
+	for _, mode := range []string{StateProbeOff, StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4} {
 		pack, err := packFor("skygear", mode)
 		if err != nil {
 			t.Fatal(err)

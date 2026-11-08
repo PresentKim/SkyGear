@@ -2311,6 +2311,8 @@
  "skygear.debug.fill.start": "공기 %d칸을 %s(으)로 %d초 동안 채웠습니다 (반경 %d). 이전 서버 MSPT: %.1f ms. /sgadmin tps 와 클라이언트 FPS 를 비교하세요.",
  "skygear.debug.fill.capped": "%d칸 한도에 도달했습니다: 나머지 영역은 채우지 않았습니다.",
  "skygear.debug.fill.noProbe": "%s 채우기에는 상태 시험이 필요합니다: SKYGEAR_STATE_PROBE=perm 또는 bones 로 서버를 시작하세요.",
+ "skygear.debug.fill.blocks4": "블록 (시험 %s): %d/%d칸을 모두 그렸고, %d칸은 도관 일부가 빠졌습니다.",
+ "skygear.debug.fill.entity3": "엔티티는 3종류만 그립니다(엔티티 인코딩에 네트워크 도관이 없음): %d/%d칸을 모두 그렸고, %d칸은 네트워크 도관이 빠졌습니다.",
  "skygear.debug.fill.stop": "%d칸을 되돌리고 엔티티 %d개를 닫았습니다.",
  "skygear.admin.needSave": "세이브 안에서 사용하세요.",
  "skygear.admin.factory.built": "공장 모듈 %d개를 지었습니다: 기계 %d, 서랍 %d, 호퍼 %d, 작물 %d, 블록 %d (틱 범위 밖에 걸친 모듈 %d)",
