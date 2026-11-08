@@ -181,6 +181,22 @@ var migrations = []string{
 		scope   TEXT PRIMARY KEY,
 		version TEXT NOT NULL
 	);`,
+	// 10: invites and close friends. A save no longer keeps an invite code:
+	// the host turns one on inside the save and it lives only as long as
+	// that session (the platform holds it in memory), so the stored codes
+	// are cleared. Invites to a save are stored, so a friend who is offline
+	// finds them later. close_friend marks the friend (friend_id) as one who
+	// may enter account_id's open save without an invite.
+	`UPDATE saves SET invite_code = NULL;
+	ALTER TABLE friends ADD COLUMN close_friend INTEGER NOT NULL DEFAULT 0;
+	CREATE TABLE save_invites (
+		save_id    INTEGER NOT NULL REFERENCES saves(id) ON DELETE CASCADE,
+		to_id      TEXT NOT NULL REFERENCES accounts(id),
+		from_id    TEXT NOT NULL REFERENCES accounts(id),
+		created_at INTEGER NOT NULL,
+		PRIMARY KEY (save_id, to_id)
+	);
+	CREATE INDEX save_invites_to ON save_invites(to_id);`,
 }
 
 func (d *DB) migrate() error {

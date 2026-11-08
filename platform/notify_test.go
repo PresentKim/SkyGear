@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"fmt"
 	"log/slog"
 	"path/filepath"
 	"testing"
@@ -17,17 +18,21 @@ func TestNotify(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer d.Close()
-	for _, id := range []string{"me", "a"} {
+	for _, id := range []string{"me", "a", "b"} {
 		_, _ = d.TouchAccount(id, "", id)
 	}
 	if _, err := d.SendFriendRequest("a", "me"); err != nil {
 		t.Fatal(err)
 	}
 	pf := &Platform{log: slog.New(slog.DiscardHandler), db: d}
-	pf.invites.add("me", invite{saveID: 7, saveName: "isle", from: "b", at: time.Now().Add(time.Minute)})
+	time.Sleep(2 * time.Millisecond) // the invite is the newer notice
+	isle, _ := d.CreateSave("b", 1, "isle")
+	if err := d.AddInvite(isle.ID, "me", "b"); err != nil {
+		t.Fatal(err)
+	}
 
 	list := pf.notifiesOf("me", "ko")
-	if len(list) != 2 || list[0].Key != "invite:7" || list[1].Key != "friend:a" {
+	if len(list) != 2 || list[0].Key != fmt.Sprintf("invite:%d", isle.ID) || list[1].Key != "friend:a" {
 		t.Fatalf("notices %+v", list)
 	}
 	for _, n := range list {

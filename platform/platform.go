@@ -30,11 +30,12 @@ var LobbySpawn = cube.Pos{0, 64, 0}
 
 // Platform ties accounts, the lobby and instances together.
 type Platform struct {
-	log     *slog.Logger
-	db      *db.DB
-	m       *instance.Manager
-	online  Online
-	invites invites
+	log    *slog.Logger
+	db     *db.DB
+	m      *instance.Manager
+	online Online
+	// codes are the invite codes hosts turned on inside their saves.
+	codes inviteCodes
 	// notifyInFriends holds the accounts whose notice screen was opened from
 	// the tab of the friends screen, and so keeps its tabs (account ID: true).
 	notifyInFriends sync.Map
@@ -67,12 +68,14 @@ func Lobby(w *world.World, pf **Platform) instance.Lobby {
 		World: w,
 		Spawn: LobbySpawn.Vec3Middle(),
 		Arrive: func(p *player.Player) {
+			(*pf).codes.dropHost(instance.AccountID(p))
 			(*pf).arriveLobby(p)
 		},
 		Handler:   func(*player.Player) player.Handler { return lobbyHandler{} },
 		ChatName:  account.DisplayName,
 		UsePlayer: func(p, target *player.Player) bool { return (*pf).usePlayer(p, target) },
 		Quit: func(p *player.Player) {
+			(*pf).codes.dropHost(instance.AccountID(p))
 			account.Forget(p)
 			waila.Forget(p)
 			forgetLobbyHUD(p)
@@ -175,32 +178,12 @@ func (pf *Platform) showSaves(p *player.Player, sel int64) {
 	sp := ui.ListSplit{Rows: rows}
 	switch {
 	case chosen.ID != 0:
-		code := chosen.InviteCode
-		if code == "" {
-			if code, err = pf.inviteCode(chosen, false); err != nil {
-				pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
-				return
-			}
-		}
 		n, _ := pf.db.ActiveMembers(chosen.ID)
-		// the invite code (a friend enters it on their multiplayer screen;
-		// pressing makes a new one) and the member count sit on their
-		// buttons, so the actions fill the column without a body above them
+		// the member count sits on its button, so the actions fill the
+		// column without a body above them. A save has no invite code here:
+		// the host turns one on inside it (island management).
 		sp.Actions = []ui.Option{
 			{Label: i18n.T(lang, "platform.save.enter"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) { pf.enter(p, chosen.ID) }},
-			{Label: fmt.Sprintf(i18n.T(lang, "platform.save.code"), code), Icon: iconCode, Run: func(p *player.Player, _ *world.Tx) {
-				pf.confirm(p, i18n.T(lang, "platform.invite.renew"), i18n.T(lang, "platform.invite.renew.ask"), i18n.T(lang, "platform.invite.renew"), func(p *player.Player, _ *world.Tx) {
-					s, err := pf.db.Save(chosen.ID)
-					if err == nil {
-						_, err = pf.inviteCode(s, true)
-					}
-					if err != nil {
-						pf.fail(p, i18n.T(lang, "platform.invite.renew"), err)
-						return
-					}
-					pf.showSaves(p, chosen.ID)
-				}, func(p *player.Player, _ *world.Tx) { pf.showSaves(p, chosen.ID) })
-			}},
 			{Label: fmt.Sprintf(i18n.T(lang, "platform.save.members"), n, MaxMembers), Icon: iconMembers, Run: func(p *player.Player, _ *world.Tx) { pf.showMembers(p, chosen.ID) }},
 			{Label: i18n.T(lang, "platform.save.rename"), Icon: iconRename, Run: func(p *player.Player, _ *world.Tx) { pf.askRename(p, chosen) }},
 			{Label: i18n.T(lang, "platform.save.delete"), Icon: iconDelete, Run: func(p *player.Player, _ *world.Tx) { pf.askDelete(p, chosen, 0) }},
