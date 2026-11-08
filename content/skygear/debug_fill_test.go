@@ -184,3 +184,84 @@ func TestDebugFillCap(t *testing.T) {
 		}
 	})
 }
+
+// TestDebugFillBlockProbe: with the state probe on (go test with
+// SKYGEAR_STATE_PROBE=bones or perm; the mode is read at init), the block mode
+// puts probe blocks on layer 0, a layer-1 probe block on about half of the
+// positions, and the timed restore leaves both layers air.
+func TestDebugFillBlockProbe(t *testing.T) {
+	if stateProbeMode == "" || stateProbeMode == "off" {
+		t.Skip("SKYGEAR_STATE_PROBE is not bones or perm")
+	}
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	centre := cube.Pos{0, 64, 2}
+	const r = 3
+	count := func(tx *world.Tx) (l0, l1, air int) {
+		for x := -r; x <= r; x++ {
+			for y := -r; y <= r; y++ {
+				for z := -r; z <= r; z++ {
+					pos := centre.Add(cube.Pos{x, y, z})
+					if sp, ok := tx.BlockLayer(pos, 0).(StateProbe); ok && sp.Layer == 0 && sp.V > 0 {
+						l0++
+					}
+					if sp, ok := tx.BlockLayer(pos, 1).(StateProbe); ok && sp.Layer == 1 && sp.V > 0 {
+						l1++
+					}
+					_, a0 := tx.BlockLayer(pos, 0).(block.Air)
+					_, a1 := tx.BlockLayer(pos, 1).(block.Air)
+					if a0 && a1 {
+						air++
+					}
+				}
+			}
+		}
+		return l0, l1, air
+	}
+	old := fillUnit
+	fillUnit = time.Millisecond
+	t.Cleanup(func() { fillUnit = old })
+
+	total := 0
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		var o cmd.Output
+		debugFill{adminBase: adminBase{g: s.g}, Radius: r, Seconds: fillMinSeconds, What: "block"}.Run(p, &o, tx)
+		if len(o.Errors()) != 0 {
+			t.Fatalf("fill: %v", o.Errors())
+		}
+		_, _, air := count(tx)
+		l0, l1, _ := count(tx)
+		total = (2*r + 1) * (2*r + 1) * (2*r + 1)
+		if air != 0 {
+			t.Errorf("%d positions still air", air)
+		}
+		if l0 == 0 || l0 > total {
+			t.Errorf("%d probe blocks on layer 0 of %d", l0, total)
+		}
+		if l1 < l0/4 || l1 > l0*3/4 {
+			t.Errorf("%d probe blocks on layer 1 of %d, want about half", l1, l0)
+		}
+	})
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		done := false
+		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			l0, l1, _ := count(tx)
+			done = l0 == 0 && l1 == 0
+		})
+		if done {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the fill was not taken away in time")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		if _, _, air := count(tx); air != total-1 && air != total {
+			// the player's own position may hold the player, not a block
+			t.Errorf("after restore %d of %d positions are air", air, total)
+		}
+	})
+}

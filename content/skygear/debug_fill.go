@@ -69,15 +69,12 @@ type fillState struct {
 var fills sync.Map
 
 // fillProbeValues is how many values the state probe block has (0 is air).
-//
-// TODO(merge F-LP-2): use stateProbeValues here and stateProbeBlock in
-// fillStateProbe; until then the state probe counts as off.
-const fillProbeValues = 577
+const fillProbeValues = stateProbeValues
 
 // fillStateProbe is stateProbeBlock(layer, v): the state probe block of a
 // value, false when the probe is off.
 func fillStateProbe(layer, v int) (world.Block, bool) {
-	return nil, false
+	return stateProbeBlock(layer, v)
 }
 
 func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
