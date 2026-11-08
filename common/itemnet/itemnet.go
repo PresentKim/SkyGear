@@ -4,6 +4,8 @@
 package itemnet
 
 import (
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/itemio"
@@ -226,27 +228,39 @@ const verifySteps = 60 * 20 / StepTicks
 // carry no buffer, so every node of the graph has weight 0.
 type Grid struct {
 	graph  *netgraph.Graph
+	tiers  map[cube.Pos]int
 	nets   map[netgraph.NetID]*Network
 	dirty  map[netgraph.NetID]bool
 	credit int
 	cursor netgraph.NetID
+	// trace, when set by a test, collects every position the grid reads.
+	trace map[cube.Pos]struct{}
 }
 
 // NewGrid returns an empty grid.
 func NewGrid() *Grid {
 	return &Grid{
 		graph: netgraph.New(),
+		tiers: map[cube.Pos]int{},
 		nets:  map[netgraph.NetID]*Network{},
 		dirty: map[netgraph.NetID]bool{},
 	}
 }
 
-func links(tx *world.Tx) netgraph.Links {
+// block reads the block at pos for the grid.
+func (g *Grid) block(tx *world.Tx, pos cube.Pos) world.Block {
+	if g.trace != nil {
+		g.trace[pos] = struct{}{}
+	}
+	return tx.Block(pos)
+}
+
+func (g *Grid) links(tx *world.Tx) netgraph.Links {
 	return func(pos cube.Pos) []cube.Pos {
 		var out []cube.Pos
 		for _, f := range cube.Faces() {
 			q := pos.Side(f)
-			if _, ok := IsConduit(tx.Block(q)); ok {
+			if _, ok := IsConduit(g.block(tx, q)); ok {
 				out = append(out, q)
 			}
 		}
@@ -270,24 +284,113 @@ func (g *Grid) forget(id netgraph.NetID) {
 
 // Place adds the conduit block at pos (already in the world).
 func (g *Grid) Place(tx *world.Tx, pos cube.Pos) {
-	if _, ok := IsConduit(tx.Block(pos)); !ok {
+	c, ok := IsConduit(g.block(tx, pos))
+	if !ok {
 		return
 	}
+	_, known := g.graph.NetOf(pos)
+	g.tiers[pos] = c.ItemTier()
 	var old []netgraph.NetID
 	seen := map[netgraph.NetID]bool{}
-	for _, q := range append([]cube.Pos{pos}, links(tx)(pos)...) {
+	for _, q := range append([]cube.Pos{pos}, g.links(tx)(pos)...) {
 		if id, ok := g.graph.NetOf(q); ok && !seen[id] {
 			seen[id] = true
 			old = append(old, id)
 		}
 	}
-	id := g.graph.Add(pos, 0, netgraph.Store{}, links(tx))
+	id := g.graph.Add(pos, 0, netgraph.Store{}, g.links(tx))
 	for _, o := range old {
 		if o != id {
 			g.forget(o)
 		}
 	}
+	if !known && len(old) == 1 && old[0] == id && g.cached(id) {
+		g.addInPlace(tx, id, pos, c)
+		return
+	}
 	g.dirty[id] = true
+}
+
+// cached reports whether network id has a clean cached Network.
+func (g *Grid) cached(id netgraph.NetID) bool { return g.nets[id] != nil && !g.dirty[id] }
+
+// addEnds appends the endpoints beside the conduit c at pos to n: the sides
+// that are not Off and whose block has items.
+func (g *Grid) addEnds(tx *world.Tx, n *Network, pos cube.Pos, c Conduit) {
+	for _, f := range cube.Faces() {
+		next := pos.Side(f)
+		if _, ok := g.graph.NetOf(next); ok {
+			continue
+		}
+		mode := c.ItemMode(f)
+		if mode == Off {
+			continue
+		}
+		if g.trace != nil {
+			g.trace[next] = struct{}{}
+		}
+		if in, ex := itemio.IO(tx, next); in == nil && ex == nil {
+			continue
+		}
+		ex, ins := c.ItemChannels(f)
+		n.Ends = append(n.Ends, Endpoint{Pos: next, Face: f.Opposite(), Mode: mode, Extract: ex, Insert: ins})
+	}
+}
+
+// addInPlace edits the cached network id for one conduit that joined it
+// without merging: the conduit, its tier and the endpoints beside it. Turn,
+// next and the order of the other endpoints stay.
+func (g *Grid) addInPlace(tx *world.Tx, id netgraph.NetID, pos cube.Pos, c Conduit) {
+	n := g.nets[id]
+	n.Conduits = append(n.Conduits, pos)
+	n.Tier = min(n.Tier, c.ItemTier())
+	n.Ends = slices.DeleteFunc(n.Ends, func(e Endpoint) bool { return e.Pos == pos }) // a block with items stood here
+	g.addEnds(tx, n, pos, c)
+}
+
+// removeInPlace edits the cached network id for one conduit that left it
+// without cutting it. tier is the tier the conduit had.
+func (g *Grid) removeInPlace(tx *world.Tx, id netgraph.NetID, pos cube.Pos, tier int) {
+	n := g.nets[id]
+	if i := slices.Index(n.Conduits, pos); i >= 0 {
+		last := len(n.Conduits) - 1
+		n.Conduits[i] = n.Conduits[last]
+		n.Conduits = n.Conduits[:last]
+	}
+	n.Ends = slices.DeleteFunc(n.Ends, func(e Endpoint) bool {
+		return e.Pos.Side(e.Face) == pos // the end the conduit at pos had
+	})
+	// the block now at pos may be an end of the conduits beside it
+	if _, isC := IsConduit(g.block(tx, pos)); !isC {
+		g.block(tx, pos)
+		if in, ex := itemio.IO(tx, pos); in != nil || ex != nil {
+			for _, f := range cube.Faces() {
+				q := pos.Side(f)
+				if nid, ok := g.graph.NetOf(q); !ok || nid != id {
+					continue
+				}
+				c, ok := IsConduit(g.block(tx, q))
+				if !ok {
+					continue
+				}
+				side := f.Opposite() // the side of the conduit at q that touches pos
+				mode := c.ItemMode(side)
+				if mode == Off {
+					continue
+				}
+				ex, ins := c.ItemChannels(side)
+				n.Ends = append(n.Ends, Endpoint{Pos: pos, Face: f, Mode: mode, Extract: ex, Insert: ins})
+			}
+		}
+	}
+	if tier <= n.Tier {
+		n.Tier = 0
+		g.graph.Each(id, func(p cube.Pos) {
+			if t := g.tiers[p]; n.Tier == 0 || t < n.Tier {
+				n.Tier = t
+			}
+		})
+	}
 }
 
 // Remove takes the conduit at pos (already gone from the world) out. Other
@@ -297,9 +400,15 @@ func (g *Grid) Remove(tx *world.Tx, pos cube.Pos) {
 	if !ok {
 		return
 	}
-	_, parts := g.graph.Remove(pos, links(tx))
+	tier := g.tiers[pos]
+	_, parts := g.graph.Remove(pos, g.links(tx))
+	delete(g.tiers, pos)
 	if len(parts) == 0 {
 		g.forget(id)
+	}
+	if len(parts) == 1 && parts[0] == id && g.cached(id) {
+		g.removeInPlace(tx, id, pos, tier)
+		return
 	}
 	for _, p := range parts {
 		g.dirty[p] = true
@@ -310,7 +419,7 @@ func (g *Grid) Remove(tx *world.Tx, pos cube.Pos) {
 // sides (modes, channels) and tier again, a block that stopped being a conduit
 // leaves, and for any other block the conduits that touch it read it again.
 func (g *Grid) Changed(tx *world.Tx, pos cube.Pos) {
-	_, isC := IsConduit(tx.Block(pos))
+	_, isC := IsConduit(g.block(tx, pos))
 	id, known := g.graph.NetOf(pos)
 	switch {
 	case known && isC:
@@ -340,28 +449,15 @@ func (g *Grid) refresh(tx *world.Tx, id netgraph.NetID) *Network {
 	}
 	n.Conduits, n.Ends, n.Tier = g.graph.Nodes(id), nil, 0
 	for _, pos := range n.Conduits {
-		c, ok := IsConduit(tx.Block(pos))
+		c, ok := IsConduit(g.block(tx, pos))
 		if !ok {
 			continue
 		}
+		g.tiers[pos] = c.ItemTier()
 		if n.Tier == 0 || c.ItemTier() < n.Tier {
 			n.Tier = c.ItemTier()
 		}
-		for _, f := range cube.Faces() {
-			next := pos.Side(f)
-			if _, ok := g.graph.NetOf(next); ok {
-				continue
-			}
-			mode := c.ItemMode(f)
-			if mode == Off {
-				continue
-			}
-			if in, ex := itemio.IO(tx, next); in == nil && ex == nil {
-				continue
-			}
-			ex, ins := c.ItemChannels(f)
-			n.Ends = append(n.Ends, Endpoint{Pos: next, Face: f.Opposite(), Mode: mode, Extract: ex, Insert: ins})
-		}
+		g.addEnds(tx, n, pos, c)
 	}
 	delete(g.dirty, id)
 	return n
@@ -398,8 +494,11 @@ func (g *Grid) verify(tx *world.Tx) {
 
 func (g *Grid) verifyNet(tx *world.Tx, id netgraph.NetID) {
 	before := g.graph.Nodes(id)
-	changed := g.graph.Verify(id, links(tx), func(p cube.Pos) (int, bool) {
-		_, ok := IsConduit(tx.Block(p))
+	changed := g.graph.Verify(id, g.links(tx), func(p cube.Pos) (int, bool) {
+		c, ok := IsConduit(g.block(tx, p))
+		if ok {
+			g.tiers[p] = c.ItemTier()
+		}
 		return 0, ok
 	})
 	if !changed {
@@ -409,6 +508,8 @@ func (g *Grid) verifyNet(tx *world.Tx, id netgraph.NetID) {
 	for _, p := range before {
 		if nid, ok := g.graph.NetOf(p); ok {
 			g.dirty[nid] = true
+		} else {
+			delete(g.tiers, p)
 		}
 	}
 }

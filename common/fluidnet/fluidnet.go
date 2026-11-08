@@ -4,6 +4,8 @@
 package fluidnet
 
 import (
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
 
@@ -258,6 +260,7 @@ func (g *Grid) Place(w World, pos cube.Pos, k Kind, mB int) {
 		return
 	}
 	var old []netgraph.NetID
+	_, known := g.graph.NetOf(pos)
 	byKind := map[byte]int{}
 	if mB > 0 {
 		byKind[byte(k)] += mB
@@ -288,7 +291,78 @@ func (g *Grid) Place(w World, pos cube.Pos, k Kind, mB int) {
 		}
 		g.graph.SetStore(id, best)
 	}
+	if !known && len(old) == 1 && old[0] == id && g.cached(id) {
+		g.addInPlace(w, id, pos, tier)
+		return
+	}
 	g.dirty[id] = true
+}
+
+// cached reports whether network id has a clean cached Network.
+func (g *Grid) cached(id netgraph.NetID) bool { return g.nets[id] != nil && !g.dirty[id] }
+
+// endIndex is where the endpoint at pos is in n.Ends, or -1.
+func (n *Network) endIndex(pos cube.Pos) int {
+	return slices.IndexFunc(n.Ends, func(e Endpoint) bool { return e.Pos == pos })
+}
+
+// touches reports whether a conduit of network id is beside pos.
+func (g *Grid) touches(pos cube.Pos, id netgraph.NetID) bool {
+	for _, f := range cube.Faces() {
+		if nid, ok := g.graph.NetOf(pos.Side(f)); ok && nid == id {
+			return true
+		}
+	}
+	return false
+}
+
+// addInPlace edits the cached network id for one conduit that joined it
+// without merging: the conduit, its tier and the tanks beside it. Turn and the
+// order of the other endpoints stay.
+func (g *Grid) addInPlace(w World, id netgraph.NetID, pos cube.Pos, tier int) {
+	n := g.nets[id]
+	n.Conduits = append(n.Conduits, pos)
+	n.Tier = min(n.Tier, tier)
+	if i := n.endIndex(pos); i >= 0 { // a tank stood here
+		n.Ends = slices.Delete(n.Ends, i, i+1)
+	}
+	for _, f := range cube.Faces() {
+		q := pos.Side(f)
+		if _, ok := g.graph.NetOf(q); ok {
+			continue
+		}
+		if _, ok := w.Block(q).(Holder); ok && n.endIndex(q) < 0 {
+			n.Ends = append(n.Ends, Endpoint{Pos: q})
+		}
+	}
+}
+
+// removeInPlace edits the cached network id for one conduit that left it
+// without cutting it. tier is the tier the conduit had.
+func (g *Grid) removeInPlace(w World, id netgraph.NetID, pos cube.Pos, tier int) {
+	n := g.nets[id]
+	if i := slices.Index(n.Conduits, pos); i >= 0 {
+		last := len(n.Conduits) - 1
+		n.Conduits[i] = n.Conduits[last]
+		n.Conduits = n.Conduits[:last]
+	}
+	for _, f := range cube.Faces() {
+		q := pos.Side(f)
+		if i := n.endIndex(q); i >= 0 && !g.touches(q, id) {
+			n.Ends = slices.Delete(n.Ends, i, i+1)
+		}
+	}
+	if _, ok := w.Block(pos).(Holder); ok && g.touches(pos, id) && n.endIndex(pos) < 0 {
+		n.Ends = append(n.Ends, Endpoint{Pos: pos})
+	}
+	if tier <= n.Tier {
+		n.Tier = 0
+		g.graph.Each(id, func(p cube.Pos) {
+			if t := g.tiers[p]; n.Tier == 0 || t < n.Tier {
+				n.Tier = t
+			}
+		})
+	}
 }
 
 // forget drops the per-network state of a network that no longer exists.
@@ -304,10 +378,15 @@ func (g *Grid) Remove(w World, pos cube.Pos) (Kind, int) {
 	if !ok {
 		return None, 0
 	}
+	tier := g.tiers[pos]
 	st, parts := g.graph.Remove(pos, links(w))
 	delete(g.tiers, pos)
 	if len(parts) == 0 {
 		g.forget(id)
+	}
+	if len(parts) == 1 && parts[0] == id && g.cached(id) {
+		g.removeInPlace(w, id, pos, tier)
+		return Kind(st.Tag), st.Amount
 	}
 	for _, p := range parts {
 		g.dirty[p] = true
