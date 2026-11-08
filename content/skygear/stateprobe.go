@@ -81,7 +81,7 @@ func init() {
 func stateProbeCounts(mode string) (states, permutations int) {
 	switch mode {
 	case assets.StateProbePerm:
-		return stateProbeLayers * stateProbeValues, stateProbeLayers * (stateProbeValues - 1)
+		return stateProbeLayers * stateProbeValues, stateProbeLayers * stateProbeValues
 	case assets.StateProbeBones:
 		return stateProbeLayers * stateProbeValues, stateProbeLayers * stateProbeKinds * stateProbeTiers
 	}
@@ -162,10 +162,13 @@ func stateProbeBase(mode string) customblock.Properties {
 		}
 		return p
 	}
-	p := stateProbeLook(stateProbeShapeGeometry(1, 0), 1, 1)
-	p.Scale = mgl64.Vec3{0.001, 0.001, 0.001}
-	return p
+	// No scale here: permutations inherit the base, so a scale on it would
+	// shrink every one of them. The value 0 has its own permutation.
+	return stateProbeLook(stateProbeShapeGeometry(1, 0), 1, 1)
 }
+
+// stateProbeHidden is the scale of the permutation of the value 0.
+var stateProbeHidden = mgl64.Vec3{0.001, 0.001, 0.001}
 
 // stateProbeShapeExpr is the Molang expression of the state value.
 const stateProbeShapeExpr = "q.block_state('" + stateProbeState + "')"
@@ -175,6 +178,12 @@ func stateProbePermutations(mode string) []customblock.Permutation {
 	var out []customblock.Permutation
 	switch mode {
 	case assets.StateProbePerm:
+		empty := stateProbeBase(mode)
+		empty.Scale = stateProbeHidden
+		out = append(out, customblock.Permutation{
+			Condition:  stateProbeShapeExpr + " == 0",
+			Properties: empty,
+		})
 		for v := 1; v < stateProbeValues; v++ {
 			kind, tier, faces := stateProbeParts(v)
 			out = append(out, customblock.Permutation{

@@ -9,6 +9,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/assets"
 )
 
@@ -96,7 +97,7 @@ func TestStateProbeRegistered(t *testing.T) {
 func TestStateProbeCounts(t *testing.T) {
 	for mode, want := range map[string][2]int{
 		assets.StateProbeOff:   {0, 0},
-		assets.StateProbePerm:  {1154, 1152},
+		assets.StateProbePerm:  {1154, 1154},
 		assets.StateProbeBones: {1154, 18},
 	} {
 		if s, p := stateProbeCounts(mode); s != want[0] || p != want[1] {
@@ -182,7 +183,7 @@ func TestStateProbeModesDrawTheSame(t *testing.T) {
 	}
 	perm := stateProbePermutations(assets.StateProbePerm)
 	bonesPerms := stateProbePermutations(assets.StateProbeBones)
-	if len(perm) != 576 || len(bonesPerms) != 9 {
+	if len(perm) != 577 || len(bonesPerms) != 9 {
 		t.Fatalf("%d and %d permutations", len(perm), len(bonesPerms))
 	}
 	conditions := map[string]bool{}
@@ -202,9 +203,9 @@ func TestStateProbeModesDrawTheSame(t *testing.T) {
 			}
 		}
 		// B: the permutation of the value
-		p := perm[v-1].Properties
-		if cond := fmt.Sprintf("q.block_state('skygear:shape') == %d", v); perm[v-1].Condition != cond {
-			t.Fatalf("permutation %d: condition %s", v-1, perm[v-1].Condition)
+		p := perm[v].Properties
+		if cond := fmt.Sprintf("q.block_state('skygear:shape') == %d", v); perm[v].Condition != cond {
+			t.Fatalf("permutation %d: condition %s", v, perm[v].Condition)
 		}
 		if got := p.Textures["*"].Encode()["texture"]; got != wantTexture || p.Geometry != stateProbeShapeGeometry(kind, faces) {
 			t.Fatalf("v=%d perm: texture %v geometry %s", v, got, p.Geometry)
@@ -271,7 +272,25 @@ func TestStateProbeEmptyLook(t *testing.T) {
 			t.Errorf("bone %s is %q", bone, v)
 		}
 	}
-	if p := stateProbeBase(assets.StateProbePerm); p.Geometry != stateProbeShapeGeometry(1, 0) || p.Scale[0] >= 0.01 {
+	if p := stateProbeBase(assets.StateProbePerm); p.Geometry != stateProbeShapeGeometry(1, 0) || p.Scale != (mgl64.Vec3{}) {
 		t.Errorf("perm base %+v", p)
+	}
+}
+
+// TestStateProbePermScale: the server emits minecraft:transformation only for
+// a non-zero scale, and permutations inherit the base. So in mode perm the base
+// has no scale and only the permutation of the value 0 shrinks.
+func TestStateProbePermScale(t *testing.T) {
+	if s := stateProbeBase(assets.StateProbePerm).Scale; s != (mgl64.Vec3{}) {
+		t.Errorf("base scale %v", s)
+	}
+	for i, p := range stateProbePermutations(assets.StateProbePerm) {
+		hidden := p.Properties.Scale != (mgl64.Vec3{}) && p.Properties.Scale != (mgl64.Vec3{1, 1, 1})
+		if want := i == 0; hidden != want {
+			t.Errorf("permutation %d (%s): scale %v", i, p.Condition, p.Properties.Scale)
+		}
+	}
+	if c := stateProbePermutations(assets.StateProbePerm)[0].Condition; c != "q.block_state('skygear:shape') == 0" {
+		t.Errorf("first condition %s", c)
 	}
 }
