@@ -1,6 +1,7 @@
 package energy
 
 import (
+	"maps"
 	"math/rand"
 	"slices"
 	"testing"
@@ -283,5 +284,41 @@ func TestEditedInfoMatchesFresh(t *testing.T) {
 				t.Fatalf("op %d net %d: sorted ends differ", op, id)
 			}
 		}
+	}
+}
+
+func endSet(s []Endpoint) map[Endpoint]bool {
+	m := map[Endpoint]bool{}
+	for _, e := range s {
+		m[e] = true
+	}
+	return m
+}
+
+func TestChangedKeepsOneEndpoint(t *testing.T) {
+	store, have := 1000, 0
+	w := buffered(2, &store, nil, 0)
+	g := gridOf(w)
+	g.Step(w, 1) // reads the network info
+	m := cube.Pos{3, 0, 0}
+	w[m] = machine{have: &have, room: 1000}
+	for range 3 {
+		g.Changed(w, m)
+	}
+	id, _ := g.graph.NetOf(cube.Pos{1, 0, 0})
+	ni := g.info[id]
+	if ni == nil {
+		t.Fatal("no info")
+	}
+	ni.sort()
+	if len(ni.sinks) != 1 {
+		t.Fatalf("sinks %v", ni.sinks)
+	}
+	fresh := Discover(w, cube.Pos{1, 0, 0}, 100)
+	if a, b := endSet(ni.sinks), endSet(fresh.Sinks); !maps.Equal(a, b) {
+		t.Errorf("sinks %v, fresh %v", a, b)
+	}
+	if a, b := endSet(ni.sources), endSet(fresh.Sources); !maps.Equal(a, b) {
+		t.Errorf("sources %v, fresh %v", a, b)
 	}
 }

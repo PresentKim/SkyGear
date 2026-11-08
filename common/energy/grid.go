@@ -201,7 +201,7 @@ func (g *Grid) Changed(w World, pos cube.Pos) {
 		if ni == nil {
 			continue // read when the network is first used
 		}
-		e := Endpoint{Pos: pos, Face: f.Opposite()}
+		e := Endpoint{Pos: pos, Face: f}
 		cur, had := ni.ends[e]
 		switch {
 		case !r.src && !r.snk:
