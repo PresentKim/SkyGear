@@ -64,6 +64,15 @@ func TestDebugLayers(t *testing.T) {
 		want("alt again", probe(0, 0), nil, probe(2, 0), probe(1, 0))
 		run("b")
 		want("b", nil, probe(1, 0), probe(2, 0))
+		run("d")
+		want("d", probe(probeHidden, 0), probe(1, 0))
+		if tx.Block(pos) == (block.Air{}) {
+			t.Errorf("d: layer 0 is air, want a block that draws nothing")
+		}
+		run("alt1")
+		want("alt1", probe(probeHidden, 0), probe(1, 1))
+		run("alt1")
+		want("alt1 again", probe(probeHidden, 0), probe(1, 0))
 		run("a")
 		run("info")
 		want("info", probe(0, 0), probe(1, 0), probe(2, 0))

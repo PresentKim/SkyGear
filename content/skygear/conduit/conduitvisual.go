@@ -38,16 +38,37 @@ type Visual struct {
 type visualData struct {
 	owner         cube.Pos
 	variant, mark int32
+	// debug marks a visual of /sgdebug fill: it has no bundle and stays until
+	// the debug command closes it.
+	debug bool
 }
 
 // visualConfig spawns a ConduitVisual for the bundle at owner.
 type visualConfig struct {
 	owner         cube.Pos
 	variant, mark int32
+	debug         bool
 }
 
 func (c visualConfig) Apply(data *world.EntityData) {
-	data.Data = &visualData{owner: c.owner, variant: c.variant, mark: c.mark}
+	data.Data = &visualData{owner: c.owner, variant: c.variant, mark: c.mark, debug: c.debug}
+}
+
+// NewDebugVisual adds a display entity of the given look at pos that belongs
+// to no bundle, for /sgdebug fill: Tick does not remove it, the caller closes
+// it (CloseDebugVisual).
+func NewDebugVisual(tx *world.Tx, pos cube.Pos, variant, mark int32) *world.EntityHandle {
+	h := world.EntitySpawnOpts{Position: mgl64.Vec3{float64(pos[0]) + 0.5, float64(pos[1]), float64(pos[2]) + 0.5}}.
+		New(VisualType, visualConfig{owner: pos, variant: variant, mark: mark, debug: true})
+	tx.AddEntity(h)
+	return h
+}
+
+// CloseDebugVisual closes a display entity made by NewDebugVisual.
+func CloseDebugVisual(tx *world.Tx, h *world.EntityHandle) {
+	if e, ok := h.Entity(tx); ok {
+		_ = e.(*Visual).Close()
+	}
 }
 
 func (v *Visual) H() *world.EntityHandle { return v.handle }
@@ -67,6 +88,9 @@ func (v *Visual) Tick(tx *world.Tx, current int64) {
 		return
 	}
 	d := v.data.Data.(*visualData)
+	if d.debug {
+		return
+	}
 	s, ok := core.Of(tx)
 	_, isBundle := tx.Block(d.owner).(Bundle)
 	if ok && isBundle && ownsVisual(s, d.owner, v.handle) {

@@ -16,14 +16,16 @@ import (
 // LayerProbe is a block for a manual test of the storage layers (/sgdebug
 // layers): it draws a conduit icon, so the layer it stands on and its state
 // show on screen. Kind (0 to 2) picks the icon (energy, item, fluid) and moves
-// it to its lane, Alt (0 or 1) the tier 1 or tier 3 texture. It has no item
+// it to its lane, Alt (0 or 1) the tier 1 or tier 3 texture. Kind 3 draws
+// nothing visible (the look of a conduit bundle, which is a non-air block with
+// no geometry of its own); alt changes nothing there. It has no item
 // and nothing in the game places it. The two make one state, Kind*2+Alt:
 // TestCustomBlockStatesMatchTheDefinition allows one state property a block.
 type LayerProbe struct{ Kind, Alt int }
 
 const (
 	probeState = "skygear:probe"
-	probeKinds = 3
+	probeKinds = 4
 	probeAlts  = 2
 )
 
@@ -45,16 +47,27 @@ func (b LayerProbe) Hash() (uint64, uint64) { return layerProbeHash, uint64(b.Ki
 
 func (LayerProbe) Model() world.BlockModel { return model.Empty{} }
 
-// probeKindNames are the conduit icons the kinds borrow.
-var probeKindNames = [probeKinds]string{"energy", "item", "fluid"}
+// probeHidden is the kind with the invisible look.
+const probeHidden = 3
+
+// probeKindNames are the conduit icons the kinds borrow ("hidden": none).
+var probeKindNames = [probeKinds]string{"energy", "item", "fluid", "hidden"}
 
 // probeLane is how far the icon of a kind moves sideways, in blocks (the lanes
 // of a conduit bundle: energy left, item in the middle, fluid right).
-var probeLane = [probeKinds]float64{-3.0 / 16, 0, 3.0 / 16}
+var probeLane = [probeKinds]float64{-3.0 / 16, 0, 3.0 / 16, 0}
 
 // probeProperties is the look of a kind and alt: the conduit icon of the kind
 // with its tier 1 (alt 0) or tier 3 (alt 1) texture.
 func probeProperties(kind, alt int) customblock.Properties {
+	if kind == probeHidden {
+		// What a conduit bundle draws: a transparent texture on the node geometry.
+		return customblock.Properties{
+			Geometry:     "geometry.skygear_conduit_node",
+			Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_conduit_node")},
+			SelectionBox: cube.Box(7.0/16, 7.0/16, 7.0/16, 9.0/16, 9.0/16, 9.0/16),
+		}
+	}
 	tier := 1
 	if alt == 1 {
 		tier = 3

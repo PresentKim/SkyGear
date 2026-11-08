@@ -28,7 +28,7 @@ type layersEnum string
 
 func (layersEnum) Type() string { return "sg_layers" }
 func (layersEnum) Options(cmd.Source) []string {
-	return []string{"a", "b", "c", "alt", "info", "clear"}
+	return []string{"a", "b", "c", "d", "alt", "alt1", "info", "clear"}
 }
 
 // layersTargets is the last target (cube.Pos) of each session.
@@ -49,7 +49,7 @@ func (c debugLayers) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		pos, have = v.(cube.Pos), true
 	}
 	switch mode {
-	case "a", "b", "c":
+	case "a", "b", "c", "d":
 		// In front of the player, 2 blocks away at eye height.
 		f := p.Rotation().Direction().Face()
 		pos = cube.PosFromVec3(p.Position().Add(mgl64.Vec3{0, p.EyeHeight()})).Side(f).Side(f)
@@ -69,6 +69,10 @@ func (c debugLayers) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			tx.SetBlockLayer(pos, LayerProbe{Kind: 0}, 0)
 			tx.SetBlockLayer(pos, LayerProbe{Kind: 2}, 2)
 			tx.SetBlockLayer(pos, LayerProbe{Kind: 1}, 3)
+		case "d":
+			// Layer 0 is a block that draws nothing, layer 1 an item probe.
+			tx.SetBlockLayer(pos, LayerProbe{Kind: probeHidden}, 0)
+			tx.SetBlockLayer(pos, LayerProbe{Kind: 1}, 1)
 		}
 		o.Printf(i18n.T(lang, "skygear.debug.layers."+mode), pos[0], pos[1], pos[2])
 		return
@@ -88,6 +92,14 @@ func (c debugLayers) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			}
 		}
 		o.Printf(i18n.T(lang, "skygear.debug.layers.alt"), n, pos[0], pos[1], pos[2])
+	case "alt1":
+		n := 0
+		if b, ok := tx.BlockLayer(pos, 1).(LayerProbe); ok {
+			b.Alt = 1 - b.Alt
+			tx.SetBlockLayer(pos, b, 1)
+			n++
+		}
+		o.Printf(i18n.T(lang, "skygear.debug.layers.alt1"), n, pos[0], pos[1], pos[2])
 	case "info":
 		var names [layerCount]any
 		for l := range names {
