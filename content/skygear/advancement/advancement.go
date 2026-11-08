@@ -95,7 +95,7 @@ var Tree = []Advancement{
 	{ID: "first_research", Chapter: ChapterStart, Parents: []string{"research_table"}, NameKey: "advancement.first_research.name", HintKey: "advancement.first_research.hint", Research: "stick", Icon: "stick"},
 	{ID: "pebble", Chapter: ChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.pebble.name", HintKey: "advancement.pebble.hint", Item: "skygear:pebble_stone", Guide: "stick"},
 	{ID: "cobble", Chapter: ChapterStart, Parents: []string{"pebble"}, NameKey: "advancement.cobble.name", HintKey: "advancement.cobble.hint", Item: "cobblestone"},
-	{ID: "wood_tools", Chapter: ChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.wood_tools.name", HintKey: "advancement.wood_tools.hint", Item: "wooden_pickaxe"},
+	{ID: "wood_tools", Chapter: ChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.wood_tools.name", HintKey: "advancement.wood_tools.hint", Item: "wooden_axe"},
 	{ID: "chest", Chapter: ChapterStart, Parents: []string{"first_research"}, NameKey: "advancement.chest.name", HintKey: "advancement.chest.hint", Item: "chest"},
 	{ID: "stone_axe", Chapter: ChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.stone_axe.name", HintKey: "advancement.stone_axe.hint", Item: "stone_axe"},
 	{ID: "fiber", Chapter: ChapterStart, Parents: []string{"stone_axe"}, NameKey: "advancement.fiber.name", HintKey: "advancement.fiber.hint", Item: "skygear:bark_fiber", Guide: "stone_tools"},

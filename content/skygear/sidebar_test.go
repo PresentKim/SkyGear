@@ -41,7 +41,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "주먹이 곧 도끼") || len(rows) != 2 {
+		if title, rows := screens.QuestRows(s.Session, i18n.Default, nil); !strings.Contains(title, "자연을 파괴하다") || len(rows) != 5 {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		rt, _ := advancement.ByID("research_table")
@@ -49,7 +49,7 @@ func TestHUDQuestFollowsAdvancements(t *testing.T) {
 			progress.Advance(s.Session, tx, a.ID)
 		}
 		title, rows := screens.QuestRows(s.Session, i18n.Default, nil)
-		if !strings.Contains(title, "유레카") || len(rows) != 3 || !strings.Contains(rows[2], "×4") {
+		if !strings.Contains(title, "첫 연구") || len(rows) != 4 || !strings.Contains(rows[3], "×4") {
 			t.Fatalf("quest %q %q", title, rows)
 		}
 		sticks, _ := progress.ByID("stick")
