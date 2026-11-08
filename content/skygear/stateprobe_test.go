@@ -15,11 +15,11 @@ import (
 	"github.com/presentkim/skygear/assets"
 )
 
-// probeNames are the names of the probe blocks.
+// probeNames are the names of the probe blocks (of every layer and block).
 func probeNames() []string {
 	var out []string
-	for l := 0; l < stateProbeLayers; l++ {
-		out = append(out, stateProbeName(stateProbeMode, l))
+	for _, c := range stateProbeNameCounts(stateProbeMode) {
+		out = append(out, c.name)
 	}
 	return out
 }
@@ -69,14 +69,21 @@ func TestStateProbeRegistered(t *testing.T) {
 		}
 	}
 	sum := 0
-	for l, name := range probeNames() {
-		n := stateProbeLayerValues(stateProbeMode, l)
-		sum += n
-		if len(states[name]) != n {
-			t.Errorf("%s: %d states, want %d", name, len(states[name]), n)
+	for _, c := range stateProbeNameCounts(stateProbeMode) {
+		sum += c.states
+		if len(states[c.name]) != c.states {
+			t.Errorf("%s: %d states, want %d", c.name, len(states[c.name]), c.states)
 		}
-		if _, ok := stateProbeBlock(l, n); ok {
-			t.Errorf("value %d is a probe block of layer %d", n, l)
+		// the states of a name come in the order of States: 0, 1, 2 ...
+		for i, v := range states[c.name] {
+			if v != int32(i) {
+				t.Fatalf("%s: state %d is %v", c.name, i, v)
+			}
+		}
+	}
+	for l := range stateProbeLayers {
+		if _, ok := stateProbeBlock(l, stateProbeLayerValues(stateProbeMode, l)); ok {
+			t.Errorf("the value past the last is a probe block of layer %d", l)
 		}
 	}
 	if _, ok := stateProbeBlock(stateProbeLayers, 0); ok {
@@ -103,12 +110,13 @@ func TestStateProbeRegistered(t *testing.T) {
 // layer 1) and geometries of each mode.
 func TestStateProbeCounts(t *testing.T) {
 	for mode, want := range map[string][5]int{
-		assets.StateProbeOff:     {0, 0, 0, 0, 0},
-		assets.StateProbePerm:    {577, 577, 577, 577, 192},
-		assets.StateProbeBones:   {577, 577, 9, 9, 3},
-		assets.StateProbeSingle4: {769, 769, 12, 12, 4},
-		assets.StateProbeSame4:   {769, 769 + 3456, 12, 12 + 54, 10},
-		assets.StateProbeAll4:    {769 + 221184, 769 + 221184, 12 + 54, 12 + 54, 10},
+		assets.StateProbeOff:       {0, 0, 0, 0, 0},
+		assets.StateProbePerm:      {577, 577, 577, 577, 192},
+		assets.StateProbeBones:     {577, 577, 9, 9, 3},
+		assets.StateProbeSingle4:   {769, 769, 12, 12, 4},
+		assets.StateProbeSame4:     {769, 769 + 3456, 12, 12 + 54, 10},
+		assets.StateProbeAll4:      {769 + 221184, 769 + 221184, 12 + 54, 12 + 54, 10},
+		assets.StateProbeAll4Split: {769 + 221184, 769 + 221184, 12 + 54, 12 + 54, 10},
 	} {
 		if s, p := stateProbeCounts(mode); s != want[0]+want[1] || p != want[2]+want[3] {
 			t.Errorf("mode %q: %d states, %d permutations, want %v", mode, s, p, want)
@@ -134,7 +142,7 @@ func TestStateProbeCounts(t *testing.T) {
 }
 
 // probeModes are the modes with the probe on.
-var probeModes = []string{assets.StateProbePerm, assets.StateProbeBones, assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4}
+var probeModes = []string{assets.StateProbePerm, assets.StateProbeBones, assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split}
 
 // probeSample are the values of a block to check: all of them, or for a large
 // block every 97th and the ends of every range of 64.
@@ -284,7 +292,7 @@ func TestStateProbeFourKindsDraw(t *testing.T) {
 	if len(bones) != 10 {
 		t.Fatalf("%d geometries", len(bones))
 	}
-	for _, mode := range []string{assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4} {
+	for _, mode := range []string{assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split} {
 		base := stateProbeBase(mode)
 		for _, b := range bones[base.Geometry] {
 			if base.BoneVisibility[b] != "false" {
@@ -636,13 +644,16 @@ func TestStateProbeNetworkHashes(t *testing.T) {
 	for _, mode := range probeModes {
 		seen := map[uint32]bool{}
 		for l := range stateProbeLayers {
-			name := stateProbeName(mode, l)
-			for v := range stateProbeLayerValues(mode, l) {
-				h := probeNetworkHash(name, map[string]any{stateProbeState: int32(v)})
-				if other, ok := others[h]; ok || seen[h] {
-					t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d)", mode, name, v, other, stateProbeSalt)
+			for blk := range stateProbeBlocks(mode, l) {
+				name := stateProbeBlockName(mode, l, blk)
+				_, n := stateProbeBlockSpan(mode, l, blk)
+				for v := range n {
+					h := probeNetworkHash(name, map[string]any{stateProbeState: int32(v)})
+					if other, ok := others[h]; ok || seen[h] {
+						t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d, stateProbeSplitSalt %d)", mode, name, v, other, stateProbeSalt, stateProbeSplitSalt)
+					}
+					seen[h] = true
 				}
-				seen[h] = true
 			}
 		}
 	}

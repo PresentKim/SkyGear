@@ -13,7 +13,8 @@ import (
 // states with one permutation each, "bones" the same states with a few
 // permutations that switch the bones of one geometry; "single4", "same4" and
 // "all4" model four conduit kinds (network added) with the bones technique,
-// all4 drawing any two kinds in one block (443,906 states).
+// all4 drawing any two kinds in one block (443,906 states); "all4split" is
+// all4 with the states split over blocks of at most 65,536 states each.
 const StateProbeEnv = "SKYGEAR_STATE_PROBE"
 
 // The probe modes.
@@ -26,6 +27,9 @@ const (
 	StateProbeSingle4 = "single4"
 	StateProbeSame4   = "same4"
 	StateProbeAll4    = "all4"
+	// StateProbeAll4Split is all4 with each layer split into 7 block names of
+	// at most 65,536 states (the client may know no more of a name).
+	StateProbeAll4Split = "all4split"
 )
 
 // stateProbeFiles are the pack files of the probe by mode, written by
@@ -37,19 +41,21 @@ var stateProbeFiles = map[string]string{
 	StateProbeSingle4: "models/blocks/state_probe_four.geo.json",
 	StateProbeSame4:   "models/blocks/state_probe_four.geo.json",
 	StateProbeAll4:    "models/blocks/state_probe_four.geo.json",
+
+	StateProbeAll4Split: "models/blocks/state_probe_four.geo.json",
 }
 
 var stateProbeMode = sync.OnceValue(func() string { return parseStateProbeMode(os.Getenv(StateProbeEnv)) })
 
 // StateProbeMode is the mode of the state count probe, read once from
 // SKYGEAR_STATE_PROBE: StateProbeOff (also for any other value),
-// StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4 or
-// StateProbeAll4.
+// StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4,
+// StateProbeAll4 or StateProbeAll4Split.
 func StateProbeMode() string { return stateProbeMode() }
 
 func parseStateProbeMode(v string) string {
 	switch v = strings.ToLower(strings.TrimSpace(v)); v {
-	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4:
+	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split:
 		return v
 	}
 	return StateProbeOff

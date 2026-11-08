@@ -206,11 +206,11 @@ func probeLookOf(ks ...fillKind) probeLook {
 //   - same4: layer 1 takes two kinds with the same faces when the look has
 //     them, layer 0 one of the others (empty, value 0, when there is none),
 //     the rest are left out; with no such pair as single4.
-//   - all4: layer 0 the first two, layer 1 the others: all are drawn.
+//   - all4, all4split: layer 0 the first two, layer 1 the others: all are drawn.
 func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
 	ks := l.k[:l.n]
 	switch mode {
-	case assets.StateProbeAll4:
+	case assets.StateProbeAll4, assets.StateProbeAll4Split:
 		if len(ks) <= 2 {
 			return probeLookOf(ks...), probeLook{}, 0
 		}

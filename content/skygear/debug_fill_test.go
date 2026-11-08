@@ -660,7 +660,7 @@ func TestFillPlace(t *testing.T) {
 					}
 				}
 				switch mode {
-				case assets.StateProbeAll4:
+				case assets.StateProbeAll4, assets.StateProbeAll4Split:
 					if lost != 0 || l0.n == 0 || (look.n > 2) != (l1.n > 0) {
 						t.Fatalf("all4: %+v placed %+v %+v", look, l0, l1)
 					}
@@ -679,7 +679,7 @@ func TestFillPlace(t *testing.T) {
 			}
 		}
 		switch mode {
-		case assets.StateProbeAll4, assets.StateProbePerm, assets.StateProbeBones:
+		case assets.StateProbeAll4, assets.StateProbeAll4Split, assets.StateProbePerm, assets.StateProbeBones:
 			if whole != cells {
 				t.Errorf("%s: %d of %d cells whole", mode, whole, cells)
 			}

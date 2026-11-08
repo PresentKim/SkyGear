@@ -7,9 +7,11 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/look"
 )
 
 // /sgdebug layers: a manual probe of the storage layers of a sub chunk. A
@@ -28,7 +30,7 @@ type layersEnum string
 
 func (layersEnum) Type() string { return "sg_layers" }
 func (layersEnum) Options(cmd.Source) []string {
-	return []string{"a", "b", "c", "d", "alt", "alt1", "info", "clear"}
+	return []string{"a", "b", "c", "d", "alt", "alt1", "info", "clear", "look"}
 }
 
 // layersTargets is the last target (cube.Pos) of each session.
@@ -44,6 +46,10 @@ func (c debugLayers) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	}
 	lang := i18n.Of(p)
 	mode := string(c.Mode)
+	if mode == "look" {
+		c.look(p, o, tx, lang)
+		return
+	}
 	pos, have := cube.Pos{}, false
 	if v, ok := layersTargets.Load(s); ok {
 		pos, have = v.(cube.Pos), true
@@ -109,6 +115,35 @@ func (c debugLayers) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	case "clear":
 		clearLayers(tx, pos)
 		o.Printf(i18n.T(lang, "skygear.debug.layers.clear"), pos[0], pos[1], pos[2])
+	}
+}
+
+// look prints, for the block the player looks at, every layer's block name and
+// the state of the state probe on it, with the index of that state among the
+// states of its name (the Nth state, 0-based, the order the client gets): the
+// client may know only the first stateProbeNameCap states of a name, so a probe
+// block that does not draw nor collide should be at an index at or past it.
+func (debugLayers) look(p *player.Player, o *cmd.Output, tx *world.Tx, lang string) {
+	pos, _, ok := look.LookedAt(p, tx, p.Position(), p.Rotation())
+	if !ok {
+		o.Error(i18n.T(lang, "skygear.debug.layers.lookNone"))
+		return
+	}
+	o.Printf(i18n.T(lang, "skygear.debug.layers.look"), pos[0], pos[1], pos[2], tx.SubChunkLayers(pos))
+	for l := uint8(0); l < layerCount; l++ {
+		b := tx.BlockLayer(pos, l)
+		if _, air := b.(block.Air); air {
+			continue
+		}
+		if info, probe := stateProbeInfoOf(b); probe {
+			key := "skygear.debug.layers.lookProbe"
+			if info.index >= stateProbeNameCap {
+				key = "skygear.debug.layers.lookProbeBeyond"
+			}
+			o.Printf(i18n.T(lang, key), l, info.name, info.state, info.index, info.count, stateProbeNameCap)
+			continue
+		}
+		o.Printf(i18n.T(lang, "skygear.debug.layers.lookOther"), l, layerLabel(b))
 	}
 }
 
