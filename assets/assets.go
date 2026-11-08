@@ -27,5 +27,16 @@ var files embed.FS
 // Packs are the packs here.
 var Packs = []string{"skygear", "inventoryui", "waila", "slotdeco", "sgui", "oreui"}
 
-// Pack returns the files of the pack name, rooted at the pack folder.
-func Pack(name string) (fs.FS, error) { return fs.Sub(files, "resourcepack/"+name) }
+// Pack returns the files of the pack name, rooted at the pack folder. The
+// skygear pack leaves out the files of the state count probe (see
+// StateProbeEnv) that the mode in SKYGEAR_STATE_PROBE does not need, so with
+// the probe off the pack is what it was before the probe.
+func Pack(name string) (fs.FS, error) { return packFor(name, StateProbeMode()) }
+
+func packFor(name, mode string) (fs.FS, error) {
+	dir, err := fs.Sub(files, "resourcepack/"+name)
+	if err != nil || name != "skygear" {
+		return dir, err
+	}
+	return withoutProbeFiles(dir, mode), nil
+}

@@ -80,6 +80,15 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 	} else if props.Cube {
 		components["minecraft:geometry"] = map[string]any{"identifier": "minecraft:geometry.full_block"}
 	}
+	if geometry, ok := components["minecraft:geometry"].(map[string]any); ok && len(props.BoneVisibility) > 0 {
+		// skygear patch: bone_visibility, each bone a Molang expression ("true" and "false" are
+		// constants) the client evaluates per block state.
+		visibility := make(map[string]any, len(props.BoneVisibility))
+		for bone, expression := range props.BoneVisibility {
+			visibility[bone] = expression
+		}
+		geometry["bone_visibility"] = visibility
+	}
 	if props.MapColour != "" {
 		components["minecraft:map_color"] = map[string]any{"value": props.MapColour}
 	}
