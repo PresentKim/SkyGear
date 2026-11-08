@@ -24,10 +24,22 @@ type Grid struct {
 	step int64
 	// nets are the networks found by the last scan, reused until the set of
 	// conduits changes, Invalidate is called or rescanSteps Steps passed.
-	nets    []*Network
-	dirty   bool
-	scanned int64
+	nets     []*Network
+	dirty    bool
+	scanned  int64
+	counters Counters
 }
+
+// Counters say how much topology work a grid did since it was made.
+type Counters struct {
+	// Scans is how many times every network was found again.
+	Scans int64
+	// Visited is how many conduits those scans walked over in all.
+	Visited int64
+}
+
+// Counters returns the topology work done so far.
+func (g *Grid) Counters() Counters { return g.counters }
 
 func NewGrid() *Grid {
 	return &Grid{conduits: map[cube.Pos]int64{}, sources: map[cube.Pos]int64{}}
@@ -125,6 +137,7 @@ func (n *Network) live(w World) *Network {
 // rescan finds the networks of the registered conduits.
 func (g *Grid) rescan(w World) {
 	g.dirty, g.scanned = false, g.step
+	g.counters.Scans++
 	g.nets = g.nets[:0:0]
 	if len(g.conduits) == 0 {
 		g.nets = nil
@@ -140,6 +153,7 @@ func (g *Grid) rescan(w World) {
 			delete(g.conduits, pos)
 			continue
 		}
+		g.counters.Visited += int64(len(n.Conduits))
 		for _, c := range n.Conduits {
 			done[c] = true
 		}
