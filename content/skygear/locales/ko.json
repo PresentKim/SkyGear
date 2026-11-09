@@ -3573,6 +3573,7 @@
  "setting.advancement.panel": "화면에 발전과제 표시",
  "setting.vein.diagonal": "광맥 캐기 대각선 포함",
  "setting.autotool": "블록에 맞는 도구 자동으로 들기",
+ "setting.bridge": "다리 놓기 도움 (허공에 블록 놓기)",
  "hammer.vein.hungry": "§c배고픔이 부족합니다.",
  "advancement.seeds.name": "흙 속의 씨앗",
  "advancement.seeds.hint": "흙을 들고 체를 우클릭해 얹고\n우클릭을 반복해 거르세요\n밀 씨앗이 나와요",

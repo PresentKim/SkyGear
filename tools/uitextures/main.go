@@ -177,6 +177,29 @@ func glyph(rows ...string) image.Image {
 	return img
 }
 
+// crosshairMark draws a 32×32 mark of the HUD's crosshair part (the bridging
+// assist): rows of '#' placed so the mark's centre is the picture's centre,
+// white with a dark rim so it shows on the sky and on snow.
+func crosshairMark(rows ...string) image.Image {
+	img := image.NewNRGBA(image.Rect(0, 0, 32, 32))
+	top, left := (32-len(rows))/2, (32-len(rows[0]))/2
+	on := func(x, y int) bool {
+		y, x = y-top, x-left
+		return y >= 0 && y < len(rows) && x >= 0 && x < len(rows[y]) && rows[y][x] == '#'
+	}
+	for y := range 32 {
+		for x := range 32 {
+			switch {
+			case on(x, y):
+				img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, 255})
+			case on(x-1, y) || on(x+1, y) || on(x, y-1) || on(x, y+1):
+				img.SetNRGBA(x, y, color.NRGBA{24, 24, 24, 170})
+			}
+		}
+	}
+	return img
+}
+
 // mirror flips an icon left to right.
 func mirror(src image.Image) image.Image {
 	b := src.Bounds()
@@ -226,6 +249,26 @@ func main() {
 	write("arrow_left", arrow(2))
 	write("arrow_up", arrow(3))
 	write("chevron_right", mirror(chevron()))
+
+	// the bridging assist's marks on both sides of the crosshair: the block
+	// goes up, down or to the side of the block it is built off
+	write("crosshair_up", crosshairMark(
+		"...#.................#...",
+		"..###...............###..",
+		".#####.............#####.",
+	))
+	write("crosshair_down", crosshairMark(
+		".#####.............#####.",
+		"..###...............###..",
+		"...#.................#...",
+	))
+	write("crosshair_side", crosshairMark(
+		"..#...................#..",
+		".##...................##.",
+		"###...................###",
+		".##...................##.",
+		"..#...................#..",
+	))
 
 	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))
