@@ -8,11 +8,8 @@ package tinker
 import (
 	"fmt"
 	"math"
-	"slices"
 	"strings"
-	"sync"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
@@ -167,75 +164,46 @@ func (t Tool) StripsBark() bool { return t.Kind == ToolAxe }
 // AttackDamage is a tool's hit: no more than a hand's, the tools do not fight.
 func (t Tool) AttackDamage() float64 { return 1 }
 
-// DestroySpeeds implements item.Digger: the tool's speed on every
-// registered block it mines faster and gets the drops of, vanilla and ours,
-// as the server times it (block.BreakDuration), so the client mines them as
-// fast as the server expects.
-func (t Tool) DestroySpeeds() map[string]int {
-	speed := int(math.Round(t.speed()))
-	out := map[string]int{}
-	for _, name := range diggerBlocks(t.Kind, t.HarvestLevel()) {
-		out[name] = speed
+// toolTags are the block tags a kind of tool mines faster, as the vanilla
+// tool of its type: the minecraft:is_<tool>_item_destructible tag, which our
+// blocks get from their BreakInfo too (a Dragonfly patch), and the older
+// material tags of vanilla blocks.
+var toolTags = map[string][]string{
+	ToolPickaxe: {"minecraft:is_pickaxe_item_destructible", "stone", "metal", "rail"},
+	ToolAxe:     {"minecraft:is_axe_item_destructible", "wood", "pumpkin"},
+	ToolShovel:  {"minecraft:is_shovel_item_destructible", "dirt", "sand", "gravel", "grass", "snow"},
+	ToolSword:   {"minecraft:is_sword_item_destructible"},
+}
+
+// pickTierTags are the tags of the blocks a pickaxe drops nothing from
+// below a harvest level, so it gets no speed on them (block.BreakDuration).
+var pickTierTags = []struct {
+	tag   string
+	level int
+}{
+	{"stone_pick_diggable", item.ToolTierStone.HarvestLevel},
+	{"iron_pick_diggable", item.ToolTierIron.HarvestLevel},
+	{"diamond_pick_diggable", item.ToolTierDiamond.HarvestLevel},
+}
+
+// DestroySpeedsByTag implements item.TagDigger: the tool's speed on every
+// block, vanilla or ours, that carries a tag of its kind, as the server
+// times it, so the client mines them as fast as the server expects.
+func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
+	tags := toolTags[t.Kind]
+	if len(tags) == 0 {
+		return nil
 	}
-	return out
-}
-
-// diggerKey is a kind of tool at a harvest level.
-type diggerKey struct {
-	kind    string
-	harvest int
-}
-
-var (
-	diggerMu    sync.Mutex
-	diggerCache = map[diggerKey][]string{}
-)
-
-// diggerBlocks are the names of the blocks, any state, that a tool of the
-// kind and harvest level mines faster and harvests. They are worked out
-// once from the registered blocks, the first time an item definition is
-// built (every block is registered by then).
-func diggerBlocks(kind string, harvest int) []string {
-	diggerMu.Lock()
-	defer diggerMu.Unlock()
-	key := diggerKey{kind, harvest}
-	if names, ok := diggerCache[key]; ok {
-		return names
+	query := "query.any_tag('" + strings.Join(tags, "', '") + "')"
+	if t.Kind == ToolPickaxe {
+		for _, p := range pickTierTags {
+			if t.HarvestLevel() < p.level {
+				query += " && !query.any_tag('" + p.tag + "')"
+			}
+		}
 	}
-	probe := diggerProbe{kind: kind, harvest: harvest}
-	seen := map[string]bool{}
-	var names []string
-	for _, b := range world.Blocks() {
-		br, ok := b.(block.Breakable)
-		if !ok {
-			continue
-		}
-		name, _ := b.EncodeBlock()
-		if seen[name] {
-			continue
-		}
-		info := br.BreakInfo()
-		if info.Hardness <= 0 || info.Effective == nil || info.Harvestable == nil || !info.Effective(probe) || !info.Harvestable(probe) {
-			continue
-		}
-		seen[name] = true
-		names = append(names, name)
-	}
-	slices.Sort(names)
-	diggerCache[key] = names
-	return names
+	return []item.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
 }
-
-// diggerProbe stands for a tool of a kind and harvest level when asking a
-// block whether it is mined faster.
-type diggerProbe struct {
-	kind    string
-	harvest int
-}
-
-func (p diggerProbe) ToolType() item.ToolType                { return Tool{Kind: p.kind}.ToolType() }
-func (p diggerProbe) HarvestLevel() int                      { return p.harvest }
-func (diggerProbe) BaseMiningEfficiency(world.Block) float64 { return 1 }
 
 // Modifiers of a tool, by id.
 type ToolModifier struct {

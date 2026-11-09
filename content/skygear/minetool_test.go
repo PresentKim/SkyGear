@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -52,31 +53,37 @@ func TestCustomBlocksMineFasterWithTheirTool(t *testing.T) {
 	}
 }
 
-// TestTinkerDiggerSpeeds: a tinker tool tells the client its speed on the
-// vanilla and our blocks its kind mines, and only those it harvests.
-func TestTinkerDiggerSpeeds(t *testing.T) {
-	axe := tinker.Tool{Kind: tinker.ToolAxe, Head: "flint", Handle: "wood"}.DestroySpeeds()
-	pick := tinker.Tool{Kind: tinker.ToolPickaxe, Head: "flint", Handle: "wood"}.DestroySpeeds()
-	shovel := tinker.Tool{Kind: tinker.ToolShovel, Head: "flint", Handle: "wood"}.DestroySpeeds()
-	for _, name := range []string{"minecraft:oak_log", "minecraft:cherry_log", "minecraft:stripped_spruce_log", "minecraft:birch_planks", "skygear:drawer", "skygear:research_table"} {
-		if axe[name] == 0 {
-			t.Errorf("a tinker axe has no speed on %s", name)
+// TestTinkerDiggerTags: a tinker tool tells the client its speed by the
+// tags of its kind's blocks, and leaves out the blocks a pickaxe of its
+// level drops nothing from.
+func TestTinkerDiggerTags(t *testing.T) {
+	query := func(kind, head string) string {
+		sp := tinker.Tool{Kind: kind, Head: head, Handle: "wood"}.DestroySpeedsByTag()
+		if len(sp) != 1 || sp[0].Speed <= 0 {
+			t.Fatalf("%s %s: speeds %v", head, kind, sp)
+		}
+		return sp[0].Tags
+	}
+	for kind, tag := range map[string]string{
+		tinker.ToolAxe:     "'minecraft:is_axe_item_destructible'",
+		tinker.ToolPickaxe: "'minecraft:is_pickaxe_item_destructible'",
+		tinker.ToolShovel:  "'minecraft:is_shovel_item_destructible'",
+	} {
+		if q := query(kind, "flint"); !strings.HasPrefix(q, "query.any_tag(") || !strings.Contains(q, tag) {
+			t.Errorf("%s: %s, want %s", kind, q, tag)
 		}
 	}
-	for _, name := range []string{"minecraft:stone", "minecraft:cobblestone", "minecraft:iron_ore", "skygear:barrel_stone"} {
-		if pick[name] == 0 {
-			t.Errorf("a tinker pickaxe has no speed on %s", name)
-		}
+	flint, iron, diamond := query(tinker.ToolPickaxe, "flint"), query(tinker.ToolPickaxe, "iron"), query(tinker.ToolPickaxe, "diamond")
+	if !strings.Contains(flint, "!query.any_tag('iron_pick_diggable')") || !strings.Contains(flint, "!query.any_tag('diamond_pick_diggable')") || strings.Contains(flint, "stone_pick_diggable") {
+		t.Errorf("flint pickaxe: %s", flint)
 	}
-	if pick["minecraft:obsidian"] != 0 {
-		t.Error("a flint pickaxe claims obsidian, which it does not harvest")
+	if strings.Contains(iron, "iron_pick_diggable") || !strings.Contains(iron, "!query.any_tag('diamond_pick_diggable')") {
+		t.Errorf("iron pickaxe: %s", iron)
 	}
-	for _, name := range []string{"minecraft:dirt", "minecraft:sand", "skygear:dust"} {
-		if shovel[name] == 0 {
-			t.Errorf("a tinker shovel has no speed on %s", name)
-		}
+	if strings.Contains(diamond, "!") {
+		t.Errorf("diamond pickaxe: %s", diamond)
 	}
-	if axe["minecraft:stone"] != 0 || pick["minecraft:oak_log"] != 0 {
-		t.Error("a tinker tool claims another kind's blocks")
+	if strings.Contains(query(tinker.ToolAxe, "flint"), "pick") {
+		t.Error("an axe query names pickaxe tags")
 	}
 }

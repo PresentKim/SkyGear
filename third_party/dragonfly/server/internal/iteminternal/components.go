@@ -90,6 +90,7 @@ func Components(it world.CustomItem) map[string]any {
 	if x, ok := it.(item.Glinted); ok {
 		builder.AddProperty("foil", x.Glinted())
 	}
+	var destroy []any
 	if x, ok := it.(item.Digger); ok {
 		// skygear patch: per-block mining speeds for clients.
 		speeds := x.DestroySpeeds()
@@ -98,13 +99,23 @@ func Components(it world.CustomItem) map[string]any {
 			names = append(names, name)
 		}
 		slices.Sort(names)
-		destroy := make([]any, 0, len(names))
 		for _, name := range names {
 			destroy = append(destroy, map[string]any{
 				"block": map[string]any{"name": name},
 				"speed": int32(speeds[name]),
 			})
 		}
+	}
+	if x, ok := it.(item.TagDigger); ok {
+		// skygear patch: mining speeds by block tags for clients.
+		for _, s := range x.DestroySpeedsByTag() {
+			destroy = append(destroy, map[string]any{
+				"block": map[string]any{"tags": s.Tags},
+				"speed": int32(s.Speed),
+			})
+		}
+	}
+	if destroy != nil {
 		builder.AddComponent("minecraft:digger", map[string]any{
 			"use_efficiency": true,
 			"destroy_speeds": destroy,
