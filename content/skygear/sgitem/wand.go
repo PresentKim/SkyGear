@@ -51,6 +51,12 @@ func WandOf(st item.Stack) (WandItem, bool) {
 	return w, ok
 }
 
+// IsWand reports whether st is a construction wand.
+func IsWand(st item.Stack) bool {
+	_, ok := WandOf(st)
+	return ok
+}
+
 // WandLimit is how many blocks a wand of the tier places at most at once.
 func WandLimit(tier string) int { return wandStats[tier].limit }
 

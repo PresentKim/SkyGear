@@ -193,19 +193,30 @@ func countItem(p *player.Player, it world.Item) int {
 	return n
 }
 
-// takeItem takes one it from p: the inventory first, then the off hand.
+// takeItem takes one it from p as the mod does: the main inventory first,
+// the hotbar last, so the stacks in the hotbar last longest.
 func takeItem(p *player.Player, it world.Item) bool {
 	want := item.NewStack(it, 1)
-	cmp := func(st item.Stack) bool { return st.Comparable(want) }
-	if p.Inventory().ContainsItemFunc(1, cmp) {
-		return p.Inventory().RemoveItemFunc(1, cmp) == nil
-	}
-	held, off := p.HeldItems()
-	if !off.Empty() && off.Comparable(want) {
-		p.SetHeldItems(held, off.Grow(-1))
-		return true
+	inv := p.Inventory()
+	slots := inv.Slots()
+	for _, slot := range takeOrder(len(slots)) {
+		if st := slots[slot]; !st.Empty() && st.Comparable(want) {
+			return inv.SetItem(slot, st.Grow(-1)) == nil
+		}
 	}
 	return false
+}
+
+// takeOrder is the main inventory (slot 9 on), then the hotbar.
+func takeOrder(n int) []int {
+	out := make([]int, 0, n)
+	for i := 9; i < n; i++ {
+		out = append(out, i)
+	}
+	for i := 0; i < min(9, n); i++ {
+		out = append(out, i)
+	}
+	return out
 }
 
 // Placement is one block a click places.

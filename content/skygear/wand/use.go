@@ -24,9 +24,17 @@ import (
 // default).
 const historySize = 3
 
+// click is one click kept for undo: what it placed, and whether the blocks
+// were taken from the inventory (not in creative), so undo gives back only
+// what was taken.
+type click struct {
+	placed []Placement
+	taken  bool
+}
+
 // history are each player's last clicks, the newest last. It is kept only
 // while the player is in the save.
-var history = core.NewPlayers[[][]Placement]()
+var history = core.NewPlayers[[]click]()
 
 // limitOf is how many blocks the held wand places at once: its tier's limit,
 // and no more than it has durability left (creative: the limit).
@@ -79,12 +87,13 @@ func Use(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, face cub
 	if !creative {
 		held, off := p.HeldItems()
 		worn := held.Damage(len(placed))
+		p.SetHeldItems(worn, off)
 		if worn.Empty() {
 			tx.PlaySound(p.Position(), sound.ItemBreak{})
+			core.RefillHand(p, held) // autofill: another wand of the tier
 		}
-		p.SetHeldItems(worn, off)
 	}
-	h := append(history.Of(s)[p.H()], placed)
+	h := append(history.Of(s)[p.H()], click{placed: placed, taken: !creative})
 	if len(h) > historySize {
 		h = h[len(h)-historySize:]
 	}
@@ -104,16 +113,15 @@ func Undo(s *core.Session, p *player.Player, tx *world.Tx) int {
 	}
 	last := h[len(h)-1]
 	history.Of(s)[p.H()] = h[:len(h)-1]
-	creative := p.GameMode().CreativeInventory()
 	var back []item.Stack
 	n := 0
-	for _, pl := range last {
+	for _, pl := range last.placed {
 		if !island.CanBuild(s, pl.Pos) || world.BlockRuntimeID(tx.Block(pl.Pos)) != world.BlockRuntimeID(pl.Block) {
 			continue
 		}
 		tx.SetBlock(pl.Pos, nil, nil)
 		n++
-		if creative {
+		if !last.taken {
 			continue
 		}
 		st := item.NewStack(pl.Item, 1)
@@ -125,7 +133,7 @@ func Undo(s *core.Session, p *player.Player, tx *world.Tx) int {
 	}
 	for _, st := range back {
 		if added, _ := p.Inventory().AddItem(st); added < st.Count() {
-			s.DropAt(tx, p.Position(), st.Grow(added-st.Count()))
+			s.DropAt(tx, p.Position(), st.Grow(-added))
 		}
 	}
 	if n > 0 {
