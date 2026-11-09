@@ -32,6 +32,12 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 		// duration is the only one a static definition can carry.
 		seconds := block.BreakDuration(b, item.Stack{}, block.BreakContext{}).Seconds()
 		builder.AddComponent("minecraft:destructible_by_mining", map[string]any{"value": float32(seconds)})
+		// skygear patch: the tags of the tools that mine the block faster, as
+		// vanilla blocks carry them, so a digger that names the tags (vanilla
+		// tools, item.TagDigger) mines it at its speed.
+		for _, tag := range toolTags(b.(block.Breakable).BreakInfo()) {
+			builder.AddComponent("tag:"+tag, map[string]any{})
+		}
 	}
 	if frictional, ok := b.(block.Frictional); ok {
 		builder.AddComponent("minecraft:friction", map[string]any{"value": float32(frictional.Friction())})
@@ -168,4 +174,51 @@ func selectionBoxComponent(box cube.BBox) map[string]any {
 		"origin":  []float32{float32(originX) - 8, float32(originY), float32(originZ) - 8},
 		"size":    []float32{float32(sizeX), float32(sizeY), float32(sizeZ)},
 	}
+}
+
+// toolTags are the vanilla block tags of the tools that mine a block with
+// info faster: minecraft:is_<tool>_item_destructible for each tool type its
+// Effective takes, and for a pickaxe the tier it needs to drop anything
+// (stone_pick_diggable, iron_pick_diggable, diamond_pick_diggable).
+// (skygear patch)
+func toolTags(info block.BreakInfo) []string {
+	if info.Effective == nil {
+		return nil
+	}
+	var tags []string
+	for _, t := range []struct {
+		tag  string
+		tool item.Tool
+	}{
+		{"minecraft:is_pickaxe_item_destructible", item.Pickaxe{Tier: item.ToolTierDiamond}},
+		{"minecraft:is_axe_item_destructible", item.Axe{Tier: item.ToolTierDiamond}},
+		{"minecraft:is_shovel_item_destructible", item.Shovel{Tier: item.ToolTierDiamond}},
+		{"minecraft:is_hoe_item_destructible", item.Hoe{Tier: item.ToolTierDiamond}},
+		{"minecraft:is_sword_item_destructible", item.Sword{Tier: item.ToolTierDiamond}},
+		{"minecraft:is_shears_item_destructible", item.Shears{}},
+	} {
+		if info.Effective(t.tool) {
+			tags = append(tags, t.tag)
+		}
+	}
+	if info.Harvestable == nil || info.Harvestable(item.ToolNone{}) || !info.Effective(item.Pickaxe{Tier: item.ToolTierDiamond}) {
+		return tags
+	}
+	for _, t := range []struct {
+		tag  string
+		tier item.ToolTier
+	}{
+		{"", item.ToolTierWood},
+		{"stone_pick_diggable", item.ToolTierStone},
+		{"iron_pick_diggable", item.ToolTierIron},
+		{"diamond_pick_diggable", item.ToolTierDiamond},
+	} {
+		if info.Harvestable(item.Pickaxe{Tier: t.tier}) {
+			if t.tag != "" {
+				tags = append(tags, t.tag)
+			}
+			break
+		}
+	}
+	return tags
 }
