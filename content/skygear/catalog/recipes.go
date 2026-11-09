@@ -236,6 +236,13 @@ func gameRecipes() {
 			w, item.EnderPearl{}, w,
 			w, w, w)
 	}
+	// The compressed blocks: nine of a level in a 3×3 make one of the next,
+	// one on its own crafts back into nine.
+	for _, c := range sgitem.CompactBlocks() {
+		b := c.Below()
+		shaped(st(c), 3, 3, b, b, b, b, b, b, b, b, b)
+		add(item.NewStack(b, 9), n(c, 1))
+	}
 	logRecipes(woodHopper)
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/formicon"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
@@ -50,7 +51,7 @@ func showExpandPlane(s *core.Session, p *player.Player, e *expansion) {
 			spots = append(spots, sp)
 		}
 	}
-	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(island.StateOf(s).Chunks)) + "\n" + fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), island.CostText(lang, cost), textfmt.Int(int64(core.CountPlain(p.Inventory(), cost.Item))))
+	corner := fmt.Sprintf(i18n.T(lang, "expand.plane.owned"), len(island.StateOf(s).Chunks)) + "\n" + costLine(lang, p, cost)
 	var actions []ui.Option
 	keys := map[ui.Key]func(p *player.Player, tx *world.Tx){
 		ui.KeyUp: Step(s, 0, -1), ui.KeyDown: Step(s, 0, 1), ui.KeyLeft: Step(s, -1, 0), ui.KeyRight: Step(s, 1, 0),
@@ -97,4 +98,14 @@ func ChunkLabel(s *core.Session, lang string, c island.ChunkPos, buyable []islan
 		return i18n.T(lang, "expand.plane.buyable")
 	}
 	return i18n.T(lang, "expand.plane.none")
+}
+
+// costLine is the price of the next chunk and how much of it the player
+// holds, compressed cobblestone counted as the cobblestone it is worth.
+func costLine(lang string, p *player.Player, cost progress.Requirement) string {
+	have, compressed := island.Worth(p.Inventory(), cost.Item)
+	if compressed > 0 {
+		return fmt.Sprintf(i18n.T(lang, "expand.plane.costCompact"), island.CostText(lang, cost), textfmt.Int(int64(have)), textfmt.Int(int64(compressed)))
+	}
+	return fmt.Sprintf(i18n.T(lang, "expand.plane.cost"), island.CostText(lang, cost), textfmt.Int(int64(have)))
 }

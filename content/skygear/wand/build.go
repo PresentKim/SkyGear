@@ -56,7 +56,7 @@ func Placeable(b world.Block) bool {
 	switch b.(type) {
 	case world.Liquid, world.NBTer, block.WoodDoor, block.CopperDoor, block.Bed, block.DoubleFlower, block.DoubleTallGrass, block.Composter:
 		return false
-	case sgitem.CrushedBlock, sgitem.OreBlock:
+	case sgitem.CrushedBlock, sgitem.OreBlock, sgitem.CompactBlock:
 		return true
 	case world.CustomBlock:
 		return false

@@ -100,6 +100,9 @@ func giveItems() map[string]func() item.Stack {
 	for _, k := range sgitem.CrushedKinds {
 		out["crushed_"+k] = func() item.Stack { return item.NewStack(sgitem.CrushedBlock{Kind: k}, 1) }
 	}
+	for _, c := range sgitem.CompactBlocks() {
+		out[fmt.Sprintf("compressed_%s_%d", c.Kind, c.Level)] = func() item.Stack { return item.NewStack(c, 1) }
+	}
 	for _, k := range sgitem.PebbleKinds {
 		out["pebble_"+k.Kind] = func() item.Stack { return item.NewStack(sgitem.Pebble{Kind: k.Kind}, 1) }
 	}

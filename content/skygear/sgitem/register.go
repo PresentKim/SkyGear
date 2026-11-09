@@ -15,6 +15,10 @@ func init() {
 		world.RegisterBlock(CrushedBlock{Kind: k})
 		world.RegisterItem(CrushedBlock{Kind: k})
 	}
+	for _, c := range CompactBlocks() {
+		world.RegisterBlock(c)
+		world.RegisterItem(c)
+	}
 	for _, metal := range NewOreMetals {
 		world.RegisterBlock(OreBlock{Metal: metal})
 		world.RegisterItem(OreBlock{Metal: metal})
