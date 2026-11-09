@@ -61,14 +61,24 @@ func line(w fakeWorld, tiers ...int) {
 	}
 }
 
+// gridOf places every cable of w in a new grid.
+func gridOf(w fakeWorld) *Grid {
+	g := NewGrid()
+	for p, b := range w {
+		if _, ok := b.(cable); ok {
+			g.Place(w, p, 0)
+		}
+	}
+	return g
+}
+
 // TestRateIsTheLowestTier: a network carries what its weakest conduit does,
 // times the ticks.
 func TestRateIsTheLowestTier(t *testing.T) {
 	store, have := 1000000, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {4, 0, 0}: machine{have: &have, room: 1000000}}
 	line(w, 3, 2, 3)
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g := gridOf(w)
 	st := g.Step(w, 4)
 	if st.Networks != 1 || st.Conduits != 3 {
 		t.Fatalf("stats %+v", st)
@@ -135,31 +145,13 @@ func TestTouchingSourceFeedsSinkWithoutConduit(t *testing.T) {
 	}
 }
 
-// TestRegistrationsExpire: a conduit that stopped ticking drops out.
-func TestRegistrationsExpire(t *testing.T) {
-	w := fakeWorld{{1, 0, 0}: cable{tier: 1}}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
-	if st := g.Step(w, 4); st.Networks != 1 {
-		t.Fatalf("stats %+v", st)
-	}
-	for range registrationTTL {
-		g.Step(w, 4)
-	}
-	if st := g.Step(w, 4); st.Networks != 0 || len(g.conduits) != 0 {
-		t.Errorf("an expired conduit stayed: %+v", st)
-	}
-}
-
 func TestSeparateNetworksDoNotMix(t *testing.T) {
 	s1, s2, h1, h2 := 1000, 0, 0, 0
 	w := fakeWorld{
 		{0, 0, 0}: gen{store: &s1}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000},
 		{0, 0, 5}: gen{store: &s2}, {1, 0, 5}: cable{tier: 3}, {2, 0, 5}: machine{have: &h2, room: 1000},
 	}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
-	g.AddConduit(cube.Pos{1, 0, 5})
+	g := gridOf(w)
 	g.Step(w, 1)
 	if h1 == 0 || h2 != 0 {
 		t.Errorf("machines got %d and %d: the second network has an empty generator", h1, h2)
@@ -167,36 +159,32 @@ func TestSeparateNetworksDoNotMix(t *testing.T) {
 }
 
 // TestPlacedMachineJoinsNextStep: a sink placed beside a cached network gets
-// energy on the next Step after Invalidate.
+// energy on the next Step after Changed.
 func TestPlacedMachineJoinsNextStep(t *testing.T) {
 	store, h1, h2 := 10000000, 0, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g := gridOf(w)
 	g.Step(w, 1)
 	w[cube.Pos{1, 0, 1}] = machine{have: &h2, room: 1000000}
-	g.Invalidate()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Changed(w, cube.Pos{1, 0, 1})
 	g.Step(w, 1)
 	if h2 == 0 {
 		t.Error("the placed machine got nothing")
 	}
 }
 
-// TestBrokenMachineLeavesNextStep: a removed sink takes nothing after Invalidate.
+// TestBrokenMachineLeavesNextStep: a removed sink takes nothing after Changed.
 func TestBrokenMachineLeavesNextStep(t *testing.T) {
 	store, h1, h2 := 10000000, 0, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}, {1, 0, 1}: machine{have: &h2, room: 1000000}}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g := gridOf(w)
 	g.Step(w, 1)
 	if h2 == 0 {
 		t.Fatal("setup: no energy")
 	}
 	delete(w, cube.Pos{1, 0, 1})
-	g.Invalidate()
+	g.Changed(w, cube.Pos{1, 0, 1})
 	before := h2
-	g.AddConduit(cube.Pos{1, 0, 0})
 	g.Step(w, 1)
 	if h2 != before {
 		t.Error("the broken machine still got energy")
@@ -204,42 +192,40 @@ func TestBrokenMachineLeavesNextStep(t *testing.T) {
 }
 
 // TestStaleCacheNoPanic: a cached endpoint that is no longer a Sink or Source
-// is skipped, without Invalidate.
+// is skipped, without Changed.
 func TestStaleCacheNoPanic(t *testing.T) {
 	store, h1 := 10000000, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: machine{have: &h1, room: 1000000}}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g := gridOf(w)
 	g.Step(w, 1)
 	w[cube.Pos{2, 0, 0}] = block.Stone{}
 	w[cube.Pos{0, 0, 0}] = block.Stone{}
-	g.AddConduit(cube.Pos{1, 0, 0})
 	g.Step(w, 1)
 }
 
-// TestCachedEqualsFresh: the cached networks match a fresh discovery, and a
-// forced rescan happens within rescanSteps.
+// TestCachedEqualsFresh: the endpoints and rate the grid keeps match a fresh
+// discovery, also after a machine was placed and announced with Changed.
 func TestCachedEqualsFresh(t *testing.T) {
-	store, h1 := 100000000, 0
+	store, h1, h2 := 100000000, 0, 0
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: cable{tier: 2}, {3, 0, 0}: machine{have: &h1, room: 10000000}}
-	g := NewGrid()
-	for range 3 {
-		g.AddConduit(cube.Pos{1, 0, 0})
-		g.Step(w, 1)
+	g := gridOf(w)
+	g.Step(w, 1)
+	check := func() {
+		fresh := Discover(w, cube.Pos{1, 0, 0}, 2048)
+		id, _ := g.graph.NetOf(cube.Pos{1, 0, 0})
+		ni := g.info[id]
+		ni.sort()
+		if ni.count != len(fresh.Conduits) || len(ni.sinks) != len(fresh.Sinks) || len(ni.sources) != len(fresh.Sources) || ni.rate != fresh.Rate {
+			t.Fatalf("cached %+v, fresh %+v", ni, fresh)
+		}
 	}
-	fresh := Discover(w, cube.Pos{1, 0, 0}, networkLimit)
-	if len(g.nets) != 1 || len(g.nets[0].Conduits) != len(fresh.Conduits) || len(g.nets[0].Sinks) != len(fresh.Sinks) || g.nets[0].Rate != fresh.Rate {
-		t.Fatalf("cached %+v, fresh %+v", g.nets, fresh)
-	}
-	// a machine placed without Invalidate joins within rescanSteps
-	h2 := 0
+	check()
 	w[cube.Pos{2, 0, 1}] = machine{have: &h2, room: 10000000}
-	for range rescanSteps + 1 {
-		g.AddConduit(cube.Pos{1, 0, 0})
-		g.Step(w, 1)
-	}
+	g.Changed(w, cube.Pos{2, 0, 1})
+	check()
+	g.Step(w, 1)
 	if h2 == 0 {
-		t.Error("the safety rescan did not find the machine")
+		t.Error("the placed machine got nothing")
 	}
 }
 
@@ -257,15 +243,13 @@ func TestCachedEndpointHonoursPorts(t *testing.T) {
 	store, h1 := 10000000, 0
 	open := true
 	w := fakeWorld{{0, 0, 0}: gen{store: &store}, {1, 0, 0}: cable{tier: 3}, {2, 0, 0}: portsMachine{machine{have: &h1, room: 1000000}, &open}}
-	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g := gridOf(w)
 	g.Step(w, 1)
 	if h1 == 0 {
 		t.Fatal("setup: no energy")
 	}
 	open = false
 	before := h1
-	g.AddConduit(cube.Pos{1, 0, 0})
 	g.Step(w, 1)
 	if h1 != before {
 		t.Error("a sink with closed ports still got energy")

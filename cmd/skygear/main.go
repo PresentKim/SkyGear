@@ -160,6 +160,11 @@ func run(log *slog.Logger) error {
 	conf.Compression = netcompress.Install(pconf.Network.CompressionLevel)
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
+	sghook.JoinLog = log
+	if mode := assets.StateProbeMode(); mode != assets.StateProbeOff {
+		sghook.JoinProbe = mode
+	}
+	skygear.LogCustomBlockCounts(log)
 	srv := conf.New()
 	skygear.EditItemEntries(srv)
 	lobby := srv.World()

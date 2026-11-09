@@ -133,7 +133,7 @@ func (r *chunkRequest) signal(tx *Tx) {
 		}
 		return
 	}
-	r.result = w.addChunk(pos, r.col)
+	r.result = w.addChunk(tx, pos, r.col) // skygear patch: tx for ColumnHandler
 	if w.closed.Load() {
 		return
 	}

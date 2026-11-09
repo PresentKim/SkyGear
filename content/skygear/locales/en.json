@@ -148,6 +148,15 @@
  "skygear.admin.holderPose": "Drawer hand item pose: rotation %d %d %d, scale %d%%, offset %d %d %d",
  "skygear.admin.cmd": "Sky Gear admin tools",
  "skygear.debug.register": "Sky Gear debug tools",
+ "skygear.debug.fill.range": "Radius 1 to %d and seconds %d to %d, please.",
+ "skygear.debug.fill.busy": "A fill is running: wait for it or run /sgdebug fill stop.",
+ "skygear.debug.fill.none": "No fill is running.",
+ "skygear.debug.fill.start": "Filled %d air positions with %s for %d seconds (radius %d). Server MSPT before: %.1f ms. Compare with /sgadmin tps and the client FPS.",
+ "skygear.debug.fill.capped": "The cap of %d positions was hit: the rest of the cube is not filled.",
+ "skygear.debug.fill.noProbe": "Fill %s needs the state probe: start the server with SKYGEAR_STATE_PROBE=pair2.",
+ "skygear.debug.fill.blocks4": "Blocks (probe %s): %d of %d cells drawn whole, %d cells lost conduits.",
+ "skygear.debug.fill.entity3": "Entities draw 3 kinds only (the entity encoding has no network conduit): %d of %d cells drawn whole, %d lost the network conduit.",
+ "skygear.debug.fill.stop": "Restored %d positions and closed %d entities.",
  "skygear.admin.needSave": "Use this inside a save.",
  "skygear.admin.factory.built": "Built %d factory modules: %d machines, %d drawers, %d hoppers, %d crops, %d blocks (%d modules span outside the tick range)",
  "skygear.admin.factory.dense": "Built %d dense cells (%d×%d blocks): %d machines, %d hoppers, %d drawers",
@@ -922,5 +931,7 @@
  "menu.lobbyConfirm.title": "To lobby",
  "menu.lobbyConfirm.body": "Leave for the lobby?",
  "menu.lobbyConfirm.yes": "Leave for the lobby",
- "menu.lobbyConfirm.no": "Cancel"
+ "menu.lobbyConfirm.no": "Cancel",
+ "conduit.lines.buffer.energy": "§7Network buffer %d / %d RE",
+ "conduit.lines.buffer.fluid": "§7Network buffer %d / %d mB"
 }

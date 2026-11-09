@@ -86,6 +86,16 @@ describe('window', () => {
     expect(els[0].classList.contains('on')).toBe(true);
     expect(els[0].hasAttribute('data-oui-press')).toBe(false);
     expect(els[1].hasAttribute('data-oui-press')).toBe(true);
+    expect(container.querySelector('.mc-tab-label')).toBeNull();
+  });
+  it('names the tabs in the lobby', () => {
+    const tabs = [{ id: 't1', tip: 'Friends', icon: 'tex:a', on: true }];
+    const { container } = render(
+      <LobbyContext.Provider value={{ title: 'Sky', logo: 'tex:l', touch: false }}>
+        <Window chrome={{ ...chrome, tabs }} />
+      </LobbyContext.Provider>,
+    );
+    expect(container.querySelector('.mc-tab > .mc-tab-label')!.textContent).toBe('Friends');
   });
   it('lobby_dark_ink', () => {
     const lobby = { title: 'Sky', logo: 'tex:l', touch: true };
@@ -96,10 +106,8 @@ describe('window', () => {
     );
     const root = container.firstElementChild!;
     expect(root.className).toBe('oui-box mc-screen mc-x mc-lobby mc-touch');
-    expect(root.children[0].className).toContain('mc-lobby-preload-hover');
-    expect(root.children[1].className).toContain('mc-lobby-preload-pressed');
-    expect(root.children[2].className).toContain('mc-lobby-shade');
-    expect(root.children[3].className).toContain('mc-lobby-head');
+    expect(root.children[0].className).toContain('mc-lobby-shade');
+    expect(root.children[1].className).toContain('mc-lobby-head');
     expect(container.querySelector('.mc-title')!.classList.contains('ink-dark')).toBe(true);
     expect(container.querySelector('.mc-lobby-title')!.classList.contains('ink-dark')).toBe(true);
   });
