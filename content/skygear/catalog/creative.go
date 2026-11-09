@@ -69,6 +69,9 @@ func RegisterCreativeItems() {
 		}
 		add(equipment, sgitem.Hammer{Stone: true})
 		add(equipment, sgitem.Hammer{})
+		for _, t := range sgitem.WandTiers {
+			add(equipment, sgitem.NewWand(t))
+		}
 		add(items, sgitem.WoodenBucket{})
 		add(items, sgitem.WoodenBucket{Water: true})
 		add(equipment, sgitem.DrawerKey{})
