@@ -23,7 +23,7 @@ var layers = []string{
 	// content lists
 	"catalog",
 	// screens
-	"codex", "look", "screens",
+	"codex", "look", "bridge", "screens",
 }
 
 // TestLayers: every package of the game is in layers, and imports only the
