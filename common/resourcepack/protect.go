@@ -20,7 +20,8 @@ import (
 
 // Options say how a pack is prepared before it is sent to clients.
 type Options struct {
-	// Minify strips comments and white space from the pack's JSON files.
+	// Minify strips comments and white space from the pack's JSON and CSS
+	// files.
 	Minify bool
 	// Encrypt encrypts the pack's files (Bedrock pack encryption, see
 	// encrypt). Secret must then be set: the keys are derived from it, so
@@ -79,25 +80,125 @@ func minifyJSON(src []byte) ([]byte, error) {
 	return compact.Bytes(), nil
 }
 
-// minifyDir minifies every .json file under dir but the manifest. A file
-// that is not valid JSON once its comments are gone is an error (the game
-// would not read it either).
+// minifyDir minifies every .json file under dir but the manifest, and every
+// .css file (the Ore UI page's style sheets). A JSON file that is not valid
+// JSON once its comments are gone is an error (the game would not read it
+// either).
 func minifyDir(dir string) error {
 	return filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".json") || filepath.Base(p) == "manifest.json" {
+		if err != nil || d.IsDir() {
 			return err
+		}
+		var minify func([]byte) ([]byte, error)
+		switch {
+		case strings.HasSuffix(p, ".json") && filepath.Base(p) != "manifest.json":
+			minify = minifyJSON
+		case strings.HasSuffix(p, ".css"):
+			minify = minifyCSS
+		default:
+			return nil
 		}
 		b, err := os.ReadFile(p)
 		if err != nil {
 			return err
 		}
-		min, err := minifyJSON(b)
+		min, err := minify(b)
 		if err != nil {
 			rel, _ := filepath.Rel(dir, p)
 			return fmt.Errorf("minify %s: %w", rel, err)
 		}
 		return os.WriteFile(p, min, 0o644)
 	})
+}
+
+// minifyCSS removes /* */ comments from a style sheet and folds its white
+// space: a run becomes one space, and none is kept next to { } ; , or at the
+// ends. Strings and url() are copied as they are. A space before : is kept
+// (".a :hover" is not ".a:hover"), so no selector changes its meaning.
+func minifyCSS(src []byte) ([]byte, error) {
+	var out bytes.Buffer
+	space := false
+	tight := func(c byte) bool { return c == '{' || c == '}' || c == ';' || c == ',' }
+	flush := func(next byte) {
+		if space && out.Len() > 0 && !tight(out.Bytes()[out.Len()-1]) && !tight(next) {
+			out.WriteByte(' ')
+		}
+		space = false
+	}
+	for i := 0; i < len(src); {
+		c := src[i]
+		switch {
+		case c == '/' && i+1 < len(src) && src[i+1] == '*':
+			end := bytes.Index(src[i+2:], []byte("*/"))
+			if end < 0 {
+				return nil, errors.New("unterminated comment")
+			}
+			i += end + 4
+			space = true
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f':
+			space = true
+			i++
+		case c == '"' || c == '\'':
+			j := i + 1
+			for j < len(src) && src[j] != c && src[j] != '\n' {
+				if src[j] == '\\' {
+					j++
+				}
+				j++
+			}
+			if j >= len(src) || src[j] != c {
+				return nil, errors.New("unterminated string")
+			}
+			flush(c)
+			out.Write(src[i : j+1])
+			i = j + 1
+		case c == '(' && bytes.HasSuffix(out.Bytes(), []byte("url")) && !space && !quotedURL(src[i+1:]):
+			// An unquoted url() is copied to its ) (a quoted one is a string).
+			end := bytes.IndexByte(src[i:], ')')
+			if end < 0 {
+				return nil, errors.New("unterminated url(")
+			}
+			out.Write(src[i : i+end+1])
+			i += end + 1
+		case c == '\\':
+			// An escape outside a string keeps the byte after it (an escaped
+			// space or quote in a selector) and the one space that may end a
+			// hex escape.
+			if i+1 >= len(src) {
+				return nil, errors.New("escape at the end")
+			}
+			flush(c)
+			j := i + 2
+			if isHex(src[i+1]) {
+				for j < len(src) && j < i+7 && isHex(src[j]) {
+					j++
+				}
+				if j < len(src) && (src[j] == ' ' || src[j] == '\t' || src[j] == '\n') {
+					j++
+				}
+			}
+			out.Write(src[i:j])
+			i = j
+		default:
+			flush(c)
+			if b := out.Bytes(); c == '}' && len(b) > 0 && b[len(b)-1] == ';' {
+				out.Truncate(len(b) - 1) // a declaration list needs no last ;
+			}
+			out.WriteByte(c)
+			i++
+		}
+	}
+	return out.Bytes(), nil
+}
+
+// quotedURL reports whether the url( before b takes a quoted string.
+func quotedURL(b []byte) bool {
+	b = bytes.TrimLeft(b, " \t\n\r\f")
+	return len(b) > 0 && (b[0] == '"' || b[0] == '\'')
+}
+
+func isHex(c byte) bool {
+	return '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F'
 }
 
 // LoadSecret reads the encryption secret at path, creating it from random

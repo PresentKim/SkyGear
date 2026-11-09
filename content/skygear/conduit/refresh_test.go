@@ -32,21 +32,16 @@ func refreshSession(t *testing.T) *core.Session {
 	return s
 }
 
-// TestBundleRepairsWithinSafetyWindow: a neighbour changed without an update
-// event is picked up within 40 ticks.
-func TestBundleRepairsWithinSafetyWindow(t *testing.T) {
+// TestBundleRepairsOnNeighbourUpdate: a block placed beside a bundle (with
+// block updates) is picked up by the next block update, not by ticking the bundle.
+func TestBundleRepairsOnNeighbourUpdate(t *testing.T) {
 	s := refreshSession(t)
 	pos := cube.Pos{3, 64, 3}
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(pos, Bundle{Item: 1}, nil) })
-	for range 8 {
-		s.World.AdvanceTick()
-	}
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), &world.SetOpts{DisableBlockUpdates: true})
+		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), nil)
 	})
-	for range 40 {
-		s.World.AdvanceTick()
-	}
+	s.World.AdvanceTick() // block updates run on the tick
 	s.World.Do(func(tx *world.Tx) {
 		b := tx.Block(pos).(Bundle)
 		if b.IConn == 0 {
@@ -90,13 +85,10 @@ func TestBrokenLoneConduitLeavesGrids(t *testing.T) {
 	pos := cube.Pos{3, 64, 3}
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos, Bundle{Energy: 1}, nil)
-		network.Energy(s).AddConduit(pos)
 		if st := network.Energy(s).Step(tx, 4); st.Networks != 1 {
 			t.Fatalf("setup: %d networks", st.Networks)
 		}
 		tx.SetBlock(pos, block.Air{}, &world.SetOpts{DisableBlockUpdates: true})
-		RemoveVisual(s, tx, pos)
-		network.Energy(s).AddConduit(pos)
 		if st := network.Energy(s).Step(tx, 4); st.Networks != 0 {
 			t.Fatalf("broken conduit still a network (%d)", st.Networks)
 		}

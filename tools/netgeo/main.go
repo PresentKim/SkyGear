@@ -1,6 +1,8 @@
 // Command netgeo writes the block geometries of the storage network's thin
-// blocks (content/skygear/netshape): one per shape of the cable, importer,
-// exporter and external storage (machine.NetShapes).
+// blocks (content/skygear/netshape): one per kind (cable, importer, exporter
+// and external storage) with a bone per part (machine.NetParts: the core, an
+// arm per side, a head per facing); each shape's permutation shows its parts
+// with bone_visibility.
 //
 // The client's block geometry has its x axis mirrored against the world's
 // (hopper.HopperGeometry), so a box east of the centre is drawn at x < 0 and
@@ -12,8 +14,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
-	"sort"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -35,10 +37,19 @@ func cubeOf(b netshape.Box) map[string]any {
 		uv[faceNames[f]] = u
 	}
 	return map[string]any{
-		"origin": []float64{8 - b.To[0], b.From[1], b.From[2] - 8},
-		"size":   []float64{b.To[0] - b.From[0], b.To[1] - b.From[1], b.To[2] - b.From[2]},
+		"origin": round(8-b.To[0], b.From[1], b.From[2]-8),
+		"size":   round(b.To[0]-b.From[0], b.To[1]-b.From[1], b.To[2]-b.From[2]),
 		"uv":     uv,
 	}
+}
+
+// round drops the float noise of the sums (4.1000000000000005): a ten
+// thousandth of a pixel is far below what the client can show.
+func round(v ...float64) []float64 {
+	for i := range v {
+		v[i] = math.Round(v[i]*1e4) / 1e4
+	}
+	return v
 }
 
 func main() {
@@ -46,27 +57,23 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: netgeo out.geo.json")
 		os.Exit(2)
 	}
-	shapes := machine.NetShapes()
-	kinds := make([]string, 0, len(shapes))
-	for k := range shapes {
-		kinds = append(kinds, k)
-	}
-	sort.Strings(kinds)
 	var geos []any
-	for _, k := range kinds {
-		for _, s := range shapes[k] {
+	for _, k := range machine.NetKinds {
+		var bones []any
+		for _, p := range machine.NetParts(k) {
 			var cubes []any
-			for _, b := range machine.NetBoxes(k, s) {
+			for _, b := range p.Boxes {
 				cubes = append(cubes, cubeOf(b))
 			}
-			geos = append(geos, map[string]any{
-				"description": map[string]any{
-					"identifier": machine.NetGeometry(k, s), "texture_width": 16, "texture_height": 16,
-					"visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": []float64{0, 0.5, 0},
-				},
-				"bones": []any{map[string]any{"name": "root", "pivot": []float64{0, 0, 0}, "cubes": cubes}},
-			})
+			bones = append(bones, map[string]any{"name": p.Name, "pivot": []float64{0, 0, 0}, "cubes": cubes})
 		}
+		geos = append(geos, map[string]any{
+			"description": map[string]any{
+				"identifier": machine.NetGeometry(k), "texture_width": 16, "texture_height": 16,
+				"visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": []float64{0, 0.5, 0},
+			},
+			"bones": bones,
+		})
 	}
 	out, err := json.Marshal(map[string]any{"format_version": "1.12.0", "minecraft:geometry": geos})
 	if err != nil {

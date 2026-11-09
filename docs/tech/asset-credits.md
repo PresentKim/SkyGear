@@ -66,6 +66,7 @@ go run ./tools/modtex <클론 폴더> assets/resourcepack/skygear
 go run ./tools/animtex assets/resourcepack/skygear          # 작동 띠
 rm assets/resourcepack/skygear/textures/blocks/*_t[123].png
 go run ./tools/tierblocks assets/resourcepack/skygear       # 단계 텍스처
+go run ./tools/texdedup assets/resourcepack/skygear        # 같은 그림인 블록 텍스처를 한 파일로
 go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/skygear  # 체 모델·메쉬
 ```
 

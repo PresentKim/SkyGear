@@ -132,13 +132,11 @@ var entries = func() []entry {
 	it("ingot_nickel", "mek:item/ingot", c(215, 215, 195))
 	it("ingot_invar", "mek:item/ingot", c(170, 205, 185))
 	it("ingot_electrum", "mek:item/ingot", c(255, 205, 90))
-	for _, m := range []string{"tin", "lead", "bronze", "steel", "copper", "gold", "iron"} {
+	for _, m := range []string{"tin", "lead", "copper", "gold", "iron"} {
 		it("metal_dust_"+m, "mek:item/dust_"+m, nil)
 	}
 	it("metal_dust_silver", "mek:item/dust", c(225, 235, 255))
 	it("metal_dust_nickel", "mek:item/dust", c(215, 215, 195))
-	it("metal_dust_invar", "mek:item/dust", c(170, 205, 185))
-	it("metal_dust_electrum", "mek:item/dust", c(255, 205, 90))
 	for _, m := range []string{"tin", "lead", "copper", "gold", "iron"} {
 		it("ore_chunk_"+m, "mek:item/clump_"+m, nil)
 	}

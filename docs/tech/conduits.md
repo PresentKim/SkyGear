@@ -5,7 +5,7 @@
 ## 구조
 
 - **충돌·선택 상자·모양은 모두 9픽셀**(`bundleSelection`, `Properties.CollisionBox`)이다.
-- **블록** `ConduitBundle`(`bundle.go`): 상태 하나(`skygear:conduit_node`), 모양은 **9픽셀 투명 큐브**(세 차선의 코어가 차지하는 공간 3.5~12.5)(텍스처의 투명한 첫 픽셀만 쓰는 큐브; 나머지 픽셀은 불투명 회색이라 부술 때 파편이 나온다. 클라이언트의 부수기 균열과 파편은 블록 큐브 위에 그려지므로 큐브가 커야 보인다). 선택 상자(같은 9픽셀)·부수기·틱을 맡는다. 종류별 단계, 종류별 연결 면, 아이템 면 모드는 **블록 엔티티 NBT**에 저장한다.
+- **블록** `ConduitBundle`(`bundle.go`): 상태 하나(`skygear:conduit_node`), 모양은 **9픽셀 투명 큐브**(세 차선의 코어가 차지하는 공간 3.5~12.5)(텍스처의 투명한 첫 픽셀만 쓰는 큐브; 나머지 픽셀은 불투명 회색이라 부술 때 파편이 나온다. 클라이언트의 부수기 균열과 파편은 블록 큐브 위에 그려지므로 큐브가 커야 보인다). 선택 상자(같은 9픽셀)·부수기를 맡는다. 번들에는 `Tick`이 없다. 종류별 단계, 종류별 연결 면, 아이템 면 모드는 **블록 엔티티 NBT**에 저장한다.
 - **엔티티** `ConduitVisual`(`conduitvisual.go`, `skygear:conduit_visual`): 블록 하나에 하나. 충돌·소리 없음. `Variant`(정수)와 `MarkVariant`에 모양을 담아 보낸다.
 - **리소스팩**: `entity/conduit_visual.entity.json`(클라이언트 엔티티), `render_controllers/conduit_visual.render_controllers.json`(종류마다 컨트롤러 하나), `models/entity/conduit_visual.geo.json`(`tools/conduitgeo`로 생성, 종류마다 지오메트리 하나), `textures/entity/skygear/conduit_<종류>_<단계>.png`(`tools/conduittex`).
 - 아이템(`EnergyConduit`·`ItemConduit`·`FluidConduit`)은 **아이템용 블록**(`skygear:conduit_<종류>_N`, 모양은 `models/blocks/conduit_icon.geo.json`: **9픽셀 코어 큐브 하나**를 투명한 16픽셀 틀 큐브(시트의 투명한 한 픽셀) 안에 넣은 것. 클라이언트는 아이템 블록을 칸에 꽉 차게 키워 그리므로 틀이 있어야 일반 블록의 9/16 크기로 보인다. 텍스처는 엔티티와 같은 시트)이다. 인벤토리와 손에서 블록처럼 보이는 UX 만을 위한 것이고, 쓰면 블록이 놓이는 대신 `placeConduit`이 번들에 넣는다. 아이템 텍스처를 따로 관리하지 않는다.
@@ -32,10 +32,22 @@
 
 코어 3×3×3, 팔 2×2(EnderIO 모델 그대로). 세 차선은 **모든 축에서 서로 다르다**: 팔이 달리는 축에 수직인 두 좌표가 모두 달라서, 어느 방향에서 봐도 팔이 나란히 보인다(한 축만 다르면 한쪽에서는 한 종류가 다른 종류 뒤에 가려진다).
 
+## 망 갱신: 틱 없이 이벤트로
+
+번들은 `Tick`을 쓰지 않는다. 도관 망(`common/netgraph` 위에 에너지·아이템·액체 Grid)은 이벤트가 올 때만 고친다.
+
+- Dragonfly 패치 훅 `BlockChanged`가 블록이 바뀔 때마다(`conduit/events.go`) 놓기·부수기·이웃 변화를 Grid의 `Place`·`Remove`·`Changed`로 넘긴다. 망은 합치거나 쪼개고, 바뀐 망만 다시 훑는다.
+- 칼럼이 로드되면 `LoadColumn`이 그 칼럼의 번들을 Grid에 올리고, 언로드되면 `UnloadColumn`이 내린다. 기계의 작동 표시 같은 상관없는 블록 변화는 망을 다시 훑지 않는다.
+- 안전망으로 약 60초에 모든 망을 한 번씩 검증하고, Step마다 도관 일부만 다시 BFS한다.
+
+## 버퍼 저장
+
+에너지·액체 망은 버퍼를 가지고, 망 버퍼는 도관마다의 몫으로 나뉘어 번들의 블록 엔티티 NBT에 저장된다: `EBuf`(에너지 RE), `FKind`(액체 종류), `FBuf`(액체 mB), 모두 int32이고 없으면 0이다. 저장 때 `WriteShares`가 Grid의 몫을 포인터 셀에 쓰고, 칼럼을 로드하면 `LoadColumn`이 그 몫으로 망 버퍼를 되살린다.
+
 ## 알아 둘 점
 
 - **엔티티 모델 좌표**: 엔티티 모델은 월드와 반 바퀴 돌아 그려진다고 보고(모델 앞면이 북쪽), 모델 z 만 월드의 부호 반대로 쓰고 x 는 그대로 둔다(`tools/conduitgeo`의 `flipZ`).
-- 엔티티는 월드와 함께 저장되므로 `ConduitVisual.Tick`이 번들이 없거나 세션이 모르는 것을 스스로 지운다. 번들의 틱이 0.2초마다 `showConduit`으로 없는 엔티티를 다시 만든다.
+- 엔티티는 월드와 함께 저장되므로 `ConduitVisual.Tick`이 번들이 없거나 세션이 모르는 것을 스스로 지운다. 없는 엔티티는 번들이 놓이거나 칼럼이 로드될 때(`conduit.LoadColumn`) 다시 만든다.
 - 모양이 바뀌면 엔티티를 지우고 다시 만든다(바뀔 때만).
 - **비용**: 도관 블록 수만큼 엔티티가 있다. 수천 개가 되면 클라이언트 부담이 커질 수 있다(시험 필요).
 
