@@ -556,16 +556,6 @@ body {
   height: 4.4rem;
 }
 
-.mc-slot.mc-huge {
-  width: 7.2rem;
-  height: 7.2rem;
-}
-
-.mc-slot.mc-huge img.mc-icon {
-  width: 5.6rem;
-  height: 5.6rem;
-}
-
 /* A board cell is 18x18; the arrow is the vanilla arrow_large at 15x10 in it. */
 .mc-arrow {
   width: 3.6rem;
@@ -749,18 +739,6 @@ body {
   flex-direction: column;
 }
 
-.mc-toast {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3.4rem;
-  display: flex;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 1.12rem;
-  text-shadow: 0.2rem 0.2rem 0 #3f3f3f;
-}
-
 .mc-search {
   display: flex;
   flex-direction: row;
@@ -923,32 +901,6 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-}
-
-/* oui-ddui.css styles the plain renderer; the mc classes start from nothing. */
-.mc-btn.oui-button,
-.mc-slot.oui-item,
-.mc-tab.oui-button,
-.mc-icon-button.oui-button,
-.mc-close.oui-button {
-  margin: 0;
-  padding: 0;
-  border-radius: 0;
-  background-color: transparent;
-}
-
-.mc-btn.oui-button:hover,
-.mc-btn.oui-button.oui-kb,
-.mc-btn.oui-button.on,
-.mc-tab.oui-button:hover,
-.mc-tab.oui-button.oui-kb,
-.mc-tab.oui-button.on {
-  background-color: transparent;
-}
-
-.mc-slot.oui-item:hover,
-.mc-slot.oui-item.oui-kb {
-  background-color: transparent;
 }
 
 #oui-ddui .mc-window .oui-text {

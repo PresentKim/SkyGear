@@ -26,6 +26,25 @@ func TestMinifyKeepsStringsAndDropsComments(t *testing.T) {
 	}
 }
 
+// TestMinifyCSS: comments and white space go, strings, url() and the space
+// of a descendant pseudo-class (".a :hover") stay.
+func TestMinifyCSS(t *testing.T) {
+	src := "/* head */\n.a .b,\n.c > .d :hover {\n  width: calc(100% - 0.2rem);\n  font-family: \"Noto  Sans\", 'x /* y */';\n  background: url(\"pack://t/a b.png?x=1\") /* c */ ;\n}\n\n@keyframes k {\n  0% { opacity: 0; }\n}\n"
+	got, err := minifyCSS([]byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `.a .b,.c > .d :hover{width: calc(100% - 0.2rem);font-family: "Noto  Sans",'x /* y */';background: url("pack://t/a b.png?x=1")}@keyframes k{0%{opacity: 0}}`
+	if string(got) != want {
+		t.Errorf("got  %s\nwant %s", got, want)
+	}
+	for _, bad := range []string{"/* open", `.a { content: "open }`} {
+		if _, err := minifyCSS([]byte(bad)); err == nil {
+			t.Errorf("%q was accepted", bad)
+		}
+	}
+}
+
 func TestCFB8RoundTrip(t *testing.T) {
 	key := deriveKey([]byte("secret"), "x")
 	if len(key) != 32 {
@@ -233,7 +252,7 @@ func TestEncryptDirMatchesSequential(t *testing.T) {
 // TestRepositoryPacksMinify: every pack of the repository survives
 // minifying, and keeps the same JSON content.
 func TestRepositoryPacksMinify(t *testing.T) {
-	for _, name := range []string{"inventoryui", "waila", "slotdeco"} {
+	for _, name := range []string{"inventoryui", "waila", "slotdeco", "oreui"} {
 		dir := filepath.Join("..", "..", "assets", "resourcepack", name)
 		if _, err := LoadWith(dir, Options{Minify: true, Encrypt: true, Secret: []byte("test secret test secret test sec")}); err != nil {
 			t.Errorf("%s: %v", name, err)
