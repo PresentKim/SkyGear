@@ -65,6 +65,14 @@ func (p Pebble) Name() string {
 
 func (Pebble) Category() category.Category { return category.Items() }
 
+// BarkStripper is an item that shaves the bark off logs, so stripping one
+// with it may drop bark fibers (handwork.StripFiber). Every Dragonfly axe
+// counts already; a new item implements this and strips the log itself
+// (Dragonfly only strips with item.Axe), returning false to opt out.
+type BarkStripper interface {
+	StripsBark() bool
+}
+
 // BarkFiber is stripped from logs; three in a row make three string.
 type BarkFiber struct{}
 
