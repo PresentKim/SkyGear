@@ -32,6 +32,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
 // Reach is how far a player looks for a block, in blocks.
@@ -92,6 +93,7 @@ func Update(s *core.Session, p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 	}
 	at, b, ok := LookedAt(p, tx, pos, rot)
 	showLook(s, p, tx, at, b, ok)
+	wand.ShowPreview(s, p, tx)
 }
 
 // showLook shows p the panel of block b at pos it looks at (ok), or clears
@@ -133,6 +135,7 @@ func UpdateAll(s *core.Session, tx *world.Tx) {
 		} else {
 			tinker.HideVeinOutline(s, p)
 		}
+		wand.ShowPreview(s, p, tx)
 	}
 }
 

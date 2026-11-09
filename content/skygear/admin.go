@@ -151,6 +151,9 @@ func giveItems() map[string]func() item.Stack {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(sgitem.Essence{Mob: m}, 1) }
 	}
 	out["config_copier"] = func() item.Stack { return item.NewStack(sgitem.ConfigCopier{}, 1) }
+	for _, t := range sgitem.WandTiers {
+		out[t+"_wand"] = func() item.Stack { return item.NewStack(sgitem.NewWand(t), 1) }
+	}
 	for _, a := range sgitem.TierAlloys {
 		out["alloy_"+a] = func() item.Stack { return item.NewStack(sgitem.TierAlloy{Kind: a}, 1) }
 	}

@@ -418,6 +418,18 @@
     "skygear:config_copier": {
       "textures": "textures/items/config_copier"
     },
+    "skygear:stone_wand": {
+      "textures": "textures/items/stone_wand"
+    },
+    "skygear:iron_wand": {
+      "textures": "textures/items/iron_wand"
+    },
+    "skygear:diamond_wand": {
+      "textures": "textures/items/diamond_wand"
+    },
+    "skygear:infinity_wand": {
+      "textures": "textures/items/infinity_wand"
+    },
     "skygear:essence_drowned": {
       "textures": "textures/items/essence_drowned"
     },
