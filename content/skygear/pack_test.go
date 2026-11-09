@@ -3,9 +3,12 @@ package skygear
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/draw"
 	"image/png"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -103,7 +106,8 @@ func TestPackHasBlockAssets(t *testing.T) {
 			t.Errorf("terrain %s: missing %s.png", key, e.Textures)
 		}
 	}
-	geometries := map[string]bool{}
+	// geometries are the bones of every block geometry of the pack.
+	geometries := map[string]map[string]bool{}
 	files, _ := filepath.Glob(filepath.Join(packDir, "models/blocks/*.geo.json"))
 	for _, f := range files {
 		var geo struct {
@@ -111,18 +115,33 @@ func TestPackHasBlockAssets(t *testing.T) {
 				Description struct {
 					Identifier string `json:"identifier"`
 				} `json:"description"`
+				Bones []struct {
+					Name string `json:"name"`
+				} `json:"bones"`
 			} `json:"minecraft:geometry"`
 		}
 		rel, _ := filepath.Rel(packDir, f)
 		readPackJSON(t, rel, &geo)
 		for _, g := range geo.Geometry {
-			geometries[g.Description.Identifier] = true
+			bones := map[string]bool{}
+			for _, b := range g.Bones {
+				bones[b.Name] = true
+			}
+			geometries[g.Description.Identifier] = bones
 		}
 	}
 	lang := packLang(t)
 	check := func(id string, props customblock.Properties) {
-		if props.Geometry != "" && !strings.HasPrefix(props.Geometry, "minecraft:") && !geometries[props.Geometry] {
-			t.Errorf("%s: geometry %s not in models/blocks", id, props.Geometry)
+		if props.Geometry != "" && !strings.HasPrefix(props.Geometry, "minecraft:") {
+			bones, ok := geometries[props.Geometry]
+			if !ok {
+				t.Errorf("%s: geometry %s not in models/blocks", id, props.Geometry)
+			}
+			for bone := range props.BoneVisibility {
+				if ok && !bones[bone] {
+					t.Errorf("%s: bone_visibility names %s, not a bone of %s", id, bone, props.Geometry)
+				}
+			}
 		}
 		for target, m := range props.Textures {
 			name := m.Encode()["texture"].(string)
@@ -563,5 +582,72 @@ func TestParticleTexturesMatchUV(t *testing.T) {
 		if uv := pe.P.C.B.UV; cfg.Width != uv.W || cfg.Height != uv.H {
 			t.Errorf("%s: texture is %dx%d, uv says %dx%d", rel, cfg.Width, cfg.Height, uv.W, uv.H)
 		}
+	}
+}
+
+// TestPackBlockTexturesUnique: no two block textures of the terrain atlas
+// are the same picture, unless both are named somewhere else in the
+// repository too (the texture tools write copies; go run ./tools/texdedup
+// assets/resourcepack/skygear merges them).
+func TestPackBlockTexturesUnique(t *testing.T) {
+	var atlas packAtlas
+	readPackJSON(t, "textures/terrain_texture.json", &atlas)
+	atlasPath, _ := filepath.Abs(filepath.Join(packDir, "textures/terrain_texture.json"))
+	others := map[string]bool{}
+	blockPath := regexp.MustCompile(`textures/blocks/[A-Za-z0-9_/-]+`)
+	err := filepath.WalkDir("../..", func(p string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "node_modules", "third_party":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		switch filepath.Ext(p) {
+		case ".json", ".css", ".js", ".html", ".go", ".ts", ".tsx":
+		default:
+			return nil
+		}
+		if abs, _ := filepath.Abs(p); abs == atlasPath {
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		for _, m := range blockPath.FindAll(b, -1) {
+			others[string(m)] = true
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	byPixels := map[string]string{}
+	for _, e := range atlas.TextureData {
+		p := e.Textures
+		if !strings.HasPrefix(p, "textures/blocks/") || !packFileExists(p+".png") {
+			continue
+		}
+		f, err := os.Open(filepath.Join(packDir, p+".png"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		img, err := png.Decode(f)
+		f.Close()
+		if err != nil {
+			t.Fatalf("%s: %v", p, err)
+		}
+		b := img.Bounds()
+		rgba := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(rgba, rgba.Bounds(), img, b.Min, draw.Src)
+		key := fmt.Sprint(b.Size()) + string(rgba.Pix)
+		if q, ok := byPixels[key]; ok && q != p && !(others[p] && others[q]) {
+			t.Errorf("%s.png and %s.png are the same picture (go run ./tools/texdedup assets/resourcepack/skygear)", min(p, q), max(p, q))
+		}
+		byPixels[key] = p
 	}
 }

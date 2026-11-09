@@ -1,6 +1,7 @@
 package netshape
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -48,6 +49,43 @@ func TestHeadPlateLiesJustInsideItsFacing(t *testing.T) {
 		}
 		if len(plate.Faces) != 6 {
 			t.Errorf("%v plate draws %d faces", f, len(plate.Faces))
+		}
+	}
+}
+
+// ofBeforeParts is Of as it was before the parts (one geometry per shape),
+// kept to pin that the parts draw every shape the same.
+func ofBeforeParts(head bool, h Head, f cube.Face, mask int) []Box {
+	if head {
+		mask &^= 1 << f
+	}
+	out := []Box{core()}
+	for _, side := range cube.Faces() {
+		if mask&(1<<side) != 0 {
+			out = append(out, inset(turnBox(side, northArm())))
+		}
+	}
+	if head {
+		for _, b := range northHead(h) {
+			out = append(out, inset(turnBox(f, b)))
+		}
+	}
+	return out
+}
+
+// TestOfMatchesTheShapesBeforeParts: Of, now the visible parts, has the
+// boxes of every shape it had before, for the cable and every head.
+func TestOfMatchesTheShapesBeforeParts(t *testing.T) {
+	for _, c := range []struct {
+		head bool
+		h    Head
+	}{{false, 0}, {true, Importer}, {true, Exporter}, {true, External}} {
+		for _, f := range cube.Faces() {
+			for mask := range 64 {
+				if got, want := Of(c.head, c.h, f, mask), ofBeforeParts(c.head, c.h, f, mask); !reflect.DeepEqual(got, want) {
+					t.Fatalf("head %v %d facing %v mask %d: %d boxes, before %d", c.head, c.h, f, mask, len(got), len(want))
+				}
+			}
 		}
 	}
 }

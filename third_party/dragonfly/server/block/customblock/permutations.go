@@ -7,6 +7,10 @@ import (
 
 // Properties represents the different properties that can be applied to a block or a permutation.
 type Properties struct {
+	// BoneVisibility maps bones of the Geometry to whether they are drawn: "true", "false" or a Molang expression
+	// (such as one reading q.block_state), so one geometry can serve many states. A bone not listed is drawn.
+	// skygear patch
+	BoneVisibility map[string]string
 	// CollisionBox represents the bounding box of the block that the player can collide with. This cannot exceed the
 	// position of the current block in the world, otherwise it will be cut off at the edge.
 	CollisionBox cube.BBox

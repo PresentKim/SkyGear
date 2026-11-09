@@ -97,22 +97,35 @@ func netBoxes(kind string, shape int) []netshape.Box {
 	return netshape.Of(head, h, cube.Face(raw/64), raw%64)
 }
 
-// NetGeometry is the geometry of a shape (tools/netgeo writes them).
-func NetGeometry(kind string, shape int) string {
-	return fmt.Sprintf("geometry.skygear_%s_%d", kind, shape)
+// netVisible are the bones (netshape.Parts) a shape draws.
+func netVisible(kind string, shape int) []string {
+	_, head := netHeads[kind]
+	raw := shape ^ netItemRaw(kind)
+	return netshape.Visible(head, cube.Face(raw/64), raw%64)
 }
 
-// NetShapes lists the shapes of every thin network kind, for tools/netgeo.
+// NetGeometry is the geometry of a kind (tools/netgeo writes them): the
+// bones of every part (NetParts), of which a shape shows some
+// (bone_visibility).
+func NetGeometry(kind string) string { return "geometry.skygear_" + kind }
+
+// NetKinds are the thin network kinds, for tools/netgeo.
+var NetKinds = []string{KindNetCable, KindNetImporter, KindNetExporter, KindNetExternal}
+
+// NetShapes lists the shapes of every thin network kind.
 func NetShapes() map[string][]int {
 	out := map[string][]int{}
-	for _, k := range []string{KindNetCable, KindNetImporter, KindNetExporter, KindNetExternal} {
+	for _, k := range NetKinds {
 		out[k] = netShapes(k)
 	}
 	return out
 }
 
-// NetBoxes is the shape's boxes, for tools/netgeo.
-func NetBoxes(kind string, shape int) []netshape.Box { return netBoxes(kind, shape) }
+// NetParts are the bones of a kind's geometry, for tools/netgeo.
+func NetParts(kind string) []netshape.Part {
+	h, head := netHeads[kind]
+	return netshape.Parts(head, h)
+}
 
 func netShapeName(shape int) string { return fmt.Sprintf("%03d", shape) }
 
@@ -140,7 +153,14 @@ func netProperties(kind string, shape int) customblock.Properties {
 	for i, b := range boxes {
 		coll[i] = clientBox(b.BBox())
 	}
-	return customblock.Properties{Geometry: NetGeometry(kind, shape), Textures: netMaterials(kind), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
+	visible := map[string]string{}
+	for _, p := range NetParts(kind) {
+		visible[p.Name] = "false"
+	}
+	for _, name := range netVisible(kind, shape) {
+		visible[name] = "true"
+	}
+	return customblock.Properties{Geometry: NetGeometry(kind), BoneVisibility: visible, Textures: netMaterials(kind), SelectionBox: clientBox(netshape.Bounds(boxes)), CollisionBoxes: coll}
 }
 
 func netStates(kind string) map[string][]any {
