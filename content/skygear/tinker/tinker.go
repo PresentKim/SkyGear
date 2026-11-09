@@ -10,9 +10,11 @@ import (
 	"math"
 	"strings"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
@@ -145,6 +147,19 @@ func (t Tool) HarvestLevel() int { return t.head().harvest }
 func (t Tool) speed() float64 { return t.head().Eff * t.handle().SpeedMul }
 
 func (t Tool) BaseMiningEfficiency(world.Block) float64 { return t.speed() }
+
+// UseOnBlock lets an axe strip logs (and any other strippable block) the
+// way a Dragonfly axe does, durability included; other kinds do nothing.
+func (t Tool) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	if t.Kind != ToolAxe {
+		return false
+	}
+	return item.Axe{}.UseOnBlock(pos, face, clickPos, tx, user, ctx)
+}
+
+// StripsBark makes an axe shave bark fibers off the logs it strips
+// (handwork.StripFiber).
+func (t Tool) StripsBark() bool { return t.Kind == ToolAxe }
 
 // AttackDamage is a tool's hit: no more than a hand's, the tools do not fight.
 func (t Tool) AttackDamage() float64 { return 1 }
