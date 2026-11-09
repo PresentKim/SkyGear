@@ -72,6 +72,7 @@ var HelpTopics = []struct {
 	{"sieve", helpHandTab, func() string { return formicon.Of(machine.Item(machine.KindSieve)) }, nil},
 	{"water", helpHandTab, func() string { return formicon.Of(item.NewStack(item.Bucket{}, 1)) }, nil},
 	{"fairy", helpHandTab, func() string { return formicon.Of(item.NewStack(fairy.Board{}, 1)) }, nil},
+	{"wand", helpHandTab, func() string { return formicon.Of(item.NewStack(sgitem.NewWand(sgitem.WandStone), 1)) }, nil},
 	{"power", helpAutoTab, func() string { return formicon.Of(machine.Item(machine.KindGenerator)) }, nil},
 	{"conduit", helpAutoTab, func() string { return formicon.Of(item.NewStack(item.RedstoneWire{}, 1)) }, nil},
 	{"drawer", helpAutoTab, func() string { return formicon.Of(item.NewStack(storage.Drawer{}, 1)) }, nil},

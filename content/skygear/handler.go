@@ -28,6 +28,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
 // handler handles a player's events inside a skygear instance.
@@ -165,6 +166,12 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
 		return
 	}
+	// The construction wand builds out the face clicked and does nothing else.
+	if _, ok := sgitem.WandOf(held); ok {
+		ctx.Cancel()
+		wand.Use(h.s.Session, p, tx, pos, face, held)
+		return
+	}
 	if storage.SneakUse(h.s.Session, p, tx, pos, held) {
 		ctx.Cancel()
 		return
@@ -243,6 +250,10 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
+	}
+	// The construction wand used on the air while sneaking shows its settings.
+	if _, ok := sgitem.WandOf(held); ok && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
+		wand.ShowOptions(h.s.Session, ctx.Player())
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
