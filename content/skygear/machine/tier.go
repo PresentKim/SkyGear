@@ -57,7 +57,7 @@ var tierKinds = map[string]bool{
 	KindSimulator: true, KindLab: true, KindCrafter: true,
 	KindAutoSieve: true, KindMagicSieve: true, KindMiner: true,
 	KindHarvester: true, KindVacuum: true, KindFeller: true,
-	KindGenerator: true, KindLavaGenerator: true, KindEnergyCell: true,
+	KindGenerator: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindEnergyCell: true,
 }
 
 // tierRanges are the reaches of the machines that gain range with their tier

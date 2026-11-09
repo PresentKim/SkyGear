@@ -118,6 +118,10 @@ func gameRecipes() {
 	add(machine.Item(machine.KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
 	add(machine.Item(machine.KindCrucible), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
+	// The generators that burn nothing: glass over a frame (solar), a wheel
+	// of planks (hydro).
+	add(machine.Item(machine.KindSolarGenerator), n(block.Glass{}, 3), n(iron, 4), n(item.RedstoneWire{}, 2))
+	add(machine.Item(machine.KindHydroGenerator), n(planks, 3), n(iron, 4), n(item.RedstoneWire{}, 2))
 	add(machine.Item(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindCollector), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(item.Diamond{}, 2), n(sgitem.FairyEmerald{}, 1))
 	add(machine.Item(machine.KindRelicTable), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.CraftingTable{}, 1), n(sgitem.FairyDust{}, 2))

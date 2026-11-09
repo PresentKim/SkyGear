@@ -40,6 +40,7 @@ var machines = []machine{
 	{"auto_miner", cube, "side_on"}, {"harvester", cube, "side_on"},
 	{"item_vacuum", cube, "side_on"}, {"tree_feller", cube, "side_on"},
 	{"generator", cube, "side_on"}, {"lava_generator", cube, "side_on"},
+	{"solar_generator", cube, "side_on"}, {"hydro_generator", cube, "side_on"},
 	{"energy_cell", cube, ""},
 }
 

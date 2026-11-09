@@ -64,6 +64,8 @@ var Counters = []CounterDef{
 	{"place_relic_table", "factory", []int64{1, 10}},
 	{"place_crucible", "factory", []int64{1, 10}},
 	{"place_lava_generator", "factory", []int64{1, 10}},
+	{"place_solar_generator", "factory", []int64{1, 10}},
+	{"place_hydro_generator", "factory", []int64{1, 10}},
 	{"place_mob_simulator", "factory", []int64{1, 10}},
 	{"place_energy_cell", "factory", []int64{1, 10}},
 	{"place_electric_furnace", "factory", []int64{1, 10}},

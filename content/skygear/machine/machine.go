@@ -165,6 +165,10 @@ const (
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
+	// KindSolarGenerator and KindHydroGenerator make energy from the
+	// sunlight and from flowing water (naturegen.go).
+	KindSolarGenerator = "solar_generator"
+	KindHydroGenerator = "hydro_generator"
 	// KindSimulator turns an essence into the drops of a mob (essence.go).
 	KindSimulator  = "mob_simulator"
 	KindEnergyCell = "energy_cell"
@@ -230,6 +234,8 @@ const (
 	idPatternEncoder
 	idNetAutocrafter
 	idDrawerInterface
+	idSolarGenerator
+	idHydroGenerator
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -428,6 +434,16 @@ var Kinds = map[string]*Def{
 		FluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
+	KindSolarGenerator: {
+		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10,
+		Generates: SolarOutput, EnergyCap: generatorBuffer,
+		helpKeys: []string{"machine.solargen.help.1", "machine.solargen.help.2"},
+	},
+	KindHydroGenerator: {
+		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10,
+		Generates: HydroOutput, EnergyCap: generatorBuffer,
+		helpKeys: []string{"machine.hydrogen.help.1", "machine.hydrogen.help.2"},
+	},
 	KindSimulator: {
 		ID: idSimulator, nameKey: "machine.simulator.name", Marker: "§d§m§2", Interval: 200, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
 		Use: 40, EnergyCap: ConsumerBuffer,
@@ -477,7 +493,7 @@ var Kinds = map[string]*Def{
 var Retired = []string{KindGate}
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -633,6 +649,8 @@ type State struct {
 	stuckOn          bool
 	stuckTick        int64
 	curTick          int64
+	// nature is what a solar or hydro generator last saw (naturegen.go).
+	nature natureLook
 }
 
 // stuckRecheck is how many ticks a stuck machine trusts that nothing changed.
@@ -1278,7 +1296,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
@@ -1664,7 +1682,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.showRange(tx, pos)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
@@ -1745,6 +1763,10 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 		st.runWasher()
 	case idLavaGenerator:
 		runLavaGenerator(s, st, pos)
+	case idSolarGenerator:
+		runSolar(s, st, pos, tx)
+	case idHydroGenerator:
+		runHydro(s, st, pos, tx)
 	case idAutoSieve, idMagicSieve:
 		runAutoSieve(s, st, pos, tx)
 	case idMiner:
