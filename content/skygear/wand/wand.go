@@ -2,8 +2,8 @@
 // by ThetaDev (MIT, https://github.com/Theta-Dev/ConstructionWand): a click on
 // a block face places a copy of the block in front of every block of the
 // same kind that shares that face with it, up to the wand's limit. The wand
-// takes the blocks from the player's inventory (a block in the off hand goes
-// first), wears a point a block, and its last placements can be undone.
+// takes the blocks from the player's inventory (the hotbar last), wears a
+// point a block, and its last placements can be undone.
 //
 // The settings live on the wand as the value optionsKey: the lock (which
 // directions the face spreads), what counts as the same block, whether
@@ -65,6 +65,12 @@ func OptionsOf(st item.Stack) Options {
 		if raw, ok := v.(string); ok {
 			_ = json.Unmarshal([]byte(raw), &o)
 		}
+	}
+	if o.Lock < LockNone || o.Lock > LockEastWest {
+		o.Lock = LockNone
+	}
+	if o.Match < MatchSimilar || o.Match > MatchAny {
+		o.Match = MatchSimilar
 	}
 	return o
 }

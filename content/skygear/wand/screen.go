@@ -77,6 +77,7 @@ func ShowOptions(s *core.Session, p *player.Player) {
 		choice(i18n.T(lang, "wand.off"), i18n.T(lang, "wand.random.off.info"), block.Stone{}, !o.Random, set(func(o *Options) { o.Random = false })),
 		choice(i18n.T(lang, "wand.on"), i18n.T(lang, "wand.random.on.info"), block.Wool{Colour: item.ColourLime()}, o.Random, set(func(o *Options) { o.Random = true })),
 	}}
+	// s.Opt runs the undo only in this session's world
 	undo := s.Opt(fmt.Sprintf(i18n.T(lang, "wand.undo"), Undoable(s, p)), formicon.Back, func(p *player.Player, tx *world.Tx) {
 		p.SendTip(UndoTip(i18n.Of(p), Undo(s, p, tx)))
 		ShowOptions(s, p)
