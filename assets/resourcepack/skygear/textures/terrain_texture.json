@@ -89,16 +89,16 @@
       "textures": "textures/blocks/auto_crafter_back_t3"
     },
     "skygear_auto_crafter_down": {
-      "textures": "textures/blocks/auto_crafter_down"
+      "textures": "textures/blocks/alloy_smelter_down"
     },
     "skygear_auto_crafter_down_t1": {
-      "textures": "textures/blocks/auto_crafter_down_t1"
+      "textures": "textures/blocks/alloy_smelter_down_t1"
     },
     "skygear_auto_crafter_down_t2": {
-      "textures": "textures/blocks/auto_crafter_down_t2"
+      "textures": "textures/blocks/alloy_smelter_down_t2"
     },
     "skygear_auto_crafter_down_t3": {
-      "textures": "textures/blocks/auto_crafter_down_t3"
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "skygear_auto_crafter_front": {
       "textures": "textures/blocks/auto_crafter_front"
@@ -125,16 +125,16 @@
       "textures": "textures/blocks/auto_crafter_front_t3"
     },
     "skygear_auto_crafter_side": {
-      "textures": "textures/blocks/auto_crafter_side"
+      "textures": "textures/blocks/auto_crafter_back"
     },
     "skygear_auto_crafter_side_t1": {
-      "textures": "textures/blocks/auto_crafter_side_t1"
+      "textures": "textures/blocks/auto_crafter_back_t1"
     },
     "skygear_auto_crafter_side_t2": {
-      "textures": "textures/blocks/auto_crafter_side_t2"
+      "textures": "textures/blocks/auto_crafter_back_t2"
     },
     "skygear_auto_crafter_side_t3": {
-      "textures": "textures/blocks/auto_crafter_side_t3"
+      "textures": "textures/blocks/auto_crafter_back_t3"
     },
     "skygear_auto_crafter_up": {
       "textures": "textures/blocks/auto_crafter_up"
@@ -322,6 +322,18 @@
     "skygear_crucible_up_t3": {
       "textures": "textures/blocks/crucible_up_t3"
     },
+    "skygear_crushed_blackstone": {
+      "textures": "textures/blocks/crushed_blackstone"
+    },
+    "skygear_crushed_deepslate": {
+      "textures": "textures/blocks/crushed_deepslate"
+    },
+    "skygear_crushed_end_stone": {
+      "textures": "textures/blocks/crushed_end_stone"
+    },
+    "skygear_crushed_netherrack": {
+      "textures": "textures/blocks/crushed_netherrack"
+    },
     "skygear_crusher_back": {
       "textures": "textures/blocks/crusher_back"
     },
@@ -403,38 +415,26 @@
     "skygear_dimension_gate_up": {
       "textures": "textures/blocks/portal_placeholder"
     },
-    "skygear_essence_collector_down": {
-      "textures": "textures/blocks/essence_collector_down"
+    "skygear_disk_drive_down": {
+      "textures": "textures/blocks/disk_drive_down"
     },
-    "skygear_essence_collector_side": {
-      "textures": "textures/blocks/essence_collector_side"
+    "skygear_disk_drive_side": {
+      "textures": "textures/blocks/disk_drive_side"
     },
-    "skygear_essence_collector_up": {
-      "textures": "textures/blocks/essence_collector_up"
-    },
-    "skygear_relic_table_down": {
-      "textures": "textures/blocks/relic_table_down"
-    },
-    "skygear_relic_table_side": {
-      "textures": "textures/blocks/relic_table_side"
-    },
-    "skygear_relic_table_up": {
-      "textures": "textures/blocks/relic_table_up"
-    },
-    "skygear_drawer_front": {
-      "textures": "textures/blocks/drawer_front"
-    },
-    "skygear_drawer_side": {
-      "textures": "textures/blocks/drawer_side"
+    "skygear_disk_drive_up": {
+      "textures": "textures/blocks/disk_drive_up"
     },
     "skygear_drawer_controller_down": {
       "textures": "textures/blocks/drawer_controller_down"
     },
     "skygear_drawer_controller_side": {
-      "textures": "textures/blocks/drawer_controller_side"
+      "textures": "textures/blocks/drawer_controller_down"
     },
     "skygear_drawer_controller_up": {
-      "textures": "textures/blocks/drawer_controller_up"
+      "textures": "textures/blocks/drawer_controller_down"
+    },
+    "skygear_drawer_front": {
+      "textures": "textures/blocks/drawer_front"
     },
     "skygear_drawer_interface_down": {
       "textures": "textures/blocks/drawer_interface_down"
@@ -443,31 +443,10 @@
       "textures": "textures/blocks/drawer_interface_side"
     },
     "skygear_drawer_interface_up": {
-      "textures": "textures/blocks/drawer_interface_up"
+      "textures": "textures/blocks/drawer_interface_down"
     },
-    "skygear_crushed_deepslate": {
-      "textures": "textures/blocks/crushed_deepslate"
-    },
-    "skygear_crushed_netherrack": {
-      "textures": "textures/blocks/crushed_netherrack"
-    },
-    "skygear_crushed_blackstone": {
-      "textures": "textures/blocks/crushed_blackstone"
-    },
-    "skygear_crushed_end_stone": {
-      "textures": "textures/blocks/crushed_end_stone"
-    },
-    "skygear_tin_ore": {
-      "textures": "textures/blocks/tin_ore"
-    },
-    "skygear_lead_ore": {
-      "textures": "textures/blocks/lead_ore"
-    },
-    "skygear_silver_ore": {
-      "textures": "textures/blocks/silver_ore"
-    },
-    "skygear_nickel_ore": {
-      "textures": "textures/blocks/nickel_ore"
+    "skygear_drawer_side": {
+      "textures": "textures/blocks/drawer_side"
     },
     "skygear_dust": {
       "textures": "textures/blocks/dust"
@@ -557,28 +536,37 @@
       "textures": "textures/blocks/energy_cell_down_t3"
     },
     "skygear_energy_cell_side": {
-      "textures": "textures/blocks/energy_cell_side"
+      "textures": "textures/blocks/energy_cell_down"
     },
     "skygear_energy_cell_side_t1": {
-      "textures": "textures/blocks/energy_cell_side_t1"
+      "textures": "textures/blocks/energy_cell_down_t1"
     },
     "skygear_energy_cell_side_t2": {
-      "textures": "textures/blocks/energy_cell_side_t2"
+      "textures": "textures/blocks/energy_cell_down_t2"
     },
     "skygear_energy_cell_side_t3": {
-      "textures": "textures/blocks/energy_cell_side_t3"
+      "textures": "textures/blocks/energy_cell_down_t3"
     },
     "skygear_energy_cell_up": {
-      "textures": "textures/blocks/energy_cell_up"
+      "textures": "textures/blocks/energy_cell_down"
     },
     "skygear_energy_cell_up_t1": {
-      "textures": "textures/blocks/energy_cell_up_t1"
+      "textures": "textures/blocks/energy_cell_down_t1"
     },
     "skygear_energy_cell_up_t2": {
-      "textures": "textures/blocks/energy_cell_up_t2"
+      "textures": "textures/blocks/energy_cell_down_t2"
     },
     "skygear_energy_cell_up_t3": {
-      "textures": "textures/blocks/energy_cell_up_t3"
+      "textures": "textures/blocks/energy_cell_down_t3"
+    },
+    "skygear_essence_collector_down": {
+      "textures": "textures/blocks/essence_collector_down"
+    },
+    "skygear_essence_collector_side": {
+      "textures": "textures/blocks/essence_collector_down"
+    },
+    "skygear_essence_collector_up": {
+      "textures": "textures/blocks/essence_collector_down"
     },
     "skygear_fluid_tank_down": {
       "textures": "textures/blocks/fluid_tank_down"
@@ -587,7 +575,7 @@
       "textures": "textures/blocks/fluid_tank_side"
     },
     "skygear_fluid_tank_up": {
-      "textures": "textures/blocks/fluid_tank_up"
+      "textures": "textures/blocks/fluid_tank_down"
     },
     "skygear_generator_down": {
       "textures": "textures/blocks/generator_down"
@@ -689,16 +677,16 @@
       "textures": "textures/blocks/hopper_outside"
     },
     "skygear_item_vacuum_down": {
-      "textures": "textures/blocks/item_vacuum_down"
+      "textures": "textures/blocks/alloy_smelter_down"
     },
     "skygear_item_vacuum_down_t1": {
-      "textures": "textures/blocks/item_vacuum_down_t1"
+      "textures": "textures/blocks/alloy_smelter_down_t1"
     },
     "skygear_item_vacuum_down_t2": {
-      "textures": "textures/blocks/item_vacuum_down_t2"
+      "textures": "textures/blocks/alloy_smelter_down_t2"
     },
     "skygear_item_vacuum_down_t3": {
-      "textures": "textures/blocks/item_vacuum_down_t3"
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "skygear_item_vacuum_side": {
       "textures": "textures/blocks/item_vacuum_side"
@@ -725,16 +713,16 @@
       "textures": "textures/blocks/item_vacuum_side_t3"
     },
     "skygear_item_vacuum_up": {
-      "textures": "textures/blocks/item_vacuum_up"
+      "textures": "textures/blocks/alloy_smelter_up"
     },
     "skygear_item_vacuum_up_t1": {
-      "textures": "textures/blocks/item_vacuum_up_t1"
+      "textures": "textures/blocks/alloy_smelter_up_t1"
     },
     "skygear_item_vacuum_up_t2": {
-      "textures": "textures/blocks/item_vacuum_up_t2"
+      "textures": "textures/blocks/alloy_smelter_up_t2"
     },
     "skygear_item_vacuum_up_t3": {
-      "textures": "textures/blocks/item_vacuum_up_t3"
+      "textures": "textures/blocks/alloy_smelter_up_t3"
     },
     "skygear_laboratory_back": {
       "textures": "textures/blocks/laboratory_back"
@@ -809,19 +797,19 @@
       "textures": "textures/blocks/laboratory_up_t3"
     },
     "skygear_lava_generator_down": {
-      "textures": "textures/blocks/lava_generator_down"
+      "textures": "textures/blocks/laboratory_down"
     },
     "skygear_lava_generator_down_t1": {
-      "textures": "textures/blocks/lava_generator_down_t1"
+      "textures": "textures/blocks/laboratory_down_t1"
     },
     "skygear_lava_generator_down_t2": {
-      "textures": "textures/blocks/lava_generator_down_t2"
+      "textures": "textures/blocks/laboratory_down_t2"
     },
     "skygear_lava_generator_down_t3": {
-      "textures": "textures/blocks/lava_generator_down_t3"
+      "textures": "textures/blocks/laboratory_down_t3"
     },
     "skygear_lava_generator_side": {
-      "textures": "textures/blocks/lava_generator_side"
+      "textures": "textures/blocks/laboratory_side"
     },
     "skygear_lava_generator_side_on": {
       "textures": "textures/blocks/lava_generator_side_on"
@@ -836,52 +824,55 @@
       "textures": "textures/blocks/lava_generator_side_on_t3"
     },
     "skygear_lava_generator_side_t1": {
-      "textures": "textures/blocks/lava_generator_side_t1"
+      "textures": "textures/blocks/laboratory_side_t1"
     },
     "skygear_lava_generator_side_t2": {
-      "textures": "textures/blocks/lava_generator_side_t2"
+      "textures": "textures/blocks/laboratory_side_t2"
     },
     "skygear_lava_generator_side_t3": {
-      "textures": "textures/blocks/lava_generator_side_t3"
+      "textures": "textures/blocks/laboratory_side_t3"
     },
     "skygear_lava_generator_up": {
-      "textures": "textures/blocks/lava_generator_up"
+      "textures": "textures/blocks/laboratory_up"
     },
     "skygear_lava_generator_up_t1": {
-      "textures": "textures/blocks/lava_generator_up_t1"
+      "textures": "textures/blocks/laboratory_up_t1"
     },
     "skygear_lava_generator_up_t2": {
-      "textures": "textures/blocks/lava_generator_up_t2"
+      "textures": "textures/blocks/laboratory_up_t2"
     },
     "skygear_lava_generator_up_t3": {
-      "textures": "textures/blocks/lava_generator_up_t3"
+      "textures": "textures/blocks/laboratory_up_t3"
+    },
+    "skygear_lead_ore": {
+      "textures": "textures/blocks/lead_ore"
     },
     "skygear_magic_sieve": {
       "textures": "textures/blocks/huge_fungus/crimson_planks"
     },
     "skygear_mob_simulator_back": {
-      "textures": "textures/blocks/mob_simulator_back"
+      "textures": "textures/blocks/alloy_smelter_back"
     },
     "skygear_mob_simulator_back_t1": {
-      "textures": "textures/blocks/mob_simulator_back_t1"
+      "textures": "textures/blocks/alloy_smelter_back_t1"
     },
     "skygear_mob_simulator_back_t2": {
-      "textures": "textures/blocks/mob_simulator_back_t2"
+      "textures": "textures/blocks/alloy_smelter_back_t2"
     },
     "skygear_mob_simulator_back_t3": {
-      "textures": "textures/blocks/mob_simulator_back_t3"
+      "textures": "textures/blocks/alloy_smelter_back_t3"
     },
     "skygear_mob_simulator_down": {
-      "textures": "textures/blocks/mob_simulator_down"
+      "textures": "textures/blocks/alloy_smelter_down"
     },
     "skygear_mob_simulator_down_t1": {
-      "textures": "textures/blocks/mob_simulator_down_t1"
+      "textures": "textures/blocks/alloy_smelter_down_t1"
     },
     "skygear_mob_simulator_down_t2": {
-      "textures": "textures/blocks/mob_simulator_down_t2"
+      "textures": "textures/blocks/alloy_smelter_down_t2"
     },
     "skygear_mob_simulator_down_t3": {
-      "textures": "textures/blocks/mob_simulator_down_t3"
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "skygear_mob_simulator_front": {
       "textures": "textures/blocks/mob_simulator_front"
@@ -908,52 +899,100 @@
       "textures": "textures/blocks/mob_simulator_front_t3"
     },
     "skygear_mob_simulator_side": {
-      "textures": "textures/blocks/mob_simulator_side"
+      "textures": "textures/blocks/alloy_smelter_side"
     },
     "skygear_mob_simulator_side_t1": {
-      "textures": "textures/blocks/mob_simulator_side_t1"
+      "textures": "textures/blocks/alloy_smelter_side_t1"
     },
     "skygear_mob_simulator_side_t2": {
-      "textures": "textures/blocks/mob_simulator_side_t2"
+      "textures": "textures/blocks/alloy_smelter_side_t2"
     },
     "skygear_mob_simulator_side_t3": {
-      "textures": "textures/blocks/mob_simulator_side_t3"
+      "textures": "textures/blocks/alloy_smelter_side_t3"
     },
     "skygear_mob_simulator_up": {
-      "textures": "textures/blocks/mob_simulator_up"
+      "textures": "textures/blocks/alloy_smelter_up"
     },
     "skygear_mob_simulator_up_t1": {
-      "textures": "textures/blocks/mob_simulator_up_t1"
+      "textures": "textures/blocks/alloy_smelter_up_t1"
     },
     "skygear_mob_simulator_up_t2": {
-      "textures": "textures/blocks/mob_simulator_up_t2"
+      "textures": "textures/blocks/alloy_smelter_up_t2"
     },
     "skygear_mob_simulator_up_t3": {
-      "textures": "textures/blocks/mob_simulator_up_t3"
+      "textures": "textures/blocks/alloy_smelter_up_t3"
+    },
+    "skygear_net_autocrafter_back": {
+      "textures": "textures/blocks/net_autocrafter_back"
+    },
+    "skygear_net_autocrafter_down": {
+      "textures": "textures/blocks/net_autocrafter_down"
+    },
+    "skygear_net_autocrafter_front": {
+      "textures": "textures/blocks/net_autocrafter_back"
+    },
+    "skygear_net_autocrafter_side": {
+      "textures": "textures/blocks/net_autocrafter_back"
+    },
+    "skygear_net_autocrafter_up": {
+      "textures": "textures/blocks/net_autocrafter_up"
+    },
+    "skygear_net_cable": {
+      "textures": "textures/blocks/net_cable"
+    },
+    "skygear_net_controller_down": {
+      "textures": "textures/blocks/disk_drive_down"
+    },
+    "skygear_net_controller_side": {
+      "textures": "textures/blocks/net_controller_side"
+    },
+    "skygear_net_controller_up": {
+      "textures": "textures/blocks/net_controller_side"
+    },
+    "skygear_net_exporter_border": {
+      "textures": "textures/blocks/net_exporter_border"
+    },
+    "skygear_net_external_border": {
+      "textures": "textures/blocks/net_external_border"
+    },
+    "skygear_net_importer_border": {
+      "textures": "textures/blocks/net_importer_border"
+    },
+    "skygear_net_terminal_down": {
+      "textures": "textures/blocks/disk_drive_down"
+    },
+    "skygear_net_terminal_side": {
+      "textures": "textures/blocks/net_terminal_side"
+    },
+    "skygear_net_terminal_up": {
+      "textures": "textures/blocks/net_terminal_up"
+    },
+    "skygear_nickel_ore": {
+      "textures": "textures/blocks/nickel_ore"
     },
     "skygear_ore_washer_back": {
-      "textures": "textures/blocks/ore_washer_back"
+      "textures": "textures/blocks/item_vacuum_side"
     },
     "skygear_ore_washer_back_t1": {
-      "textures": "textures/blocks/ore_washer_back_t1"
+      "textures": "textures/blocks/item_vacuum_side_t1"
     },
     "skygear_ore_washer_back_t2": {
-      "textures": "textures/blocks/ore_washer_back_t2"
+      "textures": "textures/blocks/item_vacuum_side_t2"
     },
     "skygear_ore_washer_back_t3": {
-      "textures": "textures/blocks/ore_washer_back_t3"
+      "textures": "textures/blocks/item_vacuum_side_t3"
     },
     "skygear_ore_washer_down": {
-      "textures": "textures/blocks/ore_washer_down"
+      "textures": "textures/blocks/alloy_smelter_down"
     },
     "skygear_ore_washer_down_t1": {
-      "textures": "textures/blocks/ore_washer_down_t1"
+      "textures": "textures/blocks/alloy_smelter_down_t1"
     },
     "skygear_ore_washer_down_t2": {
-      "textures": "textures/blocks/ore_washer_down_t2"
+      "textures": "textures/blocks/alloy_smelter_down_t2"
     },
     "skygear_ore_washer_down_t3": {
-      "textures": "textures/blocks/ore_washer_down_t3"
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "skygear_ore_washer_front": {
       "textures": "textures/blocks/ore_washer_front"
@@ -980,16 +1019,16 @@
       "textures": "textures/blocks/ore_washer_front_t3"
     },
     "skygear_ore_washer_side": {
-      "textures": "textures/blocks/ore_washer_side"
+      "textures": "textures/blocks/alloy_smelter_side"
     },
     "skygear_ore_washer_side_t1": {
-      "textures": "textures/blocks/ore_washer_side_t1"
+      "textures": "textures/blocks/alloy_smelter_side_t1"
     },
     "skygear_ore_washer_side_t2": {
-      "textures": "textures/blocks/ore_washer_side_t2"
+      "textures": "textures/blocks/alloy_smelter_side_t2"
     },
     "skygear_ore_washer_side_t3": {
-      "textures": "textures/blocks/ore_washer_side_t3"
+      "textures": "textures/blocks/alloy_smelter_side_t3"
     },
     "skygear_ore_washer_up": {
       "textures": "textures/blocks/ore_washer_up"
@@ -1002,6 +1041,15 @@
     },
     "skygear_ore_washer_up_t3": {
       "textures": "textures/blocks/ore_washer_up_t3"
+    },
+    "skygear_pattern_encoder_down": {
+      "textures": "textures/blocks/disk_drive_down"
+    },
+    "skygear_pattern_encoder_side": {
+      "textures": "textures/blocks/pattern_encoder_side"
+    },
+    "skygear_pattern_encoder_up": {
+      "textures": "textures/blocks/net_terminal_up"
     },
     "skygear_plant_ess_blaze_0": {
       "textures": "textures/blocks/plant_ess_blaze_0"
@@ -1219,6 +1267,15 @@
     "skygear_plant_ore_tin_1": {
       "textures": "textures/blocks/plant_ore_tin_1"
     },
+    "skygear_relic_table_down": {
+      "textures": "textures/blocks/relic_table_down"
+    },
+    "skygear_relic_table_side": {
+      "textures": "textures/blocks/relic_table_side"
+    },
+    "skygear_relic_table_up": {
+      "textures": "textures/blocks/relic_table_up"
+    },
     "skygear_research_table_down": {
       "textures": "textures/blocks/research_table_down"
     },
@@ -1267,6 +1324,12 @@
     "skygear_sieve_nomesh": {
       "textures": "textures/blocks/sieve_nomesh"
     },
+    "skygear_silver_ore": {
+      "textures": "textures/blocks/silver_ore"
+    },
+    "skygear_tin_ore": {
+      "textures": "textures/blocks/tin_ore"
+    },
     "skygear_tinker_table_down": {
       "textures": "textures/blocks/tinker_table_down"
     },
@@ -1277,16 +1340,16 @@
       "textures": "textures/blocks/tinker_table_up"
     },
     "skygear_tree_feller_down": {
-      "textures": "textures/blocks/tree_feller_down"
+      "textures": "textures/blocks/alloy_smelter_down"
     },
     "skygear_tree_feller_down_t1": {
-      "textures": "textures/blocks/tree_feller_down_t1"
+      "textures": "textures/blocks/alloy_smelter_down_t1"
     },
     "skygear_tree_feller_down_t2": {
-      "textures": "textures/blocks/tree_feller_down_t2"
+      "textures": "textures/blocks/alloy_smelter_down_t2"
     },
     "skygear_tree_feller_down_t3": {
-      "textures": "textures/blocks/tree_feller_down_t3"
+      "textures": "textures/blocks/alloy_smelter_down_t3"
     },
     "skygear_tree_feller_side": {
       "textures": "textures/blocks/tree_feller_side"
@@ -1313,79 +1376,16 @@
       "textures": "textures/blocks/tree_feller_side_t3"
     },
     "skygear_tree_feller_up": {
-      "textures": "textures/blocks/tree_feller_up"
+      "textures": "textures/blocks/alloy_smelter_up"
     },
     "skygear_tree_feller_up_t1": {
-      "textures": "textures/blocks/tree_feller_up_t1"
+      "textures": "textures/blocks/alloy_smelter_up_t1"
     },
     "skygear_tree_feller_up_t2": {
-      "textures": "textures/blocks/tree_feller_up_t2"
+      "textures": "textures/blocks/alloy_smelter_up_t2"
     },
     "skygear_tree_feller_up_t3": {
-      "textures": "textures/blocks/tree_feller_up_t3"
-    },
-    "skygear_net_controller_down": {
-      "textures": "textures/blocks/net_controller_down"
-    },
-    "skygear_net_controller_side": {
-      "textures": "textures/blocks/net_controller_side"
-    },
-    "skygear_net_controller_up": {
-      "textures": "textures/blocks/net_controller_up"
-    },
-    "skygear_net_cable": {
-      "textures": "textures/blocks/net_cable"
-    },
-    "skygear_net_importer_border": {
-      "textures": "textures/blocks/net_importer_border"
-    },
-    "skygear_net_exporter_border": {
-      "textures": "textures/blocks/net_exporter_border"
-    },
-    "skygear_net_external_border": {
-      "textures": "textures/blocks/net_external_border"
-    },
-    "skygear_disk_drive_down": {
-      "textures": "textures/blocks/disk_drive_down"
-    },
-    "skygear_disk_drive_side": {
-      "textures": "textures/blocks/disk_drive_side"
-    },
-    "skygear_disk_drive_up": {
-      "textures": "textures/blocks/disk_drive_up"
-    },
-    "skygear_net_terminal_down": {
-      "textures": "textures/blocks/net_terminal_down"
-    },
-    "skygear_net_terminal_side": {
-      "textures": "textures/blocks/net_terminal_side"
-    },
-    "skygear_net_terminal_up": {
-      "textures": "textures/blocks/net_terminal_up"
-    },
-    "skygear_pattern_encoder_down": {
-      "textures": "textures/blocks/pattern_encoder_down"
-    },
-    "skygear_pattern_encoder_side": {
-      "textures": "textures/blocks/pattern_encoder_side"
-    },
-    "skygear_pattern_encoder_up": {
-      "textures": "textures/blocks/pattern_encoder_up"
-    },
-    "skygear_net_autocrafter_back": {
-      "textures": "textures/blocks/net_autocrafter_back"
-    },
-    "skygear_net_autocrafter_down": {
-      "textures": "textures/blocks/net_autocrafter_down"
-    },
-    "skygear_net_autocrafter_front": {
-      "textures": "textures/blocks/net_autocrafter_front"
-    },
-    "skygear_net_autocrafter_side": {
-      "textures": "textures/blocks/net_autocrafter_side"
-    },
-    "skygear_net_autocrafter_up": {
-      "textures": "textures/blocks/net_autocrafter_up"
+      "textures": "textures/blocks/alloy_smelter_up_t3"
     },
     "skygear_wood_hopper": {
       "textures": "textures/blocks/planks_oak"

@@ -3,9 +3,12 @@ package skygear
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/draw"
 	"image/png"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -579,5 +582,49 @@ func TestParticleTexturesMatchUV(t *testing.T) {
 		if uv := pe.P.C.B.UV; cfg.Width != uv.W || cfg.Height != uv.H {
 			t.Errorf("%s: texture is %dx%d, uv says %dx%d", rel, cfg.Width, cfg.Height, uv.W, uv.H)
 		}
+	}
+}
+
+// TestPackBlockTexturesUnique: no two block textures of the terrain atlas
+// are the same picture, unless another pack file names both (the texture
+// tools write copies; go run ./tools/texdedup assets/resourcepack/skygear
+// merges them).
+func TestPackBlockTexturesUnique(t *testing.T) {
+	var atlas packAtlas
+	readPackJSON(t, "textures/terrain_texture.json", &atlas)
+	others := map[string]bool{}
+	_ = filepath.WalkDir(packDir, func(p string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".json") || strings.HasSuffix(p, "terrain_texture.json") {
+			return err
+		}
+		b, _ := os.ReadFile(p)
+		for _, m := range regexp.MustCompile(`textures/blocks/[^".]+`).FindAll(b, -1) {
+			others[string(m)] = true
+		}
+		return nil
+	})
+	byPixels := map[string]string{}
+	for _, e := range atlas.TextureData {
+		p := e.Textures
+		if !strings.HasPrefix(p, "textures/blocks/") || !packFileExists(p+".png") {
+			continue
+		}
+		f, err := os.Open(filepath.Join(packDir, p+".png"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		img, err := png.Decode(f)
+		f.Close()
+		if err != nil {
+			t.Fatalf("%s: %v", p, err)
+		}
+		b := img.Bounds()
+		rgba := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(rgba, rgba.Bounds(), img, b.Min, draw.Src)
+		key := fmt.Sprint(b.Size()) + string(rgba.Pix)
+		if q, ok := byPixels[key]; ok && q != p && !(others[p] && others[q]) {
+			t.Errorf("%s.png and %s.png are the same picture (go run ./tools/texdedup assets/resourcepack/skygear)", min(p, q), max(p, q))
+		}
+		byPixels[key] = p
 	}
 }

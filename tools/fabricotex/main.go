@@ -2,10 +2,11 @@
 // Nihilo Fabrico (https://github.com/SirLyle/ExNihiloFabrico, MIT, see
 // third_party/licenses/ExNihiloFabrico-MIT.txt):
 //
-//   - models/blocks/{sieve,auto_sieve,magic_sieve}.geo.json: Fabrico's sieve
-//     and mesh models plus a content cube per fill height, as
-//     geometry.skygear_<kind>_<fill> with material instances "*",
-//     "mesh" and "content".
+//   - models/blocks/sieve.geo.json: Fabrico's sieve and mesh models (bone
+//     root) and a content cube per fill height (bones content_1 to
+//     content_8), as geometry.skygear_sieve with material instances "*",
+//     "mesh" and "content". Every sieve kind uses it and shows the content
+//     of its fill with bone_visibility (content/skygear/machine/sieve.go).
 //   - textures/blocks/sieve_mesh*.png and textures/items/mesh_*.png: Fabrico
 //     tints white wool per mesh, so its rods are drawn top-down as a 16×16
 //     picture in each mesh's colour.
@@ -46,9 +47,6 @@ var meshes = []struct {
 
 func rgb(v uint32) color.RGBA { return color.RGBA{uint8(v >> 16), uint8(v >> 8), uint8(v), 255} }
 
-// kinds are the sieves sharing the model.
-var kinds = []string{"sieve", "auto_sieve", "magic_sieve"}
-
 // sieveStages is the number of content heights (sieve.go).
 const sieveStages = 8
 
@@ -81,9 +79,7 @@ func main() {
 	frame := loadModel(filepath.Join(src, assets, "models/block/sieve.json"))
 	rods := loadModel(filepath.Join(src, assets, "models/item/mesh.json"))
 	writeTextures(pack, rods)
-	for _, k := range kinds {
-		writeGeometry(pack, k, frame, rods)
-	}
+	writeGeometry(pack, frame, rods)
 }
 
 // along tells a rod along z (true) from one along x.
@@ -148,7 +144,6 @@ func tint(base *image.RGBA, c color.RGBA) *image.RGBA {
 func writeTextures(pack string, rods []element) {
 	base := meshBase(rods)
 	tex := filepath.Join(pack, "textures")
-	imgio.Save(filepath.Join(tex, "blocks/sieve_mesh.png"), base)
 	imgio.Save(filepath.Join(tex, "blocks/sieve_nomesh.png"), image.NewRGBA(base.Bounds()))
 	for _, m := range meshes {
 		img := tint(base, m.col)
@@ -253,37 +248,35 @@ func contentCube(fill int) cubeJSON {
 	return c
 }
 
-func writeGeometry(pack, kind string, frame, rods []element) {
-	var geos []any
-	for fill := 0; fill <= sieveStages; fill++ {
-		var cubes []cubeJSON
-		for _, e := range frame {
-			cubes = append(cubes, cube(e.From, e.To, faceNames(e), autoUV(e.From, e.To)))
-		}
-		for _, r := range rods {
-			cubes = append(cubes, rodCube(r))
-		}
-		if fill > 0 {
-			cubes = append(cubes, contentCube(fill))
-		}
-		geos = append(geos, map[string]any{
-			"description": map[string]any{
-				"identifier":            fmt.Sprintf("geometry.skygear_%s_%d", kind, fill),
-				"texture_width":         16,
-				"texture_height":        16,
-				"visible_bounds_width":  2,
-				"visible_bounds_height": 2,
-				"visible_bounds_offset": []float64{0, 0.5, 0},
-			},
-			"bones": []any{map[string]any{"name": "root", "pivot": []float64{0, 0, 0}, "cubes": cubes}},
-		})
+func writeGeometry(pack string, frame, rods []element) {
+	var root []cubeJSON
+	for _, e := range frame {
+		root = append(root, cube(e.From, e.To, faceNames(e), autoUV(e.From, e.To)))
 	}
+	for _, r := range rods {
+		root = append(root, rodCube(r))
+	}
+	bones := []any{map[string]any{"name": "root", "pivot": []float64{0, 0, 0}, "cubes": root}}
+	for fill := 1; fill <= sieveStages; fill++ {
+		bones = append(bones, map[string]any{"name": fmt.Sprintf("content_%d", fill), "pivot": []float64{0, 0, 0}, "cubes": []cubeJSON{contentCube(fill)}})
+	}
+	geos := []any{map[string]any{
+		"description": map[string]any{
+			"identifier":            "geometry.skygear_sieve",
+			"texture_width":         16,
+			"texture_height":        16,
+			"visible_bounds_width":  2,
+			"visible_bounds_height": 2,
+			"visible_bounds_offset": []float64{0, 0.5, 0},
+		},
+		"bones": bones,
+	}}
 	doc := map[string]any{"format_version": "1.12.0", "minecraft:geometry": geos}
 	enc, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile(filepath.Join(pack, "models/blocks", kind+".geo.json"), append(enc, '\n'), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(pack, "models/blocks/sieve.geo.json"), append(enc, '\n'), 0o644); err != nil {
 		panic(err)
 	}
 }
