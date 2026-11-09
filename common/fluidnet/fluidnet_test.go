@@ -59,7 +59,7 @@ func TestStepMovesFluid(t *testing.T) {
 	b := &tank{cap: 100000, sink: true}
 	w := fakeWorld{{0, 0, 0}: src, {1, 0, 0}: pipe{}, {1, 0, 1}: a, {1, 0, -1}: b, {2, 0, 0}: &tank{kind: Water, amount: 5, cap: 100, sink: true}}
 	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Place(w, cube.Pos{1, 0, 0}, None, 0)
 	moved := g.Step(w)
 	if budget := RateOf(1) * StepTicks; moved != budget {
 		t.Fatalf("moved %d, want the budget %d", moved, budget)
@@ -86,7 +86,7 @@ func fluidSetup() (fakeWorld, *tank, *tank, *Grid) {
 	a := &tank{cap: 100000, sink: true}
 	w := fakeWorld{{0, 0, 0}: src, {1, 0, 0}: pipe{}, {1, 0, 1}: a}
 	g := NewGrid()
-	g.AddConduit(cube.Pos{1, 0, 0})
+	g.Place(w, cube.Pos{1, 0, 0}, None, 0)
 	return w, src, a, g
 }
 
@@ -95,7 +95,7 @@ func TestPlacedTankJoinsNextStep(t *testing.T) {
 	g.Step(w)
 	b := &tank{cap: 100000, sink: true}
 	w[cube.Pos{1, 0, -1}] = b
-	g.Invalidate()
+	g.Changed(w, cube.Pos{1, 0, -1})
 	g.Step(w)
 	if b.amount == 0 {
 		t.Error("the placed tank got nothing")
@@ -106,7 +106,7 @@ func TestBrokenTankLeavesNextStep(t *testing.T) {
 	w, _, a, g := fluidSetup()
 	g.Step(w)
 	delete(w, cube.Pos{1, 0, 1})
-	g.Invalidate()
+	g.Changed(w, cube.Pos{1, 0, 1})
 	before := a.amount
 	g.Step(w)
 	if a.amount != before {

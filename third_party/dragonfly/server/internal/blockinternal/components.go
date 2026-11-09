@@ -1,6 +1,9 @@
 package blockinternal
 
 import (
+	"maps"
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
@@ -50,8 +53,14 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 		})
 	}
 	if permutable, ok := b.(block.Permutable); ok {
-		for name, values := range permutable.States() {
-			builder.AddProperty(name, values)
+		// skygear patch: the properties in the order of their names, not of the
+		// map. The client numbers a block's states as every combination of the
+		// values, the property first by name changing slowest (the order of the
+		// vanilla palette), and the server numbers them by registration; sending
+		// them sorted keeps the definition in that same order every time.
+		states := permutable.States()
+		for _, name := range slices.Sorted(maps.Keys(states)) {
+			builder.AddProperty(name, states[name])
 		}
 		for _, permutation := range permutable.Permutations() {
 			builder.AddPermutation(permutation.Condition, componentsFromProperties(permutation.Properties))
@@ -79,6 +88,15 @@ func componentsFromProperties(props customblock.Properties) map[string]any {
 		components["minecraft:geometry"] = map[string]any{"identifier": props.Geometry}
 	} else if props.Cube {
 		components["minecraft:geometry"] = map[string]any{"identifier": "minecraft:geometry.full_block"}
+	}
+	if geometry, ok := components["minecraft:geometry"].(map[string]any); ok && len(props.BoneVisibility) > 0 {
+		// skygear patch: bone_visibility, each bone a Molang expression ("true" and "false" are
+		// constants) the client evaluates per block state.
+		visibility := make(map[string]any, len(props.BoneVisibility))
+		for bone, expression := range props.BoneVisibility {
+			visibility[bone] = expression
+		}
+		geometry["bone_visibility"] = visibility
 	}
 	if props.MapColour != "" {
 		components["minecraft:map_color"] = map[string]any{"value": props.MapColour}

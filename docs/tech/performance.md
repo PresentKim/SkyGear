@@ -79,9 +79,28 @@ Flate 압축 수준 (128KB): 1단계 1.17ms 16952B, 3단계 1.82ms 15553B, 6단�
 프로파일: `platform.toml` 에 `[Debug]` `Pprof = "127.0.0.1:6060"` 을 적고 서버를 띄운 뒤
 `go tool pprof http://127.0.0.1:6060/debug/pprof/profile?seconds=30`(CPU), `.../debug/pprof/heap`(메모리)을 연다.
 
-재지 않은 것: 네트워크 토폴로지 캐시(벤치마크가 도관을 등록하지 않음), 증분 저장 중 멈춤, 모든 팩을 켠 시작 시간, 클라이언트 FPS.
+## 도관 망 그래프화 (2026-11)
+
+도관 망을 틱 대신 블록 변경 이벤트로 고친다(`common/netgraph`, [conduits.md](conduits.md)). 기준선과 측정 방법은 `docs/plans/2026-11-08-netgraph-baseline.md`.
+
+| 항목 | 이전 | 이후 |
+|---|---|---|
+| ConduitTick (도관 1,024) | 258,522ns, 1,054 allocs | 155,469ns, 1,029 allocs |
+| 변화 없는 2분 동안 전체 재스캔 | 51번 | 0번 |
+| 기계 작동 표시 변경 16번의 재스캔 | 29번 | 0번 |
+| OneChange 지난 도관 (망 16개 중 하나) | 1,024 | 3.4 (검증 평균; 끝 도관 부수기·놓기는 0) |
+| GridStep 에너지 cached | 74,833ns | 5,249ns (목표 30µs 달성) |
+| GridStep 에너지 부수기+놓기 1번 + Step | 1,215,580ns (전체 재스캔) | 77,975ns |
+
+재지 않은 것: 증분 저장 중 멈춤, 모든 팩을 켠 시작 시간, 클라이언트 FPS.
 
 알려진 한계:
 - 수정된 칼럼이 `16 × SaveInterval` 개를 넘으면 일부 저장이 한 주기를 넘겨 늦어진다(`Close` 는 전부 저장).
 - 블록 엔티티는 아직 서브청크 요청마다 인코딩한다.
 - N3 은 하지 않았다.
+
+## 접속 시간 기록 (join timing)
+
+플레이어가 접속해 클라이언트 로딩 화면이 닫히면 INFO 줄 하나를 남긴다: `msg="join timing" player=… probe=<off|pair2> total_ms=… connect_to_packs_ms=… to_start_game_ms=… client_load_ms=…`(`common/sghook/jointiming.go`). 표시는 Login 처리(`Allower`) → 리소스팩 완료(`Accept`) → StartGame 보냄(`StartGameContext` 시작) → 클라이언트의 SetLocalPlayerAsInitialised(`StartGameContext` 반환) 네 곳이고, `client_load_ms`(StartGame 보낸 뒤 로딩이 끝날 때까지)가 블록 상태·퍼뮤테이션 수에 따라 커지는 값이다. 팩 내려받기 단계는 gophertunnel 안에서 처리돼 따로 보이지 않아 `packs_ms` 는 없고 `connect_to_packs_ms` 에 로그인부터 팩 완료까지가 합쳐진다. 비교하려면 같은 클라이언트·같은 기기로 `SKYGEAR_STATE_PROBE` 를 비우고(off), `pair2` 로 서버를 다시 띄워 접속하고(캐시 영향을 줄이려면 매번 두 번째 접속 값을 쓰거나 클라이언트 팩 캐시를 비운다) 여러 번 잰 `client_load_ms` 를 견준다. 시작할 때 `custom blocks` 줄이 등록된 커스텀 블록·상태·퍼뮤테이션 수를 한 번 남긴다. 연결이 로딩 전에 끊기면 줄을 남기지 않는다.
+
+상태 수 시험은 도관을 블록으로 그리기로 정하면서 `pair2` 하나만 남겼다. `perm`·`bones`·`single4`·`same4`·`all4`·`all4split`·`pair2ab`·`pair2bits` 모드와 `/sgdebug layers`(레이어 시험 블록), `/sgdebug fill` 의 `layers`·`pair` 는 지웠다. 잰 값은 그대로 둔다: 기존(엔티티로 그림) `client_load_ms` 4,005, `pair2`(블록 2개, 블록마다 상태 37,249개, 합 74,498) 9,019(+5.0초). 채운 칸 12,083개에서 FPS 는 엔티티 7~20, 블록 `pair2` 184(1% low 60). `pair2` 는 블록 A 에 에너지+아이템, 블록 B 에 유체+네트워크를 그리고 상태는 블록마다 정수 하나(`a*193+b`)이며 레이어 0부터 놓는다. `/sgdebug fill <반지름> <초> entity|block`(`block` 은 `SKYGEAR_STATE_PROBE=pair2` 일 때만)과 `/sgdebug fill stop` 은 남았다.

@@ -199,11 +199,13 @@ func (s *session) Autosave(tx *world.Tx) {
 	// Disk contents changed since the controller last flushed them are part
 	// of the save.
 	netstore.Disks(s.Session).Flush()
+	conduit.WriteShares(s.Session, tx)
 	s.Flush()
 }
 
 func (s *session) Close(tx *world.Tx) {
 	storage.RemoveDisplays(s.Session, tx)
+	conduit.WriteShares(s.Session, tx)
 	conduit.RemoveVisuals(s.Session, tx)
 	netstore.Disks(s.Session).Flush()
 	s.Session.Close()
