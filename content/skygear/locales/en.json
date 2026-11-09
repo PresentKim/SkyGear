@@ -927,6 +927,7 @@
  "setting.advancement.panel": "Show the advancement panel",
  "setting.vein.diagonal": "Vein mining includes diagonals",
  "setting.autotool": "Hold the right tool automatically",
+ "setting.bridge": "Bridging assist (place blocks on the air)",
  "hammer.vein.hungry": "§cNot enough food.",
  "menu.lobbyConfirm.title": "To lobby",
  "menu.lobbyConfirm.body": "Leave for the lobby?",
