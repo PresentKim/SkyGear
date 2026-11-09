@@ -16,7 +16,9 @@ import (
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // eyeAt returns a player position whose eyes are dist blocks north of the
@@ -157,16 +159,31 @@ func TestFurnaceArrow(t *testing.T) {
 	}
 }
 
-// TestCustomTool: our blocks show a fitting tool, marked when held.
-func TestCustomTool(t *testing.T) {
-	if got := look.CustomTool(storage.Drawer{}, item.Stack{}); len(got) != 1 || got[0].Tool != waila.AxeWood || got[0].Mark != waila.MarkNone {
-		t.Errorf("drawer by hand: %v", got)
+// TestCustomBlockTools: our blocks show the tool that mines them faster,
+// by what they are made of, marked when held; a vanilla block keeps its own.
+func TestCustomBlockTools(t *testing.T) {
+	iron := func(it world.Item) item.Stack { return item.NewStack(it, 1) }
+	for _, c := range []struct {
+		name string
+		b    world.Block
+		want waila.Tool
+	}{
+		{"drawer", storage.Drawer{}, waila.AxeWood},
+		{"sieve", machine.Machine{Kind: machine.KindSieve}, waila.AxeWood},
+		{"crusher", machine.Machine{Kind: machine.KindCrusher}, waila.PickaxeWood},
+		{"oak barrel", farm.Barrel{Wood: "oak"}, waila.AxeWood},
+		{"stone barrel", farm.Barrel{Wood: farm.StoneWood}, waila.PickaxeWood},
+		{"dust", sgitem.Dust{}, waila.Shovel},
+	} {
+		if got := waila.ToolsFor(c.b, item.Stack{}); len(got) != 1 || got[0].Tool != c.want || got[0].Mark != waila.MarkNone {
+			t.Errorf("%s by hand: %v, want %v", c.name, got, c.want)
+		}
 	}
-	if got := look.CustomTool(machine.Machine{Kind: machine.KindCrusher}, item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)); len(got) != 1 || got[0].Mark != waila.MarkRight {
+	if got := waila.ToolsFor(machine.Machine{Kind: machine.KindCrusher}, iron(item.Pickaxe{Tier: item.ToolTierIron})); len(got) != 1 || got[0].Mark != waila.MarkRight {
 		t.Errorf("machine with a pickaxe: %v", got)
 	}
-	if got := look.CustomTool(block.Stone{}, item.Stack{}); got != nil {
-		t.Errorf("stone: %v", got)
+	if got := waila.ToolsFor(storage.Drawer{}, iron(tinker.Tool{Kind: tinker.ToolAxe, Head: "iron", Handle: "wood"})); len(got) != 1 || got[0].Mark != waila.MarkRight {
+		t.Errorf("drawer with a tinker axe: %v", got)
 	}
 }
 

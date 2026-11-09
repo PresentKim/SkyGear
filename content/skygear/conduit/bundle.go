@@ -96,7 +96,7 @@ func (b Bundle) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 3,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   blockmodel.PickaxeEffective,
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			var out []item.Stack
 			if b.Energy > 0 {

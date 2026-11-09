@@ -170,7 +170,7 @@ func (h FlowHopper) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 2, BlastResistance: 4,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   blockmodel.WoodEffective(h.Info() != nil && h.Info().Wood),
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(NewFlowHopper(h.Kind, cube.FaceDown), 1)}
 			if h.Inv != nil {

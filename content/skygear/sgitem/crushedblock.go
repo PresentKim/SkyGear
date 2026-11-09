@@ -54,11 +54,18 @@ func (c CrushedBlock) Properties() customblock.Properties {
 	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": blockmodel.SolidMaterial("skygear_crushed_" + c.Kind)}}
 }
 
+// crushedEffective is the shovel for dust and the crushed blocks, as for
+// sand and gravel, and the hammer, which lists them in its speeds.
+func crushedEffective(t item.Tool) bool {
+	_, hammer := t.(Hammer)
+	return hammer || blockmodel.ShovelEffective(t)
+}
+
 func (c CrushedBlock) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 0.6, BlastResistance: 0.6,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   crushedEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{item.NewStack(c, 1)} },
 	}
 }
