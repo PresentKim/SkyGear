@@ -29,6 +29,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
 // handler handles a player's events inside a skygear instance.
@@ -114,6 +115,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		return
 	}
 	achievement.Count(ctx.Player(), "block_place", 1)
+	if held, _ := ctx.Player().HeldItems(); held.Count() == 1 {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
+	}
 	if kind, _, ok := farm.CropOf(b); ok {
 		achievement.Count(ctx.Player(), "crop_plant", 1)
 		farm.PlantCrop(h.s.Session, pos, kind)
@@ -164,6 +168,12 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		_, off := p.HeldItems()
 		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
+		return
+	}
+	// The construction wand builds out the face clicked and does nothing else.
+	if _, ok := sgitem.WandOf(held); ok {
+		ctx.Cancel()
+		wand.Use(h.s.Session, p, tx, pos, face, held)
 		return
 	}
 	if storage.SneakUse(h.s.Session, p, tx, pos, held) {
@@ -229,6 +239,10 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, off := ctx.Player().HeldItems()
+	// a thrown snowball, egg or pearl may be the last of the stack
+	if held.Count() == 1 {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
+	}
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
@@ -251,6 +265,10 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
+	}
+	// The construction wand used on the air while sneaking shows its settings.
+	if _, ok := sgitem.WandOf(held); ok && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
+		wand.ShowOptions(h.s.Session, ctx.Player())
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
@@ -332,6 +350,17 @@ func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *i
 	if sgitem.IsIronHammer(it) {
 		*damage = 0
 	}
+	// a held tool that breaks is replaced by another of its kind
+	if held, _ := ctx.Player().HeldItems(); *damage > 0 && it.Durability() >= 0 && *damage >= it.Durability() && sameItemName(held, it) {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
+	}
+}
+
+// sameItemName reports whether a and b are the same item, however worn.
+func sameItemName(a, b item.Stack) bool {
+	n1, m1 := a.Item().EncodeItem()
+	n2, m2 := b.Item().EncodeItem()
+	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
 }
 func (h *handler) HandlePunchAir(ctx *player.Context) {
 	achievement.Count(ctx.Player(), "punch_air", 1)
@@ -339,8 +368,9 @@ func (h *handler) HandlePunchAir(ctx *player.Context) {
 func (h *handler) HandleChat(ctx *player.Context, _ *string) {
 	achievement.Count(ctx.Player(), "chat", 1)
 }
-func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) {
+func (h *handler) HandleItemConsume(ctx *player.Context, it item.Stack) {
 	achievement.Count(ctx.Player(), "eat", 1)
+	core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
 }
 func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 	achievement.Count(ctx.Player(), "pickup", int64(i.Count()))

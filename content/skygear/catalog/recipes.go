@@ -50,6 +50,17 @@ func gameRecipes() {
 		nil, cobble, nil,
 		nil, Stick, cobble,
 		Stick, nil, nil)
+	// The construction wands: the mod's recipe, the head at the top right of
+	// two sticks in a diagonal.
+	for _, w := range []struct {
+		tier string
+		head world.Item
+	}{{sgitem.WandStone, block.Cobblestone{}}, {sgitem.WandIron, item.IronIngot{}}, {sgitem.WandDiamond, item.Diamond{}}, {sgitem.WandInfinity, item.NetheriteIngot{}}} {
+		shaped(st(sgitem.NewWand(w.tier)), 3, 3,
+			nil, nil, w.head,
+			nil, Stick, nil,
+			Stick, nil, nil)
+	}
 	shaped(st(sgitem.Hammer{}), 3, 3,
 		nil, iron, nil,
 		nil, Stick, iron,

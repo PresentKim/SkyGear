@@ -35,6 +35,7 @@ var repos = map[string]repo{
 	"tic":   {"TinkersConstruct", "src/main/resources/assets/tconstruct/textures"},
 	"drawr": {"StorageDrawers", "common/src/main/resources/assets/storagedrawers/textures"},
 	"rs":    {"refinedstorage2", "refinedstorage-common/src/main/resources/assets/refinedstorage/textures"},
+	"cw":    {"ConstructionWand", "src/main/resources/assets/constructionwand/textures"},
 }
 
 // entry is one pack texture: dst under textures/, src as "<repo>:<path>" (no
@@ -123,6 +124,9 @@ var entries = func() []entry {
 	it("kit_2", "mek:item/elite_tier_installer", nil)
 	it("kit_3", "mek:item/ultimate_tier_installer", nil)
 	it("config_copier", "mek:item/configurator_config", nil)
+	for _, t := range []string{"stone", "iron", "diamond", "infinity"} {
+		it(t+"_wand", "cw:item/"+t+"_wand", nil)
+	}
 	it("conduit_binder", "eio:item/conduit_binder", nil)
 	it("conduit_binder_mix", "eio:item/conduit_binder_composite", nil)
 	for _, m := range []string{"tin", "lead", "bronze", "steel"} {
