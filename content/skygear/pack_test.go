@@ -103,7 +103,8 @@ func TestPackHasBlockAssets(t *testing.T) {
 			t.Errorf("terrain %s: missing %s.png", key, e.Textures)
 		}
 	}
-	geometries := map[string]bool{}
+	// geometries are the bones of every block geometry of the pack.
+	geometries := map[string]map[string]bool{}
 	files, _ := filepath.Glob(filepath.Join(packDir, "models/blocks/*.geo.json"))
 	for _, f := range files {
 		var geo struct {
@@ -111,18 +112,33 @@ func TestPackHasBlockAssets(t *testing.T) {
 				Description struct {
 					Identifier string `json:"identifier"`
 				} `json:"description"`
+				Bones []struct {
+					Name string `json:"name"`
+				} `json:"bones"`
 			} `json:"minecraft:geometry"`
 		}
 		rel, _ := filepath.Rel(packDir, f)
 		readPackJSON(t, rel, &geo)
 		for _, g := range geo.Geometry {
-			geometries[g.Description.Identifier] = true
+			bones := map[string]bool{}
+			for _, b := range g.Bones {
+				bones[b.Name] = true
+			}
+			geometries[g.Description.Identifier] = bones
 		}
 	}
 	lang := packLang(t)
 	check := func(id string, props customblock.Properties) {
-		if props.Geometry != "" && !strings.HasPrefix(props.Geometry, "minecraft:") && !geometries[props.Geometry] {
-			t.Errorf("%s: geometry %s not in models/blocks", id, props.Geometry)
+		if props.Geometry != "" && !strings.HasPrefix(props.Geometry, "minecraft:") {
+			bones, ok := geometries[props.Geometry]
+			if !ok {
+				t.Errorf("%s: geometry %s not in models/blocks", id, props.Geometry)
+			}
+			for bone := range props.BoneVisibility {
+				if ok && !bones[bone] {
+					t.Errorf("%s: bone_visibility names %s, not a bone of %s", id, bone, props.Geometry)
+				}
+			}
 		}
 		for target, m := range props.Textures {
 			name := m.Encode()["texture"].(string)

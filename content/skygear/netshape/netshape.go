@@ -183,19 +183,67 @@ func turnBox(f cube.Face, b Box) Box {
 // facing f, with arms toward the sides in mask (bit n: cube.Face(n)). An
 // attachment draws no arm toward its facing.
 func Of(head bool, h Head, f cube.Face, mask int) []Box {
+	parts := Parts(head, h)
+	var out []Box
+	for _, name := range Visible(head, f, mask) {
+		for _, p := range parts {
+			if p.Name == name {
+				out = append(out, p.Boxes...)
+			}
+		}
+	}
+	return out
+}
+
+// Part is a group of boxes drawn together: one bone of a kind's geometry.
+type Part struct {
+	Name  string
+	Boxes []Box
+}
+
+// CoreBone is the part every shape draws; ArmBone(side) is the arm toward a
+// side and HeadBone(f) the head of an attachment facing f.
+const CoreBone = "core"
+
+func ArmBone(side cube.Face) string { return "arm_" + side.String() }
+func HeadBone(f cube.Face) string   { return "head_" + f.String() }
+
+// Parts are every part of a cable (head false) or of an attachment with head
+// h: the core, an arm per side and, for an attachment, a head per facing. A
+// shape draws some of them (Visible), so one geometry with these as bones
+// draws every shape of a kind.
+func Parts(head bool, h Head) []Part {
+	out := []Part{{CoreBone, []Box{core()}}}
+	for _, side := range cube.Faces() {
+		out = append(out, Part{ArmBone(side), []Box{inset(turnBox(side, northArm()))}})
+	}
+	if head {
+		for _, f := range cube.Faces() {
+			var boxes []Box
+			for _, b := range northHead(h) {
+				boxes = append(boxes, inset(turnBox(f, b)))
+			}
+			out = append(out, Part{HeadBone(f), boxes})
+		}
+	}
+	return out
+}
+
+// Visible are the parts the shape draws, in the order of Parts: the core, the
+// arms toward the sides in mask (bit n: cube.Face(n)) and an attachment's
+// head facing f. An attachment draws no arm toward its facing.
+func Visible(head bool, f cube.Face, mask int) []string {
 	if head {
 		mask &^= 1 << f
 	}
-	out := []Box{core()}
+	out := []string{CoreBone}
 	for _, side := range cube.Faces() {
 		if mask&(1<<side) != 0 {
-			out = append(out, inset(turnBox(side, northArm())))
+			out = append(out, ArmBone(side))
 		}
 	}
 	if head {
-		for _, b := range northHead(h) {
-			out = append(out, inset(turnBox(f, b)))
-		}
+		out = append(out, HeadBone(f))
 	}
 	return out
 }
