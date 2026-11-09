@@ -18,7 +18,7 @@ import (
 // Hand-made resources of the start. Chances are drafts.
 //   - A stick used on grass or dirt always drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").
-//   - Stripping a log with a stone or better axe sometimes drops one or two
+//   - Stripping a log with any axe (or other bark stripper) sometimes drops one or two
 //     bark fibers; four fibers make string (research "string").
 //   - Dust is sand crushed once more, sifted for its own drops.
 
@@ -121,23 +121,33 @@ func UseStick(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, fac
 	return true
 }
 
-// StripFiber drops bark fibers by chance when a stone or better axe strips
-// a log (Dragonfly strips it after this).
+// StripFiber drops bark fibers by chance when a bark stripper (any axe, or
+// an item that is a sgitem.BarkStripper) strips a log (Dragonfly strips it
+// after this).
 func StripFiber(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, face cube.Face, held item.Stack) {
-	axe, ok := held.Item().(item.Axe)
-	if !ok {
+	if !StripsBark(held.Item()) {
 		return
 	}
 	if l, ok := tx.Block(pos).(block.Log); !ok || l.Stripped {
 		return
 	}
 	achievement.Count(p, "strip_log", 1)
-	if axe.Tier.HarvestLevel < item.ToolTierStone.HarvestLevel {
-		return
-	}
 	if s.Rand.IntN(100) < FiberChance {
 		s.DropAt(tx, pos.Side(face).Vec3Centre(), item.NewStack(sgitem.BarkFiber{}, 1+s.Rand.IntN(2)))
 	}
+}
+
+// StripsBark reports whether it can shave the bark off a log, the source of
+// bark fibers: every Dragonfly axe of any tier, and any item that says so
+// through sgitem.BarkStripper.
+func StripsBark(it world.Item) bool {
+	switch v := it.(type) {
+	case sgitem.BarkStripper:
+		return v.StripsBark()
+	case item.Axe:
+		return true
+	}
+	return false
 }
 
 // LastStick is when each player last used a stick on the ground.
