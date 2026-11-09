@@ -12,6 +12,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -241,6 +242,13 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if h.useStone(ctx, held) {
 		return
 	}
+	// A block used on the air goes where the bridging assist finds a place
+	// for it (bridge).
+	if p := ctx.Player(); bridge.Place(h.s.Session, p) {
+		ctx.Cancel()
+		h.updateBridge(p, p.Position(), p.Rotation(), true)
+		return
+	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
 	}
@@ -289,6 +297,7 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		ctx.Cancel()
 		return
 	}
+	h.updateBridge(ctx.Player(), newPos, newRot, false)
 	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
 	if newPos.Y() < island.VoidY {
 		ctx.Cancel()
@@ -357,8 +366,22 @@ func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.Wor
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
 	achievement.Count(ctx.Player(), "block_pick", 1)
 }
-func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
+func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, to int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
+	p := ctx.Player()
+	held, _ := p.Inventory().Item(to)
+	if bridge.Update(h.s.Session, p, p.Tx(), p.Position(), p.Rotation(), held, true) {
+		screens.UpdateBoard(h.s.Session, p)
+	}
+}
+
+// updateBridge updates p's bridging assist crosshair mark for p at pos
+// with rotation rot, and the HUD that shows it when it changed.
+func (h *handler) updateBridge(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, force bool) {
+	held, _ := p.HeldItems()
+	if bridge.Update(h.s.Session, p, p.Tx(), pos, rot, held, force) {
+		screens.UpdateBoard(h.s.Session, p)
+	}
 }
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
