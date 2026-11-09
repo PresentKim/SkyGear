@@ -118,7 +118,7 @@ func TestWandPlaceable(t *testing.T) {
 			t.Errorf("%T is placeable", b)
 		}
 	}
-	for _, b := range []world.Block{block.Stone{}, block.Planks{Wood: block.OakWood()}, block.Slab{Block: block.Stone{}}, sgitem.CrushedBlock{Kind: sgitem.CrushedKinds[0]}} {
+	for _, b := range []world.Block{block.Stone{}, block.Planks{Wood: block.OakWood()}, block.Slab{Block: block.Stone{}}, block.Stairs{Block: block.Stone{}}, block.WoodFence{Wood: block.OakWood()}, block.Glass{}, sgitem.CrushedBlock{Kind: sgitem.CrushedKinds[0]}} {
 		if !wand.Placeable(b) {
 			t.Errorf("%T is not placeable", b)
 		}

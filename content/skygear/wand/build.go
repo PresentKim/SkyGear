@@ -61,8 +61,14 @@ func Placeable(b world.Block) bool {
 	case world.CustomBlock:
 		return false
 	}
-	return len(b.Model().BBox(cube.Pos{}, nil)) > 0
+	return len(b.Model().BBox(cube.Pos{}, airSource{})) > 0
 }
+
+// airSource is a world of air, for the models that look at their neighbours
+// (stairs, fences, panes).
+type airSource struct{}
+
+func (airSource) Block(cube.Pos) world.Block { return block.Air{} }
 
 // blockItem is the item of the block b the wand would place, if it may.
 func blockItem(it world.Item) (world.Block, bool) {
