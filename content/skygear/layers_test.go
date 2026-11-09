@@ -19,7 +19,7 @@ var layers = []string{
 	"progress", "island", "climate",
 	// features
 	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
-	"netstore",
+	"netstore", "elevator",
 	// content lists
 	"catalog",
 	// screens
