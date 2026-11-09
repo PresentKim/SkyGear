@@ -1246,9 +1246,6 @@
     "skygear_sieve": {
       "textures": "textures/blocks/planks_oak"
     },
-    "skygear_sieve_mesh": {
-      "textures": "textures/blocks/sieve_mesh"
-    },
     "skygear_sieve_mesh_diamond": {
       "textures": "textures/blocks/sieve_mesh_diamond"
     },

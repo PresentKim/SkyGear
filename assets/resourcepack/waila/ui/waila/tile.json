@@ -717,8 +717,6 @@
 	"generic_container_inventory_item@common.empty_panel": {
 		"size": ["100%c - 1px", "100%c - 1px"],
 
-		"$border_type|default": "center",
-
 		"controls": [
 			{
 				// skygear change: no grey slot borders (the slots show the kinds
@@ -760,56 +758,47 @@
 					"controls": [
 						{
 							"item_0@waila_tile.generic_container_inventory_item": {
-								"$a_index": 0,
-								"$border_type": "top_left"
+								"$a_index": 0
 							}
 						},
 						{
 							"item_1@waila_tile.generic_container_inventory_item": {
-								"$a_index": 1,
-								"$border_type": "top_middle"
+								"$a_index": 1
 							}
 						},
 						{
 							"item_2@waila_tile.generic_container_inventory_item": {
-								"$a_index": 2,
-								"$border_type": "top_middle"
+								"$a_index": 2
 							}
 						},
 						{
 							"item_3@waila_tile.generic_container_inventory_item": {
-								"$a_index": 3,
-								"$border_type": "top_middle"
+								"$a_index": 3
 							}
 						},
 						{
 							"item_4@waila_tile.generic_container_inventory_item": {
-								"$a_index": 4,
-								"$border_type": "top_middle"
+								"$a_index": 4
 							}
 						},
 						{
 							"item_5@waila_tile.generic_container_inventory_item": {
-								"$a_index": 5,
-								"$border_type": "top_middle"
+								"$a_index": 5
 							}
 						},
 						{
 							"item_6@waila_tile.generic_container_inventory_item": {
-								"$a_index": 6,
-								"$border_type": "top_middle"
+								"$a_index": 6
 							}
 						},
 						{
 							"item_7@waila_tile.generic_container_inventory_item": {
-								"$a_index": 7,
-								"$border_type": "top_middle"
+								"$a_index": 7
 							}
 						},
 						{
 							"item_8@waila_tile.generic_container_inventory_item": {
-								"$a_index": 9, //? skipped a_index 8 because it is reserved for block icon
-								"$border_type": "top_right"
+								"$a_index": 9 //? skipped a_index 8 because it is reserved for block icon
 							}
 						}
 					]
@@ -821,56 +810,47 @@
 					"controls": [
 						{
 							"item_10@waila_tile.generic_container_inventory_item": {
-								"$a_index": 10,
-								"$border_type": "left_middle"
+								"$a_index": 10
 							}
 						},
 						{
 							"item_11@waila_tile.generic_container_inventory_item": {
-								"$a_index": 11,
-								"$border_type": "center"
+								"$a_index": 11
 							}
 						},
 						{
 							"item_12@waila_tile.generic_container_inventory_item": {
-								"$a_index": 12,
-								"$border_type": "center"
+								"$a_index": 12
 							}
 						},
 						{
 							"item_13@waila_tile.generic_container_inventory_item": {
-								"$a_index": 13,
-								"$border_type": "center"
+								"$a_index": 13
 							}
 						},
 						{
 							"item_14@waila_tile.generic_container_inventory_item": {
-								"$a_index": 14,
-								"$border_type": "center"
+								"$a_index": 14
 							}
 						},
 						{
 							"item_15@waila_tile.generic_container_inventory_item": {
-								"$a_index": 15,
-								"$border_type": "center"
+								"$a_index": 15
 							}
 						},
 						{
 							"item_16@waila_tile.generic_container_inventory_item": {
-								"$a_index": 16,
-								"$border_type": "center"
+								"$a_index": 16
 							}
 						},
 						{
 							"item_17@waila_tile.generic_container_inventory_item": {
-								"$a_index": 17,
-								"$border_type": "center"
+								"$a_index": 17
 							}
 						},
 						{
 							"item_18@waila_tile.generic_container_inventory_item": {
-								"$a_index": 18,
-								"$border_type": "right_middle"
+								"$a_index": 18
 							}
 						}
 					]
@@ -882,56 +862,47 @@
 					"controls": [
 						{
 							"item_19@waila_tile.generic_container_inventory_item": {
-								"$a_index": 19,
-								"$border_type": "left_middle"
+								"$a_index": 19
 							}
 						},
 						{
 							"item_20@waila_tile.generic_container_inventory_item": {
-								"$a_index": 20,
-								"$border_type": "center"
+								"$a_index": 20
 							}
 						},
 						{
 							"item_21@waila_tile.generic_container_inventory_item": {
-								"$a_index": 21,
-								"$border_type": "center"
+								"$a_index": 21
 							}
 						},
 						{
 							"item_22@waila_tile.generic_container_inventory_item": {
-								"$a_index": 22,
-								"$border_type": "center"
+								"$a_index": 22
 							}
 						},
 						{
 							"item_23@waila_tile.generic_container_inventory_item": {
-								"$a_index": 23,
-								"$border_type": "center"
+								"$a_index": 23
 							}
 						},
 						{
 							"item_24@waila_tile.generic_container_inventory_item": {
-								"$a_index": 24,
-								"$border_type": "center"
+								"$a_index": 24
 							}
 						},
 						{
 							"item_25@waila_tile.generic_container_inventory_item": {
-								"$a_index": 25,
-								"$border_type": "center"
+								"$a_index": 25
 							}
 						},
 						{
 							"item_26@waila_tile.generic_container_inventory_item": {
-								"$a_index": 26,
-								"$border_type": "center"
+								"$a_index": 26
 							}
 						},
 						{
 							"item_27@waila_tile.generic_container_inventory_item": {
-								"$a_index": 27,
-								"$border_type": "right_middle"
+								"$a_index": 27
 							}
 						}
 					]
@@ -952,20 +923,17 @@
 					"controls": [
 						{
 							"item_0@waila_tile.generic_container_inventory_item": {
-								"$a_index": 0,
-								"$border_type": "top_left"
+								"$a_index": 0
 							}
 						},
 						{
 							"item_1@waila_tile.generic_container_inventory_item": {
-								"$a_index": 1,
-								"$border_type": "top_middle"
+								"$a_index": 1
 							}
 						},
 						{
 							"item_2@waila_tile.generic_container_inventory_item": {
-								"$a_index": 2,
-								"$border_type": "top_right"
+								"$a_index": 2
 							}
 						}
 					]
@@ -976,8 +944,7 @@
 					"controls": [
 						{
 							"item_0@waila_tile.generic_container_inventory_item": {
-								"$a_index": 3,
-								"$border_type": "left_middle"
+								"$a_index": 3
 							}
 						},
 						{
@@ -987,8 +954,7 @@
 						},
 						{
 							"item_2@waila_tile.generic_container_inventory_item": {
-								"$a_index": 5,
-								"$border_type": "right_middle"
+								"$a_index": 5
 							}
 						}
 					]
@@ -999,20 +965,17 @@
 					"controls": [
 						{
 							"item_0@waila_tile.generic_container_inventory_item": {
-								"$a_index": 6,
-								"$border_type": "bottom_left"
+								"$a_index": 6
 							}
 						},
 						{
 							"item_1@waila_tile.generic_container_inventory_item": {
-								"$a_index": 7,
-								"$border_type": "bottom_middle"
+								"$a_index": 7
 							}
 						},
 						{
 							"item_2@waila_tile.generic_container_inventory_item": {
-								"$a_index": 9, //? skipped a_index 8 because it is reserved for block icon
-								"$border_type": "bottom_right"
+								"$a_index": 9 //? skipped a_index 8 because it is reserved for block icon
 							}
 						}
 					]
@@ -1033,32 +996,27 @@
 					"controls": [
 						{
 							"item_0@waila_tile.generic_container_inventory_item": {
-								"$a_index": 0,
-								"$border_type": "leftmost"
+								"$a_index": 0
 							}
 						},
 						{
 							"item_1@waila_tile.generic_container_inventory_item": {
-								"$a_index": 1,
-								"$border_type": "middlemost"
+								"$a_index": 1
 							}
 						},
 						{
 							"item_2@waila_tile.generic_container_inventory_item": {
-								"$a_index": 2,
-								"$border_type": "middlemost"
+								"$a_index": 2
 							}
 						},
 						{
 							"item_3@waila_tile.generic_container_inventory_item": {
-								"$a_index": 3,
-								"$border_type": "middlemost"
+								"$a_index": 3
 							}
 						},
 						{
 							"item_4@waila_tile.generic_container_inventory_item": {
-								"$a_index": 4,
-								"$border_type": "rightmost"
+								"$a_index": 4
 							}
 						}
 					]
