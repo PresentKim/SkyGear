@@ -53,6 +53,8 @@ var baseResearchTree = []progress.Research{
 	{ID: "laboratory", Needs: []string{"generator", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:laboratory"}},
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_energy_1", "skygear:conduit_binder_mix"}},
+	{ID: "solar_generator", Needs: []string{"energy_conduit", "glasswork"}, Cost: []progress.Requirement{{Item: block.Glass{}, Count: 16}, {Item: item.IronIngot{}, Count: 8}}, Unlocks: []string{"skygear:solar_generator"}},
+	{ID: "hydro_generator", Needs: []string{"energy_conduit", "bucket"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}, {Item: OakPlanks, Count: 16}}, Unlocks: []string{"skygear:hydro_generator"}},
 	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_item_1", "skygear:conduit_binder_mix"}},
 	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}}, Unlocks: []string{"skygear:conduit_fluid_1", "skygear:conduit_binder_mix"}},
 	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.String{}, Count: 8}}, Unlocks: []string{"skygear:auto_sieve"}},

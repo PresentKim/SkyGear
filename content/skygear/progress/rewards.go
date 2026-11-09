@@ -41,6 +41,8 @@ var Rewards = map[string]map[string]int{
 	"auto_crafter":       {"skygear:auto_crafter": 1},
 	"alloy_smelter":      {"skygear:alloy_smelter": 1},
 	"energy_cell":        {"skygear:energy_cell": 1},
+	"solar_generator":    {"skygear:solar_generator": 1},
+	"hydro_generator":    {"skygear:hydro_generator": 1},
 	"fluid_tank":         {"skygear:fluid_tank": 1},
 	"crucible":           {"skygear:crucible": 1},
 	"lava_generator":     {"skygear:lava_generator": 1},

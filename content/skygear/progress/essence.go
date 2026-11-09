@@ -20,6 +20,7 @@ var EssenceCosts = map[string]map[string]int{
 	// automation
 	"crusher": {sgitem.EssenceEngineering: 4}, "electric_furnace": {sgitem.EssenceEngineering: 4}, "auto_sieve": {sgitem.EssenceEngineering: 4},
 	"auto_miner": {sgitem.EssenceEngineering: 4}, "item_vacuum": {sgitem.EssenceEngineering: 4}, "tree_feller": {sgitem.EssenceEngineering: 4},
+	"solar_generator": {sgitem.EssenceEngineering: 2}, "hydro_generator": {sgitem.EssenceEngineering: 2},
 	"energy_cell": {sgitem.EssenceEngineering: 4}, "tinker_table": {sgitem.EssenceEngineering: 4},
 	"auto_crafter": {sgitem.EssenceEngineering: 6}, "fluid_conduit": {sgitem.EssenceEngineering: 6}, "fluid_tank": {sgitem.EssenceEngineering: 6},
 	"alloy_smelter": {sgitem.EssenceEngineering: 6}, "storage_controller": {sgitem.EssenceEngineering: 6},

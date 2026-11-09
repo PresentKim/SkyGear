@@ -7,6 +7,7 @@
 package climate
 
 import (
+	"math"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/player"
@@ -223,6 +224,55 @@ func ApplySun(s *core.Session, tx *world.Tx) {
 	if d := w.Time() - want; d > 20 || d < -20 {
 		w.SetTime(want)
 	}
+}
+
+// SunTime is the time of day the island's sun shows, in world ticks (0 to
+// 24000, 0 at sunrise): the fixed sun's, or the instance clock's.
+func SunTime(s *core.Session) int {
+	if t, fixed := sunTimes[StateOf(s).Sun]; fixed {
+		return t
+	}
+	_, _, dayTime := s.Clock.Now()
+	if l := s.Clock.DayLength(); l > 0 {
+		return int(dayTime*24000/l) % 24000
+	}
+	return 0
+}
+
+// Daylight is how strong the sunlight is at a time of day, in percent: full
+// at noon (6000), about a fifth at sunrise (0) and at dusk (12000), none from
+// a little after dusk (13000) to a little before sunrise (23000).
+func Daylight(t int) int {
+	u := (t%24000 + 24000 + 1000) % 24000
+	if u >= 14000 {
+		return 0
+	}
+	return int(math.Round(100 * math.Sin(math.Pi*float64(u)/14000)))
+}
+
+// The share of the sunlight that comes through the weather, in percent.
+const (
+	RainLight = 40
+	SnowLight = 60
+)
+
+// WeatherLight is the share of the sunlight that comes through a weather, in
+// percent.
+func WeatherLight(w string) int {
+	switch w {
+	case Rain:
+		return RainLight
+	case Snow:
+		return SnowLight
+	}
+	return 100
+}
+
+// SunLight is the sunlight on the island now, in percent: the sun's height
+// and the weather (solar generators, machine/naturegen.go).
+func SunLight(s *core.Session) int {
+	now, _, _ := s.Clock.Now()
+	return Daylight(SunTime(s)) * WeatherLight(WeatherNow(s, now)) / 100
 }
 
 // CastWeather casts a weather: the same rain or snow adds spellDays, another
