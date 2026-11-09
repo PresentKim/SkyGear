@@ -586,23 +586,46 @@ func TestParticleTexturesMatchUV(t *testing.T) {
 }
 
 // TestPackBlockTexturesUnique: no two block textures of the terrain atlas
-// are the same picture, unless another pack file names both (the texture
-// tools write copies; go run ./tools/texdedup assets/resourcepack/skygear
-// merges them).
+// are the same picture, unless both are named somewhere else in the
+// repository too (the texture tools write copies; go run ./tools/texdedup
+// assets/resourcepack/skygear merges them).
 func TestPackBlockTexturesUnique(t *testing.T) {
 	var atlas packAtlas
 	readPackJSON(t, "textures/terrain_texture.json", &atlas)
+	atlasPath, _ := filepath.Abs(filepath.Join(packDir, "textures/terrain_texture.json"))
 	others := map[string]bool{}
-	_ = filepath.WalkDir(packDir, func(p string, d os.DirEntry, err error) error {
-		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".json") || strings.HasSuffix(p, "terrain_texture.json") {
+	blockPath := regexp.MustCompile(`textures/blocks/[A-Za-z0-9_/-]+`)
+	err := filepath.WalkDir("../..", func(p string, d os.DirEntry, err error) error {
+		if err != nil {
 			return err
 		}
-		b, _ := os.ReadFile(p)
-		for _, m := range regexp.MustCompile(`textures/blocks/[^".]+`).FindAll(b, -1) {
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "node_modules", "third_party":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		switch filepath.Ext(p) {
+		case ".json", ".css", ".js", ".html", ".go", ".ts", ".tsx":
+		default:
+			return nil
+		}
+		if abs, _ := filepath.Abs(p); abs == atlasPath {
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		for _, m := range blockPath.FindAll(b, -1) {
 			others[string(m)] = true
 		}
 		return nil
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	byPixels := map[string]string{}
 	for _, e := range atlas.TextureData {
 		p := e.Textures

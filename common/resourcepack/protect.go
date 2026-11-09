@@ -152,13 +152,33 @@ func minifyCSS(src []byte) ([]byte, error) {
 			flush(c)
 			out.Write(src[i : j+1])
 			i = j + 1
-		case c == '(' && bytes.HasSuffix(out.Bytes(), []byte("url")) && !space:
+		case c == '(' && bytes.HasSuffix(out.Bytes(), []byte("url")) && !space && !quotedURL(src[i+1:]):
+			// An unquoted url() is copied to its ) (a quoted one is a string).
 			end := bytes.IndexByte(src[i:], ')')
 			if end < 0 {
 				return nil, errors.New("unterminated url(")
 			}
 			out.Write(src[i : i+end+1])
 			i += end + 1
+		case c == '\\':
+			// An escape outside a string keeps the byte after it (an escaped
+			// space or quote in a selector) and the one space that may end a
+			// hex escape.
+			if i+1 >= len(src) {
+				return nil, errors.New("escape at the end")
+			}
+			flush(c)
+			j := i + 2
+			if isHex(src[i+1]) {
+				for j < len(src) && j < i+7 && isHex(src[j]) {
+					j++
+				}
+				if j < len(src) && (src[j] == ' ' || src[j] == '\t' || src[j] == '\n') {
+					j++
+				}
+			}
+			out.Write(src[i:j])
+			i = j
 		default:
 			flush(c)
 			if b := out.Bytes(); c == '}' && len(b) > 0 && b[len(b)-1] == ';' {
@@ -169,6 +189,16 @@ func minifyCSS(src []byte) ([]byte, error) {
 		}
 	}
 	return out.Bytes(), nil
+}
+
+// quotedURL reports whether the url( before b takes a quoted string.
+func quotedURL(b []byte) bool {
+	b = bytes.TrimLeft(b, " \t\n\r\f")
+	return len(b) > 0 && (b[0] == '"' || b[0] == '\'')
+}
+
+func isHex(c byte) bool {
+	return '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F'
 }
 
 // LoadSecret reads the encryption secret at path, creating it from random

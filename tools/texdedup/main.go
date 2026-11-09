@@ -5,8 +5,9 @@
 // one more file in the pack for the client to load.
 //
 // Only textures/blocks pictures named by terrain_texture.json alone are
-// merged: a file another pack file names (flipbook_textures.json, an
-// entity) is kept, and it is the one the others point at. The kept file of a
+// merged: a file named anywhere else in the repository (another pack file
+// such as flipbook_textures.json or an entity, a style sheet, Go code) is
+// kept, and it is the one the others point at. The kept file of a
 // group is otherwise the first by name. To redraw one face of a group by
 // hand, give its entry a file of its own again.
 //
@@ -18,7 +19,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -27,6 +27,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -120,31 +121,58 @@ func pixels(path string) (string, bool) {
 	return fmt.Sprintf("%dx%d:", b.Dx(), b.Dy()) + string(rgba.Pix), true
 }
 
-// otherReferences are the textures/blocks paths that pack files other than
-// the terrain atlas name.
+// blockPath is a textures/blocks path as files name it.
+var blockPath = regexp.MustCompile(`textures/blocks/[A-Za-z0-9_/-]+`)
+
+// otherReferences are the textures/blocks paths named by the text files of
+// the repository the pack is in (every pack, the Go code, the Ore UI
+// sources) other than the terrain atlas itself.
 func otherReferences(pack string) map[string]bool {
+	root, err := filepath.Abs(pack)
+	if err != nil {
+		panic(err)
+	}
+	for !exists(filepath.Join(root, "go.mod")) {
+		up := filepath.Dir(root)
+		if up == root {
+			panic("texdedup: the pack is not in a repository (no go.mod above it)")
+		}
+		root = up
+	}
+	atlas, _ := filepath.Abs(filepath.Join(pack, "textures/terrain_texture.json"))
 	out := map[string]bool{}
-	_ = filepath.WalkDir(pack, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".json") || strings.HasSuffix(p, "terrain_texture.json") {
+	err = filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
 			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "node_modules", "third_party":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		switch filepath.Ext(p) {
+		case ".json", ".css", ".js", ".html", ".go", ".ts", ".tsx":
+		default:
+			return nil
+		}
+		if p == atlas {
+			return nil
 		}
 		b, err := os.ReadFile(p)
 		if err != nil {
 			return err
 		}
-		for {
-			i := bytes.Index(b, []byte("textures/blocks/"))
-			if i < 0 {
-				break
-			}
-			j := i
-			for j < len(b) && b[j] != '"' && b[j] != '.' {
-				j++
-			}
-			out[string(b[i:j])] = true
-			b = b[j:]
+		for _, m := range blockPath.FindAll(b, -1) {
+			out[string(m)] = true
 		}
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 	return out
 }
+
+func exists(p string) bool { _, err := os.Stat(p); return err == nil }

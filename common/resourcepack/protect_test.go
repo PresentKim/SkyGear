@@ -38,6 +38,17 @@ func TestMinifyCSS(t *testing.T) {
 	if string(got) != want {
 		t.Errorf("got  %s\nwant %s", got, want)
 	}
+	// a quoted url() is a string; escapes outside strings keep their byte and
+	// the space that ends a hex escape
+	for in, want := range map[string]string{
+		`.a { b: url( "x)y  z.png" ) }`: `.a{b: url( "x)y  z.png" )}`,
+		".a\\ b , .c\\\"d {}":           `.a\ b,.c\"d{}`,
+		".x\\31  .y {}":                 `.x\31  .y{}`,
+	} {
+		if got, err := minifyCSS([]byte(in)); err != nil || string(got) != want {
+			t.Errorf("%s: got %s (%v), want %s", in, got, err, want)
+		}
+	}
 	for _, bad := range []string{"/* open", `.a { content: "open }`} {
 		if _, err := minifyCSS([]byte(bad)); err == nil {
 			t.Errorf("%q was accepted", bad)
