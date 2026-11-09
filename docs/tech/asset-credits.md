@@ -55,6 +55,8 @@
 
 몹 정수(`essence_*`), 꽃잎(`petal_*`), 씨앗(`seed_*`), 장비 제작대 도구(`tool_*`), 나무 양동이(`wooden_*bucket`), 마법 식물(`blocks/plant_*`), 가루 블록(`blocks/dust`)은 deep-pixels.com 의 픽셀아트 모델로 만든 16×16 그림이다(아이템·식물은 `ultimate-extreme-turbo-lv2-opiniated-item-16px-v1`, 가루는 `ultimate-extreme-mc-block-hq-16-v1`). 모델이 한 요청에 내는 네 안 중 하나를 골라 배경을 지우고, 식물은 블록 바닥에 닿게 가운데 맞췄다. PNG 가 원본이므로 바꿀 때는 그림을 직접 갈아 끼운다.
 
+엘리베이터(`blocks/elevator_*`)는 `tools/elevatortex` 가 염료 색으로 그린다(옆면은 양털 결과 테두리, 윗면은 엔더 진주와 위아래 화살표). 그림을 바꿀 때는 도구를 고치고 다시 돌린다.
+
 ## 손대지 않은 그림
 
 직접 그리거나 고친 텍스처(커밋 제목이 `Texture:` 인 것 등)는 건드리지 않는다. `modtex` 의 `entries` 에 없는 파일이 그렇다.

@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
@@ -61,6 +62,9 @@ func RegisterCreativeItems() {
 			}
 		}
 		add(construction, sgitem.Dust{})
+		for _, c := range item.Colours() {
+			add(construction, elevator.Elevator{Colour: c})
+		}
 		for _, k := range sgitem.CrushedKinds {
 			add(construction, sgitem.CrushedBlock{Kind: k})
 		}

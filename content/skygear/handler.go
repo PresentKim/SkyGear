@@ -17,6 +17,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
+	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -324,8 +325,8 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 }
 
 // HandleToggleSneak shows the island expansion screen again when sneaking in
-// expansion mode, and otherwise grows saplings nearby by chance
-// (sapling.go).
+// expansion mode, rides an elevator down when standing on one, and
+// otherwise grows saplings nearby by chance (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
 		expand.Show(h.s.Session, ctx.Player())
@@ -333,6 +334,9 @@ func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	}
 	if after {
 		achievement.Count(ctx.Player(), "sneak", 1)
+		if elevator.Down(h.s.Session, ctx.Player(), ctx.Player().Tx()) {
+			return
+		}
 		farm.CrouchGrow(h.s.Session, ctx.Player(), ctx.Player().Tx())
 	}
 }
@@ -342,7 +346,12 @@ func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
 		achievement.Count(ctx.Player(), "sprint", 1)
 	}
 }
-func (h *handler) HandleJump(p *player.Player) { achievement.Count(p, "jump", 1) }
+
+// HandleJump rides an elevator up when the player jumps on one.
+func (h *handler) HandleJump(p *player.Player) {
+	achievement.Count(p, "jump", 1)
+	elevator.Up(h.s.Session, p, p.Tx())
+}
 
 // HandleItemDamage keeps the iron hammer whole: its vein mining costs food
 // instead (vein.go).

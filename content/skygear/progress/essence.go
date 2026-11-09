@@ -30,7 +30,7 @@ var EssenceCosts = map[string]map[string]int{
 	"crucible": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4}, "ore_washer": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
 	"mob_simulator": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4}, "lava_generator": {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 6},
 	// monsters
-	"bone_craft": {sgitem.EssenceHunting: 2}, "slime_block": {sgitem.EssenceHunting: 2},
+	"bone_craft": {sgitem.EssenceHunting: 2}, "slime_block": {sgitem.EssenceHunting: 2}, "elevator": {sgitem.EssenceHunting: 2},
 	"blaze_craft": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4}, "ender_chest": {sgitem.EssenceAlchemy: 4, sgitem.EssenceHunting: 4},
 	"diamond_armor":     {sgitem.EssenceAlchemy: 2, sgitem.EssenceHunting: 4},
 	"dimension":         {sgitem.EssenceEngineering: 6, sgitem.EssenceAlchemy: 4},
