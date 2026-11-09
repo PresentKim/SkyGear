@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -50,6 +51,17 @@ func gameRecipes() {
 		nil, cobble, nil,
 		nil, Stick, cobble,
 		Stick, nil, nil)
+	// The construction wands: the mod's recipe, the head at the top right of
+	// two sticks in a diagonal.
+	for _, w := range []struct {
+		tier string
+		head world.Item
+	}{{sgitem.WandStone, block.Cobblestone{}}, {sgitem.WandIron, item.IronIngot{}}, {sgitem.WandDiamond, item.Diamond{}}, {sgitem.WandInfinity, item.NetheriteIngot{}}} {
+		shaped(st(sgitem.NewWand(w.tier)), 3, 3,
+			nil, nil, w.head,
+			nil, Stick, nil,
+			Stick, nil, nil)
+	}
 	shaped(st(sgitem.Hammer{}), 3, 3,
 		nil, iron, nil,
 		nil, Stick, iron,
@@ -199,6 +211,15 @@ func gameRecipes() {
 	add(st(sgitem.DrawerKey{}), n(item.IronNugget{}, 4), n(Stick, 1))
 	add(st(sgitem.DrawerUpgrade{Kind: sgitem.UpgradeCapacity}), n(iron, 4), n(block.NewChest(), 1))
 	add(st(sgitem.DrawerUpgrade{Kind: sgitem.UpgradeVoid}), n(item.Flint{}, 4), n(iron, 1))
+	// An elevator is eight wool of a colour around an ender pearl. (Wool
+	// itself is vanilla: four string make white wool, a dye colours it.)
+	for _, c := range item.Colours() {
+		w := block.Wool{Colour: c}
+		shaped(st(elevator.Elevator{Colour: c}), 3, 3,
+			w, w, w,
+			w, item.EnderPearl{}, w,
+			w, w, w)
+	}
 	logRecipes(woodHopper)
 }
 

@@ -10,9 +10,11 @@ import (
 	"math"
 	"strings"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
@@ -146,24 +148,61 @@ func (t Tool) speed() float64 { return t.head().Eff * t.handle().SpeedMul }
 
 func (t Tool) BaseMiningEfficiency(world.Block) float64 { return t.speed() }
 
+// UseOnBlock lets an axe strip logs (and any other strippable block) the
+// way a Dragonfly axe does, durability included; other kinds do nothing.
+func (t Tool) UseOnBlock(pos cube.Pos, face cube.Face, clickPos mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	if t.Kind != ToolAxe {
+		return false
+	}
+	return item.Axe{}.UseOnBlock(pos, face, clickPos, tx, user, ctx)
+}
+
+// StripsBark makes an axe shave bark fibers off the logs it strips
+// (handwork.StripFiber).
+func (t Tool) StripsBark() bool { return t.Kind == ToolAxe }
+
 // AttackDamage is a tool's hit: no more than a hand's, the tools do not fight.
 func (t Tool) AttackDamage() float64 { return 1 }
 
-// toolBlocks are the blocks the client is told a kind of tool mines faster.
-var toolBlocks = map[string][]string{
-	ToolPickaxe: {"stone", "cobblestone", "deepslate", "granite", "diorite", "andesite", "sandstone", "stone_bricks", "bricks", "netherrack", "obsidian", "iron_ore", "gold_ore", "copper_ore", "coal_ore", "diamond_ore", "lapis_ore", "redstone_ore", "emerald_ore", "iron_block", "gold_block", "furnace", "hopper", "stone_slab", "cobblestone_wall", "stone_stairs", "bone_block", "ice"},
-	ToolAxe:     {"oak_log", "birch_log", "spruce_log", "jungle_log", "acacia_log", "dark_oak_log", "stripped_oak_log", "oak_planks", "birch_planks", "spruce_planks", "crafting_table", "chest", "barrel", "bookshelf", "pumpkin", "melon_block", "wooden_slab", "oak_fence"},
-	ToolShovel:  {"dirt", "grass_block", "sand", "gravel", "clay", "farmland", "podzol", "soul_sand", "snow", "mycelium", "coarse_dirt"},
-	ToolSword:   {"web", "bamboo"},
+// toolTags are the block tags a kind of tool mines faster, as the vanilla
+// tool of its type: the minecraft:is_<tool>_item_destructible tag, which our
+// blocks get from their BreakInfo too (a Dragonfly patch), and the older
+// material tags of vanilla blocks.
+var toolTags = map[string][]string{
+	ToolPickaxe: {"minecraft:is_pickaxe_item_destructible", "stone", "metal", "rail"},
+	ToolAxe:     {"minecraft:is_axe_item_destructible", "wood", "pumpkin"},
+	ToolShovel:  {"minecraft:is_shovel_item_destructible", "dirt", "sand", "gravel", "grass", "snow"},
+	ToolSword:   {"minecraft:is_sword_item_destructible"},
 }
 
-// DestroySpeeds implements item.Digger.
-func (t Tool) DestroySpeeds() map[string]int {
-	out := map[string]int{}
-	for _, b := range toolBlocks[t.Kind] {
-		out["minecraft:"+b] = int(math.Round(t.speed()))
+// pickTierTags are the tags of the blocks a pickaxe drops nothing from
+// below a harvest level, so it gets no speed on them (block.BreakDuration).
+var pickTierTags = []struct {
+	tag   string
+	level int
+}{
+	{"stone_pick_diggable", item.ToolTierStone.HarvestLevel},
+	{"iron_pick_diggable", item.ToolTierIron.HarvestLevel},
+	{"diamond_pick_diggable", item.ToolTierDiamond.HarvestLevel},
+}
+
+// DestroySpeedsByTag implements item.TagDigger: the tool's speed on every
+// block, vanilla or ours, that carries a tag of its kind, as the server
+// times it, so the client mines them as fast as the server expects.
+func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
+	tags := toolTags[t.Kind]
+	if len(tags) == 0 {
+		return nil
 	}
-	return out
+	query := "query.any_tag('" + strings.Join(tags, "', '") + "')"
+	if t.Kind == ToolPickaxe {
+		for _, p := range pickTierTags {
+			if t.HarvestLevel() < p.level {
+				query += " && !query.any_tag('" + p.tag + "')"
+			}
+		}
+	}
+	return []item.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
 }
 
 // Modifiers of a tool, by id.

@@ -223,15 +223,26 @@ func activeGameSession(tx *world.Tx) *session {
 
 // EntityTypes returns the default entity types plus the game's own.
 func EntityTypes() []world.EntityType {
-	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.FxDemoType, dimension.GemType, dimension.PopupType, machine.RangeBoxType),dimension.MonsterTypes()...)
+	return append(append(entity.DefaultRegistry.Types(), storage.HolderType, fairy.EntityType, conduit.VisualType, conduit.PlateType, dimension.GatePortalType, dimension.FxDemoType, dimension.GemType, dimension.PopupType, machine.RangeBoxType), dimension.MonsterTypes()...)
 }
 
 // MenuBack shows the game screen a platform screen opened in the save goes
 // back to (instance.Session.MenuBack): the island management screen for the
-// members, the game menu for the rest.
+// members and the island screens, the game menu for the rest.
 func (s *session) MenuBack(p *player.Player, from string) {
-	if from == instance.ScreenMembers {
+	if from == instance.ScreenMembers || from == instance.ScreenIsland {
 		screens.ShowIslandManage(s.Session, p)
+		return
+	}
+	screens.ShowMenu(s.Session, p)
+}
+
+// OpenScreen shows a game screen a platform screen's tab opens
+// (instance.Session.OpenScreen): the island expansion, from the last tab of
+// the island management.
+func (s *session) OpenScreen(p *player.Player, screen string) {
+	if screen == instance.ScreenExpand {
+		expand.Show(s.Session, p)
 		return
 	}
 	screens.ShowMenu(s.Session, p)

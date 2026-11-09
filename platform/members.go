@@ -51,12 +51,18 @@ func (pf *Platform) showMembersAt(p *player.Player, saveID int64, sel string) {
 		}
 	}
 	sp.Body = fmt.Sprintf(i18n.T(lang, "platform.members.body"), active, MaxMembers)
-	if pf.m.Location(instance.AccountID(p)) == nil {
+	title := i18n.T(lang, "platform.members.title")
+	if here := pf.m.Location(instance.AccountID(p)); here == nil {
 		sp.Actions = append(sp.Actions, pf.lobbyBack(p, func(p *player.Player) { pf.showSaves(p, saveID) }))
 	} else {
+		// inside the save it is a tab of the island management
+		if here.Save.ID == saveID {
+			sp.Actions = append(sp.Actions, pf.islandTabs(p, islandMembersTab)...)
+			title = i18n.T(lang, "platform.island.title")
+		}
 		sp.Actions = append(sp.Actions, ui.Back(i18n.T(lang, "platform.back"), func(p *player.Player, _ *world.Tx) { pf.menuBack(p, instance.ScreenMembers) }))
 	}
-	ui.ListSplitMenu(p, i18n.T(lang, "platform.members.title"), sp)
+	ui.ListSplitMenu(p, title, sp)
 }
 
 // memberActions are what the host does with a member: see the inventory and,
@@ -105,7 +111,7 @@ func (pf *Platform) kick(p *player.Player, saveID int64, m db.Member) {
 		pf.fail(p, i18n.T(i18n.Of(p), "platform.members.kicking"), err)
 		return
 	}
-	pf.invites.remove(m.AccountID, saveID)
+	_ = pf.db.RemoveInvite(saveID, m.AccountID)
 	pf.with(m.AccountID, func(tp *player.Player) {
 		if inst := pf.m.Location(m.AccountID); inst != nil && inst.Save.ID == saveID {
 			ui.Tell(tp, "", i18n.T(i18n.Of(tp), "platform.members.kicked"))
@@ -158,5 +164,5 @@ func (c membersCmd) Run(src cmd.Source, o *cmd.Output, _ *world.Tx) {
 		o.Error(i18n.T(i18n.Of(p), "platform.members.hostOnly"))
 		return
 	}
-	c.pf.showMembers(p, inst.Save.ID)
+	c.pf.showIsland(p, islandMembersTab, "")
 }

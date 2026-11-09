@@ -16,6 +16,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // droppedItems counts the item entities in the world by item key.
@@ -71,28 +72,81 @@ func TestStickKnocksPebbles(t *testing.T) {
 	})
 }
 
-// TestAxeStripsFiber: stripping a log with a stone axe drops fibers now and
-// then; a wooden axe drops none.
+// TestAxeStripsFiber: stripping a log with any axe, a wooden one too,
+// drops fibers now and then; a bark stripper item counts like an axe, and
+// one that opts out, or a non-stripper, drops none.
 func TestAxeStripsFiber(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, fairy.OakLog, nil)
-		for range 50 {
-			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierWood}, 1))
+		fibers := func() int { return droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})] }
+		for _, it := range []world.Item{item.Stick{}, testStripper{strips: false}} {
+			for range 50 {
+				handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(it, 1))
+			}
+			if n := fibers(); n != 0 {
+				t.Fatalf("%T stripped %d fibers", it, n)
+			}
 		}
-		if droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})] != 0 {
-			t.Fatal("a wooden axe stripped fibers")
-		}
-		for range 50 {
-			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1))
-		}
-		if n := droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})]; n < 20 {
-			t.Fatalf("%d fibers from 50 stone axe strips", n)
+		last := 0
+		for _, it := range []world.Item{item.Axe{Tier: item.ToolTierWood}, item.Axe{Tier: item.ToolTierStone}, testStripper{strips: true}} {
+			for range 50 {
+				handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(it, 1))
+			}
+			if n := fibers() - last; n < 20 {
+				t.Fatalf("%d fibers from 50 strips with %#v", n, it)
+			}
+			last = fibers()
 		}
 	})
 }
+
+// TestTinkerAxeStripsFiber: a tool-table axe strips a log like an axe, wears
+// one durability and drops fibers; a tool-table pickaxe does neither.
+func TestTinkerAxeStripsFiber(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.World.Do(func(tx *world.Tx) {
+		pos := cube.Pos{1, island.IslandY, 1}
+		axe := tinker.Tool{Kind: tinker.ToolAxe, Head: "flint", Handle: "wood"}
+		pick := tinker.Tool{Kind: tinker.ToolPickaxe, Head: "flint", Handle: "wood"}
+		fibers := func() int { return droppedItems(tx)[naming.ItemKey(sgitem.BarkFiber{})] }
+
+		tx.SetBlock(pos, fairy.OakLog, nil)
+		var ctx item.UseContext
+		if pick.UseOnBlock(pos, cube.FaceUp, mgl64.Vec3{}, tx, nil, &ctx) {
+			t.Fatal("a pickaxe stripped a log")
+		}
+		if l := tx.Block(pos).(block.Log); l.Stripped {
+			t.Fatal("the log is stripped after a pickaxe")
+		}
+		if !axe.UseOnBlock(pos, cube.FaceUp, mgl64.Vec3{}, tx, nil, &ctx) || !tx.Block(pos).(block.Log).Stripped || ctx.Damage != 1 {
+			t.Fatalf("a tinker axe did not strip the log for one durability (damage %d)", ctx.Damage)
+		}
+
+		tx.SetBlock(pos, fairy.OakLog, nil)
+		for range 50 {
+			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(pick, 1))
+		}
+		if n := fibers(); n != 0 {
+			t.Fatalf("a tinker pickaxe stripped %d fibers", n)
+		}
+		for range 50 {
+			handwork.StripFiber(s.Session, nil, tx, pos, cube.FaceUp, item.NewStack(axe, 1))
+		}
+		if n := fibers(); n < 20 {
+			t.Fatalf("%d fibers from 50 tinker axe strips", n)
+		}
+	})
+}
+
+// testStripper is a non-axe item that strips bark when strips is set.
+type testStripper struct{ strips bool }
+
+func (testStripper) EncodeItem() (string, int16) { return "skygear:test_stripper", 0 }
+func (t testStripper) StripsBark() bool          { return t.strips }
 
 // TestDropsHaveMotion: dropAt pushes every drop; none starts dead still.
 func TestDropsHaveMotion(t *testing.T) {

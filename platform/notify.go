@@ -188,16 +188,22 @@ func friendRequestNotifies(pf *Platform, accountID, lang string) []Notify {
 // inviteNotifies are the save invites p got: join the save, or decline.
 func inviteNotifies(pf *Platform, accountID, lang string) []Notify {
 	var out []Notify
-	for _, in := range pf.invites.list(accountID) {
-		left := max(1, int((inviteTTL-time.Since(in.at)).Minutes()+0.5))
+	list, err := pf.db.Invites(accountID, time.Now().Add(-inviteTTL))
+	if err != nil {
+		pf.log.Error("load invites", "account", accountID, "err", err)
+		return nil
+	}
+	for _, in := range list {
+		left := formatLeft(lang, max(time.Minute, inviteTTL-time.Since(in.At)))
+		from := in.From.Name
 		out = append(out, Notify{
-			Key:  fmt.Sprintf("invite:%d", in.saveID),
+			Key:  fmt.Sprintf("invite:%d", in.SaveID),
 			Icon: iconInvite,
-			Name: in.saveName,
-			Info: fmt.Sprintf(i18n.T(lang, "platform.invite.row"), in.from, left),
-			Body: fmt.Sprintf(i18n.T(lang, "platform.invite.body"), in.from, in.saveName),
-			Feed: fmt.Sprintf(i18n.T(lang, "platform.notify.invite.feed"), in.from, in.saveName),
-			At:   in.at,
+			Name: in.SaveName,
+			Info: fmt.Sprintf(i18n.T(lang, "platform.invite.row"), from, left),
+			Body: fmt.Sprintf(i18n.T(lang, "platform.invite.body"), from, in.SaveName),
+			Feed: fmt.Sprintf(i18n.T(lang, "platform.notify.invite.feed"), from, in.SaveName),
+			At:   in.At,
 			Actions: []ui.Option{
 				{Label: i18n.T(lang, "platform.invite.accept"), Icon: iconEnter, Run: func(p *player.Player, _ *world.Tx) {
 					if pf.m.Location(instance.AccountID(p)) != nil {
@@ -205,10 +211,16 @@ func inviteNotifies(pf *Platform, accountID, lang string) []Notify {
 						pf.showNotify(p, "")
 						return
 					}
-					pf.join(p, in.saveID)
+					// the notice may be older than a kick, a decline or the expiry
+					if ok, _ := pf.db.HasInvite(in.SaveID, instance.AccountID(p), time.Now().Add(-inviteTTL)); !ok {
+						ui.Notify(p, "%s", i18n.T(lang, "platform.invite.gone"))
+						pf.showNotify(p, "")
+						return
+					}
+					pf.join(p, in.SaveID)
 				}},
 				{Label: i18n.T(lang, "platform.invite.decline"), Icon: iconDecline, Run: func(p *player.Player, _ *world.Tx) {
-					pf.invites.remove(instance.AccountID(p), in.saveID)
+					_ = pf.db.RemoveInvite(in.SaveID, instance.AccountID(p))
 					pf.showNotify(p, "")
 				}},
 			},

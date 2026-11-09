@@ -25,8 +25,8 @@ func TestToolStats(t *testing.T) {
 		t.Error("the table still makes swords")
 	}
 	pick := tinker.Tool{Kind: tinker.ToolPickaxe, Head: "diamond", Handle: "wood"}
-	if pick.HarvestLevel() != 4 || pick.ToolType() != item.TypePickaxe || pick.DestroySpeeds()["minecraft:obsidian"] != 8 {
-		t.Errorf("diamond pickaxe: level %d speeds %v", pick.HarvestLevel(), pick.DestroySpeeds()["minecraft:obsidian"])
+	if sp := pick.DestroySpeedsByTag(); pick.HarvestLevel() != 4 || pick.ToolType() != item.TypePickaxe || len(sp) != 1 || sp[0].Speed != 8 {
+		t.Errorf("diamond pickaxe: level %d speeds %v", pick.HarvestLevel(), sp)
 	}
 	// levels follow the square root of the xp
 	for xp, want := range map[int]int{0: 0, 29: 0, 30: 1, 120: 2, 270: 3, 100000: tinker.ToolMaxLevel} {

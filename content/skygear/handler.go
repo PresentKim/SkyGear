@@ -12,10 +12,12 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
+	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -28,6 +30,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
 // handler handles a player's events inside a skygear instance.
@@ -113,6 +116,9 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		return
 	}
 	achievement.Count(ctx.Player(), "block_place", 1)
+	if held, _ := ctx.Player().HeldItems(); held.Count() == 1 {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
+	}
 	if kind, _, ok := farm.CropOf(b); ok {
 		achievement.Count(ctx.Player(), "crop_plant", 1)
 		farm.PlantCrop(h.s.Session, pos, kind)
@@ -163,6 +169,12 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		_, off := p.HeldItems()
 		copier.UseCopier(h.s.Session, p, tx, pos, face, clickPos, held, off)
+		return
+	}
+	// The construction wand builds out the face clicked and does nothing else.
+	if _, ok := sgitem.WandOf(held); ok {
+		ctx.Cancel()
+		wand.Use(h.s.Session, p, tx, pos, face, held)
 		return
 	}
 	if storage.SneakUse(h.s.Session, p, tx, pos, held) {
@@ -228,6 +240,10 @@ func (h *handler) touchFairy(ctx *player.Context, e world.Entity) {
 
 func (h *handler) HandleItemUse(ctx *player.Context) {
 	held, off := ctx.Player().HeldItems()
+	// a thrown snowball, egg or pearl may be the last of the stack
+	if held.Count() == 1 {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
+	}
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
 		h.useHeldScreen(ctx.Player(), held)
@@ -241,8 +257,19 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if h.useStone(ctx, held) {
 		return
 	}
+	// A block used on the air goes where the bridging assist finds a place
+	// for it (bridge).
+	if p := ctx.Player(); bridge.Place(h.s.Session, p) {
+		ctx.Cancel()
+		h.updateBridge(p, p.Position(), p.Rotation(), true)
+		return
+	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
+	}
+	// The construction wand used on the air while sneaking shows its settings.
+	if _, ok := sgitem.WandOf(held); ok && ctx.Player().Sneaking() && !h.s.Debounced(ctx.Player()) {
+		wand.ShowOptions(h.s.Session, ctx.Player())
 	}
 	// The iron hammer used on the air while sneaking switches diagonal vein
 	// mining.
@@ -289,6 +316,7 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		ctx.Cancel()
 		return
 	}
+	h.updateBridge(ctx.Player(), newPos, newRot, false)
 	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
 	if newPos.Y() < island.VoidY {
 		ctx.Cancel()
@@ -297,8 +325,8 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 }
 
 // HandleToggleSneak shows the island expansion screen again when sneaking in
-// expansion mode, and otherwise grows saplings nearby by chance
-// (sapling.go).
+// expansion mode, rides an elevator down when standing on one, and
+// otherwise grows saplings nearby by chance (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
 		expand.Show(h.s.Session, ctx.Player())
@@ -306,6 +334,9 @@ func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
 	}
 	if after {
 		achievement.Count(ctx.Player(), "sneak", 1)
+		if elevator.Down(h.s.Session, ctx.Player(), ctx.Player().Tx()) {
+			return
+		}
 		farm.CrouchGrow(h.s.Session, ctx.Player(), ctx.Player().Tx())
 	}
 }
@@ -315,7 +346,12 @@ func (h *handler) HandleToggleSprint(ctx *player.Context, after bool) {
 		achievement.Count(ctx.Player(), "sprint", 1)
 	}
 }
-func (h *handler) HandleJump(p *player.Player) { achievement.Count(p, "jump", 1) }
+
+// HandleJump rides an elevator up when the player jumps on one.
+func (h *handler) HandleJump(p *player.Player) {
+	achievement.Count(p, "jump", 1)
+	elevator.Up(h.s.Session, p, p.Tx())
+}
 
 // HandleItemDamage keeps the iron hammer whole: its vein mining costs food
 // instead (vein.go).
@@ -323,6 +359,17 @@ func (h *handler) HandleItemDamage(ctx *player.Context, it item.Stack, damage *i
 	if sgitem.IsIronHammer(it) {
 		*damage = 0
 	}
+	// a held tool that breaks is replaced by another of its kind
+	if held, _ := ctx.Player().HeldItems(); *damage > 0 && it.Durability() >= 0 && *damage >= it.Durability() && sameItemName(held, it) {
+		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
+	}
+}
+
+// sameItemName reports whether a and b are the same item, however worn.
+func sameItemName(a, b item.Stack) bool {
+	n1, m1 := a.Item().EncodeItem()
+	n2, m2 := b.Item().EncodeItem()
+	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
 }
 func (h *handler) HandlePunchAir(ctx *player.Context) {
 	achievement.Count(ctx.Player(), "punch_air", 1)
@@ -330,8 +377,9 @@ func (h *handler) HandlePunchAir(ctx *player.Context) {
 func (h *handler) HandleChat(ctx *player.Context, _ *string) {
 	achievement.Count(ctx.Player(), "chat", 1)
 }
-func (h *handler) HandleItemConsume(ctx *player.Context, _ item.Stack) {
+func (h *handler) HandleItemConsume(ctx *player.Context, it item.Stack) {
 	achievement.Count(ctx.Player(), "eat", 1)
+	core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), it)
 }
 func (h *handler) HandleItemPickup(ctx *player.Context, i *item.Stack) {
 	achievement.Count(ctx.Player(), "pickup", int64(i.Count()))
@@ -357,8 +405,22 @@ func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.Wor
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
 	achievement.Count(ctx.Player(), "block_pick", 1)
 }
-func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
+func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, to int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
+	p := ctx.Player()
+	held, _ := p.Inventory().Item(to)
+	if bridge.Update(h.s.Session, p, p.Tx(), p.Position(), p.Rotation(), held, true) {
+		screens.UpdateBoard(h.s.Session, p)
+	}
+}
+
+// updateBridge updates p's bridging assist crosshair mark for p at pos
+// with rotation rot, and the HUD that shows it when it changed.
+func (h *handler) updateBridge(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, force bool) {
+	held, _ := p.HeldItems()
+	if bridge.Update(h.s.Session, p, p.Tx(), pos, rot, held, force) {
+		screens.UpdateBoard(h.s.Session, p)
+	}
 }
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	if dimension.Hunting(h.s.Session, ctx.Player()) {

@@ -325,6 +325,102 @@
     "skygear_crushed_blackstone": {
       "textures": "textures/blocks/crushed_blackstone"
     },
+    "skygear_elevator_white_side": {
+      "textures": "textures/blocks/elevator_white_side"
+    },
+    "skygear_elevator_white_up": {
+      "textures": "textures/blocks/elevator_white_up"
+    },
+    "skygear_elevator_orange_side": {
+      "textures": "textures/blocks/elevator_orange_side"
+    },
+    "skygear_elevator_orange_up": {
+      "textures": "textures/blocks/elevator_orange_up"
+    },
+    "skygear_elevator_magenta_side": {
+      "textures": "textures/blocks/elevator_magenta_side"
+    },
+    "skygear_elevator_magenta_up": {
+      "textures": "textures/blocks/elevator_magenta_up"
+    },
+    "skygear_elevator_light_blue_side": {
+      "textures": "textures/blocks/elevator_light_blue_side"
+    },
+    "skygear_elevator_light_blue_up": {
+      "textures": "textures/blocks/elevator_light_blue_up"
+    },
+    "skygear_elevator_yellow_side": {
+      "textures": "textures/blocks/elevator_yellow_side"
+    },
+    "skygear_elevator_yellow_up": {
+      "textures": "textures/blocks/elevator_yellow_up"
+    },
+    "skygear_elevator_lime_side": {
+      "textures": "textures/blocks/elevator_lime_side"
+    },
+    "skygear_elevator_lime_up": {
+      "textures": "textures/blocks/elevator_lime_up"
+    },
+    "skygear_elevator_pink_side": {
+      "textures": "textures/blocks/elevator_pink_side"
+    },
+    "skygear_elevator_pink_up": {
+      "textures": "textures/blocks/elevator_pink_up"
+    },
+    "skygear_elevator_gray_side": {
+      "textures": "textures/blocks/elevator_gray_side"
+    },
+    "skygear_elevator_gray_up": {
+      "textures": "textures/blocks/elevator_gray_up"
+    },
+    "skygear_elevator_light_gray_side": {
+      "textures": "textures/blocks/elevator_light_gray_side"
+    },
+    "skygear_elevator_light_gray_up": {
+      "textures": "textures/blocks/elevator_light_gray_up"
+    },
+    "skygear_elevator_cyan_side": {
+      "textures": "textures/blocks/elevator_cyan_side"
+    },
+    "skygear_elevator_cyan_up": {
+      "textures": "textures/blocks/elevator_cyan_up"
+    },
+    "skygear_elevator_purple_side": {
+      "textures": "textures/blocks/elevator_purple_side"
+    },
+    "skygear_elevator_purple_up": {
+      "textures": "textures/blocks/elevator_purple_up"
+    },
+    "skygear_elevator_blue_side": {
+      "textures": "textures/blocks/elevator_blue_side"
+    },
+    "skygear_elevator_blue_up": {
+      "textures": "textures/blocks/elevator_blue_up"
+    },
+    "skygear_elevator_brown_side": {
+      "textures": "textures/blocks/elevator_brown_side"
+    },
+    "skygear_elevator_brown_up": {
+      "textures": "textures/blocks/elevator_brown_up"
+    },
+    "skygear_elevator_green_side": {
+      "textures": "textures/blocks/elevator_green_side"
+    },
+    "skygear_elevator_green_up": {
+      "textures": "textures/blocks/elevator_green_up"
+    },
+    "skygear_elevator_red_side": {
+      "textures": "textures/blocks/elevator_red_side"
+    },
+    "skygear_elevator_red_up": {
+      "textures": "textures/blocks/elevator_red_up"
+    },
+    "skygear_elevator_black_side": {
+      "textures": "textures/blocks/elevator_black_side"
+    },
+    "skygear_elevator_black_up": {
+      "textures": "textures/blocks/elevator_black_up"
+    },
     "skygear_crushed_deepslate": {
       "textures": "textures/blocks/crushed_deepslate"
     },

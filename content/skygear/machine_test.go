@@ -278,19 +278,11 @@ func TestHandsFreeLine(t *testing.T) {
 	})
 }
 
-// TestCustomBlockBreakTimeIgnoresTools: the client breaks custom blocks in
-// the bare-hand time of their definition, so the server must agree.
-func TestCustomBlockBreakTimeIgnoresTools(t *testing.T) {
-	pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierDiamond}, 1)
-	axe := item.NewStack(item.Axe{Tier: item.ToolTierDiamond}, 1)
+// TestCustomBlockBareHandTime: the bare-hand time, the one the client's
+// definition carries, stays short (minetool_test.go has the tools).
+func TestCustomBlockBareHandTime(t *testing.T) {
 	for _, b := range []world.Block{machine.Machine{Kind: machine.KindCrusher}, storage.Drawer{}, farm.Barrel{}} {
-		hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{})
-		for _, tool := range []item.Stack{pick, axe} {
-			if d := block.BreakDuration(b, tool, block.BreakContext{}); d != hand {
-				t.Errorf("%T: %v with %v, %v by hand", b, d, tool.Item(), hand)
-			}
-		}
-		if hand > 3*time.Second {
+		if hand := block.BreakDuration(b, item.Stack{}, block.BreakContext{}); hand > 3*time.Second {
 			t.Errorf("%T takes %v to break", b, hand)
 		}
 	}
@@ -322,6 +314,39 @@ func TestServerFinishesCustomBlockBreak(t *testing.T) {
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(pos).(storage.Drawer); ok {
 			t.Fatal("not broken after its break time")
+		}
+	})
+}
+
+// TestServerFinishesCustomBlockBreakWithTool: the client only knows the
+// bare-hand time of a custom block, so with its tool held the server breaks
+// it once the tool's shorter time has passed.
+func TestServerFinishesCustomBlockBreakWithTool(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	pos := cube.Pos{0, island.IslandY, 1}
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(pos, storage.Drawer{Facing: cube.South}, nil)
+		tx.SetBlock(cube.Pos{0, island.IslandY, 2}, block.Stone{}, nil)
+	})
+	axe := item.NewStack(item.Axe{Tier: item.ToolTierIron}, 1)
+	withTool := block.BreakDuration(storage.Drawer{}, axe, block.BreakContext{})
+	hand := block.BreakDuration(storage.Drawer{}, item.Stack{}, block.BreakContext{})
+	if withTool+400*time.Millisecond >= hand {
+		t.Fatalf("an iron axe takes %v, the hand %v", withTool, hand)
+	}
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		p.Teleport(mgl64.Vec3{0.5, island.IslandY + 1, 2.5})
+		p.SetHeldItems(axe, item.Stack{})
+	})
+	tick(s, 2) // land
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) { p.StartBreaking(pos, cube.FaceUp) })
+	time.Sleep(withTool + 200*time.Millisecond)
+	tick(s, 2)
+	s.World.Do(func(tx *world.Tx) {
+		if _, ok := tx.Block(pos).(storage.Drawer); ok {
+			t.Fatalf("not broken %v after starting with an iron axe (hand %v)", withTool+200*time.Millisecond, hand)
 		}
 	})
 }

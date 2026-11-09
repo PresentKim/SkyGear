@@ -200,21 +200,11 @@ func TestSetPlayerStatesKeepsMoney(t *testing.T) {
 	}
 }
 
-func TestMembersAndInviteCodes(t *testing.T) {
+func TestMembers(t *testing.T) {
 	d := open(t)
 	_, _ = d.TouchAccount("h", "", "h")
 	_, _ = d.TouchAccount("g", "", "g")
 	s, _ := d.CreateSave("h", 1, "s")
-	s2, _ := d.CreateSave("h", 2, "s2")
-	if err := d.SetInviteCode(s.ID, "ABC123"); err != nil {
-		t.Fatal(err)
-	}
-	if err := d.SetInviteCode(s2.ID, "ABC123"); !errors.Is(err, ErrCodeTaken) {
-		t.Fatalf("duplicate code err = %v", err)
-	}
-	if got, err := d.SaveByInviteCode("ABC123"); err != nil || got.ID != s.ID || got.InviteCode != "ABC123" {
-		t.Fatalf("by code = %v %v", got, err)
-	}
 	_ = d.AddMember(s.ID, "g", RoleGuest)
 	if n, _ := d.ActiveMembers(s.ID); n != 2 {
 		t.Fatalf("active members = %d", n)
@@ -334,7 +324,7 @@ func TestMigrationDropsGameTypeAndKeepsSaves(t *testing.T) {
 	}
 	defer d.Close()
 	saves, err := d.SavesOf("h")
-	if err != nil || len(saves) != 1 || saves[0].Slot != 2 || saves[0].Day != 5 || saves[0].InviteCode != "ABC" {
+	if err != nil || len(saves) != 1 || saves[0].Slot != 2 || saves[0].Day != 5 {
 		t.Fatalf("saves = %+v, %v", saves, err)
 	}
 	if r, err := d.MemberRole(saves[0].ID, "h"); err != nil || r != RoleHost {

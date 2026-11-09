@@ -95,10 +95,15 @@ var baseResearchTree = []progress.Research{
 		Unlocks: []string{"golden_pickaxe", "golden_axe", "golden_shovel", "golden_hoe", "golden_sword"}},
 	{ID: "gold_armor", Needs: []string{"gold_tools"}, Cost: []progress.Requirement{{Item: item.GoldIngot{}, Count: 12}},
 		Unlocks: []string{"golden_helmet", "golden_chestplate", "golden_leggings", "golden_boots"}},
+	{ID: "construction_wand", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 32}, {Item: Stick, Count: 8}}, Unlocks: []string{"skygear:stone_wand"}},
+	{ID: "iron_wand", Needs: []string{"construction_wand", "iron_tools"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:iron_wand"}},
+	{ID: "diamond_wand", Needs: []string{"iron_wand", "diamond_tools"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 8}}, Unlocks: []string{"skygear:diamond_wand"}},
+	{ID: "infinity_wand", Needs: []string{"diamond_wand", "mesh_netherite"}, Cost: []progress.Requirement{{Item: item.NetheriteIngot{}, Count: 2}, {Item: item.Diamond{}, Count: 16}}, Unlocks: []string{"skygear:infinity_wand"}},
 	{ID: "diamond_armor", Needs: []string{"diamond_tools", "iron_armor"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 12}},
 		Unlocks: []string{"diamond_helmet", "diamond_chestplate", "diamond_leggings", "diamond_boots"}},
 	{ID: "archery", Needs: []string{"stone_tools", "string"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 6}, {Item: Stick, Count: 6}},
 		Unlocks: []string{"bow"}},
+	{ID: "wool", Needs: []string{"string"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 16}}, Unlocks: woolNames()},
 	{ID: "ironwork", Needs: []string{"iron_tools", "torch"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"iron_bars", "iron_chain", "lantern", "flint_and_steel"}},
 	{ID: "workbenches", Needs: []string{"iron", "woodwork", "masonry"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 8}, {Item: OakPlanks, Count: 16}, {Item: item.Flint{}, Count: 4}},
@@ -136,6 +141,8 @@ var baseResearchTree = []progress.Research{
 		Unlocks: []string{"bone_meal", "bone_block"}},
 	{ID: "slime_block", Needs: []string{"mob_simulator"}, Cost: []progress.Requirement{{Item: item.Slimeball{}, Count: 9}},
 		Unlocks: []string{"slime", "slime_ball"}},
+	{ID: "elevator", Needs: []string{"wool", "mob_simulator"}, Cost: []progress.Requirement{{Item: item.EnderPearl{}, Count: 4}, {Item: block.Wool{Colour: item.ColourWhite()}, Count: 16}},
+		Unlocks: elevatorNames()},
 	{ID: "blaze_craft", Needs: []string{"mob_simulator", "mesh_netherite"}, Cost: []progress.Requirement{{Item: item.BlazeRod{}, Count: 4}},
 		Unlocks: []string{"blaze_powder", "magma_cream", "magma", "ender_eye", "fire_charge"}},
 	{ID: "ender_chest", Needs: []string{"blaze_craft", "diamond_tools"}, Cost: []progress.Requirement{{Item: item.EnderPearl{}, Count: 4}, {Item: block.Obsidian{}, Count: 4}},
@@ -182,4 +189,23 @@ var baseResearchTree = []progress.Research{
 		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.DriedKelp{}, Count: 16}}, Unlocks: []string{"dried_kelp_block"}},
+}
+
+// woolNames are the wool of every colour: white from string, the others
+// dyed.
+func woolNames() []string {
+	var out []string
+	for _, c := range item.Colours() {
+		out = append(out, c.String()+"_wool")
+	}
+	return out
+}
+
+// elevatorNames are the elevators of every colour.
+func elevatorNames() []string {
+	var out []string
+	for _, c := range item.Colours() {
+		out = append(out, "skygear:elevator_"+c.String())
+	}
+	return out
 }

@@ -289,9 +289,8 @@ func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st 
 			}
 			put += putIntoSieve(s, p, tx, sv, held, off)
 		}
-		if held, _ = p.HeldItems(); held.Empty() {
-			topUpHand(p, proto, proto.MaxCount())
-		}
+		// autofill: a hand left empty gets the same block again
+		core.RefillHand(p, proto)
 		if put > 0 {
 			return
 		}

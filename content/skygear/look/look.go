@@ -28,11 +28,11 @@ import (
 	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
+	"github.com/presentkim/skygear/content/skygear/wand"
 )
 
 // Reach is how far a player looks for a block, in blocks.
@@ -93,6 +93,7 @@ func Update(s *core.Session, p *player.Player, tx *world.Tx, pos mgl64.Vec3, rot
 	}
 	at, b, ok := LookedAt(p, tx, pos, rot)
 	showLook(s, p, tx, at, b, ok)
+	wand.ShowPreview(s, p, tx)
 }
 
 // showLook shows p the panel of block b at pos it looks at (ok), or clears
@@ -134,6 +135,7 @@ func UpdateAll(s *core.Session, tx *world.Tx) {
 		} else {
 			tinker.HideVeinOutline(s, p)
 		}
+		wand.ShowPreview(s, p, tx)
 	}
 }
 
@@ -142,9 +144,6 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	lang := i18n.Of(p)
 	held, _ := p.HeldItems()
 	info := waila.Info{Name: naming.BlockName(lang, b), Tools: waila.ToolsFor(b, held)}
-	if len(info.Tools) == 0 {
-		info.Tools = CustomTool(b, held)
-	}
 	if it, ok := b.(world.Item); ok {
 		info.Item = it
 		info.Name = naming.ItemName(lang, item.NewStack(it, 1))
@@ -210,35 +209,6 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	}
 	return info
-}
-
-// CustomTool is the tool icon of our blocks. No tool mines them faster
-// (blockmodel.CustomBlockEffective), so ToolsFor finds none; the panel still shows the
-// tool that fits them, marked when it is held.
-func CustomTool(b world.Block, held item.Stack) []waila.ToolIcon {
-	var (
-		icon waila.Tool
-		typ  item.ToolType
-	)
-	switch b.(type) {
-	case storage.Drawer, progress.ResearchTable, farm.Barrel:
-		icon, typ = waila.AxeWood, item.TypeAxe
-	case hopper.FlowHopper:
-		if h := b.(hopper.FlowHopper); h.Info().Wood {
-			icon, typ = waila.AxeWood, item.TypeAxe
-		} else {
-			icon, typ = waila.PickaxeWood, item.TypePickaxe
-		}
-	case machine.Machine:
-		icon, typ = waila.PickaxeWood, item.TypePickaxe
-	default:
-		return nil
-	}
-	mark := waila.MarkNone
-	if t, ok := held.Item().(item.Tool); ok && t.ToolType() == typ {
-		mark = waila.MarkRight
-	}
-	return []waila.ToolIcon{{Tool: icon, Mark: mark}}
 }
 
 // containerOf is the contents of a vanilla container block for the panel.

@@ -282,7 +282,7 @@ func (b Barrel) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 2, BlastResistance: 2,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   blockmodel.WoodEffective(b.Wood != StoneWood),
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			return []item.Stack{item.NewStack(Barrel{Wood: b.Wood}, 1)}
 		},

@@ -25,6 +25,9 @@ const (
 	TopRight   = "§d§2"
 	QuestTitle = "§d§3"
 	Quest      = "§d§4"
+	// Crosshair is the mark drawn next to the crosshair: the row's text
+	// names the picture (textures/ui/sg/crosshair_<text>), such as "up".
+	Crosshair = "§d§5"
 )
 
 // maxRows is the most rows a sidebar shows.
@@ -35,7 +38,8 @@ type Board struct {
 	rows []string
 }
 
-// Add adds a row of text to a part (TopLeft, TopRight, QuestTitle, Quest).
+// Add adds a row of text to a part (TopLeft, TopRight, QuestTitle, Quest,
+// Crosshair).
 // Rows past the sidebar's 15 are dropped.
 func (b *Board) Add(part, text string) {
 	if len(b.rows) < maxRows {
@@ -87,7 +91,7 @@ func (b *Board) Key() string {
 
 // Strip returns a row as the pack shows it: without its part marker.
 func Strip(row string) string {
-	for _, m := range []string{TopLeft, TopRight, QuestTitle, Quest} {
+	for _, m := range []string{TopLeft, TopRight, QuestTitle, Quest, Crosshair} {
 		if strings.HasPrefix(row, m) {
 			row = strings.TrimPrefix(row, m)
 			for strings.HasSuffix(row, "§r") {

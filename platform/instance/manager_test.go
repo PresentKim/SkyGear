@@ -44,6 +44,7 @@ func (*testSession) NewDay(*world.Tx, int)                 {}
 func (*testSession) Second(*world.Tx)                      {}
 func (*testSession) Fast(*world.Tx)                        {}
 func (*testSession) MenuBack(*player.Player, string)       {}
+func (*testSession) OpenScreen(*player.Player, string)     {}
 func (*testSession) Autosave(*world.Tx)                    {}
 func (s *testSession) Close(*world.Tx)                     { s.g.closes++ }
 

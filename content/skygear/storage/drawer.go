@@ -116,7 +116,7 @@ func (d Drawer) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1, BlastResistance: 2.5,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   blockmodel.AxeEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{d.ToItem()} },
 	}
 }

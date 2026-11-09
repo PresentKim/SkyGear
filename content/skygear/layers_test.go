@@ -18,12 +18,12 @@ var layers = []string{
 	// progress
 	"progress", "island", "climate",
 	// features
-	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier",
-	"netstore",
+	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
+	"netstore", "elevator",
 	// content lists
 	"catalog",
 	// screens
-	"codex", "look", "screens",
+	"codex", "look", "bridge", "screens",
 }
 
 // TestLayers: every package of the game is in layers, and imports only the
