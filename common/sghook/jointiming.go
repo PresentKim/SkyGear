@@ -33,7 +33,7 @@ import (
 // login to packs completed.
 
 // JoinProbe is the state probe mode named in the join timing line ("off",
-// "perm" or "bones"); the program sets it at startup.
+// "pair2"); the program sets it at startup.
 var JoinProbe = "off"
 
 // JoinLog is where the join timing lines go; nil is slog.Default().

@@ -47,7 +47,7 @@ func CustomBlockCounts() (blocks, states, permutations int) {
 }
 
 // LogCustomBlockCounts logs CustomBlockCounts once, for comparing client
-// loading times between state probe modes, with the most states of a name, a
+// loading times with the state probe on and off, with the most states of a name, a
 // line for each state probe block name and a warning for each name over
 // stateProbeNameCap states.
 func LogCustomBlockCounts(log *slog.Logger) {

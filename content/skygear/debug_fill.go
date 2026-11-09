@@ -9,7 +9,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/world"
-	"github.com/presentkim/skygear/assets"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 )
@@ -19,7 +18,7 @@ import (
 // cost of many conduit looks drawn as blocks and as entities. Nothing in the
 // game uses it. The look of a position is a function of the position only
 // (fillLook), drawn the same by the entity and block modes, so the two can be
-// compared fairly; pair puts both side by side.
+// compared fairly. The block mode needs SKYGEAR_STATE_PROBE=pair2.
 
 const (
 	fillMaxRadius  = 32
@@ -36,7 +35,7 @@ type fillEnum string
 
 func (fillEnum) Type() string { return "sg_fill" }
 func (fillEnum) Options(cmd.Source) []string {
-	return []string{"entity", "block", "layers", "pair"}
+	return []string{"entity", "block"}
 }
 
 type debugFill struct {
@@ -72,14 +71,14 @@ type fillState struct {
 var fills sync.Map
 
 // fillKind is one conduit of a look: kind 0 energy, 1 item, 2 fluid, 3 network
-// (4-kind probe modes only; the order of the state probe), tier 1 to 3 and
+// (with the probe on only; the order of the state probe), tier 1 to 3 and
 // faces the arms as a 6-bit set in the order of conduit.Faces, which is the
 // order of both the entity's codes and the probe's value, so no conversion is
 // needed.
 type fillKind struct{ kind, tier, faces int }
 
 // fillShape is the look of a position: one to four conduits of different
-// kinds (at most two but in the 4-kind probe modes).
+// kinds (at most two with the probe off).
 type fillShape struct {
 	n int
 	k [4]fillKind
@@ -103,10 +102,10 @@ func fillHash(pos cube.Pos) uint64 {
 	return fillMix(h ^ uint64(int64(pos[2])))
 }
 
-// fillLook is the look of pos, the same on every run: fillLook4 in the 4-kind
-// probe modes, fillLook3 otherwise.
+// fillLook is the look of pos, the same on every run: fillLook4 with the probe
+// on, fillLook3 otherwise.
 func fillLook(pos cube.Pos) fillShape {
-	if stateProbeFourKinds(stateProbeMode) {
+	if stateProbeOn(stateProbeMode) {
 		return fillLook4(pos)
 	}
 	return fillLook3(pos)
@@ -131,7 +130,7 @@ func fillLook3(pos cube.Pos) fillShape {
 // fillLook4 is the look of pos with four kinds: 1 to 4 kinds (a quarter of the
 // positions each), each with a tier and faces, in the order of their kinds.
 // In a third of the looks of two kinds or more two of them have the same
-// faces, so same4's same-faces pairs show.
+// faces (the looks of the measured runs, kept so they stay comparable).
 func fillLook4(pos cube.Pos) fillShape {
 	h := fillHash(pos)
 	n := 1 + int(h%4)
@@ -161,12 +160,6 @@ func fillLook4(pos cube.Pos) fillShape {
 		l.k[j].faces = l.k[i].faces
 	}
 	return l
-}
-
-// probeValue is the value of the state probe block of a conduit drawn alone:
-// 1 + kind*192 + (tier-1)*64 + faces.
-func (k fillKind) probeValue() int {
-	return 1 + k.kind*stateProbeTiers*stateProbeFaces + (k.tier-1)*stateProbeFaces + k.faces
 }
 
 // visual is the Variant and MarkVariant of the display entity of a look, with
@@ -199,98 +192,37 @@ func probeLookOf(ks ...fillKind) probeLook {
 	return l
 }
 
-// place splits a look over the two probe blocks of the mode: the looks of
-// layer 0 and of layer 1 (n 0 when none) and how many conduits are left out.
-//
-//   - perm, bones: the first conduit on layer 0, the second on layer 1.
-//   - single4: the same; a third and fourth are left out.
-//   - same4: layer 1 takes two kinds with the same faces when the look has
-//     them, layer 0 one of the others (empty, value 0, when there is none),
-//     the rest are left out; with no such pair as single4.
-//   - all4, all4split: layer 0 the first two, layer 1 the others: all are drawn.
-//   - pair2 (and pair2ab, pair2bits): the looks are those of its two blocks,
-//     not of the storage layers: l0 the kinds energy and item (block 0), l1
-//     fluid and network (block 1); all are drawn (cell puts the non-empty
-//     blocks on layer 0, then 1).
-func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
-	ks := l.k[:l.n]
-	switch mode {
-	case assets.StateProbePair2, assets.StateProbePair2AB, assets.StateProbePair2Bits:
-		for _, k := range ks {
-			if k.kind < 2 {
-				l0.k[l0.n] = k
-				l0.n++
-			} else {
-				l1.k[l1.n] = k
-				l1.n++
-			}
-		}
-		return l0, l1, 0
-	case assets.StateProbeAll4, assets.StateProbeAll4Split:
-		if len(ks) <= 2 {
-			return probeLookOf(ks...), probeLook{}, 0
-		}
-		return probeLookOf(ks[:2]...), probeLookOf(ks[2:]...), 0
-	case assets.StateProbeSame4:
-		for i := range ks {
-			for j := i + 1; j < len(ks); j++ {
-				if ks[i].faces != ks[j].faces {
-					continue
-				}
-				var rest []fillKind
-				for x, k := range ks {
-					if x != i && x != j {
-						rest = append(rest, k)
-					}
-				}
-				if len(rest) == 0 {
-					return probeLook{}, probeLookOf(ks[i], ks[j]), 0
-				}
-				return probeLookOf(rest[0]), probeLookOf(ks[i], ks[j]), len(rest) - 1
-			}
+// place splits a look over the two probe blocks: the looks of block 0 (energy
+// and item, l0) and block 1 (fluid and network, l1), n 0 when none. These are
+// the blocks, not the storage layers (cell puts the non-empty ones on layer 0,
+// then 1).
+func (l fillShape) place() (l0, l1 probeLook) {
+	for _, k := range l.k[:l.n] {
+		if k.kind < 2 {
+			l0.k[l0.n] = k
+			l0.n++
+		} else {
+			l1.k[l1.n] = k
+			l1.n++
 		}
 	}
-	l0 = probeLookOf(ks[0])
-	if len(ks) >= 2 {
-		l1 = probeLookOf(ks[1])
-	}
-	return l0, l1, max(len(ks)-2, 0)
+	return l0, l1
 }
 
-// cell is the blocks of a look at pos in the probe's mode (place): layer 0
-// always (value 0 when it draws nothing), layer 1 when it draws something;
-// lost is how many conduits are left out, false when the probe is off.
-func (l fillShape) cell(pos cube.Pos) (c fillCell, lost int, ok bool) {
-	if stateProbePair2(stateProbeMode) {
-		return l.cellPair2(pos)
-	}
-	l0, l1, lost := l.place(stateProbeMode)
-	v0, ok0 := stateProbeEncode(stateProbeMode, 0, l0)
-	b0, ok := stateProbeBlock(0, v0)
-	if !ok || !ok0 {
-		return fillCell{}, 0, false
-	}
-	c = fillCell{pos: pos, b0: b0}
-	if l1.n > 0 {
-		v1, _ := stateProbeEncode(stateProbeMode, 1, l1)
-		c.b1, _ = stateProbeBlock(1, v1)
-	}
-	return c, lost, true
-}
-
-// cellPair2 is cell in mode pair2: the pair blocks that are non-empty fill
+// cell is the blocks of a look at pos: the pair blocks that are non-empty fill
 // layer 0 first, then layer 1 (block 0 before block 1; block 1 alone goes on
 // layer 0, since layer 1 draws over a visible layer 0 only). lost counts the
-// conduits of the look that the blocks put, decoded again, do not draw.
-func (l fillShape) cellPair2(pos cube.Pos) (c fillCell, lost int, ok bool) {
-	l0, l1, _ := l.place(stateProbeMode)
+// conduits of the look that the blocks put, decoded again, do not draw; ok is
+// false when the probe is off.
+func (l fillShape) cell(pos cube.Pos) (c fillCell, lost int, ok bool) {
+	l0, l1 := l.place()
 	c = fillCell{pos: pos}
 	var drawn []fillKind
 	for blk, pl := range []probeLook{l0, l1} {
 		if pl.n == 0 {
 			continue
 		}
-		v, ok := stateProbeEncode(stateProbeMode, blk, pl)
+		v, ok := stateProbeEncode(blk, pl)
 		b, ok2 := stateProbeBlock(blk, v)
 		if !ok || !ok2 {
 			continue
@@ -300,7 +232,7 @@ func (l fillShape) cellPair2(pos cube.Pos) (c fillCell, lost int, ok bool) {
 		} else {
 			c.b1 = b
 		}
-		back, _ := stateProbeDecode(stateProbeMode, blk, v)
+		back, _ := stateProbeDecode(blk, v)
 		drawn = append(drawn, back.k[:back.n]...)
 	}
 	if c.b0 == nil {
@@ -347,7 +279,7 @@ func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 		return
 	}
 	what := string(c.What)
-	if _, on := stateProbeBlock(0, 1); !on && (what == "block" || what == "pair") {
+	if _, on := stateProbeBlock(0, 1); !on && what == "block" {
 		o.Errorf(i18n.T(lang, "skygear.debug.fill.noProbe"), what)
 		return
 	}
@@ -365,20 +297,6 @@ func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 			cell, lost, _ := fillLook(pos).cell(pos)
 			st.put(tx, cell)
 			tally.block(lost)
-		case "pair":
-			// x even: the entity; x odd: the block of the look of the position
-			// before it, so the two neighbours show the same shape.
-			if pos[0]&1 == 0 {
-				l := fillLook(pos)
-				st.entity(tx, pos, l)
-				tally.entity(l)
-			} else {
-				cell, lost, _ := fillLook(cube.Pos{pos[0] - 1, pos[1], pos[2]}).cell(pos)
-				st.put(tx, cell)
-				tally.block(lost)
-			}
-		default:
-			st.put(tx, fillCell{pos: pos, b0: LayerProbe{Kind: 0}, b1: LayerProbe{Kind: 1}})
 		}
 	}
 	fills.Store(s, st)
@@ -392,7 +310,7 @@ func (c debugFill) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 	if capped {
 		o.Printf(i18n.T(lang, "skygear.debug.fill.capped"), fillMaxPositions)
 	}
-	if stateProbeFourKinds(stateProbeMode) {
+	if stateProbeOn(stateProbeMode) {
 		if tally.blocks > 0 {
 			o.Printf(i18n.T(lang, "skygear.debug.fill.blocks4"), stateProbeMode, tally.blocks-tally.blocksLost, tally.blocks, tally.blocksLost)
 		}

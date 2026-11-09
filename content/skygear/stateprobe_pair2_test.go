@@ -51,13 +51,11 @@ func TestStateProbePair2Counts(t *testing.T) {
 	if g := stateProbeGeometries(pair2); g != 2 {
 		t.Errorf("%d geometries", g)
 	}
-	for l := range stateProbeLayers {
-		if stateProbeBlocks(pair2, l) != 1 {
-			t.Errorf("block %d: %d names", l, stateProbeBlocks(pair2, l))
-		}
-		if blk, state := stateProbeLocate(pair2, l, 12345); blk != 0 || state != 12345 {
-			t.Errorf("locate = %d %d", blk, state)
-		}
+	if n := len(stateProbeNameCounts(assets.StateProbeOff)); n != 0 {
+		t.Errorf("%d names with the probe off", n)
+	}
+	if s, p := stateProbeCounts(assets.StateProbeOff); s != 0 || p != 0 {
+		t.Errorf("%d states, %d permutations with the probe off", s, p)
 	}
 }
 
@@ -68,7 +66,7 @@ func TestStateProbePair2RoundTrip(t *testing.T) {
 	for l := range stateProbeLayers {
 		seen := map[probeLook]bool{}
 		for v := range stateProbePair2Values {
-			look, ok := stateProbeDecode(pair2, l, v)
+			look, ok := stateProbeDecode(l, v)
 			if !ok {
 				t.Fatalf("block %d: %d does not decode", l, v)
 			}
@@ -76,7 +74,7 @@ func TestStateProbePair2RoundTrip(t *testing.T) {
 				t.Fatalf("block %d: %d repeats %+v", l, v, look)
 			}
 			seen[look] = true
-			if got, ok := stateProbeEncode(pair2, l, look); !ok || got != v {
+			if got, ok := stateProbeEncode(l, look); !ok || got != v {
 				t.Fatalf("block %d: %d decodes to %+v, encodes to %d %v", l, v, look, got, ok)
 			}
 			a, b := v/193, v%193
@@ -100,23 +98,23 @@ func TestStateProbePair2RoundTrip(t *testing.T) {
 			t.Errorf("block %d: %d looks", l, len(seen))
 		}
 		for _, v := range []int{-1, 37249} {
-			if _, ok := stateProbeDecode(pair2, l, v); ok {
+			if _, ok := stateProbeDecode(l, v); ok {
 				t.Errorf("block %d: %d decodes", l, v)
 			}
 		}
 	}
 	// the formula: energy tier 2 faces 5 is a = 1+64+5, item tier 3 faces 63 is b = 1+128+63
 	both := probeLook{n: 2, k: [2]fillKind{{1, 3, 63}, {0, 2, 5}}} // in any order
-	if v, ok := stateProbeEncode(pair2, 0, both); !ok || v != 70*193+192 {
+	if v, ok := stateProbeEncode(0, both); !ok || v != 70*193+192 {
 		t.Errorf("block 0 pair = %d %v", v, ok)
 	}
-	if v, ok := stateProbeEncode(pair2, 1, probeLookOf(fillKind{3, 1, 0})); !ok || v != 1 {
+	if v, ok := stateProbeEncode(1, probeLookOf(fillKind{3, 1, 0})); !ok || v != 1 {
 		t.Errorf("network alone = %d %v", v, ok)
 	}
-	if v, ok := stateProbeEncode(pair2, 1, probeLookOf(fillKind{2, 1, 0})); !ok || v != 193 {
+	if v, ok := stateProbeEncode(1, probeLookOf(fillKind{2, 1, 0})); !ok || v != 193 {
 		t.Errorf("fluid alone = %d %v", v, ok)
 	}
-	if v, ok := stateProbeEncode(pair2, 0, probeLook{}); !ok || v != 0 {
+	if v, ok := stateProbeEncode(0, probeLook{}); !ok || v != 0 {
 		t.Errorf("empty = %d %v", v, ok)
 	}
 	for _, c := range []struct {
@@ -130,15 +128,9 @@ func TestStateProbePair2RoundTrip(t *testing.T) {
 		{0, probeLookOf(fillKind{0, 1, 64})},                   // faces 64
 		{2, probeLookOf(fillKind{0, 1, 0})},                    // no third block
 	} {
-		if v, ok := stateProbeEncode(pair2, c.layer, c.look); ok {
+		if v, ok := stateProbeEncode(c.layer, c.look); ok {
 			t.Errorf("block %d: %+v encodes to %d", c.layer, c.look, v)
 		}
-	}
-	if s := stateProbeLookString(probeLookOf(fillKind{2, 3, 0b000110})); s != "fluid tier 3 up+north" {
-		t.Errorf("look string %q", s)
-	}
-	if s := stateProbeLookString(probeLook{}); s != "nothing" {
-		t.Errorf("look string %q", s)
 	}
 }
 
@@ -197,8 +189,8 @@ func pair2Matches(t *testing.T, cond string, v int) bool {
 func TestStateProbePair2Draw(t *testing.T) {
 	bones, instance := probeFourGeometry(t)
 	for l := range stateProbeLayers {
-		base := stateProbeBaseOf(pair2, l)
-		if base.Geometry != stateProbeTwoGeometry(2*l, 2*l+1) || len(bones[base.Geometry]) != 14 {
+		base := stateProbeBase(l)
+		if base.Geometry != stateProbeGeometry(l) || len(bones[base.Geometry]) != 14 {
 			t.Fatalf("block %d: base geometry %s (%d bones)", l, base.Geometry, len(bones[base.Geometry]))
 		}
 		for _, b := range bones[base.Geometry] {
@@ -206,7 +198,7 @@ func TestStateProbePair2Draw(t *testing.T) {
 				t.Errorf("block %d base: bone %s is %q", l, b, base.BoneVisibility[b])
 			}
 		}
-		perms := stateProbePermutations(pair2, l)
+		perms := stateProbePermutations(l)
 		if len(perms) != 15 {
 			t.Fatalf("block %d: %d permutations", l, len(perms))
 		}
@@ -227,7 +219,7 @@ func TestStateProbePair2Draw(t *testing.T) {
 				t.Fatalf("block %d: %d matches permutations %v", l, v, matches)
 			}
 			p := perms[matches[0]].Properties
-			look, _ := stateProbeDecode(pair2, l, v)
+			look, _ := stateProbeDecode(l, v)
 			if p.Geometry != base.Geometry {
 				t.Fatalf("block %d: %d geometry %s", l, v, p.Geometry)
 			}
@@ -276,7 +268,7 @@ func TestStateProbePair2Draw(t *testing.T) {
 // (block, value), (-1, 0) for none.
 func pair2Cells(t *testing.T, l fillShape) (layers [2][2]int, lost int) {
 	t.Helper()
-	c, lost, ok := l.cellPair2(cube.Pos{})
+	c, lost, ok := l.cell(cube.Pos{})
 	if !ok {
 		t.Fatalf("%+v: no cell", l)
 	}
@@ -333,7 +325,7 @@ func TestStateProbePair2Placement(t *testing.T) {
 			if la[0] < 0 {
 				continue
 			}
-			look, _ := stateProbeDecode(pair2, la[0], la[1])
+			look, _ := stateProbeDecode(la[0], la[1])
 			got = append(got, look.k[:look.n]...)
 			if la[1] == 0 {
 				t.Errorf("%+v: the value 0 is placed on layer %d", l, i)

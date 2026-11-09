@@ -25,104 +25,6 @@ func TestCommittedFilesAreCurrent(t *testing.T) {
 	}
 }
 
-type geoFile struct {
-	Geometry []struct {
-		Description struct {
-			Identifier string `json:"identifier"`
-		} `json:"description"`
-		Bones []struct {
-			Name  string `json:"name"`
-			Cubes []struct {
-				Origin []float64 `json:"origin"`
-				Size   []float64 `json:"size"`
-			} `json:"cubes"`
-		} `json:"bones"`
-	} `json:"minecraft:geometry"`
-}
-
-func read(t *testing.T, name string) geoFile {
-	t.Helper()
-	var g geoFile
-	if err := json.Unmarshal(files()[name], &g); err != nil {
-		t.Fatal(err)
-	}
-	return g
-}
-
-// TestShapes: 3 × 64 geometries, one for each kind and set of arms, with the
-// core and one 2×2 pixel arm for each face of the set, reaching from the core
-// to the edge of the block, the core and arms in the lane of the kind.
-func TestShapes(t *testing.T) {
-	g := read(t, "state_probe_shape.geo.json")
-	if len(g.Geometry) != 3*64 {
-		t.Fatalf("%d shapes", len(g.Geometry))
-	}
-	for i, geo := range g.Geometry {
-		kind, f := i/64, i%64
-		want := 1
-		for i := range directions {
-			if f&(1<<i) != 0 {
-				want++
-			}
-		}
-		if len(geo.Bones) != want || geo.Bones[0].Name != "core" {
-			t.Errorf("shape %d has %d bones, want %d", f, len(geo.Bones), want)
-		}
-		if id := fmt.Sprintf("geometry.skygear.state_probe_shape_%s_%d", kinds[kind].name, f); geo.Description.Identifier != id {
-			t.Errorf("geometry %d is %s, want %s", i, geo.Description.Identifier, id)
-		}
-	}
-	// the item arm down of shape 1 runs from the floor to the core
-	arm := g.Geometry[64+1].Bones[1]
-	if arm.Name != "down" || arm.Cubes[0].Origin[1] != 0 || arm.Cubes[0].Size[1] != 8-coreHalf || arm.Cubes[0].Size[0] != 2 {
-		t.Errorf("arm down = %+v", arm)
-	}
-	// the item arm east of shape 32 runs from the core to the east edge
-	arm = g.Geometry[64+32].Bones[1]
-	if arm.Name != "east" || arm.Cubes[0].Origin[0] != coreHalf || arm.Cubes[0].Size[0] != 8-coreHalf {
-		t.Errorf("arm east = %+v", arm)
-	}
-	// the energy lane (-3 pixels): the core and the arms are shifted, the arms
-	// still end at the edge of the block (up: 16, east: 8)
-	east, up := g.Geometry[32], g.Geometry[2]
-	if c := east.Bones[1].Cubes[0]; c.Origin[0] != -3+coreHalf || c.Size[0] != 8-(-3+coreHalf) {
-		t.Errorf("energy arm east = %+v", c)
-	}
-	if c := up.Bones[1].Cubes[0]; c.Origin[1]+c.Size[1] != 16 || c.Origin[1] != 8-3+coreHalf || c.Origin[0] != -3-armHalf {
-		t.Errorf("energy arm up = %+v", c)
-	}
-	// the fluid core is shifted +3 on every axis
-	if c := g.Geometry[2*64].Bones[0].Cubes[0]; c.Origin[0] != 3-coreHalf || c.Origin[1] != 8+3-coreHalf || c.Origin[2] != 3-coreHalf {
-		t.Errorf("fluid core = %+v", c)
-	}
-}
-
-// TestBones: a geometry for each kind with the core and every arm.
-func TestBones(t *testing.T) {
-	g := read(t, "state_probe_bones.geo.json")
-	if len(g.Geometry) != 3 {
-		t.Fatalf("geometries %+v", g.Geometry)
-	}
-	for k, geo := range g.Geometry {
-		if want := "geometry.skygear.state_probe_bones_" + kinds[k].name; geo.Description.Identifier != want {
-			t.Fatalf("geometry %d is %s, want %s", k, geo.Description.Identifier, want)
-		}
-		var names []string
-		for _, b := range geo.Bones {
-			names = append(names, b.Name)
-		}
-		want := []string{"core", "down", "up", "north", "south", "west", "east"}
-		if len(names) != len(want) {
-			t.Fatalf("bones %v", names)
-		}
-		for i := range want {
-			if names[i] != want[i] {
-				t.Fatalf("bones %v, want %v", names, want)
-			}
-		}
-	}
-}
-
 type fourFile struct {
 	FormatVersion string `json:"format_version"`
 	Geometry      []struct {
@@ -142,23 +44,20 @@ type fourFile struct {
 	} `json:"minecraft:geometry"`
 }
 
-// TestFourGeometries: one geometry for each of the 4 kinds and each of the 6
-// pairs, with the core and six arms of each kind named <kind>_<bone>, every
-// face drawn with the material instance of its kind.
-func TestFourGeometries(t *testing.T) {
+// TestPairGeometries: one geometry for each of pair2's two blocks, with the
+// core and six arms of each of its two kinds named <kind>_<bone>, every face
+// drawn with the material instance of its kind.
+func TestPairGeometries(t *testing.T) {
 	var g fourFile
 	if err := json.Unmarshal(files()["state_probe_four.geo.json"], &g); err != nil {
 		t.Fatal(err)
 	}
-	if len(g.Geometry) != 4+6 {
+	if len(g.Geometry) != 2 {
 		t.Fatalf("%d geometries", len(g.Geometry))
 	}
-	want := [][]int{{0}, {1}, {2}, {3}, {0, 1}, {0, 2}, {0, 3}, {1, 2}, {1, 3}, {2, 3}}
+	want := [][]int{{0, 1}, {2, 3}}
 	for i, geo := range g.Geometry {
-		id := "geometry.skygear.state_probe_one_" + kinds[want[i][0]].name
-		if len(want[i]) == 2 {
-			id = fmt.Sprintf("geometry.skygear.state_probe_two_%s_%s", kinds[want[i][0]].name, kinds[want[i][1]].name)
-		}
+		id := fmt.Sprintf("geometry.skygear.state_probe_two_%s_%s", kinds[want[i][0]].name, kinds[want[i][1]].name)
 		if geo.Description.Identifier != id {
 			t.Fatalf("geometry %d is %s, want %s", i, geo.Description.Identifier, id)
 		}
@@ -186,26 +85,48 @@ func TestFourGeometries(t *testing.T) {
 			}
 		}
 	}
+	energyItem, fluidNetwork := g.Geometry[0], g.Geometry[1]
+	// the item arm down runs from the floor to the core
+	if c := energyItem.Bones[8].Cubes[0]; energyItem.Bones[8].Name != "item_down" || c.Origin[1] != 0 || c.Size[1] != 8-coreHalf || c.Size[0] != 2 {
+		t.Errorf("item arm down = %+v", c)
+	}
+	// the item arm east runs from the core to the east edge
+	if c := energyItem.Bones[13].Cubes[0]; energyItem.Bones[13].Name != "item_east" || c.Origin[0] != coreHalf || c.Size[0] != 8-coreHalf {
+		t.Errorf("item arm east = %+v", c)
+	}
+	// the energy lane (-3 pixels): the core and the arms are shifted, the arms
+	// still end at the edge of the block (up: 16, east: 8)
+	if c := energyItem.Bones[5].Cubes[0]; energyItem.Bones[5].Name != "energy_west" || c.Origin[0] != -8 || c.Origin[0]+c.Size[0] != -3-coreHalf {
+		t.Errorf("energy arm west = %+v", c)
+	}
+	if c := energyItem.Bones[2].Cubes[0]; c.Origin[1]+c.Size[1] != 16 || c.Origin[1] != 8-3+coreHalf || c.Origin[0] != -3-armHalf {
+		t.Errorf("energy arm up = %+v", c)
+	}
+	// the fluid core is shifted +3 on every axis
+	if c := fluidNetwork.Bones[0].Cubes[0]; c.Origin[0] != 3-coreHalf || c.Origin[1] != 8+3-coreHalf || c.Origin[2] != 3-coreHalf {
+		t.Errorf("fluid core = %+v", c)
+	}
 	// the network core sits at (+6, -6, +6) pixels from the middle
-	if c := g.Geometry[3].Bones[0].Cubes[0]; c.Origin[0] != 6-coreHalf || c.Origin[1] != 8-6-coreHalf || c.Origin[2] != 6-coreHalf {
+	if c := fluidNetwork.Bones[7].Cubes[0]; c.Origin[0] != 6-coreHalf || c.Origin[1] != 8-6-coreHalf || c.Origin[2] != 6-coreHalf {
 		t.Errorf("network core = %+v", c)
 	}
 	// the network arm east ends at the block edge
-	if c := g.Geometry[3].Bones[6].Cubes[0]; c.Origin[0] != 6+coreHalf || c.Origin[0]+c.Size[0] != 8 {
+	if c := fluidNetwork.Bones[13].Cubes[0]; c.Origin[0] != 6+coreHalf || c.Origin[0]+c.Size[0] != 8 {
 		t.Errorf("network arm east = %+v", c)
 	}
 }
 
-// TestLanesDoNotMeet: in every pair geometry no cube of one kind overlaps a
-// cube of the other (positive volume in common), so two kinds in one block
-// never draw through each other; and the legacy lanes are unchanged.
+// TestLanesDoNotMeet: in every geometry no cube of one kind overlaps a cube of
+// the other (positive volume in common), so two kinds in one block never draw
+// through each other; and the lanes of the first three kinds are as the
+// entity's.
 func TestLanesDoNotMeet(t *testing.T) {
 	var g fourFile
 	if err := json.Unmarshal(files()["state_probe_four.geo.json"], &g); err != nil {
 		t.Fatal(err)
 	}
 	pairs := 0
-	for _, geo := range g.Geometry[4:] {
+	for _, geo := range g.Geometry {
 		for _, a := range geo.Bones {
 			for _, b := range geo.Bones {
 				ka, _, _ := strings.Cut(a.Name, "_")
@@ -227,10 +148,10 @@ func TestLanesDoNotMeet(t *testing.T) {
 			}
 		}
 	}
-	if pairs != 6*7*7 {
+	if pairs != 2*7*7 {
 		t.Errorf("%d pairs of bones checked", pairs)
 	}
-	for i, want := range [][3]float64{{-3, -3, -3}, {0, 0, 0}, {3, 3, 3}} {
+	for i, want := range [][3]float64{{-3, -3, -3}, {0, 0, 0}, {3, 3, 3}, {6, -6, 6}} {
 		if kinds[i].shift != want {
 			t.Errorf("lane %s is %v, want %v", kinds[i].name, kinds[i].shift, want)
 		}
