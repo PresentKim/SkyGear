@@ -111,16 +111,19 @@ func main() {
 			}
 			imgio.Save(filepath.Join(dir, "ore_chunk_"+m.name+".png"), im)
 		}
-		dust := image.NewRGBA(image.Rect(0, 0, 16, 16))
-		shades := []float64{1.18, 1.0, 0.85, 0.7}
-		for y, row := range dustShape {
-			for x, ch := range row {
-				if ch >= '0' && ch <= '3' {
-					dust.Set(x, y, scale(m.col, shades[ch-'0']))
+		// Alloys (an ingot but no ore) are made as ingots, never as dust.
+		if m.chunk || !m.ingot {
+			dust := image.NewRGBA(image.Rect(0, 0, 16, 16))
+			shades := []float64{1.18, 1.0, 0.85, 0.7}
+			for y, row := range dustShape {
+				for x, ch := range row {
+					if ch >= '0' && ch <= '3' {
+						dust.Set(x, y, scale(m.col, shades[ch-'0']))
+					}
 				}
 			}
+			imgio.Save(filepath.Join(dir, "metal_dust_"+m.name+".png"), dust)
 		}
-		imgio.Save(filepath.Join(dir, "metal_dust_"+m.name+".png"), dust)
 		if m.ingot {
 			im := image.NewRGBA(image.Rect(0, 0, 16, 16))
 			for y, row := range ingotShape {

@@ -19,8 +19,8 @@ import (
 
 // builderVersion is part of every cache key: raise it when the way a pack is
 // built (minify, encryption, zip layout) changes. It also changes the pack
-// version sent to clients. 3: content.zipe in place of contents.zip.
-var builderVersion = 3
+// version sent to clients. 3: content.zipe in place of contents.zip; 4: CSS minified too.
+var builderVersion = 4
 
 // cacheKey identifies a built pack: the content hash, the options, a hash of
 // the secret and the builder version.

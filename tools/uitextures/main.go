@@ -229,8 +229,6 @@ func main() {
 
 	// the Ore UI lobby screens' buttons and windows (oui-mc.css .mc-lobby)
 	write("launcher_button", launcherBox(color.NRGBA{18, 28, 48, 200}, color.NRGBA{110, 135, 170, 230}, 1))
-	write("launcher_button_hover", launcherBox(color.NRGBA{34, 60, 98, 220}, color.NRGBA{150, 210, 255, 255}, 2))
-	write("launcher_button_pressed", launcherBox(color.NRGBA{14, 22, 38, 235}, color.NRGBA{120, 170, 220, 255}, 2))
 	write("icon_cube", glyph(
 		".......##.......",
 		".....##..##.....",

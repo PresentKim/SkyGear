@@ -126,8 +126,22 @@ func sieveMaterials(kind string, content, mesh int) map[string]customblock.Mater
 	return m
 }
 
+// sieveGeometry is the geometry of every sieve kind (the kinds differ only in
+// their texture): the frame and mesh (bone root) and the content at each fill
+// (bones content_1 to content_SieveStages), of which a look shows one.
+const sieveGeometry = "geometry.skygear_sieve"
+
+// sieveBones shows the content at fill (none for 0).
+func sieveBones(fill int) map[string]string {
+	out := map[string]string{}
+	for f := 1; f <= SieveStages; f++ {
+		out[fmt.Sprintf("content_%d", f)] = fmt.Sprint(f == fill)
+	}
+	return out
+}
+
 func sieveProperties(kind string) customblock.Properties {
-	return customblock.Properties{Geometry: "geometry.skygear_" + kind + "_0", Textures: sieveMaterials(kind, 0, 0)}
+	return customblock.Properties{Geometry: sieveGeometry, BoneVisibility: sieveBones(0), Textures: sieveMaterials(kind, 0, 0)}
 }
 
 func SieveStates() map[string][]any {
@@ -145,8 +159,9 @@ func sievePermutations(kind string) []customblock.Permutation {
 		out = append(out, customblock.Permutation{
 			Condition: fmt.Sprintf("q.block_state('%s') == '%s'", SieveLookState, LookValue(mesh, c, fill)),
 			Properties: customblock.Properties{
-				Geometry: fmt.Sprintf("geometry.skygear_%s_%d", kind, fill*min(c, 1)),
-				Textures: sieveMaterials(kind, c, mesh),
+				Geometry:       sieveGeometry,
+				BoneVisibility: sieveBones(fill * min(c, 1)),
+				Textures:       sieveMaterials(kind, c, mesh),
 			},
 		})
 	}
