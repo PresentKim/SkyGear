@@ -14,3 +14,6 @@
 # IDE
 /.vscode/
 /.idea/
+
+# superlite plugin state
+.superlite/
