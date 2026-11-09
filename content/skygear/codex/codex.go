@@ -175,6 +175,9 @@ func Uses(s *core.Session, lang string, it item.Stack) []string {
 	if farm.PlantMatter(it) {
 		out = append(out, i18n.T(lang, "codex.use.compost"))
 	}
+	if c, ok := it.Item().(sgitem.CompactBlock); ok && c.Kind == "cobblestone" {
+		out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.chunk"), textfmt.Int(int64(c.Worth()))))
+	}
 	for _, h := range tinker.HeadMaterials {
 		if naming.ItemKey(h.Item) == k {
 			out = append(out, fmt.Sprintf(i18n.T(lang, "codex.use.tool"), i18n.T(lang, "tmat."+h.ID), i18n.T(lang, "codex.use.head")))

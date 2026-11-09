@@ -45,7 +45,8 @@ func ChunkOf(pos cube.Pos) ChunkPos {
 }
 
 // ChunkCost is what the next chunk costs when n chunks are owned: items
-// from the buyer's inventory. 1 chunk to start:
+// from the buyer's inventory, compressed cobblestone counting as the
+// cobblestone it is worth (Pay). 1 chunk to start:
 // 64 cobblestone for each of the next four, 64 more for each after. Draft.
 func ChunkCost(n int) progress.Requirement {
 	return progress.Requirement{Item: block.Cobblestone{}, Count: 64 * max(1, n-3)}
@@ -160,9 +161,17 @@ func Buy(s *core.Session, p *player.Player, tx *world.Tx, c ChunkPos) {
 		return
 	}
 	cost := ChunkCost(len(StateOf(s).Chunks))
-	if !core.TakePlain(p.Inventory(), cost.Item, cost.Count) {
+	left, ok := Pay(p.Inventory(), cost.Item, cost.Count)
+	if !ok {
 		ui.Notify(p, i18n.T(i18n.Of(p), "island.chunk.needs"), CostText(i18n.Of(p), cost))
 		return
+	}
+	// Change that does not fit goes to the lost-and-found box (pay.go).
+	for _, st := range left {
+		AddLost(s, st)
+	}
+	if len(left) > 0 {
+		ui.Notify(p, "%s", i18n.T(i18n.Of(p), "island.chunk.changeLost"))
 	}
 	StateOf(s).Chunks = append(StateOf(s).Chunks, c)
 	achievement.Count(p, "chunk_buy", 1)

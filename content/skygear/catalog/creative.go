@@ -68,6 +68,9 @@ func RegisterCreativeItems() {
 		for _, k := range sgitem.CrushedKinds {
 			add(construction, sgitem.CrushedBlock{Kind: k})
 		}
+		for _, c := range sgitem.CompactBlocks() {
+			add(construction, c)
+		}
 		for _, id := range hopper.HopperOrder {
 			add(construction, hopper.NewFlowHopper(id, cube.FaceDown))
 		}

@@ -194,6 +194,13 @@ var baseResearchTree = []progress.Research{
 	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
 		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
+	// The compressed blocks (sgitem/compact.go). Undoing a level-1 block
+	// makes the base block, so the soil research opens gravel, sand and dirt
+	// too: no other recipe makes them.
+	{ID: "compact_cobblestone", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 64}},
+		Unlocks: compactNames("cobblestone")},
+	{ID: "compact_soil", Needs: []string{"compact_cobblestone", "sieve"}, Cost: []progress.Requirement{{Item: block.Gravel{}, Count: 32}, {Item: block.Sand{}, Count: 32}},
+		Unlocks: append(append(append([]string{"gravel", "sand", "dirt"}, compactNames("gravel")...), compactNames("sand")...), compactNames("dirt")...)},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.DriedKelp{}, Count: 16}}, Unlocks: []string{"dried_kelp_block"}},
 }
 
@@ -203,6 +210,18 @@ func woolNames() []string {
 	var out []string
 	for _, c := range item.Colours() {
 		out = append(out, c.String()+"_wool")
+	}
+	return out
+}
+
+// compactNames are the compressed blocks of a kind, every level.
+func compactNames(kind string) []string {
+	var out []string
+	for _, c := range sgitem.CompactBlocks() {
+		if c.Kind == kind {
+			name, _ := c.EncodeItem()
+			out = append(out, name)
+		}
 	}
 	return out
 }

@@ -430,6 +430,36 @@
     "skygear_crushed_netherrack": {
       "textures": "textures/blocks/crushed_netherrack"
     },
+    "skygear_compressed_cobblestone_1": {
+      "textures": "textures/blocks/compressed_cobblestone_1"
+    },
+    "skygear_compressed_cobblestone_2": {
+      "textures": "textures/blocks/compressed_cobblestone_2"
+    },
+    "skygear_compressed_cobblestone_3": {
+      "textures": "textures/blocks/compressed_cobblestone_3"
+    },
+    "skygear_compressed_cobblestone_4": {
+      "textures": "textures/blocks/compressed_cobblestone_4"
+    },
+    "skygear_compressed_gravel_1": {
+      "textures": "textures/blocks/compressed_gravel_1"
+    },
+    "skygear_compressed_gravel_2": {
+      "textures": "textures/blocks/compressed_gravel_2"
+    },
+    "skygear_compressed_sand_1": {
+      "textures": "textures/blocks/compressed_sand_1"
+    },
+    "skygear_compressed_sand_2": {
+      "textures": "textures/blocks/compressed_sand_2"
+    },
+    "skygear_compressed_dirt_1": {
+      "textures": "textures/blocks/compressed_dirt_1"
+    },
+    "skygear_compressed_dirt_2": {
+      "textures": "textures/blocks/compressed_dirt_2"
+    },
     "skygear_crusher_back": {
       "textures": "textures/blocks/crusher_back"
     },
