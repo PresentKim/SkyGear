@@ -133,7 +133,7 @@ func (d Dust) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 0.5, BlastResistance: 0.5,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   crushedEffective,
 		Drops:       func(item.Tool, []item.Enchantment) []item.Stack { return []item.Stack{item.NewStack(d, 1)} },
 	}
 }

@@ -1337,7 +1337,7 @@ func (m Machine) BreakInfo() block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 1.5, BlastResistance: 6,
 		Harvestable: func(item.Tool) bool { return true },
-		Effective:   blockmodel.CustomBlockEffective,
+		Effective:   blockmodel.WoodEffective(m.Kind == KindSieve),
 		Drops: func(item.Tool, []item.Enchantment) []item.Stack {
 			drops := []item.Stack{item.NewStack(Machine{Kind: m.Kind}, 1)}
 			if m.State != nil {

@@ -51,8 +51,31 @@ func FrontCubeProperties(name string) customblock.Properties {
 	}}
 }
 
-// CustomBlockEffective makes no tool faster on custom blocks. The client
-// takes its break time from the block definition, which only carries the
-// bare-hand time; if the server used a faster tool time, the crack would
-// finish while the client still mines and the block would never break.
-func CustomBlockEffective(item.Tool) bool { return false }
+// Which tool mines a custom block faster, its BreakInfo.Effective: what it
+// is made of decides, as for vanilla blocks (wood the axe; stone, metal and
+// machines the pickaxe; sand, dirt and dust the shovel). The tool's speed
+// and tier count as for a vanilla block (block.BreakDuration).
+//
+// The client's definition only carries the bare-hand time
+// (minecraft:destructible_by_mining), so it does not finish a faster break
+// itself: the server sends the crack speed of the held tool and breaks the
+// block once that time is up (player.tickCustomBreak, a Dragonfly patch).
+var (
+	AxeEffective     = EffectiveFor(item.TypeAxe)
+	PickaxeEffective = EffectiveFor(item.TypePickaxe)
+	ShovelEffective  = EffectiveFor(item.TypeShovel)
+)
+
+// EffectiveFor is a BreakInfo.Effective that is true for tools of type typ,
+// a Dragonfly tool or one of ours (tinker tools, the hammer).
+func EffectiveFor(typ item.ToolType) func(item.Tool) bool {
+	return func(t item.Tool) bool { return t.ToolType() == typ }
+}
+
+// WoodEffective is the axe for a wooden block, else the pickaxe.
+func WoodEffective(wood bool) func(item.Tool) bool {
+	if wood {
+		return AxeEffective
+	}
+	return PickaxeEffective
+}
