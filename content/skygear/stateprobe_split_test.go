@@ -345,6 +345,13 @@ func TestDebugLayersLook(t *testing.T) {
 			last, _ := stateProbeDecode(stateProbeMode, 1, last)
 			wants = append(wants, stateProbeLookString(last))
 		}
+		if stateProbeMultiState(stateProbeMode) {
+			// several states: each of them by name (all at their last value)
+			wants = append(wants, stateProbeStatesString(info.props))
+			if !strings.Contains(stateProbeStatesString(info.props), "=") {
+				t.Errorf("states %v", info.props)
+			}
+		}
 		for _, want := range wants {
 			if !strings.Contains(text, want) {
 				t.Errorf("look output misses %q:\n%s", want, text)

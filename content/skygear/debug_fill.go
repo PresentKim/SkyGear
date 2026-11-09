@@ -208,13 +208,14 @@ func probeLookOf(ks ...fillKind) probeLook {
 //     them, layer 0 one of the others (empty, value 0, when there is none),
 //     the rest are left out; with no such pair as single4.
 //   - all4, all4split: layer 0 the first two, layer 1 the others: all are drawn.
-//   - pair2: the looks are those of its two blocks, not of the storage layers:
-//     l0 the kinds energy and item (block 0), l1 fluid and network (block 1); all
-//     are drawn (cell puts the non-empty blocks on layer 0, then 1).
+//   - pair2 (and pair2ab, pair2bits): the looks are those of its two blocks,
+//     not of the storage layers: l0 the kinds energy and item (block 0), l1
+//     fluid and network (block 1); all are drawn (cell puts the non-empty
+//     blocks on layer 0, then 1).
 func (l fillShape) place(mode string) (l0, l1 probeLook, lost int) {
 	ks := l.k[:l.n]
 	switch mode {
-	case assets.StateProbePair2:
+	case assets.StateProbePair2, assets.StateProbePair2AB, assets.StateProbePair2Bits:
 		for _, k := range ks {
 			if k.kind < 2 {
 				l0.k[l0.n] = k

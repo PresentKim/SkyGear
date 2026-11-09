@@ -214,6 +214,13 @@ func TestCustomBlockStatesMatchTheDefinition(t *testing.T) {
 			continue
 		}
 		states := p.States()
+		if _, probe := cb.(StateProbe); probe && stateProbeMultiState(stateProbeMode) {
+			// The debug probes pair2ab and pair2bits have several states on
+			// purpose (does the client load them faster?). They are registered
+			// in the order the client numbers them (names sorted, the first
+			// changing slowest), which TestStateProbeMultiStateOrder checks.
+			continue
+		}
 		if len(states) != 1 {
 			t.Errorf("%s has %d state properties: only one keeps the order of the states certain", name, len(states))
 			continue

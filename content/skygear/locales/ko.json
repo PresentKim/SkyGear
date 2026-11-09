@@ -2311,6 +2311,7 @@
  "skygear.debug.layers.lookProbeBeyond": "  레이어 %d: %s 상태 %d, 이름 안에서 %d번째 (전체 %d개, 클라이언트 한도 %d): 한도를 넘음.",
  "skygear.debug.layers.lookOther": "  레이어 %d: %s",
  "skygear.debug.layers.lookPair2": " 그리는 것: %s",
+ "skygear.debug.layers.lookStates": " 상태: %s",
  "skygear.debug.fill.range": "반경은 1부터 %d, 시간은 %d초부터 %d초까지입니다.",
  "skygear.debug.fill.busy": "채우기가 진행 중입니다: 끝나기를 기다리거나 /sgdebug fill stop 을 실행하세요.",
  "skygear.debug.fill.none": "진행 중인 채우기가 없습니다.",

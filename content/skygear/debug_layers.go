@@ -146,6 +146,10 @@ func (debugLayers) look(p *player.Player, o *cmd.Output, tx *world.Tx, lang stri
 				look, _ := stateProbeDecode(stateProbeMode, sp.Layer, sp.V)
 				text, args = text+i18n.T(lang, "skygear.debug.layers.lookPair2"), append(args, stateProbeLookString(look))
 			}
+			if stateProbeMultiState(stateProbeMode) {
+				// several states: each of them, by name
+				text, args = text+i18n.T(lang, "skygear.debug.layers.lookStates"), append(args, stateProbeStatesString(info.props))
+			}
 			o.Printf(text, args...)
 			continue
 		}

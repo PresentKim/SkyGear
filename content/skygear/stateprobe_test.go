@@ -3,6 +3,7 @@ package skygear
 import (
 	"encoding/binary"
 	"fmt"
+	"maps"
 	"regexp"
 	"sort"
 	"strconv"
@@ -58,26 +59,31 @@ func TestStateProbeRegistered(t *testing.T) {
 	if stateProbeMode == assets.StateProbeOff {
 		t.Skip("probe off")
 	}
-	states := map[string][]any{}
+	states := map[string][]map[string]any{}
 	for _, b := range world.Blocks() {
 		if sp, ok := b.(StateProbe); ok {
 			name, props := b.EncodeBlock()
-			states[name] = append(states[name], props[stateProbeState])
+			states[name] = append(states[name], props)
 			if got, ok := stateProbeBlock(sp.Layer, sp.V); !ok || got != b {
 				t.Errorf("stateProbeBlock(%d, %d) = %v, %v", sp.Layer, sp.V, got, ok)
 			}
 		}
 	}
 	sum := 0
-	for _, c := range stateProbeNameCounts(stateProbeMode) {
-		sum += c.states
-		if len(states[c.name]) != c.states {
-			t.Errorf("%s: %d states, want %d", c.name, len(states[c.name]), c.states)
-		}
-		// the states of a name come in the order of States: 0, 1, 2 ...
-		for i, v := range states[c.name] {
-			if v != int32(i) {
-				t.Fatalf("%s: state %d is %v", c.name, i, v)
+	for l := range stateProbeLayers {
+		for blk := range stateProbeBlocks(stateProbeMode, l) {
+			name := stateProbeBlockName(stateProbeMode, l, blk)
+			_, n := stateProbeBlockSpan(stateProbeMode, l, blk)
+			sum += n
+			if len(states[name]) != n {
+				t.Errorf("%s: %d states, want %d", name, len(states[name]), n)
+			}
+			// the states of a name come in the order of States: 0, 1, 2 ...
+			// (several states: in the order of stateProbeStateProps)
+			for i, props := range states[name] {
+				if want := stateProbeStateProps(stateProbeMode, l, i); !maps.Equal(props, want) {
+					t.Fatalf("%s: state %d is %v, want %v", name, i, props, want)
+				}
 			}
 		}
 	}
@@ -641,16 +647,16 @@ func TestStateProbeNetworkHashes(t *testing.T) {
 	if len(others) < 10000 {
 		t.Fatalf("%d other states", len(others))
 	}
-	for _, mode := range append(append([]string{}, probeModes...), assets.StateProbePair2) {
+	for _, mode := range append(append([]string{}, probeModes...), assets.StateProbePair2, assets.StateProbePair2AB, assets.StateProbePair2Bits) {
 		seen := map[uint32]bool{}
 		for l := range stateProbeLayers {
 			for blk := range stateProbeBlocks(mode, l) {
 				name := stateProbeBlockName(mode, l, blk)
 				_, n := stateProbeBlockSpan(mode, l, blk)
 				for v := range n {
-					h := probeNetworkHash(name, map[string]any{stateProbeState: int32(v)})
+					h := probeNetworkHash(name, stateProbeStateProps(mode, l, v))
 					if other, ok := others[h]; ok || seen[h] {
-						t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d, stateProbeSplitSalt %d, stateProbePair2Salt %d)", mode, name, v, other, stateProbeSalt, stateProbeSplitSalt, stateProbePair2Salt)
+						t.Fatalf("%s: %s %d meets the network hash of %q (stateProbeSalt %d, stateProbeSplitSalt %d, stateProbePair2Salt %d, AB %d, Bits %d)", mode, name, v, other, stateProbeSalt, stateProbeSplitSalt, stateProbePair2Salt, stateProbePair2ABSalt, stateProbePair2BitsSalt)
 					}
 					seen[h] = true
 				}

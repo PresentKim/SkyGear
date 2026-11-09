@@ -163,6 +163,7 @@
  "skygear.debug.layers.lookProbeBeyond": "  layer %d: %s state %d, index %d of %d in its name (client cap %d): PAST the cap.",
  "skygear.debug.layers.lookOther": "  layer %d: %s",
  "skygear.debug.layers.lookPair2": " Draws: %s",
+ "skygear.debug.layers.lookStates": " States: %s",
  "skygear.debug.fill.range": "Radius 1 to %d and seconds %d to %d, please.",
  "skygear.debug.fill.busy": "A fill is running: wait for it or run /sgdebug fill stop.",
  "skygear.debug.fill.none": "No fill is running.",

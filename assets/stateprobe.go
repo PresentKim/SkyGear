@@ -15,7 +15,10 @@ import (
 // "all4" model four conduit kinds (network added) with the bones technique,
 // all4 drawing any two kinds in one block (443,906 states); "all4split" is
 // all4 with the states split over blocks of at most 65,536 states each; "pair2"
-// is two blocks of two kinds each (any tier and faces), 74,498 states.
+// is two blocks of two kinds each (any tier and faces), 74,498 states;
+// "pair2ab" and "pair2bits" are pair2 with the value split into several block
+// states (two ints a block, 74,498 states; a tier and six face bools a kind,
+// 131,072 states).
 const StateProbeEnv = "SKYGEAR_STATE_PROBE"
 
 // The probe modes.
@@ -34,6 +37,12 @@ const (
 	// StateProbePair2 is two fixed pair blocks (energy + item, fluid + network),
 	// each drawing its two kinds with any tier and faces (37,249 states a block).
 	StateProbePair2 = "pair2"
+	// StateProbePair2AB is pair2 with two int states a block, one a kind
+	// (skygear:a, skygear:b, 0 to 192 each): plain comparisons in Molang.
+	StateProbePair2AB = "pair2ab"
+	// StateProbePair2Bits is pair2 with a tier int and six face bools a kind
+	// (65,536 states a block): Molang reads the states with no arithmetic.
+	StateProbePair2Bits = "pair2bits"
 )
 
 // stateProbeFiles are the pack files of the probe by mode, written by
@@ -48,6 +57,8 @@ var stateProbeFiles = map[string]string{
 
 	StateProbeAll4Split: "models/blocks/state_probe_four.geo.json",
 	StateProbePair2:     "models/blocks/state_probe_four.geo.json",
+	StateProbePair2AB:   "models/blocks/state_probe_four.geo.json",
+	StateProbePair2Bits: "models/blocks/state_probe_four.geo.json",
 }
 
 var stateProbeMode = sync.OnceValue(func() string { return parseStateProbeMode(os.Getenv(StateProbeEnv)) })
@@ -55,12 +66,13 @@ var stateProbeMode = sync.OnceValue(func() string { return parseStateProbeMode(o
 // StateProbeMode is the mode of the state count probe, read once from
 // SKYGEAR_STATE_PROBE: StateProbeOff (also for any other value),
 // StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4,
-// StateProbeAll4, StateProbeAll4Split or StateProbePair2.
+// StateProbeAll4, StateProbeAll4Split, StateProbePair2, StateProbePair2AB or
+// StateProbePair2Bits.
 func StateProbeMode() string { return stateProbeMode() }
 
 func parseStateProbeMode(v string) string {
 	switch v = strings.ToLower(strings.TrimSpace(v)); v {
-	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split, StateProbePair2:
+	case StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split, StateProbePair2, StateProbePair2AB, StateProbePair2Bits:
 		return v
 	}
 	return StateProbeOff

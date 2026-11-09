@@ -80,3 +80,32 @@ func TestBoneVisibilityInPermutations(t *testing.T) {
 		t.Errorf("permutation bone_visibility = %v", got)
 	}
 }
+
+// skygear patch: the properties of a block with several states go out in the
+// order of their names, every time (the order the client numbers the states in).
+
+type manyStatesBlock struct{ boneBlock }
+
+func (manyStatesBlock) States() map[string][]any {
+	return map[string][]any{
+		"t:w": {false, true}, "t:a": {int32(0), int32(1)}, "t:m": {int32(0)}, "t:c": {false, true},
+		"t:z": {int32(0)}, "t:b": {int32(0)}, "t:q": {false, true}, "t:e": {int32(0)},
+	}
+}
+
+func TestPropertiesSortedByName(t *testing.T) {
+	want := []string{"t:a", "t:b", "t:c", "t:e", "t:m", "t:q", "t:w", "t:z"}
+	for range 20 {
+		props := Components("t:many", manyStatesBlock{}, 1)["properties"].([]map[string]any)
+		var got []string
+		for _, p := range props {
+			got = append(got, p["name"].(string))
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("properties %v, want %v", got, want)
+		}
+		if !reflect.DeepEqual(props[6]["enum"], []any{false, true}) {
+			t.Fatalf("t:w enum %v", props[6]["enum"])
+		}
+	}
+}

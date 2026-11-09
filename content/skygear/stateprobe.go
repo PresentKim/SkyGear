@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"maps"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -101,6 +103,37 @@ import (
 // absent) less (absent, absent); a = floor(v/193) and b = mod(v, 193) are
 // decoded in Molang.
 
+// pair2ab and pair2bits (stateProbePair2 is true for them too) are pair2 with
+// the same blocks, looks, placement, geometries and material instances, but
+// the value split into several block states, to see whether the client loads
+// plain states faster than one state taken apart in Molang:
+//
+//   - pair2ab: two int states, skygear:a and skygear:b (0 to 192 each, a and b
+//     of pair2). V is still a*193 + b (37,249 states a block). The conditions
+//     compare a and b with plain ranges; bone_visibility still takes a bit of a
+//     or b with floor and mod.
+//   - pair2bits: for each kind of the block an int skygear:<kind>_tier (0
+//     absent, 1 to 3) and six bools skygear:<kind>_<face> (down, up, north,
+//     south, west, east): (4 × 2^6)^2 = 65,536 states a block, the whole of a
+//     name (indices 0 to 65,535). Conditions compare the tiers and
+//     bone_visibility is the face state itself, no arithmetic. A face of an
+//     absent kind is always false when placed: the states with one true exist
+//     but are never placed (they decode to the look without the kind).
+//
+// The order of several states: the client numbers the states of a custom
+// block as every combination of the values of its properties, the property
+// first by name (byte order) changing slowest and the values in the order of
+// their enum (the order of the vanilla palette, block_states.nbt: oak_stairs is
+// minecraft:corner, then upside_down_bit, then weirdo_direction fastest), and
+// the server numbers them in the order they are registered (Finalize sorts the
+// names by hash, stably, so a name keeps its registration order). Dragonfly
+// sends the properties sorted by name (a skygear patch of blockinternal; the
+// map order would change every start). So V is the index of the state in that
+// order and the blocks are registered by V: in pair2ab a (slowest) then b, in
+// pair2bits the names sorted, e.g. energy_down, energy_east, energy_north,
+// energy_south, energy_tier, energy_up, energy_west, item_down ... item_west
+// (stateProbeBitsProps).
+
 const (
 	// stateProbeValues is the number of values of the state of a probe block
 	// in modes perm and bones.
@@ -140,6 +173,15 @@ const (
 	stateProbePair2Kind = 1 + stateProbeTiers*stateProbeFaces
 	// stateProbePair2Values is the number of values (states) of a pair2 block.
 	stateProbePair2Values = stateProbePair2Kind * stateProbePair2Kind
+	// stateProbeBitsKind is the number of states of one kind of a pair2bits
+	// block: a tier 0 to 3 and six face bools.
+	stateProbeBitsKind = (1 + stateProbeTiers) * stateProbeFaces
+	// stateProbeBitsValues is the number of states of a pair2bits block.
+	stateProbeBitsValues = stateProbeBitsKind * stateProbeBitsKind
+
+	// the states of pair2ab
+	stateProbeStateA = "skygear:a"
+	stateProbeStateB = "skygear:b"
 )
 
 // stateProbeKindPairs are the pairs of kinds of the 4-kind modes, in the order
@@ -161,14 +203,24 @@ const (
 // all4split, pair2.
 func stateProbeFourKinds(mode string) bool {
 	switch mode {
-	case assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split, assets.StateProbePair2:
+	case assets.StateProbeSingle4, assets.StateProbeSame4, assets.StateProbeAll4, assets.StateProbeAll4Split,
+		assets.StateProbePair2, assets.StateProbePair2AB, assets.StateProbePair2Bits:
 		return true
 	}
 	return false
 }
 
-// stateProbePair2 reports whether the mode is pair2.
-func stateProbePair2(mode string) bool { return mode == assets.StateProbePair2 }
+// stateProbePair2 reports whether the mode is pair2 or one of its several
+// state variants (pair2ab, pair2bits): the two fixed pair blocks.
+func stateProbePair2(mode string) bool {
+	return mode == assets.StateProbePair2 || stateProbeMultiState(mode)
+}
+
+// stateProbeMultiState reports whether the blocks of the mode have several
+// states (pair2ab, pair2bits).
+func stateProbeMultiState(mode string) bool {
+	return mode == assets.StateProbePair2AB || mode == assets.StateProbePair2Bits
+}
 
 // stateProbeSplit reports whether the mode splits a layer into several block
 // names.
@@ -232,6 +284,8 @@ func stateProbePairSpan(p probePairs) int {
 // a layer in the mode (0 when off).
 func stateProbeLayerValues(mode string, layer int) int {
 	switch {
+	case mode == assets.StateProbePair2Bits:
+		return stateProbeBitsValues
 	case stateProbePair2(mode):
 		return stateProbePair2Values
 	case mode == assets.StateProbePerm || mode == assets.StateProbeBones:
@@ -269,6 +323,9 @@ func stateProbeDecode(mode string, layer, v int) (probeLook, bool) {
 	if v < 0 || v >= stateProbeLayerValues(mode, layer) {
 		return probeLook{}, false
 	}
+	if mode == assets.StateProbePair2Bits {
+		return stateProbeBitsDecode(layer, v), true
+	}
 	if stateProbePair2(mode) {
 		return stateProbePair2Decode(layer, v), true
 	}
@@ -297,6 +354,9 @@ func stateProbeDecode(mode string, layer, v int) (probeLook, bool) {
 // stateProbeEncode is the value of a look on the block of a layer in the mode
 // (the conduits in any order); false when that block cannot draw it.
 func stateProbeEncode(mode string, layer int, l probeLook) (int, bool) {
+	if mode == assets.StateProbePair2Bits {
+		return stateProbeBitsEncode(layer, l)
+	}
 	if stateProbePair2(mode) {
 		return stateProbePair2Encode(layer, l)
 	}
@@ -384,6 +444,129 @@ func stateProbePair2Encode(layer int, l probeLook) (int, bool) {
 	return part[0]*stateProbePair2Kind + part[1], true
 }
 
+// stateProbeBitsProp is a state of a pair2bits block: of its first kind (i 0)
+// or second (1), the tier (face -1) or the bool of a face (the bit of faces).
+type stateProbeBitsProp struct {
+	name    string
+	i, face int
+}
+
+// radix is the number of values of the state: 4 tiers or 2 bools.
+func (p stateProbeBitsProp) radix() int {
+	if p.face < 0 {
+		return 1 + stateProbeTiers
+	}
+	return 2
+}
+
+// stateProbeBitsProps are the 14 states of pair2bits block layer sorted by
+// name, the order the client numbers its states in: V is the index of a
+// combination, the first of these changing slowest.
+var stateProbeBitsProps = func() (out [stateProbeLayers][]stateProbeBitsProp) {
+	for l := range out {
+		for i := range 2 {
+			kind := stateProbeKindNames4[2*l+i]
+			out[l] = append(out[l], stateProbeBitsProp{name: "skygear:" + kind + "_tier", i: i, face: -1})
+			for f, arm := range stateProbeArms {
+				out[l] = append(out[l], stateProbeBitsProp{name: "skygear:" + kind + "_" + arm, i: i, face: f})
+			}
+		}
+		slices.SortFunc(out[l], func(a, b stateProbeBitsProp) int { return strings.Compare(a.name, b.name) })
+	}
+	return out
+}()
+
+// stateProbeBitsDigits are the values of the states of pair2bits state v (in
+// range) of block layer, in the order of stateProbeBitsProps: a tier or 0/1.
+func stateProbeBitsDigits(layer, v int) []int {
+	props := stateProbeBitsProps[layer]
+	out := make([]int, len(props))
+	for i := len(props) - 1; i >= 0; i-- {
+		r := props[i].radix()
+		out[i], v = v%r, v/r
+	}
+	return out
+}
+
+// stateProbeBitsDecode is the look of pair2bits state v (in range) of block
+// layer: each kind with a tier, its faces the bools set (those of a kind
+// without a tier are left out).
+func stateProbeBitsDecode(layer, v int) probeLook {
+	var tier, faces [2]int
+	for i, d := range stateProbeBitsDigits(layer, v) {
+		p := stateProbeBitsProps[layer][i]
+		if p.face < 0 {
+			tier[p.i] = d
+		} else {
+			faces[p.i] |= d << p.face
+		}
+	}
+	var l probeLook
+	for i := range 2 {
+		if tier[i] > 0 {
+			l.k[l.n] = fillKind{kind: 2*layer + i, tier: tier[i], faces: faces[i]}
+			l.n++
+		}
+	}
+	return l
+}
+
+// stateProbeBitsEncode is the state of a look on pair2bits block layer, the
+// faces of an absent kind false; false as stateProbePair2Encode.
+func stateProbeBitsEncode(layer int, l probeLook) (int, bool) {
+	if _, ok := stateProbePair2Encode(layer, l); !ok {
+		return 0, false
+	}
+	var tier, faces [2]int
+	for _, k := range l.k[:l.n] {
+		tier[k.kind-2*layer], faces[k.kind-2*layer] = k.tier, k.faces
+	}
+	v := 0
+	for _, p := range stateProbeBitsProps[layer] {
+		d := tier[p.i]
+		if p.face >= 0 {
+			d = faces[p.i] >> p.face & 1
+		}
+		v = v*p.radix() + d
+	}
+	return v, true
+}
+
+// stateProbeStateProps are the block states of state (the Nth state of the
+// name) of a probe block of a layer in the mode: skygear:shape but in pair2ab
+// (skygear:a and skygear:b) and pair2bits (stateProbeBitsProps).
+func stateProbeStateProps(mode string, layer, state int) map[string]any {
+	switch mode {
+	case assets.StateProbePair2AB:
+		return map[string]any{
+			stateProbeStateA: int32(state / stateProbePair2Kind),
+			stateProbeStateB: int32(state % stateProbePair2Kind),
+		}
+	case assets.StateProbePair2Bits:
+		props := stateProbeBitsProps[layer]
+		out := make(map[string]any, len(props))
+		for i, d := range stateProbeBitsDigits(layer, state) {
+			if props[i].face < 0 {
+				out[props[i].name] = int32(d)
+			} else {
+				out[props[i].name] = d == 1
+			}
+		}
+		return out
+	}
+	return map[string]any{stateProbeState: int32(state)}
+}
+
+// stateProbeStatesString names the states of a probe block for the console
+// ("skygear:a=70 skygear:b=192"), sorted by name.
+func stateProbeStatesString(props map[string]any) string {
+	var out []string
+	for _, name := range slices.Sorted(maps.Keys(props)) {
+		out = append(out, fmt.Sprintf("%s=%v", name, props[name]))
+	}
+	return strings.Join(out, " ")
+}
+
 // stateProbeLookString names a look for the console: "energy tier 2 down+north".
 func stateProbeLookString(l probeLook) string {
 	if l.n == 0 {
@@ -445,6 +628,7 @@ func init() {
 	}
 	slog.Info("state probe on", "mode", stateProbeMode, "block_names", names, "max_states_per_name", maxStates,
 		"states_layer0", stateProbeLayerValues(stateProbeMode, 0), "states_layer1", stateProbeLayerValues(stateProbeMode, 1),
+		"state_properties", len(stateProbeStatesOf(stateProbeMode, 0, 0)),
 		"states", states, "permutations", perms, "geometries", stateProbeGeometries(stateProbeMode),
 		"register_ms", took.Milliseconds(), "heap_mb", mem.HeapAlloc>>20, "sys_mb", mem.Sys>>20)
 }
@@ -527,8 +711,14 @@ const stateProbeSalt = 2
 // met the hash of skygear:auto_sieve, 1 meets none).
 const stateProbeSplitSalt = 1
 
-// stateProbePair2Salt is the same for the two names of pair2.
-const stateProbePair2Salt = 0
+// stateProbePair2Salt, stateProbePair2ABSalt and stateProbePair2BitsSalt are
+// the same for the two names of pair2, pair2ab and pair2bits (pair2bits: salts
+// 0 to 4 meet 1 to 8 hashes, of redstone_wire or of its own 131,072 states).
+const (
+	stateProbePair2Salt     = 0
+	stateProbePair2ABSalt   = 0
+	stateProbePair2BitsSalt = 5
+)
 
 // stateProbeName is the name of the first probe block of a layer in the mode.
 func stateProbeName(mode string, layer int) string { return stateProbeBlockName(mode, layer, 0) }
@@ -537,9 +727,15 @@ func stateProbeName(mode string, layer int) string { return stateProbeBlockName(
 // mode: skygear:state_probe_<layer> (perm, bones),
 // skygear:state_probe4_<salt>_<layer> (other 4-kind modes),
 // skygear:state_probe4s_<salt>_<layer>_<blk> (all4split) or
-// skygear:state_probe2_<salt>_<block> (pair2).
+// skygear:state_probe2_<salt>_<block> (pair2),
+// skygear:state_probe2ab_<salt>_<block> (pair2ab) or
+// skygear:state_probe2bits_<salt>_<block> (pair2bits).
 func stateProbeBlockName(mode string, layer, blk int) string {
 	switch {
+	case mode == assets.StateProbePair2AB:
+		return fmt.Sprintf("skygear:state_probe2ab_%d_%d", stateProbePair2ABSalt, layer)
+	case mode == assets.StateProbePair2Bits:
+		return fmt.Sprintf("skygear:state_probe2bits_%d_%d", stateProbePair2BitsSalt, layer)
 	case stateProbePair2(mode):
 		return fmt.Sprintf("skygear:state_probe2_%d_%d", stateProbePair2Salt, layer)
 	case stateProbeSplit(mode):
@@ -559,9 +755,11 @@ func (b StateProbe) location() (blk, state int) {
 // stateProbeInfo is where a probe block is among the states of its name.
 type stateProbeInfo struct {
 	name  string
-	state int // the value of skygear:shape
+	state int // the value of skygear:shape (pair2ab, pair2bits: the index)
 	index int // the Nth state of the name, 0-based, in the order of States
 	count int // the number of states of the name
+	// props are the block states (several in pair2ab and pair2bits)
+	props map[string]any
 }
 
 // stateProbeInfoOf is the name, state and index of a probe block among the
@@ -573,13 +771,15 @@ func stateProbeInfoOf(b world.Block) (stateProbeInfo, bool) {
 	}
 	blk, state := sp.location()
 	_, n := stateProbeBlockSpan(stateProbeMode, sp.Layer, blk)
-	// States lists 0 to n-1 in order, so the index of a state is the state.
-	return stateProbeInfo{name: stateProbeNames[sp.Layer][blk], state: state, index: state, count: n}, true
+	// States lists 0 to n-1 in order, so the index of a state is the state
+	// (with several states the combinations come in the order of V).
+	return stateProbeInfo{name: stateProbeNames[sp.Layer][blk], state: state, index: state, count: n,
+		props: stateProbeStateProps(stateProbeMode, sp.Layer, state)}, true
 }
 
 func (b StateProbe) EncodeBlock() (string, map[string]any) {
 	blk, state := b.location()
-	return stateProbeNames[b.Layer][blk], map[string]any{stateProbeState: int32(state)}
+	return stateProbeNames[b.Layer][blk], stateProbeStateProps(stateProbeMode, b.Layer, state)
 }
 
 func (b StateProbe) Hash() (uint64, uint64) {
@@ -778,6 +978,10 @@ func stateProbePermutationsOf(mode string, layer, blk int) []customblock.Permuta
 				})
 			}
 		}
+	case mode == assets.StateProbePair2AB:
+		out = stateProbePair2ABPermutations(layer)
+	case mode == assets.StateProbePair2Bits:
+		out = stateProbeBitsPermutations(layer)
 	case stateProbePair2(mode):
 		out = stateProbePair2Permutations(layer)
 	case stateProbeFourKinds(mode):
@@ -894,6 +1098,72 @@ func stateProbePair2Permutations(layer int) []customblock.Permutation {
 	return out
 }
 
+// stateProbeStateExpr is the Molang expression of a block state.
+func stateProbeStateExpr(name string) string { return "q.block_state('" + name + "')" }
+
+// stateProbePair2ABCond is the condition of a kind of a pair2ab block being at
+// tier (0 absent), on its own state: plain comparisons.
+func stateProbePair2ABCond(state string, tier int) string {
+	e := stateProbeStateExpr(state)
+	if tier == 0 {
+		return e + " == 0"
+	}
+	lo := 1 + (tier-1)*stateProbeFaces
+	return fmt.Sprintf("%s >= %d && %s <= %d", e, lo, e, lo+stateProbeFaces-1)
+}
+
+// stateProbePair2ABPermutations are the 15 permutations of pair2ab block
+// layer, as pair2's with a and b read from their own states.
+func stateProbePair2ABPermutations(layer int) []customblock.Permutation {
+	return stateProbePairPermutations(layer, func(i, tier int) (string, map[string]string) {
+		state := [2]string{stateProbeStateA, stateProbeStateB}[i]
+		return stateProbePair2ABCond(state, tier), stateProbePair2Visibility(2*layer+i, stateProbeStateExpr(state), tier)
+	})
+}
+
+// stateProbeBitsPermutations are the 15 permutations of pair2bits block layer:
+// the tiers compared, each arm shown by its face state.
+func stateProbeBitsPermutations(layer int) []customblock.Permutation {
+	return stateProbePairPermutations(layer, func(i, tier int) (string, map[string]string) {
+		kind := 2*layer + i
+		name := "skygear:" + stateProbeKindNames4[kind]
+		bones := stateProbeKindBones(kind)
+		vis := map[string]string{}
+		for j, b := range bones {
+			switch {
+			case tier == 0:
+				vis[b] = "false"
+			case j == 0:
+				vis[b] = "true"
+			default:
+				vis[b] = stateProbeStateExpr(name + "_" + stateProbeArms[j-1])
+			}
+		}
+		return fmt.Sprintf("%s == %d", stateProbeStateExpr(name+"_tier"), tier), vis
+	})
+}
+
+// stateProbePairPermutations are the 15 permutations of a pair block (tier of
+// the first kind or absent × tier of the second, less both absent), part
+// giving the condition and bone_visibility of kind i of the block at a tier.
+func stateProbePairPermutations(layer int, part func(i, tier int) (string, map[string]string)) []customblock.Permutation {
+	var out []customblock.Permutation
+	for ta := 0; ta <= stateProbeTiers; ta++ {
+		for tb := 0; tb <= stateProbeTiers; tb++ {
+			if ta == 0 && tb == 0 {
+				continue
+			}
+			p := stateProbePair2Look(layer, fillKind{kind: 2 * layer, tier: max(ta, 1)}, fillKind{kind: 2*layer + 1, tier: max(tb, 1)})
+			ca, va := part(0, ta)
+			cb, vb := part(1, tb)
+			p.BoneVisibility = va
+			maps.Copy(p.BoneVisibility, vb)
+			out = append(out, customblock.Permutation{Condition: ca + " && " + cb, Properties: p})
+		}
+	}
+	return out
+}
+
 // stateProbeKindVisibility is the bone_visibility of a kind whose faces are
 // floor((v - lo) / unit) mod 64: the core and the arm of each bit.
 func stateProbeKindVisibility(kind, lo, unit int) map[string]string {
@@ -924,18 +1194,47 @@ var stateProbeStateValues = func() (out [stateProbeLayers][stateProbeMaxBlocks]f
 func stateProbeValuesOf(layer, blk int) func() []any {
 	return sync.OnceValue(func() []any {
 		_, n := stateProbeBlockSpan(stateProbeMode, layer, blk)
-		values := make([]any, n)
-		for i := range values {
-			values[i] = int32(i)
-		}
-		return values
+		return stateProbeIntValues(n)
 	})
+}
+
+// stateProbeIntValues are the int32 values 0 to n-1.
+func stateProbeIntValues(n int) []any {
+	values := make([]any, n)
+	for i := range values {
+		values[i] = int32(i)
+	}
+	return values
+}
+
+// stateProbeStatesOf are the States of block blk of a layer in the mode, values
+// in the order of the states' indices (for several states see
+// stateProbeStateProps).
+func stateProbeStatesOf(mode string, layer, blk int) map[string][]any {
+	switch mode {
+	case assets.StateProbePair2AB:
+		return map[string][]any{
+			stateProbeStateA: stateProbeIntValues(stateProbePair2Kind),
+			stateProbeStateB: stateProbeIntValues(stateProbePair2Kind),
+		}
+	case assets.StateProbePair2Bits:
+		out := map[string][]any{}
+		for _, p := range stateProbeBitsProps[layer] {
+			if p.face < 0 {
+				out[p.name] = stateProbeIntValues(p.radix())
+			} else {
+				out[p.name] = []any{false, true}
+			}
+		}
+		return out
+	}
+	return map[string][]any{stateProbeState: stateProbeStateValues[layer][blk]()}
 }
 
 // States implements block.Permutable.
 func (b StateProbe) States() map[string][]any {
 	blk, _ := b.location()
-	return map[string][]any{stateProbeState: stateProbeStateValues[b.Layer][blk]()}
+	return stateProbeStatesOf(stateProbeMode, b.Layer, blk)
 }
 
 // Permutations implements block.Permutable.

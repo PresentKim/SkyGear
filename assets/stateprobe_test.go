@@ -29,6 +29,7 @@ func TestParseStateProbeMode(t *testing.T) {
 	for in, want := range map[string]string{
 		"": StateProbeOff, "off": StateProbeOff, "perm": StateProbePerm, " Bones ": StateProbeBones, "x": StateProbeOff,
 		"single4": StateProbeSingle4, "SAME4": StateProbeSame4, "all4": StateProbeAll4, "all": StateProbeOff, "ALL4Split": StateProbeAll4Split, " Pair2": StateProbePair2,
+		"pair2ab": StateProbePair2AB, "PAIR2BITS": StateProbePair2Bits, "pair2a": StateProbeOff,
 	} {
 		if got := parseStateProbeMode(in); got != want {
 			t.Errorf("parseStateProbeMode(%q) = %q, want %q", in, got, want)
@@ -65,7 +66,7 @@ func TestStateProbeFilesOnlyInTheirMode(t *testing.T) {
 	if len(rest) != len(all)-len(probeFiles) {
 		t.Fatalf("state_probe files other than %v", stateProbeFiles)
 	}
-	for _, mode := range []string{StateProbeOff, StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split, StateProbePair2} {
+	for _, mode := range []string{StateProbeOff, StateProbePerm, StateProbeBones, StateProbeSingle4, StateProbeSame4, StateProbeAll4, StateProbeAll4Split, StateProbePair2, StateProbePair2AB, StateProbePair2Bits} {
 		pack, err := packFor("skygear", mode)
 		if err != nil {
 			t.Fatal(err)

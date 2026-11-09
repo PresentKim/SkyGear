@@ -564,9 +564,19 @@ diff -ruN -x pack_icon.png a/server/conf.go b/server/conf.go
  	// list. By default, StatusProvider will show the server name from the Name
  	// field and the current player count and maximum players.
 diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/server/internal/blockinternal/components.go
---- a/server/internal/blockinternal/components.go	2026-11-08 13:23:20.924341116 +0000
-+++ b/server/internal/blockinternal/components.go	2026-11-08 13:24:58.827652437 +0000
-@@ -40,6 +40,15 @@
+--- a/server/internal/blockinternal/components.go	2026-11-09 00:11:36.412271944 +0000
++++ b/server/internal/blockinternal/components.go	2026-11-09 00:12:21.738227654 +0000
+@@ -1,6 +1,9 @@
+ package blockinternal
+ 
+ import (
++	"maps"
++	"slices"
++
+ 	"github.com/df-mc/dragonfly/server/block"
+ 	"github.com/df-mc/dragonfly/server/block/cube"
+ 	"github.com/df-mc/dragonfly/server/block/customblock"
+@@ -40,9 +43,24 @@
  			"burn_odds":  int32(info.Flammability),
  		})
  	}
@@ -580,9 +590,20 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/serve
 +		})
 +	}
  	if permutable, ok := b.(block.Permutable); ok {
- 		for name, values := range permutable.States() {
- 			builder.AddProperty(name, values)
-@@ -58,7 +67,9 @@
+-		for name, values := range permutable.States() {
+-			builder.AddProperty(name, values)
++		// skygear patch: the properties in the order of their names, not of the
++		// map. The client numbers a block's states as every combination of the
++		// values, the property first by name changing slowest (the order of the
++		// vanilla palette), and the server numbers them by registration; sending
++		// them sorted keeps the definition in that same order every time.
++		states := permutable.States()
++		for _, name := range slices.Sorted(maps.Keys(states)) {
++			builder.AddProperty(name, states[name])
+ 		}
+ 		for _, permutation := range permutable.Permutations() {
+ 			builder.AddPermutation(permutation.Condition, componentsFromProperties(permutation.Properties))
+@@ -58,7 +76,9 @@
  // a custom permutation.
  func componentsFromProperties(props customblock.Properties) map[string]any {
  	components := make(map[string]any)
@@ -593,7 +614,7 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/serve
  		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
  	}
  	if props.SelectionBox != (cube.BBox{}) {
-@@ -69,6 +80,15 @@
+@@ -69,6 +89,15 @@
  	} else if props.Cube {
  		components["minecraft:geometry"] = map[string]any{"identifier": "minecraft:geometry.full_block"}
  	}
@@ -609,7 +630,7 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/serve
  	if props.MapColour != "" {
  		components["minecraft:map_color"] = map[string]any{"value": props.MapColour}
  	}
-@@ -109,20 +129,22 @@
+@@ -109,20 +138,22 @@
  }
  
  // collisionBoxComponent returns the component data for a collision box, using absolute min/max coordinates in pixels.
@@ -646,8 +667,8 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/serve
  
 diff -ruN -x pack_icon.png a/server/internal/blockinternal/components_test.go b/server/internal/blockinternal/components_test.go
 --- a/server/internal/blockinternal/components_test.go	1970-01-01 00:00:00.000000000 +0000
-+++ b/server/internal/blockinternal/components_test.go	2026-11-08 21:30:00.000000000 +0000
-@@ -0,0 +1,82 @@
++++ b/server/internal/blockinternal/components_test.go	2026-11-09 00:12:21.738334505 +0000
+@@ -0,0 +1,111 @@
 +package blockinternal
 +
 +import (
@@ -728,6 +749,35 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components_test.go b/
 +	}
 +	if got := geo(perms[0]["components"].(map[string]any)); !reflect.DeepEqual(got, map[string]any{"core": "true"}) {
 +		t.Errorf("permutation bone_visibility = %v", got)
++	}
++}
++
++// skygear patch: the properties of a block with several states go out in the
++// order of their names, every time (the order the client numbers the states in).
++
++type manyStatesBlock struct{ boneBlock }
++
++func (manyStatesBlock) States() map[string][]any {
++	return map[string][]any{
++		"t:w": {false, true}, "t:a": {int32(0), int32(1)}, "t:m": {int32(0)}, "t:c": {false, true},
++		"t:z": {int32(0)}, "t:b": {int32(0)}, "t:q": {false, true}, "t:e": {int32(0)},
++	}
++}
++
++func TestPropertiesSortedByName(t *testing.T) {
++	want := []string{"t:a", "t:b", "t:c", "t:e", "t:m", "t:q", "t:w", "t:z"}
++	for range 20 {
++		props := Components("t:many", manyStatesBlock{}, 1)["properties"].([]map[string]any)
++		var got []string
++		for _, p := range props {
++			got = append(got, p["name"].(string))
++		}
++		if !reflect.DeepEqual(got, want) {
++			t.Fatalf("properties %v, want %v", got, want)
++		}
++		if !reflect.DeepEqual(props[6]["enum"], []any{false, true}) {
++			t.Fatalf("t:w enum %v", props[6]["enum"])
++		}
 +	}
 +}
 diff -ruN -x pack_icon.png a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
