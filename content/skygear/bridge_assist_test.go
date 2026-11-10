@@ -11,6 +11,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/preview"
 )
 
 // bridgeEdge stands p at the south edge of a stone block, looking south and
@@ -56,7 +57,12 @@ func TestBridgeNeedsSneak(t *testing.T) {
 		}
 
 		p.StartSneaking()
-		bridge.Update(s.Session, p, tx, p.Position(), p.Rotation(), held, true, true)
+		views := sentViews(t, func() { bridge.Update(s.Session, p, tx, p.Position(), p.Rotation(), held, true, true) })
+		// the cell: the glass the crosshair goes through, the block behind it
+		if len(views) != 2 || views[0].Pos != cell || views[0].Layer != 0 || views[0].Block != (preview.Glass{}) ||
+			views[1].Layer != 1 || !isPlanksBlock(views[1].Block) {
+			t.Fatalf("preview sent %v, want glass on layer 0 and the planks on layer 1 at %v", views, cell)
+		}
 		got, ok := bridge.PreviewCell(s.Session, p)
 		if !ok || got != cell {
 			t.Fatalf("preview %v %v, want %v", got, ok, cell)
@@ -108,4 +114,9 @@ func TestBridgeOnePerPress(t *testing.T) {
 			t.Fatal("a repeat on the placed block was let through")
 		}
 	})
+}
+
+func isPlanksBlock(b world.Block) bool {
+	_, ok := b.(block.Planks)
+	return ok
 }

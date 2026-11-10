@@ -14,7 +14,7 @@ var layers = []string{
 	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
 	"advancement", "hopper", "nsmigrate", "migrate",
 	// core
-	"core", "network", "achievement",
+	"core", "network", "achievement", "preview",
 	// progress
 	"progress", "island", "climate",
 	// features

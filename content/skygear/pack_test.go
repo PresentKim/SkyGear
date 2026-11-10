@@ -88,6 +88,7 @@ func TestPackHasItemAssets(t *testing.T) {
 // (the client has them, the pack does not).
 var vanillaTerrain = map[string]bool{
 	"textures/blocks/bookshelf":                  true,
+	"textures/blocks/glass_green":                true,
 	"textures/blocks/hopper_outside":             true,
 	"textures/blocks/huge_fungus/crimson_planks": true,
 	"textures/blocks/planks_big_oak":             true,

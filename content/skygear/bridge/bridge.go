@@ -25,9 +25,9 @@ import (
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/look"
+	"github.com/presentkim/skygear/content/skygear/preview"
 	"github.com/presentkim/skygear/platform/account"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // Setting is the player setting (account.Setting) that turns the assist on.
@@ -241,7 +241,7 @@ func Place(s *core.Session, p *player.Player) bool {
 	}
 	// a click on the preview: the client put a block of its own next to it
 	if g, ok := connOf(sghook.Session(p)).takeGhost(); ok {
-		restoreCell(p, tx, g)
+		sghook.ViewFakeBlock(p, g, tx.Block(g))
 	}
 	return true
 }
@@ -316,71 +316,43 @@ func Mark(s *core.Session, p *player.Player) string {
 	return marks.Of(s)[p.H()]
 }
 
-// preview is the cell a player is shown the block in.
-type preview struct {
+// previewCell is the cell a player is shown the block in.
+type previewCell struct {
 	cell  cube.Pos
 	block world.Block
 }
 
-// previewBlock is what fills the preview's liquid layer, so the shown
-// block reads as not real yet.
-var previewBlock world.Block = block.StainedGlass{Colour: item.ColourGreen()}
+// previewOwner names the assist's preview among the others (preview.Set).
+const previewOwner = "bridge"
 
-// showPreview shows p, only, b in cell with green stained glass on its
-// liquid layer (as the hammer's vein preview), sending it again only when
-// the cell or the block changed.
+// showPreview shows p, only, b in cell behind green glass that the
+// crosshair goes through, sending it again only when the cell or the
+// block changed.
 func showPreview(s *core.Session, p *player.Player, tx *world.Tx, cell cube.Pos, b world.Block) {
 	cur, ok := previews.Of(s)[p.H()]
 	if ok && cur.cell == cell && cur.block == b {
 		return
 	}
-	if ok && cur.cell != cell {
-		restoreCell(p, tx, cur.cell)
-	}
-	sghook.ViewFakeBlock(p, cell, b)
-	sendLayer(p, cell, previewBlock)
-	previews.Of(s)[p.H()] = preview{cell: cell, block: b}
+	preview.Set(s, p, tx, previewOwner, map[cube.Pos]preview.Look{cell: preview.Fill(b)})
+	previews.Of(s)[p.H()] = previewCell{cell: cell, block: b}
 	connOf(sghook.Session(p)).setPreview(cell, true)
 }
 
 // hidePreview shows p the real cell again, if p is shown a preview.
 func hidePreview(s *core.Session, p *player.Player) {
-	cur, ok := previews.Of(s)[p.H()]
-	if !ok {
+	if _, ok := previews.Of(s)[p.H()]; !ok {
 		return
 	}
 	delete(previews.Of(s), p.H())
 	connOf(sghook.Session(p)).setPreview(cube.Pos{}, false)
-	if tx := p.Tx(); tx != nil {
-		restoreCell(p, tx, cur.cell)
-	}
-}
-
-// restoreCell shows p the real blocks of both layers at pos.
-func restoreCell(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	sghook.ViewFakeBlock(p, pos, tx.Block(pos))
-	var liquid world.Block = block.Air{}
-	if l, ok := tx.Liquid(pos); ok {
-		liquid = l
-	}
-	sendLayer(p, pos, liquid)
-}
-
-// sendLayer shows p b on the liquid layer (layer 1) at pos.
-func sendLayer(p *player.Player, pos cube.Pos, b world.Block) {
-	sghook.WritePacket(sghook.Session(p), &packet.UpdateBlock{
-		Position:          protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
-		NewBlockRuntimeID: world.BlockRuntimeID(b),
-		Flags:             packet.BlockUpdateNetwork,
-		Layer:             1,
-	})
+	preview.Clear(s, p, p.Tx(), previewOwner)
 }
 
 var (
 	// marks are the crosshair marks players were last given.
 	marks = core.NewPlayers[string]()
 	// previews are the cells players are shown a block in.
-	previews = core.NewPlayers[preview]()
+	previews = core.NewPlayers[previewCell]()
 	// lastUpdate is when each player's preview and mark were last worked
 	// out.
 	lastUpdate = core.NewPlayers[time.Time]()
