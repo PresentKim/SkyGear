@@ -12,7 +12,6 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/perf"
 	"github.com/presentkim/skygear/content/skygear/advancement"
-	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -28,10 +27,6 @@ func UpdateBoard(s *core.Session, p *player.Player) {
 	total, day, _ := s.Clock.Now()
 	lang := i18n.Of(p)
 	var b hud.Board
-	// the crosshair mark first, so a long quest panel never pushes it out
-	if m := bridge.Mark(s, p); m != "" {
-		b.Add(hud.Crosshair, m)
-	}
 	b.Add(hud.TopLeft, fmt.Sprintf(i18n.T(lang, "sidebar.day"), day, textfmt.PlayTime(lang, total)))
 	if showsLoad(s, p) {
 		b.Add(hud.TopLeft, perf.Line(s.World))

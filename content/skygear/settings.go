@@ -1,7 +1,6 @@
 package skygear
 
 import (
-	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/platform/account"
@@ -12,7 +11,6 @@ func init() {
 	account.RegisterSetting(
 		account.Setting{Key: tinker.VeinDiagonalSetting, NameKey: "setting.vein.diagonal", Group: "setting.group.play"},
 		account.Setting{Key: tinker.AutoToolSetting, NameKey: "setting.autotool", Group: "setting.group.play"},
-		account.Setting{Key: bridge.Setting, NameKey: "setting.bridge", Default: true, Group: "setting.group.play"},
 		account.Setting{Key: core.AutofillSetting, NameKey: "setting.autofill", Default: true, Group: "setting.group.play"},
 	)
 }
