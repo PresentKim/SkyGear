@@ -35,7 +35,8 @@ import (
 //     them (block.LeavesLike, a Dragonfly patch), so infesting the middle of
 //     a crown keeps its outer leaves, and a felled tree leaves its infested
 //     leaves hanging for the string.
-//   - The worms only spread onto the island's own chunks.
+//   - The worms only spread onto the island's own chunks (never in a world
+//     with no island session).
 
 func init() {
 	for stage := range InfestStages {
@@ -150,6 +151,9 @@ func (InfestingLeaves) FlammabilityInfo() block.FlammabilityInfo {
 // LeavesLike implements block.LeavesLike: leaves find their log through it.
 func (InfestingLeaves) LeavesLike() bool { return true }
 
+// NeighbourUpdateTick passes the update on to the leaves beyond (wakeLeaves).
+func (InfestingLeaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { wakeLeaves(tx, pos) }
+
 // ScheduledTick moves the leaves a stage on.
 func (l InfestingLeaves) ScheduledTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 	if cur, ok := tx.Block(pos).(InfestingLeaves); ok {
@@ -225,6 +229,38 @@ func (InfestedLeaves) FlammabilityInfo() block.FlammabilityInfo {
 // LeavesLike implements block.LeavesLike.
 func (InfestedLeaves) LeavesLike() bool { return true }
 
+// NeighbourUpdateTick passes the update on to the leaves beyond (wakeLeaves).
+func (InfestedLeaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { wakeLeaves(tx, pos) }
+
+// wakeLeaves gives the leaves reached from pos through infested leaves (up to
+// four steps, as far as leaves look for a log) a neighbour update, as leaves
+// pass one on to each other: with the log of a tree felled, the leaves
+// behind its infested ones still check for it and decay. The infested blocks
+// themselves are not set again, so they do not keep waking each other.
+func wakeLeaves(tx *world.Tx, pos cube.Pos) {
+	visited, step := map[cube.Pos]struct{}{pos: {}}, []cube.Pos{pos}
+	for distance := 0; distance < 4 && len(step) > 0; distance++ {
+		var next []cube.Pos
+		for _, at := range step {
+			at.Neighbours(func(n cube.Pos) {
+				if _, ok := visited[n]; ok {
+					return
+				}
+				visited[n] = struct{}{}
+				switch b := tx.Block(n).(type) {
+				case block.Leaves:
+					b.NeighbourUpdateTick(n, at, tx)
+				case block.LeavesLike:
+					if b.LeavesLike() {
+						next = append(next, n)
+					}
+				}
+			}, tx.Range())
+		}
+		step = next
+	}
+}
+
 // RandomTick tries to spread the worms.
 func (InfestedLeaves) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
 	if r.Float64() < InfestedSpreadChance {
@@ -284,7 +320,7 @@ func TrySpread(tx *world.Tx, pos cube.Pos, r *rand.Rand) bool {
 	if at == pos || at.OutOfBounds(tx.Range()) {
 		return false
 	}
-	if s, ok := core.Of(tx); ok && !island.CanBuild(s, at) {
+	if s, ok := core.Of(tx); !ok || !island.CanBuild(s, at) {
 		return false
 	}
 	return Infest(tx, at, r)

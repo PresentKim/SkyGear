@@ -127,17 +127,20 @@ func TestInfestationProgresses(t *testing.T) {
 		}
 		tx.SetBlock(pos, block.Leaves{Type: block.OakLeaves()}, nil)
 		if !farm.Infest(tx, pos, r) {
-			t.Fatal("leaves were not infested")
+			t.Error("leaves were not infested")
+			return
 		}
 		for want := 0; want < farm.InfestStages; want++ {
 			l, ok := tx.Block(pos).(farm.InfestingLeaves)
 			if !ok || l.Stage != want {
-				t.Fatalf("step %d: %#v", want, tx.Block(pos))
+				t.Errorf("step %d: %#v", want, tx.Block(pos))
+				return
 			}
 			l.ScheduledTick(pos, tx, r)
 		}
 		if _, ok := tx.Block(pos).(farm.InfestedLeaves); !ok {
-			t.Fatalf("after the last stage: %#v", tx.Block(pos))
+			t.Errorf("after the last stage: %#v", tx.Block(pos))
+			return
 		}
 		// A random tick moves a stage on as well.
 		tx.SetBlock(pos, farm.InfestingLeaves{Stage: 1}, nil)
@@ -180,6 +183,7 @@ func TestInfestationSpreads(t *testing.T) {
 		return n
 	}
 	leaves := block.Leaves{Type: block.OakLeaves(), Persistent: true}
+	far := cube.Pos{40, island.IslandY + 6, 6}
 	s.World.Do(func(tx *world.Tx) {
 		centre := cube.Pos{6, island.IslandY + 6, 6}
 		fill(tx, centre, leaves)
@@ -213,13 +217,14 @@ func TestInfestationSpreads(t *testing.T) {
 		fill(tx, stone, block.Stone{})
 		for range 50 {
 			if farm.TrySpread(tx, stone, r) {
-				t.Fatal("the worms spread into stone")
+				t.Error("the worms spread into stone")
+				return
 			}
 		}
 		// Not off the island's chunks.
-		far := cube.Pos{40, island.IslandY + 6, 6}
 		if island.CanBuild(s.Session, far) {
-			t.Skip("the test position is on the island")
+			t.Error("the test position is on the island")
+			return
 		}
 		fill(tx, far, leaves)
 		for range 50 {
@@ -320,4 +325,55 @@ func TestCrookBreaksLeavesInPlay(t *testing.T) {
 	if block.BreakDuration(l, item.NewStack(sgitem.Crook{}, 1), block.BreakContext{}) >= block.BreakDuration(l, item.Stack{}, block.BreakContext{}) {
 		t.Error("the crook does not break leaves faster than a hand")
 	}
+}
+
+// TestFelledTreeLeavesDecayBehindInfested: with the log gone, leaves behind a
+// ring of infested leaves still hear of it and decay; the infested stay.
+func TestFelledTreeLeavesDecayBehindInfested(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	s.World.Do(func(tx *world.Tx) {
+		log := cube.Pos{6, island.IslandY + 5, 6}
+		inner, outer := log.Add(cube.Pos{1, 0, 0}), log.Add(cube.Pos{2, 0, 0})
+		tx.SetBlock(log, fairy.OakLog, nil)
+		tx.SetBlock(inner, farm.InfestedLeaves{}, nil)
+		tx.SetBlock(outer, block.Leaves{Type: block.OakLeaves()}, nil)
+		tx.SetBlock(log, nil, nil)
+		farm.InfestedLeaves{}.NeighbourUpdateTick(inner, log, tx)
+		l, ok := tx.Block(outer).(block.Leaves)
+		if !ok || !l.ShouldUpdate {
+			t.Errorf("outer leaves not told of the felled log: %#v", tx.Block(outer))
+			return
+		}
+		l.ScheduledTick(outer, tx, nil)
+		if _, ok := tx.Block(outer).(block.Leaves); ok {
+			t.Error("outer leaves did not decay")
+		}
+		if _, ok := tx.Block(inner).(farm.InfestedLeaves); !ok {
+			t.Error("the infested leaves went")
+		}
+	})
+}
+
+// TestNoSpreadWithoutIsland: a world with no island session never catches it.
+func TestNoSpreadWithoutIsland(t *testing.T) {
+	w := world.Config{Synchronous: true}.New()
+	defer func() { _ = w.Close() }()
+	r := rand.New(rand.NewPCG(7, 8))
+	w.Do(func(tx *world.Tx) {
+		c := cube.Pos{0, 70, 0}
+		for dx := -1; dx <= 1; dx++ {
+			for dy := -1; dy <= 1; dy++ {
+				for dz := -1; dz <= 1; dz++ {
+					tx.SetBlock(c.Add(cube.Pos{dx, dy, dz}), block.Leaves{Type: block.OakLeaves(), Persistent: true}, nil)
+				}
+			}
+		}
+		for range 50 {
+			if farm.TrySpread(tx, c, r) {
+				t.Error("spread in a world with no island")
+				return
+			}
+		}
+	})
 }
