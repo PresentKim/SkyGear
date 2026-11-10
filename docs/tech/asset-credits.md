@@ -48,16 +48,18 @@
 
 마인크래프트 바닐라 텍스처는 팩에 복사하지 않는다. 클라이언트가 가진 그림을 경로로 가리킨다.
 
-- 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 배럴(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
+- 스카이기어 아틀라스(`textures/terrain_texture.json`)의 일부 키는 `textures/blocks/<바닐라>` 를 가리킨다: 체·나무 깔때기·참나무 배럴(`planks_oak`), 철 깔때기(`hopper_outside`), 자동 체(`planks_big_oak`), 마법 체(`huge_fungus/crimson_planks`), 연구대 옆면(`bookshelf`), 차원 게이트 면(`portal_placeholder`), 통의 물과 마녀의 물(`water_placeholder`), 미리보기 유리 16색(`glass_<색>`, 연회색은 `glass_silver`). `pack_test.go` 의 `vanillaTerrain` 이 이 목록이다.
 - WAILA 팩의 도구 아이콘·하트·갑옷·물방울·테두리는 `textures/items/*`, `textures/ui/*` 바닐라 경로를 쓴다(`assets/resourcepack/waila/ui/waila/tile.json` 의 `block_tags`, `common.json` 의 `icon_renderer`).
 
 ## 생성한 그림
 
 몹 정수(`essence_*`), 꽃잎(`petal_*`), 씨앗(`seed_*`), 장비 제작대 도구(`tool_*`), 나무 양동이(`wooden_*bucket`), 마법 식물(`blocks/plant_*`), 가루 블록(`blocks/dust`)은 deep-pixels.com 의 픽셀아트 모델로 만든 16×16 그림이다(아이템·식물은 `ultimate-extreme-turbo-lv2-opiniated-item-16px-v1`, 가루는 `ultimate-extreme-mc-block-hq-16-v1`). 모델이 한 요청에 내는 네 안 중 하나를 골라 배경을 지우고, 식물은 블록 바닥에 닿게 가운데 맞췄다. PNG 가 원본이므로 바꿀 때는 그림을 직접 갈아 끼운다.
 
-감염 중인 나뭇잎 네 단계와 감염된 나뭇잎(`blocks/infesting_leaves_0~3`, `blocks/infested_leaves`)은 `tools/infestedtex` 가 그린다. 잎 덩어리는 도구 안에 직접 찍은 16×16 배치이고(바닐라 잎을 베끼지 않았다), 네 곳에서 흰 실이 단계마다 넓게 번지며 잎 사이 틈에 거미줄 가닥이 생긴다. Ex Nihilo Fabrico 에는 이 그림이 없다(클라이언트에서 잎 색과 흰색을 섞는다).
+누에 나뭇잎의 고치 단계 그림(`blocks/infesting_leaves_0~3` 은 고치 생성률 0·20·40·60%, `blocks/infested_leaves` 는 100%)은 `tools/infestedtex` 가 그린다. 잎 덩어리는 도구 안에 직접 찍은 16×16 배치이고(바닐라 잎을 베끼지 않았다), 네 곳에서 흰 실이 단계마다 넓게 번지며 잎 사이 틈에 거미줄 가닥이 생긴다. 잎 색은 바이옴 색을 입힌 바닐라 참나무 잎 정도로 맞춰 이웃 잎보다 밝아 보이지 않게 했다. Ex Nihilo Fabrico 에는 이 그림이 없다(클라이언트에서 잎 색과 흰색을 섞는다).
 
 엘리베이터(`blocks/elevator_*`)는 `tools/elevatortex` 가 염료 색으로 그린다(옆면은 양털 결과 테두리, 윗면은 엔더 진주와 위아래 화살표). 그림을 바꿀 때는 도구를 고치고 다시 돌린다.
+
+압축 블록(`blocks/compressed_*`)은 `tools/compacttex` 가 그린 임시 그림이다(원래 블록 색의 결, 단계마다 두꺼워지는 테두리, 단계 수만큼의 점). 이미 있는 파일은 건너뛰므로 손으로 그린 그림으로 바꿀 때는 파일만 갈아 끼우면 된다.
 
 ## 손대지 않은 그림
 
@@ -73,7 +75,7 @@ rm assets/resourcepack/skygear/textures/blocks/*_t[123].png
 go run ./tools/tierblocks assets/resourcepack/skygear       # 단계 텍스처
 go run ./tools/texdedup assets/resourcepack/skygear        # 같은 그림인 블록 텍스처를 한 파일로
 go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/skygear  # 체 모델·메쉬
-go run ./tools/infestedtex assets/resourcepack/skygear     # 감염된 나뭇잎 단계
+go run ./tools/infestedtex assets/resourcepack/skygear     # 누에 나뭇잎 고치 단계
 ```
 
 저작권 표시는 MIT 조건에 따라 `third_party/licenses/` 의 파일과 이 문서가 맡는다.

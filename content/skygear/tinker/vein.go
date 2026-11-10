@@ -4,21 +4,18 @@ import (
 	"slices"
 	"time"
 
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/preview"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/platform/account"
-	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 // Vein mining (like the VeinMiner mod): mining a block the iron hammer
@@ -138,8 +135,8 @@ func addDrop(drops []item.Stack, drop item.Stack) []item.Stack {
 	return append(drops, drop)
 }
 
-// veinPreviewBlock is the block the preview puts on the liquid layer.
-var veinPreviewBlock world.Block = block.StainedGlass{Colour: item.ColourLightBlue()}
+// veinOwner names the vein's preview among the others (preview.Set).
+const veinOwner = "vein"
 
 // veinOutline is the preview a player is shown: the vein it is of (its
 // first block and size) and the positions tinted.
@@ -181,60 +178,27 @@ func ShowVeinOutline(s *core.Session, p *player.Player, tx *world.Tx, pos cube.P
 		veinOutlines.Of(s)[p.H()] = cur
 		return
 	}
-	old := veinOutlines.Of(s)[p.H()].blocks
-	tinted := map[cube.Pos]bool{}
-	for _, b := range blocks {
-		tinted[b] = true
-	}
-	// restore what the new preview does not cover, tint what it adds
-	var stale []cube.Pos
-	had := map[cube.Pos]bool{}
-	for _, b := range old {
-		had[b] = true
-		if !tinted[b] {
-			stale = append(stale, b)
-		}
-	}
-	restoreLiquidLayer(p, tx, stale)
-	for _, b := range blocks {
-		if !had[b] {
-			sendLiquidLayer(p, b, veinPreviewBlock)
-		}
-	}
+	preview.Set(s, p, tx, veinOwner, VeinLooks(blocks))
 	veinOutlines.Of(s)[p.H()] = veinOutline{start: pos, size: len(blocks), blocks: blocks, budget: budget, diagonal: diagonal, at: now}
 }
 
 // HideVeinOutline removes the preview p is shown, if any.
 func HideVeinOutline(s *core.Session, p *player.Player) {
-	o, ok := veinOutlines.Of(s)[p.H()]
-	if !ok {
+	if _, ok := veinOutlines.Of(s)[p.H()]; !ok {
 		return
 	}
 	delete(veinOutlines.Of(s), p.H())
-	if tx := p.Tx(); tx != nil {
-		restoreLiquidLayer(p, tx, o.blocks)
-	}
+	preview.Clear(s, p, p.Tx(), veinOwner)
 }
 
-// sendLiquidLayer shows p b on the liquid layer at pos.
-func sendLiquidLayer(p *player.Player, pos cube.Pos, b world.Block) {
-	sghook.WritePacket(sghook.Session(p), &packet.UpdateBlock{
-		Position:          protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
-		NewBlockRuntimeID: world.BlockRuntimeID(b),
-		Flags:             packet.BlockUpdateNetwork,
-		Layer:             1,
-	})
-}
-
-// restoreLiquidLayer shows p the real liquid layer at each of the positions.
-func restoreLiquidLayer(p *player.Player, tx *world.Tx, at []cube.Pos) {
-	for _, pos := range at {
-		var b world.Block = block.Air{}
-		if l, ok := tx.Liquid(pos); ok {
-			b = l
-		}
-		sendLiquidLayer(p, pos, b)
+// VeinLooks are the looks of the vein preview: each block marked, with the
+// preview glass on its liquid layer.
+func VeinLooks(blocks []cube.Pos) map[cube.Pos]preview.Look {
+	looks := make(map[cube.Pos]preview.Look, len(blocks))
+	for _, b := range blocks {
+		looks[b] = preview.Mark(preview.VeinColour)
 	}
+	return looks
 }
 
 // veinOutlines are the vein outlines players are shown.

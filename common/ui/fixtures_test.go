@@ -219,6 +219,11 @@ func fixtureScreens() map[string]func() {
 				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Text: "9", Run: nop}},
 				chrome(Option{Label: "모두 꺼내기", Run: nop})...)
 		},
+		"slotmenu-small": func() {
+			SlotMenu(p, "서랍", Slot{Icon: "textures/ui/confirm", Text: "64", Run: nop}, "§f밀 씨앗\n§764 / 2,048",
+				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}},
+				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}})
+		},
 		"choice": func() {
 			ChoiceMenu(p, "선택", ChoiceBoard{
 				Stats: []Stat{{Icon: "textures/ui/confirm", Label: "속도", Value: "12"}, {Icon: "textures/ui/cancel", Label: "힘", Value: "§c7"}, {Label: "운", Value: "3"}},
@@ -281,6 +286,24 @@ func fixtureScreens() map[string]func() {
 				Hint:  "명령어", Submit: "실행", Run: func(*player.Player, *world.Tx, string) {}, Back: nop, BackLabel: "뒤로",
 			})
 		},
+		"radial": func() {
+			ShowRadial(p, RadialMenu{Title: "돌 건축 지팡이", Line: "한 번에 놓는 블록 9 · 내구도 131 / 131", Info: "웅크리고 허공을 우클릭하면 이 메뉴가 열립니다", BackTip: "닫기", Items: []RadialItem{
+				{Icon: "textures/blocks/planks_oak", Label: "방향 제한", Value: "제한 없음", Info: "누른 면을 모든 방향으로 넓힙니다", Run: nop},
+				{Icon: "textures/blocks/dirt", Label: "블록 일치", Value: "비슷한 블록", Info: "흙과 잔디 같은 흙 종류를 같은 블록으로 봅니다", Run: nop},
+				{Icon: "textures/blocks/tallgrass", Label: "덮어 놓기", Value: "켜짐", On: true, Run: nop},
+				{Icon: "textures/blocks/stone", Label: "무작위", Value: "꺼짐", Run: nop},
+				{Icon: "textures/items/arrow", Label: "되돌리기", Value: "0개 남음"},
+			}})
+		},
+		"radial-group": func() {
+			ShowRadial(p, RadialMenu{Title: "방향 제한", Info: "고르면 설정이 바뀌고 처음 메뉴로 돌아갑니다", Back: nop, BackTip: "뒤로", Items: []RadialItem{
+				{Icon: "textures/blocks/planks_oak", Label: "제한 없음", Value: "선택됨", On: true, Run: nop},
+				{Icon: "textures/blocks/planks_oak", Label: "좌우", Run: nop},
+				{Icon: "textures/blocks/ladder", Label: "위아래", Run: nop},
+				{Icon: "textures/items/compass_item", Label: "남북", Run: nop},
+				{Icon: "textures/items/compass_item", Label: "동서", Run: nop},
+			}})
+		},
 		"probe": func() {
 			ProbeScreen(p, "시험", []any{ProbeNode("probe", "id", "p1"), ProbeNode("box", "class", "mc-gap-3")}, nil, nil)
 		},
@@ -303,8 +326,8 @@ func runFixture(t *testing.T, name string) (roots []any) {
 // fixtureNames are the screens the visual baseline must cover.
 var fixtureNames = []string{
 	"menu", "confirm", "cards", "pick", "result", "equip", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
-	"slotmenu", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
-	"lobby-menu", "loading", "console", "probe",
+	"slotmenu", "slotmenu-small", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
+	"lobby-menu", "loading", "console", "probe", "radial", "radial-group",
 }
 
 // TestFixturesCoverAll checks the fixtures are exactly the screens the

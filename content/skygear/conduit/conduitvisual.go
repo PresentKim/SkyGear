@@ -10,8 +10,8 @@ import (
 // ConduitVisual draws a conduit bundle so the bundle block needs a single
 // state: the render controller decodes the look from two variants. Each kind
 // has a code, 0 for none, else 1 + (tier-1)*64 + sides (bit i is
-// conduitFaces[i]); Variant = energy + 193*item, MarkVariant = fluid, small
-// enough for the client's float32 molang. It removes itself when its bundle
+// conduitFaces[i]); Variant = energy + 193*item, MarkVariant = fluid +
+// 193*network, small enough for the client's float32 molang. It removes itself when its bundle
 // or session is gone (entities are saved with the world).
 
 const Codes = 193
@@ -26,7 +26,7 @@ func Code(tier, sides int) int32 {
 
 // Look returns the Variant and MarkVariant of a bundle.
 func Look(b Bundle) (variant, mark int32) {
-	return Code(b.Energy, b.EConn) + Codes*Code(b.Item, b.IConn), Code(b.Fluid, b.FConn)
+	return Code(b.Energy, b.EConn) + Codes*Code(b.Item, b.IConn), Code(b.Fluid, b.FConn) + Codes*Code(b.Net, b.NConn)
 }
 
 type Visual struct {

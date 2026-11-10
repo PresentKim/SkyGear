@@ -110,32 +110,76 @@
         }
       ],
       "textures": [
-        "Array.tier[math.clamp(math.floor((query.mark_variant - 1) / 64), 0, 2)]"
+        "Array.tier[math.clamp(math.floor((math.mod(query.mark_variant, 193) - 1) / 64), 0, 2)]"
       ],
       "part_visibility": [
         {
           "*": "0"
         },
         {
-          "core": "query.mark_variant > 0"
+          "core": "math.mod(query.mark_variant, 193) > 0"
         },
         {
-          "down": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 1), 2) == 1)"
+          "down": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 1), 2) == 1)"
         },
         {
-          "up": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 2), 2) == 1)"
+          "up": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 2), 2) == 1)"
         },
         {
-          "north": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 4), 2) == 1)"
+          "north": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 4), 2) == 1)"
         },
         {
-          "south": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 8), 2) == 1)"
+          "south": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 8), 2) == 1)"
         },
         {
-          "west": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 16), 2) == 1)"
+          "west": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 16), 2) == 1)"
         },
         {
-          "east": "(query.mark_variant > 0) && (math.mod(math.floor(math.mod(query.mark_variant - 1, 64) / 32), 2) == 1)"
+          "east": "(math.mod(query.mark_variant, 193) > 0) && (math.mod(math.floor(math.mod(math.mod(query.mark_variant, 193) - 1, 64) / 32), 2) == 1)"
+        }
+      ]
+    },
+    "controller.render.skygear_conduit_net": {
+      "arrays": {
+        "textures": {
+          "Array.tier": [
+            "Texture.net_1"
+          ]
+        }
+      },
+      "geometry": "Geometry.net",
+      "materials": [
+        {
+          "*": "Material.default"
+        }
+      ],
+      "textures": [
+        "Array.tier[0]"
+      ],
+      "part_visibility": [
+        {
+          "*": "0"
+        },
+        {
+          "core": "math.floor(query.mark_variant / 193) > 0"
+        },
+        {
+          "down": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 1), 2) == 1)"
+        },
+        {
+          "up": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 2), 2) == 1)"
+        },
+        {
+          "north": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 4), 2) == 1)"
+        },
+        {
+          "south": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 8), 2) == 1)"
+        },
+        {
+          "west": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 16), 2) == 1)"
+        },
+        {
+          "east": "(math.floor(query.mark_variant / 193) > 0) && (math.mod(math.floor(math.mod(math.floor(query.mark_variant / 193) - 1, 64) / 32), 2) == 1)"
         }
       ]
     },

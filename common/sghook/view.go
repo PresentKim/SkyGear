@@ -174,6 +174,22 @@ func ViewFakeBlock(p *player.Player, pos cube.Pos, b world.Block) {
 	}
 }
 
+// ViewFakeBlockLayer shows b at pos to p only on one of the block's layers
+// (0 the block, 1 the liquid layer), with no block entity data. The world
+// is unchanged; show the real layer the same way to undo it.
+func ViewFakeBlockLayer(p *player.Player, pos cube.Pos, b world.Block, layer uint32) {
+	s := Session(p)
+	if s == session.Nop {
+		return
+	}
+	session_writePacket(s, &packet.UpdateBlock{
+		Position:          protocol.BlockPos{int32(pos[0]), int32(pos[1]), int32(pos[2])},
+		NewBlockRuntimeID: (*field[world.BlockRegistry](s, "br")).BlockRuntimeID(b),
+		Flags:             packet.BlockUpdateNetwork,
+		Layer:             layer,
+	})
+}
+
 // ViewChunkCentre makes p's client keep and draw the chunks around pos
 // instead of around the player until it next moves to another chunk, for
 // chunks shown with ViewFakeChunk right after a teleport (they are dropped

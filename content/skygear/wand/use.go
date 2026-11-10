@@ -2,14 +2,12 @@ package wand
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/cube/trace"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
@@ -17,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
+	"github.com/presentkim/skygear/content/skygear/preview"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -142,19 +141,11 @@ func Undo(s *core.Session, p *player.Player, tx *world.Tx) int {
 	return n
 }
 
-// previewMax is the most blocks the preview outlines.
+// previewMax is the most spots the preview shows.
 const previewMax = 256
 
-// previewColour is the colour of the preview's outlines.
-var previewColour = color.RGBA{R: 255, G: 255, B: 255, A: 255}
-
-// preview is what a player is shown: the outlined spots.
-type preview struct {
-	at     map[cube.Pos]bool
-	shapes []debug.Shape
-}
-
-var previews = core.NewPlayers[preview]()
+// previewOwner names the wand's preview among the others (preview.Set).
+const previewOwner = "wand"
 
 // wandReach is how far the preview looks for the block a click would hit.
 const wandReach = 6
@@ -186,8 +177,9 @@ func lookedAt(p *player.Player, tx *world.Tx) (cube.Pos, cube.Face, bool) {
 	return hit, face, found
 }
 
-// ShowPreview outlines for p, holding a wand, the spots a click on the block
-// it looks at would fill (hiding the outlines otherwise).
+// ShowPreview shows p, holding a wand, the blocks a click on the block it
+// looks at would place, behind green glass that the crosshair goes
+// through, only to p (hiding them otherwise).
 func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 	held, _ := p.HeldItems()
 	if _, ok := sgitem.WandOf(held); !ok {
@@ -199,51 +191,25 @@ func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 		HidePreview(s, p)
 		return
 	}
-	spots := map[cube.Pos]bool{}
-	for i, pl := range plan(s, p, tx, pos, face, held) {
+	preview.Set(s, p, tx, previewOwner, PreviewLooks(plan(s, p, tx, pos, face, held)))
+}
+
+// PreviewLooks are the looks of the preview of placements: each cell
+// filled with the block placed there, at most previewMax.
+func PreviewLooks(placed []Placement) map[cube.Pos]preview.Look {
+	looks := map[cube.Pos]preview.Look{}
+	for i, pl := range placed {
 		if i >= previewMax {
 			break
 		}
-		spots[pl.Pos] = true
+		looks[pl.Pos] = preview.Fill(preview.WandColour, pl.Block)
 	}
-	cur := previews.Of(s)[p.H()]
-	if sameSpots(cur.at, spots) {
-		return
-	}
-	for _, sh := range cur.shapes {
-		p.RemoveDebugShape(sh)
-	}
-	next := preview{at: spots}
-	for at := range spots {
-		sh := &debug.Box{Position: at.Vec3(), Bounds: mgl64.Vec3{1, 1, 1}, Colour: previewColour}
-		p.AddDebugShape(sh)
-		next.shapes = append(next.shapes, sh)
-	}
-	previews.Of(s)[p.H()] = next
+	return looks
 }
 
-// HidePreview removes the outlines p is shown, if any.
+// HidePreview shows p the real blocks where its preview was, if any.
 func HidePreview(s *core.Session, p *player.Player) {
-	cur, ok := previews.Of(s)[p.H()]
-	if !ok {
-		return
-	}
-	for _, sh := range cur.shapes {
-		p.RemoveDebugShape(sh)
-	}
-	delete(previews.Of(s), p.H())
-}
-
-func sameSpots(a, b map[cube.Pos]bool) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k := range a {
-		if !b[k] {
-			return false
-		}
-	}
-	return true
+	preview.Clear(s, p, p.Tx(), previewOwner)
 }
 
 // UndoTip is the tip of an undo that took n blocks.

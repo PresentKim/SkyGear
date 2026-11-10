@@ -4,7 +4,7 @@ export type Text = string // may carry § colour codes and client spans (U+FDD0 
 
 export type ScreenName =
   | 'menu' | 'cards' | 'pick' | 'result' | 'equip' | 'grid' | 'board' | 'sieve' | 'split' | 'search' | 'listsplit' | 'input'
-  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory' | 'stepper'
+  | 'slotmenu' | 'choice' | 'sides' | 'plane' | 'quest' | 'home' | 'loading' | 'console' | 'probe' | 'inventory' | 'stepper' | 'radial'
 
 export interface Root {
   screen: ScreenName
@@ -86,9 +86,12 @@ export interface InventoryData { chrome: Chrome; field: Id; query: Text; placeho
 export interface StepperItem { label: Text; value: Text; up: BarButton; down: BarButton } // an arrow with id '' is dim
 export interface StepperData { chrome: Chrome; line: Text; steppers: StepperItem[]; side: BarButton[] }
 
+export interface RadialItem { id: Id; label: Text; value: Text; info: Text; icon: Icon; on: boolean } // id '' is dim; on: the current choice
+export interface RadialData { title: Text; line: Text; info: Text; items: RadialItem[]; back: Id; backTip: Text } // back 'close': the middle button closes the menu
+
 export interface ScreenData {
   menu: MenuData; cards: CardsData; pick: PickData; result: ResultData; equip: EquipData; grid: GridData; board: BoardData; sieve: SieveData; split: SplitData
   search: SearchData; listsplit: ListSplitData; input: InputData; slotmenu: SlotMenuData; choice: ChoiceData
   sides: SidesData; plane: PlaneData; quest: QuestData; home: HomeData; loading: LoadingData
-  console: ConsoleData; probe: ProbeData; inventory: InventoryData; stepper: StepperData
+  console: ConsoleData; probe: ProbeData; inventory: InventoryData; stepper: StepperData; radial: RadialData
 }

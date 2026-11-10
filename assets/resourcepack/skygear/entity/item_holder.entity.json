@@ -18,7 +18,7 @@
       "scripts": {
         "animate": [
           {
-            "handheld": "query.is_item_name_any('slot.weapon.mainhand', 0, 'minecraft:stick', 'minecraft:bone', 'minecraft:blaze_rod', 'minecraft:breeze_rod')"
+            "handheld": "query.is_item_name_any('slot.weapon.mainhand', 0, 'minecraft:stick', 'minecraft:bone', 'minecraft:blaze_rod', 'minecraft:breeze_rod', 'minecraft:bamboo')"
           }
         ]
       },

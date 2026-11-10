@@ -30,6 +30,12 @@ func DoubleSidedRenderMethod() Method {
 	return Method{3}
 }
 
+// AlphaTestSingleSidedRenderMethod returns the alpha_test_single_sided rendering method for a material: alpha_test
+// with backface culling, as vanilla leaves and glass render (skygear patch).
+func AlphaTestSingleSidedRenderMethod() Method {
+	return Method{4}
+}
+
 type renderMethod uint8
 
 // Uint8 returns the render method as a uint8.
@@ -48,11 +54,13 @@ func (m renderMethod) String() string {
 		return "blend"
 	case 3:
 		return "double_sided"
+	case 4:
+		return "alpha_test_single_sided"
 	}
 	panic("should never happen")
 }
 
 // AmbientOcclusion returns if ambient occlusion should be enabled by default for a material using this rendering method.
 func (m renderMethod) AmbientOcclusion() bool {
-	return m != 1 && m != 2
+	return m != 1 && m != 2 && m != 4
 }

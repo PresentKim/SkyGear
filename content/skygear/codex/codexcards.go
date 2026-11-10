@@ -661,6 +661,14 @@ func Processes() []codexProcess {
 			}
 			return append(cards, barrelMixCards(s, lang, barrel, true)...)
 		}},
+		{machine.Item(machine.KindSolarGenerator), func(s *core.Session, lang string) []Card {
+			return []Card{machineCard(lang, machine.Item(machine.KindSolarGenerator), []ui.BoardCell{ui.TextCell(i18n.T(lang, "codex.card.sunlight"))},
+				[]ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.reUpTo"), machine.SolarOutput))})}
+		}},
+		{machine.Item(machine.KindHydroGenerator), func(s *core.Session, lang string) []Card {
+			return []Card{machineCard(lang, machine.Item(machine.KindHydroGenerator), []ui.BoardCell{codexCell(s, lang, water, "", i18n.T(lang, "codex.card.flowingWater"))},
+				[]ui.BoardCell{ui.TextCell(fmt.Sprintf(i18n.T(lang, "codex.card.reUpTo"), machine.HydroOutput))})}
+		}},
 		{machine.Item(machine.KindTinker), func(s *core.Session, lang string) []Card { return codexGearCards(s, lang) }},
 	}
 }

@@ -36,8 +36,10 @@ func TestGameItemsHaveKoreanNames(t *testing.T) {
 	for _, out := range sgitem.CrushRecipes {
 		items = append(items, out)
 	}
-	for _, f := range giveItems() {
-		items = append(items, f().Item())
+	for id, f := range giveItems() {
+		if !strings.HasPrefix(id, "minecraft:") { // the game's own ids, not the whole vanilla list
+			items = append(items, f().Item())
+		}
 	}
 	for _, it := range items {
 		if _, custom := it.(world.CustomItem); custom {

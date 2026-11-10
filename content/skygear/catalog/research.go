@@ -32,12 +32,11 @@ var baseResearchTree = []progress.Research{
 	{ID: "furnace", Needs: []string{"pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}}, Unlocks: []string{"furnace"}},
 	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: Stick, Count: 8}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
-	{ID: "string", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: sgitem.BarkFiber{}, Count: 8}}, Unlocks: []string{"string"}},
 	{ID: "paper", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: sgitem.BarkFiber{}, Count: 8}}, Unlocks: []string{"paper"}},
 	{ID: "crook", Needs: []string{"wood_tools"}, Cost: []progress.Requirement{{Item: OakPlanks, Count: 8}, {Item: Stick, Count: 8}}, Unlocks: []string{"skygear:wooden_crook"}},
 	{ID: "stone_crook", Needs: []string{"crook", "pebbles"}, Cost: []progress.Requirement{{Item: sgitem.Pebble{Kind: sgitem.PebbleStone}, Count: 16}}, Unlocks: []string{"skygear:stone_crook"}},
 	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: Stick, Count: 4}}, Unlocks: []string{"skygear:stone_hammer"}},
-	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 8}, {Item: OakPlanks, Count: 16}}, Unlocks: []string{"skygear:sieve", "skygear:mesh_string", "skygear:mesh_flint"}},
+	{ID: "sieve", Needs: []string{"crook", "hammer"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 8}, {Item: OakPlanks, Count: 16}}, Unlocks: []string{"skygear:sieve", "skygear:mesh_string", "skygear:mesh_flint"}},
 	{ID: "torch", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.Charcoal{}, Count: 8}, {Item: Stick, Count: 8}}, Unlocks: []string{"torch"}},
 	{ID: "woodwork", Needs: []string{"chest"}, Cost: []progress.Requirement{{Item: OakPlanks, Count: 64}, {Item: Stick, Count: 16}},
 		Unlocks: []string{"oak_stairs", "oak_fence", "fence_gate", "wooden_door", "trapdoor", "ladder", "bowl"}},
@@ -54,6 +53,8 @@ var baseResearchTree = []progress.Research{
 	{ID: "laboratory", Needs: []string{"generator", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:laboratory"}},
 	{ID: "energy_conduit", Needs: []string{"generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_energy_1", "skygear:conduit_binder_mix"}},
+	{ID: "solar_generator", Needs: []string{"energy_conduit", "glasswork"}, Cost: []progress.Requirement{{Item: block.Glass{}, Count: 16}, {Item: item.IronIngot{}, Count: 8}}, Unlocks: []string{"skygear:solar_generator"}},
+	{ID: "hydro_generator", Needs: []string{"energy_conduit", "bucket"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}, {Item: OakPlanks, Count: 16}}, Unlocks: []string{"skygear:hydro_generator"}},
 	{ID: "item_conduit", Needs: []string{"hopper"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}}, Unlocks: []string{"skygear:conduit_item_1", "skygear:conduit_binder_mix"}},
 	{ID: "fluid_conduit", Needs: []string{"item_conduit", "glasswork"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.Glass{}, Count: 8}}, Unlocks: []string{"skygear:conduit_fluid_1", "skygear:conduit_binder_mix"}},
 	{ID: "auto_sieve", Needs: []string{"sieve", "hopper", "generator"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: block.String{}, Count: 8}}, Unlocks: []string{"skygear:auto_sieve"}},
@@ -106,9 +107,9 @@ var baseResearchTree = []progress.Research{
 	{ID: "infinity_wand", Needs: []string{"diamond_wand", "mesh_netherite"}, Cost: []progress.Requirement{{Item: item.NetheriteIngot{}, Count: 2}, {Item: item.Diamond{}, Count: 16}}, Unlocks: []string{"skygear:infinity_wand"}},
 	{ID: "diamond_armor", Needs: []string{"diamond_tools", "iron_armor"}, Cost: []progress.Requirement{{Item: item.Diamond{}, Count: 12}},
 		Unlocks: []string{"diamond_helmet", "diamond_chestplate", "diamond_leggings", "diamond_boots"}},
-	{ID: "archery", Needs: []string{"stone_tools", "string"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 6}, {Item: Stick, Count: 6}},
+	{ID: "archery", Needs: []string{"stone_tools", "crook"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 6}, {Item: Stick, Count: 6}},
 		Unlocks: []string{"bow"}},
-	{ID: "wool", Needs: []string{"string"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 16}}, Unlocks: woolNames()},
+	{ID: "wool", Needs: []string{"crook"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 16}}, Unlocks: woolNames()},
 	{ID: "ironwork", Needs: []string{"iron_tools", "torch"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 12}},
 		Unlocks: []string{"iron_bars", "iron_chain", "lantern", "flint_and_steel"}},
 	{ID: "workbenches", Needs: []string{"iron", "woodwork", "masonry"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 8}, {Item: OakPlanks, Count: 16}, {Item: item.Flint{}, Count: 4}},
@@ -161,7 +162,7 @@ var baseResearchTree = []progress.Research{
 	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:auto_crafter"}},
 	{ID: "storage_network", Needs: []string{"storage_controller", "auto_crafter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 16}, {Item: item.RedstoneWire{}, Count: 32}},
-		Unlocks: []string{"skygear:net_controller", "skygear:net_cable", "skygear:disk_drive", "skygear:storage_disk_1k", "skygear:storage_disk_4k", "skygear:net_terminal"}},
+		Unlocks: []string{"skygear:net_controller", "skygear:net_cable", "skygear:conduit_net_1", "skygear:disk_drive", "skygear:storage_disk_1k", "skygear:storage_disk_4k", "skygear:net_terminal"}},
 	{ID: "network_logistics", Needs: []string{"storage_network"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 16}},
 		Unlocks: []string{"skygear:net_importer", "skygear:net_exporter", "skygear:net_external", "skygear:storage_disk_16k", "skygear:speed_upgrade"}},
 	{ID: "network_autocrafting", Needs: []string{"network_logistics", "alloy_smelter"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 16}, {Item: item.Diamond{}, Count: 4}},
@@ -193,6 +194,13 @@ var baseResearchTree = []progress.Research{
 	{ID: "project_dragon", Needs: []string{"project_industry", "project_hunter", "project_botanist"},
 		Cost:    []progress.Requirement{{Item: item.Diamond{}, Count: 32}, {Item: item.Emerald{}, Count: 32}, {Item: item.NetheriteIngot{}, Count: 4}, {Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}},
 		Unlocks: []string{"dragon_egg"}},
+	// The compressed blocks (sgitem/compact.go). Undoing a level-1 block
+	// makes the base block, so the soil research opens gravel, sand and dirt
+	// too: no other recipe makes them.
+	{ID: "compact_cobblestone", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 64}},
+		Unlocks: compactNames("cobblestone")},
+	{ID: "compact_soil", Needs: []string{"compact_cobblestone", "sieve"}, Cost: []progress.Requirement{{Item: block.Gravel{}, Count: 32}, {Item: block.Sand{}, Count: 32}},
+		Unlocks: append(append(append([]string{"gravel", "sand", "dirt"}, compactNames("gravel")...), compactNames("sand")...), compactNames("dirt")...)},
 	{ID: "kelp", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.DriedKelp{}, Count: 16}}, Unlocks: []string{"dried_kelp_block"}},
 }
 
@@ -202,6 +210,18 @@ func woolNames() []string {
 	var out []string
 	for _, c := range item.Colours() {
 		out = append(out, c.String()+"_wool")
+	}
+	return out
+}
+
+// compactNames are the compressed blocks of a kind, every level.
+func compactNames(kind string) []string {
+	var out []string
+	for _, c := range sgitem.CompactBlocks() {
+		if c.Kind == kind {
+			name, _ := c.EncodeItem()
+			out = append(out, name)
+		}
 	}
 	return out
 }

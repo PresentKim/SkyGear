@@ -47,6 +47,9 @@ func ItemDecor(it world.Item) (slotdeco.Rarity, int) {
 		case sgitem.MetalElectrum, sgitem.MetalInvar:
 			return slotdeco.Rare, 0
 		}
+	case sgitem.CompactBlock:
+		// The level shows as pips; the higher levels in rarer colours.
+		return slotdeco.Rarity(it.Level - 1), it.Level
 	case sgitem.ResearchEssence:
 		return slotdeco.Uncommon, 0
 	case sgitem.Essence:

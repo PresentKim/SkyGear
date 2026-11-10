@@ -172,6 +172,37 @@ diff -ruN -x pack_icon.png a/server/block/customblock/permutations.go b/server/b
  	// Cube determines whether the block should inherit the default cube geometry. This will only be considered if the
  	// Geometry field is empty.
  	Cube bool
+diff -ruN -x pack_icon.png a/server/block/customblock/render_method.go b/server/block/customblock/render_method.go
+--- a/server/block/customblock/render_method.go	2026-11-10 11:38:29.672883070 +0000
++++ b/server/block/customblock/render_method.go	2026-11-10 11:38:29.678921982 +0000
+@@ -30,6 +30,12 @@
+ 	return Method{3}
+ }
+ 
++// AlphaTestSingleSidedRenderMethod returns the alpha_test_single_sided rendering method for a material: alpha_test
++// with backface culling, as vanilla leaves and glass render (skygear patch).
++func AlphaTestSingleSidedRenderMethod() Method {
++	return Method{4}
++}
++
+ type renderMethod uint8
+ 
+ // Uint8 returns the render method as a uint8.
+@@ -48,11 +54,13 @@
+ 		return "blend"
+ 	case 3:
+ 		return "double_sided"
++	case 4:
++		return "alpha_test_single_sided"
+ 	}
+ 	panic("should never happen")
+ }
+ 
+ // AmbientOcclusion returns if ambient occlusion should be enabled by default for a material using this rendering method.
+ func (m renderMethod) AmbientOcclusion() bool {
+-	return m != 1 && m != 2
++	return m != 1 && m != 2 && m != 4
+ }
 diff -ruN -x pack_icon.png a/server/block/dirt.go b/server/block/dirt.go
 --- a/server/block/dirt.go	2026-11-08 13:23:20.923000035 +0000
 +++ b/server/block/dirt.go	2026-11-08 13:24:58.821903967 +0000

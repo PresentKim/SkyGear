@@ -59,7 +59,7 @@ func TestRangeBoxFollowsKind(t *testing.T) {
 
 func TestBoxVariantPacksSize(t *testing.T) {
 	v := boxVariant(mgl64.Vec3{-16, 0, -16}, mgl64.Vec3{17, 15, 17}, 3)
-	if v%128 != 33 || v/128%128 != 15 || v/16384%128 != 33 || v/2097152 != 3 {
+	if v%64 != 33 || v/64%32 != 15 || v/2048%64 != 33 || v/131072 != 3+dropBias {
 		t.Errorf("variant %d", v)
 	}
 }
@@ -76,5 +76,63 @@ func TestMinerFacingIsSaved(t *testing.T) {
 	}
 	if back := m.DecodeNBT(map[string]any{}).(Machine); back.State.Facing != cube.FaceDown {
 		t.Errorf("miner saved without a facing faces %v", back.State.Facing)
+	}
+}
+
+func TestOffsetIsCappedAndSaved(t *testing.T) {
+	m := New(KindVacuum, "", "")
+	st := m.State
+	st.OffsetX, st.OffsetY, st.OffsetZ = 99, -2, -99
+	most := st.MaxOffset(KindVacuum)
+	if got := st.Offset(KindVacuum); got != (cube.Pos{most[0], -2, -most[2]}) {
+		t.Errorf("offset %v, most %v", got, most)
+	}
+	if got := New(KindHarvester, "", "").State.MaxOffset(KindHarvester); got[1] != harvesterLift {
+		t.Errorf("harvester moves %d up and down", got[1])
+	}
+	back := m.DecodeNBT(m.EncodeNBT()).(Machine).State
+	if back.OffsetX != 99 || back.OffsetY != -2 || back.OffsetZ != -99 {
+		t.Errorf("loaded offset %d %d %d", back.OffsetX, back.OffsetY, back.OffsetZ)
+	}
+}
+
+func TestRangeBoxFollowsOffset(t *testing.T) {
+	st := New(KindVacuum, "", "").State
+	st.RangeX, st.RangeY, st.RangeZ = 2, 2, 4
+	st.OffsetX, st.OffsetY = 3, 5
+	lo, hi := st.rangeBox(KindVacuum, cube.Pos{0, 10, 0})
+	if lo != (mgl64.Vec3{1, 13, -4}) || hi != (mgl64.Vec3{6, 18, 5}) {
+		t.Errorf("box %v %v", lo, hi)
+	}
+	// The box's bottom is 3 blocks above the machine: a negative drop.
+	if v := boxVariant(lo, hi, 10-int(lo[1])); v/131072-dropBias != -3 {
+		t.Errorf("drop %d", v/131072-dropBias)
+	}
+}
+
+// TestBoxVariantFitsAFloat: the client reads the variant as a float, exact
+// only up to 2^24, so every box of every machine, tier and offset must pack
+// into 24 bits and read back as it was.
+func TestBoxVariantFitsAFloat(t *testing.T) {
+	for kind := range tierRanges {
+		st := New(kind, "", "").State
+		for tier := 0; tier <= MaxTier; tier++ {
+			st.Tier = tier
+			most := st.MaxOffset(kind)
+			for _, oy := range []int{-most[1], 0, most[1]} {
+				st.OffsetX, st.OffsetY, st.OffsetZ = most[0], oy, -most[2]
+				pos := cube.Pos{0, 10, 0}
+				lo, hi := st.rangeBox(kind, pos)
+				down := pos[1] - int(lo[1])
+				v := boxVariant(lo, hi, down)
+				if float64(float32(v)) != float64(v) || v >= 1<<24 {
+					t.Fatalf("%s tier %d: variant %d is not exact as a float", kind, tier, v)
+				}
+				size := hi.Sub(lo)
+				if int(size[0]) != int(v%64) || int(size[1]) != int(v/64%32) || int(size[2]) != int(v/2048%64) || down != int(v/131072)-dropBias {
+					t.Fatalf("%s tier %d offset y %d: variant %d reads back wrong (size %v, down %d)", kind, tier, oy, v, size, down)
+				}
+			}
+		}
 	}
 }

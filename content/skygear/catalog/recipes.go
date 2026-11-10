@@ -118,6 +118,10 @@ func gameRecipes() {
 	add(machine.Item(machine.KindTank), n(item.IronIngot{}, 3), n(block.Glass{}, 6))
 	add(machine.Item(machine.KindCrucible), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.NewFurnace(cube.North), 1), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindLavaGenerator), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 3), n(block.NewFurnace(cube.North), 1), n(item.RedstoneWire{}, 3), n(block.Glass{}, 2))
+	// The generators that burn nothing: glass over a frame (solar), a wheel
+	// of planks (hydro).
+	add(machine.Item(machine.KindSolarGenerator), n(block.Glass{}, 3), n(iron, 4), n(item.RedstoneWire{}, 2))
+	add(machine.Item(machine.KindHydroGenerator), n(planks, 3), n(iron, 4), n(item.RedstoneWire{}, 2))
 	add(machine.Item(machine.KindWasher), n(sgitem.Ingot{Metal: sgitem.MetalBronze}, 4), n(block.Glass{}, 4), n(block.NewHopper(), 1))
 	add(machine.Item(machine.KindCollector), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(item.Diamond{}, 2), n(sgitem.FairyEmerald{}, 1))
 	add(machine.Item(machine.KindRelicTable), n(sgitem.Ingot{Metal: sgitem.MetalSteel}, 4), n(block.CraftingTable{}, 1), n(sgitem.FairyDust{}, 2))
@@ -127,6 +131,12 @@ func gameRecipes() {
 	bronze, redstone, glass := sgitem.Ingot{Metal: sgitem.MetalBronze}, item.RedstoneWire{}, block.Glass{}
 	add(machine.Item(machine.KindNetController), n(bronze, 2), n(iron, 2), n(redstone, 4))
 	add(item.NewStack(machine.Machine{Kind: machine.KindNetCable}, 4), n(iron, 1), n(redstone, 1), n(glass, 1))
+	// The network conduit goes into a conduit bundle; it carries the network
+	// as the cable does, beside the other conduits.
+	shaped(item.NewStack(conduit.NetConduit{}, 8), 3, 3,
+		binder, binder, binder,
+		machine.Machine{Kind: machine.KindNetCable}, machine.Machine{Kind: machine.KindNetCable}, machine.Machine{Kind: machine.KindNetCable},
+		binder, binder, binder)
 	add(machine.Item(machine.KindDiskDrive), n(iron, 4), n(bronze, 2), n(block.NewChest(), 1), n(redstone, 2))
 	add(machine.Item(machine.KindNetTerminal), n(bronze, 2), n(iron, 2), n(glass, 2), n(redstone, 2))
 	add(item.NewStack(netstore.Disk{Tier: 0}, 1), n(iron, 3), n(redstone, 2), n(glass, 2))
@@ -231,6 +241,13 @@ func gameRecipes() {
 			w, w, w,
 			w, item.EnderPearl{}, w,
 			w, w, w)
+	}
+	// The compressed blocks: nine of a level in a 3×3 make one of the next,
+	// one on its own crafts back into nine.
+	for _, c := range sgitem.CompactBlocks() {
+		b := c.Below()
+		shaped(st(c), 3, 3, b, b, b, b, b, b, b, b, b)
+		add(item.NewStack(b, 9), n(c, 1))
 	}
 	logRecipes(woodHopper)
 }

@@ -269,6 +269,8 @@ func fitsBundle(st item.Stack, b Bundle) bool {
 		return b.Item == 0
 	case FluidConduit:
 		return b.Fluid == 0
+	case NetConduit:
+		return b.Net == 0
 	}
 	return false
 }

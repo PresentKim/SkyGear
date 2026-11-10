@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -8,10 +9,13 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/preview"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wand"
 	"github.com/presentkim/skygear/platform/account"
 )
@@ -195,4 +199,183 @@ func TestAutofillPlace(t *testing.T) {
 			t.Fatalf("hand holds %d after placing its last block, want 5", held.Count())
 		}
 	})
+}
+
+// sentViews records what preview.Send sends while f runs.
+func sentViews(t *testing.T, f func()) []preview.View {
+	t.Helper()
+	var got []preview.View
+	old := preview.Send
+	preview.Send = func(_ *player.Player, v preview.View) { got = append(got, v) }
+	defer func() { preview.Send = old }()
+	f()
+	return got
+}
+
+// TestWandPreview: on a floor of slabs, the preview sends each cell on top
+// of the floor the preview glass on layer 0 (the crosshair goes through it)
+// and the slab it would get on layer 1, and hiding it sends air on both.
+func TestWandPreview(t *testing.T) {
+	s := testSession(t)
+	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		slab := block.Slab{Block: block.Planks{Wood: block.OakWood()}}
+		floor := cube.Pos{3, island.IslandY + 5, 3}
+		for x := 0; x < 3; x++ {
+			for z := 0; z < 3; z++ {
+				tx.SetBlock(floor.Add(cube.Pos{x, 0, z}), slab, nil)
+			}
+		}
+		mid := floor.Add(cube.Pos{1, 0, 1})
+		p.SetHeldItems(item.NewStack(sgitem.NewWand(sgitem.WandStone), 1), item.Stack{})
+		_, _ = p.Inventory().AddItem(item.NewStack(slab, 20))
+		// looking straight down at the middle of the floor
+		p.Teleport(mid.Vec3Centre().Add(mgl64.Vec3{0, 2, 0}))
+		p.Move(mgl64.Vec3{}, 0, 90-p.Rotation().Pitch())
+		views := sentViews(t, func() { wand.ShowPreview(s.Session, p, tx) })
+		if len(views) != 18 {
+			t.Fatalf("%d views, want 2 for each of 9 cells: %v", len(views), views)
+		}
+		for _, v := range views {
+			if v.Pos[1] != floor[1]+1 || v.Pos[0] < floor[0] || v.Pos[0] > floor[0]+2 || v.Pos[2] < floor[2] || v.Pos[2] > floor[2]+2 {
+				t.Fatalf("view at %v, want on top of the floor", v.Pos)
+			}
+			var want world.Block = slab
+			if v.Layer == 0 {
+				want = preview.Glass{Colour: preview.WandColour}
+			}
+			if world.BlockRuntimeID(v.Block) != world.BlockRuntimeID(want) {
+				t.Fatalf("layer %d at %v shows %v, want %v", v.Layer, v.Pos, v.Block, want)
+			}
+		}
+		// the same look sends nothing again
+		if again := sentViews(t, func() { wand.ShowPreview(s.Session, p, tx) }); len(again) != 0 {
+			t.Fatalf("the same preview sent %d views again", len(again))
+		}
+		// hiding clears the liquid layer of a cell before its layer 0: the
+		// client would move the block on the liquid layer up to an empty
+		// layer 0 and keep it there
+		hidden := sentViews(t, func() { wand.HidePreview(s.Session, p) })
+		cleared := map[cube.Pos]bool{}
+		for _, v := range hidden {
+			if _, ok := v.Block.(block.Air); !ok {
+				t.Fatalf("hiding sent layer %d %v at %v, want air", v.Layer, v.Block, v.Pos)
+			}
+			switch v.Layer {
+			case 1:
+				cleared[v.Pos] = true
+			case 0:
+				if !cleared[v.Pos] {
+					t.Fatalf("hiding cleared layer 0 at %v before its liquid layer", v.Pos)
+				}
+			}
+		}
+		if len(hidden) != 18 {
+			t.Fatalf("hiding sent %d views, want 2 for each of 9 cells", len(hidden))
+		}
+	})
+}
+
+// TestPreviewOverlap: where two previews show the same cell, hiding one
+// shows the other's look again, and hiding both shows the real blocks; the
+// vein marks a block on layer 1 only.
+func TestPreviewOverlap(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		stone := cube.Pos{2, island.IslandY + 3, 2}
+		tx.SetBlock(stone, block.Stone{}, nil)
+		cell := stone.Side(cube.FaceUp)
+		vein := tinker.VeinLooks([]cube.Pos{stone})
+		if l := vein[stone]; l.Block != nil || l.Liquid != (preview.Glass{Colour: preview.VeinColour}) {
+			t.Fatalf("vein look %+v, want glass on the liquid layer only", l)
+		}
+		got := sentViews(t, func() { preview.Set(s.Session, p, tx, "vein", vein) })
+		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (preview.Glass{Colour: preview.VeinColour}) {
+			t.Fatalf("vein sent %v, want the glass on layer 1", got)
+		}
+
+		plank := block.Planks{Wood: block.OakWood()}
+		preview.Set(s.Session, p, tx, "a", map[cube.Pos]preview.Look{cell: preview.Fill(preview.WandColour, block.Stone{})})
+		preview.Set(s.Session, p, tx, "b", map[cube.Pos]preview.Look{cell: preview.Fill(preview.WandColour, plank)})
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "b") })
+		if len(got) != 2 || got[1].Block != (block.Stone{}) || got[0].Block != (preview.Glass{Colour: preview.WandColour}) {
+			t.Fatalf("hiding b sent %v, want a's look again", got)
+		}
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "a") })
+		if len(got) != 2 {
+			t.Fatalf("hiding a sent %v", got)
+		}
+		for _, v := range got {
+			if _, ok := v.Block.(block.Air); !ok {
+				t.Fatalf("hiding a sent %v, want air", v)
+			}
+		}
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "vein") })
+		if len(got) != 1 || got[0].Layer != 1 {
+			t.Fatalf("hiding the vein sent %v, want only layer 1 back", got)
+		}
+		if preview.Shown(s.Session, p, "vein") || preview.Shown(s.Session, p, "a") {
+			t.Fatal("a cleared preview still shown")
+		}
+	})
+}
+
+// TestPreviewGlassBlock: there is a preview glass for every colour, each
+// drawing the vanilla stained glass of its colour, with collision and
+// selection boxes of no size (a point off the corner, as an all-zero box
+// means none set and the full cube), and none is an item to give. The wand
+// shows green and the hammer's vein blue.
+func TestPreviewGlassBlock(t *testing.T) {
+	if preview.WandColour != item.ColourGreen() || preview.VeinColour != item.ColourBlue() {
+		t.Fatalf("wand %v, vein %v, want green and blue", preview.WandColour, preview.VeinColour)
+	}
+	for _, c := range item.Colours() {
+		g := preview.Glass{Colour: c}
+		props := g.Properties()
+		if !props.Cube {
+			t.Fatalf("%v: properties %+v, want a cube", c, props)
+		}
+		for name, box := range map[string]cube.BBox{"collision": props.CollisionBox, "selection": props.SelectionBox} {
+			if box == (cube.BBox{}) {
+				t.Errorf("%v: %s box unset, the client would get the full cube", c, name)
+			}
+			if box.Width() != 0 || box.Height() != 0 || box.Length() != 0 {
+				t.Errorf("%v: %s box %v has a size", c, name, box)
+			}
+		}
+		if tex := props.Textures["*"].Encode()["texture"]; tex != preview.GlassTexture(c) {
+			t.Errorf("%v: texture %v, want %s", c, tex, preview.GlassTexture(c))
+		}
+		name, _ := g.EncodeBlock()
+		if _, ok := world.DefaultBlockRegistry.CustomBlocks()[name]; !ok {
+			t.Errorf("%s not registered", name)
+		}
+		if _, ok := world.ItemByName(name, 0); ok {
+			t.Errorf("%s is an item", name)
+		}
+	}
+	for id := range giveItems() {
+		if strings.Contains(id, "preview_glass") {
+			t.Fatalf("/sgadmin give lists %s", id)
+		}
+	}
+}
+
+// TestWandNextOption: a press on the lock or the match goes to the next
+// value, around to the first.
+func TestWandNextOption(t *testing.T) {
+	l := wand.LockNone
+	for range wand.Locks {
+		l = wand.NextLock(l)
+	}
+	if l != wand.LockNone || wand.NextLock(wand.LockNone) != wand.LockHorizontal {
+		t.Fatalf("locks do not go round: %d", l)
+	}
+	if wand.NextMatch(wand.MatchExact) != wand.MatchSimilar || wand.NextMatch(wand.MatchAny) != wand.MatchExact {
+		t.Fatal("matches do not go in the listed order")
+	}
 }

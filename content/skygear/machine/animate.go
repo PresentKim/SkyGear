@@ -23,7 +23,7 @@ func init() {
 var AnimatedKinds = map[string]bool{
 	KindFurnace: true, KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true,
 	KindCrucible: true, KindCrafter: true, KindLab: true,
-	KindMiner: true, KindHarvester: true, KindGenerator: true, KindLavaGenerator: true,
+	KindMiner: true, KindHarvester: true, KindGenerator: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true,
 	KindVacuum: true, KindFeller: true,
 }
 

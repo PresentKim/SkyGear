@@ -15,17 +15,20 @@
         "item_3": "textures/entity/skygear/conduit_item_3",
         "fluid_1": "textures/entity/skygear/conduit_fluid_1",
         "fluid_2": "textures/entity/skygear/conduit_fluid_2",
-        "fluid_3": "textures/entity/skygear/conduit_fluid_3"
+        "fluid_3": "textures/entity/skygear/conduit_fluid_3",
+        "net_1": "textures/entity/skygear/conduit_net_1"
       },
       "geometry": {
         "energy": "geometry.skygear.conduit_energy",
         "item": "geometry.skygear.conduit_item",
-        "fluid": "geometry.skygear.conduit_fluid"
+        "fluid": "geometry.skygear.conduit_fluid",
+        "net": "geometry.skygear.conduit_net"
       },
       "render_controllers": [
         "controller.render.skygear_conduit_energy",
         "controller.render.skygear_conduit_item",
-        "controller.render.skygear_conduit_fluid"
+        "controller.render.skygear_conduit_fluid",
+        "controller.render.skygear_conduit_net"
       ]
     }
   }

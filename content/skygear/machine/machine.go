@@ -2,7 +2,9 @@ package machine
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -15,6 +17,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
@@ -165,6 +168,10 @@ const (
 	KindGate          = "dimension_gate"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
+	// KindSolarGenerator and KindHydroGenerator make energy from the
+	// sunlight and from flowing water (naturegen.go).
+	KindSolarGenerator = "solar_generator"
+	KindHydroGenerator = "hydro_generator"
 	// KindSimulator turns an essence into the drops of a mob (essence.go).
 	KindSimulator  = "mob_simulator"
 	KindEnergyCell = "energy_cell"
@@ -230,6 +237,8 @@ const (
 	idPatternEncoder
 	idNetAutocrafter
 	idDrawerInterface
+	idSolarGenerator
+	idHydroGenerator
 )
 
 // Def describes a kind of machine. Slots are window slots of a 27
@@ -325,7 +334,7 @@ var Kinds = map[string]*Def{
 	KindHarvester: {
 		ID: idHarvester, nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		Use: 10, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.harvester.help.1"},
+		helpKeys: []string{"machine.harvester.help.1", "machine.harvester.help.2"},
 	},
 	KindGenerator: {
 		ID: idGenerator, nameKey: "generator.name", Marker: "§d§m§5", Interval: 100, Input: []int{13}, Indicator: 10,
@@ -428,6 +437,16 @@ var Kinds = map[string]*Def{
 		FluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
+	KindSolarGenerator: {
+		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10,
+		Generates: SolarOutput, EnergyCap: generatorBuffer,
+		helpKeys: []string{"machine.solargen.help.1", "machine.solargen.help.2"},
+	},
+	KindHydroGenerator: {
+		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10,
+		Generates: HydroOutput, EnergyCap: generatorBuffer,
+		helpKeys: []string{"machine.hydrogen.help.1", "machine.hydrogen.help.2"},
+	},
 	KindSimulator: {
 		ID: idSimulator, nameKey: "machine.simulator.name", Marker: "§d§m§2", Interval: 200, Input: []int{10}, Output: []int{13, 14, 15, 16}, Indicator: 12,
 		Use: 40, EnergyCap: ConsumerBuffer,
@@ -446,12 +465,12 @@ var Kinds = map[string]*Def{
 	KindVacuum: {
 		ID: idVacuum, nameKey: "machine.vacuum.name", Marker: "§d§m§3", Interval: 10, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		Use: 5, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2"},
+		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2", "machine.vacuum.help.3"},
 	},
 	KindFeller: {
 		ID: idFeller, nameKey: "machine.feller.name", Marker: "§d§m§9", Interval: 60, Input: []int{10}, Charge: []int{11}, Output: []int{13, 14, 15, 16}, Indicator: 12,
 		Use: 15, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3"},
+		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3", "machine.feller.help.4"},
 	},
 	KindCrafter: {
 		// The store is the 3×3 on the left, the recipe slot above the ring.
@@ -477,7 +496,7 @@ var Kinds = map[string]*Def{
 var Retired = []string{KindGate}
 
 // Order is the registration and display order.
-var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
+var Order = []string{KindCrusher, KindSieve, KindAutoSieve, KindMiner, KindSellBox, KindHarvester, KindGenerator, KindAlloy, KindEnergyCell, KindSimulator, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindWasher, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindFurnace, KindVacuum, KindFeller, KindCrafter, KindLab, KindMagicSieve, KindCollector, KindRelicTable, KindNetController, KindNetCable, KindDiskDrive, KindNetTerminal, KindNetImporter, KindNetExporter, KindNetExternal, KindPatternEncoder, KindNetAutocrafter}
 
 // CrusherOutput is what the crusher always makes of an item: the blocks of
 // the hammer chain one step down, an ore block sgitem.CrusherRaw raw ores
@@ -537,13 +556,18 @@ type State struct {
 	// RangeX, RangeY and RangeZ are the reach set on the screen of a machine
 	// with a range; 0 is all its tier gives (Area).
 	RangeX, RangeY, RangeZ int
+	// OffsetX, OffsetY and OffsetZ move the centre of that range away from
+	// the machine (Offset); offsetPage is whether the range screen shows them.
+	OffsetX, OffsetY, OffsetZ int
+	offsetPage                bool
 	// rangeUntil is the tick the box over its range shows until (its button),
 	// peekUntil the same while a player sneaks and looks at it, rangeEntity
-	// that box and rangeSize its size (rangeview.go).
+	// that box, rangeSize its size and rangeAt where it stands (rangeview.go).
 	rangeUntil  int64
 	peekUntil   int64
 	rangeEntity *world.EntityHandle
 	rangeSize   int32
+	rangeAt     mgl64.Vec3
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was
@@ -633,6 +657,8 @@ type State struct {
 	stuckOn          bool
 	stuckTick        int64
 	curTick          int64
+	// nature is what a solar or hydro generator last saw (naturegen.go).
+	nature natureLook
 }
 
 // stuckRecheck is how many ticks a stuck machine trusts that nothing changed.
@@ -642,14 +668,14 @@ const stuckRecheck = 100
 // differ from the last one.
 type stateSig struct {
 	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
-	reach                                                                   [3]int
+	reach                                                                   [6]int
 	unlimited                                                               bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [3]int{st.RangeX, st.RangeY, st.RangeZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [6]int{st.RangeX, st.RangeY, st.RangeZ, st.OffsetX, st.OffsetY, st.OffsetZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.
@@ -1278,7 +1304,7 @@ func (Machine) Category() category.Category { return category.Items() }
 // frontMachines have a front (south), back and side textures. The sieves
 // have models.
 var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
+	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindGate: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
 	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindSellBox: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
 )
 
@@ -1366,8 +1392,39 @@ func (m Machine) BreakInfo() block.BreakInfo {
 	}
 }
 
+// EncodeNBT is the machine's saved state. A machine whose state is the
+// blank state of its kind (as New makes it) saves only its id, as a machine
+// with no state does: a machine item that went through a save or the client
+// (DecodeNBT gives it a blank state) and one just dropped by breaking a
+// machine then compare equal and stack (item.Stack.Comparable compares the
+// NBT). DecodeNBT makes a blank state from the id alone.
 func (m Machine) EncodeNBT() map[string]any {
-	data := map[string]any{"id": "SkyGearMachine"}
+	data := m.encodeState()
+	if m.State != nil && reflect.DeepEqual(data, blankNBT(m.Kind)) {
+		return map[string]any{"id": machineNBTID}
+	}
+	return data
+}
+
+// machineNBTID is the block entity id of the machines.
+const machineNBTID = "SkyGearMachine"
+
+// blankNBTs are the encoded blank states by kind (blankNBT).
+var blankNBTs sync.Map
+
+// blankNBT is the encoding of the state New makes for a machine of kind.
+func blankNBT(kind string) map[string]any {
+	if v, ok := blankNBTs.Load(kind); ok {
+		return v.(map[string]any)
+	}
+	data := New(kind, "", "").encodeState()
+	blankNBTs.Store(kind, data)
+	return data
+}
+
+// encodeState is the machine's state as EncodeNBT saves it in full.
+func (m Machine) encodeState() map[string]any {
+	data := map[string]any{"id": machineNBTID}
 	if m.State == nil {
 		return data
 	}
@@ -1404,6 +1461,11 @@ func (m Machine) EncodeNBT() map[string]any {
 			data[key] = int32(r)
 		}
 	}
+	for key, o := range map[string]int{"OffsetX": m.State.OffsetX, "OffsetY": m.State.OffsetY, "OffsetZ": m.State.OffsetZ} {
+		if o != 0 {
+			data[key] = int32(o)
+		}
+	}
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
 	data["OwnerName"] = m.State.ownerName
@@ -1424,6 +1486,11 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	for key, r := range map[string]*int{"RangeX": &n.State.RangeX, "RangeY": &n.State.RangeY, "RangeZ": &n.State.RangeZ} {
 		if v, ok := data[key].(int32); ok && v > 0 {
 			*r = int(v)
+		}
+	}
+	for key, o := range map[string]*int{"OffsetX": &n.State.OffsetX, "OffsetY": &n.State.OffsetY, "OffsetZ": &n.State.OffsetZ} {
+		if v, ok := data[key].(int32); ok {
+			*o = int(v)
 		}
 	}
 	if f, ok := data["Fluid"].(int32); ok {
@@ -1664,7 +1731,7 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 	}
 	st.showRange(tx, pos)
 	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
+	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idGate, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
 		if st.Def.ID == idEnergyCell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
@@ -1745,6 +1812,10 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 		st.runWasher()
 	case idLavaGenerator:
 		runLavaGenerator(s, st, pos)
+	case idSolarGenerator:
+		runSolar(s, st, pos, tx)
+	case idHydroGenerator:
+		runHydro(s, st, pos, tx)
 	case idAutoSieve, idMagicSieve:
 		runAutoSieve(s, st, pos, tx)
 	case idMiner:

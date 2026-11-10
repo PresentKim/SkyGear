@@ -66,6 +66,18 @@
     "ticks_per_frame": 4
   },
   {
+    "atlas_tile": "skygear_solar_generator_side_on",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/solar_generator_side_on",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_hydro_generator_side_on",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/hydro_generator_side_on",
+    "ticks_per_frame": 4
+  },
+  {
     "atlas_tile": "skygear_item_vacuum_side_on",
     "blend_frames": false,
     "flipbook_texture": "textures/blocks/item_vacuum_side_on",
@@ -333,6 +345,42 @@
     "atlas_tile": "skygear_tree_feller_side_on_t3",
     "blend_frames": false,
     "flipbook_texture": "textures/blocks/tree_feller_side_on_t3",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_hydro_generator_side_on_t1",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/hydro_generator_side_on_t1",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_hydro_generator_side_on_t2",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/hydro_generator_side_on_t2",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_hydro_generator_side_on_t3",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/hydro_generator_side_on_t3",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_solar_generator_side_on_t1",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/solar_generator_side_on_t1",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_solar_generator_side_on_t2",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/solar_generator_side_on_t2",
+    "ticks_per_frame": 4
+  },
+  {
+    "atlas_tile": "skygear_solar_generator_side_on_t3",
+    "blend_frames": false,
+    "flipbook_texture": "textures/blocks/solar_generator_side_on_t3",
     "ticks_per_frame": 4
   }
 ]

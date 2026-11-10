@@ -208,6 +208,54 @@
     "skygear_barrel_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
+    "skygear_preview_glass_white": {
+      "textures": "textures/blocks/glass_white"
+    },
+    "skygear_preview_glass_orange": {
+      "textures": "textures/blocks/glass_orange"
+    },
+    "skygear_preview_glass_magenta": {
+      "textures": "textures/blocks/glass_magenta"
+    },
+    "skygear_preview_glass_light_blue": {
+      "textures": "textures/blocks/glass_light_blue"
+    },
+    "skygear_preview_glass_yellow": {
+      "textures": "textures/blocks/glass_yellow"
+    },
+    "skygear_preview_glass_lime": {
+      "textures": "textures/blocks/glass_lime"
+    },
+    "skygear_preview_glass_pink": {
+      "textures": "textures/blocks/glass_pink"
+    },
+    "skygear_preview_glass_gray": {
+      "textures": "textures/blocks/glass_gray"
+    },
+    "skygear_preview_glass_light_gray": {
+      "textures": "textures/blocks/glass_silver"
+    },
+    "skygear_preview_glass_cyan": {
+      "textures": "textures/blocks/glass_cyan"
+    },
+    "skygear_preview_glass_purple": {
+      "textures": "textures/blocks/glass_purple"
+    },
+    "skygear_preview_glass_blue": {
+      "textures": "textures/blocks/glass_blue"
+    },
+    "skygear_preview_glass_brown": {
+      "textures": "textures/blocks/glass_brown"
+    },
+    "skygear_preview_glass_green": {
+      "textures": "textures/blocks/glass_green"
+    },
+    "skygear_preview_glass_red": {
+      "textures": "textures/blocks/glass_red"
+    },
+    "skygear_preview_glass_black": {
+      "textures": "textures/blocks/glass_black"
+    },
     "skygear_barrel_oak": {
       "textures": "textures/blocks/planks_oak"
     },
@@ -237,6 +285,9 @@
     },
     "skygear_conduit_fluid_3": {
       "textures": "textures/blocks/conduit_fluid_3"
+    },
+    "skygear_conduit_net_1": {
+      "textures": "textures/blocks/conduit_net_1"
     },
     "skygear_conduit_item_1": {
       "textures": "textures/blocks/conduit_item_1"
@@ -429,6 +480,36 @@
     },
     "skygear_crushed_netherrack": {
       "textures": "textures/blocks/crushed_netherrack"
+    },
+    "skygear_compressed_cobblestone_1": {
+      "textures": "textures/blocks/compressed_cobblestone_1"
+    },
+    "skygear_compressed_cobblestone_2": {
+      "textures": "textures/blocks/compressed_cobblestone_2"
+    },
+    "skygear_compressed_cobblestone_3": {
+      "textures": "textures/blocks/compressed_cobblestone_3"
+    },
+    "skygear_compressed_cobblestone_4": {
+      "textures": "textures/blocks/compressed_cobblestone_4"
+    },
+    "skygear_compressed_gravel_1": {
+      "textures": "textures/blocks/compressed_gravel_1"
+    },
+    "skygear_compressed_gravel_2": {
+      "textures": "textures/blocks/compressed_gravel_2"
+    },
+    "skygear_compressed_sand_1": {
+      "textures": "textures/blocks/compressed_sand_1"
+    },
+    "skygear_compressed_sand_2": {
+      "textures": "textures/blocks/compressed_sand_2"
+    },
+    "skygear_compressed_dirt_1": {
+      "textures": "textures/blocks/compressed_dirt_1"
+    },
+    "skygear_compressed_dirt_2": {
+      "textures": "textures/blocks/compressed_dirt_2"
     },
     "skygear_crusher_back": {
       "textures": "textures/blocks/crusher_back"
@@ -1500,6 +1581,102 @@
     },
     "skygear_wood_hopper": {
       "textures": "textures/blocks/planks_oak"
+    },
+    "skygear_hydro_generator_down": {
+      "textures": "textures/blocks/generator_down"
+    },
+    "skygear_hydro_generator_down_t1": {
+      "textures": "textures/blocks/generator_down_t1"
+    },
+    "skygear_hydro_generator_down_t2": {
+      "textures": "textures/blocks/generator_down_t2"
+    },
+    "skygear_hydro_generator_down_t3": {
+      "textures": "textures/blocks/generator_down_t3"
+    },
+    "skygear_hydro_generator_side": {
+      "textures": "textures/blocks/hydro_generator_side"
+    },
+    "skygear_hydro_generator_side_on": {
+      "textures": "textures/blocks/hydro_generator_side_on"
+    },
+    "skygear_hydro_generator_side_on_t1": {
+      "textures": "textures/blocks/hydro_generator_side_on_t1"
+    },
+    "skygear_hydro_generator_side_on_t2": {
+      "textures": "textures/blocks/hydro_generator_side_on_t2"
+    },
+    "skygear_hydro_generator_side_on_t3": {
+      "textures": "textures/blocks/hydro_generator_side_on_t3"
+    },
+    "skygear_hydro_generator_side_t1": {
+      "textures": "textures/blocks/hydro_generator_side_t1"
+    },
+    "skygear_hydro_generator_side_t2": {
+      "textures": "textures/blocks/hydro_generator_side_t2"
+    },
+    "skygear_hydro_generator_side_t3": {
+      "textures": "textures/blocks/hydro_generator_side_t3"
+    },
+    "skygear_hydro_generator_up": {
+      "textures": "textures/blocks/generator_up"
+    },
+    "skygear_hydro_generator_up_t1": {
+      "textures": "textures/blocks/generator_up_t1"
+    },
+    "skygear_hydro_generator_up_t2": {
+      "textures": "textures/blocks/generator_up_t2"
+    },
+    "skygear_hydro_generator_up_t3": {
+      "textures": "textures/blocks/generator_up_t3"
+    },
+    "skygear_solar_generator_down": {
+      "textures": "textures/blocks/generator_down"
+    },
+    "skygear_solar_generator_down_t1": {
+      "textures": "textures/blocks/generator_down_t1"
+    },
+    "skygear_solar_generator_down_t2": {
+      "textures": "textures/blocks/generator_down_t2"
+    },
+    "skygear_solar_generator_down_t3": {
+      "textures": "textures/blocks/generator_down_t3"
+    },
+    "skygear_solar_generator_side": {
+      "textures": "textures/blocks/solar_generator_side"
+    },
+    "skygear_solar_generator_side_on": {
+      "textures": "textures/blocks/solar_generator_side_on"
+    },
+    "skygear_solar_generator_side_on_t1": {
+      "textures": "textures/blocks/solar_generator_side_on_t1"
+    },
+    "skygear_solar_generator_side_on_t2": {
+      "textures": "textures/blocks/solar_generator_side_on_t2"
+    },
+    "skygear_solar_generator_side_on_t3": {
+      "textures": "textures/blocks/solar_generator_side_on_t3"
+    },
+    "skygear_solar_generator_side_t1": {
+      "textures": "textures/blocks/solar_generator_side_t1"
+    },
+    "skygear_solar_generator_side_t2": {
+      "textures": "textures/blocks/solar_generator_side_t2"
+    },
+    "skygear_solar_generator_side_t3": {
+      "textures": "textures/blocks/solar_generator_side_t3"
+    },
+    "skygear_solar_generator_up": {
+      "textures": "textures/blocks/solar_generator_up"
+    },
+    "skygear_solar_generator_up_t1": {
+      "textures": "textures/blocks/solar_generator_up_t1"
+    },
+    "skygear_solar_generator_up_t2": {
+      "textures": "textures/blocks/solar_generator_up_t2"
+    },
+    "skygear_solar_generator_up_t3": {
+      "textures": "textures/blocks/solar_generator_up_t3"
     }
   }
 }

@@ -63,6 +63,62 @@ func TestItemVacuum(t *testing.T) {
 	}
 }
 
+// lyingItems counts the dropped items still in the world.
+func lyingItems(s *session) int {
+	left := 0
+	s.World.Do(func(tx *world.Tx) {
+		for e := range tx.Entities() {
+			if ent, ok := e.(*entity.Ent); ok {
+				if ib, ok := ent.Behaviour().(*entity.ItemBehaviour); ok {
+					left += ib.Item().Count()
+				}
+			}
+		}
+	})
+	return left
+}
+
+// TestItemVacuumTakesItemsOnItsFloor: an item lying on the floor of the area
+// stands exactly on its edge, and is taken all the same.
+func TestItemVacuumTakesItemsOnItsFloor(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st.RangeY = 2
+	floor := machinePos.Add(cube.Pos{2, -3, 0})
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(floor, block.Stone{}, nil)
+		tx.SetBlock(floor.Side(cube.FaceUp), block.Air{}, nil)
+		at := floor.Vec3Centre().Add(mgl64.Vec3{0, 0.5, 0})
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: at}, item.NewStack(block.Dirt{}, 4)))
+	})
+	tick(s, 2*(machine.Kinds[machine.KindVacuum].Interval+2))
+	if got := machine.OutputCount(st, block.Dirt{}); got != 4 {
+		t.Fatalf("collected %d, want the 4 on the floor of the area", got)
+	}
+}
+
+// TestItemVacuumOffset: a moved area takes the items around its new centre
+// and leaves the ones around the machine.
+func TestItemVacuumOffset(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st.RangeX, st.OffsetX = 2, 4
+	in, out := machinePos.Vec3Centre().Add(mgl64.Vec3{6, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{-2, 0, 0})
+	s.World.Do(func(tx *world.Tx) {
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: in}, item.NewStack(block.Cobblestone{}, 5)))
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: out}, item.NewStack(block.Cobblestone{}, 7)))
+	})
+	tick(s, 2*(machine.Kinds[machine.KindVacuum].Interval+2))
+	if got := machine.OutputCount(st, block.Cobblestone{}); got != 5 {
+		t.Fatalf("collected %d, want the 5 around the moved centre", got)
+	}
+	if left := lyingItems(s); left != 7 {
+		t.Fatalf("%d items left lying, want the 7 by the machine", left)
+	}
+}
+
 // TestTreeFeller: it fells the highest log first, then plants a sapling
 // when no log is left.
 func TestTreeFeller(t *testing.T) {
@@ -250,5 +306,41 @@ func TestMachineStatusLines(t *testing.T) {
 	crafter.SetRecipe(machine.CrafterCandidates(s.Session, machine.Item(machine.KindCrusher))[0])
 	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "재료 부족") {
 		t.Errorf("a crafter without ingredients says %q", lines)
+	}
+}
+
+// rangeBoxAt is where the range box of the machine at pos stands, and false
+// with no box in the world.
+func rangeBoxAt(s *session, pos cube.Pos) (at mgl64.Vec3, ok bool) {
+	s.World.Do(func(tx *world.Tx) {
+		for e := range tx.Entities() {
+			if b, isBox := e.(*machine.RangeBox); isBox {
+				at, ok = b.Position(), true
+			}
+		}
+	})
+	return at, ok
+}
+
+// TestRangeBoxFollowsAMovedCentre: moving the centre sideways keeps the
+// area's size, and the box shown moves with it at once.
+func TestRangeBoxFollowsAMovedCentre(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	peek := func() {
+		s.World.Do(func(tx *world.Tx) { machine.PeekRange(tx, machinePos, tx.Block(machinePos)) })
+		tick(s, 2)
+	}
+	peek()
+	before, ok := rangeBoxAt(s, machinePos)
+	if !ok {
+		t.Fatal("no range box while peeking")
+	}
+	st.OffsetX = 3
+	peek()
+	after, ok := rangeBoxAt(s, machinePos)
+	if !ok || after[0]-before[0] != 3 || after[2] != before[2] {
+		t.Fatalf("box at %v after moving the centre 3 east, was at %v", after, before)
 	}
 }

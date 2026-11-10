@@ -31,6 +31,10 @@ const oreUi = {
   name: 'ore-ui-react',
   setup(build) {
     // A single component of the oreui package (its own file, so only its CSS comes along).
+    // A module of the core package that a component imports by its path.
+    build.onResolve({ filter: /^@ore-ui-react\/core\/src\/./ }, (args) => ({
+      path: resolve(web, 'node_modules/ore-ui-react/packages/core/src', args.path.slice('@ore-ui-react/core/src/'.length) + '.ts'),
+    }));
     build.onResolve({ filter: /^@ore-ui-react\/oreui\/./ }, (args) => ({
       path: resolve(web, 'node_modules/ore-ui-react/packages/oreui/src', args.path.slice('@ore-ui-react/oreui/'.length) + '.tsx'),
     }));

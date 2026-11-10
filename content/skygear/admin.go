@@ -2,7 +2,7 @@ package skygear
 
 import (
 	"fmt"
-	"maps"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -49,37 +49,10 @@ func (a adminBase) session(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player
 	return p, s, ok
 }
 
-type adminItem struct {
-	adminBase
-	Sub   cmd.SubCommand    `cmd:"item"`
-	Name  string            `cmd:"name"`
-	Count cmd.Optional[int] `cmd:"count"`
-}
-
-// Run gives any registered item by name, e.g. minecraft:iron_ore.
-func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, s, ok := c.session(src, o, tx)
-	if !ok {
-		return
-	}
-	name := c.Name
-	if !strings.Contains(name, ":") {
-		name = "minecraft:" + name
-	}
-	it, ok := world.ItemByName(name, 0)
-	if !ok {
-		o.Errorf(i18n.T(i18n.Default, "skygear.admin.unknownItem"), name)
-		return
-	}
-	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
-	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
-		s.DropAt(tx, p.Position(), st.Grow(-added))
-	}
-	o.Printf("%s x%d", naming.ItemName(i18n.Of(p), st), st.Count())
-}
-
 // giveItems are the items /sgadmin give hands out: the game's own items
-// and every machine, plus a water bucket.
+// and every machine under short ids, a water bucket, every other custom
+// item by its id without the skygear: prefix, and every vanilla item by its
+// full name (minecraft:<name>, minecraft:<name>:<meta> for a variant).
 func giveItems() map[string]func() item.Stack {
 	out := map[string]func() item.Stack{
 		"research_table":   func() item.Stack { return item.NewStack(progress.ResearchTable{}, 1) },
@@ -91,11 +64,13 @@ func giveItems() map[string]func() item.Stack {
 		"stone_hammer":     func() item.Stack { return item.NewStack(sgitem.Hammer{Stone: true}, 1) },
 		"silkworm":         func() item.Stack { return item.NewStack(farm.Silkworm{}, 1) },
 		"cooked_silkworm":  func() item.Stack { return item.NewStack(farm.CookedSilkworm{}, 1) },
-		"infested_leaves":  func() item.Stack { return item.NewStack(farm.InfestedLeaves{}, 1) },
-		"string_mesh":      func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
-		"barrel":           func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
-		"stone_barrel":     func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
-		"wood_hopper":      func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
+		"silkworm_leaves": func() item.Stack {
+			return item.NewStack(farm.SilkwormLeaves{Cocoon: farm.CocoonMax, Persistent: true}, 1)
+		},
+		"string_mesh":  func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
+		"barrel":       func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
+		"stone_barrel": func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
+		"wood_hopper":  func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {
 			return item.NewStack(hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
 		},
@@ -114,6 +89,7 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.FluidConduit{Tier: t}, 1) }
 	}
+	out["net_conduit"] = func() item.Stack { return item.NewStack(conduit.NetConduit{}, 1) }
 	for t, n := range []string{"1k", "4k", "16k", "64k"} {
 		out["storage_disk_"+n] = func() item.Stack { return item.NewStack(netstore.Disk{Tier: t}, 1) }
 	}
@@ -124,6 +100,9 @@ func giveItems() map[string]func() item.Stack {
 	out["witch_water_bucket"] = func() item.Stack { return item.NewStack(sgitem.WitchWaterBucket{}, 1) }
 	for _, k := range sgitem.CrushedKinds {
 		out["crushed_"+k] = func() item.Stack { return item.NewStack(sgitem.CrushedBlock{Kind: k}, 1) }
+	}
+	for _, c := range sgitem.CompactBlocks() {
+		out[fmt.Sprintf("compressed_%s_%d", c.Kind, c.Level)] = func() item.Stack { return item.NewStack(c, 1) }
 	}
 	for _, k := range sgitem.PebbleKinds {
 		out["pebble_"+k.Kind] = func() item.Stack { return item.NewStack(sgitem.Pebble{Kind: k.Kind}, 1) }
@@ -188,30 +167,125 @@ func giveItems() map[string]func() item.Stack {
 	// every other item of the game, by its id without the skygear: prefix,
 	// but the screens' icons, the retired items and those listed above
 	// under another id
+	listed := map[string]bool{}
+	for _, f := range out {
+		listed[encodedKey(f().Item())] = true
+	}
 	for _, it := range world.CustomItems() {
 		name, meta := it.EncodeItem()
 		id, ok := strings.CutPrefix(name, "skygear:")
-		if !ok || meta != 0 || out[id] != nil || slices.ContainsFunc(giveSkip, func(pre string) bool { return strings.HasPrefix(id, pre) }) {
+		if !ok || meta != 0 || out[id] != nil || listed[encodedKey(it)] || slices.ContainsFunc(giveSkip, func(pre string) bool { return strings.HasPrefix(id, pre) }) {
 			continue
 		}
 		out[id] = func() item.Stack { return item.NewStack(it, 1) }
 	}
+	// every vanilla item by its full name, so the game's own ids above
+	// (barrel, water ...) never hide one
+	for _, it := range world.Items() {
+		name, meta := it.EncodeItem()
+		if !strings.HasPrefix(name, "minecraft:") || item.NewStack(it, 1).Empty() {
+			continue
+		}
+		key := name
+		if meta != 0 {
+			key = fmt.Sprintf("%s:%d", name, meta)
+		}
+		if out[key] == nil {
+			out[key] = func() item.Stack { return item.NewStack(it, 1) }
+		}
+	}
 	return out
 }
 
-// giveSkip are the id prefixes of the custom items /sgadmin give leaves out.
-var giveSkip = []string{
-	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
-	"dimension_gate", "seed_ess_", // retired
-	"tool_", "conduit_", "drawer_upgrade_", "barrel_", // listed under other ids
+// encodedKey is an item's saved id and meta, to tell whether an item is
+// already listed under another id.
+func encodedKey(it world.Item) string {
+	name, meta := it.EncodeItem()
+	return fmt.Sprintf("%s:%d", name, meta)
 }
 
+// giveSkip are the id prefixes of the custom items /sgadmin give leaves out:
+// the screens' icons and the retired items. Items listed under another id
+// are left out by their encoding instead.
+var giveSkip = []string{
+	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
+	"dimension_gate", "seed_ess_", "tool_sword_", // retired (old saves still load them)
+}
+
+// giveEnum is the item of /sgadmin give. Completion lists every item with
+// its namespace (skygear:<id>, minecraft:<name>); the namespace may be left
+// out when only one namespace has that name.
 type giveEnum string
 
 func (giveEnum) Type() string { return "sg_item" }
 func (giveEnum) Options(cmd.Source) []string {
-	ids := slices.Sorted(maps.Keys(giveItems()))
+	ids := make([]string, 0, 2048)
+	for id := range giveItems() {
+		ids = append(ids, giveLabel(id))
+	}
+	slices.Sort(ids)
 	return ids
+}
+
+// Parse reads the item, with or without its namespace (it is checked before
+// the options, so a name without one reaches the server's lookup).
+func (giveEnum) Parse(line *cmd.Line, v reflect.Value) error {
+	arg, ok := line.Next()
+	if !ok {
+		return line.UsageError()
+	}
+	id, err := resolveGive(giveItems(), arg)
+	if err != nil {
+		return err
+	}
+	v.SetString(id)
+	return nil
+}
+
+// giveLabel is the completion text of a give id: vanilla ids already carry
+// minecraft:, the game's own get skygear:.
+func giveLabel(id string) string {
+	if strings.HasPrefix(id, "minecraft:") {
+		return id
+	}
+	return "skygear:" + id
+}
+
+// resolveGive finds the give id of what an operator typed: a full name
+// (skygear:<id>, minecraft:<name>) or a name without its namespace that
+// only one namespace has.
+func resolveGive(items map[string]func() item.Stack, arg string) (string, error) {
+	arg = strings.ToLower(arg)
+	if id, ok := strings.CutPrefix(arg, "skygear:"); ok {
+		if items[id] != nil {
+			return id, nil
+		}
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	if strings.HasPrefix(arg, "minecraft:") {
+		if items[arg] != nil {
+			return arg, nil
+		}
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	var found []string
+	if items[arg] != nil && !strings.Contains(arg, ":") {
+		found = append(found, arg)
+	}
+	if items["minecraft:"+arg] != nil {
+		found = append(found, "minecraft:"+arg)
+	}
+	switch len(found) {
+	case 1:
+		return found[0], nil
+	case 0:
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	labels := make([]string, len(found))
+	for i, id := range found {
+		labels[i] = giveLabel(id)
+	}
+	return "", fmt.Errorf(i18n.T(i18n.Default, "skygear.admin.ambiguousItem"), arg, strings.Join(labels, ", "))
 }
 
 type adminGive struct {
@@ -244,7 +318,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgadmin", i18n.T(i18n.Default, "skygear.admin.cmd"), nil,
-		adminItem{adminBase: b}, adminGive{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
+		adminGive{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
 }
 
 // adminTPS turns the server load line at the top left of the operator's

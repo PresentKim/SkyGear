@@ -14,7 +14,7 @@ var layers = []string{
 	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
 	"advancement", "hopper", "nsmigrate", "migrate",
 	// core
-	"core", "network", "achievement",
+	"core", "network", "achievement", "preview",
 	// progress
 	"progress", "island", "climate",
 	// features
@@ -23,7 +23,7 @@ var layers = []string{
 	// content lists
 	"catalog",
 	// screens
-	"codex", "look", "bridge", "screens",
+	"codex", "look", "screens",
 }
 
 // TestLayers: every package of the game is in layers, and imports only the

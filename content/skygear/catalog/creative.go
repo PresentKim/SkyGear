@@ -56,6 +56,7 @@ func RegisterCreativeItems() {
 			add(construction, conduit.ItemConduit{Tier: t})
 			add(construction, conduit.FluidConduit{Tier: t})
 		}
+		add(construction, conduit.NetConduit{})
 		for _, k := range machine.Order {
 			if k != machine.KindSellBox {
 				add(construction, machine.Machine{Kind: k})
@@ -67,6 +68,9 @@ func RegisterCreativeItems() {
 		}
 		for _, k := range sgitem.CrushedKinds {
 			add(construction, sgitem.CrushedBlock{Kind: k})
+		}
+		for _, c := range sgitem.CompactBlocks() {
+			add(construction, c)
 		}
 		for _, id := range hopper.HopperOrder {
 			add(construction, hopper.NewFlowHopper(id, cube.FaceDown))

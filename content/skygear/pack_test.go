@@ -88,6 +88,22 @@ func TestPackHasItemAssets(t *testing.T) {
 // (the client has them, the pack does not).
 var vanillaTerrain = map[string]bool{
 	"textures/blocks/bookshelf":                  true,
+	"textures/blocks/glass_white":                true,
+	"textures/blocks/glass_orange":               true,
+	"textures/blocks/glass_magenta":              true,
+	"textures/blocks/glass_light_blue":           true,
+	"textures/blocks/glass_yellow":               true,
+	"textures/blocks/glass_lime":                 true,
+	"textures/blocks/glass_pink":                 true,
+	"textures/blocks/glass_gray":                 true,
+	"textures/blocks/glass_silver":               true,
+	"textures/blocks/glass_cyan":                 true,
+	"textures/blocks/glass_purple":               true,
+	"textures/blocks/glass_blue":                 true,
+	"textures/blocks/glass_brown":                true,
+	"textures/blocks/glass_green":                true,
+	"textures/blocks/glass_red":                  true,
+	"textures/blocks/glass_black":                true,
 	"textures/blocks/hopper_outside":             true,
 	"textures/blocks/huge_fungus/crimson_planks": true,
 	"textures/blocks/planks_big_oak":             true,
@@ -363,7 +379,7 @@ func TestConduitLanesDifferOnEveryAxis(t *testing.T) {
 			}
 		}
 	}
-	names := []string{"energy", "item", "fluid"}
+	names := []string{"energy", "item", "fluid", "net"}
 	for x := range names {
 		for y := x + 1; y < len(names); y++ {
 			a, b := cores["geometry.skygear.conduit_"+names[x]], cores["geometry.skygear.conduit_"+names[y]]
