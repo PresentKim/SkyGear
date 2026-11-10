@@ -254,10 +254,26 @@ func TestWandPreview(t *testing.T) {
 		if again := sentViews(t, func() { wand.ShowPreview(s.Session, p, tx) }); len(again) != 0 {
 			t.Fatalf("the same preview sent %d views again", len(again))
 		}
-		for _, v := range sentViews(t, func() { wand.HidePreview(s.Session, p) }) {
+		// hiding clears the liquid layer of a cell before its layer 0: the
+		// client would move the block on the liquid layer up to an empty
+		// layer 0 and keep it there
+		hidden := sentViews(t, func() { wand.HidePreview(s.Session, p) })
+		cleared := map[cube.Pos]bool{}
+		for _, v := range hidden {
 			if _, ok := v.Block.(block.Air); !ok {
 				t.Fatalf("hiding sent layer %d %v at %v, want air", v.Layer, v.Block, v.Pos)
 			}
+			switch v.Layer {
+			case 1:
+				cleared[v.Pos] = true
+			case 0:
+				if !cleared[v.Pos] {
+					t.Fatalf("hiding cleared layer 0 at %v before its liquid layer", v.Pos)
+				}
+			}
+		}
+		if len(hidden) != 18 {
+			t.Fatalf("hiding sent %d views, want 2 for each of 9 cells", len(hidden))
 		}
 	})
 }
