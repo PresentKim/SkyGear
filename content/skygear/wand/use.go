@@ -2,18 +2,18 @@ package wand
 
 import (
 	"fmt"
-	"image/color"
+	"slices"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/cube/trace"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
-	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -64,6 +64,7 @@ func Use(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, face cub
 	if s.Debounced(p) {
 		return
 	}
+	pos, face = Aimed(s, p, pos, face)
 	HidePreview(s, p)
 	creative := p.GameMode().CreativeInventory()
 	var placed []Placement
@@ -142,43 +143,86 @@ func Undo(s *core.Session, p *player.Player, tx *world.Tx) int {
 	return n
 }
 
-// previewMax is the most blocks the preview outlines.
+// previewMax is the most spots the preview shows.
 const previewMax = 256
 
-// previewColour is the colour of the preview's outlines.
-var previewColour = color.RGBA{R: 255, G: 255, B: 255, A: 255}
+// PreviewGlass is the block the preview puts on the liquid layer of each
+// spot, over the block that would be placed there, as the hammer's vein
+// preview tints its blocks.
+var PreviewGlass world.Block = block.StainedGlass{Colour: item.ColourGreen()}
 
-// preview is what a player is shown: the outlines of the spots.
+// preview is what a player is shown: the block shown at each spot.
 type preview struct {
-	at     map[cube.Pos]Outline
-	shapes []debug.Shape
+	at map[cube.Pos]world.Block
+	// pos and face are the block face the preview is of.
+	pos  cube.Pos
+	face cube.Face
 }
 
-// Outline is the box drawn around a spot: the client draws a debug box
-// around its Centre (not from its corner, as Dragonfly's docs have it),
-// Bounds in size.
-type Outline struct {
-	Centre, Bounds mgl64.Vec3
-}
-
-// OutlineOf is the outline of a placement: the box around the block's model
-// where it would stand (half a block for a slab), a whole block for a model
-// with no box.
-func OutlineOf(tx world.BlockSource, pl Placement) Outline {
-	lo, hi := mgl64.Vec3{1, 1, 1}, mgl64.Vec3{}
-	for _, bb := range pl.Block.Model().BBox(pl.Pos, tx) {
-		mn, mx := bb.Min(), bb.Max()
-		for i := 0; i < 3; i++ {
-			lo[i], hi[i] = min(lo[i], mn[i]), max(hi[i], mx[i])
+// Aimed is the block face a click of p on the face of the block at pos is
+// for: the player's client shows the preview's blocks as real, so a click
+// on one of them is a click on the face the preview is of.
+func Aimed(s *core.Session, p *player.Player, pos cube.Pos, face cube.Face) (cube.Pos, cube.Face) {
+	if cur, ok := previews.Of(s)[p.H()]; ok {
+		if _, on := cur.at[pos]; on {
+			return cur.pos, cur.face
 		}
 	}
-	if hi[0] <= lo[0] || hi[1] <= lo[1] || hi[2] <= lo[2] {
-		lo, hi = mgl64.Vec3{}, mgl64.Vec3{1, 1, 1}
-	}
-	return Outline{Centre: pl.Pos.Vec3().Add(lo.Add(hi).Mul(0.5)), Bounds: hi.Sub(lo)}
+	return pos, face
 }
 
 var previews = core.NewPlayers[preview]()
+
+// LayerView is a block a player is shown on one layer of a spot (0 the
+// block, 1 the liquid layer), with the world unchanged.
+type LayerView struct {
+	Pos   cube.Pos
+	Layer uint32
+	Block world.Block
+}
+
+// viewLayer shows p a LayerView (the tests replace it).
+var viewLayer = func(p *player.Player, v LayerView) { sghook.ViewFakeBlockLayer(p, v.Pos, v.Block, v.Layer) }
+
+// PreviewViews are what a player is shown for the spots of a preview: the
+// block placed there on layer 0 and PreviewGlass on layer 1.
+func PreviewViews(spots map[cube.Pos]world.Block) []LayerView {
+	out := make([]LayerView, 0, 2*len(spots))
+	for _, pos := range sortedSpots(spots) {
+		out = append(out, LayerView{Pos: pos, Layer: 0, Block: spots[pos]}, LayerView{Pos: pos, Layer: 1, Block: PreviewGlass})
+	}
+	return out
+}
+
+// RestoreViews show the real layers of the spots again: the block and the
+// liquid (or air) at each.
+func RestoreViews(tx *world.Tx, at []cube.Pos) []LayerView {
+	out := make([]LayerView, 0, 2*len(at))
+	for _, pos := range at {
+		var liquid world.Block = block.Air{}
+		if l, ok := tx.Liquid(pos); ok {
+			liquid = l
+		}
+		out = append(out, LayerView{Pos: pos, Layer: 0, Block: tx.Block(pos)}, LayerView{Pos: pos, Layer: 1, Block: liquid})
+	}
+	return out
+}
+
+func sortedSpots(spots map[cube.Pos]world.Block) []cube.Pos {
+	out := make([]cube.Pos, 0, len(spots))
+	for pos := range spots {
+		out = append(out, pos)
+	}
+	slices.SortFunc(out, func(a, b cube.Pos) int {
+		for i := 0; i < 3; i++ {
+			if a[i] != b[i] {
+				return a[i] - b[i]
+			}
+		}
+		return 0
+	})
+	return out
+}
 
 // wandReach is how far the preview looks for the block a click would hit.
 const wandReach = 6
@@ -210,8 +254,8 @@ func lookedAt(p *player.Player, tx *world.Tx) (cube.Pos, cube.Face, bool) {
 	return hit, face, found
 }
 
-// ShowPreview outlines for p, holding a wand, the spots a click on the block
-// it looks at would fill (hiding the outlines otherwise).
+// ShowPreview shows p, holding a wand, the blocks a click on the block it
+// looks at would place, tinted green, only to p (hiding them otherwise).
 func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 	held, _ := p.HeldItems()
 	if _, ok := sgitem.WandOf(held); !ok {
@@ -223,51 +267,58 @@ func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 		HidePreview(s, p)
 		return
 	}
-	spots := map[cube.Pos]Outline{}
+	spots := map[cube.Pos]world.Block{}
 	for i, pl := range plan(s, p, tx, pos, face, held) {
 		if i >= previewMax {
 			break
 		}
-		spots[pl.Pos] = OutlineOf(tx, pl)
+		spots[pl.Pos] = pl.Block
 	}
 	cur := previews.Of(s)[p.H()]
-	if sameSpots(cur.at, spots) {
+	// restore what the new preview does not cover, show what it changes
+	var stale []cube.Pos
+	for at := range cur.at {
+		if _, ok := spots[at]; !ok {
+			stale = append(stale, at)
+		}
+	}
+	for _, v := range RestoreViews(tx, stale) {
+		viewLayer(p, v)
+	}
+	changed := map[cube.Pos]world.Block{}
+	for at, b := range spots {
+		if old, ok := cur.at[at]; !ok || world.BlockRuntimeID(old) != world.BlockRuntimeID(b) {
+			changed[at] = b
+		}
+	}
+	for _, v := range PreviewViews(changed) {
+		viewLayer(p, v)
+	}
+	if len(spots) == 0 {
+		delete(previews.Of(s), p.H())
 		return
 	}
-	for _, sh := range cur.shapes {
-		p.RemoveDebugShape(sh)
-	}
-	next := preview{at: spots}
-	for _, o := range spots {
-		sh := &debug.Box{Position: o.Centre, Bounds: o.Bounds, Colour: previewColour}
-		p.AddDebugShape(sh)
-		next.shapes = append(next.shapes, sh)
-	}
-	previews.Of(s)[p.H()] = next
+	previews.Of(s)[p.H()] = preview{at: spots, pos: pos, face: face}
 }
 
-// HidePreview removes the outlines p is shown, if any.
+// HidePreview shows p the real blocks where its preview was, if any.
 func HidePreview(s *core.Session, p *player.Player) {
 	cur, ok := previews.Of(s)[p.H()]
 	if !ok {
 		return
 	}
-	for _, sh := range cur.shapes {
-		p.RemoveDebugShape(sh)
-	}
 	delete(previews.Of(s), p.H())
-}
-
-func sameSpots(a, b map[cube.Pos]Outline) bool {
-	if len(a) != len(b) {
-		return false
+	tx := p.Tx()
+	if tx == nil {
+		return
 	}
-	for k, o := range a {
-		if bo, ok := b[k]; !ok || bo != o {
-			return false
-		}
+	at := make([]cube.Pos, 0, len(cur.at))
+	for pos := range cur.at {
+		at = append(at, pos)
 	}
-	return true
+	for _, v := range RestoreViews(tx, at) {
+		viewLayer(p, v)
+	}
 }
 
 // UndoTip is the tip of an undo that took n blocks.

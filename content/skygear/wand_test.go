@@ -198,26 +198,17 @@ func TestAutofillPlace(t *testing.T) {
 	})
 }
 
-// TestWandOutline: the preview's boxes sit on the spots the click fills and
-// are as large as the blocks placed there: the client draws a debug box
-// around its position, so a whole block is outlined from its centre, and a
-// slab on a floor of slabs is outlined as the lower half of its spot.
-func TestWandOutline(t *testing.T) {
+// TestWandPreview: on a floor of slabs, the preview shows the slab each
+// spot on top of the floor gets on layer 0 and the green glass on layer 1,
+// and restores the air of both layers; a click on a previewed spot (the
+// client shows it as a block) is a click on the face the preview is of.
+func TestWandPreview(t *testing.T) {
 	s := testSession(t)
+	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		can := func(cube.Pos) bool { return true }
-		mid := wandWall(tx)
-		_, _ = p.Inventory().AddItem(item.NewStack(block.Stone{}, 20))
-		for _, pl := range wand.Plan(tx, p, mid, cube.FaceNorth, wand.Options{}, 27, can, nil) {
-			o := wand.OutlineOf(tx, pl)
-			want := pl.Pos.Vec3Centre()
-			if o.Centre != want || o.Bounds != (mgl64.Vec3{1, 1, 1}) {
-				t.Fatalf("stone at %v outlined at %v size %v, want %v size 1", pl.Pos, o.Centre, o.Bounds, want)
-			}
-		}
-
 		slab := block.Slab{Block: block.Planks{Wood: block.OakWood()}}
 		floor := cube.Pos{3, island.IslandY + 5, 3}
 		for x := 0; x < 3; x++ {
@@ -225,21 +216,53 @@ func TestWandOutline(t *testing.T) {
 				tx.SetBlock(floor.Add(cube.Pos{x, 0, z}), slab, nil)
 			}
 		}
-		p.Inventory().Clear()
+		mid := floor.Add(cube.Pos{1, 0, 1})
+		p.SetHeldItems(item.NewStack(sgitem.NewWand(sgitem.WandStone), 1), item.Stack{})
 		_, _ = p.Inventory().AddItem(item.NewStack(slab, 20))
-		got := wand.Plan(tx, p, floor.Add(cube.Pos{1, 0, 1}), cube.FaceUp, wand.Options{}, 27, can, nil)
+		got := wand.Plan(tx, p, mid, cube.FaceUp, wand.Options{}, 27, can, nil)
 		if len(got) != 9 {
 			t.Fatalf("planned %d slabs, want 9", len(got))
 		}
+		spots := map[cube.Pos]world.Block{}
 		for _, pl := range got {
-			if pl.Pos[1] != floor[1]+1 {
+			if pl.Pos[1] != floor[1]+1 || pl.Pos[0] < floor[0] || pl.Pos[0] > floor[0]+2 || pl.Pos[2] < floor[2] || pl.Pos[2] > floor[2]+2 {
 				t.Fatalf("slab planned at %v, want on top of the floor", pl.Pos)
 			}
-			o := wand.OutlineOf(tx, pl)
-			want := pl.Pos.Vec3().Add(mgl64.Vec3{0.5, 0.25, 0.5})
-			if o.Centre.Sub(want).Len() > 1e-9 || o.Bounds.Sub(mgl64.Vec3{1, 0.5, 1}).Len() > 1e-9 {
-				t.Fatalf("slab at %v outlined at %v size %v, want %v size 1×0.5×1", pl.Pos, o.Centre, o.Bounds, want)
+			spots[pl.Pos] = pl.Block
+		}
+		views := wand.PreviewViews(spots)
+		if len(views) != 18 {
+			t.Fatalf("%d views, want 2 per spot", len(views))
+		}
+		for _, v := range views {
+			want := spots[v.Pos]
+			if v.Layer == 1 {
+				want = wand.PreviewGlass
 			}
+			if world.BlockRuntimeID(v.Block) != world.BlockRuntimeID(want) {
+				t.Fatalf("layer %d at %v shows %v, want %v", v.Layer, v.Pos, v.Block, want)
+			}
+		}
+		for _, v := range wand.RestoreViews(tx, []cube.Pos{got[0].Pos}) {
+			if _, ok := v.Block.(block.Air); !ok {
+				t.Fatalf("restore of layer %d shows %v, want air", v.Layer, v.Block)
+			}
+		}
+
+		// looking straight down at the middle of the floor
+		p.Teleport(mid.Vec3Centre().Add(mgl64.Vec3{0, 2, 0}))
+		p.Move(mgl64.Vec3{}, 0, 90-p.Rotation().Pitch())
+		wand.ShowPreview(s.Session, p, tx)
+		spot := mid.Side(cube.FaceUp).Add(cube.Pos{1, 0, 0})
+		if at, face := wand.Aimed(s.Session, p, spot, cube.FaceUp); at != mid || face != cube.FaceUp {
+			t.Fatalf("a click on the previewed %v is for %v %v, want %v up", spot, at, face, mid)
+		}
+		if at, _ := wand.Aimed(s.Session, p, floor, cube.FaceNorth); at != floor {
+			t.Fatalf("a click off the preview moved to %v", at)
+		}
+		wand.HidePreview(s.Session, p)
+		if at, _ := wand.Aimed(s.Session, p, spot, cube.FaceUp); at != spot {
+			t.Fatal("the hidden preview still takes clicks")
 		}
 	})
 }
