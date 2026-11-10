@@ -100,6 +100,7 @@ var Tree = []Advancement{
 	{ID: "stone_axe", Chapter: ChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.stone_axe.name", HintKey: "advancement.stone_axe.hint", Item: "stone_axe"},
 	{ID: "fiber", Chapter: ChapterStart, Parents: []string{"stone_axe"}, NameKey: "advancement.fiber.name", HintKey: "advancement.fiber.hint", Item: "skygear:bark_fiber", Guide: "stone_tools"},
 	{ID: "string", Chapter: ChapterStart, Parents: []string{"fiber"}, NameKey: "advancement.string.name", HintKey: "advancement.string.hint", Item: "string"},
+	{ID: "paper", Chapter: ChapterStart, Parents: []string{"fiber"}, NameKey: "advancement.paper.name", HintKey: "advancement.paper.hint", Item: "paper"},
 	{ID: "hammer", Chapter: ChapterStart, Parents: []string{"cobble"}, NameKey: "advancement.hammer.name", HintKey: "advancement.hammer.hint", Item: "skygear:stone_hammer"},
 	{ID: "gravel", Chapter: ChapterStart, Parents: []string{"hammer"}, NameKey: "advancement.gravel.name", HintKey: "advancement.gravel.hint", Item: "gravel", Guide: "hammer"},
 	{ID: "sand", Chapter: ChapterStart, Parents: []string{"gravel"}, NameKey: "advancement.sand.name", HintKey: "advancement.sand.hint", Item: "sand", Guide: "hammer"},

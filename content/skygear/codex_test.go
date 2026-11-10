@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -123,20 +124,23 @@ func TestCodexKnowsTheLab(t *testing.T) {
 }
 
 // TestCodexCraftCard: a crafting recipe is drawn as its grid: a 3×1 recipe is
-// one row of three ingredients, then the arrow and the result with its count.
+// one row of three ingredients, then the arrow and the result with its count
+// (none shown for one).
 func TestCodexCraftCard(t *testing.T) {
 	s := testSession(t)
 	var c codex.Card
+	var want string
 	found := false
 	for _, cr := range machinerecipe.Crafters() {
-		if naming.ItemKey(cr.Out.Item()) == naming.ItemKey(block.String{}) {
-			if sh, ok := cr.Recipe.(interface{ Input() []recipe.Item }); ok && len(sh.Input()) == 3 {
-				c, found = codex.CraftCard(s.Session, i18n.Default, cr), true
+		if sh, ok := cr.Recipe.(recipe.Shaped); ok && !found && sh.Shape() == recipe.NewShape(3, 1) && len(sh.Input()) == 3 {
+			c, found = codex.CraftCard(s.Session, i18n.Default, cr), true
+			if n := cr.Out.Count(); n > 1 {
+				want = fmt.Sprintf("§f%d", n)
 			}
 		}
 	}
 	if !found {
-		t.Fatal("no 3-fibre string recipe")
+		t.Fatal("no 3×1 recipe")
 	}
 	if len(c.Rows) != 1 {
 		t.Fatalf("a 3×1 recipe takes %d rows", len(c.Rows))
@@ -149,8 +153,8 @@ func TestCodexCraftCard(t *testing.T) {
 	if !c.Rows[0][codex.CraftArrow].IsArrow() {
 		t.Error("no arrow before the result")
 	}
-	if sl, ok := c.Rows[0][codex.CraftArrow+1].SlotOf(); !ok || sl.Count != "§f3" {
-		t.Errorf("the result slot is %+v, want 3 string", sl)
+	if sl, ok := c.Rows[0][codex.CraftArrow+1].SlotOf(); !ok || sl.Count != want {
+		t.Errorf("the result slot is %+v, want count %s", sl, want)
 	}
 }
 

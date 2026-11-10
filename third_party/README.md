@@ -30,6 +30,7 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/block/carrot.go`, `potato.go`, `wheat_seeds.go`, `beetroot_seeds.go` | 다 자란 작물을 캘 때 떨어지는 작물·씨앗을 성장 0의 새 아이템으로(업스트림은 다 자란 상태를 복사해, 심으면 바로 다 자란 작물이 된다) |
 | `server/cmd/command.go` | 명령어 `Run` 의 panic 을 잡아 ERROR 로그와 오류 출력으로 바꿈(서버가 죽지 않음) |
 | `server/item/digger.go` (신규), `server/internal/iteminternal/components.go` | `item.Digger`(`DestroySpeeds`)를 구현한 커스텀 아이템에 `minecraft:digger` 컴포넌트(블록별 캐기 속도)를 보냄. 없으면 클라이언트가 커스텀 도구로 맨손 속도로 캔다 |
+| `server/internal/iteminternal/components.go`, `fuel_test.go` (신규) | `item.Fuel` 을 구현한 커스텀 아이템에 `minecraft:fuel` 컴포넌트(`duration`, 초)를 보냄. 없으면 클라이언트가 커스텀 연료(나무껍질 섬유)를 화로 연료 칸에 넣지 못한다 |
 | `server/internal/blockinternal/components.go` | `block.Activatable` 을 구현한 커스텀 블록에 `minecraft:custom_components`(`hasPlayerInteract`=1)를 보냄. 상자처럼 클라이언트가 그 블록을 클릭할 때 손에 든 블록의 설치를 예측하지 않는다(형식은 PowerNukkitX `CustomBlockDefinition.isPlayerInteractable` 참고) |
 | `server/block/customblock/permutations.go`, `server/internal/blockinternal/components.go` | `Properties.CollisionBoxes`: 충돌 상자를 여러 개 보냄(`minecraft:collision_box` 의 `boxes`). 배럴을 퇴비통처럼 바닥과 네 벽만 있는 블록으로 만들어 안에 들어갈 수 있게 한다 |
 | `server/internal/blockinternal/components.go`, `components_test.go` | 커스텀 블록의 상태 정의(`properties`)를 `States()` 맵 순서(매번 무작위) 대신 **이름순**으로 보냄. 클라이언트는 상태 조합을 이름순으로 첫 상태가 가장 느리게 바뀌는 순서로 번호 매기고(바닐라 팔레트와 같은 순서), 서버는 등록 순서로 매긴다. 상태가 여럿인 블록이 늘 같은 정의를 보내게 한다. 상태가 하나인 블록은 바뀌는 것이 없다 |

@@ -33,6 +33,7 @@ var baseResearchTree = []progress.Research{
 	{ID: "stone_tools", Needs: []string{"wood_tools", "pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: Stick, Count: 8}},
 		Unlocks: []string{"stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe", "stone_sword"}},
 	{ID: "string", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: sgitem.BarkFiber{}, Count: 8}}, Unlocks: []string{"string"}},
+	{ID: "paper", Needs: []string{"stone_tools"}, Cost: []progress.Requirement{{Item: sgitem.BarkFiber{}, Count: 8}}, Unlocks: []string{"paper"}},
 	{ID: "hammer", Needs: []string{"pebbles"}, Cost: []progress.Requirement{{Item: block.Cobblestone{}, Count: 16}, {Item: Stick, Count: 4}}, Unlocks: []string{"skygear:stone_hammer"}},
 	{ID: "sieve", Needs: []string{"string", "hammer"}, Cost: []progress.Requirement{{Item: block.String{}, Count: 8}, {Item: OakPlanks, Count: 16}}, Unlocks: []string{"skygear:sieve", "skygear:mesh_string", "skygear:mesh_flint"}},
 	{ID: "torch", Needs: []string{"furnace"}, Cost: []progress.Requirement{{Item: item.Charcoal{}, Count: 8}, {Item: Stick, Count: 8}}, Unlocks: []string{"torch"}},

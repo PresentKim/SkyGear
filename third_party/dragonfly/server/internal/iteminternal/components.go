@@ -121,6 +121,12 @@ func Components(it world.CustomItem) map[string]any {
 			"destroy_speeds": destroy,
 		})
 	}
+	if x, ok := it.(item.Fuel); ok && x.FuelInfo().Duration > 0 {
+		// skygear patch: lets clients put custom fuels in a furnace's fuel slot.
+		builder.AddComponent("minecraft:fuel", map[string]any{
+			"duration": float32(x.FuelInfo().Duration.Seconds()),
+		})
+	}
 	if x, ok := it.(item.HandEquipped); ok {
 		builder.AddProperty("hand_equipped", x.HandEquipped())
 	}
