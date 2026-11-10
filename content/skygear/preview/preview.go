@@ -1,8 +1,7 @@
 // Package preview shows players blocks that are not in the world: the cells
-// the construction wand and the bridging assist would fill, and the blocks
-// the iron hammer's vein would break. Only the player is sent the blocks
-// (UpdateBlock on layer 0, the block, and layer 1, the liquid layer); the
-// world is unchanged.
+// the construction wand would fill, and the blocks the iron hammer's vein
+// would break. Only the player is sent the blocks (UpdateBlock on layer 0,
+// the block, and layer 1, the liquid layer); the world is unchanged.
 //
 // A cell to be filled gets Glass on layer 0 and the block it would get on
 // layer 1. Glass has no selection or collision box, so the crosshair, the

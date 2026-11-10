@@ -35,7 +35,7 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 
 왼쪽 위(일차·플레이 시간, 운영자 부하 줄), 오른쪽 가운데 퀘스트 창(다음 발전과제)을 **사이드바 스코어보드 한 장**으로 보낸다(`common/hud`). 제목(title)은 WAILA 가 쓰고 한 번에 하나만 담겨서, 늘 떠 있어야 하는 글자를 같이 실으면 서로 덮는다. 사이드바 줄은 바꾸기 전까지 남아 있다.
 
-- 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄, `§d§5` 크로스헤어 표시(아래). 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
+- 서버: 목표(objective) 이름 `§d§h§u§d`, 줄마다 부분 표시를 앞에 붙인다: `§d§1` 왼쪽 위, `§d§2` 오른쪽 위, `§d§3` 퀘스트 제목, `§d§4` 퀘스트 줄. 줄 순서는 부분 안에서 그대로. Dragonfly 의 앞 공백(padding)은 끈다. 같은 글자 줄은 클라이언트가 합치므로 뒤에 `§r` 를 붙여 구분한다. 최대 15줄.
 - 팩: `assets/resourcepack/sgui/ui/scoreboards.json` 이 바닐라 `scoreboard.scoreboard_sidebar` 를 화면 전체 패널로 바꾸고, 목표 이름에 표시가 있으면 `sg_hud`, 없으면 단순한 상자(`sg_plain_sidebar`, 다른 보드용)를 보인다. 부분마다 `scoreboard_players` 컬렉션 스택(`#scoreboard_sidebar_size` → `#collection_length`)을 두고, 줄 라벨은 `#player_name_sidebar` 에 그 표시가 있을 때만 보이며 표시를 뺀 글자를 쓴다. 바닐라 이름은 Mojang `bedrock-samples` `resource_pack/ui/scoreboards.json` 에서 확인했다. 라벨은 `localize: false`(번역을 거치면 `%` 가 사라진다).
 - 숨겨진 줄은 스택에서 자리를 차지하지 않는다.
 - 터치 화면(`$touch`)은 채팅을 왼쪽 위에, 점프·웅크리기 버튼을 오른쪽 가운데에 그리므로, 왼쪽 위 줄을 오른쪽 위(오른쪽 맞춤, 오른쪽 위 줄 위)에 그리고(`sg_top_left_touch_stack`) 퀘스트 창을 그 아래에 둔다(`quest_touch`).
@@ -43,11 +43,7 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 
 ### 크로스헤어 표시
 
-서버가 크로스헤어 그림 자체를 바꾸는 패킷은 없다(`SetHud` 는 바닐라 크로스헤어를 숨기거나 보일 뿐이다). 대신 팩이 사이드바의 `§d§5<이름>` 줄을 보고 화면 가운데에 `textures/ui/sg/crosshair_<이름>`(32×32, 바닐라 크로스헤어 위에 겹침)을 그리므로, 서버는 그 줄을 넣고 빼서 원하는 때에 크로스헤어 모양을 바꾼다. 줄을 바꿀 때마다 사이드바 전체를 다시 보내므로 자주 바뀌는 상태(틱마다)에는 쓰지 않는다. 바닐라 크로스헤어를 아예 다른 그림으로 바꾸려면 같은 줄과 `sghook.HideHUD` 류의 `SetHud`(크로스헤어만)를 함께 쓴다.
-
-- 이름: `up`·`down`·`side`(다리 놓기 도움, `content/skygear/bridge`, 블록을 들고 웅크렸을 때만). 그림은 `go run ./tools/uitextures` 가 만든다.
-- 팩: `scoreboards.json` 의 `sg_crosshair_stack`(가운데 기준 컬렉션 스택) → `sg_row_crosshair`(표시 줄일 때만 보이는 32×32 판) → 이름마다 이미지 하나(식에 표식을 글자로 적어 비교).
-- 한 번에 표시 하나만 보낸다. 퀘스트 줄에 밀려 15줄 밖으로 나가지 않도록 보드의 맨 앞에 넣는다.
+서버가 크로스헤어 그림 자체를 바꾸는 패킷은 없다(`SetHud` 는 바닐라 크로스헤어를 숨기거나 보일 뿐이다). 예전에는 다리 놓기 도움이 사이드바의 `§d§5<이름>` 줄로 팩이 그리는 크로스헤어 옆 표시를 바꿨다. 다리 놓기를 바닐라에 맡기면서 이 부분(`sg_crosshair_stack`, `crosshair_*` 그림, `hud.Crosshair`)도 지웠다. 다시 필요하면 git 기록에서 되살린다.
 
 ## HUD (터치의 포켓 배치)
 

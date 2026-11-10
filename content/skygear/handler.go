@@ -12,7 +12,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
-	"github.com/presentkim/skygear/content/skygear/bridge"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -155,12 +154,6 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	// The button held after a bridging assist placement repeats on the
-	// block just placed: one press places one block.
-	if bridge.Holding(h.s.Session, ctx.Player()) {
-		ctx.Cancel()
-		return
-	}
 	held, _ := ctx.Player().HeldItems()
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
@@ -270,13 +263,6 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if h.useStone(ctx, held) {
 		return
 	}
-	// A block used on the air while sneaking goes where the bridging assist
-	// finds a place for it (bridge), once a press of the button.
-	if p := ctx.Player(); bridge.Place(h.s.Session, p) {
-		ctx.Cancel()
-		h.updateBridge(p, p.Position(), p.Rotation(), true)
-		return
-	}
 	if _, ok := held.Item().(sgitem.ConfigCopier); ok {
 		copier.ClearCopier(h.s.Session, ctx.Player(), held, off)
 	}
@@ -329,7 +315,6 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 		ctx.Cancel()
 		return
 	}
-	h.updateBridge(ctx.Player(), newPos, newRot, false)
 	achievement.CountWalk(h.s.Session, ctx.Player(), newPos)
 	if newPos.Y() < island.VoidY {
 		ctx.Cancel()
@@ -341,9 +326,6 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 // expansion mode, rides an elevator down when standing on one, and
 // otherwise grows saplings nearby by chance (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
-	// the bridging assist works only while sneaking: show or hide its preview
-	p := ctx.Player()
-	h.updateBridgeSneak(p, p.Position(), p.Rotation(), after, true)
 	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
 		expand.Show(h.s.Session, ctx.Player())
 		return
@@ -421,29 +403,10 @@ func (h *handler) HandleRespawn(p *player.Player, pos *mgl64.Vec3, _ **world.Wor
 func (h *handler) HandleBlockPick(ctx *player.Context, _ cube.Pos, _ world.Block) {
 	achievement.Count(ctx.Player(), "block_pick", 1)
 }
-func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, to int) {
+func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, _ int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
-	p := ctx.Player()
-	held, _ := p.Inventory().Item(to)
-	if bridge.Update(h.s.Session, p, p.Tx(), p.Position(), p.Rotation(), held, p.Sneaking(), true) {
-		screens.UpdateBoard(h.s.Session, p)
-	}
 }
 
-// updateBridge updates p's bridging assist crosshair mark for p at pos
-// with rotation rot, and the HUD that shows it when it changed.
-func (h *handler) updateBridge(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, force bool) {
-	h.updateBridgeSneak(p, pos, rot, p.Sneaking(), force)
-}
-
-// updateBridgeSneak is updateBridge for p sneaking or not (p.Sneaking is
-// set only after the sneak handler).
-func (h *handler) updateBridgeSneak(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, sneaking, force bool) {
-	held, _ := p.HeldItems()
-	if bridge.Update(h.s.Session, p, p.Tx(), pos, rot, held, sneaking, force) {
-		screens.UpdateBoard(h.s.Session, p)
-	}
-}
 func (h *handler) HandleItemDrop(ctx *player.Context, _ item.Stack) {
 	if dimension.Hunting(h.s.Session, ctx.Player()) {
 		ctx.Cancel()
