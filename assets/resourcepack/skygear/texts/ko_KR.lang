@@ -81,6 +81,7 @@ item.skygear:stone_crook.name=돌 크룩
 item.skygear:iron_crook.name=철 크룩
 item.skygear:diamond_crook.name=다이아몬드 크룩
 item.skygear:silkworm.name=누에
+item.skygear:cooked_silkworm.name=익힌 누에
 item.skygear:harvester.name=자동 농작물 수확기
 item.skygear:machine_info.name=기계 정보
 item.skygear:progress_0.name=진행도

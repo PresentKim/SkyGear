@@ -90,6 +90,7 @@ func giveItems() map[string]func() item.Stack {
 		"hammer":           func() item.Stack { return item.NewStack(sgitem.Hammer{}, 1) },
 		"stone_hammer":     func() item.Stack { return item.NewStack(sgitem.Hammer{Stone: true}, 1) },
 		"silkworm":         func() item.Stack { return item.NewStack(farm.Silkworm{}, 1) },
+		"cooked_silkworm":  func() item.Stack { return item.NewStack(farm.CookedSilkworm{}, 1) },
 		"infested_leaves":  func() item.Stack { return item.NewStack(farm.InfestedLeaves{}, 1) },
 		"string_mesh":      func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },

@@ -46,6 +46,7 @@ func init() {
 	world.RegisterBlock(InfestedLeaves{})
 	world.RegisterItem(InfestedLeaves{})
 	world.RegisterItem(Silkworm{})
+	world.RegisterItem(CookedSilkworm{})
 	sgitem.CrookBlockNames = append(sgitem.CrookBlockNames, infestingName, infestedName)
 }
 
@@ -66,6 +67,10 @@ var (
 	// table; Fabrico's leaves drop nothing by hand).
 	StringByHand  = []float64{0.5, 0.25}
 	StringByCrook = []float64{1, 1, 0.5, 0.2, 0.1}
+	// CookedSilkwormFood and CookedSilkwormSaturation are what a cooked
+	// silkworm fills (Fabrico's: as cooked cod).
+	CookedSilkwormFood       = 5
+	CookedSilkwormSaturation = 6.0
 )
 
 // InfestStages are the stages of infesting leaves (0 to InfestStages-1).
@@ -373,4 +378,30 @@ func (Silkworm) UseOnBlock(pos cube.Pos, _ cube.Face, _ mgl64.Vec3, tx *world.Tx
 	tx.PlaySound(pos.Vec3Centre(), sound.ItemUseOn{Block: block.Leaves{Type: block.OakLeaves()}})
 	ctx.SubtractFromCount(1)
 	return true
+}
+
+// SmeltInfo implements item.Smeltable: a furnace, smoker or campfire cooks a
+// silkworm into a cooked silkworm.
+func (Silkworm) SmeltInfo() item.SmeltInfo {
+	return item.SmeltInfo{Product: item.NewStack(CookedSilkworm{}, 1), Experience: 0.1, Food: true}
+}
+
+// CookedSilkworm is a silkworm cooked in a furnace: food for the time before
+// the first farm (Fabrico's silkworm_cooked).
+type CookedSilkworm struct{}
+
+func (CookedSilkworm) EncodeItem() (string, int16) { return "skygear:cooked_silkworm", 0 }
+
+func (CookedSilkworm) Name() string { return i18n.T(i18n.Default, "name.CookedSilkworm") }
+
+func (CookedSilkworm) Category() category.Category { return category.Items() }
+
+// AlwaysConsumable, ConsumeDuration and Consume implement item.Consumable.
+func (CookedSilkworm) AlwaysConsumable() bool { return false }
+
+func (CookedSilkworm) ConsumeDuration() time.Duration { return item.DefaultConsumeDuration }
+
+func (CookedSilkworm) Consume(_ *world.Tx, c item.Consumer) item.Stack {
+	c.Saturate(CookedSilkwormFood, CookedSilkwormSaturation)
+	return item.Stack{}
 }

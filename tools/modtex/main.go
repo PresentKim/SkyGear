@@ -133,6 +133,7 @@ var entries = func() []entry {
 		it(t[0]+"_crook", "fab:item/tools/crook/crook_"+t[1], nil)
 	}
 	it("silkworm", "fab:item/silkworm_raw", nil)
+	it("cooked_silkworm", "fab:item/silkworm_cooked", nil)
 	it("conduit_binder", "eio:item/conduit_binder", nil)
 	it("conduit_binder_mix", "eio:item/conduit_binder_composite", nil)
 	for _, m := range []string{"tin", "lead", "bronze", "steel"} {

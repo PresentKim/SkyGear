@@ -77,6 +77,7 @@ func RegisterCreativeItems() {
 			add(equipment, sgitem.Crook{Tier: t.Name})
 		}
 		add(items, farm.Silkworm{})
+		add(items, farm.CookedSilkworm{})
 		for _, t := range sgitem.WandTiers {
 			add(equipment, sgitem.NewWand(t))
 		}

@@ -81,6 +81,7 @@ item.skygear:stone_crook.name=Stone Crook
 item.skygear:iron_crook.name=Iron Crook
 item.skygear:diamond_crook.name=Diamond Crook
 item.skygear:silkworm.name=Silkworm
+item.skygear:cooked_silkworm.name=Cooked Silkworm
 item.skygear:harvester.name=Auto Crop Harvester
 item.skygear:machine_info.name=Machine Info
 item.skygear:progress_0.name=Progress

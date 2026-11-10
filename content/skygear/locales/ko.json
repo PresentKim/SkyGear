@@ -3675,7 +3675,7 @@
  "codex.card.rolls": "평균 %s개",
  "research.crook.name": "크룩",
  "research.crook.short": "나뭇잎에서 묘목과 누에를 더 많이 얻습니다",
- "research.crook.about": "크룩으로 나뭇잎을 부수면 묘목이 30% 확률로 나오고(맨손은 20%), 가끔 누에도 나옵니다. 누에를 나뭇잎에 쓰면 시간이 지나며 감염된 나뭇잎이 되고, 이것을 부수면 실이 나옵니다. 나뭇잎 하나마다 내구도가 1 줄어듭니다.",
+ "research.crook.about": "크룩으로 나뭇잎을 부수면 묘목이 30% 확률로 나오고(맨손은 20%), 가끔 누에도 나옵니다. 누에는 화로에 구우면 먹을 수 있고, 나뭇잎에 쓰면 시간이 지나며 감염된 나뭇잎이 되고, 이것을 부수면 실이 나옵니다. 나뭇잎 하나마다 내구도가 1 줄어듭니다.",
  "research.stone_crook.name": "돌 크룩",
  "research.stone_crook.short": "더 튼튼하고 확률도 조금 높은 크룩",
  "research.stone_crook.about": "돌 조약돌로 만듭니다. 묘목은 35%, 누에는 4% 확률로 나오고, 나무 크룩보다 두 배 넘게 오래 씁니다.",
@@ -3688,5 +3688,6 @@
  "advancement.crook.name": "나뭇잎 목동",
  "advancement.crook.hint": "\"나무 크룩\"을 연구해 만드세요\n크룩으로 나뭇잎을 부수면\n묘목이 더 잘 나와요",
  "advancement.silkworm.name": "뭔가 꿈틀거린다",
- "advancement.silkworm.hint": "크룩으로 나뭇잎을 부숴\n누에를 찾은 다음\n나뭇잎에 써 보세요"
+ "advancement.silkworm.hint": "크룩으로 나뭇잎을 부숴\n누에를 찾은 다음\n나뭇잎에 써 보세요",
+ "name.CookedSilkworm": "익힌 누에"
 }

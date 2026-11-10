@@ -689,7 +689,7 @@
  "researchlist.title": "Research",
  "research.crook.name": "Crook",
  "research.crook.short": "Pulls more saplings and silkworms out of leaves",
- "research.crook.about": "Leaves broken with a Crook drop more saplings (chance 30%, by hand 20%) and now and then a Silkworm. Use a Silkworm on leaves and over time they turn into Infested Leaves, which drop String. Each leaf costs one durability.",
+ "research.crook.about": "Leaves broken with a Crook drop more saplings (chance 30%, by hand 20%) and now and then a Silkworm. Cook a Silkworm in a furnace to eat it, or use it on leaves and over time they turn into Infested Leaves, which drop String. Each leaf costs one durability.",
  "research.stone_crook.name": "Stone Crook",
  "research.stone_crook.short": "A sturdier crook with better chances",
  "research.stone_crook.about": "Made from stone pebbles. Saplings (35%) and Silkworms (4%) drop more often, and it lasts more than twice as long as the Wooden Crook.",

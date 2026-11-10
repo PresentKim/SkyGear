@@ -377,3 +377,24 @@ func TestNoSpreadWithoutIsland(t *testing.T) {
 		}
 	})
 }
+
+// TestCookedSilkworm: a furnace (or smoker, campfire) cooks a silkworm into a
+// cooked silkworm, which fills the food bar; the raw one is not food.
+func TestCookedSilkworm(t *testing.T) {
+	info := farm.Silkworm{}.SmeltInfo()
+	if _, ok := info.Product.Item().(farm.CookedSilkworm); !ok || !info.Food {
+		t.Fatalf("silkworm smelts into %v (food %v)", info.Product, info.Food)
+	}
+	if _, ok := any(farm.Silkworm{}).(item.Consumable); ok {
+		t.Error("the raw silkworm is food: eating it would take the leaves' right click")
+	}
+	s := testSession(t)
+	loadAround(s)
+	withPlayer(t, s, spawnPlayer(s), func(p *player.Player, tx *world.Tx) {
+		p.SetFood(10)
+		farm.CookedSilkworm{}.Consume(tx, p)
+		if got := p.Food(); got != 10+farm.CookedSilkwormFood {
+			t.Errorf("food %d after a cooked silkworm, want %d", got, 10+farm.CookedSilkwormFood)
+		}
+	})
+}

@@ -145,6 +145,9 @@
     "skygear:silkworm": {
       "textures": "textures/items/silkworm"
     },
+    "skygear:cooked_silkworm": {
+      "textures": "textures/items/cooked_silkworm"
+    },
     "skygear:machine_info": {
       "textures": "textures/items/machine_info"
     },

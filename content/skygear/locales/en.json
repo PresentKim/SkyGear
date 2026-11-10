@@ -1004,5 +1004,6 @@
  "codex.card.leavesByHand": "Break by hand",
  "codex.card.silkworm": "Use a silkworm on it",
  "codex.card.infest": "Infested after about %s",
- "codex.card.rolls": "%s on average"
+ "codex.card.rolls": "%s on average",
+ "name.CookedSilkworm": "Cooked Silkworm"
 }
