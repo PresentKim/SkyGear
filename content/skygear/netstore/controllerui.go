@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/ui"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
@@ -52,11 +53,22 @@ func showController(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Po
 		if k == machine.KindNetController {
 			use = controllerUse
 		}
+		icon, title := kindLook(lang, k)
 		slots = append(slots, ui.ItemSlot{
-			Icon:  ui.ItemIcon(machine.Machine{Kind: k}),
+			Icon:  icon,
 			Count: strconv.Itoa(count),
-			Tip:   machine.Kinds[k].Title(lang) + "\n" + fmt.Sprintf(i18n.T(lang, "netstore.controller.kindUse"), count, use),
+			Tip:   title + "\n" + fmt.Sprintf(i18n.T(lang, "netstore.controller.kindUse"), count, use),
 		})
 	}
 	ui.ItemGrid(p, machine.Kinds[machine.KindNetController].Title(lang), body, slots)
+}
+
+// kindLook is the icon and name in lang of the nodes of kind on the
+// controller's list: a machine's, or the network conduit's for the conduit
+// bundles (KindConduit, which is no machine kind).
+func kindLook(lang, kind string) (icon, title string) {
+	if kind == KindConduit {
+		return ui.ItemIcon(conduit.NetConduit{}), i18n.T(lang, "name.NetConduit")
+	}
+	return ui.ItemIcon(machine.Machine{Kind: kind}), machine.Kinds[kind].Title(lang)
 }
