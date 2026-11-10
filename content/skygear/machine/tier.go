@@ -142,6 +142,37 @@ func (st *State) Area(kind string) Area {
 	return a
 }
 
+// Offset is how far the centre of a machine's area is moved from the
+// machine, set on its range screen. Each axis is clamped to MaxOffset, so a
+// value saved under another limit stays in bounds.
+func (st *State) Offset(kind string) cube.Pos {
+	most := st.MaxOffset(kind)
+	clamp := func(v, top int) int { return max(-top, min(top, v)) }
+	return cube.Pos{clamp(st.OffsetX, most[0]), clamp(st.OffsetY, most[1]), clamp(st.OffsetZ, most[2])}
+}
+
+// harvesterLift is how far up or down the harvester's row of crops may be
+// moved: its area is one block high, so it has no reach of its own to go by.
+const harvesterLift = 2
+
+// MaxOffset is how far the area of a machine of kind may be moved each way
+// on each axis: as far as its tier reaches sideways, and as far as it reaches
+// below or above.
+func (st *State) MaxOffset(kind string) cube.Pos {
+	most := st.MaxArea(kind)
+	y := max(most.Down, most.Up)
+	if kind == KindHarvester {
+		y = harvesterLift
+	}
+	return cube.Pos{most.X, y, most.Z}
+}
+
+// Centre is the block a machine of kind at pos works around: the machine
+// itself moved by its offset.
+func (st *State) Centre(kind string, pos cube.Pos) cube.Pos {
+	return pos.Add(st.Offset(kind))
+}
+
 func tierNameKey(tier int) string { return fmt.Sprintf("tier.name.%d", tier) }
 
 func TierName(lang string, tier int) string { return i18n.T(lang, tierNameKey(tier)) }

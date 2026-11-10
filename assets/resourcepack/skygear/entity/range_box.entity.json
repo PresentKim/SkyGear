@@ -20,7 +20,7 @@
           "variable.w = math.mod(query.variant, 128) + 0.04;",
           "variable.h = math.mod(math.floor(query.variant / 128), 128) + 0.04;",
           "variable.d = math.mod(math.floor(query.variant / 16384), 128) + 0.04;",
-          "variable.drop = math.floor(query.variant / 2097152) + 1.02;"
+          "variable.drop = math.floor(query.variant / 2097152) - 512 + 1.02;"
         ],
         "animate": [
           "size"

@@ -42,11 +42,11 @@ func rangeHeight(kind string) (down, up int) {
 }
 
 // rangeBox is the area of the machine of kind st at pos, from its first
-// block to past its last.
+// block to past its last, moved by its offset.
 func (st *State) rangeBox(kind string, pos cube.Pos) (lo, hi mgl64.Vec3) {
-	a := st.Area(kind)
-	lo = pos.Vec3().Sub(mgl64.Vec3{float64(a.X), float64(a.Down), float64(a.Z)})
-	hi = pos.Vec3().Add(mgl64.Vec3{float64(a.X + 1), float64(a.Up + 1), float64(a.Z + 1)})
+	a, c := st.Area(kind), st.Centre(kind, pos)
+	lo = c.Vec3().Sub(mgl64.Vec3{float64(a.X), float64(a.Down), float64(a.Z)})
+	hi = c.Vec3().Add(mgl64.Vec3{float64(a.X + 1), float64(a.Up + 1), float64(a.Z + 1)})
 	return lo, hi
 }
 
@@ -73,13 +73,18 @@ func PeekRange(tx *world.Tx, pos cube.Pos, b world.Block) {
 
 // boxVariant is the box from lo to hi as the range box entity's variant:
 // width, height and depth in blocks, 7 bits each, then how many blocks the
-// box's bottom is under the machine (entity/range_box.entity.json reads them
-// back). The entity stands just above the machine, in air: the client lights
-// an entity by the block it stands in, and one in a solid block draws black.
+// box's bottom is under the machine, plus dropBias so a box moved above the
+// machine fits too (entity/range_box.entity.json reads them back). The entity
+// stands just above the machine, in air: the client lights an entity by the
+// block it stands in, and one in a solid block draws black.
 func boxVariant(lo, hi mgl64.Vec3, down int) int32 {
 	size := hi.Sub(lo)
-	return int32(size[0]) | int32(size[1])<<7 | int32(size[2])<<14 | int32(down)<<21
+	return int32(size[0]) | int32(size[1])<<7 | int32(size[2])<<14 | int32(down+dropBias)<<21
 }
+
+// dropBias is added to the drop of the box's bottom in its variant, which has
+// ten bits left for it.
+const dropBias = 512
 
 // showRange keeps the range box over the machine's area while its outline
 // is on, and takes it away when it goes off.
@@ -89,7 +94,7 @@ func (st *State) showRange(tx *world.Tx, pos cube.Pos) {
 		return
 	}
 	lo, hi := st.rangeBox(kind, pos)
-	size := boxVariant(lo, hi, st.Area(kind).Down)
+	size := boxVariant(lo, hi, pos[1]-int(lo[1]))
 	if st.rangeShown() && st.rangeEntity != nil && st.rangeSize == size {
 		return
 	}
@@ -171,6 +176,20 @@ func (rangeBoxType) DecodeNBT(_ map[string]any, d *world.EntityData) { d.Data = 
 
 func (rangeBoxType) EncodeNBT(*world.EntityData) map[string]any { return nil }
 
+// offsetLine is how far the machine's area is moved: "기준 (+2, 0, -1)".
+func (st *State) offsetLine(lang, kind string) string {
+	o := st.Offset(kind)
+	return fmt.Sprintf(i18n.T(lang, "machine.range.offset"), signed(o[0]), signed(o[1]), signed(o[2]))
+}
+
+// signed is v with its sign, "+2", "0" or "-1".
+func signed(v int) string {
+	if v > 0 {
+		return fmt.Sprintf("+%d", v)
+	}
+	return fmt.Sprint(v)
+}
+
 // sizeLine is the size of the machine's area, as JE Item Collectors shows
 // it: "범위 (11×5×7)".
 func (st *State) sizeLine(lang, kind string) string {
@@ -216,50 +235,89 @@ func (st *State) rangeTools(lang string, again func(p *player.Player, tx *world.
 }
 
 // rangeAxis is one axis of the range screen: its name, the value set, the
-// most its tier gives and where the value is kept.
+// least and most it may be, and how a value is kept.
 type rangeAxis struct {
-	name      string
-	have, top int
-	set       *int
+	name           string
+	have, low, top int
+	show           string
+	keep           func(v int)
 }
 
 // showRangeScreen shows p the range screen of the machine of kind, as JE
 // Item Collectors lays it out: the size, an up arrow, "x: 5" and a down
-// arrow for each axis, and the box button. back goes to the machine.
+// arrow for each axis, and the box button. A side button turns the screen
+// to the offset of the area, the same arrows moving its centre. back goes
+// to the machine.
 func (st *State) showRangeScreen(p *player.Player, kind string, back func(p *player.Player, tx *world.Tx)) {
 	lang := i18n.Of(p)
 	again := func(p *player.Player, _ *world.Tx) { st.showRangeScreen(p, kind, back) }
-	a, most := st.Area(kind), st.MaxArea(kind)
-	axes := []rangeAxis{{"x", a.X, most.X, &st.RangeX}}
-	if top := max(most.Down, most.Up); top > 0 {
-		axes = append(axes, rangeAxis{"y", max(a.Down, a.Up), top, &st.RangeY})
+	axes, line := st.reachAxes(kind), st.sizeLine(lang, kind)
+	pageKey := "machine.range.to_offset"
+	if st.offsetPage {
+		axes, line = st.offsetAxes(kind), st.offsetLine(lang, kind)+"  §7"+line
+		pageKey = "machine.range.to_reach"
 	}
-	axes = append(axes, rangeAxis{"z", a.Z, most.Z, &st.RangeZ})
 	var steppers []ui.Stepper
 	for _, ax := range axes {
 		set := func(v int) func(p *player.Player, tx *world.Tx) {
-			if v < 1 || v > ax.top {
+			if v < ax.low || v > ax.top {
 				return nil
 			}
 			return func(p *player.Player, tx *world.Tx) {
-				*ax.set = v
-				if v == ax.top {
-					*ax.set = 0
-				}
+				ax.keep(v)
 				again(p, tx)
 			}
 		}
+		up := fmt.Sprintf(i18n.T(lang, "machine.range.wider"), ax.top)
+		down := i18n.T(lang, "machine.range.narrower")
+		if st.offsetPage {
+			up = fmt.Sprintf(i18n.T(lang, "machine.range.shift_up"), ax.top)
+			down = fmt.Sprintf(i18n.T(lang, "machine.range.shift_down"), ax.low)
+		}
 		steppers = append(steppers, ui.Stepper{
-			Label: ax.name, Value: fmt.Sprint(ax.have),
-			Up:   ui.Option{Label: fmt.Sprintf(i18n.T(lang, "machine.range.wider"), ax.top), Run: set(ax.have + 1)},
-			Down: ui.Option{Label: i18n.T(lang, "machine.range.narrower"), Run: set(ax.have - 1)},
+			Label: ax.name, Value: ax.show,
+			Up:   ui.Option{Label: up, Run: set(ax.have + 1)},
+			Down: ui.Option{Label: down, Run: set(ax.have - 1)},
 		})
 	}
+	page := ui.Option{Label: i18n.T(lang, pageKey), Icon: "textures/ui/sg/menu_expand", Run: func(p *player.Player, tx *world.Tx) {
+		st.offsetPage = !st.offsetPage
+		again(p, tx)
+	}}
 	ui.ShowSteppers(p, ui.StepperScreen{
 		Title:    st.Def.Title(lang),
-		Line:     st.sizeLine(lang, kind),
+		Line:     line,
 		Steppers: steppers,
-		Side:     []ui.Option{st.rangeViewOption(lang, again)},
+		Side:     []ui.Option{st.rangeViewOption(lang, again), page},
 		Options:  []ui.Option{ui.Back(i18n.T(lang, "machine.range.back"), back)},
 	})
+}
+
+// reachAxes are the range screen's axes of the reach of the machine of kind:
+// 1 up to what its tier gives, which is kept as 0 (all).
+func (st *State) reachAxes(kind string) []rangeAxis {
+	a, most := st.Area(kind), st.MaxArea(kind)
+	axis := func(name string, have, top int, set *int) rangeAxis {
+		return rangeAxis{name: name, have: have, low: 1, top: top, show: fmt.Sprint(have), keep: func(v int) {
+			*set = v
+			if v == top {
+				*set = 0
+			}
+		}}
+	}
+	axes := []rangeAxis{axis("x", a.X, most.X, &st.RangeX)}
+	if top := max(most.Down, most.Up); top > 0 {
+		axes = append(axes, axis("y", max(a.Down, a.Up), top, &st.RangeY))
+	}
+	return append(axes, axis("z", a.Z, most.Z, &st.RangeZ))
+}
+
+// offsetAxes are the range screen's axes of the offset of the area of the
+// machine of kind, each from -MaxOffset to +MaxOffset.
+func (st *State) offsetAxes(kind string) []rangeAxis {
+	o, most := st.Offset(kind), st.MaxOffset(kind)
+	axis := func(name string, i int, set *int) rangeAxis {
+		return rangeAxis{name: name, have: o[i], low: -most[i], top: most[i], show: signed(o[i]), keep: func(v int) { *set = v }}
+	}
+	return []rangeAxis{axis("x", 0, &st.OffsetX), axis("y", 1, &st.OffsetY), axis("z", 2, &st.OffsetZ)}
 }

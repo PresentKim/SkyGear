@@ -553,6 +553,10 @@ type State struct {
 	// RangeX, RangeY and RangeZ are the reach set on the screen of a machine
 	// with a range; 0 is all its tier gives (Area).
 	RangeX, RangeY, RangeZ int
+	// OffsetX, OffsetY and OffsetZ move the centre of that range away from
+	// the machine (Offset); offsetPage is whether the range screen shows them.
+	OffsetX, OffsetY, OffsetZ int
+	offsetPage                bool
 	// rangeUntil is the tick the box over its range shows until (its button),
 	// peekUntil the same while a player sneaks and looks at it, rangeEntity
 	// that box and rangeSize its size (rangeview.go).
@@ -660,14 +664,14 @@ const stuckRecheck = 100
 // differ from the last one.
 type stateSig struct {
 	progress, energy, burn, burnMax, boost, tier, fluidAmt, charges, legacy int
-	reach                                                                   [3]int
+	reach                                                                   [6]int
 	unlimited                                                               bool
 	fluid                                                                   fluidnet.Kind
 	mob, mesh, recipe                                                       string
 }
 
 func (st *State) sig() stateSig {
-	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [3]int{st.RangeX, st.RangeY, st.RangeZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
+	return stateSig{st.Progress, st.Energy, st.Burn, st.burnMax, st.Boost, st.Tier, st.FluidAmt, st.Charges, len(st.Legacy), [6]int{st.RangeX, st.RangeY, st.RangeZ, st.OffsetX, st.OffsetY, st.OffsetZ}, st.Unlimited, st.Fluid, st.Mob, st.Mesh, st.RecipeID}
 }
 
 // persistInterval is how many ticks apart a changed machine marks its chunk.
@@ -1422,6 +1426,11 @@ func (m Machine) EncodeNBT() map[string]any {
 			data[key] = int32(r)
 		}
 	}
+	for key, o := range map[string]int{"OffsetX": m.State.OffsetX, "OffsetY": m.State.OffsetY, "OffsetZ": m.State.OffsetZ} {
+		if o != 0 {
+			data[key] = int32(o)
+		}
+	}
 	data["Recipe"] = m.State.RecipeID
 	data["Owner"] = m.State.Owner
 	data["OwnerName"] = m.State.ownerName
@@ -1442,6 +1451,11 @@ func (m Machine) DecodeNBT(data map[string]any) any {
 	for key, r := range map[string]*int{"RangeX": &n.State.RangeX, "RangeY": &n.State.RangeY, "RangeZ": &n.State.RangeZ} {
 		if v, ok := data[key].(int32); ok && v > 0 {
 			*r = int(v)
+		}
+	}
+	for key, o := range map[string]*int{"OffsetX": &n.State.OffsetX, "OffsetY": &n.State.OffsetY, "OffsetZ": &n.State.OffsetZ} {
+		if v, ok := data[key].(int32); ok {
+			*o = int(v)
 		}
 	}
 	if f, ok := data["Fluid"].(int32); ok {
