@@ -82,18 +82,12 @@ func Components(identifier string, b world.CustomBlock, blockID int32) map[strin
 // a custom permutation.
 func componentsFromProperties(props customblock.Properties) map[string]any {
 	components := make(map[string]any)
-	if props.NoCollision {
-		// skygear patch: collision_box false
-		components["minecraft:collision_box"] = map[string]any{"enabled": false, "boxes": []map[string]any{zeroBox()}}
-	} else if len(props.CollisionBoxes) > 0 {
+	if len(props.CollisionBoxes) > 0 {
 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBoxes...)
 	} else if props.CollisionBox != (cube.BBox{}) {
 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
 	}
-	if props.NoSelection {
-		// skygear patch: selection_box false
-		components["minecraft:selection_box"] = map[string]any{"enabled": false, "origin": []float32{0, 0, 0}, "size": []float32{0, 0, 0}}
-	} else if props.SelectionBox != (cube.BBox{}) {
+	if props.SelectionBox != (cube.BBox{}) {
 		components["minecraft:selection_box"] = selectionBoxComponent(props.SelectionBox)
 	}
 	if props.Geometry != "" {
@@ -167,11 +161,6 @@ func collisionBoxComponent(boxes ...cube.BBox) map[string]any {
 		"enabled": true,
 		"boxes":   list,
 	}
-}
-
-// zeroBox is an empty box of a collision box component (skygear patch).
-func zeroBox() map[string]any {
-	return map[string]any{"minX": float32(0), "minY": float32(0), "minZ": float32(0), "maxX": float32(0), "maxY": float32(0), "maxZ": float32(0)}
 }
 
 // selectionBoxComponent returns the component data for a selection box, translating coordinates to the origin/size

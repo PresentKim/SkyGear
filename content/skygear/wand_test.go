@@ -244,7 +244,7 @@ func TestWandPreview(t *testing.T) {
 			}
 			var want world.Block = slab
 			if v.Layer == 0 {
-				want = preview.Glass{}
+				want = preview.Glass{Colour: preview.WandColour}
 			}
 			if world.BlockRuntimeID(v.Block) != world.BlockRuntimeID(want) {
 				t.Fatalf("layer %d at %v shows %v, want %v", v.Layer, v.Pos, v.Block, want)
@@ -274,19 +274,19 @@ func TestPreviewOverlap(t *testing.T) {
 		tx.SetBlock(stone, block.Stone{}, nil)
 		cell := stone.Side(cube.FaceUp)
 		vein := tinker.VeinLooks([]cube.Pos{stone})
-		if l := vein[stone]; l.Block != nil || l.Liquid != (preview.Glass{}) {
+		if l := vein[stone]; l.Block != nil || l.Liquid != (preview.Glass{Colour: preview.VeinColour}) {
 			t.Fatalf("vein look %+v, want glass on the liquid layer only", l)
 		}
 		got := sentViews(t, func() { preview.Set(s.Session, p, tx, "vein", vein) })
-		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (preview.Glass{}) {
+		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (preview.Glass{Colour: preview.VeinColour}) {
 			t.Fatalf("vein sent %v, want the glass on layer 1", got)
 		}
 
 		plank := block.Planks{Wood: block.OakWood()}
-		preview.Set(s.Session, p, tx, "a", map[cube.Pos]preview.Look{cell: preview.Fill(block.Stone{})})
-		preview.Set(s.Session, p, tx, "b", map[cube.Pos]preview.Look{cell: preview.Fill(plank)})
+		preview.Set(s.Session, p, tx, "a", map[cube.Pos]preview.Look{cell: preview.Fill(preview.WandColour, block.Stone{})})
+		preview.Set(s.Session, p, tx, "b", map[cube.Pos]preview.Look{cell: preview.Fill(preview.WandColour, plank)})
 		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "b") })
-		if len(got) != 2 || got[1].Block != (block.Stone{}) || got[0].Block != (preview.Glass{}) {
+		if len(got) != 2 || got[1].Block != (block.Stone{}) || got[0].Block != (preview.Glass{Colour: preview.WandColour}) {
 			t.Fatalf("hiding b sent %v, want a's look again", got)
 		}
 		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "a") })
@@ -308,27 +308,44 @@ func TestPreviewOverlap(t *testing.T) {
 	})
 }
 
-// TestPreviewGlassBlock: the preview glass is registered, has no
-// collision or selection box, draws the vanilla green stained glass and is
-// no item to give.
+// TestPreviewGlassBlock: there is a preview glass for every colour, each
+// drawing the vanilla stained glass of its colour, with collision and
+// selection boxes of no size (a point off the corner, as an all-zero box
+// means none set and the full cube), and none is an item to give. The wand
+// shows green and the hammer's vein blue.
 func TestPreviewGlassBlock(t *testing.T) {
-	props := preview.Glass{}.Properties()
-	if !props.NoCollision || !props.NoSelection || !props.Cube {
-		t.Fatalf("properties %+v, want a cube with no boxes", props)
+	if preview.WandColour != item.ColourGreen() || preview.VeinColour != item.ColourBlue() {
+		t.Fatalf("wand %v, vein %v, want green and blue", preview.WandColour, preview.VeinColour)
 	}
-	if tex := props.Textures["*"].Encode()["texture"]; tex != preview.GlassTexture {
-		t.Fatalf("texture %v, want %s", tex, preview.GlassTexture)
-	}
-	if _, ok := world.DefaultBlockRegistry.CustomBlocks()["skygear:preview_glass"]; !ok {
-		t.Fatal("preview glass not registered")
+	for _, c := range item.Colours() {
+		g := preview.Glass{Colour: c}
+		props := g.Properties()
+		if !props.Cube {
+			t.Fatalf("%v: properties %+v, want a cube", c, props)
+		}
+		for name, box := range map[string]cube.BBox{"collision": props.CollisionBox, "selection": props.SelectionBox} {
+			if box == (cube.BBox{}) {
+				t.Errorf("%v: %s box unset, the client would get the full cube", c, name)
+			}
+			if box.Width() != 0 || box.Height() != 0 || box.Length() != 0 {
+				t.Errorf("%v: %s box %v has a size", c, name, box)
+			}
+		}
+		if tex := props.Textures["*"].Encode()["texture"]; tex != preview.GlassTexture(c) {
+			t.Errorf("%v: texture %v, want %s", c, tex, preview.GlassTexture(c))
+		}
+		name, _ := g.EncodeBlock()
+		if _, ok := world.DefaultBlockRegistry.CustomBlocks()[name]; !ok {
+			t.Errorf("%s not registered", name)
+		}
+		if _, ok := world.ItemByName(name, 0); ok {
+			t.Errorf("%s is an item", name)
+		}
 	}
 	for id := range giveItems() {
 		if strings.Contains(id, "preview_glass") {
 			t.Fatalf("/sgadmin give lists %s", id)
 		}
-	}
-	if _, ok := world.ItemByName("skygear:preview_glass", 0); ok {
-		t.Fatal("preview glass is an item")
 	}
 }
 
