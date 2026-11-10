@@ -992,5 +992,18 @@
  "menu.lobbyConfirm.yes": "Leave for the lobby",
  "menu.lobbyConfirm.no": "Cancel",
  "conduit.lines.buffer.energy": "§7Network buffer %d / %d RE",
- "conduit.lines.buffer.fluid": "§7Network buffer %d / %d mB"
+ "conduit.lines.buffer.fluid": "§7Network buffer %d / %d mB",
+ "name.Crook.wooden": "Wooden Crook",
+ "name.Crook.stone": "Stone Crook",
+ "name.Crook.iron": "Iron Crook",
+ "name.Crook.diamond": "Diamond Crook",
+ "name.Silkworm": "Silkworm",
+ "name.InfestingLeaves": "Infesting Leaves",
+ "name.InfestedLeaves": "Infested Leaves",
+ "codex.card.crook": "Break with a crook",
+ "codex.card.leavesByHand": "Break by hand",
+ "codex.card.silkworm": "Use a silkworm on it",
+ "codex.card.infest": "Infested after about %s",
+ "codex.card.rolls": "%s on average",
+ "name.CookedSilkworm": "Cooked Silkworm"
 }

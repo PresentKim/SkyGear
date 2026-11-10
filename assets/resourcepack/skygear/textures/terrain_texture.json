@@ -547,6 +547,21 @@
     "skygear_dust": {
       "textures": "textures/blocks/dust"
     },
+    "skygear_infesting_leaves_0": {
+      "textures": "textures/blocks/infesting_leaves_0"
+    },
+    "skygear_infesting_leaves_1": {
+      "textures": "textures/blocks/infesting_leaves_1"
+    },
+    "skygear_infesting_leaves_2": {
+      "textures": "textures/blocks/infesting_leaves_2"
+    },
+    "skygear_infesting_leaves_3": {
+      "textures": "textures/blocks/infesting_leaves_3"
+    },
+    "skygear_infested_leaves": {
+      "textures": "textures/blocks/infested_leaves"
+    },
     "skygear_electric_furnace_back": {
       "textures": "textures/blocks/electric_furnace_back"
     },

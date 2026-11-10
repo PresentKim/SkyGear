@@ -56,6 +56,7 @@ func codexHandCards(s *core.Session, lang string) []Card {
 				[]ui.BoardCell{codexCell(s, lang, out, countLabel(out.Count()))}))
 		}
 	}
+	cards = append(cards, codexCrookCards(s, lang)...)
 	axe := item.NewStack(item.Axe{Tier: item.ToolTierStone}, 1)
 	fiber := codexCell(s, lang, item.NewStack(sgitem.BarkFiber{}, 1), fmt.Sprintf("§f%d%%", handwork.FiberChance),
 		fmt.Sprintf(i18n.T(lang, "codex.card.simDrop"), textfmt.Range(1, 2), handwork.FiberChance))
@@ -126,4 +127,34 @@ func cardSlots(c Card) (ins, outs map[string]bool) {
 		}
 	}
 	return ins, outs
+}
+
+// codexCrookCards are the cards of the crook and the silkworm: leaves broken
+// with the wooden crook, a silkworm used on leaves, and the string of the
+// infested leaves (by crook, the hand in the tip).
+func codexCrookCards(s *core.Session, lang string) []Card {
+	crook := sgitem.Crook{Tier: sgitem.CrookWood}
+	head := item.NewStack(crook, 1)
+	leaves := item.NewStack(block.Leaves{Type: block.OakLeaves()}, 1)
+	tier := crook.Stats()
+	cards := []Card{machineCard(lang, head, []ui.BoardCell{codexCell(s, lang, leaves, "", i18n.T(lang, "codex.card.crook"))}, []ui.BoardCell{
+		chanceCell(s, lang, item.NewStack(block.Sapling{Type: block.OakSapling()}, 1), int(tier.Sapling*1000)),
+		chanceCell(s, lang, item.NewStack(farm.Silkworm{}, 1), int(tier.Silkworm*1000)),
+	})}
+	infest := farm.InfestStageTime * farm.InfestStages
+	cards = append(cards, machineCard(lang, item.NewStack(farm.Silkworm{}, 1), []ui.BoardCell{codexCell(s, lang, leaves, "", i18n.T(lang, "codex.card.silkworm"))},
+		[]ui.BoardCell{codexCell(s, lang, item.NewStack(farm.InfestedLeaves{}, 1), "", fmt.Sprintf(i18n.T(lang, "codex.card.infest"), textfmt.Duration(lang, infest)))}))
+	avg := func(rolls []float64) string {
+		sum := 0.0
+		for _, c := range rolls {
+			sum += c
+		}
+		return fmt.Sprintf("%.1f", sum)
+	}
+	byCrook := avg(farm.StringByCrook)
+	str := codexCell(s, lang, item.NewStack(block.String{}, 1), "§f"+byCrook,
+		fmt.Sprintf(i18n.T(lang, "codex.card.rolls"), byCrook),
+		i18n.T(lang, "codex.card.leavesByHand")+": "+fmt.Sprintf(i18n.T(lang, "codex.card.rolls"), avg(farm.StringByHand)))
+	cards = append(cards, machineCard(lang, head, []ui.BoardCell{codexCell(s, lang, item.NewStack(farm.InfestedLeaves{}, 1), "", i18n.T(lang, "codex.card.crook"))}, []ui.BoardCell{str}))
+	return cards
 }
