@@ -63,6 +63,62 @@ func TestItemVacuum(t *testing.T) {
 	}
 }
 
+// lyingItems counts the dropped items still in the world.
+func lyingItems(s *session) int {
+	left := 0
+	s.World.Do(func(tx *world.Tx) {
+		for e := range tx.Entities() {
+			if ent, ok := e.(*entity.Ent); ok {
+				if ib, ok := ent.Behaviour().(*entity.ItemBehaviour); ok {
+					left += ib.Item().Count()
+				}
+			}
+		}
+	})
+	return left
+}
+
+// TestItemVacuumTakesItemsOnItsFloor: an item lying on the floor of the area
+// stands exactly on its edge, and is taken all the same.
+func TestItemVacuumTakesItemsOnItsFloor(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st.RangeY = 2
+	floor := machinePos.Add(cube.Pos{2, -3, 0})
+	s.World.Do(func(tx *world.Tx) {
+		tx.SetBlock(floor, block.Stone{}, nil)
+		tx.SetBlock(floor.Side(cube.FaceUp), block.Air{}, nil)
+		at := floor.Vec3Centre().Add(mgl64.Vec3{0, 0.5, 0})
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: at}, item.NewStack(block.Dirt{}, 4)))
+	})
+	tick(s, 2*(machine.Kinds[machine.KindVacuum].Interval+2))
+	if got := machine.OutputCount(st, block.Dirt{}); got != 4 {
+		t.Fatalf("collected %d, want the 4 on the floor of the area", got)
+	}
+}
+
+// TestItemVacuumOffset: a moved area takes the items around its new centre
+// and leaves the ones around the machine.
+func TestItemVacuumOffset(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	st.RangeX, st.OffsetX = 2, 4
+	in, out := machinePos.Vec3Centre().Add(mgl64.Vec3{6, 0, 0}), machinePos.Vec3Centre().Add(mgl64.Vec3{-2, 0, 0})
+	s.World.Do(func(tx *world.Tx) {
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: in}, item.NewStack(block.Cobblestone{}, 5)))
+		tx.AddEntity(entity.NewItem(world.EntitySpawnOpts{Position: out}, item.NewStack(block.Cobblestone{}, 7)))
+	})
+	tick(s, 2*(machine.Kinds[machine.KindVacuum].Interval+2))
+	if got := machine.OutputCount(st, block.Cobblestone{}); got != 5 {
+		t.Fatalf("collected %d, want the 5 around the moved centre", got)
+	}
+	if left := lyingItems(s); left != 7 {
+		t.Fatalf("%d items left lying, want the 7 by the machine", left)
+	}
+}
+
 // TestTreeFeller: it fells the highest log first, then plants a sapling
 // when no log is left.
 func TestTreeFeller(t *testing.T) {

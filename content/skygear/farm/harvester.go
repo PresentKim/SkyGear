@@ -54,10 +54,10 @@ func RunHarvester(s *core.Session, st *machine.State, pos cube.Pos, tx *world.Tx
 		return
 	}
 	st.Progress = 0
-	a := st.Area(machine.KindHarvester)
+	a, centre := st.Area(machine.KindHarvester), st.Centre(machine.KindHarvester, pos)
 	for x := -a.X; x <= a.X; x++ {
 		for z := -a.Z; z <= a.Z; z++ {
-			at := pos.Add(cube.Pos{x, 0, z})
+			at := centre.Add(cube.Pos{x, 0, z})
 			b := tx.Block(at)
 			if kind, _, ok := CropOf(b); ok {
 				if _, known := StateOf(s).Crops[CropKey(at)]; !known {
