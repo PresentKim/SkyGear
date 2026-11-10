@@ -2,7 +2,7 @@ package skygear
 
 import (
 	"fmt"
-	"maps"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -208,12 +208,80 @@ var giveSkip = []string{
 	"dimension_gate", "seed_ess_", "tool_sword_", // retired (old saves still load them)
 }
 
+// giveEnum is the item of /sgadmin give. Completion lists every item with
+// its namespace (skygear:<id>, minecraft:<name>); the namespace may be left
+// out when only one namespace has that name.
 type giveEnum string
 
 func (giveEnum) Type() string { return "sg_item" }
 func (giveEnum) Options(cmd.Source) []string {
-	ids := slices.Sorted(maps.Keys(giveItems()))
+	ids := make([]string, 0, 2048)
+	for id := range giveItems() {
+		ids = append(ids, giveLabel(id))
+	}
+	slices.Sort(ids)
 	return ids
+}
+
+// Parse reads the item, with or without its namespace (it is checked before
+// the options, so a name without one reaches the server's lookup).
+func (giveEnum) Parse(line *cmd.Line, v reflect.Value) error {
+	arg, ok := line.Next()
+	if !ok {
+		return line.UsageError()
+	}
+	id, err := resolveGive(giveItems(), arg)
+	if err != nil {
+		return err
+	}
+	v.SetString(id)
+	return nil
+}
+
+// giveLabel is the completion text of a give id: vanilla ids already carry
+// minecraft:, the game's own get skygear:.
+func giveLabel(id string) string {
+	if strings.HasPrefix(id, "minecraft:") {
+		return id
+	}
+	return "skygear:" + id
+}
+
+// resolveGive finds the give id of what an operator typed: a full name
+// (skygear:<id>, minecraft:<name>) or a name without its namespace that
+// only one namespace has.
+func resolveGive(items map[string]func() item.Stack, arg string) (string, error) {
+	arg = strings.ToLower(arg)
+	if id, ok := strings.CutPrefix(arg, "skygear:"); ok {
+		if items[id] != nil {
+			return id, nil
+		}
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	if strings.HasPrefix(arg, "minecraft:") {
+		if items[arg] != nil {
+			return arg, nil
+		}
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	var found []string
+	if items[arg] != nil && !strings.Contains(arg, ":") {
+		found = append(found, arg)
+	}
+	if items["minecraft:"+arg] != nil {
+		found = append(found, "minecraft:"+arg)
+	}
+	switch len(found) {
+	case 1:
+		return found[0], nil
+	case 0:
+		return "", cmd.MessageParameterInvalid.F(arg)
+	}
+	labels := make([]string, len(found))
+	for i, id := range found {
+		labels[i] = giveLabel(id)
+	}
+	return "", fmt.Errorf(i18n.T(i18n.Default, "skygear.admin.ambiguousItem"), arg, strings.Join(labels, ", "))
 }
 
 type adminGive struct {
