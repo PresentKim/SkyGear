@@ -534,3 +534,174 @@
 .mc-step-side .mc-square-button {
   margin-bottom: 0;
 }
+
+/* The radial menu (RadialScreen): ore-ui-react's RadialMenu scaled up over the dimmed game, no window. */
+.mc-screen.mc-radial-screen {
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.mc-radial-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mc-radial-head {
+  font-size: 2.4rem;
+  color: #ffe66b;
+  text-align: center;
+}
+
+.mc-radial-line {
+  font-size: 1.4rem;
+  color: #c8c8c8;
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
+.mc-radial-info {
+  width: 60rem;
+  height: 2rem;
+  font-size: 1.4rem;
+  color: #e6e6e6;
+  text-align: center;
+}
+
+.mc-radial-head .oui-line,
+.mc-radial-line .oui-line,
+.mc-radial-info .oui-line,
+.mc-radial-label .oui-line,
+.mc-radial-value .oui-line {
+  justify-content: center;
+}
+
+/* 24rem scaled by 1.75 is 42rem; the box keeps the room the scaled ring takes. */
+.mc-radial-box {
+  position: relative;
+  width: 42rem;
+  height: 42rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mc-radial-ring {
+  position: absolute;
+  left: 9rem;
+  top: 9rem;
+  width: 24rem;
+  height: 24rem;
+}
+
+.mc-radial-ring .oui-radialmenu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: rgba(30, 30, 31, 0.9);
+  border-style: solid;
+  border-width: 0.15rem;
+  border-color: #6b6b6d;
+}
+
+/* The RadialMenu's own sectors only take the pointer: the screen draws its sectors over them. */
+.mc-radial-ring .oui-radialmenu-item {
+  width: 7rem;
+  height: 5rem;
+  margin-left: -3.5rem;
+  margin-top: -2.5rem;
+  border-color: transparent;
+}
+
+.mc-radial-ring .oui-radialmenu-item.active {
+  background-color: transparent;
+}
+
+.mc-radial-items {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24rem;
+  height: 24rem;
+  pointer-events: none;
+}
+
+.mc-radial-item {
+  position: absolute;
+  width: 7rem;
+  height: 5rem;
+  margin-left: -3.5rem;
+  margin-top: -2.5rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.15rem;
+  border-color: #48484a;
+  background-color: #2c2c2d;
+}
+
+.mc-radial-item.cur {
+  border-color: #6cc349;
+}
+
+.mc-radial-item.chosen {
+  background-color: #d0d1d4;
+}
+
+.mc-radial-item.off {
+  opacity: 0.5;
+}
+
+.mc-radial-ic {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.mc-radial-label {
+  font-size: 1rem;
+  color: #ffffff;
+  text-align: center;
+  margin-top: 0.15rem;
+}
+
+.mc-radial-value {
+  font-size: 0.8rem;
+  color: #ffe66b;
+  text-align: center;
+}
+
+.mc-radial-item.chosen .mc-radial-label {
+  color: #1e1e1f;
+}
+
+.mc-radial-item.chosen .mc-radial-value {
+  color: #4a6b16;
+}
+
+.mc-radial-hub {
+  position: absolute;
+  left: 8.6rem;
+  top: 8.6rem;
+  width: 6.8rem;
+  height: 6.8rem;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: solid;
+  border-width: 0.15rem;
+  border-color: #6b6b6d;
+  background-color: #3a3a3c;
+}
+
+.mc-radial-hub:hover,
+.mc-radial-hub.oui-kb {
+  background-color: #55555a;
+}
+
+.mc-radial-hub .oui-img {
+  width: 2.4rem;
+  height: 2.4rem;
+}
