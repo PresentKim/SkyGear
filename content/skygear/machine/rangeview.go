@@ -98,7 +98,10 @@ func (st *State) showRange(tx *world.Tx, pos cube.Pos) {
 	}
 	lo, hi := st.rangeBox(kind, pos)
 	size := boxVariant(lo, hi, pos[1]-int(lo[1]))
-	if st.rangeShown() && st.rangeEntity != nil && st.rangeSize == size {
+	// The box stands over the middle of the area: a centre moved sideways
+	// keeps the size but moves the box.
+	at := mgl64.Vec3{(lo[0] + hi[0]) / 2, float64(pos[1]) + 1.02, (lo[2] + hi[2]) / 2}
+	if st.rangeShown() && st.rangeEntity != nil && st.rangeSize == size && st.rangeAt == at {
 		return
 	}
 	if st.rangeEntity != nil {
@@ -110,9 +113,8 @@ func (st *State) showRange(tx *world.Tx, pos cube.Pos) {
 	if !st.rangeShown() {
 		return
 	}
-	at := mgl64.Vec3{(lo[0] + hi[0]) / 2, float64(pos[1]) + 1.02, (lo[2] + hi[2]) / 2}
 	st.rangeEntity = world.EntitySpawnOpts{Position: at}.New(RangeBoxType, rangeBoxConfig{Size: size, Machine: pos})
-	st.rangeSize = size
+	st.rangeSize, st.rangeAt = size, at
 	tx.AddEntity(st.rangeEntity)
 }
 

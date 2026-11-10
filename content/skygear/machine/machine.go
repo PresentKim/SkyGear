@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
@@ -559,11 +560,12 @@ type State struct {
 	offsetPage                bool
 	// rangeUntil is the tick the box over its range shows until (its button),
 	// peekUntil the same while a player sneaks and looks at it, rangeEntity
-	// that box and rangeSize its size (rangeview.go).
+	// that box, rangeSize its size and rangeAt where it stands (rangeview.go).
 	rangeUntil  int64
 	peekUntil   int64
 	rangeEntity *world.EntityHandle
 	rangeSize   int32
+	rangeAt     mgl64.Vec3
 	// owner is the account that placed a sell box and gets its money.
 	Owner, ownerName string
 	// Facing is the side a network attachment acts on (south when it was

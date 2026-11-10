@@ -308,3 +308,39 @@ func TestMachineStatusLines(t *testing.T) {
 		t.Errorf("a crafter without ingredients says %q", lines)
 	}
 }
+
+// rangeBoxAt is where the range box of the machine at pos stands, and false
+// with no box in the world.
+func rangeBoxAt(s *session, pos cube.Pos) (at mgl64.Vec3, ok bool) {
+	s.World.Do(func(tx *world.Tx) {
+		for e := range tx.Entities() {
+			if b, isBox := e.(*machine.RangeBox); isBox {
+				at, ok = b.Position(), true
+			}
+		}
+	})
+	return at, ok
+}
+
+// TestRangeBoxFollowsAMovedCentre: moving the centre sideways keeps the
+// area's size, and the box shown moves with it at once.
+func TestRangeBoxFollowsAMovedCentre(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	st := placeTestMachine(s, machinePos, machine.KindVacuum, "")
+	peek := func() {
+		s.World.Do(func(tx *world.Tx) { machine.PeekRange(tx, machinePos, tx.Block(machinePos)) })
+		tick(s, 2)
+	}
+	peek()
+	before, ok := rangeBoxAt(s, machinePos)
+	if !ok {
+		t.Fatal("no range box while peeking")
+	}
+	st.OffsetX = 3
+	peek()
+	after, ok := rangeBoxAt(s, machinePos)
+	if !ok || after[0]-before[0] != 3 || after[2] != before[2] {
+		t.Fatalf("box at %v after moving the centre 3 east, was at %v", after, before)
+	}
+}
