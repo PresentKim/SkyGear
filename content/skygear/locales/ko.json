@@ -2569,7 +2569,6 @@
  "look.machine.sellCycle": "판매 주기 §f",
  "look.machine.harvestCycle": "수확 주기 §f",
  "look.machine.mining": "채굴 §f",
- "look.machine.output": "§7결과 ",
  "lost.inventoryFull": "§e인벤토리가 가득 찼습니다.",
  "machine.info.owner": "§7주인: §f",
  "machine.crusher.name": "분쇄기",

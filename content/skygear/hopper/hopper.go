@@ -351,18 +351,11 @@ func (h FlowHopper) contentsText(lang string) string {
 	return "§f" + name + ": §e" + strings.Join(parts, "§7, §e")
 }
 
-// HopperLines are the lines of a hopper's WAILA panel in lang: what it
-// holds, and how fast it moves.
+// HopperLines are the lines of a hopper's WAILA panel in lang: empty when
+// it holds nothing, and how fast it moves. What it holds shows as slots.
 func HopperLines(lang string, h FlowHopper) []string {
 	var lines []string
-	if h.Inv != nil {
-		for _, st := range h.Inv.Items() {
-			if !st.Empty() {
-				lines = append(lines, fmt.Sprintf("§f%s §e×%d", naming.ItemName(lang, st), st.Count()))
-			}
-		}
-	}
-	if len(lines) == 0 {
+	if h.Inv == nil || len(h.Inv.Items()) == 0 {
 		lines = []string{i18n.T(lang, "hopper.lines.empty")}
 	}
 	return append(lines, fmt.Sprintf(i18n.T(lang, "hopper.lines.rate"), float64(h.Info().interval)/20))
