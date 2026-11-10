@@ -331,3 +331,18 @@ func TestPreviewGlassBlock(t *testing.T) {
 		t.Fatal("preview glass is an item")
 	}
 }
+
+// TestWandNextOption: a press on the lock or the match goes to the next
+// value, around to the first.
+func TestWandNextOption(t *testing.T) {
+	l := wand.LockNone
+	for range wand.Locks {
+		l = wand.NextLock(l)
+	}
+	if l != wand.LockNone || wand.NextLock(wand.LockNone) != wand.LockHorizontal {
+		t.Fatalf("locks do not go round: %d", l)
+	}
+	if wand.NextMatch(wand.MatchExact) != wand.MatchSimilar || wand.NextMatch(wand.MatchAny) != wand.MatchExact {
+		t.Fatal("matches do not go in the listed order")
+	}
+}

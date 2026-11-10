@@ -96,6 +96,23 @@ func (o Options) Lines(lang string) []string {
 	}
 }
 
+// NextLock is the lock after l in the order Locks lists them, the first
+// after the last.
+func NextLock(l int) int { return next(Locks, l) }
+
+// NextMatch is the match after m in the order Matches lists them, the
+// first after the last.
+func NextMatch(m int) int { return next(Matches, m) }
+
+func next(list []int, v int) int {
+	for i, x := range list {
+		if x == v {
+			return list[(i+1)%len(list)]
+		}
+	}
+	return list[0]
+}
+
 // LockKey is the catalog key of a lock's name.
 func LockKey(l int) string {
 	return "wand.lock." + [...]string{"none", "horizontal", "vertical", "northsouth", "eastwest"}[l]

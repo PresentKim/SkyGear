@@ -9,7 +9,7 @@ vi.mock('../text/Rich', () => ({
   Rich: (p: { text: string; className?: string }) => <div className={p.className}>{p.text}</div>,
 }));
 
-import { RadialScreen } from './radial';
+import { RadialScreen, fanBars } from './radial';
 
 const item = (id: string, label: string, extra: Partial<RadialData['items'][number]> = {}) => ({ id, label, value: '', info: label + ' info', icon: '', on: false, ...extra });
 
@@ -74,6 +74,26 @@ describe('radial', () => {
     expect(sent.length).toBe(1);
     key(8);
     expect(sent[1]).toEqual(['back1', 'click']);
+  });
+
+  it('draws the sectors as ring sectors: the chosen one filled, a rim on the current one, a spoke between each two', () => {
+    const { container } = render(<RadialScreen data={data()} />);
+    expect(container.querySelectorAll('.mc-radial-spoke').length).toBe(4);
+    expect(container.querySelectorAll('.mc-radial-fan.chosen').length).toBe(0);
+    // the current one (Match, the second) has its rim
+    const rim = container.querySelectorAll('.mc-radial-sector')[1].querySelectorAll('.mc-radial-fan.cur');
+    expect(rim.length).toBe(fanBars(45, 135, 11.25, 11.85).length);
+    fireEvent.mouseMove(container.querySelector('.mc-radial-ring') as HTMLElement, { clientX: 120, clientY: 20 });
+    expect(container.querySelectorAll('.mc-radial-sector')[0].querySelectorAll('.mc-radial-fan.chosen').length).toBeGreaterThan(0);
+  });
+
+  it('fanBars cover the sector edge to edge', () => {
+    const bars = fanBars(-45, 45, 4, 11.85);
+    expect(bars.length).toBe(30);
+    expect(bars[0].angle).toBeCloseTo(-43.5);
+    expect(bars[bars.length - 1].angle).toBeCloseTo(43.5);
+    // each bar at least as wide as its arc at the outer radius
+    expect(bars[0].width).toBeGreaterThan(2 * 11.85 * Math.tan((3 * Math.PI) / 360));
   });
 
   it('the middle button closes the menu at the top', () => {
