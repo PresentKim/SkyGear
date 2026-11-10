@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
@@ -279,6 +280,37 @@ func TestStaleNetworkIsInert(t *testing.T) {
 		}
 		if cs.Cancel(tx, "t1") || cs.Request(KeyOf(stone), 1, true, nil) != ErrStale {
 			t.Fatal("dropped network's tasks usable")
+		}
+	})
+}
+
+// TestNetConduitCarriesTheNetwork: a conduit bundle with a network conduit
+// joins the network as a cable does, also beside other conduits; taking the
+// network conduit out of it splits the network again.
+func TestNetConduitCarriesTheNetwork(t *testing.T) {
+	netEnv(t, func(s *core.Session, tx *world.Tx) {
+		put(tx, p(0), machine.KindNetController)
+		tx.SetBlock(p(1), conduit.Bundle{Net: 1, Energy: 1}, nil)
+		tx.SetBlock(p(2), conduit.Bundle{Net: 1}, nil)
+		put(tx, p(3), machine.KindDiskDrive)
+		n := At(tx, p(3))
+		if n == nil || n.Controllers != 1 || n.Size() != 4 || len(n.Nodes(KindConduit)) != 2 {
+			t.Fatalf("network over the conduits %+v", n)
+		}
+		if n.Use() != controllerUse+nodeUse(machine.KindDiskDrive) {
+			t.Errorf("use %d: the conduits should take no energy", n.Use())
+		}
+		// the neighbour update that tells it of p(2) comes on the next tick
+		tx.Block(p(1)).(conduit.Bundle).Refresh(p(1), tx)
+		if b := tx.Block(p(1)).(conduit.Bundle); b.NConn&(1<<4) == 0 || b.NConn&(1<<5) == 0 {
+			t.Errorf("bundle connects %06b, want west and east", b.NConn)
+		}
+		tx.SetBlock(p(1), conduit.Bundle{Energy: 1}, nil)
+		if n := At(tx, p(3)); n == nil || n.Controllers != 0 {
+			t.Fatalf("the drive still reaches the controller: %+v", n)
+		}
+		if At(tx, p(1)) != nil {
+			t.Error("a bundle without a network conduit is a node")
 		}
 	})
 }

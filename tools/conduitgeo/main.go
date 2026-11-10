@@ -5,8 +5,8 @@
 //
 // Like EnderIO's, a conduit is a 3×3×3 core with a 2×2 arm per side, each a
 // bone the render controller toggles by variant. Each kind has its own lane,
-// offset on every axis (energy -3, items 0, fluids +3 pixels), so kinds never
-// overlap from any view.
+// offset on every axis (network -6, energy -3, items 0, fluids +3 pixels), so
+// kinds never overlap from any view.
 //
 // Entity models are mirrored in z against the world (flipZ); x is not.
 // Textures are 64×64 sheets from tools/conduittex: arm strip (16×52) left,
@@ -38,6 +38,9 @@ var kinds = []struct {
 	{"energy", [3]float64{-3, -3, -3}},
 	{"item", [3]float64{0, 0, 0}},
 	{"fluid", [3]float64{3, 3, 3}},
+	// the network lane sits past energy, in the corner: every other shift on
+	// the diagonal would share an axis with a lane already there
+	{"net", [3]float64{-6, -6, -6}},
 }
 
 // directions of the arms in the order of the game's bit set (down, up,

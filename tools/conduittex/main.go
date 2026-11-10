@@ -55,6 +55,12 @@ func main() {
 			imgio.Save(filepath.Join(pack, "textures/blocks", name), im)
 		}
 	}
+	// the network conduit has one tier: the first item conduit sheet in the
+	// greys and white of the network cable
+	im := image.NewRGBA(image.Rect(0, 0, 64, 64))
+	part(im, greyed(imgio.Load(filepath.Join(src, "conduit_item_1.png"))), 0)
+	imgio.Save(filepath.Join(pack, "textures/entity/skygear", "conduit_net_1.png"), im)
+	imgio.Save(filepath.Join(pack, "textures/blocks", "conduit_net_1.png"), im)
 	plates(src, pack)
 	// the block of a conduit is a speck the display entity draws over; its
 	// texture shows only in the particles of breaking it
@@ -67,6 +73,29 @@ func main() {
 		}
 	}
 	imgio.Save(filepath.Join(pack, "textures/blocks/conduit_node.png"), node)
+}
+
+// greyed is src with its coloured pixels (the item conduit's teal core) made
+// grey and brightened toward white, as the network cable is drawn; the dark
+// greys of the casing stay.
+func greyed(src image.Image) image.Image {
+	b := src.Bounds()
+	out := image.NewRGBA(b)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			c := color.RGBAModel.Convert(src.At(x, y)).(color.RGBA)
+			lo, hi := min(c.R, c.G, c.B), max(c.R, c.G, c.B)
+			if hi-lo > 24 {
+				// luma, then stretched up: the darkest teal goes mid grey, the
+				// lightest near white
+				l := (299*int(c.R) + 587*int(c.G) + 114*int(c.B)) / 1000
+				v := uint8(min(255, 110+l*145/160))
+				c.R, c.G, c.B = v, v, v
+			}
+			out.Set(x, y, c)
+		}
+	}
+	return out
 }
 
 // channelColours are the colours of the 16 channels (dye colours, the order of

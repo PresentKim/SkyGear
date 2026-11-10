@@ -569,7 +569,7 @@
  "research.tree_feller.about": "The Tree Feller cuts nearby logs one at a time, highest first. When there are no logs to cut, it plants saplings from its input slot on Dirt to regrow trees. It leaves leaves alone to decay on their own.",
  "research.storage_network.name": "Storage Network",
  "research.storage_network.short": "Stores items on disks in a network",
- "research.storage_network.about": "Cabling devices to a Network Controller makes one network. Disk Drives hold Storage Disks that store items by count, and the Network Terminal shows all of it to take out or put in. The controller needs energy to run.",
+ "research.storage_network.about": "Cabling devices to a Network Controller makes one network. A Network Conduit does what a cable does and shares a conduit with energy, item and fluid conduits. Disk Drives hold Storage Disks that store items by count, and the Network Terminal shows all of it to take out or put in. The controller needs energy to run.",
  "research.network_logistics.name": "Network Logistics",
  "research.network_logistics.short": "Importer, Exporter, External Storage",
  "research.network_logistics.about": "The Importer moves items from the block it faces into the network, and the Exporter takes the filtered items out of it into the block it faces. External Storage uses a chest or drawer it touches as network storage.",

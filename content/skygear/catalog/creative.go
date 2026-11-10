@@ -56,6 +56,7 @@ func RegisterCreativeItems() {
 			add(construction, conduit.ItemConduit{Tier: t})
 			add(construction, conduit.FluidConduit{Tier: t})
 		}
+		add(construction, conduit.NetConduit{})
 		for _, k := range machine.Order {
 			if k != machine.KindSellBox {
 				add(construction, machine.Machine{Kind: k})
