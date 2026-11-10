@@ -196,7 +196,7 @@ func HideVeinOutline(s *core.Session, p *player.Player) {
 func VeinLooks(blocks []cube.Pos) map[cube.Pos]preview.Look {
 	looks := make(map[cube.Pos]preview.Look, len(blocks))
 	for _, b := range blocks {
-		looks[b] = preview.Mark()
+		looks[b] = preview.Mark(preview.VeinColour)
 	}
 	return looks
 }

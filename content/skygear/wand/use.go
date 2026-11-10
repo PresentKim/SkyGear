@@ -202,7 +202,7 @@ func PreviewLooks(placed []Placement) map[cube.Pos]preview.Look {
 		if i >= previewMax {
 			break
 		}
-		looks[pl.Pos] = preview.Fill(pl.Block)
+		looks[pl.Pos] = preview.Fill(preview.WandColour, pl.Block)
 	}
 	return looks
 }

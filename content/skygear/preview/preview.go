@@ -3,7 +3,7 @@
 // would break. Only the player is sent the blocks (UpdateBlock on layer 0,
 // the block, and layer 1, the liquid layer); the world is unchanged.
 //
-// A cell to be filled gets Glass on layer 0 and the block it would get on
+// A cell to be filled gets Glass (in the feature's colour) on layer 0 and the block it would get on
 // layer 1. Glass has no selection or collision box, so the crosshair, the
 // clicks and the player go through the cell to what is behind it, and the
 // block still shows. A block to be broken keeps its layer 0 and gets Glass
@@ -15,43 +15,69 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/block/model"
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/core"
 )
 
-// Glass is the see-through green glass of the previews: drawn with the
-// vanilla green stained glass (the atlas key GlassTexture points at
-// textures/blocks/glass_green), with no collision or selection box. It is
-// only sent to players, never placed in a world, and has no item.
-type Glass struct{}
+// Glass is the see-through glass of the previews in one of the sixteen
+// colours, drawn with the vanilla stained glass of that colour (the atlas
+// key GlassTexture points at textures/blocks/glass_<colour>). Its collision
+// and selection boxes are a point at the cell's middle, so the client finds
+// nothing to collide with or aim at: the crosshair, the clicks and the
+// player go through the cell to what is behind it. It is only sent to
+// players, never placed in a world, and has no item.
+type Glass struct{ Colour item.Colour }
 
-// GlassTexture is the atlas key of Glass's texture.
-const GlassTexture = "skygear_preview_glass"
+// Each feature shows its preview in its own colour.
+var (
+	// WandColour is the construction wand's cells to fill.
+	WandColour = item.ColourGreen()
+	// VeinColour is the iron hammer's blocks to break.
+	VeinColour = item.ColourBlue()
+)
+
+// GlassTexture is the atlas key of the texture of the glass of colour c.
+func GlassTexture(c item.Colour) string { return "skygear_preview_glass_" + c.String() }
+
+// GlassVanillaTexture is the vanilla texture the glass of colour c points at.
+func GlassVanillaTexture(c item.Colour) string { return "textures/blocks/glass_" + c.SilverString() }
 
 var glassHash = block.NextHash()
 
 // EncodeBlock ...
-func (Glass) EncodeBlock() (string, map[string]any) { return "skygear:preview_glass", nil }
+func (g Glass) EncodeBlock() (string, map[string]any) {
+	return "skygear:preview_glass_" + g.Colour.String(), nil
+}
 
 // Hash ...
-func (Glass) Hash() (uint64, uint64) { return glassHash, 0 }
+func (g Glass) Hash() (uint64, uint64) { return glassHash, uint64(g.Colour.Uint8()) }
 
 // Model ...
 func (Glass) Model() world.BlockModel { return model.Empty{} }
 
-// Properties are a cube of blended glass with no boxes.
-func (Glass) Properties() customblock.Properties {
+// noBox is the boxes Glass is sent with: a point at the cell's middle. An
+// empty box (all zero) would mean no box set and send the full cube, so the
+// point sits off the corner.
+var noBox = cube.Box(0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+
+// Properties are a cube of blended glass with boxes of no size.
+func (g Glass) Properties() customblock.Properties {
 	return customblock.Properties{
-		Cube:        true,
-		Textures:    map[string]customblock.Material{"*": customblock.NewMaterial(GlassTexture, customblock.BlendRenderMethod())},
-		NoCollision: true,
-		NoSelection: true,
+		Cube:         true,
+		Textures:     map[string]customblock.Material{"*": customblock.NewMaterial(GlassTexture(g.Colour), customblock.BlendRenderMethod())},
+		CollisionBox: noBox,
+		SelectionBox: noBox,
 	}
 }
 
-func init() { world.RegisterBlock(Glass{}) }
+func init() {
+	for _, c := range item.Colours() {
+		world.RegisterBlock(Glass{Colour: c})
+	}
+}
 
 // Look is what a player is shown at a cell: the blocks of its two layers, a
 // nil layer being the real one.
@@ -59,13 +85,13 @@ type Look struct {
 	Block, Liquid world.Block
 }
 
-// Fill is the look of an empty cell that would get b: Glass, with b on the
-// liquid layer.
-func Fill(b world.Block) Look { return Look{Block: Glass{}, Liquid: b} }
+// Fill is the look of an empty cell that would get b: the glass of colour
+// c, with b on the liquid layer.
+func Fill(c item.Colour, b world.Block) Look { return Look{Block: Glass{Colour: c}, Liquid: b} }
 
 // Mark is the look of a block that is marked (to be broken): the block
-// itself, with Glass on the liquid layer.
-func Mark() Look { return Look{Liquid: Glass{}} }
+// itself, with the glass of colour c on the liquid layer.
+func Mark(c item.Colour) Look { return Look{Liquid: Glass{Colour: c}} }
 
 // View is a block a player is sent on one layer of a cell.
 type View struct {

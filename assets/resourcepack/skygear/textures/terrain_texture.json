@@ -208,8 +208,53 @@
     "skygear_barrel_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
-    "skygear_preview_glass": {
+    "skygear_preview_glass_white": {
+      "textures": "textures/blocks/glass_white"
+    },
+    "skygear_preview_glass_orange": {
+      "textures": "textures/blocks/glass_orange"
+    },
+    "skygear_preview_glass_magenta": {
+      "textures": "textures/blocks/glass_magenta"
+    },
+    "skygear_preview_glass_light_blue": {
+      "textures": "textures/blocks/glass_light_blue"
+    },
+    "skygear_preview_glass_yellow": {
+      "textures": "textures/blocks/glass_yellow"
+    },
+    "skygear_preview_glass_lime": {
+      "textures": "textures/blocks/glass_lime"
+    },
+    "skygear_preview_glass_pink": {
+      "textures": "textures/blocks/glass_pink"
+    },
+    "skygear_preview_glass_gray": {
+      "textures": "textures/blocks/glass_gray"
+    },
+    "skygear_preview_glass_light_gray": {
+      "textures": "textures/blocks/glass_silver"
+    },
+    "skygear_preview_glass_cyan": {
+      "textures": "textures/blocks/glass_cyan"
+    },
+    "skygear_preview_glass_purple": {
+      "textures": "textures/blocks/glass_purple"
+    },
+    "skygear_preview_glass_blue": {
+      "textures": "textures/blocks/glass_blue"
+    },
+    "skygear_preview_glass_brown": {
+      "textures": "textures/blocks/glass_brown"
+    },
+    "skygear_preview_glass_green": {
       "textures": "textures/blocks/glass_green"
+    },
+    "skygear_preview_glass_red": {
+      "textures": "textures/blocks/glass_red"
+    },
+    "skygear_preview_glass_black": {
+      "textures": "textures/blocks/glass_black"
     },
     "skygear_barrel_oak": {
       "textures": "textures/blocks/planks_oak"
