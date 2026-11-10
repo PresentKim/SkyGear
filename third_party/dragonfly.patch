@@ -271,8 +271,8 @@ diff -ruN -x pack_icon.png a/server/block/hopper.go b/server/block/hopper.go
  			h.TransferCooldown = 8
  			tx.SetBlock(pos, h, nil)
 diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
---- a/server/block/leaves.go	2026-11-08 13:23:20.923334558 +0000
-+++ b/server/block/leaves.go	2026-11-08 13:24:58.822982048 +0000
+--- a/server/block/leaves.go	2026-11-10 02:43:16.848084005 +0000
++++ b/server/block/leaves.go	2026-11-10 02:43:16.849615928 +0000
 @@ -2,6 +2,7 @@
  
  import (
@@ -281,7 +281,39 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  
  	"github.com/df-mc/dragonfly/server/block/cube"
  	"github.com/df-mc/dragonfly/server/item"
-@@ -62,25 +63,48 @@
+@@ -35,6 +36,22 @@
+ 	return placed(ctx)
+ }
+ 
++// LeavesLike is a block that leaves look for their log through as if it were
++// leaves, such as a custom block that replaced some of a tree's leaves
++// (skygear patch).
++type LeavesLike interface {
++	LeavesLike() bool
++}
++
++// leavesOrLike reports whether b is leaves or counts as leaves (skygear patch).
++func leavesOrLike(b world.Block) bool {
++	if _, ok := b.(Leaves); ok {
++		return true
++	}
++	l, ok := b.(LeavesLike)
++	return ok && l.LeavesLike()
++}
++
+ // findLog returns whether a log is within four blocks of the leaves at the position passed, counted through the
+ // leaves between them. The blocks around it are searched a step at a time, so each is reached the shortest way.
+ func findLog(pos cube.Pos, tx *world.Tx) bool {
+@@ -46,7 +63,7 @@
+ 			case Log, Wood:
+ 				return true
+ 			}
+-			if _, ok := tx.Block(at).(Leaves); !ok || distance >= 4 {
++			if !leavesOrLike(tx.Block(at)) || distance >= 4 {
+ 				continue
+ 			}
+ 			at.Neighbours(func(neighbour cube.Pos) {
+@@ -62,25 +79,48 @@
  	return false
  }
  
@@ -347,7 +379,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  	}
  }
  
-@@ -89,6 +113,13 @@
+@@ -89,6 +129,13 @@
  	if !l.Persistent && !l.ShouldUpdate {
  		l.ShouldUpdate = true
  		tx.SetBlock(pos, l, nil)
@@ -361,7 +393,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  	}
  }
  
-@@ -97,6 +128,18 @@
+@@ -97,6 +144,18 @@
  	return newFlammabilityInfo(30, 60, true)
  }
  
@@ -380,7 +412,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  // BreakInfo ...
  func (l Leaves) BreakInfo() BreakInfo {
  	return newBreakInfo(0.2, alwaysHarvestable, func(t item.Tool) bool {
-@@ -109,16 +152,16 @@
+@@ -109,16 +168,16 @@
  		var drops []item.Stack
  
  		if sapling, ok := l.Type.Sapling(); ok {

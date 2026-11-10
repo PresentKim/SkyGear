@@ -116,6 +116,8 @@ var Tree = []Advancement{
 	{ID: "composter", Chapter: ChapterFarming, Parents: []string{"wood_tools"}, NameKey: "advancement.composter.name", HintKey: "advancement.composter.hint", Item: "composter"},
 	{ID: "barrel", Chapter: ChapterFarming, Parents: []string{"composter"}, NameKey: "advancement.barrel.name", HintKey: "advancement.barrel.hint", Item: "skygear:barrel_oak"},
 	{ID: GrowTree, Chapter: ChapterStart, Parents: []string{"wood"}, Event: true, NameKey: "advancement.grow_tree.name", HintKey: "advancement.grow_tree.hint", Icon: "oak_sapling"},
+	{ID: "crook", Chapter: ChapterStart, Parents: []string{GrowTree}, NameKey: "advancement.crook.name", HintKey: "advancement.crook.hint", Item: "skygear:wooden_crook"},
+	{ID: "silkworm", Chapter: ChapterStart, Parents: []string{"crook"}, NameKey: "advancement.silkworm.name", HintKey: "advancement.silkworm.hint", Item: "skygear:silkworm", Guide: "crook"},
 	{ID: "dust", Chapter: ChapterStart, Parents: []string{"sand"}, NameKey: "advancement.dust.name", HintKey: "advancement.dust.hint", Item: "skygear:dust", Guide: "hammer"},
 	{ID: "clay", Chapter: ChapterFarming, Parents: []string{"barrel", "dust"}, NameKey: "advancement.clay.name", HintKey: "advancement.clay.hint", Item: "clay", Icon: "clay"},
 	{ID: "wooden_bucket", Chapter: ChapterFarming, Parents: []string{"barrel"}, NameKey: "advancement.wooden_bucket.name", HintKey: "advancement.wooden_bucket.hint", Item: "skygear:wooden_bucket"},

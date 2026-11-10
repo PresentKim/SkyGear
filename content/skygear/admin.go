@@ -89,6 +89,8 @@ func giveItems() map[string]func() item.Stack {
 		"upgrade_void":     func() item.Stack { return item.NewStack(sgitem.DrawerUpgrade{Kind: sgitem.UpgradeVoid}, 1) },
 		"hammer":           func() item.Stack { return item.NewStack(sgitem.Hammer{}, 1) },
 		"stone_hammer":     func() item.Stack { return item.NewStack(sgitem.Hammer{Stone: true}, 1) },
+		"silkworm":         func() item.Stack { return item.NewStack(farm.Silkworm{}, 1) },
+		"infested_leaves":  func() item.Stack { return item.NewStack(farm.InfestedLeaves{}, 1) },
 		"string_mesh":      func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
 		"barrel":           func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
 		"stone_barrel":     func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
@@ -151,6 +153,9 @@ func giveItems() map[string]func() item.Stack {
 		out["essence_"+m] = func() item.Stack { return item.NewStack(sgitem.Essence{Mob: m}, 1) }
 	}
 	out["config_copier"] = func() item.Stack { return item.NewStack(sgitem.ConfigCopier{}, 1) }
+	for _, t := range sgitem.CrookTiers {
+		out[t.Name+"_crook"] = func() item.Stack { return item.NewStack(sgitem.Crook{Tier: t.Name}, 1) }
+	}
 	for _, t := range sgitem.WandTiers {
 		out[t+"_wand"] = func() item.Stack { return item.NewStack(sgitem.NewWand(t), 1) }
 	}

@@ -130,6 +130,21 @@
     "skygear:stone_hammer": {
       "textures": "textures/items/stone_hammer"
     },
+    "skygear:wooden_crook": {
+      "textures": "textures/items/wooden_crook"
+    },
+    "skygear:stone_crook": {
+      "textures": "textures/items/stone_crook"
+    },
+    "skygear:iron_crook": {
+      "textures": "textures/items/iron_crook"
+    },
+    "skygear:diamond_crook": {
+      "textures": "textures/items/diamond_crook"
+    },
+    "skygear:silkworm": {
+      "textures": "textures/items/silkworm"
+    },
     "skygear:machine_info": {
       "textures": "textures/items/machine_info"
     },

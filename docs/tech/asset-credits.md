@@ -14,7 +14,7 @@
 | Storage Drawers | https://github.com/jaquadro/StorageDrawers | `62a33ab1aa` | MIT | 스토리지 관리 블록, 서랍 인터페이스 |
 | Refined Storage | https://github.com/refinedmods/refinedstorage | `60ce906c16` | MIT | 입력기·출력기·외부 저장공간의 한국어 이름과 창 글(화이트리스트·블랙리스트, 우선 순위), `lang/ko_kr.json` |
 | Refined Storage 2 | https://github.com/refinedmods/refinedstorage2 | `d33a173017` | MIT | 스토리지 망의 컨트롤러·디스크 드라이브·단말·패턴 인코더·자동 제작 장치 면(구멍은 `cutouts/light_blue` 을 밑에 깐다), 케이블·머리 테두리 텍스처(머리는 가장자리 1픽셀에만 입력기 파랑·출력기 주황·외부 저장공간 보라를 옅게 섞음), 저장 디스크 1k~64k, 패턴, 속도·세트 업그레이드 (`MODTEX_ONLY=rs go run ./tools/modtex`). 케이블·입력기·출력기·외부 저장공간의 모양은 `models/block/cable/core`·`cable/extension`·`importer`·`exporter`·`external_storage` 의 상자를 옮긴 것이다(`content/skygear/netshape`, `tools/netgeo`) |
-| Ex Nihilo Fabrico | https://github.com/SirLyle/ExNihiloFabrico (기본 브랜치 `1.14.4-Fabric`) | `5224a14b7b` | MIT (`LICENSE`: 원작 MikeLydeamore, 이식·텍스처 기여자 포함) | 체 세 종류의 모델(다리·틀, 메쉬 막대 여덟 개, 내용물 높이)과 메쉬 텍스처(블록 `sieve_mesh*`, 아이템 `mesh_*`). `tools/fabricotex` 가 모델 JSON(`models/block/sieve.json`, `models/item/mesh.json`)에서 만든다 |
+| Ex Nihilo Fabrico | https://github.com/SirLyle/ExNihiloFabrico (기본 브랜치 `1.14.4-Fabric`) | `5224a14b7b` | MIT (`LICENSE`: 원작 MikeLydeamore, 이식·텍스처 기여자 포함) | 체 세 종류의 모델(다리·틀, 메쉬 막대 여덟 개, 내용물 높이)과 메쉬 텍스처(블록 `sieve_mesh*`, 아이템 `mesh_*`). `tools/fabricotex` 가 모델 JSON(`models/block/sieve.json`, `models/item/mesh.json`)에서 만든다. 크룩 네 개 아이템 그림(`items/{wooden,stone,iron,diamond}_crook` ← `item/tools/crook/crook_{wood,stone,iron,diamond}`)과 누에(`items/silkworm` ← `item/silkworm_raw`)는 그대로 옮겼다(`MODTEX_ONLY=fab go run ./tools/modtex`). 크룩 드롭과 누에 감염 로직도 이 모드에서 옮겼다(`sgitem/crook.go`, `farm/infest.go`: `CrookTool`·`InfestedHelper`·`InfestingLeavesBlockEntity`·`SilkWormItem`, 드롭 표는 `compatibility/modules/ExNihiloFabrico.kt` 의 `registerCrook`) |
 | ConstructionWand | https://github.com/Theta-Dev/ConstructionWand | `15089d9` | MIT (`LICENSE`) | 건축 지팡이 네 개(돌·철·다이아몬드·무한) 아이템 그림(`MODTEX_ONLY=cw go run ./tools/modtex`). 지팡이 로직도 이 모드에서 옮겼다(`content/skygear/wand`, [19-construction-wand.md](../design/19-construction-wand.md)) |
 
 이차원 무기 이펙트의 파티클 그림(`textures/particle/fx_*.png`)은 [pixelfx](https://github.com/patch-gg/pixelfx)(커밋 `a84159688a`, MIT, Patch·Hugo Duprez)의 이펙트를 `tools/pixelfx/export.mjs` 로 렌더해 잘라 붙이고, 게임에서 한 픽셀이 바닐라처럼 약 1/16블록이 되게 줄인 것이다: 불꽃 `fire/torch`, 원반 `projectiles/energy-disc`, 번개 `lightning/lightning-strike`, 명중 `impacts/hit-spark`, 연기 `spawn/poof`, 칼날 `melee/sword-slash`, 석궁 탄도 `projectiles/bullet-tracer`, 몬스터 폭발 `explosions/small-explosion`, 순간이동 `arcane/blink-out`, 회복 `holy/heal-aoe`. 라이선스 전문은 `third_party/licenses/pixelfx-MIT.txt`.
@@ -55,6 +55,8 @@
 
 몹 정수(`essence_*`), 꽃잎(`petal_*`), 씨앗(`seed_*`), 장비 제작대 도구(`tool_*`), 나무 양동이(`wooden_*bucket`), 마법 식물(`blocks/plant_*`), 가루 블록(`blocks/dust`)은 deep-pixels.com 의 픽셀아트 모델로 만든 16×16 그림이다(아이템·식물은 `ultimate-extreme-turbo-lv2-opiniated-item-16px-v1`, 가루는 `ultimate-extreme-mc-block-hq-16-v1`). 모델이 한 요청에 내는 네 안 중 하나를 골라 배경을 지우고, 식물은 블록 바닥에 닿게 가운데 맞췄다. PNG 가 원본이므로 바꿀 때는 그림을 직접 갈아 끼운다.
 
+감염 중인 나뭇잎 네 단계와 감염된 나뭇잎(`blocks/infesting_leaves_0~3`, `blocks/infested_leaves`)은 `tools/infestedtex` 가 그린다. 잎 덩어리는 도구 안에 직접 찍은 16×16 배치이고(바닐라 잎을 베끼지 않았다), 네 곳에서 흰 실이 단계마다 넓게 번지며 잎 사이 틈에 거미줄 가닥이 생긴다. Ex Nihilo Fabrico 에는 이 그림이 없다(클라이언트에서 잎 색과 흰색을 섞는다).
+
 엘리베이터(`blocks/elevator_*`)는 `tools/elevatortex` 가 염료 색으로 그린다(옆면은 양털 결과 테두리, 윗면은 엔더 진주와 위아래 화살표). 그림을 바꿀 때는 도구를 고치고 다시 돌린다.
 
 ## 손대지 않은 그림
@@ -71,6 +73,7 @@ rm assets/resourcepack/skygear/textures/blocks/*_t[123].png
 go run ./tools/tierblocks assets/resourcepack/skygear       # 단계 텍스처
 go run ./tools/texdedup assets/resourcepack/skygear        # 같은 그림인 블록 텍스처를 한 파일로
 go run ./tools/fabricotex <ExNihiloFabrico 클론> assets/resourcepack/skygear  # 체 모델·메쉬
+go run ./tools/infestedtex assets/resourcepack/skygear     # 감염된 나뭇잎 단계
 ```
 
 저작권 표시는 MIT 조건에 따라 `third_party/licenses/` 의 파일과 이 문서가 맡는다.

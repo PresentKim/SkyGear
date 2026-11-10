@@ -83,6 +83,13 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		tinker.VeinMine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos)
 	}
+	if c, ok := sgitem.CrookOf(held); ok {
+		// Leaves pulled apart with a crook: more saplings, now and then a
+		// silkworm (the infested leaves drop their string themselves).
+		if l, ok := broken.(block.Leaves); ok {
+			*drops = farm.CrookLeafDrops(l, c, h.s.Rand.Float64)
+		}
+	}
 	switch b := broken.(type) {
 	case storage.Drawer:
 		// Hitting the front takes items out; it never mines the drawer.

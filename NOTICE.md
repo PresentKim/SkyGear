@@ -18,6 +18,12 @@ below are third-party work and keep their own licences:
   Ex Nihilo Fabrico, ConstructionWand) and Korean names from Refined Storage — each under its own licence in `third_party/licenses/`;
   which texture or model comes from where is listed in
   `docs/tech/asset-credits.md`.
+- `content/skygear/sgitem/crook.go` and `content/skygear/farm/infest.go` —
+  the crook and the silkworm infestation (infesting and infested leaves,
+  the 3×3×3 spread, the crook's string table) are ported from
+  [Ex Nihilo Fabrico](https://github.com/SirLyle/ExNihiloFabrico) (commit
+  `5224a14b7b`), MIT License, see
+  `third_party/licenses/ExNihiloFabrico-MIT.txt`.
 - `content/skygear/wand/` — the construction wand logic is ported from
   [ConstructionWand](https://github.com/Theta-Dev/ConstructionWand) by
   ThetaDev, MIT License, see `third_party/licenses/ConstructionWand-MIT.txt`.

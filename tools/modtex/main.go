@@ -36,6 +36,7 @@ var repos = map[string]repo{
 	"drawr": {"StorageDrawers", "common/src/main/resources/assets/storagedrawers/textures"},
 	"rs":    {"refinedstorage2", "refinedstorage-common/src/main/resources/assets/refinedstorage/textures"},
 	"cw":    {"ConstructionWand", "src/main/resources/assets/constructionwand/textures"},
+	"fab":   {"ExNihiloFabrico", "src/main/resources/assets/exnihilofabrico/textures"},
 }
 
 // entry is one pack texture: dst under textures/, src as "<repo>:<path>" (no
@@ -127,6 +128,11 @@ var entries = func() []entry {
 	for _, t := range []string{"stone", "iron", "diamond", "infinity"} {
 		it(t+"_wand", "cw:item/"+t+"_wand", nil)
 	}
+	// Ex Nihilo Fabrico: the crooks and the silkworm.
+	for _, t := range [][2]string{{"wooden", "wood"}, {"stone", "stone"}, {"iron", "iron"}, {"diamond", "diamond"}} {
+		it(t[0]+"_crook", "fab:item/tools/crook/crook_"+t[1], nil)
+	}
+	it("silkworm", "fab:item/silkworm_raw", nil)
 	it("conduit_binder", "eio:item/conduit_binder", nil)
 	it("conduit_binder_mix", "eio:item/conduit_binder_composite", nil)
 	for _, m := range []string{"tin", "lead", "bronze", "steel"} {

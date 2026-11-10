@@ -686,5 +686,21 @@
  "researchnode.cost.need": "§f%s\n§7Need %d",
  "researchnode.cost.uses": "§f%s\n§aUses %d",
  "researchnode.cost.have": "\n%sHave %d",
- "researchlist.title": "Research"
+ "researchlist.title": "Research",
+ "research.crook.name": "Crook",
+ "research.crook.short": "Pulls more saplings and silkworms out of leaves",
+ "research.crook.about": "Leaves broken with a Crook drop more saplings (chance 30%, by hand 20%) and now and then a Silkworm. Use a Silkworm on leaves and over time they turn into Infested Leaves, which drop String. Each leaf costs one durability.",
+ "research.stone_crook.name": "Stone Crook",
+ "research.stone_crook.short": "A sturdier crook with better chances",
+ "research.stone_crook.about": "Made from stone pebbles. Saplings (35%) and Silkworms (4%) drop more often, and it lasts more than twice as long as the Wooden Crook.",
+ "research.iron_crook.name": "Iron Crook",
+ "research.iron_crook.short": "A crook for big tree farms",
+ "research.iron_crook.about": "Saplings (40%) and Silkworms (5%) drop more often. It lasts 250 leaves.",
+ "research.diamond_crook.name": "Diamond Crook",
+ "research.diamond_crook.short": "The best crook",
+ "research.diamond_crook.about": "Saplings (45%) and Silkworms (6%) drop the most often. It lasts 1561 leaves.",
+ "advancement.crook.name": "Shepherd of the Leaves",
+ "advancement.crook.hint": "Research and make a \"Wooden Crook\"\nLeaves broken with it\ndrop more saplings",
+ "advancement.silkworm.name": "Something Wriggles",
+ "advancement.silkworm.hint": "Break leaves with a Crook\nto find a Silkworm\nand use it on leaves"
 }

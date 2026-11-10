@@ -8,6 +8,9 @@ import (
 func init() {
 	world.RegisterItem(Hammer{})
 	world.RegisterItem(Hammer{Stone: true})
+	for _, t := range CrookTiers {
+		world.RegisterItem(Crook{Tier: t.Name})
+	}
 	for _, k := range CrushedKinds {
 		world.RegisterBlock(CrushedBlock{Kind: k})
 		world.RegisterItem(CrushedBlock{Kind: k})

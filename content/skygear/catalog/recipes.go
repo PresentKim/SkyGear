@@ -51,6 +51,18 @@ func gameRecipes() {
 		nil, cobble, nil,
 		nil, Stick, cobble,
 		Stick, nil, nil)
+	// The crooks: Ex Nihilo Fabrico's hook of sticks (of stone pebbles for
+	// the stone crook); iron and diamond put their material on the hook.
+	pebble := sgitem.Pebble{Kind: sgitem.PebbleStone}
+	for _, c := range []struct {
+		tier       string
+		hook, stem world.Item
+	}{{sgitem.CrookWood, Stick, Stick}, {sgitem.CrookStone, pebble, pebble}, {sgitem.CrookIron, item.IronIngot{}, Stick}, {sgitem.CrookDiamond, item.Diamond{}, Stick}} {
+		shaped(st(sgitem.Crook{Tier: c.tier}), 2, 3,
+			c.hook, c.hook,
+			nil, c.stem,
+			nil, c.stem)
+	}
 	// The construction wands: the mod's recipe, the head at the top right of
 	// two sticks in a diagonal.
 	for _, w := range []struct {
