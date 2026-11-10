@@ -171,22 +171,23 @@ func TestDropsHaveMotion(t *testing.T) {
 	})
 }
 
-// TestStringRecipe: three fibers in a row make three string, and the
-// recipe is three wide, so the 2x2 inventory grid cannot make it.
-func TestStringRecipe(t *testing.T) {
+// TestNoFiberString: bark fibers no longer make string (string comes from
+// elsewhere).
+func TestNoFiberString(t *testing.T) {
 	for _, r := range recipe.Recipes() {
 		for _, out := range r.Output() {
 			if _, ok := out.Item().(block.String); !ok {
 				continue
 			}
-			sh, ok := r.(recipe.Shaped)
-			if !ok || sh.Shape() != recipe.NewShape(3, 1) || out.Count() != 3 || len(sh.Input()) != 3 {
-				t.Fatalf("string recipe %#v", r)
+			for _, in := range r.Input() {
+				if st, ok := in.(item.Stack); ok {
+					if _, fiber := st.Item().(sgitem.BarkFiber); fiber {
+						t.Fatalf("fibers make string: %#v", r)
+					}
+				}
 			}
-			return
 		}
 	}
-	t.Fatal("no string recipe")
 }
 
 // TestGrassSeeds: tilling dirt with a hoe sometimes drops grass seeds, and the

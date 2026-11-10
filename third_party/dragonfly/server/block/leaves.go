@@ -36,6 +36,22 @@ func (l Leaves) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world
 	return placed(ctx)
 }
 
+// LeavesLike is a block that leaves look for their log through as if it were
+// leaves, such as a custom block that replaced some of a tree's leaves
+// (skygear patch).
+type LeavesLike interface {
+	LeavesLike() bool
+}
+
+// leavesOrLike reports whether b is leaves or counts as leaves (skygear patch).
+func leavesOrLike(b world.Block) bool {
+	if _, ok := b.(Leaves); ok {
+		return true
+	}
+	l, ok := b.(LeavesLike)
+	return ok && l.LeavesLike()
+}
+
 // findLog returns whether a log is within four blocks of the leaves at the position passed, counted through the
 // leaves between them. The blocks around it are searched a step at a time, so each is reached the shortest way.
 func findLog(pos cube.Pos, tx *world.Tx) bool {
@@ -47,7 +63,7 @@ func findLog(pos cube.Pos, tx *world.Tx) bool {
 			case Log, Wood:
 				return true
 			}
-			if _, ok := tx.Block(at).(Leaves); !ok || distance >= 4 {
+			if !leavesOrLike(tx.Block(at)) || distance >= 4 {
 				continue
 			}
 			at.Neighbours(func(neighbour cube.Pos) {

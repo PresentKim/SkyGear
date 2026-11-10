@@ -271,8 +271,8 @@ diff -ruN -x pack_icon.png a/server/block/hopper.go b/server/block/hopper.go
  			h.TransferCooldown = 8
  			tx.SetBlock(pos, h, nil)
 diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
---- a/server/block/leaves.go	2026-11-08 13:23:20.923334558 +0000
-+++ b/server/block/leaves.go	2026-11-08 13:24:58.822982048 +0000
+--- a/server/block/leaves.go	2026-11-10 02:43:16.848084005 +0000
++++ b/server/block/leaves.go	2026-11-10 02:43:16.849615928 +0000
 @@ -2,6 +2,7 @@
  
  import (
@@ -281,7 +281,39 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  
  	"github.com/df-mc/dragonfly/server/block/cube"
  	"github.com/df-mc/dragonfly/server/item"
-@@ -62,25 +63,48 @@
+@@ -35,6 +36,22 @@
+ 	return placed(ctx)
+ }
+ 
++// LeavesLike is a block that leaves look for their log through as if it were
++// leaves, such as a custom block that replaced some of a tree's leaves
++// (skygear patch).
++type LeavesLike interface {
++	LeavesLike() bool
++}
++
++// leavesOrLike reports whether b is leaves or counts as leaves (skygear patch).
++func leavesOrLike(b world.Block) bool {
++	if _, ok := b.(Leaves); ok {
++		return true
++	}
++	l, ok := b.(LeavesLike)
++	return ok && l.LeavesLike()
++}
++
+ // findLog returns whether a log is within four blocks of the leaves at the position passed, counted through the
+ // leaves between them. The blocks around it are searched a step at a time, so each is reached the shortest way.
+ func findLog(pos cube.Pos, tx *world.Tx) bool {
+@@ -46,7 +63,7 @@
+ 			case Log, Wood:
+ 				return true
+ 			}
+-			if _, ok := tx.Block(at).(Leaves); !ok || distance >= 4 {
++			if !leavesOrLike(tx.Block(at)) || distance >= 4 {
+ 				continue
+ 			}
+ 			at.Neighbours(func(neighbour cube.Pos) {
+@@ -62,25 +79,48 @@
  	return false
  }
  
@@ -347,7 +379,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  	}
  }
  
-@@ -89,6 +113,13 @@
+@@ -89,6 +129,13 @@
  	if !l.Persistent && !l.ShouldUpdate {
  		l.ShouldUpdate = true
  		tx.SetBlock(pos, l, nil)
@@ -361,7 +393,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  	}
  }
  
-@@ -97,6 +128,18 @@
+@@ -97,6 +144,18 @@
  	return newFlammabilityInfo(30, 60, true)
  }
  
@@ -380,7 +412,7 @@ diff -ruN -x pack_icon.png a/server/block/leaves.go b/server/block/leaves.go
  // BreakInfo ...
  func (l Leaves) BreakInfo() BreakInfo {
  	return newBreakInfo(0.2, alwaysHarvestable, func(t item.Tool) bool {
-@@ -109,16 +152,16 @@
+@@ -109,16 +168,16 @@
  		var drops []item.Stack
  
  		if sapling, ok := l.Type.Sapling(); ok {
@@ -781,8 +813,8 @@ diff -ruN -x pack_icon.png a/server/internal/blockinternal/components_test.go b/
 +	}
 +}
 diff -ruN -x pack_icon.png a/server/internal/iteminternal/components.go b/server/internal/iteminternal/components.go
---- a/server/internal/iteminternal/components.go	2026-11-08 13:23:20.924453337 +0000
-+++ b/server/internal/iteminternal/components.go	2026-11-08 13:24:58.827693861 +0000
+--- a/server/internal/iteminternal/components.go	2026-11-10 02:57:27.230968546 +0000
++++ b/server/internal/iteminternal/components.go	2026-11-10 02:57:27.232627848 +0000
 @@ -1,9 +1,11 @@
  package iteminternal
  
@@ -796,10 +828,28 @@ diff -ruN -x pack_icon.png a/server/internal/iteminternal/components.go b/server
  )
  
  // Components returns all the components of the given custom item. If the item has no components, a nil map and false
-@@ -88,6 +90,26 @@
+@@ -47,6 +49,16 @@
+ 			builder.AddProperty("use_animation", int32(1))
+ 		}
+ 	}
++	if _, ok := it.(item.Usable); ok {
++		if _, food := it.(item.Consumable); !food {
++			// skygear patch: the client sends a use on the air only for an item
++			// it knows to be usable.
++			builder.AddComponent("minecraft:use_modifiers", map[string]any{
++				"use_duration":      float32(0.05),
++				"movement_modifier": float32(1),
++			})
++		}
++	}
+ 	if x, ok := it.(item.Cooldown); ok {
+ 		builder.AddComponent("minecraft:cooldown", map[string]any{
+ 			"category": name,
+@@ -78,6 +90,43 @@
  	if x, ok := it.(item.Glinted); ok {
  		builder.AddProperty("foil", x.Glinted())
  	}
++	var destroy []any
 +	if x, ok := it.(item.Digger); ok {
 +		// skygear patch: per-block mining speeds for clients.
 +		speeds := x.DestroySpeeds()
@@ -808,21 +858,68 @@ diff -ruN -x pack_icon.png a/server/internal/iteminternal/components.go b/server
 +			names = append(names, name)
 +		}
 +		slices.Sort(names)
-+		destroy := make([]any, 0, len(names))
 +		for _, name := range names {
 +			destroy = append(destroy, map[string]any{
 +				"block": map[string]any{"name": name},
 +				"speed": int32(speeds[name]),
 +			})
 +		}
++	}
++	if x, ok := it.(item.TagDigger); ok {
++		// skygear patch: mining speeds by block tags for clients.
++		for _, s := range x.DestroySpeedsByTag() {
++			destroy = append(destroy, map[string]any{
++				"block": map[string]any{"tags": s.Tags},
++				"speed": int32(s.Speed),
++			})
++		}
++	}
++	if destroy != nil {
 +		builder.AddComponent("minecraft:digger", map[string]any{
 +			"use_efficiency": true,
 +			"destroy_speeds": destroy,
 +		})
 +	}
++	if x, ok := it.(item.Fuel); ok && x.FuelInfo().Duration > 0 {
++		// skygear patch: lets clients put custom fuels in a furnace's fuel slot.
++		builder.AddComponent("minecraft:fuel", map[string]any{
++			"duration": float32(x.FuelInfo().Duration.Seconds()),
++		})
++	}
  	if x, ok := it.(item.HandEquipped); ok {
  		builder.AddProperty("hand_equipped", x.HandEquipped())
  	}
+diff -ruN -x pack_icon.png a/server/internal/iteminternal/fuel_test.go b/server/internal/iteminternal/fuel_test.go
+--- a/server/internal/iteminternal/fuel_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/internal/iteminternal/fuel_test.go	2026-11-10 02:57:27.232797175 +0000
+@@ -0,0 +1,27 @@
++package iteminternal
++
++import (
++	"testing"
++	"time"
++
++	"github.com/df-mc/dragonfly/server/item"
++	"github.com/df-mc/dragonfly/server/item/category"
++)
++
++// testFuel is a custom item that burns for five seconds.
++type testFuel struct{}
++
++func (testFuel) EncodeItem() (string, int16) { return "test:fuel", 0 }
++func (testFuel) Name() string                { return "Fuel" }
++func (testFuel) Category() category.Category { return category.Items() }
++func (testFuel) FuelInfo() item.FuelInfo     { return item.FuelInfo{Duration: 5 * time.Second} }
++
++// TestFuelComponent: a custom fuel sends minecraft:fuel with its burn time in
++// seconds (skygear patch), so clients let it into a furnace's fuel slot.
++func TestFuelComponent(t *testing.T) {
++	c := Components(testFuel{})["components"].(map[string]any)
++	f, ok := c["minecraft:fuel"].(map[string]any)
++	if !ok || f["duration"] != float32(5) {
++		t.Fatalf("fuel component %#v", c["minecraft:fuel"])
++	}
++}
 diff -ruN -x pack_icon.png a/server/internal/packbuilder/items.go b/server/internal/packbuilder/items.go
 --- a/server/internal/packbuilder/items.go	2026-11-08 13:23:20.924575465 +0000
 +++ b/server/internal/packbuilder/items.go	2026-11-08 13:24:58.827891826 +0000
