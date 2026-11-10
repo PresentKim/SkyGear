@@ -170,24 +170,31 @@ func shownBy(all map[string]map[cube.Pos]Look, pos cube.Pos) (Look, bool) {
 // Views are what p is sent to show l at pos where it was shown was: each
 // layer l sets, and each layer was set that l leaves to the world, real.
 func Views(tx *world.Tx, pos cube.Pos, l, was Look) []View {
-	var out []View
+	var block0, liquid []View
 	switch {
 	case l.Block != nil:
-		out = append(out, View{Pos: pos, Layer: 0, Block: l.Block})
+		block0 = []View{{Pos: pos, Layer: 0, Block: l.Block}}
 	case was.Block != nil:
-		out = append(out, View{Pos: pos, Layer: 0, Block: tx.Block(pos)})
+		block0 = []View{{Pos: pos, Layer: 0, Block: tx.Block(pos)}}
 	}
 	switch {
 	case l.Liquid != nil:
-		out = append(out, View{Pos: pos, Layer: 1, Block: l.Liquid})
+		liquid = []View{{Pos: pos, Layer: 1, Block: l.Liquid}}
 	case was.Liquid != nil:
-		var liquid world.Block = block.Air{}
-		if w, ok := tx.Liquid(pos); ok {
-			liquid = w
+		var w world.Block = block.Air{}
+		if lq, ok := tx.Liquid(pos); ok {
+			w = lq
 		}
-		out = append(out, View{Pos: pos, Layer: 1, Block: liquid})
+		liquid = []View{{Pos: pos, Layer: 1, Block: w}}
 	}
-	return out
+	// The client moves a block on the liquid layer up to layer 0 when layer
+	// 0 becomes air, and it stays there as a real block. So layer 0 is set
+	// first when it gets the look's block (the glass), and last when it goes
+	// back to the world's, after the liquid layer.
+	if l.Block == nil {
+		return append(liquid, block0...)
+	}
+	return append(block0, liquid...)
 }
 
 func send(p *player.Player, tx *world.Tx, pos cube.Pos, l, was Look) {
