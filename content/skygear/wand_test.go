@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -12,7 +13,9 @@ import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/preview"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wand"
 	"github.com/presentkim/skygear/platform/account"
 )
@@ -198,17 +201,26 @@ func TestAutofillPlace(t *testing.T) {
 	})
 }
 
-// TestWandPreview: on a floor of slabs, the preview shows the slab each
-// spot on top of the floor gets on layer 0 and the green glass on layer 1,
-// and restores the air of both layers; a click on a previewed spot (the
-// client shows it as a block) is a click on the face the preview is of.
+// sentViews records what preview.Send sends while f runs.
+func sentViews(t *testing.T, f func()) []preview.View {
+	t.Helper()
+	var got []preview.View
+	old := preview.Send
+	preview.Send = func(_ *player.Player, v preview.View) { got = append(got, v) }
+	defer func() { preview.Send = old }()
+	f()
+	return got
+}
+
+// TestWandPreview: on a floor of slabs, the preview sends each cell on top
+// of the floor the preview glass on layer 0 (the crosshair goes through it)
+// and the slab it would get on layer 1, and hiding it sends air on both.
 func TestWandPreview(t *testing.T) {
 	s := testSession(t)
 	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
 	loadAround(s)
 	h := spawnPlayer(s)
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		can := func(cube.Pos) bool { return true }
 		slab := block.Slab{Block: block.Planks{Wood: block.OakWood()}}
 		floor := cube.Pos{3, island.IslandY + 5, 3}
 		for x := 0; x < 3; x++ {
@@ -219,50 +231,103 @@ func TestWandPreview(t *testing.T) {
 		mid := floor.Add(cube.Pos{1, 0, 1})
 		p.SetHeldItems(item.NewStack(sgitem.NewWand(sgitem.WandStone), 1), item.Stack{})
 		_, _ = p.Inventory().AddItem(item.NewStack(slab, 20))
-		got := wand.Plan(tx, p, mid, cube.FaceUp, wand.Options{}, 27, can, nil)
-		if len(got) != 9 {
-			t.Fatalf("planned %d slabs, want 9", len(got))
-		}
-		spots := map[cube.Pos]world.Block{}
-		for _, pl := range got {
-			if pl.Pos[1] != floor[1]+1 || pl.Pos[0] < floor[0] || pl.Pos[0] > floor[0]+2 || pl.Pos[2] < floor[2] || pl.Pos[2] > floor[2]+2 {
-				t.Fatalf("slab planned at %v, want on top of the floor", pl.Pos)
-			}
-			spots[pl.Pos] = pl.Block
-		}
-		views := wand.PreviewViews(spots)
+		// looking straight down at the middle of the floor
+		p.Teleport(mid.Vec3Centre().Add(mgl64.Vec3{0, 2, 0}))
+		p.Move(mgl64.Vec3{}, 0, 90-p.Rotation().Pitch())
+		views := sentViews(t, func() { wand.ShowPreview(s.Session, p, tx) })
 		if len(views) != 18 {
-			t.Fatalf("%d views, want 2 per spot", len(views))
+			t.Fatalf("%d views, want 2 for each of 9 cells: %v", len(views), views)
 		}
 		for _, v := range views {
-			want := spots[v.Pos]
-			if v.Layer == 1 {
-				want = wand.PreviewGlass
+			if v.Pos[1] != floor[1]+1 || v.Pos[0] < floor[0] || v.Pos[0] > floor[0]+2 || v.Pos[2] < floor[2] || v.Pos[2] > floor[2]+2 {
+				t.Fatalf("view at %v, want on top of the floor", v.Pos)
+			}
+			var want world.Block = slab
+			if v.Layer == 0 {
+				want = preview.Glass{}
 			}
 			if world.BlockRuntimeID(v.Block) != world.BlockRuntimeID(want) {
 				t.Fatalf("layer %d at %v shows %v, want %v", v.Layer, v.Pos, v.Block, want)
 			}
 		}
-		for _, v := range wand.RestoreViews(tx, []cube.Pos{got[0].Pos}) {
+		// the same look sends nothing again
+		if again := sentViews(t, func() { wand.ShowPreview(s.Session, p, tx) }); len(again) != 0 {
+			t.Fatalf("the same preview sent %d views again", len(again))
+		}
+		for _, v := range sentViews(t, func() { wand.HidePreview(s.Session, p) }) {
 			if _, ok := v.Block.(block.Air); !ok {
-				t.Fatalf("restore of layer %d shows %v, want air", v.Layer, v.Block)
+				t.Fatalf("hiding sent layer %d %v at %v, want air", v.Layer, v.Block, v.Pos)
 			}
 		}
+	})
+}
 
-		// looking straight down at the middle of the floor
-		p.Teleport(mid.Vec3Centre().Add(mgl64.Vec3{0, 2, 0}))
-		p.Move(mgl64.Vec3{}, 0, 90-p.Rotation().Pitch())
-		wand.ShowPreview(s.Session, p, tx)
-		spot := mid.Side(cube.FaceUp).Add(cube.Pos{1, 0, 0})
-		if at, face := wand.Aimed(s.Session, p, spot, cube.FaceUp); at != mid || face != cube.FaceUp {
-			t.Fatalf("a click on the previewed %v is for %v %v, want %v up", spot, at, face, mid)
+// TestPreviewOverlap: where two previews show the same cell, hiding one
+// shows the other's look again, and hiding both shows the real blocks; the
+// vein marks a block on layer 1 only.
+func TestPreviewOverlap(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		stone := cube.Pos{2, island.IslandY + 3, 2}
+		tx.SetBlock(stone, block.Stone{}, nil)
+		cell := stone.Side(cube.FaceUp)
+		vein := tinker.VeinLooks([]cube.Pos{stone})
+		if l := vein[stone]; l.Block != nil || l.Liquid != (preview.Glass{}) {
+			t.Fatalf("vein look %+v, want glass on the liquid layer only", l)
 		}
-		if at, _ := wand.Aimed(s.Session, p, floor, cube.FaceNorth); at != floor {
-			t.Fatalf("a click off the preview moved to %v", at)
+		got := sentViews(t, func() { preview.Set(s.Session, p, tx, "vein", vein) })
+		if len(got) != 1 || got[0].Layer != 1 || got[0].Block != (preview.Glass{}) {
+			t.Fatalf("vein sent %v, want the glass on layer 1", got)
 		}
-		wand.HidePreview(s.Session, p)
-		if at, _ := wand.Aimed(s.Session, p, spot, cube.FaceUp); at != spot {
-			t.Fatal("the hidden preview still takes clicks")
+
+		plank := block.Planks{Wood: block.OakWood()}
+		preview.Set(s.Session, p, tx, "a", map[cube.Pos]preview.Look{cell: preview.Fill(block.Stone{})})
+		preview.Set(s.Session, p, tx, "b", map[cube.Pos]preview.Look{cell: preview.Fill(plank)})
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "b") })
+		if len(got) != 2 || got[1].Block != (block.Stone{}) || got[0].Block != (preview.Glass{}) {
+			t.Fatalf("hiding b sent %v, want a's look again", got)
+		}
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "a") })
+		if len(got) != 2 {
+			t.Fatalf("hiding a sent %v", got)
+		}
+		for _, v := range got {
+			if _, ok := v.Block.(block.Air); !ok {
+				t.Fatalf("hiding a sent %v, want air", v)
+			}
+		}
+		got = sentViews(t, func() { preview.Clear(s.Session, p, tx, "vein") })
+		if len(got) != 1 || got[0].Layer != 1 {
+			t.Fatalf("hiding the vein sent %v, want only layer 1 back", got)
+		}
+		if preview.Shown(s.Session, p, "vein") || preview.Shown(s.Session, p, "a") {
+			t.Fatal("a cleared preview still shown")
 		}
 	})
+}
+
+// TestPreviewGlassBlock: the preview glass is registered, has no
+// collision or selection box, draws the vanilla green stained glass and is
+// no item to give.
+func TestPreviewGlassBlock(t *testing.T) {
+	props := preview.Glass{}.Properties()
+	if !props.NoCollision || !props.NoSelection || !props.Cube {
+		t.Fatalf("properties %+v, want a cube with no boxes", props)
+	}
+	if tex := props.Textures["*"].Encode()["texture"]; tex != preview.GlassTexture {
+		t.Fatalf("texture %v, want %s", tex, preview.GlassTexture)
+	}
+	if _, ok := world.DefaultBlockRegistry.CustomBlocks()["skygear:preview_glass"]; !ok {
+		t.Fatal("preview glass not registered")
+	}
+	for id := range giveItems() {
+		if strings.Contains(id, "preview_glass") {
+			t.Fatalf("/sgadmin give lists %s", id)
+		}
+	}
+	if _, ok := world.ItemByName("skygear:preview_glass", 0); ok {
+		t.Fatal("preview glass is an item")
+	}
 }

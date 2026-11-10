@@ -208,6 +208,9 @@
     "skygear_barrel_lava": {
       "textures": "textures/blocks/barrel_lava"
     },
+    "skygear_preview_glass": {
+      "textures": "textures/blocks/glass_green"
+    },
     "skygear_barrel_oak": {
       "textures": "textures/blocks/planks_oak"
     },
