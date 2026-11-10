@@ -72,19 +72,22 @@ func PeekRange(tx *world.Tx, pos cube.Pos, b world.Block) {
 }
 
 // boxVariant is the box from lo to hi as the range box entity's variant:
-// width, height and depth in blocks, 7 bits each, then how many blocks the
-// box's bottom is under the machine, plus dropBias so a box moved above the
-// machine fits too (entity/range_box.entity.json reads them back). The entity
-// stands just above the machine, in air: the client lights an entity by the
-// block it stands in, and one in a solid block draws black.
+// width (6 bits), height (5 bits) and depth (6 bits) in blocks, then how many
+// blocks the box's bottom is under the machine plus dropBias (7 bits), so a
+// box moved above the machine fits too (entity/range_box.entity.json reads
+// them back). The client reads the variant as a float, which holds whole
+// numbers exactly only up to 2^24, so the four fields fill 24 bits and no
+// more. The entity stands just above the machine, in air: the client lights
+// an entity by the block it stands in, and one in a solid block draws black.
 func boxVariant(lo, hi mgl64.Vec3, down int) int32 {
 	size := hi.Sub(lo)
-	return int32(size[0]) | int32(size[1])<<7 | int32(size[2])<<14 | int32(down+dropBias)<<21
+	field := func(v, bits int) int32 { return int32(max(0, min(v, 1<<bits-1))) }
+	return field(int(size[0]), 6) | field(int(size[1]), 5)<<6 | field(int(size[2]), 6)<<11 | field(down+dropBias, 7)<<17
 }
 
-// dropBias is added to the drop of the box's bottom in its variant, which has
-// ten bits left for it.
-const dropBias = 512
+// dropBias is added to the drop of the box's bottom in its variant, so the
+// drop goes from -64 to 63.
+const dropBias = 64
 
 // showRange keeps the range box over the machine's area while its outline
 // is on, and takes it away when it goes off.
