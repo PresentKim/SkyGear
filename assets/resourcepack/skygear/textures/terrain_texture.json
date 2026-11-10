@@ -286,6 +286,9 @@
     "skygear_conduit_fluid_3": {
       "textures": "textures/blocks/conduit_fluid_3"
     },
+    "skygear_conduit_net_1": {
+      "textures": "textures/blocks/conduit_net_1"
+    },
     "skygear_conduit_item_1": {
       "textures": "textures/blocks/conduit_item_1"
     },

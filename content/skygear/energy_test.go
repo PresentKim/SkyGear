@@ -500,17 +500,24 @@ func TestPlateFormsOpen(t *testing.T) {
 }
 
 // TestConduitBlockSizes: the conduit block collides, is pointed at and is
-// shaped like the 9 pixels its conduits take, not a full block; fluid conduits
-// move EnderIO's 200, 1000 and 8000 mB a tick.
+// shaped like the 12 pixels its conduits take (the energy, item and fluid
+// lanes in 9, the network lane in the low corner), not a full block, sent
+// to the client with x mirrored; fluid conduits move EnderIO's 200, 1000 and
+// 8000 mB a tick.
 func TestConduitBlockSizes(t *testing.T) {
 	for name, props := range map[string]customblock.Properties{"bundle": conduit.Bundle{}.Properties()} {
-		if props.CollisionBox != conduit.BundleSelection || props.SelectionBox != conduit.BundleSelection {
-			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, conduit.BundleSelection)
+		if props.CollisionBox != conduit.BundleClientBox || props.SelectionBox != conduit.BundleClientBox {
+			t.Errorf("%s: collision %v, selection %v, want %v", name, props.CollisionBox, props.SelectionBox, conduit.BundleClientBox)
 		}
 	}
-	box := conduit.BundleSelection
-	if w := (box.Max()[0] - box.Min()[0]) * 16; w < 8.99 || w > 9.01 {
-		t.Errorf("the box is %v pixels wide", w)
+	box, client := conduit.BundleSelection, conduit.BundleClientBox
+	for axis := range 3 {
+		if w := (box.Max()[axis] - box.Min()[axis]) * 16; w < 11.99 || w > 12.01 {
+			t.Errorf("axis %d: the box is %v pixels wide", axis, w)
+		}
+	}
+	if lo, hi := 1-client.Max()[0], 1-client.Min()[0]; lo-box.Min()[0] > 1e-9 || box.Min()[0]-lo > 1e-9 || hi-box.Max()[0] > 1e-9 || box.Max()[0]-hi > 1e-9 {
+		t.Errorf("client box %v is not the box %v mirrored in x", client, box)
 	}
 	for tier, want := range map[int]int{1: 200, 2: 1000, 3: 8000} {
 		if fluidnet.RateOf(tier) != want {

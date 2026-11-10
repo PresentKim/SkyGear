@@ -89,6 +89,7 @@ func giveItems() map[string]func() item.Stack {
 		out[fmt.Sprintf("item_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.ItemConduit{Tier: t}, 1) }
 		out[fmt.Sprintf("fluid_conduit_%d", t)] = func() item.Stack { return item.NewStack(conduit.FluidConduit{Tier: t}, 1) }
 	}
+	out["net_conduit"] = func() item.Stack { return item.NewStack(conduit.NetConduit{}, 1) }
 	for t, n := range []string{"1k", "4k", "16k", "64k"} {
 		out["storage_disk_"+n] = func() item.Stack { return item.NewStack(netstore.Disk{Tier: t}, 1) }
 	}

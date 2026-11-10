@@ -379,7 +379,7 @@ func TestConduitLanesDifferOnEveryAxis(t *testing.T) {
 			}
 		}
 	}
-	names := []string{"energy", "item", "fluid"}
+	names := []string{"energy", "item", "fluid", "net"}
 	for x := range names {
 		for y := x + 1; y < len(names); y++ {
 			a, b := cores["geometry.skygear.conduit_"+names[x]], cores["geometry.skygear.conduit_"+names[y]]

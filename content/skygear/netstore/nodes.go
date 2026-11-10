@@ -6,6 +6,7 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/machine"
 )
@@ -18,12 +19,21 @@ var nodeKinds = machine.NetNodes
 // IsNode reports whether kind is a storage network node.
 func IsNode(kind string) bool { return nodeKinds[kind] }
 
+// KindConduit is the node kind of a conduit bundle with a network conduit:
+// it conducts as a network cable does.
+const KindConduit = "conduit"
+
+func init() {
+	// A network conduit that comes or goes joins or splits networks.
+	conduit.NetChanged = Invalidate
+}
+
 // nodeUse is the RE per tick a node adds to the network's use: 1 for a
-// device, 2 for a disk drive, 4 for an autocrafter, none for a cable or the
-// controller (whose base use is controllerUse).
+// device, 2 for a disk drive, 4 for an autocrafter, none for a cable, a
+// network conduit or the controller (whose base use is controllerUse).
 func nodeUse(kind string) int {
 	switch kind {
-	case machine.KindNetCable, machine.KindNetController:
+	case machine.KindNetCable, machine.KindNetController, KindConduit:
 		return 0
 	case machine.KindDiskDrive:
 		return 2
@@ -41,10 +51,18 @@ const (
 	NodeCap = 512
 )
 
-// nodeAt is the kind of the network node at pos ("" for anything else).
+// nodeAt is the kind of the network node at pos ("" for anything else); a
+// conduit bundle with a network conduit is a KindConduit node.
 func nodeAt(tx *world.Tx, pos cube.Pos) string {
-	if m, ok := tx.Block(pos).(machine.Machine); ok && nodeKinds[m.Kind] {
-		return m.Kind
+	switch b := tx.Block(pos).(type) {
+	case machine.Machine:
+		if nodeKinds[b.Kind] {
+			return b.Kind
+		}
+	case conduit.Bundle:
+		if b.Net > 0 {
+			return KindConduit
+		}
 	}
 	return ""
 }

@@ -21,12 +21,15 @@ import (
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/content/skygear/blockmodel"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
 // Conduit bundles are the block every conduit is placed as: at most one
-// conduit of each kind (energy, item, fluid), each of a tier, as in EnderIO.
+// conduit of each kind (energy, item, fluid, network), each of a tier, as in
+// EnderIO. The network conduit has one tier and carries the storage network
+// as the network cable does.
 // The block is a block entity with one state and an invisible model; its data
 // lives in its NBT and the display entity of conduitvisual.go draws it.
 
@@ -42,6 +45,8 @@ func init() {
 		world.RegisterItem(ItemConduit{Tier: t})
 		world.RegisterItem(FluidConduit{Tier: t})
 	}
+	world.RegisterBlock(NetConduit{})
+	world.RegisterItem(NetConduit{})
 }
 
 // Bundle is the conduit block. Energy, Item and Fluid are the tiers of
@@ -51,7 +56,10 @@ func init() {
 type Bundle struct {
 	Energy, Item, Fluid int
 	EConn, IConn, FConn int
-	Modes               [6]itemnet.Mode
+	// Net is 1 when the bundle holds a network conduit, NConn the sides it
+	// connects to.
+	Net, NConn int
+	Modes      [6]itemnet.Mode
 	// Extract and Insert are the channels (0 to 15) of each side of the item
 	// conduit (itemnet.Channels).
 	Extract, Insert [6]int
@@ -73,22 +81,30 @@ func (Bundle) EncodeBlock() (string, map[string]any) {
 
 func (Bundle) Hash() (uint64, uint64) { return bundleHash, 0 }
 
-func (b Bundle) Model() world.BlockModel { return conduitModel{b.EConn | b.IConn | b.FConn} }
+func (b Bundle) Model() world.BlockModel {
+	return conduitModel{b.EConn | b.IConn | b.FConn | b.NConn}
+}
 
 func (Bundle) Name() string { return i18n.T(i18n.Default, "name.ConduitBundle") }
 
-// BundleSelection is the space the conduits take: the cores of the three lanes
-// (shifted 3 pixels either way, 3 pixels across) fit in 9 pixels, 3.5 to
-// 12.5. It is what the client lets the player point at and the shape of the
-// block (conduit_node.geo.json).
-var BundleSelection = cube.Box(3.5/16, 3.5/16, 3.5/16, 12.5/16, 12.5/16, 12.5/16)
+// BundleSelection is the space the conduits take: the cores of the energy,
+// item and fluid lanes (shifted 3 pixels either way, 3 pixels across) fit in
+// 3.5 to 12.5 pixels, and the network lane's core, 6 pixels down the same
+// diagonal, takes the corner from 0.5. It is what the client lets the player
+// point at and the shape of the block (conduit_node.geo.json).
+var BundleSelection = cube.Box(0.5/16, 0.5/16, 0.5/16, 12.5/16, 12.5/16, 12.5/16)
+
+// BundleClientBox is BundleSelection as the client's block components take
+// it: their x axis is mirrored against the world's, as the block geometry's
+// is (tools/netgeo).
+var BundleClientBox = cube.Box(1-12.5/16, 0.5/16, 0.5/16, 1-0.5/16, 12.5/16, 12.5/16)
 
 func (Bundle) Properties() customblock.Properties {
 	return customblock.Properties{
 		Geometry:     "geometry.skygear_conduit_node",
 		Textures:     map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_conduit_node")},
-		SelectionBox: BundleSelection,
-		CollisionBox: BundleSelection,
+		SelectionBox: BundleClientBox,
+		CollisionBox: BundleClientBox,
 	}
 }
 
@@ -107,6 +123,9 @@ func (b Bundle) BreakInfo() block.BreakInfo {
 			}
 			if b.Fluid > 0 {
 				out = append(out, item.NewStack(FluidConduit{Tier: b.Fluid}, 1))
+			}
+			if b.Net > 0 {
+				out = append(out, item.NewStack(NetConduit{}, 1))
 			}
 			return out
 		},
@@ -149,6 +168,7 @@ func (b Bundle) EncodeNBT() map[string]any {
 		"Extract": channels(b.Extract), "Insert": channels(b.Insert),
 		"id": "SkyGearConduitBundle", "Energy": int32(b.Energy), "Item": int32(b.Item), "Fluid": int32(b.Fluid),
 		"EConn": int32(b.EConn), "IConn": int32(b.IConn), "FConn": int32(b.FConn), "Modes": string(modes),
+		"Net": int32(b.Net), "NConn": int32(b.NConn),
 	}
 }
 
@@ -160,6 +180,7 @@ func (b Bundle) DecodeNBT(data map[string]any) any {
 	b.Buf = &BufCell{Energy: max(num("EBuf"), 0), FluidKind: max(num("FKind"), 0), Fluid: max(num("FBuf"), 0)}
 	b.Energy, b.Item, b.Fluid = min(num("Energy"), Tiers), min(num("Item"), Tiers), min(num("Fluid"), Tiers)
 	b.EConn, b.IConn, b.FConn = num("EConn")&63, num("IConn")&63, num("FConn")&63
+	b.Net, b.NConn = min(max(num("Net"), 0), 1), num("NConn")&63
 	for key, dst := range map[string]*[6]int{"Extract": &b.Extract, "Insert": &b.Insert} {
 		if v, ok := data[key].(string); ok && len(v) == 6 {
 			for i := range dst {
@@ -200,6 +221,32 @@ func joinsFluid(b world.Block) bool {
 	return false
 }
 
+// LinksNet implements machine.NetLinker: a bundle with a network conduit
+// carries the storage network.
+func (b Bundle) LinksNet() bool { return b.Net > 0 }
+
+// netConn returns the sides the network conduit connects to: another network
+// conduit or a network node that joins on that side (machine.LinksNet).
+func (b Bundle) netConn(sides [6]bundleSide) (n int) {
+	if b.Net == 0 {
+		return 0
+	}
+	for side, s := range sides {
+		if machine.LinksNet(s.block, Faces[side]) {
+			n |= 1 << side
+		}
+	}
+	return n
+}
+
+// connectAll sets the connections of every conduit in b from the bundle's
+// neighbours at pos.
+func (b *Bundle) connectAll(tx *world.Tx, pos cube.Pos) {
+	sides := b.sides(tx, pos)
+	b.EConn, b.IConn, b.FConn = b.connectionsFrom(sides)
+	b.NConn = b.netConn(sides)
+}
+
 // bundleSide is a neighbour of a bundle, in the order of conduitFaces.
 // holdsItems is only looked up for a bundle with an item conduit and a block
 // that is not an item conduit.
@@ -238,11 +285,6 @@ func (b Bundle) sidesOf(tx *world.Tx, pos cube.Pos, loadedOnly bool) (out [6]bun
 	return out
 }
 
-// connections returns the sides the energy, item and fluid conduit connect to.
-func (b Bundle) connections(tx *world.Tx, pos cube.Pos) (e, i, f int) {
-	return b.connectionsFrom(b.sides(tx, pos))
-}
-
 // connectionsFrom returns the sides the energy conduit (another energy conduit
 // or a block that gives or takes energy), the item conduit (another item
 // conduit, or a block that holds items unless that side is off) and the fluid
@@ -279,8 +321,9 @@ func (b Bundle) refresh(pos cube.Pos, tx *world.Tx, verify bool) {
 func (b Bundle) refreshOf(pos cube.Pos, tx *world.Tx, verify, loadedOnly bool) {
 	sides := b.sidesOf(tx, pos, loadedOnly)
 	e, i, f := b.connectionsFrom(sides)
-	if e != b.EConn || i != b.IConn || f != b.FConn {
-		b.EConn, b.IConn, b.FConn = e, i, f
+	n := b.netConn(sides)
+	if e != b.EConn || i != b.IConn || f != b.FConn || n != b.NConn {
+		b.EConn, b.IConn, b.FConn, b.NConn = e, i, f, n
 		tx.SetBlock(pos, b, nil)
 	}
 	if s, ok := core.Of(tx); ok {
@@ -326,6 +369,9 @@ func BundleLines(lang string, tx *world.Tx, pos cube.Pos, b Bundle) []string {
 	if b.Fluid > 0 {
 		lines = append(lines, i18n.T(lang, fmt.Sprintf("name.FluidConduit.%d", b.Fluid))+fmt.Sprintf(" §7%d mB/t", fluidnet.RateOf(b.Fluid)))
 	}
+	if b.Net > 0 {
+		lines = append(lines, i18n.T(lang, "name.NetConduit"))
+	}
 	if sess, ok := core.Of(tx); ok {
 		lines = append(lines, BufferLines(lang, sess, pos, b)...)
 	}
@@ -347,6 +393,9 @@ type EnergyConduit struct{ Tier int }
 type ItemConduit struct{ Tier int }
 
 type FluidConduit struct{ Tier int }
+
+// NetConduit is the network conduit item; it has one tier.
+type NetConduit struct{}
 
 // conduitKinds are the kinds in the order of conduitItemHashes.
 var conduitKinds = [3]string{"energy", "item", "fluid"}
@@ -430,6 +479,32 @@ func (FluidConduit) Category() category.Category { return category.Construction(
 
 func (c FluidConduit) Properties() customblock.Properties {
 	return conduitIconProperties("fluid", c.Tier)
+}
+
+var netConduitHash = block.NextHash()
+
+func (NetConduit) EncodeItem() (string, int16) { return conduitItemID("net", 1), 0 }
+
+func (NetConduit) EncodeBlock() (string, map[string]any) { return conduitItemID("net", 1), nil }
+
+func (NetConduit) Hash() (uint64, uint64) { return netConduitHash, 0 }
+
+func (NetConduit) Model() world.BlockModel { return conduitModel{} }
+
+func (NetConduit) Name() string { return i18n.T(i18n.Default, "name.NetConduit") }
+
+func (NetConduit) Category() category.Category { return category.Construction() }
+
+func (NetConduit) Properties() customblock.Properties { return conduitIconProperties("net", 1) }
+
+func (NetConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	return placeConduit(pos, face, tx, user, ctx, func(b *Bundle) bool {
+		if b.Net != 0 {
+			return false
+		}
+		b.Net = 1
+		return true
+	})
 }
 
 func (c EnergyConduit) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
@@ -518,7 +593,7 @@ func placeConduit(pos cube.Pos, face cube.Face, tx *world.Tx, user item.User, ct
 		}
 		return false
 	}
-	b.EConn, b.IConn, b.FConn = b.connections(tx, target)
+	b.connectAll(tx, target)
 	if placer, ok := user.(block.Placer); ok {
 		placer.PlaceBlock(target, b, ctx)
 	} else {

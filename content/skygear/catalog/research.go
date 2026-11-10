@@ -162,7 +162,7 @@ var baseResearchTree = []progress.Research{
 	{ID: "auto_crafter", Needs: []string{"generator", "hopper", "redstone_work"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 16}, {Item: item.RedstoneWire{}, Count: 8}},
 		Unlocks: []string{"skygear:auto_crafter"}},
 	{ID: "storage_network", Needs: []string{"storage_controller", "auto_crafter"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalBronze}, Count: 16}, {Item: item.RedstoneWire{}, Count: 32}},
-		Unlocks: []string{"skygear:net_controller", "skygear:net_cable", "skygear:disk_drive", "skygear:storage_disk_1k", "skygear:storage_disk_4k", "skygear:net_terminal"}},
+		Unlocks: []string{"skygear:net_controller", "skygear:net_cable", "skygear:conduit_net_1", "skygear:disk_drive", "skygear:storage_disk_1k", "skygear:storage_disk_4k", "skygear:net_terminal"}},
 	{ID: "network_logistics", Needs: []string{"storage_network"}, Cost: []progress.Requirement{{Item: item.IronIngot{}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalInvar}, Count: 16}},
 		Unlocks: []string{"skygear:net_importer", "skygear:net_exporter", "skygear:net_external", "skygear:storage_disk_16k", "skygear:speed_upgrade"}},
 	{ID: "network_autocrafting", Needs: []string{"network_logistics", "alloy_smelter"}, Cost: []progress.Requirement{{Item: sgitem.Ingot{Metal: sgitem.MetalSteel}, Count: 32}, {Item: sgitem.Ingot{Metal: sgitem.MetalElectrum}, Count: 16}, {Item: item.Diamond{}, Count: 4}},

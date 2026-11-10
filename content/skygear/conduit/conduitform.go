@@ -202,7 +202,7 @@ func channelChoices(s *core.Session, lang string, pos cube.Pos, f cube.Face, ext
 
 // StoreSide stores a bundle whose side settings changed and shows it.
 func StoreSide(s *core.Session, tx *world.Tx, pos cube.Pos, b Bundle) {
-	b.EConn, b.IConn, b.FConn = b.connections(tx, pos)
+	b.connectAll(tx, pos)
 	tx.SetBlock(pos, b, nil)
 	showConduit(s, tx, pos, b)
 	tx.PlaySound(pos.Vec3Centre(), sound.Click{})

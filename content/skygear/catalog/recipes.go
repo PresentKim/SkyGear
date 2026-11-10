@@ -131,6 +131,12 @@ func gameRecipes() {
 	bronze, redstone, glass := sgitem.Ingot{Metal: sgitem.MetalBronze}, item.RedstoneWire{}, block.Glass{}
 	add(machine.Item(machine.KindNetController), n(bronze, 2), n(iron, 2), n(redstone, 4))
 	add(item.NewStack(machine.Machine{Kind: machine.KindNetCable}, 4), n(iron, 1), n(redstone, 1), n(glass, 1))
+	// The network conduit goes into a conduit bundle; it carries the network
+	// as the cable does, beside the other conduits.
+	shaped(item.NewStack(conduit.NetConduit{}, 8), 3, 3,
+		binder, binder, binder,
+		machine.Machine{Kind: machine.KindNetCable}, machine.Machine{Kind: machine.KindNetCable}, machine.Machine{Kind: machine.KindNetCable},
+		binder, binder, binder)
 	add(machine.Item(machine.KindDiskDrive), n(iron, 4), n(bronze, 2), n(block.NewChest(), 1), n(redstone, 2))
 	add(machine.Item(machine.KindNetTerminal), n(bronze, 2), n(iron, 2), n(glass, 2), n(redstone, 2))
 	add(item.NewStack(netstore.Disk{Tier: 0}, 1), n(iron, 3), n(redstone, 2), n(glass, 2))

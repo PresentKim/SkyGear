@@ -15,6 +15,16 @@ import (
 
 var _ world.BlockChangeHook = Bundle{}
 
+// NetChanged, if set, is told when a network conduit came to pos or left it,
+// so the storage networks there are built again (netstore sets it).
+var NetChanged func(tx *world.Tx, pos cube.Pos)
+
+func netChanged(tx *world.Tx, pos cube.Pos) {
+	if NetChanged != nil {
+		NetChanged(tx, pos)
+	}
+}
+
 // claimCell makes sure b has a buffer cell that belongs to pos alone: a bundle
 // value copied to another position gets a cell of its own (empty, so the
 // buffer is not duplicated). The block is set again when the cell changed.
@@ -62,6 +72,9 @@ func (Bundle) BlockChanged(tx *world.Tx, pos cube.Pos, before, after world.Block
 		if old.Fluid > 0 {
 			fluidG.Remove(tx, pos)
 		}
+		if old.Net > 0 {
+			netChanged(tx, pos)
+		}
 		RemoveVisual(s, tx, pos)
 		return
 	}
@@ -103,7 +116,10 @@ func (Bundle) BlockChanged(tx *world.Tx, pos cube.Pos, before, after world.Block
 			network.Items(s).Changed(tx, pos)
 		}
 	}
-	if old.Energy != nb.Energy || old.Fluid != nb.Fluid || sig {
+	if old.Net != nb.Net {
+		netChanged(tx, pos)
+	}
+	if old.Energy != nb.Energy || old.Fluid != nb.Fluid || old.Net != nb.Net || sig {
 		// A new or changed bundle finds its sides and shows itself.
 		nb.refresh(pos, tx, true)
 	}

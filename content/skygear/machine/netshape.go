@@ -195,15 +195,29 @@ func (n netModel) BBox(cube.Pos, world.BlockSource) []cube.BBox {
 
 func (netModel) FaceSolid(cube.Pos, cube.Face, world.BlockSource) bool { return false }
 
-// netConnects reports whether the node at pos draws an arm toward its side
-// face: there is a network node there whose head does not face it.
-func netConnects(tx *world.Tx, pos cube.Pos, face cube.Face) bool {
-	n, ok := tx.Block(pos.Side(face)).(Machine)
+// NetLinker is a block that is not a network machine but carries the storage
+// network: a conduit bundle with a network conduit.
+type NetLinker interface{ LinksNet() bool }
+
+// LinksNet reports whether b, on side face of a part of the storage network,
+// joins it there: a network node whose head does not face back, or a block
+// that carries the network (NetLinker).
+func LinksNet(b world.Block, face cube.Face) bool {
+	if l, ok := b.(NetLinker); ok {
+		return l.LinksNet()
+	}
+	n, ok := b.(Machine)
 	if !ok || !NetNodes[n.Kind] {
 		return false
 	}
 	_, head := netHeads[n.Kind]
 	return !head || n.State == nil || n.State.Facing != face.Opposite()
+}
+
+// netConnects reports whether the node at pos draws an arm toward its side
+// face (LinksNet).
+func netConnects(tx *world.Tx, pos cube.Pos, face cube.Face) bool {
+	return LinksNet(tx.Block(pos.Side(face)), face)
 }
 
 func netShapeAt(tx *world.Tx, pos cube.Pos, m Machine) int {
