@@ -302,6 +302,11 @@ func TestNetConduitCarriesTheNetwork(t *testing.T) {
 		}
 		// the neighbour update that tells it of p(2) comes on the next tick
 		tx.Block(p(1)).(conduit.Bundle).Refresh(p(1), tx)
+		// the controller's list names the conduits instead of failing on a kind
+		// that is no machine
+		if _, title := kindLook("ko", KindConduit); title != "망 도관" {
+			t.Errorf("conduit nodes listed as %q", title)
+		}
 		if b := tx.Block(p(1)).(conduit.Bundle); b.NConn&(1<<4) == 0 || b.NConn&(1<<5) == 0 {
 			t.Errorf("bundle connects %06b, want west and east", b.NConn)
 		}
