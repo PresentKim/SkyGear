@@ -2,7 +2,9 @@ package machine
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -1390,8 +1392,39 @@ func (m Machine) BreakInfo() block.BreakInfo {
 	}
 }
 
+// EncodeNBT is the machine's saved state. A machine whose state is the
+// blank state of its kind (as New makes it) saves only its id, as a machine
+// with no state does: a machine item that went through a save or the client
+// (DecodeNBT gives it a blank state) and one just dropped by breaking a
+// machine then compare equal and stack (item.Stack.Comparable compares the
+// NBT). DecodeNBT makes a blank state from the id alone.
 func (m Machine) EncodeNBT() map[string]any {
-	data := map[string]any{"id": "SkyGearMachine"}
+	data := m.encodeState()
+	if m.State != nil && reflect.DeepEqual(data, blankNBT(m.Kind)) {
+		return map[string]any{"id": machineNBTID}
+	}
+	return data
+}
+
+// machineNBTID is the block entity id of the machines.
+const machineNBTID = "SkyGearMachine"
+
+// blankNBTs are the encoded blank states by kind (blankNBT).
+var blankNBTs sync.Map
+
+// blankNBT is the encoding of the state New makes for a machine of kind.
+func blankNBT(kind string) map[string]any {
+	if v, ok := blankNBTs.Load(kind); ok {
+		return v.(map[string]any)
+	}
+	data := New(kind, "", "").encodeState()
+	blankNBTs.Store(kind, data)
+	return data
+}
+
+// encodeState is the machine's state as EncodeNBT saves it in full.
+func (m Machine) encodeState() map[string]any {
+	data := map[string]any{"id": machineNBTID}
 	if m.State == nil {
 		return data
 	}
