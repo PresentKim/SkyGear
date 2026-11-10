@@ -19,8 +19,8 @@ import (
 //   - A stick used on grass or dirt always drops a pebble; four pebbles
 //     make the stone they come from (research "pebbles").
 //   - Stripping a log with any axe (or other bark stripper) sometimes drops one or two
-//     bark fibers; three in a row make string (research "string"), four in a
-//     square paper (research "paper"), and a fiber burns as a weak fuel.
+//     bark fibers; four in a square make paper (research "paper"), and a
+//     fiber burns as a weak fuel.
 //   - Dust is sand crushed once more, sifted for its own drops.
 
 func init() {

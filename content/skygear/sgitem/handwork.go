@@ -75,8 +75,8 @@ type BarkStripper interface {
 	StripsBark() bool
 }
 
-// BarkFiber is stripped from logs; three in a row make three string, four
-// in a square two paper, and it burns as a weak fuel (FiberBurnTicks).
+// BarkFiber is stripped from logs; four in a square make two paper, and it
+// burns as a weak fuel (FiberBurnTicks).
 type BarkFiber struct{}
 
 // FiberBurnTicks is how long a bark fiber burns in a furnace or a
@@ -159,13 +159,9 @@ func HandworkRecipes() {
 		p := item.NewStack(Pebble{Kind: k.Kind}, 1)
 		recipe.Register(recipe.NewShapeless([]recipe.Item{p, p, p, p}, item.NewStack(k.Block, 1), "crafting_table"))
 	}
-	// Three fibers in a row make three string. Three wide, it does not fit
-	// the 2x2 grid of the inventory: only a crafting table makes string.
-	f := item.NewStack(BarkFiber{}, 1)
-	recipe.Register(recipe.NewShaped([]recipe.Item{f, f, f}, item.NewStack(block.String{}, 3), recipe.NewShape(3, 1), "crafting_table"))
 	// Four fibers in a square make two paper: sugar cane comes late on a
-	// sky island (only from sifting dirt). The square does not overlap the
-	// row of string, and it fits the inventory's 2x2 grid.
+	// sky island (only from sifting dirt). It fits the inventory's 2x2 grid.
+	f := item.NewStack(BarkFiber{}, 1)
 	recipe.Register(recipe.NewShaped([]recipe.Item{f, f, f, f}, item.NewStack(item.Paper{}, FiberPaperCount), recipe.NewShape(2, 2), "crafting_table"))
 }
 

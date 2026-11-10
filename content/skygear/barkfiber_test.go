@@ -68,8 +68,8 @@ func TestBarkFiberIntoFurnace(t *testing.T) {
 	})
 }
 
-// TestFiberPaperRecipe: four fibers in a square make two paper; it does not
-// share its shape with the row of string.
+// TestFiberPaperRecipe: four fibers in a square make two paper, and no two
+// fiber recipes share a shape.
 func TestFiberPaperRecipe(t *testing.T) {
 	var shapes []recipe.Shape
 	found := false
@@ -99,14 +99,14 @@ func TestFiberPaperRecipe(t *testing.T) {
 	}
 }
 
-// TestPaperResearch: the "paper" research follows "string" and opens every
-// paper recipe (the fiber's and the sugar cane's).
+// TestPaperResearch: the "paper" research follows the stone tools (the
+// stone axe strips fibers) and opens every paper recipe (the fiber's and the sugar cane's).
 func TestPaperResearch(t *testing.T) {
 	r, ok := progress.ByID("paper")
 	if !ok {
 		t.Fatal("no paper research")
 	}
-	if !slices.Contains(r.Needs, "string") || !slices.Contains(r.Unlocks, "paper") {
+	if !slices.Contains(r.Needs, "stone_tools") || !slices.Contains(r.Unlocks, "paper") {
 		t.Fatalf("paper research %+v", r)
 	}
 }
