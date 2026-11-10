@@ -4757,3 +4757,83 @@ diff -ruN -x pack_icon.png a/server/world/world.go b/server/world/world.go
 +	}
 +	c.subCache[ind] = subCached{version: c.version, v: v}
 +}
+diff -ruN -x pack_icon.png a/server/block/customblock/permutations.go b/server/block/customblock/permutations.go
+--- a/server/block/customblock/permutations.go	2026-11-10 12:08:11.754485271 +0000
++++ b/server/block/customblock/permutations.go	2026-11-10 12:08:11.760202398 +0000
+@@ -17,6 +17,9 @@
+ 	// CollisionBoxes, when set, are the boxes the player collides with instead of CollisionBox (up to 16, all
+ 	// within the block), so a block can be hollow like a composter.
+ 	CollisionBoxes []cube.BBox
++	// NoCollision and NoSelection send the block with no collision box and no selection box: the player walks
++	// through it, and the crosshair and clicks go through it to what is behind (skygear patch).
++	NoCollision, NoSelection bool
+ 	// Cube determines whether the block should inherit the default cube geometry. This will only be considered if the
+ 	// Geometry field is empty.
+ 	Cube bool
+diff -ruN -x pack_icon.png a/server/internal/blockinternal/components.go b/server/internal/blockinternal/components.go
+--- a/server/internal/blockinternal/components.go	2026-11-10 12:08:11.756548962 +0000
++++ b/server/internal/blockinternal/components.go	2026-11-10 12:08:11.761995769 +0000
+@@ -82,12 +82,18 @@
+ // a custom permutation.
+ func componentsFromProperties(props customblock.Properties) map[string]any {
+ 	components := make(map[string]any)
+-	if len(props.CollisionBoxes) > 0 {
++	if props.NoCollision {
++		// skygear patch: collision_box false
++		components["minecraft:collision_box"] = map[string]any{"enabled": false, "boxes": []map[string]any{zeroBox()}}
++	} else if len(props.CollisionBoxes) > 0 {
+ 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBoxes...)
+ 	} else if props.CollisionBox != (cube.BBox{}) {
+ 		components["minecraft:collision_box"] = collisionBoxComponent(props.CollisionBox)
+ 	}
+-	if props.SelectionBox != (cube.BBox{}) {
++	if props.NoSelection {
++		// skygear patch: selection_box false
++		components["minecraft:selection_box"] = map[string]any{"enabled": false, "origin": []float32{0, 0, 0}, "size": []float32{0, 0, 0}}
++	} else if props.SelectionBox != (cube.BBox{}) {
+ 		components["minecraft:selection_box"] = selectionBoxComponent(props.SelectionBox)
+ 	}
+ 	if props.Geometry != "" {
+@@ -163,6 +169,11 @@
+ 	}
+ }
+ 
++// zeroBox is an empty box of a collision box component (skygear patch).
++func zeroBox() map[string]any {
++	return map[string]any{"minX": float32(0), "minY": float32(0), "minZ": float32(0), "maxX": float32(0), "maxY": float32(0), "maxZ": float32(0)}
++}
++
+ // selectionBoxComponent returns the component data for a selection box, translating coordinates to the origin/size
+ // format the client expects.
+ func selectionBoxComponent(box cube.BBox) map[string]any {
+diff -ruN -x pack_icon.png a/server/internal/blockinternal/nobox_test.go b/server/internal/blockinternal/nobox_test.go
+--- a/server/internal/blockinternal/nobox_test.go	1970-01-01 00:00:00.000000000 +0000
++++ b/server/internal/blockinternal/nobox_test.go	2026-11-10 12:08:11.762043471 +0000
+@@ -0,0 +1,27 @@
++package blockinternal
++
++import (
++	"testing"
++
++	"github.com/df-mc/dragonfly/server/block/cube"
++	"github.com/df-mc/dragonfly/server/block/customblock"
++)
++
++// skygear patch: Properties.NoCollision and NoSelection send the boxes
++// disabled, over any box set.
++func TestNoBoxes(t *testing.T) {
++	c := componentsFromProperties(customblock.Properties{Cube: true, NoCollision: true, NoSelection: true, CollisionBox: cube.Box(0, 0, 0, 1, 1, 1)})
++	for _, name := range []string{"minecraft:collision_box", "minecraft:selection_box"} {
++		m, ok := c[name].(map[string]any)
++		if !ok || m["enabled"] != false {
++			t.Errorf("%s = %v, want enabled false", name, c[name])
++		}
++	}
++	c = componentsFromProperties(customblock.Properties{Cube: true})
++	if _, ok := c["minecraft:collision_box"]; ok {
++		t.Errorf("collision box set by default: %v", c)
++	}
++	if _, ok := c["minecraft:selection_box"]; ok {
++		t.Errorf("selection box set by default: %v", c)
++	}
++}

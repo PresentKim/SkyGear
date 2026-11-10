@@ -17,6 +17,9 @@ type Properties struct {
 	// CollisionBoxes, when set, are the boxes the player collides with instead of CollisionBox (up to 16, all
 	// within the block), so a block can be hollow like a composter.
 	CollisionBoxes []cube.BBox
+	// NoCollision and NoSelection send the block with no collision box and no selection box: the player walks
+	// through it, and the crosshair and clicks go through it to what is behind (skygear patch).
+	NoCollision, NoSelection bool
 	// Cube determines whether the block should inherit the default cube geometry. This will only be considered if the
 	// Geometry field is empty.
 	Cube bool
