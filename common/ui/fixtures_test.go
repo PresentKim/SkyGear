@@ -219,6 +219,11 @@ func fixtureScreens() map[string]func() {
 				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Text: "9", Run: nop}},
 				chrome(Option{Label: "모두 꺼내기", Run: nop})...)
 		},
+		"slotmenu-small": func() {
+			SlotMenu(p, "서랍", Slot{Icon: "textures/ui/confirm", Text: "64", Run: nop}, "§f밀 씨앗\n§764 / 2,048",
+				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}},
+				[]Slot{{Icon: "textures/ui/confirm", Run: nop}, {Icon: "textures/ui/cancel", Run: nop}})
+		},
 		"choice": func() {
 			ChoiceMenu(p, "선택", ChoiceBoard{
 				Stats: []Stat{{Icon: "textures/ui/confirm", Label: "속도", Value: "12"}, {Icon: "textures/ui/cancel", Label: "힘", Value: "§c7"}, {Label: "운", Value: "3"}},
@@ -321,7 +326,7 @@ func runFixture(t *testing.T, name string) (roots []any) {
 // fixtureNames are the screens the visual baseline must cover.
 var fixtureNames = []string{
 	"menu", "confirm", "cards", "pick", "result", "equip", "grid", "sections", "board", "sieve", "split", "search", "listsplit", "input",
-	"slotmenu", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
+	"slotmenu", "slotmenu-small", "choice", "sides", "sides-open", "plane", "quest", "quest-panel", "home", "home-overlay",
 	"lobby-menu", "loading", "console", "probe", "radial", "radial-group",
 }
 

@@ -86,35 +86,48 @@ export function GridScreen(props: { data: GridData }): JSX.Element {
   );
 }
 
+// The slot menu without list buttons (the drawer) is a small window that fits its two rows, as
+// Storage Drawers' drawer window: 176 GUI pixels wide, the big slot with its info, then the slots.
+const SLOTMENU_W = 176;
+const SLOTMENU_H = 78;
+
 /** SlotMenuScreen is the storage slot with its info, the left and right slots and the list buttons. */
 export function SlotMenuScreen(props: { data: SlotMenuData }): JSX.Element {
   const { data } = props;
+  const board = (
+    <div className="oui-box mc-board">
+      <div className="oui-box mc-row">
+        <SlotView slot={data.store} variant="big" />
+        <div className="oui-box mc-slotmenu-info">
+          <Rich text={data.info} className="oui-text mc-body-text" />
+        </div>
+      </div>
+      <Gap size={6} />
+      <div className="oui-box mc-slotmenu-slots">
+        <div className="oui-box mc-row">
+          {data.left.map((s) => (
+            <SlotView key={s.id} slot={s} />
+          ))}
+        </div>
+        <div className="oui-box mc-row">
+          {data.right.map((s) => (
+            <SlotView key={s.id} slot={s} />
+          ))}
+        </div>
+      </div>
+      <ListButtons items={data.items} gap />
+    </div>
+  );
+  if (data.items.length === 0) {
+    return (
+      <Window chrome={data.chrome} className="mc-slotmenu-small" size={[SLOTMENU_W, SLOTMENU_H]}>
+        {board}
+      </Window>
+    );
+  }
   return (
     <Window chrome={data.chrome}>
-      <Scroll>
-        <div className="oui-box mc-board">
-          <div className="oui-box mc-row">
-            <SlotView slot={data.store} variant="big" />
-            <div className="oui-box mc-slotmenu-info">
-              <Rich text={data.info} className="oui-text mc-body-text" />
-            </div>
-          </div>
-          <Gap size={6} />
-          <div className="oui-box mc-slotmenu-slots">
-            <div className="oui-box mc-row">
-              {data.left.map((s) => (
-                <SlotView key={s.id} slot={s} />
-              ))}
-            </div>
-            <div className="oui-box mc-row">
-              {data.right.map((s) => (
-                <SlotView key={s.id} slot={s} />
-              ))}
-            </div>
-          </div>
-          <ListButtons items={data.items} gap />
-        </div>
-      </Scroll>
+      <Scroll>{board}</Scroll>
     </Window>
   );
 }

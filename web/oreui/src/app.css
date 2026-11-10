@@ -712,3 +712,15 @@
   width: 2.4rem;
   height: 2.4rem;
 }
+
+/* The small slot menu window (screens/menus.tsx SlotMenuScreen, the drawer): the board fills the
+   content box instead of the wide board of the list menus. */
+.mc-slotmenu-small .mc-content {
+  left: 1.4rem;
+  right: 1.4rem;
+}
+
+.mc-slotmenu-small .mc-board {
+  width: 100%;
+  align-self: stretch;
+}
