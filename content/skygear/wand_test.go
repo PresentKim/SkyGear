@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -193,6 +194,52 @@ func TestAutofillPlace(t *testing.T) {
 	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		if held, _ := p.HeldItems(); held.Count() != 5 {
 			t.Fatalf("hand holds %d after placing its last block, want 5", held.Count())
+		}
+	})
+}
+
+// TestWandOutline: the preview's boxes sit on the spots the click fills and
+// are as large as the blocks placed there: the client draws a debug box
+// around its position, so a whole block is outlined from its centre, and a
+// slab on a floor of slabs is outlined as the lower half of its spot.
+func TestWandOutline(t *testing.T) {
+	s := testSession(t)
+	loadAround(s)
+	h := spawnPlayer(s)
+	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		can := func(cube.Pos) bool { return true }
+		mid := wandWall(tx)
+		_, _ = p.Inventory().AddItem(item.NewStack(block.Stone{}, 20))
+		for _, pl := range wand.Plan(tx, p, mid, cube.FaceNorth, wand.Options{}, 27, can, nil) {
+			o := wand.OutlineOf(tx, pl)
+			want := pl.Pos.Vec3Centre()
+			if o.Centre != want || o.Bounds != (mgl64.Vec3{1, 1, 1}) {
+				t.Fatalf("stone at %v outlined at %v size %v, want %v size 1", pl.Pos, o.Centre, o.Bounds, want)
+			}
+		}
+
+		slab := block.Slab{Block: block.Planks{Wood: block.OakWood()}}
+		floor := cube.Pos{3, island.IslandY + 5, 3}
+		for x := 0; x < 3; x++ {
+			for z := 0; z < 3; z++ {
+				tx.SetBlock(floor.Add(cube.Pos{x, 0, z}), slab, nil)
+			}
+		}
+		p.Inventory().Clear()
+		_, _ = p.Inventory().AddItem(item.NewStack(slab, 20))
+		got := wand.Plan(tx, p, floor.Add(cube.Pos{1, 0, 1}), cube.FaceUp, wand.Options{}, 27, can, nil)
+		if len(got) != 9 {
+			t.Fatalf("planned %d slabs, want 9", len(got))
+		}
+		for _, pl := range got {
+			if pl.Pos[1] != floor[1]+1 {
+				t.Fatalf("slab planned at %v, want on top of the floor", pl.Pos)
+			}
+			o := wand.OutlineOf(tx, pl)
+			want := pl.Pos.Vec3().Add(mgl64.Vec3{0.5, 0.25, 0.5})
+			if o.Centre.Sub(want).Len() > 1e-9 || o.Bounds.Sub(mgl64.Vec3{1, 0.5, 1}).Len() > 1e-9 {
+				t.Fatalf("slab at %v outlined at %v size %v, want %v size 1×0.5×1", pl.Pos, o.Centre, o.Bounds, want)
+			}
 		}
 	})
 }

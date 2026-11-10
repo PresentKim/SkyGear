@@ -148,10 +148,34 @@ const previewMax = 256
 // previewColour is the colour of the preview's outlines.
 var previewColour = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 
-// preview is what a player is shown: the outlined spots.
+// preview is what a player is shown: the outlines of the spots.
 type preview struct {
-	at     map[cube.Pos]bool
+	at     map[cube.Pos]Outline
 	shapes []debug.Shape
+}
+
+// Outline is the box drawn around a spot: the client draws a debug box
+// around its Centre (not from its corner, as Dragonfly's docs have it),
+// Bounds in size.
+type Outline struct {
+	Centre, Bounds mgl64.Vec3
+}
+
+// OutlineOf is the outline of a placement: the box around the block's model
+// where it would stand (half a block for a slab), a whole block for a model
+// with no box.
+func OutlineOf(tx world.BlockSource, pl Placement) Outline {
+	lo, hi := mgl64.Vec3{1, 1, 1}, mgl64.Vec3{}
+	for _, bb := range pl.Block.Model().BBox(pl.Pos, tx) {
+		mn, mx := bb.Min(), bb.Max()
+		for i := 0; i < 3; i++ {
+			lo[i], hi[i] = min(lo[i], mn[i]), max(hi[i], mx[i])
+		}
+	}
+	if hi[0] <= lo[0] || hi[1] <= lo[1] || hi[2] <= lo[2] {
+		lo, hi = mgl64.Vec3{}, mgl64.Vec3{1, 1, 1}
+	}
+	return Outline{Centre: pl.Pos.Vec3().Add(lo.Add(hi).Mul(0.5)), Bounds: hi.Sub(lo)}
 }
 
 var previews = core.NewPlayers[preview]()
@@ -199,12 +223,12 @@ func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 		HidePreview(s, p)
 		return
 	}
-	spots := map[cube.Pos]bool{}
+	spots := map[cube.Pos]Outline{}
 	for i, pl := range plan(s, p, tx, pos, face, held) {
 		if i >= previewMax {
 			break
 		}
-		spots[pl.Pos] = true
+		spots[pl.Pos] = OutlineOf(tx, pl)
 	}
 	cur := previews.Of(s)[p.H()]
 	if sameSpots(cur.at, spots) {
@@ -214,8 +238,8 @@ func ShowPreview(s *core.Session, p *player.Player, tx *world.Tx) {
 		p.RemoveDebugShape(sh)
 	}
 	next := preview{at: spots}
-	for at := range spots {
-		sh := &debug.Box{Position: at.Vec3(), Bounds: mgl64.Vec3{1, 1, 1}, Colour: previewColour}
+	for _, o := range spots {
+		sh := &debug.Box{Position: o.Centre, Bounds: o.Bounds, Colour: previewColour}
 		p.AddDebugShape(sh)
 		next.shapes = append(next.shapes, sh)
 	}
@@ -234,12 +258,12 @@ func HidePreview(s *core.Session, p *player.Player) {
 	delete(previews.Of(s), p.H())
 }
 
-func sameSpots(a, b map[cube.Pos]bool) bool {
+func sameSpots(a, b map[cube.Pos]Outline) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	for k := range a {
-		if !b[k] {
+	for k, o := range a {
+		if bo, ok := b[k]; !ok || bo != o {
 			return false
 		}
 	}
