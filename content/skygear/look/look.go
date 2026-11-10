@@ -162,10 +162,8 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		if b.State != nil && b.State.Def.Controller {
 			info.Lines = storage.Lines(lang, tx, pos)
 		}
-		if b.Kind == machine.KindMiner && b.State != nil {
-			// The auto miner's one output slot shows like a container's.
-			it, _ := b.State.Inv().Item(b.State.Def.Output[0])
-			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: []item.Stack{it}}
+		if c := outputContainer(b.State); c != nil {
+			info.Container = c
 		}
 		if p.Sneaking() && b.State != nil {
 			info.Lines = append(info.Lines, detailLines(lang, b.State)...)
@@ -193,6 +191,10 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Line = farm.BarrelLiquid(s, lang, pos)
 	case hopper.FlowHopper:
 		info.Lines = hopper.HopperLines(lang, b)
+		if b.Inv != nil {
+			// What it holds shows like a chest's, slots with counts under them.
+			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: b.Inv.Items()}
+		}
 	case farm.MagicPlant:
 		if i := farm.PlantKindIndex(b.Kind); i >= 0 {
 			k := farm.PlantKinds[i]
@@ -211,6 +213,35 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	}
 	return info
+}
+
+// outputContainer is the output slots of the machine st as a chest's slots,
+// each item with its count under it, or nil for a machine with no output or
+// a drawer controller (whose lines count the drawers instead), and nil while
+// the output is empty.
+func outputContainer(st *machine.State) *waila.Container {
+	if st == nil || st.Def.Controller || len(st.Def.Output) == 0 {
+		return nil
+	}
+	var items []item.Stack
+	for _, slot := range st.Def.Output {
+		if it, _ := st.Inv().Item(slot); !it.Empty() {
+			items = append(items, it)
+		}
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	return &waila.Container{Layout: waila.LayoutChest, Items: items}
+}
+
+// itemLine is the line of item it with its icon, its count after it.
+func itemLine(lang string, it item.Stack) *waila.ItemLine {
+	line := &waila.ItemLine{Item: it, Name: naming.ItemName(lang, it)}
+	if it.Count() > 1 {
+		line.Text = fmt.Sprintf("§f×%d", it.Count())
+	}
+	return line
 }
 
 // containerOf is the contents of a vanilla container block for the panel.
@@ -270,8 +301,9 @@ func FurnaceArrow(b world.Block) item.Stack {
 }
 
 // MachineLines are a machine's lines and item line: what it holds, with
-// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"),
-// grey "비어 있음" when empty, and what waits in its output.
+// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"), or grey
+// "비어 있음" when empty. What waits in its output shows as slots
+// (outputContainer).
 func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	st := m.State
 	if st == nil {
@@ -285,9 +317,17 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	)
 	switch {
 	case st.Def.Crafter:
-		return crafterLines(lang, st), nil
+		if st.Recipe == nil {
+			return crafterLines(lang, st), nil
+		}
+		return crafterLines(lang, st)[1:], itemLine(lang, st.Recipe.Out)
 	case st.Def == machine.Kinds[machine.KindLab]:
-		return machine.LabLines(lang, st), nil
+		// The research it makes shows with its icon on the item line.
+		lines := machine.LabLines(lang, st)
+		if st.Lab == nil {
+			return lines, nil
+		}
+		return lines[1:], itemLine(lang, item.NewStack(st.Lab.Out, st.Lab.OutCount))
 	case st.Def == machine.Kinds[machine.KindSellBox]:
 		lines = append(lines, i18n.T(lang, "look.machine.sellCycle")+gauge)
 	case st.Def == machine.Kinds[machine.KindHarvester]:
@@ -303,14 +343,14 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	case st.Def.FluidCap > 0:
 		lines := machine.FluidLines(lang, st)
 		if _, in, ok := st.FirstInput(); ok {
-			lines = append(lines, stackLine(lang, in))
+			line = itemLine(lang, in)
 		}
 		if st.Def.Generates > 0 {
 			lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap()))
 		} else {
 			lines = append(lines, machine.ConsumerLines(lang, st)...)
 		}
-		return lines, nil
+		return lines, line
 	case st.Def.Cell:
 		return []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap())}, nil
 	case st.Def == machine.Kinds[machine.KindMiner]:
@@ -331,11 +371,6 @@ func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
 	}
 	lines = append(lines, machine.ConsumerLines(lang, st)...)
 	lines = append(lines, machine.BlockedLines(lang, st)...)
-	for _, slot := range st.Def.Output {
-		if it, _ := st.Inv().Item(slot); !it.Empty() {
-			lines = append(lines, i18n.T(lang, "look.machine.output")+stackLine(lang, it))
-		}
-	}
 	return lines, line
 }
 
@@ -361,7 +396,8 @@ func stackLine(lang string, it item.Stack) string {
 	return "§f" + naming.ItemName(lang, it)
 }
 
-// crafterLines say what the auto crafter does: its recipe, what it lacks.
+// crafterLines say what the auto crafter does: its recipe (the first line),
+// what it lacks.
 func crafterLines(lang string, st *machine.State) []string {
 	if st.Recipe == nil {
 		return []string{i18n.T(lang, "crafter.status.none")}

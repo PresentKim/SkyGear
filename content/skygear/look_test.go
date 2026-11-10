@@ -134,6 +134,21 @@ func TestLookInfo(t *testing.T) {
 		if info := look.Info(s.Session, p, tx, machinePos, tx.Block(machinePos)); info.Container != nil {
 			t.Errorf("crusher panel has slots: %+v", info.Container)
 		}
+		// What waits in the output shows as slots with counts under them, not
+		// as a line of text.
+		if m, ok := tx.Block(machinePos).(machine.Machine); ok {
+			_ = m.State.Inv().SetItem(m.State.Def.Output[0], item.NewStack(block.Gravel{}, 12))
+			info := look.Info(s.Session, p, tx, machinePos, m)
+			if info.Container == nil || info.Container.Layout != waila.LayoutChest || len(info.Container.Items) != 1 || info.Container.Items[0].Count() != 12 {
+				t.Errorf("crusher output %+v, want the gravel in a slot", info.Container)
+			}
+			for _, l := range info.Lines {
+				if strings.Contains(l, "자갈") {
+					t.Errorf("crusher lines %q still name the output", info.Lines)
+				}
+			}
+			_ = m.State.Inv().SetItem(m.State.Def.Output[0], item.Stack{})
+		}
 		stone := cube.Pos{1, island.IslandY + 4, 1}
 		tx.SetBlock(stone, block.Stone{}, nil)
 		info := look.Info(s.Session, p, tx, stone, block.Stone{})
