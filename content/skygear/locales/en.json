@@ -170,6 +170,7 @@
  "barrel.stone.lines.empty": "§7Empty",
  "barrel.stone.lines.noHeat": "§eNo heat source",
  "barrel.stone.name": "Stone",
+ "skygear.admin.ambiguousItem": "%s is in more than one namespace: pick one of %s",
  "skygear.admin.unknownItem": "Unknown item: %s",
  "skygear.admin.perf.on": "Server load display on (top left).",
  "skygear.admin.perf.off": "Server load display off.",

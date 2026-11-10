@@ -40,3 +40,31 @@ func TestGiveListsEveryItem(t *testing.T) {
 		t.Errorf("barrel and minecraft:barrel are the same item %s", a)
 	}
 }
+
+// TestResolveGive: a name without its namespace is taken when only one
+// namespace has it, and a name both have asks for the namespace.
+func TestResolveGive(t *testing.T) {
+	g := giveItems()
+	for in, want := range map[string]string{
+		"diamond":           "minecraft:diamond",
+		"Minecraft:Diamond": "minecraft:diamond",
+		"minecraft:barrel":  "minecraft:barrel",
+		"skygear:barrel":    "barrel",
+		"conduit_binder":    "conduit_binder",
+		"skygear:hammer":    "hammer",
+	} {
+		if got, err := resolveGive(g, in); err != nil || got != want {
+			t.Errorf("resolveGive(%q) = %q, %v; want %q", in, got, err, want)
+		}
+	}
+	for _, in := range []string{"barrel", "no_such_item", "skygear:diamond", "minecraft:hammer"} {
+		if got, err := resolveGive(g, in); err == nil {
+			t.Errorf("resolveGive(%q) = %q, want an error", in, got)
+		}
+	}
+	for _, id := range (giveEnum("")).Options(nil) {
+		if !strings.HasPrefix(id, "skygear:") && !strings.HasPrefix(id, "minecraft:") {
+			t.Errorf("completion %q has no namespace", id)
+		}
+	}
+}
