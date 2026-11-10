@@ -49,37 +49,10 @@ func (a adminBase) session(src cmd.Source, o *cmd.Output, tx *world.Tx) (*player
 	return p, s, ok
 }
 
-type adminItem struct {
-	adminBase
-	Sub   cmd.SubCommand    `cmd:"item"`
-	Name  string            `cmd:"name"`
-	Count cmd.Optional[int] `cmd:"count"`
-}
-
-// Run gives any registered item by name, e.g. minecraft:iron_ore.
-func (c adminItem) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
-	p, s, ok := c.session(src, o, tx)
-	if !ok {
-		return
-	}
-	name := c.Name
-	if !strings.Contains(name, ":") {
-		name = "minecraft:" + name
-	}
-	it, ok := world.ItemByName(name, 0)
-	if !ok {
-		o.Errorf(i18n.T(i18n.Default, "skygear.admin.unknownItem"), name)
-		return
-	}
-	st := item.NewStack(it, max(1, c.Count.LoadOr(1)))
-	if added, _ := p.Inventory().AddItem(st); added < st.Count() {
-		s.DropAt(tx, p.Position(), st.Grow(-added))
-	}
-	o.Printf("%s x%d", naming.ItemName(i18n.Of(p), st), st.Count())
-}
-
 // giveItems are the items /sgadmin give hands out: the game's own items
-// and every machine, plus a water bucket.
+// and every machine under short ids, a water bucket, every other custom
+// item by its id without the skygear: prefix, and every vanilla item by its
+// full name (minecraft:<name>, minecraft:<name>:<meta> for a variant).
 func giveItems() map[string]func() item.Stack {
 	out := map[string]func() item.Stack{
 		"research_table":   func() item.Stack { return item.NewStack(progress.ResearchTable{}, 1) },
@@ -190,22 +163,49 @@ func giveItems() map[string]func() item.Stack {
 	// every other item of the game, by its id without the skygear: prefix,
 	// but the screens' icons, the retired items and those listed above
 	// under another id
+	listed := map[string]bool{}
+	for _, f := range out {
+		listed[encodedKey(f().Item())] = true
+	}
 	for _, it := range world.CustomItems() {
 		name, meta := it.EncodeItem()
 		id, ok := strings.CutPrefix(name, "skygear:")
-		if !ok || meta != 0 || out[id] != nil || slices.ContainsFunc(giveSkip, func(pre string) bool { return strings.HasPrefix(id, pre) }) {
+		if !ok || meta != 0 || out[id] != nil || listed[encodedKey(it)] || slices.ContainsFunc(giveSkip, func(pre string) bool { return strings.HasPrefix(id, pre) }) {
 			continue
 		}
 		out[id] = func() item.Stack { return item.NewStack(it, 1) }
 	}
+	// every vanilla item by its full name, so the game's own ids above
+	// (barrel, water ...) never hide one
+	for _, it := range world.Items() {
+		name, meta := it.EncodeItem()
+		if !strings.HasPrefix(name, "minecraft:") || item.NewStack(it, 1).Empty() {
+			continue
+		}
+		key := name
+		if meta != 0 {
+			key = fmt.Sprintf("%s:%d", name, meta)
+		}
+		if out[key] == nil {
+			out[key] = func() item.Stack { return item.NewStack(it, 1) }
+		}
+	}
 	return out
 }
 
-// giveSkip are the id prefixes of the custom items /sgadmin give leaves out.
+// encodedKey is an item's saved id and meta, to tell whether an item is
+// already listed under another id.
+func encodedKey(it world.Item) string {
+	name, meta := it.EncodeItem()
+	return fmt.Sprintf("%s:%d", name, meta)
+}
+
+// giveSkip are the id prefixes of the custom items /sgadmin give leaves out:
+// the screens' icons and the retired items. Items listed under another id
+// are left out by their encoding instead.
 var giveSkip = []string{
 	"cycle_", "energy_gauge_", "progress_", "liquid_", "machine_info", "fairy_board", // screen icons
-	"dimension_gate", "seed_ess_", // retired
-	"tool_", "conduit_", "drawer_upgrade_", "barrel_", // listed under other ids
+	"dimension_gate", "seed_ess_", "tool_sword_", // retired (old saves still load them)
 }
 
 type giveEnum string
@@ -246,7 +246,7 @@ func (c adminGive) Run(src cmd.Source, o *cmd.Output, tx *world.Tx) {
 func registerAdmin(g *Game) {
 	b := adminBase{g: g}
 	cmd.Register(cmd.New("sgadmin", i18n.T(i18n.Default, "skygear.admin.cmd"), nil,
-		adminItem{adminBase: b}, adminGive{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
+		adminGive{adminBase: b}, adminTPS{adminBase: b}, adminResearch{adminBase: b}, adminAdvance{adminBase: b}))
 }
 
 // adminTPS turns the server load line at the top left of the operator's

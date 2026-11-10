@@ -64,4 +64,4 @@
 | 어디서나 | `/lobby`(`/spawn`), `/guide`, `/friends`, `/notify`, `/title`, `/settings` |
 | 로비 | `/saves`, `/join [코드]` |
 | 세이브 안 | `/menu`(`/sg`), `/도감`(`/codex`), `/도움말`(`/sghelp`), `/통계`(`/stats`), `/묘목`(`/sapling`), `/메뉴발급`(`/menuitem`), `/invite`·`/members`(호스트) |
-| 운영자 | 관리 `/sgadmin give·item·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |
+| 운영자 | 관리 `/sgadmin give·research·advance·tps`, 디버그 `/sgdebug …`, 세이브 복제 `/copysave` ([admin.md](tech/admin.md), `platform.toml` 의 `Admin.Operators`) |
