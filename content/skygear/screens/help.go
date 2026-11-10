@@ -68,6 +68,7 @@ var HelpTopics = []struct {
 	{"quest", helpStartTab, func() string { return formicon.Mission }, nil},
 	{"research", helpStartTab, func() string { return formicon.Of(item.NewStack(progress.ResearchTable{}, 1)) }, nil},
 	{"island", helpStartTab, func() string { return formicon.Island }, nil},
+	{"bridge", helpStartTab, func() string { return formicon.Of(item.NewStack(block.Planks{}, 1)) }, nil},
 	{"handwork", helpHandTab, func() string { return formicon.Of(item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1)) }, nil},
 	{"sieve", helpHandTab, func() string { return formicon.Of(machine.Item(machine.KindSieve)) }, nil},
 	{"water", helpHandTab, func() string { return formicon.Of(item.NewStack(item.Bucket{}, 1)) }, nil},

@@ -155,6 +155,12 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
+	// The button held after a bridging assist placement repeats on the
+	// block just placed: one press places one block.
+	if bridge.Holding(h.s.Session, ctx.Player()) {
+		ctx.Cancel()
+		return
+	}
 	held, _ := ctx.Player().HeldItems()
 	if screens.IsMenuItem(held) {
 		ctx.Cancel()
@@ -264,8 +270,8 @@ func (h *handler) HandleItemUse(ctx *player.Context) {
 	if h.useStone(ctx, held) {
 		return
 	}
-	// A block used on the air goes where the bridging assist finds a place
-	// for it (bridge).
+	// A block used on the air while sneaking goes where the bridging assist
+	// finds a place for it (bridge), once a press of the button.
 	if p := ctx.Player(); bridge.Place(h.s.Session, p) {
 		ctx.Cancel()
 		h.updateBridge(p, p.Position(), p.Rotation(), true)
@@ -335,6 +341,9 @@ func (h *handler) HandleMove(ctx *player.Context, newPos mgl64.Vec3, newRot cube
 // expansion mode, rides an elevator down when standing on one, and
 // otherwise grows saplings nearby by chance (sapling.go).
 func (h *handler) HandleToggleSneak(ctx *player.Context, after bool) {
+	// the bridging assist works only while sneaking: show or hide its preview
+	p := ctx.Player()
+	h.updateBridgeSneak(p, p.Position(), p.Rotation(), after, true)
 	if _, ok := expand.Of(h.s.Session, ctx.Player()); ok && after {
 		expand.Show(h.s.Session, ctx.Player())
 		return
@@ -416,7 +425,7 @@ func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, to int) {
 	achievement.Count(ctx.Player(), "hotbar", 1)
 	p := ctx.Player()
 	held, _ := p.Inventory().Item(to)
-	if bridge.Update(h.s.Session, p, p.Tx(), p.Position(), p.Rotation(), held, true) {
+	if bridge.Update(h.s.Session, p, p.Tx(), p.Position(), p.Rotation(), held, p.Sneaking(), true) {
 		screens.UpdateBoard(h.s.Session, p)
 	}
 }
@@ -424,8 +433,14 @@ func (h *handler) HandleHeldSlotChange(ctx *player.Context, _, to int) {
 // updateBridge updates p's bridging assist crosshair mark for p at pos
 // with rotation rot, and the HUD that shows it when it changed.
 func (h *handler) updateBridge(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, force bool) {
+	h.updateBridgeSneak(p, pos, rot, p.Sneaking(), force)
+}
+
+// updateBridgeSneak is updateBridge for p sneaking or not (p.Sneaking is
+// set only after the sneak handler).
+func (h *handler) updateBridgeSneak(p *player.Player, pos mgl64.Vec3, rot cube.Rotation, sneaking, force bool) {
 	held, _ := p.HeldItems()
-	if bridge.Update(h.s.Session, p, p.Tx(), pos, rot, held, force) {
+	if bridge.Update(h.s.Session, p, p.Tx(), pos, rot, held, sneaking, force) {
 		screens.UpdateBoard(h.s.Session, p)
 	}
 }

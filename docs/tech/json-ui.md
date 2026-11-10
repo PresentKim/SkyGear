@@ -45,7 +45,7 @@ HUD 는 게임과 상관없어 `assets/resourcepack/sgui` 에, 상자 창은 `as
 
 서버가 크로스헤어 그림 자체를 바꾸는 패킷은 없다(`SetHud` 는 바닐라 크로스헤어를 숨기거나 보일 뿐이다). 대신 팩이 사이드바의 `§d§5<이름>` 줄을 보고 화면 가운데에 `textures/ui/sg/crosshair_<이름>`(32×32, 바닐라 크로스헤어 위에 겹침)을 그리므로, 서버는 그 줄을 넣고 빼서 원하는 때에 크로스헤어 모양을 바꾼다. 줄을 바꿀 때마다 사이드바 전체를 다시 보내므로 자주 바뀌는 상태(틱마다)에는 쓰지 않는다. 바닐라 크로스헤어를 아예 다른 그림으로 바꾸려면 같은 줄과 `sghook.HideHUD` 류의 `SetHud`(크로스헤어만)를 함께 쓴다.
 
-- 이름: `up`·`down`·`side`(다리 놓기 도움, `content/skygear/bridge`). 그림은 `go run ./tools/uitextures` 가 만든다.
+- 이름: `up`·`down`·`side`(다리 놓기 도움, `content/skygear/bridge`, 블록을 들고 웅크렸을 때만). 그림은 `go run ./tools/uitextures` 가 만든다.
 - 팩: `scoreboards.json` 의 `sg_crosshair_stack`(가운데 기준 컬렉션 스택) → `sg_row_crosshair`(표시 줄일 때만 보이는 32×32 판) → 이름마다 이미지 하나(식에 표식을 글자로 적어 비교).
 - 한 번에 표시 하나만 보낸다. 퀘스트 줄에 밀려 15줄 밖으로 나가지 않도록 보드의 맨 앞에 넣는다.
 
