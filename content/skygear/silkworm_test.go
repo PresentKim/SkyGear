@@ -134,8 +134,9 @@ func TestCocoonGrowsOnTime(t *testing.T) {
 }
 
 // TestSilkwormsSpreadInPlay: in a running world, one silkworm in a crown of
-// leaves spreads to several leaves while its cocoon grows (the spread picks
-// leaves, so it does not miss), and the new ones spread on.
+// leaves has reached every leaf around it when its cocoon is full (the steps
+// spread at a chance, the full cocoon to all that are left), and through
+// them every leaf of the crown.
 func TestSilkwormsSpreadInPlay(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
@@ -144,17 +145,16 @@ func TestSilkwormsSpreadInPlay(t *testing.T) {
 		fillCube(tx, centre, 2, block.Leaves{Type: block.OakLeaves(), Persistent: true})
 		farm.Infest(tx, centre)
 	})
-	tick(s, ticksFor(farm.CocoonTime())+20)
-	var first int
-	s.World.Do(func(tx *world.Tx) { first = silkwormLeavesAround(tx, centre, 2) })
-	// The expected spreads of one cocoon are (CocoonMax-SpreadFrom) × SpreadChance ≈ 2.8.
-	if first == 0 {
-		t.Fatal("no leaves caught the silkworms in one cocoon time")
-	}
-	tick(s, 2*ticksFor(farm.CocoonTime()))
+	tick(s, ticksFor(farm.CocoonTime())+2)
 	s.World.Do(func(tx *world.Tx) {
-		if n := silkwormLeavesAround(tx, centre, 2); n <= first {
-			t.Errorf("the worms did not spread on: %d, then %d", first, n)
+		if n := silkwormLeavesAround(tx, centre, 1); n != 26 {
+			t.Errorf("a full cocoon reached %d of the 26 leaves around", n)
+		}
+	})
+	tick(s, 2*ticksFor(farm.CocoonTime())+4)
+	s.World.Do(func(tx *world.Tx) {
+		if n := silkwormLeavesAround(tx, centre, 2); n != 124 {
+			t.Errorf("after three cocoon times %d of the 124 leaves of the crown", n)
 		}
 	})
 }

@@ -23,15 +23,18 @@ import (
 // Silkworms and silkworm leaves, after Ex Nihilo Fabrico (SirLyle, MIT;
 // InfestedHelper, InfestingLeavesBlockEntity, SilkWormItem):
 //   - A silkworm used on leaves turns them into silkworm leaves at cocoon 0%.
-//   - The cocoon grows CocoonStep (10%) every CocoonStepTime, on a scheduled
-//     tick only, so it takes the same time everywhere (a random tick only
+//   - The cocoon grows CocoonStep (10%) at once every CocoonStepTime (not a
+//     little every tick), on a scheduled tick only, so it takes the same
+//     time everywhere (a random tick only
 //     schedules the next step again where one got lost: an old tick that
 //     comes for a state the leaves have left does nothing).
 //   - From SpreadFrom on, every step spreads the worms at SpreadChance to
 //     one of the leaves in the 3×3×3 around (only leaves are picked, so a
-//     spread does not miss), on the island's own chunks only (never in a
-//     world with no island session). At 100% they stop and drop string when
-//     broken, more with a crook.
+//     spread does not miss). When the cocoon is full they spread to every
+//     leaf around that is left, so the worms reach all the leaves they
+//     touch. Only on the island's own chunks (never in a world with no
+//     island session). Full leaves drop string when broken, more with a
+//     crook.
 //   - Leaves look for their log through them (block.LeavesLike, a Dragonfly
 //     patch). Silkworm leaves of leaves that grew on a tree decay like them
 //     when no log is left (FindLog), at once on the neighbour update; those
@@ -57,11 +60,11 @@ func init() {
 
 // Balancing drafts (docs/design/open-questions.md).
 var (
-	// CocoonStepTime is the time the cocoon takes to grow one step.
-	CocoonStepTime = 12 * time.Second
+	// CocoonStepTime is the time between two steps of the cocoon.
+	CocoonStepTime = 6 * time.Second
 	// SpreadChance is the chance a step from SpreadFrom on spreads the
-	// worms to one of the leaves around.
-	SpreadChance = 0.35
+	// worms to one of the leaves around; the full cocoon spreads to all.
+	SpreadChance = 0.5
 	SpreadFrom   = 2
 	// StringByHand and StringByCrook are the rolls of string full silkworm
 	// leaves drop: a string for each roll that comes up (Fabrico's crook
@@ -253,7 +256,9 @@ func GrowCocoon(tx *world.Tx, pos cube.Pos, l SilkwormLeaves, r *rand.Rand) {
 	tx.SetBlock(pos, l, nil)
 	if l.Cocoon < CocoonMax {
 		tx.ScheduleBlockUpdate(pos, l, CocoonStepTime)
+		return
 	}
+	SpreadAll(tx, pos)
 }
 
 // legacyInfested is the infested leaves block of 26.11.7: full silkworm
@@ -408,9 +413,31 @@ func Infest(tx *world.Tx, pos cube.Pos) bool {
 // around it, picked at random, on the island's own chunks; it reports
 // whether any caught them.
 func TrySpread(tx *world.Tx, pos cube.Pos, r *rand.Rand) bool {
+	leaves := leavesAround(tx, pos)
+	if len(leaves) == 0 {
+		return false
+	}
+	return Infest(tx, leaves[r.IntN(len(leaves))])
+}
+
+// SpreadAll spreads the worms from pos to every leaf in the 3×3×3 around it
+// on the island's own chunks, returning how many caught them.
+func SpreadAll(tx *world.Tx, pos cube.Pos) int {
+	n := 0
+	for _, at := range leavesAround(tx, pos) {
+		if Infest(tx, at) {
+			n++
+		}
+	}
+	return n
+}
+
+// leavesAround are the leaves in the 3×3×3 around pos on the island's own
+// chunks (none in a world with no island session).
+func leavesAround(tx *world.Tx, pos cube.Pos) []cube.Pos {
 	s, ok := core.Of(tx)
 	if !ok {
-		return false
+		return nil
 	}
 	var leaves []cube.Pos
 	for dx := -1; dx <= 1; dx++ {
@@ -426,10 +453,7 @@ func TrySpread(tx *world.Tx, pos cube.Pos, r *rand.Rand) bool {
 			}
 		}
 	}
-	if len(leaves) == 0 {
-		return false
-	}
-	return Infest(tx, leaves[r.IntN(len(leaves))])
+	return leaves
 }
 
 // CrookLeafDrops are the drops of leaves l broken with crook c: a sapling at
