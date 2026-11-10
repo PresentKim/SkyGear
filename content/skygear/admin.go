@@ -91,11 +91,13 @@ func giveItems() map[string]func() item.Stack {
 		"stone_hammer":     func() item.Stack { return item.NewStack(sgitem.Hammer{Stone: true}, 1) },
 		"silkworm":         func() item.Stack { return item.NewStack(farm.Silkworm{}, 1) },
 		"cooked_silkworm":  func() item.Stack { return item.NewStack(farm.CookedSilkworm{}, 1) },
-		"infested_leaves":  func() item.Stack { return item.NewStack(farm.InfestedLeaves{}, 1) },
-		"string_mesh":      func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
-		"barrel":           func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
-		"stone_barrel":     func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
-		"wood_hopper":      func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
+		"silkworm_leaves": func() item.Stack {
+			return item.NewStack(farm.SilkwormLeaves{Cocoon: farm.CocoonMax, Persistent: true}, 1)
+		},
+		"string_mesh":  func() item.Stack { return item.NewStack(sgitem.Mesh{Tier: "string"}, 1) },
+		"barrel":       func() item.Stack { return item.NewStack(farm.Barrel{Wood: "oak"}, 1) },
+		"stone_barrel": func() item.Stack { return item.NewStack(farm.Barrel{Wood: farm.StoneWood}, 1) },
+		"wood_hopper":  func() item.Stack { return item.NewStack(hopper.NewFlowHopper("wood_hopper", cube.FaceDown), 1) },
 		"wood_hopper_reverse": func() item.Stack {
 			return item.NewStack(hopper.NewFlowHopper("wood_hopper_reverse", cube.FaceUp), 1)
 		},

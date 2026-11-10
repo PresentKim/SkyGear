@@ -186,6 +186,8 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		info.Lines = farm.ComposterLines(s, lang, pos, b)
 	case conduit.Bundle:
 		info.Lines = conduit.BundleLines(lang, tx, pos, b)
+	case farm.SilkwormLeaves:
+		info.Lines = []string{fmt.Sprintf(i18n.T(lang, "look.cocoon"), b.CocoonPercent())}
 	case farm.Barrel:
 		info.Lines = farm.BarrelLines(s, lang, tx, pos)
 		info.Line = farm.BarrelLiquid(s, lang, pos)

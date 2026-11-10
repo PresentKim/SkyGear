@@ -15,54 +15,55 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/blockmodel"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// Silkworms and infested leaves, after Ex Nihilo Fabrico (SirLyle, MIT;
+// Silkworms and silkworm leaves, after Ex Nihilo Fabrico (SirLyle, MIT;
 // InfestedHelper, InfestingLeavesBlockEntity, SilkWormItem):
-//   - A silkworm used on leaves turns them into infesting leaves.
-//   - Infesting leaves go up a stage every InfestStageTime (a scheduled
-//     tick; a random tick also moves them on, so leaves whose tick got lost
-//     still finish). From the second stage on every step tries to spread
-//     the worms to one random block of the 3×3×3 around (InfestSpreadChance).
-//     After the last stage they are infested leaves.
-//   - Infested leaves keep trying to spread on their random ticks
-//     (InfestedSpreadChance) and drop string when broken, more with a crook.
-//   - Neither ever decays: Dragonfly's leaves look for their log through
-//     them (block.LeavesLike, a Dragonfly patch), so infesting the middle of
-//     a crown keeps its outer leaves, and a felled tree leaves its infested
-//     leaves hanging for the string.
-//   - The worms only spread onto the island's own chunks (never in a world
-//     with no island session).
+//   - A silkworm used on leaves turns them into silkworm leaves at cocoon 0%.
+//   - The cocoon grows CocoonStep (10%) every CocoonStepTime, on a scheduled
+//     tick only, so it takes the same time everywhere (a random tick only
+//     schedules the next step again where one got lost: an old tick that
+//     comes for a state the leaves have left does nothing).
+//   - From SpreadFrom on, every step spreads the worms at SpreadChance to
+//     one of the leaves in the 3×3×3 around (only leaves are picked, so a
+//     spread does not miss), on the island's own chunks only (never in a
+//     world with no island session). At 100% they stop and drop string when
+//     broken, more with a crook.
+//   - Leaves look for their log through them (block.LeavesLike, a Dragonfly
+//     patch). Silkworm leaves of leaves that grew on a tree decay like them
+//     when no log is left (FindLog), at once on the neighbour update; those
+//     of placed (persistent) leaves stay and pass the update on to the leaves
+//     behind them (wakeLeaves).
+//   - The block keeps the id of the infesting leaves of 26.11.7, whose
+//     stages 0 to 3 read as 0% to 30%; the old infested leaves block turns
+//     into 100% silkworm leaves on its next tick or update (legacyInfested).
 
 func init() {
-	for stage := range InfestStages {
-		world.RegisterBlock(InfestingLeaves{Stage: stage})
+	for _, persistent := range []bool{false, true} {
+		for p := 0; p <= CocoonMax; p++ {
+			world.RegisterBlock(SilkwormLeaves{Cocoon: p, Persistent: persistent})
+		}
 	}
-	world.RegisterItem(InfestingLeaves{})
-	world.RegisterBlock(InfestedLeaves{})
-	world.RegisterItem(InfestedLeaves{})
+	world.RegisterItem(SilkwormLeaves{Cocoon: CocoonMax, Persistent: true})
+	world.RegisterBlock(legacyInfested{})
+	world.RegisterItem(legacyInfested{})
 	world.RegisterItem(Silkworm{})
 	world.RegisterItem(CookedSilkworm{})
-	sgitem.CrookBlockNames = append(sgitem.CrookBlockNames, infestingName, infestedName)
+	sgitem.CrookBlockNames = append(sgitem.CrookBlockNames, silkwormLeavesName, legacyInfestedName)
 }
 
 // Balancing drafts (docs/design/open-questions.md).
 var (
-	// InfestStageTime is the time one stage of infesting leaves takes, plus
-	// up to InfestStageJitter.
-	InfestStageTime   = 30 * time.Second
-	InfestStageJitter = 10 * time.Second
-	// InfestSpreadChance is the chance a stage step of infesting leaves (from
-	// stage 1 on) spreads the worms, InfestedSpreadChance that a random tick
-	// of infested leaves does. A spread picks one block of the 3×3×3 around;
-	// only leaves catch it.
-	InfestSpreadChance   = 0.25
-	InfestedSpreadChance = 0.25
-	// StringByHand and StringByCrook are the rolls of string infested
+	// CocoonStepTime is the time the cocoon takes to grow one step.
+	CocoonStepTime = 12 * time.Second
+	// SpreadChance is the chance a step from SpreadFrom on spreads the
+	// worms to one of the leaves around.
+	SpreadChance = 0.35
+	SpreadFrom   = 2
+	// StringByHand and StringByCrook are the rolls of string full silkworm
 	// leaves drop: a string for each roll that comes up (Fabrico's crook
 	// table; Fabrico's leaves drop nothing by hand).
 	StringByHand  = []float64{0.5, 0.25}
@@ -73,178 +74,270 @@ var (
 	CookedSilkwormSaturation = 6.0
 )
 
-// InfestStages are the stages of infesting leaves (0 to InfestStages-1).
-const InfestStages = 4
+// CocoonMax is the last step of the cocoon (100%); a step is CocoonStep %.
+const (
+	CocoonMax  = 10
+	CocoonStep = 10
+)
+
+// CocoonTime is how long silkworm leaves take from 0% to 100%.
+func CocoonTime() time.Duration { return CocoonStepTime * CocoonMax }
 
 const (
-	infestingName = "skygear:infesting_leaves"
-	infestedName  = "skygear:infested_leaves"
-	// infestStageState is the one block state of infesting leaves.
-	infestStageState = "skygear:infest_stage"
+	silkwormLeavesName = "skygear:infesting_leaves"
+	legacyInfestedName = "skygear:infested_leaves"
+	// cocoonState is the one block state: the cocoon step, "p" in front
+	// for persistent leaves. The values of 26.11.7 ("0" to "3") stay valid.
+	cocoonState = "skygear:infest_stage"
+	// logReach is how far leaves look for their log.
+	logReach = 4
 )
 
 var (
-	infestingHash = block.NextHash()
-	infestedHash  = block.NextHash()
+	silkwormLeavesHash = block.NextHash()
+	legacyInfestedHash = block.NextHash()
 )
 
-// leafMaterial is the look of a leaves texture: cut out like leaves.
+// leafMaterial is the look of a leaves texture: cut out, culled against its
+// neighbours (alpha test draws the back faces too, which fought with the
+// faces of the leaves beside it) and shaded with ambient occlusion like
+// vanilla leaves (without it the block looked flat and lit at night).
 func leafMaterial(texture string) customblock.Material {
-	return blockmodel.AlphaMaterial(texture)
+	return customblock.NewMaterial(texture, customblock.AlphaTestSingleSidedRenderMethod()).WithAmbientOcclusion()
 }
 
-// InfestingLeaves are leaves the silkworms are eating their way through.
-type InfestingLeaves struct{ Stage int }
-
-func (InfestingLeaves) EncodeItem() (string, int16) { return infestingName, 0 }
-
-func (l InfestingLeaves) EncodeBlock() (string, map[string]any) {
-	return infestingName, map[string]any{infestStageState: fmt.Sprint(l.Stage)}
+// cocoonTexture is the texture of a cocoon step: four pictures of the silk
+// spreading, then the full one.
+func cocoonTexture(p int) string {
+	switch {
+	case p >= CocoonMax:
+		return "skygear_infested_leaves"
+	case p >= 6:
+		return "skygear_infesting_leaves_3"
+	}
+	return fmt.Sprintf("skygear_infesting_leaves_%d", p/2)
 }
 
-func (l InfestingLeaves) Hash() (uint64, uint64) { return infestingHash, uint64(l.Stage) }
+// SilkwormLeaves are leaves silkworms live in, spinning their cocoons.
+type SilkwormLeaves struct {
+	// Cocoon is the step of the cocoon, 0 to CocoonMax.
+	Cocoon int
+	// Persistent is kept from the leaves: placed leaves never decay.
+	Persistent bool
+}
 
-func (InfestingLeaves) Model() world.BlockModel { return model.Leaves{} }
+// CocoonPercent is how far the cocoon is.
+func (l SilkwormLeaves) CocoonPercent() int { return l.Cocoon * CocoonStep }
 
-func (InfestingLeaves) Name() string { return i18n.T(i18n.Default, "name.InfestingLeaves") }
+func (SilkwormLeaves) EncodeItem() (string, int16) { return silkwormLeavesName, 0 }
 
-func (InfestingLeaves) Category() category.Category { return category.Nature() }
+func (l SilkwormLeaves) stateValue() string {
+	if l.Persistent {
+		return fmt.Sprintf("p%d", l.Cocoon)
+	}
+	return fmt.Sprint(l.Cocoon)
+}
 
-func infestingTexture(stage int) string { return fmt.Sprintf("skygear_infesting_leaves_%d", stage) }
+func (l SilkwormLeaves) EncodeBlock() (string, map[string]any) {
+	return silkwormLeavesName, map[string]any{cocoonState: l.stateValue()}
+}
 
-func (InfestingLeaves) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial(infestingTexture(0))}}
+func (l SilkwormLeaves) Hash() (uint64, uint64) {
+	h := uint64(l.Cocoon)
+	if l.Persistent {
+		h |= 1 << 8
+	}
+	return silkwormLeavesHash, h
+}
+
+func (SilkwormLeaves) Model() world.BlockModel { return model.Leaves{} }
+
+func (SilkwormLeaves) Name() string { return i18n.T(i18n.Default, "name.SilkwormLeaves") }
+
+func (SilkwormLeaves) Category() category.Category { return category.Nature() }
+
+func (SilkwormLeaves) Properties() customblock.Properties {
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial(cocoonTexture(0))}}
 }
 
 // States implements block.Permutable.
-func (InfestingLeaves) States() map[string][]any {
+func (SilkwormLeaves) States() map[string][]any {
 	var values []any
-	for i := range InfestStages {
-		values = append(values, fmt.Sprint(i))
+	for _, persistent := range []bool{false, true} {
+		for p := 0; p <= CocoonMax; p++ {
+			values = append(values, SilkwormLeaves{Cocoon: p, Persistent: persistent}.stateValue())
+		}
 	}
-	return map[string][]any{infestStageState: values}
+	return map[string][]any{cocoonState: values}
 }
 
-// Permutations implements block.Permutable: one texture per stage.
-func (InfestingLeaves) Permutations() []customblock.Permutation {
+// Permutations implements block.Permutable: the texture of each step.
+func (SilkwormLeaves) Permutations() []customblock.Permutation {
 	var out []customblock.Permutation
-	for stage := 1; stage < InfestStages; stage++ {
+	for p := 1; p <= CocoonMax; p++ {
+		if cocoonTexture(p) == cocoonTexture(0) {
+			continue
+		}
+		cond := fmt.Sprintf("q.block_state('%[1]s') == '%[2]d' || q.block_state('%[1]s') == 'p%[2]d'", cocoonState, p)
 		out = append(out, customblock.Permutation{
-			Condition: fmt.Sprintf("q.block_state('%s') == '%d'", infestStageState, stage),
-			Properties: customblock.Properties{
-				Cube:     true,
-				Textures: map[string]customblock.Material{"*": leafMaterial(infestingTexture(stage))},
-			},
+			Condition:  cond,
+			Properties: customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial(cocoonTexture(p))}},
 		})
 	}
 	return out
 }
 
-// BreakInfo: leaves still being eaten give nothing; the worms are lost.
-func (InfestingLeaves) BreakInfo() block.BreakInfo {
-	return leavesBreakInfo(func(item.Tool, []item.Enchantment) []item.Stack { return nil })
+// BreakInfo: full cocoons give string, more with a crook; leaves still
+// spinning give nothing (the worms are lost).
+func (l SilkwormLeaves) BreakInfo() block.BreakInfo {
+	return leavesBreakInfo(func(t item.Tool, _ []item.Enchantment) []item.Stack {
+		if l.Cocoon < CocoonMax {
+			return nil
+		}
+		return CocoonDrops(t, rand.Float64)
+	})
 }
 
-func (InfestingLeaves) LightDiffusionLevel() uint8 { return 1 }
+func (SilkwormLeaves) LightDiffusionLevel() uint8 { return 1 }
 
-func (InfestingLeaves) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool { return false }
+func (SilkwormLeaves) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool { return false }
 
-func (InfestingLeaves) FlammabilityInfo() block.FlammabilityInfo {
+func (SilkwormLeaves) FlammabilityInfo() block.FlammabilityInfo {
 	return block.FlammabilityInfo{Encouragement: 30, Flammability: 60, LavaFlammable: true}
 }
 
 // LeavesLike implements block.LeavesLike: leaves find their log through it.
-func (InfestingLeaves) LeavesLike() bool { return true }
+func (SilkwormLeaves) LeavesLike() bool { return true }
 
-// NeighbourUpdateTick passes the update on to the leaves beyond (wakeLeaves).
-func (InfestingLeaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { wakeLeaves(tx, pos) }
-
-// ScheduledTick moves the leaves a stage on.
-func (l InfestingLeaves) ScheduledTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
-	if cur, ok := tx.Block(pos).(InfestingLeaves); ok {
-		AdvanceInfesting(tx, pos, cur, r)
-	}
-}
-
-// RandomTick moves the leaves a stage on too: the stage also goes on for
-// leaves whose scheduled tick was lost (an infesting leaves item placed).
-func (l InfestingLeaves) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
-	AdvanceInfesting(tx, pos, l, r)
-}
-
-// AdvanceInfesting moves infesting leaves l at pos one stage on, spreading
-// the worms from stage 1 on, and schedules the next stage; after the last
-// stage they become infested leaves.
-func AdvanceInfesting(tx *world.Tx, pos cube.Pos, l InfestingLeaves, r *rand.Rand) {
-	if l.Stage >= 1 && r.Float64() < InfestSpreadChance {
-		TrySpread(tx, pos, r)
-	}
-	if l.Stage+1 >= InfestStages {
-		tx.SetBlock(pos, InfestedLeaves{}, nil)
+// NeighbourUpdateTick decays the leaves when no log is left, as leaves do
+// (at once: the decay that follows passes on to the next); placed leaves
+// stay and pass the update on.
+func (l SilkwormLeaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	if !l.Persistent && !FindLog(tx, pos) {
+		tx.SetBlock(pos, nil, nil)
+		for _, d := range l.BreakInfo().Drops(item.ToolNone{}, nil) {
+			if s, ok := core.Of(tx); ok {
+				s.DropAt(tx, pos.Vec3Centre(), d)
+			}
+		}
 		return
 	}
-	l.Stage++
-	tx.SetBlock(pos, l, nil)
-	scheduleInfest(tx, pos, l, r)
+	wakeLeaves(tx, pos)
 }
 
-// scheduleInfest schedules the next stage of the infesting leaves at pos.
-func scheduleInfest(tx *world.Tx, pos cube.Pos, l InfestingLeaves, r *rand.Rand) {
-	delay := InfestStageTime
-	if InfestStageJitter > 0 {
-		delay += time.Duration(r.Int64N(int64(InfestStageJitter)))
+// ScheduledTick grows the cocoon a step.
+func (SilkwormLeaves) ScheduledTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
+	if cur, ok := tx.Block(pos).(SilkwormLeaves); ok {
+		GrowCocoon(tx, pos, cur, r)
 	}
-	tx.ScheduleBlockUpdate(pos, l, delay)
 }
 
-// InfestedLeaves are leaves the silkworms have turned into silk.
-type InfestedLeaves struct{}
-
-func (InfestedLeaves) EncodeItem() (string, int16) { return infestedName, 0 }
-
-func (InfestedLeaves) EncodeBlock() (string, map[string]any) { return infestedName, nil }
-
-func (InfestedLeaves) Hash() (uint64, uint64) { return infestedHash, 0 }
-
-func (InfestedLeaves) Model() world.BlockModel { return model.Leaves{} }
-
-func (InfestedLeaves) Name() string { return i18n.T(i18n.Default, "name.InfestedLeaves") }
-
-func (InfestedLeaves) Category() category.Category { return category.Nature() }
-
-func (InfestedLeaves) Properties() customblock.Properties {
-	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial("skygear_infested_leaves")}}
+// RandomTick schedules the next step again, for leaves whose tick got lost
+// (an item placed, a tick that did not survive): it never grows the cocoon.
+func (l SilkwormLeaves) RandomTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
+	if l.Cocoon < CocoonMax {
+		tx.ScheduleBlockUpdate(pos, l, CocoonStepTime)
+	}
 }
 
-// BreakInfo: string, more with a crook.
-func (InfestedLeaves) BreakInfo() block.BreakInfo {
-	return leavesBreakInfo(func(t item.Tool, _ []item.Enchantment) []item.Stack {
-		return InfestedDrops(t, rand.Float64)
-	})
+// GrowCocoon grows the cocoon of l at pos a step, spreading the worms from
+// SpreadFrom on, and schedules the next step until it is full.
+func GrowCocoon(tx *world.Tx, pos cube.Pos, l SilkwormLeaves, r *rand.Rand) {
+	if l.Cocoon >= CocoonMax {
+		return
+	}
+	if l.Cocoon >= SpreadFrom && r.Float64() < SpreadChance {
+		TrySpread(tx, pos, r)
+	}
+	l.Cocoon++
+	tx.SetBlock(pos, l, nil)
+	if l.Cocoon < CocoonMax {
+		tx.ScheduleBlockUpdate(pos, l, CocoonStepTime)
+	}
 }
 
-func (InfestedLeaves) LightDiffusionLevel() uint8 { return 1 }
+// legacyInfested is the infested leaves block of 26.11.7: full silkworm
+// leaves, which it turns into on its next tick or update.
+type legacyInfested struct{}
 
-func (InfestedLeaves) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool { return false }
+func (legacyInfested) EncodeItem() (string, int16) { return legacyInfestedName, 0 }
 
-func (InfestedLeaves) FlammabilityInfo() block.FlammabilityInfo {
-	return block.FlammabilityInfo{Encouragement: 30, Flammability: 60, LavaFlammable: true}
+func (legacyInfested) EncodeBlock() (string, map[string]any) { return legacyInfestedName, nil }
+
+func (legacyInfested) Hash() (uint64, uint64) { return legacyInfestedHash, 0 }
+
+func (legacyInfested) Model() world.BlockModel { return model.Leaves{} }
+
+func (legacyInfested) Name() string { return i18n.T(i18n.Default, "name.SilkwormLeaves") }
+
+func (legacyInfested) Category() category.Category { return category.Nature() }
+
+func (legacyInfested) Properties() customblock.Properties {
+	return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": leafMaterial(cocoonTexture(CocoonMax))}}
 }
 
-// LeavesLike implements block.LeavesLike.
-func (InfestedLeaves) LeavesLike() bool { return true }
+func (legacyInfested) BreakInfo() block.BreakInfo {
+	return SilkwormLeaves{Cocoon: CocoonMax}.BreakInfo()
+}
 
-// NeighbourUpdateTick passes the update on to the leaves beyond (wakeLeaves).
-func (InfestedLeaves) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { wakeLeaves(tx, pos) }
+func (legacyInfested) LightDiffusionLevel() uint8 { return 1 }
 
-// wakeLeaves gives the leaves reached from pos through infested leaves (up to
-// four steps, as far as leaves look for a log) a neighbour update, as leaves
-// pass one on to each other: with the log of a tree felled, the leaves
-// behind its infested ones still check for it and decay. The infested blocks
-// themselves are not set again, so they do not keep waking each other.
+func (legacyInfested) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool { return false }
+
+func (legacyInfested) LeavesLike() bool { return true }
+
+func (legacyInfested) upgrade(pos cube.Pos, tx *world.Tx) {
+	tx.SetBlock(pos, SilkwormLeaves{Cocoon: CocoonMax}, nil)
+}
+
+func (b legacyInfested) RandomTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) { b.upgrade(pos, tx) }
+
+func (b legacyInfested) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) { b.upgrade(pos, tx) }
+
+// FindLog reports whether a log is within logReach of pos, counted through
+// leaves and blocks like them (block.LeavesLike), as leaves look for theirs.
+func FindLog(tx *world.Tx, pos cube.Pos) bool {
+	visited, step := map[cube.Pos]struct{}{pos: {}}, []cube.Pos{pos}
+	for distance := 0; len(step) > 0; distance++ {
+		var next []cube.Pos
+		for _, at := range step {
+			b := tx.Block(at)
+			switch b.(type) {
+			case block.Log, block.Wood:
+				return true
+			}
+			if !leafy(b) || distance >= logReach {
+				continue
+			}
+			at.Neighbours(func(n cube.Pos) {
+				if _, ok := visited[n]; !ok {
+					visited[n] = struct{}{}
+					next = append(next, n)
+				}
+			}, tx.Range())
+		}
+		step = next
+	}
+	return false
+}
+
+// leafy reports whether b is leaves or counts as leaves.
+func leafy(b world.Block) bool {
+	if _, ok := b.(block.Leaves); ok {
+		return true
+	}
+	l, ok := b.(block.LeavesLike)
+	return ok && l.LeavesLike()
+}
+
+// wakeLeaves gives the leaves reached from pos through silkworm leaves (up
+// to logReach steps) a neighbour update, as leaves pass one on to each
+// other: the leaves behind placed silkworm leaves still hear that their log
+// was felled. The silkworm leaves themselves are not set again, so they do
+// not keep waking each other.
 func wakeLeaves(tx *world.Tx, pos cube.Pos) {
 	visited, step := map[cube.Pos]struct{}{pos: {}}, []cube.Pos{pos}
-	for distance := 0; distance < 4 && len(step) > 0; distance++ {
+	for distance := 0; distance < logReach && len(step) > 0; distance++ {
 		var next []cube.Pos
 		for _, at := range step {
 			at.Neighbours(func(n cube.Pos) {
@@ -266,16 +359,9 @@ func wakeLeaves(tx *world.Tx, pos cube.Pos) {
 	}
 }
 
-// RandomTick tries to spread the worms.
-func (InfestedLeaves) RandomTick(pos cube.Pos, tx *world.Tx, r *rand.Rand) {
-	if r.Float64() < InfestedSpreadChance {
-		TrySpread(tx, pos, r)
-	}
-}
-
-// InfestedDrops are the drops of infested leaves broken with t: a string
+// CocoonDrops are the drops of full silkworm leaves broken with t: a string
 // for each roll of the table that comes up (roll is rand.Float64 in play).
-func InfestedDrops(t item.Tool, roll func() float64) []item.Stack {
+func CocoonDrops(t item.Tool, roll func() float64) []item.Stack {
 	rolls := StringByHand
 	if _, crook := t.(sgitem.Crook); crook {
 		rolls = StringByCrook
@@ -292,8 +378,8 @@ func InfestedDrops(t item.Tool, roll func() float64) []item.Stack {
 	return []item.Stack{item.NewStack(block.String{}, n)}
 }
 
-// leavesBreakInfo is the break info of the infested leaves: as soft as
-// leaves, quickest with a crook (a hoe to the server) or shears.
+// leavesBreakInfo is the break info of silkworm leaves: as soft as leaves,
+// quickest with a crook (a hoe to the server) or shears.
 func leavesBreakInfo(drops func(item.Tool, []item.Enchantment) []item.Stack) block.BreakInfo {
 	return block.BreakInfo{
 		Hardness: 0.2, BlastResistance: 0.2,
@@ -305,30 +391,45 @@ func leavesBreakInfo(drops func(item.Tool, []item.Enchantment) []item.Stack) blo
 	}
 }
 
-// Infest turns the leaves at pos into infesting leaves and schedules their
-// first stage, reporting whether there were leaves to infest.
-func Infest(tx *world.Tx, pos cube.Pos, r *rand.Rand) bool {
-	if _, ok := tx.Block(pos).(block.Leaves); !ok {
+// Infest turns the leaves at pos into silkworm leaves at 0% and schedules
+// the first step, reporting whether there were leaves to infest.
+func Infest(tx *world.Tx, pos cube.Pos) bool {
+	leaves, ok := tx.Block(pos).(block.Leaves)
+	if !ok {
 		return false
 	}
-	l := InfestingLeaves{}
+	l := SilkwormLeaves{Persistent: leaves.Persistent}
 	tx.SetBlock(pos, l, nil)
-	scheduleInfest(tx, pos, l, r)
+	tx.ScheduleBlockUpdate(pos, l, CocoonStepTime)
 	return true
 }
 
-// TrySpread spreads the worms from pos to one random block of the 3×3×3
-// around it: leaves there start infesting, anything else is missed. The
-// worms stay on the island's own chunks.
+// TrySpread spreads the worms from pos to one of the leaves in the 3×3×3
+// around it, picked at random, on the island's own chunks; it reports
+// whether any caught them.
 func TrySpread(tx *world.Tx, pos cube.Pos, r *rand.Rand) bool {
-	at := pos.Add(cube.Pos{r.IntN(3) - 1, r.IntN(3) - 1, r.IntN(3) - 1})
-	if at == pos || at.OutOfBounds(tx.Range()) {
+	s, ok := core.Of(tx)
+	if !ok {
 		return false
 	}
-	if s, ok := core.Of(tx); !ok || !island.CanBuild(s, at) {
+	var leaves []cube.Pos
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			for dz := -1; dz <= 1; dz++ {
+				at := pos.Add(cube.Pos{dx, dy, dz})
+				if at == pos || at.OutOfBounds(tx.Range()) || !island.CanBuild(s, at) {
+					continue
+				}
+				if _, ok := tx.Block(at).(block.Leaves); ok {
+					leaves = append(leaves, at)
+				}
+			}
+		}
+	}
+	if len(leaves) == 0 {
 		return false
 	}
-	return Infest(tx, at, r)
+	return Infest(tx, leaves[r.IntN(len(leaves))])
 }
 
 // CrookLeafDrops are the drops of leaves l broken with crook c: a sapling at
@@ -366,13 +467,9 @@ func (Silkworm) Name() string { return i18n.T(i18n.Default, "name.Silkworm") }
 
 func (Silkworm) Category() category.Category { return category.Items() }
 
-// UseOnBlock implements item.UsableOnBlock: leaves turn into infesting leaves.
+// UseOnBlock implements item.UsableOnBlock: leaves turn into silkworm leaves.
 func (Silkworm) UseOnBlock(pos cube.Pos, _ cube.Face, _ mgl64.Vec3, tx *world.Tx, _ item.User, ctx *item.UseContext) bool {
-	r := rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))
-	if s, ok := core.Of(tx); ok {
-		r = s.Rand
-	}
-	if !Infest(tx, pos, r) {
+	if !Infest(tx, pos) {
 		return false
 	}
 	tx.PlaySound(pos.Vec3Centre(), sound.ItemUseOn{Block: block.Leaves{Type: block.OakLeaves()}})

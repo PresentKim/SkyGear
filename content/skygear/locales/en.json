@@ -998,12 +998,12 @@
  "name.Crook.iron": "Iron Crook",
  "name.Crook.diamond": "Diamond Crook",
  "name.Silkworm": "Silkworm",
- "name.InfestingLeaves": "Infesting Leaves",
- "name.InfestedLeaves": "Infested Leaves",
  "codex.card.crook": "Break with a crook",
  "codex.card.leavesByHand": "Break by hand",
  "codex.card.silkworm": "Use a silkworm on it",
- "codex.card.infest": "Infested after about %s",
+ "codex.card.infest": "Cocoon full after about %s",
  "codex.card.rolls": "%s on average",
- "name.CookedSilkworm": "Cooked Silkworm"
+ "name.CookedSilkworm": "Cooked Silkworm",
+ "name.SilkwormLeaves": "Silkworm Leaves",
+ "look.cocoon": "§7Cocoon §f%d%%"
 }

@@ -40,18 +40,20 @@ var leaf = []string{
 	"mdmd.dmd..mdd.dm",
 }
 
-// green are the leaf colours by 'd', 'm', 'l'.
+// green are the leaf colours by 'd', 'm', 'l': about vanilla oak leaves
+// with the plains foliage tint, so the block is no brighter than its
+// neighbours.
 var green = map[byte]color.RGBA{
-	'd': {40, 92, 30, 255},
-	'm': {62, 128, 44, 255},
-	'l': {96, 162, 62, 255},
+	'd': {34, 78, 22, 255},
+	'm': {50, 106, 32, 255},
+	'l': {76, 136, 46, 255},
 }
 
 // silk are the silk colours by 'd', 'm', 'l': off-white with a cool shade.
 var silk = map[byte]color.RGBA{
-	'd': {178, 180, 186, 255},
-	'm': {214, 214, 218, 255},
-	'l': {242, 241, 236, 255},
+	'd': {160, 162, 168, 255},
+	'm': {196, 196, 202, 255},
+	'l': {226, 225, 220, 255},
 }
 
 // seeds are where the silk starts, so it spreads from patches.

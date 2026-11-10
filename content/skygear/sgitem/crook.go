@@ -11,7 +11,7 @@ import (
 // The crook, after the crook of Ex Nihilo Fabrico (SirLyle, MIT): a hooked
 // stick that pulls leaves apart. Leaves broken with it drop saplings more
 // often than by hand and now and then a silkworm (farm.CrookLeafDrops);
-// fully infested leaves drop more string (farm.InfestedLeaves). It breaks
+// full silkworm leaves drop more string (farm.SilkwormLeaves). It breaks
 // leaves quickly and wears a point a leaf. The pictures are Fabrico's.
 
 // Crook tiers.
