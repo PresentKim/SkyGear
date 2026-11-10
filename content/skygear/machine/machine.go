@@ -331,7 +331,7 @@ var Kinds = map[string]*Def{
 	KindHarvester: {
 		ID: idHarvester, nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		Use: 10, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.harvester.help.1"},
+		helpKeys: []string{"machine.harvester.help.1", "machine.harvester.help.2"},
 	},
 	KindGenerator: {
 		ID: idGenerator, nameKey: "generator.name", Marker: "§d§m§5", Interval: 100, Input: []int{13}, Indicator: 10,
@@ -462,12 +462,12 @@ var Kinds = map[string]*Def{
 	KindVacuum: {
 		ID: idVacuum, nameKey: "machine.vacuum.name", Marker: "§d§m§3", Interval: 10, Output: []int{13, 14, 15, 16}, Indicator: 10,
 		Use: 5, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2"},
+		helpKeys: []string{"machine.vacuum.help.1", "machine.vacuum.help.2", "machine.vacuum.help.3"},
 	},
 	KindFeller: {
 		ID: idFeller, nameKey: "machine.feller.name", Marker: "§d§m§9", Interval: 60, Input: []int{10}, Charge: []int{11}, Output: []int{13, 14, 15, 16}, Indicator: 12,
 		Use: 15, EnergyCap: ConsumerBuffer,
-		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3"},
+		helpKeys: []string{"machine.feller.help.1", "machine.feller.help.2", "machine.feller.help.3", "machine.feller.help.4"},
 	},
 	KindCrafter: {
 		// The store is the 3×3 on the left, the recipe slot above the ring.
