@@ -20,8 +20,8 @@ import (
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
-// TestPinSimple records, per scenario, the marks the simple player events of
-// handler.go reach (HandleMove down to HandleCommandExecution) and the
+// TestPinSimple records, per scenario, the marks the simple player events
+// reach (HandleMove down to HandleCommandExecution) and the
 // outcome, into testdata/pin/handler-simple.golden. Each scenario runs on a
 // fresh session and player. The golden is recorded from the legacy code; it
 // may be re-recorded (SKYGEAR_GOLDEN=update) only when the legacy behaviour

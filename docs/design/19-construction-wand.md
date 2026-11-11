@@ -105,4 +105,4 @@
 
 ## 10. 구현 위치
 
-`content/skygear/wand`: 설정(`wand.go`), 놓을 자리 찾기와 블록 공급(`build.go`의 `Plan`), 클릭·되돌리기·미리보기(`use.go`), 원형 메뉴(`screen.go`, 화면은 `common/ui/radial.go` 의 `ShowRadial` 과 `web/oreui/src/screens/radial.tsx`). 아이템은 `sgitem/wand.go`(`Wand`, `InfinityWand`). 클릭은 `handler.go`의 `HandleItemUseOnBlock`(넓히기)과 `HandleItemUse`(웅크리고 허공: 원형 메뉴)가 가로채고, 미리보기는 `look` 의 바라보기 갱신이 부른다. 블록마다 핸들러의 `HandleBlockPlace` 를 거쳐 섬 영역 검사와 놓기 집계가 다른 블록과 같다.
+`content/skygear/wand`: 설정(`wand.go`), 놓을 자리 찾기와 블록 공급(`build.go`의 `Plan`), 클릭·되돌리기·미리보기(`use.go`), 원형 메뉴(`screen.go`, 화면은 `common/ui/radial.go` 의 `ShowRadial` 과 `web/oreui/src/screens/radial.tsx`). 아이템은 `sgitem/wand.go`(`Wand`, `InfinityWand`). 클릭은 `UseOnBlock` 훅의 `wand.use`(넓히기)와 `Use` 훅의 `wand.options`(웅크리고 허공: 원형 메뉴, `legacy_wand.go`)가 가로채고, 미리보기는 `look` 의 바라보기 갱신이 부른다. 블록마다 핸들러의 `HandleBlockPlace` 를 거쳐 섬 영역 검사와 놓기 집계가 다른 블록과 같다.

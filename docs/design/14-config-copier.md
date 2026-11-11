@@ -47,4 +47,4 @@
 
 ## 6. 구현 위치
 
-`copier.go`: 아이템(`ConfigCopier`), 설정 종류별 읽기·붙이기, 알림. 도관 면 설정의 읽기와 쓰기는 `conduitform.go`의 `StoreSide`, 서랍은 `drawer.go`, 자동 제작기는 `autocraft.go`의 `SetRecipe`를 쓴다. 클릭은 `handler.go`의 `HandleItemUseOnBlock`이 복사기를 들고 있을 때 먼저 가로챈다.
+`copier.go`: 아이템(`ConfigCopier`), 설정 종류별 읽기·붙이기, 알림. 도관 면 설정의 읽기와 쓰기는 `conduitform.go`의 `StoreSide`, 서랍은 `drawer.go`, 자동 제작기는 `autocraft.go`의 `SetRecipe`를 쓴다. 클릭은 `UseOnBlock` 훅의 `copier.use`(`legacy_copier.go`)가 복사기를 들고 있을 때 먼저 가로챈다.

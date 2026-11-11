@@ -35,7 +35,10 @@ func (a Actor) Cancel() {
 
 // Pointer fields (Drops, XP, Damage, Pos, Pick) are the pointers Dragonfly
 // passed to the handler, not copies: a subscriber that writes through one
-// changes what Dragonfly does, exactly as a direct handler would.
+// changes what Dragonfly does, exactly as a direct handler would. The other
+// fields (Held, Off, Block, Item) are copies taken when the event was built:
+// when a subscriber changes the hand or the world, later subscribers still see
+// the old value and must ask the player or the Tx for the new one.
 
 // StartBreakEvent is a player starting to break the block at Pos.
 type StartBreakEvent struct {
