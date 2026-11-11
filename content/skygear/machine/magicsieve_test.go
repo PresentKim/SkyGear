@@ -1,4 +1,4 @@
-package skygear
+package machine_test
 
 import (
 	"slices"
@@ -7,7 +7,9 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
@@ -77,9 +79,9 @@ func TestThemeChance(t *testing.T) {
 // the sieve for sievetable.MagicCharges sifts, and the sieve falls back to its mesh
 // table when the charges run out.
 func TestMagicSieveCharging(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindMagicSieve)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindMagicSieve)
 	ess := item.NewStack(sgitem.Essence{Mob: sgitem.MobPiglin}, 2)
 	if st.SlotAccepts(10, ess) || !st.SlotAccepts(11, ess) {
 		t.Fatal("the essence belongs in the essence slot only")
@@ -125,7 +127,7 @@ func TestMagicSieveCharging(t *testing.T) {
 // TestMagicThemeReplaces: the piglin replaces what sand gives, the zombie only
 // adds to it.
 func TestMagicThemeReplaces(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	sand := item.NewStack(block.Sand{}, 1)
 	base := map[string]bool{}
 	for _, d := range sievetable.Tables["string"][naming.ItemKey(block.Sand{})] {
@@ -161,14 +163,14 @@ func TestMagicThemeReplaces(t *testing.T) {
 
 // TestMagicSieveWorks: a charged sieve sifts on its own and counts the sifts.
 func TestMagicSieveWorks(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindMagicSieve)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindMagicSieve)
 	_ = st.Insert(item.NewStack(sgitem.Essence{Mob: sgitem.MobEnder}, 1))
 	for range 3 {
 		_ = st.Insert(item.NewStack(block.Gravel{}, 1))
 	}
-	tick(s, 3*(machine.Kinds[machine.KindMagicSieve].Interval+3))
+	coretest.Tick(s, 3*(machine.Kinds[machine.KindMagicSieve].Interval+3))
 	if st.Charges >= sievetable.MagicCharges {
 		t.Fatalf("no charge was used (%d left)", st.Charges)
 	}

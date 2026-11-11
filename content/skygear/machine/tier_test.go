@@ -1,4 +1,4 @@
-package skygear
+package machine_test
 
 import (
 	"testing"
@@ -9,7 +9,9 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/content/skygear/machinerecipe"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
@@ -50,12 +52,12 @@ func TestTierNumbers(t *testing.T) {
 // one in the same ticks.
 func TestTierSpeedsUpWork(t *testing.T) {
 	run := func(tier int) int {
-		s := testSession(t)
-		loadAround(s)
-		st := placeTestMachine(s, machinePos, machine.KindCrusher)
+		s := coretest.Session(t)
+		coretest.LoadAround(s)
+		st := machinetest.Place(s, machinetest.Pos, machine.KindCrusher)
 		st.Tier = tier
 		_ = st.Inv().SetItem(11, item.NewStack(block.Stone{}, 64))
-		tick(s, 800)
+		coretest.Tick(s, 800)
 		return machine.FactoryOf(st.Sess).Stats.Buckets[machine.FactoryOf(st.Sess).Stats.Head].Total
 	}
 	basic, fast := run(0), run(3)
@@ -67,20 +69,20 @@ func TestTierSpeedsUpWork(t *testing.T) {
 // TestTierEnergy: with energy the tier spends what its numbers say and stops
 // when the buffer is empty.
 func TestTierEnergy(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindCrusher)
 	st.Unlimited = false
 	st.Tier = 2
 	st.Energy = st.EnergyCap()
 	_ = st.Inv().SetItem(11, item.NewStack(block.Stone{}, 64))
-	tick(s, 10)
+	coretest.Tick(s, 10)
 	if got, want := st.EnergyCap()-st.Energy, 10*st.UseTotal(); got != want {
 		t.Fatalf("spent %d RE in 10 ticks, want %d", got, want)
 	}
 	st.Energy = 0
 	before := st.Progress
-	tick(s, 5)
+	coretest.Tick(s, 5)
 	if st.Progress != before {
 		t.Fatal("a machine without energy went on working")
 	}
@@ -89,36 +91,36 @@ func TestTierEnergy(t *testing.T) {
 // TestUseKit: the next kit raises a machine, others change nothing, and
 // breaking the machine gives the kits back.
 func TestUseKit(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindCrusher)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindCrusher)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		m := machine.Machine{Kind: machine.KindCrusher, State: st}
 		kit := func(l int) (item.Stack, item.Stack) { return item.NewStack(sgitem.TierKit{Level: l}, 1), item.Stack{} }
 		held, off := kit(2)
-		machine.UseKit(s.Session, p, tx, machinePos, m, sgitem.TierKit{Level: 2}, held, off)
+		machine.UseKit(s.Session, p, tx, machinetest.Pos, m, sgitem.TierKit{Level: 2}, held, off)
 		if st.Tier != 0 {
 			t.Fatal("the second kit raised a basic machine")
 		}
 		for l := 1; l <= machine.MaxTier; l++ {
 			held, off = kit(l)
-			machine.UseKit(s.Session, p, tx, machinePos, m, sgitem.TierKit{Level: l}, held, off)
+			machine.UseKit(s.Session, p, tx, machinetest.Pos, m, sgitem.TierKit{Level: l}, held, off)
 			if st.Tier != l {
 				t.Fatalf("kit %d: tier %d", l, st.Tier)
 			}
-			if got := tx.Block(machinePos).(machine.Machine); got.Tier != l {
+			if got := tx.Block(machinetest.Pos).(machine.Machine); got.Tier != l {
 				t.Fatalf("kit %d: the block shows tier %d", l, got.Tier)
 			}
 		}
 		held, off = kit(3)
-		machine.UseKit(s.Session, p, tx, machinePos, m, sgitem.TierKit{Level: 3}, held, off)
+		machine.UseKit(s.Session, p, tx, machinetest.Pos, m, sgitem.TierKit{Level: 3}, held, off)
 		if st.Tier != machine.MaxTier {
 			t.Fatal("the tier went past the top")
 		}
-		tank := placeTestMachine(s, machinePos.Add(cube.Pos{2, 0, 0}), machine.KindTank)
+		tank := machinetest.Place(s, machinetest.Pos.Add(cube.Pos{2, 0, 0}), machine.KindTank)
 		held, off = kit(1)
-		machine.UseKit(s.Session, p, tx, machinePos, machine.Machine{Kind: machine.KindTank, State: tank}, sgitem.TierKit{Level: 1}, held, off)
+		machine.UseKit(s.Session, p, tx, machinetest.Pos, machine.Machine{Kind: machine.KindTank, State: tank}, sgitem.TierKit{Level: 1}, held, off)
 		if tank.Tier != 0 {
 			t.Fatal("a tank took a kit")
 		}

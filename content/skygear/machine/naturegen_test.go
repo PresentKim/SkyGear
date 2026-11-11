@@ -1,4 +1,4 @@
-package skygear
+package machine_test
 
 import (
 	"strings"
@@ -10,7 +10,9 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 )
 
 // TestDaylight: the sun is full at noon, about a fifth at sunrise and dusk,
@@ -31,13 +33,13 @@ func TestDaylight(t *testing.T) {
 // TestSolarGenerator: under the fixed day sun it makes its full output, a
 // tier more; the rain dims it, the night and a roof stop it, glass does not.
 func TestSolarGenerator(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	climate.StateOf(s.Session).Sun = climate.SunDay
-	gen := placeTestMachine(s, machinePos, machine.KindSolarGenerator)
+	gen := machinetest.Place(s, machinetest.Pos, machine.KindSolarGenerator)
 	gain := func(ticks int) int {
 		before := gen.Energy
-		tick(s, ticks)
+		coretest.Tick(s, ticks)
 		return gen.Energy - before
 	}
 	if got := gain(20); got != 20*machine.SolarOutput {
@@ -59,7 +61,7 @@ func TestSolarGenerator(t *testing.T) {
 	}
 	climate.StateOf(s.Session).Sun = climate.SunDay
 
-	above := machinePos.Add(cube.Pos{0, 3, 0})
+	above := machinetest.Pos.Add(cube.Pos{0, 3, 0})
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(above, block.Glass{}, nil) })
 	if gain(21); gain(20) != 20*machine.SolarOutput {
 		t.Error("glass above stops it")
@@ -82,12 +84,12 @@ func TestSolarGenerator(t *testing.T) {
 // TestHydroGenerator: still water makes nothing, flowing water by its depth
 // and the faces it touches, up to the full output.
 func TestHydroGenerator(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	// the water is set without block updates and the tests tick less than
 	// the generator's recheck, so the flow they see is the one set
 	place := func(pos cube.Pos, water map[cube.Face]block.Water) *machine.State {
-		st := placeTestMachine(s, pos, machine.KindHydroGenerator)
+		st := machinetest.Place(s, pos, machine.KindHydroGenerator)
 		s.World.Do(func(tx *world.Tx) {
 			for f, w := range water {
 				tx.SetBlock(pos.Side(f), w, &world.SetOpts{DisableBlockUpdates: true, DisableLiquidDisplacement: true})
@@ -98,8 +100,8 @@ func TestHydroGenerator(t *testing.T) {
 	source := block.Water{Depth: 8, Still: true}
 	falling := block.Water{Depth: 8, Falling: true}
 
-	still := place(machinePos, map[cube.Face]block.Water{cube.FaceEast: source, cube.FaceWest: source})
-	tick(s, 10)
+	still := place(machinetest.Pos, map[cube.Face]block.Water{cube.FaceEast: source, cube.FaceWest: source})
+	coretest.Tick(s, 10)
 	if still.Energy != 0 {
 		t.Errorf("still water made %d", still.Energy)
 	}
@@ -107,21 +109,21 @@ func TestHydroGenerator(t *testing.T) {
 		t.Errorf("no word of the still water: %q", lines)
 	}
 
-	full := place(machinePos.Add(cube.Pos{0, 0, 6}), map[cube.Face]block.Water{cube.FaceEast: falling, cube.FaceWest: falling, cube.FaceNorth: falling, cube.FaceSouth: falling})
-	tick(s, 10)
+	full := place(machinetest.Pos.Add(cube.Pos{0, 0, 6}), map[cube.Face]block.Water{cube.FaceEast: falling, cube.FaceWest: falling, cube.FaceNorth: falling, cube.FaceSouth: falling})
+	coretest.Tick(s, 10)
 	if full.Energy != 10*machine.HydroOutput {
 		t.Errorf("four falling faces made %d in 10 ticks, want the full %d", full.Energy, 10*machine.HydroOutput)
 	}
 
 	// one face flowing at depth 6: 6/24 of the output, the fraction carried
-	weak := place(machinePos.Add(cube.Pos{6, 0, 0}), map[cube.Face]block.Water{cube.FaceEast: {Depth: 6}})
-	tick(s, 10)
+	weak := place(machinetest.Pos.Add(cube.Pos{6, 0, 0}), map[cube.Face]block.Water{cube.FaceEast: {Depth: 6}})
+	coretest.Tick(s, 10)
 	if want := 10 * machine.HydroOutput * machine.HydroShare(6) / 100; weak.Energy != want {
 		t.Errorf("one face at depth 6 made %d in 10 ticks, want %d", weak.Energy, want)
 	}
 
-	dry := place(machinePos.Add(cube.Pos{-6, 0, 0}), nil)
-	tick(s, 10)
+	dry := place(machinetest.Pos.Add(cube.Pos{-6, 0, 0}), nil)
+	coretest.Tick(s, 10)
 	if dry.Energy != 0 || !strings.Contains(strings.Join(machine.NatureLines(i18n.Default, dry), "\n"), i18n.T(i18n.Default, "naturegen.lines.noWater")) {
 		t.Error("a dry hydro generator makes energy or does not say why not")
 	}

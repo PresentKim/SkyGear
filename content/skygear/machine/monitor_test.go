@@ -1,4 +1,4 @@
-package skygear
+package machine_test
 
 import (
 	"testing"
@@ -7,13 +7,16 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform/instance"
 )
 
 // runSeconds runs the monitor's second n times.
-func runSeconds(s *session, n int) {
+func runSeconds(s core.Lifecycle, n int) {
 	for range n {
 		s.World.Do(func(tx *world.Tx) { machine.TickMonitor(s.Session, tx) })
 	}
@@ -22,11 +25,11 @@ func runSeconds(s *session, n int) {
 // TestProductionRecorded: what a machine puts in its output is recorded in the
 // window and the saved totals.
 func TestProductionRecorded(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 3))
-	tick(s, 3*(machine.Kinds[machine.KindFurnace].Interval+2))
+	coretest.Tick(s, 3*(machine.Kinds[machine.KindFurnace].Interval+2))
 	made := machine.OutputCount(st, block.Stone{})
 	if made == 0 {
 		t.Fatal("nothing was smelted")
@@ -77,17 +80,17 @@ func TestMinuteWindows(t *testing.T) {
 // TestStallAlert: a machine that cannot put its product away is alerted after
 // thirty seconds, once, and its recovery is counted.
 func TestStallAlert(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 64))
 	for _, slot := range st.Def.Output {
 		_ = st.Inv().SetItem(slot, item.NewStack(block.Dirt{}, 64))
 	}
 	// A worked-before furnace: it finished one, then the output filled.
-	tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
+	coretest.Tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
-	tick(s, 5)
+	coretest.Tick(s, 5)
 	runSeconds(s, 1)
 	if st.Mon.Status != machine.StatusOutput {
 		t.Fatalf("status %v, want output blocked", st.Mon.Status)
@@ -112,7 +115,7 @@ func TestStallAlert(t *testing.T) {
 	for _, slot := range st.Def.Output {
 		_ = st.Inv().SetItem(slot, item.Stack{})
 	}
-	tick(s, 10)
+	coretest.Tick(s, 10)
 	runSeconds(s, 1)
 	if st.Mon.Alerted || st.Mon.Status != machine.StatusWorking {
 		t.Fatalf("alerted %v status %v after freeing the output", st.Mon.Alerted, st.Mon.Status)
@@ -121,11 +124,11 @@ func TestStallAlert(t *testing.T) {
 
 // TestStarvedIsQuiet: a machine that ran dry is listed but never alerted.
 func TestStarvedIsQuiet(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 1))
-	tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
+	coretest.Tick(s, machine.Kinds[machine.KindFurnace].Interval+5)
 	runSeconds(s, 1)
 	runSeconds(s, 2*machine.AlertAfter)
 	if st.Mon.Alerted {
@@ -139,19 +142,19 @@ func TestStarvedIsQuiet(t *testing.T) {
 // TestStatsScreens: every page of the statistics screen opens, with and
 // without records, and the alert switch is saved per account.
 func TestStatsScreens(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindFurnace)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindFurnace)
 	_ = st.Inv().SetItem(11, item.NewStack(block.Cobblestone{}, 2))
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for _, tab := range []machine.StatsTab{machine.StatsItems, machine.StatsPower, machine.StatsStalls} {
 			machine.ShowStats(s.Session, p, tab)
 		}
 	})
-	tick(s, 2*(machine.Kinds[machine.KindFurnace].Interval+2))
+	coretest.Tick(s, 2*(machine.Kinds[machine.KindFurnace].Interval+2))
 	runSeconds(s, 3)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for _, tab := range []machine.StatsTab{machine.StatsItems, machine.StatsPower, machine.StatsStalls} {
 			machine.ShowStats(s.Session, p, tab)
 		}

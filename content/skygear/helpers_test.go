@@ -108,3 +108,10 @@ func runSteps(s *session, n int) {
 		s.World.Do(func(tx *world.Tx) { s.Fast(tx) })
 	}
 }
+
+// runSeconds runs the monitor's second n times.
+func runSeconds(s *session, n int) {
+	for range n {
+		s.World.Do(func(tx *world.Tx) { machine.TickMonitor(s.Session, tx) })
+	}
+}
