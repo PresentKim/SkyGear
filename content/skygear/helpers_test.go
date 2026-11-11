@@ -44,7 +44,7 @@ func testSession(t testing.TB) *session {
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
 	s := &session{
-		Session: c, g: g,
+		Lifecycle: core.Lifecycle{Session: c}, g: g,
 	}
 	s.state = savedState.Of(c)
 	t.Cleanup(c.Close)

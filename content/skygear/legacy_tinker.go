@@ -3,6 +3,7 @@ package skygear
 import (
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
+	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // keptFood is the food level each player died with, given back when it
@@ -25,5 +26,12 @@ func init() {
 			delete(keptFood.Of(e.S), e.P.H())
 			e.P.SetFood(food)
 		}
+	})
+}
+
+// The worn tools give their effects every second.
+func init() {
+	core.Second.On(70, "tinker.effects", func(e core.Tick) {
+		tinker.TickEffects(e.S, e.Tx)
 	})
 }

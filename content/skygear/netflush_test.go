@@ -16,7 +16,7 @@ func TestSaveFlushesDisks(t *testing.T) {
 	for _, closing := range []bool{false, true} {
 		var doc []byte
 		c := core.New(core.Config{Log: slog.Default(), Store: func(b []byte) error { doc = b; return nil }})
-		s := &session{Session: c, g: &Game{log: slog.Default()}}
+		s := &session{Lifecycle: core.Lifecycle{Session: c}, g: &Game{log: slog.Default()}}
 		id := netstore.Disks(c).NewID()
 		k := netstore.KeyOf(item.NewStack(block.Stone{}, 1))
 		if netstore.Disks(c).Open(id, 1024).Insert(k, 7, false) != 7 {

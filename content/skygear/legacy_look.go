@@ -11,3 +11,10 @@ func init() {
 		look.Update(e.S, e.P, e.Tx, e.Pos, e.Rot, false)
 	})
 }
+
+// Every player's panel updates on every fast tick.
+func init() {
+	core.Fast.On(30, "look.updateAll", func(e core.Tick) {
+		look.UpdateAll(e.S, e.Tx)
+	})
+}

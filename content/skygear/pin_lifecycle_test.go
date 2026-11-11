@@ -135,7 +135,7 @@ func pinLifeSession(t *testing.T) (*session, *pinStore) {
 		Store: st.put,
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
-	s := &session{Session: c, g: g}
+	s := &session{Lifecycle: core.Lifecycle{Session: c}, g: g}
 	s.state = savedState.Of(c)
 	t.Cleanup(c.Close)
 	g.sessions.Store(w, s)
@@ -385,20 +385,20 @@ func TestPinLifecycle(t *testing.T) {
 		s, _, _ := fresh(1)
 		for i := 1; i <= 11; i++ {
 			in(s, func(tx *world.Tx) {
-				pinRun(t, lines, fmt.Sprintf("Fast/%02d", i), func() string { return fmt.Sprintf("fastCount=%d", s.fastCount) }, func() { s.Fast(tx) })
+				pinRun(t, lines, fmt.Sprintf("Fast/%02d", i), func() string { return fmt.Sprintf("fastCount=%d", *fastCount.Of(s.Session)) }, func() { s.Fast(tx) })
 			})
 		}
 	}
 	{
 		s, _, _ := fresh(0)
 		in(s, func(tx *world.Tx) {
-			pinRun(t, lines, "Fast/noPlayers", func() string { return fmt.Sprintf("fastCount=%d", s.fastCount) }, func() { s.Fast(tx) })
+			pinRun(t, lines, "Fast/noPlayers", func() string { return fmt.Sprintf("fastCount=%d", *fastCount.Of(s.Session)) }, func() { s.Fast(tx) })
 		})
 	}
 	{
 		s, _, _ := fresh(2)
 		in(s, func(tx *world.Tx) {
-			pinRun(t, lines, "Fast/twoPlayers", func() string { return fmt.Sprintf("fastCount=%d players=%d", s.fastCount, players(tx)) }, func() { s.Fast(tx) })
+			pinRun(t, lines, "Fast/twoPlayers", func() string { return fmt.Sprintf("fastCount=%d players=%d", *fastCount.Of(s.Session), players(tx)) }, func() { s.Fast(tx) })
 		})
 	}
 	// A player in the hunting ground without a hunt is sent back to the island.
@@ -541,8 +541,13 @@ func TestPinLifecycle(t *testing.T) {
 
 	pinGolden(t, filepath.Join("testdata", "pin", "lifecycle.golden"), lines)
 	var names []string
-	for _, file := range []string{"game.go", "second.go", "lostfound.go", "conduitload.go"} {
+	for _, file := range []string{"game.go", "legacy_network.go", "lostfound.go", "conduitload.go"} {
 		names = append(names, pinMarksIn(t, file, "package skygear")...)
+	}
+	for _, sub := range core.Subscriptions() {
+		if sub.Hook == "Second" || sub.Hook == "Fast" {
+			names = append(names, sub.Name)
+		}
 	}
 	pinCheckReached(t, names, lines)
 }

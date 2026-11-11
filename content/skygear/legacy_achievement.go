@@ -54,3 +54,10 @@ func init() {
 		achievement.Count(e.P, "hurt", 1)
 	})
 }
+
+// Every player's play time counts a second.
+func init() {
+	core.Second.On(110, "achievement.playSeconds", func(e core.Tick) {
+		achievement.CountAll(e.Tx, "play_seconds", 1)
+	})
+}

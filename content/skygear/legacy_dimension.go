@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
 )
@@ -35,5 +36,19 @@ func init() {
 		if dimension.Fallen(e.S, e.Tx, e.P, *e.Damage) {
 			e.Cancel()
 		}
+	})
+}
+
+// The collectors work and the items of the other dimension are retired every
+// second; the watchdog looks at the hunt on every fast tick.
+func init() {
+	core.Second.On(60, "dimension.second", func(e core.Tick) {
+		dimension.TickCollectors(e.S, e.Tx)
+		for p := range e.Tx.Players() {
+			dimension.RetireItems(p.(*player.Player))
+		}
+	})
+	core.Fast.On(20, "dimension.watchdog", func(e core.Tick) {
+		dimension.Watchdog(e.S, e.Tx)
 	})
 }

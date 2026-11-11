@@ -52,7 +52,7 @@ func openPersisted(t *testing.T, dir string) (*session, func()) {
 		SaveID: save.ID, SaveName: save.Name, HostID: "host", Log: slog.Default(),
 	})
 	c.Rand = rand.New(rand.NewPCG(1, 2))
-	s := &session{Session: c, g: g}
+	s := &session{Lifecycle: core.Lifecycle{Session: c}, g: g}
 	s.state = savedState.Of(c)
 	g.sessions.Store(w, s)
 	core.Register(c)

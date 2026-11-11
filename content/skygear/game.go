@@ -104,7 +104,7 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	})
 	c.FlushInterval = inst.StateFlushInterval()
 	s := &session{
-		Session: c, g: g,
+		Lifecycle: core.Lifecycle{Session: c}, g: g,
 	}
 	s.state = savedState.Of(c)
 	s.tickReach = inst.LoadRadius() * 16
@@ -134,20 +134,17 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 	return v.(*session), true
 }
 
-// session is one active save: the core session (core.Session) and the
-// features' data that is not in core parts yet. All fields are owned by the
-// instance world.
+// session is one active save: the core session (the Session of core.Lifecycle)
+// and the features' data that is not in core parts yet. All fields are owned
+// by the instance world.
 type session struct {
-	*core.Session
+	core.Lifecycle
 	g *Game
 	// state is the saved state (savedState).
 	state *State
 	// tickReach is how far from a viewer blocks tick, in blocks (the load
 	// radius in chunks).
 	tickReach int
-	// fastCount counts the Fast calls (an item step is every second one,
-	// conduit.go).
-	fastCount int
 }
 
 // Spawn is where a player without a position starts (island.Spawn).
