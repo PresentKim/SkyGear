@@ -15,6 +15,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/network"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -62,7 +63,7 @@ var Features = []*core.Feature{
 var itemsFeature = &core.Feature{
 	Name: "items",
 	ItemEntry: func(e protocol.ItemEntry) protocol.ItemEntry {
-		return sgitem.ClipWoodenBucket(localItemName(e))
+		return sgitem.ClipWoodenBucket(naming.LocalItemName(e))
 	},
 }
 
