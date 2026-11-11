@@ -19,7 +19,7 @@
 - Sky Gear 이름 변경 세이브 변환(`content/skygear/migrate/namespace.go`와 그 테스트)과 그 호출(`cmd/skygear/main.go`)을 모든 서버가 한 번씩 돌린 뒤 지운다. 데이터 폴더의 `skygear-namespace.done` 플래그와 `<데이터 폴더>.before-skygear` 사본도 함께 지운다.
 - 확장 모드에서 나가는 플레이어가 보기 전용 게임 모드를 그대로 지니는 문제를 고친다. `Leave` 에서 `expand.stop`(30)이 `core.parts`(20) 뒤에 돌아 `expanding` 항목이 이미 없으므로 `expand.Stop` 이 아무것도 하지 않는다. `expand.stop` 을 `core.parts` 앞으로 옮기고, `order.golden` 과 `lifecycle.golden` 의 `Leave/expanding`(`expanding=false mode=ViewOnlyMode`)을 의도한 변경으로 다시 기록한다.
 - `UseOnBlock` 의 두 번째 확장 모드 검사 `expand.guardSide`(160)는 멈출 수 없다. 확장 모드의 플레이어는 이미 `expand.guard`(40)에서 멈춘다. 단계를 지우거나 옆 칸 검사가 의미를 갖게 고친다. 지우면 `order.golden` 과 `handler-use.golden` 에서 그 줄이 빠진다.
-- `TestHuntClear`(`content/skygear/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
+- `TestHuntClear`(`content/skygear/dimension/dimension_test.go`)와 `TestKitAndLevels` 가 `TestHuntFails` 와 같은 시간 의존 방식이라 `-race` 에서 `TestHuntFails` 처럼 불안정해질 수 있다. 같은 방식으로 시간에 기대지 않게 고친다.
 - `-race` 에서 `TestPinUse` 가 가끔 테스트에만 있는 데이터 경합을 보고한다. 동기 테스트 월드가 미뤄 둔 일을 월드 큐 밖에서 돌리기 때문이다(`fairy.wander` 와 `placeAt`·`Teleport`). 테스트 월드가 미룬 일을 월드 큐에서 돌리게 하거나, 시나리오가 그 일이 끝나기를 기다리게 고친다.
 - `machine.Register` 는 부르는 기능이 그 종류의 `Owner` 인지 확인하지 않는다. 다른 기능이 남의 종류를 등록해도 `TestKindOwners` 와 골든은 통과한다. 커널이 지금 설치 중인 기능 이름을 알려 주면 막을 수 있다. 테스트가 `Setup` 을 직접 부르는 경우(`netstore/keys_test.go`)를 어떻게 볼지 먼저 정한다.
 - `debug_ui.go` 의 `windowKinds` 에서 `k != machine.KindTinker` 는 이제 뜻이 없다. 제작대에 클릭 훅이 있어 앞 조건에서 이미 빠진다. 지운다.
