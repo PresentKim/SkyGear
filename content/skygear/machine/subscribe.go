@@ -7,6 +7,7 @@ func subscribe() {
 	subscribeMonitor()
 	subscribeBlocks()
 	subscribeFace()
+	registerLook()
 }
 
 // The monitor reads its machines every second.

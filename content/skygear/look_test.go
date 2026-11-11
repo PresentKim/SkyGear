@@ -165,11 +165,11 @@ func TestLookInfo(t *testing.T) {
 
 // TestFurnaceArrow: an unlit furnace shows an empty arrow.
 func TestFurnaceArrow(t *testing.T) {
-	it := look.FurnaceArrow(block.NewFurnace(cube.North))
+	it := machine.FurnaceArrow(block.NewFurnace(cube.North))
 	if a, ok := it.Item().(machine.ProgressArrow); !ok || a.Step != 0 {
 		t.Errorf("unlit furnace arrow %v, want an empty progress arrow", it)
 	}
-	if !look.FurnaceArrow(block.Stone{}).Empty() {
+	if !machine.FurnaceArrow(block.Stone{}).Empty() {
 		t.Errorf("stone has a furnace arrow")
 	}
 }

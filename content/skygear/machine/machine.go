@@ -292,6 +292,8 @@ type Def struct {
 	// "any input slot"); it replaces the machine's own rule, so the network
 	// kinds can hold items with stored values (disks, patterns).
 	Accepts func(slot int, st item.Stack) bool
+	// Lines, if set, are the kind's panel lines in place of the machine's own (Machine.Waila).
+	Lines func(lang string, tx *world.Tx, pos cube.Pos) []string
 }
 
 var Kinds = map[string]*Def{

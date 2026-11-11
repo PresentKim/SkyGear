@@ -458,5 +458,6 @@ func init() {
 			return true
 		}
 		def.Insert, def.Peek, def.Extract = ControllerInsert, ControllerPeek, ControllerExtract
+		def.Lines = Lines
 	}
 }

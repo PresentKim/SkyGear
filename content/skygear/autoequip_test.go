@@ -12,7 +12,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/look"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -296,15 +295,15 @@ func TestMachineStatusLines(t *testing.T) {
 	loadAround(s)
 	crusher := placeTestMachine(s, machinePos, machine.KindCrusher)
 	crusher.Progress = crusher.Def.Interval
-	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrusher, State: crusher}); !hasLine(lines, "출력 슬롯 부족") {
+	if lines, _ := machine.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrusher, State: crusher}); !hasLine(lines, "출력 슬롯 부족") {
 		t.Errorf("a blocked crusher says %q", lines)
 	}
 	crafter := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrafter)
-	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "조합법 미설정") {
+	if lines, _ := machine.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "조합법 미설정") {
 		t.Errorf("a crafter without a recipe says %q", lines)
 	}
 	crafter.SetRecipe(machine.CrafterCandidates(s.Session, machine.Item(machine.KindCrusher))[0])
-	if lines, _ := look.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "재료 부족") {
+	if lines, _ := machine.MachineLines(i18n.Default, machine.Machine{Kind: machine.KindCrafter, State: crafter}); !hasLine(lines, "재료 부족") {
 		t.Errorf("a crafter without ingredients says %q", lines)
 	}
 }

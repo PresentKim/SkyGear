@@ -11,13 +11,11 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/df-mc/dragonfly/server/world/sound"
-	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
 func init() {
@@ -132,13 +130,4 @@ func BoneMeal(s *core.Session, tx *world.Tx, pos cube.Pos) bool {
 	}
 	farm.GrowCrop(s, tx, pos, r, now)
 	return true
-}
-
-// HourglassLine is the WAILA line of the hourglass time left, or "".
-func HourglassLine(lang string, st *machine.State) string {
-	if st == nil || st.Boost <= 0 {
-		return ""
-	}
-	left := time.Duration(st.Boost) * time.Second / 20
-	return i18n.T(lang, "fairy.hourglass.left") + textfmt.Duration(lang, left.Round(time.Second))
 }

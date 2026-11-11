@@ -5,7 +5,6 @@
 package look
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -19,13 +18,8 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
-	"github.com/presentkim/skygear/content/skygear/fairy"
-	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/storage"
-	"github.com/presentkim/skygear/content/skygear/textfmt"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 	"github.com/presentkim/skygear/content/skygear/wand"
 )
@@ -123,9 +117,6 @@ func showLook(s *core.Session, p *player.Player, tx *world.Tx, at cube.Pos, b wo
 		waila.Clear(p)
 		return
 	}
-	if p.Sneaking() {
-		machine.PeekRange(tx, at, b)
-	}
 	waila.Show(p, Info(s, p, tx, at, b))
 }
 
@@ -159,7 +150,10 @@ func UpdateAll(s *core.Session, tx *world.Tx) {
 	}
 }
 
-// Info is the panel of block b at pos.
+// Info is the panel of block b at pos: its name, icon, tools and the contents
+// of a vanilla container, then what the block itself and the adapters add
+// (waila.Describe). s is the session of tx's world; a block that needs it
+// finds it through the transaction.
 func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world.Block) waila.Info {
 	lang := i18n.Of(p)
 	held, _ := p.HeldItems()
@@ -173,55 +167,7 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 	}
 	info.NameKey = naming.BlockNameKey(b)
 	info.Container = containerOf(tx, pos, b)
-	view := waila.View{Lang: lang, Sneaking: p.Sneaking(), Tx: tx, Pos: pos}
-	switch b := b.(type) {
-	case machine.Machine:
-		info.Lines, info.Line = MachineLines(lang, b)
-		if l := fairy.HourglassLine(lang, b.State); l != "" {
-			info.Lines = append(info.Lines, l)
-		}
-		if b.State != nil && b.State.Def.Controller {
-			info.Lines = storage.Lines(lang, tx, pos)
-		}
-		if c := outputContainer(b.State); c != nil {
-			info.Container = c
-		}
-		if p.Sneaking() && b.State != nil {
-			info.Lines = append(info.Lines, detailLines(lang, b.State)...)
-		}
-	default:
-		info = waila.Describe(view, b, info)
-	}
-	return info
-}
-
-// outputContainer is the output slots of the machine st as a chest's slots,
-// each item with its count under it, or nil for a machine with no output or
-// a drawer controller (whose lines count the drawers instead), and nil while
-// the output is empty.
-func outputContainer(st *machine.State) *waila.Container {
-	if st == nil || st.Def.Controller || len(st.Def.Output) == 0 {
-		return nil
-	}
-	var items []item.Stack
-	for _, slot := range st.Def.Output {
-		if it, _ := st.Inv().Item(slot); !it.Empty() {
-			items = append(items, it)
-		}
-	}
-	if len(items) == 0 {
-		return nil
-	}
-	return &waila.Container{Layout: waila.LayoutChest, Items: items}
-}
-
-// itemLine is the line of item it with its icon, its count after it.
-func itemLine(lang string, it item.Stack) *waila.ItemLine {
-	line := &waila.ItemLine{Item: it, Name: naming.ItemName(lang, it)}
-	if it.Count() > 1 {
-		line.Text = fmt.Sprintf("§f×%d", it.Count())
-	}
-	return line
+	return waila.Describe(waila.View{Lang: lang, Sneaking: p.Sneaking(), Tx: tx, Pos: pos}, b, info)
 }
 
 // containerOf is the contents of a vanilla container block for the panel.
@@ -248,139 +194,7 @@ func containerOf(tx *world.Tx, pos cube.Pos, b world.Block) *waila.Container {
 	if inv == nil {
 		return nil
 	}
-	return &waila.Container{Layout: layout, Items: inv.Slots(), Progress: FurnaceArrow(b)}
-}
-
-// FurnaceArrow is the progress arrow of a furnace, blast furnace or smoker:
-// filled to how far the item is cooked while it burns, empty when it does
-// not.
-func FurnaceArrow(b world.Block) item.Stack {
-	var (
-		lit         bool
-		cook        time.Duration
-		requirement = 5 * time.Second
-	)
-	switch f := b.(type) {
-	case block.Furnace:
-		lit, requirement = f.Lit, 10*time.Second
-		_, _, cook = f.Durations()
-	case block.BlastFurnace:
-		lit = f.Lit
-		_, _, cook = f.Durations()
-	case block.Smoker:
-		lit = f.Lit
-		_, _, cook = f.Durations()
-	default:
-		return item.Stack{}
-	}
-	step := 0
-	if lit {
-		step = min(int(cook*10/requirement), 10)
-	}
-	return item.NewStack(machine.ProgressArrow{Step: step}, 1)
-}
-
-// MachineLines are a machine's lines and item line: what it holds, with
-// its icon and progress as a ring gauge ("흙 [icon] ×3 ◔"), or grey
-// "비어 있음" when empty. What waits in its output shows as slots
-// (outputContainer).
-func MachineLines(lang string, m machine.Machine) ([]string, *waila.ItemLine) {
-	st := m.State
-	if st == nil {
-		return nil, nil
-	}
-	step := min(10, st.Progress*10/st.CycleLen())
-	gauge := textfmt.GaugeGlyph(step)
-	var (
-		lines []string
-		line  *waila.ItemLine
-	)
-	switch {
-	case st.Def.Crafter:
-		if st.Recipe == nil {
-			return crafterLines(lang, st), nil
-		}
-		return crafterLines(lang, st)[1:], itemLine(lang, st.Recipe.Out)
-	case st.Def == machine.Kinds[machine.KindLab]:
-		// The research it makes shows with its icon on the item line.
-		lines := machine.LabLines(lang, st)
-		if st.Lab == nil {
-			return lines, nil
-		}
-		return lines[1:], itemLine(lang, item.NewStack(st.Lab.Out, st.Lab.OutCount))
-	case st.Def == machine.Kinds[machine.KindHarvester]:
-		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
-	case st.Def == machine.Kinds[machine.KindGenerator]:
-		return machine.GeneratorLines(lang, st), nil
-	case machine.IsNatureGenerator(m.Kind):
-		return machine.NatureLines(lang, st), nil
-	case m.Kind == machine.KindDrawerTrim, m.Kind == machine.KindTinker, m.Kind == machine.KindRelicTable:
-		return nil, nil
-	case st.Def.Controller:
-		return nil, nil
-	case st.Def.FluidCap > 0:
-		lines := machine.FluidLines(lang, st)
-		if _, in, ok := st.FirstInput(); ok {
-			line = itemLine(lang, in)
-		}
-		if st.Def.Generates > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap()))
-		} else {
-			lines = append(lines, machine.ConsumerLines(lang, st)...)
-		}
-		return lines, line
-	case st.Def.Cell:
-		return []string{fmt.Sprintf(i18n.T(lang, "generator.lines.energy"), st.Energy, st.EnergyCap())}, nil
-	case st.Def == machine.Kinds[machine.KindMiner]:
-		// Its output shows as a slot.
-		return append(append([]string{i18n.T(lang, "look.machine.mining") + gauge}, machine.ConsumerLines(lang, st)...), machine.BlockedLines(lang, st)...), nil
-	default:
-		if _, it, ok := st.FirstInput(); ok {
-			line = &waila.ItemLine{Item: it, Name: naming.ItemName(lang, it), Gauge: step, ShowGauge: true}
-			if it.Count() > 1 {
-				line.Text = fmt.Sprintf("§f×%d", it.Count())
-			}
-		} else {
-			lines = append(lines, i18n.T(lang, "look.empty"))
-		}
-	}
-	if len(st.Def.Charge) > 0 && st.Charges > 0 {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "magicsieve.lines.charged"), dimension.MobName(lang, st.Mob), st.Charges))
-	}
-	lines = append(lines, machine.ConsumerLines(lang, st)...)
-	lines = append(lines, machine.BlockedLines(lang, st)...)
-	return lines, line
-}
-
-// detailLines are the figures the panel adds while its viewer sneaks: the
-// length of a work cycle with the ticks left (the energy is in the lines).
-func detailLines(lang string, st *machine.State) []string {
-	var lines []string
-	if cycle := st.CycleLen(); cycle > 1 && len(st.Def.Input)+len(st.Def.Output) > 0 && !st.Def.Crafter {
-		if st.Progress > 0 {
-			lines = append(lines, fmt.Sprintf(i18n.T(lang, "look.detail.cycle"), cycle, max(0, cycle-st.Progress)))
-		} else {
-			lines = append(lines, fmt.Sprintf(i18n.T(lang, "look.detail.cycleOnly"), cycle))
-		}
-	}
-	return lines
-}
-
-// crafterLines say what the auto crafter does: its recipe (the first line),
-// what it lacks.
-func crafterLines(lang string, st *machine.State) []string {
-	if st.Recipe == nil {
-		return []string{i18n.T(lang, "crafter.status.none")}
-	}
-	lines := []string{"§f" + naming.ItemName(lang, st.Recipe.Out)}
-	if _, ok := st.CrafterPlan(st.Recipe); !ok {
-		lines = append(lines, fmt.Sprintf(i18n.T(lang, "crafter.status.missing"), machine.CrafterMissing(lang, st)))
-	} else if !machine.Fits(st.Inv(), st.Def.Output, []item.Stack{st.Recipe.Out}) {
-		lines = append(lines, i18n.T(lang, "look.blocked"))
-	} else {
-		lines = append(lines, i18n.T(lang, "crafter.status.working"))
-	}
-	return append(lines, machine.ConsumerLines(lang, st)...)
+	return &waila.Container{Layout: layout, Items: inv.Slots()}
 }
 
 // lastLook is when each player's WAILA panel was last updated.

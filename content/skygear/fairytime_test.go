@@ -114,7 +114,7 @@ func TestFairyHourglass(t *testing.T) {
 	if back.State.Boost != st.Boost {
 		t.Fatalf("boost %d after NBT, want %d", back.State.Boost, st.Boost)
 	}
-	if fairy.HourglassLine("ko_KR", st) == "" {
+	if machine.BoostLine("ko_KR", st) == "" {
 		t.Fatal("no WAILA line while the hourglass runs")
 	}
 	if machine.New(machine.KindGenerator).State.WindHourglass() {
