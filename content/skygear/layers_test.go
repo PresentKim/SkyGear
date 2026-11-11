@@ -162,7 +162,10 @@ func TestMachineImportsNoFeature(t *testing.T) {
 	if row, ok := siblings["machine"]; ok {
 		t.Errorf("siblings has the row machine -> %v: a feature registers its kind's behaviour with machine.Register instead", row)
 	}
-	pkg, err := build.Default.ImportDir("machine", 0)
+	// Every non-test file, whatever its build constraints.
+	ctx := build.Default
+	ctx.UseAllFiles = true
+	pkg, err := ctx.ImportDir("machine", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -157,7 +157,7 @@ const (
 	KindDrawerController = "drawer_controller"
 	KindDrawerTrim       = "drawer_trim"
 	KindDrawerInterface  = "drawer_interface"
-	// KindTinker is the tinker table (tinkerform.go).
+	// KindTinker is the tinker table, the tinker feature's (tinker/kinds.go).
 	KindTinker        = "tinker_table"
 	KindCrucible      = "crucible"
 	KindLavaGenerator = "lava_generator"
