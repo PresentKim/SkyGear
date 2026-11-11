@@ -22,10 +22,9 @@ import (
 // it, live if the member is in the viewer's world, else in the stored state
 // (locked against entering). The mirror refreshes before each move.
 
-// Window layout (8 rows, scrolls).
+// Window layout (8 rows, scrolls). Slots 0-26 are inventory slots 9-35.
 const (
 	invSeeSize     = 72
-	invSeeMain     = 0  // 0-26: inventory slots 9-35
 	invSeeHotbar   = 27 // 27-35: hotbar slots 0-8
 	invSeeArmour   = 36 // 36-39: helmet, chestplate, leggings, boots
 	invSeeOffHand  = 40
@@ -269,7 +268,7 @@ func (pf *Platform) targetSource(tx *world.Tx, saveID int64, acc string) (src in
 		}
 	}
 	unlock, ok := pf.m.LockState(saveID, acc)
-	_, blob, err := pf.db.PlayerState(saveID, acc)
+	blob, err := pf.db.PlayerState(saveID, acc)
 	var st playerstate.State
 	switch {
 	case errors.Is(err, db.ErrNotFound) || (err == nil && blob == nil):

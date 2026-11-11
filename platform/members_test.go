@@ -108,7 +108,7 @@ func TestStoredInvSee(t *testing.T) {
 		unlock()
 	}).Done()
 
-	_, blob, _ := d.PlayerState(s.ID, "g")
+	blob, _ := d.PlayerState(s.ID, "g")
 	got, _ := playerstate.Unmarshal(blob)
 	if len(got.Inventory) != 0 {
 		t.Errorf("diamonds still stored: %v", got.Inventory)

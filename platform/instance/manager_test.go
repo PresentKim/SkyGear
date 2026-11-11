@@ -221,7 +221,7 @@ func TestGuestNeedsHost(t *testing.T) {
 			t.Fatal("guest not returned to lobby when the host left")
 		}
 	})
-	if _, blob, err := f.d.PlayerState(save.ID, guest.UUID().String()); err != nil || blob == nil {
+	if blob, err := f.d.PlayerState(save.ID, guest.UUID().String()); err != nil || blob == nil {
 		t.Fatalf("guest state not stored: %v", err)
 	}
 }
