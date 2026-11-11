@@ -1,4 +1,4 @@
-package skygear
+package island_test
 
 import (
 	"slices"
@@ -11,12 +11,13 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/textfmt"
 )
 
 func TestChunkRules(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	if !island.CanBuild(s.Session, cube.Pos{0, 64, 0}) || !island.CanBuild(s.Session, cube.Pos{15, 64, 15}) {
 		t.Fatal("starting island must cover the first chunk")
 	}
@@ -47,7 +48,7 @@ func TestChunkRules(t *testing.T) {
 }
 
 func TestLostAndFound(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	s.World.Do(func(tx *world.Tx) {
 		l := world.NewLoader(2, s.World, world.NopViewer{})
 		l.Move(tx, mgl64.Vec3{})
@@ -75,7 +76,7 @@ func TestLostAndFound(t *testing.T) {
 }
 
 func TestNearestBlockColumn(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(cube.Pos{3, 63, 0}, block.Stone{}, nil)
 		tx.SetBlock(cube.Pos{-10, 63, 0}, block.Stone{}, nil)
