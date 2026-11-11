@@ -289,3 +289,25 @@ func BenchmarkEmit(b *testing.B) {
 		}
 	}
 }
+
+var moveSink float64
+
+// BenchmarkEmitMove emits a 72-byte MoveEvent to four mixed subscribers, the
+// shape of the move hook: On, Handle (not stopping), On, On.
+func BenchmarkEmitMove(b *testing.B) {
+	ResetHooks()
+	h := NewHook[MoveEvent]("bench-move")
+	h.On(10, "a", func(e MoveEvent) { moveSink += e.Rot[0] + e.Pos[0] })
+	h.Handle(20, "b", func(e MoveEvent) bool { return e.P == nil && e.Pos[1] > 1e9 })
+	h.On(30, "c", func(e MoveEvent) { moveSink += e.Pos[2] })
+	h.On(40, "d", func(e MoveEvent) {
+		if e.Pos[1] < -1e9 {
+			e.Cancel()
+		}
+	})
+	e := MoveEvent{Pos: [3]float64{1, 64, 2}}
+	b.ReportAllocs()
+	for b.Loop() {
+		h.Emit(e)
+	}
+}
