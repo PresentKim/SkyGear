@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
@@ -111,7 +112,7 @@ func TestHuntFails(t *testing.T) {
 	s := testSession(t)
 	loadAround(s)
 	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	withHeldPlayer(t, h, func(p *player.Player, tx *world.Tx) {
 		dimension.Begin(s.Session, tx, p, sgitem.MobSlime)
 		r := dimension.RunOf(s.Session)
 		var monsters []*world.EntityHandle
@@ -151,6 +152,33 @@ func TestHuntFails(t *testing.T) {
 			t.Errorf("after falling: run %v, at %v, health %v", dimension.RunOf(s.Session) != nil, p.Position(), p.Health())
 		}
 	})
+}
+
+// withHeldPlayer runs f in a transaction of the player's own handle. Work
+// scheduled for the player to run later (the landing instance.PlaceAt
+// schedules) waits until f returns, as it does on a running server; on the
+// tests' synchronous world a transaction from World.Do lets that work run on
+// its timer goroutine beside f once its delay is up. When the test ends the
+// player leaves the world the same way, after any such work under way, so
+// the world closes without it and later work finds no world to run in.
+func withHeldPlayer(t testing.TB, h *world.EntityHandle, f func(p *player.Player, tx *world.Tx)) {
+	t.Helper()
+	t.Cleanup(func() {
+		left := h.Do(func(tx *world.Tx, e world.Entity) { tx.RemoveEntity(e) })
+		select {
+		case <-left.Done():
+		case <-time.After(10 * time.Second):
+			t.Error("the player did not leave the world")
+		}
+	})
+	finished := false
+	<-h.Do(func(tx *world.Tx, e world.Entity) {
+		f(e.(*player.Player), tx)
+		finished = true
+	}).Done()
+	if !finished {
+		t.Fatal("transaction did not finish (panicked)")
+	}
 }
 
 // TestBladesHit: the blades of a hunter carrying the spinning blade hurt a
