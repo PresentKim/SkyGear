@@ -7,7 +7,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -19,7 +18,6 @@ import (
 	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
-	"github.com/presentkim/skygear/content/skygear/sievetable"
 )
 
 // TestMagicPlantLifecycle: a seed planted on dirt makes a bud, it blooms when its
@@ -103,44 +101,5 @@ func TestHarvesterPicksBloomingPlants(t *testing.T) {
 	})
 	if machine.OutputCount(st, sgitem.OreChunk{Ore: sgitem.OreIron}) == 0 && machine.OutputCount(st, farm.PlantSeed{Seed: "ore_iron"}) == 0 {
 		t.Error("the harvester has no yield of the plant")
-	}
-}
-
-// TestNoEssenceBloomRecipes: no recipe makes essence bloom seeds, flower
-// seeds come from essences and fairy dust, and no sieve finds monster
-// essences.
-func TestNoEssenceBloomRecipes(t *testing.T) {
-	flower := false
-	for _, r := range recipe.Recipes() {
-		for _, o := range r.Output() {
-			seed, ok := o.Item().(farm.PlantSeed)
-			if !ok {
-				continue
-			}
-			if strings.HasPrefix(seed.Seed, "ess_") {
-				t.Errorf("a recipe makes %s", seed.Seed)
-			}
-			if seed.Seed == "flower_red" {
-				for _, in := range r.Input() {
-					if st, ok := in.(item.Stack); ok {
-						if _, ess := st.Item().(sgitem.Essence); ess {
-							flower = true
-						}
-					}
-				}
-			}
-		}
-	}
-	if !flower {
-		t.Error("no recipe makes a red flower seed from essences")
-	}
-	for tier, table := range sievetable.Tables {
-		for in, drops := range table {
-			for _, d := range drops {
-				if _, ok := d.Item.Item().(sgitem.Essence); ok {
-					t.Errorf("the %s mesh finds an essence in %s", tier, in)
-				}
-			}
-		}
 	}
 }

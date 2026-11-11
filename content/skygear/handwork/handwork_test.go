@@ -7,7 +7,6 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/item"
-	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
@@ -170,25 +169,6 @@ func TestDropsHaveMotion(t *testing.T) {
 			t.Errorf("%d items", n)
 		}
 	})
-}
-
-// TestNoFiberString: bark fibers no longer make string (string comes from
-// elsewhere).
-func TestNoFiberString(t *testing.T) {
-	for _, r := range recipe.Recipes() {
-		for _, out := range r.Output() {
-			if _, ok := out.Item().(block.String); !ok {
-				continue
-			}
-			for _, in := range r.Input() {
-				if st, ok := in.(item.Stack); ok {
-					if _, fiber := st.Item().(sgitem.BarkFiber); fiber {
-						t.Fatalf("fibers make string: %#v", r)
-					}
-				}
-			}
-		}
-	}
 }
 
 // TestGrassSeeds: tilling dirt with a hoe sometimes drops grass seeds, and the

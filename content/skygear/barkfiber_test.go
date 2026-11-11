@@ -110,3 +110,22 @@ func TestPaperResearch(t *testing.T) {
 		t.Fatalf("paper research %+v", r)
 	}
 }
+
+// TestNoFiberString: bark fibers no longer make string (string comes from
+// elsewhere).
+func TestNoFiberString(t *testing.T) {
+	for _, r := range recipe.Recipes() {
+		for _, out := range r.Output() {
+			if _, ok := out.Item().(block.String); !ok {
+				continue
+			}
+			for _, in := range r.Input() {
+				if st, ok := in.(item.Stack); ok {
+					if _, fiber := st.Item().(sgitem.BarkFiber); fiber {
+						t.Fatalf("fibers make string: %#v", r)
+					}
+				}
+			}
+		}
+	}
+}
