@@ -116,6 +116,15 @@ writing session internals belongs in `common/sghook` (packet hooks,
 to change, and then update `third_party/dragonfly.patch` and
 `third_party/README.md`.
 
+`content/skygear/wire` pins what a joining player is sent (block entries,
+item registry, crafting data, creative content) as golden files, hashed per
+block, item, recipe and creative entry. A mismatch names the entries that
+changed; a patch change must leave them as they are. Re-record only in a
+commit meant to change what clients get, with
+`SKYGEAR_GOLDEN=update go test ./content/skygear/wire/`; to see what changed
+inside an entry, run once per tree with `SKYGEAR_GOLDEN_DUMP=<dir>` and
+`diff -r` the two folders.
+
 ## Licence
 
 By contributing you agree that your contribution is licensed under the MIT
