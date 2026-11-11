@@ -35,9 +35,10 @@ type Game struct {
 	// isOperator reports whether a player may use the operator tools.
 	isOperator func(*player.Player) bool
 
-	// sessions maps each active instance world to its session. It is read
-	// by every block tick and written only when an instance starts or stops,
-	// so reads take no lock.
+	// sessions maps each active instance world to its session, so the
+	// platform's calls that carry only a world find the session. It is read by
+	// every block tick and written only when an instance starts or stops, so
+	// reads take no lock.
 	sessions sync.Map // *world.World -> *session
 }
 
@@ -114,9 +115,12 @@ func (g *Game) sessionOf(w *world.World) (*session, bool) {
 	return v.(*session), true
 }
 
-// session is one active save: the core session (the Session of core.Lifecycle)
-// and the features' data that is not in core parts yet. All fields are owned
-// by the instance world.
+// session is one active save as the platform sees it (instance.Session): the
+// core session (the Session of core.Lifecycle), which runs the lifecycle and
+// the player handler, plus the platform glue the game answers itself: Spawn,
+// Relocate, MenuBack, OpenScreen and Close. It holds no feature step; those are
+// the subscriptions of the feature packages. All fields are owned by the
+// instance world.
 type session struct {
 	core.Lifecycle
 	g *Game
