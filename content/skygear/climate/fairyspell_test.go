@@ -1,4 +1,4 @@
-package skygear
+package climate_test
 
 import (
 	"testing"
@@ -10,12 +10,15 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/df-mc/dragonfly/server/world/biome"
 	"github.com/presentkim/skygear/content/skygear/climate"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 )
 
 // cast casts a weather in the session's world.
-func cast(t *testing.T, s *session, weather string) bool {
+func cast(t *testing.T, s core.Lifecycle, weather string) bool {
 	t.Helper()
 	var ok bool
 	s.World.Do(func(tx *world.Tx) { ok = climate.CastWeather(s.Session, tx, weather) })
@@ -25,7 +28,7 @@ func cast(t *testing.T, s *session, weather string) bool {
 // TestRainGrowsFaster: the growth clock runs half as fast again while it
 // rains, and as the instance clock once the rain ends.
 func TestRainGrowsFaster(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	start := climate.GrowNow(s.Session)
 	s.Clock.Advance(time.Minute)
 	if got := climate.GrowNow(s.Session) - start; got != time.Minute {
@@ -52,7 +55,7 @@ func TestRainGrowsFaster(t *testing.T) {
 // TestWeatherSpells: the same weather adds its days, another replaces it,
 // clear ends it, and clear when clear costs nothing.
 func TestWeatherSpells(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	span := climate.SpellDays * s.Clock.DayLength()
 	if cast(t, s, "") {
 		t.Fatal("clear was cast on a clear day")
@@ -82,16 +85,16 @@ func TestWeatherSpells(t *testing.T) {
 // again for the same energy a tick.
 func TestSnowRunsMachinesFaster(t *testing.T) {
 	run := func(snow bool) (progress, spent int) {
-		s := testSession(t)
-		loadAround(s)
+		s := coretest.Session(t)
+		coretest.LoadAround(s)
 		if snow {
 			cast(t, s, climate.Snow)
 		}
-		st := placeTestMachine(s, machinePos, machine.KindCrusher)
+		st := machinetest.Place(s, machinetest.Pos, machine.KindCrusher)
 		st.Unlimited = false
 		st.Energy = 1000
 		st.Insert(item.NewStack(block.Cobblestone{}, 1))
-		tick(s, machine.Kinds[machine.KindCrusher].Interval/2)
+		coretest.Tick(s, machine.Kinds[machine.KindCrusher].Interval/2)
 		return st.Progress, 1000 - st.Energy
 	}
 	p, e := run(false)
@@ -104,7 +107,7 @@ func TestSnowRunsMachinesFaster(t *testing.T) {
 // TestSunSpells: the sun follows the instance clock unless fixed, and a
 // spell for the sun it already has costs nothing.
 func TestSunSpells(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	s.Clock.Advance(s.Clock.DayLength() + s.Clock.DayLength()/2)
 	s.World.Do(func(tx *world.Tx) {
 		climate.ApplySun(s.Session, tx)
@@ -122,8 +125,8 @@ func TestSunSpells(t *testing.T) {
 
 // TestRestoreBiome: a biome the snow changed comes back once.
 func TestRestoreBiome(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	island.StateOf(s.Session).Chunks = []island.ChunkPos{{0, 0}}
 	snowy, plains := uint32(biome.SnowyPlains{}.EncodeBiome()), uint32(biome.Plains{}.EncodeBiome())
 	climate.StateOf(s.Session).BaseBiome = &plains
