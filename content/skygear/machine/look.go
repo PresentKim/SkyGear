@@ -118,7 +118,7 @@ func MachineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 			return lines, nil
 		}
 		return lines[1:], itemLine(lang, item.NewStack(st.Lab.Out, st.Lab.OutCount))
-	case st.Def == Kinds[KindHarvester]:
+	case st.Def.Cycle:
 		lines = append(lines, i18n.T(lang, "look.machine.harvestCycle")+gauge)
 	case st.Def == Kinds[KindGenerator]:
 		return GeneratorLines(lang, st), nil
@@ -126,7 +126,8 @@ func MachineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return NatureLines(lang, st), nil
 	case m.Kind == KindDrawerTrim, m.Kind == KindTinker, m.Kind == KindRelicTable:
 		return nil, nil
-	case st.Def.Controller:
+	case st.Def.Lines != nil:
+		// the kind's owner describes it (Machine.Waila)
 		return nil, nil
 	case st.Def.FluidCap > 0:
 		lines := FluidLines(lang, st)

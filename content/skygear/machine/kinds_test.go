@@ -87,3 +87,31 @@ func TestOrderListsEveryKind(t *testing.T) {
 		t.Errorf("Order has %d kinds, Kinds %d", len(seen), len(Kinds))
 	}
 }
+
+// TestFrameFlags: the kinds without a display to keep, without a window and
+// with a turning cycle are the ones the frame named by id before the flags.
+func TestFrameFlags(t *testing.T) {
+	want := map[string][]string{
+		"NoDisplay": {KindEnergyCell, KindTank, KindCrucible, KindLavaGenerator, KindSolarGenerator, KindHydroGenerator, KindDrawerController, KindDrawerTrim, KindDrawerInterface, KindTinker, KindCollector, KindRelicTable},
+		"NoWindow":  {KindNetCable},
+		"Cycle":     {KindHarvester},
+	}
+	for flag, kinds := range want {
+		in := map[string]bool{}
+		for _, k := range kinds {
+			in[k] = true
+		}
+		for _, k := range Order {
+			d := Kinds[k]
+			got := map[string]bool{"NoDisplay": d.NoDisplay, "NoWindow": d.NoWindow, "Cycle": d.Cycle}[flag]
+			if got != in[k] {
+				t.Errorf("%s: %s is %t, want %t", k, flag, got, in[k])
+			}
+		}
+	}
+	for _, k := range Order {
+		if d := Kinds[k]; d.Cell && !d.NoDisplay {
+			t.Errorf("%s stores energy but has a display: its tick would not offer the energy to the network", k)
+		}
+	}
+}

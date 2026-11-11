@@ -278,6 +278,13 @@ type Def struct {
 	// marks the sieves that sift on their own (sieve.go).
 	Charge    []int
 	autoSieve bool
+	// NoDisplay marks a kind with no machine window to keep current: its tick
+	// ends before the window's progress, energy gauge and info icon are
+	// brought up to date. NoWindow marks a kind a click does nothing on (the
+	// click goes on to the held item). Cycle marks a kind that works in a
+	// cycle that turns whether or not there is work: its window and its panel
+	// show the cycle, not an input.
+	NoDisplay, NoWindow, Cycle bool
 
 	// Owner is the feature that supplies the kind's behaviour with Register
 	// ("" for a kind whose behaviour is this package's); registered is set
@@ -322,7 +329,7 @@ var Kinds = map[string]*Def{
 	},
 	KindHarvester: {
 		ID: idHarvester, nameKey: "machine.harvester.name", Marker: "§d§m§3", Interval: 40, Output: []int{13, 14, 15, 16}, Indicator: 10,
-		Use: 10, EnergyCap: ConsumerBuffer,
+		Use: 10, EnergyCap: ConsumerBuffer, Cycle: true,
 		helpKeys: []string{"machine.harvester.help.1", "machine.harvester.help.2"},
 	},
 	KindGenerator: {
@@ -336,28 +343,28 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.alloy.help.1", "machine.alloy.help.2"},
 	},
 	KindDrawerController: {
-		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true,
+		ID: idDrawerController, nameKey: "machine.controller.name", Interval: 1, Indicator: 10, Controller: true, NoDisplay: true,
 		helpKeys: []string{"machine.controller.help.1", "machine.controller.help.2"},
 	},
 	KindDrawerTrim: {
-		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10,
+		ID: idDrawerTrim, nameKey: "machine.link.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.link.help.1"},
 	},
 	KindDrawerInterface: {
-		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true,
+		ID: idDrawerInterface, nameKey: "machine.drawer_interface.name", Interval: 1, Indicator: 10, Controller: true, NoDisplay: true,
 		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
-		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10,
+		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
 	KindCollector: {
 		// The harvester's window: four output slots, no energy.
-		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10,
+		ID: idCollector, nameKey: "machine.collector.name", Marker: "§d§m§3", Interval: 1, Output: []int{13, 14, 15, 16}, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.collector.help.1", "machine.collector.help.2"},
 	},
 	KindRelicTable: {
-		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10,
+		ID: idRelicTable, nameKey: "machine.relictable.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.relictable.help.1"},
 	},
 	KindNetController: {
@@ -366,7 +373,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.net_controller.help.1"},
 	},
 	KindNetCable: {
-		ID: idNetCable, nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10,
+		ID: idNetCable, nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10, NoWindow: true,
 		helpKeys: []string{"machine.net_cable.help.1"},
 	},
 	KindDiskDrive: {
@@ -406,29 +413,29 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.washer.help.1", "machine.washer.help.2"},
 	},
 	KindTank: {
-		ID: idTank, nameKey: "machine.tank.name", Interval: 1, Indicator: 10,
+		ID: idTank, nameKey: "machine.tank.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		FluidCap: tankCapacity, fluidSource: true, fluidSink: true,
 		helpKeys: []string{"machine.tank.help.1", "machine.tank.help.2"},
 	},
 	KindCrucible: {
-		ID: idCrucible, nameKey: "machine.crucible.name", Interval: 20, Input: []int{10}, Indicator: 12,
+		ID: idCrucible, nameKey: "machine.crucible.name", Interval: 20, Input: []int{10}, Indicator: 12, NoDisplay: true,
 		Use: 30, EnergyCap: ConsumerBuffer,
 		FluidCap: 8000, fluidSource: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.crucible.help.1", "machine.crucible.help.2"},
 	},
 	KindLavaGenerator: {
-		ID: idLavaGenerator, nameKey: "machine.lavagen.name", Interval: 1, Indicator: 10,
+		ID: idLavaGenerator, nameKey: "machine.lavagen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: LavaGenOutput, EnergyCap: generatorBuffer,
 		FluidCap: 4000, fluidSink: true, fluidOnly: fluidnet.Lava,
 		helpKeys: []string{"machine.lavagen.help.1", "machine.lavagen.help.2"},
 	},
 	KindSolarGenerator: {
-		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10,
+		ID: idSolarGenerator, nameKey: "machine.solargen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: SolarOutput, EnergyCap: generatorBuffer,
 		helpKeys: []string{"machine.solargen.help.1", "machine.solargen.help.2"},
 	},
 	KindHydroGenerator: {
-		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10,
+		ID: idHydroGenerator, nameKey: "machine.hydrogen.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Generates: HydroOutput, EnergyCap: generatorBuffer,
 		helpKeys: []string{"machine.hydrogen.help.1", "machine.hydrogen.help.2"},
 	},
@@ -438,7 +445,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.simulator.help.1", "machine.simulator.help.2"},
 	},
 	KindEnergyCell: {
-		ID: idEnergyCell, nameKey: "machine.cell.name", Interval: 1, Indicator: 10,
+		ID: idEnergyCell, nameKey: "machine.cell.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		Cell: true, EnergyCap: CellCapacity,
 		helpKeys: []string{"machine.cell.help.1", "machine.cell.help.2"},
 	},
@@ -1132,13 +1139,14 @@ func (st *State) progressPct() int { return min(100, st.Progress*100/max(1, st.C
 // shows the fuel left in the one burning), and the text key of its tooltip,
 // which takes the percent when withPct is set.
 func (st *State) progressLook() (ring bool, key string, withPct bool) {
+	if st.Def.Cycle {
+		return true, "machine.progress.harvestCycle", false
+	}
 	switch st.Def.ID {
 	case idMiner, idAutoSieve, idMagicSieve, idSimulator, idWasher, idVacuum, idFeller, idCrafter, idLab:
 		return true, "machine.progress.mining", true
 	case idGenerator:
 		return true, "machine.progress.fuel", true
-	case idHarvester:
-		return true, "machine.progress.harvestCycle", false
 	}
 	return false, "machine.progress.percent", true
 }
@@ -1596,7 +1604,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 			return true
 		}
 	}
-	if m.State.Def.Cell || m.Kind == KindNetCable {
+	if m.State.Def.Cell || m.State.Def.NoWindow {
 		return false
 	}
 	if !s.Debounced(p) {
@@ -1721,9 +1729,8 @@ func (m Machine) Tick(currentTick int64, pos cube.Pos, tx *world.Tx) {
 		watchMachine(s, tx, pos, st)
 	}
 	st.showRange(tx, pos)
-	switch st.Def.ID {
-	case idEnergyCell, idTank, idCrucible, idLavaGenerator, idSolarGenerator, idHydroGenerator, idDrawerController, idDrawerTrim, idDrawerInterface, idTinker, idCollector, idRelicTable:
-		if st.Def.ID == idEnergyCell && st.Energy > 0 {
+	if st.Def.NoDisplay {
+		if st.Def.Cell && st.Energy > 0 {
 			network.Energy(s).AddSource(pos)
 		}
 		return
