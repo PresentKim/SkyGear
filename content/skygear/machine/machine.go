@@ -9,7 +9,6 @@ import (
 
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
-	"github.com/df-mc/dragonfly/server/block/customblock"
 	"github.com/df-mc/dragonfly/server/block/model"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/category"
@@ -19,7 +18,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world/particle"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/chestui"
-	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
@@ -1270,89 +1268,6 @@ func (m Machine) Name() string {
 }
 
 func (Machine) Category() category.Category { return category.Items() }
-
-// cubeMachines are the machines drawn as plain cubes with one side texture;
-// frontMachines have a front (south), back and side textures. The sieves
-// have models.
-var (
-	cubeMachines  = map[string]bool{KindMiner: true, KindHarvester: true, KindGenerator: true, KindEnergyCell: true, KindVacuum: true, KindFeller: true, KindTank: true, KindLavaGenerator: true, KindSolarGenerator: true, KindHydroGenerator: true, KindDrawerController: true, KindDrawerInterface: true, KindTinker: true, KindCollector: true, KindRelicTable: true, KindNetController: true, KindDiskDrive: true, KindNetTerminal: true, KindPatternEncoder: true}
-	frontMachines = map[string]bool{KindCrusher: true, KindWasher: true, KindAlloy: true, KindSimulator: true, KindCrucible: true, KindFurnace: true, KindCrafter: true, KindLab: true, KindNetAutocrafter: true}
-)
-
-// States implements block.Permutable: only the sieve has states.
-func (m Machine) States() map[string][]any {
-	if IsSieve(m.Kind) {
-		return SieveStates()
-	}
-	if TierLook(m.Kind) {
-		return tierStates(m.Kind)
-	}
-	if AnimatedKinds[m.Kind] {
-		return activeStates()
-	}
-	if NetShaped(m.Kind) {
-		return netStates(m.Kind)
-	}
-	return nil
-}
-
-// Permutations implements block.Permutable.
-func (m Machine) Permutations() []customblock.Permutation {
-	if IsSieve(m.Kind) {
-		return sievePermutations(m.Kind)
-	}
-	if TierLook(m.Kind) {
-		return tierPermutations(m.Kind)
-	}
-	if AnimatedKinds[m.Kind] {
-		return activePermutations(m.Kind)
-	}
-	if NetShaped(m.Kind) {
-		return netPermutations(m.Kind)
-	}
-	return nil
-}
-
-// ClientExtras implements clientdef.ExtraProperties for the machines whose
-// geometry has bones: the base follows Properties and the permutations follow
-// Permutations. A sieve shows its content bones, a network block its shape's
-// bones and collision boxes.
-func (m Machine) ClientExtras() (clientdef.Extras, map[string]clientdef.Extras) {
-	var base clientdef.Extras
-	switch {
-	case m.Kind == KindDrawerTrim || cubeMachines[m.Kind] || frontMachines[m.Kind]:
-	case NetShaped(m.Kind):
-		base, _ = netAllExtras(m.Kind)
-	default:
-		base, _ = sieveExtras()
-	}
-	switch {
-	case IsSieve(m.Kind):
-		_, perms := sieveExtras()
-		return base, perms
-	case TierLook(m.Kind), AnimatedKinds[m.Kind]:
-	case NetShaped(m.Kind):
-		_, perms := netAllExtras(m.Kind)
-		return base, perms
-	}
-	return base, nil
-}
-
-func (m Machine) Properties() customblock.Properties {
-	if m.Kind == KindDrawerTrim {
-		return customblock.Properties{Cube: true, Textures: map[string]customblock.Material{"*": blockmodel.AlphaMaterial("skygear_drawer_side")}}
-	}
-	if cubeMachines[m.Kind] {
-		return blockmodel.CubeProperties(m.Kind)
-	}
-	if frontMachines[m.Kind] {
-		return blockmodel.FrontCubeProperties(m.Kind)
-	}
-	if NetShaped(m.Kind) {
-		return netProperties(m.Kind, 0)
-	}
-	return sieveProperties(m.Kind)
-}
 
 // BreakInfo drops the machine and its contents.
 func (m Machine) BreakInfo() block.BreakInfo {

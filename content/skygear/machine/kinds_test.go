@@ -115,3 +115,24 @@ func TestFrameFlags(t *testing.T) {
 		}
 	}
 }
+
+// TestEveryKindHasOneShape: a kind is a sieve, a thin network block or a cube
+// of exactly one of the three texture sets, so the properties of a cube that
+// is in neither cubeMachines nor plainCubes are those of a frontMachines kind.
+func TestEveryKindHasOneShape(t *testing.T) {
+	for _, k := range Order {
+		_, plain := plainCubes[k]
+		n := 0
+		for _, in := range []bool{IsSieve(k), NetShaped(k), plain, cubeMachines[k], frontMachines[k]} {
+			if in {
+				n++
+			}
+		}
+		if n != 1 {
+			t.Errorf("%s is in %d of the shape sets, want 1", k, n)
+		}
+		if cube := plain || cubeMachines[k] || frontMachines[k]; cube != (shapeOf(k) == shapeCube) {
+			t.Errorf("%s: shapeOf says %d", k, shapeOf(k))
+		}
+	}
+}
