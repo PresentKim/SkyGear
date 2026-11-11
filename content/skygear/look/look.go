@@ -19,13 +19,11 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/waila"
-	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
-	"github.com/presentkim/skygear/content/skygear/hopper"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -183,19 +181,11 @@ func Info(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, b world
 		}
 	case block.Composter:
 		info.Lines = farm.ComposterLines(s, lang, pos, b)
-	case conduit.Bundle:
-		info.Lines = conduit.BundleLines(lang, tx, pos, b)
 	case farm.SilkwormLeaves:
 		info.Lines = []string{fmt.Sprintf(i18n.T(lang, "look.cocoon"), b.CocoonPercent())}
 	case farm.Barrel:
 		info.Lines = farm.BarrelLines(s, lang, tx, pos)
 		info.Line = farm.BarrelLiquid(s, lang, pos)
-	case hopper.FlowHopper:
-		info.Lines = hopper.HopperLines(lang, b)
-		if b.Inv != nil {
-			// What it holds shows like a chest's, slots with counts under them.
-			info.Container = &waila.Container{Layout: waila.LayoutChest, Items: b.Inv.Items()}
-		}
 	case farm.MagicPlant:
 		if i := farm.PlantKindIndex(b.Kind); i >= 0 {
 			k := farm.PlantKinds[i]
