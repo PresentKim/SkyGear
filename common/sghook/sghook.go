@@ -8,6 +8,9 @@
 // block as its variant when its metadata has none (entity.go), so it is drawn
 // as its name tag alone; Dragonfly does that for its own text entity only.
 //
+// EditCustomItems and EditCustomBlocks let the game change the item and block
+// entries a server sends to clients in the start game data.
+//
 // It depends on Dragonfly internals by name (see TestInternals). After a
 // Dragonfly upgrade the test points at what moved.
 package sghook
@@ -137,7 +140,7 @@ func (l listener) Accept() (session.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	applyItemEdits()
+	applyEntryEdits()
 	w := &Conn{Conn: c}
 	// Accept hands the connection out right after the client's packs are done.
 	w.join.packs = time.Now()
@@ -236,6 +239,53 @@ func EditCustomItems(srv *server.Server, edit func(protocol.ItemEntry) protocol.
 	itemEdits.srv, itemEdits.edit, itemEdits.done = srv, edit, false
 }
 
+// blockEdits is the edit of the custom block entries EditCustomBlocks was
+// given, made once the server has built them.
+var blockEdits struct {
+	sync.Mutex
+	srv  *server.Server
+	edit func(protocol.BlockEntry) protocol.BlockEntry
+	done bool
+}
+
+// EditCustomBlocks replaces each entry of srv's custom blocks (name and
+// properties NBT, vanilla data-driven blocks first, then the registered custom
+// blocks) with what edit makes of it. The client gets them in the StartGame
+// data, which passes no packet hook. Call it once, after the server is made
+// (with Wrap); it panics at once if the server has no such field (a Dragonfly
+// upgrade, see TestInternals). The server builds the entries when it starts
+// listening (Listen), so the edit is made when the first connection is
+// accepted, before the server reads them for it: every client sees the edit,
+// the first included.
+//
+// The edit runs once per entry, once per server (not per connection), in the
+// goroutine that accepts the first connection. A second call replaces the
+// first (edits do not compose; compose them in one function); EditCustomBlocks
+// (nil, nil) removes it.
+//
+// The client derives the block runtime ids from the order of the entries and
+// from each entry's name and block_id, so the entries cannot be reordered,
+// added or removed: edit gets and returns one entry, and the edit panics if
+// the returned Name or Properties["block_id"] differ from the original.
+// Everything else in Properties may change. edit gets a deep copy of the
+// Properties (Dragonfly's own data is shared by every server of the process);
+// it must return a new value for what it changes, not keep the entry.
+func EditCustomBlocks(srv *server.Server, edit func(protocol.BlockEntry) protocol.BlockEntry) {
+	if srv != nil {
+		field[[]protocol.BlockEntry](srv, "customBlocks") // fail now, not at the first join
+	}
+	blockEdits.Lock()
+	defer blockEdits.Unlock()
+	blockEdits.srv, blockEdits.edit, blockEdits.done = srv, edit, false
+}
+
+// applyEntryEdits makes the edits of EditCustomItems and EditCustomBlocks,
+// once each.
+func applyEntryEdits() {
+	applyItemEdits()
+	applyBlockEdits()
+}
+
 // applyItemEdits makes the edit of EditCustomItems, once.
 func applyItemEdits() {
 	itemEdits.Lock()
@@ -248,6 +298,52 @@ func applyItemEdits() {
 	for i, e := range *items {
 		(*items)[i] = itemEdits.edit(e)
 	}
+}
+
+// applyBlockEdits makes the edit of EditCustomBlocks, once.
+func applyBlockEdits() {
+	blockEdits.Lock()
+	defer blockEdits.Unlock()
+	if blockEdits.done || blockEdits.srv == nil || blockEdits.edit == nil {
+		return
+	}
+	blockEdits.done = true
+	blocks := field[[]protocol.BlockEntry](blockEdits.srv, "customBlocks")
+	edited := make([]protocol.BlockEntry, len(*blocks))
+	for i, e := range *blocks {
+		in := protocol.BlockEntry{Name: e.Name, Properties: copyValue(e.Properties).(map[string]any)}
+		out := blockEdits.edit(in)
+		if out.Name != e.Name {
+			panic("sghook: EditCustomBlocks changed the name " + e.Name + " to " + out.Name + ": the client's block runtime ids depend on it")
+		}
+		if !reflect.DeepEqual(out.Properties["block_id"], e.Properties["block_id"]) {
+			panic("sghook: EditCustomBlocks changed block_id of " + e.Name)
+		}
+		edited[i] = out
+	}
+	*blocks = edited // all or nothing: a panic above leaves the entries as built
+}
+
+// copyValue deep-copies the maps and slices of NBT-like data.
+func copyValue(v any) any {
+	switch v := v.(type) {
+	case map[string]any:
+		if v == nil {
+			return v
+		}
+		m := make(map[string]any, len(v))
+		for k, x := range v {
+			m[k] = copyValue(x)
+		}
+		return m
+	case []any:
+		s := make([]any, len(v))
+		for i, x := range v {
+			s[i] = copyValue(x)
+		}
+		return s
+	}
+	return v
 }
 
 // field returns a pointer to the unexported field name of *v.

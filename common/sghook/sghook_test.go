@@ -37,6 +37,10 @@ func TestInternals(t *testing.T) {
 	field[sync.Mutex](fh, "mu")
 	field[map[uint32]form.Form](fh, "forms")
 	field[[]protocol.ItemEntry](&server.Server{}, "customItems")
+	if sf, ok := reflect.TypeFor[server.Server]().FieldByName("customBlocks"); !ok || sf.Type != reflect.TypeFor[[]protocol.BlockEntry]() {
+		t.Fatal("server.Server has no field customBlocks []protocol.BlockEntry: Dragonfly moved the custom block entries, update EditCustomBlocks")
+	}
+	field[[]protocol.BlockEntry](&server.Server{}, "customBlocks")
 	_ = []any{player_session, session_writePacket, session_sendInv, session_nextWindowID, session_closeCurrentContainer, tx_chunk}
 }
 
@@ -178,9 +182,58 @@ func TestEditCustomItems(t *testing.T) {
 	if (*items)[0].Name != "a" {
 		t.Fatal("edited before a connection")
 	}
-	applyItemEdits()
-	applyItemEdits()
+	applyEntryEdits()
+	applyEntryEdits()
 	if (*items)[0].Name != "a!" || edits != 1 {
 		t.Fatalf("entry %q after %d edits", (*items)[0].Name, edits)
+	}
+}
+
+func TestEditCustomBlocks(t *testing.T) {
+	srv := &server.Server{}
+	edits := 0
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry {
+		edits++
+		e.Properties["x"] = int32(1)
+		return e
+	})
+	t.Cleanup(func() { EditCustomBlocks(nil, nil) })
+	blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+	shared := map[string]any{"a": map[string]any{}}
+	*blocks = []protocol.BlockEntry{{Name: "a", Properties: shared}, {Name: "b", Properties: map[string]any{}}}
+	if edits != 0 || (*blocks)[0].Properties["x"] != nil {
+		t.Fatal("edited before a connection")
+	}
+	applyEntryEdits()
+	applyEntryEdits()
+	if edits != 2 || (*blocks)[0].Properties["x"] != int32(1) || (*blocks)[1].Name != "b" || len(*blocks) != 2 {
+		t.Fatalf("entries %v after %d edits", *blocks, edits)
+	}
+	if _, ok := shared["x"]; ok {
+		t.Fatal("edit changed the maps Dragonfly shares")
+	}
+}
+
+func TestEditCustomBlocksGuards(t *testing.T) {
+	t.Cleanup(func() { EditCustomBlocks(nil, nil) })
+	for name, edit := range map[string]func(protocol.BlockEntry) protocol.BlockEntry{
+		"name":     func(e protocol.BlockEntry) protocol.BlockEntry { e.Name += "!"; return e },
+		"block_id": func(e protocol.BlockEntry) protocol.BlockEntry { e.Properties["block_id"] = int32(2); return e },
+	} {
+		srv := &server.Server{}
+		EditCustomBlocks(srv, edit)
+		blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+		*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{"block_id": int32(1)}}}
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("%s change not refused", name)
+				}
+			}()
+			applyEntryEdits()
+		}()
+		if (*blocks)[0].Name != "a" || (*blocks)[0].Properties["block_id"] != int32(1) {
+			t.Errorf("%s: entries changed despite the panic", name)
+		}
 	}
 }
