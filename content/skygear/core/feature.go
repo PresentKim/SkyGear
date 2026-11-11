@@ -25,6 +25,10 @@ type Feature struct {
 	// clientdef.ItemEntry and after the ItemEntry of every feature listed
 	// before this one.
 	ItemEntry func(protocol.ItemEntry) protocol.ItemEntry
+	// Creative, if set, returns the items the feature adds to the creative
+	// inventory, each with its Slot in the list (CreativeItems). It is called
+	// when the list is built, after every item is registered.
+	Creative func() []CreativeItem
 	// Setup subscribes the feature's steps to the hooks. It runs once, during
 	// Install, before any event is emitted.
 	Setup func()

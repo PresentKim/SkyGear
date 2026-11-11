@@ -8,6 +8,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/elevator"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
@@ -22,7 +23,8 @@ import (
 // Creative inventory entries of the game's own items and blocks. The client
 // builds its recipe book from the creative inventory: a recipe whose result
 // is not in it is never listed, so every item and block the game makes is
-// registered here, in anonymous groups of the fitting tab.
+// registered here, in anonymous groups of the fitting tab. Slots order the
+// list (core.CreativeItems): a run of items has one slot.
 var registerCreativeOnce sync.Once
 
 // RegisterCreativeItems adds the game's items to the creative inventory. It
@@ -43,109 +45,153 @@ func RegisterCreativeItems() {
 			// No icon makes the group anonymous: its items are not grouped.
 			creative.RegisterGroup(creative.Group{Category: c, Name: groupName(c)})
 		}
-		add := func(c creative.Category, it world.Item) {
-			creative.RegisterItem(creative.Item{Stack: item.NewStack(it, 1), Group: groupName(c)})
+		for _, it := range core.CreativeItems(ownCreative()) {
+			creative.RegisterItem(creative.Item{Stack: item.NewStack(it.Item, 1), Group: groupName(it.Category)})
 		}
-		add(construction, progress.ResearchTable{})
-		add(construction, storage.Drawer{})
-		for _, w := range farm.BarrelWoods {
-			add(construction, farm.Barrel{Wood: w})
-		}
-		for t := 1; t <= conduit.Tiers; t++ {
-			add(construction, conduit.EnergyConduit{Tier: t})
-			add(construction, conduit.ItemConduit{Tier: t})
-			add(construction, conduit.FluidConduit{Tier: t})
-		}
-		add(construction, conduit.NetConduit{})
-		for _, k := range machine.Order {
-			add(construction, machine.Machine{Kind: k})
-		}
-		add(construction, sgitem.Dust{})
-		for _, c := range item.Colours() {
-			add(construction, elevator.Elevator{Colour: c})
-		}
-		for _, k := range sgitem.CrushedKinds {
-			add(construction, sgitem.CrushedBlock{Kind: k})
-		}
-		for _, c := range sgitem.CompactBlocks() {
-			add(construction, c)
-		}
-		for _, id := range hopper.HopperOrder {
-			add(construction, hopper.NewFlowHopper(id, cube.FaceDown))
-		}
-		add(equipment, sgitem.Hammer{Stone: true})
-		add(equipment, sgitem.Hammer{})
-		for _, t := range sgitem.CrookTiers {
-			add(equipment, sgitem.Crook{Tier: t.Name})
-		}
-		add(items, farm.Silkworm{})
-		add(items, farm.CookedSilkworm{})
-		for _, t := range sgitem.WandTiers {
-			add(equipment, sgitem.NewWand(t))
-		}
-		add(items, sgitem.WoodenBucket{})
-		add(items, sgitem.WoodenBucket{Water: true})
-		add(equipment, sgitem.DrawerKey{})
-		add(items, sgitem.DrawerUpgrade{Kind: sgitem.UpgradeCapacity})
-		add(items, sgitem.DrawerUpgrade{Kind: sgitem.UpgradeVoid})
-		add(items, sgitem.BarkFiber{})
-		add(items, sgitem.FairyDust{})
-		for t := range netstore.DiskCaps {
-			add(items, netstore.Disk{Tier: t})
-		}
-		add(items, netstore.Pattern{})
-		add(items, netstore.Upgrade{})
-		add(items, netstore.Upgrade{Stack: true})
-		add(items, sgitem.FairyEmerald{})
-		add(items, sgitem.DimensionStone{})
-		for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
-			add(equipment, sgitem.Relic{Kind: kind})
-		}
-		add(equipment, fairy.Board{})
-		add(items, sgitem.FairyBoneMeal{})
-		add(items, sgitem.FairyHourglass{})
-		add(items, sgitem.GrassSeeds{})
-		add(items, sgitem.MyceliumSpores{})
-		add(items, sgitem.WitchWaterBucket{})
-		add(items, sgitem.ConduitBinderMix{})
-		add(items, sgitem.ConduitBinder{})
-		for _, t := range sgitem.MeshTiers {
-			add(items, sgitem.Mesh{Tier: t.Tier})
-		}
-		for _, k := range sgitem.OreKinds {
-			add(items, sgitem.OreChunk{Ore: k.Ore})
-		}
-		for _, m := range sgitem.NewOreMetals {
-			add(construction, sgitem.OreBlock{Metal: m})
-			add(items, sgitem.RawOre{Metal: m})
-		}
-		for _, k := range sgitem.PebbleKinds {
-			add(items, sgitem.Pebble{Kind: k.Kind})
-		}
-		for _, c := range sgitem.PetalColours {
-			add(items, sgitem.Petal{Colour: c})
-		}
-		for _, sd := range farm.PlantSeeds {
-			add(items, farm.PlantSeed{Seed: sd})
-		}
-		for _, m := range sgitem.MobKinds {
-			add(items, sgitem.Essence{Mob: m})
-		}
-		for _, m := range sgitem.DustMetals {
-			add(items, sgitem.MetalDust{Metal: m})
-		}
-		for _, m := range sgitem.IngotMetals {
-			add(items, sgitem.Ingot{Metal: m})
-		}
-		for _, a := range sgitem.TierAlloys {
-			add(items, sgitem.TierAlloy{Kind: a})
-		}
-		for l := 1; l <= 4; l++ {
-			add(items, sgitem.Circuit{Level: l})
-		}
-		for l := 1; l <= machine.MaxTier; l++ {
-			add(items, sgitem.TierKit{Level: l})
-		}
-		add(equipment, sgitem.ConfigCopier{})
 	})
+}
+
+// ownCreative are the creative items this package lists, each run with its
+// slot.
+func ownCreative() []core.CreativeItem {
+	construction, equipment, items := creative.ConstructionCategory(), creative.EquipmentCategory(), creative.ItemsCategory()
+	var out []core.CreativeItem
+	slot := 0
+	add := func(c creative.Category, it world.Item) {
+		out = append(out, core.CreativeItem{Slot: slot, Category: c, Item: it})
+	}
+
+	slot = 10
+	add(construction, progress.ResearchTable{})
+
+	slot = 20
+	add(construction, storage.Drawer{})
+
+	slot = 30
+	for _, w := range farm.BarrelWoods {
+		add(construction, farm.Barrel{Wood: w})
+	}
+
+	slot = 40
+	for t := 1; t <= conduit.Tiers; t++ {
+		add(construction, conduit.EnergyConduit{Tier: t})
+		add(construction, conduit.ItemConduit{Tier: t})
+		add(construction, conduit.FluidConduit{Tier: t})
+	}
+	add(construction, conduit.NetConduit{})
+
+	slot = 50
+	for _, k := range machine.Order {
+		add(construction, machine.Machine{Kind: k})
+	}
+
+	slot = 60
+	add(construction, sgitem.Dust{})
+
+	slot = 70
+	for _, c := range item.Colours() {
+		add(construction, elevator.Elevator{Colour: c})
+	}
+
+	slot = 80
+	for _, k := range sgitem.CrushedKinds {
+		add(construction, sgitem.CrushedBlock{Kind: k})
+	}
+	for _, c := range sgitem.CompactBlocks() {
+		add(construction, c)
+	}
+	for _, id := range hopper.HopperOrder {
+		add(construction, hopper.NewFlowHopper(id, cube.FaceDown))
+	}
+	add(equipment, sgitem.Hammer{Stone: true})
+	add(equipment, sgitem.Hammer{})
+	for _, t := range sgitem.CrookTiers {
+		add(equipment, sgitem.Crook{Tier: t.Name})
+	}
+
+	slot = 90
+	add(items, farm.Silkworm{})
+	add(items, farm.CookedSilkworm{})
+
+	slot = 100
+	for _, t := range sgitem.WandTiers {
+		add(equipment, sgitem.NewWand(t))
+	}
+	add(items, sgitem.WoodenBucket{})
+	add(items, sgitem.WoodenBucket{Water: true})
+	add(equipment, sgitem.DrawerKey{})
+	add(items, sgitem.DrawerUpgrade{Kind: sgitem.UpgradeCapacity})
+	add(items, sgitem.DrawerUpgrade{Kind: sgitem.UpgradeVoid})
+	add(items, sgitem.BarkFiber{})
+	add(items, sgitem.FairyDust{})
+
+	slot = 110
+	for t := range netstore.DiskCaps {
+		add(items, netstore.Disk{Tier: t})
+	}
+	add(items, netstore.Pattern{})
+	add(items, netstore.Upgrade{})
+	add(items, netstore.Upgrade{Stack: true})
+
+	slot = 120
+	add(items, sgitem.FairyEmerald{})
+	add(items, sgitem.DimensionStone{})
+	for _, kind := range append(append([]string(nil), sgitem.RelicWeapons...), sgitem.RelicCharms...) {
+		add(equipment, sgitem.Relic{Kind: kind})
+	}
+
+	slot = 130
+	add(equipment, fairy.Board{})
+
+	slot = 140
+	add(items, sgitem.FairyBoneMeal{})
+	add(items, sgitem.FairyHourglass{})
+	add(items, sgitem.GrassSeeds{})
+	add(items, sgitem.MyceliumSpores{})
+	add(items, sgitem.WitchWaterBucket{})
+	add(items, sgitem.ConduitBinderMix{})
+	add(items, sgitem.ConduitBinder{})
+	for _, t := range sgitem.MeshTiers {
+		add(items, sgitem.Mesh{Tier: t.Tier})
+	}
+	for _, k := range sgitem.OreKinds {
+		add(items, sgitem.OreChunk{Ore: k.Ore})
+	}
+	for _, m := range sgitem.NewOreMetals {
+		add(construction, sgitem.OreBlock{Metal: m})
+		add(items, sgitem.RawOre{Metal: m})
+	}
+	for _, k := range sgitem.PebbleKinds {
+		add(items, sgitem.Pebble{Kind: k.Kind})
+	}
+	for _, c := range sgitem.PetalColours {
+		add(items, sgitem.Petal{Colour: c})
+	}
+
+	slot = 150
+	for _, sd := range farm.PlantSeeds {
+		add(items, farm.PlantSeed{Seed: sd})
+	}
+
+	slot = 160
+	for _, m := range sgitem.MobKinds {
+		add(items, sgitem.Essence{Mob: m})
+	}
+	for _, m := range sgitem.DustMetals {
+		add(items, sgitem.MetalDust{Metal: m})
+	}
+	for _, m := range sgitem.IngotMetals {
+		add(items, sgitem.Ingot{Metal: m})
+	}
+	for _, a := range sgitem.TierAlloys {
+		add(items, sgitem.TierAlloy{Kind: a})
+	}
+	for l := 1; l <= 4; l++ {
+		add(items, sgitem.Circuit{Level: l})
+	}
+	for l := 1; l <= machine.MaxTier; l++ {
+		add(items, sgitem.TierKit{Level: l})
+	}
+	add(equipment, sgitem.ConfigCopier{})
+	return out
 }
