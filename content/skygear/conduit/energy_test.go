@@ -1,4 +1,4 @@
-package skygear
+package conduit_test
 
 import (
 	"testing"
@@ -15,14 +15,17 @@ import (
 	"github.com/presentkim/skygear/common/itemnet"
 	"github.com/presentkim/skygear/common/ui"
 	"github.com/presentkim/skygear/content/skygear/conduit"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 )
 
 // run advances n steps of four ticks, calling Fast (which moves the energy)
 // after each, as the instance does.
-func runSteps(s *session, n int) {
+func runSteps(s core.Lifecycle, n int) {
 	for range n {
-		tick(s, 4)
+		coretest.Tick(s, 4)
 		s.World.Do(func(tx *world.Tx) { s.Fast(tx) })
 	}
 }
@@ -30,9 +33,9 @@ func runSteps(s *session, n int) {
 // TestGeneratorBurnsFuelIntoEnergy: a coal burns for its 80 seconds at 20
 // RE/t; a full buffer stops the burning.
 func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	st := placeTestMachine(s, machinePos, machine.KindGenerator)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	st := machinetest.Place(s, machinetest.Pos, machine.KindGenerator)
 	st.Unlimited = false
 	if !st.Insert(item.NewStack(item.Coal{}, 2)) {
 		t.Fatal("coal was not taken as fuel")
@@ -40,7 +43,7 @@ func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 	if st.Insert(item.NewStack(block.Stone{}, 1)) {
 		t.Fatal("stone was taken as fuel")
 	}
-	tick(s, 10)
+	coretest.Tick(s, 10)
 	if st.Energy != 10*machine.GeneratorOutput {
 		t.Fatalf("%d RE after 10 ticks, want %d", st.Energy, 10*machine.GeneratorOutput)
 	}
@@ -50,27 +53,27 @@ func TestGeneratorBurnsFuelIntoEnergy(t *testing.T) {
 	// With a full buffer nothing burns.
 	st.Energy = st.Def.EnergyCap
 	burn := st.Burn
-	tick(s, 10)
+	coretest.Tick(s, 10)
 	if st.Energy != st.Def.EnergyCap || st.Burn != burn {
 		t.Errorf("a full generator burned: energy %d burn %d", st.Energy, st.Burn)
 	}
 	// The generator gives it away and burns on.
-	if got := (machine.Machine{Kind: machine.KindGenerator, State: st}).ExtractEnergy(nil, machinePos, cube.FaceEast, 500, false); got != 500 {
+	if got := (machine.Machine{Kind: machine.KindGenerator, State: st}).ExtractEnergy(nil, machinetest.Pos, cube.FaceEast, 500, false); got != 500 {
 		t.Errorf("extracted %d", got)
 	}
-	tick(s, 5)
+	coretest.Tick(s, 5)
 	if st.Burn >= burn {
 		t.Error("the generator did not burn on after room came")
 	}
 }
 
 func TestGeneratorOutOfFuelPushesStoredEnergy(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	gen := placeTestMachine(s, machinePos, machine.KindGenerator)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	gen := machinetest.Place(s, machinetest.Pos, machine.KindGenerator)
 	gen.Unlimited = false
 	gen.Energy = 9605
-	sink := placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
+	sink := machinetest.Place(s, machinetest.Pos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
 	sink.Unlimited = false
 	runSteps(s, 20)
 	if sink.Energy == 0 || gen.Energy >= 9605 {
@@ -81,15 +84,15 @@ func TestGeneratorOutOfFuelPushesStoredEnergy(t *testing.T) {
 // TestPowerLine: a generator, two conduits and a crusher: the crusher gets
 // energy and works; without the generator it stalls.
 func TestPowerLine(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	gen := placeTestMachine(s, machinePos, machine.KindGenerator)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	gen := machinetest.Place(s, machinetest.Pos, machine.KindGenerator)
 	gen.Unlimited = false
-	crusher := placeTestMachine(s, machinePos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher)
+	crusher := machinetest.Place(s, machinetest.Pos.Add(cube.Pos{3, 0, 0}), machine.KindCrusher)
 	crusher.Unlimited = false
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(machinePos.Add(cube.Pos{1, 0, 0}), conduit.Bundle{Energy: 1}, nil)
-		tx.SetBlock(machinePos.Add(cube.Pos{2, 0, 0}), conduit.Bundle{Energy: 1}, nil)
+		tx.SetBlock(machinetest.Pos.Add(cube.Pos{1, 0, 0}), conduit.Bundle{Energy: 1}, nil)
+		tx.SetBlock(machinetest.Pos.Add(cube.Pos{2, 0, 0}), conduit.Bundle{Energy: 1}, nil)
 	})
 	_ = crusher.Insert(item.NewStack(block.Cobblestone{}, 3))
 	runSteps(s, 30)
@@ -109,7 +112,7 @@ func TestPowerLine(t *testing.T) {
 	}
 	// The conduits showed their arms.
 	s.World.Do(func(tx *world.Tx) {
-		c := tx.Block(machinePos.Add(cube.Pos{1, 0, 0})).(conduit.Bundle)
+		c := tx.Block(machinetest.Pos.Add(cube.Pos{1, 0, 0})).(conduit.Bundle)
 		want := 1<<4 | 1<<5 // west (the generator) and east (the next conduit)
 		if c.EConn != want || c.IConn != 0 {
 			t.Errorf("conduit connections %b %b, want %b", c.EConn, c.IConn, want)
@@ -121,15 +124,15 @@ func TestPowerLine(t *testing.T) {
 // role) or a crusher (a sink) connects only to the crusher; a conduit item
 // (no state) does not.
 func TestConduitsOnlyJoinEnergyBlocks(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	placeTestMachine(s, machinePos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
-	placeTestMachine(s, machinePos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	machinetest.Place(s, machinetest.Pos.Add(cube.Pos{1, 0, 0}), machine.KindCrusher)
+	machinetest.Place(s, machinetest.Pos.Add(cube.Pos{-1, 0, 0}), machine.KindSieve)
 	s.World.Do(func(tx *world.Tx) {
-		if conduit.JoinsEnergy(tx.Block(machinePos.Add(cube.Pos{-1, 0, 0}))) {
+		if conduit.JoinsEnergy(tx.Block(machinetest.Pos.Add(cube.Pos{-1, 0, 0}))) {
 			t.Error("a conduit joins a hand sieve")
 		}
-		if !conduit.JoinsEnergy(tx.Block(machinePos.Add(cube.Pos{1, 0, 0}))) {
+		if !conduit.JoinsEnergy(tx.Block(machinetest.Pos.Add(cube.Pos{1, 0, 0}))) {
 			t.Error("a conduit does not join a crusher")
 		}
 		if conduit.JoinsEnergy(block.Stone{}) {
@@ -189,9 +192,9 @@ func TestConduitLookCodes(t *testing.T) {
 // (tier 1: 32 items a second), and the modes survive the arms being
 // refreshed.
 func TestItemConduitMovesItems(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	from, mid, to := machinePos, machinePos.Add(cube.Pos{1, 0, 0}), machinePos.Add(cube.Pos{2, 0, 0})
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	from, mid, to := machinetest.Pos, machinetest.Pos.Add(cube.Pos{1, 0, 0}), machinetest.Pos.Add(cube.Pos{2, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(from, block.NewChest(), nil)
 		tx.SetBlock(to, block.NewChest(), nil)
@@ -225,11 +228,11 @@ func TestItemConduitMovesItems(t *testing.T) {
 // of its own; breaking the bundle gives both back; and the two kinds of
 // conduit keep to their own networks.
 func TestConduitsShareABundle(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		use := func(it world.Item, at cube.Pos, face cube.Face) bool {
 			_ = p.Inventory().SetItem(0, item.NewStack(it, 4))
 			p.SetHeldItems(item.NewStack(it, 4), item.Stack{})
@@ -275,10 +278,10 @@ func TestConduitsShareABundle(t *testing.T) {
 // that carries its look; putting another conduit into the bundle or
 // connecting it changes the look; the entity goes with the bundle.
 func TestConduitVisualFollowsTheBundle(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
 	look := func(tx *world.Tx) (int32, bool) {
 		handle, ok := conduit.LocalOf(s.Session).Visuals[pos]
 		if !ok {
@@ -290,7 +293,7 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 		}
 		return e.(*conduit.Visual).Variant(), true
 	}
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		use := func(it world.Item, at cube.Pos, face cube.Face) {
 			p.SetHeldItems(item.NewStack(it, 4), item.Stack{})
 			ctx := &item.UseContext{}
@@ -335,11 +338,11 @@ func TestConduitVisualFollowsTheBundle(t *testing.T) {
 // clicked side; a block behind a thin conduit that was clicked puts the
 // conduit into the bundle in front of it if it has room.
 func TestConduitPlacementWays(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		use := func(it world.Item, at cube.Pos, face cube.Face) bool {
 			p.SetHeldItems(item.NewStack(it, 8), item.Stack{})
 			return it.(item.UsableOnBlock).UseOnBlock(at, face, mgl64.Vec3{}, tx, p, &item.UseContext{})
@@ -390,11 +393,11 @@ func TestConduitPlacementWays(t *testing.T) {
 // kind and the mode and channels; the plate's square on the block it touches is
 // where a click counts; and the plates go with the bundle.
 func TestConduitPlates(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
 	s.World.Do(func(tx *world.Tx) {
-		tx.SetBlock(machinePos, block.NewChest(), nil)
+		tx.SetBlock(machinetest.Pos, block.NewChest(), nil)
 		b := conduit.Bundle{Item: 1, Energy: 1}
 		b.Modes[cube.FaceWest] = itemnet.Input
 		b.Extract[cube.FaceWest], b.Insert[cube.FaceWest] = 5, 9
@@ -418,13 +421,13 @@ func TestConduitPlates(t *testing.T) {
 			t.Errorf("the plate stands at %v", plate.Position())
 		}
 		// a click on the chest's east face in the middle is on the plate, one near the edge is not
-		if _, _, side, ok := conduit.PlateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.55}); !ok || side != 4 {
+		if _, _, side, ok := conduit.PlateHit(tx, machinetest.Pos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.55}); !ok || side != 4 {
 			t.Errorf("a click in the middle missed the plate (side %d, %v)", side, ok)
 		}
-		if _, _, _, ok := conduit.PlateHit(tx, machinePos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.95}); ok {
+		if _, _, _, ok := conduit.PlateHit(tx, machinetest.Pos, cube.FaceEast, mgl64.Vec3{1, 0.5, 0.95}); ok {
 			t.Error("a click near the edge hit the plate")
 		}
-		if _, _, _, ok := conduit.PlateHit(tx, machinePos, cube.FaceNorth, mgl64.Vec3{0.5, 0.5, 0}); ok {
+		if _, _, _, ok := conduit.PlateHit(tx, machinetest.Pos, cube.FaceNorth, mgl64.Vec3{0.5, 0.5, 0}); ok {
 			t.Error("a click on a face with no conduit hit a plate")
 		}
 		// the settings survive the NBT
@@ -462,12 +465,12 @@ func TestExtractAndInsertFlags(t *testing.T) {
 // TestPlateFormsOpen: the settings form and the channel picker open for a side
 // with a plate (and nothing happens for a side without).
 func TestPlateFormsOpen(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(machinePos, block.NewChest(), nil)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(machinetest.Pos, block.NewChest(), nil)
 		tx.SetBlock(pos, conduit.Bundle{Item: 1, Energy: 1}, nil)
 		b := tx.Block(pos).(conduit.Bundle)
 		b.Refresh(pos, tx)
@@ -530,12 +533,12 @@ func TestConduitBlockSizes(t *testing.T) {
 // it touches, or on the conduit, opens the settings whatever is in hand, unless
 // the held conduit goes into that conduit; sneaking places instead.
 func TestPlateClicksWithAnythingInHand(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-		tx.SetBlock(machinePos, block.NewChest(), nil)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		tx.SetBlock(machinetest.Pos, block.NewChest(), nil)
 		tx.SetBlock(pos, conduit.Bundle{Item: 1}, nil)
 		b := tx.Block(pos).(conduit.Bundle)
 		b.Refresh(pos, tx)
@@ -556,10 +559,10 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 		}
 		pick := item.NewStack(item.Pickaxe{Tier: item.ToolTierIron}, 1)
 		stone := item.NewStack(block.Stone{}, 1)
-		if !click(machinePos, cube.FaceEast, pick, false) {
+		if !click(machinetest.Pos, cube.FaceEast, pick, false) {
 			t.Error("a pickaxe in hand: the chest face with the plate did not open the settings")
 		}
-		if !click(machinePos, cube.FaceEast, item.Stack{}, false) {
+		if !click(machinetest.Pos, cube.FaceEast, item.Stack{}, false) {
 			t.Error("an empty hand: the chest face did not open the settings")
 		}
 		if !click(pos, cube.FaceUp, stone, false) {
@@ -571,7 +574,7 @@ func TestPlateClicksWithAnythingInHand(t *testing.T) {
 		if click(pos, cube.FaceUp, item.NewStack(conduit.EnergyConduit{Tier: 1}, 1), false) {
 			t.Error("an energy conduit in hand did not go into the conduit")
 		}
-		if click(pos, cube.FaceUp, stone, true) || click(machinePos, cube.FaceEast, pick, true) {
+		if click(pos, cube.FaceUp, stone, true) || click(machinetest.Pos, cube.FaceEast, pick, true) {
 			t.Error("sneaking: the click was taken")
 		}
 	})
@@ -603,11 +606,11 @@ func TestChannelItems(t *testing.T) {
 // TestNextPlateSide: clicking a conduit where no plate sits opens the plates in
 // turn, one per click, and starts over after the last.
 func TestNextPlateSide(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos.Add(cube.Pos{1, 0, 0})
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos.Add(cube.Pos{1, 0, 0})
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceWest), block.NewChest(), nil)
 		tx.SetBlock(pos.Side(cube.FaceEast), block.NewChest(), nil)
 		tx.SetBlock(pos, conduit.Bundle{Item: 1}, nil)

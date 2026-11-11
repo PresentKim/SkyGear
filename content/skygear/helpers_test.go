@@ -99,3 +99,12 @@ func chestWithBundle(tx *world.Tx, pos cube.Pos, mode itemnet.Mode, extract, ins
 	b.Refresh(at, tx)
 	return at
 }
+
+// run advances n steps of four ticks, calling Fast (which moves the energy)
+// after each, as the instance does.
+func runSteps(s *session, n int) {
+	for range n {
+		tick(s, 4)
+		s.World.Do(func(tx *world.Tx) { s.Fast(tx) })
+	}
+}
