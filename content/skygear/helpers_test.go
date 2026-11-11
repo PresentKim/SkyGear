@@ -6,12 +6,14 @@ import (
 	"testing"
 
 	"github.com/df-mc/dragonfly/server/block/cube"
+	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
+	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/platform/db"
 )
 
@@ -67,4 +69,17 @@ var machinePos = machinetest.Pos
 // placeTestMachine places a machine and returns its state.
 func placeTestMachine(s *session, pos cube.Pos, kind string) *machine.State {
 	return machinetest.Place(s.Lifecycle, pos, kind)
+}
+
+// droppedItems counts the item entities in the world by item key.
+func droppedItems(tx *world.Tx) map[string]int {
+	out := map[string]int{}
+	for e := range tx.Entities() {
+		if it, ok := e.(*entity.Ent); ok {
+			if b, ok := it.Behaviour().(*entity.ItemBehaviour); ok {
+				out[naming.ItemKey(b.Item().Item())] += b.Item().Count()
+			}
+		}
+	}
+	return out
 }

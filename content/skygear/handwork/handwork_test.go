@@ -1,4 +1,4 @@
-package skygear
+package handwork_test
 
 import (
 	"testing"
@@ -11,6 +11,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -35,10 +36,10 @@ func droppedItems(tx *world.Tx) map[string]int {
 // TestStickKnocksPebbles: every stick use on grass drops a pebble, pushed
 // in some direction (never dead still); on stone it does nothing.
 func TestStickKnocksPebbles(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		grass, stone := cube.Pos{1, island.IslandY - 1, 1}, cube.Pos{2, island.IslandY - 1, 1}
 		tx.SetBlock(grass, block.Grass{}, nil)
 		tx.SetBlock(stone, block.Stone{}, nil)
@@ -76,8 +77,8 @@ func TestStickKnocksPebbles(t *testing.T) {
 // drops fibers now and then; a bark stripper item counts like an axe, and
 // one that opts out, or a non-stripper, drops none.
 func TestAxeStripsFiber(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, fairy.OakLog, nil)
@@ -106,8 +107,8 @@ func TestAxeStripsFiber(t *testing.T) {
 // TestTinkerAxeStripsFiber: a tool-table axe strips a log like an axe, wears
 // one durability and drops fibers; a tool-table pickaxe does neither.
 func TestTinkerAxeStripsFiber(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		axe := tinker.Tool{Kind: tinker.ToolAxe, Head: "flint", Handle: "wood"}
@@ -150,8 +151,8 @@ func (t testStripper) StripsBark() bool          { return t.strips }
 
 // TestDropsHaveMotion: dropAt pushes every drop; none starts dead still.
 func TestDropsHaveMotion(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		for range 20 {
 			s.DropAt(tx, cube.Pos{1, island.IslandY + 2, 1}.Vec3Centre(), item.NewStack(sgitem.Pebble{Kind: sgitem.PebbleStone}, 1))
@@ -193,17 +194,17 @@ func TestNoFiberString(t *testing.T) {
 // TestGrassSeeds: tilling dirt with a hoe sometimes drops grass seeds, and the
 // seeds turn dirt into grass.
 func TestGrassSeeds(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, island.IslandY + 2, 4}
 		hoe := item.NewStack(item.Hoe{Tier: item.ToolTierWood}, 1)
 		for range 200 {
 			tx.SetBlock(pos, block.Dirt{}, nil)
 			handwork.TillSeeds(s.Session, p, tx, pos, cube.FaceUp, hoe)
 		}
-		if n := droppedKeys(tx)[naming.ItemKey(sgitem.GrassSeeds{})]; n < 5 || n > 40 {
+		if n := droppedItems(tx)[naming.ItemKey(sgitem.GrassSeeds{})]; n < 5 || n > 40 {
 			t.Fatalf("200 tillings dropped %d seeds, want about 20", n)
 		}
 		ctx := &item.UseContext{}

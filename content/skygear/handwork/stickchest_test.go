@@ -1,4 +1,4 @@
-package skygear
+package handwork_test
 
 import (
 	"testing"
@@ -9,15 +9,16 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/handwork"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
 
 func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, block.NewChest(), nil)
 		chest := tx.Block(pos).(block.Chest).Inventory(tx, pos)
@@ -55,10 +56,10 @@ func TestSneakingStickFillsChestWithWhatItHolds(t *testing.T) {
 }
 
 func TestThreeSneakingStickUsesSortChest(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{1, island.IslandY, 1}
 		tx.SetBlock(pos, block.NewChest(), nil)
 		chest := tx.Block(pos).(block.Chest).Inventory(tx, pos)
