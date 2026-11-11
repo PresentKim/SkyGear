@@ -25,10 +25,10 @@
 //     stall alerts.
 //
 // The kinds of other features (the drawer controller, the harvester, the
-// nodes of the storage network ...) are declared here like every kind, so
-// that the blocks and items register in one order, and name their feature as
-// Owner. The feature hands the kind's Behaviour (Click, Run, Insert, Peek,
-// Extract, Accepts, Lines, Info) to Register from its Setup; CheckKinds, the
-// machine feature's Check, stops the installation when one did not
-// (kinds.go). The tinker table is set in tinkertable.go.
+// tinker table, the nodes of the storage network ...) are declared here like
+// every kind, so that the blocks and items register in one order, and name
+// their feature as Owner. The feature hands the kind's Behaviour (Click, Run,
+// Insert, Peek, Extract, Accepts, Lines, Info) to Register from its Setup;
+// CheckKinds, the machine feature's Check, stops the installation when one
+// did not (kinds.go). This package imports none of those features.
 package machine

@@ -40,7 +40,7 @@ var layers = []string{
 	// progress
 	"progress", "island", "climate",
 	// features
-	"tinker", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
+	"machine", "tinker", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
 	"netstore", "elevator",
 	// content lists
 	"catalog",
@@ -89,7 +89,7 @@ func TestLayers(t *testing.T) {
 // imports another one of it only if its row lists it, and every listed import
 // exists. A feature without a row imports no sibling.
 var siblings = map[string][]string{
-	"machine":   {"tinker"},
+	"tinker":    {"machine"},
 	"conduit":   {"machine"},
 	"storage":   {"machine"},
 	"farm":      {"machine"},
@@ -101,7 +101,7 @@ var siblings = map[string][]string{
 
 // featureLayer is the "features" group of layers.
 var featureLayer = []string{
-	"tinker", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
+	"machine", "tinker", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
 	"netstore", "elevator",
 }
 
@@ -153,47 +153,22 @@ func TestFeatureSiblings(t *testing.T) {
 	}
 }
 
-// machineFeatureImports are the packages of the feature layer machine may
-// import. The features that own a machine kind import machine and register
-// the kind's behaviour (machine.Register); machine does not import them back.
-// tinker is the one exception, and only in machine/tinkertable.go: the tinker
-// feature cannot import machine, because the tinker's tools must register
-// before the machines (the client goldens pin the item ids), so machine sets
-// the tinker table's behaviour itself.
-var machineFeatureImports = map[string]string{"tinker": "tinkertable.go"}
-
 // TestMachineImportsNoFeature: machine imports no package of the feature
-// layer but those of machineFeatureImports, each only in its one file, and
-// its siblings row lists exactly those.
+// layer and has no siblings row. The features that own a machine kind import
+// machine and register the kind's behaviour (machine.Register); machine does
+// not import them back.
 func TestMachineImportsNoFeature(t *testing.T) {
 	const prefix = "github.com/presentkim/skygear/content/skygear/"
-	if row := siblings["machine"]; len(row) != len(machineFeatureImports) {
-		t.Errorf("the siblings row of machine is %v, want the %d of machineFeatureImports", row, len(machineFeatureImports))
+	if row, ok := siblings["machine"]; ok {
+		t.Errorf("siblings has the row machine -> %v: a feature registers its kind's behaviour with machine.Register instead", row)
 	}
-	for _, dep := range siblings["machine"] {
-		if _, ok := machineFeatureImports[dep]; !ok {
-			t.Errorf("siblings lists machine -> %s: the feature registers its kind's behaviour with machine.Register instead", dep)
-		}
-	}
-	files, err := os.ReadDir("machine")
+	pkg, err := build.Default.ImportDir("machine", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".go") || strings.HasSuffix(f.Name(), "_test.go") {
-			continue
-		}
-		src, err := os.ReadFile("machine/" + f.Name())
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, dep := range featureLayer {
-			if !strings.Contains(string(src), `"`+prefix+dep+`"`) {
-				continue
-			}
-			if machineFeatureImports[dep] != f.Name() {
-				t.Errorf("machine/%s imports the feature %s: the feature registers its kind's behaviour with machine.Register instead", f.Name(), dep)
-			}
+	for _, imp := range pkg.Imports {
+		if dep, ok := strings.CutPrefix(imp, prefix); ok && slices.Contains(featureLayer, dep) {
+			t.Errorf("machine imports the feature %s: the feature registers its kind's behaviour with machine.Register instead", dep)
 		}
 	}
 }

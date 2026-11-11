@@ -286,9 +286,8 @@ type Def struct {
 	Owner      string
 	registered bool
 	// hooks is what the owner registered: the zero value until then and for
-	// the machine feature's own kinds, but for the tinker table, whose hooks
-	// tinkertable.go sets. Only Register writes it for a kind with an owner;
-	// Hooks reads it.
+	// the machine feature's own kinds. Only Register writes it; Hooks reads
+	// it.
 	hooks Behaviour
 }
 
@@ -351,7 +350,7 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.drawer_interface.help.1", "machine.drawer_interface.help.2"},
 	},
 	KindTinker: {
-		ID: idTinker, nameKey: "machine.tinker.name", Interval: 1, Indicator: 10, NoDisplay: true,
+		ID: idTinker, Owner: "tinker", nameKey: "machine.tinker.name", Interval: 1, Indicator: 10, NoDisplay: true,
 		helpKeys: []string{"machine.tinker.help.1", "machine.tinker.help.2"},
 	},
 	KindCollector: {

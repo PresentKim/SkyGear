@@ -72,7 +72,7 @@ func Register(kind string, b Behaviour) {
 }
 
 // Hooks is the behaviour registered for the kind: the zero value for a kind
-// of the machine feature itself, but for the tinker table (tinkertable.go).
+// of the machine feature itself.
 func (k *Def) Hooks() Behaviour { return k.hooks }
 
 // CheckKinds reports the kinds whose owner did not register their behaviour.

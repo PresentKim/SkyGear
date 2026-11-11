@@ -24,6 +24,7 @@ func subscribe() {
 	subscribeTools()
 	subscribeVeinToggle()
 	followLook()
+	registerKinds()
 }
 
 func subscribeFood() {

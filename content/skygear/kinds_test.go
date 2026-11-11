@@ -11,6 +11,7 @@ import (
 // that is not here is the machine feature's own.
 var kindOwners = map[string]string{
 	machine.KindHarvester: "farm",
+	machine.KindTinker:    "tinker",
 	machine.KindCollector: "dimension", machine.KindRelicTable: "dimension",
 	machine.KindDrawerController: "storage", machine.KindDrawerTrim: "storage", machine.KindDrawerInterface: "storage",
 	machine.KindNetController: "netstore", machine.KindNetCable: "netstore", machine.KindDiskDrive: "netstore",
