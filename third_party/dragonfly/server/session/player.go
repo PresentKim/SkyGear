@@ -540,9 +540,6 @@ func (s *Session) CloseDialogue() {
 // SendForm sends a form to the client of the connection. The Submit method of the form is called when the
 // client submits the form.
 func (s *Session) SendForm(f form.Form) {
-	if s == Nop { // skygear patch: players without a connection (tests)
-		return
-	}
 	b, _ := json.Marshal(f)
 
 	h := s.handlers[packet.IDModalFormResponse].(*ModalFormResponseHandler)

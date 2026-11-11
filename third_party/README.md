@@ -62,7 +62,6 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 | `server/world/skygear_layers.go`, `skygear_layers_test.go` (신규) | `Tx.SetBlockLayer`·`BlockLayer`·`SubChunkLayers`: 블록 저장 레이어 하나에 블록을 쓰고 읽음(지금은 호출하는 곳이 없음). 업데이트·훅 없이 그 레이어로 `UpdateBlock` 만 보냄 |
 | `server/world/skygear_bench_test.go` (신규) | 위 패치의 벤치마크(`BlockEntityTick`, `TickLoadersRange`, `DiskEncode`, `SaveColumn` 등). 수치는 [docs/tech/performance.md](../docs/tech/performance.md) |
 | `server/block/dirt.go` | 잔디·균사체 퍼짐(`spreadDirt`): 위에 꽉 찬 고체 블록(`model.Solid`)이 있으면 그 아래 잔디는 흙으로 돌아가고, 그런 곳의 흙으로는 퍼지지 않음(바닐라와 같게). 업스트림은 빛만 봐서 빛을 막지 않는 커스텀 블록 아래에서도 잔디가 남고 퍼진다 |
-| `server/session/player.go` (추가) | Nop 세션의 `SendForm` 무시(테스트 플레이어) |
 | `server/player/player.go` | `SetRecipeFilter`, `ViewFakeChunk`, `ClearFakeChunk`. 블록 `Activate` 성공 후 주변 블록 재전송(클라이언트가 예측 설치한 유령 블록 제거), **`Activate` 뒤 손 아이템을 다시 읽어 차감**(업스트림은 `Activate` 전 값을 되써서 서랍·납품함에 넣은 아이템이 복사된다). **커스텀 블록은 부수기 시간이 지나면 서버가 직접 부순다**(`tickCustomBreak`: 실제 클라이언트는 금 가기를 끝내도 파괴 동작을 보내지 않는다). 같은 블록을 계속 캐는 동안(ContinueDestroyBlock 반복) 시작 시각은 유지 |
 
 패치한 곳에는 `skygear patch` 주석을 단다. 자동 팩 아이콘(`server/internal/packbuilder/pack_icon.png`)은 새로 그린 그림으로 바꿨다(패치 파일에는 없다).
