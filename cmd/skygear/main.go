@@ -161,9 +161,6 @@ func run(log *slog.Logger) error {
 	// Chest windows reach the sessions through hooked connections.
 	sghook.Wrap(&conf)
 	sghook.JoinLog = log
-	if mode := assets.StateProbeMode(); mode != assets.StateProbeOff {
-		sghook.JoinProbe = mode
-	}
 	skygear.LogCustomBlockCounts(log)
 	srv := conf.New()
 	skygear.EditItemEntries(srv)
