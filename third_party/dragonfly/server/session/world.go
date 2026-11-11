@@ -137,11 +137,6 @@ func (s *Session) ViewEntity(e world.Entity) {
 			metadata[protocol.EntityDataKeyVariant] = int32(s.br.BlockRuntimeID(v.Behaviour().(*entity.FallingBlockBehaviour).Block()))
 		}
 	}
-	// skygear patch: other entity types that are floating text draw as air
-	// falling blocks too.
-	if _, ok := e.H().Type().(interface{ FloatingText() }); ok {
-		metadata[protocol.EntityDataKeyVariant] = int32(s.br.BlockRuntimeID(block.Air{}))
-	}
 	if v, ok := e.H().Type().(NetworkEncodeableEntity); ok {
 		id = v.NetworkEncodeEntity()
 	}

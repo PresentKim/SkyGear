@@ -4,6 +4,10 @@
 // and unexported session methods and fields are reached with go:linkname
 // and reflection.
 //
+// It also gives a custom entity type sent as minecraft:falling_block the air
+// block as its variant when its metadata has none (entity.go), so it is drawn
+// as its name tag alone; Dragonfly does that for its own text entity only.
+//
 // It depends on Dragonfly internals by name (see TestInternals). After a
 // Dragonfly upgrade the test points at what moved.
 package sghook

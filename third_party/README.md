@@ -22,7 +22,6 @@ Dragonfly 의 동작 자체(블록 규칙, 패킷 처리, 세션 기능)를 바�
 
 | 파일 | 내용 |
 |---|---|
-| `server/session/world.go` | `FloatingText()` 메서드가 있는 엔티티 종류는 공기 블록을 든 낙하 블록처럼 그려 보냄(떠 있는 글자 엔티티용) |
 | `server/session/session.go` | **패킷 처리 오류로 세션이 끝날 때 ERROR 로그 + 이유를 담은 Disconnect**(업스트림은 Debug 로그만 남기고 조용히 끊는다) |
 | `server/session/player.go`(`sendRecipes`, `SetRecipeFilter`), `session.go`, `handler_crafting.go` | 플레이어별 레시피 필터: 필터가 고른 레시피만 `CraftingData` 로 보내고 받아들임(네트워크 ID 는 전체 목록 순번 그대로). `SetRecipeFilter` 는 바로 다시 보낸다(레시피 연구·잠금). 필터가 있으면 동적 레시피(장식된 도자기)는 막음 |
 | `server/session/fake_chunk.go` (신규), `chunk.go`, `world.go`, `session.go` | `ViewFakeChunk`/`ClearFakeChunk`(그 플레이어에게만 보이는 청크: 그동안 그 청크의 월드 블록 갱신은 안 보내고, 청크 재전송·서브청크 요청은 가짜 청크로 응답). 섬 확장 `map` 보기용 |
