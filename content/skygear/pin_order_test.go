@@ -130,7 +130,7 @@ func TestRootSubscribesToNothing(t *testing.T) {
 
 // TestEverySubscriberHasItsFeature: every subscriber was registered during the
 // Setup of the feature its name starts with, and that feature is in Features.
-// The kernel's own features (core, autofill) are in the list like the rest.
+// The kernel's own feature (core) is in the list like the rest.
 // The count is that of order.golden.
 func TestEverySubscriberHasItsFeature(t *testing.T) {
 	listed := map[string]bool{}
@@ -199,7 +199,7 @@ func featureDirs(t *testing.T) map[string]string {
 // are named. Each package with a feature.go (core excepted: its feature.go
 // declares the Feature type) declares a Feature named for the package and is
 // in Features exactly once; each listed feature is such a
-// package, except the kernel's (core, autofill) and the root's own (items); the
+// package, except the kernel's (core) and the root's own (items); the
 // list is the one core.Features reports. To add a feature, add it to Features
 // in features.go.
 func TestEveryFeatureListed(t *testing.T) {
@@ -216,7 +216,7 @@ func TestEveryFeatureListed(t *testing.T) {
 			t.Errorf("package %s has a feature.go but is in Features %d times; add %s.Feature to the list in features.go (once)", dir, count[dir], dir)
 		}
 	}
-	notPackage := map[string]bool{"core": true, "autofill": true, "items": true}
+	notPackage := map[string]bool{"core": true, "items": true}
 	for name, n := range count {
 		if n > 1 {
 			t.Errorf("feature %q is listed %d times", name, n)

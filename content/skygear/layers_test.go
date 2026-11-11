@@ -110,6 +110,13 @@ var featureLayer = []string{
 // if siblings says so, and siblings lists no import that does not exist.
 func TestFeatureSiblings(t *testing.T) {
 	const prefix = "github.com/presentkim/skygear/content/skygear/"
+	// featureLayer is the run of layers from the first feature up to the
+	// content lists (catalog): a feature package added to one list is in the
+	// other.
+	if i := slices.Index(layers, featureLayer[0]); i < 0 || i+len(featureLayer) >= len(layers) ||
+		!slices.Equal(layers[i:i+len(featureLayer)], featureLayer) || layers[i+len(featureLayer)] != "catalog" {
+		t.Errorf("featureLayer %v is not the features group of layers (from %s up to catalog); list a feature package in both", featureLayer, featureLayer[0])
+	}
 	in := map[string]bool{}
 	for _, p := range featureLayer {
 		in[p] = true

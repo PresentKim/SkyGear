@@ -31,7 +31,8 @@ type Feature struct {
 	// when the list is built, after every item is registered.
 	Creative func() []CreativeItem
 	// Commands, if set, returns the commands the feature adds (Commands). It
-	// is called when the game starts, after the catalogs are loaded.
+	// is called once when the game is created (skygear.New), after Install and
+	// before the creative items are registered.
 	Commands func() []cmd.Command
 	// Setup subscribes the feature's steps to the hooks. It runs once, during
 	// Install, before any event is emitted.
