@@ -96,7 +96,7 @@
 
 ## 검증
 
-- 단위: `machine_test.go`(분쇄·자동 체·채굴·창 조작 제한·NBT 왕복·부술 때 드롭·무인 라인), `sieve_test.go`, `harvester_test.go`, `hammer_test.go`.
+- 단위: `machine/machine_test.go`(분쇄·자동 체·채굴·창 조작 제한·NBT 왕복·부술 때 드롭), `machine/sieve_test.go`, `farm/harvester_test.go`, `tinker/hammer_test.go`. 호퍼가 낀 무인 라인(`TestHandsFreeLine`)과 도감·자동 채움이 낀 체 테스트는 루트의 `machine_test.go`, `sieve_test.go` 에 있다.
 - 종류 등록: `machine/kinds_test.go` 가 등록되지 않은 종류의 오류, `Register` 가 패닉하는 경우, `Order` 와 `Kinds` 가 같은지, 플래그가 붙은 종류, 종류마다 모양이 하나인지 본다. 루트의 `kinds_test.go`(`TestKindOwners`)는 종류마다 소유 기능이 `kindOwners` 와 같고 목록에 있으며 모두 등록되었는지 본다.
 - 핀: 루트의 `pin_kinds_test.go`(`TestPinKinds`, `testdata/pin/kinds.golden`)가 종류마다 서서·웅크려 클릭한 결과, 창의 정보 아이콘, 창 칸의 역할과 받는 아이템을 고정한다. `TestForeignKindsRoundTrip` 은 다른 기능의 종류가 이름으로 저장되고 다시 읽히는지 본다.
 - 실기 확인 항목은 [TODO](../TODO.md).

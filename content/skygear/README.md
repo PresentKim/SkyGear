@@ -67,6 +67,12 @@
 - `core.NewSaved`: 저장되는 데이터. 모든 `Saved` 파트는 세이브 상태 문서(`skygear.state`) 하나의 필드이고,
   필드 이름은 파트끼리 겹치지 않는다(겹치면 시작할 때 패닉). 그래서 기능을 옮겨도 세이브 형식은 그대로다.
 
+## 테스트
+
+기능의 테스트는 기능 패키지 안에 `<기능>_test` 패키지로 있고, 세션과 플레이어는 `core/coretest`, 기계는 `machine/machinetest` 에서 얻는다.
+루트 패키지(`content/skygear`)의 테스트는 조립된 게임을 본다: 핀과 골든, 구조 규칙, 레시피·연구·도감·리소스팩·세이브, 기능 여럿이 함께 있어야 하는 장면.
+어디에 두고 기능을 어떻게 준비하는지는 [docs/tech/extension.md](../../docs/tech/extension.md) 의 "기능의 테스트"에 있다.
+
 ## 파일
 
 문서에 나오는 `sieve.go`, `codexsearch.go` 같은 파일은 그 기능의 패키지 안에 있다

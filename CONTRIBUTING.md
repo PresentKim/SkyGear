@@ -71,6 +71,13 @@ Thanks for your interest. These are the rules the project follows.
   the features and holds the platform glue (`Game`, `session`) and the
   operator tools (`/sgadmin`, `/sgdebug`); it holds no player command and
   subscribes to nothing. See `docs/tech/extension.md`.
+- A feature's tests live in its package, as `package <feature>_test`. They get
+  a session and a player from `content/skygear/core/coretest` and machines
+  from `content/skygear/machine/machinetest`, and name the features they need
+  in `coretest.Setup`, called from the `init` of the package's `setup_test.go`.
+  Tests of the composed game (pins and goldens, the structure rules, recipes,
+  research, the pack, saves, scenes that need several features) stay in
+  `content/skygear`.
 - `go test ./content/skygear -run TestPin -count=1` compares the order of every
   hook's subscribers, the steps each scenario reaches, the WAILA panels
   (`look.golden`) and the creative list (`creative.golden`) with the goldens in

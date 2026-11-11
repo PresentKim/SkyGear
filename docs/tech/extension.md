@@ -240,7 +240,7 @@ Dragonfly 자체를 확장하는 방법은 [dragonfly.md](dragonfly.md) 에 있�
 
    - `content/skygear/kinds_test.go` 의 `kindOwners` 에 종류와 기능을 한 줄 더한다. `TestKindOwners` 가 이 표와 `Def.Owner` 를 맞춰 본다.
    - 소유한 기능이 등록하지 않으면 게임이 시작하지 않는다. 기계 기능의 `Check` 인 `machine.CheckKinds` 가 `machine kinds without behaviour: …` 오류를 돌려주고 `Install` 이 그 오류로 패닉한다. 소유 기능이 기능 목록에 없을 때도 같다.
-   - 기능 패키지의 테스트는 기능 목록 없이 돈다. 종류의 동작이 필요한 테스트는 `init` 에서 `<기능>.Feature.Setup()` 을 부른다(`netstore/keys_test.go`).
+   - 기능 패키지의 테스트는 기능 목록 없이 돈다. 종류의 동작이 필요한 테스트는 테스트 파일의 `init` 에서 `coretest.Setup(<기능>.Feature)` 를 부른다(`netstore/keys_test.go`, 아래 "기능의 테스트").
 
    팅커 테이블은 `Owner` 가 비어 있고 `machine/tinkertable.go` 가 동작을 정한다. `tinker` 가 `machine` 을 import 하면 `machine` 이 `tinker` 보다 먼저 초기화되어 기계 아이템이 팅커 도구보다 먼저 등록되고, 클라이언트가 받는 아이템 id 가 바뀌기 때문이다. 루트가 `hopper` 를 등록하는 것(`hopper.go`)과 같은 사정이다.
 6. 기능의 아이템에 등급이나 단계 표시가 있으면 그 아이템에 `Decor()` 메서드를 둔다(`slotdeco.Decorated`). 예는 `fairy/fairymagic.go` 의 요정 판이다.
@@ -335,6 +335,48 @@ core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
 })
 ```
 
+## 기능의 테스트
+
+기능의 테스트는 기능 패키지 안에 둔다. 파일의 패키지 이름은 `<기능>_test` 다(바깥 테스트 패키지). 바깥 테스트 패키지는 그 기능을 import 하는 패키지도 import 할 수 있어서 순환이 생기지 않는다. 한 패키지만 돌려 볼 수 있다: `go test ./content/skygear/farm`.
+
+기능 패키지의 테스트 바이너리에는 루트 패키지가 없으므로 기능 목록이 설치되지 않는다(`core.Install` 은 루트의 `init` 에서만 돈다). 구독자도, 설정도, 다른 기능이 등록하는 기계 종류의 동작도 없는 상태다. 테스트에 필요한 것은 지원 패키지 둘이 준다.
+
+- `content/skygear/core/coretest`
+  - `coretest.Setup(fs ...*core.Feature)`: 블록 등록을 닫고, 이 바이너리에서 아직 준비하지 않은 기능마다 설정을 등록하고 `Setup` 을 부른다. `Check` 는 부르지 않는다. 이미 준비한 기능과 `Install` 로 설치된 기능은 건너뛰므로 같은 기능을 두 번 적어도 된다. 훅은 첫 이벤트 뒤에 구독자를 받지 않으므로 테스트 함수가 아니라 테스트 파일의 `init` 에서 부른다.
+  - `coretest.Session(t)`: 동기 월드 위의 세션을 `core.Lifecycle` 로 돌려준다. `s.Session` 이 코어 세션이고, `s.Join`·`s.Second`·`s.Fast` 같은 메서드가 인스턴스가 하는 호출이며, `s.Handler(p)` 가 플레이어 핸들러다. `core.Of` 가 이 세션을 찾고, 월드의 핸들러는 `core.WorldHandler` 다. 데이터베이스는 없다.
+  - `coretest.LoadAround(s)`, `coretest.SpawnPlayer(s)`, `coretest.WithPlayer(t, s, h, f)`, `coretest.Tick(s, n)`, `coretest.ShapeAs(s, key)`: 청크 읽기, 플레이어 넣기, 플레이어와 함께 트랜잭션 돌리기, 틱 진행, 세션이 둔 디버그 도형 읽기.
+- `content/skygear/machine/machinetest`: `machinetest.Place(s, pos, kind)` 가 기계를 놓고 상태를 돌려준다(에너지가 필요 없고, 체에는 실 메쉬가 끼워져 있다). `machinetest.Pos` 는 테스트가 기계를 놓는 자리다. `machine` 을 import 하므로 `machine` 패키지에서는 `machine_test` 패키지의 파일만 쓸 수 있다.
+
+테스트가 세션을 만드는 패키지에는 `setup_test.go` 가 있고, 그 패키지의 테스트에 필요한 기능을 준비한다. 기본은 자기 기능 하나다.
+
+```go
+package farm_test
+
+import (
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
+	"github.com/presentkim/skygear/content/skygear/farm"
+)
+
+func init() { coretest.Setup(farm.Feature) }
+```
+
+자기 기능 말고 더 준비하는 곳은 셋이다. `conduit` 는 연결망 단계가 돌도록 `network` 를 같이 준비한다. `netstore` 는 `setup_test.go` 없이 `keys_test.go` 의 `init` 이 자기 기능과 `storage` 를 준비한다(외부 저장소가 서랍 컨트롤러를 읽는다). `machine` 은 `netkinds_test.go` 의 `init` 이 저장망 종류의 동작 때문에 `netstore` 를 더 준비한다.
+
+루트 패키지(`content/skygear`)에는 조립된 게임을 보는 테스트를 둔다.
+
+- 핀과 골든(`pin_*_test.go`), 구조 규칙(`layers_test.go`, `kinds_test.go`, `testsupport_test.go` 등), 벤치마크.
+- `catalog` 의 레시피와 연구, 도감, 리소스팩, 세이브(저장, 다시 열기, 마이그레이션)를 보는 테스트.
+- 기능 셋 이상이 설치되어야 통과하는 테스트, 루트가 등록하는 호퍼(`hopper.go`)가 필요한 테스트, 자기가 import 하지 않는 기능이 등록한 아이템이 필요한 테스트.
+- 루트의 내보내지 않은 이름(`Game`, `session`, `giveItems` 등)을 쓰는 테스트와 런타임 id 를 보는 테스트.
+
+루트의 `helpers_test.go` 는 같은 도우미를 루트의 `session` 위에서 준다(`testSession`, `loadAround`, `spawnPlayer`, `withPlayer`, `tick`, `placeTestMachine`, `machinePos`). `testSession` 은 데이터베이스와 `Game` 도 만든다.
+
+지킬 것이 셋 있다.
+
+- 패키지의 테스트는 루트 패키지를 import 하지 않고, 내용 목록 아래 칸의 패키지 테스트는 `catalog`, `codex`, `screens` 를 import 하지 않는다(`TestPackageTestsStayBelow`).
+- 테스트 지원 패키지는 테스트 파일만 import 한다(`TestSupportPackagesAreTestOnly`).
+- `dimension` 의 테스트 바이너리에서는 `popup_wire_test.go` 가 서버에 접속해 `testdata/popup.golden` 의 아이템 id 를 본다. 이 패키지의 테스트에 블록이나 아이템을 등록하는 패키지를 새로 import 하면 id 가 바뀐다.
+
 ## 클라이언트 항목 고치기
 
 클라이언트가 받는 커스텀 아이템·블록 항목은 `core.EditEntries(srv)` 가 한 번에 정한다. 서버를 만든 뒤 플레이어가 들어오기 전에 한 번 부른다.
@@ -373,6 +415,8 @@ core.Death.On(30, "tinker.keepFood", func(e core.PlayerEvent) {
 | 기능의 명령어가 기능 목록 순서대로 모인다 | `TestFeatureCommands`, `core.TestCommandsInListOrder` |
 | 아이템이 자기 칸 장식을 말하고, 말하지 않는 아이템은 일반 등급이다 | `TestItemDecor` |
 | 기능 하나가 목록과 자기 패키지만으로 이벤트를 받는다 | `core.TestNewFeatureNeedsOnlyTheList` |
+| 테스트 지원 패키지(`core/coretest`, `machine/machinetest`)는 테스트 파일만 import 한다 | `TestSupportPackagesAreTestOnly` |
+| 패키지의 테스트는 루트를 import 하지 않는다(`wire` 는 예외). 내용 목록 아래 칸의 테스트는 `catalog`, `codex`, `screens` 를 import 하지 않는다. `core` 밖의 테스트는 `core.Install` 이나 기능의 `Setup` 을 직접 부르지 않고 `coretest.Setup` 을 쓴다 | `TestPackageTestsStayBelow` |
 | 플레이어 핸들러의 모든 메서드가 `core.PlayerHandler` 에 있고 훅마다 구독자가 있으며, 루트가 같은 이름의 메서드를 두지 않는다 | `TestHandlerMethodsOneWay` |
 | 핫 경로는 할당하지 않는다. 이벤트마다 `AllocsPerRun` 으로 0 을 확인한다 | `core.TestEmitAllocatesNothing`, `core.TestEventsEmitAllocateNothing` |
 | 구독자는 `Install` 동안에만 단다. 첫 `Emit` 뒤의 등록, 같은 훅 안의 이름·우선순위 겹침은 패닉이다 | `core.TestRegisterAfterEmitPanics`, `core.TestSamePriorityPanics`, `core.TestSameNamePanics` |
