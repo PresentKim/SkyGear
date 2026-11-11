@@ -23,15 +23,13 @@ import (
 // with an item held takes that kind (nothing is used up), pressed with an
 // empty hand it empties; a shift click in the inventory adds the kind.
 
-func init() {
-	for _, k := range []string{machine.KindNetImporter, machine.KindNetExporter, machine.KindNetExternal} {
-		machine.Kinds[k].Click = func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
-			if !s.Debounced(p) {
-				showFilter(s, p, pos, nodeAt(tx, pos))
-			}
-			return true
-		}
+// clickFilter is the click on an importer, exporter or external storage: it
+// opens the filter window.
+func clickFilter(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
+	if !s.Debounced(p) {
+		showFilter(s, p, pos, nodeAt(tx, pos))
 	}
+	return true
 }
 
 const (

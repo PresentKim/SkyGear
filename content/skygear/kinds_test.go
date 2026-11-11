@@ -13,6 +13,9 @@ var kindOwners = map[string]string{
 	machine.KindHarvester: "farm",
 	machine.KindCollector: "dimension", machine.KindRelicTable: "dimension",
 	machine.KindDrawerController: "storage", machine.KindDrawerTrim: "storage", machine.KindDrawerInterface: "storage",
+	machine.KindNetController: "netstore", machine.KindNetCable: "netstore", machine.KindDiskDrive: "netstore",
+	machine.KindNetTerminal: "netstore", machine.KindNetImporter: "netstore", machine.KindNetExporter: "netstore",
+	machine.KindNetExternal: "netstore", machine.KindPatternEncoder: "netstore", machine.KindNetAutocrafter: "netstore",
 }
 
 // TestKindOwners: every kind of machine.Order has the owner kindOwners says,

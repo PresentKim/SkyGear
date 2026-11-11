@@ -10,6 +10,10 @@ import (
 	"github.com/presentkim/skygear/content/skygear/netstore"
 )
 
+// The network kinds get their behaviour from the netstore feature's Setup,
+// which no feature list runs in this package's tests.
+func init() { netstore.Feature.Setup() }
+
 var netKinds = []string{"net_controller", "net_cable", "disk_drive", "net_terminal", "net_importer", "net_exporter", "net_external", "pattern_encoder", "net_autocrafter"}
 
 func TestNetKindsRegistered(t *testing.T) {

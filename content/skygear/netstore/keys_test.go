@@ -16,11 +16,13 @@ import (
 )
 
 // The tests of this package run without the game's feature list: the storage
-// feature is set up here, so the drawer controller the external storage
-// reads has its behaviour (machine.Register).
+// feature and this one are set up here, so the drawer controller the external
+// storage reads and the network's own kinds have their behaviour
+// (machine.Register).
 func init() {
 	world.DefaultBlockRegistry.Finalize()
 	storage.Feature.Setup()
+	Feature.Setup()
 }
 
 func TestKeyOfCount(t *testing.T) {

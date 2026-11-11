@@ -364,42 +364,43 @@ var Kinds = map[string]*Def{
 		helpKeys: []string{"machine.relictable.help.1"},
 	},
 	KindNetController: {
-		ID: idNetController, nameKey: "machine.net_controller.name", Interval: 1, Indicator: 10,
+		ID: idNetController, Owner: "netstore", nameKey: "machine.net_controller.name", Interval: 1, Indicator: 10,
 		Use: 8, EnergyCap: ConsumerBuffer,
 		helpKeys: []string{"machine.net_controller.help.1"},
 	},
 	KindNetCable: {
-		ID: idNetCable, nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10, NoWindow: true,
+		ID: idNetCable, Owner: "netstore", nameKey: "machine.net_cable.name", Interval: 1, Indicator: 10, NoWindow: true,
 		helpKeys: []string{"machine.net_cable.help.1"},
 	},
 	KindDiskDrive: {
-		ID: idDiskDrive, nameKey: "machine.disk_drive.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7}, Indicator: 10,
+		ID: idDiskDrive, Owner: "netstore", nameKey: "machine.disk_drive.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7}, Indicator: 10,
 		helpKeys: []string{"machine.disk_drive.help.1"},
 	},
 	KindNetTerminal: {
-		ID: idNetTerminal, nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
+		ID: idNetTerminal, Owner: "netstore", nameKey: "machine.net_terminal.name", Interval: 1, Indicator: 10, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8},
 		helpKeys: []string{"machine.net_terminal.help.1"},
 	},
 	KindNetImporter: {
 		// four upgrade slots (netstore.Upgrade)
-		ID: idNetImporter, nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
+		ID: idNetImporter, Owner: "netstore", nameKey: "machine.net_importer.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_importer.help.1"},
 	},
 	KindNetExporter: {
-		ID: idNetExporter, nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
+		ID: idNetExporter, Owner: "netstore", nameKey: "machine.net_exporter.name", Interval: 1, Input: []int{0, 1, 2, 3}, Indicator: 10,
 		helpKeys: []string{"machine.net_exporter.help.1"},
 	},
 	KindNetExternal: {
-		ID: idNetExternal, nameKey: "machine.net_external.name", Interval: 1, Indicator: 10,
+		ID: idNetExternal, Owner: "netstore", nameKey: "machine.net_external.name", Interval: 1, Indicator: 10,
 		helpKeys: []string{"machine.net_external.help.1"},
 	},
 	KindPatternEncoder: {
-		// nine pattern slots and three sample slots
-		ID: idPatternEncoder, nameKey: "machine.pattern_encoder.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, Indicator: 13,
+		// nine input samples, three output samples and the blank pattern (12);
+		// the engraved pattern comes out at 14 (netstore/encoder.go)
+		ID: idPatternEncoder, Owner: "netstore", nameKey: "machine.pattern_encoder.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, Output: []int{14}, Indicator: 13,
 		helpKeys: []string{"machine.pattern_encoder.help.1"},
 	},
 	KindNetAutocrafter: {
-		ID: idNetAutocrafter, nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
+		ID: idNetAutocrafter, Owner: "netstore", nameKey: "machine.net_autocrafter.name", Interval: 1, Input: []int{0, 1, 2, 3, 4, 5, 6, 7, 8}, Indicator: 13,
 		helpKeys: []string{"machine.net_autocrafter.help.1"},
 	},
 	KindWasher: {

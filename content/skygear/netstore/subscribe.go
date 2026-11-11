@@ -10,6 +10,7 @@ import (
 func subscribe() {
 	subscribeFlush()
 	subscribeBlocks()
+	registerKinds()
 }
 
 // Disk contents changed since the controller last flushed them are part of the
