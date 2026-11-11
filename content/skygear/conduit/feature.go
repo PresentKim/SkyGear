@@ -6,4 +6,4 @@ import (
 )
 
 // Feature is the conduit feature, listed in the game's feature list.
-var Feature = &core.Feature{Name: "conduit", Entities: []world.EntityType{VisualType, PlateType}}
+var Feature = &core.Feature{Name: "conduit", Entities: []world.EntityType{VisualType, PlateType}, Setup: subscribe}

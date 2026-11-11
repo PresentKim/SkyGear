@@ -35,7 +35,7 @@
 | `stick_dirt`·`stick_grass`·`stick_other`·`pebble_*` | `handwork/handwork.go` |
 | `strip_log` | `handwork/handwork.go` |
 | `block_break`·`log_break`·`leaves_break`·`hammer_*` | `achievement/counter.go` `CountBreak`(`BlockBreak` 훅의 `achievement.break`) |
-| `block_place`·`crop_plant`·`conduit_place` | `BlockPlace` 훅의 `achievement.place`·`farm.plant`·`conduit.place` (`achievement/subscribe.go`, `farm/subscribe.go`, `legacy_conduit.go`) |
+| `block_place`·`crop_plant`·`conduit_place` | `BlockPlace` 훅의 `achievement.place`·`farm.plant`·`conduit.place` (`achievement/subscribe.go`, `farm/subscribe.go`, `conduit/subscribe.go`) |
 | `walk` | `achievement/counter.go` `CountWalk`(`HandleMove`, 소수 부분을 모아 한 블록마다) |
 | `sneak`·`sprint`·`jump`·`punch_air`·`chat`·`eat`·`pickup`·`death`·`block_pick`·`hotbar`·`item_drop`·`hurt`·`command`·`hit_monster` | 플레이어 훅의 `achievement.*` 구독자 (`achievement/subscribe.go`) |
 | `sapling_grow`·`sapling_cmd` | `farm/sapling.go` |
