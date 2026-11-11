@@ -8,6 +8,7 @@ import (
 	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/presentkim/skygear/content/skygear/decor"
 	"github.com/presentkim/skygear/content/skygear/fairy"
+	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
@@ -35,6 +36,28 @@ func TestItemDecor(t *testing.T) {
 	} {
 		if r, tier := decor.ItemDecor(c.it); r != c.r || tier != c.tier {
 			t.Errorf("%T%+v: rarity %d tier %d, want %d and %d", c.it, c.it, r, tier, c.r, c.tier)
+		}
+	}
+}
+
+// TestTipNameColour: the name on a slot's tooltip is in the colour of the
+// item's rarity, between the rarity's marks.
+func TestTipNameColour(t *testing.T) {
+	for _, c := range []struct {
+		it     world.Item
+		colour string
+	}{
+		{item.Stick{}, "§f"},
+		{sgitem.Ingot{Metal: sgitem.MetalSteel}, "§a"},
+		{sgitem.Mesh{Tier: "gold"}, "§b"},
+		{sgitem.Relic{Kind: sgitem.RelicWeapons[0]}, "§d"},
+		{sgitem.Circuit{Level: 4}, "§6"},
+	} {
+		st := item.NewStack(c.it, 1)
+		r, tier := decor.ItemDecor(c.it)
+		want := slotdeco.Decorate(r, tier, c.colour+naming.UIItemName("ko", st))
+		if got := decor.TipName("ko", st); got != want {
+			t.Errorf("%T%+v: tip name %q, want %q", c.it, c.it, got, want)
 		}
 	}
 }

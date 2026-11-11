@@ -313,7 +313,7 @@ func DescribeTool(st item.Stack) item.Stack {
 		}
 	}
 	r := toolRarity(lvl)
-	return st.WithCustomName(slotdeco.Decorate(r, 0, "§r"+RarityColour(r)+t.Name()+fmt.Sprintf(" §7Lv.%d", lvl))).WithLore(lore...)
+	return st.WithCustomName(slotdeco.Decorate(r, 0, "§r"+r.Colour()+t.Name()+fmt.Sprintf(" §7Lv.%d", lvl))).WithLore(lore...)
 }
 
 // WithToolXP adds xp to a tool stack and returns it, with whether it leveled up.
@@ -337,21 +337,6 @@ func toolRarity(level int) slotdeco.Rarity {
 		return slotdeco.Uncommon
 	}
 	return slotdeco.Common
-}
-
-// RarityColour is the colour code of a rarity's name ("§f" for Common).
-func RarityColour(r slotdeco.Rarity) string {
-	switch r {
-	case slotdeco.Uncommon:
-		return "§a"
-	case slotdeco.Rare:
-		return "§b"
-	case slotdeco.Epic:
-		return "§d"
-	case slotdeco.Legendary:
-		return "§6"
-	}
-	return "§f"
 }
 
 // The tools register as items: every kind with every head and handle.

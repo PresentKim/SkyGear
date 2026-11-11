@@ -10,7 +10,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/common/slotdeco"
 	"github.com/presentkim/skygear/content/skygear/naming"
-	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
 // ItemDecor returns the rarity and the tier badge of an item type: Common and
@@ -31,5 +30,5 @@ func TipName(lang string, st item.Stack) string {
 		return n // stacks with a name of their own carry their marks already
 	}
 	r, tier := ItemDecor(st.Item())
-	return slotdeco.Decorate(r, tier, tinker.RarityColour(r)+naming.UIItemName(lang, st))
+	return slotdeco.Decorate(r, tier, r.Colour()+naming.UIItemName(lang, st))
 }

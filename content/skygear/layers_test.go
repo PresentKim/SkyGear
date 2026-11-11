@@ -36,11 +36,11 @@ var layers = []string{
 	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
 	"advancement", "hopper", "migrate", "wire",
 	// core
-	"core", "network", "achievement", "preview", "look", "autofill",
+	"core", "network", "achievement", "preview", "look", "autofill", "decor",
 	// progress
 	"progress", "island", "climate",
 	// features
-	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
+	"tinker", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
 	"netstore", "elevator",
 	// content lists
 	"catalog",
@@ -89,20 +89,19 @@ func TestLayers(t *testing.T) {
 // imports another one of it only if its row lists it, and every listed import
 // exists. A feature without a row imports no sibling.
 var siblings = map[string][]string{
-	"decor":     {"tinker"},
-	"machine":   {"decor", "tinker"},
+	"machine":   {"tinker"},
 	"conduit":   {"machine"},
 	"storage":   {"machine"},
 	"farm":      {"machine"},
 	"fairy":     {"farm", "machine"},
 	"dimension": {"machine"},
 	"copier":    {"conduit", "machine", "storage"},
-	"netstore":  {"conduit", "decor", "machine", "storage"},
+	"netstore":  {"conduit", "machine", "storage"},
 }
 
 // featureLayer is the "features" group of layers.
 var featureLayer = []string{
-	"tinker", "decor", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
+	"tinker", "machine", "conduit", "storage", "farm", "fairy", "dimension", "handwork", "expand", "copier", "wand",
 	"netstore", "elevator",
 }
 
@@ -261,7 +260,7 @@ func TestFeatureNames(t *testing.T) {
 // and so know no feature and no item type.
 var onlyImports = map[string][]string{
 	"look":  {"core", "naming"},
-	"decor": {"naming", "tinker"},
+	"decor": {"naming"},
 }
 
 // TestCapabilityImports: the packages of onlyImports import only what their
