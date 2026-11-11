@@ -106,7 +106,7 @@ func TestWire(t *testing.T) {
 		t.Logf("%d of %d blocks have more than one property", multi, len(data.CustomBlocks))
 	})
 	t.Run("items", func(t *testing.T) {
-		entries := itemEntries(t, reg.Items, data.Items)
+		entries := itemEntries(t, hooktest.Canon, reg.Items, data.Items)
 		custom := 0
 		for _, e := range reg.Items {
 			if e.ComponentBased {
@@ -121,7 +121,7 @@ func TestWire(t *testing.T) {
 		hooktest.Golden(t, "testdata/items.golden", entries)
 	})
 	t.Run("recipes", func(t *testing.T) {
-		entries := recipeEntries(t, cd)
+		entries := recipeEntries(t, hooktest.Canon, cd)
 		if want := len(recipe.Recipes()) + 1; len(entries) != want {
 			t.Errorf("pinned %d recipe entries (with the clear flag), registry has %d", len(entries), want)
 		}
@@ -129,13 +129,16 @@ func TestWire(t *testing.T) {
 		hooktest.Golden(t, "testdata/recipes.golden", entries)
 	})
 	t.Run("creative", func(t *testing.T) {
-		entries := creativeEntries(t, cc)
+		entries := creativeEntries(t, hooktest.Canon, cc)
 		if len(cc.Groups) != len(creative.Groups()) || len(cc.Items) != len(creative.Items()) {
 			t.Errorf("packet has %d groups, %d items; registry has %d, %d", len(cc.Groups), len(cc.Items), len(creative.Groups()), len(creative.Items()))
 		}
 		t.Logf("creative: %d groups + %d items pinned; registry %d + %d", len(cc.Groups), len(cc.Items), len(creative.Groups()), len(creative.Items()))
 		hooktest.Golden(t, "testdata/creative.golden", entries)
 	})
+	// The same items, recipes and creative list with every item id written as
+	// the item's name (byname_test.go).
+	t.Run("by name", func(t *testing.T) { byNameGoldens(t, reg.Items, data.Items, cd, cc) })
 	t.Run("sensitivity", func(t *testing.T) { sensitivity(t, data.CustomBlocks, reg.Items) })
 }
 
@@ -227,8 +230,10 @@ func (s sorter) Less(i, j int) bool { return s.less(i, j) }
 func (s sorter) Swap(i, j int)      { s.swap(i, j) }
 
 // itemEntries returns registry/<name> for the item registry packet and
-// start/<name> for the start game data.
-func itemEntries(t testing.TB, registry, start []protocol.ItemEntry) map[string]string {
+// start/<name> for the start game data. canon makes an entry's text
+// (hooktest.Canon, or byName's for the text by name); recipeEntries and
+// creativeEntries take it too.
+func itemEntries(t testing.TB, canon func(any) string, registry, start []protocol.ItemEntry) map[string]string {
 	t.Helper()
 	out := make(map[string]string, len(registry)+len(start))
 	for prefix, list := range map[string][]protocol.ItemEntry{"registry/": registry, "start/": start} {
@@ -237,7 +242,7 @@ func itemEntries(t testing.TB, registry, start []protocol.ItemEntry) map[string]
 			if _, dup := out[k]; dup {
 				t.Errorf("duplicate item %s", k)
 			}
-			out[k] = hooktest.Canon(e)
+			out[k] = canon(e)
 		}
 	}
 	return out
@@ -245,14 +250,14 @@ func itemEntries(t testing.TB, registry, start []protocol.ItemEntry) map[string]
 
 // recipeEntries returns <kind>/<RecipeNetworkID> per recipe and <kind>/<index>
 // for the recipes without a network id.
-func recipeEntries(t testing.TB, cd *packet.CraftingData) map[string]string {
+func recipeEntries(t testing.TB, canon func(any) string, cd *packet.CraftingData) map[string]string {
 	t.Helper()
 	out := map[string]string{}
 	add := func(k string, v any) {
 		if _, dup := out[k]; dup {
 			t.Errorf("duplicate recipe %s", k)
 		}
-		out[k] = hooktest.Canon(v)
+		out[k] = canon(v)
 	}
 	for _, r := range cd.ShapedRecipes {
 		add(fmt.Sprintf("shaped/%d", r.RecipeNetworkID), r)
@@ -293,11 +298,11 @@ func recipeEntries(t testing.TB, cd *packet.CraftingData) map[string]string {
 
 // creativeEntries returns group/<index> and item/<CreativeItemNetworkID>, and
 // order/items, the network ids in the order the client shows them.
-func creativeEntries(t testing.TB, cc *packet.CreativeContent) map[string]string {
+func creativeEntries(t testing.TB, canon func(any) string, cc *packet.CreativeContent) map[string]string {
 	t.Helper()
 	out := map[string]string{}
 	for i, g := range cc.Groups {
-		out[fmt.Sprintf("group/%d", i)] = hooktest.Canon(g)
+		out[fmt.Sprintf("group/%d", i)] = canon(g)
 	}
 	var order []uint32
 	for _, it := range cc.Items {
@@ -305,10 +310,10 @@ func creativeEntries(t testing.TB, cc *packet.CreativeContent) map[string]string
 		if _, dup := out[k]; dup {
 			t.Errorf("duplicate creative item %s", k)
 		}
-		out[k] = hooktest.Canon(it)
+		out[k] = canon(it)
 		order = append(order, it.CreativeItemNetworkID)
 	}
-	out["order/items"] = hooktest.Canon(order)
+	out["order/items"] = canon(order)
 	return out
 }
 
@@ -319,21 +324,7 @@ func creativeEntries(t testing.TB, cc *packet.CreativeContent) map[string]string
 // block order, the permutations and the ids, which must change nothing.
 func sensitivity(t *testing.T, blocks []protocol.BlockEntry, items []protocol.ItemEntry) {
 	base := blockEntries(t, blocks)
-	diff := func(a, b map[string]string) []string {
-		var d []string
-		for k, v := range a {
-			if b[k] != v {
-				d = append(d, k)
-			}
-		}
-		for k := range b {
-			if _, ok := a[k]; !ok {
-				d = append(d, k)
-			}
-		}
-		sort.Strings(d)
-		return d
-	}
+	diff := diffEntries
 	clone := func(i int, mutate func(props map[string]any) bool) (map[string]string, string) {
 		cp := slices.Clone(blocks)
 		cp[i] = protocol.BlockEntry{Name: blocks[i].Name, Properties: cloneMap(blocks[i].Properties)}
@@ -455,7 +446,7 @@ func sensitivity(t *testing.T, blocks []protocol.BlockEntry, items []protocol.It
 	}
 
 	// Items: one component value, and one added component.
-	baseItems := itemEntries(t, items, nil)
+	baseItems := itemEntries(t, hooktest.Canon, items, nil)
 	tried := 0
 	for _, tc := range []string{"value", "added"} {
 		for i, e := range items {
@@ -474,7 +465,7 @@ func sensitivity(t *testing.T, blocks []protocol.BlockEntry, items []protocol.It
 				continue
 			}
 			tried++
-			if d := diff(baseItems, itemEntries(t, cp, nil)); !slices.Equal(d, []string{"registry/" + e.Name}) {
+			if d := diff(baseItems, itemEntries(t, hooktest.Canon, cp, nil)); !slices.Equal(d, []string{"registry/" + e.Name}) {
 				t.Errorf("item %s, %s: changed entries %v", e.Name, tc, d)
 			} else {
 				t.Logf("item %s, component %s: only registry/%s changed", e.Name, tc, e.Name)
@@ -485,6 +476,24 @@ func sensitivity(t *testing.T, blocks []protocol.BlockEntry, items []protocol.It
 	if tried != 2 {
 		t.Errorf("tried %d item changes, want 2", tried)
 	}
+}
+
+// diffEntries returns the sorted names of the entries that differ between a
+// and b, or are in only one of them.
+func diffEntries(a, b map[string]string) []string {
+	var d []string
+	for k, v := range a {
+		if b[k] != v {
+			d = append(d, k)
+		}
+	}
+	for k := range b {
+		if _, ok := a[k]; !ok {
+			d = append(d, k)
+		}
+	}
+	sort.Strings(d)
+	return d
 }
 
 // bumpFirstScalar changes the first number or string found under m (by

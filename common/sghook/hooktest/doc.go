@@ -4,10 +4,11 @@
 // listener, with one fake connection, and keeps every packet and the
 // start game data the server wrote to it.
 //
-// Canon turns any value into a stable text, Golden compares the hashes of
-// such texts to a file under testdata. A change of Dragonfly or of the
-// patch that alters what a client receives makes Golden fail and name the
-// entries that changed.
+// Canon turns any value into a stable text (CanonWith lets the caller write
+// a struct field its own way, to name what a numeric id stands for), Golden
+// compares the hashes of such texts to a file under testdata. A change of
+// Dragonfly or of the patch that alters what a client receives makes Golden
+// fail and name the entries that changed.
 //
 // Re-record a golden file after a deliberate change:
 //

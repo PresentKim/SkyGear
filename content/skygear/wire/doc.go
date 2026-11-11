@@ -13,7 +13,18 @@
 //   - items.golden: the item registry packet (registry/<name>) and the start
 //     game items (start/<name>), with their components;
 //   - recipes.golden: the crafting data, <kind>/<network id>;
-//   - creative.golden: the creative groups and items.
+//   - creative.golden: the creative groups and items;
+//   - items.byname.golden, recipes.byname.golden, creative.byname.golden:
+//     the entries of the three files above with every item id written as the
+//     item's name, and the ids of the custom items as a set
+//     (meta/custom_ids).
+//
+// A custom item's id is its place in the order the items are registered in,
+// which follows the order the packages are initialised in. A change of that
+// order alone changes hundreds of entries of items.golden, recipes.golden
+// and creative.golden and leaves the three files by name byte for byte as
+// they are: after re-recording, git status then lists none of them, which
+// shows that nothing but the numbering changed.
 //
 // A golden changes only in a commit meant to change what clients get.
 // Re-record after such a change:

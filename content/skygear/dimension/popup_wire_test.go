@@ -3,6 +3,7 @@ package dimension
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"testing"
 
@@ -96,6 +97,28 @@ func norm(t *testing.T, pk packet.Packet) (id uint64, out packet.Packet, ok bool
 	return 0, nil, false
 }
 
+// blockNamed returns pk with the variant of an add-actor packet, a block
+// runtime ID, written as the block's name. The runtime ID of a block depends
+// on which blocks the program registers, so it differs between this test
+// binary and the game and changes when this package's imports do; the name
+// does not.
+func blockNamed(pk packet.Packet) packet.Packet {
+	a, ok := pk.(*packet.AddActor)
+	if !ok {
+		return pk
+	}
+	rid, ok := a.EntityMetadata[protocol.EntityDataKeyVariant].(int32)
+	if !ok {
+		return pk
+	}
+	b, _ := world.DefaultBlockRegistry.BlockByRuntimeID(uint32(rid))
+	name, _ := b.EncodeBlock()
+	c := *a
+	c.EntityMetadata = maps.Clone(a.EntityMetadata)
+	c.EntityMetadata[protocol.EntityDataKeyVariant] = "block " + name
+	return &c
+}
+
 // TestPopupAddActor pins every packet a client is sent for the damage
 // numbers of a hunt and, for contrast, for a gem (a mark that is not
 // floating text): the add-actor packet with all its metadata, the moves
@@ -135,7 +158,7 @@ func TestPopupAddActor(t *testing.T) {
 		return ok && uint64(p.EntityUniqueID) == gemID
 	})
 
-	entries := map[string]string{}
+	entries, named := map[string]string{}, map[string]string{}
 	seq := map[string]int{} // packets so far per entity: the order between entities is not fixed
 	for _, pk := range c.Packets() {
 		id, cp, ok := norm(t, pk)
@@ -152,10 +175,15 @@ func TestPopupAddActor(t *testing.T) {
 			continue
 		}
 		seq[name]++
-		entries[fmt.Sprintf("%s/%03d %T", name, seq[name], pk)] = hooktest.Canon(cp)
+		key := fmt.Sprintf("%s/%03d %T", name, seq[name], pk)
+		entries[key] = hooktest.Canon(cp)
+		named[key] = hooktest.Canon(blockNamed(cp))
 	}
 	t.Logf("%d packets pinned", len(entries))
 	hooktest.Golden(t, "testdata/popup.golden", entries)
+	// The same packets with the variant's block by name: unlike its runtime
+	// ID, the name does not depend on the blocks this test binary registers.
+	hooktest.Golden(t, "testdata/popup.byname.golden", named)
 
 	// The number's metadata holds the air variant.
 	air := int32(world.DefaultBlockRegistry.BlockRuntimeID(block.Air{}))

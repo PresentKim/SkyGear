@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -101,6 +102,35 @@ func TestCanonTypes(t *testing.T) {
 	got := Canon(s{B: 1, a: []byte{0xab, 1}, P: &x})
 	if got != "{\n  B: int(1)\n  P: int(3)\n  a: bytes(ab01)\n}" {
 		t.Fatalf("struct:\n%s", got)
+	}
+}
+
+// TestCanonWith: a struct field is written as the function says wherever the
+// struct is (in a field, behind a pointer in a slice of interfaces); a field
+// the function passes, a value that is no struct field and a nil function
+// are written as Canon writes them.
+func TestCanonWith(t *testing.T) {
+	type id struct{ ID, Count int32 }
+	type holder struct {
+		One  id
+		Many []any
+	}
+	v := holder{One: id{ID: 7, Count: 2}, Many: []any{&id{ID: 9, Count: 1}, &id{ID: 7}, int32(7)}}
+	names := map[int64]string{7: "seven"}
+	got := CanonWith(v, func(owner reflect.Type, name string, f reflect.Value) (string, bool) {
+		if owner != reflect.TypeFor[id]() || name != "ID" {
+			return "", false
+		}
+		n, ok := names[f.Int()]
+		return "named " + strconv.Quote(n), ok
+	})
+	want := "{\n  Many: [\n    {\n      Count: int32(1)\n      ID: int32(9)\n    }\n    {\n      Count: int32(0)\n      ID: named \"seven\"\n    }\n    int32(7)\n  ]\n" +
+		"  One: {\n    Count: int32(2)\n    ID: named \"seven\"\n  }\n}"
+	if got != want {
+		t.Fatalf("got:\n%s\nwant:\n%s", got, want)
+	}
+	if CanonWith(v, nil) != Canon(v) {
+		t.Fatal("a nil function changes the text")
 	}
 }
 

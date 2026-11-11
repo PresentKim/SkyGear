@@ -14,13 +14,24 @@ import (
 // too), pointers and interfaces followed, strings quoted, byte slices in
 // hex and other scalars as type(value). Equal content gives equal text
 // whatever the map order.
-func Canon(v any) string {
+func Canon(v any) string { return CanonWith(v, nil) }
+
+// FieldText is asked for every struct field CanonWith is about to write:
+// owner is the struct's type, name the field's name and v its value. It
+// returns the text to write in place of the value, or false to write the
+// value as Canon does.
+type FieldText func(owner reflect.Type, name string, v reflect.Value) (string, bool)
+
+// CanonWith is Canon, but writes a struct field as field says where field
+// says so (nil: nowhere). It is for a text that names what a number stands
+// for, so the text does not change when only the numbering does.
+func CanonWith(v any, field FieldText) string {
 	var b strings.Builder
-	canon(&b, reflect.ValueOf(v), 0, map[uintptr]bool{})
+	canon(&b, reflect.ValueOf(v), 0, map[uintptr]bool{}, field)
 	return b.String()
 }
 
-func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool) {
+func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool, field FieldText) {
 	if !v.IsValid() {
 		b.WriteString("nil")
 		return
@@ -37,14 +48,14 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 			return
 		}
 		seen[p] = true
-		canon(b, v.Elem(), depth, seen)
+		canon(b, v.Elem(), depth, seen, field)
 		delete(seen, p)
 	case reflect.Interface:
 		if v.IsNil() {
 			b.WriteString("nil")
 			return
 		}
-		canon(b, v.Elem(), depth, seen)
+		canon(b, v.Elem(), depth, seen, field)
 	case reflect.Map:
 		if v.IsNil() {
 			b.WriteString("nil")
@@ -57,7 +68,7 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 		kvs := make([]kv, 0, v.Len())
 		for it := v.MapRange(); it.Next(); {
 			var kb strings.Builder
-			canon(&kb, it.Key(), 0, seen)
+			canon(&kb, it.Key(), 0, seen, field)
 			kvs = append(kvs, kv{keyText(it.Key(), kb.String()), it.Value()})
 		}
 		sort.Slice(kvs, func(i, j int) bool { return kvs[i].key < kvs[j].key })
@@ -65,7 +76,7 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 		for _, e := range kvs {
 			indent(b, depth+1)
 			b.WriteString(e.key + ": ")
-			canon(b, e.val, depth+1, seen)
+			canon(b, e.val, depth+1, seen, field)
 			b.WriteByte('\n')
 		}
 		closing(b, '}', len(kvs), depth)
@@ -82,7 +93,11 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 		for _, n := range names {
 			indent(b, depth+1)
 			b.WriteString(n + ": ")
-			canon(b, v.Field(idx[n]), depth+1, seen)
+			if text, ok := fieldText(field, t, n, v.Field(idx[n])); ok {
+				b.WriteString(text)
+			} else {
+				canon(b, v.Field(idx[n]), depth+1, seen, field)
+			}
 			b.WriteByte('\n')
 		}
 		closing(b, '}', len(names), depth)
@@ -102,7 +117,7 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 		open(b, '[', v.Len(), depth)
 		for i := range v.Len() {
 			indent(b, depth+1)
-			canon(b, v.Index(i), depth+1, seen)
+			canon(b, v.Index(i), depth+1, seen, field)
 			b.WriteByte('\n')
 		}
 		closing(b, ']', v.Len(), depth)
@@ -121,6 +136,14 @@ func canon(b *strings.Builder, v reflect.Value, depth int, seen map[uintptr]bool
 	default: // func, chan, unsafe pointer: no content to compare
 		b.WriteString(v.Kind().String())
 	}
+}
+
+// fieldText is field's text for a struct field, if field is set and has one.
+func fieldText(field FieldText, owner reflect.Type, name string, v reflect.Value) (string, bool) {
+	if field == nil {
+		return "", false
+	}
+	return field(owner, name, v)
 }
 
 // keyText is how a map key is written: strings bare, others as canon.
