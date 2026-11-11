@@ -1,17 +1,23 @@
-package skygear
+package tinker_test
 
 import (
 	"slices"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
+	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
+
+// machinePos is where the tinker table of these tests stands.
+var machinePos = cube.Pos{3, island.IslandY, 3}
 
 func TestToolStats(t *testing.T) {
 	axe := tinker.Tool{Kind: tinker.ToolAxe, Head: "steel", Handle: "bone"}
@@ -60,10 +66,10 @@ func TestToolStackValues(t *testing.T) {
 // TestTinkerTable: making a tool takes the head metal and the handle, a modifier
 // takes its material and a slot, and the limits hold.
 func TestTinkerTable(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		inv := p.Inventory()
 		_, _ = inv.AddItem(item.NewStack(item.IronIngot{}, 3))
 		_, _ = inv.AddItem(item.NewStack(item.Stick{}, 1))

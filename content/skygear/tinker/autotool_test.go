@@ -1,4 +1,4 @@
-package skygear
+package tinker_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
@@ -15,9 +16,9 @@ import (
 // swaps the first fitting tool in the inventory into the hand; a fitting
 // tool, a hammer on what it crushes and a block no tool fits are left alone.
 func TestEquipToolFor(t *testing.T) {
-	s := testSession(t)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		inv := p.Inventory()
 		dirt := item.NewStack(block.Dirt{}, 5)
 		wood, stone := item.NewStack(item.Pickaxe{Tier: item.ToolTierWood}, 1), item.NewStack(item.Pickaxe{Tier: item.ToolTierStone}, 1)
