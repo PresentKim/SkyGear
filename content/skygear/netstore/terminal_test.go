@@ -156,7 +156,7 @@ func TestTerminalTake(t *testing.T) {
 func TestControllerItemIO(t *testing.T) {
 	netEnv(t, func(s *core.Session, tx *world.Tx) {
 		n := termNet(t, tx, 0)
-		d := machine.Kinds[machine.KindNetController]
+		d := machine.Kinds[machine.KindNetController].Hooks()
 		stone := item.NewStack(block.Stone{}, 20)
 		if got := d.Insert(tx, p(0), stone); got != 20 {
 			t.Fatalf("insert %d", got)
@@ -178,7 +178,7 @@ func TestControllerItemIO(t *testing.T) {
 			t.Fatalf("extract %v root %d", out, n.Root.Count(KeyOf(stone)))
 		}
 		// the terminal has the same hooks, and an offline network moves nothing
-		tm := machine.Kinds[machine.KindNetTerminal]
+		tm := machine.Kinds[machine.KindNetTerminal].Hooks()
 		if tm.Insert(tx, p(1), stone) != 20 {
 			t.Fatal("terminal insert")
 		}

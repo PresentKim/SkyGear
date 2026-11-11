@@ -15,7 +15,7 @@ import (
 
 // Waila fills in a machine's panel (waila.Provider): its lines and item
 // line, the time boost left, the lines of a kind another package describes
-// (Def.Lines), what waits in its output as slots, and the cycle figures while
+// (Behaviour.Lines), what waits in its output as slots, and the cycle figures while
 // the viewer sneaks. A sneaking look also shows the machine's range for a
 // moment (PeekRange).
 func (m Machine) Waila(v waila.View, info waila.Info) waila.Info {
@@ -26,8 +26,8 @@ func (m Machine) Waila(v waila.View, info waila.Info) waila.Info {
 	if l := BoostLine(v.Lang, m.State); l != "" {
 		info.Lines = append(info.Lines, l)
 	}
-	if m.State != nil && m.State.Def.Lines != nil {
-		info.Lines = m.State.Def.Lines(v.Lang, v.Tx, v.Pos)
+	if m.State != nil && m.State.Def.hooks.Lines != nil {
+		info.Lines = m.State.Def.hooks.Lines(v.Lang, v.Tx, v.Pos)
 	}
 	if c := outputContainer(m.State); c != nil {
 		info.Container = c
@@ -124,7 +124,7 @@ func MachineLines(lang string, m Machine) ([]string, *waila.ItemLine) {
 		return GeneratorLines(lang, st), nil
 	case IsNatureGenerator(m.Kind):
 		return NatureLines(lang, st), nil
-	case st.Def.Lines != nil:
+	case st.Def.hooks.Lines != nil:
 		// the kind's owner describes it (Machine.Waila)
 		return nil, nil
 	case st.Def.FluidCap > 0:

@@ -13,7 +13,7 @@ func ownedKind(t *testing.T) *Def {
 	d := Kinds[KindRelicTable]
 	saved, checked := *d, kindsChecked
 	t.Cleanup(func() { *d, kindsChecked = saved, checked })
-	d.Owner, d.registered, d.Behaviour = "dimension", false, Behaviour{}
+	d.Owner, d.registered, d.hooks = "dimension", false, Behaviour{}
 	kindsChecked = false
 	return d
 }
@@ -41,7 +41,7 @@ func TestCheckKindsNamesTheMissingOwner(t *testing.T) {
 		t.Fatal("a failed check closed the registry")
 	}
 	Register(KindRelicTable, Behaviour{Lines: NoLines})
-	if !d.registered || d.Lines == nil {
+	if !d.registered || d.Hooks().Lines == nil {
 		t.Fatal("Register did not set the behaviour")
 	}
 	if err := CheckKinds(); err != nil && strings.Contains(err.Error(), "relic_table") {

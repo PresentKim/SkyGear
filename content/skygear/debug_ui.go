@@ -29,7 +29,7 @@ func (windowKindEnum) Options(cmd.Source) []string { return windowKinds() }
 func windowKinds() []string {
 	var out []string
 	for _, k := range machine.Order {
-		if d := machine.Kinds[k]; d.Marker != "" && d.Click == nil && k != machine.KindSieve && k != machine.KindTinker {
+		if d := machine.Kinds[k]; d.Marker != "" && d.Hooks().Click == nil && k != machine.KindSieve && k != machine.KindTinker {
 			out = append(out, k)
 		}
 	}

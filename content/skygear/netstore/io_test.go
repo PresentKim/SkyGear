@@ -359,7 +359,7 @@ func TestExternalOutsideNodeRuns(t *testing.T) {
 			t.Fatalf("online %v, mirrored %d", n.Online(), n.Root.Count(KeyOf(stoneS)))
 		}
 		// the controller's item I/O reaches the chest through At alone
-		got := machine.Kinds[machine.KindNetController].Extract(tx, p(0), stoneS, 4)
+		got := machine.Kinds[machine.KindNetController].Hooks().Extract(tx, p(0), stoneS, 4)
 		if got.Count() != 4 {
 			t.Fatalf("controller extract %d", got.Count())
 		}

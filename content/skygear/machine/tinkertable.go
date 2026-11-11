@@ -16,7 +16,7 @@ import (
 // behaviour itself: a click opens the tinker table, and the panel has no
 // lines. This file is the only one of the package that imports a feature.
 func init() {
-	Kinds[KindTinker].Behaviour = Behaviour{
+	Kinds[KindTinker].hooks = Behaviour{
 		Click: func(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) bool {
 			if !s.Debounced(p) {
 				tinker.ShowTable(s, p, tx, pos)

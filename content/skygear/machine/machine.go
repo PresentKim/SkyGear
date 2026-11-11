@@ -285,9 +285,10 @@ type Def struct {
 	// once it did (kinds.go).
 	Owner      string
 	registered bool
-	// Behaviour is what the owner registered: the zero value until then and
-	// for the machine feature's own kinds.
-	Behaviour
+	// hooks is what the owner registered: the zero value until then and for
+	// the machine feature's own kinds. Only Register writes it for a kind
+	// with an owner; Hooks reads it.
+	hooks Behaviour
 }
 
 var Kinds = map[string]*Def{
@@ -774,8 +775,8 @@ func (st *State) InfoItem() item.Stack {
 	for _, k := range st.Def.helpKeys {
 		lore = append(lore, wintext.Text{wintext.Key(k)})
 	}
-	if st.Def.Info != nil {
-		lore = append(lore, st.Def.Info(st)...)
+	if st.Def.hooks.Info != nil {
+		lore = append(lore, st.Def.hooks.Info(st)...)
 	}
 	if st.Tier > 0 {
 		spec := st.spec()
@@ -838,8 +839,8 @@ func (st *State) Inv() *inventory.Inventory { return st.storage.Inventory() }
 // accepts reports whether it may go into the input of the machine.
 // Time-limited items are never processed or sold.
 func (st *State) Accepts(it item.Stack) bool {
-	if st.Def.Accepts != nil {
-		return !it.Empty() && st.Def.Accepts(-1, it)
+	if st.Def.hooks.Accepts != nil {
+		return !it.Empty() && st.Def.hooks.Accepts(-1, it)
 	}
 	if it.Empty() || !core.Plain(it) {
 		return false
@@ -898,8 +899,8 @@ func (st *State) takesCharge(it item.Stack) bool {
 func (st *State) SlotAccepts(slot int, it item.Stack) bool {
 	switch st.Role(slot) {
 	case roleInput:
-		if st.Def.Accepts != nil {
-			return !it.Empty() && st.Def.Accepts(slot, it)
+		if st.Def.hooks.Accepts != nil {
+			return !it.Empty() && st.Def.hooks.Accepts(slot, it)
 		}
 		return st.Accepts(it) && !st.takesCharge(it)
 	case roleCharge:
@@ -1482,7 +1483,7 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 		useSieve(s, p, tx, pos, m.State)
 		return true
 	}
-	if c := m.State.Def.Click; c != nil && c(s, p, tx, pos) {
+	if c := m.State.Def.hooks.Click; c != nil && c(s, p, tx, pos) {
 		return true
 	}
 	if m.Kind == KindLab {
@@ -1517,8 +1518,8 @@ func (m Machine) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, 
 // (it needs its mesh), so it takes one only while it is empty, and its look
 // follows.
 func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item.Stack) int {
-	if m.State != nil && m.State.Def.Insert != nil {
-		return m.State.Def.Insert(tx, pos, st)
+	if m.State != nil && m.State.Def.hooks.Insert != nil {
+		return m.State.Def.hooks.Insert(tx, pos, st)
 	}
 	if m.State == nil || len(m.State.Def.Input) == 0 || face == cube.FaceDown {
 		return 0
@@ -1541,8 +1542,8 @@ func (m Machine) InsertItems(tx *world.Tx, pos cube.Pos, face cube.Face, st item
 // (a hopper under the machine, a conduit anywhere); machines do not push it
 // into their neighbours.
 func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(item.Stack) bool) item.Stack {
-	if m.State != nil && m.State.Def.Peek != nil {
-		return m.State.Def.Peek(tx, pos, want)
+	if m.State != nil && m.State.Def.hooks.Peek != nil {
+		return m.State.Def.hooks.Peek(tx, pos, want)
 	}
 	if m.State == nil {
 		return item.Stack{}
@@ -1557,8 +1558,8 @@ func (m Machine) PeekItems(tx *world.Tx, pos cube.Pos, _ cube.Face, want func(it
 
 // ExtractItems implements itemio.Extractor.
 func (m Machine) ExtractItems(tx *world.Tx, pos cube.Pos, _ cube.Face, st item.Stack, n int) item.Stack {
-	if m.State != nil && m.State.Def.Extract != nil {
-		return m.State.Def.Extract(tx, pos, st, n)
+	if m.State != nil && m.State.Def.hooks.Extract != nil {
+		return m.State.Def.hooks.Extract(tx, pos, st, n)
 	}
 	if m.State == nil {
 		return item.Stack{}
@@ -1728,8 +1729,8 @@ func runMachine(s *core.Session, st *State, pos cube.Pos, tx *world.Tx) {
 	case idLab:
 		st.runLab()
 	default:
-		if st.Def.Run != nil {
-			st.Def.Run(s, st, pos, tx)
+		if st.Def.hooks.Run != nil {
+			st.Def.hooks.Run(s, st, pos, tx)
 		}
 	}
 }

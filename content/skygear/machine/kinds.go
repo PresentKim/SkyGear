@@ -68,8 +68,12 @@ func Register(kind string, b Behaviour) {
 	case kindsChecked:
 		panic(fmt.Sprintf("machine: Register: kind %q registered after the features were installed", kind))
 	}
-	d.Behaviour, d.registered = b, true
+	d.hooks, d.registered = b, true
 }
+
+// Hooks is the behaviour registered for the kind: the zero value for a kind
+// of the machine feature itself.
+func (k *Def) Hooks() Behaviour { return k.hooks }
 
 // CheckKinds reports the kinds whose owner did not register their behaviour.
 // It is the machine feature's Check: core.Install calls it when the Setup of
