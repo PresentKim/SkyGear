@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"testing"
@@ -13,9 +13,11 @@ import (
 	"github.com/presentkim/skygear/common/fluidnet"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/itemio"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
+	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/sievetable"
@@ -37,10 +39,10 @@ func TestBarrelStages(t *testing.T) {
 // TestBarrelMakesWater: 32 plant items fill the barrel, after the delay the
 // contents are water, and a bucket takes it and empties the barrel.
 func TestBarrelMakesWater(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, island.IslandY, 4}
 		barrel := farm.Barrel{Wood: "oak"}
 		tx.SetBlock(pos, barrel, nil)
@@ -101,8 +103,8 @@ func TestBarrelMakesWater(t *testing.T) {
 
 // TestBarrelRecordIsForgotten: a barrel that is gone loses its record.
 func TestBarrelRecordIsForgotten(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		pos := cube.Pos{5, island.IslandY, 5}
 		tx.SetBlock(pos, farm.Barrel{Wood: "oak"}, nil)
@@ -121,9 +123,9 @@ func TestBarrelRecordIsForgotten(t *testing.T) {
 // sources), up to 4000 mB of lava; without heat nothing melts; a bucket takes
 // 1000 mB of lava, and only when there is that much.
 func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
 	cobble := item.NewStack(block.Cobblestone{}, 1)
 	for _, c := range []struct {
 		name  string
@@ -141,7 +143,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 		{"magma block", block.Magma{}, 0},
 		{"nothing", block.Air{}, 0},
 	} {
-		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+		coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 			pos := cube.Pos{4, island.IslandY + 3, 4}
 			barrel := farm.Barrel{Wood: farm.StoneWood}
 			delete(farm.StateOf(s.Session).Barrels, farm.CropKey(pos))
@@ -173,7 +175,7 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 			}
 		})
 	}
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{8, island.IslandY + 3, 8}
 		barrel := farm.Barrel{Wood: farm.StoneWood}
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Torch{Facing: cube.FaceDown, Type: block.NormalFire()}, nil)
@@ -245,10 +247,10 @@ func TestStoneBarrelMeltsLikeACrucible(t *testing.T) {
 // TestStoneBarrelOldSave: a stone barrel of an old save (a bucket of lava,
 // or cobblestone heating) holds the same as lava and solids.
 func TestStoneBarrelOldSave(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		lava, cobble := cube.Pos{4, island.IslandY + 3, 4}, cube.Pos{6, island.IslandY + 3, 4}
 		tx.SetBlock(lava, farm.Barrel{Wood: farm.StoneWood, Stage: farm.BarrelWater}, nil)
 		tx.SetBlock(cobble, farm.Barrel{Wood: farm.StoneWood, Stage: 3}, nil)
@@ -269,11 +271,11 @@ func TestStoneBarrelOldSave(t *testing.T) {
 // TestDustMakesClayInWater: a dust used on a barrel with water becomes a clay
 // ball and the water stays; a dry barrel does nothing with it.
 func TestDustMakesClayInWater(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	pos := machinePos
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	pos := machinetest.Pos
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		tx.SetBlock(pos, farm.Barrel{Wood: "oak"}, nil)
 		dust := item.NewStack(sgitem.Dust{}, 2)
 		ctx := &item.UseContext{}
@@ -320,14 +322,14 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 		{"oak", item.NewStack(farm.LavaBucket, 1), farm.BarrelRecord{}, nil},
 	}
 	for _, c := range cases {
-		s := testSession(t)
-		loadAround(s)
-		h := spawnPlayer(s)
-		withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
-			tx.SetBlock(machinePos, farm.Barrel{Wood: c.wood}, nil)
+		s := coretest.Session(t)
+		coretest.LoadAround(s)
+		h := coretest.SpawnPlayer(s)
+		coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+			tx.SetBlock(machinetest.Pos, farm.Barrel{Wood: c.wood}, nil)
 			p.SetHeldItems(c.held, item.Stack{})
-			used := farm.UseBarrel(s.Session, p, tx, machinePos, tx.Block(machinePos).(farm.Barrel), c.held, &item.UseContext{})
-			rec := farm.BarrelAt(s.Session, machinePos)
+			used := farm.UseBarrel(s.Session, p, tx, machinetest.Pos, tx.Block(machinetest.Pos).(farm.Barrel), c.held, &item.UseContext{})
+			rec := farm.BarrelAt(s.Session, machinetest.Pos)
 			if c.emptyAfter == nil {
 				if used || rec != nil {
 					t.Errorf("%s barrel took %s", c.wood, naming.ItemKey(c.held.Item()))
@@ -340,7 +342,7 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 			if held, _ := p.HeldItems(); naming.ItemKey(held.Item()) != naming.ItemKey(c.emptyAfter) {
 				t.Errorf("%s left %s in the hand", naming.ItemKey(c.held.Item()), naming.ItemKey(held.Item()))
 			}
-			if got := tx.Block(machinePos).(farm.Barrel).Stage; got != farm.BarrelStageOf(c.wood, rec) {
+			if got := tx.Block(machinetest.Pos).(farm.Barrel).Stage; got != farm.BarrelStageOf(c.wood, rec) {
 				t.Errorf("stage %d", got)
 			}
 		})
@@ -352,10 +354,10 @@ func TestEmptyBarrelTakesItsLiquidBack(t *testing.T) {
 // barrel takes no dust, the buffer is limited and breaking the barrel drops
 // the clay.
 func TestBarrelClayByHopper(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, island.IslandY + 3, 4}
 		tx.SetBlock(pos, farm.Barrel{Wood: "oak"}, nil)
 		dust := item.NewStack(sgitem.Dust{}, 40)
@@ -395,10 +397,10 @@ func TestBarrelClayByHopper(t *testing.T) {
 // TestWoodenBucket: the wooden bucket takes the water of a barrel and of a
 // water source and pours it again, but never takes lava.
 func TestWoodenBucket(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, island.IslandY + 3, 4}
 		tx.SetBlock(pos, farm.Barrel{Wood: "oak"}, nil)
 		if farm.StateOf(s.Session).Barrels == nil {

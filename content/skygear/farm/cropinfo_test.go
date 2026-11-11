@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"strings"
@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/look"
 )
@@ -16,11 +17,11 @@ import (
 // TestUsingCrops: using a growing crop places nothing (the WAILA panel shows
 // its time); using a grown crop harvests and replants it.
 func TestUsingCrops(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
 	young, grown := cube.Pos{1, 64, 1}, cube.Pos{2, 64, 1}
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		for _, pos := range []cube.Pos{young, grown} {
 			tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		}

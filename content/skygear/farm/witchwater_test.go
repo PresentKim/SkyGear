@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"testing"
@@ -12,6 +12,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -36,10 +37,10 @@ func droppedKeys(tx *world.Tx) map[string]int {
 // it turns into witch water after the delay (not elsewhere), the mixings make
 // their blocks and empty the barrel, and a bucket takes the witch water.
 func TestWitchWater(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		pos := cube.Pos{4, island.IslandY + 2, 4}
 		under := pos.Side(cube.FaceDown)
 		tx.SetBlock(under, block.Dirt{}, nil)
@@ -128,7 +129,7 @@ func TestMyceliumStaysUnderBarrel(t *testing.T) {
 // TestBarrelLiquidIcon: the WAILA panel shows the liquid of a barrel as its
 // icon: water, witch water or lava, none while it holds no liquid.
 func TestBarrelLiquidIcon(t *testing.T) {
-	s := testSession(t)
+	s := coretest.Session(t)
 	pos := cube.Pos{1, 2, 3}
 	farm.StateOf(s.Session).Barrels = map[string]*farm.BarrelRecord{}
 	if farm.BarrelLiquid(s.Session, i18n.Default, pos) != nil {

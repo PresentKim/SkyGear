@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"math/rand/v2"
@@ -9,6 +9,8 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
@@ -16,7 +18,7 @@ import (
 var cropPos = cube.Pos{4, island.IslandY, 4}
 
 // plantAt puts a crop on farmland and records it as planted now.
-func plantAt(s *session, pos cube.Pos, b world.Block) {
+func plantAt(s core.Lifecycle, pos cube.Pos, b world.Block) {
 	s.World.Do(func(tx *world.Tx) {
 		tx.SetBlock(pos.Side(cube.FaceDown), block.Farmland{Hydration: 7}, nil)
 		tx.SetBlock(pos, b, nil)
@@ -25,7 +27,7 @@ func plantAt(s *session, pos cube.Pos, b world.Block) {
 	})
 }
 
-func stageOf(t *testing.T, s *session, pos cube.Pos) int {
+func stageOf(t *testing.T, s core.Lifecycle, pos cube.Pos) int {
 	t.Helper()
 	stage := -1
 	s.World.Do(func(tx *world.Tx) {
@@ -37,14 +39,14 @@ func stageOf(t *testing.T, s *session, pos cube.Pos) int {
 }
 
 // advance moves instance time on and runs the per-second update.
-func advance(s *session, d time.Duration) {
+func advance(s core.Lifecycle, d time.Duration) {
 	s.Clock.Advance(d)
 	s.World.Do(func(tx *world.Tx) { farm.GrowCrops(s.Session, tx) })
 }
 
 func TestCropsGrowOnInstanceTime(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.WheatSeeds{})
 	// One stage, rounded up to the nanosecond as the queue schedules it.
 	step := (farm.GrowTime(s.Session, "wheat") + farm.MaxCropStage - 1) / farm.MaxCropStage
@@ -72,8 +74,8 @@ func TestCropsGrowOnInstanceTime(t *testing.T) {
 }
 
 func TestRandomTicksDoNotGrowCrops(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.WheatSeeds{})
 	s.World.Do(func(tx *world.Tx) {
 		r := rand.New(rand.NewPCG(1, 1))
@@ -87,8 +89,8 @@ func TestRandomTicksDoNotGrowCrops(t *testing.T) {
 }
 
 func TestBoneMealAndRemovedCrops(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.Carrot{})
 	// Bone meal took it to stage 5: it continues from there.
 	s.World.Do(func(tx *world.Tx) { tx.SetBlock(cropPos, farm.WithGrowth(block.Carrot{}, 5), nil) })
@@ -110,8 +112,8 @@ func TestBoneMealAndRemovedCrops(t *testing.T) {
 }
 
 func TestStemGrowsFruit(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		for _, d := range cube.Directions() {
 			tx.SetBlock(cropPos.Side(d.Face()).Side(cube.FaceDown), block.Dirt{}, nil)
@@ -134,8 +136,8 @@ func TestStemGrowsFruit(t *testing.T) {
 }
 
 func TestCropsLoadFromState(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	plantAt(s, cropPos, block.Potato{})
 	farm.LocalOf(s.Session).CropQueue = nil
 	advance(s, farm.GrowTime(s.Session, "potato"))
@@ -150,10 +152,10 @@ func TestCropsLoadFromState(t *testing.T) {
 }
 
 func TestPlantingRecordsCrop(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		ctx := player.NewEventContext(tx, p)
 		s.Handler(p).HandleBlockPlace(ctx, cropPos, block.BeetrootSeeds{})
 		if r := farm.StateOf(s.Session).Crops[farm.CropKey(cropPos)]; ctx.Cancelled() || r == nil || r.Kind != "beetroot" {

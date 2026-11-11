@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"math/rand/v2"
@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
@@ -85,8 +86,8 @@ func TestCocoonDropsString(t *testing.T) {
 // in CocoonTime (not sooner, not by random ticks), a step at a time, and
 // keep whether the leaves were placed.
 func TestCocoonGrowsOnTime(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	defer func(c float64) { farm.SpreadChance = c }(farm.SpreadChance)
 	farm.SpreadChance = 0
 	pos := cube.Pos{6, island.IslandY + 6, 6}
@@ -107,11 +108,11 @@ func TestCocoonGrowsOnTime(t *testing.T) {
 		s.World.Do(func(tx *world.Tx) { l, _ = tx.Block(at).(farm.SilkwormLeaves) })
 		return l
 	}
-	tick(s, ticksFor(farm.CocoonTime()/2)+2)
+	coretest.Tick(s, ticksFor(farm.CocoonTime()/2)+2)
 	if p := cocoon(pos).CocoonPercent(); p != 50 {
 		t.Errorf("half way: cocoon %d%%, want 50%%", p)
 	}
-	tick(s, ticksFor(farm.CocoonTime()/2))
+	coretest.Tick(s, ticksFor(farm.CocoonTime()/2))
 	if l := cocoon(pos); l.Cocoon != farm.CocoonMax || l.Persistent {
 		t.Errorf("after the cocoon time: %+v", l)
 	}
@@ -127,7 +128,7 @@ func TestCocoonGrowsOnTime(t *testing.T) {
 			t.Errorf("random tick moved the cocoon to %d", got.Cocoon)
 		}
 	})
-	tick(s, ticksFor(farm.CocoonStepTime)+2)
+	coretest.Tick(s, ticksFor(farm.CocoonStepTime)+2)
 	if p := cocoon(pos).Cocoon; p != 4 {
 		t.Errorf("a lost tick scheduled again: cocoon step %d, want 4", p)
 	}
@@ -138,20 +139,20 @@ func TestCocoonGrowsOnTime(t *testing.T) {
 // spread at a chance, the full cocoon to all that are left), and through
 // them every leaf of the crown.
 func TestSilkwormsSpreadInPlay(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	centre := cube.Pos{6, island.IslandY + 8, 6}
 	s.World.Do(func(tx *world.Tx) {
 		fillCube(tx, centre, 2, block.Leaves{Type: block.OakLeaves(), Persistent: true})
 		farm.Infest(tx, centre)
 	})
-	tick(s, ticksFor(farm.CocoonTime())+2)
+	coretest.Tick(s, ticksFor(farm.CocoonTime())+2)
 	s.World.Do(func(tx *world.Tx) {
 		if n := silkwormLeavesAround(tx, centre, 1); n != 26 {
 			t.Errorf("a full cocoon reached %d of the 26 leaves around", n)
 		}
 	})
-	tick(s, 2*ticksFor(farm.CocoonTime())+4)
+	coretest.Tick(s, 2*ticksFor(farm.CocoonTime())+4)
 	s.World.Do(func(tx *world.Tx) {
 		if n := silkwormLeavesAround(tx, centre, 2); n != 124 {
 			t.Errorf("after three cocoon times %d of the 124 leaves of the crown", n)
@@ -162,8 +163,8 @@ func TestSilkwormsSpreadInPlay(t *testing.T) {
 // TestSpreadStaysOnTheIsland: the worms reach only leaves, only on the
 // island's chunks, and never in a world without an island session.
 func TestSpreadStaysOnTheIsland(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	r := rand.New(rand.NewPCG(5, 6))
 	far := cube.Pos{40, island.IslandY + 6, 6}
 	if island.CanBuild(s.Session, far) {
@@ -196,8 +197,8 @@ func TestSpreadStaysOnTheIsland(t *testing.T) {
 // placed leaves stay, still passing the news on. Leaves keep their log
 // through silkworm leaves while it stands.
 func TestSilkwormLeavesDecayWithTheTree(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	type row struct{ log, inner, outer cube.Pos }
 	at := func(x int) row {
 		log := cube.Pos{x, island.IslandY + 5, 4}
@@ -212,7 +213,7 @@ func TestSilkwormLeavesDecayWithTheTree(t *testing.T) {
 		tx.SetBlock(grown.inner, farm.SilkwormLeaves{Cocoon: 5}, nil)
 		tx.SetBlock(placed.inner, farm.SilkwormLeaves{Cocoon: 5, Persistent: true}, nil)
 	})
-	tick(s, 40)
+	coretest.Tick(s, 40)
 	s.World.Do(func(tx *world.Tx) {
 		for _, r := range []row{grown, placed} {
 			if _, ok := tx.Block(r.outer).(block.Leaves); !ok {
@@ -224,7 +225,7 @@ func TestSilkwormLeavesDecayWithTheTree(t *testing.T) {
 			tx.SetBlock(r.log, nil, nil)
 		}
 	})
-	tick(s, 60)
+	coretest.Tick(s, 60)
 	s.World.Do(func(tx *world.Tx) {
 		if _, ok := tx.Block(grown.inner).(farm.SilkwormLeaves); ok {
 			t.Error("silkworm leaves of a felled tree stayed")

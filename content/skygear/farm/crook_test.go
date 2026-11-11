@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"math/rand/v2"
@@ -9,6 +9,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
@@ -104,11 +105,11 @@ func TestCrookIsQuickOnLeaves(t *testing.T) {
 // crook's table (no leaves item, a silkworm now and then), the hand keeps
 // the leaves' own drops, and the crook breaks leaves faster than the hand.
 func TestCrookBreaksLeavesInPlay(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	pos := cube.Pos{0, island.IslandY + 3, 1}
-	h := spawnPlayer(s)
-	withPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
+	h := coretest.SpawnPlayer(s)
+	coretest.WithPlayer(t, s, h, func(p *player.Player, tx *world.Tx) {
 		mine := func(held item.Stack) []item.Stack {
 			l := block.Leaves{Type: block.OakLeaves()}
 			tx.SetBlock(pos, l, nil)
@@ -149,9 +150,9 @@ func TestCookedSilkworm(t *testing.T) {
 	if _, ok := any(farm.Silkworm{}).(item.Consumable); ok {
 		t.Error("the raw silkworm is food: eating it would take the leaves' right click")
 	}
-	s := testSession(t)
-	loadAround(s)
-	withPlayer(t, s, spawnPlayer(s), func(p *player.Player, tx *world.Tx) {
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
+	coretest.WithPlayer(t, s, coretest.SpawnPlayer(s), func(p *player.Player, tx *world.Tx) {
 		p.SetFood(10)
 		farm.CookedSilkworm{}.Consume(tx, p)
 		if got := p.Food(); got != 10+farm.CookedSilkwormFood {

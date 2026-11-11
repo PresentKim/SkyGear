@@ -1,4 +1,4 @@
-package skygear
+package farm_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
@@ -46,8 +47,8 @@ func TestLeavesDropNoSticks(t *testing.T) {
 // scheduled tick and drop what leaves drop; with a log beside them they
 // stay.
 func TestLeavesDecayOnScheduledTick(t *testing.T) {
-	s := testSession(t)
-	loadAround(s)
+	s := coretest.Session(t)
+	coretest.LoadAround(s)
 	s.World.Do(func(tx *world.Tx) {
 		alone, near := cube.Pos{6, island.IslandY + 5, 6}, cube.Pos{9, island.IslandY + 5, 9}
 		leaves := block.Leaves{Type: block.OakLeaves(), ShouldUpdate: true}
