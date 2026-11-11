@@ -1,32 +1,38 @@
-package skygear
+package screens
 
 import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
-	"github.com/presentkim/skygear/content/skygear/screens"
 )
 
+// subscribe registers the steps of screens on the kernel's hooks.
+func subscribe() {
+	subscribeBoards()
+	subscribePresence()
+	subscribeUse()
+}
+
 // The scoreboards update every second.
-func init() {
+func subscribeBoards() {
 	core.Second.On(100, "screens.boards", func(e core.Tick) {
-		screens.UpdateBoards(e.S, e.Tx)
+		UpdateBoards(e.S, e.Tx)
 	})
 }
 
 // The menu item and the scoreboard are given on join; the scoreboard goes on
 // leave.
-func init() {
+func subscribePresence() {
 	core.Join.On(10, "screens.menuItem", func(e core.Presence) {
 		if e.First {
 			// Bare hands: only the menu item.
-			_ = e.P.Inventory().SetItem(8, screens.MenuItem(i18n.Of(e.P)))
+			_ = e.P.Inventory().SetItem(8, MenuItem(i18n.Of(e.P)))
 		}
-		screens.RenameMenuItems(e.P)
+		RenameMenuItems(e.P)
 	})
 	core.Join.On(70, "screens.board", func(e core.Presence) {
-		screens.UpdateBoard(e.S, e.P)
+		UpdateBoard(e.S, e.P)
 	})
 	core.Leave.On(60, "screens.board", func(e core.Presence) {
 		e.P.RemoveScoreboard()
@@ -34,9 +40,9 @@ func init() {
 }
 
 // A held menu item opens the menu on a block and in the air.
-func init() {
+func subscribeUse() {
 	core.UseOnBlock.Handle(20, "screens.menuItem", func(e core.UseOnBlockEvent) bool {
-		if screens.IsMenuItem(e.Held) {
+		if IsMenuItem(e.Held) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
 			return true
@@ -44,7 +50,7 @@ func init() {
 		return false
 	})
 	core.Use.Handle(20, "screens.menuItem", func(e core.UseEvent) bool {
-		if screens.IsMenuItem(e.Held) {
+		if IsMenuItem(e.Held) {
 			e.Cancel()
 			useHeldScreen(e.S, e.P)
 			return true
@@ -67,5 +73,5 @@ func useHeldScreen(s *core.Session, p *player.Player) {
 		dimension.ShowWatchMenu(s, p)
 		return
 	}
-	screens.OpenMenu(s, p)
+	OpenMenu(s, p)
 }
