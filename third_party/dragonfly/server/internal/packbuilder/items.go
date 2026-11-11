@@ -23,12 +23,7 @@ func buildItems(dir string) (count int, lang []string) {
 	}
 
 	textureData := make(map[string]any)
-	for _, custom := range world.CustomItems() {
-		// skygear patch: only items that carry a texture are built.
-		item, ok := custom.(world.CustomItemTextured)
-		if !ok {
-			continue
-		}
+	for _, item := range world.CustomItems() {
 		identifier, _ := item.EncodeItem()
 		lang = append(lang, fmt.Sprintf("item.%s.name=%s", identifier, item.Name()))
 

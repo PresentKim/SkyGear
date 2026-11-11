@@ -1,6 +1,7 @@
 package iteminternal
 
 import (
+	"image"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ type testFuel struct{}
 func (testFuel) EncodeItem() (string, int16) { return "test:fuel", 0 }
 func (testFuel) Name() string                { return "Fuel" }
 func (testFuel) Category() category.Category { return category.Items() }
+func (testFuel) Texture() image.Image        { return nil }
 func (testFuel) FuelInfo() item.FuelInfo     { return item.FuelInfo{Duration: 5 * time.Second} }
 
 // TestFuelComponent: a custom fuel sends minecraft:fuel with its burn time in

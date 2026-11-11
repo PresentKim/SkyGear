@@ -22,18 +22,10 @@ type CustomItem interface {
 	Item
 	// Name is the name that will be displayed on the item to all clients.
 	Name() string
-	// Category is the category the item will be listed under in the creative inventory.
-	Category() category.Category
-}
-
-// CustomItemTextured is a CustomItem whose texture Dragonfly puts into the
-// auto-built resource pack.
-// skygear patch: Texture moved out of CustomItem, so items whose textures
-// come from a hand-written resource pack need no image.
-type CustomItemTextured interface {
-	CustomItem
 	// Texture is the Image of the texture for this item.
 	Texture() image.Image
+	// Category is the category the item will be listed under in the creative inventory.
+	Category() category.Category
 }
 
 // RegisterItem registers an item with the ID and meta passed. Once registered, items may be obtained from an
