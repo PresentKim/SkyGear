@@ -80,7 +80,7 @@ func LoadFS(fsys fs.FS, dir string, opt Options) (*resource.Pack, error) {
 		// empty one.
 		return nil, fmt.Errorf("resource pack %s: %w", dir, err)
 	}
-	// skygear patch: zip in memory (stored png and ciphertext) and cache the result.
+	// Zip in memory (stored png and ciphertext) and cache the result.
 	zipped, err := zipDir(tmp, opt.Encrypt, key)
 	if err != nil {
 		return nil, fmt.Errorf("resource pack %s: %w", dir, err)

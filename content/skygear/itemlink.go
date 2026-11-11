@@ -13,7 +13,7 @@ import (
 // through common/itemio. Machines, drawers and barrels implement its
 // interfaces; the composter (a vanilla block) is served by an adapter; hoppers
 // of every kind (the vanilla one through a Dragonfly patch hook, ours in
-// hopper.go) move one item per step with hopper.StepHopper.
+// hopper/hopper.go) move one item per step with hopper.StepHopper.
 
 // registerItemIO connects the game's blocks to itemio and the vanilla hopper
 // to the game's item transfer.

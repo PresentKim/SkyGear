@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest. These are the rules the project follows; the full
+Thanks for your interest. These are the rules the project follows.
 
 ## Branches and commits
 
@@ -27,8 +27,8 @@ Thanks for your interest. These are the rules the project follows; the full
 - `main` moves only by merging `dev` into it. Each merge is a release: raise
   `Version` in `cmd/skygear/version.go`, write what changed since the last
   release in `change_logs/<version>.md` (first line `# <version> (<date>)`,
-  Korean in the polite `~합니다` style), and tag the merge `v<version>`. A test checks that the newest change log is
-  `Version`.
+  in English), and tag the merge `v<version>`. A test checks that the newest
+  change log is `Version`.
 - Pushing a `v<version>` tag runs `.github/workflows/release.yml`: it checks
   that the tag matches `Version`, builds the server for Windows and Linux
   (amd64), and creates a GitHub release with the archives and the body of
@@ -63,7 +63,9 @@ Thanks for your interest. These are the rules the project follows; the full
   `skygear.version`, `data_versions` for account data). A change that
   existing data has to follow (a renamed block, item, counter or key) adds a
   patch at the end of `Patches` in `content/skygear/migrate/patches.go` with
-  the release it ships in; at startup the server applies the patches newer
+  the release it ships in (`Rename` for renamed strings, `Plain` for retired
+  items that become a plain stack of another item, `Blocks` for blocks that
+  change into another block with its states); at startup the server applies the patches newer
   than each save's record after a backup. Released patches are never edited.
 
 ## Text and translations
@@ -87,13 +89,12 @@ Thanks for your interest. These are the rules the project follows; the full
   names, animations, JSON UI. Go code only names the model identifier and the
   material key; Dragonfly's automatic pack generation is turned off.
 - Do not edit the version in a pack's `manifest.json`;
-  `common/resourcepack.Load` derives it from the content hash.
+  `common/resourcepack.LoadFS` derives it from the content hash.
 - Do not change the UUIDs of the packs under `assets/resourcepack/` (clients have them
   cached).
-- New craftable items and blocks must also be registered in `creative.go`
-  (the client recipe book only lists results that are in the creative
-  inventory; a test checks this).
-- Before JSON UI or modelling work, check the reference repositories listed in
+- New craftable items and blocks must also be registered in
+  `content/skygear/catalog/creative.go` (the client recipe book only lists
+  results that are in the creative inventory; a test checks this).
 
 ## Ore UI page
 

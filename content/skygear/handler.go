@@ -84,7 +84,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	}
 	if c, ok := sgitem.CrookOf(held); ok {
 		// Leaves pulled apart with a crook: more saplings, now and then a
-		// silkworm (the infested leaves drop their string themselves).
+		// silkworm (silkworm leaves drop their string themselves).
 		if l, ok := broken.(block.Leaves); ok {
 			*drops = farm.CrookLeafDrops(l, c, h.s.Rand.Float64)
 		}

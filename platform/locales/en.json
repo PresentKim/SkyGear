@@ -110,7 +110,7 @@
  "platform.members.host": "§6Host",
  "platform.members.gone": "§8Left or kicked",
  "platform.members.title": "Manage Members",
- "platform.members.body": "Members %d/%d\nThe inventory of players who left or were kicked also stay in the save.",
+ "platform.members.body": "Members %d/%d\nThe inventory of players who left or were kicked also stays in the save.",
  "platform.shutdown": "The server has shut down.\nPlease reconnect in a moment.",
  "platform.accountLoadFailed": "Could not load your account. Please reconnect in a moment.",
  "instance.joined": "§e%s joined.",

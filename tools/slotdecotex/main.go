@@ -1,6 +1,6 @@
 // Command slotdecotex writes placeholder textures of the slotdeco pack: tier
 // pips and badges (front_1..6) and the rarity frames of the selected-item
-// bubble (tip_1..4). Run it from common/:
+// bubble (tip_1..4). Run it from the repository root:
 //
 //	go run ./tools/slotdecotex assets/resourcepack/slotdeco
 package main

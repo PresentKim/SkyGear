@@ -25,6 +25,13 @@
 | `energy` | RE 에너지를 공급원에서 소비처로 나르는 망 |
 | `itemnet` | 맞닿은 아이템 도관 망의 아이템 이동 |
 | `fluidnet` | 맞닿은 액체 도관 망의 유체 이동 |
+| `netgraph` | 도관 망을 이벤트로만 바뀌는 그래프로 둠(노드를 더하면 망을 합치고, 빼면 가르며, 망마다 공유 버퍼 `Store` 를 가짐) |
+| `storagenet` | 저장망·제작망의 엔진 형식(키 있는 아이템 묶음, 저장소, 제작 패턴, 계획). Dragonfly 에 기대지 않는다 |
+| `nbtcanon` | 아이템 하나의 NBT 를 늘 같은 바이트로 쓰는 정규 형식(저장망 키와 세이브 키 변환이 함께 쓴다) |
+| `nbtrewrite` | 저장 데이터(리틀엔디언 NBT, LevelDB 하위 청크 팔레트)의 글자열을 함수로 바꿈 |
+| `invclick` | 바닐라 인벤토리의 클릭 동작(커서 아이템, 칸 누름·끌기·모으기) |
+| `netcompress` | 네트워크 계층의 패킷 압축 |
+| `internal/slottext` | 칸 폼, WAILA 패널, HUD 줄이 같은 방식으로 만드는 글 조각(`common` 안에서만 import) |
 
 패키지들이 그리는 리소스팩(`inventoryui`, `waila`, `slotdeco`, `sgui`, `oreui`)은 `assets/resourcepack/` 에 있다(`assets` 패키지가 실행 파일에 넣는다). `assets/resourcepack/inventoryui` 는 [tedo0627/InventoryUIResourcePack](https://github.com/tedo0627/InventoryUIResourcePack)(MIT)을, `assets/resourcepack/waila` 는 [r4isen1920/WAILA](https://github.com/r4isen1920/WAILA)(MIT)를 바탕으로 한다.
 
@@ -36,4 +43,4 @@
 ## 개발
 
 - `tools/uitextures`, `tools/slotdecotex assets/resourcepack/slotdeco assets/resourcepack/sgui` 가 팩의 임시 그림을 만든다(저장소 루트에서 `go run`).
-- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·oreui)에 있다.
+- 패키지별 설계 문서는 `docs/tech/`(chestui·waila·slotdeco·timed-items·i18n·resourcepack·backup·json-ui·oreui·storagenet·conduits·itemio)에 있다.

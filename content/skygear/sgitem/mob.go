@@ -1,6 +1,6 @@
 package sgitem
 
-// Mobs of the dimension gate and their essences.
+// Mobs of the dimension and their essences.
 const (
 	MobZombie   = "zombie"
 	MobSkeleton = "skeleton"

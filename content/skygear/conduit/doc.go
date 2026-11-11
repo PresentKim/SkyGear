@@ -1,5 +1,6 @@
 // Package conduit is the conduits of the game, as in EnderIO: energy, item
-// and fluid conduits of three tiers, placed into one block per position, the
+// and fluid conduits of three tiers and a network conduit of one tier (it
+// carries the storage network), placed into one block per position, the
 // Bundle (bundle.go), which holds at most one conduit of each kind. Bundles
 // next to each other join into the save's networks (network.Energy, Items,
 // Fluids; conduit.go). A display entity draws each bundle (conduitvisual.go)

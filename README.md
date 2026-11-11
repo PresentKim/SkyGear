@@ -35,7 +35,7 @@ directory and stores its data under `data/`:
 | File | Contents |
 |---|---|
 | `config.toml` | Dragonfly server settings: network address (default `:19132`), server name, Xbox Live authentication, … |
-| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `Encrypt`, `SlotDeco`; an unencrypted pack carries an empty `content.zipe`, so the game still takes the Ore UI page the menus are drawn on), operators (`Admin.Operators`), profiling (`Debug.Pprof`), Go runtime limits (`Runtime.MemoryLimitMB`, `Runtime.GCPercent`), state flush interval (`Instance.StateFlushSeconds`). `ResourcePack.Encrypt` is off by default; an existing `platform.toml` keeps its old value |
+| `platform.toml` | Platform settings: data folder, instance day length, load radius, how many instances may run at once, autosave and world save intervals, backups, resource pack options (`Minify`, `Encrypt`, `SlotDeco`; an unencrypted pack carries an empty `content.zipe`, so the game still takes the Ore UI page the menus are drawn on), operators (`Admin.Operators`), profiling (`Debug.Pprof`), Go runtime limits (`Runtime.MemoryLimitMB`, `Runtime.GCPercent`), state flush interval (`Instance.StateFlushSeconds`), packet compression level (`Network.CompressionLevel`), entity chest opening steps (`[ChestUI]`), test switches for voxel shapes and block action logging (`[Experimental]`). `ResourcePack.Encrypt` is off by default; an existing `platform.toml` keeps its old value |
 | `data/platform.db` | SQLite database: accounts, friends, saves, per-save player state, game state |
 | `data/saves/<save id>/world` | One world per save |
 | `data/backups/` | Automatic database and world backups ([docs/tech/backup.md](docs/tech/backup.md)) |
@@ -72,7 +72,7 @@ The code is in three layers, each importing only the ones above it:
 
 | Layer | Folder | What it holds |
 |---|---|---|
-| Common | `common/` | Game-independent packages any Dragonfly server can use (menus as DDUI screens, entity chests, WAILA, HUD, i18n, resource pack loader, backups, item I/O, energy/item/fluid networks; see [common/README.md](common/README.md)) |
+| Common | `common/` | Game-independent packages any Dragonfly server can use (menus as DDUI screens, entity chests, WAILA, HUD, i18n, resource pack loader, backups, item I/O, energy/item/fluid networks, the storage network engine, the conduit net graph; see [common/README.md](common/README.md)) |
 | Platform | `platform/` | The server around the games: lobby, accounts, saves, friends, instances (see [platform/README.md](platform/README.md)) |
 | Content | `content/skygear/` | Sky Gear itself: blocks, items, machines, research, codex, waves, … (see [content/skygear/README.md](content/skygear/README.md)) |
 

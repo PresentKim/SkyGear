@@ -363,8 +363,8 @@ func ItemGridSections(p *player.Player, title, body string, sections []GridSecti
 	oreItemGrid(p, title, body, sections, actions)
 }
 
-// Confirm asks a yes/no question: the yes button runs f, "취소" or closing
-// does nothing.
+// Confirm asks a yes/no question: the yes button runs f; the cancel button (text
+// key ui.confirm.cancel) or closing does nothing.
 func Confirm(p *player.Player, title, body, yes string, f func(p *player.Player, tx *world.Tx)) {
 	Menu(p, title, body,
 		Option{Label: yes, Icon: "textures/ui/confirm", Run: f},

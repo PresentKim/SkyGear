@@ -28,7 +28,7 @@ import (
 	"github.com/presentkim/skygear/content/skygear/tinker"
 )
 
-// Operator tools (/sgadmin) for running the server: items, research and
+// Operator tools (/sgadmin) for running the server: giving items, research and
 // advancement progress, the load line. Only players for whom the game's
 // operator check returns true see and run them (and /sgdebug, debug.go).
 

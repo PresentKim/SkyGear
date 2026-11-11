@@ -150,7 +150,7 @@ func (o collectorOut) Item(i int) item.Stack {
 	st, _ := o.st.Inv().Item(o.st.Def.Output[i])
 	return st
 }
-func (o collectorOut) Set(i int, st item.Stack)     { _ = o.st.Inv().SetItem(o.st.Def.Output[i], st) }
+func (o collectorOut) Set(i int, st item.Stack)   { _ = o.st.Inv().SetItem(o.st.Def.Output[i], st) }
 func (collectorOut) Accepts(int, item.Stack) bool { return false }
 
 // ShowCollector is the collector's window: the cleared monsters to pick the
