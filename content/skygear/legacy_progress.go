@@ -22,3 +22,15 @@ func init() {
 		achievement.GrantCollection(*held.Of(e.S))
 	})
 }
+
+// A joining player is sent the recipes they know; the recipe filter, which
+// belongs to this island, is cleared on leave.
+func init() {
+	core.Join.On(60, "progress.sendRecipes", func(e core.Presence) {
+		progress.SendRecipesTo(e.S, e.P)
+	})
+	core.Leave.On(70, "progress.recipes", func(e core.Presence) {
+		// Locked recipes belong to this island (recipes.go).
+		e.P.SetRecipeFilter(nil)
+	})
+}

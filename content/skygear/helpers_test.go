@@ -53,7 +53,7 @@ func testSession(t testing.TB) *session {
 	t.Cleanup(func() { core.Unregister(c) })
 	activeGame = g
 	registerItemIO()
-	w.Handle(&worldHandler{s: s})
+	w.Handle(&core.WorldHandler{S: s.Session})
 	return s
 }
 

@@ -25,3 +25,10 @@ func init() {
 		farm.TickPlants(e.S, e.Tx)
 	})
 }
+
+// The crops are loaded before the world transaction of the session start.
+func init() {
+	core.Load.On(10, "farm.loadCrops", func(e core.Tick) {
+		farm.LoadCrops(e.S)
+	})
+}

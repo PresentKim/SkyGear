@@ -58,7 +58,7 @@ func openPersisted(t *testing.T, dir string) (*session, func()) {
 	core.Register(c)
 	activeGame = g
 	registerItemIO()
-	w.Handle(&worldHandler{s: s})
+	w.Handle(&core.WorldHandler{S: s.Session})
 	loadAround(s)
 	closed := false
 	closeAll := func() {

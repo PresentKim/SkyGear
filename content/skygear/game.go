@@ -13,22 +13,14 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/common/waila"
 	"github.com/presentkim/skygear/content/skygear/catalog"
-	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/codex"
-	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
-	"github.com/presentkim/skygear/content/skygear/dimension"
 	"github.com/presentkim/skygear/content/skygear/expand"
-	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/migrate"
-	"github.com/presentkim/skygear/content/skygear/netstore"
-	"github.com/presentkim/skygear/content/skygear/progress"
 	"github.com/presentkim/skygear/content/skygear/screens"
-	"github.com/presentkim/skygear/content/skygear/storage"
 	"github.com/presentkim/skygear/platform/db"
 	"github.com/presentkim/skygear/platform/instance"
 )
@@ -108,18 +100,12 @@ func (g *Game) Start(inst *instance.Instance) instance.Session {
 	}
 	s.state = savedState.Of(c)
 	s.tickReach = inst.LoadRadius() * 16
-	core.Mark("farm.loadCrops")
-	farm.LoadCrops(s.Session)
+	core.Load.Emit(core.Tick{S: c})
 	island.SetKeep(c, func(tx *world.Tx, c island.ChunkPos) { inst.KeepLoaded(tx, c[0], c[1]) })
 	inst.World.Do(func(tx *world.Tx) {
-		core.Mark("island.keepLoaded")
-		for _, c := range island.StateOf(s.Session).Chunks {
-			island.KeepLoaded(s.Session, tx, c)
-		}
-		core.Mark("climate.apply")
-		climate.Apply(s.Session, tx)
+		core.Start.Emit(core.Tick{S: c, Tx: tx})
 	})
-	inst.World.Handle(&worldHandler{s: s})
+	inst.World.Handle(&core.WorldHandler{S: c})
 	g.sessions.Store(inst.World, s)
 	core.Register(c)
 	return s
@@ -154,81 +140,14 @@ func (s *session) Spawn() mgl64.Vec3 { return island.Spawn(s.Session) }
 // during its run) to the island instead (instance.Relocator).
 func (s *session) Relocate(pos mgl64.Vec3) bool { return core.InArena(pos) }
 
-func (s *session) Join(p *player.Player, first bool) {
-	core.Mark("screens.menuItem")
-	if first {
-		// Bare hands: only the menu item.
-		_ = p.Inventory().SetItem(8, screens.MenuItem(i18n.Of(p)))
-	}
-	screens.RenameMenuItems(p)
-	core.Mark("fairy.backfillDust")
-	fairy.BackfillDust(s.Session, p, p.Tx())
-	core.Mark("climate.showWeather")
-	climate.ShowWeather(s.Session, p)
-	core.Mark("core.shapes")
-	s.SendShapes(p)
-	core.Mark("island.purgeLost")
-	island.PurgeLost(s.Session)
-	core.Mark("progress.sendRecipes")
-	progress.SendRecipesTo(s.Session, p)
-	core.Mark("screens.board")
-	screens.UpdateBoard(s.Session, p)
-	core.Mark("dimension.joined")
-	dimension.Joined(s.Session, p)
-	dimension.RetireItems(p)
-}
-
-func (s *session) Leave(p *player.Player) {
-	core.Mark("dimension.leave")
-	dimension.Leave(s.Session, p.Tx(), p)
-	core.Mark("core.parts")
-	s.Session.Leave(p)
-	core.Mark("expand.stop")
-	expand.Stop(s.Session, p, p.Tx())
-	core.Mark("look.clear")
-	waila.Clear(p)
-	// Shapes are client-side: clear them before the player leaves the
-	// instance world.
-	core.Mark("core.shapes")
-	p.RemoveAllDebugShapes()
-	core.Mark("screens.board")
-	p.RemoveScoreboard()
-	// Locked recipes belong to this island (recipes.go).
-	core.Mark("progress.recipes")
-	p.SetRecipeFilter(nil)
-}
-
 func (s *session) Handler(*player.Player) player.Handler {
 	return &handler{PlayerHandler: core.PlayerHandler{S: s.Session}, s: s}
 }
 
-func (s *session) NewDay(tx *world.Tx, day int) {
-	core.Mark("island.purgeLost")
-	island.PurgeLost(s.Session)
-	core.Mark("game.newDay")
-	s.Broadcast(tx, "game.newDay", day)
-}
-
-func (s *session) Autosave(tx *world.Tx) {
-	// Disk contents changed since the controller last flushed them are part
-	// of the save.
-	core.Mark("netstore.flush")
-	netstore.Disks(s.Session).Flush()
-	core.Mark("conduit.shares")
-	conduit.WriteShares(s.Session, tx)
-	s.Flush()
-}
-
+// Close emits Close and stores the state (core.Lifecycle), then forgets the
+// session.
 func (s *session) Close(tx *world.Tx) {
-	core.Mark("storage.displays")
-	storage.RemoveDisplays(s.Session, tx)
-	core.Mark("conduit.close")
-	conduit.WriteShares(s.Session, tx)
-	conduit.RemoveVisuals(s.Session, tx)
-	core.Mark("netstore.flush")
-	netstore.Disks(s.Session).Flush()
-	s.Session.Close()
-	core.Unregister(s.Session)
+	s.Lifecycle.Close(tx)
 	s.g.sessions.Delete(s.World)
 }
 

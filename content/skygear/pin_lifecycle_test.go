@@ -143,7 +143,7 @@ func pinLifeSession(t *testing.T) (*session, *pinStore) {
 	t.Cleanup(func() { core.Unregister(c) })
 	activeGame = g
 	registerItemIO()
-	w.Handle(&worldHandler{s: s})
+	w.Handle(&core.WorldHandler{S: s.Session})
 	return s, st
 }
 
@@ -495,7 +495,7 @@ func TestPinLifecycle(t *testing.T) {
 	// it unloads.
 	{
 		s, _, _ := fresh(0)
-		h := &worldHandler{s: s}
+		h := &core.WorldHandler{S: s.Session}
 		in(s, func(tx *world.Tx) {
 			b := conduit.Bundle{Energy: 1, Buf: &conduit.BufCell{Energy: 50}}
 			tx.SetBlock(a, b, nil)
@@ -512,7 +512,7 @@ func TestPinLifecycle(t *testing.T) {
 	}
 	{
 		s, _, hs := fresh(1)
-		h := &worldHandler{s: s}
+		h := &core.WorldHandler{S: s.Session}
 		lowest := float64(world.Overworld.Range()[0])
 		drop := func(name string, y float64, ent func(tx *world.Tx, y float64) world.Entity) {
 			in(s, func(tx *world.Tx) {
@@ -541,11 +541,12 @@ func TestPinLifecycle(t *testing.T) {
 
 	pinGolden(t, filepath.Join("testdata", "pin", "lifecycle.golden"), lines)
 	var names []string
-	for _, file := range []string{"game.go", "legacy_network.go", "lostfound.go", "conduitload.go"} {
+	for _, file := range []string{"game.go", "legacy_network.go"} {
 		names = append(names, pinMarksIn(t, file, "package skygear")...)
 	}
 	for _, sub := range core.Subscriptions() {
-		if sub.Hook == "Second" || sub.Hook == "Fast" {
+		switch sub.Hook {
+		case "Second", "Fast", "Load", "Start", "Join", "Leave", "NewDay", "Autosave", "Close", "ColumnLoad", "ColumnUnload", "EntityDespawn":
 			names = append(names, sub.Name)
 		}
 	}

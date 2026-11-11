@@ -23,3 +23,10 @@ func init() {
 		return false
 	})
 }
+
+// Island expansion mode ends when the player leaves.
+func init() {
+	core.Leave.On(30, "expand.stop", func(e core.Presence) {
+		expand.Stop(e.S, e.P, e.Tx)
+	})
+}

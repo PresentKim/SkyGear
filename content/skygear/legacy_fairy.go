@@ -11,3 +11,10 @@ func init() {
 		fairy.Tick(e.S, e.Tx)
 	})
 }
+
+// A joining player gets the fairy dust they are owed.
+func init() {
+	core.Join.On(20, "fairy.backfillDust", func(e core.Presence) {
+		fairy.BackfillDust(e.S, e.P, e.Tx)
+	})
+}

@@ -52,3 +52,14 @@ func init() {
 		dimension.Watchdog(e.S, e.Tx)
 	})
 }
+
+// The second dimension reacts to a player joining and leaving.
+func init() {
+	core.Join.On(80, "dimension.joined", func(e core.Presence) {
+		dimension.Joined(e.S, e.P)
+		dimension.RetireItems(e.P)
+	})
+	core.Leave.On(10, "dimension.leave", func(e core.Presence) {
+		dimension.Leave(e.S, e.Tx, e.P)
+	})
+}
