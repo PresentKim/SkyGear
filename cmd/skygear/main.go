@@ -159,7 +159,7 @@ func run(log *slog.Logger) error {
 	sghook.JoinLog = log
 	skygear.LogCustomBlockCounts(log)
 	srv := conf.New()
-	skygear.EditItemEntries(srv)
+	skygear.EditEntries(srv)
 	lobby := srv.World()
 	lobby.SetSpawn(platform.LobbySpawn)
 	lobby.SetDefaultGameMode(world.GameModeAdventure)

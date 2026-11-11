@@ -164,7 +164,7 @@ func (t Tool) AttackDamage() float64 { return 1 }
 
 // toolTags are the block tags a kind of tool mines faster, as the vanilla
 // tool of its type: the minecraft:is_<tool>_item_destructible tag, which our
-// blocks get from their BreakInfo too (a Dragonfly patch), and the older
+// blocks get from their BreakInfo too (clientdef.BlockEntry), and the older
 // material tags of vanilla blocks.
 var toolTags = map[string][]string{
 	ToolPickaxe: {"minecraft:is_pickaxe_item_destructible", "stone", "metal", "rail"},

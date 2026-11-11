@@ -34,7 +34,7 @@ func join(t *testing.T) (*hooktest.Client, *packet.ItemRegistry, *packet.Craftin
 	var conf server.Config
 	conf.Entities = entity.DefaultRegistry.Config().New(skygear.EntityTypes())
 	c := hooktest.Join(t, conf, func(srv *server.Server) {
-		skygear.EditItemEntries(srv)
+		skygear.EditEntries(srv)
 		skygear.New(slog.New(slog.DiscardHandler), d, nil, "test")
 	})
 	var (
@@ -74,6 +74,32 @@ func TestWire(t *testing.T) {
 		}
 		t.Logf("blocks: %d pinned (%d registered by the game, %d more sent by Dragonfly's own data)", len(data.CustomBlocks), len(reg), len(data.CustomBlocks)-len(reg))
 		hooktest.Golden(t, "testdata/blocks.golden", entries)
+	})
+	// The canonical text keeps the order of the properties list, but no block
+	// the game registers has two properties yet (recorded from the patched
+	// server: 0 of 205), so the golden cannot see the order. This checks it
+	// directly: the client numbers the states by it.
+	t.Run("property order", func(t *testing.T) {
+		multi := 0
+		for _, e := range data.CustomBlocks {
+			var names []string
+			switch l := e.Properties["properties"].(type) {
+			case nil:
+			case []map[string]any:
+				for _, p := range l {
+					names = append(names, p["name"].(string))
+				}
+			default:
+				t.Errorf("block %s: properties are %T", e.Name, l)
+			}
+			if len(names) > 1 {
+				multi++
+			}
+			if !sort.StringsAreSorted(names) {
+				t.Errorf("block %s: properties %v are not in the order of their names", e.Name, names)
+			}
+		}
+		t.Logf("%d of %d blocks have more than one property", multi, len(data.CustomBlocks))
 	})
 	t.Run("items", func(t *testing.T) {
 		entries := itemEntries(t, reg.Items, data.Items)
