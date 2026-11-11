@@ -36,7 +36,7 @@ var layers = []string{
 	"locales", "naming", "textfmt", "formicon", "blockmodel", "netshape", "sgitem", "sievetable", "wintext", "machinerecipe",
 	"advancement", "hopper", "migrate", "wire",
 	// core
-	"core", "network", "achievement", "preview", "look",
+	"core", "network", "achievement", "preview", "look", "autofill",
 	// progress
 	"progress", "island", "climate",
 	// features

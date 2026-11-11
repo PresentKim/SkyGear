@@ -13,6 +13,7 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/autofill"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/preview"
@@ -89,7 +90,7 @@ func Use(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, face cub
 		p.SetHeldItems(worn, off)
 		if worn.Empty() {
 			tx.PlaySound(p.Position(), sound.ItemBreak{})
-			core.RefillHand(p, held) // autofill: another wand of the tier
+			autofill.RefillHand(p, held) // autofill: another wand of the tier
 		}
 	}
 	h := append(history.Of(s)[p.H()], click{placed: placed, taken: !creative})

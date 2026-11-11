@@ -16,6 +16,7 @@ import (
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/autofill"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/naming"
 	"github.com/presentkim/skygear/content/skygear/progress"
@@ -304,7 +305,7 @@ func useSieve(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos, st 
 			put += putIntoSieve(s, p, tx, sv, held, off)
 		}
 		// autofill: a hand left empty gets the same block again
-		core.RefillHand(p, proto)
+		autofill.RefillHand(p, proto)
 		if put > 0 {
 			return
 		}

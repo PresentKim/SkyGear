@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/content/skygear/autofill"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
@@ -143,13 +144,13 @@ func TestAutofill(t *testing.T) {
 		stone := item.NewStack(block.Stone{}, 1)
 		_ = p.Inventory().SetItem(3, item.NewStack(block.Stone{}, 4))
 		_ = p.Inventory().SetItem(20, item.NewStack(block.Stone{}, 7))
-		if !core.RefillHand(p, stone) {
+		if !autofill.RefillHand(p, stone) {
 			t.Fatal("empty hand not refilled")
 		}
 		if held, _ := p.HeldItems(); held.Count() != 7 {
 			t.Fatalf("hand holds %d, want the 7 of the main inventory", held.Count())
 		}
-		if core.RefillHand(p, stone) {
+		if autofill.RefillHand(p, stone) {
 			t.Fatal("refilled a hand that is not empty")
 		}
 
@@ -170,11 +171,11 @@ func TestAutofill(t *testing.T) {
 			t.Fatalf("hand after the wand broke: %v", held)
 		}
 		// turned off: nothing comes
-		if _, err := account.Toggle(p, core.AutofillSetting); err != nil {
+		if _, err := account.Toggle(p, autofill.Setting); err != nil {
 			t.Fatal(err)
 		}
 		p.SetHeldItems(item.Stack{}, item.Stack{})
-		if core.RefillHand(p, stone) {
+		if autofill.RefillHand(p, stone) {
 			t.Fatal("refilled with autofill off")
 		}
 	})

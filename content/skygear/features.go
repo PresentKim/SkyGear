@@ -2,6 +2,7 @@ package skygear
 
 import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
+	"github.com/presentkim/skygear/content/skygear/autofill"
 	"github.com/presentkim/skygear/content/skygear/climate"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
@@ -40,7 +41,7 @@ var Features = []*core.Feature{
 	climate.Feature,
 	network.Feature,
 	tinker.Feature,
-	core.AutofillFeature,
+	autofill.Feature,
 	machine.Feature,
 	conduit.Feature,
 	storage.Feature,

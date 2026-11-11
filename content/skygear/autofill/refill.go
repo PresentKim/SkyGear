@@ -1,4 +1,5 @@
-package core
+// Package autofill refills a hand whose stack ran out.
+package autofill
 
 import (
 	"github.com/df-mc/dragonfly/server/item"
@@ -14,12 +15,12 @@ import (
 // player's own placing, eating and tool wear (the handler), the sieve and
 // the construction wand.
 
-// AutofillSetting is the player setting (account.Setting) that turns
+// Setting is the player setting (account.Setting) that turns
 // autofill on.
-const AutofillSetting = "autofill"
+const Setting = "autofill"
 
-// Autofill reports whether p turned autofill on.
-func Autofill(p *player.Player) bool { return account.On(p, AutofillSetting) }
+// On reports whether p turned autofill on.
+func On(p *player.Player) bool { return account.On(p, Setting) }
 
 // sameKind reports whether st can stand in for proto: the same stack, or for
 // an item that wears, the same item however worn.
@@ -59,7 +60,7 @@ func refillSlot(p *player.Player, proto item.Stack) (int, bool) {
 // whether it did.
 func RefillHand(p *player.Player, proto item.Stack) bool {
 	held, off := p.HeldItems()
-	if !held.Empty() || !Autofill(p) {
+	if !held.Empty() || !On(p) {
 		return false
 	}
 	slot, ok := refillSlot(p, proto)
@@ -76,7 +77,7 @@ func RefillHand(p *player.Player, proto item.Stack) bool {
 // to (a placed block or eaten food is taken from the hand after the handler
 // returns).
 func RefillHandLater(p *player.Player, tx *world.Tx, proto item.Stack) {
-	if proto.Empty() || !Autofill(p) {
+	if proto.Empty() || !On(p) {
 		return
 	}
 	h := p.H()
