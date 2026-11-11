@@ -1,79 +1,72 @@
 # Phase 3, parts 3-3 to 3-5: outline
 
-This is an outline, not a machine plan. Parts 3-1 and 3-2 are planned in full in `2026-11-10-cleanup-restructure-p3a.md` to `-p3e.md` (tasks T32-T58, with the step table in `-p3-order.md`). The three parts below get their own machine plans once 3-2 is built, because their shape depends on how the kernel lands. Numbers are measured at 541f654 unless marked "audit".
+This is an outline, not a machine plan. Parts 3-1 and 3-2 are built (`2026-11-10-cleanup-restructure-p3a.md` to `-p3e.md`, tasks T32 to T58). Part 3-3 is planned in full in `-p3f.md`, `-p3g.md` and `-p3h.md` (tasks T59 to T74) with the shared reference `-p3-capabilities.md`. Parts 3-4 and 3-5 below get their machine plans once 3-3 is built. Numbers are measured at 1ec765f unless marked.
 
-## Where 3-2 leaves the tree
+## 3-3 in one paragraph
 
-- `content/skygear/core` holds the hooks, the handlers and the `Feature` descriptor (name, entities, settings, item entry edit, `Setup`). Every feature has a `feature.go`; `content/skygear/features.go` is the one list.
-- The root package still holds: `game.go` (platform glue: `Spawn`, `Relocate`, `MenuBack`, `OpenScreen`, `Game.Start`'s setup), `commands.go` (12 commands, 6 distinct, of screens, codex, farm and machine), `admin.go` (465 lines), `debug*.go` (1,100 lines), `names.go`, `hopper.go`, `blockcounts.go`, `state.go`, and 79 test files plus the pins.
-- Central places a new feature still touches after 3-2: `catalog/creative.go`, `catalog/recipes.go`, `catalog/research.go` with `progress/essence.go`, `look/look.go`, `codex/codexcards.go`, `screens/help.go`, the locales, `layers_test.go`, the pack's index files. Recipes, research, codex cards, help and the pack stay central by decision (design data across features). 3-3 removes `creative.go` and `look.go` from this list.
+Sixteen tasks. The WAILA panel asks a block through `waila.Provider` (and `waila.Adapter` for vanilla blocks), so `look` imports `core` and `naming` only and sits in the core layer; `expand` hides the panel through `look.Hidden`, `tinker` and `wand` follow it through `look.Follow`. An item says its slot decoration through `slotdeco.Decorated`. The creative list is put together from `core.Feature.Creative` with explicit slots, in today's order. A feature registers its commands through `core.Feature.Commands`. The root's `names.go` goes to `naming`, autofill becomes its own package. Two new goldens (`look.golden`, 143 panels; `creative.golden`, 243 items) pin the output first. Left as they are, with reasons in the reference: the operator tools and `giveItems`, `itemsFeature`, the root's `hopper.go`, the copier's and the codex's knowledge of other features, the arena and screen helpers of `core`.
 
-## 3-3 Type switches become capabilities or derived lists
+## Where 3-3 leaves the tree
 
-Goal: a layer above no longer switches over the concrete types of the features below it. Each switch is replaced by an interface the value implements (the way `common/itemio` already works) or by a list derived from the feature descriptors.
-
-Verified facts:
-
-- `look/look.go` (420 lines, imports 14 game packages): `Info` switches over 8 block types at lines 156-198 (`machine.Machine`, `storage.Drawer`, `block.Composter`, `conduit.Bundle`, `farm.SilkwormLeaves`, `farm.Barrel`, `hopper.FlowHopper`, `farm.MagicPlant`) plus the crops; `MachineLines` switches over machine definitions in 10 branches at 318-354. The two switches over vanilla containers (256, 283) know no feature and stay.
-- `decor/decor.go` (81 lines): one switch, 9 cases over `sgitem` types. It is why feature item types live in `sgitem`.
-- `catalog/creative.go` (151 lines, 75 references to feature symbols): a hand-written list. Its order is pinned: `content/skygear/wire/testdata/creative.golden` has an `order/items` entry, and re-recording is forbidden in this phase.
-- `admin.go`: 41 references to `sgitem`; the give list is already partly derived from `world.Items()`.
-- A vanilla block cannot get a method (composter, crops): it needs an adapter the owning feature registers, as `itemio.RegisterAdapter` does.
-
-Order: (1) a golden of `look.Info` for every block type and machine kind, recorded from the current code (WAILA text is player-visible; `look_test.go` and `cropinfo_test.go` cover only part); (2) `decor` to an item method; (3) `look` blocks to a method or adapter per owner, one owner per task; (4) machine lines, together with 3-4's kind definition; (5) the creative list derived from the descriptors with an explicit order that reproduces today's list exactly; (6) commands and the admin give list through the descriptor.
-
-The descriptor grows here, one field per list that is actually derived: items for the creative list, commands, look providers. Blocks and locales only if a task needs them.
-
-Risks: the creative order (if it cannot be reproduced from declarations, the hand list stays and the part is dropped: say so, do not re-record); WAILA text drift; `decor` sits below `machine`, so the item method must not pull `tinker` down (`tinker.RarityColour` is used by `decor`).
-
-Re-measure before planning: the cases of each switch; which `sgitem` types exist only because `decor` or `catalog` switch on them; whether `creative.golden` still pins order; what `look_test.go` covers per block type; the descriptor as built.
+- Root package, non-test: `features.go` (the list, `itemsFeature`, `Install`), `game.go` (`Game`, `session`, registering `core.Commands()`), `hopper.go` (one `init`), `state.go`, `blockcounts.go`, and the operator tools `admin.go`, `debug*.go`. 10 files, about 1,930 lines.
+- A new feature touches: its own package, one line in `features.go`, the `layers` row, and the goldens that list what it adds on purpose (`order.golden`, `creative.golden` with the wire golden). Still central by decision: `catalog/recipes.go`, `catalog/research.go` with `progress/essence.go`, the codex cards, the help, the locales, the pack's index files.
+- `machine` gained the panel code (`machine/look.go`, with the ten-clause switch of `MachineLines` now over its own package's kinds), one more definition hook (`Def.Lines`, filled by `storage`), its creative run (slot 50, all 36 kinds in `Order`) and its command.
+- The root has 92 test files (88 at HEAD plus `pin_look_test.go`, `pin_creative_test.go`, `commands_test.go`, `decor_test.go`).
 
 ## 3-4 Machine kinds go home
 
-Goal: `machine` keeps the frame (block, state, window, energy, fluid, tiers, monitor) and its own kinds; a kind that belongs to another feature is defined and registered by that feature.
+Goal: `machine` keeps the frame (block, state, window, energy, fluid, tiers, statistics, monitor) and its own kinds; what a kind of another feature does is defined by that feature.
 
-Verified facts:
+Measured:
 
-- `machine/machine.go` is 1,972 lines. `machine.Kinds` has 36 kinds and `machine.Order` 36 (the audit's 38 and 37 predate phase 1). 16 belong elsewhere: storage 3 (drawer controller, trim, interface), tinker 1 (tinker table), dimension 2 (collector, relic table), farm 1 (harvester), netstore 9.
-- Other packages already fill hook fields of their kinds from their own `init` (9 assignments in 7 files of dimension, farm and netstore), but the definitions sit in one map literal and four places branch by kind: `Machine.Activate` (1557), `Machine.Tick` (1680), `runMachine` (1779) and `look.MachineLines`.
-- `Machine.ClientExtras` (1324) repeats the branching of `Properties` (1345) and `Permutations` (1304): three functions must agree by hand. One description of a kind's client shape should feed all three; `blocks.golden` proves the result.
-- `machine` imports `tinker` and `decor`; both edges turn around when the tinker table is registered by `tinker`. `TestFeatureSiblings` (T39) lists them and must shrink.
-- `machine.Order` orders the creative list, the codex and the statistics: it becomes an explicit sort value per kind.
+- `machine/machine.go` is 1,972 of the package's 6,427 non-test lines. `machine.Kinds` and `machine.Order` hold 36 kinds: 20 of `machine`, 3 of storage (drawer controller, trim, interface), 1 of tinker (tinker table), 2 of dimension (collector, relic table), 1 of farm (harvester), 9 of netstore. Sixteen belong elsewhere (the review plan and the audit say 17).
+- What the owners use of `machine` today: netstore 18 symbols in 178 places, storage 6 in 24, farm 5 in 22, dimension 6 in 11, fairy 2, conduit 2, copier 2. Above them `catalog` uses 40 symbols, `codex` 22, `screens` 11. The most used are `Machine` (133 places in all), `Item` (82), `Kinds` (68), `New` (45), `OutputCount` (42), `State` (34).
+- The definition already has hook fields other packages fill from their `init`: `Click`, `Run`, `Insert`, `Peek`, `Extract`, `Accepts`, and `Lines` after 3-3. Nineteen assignment statements in eleven files of storage, dimension, farm and netstore fill them. Six fields a foreign owner would need are unexported: `nameKey`, `helpKeys`, `fluidSource`, `fluidSink`, `fluidOnly`, `autoSieve`.
+- Kind knowledge that stays in `machine` beside the hooks: `Machine.Activate` (line 1557: sieve, drawer trim, tinker table, lab, crafter, tank, cell, net cable), `Machine.Tick` (1680: an early return for 12 ids), `runMachine` (1779: 16 clauses, hooks only in the default), `MachineLines` (10 clauses), and the kind sets `cubeMachines` (19 kinds), `frontMachines`, `AnimatedKinds`, the net-shape set, `TierLook`, `IsSieve`.
+- `States`, `Permutations`, `ClientExtras` and `Properties` (lines 1287 to 1360) each branch over the same sets by hand. One description of a kind's client shape should feed all four; `blocks.golden` proves the result.
+- `machine` imports `tinker` for one call (`tinker.ShowTable` in `Activate`) and `decor` for tool tips in three files; `decor` imports `tinker` for `RarityColour`. The first edge turns around when the tinker table's click is the tinker's; `RarityColour` then belongs in `common/slotdeco`. `TestFeatureSiblings` and `onlyImports` (the `decor` row) must shrink with it.
+- Saves name a kind by its string: the block and the item are `skygear:<kind>`, the state is read back with `New(m.Kind)`, statistics are keyed by item. None of this may change.
 
-Order: (1) `machine.Register(kind, Def)` with the fields a foreign owner needs exported, no kind moved yet; (2) one owner per task, smallest first (farm, tinker, dimension, storage, netstore last); (3) the kind branches in `Activate`, `Tick` and `runMachine` become definition fields as their last user leaves; (4) `ClientExtras`, `Properties` and `Permutations` from one description.
+The finding that shapes the part: item registration order is in the wire goldens. Moving one registration call (`hopper.Register()` from the root's `init` into the package's own) changed 698 entries of `items.golden`, 327 of `recipes.golden` and 243 of `creative.golden`. `machine` registers every kind in its own `init`, in `Order`, before its owners are initialised. A kind therefore cannot be registered by its owner's `init` without re-recording the client goldens, and those may not be re-recorded in this phase. Two ways out, the owner chooses:
 
-Risks: block registration order (kinds are registered in loops of `machine`'s `init`; a moved kind registers at another time; `blocks.golden` ignores entry order, but the creative order and the root tests' registry finalization do not); `netstore` uses 17 symbols of `machine` in 81 places (audit: re-measure); kind names and block names must not change (saves and statistics keys); the duplicate `conduit.RemoveVisual` on break and the cleanup that only runs on a player's break (audit D2) are behaviour questions for the owner, not part of the move.
+1. The identity of a kind (name, id, place in `Order`, block and item registration, client shape) stays declared in `machine`; only behaviour goes home (click, run, item I/O, lines, window, the `Tick` and `Activate` exceptions as definition fields). No golden changes. `machine` still names the 16 kinds, but as data.
+2. Kinds are registered by their owners, and the wire goldens are re-recorded once with a proof that only runtime ids moved (the dumps of both trees, entries compared by name). This is the liftable result; it needs the owner's word because it lifts the rule of this phase.
 
-Re-measure before planning: kinds and owners; every reader of `machine.Kinds` and `machine.Order`; unexported `Def` fields; external uses of `machine.State`.
+Order of work under way 1: (a) export the six fields and add the missing hooks (`Lines` with a state argument, a "no work" flag for the early return of `Tick`, a "no window" flag for `Activate`), no kind touched; (b) one owner per task, smallest first (farm, tinker, dimension, storage, netstore last), each task moving the kind's clauses out of `Activate`, `Tick`, `runMachine` and `MachineLines` into the owner's `init`; (c) the four client-shape functions from one description; (d) `RarityColour` down, the `tinker` and `decor` edges of `machine` removed. The look pin of 3-3 (`machine/<kind>` and `state/*` lines) holds the panel text through all of it; `machine_test.go`, `terminal_test.go`, `drawer_test.go`, `harvester_test.go` hold the behaviour.
+
+Not part of the move, questions for the owner: the duplicate `conduit.RemoveVisual` on break and the cleanup that runs only on a player's break (audit D2).
+
+Re-measure before planning: every reader of `Kinds[...]` by kind; which clauses of the four functions each foreign kind takes; the `Order` readers (the creative run, the codex, the statistics, `giveItems`).
 
 ## 3-5 Feature tests leave the root package
 
-Goal: a feature's tests live in its package and run without the root package, so the feature can be lifted out with its tests.
+Goal: a feature's tests live in its package and run without the root package.
 
-Verified facts:
+Measured:
 
-- The root package has 79 test files (14,749 lines); 16 sub-packages have 42. `helpers_test.go` (102 lines) builds the session (`testSession`, `loadAround`, `spawnPlayer`, `withPlayer`, `tick`); `machine_test.go` and `monitor_test.go` add helpers other files use (`placeTestMachine`, `machinePos`, `runSeconds`).
-- Nine root test files build the handler (12 call sites) and more call the session's tick methods; after 3-2 these go through hooks, so a moved test needs its feature installed.
-- `core.Install` runs once per process, and `helpers_test.go` finalizes the block registry in `init`.
+- The root has 88 test files with 17,613 lines at HEAD (the review plan says 81); 92 after 3-3. Sixteen sub-packages have 47.
+- The helpers: `testSession` is used by 65 files, `loadAround` 61, `spawnPlayer` 47, `withPlayer` 47, `tick` 31, `machinePos` 26, `placeTestMachine` 23; a dozen smaller ones (`chestWithBundle`, `plantAt`, `fillLab`, `runSeconds`, `hasLine`) are shared by two or three files each. `helpers_test.go` is 100 lines; `placeTestMachine` and `machinePos` are in `machine_test.go`.
+- 15 files drive the player handler and 17 call the session's lifecycle methods; those need their feature installed.
+- By the feature packages a file imports: 8 files import none, 16 one, 26 two, 18 three, 20 four or more. The files with one or two are the candidates; a file with four or more tests the composed game.
+- Stay in the root because they test the wiring: the eight `pin_*_test.go` and the goldens, `layers_test.go`, `helpers_test.go`, the benchmarks (`bench_test.go`, `pin_bench_test.go`, `netgraph_bench_test.go`, `rest_perf_test.go`), `handler_dispatch_test.go`, `bridge_effects_test.go`, `pack_test.go`, `persist_test.go`, `vanilla_persist_test.go`, `migrate_retired_test.go`, `energy_test.go`, `creative_test.go`, `commands_test.go`, `decor_test.go`, `names_test.go`, `admingive_test.go`, `blockcounts_test.go`, the two `debug_*_test.go`. About 28 files.
 
-Needs: `core/coretest` (a session over a synchronous world, a player, ticks, and installing a named set of features once per test binary). Tests that span features (energy, persistence, migration, the pack, the pins, `wire`) stay in the root package: they test the composed game.
+Needs: `core/coretest` with a session over a synchronous world (registered, so `core.At` finds it: the panel providers of 3-3 depend on that), a player, ticks, and installing a named set of features once per test binary. Three things are process-wide and never reset: `core.Install`, the adapter list of `common/waila`, the followers of `look`. A feature's test binary installs what it needs in one `TestMain`. The block registry is finalised in an `init` of the root's helpers; `coretest` must do the same.
 
-Order: after 3-3 and 3-4 (the code's final homes), `coretest` first, then one feature per task, leaf features first. Mechanical work; a task moves files and changes call sites, never an assertion.
+Order: after 3-4 (the code's final homes), `coretest` first, then one feature per task, leaf features first (elevator, handwork, copier, wand, fairy), `machine` and `netstore` last. A task moves files and changes call sites, never an assertion.
 
-Risks: a test that reaches an unexported root identifier; tests that pass only because every feature is installed; one server join per process (`wire` stays alone).
+Risks: a test that reaches an unexported root identifier; a test that passes only because every feature is installed (found by running the moved package alone); one server join per process (`wire` stays alone); `TestPinLook` and its helpers stay in the root while single-feature panel tests may move.
 
-Re-measure before planning: per root test file, the feature packages it imports and the root identifiers it uses; which files can move unchanged.
+Re-measure before planning: per root test file, the feature packages it imports and the root identifiers it uses, after 3-4.
 
 ## Left out unless the owner asks
 
-Moving `hopper.Register()` out of the root's `init` (it draws block hashes in call order; the audit expects no effect, the wire goldens and the persistence tests would have to show it), the duplicate session map (`Game.sessions` beside `core`'s registry), `core/arena.go` and `core/refill.go` moving to their features, thinning `sgitem`, locales per feature, an `admin` package for the operator tools, a per-connection state helper in `sghook`, and lifting `core` to `platform/`. None is needed for the review plan's success checks.
+The duplicate session map (`Game.sessions` beside `core`'s registry), `core/arena.go` moving to `dimension`, thinning `sgitem` (its feature-owned item types, with their creative runs in `catalog`, going to their features), locales per feature, an `admin` package for the operator tools, deriving `giveItems`, a per-connection state helper in `sghook`, lifting `core` to `platform/`. Moving `hopper.Register()` is not on this list any more: it cannot be done without re-recording the client goldens.
 
-## Audit claims that no longer hold
+## Claims that do not hold at HEAD
 
-- Kind counts (38, 37, 17) are 36, 36, 16; root tests are 79 files, not 81; the root's non-test code is 2,763 lines in 18 files, not 3,610.
-- `Emit(e *E)` with the event "on the stack": a pointer passed to a function value escapes to the heap. Events are passed by value.
-- Subscribing in each feature's `init` and emitting at the end of the legacy method cannot place a step in the middle of a chain and makes order depend on imports. The plan subscribes through `core.Install` with numbered priorities and bridges whole methods.
-- A static `Order()` test cannot record today's order, because today's code has no hooks: the pins use marks in the legacy code.
-- The five priority bands do not fit today's order.
-- A derived creative list was said to change the order, to be checked by eye: the order is pinned by a golden now and may not change.
-- One `Start` hook inside the transaction: the crops load before the transaction is queued, so there are two hooks, `Load` and `Start`.
+- Audit, step 2: moving `hopper.Register()` "should have no effect". It changes the client goldens (item ids follow registration order).
+- Audit D10 and 4.2: the creative list can be derived from `Category()`. 45 of 243 entries are in another tab than their category, 106 of 349 custom items are not listed, and the order interleaves owners.
+- Audit 4.2: the panel interface defined by `look` with a context pointer. `hopper` cannot import `look`, and a pointer through an interface allocates; the interface is in `common/waila` and passes the panel by value.
+- The earlier outline: machine lines move "together with 3-4's kind definition" (they move whole in 3-3); look providers as a descriptor field (they are methods and adapters); `decor` would pull `tinker` down (it does not: the interface is in `common/slotdeco`).
+- Counts: 16 foreign kinds, not 17; 88 root test files, not 79 or 81; `look` imports 14 game packages, of which 10 are features or `hopper`.
+- `content/skygear/README.md` and `docs/tech/extension.md` still list the creative list, the look lines and the commands as central lists; T74 corrects them.
