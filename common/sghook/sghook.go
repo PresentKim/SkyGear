@@ -264,9 +264,9 @@ var blockEdits struct {
 // (nil, nil) removes it.
 //
 // The client derives the block runtime ids from the order of the entries and
-// from each entry's name and block_id, so the entries cannot be reordered,
+// from each entry's name and vanilla_block_data.block_id, so the entries cannot be reordered,
 // added or removed: edit gets and returns one entry, and the edit panics if
-// the returned Name or Properties["block_id"] differ from the original.
+// the returned Name or vanilla_block_data.block_id differ from the original.
 // Everything else in Properties may change. edit gets a deep copy of the
 // Properties (Dragonfly's own data is shared by every server of the process);
 // it must return a new value for what it changes, not keep the entry.
@@ -316,12 +316,20 @@ func applyBlockEdits() {
 		if out.Name != e.Name {
 			panic("sghook: EditCustomBlocks changed the name " + e.Name + " to " + out.Name + ": the client's block runtime ids depend on it")
 		}
-		if !reflect.DeepEqual(out.Properties["block_id"], e.Properties["block_id"]) {
+		if !reflect.DeepEqual(vanillaBlockID(out.Properties), vanillaBlockID(e.Properties)) {
 			panic("sghook: EditCustomBlocks changed block_id of " + e.Name)
 		}
 		edited[i] = out
 	}
 	*blocks = edited // all or nothing: a panic above leaves the entries as built
+}
+
+// vanillaBlockID returns the block_id of the vanilla_block_data compound of an
+// entry's properties, the id the client numbers the block's states from (nil
+// if there is none).
+func vanillaBlockID(props map[string]any) any {
+	vbd, _ := props["vanilla_block_data"].(map[string]any)
+	return vbd["block_id"]
 }
 
 // copyValue deep-copies the maps and slices of NBT-like data.

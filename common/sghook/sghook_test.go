@@ -217,13 +217,17 @@ func TestEditCustomBlocks(t *testing.T) {
 func TestEditCustomBlocksGuards(t *testing.T) {
 	t.Cleanup(func() { EditCustomBlocks(nil, nil) })
 	for name, edit := range map[string]func(protocol.BlockEntry) protocol.BlockEntry{
-		"name":     func(e protocol.BlockEntry) protocol.BlockEntry { e.Name += "!"; return e },
-		"block_id": func(e protocol.BlockEntry) protocol.BlockEntry { e.Properties["block_id"] = int32(2); return e },
+		"name": func(e protocol.BlockEntry) protocol.BlockEntry { e.Name += "!"; return e },
+		"block_id": func(e protocol.BlockEntry) protocol.BlockEntry {
+			e.Properties["vanilla_block_data"].(map[string]any)["block_id"] = int32(2)
+			return e
+		},
+		"vanilla_block_data": func(e protocol.BlockEntry) protocol.BlockEntry { delete(e.Properties, "vanilla_block_data"); return e },
 	} {
 		srv := &server.Server{}
 		EditCustomBlocks(srv, edit)
 		blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
-		*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{"block_id": int32(1)}}}
+		*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{"vanilla_block_data": map[string]any{"block_id": int32(1)}}}}
 		func() {
 			defer func() {
 				if recover() == nil {
@@ -232,8 +236,42 @@ func TestEditCustomBlocksGuards(t *testing.T) {
 			}()
 			applyEntryEdits()
 		}()
-		if (*blocks)[0].Name != "a" || (*blocks)[0].Properties["block_id"] != int32(1) {
+		if (*blocks)[0].Name != "a" || vanillaBlockID((*blocks)[0].Properties) != int32(1) {
 			t.Errorf("%s: entries changed despite the panic", name)
 		}
+	}
+}
+
+// TestEditEntriesConcurrentAccept: two listeners accepting at once make each
+// edit once, and the loser of the race returns only after the winner is done
+// (the server reads the entries right after Accept returns).
+func TestEditEntriesConcurrentAccept(t *testing.T) {
+	srv := &server.Server{}
+	var itemEdits, blockEdits atomic.Int32
+	EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry { itemEdits.Add(1); e.Name += "!"; return e })
+	EditCustomBlocks(srv, func(e protocol.BlockEntry) protocol.BlockEntry {
+		blockEdits.Add(1)
+		e.Properties["x"] = int32(1)
+		return e
+	})
+	t.Cleanup(func() { EditCustomItems(nil, nil); EditCustomBlocks(nil, nil) })
+	items := field[[]protocol.ItemEntry](srv, "customItems")
+	blocks := field[[]protocol.BlockEntry](srv, "customBlocks")
+	*items = []protocol.ItemEntry{{Name: "a"}, {Name: "b"}}
+	*blocks = []protocol.BlockEntry{{Name: "a", Properties: map[string]any{}}, {Name: "b", Properties: map[string]any{}}}
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			applyEntryEdits()
+			if (*items)[1].Name != "b!" || (*blocks)[1].Properties["x"] != int32(1) {
+				t.Error("returned before the entries were edited")
+			}
+		}()
+	}
+	wg.Wait()
+	if itemEdits.Load() != 2 || blockEdits.Load() != 2 {
+		t.Fatalf("%d item and %d block edits, want 2 each", itemEdits.Load(), blockEdits.Load())
 	}
 }
