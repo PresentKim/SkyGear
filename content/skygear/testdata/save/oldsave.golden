@@ -1,0 +1,2822 @@
+block/0,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/0,100,1: skygear:auto_miner{skygear:tier="0"}
+block/0,100,10: skygear:auto_sieve{skygear:look="000"}
+block/0,100,11: skygear:auto_sieve{skygear:look="000"}
+block/0,100,12: skygear:auto_sieve{skygear:look="000"}
+block/0,100,13: skygear:auto_sieve{skygear:look="000"}
+block/0,100,14: skygear:auto_sieve{skygear:look="000"}
+block/0,100,15: skygear:auto_sieve{skygear:look="000"}
+block/0,100,2: skygear:auto_sieve{skygear:look="000"}
+block/0,100,3: skygear:auto_sieve{skygear:look="000"}
+block/0,100,4: skygear:auto_sieve{skygear:look="000"}
+block/0,100,5: skygear:auto_sieve{skygear:look="000"}
+block/0,100,6: skygear:auto_sieve{skygear:look="000"}
+block/0,100,7: skygear:auto_sieve{skygear:look="000"}
+block/0,100,8: skygear:auto_sieve{skygear:look="000"}
+block/0,100,9: skygear:auto_sieve{skygear:look="000"}
+block/0,101,0: skygear:auto_sieve{skygear:look="000"}
+block/0,101,1: skygear:auto_sieve{skygear:look="000"}
+block/0,101,10: skygear:auto_sieve{skygear:look="000"}
+block/0,101,11: skygear:auto_sieve{skygear:look="000"}
+block/0,101,12: skygear:auto_sieve{skygear:look="000"}
+block/0,101,13: skygear:auto_sieve{skygear:look="000"}
+block/0,101,14: skygear:auto_sieve{skygear:look="000"}
+block/0,101,15: skygear:auto_sieve{skygear:look="000"}
+block/0,101,2: skygear:auto_sieve{skygear:look="000"}
+block/0,101,3: skygear:auto_sieve{skygear:look="000"}
+block/0,101,4: skygear:auto_sieve{skygear:look="000"}
+block/0,101,5: skygear:auto_sieve{skygear:look="000"}
+block/0,101,6: skygear:auto_sieve{skygear:look="000"}
+block/0,101,7: skygear:auto_sieve{skygear:look="000"}
+block/0,101,8: skygear:auto_sieve{skygear:look="000"}
+block/0,101,9: skygear:auto_sieve{skygear:look="000"}
+block/0,102,0: skygear:barrel_oak{skygear:barrel_stage="1"}
+block/0,102,1: skygear:barrel_stone{skygear:barrel_stage="8"}
+block/0,102,10: skygear:lava_generator{skygear:tier="0"}
+block/0,102,11: skygear:magic_plant{skygear:plant="flower_cyan_1"}
+block/0,102,12: skygear:magic_plant{skygear:plant="flower_pink_1"}
+block/0,102,13: skygear:magic_plant{skygear:plant="gem_lapis_1"}
+block/0,102,14: skygear:magic_plant{skygear:plant="ore_silver_1"}
+block/0,102,15: skygear:magic_sieve{skygear:look="000"}
+block/0,102,2: skygear:conduit_fluid_3{}
+block/0,102,3: skygear:crushed_end_stone{}
+block/0,102,4: skygear:drawer{skygear:facing="south"}
+block/0,102,5: skygear:elevator_green{}
+block/0,102,6: skygear:fluid_tank{}
+block/0,102,7: skygear:harvester{skygear:tier="0"}
+block/0,102,8: skygear:infesting_leaves{skygear:infest_stage="6"}
+block/0,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/0,103,0: skygear:magic_sieve{skygear:look="000"}
+block/0,103,1: skygear:magic_sieve{skygear:look="000"}
+block/0,103,10: skygear:magic_sieve{skygear:look="000"}
+block/0,103,11: skygear:magic_sieve{skygear:look="000"}
+block/0,103,12: skygear:magic_sieve{skygear:look="000"}
+block/0,103,13: skygear:magic_sieve{skygear:look="000"}
+block/0,103,14: skygear:magic_sieve{skygear:look="000"}
+block/0,103,15: skygear:magic_sieve{skygear:look="000"}
+block/0,103,2: skygear:magic_sieve{skygear:look="000"}
+block/0,103,3: skygear:magic_sieve{skygear:look="000"}
+block/0,103,4: skygear:magic_sieve{skygear:look="000"}
+block/0,103,5: skygear:magic_sieve{skygear:look="000"}
+block/0,103,6: skygear:magic_sieve{skygear:look="000"}
+block/0,103,7: skygear:magic_sieve{skygear:look="000"}
+block/0,103,8: skygear:magic_sieve{skygear:look="000"}
+block/0,103,9: skygear:magic_sieve{skygear:look="000"}
+block/0,104,0: skygear:magic_sieve{skygear:look="000"}
+block/0,104,1: skygear:magic_sieve{skygear:look="000"}
+block/0,104,10: skygear:magic_sieve{skygear:look="000"}
+block/0,104,11: skygear:magic_sieve{skygear:look="000"}
+block/0,104,12: skygear:magic_sieve{skygear:look="000"}
+block/0,104,13: skygear:mob_simulator{skygear:tier="0"}
+block/0,104,14: skygear:net_cable{skygear:net_shape="013"}
+block/0,104,15: skygear:net_cable{skygear:net_shape="029"}
+block/0,104,2: skygear:magic_sieve{skygear:look="000"}
+block/0,104,3: skygear:magic_sieve{skygear:look="000"}
+block/0,104,4: skygear:magic_sieve{skygear:look="000"}
+block/0,104,5: skygear:magic_sieve{skygear:look="000"}
+block/0,104,6: skygear:magic_sieve{skygear:look="000"}
+block/0,104,7: skygear:magic_sieve{skygear:look="000"}
+block/0,104,8: skygear:magic_sieve{skygear:look="000"}
+block/0,104,9: skygear:magic_sieve{skygear:look="000"}
+block/0,105,0: skygear:net_cable{skygear:net_shape="045"}
+block/0,105,1: skygear:net_cable{skygear:net_shape="061"}
+block/0,105,10: skygear:net_exporter{skygear:net_shape="396"}
+block/0,105,11: skygear:net_exporter{skygear:net_shape="412"}
+block/0,105,12: skygear:net_exporter{skygear:net_shape="460"}
+block/0,105,13: skygear:net_exporter{skygear:net_shape="492"}
+block/0,105,14: skygear:net_external{skygear:net_shape="020"}
+block/0,105,15: skygear:net_external{skygear:net_shape="052"}
+block/0,105,2: skygear:net_exporter{skygear:net_shape="020"}
+block/0,105,3: skygear:net_exporter{skygear:net_shape="052"}
+block/0,105,4: skygear:net_exporter{skygear:net_shape="088"}
+block/0,105,5: skygear:net_exporter{skygear:net_shape="120"}
+block/0,105,6: skygear:net_exporter{skygear:net_shape="152"}
+block/0,105,7: skygear:net_exporter{skygear:net_shape="184"}
+block/0,105,8: skygear:net_exporter{skygear:net_shape="216"}
+block/0,105,9: skygear:net_exporter{skygear:net_shape="248"}
+block/0,106,0: skygear:net_external{skygear:net_shape="088"}
+block/0,106,1: skygear:net_external{skygear:net_shape="120"}
+block/0,106,10: skygear:net_importer{skygear:net_shape="020"}
+block/0,106,11: skygear:net_importer{skygear:net_shape="052"}
+block/0,106,12: skygear:net_importer{skygear:net_shape="088"}
+block/0,106,13: skygear:net_importer{skygear:net_shape="120"}
+block/0,106,14: skygear:net_importer{skygear:net_shape="152"}
+block/0,106,15: skygear:net_importer{skygear:net_shape="184"}
+block/0,106,2: skygear:net_external{skygear:net_shape="152"}
+block/0,106,3: skygear:net_external{skygear:net_shape="184"}
+block/0,106,4: skygear:net_external{skygear:net_shape="216"}
+block/0,106,5: skygear:net_external{skygear:net_shape="248"}
+block/0,106,6: skygear:net_external{skygear:net_shape="396"}
+block/0,106,7: skygear:net_external{skygear:net_shape="412"}
+block/0,106,8: skygear:net_external{skygear:net_shape="460"}
+block/0,106,9: skygear:net_external{skygear:net_shape="492"}
+block/0,107,0: skygear:net_importer{skygear:net_shape="216"}
+block/0,107,1: skygear:net_importer{skygear:net_shape="248"}
+block/0,107,10: skygear:sieve{skygear:look="000"}
+block/0,107,11: skygear:sieve{skygear:look="000"}
+block/0,107,12: skygear:sieve{skygear:look="000"}
+block/0,107,13: skygear:sieve{skygear:look="000"}
+block/0,107,14: skygear:sieve{skygear:look="000"}
+block/0,107,15: skygear:sieve{skygear:look="000"}
+block/0,107,2: skygear:net_importer{skygear:net_shape="396"}
+block/0,107,3: skygear:net_importer{skygear:net_shape="412"}
+block/0,107,4: skygear:net_importer{skygear:net_shape="460"}
+block/0,107,5: skygear:net_importer{skygear:net_shape="492"}
+block/0,107,6: skygear:preview_glass_blue{}
+block/0,107,7: skygear:research_table{}
+block/0,107,8: skygear:sieve{skygear:look="000"}
+block/0,107,9: skygear:sieve{skygear:look="000"}
+block/0,108,0: skygear:sieve{skygear:look="000"}
+block/0,108,1: skygear:sieve{skygear:look="000"}
+block/0,108,10: skygear:sieve{skygear:look="000"}
+block/0,108,11: skygear:sieve{skygear:look="000"}
+block/0,108,12: skygear:sieve{skygear:look="000"}
+block/0,108,13: skygear:sieve{skygear:look="000"}
+block/0,108,14: skygear:sieve{skygear:look="000"}
+block/0,108,15: skygear:sieve{skygear:look="000"}
+block/0,108,2: skygear:sieve{skygear:look="000"}
+block/0,108,3: skygear:sieve{skygear:look="000"}
+block/0,108,4: skygear:sieve{skygear:look="000"}
+block/0,108,5: skygear:sieve{skygear:look="000"}
+block/0,108,6: skygear:sieve{skygear:look="000"}
+block/0,108,7: skygear:sieve{skygear:look="000"}
+block/0,108,8: skygear:sieve{skygear:look="000"}
+block/0,108,9: skygear:sieve{skygear:look="000"}
+block/0,109,0: skygear:sieve{skygear:look="000"}
+block/0,109,1: skygear:sieve{skygear:look="000"}
+block/0,109,2: skygear:sieve{skygear:look="000"}
+block/0,109,3: skygear:sieve{skygear:look="000"}
+block/0,109,4: skygear:sieve{skygear:look="000"}
+block/0,109,5: skygear:sieve{skygear:look="000"}
+block/0,109,6: skygear:solar_generator{skygear:tier="0"}
+block/0,109,7: skygear:wood_hopper{skygear:hopper_facing="west"}
+block/0,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/0,122,0: skygear:crusher{skygear:tier="0"}
+block/1,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/1,100,1: skygear:auto_miner{skygear:tier="0"}
+block/1,100,10: skygear:auto_sieve{skygear:look="000"}
+block/1,100,11: skygear:auto_sieve{skygear:look="000"}
+block/1,100,12: skygear:auto_sieve{skygear:look="000"}
+block/1,100,13: skygear:auto_sieve{skygear:look="000"}
+block/1,100,14: skygear:auto_sieve{skygear:look="000"}
+block/1,100,15: skygear:auto_sieve{skygear:look="000"}
+block/1,100,2: skygear:auto_sieve{skygear:look="000"}
+block/1,100,3: skygear:auto_sieve{skygear:look="000"}
+block/1,100,4: skygear:auto_sieve{skygear:look="000"}
+block/1,100,5: skygear:auto_sieve{skygear:look="000"}
+block/1,100,6: skygear:auto_sieve{skygear:look="000"}
+block/1,100,7: skygear:auto_sieve{skygear:look="000"}
+block/1,100,8: skygear:auto_sieve{skygear:look="000"}
+block/1,100,9: skygear:auto_sieve{skygear:look="000"}
+block/1,101,0: skygear:auto_sieve{skygear:look="000"}
+block/1,101,1: skygear:auto_sieve{skygear:look="000"}
+block/1,101,10: skygear:auto_sieve{skygear:look="000"}
+block/1,101,11: skygear:auto_sieve{skygear:look="000"}
+block/1,101,12: skygear:auto_sieve{skygear:look="000"}
+block/1,101,13: skygear:auto_sieve{skygear:look="000"}
+block/1,101,14: skygear:auto_sieve{skygear:look="000"}
+block/1,101,15: skygear:auto_sieve{skygear:look="000"}
+block/1,101,2: skygear:auto_sieve{skygear:look="000"}
+block/1,101,3: skygear:auto_sieve{skygear:look="000"}
+block/1,101,4: skygear:auto_sieve{skygear:look="000"}
+block/1,101,5: skygear:auto_sieve{skygear:look="000"}
+block/1,101,6: skygear:auto_sieve{skygear:look="000"}
+block/1,101,7: skygear:auto_sieve{skygear:look="000"}
+block/1,101,8: skygear:auto_sieve{skygear:look="000"}
+block/1,101,9: skygear:auto_sieve{skygear:look="000"}
+block/1,102,0: skygear:barrel_oak{skygear:barrel_stage="2"}
+block/1,102,1: skygear:compressed_cobblestone_1{}
+block/1,102,10: skygear:lava_generator{skygear:tier="0"}
+block/1,102,11: skygear:magic_plant{skygear:plant="flower_gray_0"}
+block/1,102,12: skygear:magic_plant{skygear:plant="flower_purple_0"}
+block/1,102,13: skygear:magic_plant{skygear:plant="gem_quartz_0"}
+block/1,102,14: skygear:magic_plant{skygear:plant="ore_tin_0"}
+block/1,102,15: skygear:magic_sieve{skygear:look="000"}
+block/1,102,2: skygear:conduit_item_1{}
+block/1,102,3: skygear:crushed_netherrack{}
+block/1,102,4: skygear:drawer{skygear:facing="west"}
+block/1,102,5: skygear:elevator_light_blue{}
+block/1,102,6: skygear:generator{skygear:tier="0"}
+block/1,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/1,102,8: skygear:infesting_leaves{skygear:infest_stage="7"}
+block/1,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/1,103,0: skygear:magic_sieve{skygear:look="000"}
+block/1,103,1: skygear:magic_sieve{skygear:look="000"}
+block/1,103,10: skygear:magic_sieve{skygear:look="000"}
+block/1,103,11: skygear:magic_sieve{skygear:look="000"}
+block/1,103,12: skygear:magic_sieve{skygear:look="000"}
+block/1,103,13: skygear:magic_sieve{skygear:look="000"}
+block/1,103,14: skygear:magic_sieve{skygear:look="000"}
+block/1,103,15: skygear:magic_sieve{skygear:look="000"}
+block/1,103,2: skygear:magic_sieve{skygear:look="000"}
+block/1,103,3: skygear:magic_sieve{skygear:look="000"}
+block/1,103,4: skygear:magic_sieve{skygear:look="000"}
+block/1,103,5: skygear:magic_sieve{skygear:look="000"}
+block/1,103,6: skygear:magic_sieve{skygear:look="000"}
+block/1,103,7: skygear:magic_sieve{skygear:look="000"}
+block/1,103,8: skygear:magic_sieve{skygear:look="000"}
+block/1,103,9: skygear:magic_sieve{skygear:look="000"}
+block/1,104,0: skygear:magic_sieve{skygear:look="000"}
+block/1,104,1: skygear:magic_sieve{skygear:look="000"}
+block/1,104,10: skygear:magic_sieve{skygear:look="000"}
+block/1,104,11: skygear:magic_sieve{skygear:look="000"}
+block/1,104,12: skygear:magic_sieve{skygear:look="000"}
+block/1,104,13: skygear:mob_simulator{skygear:tier="0"}
+block/1,104,14: skygear:net_cable{skygear:net_shape="014"}
+block/1,104,15: skygear:net_cable{skygear:net_shape="030"}
+block/1,104,2: skygear:magic_sieve{skygear:look="000"}
+block/1,104,3: skygear:magic_sieve{skygear:look="000"}
+block/1,104,4: skygear:magic_sieve{skygear:look="000"}
+block/1,104,5: skygear:magic_sieve{skygear:look="000"}
+block/1,104,6: skygear:magic_sieve{skygear:look="000"}
+block/1,104,7: skygear:magic_sieve{skygear:look="000"}
+block/1,104,8: skygear:magic_sieve{skygear:look="000"}
+block/1,104,9: skygear:magic_sieve{skygear:look="000"}
+block/1,105,0: skygear:net_cable{skygear:net_shape="046"}
+block/1,105,1: skygear:net_cable{skygear:net_shape="062"}
+block/1,105,10: skygear:net_exporter{skygear:net_shape="397"}
+block/1,105,11: skygear:net_exporter{skygear:net_shape="413"}
+block/1,105,12: skygear:net_exporter{skygear:net_shape="461"}
+block/1,105,13: skygear:net_exporter{skygear:net_shape="493"}
+block/1,105,14: skygear:net_external{skygear:net_shape="021"}
+block/1,105,15: skygear:net_external{skygear:net_shape="053"}
+block/1,105,2: skygear:net_exporter{skygear:net_shape="021"}
+block/1,105,3: skygear:net_exporter{skygear:net_shape="053"}
+block/1,105,4: skygear:net_exporter{skygear:net_shape="089"}
+block/1,105,5: skygear:net_exporter{skygear:net_shape="121"}
+block/1,105,6: skygear:net_exporter{skygear:net_shape="153"}
+block/1,105,7: skygear:net_exporter{skygear:net_shape="185"}
+block/1,105,8: skygear:net_exporter{skygear:net_shape="218"}
+block/1,105,9: skygear:net_exporter{skygear:net_shape="250"}
+block/1,106,0: skygear:net_external{skygear:net_shape="089"}
+block/1,106,1: skygear:net_external{skygear:net_shape="121"}
+block/1,106,10: skygear:net_importer{skygear:net_shape="021"}
+block/1,106,11: skygear:net_importer{skygear:net_shape="053"}
+block/1,106,12: skygear:net_importer{skygear:net_shape="089"}
+block/1,106,13: skygear:net_importer{skygear:net_shape="121"}
+block/1,106,14: skygear:net_importer{skygear:net_shape="153"}
+block/1,106,15: skygear:net_importer{skygear:net_shape="185"}
+block/1,106,2: skygear:net_external{skygear:net_shape="153"}
+block/1,106,3: skygear:net_external{skygear:net_shape="185"}
+block/1,106,4: skygear:net_external{skygear:net_shape="218"}
+block/1,106,5: skygear:net_external{skygear:net_shape="250"}
+block/1,106,6: skygear:net_external{skygear:net_shape="397"}
+block/1,106,7: skygear:net_external{skygear:net_shape="413"}
+block/1,106,8: skygear:net_external{skygear:net_shape="461"}
+block/1,106,9: skygear:net_external{skygear:net_shape="493"}
+block/1,107,0: skygear:net_importer{skygear:net_shape="218"}
+block/1,107,1: skygear:net_importer{skygear:net_shape="250"}
+block/1,107,10: skygear:sieve{skygear:look="000"}
+block/1,107,11: skygear:sieve{skygear:look="000"}
+block/1,107,12: skygear:sieve{skygear:look="000"}
+block/1,107,13: skygear:sieve{skygear:look="000"}
+block/1,107,14: skygear:sieve{skygear:look="000"}
+block/1,107,15: skygear:sieve{skygear:look="000"}
+block/1,107,2: skygear:net_importer{skygear:net_shape="397"}
+block/1,107,3: skygear:net_importer{skygear:net_shape="413"}
+block/1,107,4: skygear:net_importer{skygear:net_shape="461"}
+block/1,107,5: skygear:net_importer{skygear:net_shape="493"}
+block/1,107,6: skygear:preview_glass_brown{}
+block/1,107,7: skygear:sieve{skygear:look="000"}
+block/1,107,8: skygear:sieve{skygear:look="000"}
+block/1,107,9: skygear:sieve{skygear:look="000"}
+block/1,108,0: skygear:sieve{skygear:look="000"}
+block/1,108,1: skygear:sieve{skygear:look="000"}
+block/1,108,10: skygear:sieve{skygear:look="000"}
+block/1,108,11: skygear:sieve{skygear:look="000"}
+block/1,108,12: skygear:sieve{skygear:look="000"}
+block/1,108,13: skygear:sieve{skygear:look="000"}
+block/1,108,14: skygear:sieve{skygear:look="000"}
+block/1,108,15: skygear:sieve{skygear:look="000"}
+block/1,108,2: skygear:sieve{skygear:look="000"}
+block/1,108,3: skygear:sieve{skygear:look="000"}
+block/1,108,4: skygear:sieve{skygear:look="000"}
+block/1,108,5: skygear:sieve{skygear:look="000"}
+block/1,108,6: skygear:sieve{skygear:look="000"}
+block/1,108,7: skygear:sieve{skygear:look="000"}
+block/1,108,8: skygear:sieve{skygear:look="000"}
+block/1,108,9: skygear:sieve{skygear:look="000"}
+block/1,109,0: skygear:sieve{skygear:look="000"}
+block/1,109,1: skygear:sieve{skygear:look="000"}
+block/1,109,2: skygear:sieve{skygear:look="000"}
+block/1,109,3: skygear:sieve{skygear:look="000"}
+block/1,109,4: skygear:sieve{skygear:look="000"}
+block/1,109,5: skygear:sieve{skygear:look="000"}
+block/1,109,6: skygear:tin_ore{}
+block/1,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/10,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/10,100,1: skygear:auto_sieve{skygear:look="000"}
+block/10,100,10: skygear:auto_sieve{skygear:look="000"}
+block/10,100,11: skygear:auto_sieve{skygear:look="000"}
+block/10,100,12: skygear:auto_sieve{skygear:look="000"}
+block/10,100,13: skygear:auto_sieve{skygear:look="000"}
+block/10,100,14: skygear:auto_sieve{skygear:look="000"}
+block/10,100,15: skygear:auto_sieve{skygear:look="000"}
+block/10,100,2: skygear:auto_sieve{skygear:look="000"}
+block/10,100,3: skygear:auto_sieve{skygear:look="000"}
+block/10,100,4: skygear:auto_sieve{skygear:look="000"}
+block/10,100,5: skygear:auto_sieve{skygear:look="000"}
+block/10,100,6: skygear:auto_sieve{skygear:look="000"}
+block/10,100,7: skygear:auto_sieve{skygear:look="000"}
+block/10,100,8: skygear:auto_sieve{skygear:look="000"}
+block/10,100,9: skygear:auto_sieve{skygear:look="000"}
+block/10,101,0: skygear:auto_sieve{skygear:look="000"}
+block/10,101,1: skygear:auto_sieve{skygear:look="000"}
+block/10,101,10: skygear:auto_sieve{skygear:look="000"}
+block/10,101,11: skygear:auto_sieve{skygear:look="000"}
+block/10,101,12: skygear:auto_sieve{skygear:look="000"}
+block/10,101,13: skygear:auto_sieve{skygear:look="000"}
+block/10,101,14: skygear:auto_sieve{skygear:look="000"}
+block/10,101,15: skygear:auto_sieve{skygear:look="000"}
+block/10,101,2: skygear:auto_sieve{skygear:look="000"}
+block/10,101,3: skygear:auto_sieve{skygear:look="000"}
+block/10,101,4: skygear:auto_sieve{skygear:look="000"}
+block/10,101,5: skygear:auto_sieve{skygear:look="000"}
+block/10,101,6: skygear:auto_sieve{skygear:look="000"}
+block/10,101,7: skygear:auto_sieve{skygear:look="000"}
+block/10,101,8: skygear:auto_sieve{skygear:look="000"}
+block/10,101,9: skygear:auto_sieve{skygear:look="000"}
+block/10,102,0: skygear:barrel_stone{skygear:barrel_stage="2"}
+block/10,102,1: skygear:compressed_sand_2{}
+block/10,102,10: skygear:magic_plant{skygear:plant="flower_black_1"}
+block/10,102,11: skygear:magic_plant{skygear:plant="flower_lime_1"}
+block/10,102,12: skygear:magic_plant{skygear:plant="gem_coal_1"}
+block/10,102,13: skygear:magic_plant{skygear:plant="ore_iron_1"}
+block/10,102,14: skygear:magic_sieve{skygear:look="000"}
+block/10,102,15: skygear:magic_sieve{skygear:look="000"}
+block/10,102,2: skygear:crucible{skygear:tier="0"}
+block/10,102,3: skygear:disk_drive{}
+block/10,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/10,102,5: skygear:elevator_yellow{}
+block/10,102,6: skygear:harvester{skygear:tier="0"}
+block/10,102,7: skygear:infesting_leaves{skygear:infest_stage="1"}
+block/10,102,8: skygear:infesting_leaves{skygear:infest_stage="p5"}
+block/10,102,9: skygear:laboratory{skygear:tier="0"}
+block/10,103,0: skygear:magic_sieve{skygear:look="000"}
+block/10,103,1: skygear:magic_sieve{skygear:look="000"}
+block/10,103,10: skygear:magic_sieve{skygear:look="000"}
+block/10,103,11: skygear:magic_sieve{skygear:look="000"}
+block/10,103,12: skygear:magic_sieve{skygear:look="000"}
+block/10,103,13: skygear:magic_sieve{skygear:look="000"}
+block/10,103,14: skygear:magic_sieve{skygear:look="000"}
+block/10,103,15: skygear:magic_sieve{skygear:look="000"}
+block/10,103,2: skygear:magic_sieve{skygear:look="000"}
+block/10,103,3: skygear:magic_sieve{skygear:look="000"}
+block/10,103,4: skygear:magic_sieve{skygear:look="000"}
+block/10,103,5: skygear:magic_sieve{skygear:look="000"}
+block/10,103,6: skygear:magic_sieve{skygear:look="000"}
+block/10,103,7: skygear:magic_sieve{skygear:look="000"}
+block/10,103,8: skygear:magic_sieve{skygear:look="000"}
+block/10,103,9: skygear:magic_sieve{skygear:look="000"}
+block/10,104,0: skygear:magic_sieve{skygear:look="000"}
+block/10,104,1: skygear:magic_sieve{skygear:look="000"}
+block/10,104,10: skygear:magic_sieve{skygear:look="000"}
+block/10,104,11: skygear:magic_sieve{skygear:look="000"}
+block/10,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/10,104,13: skygear:net_cable{skygear:net_shape="007"}
+block/10,104,14: skygear:net_cable{skygear:net_shape="023"}
+block/10,104,15: skygear:net_cable{skygear:net_shape="039"}
+block/10,104,2: skygear:magic_sieve{skygear:look="000"}
+block/10,104,3: skygear:magic_sieve{skygear:look="000"}
+block/10,104,4: skygear:magic_sieve{skygear:look="000"}
+block/10,104,5: skygear:magic_sieve{skygear:look="000"}
+block/10,104,6: skygear:magic_sieve{skygear:look="000"}
+block/10,104,7: skygear:magic_sieve{skygear:look="000"}
+block/10,104,8: skygear:magic_sieve{skygear:look="000"}
+block/10,104,9: skygear:magic_sieve{skygear:look="000"}
+block/10,105,0: skygear:net_cable{skygear:net_shape="055"}
+block/10,105,1: skygear:net_exporter{skygear:net_shape="006"}
+block/10,105,10: skygear:net_exporter{skygear:net_shape="406"}
+block/10,105,11: skygear:net_exporter{skygear:net_shape="454"}
+block/10,105,12: skygear:net_exporter{skygear:net_shape="486"}
+block/10,105,13: skygear:net_external{skygear:net_shape="006"}
+block/10,105,14: skygear:net_external{skygear:net_shape="038"}
+block/10,105,15: skygear:net_external{skygear:net_shape="074"}
+block/10,105,2: skygear:net_exporter{skygear:net_shape="038"}
+block/10,105,3: skygear:net_exporter{skygear:net_shape="074"}
+block/10,105,4: skygear:net_exporter{skygear:net_shape="106"}
+block/10,105,5: skygear:net_exporter{skygear:net_shape="140"}
+block/10,105,6: skygear:net_exporter{skygear:net_shape="172"}
+block/10,105,7: skygear:net_exporter{skygear:net_shape="204"}
+block/10,105,8: skygear:net_exporter{skygear:net_shape="236"}
+block/10,105,9: skygear:net_exporter{skygear:net_shape="390"}
+block/10,106,0: skygear:net_external{skygear:net_shape="106"}
+block/10,106,1: skygear:net_external{skygear:net_shape="140"}
+block/10,106,10: skygear:net_importer{skygear:net_shape="038"}
+block/10,106,11: skygear:net_importer{skygear:net_shape="074"}
+block/10,106,12: skygear:net_importer{skygear:net_shape="106"}
+block/10,106,13: skygear:net_importer{skygear:net_shape="140"}
+block/10,106,14: skygear:net_importer{skygear:net_shape="172"}
+block/10,106,15: skygear:net_importer{skygear:net_shape="204"}
+block/10,106,2: skygear:net_external{skygear:net_shape="172"}
+block/10,106,3: skygear:net_external{skygear:net_shape="204"}
+block/10,106,4: skygear:net_external{skygear:net_shape="236"}
+block/10,106,5: skygear:net_external{skygear:net_shape="390"}
+block/10,106,6: skygear:net_external{skygear:net_shape="406"}
+block/10,106,7: skygear:net_external{skygear:net_shape="454"}
+block/10,106,8: skygear:net_external{skygear:net_shape="486"}
+block/10,106,9: skygear:net_importer{skygear:net_shape="006"}
+block/10,107,0: skygear:net_importer{skygear:net_shape="236"}
+block/10,107,1: skygear:net_importer{skygear:net_shape="390"}
+block/10,107,10: skygear:sieve{skygear:look="000"}
+block/10,107,11: skygear:sieve{skygear:look="000"}
+block/10,107,12: skygear:sieve{skygear:look="000"}
+block/10,107,13: skygear:sieve{skygear:look="000"}
+block/10,107,14: skygear:sieve{skygear:look="000"}
+block/10,107,15: skygear:sieve{skygear:look="000"}
+block/10,107,2: skygear:net_importer{skygear:net_shape="406"}
+block/10,107,3: skygear:net_importer{skygear:net_shape="454"}
+block/10,107,4: skygear:net_importer{skygear:net_shape="486"}
+block/10,107,5: skygear:ore_washer{skygear:tier="0"}
+block/10,107,6: skygear:preview_glass_pink{}
+block/10,107,7: skygear:sieve{skygear:look="000"}
+block/10,107,8: skygear:sieve{skygear:look="000"}
+block/10,107,9: skygear:sieve{skygear:look="000"}
+block/10,108,0: skygear:sieve{skygear:look="000"}
+block/10,108,1: skygear:sieve{skygear:look="000"}
+block/10,108,10: skygear:sieve{skygear:look="000"}
+block/10,108,11: skygear:sieve{skygear:look="000"}
+block/10,108,12: skygear:sieve{skygear:look="000"}
+block/10,108,13: skygear:sieve{skygear:look="000"}
+block/10,108,14: skygear:sieve{skygear:look="000"}
+block/10,108,15: skygear:sieve{skygear:look="000"}
+block/10,108,2: skygear:sieve{skygear:look="000"}
+block/10,108,3: skygear:sieve{skygear:look="000"}
+block/10,108,4: skygear:sieve{skygear:look="000"}
+block/10,108,5: skygear:sieve{skygear:look="000"}
+block/10,108,6: skygear:sieve{skygear:look="000"}
+block/10,108,7: skygear:sieve{skygear:look="000"}
+block/10,108,8: skygear:sieve{skygear:look="000"}
+block/10,108,9: skygear:sieve{skygear:look="000"}
+block/10,109,0: skygear:sieve{skygear:look="000"}
+block/10,109,1: skygear:sieve{skygear:look="000"}
+block/10,109,2: skygear:sieve{skygear:look="000"}
+block/10,109,3: skygear:sieve{skygear:look="000"}
+block/10,109,4: skygear:sieve{skygear:look="000"}
+block/10,109,5: skygear:solar_generator{skygear:tier="0"}
+block/10,109,6: skygear:tree_feller{skygear:tier="0"}
+block/10,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/11,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/11,100,1: skygear:auto_sieve{skygear:look="000"}
+block/11,100,10: skygear:auto_sieve{skygear:look="000"}
+block/11,100,11: skygear:auto_sieve{skygear:look="000"}
+block/11,100,12: skygear:auto_sieve{skygear:look="000"}
+block/11,100,13: skygear:auto_sieve{skygear:look="000"}
+block/11,100,14: skygear:auto_sieve{skygear:look="000"}
+block/11,100,15: skygear:auto_sieve{skygear:look="000"}
+block/11,100,2: skygear:auto_sieve{skygear:look="000"}
+block/11,100,3: skygear:auto_sieve{skygear:look="000"}
+block/11,100,4: skygear:auto_sieve{skygear:look="000"}
+block/11,100,5: skygear:auto_sieve{skygear:look="000"}
+block/11,100,6: skygear:auto_sieve{skygear:look="000"}
+block/11,100,7: skygear:auto_sieve{skygear:look="000"}
+block/11,100,8: skygear:auto_sieve{skygear:look="000"}
+block/11,100,9: skygear:auto_sieve{skygear:look="000"}
+block/11,101,0: skygear:auto_sieve{skygear:look="000"}
+block/11,101,1: skygear:auto_sieve{skygear:look="000"}
+block/11,101,10: skygear:auto_sieve{skygear:look="000"}
+block/11,101,11: skygear:auto_sieve{skygear:look="000"}
+block/11,101,12: skygear:auto_sieve{skygear:look="000"}
+block/11,101,13: skygear:auto_sieve{skygear:look="000"}
+block/11,101,14: skygear:auto_sieve{skygear:look="000"}
+block/11,101,15: skygear:auto_sieve{skygear:look="000"}
+block/11,101,2: skygear:auto_sieve{skygear:look="000"}
+block/11,101,3: skygear:auto_sieve{skygear:look="000"}
+block/11,101,4: skygear:auto_sieve{skygear:look="000"}
+block/11,101,5: skygear:auto_sieve{skygear:look="000"}
+block/11,101,6: skygear:auto_sieve{skygear:look="000"}
+block/11,101,7: skygear:auto_sieve{skygear:look="000"}
+block/11,101,8: skygear:auto_sieve{skygear:look="000"}
+block/11,101,9: skygear:auto_sieve{skygear:look="000"}
+block/11,102,0: skygear:barrel_stone{skygear:barrel_stage="3"}
+block/11,102,1: skygear:conduit_energy_1{}
+block/11,102,10: skygear:magic_plant{skygear:plant="flower_blue_0"}
+block/11,102,11: skygear:magic_plant{skygear:plant="flower_magenta_0"}
+block/11,102,12: skygear:magic_plant{skygear:plant="gem_diamond_0"}
+block/11,102,13: skygear:magic_plant{skygear:plant="ore_lead_0"}
+block/11,102,14: skygear:magic_sieve{skygear:look="000"}
+block/11,102,15: skygear:magic_sieve{skygear:look="000"}
+block/11,102,2: skygear:crucible{skygear:tier="0"}
+block/11,102,3: skygear:drawer_controller{}
+block/11,102,4: skygear:elevator_black{}
+block/11,102,5: skygear:energy_cell{skygear:tier="0"}
+block/11,102,6: skygear:harvester{skygear:tier="0"}
+block/11,102,7: skygear:infesting_leaves{skygear:infest_stage="10"}
+block/11,102,8: skygear:infesting_leaves{skygear:infest_stage="p6"}
+block/11,102,9: skygear:laboratory{skygear:tier="0"}
+block/11,103,0: skygear:magic_sieve{skygear:look="000"}
+block/11,103,1: skygear:magic_sieve{skygear:look="000"}
+block/11,103,10: skygear:magic_sieve{skygear:look="000"}
+block/11,103,11: skygear:magic_sieve{skygear:look="000"}
+block/11,103,12: skygear:magic_sieve{skygear:look="000"}
+block/11,103,13: skygear:magic_sieve{skygear:look="000"}
+block/11,103,14: skygear:magic_sieve{skygear:look="000"}
+block/11,103,15: skygear:magic_sieve{skygear:look="000"}
+block/11,103,2: skygear:magic_sieve{skygear:look="000"}
+block/11,103,3: skygear:magic_sieve{skygear:look="000"}
+block/11,103,4: skygear:magic_sieve{skygear:look="000"}
+block/11,103,5: skygear:magic_sieve{skygear:look="000"}
+block/11,103,6: skygear:magic_sieve{skygear:look="000"}
+block/11,103,7: skygear:magic_sieve{skygear:look="000"}
+block/11,103,8: skygear:magic_sieve{skygear:look="000"}
+block/11,103,9: skygear:magic_sieve{skygear:look="000"}
+block/11,104,0: skygear:magic_sieve{skygear:look="000"}
+block/11,104,1: skygear:magic_sieve{skygear:look="000"}
+block/11,104,10: skygear:magic_sieve{skygear:look="000"}
+block/11,104,11: skygear:magic_sieve{skygear:look="000"}
+block/11,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/11,104,13: skygear:net_cable{skygear:net_shape="008"}
+block/11,104,14: skygear:net_cable{skygear:net_shape="024"}
+block/11,104,15: skygear:net_cable{skygear:net_shape="040"}
+block/11,104,2: skygear:magic_sieve{skygear:look="000"}
+block/11,104,3: skygear:magic_sieve{skygear:look="000"}
+block/11,104,4: skygear:magic_sieve{skygear:look="000"}
+block/11,104,5: skygear:magic_sieve{skygear:look="000"}
+block/11,104,6: skygear:magic_sieve{skygear:look="000"}
+block/11,104,7: skygear:magic_sieve{skygear:look="000"}
+block/11,104,8: skygear:magic_sieve{skygear:look="000"}
+block/11,104,9: skygear:magic_sieve{skygear:look="000"}
+block/11,105,0: skygear:net_cable{skygear:net_shape="056"}
+block/11,105,1: skygear:net_exporter{skygear:net_shape="007"}
+block/11,105,10: skygear:net_exporter{skygear:net_shape="407"}
+block/11,105,11: skygear:net_exporter{skygear:net_shape="455"}
+block/11,105,12: skygear:net_exporter{skygear:net_shape="487"}
+block/11,105,13: skygear:net_external{skygear:net_shape="007"}
+block/11,105,14: skygear:net_external{skygear:net_shape="039"}
+block/11,105,15: skygear:net_external{skygear:net_shape="075"}
+block/11,105,2: skygear:net_exporter{skygear:net_shape="039"}
+block/11,105,3: skygear:net_exporter{skygear:net_shape="075"}
+block/11,105,4: skygear:net_exporter{skygear:net_shape="107"}
+block/11,105,5: skygear:net_exporter{skygear:net_shape="141"}
+block/11,105,6: skygear:net_exporter{skygear:net_shape="173"}
+block/11,105,7: skygear:net_exporter{skygear:net_shape="206"}
+block/11,105,8: skygear:net_exporter{skygear:net_shape="238"}
+block/11,105,9: skygear:net_exporter{skygear:net_shape="391"}
+block/11,106,0: skygear:net_external{skygear:net_shape="107"}
+block/11,106,1: skygear:net_external{skygear:net_shape="141"}
+block/11,106,10: skygear:net_importer{skygear:net_shape="039"}
+block/11,106,11: skygear:net_importer{skygear:net_shape="075"}
+block/11,106,12: skygear:net_importer{skygear:net_shape="107"}
+block/11,106,13: skygear:net_importer{skygear:net_shape="141"}
+block/11,106,14: skygear:net_importer{skygear:net_shape="173"}
+block/11,106,15: skygear:net_importer{skygear:net_shape="206"}
+block/11,106,2: skygear:net_external{skygear:net_shape="173"}
+block/11,106,3: skygear:net_external{skygear:net_shape="206"}
+block/11,106,4: skygear:net_external{skygear:net_shape="238"}
+block/11,106,5: skygear:net_external{skygear:net_shape="391"}
+block/11,106,6: skygear:net_external{skygear:net_shape="407"}
+block/11,106,7: skygear:net_external{skygear:net_shape="455"}
+block/11,106,8: skygear:net_external{skygear:net_shape="487"}
+block/11,106,9: skygear:net_importer{skygear:net_shape="007"}
+block/11,107,0: skygear:net_importer{skygear:net_shape="238"}
+block/11,107,1: skygear:net_importer{skygear:net_shape="391"}
+block/11,107,10: skygear:sieve{skygear:look="000"}
+block/11,107,11: skygear:sieve{skygear:look="000"}
+block/11,107,12: skygear:sieve{skygear:look="000"}
+block/11,107,13: skygear:sieve{skygear:look="000"}
+block/11,107,14: skygear:sieve{skygear:look="000"}
+block/11,107,15: skygear:sieve{skygear:look="000"}
+block/11,107,2: skygear:net_importer{skygear:net_shape="407"}
+block/11,107,3: skygear:net_importer{skygear:net_shape="455"}
+block/11,107,4: skygear:net_importer{skygear:net_shape="487"}
+block/11,107,5: skygear:ore_washer{skygear:tier="0"}
+block/11,107,6: skygear:preview_glass_purple{}
+block/11,107,7: skygear:sieve{skygear:look="000"}
+block/11,107,8: skygear:sieve{skygear:look="000"}
+block/11,107,9: skygear:sieve{skygear:look="000"}
+block/11,108,0: skygear:sieve{skygear:look="000"}
+block/11,108,1: skygear:sieve{skygear:look="000"}
+block/11,108,10: skygear:sieve{skygear:look="000"}
+block/11,108,11: skygear:sieve{skygear:look="000"}
+block/11,108,12: skygear:sieve{skygear:look="000"}
+block/11,108,13: skygear:sieve{skygear:look="000"}
+block/11,108,14: skygear:sieve{skygear:look="000"}
+block/11,108,15: skygear:sieve{skygear:look="000"}
+block/11,108,2: skygear:sieve{skygear:look="000"}
+block/11,108,3: skygear:sieve{skygear:look="000"}
+block/11,108,4: skygear:sieve{skygear:look="000"}
+block/11,108,5: skygear:sieve{skygear:look="000"}
+block/11,108,6: skygear:sieve{skygear:look="000"}
+block/11,108,7: skygear:sieve{skygear:look="000"}
+block/11,108,8: skygear:sieve{skygear:look="000"}
+block/11,108,9: skygear:sieve{skygear:look="000"}
+block/11,109,0: skygear:sieve{skygear:look="000"}
+block/11,109,1: skygear:sieve{skygear:look="000"}
+block/11,109,2: skygear:sieve{skygear:look="000"}
+block/11,109,3: skygear:sieve{skygear:look="000"}
+block/11,109,4: skygear:sieve{skygear:look="000"}
+block/11,109,5: skygear:solar_generator{skygear:tier="0"}
+block/11,109,6: skygear:wood_hopper_reverse{}
+block/11,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/12,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/12,100,1: skygear:auto_sieve{skygear:look="000"}
+block/12,100,10: skygear:auto_sieve{skygear:look="000"}
+block/12,100,11: skygear:auto_sieve{skygear:look="000"}
+block/12,100,12: skygear:auto_sieve{skygear:look="000"}
+block/12,100,13: skygear:auto_sieve{skygear:look="000"}
+block/12,100,14: skygear:auto_sieve{skygear:look="000"}
+block/12,100,15: skygear:auto_sieve{skygear:look="000"}
+block/12,100,2: skygear:auto_sieve{skygear:look="000"}
+block/12,100,3: skygear:auto_sieve{skygear:look="000"}
+block/12,100,4: skygear:auto_sieve{skygear:look="000"}
+block/12,100,5: skygear:auto_sieve{skygear:look="000"}
+block/12,100,6: skygear:auto_sieve{skygear:look="000"}
+block/12,100,7: skygear:auto_sieve{skygear:look="000"}
+block/12,100,8: skygear:auto_sieve{skygear:look="000"}
+block/12,100,9: skygear:auto_sieve{skygear:look="000"}
+block/12,101,0: skygear:auto_sieve{skygear:look="000"}
+block/12,101,1: skygear:auto_sieve{skygear:look="000"}
+block/12,101,10: skygear:auto_sieve{skygear:look="000"}
+block/12,101,11: skygear:auto_sieve{skygear:look="000"}
+block/12,101,12: skygear:auto_sieve{skygear:look="000"}
+block/12,101,13: skygear:auto_sieve{skygear:look="000"}
+block/12,101,14: skygear:auto_sieve{skygear:look="000"}
+block/12,101,15: skygear:auto_sieve{skygear:look="000"}
+block/12,101,2: skygear:auto_sieve{skygear:look="000"}
+block/12,101,3: skygear:auto_sieve{skygear:look="000"}
+block/12,101,4: skygear:auto_sieve{skygear:look="000"}
+block/12,101,5: skygear:auto_sieve{skygear:look="000"}
+block/12,101,6: skygear:auto_sieve{skygear:look="000"}
+block/12,101,7: skygear:auto_sieve{skygear:look="000"}
+block/12,101,8: skygear:auto_sieve{skygear:look="000"}
+block/12,101,9: skygear:auto_sieve{skygear:look="000"}
+block/12,102,0: skygear:barrel_stone{skygear:barrel_stage="4"}
+block/12,102,1: skygear:conduit_energy_2{}
+block/12,102,10: skygear:magic_plant{skygear:plant="flower_blue_1"}
+block/12,102,11: skygear:magic_plant{skygear:plant="flower_magenta_1"}
+block/12,102,12: skygear:magic_plant{skygear:plant="gem_diamond_1"}
+block/12,102,13: skygear:magic_plant{skygear:plant="ore_lead_1"}
+block/12,102,14: skygear:magic_sieve{skygear:look="000"}
+block/12,102,15: skygear:magic_sieve{skygear:look="000"}
+block/12,102,2: skygear:crucible{skygear:tier="0"}
+block/12,102,3: skygear:drawer_interface{}
+block/12,102,4: skygear:elevator_blue{}
+block/12,102,5: skygear:energy_cell{skygear:tier="0"}
+block/12,102,6: skygear:harvester{skygear:tier="0"}
+block/12,102,7: skygear:infesting_leaves{skygear:infest_stage="2"}
+block/12,102,8: skygear:infesting_leaves{skygear:infest_stage="p7"}
+block/12,102,9: skygear:laboratory{skygear:tier="0"}
+block/12,103,0: skygear:magic_sieve{skygear:look="000"}
+block/12,103,1: skygear:magic_sieve{skygear:look="000"}
+block/12,103,10: skygear:magic_sieve{skygear:look="000"}
+block/12,103,11: skygear:magic_sieve{skygear:look="000"}
+block/12,103,12: skygear:magic_sieve{skygear:look="000"}
+block/12,103,13: skygear:magic_sieve{skygear:look="000"}
+block/12,103,14: skygear:magic_sieve{skygear:look="000"}
+block/12,103,15: skygear:magic_sieve{skygear:look="000"}
+block/12,103,2: skygear:magic_sieve{skygear:look="000"}
+block/12,103,3: skygear:magic_sieve{skygear:look="000"}
+block/12,103,4: skygear:magic_sieve{skygear:look="000"}
+block/12,103,5: skygear:magic_sieve{skygear:look="000"}
+block/12,103,6: skygear:magic_sieve{skygear:look="000"}
+block/12,103,7: skygear:magic_sieve{skygear:look="000"}
+block/12,103,8: skygear:magic_sieve{skygear:look="000"}
+block/12,103,9: skygear:magic_sieve{skygear:look="000"}
+block/12,104,0: skygear:magic_sieve{skygear:look="000"}
+block/12,104,1: skygear:magic_sieve{skygear:look="000"}
+block/12,104,10: skygear:magic_sieve{skygear:look="000"}
+block/12,104,11: skygear:magic_sieve{skygear:look="000"}
+block/12,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/12,104,13: skygear:net_cable{skygear:net_shape="009"}
+block/12,104,14: skygear:net_cable{skygear:net_shape="025"}
+block/12,104,15: skygear:net_cable{skygear:net_shape="041"}
+block/12,104,2: skygear:magic_sieve{skygear:look="000"}
+block/12,104,3: skygear:magic_sieve{skygear:look="000"}
+block/12,104,4: skygear:magic_sieve{skygear:look="000"}
+block/12,104,5: skygear:magic_sieve{skygear:look="000"}
+block/12,104,6: skygear:magic_sieve{skygear:look="000"}
+block/12,104,7: skygear:magic_sieve{skygear:look="000"}
+block/12,104,8: skygear:magic_sieve{skygear:look="000"}
+block/12,104,9: skygear:magic_sieve{skygear:look="000"}
+block/12,105,0: skygear:net_cable{skygear:net_shape="057"}
+block/12,105,1: skygear:net_exporter{skygear:net_shape="016"}
+block/12,105,10: skygear:net_exporter{skygear:net_shape="408"}
+block/12,105,11: skygear:net_exporter{skygear:net_shape="456"}
+block/12,105,12: skygear:net_exporter{skygear:net_shape="488"}
+block/12,105,13: skygear:net_external{skygear:net_shape="016"}
+block/12,105,14: skygear:net_external{skygear:net_shape="048"}
+block/12,105,15: skygear:net_external{skygear:net_shape="080"}
+block/12,105,2: skygear:net_exporter{skygear:net_shape="048"}
+block/12,105,3: skygear:net_exporter{skygear:net_shape="080"}
+block/12,105,4: skygear:net_exporter{skygear:net_shape="112"}
+block/12,105,5: skygear:net_exporter{skygear:net_shape="144"}
+block/12,105,6: skygear:net_exporter{skygear:net_shape="176"}
+block/12,105,7: skygear:net_exporter{skygear:net_shape="208"}
+block/12,105,8: skygear:net_exporter{skygear:net_shape="240"}
+block/12,105,9: skygear:net_exporter{skygear:net_shape="392"}
+block/12,106,0: skygear:net_external{skygear:net_shape="112"}
+block/12,106,1: skygear:net_external{skygear:net_shape="144"}
+block/12,106,10: skygear:net_importer{skygear:net_shape="048"}
+block/12,106,11: skygear:net_importer{skygear:net_shape="080"}
+block/12,106,12: skygear:net_importer{skygear:net_shape="112"}
+block/12,106,13: skygear:net_importer{skygear:net_shape="144"}
+block/12,106,14: skygear:net_importer{skygear:net_shape="176"}
+block/12,106,15: skygear:net_importer{skygear:net_shape="208"}
+block/12,106,2: skygear:net_external{skygear:net_shape="176"}
+block/12,106,3: skygear:net_external{skygear:net_shape="208"}
+block/12,106,4: skygear:net_external{skygear:net_shape="240"}
+block/12,106,5: skygear:net_external{skygear:net_shape="392"}
+block/12,106,6: skygear:net_external{skygear:net_shape="408"}
+block/12,106,7: skygear:net_external{skygear:net_shape="456"}
+block/12,106,8: skygear:net_external{skygear:net_shape="488"}
+block/12,106,9: skygear:net_importer{skygear:net_shape="016"}
+block/12,107,0: skygear:net_importer{skygear:net_shape="240"}
+block/12,107,1: skygear:net_importer{skygear:net_shape="392"}
+block/12,107,10: skygear:sieve{skygear:look="000"}
+block/12,107,11: skygear:sieve{skygear:look="000"}
+block/12,107,12: skygear:sieve{skygear:look="000"}
+block/12,107,13: skygear:sieve{skygear:look="000"}
+block/12,107,14: skygear:sieve{skygear:look="000"}
+block/12,107,15: skygear:sieve{skygear:look="000"}
+block/12,107,2: skygear:net_importer{skygear:net_shape="408"}
+block/12,107,3: skygear:net_importer{skygear:net_shape="456"}
+block/12,107,4: skygear:net_importer{skygear:net_shape="488"}
+block/12,107,5: skygear:ore_washer{skygear:tier="0"}
+block/12,107,6: skygear:preview_glass_red{}
+block/12,107,7: skygear:sieve{skygear:look="000"}
+block/12,107,8: skygear:sieve{skygear:look="000"}
+block/12,107,9: skygear:sieve{skygear:look="000"}
+block/12,108,0: skygear:sieve{skygear:look="000"}
+block/12,108,1: skygear:sieve{skygear:look="000"}
+block/12,108,10: skygear:sieve{skygear:look="000"}
+block/12,108,11: skygear:sieve{skygear:look="000"}
+block/12,108,12: skygear:sieve{skygear:look="000"}
+block/12,108,13: skygear:sieve{skygear:look="000"}
+block/12,108,14: skygear:sieve{skygear:look="000"}
+block/12,108,15: skygear:sieve{skygear:look="000"}
+block/12,108,2: skygear:sieve{skygear:look="000"}
+block/12,108,3: skygear:sieve{skygear:look="000"}
+block/12,108,4: skygear:sieve{skygear:look="000"}
+block/12,108,5: skygear:sieve{skygear:look="000"}
+block/12,108,6: skygear:sieve{skygear:look="000"}
+block/12,108,7: skygear:sieve{skygear:look="000"}
+block/12,108,8: skygear:sieve{skygear:look="000"}
+block/12,108,9: skygear:sieve{skygear:look="000"}
+block/12,109,0: skygear:sieve{skygear:look="000"}
+block/12,109,1: skygear:sieve{skygear:look="000"}
+block/12,109,2: skygear:sieve{skygear:look="000"}
+block/12,109,3: skygear:sieve{skygear:look="000"}
+block/12,109,4: skygear:sieve{skygear:look="000"}
+block/12,109,5: skygear:solar_generator{skygear:tier="0"}
+block/12,109,6: skygear:wood_hopper{skygear:hopper_facing="down"}
+block/12,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/13,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/13,100,1: skygear:auto_sieve{skygear:look="000"}
+block/13,100,10: skygear:auto_sieve{skygear:look="000"}
+block/13,100,11: skygear:auto_sieve{skygear:look="000"}
+block/13,100,12: skygear:auto_sieve{skygear:look="000"}
+block/13,100,13: skygear:auto_sieve{skygear:look="000"}
+block/13,100,14: skygear:auto_sieve{skygear:look="000"}
+block/13,100,15: skygear:auto_sieve{skygear:look="000"}
+block/13,100,2: skygear:auto_sieve{skygear:look="000"}
+block/13,100,3: skygear:auto_sieve{skygear:look="000"}
+block/13,100,4: skygear:auto_sieve{skygear:look="000"}
+block/13,100,5: skygear:auto_sieve{skygear:look="000"}
+block/13,100,6: skygear:auto_sieve{skygear:look="000"}
+block/13,100,7: skygear:auto_sieve{skygear:look="000"}
+block/13,100,8: skygear:auto_sieve{skygear:look="000"}
+block/13,100,9: skygear:auto_sieve{skygear:look="000"}
+block/13,101,0: skygear:auto_sieve{skygear:look="000"}
+block/13,101,1: skygear:auto_sieve{skygear:look="000"}
+block/13,101,10: skygear:auto_sieve{skygear:look="000"}
+block/13,101,11: skygear:auto_sieve{skygear:look="000"}
+block/13,101,12: skygear:auto_sieve{skygear:look="000"}
+block/13,101,13: skygear:auto_sieve{skygear:look="000"}
+block/13,101,14: skygear:auto_sieve{skygear:look="000"}
+block/13,101,15: skygear:auto_sieve{skygear:look="000"}
+block/13,101,2: skygear:auto_sieve{skygear:look="000"}
+block/13,101,3: skygear:auto_sieve{skygear:look="000"}
+block/13,101,4: skygear:auto_sieve{skygear:look="000"}
+block/13,101,5: skygear:auto_sieve{skygear:look="000"}
+block/13,101,6: skygear:auto_sieve{skygear:look="000"}
+block/13,101,7: skygear:auto_sieve{skygear:look="000"}
+block/13,101,8: skygear:auto_sieve{skygear:look="000"}
+block/13,101,9: skygear:auto_sieve{skygear:look="000"}
+block/13,102,0: skygear:barrel_stone{skygear:barrel_stage="5"}
+block/13,102,1: skygear:conduit_energy_3{}
+block/13,102,10: skygear:magic_plant{skygear:plant="flower_brown_0"}
+block/13,102,11: skygear:magic_plant{skygear:plant="flower_orange_0"}
+block/13,102,12: skygear:magic_plant{skygear:plant="gem_emerald_0"}
+block/13,102,13: skygear:magic_plant{skygear:plant="ore_nickel_0"}
+block/13,102,14: skygear:magic_sieve{skygear:look="000"}
+block/13,102,15: skygear:magic_sieve{skygear:look="000"}
+block/13,102,2: skygear:crucible{skygear:tier="0"}
+block/13,102,3: skygear:drawer_trim{}
+block/13,102,4: skygear:elevator_brown{}
+block/13,102,5: skygear:energy_cell{skygear:tier="0"}
+block/13,102,6: skygear:harvester{skygear:tier="0"}
+block/13,102,7: skygear:infesting_leaves{skygear:infest_stage="3"}
+block/13,102,8: skygear:infesting_leaves{skygear:infest_stage="p8"}
+block/13,102,9: skygear:laboratory{skygear:tier="0"}
+block/13,103,0: skygear:magic_sieve{skygear:look="000"}
+block/13,103,1: skygear:magic_sieve{skygear:look="000"}
+block/13,103,10: skygear:magic_sieve{skygear:look="000"}
+block/13,103,11: skygear:magic_sieve{skygear:look="000"}
+block/13,103,12: skygear:magic_sieve{skygear:look="000"}
+block/13,103,13: skygear:magic_sieve{skygear:look="000"}
+block/13,103,14: skygear:magic_sieve{skygear:look="000"}
+block/13,103,15: skygear:magic_sieve{skygear:look="000"}
+block/13,103,2: skygear:magic_sieve{skygear:look="000"}
+block/13,103,3: skygear:magic_sieve{skygear:look="000"}
+block/13,103,4: skygear:magic_sieve{skygear:look="000"}
+block/13,103,5: skygear:magic_sieve{skygear:look="000"}
+block/13,103,6: skygear:magic_sieve{skygear:look="000"}
+block/13,103,7: skygear:magic_sieve{skygear:look="000"}
+block/13,103,8: skygear:magic_sieve{skygear:look="000"}
+block/13,103,9: skygear:magic_sieve{skygear:look="000"}
+block/13,104,0: skygear:magic_sieve{skygear:look="000"}
+block/13,104,1: skygear:magic_sieve{skygear:look="000"}
+block/13,104,10: skygear:magic_sieve{skygear:look="000"}
+block/13,104,11: skygear:magic_sieve{skygear:look="000"}
+block/13,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/13,104,13: skygear:net_cable{skygear:net_shape="010"}
+block/13,104,14: skygear:net_cable{skygear:net_shape="026"}
+block/13,104,15: skygear:net_cable{skygear:net_shape="042"}
+block/13,104,2: skygear:magic_sieve{skygear:look="000"}
+block/13,104,3: skygear:magic_sieve{skygear:look="000"}
+block/13,104,4: skygear:magic_sieve{skygear:look="000"}
+block/13,104,5: skygear:magic_sieve{skygear:look="000"}
+block/13,104,6: skygear:magic_sieve{skygear:look="000"}
+block/13,104,7: skygear:magic_sieve{skygear:look="000"}
+block/13,104,8: skygear:magic_sieve{skygear:look="000"}
+block/13,104,9: skygear:magic_sieve{skygear:look="000"}
+block/13,105,0: skygear:net_cable{skygear:net_shape="058"}
+block/13,105,1: skygear:net_exporter{skygear:net_shape="017"}
+block/13,105,10: skygear:net_exporter{skygear:net_shape="409"}
+block/13,105,11: skygear:net_exporter{skygear:net_shape="457"}
+block/13,105,12: skygear:net_exporter{skygear:net_shape="489"}
+block/13,105,13: skygear:net_external{skygear:net_shape="017"}
+block/13,105,14: skygear:net_external{skygear:net_shape="049"}
+block/13,105,15: skygear:net_external{skygear:net_shape="081"}
+block/13,105,2: skygear:net_exporter{skygear:net_shape="049"}
+block/13,105,3: skygear:net_exporter{skygear:net_shape="081"}
+block/13,105,4: skygear:net_exporter{skygear:net_shape="113"}
+block/13,105,5: skygear:net_exporter{skygear:net_shape="145"}
+block/13,105,6: skygear:net_exporter{skygear:net_shape="177"}
+block/13,105,7: skygear:net_exporter{skygear:net_shape="210"}
+block/13,105,8: skygear:net_exporter{skygear:net_shape="242"}
+block/13,105,9: skygear:net_exporter{skygear:net_shape="393"}
+block/13,106,0: skygear:net_external{skygear:net_shape="113"}
+block/13,106,1: skygear:net_external{skygear:net_shape="145"}
+block/13,106,10: skygear:net_importer{skygear:net_shape="049"}
+block/13,106,11: skygear:net_importer{skygear:net_shape="081"}
+block/13,106,12: skygear:net_importer{skygear:net_shape="113"}
+block/13,106,13: skygear:net_importer{skygear:net_shape="145"}
+block/13,106,14: skygear:net_importer{skygear:net_shape="177"}
+block/13,106,15: skygear:net_importer{skygear:net_shape="210"}
+block/13,106,2: skygear:net_external{skygear:net_shape="177"}
+block/13,106,3: skygear:net_external{skygear:net_shape="210"}
+block/13,106,4: skygear:net_external{skygear:net_shape="242"}
+block/13,106,5: skygear:net_external{skygear:net_shape="393"}
+block/13,106,6: skygear:net_external{skygear:net_shape="409"}
+block/13,106,7: skygear:net_external{skygear:net_shape="457"}
+block/13,106,8: skygear:net_external{skygear:net_shape="489"}
+block/13,106,9: skygear:net_importer{skygear:net_shape="017"}
+block/13,107,0: skygear:net_importer{skygear:net_shape="242"}
+block/13,107,1: skygear:net_importer{skygear:net_shape="393"}
+block/13,107,10: skygear:sieve{skygear:look="000"}
+block/13,107,11: skygear:sieve{skygear:look="000"}
+block/13,107,12: skygear:sieve{skygear:look="000"}
+block/13,107,13: skygear:sieve{skygear:look="000"}
+block/13,107,14: skygear:sieve{skygear:look="000"}
+block/13,107,15: skygear:sieve{skygear:look="000"}
+block/13,107,2: skygear:net_importer{skygear:net_shape="409"}
+block/13,107,3: skygear:net_importer{skygear:net_shape="457"}
+block/13,107,4: skygear:net_importer{skygear:net_shape="489"}
+block/13,107,5: skygear:ore_washer{skygear:tier="0"}
+block/13,107,6: skygear:preview_glass_white{}
+block/13,107,7: skygear:sieve{skygear:look="000"}
+block/13,107,8: skygear:sieve{skygear:look="000"}
+block/13,107,9: skygear:sieve{skygear:look="000"}
+block/13,108,0: skygear:sieve{skygear:look="000"}
+block/13,108,1: skygear:sieve{skygear:look="000"}
+block/13,108,10: skygear:sieve{skygear:look="000"}
+block/13,108,11: skygear:sieve{skygear:look="000"}
+block/13,108,12: skygear:sieve{skygear:look="000"}
+block/13,108,13: skygear:sieve{skygear:look="000"}
+block/13,108,14: skygear:sieve{skygear:look="000"}
+block/13,108,15: skygear:sieve{skygear:look="000"}
+block/13,108,2: skygear:sieve{skygear:look="000"}
+block/13,108,3: skygear:sieve{skygear:look="000"}
+block/13,108,4: skygear:sieve{skygear:look="000"}
+block/13,108,5: skygear:sieve{skygear:look="000"}
+block/13,108,6: skygear:sieve{skygear:look="000"}
+block/13,108,7: skygear:sieve{skygear:look="000"}
+block/13,108,8: skygear:sieve{skygear:look="000"}
+block/13,108,9: skygear:sieve{skygear:look="000"}
+block/13,109,0: skygear:sieve{skygear:look="000"}
+block/13,109,1: skygear:sieve{skygear:look="000"}
+block/13,109,2: skygear:sieve{skygear:look="000"}
+block/13,109,3: skygear:sieve{skygear:look="000"}
+block/13,109,4: skygear:sieve{skygear:look="000"}
+block/13,109,5: skygear:solar_generator{skygear:tier="0"}
+block/13,109,6: skygear:wood_hopper{skygear:hopper_facing="east"}
+block/14,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/14,100,1: skygear:auto_sieve{skygear:look="000"}
+block/14,100,10: skygear:auto_sieve{skygear:look="000"}
+block/14,100,11: skygear:auto_sieve{skygear:look="000"}
+block/14,100,12: skygear:auto_sieve{skygear:look="000"}
+block/14,100,13: skygear:auto_sieve{skygear:look="000"}
+block/14,100,14: skygear:auto_sieve{skygear:look="000"}
+block/14,100,15: skygear:auto_sieve{skygear:look="000"}
+block/14,100,2: skygear:auto_sieve{skygear:look="000"}
+block/14,100,3: skygear:auto_sieve{skygear:look="000"}
+block/14,100,4: skygear:auto_sieve{skygear:look="000"}
+block/14,100,5: skygear:auto_sieve{skygear:look="000"}
+block/14,100,6: skygear:auto_sieve{skygear:look="000"}
+block/14,100,7: skygear:auto_sieve{skygear:look="000"}
+block/14,100,8: skygear:auto_sieve{skygear:look="000"}
+block/14,100,9: skygear:auto_sieve{skygear:look="000"}
+block/14,101,0: skygear:auto_sieve{skygear:look="000"}
+block/14,101,1: skygear:auto_sieve{skygear:look="000"}
+block/14,101,10: skygear:auto_sieve{skygear:look="000"}
+block/14,101,11: skygear:auto_sieve{skygear:look="000"}
+block/14,101,12: skygear:auto_sieve{skygear:look="000"}
+block/14,101,13: skygear:auto_sieve{skygear:look="000"}
+block/14,101,14: skygear:auto_sieve{skygear:look="000"}
+block/14,101,15: skygear:auto_sieve{skygear:look="000"}
+block/14,101,2: skygear:auto_sieve{skygear:look="000"}
+block/14,101,3: skygear:auto_sieve{skygear:look="000"}
+block/14,101,4: skygear:auto_sieve{skygear:look="000"}
+block/14,101,5: skygear:auto_sieve{skygear:look="000"}
+block/14,101,6: skygear:auto_sieve{skygear:look="000"}
+block/14,101,7: skygear:auto_sieve{skygear:look="000"}
+block/14,101,8: skygear:auto_sieve{skygear:look="000"}
+block/14,101,9: skygear:auto_sieve{skygear:look="000"}
+block/14,102,0: skygear:barrel_stone{skygear:barrel_stage="6"}
+block/14,102,1: skygear:conduit_fluid_1{}
+block/14,102,10: skygear:magic_plant{skygear:plant="flower_brown_1"}
+block/14,102,11: skygear:magic_plant{skygear:plant="flower_orange_1"}
+block/14,102,12: skygear:magic_plant{skygear:plant="gem_emerald_1"}
+block/14,102,13: skygear:magic_plant{skygear:plant="ore_nickel_1"}
+block/14,102,14: skygear:magic_sieve{skygear:look="000"}
+block/14,102,15: skygear:magic_sieve{skygear:look="000"}
+block/14,102,2: skygear:crushed_blackstone{}
+block/14,102,3: skygear:drawer{skygear:facing="east"}
+block/14,102,4: skygear:elevator_cyan{}
+block/14,102,5: skygear:energy_cell{skygear:tier="0"}
+block/14,102,6: skygear:harvester{skygear:tier="0"}
+block/14,102,7: skygear:infesting_leaves{skygear:infest_stage="4"}
+block/14,102,8: skygear:infesting_leaves{skygear:infest_stage="p9"}
+block/14,102,9: skygear:laboratory{skygear:tier="0"}
+block/14,103,0: skygear:magic_sieve{skygear:look="000"}
+block/14,103,1: skygear:magic_sieve{skygear:look="000"}
+block/14,103,10: skygear:magic_sieve{skygear:look="000"}
+block/14,103,11: skygear:magic_sieve{skygear:look="000"}
+block/14,103,12: skygear:magic_sieve{skygear:look="000"}
+block/14,103,13: skygear:magic_sieve{skygear:look="000"}
+block/14,103,14: skygear:magic_sieve{skygear:look="000"}
+block/14,103,15: skygear:magic_sieve{skygear:look="000"}
+block/14,103,2: skygear:magic_sieve{skygear:look="000"}
+block/14,103,3: skygear:magic_sieve{skygear:look="000"}
+block/14,103,4: skygear:magic_sieve{skygear:look="000"}
+block/14,103,5: skygear:magic_sieve{skygear:look="000"}
+block/14,103,6: skygear:magic_sieve{skygear:look="000"}
+block/14,103,7: skygear:magic_sieve{skygear:look="000"}
+block/14,103,8: skygear:magic_sieve{skygear:look="000"}
+block/14,103,9: skygear:magic_sieve{skygear:look="000"}
+block/14,104,0: skygear:magic_sieve{skygear:look="000"}
+block/14,104,1: skygear:magic_sieve{skygear:look="000"}
+block/14,104,10: skygear:magic_sieve{skygear:look="000"}
+block/14,104,11: skygear:magic_sieve{skygear:look="000"}
+block/14,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/14,104,13: skygear:net_cable{skygear:net_shape="011"}
+block/14,104,14: skygear:net_cable{skygear:net_shape="027"}
+block/14,104,15: skygear:net_cable{skygear:net_shape="043"}
+block/14,104,2: skygear:magic_sieve{skygear:look="000"}
+block/14,104,3: skygear:magic_sieve{skygear:look="000"}
+block/14,104,4: skygear:magic_sieve{skygear:look="000"}
+block/14,104,5: skygear:magic_sieve{skygear:look="000"}
+block/14,104,6: skygear:magic_sieve{skygear:look="000"}
+block/14,104,7: skygear:magic_sieve{skygear:look="000"}
+block/14,104,8: skygear:magic_sieve{skygear:look="000"}
+block/14,104,9: skygear:magic_sieve{skygear:look="000"}
+block/14,105,0: skygear:net_cable{skygear:net_shape="059"}
+block/14,105,1: skygear:net_exporter{skygear:net_shape="018"}
+block/14,105,10: skygear:net_exporter{skygear:net_shape="410"}
+block/14,105,11: skygear:net_exporter{skygear:net_shape="458"}
+block/14,105,12: skygear:net_exporter{skygear:net_shape="490"}
+block/14,105,13: skygear:net_external{skygear:net_shape="018"}
+block/14,105,14: skygear:net_external{skygear:net_shape="050"}
+block/14,105,15: skygear:net_external{skygear:net_shape="082"}
+block/14,105,2: skygear:net_exporter{skygear:net_shape="050"}
+block/14,105,3: skygear:net_exporter{skygear:net_shape="082"}
+block/14,105,4: skygear:net_exporter{skygear:net_shape="114"}
+block/14,105,5: skygear:net_exporter{skygear:net_shape="148"}
+block/14,105,6: skygear:net_exporter{skygear:net_shape="180"}
+block/14,105,7: skygear:net_exporter{skygear:net_shape="212"}
+block/14,105,8: skygear:net_exporter{skygear:net_shape="244"}
+block/14,105,9: skygear:net_exporter{skygear:net_shape="394"}
+block/14,106,0: skygear:net_external{skygear:net_shape="114"}
+block/14,106,1: skygear:net_external{skygear:net_shape="148"}
+block/14,106,10: skygear:net_importer{skygear:net_shape="050"}
+block/14,106,11: skygear:net_importer{skygear:net_shape="082"}
+block/14,106,12: skygear:net_importer{skygear:net_shape="114"}
+block/14,106,13: skygear:net_importer{skygear:net_shape="148"}
+block/14,106,14: skygear:net_importer{skygear:net_shape="180"}
+block/14,106,15: skygear:net_importer{skygear:net_shape="212"}
+block/14,106,2: skygear:net_external{skygear:net_shape="180"}
+block/14,106,3: skygear:net_external{skygear:net_shape="212"}
+block/14,106,4: skygear:net_external{skygear:net_shape="244"}
+block/14,106,5: skygear:net_external{skygear:net_shape="394"}
+block/14,106,6: skygear:net_external{skygear:net_shape="410"}
+block/14,106,7: skygear:net_external{skygear:net_shape="458"}
+block/14,106,8: skygear:net_external{skygear:net_shape="490"}
+block/14,106,9: skygear:net_importer{skygear:net_shape="018"}
+block/14,107,0: skygear:net_importer{skygear:net_shape="244"}
+block/14,107,1: skygear:net_importer{skygear:net_shape="394"}
+block/14,107,10: skygear:sieve{skygear:look="000"}
+block/14,107,11: skygear:sieve{skygear:look="000"}
+block/14,107,12: skygear:sieve{skygear:look="000"}
+block/14,107,13: skygear:sieve{skygear:look="000"}
+block/14,107,14: skygear:sieve{skygear:look="000"}
+block/14,107,15: skygear:sieve{skygear:look="000"}
+block/14,107,2: skygear:net_importer{skygear:net_shape="410"}
+block/14,107,3: skygear:net_importer{skygear:net_shape="458"}
+block/14,107,4: skygear:net_importer{skygear:net_shape="490"}
+block/14,107,5: skygear:pattern_encoder{}
+block/14,107,6: skygear:preview_glass_yellow{}
+block/14,107,7: skygear:sieve{skygear:look="000"}
+block/14,107,8: skygear:sieve{skygear:look="000"}
+block/14,107,9: skygear:sieve{skygear:look="000"}
+block/14,108,0: skygear:sieve{skygear:look="000"}
+block/14,108,1: skygear:sieve{skygear:look="000"}
+block/14,108,10: skygear:sieve{skygear:look="000"}
+block/14,108,11: skygear:sieve{skygear:look="000"}
+block/14,108,12: skygear:sieve{skygear:look="000"}
+block/14,108,13: skygear:sieve{skygear:look="000"}
+block/14,108,14: skygear:sieve{skygear:look="000"}
+block/14,108,15: skygear:sieve{skygear:look="000"}
+block/14,108,2: skygear:sieve{skygear:look="000"}
+block/14,108,3: skygear:sieve{skygear:look="000"}
+block/14,108,4: skygear:sieve{skygear:look="000"}
+block/14,108,5: skygear:sieve{skygear:look="000"}
+block/14,108,6: skygear:sieve{skygear:look="000"}
+block/14,108,7: skygear:sieve{skygear:look="000"}
+block/14,108,8: skygear:sieve{skygear:look="000"}
+block/14,108,9: skygear:sieve{skygear:look="000"}
+block/14,109,0: skygear:sieve{skygear:look="000"}
+block/14,109,1: skygear:sieve{skygear:look="000"}
+block/14,109,2: skygear:sieve{skygear:look="000"}
+block/14,109,3: skygear:sieve{skygear:look="000"}
+block/14,109,4: skygear:sieve{skygear:look="000"}
+block/14,109,5: skygear:solar_generator{skygear:tier="0"}
+block/14,109,6: skygear:wood_hopper{skygear:hopper_facing="north"}
+block/15,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/15,100,1: skygear:auto_sieve{skygear:look="000"}
+block/15,100,10: skygear:auto_sieve{skygear:look="000"}
+block/15,100,11: skygear:auto_sieve{skygear:look="000"}
+block/15,100,12: skygear:auto_sieve{skygear:look="000"}
+block/15,100,13: skygear:auto_sieve{skygear:look="000"}
+block/15,100,14: skygear:auto_sieve{skygear:look="000"}
+block/15,100,15: skygear:auto_sieve{skygear:look="000"}
+block/15,100,2: skygear:auto_sieve{skygear:look="000"}
+block/15,100,3: skygear:auto_sieve{skygear:look="000"}
+block/15,100,4: skygear:auto_sieve{skygear:look="000"}
+block/15,100,5: skygear:auto_sieve{skygear:look="000"}
+block/15,100,6: skygear:auto_sieve{skygear:look="000"}
+block/15,100,7: skygear:auto_sieve{skygear:look="000"}
+block/15,100,8: skygear:auto_sieve{skygear:look="000"}
+block/15,100,9: skygear:auto_sieve{skygear:look="000"}
+block/15,101,0: skygear:auto_sieve{skygear:look="000"}
+block/15,101,1: skygear:auto_sieve{skygear:look="000"}
+block/15,101,10: skygear:auto_sieve{skygear:look="000"}
+block/15,101,11: skygear:auto_sieve{skygear:look="000"}
+block/15,101,12: skygear:auto_sieve{skygear:look="000"}
+block/15,101,13: skygear:auto_sieve{skygear:look="000"}
+block/15,101,14: skygear:auto_sieve{skygear:look="000"}
+block/15,101,15: skygear:barrel_oak{skygear:barrel_stage="0"}
+block/15,101,2: skygear:auto_sieve{skygear:look="000"}
+block/15,101,3: skygear:auto_sieve{skygear:look="000"}
+block/15,101,4: skygear:auto_sieve{skygear:look="000"}
+block/15,101,5: skygear:auto_sieve{skygear:look="000"}
+block/15,101,6: skygear:auto_sieve{skygear:look="000"}
+block/15,101,7: skygear:auto_sieve{skygear:look="000"}
+block/15,101,8: skygear:auto_sieve{skygear:look="000"}
+block/15,101,9: skygear:auto_sieve{skygear:look="000"}
+block/15,102,0: skygear:barrel_stone{skygear:barrel_stage="7"}
+block/15,102,1: skygear:conduit_fluid_2{}
+block/15,102,10: skygear:magic_plant{skygear:plant="flower_cyan_0"}
+block/15,102,11: skygear:magic_plant{skygear:plant="flower_pink_0"}
+block/15,102,12: skygear:magic_plant{skygear:plant="gem_lapis_0"}
+block/15,102,13: skygear:magic_plant{skygear:plant="ore_silver_0"}
+block/15,102,14: skygear:magic_sieve{skygear:look="000"}
+block/15,102,15: skygear:magic_sieve{skygear:look="000"}
+block/15,102,2: skygear:crushed_deepslate{}
+block/15,102,3: skygear:drawer{skygear:facing="north"}
+block/15,102,4: skygear:elevator_gray{}
+block/15,102,5: skygear:essence_collector{}
+block/15,102,6: skygear:harvester{skygear:tier="0"}
+block/15,102,7: skygear:infesting_leaves{skygear:infest_stage="5"}
+block/15,102,8: skygear:iron_hopper_reverse{}
+block/15,102,9: skygear:laboratory{skygear:tier="0"}
+block/15,103,0: skygear:magic_sieve{skygear:look="000"}
+block/15,103,1: skygear:magic_sieve{skygear:look="000"}
+block/15,103,10: skygear:magic_sieve{skygear:look="000"}
+block/15,103,11: skygear:magic_sieve{skygear:look="000"}
+block/15,103,12: skygear:magic_sieve{skygear:look="000"}
+block/15,103,13: skygear:magic_sieve{skygear:look="000"}
+block/15,103,14: skygear:magic_sieve{skygear:look="000"}
+block/15,103,15: skygear:magic_sieve{skygear:look="000"}
+block/15,103,2: skygear:magic_sieve{skygear:look="000"}
+block/15,103,3: skygear:magic_sieve{skygear:look="000"}
+block/15,103,4: skygear:magic_sieve{skygear:look="000"}
+block/15,103,5: skygear:magic_sieve{skygear:look="000"}
+block/15,103,6: skygear:magic_sieve{skygear:look="000"}
+block/15,103,7: skygear:magic_sieve{skygear:look="000"}
+block/15,103,8: skygear:magic_sieve{skygear:look="000"}
+block/15,103,9: skygear:magic_sieve{skygear:look="000"}
+block/15,104,0: skygear:magic_sieve{skygear:look="000"}
+block/15,104,1: skygear:magic_sieve{skygear:look="000"}
+block/15,104,10: skygear:magic_sieve{skygear:look="000"}
+block/15,104,11: skygear:magic_sieve{skygear:look="000"}
+block/15,104,12: skygear:mob_simulator{skygear:tier="0"}
+block/15,104,13: skygear:net_cable{skygear:net_shape="012"}
+block/15,104,14: skygear:net_cable{skygear:net_shape="028"}
+block/15,104,15: skygear:net_cable{skygear:net_shape="044"}
+block/15,104,2: skygear:magic_sieve{skygear:look="000"}
+block/15,104,3: skygear:magic_sieve{skygear:look="000"}
+block/15,104,4: skygear:magic_sieve{skygear:look="000"}
+block/15,104,5: skygear:magic_sieve{skygear:look="000"}
+block/15,104,6: skygear:magic_sieve{skygear:look="000"}
+block/15,104,7: skygear:magic_sieve{skygear:look="000"}
+block/15,104,8: skygear:magic_sieve{skygear:look="000"}
+block/15,104,9: skygear:magic_sieve{skygear:look="000"}
+block/15,105,0: skygear:net_cable{skygear:net_shape="060"}
+block/15,105,1: skygear:net_exporter{skygear:net_shape="019"}
+block/15,105,10: skygear:net_exporter{skygear:net_shape="411"}
+block/15,105,11: skygear:net_exporter{skygear:net_shape="459"}
+block/15,105,12: skygear:net_exporter{skygear:net_shape="491"}
+block/15,105,13: skygear:net_external{skygear:net_shape="019"}
+block/15,105,14: skygear:net_external{skygear:net_shape="051"}
+block/15,105,15: skygear:net_external{skygear:net_shape="083"}
+block/15,105,2: skygear:net_exporter{skygear:net_shape="051"}
+block/15,105,3: skygear:net_exporter{skygear:net_shape="083"}
+block/15,105,4: skygear:net_exporter{skygear:net_shape="115"}
+block/15,105,5: skygear:net_exporter{skygear:net_shape="149"}
+block/15,105,6: skygear:net_exporter{skygear:net_shape="181"}
+block/15,105,7: skygear:net_exporter{skygear:net_shape="214"}
+block/15,105,8: skygear:net_exporter{skygear:net_shape="246"}
+block/15,105,9: skygear:net_exporter{skygear:net_shape="395"}
+block/15,106,0: skygear:net_external{skygear:net_shape="115"}
+block/15,106,1: skygear:net_external{skygear:net_shape="149"}
+block/15,106,10: skygear:net_importer{skygear:net_shape="051"}
+block/15,106,11: skygear:net_importer{skygear:net_shape="083"}
+block/15,106,12: skygear:net_importer{skygear:net_shape="115"}
+block/15,106,13: skygear:net_importer{skygear:net_shape="149"}
+block/15,106,14: skygear:net_importer{skygear:net_shape="181"}
+block/15,106,15: skygear:net_importer{skygear:net_shape="214"}
+block/15,106,2: skygear:net_external{skygear:net_shape="181"}
+block/15,106,3: skygear:net_external{skygear:net_shape="214"}
+block/15,106,4: skygear:net_external{skygear:net_shape="246"}
+block/15,106,5: skygear:net_external{skygear:net_shape="395"}
+block/15,106,6: skygear:net_external{skygear:net_shape="411"}
+block/15,106,7: skygear:net_external{skygear:net_shape="459"}
+block/15,106,8: skygear:net_external{skygear:net_shape="491"}
+block/15,106,9: skygear:net_importer{skygear:net_shape="019"}
+block/15,107,0: skygear:net_importer{skygear:net_shape="246"}
+block/15,107,1: skygear:net_importer{skygear:net_shape="395"}
+block/15,107,10: skygear:sieve{skygear:look="000"}
+block/15,107,11: skygear:sieve{skygear:look="000"}
+block/15,107,12: skygear:sieve{skygear:look="000"}
+block/15,107,13: skygear:sieve{skygear:look="000"}
+block/15,107,14: skygear:sieve{skygear:look="000"}
+block/15,107,15: skygear:sieve{skygear:look="000"}
+block/15,107,2: skygear:net_importer{skygear:net_shape="411"}
+block/15,107,3: skygear:net_importer{skygear:net_shape="459"}
+block/15,107,4: skygear:net_importer{skygear:net_shape="491"}
+block/15,107,5: skygear:preview_glass_black{}
+block/15,107,6: skygear:relic_table{}
+block/15,107,7: skygear:sieve{skygear:look="000"}
+block/15,107,8: skygear:sieve{skygear:look="000"}
+block/15,107,9: skygear:sieve{skygear:look="000"}
+block/15,108,0: skygear:sieve{skygear:look="000"}
+block/15,108,1: skygear:sieve{skygear:look="000"}
+block/15,108,10: skygear:sieve{skygear:look="000"}
+block/15,108,11: skygear:sieve{skygear:look="000"}
+block/15,108,12: skygear:sieve{skygear:look="000"}
+block/15,108,13: skygear:sieve{skygear:look="000"}
+block/15,108,14: skygear:sieve{skygear:look="000"}
+block/15,108,15: skygear:sieve{skygear:look="000"}
+block/15,108,2: skygear:sieve{skygear:look="000"}
+block/15,108,3: skygear:sieve{skygear:look="000"}
+block/15,108,4: skygear:sieve{skygear:look="000"}
+block/15,108,5: skygear:sieve{skygear:look="000"}
+block/15,108,6: skygear:sieve{skygear:look="000"}
+block/15,108,7: skygear:sieve{skygear:look="000"}
+block/15,108,8: skygear:sieve{skygear:look="000"}
+block/15,108,9: skygear:sieve{skygear:look="000"}
+block/15,109,0: skygear:sieve{skygear:look="000"}
+block/15,109,1: skygear:sieve{skygear:look="000"}
+block/15,109,2: skygear:sieve{skygear:look="000"}
+block/15,109,3: skygear:sieve{skygear:look="000"}
+block/15,109,4: skygear:sieve{skygear:look="000"}
+block/15,109,5: skygear:solar_generator{skygear:tier="0"}
+block/15,109,6: skygear:wood_hopper{skygear:hopper_facing="south"}
+block/2,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/2,100,1: skygear:auto_miner{skygear:tier="0"}
+block/2,100,10: skygear:auto_sieve{skygear:look="000"}
+block/2,100,11: skygear:auto_sieve{skygear:look="000"}
+block/2,100,12: skygear:auto_sieve{skygear:look="000"}
+block/2,100,13: skygear:auto_sieve{skygear:look="000"}
+block/2,100,14: skygear:auto_sieve{skygear:look="000"}
+block/2,100,15: skygear:auto_sieve{skygear:look="000"}
+block/2,100,2: skygear:auto_sieve{skygear:look="000"}
+block/2,100,3: skygear:auto_sieve{skygear:look="000"}
+block/2,100,4: skygear:auto_sieve{skygear:look="000"}
+block/2,100,5: skygear:auto_sieve{skygear:look="000"}
+block/2,100,6: skygear:auto_sieve{skygear:look="000"}
+block/2,100,7: skygear:auto_sieve{skygear:look="000"}
+block/2,100,8: skygear:auto_sieve{skygear:look="000"}
+block/2,100,9: skygear:auto_sieve{skygear:look="000"}
+block/2,101,0: skygear:auto_sieve{skygear:look="000"}
+block/2,101,1: skygear:auto_sieve{skygear:look="000"}
+block/2,101,10: skygear:auto_sieve{skygear:look="000"}
+block/2,101,11: skygear:auto_sieve{skygear:look="000"}
+block/2,101,12: skygear:auto_sieve{skygear:look="000"}
+block/2,101,13: skygear:auto_sieve{skygear:look="000"}
+block/2,101,14: skygear:auto_sieve{skygear:look="000"}
+block/2,101,15: skygear:auto_sieve{skygear:look="000"}
+block/2,101,2: skygear:auto_sieve{skygear:look="000"}
+block/2,101,3: skygear:auto_sieve{skygear:look="000"}
+block/2,101,4: skygear:auto_sieve{skygear:look="000"}
+block/2,101,5: skygear:auto_sieve{skygear:look="000"}
+block/2,101,6: skygear:auto_sieve{skygear:look="000"}
+block/2,101,7: skygear:auto_sieve{skygear:look="000"}
+block/2,101,8: skygear:auto_sieve{skygear:look="000"}
+block/2,101,9: skygear:auto_sieve{skygear:look="000"}
+block/2,102,0: skygear:barrel_oak{skygear:barrel_stage="3"}
+block/2,102,1: skygear:compressed_cobblestone_2{}
+block/2,102,10: skygear:lava_generator{skygear:tier="0"}
+block/2,102,11: skygear:magic_plant{skygear:plant="flower_gray_1"}
+block/2,102,12: skygear:magic_plant{skygear:plant="flower_purple_1"}
+block/2,102,13: skygear:magic_plant{skygear:plant="gem_quartz_1"}
+block/2,102,14: skygear:magic_plant{skygear:plant="ore_tin_1"}
+block/2,102,15: skygear:magic_sieve{skygear:look="000"}
+block/2,102,2: skygear:conduit_item_2{}
+block/2,102,3: skygear:crusher{skygear:tier="0"}
+block/2,102,4: skygear:dust{}
+block/2,102,5: skygear:elevator_light_gray{}
+block/2,102,6: skygear:generator{skygear:tier="0"}
+block/2,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/2,102,8: skygear:infesting_leaves{skygear:infest_stage="8"}
+block/2,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/2,103,0: skygear:magic_sieve{skygear:look="000"}
+block/2,103,1: skygear:magic_sieve{skygear:look="000"}
+block/2,103,10: skygear:magic_sieve{skygear:look="000"}
+block/2,103,11: skygear:magic_sieve{skygear:look="000"}
+block/2,103,12: skygear:magic_sieve{skygear:look="000"}
+block/2,103,13: skygear:magic_sieve{skygear:look="000"}
+block/2,103,14: skygear:magic_sieve{skygear:look="000"}
+block/2,103,15: skygear:magic_sieve{skygear:look="000"}
+block/2,103,2: skygear:magic_sieve{skygear:look="000"}
+block/2,103,3: skygear:magic_sieve{skygear:look="000"}
+block/2,103,4: skygear:magic_sieve{skygear:look="000"}
+block/2,103,5: skygear:magic_sieve{skygear:look="000"}
+block/2,103,6: skygear:magic_sieve{skygear:look="000"}
+block/2,103,7: skygear:magic_sieve{skygear:look="000"}
+block/2,103,8: skygear:magic_sieve{skygear:look="000"}
+block/2,103,9: skygear:magic_sieve{skygear:look="000"}
+block/2,104,0: skygear:magic_sieve{skygear:look="000"}
+block/2,104,1: skygear:magic_sieve{skygear:look="000"}
+block/2,104,10: skygear:magic_sieve{skygear:look="000"}
+block/2,104,11: skygear:magic_sieve{skygear:look="000"}
+block/2,104,12: skygear:magic_sieve{skygear:look="000"}
+block/2,104,13: skygear:net_autocrafter{}
+block/2,104,14: skygear:net_cable{skygear:net_shape="015"}
+block/2,104,15: skygear:net_cable{skygear:net_shape="031"}
+block/2,104,2: skygear:magic_sieve{skygear:look="000"}
+block/2,104,3: skygear:magic_sieve{skygear:look="000"}
+block/2,104,4: skygear:magic_sieve{skygear:look="000"}
+block/2,104,5: skygear:magic_sieve{skygear:look="000"}
+block/2,104,6: skygear:magic_sieve{skygear:look="000"}
+block/2,104,7: skygear:magic_sieve{skygear:look="000"}
+block/2,104,8: skygear:magic_sieve{skygear:look="000"}
+block/2,104,9: skygear:magic_sieve{skygear:look="000"}
+block/2,105,0: skygear:net_cable{skygear:net_shape="047"}
+block/2,105,1: skygear:net_cable{skygear:net_shape="063"}
+block/2,105,10: skygear:net_exporter{skygear:net_shape="398"}
+block/2,105,11: skygear:net_exporter{skygear:net_shape="414"}
+block/2,105,12: skygear:net_exporter{skygear:net_shape="462"}
+block/2,105,13: skygear:net_exporter{skygear:net_shape="494"}
+block/2,105,14: skygear:net_external{skygear:net_shape="022"}
+block/2,105,15: skygear:net_external{skygear:net_shape="054"}
+block/2,105,2: skygear:net_exporter{skygear:net_shape="022"}
+block/2,105,3: skygear:net_exporter{skygear:net_shape="054"}
+block/2,105,4: skygear:net_exporter{skygear:net_shape="090"}
+block/2,105,5: skygear:net_exporter{skygear:net_shape="122"}
+block/2,105,6: skygear:net_exporter{skygear:net_shape="156"}
+block/2,105,7: skygear:net_exporter{skygear:net_shape="188"}
+block/2,105,8: skygear:net_exporter{skygear:net_shape="220"}
+block/2,105,9: skygear:net_exporter{skygear:net_shape="252"}
+block/2,106,0: skygear:net_external{skygear:net_shape="090"}
+block/2,106,1: skygear:net_external{skygear:net_shape="122"}
+block/2,106,10: skygear:net_importer{skygear:net_shape="022"}
+block/2,106,11: skygear:net_importer{skygear:net_shape="054"}
+block/2,106,12: skygear:net_importer{skygear:net_shape="090"}
+block/2,106,13: skygear:net_importer{skygear:net_shape="122"}
+block/2,106,14: skygear:net_importer{skygear:net_shape="156"}
+block/2,106,15: skygear:net_importer{skygear:net_shape="188"}
+block/2,106,2: skygear:net_external{skygear:net_shape="156"}
+block/2,106,3: skygear:net_external{skygear:net_shape="188"}
+block/2,106,4: skygear:net_external{skygear:net_shape="220"}
+block/2,106,5: skygear:net_external{skygear:net_shape="252"}
+block/2,106,6: skygear:net_external{skygear:net_shape="398"}
+block/2,106,7: skygear:net_external{skygear:net_shape="414"}
+block/2,106,8: skygear:net_external{skygear:net_shape="462"}
+block/2,106,9: skygear:net_external{skygear:net_shape="494"}
+block/2,107,0: skygear:net_importer{skygear:net_shape="220"}
+block/2,107,1: skygear:net_importer{skygear:net_shape="252"}
+block/2,107,10: skygear:sieve{skygear:look="000"}
+block/2,107,11: skygear:sieve{skygear:look="000"}
+block/2,107,12: skygear:sieve{skygear:look="000"}
+block/2,107,13: skygear:sieve{skygear:look="000"}
+block/2,107,14: skygear:sieve{skygear:look="000"}
+block/2,107,15: skygear:sieve{skygear:look="000"}
+block/2,107,2: skygear:net_importer{skygear:net_shape="398"}
+block/2,107,3: skygear:net_importer{skygear:net_shape="414"}
+block/2,107,4: skygear:net_importer{skygear:net_shape="462"}
+block/2,107,5: skygear:net_importer{skygear:net_shape="494"}
+block/2,107,6: skygear:preview_glass_cyan{}
+block/2,107,7: skygear:sieve{skygear:look="000"}
+block/2,107,8: skygear:sieve{skygear:look="000"}
+block/2,107,9: skygear:sieve{skygear:look="000"}
+block/2,108,0: skygear:sieve{skygear:look="000"}
+block/2,108,1: skygear:sieve{skygear:look="000"}
+block/2,108,10: skygear:sieve{skygear:look="000"}
+block/2,108,11: skygear:sieve{skygear:look="000"}
+block/2,108,12: skygear:sieve{skygear:look="000"}
+block/2,108,13: skygear:sieve{skygear:look="000"}
+block/2,108,14: skygear:sieve{skygear:look="000"}
+block/2,108,15: skygear:sieve{skygear:look="000"}
+block/2,108,2: skygear:sieve{skygear:look="000"}
+block/2,108,3: skygear:sieve{skygear:look="000"}
+block/2,108,4: skygear:sieve{skygear:look="000"}
+block/2,108,5: skygear:sieve{skygear:look="000"}
+block/2,108,6: skygear:sieve{skygear:look="000"}
+block/2,108,7: skygear:sieve{skygear:look="000"}
+block/2,108,8: skygear:sieve{skygear:look="000"}
+block/2,108,9: skygear:sieve{skygear:look="000"}
+block/2,109,0: skygear:sieve{skygear:look="000"}
+block/2,109,1: skygear:sieve{skygear:look="000"}
+block/2,109,2: skygear:sieve{skygear:look="000"}
+block/2,109,3: skygear:sieve{skygear:look="000"}
+block/2,109,4: skygear:sieve{skygear:look="000"}
+block/2,109,5: skygear:sieve{skygear:look="000"}
+block/2,109,6: skygear:tinker_table{}
+block/2,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/2,122,0: skygear:drawer{skygear:facing="north"}
+block/3,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/3,100,1: skygear:auto_miner{skygear:tier="0"}
+block/3,100,10: skygear:auto_sieve{skygear:look="000"}
+block/3,100,11: skygear:auto_sieve{skygear:look="000"}
+block/3,100,12: skygear:auto_sieve{skygear:look="000"}
+block/3,100,13: skygear:auto_sieve{skygear:look="000"}
+block/3,100,14: skygear:auto_sieve{skygear:look="000"}
+block/3,100,15: skygear:auto_sieve{skygear:look="000"}
+block/3,100,2: skygear:auto_sieve{skygear:look="000"}
+block/3,100,3: skygear:auto_sieve{skygear:look="000"}
+block/3,100,4: skygear:auto_sieve{skygear:look="000"}
+block/3,100,5: skygear:auto_sieve{skygear:look="000"}
+block/3,100,6: skygear:auto_sieve{skygear:look="000"}
+block/3,100,7: skygear:auto_sieve{skygear:look="000"}
+block/3,100,8: skygear:auto_sieve{skygear:look="000"}
+block/3,100,9: skygear:auto_sieve{skygear:look="000"}
+block/3,101,0: skygear:auto_sieve{skygear:look="000"}
+block/3,101,1: skygear:auto_sieve{skygear:look="000"}
+block/3,101,10: skygear:auto_sieve{skygear:look="000"}
+block/3,101,11: skygear:auto_sieve{skygear:look="000"}
+block/3,101,12: skygear:auto_sieve{skygear:look="000"}
+block/3,101,13: skygear:auto_sieve{skygear:look="000"}
+block/3,101,14: skygear:auto_sieve{skygear:look="000"}
+block/3,101,15: skygear:auto_sieve{skygear:look="000"}
+block/3,101,2: skygear:auto_sieve{skygear:look="000"}
+block/3,101,3: skygear:auto_sieve{skygear:look="000"}
+block/3,101,4: skygear:auto_sieve{skygear:look="000"}
+block/3,101,5: skygear:auto_sieve{skygear:look="000"}
+block/3,101,6: skygear:auto_sieve{skygear:look="000"}
+block/3,101,7: skygear:auto_sieve{skygear:look="000"}
+block/3,101,8: skygear:auto_sieve{skygear:look="000"}
+block/3,101,9: skygear:auto_sieve{skygear:look="000"}
+block/3,102,0: skygear:barrel_oak{skygear:barrel_stage="4"}
+block/3,102,1: skygear:compressed_cobblestone_3{}
+block/3,102,10: skygear:lava_generator{skygear:tier="0"}
+block/3,102,11: skygear:magic_plant{skygear:plant="flower_green_0"}
+block/3,102,12: skygear:magic_plant{skygear:plant="flower_red_0"}
+block/3,102,13: skygear:magic_plant{skygear:plant="gem_redstone_0"}
+block/3,102,14: skygear:magic_sieve{skygear:look="000"}
+block/3,102,15: skygear:magic_sieve{skygear:look="000"}
+block/3,102,2: skygear:conduit_item_3{}
+block/3,102,3: skygear:crusher{skygear:tier="0"}
+block/3,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/3,102,5: skygear:elevator_lime{}
+block/3,102,6: skygear:generator{skygear:tier="0"}
+block/3,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/3,102,8: skygear:infesting_leaves{skygear:infest_stage="9"}
+block/3,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/3,103,0: skygear:magic_sieve{skygear:look="000"}
+block/3,103,1: skygear:magic_sieve{skygear:look="000"}
+block/3,103,10: skygear:magic_sieve{skygear:look="000"}
+block/3,103,11: skygear:magic_sieve{skygear:look="000"}
+block/3,103,12: skygear:magic_sieve{skygear:look="000"}
+block/3,103,13: skygear:magic_sieve{skygear:look="000"}
+block/3,103,14: skygear:magic_sieve{skygear:look="000"}
+block/3,103,15: skygear:magic_sieve{skygear:look="000"}
+block/3,103,2: skygear:magic_sieve{skygear:look="000"}
+block/3,103,3: skygear:magic_sieve{skygear:look="000"}
+block/3,103,4: skygear:magic_sieve{skygear:look="000"}
+block/3,103,5: skygear:magic_sieve{skygear:look="000"}
+block/3,103,6: skygear:magic_sieve{skygear:look="000"}
+block/3,103,7: skygear:magic_sieve{skygear:look="000"}
+block/3,103,8: skygear:magic_sieve{skygear:look="000"}
+block/3,103,9: skygear:magic_sieve{skygear:look="000"}
+block/3,104,0: skygear:magic_sieve{skygear:look="000"}
+block/3,104,1: skygear:magic_sieve{skygear:look="000"}
+block/3,104,10: skygear:magic_sieve{skygear:look="000"}
+block/3,104,11: skygear:magic_sieve{skygear:look="000"}
+block/3,104,12: skygear:magic_sieve{skygear:look="000"}
+block/3,104,13: skygear:net_cable{skygear:net_shape="000"}
+block/3,104,14: skygear:net_cable{skygear:net_shape="016"}
+block/3,104,15: skygear:net_cable{skygear:net_shape="032"}
+block/3,104,2: skygear:magic_sieve{skygear:look="000"}
+block/3,104,3: skygear:magic_sieve{skygear:look="000"}
+block/3,104,4: skygear:magic_sieve{skygear:look="000"}
+block/3,104,5: skygear:magic_sieve{skygear:look="000"}
+block/3,104,6: skygear:magic_sieve{skygear:look="000"}
+block/3,104,7: skygear:magic_sieve{skygear:look="000"}
+block/3,104,8: skygear:magic_sieve{skygear:look="000"}
+block/3,104,9: skygear:magic_sieve{skygear:look="000"}
+block/3,105,0: skygear:net_cable{skygear:net_shape="048"}
+block/3,105,1: skygear:net_controller{}
+block/3,105,10: skygear:net_exporter{skygear:net_shape="399"}
+block/3,105,11: skygear:net_exporter{skygear:net_shape="415"}
+block/3,105,12: skygear:net_exporter{skygear:net_shape="463"}
+block/3,105,13: skygear:net_exporter{skygear:net_shape="495"}
+block/3,105,14: skygear:net_external{skygear:net_shape="023"}
+block/3,105,15: skygear:net_external{skygear:net_shape="055"}
+block/3,105,2: skygear:net_exporter{skygear:net_shape="023"}
+block/3,105,3: skygear:net_exporter{skygear:net_shape="055"}
+block/3,105,4: skygear:net_exporter{skygear:net_shape="091"}
+block/3,105,5: skygear:net_exporter{skygear:net_shape="123"}
+block/3,105,6: skygear:net_exporter{skygear:net_shape="157"}
+block/3,105,7: skygear:net_exporter{skygear:net_shape="189"}
+block/3,105,8: skygear:net_exporter{skygear:net_shape="222"}
+block/3,105,9: skygear:net_exporter{skygear:net_shape="254"}
+block/3,106,0: skygear:net_external{skygear:net_shape="091"}
+block/3,106,1: skygear:net_external{skygear:net_shape="123"}
+block/3,106,10: skygear:net_importer{skygear:net_shape="023"}
+block/3,106,11: skygear:net_importer{skygear:net_shape="055"}
+block/3,106,12: skygear:net_importer{skygear:net_shape="091"}
+block/3,106,13: skygear:net_importer{skygear:net_shape="123"}
+block/3,106,14: skygear:net_importer{skygear:net_shape="157"}
+block/3,106,15: skygear:net_importer{skygear:net_shape="189"}
+block/3,106,2: skygear:net_external{skygear:net_shape="157"}
+block/3,106,3: skygear:net_external{skygear:net_shape="189"}
+block/3,106,4: skygear:net_external{skygear:net_shape="222"}
+block/3,106,5: skygear:net_external{skygear:net_shape="254"}
+block/3,106,6: skygear:net_external{skygear:net_shape="399"}
+block/3,106,7: skygear:net_external{skygear:net_shape="415"}
+block/3,106,8: skygear:net_external{skygear:net_shape="463"}
+block/3,106,9: skygear:net_external{skygear:net_shape="495"}
+block/3,107,0: skygear:net_importer{skygear:net_shape="222"}
+block/3,107,1: skygear:net_importer{skygear:net_shape="254"}
+block/3,107,10: skygear:sieve{skygear:look="000"}
+block/3,107,11: skygear:sieve{skygear:look="000"}
+block/3,107,12: skygear:sieve{skygear:look="000"}
+block/3,107,13: skygear:sieve{skygear:look="000"}
+block/3,107,14: skygear:sieve{skygear:look="000"}
+block/3,107,15: skygear:sieve{skygear:look="000"}
+block/3,107,2: skygear:net_importer{skygear:net_shape="399"}
+block/3,107,3: skygear:net_importer{skygear:net_shape="415"}
+block/3,107,4: skygear:net_importer{skygear:net_shape="463"}
+block/3,107,5: skygear:net_importer{skygear:net_shape="495"}
+block/3,107,6: skygear:preview_glass_gray{}
+block/3,107,7: skygear:sieve{skygear:look="000"}
+block/3,107,8: skygear:sieve{skygear:look="000"}
+block/3,107,9: skygear:sieve{skygear:look="000"}
+block/3,108,0: skygear:sieve{skygear:look="000"}
+block/3,108,1: skygear:sieve{skygear:look="000"}
+block/3,108,10: skygear:sieve{skygear:look="000"}
+block/3,108,11: skygear:sieve{skygear:look="000"}
+block/3,108,12: skygear:sieve{skygear:look="000"}
+block/3,108,13: skygear:sieve{skygear:look="000"}
+block/3,108,14: skygear:sieve{skygear:look="000"}
+block/3,108,15: skygear:sieve{skygear:look="000"}
+block/3,108,2: skygear:sieve{skygear:look="000"}
+block/3,108,3: skygear:sieve{skygear:look="000"}
+block/3,108,4: skygear:sieve{skygear:look="000"}
+block/3,108,5: skygear:sieve{skygear:look="000"}
+block/3,108,6: skygear:sieve{skygear:look="000"}
+block/3,108,7: skygear:sieve{skygear:look="000"}
+block/3,108,8: skygear:sieve{skygear:look="000"}
+block/3,108,9: skygear:sieve{skygear:look="000"}
+block/3,109,0: skygear:sieve{skygear:look="000"}
+block/3,109,1: skygear:sieve{skygear:look="000"}
+block/3,109,2: skygear:sieve{skygear:look="000"}
+block/3,109,3: skygear:sieve{skygear:look="000"}
+block/3,109,4: skygear:sieve{skygear:look="000"}
+block/3,109,5: skygear:sieve{skygear:look="000"}
+block/3,109,6: skygear:tree_feller{skygear:tier="0"}
+block/3,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/4,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/4,100,1: skygear:auto_miner{skygear:tier="0"}
+block/4,100,10: skygear:auto_sieve{skygear:look="000"}
+block/4,100,11: skygear:auto_sieve{skygear:look="000"}
+block/4,100,12: skygear:auto_sieve{skygear:look="000"}
+block/4,100,13: skygear:auto_sieve{skygear:look="000"}
+block/4,100,14: skygear:auto_sieve{skygear:look="000"}
+block/4,100,15: skygear:auto_sieve{skygear:look="000"}
+block/4,100,2: skygear:auto_sieve{skygear:look="000"}
+block/4,100,3: skygear:auto_sieve{skygear:look="000"}
+block/4,100,4: skygear:auto_sieve{skygear:look="000"}
+block/4,100,5: skygear:auto_sieve{skygear:look="000"}
+block/4,100,6: skygear:auto_sieve{skygear:look="000"}
+block/4,100,7: skygear:auto_sieve{skygear:look="000"}
+block/4,100,8: skygear:auto_sieve{skygear:look="000"}
+block/4,100,9: skygear:auto_sieve{skygear:look="000"}
+block/4,101,0: skygear:auto_sieve{skygear:look="000"}
+block/4,101,1: skygear:auto_sieve{skygear:look="000"}
+block/4,101,10: skygear:auto_sieve{skygear:look="000"}
+block/4,101,11: skygear:auto_sieve{skygear:look="000"}
+block/4,101,12: skygear:auto_sieve{skygear:look="000"}
+block/4,101,13: skygear:auto_sieve{skygear:look="000"}
+block/4,101,14: skygear:auto_sieve{skygear:look="000"}
+block/4,101,15: skygear:auto_sieve{skygear:look="000"}
+block/4,101,2: skygear:auto_sieve{skygear:look="000"}
+block/4,101,3: skygear:auto_sieve{skygear:look="000"}
+block/4,101,4: skygear:auto_sieve{skygear:look="000"}
+block/4,101,5: skygear:auto_sieve{skygear:look="000"}
+block/4,101,6: skygear:auto_sieve{skygear:look="000"}
+block/4,101,7: skygear:auto_sieve{skygear:look="000"}
+block/4,101,8: skygear:auto_sieve{skygear:look="000"}
+block/4,101,9: skygear:auto_sieve{skygear:look="000"}
+block/4,102,0: skygear:barrel_oak{skygear:barrel_stage="5"}
+block/4,102,1: skygear:compressed_cobblestone_4{}
+block/4,102,10: skygear:lava_generator{skygear:tier="0"}
+block/4,102,11: skygear:magic_plant{skygear:plant="flower_green_1"}
+block/4,102,12: skygear:magic_plant{skygear:plant="flower_red_1"}
+block/4,102,13: skygear:magic_plant{skygear:plant="gem_redstone_1"}
+block/4,102,14: skygear:magic_sieve{skygear:look="000"}
+block/4,102,15: skygear:magic_sieve{skygear:look="000"}
+block/4,102,2: skygear:conduit_net_1{}
+block/4,102,3: skygear:crusher{skygear:tier="0"}
+block/4,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/4,102,5: skygear:elevator_magenta{}
+block/4,102,6: skygear:generator{skygear:tier="0"}
+block/4,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/4,102,8: skygear:infesting_leaves{skygear:infest_stage="p0"}
+block/4,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/4,103,0: skygear:magic_sieve{skygear:look="000"}
+block/4,103,1: skygear:magic_sieve{skygear:look="000"}
+block/4,103,10: skygear:magic_sieve{skygear:look="000"}
+block/4,103,11: skygear:magic_sieve{skygear:look="000"}
+block/4,103,12: skygear:magic_sieve{skygear:look="000"}
+block/4,103,13: skygear:magic_sieve{skygear:look="000"}
+block/4,103,14: skygear:magic_sieve{skygear:look="000"}
+block/4,103,15: skygear:magic_sieve{skygear:look="000"}
+block/4,103,2: skygear:magic_sieve{skygear:look="000"}
+block/4,103,3: skygear:magic_sieve{skygear:look="000"}
+block/4,103,4: skygear:magic_sieve{skygear:look="000"}
+block/4,103,5: skygear:magic_sieve{skygear:look="000"}
+block/4,103,6: skygear:magic_sieve{skygear:look="000"}
+block/4,103,7: skygear:magic_sieve{skygear:look="000"}
+block/4,103,8: skygear:magic_sieve{skygear:look="000"}
+block/4,103,9: skygear:magic_sieve{skygear:look="000"}
+block/4,104,0: skygear:magic_sieve{skygear:look="000"}
+block/4,104,1: skygear:magic_sieve{skygear:look="000"}
+block/4,104,10: skygear:magic_sieve{skygear:look="000"}
+block/4,104,11: skygear:magic_sieve{skygear:look="000"}
+block/4,104,12: skygear:magic_sieve{skygear:look="000"}
+block/4,104,13: skygear:net_cable{skygear:net_shape="001"}
+block/4,104,14: skygear:net_cable{skygear:net_shape="017"}
+block/4,104,15: skygear:net_cable{skygear:net_shape="033"}
+block/4,104,2: skygear:magic_sieve{skygear:look="000"}
+block/4,104,3: skygear:magic_sieve{skygear:look="000"}
+block/4,104,4: skygear:magic_sieve{skygear:look="000"}
+block/4,104,5: skygear:magic_sieve{skygear:look="000"}
+block/4,104,6: skygear:magic_sieve{skygear:look="000"}
+block/4,104,7: skygear:magic_sieve{skygear:look="000"}
+block/4,104,8: skygear:magic_sieve{skygear:look="000"}
+block/4,104,9: skygear:magic_sieve{skygear:look="000"}
+block/4,105,0: skygear:net_cable{skygear:net_shape="049"}
+block/4,105,1: skygear:net_exporter{skygear:net_shape="000"}
+block/4,105,10: skygear:net_exporter{skygear:net_shape="400"}
+block/4,105,11: skygear:net_exporter{skygear:net_shape="448"}
+block/4,105,12: skygear:net_exporter{skygear:net_shape="480"}
+block/4,105,13: skygear:net_external{skygear:net_shape="000"}
+block/4,105,14: skygear:net_external{skygear:net_shape="032"}
+block/4,105,15: skygear:net_external{skygear:net_shape="064"}
+block/4,105,2: skygear:net_exporter{skygear:net_shape="032"}
+block/4,105,3: skygear:net_exporter{skygear:net_shape="064"}
+block/4,105,4: skygear:net_exporter{skygear:net_shape="096"}
+block/4,105,5: skygear:net_exporter{skygear:net_shape="128"}
+block/4,105,6: skygear:net_exporter{skygear:net_shape="160"}
+block/4,105,7: skygear:net_exporter{skygear:net_shape="192"}
+block/4,105,8: skygear:net_exporter{skygear:net_shape="224"}
+block/4,105,9: skygear:net_exporter{skygear:net_shape="384"}
+block/4,106,0: skygear:net_external{skygear:net_shape="096"}
+block/4,106,1: skygear:net_external{skygear:net_shape="128"}
+block/4,106,10: skygear:net_importer{skygear:net_shape="032"}
+block/4,106,11: skygear:net_importer{skygear:net_shape="064"}
+block/4,106,12: skygear:net_importer{skygear:net_shape="096"}
+block/4,106,13: skygear:net_importer{skygear:net_shape="128"}
+block/4,106,14: skygear:net_importer{skygear:net_shape="160"}
+block/4,106,15: skygear:net_importer{skygear:net_shape="192"}
+block/4,106,2: skygear:net_external{skygear:net_shape="160"}
+block/4,106,3: skygear:net_external{skygear:net_shape="192"}
+block/4,106,4: skygear:net_external{skygear:net_shape="224"}
+block/4,106,5: skygear:net_external{skygear:net_shape="384"}
+block/4,106,6: skygear:net_external{skygear:net_shape="400"}
+block/4,106,7: skygear:net_external{skygear:net_shape="448"}
+block/4,106,8: skygear:net_external{skygear:net_shape="480"}
+block/4,106,9: skygear:net_importer{skygear:net_shape="000"}
+block/4,107,0: skygear:net_importer{skygear:net_shape="224"}
+block/4,107,1: skygear:net_importer{skygear:net_shape="384"}
+block/4,107,10: skygear:sieve{skygear:look="000"}
+block/4,107,11: skygear:sieve{skygear:look="000"}
+block/4,107,12: skygear:sieve{skygear:look="000"}
+block/4,107,13: skygear:sieve{skygear:look="000"}
+block/4,107,14: skygear:sieve{skygear:look="000"}
+block/4,107,15: skygear:sieve{skygear:look="000"}
+block/4,107,2: skygear:net_importer{skygear:net_shape="400"}
+block/4,107,3: skygear:net_importer{skygear:net_shape="448"}
+block/4,107,4: skygear:net_importer{skygear:net_shape="480"}
+block/4,107,5: skygear:net_terminal{}
+block/4,107,6: skygear:preview_glass_green{}
+block/4,107,7: skygear:sieve{skygear:look="000"}
+block/4,107,8: skygear:sieve{skygear:look="000"}
+block/4,107,9: skygear:sieve{skygear:look="000"}
+block/4,108,0: skygear:sieve{skygear:look="000"}
+block/4,108,1: skygear:sieve{skygear:look="000"}
+block/4,108,10: skygear:sieve{skygear:look="000"}
+block/4,108,11: skygear:sieve{skygear:look="000"}
+block/4,108,12: skygear:sieve{skygear:look="000"}
+block/4,108,13: skygear:sieve{skygear:look="000"}
+block/4,108,14: skygear:sieve{skygear:look="000"}
+block/4,108,15: skygear:sieve{skygear:look="000"}
+block/4,108,2: skygear:sieve{skygear:look="000"}
+block/4,108,3: skygear:sieve{skygear:look="000"}
+block/4,108,4: skygear:sieve{skygear:look="000"}
+block/4,108,5: skygear:sieve{skygear:look="000"}
+block/4,108,6: skygear:sieve{skygear:look="000"}
+block/4,108,7: skygear:sieve{skygear:look="000"}
+block/4,108,8: skygear:sieve{skygear:look="000"}
+block/4,108,9: skygear:sieve{skygear:look="000"}
+block/4,109,0: skygear:sieve{skygear:look="000"}
+block/4,109,1: skygear:sieve{skygear:look="000"}
+block/4,109,2: skygear:sieve{skygear:look="000"}
+block/4,109,3: skygear:sieve{skygear:look="000"}
+block/4,109,4: skygear:sieve{skygear:look="000"}
+block/4,109,5: skygear:sieve{skygear:look="000"}
+block/4,109,6: skygear:tree_feller{skygear:tier="0"}
+block/4,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/4,122,0: skygear:wood_hopper{skygear:hopper_facing="down"}
+block/5,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/5,100,1: skygear:auto_miner{skygear:tier="0"}
+block/5,100,10: skygear:auto_sieve{skygear:look="000"}
+block/5,100,11: skygear:auto_sieve{skygear:look="000"}
+block/5,100,12: skygear:auto_sieve{skygear:look="000"}
+block/5,100,13: skygear:auto_sieve{skygear:look="000"}
+block/5,100,14: skygear:auto_sieve{skygear:look="000"}
+block/5,100,15: skygear:auto_sieve{skygear:look="000"}
+block/5,100,2: skygear:auto_sieve{skygear:look="000"}
+block/5,100,3: skygear:auto_sieve{skygear:look="000"}
+block/5,100,4: skygear:auto_sieve{skygear:look="000"}
+block/5,100,5: skygear:auto_sieve{skygear:look="000"}
+block/5,100,6: skygear:auto_sieve{skygear:look="000"}
+block/5,100,7: skygear:auto_sieve{skygear:look="000"}
+block/5,100,8: skygear:auto_sieve{skygear:look="000"}
+block/5,100,9: skygear:auto_sieve{skygear:look="000"}
+block/5,101,0: skygear:auto_sieve{skygear:look="000"}
+block/5,101,1: skygear:auto_sieve{skygear:look="000"}
+block/5,101,10: skygear:auto_sieve{skygear:look="000"}
+block/5,101,11: skygear:auto_sieve{skygear:look="000"}
+block/5,101,12: skygear:auto_sieve{skygear:look="000"}
+block/5,101,13: skygear:auto_sieve{skygear:look="000"}
+block/5,101,14: skygear:auto_sieve{skygear:look="000"}
+block/5,101,15: skygear:auto_sieve{skygear:look="000"}
+block/5,101,2: skygear:auto_sieve{skygear:look="000"}
+block/5,101,3: skygear:auto_sieve{skygear:look="000"}
+block/5,101,4: skygear:auto_sieve{skygear:look="000"}
+block/5,101,5: skygear:auto_sieve{skygear:look="000"}
+block/5,101,6: skygear:auto_sieve{skygear:look="000"}
+block/5,101,7: skygear:auto_sieve{skygear:look="000"}
+block/5,101,8: skygear:auto_sieve{skygear:look="000"}
+block/5,101,9: skygear:auto_sieve{skygear:look="000"}
+block/5,102,0: skygear:barrel_oak{skygear:barrel_stage="6"}
+block/5,102,1: skygear:compressed_dirt_1{}
+block/5,102,10: skygear:lava_generator{skygear:tier="0"}
+block/5,102,11: skygear:magic_plant{skygear:plant="flower_light_blue_0"}
+block/5,102,12: skygear:magic_plant{skygear:plant="flower_white_0"}
+block/5,102,13: skygear:magic_plant{skygear:plant="ore_copper_0"}
+block/5,102,14: skygear:magic_sieve{skygear:look="000"}
+block/5,102,15: skygear:magic_sieve{skygear:look="000"}
+block/5,102,2: skygear:conduit_node{}
+block/5,102,3: skygear:crusher{skygear:tier="0"}
+block/5,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/5,102,5: skygear:elevator_orange{}
+block/5,102,6: skygear:generator{skygear:tier="0"}
+block/5,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/5,102,8: skygear:infesting_leaves{skygear:infest_stage="p1"}
+block/5,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/5,103,0: skygear:magic_sieve{skygear:look="000"}
+block/5,103,1: skygear:magic_sieve{skygear:look="000"}
+block/5,103,10: skygear:magic_sieve{skygear:look="000"}
+block/5,103,11: skygear:magic_sieve{skygear:look="000"}
+block/5,103,12: skygear:magic_sieve{skygear:look="000"}
+block/5,103,13: skygear:magic_sieve{skygear:look="000"}
+block/5,103,14: skygear:magic_sieve{skygear:look="000"}
+block/5,103,15: skygear:magic_sieve{skygear:look="000"}
+block/5,103,2: skygear:magic_sieve{skygear:look="000"}
+block/5,103,3: skygear:magic_sieve{skygear:look="000"}
+block/5,103,4: skygear:magic_sieve{skygear:look="000"}
+block/5,103,5: skygear:magic_sieve{skygear:look="000"}
+block/5,103,6: skygear:magic_sieve{skygear:look="000"}
+block/5,103,7: skygear:magic_sieve{skygear:look="000"}
+block/5,103,8: skygear:magic_sieve{skygear:look="000"}
+block/5,103,9: skygear:magic_sieve{skygear:look="000"}
+block/5,104,0: skygear:magic_sieve{skygear:look="000"}
+block/5,104,1: skygear:magic_sieve{skygear:look="000"}
+block/5,104,10: skygear:magic_sieve{skygear:look="000"}
+block/5,104,11: skygear:magic_sieve{skygear:look="000"}
+block/5,104,12: skygear:magic_sieve{skygear:look="000"}
+block/5,104,13: skygear:net_cable{skygear:net_shape="002"}
+block/5,104,14: skygear:net_cable{skygear:net_shape="018"}
+block/5,104,15: skygear:net_cable{skygear:net_shape="034"}
+block/5,104,2: skygear:magic_sieve{skygear:look="000"}
+block/5,104,3: skygear:magic_sieve{skygear:look="000"}
+block/5,104,4: skygear:magic_sieve{skygear:look="000"}
+block/5,104,5: skygear:magic_sieve{skygear:look="000"}
+block/5,104,6: skygear:magic_sieve{skygear:look="000"}
+block/5,104,7: skygear:magic_sieve{skygear:look="000"}
+block/5,104,8: skygear:magic_sieve{skygear:look="000"}
+block/5,104,9: skygear:magic_sieve{skygear:look="000"}
+block/5,105,0: skygear:net_cable{skygear:net_shape="050"}
+block/5,105,1: skygear:net_exporter{skygear:net_shape="001"}
+block/5,105,10: skygear:net_exporter{skygear:net_shape="401"}
+block/5,105,11: skygear:net_exporter{skygear:net_shape="449"}
+block/5,105,12: skygear:net_exporter{skygear:net_shape="481"}
+block/5,105,13: skygear:net_external{skygear:net_shape="001"}
+block/5,105,14: skygear:net_external{skygear:net_shape="033"}
+block/5,105,15: skygear:net_external{skygear:net_shape="065"}
+block/5,105,2: skygear:net_exporter{skygear:net_shape="033"}
+block/5,105,3: skygear:net_exporter{skygear:net_shape="065"}
+block/5,105,4: skygear:net_exporter{skygear:net_shape="097"}
+block/5,105,5: skygear:net_exporter{skygear:net_shape="129"}
+block/5,105,6: skygear:net_exporter{skygear:net_shape="161"}
+block/5,105,7: skygear:net_exporter{skygear:net_shape="194"}
+block/5,105,8: skygear:net_exporter{skygear:net_shape="226"}
+block/5,105,9: skygear:net_exporter{skygear:net_shape="385"}
+block/5,106,0: skygear:net_external{skygear:net_shape="097"}
+block/5,106,1: skygear:net_external{skygear:net_shape="129"}
+block/5,106,10: skygear:net_importer{skygear:net_shape="033"}
+block/5,106,11: skygear:net_importer{skygear:net_shape="065"}
+block/5,106,12: skygear:net_importer{skygear:net_shape="097"}
+block/5,106,13: skygear:net_importer{skygear:net_shape="129"}
+block/5,106,14: skygear:net_importer{skygear:net_shape="161"}
+block/5,106,15: skygear:net_importer{skygear:net_shape="194"}
+block/5,106,2: skygear:net_external{skygear:net_shape="161"}
+block/5,106,3: skygear:net_external{skygear:net_shape="194"}
+block/5,106,4: skygear:net_external{skygear:net_shape="226"}
+block/5,106,5: skygear:net_external{skygear:net_shape="385"}
+block/5,106,6: skygear:net_external{skygear:net_shape="401"}
+block/5,106,7: skygear:net_external{skygear:net_shape="449"}
+block/5,106,8: skygear:net_external{skygear:net_shape="481"}
+block/5,106,9: skygear:net_importer{skygear:net_shape="001"}
+block/5,107,0: skygear:net_importer{skygear:net_shape="226"}
+block/5,107,1: skygear:net_importer{skygear:net_shape="385"}
+block/5,107,10: skygear:sieve{skygear:look="000"}
+block/5,107,11: skygear:sieve{skygear:look="000"}
+block/5,107,12: skygear:sieve{skygear:look="000"}
+block/5,107,13: skygear:sieve{skygear:look="000"}
+block/5,107,14: skygear:sieve{skygear:look="000"}
+block/5,107,15: skygear:sieve{skygear:look="000"}
+block/5,107,2: skygear:net_importer{skygear:net_shape="401"}
+block/5,107,3: skygear:net_importer{skygear:net_shape="449"}
+block/5,107,4: skygear:net_importer{skygear:net_shape="481"}
+block/5,107,5: skygear:nickel_ore{}
+block/5,107,6: skygear:preview_glass_light_blue{}
+block/5,107,7: skygear:sieve{skygear:look="000"}
+block/5,107,8: skygear:sieve{skygear:look="000"}
+block/5,107,9: skygear:sieve{skygear:look="000"}
+block/5,108,0: skygear:sieve{skygear:look="000"}
+block/5,108,1: skygear:sieve{skygear:look="000"}
+block/5,108,10: skygear:sieve{skygear:look="000"}
+block/5,108,11: skygear:sieve{skygear:look="000"}
+block/5,108,12: skygear:sieve{skygear:look="000"}
+block/5,108,13: skygear:sieve{skygear:look="000"}
+block/5,108,14: skygear:sieve{skygear:look="000"}
+block/5,108,15: skygear:sieve{skygear:look="000"}
+block/5,108,2: skygear:sieve{skygear:look="000"}
+block/5,108,3: skygear:sieve{skygear:look="000"}
+block/5,108,4: skygear:sieve{skygear:look="000"}
+block/5,108,5: skygear:sieve{skygear:look="000"}
+block/5,108,6: skygear:sieve{skygear:look="000"}
+block/5,108,7: skygear:sieve{skygear:look="000"}
+block/5,108,8: skygear:sieve{skygear:look="000"}
+block/5,108,9: skygear:sieve{skygear:look="000"}
+block/5,109,0: skygear:sieve{skygear:look="000"}
+block/5,109,1: skygear:sieve{skygear:look="000"}
+block/5,109,2: skygear:sieve{skygear:look="000"}
+block/5,109,3: skygear:sieve{skygear:look="000"}
+block/5,109,4: skygear:sieve{skygear:look="000"}
+block/5,109,5: skygear:sieve{skygear:look="000"}
+block/5,109,6: skygear:tree_feller{skygear:tier="0"}
+block/5,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/6,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/6,100,1: skygear:auto_miner{skygear:tier="0"}
+block/6,100,10: skygear:auto_sieve{skygear:look="000"}
+block/6,100,11: skygear:auto_sieve{skygear:look="000"}
+block/6,100,12: skygear:auto_sieve{skygear:look="000"}
+block/6,100,13: skygear:auto_sieve{skygear:look="000"}
+block/6,100,14: skygear:auto_sieve{skygear:look="000"}
+block/6,100,15: skygear:auto_sieve{skygear:look="000"}
+block/6,100,2: skygear:auto_sieve{skygear:look="000"}
+block/6,100,3: skygear:auto_sieve{skygear:look="000"}
+block/6,100,4: skygear:auto_sieve{skygear:look="000"}
+block/6,100,5: skygear:auto_sieve{skygear:look="000"}
+block/6,100,6: skygear:auto_sieve{skygear:look="000"}
+block/6,100,7: skygear:auto_sieve{skygear:look="000"}
+block/6,100,8: skygear:auto_sieve{skygear:look="000"}
+block/6,100,9: skygear:auto_sieve{skygear:look="000"}
+block/6,101,0: skygear:auto_sieve{skygear:look="000"}
+block/6,101,1: skygear:auto_sieve{skygear:look="000"}
+block/6,101,10: skygear:auto_sieve{skygear:look="000"}
+block/6,101,11: skygear:auto_sieve{skygear:look="000"}
+block/6,101,12: skygear:auto_sieve{skygear:look="000"}
+block/6,101,13: skygear:auto_sieve{skygear:look="000"}
+block/6,101,14: skygear:auto_sieve{skygear:look="000"}
+block/6,101,15: skygear:auto_sieve{skygear:look="000"}
+block/6,101,2: skygear:auto_sieve{skygear:look="000"}
+block/6,101,3: skygear:auto_sieve{skygear:look="000"}
+block/6,101,4: skygear:auto_sieve{skygear:look="000"}
+block/6,101,5: skygear:auto_sieve{skygear:look="000"}
+block/6,101,6: skygear:auto_sieve{skygear:look="000"}
+block/6,101,7: skygear:auto_sieve{skygear:look="000"}
+block/6,101,8: skygear:auto_sieve{skygear:look="000"}
+block/6,101,9: skygear:auto_sieve{skygear:look="000"}
+block/6,102,0: skygear:barrel_oak{skygear:barrel_stage="7"}
+block/6,102,1: skygear:compressed_dirt_2{}
+block/6,102,10: skygear:lava_generator{skygear:tier="0"}
+block/6,102,11: skygear:magic_plant{skygear:plant="flower_light_blue_1"}
+block/6,102,12: skygear:magic_plant{skygear:plant="flower_white_1"}
+block/6,102,13: skygear:magic_plant{skygear:plant="ore_copper_1"}
+block/6,102,14: skygear:magic_sieve{skygear:look="000"}
+block/6,102,15: skygear:magic_sieve{skygear:look="000"}
+block/6,102,2: skygear:crucible{skygear:tier="0"}
+block/6,102,3: skygear:crusher{skygear:tier="0"}
+block/6,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/6,102,5: skygear:elevator_pink{}
+block/6,102,6: skygear:generator{skygear:tier="0"}
+block/6,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/6,102,8: skygear:infesting_leaves{skygear:infest_stage="p10"}
+block/6,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/6,103,0: skygear:magic_sieve{skygear:look="000"}
+block/6,103,1: skygear:magic_sieve{skygear:look="000"}
+block/6,103,10: skygear:magic_sieve{skygear:look="000"}
+block/6,103,11: skygear:magic_sieve{skygear:look="000"}
+block/6,103,12: skygear:magic_sieve{skygear:look="000"}
+block/6,103,13: skygear:magic_sieve{skygear:look="000"}
+block/6,103,14: skygear:magic_sieve{skygear:look="000"}
+block/6,103,15: skygear:magic_sieve{skygear:look="000"}
+block/6,103,2: skygear:magic_sieve{skygear:look="000"}
+block/6,103,3: skygear:magic_sieve{skygear:look="000"}
+block/6,103,4: skygear:magic_sieve{skygear:look="000"}
+block/6,103,5: skygear:magic_sieve{skygear:look="000"}
+block/6,103,6: skygear:magic_sieve{skygear:look="000"}
+block/6,103,7: skygear:magic_sieve{skygear:look="000"}
+block/6,103,8: skygear:magic_sieve{skygear:look="000"}
+block/6,103,9: skygear:magic_sieve{skygear:look="000"}
+block/6,104,0: skygear:magic_sieve{skygear:look="000"}
+block/6,104,1: skygear:magic_sieve{skygear:look="000"}
+block/6,104,10: skygear:magic_sieve{skygear:look="000"}
+block/6,104,11: skygear:magic_sieve{skygear:look="000"}
+block/6,104,12: skygear:magic_sieve{skygear:look="000"}
+block/6,104,13: skygear:net_cable{skygear:net_shape="003"}
+block/6,104,14: skygear:net_cable{skygear:net_shape="019"}
+block/6,104,15: skygear:net_cable{skygear:net_shape="035"}
+block/6,104,2: skygear:magic_sieve{skygear:look="000"}
+block/6,104,3: skygear:magic_sieve{skygear:look="000"}
+block/6,104,4: skygear:magic_sieve{skygear:look="000"}
+block/6,104,5: skygear:magic_sieve{skygear:look="000"}
+block/6,104,6: skygear:magic_sieve{skygear:look="000"}
+block/6,104,7: skygear:magic_sieve{skygear:look="000"}
+block/6,104,8: skygear:magic_sieve{skygear:look="000"}
+block/6,104,9: skygear:magic_sieve{skygear:look="000"}
+block/6,105,0: skygear:net_cable{skygear:net_shape="051"}
+block/6,105,1: skygear:net_exporter{skygear:net_shape="002"}
+block/6,105,10: skygear:net_exporter{skygear:net_shape="402"}
+block/6,105,11: skygear:net_exporter{skygear:net_shape="450"}
+block/6,105,12: skygear:net_exporter{skygear:net_shape="482"}
+block/6,105,13: skygear:net_external{skygear:net_shape="002"}
+block/6,105,14: skygear:net_external{skygear:net_shape="034"}
+block/6,105,15: skygear:net_external{skygear:net_shape="066"}
+block/6,105,2: skygear:net_exporter{skygear:net_shape="034"}
+block/6,105,3: skygear:net_exporter{skygear:net_shape="066"}
+block/6,105,4: skygear:net_exporter{skygear:net_shape="098"}
+block/6,105,5: skygear:net_exporter{skygear:net_shape="132"}
+block/6,105,6: skygear:net_exporter{skygear:net_shape="164"}
+block/6,105,7: skygear:net_exporter{skygear:net_shape="196"}
+block/6,105,8: skygear:net_exporter{skygear:net_shape="228"}
+block/6,105,9: skygear:net_exporter{skygear:net_shape="386"}
+block/6,106,0: skygear:net_external{skygear:net_shape="098"}
+block/6,106,1: skygear:net_external{skygear:net_shape="132"}
+block/6,106,10: skygear:net_importer{skygear:net_shape="034"}
+block/6,106,11: skygear:net_importer{skygear:net_shape="066"}
+block/6,106,12: skygear:net_importer{skygear:net_shape="098"}
+block/6,106,13: skygear:net_importer{skygear:net_shape="132"}
+block/6,106,14: skygear:net_importer{skygear:net_shape="164"}
+block/6,106,15: skygear:net_importer{skygear:net_shape="196"}
+block/6,106,2: skygear:net_external{skygear:net_shape="164"}
+block/6,106,3: skygear:net_external{skygear:net_shape="196"}
+block/6,106,4: skygear:net_external{skygear:net_shape="228"}
+block/6,106,5: skygear:net_external{skygear:net_shape="386"}
+block/6,106,6: skygear:net_external{skygear:net_shape="402"}
+block/6,106,7: skygear:net_external{skygear:net_shape="450"}
+block/6,106,8: skygear:net_external{skygear:net_shape="482"}
+block/6,106,9: skygear:net_importer{skygear:net_shape="002"}
+block/6,107,0: skygear:net_importer{skygear:net_shape="228"}
+block/6,107,1: skygear:net_importer{skygear:net_shape="386"}
+block/6,107,10: skygear:sieve{skygear:look="000"}
+block/6,107,11: skygear:sieve{skygear:look="000"}
+block/6,107,12: skygear:sieve{skygear:look="000"}
+block/6,107,13: skygear:sieve{skygear:look="000"}
+block/6,107,14: skygear:sieve{skygear:look="000"}
+block/6,107,15: skygear:sieve{skygear:look="000"}
+block/6,107,2: skygear:net_importer{skygear:net_shape="402"}
+block/6,107,3: skygear:net_importer{skygear:net_shape="450"}
+block/6,107,4: skygear:net_importer{skygear:net_shape="482"}
+block/6,107,5: skygear:ore_washer{skygear:tier="0"}
+block/6,107,6: skygear:preview_glass_light_gray{}
+block/6,107,7: skygear:sieve{skygear:look="000"}
+block/6,107,8: skygear:sieve{skygear:look="000"}
+block/6,107,9: skygear:sieve{skygear:look="000"}
+block/6,108,0: skygear:sieve{skygear:look="000"}
+block/6,108,1: skygear:sieve{skygear:look="000"}
+block/6,108,10: skygear:sieve{skygear:look="000"}
+block/6,108,11: skygear:sieve{skygear:look="000"}
+block/6,108,12: skygear:sieve{skygear:look="000"}
+block/6,108,13: skygear:sieve{skygear:look="000"}
+block/6,108,14: skygear:sieve{skygear:look="000"}
+block/6,108,15: skygear:sieve{skygear:look="000"}
+block/6,108,2: skygear:sieve{skygear:look="000"}
+block/6,108,3: skygear:sieve{skygear:look="000"}
+block/6,108,4: skygear:sieve{skygear:look="000"}
+block/6,108,5: skygear:sieve{skygear:look="000"}
+block/6,108,6: skygear:sieve{skygear:look="000"}
+block/6,108,7: skygear:sieve{skygear:look="000"}
+block/6,108,8: skygear:sieve{skygear:look="000"}
+block/6,108,9: skygear:sieve{skygear:look="000"}
+block/6,109,0: skygear:sieve{skygear:look="000"}
+block/6,109,1: skygear:sieve{skygear:look="000"}
+block/6,109,2: skygear:sieve{skygear:look="000"}
+block/6,109,3: skygear:sieve{skygear:look="000"}
+block/6,109,4: skygear:sieve{skygear:look="000"}
+block/6,109,5: skygear:sieve{skygear:look="000"}
+block/6,109,6: skygear:tree_feller{skygear:tier="0"}
+block/6,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/7,100,0: skygear:alloy_smelter{skygear:tier="0"}
+block/7,100,1: skygear:auto_miner{skygear:tier="0"}
+block/7,100,10: skygear:auto_sieve{skygear:look="000"}
+block/7,100,11: skygear:auto_sieve{skygear:look="000"}
+block/7,100,12: skygear:auto_sieve{skygear:look="000"}
+block/7,100,13: skygear:auto_sieve{skygear:look="000"}
+block/7,100,14: skygear:auto_sieve{skygear:look="000"}
+block/7,100,15: skygear:auto_sieve{skygear:look="000"}
+block/7,100,2: skygear:auto_sieve{skygear:look="000"}
+block/7,100,3: skygear:auto_sieve{skygear:look="000"}
+block/7,100,4: skygear:auto_sieve{skygear:look="000"}
+block/7,100,5: skygear:auto_sieve{skygear:look="000"}
+block/7,100,6: skygear:auto_sieve{skygear:look="000"}
+block/7,100,7: skygear:auto_sieve{skygear:look="000"}
+block/7,100,8: skygear:auto_sieve{skygear:look="000"}
+block/7,100,9: skygear:auto_sieve{skygear:look="000"}
+block/7,101,0: skygear:auto_sieve{skygear:look="000"}
+block/7,101,1: skygear:auto_sieve{skygear:look="000"}
+block/7,101,10: skygear:auto_sieve{skygear:look="000"}
+block/7,101,11: skygear:auto_sieve{skygear:look="000"}
+block/7,101,12: skygear:auto_sieve{skygear:look="000"}
+block/7,101,13: skygear:auto_sieve{skygear:look="000"}
+block/7,101,14: skygear:auto_sieve{skygear:look="000"}
+block/7,101,15: skygear:auto_sieve{skygear:look="000"}
+block/7,101,2: skygear:auto_sieve{skygear:look="000"}
+block/7,101,3: skygear:auto_sieve{skygear:look="000"}
+block/7,101,4: skygear:auto_sieve{skygear:look="000"}
+block/7,101,5: skygear:auto_sieve{skygear:look="000"}
+block/7,101,6: skygear:auto_sieve{skygear:look="000"}
+block/7,101,7: skygear:auto_sieve{skygear:look="000"}
+block/7,101,8: skygear:auto_sieve{skygear:look="000"}
+block/7,101,9: skygear:auto_sieve{skygear:look="000"}
+block/7,102,0: skygear:barrel_oak{skygear:barrel_stage="8"}
+block/7,102,1: skygear:compressed_gravel_1{}
+block/7,102,10: skygear:lava_generator{skygear:tier="0"}
+block/7,102,11: skygear:magic_plant{skygear:plant="flower_light_gray_0"}
+block/7,102,12: skygear:magic_plant{skygear:plant="flower_yellow_0"}
+block/7,102,13: skygear:magic_plant{skygear:plant="ore_gold_0"}
+block/7,102,14: skygear:magic_sieve{skygear:look="000"}
+block/7,102,15: skygear:magic_sieve{skygear:look="000"}
+block/7,102,2: skygear:crucible{skygear:tier="0"}
+block/7,102,3: skygear:crusher{skygear:tier="0"}
+block/7,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/7,102,5: skygear:elevator_purple{}
+block/7,102,6: skygear:generator{skygear:tier="0"}
+block/7,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/7,102,8: skygear:infesting_leaves{skygear:infest_stage="p2"}
+block/7,102,9: skygear:item_vacuum{skygear:tier="0"}
+block/7,103,0: skygear:magic_sieve{skygear:look="000"}
+block/7,103,1: skygear:magic_sieve{skygear:look="000"}
+block/7,103,10: skygear:magic_sieve{skygear:look="000"}
+block/7,103,11: skygear:magic_sieve{skygear:look="000"}
+block/7,103,12: skygear:magic_sieve{skygear:look="000"}
+block/7,103,13: skygear:magic_sieve{skygear:look="000"}
+block/7,103,14: skygear:magic_sieve{skygear:look="000"}
+block/7,103,15: skygear:magic_sieve{skygear:look="000"}
+block/7,103,2: skygear:magic_sieve{skygear:look="000"}
+block/7,103,3: skygear:magic_sieve{skygear:look="000"}
+block/7,103,4: skygear:magic_sieve{skygear:look="000"}
+block/7,103,5: skygear:magic_sieve{skygear:look="000"}
+block/7,103,6: skygear:magic_sieve{skygear:look="000"}
+block/7,103,7: skygear:magic_sieve{skygear:look="000"}
+block/7,103,8: skygear:magic_sieve{skygear:look="000"}
+block/7,103,9: skygear:magic_sieve{skygear:look="000"}
+block/7,104,0: skygear:magic_sieve{skygear:look="000"}
+block/7,104,1: skygear:magic_sieve{skygear:look="000"}
+block/7,104,10: skygear:magic_sieve{skygear:look="000"}
+block/7,104,11: skygear:magic_sieve{skygear:look="000"}
+block/7,104,12: skygear:magic_sieve{skygear:look="000"}
+block/7,104,13: skygear:net_cable{skygear:net_shape="004"}
+block/7,104,14: skygear:net_cable{skygear:net_shape="020"}
+block/7,104,15: skygear:net_cable{skygear:net_shape="036"}
+block/7,104,2: skygear:magic_sieve{skygear:look="000"}
+block/7,104,3: skygear:magic_sieve{skygear:look="000"}
+block/7,104,4: skygear:magic_sieve{skygear:look="000"}
+block/7,104,5: skygear:magic_sieve{skygear:look="000"}
+block/7,104,6: skygear:magic_sieve{skygear:look="000"}
+block/7,104,7: skygear:magic_sieve{skygear:look="000"}
+block/7,104,8: skygear:magic_sieve{skygear:look="000"}
+block/7,104,9: skygear:magic_sieve{skygear:look="000"}
+block/7,105,0: skygear:net_cable{skygear:net_shape="052"}
+block/7,105,1: skygear:net_exporter{skygear:net_shape="003"}
+block/7,105,10: skygear:net_exporter{skygear:net_shape="403"}
+block/7,105,11: skygear:net_exporter{skygear:net_shape="451"}
+block/7,105,12: skygear:net_exporter{skygear:net_shape="483"}
+block/7,105,13: skygear:net_external{skygear:net_shape="003"}
+block/7,105,14: skygear:net_external{skygear:net_shape="035"}
+block/7,105,15: skygear:net_external{skygear:net_shape="067"}
+block/7,105,2: skygear:net_exporter{skygear:net_shape="035"}
+block/7,105,3: skygear:net_exporter{skygear:net_shape="067"}
+block/7,105,4: skygear:net_exporter{skygear:net_shape="099"}
+block/7,105,5: skygear:net_exporter{skygear:net_shape="133"}
+block/7,105,6: skygear:net_exporter{skygear:net_shape="165"}
+block/7,105,7: skygear:net_exporter{skygear:net_shape="198"}
+block/7,105,8: skygear:net_exporter{skygear:net_shape="230"}
+block/7,105,9: skygear:net_exporter{skygear:net_shape="387"}
+block/7,106,0: skygear:net_external{skygear:net_shape="099"}
+block/7,106,1: skygear:net_external{skygear:net_shape="133"}
+block/7,106,10: skygear:net_importer{skygear:net_shape="035"}
+block/7,106,11: skygear:net_importer{skygear:net_shape="067"}
+block/7,106,12: skygear:net_importer{skygear:net_shape="099"}
+block/7,106,13: skygear:net_importer{skygear:net_shape="133"}
+block/7,106,14: skygear:net_importer{skygear:net_shape="165"}
+block/7,106,15: skygear:net_importer{skygear:net_shape="198"}
+block/7,106,2: skygear:net_external{skygear:net_shape="165"}
+block/7,106,3: skygear:net_external{skygear:net_shape="198"}
+block/7,106,4: skygear:net_external{skygear:net_shape="230"}
+block/7,106,5: skygear:net_external{skygear:net_shape="387"}
+block/7,106,6: skygear:net_external{skygear:net_shape="403"}
+block/7,106,7: skygear:net_external{skygear:net_shape="451"}
+block/7,106,8: skygear:net_external{skygear:net_shape="483"}
+block/7,106,9: skygear:net_importer{skygear:net_shape="003"}
+block/7,107,0: skygear:net_importer{skygear:net_shape="230"}
+block/7,107,1: skygear:net_importer{skygear:net_shape="387"}
+block/7,107,10: skygear:sieve{skygear:look="000"}
+block/7,107,11: skygear:sieve{skygear:look="000"}
+block/7,107,12: skygear:sieve{skygear:look="000"}
+block/7,107,13: skygear:sieve{skygear:look="000"}
+block/7,107,14: skygear:sieve{skygear:look="000"}
+block/7,107,15: skygear:sieve{skygear:look="000"}
+block/7,107,2: skygear:net_importer{skygear:net_shape="403"}
+block/7,107,3: skygear:net_importer{skygear:net_shape="451"}
+block/7,107,4: skygear:net_importer{skygear:net_shape="483"}
+block/7,107,5: skygear:ore_washer{skygear:tier="0"}
+block/7,107,6: skygear:preview_glass_lime{}
+block/7,107,7: skygear:sieve{skygear:look="000"}
+block/7,107,8: skygear:sieve{skygear:look="000"}
+block/7,107,9: skygear:sieve{skygear:look="000"}
+block/7,108,0: skygear:sieve{skygear:look="000"}
+block/7,108,1: skygear:sieve{skygear:look="000"}
+block/7,108,10: skygear:sieve{skygear:look="000"}
+block/7,108,11: skygear:sieve{skygear:look="000"}
+block/7,108,12: skygear:sieve{skygear:look="000"}
+block/7,108,13: skygear:sieve{skygear:look="000"}
+block/7,108,14: skygear:sieve{skygear:look="000"}
+block/7,108,15: skygear:sieve{skygear:look="000"}
+block/7,108,2: skygear:sieve{skygear:look="000"}
+block/7,108,3: skygear:sieve{skygear:look="000"}
+block/7,108,4: skygear:sieve{skygear:look="000"}
+block/7,108,5: skygear:sieve{skygear:look="000"}
+block/7,108,6: skygear:sieve{skygear:look="000"}
+block/7,108,7: skygear:sieve{skygear:look="000"}
+block/7,108,8: skygear:sieve{skygear:look="000"}
+block/7,108,9: skygear:sieve{skygear:look="000"}
+block/7,109,0: skygear:sieve{skygear:look="000"}
+block/7,109,1: skygear:sieve{skygear:look="000"}
+block/7,109,2: skygear:sieve{skygear:look="000"}
+block/7,109,3: skygear:sieve{skygear:look="000"}
+block/7,109,4: skygear:sieve{skygear:look="000"}
+block/7,109,5: skygear:sieve{skygear:look="000"}
+block/7,109,6: skygear:tree_feller{skygear:tier="0"}
+block/7,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/8,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/8,100,1: skygear:auto_sieve{skygear:look="000"}
+block/8,100,10: skygear:auto_sieve{skygear:look="000"}
+block/8,100,11: skygear:auto_sieve{skygear:look="000"}
+block/8,100,12: skygear:auto_sieve{skygear:look="000"}
+block/8,100,13: skygear:auto_sieve{skygear:look="000"}
+block/8,100,14: skygear:auto_sieve{skygear:look="000"}
+block/8,100,15: skygear:auto_sieve{skygear:look="000"}
+block/8,100,2: skygear:auto_sieve{skygear:look="000"}
+block/8,100,3: skygear:auto_sieve{skygear:look="000"}
+block/8,100,4: skygear:auto_sieve{skygear:look="000"}
+block/8,100,5: skygear:auto_sieve{skygear:look="000"}
+block/8,100,6: skygear:auto_sieve{skygear:look="000"}
+block/8,100,7: skygear:auto_sieve{skygear:look="000"}
+block/8,100,8: skygear:auto_sieve{skygear:look="000"}
+block/8,100,9: skygear:auto_sieve{skygear:look="000"}
+block/8,101,0: skygear:auto_sieve{skygear:look="000"}
+block/8,101,1: skygear:auto_sieve{skygear:look="000"}
+block/8,101,10: skygear:auto_sieve{skygear:look="000"}
+block/8,101,11: skygear:auto_sieve{skygear:look="000"}
+block/8,101,12: skygear:auto_sieve{skygear:look="000"}
+block/8,101,13: skygear:auto_sieve{skygear:look="000"}
+block/8,101,14: skygear:auto_sieve{skygear:look="000"}
+block/8,101,15: skygear:auto_sieve{skygear:look="000"}
+block/8,101,2: skygear:auto_sieve{skygear:look="000"}
+block/8,101,3: skygear:auto_sieve{skygear:look="000"}
+block/8,101,4: skygear:auto_sieve{skygear:look="000"}
+block/8,101,5: skygear:auto_sieve{skygear:look="000"}
+block/8,101,6: skygear:auto_sieve{skygear:look="000"}
+block/8,101,7: skygear:auto_sieve{skygear:look="000"}
+block/8,101,8: skygear:auto_sieve{skygear:look="000"}
+block/8,101,9: skygear:auto_sieve{skygear:look="000"}
+block/8,102,0: skygear:barrel_stone{skygear:barrel_stage="0"}
+block/8,102,1: skygear:compressed_gravel_2{}
+block/8,102,10: skygear:lead_ore{}
+block/8,102,11: skygear:magic_plant{skygear:plant="flower_light_gray_1"}
+block/8,102,12: skygear:magic_plant{skygear:plant="flower_yellow_1"}
+block/8,102,13: skygear:magic_plant{skygear:plant="ore_gold_1"}
+block/8,102,14: skygear:magic_sieve{skygear:look="000"}
+block/8,102,15: skygear:magic_sieve{skygear:look="000"}
+block/8,102,2: skygear:crucible{skygear:tier="0"}
+block/8,102,3: skygear:crusher{skygear:tier="0"}
+block/8,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/8,102,5: skygear:elevator_red{}
+block/8,102,6: skygear:generator{skygear:tier="0"}
+block/8,102,7: skygear:hydro_generator{skygear:tier="0"}
+block/8,102,8: skygear:infesting_leaves{skygear:infest_stage="p3"}
+block/8,102,9: skygear:laboratory{skygear:tier="0"}
+block/8,103,0: skygear:magic_sieve{skygear:look="000"}
+block/8,103,1: skygear:magic_sieve{skygear:look="000"}
+block/8,103,10: skygear:magic_sieve{skygear:look="000"}
+block/8,103,11: skygear:magic_sieve{skygear:look="000"}
+block/8,103,12: skygear:magic_sieve{skygear:look="000"}
+block/8,103,13: skygear:magic_sieve{skygear:look="000"}
+block/8,103,14: skygear:magic_sieve{skygear:look="000"}
+block/8,103,15: skygear:magic_sieve{skygear:look="000"}
+block/8,103,2: skygear:magic_sieve{skygear:look="000"}
+block/8,103,3: skygear:magic_sieve{skygear:look="000"}
+block/8,103,4: skygear:magic_sieve{skygear:look="000"}
+block/8,103,5: skygear:magic_sieve{skygear:look="000"}
+block/8,103,6: skygear:magic_sieve{skygear:look="000"}
+block/8,103,7: skygear:magic_sieve{skygear:look="000"}
+block/8,103,8: skygear:magic_sieve{skygear:look="000"}
+block/8,103,9: skygear:magic_sieve{skygear:look="000"}
+block/8,104,0: skygear:magic_sieve{skygear:look="000"}
+block/8,104,1: skygear:magic_sieve{skygear:look="000"}
+block/8,104,10: skygear:magic_sieve{skygear:look="000"}
+block/8,104,11: skygear:magic_sieve{skygear:look="000"}
+block/8,104,12: skygear:magic_sieve{skygear:look="000"}
+block/8,104,13: skygear:net_cable{skygear:net_shape="005"}
+block/8,104,14: skygear:net_cable{skygear:net_shape="021"}
+block/8,104,15: skygear:net_cable{skygear:net_shape="037"}
+block/8,104,2: skygear:magic_sieve{skygear:look="000"}
+block/8,104,3: skygear:magic_sieve{skygear:look="000"}
+block/8,104,4: skygear:magic_sieve{skygear:look="000"}
+block/8,104,5: skygear:magic_sieve{skygear:look="000"}
+block/8,104,6: skygear:magic_sieve{skygear:look="000"}
+block/8,104,7: skygear:magic_sieve{skygear:look="000"}
+block/8,104,8: skygear:magic_sieve{skygear:look="000"}
+block/8,104,9: skygear:magic_sieve{skygear:look="000"}
+block/8,105,0: skygear:net_cable{skygear:net_shape="053"}
+block/8,105,1: skygear:net_exporter{skygear:net_shape="004"}
+block/8,105,10: skygear:net_exporter{skygear:net_shape="404"}
+block/8,105,11: skygear:net_exporter{skygear:net_shape="452"}
+block/8,105,12: skygear:net_exporter{skygear:net_shape="484"}
+block/8,105,13: skygear:net_external{skygear:net_shape="004"}
+block/8,105,14: skygear:net_external{skygear:net_shape="036"}
+block/8,105,15: skygear:net_external{skygear:net_shape="072"}
+block/8,105,2: skygear:net_exporter{skygear:net_shape="036"}
+block/8,105,3: skygear:net_exporter{skygear:net_shape="072"}
+block/8,105,4: skygear:net_exporter{skygear:net_shape="104"}
+block/8,105,5: skygear:net_exporter{skygear:net_shape="136"}
+block/8,105,6: skygear:net_exporter{skygear:net_shape="168"}
+block/8,105,7: skygear:net_exporter{skygear:net_shape="200"}
+block/8,105,8: skygear:net_exporter{skygear:net_shape="232"}
+block/8,105,9: skygear:net_exporter{skygear:net_shape="388"}
+block/8,106,0: skygear:net_external{skygear:net_shape="104"}
+block/8,106,1: skygear:net_external{skygear:net_shape="136"}
+block/8,106,10: skygear:net_importer{skygear:net_shape="036"}
+block/8,106,11: skygear:net_importer{skygear:net_shape="072"}
+block/8,106,12: skygear:net_importer{skygear:net_shape="104"}
+block/8,106,13: skygear:net_importer{skygear:net_shape="136"}
+block/8,106,14: skygear:net_importer{skygear:net_shape="168"}
+block/8,106,15: skygear:net_importer{skygear:net_shape="200"}
+block/8,106,2: skygear:net_external{skygear:net_shape="168"}
+block/8,106,3: skygear:net_external{skygear:net_shape="200"}
+block/8,106,4: skygear:net_external{skygear:net_shape="232"}
+block/8,106,5: skygear:net_external{skygear:net_shape="388"}
+block/8,106,6: skygear:net_external{skygear:net_shape="404"}
+block/8,106,7: skygear:net_external{skygear:net_shape="452"}
+block/8,106,8: skygear:net_external{skygear:net_shape="484"}
+block/8,106,9: skygear:net_importer{skygear:net_shape="004"}
+block/8,107,0: skygear:net_importer{skygear:net_shape="232"}
+block/8,107,1: skygear:net_importer{skygear:net_shape="388"}
+block/8,107,10: skygear:sieve{skygear:look="000"}
+block/8,107,11: skygear:sieve{skygear:look="000"}
+block/8,107,12: skygear:sieve{skygear:look="000"}
+block/8,107,13: skygear:sieve{skygear:look="000"}
+block/8,107,14: skygear:sieve{skygear:look="000"}
+block/8,107,15: skygear:sieve{skygear:look="000"}
+block/8,107,2: skygear:net_importer{skygear:net_shape="404"}
+block/8,107,3: skygear:net_importer{skygear:net_shape="452"}
+block/8,107,4: skygear:net_importer{skygear:net_shape="484"}
+block/8,107,5: skygear:ore_washer{skygear:tier="0"}
+block/8,107,6: skygear:preview_glass_magenta{}
+block/8,107,7: skygear:sieve{skygear:look="000"}
+block/8,107,8: skygear:sieve{skygear:look="000"}
+block/8,107,9: skygear:sieve{skygear:look="000"}
+block/8,108,0: skygear:sieve{skygear:look="000"}
+block/8,108,1: skygear:sieve{skygear:look="000"}
+block/8,108,10: skygear:sieve{skygear:look="000"}
+block/8,108,11: skygear:sieve{skygear:look="000"}
+block/8,108,12: skygear:sieve{skygear:look="000"}
+block/8,108,13: skygear:sieve{skygear:look="000"}
+block/8,108,14: skygear:sieve{skygear:look="000"}
+block/8,108,15: skygear:sieve{skygear:look="000"}
+block/8,108,2: skygear:sieve{skygear:look="000"}
+block/8,108,3: skygear:sieve{skygear:look="000"}
+block/8,108,4: skygear:sieve{skygear:look="000"}
+block/8,108,5: skygear:sieve{skygear:look="000"}
+block/8,108,6: skygear:sieve{skygear:look="000"}
+block/8,108,7: skygear:sieve{skygear:look="000"}
+block/8,108,8: skygear:sieve{skygear:look="000"}
+block/8,108,9: skygear:sieve{skygear:look="000"}
+block/8,109,0: skygear:sieve{skygear:look="000"}
+block/8,109,1: skygear:sieve{skygear:look="000"}
+block/8,109,2: skygear:sieve{skygear:look="000"}
+block/8,109,3: skygear:sieve{skygear:look="000"}
+block/8,109,4: skygear:sieve{skygear:look="000"}
+block/8,109,5: skygear:silver_ore{}
+block/8,109,6: skygear:tree_feller{skygear:tier="0"}
+block/8,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+block/9,100,0: skygear:auto_crafter{skygear:tier="0"}
+block/9,100,1: skygear:auto_sieve{skygear:look="000"}
+block/9,100,10: skygear:auto_sieve{skygear:look="000"}
+block/9,100,11: skygear:auto_sieve{skygear:look="000"}
+block/9,100,12: skygear:auto_sieve{skygear:look="000"}
+block/9,100,13: skygear:auto_sieve{skygear:look="000"}
+block/9,100,14: skygear:auto_sieve{skygear:look="000"}
+block/9,100,15: skygear:auto_sieve{skygear:look="000"}
+block/9,100,2: skygear:auto_sieve{skygear:look="000"}
+block/9,100,3: skygear:auto_sieve{skygear:look="000"}
+block/9,100,4: skygear:auto_sieve{skygear:look="000"}
+block/9,100,5: skygear:auto_sieve{skygear:look="000"}
+block/9,100,6: skygear:auto_sieve{skygear:look="000"}
+block/9,100,7: skygear:auto_sieve{skygear:look="000"}
+block/9,100,8: skygear:auto_sieve{skygear:look="000"}
+block/9,100,9: skygear:auto_sieve{skygear:look="000"}
+block/9,101,0: skygear:auto_sieve{skygear:look="000"}
+block/9,101,1: skygear:auto_sieve{skygear:look="000"}
+block/9,101,10: skygear:auto_sieve{skygear:look="000"}
+block/9,101,11: skygear:auto_sieve{skygear:look="000"}
+block/9,101,12: skygear:auto_sieve{skygear:look="000"}
+block/9,101,13: skygear:auto_sieve{skygear:look="000"}
+block/9,101,14: skygear:auto_sieve{skygear:look="000"}
+block/9,101,15: skygear:auto_sieve{skygear:look="000"}
+block/9,101,2: skygear:auto_sieve{skygear:look="000"}
+block/9,101,3: skygear:auto_sieve{skygear:look="000"}
+block/9,101,4: skygear:auto_sieve{skygear:look="000"}
+block/9,101,5: skygear:auto_sieve{skygear:look="000"}
+block/9,101,6: skygear:auto_sieve{skygear:look="000"}
+block/9,101,7: skygear:auto_sieve{skygear:look="000"}
+block/9,101,8: skygear:auto_sieve{skygear:look="000"}
+block/9,101,9: skygear:auto_sieve{skygear:look="000"}
+block/9,102,0: skygear:barrel_stone{skygear:barrel_stage="1"}
+block/9,102,1: skygear:compressed_sand_1{}
+block/9,102,10: skygear:magic_plant{skygear:plant="flower_black_0"}
+block/9,102,11: skygear:magic_plant{skygear:plant="flower_lime_0"}
+block/9,102,12: skygear:magic_plant{skygear:plant="gem_coal_0"}
+block/9,102,13: skygear:magic_plant{skygear:plant="ore_iron_0"}
+block/9,102,14: skygear:magic_sieve{skygear:look="000"}
+block/9,102,15: skygear:magic_sieve{skygear:look="000"}
+block/9,102,2: skygear:crucible{skygear:tier="0"}
+block/9,102,3: skygear:crusher{skygear:tier="0"}
+block/9,102,4: skygear:electric_furnace{skygear:tier="0"}
+block/9,102,5: skygear:elevator_white{}
+block/9,102,6: skygear:harvester{skygear:tier="0"}
+block/9,102,7: skygear:infesting_leaves{skygear:infest_stage="0"}
+block/9,102,8: skygear:infesting_leaves{skygear:infest_stage="p4"}
+block/9,102,9: skygear:laboratory{skygear:tier="0"}
+block/9,103,0: skygear:magic_sieve{skygear:look="000"}
+block/9,103,1: skygear:magic_sieve{skygear:look="000"}
+block/9,103,10: skygear:magic_sieve{skygear:look="000"}
+block/9,103,11: skygear:magic_sieve{skygear:look="000"}
+block/9,103,12: skygear:magic_sieve{skygear:look="000"}
+block/9,103,13: skygear:magic_sieve{skygear:look="000"}
+block/9,103,14: skygear:magic_sieve{skygear:look="000"}
+block/9,103,15: skygear:magic_sieve{skygear:look="000"}
+block/9,103,2: skygear:magic_sieve{skygear:look="000"}
+block/9,103,3: skygear:magic_sieve{skygear:look="000"}
+block/9,103,4: skygear:magic_sieve{skygear:look="000"}
+block/9,103,5: skygear:magic_sieve{skygear:look="000"}
+block/9,103,6: skygear:magic_sieve{skygear:look="000"}
+block/9,103,7: skygear:magic_sieve{skygear:look="000"}
+block/9,103,8: skygear:magic_sieve{skygear:look="000"}
+block/9,103,9: skygear:magic_sieve{skygear:look="000"}
+block/9,104,0: skygear:magic_sieve{skygear:look="000"}
+block/9,104,1: skygear:magic_sieve{skygear:look="000"}
+block/9,104,10: skygear:magic_sieve{skygear:look="000"}
+block/9,104,11: skygear:magic_sieve{skygear:look="000"}
+block/9,104,12: skygear:magic_sieve{skygear:look="000"}
+block/9,104,13: skygear:net_cable{skygear:net_shape="006"}
+block/9,104,14: skygear:net_cable{skygear:net_shape="022"}
+block/9,104,15: skygear:net_cable{skygear:net_shape="038"}
+block/9,104,2: skygear:magic_sieve{skygear:look="000"}
+block/9,104,3: skygear:magic_sieve{skygear:look="000"}
+block/9,104,4: skygear:magic_sieve{skygear:look="000"}
+block/9,104,5: skygear:magic_sieve{skygear:look="000"}
+block/9,104,6: skygear:magic_sieve{skygear:look="000"}
+block/9,104,7: skygear:magic_sieve{skygear:look="000"}
+block/9,104,8: skygear:magic_sieve{skygear:look="000"}
+block/9,104,9: skygear:magic_sieve{skygear:look="000"}
+block/9,105,0: skygear:net_cable{skygear:net_shape="054"}
+block/9,105,1: skygear:net_exporter{skygear:net_shape="005"}
+block/9,105,10: skygear:net_exporter{skygear:net_shape="405"}
+block/9,105,11: skygear:net_exporter{skygear:net_shape="453"}
+block/9,105,12: skygear:net_exporter{skygear:net_shape="485"}
+block/9,105,13: skygear:net_external{skygear:net_shape="005"}
+block/9,105,14: skygear:net_external{skygear:net_shape="037"}
+block/9,105,15: skygear:net_external{skygear:net_shape="073"}
+block/9,105,2: skygear:net_exporter{skygear:net_shape="037"}
+block/9,105,3: skygear:net_exporter{skygear:net_shape="073"}
+block/9,105,4: skygear:net_exporter{skygear:net_shape="105"}
+block/9,105,5: skygear:net_exporter{skygear:net_shape="137"}
+block/9,105,6: skygear:net_exporter{skygear:net_shape="169"}
+block/9,105,7: skygear:net_exporter{skygear:net_shape="202"}
+block/9,105,8: skygear:net_exporter{skygear:net_shape="234"}
+block/9,105,9: skygear:net_exporter{skygear:net_shape="389"}
+block/9,106,0: skygear:net_external{skygear:net_shape="105"}
+block/9,106,1: skygear:net_external{skygear:net_shape="137"}
+block/9,106,10: skygear:net_importer{skygear:net_shape="037"}
+block/9,106,11: skygear:net_importer{skygear:net_shape="073"}
+block/9,106,12: skygear:net_importer{skygear:net_shape="105"}
+block/9,106,13: skygear:net_importer{skygear:net_shape="137"}
+block/9,106,14: skygear:net_importer{skygear:net_shape="169"}
+block/9,106,15: skygear:net_importer{skygear:net_shape="202"}
+block/9,106,2: skygear:net_external{skygear:net_shape="169"}
+block/9,106,3: skygear:net_external{skygear:net_shape="202"}
+block/9,106,4: skygear:net_external{skygear:net_shape="234"}
+block/9,106,5: skygear:net_external{skygear:net_shape="389"}
+block/9,106,6: skygear:net_external{skygear:net_shape="405"}
+block/9,106,7: skygear:net_external{skygear:net_shape="453"}
+block/9,106,8: skygear:net_external{skygear:net_shape="485"}
+block/9,106,9: skygear:net_importer{skygear:net_shape="005"}
+block/9,107,0: skygear:net_importer{skygear:net_shape="234"}
+block/9,107,1: skygear:net_importer{skygear:net_shape="389"}
+block/9,107,10: skygear:sieve{skygear:look="000"}
+block/9,107,11: skygear:sieve{skygear:look="000"}
+block/9,107,12: skygear:sieve{skygear:look="000"}
+block/9,107,13: skygear:sieve{skygear:look="000"}
+block/9,107,14: skygear:sieve{skygear:look="000"}
+block/9,107,15: skygear:sieve{skygear:look="000"}
+block/9,107,2: skygear:net_importer{skygear:net_shape="405"}
+block/9,107,3: skygear:net_importer{skygear:net_shape="453"}
+block/9,107,4: skygear:net_importer{skygear:net_shape="485"}
+block/9,107,5: skygear:ore_washer{skygear:tier="0"}
+block/9,107,6: skygear:preview_glass_orange{}
+block/9,107,7: skygear:sieve{skygear:look="000"}
+block/9,107,8: skygear:sieve{skygear:look="000"}
+block/9,107,9: skygear:sieve{skygear:look="000"}
+block/9,108,0: skygear:sieve{skygear:look="000"}
+block/9,108,1: skygear:sieve{skygear:look="000"}
+block/9,108,10: skygear:sieve{skygear:look="000"}
+block/9,108,11: skygear:sieve{skygear:look="000"}
+block/9,108,12: skygear:sieve{skygear:look="000"}
+block/9,108,13: skygear:sieve{skygear:look="000"}
+block/9,108,14: skygear:sieve{skygear:look="000"}
+block/9,108,15: skygear:sieve{skygear:look="000"}
+block/9,108,2: skygear:sieve{skygear:look="000"}
+block/9,108,3: skygear:sieve{skygear:look="000"}
+block/9,108,4: skygear:sieve{skygear:look="000"}
+block/9,108,5: skygear:sieve{skygear:look="000"}
+block/9,108,6: skygear:sieve{skygear:look="000"}
+block/9,108,7: skygear:sieve{skygear:look="000"}
+block/9,108,8: skygear:sieve{skygear:look="000"}
+block/9,108,9: skygear:sieve{skygear:look="000"}
+block/9,109,0: skygear:sieve{skygear:look="000"}
+block/9,109,1: skygear:sieve{skygear:look="000"}
+block/9,109,2: skygear:sieve{skygear:look="000"}
+block/9,109,3: skygear:sieve{skygear:look="000"}
+block/9,109,4: skygear:sieve{skygear:look="000"}
+block/9,109,5: skygear:solar_generator{skygear:tier="0"}
+block/9,109,6: skygear:tree_feller{skygear:tier="0"}
+block/9,120,0: minecraft:chest{minecraft:cardinal_direction="north"}
+item/0,120,0/00: skygear:alloy_atomic:0 x1
+item/0,120,0/01: skygear:alloy_infused:0 x1
+item/0,120,0/02: skygear:alloy_reinforced:0 x1
+item/0,120,0/03: skygear:alloy_smelter:0 x1
+item/0,120,0/04: skygear:auto_crafter:0 x1
+item/0,120,0/05: skygear:auto_miner:0 x1
+item/0,120,0/06: skygear:auto_sieve:0 x1
+item/0,120,0/07: skygear:bark_fiber:0 x1
+item/0,120,0/08: skygear:barrel_oak:0 x1
+item/0,120,0/09: skygear:barrel_stone:0 x1
+item/0,120,0/10: skygear:circuit_1:0 x1
+item/0,120,0/11: skygear:circuit_2:0 x1
+item/0,120,0/12: skygear:circuit_3:0 x1
+item/0,120,0/13: skygear:circuit_4:0 x1
+item/0,120,0/14: skygear:compressed_cobblestone_1:0 x1
+item/0,120,0/15: skygear:compressed_cobblestone_2:0 x1
+item/0,120,0/16: skygear:compressed_cobblestone_3:0 x1
+item/0,120,0/17: skygear:compressed_cobblestone_4:0 x1
+item/0,120,0/18: skygear:compressed_dirt_1:0 x1
+item/0,120,0/19: skygear:compressed_dirt_2:0 x1
+item/0,120,0/20: skygear:compressed_gravel_1:0 x1
+item/0,120,0/21: skygear:compressed_gravel_2:0 x1
+item/0,120,0/22: skygear:compressed_sand_1:0 x1
+item/0,120,0/23: skygear:compressed_sand_2:0 x1
+item/0,120,0/24: skygear:conduit_binder:0 x1
+item/0,120,0/25: skygear:conduit_binder_mix:0 x1
+item/0,120,0/26: skygear:conduit_energy_1:0 x1
+item/0,122,0/11: skygear:alloy_atomic:0 x3
+item/0,122,0/15: skygear:ore_washer:0 x2
+item/1,120,0/00: skygear:conduit_energy_2:0 x1
+item/1,120,0/01: skygear:conduit_energy_3:0 x1
+item/1,120,0/02: skygear:conduit_fluid_1:0 x1
+item/1,120,0/03: skygear:conduit_fluid_2:0 x1
+item/1,120,0/04: skygear:conduit_fluid_3:0 x1
+item/1,120,0/05: skygear:conduit_item_1:0 x1
+item/1,120,0/06: skygear:conduit_item_2:0 x1
+item/1,120,0/07: skygear:conduit_item_3:0 x1
+item/1,120,0/08: skygear:conduit_net_1:0 x1
+item/1,120,0/09: skygear:config_copier:0 x1
+item/1,120,0/10: skygear:cooked_silkworm:0 x1
+item/1,120,0/11: skygear:crucible:0 x1
+item/1,120,0/12: skygear:crushed_blackstone:0 x1
+item/1,120,0/13: skygear:crushed_deepslate:0 x1
+item/1,120,0/14: skygear:crushed_end_stone:0 x1
+item/1,120,0/15: skygear:crushed_netherrack:0 x1
+item/1,120,0/16: skygear:crusher:0 x1
+item/1,120,0/17: skygear:cycle_0:0 x1
+item/1,120,0/18: skygear:cycle_1:0 x1
+item/1,120,0/19: skygear:cycle_10:0 x1
+item/1,120,0/20: skygear:cycle_2:0 x1
+item/1,120,0/21: skygear:cycle_3:0 x1
+item/1,120,0/22: skygear:cycle_4:0 x1
+item/1,120,0/23: skygear:cycle_5:0 x1
+item/1,120,0/24: skygear:cycle_6:0 x1
+item/1,120,0/25: skygear:cycle_7:0 x1
+item/1,120,0/26: skygear:cycle_8:0 x1
+item/10,120,0/00: skygear:stone_crook:0 x1
+item/10,120,0/01: skygear:stone_hammer:0 x1
+item/10,120,0/02: skygear:stone_wand:0 x1
+item/10,120,0/03: skygear:storage_disk_16k:0 x1
+item/10,120,0/04: skygear:storage_disk_1k:0 x1
+item/10,120,0/05: skygear:storage_disk_4k:0 x1
+item/10,120,0/06: skygear:storage_disk_64k:0 x1
+item/10,120,0/07: skygear:tin_ore:0 x1
+item/10,120,0/08: skygear:tinker_table:0 x1
+item/10,120,0/09: skygear:tool_axe_bronze_blaze:0 x1
+item/10,120,0/10: skygear:tool_axe_bronze_bone:0 x1
+item/10,120,0/11: skygear:tool_axe_bronze_wood:0 x1
+item/10,120,0/12: skygear:tool_axe_diamond_blaze:0 x1
+item/10,120,0/13: skygear:tool_axe_diamond_bone:0 x1
+item/10,120,0/14: skygear:tool_axe_diamond_wood:0 x1
+item/10,120,0/15: skygear:tool_axe_electrum_blaze:0 x1
+item/10,120,0/16: skygear:tool_axe_electrum_bone:0 x1
+item/10,120,0/17: skygear:tool_axe_electrum_wood:0 x1
+item/10,120,0/18: skygear:tool_axe_flint_blaze:0 x1
+item/10,120,0/19: skygear:tool_axe_flint_bone:0 x1
+item/10,120,0/20: skygear:tool_axe_flint_wood:0 x1
+item/10,120,0/21: skygear:tool_axe_invar_blaze:0 x1
+item/10,120,0/22: skygear:tool_axe_invar_bone:0 x1
+item/10,120,0/23: skygear:tool_axe_invar_wood:0 x1
+item/10,120,0/24: skygear:tool_axe_iron_blaze:0 x1
+item/10,120,0/25: skygear:tool_axe_iron_bone:0 x1
+item/10,120,0/26: skygear:tool_axe_iron_wood:0 x1
+item/11,120,0/00: skygear:tool_axe_steel_blaze:0 x1
+item/11,120,0/01: skygear:tool_axe_steel_bone:0 x1
+item/11,120,0/02: skygear:tool_axe_steel_wood:0 x1
+item/11,120,0/03: skygear:tool_pickaxe_bronze_blaze:0 x1
+item/11,120,0/04: skygear:tool_pickaxe_bronze_bone:0 x1
+item/11,120,0/05: skygear:tool_pickaxe_bronze_wood:0 x1
+item/11,120,0/06: skygear:tool_pickaxe_diamond_blaze:0 x1
+item/11,120,0/07: skygear:tool_pickaxe_diamond_bone:0 x1
+item/11,120,0/08: skygear:tool_pickaxe_diamond_wood:0 x1
+item/11,120,0/09: skygear:tool_pickaxe_electrum_blaze:0 x1
+item/11,120,0/10: skygear:tool_pickaxe_electrum_bone:0 x1
+item/11,120,0/11: skygear:tool_pickaxe_electrum_wood:0 x1
+item/11,120,0/12: skygear:tool_pickaxe_flint_blaze:0 x1
+item/11,120,0/13: skygear:tool_pickaxe_flint_bone:0 x1
+item/11,120,0/14: skygear:tool_pickaxe_flint_wood:0 x1
+item/11,120,0/15: skygear:tool_pickaxe_invar_blaze:0 x1
+item/11,120,0/16: skygear:tool_pickaxe_invar_bone:0 x1
+item/11,120,0/17: skygear:tool_pickaxe_invar_wood:0 x1
+item/11,120,0/18: skygear:tool_pickaxe_iron_blaze:0 x1
+item/11,120,0/19: skygear:tool_pickaxe_iron_bone:0 x1
+item/11,120,0/20: skygear:tool_pickaxe_iron_wood:0 x1
+item/11,120,0/21: skygear:tool_pickaxe_steel_blaze:0 x1
+item/11,120,0/22: skygear:tool_pickaxe_steel_bone:0 x1
+item/11,120,0/23: skygear:tool_pickaxe_steel_wood:0 x1
+item/11,120,0/24: skygear:tool_shovel_bronze_blaze:0 x1
+item/11,120,0/25: skygear:tool_shovel_bronze_bone:0 x1
+item/11,120,0/26: skygear:tool_shovel_bronze_wood:0 x1
+item/12,120,0/00: skygear:tool_shovel_diamond_blaze:0 x1
+item/12,120,0/01: skygear:tool_shovel_diamond_bone:0 x1
+item/12,120,0/02: skygear:tool_shovel_diamond_wood:0 x1
+item/12,120,0/03: skygear:tool_shovel_electrum_blaze:0 x1
+item/12,120,0/04: skygear:tool_shovel_electrum_bone:0 x1
+item/12,120,0/05: skygear:tool_shovel_electrum_wood:0 x1
+item/12,120,0/06: skygear:tool_shovel_flint_blaze:0 x1
+item/12,120,0/07: skygear:tool_shovel_flint_bone:0 x1
+item/12,120,0/08: skygear:tool_shovel_flint_wood:0 x1
+item/12,120,0/09: skygear:tool_shovel_invar_blaze:0 x1
+item/12,120,0/10: skygear:tool_shovel_invar_bone:0 x1
+item/12,120,0/11: skygear:tool_shovel_invar_wood:0 x1
+item/12,120,0/12: skygear:tool_shovel_iron_blaze:0 x1
+item/12,120,0/13: skygear:tool_shovel_iron_bone:0 x1
+item/12,120,0/14: skygear:tool_shovel_iron_wood:0 x1
+item/12,120,0/15: skygear:tool_shovel_steel_blaze:0 x1
+item/12,120,0/16: skygear:tool_shovel_steel_bone:0 x1
+item/12,120,0/17: skygear:tool_shovel_steel_wood:0 x1
+item/12,120,0/18: skygear:tree_feller:0 x1
+item/12,120,0/19: skygear:witch_water_bucket:0 x1
+item/12,120,0/20: skygear:wood_hopper:0 x1
+item/12,120,0/21: skygear:wood_hopper_reverse:0 x1
+item/12,120,0/22: skygear:wooden_bucket:0 x1
+item/12,120,0/23: skygear:wooden_crook:0 x1
+item/12,120,0/24: skygear:wooden_water_bucket:0 x1
+item/2,120,0/00: skygear:cycle_9:0 x1
+item/2,120,0/01: skygear:diamond_crook:0 x1
+item/2,120,0/02: skygear:diamond_wand:0 x1
+item/2,120,0/03: skygear:dimension_stone:0 x1
+item/2,120,0/04: skygear:disk_drive:0 x1
+item/2,120,0/05: skygear:drawer:0 x1
+item/2,120,0/06: skygear:drawer_controller:0 x1
+item/2,120,0/07: skygear:drawer_interface:0 x1
+item/2,120,0/08: skygear:drawer_key:0 x1
+item/2,120,0/09: skygear:drawer_trim:0 x1
+item/2,120,0/10: skygear:drawer_upgrade_capacity:0 x1
+item/2,120,0/11: skygear:drawer_upgrade_void:0 x1
+item/2,120,0/12: skygear:dust:0 x1
+item/2,120,0/13: skygear:electric_furnace:0 x1
+item/2,120,0/14: skygear:elevator_black:0 x1
+item/2,120,0/15: skygear:elevator_blue:0 x1
+item/2,120,0/16: skygear:elevator_brown:0 x1
+item/2,120,0/17: skygear:elevator_cyan:0 x1
+item/2,120,0/18: skygear:elevator_gray:0 x1
+item/2,120,0/19: skygear:elevator_green:0 x1
+item/2,120,0/20: skygear:elevator_light_blue:0 x1
+item/2,120,0/21: skygear:elevator_light_gray:0 x1
+item/2,120,0/22: skygear:elevator_lime:0 x1
+item/2,120,0/23: skygear:elevator_magenta:0 x1
+item/2,120,0/24: skygear:elevator_orange:0 x1
+item/2,120,0/25: skygear:elevator_pink:0 x1
+item/2,120,0/26: skygear:elevator_purple:0 x1
+item/2,122,0/00: skygear:hammer:0 x77
+item/3,120,0/00: skygear:elevator_red:0 x1
+item/3,120,0/01: skygear:elevator_white:0 x1
+item/3,120,0/02: skygear:elevator_yellow:0 x1
+item/3,120,0/03: skygear:energy_cell:0 x1
+item/3,120,0/04: skygear:energy_gauge_0:0 x1
+item/3,120,0/05: skygear:energy_gauge_1:0 x1
+item/3,120,0/06: skygear:energy_gauge_10:0 x1
+item/3,120,0/07: skygear:energy_gauge_2:0 x1
+item/3,120,0/08: skygear:energy_gauge_3:0 x1
+item/3,120,0/09: skygear:energy_gauge_4:0 x1
+item/3,120,0/10: skygear:energy_gauge_5:0 x1
+item/3,120,0/11: skygear:energy_gauge_6:0 x1
+item/3,120,0/12: skygear:energy_gauge_7:0 x1
+item/3,120,0/13: skygear:energy_gauge_8:0 x1
+item/3,120,0/14: skygear:energy_gauge_9:0 x1
+item/3,120,0/15: skygear:essence_blaze:0 x1
+item/3,120,0/16: skygear:essence_collector:0 x1
+item/3,120,0/17: skygear:essence_creeper:0 x1
+item/3,120,0/18: skygear:essence_drowned:0 x1
+item/3,120,0/19: skygear:essence_enderman:0 x1
+item/3,120,0/20: skygear:essence_piglin:0 x1
+item/3,120,0/21: skygear:essence_skeleton:0 x1
+item/3,120,0/22: skygear:essence_slime:0 x1
+item/3,120,0/23: skygear:essence_spider:0 x1
+item/3,120,0/24: skygear:essence_witch:0 x1
+item/3,120,0/25: skygear:essence_wither_skeleton:0 x1
+item/3,120,0/26: skygear:essence_zombie:0 x1
+item/4,120,0/00: skygear:fairy_board:0 x1
+item/4,120,0/01: skygear:fairy_bone_meal:0 x1
+item/4,120,0/02: skygear:fairy_dust:0 x1
+item/4,120,0/03: skygear:fairy_emerald:0 x1
+item/4,120,0/04: skygear:fairy_hourglass:0 x1
+item/4,120,0/05: skygear:fluid_tank:0 x1
+item/4,120,0/06: skygear:generator:0 x1
+item/4,120,0/07: skygear:grass_seeds:0 x1
+item/4,120,0/08: skygear:hammer:0 x1
+item/4,120,0/09: skygear:harvester:0 x1
+item/4,120,0/10: skygear:hydro_generator:0 x1
+item/4,120,0/11: skygear:infesting_leaves:0 x1
+item/4,120,0/12: skygear:infinity_wand:0 x1
+item/4,120,0/13: skygear:ingot_bronze:0 x1
+item/4,120,0/14: skygear:ingot_electrum:0 x1
+item/4,120,0/15: skygear:ingot_invar:0 x1
+item/4,120,0/16: skygear:ingot_lead:0 x1
+item/4,120,0/17: skygear:ingot_nickel:0 x1
+item/4,120,0/18: skygear:ingot_silver:0 x1
+item/4,120,0/19: skygear:ingot_steel:0 x1
+item/4,120,0/20: skygear:ingot_tin:0 x1
+item/4,120,0/21: skygear:iron_crook:0 x1
+item/4,120,0/22: skygear:iron_hopper_reverse:0 x1
+item/4,120,0/23: skygear:iron_wand:0 x1
+item/4,120,0/24: skygear:item_vacuum:0 x1
+item/4,120,0/25: skygear:kit_1:0 x1
+item/4,120,0/26: skygear:kit_2:0 x1
+item/4,122,0/00: skygear:wooden_water_bucket:0 x1
+item/5,120,0/00: skygear:kit_3:0 x1
+item/5,120,0/01: skygear:laboratory:0 x1
+item/5,120,0/02: skygear:lava_generator:0 x1
+item/5,120,0/03: skygear:lead_ore:0 x1
+item/5,120,0/04: skygear:liquid_lava:0 x1
+item/5,120,0/05: skygear:liquid_water:0 x1
+item/5,120,0/06: skygear:liquid_witch_water:0 x1
+item/5,120,0/07: skygear:machine_info:0 x1
+item/5,120,0/08: skygear:magic_sieve:0 x1
+item/5,120,0/09: skygear:mesh_diamond:0 x1
+item/5,120,0/10: skygear:mesh_flint:0 x1
+item/5,120,0/11: skygear:mesh_gold:0 x1
+item/5,120,0/12: skygear:mesh_iron:0 x1
+item/5,120,0/13: skygear:mesh_netherite:0 x1
+item/5,120,0/14: skygear:mesh_string:0 x1
+item/5,120,0/15: skygear:metal_dust_copper:0 x1
+item/5,120,0/16: skygear:metal_dust_gold:0 x1
+item/5,120,0/17: skygear:metal_dust_iron:0 x1
+item/5,120,0/18: skygear:metal_dust_lead:0 x1
+item/5,120,0/19: skygear:metal_dust_nickel:0 x1
+item/5,120,0/20: skygear:metal_dust_silver:0 x1
+item/5,120,0/21: skygear:metal_dust_tin:0 x1
+item/5,120,0/22: skygear:mob_simulator:0 x1
+item/5,120,0/23: skygear:mycelium_spores:0 x1
+item/5,120,0/24: skygear:net_autocrafter:0 x1
+item/5,120,0/25: skygear:net_cable:0 x1
+item/5,120,0/26: skygear:net_controller:0 x1
+item/6,120,0/00: skygear:net_exporter:0 x1
+item/6,120,0/01: skygear:net_external:0 x1
+item/6,120,0/02: skygear:net_importer:0 x1
+item/6,120,0/03: skygear:net_terminal:0 x1
+item/6,120,0/04: skygear:nickel_ore:0 x1
+item/6,120,0/05: skygear:ore_chunk_copper:0 x1
+item/6,120,0/06: skygear:ore_chunk_gold:0 x1
+item/6,120,0/07: skygear:ore_chunk_iron:0 x1
+item/6,120,0/08: skygear:ore_chunk_lead:0 x1
+item/6,120,0/09: skygear:ore_chunk_nickel:0 x1
+item/6,120,0/10: skygear:ore_chunk_silver:0 x1
+item/6,120,0/11: skygear:ore_chunk_tin:0 x1
+item/6,120,0/12: skygear:ore_washer:0 x1
+item/6,120,0/13: skygear:pattern:0 x1
+item/6,120,0/14: skygear:pattern_encoder:0 x1
+item/6,120,0/15: skygear:pebble_andesite:0 x1
+item/6,120,0/16: skygear:pebble_basalt:0 x1
+item/6,120,0/17: skygear:pebble_blackstone:0 x1
+item/6,120,0/18: skygear:pebble_calcite:0 x1
+item/6,120,0/19: skygear:pebble_deepslate:0 x1
+item/6,120,0/20: skygear:pebble_diorite:0 x1
+item/6,120,0/21: skygear:pebble_granite:0 x1
+item/6,120,0/22: skygear:pebble_stone:0 x1
+item/6,120,0/23: skygear:pebble_tuff:0 x1
+item/6,120,0/24: skygear:petal_black:0 x1
+item/6,120,0/25: skygear:petal_blue:0 x1
+item/6,120,0/26: skygear:petal_brown:0 x1
+item/7,120,0/00: skygear:petal_cyan:0 x1
+item/7,120,0/01: skygear:petal_gray:0 x1
+item/7,120,0/02: skygear:petal_green:0 x1
+item/7,120,0/03: skygear:petal_light_blue:0 x1
+item/7,120,0/04: skygear:petal_light_gray:0 x1
+item/7,120,0/05: skygear:petal_lime:0 x1
+item/7,120,0/06: skygear:petal_magenta:0 x1
+item/7,120,0/07: skygear:petal_orange:0 x1
+item/7,120,0/08: skygear:petal_pink:0 x1
+item/7,120,0/09: skygear:petal_purple:0 x1
+item/7,120,0/10: skygear:petal_red:0 x1
+item/7,120,0/11: skygear:petal_white:0 x1
+item/7,120,0/12: skygear:petal_yellow:0 x1
+item/7,120,0/13: skygear:progress_0:0 x1
+item/7,120,0/14: skygear:progress_1:0 x1
+item/7,120,0/15: skygear:progress_10:0 x1
+item/7,120,0/16: skygear:progress_2:0 x1
+item/7,120,0/17: skygear:progress_3:0 x1
+item/7,120,0/18: skygear:progress_4:0 x1
+item/7,120,0/19: skygear:progress_5:0 x1
+item/7,120,0/20: skygear:progress_6:0 x1
+item/7,120,0/21: skygear:progress_7:0 x1
+item/7,120,0/22: skygear:progress_8:0 x1
+item/7,120,0/23: skygear:progress_9:0 x1
+item/7,120,0/24: skygear:raw_lead:0 x1
+item/7,120,0/25: skygear:raw_nickel:0 x1
+item/7,120,0/26: skygear:raw_silver:0 x1
+item/8,120,0/00: skygear:raw_tin:0 x1
+item/8,120,0/01: skygear:relic_crossbow:0 x1
+item/8,120,0/02: skygear:relic_flame_ring:0 x1
+item/8,120,0/03: skygear:relic_frost_boomerang:0 x1
+item/8,120,0/04: skygear:relic_hourglass_charm:0 x1
+item/8,120,0/05: skygear:relic_life_charm:0 x1
+item/8,120,0/06: skygear:relic_lightning_staff:0 x1
+item/8,120,0/07: skygear:relic_magnet_ring:0 x1
+item/8,120,0/08: skygear:relic_magnifier:0 x1
+item/8,120,0/09: skygear:relic_regen_necklace:0 x1
+item/8,120,0/10: skygear:relic_spin_blade:0 x1
+item/8,120,0/11: skygear:relic_table:0 x1
+item/8,120,0/12: skygear:relic_wind_boots:0 x1
+item/8,120,0/13: skygear:research_essence_alchemy:0 x1
+item/8,120,0/14: skygear:research_essence_engineering:0 x1
+item/8,120,0/15: skygear:research_essence_farming:0 x1
+item/8,120,0/16: skygear:research_essence_hunting:0 x1
+item/8,120,0/17: skygear:research_essence_magic:0 x1
+item/8,120,0/18: skygear:research_table:0 x1
+item/8,120,0/19: skygear:seed_flower_black:0 x1
+item/8,120,0/20: skygear:seed_flower_blue:0 x1
+item/8,120,0/21: skygear:seed_flower_brown:0 x1
+item/8,120,0/22: skygear:seed_flower_cyan:0 x1
+item/8,120,0/23: skygear:seed_flower_gray:0 x1
+item/8,120,0/24: skygear:seed_flower_green:0 x1
+item/8,120,0/25: skygear:seed_flower_light_blue:0 x1
+item/8,120,0/26: skygear:seed_flower_light_gray:0 x1
+item/9,120,0/00: skygear:seed_flower_lime:0 x1
+item/9,120,0/01: skygear:seed_flower_magenta:0 x1
+item/9,120,0/02: skygear:seed_flower_orange:0 x1
+item/9,120,0/03: skygear:seed_flower_pink:0 x1
+item/9,120,0/04: skygear:seed_flower_purple:0 x1
+item/9,120,0/05: skygear:seed_flower_red:0 x1
+item/9,120,0/06: skygear:seed_flower_white:0 x1
+item/9,120,0/07: skygear:seed_flower_yellow:0 x1
+item/9,120,0/08: skygear:seed_gem_coal:0 x1
+item/9,120,0/09: skygear:seed_gem_diamond:0 x1
+item/9,120,0/10: skygear:seed_gem_emerald:0 x1
+item/9,120,0/11: skygear:seed_gem_lapis:0 x1
+item/9,120,0/12: skygear:seed_gem_quartz:0 x1
+item/9,120,0/13: skygear:seed_gem_redstone:0 x1
+item/9,120,0/14: skygear:seed_ore_copper:0 x1
+item/9,120,0/15: skygear:seed_ore_gold:0 x1
+item/9,120,0/16: skygear:seed_ore_iron:0 x1
+item/9,120,0/17: skygear:seed_ore_lead:0 x1
+item/9,120,0/18: skygear:seed_ore_nickel:0 x1
+item/9,120,0/19: skygear:seed_ore_silver:0 x1
+item/9,120,0/20: skygear:seed_ore_tin:0 x1
+item/9,120,0/21: skygear:sieve:0 x1
+item/9,120,0/22: skygear:silkworm:0 x1
+item/9,120,0/23: skygear:silver_ore:0 x1
+item/9,120,0/24: skygear:solar_generator:0 x1
+item/9,120,0/25: skygear:speed_upgrade:0 x1
+item/9,120,0/26: skygear:stack_upgrade:0 x1
+player/inventory/00: skygear:alloy_atomic:0 x1
+player/inventory/01: skygear:barrel_stone:0 x2
+player/inventory/02: skygear:compressed_dirt_2:0 x3
+player/inventory/03: skygear:conduit_fluid_1:0 x1
+player/inventory/04: skygear:crucible:0 x2
+player/inventory/05: skygear:cycle_3:0 x3
+player/inventory/06: skygear:disk_drive:0 x1
+player/inventory/07: skygear:electric_furnace:0 x2
+player/inventory/08: skygear:elevator_magenta:0 x3
+player/inventory/09: skygear:energy_gauge_10:0 x1
+player/inventory/10: skygear:essence_blaze:0 x2
+player/inventory/11: skygear:essence_wither_skeleton:0 x3
+player/inventory/12: skygear:hammer:0 x1
+player/inventory/13: skygear:ingot_silver:0 x2
+player/inventory/14: skygear:kit_3:0 x3
+player/inventory/15: skygear:mesh_flint:0 x1
+player/inventory/16: skygear:metal_dust_silver:0 x2
+player/inventory/17: skygear:net_importer:0 x3
+player/inventory/18: skygear:ore_washer:0 x1
+player/inventory/19: skygear:pebble_stone:0 x2
+player/inventory/20: skygear:petal_light_gray:0 x3
+player/inventory/21: skygear:progress_1:0 x1
+player/inventory/22: skygear:raw_lead:0 x2
+player/inventory/23: skygear:relic_lightning_staff:0 x1
+player/inventory/24: skygear:research_essence_hunting:0 x1
+player/inventory/25: skygear:seed_flower_light_gray:0 x2
+player/inventory/26: skygear:seed_gem_diamond:0 x3
+player/inventory/27: skygear:seed_ore_nickel:0 x1
+player/inventory/28: skygear:stone_hammer:0 x1
+player/inventory/29: skygear:tool_axe_bronze_wood:0 x1
+player/inventory/30: skygear:tool_axe_flint_wood:0 x1
+player/inventory/31: skygear:tool_pickaxe_bronze_blaze:0 x1
+player/inventory/32: skygear:tool_pickaxe_flint_bone:0 x1
+player/inventory/33: skygear:tool_pickaxe_steel_bone:0 x1
+player/inventory/34: skygear:tool_shovel_electrum_wood:0 x1
+player/inventory/35: skygear:tool_shovel_steel_blaze:0 x1
