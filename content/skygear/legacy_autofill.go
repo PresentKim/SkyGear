@@ -24,3 +24,12 @@ func sameItemName(a, b item.Stack) bool {
 	n2, m2 := b.Item().EncodeItem()
 	return !a.Empty() && !b.Empty() && n1 == n2 && m1 == m2
 }
+
+// The last block of a stack placed is replaced from the inventory.
+func init() {
+	core.BlockPlace.On(40, "autofill.place", func(e core.BlockPlaceEvent) {
+		if e.Held.Count() == 1 {
+			core.RefillHandLater(e.P, e.Tx, e.Held)
+		}
+	})
+}

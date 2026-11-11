@@ -1,7 +1,10 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/island"
 )
@@ -41,4 +44,31 @@ func init() {
 			island.AddLost(e.S, ib.Item())
 		}
 	})
+}
+
+// Building is only allowed on the island's own ground.
+func init() {
+	core.StartBreak.Handle(20, "island.guard", func(e core.StartBreakEvent) bool {
+		return islandGuard(e.S, e.Ctx, e.Pos)
+	})
+	core.BlockBreak.Handle(20, "island.guard", func(e core.BlockBreakEvent) bool {
+		return islandGuard(e.S, e.Ctx, e.Pos)
+	})
+	core.BlockPlace.Handle(20, "island.guard", func(e core.BlockPlaceEvent) bool {
+		return islandGuard(e.S, e.Ctx, e.Pos)
+	})
+}
+
+// islandGuard reports whether the action at pos is refused because pos is not
+// the island's to build on; it cancels the action then.
+func islandGuard(s *core.Session, ctx *player.Context, pos cube.Pos) bool {
+	if island.CanBuild(s, pos) {
+		return false
+	}
+	ctx.Cancel()
+	if core.InArena(pos.Vec3()) {
+		return true // the hunting ground is no one's to build on
+	}
+	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
+	return true
 }

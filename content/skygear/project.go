@@ -10,6 +10,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/presentkim/skygear/content/skygear/advancement"
+	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/progress"
 )
 
@@ -22,11 +23,11 @@ import (
 
 // completeDragon is the end of the game: the dragon egg is placed. The
 // advancement is the record; the island celebrates.
-func (s *session) completeDragon(p *player.Player, tx *world.Tx, pos cube.Pos) {
-	if progress.Advanced(s.Session, advancement.Dragon) {
+func completeDragon(s *core.Session, p *player.Player, tx *world.Tx, pos cube.Pos) {
+	if progress.Advanced(s, advancement.Dragon) {
 		return
 	}
-	progress.Advance(s.Session, tx, advancement.Dragon)
+	progress.Advance(s, tx, advancement.Dragon)
 	s.Broadcast(tx, "project.dragon.done", p.Name())
 	c := pos.Vec3Centre()
 	for range 24 {

@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core"
 )
@@ -21,5 +22,19 @@ func init() {
 	})
 	core.ColumnUnload.On(10, "conduit.unload", func(e core.ColumnEvent) {
 		conduit.UnloadColumn(e.S, e.Tx, e.Blocks)
+	})
+}
+
+// A conduit bundle breaking loses its visual; a placed one counts.
+func init() {
+	core.BlockBreak.On(90, "conduit.break", func(e core.BlockBreakEvent) {
+		if _, ok := e.Block.(conduit.Bundle); ok {
+			conduit.RemoveVisual(e.S, e.Tx, e.Pos)
+		}
+	})
+	core.BlockPlace.On(90, "conduit.place", func(e core.BlockPlaceEvent) {
+		if _, ok := e.Block.(conduit.Bundle); ok {
+			achievement.Count(e.P, "conduit_place", 1)
+		}
 	})
 }

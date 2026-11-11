@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/item"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/tinker"
@@ -33,5 +34,26 @@ func init() {
 func init() {
 	core.Second.On(70, "tinker.effects", func(e core.Tick) {
 		tinker.TickEffects(e.S, e.Tx)
+	})
+}
+
+// The pickaxe in hand is chosen for the block being mined; breaking with a
+// tool gives it experience, and a hammer crushes the block and mines the vein.
+// The hammer's drop replaces the drops in place.
+func init() {
+	core.StartBreak.On(30, "tinker.autoTool", func(e core.StartBreakEvent) {
+		tinker.AutoTool(e.P, e.Tx.Block(e.Pos))
+	})
+	core.BlockBreak.On(40, "tinker.break", func(e core.BlockBreakEvent) {
+		if _, ok := tinker.ToolOf(e.P); ok {
+			tinker.GainXP(e.S, e.P, 1)
+			tinker.Reinforce(e.S, e.P)
+		}
+		if sgitem.IsHammer(e.Held) {
+			if into, ok := sgitem.HammerDrop(e.Block); ok {
+				*e.Drops = []item.Stack{into}
+			}
+			tinker.VeinMine(e.S, e.P, e.Tx, e.Pos)
+		}
 	})
 }

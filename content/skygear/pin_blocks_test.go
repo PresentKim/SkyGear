@@ -3,8 +3,6 @@ package skygear
 import (
 	"fmt"
 	"math/rand/v2"
-	"os"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -302,19 +300,14 @@ func TestPinBlocks(t *testing.T) {
 		t.Errorf("BlockPlace/lastOfStack: %q, the hand was not refilled", got)
 	}
 
-	// Every mark written in deny and in the three methods is reached.
-	src, err := os.ReadFile("handler.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	text := string(src)
-	from, to := strings.Index(text, "func (h *handler) deny"), strings.Index(text, "func (h *handler) HandleItemUseOnBlock")
-	if from < 0 || to < from {
-		t.Fatal("handler.go: the methods were not found")
-	}
-	names := []string{"expand.guard", "island.guard"}
-	for _, m := range regexp.MustCompile(`core\.Mark\("([^"]+)"\)`).FindAllStringSubmatch(text[from:to], -1) {
-		names = append(names, m[1])
+	// Every subscriber of the three hooks and every mark of their deferred
+	// work is reached.
+	names := pinMarksIn(t, "legacy_netstore.go", "package skygear")
+	for _, sub := range core.Subscriptions() {
+		switch sub.Hook {
+		case "StartBreak", "BlockBreak", "BlockPlace":
+			names = append(names, sub.Name)
+		}
 	}
 	pinCheckReached(t, names, lines)
 

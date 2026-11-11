@@ -3,6 +3,7 @@ package skygear
 import (
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/core"
+	"github.com/presentkim/skygear/content/skygear/sgitem"
 )
 
 // The achievement counters of the simple player events.
@@ -59,5 +60,15 @@ func init() {
 func init() {
 	core.Second.On(110, "achievement.playSeconds", func(e core.Tick) {
 		achievement.CountAll(e.Tx, "play_seconds", 1)
+	})
+}
+
+// Breaking and placing blocks count.
+func init() {
+	core.BlockBreak.On(30, "achievement.break", func(e core.BlockBreakEvent) {
+		achievement.CountBreak(e.P, e.Block, sgitem.IsHammer(e.Held))
+	})
+	core.BlockPlace.On(30, "achievement.place", func(e core.BlockPlaceEvent) {
+		achievement.Count(e.P, "block_place", 1)
 	})
 }

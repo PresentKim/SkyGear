@@ -35,6 +35,7 @@ func (l Lifecycle) Handler(*player.Player) player.Handler {
 // NewDay emits NewDay, then tells every player the day (game.newDay).
 func (l Lifecycle) NewDay(tx *world.Tx, day int) {
 	NewDay.Emit(DayEvent{S: l.Session, Tx: tx, Day: day})
+	Mark("game.newDay")
 	l.Broadcast(tx, "game.newDay", day)
 }
 

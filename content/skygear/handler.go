@@ -1,25 +1,19 @@
 package skygear
 
 import (
-	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/presentkim/skygear/common/i18n"
-	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/copier"
 	"github.com/presentkim/skygear/content/skygear/core"
 	"github.com/presentkim/skygear/content/skygear/dimension"
-	"github.com/presentkim/skygear/content/skygear/expand"
 	"github.com/presentkim/skygear/content/skygear/fairy"
 	"github.com/presentkim/skygear/content/skygear/farm"
 	"github.com/presentkim/skygear/content/skygear/handwork"
-	"github.com/presentkim/skygear/content/skygear/island"
 	"github.com/presentkim/skygear/content/skygear/machine"
-	"github.com/presentkim/skygear/content/skygear/netstore"
 	"github.com/presentkim/skygear/content/skygear/screens"
 	"github.com/presentkim/skygear/content/skygear/sgitem"
 	"github.com/presentkim/skygear/content/skygear/storage"
@@ -36,143 +30,22 @@ type handler struct {
 	s *session
 }
 
+// deny reports whether the action at pos is refused, with the marks of the two
+// guards under suffix. The block events run the same two halves as the
+// subscribers expand.guard and island.guard.
 func (h *handler) deny(ctx *player.Context, pos cube.Pos, suffix string) bool {
 	if core.Trace != nil {
 		core.Mark("expand." + suffix)
 	}
-	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
-		// No building or clicking in island expansion mode. A click on the
-		// map makes the server resend the real blocks, so the map chunk is
-		// shown again.
-		ctx.Cancel()
-		expand.RestoreMapNear(h.s.Session, ctx.Player(), pos)
+	if expandGuard(h.s.Session, ctx, pos) {
 		return true
 	}
 	if core.Trace != nil {
 		core.Mark("island." + suffix)
 	}
-	if island.CanBuild(h.s.Session, pos) {
-		return false
-	}
-	ctx.Cancel()
-	if core.InArena(pos.Vec3()) {
-		return true // the hunting ground is no one's to build on
-	}
-	ctx.Player().SendTip(i18n.T(i18n.Default, "island.outside"))
-	return true
+	return islandGuard(h.s.Session, ctx, pos)
 }
 
-func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
-	if h.deny(ctx, pos, "guard") {
-		return
-	}
-	core.Mark("tinker.autoTool")
-	tinker.AutoTool(ctx.Player(), ctx.Player().Tx().Block(pos))
-}
-func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
-	if h.deny(ctx, pos, "guard") {
-		return
-	}
-	core.Mark("achievement.break")
-	held, _ := ctx.Player().HeldItems()
-	broken := ctx.Player().Tx().Block(pos)
-	hammer := sgitem.IsHammer(held)
-	achievement.CountBreak(ctx.Player(), broken, hammer)
-	core.Mark("tinker.break")
-	if _, ok := tinker.ToolOf(ctx.Player()); ok {
-		tinker.GainXP(h.s.Session, ctx.Player(), 1)
-		tinker.Reinforce(h.s.Session, ctx.Player())
-	}
-	if hammer {
-		if into, ok := sgitem.HammerDrop(broken); ok {
-			*drops = []item.Stack{into}
-		}
-		tinker.VeinMine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos)
-	}
-	core.Mark("farm.break")
-	if c, ok := sgitem.CrookOf(held); ok {
-		// Leaves pulled apart with a crook: more saplings, now and then a
-		// silkworm (silkworm leaves drop their string themselves).
-		if l, ok := broken.(block.Leaves); ok {
-			*drops = farm.CrookLeafDrops(l, c, h.s.Rand.Float64)
-		}
-	}
-	core.Mark("storage.break")
-	core.Mark("netstore.break")
-	core.Mark("machine.break")
-	core.Mark("conduit.break")
-	switch b := broken.(type) {
-	case storage.Drawer:
-		// Hitting the front takes items out; it never mines the drawer.
-		if lp, ok := storage.LastPunch.Of(h.s.Session)[ctx.Player().H()]; ok && lp.Pos == pos && lp.Front {
-			ctx.Cancel()
-			return
-		}
-		storage.RemoveDisplay(h.s.Session, ctx.Player().Tx(), pos)
-	case machine.Machine:
-		if storage.IsSetMachine(b.Kind) {
-			storage.InvalidateNetworks(h.s.Session)
-		}
-		if netstore.IsNode(b.Kind) {
-			// The block goes after this handler: drop the network once it is gone.
-			ctx.Player().Tx().Defer(func(tx *world.Tx) {
-				core.Mark("netstore.breakDeferred")
-				netstore.Invalidate(tx, pos)
-				netstore.Forget(h.s.Session, pos)
-			})
-		}
-		machine.Break(h.s.Session, ctx.Player().Tx(), pos, b)
-	case block.Composter:
-		farm.BreakComposter(h.s.Session, pos, b, drops)
-	case farm.Barrel:
-		farm.BreakBarrel(h.s.Session, pos, drops)
-	case conduit.Bundle:
-		conduit.RemoveVisual(h.s.Session, ctx.Player().Tx(), pos)
-	}
-}
-func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
-	if h.deny(ctx, pos, "guard") {
-		return
-	}
-	core.Mark("achievement.place")
-	achievement.Count(ctx.Player(), "block_place", 1)
-	core.Mark("autofill.place")
-	if held, _ := ctx.Player().HeldItems(); held.Count() == 1 {
-		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
-	}
-	core.Mark("farm.plant")
-	if kind, _, ok := farm.CropOf(b); ok {
-		achievement.Count(ctx.Player(), "crop_plant", 1)
-		farm.PlantCrop(h.s.Session, pos, kind)
-	}
-	held, _ := ctx.Player().HeldItems()
-	core.Mark("storage.place")
-	core.Mark("machine.place")
-	core.Mark("netstore.place")
-	core.Mark("conduit.place")
-	core.Mark("progress.dragonEgg")
-	switch b := b.(type) {
-	case machine.Machine:
-		if storage.IsSetMachine(b.Kind) {
-			storage.InvalidateNetworks(h.s.Session)
-		}
-		machine.Place(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, b.Kind)
-		if netstore.IsNode(b.Kind) {
-			netstore.Forget(h.s.Session, pos) // a node broken by an explosion left its setting
-			// machine.Place sets the block in a deferred call; this one runs after it.
-			ctx.Player().Tx().Defer(func(tx *world.Tx) {
-				core.Mark("netstore.placeDeferred")
-				netstore.Invalidate(tx, pos)
-			})
-		}
-	case storage.Drawer:
-		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
-	case conduit.Bundle:
-		achievement.Count(ctx.Player(), "conduit_place", 1)
-	case block.DragonEgg:
-		h.s.completeDragon(ctx.Player(), ctx.Player().Tx(), pos)
-	}
-}
 func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face cube.Face, clickPos mgl64.Vec3) {
 	core.Mark("dimension.hunting")
 	if dimension.Hunting(h.s.Session, ctx.Player()) {

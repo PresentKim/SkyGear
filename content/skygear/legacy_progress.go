@@ -1,6 +1,7 @@
 package skygear
 
 import (
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/presentkim/skygear/content/skygear/achievement"
 	"github.com/presentkim/skygear/content/skygear/advancement"
 	"github.com/presentkim/skygear/content/skygear/core"
@@ -32,5 +33,14 @@ func init() {
 	core.Leave.On(70, "progress.recipes", func(e core.Presence) {
 		// Locked recipes belong to this island (recipes.go).
 		e.P.SetRecipeFilter(nil)
+	})
+}
+
+// Placing the dragon egg finishes the game.
+func init() {
+	core.BlockPlace.On(100, "progress.dragonEgg", func(e core.BlockPlaceEvent) {
+		if _, ok := e.Block.(block.DragonEgg); ok {
+			completeDragon(e.S, e.P, e.Tx, e.Pos)
+		}
 	})
 }

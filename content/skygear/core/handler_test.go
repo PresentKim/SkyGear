@@ -1,6 +1,7 @@
 package core
 
 import (
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -461,6 +462,18 @@ func TestLifecycleKernelStepsRunLast(t *testing.T) {
 				t.Error("Second did not flush after its subscribers")
 			}
 			x.s.Close()
+		})
+	})
+	t.Run("NewDay", func(t *testing.T) {
+		withFix(t, store, func(x *fix) {
+			var seen []string
+			NewDay.On(10, "t.step", func(DayEvent) {})
+			Trace = func(name string) { seen = append(seen, name) }
+			defer func() { Trace = nil }()
+			x.l.NewDay(x.tx, 3)
+			if got := strings.Join(seen, " "); got != "t.step game.newDay" {
+				t.Errorf("NewDay traced %q, want its subscribers then game.newDay", got)
+			}
 		})
 	})
 	t.Run("Autosave", func(t *testing.T) {
