@@ -140,3 +140,27 @@ func BenchmarkLookInfoStone(b *testing.B) {
 		}
 	})
 }
+
+// BenchmarkTickHarvester ticks a harvester with no crop in reach: the work of
+// its kind is the farm's, reached through the kind's definition.
+func BenchmarkTickHarvester(b *testing.B) {
+	s := benchSession(b)
+	placeTestMachine(s, machinePos, machine.KindHarvester)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		s.World.AdvanceTick()
+	}
+}
+
+// BenchmarkTickDrawerController ticks a drawer controller: a kind that only
+// stands there, so the tick is the machine frame's alone.
+func BenchmarkTickDrawerController(b *testing.B) {
+	s := benchSession(b)
+	placeTestMachine(s, machinePos, machine.KindDrawerController)
+	b.ReportAllocs()
+	b.ResetTimer()
+	for range b.N {
+		s.World.AdvanceTick()
+	}
+}

@@ -1,0 +1,145 @@
+click/alloy_smelter: activate=true screens=machine.ShowMachine
+click/alloy_smelter/sneak: activate=true screens=machine.ShowMachine
+click/auto_crafter: activate=true screens=machine.showCrafter
+click/auto_crafter/sneak: activate=true screens=machine.showCrafter
+click/auto_miner: activate=true screens=machine.ShowMachine
+click/auto_miner/sneak: activate=true screens=machine.ShowMachine
+click/auto_sieve: activate=true screens=machine.ShowMachine
+click/auto_sieve/sneak: activate=true screens=machine.ShowMachine
+click/crucible: activate=true screens=-
+click/crucible/sneak: activate=true screens=-
+click/crusher: activate=true screens=machine.ShowMachine
+click/crusher/sneak: activate=true screens=machine.ShowMachine
+click/disk_drive: activate=true screens=machine.ShowMachine
+click/disk_drive/sneak: activate=true screens=machine.ShowMachine
+click/drawer_controller: activate=true screens=-
+click/drawer_controller/sneak: activate=true screens=-
+click/drawer_interface: activate=true screens=-
+click/drawer_interface/sneak: activate=true screens=-
+click/drawer_trim: activate=true screens=-
+click/drawer_trim/sneak: activate=true screens=-
+click/electric_furnace: activate=true screens=machine.ShowMachine
+click/electric_furnace/sneak: activate=true screens=machine.ShowMachine
+click/energy_cell: activate=false screens=-
+click/energy_cell/sneak: activate=false screens=-
+click/essence_collector: activate=true screens=dimension.ShowCollector
+click/essence_collector/sneak: activate=true screens=dimension.ShowCollector
+click/fluid_tank: activate=true screens=-
+click/fluid_tank/sneak: activate=true screens=-
+click/generator: activate=true screens=machine.ShowMachine
+click/generator/sneak: activate=true screens=machine.ShowMachine
+click/harvester: activate=true screens=machine.ShowMachine
+click/harvester/sneak: activate=true screens=machine.ShowMachine
+click/hydro_generator: activate=true screens=machine.ShowMachine
+click/hydro_generator/sneak: activate=true screens=machine.ShowMachine
+click/item_vacuum: activate=true screens=machine.ShowMachine
+click/item_vacuum/sneak: activate=true screens=machine.ShowMachine
+click/laboratory: activate=true screens=machine.showLabOn
+click/laboratory/sneak: activate=true screens=machine.showLabOn
+click/lava_generator: activate=true screens=-
+click/lava_generator/sneak: activate=true screens=-
+click/magic_sieve: activate=true screens=machine.ShowMachine
+click/magic_sieve/sneak: activate=true screens=machine.ShowMachine
+click/mob_simulator: activate=true screens=machine.ShowMachine
+click/mob_simulator/sneak: activate=true screens=machine.ShowMachine
+click/net_autocrafter: activate=true screens=machine.ShowMachine
+click/net_autocrafter/sneak: activate=true screens=machine.ShowMachine
+click/net_cable: activate=false screens=-
+click/net_cable/sneak: activate=false screens=-
+click/net_controller: activate=true screens=netstore.showController
+click/net_controller/sneak: activate=true screens=netstore.showController
+click/net_exporter: activate=true screens=netstore.showFilter
+click/net_exporter/sneak: activate=true screens=netstore.showFilter
+click/net_external: activate=true screens=netstore.showFilter
+click/net_external/sneak: activate=true screens=netstore.showFilter
+click/net_importer: activate=true screens=netstore.showFilter
+click/net_importer/sneak: activate=true screens=netstore.showFilter
+click/net_terminal: activate=true screens=netstore.showTerminal
+click/net_terminal/sneak: activate=true screens=netstore.showTerminal
+click/ore_washer: activate=true screens=machine.ShowMachine
+click/ore_washer/sneak: activate=true screens=machine.ShowMachine
+click/pattern_encoder: activate=true screens=machine.ShowMachine
+click/pattern_encoder/sneak: activate=true screens=netstore.showEncoder
+click/relic_table: activate=true screens=dimension.ShowRelicTable
+click/relic_table/sneak: activate=true screens=dimension.ShowRelicTable
+click/sieve: activate=true screens=-
+click/sieve/sneak: activate=true screens=-
+click/solar_generator: activate=true screens=machine.ShowMachine
+click/solar_generator/sneak: activate=true screens=machine.ShowMachine
+click/tinker_table: activate=true screens=tinker.ShowTable
+click/tinker_table/sneak: activate=true screens=tinker.ShowTable
+click/tree_feller: activate=true screens=machine.ShowMachine
+click/tree_feller/sneak: activate=true screens=machine.ShowMachine
+info/alloy_smelter: name="§r§f합금로" lore=["§7재료 두 가지를 넣어 합금을 만듭니다" "§7청동·엘렉트럼·인바·강철"]
+info/auto_crafter: name="§r§f자동 제작기" lore=["§7정해 둔 조합법을 재료가 모이는 대로 만듭니다." "§7우클릭한 창의 목록에서 만들 조합법을 고릅니다." "§7재료는 왼쪽 3×3 칸에, 결과는 오른쪽 칸에 쌓입니다."]
+info/auto_miner: name="§r§f자동 자원 채굴기" lore=["§7설치할 때 누른 블록을 2초마다 캡니다"]
+info/auto_sieve: name="§r§f자동 체" lore=["§7자갈·모래·흙을 저절로 거릅니다(개당 3초)" "§7부산물은 칸 4개에 쌓이고, 가득 차면 멈춥니다"]
+info/crucible: name="§r§f전기 도가니" lore=["§7조약돌을 녹여 용암을 만듭니다(개당 250 mB)" "§7액체 도관이나 양동이로 꺼냅니다"]
+info/crusher: name="§r§f분쇄기" lore=["§7돌 → 조약돌 → 자갈 → 모래" "§7개당 4초"]
+info/disk_drive: name="§r§f디스크 드라이브" lore=["§7저장 디스크 8장을 꽂아 망의 저장소로 씁니다"]
+info/drawer_controller: name="§r§f스토리지 관리 블록" lore=["§7이어진 서랍 모두를 하나의 저장소로 묶습니다" "§7최대 16칸 거리, 호퍼·도관으로 넣고 뺍니다"]
+info/drawer_interface: name="§r§f서랍 인터페이스" lore=["§7이어진 스토리지 관리 블록과 똑같이 넣고 뺍니다" "§7한 묶음에 관리 블록은 하나뿐이니, 드나들 곳은 인터페이스로 늘립니다"]
+info/drawer_trim: name="§r§f서랍 테두리" lore=["§7서랍과 관리 블록을 이어 주기만 합니다"]
+info/electric_furnace: name="§r§f전기 화로" lore=["§7화로로 구울 수 있는 것을 연료 없이 굽습니다." "§7에너지가 필요하고, 화로보다 두 배 빠릅니다."]
+info/energy_cell: name="§r§f에너지 셀" lore=["§7에너지를 모아 두었다가 내보냅니다" "§7도관이나 붙어 있는 기계와 주고받습니다"]
+info/essence_collector: name="§r§f이차원 에센스 수집기" lore=["§7우클릭한 창에서 받을 몬스터를 정하고 에센스를 꺼냅니다" "§7그 몬스터의 최단 기록만큼 에센스가 쌓입니다" "§c받을 몬스터를 정하지 않았습니다"]
+info/essence_collector/zombie: name="§r§f이차원 에센스 수집기" lore=["§7우클릭한 창에서 받을 몬스터를 정하고 에센스를 꺼냅니다" "§7그 몬스터의 최단 기록만큼 에센스가 쌓입니다" "§d받는 몬스터: §f좀비"]
+info/fluid_tank: name="§r§f유체 탱크" lore=["§7물과 용암을 16000 mB까지 담습니다" "§7양동이나 액체 도관으로 넣고 뺍니다"]
+info/generator: name="§r§f연소 발전기" lore=["§7연료(석탄·숯·판자 등)를 태워 에너지(RE)를 만듭니다." "§7붙어 있는 기계나 에너지 도관으로 에너지를 내보냅니다."]
+info/harvester: name="§r§f자동 농작물 수확기" lore=["§7다 자란 작물을 2초마다 하나씩 거둡니다." "§7처음에는 같은 높이 9×9에서 일하고, 단계를 올리면 넓어집니다. 작업 범위 화면에서 크기와 중심을 바꿀 수 있습니다."]
+info/hydro_generator: name="§r§f수력 발전기" lore=["§7닿은 흐르는 물로 에너지를 만듭니다(최대 10 RE/t)" "§7떨어지는 물이 가장 세고, 고인 물로는 만들지 못합니다"]
+info/item_vacuum: name="§r§f아이템 흡수기" lore=["§7둘레에 떨어진 아이템을 거둡니다." "§7처음에는 가로 6칸, 아래 3칸, 위 5칸 안의 아이템을 결과 칸에 모으고, 단계를 올리면 넓어집니다." "§7작업 범위 화면에서 크기와 중심을 바꿀 수 있습니다."]
+info/laboratory: name="§r§f정수 추출기" lore=["§7재료를 넣으면 연구 정수를 만듭니다" "§7유리병 하나와 그 시기의 재료가 필요합니다" "§7정수는 연구 화면에서 재료와 함께 냅니다"]
+info/lava_generator: name="§r§f용암 발전기" lore=["§7용암을 태워 에너지를 만듭니다(80 RE/t)" "§72틱마다 용암 1 mB"]
+info/magic_sieve: name="§r§f마법 체" lore=["§7에센스를 넣으면 걸러 나오는 것이 달라집니다" "§7에센스 하나로 24번 걸러집니다" "§7메쉬를 끼워야 걸러집니다"]
+info/mob_simulator: name="§r§f몬스터 시뮬레이터" lore=["§7에센스 하나로 몬스터 드롭을 여덟 번 만듭니다" "§7에너지가 들고 결과는 칸 4개에 쌓입니다"]
+info/net_autocrafter: name="§r§f자동 제작 장치" lore=["§7패턴 9장을 꽂아 망의 재료로 자동으로 만듭니다"]
+info/net_cable: name="§r§f망 케이블" lore=["§7장치끼리 이어 줍니다. 도관 노드에 넣는 망 도관도 같은 일을 합니다"]
+info/net_controller: name="§r§f망 컨트롤러" lore=["§7케이블로 이은 장치를 한 망으로 묶습니다. 에너지가 있어야 켜지고, 우클릭하면 이은 블록과 소모량을 봅니다"]
+info/net_exporter: name="§r§f출력기" lore=["§7필터에 정한 아이템을 망에서 꺼내 머리를 댄 칸에 넣습니다"]
+info/net_external: name="§r§f외부 저장공간" lore=["§7머리를 댄 상자나 서랍을 망의 저장소로 씁니다"]
+info/net_importer: name="§r§f입력기" lore=["§7머리를 댄 칸의 아이템을 망에 넣습니다"]
+info/net_terminal: name="§r§f망 단말" lore=["§7망에 든 아이템을 보고 꺼내거나 넣습니다"]
+info/ore_washer: name="§r§f광석 세척기" lore=["§7원석을 물로 씻어 가루 2개로 만듭니다" "§7원석 하나에 물 250 mB, 에너지 40 RE/t"]
+info/pattern_encoder: name="§r§f패턴 인코더" lore=["§7빈 패턴에 조합법을 새깁니다"]
+info/relic_table: name="§r§f보구 제작대" lore=["§7우클릭해 보구를 만들고 등급을 올립니다"]
+info/sieve: name="§r§f체" lore=["§7자갈·모래·흙을 얹고 여러 번 사용해 거릅니다" "§7부산물은 위로 튀어나옵니다"]
+info/solar_generator: name="§r§f태양광 발전기" lore=["§7하늘이 보이면 햇빛으로 에너지를 만듭니다(최대 8 RE/t)" "§7새벽·저녁과 비·눈에는 약해지고 밤에는 멈춥니다"]
+info/tinker_table: name="§r§f장비 제작대" lore=["§7금속 머리와 손잡이로 도구를 만들고" "§7재료로 도구를 강화합니다"]
+info/tree_feller: name="§r§f자동 벌목기" lore=["§7둘레의 원목을 가장 높은 것부터 벱니다." "§7벨 원목이 없으면 입력 칸의 묘목을 심습니다." "§7심을 자리도 없으면 둘레의 묘목에 뼛가루를 씁니다." "§7처음에는 가로 5칸, 아래 1칸, 위 14칸에서 일하고, 단계를 올리면 넓어집니다. 작업 범위 화면에서 크기와 중심을 바꿀 수 있습니다."]
+slots/alloy_smelter: roles=----------II---O----------- takes=[coal@10,11/true]
+slots/auto_crafter: roles=III-R-OO-III---OO-III------ takes=[]
+slots/auto_miner: roles=-------------O------------- takes=[]
+slots/auto_sieve: roles=----------I--OOOO---------- takes=[]
+slots/crucible: roles=----------I---------------- takes=[cobblestone@10/true]
+slots/crusher: roles=-----------I---O----------- takes=[cobblestone@11/true]
+slots/disk_drive: roles=IIIIIIII------------------- takes=[disk@0,1,2,3,4,5,6,7/true]
+slots/drawer_controller: roles=--------------------------- takes=[]
+slots/drawer_interface: roles=--------------------------- takes=[]
+slots/drawer_trim: roles=--------------------------- takes=[]
+slots/electric_furnace: roles=-----------I---O----------- takes=[cobblestone@11/true]
+slots/energy_cell: roles=--------------------------- takes=[]
+slots/essence_collector: roles=-------------OOOO---------- takes=[]
+slots/fluid_tank: roles=--------------------------- takes=[]
+slots/generator: roles=-------------I------------- takes=[coal@13/true sapling@13/true]
+slots/harvester: roles=-------------OOOO---------- takes=[]
+slots/hydro_generator: roles=--------------------------- takes=[]
+slots/item_vacuum: roles=-------------OOOO---------- takes=[]
+slots/laboratory: roles=III---OO-III---OO-III------ takes=[]
+slots/lava_generator: roles=--------------------------- takes=[]
+slots/magic_sieve: roles=----------IC-OOOO---------- takes=[essence@11/true]
+slots/mob_simulator: roles=----------I--OOOO---------- takes=[essence@10/true]
+slots/net_autocrafter: roles=IIIIIIIII------------------ takes=[pattern@0,1,2,3,4,5,6,7,8/true]
+slots/net_cable: roles=--------------------------- takes=[]
+slots/net_controller: roles=--------------------------- takes=[]
+slots/net_exporter: roles=IIII----------------------- takes=[upgrade@0,1,2,3/true]
+slots/net_external: roles=--------------------------- takes=[]
+slots/net_importer: roles=IIII----------------------- takes=[upgrade@0,1,2,3/true]
+slots/net_terminal: roles=IIIIIIIII------------------ takes=[]
+slots/ore_washer: roles=----------I--OOOO---------- takes=[]
+slots/pattern_encoder: roles=IIIIIIIIIIIII-O------------ takes=[cobblestone@0,1,2,3,4,5,6,7,8,9,10,11/false dirt@0,1,2,3,4,5,6,7,8,9,10,11/false coal@0,1,2,3,4,5,6,7,8,9,10,11/false sapling@0,1,2,3,4,5,6,7,8,9,10,11/false bonemeal@0,1,2,3,4,5,6,7,8,9,10,11/false essence@0,1,2,3,4,5,6,7,8,9,10,11/false disk@0,1,2,3,4,5,6,7,8,9,10,11/false pattern@0,1,2,3,4,5,6,7,8,9,10,11,12/true upgrade@0,1,2,3,4,5,6,7,8,9,10,11/false]
+slots/relic_table: roles=--------------------------- takes=[]
+slots/sieve: roles=----------I---------------- takes=[]
+slots/solar_generator: roles=--------------------------- takes=[]
+slots/tinker_table: roles=--------------------------- takes=[]
+slots/tree_feller: roles=----------IC-OOOO---------- takes=[sapling@10/true bonemeal@11/true]
