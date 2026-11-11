@@ -5,11 +5,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/world"
+	"github.com/presentkim/skygear/common/itemnet"
+	"github.com/presentkim/skygear/content/skygear/conduit"
 	"github.com/presentkim/skygear/content/skygear/core/coretest"
 	"github.com/presentkim/skygear/content/skygear/machine"
 	"github.com/presentkim/skygear/content/skygear/machine/machinetest"
@@ -82,4 +85,17 @@ func droppedItems(tx *world.Tx) map[string]int {
 		}
 	}
 	return out
+}
+
+// chestWithBundle puts a chest at pos and an item conduit bundle east of it
+// whose west side is set.
+func chestWithBundle(tx *world.Tx, pos cube.Pos, mode itemnet.Mode, extract, insert int) cube.Pos {
+	tx.SetBlock(pos, block.NewChest(), nil)
+	b := conduit.Bundle{Item: 1}
+	b.Modes[cube.FaceWest] = mode
+	b.Extract[cube.FaceWest], b.Insert[cube.FaceWest] = extract, insert
+	at := pos.Add(cube.Pos{1, 0, 0})
+	tx.SetBlock(at, b, nil)
+	b.Refresh(at, tx)
+	return at
 }
