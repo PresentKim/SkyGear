@@ -38,7 +38,10 @@ type handler struct {
 	s *session
 }
 
-func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
+func (h *handler) deny(ctx *player.Context, pos cube.Pos, suffix string) bool {
+	if core.Trace != nil {
+		core.Mark("expand." + suffix)
+	}
 	if _, expanding := expand.Of(h.s.Session, ctx.Player()); expanding {
 		// No building or clicking in island expansion mode. A click on the
 		// map makes the server resend the real blocks, so the map chunk is
@@ -46,6 +49,9 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 		ctx.Cancel()
 		expand.RestoreMapNear(h.s.Session, ctx.Player(), pos)
 		return true
+	}
+	if core.Trace != nil {
+		core.Mark("island." + suffix)
 	}
 	if island.CanBuild(h.s.Session, pos) {
 		return false
@@ -59,19 +65,22 @@ func (h *handler) deny(ctx *player.Context, pos cube.Pos) bool {
 }
 
 func (h *handler) HandleStartBreak(ctx *player.Context, pos cube.Pos) {
-	if h.deny(ctx, pos) {
+	if h.deny(ctx, pos, "guard") {
 		return
 	}
+	core.Mark("tinker.autoTool")
 	tinker.AutoTool(ctx.Player(), ctx.Player().Tx().Block(pos))
 }
 func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]item.Stack, _ *int) {
-	if h.deny(ctx, pos) {
+	if h.deny(ctx, pos, "guard") {
 		return
 	}
+	core.Mark("achievement.break")
 	held, _ := ctx.Player().HeldItems()
 	broken := ctx.Player().Tx().Block(pos)
 	hammer := sgitem.IsHammer(held)
 	achievement.CountBreak(ctx.Player(), broken, hammer)
+	core.Mark("tinker.break")
 	if _, ok := tinker.ToolOf(ctx.Player()); ok {
 		tinker.GainXP(h.s.Session, ctx.Player(), 1)
 		tinker.Reinforce(h.s.Session, ctx.Player())
@@ -82,6 +91,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		}
 		tinker.VeinMine(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos)
 	}
+	core.Mark("farm.break")
 	if c, ok := sgitem.CrookOf(held); ok {
 		// Leaves pulled apart with a crook: more saplings, now and then a
 		// silkworm (silkworm leaves drop their string themselves).
@@ -89,6 +99,10 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 			*drops = farm.CrookLeafDrops(l, c, h.s.Rand.Float64)
 		}
 	}
+	core.Mark("storage.break")
+	core.Mark("netstore.break")
+	core.Mark("machine.break")
+	core.Mark("conduit.break")
 	switch b := broken.(type) {
 	case storage.Drawer:
 		// Hitting the front takes items out; it never mines the drawer.
@@ -104,6 +118,7 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 		if netstore.IsNode(b.Kind) {
 			// The block goes after this handler: drop the network once it is gone.
 			ctx.Player().Tx().Defer(func(tx *world.Tx) {
+				core.Mark("netstore.breakDeferred")
 				netstore.Invalidate(tx, pos)
 				netstore.Forget(h.s.Session, pos)
 			})
@@ -118,18 +133,26 @@ func (h *handler) HandleBlockBreak(ctx *player.Context, pos cube.Pos, drops *[]i
 	}
 }
 func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Block) {
-	if h.deny(ctx, pos) {
+	if h.deny(ctx, pos, "guard") {
 		return
 	}
+	core.Mark("achievement.place")
 	achievement.Count(ctx.Player(), "block_place", 1)
+	core.Mark("autofill.place")
 	if held, _ := ctx.Player().HeldItems(); held.Count() == 1 {
 		core.RefillHandLater(ctx.Player(), ctx.Player().Tx(), held)
 	}
+	core.Mark("farm.plant")
 	if kind, _, ok := farm.CropOf(b); ok {
 		achievement.Count(ctx.Player(), "crop_plant", 1)
 		farm.PlantCrop(h.s.Session, pos, kind)
 	}
 	held, _ := ctx.Player().HeldItems()
+	core.Mark("storage.place")
+	core.Mark("machine.place")
+	core.Mark("netstore.place")
+	core.Mark("conduit.place")
+	core.Mark("progress.dragonEgg")
 	switch b := b.(type) {
 	case machine.Machine:
 		if storage.IsSetMachine(b.Kind) {
@@ -139,7 +162,10 @@ func (h *handler) HandleBlockPlace(ctx *player.Context, pos cube.Pos, b world.Bl
 		if netstore.IsNode(b.Kind) {
 			netstore.Forget(h.s.Session, pos) // a node broken by an explosion left its setting
 			// machine.Place sets the block in a deferred call; this one runs after it.
-			ctx.Player().Tx().Defer(func(tx *world.Tx) { netstore.Invalidate(tx, pos) })
+			ctx.Player().Tx().Defer(func(tx *world.Tx) {
+				core.Mark("netstore.placeDeferred")
+				netstore.Invalidate(tx, pos)
+			})
 		}
 	case storage.Drawer:
 		storage.PlaceDrawer(h.s.Session, ctx.Player(), ctx.Player().Tx(), pos, held)
@@ -163,7 +189,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 	if h.useStone(ctx, held) {
 		return
 	}
-	if h.deny(ctx, pos) {
+	if h.deny(ctx, pos, "guard") {
 		return
 	}
 	p, tx := ctx.Player(), ctx.Player().Tx()
@@ -215,7 +241,7 @@ func (h *handler) HandleItemUseOnBlock(ctx *player.Context, pos cube.Pos, face c
 		ctx.Cancel()
 		return
 	}
-	h.deny(ctx, pos.Side(face))
+	h.deny(ctx, pos.Side(face), "guardSide")
 }
 
 // HandleItemUseOnEntity and HandleAttackEntity take the gift of a visiting
