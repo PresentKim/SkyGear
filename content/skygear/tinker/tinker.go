@@ -15,6 +15,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item/category"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/i18n"
 	"github.com/presentkim/skygear/common/slotdeco"
 	_ "github.com/presentkim/skygear/content/skygear/locales" // this server's texts
@@ -91,6 +92,8 @@ func HandleOf(id string) (HandleMaterial, bool) {
 
 // Tool is a tool of a kind with a head and a handle.
 type Tool struct{ Kind, Head, Handle string }
+
+var _ clientdef.TagDigger = Tool{}
 
 func (t Tool) EncodeItem() (string, int16) {
 	return fmt.Sprintf("skygear:tool_%s_%s_%s", t.Kind, t.Head, t.Handle), 0
@@ -180,10 +183,10 @@ var pickTierTags = []struct {
 	{"diamond_pick_diggable", item.ToolTierDiamond.HarvestLevel},
 }
 
-// DestroySpeedsByTag implements item.TagDigger: the tool's speed on every
+// DestroySpeedsByTag implements clientdef.TagDigger: the tool's speed on every
 // block, vanilla or ours, that carries a tag of its kind, as the server
 // times it, so the client mines them as fast as the server expects.
-func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
+func (t Tool) DestroySpeedsByTag() []clientdef.TagSpeed {
 	tags := toolTags[t.Kind]
 	if len(tags) == 0 {
 		return nil
@@ -196,7 +199,7 @@ func (t Tool) DestroySpeedsByTag() []item.TagSpeed {
 			}
 		}
 	}
-	return []item.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
+	return []clientdef.TagSpeed{{Tags: query, Speed: int(math.Round(t.speed()))}}
 }
 
 // Modifiers of a tool, by id.

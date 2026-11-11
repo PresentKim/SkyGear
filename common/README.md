@@ -8,6 +8,7 @@
 | 패키지 | 내용 |
 |---|---|
 | `sghook` | Dragonfly 를 패치하지 않고 세션에 닿는 훅(패킷 가로채기, `go:linkname`, 리플렉션): 카메라·HUD·입력 잠금·가짜 블록·제목·DDUI 패킷·폼 응답 정리·`minecraft:falling_block` 으로 보내는 커스텀 엔티티(떠 있는 글자)에 공기 블록 지정 |
+| `clientdef` | 커스텀 아이템이 클라이언트에 보내는 컴포넌트를 Dragonfly 패치 없이 더함(`ItemEntry`, `sghook.EditCustomItems` 안에서): `Digger`·`TagDigger` 를 구현하면 `minecraft:digger`(캐기 속도), `item.Usable` 이면 `minecraft:use_modifiers`, `item.Fuel` 이면 `minecraft:fuel` |
 | `chestui` | 아이템이 실제로 오가는 창(엔티티 상자). `assets/resourcepack/inventoryui` 와 짝 |
 | `ui` | 메뉴 화면(메뉴·카드·목록·확인·입력·칸 격자·분할·퀘스트 책 등)과 토스트. 화면은 `assets/resourcepack/oreui` 가 그리는 DDUI 화면이고(`oreui`), 그림은 `assets/resourcepack/sgui` 에 있다 |
 | `oreui` | 서버 주도 DDUI 화면(레이아웃·값 보내기, 누름 받기). `assets/resourcepack/oreui` 와 짝 |

@@ -4,6 +4,7 @@ import (
 	"maps"
 
 	"github.com/df-mc/dragonfly/server"
+	"github.com/presentkim/skygear/common/clientdef"
 	"github.com/presentkim/skygear/common/sghook"
 	"github.com/presentkim/skygear/common/timed"
 	"github.com/presentkim/skygear/content/skygear/naming"
@@ -16,11 +17,12 @@ func init() {
 }
 
 // EditItemEntries changes the item entries srv sends every player
-// (sghook.EditCustomItems): our items are named by their translation key and
-// the empty wooden bucket aims at liquids. Call it once, before players join.
+// (sghook.EditCustomItems): our items get their components (clientdef), are
+// named by their translation key and the empty wooden bucket aims at liquids.
+// Call it once, before players join.
 func EditItemEntries(srv *server.Server) {
 	sghook.EditCustomItems(srv, func(e protocol.ItemEntry) protocol.ItemEntry {
-		return sgitem.ClipWoodenBucket(localItemName(e))
+		return sgitem.ClipWoodenBucket(localItemName(clientdef.ItemEntry(e)))
 	})
 }
 

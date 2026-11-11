@@ -1,11 +1,9 @@
 package iteminternal
 
 import (
-	"slices"
-	"strings"
-
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/world"
+	"strings"
 )
 
 // Components returns all the components of the given custom item. If the item has no components, a nil map and false
@@ -49,16 +47,6 @@ func Components(it world.CustomItem) map[string]any {
 			builder.AddProperty("use_animation", int32(1))
 		}
 	}
-	if _, ok := it.(item.Usable); ok {
-		if _, food := it.(item.Consumable); !food {
-			// skygear patch: the client sends a use on the air only for an item
-			// it knows to be usable.
-			builder.AddComponent("minecraft:use_modifiers", map[string]any{
-				"use_duration":      float32(0.05),
-				"movement_modifier": float32(1),
-			})
-		}
-	}
 	if x, ok := it.(item.Cooldown); ok {
 		builder.AddComponent("minecraft:cooldown", map[string]any{
 			"category": name,
@@ -89,43 +77,6 @@ func Components(it world.CustomItem) map[string]any {
 	}
 	if x, ok := it.(item.Glinted); ok {
 		builder.AddProperty("foil", x.Glinted())
-	}
-	var destroy []any
-	if x, ok := it.(item.Digger); ok {
-		// skygear patch: per-block mining speeds for clients.
-		speeds := x.DestroySpeeds()
-		names := make([]string, 0, len(speeds))
-		for name := range speeds {
-			names = append(names, name)
-		}
-		slices.Sort(names)
-		for _, name := range names {
-			destroy = append(destroy, map[string]any{
-				"block": map[string]any{"name": name},
-				"speed": int32(speeds[name]),
-			})
-		}
-	}
-	if x, ok := it.(item.TagDigger); ok {
-		// skygear patch: mining speeds by block tags for clients.
-		for _, s := range x.DestroySpeedsByTag() {
-			destroy = append(destroy, map[string]any{
-				"block": map[string]any{"tags": s.Tags},
-				"speed": int32(s.Speed),
-			})
-		}
-	}
-	if destroy != nil {
-		builder.AddComponent("minecraft:digger", map[string]any{
-			"use_efficiency": true,
-			"destroy_speeds": destroy,
-		})
-	}
-	if x, ok := it.(item.Fuel); ok && x.FuelInfo().Duration > 0 {
-		// skygear patch: lets clients put custom fuels in a furnace's fuel slot.
-		builder.AddComponent("minecraft:fuel", map[string]any{
-			"duration": float32(x.FuelInfo().Duration.Seconds()),
-		})
 	}
 	if x, ok := it.(item.HandEquipped); ok {
 		builder.AddProperty("hand_equipped", x.HandEquipped())
